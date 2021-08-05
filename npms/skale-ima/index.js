@@ -298,10 +298,6 @@ function create_progressive_events_scan_plan( details, nLatestBlockNumber ) {
             arr_progressive_events_scan_plan.push( { nBlockFrom: 0, nBlockTo: "latest" } );
     } else
         arr_progressive_events_scan_plan.push( { nBlockFrom: 0, nBlockTo: "latest" } );
-    details.write(
-        cc.debug( "Progressive scan plan is: " ) + cc.j( arr_progressive_events_scan_plan ) +
-        cc.debug( ", current latest block number is " ) + cc.info( nLatestBlockNumber ) +
-        "\n" );
     return arr_progressive_events_scan_plan;
 }
 
@@ -312,8 +308,11 @@ async function get_web3_pastEventsProgressive( details, w3, attempts, joContract
             cc.info( nBlockFrom ) + cc.debug( " to " ) + cc.info( nBlockTo ) + "\n" );
         return await get_web3_pastEvents( details, w3, attempts, joContract, strEventName, nBlockFrom, nBlockTo, joFilter );
     }
+    details.write( cc.debug( "Will run progressive scan..." ) + "\n" );
     const nLatestBlockNumber = await get_web3_blockNumber( details, 10, w3 );
+    details.write( cc.debug( "Current latest block number is " ) + cc.info( nLatestBlockNumber ) + "\n" );
     const arr_progressive_events_scan_plan = create_progressive_events_scan_plan( details, nLatestBlockNumber );
+    details.write( cc.debug( "Progressive scan plan is: " ) + cc.j( arr_progressive_events_scan_plan ) + "\n" );
     let joLastPlan = { nBlockFrom: 0, nBlockTo: "latest" };
     for( let idxPlan = 0; idxPlan < arr_progressive_events_scan_plan.length; ++idxPlan ) {
         const joPlan = arr_progressive_events_scan_plan[idxPlan];
@@ -3652,10 +3651,27 @@ async function do_transfer(
                     const s = fs.readFileSync( optsStateFile.path );
                     joStateForLogsSearch = JSON.parse( s );
                     const strKeyName = ( strDirection == "M2S" ) ? "lastSearchedStartBlockM2S" : "lastSearchedStartBlockS2M";
-                    if( strKeyName in joStateForLogsSearch && typeof joStateForLogsSearch[strKeyName] == "string" )
+                    if( strKeyName in joStateForLogsSearch && typeof joStateForLogsSearch[strKeyName] == "string" ) {
                         nBlockFrom = "0x" + w3_src.utils.toBN( joStateForLogsSearch[strKeyName] ).toString( 16 );
+                        details.write( strLogPrefix +
+                            cc.normal( "Loaded nearest previously forecasted " ) +
+                            cc.bright( strDirection ) + cc.debug( "/" ) + cc.attention( strKeyName ) +
+                            cc.normal( " block number for logs search value " ) +
+                            cc.info( nBlockFrom ) + "\n" );
+                    } else {
+                        details.write( strLogPrefix +
+                            cc.normal( "Was not found nearest previously forecasted " ) +
+                            cc.bright( strDirection ) + cc.debug( "/" ) + cc.attention( strKeyName ) +
+                            cc.normal( " block number for logs search value " ) +
+                            cc.info( nBlockFrom ) + "\n" );
+                    }
                 } catch ( err ) {
                     nBlockFrom = 0;
+                    details.write( strLogPrefix +
+                        cc.error( "Was reset nearest previously forecasted " ) +
+                        cc.bright( strDirection ) + cc.debug( "/" ) + cc.attention( strKeyName ) +
+                        cc.error( " block number for logs search value " ) +
+                        cc.error( nBlockFrom ) + cc.error( " due to error: " ) + cc.warning( err ) + "\n" );
                 }
             }
             // blockNumberNextForecast = nBlockFrom;
@@ -4084,8 +4100,12 @@ async function do_transfer(
                 if( optsStateFile && optsStateFile.isEnabled && "path" in optsStateFile && typeof optsStateFile.path == "string" && optsStateFile.path.length > 0 ) {
                     if( blockNumberNextForecast !== nBlockFrom ) {
                         try {
-                            details.write( strLogPrefix + cc.normal( "Saving next forecasted block number for logs search value " ) + cc.info( blockNumberNextForecast ) + "\n" );
                             const strKeyName = ( strDirection == "M2S" ) ? "lastSearchedStartBlockM2S" : "lastSearchedStartBlockS2M";
+                            details.write( strLogPrefix +
+                                cc.normal( "Saving next forecasted " +
+                                cc.bright( strDirection ) + cc.debug( "/" ) + cc.attention( strKeyName ) +
+                                " block number for logs search value " ) +
+                                cc.info( blockNumberNextForecast ) + "\n" );
                             joStateForLogsSearch[strKeyName] = blockNumberNextForecast;
                             const s = JSON.stringify( joStateForLogsSearch, null, 4 );
                             fs.writeFileSync( optsStateFile.path, s );
