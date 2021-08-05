@@ -179,10 +179,12 @@ describe("TokenManagerERC20", () => {
             await tokenManagerErc20.connect(schainOwner).enableAutomaticDeploy();
         }
 
-        await tokenManagerErc20.connect(schainOwner).addERC20TokenByOwner(addressERC201, addressERC20);
+        await tokenManagerErc20.connect(schainOwner).addERC20TokenByOwner(addressERC201, addressERC20).should.be.eventually.rejectedWith("Could not relink clone");
 
         eRC20OnChain2 = await deployERC20OnChain("NewToken", "NTN");
+        const eRC20OnChain3 = await deployERC20OnChain("NewToken2", "NTN2");
         eRC20OnMainnet2 = await deployERC20OnChain("NewToken", "NTN");
+        const eRC20OnMainnet3 = await deployERC20OnChain("NewToken2", "NTN2");
 
         if (automaticDeploy) {
             await tokenManagerErc20.connect(schainOwner).enableAutomaticDeploy();
@@ -196,8 +198,12 @@ describe("TokenManagerERC20", () => {
             .should.be.eventually.rejectedWith("Given address is not a contract");
 
         await eRC20OnChain2.mint(user.address, 1);
+        await eRC20OnChain3.mint(user.address, 1);
 
-        await tokenManagerErc20.connect(schainOwner).addERC20TokenByOwner(eRC20OnMainnet2.address, eRC20OnChain2.address)
+        await tokenManagerErc20.connect(schainOwner).addERC20TokenByOwner(eRC20OnMainnet3.address, addressERC20)
+            .should.be.eventually.rejectedWith("Clone was already added");
+
+        await tokenManagerErc20.connect(schainOwner).addERC20TokenByOwner(eRC20OnMainnet3.address, eRC20OnChain3.address)
             .should.be.eventually.rejectedWith("TotalSupply is not zero");
 
     });
