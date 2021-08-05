@@ -280,7 +280,6 @@ function create_progressive_events_scan_plan( details, nLatestBlockNumber ) {
     const txns_in_1_week = txns_in_1_day * 7;
     const txns_in_1_month = txns_in_1_day * 31;
     const txns_in_1_year = txns_in_1_day * 366;
-    console.log( "typeof nLatestBlockNumber -----", typeof nLatestBlockNumber );
     const arr_progressive_events_scan_plan_A = [
         { nBlockFrom: nLatestBlockNumber - txns_in_1_day, nBlockTo: "latest" },
         { nBlockFrom: nLatestBlockNumber - txns_in_1_week, nBlockTo: "latest" },
