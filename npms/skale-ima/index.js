@@ -287,10 +287,11 @@ function create_progressive_events_scan_plan( details, nLatestBlockNumber ) {
         { nBlockFrom: nLatestBlockNumber - txns_in_1_year, nBlockTo: "latest" }
     ];
     const arr_progressive_events_scan_plan = [];
-    for( let idxPlan = 0; idxPlan < arr_progressive_events_scan_plan.length; ++idxPlan ) {
+    for( let idxPlan = 0; idxPlan < arr_progressive_events_scan_plan_A.length; ++idxPlan ) {
         const joPlan = arr_progressive_events_scan_plan_A[idxPlan];
         if( joPlan.nBlockFrom >= 0 )
             arr_progressive_events_scan_plan.push( joPlan );
+
     }
     if( arr_progressive_events_scan_plan.length > 0 ) {
         const joLastPlan = arr_progressive_events_scan_plan[arr_progressive_events_scan_plan.length - 1];
@@ -312,7 +313,7 @@ async function get_web3_pastEventsProgressive( details, w3, attempts, joContract
     const nLatestBlockNumber = await get_web3_blockNumber( details, 10, w3 );
     details.write( cc.debug( "Current latest block number is " ) + cc.info( nLatestBlockNumber ) + "\n" );
     const arr_progressive_events_scan_plan = create_progressive_events_scan_plan( details, nLatestBlockNumber );
-    details.write( cc.debug( "Progressive scan plan is: " ) + cc.j( arr_progressive_events_scan_plan ) + "\n" );
+    details.write( cc.debug( "Composed progressive scan plan is: " ) + cc.j( arr_progressive_events_scan_plan ) + "\n" );
     let joLastPlan = { nBlockFrom: 0, nBlockTo: "latest" };
     for( let idxPlan = 0; idxPlan < arr_progressive_events_scan_plan.length; ++idxPlan ) {
         const joPlan = arr_progressive_events_scan_plan[idxPlan];
