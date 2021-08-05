@@ -280,6 +280,7 @@ function create_progressive_events_scan_plan( details, nLatestBlockNumber ) {
     const txns_in_1_week = txns_in_1_day * 7;
     const txns_in_1_month = txns_in_1_day * 31;
     const txns_in_1_year = txns_in_1_day * 366;
+    console.log( "typeof nLatestBlockNumber -----", typeof nLatestBlockNumber );
     const arr_progressive_events_scan_plan_A = [
         { nBlockFrom: nLatestBlockNumber - txns_in_1_day, nBlockTo: "latest" },
         { nBlockFrom: nLatestBlockNumber - txns_in_1_week, nBlockTo: "latest" },
@@ -3497,10 +3498,10 @@ async function init_ima_state_file( details, w3, strDirection, optsStateFile ) {
     try {
         nBlockFrom = await w3.eth.getBlockNumber();
     } catch ( err ) { }
+    const strKeyName = ( strDirection == "M2S" ) ? "lastSearchedStartBlockM2S" : "lastSearchedStartBlockS2M";
     try {
         const joStateForLogsSearch = {};
         details.write( strLogPrefix + cc.normal( "(FIRST TIME) Saving next forecasted block number for logs search value " ) + cc.info( blockNumberNextForecast ) + "\n" );
-        const strKeyName = ( strDirection == "M2S" ) ? "lastSearchedStartBlockM2S" : "lastSearchedStartBlockS2M";
         joStateForLogsSearch[strKeyName] = nBlockFrom;
         const s = JSON.stringify( joStateForLogsSearch, null, 4 );
         fs.writeFileSync( optsStateFile.path, s );
@@ -3647,10 +3648,10 @@ async function do_transfer(
             let joStateForLogsSearch = {};
             // const nLatestBlockNumber = await get_web3_blockNumber( details, 10, w3_src );
             if( optsStateFile && optsStateFile.isEnabled && "path" in optsStateFile && typeof optsStateFile.path == "string" && optsStateFile.path.length > 0 ) {
+                const strKeyName = ( strDirection == "M2S" ) ? "lastSearchedStartBlockM2S" : "lastSearchedStartBlockS2M";
                 try {
                     const s = fs.readFileSync( optsStateFile.path );
                     joStateForLogsSearch = JSON.parse( s );
-                    const strKeyName = ( strDirection == "M2S" ) ? "lastSearchedStartBlockM2S" : "lastSearchedStartBlockS2M";
                     if( strKeyName in joStateForLogsSearch && typeof joStateForLogsSearch[strKeyName] == "string" ) {
                         nBlockFrom = "0x" + w3_src.utils.toBN( joStateForLogsSearch[strKeyName] ).toString( 16 );
                         details.write( strLogPrefix +
@@ -4099,8 +4100,8 @@ async function do_transfer(
 
                 if( optsStateFile && optsStateFile.isEnabled && "path" in optsStateFile && typeof optsStateFile.path == "string" && optsStateFile.path.length > 0 ) {
                     if( blockNumberNextForecast !== nBlockFrom ) {
+                        const strKeyName = ( strDirection == "M2S" ) ? "lastSearchedStartBlockM2S" : "lastSearchedStartBlockS2M";
                         try {
-                            const strKeyName = ( strDirection == "M2S" ) ? "lastSearchedStartBlockM2S" : "lastSearchedStartBlockS2M";
                             details.write( strLogPrefix +
                                 cc.normal( "Saving next forecasted " +
                                 cc.bright( strDirection ) + cc.debug( "/" ) + cc.attention( strKeyName ) +
