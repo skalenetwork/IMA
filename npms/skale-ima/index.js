@@ -292,7 +292,6 @@ function create_progressive_events_scan_plan( details, nLatestBlockNumber ) {
         const joPlan = arr_progressive_events_scan_plan_A[idxPlan];
         if( joPlan.nBlockFrom >= 0 )
             arr_progressive_events_scan_plan.push( joPlan );
-
     }
     if( arr_progressive_events_scan_plan.length > 0 ) {
         const joLastPlan = arr_progressive_events_scan_plan[arr_progressive_events_scan_plan.length - 1];
