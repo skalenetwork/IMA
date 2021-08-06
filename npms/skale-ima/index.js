@@ -272,19 +272,20 @@ async function get_web3_pastEvents( details, w3, attempts, joContract, strEventN
 }
 
 function create_progressive_events_scan_plan( details, nLatestBlockNumber ) {
-    // assume Main Net mines 60 txns per second for one account
-    // approximately 10x larger then real
-    const txns_in_1_minute = 60;
-    const txns_in_1_hour = txns_in_1_minute * 60;
-    const txns_in_1_day = txns_in_1_hour * 24;
-    const txns_in_1_week = txns_in_1_day * 7;
-    const txns_in_1_month = txns_in_1_day * 31;
-    const txns_in_1_year = txns_in_1_day * 366;
+    // assume Main Net mines 6 blocks per minute
+    const blks_in_1_minute = 6;
+    const blks_in_1_hour = blks_in_1_minute * 60;
+    const blks_in_1_day = blks_in_1_hour * 24;
+    const blks_in_1_week = blks_in_1_day * 7;
+    const blks_in_1_month = blks_in_1_day * 31;
+    const blks_in_1_year = blks_in_1_day * 366;
+    const blks_in_3_years = blks_in_1_year * 3;
     const arr_progressive_events_scan_plan_A = [
-        { nBlockFrom: nLatestBlockNumber - txns_in_1_day, nBlockTo: "latest" },
-        { nBlockFrom: nLatestBlockNumber - txns_in_1_week, nBlockTo: "latest" },
-        { nBlockFrom: nLatestBlockNumber - txns_in_1_month, nBlockTo: "latest" },
-        { nBlockFrom: nLatestBlockNumber - txns_in_1_year, nBlockTo: "latest" }
+        { nBlockFrom: nLatestBlockNumber - blks_in_1_day, nBlockTo: "latest", type: "1 day" },
+        { nBlockFrom: nLatestBlockNumber - blks_in_1_week, nBlockTo: "latest", type: "1 week" },
+        { nBlockFrom: nLatestBlockNumber - blks_in_1_month, nBlockTo: "latest", type: "1 month" },
+        { nBlockFrom: nLatestBlockNumber - blks_in_1_year, nBlockTo: "latest", type: "1 year" },
+        { nBlockFrom: nLatestBlockNumber - blks_in_3_years, nBlockTo: "latest", type: "3 years" }
     ];
     const arr_progressive_events_scan_plan = [];
     for( let idxPlan = 0; idxPlan < arr_progressive_events_scan_plan_A.length; ++idxPlan ) {
@@ -295,9 +296,9 @@ function create_progressive_events_scan_plan( details, nLatestBlockNumber ) {
     if( arr_progressive_events_scan_plan.length > 0 ) {
         const joLastPlan = arr_progressive_events_scan_plan[arr_progressive_events_scan_plan.length - 1];
         if( ! ( joLastPlan.nBlockFrom == 0 && joLastPlan.nBlockTo == "latest" ) )
-            arr_progressive_events_scan_plan.push( { nBlockFrom: 0, nBlockTo: "latest" } );
+            arr_progressive_events_scan_plan.push( { nBlockFrom: 0, nBlockTo: "latest", type: "entire block range" } );
     } else
-        arr_progressive_events_scan_plan.push( { nBlockFrom: 0, nBlockTo: "latest" } );
+        arr_progressive_events_scan_plan.push( { nBlockFrom: 0, nBlockTo: "latest", type: "entire block range" } );
     return arr_progressive_events_scan_plan;
 }
 
@@ -313,7 +314,7 @@ async function get_web3_pastEventsProgressive( details, w3, attempts, joContract
     details.write( cc.debug( "Current latest block number is " ) + cc.info( nLatestBlockNumber ) + "\n" );
     const arr_progressive_events_scan_plan = create_progressive_events_scan_plan( details, nLatestBlockNumber );
     details.write( cc.debug( "Composed progressive scan plan is: " ) + cc.j( arr_progressive_events_scan_plan ) + "\n" );
-    let joLastPlan = { nBlockFrom: 0, nBlockTo: "latest" };
+    let joLastPlan = { nBlockFrom: 0, nBlockTo: "latest", type: "entire block range" };
     for( let idxPlan = 0; idxPlan < arr_progressive_events_scan_plan.length; ++idxPlan ) {
         const joPlan = arr_progressive_events_scan_plan[idxPlan];
         if( joPlan.nBlockFrom < 0 )
@@ -323,6 +324,7 @@ async function get_web3_pastEventsProgressive( details, w3, attempts, joContract
             cc.debug( "Progressive scan of " ) + cc.attention( "getPastEvents" ) + cc.debug( "/" ) + cc.info( strEventName ) +
             cc.debug( ", from block " ) + cc.info( joPlan.nBlockFrom ) +
             cc.debug( ", to block " ) + cc.info( joPlan.nBlockTo ) +
+            cc.debug( ", block range is " ) + cc.info( joPlan.type ) +
             cc.debug( "..." ) + "\n" );
         try {
             const joAllEventsInBlock = await get_web3_pastEvents( details, w3, attempts, joContract, strEventName, joPlan.nBlockFrom, joPlan.nBlockTo, joFilter );
@@ -331,6 +333,7 @@ async function get_web3_pastEventsProgressive( details, w3, attempts, joContract
                     cc.success( "Progressive scan of " ) + cc.attention( "getPastEvents" ) + cc.debug( "/" ) + cc.info( strEventName ) +
                     cc.success( ", from block " ) + cc.info( joPlan.nBlockFrom ) +
                     cc.success( ", to block " ) + cc.info( joPlan.nBlockTo ) +
+                    cc.debug( ", block range is " ) + cc.info( joPlan.type ) +
                     cc.success( ", found " ) + cc.info( joAllEventsInBlock.length ) +
                     cc.success( " event(s)" ) + "\n" );
                 return joAllEventsInBlock;
@@ -346,6 +349,7 @@ async function get_web3_pastEventsProgressive( details, w3, attempts, joContract
         cc.error( "Could not not get Event \"" ) + cc.info( strEventName ) +
         cc.error( "\", from block " ) + cc.info( joLastPlan.nBlockFrom ) +
         cc.error( ", to block " ) + cc.info( joLastPlan.nBlockTo ) +
+        cc.debug( ", block range is " ) + cc.info( joLastPlan.type ) +
         cc.error( ", using progressive event scan" ) + "\n" );
     return [];
 }
