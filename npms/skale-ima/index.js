@@ -272,7 +272,7 @@ async function get_web3_pastEvents( details, w3, attempts, joContract, strEventN
 }
 
 function create_progressive_events_scan_plan( details, nLatestBlockNumber ) {
-    // assume Main Net mines 6 txns per minute for one account
+    // assume Main Net mines 6 blocks per minute
     const blks_in_1_minute = 6;
     const blks_in_1_hour = blks_in_1_minute * 60;
     const blks_in_1_day = blks_in_1_hour * 24;
