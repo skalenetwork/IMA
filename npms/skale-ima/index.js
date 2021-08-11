@@ -234,7 +234,7 @@ async function get_web3_transactionReceipt( details, attempts, w3, txHash ) {
     return txReceipt;
 }
 
-async function get_web3_pastEvents( details, attempts, joContract, strEventName, nBlockFrom, nBlockTo, joFilter ) {
+async function get_web3_pastEvents( details, w3, attempts, joContract, strEventName, nBlockFrom, nBlockTo, joFilter ) {
     const cntAttempts = parseIntOrHex( attempts ) < 1 ? 1 : parseIntOrHex( attempts );
     let joAllEventsInBlock = "";
     try {
@@ -243,12 +243,14 @@ async function get_web3_pastEvents( details, attempts, joContract, strEventName,
             fromBlock: nBlockFrom,
             toBlock: nBlockTo
         } );
-    } catch ( e ) {}
+    } catch ( err ) {}
     let idxAttempt = 2;
     while( joAllEventsInBlock === "" && idxAttempt <= cntAttempts ) {
         details.write(
             cc.warning( "Repeat " ) + cc.error( "getPastEvents" ) + cc.warning( "/" ) + cc.error( strEventName ) +
             cc.warning( ", attempt " ) + cc.error( idxAttempt ) +
+            cc.warning( ", from block " ) + cc.info( nBlockFrom ) +
+            cc.warning( ", to block " ) + cc.info( nBlockTo ) +
             cc.warning( ", previous result is: " ) + cc.j( joAllEventsInBlock ) + "\n" );
         await sleep( 1000 );
         try {
@@ -257,12 +259,99 @@ async function get_web3_pastEvents( details, attempts, joContract, strEventName,
                 fromBlock: nBlockFrom,
                 toBlock: nBlockTo
             } );
-        } catch ( e ) {}
+        } catch ( err ) {}
         idxAttempt++;
     }
-    if( idxAttempt + 1 === cntAttempts && joAllEventsInBlock === "" )
-        throw new Error( "Could not not get Event" + strEventName );
+    if( idxAttempt + 1 === cntAttempts && joAllEventsInBlock === "" ) {
+        throw new Error(
+            "Could not not get Event \"" + strEventName +
+            "\", from block " + nBlockFrom + ", to block " + nBlockTo
+        );
+    }
     return joAllEventsInBlock;
+}
+
+function create_progressive_events_scan_plan( details, nLatestBlockNumber ) {
+    // assume Main Net mines 6 blocks per minute
+    const blks_in_1_minute = 6;
+    const blks_in_1_hour = blks_in_1_minute * 60;
+    const blks_in_1_day = blks_in_1_hour * 24;
+    const blks_in_1_week = blks_in_1_day * 7;
+    const blks_in_1_month = blks_in_1_day * 31;
+    const blks_in_1_year = blks_in_1_day * 366;
+    const blks_in_3_years = blks_in_1_year * 3;
+    const arr_progressive_events_scan_plan_A = [
+        { nBlockFrom: nLatestBlockNumber - blks_in_1_day, nBlockTo: "latest", type: "1 day" },
+        { nBlockFrom: nLatestBlockNumber - blks_in_1_week, nBlockTo: "latest", type: "1 week" },
+        { nBlockFrom: nLatestBlockNumber - blks_in_1_month, nBlockTo: "latest", type: "1 month" },
+        { nBlockFrom: nLatestBlockNumber - blks_in_1_year, nBlockTo: "latest", type: "1 year" },
+        { nBlockFrom: nLatestBlockNumber - blks_in_3_years, nBlockTo: "latest", type: "3 years" }
+    ];
+    const arr_progressive_events_scan_plan = [];
+    for( let idxPlan = 0; idxPlan < arr_progressive_events_scan_plan_A.length; ++idxPlan ) {
+        const joPlan = arr_progressive_events_scan_plan_A[idxPlan];
+        if( joPlan.nBlockFrom >= 0 )
+            arr_progressive_events_scan_plan.push( joPlan );
+    }
+    if( arr_progressive_events_scan_plan.length > 0 ) {
+        const joLastPlan = arr_progressive_events_scan_plan[arr_progressive_events_scan_plan.length - 1];
+        if( ! ( joLastPlan.nBlockFrom == 0 && joLastPlan.nBlockTo == "latest" ) )
+            arr_progressive_events_scan_plan.push( { nBlockFrom: 0, nBlockTo: "latest", type: "entire block range" } );
+    } else
+        arr_progressive_events_scan_plan.push( { nBlockFrom: 0, nBlockTo: "latest", type: "entire block range" } );
+    return arr_progressive_events_scan_plan;
+}
+
+async function get_web3_pastEventsProgressive( details, w3, attempts, joContract, strEventName, nBlockFrom, nBlockTo, joFilter ) {
+    if( ! ( nBlockFrom == 0 && nBlockTo == "latest" ) ) {
+        details.write(
+            cc.debug( "Will skip progressive scan and use scan in block range from " ) +
+            cc.info( nBlockFrom ) + cc.debug( " to " ) + cc.info( nBlockTo ) + "\n" );
+        return await get_web3_pastEvents( details, w3, attempts, joContract, strEventName, nBlockFrom, nBlockTo, joFilter );
+    }
+    details.write( cc.debug( "Will run progressive scan..." ) + "\n" );
+    const nLatestBlockNumber = await get_web3_blockNumber( details, 10, w3 );
+    details.write( cc.debug( "Current latest block number is " ) + cc.info( nLatestBlockNumber ) + "\n" );
+    const arr_progressive_events_scan_plan = create_progressive_events_scan_plan( details, nLatestBlockNumber );
+    details.write( cc.debug( "Composed progressive scan plan is: " ) + cc.j( arr_progressive_events_scan_plan ) + "\n" );
+    let joLastPlan = { nBlockFrom: 0, nBlockTo: "latest", type: "entire block range" };
+    for( let idxPlan = 0; idxPlan < arr_progressive_events_scan_plan.length; ++idxPlan ) {
+        const joPlan = arr_progressive_events_scan_plan[idxPlan];
+        if( joPlan.nBlockFrom < 0 )
+            continue;
+        joLastPlan = joPlan;
+        details.write(
+            cc.debug( "Progressive scan of " ) + cc.attention( "getPastEvents" ) + cc.debug( "/" ) + cc.info( strEventName ) +
+            cc.debug( ", from block " ) + cc.info( joPlan.nBlockFrom ) +
+            cc.debug( ", to block " ) + cc.info( joPlan.nBlockTo ) +
+            cc.debug( ", block range is " ) + cc.info( joPlan.type ) +
+            cc.debug( "..." ) + "\n" );
+        try {
+            const joAllEventsInBlock = await get_web3_pastEvents( details, w3, attempts, joContract, strEventName, joPlan.nBlockFrom, joPlan.nBlockTo, joFilter );
+            if( joAllEventsInBlock && joAllEventsInBlock.length > 0 ) {
+                details.write(
+                    cc.success( "Progressive scan of " ) + cc.attention( "getPastEvents" ) + cc.debug( "/" ) + cc.info( strEventName ) +
+                    cc.success( ", from block " ) + cc.info( joPlan.nBlockFrom ) +
+                    cc.success( ", to block " ) + cc.info( joPlan.nBlockTo ) +
+                    cc.debug( ", block range is " ) + cc.info( joPlan.type ) +
+                    cc.success( ", found " ) + cc.info( joAllEventsInBlock.length ) +
+                    cc.success( " event(s)" ) + "\n" );
+                return joAllEventsInBlock;
+            }
+        } catch ( err ) {}
+    }
+    // throw new Error(
+    //     "Could not not get Event \"" + strEventName +
+    //     "\", from block " + joLastPlan.nBlockFrom + ", to block " + joLastPlan.nBlockTo +
+    //     ", using progressive event scan"
+    // );
+    details.write(
+        cc.error( "Could not not get Event \"" ) + cc.info( strEventName ) +
+        cc.error( "\", from block " ) + cc.info( joLastPlan.nBlockFrom ) +
+        cc.error( ", to block " ) + cc.info( joLastPlan.nBlockTo ) +
+        cc.debug( ", block range is " ) + cc.info( joLastPlan.type ) +
+        cc.error( ", using progressive event scan" ) + "\n" );
+    return [];
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -271,12 +360,12 @@ async function get_web3_pastEvents( details, attempts, joContract, strEventName,
 async function get_contract_call_events( details, w3, joContract, strEventName, nBlockNumber, strTxHash, joFilter ) {
     joFilter = joFilter || {};
     let nBlockFrom = nBlockNumber - 10, nBlockTo = nBlockNumber + 10;
-    const nLatestBlockNumber = await get_web3_blockNumber( details, 10, w3 ); // await get_web3_universal_call( 10, "BlockNumber", w3, null, null );
+    const nLatestBlockNumber = await get_web3_blockNumber( details, 10, w3 );
     if( nBlockFrom < 0 )
         nBlockFrom = 0;
     if( nBlockTo > nLatestBlockNumber )
         nBlockTo = nLatestBlockNumber;
-    const joAllEventsInBlock = await get_web3_pastEvents( details, 10, joContract, strEventName, nBlockFrom, nBlockTo, joFilter );
+    const joAllEventsInBlock = await get_web3_pastEvents( details, w3, 10, joContract, strEventName, nBlockFrom, nBlockTo, joFilter );
     const joAllTransactionEvents = []; let i;
     for( i = 0; i < joAllEventsInBlock.length; ++i ) {
         const joEvent = joAllEventsInBlock[i];
@@ -3412,10 +3501,10 @@ async function init_ima_state_file( details, w3, strDirection, optsStateFile ) {
     try {
         nBlockFrom = await w3.eth.getBlockNumber();
     } catch ( err ) { }
+    const strKeyName = ( strDirection == "M2S" ) ? "lastSearchedStartBlockM2S" : "lastSearchedStartBlockS2M";
     try {
         const joStateForLogsSearch = {};
         details.write( strLogPrefix + cc.normal( "(FIRST TIME) Saving next forecasted block number for logs search value " ) + cc.info( blockNumberNextForecast ) + "\n" );
-        const strKeyName = ( strDirection == "M2S" ) ? "lastSearchedStartBlockM2S" : "lastSearchedStartBlockS2M";
         joStateForLogsSearch[strKeyName] = nBlockFrom;
         const s = JSON.stringify( joStateForLogsSearch, null, 4 );
         fs.writeFileSync( optsStateFile.path, s );
@@ -3560,16 +3649,33 @@ async function do_transfer(
             let nBlockFrom = 0;
             const nBlockTo = "latest";
             let joStateForLogsSearch = {};
-            const nLatestBlockNumber = await get_web3_blockNumber( details, 10, w3_src ); // await get_web3_universal_call( 10, "BlockNumber", w3, null, null );
+            // const nLatestBlockNumber = await get_web3_blockNumber( details, 10, w3_src );
             if( optsStateFile && optsStateFile.isEnabled && "path" in optsStateFile && typeof optsStateFile.path == "string" && optsStateFile.path.length > 0 ) {
+                const strKeyName = ( strDirection == "M2S" ) ? "lastSearchedStartBlockM2S" : "lastSearchedStartBlockS2M";
                 try {
                     const s = fs.readFileSync( optsStateFile.path );
                     joStateForLogsSearch = JSON.parse( s );
-                    const strKeyName = ( strDirection == "M2S" ) ? "lastSearchedStartBlockM2S" : "lastSearchedStartBlockS2M";
-                    if( strKeyName in joStateForLogsSearch && typeof joStateForLogsSearch[strKeyName] == "string" )
+                    if( strKeyName in joStateForLogsSearch && typeof joStateForLogsSearch[strKeyName] == "string" ) {
                         nBlockFrom = "0x" + w3_src.utils.toBN( joStateForLogsSearch[strKeyName] ).toString( 16 );
+                        details.write( strLogPrefix +
+                            cc.normal( "Loaded nearest previously forecasted " ) +
+                            cc.bright( strDirection ) + cc.debug( "/" ) + cc.attention( strKeyName ) +
+                            cc.normal( " block number for logs search value " ) +
+                            cc.info( nBlockFrom ) + "\n" );
+                    } else {
+                        details.write( strLogPrefix +
+                            cc.normal( "Was not found nearest previously forecasted " ) +
+                            cc.bright( strDirection ) + cc.debug( "/" ) + cc.attention( strKeyName ) +
+                            cc.normal( " block number for logs search value " ) +
+                            cc.info( nBlockFrom ) + "\n" );
+                    }
                 } catch ( err ) {
                     nBlockFrom = 0;
+                    details.write( strLogPrefix +
+                        cc.error( "Was reset nearest previously forecasted " ) +
+                        cc.bright( strDirection ) + cc.debug( "/" ) + cc.attention( strKeyName ) +
+                        cc.error( " block number for logs search value " ) +
+                        cc.error( nBlockFrom ) + cc.error( " due to error: " ) + cc.warning( err ) + "\n" );
                 }
             }
             // blockNumberNextForecast = nBlockFrom;
@@ -3580,13 +3686,12 @@ async function do_transfer(
                     break;
                 //
                 //
-                strActionName = "src-chain.MessageProxy.getPastEvents()";
+                strActionName = "src-chain->MessageProxy->scan-past-events()";
                 details.write( strLogPrefix + cc.debug( "Will call " ) + cc.notice( strActionName ) +
-                cc.debug( " for " ) + cc.info( "OutgoingMessage" ) + cc.debug( " event, starting block number is " ) +
-                cc.info( nBlockFrom ) + cc.debug( ", current latest block number is ~ " ) + cc.info( nLatestBlockNumber ) +
-                cc.debug( "..." ) + "\n" );
-                r = await get_web3_pastEvents(
+                cc.debug( " for " ) + cc.info( "OutgoingMessage" ) + cc.debug( " event..." ) + "\n" );
+                r = await get_web3_pastEventsProgressive(
                     details,
+                    w3_src,
                     10,
                     jo_message_proxy_src,
                     "OutgoingMessage",
@@ -3998,9 +4103,13 @@ async function do_transfer(
 
                 if( optsStateFile && optsStateFile.isEnabled && "path" in optsStateFile && typeof optsStateFile.path == "string" && optsStateFile.path.length > 0 ) {
                     if( blockNumberNextForecast !== nBlockFrom ) {
+                        const strKeyName = ( strDirection == "M2S" ) ? "lastSearchedStartBlockM2S" : "lastSearchedStartBlockS2M";
                         try {
-                            details.write( strLogPrefix + cc.normal( "Saving next forecasted block number for logs search value " ) + cc.info( blockNumberNextForecast ) + "\n" );
-                            const strKeyName = ( strDirection == "M2S" ) ? "lastSearchedStartBlockM2S" : "lastSearchedStartBlockS2M";
+                            details.write( strLogPrefix +
+                                cc.normal( "Saving next forecasted " +
+                                cc.bright( strDirection ) + cc.debug( "/" ) + cc.attention( strKeyName ) +
+                                " block number for logs search value " ) +
+                                cc.info( blockNumberNextForecast ) + "\n" );
                             joStateForLogsSearch[strKeyName] = blockNumberNextForecast;
                             const s = JSON.stringify( joStateForLogsSearch, null, 4 );
                             fs.writeFileSync( optsStateFile.path, s );
@@ -4289,6 +4398,7 @@ module.exports.getWaitForNextBlockOnSChain = getWaitForNextBlockOnSChain;
 module.exports.setWaitForNextBlockOnSChain = setWaitForNextBlockOnSChain;
 module.exports.get_web3_blockNumber = get_web3_blockNumber;
 module.exports.get_web3_pastEvents = get_web3_pastEvents;
+module.exports.get_web3_pastEventsProgressive = get_web3_pastEventsProgressive;
 module.exports.parseIntOrHex = parseIntOrHex;
 
 module.exports.balanceETH = balanceETH;
