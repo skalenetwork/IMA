@@ -271,6 +271,107 @@ async function get_web3_pastEvents( details, w3, attempts, joContract, strEventN
     return joAllEventsInBlock;
 }
 
+let g_nCountOfBlocksInIterativeStep = 1000;
+let g_nMaxBlockScanIterationsInAllRange = 5000;
+
+function getBlocksCountInInIterativeStepOfEventsScan() {
+    return g_nCountOfBlocksInIterativeStep;
+}
+function setBlocksCountInInIterativeStepOfEventsScan( n ) {
+    if( ! n )
+        g_nCountOfBlocksInIterativeStep = 0;
+    else {
+        g_nCountOfBlocksInIterativeStep = parseIntOrHex( n );
+        if( g_nCountOfBlocksInIterativeStep < 0 )
+            g_nCountOfBlocksInIterativeStep = 0;
+    }
+}
+
+function getMaxIterationsInAllRangeEventsScan() {
+    return g_nCountOfBlocksInIterativeStep;
+}
+function setMaxIterationsInAllRangeEventsScan( n ) {
+    if( ! n )
+        g_nMaxBlockScanIterationsInAllRange = 0;
+    else {
+        g_nMaxBlockScanIterationsInAllRange = parseIntOrHex( n );
+        if( g_nMaxBlockScanIterationsInAllRange < 0 )
+            g_nMaxBlockScanIterationsInAllRange = 0;
+    }
+}
+
+async function get_web3_pastEventsIterative( details, w3, attempts, joContract, strEventName, nBlockFrom, nBlockTo, joFilter ) {
+    if( g_nCountOfBlocksInIterativeStep <= 0 || g_nMaxBlockScanIterationsInAllRange <= 0 ) {
+        details.write(
+            cc.fatal( "IMPORTANT NOTICE:" ) + " " +
+            cc.warning( "Will skip " ) + cc.attention( "iterative" ) + cc.warning( " events scan in block range from " ) +
+            cc.info( nBlockFrom ) + cc.warning( " to " ) + cc.info( nBlockTo ) +
+            cc.warning( " because it's " ) + cc.error( "DISABLED" ) + "\n" );
+        return await get_web3_pastEvents( details, w3, attempts, joContract, strEventName, nBlockFrom, nBlockTo, joFilter );
+    }
+    if( nBlockFrom == 0 && nBlockTo == "latest" ) {
+        const nLatestBlockNumber = await get_web3_blockNumber( details, 10, w3 );
+        if( ( nLatestBlockNumber / g_nCountOfBlocksInIterativeStep ) > g_nMaxBlockScanIterationsInAllRange ) {
+            details.write(
+                cc.fatal( "IMPORTANT NOTICE:" ) + " " +
+                cc.warning( "Will skip " ) + cc.attention( "iterative" ) + cc.warning( " scan and use scan in block range from " ) +
+                cc.info( nBlockFrom ) + cc.warning( " to " ) + cc.info( nBlockTo ) + "\n" );
+            return await get_web3_pastEvents( details, w3, attempts, joContract, strEventName, nBlockFrom, nBlockTo, joFilter );
+        }
+    }
+    details.write(
+        cc.debug( "Iterative scan in " ) +
+        cc.info( nBlockFrom ) + cc.debug( "/" ) + cc.info( nBlockTo ) +
+        cc.debug( " block range..." ) + "\n" );
+    if( nBlockTo == "latest" ) {
+        const nLatestBlockNumber = await get_web3_blockNumber( details, 10, w3 );
+        nBlockTo = nLatestBlockNumber;
+        details.write(
+            cc.debug( "Iterative scan up to latest block " ) +
+            cc.attention( "#" ) + cc.info( nBlockTo ) +
+            cc.debug( " assumed instead of " ) + cc.attention( "latest" ) + "\n" );
+    }
+    let idxBlockSubRangeFrom = parseIntOrHex( nBlockFrom );
+    for( ; true; ) {
+        let idxBlockSubRangeTo = idxBlockSubRangeFrom + g_nCountOfBlocksInIterativeStep;
+        if( idxBlockSubRangeTo > nBlockTo )
+            idxBlockSubRangeTo = nBlockTo;
+        try {
+            details.write(
+                cc.debug( "Iterative scan of " ) +
+                cc.info( idxBlockSubRangeFrom ) + cc.debug( "/" ) + cc.info( idxBlockSubRangeTo ) +
+                cc.debug( " block sub-range in " ) +
+                cc.info( nBlockFrom ) + cc.debug( "/" ) + cc.info( nBlockTo ) +
+                cc.debug( " block range..." ) + "\n" );
+            const joAllEventsInBlock = await get_web3_pastEvents( details, w3, attempts, joContract, strEventName, idxBlockSubRangeFrom, idxBlockSubRangeTo, joFilter );
+            if( joAllEventsInBlock && joAllEventsInBlock != "" && joAllEventsInBlock.length > 0 ) {
+                details.write(
+                    cc.success( "Result of " ) + cc.attention( "iterative" ) + cc.success( " scan in " ) +
+                    cc.info( nBlockFrom ) + cc.success( "/" ) + cc.info( nBlockTo ) +
+                    cc.success( " block range is " ) + cc.j( joAllEventsInBlock ) + "\n" );
+                return joAllEventsInBlock;
+            }
+        } catch ( err ) {}
+        idxBlockSubRangeFrom = idxBlockSubRangeTo;
+        if( idxBlockSubRangeFrom == nBlockTo )
+            break;
+    }
+    details.write(
+        cc.debug( "Result of " ) + cc.attention( "iterative" ) + cc.debug( " scan in " ) +
+        cc.info( nBlockFrom ) + cc.debug( "/" ) + cc.info( nBlockTo ) +
+        cc.debug( " block range is " ) + cc.warning( "empty" ) + "\n" );
+    return "";
+}
+
+let g_bIsEnabledProgressiveEventsScan = true;
+
+function getEnabledProgressiveEventsScan() {
+    return g_bIsEnabledProgressiveEventsScan ? true : false;
+}
+function setEnabledProgressiveEventsScan( isEnabled ) {
+    g_bIsEnabledProgressiveEventsScan = isEnabled ? true : false;
+}
+
 function create_progressive_events_scan_plan( details, nLatestBlockNumber ) {
     // assume Main Net mines 6 blocks per minute
     const blks_in_1_minute = 6;
@@ -303,17 +404,25 @@ function create_progressive_events_scan_plan( details, nLatestBlockNumber ) {
 }
 
 async function get_web3_pastEventsProgressive( details, w3, attempts, joContract, strEventName, nBlockFrom, nBlockTo, joFilter ) {
+    if( ! g_bIsEnabledProgressiveEventsScan ) {
+        details.write(
+            cc.fatal( "IMPORTANT NOTICE:" ) + " " +
+            cc.warning( "Will skip " ) + cc.attention( "progressive" ) + cc.warning( " events scan in block range from " ) +
+            cc.info( nBlockFrom ) + cc.warning( " to " ) + cc.info( nBlockTo ) +
+            cc.warning( " because it's " ) + cc.error( "DISABLED" ) + "\n" );
+        return await get_web3_pastEvents( details, w3, attempts, joContract, strEventName, nBlockFrom, nBlockTo, joFilter );
+    }
     if( ! ( nBlockFrom == 0 && nBlockTo == "latest" ) ) {
         details.write(
-            cc.debug( "Will skip progressive scan and use scan in block range from " ) +
+            cc.debug( "Will skip " ) + cc.attention( "progressive" ) + cc.debug( " scan and use scan in block range from " ) +
             cc.info( nBlockFrom ) + cc.debug( " to " ) + cc.info( nBlockTo ) + "\n" );
         return await get_web3_pastEvents( details, w3, attempts, joContract, strEventName, nBlockFrom, nBlockTo, joFilter );
     }
-    details.write( cc.debug( "Will run progressive scan..." ) + "\n" );
+    details.write( cc.debug( "Will run " ) + cc.attention( "progressive" ) + cc.debug( " scan..." ) + "\n" );
     const nLatestBlockNumber = await get_web3_blockNumber( details, 10, w3 );
     details.write( cc.debug( "Current latest block number is " ) + cc.info( nLatestBlockNumber ) + "\n" );
     const arr_progressive_events_scan_plan = create_progressive_events_scan_plan( details, nLatestBlockNumber );
-    details.write( cc.debug( "Composed progressive scan plan is: " ) + cc.j( arr_progressive_events_scan_plan ) + "\n" );
+    details.write( cc.debug( "Composed " ) + cc.attention( "progressive" ) + cc.debug( " scan plan is: " ) + cc.j( arr_progressive_events_scan_plan ) + "\n" );
     let joLastPlan = { nBlockFrom: 0, nBlockTo: "latest", type: "entire block range" };
     for( let idxPlan = 0; idxPlan < arr_progressive_events_scan_plan.length; ++idxPlan ) {
         const joPlan = arr_progressive_events_scan_plan[idxPlan];
@@ -327,13 +436,13 @@ async function get_web3_pastEventsProgressive( details, w3, attempts, joContract
             cc.debug( ", block range is " ) + cc.info( joPlan.type ) +
             cc.debug( "..." ) + "\n" );
         try {
-            const joAllEventsInBlock = await get_web3_pastEvents( details, w3, attempts, joContract, strEventName, joPlan.nBlockFrom, joPlan.nBlockTo, joFilter );
+            const joAllEventsInBlock = await get_web3_pastEventsIterative( details, w3, attempts, joContract, strEventName, joPlan.nBlockFrom, joPlan.nBlockTo, joFilter );
             if( joAllEventsInBlock && joAllEventsInBlock.length > 0 ) {
                 details.write(
                     cc.success( "Progressive scan of " ) + cc.attention( "getPastEvents" ) + cc.debug( "/" ) + cc.info( strEventName ) +
                     cc.success( ", from block " ) + cc.info( joPlan.nBlockFrom ) +
                     cc.success( ", to block " ) + cc.info( joPlan.nBlockTo ) +
-                    cc.debug( ", block range is " ) + cc.info( joPlan.type ) +
+                    cc.success( ", block range is " ) + cc.info( joPlan.type ) +
                     cc.success( ", found " ) + cc.info( joAllEventsInBlock.length ) +
                     cc.success( " event(s)" ) + "\n" );
                 return joAllEventsInBlock;
@@ -350,7 +459,7 @@ async function get_web3_pastEventsProgressive( details, w3, attempts, joContract
         cc.error( "\", from block " ) + cc.info( joLastPlan.nBlockFrom ) +
         cc.error( ", to block " ) + cc.info( joLastPlan.nBlockTo ) +
         cc.debug( ", block range is " ) + cc.info( joLastPlan.type ) +
-        cc.error( ", using progressive event scan" ) + "\n" );
+        cc.error( ", using " ) + cc.attention( "progressive" ) + cc.error( " event scan" ) + "\n" );
     return [];
 }
 
@@ -365,7 +474,7 @@ async function get_contract_call_events( details, w3, joContract, strEventName, 
         nBlockFrom = 0;
     if( nBlockTo > nLatestBlockNumber )
         nBlockTo = nLatestBlockNumber;
-    const joAllEventsInBlock = await get_web3_pastEvents( details, w3, 10, joContract, strEventName, nBlockFrom, nBlockTo, joFilter );
+    const joAllEventsInBlock = await get_web3_pastEventsIterative( details, w3, 10, joContract, strEventName, nBlockFrom, nBlockTo, joFilter );
     const joAllTransactionEvents = []; let i;
     for( i = 0; i < joAllEventsInBlock.length; ++i ) {
         const joEvent = joAllEventsInBlock[i];
@@ -4398,7 +4507,15 @@ module.exports.getWaitForNextBlockOnSChain = getWaitForNextBlockOnSChain;
 module.exports.setWaitForNextBlockOnSChain = setWaitForNextBlockOnSChain;
 module.exports.get_web3_blockNumber = get_web3_blockNumber;
 module.exports.get_web3_pastEvents = get_web3_pastEvents;
+module.exports.get_web3_pastEventsIterative = get_web3_pastEventsIterative;
 module.exports.get_web3_pastEventsProgressive = get_web3_pastEventsProgressive;
+module.exports.getBlocksCountInInIterativeStepOfEventsScan = getBlocksCountInInIterativeStepOfEventsScan;
+module.exports.setBlocksCountInInIterativeStepOfEventsScan = setBlocksCountInInIterativeStepOfEventsScan;
+module.exports.getMaxIterationsInAllRangeEventsScan = getMaxIterationsInAllRangeEventsScan;
+module.exports.setMaxIterationsInAllRangeEventsScan = setMaxIterationsInAllRangeEventsScan;
+module.exports.getEnabledProgressiveEventsScan = getEnabledProgressiveEventsScan;
+module.exports.setEnabledProgressiveEventsScan = setEnabledProgressiveEventsScan;
+
 module.exports.parseIntOrHex = parseIntOrHex;
 
 module.exports.balanceETH = balanceETH;

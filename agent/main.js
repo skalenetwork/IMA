@@ -202,7 +202,7 @@ global.imaState = {
     },
 
     "optsStateFile": {
-        "isEnabled": true,
+        "isEnabled": false, // true
         "path": "./ima.state.json"
     },
 
