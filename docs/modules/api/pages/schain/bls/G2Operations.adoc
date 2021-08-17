@@ -810,42 +810,42 @@ Defined operations:
 
 
 [.contract-item]
-==== +++<a class="heading-anchor" area-hidden="true" name=G2Operations-getTWISTB-->getTWISTB</a>+++ `++getTWISTB() → ++[.var-type]#++struct Fp2Operations.Fp2Point++#++++` [.item-kind]#internal#
+== +++<a class="heading-anchor" area-hidden="true" name=G2Operations-getTWISTB-->getTWISTB</a>+++ `++getTWISTB() → ++[.var-type]#++struct Fp2Operations.Fp2Point++#++++` [.item-kind]#internal#
 
 Get value of TWISTB
 
 [.contract-item]
-==== +++<a class="heading-anchor" area-hidden="true" name=G2Operations-getG2Generator-->getG2Generator</a>+++ `++getG2Generator() → ++[.var-type]#++struct G2Operations.G2Point++#++++` [.item-kind]#internal#
+== +++<a class="heading-anchor" area-hidden="true" name=G2Operations-getG2Generator-->getG2Generator</a>+++ `++getG2Generator() → ++[.var-type]#++struct G2Operations.G2Point++#++++` [.item-kind]#internal#
 
 Get G2 group generator
 
 [.contract-item]
-==== +++<a class="heading-anchor" area-hidden="true" name=G2Operations-getG2Zero-->getG2Zero</a>+++ `++getG2Zero() → ++[.var-type]#++struct G2Operations.G2Point++#++++` [.item-kind]#internal#
+== +++<a class="heading-anchor" area-hidden="true" name=G2Operations-getG2Zero-->getG2Zero</a>+++ `++getG2Zero() → ++[.var-type]#++struct G2Operations.G2Point++#++++` [.item-kind]#internal#
 
 Get G2 zero element
 
 [.contract-item]
-==== +++<a class="heading-anchor" area-hidden="true" name=G2Operations-isG2Point-struct-Fp2Operations-Fp2Point-struct-Fp2Operations-Fp2Point->isG2Point</a>+++ `++isG2Point(++[.var-type]#++struct Fp2Operations.Fp2Point++#++ ++[.var-name]#++x++#++, ++[.var-type]#++struct Fp2Operations.Fp2Point++#++ ++[.var-name]#++y++#++) → ++[.var-type]#++bool++#++++` [.item-kind]#internal#
+== +++<a class="heading-anchor" area-hidden="true" name=G2Operations-isG2Point-struct-Fp2Operations-Fp2Point-struct-Fp2Operations-Fp2Point->isG2Point</a>+++ `++isG2Point(++[.var-type]#++struct Fp2Operations.Fp2Point++#++ ++[.var-name]#++x++#++, ++[.var-type]#++struct Fp2Operations.Fp2Point++#++ ++[.var-name]#++y++#++) → ++[.var-type]#++bool++#++++` [.item-kind]#internal#
 
 Check if ({x}, {y}) is an element of G2
 
 [.contract-item]
-==== +++<a class="heading-anchor" area-hidden="true" name=G2Operations-isG2-struct-G2Operations-G2Point->isG2</a>+++ `++isG2(++[.var-type]#++struct G2Operations.G2Point++#++ ++[.var-name]#++value++#++) → ++[.var-type]#++bool++#++++` [.item-kind]#internal#
+== +++<a class="heading-anchor" area-hidden="true" name=G2Operations-isG2-struct-G2Operations-G2Point->isG2</a>+++ `++isG2(++[.var-type]#++struct G2Operations.G2Point++#++ ++[.var-name]#++value++#++) → ++[.var-type]#++bool++#++++` [.item-kind]#internal#
 
 Check if {value} is an element of G2
 
 [.contract-item]
-==== +++<a class="heading-anchor" area-hidden="true" name=G2Operations-isG2ZeroPoint-struct-Fp2Operations-Fp2Point-struct-Fp2Operations-Fp2Point->isG2ZeroPoint</a>+++ `++isG2ZeroPoint(++[.var-type]#++struct Fp2Operations.Fp2Point++#++ ++[.var-name]#++x++#++, ++[.var-type]#++struct Fp2Operations.Fp2Point++#++ ++[.var-name]#++y++#++) → ++[.var-type]#++bool++#++++` [.item-kind]#internal#
+== +++<a class="heading-anchor" area-hidden="true" name=G2Operations-isG2ZeroPoint-struct-Fp2Operations-Fp2Point-struct-Fp2Operations-Fp2Point->isG2ZeroPoint</a>+++ `++isG2ZeroPoint(++[.var-type]#++struct Fp2Operations.Fp2Point++#++ ++[.var-name]#++x++#++, ++[.var-type]#++struct Fp2Operations.Fp2Point++#++ ++[.var-name]#++y++#++) → ++[.var-type]#++bool++#++++` [.item-kind]#internal#
 
 Check if ({x}, {y}) is a zero element of G2
 
 [.contract-item]
-==== +++<a class="heading-anchor" area-hidden="true" name=G2Operations-isG2Zero-struct-G2Operations-G2Point->isG2Zero</a>+++ `++isG2Zero(++[.var-type]#++struct G2Operations.G2Point++#++ ++[.var-name]#++value++#++) → ++[.var-type]#++bool++#++++` [.item-kind]#internal#
+== +++<a class="heading-anchor" area-hidden="true" name=G2Operations-isG2Zero-struct-G2Operations-G2Point->isG2Zero</a>+++ `++isG2Zero(++[.var-type]#++struct G2Operations.G2Point++#++ ++[.var-name]#++value++#++) → ++[.var-type]#++bool++#++++` [.item-kind]#internal#
 
 Check if {value} is a zero element of G2
 
 [.contract-item]
-==== +++<a class="heading-anchor" area-hidden="true" name=G2Operations-isEqual-struct-G2Operations-G2Point-struct-G2Operations-G2Point->isEqual</a>+++ `++isEqual(++[.var-type]#++struct G2Operations.G2Point++#++ ++[.var-name]#++value1++#++, ++[.var-type]#++struct G2Operations.G2Point++#++ ++[.var-name]#++value2++#++) → ++[.var-type]#++bool++#++++` [.item-kind]#internal#
+== +++<a class="heading-anchor" area-hidden="true" name=G2Operations-isEqual-struct-G2Operations-G2Point-struct-G2Operations-G2Point->isEqual</a>+++ `++isEqual(++[.var-type]#++struct G2Operations.G2Point++#++ ++[.var-name]#++value1++#++, ++[.var-type]#++struct G2Operations.G2Point++#++ ++[.var-name]#++value2++#++) → ++[.var-type]#++bool++#++++` [.item-kind]#internal#
 
 Check if {value1} is equal to {value2}
 

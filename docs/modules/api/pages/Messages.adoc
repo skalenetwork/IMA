@@ -820,151 +820,151 @@ for transferring from Mainnet to Schain and vice versa.
 
 
 [.contract-item]
-==== +++<a class="heading-anchor" area-hidden="true" name=Messages-getMessageType-bytes->getMessageType</a>+++ `++getMessageType(++[.var-type]#++bytes++#++ ++[.var-name]#++data++#++) → ++[.var-type]#++enum Messages.MessageType++#++++` [.item-kind]#internal#
+== +++<a class="heading-anchor" area-hidden="true" name=Messages-getMessageType-bytes->getMessageType</a>+++ `++getMessageType(++[.var-type]#++bytes++#++ ++[.var-name]#++data++#++) → ++[.var-type]#++enum Messages.MessageType++#++++` [.item-kind]#internal#
 
 Returns type of message for encoded data.
 
 [.contract-item]
-==== +++<a class="heading-anchor" area-hidden="true" name=Messages-encodeTransferEthMessage-address-uint256->encodeTransferEthMessage</a>+++ `++encodeTransferEthMessage(++[.var-type]#++address++#++ ++[.var-name]#++receiver++#++, ++[.var-type]#++uint256++#++ ++[.var-name]#++amount++#++) → ++[.var-type]#++bytes++#++++` [.item-kind]#internal#
+== +++<a class="heading-anchor" area-hidden="true" name=Messages-encodeTransferEthMessage-address-uint256->encodeTransferEthMessage</a>+++ `++encodeTransferEthMessage(++[.var-type]#++address++#++ ++[.var-name]#++receiver++#++, ++[.var-type]#++uint256++#++ ++[.var-name]#++amount++#++) → ++[.var-type]#++bytes++#++++` [.item-kind]#internal#
 
 Encodes message for transferring ETH. Returns encoded message.
 
 [.contract-item]
-==== +++<a class="heading-anchor" area-hidden="true" name=Messages-decodeTransferEthMessage-bytes->decodeTransferEthMessage</a>+++ `++decodeTransferEthMessage(++[.var-type]#++bytes++#++ ++[.var-name]#++data++#++) → ++[.var-type]#++struct Messages.TransferEthMessage++#++++` [.item-kind]#internal#
+== +++<a class="heading-anchor" area-hidden="true" name=Messages-decodeTransferEthMessage-bytes->decodeTransferEthMessage</a>+++ `++decodeTransferEthMessage(++[.var-type]#++bytes++#++ ++[.var-name]#++data++#++) → ++[.var-type]#++struct Messages.TransferEthMessage++#++++` [.item-kind]#internal#
 
 Decodes message for transferring ETH. Returns structure `TransferEthMessage`.
 
 [.contract-item]
-==== +++<a class="heading-anchor" area-hidden="true" name=Messages-encodeTransferErc20Message-address-address-uint256->encodeTransferErc20Message</a>+++ `++encodeTransferErc20Message(++[.var-type]#++address++#++ ++[.var-name]#++token++#++, ++[.var-type]#++address++#++ ++[.var-name]#++receiver++#++, ++[.var-type]#++uint256++#++ ++[.var-name]#++amount++#++) → ++[.var-type]#++bytes++#++++` [.item-kind]#internal#
+== +++<a class="heading-anchor" area-hidden="true" name=Messages-encodeTransferErc20Message-address-address-uint256->encodeTransferErc20Message</a>+++ `++encodeTransferErc20Message(++[.var-type]#++address++#++ ++[.var-name]#++token++#++, ++[.var-type]#++address++#++ ++[.var-name]#++receiver++#++, ++[.var-type]#++uint256++#++ ++[.var-name]#++amount++#++) → ++[.var-type]#++bytes++#++++` [.item-kind]#internal#
 
 Encodes message for transferring ETH. Returns encoded message.
 
 [.contract-item]
-==== +++<a class="heading-anchor" area-hidden="true" name=Messages-encodeTransferErc20AndTotalSupplyMessage-address-address-uint256-uint256->encodeTransferErc20AndTotalSupplyMessage</a>+++ `++encodeTransferErc20AndTotalSupplyMessage(++[.var-type]#++address++#++ ++[.var-name]#++token++#++, ++[.var-type]#++address++#++ ++[.var-name]#++receiver++#++, ++[.var-type]#++uint256++#++ ++[.var-name]#++amount++#++, ++[.var-type]#++uint256++#++ ++[.var-name]#++totalSupply++#++) → ++[.var-type]#++bytes++#++++` [.item-kind]#internal#
+== +++<a class="heading-anchor" area-hidden="true" name=Messages-encodeTransferErc20AndTotalSupplyMessage-address-address-uint256-uint256->encodeTransferErc20AndTotalSupplyMessage</a>+++ `++encodeTransferErc20AndTotalSupplyMessage(++[.var-type]#++address++#++ ++[.var-name]#++token++#++, ++[.var-type]#++address++#++ ++[.var-name]#++receiver++#++, ++[.var-type]#++uint256++#++ ++[.var-name]#++amount++#++, ++[.var-type]#++uint256++#++ ++[.var-name]#++totalSupply++#++) → ++[.var-type]#++bytes++#++++` [.item-kind]#internal#
 
 Encodes message for transferring ERC20 with total supply. Returns encoded message.
 
 [.contract-item]
-==== +++<a class="heading-anchor" area-hidden="true" name=Messages-decodeTransferErc20Message-bytes->decodeTransferErc20Message</a>+++ `++decodeTransferErc20Message(++[.var-type]#++bytes++#++ ++[.var-name]#++data++#++) → ++[.var-type]#++struct Messages.TransferErc20Message++#++++` [.item-kind]#internal#
+== +++<a class="heading-anchor" area-hidden="true" name=Messages-decodeTransferErc20Message-bytes->decodeTransferErc20Message</a>+++ `++decodeTransferErc20Message(++[.var-type]#++bytes++#++ ++[.var-name]#++data++#++) → ++[.var-type]#++struct Messages.TransferErc20Message++#++++` [.item-kind]#internal#
 
 Decodes message for transferring ERC20. Returns structure `TransferErc20Message`.
 
 [.contract-item]
-==== +++<a class="heading-anchor" area-hidden="true" name=Messages-decodeTransferErc20AndTotalSupplyMessage-bytes->decodeTransferErc20AndTotalSupplyMessage</a>+++ `++decodeTransferErc20AndTotalSupplyMessage(++[.var-type]#++bytes++#++ ++[.var-name]#++data++#++) → ++[.var-type]#++struct Messages.TransferErc20AndTotalSupplyMessage++#++++` [.item-kind]#internal#
+== +++<a class="heading-anchor" area-hidden="true" name=Messages-decodeTransferErc20AndTotalSupplyMessage-bytes->decodeTransferErc20AndTotalSupplyMessage</a>+++ `++decodeTransferErc20AndTotalSupplyMessage(++[.var-type]#++bytes++#++ ++[.var-name]#++data++#++) → ++[.var-type]#++struct Messages.TransferErc20AndTotalSupplyMessage++#++++` [.item-kind]#internal#
 
 Decodes message for transferring ERC20 with total supply. 
 Returns structure `TransferErc20AndTotalSupplyMessage`.
 
 [.contract-item]
-==== +++<a class="heading-anchor" area-hidden="true" name=Messages-encodeTransferErc20AndTokenInfoMessage-address-address-uint256-uint256-struct-Messages-Erc20TokenInfo->encodeTransferErc20AndTokenInfoMessage</a>+++ `++encodeTransferErc20AndTokenInfoMessage(++[.var-type]#++address++#++ ++[.var-name]#++token++#++, ++[.var-type]#++address++#++ ++[.var-name]#++receiver++#++, ++[.var-type]#++uint256++#++ ++[.var-name]#++amount++#++, ++[.var-type]#++uint256++#++ ++[.var-name]#++totalSupply++#++, ++[.var-type]#++struct Messages.Erc20TokenInfo++#++ ++[.var-name]#++tokenInfo++#++) → ++[.var-type]#++bytes++#++++` [.item-kind]#internal#
+== +++<a class="heading-anchor" area-hidden="true" name=Messages-encodeTransferErc20AndTokenInfoMessage-address-address-uint256-uint256-struct-Messages-Erc20TokenInfo->encodeTransferErc20AndTokenInfoMessage</a>+++ `++encodeTransferErc20AndTokenInfoMessage(++[.var-type]#++address++#++ ++[.var-name]#++token++#++, ++[.var-type]#++address++#++ ++[.var-name]#++receiver++#++, ++[.var-type]#++uint256++#++ ++[.var-name]#++amount++#++, ++[.var-type]#++uint256++#++ ++[.var-name]#++totalSupply++#++, ++[.var-type]#++struct Messages.Erc20TokenInfo++#++ ++[.var-name]#++tokenInfo++#++) → ++[.var-type]#++bytes++#++++` [.item-kind]#internal#
 
 Encodes message for transferring ERC20 with token info. 
 Returns encoded message.
 
 [.contract-item]
-==== +++<a class="heading-anchor" area-hidden="true" name=Messages-decodeTransferErc20AndTokenInfoMessage-bytes->decodeTransferErc20AndTokenInfoMessage</a>+++ `++decodeTransferErc20AndTokenInfoMessage(++[.var-type]#++bytes++#++ ++[.var-name]#++data++#++) → ++[.var-type]#++struct Messages.TransferErc20AndTokenInfoMessage++#++++` [.item-kind]#internal#
+== +++<a class="heading-anchor" area-hidden="true" name=Messages-decodeTransferErc20AndTokenInfoMessage-bytes->decodeTransferErc20AndTokenInfoMessage</a>+++ `++decodeTransferErc20AndTokenInfoMessage(++[.var-type]#++bytes++#++ ++[.var-name]#++data++#++) → ++[.var-type]#++struct Messages.TransferErc20AndTokenInfoMessage++#++++` [.item-kind]#internal#
 
 Decodes message for transferring ERC20 with token info. 
 Returns structure `TransferErc20AndTokenInfoMessage`.
 
 [.contract-item]
-==== +++<a class="heading-anchor" area-hidden="true" name=Messages-encodeTransferErc721Message-address-address-uint256->encodeTransferErc721Message</a>+++ `++encodeTransferErc721Message(++[.var-type]#++address++#++ ++[.var-name]#++token++#++, ++[.var-type]#++address++#++ ++[.var-name]#++receiver++#++, ++[.var-type]#++uint256++#++ ++[.var-name]#++tokenId++#++) → ++[.var-type]#++bytes++#++++` [.item-kind]#internal#
+== +++<a class="heading-anchor" area-hidden="true" name=Messages-encodeTransferErc721Message-address-address-uint256->encodeTransferErc721Message</a>+++ `++encodeTransferErc721Message(++[.var-type]#++address++#++ ++[.var-name]#++token++#++, ++[.var-type]#++address++#++ ++[.var-name]#++receiver++#++, ++[.var-type]#++uint256++#++ ++[.var-name]#++tokenId++#++) → ++[.var-type]#++bytes++#++++` [.item-kind]#internal#
 
 Encodes message for transferring ERC721. 
 Returns encoded message.
 
 [.contract-item]
-==== +++<a class="heading-anchor" area-hidden="true" name=Messages-decodeTransferErc721Message-bytes->decodeTransferErc721Message</a>+++ `++decodeTransferErc721Message(++[.var-type]#++bytes++#++ ++[.var-name]#++data++#++) → ++[.var-type]#++struct Messages.TransferErc721Message++#++++` [.item-kind]#internal#
+== +++<a class="heading-anchor" area-hidden="true" name=Messages-decodeTransferErc721Message-bytes->decodeTransferErc721Message</a>+++ `++decodeTransferErc721Message(++[.var-type]#++bytes++#++ ++[.var-name]#++data++#++) → ++[.var-type]#++struct Messages.TransferErc721Message++#++++` [.item-kind]#internal#
 
 Decodes message for transferring ERC721. 
 Returns structure `TransferErc721Message`.
 
 [.contract-item]
-==== +++<a class="heading-anchor" area-hidden="true" name=Messages-encodeTransferErc721AndTokenInfoMessage-address-address-uint256-struct-Messages-Erc721TokenInfo->encodeTransferErc721AndTokenInfoMessage</a>+++ `++encodeTransferErc721AndTokenInfoMessage(++[.var-type]#++address++#++ ++[.var-name]#++token++#++, ++[.var-type]#++address++#++ ++[.var-name]#++receiver++#++, ++[.var-type]#++uint256++#++ ++[.var-name]#++tokenId++#++, ++[.var-type]#++struct Messages.Erc721TokenInfo++#++ ++[.var-name]#++tokenInfo++#++) → ++[.var-type]#++bytes++#++++` [.item-kind]#internal#
+== +++<a class="heading-anchor" area-hidden="true" name=Messages-encodeTransferErc721AndTokenInfoMessage-address-address-uint256-struct-Messages-Erc721TokenInfo->encodeTransferErc721AndTokenInfoMessage</a>+++ `++encodeTransferErc721AndTokenInfoMessage(++[.var-type]#++address++#++ ++[.var-name]#++token++#++, ++[.var-type]#++address++#++ ++[.var-name]#++receiver++#++, ++[.var-type]#++uint256++#++ ++[.var-name]#++tokenId++#++, ++[.var-type]#++struct Messages.Erc721TokenInfo++#++ ++[.var-name]#++tokenInfo++#++) → ++[.var-type]#++bytes++#++++` [.item-kind]#internal#
 
 Encodes message for transferring ERC721 with token info. 
 Returns encoded message.
 
 [.contract-item]
-==== +++<a class="heading-anchor" area-hidden="true" name=Messages-decodeTransferErc721AndTokenInfoMessage-bytes->decodeTransferErc721AndTokenInfoMessage</a>+++ `++decodeTransferErc721AndTokenInfoMessage(++[.var-type]#++bytes++#++ ++[.var-name]#++data++#++) → ++[.var-type]#++struct Messages.TransferErc721AndTokenInfoMessage++#++++` [.item-kind]#internal#
+== +++<a class="heading-anchor" area-hidden="true" name=Messages-decodeTransferErc721AndTokenInfoMessage-bytes->decodeTransferErc721AndTokenInfoMessage</a>+++ `++decodeTransferErc721AndTokenInfoMessage(++[.var-type]#++bytes++#++ ++[.var-name]#++data++#++) → ++[.var-type]#++struct Messages.TransferErc721AndTokenInfoMessage++#++++` [.item-kind]#internal#
 
 Decodes message for transferring ERC721 with token info. 
 Returns structure `TransferErc721AndTokenInfoMessage`.
 
 [.contract-item]
-==== +++<a class="heading-anchor" area-hidden="true" name=Messages-encodeActivateUserMessage-address->encodeActivateUserMessage</a>+++ `++encodeActivateUserMessage(++[.var-type]#++address++#++ ++[.var-name]#++receiver++#++) → ++[.var-type]#++bytes++#++++` [.item-kind]#internal#
+== +++<a class="heading-anchor" area-hidden="true" name=Messages-encodeActivateUserMessage-address->encodeActivateUserMessage</a>+++ `++encodeActivateUserMessage(++[.var-type]#++address++#++ ++[.var-name]#++receiver++#++) → ++[.var-type]#++bytes++#++++` [.item-kind]#internal#
 
 Encodes message for activating user on schain. 
 Returns encoded message.
 
 [.contract-item]
-==== +++<a class="heading-anchor" area-hidden="true" name=Messages-encodeLockUserMessage-address->encodeLockUserMessage</a>+++ `++encodeLockUserMessage(++[.var-type]#++address++#++ ++[.var-name]#++receiver++#++) → ++[.var-type]#++bytes++#++++` [.item-kind]#internal#
+== +++<a class="heading-anchor" area-hidden="true" name=Messages-encodeLockUserMessage-address->encodeLockUserMessage</a>+++ `++encodeLockUserMessage(++[.var-type]#++address++#++ ++[.var-name]#++receiver++#++) → ++[.var-type]#++bytes++#++++` [.item-kind]#internal#
 
 Encodes message for locking user on schain. 
 Returns encoded message.
 
 [.contract-item]
-==== +++<a class="heading-anchor" area-hidden="true" name=Messages-decodeUserStatusMessage-bytes->decodeUserStatusMessage</a>+++ `++decodeUserStatusMessage(++[.var-type]#++bytes++#++ ++[.var-name]#++data++#++) → ++[.var-type]#++struct Messages.UserStatusMessage++#++++` [.item-kind]#internal#
+== +++<a class="heading-anchor" area-hidden="true" name=Messages-decodeUserStatusMessage-bytes->decodeUserStatusMessage</a>+++ `++decodeUserStatusMessage(++[.var-type]#++bytes++#++ ++[.var-name]#++data++#++) → ++[.var-type]#++struct Messages.UserStatusMessage++#++++` [.item-kind]#internal#
 
 Decodes message for user status. 
 Returns structure UserStatusMessage.
 
 [.contract-item]
-==== +++<a class="heading-anchor" area-hidden="true" name=Messages-encodeInterchainConnectionMessage-bool->encodeInterchainConnectionMessage</a>+++ `++encodeInterchainConnectionMessage(++[.var-type]#++bool++#++ ++[.var-name]#++isAllowed++#++) → ++[.var-type]#++bytes++#++++` [.item-kind]#internal#
+== +++<a class="heading-anchor" area-hidden="true" name=Messages-encodeInterchainConnectionMessage-bool->encodeInterchainConnectionMessage</a>+++ `++encodeInterchainConnectionMessage(++[.var-type]#++bool++#++ ++[.var-name]#++isAllowed++#++) → ++[.var-type]#++bytes++#++++` [.item-kind]#internal#
 
 Encodes message for allowing interchain connection.
 Returns encoded message.
 
 [.contract-item]
-==== +++<a class="heading-anchor" area-hidden="true" name=Messages-decodeInterchainConnectionMessage-bytes->decodeInterchainConnectionMessage</a>+++ `++decodeInterchainConnectionMessage(++[.var-type]#++bytes++#++ ++[.var-name]#++data++#++) → ++[.var-type]#++struct Messages.InterchainConnectionMessage++#++++` [.item-kind]#internal#
+== +++<a class="heading-anchor" area-hidden="true" name=Messages-decodeInterchainConnectionMessage-bytes->decodeInterchainConnectionMessage</a>+++ `++decodeInterchainConnectionMessage(++[.var-type]#++bytes++#++ ++[.var-name]#++data++#++) → ++[.var-type]#++struct Messages.InterchainConnectionMessage++#++++` [.item-kind]#internal#
 
 Decodes message for allowing interchain connection.
 Returns structure `InterchainConnectionMessage`.
 
 [.contract-item]
-==== +++<a class="heading-anchor" area-hidden="true" name=Messages-encodeTransferErc1155Message-address-address-uint256-uint256->encodeTransferErc1155Message</a>+++ `++encodeTransferErc1155Message(++[.var-type]#++address++#++ ++[.var-name]#++token++#++, ++[.var-type]#++address++#++ ++[.var-name]#++receiver++#++, ++[.var-type]#++uint256++#++ ++[.var-name]#++id++#++, ++[.var-type]#++uint256++#++ ++[.var-name]#++amount++#++) → ++[.var-type]#++bytes++#++++` [.item-kind]#internal#
+== +++<a class="heading-anchor" area-hidden="true" name=Messages-encodeTransferErc1155Message-address-address-uint256-uint256->encodeTransferErc1155Message</a>+++ `++encodeTransferErc1155Message(++[.var-type]#++address++#++ ++[.var-name]#++token++#++, ++[.var-type]#++address++#++ ++[.var-name]#++receiver++#++, ++[.var-type]#++uint256++#++ ++[.var-name]#++id++#++, ++[.var-type]#++uint256++#++ ++[.var-name]#++amount++#++) → ++[.var-type]#++bytes++#++++` [.item-kind]#internal#
 
 Encodes message for transferring ERC1155 token.
 Returns encoded message.
 
 [.contract-item]
-==== +++<a class="heading-anchor" area-hidden="true" name=Messages-decodeTransferErc1155Message-bytes->decodeTransferErc1155Message</a>+++ `++decodeTransferErc1155Message(++[.var-type]#++bytes++#++ ++[.var-name]#++data++#++) → ++[.var-type]#++struct Messages.TransferErc1155Message++#++++` [.item-kind]#internal#
+== +++<a class="heading-anchor" area-hidden="true" name=Messages-decodeTransferErc1155Message-bytes->decodeTransferErc1155Message</a>+++ `++decodeTransferErc1155Message(++[.var-type]#++bytes++#++ ++[.var-name]#++data++#++) → ++[.var-type]#++struct Messages.TransferErc1155Message++#++++` [.item-kind]#internal#
 
 Decodes message for transferring ERC1155 token.
 Returns structure `TransferErc1155Message`.
 
 [.contract-item]
-==== +++<a class="heading-anchor" area-hidden="true" name=Messages-encodeTransferErc1155AndTokenInfoMessage-address-address-uint256-uint256-struct-Messages-Erc1155TokenInfo->encodeTransferErc1155AndTokenInfoMessage</a>+++ `++encodeTransferErc1155AndTokenInfoMessage(++[.var-type]#++address++#++ ++[.var-name]#++token++#++, ++[.var-type]#++address++#++ ++[.var-name]#++receiver++#++, ++[.var-type]#++uint256++#++ ++[.var-name]#++id++#++, ++[.var-type]#++uint256++#++ ++[.var-name]#++amount++#++, ++[.var-type]#++struct Messages.Erc1155TokenInfo++#++ ++[.var-name]#++tokenInfo++#++) → ++[.var-type]#++bytes++#++++` [.item-kind]#internal#
+== +++<a class="heading-anchor" area-hidden="true" name=Messages-encodeTransferErc1155AndTokenInfoMessage-address-address-uint256-uint256-struct-Messages-Erc1155TokenInfo->encodeTransferErc1155AndTokenInfoMessage</a>+++ `++encodeTransferErc1155AndTokenInfoMessage(++[.var-type]#++address++#++ ++[.var-name]#++token++#++, ++[.var-type]#++address++#++ ++[.var-name]#++receiver++#++, ++[.var-type]#++uint256++#++ ++[.var-name]#++id++#++, ++[.var-type]#++uint256++#++ ++[.var-name]#++amount++#++, ++[.var-type]#++struct Messages.Erc1155TokenInfo++#++ ++[.var-name]#++tokenInfo++#++) → ++[.var-type]#++bytes++#++++` [.item-kind]#internal#
 
 Encodes message for transferring ERC1155 with token info.
 Returns encoded message.
 
 [.contract-item]
-==== +++<a class="heading-anchor" area-hidden="true" name=Messages-decodeTransferErc1155AndTokenInfoMessage-bytes->decodeTransferErc1155AndTokenInfoMessage</a>+++ `++decodeTransferErc1155AndTokenInfoMessage(++[.var-type]#++bytes++#++ ++[.var-name]#++data++#++) → ++[.var-type]#++struct Messages.TransferErc1155AndTokenInfoMessage++#++++` [.item-kind]#internal#
+== +++<a class="heading-anchor" area-hidden="true" name=Messages-decodeTransferErc1155AndTokenInfoMessage-bytes->decodeTransferErc1155AndTokenInfoMessage</a>+++ `++decodeTransferErc1155AndTokenInfoMessage(++[.var-type]#++bytes++#++ ++[.var-name]#++data++#++) → ++[.var-type]#++struct Messages.TransferErc1155AndTokenInfoMessage++#++++` [.item-kind]#internal#
 
 Decodes message for transferring ERC1155 with token info.
 Returns structure `TransferErc1155AndTokenInfoMessage`.
 
 [.contract-item]
-==== +++<a class="heading-anchor" area-hidden="true" name=Messages-encodeTransferErc1155BatchMessage-address-address-uint256---uint256--->encodeTransferErc1155BatchMessage</a>+++ `++encodeTransferErc1155BatchMessage(++[.var-type]#++address++#++ ++[.var-name]#++token++#++, ++[.var-type]#++address++#++ ++[.var-name]#++receiver++#++, ++[.var-type]#++uint256[]++#++ ++[.var-name]#++ids++#++, ++[.var-type]#++uint256[]++#++ ++[.var-name]#++amounts++#++) → ++[.var-type]#++bytes++#++++` [.item-kind]#internal#
+== +++<a class="heading-anchor" area-hidden="true" name=Messages-encodeTransferErc1155BatchMessage-address-address-uint256---uint256--->encodeTransferErc1155BatchMessage</a>+++ `++encodeTransferErc1155BatchMessage(++[.var-type]#++address++#++ ++[.var-name]#++token++#++, ++[.var-type]#++address++#++ ++[.var-name]#++receiver++#++, ++[.var-type]#++uint256[]++#++ ++[.var-name]#++ids++#++, ++[.var-type]#++uint256[]++#++ ++[.var-name]#++amounts++#++) → ++[.var-type]#++bytes++#++++` [.item-kind]#internal#
 
 Encodes message for transferring ERC1155 token in batches.
 Returns encoded message.
 
 [.contract-item]
-==== +++<a class="heading-anchor" area-hidden="true" name=Messages-decodeTransferErc1155BatchMessage-bytes->decodeTransferErc1155BatchMessage</a>+++ `++decodeTransferErc1155BatchMessage(++[.var-type]#++bytes++#++ ++[.var-name]#++data++#++) → ++[.var-type]#++struct Messages.TransferErc1155BatchMessage++#++++` [.item-kind]#internal#
+== +++<a class="heading-anchor" area-hidden="true" name=Messages-decodeTransferErc1155BatchMessage-bytes->decodeTransferErc1155BatchMessage</a>+++ `++decodeTransferErc1155BatchMessage(++[.var-type]#++bytes++#++ ++[.var-name]#++data++#++) → ++[.var-type]#++struct Messages.TransferErc1155BatchMessage++#++++` [.item-kind]#internal#
 
 Decodes message for transferring ERC1155 token in batches.
 Returns structure `TransferErc1155BatchMessage`.
 
 [.contract-item]
-==== +++<a class="heading-anchor" area-hidden="true" name=Messages-encodeTransferErc1155BatchAndTokenInfoMessage-address-address-uint256---uint256---struct-Messages-Erc1155TokenInfo->encodeTransferErc1155BatchAndTokenInfoMessage</a>+++ `++encodeTransferErc1155BatchAndTokenInfoMessage(++[.var-type]#++address++#++ ++[.var-name]#++token++#++, ++[.var-type]#++address++#++ ++[.var-name]#++receiver++#++, ++[.var-type]#++uint256[]++#++ ++[.var-name]#++ids++#++, ++[.var-type]#++uint256[]++#++ ++[.var-name]#++amounts++#++, ++[.var-type]#++struct Messages.Erc1155TokenInfo++#++ ++[.var-name]#++tokenInfo++#++) → ++[.var-type]#++bytes++#++++` [.item-kind]#internal#
+== +++<a class="heading-anchor" area-hidden="true" name=Messages-encodeTransferErc1155BatchAndTokenInfoMessage-address-address-uint256---uint256---struct-Messages-Erc1155TokenInfo->encodeTransferErc1155BatchAndTokenInfoMessage</a>+++ `++encodeTransferErc1155BatchAndTokenInfoMessage(++[.var-type]#++address++#++ ++[.var-name]#++token++#++, ++[.var-type]#++address++#++ ++[.var-name]#++receiver++#++, ++[.var-type]#++uint256[]++#++ ++[.var-name]#++ids++#++, ++[.var-type]#++uint256[]++#++ ++[.var-name]#++amounts++#++, ++[.var-type]#++struct Messages.Erc1155TokenInfo++#++ ++[.var-name]#++tokenInfo++#++) → ++[.var-type]#++bytes++#++++` [.item-kind]#internal#
 
 Encodes message for transferring ERC1155 token in batches with token info.
 Returns encoded message.
 
 [.contract-item]
-==== +++<a class="heading-anchor" area-hidden="true" name=Messages-decodeTransferErc1155BatchAndTokenInfoMessage-bytes->decodeTransferErc1155BatchAndTokenInfoMessage</a>+++ `++decodeTransferErc1155BatchAndTokenInfoMessage(++[.var-type]#++bytes++#++ ++[.var-name]#++data++#++) → ++[.var-type]#++struct Messages.TransferErc1155BatchAndTokenInfoMessage++#++++` [.item-kind]#internal#
+== +++<a class="heading-anchor" area-hidden="true" name=Messages-decodeTransferErc1155BatchAndTokenInfoMessage-bytes->decodeTransferErc1155BatchAndTokenInfoMessage</a>+++ `++decodeTransferErc1155BatchAndTokenInfoMessage(++[.var-type]#++bytes++#++ ++[.var-name]#++data++#++) → ++[.var-type]#++struct Messages.TransferErc1155BatchAndTokenInfoMessage++#++++` [.item-kind]#internal#
 
 Decodes message for transferring ERC1155 token in batches with token info.
 Returns structure `TransferErc1155BatchAndTokenInfoMessage`.

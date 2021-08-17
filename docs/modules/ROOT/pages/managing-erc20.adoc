@@ -88,7 +88,7 @@ Now you need to add the pre-deployed **TokenManagerERC20** contact on your SKALE
 
 [tabs]
 ====
-Javascript::
+Web3 JS::
 +
 --
 
@@ -180,7 +180,7 @@ Third, you need to register the Mainnet token contract into IMA on Mainnet using
 
 [tabs]
 ====
-Javascript::
+Web3 JS::
 +
 --
 
@@ -268,7 +268,7 @@ Finally, you need to register the (modified) token contract on the SKALE chain I
 
 [tabs]
 ====
-Javascript::
+Web3 JS::
 +
 --
 
@@ -371,7 +371,7 @@ The **DepositBoxERC20** contract is on Rinkeby testnet. To get the ABIs to inter
 
 [tabs]
 ====
-Javascript::
+Web3 JS::
 +
 --
 
@@ -485,6 +485,26 @@ web3ForMainnet.eth.getTransactionCount(accountForMainnet).then(nonce => {
 });
 ----
 --
+
+IMA-JS::
++
+--
+
+[source,javascript]
+----
+import IMA from '@skalenetwork/ima';
+
+let erc20Name = "sm";
+let MAX_APPROVAL_AMOUNT = 10;
+let SCHAIN_NAME = "[YOUR_SKALE_CHAIN_NAME]";
+let address 
+
+ima.mainnet.approveERC20Transfers(erc20Name, constants.MAX_APPROVAL_AMOUNT, opts);
+ima.depositERC20(SCHAIN_NAME, erc20Name, address, value, opts);
+----
+
+--
+
 ====
 
 === 2. Exit from SKALE Chain

@@ -788,19 +788,19 @@ TokenManagerEth mints EthErc20 tokens. When a user exits a SKALE chain, it burns
 
 
 [.contract-item]
-==== +++<a class="heading-anchor" area-hidden="true" name=TokenManagerEth-setEthErc20Address-contract-EthErc20->setEthErc20Address</a>+++ `++setEthErc20Address(++[.var-type]#++contract EthErc20++#++ ++[.var-name]#++newEthErc20Address++#++)++` [.item-kind]#external#
+== +++<a class="heading-anchor" area-hidden="true" name=TokenManagerEth-setEthErc20Address-contract-EthErc20->setEthErc20Address</a>+++ `++setEthErc20Address(++[.var-type]#++contract EthErc20++#++ ++[.var-name]#++newEthErc20Address++#++)++` [.item-kind]#external#
 
 Register EthErc20 token.
 
 [.contract-item]
-==== +++<a class="heading-anchor" area-hidden="true" name=TokenManagerEth-exitToMain-address-uint256->exitToMain</a>+++ `++exitToMain(++[.var-type]#++address++#++ ++[.var-name]#++to++#++, ++[.var-type]#++uint256++#++ ++[.var-name]#++amount++#++)++` [.item-kind]#external#
+== +++<a class="heading-anchor" area-hidden="true" name=TokenManagerEth-exitToMain-address-uint256->exitToMain</a>+++ `++exitToMain(++[.var-type]#++address++#++ ++[.var-name]#++to++#++, ++[.var-type]#++uint256++#++ ++[.var-name]#++amount++#++)++` [.item-kind]#external#
 
 Move ETH from schain to mainnet.
 
 EthErc20 tokens are burned on schain and ETH are unlocked on mainnet for {to} address.
 
 [.contract-item]
-==== +++<a class="heading-anchor" area-hidden="true" name=TokenManagerEth-transferToSchain-string-address-uint256->transferToSchain</a>+++ `++transferToSchain(++[.var-type]#++string++#++ ++[.var-name]#++targetSchainName++#++, ++[.var-type]#++address++#++ ++[.var-name]#++to++#++, ++[.var-type]#++uint256++#++ ++[.var-name]#++amount++#++)++` [.item-kind]#external#
+== +++<a class="heading-anchor" area-hidden="true" name=TokenManagerEth-transferToSchain-string-address-uint256->transferToSchain</a>+++ `++transferToSchain(++[.var-type]#++string++#++ ++[.var-name]#++targetSchainName++#++, ++[.var-type]#++address++#++ ++[.var-name]#++to++#++, ++[.var-type]#++uint256++#++ ++[.var-name]#++amount++#++)++` [.item-kind]#external#
 
 Move ETH from schain to schain.
 
@@ -808,7 +808,7 @@ EthErc20 tokens are burned on origin schain.
 and are minted on {targetSchainName} schain for {to} address.
 
 [.contract-item]
-==== +++<a class="heading-anchor" area-hidden="true" name=TokenManagerEth-postMessage-bytes32-address-bytes->postMessage</a>+++ `++postMessage(++[.var-type]#++bytes32++#++ ++[.var-name]#++fromChainHash++#++, ++[.var-type]#++address++#++ ++[.var-name]#++sender++#++, ++[.var-type]#++bytes++#++ ++[.var-name]#++data++#++) → ++[.var-type]#++address++#++++` [.item-kind]#external#
+== +++<a class="heading-anchor" area-hidden="true" name=TokenManagerEth-postMessage-bytes32-address-bytes->postMessage</a>+++ `++postMessage(++[.var-type]#++bytes32++#++ ++[.var-name]#++fromChainHash++#++, ++[.var-type]#++address++#++ ++[.var-name]#++sender++#++, ++[.var-type]#++bytes++#++ ++[.var-name]#++data++#++) → ++[.var-type]#++address++#++++` [.item-kind]#external#
 
 Allows MessageProxy to post operational message from mainnet
 or SKALE chains.
@@ -819,7 +819,7 @@ Requirements:
 - `fromSchainName` must exist in TokenManager addresses.
 
 [.contract-item]
-==== +++<a class="heading-anchor" area-hidden="true" name=TokenManagerEth-initialize-string-contract-MessageProxyForSchain-contract-TokenManagerLinker-contract-CommunityLocker-address-contract-EthErc20->initialize</a>+++ `++initialize(++[.var-type]#++string++#++ ++[.var-name]#++newChainName++#++, ++[.var-type]#++contract MessageProxyForSchain++#++ ++[.var-name]#++newMessageProxy++#++, ++[.var-type]#++contract TokenManagerLinker++#++ ++[.var-name]#++newIMALinker++#++, ++[.var-type]#++contract CommunityLocker++#++ ++[.var-name]#++newCommunityLocker++#++, ++[.var-type]#++address++#++ ++[.var-name]#++newDepositBox++#++, ++[.var-type]#++contract EthErc20++#++ ++[.var-name]#++ethErc20Address++#++)++` [.item-kind]#external#
+== +++<a class="heading-anchor" area-hidden="true" name=TokenManagerEth-initialize-string-contract-MessageProxyForSchain-contract-TokenManagerLinker-contract-CommunityLocker-address-contract-EthErc20->initialize</a>+++ `++initialize(++[.var-type]#++string++#++ ++[.var-name]#++newChainName++#++, ++[.var-type]#++contract MessageProxyForSchain++#++ ++[.var-name]#++newMessageProxy++#++, ++[.var-type]#++contract TokenManagerLinker++#++ ++[.var-name]#++newIMALinker++#++, ++[.var-type]#++contract CommunityLocker++#++ ++[.var-name]#++newCommunityLocker++#++, ++[.var-type]#++address++#++ ++[.var-name]#++newDepositBox++#++, ++[.var-type]#++contract EthErc20++#++ ++[.var-name]#++ethErc20Address++#++)++` [.item-kind]#external#
 
 Is called once during contract deployment.
 

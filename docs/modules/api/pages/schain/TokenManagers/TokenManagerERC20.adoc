@@ -797,14 +797,14 @@ TokenManagerERC20 mints tokens. When a user exits a SKALE chain, it burns them.
 
 
 [.contract-item]
-==== +++<a class="heading-anchor" area-hidden="true" name=TokenManagerERC20-exitToMainERC20-address-address-uint256->exitToMainERC20</a>+++ `++exitToMainERC20(++[.var-type]#++address++#++ ++[.var-name]#++contractOnMainnet++#++, ++[.var-type]#++address++#++ ++[.var-name]#++to++#++, ++[.var-type]#++uint256++#++ ++[.var-name]#++amount++#++)++` [.item-kind]#external#
+== +++<a class="heading-anchor" area-hidden="true" name=TokenManagerERC20-exitToMainERC20-address-address-uint256->exitToMainERC20</a>+++ `++exitToMainERC20(++[.var-type]#++address++#++ ++[.var-name]#++contractOnMainnet++#++, ++[.var-type]#++address++#++ ++[.var-name]#++to++#++, ++[.var-type]#++uint256++#++ ++[.var-name]#++amount++#++)++` [.item-kind]#external#
 
 Move tokens from schain to mainnet.
 
 {contractOnMainnet} tokens are burned on schain and unlocked on mainnet for {to} address.
 
 [.contract-item]
-==== +++<a class="heading-anchor" area-hidden="true" name=TokenManagerERC20-transferToSchainERC20-string-address-address-uint256->transferToSchainERC20</a>+++ `++transferToSchainERC20(++[.var-type]#++string++#++ ++[.var-name]#++targetSchainName++#++, ++[.var-type]#++address++#++ ++[.var-name]#++contractOnMainnet++#++, ++[.var-type]#++address++#++ ++[.var-name]#++to++#++, ++[.var-type]#++uint256++#++ ++[.var-name]#++amount++#++)++` [.item-kind]#external#
+== +++<a class="heading-anchor" area-hidden="true" name=TokenManagerERC20-transferToSchainERC20-string-address-address-uint256->transferToSchainERC20</a>+++ `++transferToSchainERC20(++[.var-type]#++string++#++ ++[.var-name]#++targetSchainName++#++, ++[.var-type]#++address++#++ ++[.var-name]#++contractOnMainnet++#++, ++[.var-type]#++address++#++ ++[.var-name]#++to++#++, ++[.var-type]#++uint256++#++ ++[.var-name]#++amount++#++)++` [.item-kind]#external#
 
 Move tokens from schain to schain.
 
@@ -812,7 +812,7 @@ Move tokens from schain to schain.
 and are minted on {targetSchainName} schain for {to} address.
 
 [.contract-item]
-==== +++<a class="heading-anchor" area-hidden="true" name=TokenManagerERC20-postMessage-bytes32-address-bytes->postMessage</a>+++ `++postMessage(++[.var-type]#++bytes32++#++ ++[.var-name]#++fromChainHash++#++, ++[.var-type]#++address++#++ ++[.var-name]#++sender++#++, ++[.var-type]#++bytes++#++ ++[.var-name]#++data++#++) → ++[.var-type]#++address++#++++` [.item-kind]#external#
+== +++<a class="heading-anchor" area-hidden="true" name=TokenManagerERC20-postMessage-bytes32-address-bytes->postMessage</a>+++ `++postMessage(++[.var-type]#++bytes32++#++ ++[.var-name]#++fromChainHash++#++, ++[.var-type]#++address++#++ ++[.var-name]#++sender++#++, ++[.var-type]#++bytes++#++ ++[.var-name]#++data++#++) → ++[.var-type]#++address++#++++` [.item-kind]#external#
 
 Allows MessageProxy to post operational message from mainnet
 or SKALE chains.
@@ -823,28 +823,28 @@ Requirements:
 - `fromSchainName` must exist in TokenManager addresses.
 
 [.contract-item]
-==== +++<a class="heading-anchor" area-hidden="true" name=TokenManagerERC20-addERC20TokenByOwner-address-contract-ERC20OnChain->addERC20TokenByOwner</a>+++ `++addERC20TokenByOwner(++[.var-type]#++address++#++ ++[.var-name]#++erc20OnMainnet++#++, ++[.var-type]#++contract ERC20OnChain++#++ ++[.var-name]#++erc20OnSchain++#++)++` [.item-kind]#external#
+== +++<a class="heading-anchor" area-hidden="true" name=TokenManagerERC20-addERC20TokenByOwner-address-contract-ERC20OnChain->addERC20TokenByOwner</a>+++ `++addERC20TokenByOwner(++[.var-type]#++address++#++ ++[.var-name]#++erc20OnMainnet++#++, ++[.var-type]#++contract ERC20OnChain++#++ ++[.var-name]#++erc20OnSchain++#++)++` [.item-kind]#external#
 
 Allows Schain owner to register an ERC20 token clone in the token manager.
 
 [.contract-item]
-==== +++<a class="heading-anchor" area-hidden="true" name=TokenManagerERC20-initialize-string-contract-MessageProxyForSchain-contract-TokenManagerLinker-contract-CommunityLocker-address->initialize</a>+++ `++initialize(++[.var-type]#++string++#++ ++[.var-name]#++newChainName++#++, ++[.var-type]#++contract MessageProxyForSchain++#++ ++[.var-name]#++newMessageProxy++#++, ++[.var-type]#++contract TokenManagerLinker++#++ ++[.var-name]#++newIMALinker++#++, ++[.var-type]#++contract CommunityLocker++#++ ++[.var-name]#++newCommunityLocker++#++, ++[.var-type]#++address++#++ ++[.var-name]#++newDepositBox++#++)++` [.item-kind]#external#
+== +++<a class="heading-anchor" area-hidden="true" name=TokenManagerERC20-initialize-string-contract-MessageProxyForSchain-contract-TokenManagerLinker-contract-CommunityLocker-address->initialize</a>+++ `++initialize(++[.var-type]#++string++#++ ++[.var-name]#++newChainName++#++, ++[.var-type]#++contract MessageProxyForSchain++#++ ++[.var-name]#++newMessageProxy++#++, ++[.var-type]#++contract TokenManagerLinker++#++ ++[.var-name]#++newIMALinker++#++, ++[.var-type]#++contract CommunityLocker++#++ ++[.var-name]#++newCommunityLocker++#++, ++[.var-type]#++address++#++ ++[.var-name]#++newDepositBox++#++)++` [.item-kind]#external#
 
 Is called once during contract deployment.
 
 
 [.contract-item]
-==== +++<a class="heading-anchor" area-hidden="true" name=TokenManagerERC20-ERC20TokenAdded-address-address->ERC20TokenAdded</a>+++ `++ERC20TokenAdded(++[.var-type]#++address++#++ ++[.var-name]#++erc20OnMainnet++#++, ++[.var-type]#++address++#++ ++[.var-name]#++erc20OnSchain++#++)++` [.item-kind]#event#
+== +++<a class="heading-anchor" area-hidden="true" name=TokenManagerERC20-ERC20TokenAdded-address-address->ERC20TokenAdded</a>+++ `++ERC20TokenAdded(++[.var-type]#++address++#++ ++[.var-name]#++erc20OnMainnet++#++, ++[.var-type]#++address++#++ ++[.var-name]#++erc20OnSchain++#++)++` [.item-kind]#event#
 
 Emitted when schain owner register new ERC20 clone.
 
 [.contract-item]
-==== +++<a class="heading-anchor" area-hidden="true" name=TokenManagerERC20-ERC20TokenCreated-address-address->ERC20TokenCreated</a>+++ `++ERC20TokenCreated(++[.var-type]#++address++#++ ++[.var-name]#++erc20OnMainnet++#++, ++[.var-type]#++address++#++ ++[.var-name]#++erc20OnSchain++#++)++` [.item-kind]#event#
+== +++<a class="heading-anchor" area-hidden="true" name=TokenManagerERC20-ERC20TokenCreated-address-address->ERC20TokenCreated</a>+++ `++ERC20TokenCreated(++[.var-type]#++address++#++ ++[.var-name]#++erc20OnMainnet++#++, ++[.var-type]#++address++#++ ++[.var-name]#++erc20OnSchain++#++)++` [.item-kind]#event#
 
 Emitted when TokenManagerERC20 automatically deploys new ERC20 clone.
 
 [.contract-item]
-==== +++<a class="heading-anchor" area-hidden="true" name=TokenManagerERC20-ERC20TokenReceived-address-address-uint256->ERC20TokenReceived</a>+++ `++ERC20TokenReceived(++[.var-type]#++address++#++ ++[.var-name]#++erc20OnMainnet++#++, ++[.var-type]#++address++#++ ++[.var-name]#++erc20OnSchain++#++, ++[.var-type]#++uint256++#++ ++[.var-name]#++amount++#++)++` [.item-kind]#event#
+== +++<a class="heading-anchor" area-hidden="true" name=TokenManagerERC20-ERC20TokenReceived-address-address-uint256->ERC20TokenReceived</a>+++ `++ERC20TokenReceived(++[.var-type]#++address++#++ ++[.var-name]#++erc20OnMainnet++#++, ++[.var-type]#++address++#++ ++[.var-name]#++erc20OnSchain++#++, ++[.var-type]#++uint256++#++ ++[.var-name]#++amount++#++)++` [.item-kind]#event#
 
 Emitted when someone sends tokens from mainnet to schain.
 

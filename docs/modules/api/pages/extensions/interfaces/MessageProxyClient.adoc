@@ -775,13 +775,13 @@
 
 
 [.contract-item]
-==== +++<a class="heading-anchor" area-hidden="true" name=MessageProxyClient-onlyMessageProxy-->onlyMessageProxy</a>+++ `++onlyMessageProxy()++` [.item-kind]#modifier#
+== +++<a class="heading-anchor" area-hidden="true" name=MessageProxyClient-onlyMessageProxy-->onlyMessageProxy</a>+++ `++onlyMessageProxy()++` [.item-kind]#modifier#
 
 
 
 
 [.contract-item]
-==== +++<a class="heading-anchor" area-hidden="true" name=MessageProxyClient-constructor-address->constructor</a>+++ `++constructor(++[.var-type]#++address++#++ ++[.var-name]#++newMessageProxyAddress++#++)++` [.item-kind]#internal#
+== +++<a class="heading-anchor" area-hidden="true" name=MessageProxyClient-constructor-address->constructor</a>+++ `++constructor(++[.var-type]#++address++#++ ++[.var-name]#++newMessageProxyAddress++#++)++` [.item-kind]#internal#
 
 
 

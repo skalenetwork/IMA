@@ -781,12 +781,12 @@ Holds common BLS public key.
 
 
 [.contract-item]
-==== +++<a class="heading-anchor" area-hidden="true" name=KeyStorage-initialize-->initialize</a>+++ `++initialize()++` [.item-kind]#external#
+== +++<a class="heading-anchor" area-hidden="true" name=KeyStorage-initialize-->initialize</a>+++ `++initialize()++` [.item-kind]#external#
 
 Is called once during contract deployment.
 
 [.contract-item]
-==== +++<a class="heading-anchor" area-hidden="true" name=KeyStorage-getBlsCommonPublicKey-->getBlsCommonPublicKey</a>+++ `++getBlsCommonPublicKey() → ++[.var-type]#++struct G2Operations.G2Point++#++++` [.item-kind]#external#
+== +++<a class="heading-anchor" area-hidden="true" name=KeyStorage-getBlsCommonPublicKey-->getBlsCommonPublicKey</a>+++ `++getBlsCommonPublicKey() → ++[.var-type]#++struct G2Operations.G2Point++#++++` [.item-kind]#external#
 
 Get BLS common public key.
 

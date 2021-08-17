@@ -800,13 +800,13 @@ allows to kill schain when interchain connection was not enabled.
 --
 
 [.contract-item]
-==== +++<a class="heading-anchor" area-hidden="true" name=Linker-onlyLinker-->onlyLinker</a>+++ `++onlyLinker()++` [.item-kind]#modifier#
+== +++<a class="heading-anchor" area-hidden="true" name=Linker-onlyLinker-->onlyLinker</a>+++ `++onlyLinker()++` [.item-kind]#modifier#
 
 Modifier to make a function callable only if caller is granted with {LINKER_ROLE}.
 
 
 [.contract-item]
-==== +++<a class="heading-anchor" area-hidden="true" name=Linker-registerMainnetContract-address->registerMainnetContract</a>+++ `++registerMainnetContract(++[.var-type]#++address++#++ ++[.var-name]#++newMainnetContract++#++)++` [.item-kind]#external#
+== +++<a class="heading-anchor" area-hidden="true" name=Linker-registerMainnetContract-address->registerMainnetContract</a>+++ `++registerMainnetContract(++[.var-type]#++address++#++ ++[.var-name]#++newMainnetContract++#++)++` [.item-kind]#external#
 
 Allows Linker to register external mainnet contracts.
 
@@ -815,7 +815,7 @@ Requirements:
 - Contract must be not registered.
 
 [.contract-item]
-==== +++<a class="heading-anchor" area-hidden="true" name=Linker-removeMainnetContract-address->removeMainnetContract</a>+++ `++removeMainnetContract(++[.var-type]#++address++#++ ++[.var-name]#++mainnetContract++#++)++` [.item-kind]#external#
+== +++<a class="heading-anchor" area-hidden="true" name=Linker-removeMainnetContract-address->removeMainnetContract</a>+++ `++removeMainnetContract(++[.var-type]#++address++#++ ++[.var-name]#++mainnetContract++#++)++` [.item-kind]#external#
 
 Allows Linker to remove external mainnet contracts.
 
@@ -824,7 +824,7 @@ Requirements:
 - Contract must be registered.
 
 [.contract-item]
-==== +++<a class="heading-anchor" area-hidden="true" name=Linker-connectSchain-string-address--->connectSchain</a>+++ `++connectSchain(++[.var-type]#++string++#++ ++[.var-name]#++schainName++#++, ++[.var-type]#++address[]++#++ ++[.var-name]#++schainContracts++#++)++` [.item-kind]#external#
+== +++<a class="heading-anchor" area-hidden="true" name=Linker-connectSchain-string-address--->connectSchain</a>+++ `++connectSchain(++[.var-type]#++string++#++ ++[.var-name]#++schainName++#++, ++[.var-type]#++address[]++#++ ++[.var-name]#++schainContracts++#++)++` [.item-kind]#external#
 
 Allows Linker to connect mainnet contracts with their receivers on schain.
 
@@ -834,7 +834,7 @@ Requirements:
 - Mainnet contract must implement method `addSchainContract`.
 
 [.contract-item]
-==== +++<a class="heading-anchor" area-hidden="true" name=Linker-allowInterchainConnections-string->allowInterchainConnections</a>+++ `++allowInterchainConnections(++[.var-type]#++string++#++ ++[.var-name]#++schainName++#++)++` [.item-kind]#external#
+== +++<a class="heading-anchor" area-hidden="true" name=Linker-allowInterchainConnections-string->allowInterchainConnections</a>+++ `++allowInterchainConnections(++[.var-type]#++string++#++ ++[.var-name]#++schainName++#++)++` [.item-kind]#external#
 
 Allows Schain owner to connect others chains with their own,
 thus others schains have opportunity to send messages from chain to chain.
@@ -844,7 +844,7 @@ Requirements:
 - Schain should not be in the process of being killed.
 
 [.contract-item]
-==== +++<a class="heading-anchor" area-hidden="true" name=Linker-kill-string->kill</a>+++ `++kill(++[.var-type]#++string++#++ ++[.var-name]#++schainName++#++)++` [.item-kind]#external#
+== +++<a class="heading-anchor" area-hidden="true" name=Linker-kill-string->kill</a>+++ `++kill(++[.var-type]#++string++#++ ++[.var-name]#++schainName++#++)++` [.item-kind]#external#
 
 Allows Schain owner and contract deployer to kill schain. 
 To kill the schain, both entities must call this function, and the order is not important.
@@ -854,7 +854,7 @@ Requirements:
 - Interchain connection should be turned off.
 
 [.contract-item]
-==== +++<a class="heading-anchor" area-hidden="true" name=Linker-disconnectSchain-string->disconnectSchain</a>+++ `++disconnectSchain(++[.var-type]#++string++#++ ++[.var-name]#++schainName++#++)++` [.item-kind]#external#
+== +++<a class="heading-anchor" area-hidden="true" name=Linker-disconnectSchain-string->disconnectSchain</a>+++ `++disconnectSchain(++[.var-type]#++string++#++ ++[.var-name]#++schainName++#++)++` [.item-kind]#external#
 
 Allows Linker disconnect schain from the network. This will remove all receiver contracts on schain.
 Thus, messages will not go from the mainnet to the schain.
@@ -864,22 +864,22 @@ Requirements:
 - Mainnet contract should implement method `removeSchainContract`.
 
 [.contract-item]
-==== +++<a class="heading-anchor" area-hidden="true" name=Linker-isNotKilled-bytes32->isNotKilled</a>+++ `++isNotKilled(++[.var-type]#++bytes32++#++ ++[.var-name]#++schainHash++#++) → ++[.var-type]#++bool++#++++` [.item-kind]#external#
+== +++<a class="heading-anchor" area-hidden="true" name=Linker-isNotKilled-bytes32->isNotKilled</a>+++ `++isNotKilled(++[.var-type]#++bytes32++#++ ++[.var-name]#++schainHash++#++) → ++[.var-type]#++bool++#++++` [.item-kind]#external#
 
 Returns true if schain is not killed.
 
 [.contract-item]
-==== +++<a class="heading-anchor" area-hidden="true" name=Linker-hasMainnetContract-address->hasMainnetContract</a>+++ `++hasMainnetContract(++[.var-type]#++address++#++ ++[.var-name]#++mainnetContract++#++) → ++[.var-type]#++bool++#++++` [.item-kind]#external#
+== +++<a class="heading-anchor" area-hidden="true" name=Linker-hasMainnetContract-address->hasMainnetContract</a>+++ `++hasMainnetContract(++[.var-type]#++address++#++ ++[.var-name]#++mainnetContract++#++) → ++[.var-type]#++bool++#++++` [.item-kind]#external#
 
 Returns true if list of mainnet contracts has particular contract.
 
 [.contract-item]
-==== +++<a class="heading-anchor" area-hidden="true" name=Linker-hasSchain-string->hasSchain</a>+++ `++hasSchain(++[.var-type]#++string++#++ ++[.var-name]#++schainName++#++) → ++[.var-type]#++bool++#++ ++[.var-name]#++connected++#++++` [.item-kind]#external#
+== +++<a class="heading-anchor" area-hidden="true" name=Linker-hasSchain-string->hasSchain</a>+++ `++hasSchain(++[.var-type]#++string++#++ ++[.var-name]#++schainName++#++) → ++[.var-type]#++bool++#++ ++[.var-name]#++connected++#++++` [.item-kind]#external#
 
 Returns true if mainnet contracts and schain contracts are connected together for transferring messages.
 
 [.contract-item]
-==== +++<a class="heading-anchor" area-hidden="true" name=Linker-initialize-contract-IContractManager-contract-MessageProxyForMainnet->initialize</a>+++ `++initialize(++[.var-type]#++contract IContractManager++#++ ++[.var-name]#++contractManagerOfSkaleManagerValue++#++, ++[.var-type]#++contract MessageProxyForMainnet++#++ ++[.var-name]#++messageProxyValue++#++)++` [.item-kind]#public#
+== +++<a class="heading-anchor" area-hidden="true" name=Linker-initialize-contract-IContractManager-contract-MessageProxyForMainnet->initialize</a>+++ `++initialize(++[.var-type]#++contract IContractManager++#++ ++[.var-name]#++contractManagerOfSkaleManagerValue++#++, ++[.var-type]#++contract MessageProxyForMainnet++#++ ++[.var-name]#++messageProxyValue++#++)++` [.item-kind]#public#
 
 Create a new Linker contract.
 

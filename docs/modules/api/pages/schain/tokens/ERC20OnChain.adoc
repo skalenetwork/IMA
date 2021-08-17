@@ -780,12 +780,12 @@ ERC20 token that is used as an automatically deployed clone of ERC20 on mainnet.
 
 
 [.contract-item]
-==== +++<a class="heading-anchor" area-hidden="true" name=ERC20OnChain-constructor-string-string->constructor</a>+++ `++constructor(++[.var-type]#++string++#++ ++[.var-name]#++contractName++#++, ++[.var-type]#++string++#++ ++[.var-name]#++contractSymbol++#++)++` [.item-kind]#public#
+== +++<a class="heading-anchor" area-hidden="true" name=ERC20OnChain-constructor-string-string->constructor</a>+++ `++constructor(++[.var-type]#++string++#++ ++[.var-name]#++contractName++#++, ++[.var-type]#++string++#++ ++[.var-name]#++contractSymbol++#++)++` [.item-kind]#public#
 
 
 
 [.contract-item]
-==== +++<a class="heading-anchor" area-hidden="true" name=ERC20OnChain-mint-address-uint256->mint</a>+++ `++mint(++[.var-type]#++address++#++ ++[.var-name]#++account++#++, ++[.var-type]#++uint256++#++ ++[.var-name]#++value++#++)++` [.item-kind]#external#
+== +++<a class="heading-anchor" area-hidden="true" name=ERC20OnChain-mint-address-uint256->mint</a>+++ `++mint(++[.var-type]#++address++#++ ++[.var-name]#++account++#++, ++[.var-type]#++uint256++#++ ++[.var-name]#++value++#++)++` [.item-kind]#external#
 
 Mint tokens.
 

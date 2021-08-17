@@ -790,27 +790,27 @@ Defined operations:
 
 
 [.contract-item]
-==== +++<a class="heading-anchor" area-hidden="true" name=G1Operations-getG1Generator-->getG1Generator</a>+++ `++getG1Generator() → ++[.var-type]#++struct Fp2Operations.Fp2Point++#++++` [.item-kind]#internal#
+== +++<a class="heading-anchor" area-hidden="true" name=G1Operations-getG1Generator-->getG1Generator</a>+++ `++getG1Generator() → ++[.var-type]#++struct Fp2Operations.Fp2Point++#++++` [.item-kind]#internal#
 
 Get G1 group generator
 
 [.contract-item]
-==== +++<a class="heading-anchor" area-hidden="true" name=G1Operations-isG1Point-uint256-uint256->isG1Point</a>+++ `++isG1Point(++[.var-type]#++uint256++#++ ++[.var-name]#++x++#++, ++[.var-type]#++uint256++#++ ++[.var-name]#++y++#++) → ++[.var-type]#++bool++#++++` [.item-kind]#internal#
+== +++<a class="heading-anchor" area-hidden="true" name=G1Operations-isG1Point-uint256-uint256->isG1Point</a>+++ `++isG1Point(++[.var-type]#++uint256++#++ ++[.var-name]#++x++#++, ++[.var-type]#++uint256++#++ ++[.var-name]#++y++#++) → ++[.var-type]#++bool++#++++` [.item-kind]#internal#
 
 Check if ({x], {y}) is a G1 element
 
 [.contract-item]
-==== +++<a class="heading-anchor" area-hidden="true" name=G1Operations-isG1-struct-Fp2Operations-Fp2Point->isG1</a>+++ `++isG1(++[.var-type]#++struct Fp2Operations.Fp2Point++#++ ++[.var-name]#++point++#++) → ++[.var-type]#++bool++#++++` [.item-kind]#internal#
+== +++<a class="heading-anchor" area-hidden="true" name=G1Operations-isG1-struct-Fp2Operations-Fp2Point->isG1</a>+++ `++isG1(++[.var-type]#++struct Fp2Operations.Fp2Point++#++ ++[.var-name]#++point++#++) → ++[.var-type]#++bool++#++++` [.item-kind]#internal#
 
 Check if {point} is a G1 element
 
 [.contract-item]
-==== +++<a class="heading-anchor" area-hidden="true" name=G1Operations-checkRange-struct-Fp2Operations-Fp2Point->checkRange</a>+++ `++checkRange(++[.var-type]#++struct Fp2Operations.Fp2Point++#++ ++[.var-name]#++point++#++) → ++[.var-type]#++bool++#++++` [.item-kind]#internal#
+== +++<a class="heading-anchor" area-hidden="true" name=G1Operations-checkRange-struct-Fp2Operations-Fp2Point->checkRange</a>+++ `++checkRange(++[.var-type]#++struct Fp2Operations.Fp2Point++#++ ++[.var-name]#++point++#++) → ++[.var-type]#++bool++#++++` [.item-kind]#internal#
 
 Check if {point} is a Fp2 element
 
 [.contract-item]
-==== +++<a class="heading-anchor" area-hidden="true" name=G1Operations-negate-uint256->negate</a>+++ `++negate(++[.var-type]#++uint256++#++ ++[.var-name]#++y++#++) → ++[.var-type]#++uint256++#++++` [.item-kind]#internal#
+== +++<a class="heading-anchor" area-hidden="true" name=G1Operations-negate-uint256->negate</a>+++ `++negate(++[.var-type]#++uint256++#++ ++[.var-name]#++y++#++) → ++[.var-type]#++uint256++#++++` [.item-kind]#internal#
 
 For {y} of Fp calculate -y
 

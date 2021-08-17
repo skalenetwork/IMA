@@ -773,7 +773,7 @@
 
 
 [.contract-item]
-==== +++<a class="heading-anchor" area-hidden="true" name=MessageSender-_sendMessage-string-address-bytes->_sendMessage</a>+++ `++_sendMessage(++[.var-type]#++string++#++ ++[.var-name]#++targetChainName++#++, ++[.var-type]#++address++#++ ++[.var-name]#++targetContract++#++, ++[.var-type]#++bytes++#++ ++[.var-name]#++data++#++)++` [.item-kind]#internal#
+== +++<a class="heading-anchor" area-hidden="true" name=MessageSender-_sendMessage-string-address-bytes->_sendMessage</a>+++ `++_sendMessage(++[.var-type]#++string++#++ ++[.var-name]#++targetChainName++#++, ++[.var-type]#++address++#++ ++[.var-name]#++targetContract++#++, ++[.var-type]#++bytes++#++ ++[.var-name]#++data++#++)++` [.item-kind]#internal#
 
 
 

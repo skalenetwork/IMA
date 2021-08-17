@@ -814,35 +814,35 @@ TokenManager mints tokens when user locks tokens on mainnet and burn them when u
 --
 
 [.contract-item]
-==== +++<a class="heading-anchor" area-hidden="true" name=TokenManager-onlyAutomaticDeploy-->onlyAutomaticDeploy</a>+++ `++onlyAutomaticDeploy()++` [.item-kind]#modifier#
+== +++<a class="heading-anchor" area-hidden="true" name=TokenManager-onlyAutomaticDeploy-->onlyAutomaticDeploy</a>+++ `++onlyAutomaticDeploy()++` [.item-kind]#modifier#
 
 Modifier to make a function callable only if caller is granted with {AUTOMATIC_DEPLOY_ROLE}.
 
 [.contract-item]
-==== +++<a class="heading-anchor" area-hidden="true" name=TokenManager-onlyTokenRegistrar-->onlyTokenRegistrar</a>+++ `++onlyTokenRegistrar()++` [.item-kind]#modifier#
+== +++<a class="heading-anchor" area-hidden="true" name=TokenManager-onlyTokenRegistrar-->onlyTokenRegistrar</a>+++ `++onlyTokenRegistrar()++` [.item-kind]#modifier#
 
 Modifier to make a function callable only if caller is granted with {TOKEN_REGISTRAR_ROLE}.
 
 [.contract-item]
-==== +++<a class="heading-anchor" area-hidden="true" name=TokenManager-onlyMessageProxy-->onlyMessageProxy</a>+++ `++onlyMessageProxy()++` [.item-kind]#modifier#
+== +++<a class="heading-anchor" area-hidden="true" name=TokenManager-onlyMessageProxy-->onlyMessageProxy</a>+++ `++onlyMessageProxy()++` [.item-kind]#modifier#
 
 Modifier to make a function callable only if caller is {MessageProxy}.
 
 [.contract-item]
-==== +++<a class="heading-anchor" area-hidden="true" name=TokenManager-rightTransaction-string-address->rightTransaction</a>+++ `++rightTransaction(++[.var-type]#++string++#++ ++[.var-name]#++targetSchainName++#++, ++[.var-type]#++address++#++ ++[.var-name]#++to++#++)++` [.item-kind]#modifier#
+== +++<a class="heading-anchor" area-hidden="true" name=TokenManager-rightTransaction-string-address->rightTransaction</a>+++ `++rightTransaction(++[.var-type]#++string++#++ ++[.var-name]#++targetSchainName++#++, ++[.var-type]#++address++#++ ++[.var-name]#++to++#++)++` [.item-kind]#modifier#
 
 Modifier to make a function callable only if
 a message does not aim mainnet, target SKALE chain has token manager and receiver is set.
 
 [.contract-item]
-==== +++<a class="heading-anchor" area-hidden="true" name=TokenManager-checkReceiverChain-bytes32-address->checkReceiverChain</a>+++ `++checkReceiverChain(++[.var-type]#++bytes32++#++ ++[.var-name]#++fromChainHash++#++, ++[.var-type]#++address++#++ ++[.var-name]#++sender++#++)++` [.item-kind]#modifier#
+== +++<a class="heading-anchor" area-hidden="true" name=TokenManager-checkReceiverChain-bytes32-address->checkReceiverChain</a>+++ `++checkReceiverChain(++[.var-type]#++bytes32++#++ ++[.var-name]#++fromChainHash++#++, ++[.var-type]#++address++#++ ++[.var-name]#++sender++#++)++` [.item-kind]#modifier#
 
 Modifier to make a function callable only if
 sender is deposit box on mainnet or token manager on other SKALE chain.
 
 
 [.contract-item]
-==== +++<a class="heading-anchor" area-hidden="true" name=TokenManager-enableAutomaticDeploy-->enableAutomaticDeploy</a>+++ `++enableAutomaticDeploy()++` [.item-kind]#external#
+== +++<a class="heading-anchor" area-hidden="true" name=TokenManager-enableAutomaticDeploy-->enableAutomaticDeploy</a>+++ `++enableAutomaticDeploy()++` [.item-kind]#external#
 
 Turn on automatic deploy on schain.
 
@@ -851,7 +851,7 @@ Requirements:
 - Function caller has to be granted with {AUTOMATIC_DEPLOY_ROLE}.
 
 [.contract-item]
-==== +++<a class="heading-anchor" area-hidden="true" name=TokenManager-disableAutomaticDeploy-->disableAutomaticDeploy</a>+++ `++disableAutomaticDeploy()++` [.item-kind]#external#
+== +++<a class="heading-anchor" area-hidden="true" name=TokenManager-disableAutomaticDeploy-->disableAutomaticDeploy</a>+++ `++disableAutomaticDeploy()++` [.item-kind]#external#
 
 Turn off automatic deploy on schain.
 
@@ -860,7 +860,7 @@ Requirements:
 - Function caller has to be granted with {AUTOMATIC_DEPLOY_ROLE}.
 
 [.contract-item]
-==== +++<a class="heading-anchor" area-hidden="true" name=TokenManager-addTokenManager-string-address->addTokenManager</a>+++ `++addTokenManager(++[.var-type]#++string++#++ ++[.var-name]#++schainName++#++, ++[.var-type]#++address++#++ ++[.var-name]#++newTokenManager++#++)++` [.item-kind]#external#
+== +++<a class="heading-anchor" area-hidden="true" name=TokenManager-addTokenManager-string-address->addTokenManager</a>+++ `++addTokenManager(++[.var-type]#++string++#++ ++[.var-name]#++schainName++#++, ++[.var-type]#++address++#++ ++[.var-name]#++newTokenManager++#++)++` [.item-kind]#external#
 
 Adds a TokenManagerEth address to
 depositBox.
@@ -872,7 +872,7 @@ Requirements:
 - TokenManager address must be non-zero.
 
 [.contract-item]
-==== +++<a class="heading-anchor" area-hidden="true" name=TokenManager-removeTokenManager-string->removeTokenManager</a>+++ `++removeTokenManager(++[.var-type]#++string++#++ ++[.var-name]#++schainName++#++)++` [.item-kind]#external#
+== +++<a class="heading-anchor" area-hidden="true" name=TokenManager-removeTokenManager-string->removeTokenManager</a>+++ `++removeTokenManager(++[.var-type]#++string++#++ ++[.var-name]#++schainName++#++)++` [.item-kind]#external#
 
 Remove a TokenManager on SKALE chain from TokenManager.
 
@@ -882,7 +882,7 @@ Requirements:
 - SKALE chain must already be set.
 
 [.contract-item]
-==== +++<a class="heading-anchor" area-hidden="true" name=TokenManager-changeDepositBoxAddress-address->changeDepositBoxAddress</a>+++ `++changeDepositBoxAddress(++[.var-type]#++address++#++ ++[.var-name]#++newDepositBox++#++)++` [.item-kind]#external#
+== +++<a class="heading-anchor" area-hidden="true" name=TokenManager-changeDepositBoxAddress-address->changeDepositBoxAddress</a>+++ `++changeDepositBoxAddress(++[.var-type]#++address++#++ ++[.var-name]#++newDepositBox++#++)++` [.item-kind]#external#
 
 Change Deposit Box address
 This function should be executed only in emergency.
@@ -893,18 +893,18 @@ Requirements:
 - {newDepositBox} must be set.
 
 [.contract-item]
-==== +++<a class="heading-anchor" area-hidden="true" name=TokenManager-hasTokenManager-string->hasTokenManager</a>+++ `++hasTokenManager(++[.var-type]#++string++#++ ++[.var-name]#++schainName++#++) → ++[.var-type]#++bool++#++++` [.item-kind]#external#
+== +++<a class="heading-anchor" area-hidden="true" name=TokenManager-hasTokenManager-string->hasTokenManager</a>+++ `++hasTokenManager(++[.var-type]#++string++#++ ++[.var-name]#++schainName++#++) → ++[.var-type]#++bool++#++++` [.item-kind]#external#
 
 Checks whether TokenManager is connected to a {schainName} SKALE chain TokenManager.
 
 [.contract-item]
-==== +++<a class="heading-anchor" area-hidden="true" name=TokenManager-initializeTokenManager-string-contract-MessageProxyForSchain-contract-TokenManagerLinker-contract-CommunityLocker-address->initializeTokenManager</a>+++ `++initializeTokenManager(++[.var-type]#++string++#++ ++[.var-name]#++newSchainName++#++, ++[.var-type]#++contract MessageProxyForSchain++#++ ++[.var-name]#++newMessageProxy++#++, ++[.var-type]#++contract TokenManagerLinker++#++ ++[.var-name]#++newIMALinker++#++, ++[.var-type]#++contract CommunityLocker++#++ ++[.var-name]#++newCommunityLocker++#++, ++[.var-type]#++address++#++ ++[.var-name]#++newDepositBox++#++)++` [.item-kind]#public#
+== +++<a class="heading-anchor" area-hidden="true" name=TokenManager-initializeTokenManager-string-contract-MessageProxyForSchain-contract-TokenManagerLinker-contract-CommunityLocker-address->initializeTokenManager</a>+++ `++initializeTokenManager(++[.var-type]#++string++#++ ++[.var-name]#++newSchainName++#++, ++[.var-type]#++contract MessageProxyForSchain++#++ ++[.var-name]#++newMessageProxy++#++, ++[.var-type]#++contract TokenManagerLinker++#++ ++[.var-name]#++newIMALinker++#++, ++[.var-type]#++contract CommunityLocker++#++ ++[.var-name]#++newCommunityLocker++#++, ++[.var-type]#++address++#++ ++[.var-name]#++newDepositBox++#++)++` [.item-kind]#public#
 
 Is called once during contract deployment.
 
 
 [.contract-item]
-==== +++<a class="heading-anchor" area-hidden="true" name=TokenManager-DepositBoxWasChanged-address-address->DepositBoxWasChanged</a>+++ `++DepositBoxWasChanged(++[.var-type]#++address++#++ ++[.var-name]#++oldValue++#++, ++[.var-type]#++address++#++ ++[.var-name]#++newValue++#++)++` [.item-kind]#event#
+== +++<a class="heading-anchor" area-hidden="true" name=TokenManager-DepositBoxWasChanged-address-address->DepositBoxWasChanged</a>+++ `++DepositBoxWasChanged(++[.var-type]#++address++#++ ++[.var-name]#++oldValue++#++, ++[.var-type]#++address++#++ ++[.var-name]#++newValue++#++)++` [.item-kind]#event#
 
 Emitted when deposit box address was changed.
 

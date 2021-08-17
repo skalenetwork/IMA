@@ -797,7 +797,7 @@ stores deposits of ERC721.
 
 
 [.contract-item]
-==== +++<a class="heading-anchor" area-hidden="true" name=DepositBoxERC721-depositERC721-string-address-address-uint256->depositERC721</a>+++ `++depositERC721(++[.var-type]#++string++#++ ++[.var-name]#++schainName++#++, ++[.var-type]#++address++#++ ++[.var-name]#++erc721OnMainnet++#++, ++[.var-type]#++address++#++ ++[.var-name]#++to++#++, ++[.var-type]#++uint256++#++ ++[.var-name]#++tokenId++#++)++` [.item-kind]#external#
+== +++<a class="heading-anchor" area-hidden="true" name=DepositBoxERC721-depositERC721-string-address-address-uint256->depositERC721</a>+++ `++depositERC721(++[.var-type]#++string++#++ ++[.var-name]#++schainName++#++, ++[.var-type]#++address++#++ ++[.var-name]#++erc721OnMainnet++#++, ++[.var-type]#++address++#++ ++[.var-name]#++to++#++, ++[.var-type]#++uint256++#++ ++[.var-name]#++tokenId++#++)++` [.item-kind]#external#
 
 Allows `msg.sender` to send ERC721 token from mainnet to schain.
 
@@ -807,7 +807,7 @@ Requirements:
 - `msg.sender` should approve their token for DepositBoxERC721 address.
 
 [.contract-item]
-==== +++<a class="heading-anchor" area-hidden="true" name=DepositBoxERC721-postMessage-bytes32-address-bytes->postMessage</a>+++ `++postMessage(++[.var-type]#++bytes32++#++ ++[.var-name]#++schainHash++#++, ++[.var-type]#++address++#++ ++[.var-name]#++sender++#++, ++[.var-type]#++bytes++#++ ++[.var-name]#++data++#++) → ++[.var-type]#++address++#++++` [.item-kind]#external#
+== +++<a class="heading-anchor" area-hidden="true" name=DepositBoxERC721-postMessage-bytes32-address-bytes->postMessage</a>+++ `++postMessage(++[.var-type]#++bytes32++#++ ++[.var-name]#++schainHash++#++, ++[.var-type]#++address++#++ ++[.var-name]#++sender++#++, ++[.var-type]#++bytes++#++ ++[.var-name]#++data++#++) → ++[.var-type]#++address++#++++` [.item-kind]#external#
 
 Allows MessageProxyForMainnet contract to execute transferring ERC721 token from schain to mainnet.
 
@@ -818,12 +818,12 @@ Requirements:
 - DepositBoxERC721 contract should own token.
 
 [.contract-item]
-==== +++<a class="heading-anchor" area-hidden="true" name=DepositBoxERC721-gasPayer-bytes32-address-bytes->gasPayer</a>+++ `++gasPayer(++[.var-type]#++bytes32++#++ ++[.var-name]#++schainHash++#++, ++[.var-type]#++address++#++ ++[.var-name]#++sender++#++, ++[.var-type]#++bytes++#++ ++[.var-name]#++data++#++) → ++[.var-type]#++address++#++++` [.item-kind]#external#
+== +++<a class="heading-anchor" area-hidden="true" name=DepositBoxERC721-gasPayer-bytes32-address-bytes->gasPayer</a>+++ `++gasPayer(++[.var-type]#++bytes32++#++ ++[.var-name]#++schainHash++#++, ++[.var-type]#++address++#++ ++[.var-name]#++sender++#++, ++[.var-type]#++bytes++#++ ++[.var-name]#++data++#++) → ++[.var-type]#++address++#++++` [.item-kind]#external#
 
 
 
 [.contract-item]
-==== +++<a class="heading-anchor" area-hidden="true" name=DepositBoxERC721-addERC721TokenByOwner-string-address->addERC721TokenByOwner</a>+++ `++addERC721TokenByOwner(++[.var-type]#++string++#++ ++[.var-name]#++schainName++#++, ++[.var-type]#++address++#++ ++[.var-name]#++erc721OnMainnet++#++)++` [.item-kind]#external#
+== +++<a class="heading-anchor" area-hidden="true" name=DepositBoxERC721-addERC721TokenByOwner-string-address->addERC721TokenByOwner</a>+++ `++addERC721TokenByOwner(++[.var-type]#++string++#++ ++[.var-name]#++schainName++#++, ++[.var-type]#++address++#++ ++[.var-name]#++erc721OnMainnet++#++)++` [.item-kind]#external#
 
 Allows Schain owner to add an ERC721 token to DepositBoxERC721.
 
@@ -835,7 +835,7 @@ Requirements:
 - Only owner of the schain able to run function.
 
 [.contract-item]
-==== +++<a class="heading-anchor" area-hidden="true" name=DepositBoxERC721-getFunds-string-address-address-uint256->getFunds</a>+++ `++getFunds(++[.var-type]#++string++#++ ++[.var-name]#++schainName++#++, ++[.var-type]#++address++#++ ++[.var-name]#++erc721OnMainnet++#++, ++[.var-type]#++address++#++ ++[.var-name]#++receiver++#++, ++[.var-type]#++uint256++#++ ++[.var-name]#++tokenId++#++)++` [.item-kind]#external#
+== +++<a class="heading-anchor" area-hidden="true" name=DepositBoxERC721-getFunds-string-address-address-uint256->getFunds</a>+++ `++getFunds(++[.var-type]#++string++#++ ++[.var-name]#++schainName++#++, ++[.var-type]#++address++#++ ++[.var-name]#++erc721OnMainnet++#++, ++[.var-type]#++address++#++ ++[.var-name]#++receiver++#++, ++[.var-type]#++uint256++#++ ++[.var-name]#++tokenId++#++)++` [.item-kind]#external#
 
 Allows Schain owner to return each user their tokens.
 The Schain owner decides which tokens to send to which address, 
@@ -846,24 +846,24 @@ Requirements:
 - DepositBoxERC721 contract should own such token.
 
 [.contract-item]
-==== +++<a class="heading-anchor" area-hidden="true" name=DepositBoxERC721-getSchainToERC721-string-address->getSchainToERC721</a>+++ `++getSchainToERC721(++[.var-type]#++string++#++ ++[.var-name]#++schainName++#++, ++[.var-type]#++address++#++ ++[.var-name]#++erc721OnMainnet++#++) → ++[.var-type]#++bool++#++++` [.item-kind]#external#
+== +++<a class="heading-anchor" area-hidden="true" name=DepositBoxERC721-getSchainToERC721-string-address->getSchainToERC721</a>+++ `++getSchainToERC721(++[.var-type]#++string++#++ ++[.var-name]#++schainName++#++, ++[.var-type]#++address++#++ ++[.var-name]#++erc721OnMainnet++#++) → ++[.var-type]#++bool++#++++` [.item-kind]#external#
 
 Should return true if token was added by Schain owner or 
 automatically added after sending to schain if whitelist was turned off.
 
 [.contract-item]
-==== +++<a class="heading-anchor" area-hidden="true" name=DepositBoxERC721-initialize-contract-IContractManager-contract-Linker-contract-MessageProxyForMainnet->initialize</a>+++ `++initialize(++[.var-type]#++contract IContractManager++#++ ++[.var-name]#++contractManagerOfSkaleManagerValue++#++, ++[.var-type]#++contract Linker++#++ ++[.var-name]#++linkerValue++#++, ++[.var-type]#++contract MessageProxyForMainnet++#++ ++[.var-name]#++messageProxyValue++#++)++` [.item-kind]#public#
+== +++<a class="heading-anchor" area-hidden="true" name=DepositBoxERC721-initialize-contract-IContractManager-contract-Linker-contract-MessageProxyForMainnet->initialize</a>+++ `++initialize(++[.var-type]#++contract IContractManager++#++ ++[.var-name]#++contractManagerOfSkaleManagerValue++#++, ++[.var-type]#++contract Linker++#++ ++[.var-name]#++linkerValue++#++, ++[.var-type]#++contract MessageProxyForMainnet++#++ ++[.var-name]#++messageProxyValue++#++)++` [.item-kind]#public#
 
 Creates a new DepositBoxERC721 contract.
 
 
 [.contract-item]
-==== +++<a class="heading-anchor" area-hidden="true" name=DepositBoxERC721-ERC721TokenAdded-string-address->ERC721TokenAdded</a>+++ `++ERC721TokenAdded(++[.var-type]#++string++#++ ++[.var-name]#++schainName++#++, ++[.var-type]#++address++#++ ++[.var-name]#++contractOnMainnet++#++)++` [.item-kind]#event#
+== +++<a class="heading-anchor" area-hidden="true" name=DepositBoxERC721-ERC721TokenAdded-string-address->ERC721TokenAdded</a>+++ `++ERC721TokenAdded(++[.var-type]#++string++#++ ++[.var-name]#++schainName++#++, ++[.var-type]#++address++#++ ++[.var-name]#++contractOnMainnet++#++)++` [.item-kind]#event#
 
 Emitted when token is mapped in DepositBoxERC721.
 
 [.contract-item]
-==== +++<a class="heading-anchor" area-hidden="true" name=DepositBoxERC721-ERC721TokenReady-address-uint256->ERC721TokenReady</a>+++ `++ERC721TokenReady(++[.var-type]#++address++#++ ++[.var-name]#++contractOnMainnet++#++, ++[.var-type]#++uint256++#++ ++[.var-name]#++tokenId++#++)++` [.item-kind]#event#
+== +++<a class="heading-anchor" area-hidden="true" name=DepositBoxERC721-ERC721TokenReady-address-uint256->ERC721TokenReady</a>+++ `++ERC721TokenReady(++[.var-type]#++address++#++ ++[.var-name]#++contractOnMainnet++#++, ++[.var-type]#++uint256++#++ ++[.var-name]#++tokenId++#++)++` [.item-kind]#event#
 
 Emitted when token is received by DepositBox and is ready to be cloned
 or transferred on SKALE chain.

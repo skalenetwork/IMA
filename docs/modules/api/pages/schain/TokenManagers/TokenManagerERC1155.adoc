@@ -800,21 +800,21 @@ TokenManagerERC1155 mints tokens. When a user exits a SKALE chain, it burns them
 
 
 [.contract-item]
-==== +++<a class="heading-anchor" area-hidden="true" name=TokenManagerERC1155-exitToMainERC1155-address-address-uint256-uint256->exitToMainERC1155</a>+++ `++exitToMainERC1155(++[.var-type]#++address++#++ ++[.var-name]#++contractOnMainnet++#++, ++[.var-type]#++address++#++ ++[.var-name]#++to++#++, ++[.var-type]#++uint256++#++ ++[.var-name]#++id++#++, ++[.var-type]#++uint256++#++ ++[.var-name]#++amount++#++)++` [.item-kind]#external#
+== +++<a class="heading-anchor" area-hidden="true" name=TokenManagerERC1155-exitToMainERC1155-address-address-uint256-uint256->exitToMainERC1155</a>+++ `++exitToMainERC1155(++[.var-type]#++address++#++ ++[.var-name]#++contractOnMainnet++#++, ++[.var-type]#++address++#++ ++[.var-name]#++to++#++, ++[.var-type]#++uint256++#++ ++[.var-name]#++id++#++, ++[.var-type]#++uint256++#++ ++[.var-name]#++amount++#++)++` [.item-kind]#external#
 
 Move tokens from schain to mainnet.
 
 {contractOnMainnet} tokens are burned on schain and unlocked on mainnet for {to} address.
 
 [.contract-item]
-==== +++<a class="heading-anchor" area-hidden="true" name=TokenManagerERC1155-exitToMainERC1155Batch-address-address-uint256---uint256--->exitToMainERC1155Batch</a>+++ `++exitToMainERC1155Batch(++[.var-type]#++address++#++ ++[.var-name]#++contractOnMainnet++#++, ++[.var-type]#++address++#++ ++[.var-name]#++to++#++, ++[.var-type]#++uint256[]++#++ ++[.var-name]#++ids++#++, ++[.var-type]#++uint256[]++#++ ++[.var-name]#++amounts++#++)++` [.item-kind]#external#
+== +++<a class="heading-anchor" area-hidden="true" name=TokenManagerERC1155-exitToMainERC1155Batch-address-address-uint256---uint256--->exitToMainERC1155Batch</a>+++ `++exitToMainERC1155Batch(++[.var-type]#++address++#++ ++[.var-name]#++contractOnMainnet++#++, ++[.var-type]#++address++#++ ++[.var-name]#++to++#++, ++[.var-type]#++uint256[]++#++ ++[.var-name]#++ids++#++, ++[.var-type]#++uint256[]++#++ ++[.var-name]#++amounts++#++)++` [.item-kind]#external#
 
 Move batch of tokens from schain to mainnet.
 
 {contractOnMainnet} tokens are burned on schain and unlocked on mainnet for {to} address.
 
 [.contract-item]
-==== +++<a class="heading-anchor" area-hidden="true" name=TokenManagerERC1155-transferToSchainERC1155-string-address-address-uint256-uint256->transferToSchainERC1155</a>+++ `++transferToSchainERC1155(++[.var-type]#++string++#++ ++[.var-name]#++targetSchainName++#++, ++[.var-type]#++address++#++ ++[.var-name]#++contractOnMainnet++#++, ++[.var-type]#++address++#++ ++[.var-name]#++to++#++, ++[.var-type]#++uint256++#++ ++[.var-name]#++id++#++, ++[.var-type]#++uint256++#++ ++[.var-name]#++amount++#++)++` [.item-kind]#external#
+== +++<a class="heading-anchor" area-hidden="true" name=TokenManagerERC1155-transferToSchainERC1155-string-address-address-uint256-uint256->transferToSchainERC1155</a>+++ `++transferToSchainERC1155(++[.var-type]#++string++#++ ++[.var-name]#++targetSchainName++#++, ++[.var-type]#++address++#++ ++[.var-name]#++contractOnMainnet++#++, ++[.var-type]#++address++#++ ++[.var-name]#++to++#++, ++[.var-type]#++uint256++#++ ++[.var-name]#++id++#++, ++[.var-type]#++uint256++#++ ++[.var-name]#++amount++#++)++` [.item-kind]#external#
 
 Move tokens from schain to schain.
 
@@ -822,7 +822,7 @@ Move tokens from schain to schain.
 and are minted on {targetSchainName} schain for {to} address.
 
 [.contract-item]
-==== +++<a class="heading-anchor" area-hidden="true" name=TokenManagerERC1155-transferToSchainERC1155Batch-string-address-address-uint256---uint256--->transferToSchainERC1155Batch</a>+++ `++transferToSchainERC1155Batch(++[.var-type]#++string++#++ ++[.var-name]#++targetSchainName++#++, ++[.var-type]#++address++#++ ++[.var-name]#++contractOnMainnet++#++, ++[.var-type]#++address++#++ ++[.var-name]#++to++#++, ++[.var-type]#++uint256[]++#++ ++[.var-name]#++ids++#++, ++[.var-type]#++uint256[]++#++ ++[.var-name]#++amounts++#++)++` [.item-kind]#external#
+== +++<a class="heading-anchor" area-hidden="true" name=TokenManagerERC1155-transferToSchainERC1155Batch-string-address-address-uint256---uint256--->transferToSchainERC1155Batch</a>+++ `++transferToSchainERC1155Batch(++[.var-type]#++string++#++ ++[.var-name]#++targetSchainName++#++, ++[.var-type]#++address++#++ ++[.var-name]#++contractOnMainnet++#++, ++[.var-type]#++address++#++ ++[.var-name]#++to++#++, ++[.var-type]#++uint256[]++#++ ++[.var-name]#++ids++#++, ++[.var-type]#++uint256[]++#++ ++[.var-name]#++amounts++#++)++` [.item-kind]#external#
 
 Move batch of tokens from schain to schain.
 
@@ -830,7 +830,7 @@ Move batch of tokens from schain to schain.
 and are minted on {targetSchainName} schain for {to} address.
 
 [.contract-item]
-==== +++<a class="heading-anchor" area-hidden="true" name=TokenManagerERC1155-postMessage-bytes32-address-bytes->postMessage</a>+++ `++postMessage(++[.var-type]#++bytes32++#++ ++[.var-name]#++fromChainHash++#++, ++[.var-type]#++address++#++ ++[.var-name]#++sender++#++, ++[.var-type]#++bytes++#++ ++[.var-name]#++data++#++) → ++[.var-type]#++address++#++++` [.item-kind]#external#
+== +++<a class="heading-anchor" area-hidden="true" name=TokenManagerERC1155-postMessage-bytes32-address-bytes->postMessage</a>+++ `++postMessage(++[.var-type]#++bytes32++#++ ++[.var-name]#++fromChainHash++#++, ++[.var-type]#++address++#++ ++[.var-name]#++sender++#++, ++[.var-type]#++bytes++#++ ++[.var-name]#++data++#++) → ++[.var-type]#++address++#++++` [.item-kind]#external#
 
 Allows MessageProxy to post operational message from mainnet
 or SKALE chains.
@@ -841,28 +841,28 @@ Requirements:
 - `fromSchainName` must exist in TokenManagerERC1155 addresses.
 
 [.contract-item]
-==== +++<a class="heading-anchor" area-hidden="true" name=TokenManagerERC1155-addERC1155TokenByOwner-address-contract-ERC1155OnChain->addERC1155TokenByOwner</a>+++ `++addERC1155TokenByOwner(++[.var-type]#++address++#++ ++[.var-name]#++erc1155OnMainnet++#++, ++[.var-type]#++contract ERC1155OnChain++#++ ++[.var-name]#++erc1155OnSchain++#++)++` [.item-kind]#external#
+== +++<a class="heading-anchor" area-hidden="true" name=TokenManagerERC1155-addERC1155TokenByOwner-address-contract-ERC1155OnChain->addERC1155TokenByOwner</a>+++ `++addERC1155TokenByOwner(++[.var-type]#++address++#++ ++[.var-name]#++erc1155OnMainnet++#++, ++[.var-type]#++contract ERC1155OnChain++#++ ++[.var-name]#++erc1155OnSchain++#++)++` [.item-kind]#external#
 
 Allows Schain owner to register an ERC1155 token clone in the token manager.
 
 [.contract-item]
-==== +++<a class="heading-anchor" area-hidden="true" name=TokenManagerERC1155-initialize-string-contract-MessageProxyForSchain-contract-TokenManagerLinker-contract-CommunityLocker-address->initialize</a>+++ `++initialize(++[.var-type]#++string++#++ ++[.var-name]#++newChainName++#++, ++[.var-type]#++contract MessageProxyForSchain++#++ ++[.var-name]#++newMessageProxy++#++, ++[.var-type]#++contract TokenManagerLinker++#++ ++[.var-name]#++newIMALinker++#++, ++[.var-type]#++contract CommunityLocker++#++ ++[.var-name]#++newCommunityLocker++#++, ++[.var-type]#++address++#++ ++[.var-name]#++newDepositBox++#++)++` [.item-kind]#external#
+== +++<a class="heading-anchor" area-hidden="true" name=TokenManagerERC1155-initialize-string-contract-MessageProxyForSchain-contract-TokenManagerLinker-contract-CommunityLocker-address->initialize</a>+++ `++initialize(++[.var-type]#++string++#++ ++[.var-name]#++newChainName++#++, ++[.var-type]#++contract MessageProxyForSchain++#++ ++[.var-name]#++newMessageProxy++#++, ++[.var-type]#++contract TokenManagerLinker++#++ ++[.var-name]#++newIMALinker++#++, ++[.var-type]#++contract CommunityLocker++#++ ++[.var-name]#++newCommunityLocker++#++, ++[.var-type]#++address++#++ ++[.var-name]#++newDepositBox++#++)++` [.item-kind]#external#
 
 Is called once during contract deployment.
 
 
 [.contract-item]
-==== +++<a class="heading-anchor" area-hidden="true" name=TokenManagerERC1155-ERC1155TokenAdded-address-address->ERC1155TokenAdded</a>+++ `++ERC1155TokenAdded(++[.var-type]#++address++#++ ++[.var-name]#++erc1155OnMainnet++#++, ++[.var-type]#++address++#++ ++[.var-name]#++erc1155OnSchain++#++)++` [.item-kind]#event#
+== +++<a class="heading-anchor" area-hidden="true" name=TokenManagerERC1155-ERC1155TokenAdded-address-address->ERC1155TokenAdded</a>+++ `++ERC1155TokenAdded(++[.var-type]#++address++#++ ++[.var-name]#++erc1155OnMainnet++#++, ++[.var-type]#++address++#++ ++[.var-name]#++erc1155OnSchain++#++)++` [.item-kind]#event#
 
 Emitted when schain owner register new ERC1155 clone.
 
 [.contract-item]
-==== +++<a class="heading-anchor" area-hidden="true" name=TokenManagerERC1155-ERC1155TokenCreated-address-address->ERC1155TokenCreated</a>+++ `++ERC1155TokenCreated(++[.var-type]#++address++#++ ++[.var-name]#++erc1155OnMainnet++#++, ++[.var-type]#++address++#++ ++[.var-name]#++erc1155OnSchain++#++)++` [.item-kind]#event#
+== +++<a class="heading-anchor" area-hidden="true" name=TokenManagerERC1155-ERC1155TokenCreated-address-address->ERC1155TokenCreated</a>+++ `++ERC1155TokenCreated(++[.var-type]#++address++#++ ++[.var-name]#++erc1155OnMainnet++#++, ++[.var-type]#++address++#++ ++[.var-name]#++erc1155OnSchain++#++)++` [.item-kind]#event#
 
 Emitted when TokenManagerERC1155 automatically deploys new ERC1155 clone.
 
 [.contract-item]
-==== +++<a class="heading-anchor" area-hidden="true" name=TokenManagerERC1155-ERC1155TokenReceived-address-address-uint256---uint256--->ERC1155TokenReceived</a>+++ `++ERC1155TokenReceived(++[.var-type]#++address++#++ ++[.var-name]#++erc1155OnMainnet++#++, ++[.var-type]#++address++#++ ++[.var-name]#++erc1155OnSchain++#++, ++[.var-type]#++uint256[]++#++ ++[.var-name]#++ids++#++, ++[.var-type]#++uint256[]++#++ ++[.var-name]#++amounts++#++)++` [.item-kind]#event#
+== +++<a class="heading-anchor" area-hidden="true" name=TokenManagerERC1155-ERC1155TokenReceived-address-address-uint256---uint256--->ERC1155TokenReceived</a>+++ `++ERC1155TokenReceived(++[.var-type]#++address++#++ ++[.var-name]#++erc1155OnMainnet++#++, ++[.var-type]#++address++#++ ++[.var-name]#++erc1155OnSchain++#++, ++[.var-type]#++uint256[]++#++ ++[.var-name]#++ids++#++, ++[.var-type]#++uint256[]++#++ ++[.var-name]#++amounts++#++)++` [.item-kind]#event#
 
 Emitted when someone sends tokens from mainnet to schain.
 

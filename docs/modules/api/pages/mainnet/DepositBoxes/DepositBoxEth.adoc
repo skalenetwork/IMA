@@ -793,12 +793,12 @@ stores deposits of ETH.
 
 
 [.contract-item]
-==== +++<a class="heading-anchor" area-hidden="true" name=DepositBoxEth-receive-->receive</a>+++ `++receive()++` [.item-kind]#external#
+== +++<a class="heading-anchor" area-hidden="true" name=DepositBoxEth-receive-->receive</a>+++ `++receive()++` [.item-kind]#external#
 
 
 
 [.contract-item]
-==== +++<a class="heading-anchor" area-hidden="true" name=DepositBoxEth-deposit-string-address->deposit</a>+++ `++deposit(++[.var-type]#++string++#++ ++[.var-name]#++schainName++#++, ++[.var-type]#++address++#++ ++[.var-name]#++to++#++)++` [.item-kind]#external#
+== +++<a class="heading-anchor" area-hidden="true" name=DepositBoxEth-deposit-string-address->deposit</a>+++ `++deposit(++[.var-type]#++string++#++ ++[.var-name]#++schainName++#++, ++[.var-type]#++address++#++ ++[.var-name]#++to++#++)++` [.item-kind]#external#
 
 Allows `msg.sender` to send ETH from mainnet to schain.
 
@@ -810,7 +810,7 @@ Requirements:
 - Schain that receives tokens should not be killed.
 
 [.contract-item]
-==== +++<a class="heading-anchor" area-hidden="true" name=DepositBoxEth-postMessage-bytes32-address-bytes->postMessage</a>+++ `++postMessage(++[.var-type]#++bytes32++#++ ++[.var-name]#++schainHash++#++, ++[.var-type]#++address++#++ ++[.var-name]#++sender++#++, ++[.var-type]#++bytes++#++ ++[.var-name]#++data++#++) → ++[.var-type]#++address++#++++` [.item-kind]#external#
+== +++<a class="heading-anchor" area-hidden="true" name=DepositBoxEth-postMessage-bytes32-address-bytes->postMessage</a>+++ `++postMessage(++[.var-type]#++bytes32++#++ ++[.var-name]#++schainHash++#++, ++[.var-type]#++address++#++ ++[.var-name]#++sender++#++, ++[.var-type]#++bytes++#++ ++[.var-name]#++data++#++) → ++[.var-type]#++address++#++++` [.item-kind]#external#
 
 Allows MessageProxyForMainnet contract to execute transferring ERC20 token from schain to mainnet.
 
@@ -821,12 +821,12 @@ Requirements:
 - Amount of tokens on DepositBoxERC20 should be equal or more than transferred amount.
 
 [.contract-item]
-==== +++<a class="heading-anchor" area-hidden="true" name=DepositBoxEth-gasPayer-bytes32-address-bytes->gasPayer</a>+++ `++gasPayer(++[.var-type]#++bytes32++#++ ++[.var-name]#++schainHash++#++, ++[.var-type]#++address++#++ ++[.var-name]#++sender++#++, ++[.var-type]#++bytes++#++ ++[.var-name]#++data++#++) → ++[.var-type]#++address++#++++` [.item-kind]#external#
+== +++<a class="heading-anchor" area-hidden="true" name=DepositBoxEth-gasPayer-bytes32-address-bytes->gasPayer</a>+++ `++gasPayer(++[.var-type]#++bytes32++#++ ++[.var-name]#++schainHash++#++, ++[.var-type]#++address++#++ ++[.var-name]#++sender++#++, ++[.var-type]#++bytes++#++ ++[.var-name]#++data++#++) → ++[.var-type]#++address++#++++` [.item-kind]#external#
 
 
 
 [.contract-item]
-==== +++<a class="heading-anchor" area-hidden="true" name=DepositBoxEth-getMyEth-->getMyEth</a>+++ `++getMyEth()++` [.item-kind]#external#
+== +++<a class="heading-anchor" area-hidden="true" name=DepositBoxEth-getMyEth-->getMyEth</a>+++ `++getMyEth()++` [.item-kind]#external#
 
 Transfers a user's ETH.
 
@@ -836,7 +836,7 @@ Requirements:
 - User must be approved for ETH transfer.
 
 [.contract-item]
-==== +++<a class="heading-anchor" area-hidden="true" name=DepositBoxEth-getFunds-string-address-payable-uint256->getFunds</a>+++ `++getFunds(++[.var-type]#++string++#++ ++[.var-name]#++schainName++#++, ++[.var-type]#++address payable++#++ ++[.var-name]#++receiver++#++, ++[.var-type]#++uint256++#++ ++[.var-name]#++amount++#++)++` [.item-kind]#external#
+== +++<a class="heading-anchor" area-hidden="true" name=DepositBoxEth-getFunds-string-address-payable-uint256->getFunds</a>+++ `++getFunds(++[.var-type]#++string++#++ ++[.var-name]#++schainName++#++, ++[.var-type]#++address payable++#++ ++[.var-name]#++receiver++#++, ++[.var-type]#++uint256++#++ ++[.var-name]#++amount++#++)++` [.item-kind]#external#
 
 Allows Schain owner to return each user their ETH.
 
@@ -846,7 +846,7 @@ Requirements:
 - Receiver address must not be null.
 
 [.contract-item]
-==== +++<a class="heading-anchor" area-hidden="true" name=DepositBoxEth-initialize-contract-IContractManager-contract-Linker-contract-MessageProxyForMainnet->initialize</a>+++ `++initialize(++[.var-type]#++contract IContractManager++#++ ++[.var-name]#++contractManagerOfSkaleManagerValue++#++, ++[.var-type]#++contract Linker++#++ ++[.var-name]#++linkerValue++#++, ++[.var-type]#++contract MessageProxyForMainnet++#++ ++[.var-name]#++messageProxyValue++#++)++` [.item-kind]#public#
+== +++<a class="heading-anchor" area-hidden="true" name=DepositBoxEth-initialize-contract-IContractManager-contract-Linker-contract-MessageProxyForMainnet->initialize</a>+++ `++initialize(++[.var-type]#++contract IContractManager++#++ ++[.var-name]#++contractManagerOfSkaleManagerValue++#++, ++[.var-type]#++contract Linker++#++ ++[.var-name]#++linkerValue++#++, ++[.var-type]#++contract MessageProxyForMainnet++#++ ++[.var-name]#++messageProxyValue++#++)++` [.item-kind]#public#
 
 Creates a new DepositBoxEth contract.
 

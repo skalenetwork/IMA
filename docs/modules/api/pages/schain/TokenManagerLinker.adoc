@@ -801,13 +801,13 @@ Links custom TokenManagers to MessageProxy.
 --
 
 [.contract-item]
-==== +++<a class="heading-anchor" area-hidden="true" name=TokenManagerLinker-onlyRegistrar-->onlyRegistrar</a>+++ `++onlyRegistrar()++` [.item-kind]#modifier#
+== +++<a class="heading-anchor" area-hidden="true" name=TokenManagerLinker-onlyRegistrar-->onlyRegistrar</a>+++ `++onlyRegistrar()++` [.item-kind]#modifier#
 
 Modifier to make a function callable only if caller is granted with {REGISTRAR_ROLE}.
 
 
 [.contract-item]
-==== +++<a class="heading-anchor" area-hidden="true" name=TokenManagerLinker-registerTokenManager-contract-TokenManager->registerTokenManager</a>+++ `++registerTokenManager(++[.var-type]#++contract TokenManager++#++ ++[.var-name]#++newTokenManager++#++)++` [.item-kind]#external#
+== +++<a class="heading-anchor" area-hidden="true" name=TokenManagerLinker-registerTokenManager-contract-TokenManager->registerTokenManager</a>+++ `++registerTokenManager(++[.var-type]#++contract TokenManager++#++ ++[.var-name]#++newTokenManager++#++)++` [.item-kind]#external#
 
 Register new token manager.
 
@@ -816,7 +816,7 @@ Requirements:
 - Function caller has to be granted with {REGISTRAR_ROLE}.
 
 [.contract-item]
-==== +++<a class="heading-anchor" area-hidden="true" name=TokenManagerLinker-removeTokenManager-contract-TokenManager->removeTokenManager</a>+++ `++removeTokenManager(++[.var-type]#++contract TokenManager++#++ ++[.var-name]#++tokenManagerAddress++#++)++` [.item-kind]#external#
+== +++<a class="heading-anchor" area-hidden="true" name=TokenManagerLinker-removeTokenManager-contract-TokenManager->removeTokenManager</a>+++ `++removeTokenManager(++[.var-type]#++contract TokenManager++#++ ++[.var-name]#++tokenManagerAddress++#++)++` [.item-kind]#external#
 
 Cancel registration of token manager.
 
@@ -825,7 +825,7 @@ Requirements:
 - Function caller has to be granted with {REGISTRAR_ROLE}.
 
 [.contract-item]
-==== +++<a class="heading-anchor" area-hidden="true" name=TokenManagerLinker-connectSchain-string-address--->connectSchain</a>+++ `++connectSchain(++[.var-type]#++string++#++ ++[.var-name]#++schainName++#++, ++[.var-type]#++address[]++#++ ++[.var-name]#++tokenManagerAddresses++#++)++` [.item-kind]#external#
+== +++<a class="heading-anchor" area-hidden="true" name=TokenManagerLinker-connectSchain-string-address--->connectSchain</a>+++ `++connectSchain(++[.var-type]#++string++#++ ++[.var-name]#++schainName++#++, ++[.var-type]#++address[]++#++ ++[.var-name]#++tokenManagerAddresses++#++)++` [.item-kind]#external#
 
 Register new SKALE chain.
 
@@ -836,7 +836,7 @@ Requirements:
 - Amount of token managers on target SKALE chain must be equal to the amount on current one.
 
 [.contract-item]
-==== +++<a class="heading-anchor" area-hidden="true" name=TokenManagerLinker-postMessage-bytes32-address-bytes->postMessage</a>+++ `++postMessage(++[.var-type]#++bytes32++#++ ++[.var-name]#++fromChainHash++#++, ++[.var-type]#++address++#++ ++[.var-name]#++sender++#++, ++[.var-type]#++bytes++#++ ++[.var-name]#++data++#++) → ++[.var-type]#++address++#++++` [.item-kind]#external#
+== +++<a class="heading-anchor" area-hidden="true" name=TokenManagerLinker-postMessage-bytes32-address-bytes->postMessage</a>+++ `++postMessage(++[.var-type]#++bytes32++#++ ++[.var-name]#++fromChainHash++#++, ++[.var-type]#++address++#++ ++[.var-name]#++sender++#++, ++[.var-type]#++bytes++#++ ++[.var-name]#++data++#++) → ++[.var-type]#++address++#++++` [.item-kind]#external#
 
 Allows MessageProxy to post operational message from mainnet
 or SKALE chains.
@@ -850,7 +850,7 @@ Requirements:
 - Interchain connection allowance in the message must be different from the current one.
 
 [.contract-item]
-==== +++<a class="heading-anchor" area-hidden="true" name=TokenManagerLinker-disconnectSchain-string->disconnectSchain</a>+++ `++disconnectSchain(++[.var-type]#++string++#++ ++[.var-name]#++schainName++#++)++` [.item-kind]#external#
+== +++<a class="heading-anchor" area-hidden="true" name=TokenManagerLinker-disconnectSchain-string->disconnectSchain</a>+++ `++disconnectSchain(++[.var-type]#++string++#++ ++[.var-name]#++schainName++#++)++` [.item-kind]#external#
 
 Cancel registration of linked SKALE chain.
 
@@ -859,23 +859,23 @@ Requirements:
 - Function caller has to be granted with {REGISTRAR_ROLE}.
 
 [.contract-item]
-==== +++<a class="heading-anchor" area-hidden="true" name=TokenManagerLinker-hasTokenManager-contract-TokenManager->hasTokenManager</a>+++ `++hasTokenManager(++[.var-type]#++contract TokenManager++#++ ++[.var-name]#++tokenManager++#++) → ++[.var-type]#++bool++#++++` [.item-kind]#external#
+== +++<a class="heading-anchor" area-hidden="true" name=TokenManagerLinker-hasTokenManager-contract-TokenManager->hasTokenManager</a>+++ `++hasTokenManager(++[.var-type]#++contract TokenManager++#++ ++[.var-name]#++tokenManager++#++) → ++[.var-type]#++bool++#++++` [.item-kind]#external#
 
 Check if {tokenManager} is registered in IMA.
 
 [.contract-item]
-==== +++<a class="heading-anchor" area-hidden="true" name=TokenManagerLinker-hasSchain-string->hasSchain</a>+++ `++hasSchain(++[.var-type]#++string++#++ ++[.var-name]#++schainName++#++) → ++[.var-type]#++bool++#++ ++[.var-name]#++connected++#++++` [.item-kind]#external#
+== +++<a class="heading-anchor" area-hidden="true" name=TokenManagerLinker-hasSchain-string->hasSchain</a>+++ `++hasSchain(++[.var-type]#++string++#++ ++[.var-name]#++schainName++#++) → ++[.var-type]#++bool++#++ ++[.var-name]#++connected++#++++` [.item-kind]#external#
 
 Check if SKALE chain with name {schainName} is registered in IMA.
 
 [.contract-item]
-==== +++<a class="heading-anchor" area-hidden="true" name=TokenManagerLinker-initialize-contract-MessageProxy-address->initialize</a>+++ `++initialize(++[.var-type]#++contract MessageProxy++#++ ++[.var-name]#++newMessageProxyAddress++#++, ++[.var-type]#++address++#++ ++[.var-name]#++linker++#++)++` [.item-kind]#external#
+== +++<a class="heading-anchor" area-hidden="true" name=TokenManagerLinker-initialize-contract-MessageProxy-address->initialize</a>+++ `++initialize(++[.var-type]#++contract MessageProxy++#++ ++[.var-name]#++newMessageProxyAddress++#++, ++[.var-type]#++address++#++ ++[.var-name]#++linker++#++)++` [.item-kind]#external#
 
 Is called once during contract deployment.
 
 
 [.contract-item]
-==== +++<a class="heading-anchor" area-hidden="true" name=TokenManagerLinker-InterchainConnectionAllowed-bool->InterchainConnectionAllowed</a>+++ `++InterchainConnectionAllowed(++[.var-type]#++bool++#++ ++[.var-name]#++isAllowed++#++)++` [.item-kind]#event#
+== +++<a class="heading-anchor" area-hidden="true" name=TokenManagerLinker-InterchainConnectionAllowed-bool->InterchainConnectionAllowed</a>+++ `++InterchainConnectionAllowed(++[.var-type]#++bool++#++ ++[.var-name]#++isAllowed++#++)++` [.item-kind]#event#
 
 Emitted when {interchainConnections} was changed.
 

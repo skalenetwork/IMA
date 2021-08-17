@@ -796,14 +796,14 @@ TokenManagerERC721 mints tokens. When a user exits a SKALE chain, it burns them.
 
 
 [.contract-item]
-==== +++<a class="heading-anchor" area-hidden="true" name=TokenManagerERC721-exitToMainERC721-address-address-uint256->exitToMainERC721</a>+++ `++exitToMainERC721(++[.var-type]#++address++#++ ++[.var-name]#++contractOnMainnet++#++, ++[.var-type]#++address++#++ ++[.var-name]#++to++#++, ++[.var-type]#++uint256++#++ ++[.var-name]#++tokenId++#++)++` [.item-kind]#external#
+== +++<a class="heading-anchor" area-hidden="true" name=TokenManagerERC721-exitToMainERC721-address-address-uint256->exitToMainERC721</a>+++ `++exitToMainERC721(++[.var-type]#++address++#++ ++[.var-name]#++contractOnMainnet++#++, ++[.var-type]#++address++#++ ++[.var-name]#++to++#++, ++[.var-type]#++uint256++#++ ++[.var-name]#++tokenId++#++)++` [.item-kind]#external#
 
 Move tokens from schain to mainnet.
 
 {contractOnMainnet} tokens are burned on schain and unlocked on mainnet for {to} address.
 
 [.contract-item]
-==== +++<a class="heading-anchor" area-hidden="true" name=TokenManagerERC721-transferToSchainERC721-string-address-address-uint256->transferToSchainERC721</a>+++ `++transferToSchainERC721(++[.var-type]#++string++#++ ++[.var-name]#++targetSchainName++#++, ++[.var-type]#++address++#++ ++[.var-name]#++contractOnMainnet++#++, ++[.var-type]#++address++#++ ++[.var-name]#++to++#++, ++[.var-type]#++uint256++#++ ++[.var-name]#++tokenId++#++)++` [.item-kind]#external#
+== +++<a class="heading-anchor" area-hidden="true" name=TokenManagerERC721-transferToSchainERC721-string-address-address-uint256->transferToSchainERC721</a>+++ `++transferToSchainERC721(++[.var-type]#++string++#++ ++[.var-name]#++targetSchainName++#++, ++[.var-type]#++address++#++ ++[.var-name]#++contractOnMainnet++#++, ++[.var-type]#++address++#++ ++[.var-name]#++to++#++, ++[.var-type]#++uint256++#++ ++[.var-name]#++tokenId++#++)++` [.item-kind]#external#
 
 Move tokens from schain to schain.
 
@@ -811,7 +811,7 @@ Move tokens from schain to schain.
 and are minted on {targetSchainName} schain for {to} address.
 
 [.contract-item]
-==== +++<a class="heading-anchor" area-hidden="true" name=TokenManagerERC721-postMessage-bytes32-address-bytes->postMessage</a>+++ `++postMessage(++[.var-type]#++bytes32++#++ ++[.var-name]#++fromChainHash++#++, ++[.var-type]#++address++#++ ++[.var-name]#++sender++#++, ++[.var-type]#++bytes++#++ ++[.var-name]#++data++#++) → ++[.var-type]#++address++#++++` [.item-kind]#external#
+== +++<a class="heading-anchor" area-hidden="true" name=TokenManagerERC721-postMessage-bytes32-address-bytes->postMessage</a>+++ `++postMessage(++[.var-type]#++bytes32++#++ ++[.var-name]#++fromChainHash++#++, ++[.var-type]#++address++#++ ++[.var-name]#++sender++#++, ++[.var-type]#++bytes++#++ ++[.var-name]#++data++#++) → ++[.var-type]#++address++#++++` [.item-kind]#external#
 
 Allows MessageProxy to post operational message from mainnet
 or SKALE chains.
@@ -822,28 +822,28 @@ Requirements:
 - `fromSchainName` must exist in TokenManager addresses.
 
 [.contract-item]
-==== +++<a class="heading-anchor" area-hidden="true" name=TokenManagerERC721-addERC721TokenByOwner-address-contract-ERC721OnChain->addERC721TokenByOwner</a>+++ `++addERC721TokenByOwner(++[.var-type]#++address++#++ ++[.var-name]#++erc721OnMainnet++#++, ++[.var-type]#++contract ERC721OnChain++#++ ++[.var-name]#++erc721OnSchain++#++)++` [.item-kind]#external#
+== +++<a class="heading-anchor" area-hidden="true" name=TokenManagerERC721-addERC721TokenByOwner-address-contract-ERC721OnChain->addERC721TokenByOwner</a>+++ `++addERC721TokenByOwner(++[.var-type]#++address++#++ ++[.var-name]#++erc721OnMainnet++#++, ++[.var-type]#++contract ERC721OnChain++#++ ++[.var-name]#++erc721OnSchain++#++)++` [.item-kind]#external#
 
 Allows Schain owner to register an ERC721 token clone in the token manager.
 
 [.contract-item]
-==== +++<a class="heading-anchor" area-hidden="true" name=TokenManagerERC721-initialize-string-contract-MessageProxyForSchain-contract-TokenManagerLinker-contract-CommunityLocker-address->initialize</a>+++ `++initialize(++[.var-type]#++string++#++ ++[.var-name]#++newChainName++#++, ++[.var-type]#++contract MessageProxyForSchain++#++ ++[.var-name]#++newMessageProxy++#++, ++[.var-type]#++contract TokenManagerLinker++#++ ++[.var-name]#++newIMALinker++#++, ++[.var-type]#++contract CommunityLocker++#++ ++[.var-name]#++newCommunityLocker++#++, ++[.var-type]#++address++#++ ++[.var-name]#++newDepositBox++#++)++` [.item-kind]#external#
+== +++<a class="heading-anchor" area-hidden="true" name=TokenManagerERC721-initialize-string-contract-MessageProxyForSchain-contract-TokenManagerLinker-contract-CommunityLocker-address->initialize</a>+++ `++initialize(++[.var-type]#++string++#++ ++[.var-name]#++newChainName++#++, ++[.var-type]#++contract MessageProxyForSchain++#++ ++[.var-name]#++newMessageProxy++#++, ++[.var-type]#++contract TokenManagerLinker++#++ ++[.var-name]#++newIMALinker++#++, ++[.var-type]#++contract CommunityLocker++#++ ++[.var-name]#++newCommunityLocker++#++, ++[.var-type]#++address++#++ ++[.var-name]#++newDepositBox++#++)++` [.item-kind]#external#
 
 Is called once during contract deployment.
 
 
 [.contract-item]
-==== +++<a class="heading-anchor" area-hidden="true" name=TokenManagerERC721-ERC721TokenAdded-address-address->ERC721TokenAdded</a>+++ `++ERC721TokenAdded(++[.var-type]#++address++#++ ++[.var-name]#++erc721OnMainnet++#++, ++[.var-type]#++address++#++ ++[.var-name]#++erc721OnSchain++#++)++` [.item-kind]#event#
+== +++<a class="heading-anchor" area-hidden="true" name=TokenManagerERC721-ERC721TokenAdded-address-address->ERC721TokenAdded</a>+++ `++ERC721TokenAdded(++[.var-type]#++address++#++ ++[.var-name]#++erc721OnMainnet++#++, ++[.var-type]#++address++#++ ++[.var-name]#++erc721OnSchain++#++)++` [.item-kind]#event#
 
 Emitted when schain owner register new ERC721 clone.
 
 [.contract-item]
-==== +++<a class="heading-anchor" area-hidden="true" name=TokenManagerERC721-ERC721TokenCreated-address-address->ERC721TokenCreated</a>+++ `++ERC721TokenCreated(++[.var-type]#++address++#++ ++[.var-name]#++erc721OnMainnet++#++, ++[.var-type]#++address++#++ ++[.var-name]#++erc721OnSchain++#++)++` [.item-kind]#event#
+== +++<a class="heading-anchor" area-hidden="true" name=TokenManagerERC721-ERC721TokenCreated-address-address->ERC721TokenCreated</a>+++ `++ERC721TokenCreated(++[.var-type]#++address++#++ ++[.var-name]#++erc721OnMainnet++#++, ++[.var-type]#++address++#++ ++[.var-name]#++erc721OnSchain++#++)++` [.item-kind]#event#
 
 Emitted when TokenManagerERC721 automatically deploys new ERC721 clone.
 
 [.contract-item]
-==== +++<a class="heading-anchor" area-hidden="true" name=TokenManagerERC721-ERC721TokenReceived-address-address-uint256->ERC721TokenReceived</a>+++ `++ERC721TokenReceived(++[.var-type]#++address++#++ ++[.var-name]#++erc721OnMainnet++#++, ++[.var-type]#++address++#++ ++[.var-name]#++erc721OnSchain++#++, ++[.var-type]#++uint256++#++ ++[.var-name]#++tokenId++#++)++` [.item-kind]#event#
+== +++<a class="heading-anchor" area-hidden="true" name=TokenManagerERC721-ERC721TokenReceived-address-address-uint256->ERC721TokenReceived</a>+++ `++ERC721TokenReceived(++[.var-type]#++address++#++ ++[.var-name]#++erc721OnMainnet++#++, ++[.var-type]#++address++#++ ++[.var-name]#++erc721OnSchain++#++, ++[.var-type]#++uint256++#++ ++[.var-name]#++tokenId++#++)++` [.item-kind]#event#
 
 Emitted when someone sends tokens from mainnet to schain.
 

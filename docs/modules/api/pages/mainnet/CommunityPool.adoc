@@ -796,12 +796,12 @@ Contract contains logic to perform automatic self-recharging ETH for nodes.
 
 
 [.contract-item]
-==== +++<a class="heading-anchor" area-hidden="true" name=CommunityPool-initialize-contract-IContractManager-contract-Linker-contract-MessageProxyForMainnet->initialize</a>+++ `++initialize(++[.var-type]#++contract IContractManager++#++ ++[.var-name]#++contractManagerOfSkaleManagerValue++#++, ++[.var-type]#++contract Linker++#++ ++[.var-name]#++linker++#++, ++[.var-type]#++contract MessageProxyForMainnet++#++ ++[.var-name]#++messageProxyValue++#++)++` [.item-kind]#external#
+== +++<a class="heading-anchor" area-hidden="true" name=CommunityPool-initialize-contract-IContractManager-contract-Linker-contract-MessageProxyForMainnet->initialize</a>+++ `++initialize(++[.var-type]#++contract IContractManager++#++ ++[.var-name]#++contractManagerOfSkaleManagerValue++#++, ++[.var-type]#++contract Linker++#++ ++[.var-name]#++linker++#++, ++[.var-type]#++contract MessageProxyForMainnet++#++ ++[.var-name]#++messageProxyValue++#++)++` [.item-kind]#external#
 
 
 
 [.contract-item]
-==== +++<a class="heading-anchor" area-hidden="true" name=CommunityPool-refundGasByUser-bytes32-address-payable-address-uint256->refundGasByUser</a>+++ `++refundGasByUser(++[.var-type]#++bytes32++#++ ++[.var-name]#++schainHash++#++, ++[.var-type]#++address payable++#++ ++[.var-name]#++node++#++, ++[.var-type]#++address++#++ ++[.var-name]#++user++#++, ++[.var-type]#++uint256++#++ ++[.var-name]#++gas++#++) → ++[.var-type]#++bool++#++++` [.item-kind]#external#
+== +++<a class="heading-anchor" area-hidden="true" name=CommunityPool-refundGasByUser-bytes32-address-payable-address-uint256->refundGasByUser</a>+++ `++refundGasByUser(++[.var-type]#++bytes32++#++ ++[.var-name]#++schainHash++#++, ++[.var-type]#++address payable++#++ ++[.var-name]#++node++#++, ++[.var-type]#++address++#++ ++[.var-name]#++user++#++, ++[.var-type]#++uint256++#++ ++[.var-name]#++gas++#++) → ++[.var-type]#++bool++#++++` [.item-kind]#external#
 
 Allows MessageProxyForMainnet to reimburse gas for transactions 
 that transfer funds from schain to mainnet.
@@ -812,12 +812,12 @@ Requirements:
 - Address that should be reimbursed for executing transaction must not be null.
 
 [.contract-item]
-==== +++<a class="heading-anchor" area-hidden="true" name=CommunityPool-refundGasBySchainWallet-bytes32-address-payable-uint256->refundGasBySchainWallet</a>+++ `++refundGasBySchainWallet(++[.var-type]#++bytes32++#++ ++[.var-name]#++schainHash++#++, ++[.var-type]#++address payable++#++ ++[.var-name]#++node++#++, ++[.var-type]#++uint256++#++ ++[.var-name]#++gas++#++) → ++[.var-type]#++bool++#++++` [.item-kind]#external#
+== +++<a class="heading-anchor" area-hidden="true" name=CommunityPool-refundGasBySchainWallet-bytes32-address-payable-uint256->refundGasBySchainWallet</a>+++ `++refundGasBySchainWallet(++[.var-type]#++bytes32++#++ ++[.var-name]#++schainHash++#++, ++[.var-type]#++address payable++#++ ++[.var-name]#++node++#++, ++[.var-type]#++uint256++#++ ++[.var-name]#++gas++#++) → ++[.var-type]#++bool++#++++` [.item-kind]#external#
 
 
 
 [.contract-item]
-==== +++<a class="heading-anchor" area-hidden="true" name=CommunityPool-rechargeUserWallet-string->rechargeUserWallet</a>+++ `++rechargeUserWallet(++[.var-type]#++string++#++ ++[.var-name]#++schainName++#++)++` [.item-kind]#external#
+== +++<a class="heading-anchor" area-hidden="true" name=CommunityPool-rechargeUserWallet-string->rechargeUserWallet</a>+++ `++rechargeUserWallet(++[.var-type]#++string++#++ ++[.var-name]#++schainName++#++)++` [.item-kind]#external#
 
 Allows `msg.sender` to recharge their wallet for further gas reimbursement.
 
@@ -827,7 +827,7 @@ Requirements:
   transaction from schain to mainnet.
 
 [.contract-item]
-==== +++<a class="heading-anchor" area-hidden="true" name=CommunityPool-withdrawFunds-string-uint256->withdrawFunds</a>+++ `++withdrawFunds(++[.var-type]#++string++#++ ++[.var-name]#++schainName++#++, ++[.var-type]#++uint256++#++ ++[.var-name]#++amount++#++)++` [.item-kind]#external#
+== +++<a class="heading-anchor" area-hidden="true" name=CommunityPool-withdrawFunds-string-uint256->withdrawFunds</a>+++ `++withdrawFunds(++[.var-type]#++string++#++ ++[.var-name]#++schainName++#++, ++[.var-type]#++uint256++#++ ++[.var-name]#++amount++#++)++` [.item-kind]#external#
 
 Allows `msg.sender` to withdraw funds from their gas wallet.
 If `msg.sender` withdraws too much funds,
@@ -838,7 +838,7 @@ Requirements:
 - 'msg.sender` must have sufficient amount of ETH on their gas wallet.
 
 [.contract-item]
-==== +++<a class="heading-anchor" area-hidden="true" name=CommunityPool-setMinTransactionGas-uint256->setMinTransactionGas</a>+++ `++setMinTransactionGas(++[.var-type]#++uint256++#++ ++[.var-name]#++newMinTransactionGas++#++)++` [.item-kind]#external#
+== +++<a class="heading-anchor" area-hidden="true" name=CommunityPool-setMinTransactionGas-uint256->setMinTransactionGas</a>+++ `++setMinTransactionGas(++[.var-type]#++uint256++#++ ++[.var-name]#++newMinTransactionGas++#++)++` [.item-kind]#external#
 
 Allows `msg.sender` set the amount of gas that should be 
 enough for reimbursing any transaction from schain to mainnet.
@@ -848,18 +848,18 @@ Requirements:
 - 'msg.sender` must have sufficient amount of ETH on their gas wallet.
 
 [.contract-item]
-==== +++<a class="heading-anchor" area-hidden="true" name=CommunityPool-getBalance-address-string->getBalance</a>+++ `++getBalance(++[.var-type]#++address++#++ ++[.var-name]#++user++#++, ++[.var-type]#++string++#++ ++[.var-name]#++schainName++#++) → ++[.var-type]#++uint256++#++++` [.item-kind]#external#
+== +++<a class="heading-anchor" area-hidden="true" name=CommunityPool-getBalance-address-string->getBalance</a>+++ `++getBalance(++[.var-type]#++address++#++ ++[.var-name]#++user++#++, ++[.var-type]#++string++#++ ++[.var-name]#++schainName++#++) → ++[.var-type]#++uint256++#++++` [.item-kind]#external#
 
 Returns the amount of ETH on gas wallet for particular user.
 
 [.contract-item]
-==== +++<a class="heading-anchor" area-hidden="true" name=CommunityPool-checkUserBalance-bytes32-address->checkUserBalance</a>+++ `++checkUserBalance(++[.var-type]#++bytes32++#++ ++[.var-name]#++schainHash++#++, ++[.var-type]#++address++#++ ++[.var-name]#++receiver++#++) → ++[.var-type]#++bool++#++++` [.item-kind]#external#
+== +++<a class="heading-anchor" area-hidden="true" name=CommunityPool-checkUserBalance-bytes32-address->checkUserBalance</a>+++ `++checkUserBalance(++[.var-type]#++bytes32++#++ ++[.var-name]#++schainHash++#++, ++[.var-type]#++address++#++ ++[.var-name]#++receiver++#++) → ++[.var-type]#++bool++#++++` [.item-kind]#external#
 
 
 
 
 [.contract-item]
-==== +++<a class="heading-anchor" area-hidden="true" name=CommunityPool-MinTransactionGasWasChanged-uint256-uint256->MinTransactionGasWasChanged</a>+++ `++MinTransactionGasWasChanged(++[.var-type]#++uint256++#++ ++[.var-name]#++oldValue++#++, ++[.var-type]#++uint256++#++ ++[.var-name]#++newValue++#++)++` [.item-kind]#event#
+== +++<a class="heading-anchor" area-hidden="true" name=CommunityPool-MinTransactionGasWasChanged-uint256-uint256->MinTransactionGasWasChanged</a>+++ `++MinTransactionGasWasChanged(++[.var-type]#++uint256++#++ ++[.var-name]#++oldValue++#++, ++[.var-type]#++uint256++#++ ++[.var-name]#++newValue++#++)++` [.item-kind]#event#
 
 Emitted when minimal value in gas for transactions from schain to mainnet was changed
 

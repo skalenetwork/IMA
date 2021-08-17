@@ -788,12 +788,12 @@ ERC721 token that is used as an automatically deployed clone of ERC721 on mainne
 
 
 [.contract-item]
-==== +++<a class="heading-anchor" area-hidden="true" name=ERC721OnChain-constructor-string-string->constructor</a>+++ `++constructor(++[.var-type]#++string++#++ ++[.var-name]#++contractName++#++, ++[.var-type]#++string++#++ ++[.var-name]#++contractSymbol++#++)++` [.item-kind]#public#
+== +++<a class="heading-anchor" area-hidden="true" name=ERC721OnChain-constructor-string-string->constructor</a>+++ `++constructor(++[.var-type]#++string++#++ ++[.var-name]#++contractName++#++, ++[.var-type]#++string++#++ ++[.var-name]#++contractSymbol++#++)++` [.item-kind]#public#
 
 
 
 [.contract-item]
-==== +++<a class="heading-anchor" area-hidden="true" name=ERC721OnChain-setTokenURI-uint256-string->setTokenURI</a>+++ `++setTokenURI(++[.var-type]#++uint256++#++ ++[.var-name]#++tokenId++#++, ++[.var-type]#++string++#++ ++[.var-name]#++tokenUri++#++) → ++[.var-type]#++bool++#++++` [.item-kind]#external#
+== +++<a class="heading-anchor" area-hidden="true" name=ERC721OnChain-setTokenURI-uint256-string->setTokenURI</a>+++ `++setTokenURI(++[.var-type]#++uint256++#++ ++[.var-name]#++tokenId++#++, ++[.var-type]#++string++#++ ++[.var-name]#++tokenUri++#++) → ++[.var-type]#++bool++#++++` [.item-kind]#external#
 
 Set URI of ERC721 token.
 
@@ -803,7 +803,7 @@ Requirements:
 - sender must be the token owner or approved for the token.
 
 [.contract-item]
-==== +++<a class="heading-anchor" area-hidden="true" name=ERC721OnChain-mint-address-uint256->mint</a>+++ `++mint(++[.var-type]#++address++#++ ++[.var-name]#++account++#++, ++[.var-type]#++uint256++#++ ++[.var-name]#++tokenId++#++)++` [.item-kind]#external#
+== +++<a class="heading-anchor" area-hidden="true" name=ERC721OnChain-mint-address-uint256->mint</a>+++ `++mint(++[.var-type]#++address++#++ ++[.var-name]#++account++#++, ++[.var-type]#++uint256++#++ ++[.var-name]#++tokenId++#++)++` [.item-kind]#external#
 
 Mint token.
 
@@ -812,19 +812,19 @@ Requirements:
 - sender must be granted with {MINTER_ROLE}.
 
 [.contract-item]
-==== +++<a class="heading-anchor" area-hidden="true" name=ERC721OnChain-supportsInterface-bytes4->supportsInterface</a>+++ `++supportsInterface(++[.var-type]#++bytes4++#++ ++[.var-name]#++interfaceId++#++) → ++[.var-type]#++bool++#++++` [.item-kind]#public#
+== +++<a class="heading-anchor" area-hidden="true" name=ERC721OnChain-supportsInterface-bytes4->supportsInterface</a>+++ `++supportsInterface(++[.var-type]#++bytes4++#++ ++[.var-name]#++interfaceId++#++) → ++[.var-type]#++bool++#++++` [.item-kind]#public#
 
 Check if contract support {interfaceId} interface.
 
 See https://eips.ethereum.org/EIPS/eip-165 for more details.
 
 [.contract-item]
-==== +++<a class="heading-anchor" area-hidden="true" name=ERC721OnChain-tokenURI-uint256->tokenURI</a>+++ `++tokenURI(++[.var-type]#++uint256++#++ ++[.var-name]#++tokenId++#++) → ++[.var-type]#++string++#++++` [.item-kind]#public#
+== +++<a class="heading-anchor" area-hidden="true" name=ERC721OnChain-tokenURI-uint256->tokenURI</a>+++ `++tokenURI(++[.var-type]#++uint256++#++ ++[.var-name]#++tokenId++#++) → ++[.var-type]#++string++#++++` [.item-kind]#public#
 
 Get token URI.
 
 [.contract-item]
-==== +++<a class="heading-anchor" area-hidden="true" name=ERC721OnChain-_burn-uint256->_burn</a>+++ `++_burn(++[.var-type]#++uint256++#++ ++[.var-name]#++tokenId++#++)++` [.item-kind]#internal#
+== +++<a class="heading-anchor" area-hidden="true" name=ERC721OnChain-_burn-uint256->_burn</a>+++ `++_burn(++[.var-type]#++uint256++#++ ++[.var-name]#++tokenId++#++)++` [.item-kind]#internal#
 
 Burn {tokenId}.
 

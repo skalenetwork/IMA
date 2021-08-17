@@ -783,7 +783,7 @@ ERC20 token that represents ETH on mainnet.
 
 
 [.contract-item]
-==== +++<a class="heading-anchor" area-hidden="true" name=EthErc20-mint-address-uint256->mint</a>+++ `++mint(++[.var-type]#++address++#++ ++[.var-name]#++account++#++, ++[.var-type]#++uint256++#++ ++[.var-name]#++amount++#++)++` [.item-kind]#external#
+== +++<a class="heading-anchor" area-hidden="true" name=EthErc20-mint-address-uint256->mint</a>+++ `++mint(++[.var-type]#++address++#++ ++[.var-name]#++account++#++, ++[.var-type]#++uint256++#++ ++[.var-name]#++amount++#++)++` [.item-kind]#external#
 
 Mint tokens.
 
@@ -792,7 +792,7 @@ Requirements:
 - sender must be granted with {MINTER_ROLE}.
 
 [.contract-item]
-==== +++<a class="heading-anchor" area-hidden="true" name=EthErc20-forceBurn-address-uint256->forceBurn</a>+++ `++forceBurn(++[.var-type]#++address++#++ ++[.var-name]#++account++#++, ++[.var-type]#++uint256++#++ ++[.var-name]#++amount++#++)++` [.item-kind]#external#
+== +++<a class="heading-anchor" area-hidden="true" name=EthErc20-forceBurn-address-uint256->forceBurn</a>+++ `++forceBurn(++[.var-type]#++address++#++ ++[.var-name]#++account++#++, ++[.var-type]#++uint256++#++ ++[.var-name]#++amount++#++)++` [.item-kind]#external#
 
 Burn tokens for any account.
 
@@ -801,7 +801,7 @@ Requirements:
 - sender must be granted with {BURNER_ROLE}.
 
 [.contract-item]
-==== +++<a class="heading-anchor" area-hidden="true" name=EthErc20-initialize-address->initialize</a>+++ `++initialize(++[.var-type]#++address++#++ ++[.var-name]#++tokenManagerEthAddress++#++)++` [.item-kind]#external#
+== +++<a class="heading-anchor" area-hidden="true" name=EthErc20-initialize-address->initialize</a>+++ `++initialize(++[.var-type]#++address++#++ ++[.var-name]#++tokenManagerEthAddress++#++)++` [.item-kind]#external#
 
 Is called once during contract deployment.
 

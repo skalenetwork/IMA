@@ -830,38 +830,38 @@ Abstract contract for MessageProxyForMainnet and MessageProxyForSchain.
 --
 
 [.contract-item]
-==== +++<a class="heading-anchor" area-hidden="true" name=MessageProxy-onlyChainConnector-->onlyChainConnector</a>+++ `++onlyChainConnector()++` [.item-kind]#modifier#
+== +++<a class="heading-anchor" area-hidden="true" name=MessageProxy-onlyChainConnector-->onlyChainConnector</a>+++ `++onlyChainConnector()++` [.item-kind]#modifier#
 
 Modifier to make a function callable only if caller is granted with {CHAIN_CONNECTOR_ROLE}.
 
 [.contract-item]
-==== +++<a class="heading-anchor" area-hidden="true" name=MessageProxy-onlyExtraContractRegistrar-->onlyExtraContractRegistrar</a>+++ `++onlyExtraContractRegistrar()++` [.item-kind]#modifier#
+== +++<a class="heading-anchor" area-hidden="true" name=MessageProxy-onlyExtraContractRegistrar-->onlyExtraContractRegistrar</a>+++ `++onlyExtraContractRegistrar()++` [.item-kind]#modifier#
 
 Modifier to make a function callable only if caller is granted with {EXTRA_CONTRACT_REGISTRAR_ROLE}.
 
 [.contract-item]
-==== +++<a class="heading-anchor" area-hidden="true" name=MessageProxy-onlyConstantSetter-->onlyConstantSetter</a>+++ `++onlyConstantSetter()++` [.item-kind]#modifier#
+== +++<a class="heading-anchor" area-hidden="true" name=MessageProxy-onlyConstantSetter-->onlyConstantSetter</a>+++ `++onlyConstantSetter()++` [.item-kind]#modifier#
 
 Modifier to make a function callable only if caller is granted with {CONSTANT_SETTER_ROLE}.
 
 
 [.contract-item]
-==== +++<a class="heading-anchor" area-hidden="true" name=MessageProxy-initializeMessageProxy-uint256->initializeMessageProxy</a>+++ `++initializeMessageProxy(++[.var-type]#++uint256++#++ ++[.var-name]#++newGasLimit++#++)++` [.item-kind]#public#
+== +++<a class="heading-anchor" area-hidden="true" name=MessageProxy-initializeMessageProxy-uint256->initializeMessageProxy</a>+++ `++initializeMessageProxy(++[.var-type]#++uint256++#++ ++[.var-name]#++newGasLimit++#++)++` [.item-kind]#public#
 
 
 
 [.contract-item]
-==== +++<a class="heading-anchor" area-hidden="true" name=MessageProxy-isConnectedChain-string->isConnectedChain</a>+++ `++isConnectedChain(++[.var-type]#++string++#++ ++[.var-name]#++schainName++#++) → ++[.var-type]#++bool++#++++` [.item-kind]#public#
+== +++<a class="heading-anchor" area-hidden="true" name=MessageProxy-isConnectedChain-string->isConnectedChain</a>+++ `++isConnectedChain(++[.var-type]#++string++#++ ++[.var-name]#++schainName++#++) → ++[.var-type]#++bool++#++++` [.item-kind]#public#
 
 Checks whether schain was connected to MessageProxy.
 
 [.contract-item]
-==== +++<a class="heading-anchor" area-hidden="true" name=MessageProxy-addConnectedChain-string->addConnectedChain</a>+++ `++addConnectedChain(++[.var-type]#++string++#++ ++[.var-name]#++schainName++#++)++` [.item-kind]#external#
+== +++<a class="heading-anchor" area-hidden="true" name=MessageProxy-addConnectedChain-string->addConnectedChain</a>+++ `++addConnectedChain(++[.var-type]#++string++#++ ++[.var-name]#++schainName++#++)++` [.item-kind]#external#
 
 Allows `msg.sender` to connect schain with MessageProxy for transferring messages.
 
 [.contract-item]
-==== +++<a class="heading-anchor" area-hidden="true" name=MessageProxy-removeConnectedChain-string->removeConnectedChain</a>+++ `++removeConnectedChain(++[.var-type]#++string++#++ ++[.var-name]#++schainName++#++)++` [.item-kind]#public#
+== +++<a class="heading-anchor" area-hidden="true" name=MessageProxy-removeConnectedChain-string->removeConnectedChain</a>+++ `++removeConnectedChain(++[.var-type]#++string++#++ ++[.var-name]#++schainName++#++)++` [.item-kind]#public#
 
 Allows `msg.sender` to disconnect schain with MessageProxy for transferring messages.
 
@@ -871,7 +871,7 @@ Requirements:
 - Chain must be initialized.
 
 [.contract-item]
-==== +++<a class="heading-anchor" area-hidden="true" name=MessageProxy-setNewGasLimit-uint256->setNewGasLimit</a>+++ `++setNewGasLimit(++[.var-type]#++uint256++#++ ++[.var-name]#++newGasLimit++#++)++` [.item-kind]#external#
+== +++<a class="heading-anchor" area-hidden="true" name=MessageProxy-setNewGasLimit-uint256->setNewGasLimit</a>+++ `++setNewGasLimit(++[.var-type]#++uint256++#++ ++[.var-name]#++newGasLimit++#++)++` [.item-kind]#external#
 
 Sets gasLimit to a new value.
 
@@ -880,7 +880,7 @@ Requirements:
 - `msg.sender` must be granted CONSTANT_SETTER_ROLE.
 
 [.contract-item]
-==== +++<a class="heading-anchor" area-hidden="true" name=MessageProxy-postOutgoingMessage-bytes32-address-bytes->postOutgoingMessage</a>+++ `++postOutgoingMessage(++[.var-type]#++bytes32++#++ ++[.var-name]#++targetChainHash++#++, ++[.var-type]#++address++#++ ++[.var-name]#++targetContract++#++, ++[.var-type]#++bytes++#++ ++[.var-name]#++data++#++)++` [.item-kind]#public#
+== +++<a class="heading-anchor" area-hidden="true" name=MessageProxy-postOutgoingMessage-bytes32-address-bytes->postOutgoingMessage</a>+++ `++postOutgoingMessage(++[.var-type]#++bytes32++#++ ++[.var-name]#++targetChainHash++#++, ++[.var-type]#++address++#++ ++[.var-name]#++targetContract++#++, ++[.var-type]#++bytes++#++ ++[.var-name]#++data++#++)++` [.item-kind]#public#
 
 Posts message from this contract to `targetChainHash` MessageProxy contract.
 This is called by a smart contract to make a cross-chain call.
@@ -893,12 +893,12 @@ Requirements:
 - Target chain must be registered as external contract.
 
 [.contract-item]
-==== +++<a class="heading-anchor" area-hidden="true" name=MessageProxy-postIncomingMessages-string-uint256-struct-MessageProxy-Message---struct-MessageProxy-Signature->postIncomingMessages</a>+++ `++postIncomingMessages(++[.var-type]#++string++#++ ++[.var-name]#++fromSchainName++#++, ++[.var-type]#++uint256++#++ ++[.var-name]#++startingCounter++#++, ++[.var-type]#++struct MessageProxy.Message[]++#++ ++[.var-name]#++messages++#++, ++[.var-type]#++struct MessageProxy.Signature++#++ ++[.var-name]#++sign++#++)++` [.item-kind]#external#
+== +++<a class="heading-anchor" area-hidden="true" name=MessageProxy-postIncomingMessages-string-uint256-struct-MessageProxy-Message---struct-MessageProxy-Signature->postIncomingMessages</a>+++ `++postIncomingMessages(++[.var-type]#++string++#++ ++[.var-name]#++fromSchainName++#++, ++[.var-type]#++uint256++#++ ++[.var-name]#++startingCounter++#++, ++[.var-type]#++struct MessageProxy.Message[]++#++ ++[.var-name]#++messages++#++, ++[.var-type]#++struct MessageProxy.Signature++#++ ++[.var-name]#++sign++#++)++` [.item-kind]#external#
 
 Virtual function for `postIncomingMessages`.
 
 [.contract-item]
-==== +++<a class="heading-anchor" area-hidden="true" name=MessageProxy-registerExtraContractForAll-address->registerExtraContractForAll</a>+++ `++registerExtraContractForAll(++[.var-type]#++address++#++ ++[.var-name]#++extraContract++#++)++` [.item-kind]#external#
+== +++<a class="heading-anchor" area-hidden="true" name=MessageProxy-registerExtraContractForAll-address->registerExtraContractForAll</a>+++ `++registerExtraContractForAll(++[.var-type]#++address++#++ ++[.var-name]#++extraContract++#++)++` [.item-kind]#external#
 
 Allows `msg.sender` to register extra contract for all schains
 for being able to transfer messages from custom contracts.
@@ -910,7 +910,7 @@ Requirements:
 - Extra contract must not be registered.
 
 [.contract-item]
-==== +++<a class="heading-anchor" area-hidden="true" name=MessageProxy-removeExtraContractForAll-address->removeExtraContractForAll</a>+++ `++removeExtraContractForAll(++[.var-type]#++address++#++ ++[.var-name]#++extraContract++#++)++` [.item-kind]#external#
+== +++<a class="heading-anchor" area-hidden="true" name=MessageProxy-removeExtraContractForAll-address->removeExtraContractForAll</a>+++ `++removeExtraContractForAll(++[.var-type]#++address++#++ ++[.var-name]#++extraContract++#++)++` [.item-kind]#external#
 
 Allows `msg.sender` to remove extra contract for all schains.
 Extra contract will no longer be able to send messages through MessageProxy.
@@ -920,12 +920,12 @@ Requirements:
 - `msg.sender` must be granted as EXTRA_CONTRACT_REGISTRAR_ROLE.
 
 [.contract-item]
-==== +++<a class="heading-anchor" area-hidden="true" name=MessageProxy-isContractRegistered-string-address->isContractRegistered</a>+++ `++isContractRegistered(++[.var-type]#++string++#++ ++[.var-name]#++schainName++#++, ++[.var-type]#++address++#++ ++[.var-name]#++contractAddress++#++) → ++[.var-type]#++bool++#++++` [.item-kind]#external#
+== +++<a class="heading-anchor" area-hidden="true" name=MessageProxy-isContractRegistered-string-address->isContractRegistered</a>+++ `++isContractRegistered(++[.var-type]#++string++#++ ++[.var-name]#++schainName++#++, ++[.var-type]#++address++#++ ++[.var-name]#++contractAddress++#++) → ++[.var-type]#++bool++#++++` [.item-kind]#external#
 
 Checks whether contract is currently registered as extra contract.
 
 [.contract-item]
-==== +++<a class="heading-anchor" area-hidden="true" name=MessageProxy-getOutgoingMessagesCounter-string->getOutgoingMessagesCounter</a>+++ `++getOutgoingMessagesCounter(++[.var-type]#++string++#++ ++[.var-name]#++targetSchainName++#++) → ++[.var-type]#++uint256++#++++` [.item-kind]#external#
+== +++<a class="heading-anchor" area-hidden="true" name=MessageProxy-getOutgoingMessagesCounter-string->getOutgoingMessagesCounter</a>+++ `++getOutgoingMessagesCounter(++[.var-type]#++string++#++ ++[.var-name]#++targetSchainName++#++) → ++[.var-type]#++uint256++#++++` [.item-kind]#external#
 
 Returns number of outgoing messages.
 
@@ -934,7 +934,7 @@ Requirements:
 - Target schain  must be initialized.
 
 [.contract-item]
-==== +++<a class="heading-anchor" area-hidden="true" name=MessageProxy-getIncomingMessagesCounter-string->getIncomingMessagesCounter</a>+++ `++getIncomingMessagesCounter(++[.var-type]#++string++#++ ++[.var-name]#++fromSchainName++#++) → ++[.var-type]#++uint256++#++++` [.item-kind]#external#
+== +++<a class="heading-anchor" area-hidden="true" name=MessageProxy-getIncomingMessagesCounter-string->getIncomingMessagesCounter</a>+++ `++getIncomingMessagesCounter(++[.var-type]#++string++#++ ++[.var-name]#++fromSchainName++#++) → ++[.var-type]#++uint256++#++++` [.item-kind]#external#
 
 Returns number of incoming messages.
 
@@ -943,7 +943,7 @@ Requirements:
 - Source schain must be initialized.
 
 [.contract-item]
-==== +++<a class="heading-anchor" area-hidden="true" name=MessageProxy-_addConnectedChain-bytes32->_addConnectedChain</a>+++ `++_addConnectedChain(++[.var-type]#++bytes32++#++ ++[.var-name]#++schainHash++#++)++` [.item-kind]#internal#
+== +++<a class="heading-anchor" area-hidden="true" name=MessageProxy-_addConnectedChain-bytes32->_addConnectedChain</a>+++ `++_addConnectedChain(++[.var-type]#++bytes32++#++ ++[.var-name]#++schainHash++#++)++` [.item-kind]#internal#
 
 Allows MessageProxy to connect schain with MessageProxyOnMainnet for transferring messages.
 
@@ -953,18 +953,18 @@ Requirements:
 - SKALE chain must not be connected.
 
 [.contract-item]
-==== +++<a class="heading-anchor" area-hidden="true" name=MessageProxy-_callReceiverContract-bytes32-struct-MessageProxy-Message-uint256->_callReceiverContract</a>+++ `++_callReceiverContract(++[.var-type]#++bytes32++#++ ++[.var-name]#++schainHash++#++, ++[.var-type]#++struct MessageProxy.Message++#++ ++[.var-name]#++message++#++, ++[.var-type]#++uint256++#++ ++[.var-name]#++counter++#++) → ++[.var-type]#++address++#++++` [.item-kind]#internal#
+== +++<a class="heading-anchor" area-hidden="true" name=MessageProxy-_callReceiverContract-bytes32-struct-MessageProxy-Message-uint256->_callReceiverContract</a>+++ `++_callReceiverContract(++[.var-type]#++bytes32++#++ ++[.var-name]#++schainHash++#++, ++[.var-type]#++struct MessageProxy.Message++#++ ++[.var-name]#++message++#++, ++[.var-type]#++uint256++#++ ++[.var-name]#++counter++#++) → ++[.var-type]#++address++#++++` [.item-kind]#internal#
 
 Allows MessageProxy to send messages from schain to mainnet.
 Destination contract must implement `postMessage` method.
 
 [.contract-item]
-==== +++<a class="heading-anchor" area-hidden="true" name=MessageProxy-_getGasPayer-bytes32-struct-MessageProxy-Message-uint256->_getGasPayer</a>+++ `++_getGasPayer(++[.var-type]#++bytes32++#++ ++[.var-name]#++schainHash++#++, ++[.var-type]#++struct MessageProxy.Message++#++ ++[.var-name]#++message++#++, ++[.var-type]#++uint256++#++ ++[.var-name]#++counter++#++) → ++[.var-type]#++address++#++++` [.item-kind]#internal#
+== +++<a class="heading-anchor" area-hidden="true" name=MessageProxy-_getGasPayer-bytes32-struct-MessageProxy-Message-uint256->_getGasPayer</a>+++ `++_getGasPayer(++[.var-type]#++bytes32++#++ ++[.var-name]#++schainHash++#++, ++[.var-type]#++struct MessageProxy.Message++#++ ++[.var-name]#++message++#++, ++[.var-type]#++uint256++#++ ++[.var-name]#++counter++#++) → ++[.var-type]#++address++#++++` [.item-kind]#internal#
 
 
 
 [.contract-item]
-==== +++<a class="heading-anchor" area-hidden="true" name=MessageProxy-_registerExtraContract-bytes32-address->_registerExtraContract</a>+++ `++_registerExtraContract(++[.var-type]#++bytes32++#++ ++[.var-name]#++chainHash++#++, ++[.var-type]#++address++#++ ++[.var-name]#++extraContract++#++)++` [.item-kind]#internal#
+== +++<a class="heading-anchor" area-hidden="true" name=MessageProxy-_registerExtraContract-bytes32-address->_registerExtraContract</a>+++ `++_registerExtraContract(++[.var-type]#++bytes32++#++ ++[.var-name]#++chainHash++#++, ++[.var-type]#++address++#++ ++[.var-name]#++extraContract++#++)++` [.item-kind]#internal#
 
 Allows MessageProxy to register extra contract for being able to transfer messages from custom contracts.
 
@@ -975,7 +975,7 @@ Requirements:
 - Extra contract must not be registered for all chains.
 
 [.contract-item]
-==== +++<a class="heading-anchor" area-hidden="true" name=MessageProxy-_removeExtraContract-bytes32-address->_removeExtraContract</a>+++ `++_removeExtraContract(++[.var-type]#++bytes32++#++ ++[.var-name]#++chainHash++#++, ++[.var-type]#++address++#++ ++[.var-name]#++extraContract++#++)++` [.item-kind]#internal#
+== +++<a class="heading-anchor" area-hidden="true" name=MessageProxy-_removeExtraContract-bytes32-address->_removeExtraContract</a>+++ `++_removeExtraContract(++[.var-type]#++bytes32++#++ ++[.var-name]#++chainHash++#++, ++[.var-type]#++address++#++ ++[.var-name]#++extraContract++#++)++` [.item-kind]#internal#
 
 Allows MessageProxy to remove extra contract,
 thus `extraContract` will no longer be available to transfer messages from mainnet to schain.
@@ -985,24 +985,24 @@ Requirements:
 - Extra contract must be registered.
 
 [.contract-item]
-==== +++<a class="heading-anchor" area-hidden="true" name=MessageProxy-_hashedArray-struct-MessageProxy-Message--->_hashedArray</a>+++ `++_hashedArray(++[.var-type]#++struct MessageProxy.Message[]++#++ ++[.var-name]#++messages++#++) → ++[.var-type]#++bytes32++#++++` [.item-kind]#internal#
+== +++<a class="heading-anchor" area-hidden="true" name=MessageProxy-_hashedArray-struct-MessageProxy-Message--->_hashedArray</a>+++ `++_hashedArray(++[.var-type]#++struct MessageProxy.Message[]++#++ ++[.var-name]#++messages++#++) → ++[.var-type]#++bytes32++#++++` [.item-kind]#internal#
 
 Returns hash of message array.
 
 
 [.contract-item]
-==== +++<a class="heading-anchor" area-hidden="true" name=MessageProxy-OutgoingMessage-bytes32-uint256-address-address-bytes->OutgoingMessage</a>+++ `++OutgoingMessage(++[.var-type]#++bytes32++#++ ++[.var-name]#++dstChainHash++#++, ++[.var-type]#++uint256++#++ ++[.var-name]#++msgCounter++#++, ++[.var-type]#++address++#++ ++[.var-name]#++srcContract++#++, ++[.var-type]#++address++#++ ++[.var-name]#++dstContract++#++, ++[.var-type]#++bytes++#++ ++[.var-name]#++data++#++)++` [.item-kind]#event#
+== +++<a class="heading-anchor" area-hidden="true" name=MessageProxy-OutgoingMessage-bytes32-uint256-address-address-bytes->OutgoingMessage</a>+++ `++OutgoingMessage(++[.var-type]#++bytes32++#++ ++[.var-name]#++dstChainHash++#++, ++[.var-type]#++uint256++#++ ++[.var-name]#++msgCounter++#++, ++[.var-type]#++address++#++ ++[.var-name]#++srcContract++#++, ++[.var-type]#++address++#++ ++[.var-name]#++dstContract++#++, ++[.var-type]#++bytes++#++ ++[.var-name]#++data++#++)++` [.item-kind]#event#
 
 Emitted for every outgoing message to schain.
 
 [.contract-item]
-==== +++<a class="heading-anchor" area-hidden="true" name=MessageProxy-PostMessageError-uint256-bytes->PostMessageError</a>+++ `++PostMessageError(++[.var-type]#++uint256++#++ ++[.var-name]#++msgCounter++#++, ++[.var-type]#++bytes++#++ ++[.var-name]#++message++#++)++` [.item-kind]#event#
+== +++<a class="heading-anchor" area-hidden="true" name=MessageProxy-PostMessageError-uint256-bytes->PostMessageError</a>+++ `++PostMessageError(++[.var-type]#++uint256++#++ ++[.var-name]#++msgCounter++#++, ++[.var-type]#++bytes++#++ ++[.var-name]#++message++#++)++` [.item-kind]#event#
 
 Emitted when function `postMessage` returns revert.
  Used to prevent stuck loop inside function `postIncomingMessages`.
 
 [.contract-item]
-==== +++<a class="heading-anchor" area-hidden="true" name=MessageProxy-GasLimitWasChanged-uint256-uint256->GasLimitWasChanged</a>+++ `++GasLimitWasChanged(++[.var-type]#++uint256++#++ ++[.var-name]#++oldValue++#++, ++[.var-type]#++uint256++#++ ++[.var-name]#++newValue++#++)++` [.item-kind]#event#
+== +++<a class="heading-anchor" area-hidden="true" name=MessageProxy-GasLimitWasChanged-uint256-uint256->GasLimitWasChanged</a>+++ `++GasLimitWasChanged(++[.var-type]#++uint256++#++ ++[.var-name]#++oldValue++#++, ++[.var-type]#++uint256++#++ ++[.var-name]#++newValue++#++)++` [.item-kind]#event#
 
 Emitted when gas limit per one call of `postMessage` was changed.
 

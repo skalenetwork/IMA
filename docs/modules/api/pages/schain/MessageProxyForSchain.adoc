@@ -812,22 +812,22 @@ ID of this schain, Chain 0 represents ETH mainnet,
 
 
 [.contract-item]
-==== +++<a class="heading-anchor" area-hidden="true" name=MessageProxyForSchain-registerExtraContract-string-address->registerExtraContract</a>+++ `++registerExtraContract(++[.var-type]#++string++#++ ++[.var-name]#++chainName++#++, ++[.var-type]#++address++#++ ++[.var-name]#++extraContract++#++)++` [.item-kind]#external#
+== +++<a class="heading-anchor" area-hidden="true" name=MessageProxyForSchain-registerExtraContract-string-address->registerExtraContract</a>+++ `++registerExtraContract(++[.var-type]#++string++#++ ++[.var-name]#++chainName++#++, ++[.var-type]#++address++#++ ++[.var-name]#++extraContract++#++)++` [.item-kind]#external#
 
 
 
 [.contract-item]
-==== +++<a class="heading-anchor" area-hidden="true" name=MessageProxyForSchain-removeExtraContract-string-address->removeExtraContract</a>+++ `++removeExtraContract(++[.var-type]#++string++#++ ++[.var-name]#++chainName++#++, ++[.var-type]#++address++#++ ++[.var-name]#++extraContract++#++)++` [.item-kind]#external#
+== +++<a class="heading-anchor" area-hidden="true" name=MessageProxyForSchain-removeExtraContract-string-address->removeExtraContract</a>+++ `++removeExtraContract(++[.var-type]#++string++#++ ++[.var-name]#++chainName++#++, ++[.var-type]#++address++#++ ++[.var-name]#++extraContract++#++)++` [.item-kind]#external#
 
 
 
 [.contract-item]
-==== +++<a class="heading-anchor" area-hidden="true" name=MessageProxyForSchain-initialize-contract-KeyStorage-string->initialize</a>+++ `++initialize(++[.var-type]#++contract KeyStorage++#++ ++[.var-name]#++blsKeyStorage++#++, ++[.var-type]#++string++#++ ++[.var-name]#++schainName++#++)++` [.item-kind]#public#
+== +++<a class="heading-anchor" area-hidden="true" name=MessageProxyForSchain-initialize-contract-KeyStorage-string->initialize</a>+++ `++initialize(++[.var-type]#++contract KeyStorage++#++ ++[.var-name]#++blsKeyStorage++#++, ++[.var-type]#++string++#++ ++[.var-name]#++schainName++#++)++` [.item-kind]#public#
 
 Is called once during contract deployment.
 
 [.contract-item]
-==== +++<a class="heading-anchor" area-hidden="true" name=MessageProxyForSchain-addConnectedChain-string->addConnectedChain</a>+++ `++addConnectedChain(++[.var-type]#++string++#++ ++[.var-name]#++chainName++#++)++` [.item-kind]#external#
+== +++<a class="heading-anchor" area-hidden="true" name=MessageProxyForSchain-addConnectedChain-string->addConnectedChain</a>+++ `++addConnectedChain(++[.var-type]#++string++#++ ++[.var-name]#++chainName++#++)++` [.item-kind]#external#
 
 Link external chain.
 
@@ -839,7 +839,7 @@ Requirements:
 - Target chain must be different from the current.
 
 [.contract-item]
-==== +++<a class="heading-anchor" area-hidden="true" name=MessageProxyForSchain-removeConnectedChain-string->removeConnectedChain</a>+++ `++removeConnectedChain(++[.var-type]#++string++#++ ++[.var-name]#++chainName++#++)++` [.item-kind]#public#
+== +++<a class="heading-anchor" area-hidden="true" name=MessageProxyForSchain-removeConnectedChain-string->removeConnectedChain</a>+++ `++removeConnectedChain(++[.var-type]#++string++#++ ++[.var-name]#++chainName++#++)++` [.item-kind]#public#
 
 Unlink external SKALE chain.
 
@@ -849,7 +849,7 @@ Requirements:
 - Target chain must be different from Mainnet.
 
 [.contract-item]
-==== +++<a class="heading-anchor" area-hidden="true" name=MessageProxyForSchain-postOutgoingMessage-bytes32-address-bytes->postOutgoingMessage</a>+++ `++postOutgoingMessage(++[.var-type]#++bytes32++#++ ++[.var-name]#++targetChainHash++#++, ++[.var-type]#++address++#++ ++[.var-name]#++targetContract++#++, ++[.var-type]#++bytes++#++ ++[.var-name]#++data++#++)++` [.item-kind]#public#
+== +++<a class="heading-anchor" area-hidden="true" name=MessageProxyForSchain-postOutgoingMessage-bytes32-address-bytes->postOutgoingMessage</a>+++ `++postOutgoingMessage(++[.var-type]#++bytes32++#++ ++[.var-name]#++targetChainHash++#++, ++[.var-type]#++address++#++ ++[.var-name]#++targetContract++#++, ++[.var-type]#++bytes++#++ ++[.var-name]#++data++#++)++` [.item-kind]#public#
 
 This function is called by a smart contract
 that wants to make a cross-chain call.
@@ -860,7 +860,7 @@ Requirements:
 - Sender contract has to be registered.
 
 [.contract-item]
-==== +++<a class="heading-anchor" area-hidden="true" name=MessageProxyForSchain-postIncomingMessages-string-uint256-struct-MessageProxy-Message---struct-MessageProxy-Signature->postIncomingMessages</a>+++ `++postIncomingMessages(++[.var-type]#++string++#++ ++[.var-name]#++fromChainName++#++, ++[.var-type]#++uint256++#++ ++[.var-name]#++startingCounter++#++, ++[.var-type]#++struct MessageProxy.Message[]++#++ ++[.var-name]#++messages++#++, ++[.var-type]#++struct MessageProxy.Signature++#++ ++[.var-name]#++signature++#++)++` [.item-kind]#external#
+== +++<a class="heading-anchor" area-hidden="true" name=MessageProxyForSchain-postIncomingMessages-string-uint256-struct-MessageProxy-Message---struct-MessageProxy-Signature->postIncomingMessages</a>+++ `++postIncomingMessages(++[.var-type]#++string++#++ ++[.var-name]#++fromChainName++#++, ++[.var-type]#++uint256++#++ ++[.var-name]#++startingCounter++#++, ++[.var-type]#++struct MessageProxy.Message[]++#++ ++[.var-name]#++messages++#++, ++[.var-type]#++struct MessageProxy.Signature++#++ ++[.var-name]#++signature++#++)++` [.item-kind]#external#
 
 Entry point for incoming messages.
 This function is called by IMA-agent to deliver incoming messages from external chains.
@@ -874,12 +874,12 @@ by super majority of current SKALE chain nodes.
 - All previous messages must be already delivered.
 
 [.contract-item]
-==== +++<a class="heading-anchor" area-hidden="true" name=MessageProxyForSchain-verifyOutgoingMessageData-struct-MessageProxyForSchain-OutgoingMessageData->verifyOutgoingMessageData</a>+++ `++verifyOutgoingMessageData(++[.var-type]#++struct MessageProxyForSchain.OutgoingMessageData++#++ ++[.var-name]#++message++#++) → ++[.var-type]#++bool++#++ ++[.var-name]#++isValidMessage++#++++` [.item-kind]#external#
+== +++<a class="heading-anchor" area-hidden="true" name=MessageProxyForSchain-verifyOutgoingMessageData-struct-MessageProxyForSchain-OutgoingMessageData->verifyOutgoingMessageData</a>+++ `++verifyOutgoingMessageData(++[.var-type]#++struct MessageProxyForSchain.OutgoingMessageData++#++ ++[.var-name]#++message++#++) → ++[.var-type]#++bool++#++ ++[.var-name]#++isValidMessage++#++++` [.item-kind]#external#
 
 Verify if the message metadata is valid.
 
 [.contract-item]
-==== +++<a class="heading-anchor" area-hidden="true" name=MessageProxyForSchain-_verifyMessages-bytes32-struct-MessageProxy-Signature->_verifyMessages</a>+++ `++_verifyMessages(++[.var-type]#++bytes32++#++ ++[.var-name]#++hashedMessages++#++, ++[.var-type]#++struct MessageProxy.Signature++#++ ++[.var-name]#++signature++#++) → ++[.var-type]#++bool++#++++` [.item-kind]#internal#
+== +++<a class="heading-anchor" area-hidden="true" name=MessageProxyForSchain-_verifyMessages-bytes32-struct-MessageProxy-Signature->_verifyMessages</a>+++ `++_verifyMessages(++[.var-type]#++bytes32++#++ ++[.var-name]#++hashedMessages++#++, ++[.var-type]#++struct MessageProxy.Signature++#++ ++[.var-name]#++signature++#++) → ++[.var-type]#++bool++#++++` [.item-kind]#internal#
 
 Converts calldata structure to memory structure and checks
 whether message BLS signature is valid.

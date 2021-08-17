@@ -810,7 +810,7 @@ messages do not need to be signed.
 
 
 [.contract-item]
-==== +++<a class="heading-anchor" area-hidden="true" name=MessageProxyForMainnet-addConnectedChain-string->addConnectedChain</a>+++ `++addConnectedChain(++[.var-type]#++string++#++ ++[.var-name]#++schainName++#++)++` [.item-kind]#external#
+== +++<a class="heading-anchor" area-hidden="true" name=MessageProxyForMainnet-addConnectedChain-string->addConnectedChain</a>+++ `++addConnectedChain(++[.var-type]#++string++#++ ++[.var-name]#++schainName++#++)++` [.item-kind]#external#
 
 Allows `msg.sender` to connect schain with MessageProxyOnMainnet for transferring messages.
 
@@ -819,7 +819,7 @@ Requirements:
 - Schain name must not be `Mainnet`.
 
 [.contract-item]
-==== +++<a class="heading-anchor" area-hidden="true" name=MessageProxyForMainnet-setCommunityPool-contract-CommunityPool->setCommunityPool</a>+++ `++setCommunityPool(++[.var-type]#++contract CommunityPool++#++ ++[.var-name]#++newCommunityPoolAddress++#++)++` [.item-kind]#external#
+== +++<a class="heading-anchor" area-hidden="true" name=MessageProxyForMainnet-setCommunityPool-contract-CommunityPool->setCommunityPool</a>+++ `++setCommunityPool(++[.var-type]#++contract CommunityPool++#++ ++[.var-name]#++newCommunityPoolAddress++#++)++` [.item-kind]#external#
 
 Allows owner of the contract to set CommunityPool address for gas reimbursement.
 
@@ -829,7 +829,7 @@ Requirements:
 - Address of CommunityPool contract must not be null.
 
 [.contract-item]
-==== +++<a class="heading-anchor" area-hidden="true" name=MessageProxyForMainnet-registerExtraContract-string-address->registerExtraContract</a>+++ `++registerExtraContract(++[.var-type]#++string++#++ ++[.var-name]#++schainName++#++, ++[.var-type]#++address++#++ ++[.var-name]#++extraContract++#++)++` [.item-kind]#external#
+== +++<a class="heading-anchor" area-hidden="true" name=MessageProxyForMainnet-registerExtraContract-string-address->registerExtraContract</a>+++ `++registerExtraContract(++[.var-type]#++string++#++ ++[.var-name]#++schainName++#++, ++[.var-type]#++address++#++ ++[.var-name]#++extraContract++#++)++` [.item-kind]#external#
 
 Allows `msg.sender` to register extra contract for being able to transfer messages from custom contracts.
 
@@ -839,7 +839,7 @@ Requirements:
 - Schain name must not be `Mainnet`.
 
 [.contract-item]
-==== +++<a class="heading-anchor" area-hidden="true" name=MessageProxyForMainnet-removeExtraContract-string-address->removeExtraContract</a>+++ `++removeExtraContract(++[.var-type]#++string++#++ ++[.var-name]#++schainName++#++, ++[.var-type]#++address++#++ ++[.var-name]#++extraContract++#++)++` [.item-kind]#external#
+== +++<a class="heading-anchor" area-hidden="true" name=MessageProxyForMainnet-removeExtraContract-string-address->removeExtraContract</a>+++ `++removeExtraContract(++[.var-type]#++string++#++ ++[.var-name]#++schainName++#++, ++[.var-type]#++address++#++ ++[.var-name]#++extraContract++#++)++` [.item-kind]#external#
 
 Allows `msg.sender` to remove extra contract,
 thus `extraContract` will no longer be available to transfer messages from mainnet to schain.
@@ -850,7 +850,7 @@ Requirements:
 - Schain name must not be `Mainnet`.
 
 [.contract-item]
-==== +++<a class="heading-anchor" area-hidden="true" name=MessageProxyForMainnet-postIncomingMessages-string-uint256-struct-MessageProxy-Message---struct-MessageProxy-Signature->postIncomingMessages</a>+++ `++postIncomingMessages(++[.var-type]#++string++#++ ++[.var-name]#++fromSchainName++#++, ++[.var-type]#++uint256++#++ ++[.var-name]#++startingCounter++#++, ++[.var-type]#++struct MessageProxy.Message[]++#++ ++[.var-name]#++messages++#++, ++[.var-type]#++struct MessageProxy.Signature++#++ ++[.var-name]#++sign++#++)++` [.item-kind]#external#
+== +++<a class="heading-anchor" area-hidden="true" name=MessageProxyForMainnet-postIncomingMessages-string-uint256-struct-MessageProxy-Message---struct-MessageProxy-Signature->postIncomingMessages</a>+++ `++postIncomingMessages(++[.var-type]#++string++#++ ++[.var-name]#++fromSchainName++#++, ++[.var-type]#++uint256++#++ ++[.var-name]#++startingCounter++#++, ++[.var-type]#++struct MessageProxy.Message[]++#++ ++[.var-name]#++messages++#++, ++[.var-type]#++struct MessageProxy.Signature++#++ ++[.var-name]#++sign++#++)++` [.item-kind]#external#
 
 Posts incoming message from `fromSchainName`. 
 
@@ -862,7 +862,7 @@ Requirements:
 - If destination chain is Mainnet, message signature must be valid.
 
 [.contract-item]
-==== +++<a class="heading-anchor" area-hidden="true" name=MessageProxyForMainnet-setNewHeaderMessageGasCost-uint256->setNewHeaderMessageGasCost</a>+++ `++setNewHeaderMessageGasCost(++[.var-type]#++uint256++#++ ++[.var-name]#++newHeaderMessageGasCost++#++)++` [.item-kind]#external#
+== +++<a class="heading-anchor" area-hidden="true" name=MessageProxyForMainnet-setNewHeaderMessageGasCost-uint256->setNewHeaderMessageGasCost</a>+++ `++setNewHeaderMessageGasCost(++[.var-type]#++uint256++#++ ++[.var-name]#++newHeaderMessageGasCost++#++)++` [.item-kind]#external#
 
 Sets headerMessageGasCost to a new value.
 
@@ -871,7 +871,7 @@ Requirements:
 - `msg.sender` must be granted as CONSTANT_SETTER_ROLE.
 
 [.contract-item]
-==== +++<a class="heading-anchor" area-hidden="true" name=MessageProxyForMainnet-setNewMessageGasCost-uint256->setNewMessageGasCost</a>+++ `++setNewMessageGasCost(++[.var-type]#++uint256++#++ ++[.var-name]#++newMessageGasCost++#++)++` [.item-kind]#external#
+== +++<a class="heading-anchor" area-hidden="true" name=MessageProxyForMainnet-setNewMessageGasCost-uint256->setNewMessageGasCost</a>+++ `++setNewMessageGasCost(++[.var-type]#++uint256++#++ ++[.var-name]#++newMessageGasCost++#++)++` [.item-kind]#external#
 
 Sets messageGasCost to a new value.
 
@@ -880,7 +880,7 @@ Requirements:
 - `msg.sender` must be granted as CONSTANT_SETTER_ROLE.
 
 [.contract-item]
-==== +++<a class="heading-anchor" area-hidden="true" name=MessageProxyForMainnet-isConnectedChain-string->isConnectedChain</a>+++ `++isConnectedChain(++[.var-type]#++string++#++ ++[.var-name]#++schainName++#++) → ++[.var-type]#++bool++#++++` [.item-kind]#public#
+== +++<a class="heading-anchor" area-hidden="true" name=MessageProxyForMainnet-isConnectedChain-string->isConnectedChain</a>+++ `++isConnectedChain(++[.var-type]#++string++#++ ++[.var-name]#++schainName++#++) → ++[.var-type]#++bool++#++++` [.item-kind]#public#
 
 Checks whether chain is currently connected.
 
@@ -892,29 +892,29 @@ Requirements:
 - `schainName` must not be Mainnet.
 
 [.contract-item]
-==== +++<a class="heading-anchor" area-hidden="true" name=MessageProxyForMainnet-initialize-contract-IContractManager->initialize</a>+++ `++initialize(++[.var-type]#++contract IContractManager++#++ ++[.var-name]#++contractManagerOfSkaleManagerValue++#++)++` [.item-kind]#public#
+== +++<a class="heading-anchor" area-hidden="true" name=MessageProxyForMainnet-initialize-contract-IContractManager->initialize</a>+++ `++initialize(++[.var-type]#++contract IContractManager++#++ ++[.var-name]#++contractManagerOfSkaleManagerValue++#++)++` [.item-kind]#public#
 
 Creates a new MessageProxyForMainnet contract.
 
 [.contract-item]
-==== +++<a class="heading-anchor" area-hidden="true" name=MessageProxyForMainnet-_verifyMessages-string-bytes32-struct-MessageProxy-Signature->_verifyMessages</a>+++ `++_verifyMessages(++[.var-type]#++string++#++ ++[.var-name]#++fromSchainName++#++, ++[.var-type]#++bytes32++#++ ++[.var-name]#++hashedMessages++#++, ++[.var-type]#++struct MessageProxy.Signature++#++ ++[.var-name]#++sign++#++) → ++[.var-type]#++bool++#++++` [.item-kind]#internal#
+== +++<a class="heading-anchor" area-hidden="true" name=MessageProxyForMainnet-_verifyMessages-string-bytes32-struct-MessageProxy-Signature->_verifyMessages</a>+++ `++_verifyMessages(++[.var-type]#++string++#++ ++[.var-name]#++fromSchainName++#++, ++[.var-type]#++bytes32++#++ ++[.var-name]#++hashedMessages++#++, ++[.var-type]#++struct MessageProxy.Signature++#++ ++[.var-name]#++sign++#++) → ++[.var-type]#++bool++#++++` [.item-kind]#internal#
 
 Converts calldata structure to memory structure and checks
 whether message BLS signature is valid.
 
 [.contract-item]
-==== +++<a class="heading-anchor" area-hidden="true" name=MessageProxyForMainnet-_checkSchainBalance-bytes32->_checkSchainBalance</a>+++ `++_checkSchainBalance(++[.var-type]#++bytes32++#++ ++[.var-name]#++schainHash++#++) → ++[.var-type]#++bool++#++++` [.item-kind]#internal#
+== +++<a class="heading-anchor" area-hidden="true" name=MessageProxyForMainnet-_checkSchainBalance-bytes32->_checkSchainBalance</a>+++ `++_checkSchainBalance(++[.var-type]#++bytes32++#++ ++[.var-name]#++schainHash++#++) → ++[.var-type]#++bool++#++++` [.item-kind]#internal#
 
 
 
 
 [.contract-item]
-==== +++<a class="heading-anchor" area-hidden="true" name=MessageProxyForMainnet-GasCostMessageHeaderWasChanged-uint256-uint256->GasCostMessageHeaderWasChanged</a>+++ `++GasCostMessageHeaderWasChanged(++[.var-type]#++uint256++#++ ++[.var-name]#++oldValue++#++, ++[.var-type]#++uint256++#++ ++[.var-name]#++newValue++#++)++` [.item-kind]#event#
+== +++<a class="heading-anchor" area-hidden="true" name=MessageProxyForMainnet-GasCostMessageHeaderWasChanged-uint256-uint256->GasCostMessageHeaderWasChanged</a>+++ `++GasCostMessageHeaderWasChanged(++[.var-type]#++uint256++#++ ++[.var-name]#++oldValue++#++, ++[.var-type]#++uint256++#++ ++[.var-name]#++newValue++#++)++` [.item-kind]#event#
 
 Emitted when gas cost for message header was changed.
 
 [.contract-item]
-==== +++<a class="heading-anchor" area-hidden="true" name=MessageProxyForMainnet-GasCostMessageWasChanged-uint256-uint256->GasCostMessageWasChanged</a>+++ `++GasCostMessageWasChanged(++[.var-type]#++uint256++#++ ++[.var-name]#++oldValue++#++, ++[.var-type]#++uint256++#++ ++[.var-name]#++newValue++#++)++` [.item-kind]#event#
+== +++<a class="heading-anchor" area-hidden="true" name=MessageProxyForMainnet-GasCostMessageWasChanged-uint256-uint256->GasCostMessageWasChanged</a>+++ `++GasCostMessageWasChanged(++[.var-type]#++uint256++#++ ++[.var-name]#++oldValue++#++, ++[.var-type]#++uint256++#++ ++[.var-name]#++newValue++#++)++` [.item-kind]#event#
 
 Emitted when gas cost for message was changed.
 

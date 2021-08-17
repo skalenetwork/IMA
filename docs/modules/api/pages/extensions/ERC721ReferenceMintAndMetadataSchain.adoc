@@ -782,17 +782,17 @@ burns tokens.
 
 
 [.contract-item]
-==== +++<a class="heading-anchor" area-hidden="true" name=ERC721ReferenceMintAndMetadataSchain-constructor-address-address-address->constructor</a>+++ `++constructor(++[.var-type]#++address++#++ ++[.var-name]#++newMessageProxyAddress++#++, ++[.var-type]#++address++#++ ++[.var-name]#++newErc721ContractOnSchain++#++, ++[.var-type]#++address++#++ ++[.var-name]#++newReceiverContractOnMainnet++#++)++` [.item-kind]#public#
+== +++<a class="heading-anchor" area-hidden="true" name=ERC721ReferenceMintAndMetadataSchain-constructor-address-address-address->constructor</a>+++ `++constructor(++[.var-type]#++address++#++ ++[.var-name]#++newMessageProxyAddress++#++, ++[.var-type]#++address++#++ ++[.var-name]#++newErc721ContractOnSchain++#++, ++[.var-type]#++address++#++ ++[.var-name]#++newReceiverContractOnMainnet++#++)++` [.item-kind]#public#
 
 
 
 [.contract-item]
-==== +++<a class="heading-anchor" area-hidden="true" name=ERC721ReferenceMintAndMetadataSchain-sendTokenToMainnet-address-uint256->sendTokenToMainnet</a>+++ `++sendTokenToMainnet(++[.var-type]#++address++#++ ++[.var-name]#++receiver++#++, ++[.var-type]#++uint256++#++ ++[.var-name]#++tokenId++#++)++` [.item-kind]#external#
+== +++<a class="heading-anchor" area-hidden="true" name=ERC721ReferenceMintAndMetadataSchain-sendTokenToMainnet-address-uint256->sendTokenToMainnet</a>+++ `++sendTokenToMainnet(++[.var-type]#++address++#++ ++[.var-name]#++receiver++#++, ++[.var-type]#++uint256++#++ ++[.var-name]#++tokenId++#++)++` [.item-kind]#external#
 
 
 
 [.contract-item]
-==== +++<a class="heading-anchor" area-hidden="true" name=ERC721ReferenceMintAndMetadataSchain-encodeParams-address-uint256-string->encodeParams</a>+++ `++encodeParams(++[.var-type]#++address++#++ ++[.var-name]#++receiver++#++, ++[.var-type]#++uint256++#++ ++[.var-name]#++tokenId++#++, ++[.var-type]#++string++#++ ++[.var-name]#++tokenURI++#++) → ++[.var-type]#++bytes++#++ ++[.var-name]#++data++#++++` [.item-kind]#public#
+== +++<a class="heading-anchor" area-hidden="true" name=ERC721ReferenceMintAndMetadataSchain-encodeParams-address-uint256-string->encodeParams</a>+++ `++encodeParams(++[.var-type]#++address++#++ ++[.var-name]#++receiver++#++, ++[.var-type]#++uint256++#++ ++[.var-name]#++tokenId++#++, ++[.var-type]#++string++#++ ++[.var-name]#++tokenURI++#++) → ++[.var-type]#++bytes++#++ ++[.var-name]#++data++#++++` [.item-kind]#public#
 
 
 

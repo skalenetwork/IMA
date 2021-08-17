@@ -799,7 +799,7 @@ of gas fees for sent messages
 
 
 [.contract-item]
-==== +++<a class="heading-anchor" area-hidden="true" name=CommunityLocker-postMessage-bytes32-address-bytes->postMessage</a>+++ `++postMessage(++[.var-type]#++bytes32++#++ ++[.var-name]#++fromChainHash++#++, ++[.var-type]#++address++#++ ++[.var-name]#++sender++#++, ++[.var-type]#++bytes++#++ ++[.var-name]#++data++#++) → ++[.var-type]#++address++#++++` [.item-kind]#external#
+== +++<a class="heading-anchor" area-hidden="true" name=CommunityLocker-postMessage-bytes32-address-bytes->postMessage</a>+++ `++postMessage(++[.var-type]#++bytes32++#++ ++[.var-name]#++fromChainHash++#++, ++[.var-type]#++address++#++ ++[.var-name]#++sender++#++, ++[.var-type]#++bytes++#++ ++[.var-name]#++data++#++) → ++[.var-type]#++address++#++++` [.item-kind]#external#
 
 Allows MessageProxy to post operational message from mainnet
 or SKALE chains.
@@ -813,7 +813,7 @@ Requirements:
 - Status of a user in the message must be different from the current status.
 
 [.contract-item]
-==== +++<a class="heading-anchor" area-hidden="true" name=CommunityLocker-checkAllowedToSendMessage-address->checkAllowedToSendMessage</a>+++ `++checkAllowedToSendMessage(++[.var-type]#++address++#++ ++[.var-name]#++receiver++#++)++` [.item-kind]#external#
+== +++<a class="heading-anchor" area-hidden="true" name=CommunityLocker-checkAllowedToSendMessage-address->checkAllowedToSendMessage</a>+++ `++checkAllowedToSendMessage(++[.var-type]#++address++#++ ++[.var-name]#++receiver++#++)++` [.item-kind]#external#
 
 Reverts if {receiver} is not allowed to send a message.
 
@@ -825,7 +825,7 @@ Requirements:
 or there are no messages sent by {receiver}.
 
 [.contract-item]
-==== +++<a class="heading-anchor" area-hidden="true" name=CommunityLocker-setTimeLimitPerMessage-uint256->setTimeLimitPerMessage</a>+++ `++setTimeLimitPerMessage(++[.var-type]#++uint256++#++ ++[.var-name]#++newTimeLimitPerMessage++#++)++` [.item-kind]#external#
+== +++<a class="heading-anchor" area-hidden="true" name=CommunityLocker-setTimeLimitPerMessage-uint256->setTimeLimitPerMessage</a>+++ `++setTimeLimitPerMessage(++[.var-type]#++uint256++#++ ++[.var-name]#++newTimeLimitPerMessage++#++)++` [.item-kind]#external#
 
 Set value of {timeLimitPerMessage}.
 
@@ -836,23 +836,23 @@ Requirements:
 Emits a {TimeLimitPerMessageWasChanged} event.
 
 [.contract-item]
-==== +++<a class="heading-anchor" area-hidden="true" name=CommunityLocker-initialize-string-contract-MessageProxyForSchain-contract-TokenManagerLinker-address->initialize</a>+++ `++initialize(++[.var-type]#++string++#++ ++[.var-name]#++newSchainName++#++, ++[.var-type]#++contract MessageProxyForSchain++#++ ++[.var-name]#++newMessageProxy++#++, ++[.var-type]#++contract TokenManagerLinker++#++ ++[.var-name]#++newTokenManagerLinker++#++, ++[.var-type]#++address++#++ ++[.var-name]#++newCommunityPool++#++)++` [.item-kind]#external#
+== +++<a class="heading-anchor" area-hidden="true" name=CommunityLocker-initialize-string-contract-MessageProxyForSchain-contract-TokenManagerLinker-address->initialize</a>+++ `++initialize(++[.var-type]#++string++#++ ++[.var-name]#++newSchainName++#++, ++[.var-type]#++contract MessageProxyForSchain++#++ ++[.var-name]#++newMessageProxy++#++, ++[.var-type]#++contract TokenManagerLinker++#++ ++[.var-name]#++newTokenManagerLinker++#++, ++[.var-type]#++address++#++ ++[.var-name]#++newCommunityPool++#++)++` [.item-kind]#external#
 
 Is called once during contract deployment.
 
 
 [.contract-item]
-==== +++<a class="heading-anchor" area-hidden="true" name=CommunityLocker-ActivateUser-bytes32-address->ActivateUser</a>+++ `++ActivateUser(++[.var-type]#++bytes32++#++ ++[.var-name]#++schainHash++#++, ++[.var-type]#++address++#++ ++[.var-name]#++user++#++)++` [.item-kind]#event#
+== +++<a class="heading-anchor" area-hidden="true" name=CommunityLocker-ActivateUser-bytes32-address->ActivateUser</a>+++ `++ActivateUser(++[.var-type]#++bytes32++#++ ++[.var-name]#++schainHash++#++, ++[.var-type]#++address++#++ ++[.var-name]#++user++#++)++` [.item-kind]#event#
 
 Emitted when a user becomes active.
 
 [.contract-item]
-==== +++<a class="heading-anchor" area-hidden="true" name=CommunityLocker-LockUser-bytes32-address->LockUser</a>+++ `++LockUser(++[.var-type]#++bytes32++#++ ++[.var-name]#++schainHash++#++, ++[.var-type]#++address++#++ ++[.var-name]#++user++#++)++` [.item-kind]#event#
+== +++<a class="heading-anchor" area-hidden="true" name=CommunityLocker-LockUser-bytes32-address->LockUser</a>+++ `++LockUser(++[.var-type]#++bytes32++#++ ++[.var-name]#++schainHash++#++, ++[.var-type]#++address++#++ ++[.var-name]#++user++#++)++` [.item-kind]#event#
 
 Emitted when a user stops being active.
 
 [.contract-item]
-==== +++<a class="heading-anchor" area-hidden="true" name=CommunityLocker-TimeLimitPerMessageWasChanged-uint256-uint256->TimeLimitPerMessageWasChanged</a>+++ `++TimeLimitPerMessageWasChanged(++[.var-type]#++uint256++#++ ++[.var-name]#++oldValue++#++, ++[.var-type]#++uint256++#++ ++[.var-name]#++newValue++#++)++` [.item-kind]#event#
+== +++<a class="heading-anchor" area-hidden="true" name=CommunityLocker-TimeLimitPerMessageWasChanged-uint256-uint256->TimeLimitPerMessageWasChanged</a>+++ `++TimeLimitPerMessageWasChanged(++[.var-type]#++uint256++#++ ++[.var-name]#++oldValue++#++, ++[.var-type]#++uint256++#++ ++[.var-name]#++newValue++#++)++` [.item-kind]#event#
 
 Emitted when value of {timeLimitPerMessage} was changed.
 

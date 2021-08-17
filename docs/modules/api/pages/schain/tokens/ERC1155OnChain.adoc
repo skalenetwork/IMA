@@ -784,12 +784,12 @@ ERC1155 token that is used as an automatically deployed clone of ERC1155 on main
 
 
 [.contract-item]
-==== +++<a class="heading-anchor" area-hidden="true" name=ERC1155OnChain-constructor-string->constructor</a>+++ `++constructor(++[.var-type]#++string++#++ ++[.var-name]#++uri++#++)++` [.item-kind]#public#
+== +++<a class="heading-anchor" area-hidden="true" name=ERC1155OnChain-constructor-string->constructor</a>+++ `++constructor(++[.var-type]#++string++#++ ++[.var-name]#++uri++#++)++` [.item-kind]#public#
 
 
 
 [.contract-item]
-==== +++<a class="heading-anchor" area-hidden="true" name=ERC1155OnChain-mint-address-uint256-uint256-bytes->mint</a>+++ `++mint(++[.var-type]#++address++#++ ++[.var-name]#++account++#++, ++[.var-type]#++uint256++#++ ++[.var-name]#++id++#++, ++[.var-type]#++uint256++#++ ++[.var-name]#++amount++#++, ++[.var-type]#++bytes++#++ ++[.var-name]#++data++#++)++` [.item-kind]#external#
+== +++<a class="heading-anchor" area-hidden="true" name=ERC1155OnChain-mint-address-uint256-uint256-bytes->mint</a>+++ `++mint(++[.var-type]#++address++#++ ++[.var-name]#++account++#++, ++[.var-type]#++uint256++#++ ++[.var-name]#++id++#++, ++[.var-type]#++uint256++#++ ++[.var-name]#++amount++#++, ++[.var-type]#++bytes++#++ ++[.var-name]#++data++#++)++` [.item-kind]#external#
 
 Mint tokens.
 
@@ -798,7 +798,7 @@ Requirements:
 - sender must be granted with {MINTER_ROLE}.
 
 [.contract-item]
-==== +++<a class="heading-anchor" area-hidden="true" name=ERC1155OnChain-mintBatch-address-uint256---uint256---bytes->mintBatch</a>+++ `++mintBatch(++[.var-type]#++address++#++ ++[.var-name]#++account++#++, ++[.var-type]#++uint256[]++#++ ++[.var-name]#++ids++#++, ++[.var-type]#++uint256[]++#++ ++[.var-name]#++amounts++#++, ++[.var-type]#++bytes++#++ ++[.var-name]#++data++#++)++` [.item-kind]#external#
+== +++<a class="heading-anchor" area-hidden="true" name=ERC1155OnChain-mintBatch-address-uint256---uint256---bytes->mintBatch</a>+++ `++mintBatch(++[.var-type]#++address++#++ ++[.var-name]#++account++#++, ++[.var-type]#++uint256[]++#++ ++[.var-name]#++ids++#++, ++[.var-type]#++uint256[]++#++ ++[.var-name]#++amounts++#++, ++[.var-type]#++bytes++#++ ++[.var-name]#++data++#++)++` [.item-kind]#external#
 
 Mint batch of tokens.
 
@@ -807,7 +807,7 @@ Requirements:
 - sender must be granted with {MINTER_ROLE}.
 
 [.contract-item]
-==== +++<a class="heading-anchor" area-hidden="true" name=ERC1155OnChain-supportsInterface-bytes4->supportsInterface</a>+++ `++supportsInterface(++[.var-type]#++bytes4++#++ ++[.var-name]#++interfaceId++#++) → ++[.var-type]#++bool++#++++` [.item-kind]#public#
+== +++<a class="heading-anchor" area-hidden="true" name=ERC1155OnChain-supportsInterface-bytes4->supportsInterface</a>+++ `++supportsInterface(++[.var-type]#++bytes4++#++ ++[.var-name]#++interfaceId++#++) → ++[.var-type]#++bool++#++++` [.item-kind]#public#
 
 Check if contract support {interfaceId} interface.
 

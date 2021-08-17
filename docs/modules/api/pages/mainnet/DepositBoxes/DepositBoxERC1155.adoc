@@ -805,17 +805,17 @@ stores deposits of ERC1155.
 
 
 [.contract-item]
-==== +++<a class="heading-anchor" area-hidden="true" name=DepositBoxERC1155-onERC1155Received-address-address-uint256-uint256-bytes->onERC1155Received</a>+++ `++onERC1155Received(++[.var-type]#++address++#++ ++[.var-name]#++operator++#++, ++[.var-type]#++address++#++, ++[.var-type]#++uint256++#++, ++[.var-type]#++uint256++#++, ++[.var-type]#++bytes++#++) → ++[.var-type]#++bytes4++#++++` [.item-kind]#external#
+== +++<a class="heading-anchor" area-hidden="true" name=DepositBoxERC1155-onERC1155Received-address-address-uint256-uint256-bytes->onERC1155Received</a>+++ `++onERC1155Received(++[.var-type]#++address++#++ ++[.var-name]#++operator++#++, ++[.var-type]#++address++#++, ++[.var-type]#++uint256++#++, ++[.var-type]#++uint256++#++, ++[.var-type]#++bytes++#++) → ++[.var-type]#++bytes4++#++++` [.item-kind]#external#
 
 
 
 [.contract-item]
-==== +++<a class="heading-anchor" area-hidden="true" name=DepositBoxERC1155-onERC1155BatchReceived-address-address-uint256---uint256---bytes->onERC1155BatchReceived</a>+++ `++onERC1155BatchReceived(++[.var-type]#++address++#++ ++[.var-name]#++operator++#++, ++[.var-type]#++address++#++, ++[.var-type]#++uint256[]++#++, ++[.var-type]#++uint256[]++#++, ++[.var-type]#++bytes++#++) → ++[.var-type]#++bytes4++#++++` [.item-kind]#external#
+== +++<a class="heading-anchor" area-hidden="true" name=DepositBoxERC1155-onERC1155BatchReceived-address-address-uint256---uint256---bytes->onERC1155BatchReceived</a>+++ `++onERC1155BatchReceived(++[.var-type]#++address++#++ ++[.var-name]#++operator++#++, ++[.var-type]#++address++#++, ++[.var-type]#++uint256[]++#++, ++[.var-type]#++uint256[]++#++, ++[.var-type]#++bytes++#++) → ++[.var-type]#++bytes4++#++++` [.item-kind]#external#
 
 
 
 [.contract-item]
-==== +++<a class="heading-anchor" area-hidden="true" name=DepositBoxERC1155-depositERC1155-string-address-address-uint256-uint256->depositERC1155</a>+++ `++depositERC1155(++[.var-type]#++string++#++ ++[.var-name]#++schainName++#++, ++[.var-type]#++address++#++ ++[.var-name]#++erc1155OnMainnet++#++, ++[.var-type]#++address++#++ ++[.var-name]#++to++#++, ++[.var-type]#++uint256++#++ ++[.var-name]#++id++#++, ++[.var-type]#++uint256++#++ ++[.var-name]#++amount++#++)++` [.item-kind]#external#
+== +++<a class="heading-anchor" area-hidden="true" name=DepositBoxERC1155-depositERC1155-string-address-address-uint256-uint256->depositERC1155</a>+++ `++depositERC1155(++[.var-type]#++string++#++ ++[.var-name]#++schainName++#++, ++[.var-type]#++address++#++ ++[.var-name]#++erc1155OnMainnet++#++, ++[.var-type]#++address++#++ ++[.var-name]#++to++#++, ++[.var-type]#++uint256++#++ ++[.var-name]#++id++#++, ++[.var-type]#++uint256++#++ ++[.var-name]#++amount++#++)++` [.item-kind]#external#
 
 Allows `msg.sender` to send ERC1155 token from mainnet to schain.
 
@@ -825,7 +825,7 @@ Requirements:
 - `msg.sender` should approve their tokens for DepositBoxERC1155 address.
 
 [.contract-item]
-==== +++<a class="heading-anchor" area-hidden="true" name=DepositBoxERC1155-depositERC1155Batch-string-address-address-uint256---uint256--->depositERC1155Batch</a>+++ `++depositERC1155Batch(++[.var-type]#++string++#++ ++[.var-name]#++schainName++#++, ++[.var-type]#++address++#++ ++[.var-name]#++erc1155OnMainnet++#++, ++[.var-type]#++address++#++ ++[.var-name]#++to++#++, ++[.var-type]#++uint256[]++#++ ++[.var-name]#++ids++#++, ++[.var-type]#++uint256[]++#++ ++[.var-name]#++amounts++#++)++` [.item-kind]#external#
+== +++<a class="heading-anchor" area-hidden="true" name=DepositBoxERC1155-depositERC1155Batch-string-address-address-uint256---uint256--->depositERC1155Batch</a>+++ `++depositERC1155Batch(++[.var-type]#++string++#++ ++[.var-name]#++schainName++#++, ++[.var-type]#++address++#++ ++[.var-name]#++erc1155OnMainnet++#++, ++[.var-type]#++address++#++ ++[.var-name]#++to++#++, ++[.var-type]#++uint256[]++#++ ++[.var-name]#++ids++#++, ++[.var-type]#++uint256[]++#++ ++[.var-name]#++amounts++#++)++` [.item-kind]#external#
 
 Allows `msg.sender` to send batch of ERC1155 tokens from mainnet to schain.
 
@@ -835,7 +835,7 @@ Requirements:
 - `msg.sender` should approve their tokens for DepositBoxERC1155 address.
 
 [.contract-item]
-==== +++<a class="heading-anchor" area-hidden="true" name=DepositBoxERC1155-postMessage-bytes32-address-bytes->postMessage</a>+++ `++postMessage(++[.var-type]#++bytes32++#++ ++[.var-name]#++schainHash++#++, ++[.var-type]#++address++#++ ++[.var-name]#++sender++#++, ++[.var-type]#++bytes++#++ ++[.var-name]#++data++#++) → ++[.var-type]#++address++#++ ++[.var-name]#++receiver++#++++` [.item-kind]#external#
+== +++<a class="heading-anchor" area-hidden="true" name=DepositBoxERC1155-postMessage-bytes32-address-bytes->postMessage</a>+++ `++postMessage(++[.var-type]#++bytes32++#++ ++[.var-name]#++schainHash++#++, ++[.var-type]#++address++#++ ++[.var-name]#++sender++#++, ++[.var-type]#++bytes++#++ ++[.var-name]#++data++#++) → ++[.var-type]#++address++#++ ++[.var-name]#++receiver++#++++` [.item-kind]#external#
 
 Allows MessageProxyForMainnet contract to execute transferring ERC1155 token from schain to mainnet.
 
@@ -846,12 +846,12 @@ Requirements:
 - Amount of tokens on DepositBoxERC1155 should be equal or more than transferred amount.
 
 [.contract-item]
-==== +++<a class="heading-anchor" area-hidden="true" name=DepositBoxERC1155-gasPayer-bytes32-address-bytes->gasPayer</a>+++ `++gasPayer(++[.var-type]#++bytes32++#++ ++[.var-name]#++schainHash++#++, ++[.var-type]#++address++#++ ++[.var-name]#++sender++#++, ++[.var-type]#++bytes++#++ ++[.var-name]#++data++#++) → ++[.var-type]#++address++#++++` [.item-kind]#external#
+== +++<a class="heading-anchor" area-hidden="true" name=DepositBoxERC1155-gasPayer-bytes32-address-bytes->gasPayer</a>+++ `++gasPayer(++[.var-type]#++bytes32++#++ ++[.var-name]#++schainHash++#++, ++[.var-type]#++address++#++ ++[.var-name]#++sender++#++, ++[.var-type]#++bytes++#++ ++[.var-name]#++data++#++) → ++[.var-type]#++address++#++++` [.item-kind]#external#
 
 
 
 [.contract-item]
-==== +++<a class="heading-anchor" area-hidden="true" name=DepositBoxERC1155-addERC1155TokenByOwner-string-address->addERC1155TokenByOwner</a>+++ `++addERC1155TokenByOwner(++[.var-type]#++string++#++ ++[.var-name]#++schainName++#++, ++[.var-type]#++address++#++ ++[.var-name]#++erc1155OnMainnet++#++)++` [.item-kind]#external#
+== +++<a class="heading-anchor" area-hidden="true" name=DepositBoxERC1155-addERC1155TokenByOwner-string-address->addERC1155TokenByOwner</a>+++ `++addERC1155TokenByOwner(++[.var-type]#++string++#++ ++[.var-name]#++schainName++#++, ++[.var-type]#++address++#++ ++[.var-name]#++erc1155OnMainnet++#++)++` [.item-kind]#external#
 
 Allows Schain owner to add an ERC1155 token to DepositBoxERC1155.
 
@@ -863,7 +863,7 @@ Requirements:
 - Only owner of the schain able to run function.
 
 [.contract-item]
-==== +++<a class="heading-anchor" area-hidden="true" name=DepositBoxERC1155-getFunds-string-address-address-uint256---uint256--->getFunds</a>+++ `++getFunds(++[.var-type]#++string++#++ ++[.var-name]#++schainName++#++, ++[.var-type]#++address++#++ ++[.var-name]#++erc1155OnMainnet++#++, ++[.var-type]#++address++#++ ++[.var-name]#++receiver++#++, ++[.var-type]#++uint256[]++#++ ++[.var-name]#++ids++#++, ++[.var-type]#++uint256[]++#++ ++[.var-name]#++amounts++#++)++` [.item-kind]#external#
+== +++<a class="heading-anchor" area-hidden="true" name=DepositBoxERC1155-getFunds-string-address-address-uint256---uint256--->getFunds</a>+++ `++getFunds(++[.var-type]#++string++#++ ++[.var-name]#++schainName++#++, ++[.var-type]#++address++#++ ++[.var-name]#++erc1155OnMainnet++#++, ++[.var-type]#++address++#++ ++[.var-name]#++receiver++#++, ++[.var-type]#++uint256[]++#++ ++[.var-name]#++ids++#++, ++[.var-type]#++uint256[]++#++ ++[.var-name]#++amounts++#++)++` [.item-kind]#external#
 
 Allows Schain owner to return each user their tokens.
 The Schain owner decides which tokens to send to which address, 
@@ -874,29 +874,29 @@ Requirements:
 - Amount of tokens on schain should be equal or more than transferred amount.
 
 [.contract-item]
-==== +++<a class="heading-anchor" area-hidden="true" name=DepositBoxERC1155-getSchainToERC1155-string-address->getSchainToERC1155</a>+++ `++getSchainToERC1155(++[.var-type]#++string++#++ ++[.var-name]#++schainName++#++, ++[.var-type]#++address++#++ ++[.var-name]#++erc1155OnMainnet++#++) → ++[.var-type]#++bool++#++++` [.item-kind]#external#
+== +++<a class="heading-anchor" area-hidden="true" name=DepositBoxERC1155-getSchainToERC1155-string-address->getSchainToERC1155</a>+++ `++getSchainToERC1155(++[.var-type]#++string++#++ ++[.var-name]#++schainName++#++, ++[.var-type]#++address++#++ ++[.var-name]#++erc1155OnMainnet++#++) → ++[.var-type]#++bool++#++++` [.item-kind]#external#
 
 Should return true if token was added by Schain owner or 
 added automatically after sending to schain if whitelist was turned off.
 
 [.contract-item]
-==== +++<a class="heading-anchor" area-hidden="true" name=DepositBoxERC1155-initialize-contract-IContractManager-contract-Linker-contract-MessageProxyForMainnet->initialize</a>+++ `++initialize(++[.var-type]#++contract IContractManager++#++ ++[.var-name]#++contractManagerOfSkaleManagerValue++#++, ++[.var-type]#++contract Linker++#++ ++[.var-name]#++linkerValue++#++, ++[.var-type]#++contract MessageProxyForMainnet++#++ ++[.var-name]#++messageProxyValue++#++)++` [.item-kind]#public#
+== +++<a class="heading-anchor" area-hidden="true" name=DepositBoxERC1155-initialize-contract-IContractManager-contract-Linker-contract-MessageProxyForMainnet->initialize</a>+++ `++initialize(++[.var-type]#++contract IContractManager++#++ ++[.var-name]#++contractManagerOfSkaleManagerValue++#++, ++[.var-type]#++contract Linker++#++ ++[.var-name]#++linkerValue++#++, ++[.var-type]#++contract MessageProxyForMainnet++#++ ++[.var-name]#++messageProxyValue++#++)++` [.item-kind]#public#
 
 Creates a new DepositBoxERC1155 contract.
 
 [.contract-item]
-==== +++<a class="heading-anchor" area-hidden="true" name=DepositBoxERC1155-supportsInterface-bytes4->supportsInterface</a>+++ `++supportsInterface(++[.var-type]#++bytes4++#++ ++[.var-name]#++interfaceId++#++) → ++[.var-type]#++bool++#++++` [.item-kind]#public#
+== +++<a class="heading-anchor" area-hidden="true" name=DepositBoxERC1155-supportsInterface-bytes4->supportsInterface</a>+++ `++supportsInterface(++[.var-type]#++bytes4++#++ ++[.var-name]#++interfaceId++#++) → ++[.var-type]#++bool++#++++` [.item-kind]#public#
 
 Checks whether contract supports such interface (first 4 bytes of method name and its params).
 
 
 [.contract-item]
-==== +++<a class="heading-anchor" area-hidden="true" name=DepositBoxERC1155-ERC1155TokenAdded-string-address->ERC1155TokenAdded</a>+++ `++ERC1155TokenAdded(++[.var-type]#++string++#++ ++[.var-name]#++schainName++#++, ++[.var-type]#++address++#++ ++[.var-name]#++contractOnMainnet++#++)++` [.item-kind]#event#
+== +++<a class="heading-anchor" area-hidden="true" name=DepositBoxERC1155-ERC1155TokenAdded-string-address->ERC1155TokenAdded</a>+++ `++ERC1155TokenAdded(++[.var-type]#++string++#++ ++[.var-name]#++schainName++#++, ++[.var-type]#++address++#++ ++[.var-name]#++contractOnMainnet++#++)++` [.item-kind]#event#
 
 Emitted when token is mapped in DepositBoxERC20.
 
 [.contract-item]
-==== +++<a class="heading-anchor" area-hidden="true" name=DepositBoxERC1155-ERC1155TokenReady-address-uint256---uint256--->ERC1155TokenReady</a>+++ `++ERC1155TokenReady(++[.var-type]#++address++#++ ++[.var-name]#++contractOnMainnet++#++, ++[.var-type]#++uint256[]++#++ ++[.var-name]#++ids++#++, ++[.var-type]#++uint256[]++#++ ++[.var-name]#++amounts++#++)++` [.item-kind]#event#
+== +++<a class="heading-anchor" area-hidden="true" name=DepositBoxERC1155-ERC1155TokenReady-address-uint256---uint256--->ERC1155TokenReady</a>+++ `++ERC1155TokenReady(++[.var-type]#++address++#++ ++[.var-name]#++contractOnMainnet++#++, ++[.var-type]#++uint256[]++#++ ++[.var-name]#++ids++#++, ++[.var-type]#++uint256[]++#++ ++[.var-name]#++amounts++#++)++` [.item-kind]#event#
 
 Emitted when token is received by DepositBox and is ready to be cloned
 or transferred on SKALE chain.

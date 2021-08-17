@@ -782,23 +782,23 @@
 
 
 [.contract-item]
-==== +++<a class="heading-anchor" area-hidden="true" name=ERC721ReferenceMintAndMetadataMainnet-onlyOwner-->onlyOwner</a>+++ `++onlyOwner()++` [.item-kind]#modifier#
+== +++<a class="heading-anchor" area-hidden="true" name=ERC721ReferenceMintAndMetadataMainnet-onlyOwner-->onlyOwner</a>+++ `++onlyOwner()++` [.item-kind]#modifier#
 
 
 
 
 [.contract-item]
-==== +++<a class="heading-anchor" area-hidden="true" name=ERC721ReferenceMintAndMetadataMainnet-constructor-address-address-string->constructor</a>+++ `++constructor(++[.var-type]#++address++#++ ++[.var-name]#++newMessageProxyAddress++#++, ++[.var-type]#++address++#++ ++[.var-name]#++newErc721Contract++#++, ++[.var-type]#++string++#++ ++[.var-name]#++newSchainName++#++)++` [.item-kind]#public#
+== +++<a class="heading-anchor" area-hidden="true" name=ERC721ReferenceMintAndMetadataMainnet-constructor-address-address-string->constructor</a>+++ `++constructor(++[.var-type]#++address++#++ ++[.var-name]#++newMessageProxyAddress++#++, ++[.var-type]#++address++#++ ++[.var-name]#++newErc721Contract++#++, ++[.var-type]#++string++#++ ++[.var-name]#++newSchainName++#++)++` [.item-kind]#public#
 
 
 
 [.contract-item]
-==== +++<a class="heading-anchor" area-hidden="true" name=ERC721ReferenceMintAndMetadataMainnet-setSenderContractOnSchain-address->setSenderContractOnSchain</a>+++ `++setSenderContractOnSchain(++[.var-type]#++address++#++ ++[.var-name]#++newSenderContractOnSchain++#++)++` [.item-kind]#external#
+== +++<a class="heading-anchor" area-hidden="true" name=ERC721ReferenceMintAndMetadataMainnet-setSenderContractOnSchain-address->setSenderContractOnSchain</a>+++ `++setSenderContractOnSchain(++[.var-type]#++address++#++ ++[.var-name]#++newSenderContractOnSchain++#++)++` [.item-kind]#external#
 
 
 
 [.contract-item]
-==== +++<a class="heading-anchor" area-hidden="true" name=ERC721ReferenceMintAndMetadataMainnet-postMessage-bytes32-address-bytes->postMessage</a>+++ `++postMessage(++[.var-type]#++bytes32++#++ ++[.var-name]#++schainHash++#++, ++[.var-type]#++address++#++ ++[.var-name]#++sender++#++, ++[.var-type]#++bytes++#++ ++[.var-name]#++data++#++) → ++[.var-type]#++address++#++++` [.item-kind]#external#
+== +++<a class="heading-anchor" area-hidden="true" name=ERC721ReferenceMintAndMetadataMainnet-postMessage-bytes32-address-bytes->postMessage</a>+++ `++postMessage(++[.var-type]#++bytes32++#++ ++[.var-name]#++schainHash++#++, ++[.var-type]#++address++#++ ++[.var-name]#++sender++#++, ++[.var-type]#++bytes++#++ ++[.var-name]#++data++#++) → ++[.var-type]#++address++#++++` [.item-kind]#external#
 
 
 

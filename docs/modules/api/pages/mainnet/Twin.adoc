@@ -788,13 +788,13 @@ contains logic for connecting paired contracts on Mainnet and on Schain.
 --
 
 [.contract-item]
-==== +++<a class="heading-anchor" area-hidden="true" name=Twin-onlyMessageProxy-->onlyMessageProxy</a>+++ `++onlyMessageProxy()++` [.item-kind]#modifier#
+== +++<a class="heading-anchor" area-hidden="true" name=Twin-onlyMessageProxy-->onlyMessageProxy</a>+++ `++onlyMessageProxy()++` [.item-kind]#modifier#
 
 Modifier for checking whether caller is MessageProxy contract.
 
 
 [.contract-item]
-==== +++<a class="heading-anchor" area-hidden="true" name=Twin-addSchainContract-string-address->addSchainContract</a>+++ `++addSchainContract(++[.var-type]#++string++#++ ++[.var-name]#++schainName++#++, ++[.var-type]#++address++#++ ++[.var-name]#++contractReceiver++#++)++` [.item-kind]#external#
+== +++<a class="heading-anchor" area-hidden="true" name=Twin-addSchainContract-string-address->addSchainContract</a>+++ `++addSchainContract(++[.var-type]#++string++#++ ++[.var-name]#++schainName++#++, ++[.var-type]#++address++#++ ++[.var-name]#++contractReceiver++#++)++` [.item-kind]#external#
 
 Binds a contract on mainnet with their twin on schain.
 
@@ -805,7 +805,7 @@ Requirements:
 - Address of contract on schain must be non-zero.
 
 [.contract-item]
-==== +++<a class="heading-anchor" area-hidden="true" name=Twin-removeSchainContract-string->removeSchainContract</a>+++ `++removeSchainContract(++[.var-type]#++string++#++ ++[.var-name]#++schainName++#++)++` [.item-kind]#external#
+== +++<a class="heading-anchor" area-hidden="true" name=Twin-removeSchainContract-string->removeSchainContract</a>+++ `++removeSchainContract(++[.var-type]#++string++#++ ++[.var-name]#++schainName++#++)++` [.item-kind]#external#
 
 Removes connection with contract on schain.
 
@@ -815,12 +815,12 @@ Requirements:
 - SKALE chain must already be set.
 
 [.contract-item]
-==== +++<a class="heading-anchor" area-hidden="true" name=Twin-hasSchainContract-string->hasSchainContract</a>+++ `++hasSchainContract(++[.var-type]#++string++#++ ++[.var-name]#++schainName++#++) → ++[.var-type]#++bool++#++++` [.item-kind]#external#
+== +++<a class="heading-anchor" area-hidden="true" name=Twin-hasSchainContract-string->hasSchainContract</a>+++ `++hasSchainContract(++[.var-type]#++string++#++ ++[.var-name]#++schainName++#++) → ++[.var-type]#++bool++#++++` [.item-kind]#external#
 
 Returns true if mainnet contract and schain contract are connected together for transferring messages.
 
 [.contract-item]
-==== +++<a class="heading-anchor" area-hidden="true" name=Twin-initialize-contract-IContractManager-contract-MessageProxyForMainnet->initialize</a>+++ `++initialize(++[.var-type]#++contract IContractManager++#++ ++[.var-name]#++contractManagerOfSkaleManagerValue++#++, ++[.var-type]#++contract MessageProxyForMainnet++#++ ++[.var-name]#++newMessageProxy++#++)++` [.item-kind]#public#
+== +++<a class="heading-anchor" area-hidden="true" name=Twin-initialize-contract-IContractManager-contract-MessageProxyForMainnet->initialize</a>+++ `++initialize(++[.var-type]#++contract IContractManager++#++ ++[.var-name]#++contractManagerOfSkaleManagerValue++#++, ++[.var-type]#++contract MessageProxyForMainnet++#++ ++[.var-name]#++newMessageProxy++#++)++` [.item-kind]#public#
 
 
 

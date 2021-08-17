@@ -781,18 +781,18 @@
 --
 
 [.contract-item]
-==== +++<a class="heading-anchor" area-hidden="true" name=SkaleManagerClient-onlySchainOwner-string->onlySchainOwner</a>+++ `++onlySchainOwner(++[.var-type]#++string++#++ ++[.var-name]#++schainName++#++)++` [.item-kind]#modifier#
+== +++<a class="heading-anchor" area-hidden="true" name=SkaleManagerClient-onlySchainOwner-string->onlySchainOwner</a>+++ `++onlySchainOwner(++[.var-type]#++string++#++ ++[.var-name]#++schainName++#++)++` [.item-kind]#modifier#
 
 Modifier for checking whether caller is owner of SKALE chain.
 
 
 [.contract-item]
-==== +++<a class="heading-anchor" area-hidden="true" name=SkaleManagerClient-isSchainOwner-address-bytes32->isSchainOwner</a>+++ `++isSchainOwner(++[.var-type]#++address++#++ ++[.var-name]#++sender++#++, ++[.var-type]#++bytes32++#++ ++[.var-name]#++schainHash++#++) → ++[.var-type]#++bool++#++++` [.item-kind]#public#
+== +++<a class="heading-anchor" area-hidden="true" name=SkaleManagerClient-isSchainOwner-address-bytes32->isSchainOwner</a>+++ `++isSchainOwner(++[.var-type]#++address++#++ ++[.var-name]#++sender++#++, ++[.var-type]#++bytes32++#++ ++[.var-name]#++schainHash++#++) → ++[.var-type]#++bool++#++++` [.item-kind]#public#
 
 Checks whether sender is owner of SKALE chain.
 
 [.contract-item]
-==== +++<a class="heading-anchor" area-hidden="true" name=SkaleManagerClient-initialize-contract-IContractManager->initialize</a>+++ `++initialize(++[.var-type]#++contract IContractManager++#++ ++[.var-name]#++newContractManagerOfSkaleManager++#++)++` [.item-kind]#public#
+== +++<a class="heading-anchor" area-hidden="true" name=SkaleManagerClient-initialize-contract-IContractManager->initialize</a>+++ `++initialize(++[.var-type]#++contract IContractManager++#++ ++[.var-name]#++newContractManagerOfSkaleManager++#++)++` [.item-kind]#public#
 
 initialize - sets current address of ContractManager of SkaleManager.
 

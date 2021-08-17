@@ -797,7 +797,7 @@ stores deposits of ERC20.
 
 
 [.contract-item]
-==== +++<a class="heading-anchor" area-hidden="true" name=DepositBoxERC20-depositERC20-string-address-address-uint256->depositERC20</a>+++ `++depositERC20(++[.var-type]#++string++#++ ++[.var-name]#++schainName++#++, ++[.var-type]#++address++#++ ++[.var-name]#++erc20OnMainnet++#++, ++[.var-type]#++address++#++ ++[.var-name]#++to++#++, ++[.var-type]#++uint256++#++ ++[.var-name]#++amount++#++)++` [.item-kind]#external#
+== +++<a class="heading-anchor" area-hidden="true" name=DepositBoxERC20-depositERC20-string-address-address-uint256->depositERC20</a>+++ `++depositERC20(++[.var-type]#++string++#++ ++[.var-name]#++schainName++#++, ++[.var-type]#++address++#++ ++[.var-name]#++erc20OnMainnet++#++, ++[.var-type]#++address++#++ ++[.var-name]#++to++#++, ++[.var-type]#++uint256++#++ ++[.var-name]#++amount++#++)++` [.item-kind]#external#
 
 Allows `msg.sender` to send ERC20 token from mainnet to schain
 
@@ -810,7 +810,7 @@ Requirements:
 - `msg.sender` should approve their tokens for DepositBoxERC20 address.
 
 [.contract-item]
-==== +++<a class="heading-anchor" area-hidden="true" name=DepositBoxERC20-postMessage-bytes32-address-bytes->postMessage</a>+++ `++postMessage(++[.var-type]#++bytes32++#++ ++[.var-name]#++schainHash++#++, ++[.var-type]#++address++#++ ++[.var-name]#++sender++#++, ++[.var-type]#++bytes++#++ ++[.var-name]#++data++#++) → ++[.var-type]#++address++#++++` [.item-kind]#external#
+== +++<a class="heading-anchor" area-hidden="true" name=DepositBoxERC20-postMessage-bytes32-address-bytes->postMessage</a>+++ `++postMessage(++[.var-type]#++bytes32++#++ ++[.var-name]#++schainHash++#++, ++[.var-type]#++address++#++ ++[.var-name]#++sender++#++, ++[.var-type]#++bytes++#++ ++[.var-name]#++data++#++) → ++[.var-type]#++address++#++++` [.item-kind]#external#
 
 Allows MessageProxyForMainnet contract to execute transferring ERC20 token from schain to mainnet.
 
@@ -821,12 +821,12 @@ Requirements:
 - Amount of tokens on DepositBoxERC20 should be equal or more than transferred amount.
 
 [.contract-item]
-==== +++<a class="heading-anchor" area-hidden="true" name=DepositBoxERC20-gasPayer-bytes32-address-bytes->gasPayer</a>+++ `++gasPayer(++[.var-type]#++bytes32++#++ ++[.var-name]#++schainHash++#++, ++[.var-type]#++address++#++ ++[.var-name]#++sender++#++, ++[.var-type]#++bytes++#++ ++[.var-name]#++data++#++) → ++[.var-type]#++address++#++++` [.item-kind]#external#
+== +++<a class="heading-anchor" area-hidden="true" name=DepositBoxERC20-gasPayer-bytes32-address-bytes->gasPayer</a>+++ `++gasPayer(++[.var-type]#++bytes32++#++ ++[.var-name]#++schainHash++#++, ++[.var-type]#++address++#++ ++[.var-name]#++sender++#++, ++[.var-type]#++bytes++#++ ++[.var-name]#++data++#++) → ++[.var-type]#++address++#++++` [.item-kind]#external#
 
 
 
 [.contract-item]
-==== +++<a class="heading-anchor" area-hidden="true" name=DepositBoxERC20-addERC20TokenByOwner-string-address->addERC20TokenByOwner</a>+++ `++addERC20TokenByOwner(++[.var-type]#++string++#++ ++[.var-name]#++schainName++#++, ++[.var-type]#++address++#++ ++[.var-name]#++erc20OnMainnet++#++)++` [.item-kind]#external#
+== +++<a class="heading-anchor" area-hidden="true" name=DepositBoxERC20-addERC20TokenByOwner-string-address->addERC20TokenByOwner</a>+++ `++addERC20TokenByOwner(++[.var-type]#++string++#++ ++[.var-name]#++schainName++#++, ++[.var-type]#++address++#++ ++[.var-name]#++erc20OnMainnet++#++)++` [.item-kind]#external#
 
 Allows Schain owner to add an ERC20 token to DepositBoxERC20.
 
@@ -838,7 +838,7 @@ Requirements:
 - Only owner of the schain able to run function.
 
 [.contract-item]
-==== +++<a class="heading-anchor" area-hidden="true" name=DepositBoxERC20-getFunds-string-address-address-uint256->getFunds</a>+++ `++getFunds(++[.var-type]#++string++#++ ++[.var-name]#++schainName++#++, ++[.var-type]#++address++#++ ++[.var-name]#++erc20OnMainnet++#++, ++[.var-type]#++address++#++ ++[.var-name]#++receiver++#++, ++[.var-type]#++uint256++#++ ++[.var-name]#++amount++#++)++` [.item-kind]#external#
+== +++<a class="heading-anchor" area-hidden="true" name=DepositBoxERC20-getFunds-string-address-address-uint256->getFunds</a>+++ `++getFunds(++[.var-type]#++string++#++ ++[.var-name]#++schainName++#++, ++[.var-type]#++address++#++ ++[.var-name]#++erc20OnMainnet++#++, ++[.var-type]#++address++#++ ++[.var-name]#++receiver++#++, ++[.var-type]#++uint256++#++ ++[.var-name]#++amount++#++)++` [.item-kind]#external#
 
 Allows Schain owner to return each user their tokens.
 The Schain owner decides which tokens to send to which address, 
@@ -849,24 +849,24 @@ Requirements:
 - Amount of tokens on schain should be equal or more than transferred amount.
 
 [.contract-item]
-==== +++<a class="heading-anchor" area-hidden="true" name=DepositBoxERC20-getSchainToERC20-string-address->getSchainToERC20</a>+++ `++getSchainToERC20(++[.var-type]#++string++#++ ++[.var-name]#++schainName++#++, ++[.var-type]#++address++#++ ++[.var-name]#++erc20OnMainnet++#++) → ++[.var-type]#++bool++#++++` [.item-kind]#external#
+== +++<a class="heading-anchor" area-hidden="true" name=DepositBoxERC20-getSchainToERC20-string-address->getSchainToERC20</a>+++ `++getSchainToERC20(++[.var-type]#++string++#++ ++[.var-name]#++schainName++#++, ++[.var-type]#++address++#++ ++[.var-name]#++erc20OnMainnet++#++) → ++[.var-type]#++bool++#++++` [.item-kind]#external#
 
 Should return true if token was added by Schain owner or 
 added automatically after sending to schain if whitelist was turned off.
 
 [.contract-item]
-==== +++<a class="heading-anchor" area-hidden="true" name=DepositBoxERC20-initialize-contract-IContractManager-contract-Linker-contract-MessageProxyForMainnet->initialize</a>+++ `++initialize(++[.var-type]#++contract IContractManager++#++ ++[.var-name]#++contractManagerOfSkaleManagerValue++#++, ++[.var-type]#++contract Linker++#++ ++[.var-name]#++linkerValue++#++, ++[.var-type]#++contract MessageProxyForMainnet++#++ ++[.var-name]#++messageProxyValue++#++)++` [.item-kind]#public#
+== +++<a class="heading-anchor" area-hidden="true" name=DepositBoxERC20-initialize-contract-IContractManager-contract-Linker-contract-MessageProxyForMainnet->initialize</a>+++ `++initialize(++[.var-type]#++contract IContractManager++#++ ++[.var-name]#++contractManagerOfSkaleManagerValue++#++, ++[.var-type]#++contract Linker++#++ ++[.var-name]#++linkerValue++#++, ++[.var-type]#++contract MessageProxyForMainnet++#++ ++[.var-name]#++messageProxyValue++#++)++` [.item-kind]#public#
 
 Creates a new DepositBoxERC20 contract.
 
 
 [.contract-item]
-==== +++<a class="heading-anchor" area-hidden="true" name=DepositBoxERC20-ERC20TokenAdded-string-address->ERC20TokenAdded</a>+++ `++ERC20TokenAdded(++[.var-type]#++string++#++ ++[.var-name]#++schainName++#++, ++[.var-type]#++address++#++ ++[.var-name]#++contractOnMainnet++#++)++` [.item-kind]#event#
+== +++<a class="heading-anchor" area-hidden="true" name=DepositBoxERC20-ERC20TokenAdded-string-address->ERC20TokenAdded</a>+++ `++ERC20TokenAdded(++[.var-type]#++string++#++ ++[.var-name]#++schainName++#++, ++[.var-type]#++address++#++ ++[.var-name]#++contractOnMainnet++#++)++` [.item-kind]#event#
 
 Emitted when token is mapped in DepositBoxERC20.
 
 [.contract-item]
-==== +++<a class="heading-anchor" area-hidden="true" name=DepositBoxERC20-ERC20TokenReady-address-uint256->ERC20TokenReady</a>+++ `++ERC20TokenReady(++[.var-type]#++address++#++ ++[.var-name]#++contractOnMainnet++#++, ++[.var-type]#++uint256++#++ ++[.var-name]#++amount++#++)++` [.item-kind]#event#
+== +++<a class="heading-anchor" area-hidden="true" name=DepositBoxERC20-ERC20TokenReady-address-uint256->ERC20TokenReady</a>+++ `++ERC20TokenReady(++[.var-type]#++address++#++ ++[.var-name]#++contractOnMainnet++#++, ++[.var-type]#++uint256++#++ ++[.var-name]#++amount++#++)++` [.item-kind]#event#
 
 Emitted when token is received by DepositBox and is ready to be cloned
 or transferred on SKALE chain.

@@ -794,32 +794,32 @@ Defined operations:
 
 
 [.contract-item]
-==== +++<a class="heading-anchor" area-hidden="true" name=Fp2Operations-addFp2-struct-Fp2Operations-Fp2Point-struct-Fp2Operations-Fp2Point->addFp2</a>+++ `++addFp2(++[.var-type]#++struct Fp2Operations.Fp2Point++#++ ++[.var-name]#++value1++#++, ++[.var-type]#++struct Fp2Operations.Fp2Point++#++ ++[.var-name]#++value2++#++) → ++[.var-type]#++struct Fp2Operations.Fp2Point++#++++` [.item-kind]#internal#
+== +++<a class="heading-anchor" area-hidden="true" name=Fp2Operations-addFp2-struct-Fp2Operations-Fp2Point-struct-Fp2Operations-Fp2Point->addFp2</a>+++ `++addFp2(++[.var-type]#++struct Fp2Operations.Fp2Point++#++ ++[.var-name]#++value1++#++, ++[.var-type]#++struct Fp2Operations.Fp2Point++#++ ++[.var-name]#++value2++#++) → ++[.var-type]#++struct Fp2Operations.Fp2Point++#++++` [.item-kind]#internal#
 
 Add {value1} to {value2}
 
 [.contract-item]
-==== +++<a class="heading-anchor" area-hidden="true" name=Fp2Operations-scalarMulFp2-struct-Fp2Operations-Fp2Point-uint256->scalarMulFp2</a>+++ `++scalarMulFp2(++[.var-type]#++struct Fp2Operations.Fp2Point++#++ ++[.var-name]#++value++#++, ++[.var-type]#++uint256++#++ ++[.var-name]#++scalar++#++) → ++[.var-type]#++struct Fp2Operations.Fp2Point++#++++` [.item-kind]#internal#
+== +++<a class="heading-anchor" area-hidden="true" name=Fp2Operations-scalarMulFp2-struct-Fp2Operations-Fp2Point-uint256->scalarMulFp2</a>+++ `++scalarMulFp2(++[.var-type]#++struct Fp2Operations.Fp2Point++#++ ++[.var-name]#++value++#++, ++[.var-type]#++uint256++#++ ++[.var-name]#++scalar++#++) → ++[.var-type]#++struct Fp2Operations.Fp2Point++#++++` [.item-kind]#internal#
 
 Perform scalar multiplication of {value} by {scalar}
 
 [.contract-item]
-==== +++<a class="heading-anchor" area-hidden="true" name=Fp2Operations-minusFp2-struct-Fp2Operations-Fp2Point-struct-Fp2Operations-Fp2Point->minusFp2</a>+++ `++minusFp2(++[.var-type]#++struct Fp2Operations.Fp2Point++#++ ++[.var-name]#++diminished++#++, ++[.var-type]#++struct Fp2Operations.Fp2Point++#++ ++[.var-name]#++subtracted++#++) → ++[.var-type]#++struct Fp2Operations.Fp2Point++#++ ++[.var-name]#++difference++#++++` [.item-kind]#internal#
+== +++<a class="heading-anchor" area-hidden="true" name=Fp2Operations-minusFp2-struct-Fp2Operations-Fp2Point-struct-Fp2Operations-Fp2Point->minusFp2</a>+++ `++minusFp2(++[.var-type]#++struct Fp2Operations.Fp2Point++#++ ++[.var-name]#++diminished++#++, ++[.var-type]#++struct Fp2Operations.Fp2Point++#++ ++[.var-name]#++subtracted++#++) → ++[.var-type]#++struct Fp2Operations.Fp2Point++#++ ++[.var-name]#++difference++#++++` [.item-kind]#internal#
 
 Subtract {subtracted} from {diminished}
 
 [.contract-item]
-==== +++<a class="heading-anchor" area-hidden="true" name=Fp2Operations-mulFp2-struct-Fp2Operations-Fp2Point-struct-Fp2Operations-Fp2Point->mulFp2</a>+++ `++mulFp2(++[.var-type]#++struct Fp2Operations.Fp2Point++#++ ++[.var-name]#++value1++#++, ++[.var-type]#++struct Fp2Operations.Fp2Point++#++ ++[.var-name]#++value2++#++) → ++[.var-type]#++struct Fp2Operations.Fp2Point++#++ ++[.var-name]#++result++#++++` [.item-kind]#internal#
+== +++<a class="heading-anchor" area-hidden="true" name=Fp2Operations-mulFp2-struct-Fp2Operations-Fp2Point-struct-Fp2Operations-Fp2Point->mulFp2</a>+++ `++mulFp2(++[.var-type]#++struct Fp2Operations.Fp2Point++#++ ++[.var-name]#++value1++#++, ++[.var-type]#++struct Fp2Operations.Fp2Point++#++ ++[.var-name]#++value2++#++) → ++[.var-type]#++struct Fp2Operations.Fp2Point++#++ ++[.var-name]#++result++#++++` [.item-kind]#internal#
 
 Multiply {value1} by {value2}
 
 [.contract-item]
-==== +++<a class="heading-anchor" area-hidden="true" name=Fp2Operations-squaredFp2-struct-Fp2Operations-Fp2Point->squaredFp2</a>+++ `++squaredFp2(++[.var-type]#++struct Fp2Operations.Fp2Point++#++ ++[.var-name]#++value++#++) → ++[.var-type]#++struct Fp2Operations.Fp2Point++#++++` [.item-kind]#internal#
+== +++<a class="heading-anchor" area-hidden="true" name=Fp2Operations-squaredFp2-struct-Fp2Operations-Fp2Point->squaredFp2</a>+++ `++squaredFp2(++[.var-type]#++struct Fp2Operations.Fp2Point++#++ ++[.var-name]#++value++#++) → ++[.var-type]#++struct Fp2Operations.Fp2Point++#++++` [.item-kind]#internal#
 
 Square {value}
 
 [.contract-item]
-==== +++<a class="heading-anchor" area-hidden="true" name=Fp2Operations-isEqual-struct-Fp2Operations-Fp2Point-struct-Fp2Operations-Fp2Point->isEqual</a>+++ `++isEqual(++[.var-type]#++struct Fp2Operations.Fp2Point++#++ ++[.var-name]#++value1++#++, ++[.var-type]#++struct Fp2Operations.Fp2Point++#++ ++[.var-name]#++value2++#++) → ++[.var-type]#++bool++#++++` [.item-kind]#internal#
+== +++<a class="heading-anchor" area-hidden="true" name=Fp2Operations-isEqual-struct-Fp2Operations-Fp2Point-struct-Fp2Operations-Fp2Point->isEqual</a>+++ `++isEqual(++[.var-type]#++struct Fp2Operations.Fp2Point++#++ ++[.var-name]#++value1++#++, ++[.var-type]#++struct Fp2Operations.Fp2Point++#++ ++[.var-name]#++value2++#++) → ++[.var-type]#++bool++#++++` [.item-kind]#internal#
 
 Check if {value1} is equal to {value2}
 

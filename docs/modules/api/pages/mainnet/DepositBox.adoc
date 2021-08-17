@@ -792,45 +792,45 @@ Abstract contracts for DepositBoxes on mainnet.
 --
 
 [.contract-item]
-==== +++<a class="heading-anchor" area-hidden="true" name=DepositBox-whenNotKilled-bytes32->whenNotKilled</a>+++ `++whenNotKilled(++[.var-type]#++bytes32++#++ ++[.var-name]#++schainHash++#++)++` [.item-kind]#modifier#
+== +++<a class="heading-anchor" area-hidden="true" name=DepositBox-whenNotKilled-bytes32->whenNotKilled</a>+++ `++whenNotKilled(++[.var-type]#++bytes32++#++ ++[.var-name]#++schainHash++#++)++` [.item-kind]#modifier#
 
 Modifier for checking whether schain was not killed.
 
 [.contract-item]
-==== +++<a class="heading-anchor" area-hidden="true" name=DepositBox-whenKilled-bytes32->whenKilled</a>+++ `++whenKilled(++[.var-type]#++bytes32++#++ ++[.var-name]#++schainHash++#++)++` [.item-kind]#modifier#
+== +++<a class="heading-anchor" area-hidden="true" name=DepositBox-whenKilled-bytes32->whenKilled</a>+++ `++whenKilled(++[.var-type]#++bytes32++#++ ++[.var-name]#++schainHash++#++)++` [.item-kind]#modifier#
 
 Modifier for checking whether schain was killed.
 
 [.contract-item]
-==== +++<a class="heading-anchor" area-hidden="true" name=DepositBox-rightTransaction-string-address->rightTransaction</a>+++ `++rightTransaction(++[.var-type]#++string++#++ ++[.var-name]#++schainName++#++, ++[.var-type]#++address++#++ ++[.var-name]#++to++#++)++` [.item-kind]#modifier#
+== +++<a class="heading-anchor" area-hidden="true" name=DepositBox-rightTransaction-string-address->rightTransaction</a>+++ `++rightTransaction(++[.var-type]#++string++#++ ++[.var-name]#++schainName++#++, ++[.var-type]#++address++#++ ++[.var-name]#++to++#++)++` [.item-kind]#modifier#
 
 Modifier for checking whether schainName is not equal to `Mainnet` 
 and address of receiver is not equal to null before transferring funds from mainnet to schain.
 
 [.contract-item]
-==== +++<a class="heading-anchor" area-hidden="true" name=DepositBox-checkReceiverChain-bytes32-address->checkReceiverChain</a>+++ `++checkReceiverChain(++[.var-type]#++bytes32++#++ ++[.var-name]#++schainHash++#++, ++[.var-type]#++address++#++ ++[.var-name]#++sender++#++)++` [.item-kind]#modifier#
+== +++<a class="heading-anchor" area-hidden="true" name=DepositBox-checkReceiverChain-bytes32-address->checkReceiverChain</a>+++ `++checkReceiverChain(++[.var-type]#++bytes32++#++ ++[.var-name]#++schainHash++#++, ++[.var-type]#++address++#++ ++[.var-name]#++sender++#++)++` [.item-kind]#modifier#
 
 Modifier for checking whether schainHash is not equal to `Mainnet` 
 and sender contract was added as contract processor on schain.
 
 
 [.contract-item]
-==== +++<a class="heading-anchor" area-hidden="true" name=DepositBox-enableWhitelist-string->enableWhitelist</a>+++ `++enableWhitelist(++[.var-type]#++string++#++ ++[.var-name]#++schainName++#++)++` [.item-kind]#external#
+== +++<a class="heading-anchor" area-hidden="true" name=DepositBox-enableWhitelist-string->enableWhitelist</a>+++ `++enableWhitelist(++[.var-type]#++string++#++ ++[.var-name]#++schainName++#++)++` [.item-kind]#external#
 
 Allows Schain owner turn on whitelist of tokens.
 
 [.contract-item]
-==== +++<a class="heading-anchor" area-hidden="true" name=DepositBox-disableWhitelist-string->disableWhitelist</a>+++ `++disableWhitelist(++[.var-type]#++string++#++ ++[.var-name]#++schainName++#++)++` [.item-kind]#external#
+== +++<a class="heading-anchor" area-hidden="true" name=DepositBox-disableWhitelist-string->disableWhitelist</a>+++ `++disableWhitelist(++[.var-type]#++string++#++ ++[.var-name]#++schainName++#++)++` [.item-kind]#external#
 
 Allows Schain owner turn off whitelist of tokens.
 
 [.contract-item]
-==== +++<a class="heading-anchor" area-hidden="true" name=DepositBox-initialize-contract-IContractManager-contract-Linker-contract-MessageProxyForMainnet->initialize</a>+++ `++initialize(++[.var-type]#++contract IContractManager++#++ ++[.var-name]#++contractManagerOfSkaleManagerValue++#++, ++[.var-type]#++contract Linker++#++ ++[.var-name]#++newLinker++#++, ++[.var-type]#++contract MessageProxyForMainnet++#++ ++[.var-name]#++messageProxyValue++#++)++` [.item-kind]#public#
+== +++<a class="heading-anchor" area-hidden="true" name=DepositBox-initialize-contract-IContractManager-contract-Linker-contract-MessageProxyForMainnet->initialize</a>+++ `++initialize(++[.var-type]#++contract IContractManager++#++ ++[.var-name]#++contractManagerOfSkaleManagerValue++#++, ++[.var-type]#++contract Linker++#++ ++[.var-name]#++newLinker++#++, ++[.var-type]#++contract MessageProxyForMainnet++#++ ++[.var-name]#++messageProxyValue++#++)++` [.item-kind]#public#
 
 
 
 [.contract-item]
-==== +++<a class="heading-anchor" area-hidden="true" name=DepositBox-isWhitelisted-string->isWhitelisted</a>+++ `++isWhitelisted(++[.var-type]#++string++#++ ++[.var-name]#++schainName++#++) → ++[.var-type]#++bool++#++++` [.item-kind]#public#
+== +++<a class="heading-anchor" area-hidden="true" name=DepositBox-isWhitelisted-string->isWhitelisted</a>+++ `++isWhitelisted(++[.var-type]#++string++#++ ++[.var-name]#++schainName++#++) → ++[.var-type]#++bool++#++++` [.item-kind]#public#
 
 Returns is whitelist enabled on schain.
 
