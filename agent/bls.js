@@ -662,12 +662,20 @@ async function do_sign_messages_impl( strDirection, jarrMessages, nIdxCurrentMsg
                 log.write( strErrorMessage );
                 details.write( strErrorMessage );
             }
-            await fn( strError, jarrMessages, joGlueResult );
+            await fn( strError, jarrMessages, joGlueResult ).catch( ( err ) => {
+                const strErrorMessage = cc.error( "Problem(1) in BLS sign result handler: " ) + cc.warning( err ) + "\n";
+                log.write( strErrorMessage );
+                details.write( strErrorMessage );
+            } );
             return;
         }
         if( nCountReceived >= jarrNodes.length ) {
             clearInterval( iv );
-            await fn( "signature error in " + nCountErrors + " node(s) of " + jarrNodes.length + " node(s)", jarrMessages, null );
+            await fn( "signature error in " + nCountErrors + " node(s) of " + jarrNodes.length + " node(s)", jarrMessages, null ).catch( ( err ) => {
+                const strErrorMessage = cc.error( "Problem(2) in BLS sign result handler: " ) + cc.warning( err ) + "\n";
+                log.write( strErrorMessage );
+                details.write( strErrorMessage );
+            } );
         }
     }, 100 );
 }
