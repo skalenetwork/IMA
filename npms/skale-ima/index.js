@@ -581,11 +581,12 @@ async function dry_run_call( details, w3, methodWithArguments, joAccount, strDRC
     strLogPrefix += cc.attention( ":" ) + " ";
     if( ! dry_run_is_enabled() ) {
         details.write( strLogPrefix + cc.success( "Skipped, dry run is disabled" ) + "\n" );
-        return;
+        return null;
     }
     try {
         const addressFrom = joAccount.address( w3 );
-        details.write( strLogPrefix + cc.debug( " will call method" ) +
+        details.write(
+            strLogPrefix + cc.debug( " will call method" ) +
             // cc.debug( " with data " ) + cc.normal( cc.safeStringifyJSON( methodWithArguments ) ) +
             cc.debug( " from address " ) + cc.sunny( addressFrom ) +
             "\n" );
@@ -604,9 +605,15 @@ async function dry_run_call( details, w3, methodWithArguments, joAccount, strDRC
             strErrorMessage += cc.fatal( "CRITICAL DRY RUN FAIL:" );
         strErrorMessage += " " + cc.error( err ) + "\n";
         details.write( strErrorMessage );
-        if( ! ( isIgnore || dry_run_is_ignored() ) )
-            throw new Error( "CRITICAL DRY RUN FAIL invoking the \"" + strMethodName + "\" method: " + err.toString() );
+        if( ! ( isIgnore || dry_run_is_ignored() ) ) {
+            details.write(
+                strLogPrefix + cc.fatal( "CRITICAL DRY RUN FAIL" ) + " " +
+                cc.error( " invoking the " ) + cc.info( strMethodName ) + cc.error( " method: " ) +
+                cc.warning( err.toString() ) + "\n" );
+            return "CRITICAL DRY RUN FAIL invoking the \"" + strMethodName + "\" method: " + err.toString();
+        }
     }
+    return null;
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -1114,7 +1121,9 @@ async function register_s_chain_in_deposit_boxes( // step 1
         //
         const isIgnore = false;
         const strDRC = "register_s_chain_in_deposit_boxes, step 1, connectSchain";
-        await dry_run_call( details, w3_main_net, methodWithArguments, joAccount_main_net, strDRC, isIgnore, gasPrice, estimatedGas, "0" );
+        const strErrorOfDryRun = await dry_run_call( details, w3_main_net, methodWithArguments, joAccount_main_net, strDRC, isIgnore, gasPrice, estimatedGas, "0" );
+        if( strErrorOfDryRun )
+            throw new Error( strErrorOfDryRun );
         //
         const rawTx = {
             chainId: cid_main_net,
@@ -1257,7 +1266,9 @@ async function reimbursement_wallet_recharge(
         //
         const isIgnore = false;
         const strDRC = "reimbursement_wallet_recharge";
-        await dry_run_call( details, w3_main_net, methodWithArguments, joAccount_main_net, strDRC, isIgnore, gasPrice, estimatedGas, nReimbursementRecharge );
+        const strErrorOfDryRun = await dry_run_call( details, w3_main_net, methodWithArguments, joAccount_main_net, strDRC, isIgnore, gasPrice, estimatedGas, nReimbursementRecharge );
+        if( strErrorOfDryRun )
+            throw new Error( strErrorOfDryRun );
         //
         const rawTx = {
             chainId: cid_main_net,
@@ -1341,7 +1352,9 @@ async function reimbursement_wallet_withdraw(
         //
         const isIgnore = false;
         const strDRC = "reimbursement_wallet_withdraw";
-        await dry_run_call( details, w3_main_net, methodWithArguments, joAccount_main_net, strDRC, isIgnore, gasPrice, estimatedGas, wei_how_much );
+        const strErrorOfDryRun = await dry_run_call( details, w3_main_net, methodWithArguments, joAccount_main_net, strDRC, isIgnore, gasPrice, estimatedGas, wei_how_much );
+        if( strErrorOfDryRun )
+            throw new Error( strErrorOfDryRun );
         //
         const rawTx = {
             chainId: cid_main_net,
@@ -1423,7 +1436,9 @@ async function reimbursement_set_range(
         //
         const isIgnore = false;
         const strDRC = "reimbursement_set_range";
-        await dry_run_call( details, w3_s_chain, methodWithArguments, joAccount_s_chain, strDRC, isIgnore, gasPrice, estimatedGas, wei_how_much );
+        const strErrorOfDryRun = await dry_run_call( details, w3_s_chain, methodWithArguments, joAccount_s_chain, strDRC, isIgnore, gasPrice, estimatedGas, wei_how_much );
+        if( strErrorOfDryRun )
+            throw new Error( strErrorOfDryRun );
         //
         const rawTx = {
             chainId: cid_s_chain,
@@ -1519,7 +1534,9 @@ async function do_eth_payment_from_main_net(
         //
         const isIgnore = false;
         const strDRC = "do_eth_payment_from_main_net, deposit";
-        await dry_run_call( details, w3_main_net, methodWithArguments, joAccountSrc, strDRC, isIgnore, gasPrice, estimatedGas, wei_how_much );
+        const strErrorOfDryRun = await dry_run_call( details, w3_main_net, methodWithArguments, joAccountSrc, strDRC, isIgnore, gasPrice, estimatedGas, wei_how_much );
+        if( strErrorOfDryRun )
+            throw new Error( strErrorOfDryRun );
         //
         const rawTx = {
             chainId: cid_main_net,
@@ -1637,7 +1654,9 @@ async function do_eth_payment_from_s_chain(
         //
         const isIgnore = true;
         const strDRC = "do_eth_payment_from_s_chain, exitToMain";
-        await dry_run_call( details, w3_s_chain, methodWithArguments, joAccountSrc, strDRC, isIgnore, gasPrice, estimatedGas, "0" );
+        const strErrorOfDryRun = await dry_run_call( details, w3_s_chain, methodWithArguments, joAccountSrc, strDRC, isIgnore, gasPrice, estimatedGas, "0" );
+        if( strErrorOfDryRun )
+            throw new Error( strErrorOfDryRun );
         //
         const rawTx = {
             chainId: cid_s_chain,
@@ -1727,7 +1746,9 @@ async function receive_eth_payment_from_s_chain_on_main_net(
         //
         const isIgnore = false;
         const strDRC = "receive_eth_payment_from_s_chain_on_main_net, getMyEth";
-        await dry_run_call( details, w3_main_net, methodWithArguments, joAccount_main_net, strDRC, isIgnore, gasPrice, estimatedGas, "0" );
+        const strErrorOfDryRun = await dry_run_call( details, w3_main_net, methodWithArguments, joAccount_main_net, strDRC, isIgnore, gasPrice, estimatedGas, "0" );
+        if( strErrorOfDryRun )
+            throw new Error( strErrorOfDryRun );
         //
         const rawTx = {
             chainId: cid_main_net,
@@ -1881,7 +1902,9 @@ async function do_erc721_payment_from_main_net(
         //
         const isIgnore_approve = false;
         const strDRC_approve = "do_erc721_payment_from_main_net, approve";
-        await dry_run_call( details, w3_main_net, methodWithArguments_approve, joAccountSrc, strDRC_approve, isIgnore_approve, gasPrice, estimatedGas_approve, "0" );
+        const strErrorOfDryRun_approve = await dry_run_call( details, w3_main_net, methodWithArguments_approve, joAccountSrc, strDRC_approve, isIgnore_approve, gasPrice, estimatedGas_approve, "0" );
+        if( strErrorOfDryRun_approve )
+            throw new Error( strErrorOfDryRun_approve );
         //
         const rawTxApprove = {
             chainId: cid_main_net,
@@ -1925,7 +1948,9 @@ async function do_erc721_payment_from_main_net(
         //
         const isIgnore_rawDepositERC721 = true;
         const strDRC_rawDepositERC721 = "do_erc721_payment_from_main_net, rawDepositERC721";
-        await dry_run_call( details, w3_main_net, methodWithArguments_rawDepositERC721, joAccountSrc, strDRC_rawDepositERC721, isIgnore_rawDepositERC721, gasPrice, estimatedGas_deposit, "0" );
+        const strErrorOfDryRun_rawDepositERC721 = await dry_run_call( details, w3_main_net, methodWithArguments_rawDepositERC721, joAccountSrc, strDRC_rawDepositERC721, isIgnore_rawDepositERC721, gasPrice, estimatedGas_deposit, "0" );
+        if( strErrorOfDryRun_rawDepositERC721 )
+            throw new Error( strErrorOfDryRun_rawDepositERC721 );
         //
         const rawTxDeposit = {
             chainId: cid_main_net,
@@ -2066,7 +2091,9 @@ async function do_erc20_payment_from_main_net(
         //
         const isIgnore_approve = false;
         const strDRC_approve = "do_erc20_payment_from_main_net, approve";
-        await dry_run_call( details, w3_main_net, methodWithArguments_approve, joAccountSrc, strDRC_approve, isIgnore_approve, gasPrice, estimatedGas_approve, "0" );
+        const strErrorOfDryRun_approve = await dry_run_call( details, w3_main_net, methodWithArguments_approve, joAccountSrc, strDRC_approve, isIgnore_approve, gasPrice, estimatedGas_approve, "0" );
+        if( strErrorOfDryRun_approve )
+            throw new Error( strErrorOfDryRun_approve );
         //
         const rawTxApprove = {
             chainId: cid_main_net,
@@ -2109,7 +2136,9 @@ async function do_erc20_payment_from_main_net(
         //
         const isIgnore_rawDepositERC20 = true;
         const strDRC_rawDepositERC20 = "do_erc20_payment_from_main_net, rawDepositERC20";
-        await dry_run_call( details, w3_main_net, methodWithArguments_rawDepositERC20, joAccountSrc, strDRC_rawDepositERC20, isIgnore_rawDepositERC20, gasPrice, estimatedGas_deposit, "0" );
+        const strErrorOfDryRun_rawDepositERC20 = await dry_run_call( details, w3_main_net, methodWithArguments_rawDepositERC20, joAccountSrc, strDRC_rawDepositERC20, isIgnore_rawDepositERC20, gasPrice, estimatedGas_deposit, "0" );
+        if( strErrorOfDryRun_rawDepositERC20 )
+            throw new Error( strErrorOfDryRun_rawDepositERC20 );
         //
         tcnt += 1;
         const rawTxDeposit = {
@@ -2247,7 +2276,9 @@ async function do_erc1155_payment_from_main_net(
         //
         const isIgnore_approve = false;
         const strDRC_approve = "do_erc1155_payment_from_main_net, approve";
-        await dry_run_call( details, w3_main_net, methodWithArguments_approve, joAccountSrc, strDRC_approve, isIgnore_approve, gasPrice, estimatedGas_approve, "0" );
+        const strErrorOfDryRun_approve = await dry_run_call( details, w3_main_net, methodWithArguments_approve, joAccountSrc, strDRC_approve, isIgnore_approve, gasPrice, estimatedGas_approve, "0" );
+        if( strErrorOfDryRun_approve )
+            throw new Error( strErrorOfDryRun_approve );
         //
         const rawTxApprove = {
             chainId: cid_main_net,
@@ -2291,7 +2322,9 @@ async function do_erc1155_payment_from_main_net(
         //
         const isIgnore_rawDepositERC1155 = true;
         const strDRC_rawDepositERC1155 = "do_erc1155_payment_from_main_net, rawDepositERC1155";
-        await dry_run_call( details, w3_main_net, methodWithArguments_rawDepositERC1155, joAccountSrc, strDRC_rawDepositERC1155, isIgnore_rawDepositERC1155, gasPrice, estimatedGas_deposit, "0" );
+        const strErrorOfDryRun_rawDepositERC1155 = await dry_run_call( details, w3_main_net, methodWithArguments_rawDepositERC1155, joAccountSrc, strDRC_rawDepositERC1155, isIgnore_rawDepositERC1155, gasPrice, estimatedGas_deposit, "0" );
+        if( strErrorOfDryRun_rawDepositERC1155 )
+            throw new Error( strErrorOfDryRun_rawDepositERC1155 );
         //
         const rawTxDeposit = {
             chainId: cid_main_net,
@@ -2429,7 +2462,9 @@ async function do_erc1155_batch_payment_from_main_net(
         //
         const isIgnore_approve = false;
         const strDRC_approve = "do_erc1155_batch_payment_from_main_net, approve";
-        await dry_run_call( details, w3_main_net, methodWithArguments_approve, joAccountSrc, strDRC_approve, isIgnore_approve, gasPrice, estimatedGas_approve, "0" );
+        const strErrorOfDryRun_approve = await dry_run_call( details, w3_main_net, methodWithArguments_approve, joAccountSrc, strDRC_approve, isIgnore_approve, gasPrice, estimatedGas_approve, "0" );
+        if( strErrorOfDryRun_approve )
+            throw new Error( strErrorOfDryRun_approve );
         //
         const rawTxApprove = {
             chainId: cid_main_net,
@@ -2473,7 +2508,9 @@ async function do_erc1155_batch_payment_from_main_net(
         //
         const isIgnore_rawDepositERC1155Batch = true;
         const strDRC_rawDepositERC1155Batch = "do_erc1155_batch_payment_from_main_net, rawDepositERC1155Batch";
-        await dry_run_call( details, w3_main_net, methodWithArguments_rawDepositERC1155Batch, joAccountSrc, strDRC_rawDepositERC1155Batch, isIgnore_rawDepositERC1155Batch, gasPrice, estimatedGas_deposit, "0" );
+        const strErrorOfDryRun_rawDepositERC1155Batch = await dry_run_call( details, w3_main_net, methodWithArguments_rawDepositERC1155Batch, joAccountSrc, strDRC_rawDepositERC1155Batch, isIgnore_rawDepositERC1155Batch, gasPrice, estimatedGas_deposit, "0" );
+        if( strErrorOfDryRun_rawDepositERC1155Batch )
+            throw new Error( strErrorOfDryRun_rawDepositERC1155Batch );
         //
         const rawTxDeposit = {
             chainId: cid_main_net,
@@ -2612,7 +2649,9 @@ async function do_erc20_payment_from_s_chain(
         //
         const isIgnore_approve = false;
         const strDRC_approve = "do_erc20_payment_from_s_chain, approve";
-        await dry_run_call( details, w3_s_chain, methodWithArguments_approve, joAccountSrc, strDRC_approve, isIgnore_approve, gasPrice, estimatedGas_approve, "0" );
+        const strErrorOfDryRun_approve = await dry_run_call( details, w3_s_chain, methodWithArguments_approve, joAccountSrc, strDRC_approve, isIgnore_approve, gasPrice, estimatedGas_approve, "0" );
+        if( strErrorOfDryRun_approve )
+            throw new Error( strErrorOfDryRun_approve );
         //
         let tcnt = parseIntOrHex( await get_web3_transactionCount( details, 10, w3_s_chain, joAccountSrc.address( w3_s_chain ), null ) );
         details.write( strLogPrefix + cc.debug( "Got " ) + cc.info( tcnt ) + cc.debug( " from " ) + cc.notice( strActionName ) + "\n" );
@@ -2665,7 +2704,9 @@ async function do_erc20_payment_from_s_chain(
         //
         const isIgnore_rawExitToMainERC20 = true;
         const strDRC_rawExitToMainERC20 = "do_erc20_payment_from_s_chain, rawExitToMainERC20";
-        await dry_run_call( details, w3_s_chain, methodWithArguments_rawExitToMainERC20, joAccountSrc, strDRC_rawExitToMainERC20, isIgnore_rawExitToMainERC20, gasPrice, estimatedGas_rawExitToMainERC20, "0" );
+        const strErrorOfDryRun_rawExitToMainERC20 = await dry_run_call( details, w3_s_chain, methodWithArguments_rawExitToMainERC20, joAccountSrc, strDRC_rawExitToMainERC20, isIgnore_rawExitToMainERC20, gasPrice, estimatedGas_rawExitToMainERC20, "0" );
+        if( strErrorOfDryRun_rawExitToMainERC20 )
+            throw new Error( strErrorOfDryRun_rawExitToMainERC20 );
         //
         const rawTxExitToMainERC20 = {
             chainId: cid_s_chain,
@@ -2792,7 +2833,9 @@ async function do_erc721_payment_from_s_chain(
         //
         const isIgnore_approve = false;
         const strDRC_approve = "erc721_payment_from_s_chain, approve";
-        await dry_run_call( details, w3_s_chain, methodWithArguments_approve, joAccountSrc, strDRC_approve,isIgnore_approve, gasPrice, estimatedGas_approve, "0" );
+        const strErrorOfDryRun_approve = await dry_run_call( details, w3_s_chain, methodWithArguments_approve, joAccountSrc, strDRC_approve,isIgnore_approve, gasPrice, estimatedGas_approve, "0" );
+        if( strErrorOfDryRun_approve )
+            throw new Error( strErrorOfDryRun_approve );
         //
         const rawTxApprove = {
             chainId: cid_s_chain,
@@ -2844,7 +2887,9 @@ async function do_erc721_payment_from_s_chain(
         //
         const isIgnore_rawExitToMainERC721 = true;
         const strDRC_rawExitToMainERC721 = "erc721_payment_from_s_chain, rawExitToMainERC721";
-        await dry_run_call( details, w3_s_chain, methodWithArguments_rawExitToMainERC721, joAccountSrc, strDRC_rawExitToMainERC721, isIgnore_rawExitToMainERC721, gasPrice, estimatedGas_exitToMainERC721, "0" );
+        const strErrorOfDryRun_rawExitToMainERC721 = await dry_run_call( details, w3_s_chain, methodWithArguments_rawExitToMainERC721, joAccountSrc, strDRC_rawExitToMainERC721, isIgnore_rawExitToMainERC721, gasPrice, estimatedGas_exitToMainERC721, "0" );
+        if( strErrorOfDryRun_rawExitToMainERC721 )
+            throw new Error( strErrorOfDryRun_rawExitToMainERC721 );
         //
         const rawTxExitToMainERC721 = compose_tx_instance(
             details,
@@ -2975,7 +3020,9 @@ async function do_erc1155_payment_from_s_chain(
         //
         const isIgnore_approve = false;
         const strDRC_approve = "erc1155_payment_from_s_chain, approve";
-        await dry_run_call( details, w3_s_chain, methodWithArguments_approve, joAccountSrc, strDRC_approve,isIgnore_approve, gasPrice, estimatedGas_approve, "0" );
+        const strErrorOfDryRun_approve = await dry_run_call( details, w3_s_chain, methodWithArguments_approve, joAccountSrc, strDRC_approve,isIgnore_approve, gasPrice, estimatedGas_approve, "0" );
+        if( strErrorOfDryRun_approve )
+            throw new Error( strErrorOfDryRun_approve );
         //
         const rawTxApprove = {
             chainId: cid_s_chain,
@@ -3027,7 +3074,9 @@ async function do_erc1155_payment_from_s_chain(
         //
         const isIgnore_rawExitToMainERC1155 = true;
         const strDRC_rawExitToMainERC1155 = "erc1155_payment_from_s_chain, rawExitToMainERC1155";
-        await dry_run_call( details, w3_s_chain, methodWithArguments_rawExitToMainERC1155, joAccountSrc, strDRC_rawExitToMainERC1155, isIgnore_rawExitToMainERC1155, gasPrice, estimatedGas_exitToMainERC1155, "0" );
+        const strErrorOfDryRun_rawExitToMainERC1155 = await dry_run_call( details, w3_s_chain, methodWithArguments_rawExitToMainERC1155, joAccountSrc, strDRC_rawExitToMainERC1155, isIgnore_rawExitToMainERC1155, gasPrice, estimatedGas_exitToMainERC1155, "0" );
+        if( strErrorOfDryRun_rawExitToMainERC1155 )
+            throw new Error( strErrorOfDryRun_rawExitToMainERC1155 );
         //
         const rawTxExitToMainERC1155 = compose_tx_instance(
             details,
@@ -3158,7 +3207,9 @@ async function do_erc1155_batch_payment_from_s_chain(
         //
         const isIgnore_approve = false;
         const strDRC_approve = "erc1155_payment_from_s_chain, approve";
-        await dry_run_call( details, w3_s_chain, methodWithArguments_approve, joAccountSrc, strDRC_approve,isIgnore_approve, gasPrice, estimatedGas_approve, "0" );
+        const strErrorOfDryRun_approve = await dry_run_call( details, w3_s_chain, methodWithArguments_approve, joAccountSrc, strDRC_approve,isIgnore_approve, gasPrice, estimatedGas_approve, "0" );
+        if( strErrorOfDryRun_approve )
+            throw new Error( strErrorOfDryRun_approve );
         //
         const rawTxApprove = {
             chainId: cid_s_chain,
@@ -3210,7 +3261,9 @@ async function do_erc1155_batch_payment_from_s_chain(
         //
         const isIgnore_rawExitToMainERC1155Batch = true;
         const strDRC_rawExitToMainERC1155Batch = "erc1155_batch_payment_from_s_chain, rawExitToMainERC1155Batch";
-        await dry_run_call( details, w3_s_chain, methodWithArguments_rawExitToMainERC1155Batch, joAccountSrc, strDRC_rawExitToMainERC1155Batch, isIgnore_rawExitToMainERC1155Batch, gasPrice, estimatedGas_exitToMainERC1155Batch, "0" );
+        const strErrorOfDryRun_rawExitToMainERC1155Batch = await dry_run_call( details, w3_s_chain, methodWithArguments_rawExitToMainERC1155Batch, joAccountSrc, strDRC_rawExitToMainERC1155Batch, isIgnore_rawExitToMainERC1155Batch, gasPrice, estimatedGas_exitToMainERC1155Batch, "0" );
+        if( strErrorOfDryRun_rawExitToMainERC1155Batch )
+            throw new Error( strErrorOfDryRun_rawExitToMainERC1155Batch );
         //
         const rawTxExitToMainERC1155Batch = compose_tx_instance(
             details,
@@ -4142,7 +4195,9 @@ async function do_transfer(
                 //
                 const isIgnore_postIncomingMessages = false;
                 const strDRC_postIncomingMessages = "postIncomingMessages in message signer";
-                await dry_run_call( details, w3_dst, methodWithArguments_postIncomingMessages, joAccountDst, strDRC_postIncomingMessages,isIgnore_postIncomingMessages, gasPrice, estimatedGas_postIncomingMessages, "0" );
+                const strErrorOfDryRun = await dry_run_call( details, w3_dst, methodWithArguments_postIncomingMessages, joAccountDst, strDRC_postIncomingMessages,isIgnore_postIncomingMessages, gasPrice, estimatedGas_postIncomingMessages, "0" );
+                if( strErrorOfDryRun )
+                    throw new Error( strErrorOfDryRun );
                 //
                 const raw_tx_postIncomingMessages = {
                     chainId: cid_dst,
@@ -4233,6 +4288,10 @@ async function do_transfer(
                 if( expose_details_get() )
                     details.exposeDetailsTo( log, "do_transfer", true );
                 details.close();
+            } ).catch( ( err ) => {
+                bErrorInSigningMessages = true;
+                if( verbose_get() >= RV_VERBOSE.fatal )
+                    log.write( strLogPrefix + cc.error( "Problem in transfer handler: " ) + cc.warning( err ) + "\n" );
             } );
             if( bErrorInSigningMessages )
                 break;
