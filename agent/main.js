@@ -879,7 +879,9 @@ imaCLI.parse( {
                     }
                     await joCall.call( {
                         "method": "skale_nodesRpcInfo",
-                        "params": { }
+                        "params": {
+                            "fromImaAgentIndex": imaState.nNodeNumber
+                        }
                     }, async function( joIn, joOut, err ) {
                         if( err ) {
                             console.log( cc.fatal( "CRITICAL ERROR:" ) + cc.error( " JSON RPC call to S-Chain failed, error: " ) + cc.warning( err ) );
@@ -899,7 +901,9 @@ imaCLI.parse( {
                                 }
                                 await joCall.call( {
                                     "method": "skale_imaInfo",
-                                    "params": { }
+                                    "params": {
+                                        "fromImaAgentIndex": imaState.nNodeNumber
+                                    }
                                 }, function( joIn, joOut, err ) {
                                     ++ nCountReceivedImaDescriptions;
                                     if( err ) {
@@ -1134,7 +1138,9 @@ async function discover_s_chain_network( fnAfter, isSilent, joPrevSChainNetworkI
             }
             await joCall.call( {
                 "method": "skale_nodesRpcInfo",
-                "params": { }
+                "params": {
+                    "fromImaAgentIndex": imaState.nNodeNumber
+                }
             }, async function( joIn, joOut, err ) {
                 if( err ) {
                     if( ! isSilent ) {
@@ -1221,7 +1227,9 @@ async function discover_s_chain_network( fnAfter, isSilent, joPrevSChainNetworkI
                             }
                             joCall.call( {
                                 "method": "skale_imaInfo",
-                                "params": { }
+                                "params": {
+                                    "fromImaAgentIndex": imaState.nNodeNumber
+                                }
                             }, function( joIn, joOut, err ) {
                                 ++ nCountReceivedImaDescriptions;
                                 if( err ) {
