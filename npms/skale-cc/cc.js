@@ -87,31 +87,24 @@ function url_obj_colorized( objURL ) {
     let strURL = "";
     if( !objURL )
         return strURL;
-
     // if( objURL.strStrippedStringComma )
     //     strURL += module.exports.normal(objURL.strStrippedStringComma);
-    if( objURL.protocol )
+    if( objURL.protocol && objURL.protocol !== null && objURL.protocol !== undefined )
         strURL += "" + module.exports.yellow( objURL.protocol ) + module.exports.normal( "//" );
-
-    if( objURL.username ) {
+    if( objURL.username && objURL.username !== null && objURL.username !== undefined ) {
         strURL += "" + module.exports.magenta( objURL.username );
-        if( objURL.password )
+        if( objURL.password && objURL.password !== null && objURL.password !== undefined )
             strURL += module.exports.normal( ":" ) + module.exports.yellow( objURL.password );
-
         strURL += module.exports.normal( "@" );
     }
     if( objURL.hostname )
         strURL += "" + module.exports.magenta( log_arg_to_str_as_ipv4( objURL.hostname ) );
-
-    if( objURL.port )
+    if( objURL.port && objURL.port !== null && objURL.port !== undefined )
         strURL += module.exports.normal( ":" ) + log_arg_to_str( objURL.port );
-
-    if( objURL.pathname )
+    if( objURL.pathname && objURL.pathname !== null && objURL.pathname !== undefined && objURL.pathname !== "/" )
         strURL += "" + module.exports.yellow( replaceAll( objURL.pathname, "/", module.exports.normal( "/" ) ) );
-
-    if( objURL.search )
+    if( objURL.search && objURL.search !== null && objURL.search !== undefined )
         strURL += "" + module.exports.magenta( objURL.search );
-
     // if( objURL.strStrippedStringComma )
     //     strURL += module.exports.normal(objURL.strStrippedStringComma);
     return strURL;
@@ -121,14 +114,12 @@ function url_str_colorized( s ) {
     const objURL = safeURL( s );
     if( !objURL )
         return "";
-
     return url_obj_colorized( objURL );
 }
 
 function url_colorized( x ) {
     if( typeof x === "string" || x instanceof String )
         return url_str_colorized( x );
-
     return url_obj_colorized( x );
 }
 
@@ -210,6 +201,10 @@ function log_arg_to_str() {
         }
         if( arg === null ) {
             s += "" + module.exports.nullval( arg );
+            continue;
+        }
+        if( isNaN( arg ) ) {
+            s += "" + module.exports.nanval( arg );
             continue;
         }
         if( typeof arg === "boolean" ) {
@@ -620,6 +615,11 @@ module.exports = {
         return "" + this.fgGreen + this.enlight + s + this.reset;
     },
     nullval: function( s ) {
+        if( !g_bEnabled )
+            return s;
+        return "" + this.fgGreen + this.enlight + s + this.reset;
+    },
+    nanval: function( s ) {
         if( !g_bEnabled )
             return s;
         return "" + this.fgGreen + this.enlight + s + this.reset;
