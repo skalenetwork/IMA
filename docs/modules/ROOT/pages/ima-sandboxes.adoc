@@ -1,6 +1,7 @@
 = IMA Sandboxes
 
 :eth-sandbox: https://codesandbox.io/s/eth-skale-interchain-messaging-agent-forked-7tzr7
+:eth-ima-js-sandbox: https://codesandbox.io/s/eth-skale-ima-js-vpgm4
 :erc20-sandbox: https://codesandbox.io/s/erc20-transfer-skale-interchain-messaging-agent-forked-w1t5m
 :erc721-sandbox: https://codesandbox.io/s/erc721-transfer-skale-interchain-messaging-agent-forked-hwexm
 :erc1155-sandbox: https://codesandbox.io/s/erc1155-transfer-skale-interchain-messaging-agent-forked-nmie4

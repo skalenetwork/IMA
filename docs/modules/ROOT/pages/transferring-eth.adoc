@@ -5,7 +5,7 @@ You can use the Interchain Messaging Agent for managing ETH between Ethereum and
 
 Also, note that the following steps apply to transferring Ethereum ETH to SKALE Chains, rather than describing SKALE Chain ETH (skETH), which has no monetary value and is used exclusively on SKALE Chains.
 
-link:{eth-sandbox}[Live ETH IMA Demo: {eth-sandbox}]
+link:{eth-sandbox}[See ETH IMA Demo: {eth-sandbox}]
 
 :sectnums:
 == Deposit ETH on Ethereum
@@ -14,15 +14,58 @@ To send ETH from a user's wallet to the IMA Deposit Box on Ethereum, you will ne
   
 This method is called from Ethereum to lock the funds. 
 
-The **DepositBox** contract is on Rinkeby testnet. To get the ABIs to interact with IMA on Rinkeby, check out the https://github.com/skalenetwork/skale-network/tree/master/releases/rinkeby/IMA[current release page].  
+The **DepositBox** contract is on Rinkeby testnet and Mainnet. To get the ABIs to interact with IMA on Rinkeby, check out the https://github.com/skalenetwork/skale-network/tree/master/releases/rinkeby/IMA[current release page].  
 
-Be sure you are using web3.js version 1.3.5. Don't use web3.js 2.x.x.
+Be sure you are using web3.js version 1.5.1. Don't use web3.js 2.x.x.
 
 [tabs]
 ====
+IMA-JS::
++
+--
+
+Using ima-js, use `depositETHtoSChain()` from the MainnetChain object. link:{eth-ima-js-sandbox}?file=/src/deposit.js[See IMA-JS deposit.js sandbox]
+
+[source, javascript]
+----
+import { MainnetChain } from "@skalenetwork/ima-js";
+import Web3 from "web3";
+
+export async function makeDeposit() {
+  // set parameters
+  let ethereum = "[ETHEREUM_ENDPOINT]";
+  let abi = require("IMA_ABI_ON_ETHEREUM");
+  let privateKey = "[YOUR_PRIVATE_KEY]";
+  let address = "YOUR_ADDRESS";
+  let schainName = "[YOUR_SKALE_CHAIN_NAME]";
+
+  // initialize mainnetChain  
+  let provider = new Web3.providers.HttpProvider(ethereum);
+  let web3 = new Web3(provider);
+  let mainnet = new MainnetChain(web3, abi);
+
+  // set transaction options
+  let txOpts = {
+    value: mainnet.web3.utils.toWei("1", "ether"),
+    address: address,
+    privateKey: privateKey
+  };
+
+  // deposit ETH to address on schainName
+  await mainnet.depositETHtoSChain(
+    schainName,
+    address,
+    txOpts
+  );
+}
+----
+--
+
 Web3 Javascript::
 +
 --
+
+Using raw Web3.js, create and sign the `deposit()` transaction.
 
 [source,javascript]
 ----
@@ -105,7 +148,47 @@ The **TokenManager** contract is on your SKALE Chain. Check out the https://gith
 
 [tabs]
 ====
-Javascript::
+IMA-JS::
++
+--
+
+Using ima-js, use `withdrawETH()` from the SChain object. link:{eth-ima-js-sandbox}?file=/src/exit.js[See IMA-JS exit.js sandbox]
+
+[source,javascript]
+----
+import { SChain } from "@skalenetwork/ima-js";
+import Web3 from "web3";
+
+export async function makeDeposit() {
+  // set parameters
+  let schain = "[SKALE_CHAIN_ENDPOINT]";
+  let abi = require("IMA_ABI_ON_SKALE");
+  let privateKey = "[YOUR_PRIVATE_KEY]";
+  let address = "YOUR_ADDRESS";
+
+  // initialize SChain  
+  let provider = new Web3.providers.HttpProvider(schain);
+  let web3 = new Web3(provider);
+  let schain = new SChain(web3, abi);
+
+  // set transaction options
+  let txOpts = {
+    address: address,
+    privateKey: privateKey
+  };
+
+  // withdraw ETH to DepositBox on Ethereum
+  await schain.withdrawETH(
+    address,
+    schain.web3.utils.toWei("1", "ether"),
+    txOpts
+  );
+}
+
+----
+--
+
+Web3 Javascript::
 +
 --
 
@@ -168,6 +251,115 @@ web3.eth.getTransactionCount(account).then((nonce) => {
    }).
     catch(console.error);
 });
+
+----
+--
+====
+
+== Retrieve ETH
+
+Since you have withdrawn your ETH, you will need to retrieve it from DepositBox.
+
+[tabs]
+====
+IMA-JS::
++
+--
+
+Using ima-js, use `getMyEth()` from the Mainnet object. link:{eth-ima-js-sandbox}?file=/src/getMyEth.js[See IMA-JS getMyEth.js sandbox]
+
+[source,javascript]
+----
+import { Mainnet } from "@skalenetwork/ima-js";
+import Web3 from "web3";
+
+export async function makeDeposit() {
+  // set parameters
+  let ethereum = "[ETHEREUM_ENDPOINT]";
+  let abi = require("IMA_ABI_ON_ETHEREUM");
+  let privateKey = "[YOUR_PRIVATE_KEY]";
+  let address = "YOUR_ADDRESS";
+
+  // initialize mainnet  
+  let provider = new Web3.providers.HttpProvider(ethereum);
+  let web3 = new Web3(provider);
+  let mainnet = new Mainnet(web3, abi);
+
+  // set transaction options
+  let txOpts = {
+    address: address,
+    privateKey: privateKey
+  };
+
+  // retrieve all ETH from DepositBox
+  await mainnet.getMyEth(txOpts);
+}
+
+----
+--
+
+Web3 Javascript::
++
+--
+
+Using Web3js, create and sign `getMyEth()` in DepositBox.
+
+[source,javascript]
+----
+const Web3 = require('web3');
+const Tx = require('ethereumjs-tx').Transaction;
+
+let rinkebyABIs = require("[YOUR_RINKEBY_ABIs]");
+let privateKey = new Buffer('[YOUR_PRIVATE_KEY]', 'hex')
+let account = "[YOUR_ACCOUNT_ADDRESS]";
+let rinkeby = "[YOUR_RINKEBY_ENDPOINT]";
+let chainId = "[RINKEBY_CHAIN_ID";
+
+const depositBoxAddress = rinkebyABIs.deposit_box_eth_address;
+const depositBoxABI = rinkebyABIs.deposit_box_eth_abi;
+
+const web3 = new Web3(rinkeby);
+
+let DepositBox = new web3.eth.Contract(depositBoxABI, depositBoxAddress);
+
+/*
+  * prepare the function
+  * getMyEth()
+  */
+let getMyEth = DepositBox.methods.getMyEth().encodeABI();
+
+//get nonce
+web3.eth.getTransactionCount(account).then((nonce) => {
+  //create raw transaction
+  const rawTxGetMyEth = {
+    chainId: chainId,
+    from: account,
+    nonce: "0x" + nonce.toString(16),
+    data: getMyEth,
+    to: depositBoxAddress,
+    gas: 6500000,
+    gasPrice: 100000000000
+  };
+
+    //sign transaction
+    const txGetMyEth = new Tx(rawTxGetMyEth, {
+      chain: "rinkeby",
+      hardfork: "petersburg"
+    });
+    txGetMyEth.sign(privateKey);
+
+    //serialize transaction
+    const serializedTxGetMyEth = txGetMyEth.serialize();
+
+    //send signed transaction
+    web3.eth
+      .sendSignedTransaction("0x" + serializedTxGetMyEth.toString("hex"))
+      .on("receipt", (receipt) => {
+        //record receipt to console
+        console.log(receipt);
+      })
+      .catch(console.error);
+  });
 
 ----
 --
