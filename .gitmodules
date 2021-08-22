@@ -1,0 +1,4 @@
+[submodule "test-tokens"]
+	path = test-tokens
+	url = https://github.com/skalenetwork/test-tokens.git
+	branch = develop
