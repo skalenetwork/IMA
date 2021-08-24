@@ -88,6 +88,9 @@ Now you need to add the pre-deployed **TokenManagerERC20** contact on your SKALE
 
 [tabs]
 ====
+
+
+
 Web3 JS::
 +
 --
@@ -371,6 +374,62 @@ The **DepositBoxERC20** contract is on Rinkeby testnet. To get the ABIs to inter
 
 [tabs]
 ====
+
+IMA-JS::
++
+--
+
+Using https://www.npmjs.com/package/@skalenetwork/ima-js[ima-js: https://www.npmjs.com/package/@skalenetwork/ima-js], use `depositERC20()` from the Mainnet object. link:{erc20-ima-js-sandbox}?file=/src/deposit.js[See IMA-JS deposit.js sandbox]
+
+[source, javascript]
+----
+import { MainnetChain } from "@skalenetwork/ima-js";
+import Web3 from "web3";
+
+export async function makeDeposit() {
+  // initialize objects
+  let ethereumEndpoint = "[ETHEREUM_ENDPOINT]";
+  let abi = require("[IMA_ABI_ON_ETHEREUM]");
+  let tokenName = "ERC20_TOKEN_NAME";
+  let schainName = "YOUR_SKALE_CHAIN_NAME";
+
+  // initialize mainnet object
+  const provider = new Web3.providers.HttpProvider(ethereumEndpoint);
+  const web3Rinkeby = new Web3(provider);
+  let mainnet = new MainnetChain(web3Rinkeby, abi);
+
+  // initialize ERC20 contract
+  const rinkebyERC20ABI = require("[ERC20_ABI_ON_ETHEREUM]");
+  const erc20ABI = rinkebyERC20ABI.erc20_abi;
+  const erc20Address = rinkebyERC20ABI.erc20_address;
+  const rinkebyContract = new web3Rinkeby.eth.Contract(erc20ABI, erc20Address);
+  await mainnet.addERC20Token(ERC20_NAME, rinkebyContract);
+
+  // setup options and parameters
+  let txOpts = {
+    address: process.env.REACT_APP_INSECURE_ACCOUNT,
+    privateKey: process.env.REACT_APP_INSECURE_PRIVATE_KEY
+  };
+  let address = process.env.REACT_APP_INSECURE_ACCOUNT;
+  let amount = ima.mainnet.web3.utils.toWei("1", "ether");
+
+  await mainnet.approveERC20Transfers(
+    ERC20_NAME,
+    "MAX_APPROVAL_IN_WEI",
+    txOpts
+  );
+
+  await mainnet.depositERC20(
+    schainName,
+    ERC20_NAME,
+    address,
+    amount,
+    txOpts
+  );
+}
+----
+--
+
 Web3 JS::
 +
 --
@@ -485,26 +544,6 @@ web3ForMainnet.eth.getTransactionCount(accountForMainnet).then(nonce => {
 });
 ----
 --
-
-IMA-JS::
-+
---
-
-[source,javascript]
-----
-import IMA from '@skalenetwork/ima';
-
-let erc20Name = "sm";
-let MAX_APPROVAL_AMOUNT = 10;
-let SCHAIN_NAME = "[YOUR_SKALE_CHAIN_NAME]";
-let address 
-
-ima.mainnet.approveERC20Transfers(erc20Name, constants.MAX_APPROVAL_AMOUNT, opts);
-ima.depositERC20(SCHAIN_NAME, erc20Name, address, value, opts);
-----
-
---
-
 ====
 
 === 2. Exit from SKALE Chain
@@ -522,7 +561,61 @@ The **TokenManagerERC20** IMA contract is pre-deployed to your SKALE Chain. Plea
 
 [tabs]
 ====
-Javascript::
+IMA-JS::
+--
+
+[source, javascript]
+----
+import { SChain } from "@skalenetwork/ima-js";
+import Web3 from "web3";
+
+export async function exit() {
+  // set parameters
+  let schainEndpoint = "[SKALE_CHAIN_ENDPOINT]";
+  let sChainAbi = require("[IMA_ABI_ON_SKALE]");
+  let address = "YOUR_ADDRESS";
+  let amount = "AMOUNT_IN_WEI";
+  let mainnetERC20TokenAddress = "ERC20_MAINNET_TOKEN_ADDRESS";
+  let tokenName = "ERC20_TOKEN_NAME";
+
+  // initialize schain object
+  let sChainWeb3 = new Web3.providers.HttpProvider(schainEndpoint);
+  let schain = new SChain(sChainWeb3, sChainAbi);
+
+  // initialize ERC20 contract
+  let schainERC20ABI = require("[ERC20_ABI_ON_SKALE");
+  let sChainerc20ABI = schainERC20ABI.erc20_abi;
+  let schainerc20Address = schainERC20ABI.erc20_address;
+  let schainContract = new sChainWeb3.eth.Contract(
+    sChainerc20ABI,
+    schainerc20Address
+  );
+  await schain.addERC20Token(tokenName, schainContract);
+
+  // setup options and parameters
+  let txOpts = {
+    address: process.env.REACT_APP_INSECURE_ACCOUNT,
+    privateKey: process.env.REACT_APP_INSECURE_PRIVATE_KEY
+  };
+
+  let approveResult = await schain.approveERC20Transfers(
+    tokenName,
+    "MAX_APPROVAL_IN_WEI",
+    txOpts
+  );
+
+  await schain.withdrawERC20(
+    mainnetERC20TokenAddress,
+    address,
+    amount,
+    txOpts
+  );
+}
+
+----
+--
+
+Web3 Javascript::
 +
 --
 

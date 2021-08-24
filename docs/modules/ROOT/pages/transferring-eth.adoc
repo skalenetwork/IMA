@@ -24,7 +24,7 @@ IMA-JS::
 +
 --
 
-Using ima-js, use `depositETHtoSChain()` from the MainnetChain object. link:{eth-ima-js-sandbox}?file=/src/deposit.js[See IMA-JS deposit.js sandbox]
+Using https://www.npmjs.com/package/@skalenetwork/ima-js[ima-js: https://www.npmjs.com/package/@skalenetwork/ima-js], use `depositETHtoSChain()` from the MainnetChain object. link:{eth-ima-js-sandbox}?file=/src/deposit.js[See IMA-JS deposit.js sandbox]
 
 [source, javascript]
 ----
@@ -152,7 +152,7 @@ IMA-JS::
 +
 --
 
-Using ima-js, use `withdrawETH()` from the SChain object. link:{eth-ima-js-sandbox}?file=/src/exit.js[See IMA-JS exit.js sandbox]
+Using https://www.npmjs.com/package/@skalenetwork/ima-js[ima-js: https://www.npmjs.com/package/@skalenetwork/ima-js], use `withdrawETH()` from the SChain object. link:{eth-ima-js-sandbox}?file=/src/exit.js[See IMA-JS exit.js sandbox]
 
 [source,javascript]
 ----
@@ -162,7 +162,7 @@ import Web3 from "web3";
 export async function makeDeposit() {
   // set parameters
   let schain = "[SKALE_CHAIN_ENDPOINT]";
-  let abi = require("IMA_ABI_ON_SKALE");
+  let abi = require("[IMA_ABI_ON_SKALE]");
   let privateKey = "[YOUR_PRIVATE_KEY]";
   let address = "YOUR_ADDRESS";
 
@@ -266,7 +266,7 @@ IMA-JS::
 +
 --
 
-Using ima-js, use `getMyEth()` from the Mainnet object. link:{eth-ima-js-sandbox}?file=/src/getMyEth.js[See IMA-JS getMyEth.js sandbox]
+Using https://www.npmjs.com/package/@skalenetwork/ima-js[ima-js: https://www.npmjs.com/package/@skalenetwork/ima-js], use `getMyEth()` from the Mainnet object. link:{eth-ima-js-sandbox}?file=/src/getMyEth.js[See IMA-JS getMyEth.js sandbox]
 
 [source,javascript]
 ----
