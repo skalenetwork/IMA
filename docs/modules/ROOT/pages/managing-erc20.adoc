@@ -88,9 +88,6 @@ Now you need to add the pre-deployed **TokenManagerERC20** contact on your SKALE
 
 [tabs]
 ====
-
-
-
 Web3 JS::
 +
 --
@@ -374,7 +371,6 @@ The **DepositBoxERC20** contract is on Rinkeby testnet. To get the ABIs to inter
 
 [tabs]
 ====
-
 IMA-JS::
 +
 --
@@ -562,6 +558,7 @@ The **TokenManagerERC20** IMA contract is pre-deployed to your SKALE Chain. Plea
 [tabs]
 ====
 IMA-JS::
++
 --
 
 [source, javascript]
