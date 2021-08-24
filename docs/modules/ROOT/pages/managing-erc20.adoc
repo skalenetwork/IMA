@@ -403,10 +403,10 @@ export async function makeDeposit() {
 
   // setup options and parameters
   let txOpts = {
-    address: process.env.REACT_APP_INSECURE_ACCOUNT,
-    privateKey: process.env.REACT_APP_INSECURE_PRIVATE_KEY
+    address: "YOUR_ADDRESS",
+    privateKey: "YOUR_PRIVATE_KEY"
   };
-  let address = process.env.REACT_APP_INSECURE_ACCOUNT;
+  let address = "ADDRESS_TO";
   let amount = ima.mainnet.web3.utils.toWei("1", "ether");
 
   await mainnet.approveERC20Transfers(
