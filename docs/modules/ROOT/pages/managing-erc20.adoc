@@ -396,9 +396,9 @@ export async function makeDeposit() {
 
   // initialize ERC20 contract
   const rinkebyERC20ABI = require("[ERC20_ABI_ON_ETHEREUM]");
-  const erc20ABI = rinkebyERC20ABI.erc20_abi;
-  const erc20Address = rinkebyERC20ABI.erc20_address;
-  const rinkebyContract = new web3Rinkeby.eth.Contract(erc20ABI, erc20Address);
+  const rinkebyContract = new web3Rinkeby.eth.Contract(
+    rinkebyERC20ABI.erc20_abi,
+    rinkebyERC20ABI.erc20_address);
   await mainnet.addERC20Token(ERC20_NAME, rinkebyContract);
 
   // setup options and parameters
@@ -410,14 +410,14 @@ export async function makeDeposit() {
   let amount = ima.mainnet.web3.utils.toWei("1", "ether");
 
   await mainnet.approveERC20Transfers(
-    ERC20_NAME,
+    tokenName,
     "MAX_APPROVAL_IN_WEI",
     txOpts
   );
 
   await mainnet.depositERC20(
     schainName,
-    ERC20_NAME,
+    tokenName,
     address,
     amount,
     txOpts
@@ -581,18 +581,16 @@ export async function exit() {
 
   // initialize ERC20 contract
   let schainERC20ABI = require("[ERC20_ABI_ON_SKALE");
-  let sChainerc20ABI = schainERC20ABI.erc20_abi;
-  let schainerc20Address = schainERC20ABI.erc20_address;
   let schainContract = new sChainWeb3.eth.Contract(
-    sChainerc20ABI,
-    schainerc20Address
+    schainERC20ABI.erc20_abi,
+    schainERC20ABI.erc20_address
   );
   await schain.addERC20Token(tokenName, schainContract);
 
   // setup options and parameters
   let txOpts = {
-    address: process.env.REACT_APP_INSECURE_ACCOUNT,
-    privateKey: process.env.REACT_APP_INSECURE_PRIVATE_KEY
+    address: "YOUR_ADDRESS",
+    privateKey: "YOUR_PRIVATE_KEY"
   };
 
   let approveResult = await schain.approveERC20Transfers(
