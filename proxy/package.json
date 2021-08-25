@@ -27,7 +27,7 @@
         "@skalenetwork/skale-manager-interfaces": "^0.1.2",
         "dotenv": "^10.0.0",
         "ethereumjs-tx": "2.1.2",
-        "ethers": "^5.4.3",
+        "ethers": "^5.4.5",
         "hardhat": "^2.5.0",
         "path": "^0.12.7",
         "web3": "^1.5.0"
