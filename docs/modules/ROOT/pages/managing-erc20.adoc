@@ -399,7 +399,7 @@ export async function makeDeposit() {
   const rinkebyContract = new web3Rinkeby.eth.Contract(
     rinkebyERC20ABI.erc20_abi,
     rinkebyERC20ABI.erc20_address);
-  await mainnet.addERC20Token(ERC20_NAME, rinkebyContract);
+  await mainnet.addERC20Token(tokenName, rinkebyContract);
 
   // setup options and parameters
   let txOpts = {
