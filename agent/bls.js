@@ -39,7 +39,7 @@ function discover_bls_threshold( joSChainNetworkInfo ) {
     const jarrNodes = imaState.joSChainNetworkInfo.network;
     for( let i = 0; i < jarrNodes.length; ++i ) {
         const joNode = jarrNodes[i];
-        if( "imaInfo" in joNode && typeof joNode.imaInfo === "object" &&
+        if( joNode && "imaInfo" in joNode && typeof joNode.imaInfo === "object" &&
             "t" in joNode.imaInfo && typeof joNode.imaInfo.t === "number" &&
             joNode.imaInfo.t > 0
         )
@@ -52,7 +52,7 @@ function discover_bls_participants( joSChainNetworkInfo ) {
     const jarrNodes = imaState.joSChainNetworkInfo.network;
     for( let i = 0; i < jarrNodes.length; ++i ) {
         const joNode = jarrNodes[i];
-        if( "imaInfo" in joNode && typeof joNode.imaInfo === "object" &&
+        if( joNode && "imaInfo" in joNode && typeof joNode.imaInfo === "object" &&
             "n" in joNode.imaInfo && typeof joNode.imaInfo.n === "number" &&
             joNode.imaInfo.n > 0
         )
@@ -64,7 +64,7 @@ function discover_bls_participants( joSChainNetworkInfo ) {
 function discover_public_key_by_index( nNodeIndex, joSChainNetworkInfo ) {
     const jarrNodes = imaState.joSChainNetworkInfo.network;
     const joNode = jarrNodes[nNodeIndex];
-    if( "imaInfo" in joNode && typeof joNode.imaInfo === "object" &&
+    if( joNode && "imaInfo" in joNode && typeof joNode.imaInfo === "object" &&
         "BLSPublicKey0" in joNode.imaInfo && typeof joNode.imaInfo.BLSPublicKey0 === "string" && joNode.imaInfo.BLSPublicKey0.length > 0 &&
         "BLSPublicKey1" in joNode.imaInfo && typeof joNode.imaInfo.BLSPublicKey1 === "string" && joNode.imaInfo.BLSPublicKey1.length > 0 &&
         "BLSPublicKey2" in joNode.imaInfo && typeof joNode.imaInfo.BLSPublicKey2 === "string" && joNode.imaInfo.BLSPublicKey2.length > 0 &&
@@ -84,7 +84,7 @@ function discover_common_public_key( joSChainNetworkInfo ) {
     const jarrNodes = imaState.joSChainNetworkInfo.network;
     for( let i = 0; i < jarrNodes.length; ++i ) {
         const joNode = jarrNodes[i];
-        if( "imaInfo" in joNode && typeof joNode.imaInfo === "object" &&
+        if( joNode && "imaInfo" in joNode && typeof joNode.imaInfo === "object" &&
             "commonBLSPublicKey0" in joNode.imaInfo && typeof joNode.imaInfo.commonBLSPublicKey0 === "string" && joNode.imaInfo.commonBLSPublicKey0.length > 0 &&
             "commonBLSPublicKey1" in joNode.imaInfo && typeof joNode.imaInfo.commonBLSPublicKey1 === "string" && joNode.imaInfo.commonBLSPublicKey1.length > 0 &&
             "commonBLSPublicKey2" in joNode.imaInfo && typeof joNode.imaInfo.commonBLSPublicKey2 === "string" && joNode.imaInfo.commonBLSPublicKey2.length > 0 &&
