@@ -19,5 +19,4 @@ RUN cd npms/skale-owasp && yarn install && cd ../..
 RUN cd npms/skale-ima && yarn install && cd ../..
 RUN cd agent && yarn install && cd ..
 
-
 CMD ["bash", "/ima/agent/run.sh"]
