@@ -31,16 +31,37 @@ function replaceAll( str, find, replace ) {
     return str.replace( new RegExp( find, "g" ), replace );
 }
 
+function toBoolean( value ) {
+    let b = false;
+    try {
+        if( typeof value === "boolean" )
+            return value;
+        if( typeof value === "string" ) {
+            const ch = value[0].toLowerCase();
+            if( ch == "y" || ch == "t" )
+                b = true; else if( validateInteger( value ) )
+                b = !!toInteger( value ); else if( validateFloat( value ) )
+                b = !!toFloat( value ); else
+                b = !!b;
+        } else
+            b = !!b;
+    } catch ( err ) {
+        b = false;
+    }
+    b = !!b;
+    return b;
+}
+
 function _yn_( flag ) {
     if( !g_bEnabled )
         return flag;
-    return flag ? module.exports.yes( "yes" ) : module.exports.no( "no" );
+    return toBoolean( flag ) ? module.exports.yes( "yes" ) : module.exports.no( "no" );
 }
 
 function _tf_( flag ) {
     if( !g_bEnabled )
         return flag;
-    return flag ? module.exports.yes( "true" ) : module.exports.no( "false" );
+    return toBoolean( flag ) ? module.exports.yes( "true" ) : module.exports.no( "false" );
 }
 
 // function isInt( n ) {
@@ -430,32 +451,95 @@ const jsonColorizer = { // see http://jsfiddle.net/unLSJ/
             } catch ( err ) { }
             return obj;
         }
+        const cntSpaces = 4;
         const jsonLine = /^( *)("[\w]+": )?("[^"]*"|[\w.+-]*)?([,[{])?$/mg;
-        const tmp = JSON.stringify( obj, ( jsonColorizer.cntCensoredMax > 0 ) ? jsonColorizer.censor( obj ) : null, 4 );
+        try {
+            const tmp = JSON.stringify( obj, ( jsonColorizer.cntCensoredMax > 0 ) ? jsonColorizer.censor( obj ) : null, cntSpaces );
+            const s = tmp ? tmp.replace( jsonLine, jsonColorizer.replacerConsole ) : ( "" + tmp );
+            return s;
+        } catch ( err ) { }
+        obj = JSON.parse( JSON.stringify( obj, getCircularReplacerForJsonStringify() ) );
+        const tmp = JSON.stringify( obj, ( jsonColorizer.cntCensoredMax > 0 ) ? jsonColorizer.censor( obj ) : null, cntSpaces );
         const s = tmp ? tmp.replace( jsonLine, jsonColorizer.replacerConsole ) : ( "" + tmp );
         return s;
     }
 };
 
-function safeStringifyJSON( jo ) {
-    try {
-        const getCircularReplacer = () => {
-            const seen = new WeakSet();
-            return ( key, value ) => {
-                if( typeof value === "object" && value !== null ) {
-                    if( seen.has( value ) )
-                        return undefined;
+// see:
+// http://jsfiddle.net/KJQ9K/554
+// https://qastack.ru/programming/4810841/pretty-print-json-using-javascript
+function syntaxHighlightJSON( jo, strKeyNamePrefix ) {
+    strKeyNamePrefix = strKeyNamePrefix || "";
+    jo = jo.replace( /&/g, "&amp;" ).replace( /</g, "&lt;" ).replace( />/g, "&gt;" );
+    return jo.replace( /("(\\u[a-zA-Z0-9]{4}|\\[^u]|[^\\"])*"(\s*:)?|\b(true|false|null)\b|-?\d+(?:\.\d*)?(?:[eE][+-]?\d+)?)/g, function( match ) {
+        if( ! g_bEnabled )
+            return match;
+        let cls = "number";
+        if( /^"/.test( match ) ) {
+            if( /:$/.test( match ) )
+                cls = "key";
+            else
+                cls = "string";
+        } else if( /true|false/.test( match ) )
+            cls = "boolean";
+        else if( /null/.test( match ) )
+            cls = "null";
+        else if( /NaN/.test( match ) )
+            cls = "nan";
+        else if( /undefined/.test( match ) )
+            cls = "undefined";
+        else if( ( typeof match === "string" || match instanceof String ) &&
+            match.length >= 2 &&
+            ( ( match[0] == "\"" && match[match.length - 1] == "\"" ) ||
+            ( match[0] == "'" && match[match.length - 1] == "'" ) )
+        )
+            cls = "string";
+        // return "<span class=\"" + cls + "\">" + match + "</span>";
+        switch ( cls ) {
+        case "key":
+            return "" + strKeyNamePrefix + log_arg_to_str( match.replace( /[": ]/g, "" ) ) + ": ";
+        case "boolean":
+            return _tf_( match );
+        case "null":
+            return "" + module.exports.nullval( match );
+        case "undefined":
+            return "" + module.exports.undefval( match );
+        case "nan":
+            return "" + module.exports.nanval( match );
+        case "string":
+            return "" + module.exports.strval( match );
+            // case "number":
+        }
+        return log_arg_to_str( match );
+    } );
+}
 
-                    seen.add( value );
-                }
-                return value;
-            };
-        };
-        const s = "" + JSON.stringify( jo, getCircularReplacer() );
+function safeStringifyJSON( jo, n ) {
+    try {
+        const s = "" + JSON.stringify( jo, getCircularReplacerForJsonStringify(), n );
         return s;
     } catch ( err ) {
     }
     return undefined;
+}
+
+function jn( x ) {
+    return "" + jsonColorizer.prettyPrintConsole( x );
+}
+
+function j1( x, n, strKeyNamePrefix ) {
+    let isDefaultKeyNamePrefix = false;
+    if( typeof strKeyNamePrefix !== "string" ) {
+        strKeyNamePrefix = " ";
+        isDefaultKeyNamePrefix = true;
+    }
+    let s = safeStringifyJSON( x, n );
+    if( ! g_bEnabled )
+        return s;
+    s = "" + syntaxHighlightJSON( s, strKeyNamePrefix );
+    if( isDefaultKeyNamePrefix && s.length > 9 && s[0] == " " )
+        s = s.substring( 1, s.length );
+    return s;
 }
 
 module.exports = {
@@ -649,9 +733,9 @@ module.exports = {
             return s;
         return "" + this.fgYellow + s + this.reset;
     },
-    j: function( x ) {
-        return "" + jsonColorizer.prettyPrintConsole( x );
-    },
+    jn: jn,
+    j1: j1,
+    j: j1, // jn
     yn: function( x ) {
         return _yn_( x );
     },
@@ -661,6 +745,8 @@ module.exports = {
     u: function( x ) {
         return url_colorized( x );
     },
+    syntaxHighlightJSON: syntaxHighlightJSON,
     safeURL: safeURL,
-    getCircularReplacerForJsonStringify: getCircularReplacerForJsonStringify
+    getCircularReplacerForJsonStringify: getCircularReplacerForJsonStringify,
+    toBoolean: toBoolean
 }; // module.exports
