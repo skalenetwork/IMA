@@ -14,9 +14,13 @@ function getPageTitle (directory) {
   return startCase(directory);
 }
 
+const exceptionFolders = ["extensions/", "interfaces/", "bls/", "tokens/"];
+
+const exceptionFiles = ["Messages.adoc"];
+
 const files = proc.execFileSync(
   'find', [baseDir, '-type', 'f'], { encoding: 'utf8' }
-).split('\n').filter(s => s !== '');
+).split('\n').filter(s => (s !== '' && exceptionFolders.every((folder) => s.indexOf(folder) == -1) && exceptionFiles.every((file) => s.indexOf(file) == -1)));
 
 const links = files.map((file) => {
   const doc = file.replace(baseDir, '').replace(/^\/|\/$/g, '');
