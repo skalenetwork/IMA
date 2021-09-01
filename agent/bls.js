@@ -488,8 +488,14 @@ async function do_sign_messages_impl( strDirection, jarrMessages, nIdxCurrentMsg
     // }
     //
     details.write( strLogPrefix + cc.debug( "Will sign " ) + cc.info( jarrMessages.length ) + cc.debug( " message(s)..." ) + "\n" );
-    let nCountReceived = 0; // including errors
-    let nCountErrors = 0;
+    const joGatheringTracker = {
+        nCountReceived: 0, // including errors
+        nCountErrors: 0,
+        nCountSkipped: 0,
+        nWaitIntervalStepMilliseconds: 100,
+        nWaitIntervalStepsDone: 0,
+        nWaitIntervalMaxSteps: 10 * 60 * 3 // 10 is 1 second
+    };
     const arrSignResults = [];
     const jarrNodes = imaState.joSChainNetworkInfo.network;
     details.write( strLogPrefix + cc.debug( "Will query to sign " ) + cc.info( jarrNodes.length ) + cc.debug( " skaled node(s)..." ) + "\n" );
@@ -508,8 +514,8 @@ async function do_sign_messages_impl( strDirection, jarrMessages, nIdxCurrentMsg
         const rpcCallOpts = null;
         await rpcCall.create( strNodeURL, rpcCallOpts, async function( joCall, err ) {
             if( err ) {
-                ++nCountReceived; // including errors
-                ++nCountErrors;
+                ++joGatheringTracker.nCountReceived; // including errors
+                ++joGatheringTracker.nCountErrors;
                 const strErrorMessage =
                     strLogPrefix + cc.fatal( "CRITICAL ERROR:" ) +
                     cc.error( " JSON RPC call to S-Chain node " ) + strNodeDescColorized +
@@ -526,7 +532,6 @@ async function do_sign_messages_impl( strDirection, jarrMessages, nIdxCurrentMsg
                 targetChainName = "" + ( imaState.strChainName_main_net ? imaState.strChainName_main_net : "" );
                 fromChainName = "" + ( imaState.strChainName_s_chain ? imaState.strChainName_s_chain : "" );
             }
-
             await joCall.call( {
                 method: "skale_imaVerifyAndSign",
                 params: {
@@ -537,9 +542,9 @@ async function do_sign_messages_impl( strDirection, jarrMessages, nIdxCurrentMsg
                     messages: jarrMessages
                 }
             }, function( joIn, joOut, err ) {
-                ++nCountReceived; // including errors
+                ++joGatheringTracker.nCountReceived; // including errors
                 if( err ) {
-                    ++nCountErrors;
+                    ++joGatheringTracker.nCountErrors;
                     const strErrorMessage =
                         strLogPrefix + cc.fatal( "CRITICAL ERROR:" ) +
                         cc.error( " JSON RPC call to S-Chain node " ) + strNodeDescColorized +
@@ -549,7 +554,7 @@ async function do_sign_messages_impl( strDirection, jarrMessages, nIdxCurrentMsg
                     return;
                 }
                 if( joOut.result == null || joOut.result == undefined || ( !typeof joOut.result == "object" ) ) {
-                    ++nCountErrors;
+                    ++joGatheringTracker.nCountErrors;
                     if( "error" in joOut && "message" in joOut.error ) {
                         const strErrorMessage =
                             strLogPrefix + cc.fatal( "Wallet CRITICAL ERROR:" ) + " " +
@@ -577,6 +582,16 @@ async function do_sign_messages_impl( strDirection, jarrMessages, nIdxCurrentMsg
                         let bNodeSignatureOKay = false; // initially assume signature is wrong
                         const strLogPrefixA = cc.bright( strDirection ) + cc.debug( "/" ) + cc.info( "BLS" ) + cc.debug( "/" ) + cc.notice( "#" ) + cc.bright( nZeroBasedNodeIndex ) + cc.debug( ":" ) + " ";
                         try {
+                            const cntSuccess = joGatheringTracker.nCountReceived - joGatheringTracker.nCountErrors;
+                            if( cntSuccess >= nThreshold ) {
+                                ++joGatheringTracker.nCountSkipped;
+                                details.write( strLogPrefixA +
+                                    cc.debug( "Will ignore sign result for node " ) + cc.info( nZeroBasedNodeIndex ) +
+                                    cc.debug( " because " ) + cc.info( nThreshold ) +
+                                    cc.debug( " threshold number of BLS signature parts already gathered" ) +
+                                    "\n" );
+                                return;
+                            }
                             const arrTmp = joOut.result.signResult.signatureShare.split( ":" );
                             const joResultFromNode = {
                                 index: "" + nZeroBasedNodeIndex,
@@ -620,7 +635,7 @@ async function do_sign_messages_impl( strDirection, jarrMessages, nIdxCurrentMsg
                                 signResult: joOut.result.signResult
                             } );
                         } else
-                            ++nCountErrors;
+                            ++joGatheringTracker.nCountErrors;
                     }
                 } catch ( err ) {
                     ++nCountErrors;
@@ -631,11 +646,12 @@ async function do_sign_messages_impl( strDirection, jarrMessages, nIdxCurrentMsg
                     log.write( strErrorMessage );
                     details.write( strErrorMessage );
                 }
-            } );
-        } );
+            } ); // joCall.call ...
+        } ); // rpcCall.create ...
     }
     const iv = setInterval( async function() {
-        const cntSuccess = nCountReceived - nCountErrors;
+        ++ joGatheringTracker.nWaitIntervalStepsDone;
+        const cntSuccess = joGatheringTracker.nCountReceived - joGatheringTracker.nCountErrors;
         if( cntSuccess >= nThreshold ) {
             const strLogPrefixB = cc.bright( strDirection ) + cc.debug( "/" ) + cc.info( "BLS" ) + cc.debug( "/" ) + cc.sunny( "Summary" ) + cc.debug( ":" ) + " ";
             clearInterval( iv );
@@ -655,29 +671,44 @@ async function do_sign_messages_impl( strDirection, jarrMessages, nIdxCurrentMsg
                     }
                 }
             } else {
-                strError = "BLS glue failed";
+                strError = "BLS glue failed, no glue result arrived";
                 const strErrorMessage =
-                    strLogPrefixB + cc.error( "S-Chain node " ) + strNodeDescColorized + " " +
-                    cc.fatal( "CRITICAL ERROR:" ) + " " + cc.error( strError ) + "\n";
+                    strLogPrefixB + cc.error( "Problem(1) in BLS sign result handler: " ) + cc.warning( strError ) + "\n";
                 log.write( strErrorMessage );
                 details.write( strErrorMessage );
             }
             await fn( strError, jarrMessages, joGlueResult ).catch( ( err ) => {
-                const strErrorMessage = cc.error( "Problem(1) in BLS sign result handler: " ) + cc.warning( err ) + "\n";
+                const strErrorMessage = cc.error( "Problem(2) in BLS sign result handler: " ) + cc.warning( err ) + "\n";
                 log.write( strErrorMessage );
                 details.write( strErrorMessage );
             } );
             return;
         }
-        if( nCountReceived >= jarrNodes.length ) {
+        if( joGatheringTracker.nCountReceived >= jarrNodes.length ) {
             clearInterval( iv );
-            await fn( "signature error in " + nCountErrors + " node(s) of " + jarrNodes.length + " node(s)", jarrMessages, null ).catch( ( err ) => {
-                const strErrorMessage = cc.error( "Problem(2) in BLS sign result handler: " ) + cc.warning( err ) + "\n";
+            await fn( "signature error in " + joGatheringTracker.nCountErrors + " node(s) of " + jarrNodes.length + " node(s)", jarrMessages, null ).catch( ( err ) => {
+                const strErrorMessage =
+                    cc.error( "Problem(3) in BLS sign result handler, not enough successful BLS signature parts(" ) +
+                    cc.info( cntSuccess ) + cc.error( " when all attempts done, error details: " ) + cc.warning( err ) +
+                    "\n";
                 log.write( strErrorMessage );
                 details.write( strErrorMessage );
             } );
+            return;
         }
-    }, 100 );
+        if( joGatheringTracker.nWaitIntervalStepsDone >= joGatheringTracker.nWaitIntervalMaxSteps ) {
+            clearInterval( iv );
+            await fn( "signature error in " + joGatheringTracker.nCountErrors + " node(s) of " + jarrNodes.length + " node(s)", jarrMessages, null ).catch( ( err ) => {
+                const strErrorMessage =
+                    cc.error( "Problem(4) in BLS sign result handler, not enough successful BLS signature parts(" ) +
+                    cc.info( cntSuccess ) + cc.error( ") and timeout reached, error details: " ) +
+                    cc.warning( err ) + "\n";
+                log.write( strErrorMessage );
+                details.write( strErrorMessage );
+            } );
+            return;
+        }
+    }, joGatheringTracker.nWaitIntervalStepMilliseconds );
 }
 
 async function do_sign_messages_m2s( jarrMessages, nIdxCurrentMsgBlockStart, details, fn ) {
