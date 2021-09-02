@@ -1,0 +1,61 @@
+= SKALE NFTs
+
+. Deploy ERC721 on mainnet and on SKALE Chain
++
+First step is to deploy the NFT contract on Mainnet, and the clone on your SKALE Chain. 
++
+[NOTE]
+As soon as you deploy on the SKALE Chain, you may begin minting from the SKALE Chain clone. 
+
+. Deploy Extension contracts on Mainnet
++
+Deploy the ERC721ReferenceMintAndMetadataMainnet contract on Ethereum. https://github.com/skalenetwork/IMA/blob/develop/proxy/contracts/extensions/ERC721ReferenceMintAndMetadataMainnet.sol
++
+For ERC721ReferenceMintAndMetadataMainnet deployment, go ahead and specify the Mainnet MessageProxy address, Mainnet ERC721 contract, and SKALE Chain name in the constructor.
++
+```javascript
+extensionMainnet = await extensionMainnetFactory.deploy(
+    messageProxyForMainnet.address,
+    ERC721TokenOnMainnet.address,
+    schainName
+)
+```
+
+. Deploy Extension contracts on your SKALE Chain
++
+Deploy the ERC721ReferenceMintAndMetadataSchain contract on your SKALE Chain. https://github.com/skalenetwork/IMA/blob/develop/proxy/contracts/extensions/ERC721ReferenceMintAndMetadataSchain.sol
++
+For ERC721ReferenceMintAndMetadataSchain, specify the SKALE Chain MessageProxy address, SKALE Chain ERC721 contract clone address, and the extension contract address on Mainnet.
++
+```javascript
+extensionSchain = await extensionSchainFactory.deploy(
+    messageProxyForSchain.address,
+    ERC721TokenOnSchain.address,
+    extensionMainnet.address
+)
+```
+
+. Reference - setSenderContractOnSchain (or set in deployment in constructor)
++
+Set `setSenderContractOnSchain` on the Mainnet extension contract to the extension contract on your SKALE Chain.
++
+```javascript
+await extensionMainnet.connect(deployer).setSenderContractOnSchain(extensionSchain.address);
+```
+
+. Add minter role of ERC721 Mainnet to Reference
++
+Assign the minter role of the ERC721 Mainnet contract to the extension contract on mainnet.
++
+```javascript
+const minterRoleERC721 = await ERC721TokenOnMainnet.MINTER_ROLE();
+        await ERC721TokenOnMainnet.grantRole(minterRoleERC721, extensionMainnet.address);
+```
+
+. Mint tokens on schain
++
+Perform all mint operations on the SKALE Chain endpoint and contract to enjoy zero-cost minting.
+
+. Perform transfers described in the IMA bridge.
++
+Now everything is set, you can now perform deposits and exits with your NFT. Follow the xref:managing-erc721#transfer.adoc[Transfer ERC721 instructions here]. 
