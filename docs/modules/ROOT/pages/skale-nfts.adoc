@@ -58,4 +58,4 @@ Perform all mint operations on the SKALE Chain endpoint and contract to enjoy ze
 
 . Perform transfers described in the IMA bridge.
 +
-Now everything is set, you can now perform deposits and exits with your NFT. Follow the xref:managing-erc721#transfer.adoc[Transfer ERC721 instructions here]. 
+Now everything is set, you can now perform deposits and exits with your NFT. Follow the xref:managing-erc721.adoc#transfer[Transfer ERC721 instructions here]. 
