@@ -70,11 +70,17 @@ contract CommunityPool is Twin {
     )
         external
         onlyMessageProxy
-        returns (bool)
+        returns (uint)
     {
-        require(activeUsers[user][schainHash], "User should be active");
+        if (!activeUsers[user][schainHash]) {
+            return gas;
+        }
         require(node != address(0), "Node address must be set");
         uint amount = tx.gasprice * gas;
+        uint amountToSend = 0;
+        if (amount > _userWallets[user][schainHash]) {
+            amountToSend = _userWallets[user][schainHash];
+        }
         _userWallets[user][schainHash] = _userWallets[user][schainHash] - amount;
         if (!_balanceIsSufficient(schainHash, user, 0)) {
             activeUsers[user][schainHash] = false;
