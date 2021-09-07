@@ -510,10 +510,10 @@ async function do_sign_messages_impl( strDirection, jarrMessages, nIdxCurrentMsg
         return;
     }
     let nCountOfBlsPartsToCollect = 0 + nThreshold;
-    if( nThreshold <= 1 && nParticipants > 1 ) {
-        details.write( strLogPrefix + cc.warning( "Minimal BLS parts number for dicovery was increased." ) + "\n" );
-        nCountOfBlsPartsToCollect = 2;
-    }
+    // if( nThreshold <= 1 && nParticipants > 1 ) {
+    //     details.write( strLogPrefix + cc.warning( "Minimal BLS parts number for dicovery was increased." ) + "\n" );
+    //     nCountOfBlsPartsToCollect = 2;
+    // }
     details.write( strLogPrefix + cc.debug( "Will collect " ) + cc.info( nCountOfBlsPartsToCollect ) + cc.debug( " from " ) + cc.info( jarrNodes.length ) + cc.debug( " nodes" ) + "\n" );
     for( let i = 0; i < jarrNodes.length; ++i ) {
         const joNode = jarrNodes[i];
@@ -592,7 +592,7 @@ async function do_sign_messages_impl( strDirection, jarrMessages, nIdxCurrentMsg
                         const strLogPrefixA = cc.bright( strDirection ) + cc.debug( "/" ) + cc.info( "BLS" ) + cc.debug( "/" ) + cc.notice( "#" ) + cc.bright( nZeroBasedNodeIndex ) + cc.debug( ":" ) + " ";
                         try {
                             const cntSuccess = joGatheringTracker.nCountReceived - joGatheringTracker.nCountErrors;
-                            if( cntSuccess >= nCountOfBlsPartsToCollect ) {
+                            if( cntSuccess > nCountOfBlsPartsToCollect ) {
                                 ++joGatheringTracker.nCountSkipped;
                                 details.write( strLogPrefixA +
                                     cc.debug( "Will ignore sign result for node " ) + cc.info( nZeroBasedNodeIndex ) +
