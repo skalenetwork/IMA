@@ -70,14 +70,13 @@ contract CommunityPool is Twin {
         onlyMessageProxy
         returns (uint)
     {
+        require(node != address(0), "Node address must be set");
         if (!activeUsers[user][schainHash]) {
             return gas;
         }
-        require(node != address(0), "Node address must be set");
         uint amount = tx.gasprice * gas;
-        uint amountToSend = 0;
         if (amount > _userWallets[user][schainHash]) {
-            amountToSend = _userWallets[user][schainHash];
+            amount = _userWallets[user][schainHash];
         }
         _userWallets[user][schainHash] = _userWallets[user][schainHash] - amount;
         if (_userWallets[user][schainHash] < minTransactionGas * tx.gasprice) {
@@ -89,6 +88,27 @@ contract CommunityPool is Twin {
             );
         }
         node.sendValue(amount);
+        return (tx.gasprice * gas - amount) / tx.gasprice;
+    }
+
+    function refundGasBySchainWallet(
+        bytes32 schainHash,
+        address payable node,
+        uint gas
+    )
+        external
+        onlyMessageProxy
+        returns (bool)
+    {
+        if (gas > 0) {
+            IWallets(contractManagerOfSkaleManager.getContract("Wallets")).refundGasBySchain(
+                schainHash,
+                node,
+                gas,
+                false
+            );
+        }
+        return true;
     }
 
     function rechargeUserWallet(string calldata schainName) external payable {
