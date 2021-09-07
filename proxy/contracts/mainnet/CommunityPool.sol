@@ -91,6 +91,9 @@ contract CommunityPool is Twin {
         }
         node.sendValue(amount);
     }
+
+    function refundGasBySchainWallet(
+        bytes32 schainHash,
         address payable node,
         uint gas
     )
