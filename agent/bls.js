@@ -184,6 +184,8 @@ function perform_bls_glue( details, strDirection, jarrMessages, arrSignResults )
     // const jarrNodes = imaState.joSChainNetworkInfo.network;
     const nThreshold = discover_bls_threshold( imaState.joSChainNetworkInfo );
     const nParticipants = discover_bls_participants( imaState.joSChainNetworkInfo );
+    details.write( strLogPrefix + cc.debug( "Discovered BLS threshold is " ) + cc.info( nThreshold ) + cc.debug( "." ) + "\n" );
+    details.write( strLogPrefix + cc.debug( "Discovered number of BLS participants is " ) + cc.info( nParticipants ) + cc.debug( "." ) + "\n" );
     details.write( strLogPrefix + cc.debug( "Original long message is " ) + cc.info( compose_summary_message_to_sign( jarrMessages, false ) ) + "\n" );
     const strSummaryMessage = compose_summary_message_to_sign( jarrMessages, true );
     details.write( strLogPrefix + cc.debug( "Message hash to sign is " ) + cc.info( strSummaryMessage ) + "\n" );
@@ -500,12 +502,19 @@ async function do_sign_messages_impl( strDirection, jarrMessages, nIdxCurrentMsg
     const jarrNodes = imaState.joSChainNetworkInfo.network;
     details.write( strLogPrefix + cc.debug( "Will query to sign " ) + cc.info( jarrNodes.length ) + cc.debug( " skaled node(s)..." ) + "\n" );
     const nThreshold = discover_bls_threshold( imaState.joSChainNetworkInfo );
+    const nParticipants = discover_bls_participants( imaState.joSChainNetworkInfo );
     details.write( strLogPrefix + cc.debug( "Discovered BLS threshold is " ) + cc.info( nThreshold ) + cc.debug( "." ) + "\n" );
+    details.write( strLogPrefix + cc.debug( "Discovered number of BLS participants is " ) + cc.info( nParticipants ) + cc.debug( "." ) + "\n" );
     if( nThreshold <= 0 ) {
         await fn( "signature error, S-Chain information was not discovered properly and BLS threshold is unknown", jarrMessages, null );
         return;
     }
-    details.write( strLogPrefix + cc.debug( "Will collect " ) + cc.info( nThreshold ) + cc.debug( " from " ) + cc.info( jarrNodes.length ) + cc.debug( " nodes" ) + "\n" );
+    let nCountOfBlsPartsToCollect = 0 + nThreshold;
+    if( nThreshold <= 1 && nParticipants > 1 ) {
+        details.write( strLogPrefix + cc.warning( "Minimal BLS parts number for dicovery was increased." ) + "\n" );
+        nCountOfBlsPartsToCollect = 2;
+    }
+    details.write( strLogPrefix + cc.debug( "Will collect " ) + cc.info( nCountOfBlsPartsToCollect ) + cc.debug( " from " ) + cc.info( jarrNodes.length ) + cc.debug( " nodes" ) + "\n" );
     for( let i = 0; i < jarrNodes.length; ++i ) {
         const joNode = jarrNodes[i];
         const strNodeURL = imaUtils.compose_schain_node_url( joNode );
@@ -583,11 +592,11 @@ async function do_sign_messages_impl( strDirection, jarrMessages, nIdxCurrentMsg
                         const strLogPrefixA = cc.bright( strDirection ) + cc.debug( "/" ) + cc.info( "BLS" ) + cc.debug( "/" ) + cc.notice( "#" ) + cc.bright( nZeroBasedNodeIndex ) + cc.debug( ":" ) + " ";
                         try {
                             const cntSuccess = joGatheringTracker.nCountReceived - joGatheringTracker.nCountErrors;
-                            if( cntSuccess >= nThreshold ) {
+                            if( cntSuccess >= nCountOfBlsPartsToCollect ) {
                                 ++joGatheringTracker.nCountSkipped;
                                 details.write( strLogPrefixA +
                                     cc.debug( "Will ignore sign result for node " ) + cc.info( nZeroBasedNodeIndex ) +
-                                    cc.debug( " because " ) + cc.info( nThreshold ) +
+                                    cc.debug( " because " ) + cc.info( nThreshold ) + cc.debug( "/" ) + cc.info( nCountOfBlsPartsToCollect ) +
                                     cc.debug( " threshold number of BLS signature parts already gathered" ) +
                                     "\n" );
                                 return;
@@ -652,7 +661,7 @@ async function do_sign_messages_impl( strDirection, jarrMessages, nIdxCurrentMsg
     const iv = setInterval( async function() {
         ++ joGatheringTracker.nWaitIntervalStepsDone;
         const cntSuccess = joGatheringTracker.nCountReceived - joGatheringTracker.nCountErrors;
-        if( cntSuccess >= nThreshold ) {
+        if( cntSuccess >= nCountOfBlsPartsToCollect ) {
             const strLogPrefixB = cc.bright( strDirection ) + cc.debug( "/" ) + cc.info( "BLS" ) + cc.debug( "/" ) + cc.sunny( "Summary" ) + cc.debug( ":" ) + " ";
             clearInterval( iv );
             let strError = null;
