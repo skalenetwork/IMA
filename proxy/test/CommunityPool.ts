@@ -251,11 +251,6 @@ describe("CommunityPool", () => {
             communityPoolTester = await deployCommunityPoolTester(contractManager, linkerTester, messageProxyTester);
         });
 
-        it("should be rejected with User should be active", async () => {
-            await messageProxyTester.connect(deployer).refundGasByUser(schainHashRGBU, node.address, user.address, 0)
-                .should.be.eventually.rejectedWith("User should be active");
-        });
-
         it("should be rejected with Node address must be set", async () => {
             const tx = await messageProxyTester.addConnectedChain(schainNameRGBU);
             await messageProxyTester.registerExtraContract(schainNameRGBU, communityPoolTester.address);
@@ -283,6 +278,19 @@ describe("CommunityPool", () => {
             await messageProxyTester.registerExtraContract(schainNameRGBU, communityPoolTester.address);
             const gasPrice = tx.gasPrice;
             const wei = minTransactionGas.mul(gasPrice);
+            expect(await communityPoolTester.activeUsers(user.address, schainHashRGBU)).to.be.false;
+            await communityPoolTester.connect(user).rechargeUserWallet(schainNameRGBU, { value: wei.toString()});
+            expect(await communityPoolTester.activeUsers(user.address, schainHashRGBU)).to.be.true;
+            await messageProxyTester.connect(deployer).refundGasByUser(schainHashRGBU, node.address, user.address, 1000000, {gasPrice});
+            expect(await communityPoolTester.activeUsers(user.address, schainHashRGBU)).to.be.false;
+        });
+
+        it("should lock user with extra low balance", async () => {
+            const tx = await messageProxyTester.addConnectedChain(schainNameRGBU);
+            await messageProxyTester.registerExtraContract(schainNameRGBU, communityPoolTester.address);
+            let gasPrice = tx.gasPrice;
+            const wei = minTransactionGas.mul(gasPrice);
+            gasPrice = gasPrice?.mul(2);
             expect(await communityPoolTester.activeUsers(user.address, schainHashRGBU)).to.be.false;
             await communityPoolTester.connect(user).rechargeUserWallet(schainNameRGBU, { value: wei.toString()});
             expect(await communityPoolTester.activeUsers(user.address, schainHashRGBU)).to.be.true;
