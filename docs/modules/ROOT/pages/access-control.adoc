@@ -29,7 +29,7 @@ The general architecture is that:
 
 The token whitelist allows the SKALE chain owner to allow token exchange through IMA and a SKALE chain. For example, a decentralized exchange may prefer to disable the whitelist to allow any token transfer. A dApp using only one token may enable the whitelist to allow only a single token exchange. 
 
-To disable the whitelist, the owner executes `disableWhitelist` in LockAndDataForMainnetERC20 or LockAndDataForMainnetERC721 contracts, and pass in the schainName as the only argument. For example:
+To disable the whitelist, the owner executes `disableWhitelist` in DepositBoxERC20/721/1155 contracts, and pass in the schainName as the only argument. For example:
 
 [tabs]
 ====
