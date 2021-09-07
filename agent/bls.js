@@ -509,7 +509,7 @@ async function do_sign_messages_impl( strDirection, jarrMessages, nIdxCurrentMsg
         await fn( "signature error, S-Chain information was not discovered properly and BLS threshold is unknown", jarrMessages, null );
         return;
     }
-    let nCountOfBlsPartsToCollect = 0 + nThreshold;
+    const nCountOfBlsPartsToCollect = 0 + nThreshold;
     // if( nThreshold <= 1 && nParticipants > 1 ) {
     //     details.write( strLogPrefix + cc.warning( "Minimal BLS parts number for dicovery was increased." ) + "\n" );
     //     nCountOfBlsPartsToCollect = 2;
