@@ -251,11 +251,6 @@ describe("CommunityPool", () => {
             communityPoolTester = await deployCommunityPoolTester(contractManager, linkerTester, messageProxyTester);
         });
 
-        it("should be rejected with User should be active", async () => {
-            await messageProxyTester.connect(deployer).refundGasByUser(schainHashRGBU, node.address, user.address, 0)
-                .should.be.eventually.rejectedWith("User should be active");
-        });
-
         it("should be rejected with Node address must be set", async () => {
             const tx = await messageProxyTester.addConnectedChain(schainNameRGBU);
             await messageProxyTester.registerExtraContract(schainNameRGBU, communityPoolTester.address);
