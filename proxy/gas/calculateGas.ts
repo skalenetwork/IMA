@@ -325,15 +325,15 @@ describe("Gas calculation", () => {
     });
 
     it("calculate eth deposits", async () => {
-        let res = await (await depositBoxEth.connect(user).deposit(schainName, user.address, {value: "1000000000000000000"})).wait();
+        let res = await (await depositBoxEth.connect(user).deposit(schainName, {value: "1000000000000000000"})).wait();
         console.log("First deposit eth cost:", res.gasUsed.toNumber());
-        res = await (await depositBoxEth.connect(user).deposit(schainName, user.address, {value: "1000000000000000000"})).wait();
+        res = await (await depositBoxEth.connect(user).deposit(schainName, {value: "1000000000000000000"})).wait();
         console.log("Second deposit eth cost:", res.gasUsed.toNumber());
-        res = await (await depositBoxEth.connect(user).deposit(schainName, user.address, {value: "1000000000000000000"})).wait();
+        res = await (await depositBoxEth.connect(user).deposit(schainName, {value: "1000000000000000000"})).wait();
         console.log("Third deposit eth cost:", res.gasUsed.toNumber());
-        res = await (await depositBoxEth.connect(user).deposit(schainName, user.address, {value: "1000000000000000000"})).wait();
+        res = await (await depositBoxEth.connect(user).deposit(schainName, {value: "1000000000000000000"})).wait();
         console.log("Forth deposit eth cost:", res.gasUsed.toNumber());
-        res = await (await depositBoxEth.connect(user).deposit(schainName, user.address, {value: "1000000000000000000"})).wait();
+        res = await (await depositBoxEth.connect(user).deposit(schainName, {value: "1000000000000000000"})).wait();
         console.log("Fifth deposit eth cost:", res.gasUsed.toNumber());
     });
 
@@ -355,22 +355,22 @@ describe("Gas calculation", () => {
         it("calculate erc20 deposits without eth without automatic deploy", async () => {
             await ERC20TokenOnMainnet.connect(user).approve(depositBoxERC20.address, 5);
 
-            let res = await (await depositBoxERC20.connect(user).depositERC20(schainName, ERC20TokenOnMainnet.address, user.address, 1)).wait();
+            let res = await (await depositBoxERC20.connect(user).depositERC20(schainName, ERC20TokenOnMainnet.address, 1)).wait();
             console.log("First deposit erc20 cost:", res.gasUsed.toNumber());
-            res = await (await depositBoxERC20.connect(user).depositERC20(schainName, ERC20TokenOnMainnet.address, user.address, 1)).wait();
+            res = await (await depositBoxERC20.connect(user).depositERC20(schainName, ERC20TokenOnMainnet.address, 1)).wait();
             console.log("Second deposit erc20 cost:", res.gasUsed.toNumber());
-            res = await (await depositBoxERC20.connect(user).depositERC20(schainName, ERC20TokenOnMainnet.address, user.address, 1)).wait();
+            res = await (await depositBoxERC20.connect(user).depositERC20(schainName, ERC20TokenOnMainnet.address, 1)).wait();
             console.log("Third deposit erc20 cost:", res.gasUsed.toNumber());
-            res = await (await depositBoxERC20.connect(user).depositERC20(schainName, ERC20TokenOnMainnet.address, user.address, 1)).wait();
+            res = await (await depositBoxERC20.connect(user).depositERC20(schainName, ERC20TokenOnMainnet.address, 1)).wait();
             console.log("Forth deposit erc20 cost:", res.gasUsed.toNumber());
-            res = await (await depositBoxERC20.connect(user).depositERC20(schainName, ERC20TokenOnMainnet.address, user.address, 1)).wait();
+            res = await (await depositBoxERC20.connect(user).depositERC20(schainName, ERC20TokenOnMainnet.address, 1)).wait();
             console.log("Deposit all remaining approved erc20 tokens cost:", res.gasUsed.toNumber());
         });
 
         it("calculate erc20 deposits of all approved tokens without eth without automatic deploy", async () => {
             await ERC20TokenOnMainnet.connect(user).approve(depositBoxERC20.address, 5);
 
-            const res = await (await depositBoxERC20.connect(user).depositERC20(schainName, ERC20TokenOnMainnet.address, user.address, 5)).wait();
+            const res = await (await depositBoxERC20.connect(user).depositERC20(schainName, ERC20TokenOnMainnet.address, 5)).wait();
             console.log("Deposit all approved erc20 tokens at once cost:", res.gasUsed.toNumber());
         });
     });
@@ -418,68 +418,68 @@ describe("Gas calculation", () => {
             await ERC721TokenOnMainnet.connect(user).approve(depositBoxERC721.address, 9);
             await ERC721TokenOnMainnet.connect(user).approve(depositBoxERC721.address, 10);
 
-            let res = await (await depositBoxERC721.connect(user).depositERC721(schainName, ERC721TokenOnMainnet.address, user.address, 1)).wait();
+            let res = await (await depositBoxERC721.connect(user).depositERC721(schainName, ERC721TokenOnMainnet.address, 1)).wait();
             console.log("First deposit erc721 cost:", res.gasUsed.toNumber());
-            res = await (await depositBoxERC721.connect(user).depositERC721(schainName, ERC721TokenOnMainnet.address, user.address, 2)).wait();
+            res = await (await depositBoxERC721.connect(user).depositERC721(schainName, ERC721TokenOnMainnet.address, 2)).wait();
             console.log("Second deposit erc721 cost:", res.gasUsed.toNumber());
-            res = await (await depositBoxERC721.connect(user).depositERC721(schainName, ERC721TokenOnMainnet.address, user.address, 3)).wait();
+            res = await (await depositBoxERC721.connect(user).depositERC721(schainName, ERC721TokenOnMainnet.address, 3)).wait();
             console.log("Third deposit erc721 cost:", res.gasUsed.toNumber());
-            res = await (await depositBoxERC721.connect(user).depositERC721(schainName, ERC721TokenOnMainnet.address, user.address, 4)).wait();
+            res = await (await depositBoxERC721.connect(user).depositERC721(schainName, ERC721TokenOnMainnet.address, 4)).wait();
             console.log("Forth deposit erc721 cost:", res.gasUsed.toNumber());
-            res = await (await depositBoxERC721.connect(user).depositERC721(schainName, ERC721TokenOnMainnet.address, user.address, 5)).wait();
+            res = await (await depositBoxERC721.connect(user).depositERC721(schainName, ERC721TokenOnMainnet.address, 5)).wait();
             console.log("Fifth deposit erc721 cost:", res.gasUsed.toNumber());
-            res = await (await depositBoxERC721.connect(user).depositERC721(schainName, ERC721TokenOnMainnet.address, user.address, 6)).wait();
+            res = await (await depositBoxERC721.connect(user).depositERC721(schainName, ERC721TokenOnMainnet.address, 6)).wait();
             console.log("Sixth deposit erc721 cost:", res.gasUsed.toNumber());
-            res = await (await depositBoxERC721.connect(user).depositERC721(schainName, ERC721TokenOnMainnet.address, user.address, 7)).wait();
+            res = await (await depositBoxERC721.connect(user).depositERC721(schainName, ERC721TokenOnMainnet.address, 7)).wait();
             console.log("Seventh deposit erc721 cost:", res.gasUsed.toNumber());
-            res = await (await depositBoxERC721.connect(user).depositERC721(schainName, ERC721TokenOnMainnet.address, user.address, 8)).wait();
+            res = await (await depositBoxERC721.connect(user).depositERC721(schainName, ERC721TokenOnMainnet.address, 8)).wait();
             console.log("Eighth deposit erc721 cost:", res.gasUsed.toNumber());
-            res = await (await depositBoxERC721.connect(user).depositERC721(schainName, ERC721TokenOnMainnet.address, user.address, 9)).wait();
+            res = await (await depositBoxERC721.connect(user).depositERC721(schainName, ERC721TokenOnMainnet.address, 9)).wait();
             console.log("Ninth deposit erc721 cost:", res.gasUsed.toNumber());
-            res = await (await depositBoxERC721.connect(user).depositERC721(schainName, ERC721TokenOnMainnet.address, user.address, 10)).wait();
+            res = await (await depositBoxERC721.connect(user).depositERC721(schainName, ERC721TokenOnMainnet.address, 10)).wait();
             console.log("Tenth deposit erc721 cost:", res.gasUsed.toNumber());
         });
 
         it("calculate erc721 deposits without eth without automatic deploy and approve each time", async () => {
             let res = await (await ERC721TokenOnMainnet.connect(user).approve(depositBoxERC721.address, 1)).wait();
             console.log("First approve of ERC721 token cost:", res.gasUsed.toNumber());
-            res = await (await depositBoxERC721.connect(user).depositERC721(schainName, ERC721TokenOnMainnet.address, user.address, 1)).wait();
+            res = await (await depositBoxERC721.connect(user).depositERC721(schainName, ERC721TokenOnMainnet.address, 1)).wait();
             console.log("First deposit erc721 cost:", res.gasUsed.toNumber());
             res = await (await ERC721TokenOnMainnet.connect(user).approve(depositBoxERC721.address, 2)).wait();
             console.log("Second approve of ERC721 token cost:", res.gasUsed.toNumber());
-            res = await (await depositBoxERC721.connect(user).depositERC721(schainName, ERC721TokenOnMainnet.address, user.address, 2)).wait();
+            res = await (await depositBoxERC721.connect(user).depositERC721(schainName, ERC721TokenOnMainnet.address, 2)).wait();
             console.log("Second deposit erc721 cost:", res.gasUsed.toNumber());
             res = await (await ERC721TokenOnMainnet.connect(user).approve(depositBoxERC721.address, 3)).wait();
             console.log("Third approve of ERC721 token cost:", res.gasUsed.toNumber());
-            res = await (await depositBoxERC721.connect(user).depositERC721(schainName, ERC721TokenOnMainnet.address, user.address, 3)).wait();
+            res = await (await depositBoxERC721.connect(user).depositERC721(schainName, ERC721TokenOnMainnet.address, 3)).wait();
             console.log("Third deposit erc721 cost:", res.gasUsed.toNumber());
             res = await (await ERC721TokenOnMainnet.connect(user).approve(depositBoxERC721.address, 4)).wait();
             console.log("Forth approve of ERC721 token cost:", res.gasUsed.toNumber());
-            res = await (await depositBoxERC721.connect(user).depositERC721(schainName, ERC721TokenOnMainnet.address, user.address, 4)).wait();
+            res = await (await depositBoxERC721.connect(user).depositERC721(schainName, ERC721TokenOnMainnet.address, 4)).wait();
             console.log("Forth deposit erc721 cost:", res.gasUsed.toNumber());
             res = await (await ERC721TokenOnMainnet.connect(user).approve(depositBoxERC721.address, 5)).wait();
             console.log("Fifth approve of ERC721 token cost:", res.gasUsed.toNumber());
-            res = await (await depositBoxERC721.connect(user).depositERC721(schainName, ERC721TokenOnMainnet.address, user.address, 5)).wait();
+            res = await (await depositBoxERC721.connect(user).depositERC721(schainName, ERC721TokenOnMainnet.address, 5)).wait();
             console.log("Fifth deposit erc721 cost:", res.gasUsed.toNumber());
             res = await (await ERC721TokenOnMainnet.connect(user).approve(depositBoxERC721.address, 6)).wait();
             console.log("Sixth approve of ERC721 token cost:", res.gasUsed.toNumber());
-            res = await (await depositBoxERC721.connect(user).depositERC721(schainName, ERC721TokenOnMainnet.address, user.address, 6)).wait();
+            res = await (await depositBoxERC721.connect(user).depositERC721(schainName, ERC721TokenOnMainnet.address, 6)).wait();
             console.log("Sixth deposit erc721 cost:", res.gasUsed.toNumber());
             res = await (await ERC721TokenOnMainnet.connect(user).approve(depositBoxERC721.address, 7)).wait();
             console.log("Seventh approve of ERC721 token cost:", res.gasUsed.toNumber());
-            res = await (await depositBoxERC721.connect(user).depositERC721(schainName, ERC721TokenOnMainnet.address, user.address, 7)).wait();
+            res = await (await depositBoxERC721.connect(user).depositERC721(schainName, ERC721TokenOnMainnet.address, 7)).wait();
             console.log("Seventh deposit erc721 cost:", res.gasUsed.toNumber());
             res = await (await ERC721TokenOnMainnet.connect(user).approve(depositBoxERC721.address, 8)).wait();
             console.log("Eighth approve of ERC721 token cost:", res.gasUsed.toNumber());
-            res = await (await depositBoxERC721.connect(user).depositERC721(schainName, ERC721TokenOnMainnet.address, user.address, 8)).wait();
+            res = await (await depositBoxERC721.connect(user).depositERC721(schainName, ERC721TokenOnMainnet.address, 8)).wait();
             console.log("Eighth deposit erc721 cost:", res.gasUsed.toNumber());
             res = await (await ERC721TokenOnMainnet.connect(user).approve(depositBoxERC721.address, 9)).wait();
             console.log("Ninth approve of ERC721 token cost:", res.gasUsed.toNumber());
-            res = await (await depositBoxERC721.connect(user).depositERC721(schainName, ERC721TokenOnMainnet.address, user.address, 9)).wait();
+            res = await (await depositBoxERC721.connect(user).depositERC721(schainName, ERC721TokenOnMainnet.address, 9)).wait();
             console.log("Ninth deposit erc721 cost:", res.gasUsed.toNumber());
             res = await (await ERC721TokenOnMainnet.connect(user).approve(depositBoxERC721.address, 10)).wait();
             console.log("Tenth approve of ERC721 token cost:", res.gasUsed.toNumber());
-            res = await (await depositBoxERC721.connect(user).depositERC721(schainName, ERC721TokenOnMainnet.address, user.address, 10)).wait();
+            res = await (await depositBoxERC721.connect(user).depositERC721(schainName, ERC721TokenOnMainnet.address, 10)).wait();
             console.log("Tenth deposit erc721 cost:", res.gasUsed.toNumber());
         });
     });
@@ -500,50 +500,50 @@ describe("Gas calculation", () => {
         it("calculate erc1155 deposits without eth without automatic deploy", async () => {
             await ERC1155TokenOnMainnet.connect(user).setApprovalForAll(depositBoxERC1155.address, true);
 
-            let res = await (await depositBoxERC1155.connect(user).depositERC1155(schainName, ERC1155TokenOnMainnet.address, user.address, 1, 1)).wait();
+            let res = await (await depositBoxERC1155.connect(user).depositERC1155(schainName, ERC1155TokenOnMainnet.address, 1, 1)).wait();
             console.log("First deposit erc1155 cost:", res.gasUsed.toNumber());
-            res = await (await depositBoxERC1155.connect(user).depositERC1155(schainName, ERC1155TokenOnMainnet.address, user.address, 2, 2)).wait();
+            res = await (await depositBoxERC1155.connect(user).depositERC1155(schainName, ERC1155TokenOnMainnet.address, 2, 2)).wait();
             console.log("Second deposit erc1155 cost:", res.gasUsed.toNumber());
-            res = await (await depositBoxERC1155.connect(user).depositERC1155(schainName, ERC1155TokenOnMainnet.address, user.address, 3, 3)).wait();
+            res = await (await depositBoxERC1155.connect(user).depositERC1155(schainName, ERC1155TokenOnMainnet.address, 3, 3)).wait();
             console.log("Third deposit erc1155 cost:", res.gasUsed.toNumber());
-            res = await (await depositBoxERC1155.connect(user).depositERC1155(schainName, ERC1155TokenOnMainnet.address, user.address, 4, 4)).wait();
+            res = await (await depositBoxERC1155.connect(user).depositERC1155(schainName, ERC1155TokenOnMainnet.address, 4, 4)).wait();
             console.log("Forth deposit erc1155 cost:", res.gasUsed.toNumber());
-            res = await (await depositBoxERC1155.connect(user).depositERC1155(schainName, ERC1155TokenOnMainnet.address, user.address, 5, 5)).wait();
+            res = await (await depositBoxERC1155.connect(user).depositERC1155(schainName, ERC1155TokenOnMainnet.address, 5, 5)).wait();
             console.log("Fifth deposit erc1155 cost:", res.gasUsed.toNumber());
-            res = await (await depositBoxERC1155.connect(user).depositERC1155(schainName, ERC1155TokenOnMainnet.address, user.address, 6, 6)).wait();
+            res = await (await depositBoxERC1155.connect(user).depositERC1155(schainName, ERC1155TokenOnMainnet.address, 6, 6)).wait();
             console.log("Sixth deposit erc1155 cost:", res.gasUsed.toNumber());
-            res = await (await depositBoxERC1155.connect(user).depositERC1155(schainName, ERC1155TokenOnMainnet.address, user.address, 7, 7)).wait();
+            res = await (await depositBoxERC1155.connect(user).depositERC1155(schainName, ERC1155TokenOnMainnet.address, 7, 7)).wait();
             console.log("Seventh deposit erc1155 cost:", res.gasUsed.toNumber());
-            res = await (await depositBoxERC1155.connect(user).depositERC1155(schainName, ERC1155TokenOnMainnet.address, user.address, 8, 8)).wait();
+            res = await (await depositBoxERC1155.connect(user).depositERC1155(schainName, ERC1155TokenOnMainnet.address, 8, 8)).wait();
             console.log("Eighth deposit erc1155 cost:", res.gasUsed.toNumber());
-            res = await (await depositBoxERC1155.connect(user).depositERC1155(schainName, ERC1155TokenOnMainnet.address, user.address, 9, 9)).wait();
+            res = await (await depositBoxERC1155.connect(user).depositERC1155(schainName, ERC1155TokenOnMainnet.address, 9, 9)).wait();
             console.log("Ninth deposit erc1155 cost:", res.gasUsed.toNumber());
-            res = await (await depositBoxERC1155.connect(user).depositERC1155(schainName, ERC1155TokenOnMainnet.address, user.address, 10, 10)).wait();
+            res = await (await depositBoxERC1155.connect(user).depositERC1155(schainName, ERC1155TokenOnMainnet.address, 10, 10)).wait();
             console.log("Tenth deposit erc1155 cost:", res.gasUsed.toNumber());
         });
 
         it("calculate erc1155 deposits batches without eth without automatic deploy", async () => {
             await ERC1155TokenOnMainnet.connect(user).setApprovalForAll(depositBoxERC1155.address, true);
 
-            let res = await (await depositBoxERC1155.connect(user).depositERC1155Batch(schainName, ERC1155TokenOnMainnet.address, user.address, [1, 2, 3, 4, 5, 6, 7, 8, 9, 10], [1, 1, 1, 1, 1, 1, 1, 1, 1, 1])).wait();
+            let res = await (await depositBoxERC1155.connect(user).depositERC1155Batch(schainName, ERC1155TokenOnMainnet.address, [1, 2, 3, 4, 5, 6, 7, 8, 9, 10], [1, 1, 1, 1, 1, 1, 1, 1, 1, 1])).wait();
             console.log("First deposit erc1155 cost:", res.gasUsed.toNumber());
-            res = await (await depositBoxERC1155.connect(user).depositERC1155Batch(schainName, ERC1155TokenOnMainnet.address, user.address, [2, 3, 4, 5, 6, 7, 8, 9, 10], [1, 1, 1, 1, 1, 1, 1, 1, 1])).wait();
+            res = await (await depositBoxERC1155.connect(user).depositERC1155Batch(schainName, ERC1155TokenOnMainnet.address, [2, 3, 4, 5, 6, 7, 8, 9, 10], [1, 1, 1, 1, 1, 1, 1, 1, 1])).wait();
             console.log("Second deposit erc1155 cost:", res.gasUsed.toNumber());
-            res = await (await depositBoxERC1155.connect(user).depositERC1155Batch(schainName, ERC1155TokenOnMainnet.address, user.address, [3, 4, 5, 6, 7, 8, 9, 10], [1, 1, 1, 1, 1, 1, 1, 1])).wait();
+            res = await (await depositBoxERC1155.connect(user).depositERC1155Batch(schainName, ERC1155TokenOnMainnet.address, [3, 4, 5, 6, 7, 8, 9, 10], [1, 1, 1, 1, 1, 1, 1, 1])).wait();
             console.log("Third deposit erc1155 cost:", res.gasUsed.toNumber());
-            res = await (await depositBoxERC1155.connect(user).depositERC1155Batch(schainName, ERC1155TokenOnMainnet.address, user.address, [4, 5, 6, 7, 8, 9, 10], [1, 1, 1, 1, 1, 1, 1])).wait();
+            res = await (await depositBoxERC1155.connect(user).depositERC1155Batch(schainName, ERC1155TokenOnMainnet.address, [4, 5, 6, 7, 8, 9, 10], [1, 1, 1, 1, 1, 1, 1])).wait();
             console.log("Forth deposit erc1155 cost:", res.gasUsed.toNumber());
-            res = await (await depositBoxERC1155.connect(user).depositERC1155Batch(schainName, ERC1155TokenOnMainnet.address, user.address, [5, 6, 7, 8, 9, 10], [1, 1, 1, 1, 1, 1])).wait();
+            res = await (await depositBoxERC1155.connect(user).depositERC1155Batch(schainName, ERC1155TokenOnMainnet.address, [5, 6, 7, 8, 9, 10], [1, 1, 1, 1, 1, 1])).wait();
             console.log("Fifth deposit erc1155 cost:", res.gasUsed.toNumber());
-            res = await (await depositBoxERC1155.connect(user).depositERC1155Batch(schainName, ERC1155TokenOnMainnet.address, user.address, [6, 7, 8, 9, 10], [1, 1, 1, 1, 1])).wait();
+            res = await (await depositBoxERC1155.connect(user).depositERC1155Batch(schainName, ERC1155TokenOnMainnet.address, [6, 7, 8, 9, 10], [1, 1, 1, 1, 1])).wait();
             console.log("Sixth deposit erc1155 cost:", res.gasUsed.toNumber());
-            res = await (await depositBoxERC1155.connect(user).depositERC1155Batch(schainName, ERC1155TokenOnMainnet.address, user.address, [7, 8, 9, 10], [1, 1, 1, 1])).wait();
+            res = await (await depositBoxERC1155.connect(user).depositERC1155Batch(schainName, ERC1155TokenOnMainnet.address, [7, 8, 9, 10], [1, 1, 1, 1])).wait();
             console.log("Seventh deposit erc1155 cost:", res.gasUsed.toNumber());
-            res = await (await depositBoxERC1155.connect(user).depositERC1155Batch(schainName, ERC1155TokenOnMainnet.address, user.address, [8, 9, 10], [1, 1, 1])).wait();
+            res = await (await depositBoxERC1155.connect(user).depositERC1155Batch(schainName, ERC1155TokenOnMainnet.address, [8, 9, 10], [1, 1, 1])).wait();
             console.log("Eighth deposit erc1155 cost:", res.gasUsed.toNumber());
-            res = await (await depositBoxERC1155.connect(user).depositERC1155Batch(schainName, ERC1155TokenOnMainnet.address, user.address, [9, 10], [1, 1])).wait();
+            res = await (await depositBoxERC1155.connect(user).depositERC1155Batch(schainName, ERC1155TokenOnMainnet.address, [9, 10], [1, 1])).wait();
             console.log("Ninth deposit erc1155 cost:", res.gasUsed.toNumber());
-            res = await (await depositBoxERC1155.connect(user).depositERC1155Batch(schainName, ERC1155TokenOnMainnet.address, user.address, [10], [1])).wait();
+            res = await (await depositBoxERC1155.connect(user).depositERC1155Batch(schainName, ERC1155TokenOnMainnet.address, [10], [1])).wait();
             console.log("Tenth deposit erc1155 cost:", res.gasUsed.toNumber());
         });
     });
@@ -584,7 +584,7 @@ describe("Gas calculation", () => {
             }
 
             async function sendEth() {
-                await depositBoxEth.connect(user).deposit(schainName, user.address, {value: "1000000000000000000"});
+                await depositBoxEth.connect(user).deposit(schainName, {value: "1000000000000000000"});
             }
 
             async function getMyEth(action: string) {
@@ -813,7 +813,7 @@ describe("Gas calculation", () => {
 
         describe("ERC20 Token registered and approved", async () => {
 
-            // prepare exit message of erc20 token - await TokenManager.exitToMainERC20(ERC20TokenOnMainnet.address, user.address, amount, {from: user});
+            // prepare exit message of erc20 token - await TokenManager.exitToMainERC20(ERC20TokenOnMainnet.address, amount, {from: user});
             async function getERC20Message(amount: number) {
                 return {
                     data: await messages.encodeTransferErc20Message(ERC20TokenOnMainnet.address, user.address, amount),
@@ -823,7 +823,7 @@ describe("Gas calculation", () => {
             }
 
             async function sendERC20(amount: number) {
-                await depositBoxERC20.connect(user).depositERC20(schainName, ERC20TokenOnMainnet.address, user.address, amount);
+                await depositBoxERC20.connect(user).depositERC20(schainName, ERC20TokenOnMainnet.address, amount);
             }
 
             async function checkBalance() {
@@ -920,7 +920,7 @@ describe("Gas calculation", () => {
 
         describe("ERC721 Token registered and approved", async() => {
 
-            // prepare exit message of erc721 token - await TokenManager.exitToMainERC721(ERC721TokenOnMainnet.address, user.address, tokenId, {from: user});
+            // prepare exit message of erc721 token - await TokenManager.exitToMainERC721(ERC721TokenOnMainnet.address, tokenId, {from: user});
             async function getERC721Message(tokenId: number) {
                 return {
                     data: await messages.encodeTransferErc721Message(ERC721TokenOnMainnet.address, user.address, tokenId),
@@ -930,7 +930,7 @@ describe("Gas calculation", () => {
             }
 
             async function sendERC721(tokenId: number) {
-                await depositBoxERC721.connect(user).depositERC721(schainName, ERC721TokenOnMainnet.address, user.address, tokenId);
+                await depositBoxERC721.connect(user).depositERC721(schainName, ERC721TokenOnMainnet.address, tokenId);
             }
 
             async function checkBalance() {
@@ -1055,7 +1055,7 @@ describe("Gas calculation", () => {
 
         describe("ERC1155 Token registered and approved", async() => {
 
-            // prepare exit message of erc1155 token - await TokenManager.exitToMainERC721(ERC721TokenOnMainnet.address, user.address, tokenId, amount, {from: user});
+            // prepare exit message of erc1155 token - await TokenManager.exitToMainERC721(ERC721TokenOnMainnet.address, tokenId, amount, {from: user});
             async function getERC1155Message(tokenId: number, amount: number) {
                 return {
                     data: await messages.encodeTransferErc1155Message(ERC1155TokenOnMainnet.address, user.address, tokenId, amount),
@@ -1064,7 +1064,7 @@ describe("Gas calculation", () => {
                 };
             }
 
-            // prepare exit batch message of erc1155 token - await TokenManager.exitToMainERC721(ERC721TokenOnMainnet.address, user.address, tokenId, amounts, {from: user});
+            // prepare exit batch message of erc1155 token - await TokenManager.exitToMainERC721(ERC721TokenOnMainnet.address, tokenId, amounts, {from: user});
             async function getERC1155BatchMessage(tokenIds: number[], amounts: number[]) {
                 return {
                     data: await messages.encodeTransferErc1155BatchMessage(ERC1155TokenOnMainnet.address, user.address, tokenIds, amounts),
@@ -1074,11 +1074,11 @@ describe("Gas calculation", () => {
             }
 
             async function sendERC1155(tokenId: number, amount: number) {
-                await depositBoxERC1155.connect(user).depositERC1155(schainName, ERC1155TokenOnMainnet.address, user.address, tokenId, amount);
+                await depositBoxERC1155.connect(user).depositERC1155(schainName, ERC1155TokenOnMainnet.address, tokenId, amount);
             }
 
             async function sendERC1155Batch(tokenIds: number[], amounts: number[]) {
-                await depositBoxERC1155.connect(user).depositERC1155Batch(schainName, ERC1155TokenOnMainnet.address, user.address, tokenIds, amounts);
+                await depositBoxERC1155.connect(user).depositERC1155Batch(schainName, ERC1155TokenOnMainnet.address, tokenIds, amounts);
             }
 
             async function checkBalance() {

@@ -117,7 +117,7 @@ describe("TokenManagerERC20", () => {
         const to = user.address;
         const amount = 10;
         // execution/expectation
-        await tokenManagerErc20.connect(deployer).exitToMainERC20(deployer.address, to, amount)
+        await tokenManagerErc20.connect(user).exitToMainERC20(deployer.address, amount)
             .should.be.eventually.rejectedWith(error);
     });
 
@@ -162,7 +162,7 @@ describe("TokenManagerERC20", () => {
         await erc20OnChain.connect(user).approve(tokenManagerErc20.address, amount);
         await tokenManagerErc20
             .connect(user)
-            .exitToMainERC20(erc20OnMainnet.address, user.address, amount)
+            .exitToMainERC20(erc20OnMainnet.address, amount)
             .should.be.eventually.rejectedWith(error);
     });
 
@@ -220,7 +220,7 @@ describe("TokenManagerERC20", () => {
         //
         await erc20OnChain.connect(user).approve(tokenManagerErc20.address, amount / 2);
         // execution/expectation
-        await tokenManagerErc20.connect(user).exitToMainERC20(erc20OnMainnet.address, user.address, amount)
+        await tokenManagerErc20.connect(user).exitToMainERC20(erc20OnMainnet.address, amount)
             .should.be.eventually.rejectedWith(error);
     });
 
@@ -239,7 +239,7 @@ describe("TokenManagerERC20", () => {
         // execution:
         await tokenManagerErc20
             .connect(user)
-            .exitToMainERC20(erc20OnMainnet.address, user.address, amountReduceCost);
+            .exitToMainERC20(erc20OnMainnet.address, amountReduceCost);
 
         // // expectation:
         const outgoingMessagesCounterMainnet = BigNumber.from(await messageProxyForSchain.getOutgoingMessagesCounter("Mainnet"));
@@ -262,12 +262,12 @@ describe("TokenManagerERC20", () => {
 
         await tokenManagerErc20
             .connect(user)
-            .transferToSchainERC20(newSchainName, erc20OnMainnet.address, user.address, amountReduceCost)
+            .transferToSchainERC20(newSchainName, erc20OnMainnet.address, amountReduceCost)
             .should.be.eventually.rejectedWith("Incorrect Token Manager address");
 
         await tokenManagerErc20
             .connect(user)
-            .transferToSchainERC20("Mainnet", erc20OnMainnet.address, user.address, amountReduceCost)
+            .transferToSchainERC20("Mainnet", erc20OnMainnet.address, amountReduceCost)
             .should.be.eventually.rejectedWith("This function is not for transferring to Mainnet");
 
         await tokenManagerErc20.addTokenManager(newSchainName, tokenManagerErc20.address);
@@ -275,7 +275,7 @@ describe("TokenManagerERC20", () => {
         // execution:
         await tokenManagerErc20
             .connect(user)
-            .transferToSchainERC20(newSchainName, erc20OnMainnet.address, user.address, amountReduceCost);
+            .transferToSchainERC20(newSchainName, erc20OnMainnet.address, amountReduceCost);
 
         // expectation:
         const outgoingMessagesCounter = BigNumber.from(

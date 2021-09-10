@@ -65,26 +65,24 @@ contract TokenManagerERC20 is TokenManager {
 
     function exitToMainERC20(
         address contractOnMainnet,
-        address to,
         uint256 amount
     )
         external
     {
-        communityLocker.checkAllowedToSendMessage(to);
-        _exit(MAINNET_HASH, depositBox, contractOnMainnet, to, amount);
+        communityLocker.checkAllowedToSendMessage(msg.sender);
+        _exit(MAINNET_HASH, depositBox, contractOnMainnet, msg.sender, amount);
     }
 
     function transferToSchainERC20(
         string calldata targetSchainName,
         address contractOnMainnet,
-        address to,
         uint256 amount
     )
         external
-        rightTransaction(targetSchainName, to)
+        rightTransaction(targetSchainName, msg.sender)
     {
         bytes32 targetSchainHash = keccak256(abi.encodePacked(targetSchainName));
-        _exit(targetSchainHash, tokenManagers[targetSchainHash], contractOnMainnet, to, amount);
+        _exit(targetSchainHash, tokenManagers[targetSchainHash], contractOnMainnet, msg.sender, amount);
     }
 
     /**

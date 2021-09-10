@@ -45,11 +45,10 @@ contract DepositBoxERC721 is DepositBox {
     function depositERC721(
         string calldata schainName,
         address erc721OnMainnet,
-        address to,
         uint256 tokenId
     )
         external
-        rightTransaction(schainName, to)
+        rightTransaction(schainName, msg.sender)
         whenNotKilled(keccak256(abi.encodePacked(schainName)))
     {
         bytes32 schainHash = keccak256(abi.encodePacked(schainName));
@@ -62,7 +61,7 @@ contract DepositBoxERC721 is DepositBox {
         bytes memory data = _receiveERC721(
             schainName,
             erc721OnMainnet,
-            to,
+            msg.sender,
             tokenId
         );
         if (!linker.interchainConnections(schainHash))

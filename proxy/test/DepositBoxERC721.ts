@@ -123,7 +123,7 @@ describe("DepositBoxERC721", () => {
                 //  preparation
                 const amount = 10;
 
-                await depositBoxERC721.connect(user).depositERC721(schainName, erc721.address, user.address, amount)
+                await depositBoxERC721.connect(user).depositERC721(schainName, erc721.address, amount)
                     .should.be.eventually.rejectedWith("Unconnected chain");
             });
 
@@ -144,7 +144,7 @@ describe("DepositBoxERC721", () => {
                 // execution/expectation
                 await depositBoxERC721
                     .connect(deployer)
-                    .depositERC721(schainName, contractHere, to, tokenId)
+                    .depositERC721(schainName, contractHere, tokenId)
                     .should.be.eventually.rejectedWith(error);
             });
 
@@ -166,14 +166,14 @@ describe("DepositBoxERC721", () => {
                 // execution
                 await depositBoxERC721
                     .connect(deployer)
-                    .depositERC721(schainName, contractHere, to, tokenId).should.be.eventually.rejectedWith("Whitelist is enabled");
+                    .depositERC721(schainName, contractHere, tokenId).should.be.eventually.rejectedWith("Whitelist is enabled");
                 await depositBoxERC721.connect(user).disableWhitelist(schainName);
                 await depositBoxERC721
                     .connect(deployer)
-                    .depositERC721(schainName, contractHere, to, tokenId);
+                    .depositERC721(schainName, contractHere, tokenId);
                 await (await depositBoxERC721
                     .connect(deployer)
-                    .depositERC721(schainName, contractHere, to, tokenId2)).wait();
+                    .depositERC721(schainName, contractHere, tokenId2)).wait();
                 // console.log("Gas for depositERC721:", res.receipt.gasUsed);
                 // expectation
                 expect(await erc721OnChain.ownerOf(tokenId)).to.equal(depositBoxERC721.address);
@@ -192,7 +192,7 @@ describe("DepositBoxERC721", () => {
             await depositBoxERC721.connect(user).disableWhitelist(schainName);
             await depositBoxERC721
                 .connect(deployer)
-                .depositERC721(schainName, erc721OnChain.address, deployer.address, tokenId);
+                .depositERC721(schainName, erc721OnChain.address, tokenId);
             await depositBoxERC721.connect(user).getFunds(schainName, erc721OnChain.address, user.address, tokenId).should.be.eventually.rejectedWith("Schain is not killed");
             await linker.connect(deployer).kill(schainName);
             await linker.connect(user).kill(schainName);
@@ -341,7 +341,7 @@ describe("DepositBoxERC721", () => {
             await erc721.approve(depositBoxERC721.address, tokenId);
 
             await depositBoxERC721
-                .depositERC721(schainName, erc721.address, deployer.address, tokenId);
+                .depositERC721(schainName, erc721.address, tokenId);
 
             const balanceBefore = await getBalance(deployer.address);
             await messageProxy.connect(deployer).postIncomingMessages(schainName, 0, [message], sign);
