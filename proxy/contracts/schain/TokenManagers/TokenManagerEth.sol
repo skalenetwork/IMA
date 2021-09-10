@@ -52,9 +52,9 @@ contract TokenManagerEth is TokenManager {
      * 
      * EthErc20 tokens are burned on schain and ETH are unlocked on mainnet for {to} address.
      */
-    function exitToMain(address to, uint256 amount) external {
-        communityLocker.checkAllowedToSendMessage(to);
-        _exit(MAINNET_HASH, depositBox, to, amount);
+    function exitToMain(uint256 amount) external {
+        communityLocker.checkAllowedToSendMessage(msg.sender);
+        _exit(MAINNET_HASH, depositBox, msg.sender, amount);
     }
 
     /**
@@ -65,14 +65,13 @@ contract TokenManagerEth is TokenManager {
      */
     function transferToSchain(
         string memory targetSchainName,
-        address to,
         uint256 amount
     )
         external
-        rightTransaction(targetSchainName, to)
+        rightTransaction(targetSchainName, msg.sender)
     {
         bytes32 targetSchainHash = keccak256(abi.encodePacked(targetSchainName));
-        _exit(targetSchainHash, tokenManagers[targetSchainHash], to, amount);
+        _exit(targetSchainHash, tokenManagers[targetSchainHash], msg.sender, amount);
     }
 
     /**

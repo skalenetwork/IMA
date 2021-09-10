@@ -66,13 +66,12 @@ contract TokenManagerERC721 is TokenManager {
      */
     function exitToMainERC721(
         address contractOnMainnet,
-        address to,
         uint256 tokenId
     )
         external
     {
-        communityLocker.checkAllowedToSendMessage(to);
-        _exit(MAINNET_HASH, depositBox, contractOnMainnet, to, tokenId);
+        communityLocker.checkAllowedToSendMessage(msg.sender);
+        _exit(MAINNET_HASH, depositBox, contractOnMainnet, msg.sender, tokenId);
     }
 
     /**
@@ -84,14 +83,13 @@ contract TokenManagerERC721 is TokenManager {
     function transferToSchainERC721(
         string calldata targetSchainName,
         address contractOnMainnet,
-        address to,
         uint256 tokenId
     ) 
         external
-        rightTransaction(targetSchainName, to)
+        rightTransaction(targetSchainName, msg.sender)
     {
         bytes32 targetSchainHash = keccak256(abi.encodePacked(targetSchainName));
-        _exit(targetSchainHash, tokenManagers[targetSchainHash], contractOnMainnet, to, tokenId);
+        _exit(targetSchainHash, tokenManagers[targetSchainHash], contractOnMainnet, msg.sender, tokenId);
     }
 
     /**
