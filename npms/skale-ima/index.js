@@ -2253,7 +2253,6 @@ async function do_erc1155_payment_from_main_net(
         const methodWithArguments_rawDepositERC1155 = jo_deposit_box_erc1155.methods.depositERC1155(
             chain_id_s_chain,
             erc1155Address_main_net,
-            accountForSchain,
             "0x" + w3_main_net.utils.toBN( token_id ).toString( 16 ),
             "0x" + w3_main_net.utils.toBN( token_amount ).toString( 16 )
         );
