@@ -202,11 +202,11 @@ describe("TokenManagerEth", () => {
 
         await ethERC20.grantRole(await ethERC20.MINTER_ROLE(), deployer.address);
         await ethERC20.mint(user.address, amount);
-        
+
         // send Eth to a client on Mainnet:
         await tokenManagerEth.connect(user).exitToMain(amountTo);
         expect(BigNumber.from(await ethERC20.balanceOf(user.address)).toString()).to.be.equal(amountAfter.toString());
-        
+
         let data1 = await messages.encodeLockUserMessage(user.address);
         await messageProxyForSchain.postMessage(communityLocker.address, mainnetHash, fakeCommunityPool, data1);
 
