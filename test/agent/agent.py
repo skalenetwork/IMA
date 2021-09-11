@@ -53,7 +53,7 @@ class Agent:
             self.agent_service = None
 
     def transfer_eth_from_mainnet_to_schain(self, from_key, to_key, amount_wei, timeout=0):
-        destination_address = self.blockchain.key_to_address(to_key)
+        destination_address = self.blockchain.key_to_address(from_key)
         balance, initial_balance = None, None
         start = time()
         if timeout > 0:
@@ -78,7 +78,7 @@ class Agent:
                     sleep(1)
 
     def transfer_eth_from_schain_to_mainnet(self, from_key, to_key, amount_wei, timeout=0):
-        destination_address = self.blockchain.key_to_address(to_key)
+        destination_address = self.blockchain.key_to_address(from_key)
         initial_approved, approved, balance, initial_balance = None, None, None, None
         start = time()
         if timeout > 0:
@@ -108,7 +108,7 @@ class Agent:
             start = time()
             debug(f'Initial balance: {initial_balance}')
 
-        self._execute_command('s2m-receive', {'key-main-net': to_key})
+        self._execute_command('s2m-receive', {'key-main-net': from_key})
 
         if timeout > 0:
             approximate_gas_spends = 3 * 10 ** 15
@@ -246,7 +246,7 @@ class Agent:
         with open(erc20_config_filename, 'w') as erc20_file:
             json.dump(config_mainnet_json, erc20_file)
 
-        destination_address = self.blockchain.key_to_address(to_key)
+        destination_address = self.blockchain.key_to_address(from_key)
         erc20 = token_contract_on_mainnet
         balance = erc20.functions.balanceOf(destination_address).call()
         # balance = erc20.functions.balanceOf(destination_address)
@@ -330,7 +330,7 @@ class Agent:
             json.dump(config_mainnet_json, erc1155_file)
 
         erc1155 = token_contract_on_mainnet
-        destination_address = self.blockchain.key_to_address(to_key)
+        destination_address = self.blockchain.key_to_address(from_key)
         # destination_address = erc1155.functions.balanceOf(token_id).call()
         # destination_address = self.blockchain.key_to_address(to_key)
         # tx_count = self.blockchain.get_transactions_count_on_mainnet(destination_address)
@@ -372,7 +372,7 @@ class Agent:
             json.dump(config_mainnet_json, erc1155_file)
 
         erc1155 = token_contract_on_mainnet
-        destination_address = self.blockchain.key_to_address(to_key)
+        destination_address = self.blockchain.key_to_address(from_key)
         # destination_address = erc1155.functions.balanceOf(token_id).call()
         # destination_address = self.blockchain.key_to_address(to_key)
         # tx_count = self.blockchain.get_transactions_count_on_mainnet(destination_address)
