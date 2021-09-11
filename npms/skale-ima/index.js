@@ -2242,7 +2242,6 @@ async function do_erc1155_payment_from_main_net(
         const contractERC1155 = new w3_main_net.eth.Contract( erc1155ABI, erc1155Address_main_net );
         // prepare the smart contract function deposit(string schainName, address to)
         const depositBoxAddress = jo_deposit_box_erc1155.options.address;
-        const accountForSchain = joAccountDst.address( w3_s_chain );
         const methodWithArguments_approve = contractERC1155.methods.setApprovalForAll( // same as approve in 20
             // joAccountSrc.address( w3_main_net ),
             depositBoxAddress,
