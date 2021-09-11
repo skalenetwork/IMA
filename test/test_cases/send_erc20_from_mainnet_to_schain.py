@@ -58,7 +58,7 @@ class SendERC20ToSchain(TestCase):
         )
 
         erc20 = self.blockchain.get_erc20_on_schain("Mainnet", self.erc20.address)
-        destination_address = self.blockchain.key_to_address(self.config.schain_key)
+        destination_address = self.blockchain.key_to_address(self.config.mainnet_key)
         balance = erc20.functions.balanceOf(destination_address).call()
         if balance == amount:
             self._mark_passed()
