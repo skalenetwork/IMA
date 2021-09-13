@@ -74,6 +74,10 @@ jobs:
       working-directory: ${{env.working-directory}}
       run: npx hardhat test gas/calculateGas.ts
     
+    - name: Test upgrade
+      working-directory: ${{env.working-directory}}
+      run: ./scripts/test_upgrade.sh
+    
     - name: Run tests
       working-directory: ${{env.working-directory}}
       run: |

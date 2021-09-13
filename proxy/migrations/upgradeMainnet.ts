@@ -1,8 +1,7 @@
-import { contracts, getContractKeyInAbiFile, getManifestFile } from "./deploy";
+import { contracts, getContractKeyInAbiFile, getManifestFile } from "./deployMainnet";
 import { ethers, network, upgrades, artifacts } from "hardhat";
 import hre from "hardhat";
 import { promises as fs } from "fs";
-import { ContractManager, Nodes, SchainsInternal, SkaleManager, Wallets } from "../typechain";
 import { getImplementationAddress, hashBytecode } from "@openzeppelin/upgrades-core";
 import { deployLibraries, getLinkedContractFactory } from "./tools/factory";
 import { getAbi } from "./tools/abi";
@@ -52,7 +51,7 @@ export async function getContractFactoryAndUpdateManifest(contract: string) {
     return await getLinkedContractFactory(contract, libraries);
 }
 
-type DeploymentAction = (safeTransactions: string[], abi: any, contractManager: ContractManager) => Promise<void>;
+type DeploymentAction = (safeTransactions: string[], abi: any) => Promise<void>;
 
 export async function upgrade(
     targetVersion: string,
@@ -69,30 +68,30 @@ export async function upgrade(
     const abi = JSON.parse(await fs.readFile(abiFilename, "utf-8"));
 
     const proxyAdmin = await getManifestAdmin(hre);
-    const contractManagerName = "ContractManager";
-    const contractManagerFactory = await ethers.getContractFactory(contractManagerName);
-    const contractManager = (contractManagerFactory.attach(abi[getContractKeyInAbiFile(contractManagerName) + "_address"])) as ContractManager;
-    const skaleManagerName = "SkaleManager";
-    const skaleManager = ((await ethers.getContractFactory(skaleManagerName)).attach(
-        abi[getContractKeyInAbiFile(skaleManagerName) + "_address"]
-    )) as SkaleManager;
+    // const contractManagerName = "ContractManager";
+    // const contractManagerFactory = await ethers.getContractFactory(contractManagerName);
+    // const contractManager = (contractManagerFactory.attach(abi[getContractKeyInAbiFile(contractManagerName) + "_address"])) as ContractManager;
+    // const skaleManagerName = "SkaleManager";
+    // const skaleManager = ((await ethers.getContractFactory(skaleManagerName)).attach(
+    //     abi[getContractKeyInAbiFile(skaleManagerName) + "_address"]
+    // )) as SkaleManager;
 
-    let deployedVersion = "";
-    try {
-        deployedVersion = await skaleManager.version();
-    } catch {
-        console.log("Can't read deployed version");
-    };
+    // let deployedVersion = "";
+    // try {
+    //     deployedVersion = await skaleManager.version();
+    // } catch {
+    //     console.log("Can't read deployed version");
+    // };
     const version = await getVersion();
-    if (deployedVersion) {
-        if (deployedVersion !== targetVersion) {
-            console.log(chalk.red(`This script can't upgrade version ${deployedVersion} to ${version}`));
-            process.exit(1);
-        }
-    } else {
-        console.log(chalk.yellow("Can't check currently deployed version of skale-manager"));
-    }
-    console.log(`Will mark updated version as ${version}`);
+    // if (deployedVersion) {
+    //     if (deployedVersion !== targetVersion) {
+    //         console.log(chalk.red(`This script can't upgrade version ${deployedVersion} to ${version}`));
+    //         process.exit(1);
+    //     }
+    // } else {
+    //     console.log(chalk.yellow("Can't check currently deployed version of skale-manager"));
+    // }
+    // console.log(`Will mark updated version as ${version}`);
 
     const [ deployer ] = await ethers.getSigners();
     let safe = await proxyAdmin.owner();
@@ -112,25 +111,18 @@ export async function upgrade(
         console.log(chalk.blue("Transfer ownership to SafeMock"));
         safe = safeMock.address;
         await (await proxyAdmin.transferOwnership(safe)).wait();
-        await (await contractManager.transferOwnership(safe)).wait();
-        for (const contractName of
-            ["SkaleToken"].concat(contractNamesToUpgrade
-                .filter(name => !['ContractManager', 'TimeHelpers', 'Decryption', 'ECDH', 'Wallets'].includes(name)))) {
-                    const contractFactory = await getContractFactoryAndUpdateManifest(contractName);
-                    let _contract = contractName;
-                    if (contractName === "BountyV2") {
-                        if (!abi[getContractKeyInAbiFile(contractName) + "_address"])
-                        _contract = "Bounty";
-                    }
-                    const contractAddress = abi[getContractKeyInAbiFile(_contract) + "_address"];
-                    const contract = contractFactory.attach(contractAddress);
-                    console.log(chalk.blue(`Grant access to ${contractName}`));
-                    await (await contract.grantRole(await contract.DEFAULT_ADMIN_ROLE(), safe)).wait();
+        for (const contractName of contractNamesToUpgrade) {
+            const contractFactory = await getContractFactoryAndUpdateManifest(contractName);
+            let _contract = contractName;
+            const contractAddress = abi[getContractKeyInAbiFile(_contract) + "_address"];
+            const contract = contractFactory.attach(contractAddress);
+            console.log(chalk.blue(`Grant access to ${contractName}`));
+            await (await contract.grantRole(await contract.DEFAULT_ADMIN_ROLE(), safe)).wait();
         }
     }
 
     // Deploy new contracts
-    await deployNewContracts(safeTransactions, abi, contractManager);
+    await deployNewContracts(safeTransactions, abi);
 
     // deploy new implementations
     const contractsToUpgrade: {proxyAddress: string, implementationAddress: string, name: string, abi: any}[] = [];
@@ -171,19 +163,19 @@ export async function upgrade(
         abi[getContractKeyInAbiFile(contract.name) + "_abi"] = contract.abi;
     }
 
-    await initialize(safeTransactions, abi, contractManager);
+    await initialize(safeTransactions, abi);
 
     // write version
     if (safeMock) {
-        console.log(chalk.blue("Grant access to set version"));
-        await (await skaleManager.grantRole(await skaleManager.DEFAULT_ADMIN_ROLE(), safe)).wait();
+        // console.log(chalk.blue("Grant access to set version"));
+        // await (await skaleManager.grantRole(await skaleManager.DEFAULT_ADMIN_ROLE(), safe)).wait();
     }
-    safeTransactions.push(encodeTransaction(
-        0,
-        skaleManager.address,
-        0,
-        skaleManager.interface.encodeFunctionData("setVersion", [version]),
-    ));
+    // safeTransactions.push(encodeTransaction(
+    //     0,
+    //     skaleManager.address,
+    //     0,
+    //     skaleManager.interface.encodeFunctionData("setVersion", [version]),
+    // ));
 
     await fs.writeFile(`data/transactions-${version}-${network.name}.json`, JSON.stringify(safeTransactions, null, 4));
 
@@ -208,7 +200,6 @@ export async function upgrade(
             })).wait();
         } finally {
             console.log(chalk.blue("Return ownership to wallet"));
-            await (await safeMock.transferProxyAdminOwnership(contractManager.address, deployer.address)).wait();
             await (await safeMock.transferProxyAdminOwnership(proxyAdmin.address, deployer.address)).wait();
             if (await proxyAdmin.owner() === deployer.address) {
                 await (await safeMock.destroy()).wait();
@@ -226,11 +217,9 @@ export async function upgrade(
 
 async function main() {
     await upgrade(
-        "1.8.1",
-        ["ContractManager"].concat(contracts),
-        async (safeTransactions, abi, contractManager) => {
-            await exec("sed -i 's/complaintTimelimit/complaintTimeLimit/g' .openzeppelin/*.json");
-        },
+        "1.0.0",
+        contracts,
+        async (safeTransactions, abi) => undefined,
         async (safeTransactions, abi) => undefined
     );
 }
