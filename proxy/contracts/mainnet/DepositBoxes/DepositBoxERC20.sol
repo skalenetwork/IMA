@@ -66,11 +66,10 @@ contract DepositBoxERC20 is DepositBox {
     function depositERC20(
         string calldata schainName,
         address erc20OnMainnet,
-        address to,
         uint256 amount
     )
         external
-        rightTransaction(schainName, to)
+        rightTransaction(schainName, msg.sender)
         whenNotKilled(keccak256(abi.encodePacked(schainName)))
     {
         bytes32 schainHash = keccak256(abi.encodePacked(schainName));
@@ -83,7 +82,7 @@ contract DepositBoxERC20 is DepositBox {
         bytes memory data = _receiveERC20(
             schainName,
             erc20OnMainnet,
-            to,
+            msg.sender,
             amount
         );
         if (!linker.interchainConnections(schainHash))
