@@ -61,54 +61,50 @@ contract TokenManagerERC1155 is TokenManager {
 
     function exitToMainERC1155(
         address contractOnMainnet,
-        address to,
         uint256 id,
         uint256 amount
     )
         external
     {
-        communityLocker.checkAllowedToSendMessage(to);
-        _exit(MAINNET_HASH, depositBox, contractOnMainnet, to, id, amount);
+        communityLocker.checkAllowedToSendMessage(msg.sender);
+        _exit(MAINNET_HASH, depositBox, contractOnMainnet, msg.sender, id, amount);
     }
 
     function exitToMainERC1155Batch(
         address contractOnMainnet,
-        address to,
         uint256[] memory ids,
         uint256[] memory amounts
     )
         external
     {
-        communityLocker.checkAllowedToSendMessage(to);
-        _exitBatch(MAINNET_HASH, depositBox, contractOnMainnet, to, ids, amounts);
+        communityLocker.checkAllowedToSendMessage(msg.sender);
+        _exitBatch(MAINNET_HASH, depositBox, contractOnMainnet, msg.sender, ids, amounts);
     }
 
     function transferToSchainERC1155(
         string calldata targetSchainName,
         address contractOnMainnet,
-        address to,
         uint256 id,
         uint256 amount
     ) 
         external
-        rightTransaction(targetSchainName, to)
+        rightTransaction(targetSchainName, msg.sender)
     {
         bytes32 targetSchainHash = keccak256(abi.encodePacked(targetSchainName));
-        _exit(targetSchainHash, tokenManagers[targetSchainHash], contractOnMainnet, to, id, amount);
+        _exit(targetSchainHash, tokenManagers[targetSchainHash], contractOnMainnet, msg.sender, id, amount);
     }
 
     function transferToSchainERC1155Batch(
         string calldata targetSchainName,
         address contractOnMainnet,
-        address to,
         uint256[] memory ids,
         uint256[] memory amounts
     ) 
         external
-        rightTransaction(targetSchainName, to)
+        rightTransaction(targetSchainName, msg.sender)
     {
         bytes32 targetSchainHash = keccak256(abi.encodePacked(targetSchainName));
-        _exitBatch(targetSchainHash, tokenManagers[targetSchainHash], contractOnMainnet, to, ids, amounts);
+        _exitBatch(targetSchainHash, tokenManagers[targetSchainHash], contractOnMainnet, msg.sender, ids, amounts);
     }
 
     /**

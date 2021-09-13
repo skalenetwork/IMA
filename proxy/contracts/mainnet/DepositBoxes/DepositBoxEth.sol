@@ -40,10 +40,10 @@ contract DepositBoxEth is DepositBox {
         revert("Use deposit function");
     }
 
-    function deposit(string memory schainName, address to)
+    function deposit(string memory schainName)
         external
         payable
-        rightTransaction(schainName, to)
+        rightTransaction(schainName, msg.sender)
         whenNotKilled(keccak256(abi.encodePacked(schainName)))
     {
         bytes32 schainHash = keccak256(abi.encodePacked(schainName));
@@ -54,7 +54,7 @@ contract DepositBoxEth is DepositBox {
         messageProxy.postOutgoingMessage(
             schainHash,
             contractReceiver,
-            Messages.encodeTransferEthMessage(to, msg.value)
+            Messages.encodeTransferEthMessage(msg.sender, msg.value)
         );
     }
 
