@@ -125,7 +125,7 @@ contract CommunityPool is Twin {
         minTransactionGas = newMinTransactionGas;
     }
 
-    function getBalance(string calldata schainName) external view returns (uint) {
-        return _userWallets[msg.sender][keccak256(abi.encodePacked(schainName))];
+    function getBalance(address user, string calldata schainName) external view returns (uint) {
+        return _userWallets[user][keccak256(abi.encodePacked(schainName))];
     }
 }

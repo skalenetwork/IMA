@@ -98,10 +98,10 @@ describe("CommunityPool", () => {
         it("should recharge wallet if user passed enough money", async () => {
             const amount = minTransactionGas.mul(gasPrice);
             await communityPool.connect(user).rechargeUserWallet(schainName, { value: amount.toString(), gasPrice });
-            let userBalance = await communityPool.connect(user).getBalance(schainName);
+            let userBalance = await communityPool.getBalance(user.address, schainName);
             userBalance.should.be.deep.equal(amount);
             await communityPool.connect(user).rechargeUserWallet(schainName, { value: amount.toString(), gasPrice });
-            userBalance = await communityPool.connect(user).getBalance(schainName);
+            userBalance = await communityPool.getBalance(user.address, schainName);
             userBalance.should.be.deep.equal(amount.mul(2));
             expect(BigNumber.from(await messageProxy.getOutgoingMessagesCounter(schainName)).toString()).to.be.equal(BigNumber.from(1).toString());
         });
@@ -172,9 +172,9 @@ describe("CommunityPool", () => {
         const wei2 = minTransactionGas.mul(gasPrice).mul(2);
         const res1 = await (await communityPool.connect(user).rechargeUserWallet(schainName, { value: wei.toString(), gasPrice })).wait();
         const res2 = await (await communityPool.connect(user).rechargeUserWallet("schainName2", { value: wei2.toString(), gasPrice })).wait();
-        const userBalance = await communityPool.connect(user).getBalance(schainName);
+        const userBalance = await communityPool.getBalance(user.address, schainName);
         userBalance.should.be.deep.equal(wei);
-        const userBalance2 = await communityPool.connect(user).getBalance("schainName2");
+        const userBalance2 = await communityPool.getBalance(user.address, "schainName2");
         userBalance2.should.be.deep.equal(wei2);
 
         if (!res1.events) {
