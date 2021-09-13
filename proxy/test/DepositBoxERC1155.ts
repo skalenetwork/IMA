@@ -331,7 +331,7 @@ describe("DepositBoxERC1155", () => {
                 .connectSchain(schainName, [deployer.address, deployer.address, deployer.address]);
             await communityPool
                 .connect(user)
-                .rechargeUserWallet(schainName, { value: wei });
+                .rechargeUserWallet(schainName, user.address, { value: wei });
 
             // mint some ERC1155 of  for `deployer` address
             await erc1155.connect(deployer).mint(deployer.address, id, amount, "0x");
@@ -387,7 +387,7 @@ describe("DepositBoxERC1155", () => {
                 .connectSchain(schainName, [deployer.address, deployer.address, deployer.address]);
             await communityPool
                 .connect(user)
-                .rechargeUserWallet(schainName, { value: wei });
+                .rechargeUserWallet(schainName, user.address, { value: wei });
 
             // mint some ERC1155 of  for `deployer` address
             await erc1155.connect(deployer).mintBatch(deployer.address, ids, amounts, "0x");

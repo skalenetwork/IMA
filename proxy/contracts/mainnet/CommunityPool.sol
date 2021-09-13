@@ -84,15 +84,23 @@ contract CommunityPool is Twin {
         node.sendValue(amount);
     }
 
-    function rechargeUserWallet(string calldata schainName) external payable {
+    /**
+     * @dev Allows `msg.sender` to recharge their wallet for further gas reimbursement.
+     * 
+     * Requirements:
+     * 
+     * - 'msg.sender` should recharge their gas wallet for amount that enough to reimburse any 
+     *   transaction from schain to mainnet.
+     */
+    function rechargeUserWallet(string calldata schainName, address user) external payable {
         bytes32 schainHash = keccak256(abi.encodePacked(schainName));
         require(
             msg.value + _userWallets[msg.sender][schainHash] >= minTransactionGas * tx.gasprice,
             "Not enough ETH for transaction"
         );
-        _userWallets[msg.sender][schainHash] = _userWallets[msg.sender][schainHash] + msg.value;
-        if (!activeUsers[msg.sender][schainHash]) {
-            activeUsers[msg.sender][schainHash] = true;
+        _userWallets[user][schainHash] = _userWallets[user][schainHash] + msg.value;
+        if (!activeUsers[user][schainHash]) {
+            activeUsers[user][schainHash] = true;
             messageProxy.postOutgoingMessage(
                 schainHash,
                 schainLinks[schainHash],
