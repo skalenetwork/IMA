@@ -248,7 +248,7 @@ describe("DepositBoxERC721", () => {
                 .connectSchain(schainName, [deployer.address, deployer.address, deployer.address]);
             await communityPool
                 .connect(user)
-                .rechargeUserWallet(schainName, { value: weiAmount });
+                .rechargeUserWallet(schainName, user.address, { value: weiAmount });
         });
 
         it("should transfer ERC721 token", async () => {
