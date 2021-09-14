@@ -129,10 +129,6 @@ export async function upgrade(
     for (const contract of contractNamesToUpgrade) {
         const contractFactory = await getContractFactoryAndUpdateManifest(contract);
         let _contract = contract;
-        if (contract === "BountyV2") {
-            if (!abi[getContractKeyInAbiFile(contract) + "_address"])
-            _contract = "Bounty";
-        }
         const proxyAddress = abi[getContractKeyInAbiFile(_contract) + "_address"];
 
         console.log(`Prepare upgrade of ${contract}`);
