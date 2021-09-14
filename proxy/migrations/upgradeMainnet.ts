@@ -113,7 +113,7 @@ export async function upgrade(
         await (await proxyAdmin.transferOwnership(safe)).wait();
         for (const contractName of contractNamesToUpgrade) {
             const contractFactory = await getContractFactoryAndUpdateManifest(contractName);
-            let _contract = contractName;
+            const _contract = contractName;
             const contractAddress = abi[getContractKeyInAbiFile(_contract) + "_address"];
             const contract = contractFactory.attach(contractAddress);
             console.log(chalk.blue(`Grant access to ${contractName}`));
@@ -128,7 +128,7 @@ export async function upgrade(
     const contractsToUpgrade: {proxyAddress: string, implementationAddress: string, name: string, abi: any}[] = [];
     for (const contract of contractNamesToUpgrade) {
         const contractFactory = await getContractFactoryAndUpdateManifest(contract);
-        let _contract = contract;
+        const _contract = contract;
         const proxyAddress = abi[getContractKeyInAbiFile(_contract) + "_address"];
 
         console.log(`Prepare upgrade of ${contract}`);
