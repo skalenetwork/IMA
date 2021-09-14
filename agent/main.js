@@ -1865,7 +1865,7 @@ async function wait_until_s_chain_started() {
             const joSChainNetworkInfo = await discover_s_chain_network( function( err, joSChainNetworkInfo ) {
                 if( ! err )
                     bSuccess = true;
-            }, true, null, -1 ).catch( ( err ) => {
+            }, false, null, -1 ).catch( ( err ) => {
                 log.write(
                     cc.fatal( "CRITICAL ERROR:" ) +
                     cc.error( " S-Chain network discovery failed: " ) +
