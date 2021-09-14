@@ -95,7 +95,7 @@ contract CommunityPool is Twin {
     function rechargeUserWallet(string calldata schainName, address user) external payable {
         bytes32 schainHash = keccak256(abi.encodePacked(schainName));
         require(
-            msg.value + _userWallets[msg.sender][schainHash] >= minTransactionGas * tx.gasprice,
+            msg.value + _userWallets[user][schainHash] >= minTransactionGas * tx.gasprice,
             "Not enough ETH for transaction"
         );
         _userWallets[user][schainHash] = _userWallets[user][schainHash] + msg.value;
@@ -104,7 +104,7 @@ contract CommunityPool is Twin {
             messageProxy.postOutgoingMessage(
                 schainHash,
                 schainLinks[schainHash],
-                Messages.encodeActivateUserMessage(msg.sender)
+                Messages.encodeActivateUserMessage(user)
             );
         }
     }
