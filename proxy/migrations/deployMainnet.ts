@@ -211,7 +211,7 @@ async function main() {
 
     const outputObject: {[k: string]: any} = {};
     for (const contract of contracts) {
-        let contractKey = getContractKeyInAbiFile(contract);
+        const contractKey = getContractKeyInAbiFile(contract);
         outputObject[contractKey + "_address"] = deployed.get(contract)?.address;
         outputObject[contractKey + "_abi"] = getAbi(deployed.get(contract)?.interface);
     }
