@@ -1253,9 +1253,11 @@ async function reimbursement_wallet_recharge(
         details.write( strLogPrefix + cc.debug( "Got " ) + cc.info( tcnt ) + cc.debug( " from " ) + cc.notice( strActionName ) + "\n" );
         //
         //
+        const addressReceiver = joAccount_main_net.address( w3_main_net );
         const methodWithArguments = jo_community_pool.methods.rechargeUserWallet(
             // call params, last is destination account on S-chain
-            strReimbursementChain
+            strReimbursementChain,
+            addressReceiver
         );
         const dataTx = methodWithArguments.encodeABI(); // the encoded ABI of the method
         //
