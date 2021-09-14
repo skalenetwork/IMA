@@ -279,7 +279,7 @@ describe("DepositBoxERC20", () => {
 
             await communityPool
                 .connect(user)
-                .rechargeUserWallet(schainName, { value: wei });
+                .rechargeUserWallet(schainName, user.address, { value: wei });
 
             await depositBoxERC20.disableWhitelist(schainName);
             await erc20.connect(deployer).mint(user.address, amount * 2);

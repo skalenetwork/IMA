@@ -231,7 +231,7 @@ describe("DepositBoxEth", () => {
             await setCommonPublicKey(contractManager, schainName);
             await communityPool
                 .connect(user)
-                .rechargeUserWallet(schainName, { value: wei });
+                .rechargeUserWallet(schainName, user.address, { value: wei });
             // execution
 
             const res = await (await messageProxy.connect(deployer).postIncomingMessages(schainName, 0, [message], sign)).wait();
@@ -277,7 +277,7 @@ describe("DepositBoxEth", () => {
                 await setCommonPublicKey(contractManager, schainName);
                 await communityPool
                     .connect(user)
-                    .rechargeUserWallet(schainName, { value: wei });
+                    .rechargeUserWallet(schainName, user.address, { value: wei });
                 // execution
                 const res = await (await messageProxy.connect(deployer).postIncomingMessages(schainName, 0, [message], sign)).wait();
 
@@ -306,7 +306,7 @@ describe("DepositBoxEth", () => {
                 .connectSchain(schainName, [deployer.address, deployer.address, deployer.address]);
             await communityPool
                 .connect(user)
-                .rechargeUserWallet(schainName, { value: wei });
+                .rechargeUserWallet(schainName, user.address, { value: wei });
 
             const sign = {
                 blsSignature: BlsSignature,
@@ -351,7 +351,7 @@ describe("DepositBoxEth", () => {
                 .connectSchain(schainName, [deployer.address, deployer.address, deployer.address]);
             await communityPool
                 .connect(user)
-                .rechargeUserWallet(schainName, { value: wei });
+                .rechargeUserWallet(schainName, user.address, { value: wei });
 
             const sign = {
                 blsSignature: BlsSignature,
@@ -416,7 +416,7 @@ describe("DepositBoxEth", () => {
 
             await communityPool
                 .connect(user)
-                .rechargeUserWallet(schainName, { value: wei });
+                .rechargeUserWallet(schainName, user.address, { value: wei });
 
             await depositBoxEth
                 .connect(deployer)

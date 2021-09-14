@@ -276,7 +276,7 @@ describe("Gas calculation", () => {
         // IMA registration
         await messageProxyForMainnet.grantRole(await messageProxyForMainnet.CHAIN_CONNECTOR_ROLE(), imaLinker.address);
         await imaLinker.connectSchain(schainName, [tokenManagerLinker.address, communityLocker.address, tokenManagerEth.address, tokenManagerERC20.address, tokenManagerERC721.address, tokenManagerERC1155.address]);
-        await communityPool.connect(user).rechargeUserWallet(schainName, { value: 1e18.toString() });
+        await communityPool.connect(user).rechargeUserWallet(schainName, user.address, { value: 1e18.toString() });
         // await lockAndDataForSchain.addDepositBox(depositBoxEth.address);
         // await lockAndDataForSchain.addDepositBox(depositBoxERC20.address);
         // await lockAndDataForSchain.addDepositBox(depositBoxERC721.address);
@@ -321,7 +321,7 @@ describe("Gas calculation", () => {
         await ERC1155TokenOnSchain.grantRole(minterRoleERC1155, tokenManagerERC1155.address);
 
         // register user
-        await communityPool.connect(user).rechargeUserWallet(schainName, {value: "1000000000000000000"});
+        await communityPool.connect(user).rechargeUserWallet(schainName, user.address, {value: "1000000000000000000"});
     });
 
     it("calculate eth deposits", async () => {
