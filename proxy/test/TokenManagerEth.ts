@@ -204,13 +204,19 @@ describe("TokenManagerEth", () => {
         await ethERC20.mint(user.address, amount);
 
         // send Eth to a client on Mainnet:
-        await tokenManagerEth.connect(user).exitToMain(to, amountTo);
+        await tokenManagerEth.connect(user).exitToMain(amountTo);
         expect(BigNumber.from(await ethERC20.balanceOf(user.address)).toString()).to.be.equal(amountAfter.toString());
 
-        await tokenManagerEth.connect(user).exitToMain(deployer.address, amountTo)
+        let data1 = await messages.encodeLockUserMessage(user.address);
+        await messageProxyForSchain.postMessage(communityLocker.address, mainnetHash, fakeCommunityPool, data1);
+
+        await tokenManagerEth.connect(user).exitToMain(amountTo)
             .should.be.eventually.rejectedWith("Recipient must be active");
 
-        await tokenManagerEth.connect(user).exitToMain(to, amountTo)
+        data1 = await messages.encodeActivateUserMessage(user.address);
+        await messageProxyForSchain.postMessage(communityLocker.address, mainnetHash, fakeCommunityPool, data1);
+
+        await tokenManagerEth.connect(user).exitToMain(amountTo)
             .should.be.eventually.rejectedWith("Trying to send messages too often");
 
     });
@@ -240,7 +246,7 @@ describe("TokenManagerEth", () => {
         await tokenManagerEth.connect(deployer).addTokenManager(newSchainName, user.address);
 
         // send Eth and data to a client on schain:
-        await tokenManagerEth.connect(user).transferToSchain(newSchainName, to, amountTo);
+        await tokenManagerEth.connect(user).transferToSchain(newSchainName, amountTo);
 
         const balanceAfter = BigNumber.from(await ethERC20.balanceOf(user.address));
         balanceAfter.should.be.deep.equal(amountAfter);

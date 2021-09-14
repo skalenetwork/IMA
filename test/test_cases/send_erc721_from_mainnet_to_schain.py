@@ -63,7 +63,7 @@ class SendERC721ToSchain(TestCase):
         )
 
         erc721 = self.blockchain.get_erc721_on_schain("Mainnet", self.erc721.address)
-        destination_address = self.blockchain.key_to_address(self.config.schain_key)
+        destination_address = self.blockchain.key_to_address(self.config.mainnet_key)
         new_owner_address = erc721.functions.ownerOf(self.tokenId).call()
         if destination_address == new_owner_address:
             self._mark_passed()
