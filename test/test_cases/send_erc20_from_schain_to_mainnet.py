@@ -79,7 +79,7 @@ class SendERC20ToMainnet(TestCase):
         self.erc20_clone = self.blockchain.get_erc20_on_schain("Mainnet", self.erc20.address)
 
     def _execute(self):
-        source_address = self.blockchain.key_to_address(self.config.schain_key)
+        source_address = self.blockchain.key_to_address(self.config.mainnet_key)
         destination_address = self.blockchain.key_to_address(self.config.mainnet_key)
 
         if self.erc20_clone.functions.balanceOf(source_address).call() < self.amount:
@@ -90,8 +90,8 @@ class SendERC20ToMainnet(TestCase):
         self.agent.transfer_erc20_from_schain_to_mainnet(
             self.erc20_clone, # token
             self.erc20, # token on mainnet
-            self.config.schain_key, # from
-            self.config.mainnet_key, # to
+            self.config.mainnet_key, # from
+            self.config.schain_key, # to
             (self.amount - 2), # 2 tokens
             6 * 10 ** 16,
             self.timeout

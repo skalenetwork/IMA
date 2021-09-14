@@ -31,7 +31,7 @@ class ALotOfTransactionsSendEtherToSchain(TestCase):
         #
         range_int = 5
         #
-        address = self.blockchain.key_to_address(self.config.schain_key)
+        address = self.blockchain.key_to_address(self.config.mainnet_key)
         balance = self.blockchain.get_balance_on_schain(address)
         initial_balance = balance
         # 2 ether (2 000 000 000 000 000 000 wei)

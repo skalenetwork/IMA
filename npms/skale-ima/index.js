@@ -1253,9 +1253,11 @@ async function reimbursement_wallet_recharge(
         details.write( strLogPrefix + cc.debug( "Got " ) + cc.info( tcnt ) + cc.debug( " from " ) + cc.notice( strActionName ) + "\n" );
         //
         //
+        const addressReceiver = joAccount_main_net.address( w3_main_net );
         const methodWithArguments = jo_community_pool.methods.rechargeUserWallet(
             // call params, last is destination account on S-chain
-            strReimbursementChain
+            strReimbursementChain,
+            addressReceiver
         );
         const dataTx = methodWithArguments.encodeABI(); // the encoded ABI of the method
         //
@@ -1523,7 +1525,7 @@ async function do_eth_payment_from_main_net(
         //
         const methodWithArguments = jo_deposit_box.methods.deposit(
             // call params, last is destination account on S-chain
-            chain_id_s_chain, joAccountDst.address( w3_main_net )
+            chain_id_s_chain
         );
         const dataTx = methodWithArguments.encodeABI(); // the encoded ABI of the method
         //
@@ -1641,7 +1643,6 @@ async function do_eth_payment_from_s_chain(
         strActionName = "jo_token_manager_eth.methods.exitToMain()/do_eth_payment_from_s_chain";
         const methodWithArguments = jo_token_manager_eth.methods.exitToMain(
             // call params, last is destination account on S-chain
-            joAccountDst.address( w3_s_chain ),
             "0x" + w3_s_chain.utils.toBN( wei_how_much ).toString( 16 )
         );
         const dataTx = methodWithArguments.encodeABI(); // the encoded ABI of the method
@@ -1874,7 +1875,6 @@ async function do_erc721_payment_from_main_net(
         const contractERC721 = new w3_main_net.eth.Contract( erc721ABI, erc721Address_main_net );
         // prepare the smart contract function deposit(string schainName, address to)
         const depositBoxAddress = jo_deposit_box_erc721.options.address;
-        const accountForSchain = joAccountDst.address( w3_s_chain );
         const methodWithArguments_approve = contractERC721.methods.approve( // same as approve in 20
             // joAccountSrc.address( w3_main_net ),
             depositBoxAddress,
@@ -1885,7 +1885,6 @@ async function do_erc721_payment_from_main_net(
         const methodWithArguments_rawDepositERC721 = jo_deposit_box_erc721.methods.depositERC721(
             chain_id_s_chain,
             erc721Address_main_net,
-            accountForSchain,
             "0x" + w3_main_net.utils.toBN( token_id ).toString( 16 )
         );
         dataTxDeposit = methodWithArguments_rawDepositERC721.encodeABI();
@@ -2065,7 +2064,6 @@ async function do_erc20_payment_from_main_net(
         const contractERC20 = new w3_main_net.eth.Contract( erc20ABI, erc20Address_main_net );
         // prepare the smart contract function deposit(string schainName, address to)
         const depositBoxAddress = jo_deposit_box_erc20.options.address;
-        const accountForSchain = joAccountDst.address( w3_s_chain );
         const methodWithArguments_approve = contractERC20.methods.approve(
             depositBoxAddress, "0x" + w3_main_net.utils.toBN( token_amount ).toString( 16 )
         );
@@ -2074,7 +2072,6 @@ async function do_erc20_payment_from_main_net(
         const methodWithArguments_rawDepositERC20 = jo_deposit_box_erc20.methods.depositERC20(
             chain_id_s_chain,
             erc20Address_main_net,
-            accountForSchain,
             "0x" + w3_main_net.utils.toBN( token_amount ).toString( 16 )
         );
         dataTxDeposit = methodWithArguments_rawDepositERC20.encodeABI();
@@ -2247,7 +2244,6 @@ async function do_erc1155_payment_from_main_net(
         const contractERC1155 = new w3_main_net.eth.Contract( erc1155ABI, erc1155Address_main_net );
         // prepare the smart contract function deposit(string schainName, address to)
         const depositBoxAddress = jo_deposit_box_erc1155.options.address;
-        const accountForSchain = joAccountDst.address( w3_s_chain );
         const methodWithArguments_approve = contractERC1155.methods.setApprovalForAll( // same as approve in 20
             // joAccountSrc.address( w3_main_net ),
             depositBoxAddress,
@@ -2258,7 +2254,6 @@ async function do_erc1155_payment_from_main_net(
         const methodWithArguments_rawDepositERC1155 = jo_deposit_box_erc1155.methods.depositERC1155(
             chain_id_s_chain,
             erc1155Address_main_net,
-            accountForSchain,
             "0x" + w3_main_net.utils.toBN( token_id ).toString( 16 ),
             "0x" + w3_main_net.utils.toBN( token_amount ).toString( 16 )
         );
@@ -2433,7 +2428,6 @@ async function do_erc1155_batch_payment_from_main_net(
         const contractERC1155 = new w3_main_net.eth.Contract( erc1155ABI, erc1155Address_main_net );
         // prepare the smart contract function deposit(string schainName, address to)
         const depositBoxAddress = jo_deposit_box_erc1155.options.address;
-        const accountForSchain = joAccountDst.address( w3_s_chain );
         const methodWithArguments_approve = contractERC1155.methods.setApprovalForAll( // same as approve in 20
             // joAccountSrc.address( w3_main_net ),
             depositBoxAddress,
@@ -2444,7 +2438,6 @@ async function do_erc1155_batch_payment_from_main_net(
         const methodWithArguments_rawDepositERC1155Batch = jo_deposit_box_erc1155.methods.depositERC1155Batch(
             chain_id_s_chain,
             erc1155Address_main_net,
-            accountForSchain,
             token_ids, //"0x" + w3_main_net.utils.toBN( token_id ).toString( 16 ),
             token_amounts //"0x" + w3_main_net.utils.toBN( token_amount ).toString( 16 )
         );
@@ -2613,7 +2606,6 @@ async function do_erc20_payment_from_s_chain(
         //
         //
         strActionName = "ERC20 prepare S->M";
-        const accountForMainnet = joAccountDst.address( w3_main_net );
         const accountForSchain = joAccountSrc.address( w3_s_chain );
         const erc20ABI = joErc20_s_chain[strCoinNameErc20_s_chain + "_abi"];
         const erc20Address_s_chain = joErc20_s_chain[strCoinNameErc20_s_chain + "_address"];
@@ -2630,7 +2622,6 @@ async function do_erc20_payment_from_s_chain(
         const erc20Address_main_net = joErc20_main_net[strCoinNameErc20_main_net + "_address"];
         const methodWithArguments_rawExitToMainERC20 = jo_token_manager_erc20.methods.exitToMainERC20(
             erc20Address_main_net,
-            accountForMainnet,
             "0x" + w3_main_net.utils.toBN( token_amount ).toString( 16 )
             // "0x" + w3_main_net.utils.toBN( wei_how_much ).toString( 16 )
         );
@@ -2794,7 +2785,6 @@ async function do_erc721_payment_from_s_chain(
         //
         //
         strActionName = "ERC721 prepare S->M";
-        const accountForMainnet = joAccountDst.address( w3_main_net );
         const accountForSchain = joAccountSrc.address( w3_s_chain );
         const erc721ABI = joErc721_s_chain[strCoinNameErc721_s_chain + "_abi"];
         const erc721Address_s_chain = joErc721_s_chain[strCoinNameErc721_s_chain + "_address"];
@@ -2812,7 +2802,6 @@ async function do_erc721_payment_from_s_chain(
         const erc721Address_main_net = joErc721_main_net[strCoinNameErc721_main_net + "_address"];
         const methodWithArguments_rawExitToMainERC721 = jo_token_manager_erc721.methods.exitToMainERC721(
             erc721Address_main_net,
-            accountForMainnet,
             "0x" + w3_main_net.utils.toBN( token_id ).toString( 16 )
             // "0x" + w3_main_net.utils.toBN( wei_how_much ).toString( 16 )
         );
@@ -2980,7 +2969,6 @@ async function do_erc1155_payment_from_s_chain(
         //
         //
         strActionName = "ERC1155 prepare S->M";
-        const accountForMainnet = joAccountDst.address( w3_main_net );
         const accountForSchain = joAccountSrc.address( w3_s_chain );
         const erc1155ABI = joErc1155_s_chain[strCoinNameErc1155_s_chain + "_abi"];
         const erc1155Address_s_chain = joErc1155_s_chain[strCoinNameErc1155_s_chain + "_address"];
@@ -2998,7 +2986,6 @@ async function do_erc1155_payment_from_s_chain(
         const erc1155Address_main_net = joErc1155_main_net[strCoinNameErc1155_main_net + "_address"];
         const methodWithArguments_rawExitToMainERC1155 = jo_token_manager_erc1155.methods.exitToMainERC1155(
             erc1155Address_main_net,
-            accountForMainnet,
             "0x" + w3_main_net.utils.toBN( token_id ).toString( 16 ),
             "0x" + w3_main_net.utils.toBN( token_amount ).toString( 16 )
             // "0x" + w3_main_net.utils.toBN( wei_how_much ).toString( 16 )
@@ -3167,7 +3154,6 @@ async function do_erc1155_batch_payment_from_s_chain(
         //
         //
         strActionName = "ERC1155 Batch prepare S->M";
-        const accountForMainnet = joAccountDst.address( w3_main_net );
         const accountForSchain = joAccountSrc.address( w3_s_chain );
         const erc1155ABI = joErc1155_s_chain[strCoinNameErc1155_s_chain + "_abi"];
         const erc1155Address_s_chain = joErc1155_s_chain[strCoinNameErc1155_s_chain + "_address"];
@@ -3185,7 +3171,6 @@ async function do_erc1155_batch_payment_from_s_chain(
         const erc1155Address_main_net = joErc1155_main_net[strCoinNameErc1155_main_net + "_address"];
         const methodWithArguments_rawExitToMainERC1155Batch = jo_token_manager_erc1155.methods.exitToMainERC1155Batch(
             erc1155Address_main_net,
-            accountForMainnet,
             token_ids, //"0x" + w3_main_net.utils.toBN( token_id ).toString( 16 ),
             token_amounts //"0x" + w3_main_net.utils.toBN( token_amount ).toString( 16 )
             // "0x" + w3_main_net.utils.toBN( wei_how_much ).toString( 16 )
