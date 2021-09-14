@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-DEPLOYED_TAG=$(cat $GITHUB_WORKSPACE/DEPLOYED)
+DEPLOYED_TAG=$(cat $GITHUB_WORKSPACE/proxy/DEPLOYED)
 DEPLOYED_VERSION=$(echo $DEPLOYED_TAG | cut -d '-' -f 1)
 DEPLOYED_DIR=$GITHUB_WORKSPACE/deployed-proxy/
 
@@ -20,14 +20,18 @@ GANACHE_PID=$!
 cd $DEPLOYED_DIR
 yarn install || exit $?
 cd proxy
+PRODUCTION=true VERSION=$DEPLOYED_VERSION npx hardhat run migrations/deploySkaleManagerComponents.ts --network localhost || exit $?
 PRODUCTION=true VERSION=$DEPLOYED_VERSION npx hardhat run migrations/deployMainnet.ts --network localhost || exit $?
-rm $GITHUB_WORKSPACE/.openzeppelin/unknown-*.json
-cp .openzeppelin/unknown-*.json $GITHUB_WORKSPACE/.openzeppelin || exit $?
+rm $GITHUB_WORKSPACE/proxy/.openzeppelin/unknown-*.json
+rm $GITHUB_WORKSPACE/proxy/data/skaleManagerComponents.json
+cp .openzeppelin/unknown-*.json $GITHUB_WORKSPACE/proxy/.openzeppelin || exit $?
+cp ./data/skaleManagerComponents.json $GITHUB_WORKSPACE/proxy/data/ || exit $?
 ABI_FILENAME="proxyMainnet.json"
-cp "data/$ABI_FILENAME" "$GITHUB_WORKSPACE/data" || exit $?
+cp "data/$ABI_FILENAME" "$GITHUB_WORKSPACE/proxy/data" || exit $?
 cd $GITHUB_WORKSPACE
 rm -r --interactive=never $DEPLOYED_DIR
+cd proxy
 
-ABI="data/$ABI_FILENAME" npx hardhat run migrations/upgrade.ts --network localhost || exit $?
+ABI="data/$ABI_FILENAME" npx hardhat run migrations/upgradeMainnet.ts --network localhost || exit $?
 
 kill $GANACHE_PID
