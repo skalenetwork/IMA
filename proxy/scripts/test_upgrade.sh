@@ -20,7 +20,7 @@ GANACHE_PID=$!
 cd $DEPLOYED_DIR
 yarn install || exit $?
 cd proxy
-PRODUCTION=true VERSION=$DEPLOYED_VERSION npx hardhat run migrations/deploySkaleManagerComponents.ts --network localhost || exit $?
+CHAIN_NAME_SCHAIN="Test" PRODUCTION=true VERSION=$DEPLOYED_VERSION npx hardhat run migrations/deploySkaleManagerComponents.ts --network localhost || exit $?
 PRODUCTION=true VERSION=$DEPLOYED_VERSION npx hardhat run migrations/deployMainnet.ts --network localhost || exit $?
 rm $GITHUB_WORKSPACE/proxy/.openzeppelin/unknown-*.json
 rm $GITHUB_WORKSPACE/proxy/data/skaleManagerComponents.json
