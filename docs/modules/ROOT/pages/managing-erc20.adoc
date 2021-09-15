@@ -202,10 +202,9 @@ export async function linkERC20TokenMainnet(ima) {
     privateKey: privateKey // remove privateKey from txOpts to use Metamask signing
   };
 
-
   const isERC20AddedMainnet = await ima.mainnet.isERC20Added(chainName, erc20OnMainnet);
   if (!isERC20AddedMainnet){ // check if token is already added
-    await ima.mainnet.addERC20TokenByOwner(chainName, erc20OnMainnet, opts);
+    await ima.mainnet.addERC20TokenByOwner(chainName, erc20OnMainnet, txOpts);
   }
 }
 ----
@@ -324,7 +323,7 @@ export async function linkERC20TokenSchain(ima) {
 
   const isERC20AddedSchain = await this.schain.isERC20Added(erc20OnMainnet);
   if (isERC20AddedSchain === constants.ZERO_ADDRESS) { // check if token is already added
-      await this.schain.addERC20TokenByOwner(erc20OnMainnet, erc20OnSchain, opts);
+      await this.schain.addERC20TokenByOwner(erc20OnMainnet, erc20OnSchain, txOpts);
   }
 }
 ----
@@ -453,24 +452,26 @@ export function initTestTokenContract(ima) {
 }
 
 export async function depositERC20(ima) {
+  let tokenName = "[ERC20_TOKEN_NAME";
+  let schainName = "[YOUR_SKALE_CHAIN_NAME]";
+  let amount = "[AMOUNT_IN_WEI]";
+
   let contractObject = initTestTokenContract(ima);
   ima.mainnet.addERC20Token(tokenName, contractObject);
 
-  let schainName = "[YOUR_SKALE_CHAIN_NAME]";
-
   let address = "[YOUR_ADDRESS]";
   let privateKey = "[YOUR_PRIVATE_KEY]";
-
-  let approvalAmount = "[APPROVAL_AMOUNT]";
 
   let txOpts = { // transaction options
     address: address,
     privateKey: privateKey // remove privateKey from txOpts to use Metamask signing
   };
 
+  const balanceSchain = await ima.schain.getERC20Balance(tokenName, address); // get sChain balance before the transfer
+
   await ima.mainnet.approveERC20Transfers(
     tokenName,
-    approvalAmount,
+    amount,
     txOpts
   );
 
@@ -481,6 +482,9 @@ export async function depositERC20(ima) {
     amount,
     txOpts
   );
+
+  // optional
+  await ima.schain.waitERC20BalanceChange(tokenName, address, balanceSchain); // wait for the balance to be changed on the sChain side
 }
 ----
 --
@@ -638,6 +642,7 @@ export function initTestTokenContract(ima) {
 export async function exit(ima) {
   let tokenName = "[ERC20_TOKEN_NAME]";
   let mainnetERC20TokenAddress = "[ERC20_MAINNET_TOKEN_ADDRESS]";
+  let amount = "[AMOUNT_IN_WEI]";
 
   let contractObject = initTestTokenContract(ima);
   ima.schain.addERC20Token(tokenName, contractObject);
@@ -649,6 +654,8 @@ export async function exit(ima) {
     address: address,
     privateKey: privateKey // remove privateKey from txOpts to use Metamask signing
   };
+
+  const balanceMainnet = await ima.mainnet.getERC20Balance(tokenName, address); // get Mainnet balance before the transfer
 
   await ima.schain.approveERC20Transfers(
     tokenName,
@@ -662,6 +669,9 @@ export async function exit(ima) {
     amount,
     txOpts
   );
+
+  // optional
+  await ima.mainnet.waitERC20BalanceChange(tokenName, address, balanceMainnet); // wait for the balance to be changed on the Mainnet side
 }
 
 ----
