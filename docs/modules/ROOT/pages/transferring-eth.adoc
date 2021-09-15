@@ -24,35 +24,26 @@ IMA-JS::
 +
 --
 
-Using https://www.npmjs.com/package/@skalenetwork/ima-js[ima-js: https://www.npmjs.com/package/@skalenetwork/ima-js], use `depositETHtoSChain()` from the MainnetChain object. link:{eth-ima-js-sandbox}?file=/src/deposit.js[See IMA-JS deposit.js sandbox]
+In all ima-js code samples we're assuming that library is already inited. See init instructions xref:working-with-ima-js.adoc[here]. For the 2 objects usage drop `ima.` prefix.  
+link:{eth-ima-js-sandbox}?file=/src/deposit.js[See IMA-JS deposit.js sandbox]
 
 [source, javascript]
 ----
-import { MainnetChain } from "@skalenetwork/ima-js";
-import Web3 from "web3";
+// import & init ima-js here
 
-export async function makeDeposit() {
-  // set parameters
-  let ethereum = "[ETHEREUM_ENDPOINT]";
-  let abi = require("IMA_ABI_ON_ETHEREUM");
-  let privateKey = "[YOUR_PRIVATE_KEY]";
-  let address = "YOUR_ADDRESS";
+export async function makeDeposit(ima) {
   let schainName = "[YOUR_SKALE_CHAIN_NAME]";
 
-  // initialize mainnetChain  
-  let provider = new Web3.providers.HttpProvider(ethereum);
-  let web3 = new Web3(provider);
-  let mainnet = new MainnetChain(web3, abi);
+  let address = "[YOUR_ADDRESS]";
+  let privateKey = "[YOUR_PRIVATE_KEY]";
 
-  // set transaction options
-  let txOpts = {
-    value: mainnet.web3.utils.toWei("1", "ether"),
+  let txOpts = { // transaction options
+    value: ima.mainnet.web3.utils.toWei("1", "ether"),
     address: address,
-    privateKey: privateKey
+    privateKey: privateKey // remove privateKey from txOpts to use Metamask signing
   };
 
-  // deposit ETH to address on schainName
-  await mainnet.depositETHtoSChain(
+  await ima.mainnet.depositETHtoSChain(
     schainName,
     address,
     txOpts
@@ -152,32 +143,22 @@ IMA-JS::
 +
 --
 
-Using https://www.npmjs.com/package/@skalenetwork/ima-js[ima-js: https://www.npmjs.com/package/@skalenetwork/ima-js], use `withdrawETH()` from the SChain object. link:{eth-ima-js-sandbox}?file=/src/exit.js[See IMA-JS exit.js sandbox]
+In all ima-js code samples we're assuming that library is already inited. See init instructions xref:working-with-ima-js.adoc[here]. For the 2 objects usage drop `ima.` prefix.  
+link:{eth-ima-js-sandbox}?file=/src/deposit.js[See IMA-JS deposit.js sandbox]
 
 [source,javascript]
 ----
-import { SChain } from "@skalenetwork/ima-js";
-import Web3 from "web3";
+// import & init ima-js here
 
-export async function makeDeposit() {
-  // set parameters
-  let schain = "[SKALE_CHAIN_ENDPOINT]";
-  let abi = require("[IMA_ABI_ON_SKALE]");
+export async function withdrawETH(ima) {
+  let address = "[YOUR_ADDRESS]";
   let privateKey = "[YOUR_PRIVATE_KEY]";
-  let address = "YOUR_ADDRESS";
 
-  // initialize SChain  
-  let provider = new Web3.providers.HttpProvider(schain);
-  let web3 = new Web3(provider);
-  let schain = new SChain(web3, abi);
-
-  // set transaction options
   let txOpts = {
     address: address,
-    privateKey: privateKey
+    privateKey: privateKey // remove privateKey from txOpts to use Metamask signing
   };
 
-  // withdraw ETH to DepositBox on Ethereum
   await schain.withdrawETH(
     address,
     schain.web3.utils.toWei("1", "ether"),
@@ -266,33 +247,24 @@ IMA-JS::
 +
 --
 
-Using https://www.npmjs.com/package/@skalenetwork/ima-js[ima-js: https://www.npmjs.com/package/@skalenetwork/ima-js], use `getMyEth()` from the Mainnet object. link:{eth-ima-js-sandbox}?file=/src/getMyEth.js[See IMA-JS getMyEth.js sandbox]
+In all ima-js code samples we're assuming that library is already inited. See init instructions xref:working-with-ima-js.adoc[here]. For the 2 objects usage drop `ima.` prefix.  
+link:{eth-ima-js-sandbox}?file=/src/deposit.js[See IMA-JS deposit.js sandbox]
 
 [source,javascript]
 ----
-import { Mainnet } from "@skalenetwork/ima-js";
-import Web3 from "web3";
+// import & init ima-js here
 
-export async function makeDeposit() {
-  // set parameters
-  let ethereum = "[ETHEREUM_ENDPOINT]";
-  let abi = require("IMA_ABI_ON_ETHEREUM");
+export async function retrieveETH(ima) {
+  let address = "[YOUR_ADDRESS]";
   let privateKey = "[YOUR_PRIVATE_KEY]";
-  let address = "YOUR_ADDRESS";
 
-  // initialize mainnet  
-  let provider = new Web3.providers.HttpProvider(ethereum);
-  let web3 = new Web3(provider);
-  let mainnet = new Mainnet(web3, abi);
-
-  // set transaction options
   let txOpts = {
     address: address,
-    privateKey: privateKey
+    privateKey: privateKey // remove privateKey from txOpts to use Metamask signing
   };
 
   // retrieve all ETH from DepositBox
-  await mainnet.getMyEth(txOpts);
+  await ima.mainnet.getMyEth(txOpts);
 }
 
 ----

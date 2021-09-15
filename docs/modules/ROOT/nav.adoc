@@ -7,3 +7,4 @@
 * xref:funding-exits.adoc[Funding Exits]
 * xref:message-proxy.adoc[Managing other contracts using Message Proxy]
 * xref:access-control.adoc[IMA Access Control]
+* xref:working-with-ima-js.adoc[Working with IMA-JS]

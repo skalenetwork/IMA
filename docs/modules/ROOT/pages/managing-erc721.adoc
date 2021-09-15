@@ -179,7 +179,36 @@ Third, you need to register the Mainnet token contract into IMA on Mainnet using
 
 [tabs]
 ====
-Javascript::
+IMA-JS::
++
+--
+
+In all ima-js code samples we're assuming that library is already inited. See init instructions xref:working-with-ima-js.adoc[here]. For the 2 objects usage drop `ima.` prefix.  
+
+[source, javascript]
+----
+// import & init ima-js here
+
+export async function addToken() {
+  let schainName = "[YOUR_SKALE_CHAIN_NAME]";
+  const erc721OnMainnet = "[ADDRESS_OF_ERC721_ON_MAINNET]";
+
+  let address = "[YOUR_ADDRESS]";
+  let privateKey = "[YOUR_PRIVATE_KEY]";
+
+  let txOpts = {
+    address: address,
+    privateKey: privateKey // remove privateKey from txOpts to use Metamask signing
+  };
+
+  await mainnet.addERC721TokenByOwner(schainName, erc721OnMainnet, txOpts);
+}
+
+----
+
+--
+
+Web3 JS::
 +
 --
 
@@ -254,6 +283,33 @@ Finally, you need to register the (modified) token contract on the SKALE chain I
 
 [tabs]
 ====
+IMA-JS::
++
+--
+
+In all ima-js code samples we're assuming that library is already inited. See init instructions xref:working-with-ima-js.adoc[here]. For the 2 objects usage drop `ima.` prefix.  
+
+[source, javascript]
+----
+// import & init ima-js here
+
+export async function linkERC721TokenSchain(ima) {
+  let erc721OnMainnet = "[ADDRESS_OF_ERC721_TOKEN_ON_MAINNET]";
+  let erc721OnSchain = "[ADDRESS_OF_ERC721_TOKEN_ON_SCHAIN]";
+
+  let address = "[YOUR_ADDRESS]";
+  let privateKey = "[YOUR_PRIVATE_KEY]";
+
+  let txOpts = {
+    address: address,
+    privateKey: privateKey // remove privateKey from txOpts to use Metamask signing
+  };
+
+  await ima.schain.addERC721TokenByOwner(erc721OnMainnet, erc721OnSchain, txOpts);
+}
+----
+--
+
 Javascript::
 +
 --
@@ -354,6 +410,57 @@ The **DepositBoxERC721** IMA contract is currently deployed to the Rinkeby testn
 
 [tabs]
 ====
+IMA-JS::
++
+--
+
+In all ima-js code samples we're assuming that library is already inited. See init instructions xref:working-with-ima-js.adoc[here]. For the 2 objects usage drop `ima.` prefix.  
+link:{eth-ima-js-sandbox}?file=/src/deposit.js[See IMA-JS deposit.js sandbox]
+
+[source, javascript]
+----
+// import & init ima-js here
+
+export function initTestTokenContract(ima) {
+  // initialize ERC721 contract
+  const abiData = require("[ERC721_ABI_ON_ETHEREUM]");
+  return new ima.mainnet.web3.eth.Contract(
+    abiData.erc721_abi,
+    abiData.erc721_address);
+}
+
+export async function depositERC721(ima) {
+  let tokenName = "[ERC721_TOKEN_NAME";
+  let erc721TokenId = "[ID_OF_THE_TOKEN_TO_TRANSFER]";
+  let schainName = "[YOUR_SKALE_CHAIN_NAME]";
+
+  let contractObject = initTestTokenContract(ima);
+  ima.mainnet.addERC721Token(tokenName, contractObject);
+
+  let address = "[YOUR_ADDRESS]";
+  let privateKey = "[YOUR_PRIVATE_KEY]";
+
+  let txOpts = { // transaction options
+    address: address,
+    privateKey: privateKey // remove privateKey from txOpts to use Metamask signing
+  };
+
+  const erc721OwnerMainnet = await ima.mainnet.getERC721OwnerOf(tokenName, erc721TokenId); // get owner on the Mainnet before the transfer
+  const erc721OwnerSchain = await ima.schain.getERC721OwnerOf(tokenName, erc721TokenId); // get owner on the sChain before the transfer
+
+  const depositBoxAddress = ima.mainnet.contracts.depositBoxERC721.options.address;
+  if (erc721OwnerMainnet != depositBoxAddress) {
+    await ima.mainnet.approveERC721Transfer(tokenName, erc721TokenId, txOpts); // approve transfer only if token is not already locked
+  }
+
+  await ima.mainnet.depositERC721(schainName, tokenName, address, erc721TokenId, txOpts);
+
+  // optional
+  await ima.schain.waitERC721OwnerChange(tokenName, erc721TokenId, erc721OwnerSchain); // wait for the owner to be changed on the sChain side
+}
+----
+--
+
 Javascript::
 +
 --
@@ -488,7 +595,55 @@ The **TokenManagerERC721** IMA contract is pre-deployed to your SKALE Chain. Ple
 
 [tabs]
 ====
-Javascript::
+IMA-JS::
++
+--
+
+In all ima-js code samples we're assuming that library is already inited. See init instructions xref:working-with-ima-js.adoc[here]. For the 2 objects usage drop `ima.` prefix.  
+link:{eth-ima-js-sandbox}?file=/src/deposit.js[See IMA-JS deposit.js sandbox]
+
+[source, javascript]
+----
+// import & init ima-js here
+
+export function initTestTokenContract(ima) {
+  // initialize ERC721 contract
+  const abiData = require("[ERC721_ABI_ON_SCHAIN]");
+  return new ima.schain.web3.eth.Contract(
+    abiData.erc721_abi,
+    abiData.erc721_address);
+}
+
+export async function exit(ima) {
+  let tokenName = "[ERC721_TOKEN_NAME";
+  let erc721TokenId = "[ID_OF_THE_TOKEN_TO_TRANSFER]";
+  let schainName = "[YOUR_SKALE_CHAIN_NAME]";
+
+  let contractObject = initTestTokenContract(ima);
+  ima.schain.addERC721Token(tokenName, contractObject);
+
+  let address = "[YOUR_ADDRESS]";
+  let privateKey = "[YOUR_PRIVATE_KEY]";
+
+  let txOpts = { // transaction options
+    address: address,
+    privateKey: privateKey // remove privateKey from txOpts to use Metamask signing
+  };
+
+  const erc721OwnerMainnet = await ima.mainnet.getERC721OwnerOf(tokenName, erc721TokenId); // get owner on the Mainnet before the transfer
+
+  await ima.schain.approveERC721Transfer(tokenName, erc721TokenId, txOpts);
+  await ima.withdrawERC721(tokenName, address, erc721TokenId, txOpts);
+
+  // optional
+  await ima.mainnet.waitERC721OwnerChange(tokenName, erc721TokenId, erc721OwnerMainnet); // wait for the owner to be changed on the Mainnet side
+}
+
+----
+--
+
+
+Web3 JS::
 +
 --
 
