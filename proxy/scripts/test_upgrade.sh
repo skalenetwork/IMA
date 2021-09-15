@@ -6,11 +6,11 @@ DEPLOYED_DIR=$GITHUB_WORKSPACE/deployed-proxy/
 
 # TODO: remove when upgrade proxy with using new node js
 # or install old version of node
-if [[ $DEPLOYED_VERSION == "1.0.0" ]]
-then
-    echo "Skip upgrade check because of incompatible node.js version"
-    exit 0
-fi
+# if [[ $DEPLOYED_VERSION == "1.0.0" ]]
+# then
+#     echo "Skip upgrade check because of incompatible node.js version"
+#     exit 0
+# fi
 
 git clone --branch $DEPLOYED_TAG https://github.com/$GITHUB_REPOSITORY.git $DEPLOYED_DIR
 
