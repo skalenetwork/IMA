@@ -179,6 +179,37 @@ Third, you need to register the Mainnet token contract into IMA on Mainnet using
 
 [tabs]
 ====
+IMA-JS::
++
+--
+
+[source, javascript]
+----
+import { MainnetChain } from "@skalenetwork/ima-js";
+
+let ethereumEndpoint = "[ETHEREUM_ENDPOINT]";
+let abi = require("[IMA_ABI_ON_ETHEREUM]");
+
+let schainName = "YOUR_SKALE_CHAIN_NAME";
+
+const web3Rinkeby = new Web3(ethereumEndpoint);
+let mainnet = new MainnetChain(web3Rinkeby, abi);
+
+const erc721OnMainnet = "[ADDRESS_OF_ERC721_ON_MAINNET]";
+
+export async function addToken() {
+  const opts = { // optional
+      address: "YOUR_ADDRESS",
+      privateKey: "YOUR_PRIVATE_KEY"
+  };
+  await mainnet.addERC721TokenByOwner(schainName, erc721OnMainnet, opts);
+}
+
+----
+
+--
+
+====
 Javascript::
 +
 --
