@@ -29,9 +29,11 @@ link:{eth-ima-js-sandbox}?file=/src/deposit.js[See IMA-JS deposit.js sandbox]
 
 [source, javascript]
 ----
-// init ima-js
+// import & init ima-js here
+
 export async function makeDeposit(ima) {
   let schainName = "[YOUR_SKALE_CHAIN_NAME]";
+
   let address = "[YOUR_ADDRESS]";
   let privateKey = "[YOUR_PRIVATE_KEY]";
 
@@ -146,7 +148,8 @@ link:{eth-ima-js-sandbox}?file=/src/deposit.js[See IMA-JS deposit.js sandbox]
 
 [source,javascript]
 ----
-// init ima-js
+// import & init ima-js here
+
 export async function withdrawETH(ima) {
   let address = "[YOUR_ADDRESS]";
   let privateKey = "[YOUR_PRIVATE_KEY]";
@@ -249,7 +252,8 @@ link:{eth-ima-js-sandbox}?file=/src/deposit.js[See IMA-JS deposit.js sandbox]
 
 [source,javascript]
 ----
-// init ima-js
+// import & init ima-js here
+
 export async function retrieveETH(ima) {
   let address = "[YOUR_ADDRESS]";
   let privateKey = "[YOUR_PRIVATE_KEY]";
