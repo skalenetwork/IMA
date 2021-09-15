@@ -50,6 +50,11 @@ const sChainWeb3 = new Web3(SCHAIN_ENDPOINT);
 let ima = new IMA(mainnetWeb3, sChainWeb3, mainnetAbi, sChainAbi);
 ```
 
+Accessing Mainnet and sChain parts:
+
+* Mainnet: `ima.mainnet` - equals to `MainnetChain` object
+* sChain: `ima.schain` - equals to `SChain` object
+
 ==== Working with 2 separate objects
 
 Import and init Mainnet object:
@@ -61,7 +66,7 @@ import mainnetAbi from './mainnetAbi.json'; // your local sources
 const MAINNET_ENDPOINT = '[YOUR_ETHEREUM_MAINNET_ENDPOINT]';
 const mainnetWeb3 = new Web3(MAINNET_ENDPOINT);
 
-let mainnetIMA = new MainnetChain(mainnetWeb3, mainnetAbi);
+let mainnet = new MainnetChain(mainnetWeb3, mainnetAbi);
 ```
 
 Import and init sChain object:
@@ -73,7 +78,7 @@ import schainAbi from './schainAbi.json'; // your local sources
 const SCHAIN_ENDPOINT = '[YOUR_SCHAIN_ENDPOINT]';
 const sChainWeb3 = new Web3(SCHAIN_ENDPOINT);
 
-let schainIMA = new SChain(sChainWeb3, schainAbi);
+let schain = new SChain(sChainWeb3, schainAbi);
 ```
 
 === ETH and token transfers
