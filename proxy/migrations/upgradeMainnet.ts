@@ -2,6 +2,7 @@ import { contracts, getContractKeyInAbiFile, getManifestFile } from "./deployMai
 import { ethers, network, upgrades, artifacts } from "hardhat";
 import hre from "hardhat";
 import { promises as fs } from "fs";
+import { Linker } from "../typechain";
 import { getImplementationAddress, hashBytecode } from "@openzeppelin/upgrades-core";
 import { deployLibraries, getLinkedContractFactory } from "./tools/factory";
 import { getAbi } from "./tools/abi";
@@ -68,21 +69,20 @@ export async function upgrade(
     const abi = JSON.parse(await fs.readFile(abiFilename, "utf-8"));
 
     const proxyAdmin = await getManifestAdmin(hre);
-    // const contractManagerName = "ContractManager";
-    // const contractManagerFactory = await ethers.getContractFactory(contractManagerName);
-    // const contractManager = (contractManagerFactory.attach(abi[getContractKeyInAbiFile(contractManagerName) + "_address"])) as ContractManager;
-    // const skaleManagerName = "SkaleManager";
-    // const skaleManager = ((await ethers.getContractFactory(skaleManagerName)).attach(
-    //     abi[getContractKeyInAbiFile(skaleManagerName) + "_address"]
-    // )) as SkaleManager;
+    const version = await getVersion();
+
+    // TODO: comment - not implemented functionality
+    // const linkerName = "Linker";
+    // const linker = ((await ethers.getContractFactory(linkerName)).attach(
+    //     abi[getContractKeyInAbiFile(linkerName) + "_address"]
+    // )) as Linker;
 
     // let deployedVersion = "";
     // try {
-    //     deployedVersion = await skaleManager.version();
+    //     deployedVersion = await linker.version();
     // } catch {
     //     console.log("Can't read deployed version");
     // };
-    const version = await getVersion();
     // if (deployedVersion) {
     //     if (deployedVersion !== targetVersion) {
     //         console.log(chalk.red(`This script can't upgrade version ${deployedVersion} to ${version}`));
@@ -161,16 +161,17 @@ export async function upgrade(
 
     await initialize(safeTransactions, abi);
 
+    // TODO: comment - not implemented functionality
     // write version
-    if (safeMock) {
-        // console.log(chalk.blue("Grant access to set version"));
-        // await (await skaleManager.grantRole(await skaleManager.DEFAULT_ADMIN_ROLE(), safe)).wait();
-    }
+    // if (safeMock) {
+    //     console.log(chalk.blue("Grant access to set version"));
+    //     await (await linker.grantRole(await linker.DEFAULT_ADMIN_ROLE(), safe)).wait();
+    // }
     // safeTransactions.push(encodeTransaction(
     //     0,
-    //     skaleManager.address,
+    //     linker.address,
     //     0,
-    //     skaleManager.interface.encodeFunctionData("setVersion", [version]),
+    //     linker.interface.encodeFunctionData("setVersion", [version]),
     // ));
 
     await fs.writeFile(`data/transactions-${version}-${network.name}.json`, JSON.stringify(safeTransactions, null, 4));
