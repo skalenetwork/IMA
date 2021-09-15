@@ -90,6 +90,50 @@ Detailed documentation about ETH and token transfers using IMA-JS can be found h
 * xref:managing-erc721.adoc[ERC721 token transfers] 
 * xref:managing-erc1155.adoc[ERC1155 token transfers] 
 
+=== Signing transactions
+
+There are 2 ways to sign a transaction in the current version of IMA-JS:
+
+* Signing directly with private key
+* Signing with an external provider (currently only Metamask is supported)
+
+==== Signing with private key
+
+To sing and send a transaction using local private key you should specify `privateKey` and `address` in the `txOpts` object:
+
+```javascript
+// init ima object
+
+const txOpts = {
+    address: "[ADDRESS]",
+    privateKey: "[PRIVATE_KEY]"
+}
+
+this.state.sChain.withdrawETH(
+    receiverAddress,
+    amountWei,
+    txOpts
+);
+```
+
+==== Signing with Metamask
+
+Just drop `privateKey` from the `txOpts` object to trigger external signing, keep `address` field:
+
+```javascript
+// init ima object
+
+const txOpts = {
+    address: "[ADDRESS]"
+}
+
+this.state.sChain.withdrawETH(
+    receiverAddress,
+    amountWei,
+    txOpts
+);
+```
+
 === Administrative functions
 
 IMA-JS library has a set of functions that can be used by an sChain owner to manage IMA-related functionality.
