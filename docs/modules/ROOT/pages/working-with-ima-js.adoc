@@ -1,3 +1,90 @@
 = Working with IMA-JS library
 
-Test page
+IMA-JS is a Typescirpt/Javascript library which implements client for SKALE Interchain Messaging Agent (IMA).  
+On this page you will find instructions for the installation and usage of the library.
+
+== Installation
+
+=== Node
+
+```bash
+npm install --save @skalenetwork/ima-js
+```
+
+=== Yarn
+
+```bash
+yarn add @skalenetwork/ima-js
+```
+
+== Usage
+
+=== Initialization
+
+There are 2 ways to use ima-js library in your project:
+
+* As a single object that contains both Mainnet and sChain parts
+* Use Mainnet and sChain objects separately
+
+First approach is more convenient in general because single IMA object have simplified API for some functionality that
+requires both Mainnet and sChain interactions, but in this case you will need two `web3` objects to be available at the same time.  
+  
+Second approach is more flexible but requires more developer work in some cases.  
+
+==== Working with a single IMA object
+
+Import and init single IMA-JS object:  
+
+```javascript
+import IMA from '@skalenetwork/ima-js';
+
+import mainnetAbi from './mainnetAbi.json'; // your local sources
+import schainAbi from './schainAbi.json'; // your local sources
+
+const MAINNET_ENDPOINT = '[YOUR_ETHEREUM_MAINNET_ENDPOINT]';
+const SCHAIN_ENDPOINT = '[YOUR_SCHAIN_ENDPOINT]';
+
+const mainnetWeb3 = new Web3(MAINNET_ENDPOINT);
+const sChainWeb3 = new Web3(SCHAIN_ENDPOINT);
+
+let ima = new IMA(mainnetWeb3, sChainWeb3, mainnetAbi, sChainAbi);
+```
+
+==== Working with 2 separate objects
+
+Import and init Mainnet object:
+
+```javascript
+import { MainnetChain } from '@skalenetwork/ima-js';
+import mainnetAbi from './mainnetAbi.json'; // your local sources
+
+const MAINNET_ENDPOINT = '[YOUR_ETHEREUM_MAINNET_ENDPOINT]';
+const mainnetWeb3 = new Web3(MAINNET_ENDPOINT);
+
+let mainnetIMA = new MainnetChain(mainnetWeb3, mainnetAbi);
+```
+
+Import and init sChain object:
+
+```javascript
+import { SChain } from '@skalenetwork/ima-js';
+import schainAbi from './schainAbi.json'; // your local sources
+
+const SCHAIN_ENDPOINT = '[YOUR_SCHAIN_ENDPOINT]';
+const sChainWeb3 = new Web3(SCHAIN_ENDPOINT);
+
+let schainIMA = new SChain(sChainWeb3, schainAbi);
+```
+
+=== ETH and token transfers
+
+Detailed documentation about ETH and token transfers using IMA-JS can be found here:  
+
+* xref:transferring-eth.adoc[ETH transfers] 
+* xref:managing-erc20.adoc[ERC20 token transfers] 
+* xref:managing-erc721.adoc[ERC721 token transfers] 
+* xref:managing-erc1155.adoc[ERC1155 token transfers] 
+
+=== Administrative functions
+
+IMA-JS library has a set of functions that can be used by an sChain owner to manage IMA-related functionality.
