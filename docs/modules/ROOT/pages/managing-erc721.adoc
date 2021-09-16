@@ -100,7 +100,7 @@ Now you need to add the pre-deployed TokenManagerERC721 contact on your SKALE Ch
 
 [tabs]
 ====
-Javascript::
+Web3 JS::
 +
 --
 
@@ -189,7 +189,7 @@ In all ima-js code samples we're assuming that library is already inited. See in
 ----
 // import & init ima-js here
 
-export async function addToken() {
+export async function linkERC721TokenMainnet(ima) {
   let schainName = "[YOUR_SKALE_CHAIN_NAME]";
   const erc721OnMainnet = "[ADDRESS_OF_ERC721_ON_MAINNET]";
 
@@ -310,7 +310,7 @@ export async function linkERC721TokenSchain(ima) {
 ----
 --
 
-Javascript::
+Web3 JS::
 +
 --
 
@@ -461,7 +461,7 @@ export async function depositERC721(ima) {
 ----
 --
 
-Javascript::
+Web3 JS::
 +
 --
 
@@ -633,7 +633,11 @@ export async function exit(ima) {
   const erc721OwnerMainnet = await ima.mainnet.getERC721OwnerOf(tokenName, erc721TokenId); // get owner on the Mainnet before the transfer
 
   await ima.schain.approveERC721Transfer(tokenName, erc721TokenId, txOpts);
-  await ima.withdrawERC721(tokenName, address, erc721TokenId, txOpts);
+
+  // 1. for single object
+  await ima.withdrawERC721(tokenName, address, erc721TokenId, txOpts); 
+  // 2. for separate sChain object
+  await ima.schain.withdrawERC721("[ADDRESS_OF_ERC721_ON_MAINNET]", address, erc721TokenId, txOpts);
 
   // optional
   await ima.mainnet.waitERC721OwnerChange(tokenName, erc721TokenId, erc721OwnerMainnet); // wait for the owner to be changed on the Mainnet side
