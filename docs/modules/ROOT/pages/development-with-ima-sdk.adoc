@@ -41,6 +41,30 @@ Put SSL cert & key to `ssl` folder (names should be `ssl_key` and `ssl_cert`):
 cp privkey.pem ~/skale-ima-sdk/ssl/ssl_key
 cp cert.pem ~/skale-ima-sdk/ssl/ssl_cert
 ```
+
+=== Add additional accounts (optional)
+
+[NOTE]
+This step is optional. Proceed to the next step if you need only 1 account with funds.
+
+You can pass any number of additional accounts to the SDK.  
+All accounts will have pre-allocated ETH both on Mainnet and sChain sides. 
+To do that add `additional_accounts.json` file in the root of the project. Structure of the file:
+
+```json
+[
+    {
+        "private_key": "0x...",
+        "address": "0x.."
+    },
+    {
+        "private_key": "0x...",
+        "address": "0x.."
+    }
+    ...
+]
+```
+
 === Run SDK
 
 ```bash
@@ -67,24 +91,6 @@ When you're done, stop SDK:
 
 ```bash
 CLEANUP=True  bash scripts/stop_sdk.sh
-```
-
-[NOTE]
-You can pass any number of additional accounts to the SDK.  
-All accounts will have pre-allocated ETH both on Mainnet and sChain sides.
-To do that add `additional_accounts.json` file in the root of the project. Structure of the file:
-```json
-[
-    {
-        "private_key": "0x...",
-        "address": "0x.."
-    },
-    {
-        "private_key": "0x...",
-        "address": "0x.."
-    }
-    ...
-]
 ```
 
 == IMA-JS integration
