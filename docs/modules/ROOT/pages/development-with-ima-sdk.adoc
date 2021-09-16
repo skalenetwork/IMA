@@ -1,5 +1,4 @@
 = Development with IMA-SDK
-:sectnumlevels: 5
 
 IMA-SDK is a tool for dApp developers that emulates SKALE Node + IMA env on a single machine for dev purposes.  
 This article will demonstrate how to setup and use the IMA-SDK in combination with IMA-JS library for dApp development.
@@ -12,25 +11,25 @@ This article will demonstrate how to setup and use the IMA-SDK in combination wi
 * docker-compose
 * nodejs (any version)
 
-=== Clone IMA-SDK repo
+=== 1. Clone IMA-SDK repo
 
 ```bash
 https://github.com/skalenetwork/skale-ima-sdk.git
 ```
 
-=== Copy .env template and fill variables
+=== 2. Copy .env template and fill variables
 
 ```bash
 cp .env-compose-sample .env
 nano .env
 ```
-=== Export environment variables
+=== 3. Export environment variables
 
 ```bash
 export $(grep -v '^#' .env | xargs)
 ```
 
-=== Setup SSL certs (optional)
+=== 4. Setup SSL certs (optional)
 
 [NOTE]
 This step is optional. You should have SSL certs, domain name and setup redirects by yourself.
@@ -42,7 +41,7 @@ cp privkey.pem ~/skale-ima-sdk/ssl/ssl_key
 cp cert.pem ~/skale-ima-sdk/ssl/ssl_cert
 ```
 
-=== Add additional accounts (optional)
+=== 5. Add additional accounts (optional)
 
 [NOTE]
 This step is optional. Proceed to the next step if you need only 1 account with funds.
@@ -65,7 +64,7 @@ To do that add `additional_accounts.json` file in the root of the project. Struc
 ]
 ```
 
-=== Run SDK
+=== 6. Run SDK
 
 ```bash
 WAIT=True bash scripts/run_sdk.sh
@@ -95,5 +94,17 @@ CLEANUP=True  bash scripts/stop_sdk.sh
 
 == IMA-JS integration
 
-=== Connect chain, grant admin permissions
+Now, once you have IMA-SDK up running, it's time try some interchain transfers!
+
+[NOTE]
+In all ima-js code samples we're assuming that library is already inited. See init instructions xref:working-with-ima-js.adoc[here]. For the 2 objects usage drop `ima.` prefix.
+
+=== 1. Connect chain, grant admin permissions
+
+First of all you should connect your chain to the Mainnet contracts:
+
+```javascript
+
+```
+
 
