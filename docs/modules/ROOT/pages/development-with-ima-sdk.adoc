@@ -1,4 +1,5 @@
 = Development with IMA-SDK
+:sectnumlevels: 5
 
 IMA-SDK is a tool for dApp developers that emulates SKALE Node + IMA env on a single machine for dev purposes.  
 This article will demonstrate how to setup and use the IMA-SDK in combination with IMA-JS library for dApp development.
@@ -11,7 +12,6 @@ This article will demonstrate how to setup and use the IMA-SDK in combination wi
 * docker-compose
 * nodejs (any version)
 
-:sectnums:
 === Clone IMA-SDK repo
 
 ```bash
