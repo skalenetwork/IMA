@@ -1229,7 +1229,7 @@ async function discover_s_chain_network( fnAfter, isSilent, joPrevSChainNetworkI
                     nCountToWait = 0 + cntNodes;
                     if( nCountToWait > 2 )
                         nCountToWait = Math.ceil( nCountToWait * 2 / 3 );
-                } else if( nCountToWait >= cntNodes )
+                } else if( nCountToWait > cntNodes )
                     nCountToWait = cntNodes;
                 if( ! isSilent ) {
                     log.write( strLogPrefix + cc.debug( "Will gather details of " ) + cc.info( nCountToWait ) +
