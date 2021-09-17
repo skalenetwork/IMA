@@ -957,6 +957,26 @@ if( imaState.isShowReimbursementBalance ) {
         }
     } );
 }
+if( imaState.nReimbursementEstimate ) {
+    haveReimbursementCommands = true;
+    imaState.arrActions.push( {
+        "name": "Gas Reimbursement - Estimate Amount",
+        "fn": async function() {
+            await IMA.reimbursement_estimate_amount(
+                imaState.w3_main_net,
+                imaState.jo_community_pool,
+                imaState.joAccount_main_net,
+                imaState.receiver,
+                imaState.strChainName_main_net,
+                imaState.cid_main_net,
+                imaState.tc_main_net,
+                imaState.strReimbursementChain,
+                true
+            );
+            return true;
+        }
+    } );
+}
 if( imaState.nReimbursementRecharge ) {
     haveReimbursementCommands = true;
     imaState.arrActions.push( {
