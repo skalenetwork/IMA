@@ -218,6 +218,24 @@ node ./main.js --verbose=9 --expose --colors \
     --reimbursement-balance
 ```
 
+Estimate amount:
+
+```shell
+node ./main.js --verbose=9 --expose --colors \
+    --url-main-net=$URL_W3_ETHEREUM \
+    --url-s-chain=$URL_W3_S_CHAIN \
+    --id-main-net=Mainnet \
+    --id-s-chain=Bob \
+    --cid-main-net=-4 \
+    --cid-s-chain=-4 \
+    --abi-main-net=../proxy/data/proxyMainnet.json \
+    --abi-s-chain=../proxy/data/proxySchain_Bob.json \
+    --key-main-net=$PRIVATE_KEY_FOR_ETHEREUM \
+    --reimbursement-chain=Bob \
+    --reimbursement-estimate \
+    --receiver=$ADDRESS_FOR_ETHEREUM
+```
+
 Recharge balance with 1 ETH:
 
 ```shell
@@ -681,20 +699,39 @@ Here is example of IMA message processing loop invocation with BLS support:
 ```shell
 reset; node ./main.js --verbose=9 --expose --colors \
     --loop \
-    --url-main-net=$URL_W3_ETHEREUM \
-    --url-s-chain=$URL_W3_S_CHAIN \
+    --url-main-net=http://localhost:8545 \
+    --url-s-chain=http://localhost:8546 \
     --id-main-net=Mainnet \
     --id-s-chain=Bob \
-    --cid-main-net=-4 \
-    --cid-s-chain=-4 \
+    --cid-main-net=31337 \
+    --cid-s-chain=1338 \
     --abi-main-net=../proxy/data/proxyMainnet.json \
     --abi-s-chain=../proxy/data/proxySchain_Bob.json \
-    --key-main-net=$PRIVATE_KEY_FOR_ETHEREUM \
-    --key-s-chain=$PRIVATE_KEY_FOR_SCHAIN \
+    --key-main-net=ac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80 \
+    --key-s-chain=04306dd0a1ffcd19fc14f283adac5ea9ac2ed61ebe912a5081b5cdf747af542c \
+    --no-wait-s-chain \
+    --no-ptx \
     --sign-messages \
     --bls-glue=/Users/l_sergiy/Work/skaled/build/libconsensus/libBLS/bls_glue \
     --hash-g1=/Users/l_sergiy/Work/skaled/build/libconsensus/libBLS/hash_g1 \
     --bls-verify=/Users/l_sergiy/Work/skaled/build/libconsensus/libBLS/verify_bls
+
+// REGISTRER!!!!!
+
+reset; node ./main.js --verbose=9 --expose --colors \
+    --register \
+    --url-main-net=http://localhost:8545 \
+    --url-s-chain=http://localhost:8546 \
+    --id-main-net=Mainnet \
+    --id-s-chain=Bob \
+    --cid-main-net=1337 \
+    --cid-s-chain=1338 \
+    --abi-main-net=../proxy/data/proxyMainnet.json \
+    --abi-s-chain=../proxy/data/proxySchain_Bob.json \
+    --key-main-net=72c94679ef906682acd8959b964d302efda9d1f94674b9343f19be153ac811c0 \
+    --key-s-chain=04306dd0a1ffcd19fc14f283adac5ea9ac2ed61ebe912a5081b5cdf747af542c \
+    --no-wait-s-chain \
+    --no-ptx
 
 reset; node ./main.js --verbose=9 --expose --colors \
     --loop \
