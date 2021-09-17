@@ -1233,7 +1233,6 @@ async function reimbursement_show_balance(
 async function reimbursement_estimate_amount(
     w3_main_net,
     jo_community_pool,
-    joAccount_main_net,
     joReceiver_main_net,
     strChainName_main_net,
     cid_main_net,
@@ -1246,7 +1245,6 @@ async function reimbursement_estimate_amount(
     const strLogPrefix = cc.info( "Gas Reimbursement - Estimate Amount To Recharge" ) + " ";
     try {
         details.write( strLogPrefix + cc.debug( "Querying wallet " ) + cc.notice( strReimbursementChain ) + cc.debug( " balance..." ) + "\n" );
-        const addressFrom = joAccount_main_net.address( w3_main_net );
         const addressReceiver = joReceiver_main_net;
         const xWei = await jo_community_pool.methods.getBalance( addressReceiver, strReimbursementChain ).call();
         //
@@ -1261,7 +1259,7 @@ async function reimbursement_estimate_amount(
             log.write( s );
         details.write( s );
         //
-        const minTransactionGas = parseIntOrHex(await jo_community_pool.methods.minTransactionGas().call());
+        const minTransactionGas = parseIntOrHex( await jo_community_pool.methods.minTransactionGas().call() );
         s = strLogPrefix + cc.success( "MinTransactionGas: " ) + cc.attention( minTransactionGas ) + "\n";
         if( isForcePrintOut || verbose_get() >= RV_VERBOSE.information )
             log.write( s );
@@ -1280,11 +1278,11 @@ async function reimbursement_estimate_amount(
         details.write( s );
         //
         let amountToRecharge;
-        if (xWei >= minAmount) {
+        if( xWei >= minAmount )
             amountToRecharge = 1;
-        } else {
+        else
             amountToRecharge = minAmount - xWei;
-        }
+
         s = strLogPrefix + cc.success( "Estimated amount to recharge(wei): " ) + cc.attention( amountToRecharge ) + "\n";
         if( isForcePrintOut || verbose_get() >= RV_VERBOSE.information )
             log.write( s );
