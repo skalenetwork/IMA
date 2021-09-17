@@ -508,6 +508,11 @@ function parse( joExternalHandlers, argv ) {
             imaState.joAccount_s_chain.address_ = joArg.value;
             continue;
         }
+        if( joArg.name == "receiver" ) {
+            owaspUtils.verifyArgumentWithNonEmptyValue( joArg );
+            imaState.receiver.address_ = joArg.value;
+            continue;
+        }
         if( joArg.name == "key-main-net" ) {
             owaspUtils.verifyArgumentWithNonEmptyValue( joArg );
             imaState.joAccount_main_net.privateKey = joArg.value;
@@ -906,6 +911,10 @@ function parse( joExternalHandlers, argv ) {
         }
         if( joArg.name == "reimbursement-balance" ) {
             imaState.isShowReimbursementBalance = true;
+            continue;
+        }
+        if( joArg.name == "reimbursement-estimate" ) {
+            imaState.nReimbursementEstimate = true;
             continue;
         }
         if( joArg.name == "reimbursement-range" ) {

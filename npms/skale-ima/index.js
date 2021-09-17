@@ -1230,6 +1230,70 @@ async function reimbursement_show_balance(
     }
 }
 
+async function reimbursement_estimate_amount(
+    w3_main_net,
+    jo_community_pool,
+    joAccount_main_net,
+    joReceiver_main_net,
+    strChainName_main_net,
+    cid_main_net,
+    tc_main_net,
+    strReimbursementChain,
+    isForcePrintOut
+) {
+    const details = log.createMemoryStream();
+    let s = "";
+    const strLogPrefix = cc.info( "Gas Reimbursement - Estimate Amount To Recharge" ) + " ";
+    try {
+        details.write( strLogPrefix + cc.debug( "Querying wallet " ) + cc.notice( strReimbursementChain ) + cc.debug( " balance..." ) + "\n" );
+        const addressFrom = joAccount_main_net.address( w3_main_net );
+        const addressReceiver = joReceiver_main_net.address( w3_main_net );
+        const xWei = await jo_community_pool.methods.getBalance( addressReceiver, strReimbursementChain ).call();
+        const minTransactionGas = await jo_community_pool.methods.minTransactionGas().call();
+        //
+        s = strLogPrefix + cc.success( "Balance(wei): " ) + cc.attention( xWei ) + "\n";
+        if( isForcePrintOut || verbose_get() >= RV_VERBOSE.information )
+            log.write( s );
+        details.write( s );
+        //
+        const xEth = w3_main_net.utils.fromWei( xWei, "ether" );
+        s = strLogPrefix + cc.success( "Balance(eth): " ) + cc.attention( xEth ) + "\n";
+        if( isForcePrintOut || verbose_get() >= RV_VERBOSE.information )
+            log.write( s );
+        details.write( s );
+        //
+        const minAmount = minTransactionGas * await tc_main_net.computeGas( w3_main_net, 200000000000);
+        s = strLogPrefix + cc.success( "Minimum recharge balance: " ) + cc.attention( minAmount ) + "\n";
+        if( isForcePrintOut || verbose_get() >= RV_VERBOSE.information )
+            log.write( s );
+        details.write( s );
+        //
+        let amountToRecharge;
+        if (xWei >= minAmount) {
+            amountToRecharge = 1;
+        } else {
+            amountToRecharge = minAmount - xWei;
+        }
+        s = strLogPrefix + cc.success( "Estimated amount to recharge: " ) + cc.attention( amountToRecharge ) + "\n";
+        if( isForcePrintOut || verbose_get() >= RV_VERBOSE.information )
+            log.write( s );
+        details.write( s );
+        //
+        if( expose_details_get() )
+            details.exposeDetailsTo( log, "reimbursement_estimate_amount", true );
+        details.close();
+        return amountToRecharge;
+    } catch ( err ) {
+        const s = strLogPrefix + cc.fatal( "CRITICAL ERROR:" ) + cc.error( " Payment error in reimbursement_estimate_amount(): " ) + cc.error( err ) + "\n";
+        if( verbose_get() >= RV_VERBOSE.fatal )
+            log.write( s );
+        details.write( s );
+        details.exposeDetailsTo( log, "reimbursement_estimate_amount", false );
+        details.close();
+        return 0;
+    }
+}
+
 async function reimbursement_wallet_recharge(
     w3_main_net,
     jo_community_pool,
@@ -4516,6 +4580,7 @@ module.exports.check_is_registered_s_chain_in_deposit_boxes = check_is_registere
 // module.exports.check_is_registered_main_net_on_s_chain = check_is_registered_main_net_on_s_chain; // step 2B
 
 module.exports.reimbursement_show_balance = reimbursement_show_balance;
+module.exports.reimbursement_estimate_amount = reimbursement_estimate_amount;
 module.exports.reimbursement_wallet_recharge = reimbursement_wallet_recharge;
 module.exports.reimbursement_wallet_withdraw = reimbursement_wallet_withdraw;
 module.exports.reimbursement_set_range = reimbursement_set_range;
