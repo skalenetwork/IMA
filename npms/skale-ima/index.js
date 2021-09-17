@@ -1247,9 +1247,8 @@ async function reimbursement_estimate_amount(
     try {
         details.write( strLogPrefix + cc.debug( "Querying wallet " ) + cc.notice( strReimbursementChain ) + cc.debug( " balance..." ) + "\n" );
         const addressFrom = joAccount_main_net.address( w3_main_net );
-        const addressReceiver = joReceiver_main_net.address( w3_main_net );
+        const addressReceiver = joReceiver_main_net;
         const xWei = await jo_community_pool.methods.getBalance( addressReceiver, strReimbursementChain ).call();
-        const minTransactionGas = await jo_community_pool.methods.minTransactionGas().call();
         //
         s = strLogPrefix + cc.success( "Balance(wei): " ) + cc.attention( xWei ) + "\n";
         if( isForcePrintOut || verbose_get() >= RV_VERBOSE.information )
@@ -1262,7 +1261,19 @@ async function reimbursement_estimate_amount(
             log.write( s );
         details.write( s );
         //
-        const minAmount = minTransactionGas * await tc_main_net.computeGas( w3_main_net, 200000000000);
+        const minTransactionGas = parseIntOrHex(await jo_community_pool.methods.minTransactionGas().call());
+        s = strLogPrefix + cc.success( "MinTransactionGas: " ) + cc.attention( minTransactionGas ) + "\n";
+        if( isForcePrintOut || verbose_get() >= RV_VERBOSE.information )
+            log.write( s );
+        details.write( s );
+        //
+        const gasPrice = await tc_main_net.computeGasPrice( w3_main_net, 200000000000 );
+        s = strLogPrefix + cc.success( "Multiplied Gas Price: " ) + cc.attention( gasPrice ) + "\n";
+        if( isForcePrintOut || verbose_get() >= RV_VERBOSE.information )
+            log.write( s );
+        details.write( s );
+        //
+        const minAmount = minTransactionGas * gasPrice;
         s = strLogPrefix + cc.success( "Minimum recharge balance: " ) + cc.attention( minAmount ) + "\n";
         if( isForcePrintOut || verbose_get() >= RV_VERBOSE.information )
             log.write( s );
@@ -1274,7 +1285,13 @@ async function reimbursement_estimate_amount(
         } else {
             amountToRecharge = minAmount - xWei;
         }
-        s = strLogPrefix + cc.success( "Estimated amount to recharge: " ) + cc.attention( amountToRecharge ) + "\n";
+        s = strLogPrefix + cc.success( "Estimated amount to recharge(wei): " ) + cc.attention( amountToRecharge ) + "\n";
+        if( isForcePrintOut || verbose_get() >= RV_VERBOSE.information )
+            log.write( s );
+        details.write( s );
+        //
+        const amountToRechargeEth = w3_main_net.utils.fromWei( amountToRecharge.toString(), "ether" );
+        s = strLogPrefix + cc.success( "Estimated amount to recharge(eth): " ) + cc.attention( amountToRechargeEth ) + "\n";
         if( isForcePrintOut || verbose_get() >= RV_VERBOSE.information )
             log.write( s );
         details.write( s );
