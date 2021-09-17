@@ -8,4 +8,4 @@
 * xref:message-proxy.adoc[Managing other contracts using Message Proxy]
 * xref:access-control.adoc[IMA Access Control]
 * xref:ima-js-overview.adoc[IMA-JS overview]
-* xref:ima-js-sdk.adoc[Development with IMA-SDK and IMA-JS]
+* xref:ima-sdk.adoc[Development with IMA-SDK and IMA-JS]
