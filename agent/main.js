@@ -946,7 +946,7 @@ if( imaState.isShowReimbursementBalance ) {
             await IMA.reimbursement_show_balance(
                 imaState.w3_main_net,
                 imaState.jo_community_pool,
-                imaState.joAccount_main_net,
+                imaState.receiver,
                 imaState.strChainName_main_net,
                 imaState.cid_main_net,
                 imaState.tc_main_net,

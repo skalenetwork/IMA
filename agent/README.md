@@ -213,9 +213,9 @@ node ./main.js --verbose=9 --expose --colors \
     --cid-s-chain=-4 \
     --abi-main-net=../proxy/data/proxyMainnet.json \
     --abi-s-chain=../proxy/data/proxySchain_Bob.json \
-    --key-main-net=$PRIVATE_KEY_FOR_ETHEREUM \
     --reimbursement-chain=Bob \
     --reimbursement-balance
+    --receiver=$ADDRESS_FOR_ETHEREUM
 ```
 
 Estimate amount:
