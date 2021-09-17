@@ -1187,7 +1187,7 @@ async function register_s_chain_in_deposit_boxes( // step 1
 async function reimbursement_show_balance(
     w3_main_net,
     jo_community_pool,
-    joAccount_main_net,
+    joReceiver_main_net,
     strChainName_main_net,
     cid_main_net,
     tc_main_net,
@@ -1199,10 +1199,8 @@ async function reimbursement_show_balance(
     const strLogPrefix = cc.info( "Gas Reimbursement - Show Balance" ) + " ";
     try {
         details.write( strLogPrefix + cc.debug( "Querying wallet " ) + cc.notice( strReimbursementChain ) + cc.debug( " balance..." ) + "\n" );
-        const addressFrom = joAccount_main_net.address( w3_main_net );
-        const xWei = await jo_community_pool.methods.getBalance( strReimbursementChain ).call( {
-            from: addressFrom
-        } );
+        const addressFrom = joReceiver_main_net;
+        const xWei = await jo_community_pool.methods.getBalance( addressFrom, strReimbursementChain ).call();
         //
         s = strLogPrefix + cc.success( "Balance(wei): " ) + cc.attention( xWei ) + "\n";
         if( isForcePrintOut || verbose_get() >= RV_VERBOSE.information )
