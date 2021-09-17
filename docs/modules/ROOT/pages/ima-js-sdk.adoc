@@ -1,4 +1,4 @@
-= Development with IMA-SDK and IMA-JS
+= 🛠️ Development with IMA-SDK and IMA-JS
 
 IMA-SDK is a tool for dApp developers that emulates SKALE Node + IMA env on a single machine for dev purposes.  
 This article will demonstrate how start development using IMA-JS with IMA-SDK.

@@ -1,4 +1,4 @@
-= IMA-JS library overview
+= 📝 IMA-JS library overview
 
 IMA-JS is a Typescirpt/Javascript library which implements client for SKALE Interchain Messaging Agent (IMA).  
 On this page you will find instructions for the installation and usage of the library.
@@ -137,3 +137,7 @@ this.state.sChain.withdrawETH(
 === Administrative functions
 
 IMA-JS library has a set of functions that can be used by an sChain owner to manage IMA-related functionality.
+
+=== Usage example
+
+You find usage example with M -> S and S -> M ETH transfers in xref:ima-js-sdk.adoc[this doc].
