@@ -4,7 +4,7 @@ IMA-SDK is a tool for dApp developers that emulates SKALE Node + IMA env on a si
 This article will demonstrate how start development using IMA-JS with IMA-SDK.
 
 [NOTE]
-This article assumes that you're already have working IMA-SDK with deployed contracts. To setup IMA-SDK refer to xref:develop::ima-js-sdk.adoc[this doc].
+This article assumes that you're already have working IMA-SDK with deployed contracts. To setup IMA-SDK refer to xref:develop::ima-sdk.adoc[this doc].
 
 == IMA-JS integration
 
