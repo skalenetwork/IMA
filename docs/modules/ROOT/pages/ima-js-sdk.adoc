@@ -1,0 +1,125 @@
+= Development with IMA-SDK and IMA-JS
+
+IMA-SDK is a tool for dApp developers that emulates SKALE Node + IMA env on a single machine for dev purposes.  
+This article will demonstrate how start development using IMA-JS with IMA-SDK.
+
+[NOTE]
+This article assumes that you're already have working IMA-SDK with deployed contracts. To setup IMA-SDK refer to xref:develop::ima-js-sdk.adoc[this doc].
+
+== IMA-JS integration
+
+Once you have IMA-SDK up running, it's time try some interchain transfers!
+
+[NOTE]
+In all ima-js code samples we're assuming that library is already inited. See init instructions xref:ima-js-overview.adoc[here]. For the 2 objects usage drop `ima.` prefix.
+
+=== 1. Connect your chain
+
+First of all you should connect your chain to the Mainnet contracts:
+
+```javascript
+async function chainSetup(ima) {
+    const sdkAddress = helper.privateKeyToAddress(ima.mainnet.web3, SDK_PRIVATE_KEY);
+    const opts = {
+        address: sdkAddress,
+        privateKey: SDK_PRIVATE_KEY
+    }
+    const isChainConnected = await ima.mainnet.isChainConnected(SCHAIN_NAME);
+    if (!isChainConnected){
+        await ima.connectSchain(SCHAIN_NAME, opts);
+    }
+}
+```
+
+=== 2. Work with IMA-JS
+
+Once chain is connected you can do anything that you want with your chain!
+In this example we will transfer ETH from the Mainnet to the sChain and back.
+
+=== 2.1 Recharge user's reimbursement wallet
+
+```javascript
+async function reimburseWallet(ima) {
+    let testAddress = helper.privateKeyToAddress(ima.schain.web3, TEST_PRIVATE_KEY);
+    let txOpts = {
+        value: TEST_WEI_REIMBURSEMENT_VALUE,
+        address: testAddress,
+        privateKey: TEST_PRIVATE_KEY
+    };
+    await ima.mainnet.reimbursementWalletRecharge(
+        SCHAIN_NAME,
+        txOpts
+    );
+}
+```
+
+=== 2.2 Perform transfers
+
+```javascript
+async function ethTransferDemo(ima) {
+    const address = helper.privateKeyToAddress(ima.mainnet.web3, TEST_PRIVATE_KEY);
+    let txOpts = {
+        value: TEST_WEI_TRANSFER_VALUE,
+        address: address,
+        privateKey: TEST_PRIVATE_KEY
+    };
+
+    let mainnetBalanceBefore = await ima.mainnet.ethBalance(address);
+    let sChainBalanceBefore = await ima.schain.ethBalance(address);
+
+    await ima.mainnet.depositETHtoSChain(
+        SCHAIN_NAME,
+        address,
+        txOpts
+    );
+    await ima.schain.waitETHBalanceChange(address, sChainBalanceBefore);
+
+    let mainnetBalanceAfterDeposit = await ima.mainnet.ethBalance(address);
+    let sChainBalanceAfterDeposit = await ima.schain.ethBalance(address);
+
+    console.log('M -> S transfer complete!');
+    console.log('Mainnet balance before deposit: ', mainnetBalanceBefore);
+    console.log('sChain balance before deposit: ', sChainBalanceBefore);
+    console.log('Mainnet balance after deposit: ', mainnetBalanceAfterDeposit);
+    console.log('sChain balance after deposit: ', sChainBalanceAfterDeposit);
+
+    let lockedETHAmount = await ima.mainnet.lockedETHAmount(address);
+
+    await ima.schain.withdrawETH(
+        address,
+        TEST_WEI_TRANSFER_VALUE,
+        {
+            address: address,
+            privateKey: TEST_PRIVATE_KEY
+        }
+    );
+
+    await ima.mainnet.waitLockedETHAmountChange(address, lockedETHAmount);
+    await ima.mainnet.getMyEth(
+        {
+            address: address,
+            privateKey: TEST_PRIVATE_KEY
+        }
+    );
+
+    let mainnetBalanceAfterWithdraw = await ima.mainnet.ethBalance(address);
+    let sChainBalanceAfterWithdraw = await ima.schain.ethBalance(address);
+
+    console.log('S -> M transfer complete!');
+    console.log('Mainnet balance before withdraw: ', mainnetBalanceAfterDeposit);
+    console.log('sChain balance before withdraw: ', sChainBalanceAfterDeposit);
+    console.log('Mainnet balance after withdraw: ', mainnetBalanceAfterWithdraw);
+    console.log('sChain balance after withdraw: ', sChainBalanceAfterWithdraw);
+}
+
+async function main() {
+    let ima = initIMA();
+    const transferValBN = ima.mainnet.web3.utils.toBN(TEST_WEI_TRANSFER_VALUE);
+
+    await chainSetup(ima);
+    await reimburseWallet(ima);
+    await ethTransferDemo(ima);
+}
+```
+
+You can find more IMA-JS docs xref:ima-js-overview.adoc[here].
