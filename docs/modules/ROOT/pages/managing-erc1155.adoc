@@ -209,7 +209,7 @@ IMA-JS::
 +
 --
 
-In all ima-js code samples we're assuming that library is already inited. See init instructions xref:working-with-ima-js.adoc[here]. For the 2 objects usage drop `ima.` prefix.  
+In all ima-js code samples we're assuming that library is already inited. See init instructions xref:ima-js-overview.adoc[here]. For the 2 objects usage drop `ima.` prefix.  
 
 [source, javascript]
 ----
@@ -317,7 +317,7 @@ IMA-JS::
 +
 --
 
-In all ima-js code samples we're assuming that library is already inited. See init instructions xref:working-with-ima-js.adoc[here]. For the 2 objects usage drop `ima.` prefix.  
+In all ima-js code samples we're assuming that library is already inited. See init instructions xref:ima-js-overview.adoc[here]. For the 2 objects usage drop `ima.` prefix.  
 
 [source, javascript]
 ----
@@ -444,7 +444,7 @@ IMA-JS::
 +
 --
 
-In all ima-js code samples we're assuming that library is already inited. See init instructions xref:working-with-ima-js.adoc[here]. For the 2 objects usage drop `ima.` prefix.  
+In all ima-js code samples we're assuming that library is already inited. See init instructions xref:ima-js-overview.adoc[here]. For the 2 objects usage drop `ima.` prefix.  
 link:{eth-ima-js-sandbox}?file=/src/deposit.js[See IMA-JS deposit.js sandbox]
 
 [NOTE]
@@ -635,7 +635,7 @@ IMA-JS::
 +
 --
 
-In all ima-js code samples we're assuming that library is already inited. See init instructions xref:working-with-ima-js.adoc[here]. For the 2 objects usage drop `ima.` prefix.  
+In all ima-js code samples we're assuming that library is already inited. See init instructions xref:ima-js-overview.adoc[here]. For the 2 objects usage drop `ima.` prefix.  
 link:{eth-ima-js-sandbox}?file=/src/deposit.js[See IMA-JS deposit.js sandbox]
 
 [NOTE]

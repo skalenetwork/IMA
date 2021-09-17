@@ -11,7 +11,7 @@ This article assumes that you're already have IMA-SDK with deployment contracts 
 Once you have IMA-SDK up running, it's time try some interchain transfers!
 
 [NOTE]
-In all ima-js code samples we're assuming that library is already inited. See init instructions xref:working-with-ima-js.adoc[here]. For the 2 objects usage drop `ima.` prefix.
+In all ima-js code samples we're assuming that library is already inited. See init instructions xref:ima-js-overview.adoc[here]. For the 2 objects usage drop `ima.` prefix.
 
 === 1. Connect your chain
 
@@ -122,4 +122,4 @@ async function main() {
 }
 ```
 
-You can find more IMA-JS docs xref:working-with-ima-js.adoc[here].
+You can find more IMA-JS docs xref:ima-js-overview.adoc[here].

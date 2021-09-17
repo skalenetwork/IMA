@@ -1,4 +1,4 @@
-= Working with IMA-JS library
+= IMA-JS library overview
 
 IMA-JS is a Typescirpt/Javascript library which implements client for SKALE Interchain Messaging Agent (IMA).  
 On this page you will find instructions for the installation and usage of the library.
