@@ -510,7 +510,7 @@ function parse( joExternalHandlers, argv ) {
         }
         if( joArg.name == "receiver" ) {
             owaspUtils.verifyArgumentWithNonEmptyValue( joArg );
-            imaState.receiver.address_ = joArg.value;
+            imaState.receiver = joArg.value;
             continue;
         }
         if( joArg.name == "key-main-net" ) {
