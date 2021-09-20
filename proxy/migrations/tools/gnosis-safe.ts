@@ -82,7 +82,7 @@ export async function createMultiSendTransaction(ethers: any, safeAddress: strin
     try {
         const nonceResponse = await axios.get(`${getSafeTransactionUrl(chainId)}/api/v1/safes/${safeAddress}/`);
         nonce = nonceResponse.data.nonce;
-    } catch (e) {
+    } catch (e: any) {
         if (!e.toString().startsWith("Error: Can't get safe-transaction url")) {
             throw e;
         }
@@ -166,14 +166,14 @@ export async function sendSafeTransaction(safe: string, chainId: number, safeTx:
             );
             console.log(chalk.cyan(`Recommend to set gas limit to ${
                 parseInt(estimateResponse.data.safeTxGas, 10) + parseInt(estimateResponse.data.baseGas, 10)}`));
-        } catch (e) {
+        } catch (e: any) {
             console.log(chalk.red("Failed to estimate gas"));
             console.log(e.toString());
         }
 
         console.log(chalk.green("Send transaction to gnosis safe"));
         await axios.post(`${getSafeTransactionUrl(chainId)}/api/v1/safes/${safe}/transactions/`, safeTx)
-    } catch (e) {
+    } catch (e: any) {
         if (e.response) {
             console.log(JSON.stringify(e.response.data, null, 4))
             console.log(chalk.red(`Request failed with ${e.response.status} code`));
