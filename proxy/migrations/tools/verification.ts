@@ -11,7 +11,7 @@ export async function verify(contractName: string, contractAddress: string, cons
                     constructorArguments
                 });
                 break;
-            } catch (e) {
+            } catch (e: any) {
                 if (e.toString().includes("Contract source code already verified")) {
                     console.log(chalk.grey(`${contractName} is already verified`));
                     return;

@@ -4,13 +4,6 @@ DEPLOYED_TAG=$(cat $GITHUB_WORKSPACE/proxy/DEPLOYED)
 DEPLOYED_VERSION=$(echo $DEPLOYED_TAG | cut -d '-' -f 1)
 DEPLOYED_DIR=$GITHUB_WORKSPACE/deployed-proxy/
 
-# TODO: remove when upgrade proxy with using new node js
-# or install old version of node
-if [[ $NODE_VERSION != 12.* ]]
-then
-    echo "Skip upgrade check because of incompatible node.js version"
-    exit 0
-fi
 
 git clone --branch $DEPLOYED_TAG https://github.com/$GITHUB_REPOSITORY.git $DEPLOYED_DIR
 
@@ -18,8 +11,13 @@ npx ganache-cli --gasLimit 8000000 --quiet &
 GANACHE_PID=$!
 
 cd $DEPLOYED_DIR
-yarn install || exit $?
 cd proxy
+rm yarn.lock
+yarn add @skalenetwork/skale-manager-interfaces@0.1.1 ts-node@8.10.2 || exit $?
+rm migrations/tools/verification.ts
+rm migrations/deployMainnet.ts
+cp $GITHUB_WORKSPACE/proxy/migrations/tools/verification.ts migrations/tools
+cp $GITHUB_WORKSPACE/proxy/migrations/deployMainnet.ts migrations
 CHAIN_NAME_SCHAIN="Test" VERSION=$DEPLOYED_VERSION npx hardhat run migrations/deploySkaleManagerComponents.ts --network localhost || exit $?
 VERSION=$DEPLOYED_VERSION npx hardhat run migrations/deployMainnet.ts --network localhost || exit $?
 rm $GITHUB_WORKSPACE/proxy/.openzeppelin/unknown-*.json
