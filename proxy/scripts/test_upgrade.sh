@@ -23,7 +23,7 @@ VERSION="$DEPLOYED_VERSION" npx hardhat run migrations/deployMainnet.ts --networ
 rm "$GITHUB_WORKSPACE/proxy/.openzeppelin/unknown-*.json"
 rm "$GITHUB_WORKSPACE/proxy/data/skaleManagerComponents.json"
 cp .openzeppelin/unknown-*.json "$GITHUB_WORKSPACE/proxy/.openzeppelin" || exit $?
-cp ./data/skaleManagerComponents.json "$GITHUB_WORKSPACE/proxy/data/"" || exit $?
+cp ./data/skaleManagerComponents.json "$GITHUB_WORKSPACE/proxy/data/" || exit $?
 ABI_FILENAME="proxyMainnet.json"
 cp "data/$ABI_FILENAME" "$GITHUB_WORKSPACE/proxy/data" || exit $?
 cd "$GITHUB_WORKSPACE"
@@ -32,4 +32,4 @@ cd proxy
 
 ABI="data/$ABI_FILENAME" npx hardhat run migrations/upgradeMainnet.ts --network localhost || exit $?
 
-kill $GANACHE_PID
+kill "$GANACHE_PID"
