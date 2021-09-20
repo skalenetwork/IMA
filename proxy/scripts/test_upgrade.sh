@@ -1,11 +1,11 @@
 #!/usr/bin/env bash
 
-DEPLOYED_TAG="$(cat $GITHUB_WORKSPACE/proxy/DEPLOYED)"
-DEPLOYED_VERSION="$(echo $DEPLOYED_TAG | cut -d '-' -f 1)"
+DEPLOYED_TAG="$(cat "$GITHUB_WORKSPACE"/proxy/DEPLOYED)"
+DEPLOYED_VERSION="$(echo "$DEPLOYED_TAG" | cut -d '-' -f 1)"
 DEPLOYED_DIR=$GITHUB_WORKSPACE/deployed-proxy/
 
 
-git clone --branch "$DEPLOYED_TAG" https://github.com/$GITHUB_REPOSITORY.git "$DEPLOYED_DIR"
+git clone --branch "$DEPLOYED_TAG" "https://github.com/$GITHUB_REPOSITORY.git" "$DEPLOYED_DIR"
 
 npx ganache-cli --gasLimit 8000000 --quiet &
 GANACHE_PID=$!
