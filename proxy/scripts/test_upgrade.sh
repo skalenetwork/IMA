@@ -18,8 +18,8 @@ rm migrations/tools/verification.ts
 rm migrations/deployMainnet.ts
 cp "$GITHUB_WORKSPACE/proxy/migrations/tools/verification.ts" migrations/tools
 cp "$GITHUB_WORKSPACE/proxy/migrations/deployMainnet.ts" migrations
-CHAIN_NAME_SCHAIN="Test" "VERSION=$DEPLOYED_VERSION" npx hardhat run migrations/deploySkaleManagerComponents.ts --network localhost || exit $?
-"VERSION=$DEPLOYED_VERSION" npx hardhat run migrations/deployMainnet.ts --network localhost || exit $?
+CHAIN_NAME_SCHAIN="Test" VERSION="$DEPLOYED_VERSION" npx hardhat run migrations/deploySkaleManagerComponents.ts --network localhost || exit $?
+VERSION="$DEPLOYED_VERSION" npx hardhat run migrations/deployMainnet.ts --network localhost || exit $?
 rm "$GITHUB_WORKSPACE/proxy/.openzeppelin/unknown-*.json"
 rm "$GITHUB_WORKSPACE/proxy/data/skaleManagerComponents.json"
 cp .openzeppelin/unknown-*.json "$GITHUB_WORKSPACE/proxy/.openzeppelin" || exit $?
