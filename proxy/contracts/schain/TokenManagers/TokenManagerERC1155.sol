@@ -42,6 +42,12 @@ contract TokenManagerERC1155 is TokenManager {
     // address of ERC1155 on Mainnet => ERC1155 on Schain
     mapping(address => ERC1155OnChain) public clonesErc1155;
 
+    // address clone on schain => added or not
+    mapping(ERC1155OnChain => bool) public addedClones;
+
+    /**
+     * @dev Emitted when schain owner register new ERC1155 clone.
+     */
     event ERC1155TokenAdded(address indexed erc1155OnMainnet, address indexed erc1155OnSchain);
 
     event ERC1155TokenCreated(address indexed erc1155OnMainnet, address indexed erc1155OnSchain);
@@ -55,54 +61,50 @@ contract TokenManagerERC1155 is TokenManager {
 
     function exitToMainERC1155(
         address contractOnMainnet,
-        address to,
         uint256 id,
         uint256 amount
     )
         external
     {
-        communityLocker.checkAllowedToSendMessage(to);
-        _exit(MAINNET_HASH, depositBox, contractOnMainnet, to, id, amount);
+        communityLocker.checkAllowedToSendMessage(msg.sender);
+        _exit(MAINNET_HASH, depositBox, contractOnMainnet, msg.sender, id, amount);
     }
 
     function exitToMainERC1155Batch(
         address contractOnMainnet,
-        address to,
         uint256[] memory ids,
         uint256[] memory amounts
     )
         external
     {
-        communityLocker.checkAllowedToSendMessage(to);
-        _exitBatch(MAINNET_HASH, depositBox, contractOnMainnet, to, ids, amounts);
+        communityLocker.checkAllowedToSendMessage(msg.sender);
+        _exitBatch(MAINNET_HASH, depositBox, contractOnMainnet, msg.sender, ids, amounts);
     }
 
     function transferToSchainERC1155(
         string calldata targetSchainName,
         address contractOnMainnet,
-        address to,
         uint256 id,
         uint256 amount
     ) 
         external
-        rightTransaction(targetSchainName, to)
+        rightTransaction(targetSchainName, msg.sender)
     {
         bytes32 targetSchainHash = keccak256(abi.encodePacked(targetSchainName));
-        _exit(targetSchainHash, tokenManagers[targetSchainHash], contractOnMainnet, to, id, amount);
+        _exit(targetSchainHash, tokenManagers[targetSchainHash], contractOnMainnet, msg.sender, id, amount);
     }
 
     function transferToSchainERC1155Batch(
         string calldata targetSchainName,
         address contractOnMainnet,
-        address to,
         uint256[] memory ids,
         uint256[] memory amounts
     ) 
         external
-        rightTransaction(targetSchainName, to)
+        rightTransaction(targetSchainName, msg.sender)
     {
         bytes32 targetSchainHash = keccak256(abi.encodePacked(targetSchainName));
-        _exitBatch(targetSchainHash, tokenManagers[targetSchainHash], contractOnMainnet, to, ids, amounts);
+        _exitBatch(targetSchainHash, tokenManagers[targetSchainHash], contractOnMainnet, msg.sender, ids, amounts);
     }
 
     /**
@@ -156,7 +158,10 @@ contract TokenManagerERC1155 is TokenManager {
         onlyTokenRegistrar
     {
         require(address(erc1155OnSchain).isContract(), "Given address is not a contract");
+        require(address(clonesErc1155[erc1155OnMainnet]) == address(0), "Could not relink clone");
+        require(!addedClones[erc1155OnSchain], "Clone was already added");
         clonesErc1155[erc1155OnMainnet] = erc1155OnSchain;
+        addedClones[erc1155OnSchain] = true;
         emit ERC1155TokenAdded(erc1155OnMainnet, address(erc1155OnSchain));
     }
 
@@ -211,6 +216,7 @@ contract TokenManagerERC1155 is TokenManager {
                 require(automaticDeploy, "Automatic deploy is disabled");
                 contractOnSchain = new ERC1155OnChain(message.tokenInfo.uri);
                 clonesErc1155[token] = contractOnSchain;
+                addedClones[contractOnSchain] = true;
                 emit ERC1155TokenCreated(token, address(contractOnSchain));
             }
         }

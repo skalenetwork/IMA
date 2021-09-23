@@ -53,21 +53,20 @@ contract TokenManagerEth is TokenManager {
     /**
      * @dev Performs an exit (post outgoing message) to Mainnet.
      */
-    function exitToMain(address to, uint256 amount) external {
-        communityLocker.checkAllowedToSendMessage(to);
-        _exit(MAINNET_HASH, depositBox, to, amount);
+    function exitToMain(uint256 amount) external {
+        communityLocker.checkAllowedToSendMessage(msg.sender);
+        _exit(MAINNET_HASH, depositBox, msg.sender, amount);
     }
 
     function transferToSchain(
         string memory targetSchainName,
-        address to,
         uint256 amount
     )
         external
-        rightTransaction(targetSchainName, to)
+        rightTransaction(targetSchainName, msg.sender)
     {
         bytes32 targetSchainHash = keccak256(abi.encodePacked(targetSchainName));
-        _exit(targetSchainHash, tokenManagers[targetSchainHash], to, amount);
+        _exit(targetSchainHash, tokenManagers[targetSchainHash], msg.sender, amount);
     }
 
     /**

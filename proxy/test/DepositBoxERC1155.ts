@@ -153,7 +153,7 @@ describe("DepositBoxERC1155", () => {
                 // execution/expectation
                 await depositBoxERC1155
                     .connect(deployer)
-                    .depositERC1155(schainName, contractHere, to, id, amount)
+                    .depositERC1155(schainName, contractHere, id, amount)
                     .should.be.eventually.rejectedWith(error);
             });
 
@@ -176,14 +176,14 @@ describe("DepositBoxERC1155", () => {
                 // execution
                 await depositBoxERC1155
                     .connect(deployer)
-                    .depositERC1155(schainName, contractHere, to, id, amount).should.be.eventually.rejectedWith("Whitelist is enabled");
+                    .depositERC1155(schainName, contractHere, id, amount).should.be.eventually.rejectedWith("Whitelist is enabled");
                 await depositBoxERC1155.connect(user).disableWhitelist(schainName);
                 await depositBoxERC1155
                     .connect(deployer)
-                    .depositERC1155(schainName, contractHere, to, id, amount);
+                    .depositERC1155(schainName, contractHere, id, amount);
                 await (await depositBoxERC1155
                     .connect(deployer)
-                    .depositERC1155(schainName, contractHere, to, id2, amount2)).wait();
+                    .depositERC1155(schainName, contractHere, id2, amount2)).wait();
                 // console.log("Gas for depositERC1155:", res.receipt.gasUsed);
                 // expectation
                 expect(BigNumber.from(await erc1155.balanceOf(depositBoxERC1155.address, id)).toNumber()).to.equal(amount);
@@ -208,7 +208,7 @@ describe("DepositBoxERC1155", () => {
                 // execution/expectation
                 await depositBoxERC1155
                     .connect(deployer)
-                    .depositERC1155Batch(schainName, contractHere, to, ids, amounts)
+                    .depositERC1155Batch(schainName, contractHere, ids, amounts)
                     .should.be.eventually.rejectedWith(error);
             });
 
@@ -231,14 +231,14 @@ describe("DepositBoxERC1155", () => {
                 // execution
                 await depositBoxERC1155
                     .connect(deployer)
-                    .depositERC1155Batch(schainName, contractHere, to, ids, amounts).should.be.eventually.rejectedWith("Whitelist is enabled");
+                    .depositERC1155Batch(schainName, contractHere, ids, amounts).should.be.eventually.rejectedWith("Whitelist is enabled");
                 await depositBoxERC1155.connect(user).disableWhitelist(schainName);
                 await depositBoxERC1155
                     .connect(deployer)
-                    .depositERC1155Batch(schainName, contractHere, to, ids, amounts);
+                    .depositERC1155Batch(schainName, contractHere, ids, amounts);
                 const res = await (await depositBoxERC1155
                     .connect(deployer)
-                    .depositERC1155Batch(schainName, contractHere, to, ids2, amounts2)).wait();
+                    .depositERC1155Batch(schainName, contractHere, ids2, amounts2)).wait();
                 // console.log("Gas for depositERC1155:", res.receipt.gasUsed);
                 // expectation
                 const balanceIds = await erc1155.balanceOfBatch([depositBoxERC1155.address, depositBoxERC1155.address, depositBoxERC1155.address], ids);
@@ -265,7 +265,7 @@ describe("DepositBoxERC1155", () => {
             await depositBoxERC1155.connect(user).disableWhitelist(schainName);
             await depositBoxERC1155
                 .connect(deployer)
-                .depositERC1155(schainName, erc1155.address, deployer.address, 4, 50);
+                .depositERC1155(schainName, erc1155.address, 4, 50);
             await depositBoxERC1155.connect(user).getFunds(schainName, erc1155.address, user.address, [4], [50]).should.be.eventually.rejectedWith("Schain is not killed");
             await linker.connect(deployer).kill(schainName);
             await linker.connect(user).kill(schainName);
@@ -331,7 +331,7 @@ describe("DepositBoxERC1155", () => {
                 .connectSchain(schainName, [deployer.address, deployer.address, deployer.address]);
             await communityPool
                 .connect(user)
-                .rechargeUserWallet(schainName, { value: wei });
+                .rechargeUserWallet(schainName, user.address, { value: wei });
 
             // mint some ERC1155 of  for `deployer` address
             await erc1155.connect(deployer).mint(deployer.address, id, amount, "0x");
@@ -342,7 +342,7 @@ describe("DepositBoxERC1155", () => {
             await depositBoxERC1155.connect(user2).disableWhitelist(schainName);
             await depositBoxERC1155
                 .connect(deployer)
-                .depositERC1155(schainName, contractHere, to, id, amount);
+                .depositERC1155(schainName, contractHere, id, amount);
             // execution
             // to avoid `Incorrect sender` error
             const balanceBefore = await getBalance(deployer.address);
@@ -387,7 +387,7 @@ describe("DepositBoxERC1155", () => {
                 .connectSchain(schainName, [deployer.address, deployer.address, deployer.address]);
             await communityPool
                 .connect(user)
-                .rechargeUserWallet(schainName, { value: wei });
+                .rechargeUserWallet(schainName, user.address, { value: wei });
 
             // mint some ERC1155 of  for `deployer` address
             await erc1155.connect(deployer).mintBatch(deployer.address, ids, amounts, "0x");
@@ -398,7 +398,7 @@ describe("DepositBoxERC1155", () => {
             await depositBoxERC1155.connect(user2).disableWhitelist(schainName);
             await depositBoxERC1155
                 .connect(deployer)
-                .depositERC1155Batch(schainName, contractHere, to, ids, amounts);
+                .depositERC1155Batch(schainName, contractHere, ids, amounts);
             // execution
             // to avoid `Incorrect sender` error
             const balanceBefore = await getBalance(deployer.address);

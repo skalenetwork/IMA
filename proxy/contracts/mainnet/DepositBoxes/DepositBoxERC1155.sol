@@ -79,12 +79,11 @@ contract DepositBoxERC1155 is DepositBox, ERC1155ReceiverUpgradeable {
     function depositERC1155(
         string calldata schainName,
         address erc1155OnMainnet,
-        address to,
         uint256 id,
         uint256 amount
     )
         external
-        rightTransaction(schainName, to)
+        rightTransaction(schainName, msg.sender)
         whenNotKilled(keccak256(abi.encodePacked(schainName)))
     {
         bytes32 schainHash = keccak256(abi.encodePacked(schainName));
@@ -97,7 +96,7 @@ contract DepositBoxERC1155 is DepositBox, ERC1155ReceiverUpgradeable {
         bytes memory data = _receiveERC1155(
             schainName,
             erc1155OnMainnet,
-            to,
+            msg.sender,
             id,
             amount
         );
@@ -114,12 +113,11 @@ contract DepositBoxERC1155 is DepositBox, ERC1155ReceiverUpgradeable {
     function depositERC1155Batch(
         string calldata schainName,
         address erc1155OnMainnet,
-        address to,
         uint256[] calldata ids,
         uint256[] calldata amounts
     )
         external
-        rightTransaction(schainName, to)
+        rightTransaction(schainName, msg.sender)
         whenNotKilled(keccak256(abi.encodePacked(schainName)))
     {
         bytes32 schainHash = keccak256(abi.encodePacked(schainName));
@@ -132,7 +130,7 @@ contract DepositBoxERC1155 is DepositBox, ERC1155ReceiverUpgradeable {
         bytes memory data = _receiveERC1155Batch(
             schainName,
             erc1155OnMainnet,
-            to,
+            msg.sender,
             ids,
             amounts
         );

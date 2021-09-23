@@ -39,7 +39,7 @@ function discover_bls_threshold( joSChainNetworkInfo ) {
     const jarrNodes = imaState.joSChainNetworkInfo.network;
     for( let i = 0; i < jarrNodes.length; ++i ) {
         const joNode = jarrNodes[i];
-        if( "imaInfo" in joNode && typeof joNode.imaInfo === "object" &&
+        if( joNode && "imaInfo" in joNode && typeof joNode.imaInfo === "object" &&
             "t" in joNode.imaInfo && typeof joNode.imaInfo.t === "number" &&
             joNode.imaInfo.t > 0
         )
@@ -52,7 +52,7 @@ function discover_bls_participants( joSChainNetworkInfo ) {
     const jarrNodes = imaState.joSChainNetworkInfo.network;
     for( let i = 0; i < jarrNodes.length; ++i ) {
         const joNode = jarrNodes[i];
-        if( "imaInfo" in joNode && typeof joNode.imaInfo === "object" &&
+        if( joNode && "imaInfo" in joNode && typeof joNode.imaInfo === "object" &&
             "n" in joNode.imaInfo && typeof joNode.imaInfo.n === "number" &&
             joNode.imaInfo.n > 0
         )
@@ -64,7 +64,7 @@ function discover_bls_participants( joSChainNetworkInfo ) {
 function discover_public_key_by_index( nNodeIndex, joSChainNetworkInfo ) {
     const jarrNodes = imaState.joSChainNetworkInfo.network;
     const joNode = jarrNodes[nNodeIndex];
-    if( "imaInfo" in joNode && typeof joNode.imaInfo === "object" &&
+    if( joNode && "imaInfo" in joNode && typeof joNode.imaInfo === "object" &&
         "BLSPublicKey0" in joNode.imaInfo && typeof joNode.imaInfo.BLSPublicKey0 === "string" && joNode.imaInfo.BLSPublicKey0.length > 0 &&
         "BLSPublicKey1" in joNode.imaInfo && typeof joNode.imaInfo.BLSPublicKey1 === "string" && joNode.imaInfo.BLSPublicKey1.length > 0 &&
         "BLSPublicKey2" in joNode.imaInfo && typeof joNode.imaInfo.BLSPublicKey2 === "string" && joNode.imaInfo.BLSPublicKey2.length > 0 &&
@@ -84,7 +84,7 @@ function discover_common_public_key( joSChainNetworkInfo ) {
     const jarrNodes = imaState.joSChainNetworkInfo.network;
     for( let i = 0; i < jarrNodes.length; ++i ) {
         const joNode = jarrNodes[i];
-        if( "imaInfo" in joNode && typeof joNode.imaInfo === "object" &&
+        if( joNode && "imaInfo" in joNode && typeof joNode.imaInfo === "object" &&
             "commonBLSPublicKey0" in joNode.imaInfo && typeof joNode.imaInfo.commonBLSPublicKey0 === "string" && joNode.imaInfo.commonBLSPublicKey0.length > 0 &&
             "commonBLSPublicKey1" in joNode.imaInfo && typeof joNode.imaInfo.commonBLSPublicKey1 === "string" && joNode.imaInfo.commonBLSPublicKey1.length > 0 &&
             "commonBLSPublicKey2" in joNode.imaInfo && typeof joNode.imaInfo.commonBLSPublicKey2 === "string" && joNode.imaInfo.commonBLSPublicKey2.length > 0 &&
@@ -503,13 +503,19 @@ async function do_sign_messages_impl( strDirection, jarrMessages, nIdxCurrentMsg
     for( let i = 0; i < jarrNodes.length; ++i ) {
         const joNode = jarrNodes[i];
         const strNodeURL = imaUtils.compose_schain_node_url( joNode );
+        const strNodeDescColorized = cc.u( strNodeURL ) + " " +
+            cc.normal( "(" ) + cc.bright( i ) + cc.normal( "/" ) + cc.bright( jarrNodes.length ) + cc.normal( ", ID " ) + cc.info( joNode.nodeID ) + cc.normal( ")" );
         const rpcCallOpts = null;
         await rpcCall.create( strNodeURL, rpcCallOpts, async function( joCall, err ) {
             if( err ) {
                 ++nCountReceived; // including errors
                 ++nCountErrors;
-                log.write( strLogPrefix + cc.fatal( "CRITICAL ERROR:" ) + cc.error( " JSON RPC call to S-Chain failed" ) + "\n" );
-                details.write( strLogPrefix + cc.fatal( "CRITICAL ERROR:" ) + cc.error( " JSON RPC call to S-Chain failed" ) + "\n" );
+                const strErrorMessage =
+                    strLogPrefix + cc.fatal( "CRITICAL ERROR:" ) +
+                    cc.error( " JSON RPC call to S-Chain node " ) + strNodeDescColorized +
+                    cc.error( " failed, RPC call was not created, error: " ) + cc.warning( err ) + "\n";
+                log.write( strErrorMessage );
+                details.write( strErrorMessage );
                 return;
             }
             let targetChainName = ""; let fromChainName = "";
@@ -534,18 +540,30 @@ async function do_sign_messages_impl( strDirection, jarrMessages, nIdxCurrentMsg
                 ++nCountReceived; // including errors
                 if( err ) {
                     ++nCountErrors;
-                    log.write( strLogPrefix + cc.fatal( "CRITICAL ERROR:" ) + cc.error( " JSON RPC call to S-Chain failed, error: " ) + cc.warning( err ) + "\n" );
-                    details.write( strLogPrefix + cc.fatal( "CRITICAL ERROR:" ) + cc.error( " JSON RPC call to S-Chain failed, error: " ) + cc.warning( err ) + "\n" );
+                    const strErrorMessage =
+                        strLogPrefix + cc.fatal( "CRITICAL ERROR:" ) +
+                        cc.error( " JSON RPC call to S-Chain node " ) + strNodeDescColorized +
+                        cc.error( " failed, RPC call reported error: " ) + cc.warning( err ) + "\n";
+                    log.write( strErrorMessage );
+                    details.write( strErrorMessage );
                     return;
                 }
                 if( joOut.result == null || joOut.result == undefined || ( !typeof joOut.result == "object" ) ) {
                     ++nCountErrors;
                     if( "error" in joOut && "message" in joOut.error ) {
-                        log.write( strLogPrefix + cc.fatal( "Wallet CRITICAL ERROR:" ) + " " + cc.error( "S-Chain reported wallet error: " ) + cc.warning( joOut.error.message ) + "\n" );
-                        details.write( strLogPrefix + cc.fatal( "Wallet CRITICAL ERROR:" ) + " " + cc.error( "S-Chain reported wallet error: " ) + cc.warning( joOut.error.message ) + "\n" );
+                        const strErrorMessage =
+                            strLogPrefix + cc.fatal( "Wallet CRITICAL ERROR:" ) + " " +
+                            cc.error( "S-Chain node " ) + strNodeDescColorized +
+                            cc.error( " reported wallet error: " ) + cc.warning( joOut.error.message ) + "\n";
+                        log.write( strErrorMessage );
+                        details.write( strErrorMessage );
                     } else {
-                        log.write( strLogPrefix + cc.fatal( "Wallet CRITICAL ERROR:" ) + " " + cc.error( "JSON RPC call to S-Chain failed with " ) + cc.warning( "unknown wallet error" ) + "\n" );
-                        details.write( strLogPrefix + cc.fatal( "Wallet CRITICAL ERROR:" ) + " " + cc.error( "JSON RPC call to S-Chain failed with " ) + cc.warning( "unknown wallet error" ) + "\n" );
+                        const strErrorMessage =
+                            strLogPrefix + cc.fatal( "Wallet CRITICAL ERROR:" ) + " " +
+                            cc.error( "JSON RPC call to S-Chain node " ) + strNodeDescColorized +
+                            cc.error( " failed with " ) + cc.warning( "unknown wallet error" ) + "\n";
+                        log.write( strErrorMessage );
+                        details.write( strErrorMessage );
                     }
                     return;
                 }
@@ -577,8 +595,12 @@ async function do_sign_messages_impl( strDirection, jarrMessages, nIdxCurrentMsg
                                 details.write( strLogPrefixA + cc.fatal( "CRITICAL ERROR:" ) + " " + cc.error( strError ) + "\n" );
                             }
                         } catch ( err ) {
-                            log.write( strLogPrefixA + cc.fatal( "Node sign CRITICAL ERROR:" ) + cc.error( " partial signature fail from node " ) + cc.info( joNode.nodeID ) + cc.error( " with index " ) + cc.info( nZeroBasedNodeIndex ) + cc.error( ", error is " ) + cc.warning( err.toString() ) + "\n" );
-                            details.write( strLogPrefixA + cc.fatal( "Node sign CRITICAL ERROR:" ) + cc.error( " partial signature fail from node " ) + cc.info( joNode.nodeID ) + cc.error( " with index " ) + cc.info( nZeroBasedNodeIndex ) + cc.error( ", error is " ) + cc.warning( err.toString() ) + "\n" );
+                            const strErrorMessage =
+                                strLogPrefixA + cc.error( "S-Chain node " ) + strNodeDescColorized + cc.error( " sign " ) +
+                                cc.error( " CRITICAL ERROR:" ) + cc.error( " partial signature fail from with index " ) + cc.info( nZeroBasedNodeIndex ) +
+                                cc.error( ", error is " ) + cc.warning( err.toString() ) + "\n";
+                            log.write( strErrorMessage );
+                            details.write( strErrorMessage );
                         }
                         //
                         // sign result for bls_glue should look like:
@@ -602,8 +624,12 @@ async function do_sign_messages_impl( strDirection, jarrMessages, nIdxCurrentMsg
                     }
                 } catch ( err ) {
                     ++nCountErrors;
-                    log.write( strLogPrefix + cc.fatal( "CRITICAL ERROR:" ) + cc.error( " signature fail from node " ) + cc.info( joNode.nodeID ) + cc.error( ", error is " ) + cc.warning( err.toString() ) + "\n" );
-                    details.write( strLogPrefix + cc.fatal( "CRITICAL ERROR:" ) + cc.error( " signature fail from node " ) + cc.info( joNode.nodeID ) + cc.error( ", error is " ) + cc.warning( err.toString() ) + "\n" );
+                    const strErrorMessage =
+                        strLogPrefix + cc.error( "S-Chain node " ) + strNodeDescColorized + " " + cc.fatal( "CRITICAL ERROR:" ) +
+                        cc.error( " signature fail from node " ) + cc.info( joNode.nodeID ) +
+                        cc.error( ", error is " ) + cc.warning( err.toString() ) + "\n";
+                    log.write( strErrorMessage );
+                    details.write( strErrorMessage );
                 }
             } );
         } );
@@ -630,15 +656,26 @@ async function do_sign_messages_impl( strDirection, jarrMessages, nIdxCurrentMsg
                 }
             } else {
                 strError = "BLS glue failed";
-                log.write( strLogPrefixB + cc.fatal( "CRITICAL ERROR:" ) + " " + cc.error( strError ) + "\n" );
-                details.write( strLogPrefixB + cc.fatal( "CRITICAL ERROR:" ) + " " + cc.error( strError ) + "\n" );
+                const strErrorMessage =
+                    strLogPrefixB + cc.error( "S-Chain node " ) + strNodeDescColorized + " " +
+                    cc.fatal( "CRITICAL ERROR:" ) + " " + cc.error( strError ) + "\n";
+                log.write( strErrorMessage );
+                details.write( strErrorMessage );
             }
-            await fn( strError, jarrMessages, joGlueResult );
+            await fn( strError, jarrMessages, joGlueResult ).catch( ( err ) => {
+                const strErrorMessage = cc.error( "Problem(1) in BLS sign result handler: " ) + cc.warning( err ) + "\n";
+                log.write( strErrorMessage );
+                details.write( strErrorMessage );
+            } );
             return;
         }
         if( nCountReceived >= jarrNodes.length ) {
             clearInterval( iv );
-            await fn( "signature error in " + nCountErrors + " node(s) of " + jarrNodes.length + " node(s)", jarrMessages, null );
+            await fn( "signature error in " + nCountErrors + " node(s) of " + jarrNodes.length + " node(s)", jarrMessages, null ).catch( ( err ) => {
+                const strErrorMessage = cc.error( "Problem(2) in BLS sign result handler: " ) + cc.warning( err ) + "\n";
+                log.write( strErrorMessage );
+                details.write( strErrorMessage );
+            } );
         }
     }, 100 );
 }

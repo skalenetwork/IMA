@@ -81,7 +81,7 @@ class SendERC1155BatchToMainnet(TestCase):
         self.erc1155_clone = self.blockchain.get_erc1155_on_schain("Mainnet", self.erc1155.address)
 
     def _execute(self):
-        source_address = self.blockchain.key_to_address(self.config.schain_key)
+        source_address = self.blockchain.key_to_address(self.config.mainnet_key)
         destination_address = self.blockchain.key_to_address(self.config.mainnet_key)
 
         if self.erc1155_clone.functions.balanceOfBatch([source_address] * len(self.token_ids), self.token_ids).call() != self.token_amounts:
@@ -92,8 +92,8 @@ class SendERC1155BatchToMainnet(TestCase):
         self.agent.transfer_erc1155_batch_from_schain_to_mainnet(
             self.erc1155_clone,
             self.erc1155,
-            self.config.schain_key,
             self.config.mainnet_key,
+            self.config.schain_key,
             self.token_ids,
             self.token_amounts,
             6 * 10 ** 16,

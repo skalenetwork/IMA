@@ -115,7 +115,7 @@ describe("DepositBoxEth", () => {
             // execution/expectation
             await depositBoxEth
                 .connect(deployer)
-                .deposit(schainName, user.address)
+                .deposit(schainName)
                 .should.be.eventually.rejectedWith(error);
         });
 
@@ -126,7 +126,7 @@ describe("DepositBoxEth", () => {
             // execution/expectation
             await depositBoxEth
                 .connect(deployer)
-                .deposit(newSchainName, user.address)
+                .deposit(newSchainName)
                 .should.be.eventually.rejectedWith(error);
         });
 
@@ -143,7 +143,7 @@ describe("DepositBoxEth", () => {
             // execution
             await depositBoxEth
                 .connect(deployer)
-                .deposit(schainName, deployer.address, { value: wei });
+                .deposit(schainName, { value: wei });
             // console.log("Gas for deposit:", tx.receipt.gasUsed);
 
             const lockAndDataBalance = await web3.eth.getBalance(depositBoxEth.address);
@@ -168,7 +168,7 @@ describe("DepositBoxEth", () => {
                 .connectSchain(schainName, [deployer.address, deployer.address, deployer.address]);
             await depositBoxEth
                 .connect(deployer)
-                .deposit(schainName, deployer.address, { value: wei });
+                .deposit(schainName, { value: wei });
             await depositBoxEth.connect(user2).getFunds(schainName, user.address, wei).should.be.eventually.rejectedWith("Schain is not killed");
             await linker.connect(deployer).kill(schainName);
             await linker.connect(user2).kill(schainName);
@@ -231,7 +231,7 @@ describe("DepositBoxEth", () => {
             await setCommonPublicKey(contractManager, schainName);
             await communityPool
                 .connect(user)
-                .rechargeUserWallet(schainName, { value: wei });
+                .rechargeUserWallet(schainName, user.address, { value: wei });
             // execution
 
             const res = await (await messageProxy.connect(deployer).postIncomingMessages(schainName, 0, [message], sign)).wait();
@@ -277,7 +277,7 @@ describe("DepositBoxEth", () => {
                 await setCommonPublicKey(contractManager, schainName);
                 await communityPool
                     .connect(user)
-                    .rechargeUserWallet(schainName, { value: wei });
+                    .rechargeUserWallet(schainName, user.address, { value: wei });
                 // execution
                 const res = await (await messageProxy.connect(deployer).postIncomingMessages(schainName, 0, [message], sign)).wait();
 
@@ -306,7 +306,7 @@ describe("DepositBoxEth", () => {
                 .connectSchain(schainName, [deployer.address, deployer.address, deployer.address]);
             await communityPool
                 .connect(user)
-                .rechargeUserWallet(schainName, { value: wei });
+                .rechargeUserWallet(schainName, user.address, { value: wei });
 
             const sign = {
                 blsSignature: BlsSignature,
@@ -351,7 +351,7 @@ describe("DepositBoxEth", () => {
                 .connectSchain(schainName, [deployer.address, deployer.address, deployer.address]);
             await communityPool
                 .connect(user)
-                .rechargeUserWallet(schainName, { value: wei });
+                .rechargeUserWallet(schainName, user.address, { value: wei });
 
             const sign = {
                 blsSignature: BlsSignature,
@@ -371,7 +371,7 @@ describe("DepositBoxEth", () => {
             // add wei to contract through `receiveEth` because `receiveEth` have `payable` parameter
             await depositBoxEth
                 .connect(deployer)
-                .deposit(schainName, user.address, { value: wei });
+                .deposit(schainName, { value: wei });
             // execution
             const res = await (await messageProxy.connect(deployer).postIncomingMessages(schainName, 0, [message], sign)).wait();
 
@@ -416,11 +416,11 @@ describe("DepositBoxEth", () => {
 
             await communityPool
                 .connect(user)
-                .rechargeUserWallet(schainName, { value: wei });
+                .rechargeUserWallet(schainName, user.address, { value: wei });
 
             await depositBoxEth
                 .connect(deployer)
-                .deposit(schainName, user.address, { value: wei });
+                .deposit(schainName, { value: wei });
 
             expect(BigNumber.from(await depositBoxEth.transferredAmount(schainHash)).toString()).to.be.equal(BigNumber.from(0).toString());
 
