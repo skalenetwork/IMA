@@ -1398,11 +1398,11 @@ async function discover_s_chain_network( fnAfter, isSilent, joPrevSChainNetworkI
                             cc.info( nCountReceivedImaDescriptions ) + cc.debug( " node(s)." ) + "\n"
                         );
                     }
-                    if( nCountReceivedImaDescriptions >= nCountToWait ) {
-                        clearInterval( iv );
-                        fnAfter( null, joSChainNetworkInfo );
-                        return;
-                    }
+                    // if( nCountReceivedImaDescriptions >= nCountToWait ) {
+                    //     clearInterval( iv );
+                    //     fnAfter( null, joSChainNetworkInfo );
+                    //     return;
+                    // }
                     ++ nWaitAttempt;
                     if( nWaitAttempt >= cntWaitAttempts ) {
                         clearInterval( iv );
