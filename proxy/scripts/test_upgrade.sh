@@ -11,8 +11,7 @@ npx ganache-cli --gasLimit 8000000 --quiet &
 GANACHE_PID=$!
 
 cd "$DEPLOYED_DIR"
-yarn global add n
-n 12
+cd proxy
 yarn install
 CHAIN_NAME_SCHAIN="Test" VERSION="$DEPLOYED_VERSION" npx hardhat run migrations/deploySkaleManagerComponents.ts --network localhost || exit $?
 VERSION="$DEPLOYED_VERSION" npx hardhat run migrations/deployMainnet.ts --network localhost || exit $?
@@ -23,7 +22,6 @@ cp ./data/skaleManagerComponents.json "$GITHUB_WORKSPACE/proxy/data/" || exit $?
 ABI_FILENAME="proxyMainnet.json"
 cp "data/$ABI_FILENAME" "$GITHUB_WORKSPACE/proxy/data" || exit $?
 cd "$GITHUB_WORKSPACE"
-n 14
 rm -r --interactive=never "$DEPLOYED_DIR"
 cd proxy
 
