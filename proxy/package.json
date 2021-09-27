@@ -29,7 +29,7 @@
         "dotenv": "^10.0.0",
         "ethereumjs-tx": "2.1.2",
         "ethereumjs-util": "^7.1.0",
-        "ethers": "^5.4.5",
+        "ethers": "^5.4.7",
         "ethers-eip712": "^0.2.0",
         "hardhat": "^2.5.0",
         "path": "^0.12.7",
