@@ -11,13 +11,6 @@ npx ganache-cli --gasLimit 8000000 --quiet &
 GANACHE_PID=$!
 
 cd "$DEPLOYED_DIR"
-cd proxy
-rm yarn.lock
-yarn add @skalenetwork/skale-manager-interfaces@0.1.1 ts-node@8.10.2 || exit $?
-rm migrations/tools/verification.ts
-rm migrations/deployMainnet.ts
-cp "$GITHUB_WORKSPACE/proxy/migrations/tools/verification.ts" migrations/tools
-cp "$GITHUB_WORKSPACE/proxy/migrations/deployMainnet.ts" migrations
 CHAIN_NAME_SCHAIN="Test" VERSION="$DEPLOYED_VERSION" npx hardhat run migrations/deploySkaleManagerComponents.ts --network localhost || exit $?
 VERSION="$DEPLOYED_VERSION" npx hardhat run migrations/deployMainnet.ts --network localhost || exit $?
 rm "$GITHUB_WORKSPACE/proxy/.openzeppelin/unknown-*.json"
