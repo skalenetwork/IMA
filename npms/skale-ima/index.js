@@ -271,23 +271,125 @@ async function get_web3_pastEvents( details, w3, attempts, joContract, strEventN
     return joAllEventsInBlock;
 }
 
+let g_nCountOfBlocksInIterativeStep = 1000;
+let g_nMaxBlockScanIterationsInAllRange = 5000;
+
+function getBlocksCountInInIterativeStepOfEventsScan() {
+    return g_nCountOfBlocksInIterativeStep;
+}
+function setBlocksCountInInIterativeStepOfEventsScan( n ) {
+    if( ! n )
+        g_nCountOfBlocksInIterativeStep = 0;
+    else {
+        g_nCountOfBlocksInIterativeStep = parseIntOrHex( n );
+        if( g_nCountOfBlocksInIterativeStep < 0 )
+            g_nCountOfBlocksInIterativeStep = 0;
+    }
+}
+
+function getMaxIterationsInAllRangeEventsScan() {
+    return g_nCountOfBlocksInIterativeStep;
+}
+function setMaxIterationsInAllRangeEventsScan( n ) {
+    if( ! n )
+        g_nMaxBlockScanIterationsInAllRange = 0;
+    else {
+        g_nMaxBlockScanIterationsInAllRange = parseIntOrHex( n );
+        if( g_nMaxBlockScanIterationsInAllRange < 0 )
+            g_nMaxBlockScanIterationsInAllRange = 0;
+    }
+}
+
+async function get_web3_pastEventsIterative( details, w3, attempts, joContract, strEventName, nBlockFrom, nBlockTo, joFilter ) {
+    if( g_nCountOfBlocksInIterativeStep <= 0 || g_nMaxBlockScanIterationsInAllRange <= 0 ) {
+        details.write(
+            cc.fatal( "IMPORTANT NOTICE:" ) + " " +
+            cc.warning( "Will skip " ) + cc.attention( "iterative" ) + cc.warning( " events scan in block range from " ) +
+            cc.info( nBlockFrom ) + cc.warning( " to " ) + cc.info( nBlockTo ) +
+            cc.warning( " because it's " ) + cc.error( "DISABLED" ) + "\n" );
+        return await get_web3_pastEvents( details, w3, attempts, joContract, strEventName, nBlockFrom, nBlockTo, joFilter );
+    }
+    if( nBlockFrom == 0 && nBlockTo == "latest" ) {
+        const nLatestBlockNumber = await get_web3_blockNumber( details, 10, w3 );
+        if( ( nLatestBlockNumber / g_nCountOfBlocksInIterativeStep ) > g_nMaxBlockScanIterationsInAllRange ) {
+            details.write(
+                cc.fatal( "IMPORTANT NOTICE:" ) + " " +
+                cc.warning( "Will skip " ) + cc.attention( "iterative" ) + cc.warning( " scan and use scan in block range from " ) +
+                cc.info( nBlockFrom ) + cc.warning( " to " ) + cc.info( nBlockTo ) + "\n" );
+            return await get_web3_pastEvents( details, w3, attempts, joContract, strEventName, nBlockFrom, nBlockTo, joFilter );
+        }
+    }
+    details.write(
+        cc.debug( "Iterative scan in " ) +
+        cc.info( nBlockFrom ) + cc.debug( "/" ) + cc.info( nBlockTo ) +
+        cc.debug( " block range..." ) + "\n" );
+    if( nBlockTo == "latest" ) {
+        const nLatestBlockNumber = await get_web3_blockNumber( details, 10, w3 );
+        nBlockTo = nLatestBlockNumber;
+        details.write(
+            cc.debug( "Iterative scan up to latest block " ) +
+            cc.attention( "#" ) + cc.info( nBlockTo ) +
+            cc.debug( " assumed instead of " ) + cc.attention( "latest" ) + "\n" );
+    }
+    let idxBlockSubRangeFrom = parseIntOrHex( nBlockFrom );
+    for( ; true; ) {
+        let idxBlockSubRangeTo = idxBlockSubRangeFrom + g_nCountOfBlocksInIterativeStep;
+        if( idxBlockSubRangeTo > nBlockTo )
+            idxBlockSubRangeTo = nBlockTo;
+        try {
+            details.write(
+                cc.debug( "Iterative scan of " ) +
+                cc.info( idxBlockSubRangeFrom ) + cc.debug( "/" ) + cc.info( idxBlockSubRangeTo ) +
+                cc.debug( " block sub-range in " ) +
+                cc.info( nBlockFrom ) + cc.debug( "/" ) + cc.info( nBlockTo ) +
+                cc.debug( " block range..." ) + "\n" );
+            const joAllEventsInBlock = await get_web3_pastEvents( details, w3, attempts, joContract, strEventName, idxBlockSubRangeFrom, idxBlockSubRangeTo, joFilter );
+            if( joAllEventsInBlock && joAllEventsInBlock != "" && joAllEventsInBlock.length > 0 ) {
+                details.write(
+                    cc.success( "Result of " ) + cc.attention( "iterative" ) + cc.success( " scan in " ) +
+                    cc.info( nBlockFrom ) + cc.success( "/" ) + cc.info( nBlockTo ) +
+                    cc.success( " block range is " ) + cc.j( joAllEventsInBlock ) + "\n" );
+                return joAllEventsInBlock;
+            }
+        } catch ( err ) {}
+        idxBlockSubRangeFrom = idxBlockSubRangeTo;
+        if( idxBlockSubRangeFrom == nBlockTo )
+            break;
+    }
+    details.write(
+        cc.debug( "Result of " ) + cc.attention( "iterative" ) + cc.debug( " scan in " ) +
+        cc.info( nBlockFrom ) + cc.debug( "/" ) + cc.info( nBlockTo ) +
+        cc.debug( " block range is " ) + cc.warning( "empty" ) + "\n" );
+    return "";
+}
+
+let g_bIsEnabledProgressiveEventsScan = true;
+
+function getEnabledProgressiveEventsScan() {
+    return g_bIsEnabledProgressiveEventsScan ? true : false;
+}
+function setEnabledProgressiveEventsScan( isEnabled ) {
+    g_bIsEnabledProgressiveEventsScan = isEnabled ? true : false;
+}
+
 function create_progressive_events_scan_plan( details, nLatestBlockNumber ) {
-    // assume Main Net mines 60 txns per second for one account
-    // approximately 10x larger then real
-    const txns_in_1_minute = 60;
-    const txns_in_1_hour = txns_in_1_minute * 60;
-    const txns_in_1_day = txns_in_1_hour * 24;
-    const txns_in_1_week = txns_in_1_day * 7;
-    const txns_in_1_month = txns_in_1_day * 31;
-    const txns_in_1_year = txns_in_1_day * 366;
+    // assume Main Net mines 6 blocks per minute
+    const blks_in_1_minute = 6;
+    const blks_in_1_hour = blks_in_1_minute * 60;
+    const blks_in_1_day = blks_in_1_hour * 24;
+    const blks_in_1_week = blks_in_1_day * 7;
+    const blks_in_1_month = blks_in_1_day * 31;
+    const blks_in_1_year = blks_in_1_day * 366;
+    const blks_in_3_years = blks_in_1_year * 3;
     const arr_progressive_events_scan_plan_A = [
-        { nBlockFrom: nLatestBlockNumber - txns_in_1_day, nBlockTo: "latest" },
-        { nBlockFrom: nLatestBlockNumber - txns_in_1_week, nBlockTo: "latest" },
-        { nBlockFrom: nLatestBlockNumber - txns_in_1_month, nBlockTo: "latest" },
-        { nBlockFrom: nLatestBlockNumber - txns_in_1_year, nBlockTo: "latest" }
+        { nBlockFrom: nLatestBlockNumber - blks_in_1_day, nBlockTo: "latest", type: "1 day" },
+        { nBlockFrom: nLatestBlockNumber - blks_in_1_week, nBlockTo: "latest", type: "1 week" },
+        { nBlockFrom: nLatestBlockNumber - blks_in_1_month, nBlockTo: "latest", type: "1 month" },
+        { nBlockFrom: nLatestBlockNumber - blks_in_1_year, nBlockTo: "latest", type: "1 year" },
+        { nBlockFrom: nLatestBlockNumber - blks_in_3_years, nBlockTo: "latest", type: "3 years" }
     ];
     const arr_progressive_events_scan_plan = [];
-    for( let idxPlan = 0; idxPlan < arr_progressive_events_scan_plan.length; ++idxPlan ) {
+    for( let idxPlan = 0; idxPlan < arr_progressive_events_scan_plan_A.length; ++idxPlan ) {
         const joPlan = arr_progressive_events_scan_plan_A[idxPlan];
         if( joPlan.nBlockFrom >= 0 )
             arr_progressive_events_scan_plan.push( joPlan );
@@ -295,26 +397,33 @@ function create_progressive_events_scan_plan( details, nLatestBlockNumber ) {
     if( arr_progressive_events_scan_plan.length > 0 ) {
         const joLastPlan = arr_progressive_events_scan_plan[arr_progressive_events_scan_plan.length - 1];
         if( ! ( joLastPlan.nBlockFrom == 0 && joLastPlan.nBlockTo == "latest" ) )
-            arr_progressive_events_scan_plan.push( { nBlockFrom: 0, nBlockTo: "latest" } );
+            arr_progressive_events_scan_plan.push( { nBlockFrom: 0, nBlockTo: "latest", type: "entire block range" } );
     } else
-        arr_progressive_events_scan_plan.push( { nBlockFrom: 0, nBlockTo: "latest" } );
-    details.write(
-        cc.debug( "Progressive scan plan is: " ) + cc.j( arr_progressive_events_scan_plan ) +
-        cc.debug( ", current latest block number is " ) + cc.info( nLatestBlockNumber ) +
-        "\n" );
+        arr_progressive_events_scan_plan.push( { nBlockFrom: 0, nBlockTo: "latest", type: "entire block range" } );
     return arr_progressive_events_scan_plan;
 }
 
 async function get_web3_pastEventsProgressive( details, w3, attempts, joContract, strEventName, nBlockFrom, nBlockTo, joFilter ) {
+    if( ! g_bIsEnabledProgressiveEventsScan ) {
+        details.write(
+            cc.fatal( "IMPORTANT NOTICE:" ) + " " +
+            cc.warning( "Will skip " ) + cc.attention( "progressive" ) + cc.warning( " events scan in block range from " ) +
+            cc.info( nBlockFrom ) + cc.warning( " to " ) + cc.info( nBlockTo ) +
+            cc.warning( " because it's " ) + cc.error( "DISABLED" ) + "\n" );
+        return await get_web3_pastEvents( details, w3, attempts, joContract, strEventName, nBlockFrom, nBlockTo, joFilter );
+    }
     if( ! ( nBlockFrom == 0 && nBlockTo == "latest" ) ) {
         details.write(
-            cc.debug( "Will skip progressive scan and use scan in block range from " ) +
+            cc.debug( "Will skip " ) + cc.attention( "progressive" ) + cc.debug( " scan and use scan in block range from " ) +
             cc.info( nBlockFrom ) + cc.debug( " to " ) + cc.info( nBlockTo ) + "\n" );
         return await get_web3_pastEvents( details, w3, attempts, joContract, strEventName, nBlockFrom, nBlockTo, joFilter );
     }
+    details.write( cc.debug( "Will run " ) + cc.attention( "progressive" ) + cc.debug( " scan..." ) + "\n" );
     const nLatestBlockNumber = await get_web3_blockNumber( details, 10, w3 );
+    details.write( cc.debug( "Current latest block number is " ) + cc.info( nLatestBlockNumber ) + "\n" );
     const arr_progressive_events_scan_plan = create_progressive_events_scan_plan( details, nLatestBlockNumber );
-    let joLastPlan = { nBlockFrom: 0, nBlockTo: "latest" };
+    details.write( cc.debug( "Composed " ) + cc.attention( "progressive" ) + cc.debug( " scan plan is: " ) + cc.j( arr_progressive_events_scan_plan ) + "\n" );
+    let joLastPlan = { nBlockFrom: 0, nBlockTo: "latest", type: "entire block range" };
     for( let idxPlan = 0; idxPlan < arr_progressive_events_scan_plan.length; ++idxPlan ) {
         const joPlan = arr_progressive_events_scan_plan[idxPlan];
         if( joPlan.nBlockFrom < 0 )
@@ -324,14 +433,16 @@ async function get_web3_pastEventsProgressive( details, w3, attempts, joContract
             cc.debug( "Progressive scan of " ) + cc.attention( "getPastEvents" ) + cc.debug( "/" ) + cc.info( strEventName ) +
             cc.debug( ", from block " ) + cc.info( joPlan.nBlockFrom ) +
             cc.debug( ", to block " ) + cc.info( joPlan.nBlockTo ) +
+            cc.debug( ", block range is " ) + cc.info( joPlan.type ) +
             cc.debug( "..." ) + "\n" );
         try {
-            const joAllEventsInBlock = await get_web3_pastEvents( details, w3, attempts, joContract, strEventName, joPlan.nBlockFrom, joPlan.nBlockTo, joFilter );
+            const joAllEventsInBlock = await get_web3_pastEventsIterative( details, w3, attempts, joContract, strEventName, joPlan.nBlockFrom, joPlan.nBlockTo, joFilter );
             if( joAllEventsInBlock && joAllEventsInBlock.length > 0 ) {
                 details.write(
                     cc.success( "Progressive scan of " ) + cc.attention( "getPastEvents" ) + cc.debug( "/" ) + cc.info( strEventName ) +
                     cc.success( ", from block " ) + cc.info( joPlan.nBlockFrom ) +
                     cc.success( ", to block " ) + cc.info( joPlan.nBlockTo ) +
+                    cc.success( ", block range is " ) + cc.info( joPlan.type ) +
                     cc.success( ", found " ) + cc.info( joAllEventsInBlock.length ) +
                     cc.success( " event(s)" ) + "\n" );
                 return joAllEventsInBlock;
@@ -347,7 +458,8 @@ async function get_web3_pastEventsProgressive( details, w3, attempts, joContract
         cc.error( "Could not not get Event \"" ) + cc.info( strEventName ) +
         cc.error( "\", from block " ) + cc.info( joLastPlan.nBlockFrom ) +
         cc.error( ", to block " ) + cc.info( joLastPlan.nBlockTo ) +
-        cc.error( ", using progressive event scan" ) + "\n" );
+        cc.debug( ", block range is " ) + cc.info( joLastPlan.type ) +
+        cc.error( ", using " ) + cc.attention( "progressive" ) + cc.error( " event scan" ) + "\n" );
     return [];
 }
 
@@ -362,7 +474,7 @@ async function get_contract_call_events( details, w3, joContract, strEventName, 
         nBlockFrom = 0;
     if( nBlockTo > nLatestBlockNumber )
         nBlockTo = nLatestBlockNumber;
-    const joAllEventsInBlock = await get_web3_pastEvents( details, w3, 10, joContract, strEventName, nBlockFrom, nBlockTo, joFilter );
+    const joAllEventsInBlock = await get_web3_pastEventsIterative( details, w3, 10, joContract, strEventName, nBlockFrom, nBlockTo, joFilter );
     const joAllTransactionEvents = []; let i;
     for( i = 0; i < joAllEventsInBlock.length; ++i ) {
         const joEvent = joAllEventsInBlock[i];
@@ -469,11 +581,12 @@ async function dry_run_call( details, w3, methodWithArguments, joAccount, strDRC
     strLogPrefix += cc.attention( ":" ) + " ";
     if( ! dry_run_is_enabled() ) {
         details.write( strLogPrefix + cc.success( "Skipped, dry run is disabled" ) + "\n" );
-        return;
+        return null;
     }
     try {
         const addressFrom = joAccount.address( w3 );
-        details.write( strLogPrefix + cc.debug( " will call method" ) +
+        details.write(
+            strLogPrefix + cc.debug( " will call method" ) +
             // cc.debug( " with data " ) + cc.normal( cc.safeStringifyJSON( methodWithArguments ) ) +
             cc.debug( " from address " ) + cc.sunny( addressFrom ) +
             "\n" );
@@ -492,9 +605,15 @@ async function dry_run_call( details, w3, methodWithArguments, joAccount, strDRC
             strErrorMessage += cc.fatal( "CRITICAL DRY RUN FAIL:" );
         strErrorMessage += " " + cc.error( err ) + "\n";
         details.write( strErrorMessage );
-        if( ! ( isIgnore || dry_run_is_ignored() ) )
-            throw new Error( "CRITICAL DRY RUN FAIL invoking the \"" + strMethodName + "\" method: " + err.toString() );
+        if( ! ( isIgnore || dry_run_is_ignored() ) ) {
+            details.write(
+                strLogPrefix + cc.fatal( "CRITICAL DRY RUN FAIL" ) + " " +
+                cc.error( " invoking the " ) + cc.info( strMethodName ) + cc.error( " method: " ) +
+                cc.warning( err.toString() ) + "\n" );
+            return "CRITICAL DRY RUN FAIL invoking the \"" + strMethodName + "\" method: " + err.toString();
+        }
     }
+    return null;
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -1002,7 +1121,9 @@ async function register_s_chain_in_deposit_boxes( // step 1
         //
         const isIgnore = false;
         const strDRC = "register_s_chain_in_deposit_boxes, step 1, connectSchain";
-        await dry_run_call( details, w3_main_net, methodWithArguments, joAccount_main_net, strDRC, isIgnore, gasPrice, estimatedGas, "0" );
+        const strErrorOfDryRun = await dry_run_call( details, w3_main_net, methodWithArguments, joAccount_main_net, strDRC, isIgnore, gasPrice, estimatedGas, "0" );
+        if( strErrorOfDryRun )
+            throw new Error( strErrorOfDryRun );
         //
         const rawTx = {
             chainId: cid_main_net,
@@ -1066,7 +1187,7 @@ async function register_s_chain_in_deposit_boxes( // step 1
 async function reimbursement_show_balance(
     w3_main_net,
     jo_community_pool,
-    joAccount_main_net,
+    joReceiver_main_net,
     strChainName_main_net,
     cid_main_net,
     tc_main_net,
@@ -1078,10 +1199,8 @@ async function reimbursement_show_balance(
     const strLogPrefix = cc.info( "Gas Reimbursement - Show Balance" ) + " ";
     try {
         details.write( strLogPrefix + cc.debug( "Querying wallet " ) + cc.notice( strReimbursementChain ) + cc.debug( " balance..." ) + "\n" );
-        const addressFrom = joAccount_main_net.address( w3_main_net );
-        const xWei = await jo_community_pool.methods.getBalance( addressFrom, strReimbursementChain ).call( {
-            from: addressFrom
-        } );
+        const addressFrom = joReceiver_main_net;
+        const xWei = await jo_community_pool.methods.getBalance( addressFrom, strReimbursementChain ).call();
         //
         s = strLogPrefix + cc.success( "Balance(wei): " ) + cc.attention( xWei ) + "\n";
         if( isForcePrintOut || verbose_get() >= RV_VERBOSE.information )
@@ -1104,6 +1223,85 @@ async function reimbursement_show_balance(
             log.write( s );
         details.write( s );
         details.exposeDetailsTo( log, "reimbursement_show_balance", false );
+        details.close();
+        return 0;
+    }
+}
+
+async function reimbursement_estimate_amount(
+    w3_main_net,
+    jo_community_pool,
+    joReceiver_main_net,
+    strChainName_main_net,
+    cid_main_net,
+    tc_main_net,
+    strReimbursementChain,
+    isForcePrintOut
+) {
+    const details = log.createMemoryStream();
+    let s = "";
+    const strLogPrefix = cc.info( "Gas Reimbursement - Estimate Amount To Recharge" ) + " ";
+    try {
+        details.write( strLogPrefix + cc.debug( "Querying wallet " ) + cc.notice( strReimbursementChain ) + cc.debug( " balance..." ) + "\n" );
+        const addressReceiver = joReceiver_main_net;
+        const xWei = await jo_community_pool.methods.getBalance( addressReceiver, strReimbursementChain ).call();
+        //
+        s = strLogPrefix + cc.success( "Balance(wei): " ) + cc.attention( xWei ) + "\n";
+        if( isForcePrintOut || verbose_get() >= RV_VERBOSE.information )
+            log.write( s );
+        details.write( s );
+        //
+        const xEth = w3_main_net.utils.fromWei( xWei, "ether" );
+        s = strLogPrefix + cc.success( "Balance(eth): " ) + cc.attention( xEth ) + "\n";
+        if( isForcePrintOut || verbose_get() >= RV_VERBOSE.information )
+            log.write( s );
+        details.write( s );
+        //
+        const minTransactionGas = parseIntOrHex( await jo_community_pool.methods.minTransactionGas().call() );
+        s = strLogPrefix + cc.success( "MinTransactionGas: " ) + cc.attention( minTransactionGas ) + "\n";
+        if( isForcePrintOut || verbose_get() >= RV_VERBOSE.information )
+            log.write( s );
+        details.write( s );
+        //
+        const gasPrice = await tc_main_net.computeGasPrice( w3_main_net, 200000000000 );
+        s = strLogPrefix + cc.success( "Multiplied Gas Price: " ) + cc.attention( gasPrice ) + "\n";
+        if( isForcePrintOut || verbose_get() >= RV_VERBOSE.information )
+            log.write( s );
+        details.write( s );
+        //
+        const minAmount = minTransactionGas * gasPrice;
+        s = strLogPrefix + cc.success( "Minimum recharge balance: " ) + cc.attention( minAmount ) + "\n";
+        if( isForcePrintOut || verbose_get() >= RV_VERBOSE.information )
+            log.write( s );
+        details.write( s );
+        //
+        let amountToRecharge;
+        if( xWei >= minAmount )
+            amountToRecharge = 1;
+        else
+            amountToRecharge = minAmount - xWei;
+
+        s = strLogPrefix + cc.success( "Estimated amount to recharge(wei): " ) + cc.attention( amountToRecharge ) + "\n";
+        if( isForcePrintOut || verbose_get() >= RV_VERBOSE.information )
+            log.write( s );
+        details.write( s );
+        //
+        const amountToRechargeEth = w3_main_net.utils.fromWei( amountToRecharge.toString(), "ether" );
+        s = strLogPrefix + cc.success( "Estimated amount to recharge(eth): " ) + cc.attention( amountToRechargeEth ) + "\n";
+        if( isForcePrintOut || verbose_get() >= RV_VERBOSE.information )
+            log.write( s );
+        details.write( s );
+        //
+        if( expose_details_get() )
+            details.exposeDetailsTo( log, "reimbursement_estimate_amount", true );
+        details.close();
+        return amountToRecharge;
+    } catch ( err ) {
+        const s = strLogPrefix + cc.fatal( "CRITICAL ERROR:" ) + cc.error( " Payment error in reimbursement_estimate_amount(): " ) + cc.error( err ) + "\n";
+        if( verbose_get() >= RV_VERBOSE.fatal )
+            log.write( s );
+        details.write( s );
+        details.exposeDetailsTo( log, "reimbursement_estimate_amount", false );
         details.close();
         return 0;
     }
@@ -1132,9 +1330,11 @@ async function reimbursement_wallet_recharge(
         details.write( strLogPrefix + cc.debug( "Got " ) + cc.info( tcnt ) + cc.debug( " from " ) + cc.notice( strActionName ) + "\n" );
         //
         //
+        const addressReceiver = joAccount_main_net.address( w3_main_net );
         const methodWithArguments = jo_community_pool.methods.rechargeUserWallet(
             // call params, last is destination account on S-chain
-            strReimbursementChain
+            strReimbursementChain,
+            addressReceiver
         );
         const dataTx = methodWithArguments.encodeABI(); // the encoded ABI of the method
         //
@@ -1145,7 +1345,9 @@ async function reimbursement_wallet_recharge(
         //
         const isIgnore = false;
         const strDRC = "reimbursement_wallet_recharge";
-        await dry_run_call( details, w3_main_net, methodWithArguments, joAccount_main_net, strDRC, isIgnore, gasPrice, estimatedGas, nReimbursementRecharge );
+        const strErrorOfDryRun = await dry_run_call( details, w3_main_net, methodWithArguments, joAccount_main_net, strDRC, isIgnore, gasPrice, estimatedGas, nReimbursementRecharge );
+        if( strErrorOfDryRun )
+            throw new Error( strErrorOfDryRun );
         //
         const rawTx = {
             chainId: cid_main_net,
@@ -1229,7 +1431,9 @@ async function reimbursement_wallet_withdraw(
         //
         const isIgnore = false;
         const strDRC = "reimbursement_wallet_withdraw";
-        await dry_run_call( details, w3_main_net, methodWithArguments, joAccount_main_net, strDRC, isIgnore, gasPrice, estimatedGas, wei_how_much );
+        const strErrorOfDryRun = await dry_run_call( details, w3_main_net, methodWithArguments, joAccount_main_net, strDRC, isIgnore, gasPrice, estimatedGas, wei_how_much );
+        if( strErrorOfDryRun )
+            throw new Error( strErrorOfDryRun );
         //
         const rawTx = {
             chainId: cid_main_net,
@@ -1311,7 +1515,9 @@ async function reimbursement_set_range(
         //
         const isIgnore = false;
         const strDRC = "reimbursement_set_range";
-        await dry_run_call( details, w3_s_chain, methodWithArguments, joAccount_s_chain, strDRC, isIgnore, gasPrice, estimatedGas, wei_how_much );
+        const strErrorOfDryRun = await dry_run_call( details, w3_s_chain, methodWithArguments, joAccount_s_chain, strDRC, isIgnore, gasPrice, estimatedGas, wei_how_much );
+        if( strErrorOfDryRun )
+            throw new Error( strErrorOfDryRun );
         //
         const rawTx = {
             chainId: cid_s_chain,
@@ -1396,7 +1602,7 @@ async function do_eth_payment_from_main_net(
         //
         const methodWithArguments = jo_deposit_box.methods.deposit(
             // call params, last is destination account on S-chain
-            chain_id_s_chain, joAccountDst.address( w3_main_net )
+            chain_id_s_chain
         );
         const dataTx = methodWithArguments.encodeABI(); // the encoded ABI of the method
         //
@@ -1407,7 +1613,9 @@ async function do_eth_payment_from_main_net(
         //
         const isIgnore = false;
         const strDRC = "do_eth_payment_from_main_net, deposit";
-        await dry_run_call( details, w3_main_net, methodWithArguments, joAccountSrc, strDRC, isIgnore, gasPrice, estimatedGas, wei_how_much );
+        const strErrorOfDryRun = await dry_run_call( details, w3_main_net, methodWithArguments, joAccountSrc, strDRC, isIgnore, gasPrice, estimatedGas, wei_how_much );
+        if( strErrorOfDryRun )
+            throw new Error( strErrorOfDryRun );
         //
         const rawTx = {
             chainId: cid_main_net,
@@ -1512,7 +1720,6 @@ async function do_eth_payment_from_s_chain(
         strActionName = "jo_token_manager_eth.methods.exitToMain()/do_eth_payment_from_s_chain";
         const methodWithArguments = jo_token_manager_eth.methods.exitToMain(
             // call params, last is destination account on S-chain
-            joAccountDst.address( w3_s_chain ),
             "0x" + w3_s_chain.utils.toBN( wei_how_much ).toString( 16 )
         );
         const dataTx = methodWithArguments.encodeABI(); // the encoded ABI of the method
@@ -1525,7 +1732,9 @@ async function do_eth_payment_from_s_chain(
         //
         const isIgnore = true;
         const strDRC = "do_eth_payment_from_s_chain, exitToMain";
-        await dry_run_call( details, w3_s_chain, methodWithArguments, joAccountSrc, strDRC, isIgnore, gasPrice, estimatedGas, "0" );
+        const strErrorOfDryRun = await dry_run_call( details, w3_s_chain, methodWithArguments, joAccountSrc, strDRC, isIgnore, gasPrice, estimatedGas, "0" );
+        if( strErrorOfDryRun )
+            throw new Error( strErrorOfDryRun );
         //
         const rawTx = {
             chainId: cid_s_chain,
@@ -1615,7 +1824,9 @@ async function receive_eth_payment_from_s_chain_on_main_net(
         //
         const isIgnore = false;
         const strDRC = "receive_eth_payment_from_s_chain_on_main_net, getMyEth";
-        await dry_run_call( details, w3_main_net, methodWithArguments, joAccount_main_net, strDRC, isIgnore, gasPrice, estimatedGas, "0" );
+        const strErrorOfDryRun = await dry_run_call( details, w3_main_net, methodWithArguments, joAccount_main_net, strDRC, isIgnore, gasPrice, estimatedGas, "0" );
+        if( strErrorOfDryRun )
+            throw new Error( strErrorOfDryRun );
         //
         const rawTx = {
             chainId: cid_main_net,
@@ -1741,7 +1952,6 @@ async function do_erc721_payment_from_main_net(
         const contractERC721 = new w3_main_net.eth.Contract( erc721ABI, erc721Address_main_net );
         // prepare the smart contract function deposit(string schainName, address to)
         const depositBoxAddress = jo_deposit_box_erc721.options.address;
-        const accountForSchain = joAccountDst.address( w3_s_chain );
         const methodWithArguments_approve = contractERC721.methods.approve( // same as approve in 20
             // joAccountSrc.address( w3_main_net ),
             depositBoxAddress,
@@ -1752,7 +1962,6 @@ async function do_erc721_payment_from_main_net(
         const methodWithArguments_rawDepositERC721 = jo_deposit_box_erc721.methods.depositERC721(
             chain_id_s_chain,
             erc721Address_main_net,
-            accountForSchain,
             "0x" + w3_main_net.utils.toBN( token_id ).toString( 16 )
         );
         dataTxDeposit = methodWithArguments_rawDepositERC721.encodeABI();
@@ -1769,7 +1978,9 @@ async function do_erc721_payment_from_main_net(
         //
         const isIgnore_approve = false;
         const strDRC_approve = "do_erc721_payment_from_main_net, approve";
-        await dry_run_call( details, w3_main_net, methodWithArguments_approve, joAccountSrc, strDRC_approve, isIgnore_approve, gasPrice, estimatedGas_approve, "0" );
+        const strErrorOfDryRun_approve = await dry_run_call( details, w3_main_net, methodWithArguments_approve, joAccountSrc, strDRC_approve, isIgnore_approve, gasPrice, estimatedGas_approve, "0" );
+        if( strErrorOfDryRun_approve )
+            throw new Error( strErrorOfDryRun_approve );
         //
         const rawTxApprove = {
             chainId: cid_main_net,
@@ -1813,7 +2024,9 @@ async function do_erc721_payment_from_main_net(
         //
         const isIgnore_rawDepositERC721 = true;
         const strDRC_rawDepositERC721 = "do_erc721_payment_from_main_net, rawDepositERC721";
-        await dry_run_call( details, w3_main_net, methodWithArguments_rawDepositERC721, joAccountSrc, strDRC_rawDepositERC721, isIgnore_rawDepositERC721, gasPrice, estimatedGas_deposit, "0" );
+        const strErrorOfDryRun_rawDepositERC721 = await dry_run_call( details, w3_main_net, methodWithArguments_rawDepositERC721, joAccountSrc, strDRC_rawDepositERC721, isIgnore_rawDepositERC721, gasPrice, estimatedGas_deposit, "0" );
+        if( strErrorOfDryRun_rawDepositERC721 )
+            throw new Error( strErrorOfDryRun_rawDepositERC721 );
         //
         const rawTxDeposit = {
             chainId: cid_main_net,
@@ -1928,7 +2141,6 @@ async function do_erc20_payment_from_main_net(
         const contractERC20 = new w3_main_net.eth.Contract( erc20ABI, erc20Address_main_net );
         // prepare the smart contract function deposit(string schainName, address to)
         const depositBoxAddress = jo_deposit_box_erc20.options.address;
-        const accountForSchain = joAccountDst.address( w3_s_chain );
         const methodWithArguments_approve = contractERC20.methods.approve(
             depositBoxAddress, "0x" + w3_main_net.utils.toBN( token_amount ).toString( 16 )
         );
@@ -1937,7 +2149,6 @@ async function do_erc20_payment_from_main_net(
         const methodWithArguments_rawDepositERC20 = jo_deposit_box_erc20.methods.depositERC20(
             chain_id_s_chain,
             erc20Address_main_net,
-            accountForSchain,
             "0x" + w3_main_net.utils.toBN( token_amount ).toString( 16 )
         );
         dataTxDeposit = methodWithArguments_rawDepositERC20.encodeABI();
@@ -1954,7 +2165,9 @@ async function do_erc20_payment_from_main_net(
         //
         const isIgnore_approve = false;
         const strDRC_approve = "do_erc20_payment_from_main_net, approve";
-        await dry_run_call( details, w3_main_net, methodWithArguments_approve, joAccountSrc, strDRC_approve, isIgnore_approve, gasPrice, estimatedGas_approve, "0" );
+        const strErrorOfDryRun_approve = await dry_run_call( details, w3_main_net, methodWithArguments_approve, joAccountSrc, strDRC_approve, isIgnore_approve, gasPrice, estimatedGas_approve, "0" );
+        if( strErrorOfDryRun_approve )
+            throw new Error( strErrorOfDryRun_approve );
         //
         const rawTxApprove = {
             chainId: cid_main_net,
@@ -1997,7 +2210,9 @@ async function do_erc20_payment_from_main_net(
         //
         const isIgnore_rawDepositERC20 = true;
         const strDRC_rawDepositERC20 = "do_erc20_payment_from_main_net, rawDepositERC20";
-        await dry_run_call( details, w3_main_net, methodWithArguments_rawDepositERC20, joAccountSrc, strDRC_rawDepositERC20, isIgnore_rawDepositERC20, gasPrice, estimatedGas_deposit, "0" );
+        const strErrorOfDryRun_rawDepositERC20 = await dry_run_call( details, w3_main_net, methodWithArguments_rawDepositERC20, joAccountSrc, strDRC_rawDepositERC20, isIgnore_rawDepositERC20, gasPrice, estimatedGas_deposit, "0" );
+        if( strErrorOfDryRun_rawDepositERC20 )
+            throw new Error( strErrorOfDryRun_rawDepositERC20 );
         //
         tcnt += 1;
         const rawTxDeposit = {
@@ -2106,7 +2321,6 @@ async function do_erc1155_payment_from_main_net(
         const contractERC1155 = new w3_main_net.eth.Contract( erc1155ABI, erc1155Address_main_net );
         // prepare the smart contract function deposit(string schainName, address to)
         const depositBoxAddress = jo_deposit_box_erc1155.options.address;
-        const accountForSchain = joAccountDst.address( w3_s_chain );
         const methodWithArguments_approve = contractERC1155.methods.setApprovalForAll( // same as approve in 20
             // joAccountSrc.address( w3_main_net ),
             depositBoxAddress,
@@ -2117,7 +2331,6 @@ async function do_erc1155_payment_from_main_net(
         const methodWithArguments_rawDepositERC1155 = jo_deposit_box_erc1155.methods.depositERC1155(
             chain_id_s_chain,
             erc1155Address_main_net,
-            accountForSchain,
             "0x" + w3_main_net.utils.toBN( token_id ).toString( 16 ),
             "0x" + w3_main_net.utils.toBN( token_amount ).toString( 16 )
         );
@@ -2135,7 +2348,9 @@ async function do_erc1155_payment_from_main_net(
         //
         const isIgnore_approve = false;
         const strDRC_approve = "do_erc1155_payment_from_main_net, approve";
-        await dry_run_call( details, w3_main_net, methodWithArguments_approve, joAccountSrc, strDRC_approve, isIgnore_approve, gasPrice, estimatedGas_approve, "0" );
+        const strErrorOfDryRun_approve = await dry_run_call( details, w3_main_net, methodWithArguments_approve, joAccountSrc, strDRC_approve, isIgnore_approve, gasPrice, estimatedGas_approve, "0" );
+        if( strErrorOfDryRun_approve )
+            throw new Error( strErrorOfDryRun_approve );
         //
         const rawTxApprove = {
             chainId: cid_main_net,
@@ -2179,7 +2394,9 @@ async function do_erc1155_payment_from_main_net(
         //
         const isIgnore_rawDepositERC1155 = true;
         const strDRC_rawDepositERC1155 = "do_erc1155_payment_from_main_net, rawDepositERC1155";
-        await dry_run_call( details, w3_main_net, methodWithArguments_rawDepositERC1155, joAccountSrc, strDRC_rawDepositERC1155, isIgnore_rawDepositERC1155, gasPrice, estimatedGas_deposit, "0" );
+        const strErrorOfDryRun_rawDepositERC1155 = await dry_run_call( details, w3_main_net, methodWithArguments_rawDepositERC1155, joAccountSrc, strDRC_rawDepositERC1155, isIgnore_rawDepositERC1155, gasPrice, estimatedGas_deposit, "0" );
+        if( strErrorOfDryRun_rawDepositERC1155 )
+            throw new Error( strErrorOfDryRun_rawDepositERC1155 );
         //
         const rawTxDeposit = {
             chainId: cid_main_net,
@@ -2288,7 +2505,6 @@ async function do_erc1155_batch_payment_from_main_net(
         const contractERC1155 = new w3_main_net.eth.Contract( erc1155ABI, erc1155Address_main_net );
         // prepare the smart contract function deposit(string schainName, address to)
         const depositBoxAddress = jo_deposit_box_erc1155.options.address;
-        const accountForSchain = joAccountDst.address( w3_s_chain );
         const methodWithArguments_approve = contractERC1155.methods.setApprovalForAll( // same as approve in 20
             // joAccountSrc.address( w3_main_net ),
             depositBoxAddress,
@@ -2299,7 +2515,6 @@ async function do_erc1155_batch_payment_from_main_net(
         const methodWithArguments_rawDepositERC1155Batch = jo_deposit_box_erc1155.methods.depositERC1155Batch(
             chain_id_s_chain,
             erc1155Address_main_net,
-            accountForSchain,
             token_ids, //"0x" + w3_main_net.utils.toBN( token_id ).toString( 16 ),
             token_amounts //"0x" + w3_main_net.utils.toBN( token_amount ).toString( 16 )
         );
@@ -2317,7 +2532,9 @@ async function do_erc1155_batch_payment_from_main_net(
         //
         const isIgnore_approve = false;
         const strDRC_approve = "do_erc1155_batch_payment_from_main_net, approve";
-        await dry_run_call( details, w3_main_net, methodWithArguments_approve, joAccountSrc, strDRC_approve, isIgnore_approve, gasPrice, estimatedGas_approve, "0" );
+        const strErrorOfDryRun_approve = await dry_run_call( details, w3_main_net, methodWithArguments_approve, joAccountSrc, strDRC_approve, isIgnore_approve, gasPrice, estimatedGas_approve, "0" );
+        if( strErrorOfDryRun_approve )
+            throw new Error( strErrorOfDryRun_approve );
         //
         const rawTxApprove = {
             chainId: cid_main_net,
@@ -2361,7 +2578,9 @@ async function do_erc1155_batch_payment_from_main_net(
         //
         const isIgnore_rawDepositERC1155Batch = true;
         const strDRC_rawDepositERC1155Batch = "do_erc1155_batch_payment_from_main_net, rawDepositERC1155Batch";
-        await dry_run_call( details, w3_main_net, methodWithArguments_rawDepositERC1155Batch, joAccountSrc, strDRC_rawDepositERC1155Batch, isIgnore_rawDepositERC1155Batch, gasPrice, estimatedGas_deposit, "0" );
+        const strErrorOfDryRun_rawDepositERC1155Batch = await dry_run_call( details, w3_main_net, methodWithArguments_rawDepositERC1155Batch, joAccountSrc, strDRC_rawDepositERC1155Batch, isIgnore_rawDepositERC1155Batch, gasPrice, estimatedGas_deposit, "0" );
+        if( strErrorOfDryRun_rawDepositERC1155Batch )
+            throw new Error( strErrorOfDryRun_rawDepositERC1155Batch );
         //
         const rawTxDeposit = {
             chainId: cid_main_net,
@@ -2464,7 +2683,6 @@ async function do_erc20_payment_from_s_chain(
         //
         //
         strActionName = "ERC20 prepare S->M";
-        const accountForMainnet = joAccountDst.address( w3_main_net );
         const accountForSchain = joAccountSrc.address( w3_s_chain );
         const erc20ABI = joErc20_s_chain[strCoinNameErc20_s_chain + "_abi"];
         const erc20Address_s_chain = joErc20_s_chain[strCoinNameErc20_s_chain + "_address"];
@@ -2481,7 +2699,6 @@ async function do_erc20_payment_from_s_chain(
         const erc20Address_main_net = joErc20_main_net[strCoinNameErc20_main_net + "_address"];
         const methodWithArguments_rawExitToMainERC20 = jo_token_manager_erc20.methods.exitToMainERC20(
             erc20Address_main_net,
-            accountForMainnet,
             "0x" + w3_main_net.utils.toBN( token_amount ).toString( 16 )
             // "0x" + w3_main_net.utils.toBN( wei_how_much ).toString( 16 )
         );
@@ -2500,7 +2717,9 @@ async function do_erc20_payment_from_s_chain(
         //
         const isIgnore_approve = false;
         const strDRC_approve = "do_erc20_payment_from_s_chain, approve";
-        await dry_run_call( details, w3_s_chain, methodWithArguments_approve, joAccountSrc, strDRC_approve, isIgnore_approve, gasPrice, estimatedGas_approve, "0" );
+        const strErrorOfDryRun_approve = await dry_run_call( details, w3_s_chain, methodWithArguments_approve, joAccountSrc, strDRC_approve, isIgnore_approve, gasPrice, estimatedGas_approve, "0" );
+        if( strErrorOfDryRun_approve )
+            throw new Error( strErrorOfDryRun_approve );
         //
         let tcnt = parseIntOrHex( await get_web3_transactionCount( details, 10, w3_s_chain, joAccountSrc.address( w3_s_chain ), null ) );
         details.write( strLogPrefix + cc.debug( "Got " ) + cc.info( tcnt ) + cc.debug( " from " ) + cc.notice( strActionName ) + "\n" );
@@ -2553,7 +2772,9 @@ async function do_erc20_payment_from_s_chain(
         //
         const isIgnore_rawExitToMainERC20 = true;
         const strDRC_rawExitToMainERC20 = "do_erc20_payment_from_s_chain, rawExitToMainERC20";
-        await dry_run_call( details, w3_s_chain, methodWithArguments_rawExitToMainERC20, joAccountSrc, strDRC_rawExitToMainERC20, isIgnore_rawExitToMainERC20, gasPrice, estimatedGas_rawExitToMainERC20, "0" );
+        const strErrorOfDryRun_rawExitToMainERC20 = await dry_run_call( details, w3_s_chain, methodWithArguments_rawExitToMainERC20, joAccountSrc, strDRC_rawExitToMainERC20, isIgnore_rawExitToMainERC20, gasPrice, estimatedGas_rawExitToMainERC20, "0" );
+        if( strErrorOfDryRun_rawExitToMainERC20 )
+            throw new Error( strErrorOfDryRun_rawExitToMainERC20 );
         //
         const rawTxExitToMainERC20 = {
             chainId: cid_s_chain,
@@ -2641,7 +2862,6 @@ async function do_erc721_payment_from_s_chain(
         //
         //
         strActionName = "ERC721 prepare S->M";
-        const accountForMainnet = joAccountDst.address( w3_main_net );
         const accountForSchain = joAccountSrc.address( w3_s_chain );
         const erc721ABI = joErc721_s_chain[strCoinNameErc721_s_chain + "_abi"];
         const erc721Address_s_chain = joErc721_s_chain[strCoinNameErc721_s_chain + "_address"];
@@ -2659,7 +2879,6 @@ async function do_erc721_payment_from_s_chain(
         const erc721Address_main_net = joErc721_main_net[strCoinNameErc721_main_net + "_address"];
         const methodWithArguments_rawExitToMainERC721 = jo_token_manager_erc721.methods.exitToMainERC721(
             erc721Address_main_net,
-            accountForMainnet,
             "0x" + w3_main_net.utils.toBN( token_id ).toString( 16 )
             // "0x" + w3_main_net.utils.toBN( wei_how_much ).toString( 16 )
         );
@@ -2680,7 +2899,9 @@ async function do_erc721_payment_from_s_chain(
         //
         const isIgnore_approve = false;
         const strDRC_approve = "erc721_payment_from_s_chain, approve";
-        await dry_run_call( details, w3_s_chain, methodWithArguments_approve, joAccountSrc, strDRC_approve,isIgnore_approve, gasPrice, estimatedGas_approve, "0" );
+        const strErrorOfDryRun_approve = await dry_run_call( details, w3_s_chain, methodWithArguments_approve, joAccountSrc, strDRC_approve,isIgnore_approve, gasPrice, estimatedGas_approve, "0" );
+        if( strErrorOfDryRun_approve )
+            throw new Error( strErrorOfDryRun_approve );
         //
         const rawTxApprove = {
             chainId: cid_s_chain,
@@ -2732,7 +2953,9 @@ async function do_erc721_payment_from_s_chain(
         //
         const isIgnore_rawExitToMainERC721 = true;
         const strDRC_rawExitToMainERC721 = "erc721_payment_from_s_chain, rawExitToMainERC721";
-        await dry_run_call( details, w3_s_chain, methodWithArguments_rawExitToMainERC721, joAccountSrc, strDRC_rawExitToMainERC721, isIgnore_rawExitToMainERC721, gasPrice, estimatedGas_exitToMainERC721, "0" );
+        const strErrorOfDryRun_rawExitToMainERC721 = await dry_run_call( details, w3_s_chain, methodWithArguments_rawExitToMainERC721, joAccountSrc, strDRC_rawExitToMainERC721, isIgnore_rawExitToMainERC721, gasPrice, estimatedGas_exitToMainERC721, "0" );
+        if( strErrorOfDryRun_rawExitToMainERC721 )
+            throw new Error( strErrorOfDryRun_rawExitToMainERC721 );
         //
         const rawTxExitToMainERC721 = compose_tx_instance(
             details,
@@ -2823,7 +3046,6 @@ async function do_erc1155_payment_from_s_chain(
         //
         //
         strActionName = "ERC1155 prepare S->M";
-        const accountForMainnet = joAccountDst.address( w3_main_net );
         const accountForSchain = joAccountSrc.address( w3_s_chain );
         const erc1155ABI = joErc1155_s_chain[strCoinNameErc1155_s_chain + "_abi"];
         const erc1155Address_s_chain = joErc1155_s_chain[strCoinNameErc1155_s_chain + "_address"];
@@ -2841,7 +3063,6 @@ async function do_erc1155_payment_from_s_chain(
         const erc1155Address_main_net = joErc1155_main_net[strCoinNameErc1155_main_net + "_address"];
         const methodWithArguments_rawExitToMainERC1155 = jo_token_manager_erc1155.methods.exitToMainERC1155(
             erc1155Address_main_net,
-            accountForMainnet,
             "0x" + w3_main_net.utils.toBN( token_id ).toString( 16 ),
             "0x" + w3_main_net.utils.toBN( token_amount ).toString( 16 )
             // "0x" + w3_main_net.utils.toBN( wei_how_much ).toString( 16 )
@@ -2863,7 +3084,9 @@ async function do_erc1155_payment_from_s_chain(
         //
         const isIgnore_approve = false;
         const strDRC_approve = "erc1155_payment_from_s_chain, approve";
-        await dry_run_call( details, w3_s_chain, methodWithArguments_approve, joAccountSrc, strDRC_approve,isIgnore_approve, gasPrice, estimatedGas_approve, "0" );
+        const strErrorOfDryRun_approve = await dry_run_call( details, w3_s_chain, methodWithArguments_approve, joAccountSrc, strDRC_approve,isIgnore_approve, gasPrice, estimatedGas_approve, "0" );
+        if( strErrorOfDryRun_approve )
+            throw new Error( strErrorOfDryRun_approve );
         //
         const rawTxApprove = {
             chainId: cid_s_chain,
@@ -2915,7 +3138,9 @@ async function do_erc1155_payment_from_s_chain(
         //
         const isIgnore_rawExitToMainERC1155 = true;
         const strDRC_rawExitToMainERC1155 = "erc1155_payment_from_s_chain, rawExitToMainERC1155";
-        await dry_run_call( details, w3_s_chain, methodWithArguments_rawExitToMainERC1155, joAccountSrc, strDRC_rawExitToMainERC1155, isIgnore_rawExitToMainERC1155, gasPrice, estimatedGas_exitToMainERC1155, "0" );
+        const strErrorOfDryRun_rawExitToMainERC1155 = await dry_run_call( details, w3_s_chain, methodWithArguments_rawExitToMainERC1155, joAccountSrc, strDRC_rawExitToMainERC1155, isIgnore_rawExitToMainERC1155, gasPrice, estimatedGas_exitToMainERC1155, "0" );
+        if( strErrorOfDryRun_rawExitToMainERC1155 )
+            throw new Error( strErrorOfDryRun_rawExitToMainERC1155 );
         //
         const rawTxExitToMainERC1155 = compose_tx_instance(
             details,
@@ -3006,7 +3231,6 @@ async function do_erc1155_batch_payment_from_s_chain(
         //
         //
         strActionName = "ERC1155 Batch prepare S->M";
-        const accountForMainnet = joAccountDst.address( w3_main_net );
         const accountForSchain = joAccountSrc.address( w3_s_chain );
         const erc1155ABI = joErc1155_s_chain[strCoinNameErc1155_s_chain + "_abi"];
         const erc1155Address_s_chain = joErc1155_s_chain[strCoinNameErc1155_s_chain + "_address"];
@@ -3024,7 +3248,6 @@ async function do_erc1155_batch_payment_from_s_chain(
         const erc1155Address_main_net = joErc1155_main_net[strCoinNameErc1155_main_net + "_address"];
         const methodWithArguments_rawExitToMainERC1155Batch = jo_token_manager_erc1155.methods.exitToMainERC1155Batch(
             erc1155Address_main_net,
-            accountForMainnet,
             token_ids, //"0x" + w3_main_net.utils.toBN( token_id ).toString( 16 ),
             token_amounts //"0x" + w3_main_net.utils.toBN( token_amount ).toString( 16 )
             // "0x" + w3_main_net.utils.toBN( wei_how_much ).toString( 16 )
@@ -3046,7 +3269,9 @@ async function do_erc1155_batch_payment_from_s_chain(
         //
         const isIgnore_approve = false;
         const strDRC_approve = "erc1155_payment_from_s_chain, approve";
-        await dry_run_call( details, w3_s_chain, methodWithArguments_approve, joAccountSrc, strDRC_approve,isIgnore_approve, gasPrice, estimatedGas_approve, "0" );
+        const strErrorOfDryRun_approve = await dry_run_call( details, w3_s_chain, methodWithArguments_approve, joAccountSrc, strDRC_approve,isIgnore_approve, gasPrice, estimatedGas_approve, "0" );
+        if( strErrorOfDryRun_approve )
+            throw new Error( strErrorOfDryRun_approve );
         //
         const rawTxApprove = {
             chainId: cid_s_chain,
@@ -3098,7 +3323,9 @@ async function do_erc1155_batch_payment_from_s_chain(
         //
         const isIgnore_rawExitToMainERC1155Batch = true;
         const strDRC_rawExitToMainERC1155Batch = "erc1155_batch_payment_from_s_chain, rawExitToMainERC1155Batch";
-        await dry_run_call( details, w3_s_chain, methodWithArguments_rawExitToMainERC1155Batch, joAccountSrc, strDRC_rawExitToMainERC1155Batch, isIgnore_rawExitToMainERC1155Batch, gasPrice, estimatedGas_exitToMainERC1155Batch, "0" );
+        const strErrorOfDryRun_rawExitToMainERC1155Batch = await dry_run_call( details, w3_s_chain, methodWithArguments_rawExitToMainERC1155Batch, joAccountSrc, strDRC_rawExitToMainERC1155Batch, isIgnore_rawExitToMainERC1155Batch, gasPrice, estimatedGas_exitToMainERC1155Batch, "0" );
+        if( strErrorOfDryRun_rawExitToMainERC1155Batch )
+            throw new Error( strErrorOfDryRun_rawExitToMainERC1155Batch );
         //
         const rawTxExitToMainERC1155Batch = compose_tx_instance(
             details,
@@ -3498,10 +3725,10 @@ async function init_ima_state_file( details, w3, strDirection, optsStateFile ) {
     try {
         nBlockFrom = await w3.eth.getBlockNumber();
     } catch ( err ) { }
+    const strKeyName = ( strDirection == "M2S" ) ? "lastSearchedStartBlockM2S" : "lastSearchedStartBlockS2M";
     try {
         const joStateForLogsSearch = {};
         details.write( strLogPrefix + cc.normal( "(FIRST TIME) Saving next forecasted block number for logs search value " ) + cc.info( blockNumberNextForecast ) + "\n" );
-        const strKeyName = ( strDirection == "M2S" ) ? "lastSearchedStartBlockM2S" : "lastSearchedStartBlockS2M";
         joStateForLogsSearch[strKeyName] = nBlockFrom;
         const s = JSON.stringify( joStateForLogsSearch, null, 4 );
         fs.writeFileSync( optsStateFile.path, s );
@@ -3648,14 +3875,31 @@ async function do_transfer(
             let joStateForLogsSearch = {};
             // const nLatestBlockNumber = await get_web3_blockNumber( details, 10, w3_src );
             if( optsStateFile && optsStateFile.isEnabled && "path" in optsStateFile && typeof optsStateFile.path == "string" && optsStateFile.path.length > 0 ) {
+                const strKeyName = ( strDirection == "M2S" ) ? "lastSearchedStartBlockM2S" : "lastSearchedStartBlockS2M";
                 try {
                     const s = fs.readFileSync( optsStateFile.path );
                     joStateForLogsSearch = JSON.parse( s );
-                    const strKeyName = ( strDirection == "M2S" ) ? "lastSearchedStartBlockM2S" : "lastSearchedStartBlockS2M";
-                    if( strKeyName in joStateForLogsSearch && typeof joStateForLogsSearch[strKeyName] == "string" )
+                    if( strKeyName in joStateForLogsSearch && typeof joStateForLogsSearch[strKeyName] == "string" ) {
                         nBlockFrom = "0x" + w3_src.utils.toBN( joStateForLogsSearch[strKeyName] ).toString( 16 );
+                        details.write( strLogPrefix +
+                            cc.normal( "Loaded nearest previously forecasted " ) +
+                            cc.bright( strDirection ) + cc.debug( "/" ) + cc.attention( strKeyName ) +
+                            cc.normal( " block number for logs search value " ) +
+                            cc.info( nBlockFrom ) + "\n" );
+                    } else {
+                        details.write( strLogPrefix +
+                            cc.normal( "Was not found nearest previously forecasted " ) +
+                            cc.bright( strDirection ) + cc.debug( "/" ) + cc.attention( strKeyName ) +
+                            cc.normal( " block number for logs search value " ) +
+                            cc.info( nBlockFrom ) + "\n" );
+                    }
                 } catch ( err ) {
                     nBlockFrom = 0;
+                    details.write( strLogPrefix +
+                        cc.error( "Was reset nearest previously forecasted " ) +
+                        cc.bright( strDirection ) + cc.debug( "/" ) + cc.attention( strKeyName ) +
+                        cc.error( " block number for logs search value " ) +
+                        cc.error( nBlockFrom ) + cc.error( " due to error: " ) + cc.warning( err ) + "\n" );
                 }
             }
             // blockNumberNextForecast = nBlockFrom;
@@ -4013,7 +4257,9 @@ async function do_transfer(
                 //
                 const isIgnore_postIncomingMessages = false;
                 const strDRC_postIncomingMessages = "postIncomingMessages in message signer";
-                await dry_run_call( details, w3_dst, methodWithArguments_postIncomingMessages, joAccountDst, strDRC_postIncomingMessages,isIgnore_postIncomingMessages, gasPrice, estimatedGas_postIncomingMessages, "0" );
+                const strErrorOfDryRun = await dry_run_call( details, w3_dst, methodWithArguments_postIncomingMessages, joAccountDst, strDRC_postIncomingMessages,isIgnore_postIncomingMessages, gasPrice, estimatedGas_postIncomingMessages, "0" );
+                if( strErrorOfDryRun )
+                    throw new Error( strErrorOfDryRun );
                 //
                 const raw_tx_postIncomingMessages = {
                     chainId: cid_dst,
@@ -4083,9 +4329,13 @@ async function do_transfer(
 
                 if( optsStateFile && optsStateFile.isEnabled && "path" in optsStateFile && typeof optsStateFile.path == "string" && optsStateFile.path.length > 0 ) {
                     if( blockNumberNextForecast !== nBlockFrom ) {
+                        const strKeyName = ( strDirection == "M2S" ) ? "lastSearchedStartBlockM2S" : "lastSearchedStartBlockS2M";
                         try {
-                            details.write( strLogPrefix + cc.normal( "Saving next forecasted block number for logs search value " ) + cc.info( blockNumberNextForecast ) + "\n" );
-                            const strKeyName = ( strDirection == "M2S" ) ? "lastSearchedStartBlockM2S" : "lastSearchedStartBlockS2M";
+                            details.write( strLogPrefix +
+                                cc.normal( "Saving next forecasted " +
+                                cc.bright( strDirection ) + cc.debug( "/" ) + cc.attention( strKeyName ) +
+                                " block number for logs search value " ) +
+                                cc.info( blockNumberNextForecast ) + "\n" );
                             joStateForLogsSearch[strKeyName] = blockNumberNextForecast;
                             const s = JSON.stringify( joStateForLogsSearch, null, 4 );
                             fs.writeFileSync( optsStateFile.path, s );
@@ -4100,6 +4350,10 @@ async function do_transfer(
                 if( expose_details_get() )
                     details.exposeDetailsTo( log, "do_transfer", true );
                 details.close();
+            } ).catch( ( err ) => {
+                bErrorInSigningMessages = true;
+                if( verbose_get() >= RV_VERBOSE.fatal )
+                    log.write( strLogPrefix + cc.error( "Problem in transfer handler: " ) + cc.warning( err ) + "\n" );
             } );
             if( bErrorInSigningMessages )
                 break;
@@ -4339,6 +4593,7 @@ module.exports.check_is_registered_s_chain_in_deposit_boxes = check_is_registere
 // module.exports.check_is_registered_main_net_on_s_chain = check_is_registered_main_net_on_s_chain; // step 2B
 
 module.exports.reimbursement_show_balance = reimbursement_show_balance;
+module.exports.reimbursement_estimate_amount = reimbursement_estimate_amount;
 module.exports.reimbursement_wallet_recharge = reimbursement_wallet_recharge;
 module.exports.reimbursement_wallet_withdraw = reimbursement_wallet_withdraw;
 module.exports.reimbursement_set_range = reimbursement_set_range;
@@ -4374,7 +4629,15 @@ module.exports.getWaitForNextBlockOnSChain = getWaitForNextBlockOnSChain;
 module.exports.setWaitForNextBlockOnSChain = setWaitForNextBlockOnSChain;
 module.exports.get_web3_blockNumber = get_web3_blockNumber;
 module.exports.get_web3_pastEvents = get_web3_pastEvents;
+module.exports.get_web3_pastEventsIterative = get_web3_pastEventsIterative;
 module.exports.get_web3_pastEventsProgressive = get_web3_pastEventsProgressive;
+module.exports.getBlocksCountInInIterativeStepOfEventsScan = getBlocksCountInInIterativeStepOfEventsScan;
+module.exports.setBlocksCountInInIterativeStepOfEventsScan = setBlocksCountInInIterativeStepOfEventsScan;
+module.exports.getMaxIterationsInAllRangeEventsScan = getMaxIterationsInAllRangeEventsScan;
+module.exports.setMaxIterationsInAllRangeEventsScan = setMaxIterationsInAllRangeEventsScan;
+module.exports.getEnabledProgressiveEventsScan = getEnabledProgressiveEventsScan;
+module.exports.setEnabledProgressiveEventsScan = setEnabledProgressiveEventsScan;
+
 module.exports.parseIntOrHex = parseIntOrHex;
 
 module.exports.balanceETH = balanceETH;

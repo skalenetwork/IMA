@@ -346,7 +346,12 @@ function parse( joExternalHandlers, argv ) {
             console.log( soi + cc.debug( "--" ) + cc.bright( "reimbursement-withdraw" ) + cc.sunny( "=" ) + cc.note( "v" ) + cc.warning( "u" ) + cc.debug( "....." ) + cc.notice( "Withdraw user wallet with specified value " ) + cc.attention( "v" ) + cc.notice( ", unit name " ) + cc.attention( "u" ) + cc.notice( " is well known Ethereum unit name like " ) + cc.attention( "ether" ) + cc.notice( " or " ) + cc.attention( "wei" ) + cc.notice( "." ) );
             console.log( soi + cc.debug( "--" ) + cc.bright( "reimbursement-balance" ) + cc.debug( "........." ) + cc.notice( "Show wallet balance." ) );
             console.log( soi + cc.debug( "--" ) + cc.bright( "reimbursement-range" ) + cc.sunny( "=" ) + cc.note( "number" ) + cc.debug( "...." ) + cc.notice( "Sets minimal time interval between transfers from S-Chain to Main Net." ) );
-
+            //
+            console.log( cc.sunny( "PAST EVENTS SCAN" ) + cc.info( " options:" ) );
+            console.log( soi + cc.debug( "--" ) + cc.bright( "bs-step-size" ) + cc.sunny( "=" ) + cc.note( "number" ) + cc.debug( "..........." ) + cc.notice( "Specifies step block range size to search iterative past events step by step. Zero to disable iterative search." ) );
+            console.log( soi + cc.debug( "--" ) + cc.bright( "bs-max-all-range" ) + cc.sunny( "=" ) + cc.note( "number" ) + cc.debug( "......." ) + cc.notice( "Specifies max number of steps to allow to search as [0...latest] range. Zero to disable iterative search." ) );
+            console.log( soi + cc.debug( "--" ) + cc.bright( "bs-progressive-enable" ) + cc.debug( "........." ) + cc.notice( "Enables progressive block scan to search past events." ) );
+            console.log( soi + cc.debug( "--" ) + cc.bright( "bs-progressive-disable" ) + cc.debug( "........" ) + cc.notice( "Disables progressive block scan to search past events." ) );
             //
             console.log( cc.sunny( "TEST" ) + cc.info( " options:" ) );
             console.log( soi + cc.debug( "--" ) + cc.bright( "browse-s-chain" ) + cc.debug( "................" ) + cc.notice( "Download S-Chain network information." ) );
@@ -501,6 +506,11 @@ function parse( joExternalHandlers, argv ) {
         if( joArg.name == "address-s-chain" ) {
             owaspUtils.verifyArgumentWithNonEmptyValue( joArg );
             imaState.joAccount_s_chain.address_ = joArg.value;
+            continue;
+        }
+        if( joArg.name == "receiver" ) {
+            owaspUtils.verifyArgumentWithNonEmptyValue( joArg );
+            imaState.receiver = joArg.value;
             continue;
         }
         if( joArg.name == "key-main-net" ) {
@@ -903,9 +913,31 @@ function parse( joExternalHandlers, argv ) {
             imaState.isShowReimbursementBalance = true;
             continue;
         }
+        if( joArg.name == "reimbursement-estimate" ) {
+            imaState.nReimbursementEstimate = true;
+            continue;
+        }
         if( joArg.name == "reimbursement-range" ) {
             owaspUtils.verifyArgumentWithNonEmptyValue( joArg );
             imaState.nReimbursementRange = owaspUtils.toInteger( joArg.value );
+            continue;
+        }
+        if( joArg.name == "bs-step-size" ) {
+            owaspUtils.verifyArgumentIsInteger( joArg );
+            IMA.setBlocksCountInInIterativeStepOfEventsScan( owaspUtils.toInteger( joArg.value ) );
+            continue;
+        }
+        if( joArg.name == "bs-max-all-range" ) {
+            owaspUtils.verifyArgumentIsInteger( joArg );
+            IMA.setMaxIterationsInAllRangeEventsScan( owaspUtils.toInteger( joArg.value ) );
+            continue;
+        }
+        if( joArg.name == "bs-progressive-enable" ) {
+            IMA.setEnabledProgressiveEventsScan( true );
+            continue;
+        }
+        if( joArg.name == "bs-progressive-disable" ) {
+            IMA.setEnabledProgressiveEventsScan( false );
             continue;
         }
         if( joArg.name == "register" ||

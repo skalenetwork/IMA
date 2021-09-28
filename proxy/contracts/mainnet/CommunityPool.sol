@@ -85,11 +85,16 @@ contract CommunityPool is Twin {
     )
         external
         onlyMessageProxy
-        returns (bool)
+        returns (uint)
     {
-        require(activeUsers[user][schainHash], "User should be active");
         require(node != address(0), "Node address must be set");
+        if (!activeUsers[user][schainHash]) {
+            return gas;
+        }
         uint amount = tx.gasprice * gas;
+        if (amount > _userWallets[user][schainHash]) {
+            amount = _userWallets[user][schainHash];
+        }
         _userWallets[user][schainHash] = _userWallets[user][schainHash] - amount;
         if (!_balanceIsSufficient(schainHash, user, 0)) {
             activeUsers[user][schainHash] = false;
@@ -100,7 +105,7 @@ contract CommunityPool is Twin {
             );
         }
         node.sendValue(amount);
-        return true;
+        return (tx.gasprice * gas - amount) / tx.gasprice;
     }
 
     function refundGasBySchainWallet(
@@ -131,19 +136,19 @@ contract CommunityPool is Twin {
      * - 'msg.sender` should recharge their gas wallet for amount that enough to reimburse any 
      *   transaction from schain to mainnet.
      */
-    function rechargeUserWallet(string calldata schainName) external payable {
+    function rechargeUserWallet(string calldata schainName, address user) external payable {
         bytes32 schainHash = keccak256(abi.encodePacked(schainName));
         require(
-            _balanceIsSufficient(schainHash, msg.sender, msg.value),
+            _balanceIsSufficient(schainHash, user, msg.value),
             "Not enough ETH for transaction"
         );
-        _userWallets[msg.sender][schainHash] = _userWallets[msg.sender][schainHash] + msg.value;
-        if (!activeUsers[msg.sender][schainHash]) {
-            activeUsers[msg.sender][schainHash] = true;
+        _userWallets[user][schainHash] = _userWallets[user][schainHash] + msg.value;
+        if (!activeUsers[user][schainHash]) {
+            activeUsers[user][schainHash] = true;
             messageProxy.postOutgoingMessage(
                 schainHash,
                 schainLinks[schainHash],
-                Messages.encodeActivateUserMessage(msg.sender)
+                Messages.encodeActivateUserMessage(user)
             );
         }
     }

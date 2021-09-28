@@ -49,14 +49,13 @@ contract DepositBoxEth is DepositBox {
      * Requirements:
      * 
      * - Schain name must not be `Mainnet`.
-     * - Receiver account on schain cannot be null.
      * - Receiver contract should be added as twin contract on schain.
      * - Schain that receives tokens should not be killed.
      */
-    function deposit(string memory schainName, address to)
+    function deposit(string memory schainName)
         external
         payable
-        rightTransaction(schainName, to)
+        rightTransaction(schainName, msg.sender)
         whenNotKilled(keccak256(abi.encodePacked(schainName)))
     {
         bytes32 schainHash = keccak256(abi.encodePacked(schainName));
@@ -67,7 +66,7 @@ contract DepositBoxEth is DepositBox {
         messageProxy.postOutgoingMessage(
             schainHash,
             contractReceiver,
-            Messages.encodeTransferEthMessage(to, msg.value)
+            Messages.encodeTransferEthMessage(msg.sender, msg.value)
         );
     }
 
