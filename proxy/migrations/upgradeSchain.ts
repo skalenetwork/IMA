@@ -56,8 +56,8 @@ export async function upgrade(
     // }
     // console.log(`Will mark updated version as ${version}`);
 
-    let adminOwner = await proxyAdmin.owner();
-    
+    const adminOwner = await proxyAdmin.owner();
+
     if (adminOwner !== deployer.address) {
         console.log(chalk.red(`Admin owner is ${adminOwner} not the same as deployer ${deployer.address}`));
     }
