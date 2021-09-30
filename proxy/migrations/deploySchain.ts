@@ -25,15 +25,21 @@
 import { promises as fs } from 'fs';
 import { Interface } from "ethers/lib/utils";
 import { ethers, artifacts, upgrades } from "hardhat";
+import hre from "hardhat";
 import { deployLibraries, getLinkedContractFactory } from "./tools/factory";
 import { getAbi } from './tools/abi';
 import { Manifest, hashBytecode } from "@openzeppelin/upgrades-core";
+import { getManifestAdmin } from "@openzeppelin/hardhat-upgrades/dist/admin";
 import { Contract } from '@ethersproject/contracts';
 import { CommunityLocker, EthErc20, KeyStorage, MessageProxyForSchain, TokenManagerERC20, TokenManagerERC721, TokenManagerEth, TokenManagerLinker } from '../typechain';
 import { TokenManagerERC1155 } from '../typechain/TokenManagerERC1155';
 
 export function getContractKeyInAbiFile(contract: string) {
-    return contract.replace(/([a-zA-Z])(?=[A-Z])/g, '$1_').toLowerCase();
+    console.log(contract);
+    if (contract === "MessageProxyForSchain") {
+        return "message_proxy_schain";
+    }
+    return contract.replace(/([a-z0-9])(?=[A-Z])/g, '$1_').toLowerCase();
 }
 
 export async function getManifestFile(): Promise<string> {
@@ -80,7 +86,7 @@ function getProxyMainnet(contractName: string) {
     }
 }
 
-export const contracts = [
+export const contractsToDeploy = [
     "MessageProxyForSchain",
     "TokenManagerLinker",
     "CommunityLocker",
@@ -90,6 +96,16 @@ export const contracts = [
     "TokenManagerERC1155",
     "EthErc20",
     "SkaleFeatures"
+];
+
+export const contracts = [
+    "MessageProxyForSchain",
+    "TokenManagerLinker",
+    "CommunityLocker",
+    "TokenManagerEth",
+    "TokenManagerERC20",
+    "TokenManagerERC721",
+    "TokenManagerERC1155"
 ];
 
 async function main() {
@@ -259,12 +275,8 @@ async function main() {
     }
 
     const jsonObjectABI: {[k: string]: any} = { };
-    for( const contractName of contracts ) {
-        let propertyName: string;
-        if( contractName !== "MessageProxyForSchain" )
-            propertyName = contractName.replace( /([a-z0-9])(?=[A-Z])/g, "$1_" ).toLowerCase();
-        else
-            propertyName = "message_proxy_chain";
+    for( const contractName of contractsToDeploy ) {
+        const propertyName = getContractKeyInAbiFile(contractName);
 
         jsonObjectABI[propertyName + "_address"] = deployed.get( contractName )?.address;
         jsonObjectABI[propertyName + "_abi"] = getAbi(deployed.get( contractName )?.interface);
@@ -275,6 +287,9 @@ async function main() {
     jsonObjectABI.ERC721OnChain_abi = getAbi(erc721OnChainFactory.interface);
     const erc1155OnChainFactory = await ethers.getContractFactory("ERC1155OnChain");
     jsonObjectABI.ERC1155OnChain_abi = getAbi(erc1155OnChainFactory.interface);
+    const proxyAdmin = await getManifestAdmin(hre);
+    jsonObjectABI.proxy_admin_address = proxyAdmin.address;
+    jsonObjectABI.proxy_admin_abi = getAbi(proxyAdmin.interface);
 
     await fs.writeFile( `data/proxySchain_${schainName}.json`, JSON.stringify( jsonObjectABI ) );
     console.log( `Done, check proxySchain_${schainName}.json file in data folder.` );
