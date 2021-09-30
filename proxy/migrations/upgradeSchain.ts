@@ -71,7 +71,6 @@ export async function upgrade(
         const contractFactory = await ethers.getContractFactory(contract);
         const _contract = contract;
         const proxyAddress = abi[getContractKeyInAbiFile(_contract) + "_address"];
-        console.log(proxyAddress);
 
         console.log(`Prepare upgrade of ${contract}`);
         const newImplementationAddress = await upgrades.prepareUpgrade(proxyAddress, contractFactory, { unsafeAllowLinkedLibraries: true });

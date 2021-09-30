@@ -35,7 +35,6 @@ import { CommunityLocker, EthErc20, KeyStorage, MessageProxyForSchain, TokenMana
 import { TokenManagerERC1155 } from '../typechain/TokenManagerERC1155';
 
 export function getContractKeyInAbiFile(contract: string) {
-    console.log(contract);
     if (contract === "MessageProxyForSchain") {
         return "message_proxy_schain";
     }
