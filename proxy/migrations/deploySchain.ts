@@ -36,7 +36,7 @@ import { TokenManagerERC1155 } from '../typechain/TokenManagerERC1155';
 
 export function getContractKeyInAbiFile(contract: string) {
     if (contract === "MessageProxyForSchain") {
-        return "message_proxy_schain";
+        return "message_proxy_chain";
     }
     return contract.replace(/([a-z0-9])(?=[A-Z])/g, '$1_').toLowerCase();
 }
@@ -112,10 +112,6 @@ async function main() {
 
     if( process.env.CHAIN_NAME_SCHAIN === undefined || process.env.CHAIN_NAME_SCHAIN === "" ) {
         console.log( "Please set CHAIN_NAME_SCHAIN to .env file" );
-        process.exit( 126 );
-    }
-    if( process.env.PRIVATE_KEY_FOR_SCHAIN === undefined || process.env.PRIVATE_KEY_FOR_SCHAIN === "" ) {
-        console.log( "Please set PRIVATE_KEY_FOR_SCHAIN to .env file" );
         process.exit( 126 );
     }
     const schainName = process.env.CHAIN_NAME_SCHAIN;
@@ -255,8 +251,6 @@ async function main() {
     const constantSetterRole = await communityLocker.CONSTANT_SETTER_ROLE();
     await communityLocker.grantRole(constantSetterRole, owner.address);
     console.log("Grant CONSTANT_SETTER_ROLE to owner of schain");
-
-    const schainOwner = new ethers.Wallet( process.env.PRIVATE_KEY_FOR_SCHAIN );
 
     let extraContract: Contract;
     const extraContracts = [
