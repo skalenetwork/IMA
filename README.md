@@ -52,6 +52,17 @@ Console and log file output with rotation.
 
 ANSI colorizer for console and log output.
 
+## Documentation Update
+
+### In-line docs
+
+```shell
+git checkout docs-v* # Switch to a doc branch, be sure to specify version
+git checkout develop proxy/ # Merge latest updates to proxy/ folder into doc branch
+git commit -m "Merge proxy/ from develop"
+yarn docs # build inline docs and place in docs/modules/api/*
+```
+
 ## For more information
 
 -   [SKALE Network Website](https://skale.network)
