@@ -9,7 +9,11 @@ if ! [[ "$CURRENT_BRANCH" =~ [/^\w+-v.*/gm] ]]; then
 fi
 
 git checkout develop proxy/
-git commit -m "Merge proxy/ from develop"
-yarn docs
+if [ -n "$(git status --porcelain)" ]; then
+    git commit -m "Merge proxy/ from develop"
+    echo "Updated proxy"
+else
+    echo "Aleady up to date"
+fi
 
-echo "Completed inline doc update."
+echo "Completed proxy folder update check from develop."
