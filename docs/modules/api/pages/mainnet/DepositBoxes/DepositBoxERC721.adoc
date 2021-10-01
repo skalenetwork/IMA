@@ -184,8 +184,8 @@
 :xref-CommunityPool-refundGasByUser-bytes32-address-payable-address-uint256-: xref:mainnet/communitypool.adoc#CommunityPool-refundGasByUser-bytes32-address-payable-address-uint256-
 :CommunityPool-refundGasBySchainWallet: pass:normal[xref:mainnet/communitypool.adoc#CommunityPool-refundGasBySchainWallet-bytes32-address-payable-uint256-[`CommunityPool.refundGasBySchainWallet`]]
 :xref-CommunityPool-refundGasBySchainWallet-bytes32-address-payable-uint256-: xref:mainnet/communitypool.adoc#CommunityPool-refundGasBySchainWallet-bytes32-address-payable-uint256-
-:CommunityPool-rechargeUserWallet: pass:normal[xref:mainnet/communitypool.adoc#CommunityPool-rechargeUserWallet-string-[`CommunityPool.rechargeUserWallet`]]
-:xref-CommunityPool-rechargeUserWallet-string-: xref:mainnet/communitypool.adoc#CommunityPool-rechargeUserWallet-string-
+:CommunityPool-rechargeUserWallet: pass:normal[xref:mainnet/communitypool.adoc#CommunityPool-rechargeUserWallet-string-address-[`CommunityPool.rechargeUserWallet`]]
+:xref-CommunityPool-rechargeUserWallet-string-address-: xref:mainnet/communitypool.adoc#CommunityPool-rechargeUserWallet-string-address-
 :CommunityPool-withdrawFunds: pass:normal[xref:mainnet/communitypool.adoc#CommunityPool-withdrawFunds-string-uint256-[`CommunityPool.withdrawFunds`]]
 :xref-CommunityPool-withdrawFunds-string-uint256-: xref:mainnet/communitypool.adoc#CommunityPool-withdrawFunds-string-uint256-
 :CommunityPool-setMinTransactionGas: pass:normal[xref:mainnet/communitypool.adoc#CommunityPool-setMinTransactionGas-uint256-[`CommunityPool.setMinTransactionGas`]]
@@ -228,10 +228,10 @@
 :xref-DepositBoxERC1155-onERC1155Received-address-address-uint256-uint256-bytes-: xref:mainnet/depositboxes/depositboxerc1155.adoc#DepositBoxERC1155-onERC1155Received-address-address-uint256-uint256-bytes-
 :DepositBoxERC1155-onERC1155BatchReceived: pass:normal[xref:mainnet/depositboxes/depositboxerc1155.adoc#DepositBoxERC1155-onERC1155BatchReceived-address-address-uint256---uint256---bytes-[`DepositBoxERC1155.onERC1155BatchReceived`]]
 :xref-DepositBoxERC1155-onERC1155BatchReceived-address-address-uint256---uint256---bytes-: xref:mainnet/depositboxes/depositboxerc1155.adoc#DepositBoxERC1155-onERC1155BatchReceived-address-address-uint256---uint256---bytes-
-:DepositBoxERC1155-depositERC1155: pass:normal[xref:mainnet/depositboxes/depositboxerc1155.adoc#DepositBoxERC1155-depositERC1155-string-address-address-uint256-uint256-[`DepositBoxERC1155.depositERC1155`]]
-:xref-DepositBoxERC1155-depositERC1155-string-address-address-uint256-uint256-: xref:mainnet/depositboxes/depositboxerc1155.adoc#DepositBoxERC1155-depositERC1155-string-address-address-uint256-uint256-
-:DepositBoxERC1155-depositERC1155Batch: pass:normal[xref:mainnet/depositboxes/depositboxerc1155.adoc#DepositBoxERC1155-depositERC1155Batch-string-address-address-uint256---uint256---[`DepositBoxERC1155.depositERC1155Batch`]]
-:xref-DepositBoxERC1155-depositERC1155Batch-string-address-address-uint256---uint256---: xref:mainnet/depositboxes/depositboxerc1155.adoc#DepositBoxERC1155-depositERC1155Batch-string-address-address-uint256---uint256---
+:DepositBoxERC1155-depositERC1155: pass:normal[xref:mainnet/depositboxes/depositboxerc1155.adoc#DepositBoxERC1155-depositERC1155-string-address-uint256-uint256-[`DepositBoxERC1155.depositERC1155`]]
+:xref-DepositBoxERC1155-depositERC1155-string-address-uint256-uint256-: xref:mainnet/depositboxes/depositboxerc1155.adoc#DepositBoxERC1155-depositERC1155-string-address-uint256-uint256-
+:DepositBoxERC1155-depositERC1155Batch: pass:normal[xref:mainnet/depositboxes/depositboxerc1155.adoc#DepositBoxERC1155-depositERC1155Batch-string-address-uint256---uint256---[`DepositBoxERC1155.depositERC1155Batch`]]
+:xref-DepositBoxERC1155-depositERC1155Batch-string-address-uint256---uint256---: xref:mainnet/depositboxes/depositboxerc1155.adoc#DepositBoxERC1155-depositERC1155Batch-string-address-uint256---uint256---
 :DepositBoxERC1155-postMessage: pass:normal[xref:mainnet/depositboxes/depositboxerc1155.adoc#DepositBoxERC1155-postMessage-bytes32-address-bytes-[`DepositBoxERC1155.postMessage`]]
 :xref-DepositBoxERC1155-postMessage-bytes32-address-bytes-: xref:mainnet/depositboxes/depositboxerc1155.adoc#DepositBoxERC1155-postMessage-bytes32-address-bytes-
 :DepositBoxERC1155-gasPayer: pass:normal[xref:mainnet/depositboxes/depositboxerc1155.adoc#DepositBoxERC1155-gasPayer-bytes32-address-bytes-[`DepositBoxERC1155.gasPayer`]]
@@ -256,8 +256,8 @@
 :xref-DepositBoxERC20-schainToERC20-mapping-bytes32----mapping-address----bool--: xref:mainnet/depositboxes/depositboxerc20.adoc#DepositBoxERC20-schainToERC20-mapping-bytes32----mapping-address----bool--
 :DepositBoxERC20-transferredAmount: pass:normal[xref:mainnet/depositboxes/depositboxerc20.adoc#DepositBoxERC20-transferredAmount-mapping-bytes32----mapping-address----uint256--[`DepositBoxERC20.transferredAmount`]]
 :xref-DepositBoxERC20-transferredAmount-mapping-bytes32----mapping-address----uint256--: xref:mainnet/depositboxes/depositboxerc20.adoc#DepositBoxERC20-transferredAmount-mapping-bytes32----mapping-address----uint256--
-:DepositBoxERC20-depositERC20: pass:normal[xref:mainnet/depositboxes/depositboxerc20.adoc#DepositBoxERC20-depositERC20-string-address-address-uint256-[`DepositBoxERC20.depositERC20`]]
-:xref-DepositBoxERC20-depositERC20-string-address-address-uint256-: xref:mainnet/depositboxes/depositboxerc20.adoc#DepositBoxERC20-depositERC20-string-address-address-uint256-
+:DepositBoxERC20-depositERC20: pass:normal[xref:mainnet/depositboxes/depositboxerc20.adoc#DepositBoxERC20-depositERC20-string-address-uint256-[`DepositBoxERC20.depositERC20`]]
+:xref-DepositBoxERC20-depositERC20-string-address-uint256-: xref:mainnet/depositboxes/depositboxerc20.adoc#DepositBoxERC20-depositERC20-string-address-uint256-
 :DepositBoxERC20-postMessage: pass:normal[xref:mainnet/depositboxes/depositboxerc20.adoc#DepositBoxERC20-postMessage-bytes32-address-bytes-[`DepositBoxERC20.postMessage`]]
 :xref-DepositBoxERC20-postMessage-bytes32-address-bytes-: xref:mainnet/depositboxes/depositboxerc20.adoc#DepositBoxERC20-postMessage-bytes32-address-bytes-
 :DepositBoxERC20-gasPayer: pass:normal[xref:mainnet/depositboxes/depositboxerc20.adoc#DepositBoxERC20-gasPayer-bytes32-address-bytes-[`DepositBoxERC20.gasPayer`]]
@@ -280,8 +280,8 @@
 :xref-DepositBoxERC721-schainToERC721-mapping-bytes32----mapping-address----bool--: xref:mainnet/depositboxes/depositboxerc721.adoc#DepositBoxERC721-schainToERC721-mapping-bytes32----mapping-address----bool--
 :DepositBoxERC721-transferredAmount: pass:normal[xref:mainnet/depositboxes/depositboxerc721.adoc#DepositBoxERC721-transferredAmount-mapping-address----mapping-uint256----bytes32--[`DepositBoxERC721.transferredAmount`]]
 :xref-DepositBoxERC721-transferredAmount-mapping-address----mapping-uint256----bytes32--: xref:mainnet/depositboxes/depositboxerc721.adoc#DepositBoxERC721-transferredAmount-mapping-address----mapping-uint256----bytes32--
-:DepositBoxERC721-depositERC721: pass:normal[xref:mainnet/depositboxes/depositboxerc721.adoc#DepositBoxERC721-depositERC721-string-address-address-uint256-[`DepositBoxERC721.depositERC721`]]
-:xref-DepositBoxERC721-depositERC721-string-address-address-uint256-: xref:mainnet/depositboxes/depositboxerc721.adoc#DepositBoxERC721-depositERC721-string-address-address-uint256-
+:DepositBoxERC721-depositERC721: pass:normal[xref:mainnet/depositboxes/depositboxerc721.adoc#DepositBoxERC721-depositERC721-string-address-uint256-[`DepositBoxERC721.depositERC721`]]
+:xref-DepositBoxERC721-depositERC721-string-address-uint256-: xref:mainnet/depositboxes/depositboxerc721.adoc#DepositBoxERC721-depositERC721-string-address-uint256-
 :DepositBoxERC721-postMessage: pass:normal[xref:mainnet/depositboxes/depositboxerc721.adoc#DepositBoxERC721-postMessage-bytes32-address-bytes-[`DepositBoxERC721.postMessage`]]
 :xref-DepositBoxERC721-postMessage-bytes32-address-bytes-: xref:mainnet/depositboxes/depositboxerc721.adoc#DepositBoxERC721-postMessage-bytes32-address-bytes-
 :DepositBoxERC721-gasPayer: pass:normal[xref:mainnet/depositboxes/depositboxerc721.adoc#DepositBoxERC721-gasPayer-bytes32-address-bytes-[`DepositBoxERC721.gasPayer`]]
@@ -306,8 +306,8 @@
 :xref-DepositBoxEth-transferredAmount-mapping-bytes32----uint256-: xref:mainnet/depositboxes/depositboxeth.adoc#DepositBoxEth-transferredAmount-mapping-bytes32----uint256-
 :DepositBoxEth-receive: pass:normal[xref:mainnet/depositboxes/depositboxeth.adoc#DepositBoxEth-receive--[`DepositBoxEth.receive`]]
 :xref-DepositBoxEth-receive--: xref:mainnet/depositboxes/depositboxeth.adoc#DepositBoxEth-receive--
-:DepositBoxEth-deposit: pass:normal[xref:mainnet/depositboxes/depositboxeth.adoc#DepositBoxEth-deposit-string-address-[`DepositBoxEth.deposit`]]
-:xref-DepositBoxEth-deposit-string-address-: xref:mainnet/depositboxes/depositboxeth.adoc#DepositBoxEth-deposit-string-address-
+:DepositBoxEth-deposit: pass:normal[xref:mainnet/depositboxes/depositboxeth.adoc#DepositBoxEth-deposit-string-[`DepositBoxEth.deposit`]]
+:xref-DepositBoxEth-deposit-string-: xref:mainnet/depositboxes/depositboxeth.adoc#DepositBoxEth-deposit-string-
 :DepositBoxEth-postMessage: pass:normal[xref:mainnet/depositboxes/depositboxeth.adoc#DepositBoxEth-postMessage-bytes32-address-bytes-[`DepositBoxEth.postMessage`]]
 :xref-DepositBoxEth-postMessage-bytes32-address-bytes-: xref:mainnet/depositboxes/depositboxeth.adoc#DepositBoxEth-postMessage-bytes32-address-bytes-
 :DepositBoxEth-gasPayer: pass:normal[xref:mainnet/depositboxes/depositboxeth.adoc#DepositBoxEth-gasPayer-bytes32-address-bytes-[`DepositBoxEth.gasPayer`]]
@@ -568,14 +568,14 @@
 :xref-TokenManagerERC1155-clonesErc1155-mapping-address----contract-ERC1155OnChain-: xref:schain/tokenmanagers/tokenmanagererc1155.adoc#TokenManagerERC1155-clonesErc1155-mapping-address----contract-ERC1155OnChain-
 :TokenManagerERC1155-addedClones: pass:normal[xref:schain/tokenmanagers/tokenmanagererc1155.adoc#TokenManagerERC1155-addedClones-mapping-contract-ERC1155OnChain----bool-[`TokenManagerERC1155.addedClones`]]
 :xref-TokenManagerERC1155-addedClones-mapping-contract-ERC1155OnChain----bool-: xref:schain/tokenmanagers/tokenmanagererc1155.adoc#TokenManagerERC1155-addedClones-mapping-contract-ERC1155OnChain----bool-
-:TokenManagerERC1155-exitToMainERC1155: pass:normal[xref:schain/tokenmanagers/tokenmanagererc1155.adoc#TokenManagerERC1155-exitToMainERC1155-address-address-uint256-uint256-[`TokenManagerERC1155.exitToMainERC1155`]]
-:xref-TokenManagerERC1155-exitToMainERC1155-address-address-uint256-uint256-: xref:schain/tokenmanagers/tokenmanagererc1155.adoc#TokenManagerERC1155-exitToMainERC1155-address-address-uint256-uint256-
-:TokenManagerERC1155-exitToMainERC1155Batch: pass:normal[xref:schain/tokenmanagers/tokenmanagererc1155.adoc#TokenManagerERC1155-exitToMainERC1155Batch-address-address-uint256---uint256---[`TokenManagerERC1155.exitToMainERC1155Batch`]]
-:xref-TokenManagerERC1155-exitToMainERC1155Batch-address-address-uint256---uint256---: xref:schain/tokenmanagers/tokenmanagererc1155.adoc#TokenManagerERC1155-exitToMainERC1155Batch-address-address-uint256---uint256---
-:TokenManagerERC1155-transferToSchainERC1155: pass:normal[xref:schain/tokenmanagers/tokenmanagererc1155.adoc#TokenManagerERC1155-transferToSchainERC1155-string-address-address-uint256-uint256-[`TokenManagerERC1155.transferToSchainERC1155`]]
-:xref-TokenManagerERC1155-transferToSchainERC1155-string-address-address-uint256-uint256-: xref:schain/tokenmanagers/tokenmanagererc1155.adoc#TokenManagerERC1155-transferToSchainERC1155-string-address-address-uint256-uint256-
-:TokenManagerERC1155-transferToSchainERC1155Batch: pass:normal[xref:schain/tokenmanagers/tokenmanagererc1155.adoc#TokenManagerERC1155-transferToSchainERC1155Batch-string-address-address-uint256---uint256---[`TokenManagerERC1155.transferToSchainERC1155Batch`]]
-:xref-TokenManagerERC1155-transferToSchainERC1155Batch-string-address-address-uint256---uint256---: xref:schain/tokenmanagers/tokenmanagererc1155.adoc#TokenManagerERC1155-transferToSchainERC1155Batch-string-address-address-uint256---uint256---
+:TokenManagerERC1155-exitToMainERC1155: pass:normal[xref:schain/tokenmanagers/tokenmanagererc1155.adoc#TokenManagerERC1155-exitToMainERC1155-address-uint256-uint256-[`TokenManagerERC1155.exitToMainERC1155`]]
+:xref-TokenManagerERC1155-exitToMainERC1155-address-uint256-uint256-: xref:schain/tokenmanagers/tokenmanagererc1155.adoc#TokenManagerERC1155-exitToMainERC1155-address-uint256-uint256-
+:TokenManagerERC1155-exitToMainERC1155Batch: pass:normal[xref:schain/tokenmanagers/tokenmanagererc1155.adoc#TokenManagerERC1155-exitToMainERC1155Batch-address-uint256---uint256---[`TokenManagerERC1155.exitToMainERC1155Batch`]]
+:xref-TokenManagerERC1155-exitToMainERC1155Batch-address-uint256---uint256---: xref:schain/tokenmanagers/tokenmanagererc1155.adoc#TokenManagerERC1155-exitToMainERC1155Batch-address-uint256---uint256---
+:TokenManagerERC1155-transferToSchainERC1155: pass:normal[xref:schain/tokenmanagers/tokenmanagererc1155.adoc#TokenManagerERC1155-transferToSchainERC1155-string-address-uint256-uint256-[`TokenManagerERC1155.transferToSchainERC1155`]]
+:xref-TokenManagerERC1155-transferToSchainERC1155-string-address-uint256-uint256-: xref:schain/tokenmanagers/tokenmanagererc1155.adoc#TokenManagerERC1155-transferToSchainERC1155-string-address-uint256-uint256-
+:TokenManagerERC1155-transferToSchainERC1155Batch: pass:normal[xref:schain/tokenmanagers/tokenmanagererc1155.adoc#TokenManagerERC1155-transferToSchainERC1155Batch-string-address-uint256---uint256---[`TokenManagerERC1155.transferToSchainERC1155Batch`]]
+:xref-TokenManagerERC1155-transferToSchainERC1155Batch-string-address-uint256---uint256---: xref:schain/tokenmanagers/tokenmanagererc1155.adoc#TokenManagerERC1155-transferToSchainERC1155Batch-string-address-uint256---uint256---
 :TokenManagerERC1155-postMessage: pass:normal[xref:schain/tokenmanagers/tokenmanagererc1155.adoc#TokenManagerERC1155-postMessage-bytes32-address-bytes-[`TokenManagerERC1155.postMessage`]]
 :xref-TokenManagerERC1155-postMessage-bytes32-address-bytes-: xref:schain/tokenmanagers/tokenmanagererc1155.adoc#TokenManagerERC1155-postMessage-bytes32-address-bytes-
 :TokenManagerERC1155-addERC1155TokenByOwner: pass:normal[xref:schain/tokenmanagers/tokenmanagererc1155.adoc#TokenManagerERC1155-addERC1155TokenByOwner-address-contract-ERC1155OnChain-[`TokenManagerERC1155.addERC1155TokenByOwner`]]
@@ -596,10 +596,10 @@
 :xref-TokenManagerERC20-totalSupplyOnMainnet-mapping-contract-IERC20Upgradeable----uint256-: xref:schain/tokenmanagers/tokenmanagererc20.adoc#TokenManagerERC20-totalSupplyOnMainnet-mapping-contract-IERC20Upgradeable----uint256-
 :TokenManagerERC20-addedClones: pass:normal[xref:schain/tokenmanagers/tokenmanagererc20.adoc#TokenManagerERC20-addedClones-mapping-contract-ERC20OnChain----bool-[`TokenManagerERC20.addedClones`]]
 :xref-TokenManagerERC20-addedClones-mapping-contract-ERC20OnChain----bool-: xref:schain/tokenmanagers/tokenmanagererc20.adoc#TokenManagerERC20-addedClones-mapping-contract-ERC20OnChain----bool-
-:TokenManagerERC20-exitToMainERC20: pass:normal[xref:schain/tokenmanagers/tokenmanagererc20.adoc#TokenManagerERC20-exitToMainERC20-address-address-uint256-[`TokenManagerERC20.exitToMainERC20`]]
-:xref-TokenManagerERC20-exitToMainERC20-address-address-uint256-: xref:schain/tokenmanagers/tokenmanagererc20.adoc#TokenManagerERC20-exitToMainERC20-address-address-uint256-
-:TokenManagerERC20-transferToSchainERC20: pass:normal[xref:schain/tokenmanagers/tokenmanagererc20.adoc#TokenManagerERC20-transferToSchainERC20-string-address-address-uint256-[`TokenManagerERC20.transferToSchainERC20`]]
-:xref-TokenManagerERC20-transferToSchainERC20-string-address-address-uint256-: xref:schain/tokenmanagers/tokenmanagererc20.adoc#TokenManagerERC20-transferToSchainERC20-string-address-address-uint256-
+:TokenManagerERC20-exitToMainERC20: pass:normal[xref:schain/tokenmanagers/tokenmanagererc20.adoc#TokenManagerERC20-exitToMainERC20-address-uint256-[`TokenManagerERC20.exitToMainERC20`]]
+:xref-TokenManagerERC20-exitToMainERC20-address-uint256-: xref:schain/tokenmanagers/tokenmanagererc20.adoc#TokenManagerERC20-exitToMainERC20-address-uint256-
+:TokenManagerERC20-transferToSchainERC20: pass:normal[xref:schain/tokenmanagers/tokenmanagererc20.adoc#TokenManagerERC20-transferToSchainERC20-string-address-uint256-[`TokenManagerERC20.transferToSchainERC20`]]
+:xref-TokenManagerERC20-transferToSchainERC20-string-address-uint256-: xref:schain/tokenmanagers/tokenmanagererc20.adoc#TokenManagerERC20-transferToSchainERC20-string-address-uint256-
 :TokenManagerERC20-postMessage: pass:normal[xref:schain/tokenmanagers/tokenmanagererc20.adoc#TokenManagerERC20-postMessage-bytes32-address-bytes-[`TokenManagerERC20.postMessage`]]
 :xref-TokenManagerERC20-postMessage-bytes32-address-bytes-: xref:schain/tokenmanagers/tokenmanagererc20.adoc#TokenManagerERC20-postMessage-bytes32-address-bytes-
 :TokenManagerERC20-addERC20TokenByOwner: pass:normal[xref:schain/tokenmanagers/tokenmanagererc20.adoc#TokenManagerERC20-addERC20TokenByOwner-address-contract-ERC20OnChain-[`TokenManagerERC20.addERC20TokenByOwner`]]
@@ -618,10 +618,10 @@
 :xref-TokenManagerERC721-clonesErc721-mapping-address----contract-ERC721OnChain-: xref:schain/tokenmanagers/tokenmanagererc721.adoc#TokenManagerERC721-clonesErc721-mapping-address----contract-ERC721OnChain-
 :TokenManagerERC721-addedClones: pass:normal[xref:schain/tokenmanagers/tokenmanagererc721.adoc#TokenManagerERC721-addedClones-mapping-contract-ERC721OnChain----bool-[`TokenManagerERC721.addedClones`]]
 :xref-TokenManagerERC721-addedClones-mapping-contract-ERC721OnChain----bool-: xref:schain/tokenmanagers/tokenmanagererc721.adoc#TokenManagerERC721-addedClones-mapping-contract-ERC721OnChain----bool-
-:TokenManagerERC721-exitToMainERC721: pass:normal[xref:schain/tokenmanagers/tokenmanagererc721.adoc#TokenManagerERC721-exitToMainERC721-address-address-uint256-[`TokenManagerERC721.exitToMainERC721`]]
-:xref-TokenManagerERC721-exitToMainERC721-address-address-uint256-: xref:schain/tokenmanagers/tokenmanagererc721.adoc#TokenManagerERC721-exitToMainERC721-address-address-uint256-
-:TokenManagerERC721-transferToSchainERC721: pass:normal[xref:schain/tokenmanagers/tokenmanagererc721.adoc#TokenManagerERC721-transferToSchainERC721-string-address-address-uint256-[`TokenManagerERC721.transferToSchainERC721`]]
-:xref-TokenManagerERC721-transferToSchainERC721-string-address-address-uint256-: xref:schain/tokenmanagers/tokenmanagererc721.adoc#TokenManagerERC721-transferToSchainERC721-string-address-address-uint256-
+:TokenManagerERC721-exitToMainERC721: pass:normal[xref:schain/tokenmanagers/tokenmanagererc721.adoc#TokenManagerERC721-exitToMainERC721-address-uint256-[`TokenManagerERC721.exitToMainERC721`]]
+:xref-TokenManagerERC721-exitToMainERC721-address-uint256-: xref:schain/tokenmanagers/tokenmanagererc721.adoc#TokenManagerERC721-exitToMainERC721-address-uint256-
+:TokenManagerERC721-transferToSchainERC721: pass:normal[xref:schain/tokenmanagers/tokenmanagererc721.adoc#TokenManagerERC721-transferToSchainERC721-string-address-uint256-[`TokenManagerERC721.transferToSchainERC721`]]
+:xref-TokenManagerERC721-transferToSchainERC721-string-address-uint256-: xref:schain/tokenmanagers/tokenmanagererc721.adoc#TokenManagerERC721-transferToSchainERC721-string-address-uint256-
 :TokenManagerERC721-postMessage: pass:normal[xref:schain/tokenmanagers/tokenmanagererc721.adoc#TokenManagerERC721-postMessage-bytes32-address-bytes-[`TokenManagerERC721.postMessage`]]
 :xref-TokenManagerERC721-postMessage-bytes32-address-bytes-: xref:schain/tokenmanagers/tokenmanagererc721.adoc#TokenManagerERC721-postMessage-bytes32-address-bytes-
 :TokenManagerERC721-addERC721TokenByOwner: pass:normal[xref:schain/tokenmanagers/tokenmanagererc721.adoc#TokenManagerERC721-addERC721TokenByOwner-address-contract-ERC721OnChain-[`TokenManagerERC721.addERC721TokenByOwner`]]
@@ -640,10 +640,10 @@
 :xref-TokenManagerEth-ethErc20-contract-EthErc20: xref:schain/tokenmanagers/tokenmanagereth.adoc#TokenManagerEth-ethErc20-contract-EthErc20
 :TokenManagerEth-setEthErc20Address: pass:normal[xref:schain/tokenmanagers/tokenmanagereth.adoc#TokenManagerEth-setEthErc20Address-contract-EthErc20-[`TokenManagerEth.setEthErc20Address`]]
 :xref-TokenManagerEth-setEthErc20Address-contract-EthErc20-: xref:schain/tokenmanagers/tokenmanagereth.adoc#TokenManagerEth-setEthErc20Address-contract-EthErc20-
-:TokenManagerEth-exitToMain: pass:normal[xref:schain/tokenmanagers/tokenmanagereth.adoc#TokenManagerEth-exitToMain-address-uint256-[`TokenManagerEth.exitToMain`]]
-:xref-TokenManagerEth-exitToMain-address-uint256-: xref:schain/tokenmanagers/tokenmanagereth.adoc#TokenManagerEth-exitToMain-address-uint256-
-:TokenManagerEth-transferToSchain: pass:normal[xref:schain/tokenmanagers/tokenmanagereth.adoc#TokenManagerEth-transferToSchain-string-address-uint256-[`TokenManagerEth.transferToSchain`]]
-:xref-TokenManagerEth-transferToSchain-string-address-uint256-: xref:schain/tokenmanagers/tokenmanagereth.adoc#TokenManagerEth-transferToSchain-string-address-uint256-
+:TokenManagerEth-exitToMain: pass:normal[xref:schain/tokenmanagers/tokenmanagereth.adoc#TokenManagerEth-exitToMain-uint256-[`TokenManagerEth.exitToMain`]]
+:xref-TokenManagerEth-exitToMain-uint256-: xref:schain/tokenmanagers/tokenmanagereth.adoc#TokenManagerEth-exitToMain-uint256-
+:TokenManagerEth-transferToSchain: pass:normal[xref:schain/tokenmanagers/tokenmanagereth.adoc#TokenManagerEth-transferToSchain-string-uint256-[`TokenManagerEth.transferToSchain`]]
+:xref-TokenManagerEth-transferToSchain-string-uint256-: xref:schain/tokenmanagers/tokenmanagereth.adoc#TokenManagerEth-transferToSchain-string-uint256-
 :TokenManagerEth-postMessage: pass:normal[xref:schain/tokenmanagers/tokenmanagereth.adoc#TokenManagerEth-postMessage-bytes32-address-bytes-[`TokenManagerEth.postMessage`]]
 :xref-TokenManagerEth-postMessage-bytes32-address-bytes-: xref:schain/tokenmanagers/tokenmanagereth.adoc#TokenManagerEth-postMessage-bytes32-address-bytes-
 :TokenManagerEth-initialize: pass:normal[xref:schain/tokenmanagers/tokenmanagereth.adoc#TokenManagerEth-initialize-string-contract-MessageProxyForSchain-contract-TokenManagerLinker-contract-CommunityLocker-address-contract-EthErc20-[`TokenManagerEth.initialize`]]
@@ -753,7 +753,7 @@
 :DepositBoxERC721: pass:normal[xref:#DepositBoxERC721[`++DepositBoxERC721++`]]
 :schainToERC721: pass:normal[xref:#DepositBoxERC721-schainToERC721-mapping-bytes32----mapping-address----bool--[`++schainToERC721++`]]
 :transferredAmount: pass:normal[xref:#DepositBoxERC721-transferredAmount-mapping-address----mapping-uint256----bytes32--[`++transferredAmount++`]]
-:depositERC721: pass:normal[xref:#DepositBoxERC721-depositERC721-string-address-address-uint256-[`++depositERC721++`]]
+:depositERC721: pass:normal[xref:#DepositBoxERC721-depositERC721-string-address-uint256-[`++depositERC721++`]]
 :postMessage: pass:normal[xref:#DepositBoxERC721-postMessage-bytes32-address-bytes-[`++postMessage++`]]
 :gasPayer: pass:normal[xref:#DepositBoxERC721-gasPayer-bytes32-address-bytes-[`++gasPayer++`]]
 :addERC721TokenByOwner: pass:normal[xref:#DepositBoxERC721-addERC721TokenByOwner-string-address-[`++addERC721TokenByOwner++`]]
@@ -779,7 +779,7 @@ stores deposits of ERC721.
 [.contract-index]
 .Functions
 --
-* {xref-DepositBoxERC721-depositERC721-string-address-address-uint256-}[`++depositERC721(schainName, erc721OnMainnet, to, tokenId)++`]
+* {xref-DepositBoxERC721-depositERC721-string-address-uint256-}[`++depositERC721(schainName, erc721OnMainnet, tokenId)++`]
 * {xref-DepositBoxERC721-postMessage-bytes32-address-bytes-}[`++postMessage(schainHash, sender, data)++`]
 * {xref-DepositBoxERC721-gasPayer-bytes32-address-bytes-}[`++gasPayer(schainHash, sender, data)++`]
 * {xref-DepositBoxERC721-addERC721TokenByOwner-string-address-}[`++addERC721TokenByOwner(schainName, erc721OnMainnet)++`]
@@ -797,7 +797,7 @@ stores deposits of ERC721.
 
 
 [.contract-item]
-== +++<a class="heading-anchor" area-hidden="true" name=DepositBoxERC721-depositERC721-string-address-address-uint256->depositERC721</a>+++ `++depositERC721(++[.var-type]#++string++#++ ++[.var-name]#++schainName++#++, ++[.var-type]#++address++#++ ++[.var-name]#++erc721OnMainnet++#++, ++[.var-type]#++address++#++ ++[.var-name]#++to++#++, ++[.var-type]#++uint256++#++ ++[.var-name]#++tokenId++#++)++` [.item-kind]#external#
+== +++<a class="heading-anchor" area-hidden="true" name=DepositBoxERC721-depositERC721-string-address-uint256->depositERC721</a>+++ `++depositERC721(++[.var-type]#++string++#++ ++[.var-name]#++schainName++#++, ++[.var-type]#++address++#++ ++[.var-name]#++erc721OnMainnet++#++, ++[.var-type]#++uint256++#++ ++[.var-name]#++tokenId++#++)++` [.item-kind]#external#
 
 Allows `msg.sender` to send ERC721 token from mainnet to schain.
 
