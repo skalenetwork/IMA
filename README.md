@@ -56,11 +56,10 @@ ANSI colorizer for console and log output.
 
 ### In-line docs
 
+To pull in any new changes from proxy/ on develop, and rebuild in-line docs, just run:
+
 ```shell
-git checkout docs-v* # Switch to a doc branch, be sure to specify version
-git checkout develop proxy/ # Merge latest updates to proxy/ folder into doc branch
-git commit -m "Merge proxy/ from develop"
-yarn docs # build inline docs and place in docs/modules/api/*
+yarn docs
 ```
 
 ## For more information
