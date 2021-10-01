@@ -1,15 +1,11 @@
-import { contracts, getContractKeyInAbiFile, getManifestFile } from "./deploySchain";
-import { ethers, network, upgrades, artifacts } from "hardhat";
-// import hre from "hardhat";
+import { contracts, getContractKeyInAbiFile } from "./deploySchain";
+import { ethers, network, upgrades } from "hardhat";
 import { promises as fs } from "fs";
-// import { Linker } from "../typechain";
-import { getImplementationAddress, hashBytecode } from "@openzeppelin/upgrades-core";
+import { TokenManagerLinker } from "../typechain";
+import { getImplementationAddress } from "@openzeppelin/upgrades-core";
 import { getAbi } from "./tools/abi";
 import chalk from "chalk";
 import { getVersion } from "./tools/version";
-import util from 'util';
-import { exec as execSync } from 'child_process';
-const exec = util.promisify(execSync);
 
 type DeploymentAction = (safeTransactions: string[], abi: any) => Promise<void>;
 
@@ -60,6 +56,7 @@ export async function upgrade(
 
     if (adminOwner !== deployer.address) {
         console.log(chalk.red(`Admin owner is ${adminOwner} not the same as deployer ${deployer.address}`));
+        return;
     }
 
     // Deploy new contracts

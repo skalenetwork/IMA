@@ -11,11 +11,8 @@ import { SafeMock } from "../typechain/SafeMock";
 import { encodeTransaction } from "./tools/multiSend";
 import { createMultiSendTransaction, sendSafeTransaction } from "./tools/gnosis-safe";
 import chalk from "chalk";
-import { verify, verifyProxy } from "./tools/verification";
+import { verify } from "./tools/verification";
 import { getVersion } from "./tools/version";
-import util from 'util';
-import { exec as execSync } from 'child_process';
-const exec = util.promisify(execSync);
 
 export async function getContractFactoryAndUpdateManifest(contract: string) {
     const manifest = JSON.parse(await fs.readFile(await getManifestFile(), "utf-8"));
