@@ -286,7 +286,7 @@ describe("MessageProxy", () => {
                     sign
                 );
 
-            await communityPool.connect(client).rechargeUserWallet(schainName, {value: amountWei.toString()});
+            await communityPool.connect(client).rechargeUserWallet(schainName, client.address, {value: amountWei.toString()});
 
             await messageProxyForMainnet
                 .connect(deployer)
