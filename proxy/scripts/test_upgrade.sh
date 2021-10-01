@@ -17,7 +17,7 @@ CHAIN_NAME_SCHAIN="Test" VERSION="$DEPLOYED_VERSION" npx hardhat run migrations/
 VERSION="$DEPLOYED_VERSION" npx hardhat run migrations/deployMainnet.ts --network localhost || exit $?
 cp "$GITHUB_WORKSPACE/proxy/migrations/deploySchain.ts" ./migrations/deploySchain.ts
 CHAIN_NAME_SCHAIN="Test" VERSION="$DEPLOYED_VERSION" npx hardhat run migrations/deploySchain.ts --network localhost || exit $?
-rm $GITHUB_WORKSPACE/proxy/.openzeppelin/unknown-*.json
+rm "$GITHUB_WORKSPACE"/proxy/.openzeppelin/unknown-*.json
 rm "$GITHUB_WORKSPACE/proxy/data/skaleManagerComponents.json"
 cp .openzeppelin/unknown-*.json "$GITHUB_WORKSPACE/proxy/.openzeppelin" || exit $?
 cp ./data/skaleManagerComponents.json "$GITHUB_WORKSPACE/proxy/data/" || exit $?
