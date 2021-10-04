@@ -2,7 +2,6 @@ import { contracts, getContractKeyInAbiFile, getManifestFile } from "./deployMai
 import { ethers, network, upgrades, artifacts } from "hardhat";
 import hre from "hardhat";
 import { promises as fs } from "fs";
-import { Linker } from "../typechain";
 import { getImplementationAddress, hashBytecode } from "@openzeppelin/upgrades-core";
 import { deployLibraries, getLinkedContractFactory } from "./tools/factory";
 import { getAbi } from "./tools/abi";
@@ -67,28 +66,6 @@ export async function upgrade(
 
     const proxyAdmin = await getManifestAdmin(hre);
     const version = await getVersion();
-
-    // TODO: comment - not implemented functionality
-    // const linkerName = "Linker";
-    // const linker = ((await ethers.getContractFactory(linkerName)).attach(
-    //     abi[getContractKeyInAbiFile(linkerName) + "_address"]
-    // )) as Linker;
-
-    // let deployedVersion = "";
-    // try {
-    //     deployedVersion = await linker.version();
-    // } catch {
-    //     console.log("Can't read deployed version");
-    // };
-    // if (deployedVersion) {
-    //     if (deployedVersion !== targetVersion) {
-    //         console.log(chalk.red(`This script can't upgrade version ${deployedVersion} to ${version}`));
-    //         process.exit(1);
-    //     }
-    // } else {
-    //     console.log(chalk.yellow("Can't check currently deployed version of skale-manager"));
-    // }
-    // console.log(`Will mark updated version as ${version}`);
 
     const [ deployer ] = await ethers.getSigners();
     let safe = await proxyAdmin.owner();
@@ -157,19 +134,6 @@ export async function upgrade(
     }
 
     await initialize(safeTransactions, abi);
-
-    // TODO: comment - not implemented functionality
-    // write version
-    // if (safeMock) {
-    //     console.log(chalk.blue("Grant access to set version"));
-    //     await (await linker.grantRole(await linker.DEFAULT_ADMIN_ROLE(), safe)).wait();
-    // }
-    // safeTransactions.push(encodeTransaction(
-    //     0,
-    //     linker.address,
-    //     0,
-    //     linker.interface.encodeFunctionData("setVersion", [version]),
-    // ));
 
     await fs.writeFile(`data/transactions-${version}-${network.name}.json`, JSON.stringify(safeTransactions, null, 4));
 
