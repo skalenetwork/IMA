@@ -1,7 +1,6 @@
 import { contracts, getContractKeyInAbiFile } from "./deploySchain";
 import { ethers, network, upgrades } from "hardhat";
 import { promises as fs } from "fs";
-import { TokenManagerLinker } from "../typechain";
 import { getImplementationAddress } from "@openzeppelin/upgrades-core";
 import { getAbi } from "./tools/abi";
 import chalk from "chalk";
@@ -29,28 +28,6 @@ export async function upgrade(
     const proxyAdminAbi = abi[getContractKeyInAbiFile("ProxyAdmin") + "_abi"];
     const proxyAdmin = new ethers.Contract(proxyAdminAddress, proxyAdminAbi, deployer);
     const version = await getVersion();
-
-    // TODO: comment - not implemented functionality
-    // const linkerName = "TokenManagerLinker";
-    // const linker = ((await ethers.getContractFactory(linkerName)).attach(
-    //     abi[getContractKeyInAbiFile(linkerName) + "_address"]
-    // )) as Linker;
-
-    // let deployedVersion = "";
-    // try {
-    //     deployedVersion = await linker.version();
-    // } catch {
-    //     console.log("Can't read deployed version");
-    // };
-    // if (deployedVersion) {
-    //     if (deployedVersion !== targetVersion) {
-    //         console.log(chalk.red(`This script can't upgrade version ${deployedVersion} to ${version}`));
-    //         process.exit(1);
-    //     }
-    // } else {
-    //     console.log(chalk.yellow("Can't check currently deployed version of IMA contract"));
-    // }
-    // console.log(`Will mark updated version as ${version}`);
 
     const adminOwner = await proxyAdmin.owner();
 
@@ -93,10 +70,6 @@ export async function upgrade(
     }
 
     await initialize(adminOwner, abi);
-
-    // TODO: comment - not implemented functionality
-    // write version
-    // await linker.connect(deployer).setVersion(version);
 
     await fs.writeFile(`data/proxySchain-${version}-${network.name}-abi.json`, JSON.stringify(abi, null, 4));
 
