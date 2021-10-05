@@ -8,6 +8,7 @@ import { createMultiSendTransaction, sendSafeTransaction } from "./tools/gnosis-
 import chalk from "chalk";
 import { getVersion } from "./tools/version";
 import { SafeMock } from "../typechain";
+import { transferOwnership } from "./transferOwnership";
 
 type DeploymentAction = (safeTransactions: string[], abi: any) => Promise<void>;
 
@@ -43,9 +44,9 @@ export async function upgrade(
         } else {
             console.log(chalk.red(`Admin owner is ${adminOwner} is a contract`));
             console.log(chalk.red("If it is a SafeMock please transferOwnership to the deployer"));
-            console.log(chalk.red("By running script transferOwnership.ts"));
+            console.log(chalk.red("Will try to change an owner by running script transferOwnership.ts"));
             console.log(chalk.red("Gnosis multisig and Marionette currently unavailable"));
-            return;
+            await transferOwnership([]);
         }
     }
 

@@ -5,6 +5,7 @@ import { promises as fs } from "fs";
 import { deployLibraries, getLinkedContractFactory } from "./tools/factory";
 import { getManifestAdmin } from "@openzeppelin/hardhat-upgrades/dist/admin";
 import chalk from "chalk";
+import { SafeMock } from "../typechain";
 
 function stringValue(value: string | undefined) {
     if (value) {
@@ -35,23 +36,35 @@ export async function transferOwnership(contractNamesToTransfer: string[])
     }
 
     console.log(chalk.blue("Transfer ownership on Proxy Admin"));
-    await (await proxyAdmin.transferOwnership(newOwner)).wait();
-    for (const contractName of contractNamesToTransfer) {
-        const contractFactory = await ethers.getContractFactory(contractName);
-        const _contract = contractName;
-        const contractAddress = abi[getContractKeyInAbiFile(_contract) + "_address"];
-        const contract = contractFactory.attach(contractAddress);
-        console.log(chalk.blue(`Grant access to ${contractName}`));
-        await (await contract.grantRole(await contract.DEFAULT_ADMIN_ROLE(), newOwner)).wait();
-    }
+    const adminOwner = await proxyAdmin.owner();
+    if (adminOwner === deployer.address) {
+        await (await proxyAdmin.transferOwnership(newOwner)).wait();
+        for (const contractName of contractNamesToTransfer) {
+            const contractFactory = await ethers.getContractFactory(contractName);
+            const _contract = contractName;
+            const contractAddress = abi[getContractKeyInAbiFile(_contract) + "_address"];
+            const contract = contractFactory.attach(contractAddress);
+            console.log(chalk.blue(`Grant access to ${contractName}`));
+            await (await contract.grantRole(await contract.DEFAULT_ADMIN_ROLE(), newOwner)).wait();
+        }
 
-    for (const contractName of contractNamesToTransfer) {
-        const contractFactory = await ethers.getContractFactory(contractName);
-        const _contract = contractName;
-        const contractAddress = abi[getContractKeyInAbiFile(_contract) + "_address"];
-        const contract = contractFactory.attach(contractAddress);
-        console.log(chalk.blue(`Revoke role on ${contractName}`));
-        await (await contract.revokeRole(await contract.DEFAULT_ADMIN_ROLE(), deployer.address)).wait();
+        for (const contractName of contractNamesToTransfer) {
+            const contractFactory = await ethers.getContractFactory(contractName);
+            const _contract = contractName;
+            const contractAddress = abi[getContractKeyInAbiFile(_contract) + "_address"];
+            const contract = contractFactory.attach(contractAddress);
+            console.log(chalk.blue(`Revoke role on ${contractName}`));
+            await (await contract.revokeRole(await contract.DEFAULT_ADMIN_ROLE(), deployer.address)).wait();
+        }
+    } else {
+        const safeMockFactory = await ethers.getContractFactory("SafeMock");
+        const safeMock = await safeMockFactory.attach(adminOwner) as SafeMock;
+        try {
+            await (await safeMock.transferProxyAdminOwnership(proxyAdmin.address, deployer.address)).wait();
+        } catch (e) {
+            console.log(chalk.red("Could not run transferProxyAdminOwnership in SafeMock"));
+            process.exit(1);
+        }
     }
 
     console.log("Done");
