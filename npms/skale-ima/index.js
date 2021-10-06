@@ -4464,13 +4464,21 @@ const tc_s_chain = new TransactionCustomizer( null, 1.25 );
 
 async function calculatePowNumber(address, nonce, gas, difficulty) {
     const path = require('path');
-    const { spawn } = require( 'child_process' );
-    let powScriptPath = path.join(__dirname, 'pow')
-    const ls = spawn( powScriptPath, [address, nonce, gas]);
+    let powScriptPath = path.join(__dirname, 'pow');
+    let cmd = `${powScriptPath} ${address} ${nonce} ${gas}`;
+    return await execShellCommand(cmd);
+}
 
-    ls.stdout.on( 'data', ( data ) => {
-        console.log( `stdout: ${ data }` );
-    } );
+function execShellCommand(cmd) {
+    const exec = require('child_process').exec;
+    return new Promise((resolve, reject) => {
+        exec(cmd, (error, stdout, stderr) => {
+            if (error) {
+                console.warn(error);
+            }
+            resolve(stdout? stdout : stderr);
+        });
+    });
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
