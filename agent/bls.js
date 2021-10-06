@@ -415,24 +415,32 @@ async function check_correctness_of_messages_to_sign( details, strLogPrefix, str
             try {
                 details.write(
                     cc.debug( "Will validate message " ) + cc.info( i ) + cc.debug( " of " ) + cc.info( cnt ) +
-                    cc.debug( ", real  message index is: " ) + cc.info( idxMessage ) +
+                    cc.debug( ", real message index is: " ) + cc.info( idxMessage ) +
                     "\n" );
                 // const strHexAmount = "0x" + w3.utils.toBN( joMessage.amount ).toString( 16 );
                 const outgoingMessageData = {
                     dstChainHash: w3.utils.soliditySha3( joChainName ), // dstChainHash
-                    msgCounter: idxMessage,
+                    msgCounter: 0 + idxMessage,
                     srcContract: joMessage.sender,
                     dstContract: joMessage.destinationContract,
                     // to: joMessage.to,
                     // amount: strHexAmount,
                     data: joMessage.data
                 };
-                details.write( cc.debug( "Outgoing message data is " ) + cc.j( outgoingMessageData ) + "\n" );
+                details.write(
+                    cc.debug( "Outgoing message data is " ) + cc.j( outgoingMessageData ) +
+                    cc.debug( ", real message index is: " ) + cc.info( idxMessage ) +
+                    cc.debug( ", saved msgCounter is: " ) + cc.info( outgoingMessageData.msgCounter ) +
+                    "\n" );
                 const m = joMessageProxy.methods.verifyOutgoingMessageData(
                     outgoingMessageData
                 );
                 const isValidMessage = await m.call( { from: strCallerAccountAddress } );
-                details.write( cc.debug( "Got verification call result " ) + cc.tf( isValidMessage ) + "\n" );
+                details.write(
+                    cc.debug( "Got verification call result " ) + cc.tf( isValidMessage ) +
+                    cc.debug( ", real message index is: " ) + cc.info( idxMessage ) +
+                    cc.debug( ", saved msgCounter is: " ) + cc.info( outgoingMessageData.msgCounter ) +
+                    "\n" );
                 if( !isValidMessage )
                     throw new Error( "Bad message detected, message is: " + JSON.stringify( joMessage ) );
             } catch ( err ) {
