@@ -43,6 +43,7 @@ log.addStdout();
 // log.add( strFilePath, nMaxSizeBeforeRotation, nMaxFilesCount ); // example: log output to file
 
 const owaspUtils = require( "../skale-owasp/owasp-util.js" );
+const Web3 = require("web3");
 
 const g_mtaStrLongSeparator = "=======================================================================================================================";
 
@@ -4462,7 +4463,18 @@ const tc_s_chain = new TransactionCustomizer( null, 1.25 );
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-async function calculatePowNumber(address, nonce, gas, difficulty) {
+async function checkTransactionToSchain(w3_s_chain, tx) {
+    let sender = tx.from;
+    let requiredBalance = tx.gasPrice * tx.gas;
+    let balance = await w3_s_chain.eth.getBalance(sender);
+    if (balance < requiredBalance) {
+        let powNumber = await calculatePowNumber(sender, tx.nonce, tx.gas);
+        tx.gasPrice = ethereumjs_util.addHexPrefix(powNumber);
+    }
+    return tx;
+}
+
+async function calculatePowNumber(address, nonce, gas) {
     const path = require('path');
     let _address = ethereumjs_util.addHexPrefix(address);
     _address = ethereumjs_util.toChecksumAddress(_address);
@@ -4470,7 +4482,7 @@ async function calculatePowNumber(address, nonce, gas, difficulty) {
     let _nonce = parseIntOrHex(nonce);
     let _gas = parseIntOrHex(gas);
     let powScriptPath = path.join(__dirname, 'pow');
-    let cmd = `${powScriptPath} ${address} ${nonce} ${gas}`;
+    let cmd = `${powScriptPath} ${_address} ${_nonce} ${_gas}`;
     return await execShellCommand(cmd);
 }
 
@@ -4478,9 +4490,6 @@ function execShellCommand(cmd) {
     const exec = require('child_process').exec;
     return new Promise((resolve, reject) => {
         exec(cmd, (error, stdout, stderr) => {
-            if (error) {
-                console.warn(error);
-            }
             resolve(stdout? stdout : stderr);
         });
     });
