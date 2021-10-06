@@ -3865,7 +3865,7 @@ async function do_transfer(
                 return;
             }
             const arrMessageCounters = [];
-            const messages = [];
+            const jarrMessages = [];
             const nIdxCurrentMsgBlockStart = 0 + nIdxCurrentMsg;
             //
             // inner loop wil create block of transactions
@@ -4048,7 +4048,7 @@ async function do_transfer(
                 //
                 details.write( strLogPrefix + cc.debug( "Will process message counter value " ) + cc.info( nIdxCurrentMsg ) + "\n" );
                 arrMessageCounters.push( nIdxCurrentMsg );
-                messages.push( {
+                jarrMessages.push( {
                     sender: joValues.srcContract,
                     destinationContract: joValues.dstContract,
                     to: joValues.to,
@@ -4172,7 +4172,7 @@ async function do_transfer(
             details.write( strLogPrefix + cc.debug( "Will invoke message signing callback, first real message index is:" ) +
                 cc.info( nIdxCurrentMsgBlockStart ) + cc.info( jarrMessages.length ) + cc.debug( " message(s) to process:" ) + cc.j( jarrMessages ) +
                 "\n" );
-            await fn_sign_messages( messages, nIdxCurrentMsgBlockStart, details, async function( err, jarrMessages, joGlueResult ) {
+            await fn_sign_messages( jarrMessages, nIdxCurrentMsgBlockStart, details, async function( err, jarrMessages, joGlueResult ) {
                 details.write( strLogPrefix + cc.debug( "Did invoked message signing callback, first real message index is:" ) +
                 cc.info( nIdxCurrentMsgBlockStart ) + cc.info( jarrMessages.length ) + cc.debug( " message(s) to process:" ) + cc.j( jarrMessages ) +
                 "\n" );
@@ -4233,7 +4233,7 @@ async function do_transfer(
                     // call params
                     chain_id_src,
                     nIdxCurrentMsgBlockStart,
-                    jarrMessages, // messages
+                    jarrMessages,
                     sign //, // bls signature components
                     // idxLastToPopNotIncluding
                 );
@@ -4244,7 +4244,7 @@ async function do_transfer(
                         chain_id_src,
                         chain_id_dst,
                         nIdxCurrentMsgBlockStart,
-                        jarrMessages, // messages
+                        jarrMessages,
                         [ signature.X, signature.Y ], // BLS glue of signatures
                         hashPoint.X, // G1.X from joGlueResult.hashSrc
                         hashPoint.Y, // G1.Y from joGlueResult.hashSrc
