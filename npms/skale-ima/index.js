@@ -3792,8 +3792,9 @@ async function do_transfer(
         details.write( strLogPrefix + cc.debug( "Using internal signing stub function" ) + "\n" );
         fn_sign_messages = async function( jarrMessages, nIdxCurrentMsgBlockStart, details, fnAfter ) {
             details.write( strLogPrefix + cc.debug( "Message signing callback was " ) + cc.error( "not provided" ) +
-                cc.debug( " to IMA, message start index is " ) + cc.info( nIdxCurrentMsgBlockStart ) + cc.debug( ", have " ) +
-                cc.info( jarrMessages.length ) + cc.debug( " message(s) to process:" ) + cc.j( jarrMessages ) + "\n" );
+                cc.debug( " to IMA, first real message index is:" ) + cc.info( nIdxCurrentMsgBlockStart ) +
+                cc.debug( ", have " ) + cc.info( jarrMessages.length ) + cc.debug( " message(s) to process:" ) + cc.j( jarrMessages ) +
+                "\n" );
             await fnAfter( null, jarrMessages, null ); // null - no error, null - no signatures
         };
     } else
@@ -4168,7 +4169,13 @@ async function do_transfer(
             //
             //
             strActionName = "sign messages";
+            details.write( strLogPrefix + cc.debug( "Will invoke message signing callback, first real message index is:" ) +
+                cc.info( nIdxCurrentMsgBlockStart ) + cc.info( jarrMessages.length ) + cc.debug( " message(s) to process:" ) + cc.j( jarrMessages ) +
+                "\n" );
             await fn_sign_messages( messages, nIdxCurrentMsgBlockStart, details, async function( err, jarrMessages, joGlueResult ) {
+                details.write( strLogPrefix + cc.debug( "Did invoked message signing callback, first real message index is:" ) +
+                cc.info( nIdxCurrentMsgBlockStart ) + cc.info( jarrMessages.length ) + cc.debug( " message(s) to process:" ) + cc.j( jarrMessages ) +
+                "\n" );
                 const details = log.createMemoryStream();
                 if( err ) {
                     bErrorInSigningMessages = true;

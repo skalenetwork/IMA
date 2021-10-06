@@ -404,13 +404,19 @@ async function check_correctness_of_messages_to_sign( details, strLogPrefix, str
         cc.debug( ", caller account address is " ) + cc.info( joMessageProxy.options.address ) +
         cc.debug( ", message(s) count is " ) + cc.info( jarrMessages.length ) +
         cc.debug( ", message(s) to process:" ) + cc.j( jarrMessages ) +
+        cc.debug( ", first real message index is:" ) + cc.info( nIdxCurrentMsgBlockStart ) +
         "\n" );
-    let cntBadMessages = 0; let i = 0; const cnt = jarrMessages.length;
+    let cntBadMessages = 0, i = 0;
+    const cnt = jarrMessages.length;
     if( strDirection == "S2M" ) {
         for( i = 0; i < cnt; ++i ) {
-            const joMessage = jarrMessages[i]; const idxMessage = nIdxCurrentMsgBlockStart + i;
+            const joMessage = jarrMessages[i];
+            const idxMessage = nIdxCurrentMsgBlockStart + i;
             try {
-                details.write( cc.debug( "Will validate message " ) + cc.info( i ) + cc.debug( " of " ) + cc.info( cnt ) + "\n" );
+                details.write(
+                    cc.debug( "Will validate message " ) + cc.info( i ) + cc.debug( " of " ) + cc.info( cnt ) +
+                    cc.debug( ", real  message index is: " ) + cc.info( idxMessage ) +
+                    "\n" );
                 // const strHexAmount = "0x" + w3.utils.toBN( joMessage.amount ).toString( 16 );
                 const outgoingMessageData = {
                     dstChainHash: w3.utils.soliditySha3( joChainName ), // dstChainHash
@@ -460,9 +466,10 @@ async function do_sign_messages_impl( strDirection, jarrMessages, nIdxCurrentMsg
     fn = fn || function() {};
     if( !( imaState.bSignMessages && imaState.strPathBlsGlue.length > 0 && imaState.joSChainNetworkInfo ) ) {
         details.write( strLogPrefix + cc.debug( "BLS message signing is " ) + cc.error( "turned off" ) +
-            cc.debug( ", message start index is " ) + cc.info( nIdxCurrentMsgBlockStart ) +
+            cc.debug( ", first real message index is:" ) + cc.info( nIdxCurrentMsgBlockStart ) +
             cc.debug( ", have " ) + cc.info( jarrMessages.length ) +
-            cc.debug( " message(s) to process:" ) + cc.j( jarrMessages ) + "\n" );
+            cc.debug( " message(s) to process:" ) + cc.j( jarrMessages ) +
+            "\n" );
         await check_correctness_of_messages_to_sign( details, strLogPrefix, strDirection, jarrMessages, nIdxCurrentMsgBlockStart );
         await fn( null, jarrMessages, null );
         return;
