@@ -420,7 +420,7 @@ async function check_correctness_of_messages_to_sign( details, strLogPrefix, str
                 // const strHexAmount = "0x" + w3.utils.toBN( joMessage.amount ).toString( 16 );
                 const outgoingMessageData = {
                     dstChainHash: w3.utils.soliditySha3( joChainName ), // dstChainHash
-                    msgCounter: 0 + idxMessage,
+                    msgCounter: Math.abs( 0 + idxMessage ),
                     srcContract: joMessage.sender,
                     dstContract: joMessage.destinationContract,
                     // to: joMessage.to,
