@@ -4464,6 +4464,11 @@ const tc_s_chain = new TransactionCustomizer( null, 1.25 );
 
 async function calculatePowNumber(address, nonce, gas, difficulty) {
     const path = require('path');
+    let _address = ethereumjs_util.addHexPrefix(address);
+    _address = ethereumjs_util.toChecksumAddress(_address);
+    _address = ethereumjs_util.stripHexPrefix(_address);
+    let _nonce = parseIntOrHex(nonce);
+    let _gas = parseIntOrHex(gas);
     let powScriptPath = path.join(__dirname, 'pow');
     let cmd = `${powScriptPath} ${address} ${nonce} ${gas}`;
     return await execShellCommand(cmd);
