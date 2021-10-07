@@ -1199,8 +1199,11 @@ async function reimbursement_show_balance(
     let s = "";
     const strLogPrefix = cc.info( "Gas Reimbursement - Show Balance" ) + " ";
     try {
-        details.write( strLogPrefix + cc.debug( "Querying wallet " ) + cc.notice( strReimbursementChain ) + cc.debug( " balance..." ) + "\n" );
         const addressFrom = joReceiver_main_net;
+        details.write( strLogPrefix +
+            cc.debug( "Querying wallet " ) + cc.notice( strReimbursementChain ) +
+            cc.debug( "/" ) + cc.info( addressFrom ) +
+            cc.debug( " balance..." ) + "\n" );
         const xWei = await jo_community_pool.methods.getBalance( addressFrom, strReimbursementChain ).call();
         //
         s = strLogPrefix + cc.success( "Balance(wei): " ) + cc.attention( xWei ) + "\n";
@@ -3808,8 +3811,9 @@ async function do_transfer(
         details.write( strLogPrefix + cc.debug( "Using internal signing stub function" ) + "\n" );
         fn_sign_messages = async function( jarrMessages, nIdxCurrentMsgBlockStart, details, fnAfter ) {
             details.write( strLogPrefix + cc.debug( "Message signing callback was " ) + cc.error( "not provided" ) +
-                cc.debug( " to IMA, message start index is " ) + cc.info( nIdxCurrentMsgBlockStart ) + cc.debug( ", have " ) +
-                cc.info( jarrMessages.length ) + cc.debug( " message(s) to process:" ) + cc.j( jarrMessages ) + "\n" );
+                cc.debug( " to IMA, first real message index is:" ) + cc.info( nIdxCurrentMsgBlockStart ) +
+                cc.debug( ", have " ) + cc.info( jarrMessages.length ) + cc.debug( " message(s) to process:" ) + cc.j( jarrMessages ) +
+                "\n" );
             await fnAfter( null, jarrMessages, null ); // null - no error, null - no signatures
         };
     } else
@@ -3880,7 +3884,7 @@ async function do_transfer(
                 return;
             }
             const arrMessageCounters = [];
-            const messages = [];
+            const jarrMessages = [];
             const nIdxCurrentMsgBlockStart = 0 + nIdxCurrentMsg;
             //
             // inner loop wil create block of transactions
@@ -4063,7 +4067,7 @@ async function do_transfer(
                 //
                 details.write( strLogPrefix + cc.debug( "Will process message counter value " ) + cc.info( nIdxCurrentMsg ) + "\n" );
                 arrMessageCounters.push( nIdxCurrentMsg );
-                messages.push( {
+                jarrMessages.push( {
                     sender: joValues.srcContract,
                     destinationContract: joValues.dstContract,
                     to: joValues.to,
@@ -4184,8 +4188,14 @@ async function do_transfer(
             //
             //
             strActionName = "sign messages";
-            await fn_sign_messages( messages, nIdxCurrentMsgBlockStart, details, async function( err, jarrMessages, joGlueResult ) {
+            details.write( strLogPrefix + cc.debug( "Will invoke message signing callback, first real message index is:" ) +
+                cc.info( nIdxCurrentMsgBlockStart ) + cc.info( jarrMessages.length ) + cc.debug( " message(s) to process:" ) + cc.j( jarrMessages ) +
+                "\n" );
+            await fn_sign_messages( jarrMessages, nIdxCurrentMsgBlockStart, details, async function( err, jarrMessages, joGlueResult ) {
                 const details = log.createMemoryStream();
+                details.write( strLogPrefix + cc.debug( "Did invoked message signing callback, first real message index is:" ) +
+                cc.info( nIdxCurrentMsgBlockStart ) + cc.info( jarrMessages.length ) + cc.debug( " message(s) to process:" ) + cc.j( jarrMessages ) +
+                "\n" );
                 if( err ) {
                     bErrorInSigningMessages = true;
                     const s = strLogPrefix + cc.fatal( "CRITICAL ERROR:" ) + cc.error( " Error signing messages: " ) + cc.error( err ) + "\n";
@@ -4242,7 +4252,7 @@ async function do_transfer(
                     // call params
                     chain_id_src,
                     nIdxCurrentMsgBlockStart,
-                    jarrMessages, // messages
+                    jarrMessages,
                     sign //, // bls signature components
                     // idxLastToPopNotIncluding
                 );
@@ -4253,7 +4263,7 @@ async function do_transfer(
                         chain_id_src,
                         chain_id_dst,
                         nIdxCurrentMsgBlockStart,
-                        jarrMessages, // messages
+                        jarrMessages,
                         [ signature.X, signature.Y ], // BLS glue of signatures
                         hashPoint.X, // G1.X from joGlueResult.hashSrc
                         hashPoint.Y, // G1.Y from joGlueResult.hashSrc
