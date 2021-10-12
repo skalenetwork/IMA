@@ -1535,7 +1535,7 @@ async function reimbursement_set_range(
             data: dataTx,
             value: 0 // how much money to send
         };
-        await checkTransactionToSchain(w3_s_chain, rawTx);
+        await checkTransactionToSchain(w3_s_chain, rawTx, details);
         const tx = compose_tx_instance( details, strLogPrefix, rawTx );
         const joSR = await safe_sign_transaction_with_account( details, w3_s_chain, tx, rawTx, joAccount_s_chain );
         let joReceipt = null;
@@ -1755,7 +1755,7 @@ async function do_eth_payment_from_s_chain(
             data: dataTx,
             value: 0 // how much money to send
         };
-        await checkTransactionToSchain(w3_s_chain, rawTx);
+        await checkTransactionToSchain(w3_s_chain, rawTx, details);
         const tx = compose_tx_instance( details, strLogPrefix, rawTx );
         const joSR = await safe_sign_transaction_with_account( details, w3_s_chain, tx, rawTx, joAccountSrc );
         let joReceipt = null;
@@ -2742,7 +2742,7 @@ async function do_erc20_payment_from_s_chain(
             gasPrice: gasPrice,
             gas: estimatedGas_approve
         };
-        await checkTransactionToSchain(w3_s_chain, rawTxApprove);
+        await checkTransactionToSchain(w3_s_chain, rawTxApprove, details);
         const txApprove = compose_tx_instance( details, strLogPrefix, rawTxApprove );
         strActionName = "sign ERC20/approve transaction S->M";
         const joApproveSR = await safe_sign_transaction_with_account( details, w3_s_chain, txApprove, rawTxApprove, joAccountSrc );
@@ -2796,7 +2796,7 @@ async function do_erc20_payment_from_s_chain(
             gasPrice: gasPrice,
             gas: estimatedGas_rawExitToMainERC20
         };
-        await checkTransactionToSchain(w3_s_chain, rawTxExitToMainERC20);
+        await checkTransactionToSchain(w3_s_chain, rawTxExitToMainERC20, details);
         const txExitToMainERC20 = compose_tx_instance( details, strLogPrefix, rawTxExitToMainERC20 );
         strActionName = "sign ERC20/exitToMain transaction S->M";
         const joExitToMainERC20SR = await safe_sign_transaction_with_account( details, w3_s_chain, txExitToMainERC20, rawTxExitToMainERC20, joAccountSrc );
@@ -2924,7 +2924,7 @@ async function do_erc721_payment_from_s_chain(
             gasPrice: gasPrice,
             gas: estimatedGas_approve
         };
-        await checkTransactionToSchain(w3_s_chain, rawTxApprove);
+        await checkTransactionToSchain(w3_s_chain, rawTxApprove, details);
         const txApprove = compose_tx_instance( details, strLogPrefix, rawTxApprove );
         strActionName = "sign ERC721/approve transaction S->M";
         const joApproveSR = await safe_sign_transaction_with_account( details, w3_s_chain, txApprove, rawTxApprove, joAccountSrc );
@@ -2983,7 +2983,7 @@ async function do_erc721_payment_from_s_chain(
                 gas: estimatedGas_exitToMainERC721
             }
         );
-        await checkTransactionToSchain(w3_s_chain, rawTxExitToMainERC721);
+        await checkTransactionToSchain(w3_s_chain, rawTxExitToMainERC721, details);
         const txExitToMainERC721 = compose_tx_instance( details, strLogPrefix, rawTxExitToMainERC721 );
         strActionName = "sign ERC721/rawExitToMain transaction S->M";
         const joExitToMainErc721SR = await safe_sign_transaction_with_account( details, w3_s_chain, txExitToMainERC721, rawTxExitToMainERC721, joAccountSrc );
@@ -3111,7 +3111,7 @@ async function do_erc1155_payment_from_s_chain(
             gasPrice: gasPrice,
             gas: estimatedGas_approve
         };
-        await checkTransactionToSchain(w3_s_chain, rawTxApprove);
+        await checkTransactionToSchain(w3_s_chain, rawTxApprove, details);
         const txApprove = compose_tx_instance( details, strLogPrefix, rawTxApprove );
         strActionName = "sign ERC1155/approve transaction S->M";
         const joApproveSR = await safe_sign_transaction_with_account( details, w3_s_chain, txApprove, rawTxApprove, joAccountSrc );
@@ -3170,7 +3170,7 @@ async function do_erc1155_payment_from_s_chain(
                 gas: estimatedGas_exitToMainERC1155
             }
         );
-        await checkTransactionToSchain(w3_s_chain, rawTxExitToMainERC1155);
+        await checkTransactionToSchain(w3_s_chain, rawTxExitToMainERC1155, details);
         const txExitToMainERC1155 = compose_tx_instance( details, strLogPrefix, rawTxExitToMainERC1155 );
         strActionName = "sign ERC1155/rawExitToMain transaction S->M";
         const joExitToMainErc1155SR = await safe_sign_transaction_with_account( details, w3_s_chain, txExitToMainERC1155, rawTxExitToMainERC1155, joAccountSrc );
@@ -3298,7 +3298,7 @@ async function do_erc1155_batch_payment_from_s_chain(
             gasPrice: gasPrice,
             gas: estimatedGas_approve
         };
-        await checkTransactionToSchain(w3_s_chain, rawTxApprove);
+        await checkTransactionToSchain(w3_s_chain, rawTxApprove, details);
         const txApprove = compose_tx_instance( details, strLogPrefix, rawTxApprove );
         strActionName = "sign ERC1155 Batch/approve transaction S->M";
         const joApproveSR = await safe_sign_transaction_with_account( details, w3_s_chain, txApprove, rawTxApprove, joAccountSrc );
@@ -3353,7 +3353,7 @@ async function do_erc1155_batch_payment_from_s_chain(
             gasPrice: gasPrice,
             gas: estimatedGas_exitToMainERC1155Batch
         }
-        await checkTransactionToSchain(w3_s_chain, rawTx);
+        await checkTransactionToSchain(w3_s_chain, rawTx, details);
         const rawTxExitToMainERC1155Batch = compose_tx_instance(
             details,
             strLogPrefix,
@@ -4299,7 +4299,7 @@ async function do_transfer(
                     // "value": wei_amount // 1000000000000000000 // w3_dst.utils.toWei( (1).toString(), "ether" ) // how much money to send
                 };
                 if( chain_id_dst !== "Mainnet" ) {
-                    await checkTransactionToSchain(w3_dst, raw_tx_postIncomingMessages);
+                    await checkTransactionToSchain(w3_dst, raw_tx_postIncomingMessages, details);
                 }
                 const tx_postIncomingMessages = compose_tx_instance( details, strLogPrefix, raw_tx_postIncomingMessages );
                 const joPostIncomingMessagesSR = await safe_sign_transaction_with_account( details, w3_dst, tx_postIncomingMessages, raw_tx_postIncomingMessages, joAccountDst );
@@ -4492,11 +4492,12 @@ const tc_s_chain = new TransactionCustomizer( null, 1.25 );
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-async function checkTransactionToSchain(w3_s_chain, tx) {
+async function checkTransactionToSchain(w3_s_chain, tx, details) {
     let sender = tx.from;
     let requiredBalance = tx.gasPrice * tx.gas;
     let balance = await w3_s_chain.eth.getBalance(sender);
     if (balance < requiredBalance) {
+        details.write( cc.debug( "Running PoW for tx: " ) + cc.debug( tx ) + "\n" );
         let powNumber = await calculatePowNumber(sender, tx.nonce, tx.gas);
         tx.gasPrice = ethereumjs_util.addHexPrefix(powNumber);
     }
