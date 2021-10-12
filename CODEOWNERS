@@ -1,3 +1,4 @@
 * @sergiy-skalelabs @kladkogex
 *.md @skalenetwork/docowners
+/docs/ @skalenetwork/docowners
 /proxy/ @payvint
