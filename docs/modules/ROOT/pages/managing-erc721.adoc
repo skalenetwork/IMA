@@ -511,7 +511,7 @@ let approve = contractERC721.methods
   .encodeABI();
 
 let deposit = depositBox.methods
-.depositERC721(schainName, erc721Address, accountForSchain, mintId)
+.depositERC721(schainName, erc721Address, mintId)
 .encodeABI();
 
 web3ForMainnet.eth.getTransactionCount(accountForMainnet).then((nonce) => {
@@ -710,7 +710,6 @@ let approve = contractERC721.methods
 let exit = tokenManager.methods
   .exitToMainERC721(
     erc721AddressRinkeby,
-    accountForMainnet,
     mintId
   )
   .encodeABI();

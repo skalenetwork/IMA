@@ -545,7 +545,6 @@ let deposit = depositBox.methods
 .depositERC1155(
     schainName,
     erc1155Address,
-    accountForSchain,
     mintId,
     web3ForMainnet.utils.toHex(web3ForMainnet.utils.toWei("1", "ether"))
 .encodeABI();
@@ -749,7 +748,6 @@ let approve = contractERC1155.methods
 let exit = tokenManager.methods
   .exitToMainERC1155(
     erc1155AddressRinkeby,
-    accountForMainnet,
     mintId,
     web3ForSchain.utils.toHex(web3ForSchain.utils.toWei("1", "ether")
   )

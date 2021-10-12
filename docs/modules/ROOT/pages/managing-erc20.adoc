@@ -538,7 +538,6 @@ let deposit = depositBox.methods
   .depositERC20(
     schainName,
     erc20Address,
-    accountForSchain,
     web3ForMainnet.utils.toHex(web3ForMainnet.utils.toWei("1", "ether"))
   )
   .encodeABI();
@@ -744,7 +743,6 @@ let approve = contractERC20.methods
 let exit = tokenManager.methods
   .exitToMainERC20(
     erc20AddressOnMainnet,
-    accountForMainnet,
     web3ForSchain.utils.toHex(web3ForSchain.utils.toWei("1", "ether"))
   )
   .encodeABI();
