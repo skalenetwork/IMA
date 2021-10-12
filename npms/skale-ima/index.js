@@ -678,8 +678,9 @@ async function tm_send( details, tx, priority = 5 ) {
     const score = tm_make_score( priority );
     const record = tm_make_record( tx, score );
     details.write( cc.debug( "TM - Sending score: " ) + cc.info( score ) + cc.debug( ", record: " ) + cc.info( record ) + "\n" );
+
     await redis.multi()
-        .set( id, record )
+        .set( id, record)
         .zadd( g_tm_pool, score, id )
         .exec();
     return id;
@@ -688,8 +689,7 @@ async function tm_send( details, tx, priority = 5 ) {
 function tm_is_finished( record ) {
     if( record == null )
         return null;
-    const status = "status" in record ? record.status : null;
-    return [ "SUCCESS", "FAILED", "DROPPED" ].includes( status );
+    return [ "SUCCESS", "FAILED", "DROPPED" ].includes( record.status );
 }
 
 async function tm_get_record( tx_id ) {
@@ -699,20 +699,21 @@ async function tm_get_record( tx_id ) {
     return null;
 }
 
-async function tm_wait( details, tx_id, w3 ) {
+async function tm_wait( details, tx_id, w3, allowed_time = 36000 ) {
     details.write( cc.debug( "TM - waiting for TX ID: " ) + cc.info( tx_id ) + cc.debug( "..." ) + "\n" );
-    let hash;
-    while( hash === undefined ) {
-        const r = await tm_get_record( tx_id );
-        if( tm_is_finished( r ) ) {
-            if( r.status == "DROPPED" )
-                return null;
-        }
-        hash = r.tx_hash;
+    const start_ts = Date.now();
+    while( !tm_is_finished( await tm_get_record( tx_id ) ) && Date.now() - start_ts < allowed_time )
+        await sleep( 1 );
+
+    const r = await tm_get_record( tx_id );
+    details.write(cc.debug( "TM - TX record is " ) + cc.info( r ) + "\n" );
+
+    if( !tm_is_finished( r ) || r.status == "DROPPED" ) {
+        details.write( cc.debug( "TM - transaction " ) + cc.info( tx_id ) +
+            cc.debug( " was unsuccessful" ) + "\n" );
+        return null;
     }
-    details.write( cc.debug( "TM - TX hash is " ) + cc.info( hash ) + "\n" );
-    // return await w3.eth.getTransactionReceipt( hash );
-    return await get_web3_transactionReceipt( details, 10, w3, hash );
+    return await get_web3_transactionReceipt( details, 10, w3, r.tx_hash );
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
