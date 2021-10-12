@@ -678,9 +678,10 @@ async function tm_send( details, tx, priority = 5 ) {
     const score = tm_make_score( priority );
     const record = tm_make_record( tx, score );
     details.write( cc.debug( "TM - Sending score: " ) + cc.info( score ) + cc.debug( ", record: " ) + cc.info( record ) + "\n" );
+    expiration = 24 * 60 * 60  // 1 day;
 
     await redis.multi()
-        .set( id, record)
+        .set( id, record, "EX", expiration)
         .zadd( g_tm_pool, score, id )
         .exec();
     return id;
