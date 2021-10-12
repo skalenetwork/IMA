@@ -94,7 +94,7 @@ export const contractsToDeploy = [
     "TokenManagerERC721",
     "TokenManagerERC1155",
     "EthErc20",
-    "SkaleFeatures"
+    "KeyStorage"
 ];
 
 export const contracts = [
@@ -150,6 +150,8 @@ async function main() {
     const keyStorageFactory = await ethers.getContractFactory("KeyStorage");
     const keyStorage = await upgrades.deployProxy(keyStorageFactory) as KeyStorage;
     await keyStorage.deployTransaction.wait();
+    deployed.set( "KeyStorage", { address: keyStorage.address, interface: keyStorage.interface } );
+    console.log("Contract KeyStorage deployed to", keyStorage.address);
 
     console.log("Deploy MessageProxyForSchain");
     const messageProxy = await upgrades.deployProxy(messageProxyFactory, [keyStorage.address, schainName]) as MessageProxyForSchain;

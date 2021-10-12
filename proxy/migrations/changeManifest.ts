@@ -1,11 +1,11 @@
-import { ethers, network, upgrades, artifacts } from "hardhat";
-import { contractsToDeploy, getContractKeyInAbiFile } from "./deploySchain";
+// import { ethers, network, upgrades, artifacts } from "hardhat";
+import { contracts, contractsToDeploy, getContractKeyInAbiFile } from "./deploySchain";
 import { promises as fs } from "fs";
 // import hre from "hardhat";
 // import { promises as fs } from "fs";
-import { getImplementationAddress, hashBytecode, getVersion } from "@openzeppelin/upgrades-core";
+// import { getImplementationAddress, hashBytecode, getVersion } from "@openzeppelin/upgrades-core";
 // import { getManifestAdmin } from "@openzeppelin/hardhat-upgrades/dist/admin";
-// import chalk from "chalk";
+import chalk from "chalk";
 import { getImplKey } from "./generateManifest";
 
 const predeployedAddresses: any = {
@@ -15,7 +15,7 @@ const predeployedAddresses: any = {
     "key_storage": "0xd2aaa00200000000000000000000000000000000",
     "key_storage_implementation": "0xD2AAa002d2000000000000000000000000000000",
     "community_locker": "0xD2aaa00300000000000000000000000000000000",
-    "comminity_locker_implementation": "0xD2aaA003d2000000000000000000000000000000",
+    "community_locker_implementation": "0xD2aaA003d2000000000000000000000000000000",
     "token_manager_eth": "0xd2AaA00400000000000000000000000000000000",
     "token_manager_eth_implementation": "0xd2AaA004d2000000000000000000000000000000",
     "token_manager_erc20": "0xD2aAA00500000000000000000000000000000000",
@@ -45,13 +45,21 @@ function findProxyContract(data: any, address: string) {
 }
 
 function changeProxies(manifest: any, abi: any) {
-    for (const contract in contractsToDeploy) {
+    for (const contract of contractsToDeploy) {
         const proxyAddress = abi[getContractKeyInAbiFile(contract) + "_address"];
         const proxyData = manifest["proxies"];
         const index = findProxyContract(proxyData, proxyAddress);
         if (index < proxyData.length) {
             manifest["proxies"][index].address = predeployedAddresses[getContractKeyInAbiFile(contract)];
         }
+    }
+    return manifest;
+}
+
+async function changeImplementations(manifest: any) {
+    for (const contract of contractsToDeploy) {
+        const implKey = await getImplKey(contract);
+        manifest["impls"][implKey].address = predeployedAddresses[getContractKeyInAbiFile(contract) + "_implementation"];
     }
     return manifest;
 }
@@ -64,7 +72,7 @@ export async function change() {
     }
 
     if (!process.env.MANIFEST) {
-        console.log(chalk.red("Set path to file with ABI and addresses to ABI environment variables"));
+        console.log(chalk.red("Set path to file with Manifest to MANIFEST environment variables"));
         return;
     }
 
@@ -79,6 +87,17 @@ export async function change() {
     currentManifest = changeProxies(currentManifest, currentAbi);
 
     // change implementation addresses
-    // TODO
+    currentManifest = await changeImplementations(currentManifest);
 
+    await fs.writeFile("data/manifest.json", JSON.stringify(currentManifest, null, 4));
+    return currentManifest;
+}
+
+if (require.main === module) {
+    change()
+        .then(() => process.exit(0))
+        .catch(error => {
+            console.error(error);
+            process.exit(1);
+        });
 }
