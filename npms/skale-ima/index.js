@@ -4497,7 +4497,9 @@ async function checkTransactionToSchain(w3_s_chain, tx, details) {
     let requiredBalance = tx.gasPrice * tx.gas;
     let balance = await w3_s_chain.eth.getBalance(sender);
     if (balance < requiredBalance) {
-        details.write( cc.debug( "Running PoW for tx: " ) + cc.debug( tx ) + "\n" );
+        details.write(
+            cc.normal("Insufficient funds for ") + cc.bright(tx.from) +
+            cc.normal("; Running PoW for mining ") + cc.bright(tx.gas) + " gas\n" );
         let powNumber = await calculatePowNumber(sender, tx.nonce, tx.gas);
         tx.gasPrice = ethereumjs_util.addHexPrefix(powNumber);
     }
