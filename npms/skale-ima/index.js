@@ -1508,6 +1508,7 @@ async function reimbursement_set_range(
         //
         strActionName = "w3_s_chain.eth.getTransactionCount()";
         details.write( strLogPrefix + cc.debug( "Will call " ) + cc.notice( strActionName ) + cc.debug( "..." ) + "\n" );
+        const accountForSchain = joAccount_s_chain.address( w3_s_chain );
         const tcnt = await get_web3_transactionCount( details, 10, w3_s_chain, joAccount_s_chain.address( w3_s_chain ), null );
         details.write( strLogPrefix + cc.debug( "Got " ) + cc.info( tcnt ) + cc.debug( " from " ) + cc.notice( strActionName ) + "\n" );
         //
@@ -1531,6 +1532,7 @@ async function reimbursement_set_range(
         //
         const rawTx = {
             chainId: cid_s_chain,
+            from: accountForSchain,
             nonce: tcnt,
             gasPrice: gasPrice,
             // gasLimit: estimatedGas,
@@ -1539,6 +1541,7 @@ async function reimbursement_set_range(
             data: dataTx,
             value: 0 // how much money to send
         };
+        await checkTransactionToSchain( w3_s_chain, rawTx, details );
         const tx = compose_tx_instance( details, strLogPrefix, rawTx );
         const joSR = await safe_sign_transaction_with_account( details, w3_s_chain, tx, rawTx, joAccount_s_chain );
         let joReceipt = null;
@@ -1723,6 +1726,7 @@ async function do_eth_payment_from_s_chain(
         let gasPrice = await tc_s_chain.computeGasPrice( w3_s_chain, 200000000000 );
         details.write( strLogPrefix + cc.debug( "Using computed " ) + cc.info( "gasPrice" ) + cc.debug( "=" ) + cc.notice( gasPrice ) + "\n" ); //
         //
+        const accountForSchain = joAccountSrc.address( w3_s_chain );
         const tcnt = await get_web3_transactionCount( details, 10, w3_s_chain, joAccountSrc.address( w3_s_chain ), null );
         details.write( strLogPrefix + cc.debug( "Got " ) + cc.info( tcnt ) + cc.debug( " from " ) + cc.notice( strActionName ) + "\n" );
         //
@@ -1748,6 +1752,7 @@ async function do_eth_payment_from_s_chain(
         //
         const rawTx = {
             chainId: cid_s_chain,
+            from: accountForSchain,
             nonce: tcnt,
             gasPrice: gasPrice,
             // "gasLimit": 3000000,
@@ -1756,6 +1761,7 @@ async function do_eth_payment_from_s_chain(
             data: dataTx,
             value: 0 // how much money to send
         };
+        await checkTransactionToSchain( w3_s_chain, rawTx, details );
         const tx = compose_tx_instance( details, strLogPrefix, rawTx );
         const joSR = await safe_sign_transaction_with_account( details, w3_s_chain, tx, rawTx, joAccountSrc );
         let joReceipt = null;
@@ -2742,6 +2748,7 @@ async function do_erc20_payment_from_s_chain(
             gasPrice: gasPrice,
             gas: estimatedGas_approve
         };
+        await checkTransactionToSchain( w3_s_chain, rawTxApprove, details );
         const txApprove = compose_tx_instance( details, strLogPrefix, rawTxApprove );
         strActionName = "sign ERC20/approve transaction S->M";
         const joApproveSR = await safe_sign_transaction_with_account( details, w3_s_chain, txApprove, rawTxApprove, joAccountSrc );
@@ -2795,6 +2802,7 @@ async function do_erc20_payment_from_s_chain(
             gasPrice: gasPrice,
             gas: estimatedGas_rawExitToMainERC20
         };
+        await checkTransactionToSchain( w3_s_chain, rawTxExitToMainERC20, details );
         const txExitToMainERC20 = compose_tx_instance( details, strLogPrefix, rawTxExitToMainERC20 );
         strActionName = "sign ERC20/exitToMain transaction S->M";
         const joExitToMainERC20SR = await safe_sign_transaction_with_account( details, w3_s_chain, txExitToMainERC20, rawTxExitToMainERC20, joAccountSrc );
@@ -2922,6 +2930,7 @@ async function do_erc721_payment_from_s_chain(
             gasPrice: gasPrice,
             gas: estimatedGas_approve
         };
+        await checkTransactionToSchain( w3_s_chain, rawTxApprove, details );
         const txApprove = compose_tx_instance( details, strLogPrefix, rawTxApprove );
         strActionName = "sign ERC721/approve transaction S->M";
         const joApproveSR = await safe_sign_transaction_with_account( details, w3_s_chain, txApprove, rawTxApprove, joAccountSrc );
@@ -2967,19 +2976,16 @@ async function do_erc721_payment_from_s_chain(
         if( strErrorOfDryRun_rawExitToMainERC721 )
             throw new Error( strErrorOfDryRun_rawExitToMainERC721 );
         //
-        const rawTxExitToMainERC721 = compose_tx_instance(
-            details,
-            strLogPrefix,
-            {
-                chainId: cid_s_chain,
-                from: accountForSchain,
-                nonce: "0x" + tcnt.toString( 16 ),
-                data: dataTxExitToMainERC721,
-                to: tokenManagerAddress,
-                gasPrice: gasPrice,
-                gas: estimatedGas_exitToMainERC721
-            }
-        );
+        const rawTxExitToMainERC721 = {
+            chainId: cid_s_chain,
+            from: accountForSchain,
+            nonce: "0x" + tcnt.toString( 16 ),
+            data: dataTxExitToMainERC721,
+            to: tokenManagerAddress,
+            gasPrice: gasPrice,
+            gas: estimatedGas_exitToMainERC721
+        };
+        await checkTransactionToSchain( w3_s_chain, rawTxExitToMainERC721, details );
         const txExitToMainERC721 = compose_tx_instance( details, strLogPrefix, rawTxExitToMainERC721 );
         strActionName = "sign ERC721/rawExitToMain transaction S->M";
         const joExitToMainErc721SR = await safe_sign_transaction_with_account( details, w3_s_chain, txExitToMainERC721, rawTxExitToMainERC721, joAccountSrc );
@@ -3107,6 +3113,7 @@ async function do_erc1155_payment_from_s_chain(
             gasPrice: gasPrice,
             gas: estimatedGas_approve
         };
+        await checkTransactionToSchain( w3_s_chain, rawTxApprove, details );
         const txApprove = compose_tx_instance( details, strLogPrefix, rawTxApprove );
         strActionName = "sign ERC1155/approve transaction S->M";
         const joApproveSR = await safe_sign_transaction_with_account( details, w3_s_chain, txApprove, rawTxApprove, joAccountSrc );
@@ -3152,19 +3159,16 @@ async function do_erc1155_payment_from_s_chain(
         if( strErrorOfDryRun_rawExitToMainERC1155 )
             throw new Error( strErrorOfDryRun_rawExitToMainERC1155 );
         //
-        const rawTxExitToMainERC1155 = compose_tx_instance(
-            details,
-            strLogPrefix,
-            {
-                chainId: cid_s_chain,
-                from: accountForSchain,
-                nonce: "0x" + tcnt.toString( 16 ),
-                data: dataTxExitToMainERC1155,
-                to: tokenManagerAddress,
-                gasPrice: gasPrice,
-                gas: estimatedGas_exitToMainERC1155
-            }
-        );
+        const rawTxExitToMainERC1155 = {
+            chainId: cid_s_chain,
+            from: accountForSchain,
+            nonce: "0x" + tcnt.toString( 16 ),
+            data: dataTxExitToMainERC1155,
+            to: tokenManagerAddress,
+            gasPrice: gasPrice,
+            gas: estimatedGas_exitToMainERC1155
+        };
+        await checkTransactionToSchain( w3_s_chain, rawTxExitToMainERC1155, details );
         const txExitToMainERC1155 = compose_tx_instance( details, strLogPrefix, rawTxExitToMainERC1155 );
         strActionName = "sign ERC1155/rawExitToMain transaction S->M";
         const joExitToMainErc1155SR = await safe_sign_transaction_with_account( details, w3_s_chain, txExitToMainERC1155, rawTxExitToMainERC1155, joAccountSrc );
@@ -3292,6 +3296,7 @@ async function do_erc1155_batch_payment_from_s_chain(
             gasPrice: gasPrice,
             gas: estimatedGas_approve
         };
+        await checkTransactionToSchain( w3_s_chain, rawTxApprove, details );
         const txApprove = compose_tx_instance( details, strLogPrefix, rawTxApprove );
         strActionName = "sign ERC1155 Batch/approve transaction S->M";
         const joApproveSR = await safe_sign_transaction_with_account( details, w3_s_chain, txApprove, rawTxApprove, joAccountSrc );
@@ -3337,19 +3342,16 @@ async function do_erc1155_batch_payment_from_s_chain(
         if( strErrorOfDryRun_rawExitToMainERC1155Batch )
             throw new Error( strErrorOfDryRun_rawExitToMainERC1155Batch );
         //
-        const rawTxExitToMainERC1155Batch = compose_tx_instance(
-            details,
-            strLogPrefix,
-            {
-                chainId: cid_s_chain,
-                from: accountForSchain,
-                nonce: "0x" + tcnt.toString( 16 ),
-                data: dataTxExitToMainERC1155Batch,
-                to: tokenManagerAddress,
-                gasPrice: gasPrice,
-                gas: estimatedGas_exitToMainERC1155Batch
-            }
-        );
+        const rawTxExitToMainERC1155Batch = {
+            chainId: cid_s_chain,
+            from: accountForSchain,
+            nonce: "0x" + tcnt.toString( 16 ),
+            data: dataTxExitToMainERC1155Batch,
+            to: tokenManagerAddress,
+            gasPrice: gasPrice,
+            gas: estimatedGas_exitToMainERC1155Batch
+        };
+        await checkTransactionToSchain( w3_s_chain, rawTxExitToMainERC1155Batch, details );
         const txExitToMainERC1155Batch = compose_tx_instance( details, strLogPrefix, rawTxExitToMainERC1155Batch );
         strActionName = "sign ERC1155 Batch/rawExitToMain transaction S->M";
         const joExitToMainErc1155BatchSR = await safe_sign_transaction_with_account( details, w3_s_chain, txExitToMainERC1155Batch, rawTxExitToMainERC1155Batch, joAccountSrc );
@@ -4280,6 +4282,7 @@ async function do_transfer(
                 //
                 const raw_tx_postIncomingMessages = {
                     chainId: cid_dst,
+                    from: joAccountDst.address( w3_dst ),
                     nonce: tcnt,
                     gas: estimatedGas_postIncomingMessages,
                     gasPrice: gasPrice,
@@ -4288,6 +4291,9 @@ async function do_transfer(
                     data: dataTx_postIncomingMessages //,
                     // "value": wei_amount // 1000000000000000000 // w3_dst.utils.toWei( (1).toString(), "ether" ) // how much money to send
                 };
+                if( chain_id_dst !== "Mainnet" )
+                    await checkTransactionToSchain( w3_dst, raw_tx_postIncomingMessages, details );
+
                 const tx_postIncomingMessages = compose_tx_instance( details, strLogPrefix, raw_tx_postIncomingMessages );
                 const joPostIncomingMessagesSR = await safe_sign_transaction_with_account( details, w3_dst, tx_postIncomingMessages, raw_tx_postIncomingMessages, joAccountDst );
                 let joReceipt = null;
@@ -4475,6 +4481,47 @@ class TransactionCustomizer {
 
 const tc_main_net = new TransactionCustomizer( 1.25, 1.25 );
 const tc_s_chain = new TransactionCustomizer( null, 1.25 );
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+async function checkTransactionToSchain( w3_s_chain, tx, details ) {
+    const sender = tx.from;
+    const requiredBalance = tx.gasPrice * tx.gas;
+    const balance = await w3_s_chain.eth.getBalance( sender );
+    if( balance < requiredBalance ) {
+        details.write(
+            cc.normal( "Insufficient funds for " ) + cc.bright( tx.from ) +
+            cc.normal( "; Running PoW for mining " ) + cc.bright( tx.gas ) + " gas\n" );
+        const powNumber = await calculatePowNumber( sender, tx.nonce, tx.gas );
+        tx.gasPrice = ethereumjs_util.addHexPrefix( powNumber );
+    }
+    return tx;
+}
+
+async function calculatePowNumber( address, nonce, gas ) {
+    const path = require( "path" );
+    let _address = ethereumjs_util.addHexPrefix( address );
+    _address = ethereumjs_util.toChecksumAddress( _address );
+    _address = ethereumjs_util.stripHexPrefix( _address );
+    const _nonce = parseIntOrHex( nonce );
+    const _gas = parseIntOrHex( gas );
+    const powScriptPath = path.join( __dirname, "pow" );
+    const cmd = `${powScriptPath} ${_address} ${_nonce} ${_gas}`;
+    return await execShellCommand( cmd );
+}
+
+function execShellCommand( cmd ) {
+    const exec = require( "child_process" ).exec;
+    return new Promise( ( resolve, reject ) => {
+        exec( cmd, ( error, stdout, stderr ) => {
+            if( error )
+                reject( new Error( stderr ) );
+            else
+                resolve( stdout ? stdout : stderr );
+        } );
+    } );
+}
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
