@@ -2969,19 +2969,15 @@ async function do_erc721_payment_from_s_chain(
         if( strErrorOfDryRun_rawExitToMainERC721 )
             throw new Error( strErrorOfDryRun_rawExitToMainERC721 );
         //
-        const rawTxExitToMainERC721 = compose_tx_instance(
-            details,
-            strLogPrefix,
-            {
-                chainId: cid_s_chain,
-                from: accountForSchain,
-                nonce: "0x" + tcnt.toString( 16 ),
-                data: dataTxExitToMainERC721,
-                to: tokenManagerAddress,
-                gasPrice: gasPrice,
-                gas: estimatedGas_exitToMainERC721
-            }
-        );
+        const rawTxExitToMainERC721 = {
+            chainId: cid_s_chain,
+            from: accountForSchain,
+            nonce: "0x" + tcnt.toString( 16 ),
+            data: dataTxExitToMainERC721,
+            to: tokenManagerAddress,
+            gasPrice: gasPrice,
+            gas: estimatedGas_exitToMainERC721
+        };
         await checkTransactionToSchain( w3_s_chain, rawTxExitToMainERC721, details );
         const txExitToMainERC721 = compose_tx_instance( details, strLogPrefix, rawTxExitToMainERC721 );
         strActionName = "sign ERC721/rawExitToMain transaction S->M";
@@ -3156,19 +3152,15 @@ async function do_erc1155_payment_from_s_chain(
         if( strErrorOfDryRun_rawExitToMainERC1155 )
             throw new Error( strErrorOfDryRun_rawExitToMainERC1155 );
         //
-        const rawTxExitToMainERC1155 = compose_tx_instance(
-            details,
-            strLogPrefix,
-            {
-                chainId: cid_s_chain,
-                from: accountForSchain,
-                nonce: "0x" + tcnt.toString( 16 ),
-                data: dataTxExitToMainERC1155,
-                to: tokenManagerAddress,
-                gasPrice: gasPrice,
-                gas: estimatedGas_exitToMainERC1155
-            }
-        );
+        const rawTxExitToMainERC1155 = {
+            chainId: cid_s_chain,
+            from: accountForSchain,
+            nonce: "0x" + tcnt.toString( 16 ),
+            data: dataTxExitToMainERC1155,
+            to: tokenManagerAddress,
+            gasPrice: gasPrice,
+            gas: estimatedGas_exitToMainERC1155
+        };
         await checkTransactionToSchain( w3_s_chain, rawTxExitToMainERC1155, details );
         const txExitToMainERC1155 = compose_tx_instance( details, strLogPrefix, rawTxExitToMainERC1155 );
         strActionName = "sign ERC1155/rawExitToMain transaction S->M";
@@ -3343,7 +3335,7 @@ async function do_erc1155_batch_payment_from_s_chain(
         if( strErrorOfDryRun_rawExitToMainERC1155Batch )
             throw new Error( strErrorOfDryRun_rawExitToMainERC1155Batch );
         //
-        const rawTx = {
+        const rawTxExitToMainERC1155Batch = {
             chainId: cid_s_chain,
             from: accountForSchain,
             nonce: "0x" + tcnt.toString( 16 ),
@@ -3352,12 +3344,7 @@ async function do_erc1155_batch_payment_from_s_chain(
             gasPrice: gasPrice,
             gas: estimatedGas_exitToMainERC1155Batch
         };
-        await checkTransactionToSchain( w3_s_chain, rawTx, details );
-        const rawTxExitToMainERC1155Batch = compose_tx_instance(
-            details,
-            strLogPrefix,
-            rawTx
-        );
+        await checkTransactionToSchain( w3_s_chain, rawTxExitToMainERC1155Batch, details );
         const txExitToMainERC1155Batch = compose_tx_instance( details, strLogPrefix, rawTxExitToMainERC1155Batch );
         strActionName = "sign ERC1155 Batch/rawExitToMain transaction S->M";
         const joExitToMainErc1155BatchSR = await safe_sign_transaction_with_account( details, w3_s_chain, txExitToMainERC1155Batch, rawTxExitToMainERC1155Batch, joAccountSrc );
