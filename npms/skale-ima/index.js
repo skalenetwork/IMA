@@ -674,7 +674,8 @@ function tm_make_score( priority ) {
 }
 
 async function tm_send( details, tx, priority = 5 ) {
-    details.write( cc.debug( "TM - sending tx " ) + cc.j( tx ) + "\n" );
+    details.write( cc.debug( "TM - sending tx " ) + cc.j( tx ) +
+        cc.debug( " ts: " ) + cc.info( current_timestamp() ) + "\n" );
     const id = tm_make_id( details );
     const score = tm_make_score( priority );
     const record = tm_make_record( tx, score );
@@ -702,8 +703,10 @@ async function tm_get_record( tx_id ) {
 }
 
 async function tm_wait( details, tx_id, w3, allowed_time = 36000 ) {
-    details.write( cc.debug( "TM - waiting for TX ID: " ) + cc.info( tx_id ) + cc.debug( "..." ) + "\n" );
-    details.write( cc.debug( "TM - allowed time " ) + cc.info( allowed_time ) + "\n" );
+    details.write(
+        cc.debug( "TM - waiting for TX ID: " ) +
+        cc.info( tx_id ) +
+        cc.debug( " For " ) + cc.info( allowed_time ) + cc.debug( "s" ) + "\n" );
     const start_ts = current_timestamp();
     while( !tm_is_finished( await tm_get_record( tx_id ) ) && current_timestamp() - start_ts < allowed_time )
         await sleep( 1 );
