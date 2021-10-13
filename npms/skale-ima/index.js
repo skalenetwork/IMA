@@ -695,27 +695,27 @@ function tm_is_finished( record ) {
     return [ "SUCCESS", "FAILED", "DROPPED" ].includes( record.status );
 }
 
-async function tm_get_record( tx_id ) {
-    const r = await redis.get( tx_id );
+async function tm_get_record( txId ) {
+    const r = await redis.get( txId );
     if( r != null )
         return JSON.parse( r );
     return null;
 }
 
-async function tm_wait( details, tx_id, w3, allowed_time = 36000 ) {
+async function tm_wait( details, txId, w3, allowedTime = 36000 ) {
     details.write(
         cc.debug( "TM - waiting for TX ID: " ) +
-        cc.info( tx_id ) +
-        cc.debug( " For " ) + cc.info( allowed_time ) + cc.debug( "s" ) + "\n" );
-    const start_ts = current_timestamp();
-    while( !tm_is_finished( await tm_get_record( tx_id ) ) && current_timestamp() - start_ts < allowed_time )
+        cc.info( txId ) +
+        cc.debug( " for " ) + cc.info( allowedTime ) + cc.debug( "s" ) + "\n" );
+    const startTs = current_timestamp();
+    while( !tm_is_finished( await tm_get_record( txId ) ) && current_timestamp() - startTs < allowedTime )
         await sleep( 10 );
 
-    const r = await tm_get_record( tx_id );
+    const r = await tm_get_record( txId );
     details.write( cc.debug( "TM - TX record is " ) + cc.info( JSON.stringify( r ) ) + "\n" );
 
     if( !tm_is_finished( r ) || r.status == "DROPPED" ) {
-        details.write( cc.debug( "TM - transaction " ) + cc.info( tx_id ) +
+        details.write( cc.debug( "TM - transaction " ) + cc.info( txId ) +
             cc.debug( " was unsuccessful" ) + "\n" );
         return null;
     }
@@ -728,25 +728,25 @@ async function tm_wait( details, tx_id, w3, allowed_time = 36000 ) {
 async function tm_ensure_transaction( details, w3, priority, txAdjusted, cntAttempts, sleepMilliseconds ) {
     cntAttempts = cntAttempts || 10;
     sleepMilliseconds = sleepMilliseconds || 3000;
-    let tx_id = "";
+    let txId = "";
     let joReceipt = null;
     let idxAttempt = 0;
     for( ; idxAttempt < cntAttempts; ++idxAttempt ) {
-        tx_id = await tm_send( details, txAdjusted, priority );
-        details.write( cc.debug( "TM - next TX ID: " ) + cc.info( tx_id ) + "\n" );
-        joReceipt = await tm_wait( details, tx_id, w3 );
+        txId = await tm_send( details, txAdjusted, priority );
+        details.write( cc.debug( "TM - next TX ID: " ) + cc.info( txId ) + "\n" );
+        joReceipt = await tm_wait( details, txId, w3 );
         if( joReceipt )
             break;
         details.write( cc.warning( "TM - unsuccessful TX sending attempt " ) + cc.info( idxAttempt ) + cc.warning( " of " ) + cc.info( cntAttempts ) + "\n" );
         await sleep( sleepMilliseconds );
     }
     if( !joReceipt ) {
-        details.write( cc.fatal( "BAD ERROR:" ) + " " + cc.error( "TM transaction " ) + cc.info( tx_id ) + cc.error( " transaction has been dropped" ) + "\n" );
-        log.write( cc.fatal( "BAD ERROR:" ) + " " + cc.error( "TM transaction " ) + cc.info( tx_id ) + cc.error( " transaction has been dropped" ) + "\n" );
-        throw new Error( "TM unseccessful transaction " + tx_id + "" );
+        details.write( cc.fatal( "BAD ERROR:" ) + " " + cc.error( "TM transaction " ) + cc.info( txId ) + cc.error( " transaction has been dropped" ) + "\n" );
+        log.write( cc.fatal( "BAD ERROR:" ) + " " + cc.error( "TM transaction " ) + cc.info( txId ) + cc.error( " transaction has been dropped" ) + "\n" );
+        throw new Error( "TM unseccessful transaction " + txId + "" );
     }
     details.write( cc.success( "TM - successful TX sending attempt " ) + cc.info( idxAttempt ) + cc.success( " of " ) + cc.info( cntAttempts ) + "\n" );
-    return [ tx_id, joReceipt ];
+    return [ txId, joReceipt ];
 }
 
 async function safe_sign_transaction_with_account( details, w3, tx, rawTx, joAccount ) {
