@@ -709,7 +709,7 @@ async function tm_wait( details, tx_id, w3, allowed_time = 36000 ) {
         cc.debug( " For " ) + cc.info( allowed_time ) + cc.debug( "s" ) + "\n" );
     const start_ts = current_timestamp();
     while( !tm_is_finished( await tm_get_record( tx_id ) ) && current_timestamp() - start_ts < allowed_time )
-        await sleep( 1 );
+        await sleep( 10 );
 
     const r = await tm_get_record( tx_id );
     details.write( cc.debug( "TM - TX record is " ) + cc.info( JSON.stringify( r ) ) + "\n" );
