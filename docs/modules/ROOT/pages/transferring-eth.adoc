@@ -83,8 +83,7 @@ let contract = new web3.eth.Contract(depositBoxABI, depositBoxAddress);
  */
 let deposit = contract.methods
   .deposit(
-    schainName,
-    account,
+    schainName
     )
   .encodeABI();
 
@@ -198,7 +197,6 @@ let contract = new web3.eth.Contract(
  * exitToMain(address to)
  */
 let exitToMain = contract.methods.exitToMain(
-    account,
     web3.utils.toWei('1', 'ether')
   )
   .encodeABI();  
