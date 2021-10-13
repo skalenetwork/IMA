@@ -149,6 +149,7 @@ function setWaitForNextBlockOnSChain( val ) {
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 const sleep = ( milliseconds ) => { return new Promise( resolve => setTimeout( resolve, milliseconds ) ); };
+const current_timestamp = () => { return parseInt( parseInt( Date.now().valueOf() ) / 1000 ); };
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -678,10 +679,10 @@ async function tm_send( details, tx, priority = 5 ) {
     const score = tm_make_score( priority );
     const record = tm_make_record( tx, score );
     details.write( cc.debug( "TM - Sending score: " ) + cc.info( score ) + cc.debug( ", record: " ) + cc.info( record ) + "\n" );
-    expiration = 24 * 60 * 60  // 1 day;
+    expiration = 24 * 60 * 60; // 1 day;
 
     await redis.multi()
-        .set( id, record, "EX", expiration)
+        .set( id, record, "EX", expiration )
         .zadd( g_tm_pool, score, id )
         .exec();
     return id;
@@ -702,12 +703,13 @@ async function tm_get_record( tx_id ) {
 
 async function tm_wait( details, tx_id, w3, allowed_time = 36000 ) {
     details.write( cc.debug( "TM - waiting for TX ID: " ) + cc.info( tx_id ) + cc.debug( "..." ) + "\n" );
-    const start_ts = Date.now();
-    while( !tm_is_finished( await tm_get_record( tx_id ) ) && Date.now() - start_ts < allowed_time )
+    details.write( cc.debug( "TM - allowed time " ) + cc.info( allowed_time ) + "\n" );
+    const start_ts = current_timestamp();
+    while( !tm_is_finished( await tm_get_record( tx_id ) ) && current_timestamp() - start_ts < allowed_time )
         await sleep( 1 );
 
     const r = await tm_get_record( tx_id );
-    details.write(cc.debug( "TM - TX record is " ) + cc.info( r ) + "\n" );
+    details.write( cc.debug( "TM - TX record is " ) + cc.info( JSON.stringify( r ) ) + "\n" );
 
     if( !tm_is_finished( r ) || r.status == "DROPPED" ) {
         details.write( cc.debug( "TM - transaction " ) + cc.info( tx_id ) +
@@ -728,7 +730,7 @@ async function tm_ensure_transaction( details, w3, priority, txAdjusted, cntAtte
     let idxAttempt = 0;
     for( ; idxAttempt < cntAttempts; ++idxAttempt ) {
         tx_id = await tm_send( details, txAdjusted, priority );
-        details.write( cc.debug( "TM - generated TX ID: " ) + cc.info( tx_id ) + "\n" );
+        details.write( cc.debug( "TM - next TX ID: " ) + cc.info( tx_id ) + "\n" );
         joReceipt = await tm_wait( details, tx_id, w3 );
         if( joReceipt )
             break;
@@ -4013,7 +4015,7 @@ async function do_transfer(
                             throw new Error( "Block \"timestamp\" is not a valid integer value: " + joBlock.timestamp );
                         const timestampBlock = owaspUtils.toInteger( joBlock.timestamp );
                         details.write( strLogPrefix + cc.debug( "Block   TS is " ) + cc.info( timestampBlock ) + "\n" );
-                        const timestampCurrent = parseInt( parseInt( Date.now().valueOf() ) / 1000 );
+                        const timestampCurrent = current_timestamp();
                         details.write( strLogPrefix + cc.debug( "Current TS is " ) + cc.info( timestampCurrent ) + "\n" );
                         const tsDiff = timestampCurrent - timestampBlock;
                         details.write( strLogPrefix + cc.debug( "Diff    TS is " ) + cc.info( tsDiff ) + "\n" );
