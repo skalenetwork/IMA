@@ -669,7 +669,7 @@ function tm_make_record( tx = {}, score ) {
 }
 
 function tm_make_score( priority ) {
-    const ts = Math.floor( ( new Date() ).getTime() / 1000 );
+    const ts = current_timestamp();
     return priority * Math.pow( 10, ts.toString().length ) + ts;
 }
 
@@ -743,7 +743,7 @@ async function tm_ensure_transaction( details, w3, priority, txAdjusted, cntAtte
     if( !joReceipt ) {
         details.write( cc.fatal( "BAD ERROR:" ) + " " + cc.error( "TM transaction " ) + cc.info( tx_id ) + cc.error( " transaction has been dropped" ) + "\n" );
         log.write( cc.fatal( "BAD ERROR:" ) + " " + cc.error( "TM transaction " ) + cc.info( tx_id ) + cc.error( " transaction has been dropped" ) + "\n" );
-        throw new Error( "TM transaction " + tx_id + " transaction has been dropped" );
+        throw new Error( "TM unseccessful transaction " + tx_id + "" );
     }
     details.write( cc.success( "TM - successful TX sending attempt " ) + cc.info( idxAttempt ) + cc.success( " of " ) + cc.info( cntAttempts ) + "\n" );
     return [ tx_id, joReceipt ];
