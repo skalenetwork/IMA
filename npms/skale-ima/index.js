@@ -715,7 +715,9 @@ async function tm_wait( details, txId, w3, allowedTime = 36000 ) {
     details.write( cc.debug( "TM - TX record is " ) + cc.info( JSON.stringify( r ) ) + "\n" );
 
     if( !tm_is_finished( r ) || r.status == "DROPPED" ) {
-        details.write( cc.debug( "TM - transaction " ) + cc.info( txId ) +
+        log.write( cc.debug( "TM - transaction " ) + cc.info( txId ) + " status " + cc.info( r.status ) +
+            cc.debug( " was unsuccessful" ) + "\n" );
+        details.write( cc.debug( "TM - transaction " ) + cc.info( txId ) + " status " + cc.info( r.status ) +
             cc.debug( " was unsuccessful" ) + "\n" );
         return null;
     }
@@ -734,9 +736,11 @@ async function tm_ensure_transaction( details, w3, priority, txAdjusted, cntAtte
     for( ; idxAttempt < cntAttempts; ++idxAttempt ) {
         txId = await tm_send( details, txAdjusted, priority );
         details.write( cc.debug( "TM - next TX ID: " ) + cc.info( txId ) + "\n" );
+        log.write( cc.debug( "TM - next TX ID: " ) + cc.info( txId ) + "\n" );
         joReceipt = await tm_wait( details, txId, w3 );
         if( joReceipt )
             break;
+        log.write( cc.warning( "TM - unsuccessful TX sending attempt " ) + cc.info( idxAttempt ) + cc.warning( " of " ) + cc.info( cntAttempts ) + "\n" );
         details.write( cc.warning( "TM - unsuccessful TX sending attempt " ) + cc.info( idxAttempt ) + cc.warning( " of " ) + cc.info( cntAttempts ) + "\n" );
         await sleep( sleepMilliseconds );
     }
