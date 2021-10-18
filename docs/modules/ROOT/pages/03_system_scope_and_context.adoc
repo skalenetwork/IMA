@@ -1,0 +1,46 @@
+[[section-system-scope-and-context]]
+== System Scope and Context
+
+This chapter describes the: 
+
+=== Business Context
+
+`IMA Agent` is built-in in part of SKALE node. `16` agents together are part of one S-Chain.
+`IMA Agent` runs to provide bi-directional message transfers between Main Net and S-Chain.
+`IMA` is instantiated and cunfigured during S-Chain creation.
+
+[%header, cols="1,3"]
+|===
+| Neighbor
+| Description
+
+| validator
+| Creates and runs SKALE nodes which contain IMA Agents. Wants S-Chain to transfer messages to/from Main Net.
+
+| 
+| 
+
+| `skaled`
+| `skaled` performs message verfication and BLS signing
+
+|===
+
+**<Diagram or Table>**
+
+**<optionally: Explanation of external domain interfaces>**
+
+=== Technical Context
+
+`IMA` consists of: 
+
+* Set of smart contracts on Main Net and S-Chain
+* IMA Agent application interacting with smart contracts and `skaled`
+* Build in `skaled` part verifying and BLS signing messages
+
+The server 
+
+**<Diagram or Table>**
+
+**<optionally: Explanation of technical interfaces>**
+
+**<Mapping Input/Output to Channels>**

@@ -1,0 +1,126 @@
+[[section-introduction-and-goals]]
+== Introduction and Goals
+
+`IMA` stands for `Intrerchain Messaging Agent`. `IMA` is software which transfers crypyto assets and data messages between Ethereum compatible block chains such as Ethereum Main Net and SKALE S-Chains.
+
+=== Requirements Overview
+
+`IMA` shuld perform reliable message transfer service between blockchains. Messages should be signed using BLS signatures to avoid hacker attacks and data curruption.
+`IMA` consists of on-chain, off-chain parts, service functions and command line for test message transfers.
+On-chain part is set smart contracts for managing crypto asset transfers such as `ETH`, `ERC20`, `ERC721`, `ERC1155` and custom data message transfers.
+Off-chain part is Node JS based application called `IMA Agent` and `skaled` part.
+`IMA Agent` is running instance of Node JS application and performing message transfers between Ethereum Main Net and one SKALE S-Chain.
+`IMA Agent` detects new messages in outgouing queue inside smart contract on one blockchain and trasfers messages into other blockchain. Same is opposite direction.
+`IMA Agent` is multi-instance application. One `IMA Agent` instance corresponds to one `skaled` instance on SKALE S-Chain. `IMA Agent` instances work sequential perod of time each.
+`skaled` part of `IMA` performs message validation and BLS signing via call to `SGX Wallet` through `Transaction Manager`.
+`IMA Agent` offers JSON RPC service with service functions such as last error information. Service functions are needed for SKALE S-Chain monitoring.
+`IMA Agent` provides command line interfrace for test crypto asset transfers.
+
+==== Basic Usage
+
+. IMA and SKALE Manager smart contracts are deployed and initialized on Ethereum Main Net.
+. S-Chain creator application instantiates SKALE S-Chain with all `skaled` and `IMA Agent` instances, `IMA` smart contracts are pre-deployed on S-Chain. S-Chain is registered for `IMA` transfers on Main Net contracts using unique S-Chain name.
+. BLS keys are created inside `SGX Walled` during DKG part of S-Chain creation. `skaled` configuration describes how to use `Transaction Manager` to BLS sign ima messages.
+. `IMA Agent` instances are started and detecting new outgoing messages on both Main Net and S-Chain.
+. `IMA Agent` detects all S-Chain's `skaled` nodes and their configuration. This is used by `IMA Agent` to call all `skaled` instnces for message verification and BLS signing.
+. `IMA` is ready to perfor first message transfer. To conver transfer expenses, reinbursement wallet inside `IMA` should have minimal needed ETH amount. A call to Main Net part to `IMA` puts ETH into reimbursement wallet. `IMA` generates new ougoing message from Main Net to S-Chain which informs S-Chain to mark user as un-forzen. Only un-frozed users allowed to transfer crypto assets and data messages from S-Chain back to Main Net.
+. A call to Main Net part of `IMA` smart contract initiates crypto asset transfer to S-Chain. `IMA` creates new outgoing message.
+. `IMA Agent` detects new outgoing message, reads it, sends it to all `skaled` instances to verify and BLS sign it, receives BLS signature parts from `skaled` instances, berofrms BLS glue into one BLS signature and submits signed message into smart contract on S-Chain. Last smart contract delivers crypto asset into taget smart contract.
+. Same sequence of transfer actions performed for data messages but receiver smart contract imlements requeired interfrace and it's not a token.
+. Same sequence of transfer actions for message transfers from S-Chain back to Main Net.
+
+==== General Functionality
+
+.General Requirements
+[%header, cols="1,2,3"]
+|===
+| ID
+| Functionality
+| Description
+
+| G-1
+| Main Net smart contracts
+| Sending, receiving and BLS-verifying messages on Main Net side, reimbursement wallet management
+
+| G-2
+| S-Chain smart contracts
+| Sending, receiving and BLS-verifying messages on S-Chain side, wallet freze/unfreeze management
+
+| G-3
+| IMA Agent
+| Performing new message detection, message verification and BLS signing though `skaled`, BLS signature glue and message delivery
+
+| G-4
+| skaled part of IMA
+| IMA message verification and BLS signing through `Transaction Manager` and `SGX Wallet`
+
+|===
+
+==== Types of Checks
+
+.Required Checks
+[%header, cols="1,2,3"]
+|===
+| ID
+| Check
+| Description
+
+| R-1
+| Reimbursement Wallet checks on main net
+| Ensure reimbursement and withdraw calls change wallet balance on Main Net
+
+| R-2
+| User freezing checks on S-Chain
+| Ensure reimbursement wallet call on Main Net chages frozed user state on S-Chain
+
+| R-3
+| Crypto asset checks
+| Transfer crypto assets between chanins and check balances are changed on both chains
+
+| R-4
+| Message transfer checks
+| Chat like test application transferring custom data messages between chains
+|===
+
+=== Quality Goals
+
+[%header, cols="1,2,3"]
+|===
+| Priority
+| Quality-Goal
+| Scenario
+
+| 1
+| Safety
+| Only correctly BLS signed messages delivered by IMA successfully
+
+| 2
+| Performance
+| IMA agents work all/most-of time with no interruption
+
+| 3
+| Correctness
+| Delivered data same as sent
+
+|===
+
+=== Stakeholders
+
+[%header, cols="1,2,3"]
+|===
+| Role
+| Description
+| Goal, Intention
+
+| S-Chain creator
+| Instantiates S-Chain with IMA, performs IMA registration
+
+| S-Chain owner
+| The only wallet allowed to perform payed calls on S-Chain
+
+| open source contributor
+| Contributes to `IMA`
+
+| software engineer
+| Code, documentation and usage
+|===

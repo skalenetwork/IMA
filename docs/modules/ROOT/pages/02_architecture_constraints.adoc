@@ -1,0 +1,72 @@
+[[section-architecture-constraints]]
+== Architecture Constraints
+
+`IMA Agent` should:
+
+* platform-independent but primary targeted to Ubuntu Linux
+* support latest LTS versions of Node JS
+* perform reliable work independently from network connectivity problems
+* a containerized instance
+
+=== Technical Constraints
+
+[%header, cols="1,2,8"]
+|===
+|
+| Constraint
+| Background and/or motivation
+
+| TC1
+| Must use supported Node JS versions
+| 10, 12 or 14, recommended is 14
+
+| TC2
+| Must have all needed packages installed
+| Set of packages described in `package.json` file in several folders must pass successful installation
+
+| TC3
+| A Networked server
+| Uses a private network to provide JSON RPC interfrace with information about last errors occur
+
+| TC4
+| `skaled` connections
+| Network connection to corresponding `skaled` instance and at least `11` of `16` total skaled instances must be available
+|===
+
+=== Organizational Constraints
+
+[%header, cols="1,2,8"]
+|===
+|
+| Constraint
+| Background and/or motivation
+
+| OC1
+| Team
+| SKALE Labs: Artem Payvint, Sergiy Lavrynenko, Stan Kladko
+
+| OC2
+| Release as Open Source
+| The source code of the solution must be available as open source. License: Affero GNU General Public License version 3.0 (AGPLv3). Hosted at GitHub.
+|===
+
+=== Conventions
+
+[%header, cols="1,2,8"]
+|===
+|
+| Conventions
+| Background and/or motivation
+
+| C1
+| Architecture documentation
+|
+
+| C2
+| Coding conventions
+|
+
+| C3
+| Language
+| English. The project and the corresponding documentation targets an International audience, so English should be used throughout the whole project.
+|===
