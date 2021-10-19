@@ -1,6 +1,7 @@
 name: IMA
 title: Intrerchain Messaging Agent
 version: v1.0.x
+start_page: ROOT:index.adoc
 nav:
   - modules/ROOT/nav.adoc
 
