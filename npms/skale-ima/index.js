@@ -742,10 +742,10 @@ async function tm_ensure_transaction( details, w3, priority, txAdjusted, cntAtte
             break;
         log.write( cc.warning( "TM - unsuccessful TX sending attempt " ) + cc.info( idxAttempt ) +
             cc.warning( " of " ) + cc.info( cntAttempts ) +
-            cc.debug ( " receipt: " ) + cc.info ( joReceipt ) + "\n" );
+            cc.debug( " receipt: " ) + cc.info( joReceipt ) + "\n" );
         details.write( cc.warning( "TM - unsuccessful TX sending attempt " ) + cc.info( idxAttempt ) +
             cc.warning( " of " ) + cc.info( cntAttempts ) +
-            cc.debug ( " receipt: " ) + cc.info ( joReceipt ) + "\n" );
+            cc.debug( " receipt: " ) + cc.info( joReceipt ) + "\n" );
         await sleep( sleepMilliseconds );
     }
     if( !joReceipt ) {
