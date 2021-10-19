@@ -1,0 +1,25 @@
+site:
+  title: Intrerchain Messaging Agent
+  # the 404 page and sitemap files only get generated when the url property is set
+  url: https://antora.gitlab.io/demo/docs-site
+  start_page: IMA::index.adoc
+#git:
+#  plugins:
+#    http: ./runner/git-plugin-http.js
+content:
+  sources:
+    - url: https://github.com/skalenetwork/IMA.git
+      branches: SKALE-4652-IMA-agent-adoc-documentation
+      start_path: docs
+    # - url: https://gitlab.com/antora/demo/demo-component-a.git
+    #   branches: HEAD
+    #   # setting edit_url to false disables the Edit this Page link for any page that originates from this repository
+    #   # the same thing can be achieved by adding empty credentials (i.e., @) in front of the domain in the URL
+    #   edit_url: false
+    # - url: https://gitlab.com/antora/demo/demo-component-b.git
+    #   branches: [v2.0, v1.0]
+    #   start_path: docs
+ui:
+  bundle:
+    url: https://gitlab.com/antora/antora-ui-default/-/jobs/artifacts/HEAD/raw/build/ui-bundle.zip?job=bundle-stable
+    snapshot: true
