@@ -5,6 +5,8 @@ proxy/cache/
 test-tokens/cache/
 proxy/typechain
 test-tokens/typechain
+docs/site
+docs/build
 
 # openzeppelin
 proxy/.openzeppelin/dev-*.json
