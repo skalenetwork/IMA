@@ -715,7 +715,9 @@ async function tm_wait( details, txId, w3, allowedTime = 36000 ) {
     details.write( cc.debug( "TM - TX record is " ) + cc.info( JSON.stringify( r ) ) + "\n" );
 
     if( !tm_is_finished( r ) || r.status == "DROPPED" ) {
-        details.write( cc.debug( "TM - transaction " ) + cc.info( txId ) +
+        log.write( cc.debug( "TM - transaction " ) + cc.info( txId ) + " status " + cc.info( r.status ) +
+            cc.debug( " was unsuccessful" ) + "\n" );
+        details.write( cc.debug( "TM - transaction " ) + cc.info( txId ) + " status " + cc.info( r.status ) +
             cc.debug( " was unsuccessful" ) + "\n" );
         return null;
     }
@@ -734,10 +736,16 @@ async function tm_ensure_transaction( details, w3, priority, txAdjusted, cntAtte
     for( ; idxAttempt < cntAttempts; ++idxAttempt ) {
         txId = await tm_send( details, txAdjusted, priority );
         details.write( cc.debug( "TM - next TX ID: " ) + cc.info( txId ) + "\n" );
+        log.write( cc.debug( "TM - next TX ID: " ) + cc.info( txId ) + "\n" );
         joReceipt = await tm_wait( details, txId, w3 );
         if( joReceipt )
             break;
-        details.write( cc.warning( "TM - unsuccessful TX sending attempt " ) + cc.info( idxAttempt ) + cc.warning( " of " ) + cc.info( cntAttempts ) + "\n" );
+        log.write( cc.warning( "TM - unsuccessful TX sending attempt " ) + cc.info( idxAttempt ) +
+            cc.warning( " of " ) + cc.info( cntAttempts ) +
+            cc.debug( " receipt: " ) + cc.info( joReceipt ) + "\n" );
+        details.write( cc.warning( "TM - unsuccessful TX sending attempt " ) + cc.info( idxAttempt ) +
+            cc.warning( " of " ) + cc.info( cntAttempts ) +
+            cc.debug( " receipt: " ) + cc.info( joReceipt ) + "\n" );
         await sleep( sleepMilliseconds );
     }
     if( !joReceipt ) {
@@ -816,6 +824,11 @@ async function safe_sign_transaction_with_account( details, w3, tx, rawTx, joAcc
         await sleep( 5000 );
         await wait_for_transaction_receipt( details, w3, joSR.txHashSent );
         */
+        log.write(
+            cc.debug( "Will sign with Transaction Manager wallet, transaction is " ) + cc.j( tx ) +
+            cc.debug( ", raw transaction is " ) + cc.j( rawTx ) + "\n" +
+            cc.debug( " using account " ) + cc.j( joAccount ) + "\n"
+        );
         details.write(
             cc.debug( "Will sign with Transaction Manager wallet, transaction is " ) + cc.j( tx ) +
             cc.debug( ", raw transaction is " ) + cc.j( rawTx ) + "\n" +
