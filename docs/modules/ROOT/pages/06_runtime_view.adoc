@@ -1,0 +1,147 @@
+[[section-runtime-view]]
+== Runtime View
+
+=== <Runtime Scenario 1: Server Initialization>
+
+.Production Runtime
+
+ifdef::env-github[image::./images/production-runtime.png[Production Runtime]]
+ifndef::env-github[]
+[plantuml, target="production-runtime", format="png"]
+....
+@startuml
+participant SGXWalletInit
+participant SGXWalletServer
+participant SEKManager
+participant SGXRegistrationServer
+participant CSRManagerServer
+participant SGXInfoServer
+participant ZMQServer
+participant Enclave
+
+SGXWalletInit -> Enclave : Init enclave
+Enclave --> SGXWalletInit : SGX Success
+SGXWalletInit -> SGXWalletInit : Init alt_bn128
+SGXWalletInit -> levelDB : Init database
+SGXWalletInit -> SEKManager : Init SEK
+
+group Initialize storage encryption key
+
+    alt backup key
+
+        SEKManager -> SEKManager : enter SEK
+
+    else no backup key
+
+        alt read SEK from DB
+            SEKManager -> levelDB : read "SEK"
+            levelDB --> SEKManager
+        else generate SEK
+            SEKManager -> SEKManager : generate SEK
+        end
+
+        SEKManager -> SEKManager : set SEK
+
+    end
+
+end
+
+SGXWalletInit -> SGXWalletServer : create Certificates
+
+group createCerts
+    alt root CA
+        SGXWalletServer -> SGXWalletServer : Load CA
+    else generate root CA
+        SGXWalletServer -> SGXWalletServer : generate CA
+    end
+    
+    alt server Cert
+        SGXWalletServer -> SGXWalletServer : Load Server Certificate
+    else generate server Certificate
+        SGXWalletServer -> SGXWalletServer : Generate server cert
+    end
+    SGXWalletServer -> SGXWalletServer : verify server cert
+end
+
+SGXWalletInit -> SGXWalletServer : init http(s) server
+alt useHTTPS
+    SGXWalletServer -> SGXWalletServer : listen :1026
+else
+    SGXWalletServer -> SGXWalletServer : listen :1029
+end
+SGXWalletInit -> SGXRegistrationServer : init Registration server
+SGXRegistrationServer -> SGXRegistrationServer : listen :1027
+SGXWalletInit -> CSRManagerServer : init CSR
+CSRManagerServer -> CSRManagerServer : listen :1028
+SGXWalletInit -> SGXInfoServer : init Info server
+SGXInfoServer -> SGXInfoServer : listen :1030
+SGXWalletInit -> ZMQServer : init ZMQ
+ZMQServer -> ZMQServer : listen :1031
+
+@enduml
+....
+endif::[]
+
+* _SGXWalletInit initializes an enclave and receives response._
+* _alt_bn128 parameters are loaded._
+* _LevelDB database is initialized._
+* _The SEK is initialized._
+** _If a backup key is entered, this is sealed and set in levelDB._
+** _SEK is loaded from DB, if available._
+** _Otherwise, SEK is generated and set._
+* SGXWallet root CA and server certificates are created, if needed.
+* SGXWallet begins listening on port 1026 or 1029 (https/http)
+* Registration Server is initialized and listens on port 1027.
+* CSR Server is initialized and listens on port 1028.
+* Info Server is initialized and listens on port 1030.
+* ZMQ Server is initialized and listens on port 1031.
+
+=== <Runtime Scenario 2>
+
+.Node Registration
+[plantuml]
+....
+@startuml
+participant Node
+participant SGXWalletServer
+
+Node -> SGXWalletServer : Begin Link
+Node -> SGXRegistrationServer : Request Certificate
+SGXRegistrationServer --> Node : Response
+...TLS Connection...
+
+@enduml
+....
+* _If run in release mode._
+** _SGXWallet checks connection to Intel whitelist update server whitelist.trustedservices.intel.com._
+** _SGXWallet verifies enclave signature._
+** _SGXWallet starts with DEBUG=0 iff the check above pass._
+* _If run in debug mode._
+** _Enclave is unsecured and is initialized with special debug codes._
+* _Node and Server begin TLS Handshake protocol._
+** _Node generates csr(cerificate signing request) and sends it to SGXWallet._
+** _SGXWallet signs incoming csr request and returns signed certificate and its hash if autosigning enabled. Otherwise csr is submitted to SGXWallet database and SGXWallet admin have to sign it manually._
+* _Once Node receives signed certificate it sends a request to generate an ECDSA private key to Ethereum Mainnet account by name. Server responds with corresponding public key._
+* _Once Node has its account on Ethereum Mainnet it starts registration process in SKALE Network and can run SKALE Chain._
+
+=== ...
+
+=== <Runtime Scenario 3>
+
+.Node Operations
+[plantuml]
+....
+@startuml
+participant Node
+participant SGXWalletServer
+
+Node -> SGXWalletServer : Call Method
+
+@enduml
+....
+* _Once Node is registered in SKALE Network it calls Server's methods in three different scenarios: signing Ethereum Mainnet transactions, creating SKALE Chain, running SKALE Chain._
+** _Signing Ethereum Mainnet transactions requires calling ECDSASignMessageHash method on Server that receives a message to sign and key name to sign message with and returns ECDSA signature._
+** _Creating SKALE Chain assumes running Distributed Key Generation(DKG) algorithm and requires calling multiple methods on Server(createDKGPolynomial - create secret data for DKG, getVerificationVector - get public data corresponding to generated secret data, getSecretKeyContribution - get encrypted shares to send to every other node participated in SKALE Chain creation, verifySecretShare - verifies share submitted by another node, createBLSPrivateKey - create BLS private key from other nodes shares). In case any of the nodes submitted invalid data for DKG protocol complaintResponse method will be called that reveals secret data and submits it to smart contract._
+** _Running SKALE Chain requires signing messages submitted by SKALE Consensus with BLS and ECDSA keys on each block(50 ECDSA messages and 2 BLS messages)._
+
+=== ...
