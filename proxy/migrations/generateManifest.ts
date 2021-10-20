@@ -1,22 +1,23 @@
 import { ethers, network, upgrades, artifacts } from "hardhat";
 import { contracts, contractsToDeploy, getContractKeyInAbiFile } from "./deploySchain";
 // import hre from "hardhat";
-// import { promises as fs } from "fs";
-import { getImplementationAddress, hashBytecode, getVersion, getStorageLayout } from "@openzeppelin/upgrades-core";
+import { promises as fs } from "fs";
+import { 
+    getVersion,
+    getStorageLayout,
+    ManifestData,
+    ProxyDeployment,
+    Deployment,
+    ImplDeployment,
+    StorageLayout,
+    isCurrentValidationData
+} from "@openzeppelin/upgrades-core";
+import { ValidationsCacheNotFound, ValidationsCacheOutdated } from "@openzeppelin/hardhat-upgrades/dist/utils";
+// import { any } from "hardhat/internal/core/params/argumentTypes";
+// import { string } from "hardhat/internal/core/params/argumentTypes";
 // import { getManifestAdmin } from "@openzeppelin/hardhat-upgrades/dist/admin";
 // import chalk from "chalk";
 
-const validationData: any = {
-    version: "3.2",
-    log: ""
-}
-
-const manifestTemplate = {
-    "manifestVersion": "3.2",
-    "admin": {},
-    "proxies": {},
-    "impls": {}
-}
 
 export const predeployedAddresses: any = {
     "admin": "0xd2aAa00000000000000000000000000000000000",
@@ -44,17 +45,70 @@ export async function getImplKey(contractName: string) {
     return getVersion((await ethers.getContractFactory(contractName)).bytecode).withoutMetadata;
 }
 
-export async function getLayout(contractName: string) {
+async function getImplementationDeployment(contractName: string, addresses: any): Promise<ImplDeployment> {
     const implKey: any = await getImplKey(contractName);
-    return getStorageLayout(validationData, implKey);
+    const validationData = await readValidations();
+    const layout: StorageLayout = getStorageLayout(validationData, implKey);
+    return {
+        address: addresses[getContractKeyInAbiFile(contractName) + "_implementation"],
+        layout: layout
+    }
 }
 
-export async function generateManifest() {
-    const newManifest = manifestTemplate;
-    newManifest["admin"] = {
-        "address": predeployedAddresses["admin"]
+function defaultManifest(): ManifestData {
+    return {
+        "manifestVersion": "3.2",
+        "proxies": [],
+        "impls": {}
     }
-    // for (const contract of contractsToDeploy) {
-    //     newManifest["proxies"] = 
-    // }
+}
+
+function getProxyDeployment(address: string): ProxyDeployment {
+    return {
+        address: address,
+        kind: "transparent"
+    }
+}
+
+function getDeployment(address: string): Deployment {
+    return {
+        address: address
+    }
+}
+
+async function readValidations() {
+    try {
+        const data = require("../cache/validations.json");
+        if (!isCurrentValidationData(data)) {
+            throw new ValidationsCacheOutdated();
+        }
+        return data;
+    } catch (e: any) {
+        if (e.code === 'ENOENT') {
+            throw new ValidationsCacheNotFound();
+        } else {
+            throw e;
+        }
+    }
+}
+
+export async function generateManifest(addresses: any) {
+    const newManifest: ManifestData = defaultManifest();
+    newManifest["admin"] = getDeployment(addresses["admin"]);
+    for (const contract of contractsToDeploy) {
+        newManifest["proxies"].push(getProxyDeployment(addresses[getContractKeyInAbiFile(contract)]));
+        const implKey = await getImplKey(contract);
+        newManifest["impls"][implKey] = await getImplementationDeployment(contract, addresses);
+    }
+    await fs.writeFile("data/manifest.json", JSON.stringify(newManifest, null, 4));
+    return newManifest;
+}
+
+if (require.main === module) {
+    generateManifest(predeployedAddresses)
+        .then(() => process.exit(0))
+        .catch(error => {
+            console.error(error);
+            process.exit(1);
+        });
 }
