@@ -1,6 +1,5 @@
-import { ethers, network, upgrades, artifacts } from "hardhat";
-import { contracts, contractsToDeploy, getContractKeyInAbiFile } from "./deploySchain";
-// import hre from "hardhat";
+import { ethers } from "hardhat";
+import { contractsToDeploy, getContractKeyInAbiFile } from "./deploySchain";
 import { promises as fs } from "fs";
 import { 
     getVersion,
@@ -13,10 +12,6 @@ import {
     isCurrentValidationData
 } from "@openzeppelin/upgrades-core";
 import { ValidationsCacheNotFound, ValidationsCacheOutdated } from "@openzeppelin/hardhat-upgrades/dist/utils";
-// import { any } from "hardhat/internal/core/params/argumentTypes";
-// import { string } from "hardhat/internal/core/params/argumentTypes";
-// import { getManifestAdmin } from "@openzeppelin/hardhat-upgrades/dist/admin";
-// import chalk from "chalk";
 
 
 export const predeployedAddresses: any = {
@@ -78,7 +73,7 @@ function getDeployment(address: string): Deployment {
 
 async function readValidations() {
     try {
-        const data = require("../cache/validations.json");
+        const data = JSON.parse(await fs.readFile("./cache/validations.json", "utf-8"));
         if (!isCurrentValidationData(data)) {
             throw new ValidationsCacheOutdated();
         }
@@ -102,6 +97,31 @@ export async function generateManifest(addresses: any) {
     }
     await fs.writeFile("data/manifest.json", JSON.stringify(newManifest, null, 4));
     return newManifest;
+}
+
+function findProxyContract(data: any, address: string) {
+    for (let i = 0; i < data.length; i++) {
+        if (data[i].address === address) {
+            return i;
+        }
+    }
+    return data.length;
+}
+
+export async function importAddresses(manifest: any, abi: any) {
+    const addresses: any = {};
+    addresses["admin"] = manifest["admin"].address;
+    for (const contract of contractsToDeploy) {
+        const proxyAddress = abi[getContractKeyInAbiFile(contract) + "_address"];
+        const proxyData = manifest["proxies"];
+        const index = findProxyContract(proxyData, proxyAddress);
+        if (index < proxyData.length) {
+            addresses[getContractKeyInAbiFile(contract)] = manifest["proxies"][index].address;
+        }
+        const implKey = await getImplKey(contract);
+        addresses[getContractKeyInAbiFile(contract) + "_implementation"] = manifest["impls"][implKey].address;
+    }
+    return addresses;
 }
 
 if (require.main === module) {

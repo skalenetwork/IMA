@@ -1,46 +1,6 @@
-// import { ethers, network, upgrades, artifacts } from "hardhat";
-import { contracts, contractsToDeploy, getContractKeyInAbiFile } from "./deploySchain";
 import { promises as fs } from "fs";
-// import hre from "hardhat";
-// import { promises as fs } from "fs";
-// import { getImplementationAddress, hashBytecode, getVersion } from "@openzeppelin/upgrades-core";
-// import { getManifestAdmin } from "@openzeppelin/hardhat-upgrades/dist/admin";
 import chalk from "chalk";
-import { getImplKey, predeployedAddresses } from "./generateManifest";
-
-function changeAdmin(manifest: any) {
-    manifest["admin"].address = predeployedAddresses["admin"];
-    return manifest;
-}
-
-function findProxyContract(data: any, address: string) {
-    for (let i = 0; i < data.length; i++) {
-        if (data[i].address === address) {
-            return i;
-        }
-    }
-    return data.length;
-}
-
-function changeProxies(manifest: any, abi: any) {
-    for (const contract of contractsToDeploy) {
-        const proxyAddress = abi[getContractKeyInAbiFile(contract) + "_address"];
-        const proxyData = manifest["proxies"];
-        const index = findProxyContract(proxyData, proxyAddress);
-        if (index < proxyData.length) {
-            manifest["proxies"][index].address = predeployedAddresses[getContractKeyInAbiFile(contract)];
-        }
-    }
-    return manifest;
-}
-
-async function changeImplementations(manifest: any) {
-    for (const contract of contractsToDeploy) {
-        const implKey = await getImplKey(contract);
-        manifest["impls"][implKey].address = predeployedAddresses[getContractKeyInAbiFile(contract) + "_implementation"];
-    }
-    return manifest;
-}
+import { importAddresses, generateManifest } from "./generateManifest";
 
 export async function change() {
 
@@ -57,18 +17,11 @@ export async function change() {
     const abiFilename = process.env.ABI;
     const manifestFilename = process.env.MANIFEST;
     const currentAbi = JSON.parse(await fs.readFile(abiFilename, "utf-8"));
-    let currentManifest = JSON.parse(await fs.readFile(manifestFilename, "utf-8"));
-    // change admin address
-    currentManifest = changeAdmin(currentManifest);
+    const currentManifest = JSON.parse(await fs.readFile(manifestFilename, "utf-8"));
 
-    // change proxy addresses
-    currentManifest = changeProxies(currentManifest, currentAbi);
-
-    // change implementation addresses
-    currentManifest = await changeImplementations(currentManifest);
-
-    await fs.writeFile("data/manifest.json", JSON.stringify(currentManifest, null, 4));
-    return currentManifest;
+    const addresses = await importAddresses(currentManifest, currentAbi);
+    const newManifest = await generateManifest(addresses);
+    return newManifest;
 }
 
 if (require.main === module) {
