@@ -8,8 +8,8 @@ async function main() {
     await upgrade(
         "1.1.0",
         contracts,
-        async ( safeTransactions, abi ) => undefined,
-        async ( safeTransactions, abi ) => undefined,
+        async( safeTransactions, abi ) => undefined,
+        async( safeTransactions, abi ) => undefined,
         "proxySchain"
     );
 }
