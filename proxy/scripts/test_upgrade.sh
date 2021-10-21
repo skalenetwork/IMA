@@ -19,6 +19,7 @@ cp "$GITHUB_WORKSPACE/proxy/migrations/deploySchain.ts" ./migrations/deploySchai
 CHAIN_NAME_SCHAIN="Test" VERSION="$DEPLOYED_VERSION" npx hardhat run migrations/deploySchain.ts --network localhost || exit $?
 cp "$GITHUB_WORKSPACE/proxy/migrations/generateManifest.ts" ./migrations/generateManifest.ts
 cp "$GITHUB_WORKSPACE/proxy/migrations/changeManifest.ts" ./migrations/changeManifest.ts
+ABI_FILENAME_SCHAIN="proxySchain_Test.json"
 ABI="data/$ABI_FILENAME_SCHAIN" MANIFEST=".openzeppelin/unknown-1337.json" npx hardhat run migrations/changeManifest.ts --network localhost || exit $?
 
 rm "$GITHUB_WORKSPACE"/proxy/.openzeppelin/unknown-*.json
@@ -28,7 +29,6 @@ cp .openzeppelin/unknown-*.json "$GITHUB_WORKSPACE/proxy/.openzeppelin" || exit 
 cp ./data/skaleManagerComponents.json "$GITHUB_WORKSPACE/proxy/data/" || exit $?
 cp ./data/manifest.json "$GITHUB_WORKSPACE/proxy/data/" || exit $?
 ABI_FILENAME_MAINNET="proxyMainnet.json"
-ABI_FILENAME_SCHAIN="proxySchain_Test.json"
 cp "data/$ABI_FILENAME_MAINNET" "$GITHUB_WORKSPACE/proxy/data" || exit $?
 cp "data/$ABI_FILENAME_SCHAIN" "$GITHUB_WORKSPACE/proxy/data" || exit $?
 cd "$GITHUB_WORKSPACE"
