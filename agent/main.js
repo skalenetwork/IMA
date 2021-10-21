@@ -946,7 +946,7 @@ if( imaState.isShowReimbursementBalance ) {
             await IMA.reimbursement_show_balance(
                 imaState.w3_main_net,
                 imaState.jo_community_pool,
-                imaState.receiver,
+                imaState.joAccount_main_net.address( imaState.w3_main_net ),
                 imaState.strChainName_main_net,
                 imaState.cid_main_net,
                 imaState.tc_main_net,
@@ -965,7 +965,7 @@ if( imaState.nReimbursementEstimate ) {
             await IMA.reimbursement_estimate_amount(
                 imaState.w3_main_net,
                 imaState.jo_community_pool,
-                imaState.receiver,
+                imaState.joAccount_main_net.address( imaState.w3_main_net ),
                 imaState.strChainName_main_net,
                 imaState.cid_main_net,
                 imaState.tc_main_net,
@@ -1398,11 +1398,11 @@ async function discover_s_chain_network( fnAfter, isSilent, joPrevSChainNetworkI
                             cc.info( nCountReceivedImaDescriptions ) + cc.debug( " node(s)." ) + "\n"
                         );
                     }
-                    // if( nCountReceivedImaDescriptions >= nCountToWait ) {
-                    //     clearInterval( iv );
-                    //     fnAfter( null, joSChainNetworkInfo );
-                    //     return;
-                    // }
+                    if( nCountReceivedImaDescriptions >= nCountToWait ) {
+                        clearInterval( iv );
+                        fnAfter( null, joSChainNetworkInfo );
+                        return;
+                    }
                     ++ nWaitAttempt;
                     if( nWaitAttempt >= cntWaitAttempts ) {
                         clearInterval( iv );
