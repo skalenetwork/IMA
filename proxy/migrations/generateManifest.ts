@@ -1,7 +1,7 @@
 import { ethers } from "hardhat";
 import { contractsToDeploy, getContractKeyInAbiFile } from "./deploySchain";
 import { promises as fs } from "fs";
-import { 
+import {
     getVersion,
     getStorageLayout,
     ManifestData,
@@ -46,7 +46,7 @@ async function getImplementationDeployment(contractName: string, addresses: any)
     const layout: StorageLayout = getStorageLayout(validationData, implKey);
     return {
         address: addresses[getContractKeyInAbiFile(contractName) + "_implementation"],
-        layout: layout
+        layout
     }
 }
 
@@ -60,14 +60,14 @@ function defaultManifest(): ManifestData {
 
 function getProxyDeployment(address: string): ProxyDeployment {
     return {
-        address: address,
+        address,
         kind: "transparent"
     }
 }
 
 function getDeployment(address: string): Deployment {
     return {
-        address: address
+        address
     }
 }
 
@@ -89,11 +89,11 @@ async function readValidations() {
 
 export async function generateManifest(addresses: any) {
     const newManifest: ManifestData = defaultManifest();
-    newManifest["admin"] = getDeployment(addresses["admin"]);
+    newManifest.admin = getDeployment(addresses.admin);
     for (const contract of contractsToDeploy) {
-        newManifest["proxies"].push(getProxyDeployment(addresses[getContractKeyInAbiFile(contract)]));
+        newManifest.proxies.push(getProxyDeployment(addresses[getContractKeyInAbiFile(contract)]));
         const implKey = await getImplKey(contract);
-        newManifest["impls"][implKey] = await getImplementationDeployment(contract, addresses);
+        newManifest.impls[implKey] = await getImplementationDeployment(contract, addresses);
     }
     await fs.writeFile("data/manifest.json", JSON.stringify(newManifest, null, 4));
     return newManifest;
@@ -110,16 +110,19 @@ function findProxyContract(data: any, address: string) {
 
 export async function importAddresses(manifest: any, abi: any) {
     const addresses: any = {};
-    addresses["admin"] = manifest["admin"].address;
+    addresses.admin = manifest.admin.address;
+    console.log("Admin address", manifest.admin.address, "imported");
     for (const contract of contractsToDeploy) {
         const proxyAddress = abi[getContractKeyInAbiFile(contract) + "_address"];
-        const proxyData = manifest["proxies"];
+        const proxyData = manifest.proxies;
         const index = findProxyContract(proxyData, proxyAddress);
         if (index < proxyData.length) {
-            addresses[getContractKeyInAbiFile(contract)] = manifest["proxies"][index].address;
+            addresses[getContractKeyInAbiFile(contract)] = manifest.proxies[index].address;
         }
+        console.log(contract, "proxy address", manifest.proxies[index].address, "imported");
         const implKey = await getImplKey(contract);
-        addresses[getContractKeyInAbiFile(contract) + "_implementation"] = manifest["impls"][implKey].address;
+        addresses[getContractKeyInAbiFile(contract) + "_implementation"] = manifest.impls[implKey].address;
+        console.log(contract, "implementation address", manifest.impls[implKey].address, "imported");
     }
     return addresses;
 }
