@@ -1,6 +1,7 @@
 import { ethers } from "hardhat";
 import { contractsToDeploy, getContractKeyInAbiFile } from "./deploySchain";
 import { promises as fs } from "fs";
+import { constants } from 'fs';
 import {
     getVersion,
     getStorageLayout,
@@ -125,6 +126,42 @@ export async function importAddresses(manifest: any, abi: any) {
         console.log(contract, "implementation address", manifest.impls[implKey].address, "imported");
     }
     return addresses;
+}
+
+export async function manifestSetup(pathToManifest: any) {
+    const chainId = (await ethers.provider.getNetwork()).chainId;
+    if (pathToManifest === undefined || pathToManifest === "" || pathToManifest === null || pathToManifest === `.openzeppelin/unknown-${chainId}.json`) {
+        fs.access(`.openzeppelin/unknown-${chainId}.json`, constants.R_OK | constants.W_OK);
+        console.log("Current Manifest file detected");
+        return;
+    }
+    try {
+        fs.access(`.openzeppelin/unknown-${chainId}.json`, constants.R_OK | constants.W_OK);
+        console.log("Current Manifest file detected");
+        try {
+            await fs.unlink(`.openzeppelin/unknown-${chainId}.json`);
+            console.log("Current Manifest file removed");
+        } catch (e) {
+            console.log("Could not remove current manifest file");
+            process.exit(1);
+        }
+    } catch (e) {
+        console.log("No current Manifest file detected");
+    }
+    try {
+        fs.access( pathToManifest, constants.R_OK | constants.W_OK );
+        console.log("New Manifest file detected");
+        try {
+            await fs.rename( pathToManifest, `.openzeppelin/unknown-${chainId}.json` );
+            console.log("New Manifest file setup");
+        } catch (e) {
+            console.log("Could not setup new Manifest file");
+            process.exit(1);
+        }
+    } catch (e) {
+        console.log("No new Manifest file detected");
+        process.exit(1);
+    }
 }
 
 if (require.main === module) {

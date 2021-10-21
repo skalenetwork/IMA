@@ -37,8 +37,6 @@ cd proxy
 
 ABI="data/$ABI_FILENAME_MAINNET" npx hardhat run migrations/upgradeMainnet.ts --network localhost || exit $?
 
-rm .openzeppelin/unknown-1337.json
-cp data/manifest.json .openzeppelin/unknown-1337.json
-ABI="data/$ABI_FILENAME_SCHAIN" npx hardhat run migrations/upgradeSchain.ts --network localhost || exit $?
+ABI="data/$ABI_FILENAME_SCHAIN" MANIFEST="data/manifest.json" npx hardhat run migrations/upgradeSchain.ts --network localhost || exit $?
 
 kill "$GANACHE_PID"
