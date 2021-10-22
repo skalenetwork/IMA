@@ -42,11 +42,11 @@ export const predeployedAddresses: Addresses = {
 }
 
 export async function getImplKey(contractName: string) {
-    return getVersion((await ethers.getContractFactory(contractName)).bytecode).withoutMetadata;
+    return getVersion((await ethers.getContractFactory(contractName)).bytecode);
 }
 
 async function getImplementationDeployment(contractName: string, addresses: Addresses): Promise<ImplDeployment> {
-    const implKey: any = await getImplKey(contractName);
+    const implKey = await getImplKey(contractName);
     const validationData = await readValidations();
     const layout: StorageLayout = getStorageLayout(validationData, implKey);
     return {
@@ -97,38 +97,38 @@ export async function generateManifest(addresses: Addresses) {
     newManifest.admin = getDeployment(addresses.admin);
     for (const contract of contracts) {
         newManifest.proxies.push(getProxyDeployment(addresses[getContractKeyInAbiFile(contract)]));
-        const implKey = await getImplKey(contract);
+        const implKey = (await getImplKey(contract)).withoutMetadata;
         newManifest.impls[implKey] = await getImplementationDeployment(contract, addresses);
     }
-    const vesrionOfIMA = await version();
-    await fs.writeFile(`data/ima-schain-${vesrionOfIMA}-manifest.json`, JSON.stringify(newManifest, null, 4));
+    const versionOfIMA = await version();
+    await fs.writeFile(`data/ima-schain-${versionOfIMA}-manifest.json`, JSON.stringify(newManifest, null, 4));
     return newManifest;
 }
 
-function findProxyContract(data: any, address: string) {
-    for (let i = 0; i < data.length; i++) {
-        if (data[i].address === address) {
-            return i;
-        }
+export async function importAddresses(manifest: ManifestData, abi: {[ key in string ]: string | []}) {
+    if (!manifest.admin) {
+        throw Error("Proxy admin is missing in manifest file");
     }
-    return data.length;
-}
-
-export async function importAddresses(manifest: any, abi: any) {
     const addresses: Addresses = {};
     addresses.admin = manifest.admin.address;
     console.log("Admin address", manifest.admin.address, "imported");
     for (const contract of contracts) {
         const proxyAddress = abi[getContractKeyInAbiFile(contract) + "_address"];
-        const proxyData = manifest.proxies;
-        const index = findProxyContract(proxyData, proxyAddress);
-        if (index < proxyData.length) {
-            addresses[getContractKeyInAbiFile(contract)] = manifest.proxies[index].address;
+        if (Array.isArray(proxyAddress)) {
+            throw Error("ABI file format is wrong");
         }
-        console.log(contract, "proxy address", manifest.proxies[index].address, "imported");
-        const implKey = await getImplKey(contract);
-        addresses[getContractKeyInAbiFile(contract) + "_implementation"] = manifest.impls[implKey].address;
-        console.log(contract, "implementation address", manifest.impls[implKey].address, "imported");
+
+        const proxyDeployment = manifest.proxies.find(proxy => proxy.address == proxyAddress);
+        if (proxyDeployment) {
+            addresses[getContractKeyInAbiFile(contract)] = proxyDeployment.address;
+            console.log(contract, "proxy address", proxyDeployment.address, "imported");
+        }
+        
+        const implementationDeployment = manifest.impls[(await getImplKey(contract)).withoutMetadata];
+        if (implementationDeployment) {
+            addresses[getContractKeyInAbiFile(contract) + "_implementation"] = implementationDeployment.address;
+            console.log(contract, "implementation address", implementationDeployment.address, "imported");
+        }
     }
     return addresses;
 }
