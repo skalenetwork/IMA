@@ -1,0 +1,15 @@
+# Flow Diagrams
+
+## ERC20 Transfer
+
+include::erc20-manual-flow.adoc[leveloffset=+1]
+
+include::erc20-automatic-flow.adoc[leveloffset=+1]
+
+## ERC721/1155 Transfer
+
+include::erc721-1155.adoc[leveloffset=+1]
+
+### ERC721/1155 Flow (Mint first on SKALE)
+
+include::erc721-skale-native.adoc[leveloffset=+1]

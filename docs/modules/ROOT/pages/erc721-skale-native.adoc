@@ -1,0 +1,92 @@
+The following flow applies equally to 721 and 1155 contracts.
+
+.ERC721/1155 Flow, with Mint first on SKALE
+
+ifdef::env-github[image::https://www.plantuml.com/plantuml/svg/XLB1Qjj04BthAuRqOfj4ne5GI4E8xHWAZMbfNNmeFQorOtdnQbRiZ9AOkl_UrMfjNDnGdSJRUVFUl9a75kMbgMnsnxApU9-fGiopaTsZKQLN5VpA87mJLMnBxnhIKsUTX-N62CQN9qFOOHCRYWBsExiRfcRxkJ94AFki9TSmLtLjg8p4_RTFuwSPJ3UXP1-Hw2N-tGu6dry8FJ0AWsh4QQojsmq6yNdXjaXpHQf4F_iw7OrkRYAU8wcLnN6ehvIOuZ6IUlqFdU3HpBd4IpkFDIn98J0T6vcurx_wQyEjmF9GtSlpF7H7qX07J6Ckl29Ue_TfrdFfxumUndNjtJDoqWnAxwz7dP3gdfBr8oFPul-uxE247NfS_NYtQZTqgPq8wfzNzs-iuNOuF0qOAaF2K5X7oCFXiLdf4UbIAzx4PY1fQ52Len9Y6PA-QXWzGyFc0F9sjlW8Q-VXebHyqJKqQ-Yb8JKMHYE3EC1N4pRI1yFG6-MmRaX38FT1DaYHTvxkILwHm2sZ2on-KrTL3HdPVN7E7j7SOx5HliIMjrJMegJWuhSrjgj5omYzwxmxrcYm7n_EiZmpqzOoADAmQZobH9EnjwywsMl92zSEUhBM5B5P_-l8F5fKZ1eIuVHCMLoTFI3ffh9_0000]
+ifndef::env-github[]
+
+[plantuml]
+....
+@startuml
+<style>
+activityDiagram {
+    BackgroundColor White
+    LineColor Black
+  }
+</style>
+|Mainnet|
+|SKALE Chain|
+    |SKALE Chain|
+    start
+    fork
+        :**Deploy + Mint NFTs**;
+    fork again
+        group Filestorage
+            :upload images/videos + json;
+        end group
+    end fork
+    group Mapping
+        |Mainnet|
+        :**Owner Deploys Mainnet Extensions**;
+        :**Owner Registers Extension** 
+        MessageProxy
+        .registerExtraContract(...);
+        |SKALE Chain|
+        :**Owner Deploys Schain Extension**;
+        :**Owner Registers Extension
+        MessageProxy
+        .registerExtraContract(...);
+        |Mainnet|
+        :**Owner Connects to SKALE Chain Extension**
+        .setSenderContractOnSchain(...);
+        :**Owner Assigns ERC721 Minter to Extension**;
+    end group
+group Transferring
+    |SKALE Chain|
+    :User receives NFT;
+    if (**User decides to exit**) is (1. fund ETH) then
+        |Mainnet|
+        :**User funds ETH to SKALE Manager**
+        Wallets
+        .rechargeSchainWallet(...);
+        kill
+    else (2. start exit)
+        |SKALE Chain|
+        :**User exits and burns token**
+        Extension
+        .sendTokenToMainnet();
+    endif
+    |Mainnet|
+    :Extension mints NFT;
+    :NFT is minted
+    tokenURI copied;
+end group
+stop
+@enduml
+....
+
+endif::[]
+
+## Deploy/Mint Process
+
+. [SKALE Chain] Deploy and Mint NFTs
+. [SKALE Chain] Upload images/videos + json to SKALE Chain Filestorage
+
+## One-time Setup Steps
+
+. [Mainnet] Owner deploys Extension
+. [Mainnet] Owner registers extension
+. [SKALE Chain] Owner deploys Extension
+. [SKALE Chain] Owner registers extension
+. [SKALE Chain] Owner deploys clone
+. [Mainnet] Owner sets Extension to SKALE Chain Extension
+. [Mainnet] Owner assigns ERC721 Minter to Extension
+
+## Transfer Flow
+
+Withdrawal
+
+. [Mainnet] User funds SKALE Manager Wallet ETH for exit
+. [SKALE Chain] User exits from Extension
+. [Mainnet] _Extension contract mints NFT_
+. [Mainnet] _NFT is minted, with same tokenURI and other metadata_
