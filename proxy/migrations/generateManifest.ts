@@ -118,12 +118,12 @@ export async function importAddresses(manifest: ManifestData, abi: {[ key in str
             throw Error("ABI file format is wrong");
         }
 
-        const proxyDeployment = manifest.proxies.find(proxy => proxy.address == proxyAddress);
+        const proxyDeployment = manifest.proxies.find(proxy => proxy.address === proxyAddress);
         if (proxyDeployment) {
             addresses[getContractKeyInAbiFile(contract)] = proxyDeployment.address;
             console.log(contract, "proxy address", proxyDeployment.address, "imported");
         }
-        
+
         const implementationDeployment = manifest.impls[(await getImplKey(contract)).withoutMetadata];
         if (implementationDeployment) {
             addresses[getContractKeyInAbiFile(contract) + "_implementation"] = implementationDeployment.address;
