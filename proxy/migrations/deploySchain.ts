@@ -85,7 +85,7 @@ function getProxyMainnet(contractName: string) {
     }
 }
 
-export const contractsToDeploy = [
+export const contracts = [
     "MessageProxyForSchain",
     "TokenManagerLinker",
     "CommunityLocker",
@@ -260,7 +260,7 @@ async function main() {
     }
 
     const jsonObjectABI: {[k: string]: any} = { };
-    for( const contractName of contractsToDeploy ) {
+    for( const contractName of contracts ) {
         const propertyName = getContractKeyInAbiFile(contractName);
 
         jsonObjectABI[propertyName + "_address"] = deployed.get( contractName )?.address;

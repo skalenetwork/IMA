@@ -1,5 +1,5 @@
 import { ethers } from "hardhat";
-import { contractsToDeploy, getContractKeyInAbiFile } from "./deploySchain";
+import { contracts, getContractKeyInAbiFile } from "./deploySchain";
 import { promises as fs } from "fs";
 import { constants } from 'fs';
 import {
@@ -95,7 +95,7 @@ async function readValidations() {
 export async function generateManifest(addresses: Addresses) {
     const newManifest: ManifestData = emptyManifest();
     newManifest.admin = getDeployment(addresses.admin);
-    for (const contract of contractsToDeploy) {
+    for (const contract of contracts) {
         newManifest.proxies.push(getProxyDeployment(addresses[getContractKeyInAbiFile(contract)]));
         const implKey = await getImplKey(contract);
         newManifest.impls[implKey] = await getImplementationDeployment(contract, addresses);
@@ -118,7 +118,7 @@ export async function importAddresses(manifest: any, abi: any) {
     const addresses: Addresses = {};
     addresses.admin = manifest.admin.address;
     console.log("Admin address", manifest.admin.address, "imported");
-    for (const contract of contractsToDeploy) {
+    for (const contract of contracts) {
         const proxyAddress = abi[getContractKeyInAbiFile(contract) + "_address"];
         const proxyData = manifest.proxies;
         const index = findProxyContract(proxyData, proxyAddress);
