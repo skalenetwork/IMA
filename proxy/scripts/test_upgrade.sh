@@ -28,7 +28,7 @@ rm "$GITHUB_WORKSPACE/proxy/data/skaleManagerComponents.json"
 rm "$GITHUB_WORKSPACE/proxy/data/ima-schain-$DEPLOYED_VERSION-manifest.json"
 cp .openzeppelin/unknown-*.json "$GITHUB_WORKSPACE/proxy/.openzeppelin" || exit $?
 cp ./data/skaleManagerComponents.json "$GITHUB_WORKSPACE/proxy/data/" || exit $?
-cp ./data/ima-schain-$DEPLOYED_VERSION-manifest.json "$GITHUB_WORKSPACE/proxy/data/" || exit $?
+cp "./data/ima-schain-$DEPLOYED_VERSION-manifest.json" "$GITHUB_WORKSPACE/proxy/data/" || exit $?
 ABI_FILENAME_MAINNET="proxyMainnet.json"
 cp "data/$ABI_FILENAME_MAINNET" "$GITHUB_WORKSPACE/proxy/data" || exit $?
 cp "data/$ABI_FILENAME_SCHAIN" "$GITHUB_WORKSPACE/proxy/data" || exit $?
