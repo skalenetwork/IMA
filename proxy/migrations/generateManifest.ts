@@ -12,10 +12,14 @@ import {
     StorageLayout,
     isCurrentValidationData
 } from "@openzeppelin/upgrades-core";
+import { getVersion as version } from "./tools/version";
 import { ValidationsCacheNotFound, ValidationsCacheOutdated } from "@openzeppelin/hardhat-upgrades/dist/utils";
 
+type Addresses = {
+    [n: string]: string;
+};
 
-export const predeployedAddresses: any = {
+export const predeployedAddresses: Addresses = {
     "admin": "0xd2aAa00000000000000000000000000000000000",
     "message_proxy_chain": "0xd2AAa00100000000000000000000000000000000",
     "message_proxy_chain_implementation": "0xD2AAa001D2000000000000000000000000000000",
@@ -41,7 +45,7 @@ export async function getImplKey(contractName: string) {
     return getVersion((await ethers.getContractFactory(contractName)).bytecode).withoutMetadata;
 }
 
-async function getImplementationDeployment(contractName: string, addresses: any): Promise<ImplDeployment> {
+async function getImplementationDeployment(contractName: string, addresses: Addresses): Promise<ImplDeployment> {
     const implKey: any = await getImplKey(contractName);
     const validationData = await readValidations();
     const layout: StorageLayout = getStorageLayout(validationData, implKey);
@@ -51,7 +55,7 @@ async function getImplementationDeployment(contractName: string, addresses: any)
     }
 }
 
-function defaultManifest(): ManifestData {
+function emptyManifest(): ManifestData {
     return {
         "manifestVersion": "3.2",
         "proxies": [],
@@ -88,15 +92,16 @@ async function readValidations() {
     }
 }
 
-export async function generateManifest(addresses: any) {
-    const newManifest: ManifestData = defaultManifest();
+export async function generateManifest(addresses: Addresses) {
+    const newManifest: ManifestData = emptyManifest();
     newManifest.admin = getDeployment(addresses.admin);
     for (const contract of contractsToDeploy) {
         newManifest.proxies.push(getProxyDeployment(addresses[getContractKeyInAbiFile(contract)]));
         const implKey = await getImplKey(contract);
         newManifest.impls[implKey] = await getImplementationDeployment(contract, addresses);
     }
-    await fs.writeFile("data/manifest.json", JSON.stringify(newManifest, null, 4));
+    const vesrionOfIMA = await version();
+    await fs.writeFile(`data/ima-schain-${vesrionOfIMA}-manifest.json`, JSON.stringify(newManifest, null, 4));
     return newManifest;
 }
 
@@ -110,7 +115,7 @@ function findProxyContract(data: any, address: string) {
 }
 
 export async function importAddresses(manifest: any, abi: any) {
-    const addresses: any = {};
+    const addresses: Addresses = {};
     addresses.admin = manifest.admin.address;
     console.log("Admin address", manifest.admin.address, "imported");
     for (const contract of contractsToDeploy) {
@@ -128,9 +133,9 @@ export async function importAddresses(manifest: any, abi: any) {
     return addresses;
 }
 
-export async function manifestSetup(pathToManifest: any) {
+export async function manifestSetup(pathToManifest: string) {
     const chainId = (await ethers.provider.getNetwork()).chainId;
-    if (pathToManifest === undefined || pathToManifest === "" || pathToManifest === null || pathToManifest === `.openzeppelin/unknown-${chainId}.json`) {
+    if (pathToManifest === "" || pathToManifest === `.openzeppelin/unknown-${chainId}.json`) {
         fs.access(`.openzeppelin/unknown-${chainId}.json`, constants.R_OK | constants.W_OK);
         console.log("Current Manifest file detected");
         return;
@@ -152,7 +157,7 @@ export async function manifestSetup(pathToManifest: any) {
         fs.access( pathToManifest, constants.R_OK | constants.W_OK );
         console.log("New Manifest file detected");
         try {
-            await fs.rename( pathToManifest, `.openzeppelin/unknown-${chainId}.json` );
+            await fs.copyFile( pathToManifest, `.openzeppelin/unknown-${chainId}.json` );
             console.log("New Manifest file setup");
         } catch (e) {
             console.log("Could not setup new Manifest file");

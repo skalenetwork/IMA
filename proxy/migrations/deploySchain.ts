@@ -34,7 +34,7 @@ import { Contract } from '@ethersproject/contracts';
 import { CommunityLocker, EthErc20, KeyStorage, MessageProxyForSchain, TokenManagerERC20, TokenManagerERC721, TokenManagerEth, TokenManagerLinker } from '../typechain';
 import { TokenManagerERC1155 } from '../typechain/TokenManagerERC1155';
 
-export function getContractKeyInAbiFile(contract: string) {
+export function getContractKeyInAbiFile(contract: string): string {
     if (contract === "MessageProxyForSchain") {
         return "message_proxy_chain";
     }
@@ -95,16 +95,6 @@ export const contractsToDeploy = [
     "TokenManagerERC1155",
     "EthErc20",
     "KeyStorage"
-];
-
-export const contracts = [
-    "MessageProxyForSchain",
-    "TokenManagerLinker",
-    "CommunityLocker",
-    "TokenManagerEth",
-    "TokenManagerERC20",
-    "TokenManagerERC721",
-    "TokenManagerERC1155"
 ];
 
 async function main() {
