@@ -25,10 +25,10 @@ ABI="data/$ABI_FILENAME_SCHAIN" MANIFEST=".openzeppelin/unknown-1337.json" VERSI
 
 rm "$GITHUB_WORKSPACE"/proxy/.openzeppelin/unknown-*.json
 rm "$GITHUB_WORKSPACE/proxy/data/skaleManagerComponents.json"
-rm "$GITHUB_WORKSPACE/proxy/data/ima-schain-*-manifest.json"
+rm "$GITHUB_WORKSPACE/proxy/data/ima-schain-$DEPLOYED_VERSION-manifest.json"
 cp .openzeppelin/unknown-*.json "$GITHUB_WORKSPACE/proxy/.openzeppelin" || exit $?
 cp ./data/skaleManagerComponents.json "$GITHUB_WORKSPACE/proxy/data/" || exit $?
-cp ./data/ima-schain-*-manifest.json "$GITHUB_WORKSPACE/proxy/data/" || exit $?
+cp ./data/ima-schain-$DEPLOYED_VERSION-manifest.json "$GITHUB_WORKSPACE/proxy/data/" || exit $?
 ABI_FILENAME_MAINNET="proxyMainnet.json"
 cp "data/$ABI_FILENAME_MAINNET" "$GITHUB_WORKSPACE/proxy/data" || exit $?
 cp "data/$ABI_FILENAME_SCHAIN" "$GITHUB_WORKSPACE/proxy/data" || exit $?
@@ -38,6 +38,6 @@ cd proxy
 
 ABI="data/$ABI_FILENAME_MAINNET" npx hardhat run migrations/upgradeMainnet.ts --network localhost || exit $?
 
-ABI="data/$ABI_FILENAME_SCHAIN" MANIFEST="data/ima-schain-*-manifest.json" npx hardhat run migrations/upgradeSchain.ts --network localhost || exit $?
+ABI="data/$ABI_FILENAME_SCHAIN" MANIFEST="data/ima-schain-$DEPLOYED_VERSION-manifest.json" npx hardhat run migrations/upgradeSchain.ts --network localhost || exit $?
 
 kill "$GANACHE_PID"

@@ -135,16 +135,17 @@ export async function importAddresses(manifest: any, abi: any) {
 
 export async function manifestSetup(pathToManifest: string) {
     const chainId = (await ethers.provider.getNetwork()).chainId;
-    if (pathToManifest === "" || pathToManifest === `.openzeppelin/unknown-${chainId}.json`) {
-        fs.access(`.openzeppelin/unknown-${chainId}.json`, constants.R_OK | constants.W_OK);
+    const correctManifestPath = `.openzeppelin/unknown-${chainId}.json`;
+    if (pathToManifest === "" || pathToManifest === correctManifestPath) {
+        fs.access(correctManifestPath);
         console.log("Current Manifest file detected");
         return;
     }
     try {
-        fs.access(`.openzeppelin/unknown-${chainId}.json`, constants.R_OK | constants.W_OK);
+        fs.access(correctManifestPath);
         console.log("Current Manifest file detected");
         try {
-            await fs.unlink(`.openzeppelin/unknown-${chainId}.json`);
+            await fs.unlink(correctManifestPath);
             console.log("Current Manifest file removed");
         } catch (e) {
             console.log("Could not remove current manifest file");
@@ -154,10 +155,10 @@ export async function manifestSetup(pathToManifest: string) {
         console.log("No current Manifest file detected");
     }
     try {
-        fs.access( pathToManifest, constants.R_OK | constants.W_OK );
+        fs.access( pathToManifest );
         console.log("New Manifest file detected");
         try {
-            await fs.copyFile( pathToManifest, `.openzeppelin/unknown-${chainId}.json` );
+            await fs.copyFile( pathToManifest, correctManifestPath );
             console.log("New Manifest file setup");
         } catch (e) {
             console.log("Could not setup new Manifest file");
