@@ -83,7 +83,8 @@ export async function createMultiSendTransaction(ethers: any, safeAddress: strin
         const nonceResponse = await axios.get(`${getSafeTransactionUrl(chainId)}/api/v1/safes/${safeAddress}/`);
         nonce = nonceResponse.data.nonce;
     } catch (e: any) {
-        if (!e.toString().startsWith("Error: Can't get safe-transaction url") || !e.toString().startsWith("Error: Request failed with status code 404")) {
+        console.log(e);
+        if (!e.toString().startsWith("Error: Can't get safe-transaction url") && !e.toString().startsWith("Error: Request failed with status code 404")) {
             throw e;
         }
     }
