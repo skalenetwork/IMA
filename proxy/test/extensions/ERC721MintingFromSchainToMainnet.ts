@@ -408,11 +408,9 @@ describe("ERC721MintingFromSchainToMainnet", () => {
             [message],
             sign
         )).wait();
-        console.log(resPost);
         if (!resPost.events) {
             assert("No events were emitted");
         } else {
-            const last = resPost.events.length - 1;
             expect(resPost.events[0]?.topics[0]).to.equal(stringValue(web3.utils.soliditySha3("PostMessageError(uint256,bytes)")));
             expect(BigNumber.from(resPost.events[0]?.topics[1]).toString()).to.equal("0");
         }
