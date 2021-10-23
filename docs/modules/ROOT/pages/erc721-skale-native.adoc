@@ -33,7 +33,7 @@ activityDiagram {
         .registerExtraContract(...);
         |SKALE Chain|
         :**Owner Deploys Schain Extension**;
-        :**Owner Registers Extension
+        :**Owner Registers Extension**
         MessageProxy
         .registerExtraContract(...);
         |Mainnet|
