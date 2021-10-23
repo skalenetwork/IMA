@@ -5,10 +5,10 @@ name: Build and test
 on: 
   push:
     branches-ignore:
-      - 'docs-v*'
+      - docs-v*
   pull_request:
     branches-ignore:
-      - 'docs-v*'
+      - docs-v*
   
 # A workflow run is made up of one or more jobs that can run sequentially or in parallel
 jobs:
