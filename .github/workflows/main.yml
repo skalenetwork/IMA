@@ -4,12 +4,12 @@ name: Build and test
 
 on: 
   push:
-    branches-ignore: 
+    branches-ignore:
       - 'docs-v*'
-  pull_request: 
-    branches-ignore: 
+  pull_request:
+    branches-ignore:
       - 'docs-v*'
-
+  
 # A workflow run is made up of one or more jobs that can run sequentially or in parallel
 jobs:
   test-contracts:
@@ -79,6 +79,9 @@ jobs:
     - name: Gas calculation test
       working-directory: ${{env.working-directory}}
       run: npx hardhat test gas/calculateGas.ts
+    
+    - name: Test upgrade
+      run: bash ./proxy/scripts/test_upgrade.sh
     
     - name: Run tests
       working-directory: ${{env.working-directory}}
@@ -185,7 +188,7 @@ jobs:
         echo ------------ check lcov
         lcov --version || true
 
-    - name: NODE 10.x
+    - name: NODE 12.x
       run: |
         echo ------------ uninstall
         sudo apt-get remove nodejs || true
@@ -195,7 +198,7 @@ jobs:
         sudo rm -f /usr/bin/node || true
         sudo rm -f /usr/bin/npm || true
         echo ------------ download
-        curl -sL https://deb.nodesource.com/setup_10.x | sudo -E bash -
+        curl -sL https://deb.nodesource.com/setup_12.x | sudo -E bash -
         echo ------------ install
         sudo apt-get install nodejs
         echo ------------ node version check
@@ -302,7 +305,7 @@ jobs:
     - name: Set up Node
       uses: actions/setup-node@v2
       with:
-        node-version: '10'
+        node-version: '12'
 
     - name: Set up Python
       uses: actions/setup-python@v2
