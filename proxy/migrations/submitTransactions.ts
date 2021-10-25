@@ -27,7 +27,7 @@ async function main() {
     }
     const safeTransactions: string[] = JSON.parse(await fs.readFile(process.env.TRANSACTIONS, "utf-8"));
 
-    const safeTx = await createMultiSendTransaction(ethers, safe, privateKey, safeTransactions);
+    const safeTx = await createMultiSendTransaction(ethers, safe, privateKey, safeTransactions, isSafeMock);
     const chainId = (await ethers.provider.getNetwork()).chainId;
     await sendSafeTransaction(safe, chainId, safeTx);
     console.log("Done");
