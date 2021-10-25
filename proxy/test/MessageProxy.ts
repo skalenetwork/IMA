@@ -248,12 +248,6 @@ describe("MessageProxy", () => {
                 data: await messages.encodeTransferEthMessage(customer.address, 7),
             };
 
-            const invalidMessage = {
-                destinationContract: user.address,
-                sender: deployer.address,
-                data: await messages.encodeTransferEthMessage(customer.address, 7),
-            };
-
             const outgoingMessages = [message1, message2];
             const sign = {
                 blsSignature: BlsSignature,
@@ -283,27 +277,11 @@ describe("MessageProxy", () => {
                     sign
                     ).should.be.eventually.rejectedWith("Too many messages");
 
-            const res = await (await messageProxyForMainnet
-                .connect(deployer)
-                .postIncomingMessages(
-                    schainName,
-                    startingCounter,
-                    [invalidMessage],
-                    sign
-                )).wait();
-
-            if (!res.events) {
-                assert("No events were emitted");
-            } else {
-                expect(res.events[0]?.topics[0]).to.equal(stringValue(web3.utils.soliditySha3("PostMessageError(uint256,bytes)")));
-                expect(BigNumber.from(res.events[0]?.topics[1]).toString()).to.equal("0");
-            }
-
             await messageProxyForMainnet
                 .connect(deployer)
                 .postIncomingMessages(
                     schainName,
-                    startingCounter + 1,
+                    startingCounter,
                     outgoingMessages,
                     sign
                 );
@@ -314,13 +292,13 @@ describe("MessageProxy", () => {
                 .connect(deployer)
                 .postIncomingMessages(
                     schainName,
-                    startingCounter + 3,
+                    startingCounter + 2,
                     outgoingMessages,
                     sign
                 );
             const incomingMessagesCounter = BigNumber.from(
                 await messageProxyForMainnet.getIncomingMessagesCounter(schainName));
-            incomingMessagesCounter.should.be.deep.equal(BigNumber.from(5));
+            incomingMessagesCounter.should.be.deep.equal(BigNumber.from(4));
         });
 
         it("should get outgoing messages counter", async () => {
