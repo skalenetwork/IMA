@@ -2,7 +2,7 @@ import { contracts, getContractKeyInAbiFile, getManifestFile } from "./deployMai
 import { ethers, network, upgrades, artifacts } from "hardhat";
 import hre from "hardhat";
 import { promises as fs } from "fs";
-import { Linker } from "../typechain";
+import { Linker, MessageProxyForMainnet } from "../typechain";
 import { getImplementationAddress, hashBytecode } from "@openzeppelin/upgrades-core";
 import { deployLibraries, getLinkedContractFactory } from "./tools/factory";
 import { getAbi } from "./tools/abi";
@@ -217,7 +217,25 @@ async function main() {
         "1.0.0",
         contracts,
         async (safeTransactions, abi) => undefined,
-        async (safeTransactions, abi) => undefined
+        async (safeTransactions, abi) => {
+            const messageProxyForMainnetName = "MessageProxyForMainnet";
+            console.log("Deploy", messageProxyForMainnetName);
+            const messageProxyForMainnetFactory = await ethers.getContractFactory(messageProxyForMainnetName);
+            const messageProxyForMainnetAddress = abi[getContractKeyInAbiFile(messageProxyForMainnetName) + "_address"];
+            if (messageProxyForMainnetAddress) {
+                console.log(chalk.yellow("Prepare transaction to set message gas cost to 9000"));
+                const messageProxyForMainnet = messageProxyForMainnetFactory.attach(messageProxyForMainnetAddress) as MessageProxyForMainnet;
+                safeTransactions.push(encodeTransaction(
+                    0,
+                    messageProxyForMainnetAddress,
+                    0,
+                    messageProxyForMainnet.interface.encodeFunctionData("setNewMessageGasCost", [9000])
+                ));
+            } else {
+                console.log(chalk.red("MessageProxyForMainnet was not found!"));
+                console.log(chalk.red("Check your abi!!!"));
+            }
+        }
     );
 }
 
