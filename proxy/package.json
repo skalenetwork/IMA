@@ -43,6 +43,7 @@
         "@types/chai-as-promised": "^7.1.3",
         "@types/minimist": "^1.2.0",
         "@types/mocha": "^8.2.2",
+        "@types/sinon-chai": "^3.2.5",
         "bignumber.js": "^9.0.0",
         "chai": "^4.2.0",
         "chai-almost": "^1.0.1",

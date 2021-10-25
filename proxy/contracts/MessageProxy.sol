@@ -341,6 +341,13 @@ abstract contract MessageProxy is AccessControlEnumerableUpgradeable {
         internal
         returns (address)
     {
+        if (!message.destinationContract.isContract()) {
+            emit PostMessageError(
+                counter,
+                "Destination contract is not a contract"
+            );
+            return address(0);
+        }
         try IMessageReceiver(message.destinationContract).postMessage{gas: gasLimit}(
             schainHash,
             message.sender,
