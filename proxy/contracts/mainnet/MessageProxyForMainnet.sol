@@ -249,7 +249,7 @@ contract MessageProxyForMainnet is SkaleManagerClient, MessageProxy {
         SkaleManagerClient.initialize(contractManagerOfSkaleManagerValue);
         MessageProxy.initializeMessageProxy(1e6);
         headerMessageGasCost = 70000;
-        messageGasCost = 8790;
+        messageGasCost = 9000;
     }    
 
     /**
