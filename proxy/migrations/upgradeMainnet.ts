@@ -218,13 +218,21 @@ async function main() {
         contracts,
         async (safeTransactions, abi) => undefined,
         async (safeTransactions, abi) => {
+            const proxyAdmin = await getManifestAdmin(hre);
+            const owner = await proxyAdmin.owner();
             const messageProxyForMainnetName = "MessageProxyForMainnet";
-            console.log("Deploy", messageProxyForMainnetName);
             const messageProxyForMainnetFactory = await ethers.getContractFactory(messageProxyForMainnetName);
             const messageProxyForMainnetAddress = abi[getContractKeyInAbiFile(messageProxyForMainnetName) + "_address"];
             if (messageProxyForMainnetAddress) {
                 console.log(chalk.yellow("Prepare transaction to set message gas cost to 9000"));
                 const messageProxyForMainnet = messageProxyForMainnetFactory.attach(messageProxyForMainnetAddress) as MessageProxyForMainnet;
+                const constantSetterRole = await messageProxyForMainnet.CONSTANT_SETTER_ROLE();
+                safeTransactions.push(encodeTransaction(
+                    0,
+                    messageProxyForMainnetAddress,
+                    0,
+                    messageProxyForMainnet.interface.encodeFunctionData("grantRole", [constantSetterRole, owner])
+                ));
                 safeTransactions.push(encodeTransaction(
                     0,
                     messageProxyForMainnetAddress,
