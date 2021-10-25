@@ -23,6 +23,7 @@
  * @copyright SKALE Labs 2019-Present
  */
 
+import { solidity } from "ethereum-waffle";
 import chaiAsPromised from "chai-as-promised";
 import chai = require("chai");
 import {
@@ -55,6 +56,7 @@ import {
 
 chai.should();
 chai.use((chaiAsPromised as any));
+chai.use(solidity);
 
 import { deployLinker } from "../utils/deploy/mainnet/linker";
 import { deployDepositBoxEth } from "../utils/deploy/mainnet/depositBoxEth";
@@ -402,18 +404,12 @@ describe("ERC721MintingFromSchainToMainnet", () => {
 
         await wallets.connect(deployer).rechargeSchainWallet(stringValue(schainNameHash), {value: "1000000000000000000"});
 
-        const resPost = await (await messageProxyForMainnet.connect(deployer).postIncomingMessages(
+        await expect(messageProxyForMainnet.connect(deployer).postIncomingMessages(
             schainName,
             0,
             [message],
             sign
-        )).wait();
-        if (!resPost.events) {
-            assert("No events were emitted");
-        } else {
-            expect(resPost.events[0]?.topics[0]).to.equal(stringValue(web3.utils.soliditySha3("PostMessageError(uint256,bytes)")));
-            expect(BigNumber.from(resPost.events[0]?.topics[1]).toString()).to.equal("0");
-        }
+        )).to.emit(messageProxyForMainnet, "PostMessageError").withArgs(0, ethers.utils.hexlify(ethers.utils.toUtf8Bytes("Destination contract is not a contract")));
     });
 
     it("should POST message for token 5", async () => {

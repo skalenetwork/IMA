@@ -227,12 +227,15 @@ async function main() {
                 console.log(chalk.yellow("Prepare transaction to set message gas cost to 9000"));
                 const messageProxyForMainnet = messageProxyForMainnetFactory.attach(messageProxyForMainnetAddress) as MessageProxyForMainnet;
                 const constantSetterRole = await messageProxyForMainnet.CONSTANT_SETTER_ROLE();
-                safeTransactions.push(encodeTransaction(
-                    0,
-                    messageProxyForMainnetAddress,
-                    0,
-                    messageProxyForMainnet.interface.encodeFunctionData("grantRole", [constantSetterRole, owner])
-                ));
+                const isHasRole = (await messageProxyForMainnet.hasRole(constantSetterRole, owner);
+                if (!isHasRole) {
+                    safeTransactions.push(encodeTransaction(
+                        0,
+                        messageProxyForMainnetAddress,
+                        0,
+                        messageProxyForMainnet.interface.encodeFunctionData("grantRole", [constantSetterRole, owner])
+                    ));
+                }
                 safeTransactions.push(encodeTransaction(
                     0,
                     messageProxyForMainnetAddress,
@@ -242,6 +245,7 @@ async function main() {
             } else {
                 console.log(chalk.red("MessageProxyForMainnet was not found!"));
                 console.log(chalk.red("Check your abi!!!"));
+                process.exit(1);
             }
         }
     );
