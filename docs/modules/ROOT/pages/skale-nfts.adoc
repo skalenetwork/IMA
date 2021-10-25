@@ -1,5 +1,11 @@
 = SKALE NFTs
 
+[NOTE]
+To mint and transfer NFTs first minted on SKALE, you can apply a set of special example contracts called `ERC721Reference...` contracts, which are custom DepositBox and TokenManager contracts. These example contracts can contain any logic, and demonstrate how to expand the Message Proxy system to support other logic.
+
+[NOTE]
+SKALE Chain owners are free to register other contracts into the MessageProxy system, and this example demonstrates how this can be performed.
+
 . Deploy ERC721 on mainnet and on SKALE Chain
 +
 First step is to deploy the NFT contract on Mainnet, and the clone on your SKALE Chain. 
@@ -21,6 +27,12 @@ extensionMainnet = await extensionMainnetFactory.deploy(
 )
 ```
 
+. Register Extension contract with MessageProxy on Mainnet.
++
+```javascript
+registerMainnet = await messageProxyMainnet.registerExtraContract(schainName, ERC721ReferenceMintAndMetadataMainnet.address)
+```
+
 . Deploy Extension contracts on your SKALE Chain
 +
 Deploy the ERC721ReferenceMintAndMetadataSchain contract on your SKALE Chain. https://github.com/skalenetwork/IMA/blob/develop/proxy/contracts/extensions/ERC721ReferenceMintAndMetadataSchain.sol
@@ -33,6 +45,12 @@ extensionSchain = await extensionSchainFactory.deploy(
     ERC721TokenOnSchain.address,
     extensionMainnet.address
 )
+```
+
+. Register Extension contract with MessageProxy on SKALE Chain.
++
+```javascript
+registerSchain = await messageProxySchain.registerExtraContract('Mainnet', ERC721ReferenceMintAndMetadataSchain.address)
 ```
 
 . Reference - setSenderContractOnSchain (or set in deployment in constructor)
@@ -56,6 +74,22 @@ const minterRoleERC721 = await ERC721TokenOnMainnet.MINTER_ROLE();
 +
 Perform all mint operations on the SKALE Chain endpoint and contract to enjoy zero-cost minting.
 
-. Perform transfers described in the IMA bridge.
+== Withdrawal from SKALE Chain
+
+. Pre-fund exit transaction
 +
-Now everything is set, you can now perform deposits and exits with your NFT. Follow the xref:managing-erc721.adoc#transfer[Transfer ERC721 instructions here]. 
+The user must first fund the exit transaction using a special SKALE Chain community wallet in SKALE Manager.
++
+```javascript
+await wallets.connect(deployer).rechargeSchainWallet(stringValue(schainNameHash), {value: "[VALUE_IN_WEI]"});
+```
+
+. Execute exit transaction
++
+The user then executes from the SKALE chain extension contract sendTokenToMainnet()
++
+```javascript
+await extensionSchain.sendTokenToMainnet(recipientAddress, tokenId);
+```
++
+This sends a message to the extension on Mainnet, which then calls the connected ERC721 to mint a new token with the tokenID respective tokenURI.
