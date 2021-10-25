@@ -1,4 +1,5 @@
 import { ethers } from "hardhat";
+import hre from "hardhat";
 import { contracts, getContractKeyInAbiFile } from "./deployMainnet";
 import { upgrade } from "./upgrade";
 import { getManifestAdmin } from "@openzeppelin/hardhat-upgrades/dist/admin";
@@ -21,7 +22,7 @@ async function main() {
                 console.log(chalk.yellow("Prepare transaction to set message gas cost to 9000"));
                 const messageProxyForMainnet = messageProxyForMainnetFactory.attach(messageProxyForMainnetAddress) as MessageProxyForMainnet;
                 const constantSetterRole = await messageProxyForMainnet.CONSTANT_SETTER_ROLE();
-                const isHasRole = (await messageProxyForMainnet.hasRole(constantSetterRole, owner);
+                const isHasRole = await messageProxyForMainnet.hasRole(constantSetterRole, owner);
                 if (!isHasRole) {
                     safeTransactions.push(encodeTransaction(
                         0,
