@@ -157,7 +157,7 @@ export async function upgrade(
         privateKey = ethers.Wallet.createRandom().privateKey;
     }
 
-    const safeTx = await createMultiSendTransaction(ethers, safe, privateKey, safeTransactions);
+    const safeTx = await createMultiSendTransaction(ethers, safe, privateKey, safeTransactions, safeMock !== undefined);
     if (!safeMock) {
         const chainId = (await ethers.provider.getNetwork()).chainId;
         await sendSafeTransaction(safe, chainId, safeTx);
