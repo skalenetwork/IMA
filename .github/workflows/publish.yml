@@ -77,6 +77,11 @@ jobs:
         ../npms/scrypt/get_scrypt_npm.sh
         yarn install
 
+    - name: Generate Manifest
+      working-directory: ${{env.PROXY_DIR}}
+      run: |
+        npx hardhat run migrations/generateManifest.ts
+
     - name: Build predeployed pip package
       working-directory: ${{env.PROXY_DIR}}
       env:
@@ -130,3 +135,12 @@ jobs:
       with:
         release_id: ${{ steps.create_release.outputs.id }}
         assets_path: proxy/predeployed/data/
+
+    - name: Upload Release Assets
+      id: upload-manifest-data
+      uses: dwenegar/upload-release-assets@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        release_id: ${{ steps.create_release.outputs.id }}
+        assets_path: proxy/data/ima-schain-*-manifest.json
