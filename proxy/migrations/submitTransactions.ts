@@ -15,6 +15,11 @@ async function main() {
         process.exit(1);
     }
 
+    let isSafeMock: boolean = false;
+    if (process.env.SAFE_MOCK) {
+        isSafeMock = true;
+    }
+
     const safe = process.env.SAFE;
     let privateKey = process.env.PRIVATE_KEY;
     if (!privateKey.startsWith("0x")) {
