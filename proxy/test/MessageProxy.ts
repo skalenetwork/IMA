@@ -282,7 +282,7 @@ describe("MessageProxy", () => {
                     [message1, message1, message1, message1, message1, message1, message1, message1, message1, message1, message1],
                     sign
                     ).should.be.eventually.rejectedWith("Too many messages");
-            
+
             const res = await (await messageProxyForMainnet
                 .connect(deployer)
                 .postIncomingMessages(
