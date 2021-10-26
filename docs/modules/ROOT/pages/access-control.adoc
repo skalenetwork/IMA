@@ -75,6 +75,10 @@ DepositBoxERC20 DepositBoxERC721 DepositBoxERC1155
 | Functions
 | Description
 
+| ProxyAdmin
+| 
+| Allows owner to upgrade contracts.
+
 .4+| MessageProxyForSchain
 | grantRole
 | Allows owner to grant `CHAIN_CONNECTOR_ROLE`, `EXTRA_CONTRACT_REGISTRAR_ROLE`, `REGISTRAR_ROLE`, `AUTOMATIC_DEPLOY_ROLE`, `TOKEN_REGISTRAR_ROLE` and `CONSTANT_SETTER_ROLE`.
