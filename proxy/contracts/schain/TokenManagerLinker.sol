@@ -23,7 +23,6 @@ pragma solidity 0.8.6;
 
 import "@openzeppelin/contracts-upgradeable/access/AccessControlEnumerableUpgradeable.sol";
 
-import "../interfaces/IMessageReceiver.sol";
 import "../Messages.sol";
 import "../MessageProxy.sol";
 import "./TokenManager.sol";
@@ -50,6 +49,20 @@ contract TokenManagerLinker is AccessControlEnumerableUpgradeable, IMessageRecei
         require(hasRole(REGISTRAR_ROLE, msg.sender), "REGISTRAR_ROLE is required");
         _;
     }
+
+    function initialize(MessageProxy newMessageProxyAddress, address linker)
+        external
+        virtual
+        initializer
+    {
+        require(linker != address(0), "Linker address has to be set");
+
+        AccessControlEnumerableUpgradeable.__AccessControlEnumerable_init();
+        _setupRole(DEFAULT_ADMIN_ROLE, msg.sender);
+        _setupRole(REGISTRAR_ROLE, msg.sender);
+        messageProxy = newMessageProxyAddress;    
+	    linkerAddress = linker;
+    }  
 
     function registerTokenManager(TokenManager newTokenManager) external onlyRegistrar {
         tokenManagers.push(newTokenManager);
@@ -136,19 +149,5 @@ contract TokenManagerLinker is AccessControlEnumerableUpgradeable, IMessageRecei
             connected = connected && tokenManagers[i].hasTokenManager(schainName);
         }
         connected = connected && messageProxy.isConnectedChain(schainName);
-    }
-
-    function initialize(MessageProxy newMessageProxyAddress, address linker)
-        external
-        virtual
-        initializer
-    {
-        require(linker != address(0), "Linker address has to be set");
-
-        AccessControlEnumerableUpgradeable.__AccessControlEnumerable_init();
-        _setupRole(DEFAULT_ADMIN_ROLE, msg.sender);
-        _setupRole(REGISTRAR_ROLE, msg.sender);
-        messageProxy = newMessageProxyAddress;    
-	    linkerAddress = linker;
-    }    
+    } 
 }

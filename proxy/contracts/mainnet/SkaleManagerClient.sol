@@ -46,14 +46,6 @@ contract SkaleManagerClient is Initializable, AccessControlEnumerableUpgradeable
     }
 
     /**
-     * @dev Checks whether sender is owner of SKALE chain
-     */
-    function isSchainOwner(address sender, bytes32 schainHash) public view returns (bool) {
-        address skaleChainsInternal = contractManagerOfSkaleManager.getContract("SchainsInternal");
-        return ISchainsInternal(skaleChainsInternal).isOwnerAddress(sender, schainHash);
-    }
-
-    /**
      * @dev initialize - sets current address of ContractManager of SkaleManager
      * @param newContractManagerOfSkaleManager - current address of ContractManager of SkaleManager
      */
@@ -67,5 +59,13 @@ contract SkaleManagerClient is Initializable, AccessControlEnumerableUpgradeable
         AccessControlEnumerableUpgradeable.__AccessControlEnumerable_init();
         _setupRole(DEFAULT_ADMIN_ROLE, msg.sender);
         contractManagerOfSkaleManager = newContractManagerOfSkaleManager;
+    }
+
+    /**
+     * @dev Checks whether sender is owner of SKALE chain
+     */
+    function isSchainOwner(address sender, bytes32 schainHash) public view returns (bool) {
+        address skaleChainsInternal = contractManagerOfSkaleManager.getContract("SchainsInternal");
+        return ISchainsInternal(skaleChainsInternal).isOwnerAddress(sender, schainHash);
     }
 }

@@ -44,38 +44,6 @@ contract DepositBoxERC1155 is DepositBox, ERC1155ReceiverUpgradeable {
     event ERC1155TokenAdded(string schainName, address indexed contractOnMainnet);
     event ERC1155TokenReady(address indexed contractOnMainnet, uint256[] ids, uint256[] amounts);
 
-    function onERC1155Received(
-        address operator,
-        address,
-        uint256,
-        uint256,
-        bytes calldata
-    )
-        external
-        view
-        override
-        returns(bytes4)
-    {
-        require(operator == address(this), "Revert ERC1155 transfer");
-        return bytes4(keccak256("onERC1155Received(address,address,uint256,uint256,bytes)"));
-    }
-
-    function onERC1155BatchReceived(
-        address operator,
-        address,
-        uint256[] calldata,
-        uint256[] calldata,
-        bytes calldata
-    )
-        external
-        view
-        override
-        returns(bytes4)
-    {
-        require(operator == address(this), "Revert ERC1155 batch transfer");
-        return bytes4(keccak256("onERC1155BatchReceived(address,address,uint256[],uint256[],bytes)"));
-    }
-
     function depositERC1155(
         string calldata schainName,
         address erc1155OnMainnet,
@@ -229,6 +197,38 @@ contract DepositBoxERC1155 is DepositBox, ERC1155ReceiverUpgradeable {
             amounts,
             ""
         );
+    }
+
+    function onERC1155Received(
+        address operator,
+        address,
+        uint256,
+        uint256,
+        bytes calldata
+    )
+        external
+        view
+        override
+        returns(bytes4)
+    {
+        require(operator == address(this), "Revert ERC1155 transfer");
+        return bytes4(keccak256("onERC1155Received(address,address,uint256,uint256,bytes)"));
+    }
+
+    function onERC1155BatchReceived(
+        address operator,
+        address,
+        uint256[] calldata,
+        uint256[] calldata,
+        bytes calldata
+    )
+        external
+        view
+        override
+        returns(bytes4)
+    {
+        require(operator == address(this), "Revert ERC1155 batch transfer");
+        return bytes4(keccak256("onERC1155BatchReceived(address,address,uint256[],uint256[],bytes)"));
     }
 
     /**

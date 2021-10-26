@@ -24,7 +24,6 @@ pragma solidity 0.8.6;
 import "./MessageProxyForSchain.sol";
 import "./TokenManagerLinker.sol";
 import "./CommunityLocker.sol";
-import "../interfaces/IMessageReceiver.sol";
 
 
 /**

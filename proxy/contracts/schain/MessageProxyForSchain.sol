@@ -23,7 +23,6 @@ pragma solidity 0.8.6;
 
 import "@openzeppelin/contracts-upgradeable/utils/AddressUpgradeable.sol";
 
-import "../interfaces/IMessageReceiver.sol";
 import "../MessageProxy.sol";
 import "./bls/SkaleVerifier.sol";
 import "./KeyStorage.sol";
@@ -82,26 +81,6 @@ contract MessageProxyForSchain is MessageProxy {
         _removeExtraContract(chainHash, extraContract);
     }
 
-    function initialize(KeyStorage blsKeyStorage, string memory schainName)
-        public
-        virtual
-        initializer
-    {
-        MessageProxy.initializeMessageProxy(3e6);
-        keyStorage = blsKeyStorage;
-        connectedChains[
-            MAINNET_HASH
-        ] = ConnectedChainInfo(
-            0,
-            0,
-            true
-        );
-	    schainHash = keccak256(abi.encodePacked(schainName));
-
-        // In predeployed mode all token managers and community locker
-        // will be added to registryContracts
-    }
-
     /**
      * This is called by  schain owner.
      * On mainnet, SkaleManager will call it every time a SKALE chain is
@@ -112,36 +91,6 @@ contract MessageProxyForSchain is MessageProxy {
         bytes32 chainHash = keccak256(abi.encodePacked(chainName));
         require(chainHash != schainHash, "Schain cannot connect itself");
         _addConnectedChain(chainHash);
-    }
-
-    function removeConnectedChain(string memory chainName) public override onlyChainConnector {
-        bytes32 chainHash = keccak256(abi.encodePacked(chainName));
-        require(chainHash != MAINNET_HASH, "Mainnet cannot be removed");
-        super.removeConnectedChain(chainName);
-    }
-
-    // This is called by a smart contract that wants to make a cross-chain call
-    function postOutgoingMessage(
-        bytes32 targetChainHash,
-        address targetContract,
-        bytes memory data
-    )
-        public
-        override
-    {
-        super.postOutgoingMessage(targetChainHash, targetContract, data);
-
-        OutgoingMessageData memory outgoingMessageData = OutgoingMessageData(
-            targetChainHash,
-            connectedChains[targetChainHash].outgoingMessageCounter - 1,
-            msg.sender,
-            targetContract,
-            data
-        );
-
-        bytes32 dstChainHash = outgoingMessageData.dstChain;
-        _outgoingMessageDataHash[dstChainHash][_idxTail[dstChainHash]] = _hashOfMessage(outgoingMessageData);
-        _idxTail[dstChainHash] += 1;
     }
 
     function postIncomingMessages(
@@ -178,15 +127,54 @@ contract MessageProxyForSchain is MessageProxy {
             isValidMessage = true;
     }
 
-    function _hashOfMessage(OutgoingMessageData memory message) private pure returns (bytes32) {
-        bytes memory data = abi.encodePacked(
-            message.dstChain,
-            bytes32(message.msgCounter),
-            bytes32(bytes20(message.srcContract)),
-            bytes32(bytes20(message.dstContract)),
-            message.data
+    function initialize(KeyStorage blsKeyStorage, string memory schainName)
+        public
+        virtual
+        initializer
+    {
+        MessageProxy.initializeMessageProxy(3e6);
+        keyStorage = blsKeyStorage;
+        connectedChains[
+            MAINNET_HASH
+        ] = ConnectedChainInfo(
+            0,
+            0,
+            true
         );
-        return keccak256(data);
+	    schainHash = keccak256(abi.encodePacked(schainName));
+
+        // In predeployed mode all token managers and community locker
+        // will be added to registryContracts
+    }
+
+    function removeConnectedChain(string memory chainName) public override onlyChainConnector {
+        bytes32 chainHash = keccak256(abi.encodePacked(chainName));
+        require(chainHash != MAINNET_HASH, "Mainnet cannot be removed");
+        super.removeConnectedChain(chainName);
+    }
+
+    // This is called by a smart contract that wants to make a cross-chain call
+    function postOutgoingMessage(
+        bytes32 targetChainHash,
+        address targetContract,
+        bytes memory data
+    )
+        public
+        override
+    {
+        super.postOutgoingMessage(targetChainHash, targetContract, data);
+
+        OutgoingMessageData memory outgoingMessageData = OutgoingMessageData(
+            targetChainHash,
+            connectedChains[targetChainHash].outgoingMessageCounter - 1,
+            msg.sender,
+            targetContract,
+            data
+        );
+
+        bytes32 dstChainHash = outgoingMessageData.dstChain;
+        _outgoingMessageDataHash[dstChainHash][_idxTail[dstChainHash]] = _hashOfMessage(outgoingMessageData);
+        _idxTail[dstChainHash] += 1;
     }
 
     /**
@@ -214,5 +202,16 @@ contract MessageProxyForSchain is MessageProxy {
             signature.hashB,
             keyStorage.getBlsCommonPublicKey()
         );
+    }
+
+    function _hashOfMessage(OutgoingMessageData memory message) private pure returns (bytes32) {
+        bytes memory data = abi.encodePacked(
+            message.dstChain,
+            bytes32(message.msgCounter),
+            bytes32(bytes20(message.srcContract)),
+            bytes32(bytes20(message.dstContract)),
+            message.data
+        );
+        return keccak256(data);
     }
 }
