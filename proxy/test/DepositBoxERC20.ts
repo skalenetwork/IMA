@@ -201,7 +201,10 @@ describe("DepositBoxERC20", () => {
             await depositBoxERC20.connect(user).addERC20TokenByOwner(schainName, fakeERC20Contract)
                 .should.be.eventually.rejectedWith("Given address is not a contract");
             await depositBoxERC20.connect(user).addERC20TokenByOwner(schainName, erc20.address);
+            await depositBoxERC20.connect(user).addERC20TokenByOwner(schainName, erc20.address).should.be.eventually.rejectedWith("ERC20 Token was already added");
             expect(await depositBoxERC20.getSchainToERC20(schainName, erc20.address)).to.be.equal(true);
+            expect((await depositBoxERC20.getSchainToAllERC20(schainName))[0]).to.be.equal(erc20.address);
+            expect((await depositBoxERC20.getSchainToAllERC20(schainName)).length).to.be.equal(1);
         });
 
         it("should not allow to add token by schain owner if schain killed", async () => {

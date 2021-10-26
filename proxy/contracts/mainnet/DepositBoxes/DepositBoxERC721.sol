@@ -40,6 +40,7 @@ contract DepositBoxERC721 is DepositBox {
     // schainHash => address of ERC on Mainnet
     mapping(bytes32 => mapping(address => bool)) public schainToERC721;
     mapping(address => mapping(uint256 => bytes32)) public transferredAmount;
+    mapping(bytes32 => address[]) public schainToAllERC721;
 
     /**
      * @dev Emitted when token is mapped in DepositBoxERC721.
@@ -184,6 +185,14 @@ contract DepositBoxERC721 is DepositBox {
     }
 
     /**
+     * @dev Should return an array of tokens were added by Schain owner or 
+     * added automatically after sending to schain if whitelist was turned off.
+     */
+    function getSchainToAllERC721(string calldata schainName) external view returns (address[] memory) {
+        return schainToAllERC721[keccak256(abi.encodePacked(schainName))];
+    }
+
+    /**
      * @dev Creates a new DepositBoxERC721 contract.
      */
     function initialize(
@@ -259,7 +268,9 @@ contract DepositBoxERC721 is DepositBox {
     function _addERC721ForSchain(string calldata schainName, address erc721OnMainnet) private {
         bytes32 schainHash = keccak256(abi.encodePacked(schainName));
         require(erc721OnMainnet.isContract(), "Given address is not a contract");
+        require(!schainToERC721[schainHash][erc721OnMainnet], "ERC721 Token was already added");
         schainToERC721[schainHash][erc721OnMainnet] = true;
+        schainToAllERC721[schainHash].push(erc721OnMainnet);
         emit ERC721TokenAdded(schainName, erc721OnMainnet);
     }
 

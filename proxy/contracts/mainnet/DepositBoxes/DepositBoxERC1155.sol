@@ -42,6 +42,7 @@ contract DepositBoxERC1155 is DepositBox, ERC1155ReceiverUpgradeable {
     // schainHash => address of ERC on Mainnet
     mapping(bytes32 => mapping(address => bool)) public schainToERC1155;
     mapping(bytes32 => mapping(address => mapping(uint256 => uint256))) public transferredAmount;
+    mapping(bytes32 => address[]) public schainToAllERC1155;
 
     /**
      * @dev Emitted when token is mapped in DepositBoxERC20.
@@ -313,6 +314,14 @@ contract DepositBoxERC1155 is DepositBox, ERC1155ReceiverUpgradeable {
     }
 
     /**
+     * @dev Should return an array of tokens were added by Schain owner or 
+     * added automatically after sending to schain if whitelist was turned off.
+     */
+    function getSchainToAllERC1155(string calldata schainName) external view returns (address[] memory) {
+        return schainToAllERC1155[keccak256(abi.encodePacked(schainName))];
+    }
+
+    /**
      * @dev Creates a new DepositBoxERC1155 contract.
      */
     function initialize(
@@ -460,7 +469,9 @@ contract DepositBoxERC1155 is DepositBox, ERC1155ReceiverUpgradeable {
     function _addERC1155ForSchain(string calldata schainName, address erc1155OnMainnet) private {
         bytes32 schainHash = keccak256(abi.encodePacked(schainName));
         require(erc1155OnMainnet.isContract(), "Given address is not a contract");
+        require(!schainToERC1155[schainHash][erc1155OnMainnet], "ERC1155 Token was already added");
         schainToERC1155[schainHash][erc1155OnMainnet] = true;
+        schainToAllERC1155[schainHash].push(erc1155OnMainnet);
         emit ERC1155TokenAdded(schainName, erc1155OnMainnet);
     }
 

@@ -40,6 +40,7 @@ contract DepositBoxERC20 is DepositBox {
     // schainHash => address of ERC20 on Mainnet
     mapping(bytes32 => mapping(address => bool)) public schainToERC20;
     mapping(bytes32 => mapping(address => uint256)) public transferredAmount;
+    mapping(bytes32 => address[]) public schainToAllERC20;
 
     /**
      * @dev Emitted when token is mapped in DepositBoxERC20.
@@ -200,6 +201,14 @@ contract DepositBoxERC20 is DepositBox {
     }
 
     /**
+     * @dev Should return an array of tokens were added by Schain owner or 
+     * added automatically after sending to schain if whitelist was turned off.
+     */
+    function getSchainToAllERC20(string calldata schainName) external view returns (address[] memory) {
+        return schainToAllERC20[keccak256(abi.encodePacked(schainName))];
+    }
+
+    /**
      * @dev Creates a new DepositBoxERC20 contract.
      */
     function initialize(
@@ -285,7 +294,9 @@ contract DepositBoxERC20 is DepositBox {
     function _addERC20ForSchain(string calldata schainName, address erc20OnMainnet) private {
         bytes32 schainHash = keccak256(abi.encodePacked(schainName));
         require(erc20OnMainnet.isContract(), "Given address is not a contract");
+        require(!schainToERC20[schainHash][erc20OnMainnet], "ERC20 Token was already added");
         schainToERC20[schainHash][erc20OnMainnet] = true;
+        schainToAllERC20[schainHash].push(erc20OnMainnet);
         emit ERC20TokenAdded(schainName, erc20OnMainnet);
     }
 

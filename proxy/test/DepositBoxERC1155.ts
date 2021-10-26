@@ -133,7 +133,10 @@ describe("DepositBoxERC1155", () => {
                 .should.be.eventually.rejectedWith("Sender is not an Schain owner");
 
             await depositBoxERC1155.connect(user).addERC1155TokenByOwner(schainName, erc1155.address);
+            await depositBoxERC1155.connect(user).addERC1155TokenByOwner(schainName, erc1155.address).should.be.eventually.rejectedWith("ERC1155 Token was already added");
             expect(await depositBoxERC1155.getSchainToERC1155(schainName, erc1155.address)).to.be.equal(true);
+            expect((await depositBoxERC1155.getSchainToAllERC1155(schainName))[0]).to.be.equal(erc1155.address);
+            expect((await depositBoxERC1155.getSchainToAllERC1155(schainName)).length).to.be.equal(1);
         });
 
         describe("tests for `depositERC1155` function", async () => {

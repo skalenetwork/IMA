@@ -211,7 +211,10 @@ describe("DepositBoxERC721", () => {
                 .should.be.eventually.rejectedWith("Sender is not an Schain owner");
 
             await depositBoxERC721.connect(user).addERC721TokenByOwner(schainName, erc721.address);
+            await depositBoxERC721.connect(user).addERC721TokenByOwner(schainName, erc721.address).should.be.eventually.rejectedWith("ERC721 Token was already added");
             expect(await depositBoxERC721.getSchainToERC721(schainName, erc721.address)).to.be.equal(true);
+            expect((await depositBoxERC721.getSchainToAllERC721(schainName))[0]).to.be.equal(erc721.address);
+            expect((await depositBoxERC721.getSchainToAllERC721(schainName)).length).to.be.equal(1);
         });
     });
 
