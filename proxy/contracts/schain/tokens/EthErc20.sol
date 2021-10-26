@@ -23,26 +23,27 @@ pragma solidity 0.8.6;
 
 import "@openzeppelin/contracts-upgradeable/access/AccessControlEnumerableUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/token/ERC20/extensions/ERC20BurnableUpgradeable.sol";
+import "@skalenetwork/ima-interfaces/schain/tokens/IEthErc20.sol";
 
 
-contract EthErc20 is AccessControlEnumerableUpgradeable, ERC20BurnableUpgradeable {
+contract EthErc20 is AccessControlEnumerableUpgradeable, ERC20BurnableUpgradeable, IEthErc20 {
 
     bytes32 public constant MINTER_ROLE = keccak256("MINTER_ROLE");
     bytes32 public constant BURNER_ROLE = keccak256("BURNER_ROLE");
 
-    function mint(address account, uint256 amount) external {
+    function mint(address account, uint256 amount) external override {
         require(hasRole(MINTER_ROLE, _msgSender()), "MINTER role is required");
         _mint(account, amount);
     }
 
-    function forceBurn(address account, uint256 amount) external {
+    function forceBurn(address account, uint256 amount) external override {
         require(hasRole(BURNER_ROLE, _msgSender()), "BURNER role is required");
         _burn(account, amount);
     }
 
     function initialize(address tokenManagerEthAddress)
         external
-        virtual
+        override
         initializer
     {
         AccessControlEnumerableUpgradeable.__AccessControlEnumerable_init();

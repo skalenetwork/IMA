@@ -24,9 +24,10 @@ pragma solidity 0.8.6;
 
 import "@openzeppelin/contracts-upgradeable/token/ERC1155/extensions/ERC1155BurnableUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/access/AccessControlEnumerableUpgradeable.sol";
+import "@skalenetwork/ima-interfaces/schain/tokens/IERC1155OnChain.sol";
 
 
-contract ERC1155OnChain is AccessControlEnumerableUpgradeable, ERC1155BurnableUpgradeable {
+contract ERC1155OnChain is AccessControlEnumerableUpgradeable, ERC1155BurnableUpgradeable, IERC1155OnChain {
 
     bytes32 public constant MINTER_ROLE = keccak256("MINTER_ROLE");
 
@@ -49,6 +50,7 @@ contract ERC1155OnChain is AccessControlEnumerableUpgradeable, ERC1155BurnableUp
         bytes memory data
     )
         external
+        override
     {
         require(hasRole(MINTER_ROLE, _msgSender()), "Sender is not a Minter");
         _mint(account, id, amount, data);
@@ -61,6 +63,7 @@ contract ERC1155OnChain is AccessControlEnumerableUpgradeable, ERC1155BurnableUp
         bytes memory data
     )
         external
+        override
     {
         require(hasRole(MINTER_ROLE, _msgSender()), "Sender is not a Minter");
         _mintBatch(account, ids, amounts, data);
