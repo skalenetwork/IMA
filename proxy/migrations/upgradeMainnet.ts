@@ -109,43 +109,6 @@ async function main() {
                 const events = await depositBoxERC20.queryFilter(eventFilter, depositBoxERC20BlockStart);
                 if (events.length > 0) {
                     await runInitialize(safeTransactions, events, depositBoxERC20, "ERC20TokenAdded");
-                    // console.log(chalk.yellow("" + events.length + " events ERC20TokenAdded found"));
-                    // const schainToTokens = new Map<string, string[]>();
-                    // for (const event of events) {
-                    //     const currentArrayOfTokens: string[] = arrayValue(schainToTokens.get(event.args.schainName));
-                    //     currentArrayOfTokens.push(event.args.contractOnMainnet);
-                    //     schainToTokens.set(event.args.schainName, currentArrayOfTokens);
-                    // }
-                    // schainToTokens.forEach((value: string[], key: string) => {
-                    //     console.log(chalk.yellow("" + value.length + " tokens found for schain " + key));
-                    //     console.log(value);
-                    //     if (value.length <= 10) {
-                    //         console.log(chalk.yellow("Will prepare only 1 transaction initialize"));
-                    //         safeTransactions.push(encodeTransaction(
-                    //             0,
-                    //             depositBoxERC20Address,
-                    //             0,
-                    //             depositBoxERC20.interface.encodeFunctionData("initializeAllTokensForSchain", [key, value])
-                    //         ));
-                    //     } else {
-                    //         console.log(chalk.yellow("Will prepare " + (value.length - 1) / 10 + 1 + " transactions initialize"));
-                    //         for (let i = 0; i * 10 < value.length; i++) {
-                    //             let newValue: string[];
-                    //             if ((i + 1) * 10 < value.length) {
-                    //                 newValue = value.slice(i * 10, (i + 1) * 10);
-                    //             } else {
-                    //                 newValue = value.slice(i * 10, value.length);
-                    //             }
-                    //             safeTransactions.push(encodeTransaction(
-                    //                 0,
-                    //                 depositBoxERC20Address,
-                    //                 0,
-                    //                 depositBoxERC20.interface.encodeFunctionData("initializeAllTokensForSchain", [key, newValue])
-                    //             ));
-                    //             console.log(chalk.yellow("" + i + 1 + " transaction initialize prepared"));
-                    //         }
-                    //     }
-                    // });
                 } else {
                     console.log(chalk.yellow("No events ERC20TokenAdded found - no reason to run initialize"));
                 }
@@ -166,43 +129,6 @@ async function main() {
                 const events = await depositBoxERC721.queryFilter(eventFilter, depositBoxERC721BlockStart);
                 if (events.length > 0) {
                     await runInitialize(safeTransactions, events, depositBoxERC721, "ERC721TokenAdded");
-                    // console.log(chalk.yellow("" + events.length + " events ERC721TokenAdded found"));
-                    // const schainToTokens = new Map<string, string[]>();
-                    // for (let i = 0; i < events.length; i++) {
-                    //     const currentArrayOfTokens: string[] = arrayValue(schainToTokens.get(events[i].args.schainName));
-                    //     currentArrayOfTokens.push(events[i].args.contractOnMainnet);
-                    //     schainToTokens.set(events[i].args.schainName, currentArrayOfTokens);
-                    // }
-                    // schainToTokens.forEach((value: string[], key: string) => {
-                    //     console.log(chalk.yellow("" + value.length + " tokens found for schain " + key));
-                    //     console.log(value);
-                    //     if (value.length <= 10) {
-                    //         console.log(chalk.yellow("Will prepare only 1 transaction initialize"));
-                    //         safeTransactions.push(encodeTransaction(
-                    //             0,
-                    //             depositBoxERC721Address,
-                    //             0,
-                    //             depositBoxERC721.interface.encodeFunctionData("initializeAllTokensForSchain", [key, value])
-                    //         ));
-                    //     } else {
-                    //         console.log(chalk.yellow("Will prepare " + (value.length - 1) / 10 + 1 + " transactions initialize"));
-                    //         for (let i = 0; i * 10 < value.length; i++) {
-                    //             let newValue: string[];
-                    //             if ((i + 1) * 10 < value.length) {
-                    //                 newValue = value.slice(i * 10, (i + 1) * 10);
-                    //             } else {
-                    //                 newValue = value.slice(i * 10, value.length);
-                    //             }
-                    //             safeTransactions.push(encodeTransaction(
-                    //                 0,
-                    //                 depositBoxERC721Address,
-                    //                 0,
-                    //                 depositBoxERC721.interface.encodeFunctionData("initializeAllTokensForSchain", [key, newValue])
-                    //             ));
-                    //             console.log(chalk.yellow("" + i + 1 + " transaction initialize prepared"));
-                    //         }
-                    //     }
-                    // });
                 } else {
                     console.log(chalk.yellow("No events ERC721TokenAdded found - no reason to run initialize"));
                 }
@@ -223,43 +149,6 @@ async function main() {
                 const events = await depositBoxERC1155.queryFilter(eventFilter, depositBoxERC1155BlockStart);
                 if (events.length > 0) {
                     await runInitialize(safeTransactions, events, depositBoxERC1155, "ERC1155TokenAdded");
-                    // console.log(chalk.yellow("" + events.length + " events ERC1155TokenAdded found"));
-                    // const schainToTokens = new Map<string, string[]>();
-                    // for (let i = 0; i < events.length; i++) {
-                    //     const currentArrayOfTokens: string[] = arrayValue(schainToTokens.get(events[i].args.schainName));
-                    //     currentArrayOfTokens.push(events[i].args.contractOnMainnet);
-                    //     schainToTokens.set(events[i].args.schainName, currentArrayOfTokens);
-                    // }
-                    // schainToTokens.forEach((value: string[], key: string) => {
-                    //     console.log(chalk.yellow("" + value.length + " tokens found for schain " + key));
-                    //     console.log(value);
-                    //     if (value.length <= 10) {
-                    //         console.log(chalk.yellow("Will prepare only 1 transaction initialize"));
-                    //         safeTransactions.push(encodeTransaction(
-                    //             0,
-                    //             depositBoxERC1155Address,
-                    //             0,
-                    //             depositBoxERC1155.interface.encodeFunctionData("initializeAllTokensForSchain", [key, value])
-                    //         ));
-                    //     } else {
-                    //         console.log(chalk.yellow("Will prepare " + (value.length - 1) / 10 + 1 + " transactions initialize"));
-                    //         for (let i = 0; i * 10 < value.length; i++) {
-                    //             let newValue: string[];
-                    //             if ((i + 1) * 10 < value.length) {
-                    //                 newValue = value.slice(i * 10, (i + 1) * 10);
-                    //             } else {
-                    //                 newValue = value.slice(i * 10, value.length);
-                    //             }
-                    //             safeTransactions.push(encodeTransaction(
-                    //                 0,
-                    //                 depositBoxERC1155Address,
-                    //                 0,
-                    //                 depositBoxERC1155.interface.encodeFunctionData("initializeAllTokensForSchain", [key, newValue])
-                    //             ));
-                    //             console.log(chalk.yellow("" + i + 1 + " transaction initialize prepared"));
-                    //         }
-                    //     }
-                    // });
                 } else {
                     console.log(chalk.yellow("No events ERC1155TokenAdded found - no reason to run initialize"));
                 }
