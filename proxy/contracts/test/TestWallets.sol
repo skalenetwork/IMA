@@ -25,8 +25,12 @@ import "@skalenetwork/skale-manager-interfaces/IWallets.sol";
 
 import "./TestSchainsInternal.sol";
 
+interface IWalletsTester is IWallets {
+    function addContractManager(address newContractManager) external;
+}
 
-contract Wallets is IWallets {
+
+contract Wallets is IWalletsTester {
 
     ContractManager public contractManager;
 
@@ -36,7 +40,7 @@ contract Wallets is IWallets {
 
     event NodeRefundedBySchain(address node, bytes32 schainHash, uint amount);
 
-    function addContractManager(address newContractManager) external {
+    function addContractManager(address newContractManager) external override {
         contractManager = ContractManager(newContractManager);
     }
 

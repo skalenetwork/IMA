@@ -27,7 +27,22 @@ import "../schain/bls/FieldOperations.sol";
 import "./PrecompiledMock.sol";
 
 
-contract SkaleVerifierMock {
+interface ISkaleVerifierMock {
+    function verify(
+        Fp2Operations.Fp2Point calldata signature,
+        bytes32 hash,
+        uint counter,
+        uint hashA,
+        uint hashB,
+        G2Operations.G2Point calldata publicKey
+    )
+        external
+        view
+        returns (bool);
+}
+
+
+contract SkaleVerifierMock is ISkaleVerifierMock {
 
     /**
     * @dev Verifies a BLS signature.
@@ -49,6 +64,7 @@ contract SkaleVerifierMock {
     )
         external
         view
+        override
         returns (bool)
     {
         require(G1Operations.checkRange(signature), "Signature is not valid");

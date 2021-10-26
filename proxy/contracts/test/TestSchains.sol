@@ -29,11 +29,16 @@ import "./KeyStorageMock.sol";
 import "./SkaleVerifierMock.sol";
 
 
-contract Schains is ISchains {
+interface ISchainsTester is ISchains {
+    function addContractManager(address newContractManager) external;
+}
+
+
+contract Schains is ISchainsTester {
 
     ContractManager public contractManager;
 
-    function addContractManager(address newContractManager) external {
+    function addContractManager(address newContractManager) external override {
         contractManager = ContractManager(newContractManager);
     }
 
