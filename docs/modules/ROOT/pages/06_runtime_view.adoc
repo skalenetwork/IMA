@@ -101,7 +101,10 @@ participant "SGX Wallet"
 Let's review Main Net to S-Chain transfer:
 
 - `IMA Agent` queries `outgoing message counter` on Main Netand `incoming message counter` on S-Chain. First can be greater or equal than second. If greater, then new messages are ready to transfer.
-- `IMA Agent` queries 
-
-
+- `IMA Agent` queries message data for all new messages one by one. Messages are organized into groups up to `4` messages in group for further signing.
+- `IMA Agent` calls `SKALED` to verify and sign group of messages.
+- `SKALED` queries Main Net for smart contract events and verifies messages are correct and can be delivered to S-Chain.
+- `SKALED` queries `Transaction Manager` to sign messages, `Transaction Manager` passes work to `SGX Wallet`, - `SKALED` obtains partial BLS signature and returns it to `IMA Agent`.
+- `IMA Agent` collects partial BLS signatures from at least `2/3` of `SKALED` nodes, verifies each partial BLS sigature, performs BLS siganture glue.
+- `IMA Agent` submits messages with summary BLS signature to S-Chain.
 
