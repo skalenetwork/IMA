@@ -1,3 +1,24 @@
+## ERC721 Manual (Permissive) - Setup Steps
+
+. [Mainnet] Owner registers ERC721
+. [SKALE Chain] Owner deploys clone
+. [SKALE Chain] Owner assigns clone minter
+. [SKALE Chain] Owner registers clone
+
+## ERC721 Transfer Flow
+
+Deposit
+
+. [Mainnet] User Approves ERC721 transfer
+. [Mainnet] User deposits ERC721 to DepositBox
+. [SKALE Chain] User can now transfer clone
+
+Withdrawal
+
+. [Mainnet] User funds CommunityPool ETH for exit
+. [SKALE Chain] User exits from TokenManager
+. [Mainnet] User can now transfer ERC721
+
 .ERC721/1155 Flow with Manual Mapping
 
 ifdef::env-github[image::https://www.plantuml.com/plantuml/svg/ZPDDQzj048Rl-XL32iKMiKLoATGX9Fw0GcDQKfSSIWyRxrWQl9eLEwiafkv_hxLQ2ulYqhdftNdduzdLdNZbV5sQv4Rypk1jejQUNiZlvgHofqhubS0XfcgzpPsjMS-iiGwU2l8OJXw8iTMcvf1qq7udDraijbygOaQ_JqAVf2bHmL9L5N4Ux1_JzCiheuD7p4ayEW6DbR4xrB1ud7sulahJa3Z7oWhvgNrhvI2EbTRjvyfkaQUxK6imd8JJ_RVFzmyBc1MAUD_lDWyz9BQO6SiO-xoIBw0azl0Udcl7axxnNeHoxXbXIUpHfUdap4QnSXXngLZbwFvh1sGDWTW9nvRWoYcM3JftWl6xDEDLbRClU6pPQzCUHJYT8tALVsBMhTfAnmgZ7--Ucok_rDPxr3z7j-UePzdfxe6kmBfXbsLThTmXygLMKeHQuEEEe4hBEOGqP3sg1Pr0BNGKPRjOVOADTN2HAxbe2z861d53ZMlIAE0ju1lvD1q22Goknh2fMSF1F0HV82SGewFTAH5MC4ZZQ6c5cDcoh9dyxgkrfbF73jU5SZaslYTb3Fh8BSIMJ9kBHX06rsC8FqWOS1Yp-YZ_6YRa2YZMuPr6e76mi-yjJjTuLxRPit-do9esIHz2l4A71fLqlsMMdJvGyRPAxf1rNPe_[]]
@@ -61,14 +82,13 @@ stop
 
 endif::[]
 
-## One-time Setup Steps
 
-. [Mainnet] Owner registers ERC721
-. [SKALE Chain] Owner deploys clone
-. [SKALE Chain] Owner assigns clone minter
-. [SKALE Chain] Owner registers clone
+## ERC721 Automatic (Open) - Setup Steps
 
-## Transfer Flow
+. [SKALE Chain] Owner sets Autodeploy Mapping
+. [Mainnet] Owner sets whitelist
+
+## ERC721 Transfer Flow
 
 Deposit
 
@@ -81,7 +101,6 @@ Withdrawal
 . [Mainnet] User funds CommunityPool ETH for exit
 . [SKALE Chain] User exits from TokenManager
 . [Mainnet] User can now transfer ERC721
-
 
 .ERC721 Flow with Automatic Mapping
 
@@ -144,24 +163,24 @@ stop
 
 endif::[]
 
-## One-time Setup Steps
+## ERC1155 Automatic (Open) Setup Steps
 
 . [SKALE Chain] Owner sets Autodeploy Mapping
 . [Mainnet] Owner sets whitelist
 
-## Transfer Flow
+## ERC1155 Transfer Flow
 
 Deposit
 
-. [Mainnet] User Approves ERC721 transfer
-. [Mainnet] User deposits ERC721 to DepositBox
+. [Mainnet] User Approves ERC1155 transfer
+. [Mainnet] User deposits ERC1155 to DepositBox
 . [SKALE Chain] User can now transfer clone
 
 Withdrawal
 
 . [Mainnet] User funds CommunityPool ETH for exit
 . [SKALE Chain] User exits from TokenManager
-. [Mainnet] User can now transfer ERC721
+. [Mainnet] User can now transfer ERC1155
 
 .ERC1155 Flow with Automatic Mapping
 
@@ -223,24 +242,3 @@ stop
 ....
 
 endif::[]
-
-## One-time Setup Steps
-
-. [SKALE Chain] Owner sets Autodeploy Mapping
-. [Mainnet] Owner sets whitelist
-
-## Transfer Flow
-
-Deposit
-
-. [Mainnet] User Approves ERC1155 transfer
-. [Mainnet] User deposits ERC1155 to DepositBox
-. [SKALE Chain] User can now transfer clone
-
-Withdrawal
-
-. [Mainnet] User funds CommunityPool ETH for exit
-. [SKALE Chain] User exits from TokenManager
-. [Mainnet] User can now transfer ERC1155
-
-
