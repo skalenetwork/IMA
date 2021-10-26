@@ -1,15 +1,15 @@
 # IMA Bridge Example Flow Diagrams
 
-## ERC20 Transfer
+## ERC20
 
 include::erc20-manual-flow.adoc[leveloffset=+1]
 
 include::erc20-automatic-flow.adoc[leveloffset=+1]
 
-## ERC721/1155 Transfer
+## ERC721/1155
 
 include::erc721-1155.adoc[leveloffset=+1]
 
-### ERC721/1155 Flow (Mint first on SKALE)
+## ERC721/1155 - SKALE Mint first
 
 include::erc721-skale-native.adoc[leveloffset=+1]
