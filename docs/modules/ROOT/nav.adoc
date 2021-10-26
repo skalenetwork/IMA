@@ -6,6 +6,7 @@
 * xref:managing-erc1155.adoc[Managing ERC1155]
 * xref:funding-exits.adoc[Funding Exits]
 * xref:message-proxy.adoc[Managing other contracts using Message Proxy]
+* xref:flows.adoc[Example Setup Diagrams]
 * xref:access-control.adoc[IMA Access Control]
 * xref:ima-js-overview.adoc[IMA-JS overview]
 * xref:ima-js-sdk.adoc[Development with IMA-SDK and IMA-JS]

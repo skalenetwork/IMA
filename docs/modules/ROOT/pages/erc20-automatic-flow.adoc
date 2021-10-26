@@ -1,0 +1,82 @@
+.ERC20 Flow with Automatic Mapping
+
+ifdef::env-github[image::https://www.plantuml.com/plantuml/svg/VLB1Qjj04BthAuRqOfj4RdDCGqZY60gDQMbTV2WzhBLZUV5gLkoCafYw_rvfj362EjL9l9dtzisRkMKnKPhAPzSiUuytcId4FJdPFpXJHbF1xmpQxzuKkpA6Xkmi-11XjNM2MdbqX3rsxzkc5lkJNK-Js65X717A8Ul8DInCNJigbNZu_ldkSGwpRTjoK4IzwD_LPFBbcJ02ep2OHeB5seVzPABbPTWXBGoP4kFys-polQ8vabbxl6kxAoEkU53AQFnHgqSh9nvuxgRnZYNfjyp0Jkx3oq3TEkxaLw-zeppFMsqa2pfS6d4P3V46OzGvJptyWp72NLt7y8ISNXoyO_fAaXzoaYt-hyiUL6GWSV7ptRfRpxaD8cX_NToyiOEhwNIOBbIEXA7mWP2dqwDO6H7ft1hUgXX8cXfC5QW4RKEo5mrZP6ZOlOAycoy_mIP4E2iDd_M2RWEZDAF5mbbaa03uujg5ZC4nZ3xai6d8GaiUWsoHbFTll8EubC0TeyihVRDGLGqvsNyDmH_HF6AnDR74ZhSotgCCikk-dVDzEtf665tc_R6gnx4MJiSvyAEz38Oih9j8ATJaxUshLdyTTHcwIOUBJI6xpQaxY-ZHC5fGnl1EMKATtIBPfl9_0G00[]]
+ifndef::env-github[]
+
+[plantuml]
+....
+@startuml
+<style>
+activityDiagram {
+    BackgroundColor White
+    LineColor Black
+  }
+</style>
+|Mainnet|
+group Mapping
+    |SKALE Chain|
+    start
+    :**Owner sets autodeploy**
+    TokenManagerERC20
+    .enableAutomaticDeploy();
+    |Mainnet|
+    :**Owner sets whitelist**
+    DepositBoxERC20
+    .disableWhitelist(...);
+end group
+group Transferring
+    |Mainnet|
+    :**User Approves**
+    ERC20
+    .approve(...);
+    :**User Deposits**
+    DepositBoxERC20
+    .depositERC20(...);
+    -[#black,dotted]->
+    |SKALE Chain|
+    ://TokenManager mints clones//;
+    -[#green,dashed]-> transfer among 
+    end-users using 
+    skETH for "gas";
+    if (**User decides to exit**) is (1. fund ETH) then
+        |Mainnet|
+        :**User funds ETH**
+        CommunityPool
+        .rechargeUserWallet(...);
+        kill
+    else (2. start exit)
+        |SKALE Chain|
+        :**User exits and burns clone**
+        TokenManagerERC20
+        .exitToMainERC20(...);
+    endif
+    |Mainnet|
+    :released ERC20;
+end group
+stop
+@enduml
+....
+
+endif::[]
+
+## One-time Setup Steps
+
+. [SKALE Chain] Owner enables Autodeploy Mapping
+. [Mainnet] Owner disables whitelist
+
+[NOTE]
+Owner can enable autodeploy and keep whitelist enabled to allow automatic mapping of only certain tokens.
+
+## Transfer Flow
+
+Deposit
+
+. [Mainnet] User approves ERC20 transfer
+. [Mainnet] User deposits ERC20 to DepositBox
+. [SKALE Chain] User can now transfer clone
+
+Withdrawal
+
+. [Mainnet] User funds CommunityPool ETH for exit
+. [SKALE Chain] User exits from TokenManager
+. [Mainnet] User can now transfer ERC20
