@@ -1,9 +1,118 @@
 [[section-runtime-view]]
 == Runtime View
 
-=== <Runtime Scenario 1: Server Initialization>
+=== <Runtime Scenario 1: Network discovery>
 
-.Production Runtime
+.Network discovery
+
+[plantuml, target="network-discovery", format="png"]
+....
+@startuml
+participant "IMA Agent"
+participant "skaled 0"
+participant "skaled 1"
+participant "skaled 2"
+participant "skaled N"
+    "IMA Agent" -> "skaled 0" : Query S-Chain network information
+    "skaled 0" -> "IMA Agent": S-Chain network description
+    "IMA Agent" -> "skaled 0" : Query BLS information
+    "skaled 0" -> "IMA Agent": BLS public keys
+    "IMA Agent" -> "skaled 1" : Query BLS information
+    "skaled 1" -> "IMA Agent": BLS public keys
+    "IMA Agent" -> "skaled 2" : Query BLS information
+    "skaled 2" -> "IMA Agent": BLS public keys
+    "IMA Agent" -> "skaled N" : Query BLS information
+    "skaled N" -> "IMA Agent": BLS public keys
+@enduml
+....
+
+=== <Runtime Scenario 2: Agent time framing>
+
+.Agent time framing
+
+[plantuml, target="agent-time-framing", format="png"]
+....
+@startuml
+participant "Main Net"
+participant "IMA Agent 0"
+participant "IMA Agent 1"
+participant "IMA Agent 2"
+participant "IMA Agent N"
+participant "skaled 0"
+participant "skaled 1"
+participant "skaled 2"
+participant "skaled N"
+    "Main Net" -> "IMA Agent 0" : Message transfers from Main Net to S-Chain
+    "IMA Agent 0" -> "skaled 0" : Message transfers from Main Net to S-Chain
+    "skaled 0" -> "IMA Agent 0" : Message transfers from S-Chain to Main Net
+    "IMA Agent 0" -> "Main Net" : Message transfers from S-Chain
+
+    "Main Net" -> "IMA Agent 1" : Message transfers from Main Net to S-Chain
+    "IMA Agent 1" -> "skaled 1" : Message transfers from Main Net to S-Chain
+    "skaled 1" -> "IMA Agent 1" : Message transfers from S-Chain to Main Net
+    "IMA Agent 1" -> "Main Net" : Message transfers from S-Chain
+    
+    "Main Net" -> "IMA Agent 2" : Message transfers from Main Net to S-Chain
+    "IMA Agent 2" -> "skaled 2" : Message transfers from Main Net to S-Chain
+    "skaled 2" -> "IMA Agent 2" : Message transfers from S-Chain to Main Net
+    "IMA Agent 2" -> "Main Net" : Message transfers from S-Chain
+    
+    "Main Net" -> "IMA Agent N" : Message transfers from Main Net to S-Chain
+    "IMA Agent N" -> "skaled N" : Message transfers from Main Net to S-Chain
+    "skaled N" -> "IMA Agent N" : Message transfers from S-Chain to Main Net
+    "IMA Agent N" -> "Main Net" : Message transfers from S-Chain
+    
+@enduml
+....
+
+=== <Runtime Scenario 3: Main Net to S-Chain transfer>
+
+.Main Net to S-Chain transfer
+
+[plantuml, target="main-net-to-s-chain-transfer", format="png"]
+....
+@startuml
+participant "IMA Agent"
+participant "Main Net"
+participant "skaled"
+participant "Transacton Manager"
+participant "SGX Wallet"
+    "IMA Agent" -> "Main Net" : Query outgoing message counter
+    "IMA Agent" -> "skaled" : Query incoming message counter
+    "IMA Agent" -> "Main Net" : Query new messages to transfer
+    "IMA Agent" -> "skaled" : Verify messages
+    "skaled" -> "Main Net": Search contract events 
+    "skaled" -> "skaled" : Analyze message correctness
+    "skaled" -> "Transacton Manager": BLS sign messages
+    "Transacton Manager" -> "SGX Wallet": BLS sign messages
+    "SGX Wallet" -> "Transacton Manager": BLS signature
+    "Transacton Manager" -> "skaled": BLS signature
+    "skaled" -> "IMA Agent": partial BLS signature
+    "IMA Agent" -> "IMA Agent": verify partial BLS signature
+    "IMA Agent" -> "IMA Agent": BLS glue
+    "IMA Agent" -> "skaled": submit BLS signed incoming message
+@enduml
+....
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+=== <Runtime Scenario SMPLE: Server Initialization>
+
+.Production Runtime Sample
 
 ifdef::env-github[image::./images/production-runtime.png[Production Runtime]]
 ifndef::env-github[]
