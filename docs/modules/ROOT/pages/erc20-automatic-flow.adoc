@@ -1,4 +1,4 @@
-## Automatic (Open) - Setup Steps
+## Automatic - Setup Steps
 
 . [SKALE Chain] Owner enables Autodeploy Mapping
 . [Mainnet] Owner disables whitelist

@@ -4,8 +4,8 @@ The IMA bridge is a very modular and expandable system. To illustrate some diffe
 
 Also, a SKALE Chain owner can setup the bridge in different ways, for example:
 
-* **manual (permissive)**: allows the Owner to permit only certain token types to transfer through the bridge, or
-* **automatic (open)**: allows any token deposits to automatically map and transfer through the bridge.
+* **manual (permission-by-owner)**: allows the Owner to permit only certain token types to transfer through the bridge, or
+* **automatic (permissionless)**: allows any token deposits to automatically map and transfer through the bridge.
 
 Please see manual or automatic flows below for more information, and check out xref:access-control.adoc[IMA Access Control] for additional information.
 

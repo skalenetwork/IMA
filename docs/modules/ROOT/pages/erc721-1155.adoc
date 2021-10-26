@@ -1,4 +1,4 @@
-## ERC721 Manual (Permissive) - Setup Steps
+## ERC721 Manual - Setup Steps
 
 . [Mainnet] Owner registers ERC721
 . [SKALE Chain] Owner deploys clone
@@ -83,7 +83,7 @@ stop
 endif::[]
 
 
-## ERC721 Automatic (Open) - Setup Steps
+## ERC721 Automatic - Setup Steps
 
 . [SKALE Chain] Owner sets Autodeploy Mapping
 . [Mainnet] Owner sets whitelist
@@ -163,7 +163,7 @@ stop
 
 endif::[]
 
-## ERC1155 Automatic (Open) Setup Steps
+## ERC1155 Automatic Setup Steps
 
 . [SKALE Chain] Owner sets Autodeploy Mapping
 . [Mainnet] Owner sets whitelist
