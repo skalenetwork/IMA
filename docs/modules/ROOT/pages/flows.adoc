@@ -1,4 +1,4 @@
-# Flow Diagrams
+# IMA Bridge Example Flow Diagrams
 
 ## ERC20 Transfer
 

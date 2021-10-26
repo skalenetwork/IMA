@@ -53,8 +53,7 @@ group Transferring
         .exitToMainERC721();
     endif
     |Mainnet|
-    :NFT + TokenURI Minted
-    URI points to assets on SKALE Chain;
+    ://released ERC721//;
 end group
 stop
 @enduml
@@ -137,7 +136,7 @@ group Transferring
         .exitToMainERC721();
     endif
     |Mainnet|
-    :released ERC721;
+    ://released ERC721//;
 end group
 stop
 @enduml
@@ -217,7 +216,7 @@ group Transferring
         .exitToMainERC1155();
     endif
     |Mainnet|
-    :released ERC1155;
+    ://released ERC1155//;
 end group
 stop
 @enduml

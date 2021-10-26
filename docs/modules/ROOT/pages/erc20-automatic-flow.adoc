@@ -64,6 +64,9 @@ endif::[]
 . [SKALE Chain] Owner enables Autodeploy Mapping
 . [Mainnet] Owner disables whitelist
 
+[NOTE]
+Owner can enable autodeploy and keep whitelist enabled to allow automatic mapping of only certain tokens.
+
 ## Transfer Flow
 
 Deposit

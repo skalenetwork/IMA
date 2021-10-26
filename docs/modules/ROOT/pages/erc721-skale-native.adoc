@@ -27,7 +27,9 @@ activityDiagram {
     end fork
     group Mapping
         |Mainnet|
-        :**Owner Deploys Mainnet Extensions**;
+        :**Owner Deploys**
+        Mainnet Extensions
+        ERC721 contract copy;
         :**Owner Registers Extension** 
         MessageProxy
         .registerExtraContract(...);
@@ -39,7 +41,8 @@ activityDiagram {
         |Mainnet|
         :**Owner Connects to SKALE Chain Extension**
         .setSenderContractOnSchain(...);
-        :**Owner Assigns ERC721 Minter to Extension**;
+        :**Owner Assigns Deployed ERC721**
+        Minter is Extension contract;
     end group
 group Transferring
     |SKALE Chain|
@@ -57,8 +60,8 @@ group Transferring
         .sendTokenToMainnet();
     endif
     |Mainnet|
-    :Extension mints NFT;
-    :NFT is minted
+    :Extension mints through ERC721;
+    :NFT with tokenID is minted
     tokenURI copied;
 end group
 stop
@@ -74,13 +77,13 @@ endif::[]
 
 ## One-time Setup Steps
 
-. [Mainnet] Owner deploys Extension
+. [Mainnet] Owner deploys Extension + NFT contract copy
 . [Mainnet] Owner registers extension
 . [SKALE Chain] Owner deploys Extension
 . [SKALE Chain] Owner registers extension
 . [SKALE Chain] Owner deploys clone
 . [Mainnet] Owner sets Extension to SKALE Chain Extension
-. [Mainnet] Owner assigns ERC721 Minter to Extension
+. [Mainnet] Owner assigns NFT Minter to Extension
 
 ## Transfer Flow
 
@@ -88,5 +91,5 @@ Withdrawal
 
 . [Mainnet] User funds SKALE Manager Wallet ETH for exit
 . [SKALE Chain] User exits from Extension
-. [Mainnet] _Extension contract mints NFT_
-. [Mainnet] _NFT is minted, with same tokenURI and other metadata_
+. [Mainnet] _Extension contract executes NFT mint_
+. [Mainnet] _NFT of tokenID minted, with same tokenURI and other metadata_
