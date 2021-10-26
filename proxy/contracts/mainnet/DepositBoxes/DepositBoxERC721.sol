@@ -54,6 +54,27 @@ contract DepositBoxERC721 is DepositBox {
     event ERC721TokenReady(address indexed contractOnMainnet, uint256 tokenId);
 
     /**
+     * @dev Allows DEFAULT_ADMIN_ROLE to initialize token mapping
+     * Notice - this function will be executed only once during upgrade
+     * 
+     * Requirements:
+     * 
+     * `msg.sender` should has DEFAULT_ADMIN_ROLE
+     */
+    function initializeAllTokensForSchain(
+        string calldata schainName,
+        address[] calldata tokens
+    ) external {
+        require(hasRole(DEFAULT_ADMIN_ROLE, msg.sender), "Sender is not authorized");
+        bytes32 schainHash = keccak256(abi.encodePacked(schainName));
+        for (uint256 i = 0; i < tokens.length; i++) {
+            if (schainToERC721[schainHash][tokens[i]]) {
+                schainToAllERC721[schainHash].push(tokens[i]);
+            }
+        }
+    }
+
+    /**
      * @dev Allows `msg.sender` to send ERC721 token from mainnet to schain.
      * 
      * Requirements:

@@ -54,6 +54,27 @@ contract DepositBoxERC20 is DepositBox {
     event ERC20TokenReady(address indexed contractOnMainnet, uint256 amount);
 
     /**
+     * @dev Allows DEFAULT_ADMIN_ROLE to initialize token mapping
+     * Notice - this function will be executed only once during upgrade
+     * 
+     * Requirements:
+     * 
+     * `msg.sender` should has DEFAULT_ADMIN_ROLE
+     */
+    function initializeAllTokensForSchain(
+        string calldata schainName,
+        address[] calldata tokens
+    ) external {
+        require(hasRole(DEFAULT_ADMIN_ROLE, msg.sender), "Sender is not authorized");
+        bytes32 schainHash = keccak256(abi.encodePacked(schainName));
+        for (uint256 i = 0; i < tokens.length; i++) {
+            if (schainToERC20[schainHash][tokens[i]]) {
+                schainToAllERC20[schainHash].push(tokens[i]);
+            }
+        }
+    }
+
+    /**
      * @dev Allows `msg.sender` to send ERC20 token from mainnet to schain
      * 
      * Requirements:
