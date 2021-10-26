@@ -11,14 +11,15 @@ content:
     - url: https://github.com/skalenetwork/IMA.git
       branches: SKALE-4652-IMA-agent-adoc-documentation
       start_path: docs
-    # - url: https://gitlab.com/antora/demo/demo-component-a.git
-    #   branches: HEAD
-    #   # setting edit_url to false disables the Edit this Page link for any page that originates from this repository
-    #   # the same thing can be achieved by adding empty credentials (i.e., @) in front of the domain in the URL
-    #   edit_url: false
-    # - url: https://gitlab.com/antora/demo/demo-component-b.git
-    #   branches: [v2.0, v1.0]
-    #   start_path: docs
+      edit_url: false
+      # - url: https://gitlab.com/antora/demo/demo-component-a.git
+      #   branches: HEAD
+      #   # setting edit_url to false disables the Edit this Page link for any page that originates from this repository
+      #   # the same thing can be achieved by adding empty credentials (i.e., @) in front of the domain in the URL
+      #   edit_url: false
+      # - url: https://gitlab.com/antora/demo/demo-component-b.git
+      #   branches: [v2.0, v1.0]
+      #   start_path: docs
 ui:
   bundle:
     url: https://gitlab.com/antora/antora-ui-default/-/jobs/artifacts/HEAD/raw/build/ui-bundle.zip?job=bundle-stable
