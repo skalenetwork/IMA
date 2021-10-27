@@ -22,6 +22,7 @@
 pragma solidity 0.8.6;
 
 import "@openzeppelin/contracts-upgradeable/utils/AddressUpgradeable.sol";
+import "@openzeppelin/contracts-upgradeable/utils/structs/EnumerableSetUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/token/ERC1155/extensions/IERC1155MetadataURIUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/token/ERC1155/utils/ERC1155ReceiverUpgradeable.sol";
 import "../DepositBox.sol";
@@ -37,12 +38,13 @@ import "../../Messages.sol";
 contract DepositBoxERC1155 is DepositBox, ERC1155ReceiverUpgradeable {
 
     using AddressUpgradeable for address;
+    using EnumerableSetUpgradeable for EnumerableSetUpgradeable.AddressSet;
 
 
     // schainHash => address of ERC on Mainnet
     mapping(bytes32 => mapping(address => bool)) public schainToERC1155;
     mapping(bytes32 => mapping(address => mapping(uint256 => uint256))) public transferredAmount;
-    mapping(bytes32 => address[]) public schainToAllERC1155;
+    mapping(bytes32 => EnumerableSetUpgradeable.AddressSet) private _schainToAllERC1155;
 
     /**
      * @dev Emitted when token is mapped in DepositBoxERC20.
@@ -103,7 +105,7 @@ contract DepositBoxERC1155 is DepositBox, ERC1155ReceiverUpgradeable {
         bytes32 schainHash = keccak256(abi.encodePacked(schainName));
         for (uint256 i = 0; i < tokens.length; i++) {
             if (schainToERC1155[schainHash][tokens[i]]) {
-                schainToAllERC1155[schainHash].push(tokens[i]);
+                _schainToAllERC1155[schainHash].add(tokens[i]);
             }
         }
     }
@@ -335,11 +337,34 @@ contract DepositBoxERC1155 is DepositBox, ERC1155ReceiverUpgradeable {
     }
 
     /**
+     * @dev Should return length of a set of all mapped tokens which were added by Schain owner 
+     * or added automatically after sending to schain if whitelist was turned off.
+     */
+    function getSchainToAllERC1155Length(string calldata schainName) external view returns (uint256) {
+        return _schainToAllERC1155[keccak256(abi.encodePacked(schainName))].length();
+    }
+
+    /**
      * @dev Should return an array of tokens were added by Schain owner or 
      * added automatically after sending to schain if whitelist was turned off.
      */
-    function getSchainToAllERC1155(string calldata schainName) external view returns (address[] memory) {
-        return schainToAllERC1155[keccak256(abi.encodePacked(schainName))];
+    function getSchainToAllERC1155(
+        string calldata schainName,
+        uint256 from,
+        uint256 to
+    )
+        external
+        view
+        returns (address[] memory tokensInRange)
+    {
+        require(
+            from < to && to - from <= 10 && to <= _schainToAllERC1155[keccak256(abi.encodePacked(schainName))].length(),
+            "Range is incorrect"
+        );
+        tokensInRange = new address[](to - from);
+        for (uint256 i = from; i < to; i++) {
+            tokensInRange[i - from] = _schainToAllERC1155[keccak256(abi.encodePacked(schainName))].at(i);
+        }
     }
 
     /**
@@ -492,7 +517,7 @@ contract DepositBoxERC1155 is DepositBox, ERC1155ReceiverUpgradeable {
         require(erc1155OnMainnet.isContract(), "Given address is not a contract");
         require(!schainToERC1155[schainHash][erc1155OnMainnet], "ERC1155 Token was already added");
         schainToERC1155[schainHash][erc1155OnMainnet] = true;
-        schainToAllERC1155[schainHash].push(erc1155OnMainnet);
+        _schainToAllERC1155[schainHash].add(erc1155OnMainnet);
         emit ERC1155TokenAdded(schainName, erc1155OnMainnet);
     }
 

@@ -135,8 +135,11 @@ describe("DepositBoxERC1155", () => {
             await depositBoxERC1155.connect(user).addERC1155TokenByOwner(schainName, erc1155.address);
             await depositBoxERC1155.connect(user).addERC1155TokenByOwner(schainName, erc1155.address).should.be.eventually.rejectedWith("ERC1155 Token was already added");
             expect(await depositBoxERC1155.getSchainToERC1155(schainName, erc1155.address)).to.be.equal(true);
-            expect((await depositBoxERC1155.getSchainToAllERC1155(schainName))[0]).to.be.equal(erc1155.address);
-            expect((await depositBoxERC1155.getSchainToAllERC1155(schainName)).length).to.be.equal(1);
+            expect((await depositBoxERC1155.getSchainToAllERC1155(schainName, 0, 1))[0]).to.be.equal(erc1155.address);
+            expect((await depositBoxERC1155.getSchainToAllERC1155(schainName, 0, 1)).length).to.be.equal(1);
+            expect((await depositBoxERC1155.getSchainToAllERC1155Length(schainName)).toString()).to.be.equal("1");
+            await depositBoxERC1155.getSchainToAllERC1155(schainName, 1, 0).should.be.eventually.rejectedWith("Range is incorrect");
+            await depositBoxERC1155.getSchainToAllERC1155(schainName, 0, 11).should.be.eventually.rejectedWith("Range is incorrect");
         });
 
         describe("tests for `depositERC1155` function", async () => {

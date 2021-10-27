@@ -22,6 +22,7 @@
 pragma solidity 0.8.6;
 
 import "@openzeppelin/contracts-upgradeable/utils/AddressUpgradeable.sol";
+import "@openzeppelin/contracts-upgradeable/utils/structs/EnumerableSetUpgradeable.sol";
 
 import "@openzeppelin/contracts-upgradeable/token/ERC20/ERC20Upgradeable.sol";
 import "../../Messages.sol";
@@ -36,11 +37,12 @@ import "../DepositBox.sol";
  */
 contract DepositBoxERC20 is DepositBox {
     using AddressUpgradeable for address;
+    using EnumerableSetUpgradeable for EnumerableSetUpgradeable.AddressSet;
 
     // schainHash => address of ERC20 on Mainnet
     mapping(bytes32 => mapping(address => bool)) public schainToERC20;
     mapping(bytes32 => mapping(address => uint256)) public transferredAmount;
-    mapping(bytes32 => address[]) public schainToAllERC20;
+    mapping(bytes32 => EnumerableSetUpgradeable.AddressSet) private _schainToAllERC20;
 
     /**
      * @dev Emitted when token is mapped in DepositBoxERC20.
@@ -69,7 +71,7 @@ contract DepositBoxERC20 is DepositBox {
         bytes32 schainHash = keccak256(abi.encodePacked(schainName));
         for (uint256 i = 0; i < tokens.length; i++) {
             if (schainToERC20[schainHash][tokens[i]]) {
-                schainToAllERC20[schainHash].push(tokens[i]);
+                _schainToAllERC20[schainHash].add(tokens[i]);
             }
         }
     }
@@ -222,11 +224,34 @@ contract DepositBoxERC20 is DepositBox {
     }
 
     /**
-     * @dev Should return an array of tokens were added by Schain owner or 
-     * added automatically after sending to schain if whitelist was turned off.
+     * @dev Should return length of a set of all mapped tokens which were added by Schain owner 
+     * or added automatically after sending to schain if whitelist was turned off.
      */
-    function getSchainToAllERC20(string calldata schainName) external view returns (address[] memory) {
-        return schainToAllERC20[keccak256(abi.encodePacked(schainName))];
+    function getSchainToAllERC20Length(string calldata schainName) external view returns (uint256) {
+        return _schainToAllERC20[keccak256(abi.encodePacked(schainName))].length();
+    }
+
+    /**
+     * @dev Should return an array of range of tokens were added by Schain owner 
+     * or added automatically after sending to schain if whitelist was turned off.
+     */
+    function getSchainToAllERC20(
+        string calldata schainName,
+        uint256 from,
+        uint256 to
+    )
+        external
+        view
+        returns (address[] memory tokensInRange)
+    {
+        require(
+            from < to && to - from <= 10 && to <= _schainToAllERC20[keccak256(abi.encodePacked(schainName))].length(),
+            "Range is incorrect"
+        );
+        tokensInRange = new address[](to - from);
+        for (uint256 i = from; i < to; i++) {
+            tokensInRange[i - from] = _schainToAllERC20[keccak256(abi.encodePacked(schainName))].at(i);
+        }
     }
 
     /**
@@ -317,7 +342,7 @@ contract DepositBoxERC20 is DepositBox {
         require(erc20OnMainnet.isContract(), "Given address is not a contract");
         require(!schainToERC20[schainHash][erc20OnMainnet], "ERC20 Token was already added");
         schainToERC20[schainHash][erc20OnMainnet] = true;
-        schainToAllERC20[schainHash].push(erc20OnMainnet);
+        _schainToAllERC20[schainHash].add(erc20OnMainnet);
         emit ERC20TokenAdded(schainName, erc20OnMainnet);
     }
 
