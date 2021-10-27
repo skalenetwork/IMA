@@ -29,34 +29,24 @@ async function runInitialize(
         currentArrayOfTokens.push(event.args.contractOnMainnet);
         schainToTokens.set(event.args.schainName, currentArrayOfTokens);
     }
-    schainToTokens.forEach((value: string[], key: string) => {
-        console.log(chalk.yellow("" + value.length + " tokens found for schain " + key));
-        console.log(value);
-        if (value.length <= 10) {
-            console.log(chalk.yellow("Will prepare only 1 transaction initialize"));
+    schainToTokens.forEach((tokens: string[], schainName: string) => {
+        console.log(chalk.yellow("" + tokens.length + " tokens found for schain " + schainName));
+        console.log(tokens);
+        console.log(chalk.yellow("Will prepare " + (tokens.length - 1) / 10 + 1 + " transaction" + ((tokens.length - 1) / 10 > 0 ? "s" : "") + " initialize"));
+        for (let i = 0; i * 10 < tokens.length; i++) {
+            let tokensRange: string[];
+            if ((i + 1) * 10 < tokens.length) {
+                tokensRange = tokens.slice(i * 10, (i + 1) * 10);
+            } else {
+                tokensRange = tokens.slice(i * 10, tokens.length);
+            }
             safeTransactions.push(encodeTransaction(
                 0,
                 depositBox.address,
                 0,
-                depositBox.interface.encodeFunctionData("initializeAllTokensForSchain", [key, value])
+                depositBox.interface.encodeFunctionData("initializeAllTokensForSchain", [schainName, tokensRange])
             ));
-        } else {
-            console.log(chalk.yellow("Will prepare " + (value.length - 1) / 10 + 1 + " transactions initialize"));
-            for (let i = 0; i * 10 < value.length; i++) {
-                let newValue: string[];
-                if ((i + 1) * 10 < value.length) {
-                    newValue = value.slice(i * 10, (i + 1) * 10);
-                } else {
-                    newValue = value.slice(i * 10, value.length);
-                }
-                safeTransactions.push(encodeTransaction(
-                    0,
-                    depositBox.address,
-                    0,
-                    depositBox.interface.encodeFunctionData("initializeAllTokensForSchain", [key, newValue])
-                ));
-                console.log(chalk.yellow("" + i + 1 + " transaction initialize prepared"));
-            }
+            console.log(chalk.yellow("" + i + 1 + " transaction initialize prepared"));
         }
     });
 }
