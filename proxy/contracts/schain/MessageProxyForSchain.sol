@@ -206,7 +206,7 @@ contract MessageProxyForSchain is MessageProxy, IMessageProxyForSchainInitializa
         returns (bool)
     {
         return SkaleVerifier.verify(
-            Fp2Operations.Fp2Point({
+            IFieldOperations.Fp2Point({
                 a: signature.blsSignature[0],
                 b: signature.blsSignature[1]
             }),

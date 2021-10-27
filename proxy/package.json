@@ -24,7 +24,7 @@
         "@nomiclabs/hardhat-web3": "^2.0.0",
         "@openzeppelin/contracts-upgradeable": "^4.2.0",
         "@openzeppelin/hardhat-upgrades": "^1.9.0",
-        "@skalenetwork/ima-interfaces": "^0.0.1-develop.11",
+        "@skalenetwork/ima-interfaces": "^0.0.1-develop.12",
         "@skalenetwork/skale-manager-interfaces": "^0.1.1",
         "dotenv": "^10.0.0",
         "ethereumjs-tx": "2.1.2",

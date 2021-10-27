@@ -29,12 +29,12 @@ import "./PrecompiledMock.sol";
 
 interface ISkaleVerifierMock {
     function verify(
-        Fp2Operations.Fp2Point calldata signature,
+        IFieldOperations.Fp2Point calldata signature,
         bytes32 hash,
         uint counter,
         uint hashA,
         uint hashB,
-        G2Operations.G2Point calldata publicKey
+        IFieldOperations.G2Point calldata publicKey
     )
         external
         view
@@ -55,12 +55,12 @@ contract SkaleVerifierMock is ISkaleVerifierMock {
     * - Public Key in G2.
     */
     function verify(
-        Fp2Operations.Fp2Point calldata signature,
+        IFieldOperations.Fp2Point calldata signature,
         bytes32 hash,
         uint counter,
         uint hashA,
         uint hashB,
-        G2Operations.G2Point calldata publicKey
+        IFieldOperations.G2Point calldata publicKey
     )
         external
         view
@@ -83,7 +83,7 @@ contract SkaleVerifierMock is ISkaleVerifierMock {
         require(G1Operations.isG1Point(signature.a, newSignB) || true, "Sign not in G1");
         require(G1Operations.isG1Point(hashA, hashB) || true, "Hash not in G1");
 
-        G2Operations.G2Point memory g2 = G2Operations.getG2Generator();
+        IFieldOperations.G2Point memory g2 = G2Operations.getG2Generator();
         require(
             G2Operations.isG2(publicKey),
             "Public Key not in G2"

@@ -22,31 +22,37 @@
 pragma solidity 0.8.6;
 
 import "@openzeppelin/contracts-upgradeable/access/AccessControlEnumerableUpgradeable.sol";
+import "@skalenetwork/ima-interfaces/schain/IKeyStorage.sol";
 
 import "./bls/FieldOperations.sol";
 
 
-contract KeyStorage is AccessControlEnumerableUpgradeable {
+interface IKeyStorageInitializable is IKeyStorage {
+    function initialize() external;
+}
+
+
+contract KeyStorage is AccessControlEnumerableUpgradeable, IKeyStorageInitializable {
 
     uint256 public constant FREE_MEM_PTR = 0x40;
     uint256 public constant FN_NUM_GET_CONFIG_VARIABLE_UINT256 = 0x13;
 
     function initialize()
         external
-        virtual
+        override
         initializer
     {
         AccessControlEnumerableUpgradeable.__AccessControlEnumerable_init();
         _setupRole(DEFAULT_ADMIN_ROLE, msg.sender);
     }
 
-    function getBlsCommonPublicKey() external view virtual returns (G2Operations.G2Point memory) {
-        return G2Operations.G2Point({
-            x: Fp2Operations.Fp2Point({
+    function getBlsCommonPublicKey() external view override virtual returns (IFieldOperations.G2Point memory) {
+        return IFieldOperations.G2Point({
+            x: IFieldOperations.Fp2Point({
                 a: _getConfigVariableUint256("skaleConfig.nodeInfo.wallets.ima.commonBLSPublicKey0"),
                 b: _getConfigVariableUint256("skaleConfig.nodeInfo.wallets.ima.commonBLSPublicKey1")
             }),
-            y: Fp2Operations.Fp2Point({
+            y: IFieldOperations.Fp2Point({
                 a: _getConfigVariableUint256("skaleConfig.nodeInfo.wallets.ima.commonBLSPublicKey2"),
                 b: _getConfigVariableUint256("skaleConfig.nodeInfo.wallets.ima.commonBLSPublicKey3")
             })

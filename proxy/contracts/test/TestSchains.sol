@@ -57,13 +57,13 @@ contract Schains is ISchainsTester {
         returns (bool)
     {
         SkaleVerifierMock skaleVerifier = SkaleVerifierMock(contractManager.getContract("SkaleVerifier"));
-        G2Operations.G2Point memory publicKey = KeyStorageMock(
+        IFieldOperations.G2Point memory publicKey = KeyStorageMock(
             contractManager.getContract("KeyStorage")
         ).getBlsCommonPublicKeyForSchain(
             keccak256(abi.encodePacked(schainName))
         );
         return skaleVerifier.verify(
-            Fp2Operations.Fp2Point({
+            IFieldOperations.Fp2Point({
                 a: signatureA,
                 b: signatureB
             }),

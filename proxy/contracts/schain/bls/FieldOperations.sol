@@ -22,28 +22,44 @@
 
 pragma solidity 0.8.6;
 
+import "@skalenetwork/ima-interfaces/schain/bls/IFieldOperations.sol";
+
 import "./Precompiled.sol";
 
 
 library Fp2Operations {
 
-    struct Fp2Point {
-        uint a;
-        uint b;
-    }
-
     uint constant public P = 21888242871839275222246405745257275088696311157297823662689037894645226208583;
 
-    function addFp2(Fp2Point memory value1, Fp2Point memory value2) internal pure returns (Fp2Point memory) {
-        return Fp2Point({ a: addmod(value1.a, value2.a, P), b: addmod(value1.b, value2.b, P) });
+    function addFp2(
+        IFieldOperations.Fp2Point memory value1,
+        IFieldOperations.Fp2Point memory value2
+    )
+        internal
+        pure
+        returns (IFieldOperations.Fp2Point memory)
+    {
+        return IFieldOperations.Fp2Point({ a: addmod(value1.a, value2.a, P), b: addmod(value1.b, value2.b, P) });
     }
 
-    function scalarMulFp2(Fp2Point memory value, uint scalar) internal pure returns (Fp2Point memory) {
-        return Fp2Point({ a: mulmod(scalar, value.a, P), b: mulmod(scalar, value.b, P) });
+    function scalarMulFp2(
+        IFieldOperations.Fp2Point memory value,
+        uint scalar
+    )
+        internal
+        pure
+        returns (IFieldOperations.Fp2Point memory)
+    {
+        return IFieldOperations.Fp2Point({ a: mulmod(scalar, value.a, P), b: mulmod(scalar, value.b, P) });
     }
 
-    function minusFp2(Fp2Point memory diminished, Fp2Point memory subtracted) internal pure
-        returns (Fp2Point memory difference)
+    function minusFp2(
+        IFieldOperations.Fp2Point memory diminished,
+        IFieldOperations.Fp2Point memory subtracted
+    )
+        internal
+        pure
+        returns (IFieldOperations.Fp2Point memory difference)
     {
         uint p = P;
         if (diminished.a >= subtracted.a) {
@@ -59,15 +75,15 @@ library Fp2Operations {
     }
 
     function mulFp2(
-        Fp2Point memory value1,
-        Fp2Point memory value2
+        IFieldOperations.Fp2Point memory value1,
+        IFieldOperations.Fp2Point memory value2
     )
         internal
         pure
-        returns (Fp2Point memory result)
+        returns (IFieldOperations.Fp2Point memory result)
     {
         uint p = P;
-        Fp2Point memory point = Fp2Point({
+        IFieldOperations.Fp2Point memory point = IFieldOperations.Fp2Point({
             a: mulmod(value1.a, value2.a, p),
             b: mulmod(value1.b, value2.b, p)});
         result.a = addmod(
@@ -83,16 +99,22 @@ library Fp2Operations {
             p);
     }
 
-    function squaredFp2(Fp2Point memory value) internal pure returns (Fp2Point memory) {
+    function squaredFp2(
+        IFieldOperations.Fp2Point memory value
+    )
+        internal
+        pure
+        returns (IFieldOperations.Fp2Point memory)
+    {
         uint p = P;
         uint ab = mulmod(value.a, value.b, p);
         uint mult = mulmod(addmod(value.a, value.b, p), addmod(value.a, mulmod(p - 1, value.b, p), p), p);
-        return Fp2Point({ a: mult, b: addmod(ab, ab, p) });
+        return IFieldOperations.Fp2Point({ a: mult, b: addmod(ab, ab, p) });
     }
 
     function isEqual(
-        Fp2Point memory value1,
-        Fp2Point memory value2
+        IFieldOperations.Fp2Point memory value1,
+        IFieldOperations.Fp2Point memory value2
     )
         internal
         pure
@@ -103,12 +125,12 @@ library Fp2Operations {
 }
 
 library G1Operations {
-    using Fp2Operations for Fp2Operations.Fp2Point;
+    using Fp2Operations for IFieldOperations.Fp2Point;
 
-    function getG1Generator() internal pure returns (Fp2Operations.Fp2Point memory) {
+    function getG1Generator() internal pure returns (IFieldOperations.Fp2Point memory) {
         // Current solidity version does not support Constants of non-value type
         // so we implemented this function
-        return Fp2Operations.Fp2Point({
+        return IFieldOperations.Fp2Point({
             a: 1,
             b: 2
         });
@@ -120,11 +142,11 @@ library G1Operations {
             addmod(mulmod(mulmod(x, x, p), x, p), 3, p);
     }
 
-    function isG1(Fp2Operations.Fp2Point memory point) internal pure returns (bool) {
+    function isG1(IFieldOperations.Fp2Point memory point) internal pure returns (bool) {
         return isG1Point(point.a, point.b);
     }
 
-    function checkRange(Fp2Operations.Fp2Point memory point) internal pure returns (bool) {
+    function checkRange(IFieldOperations.Fp2Point memory point) internal pure returns (bool) {
         return point.a < Fp2Operations.P && point.b < Fp2Operations.P;
     }
 
@@ -136,70 +158,72 @@ library G1Operations {
 
 
 library G2Operations {
-    using Fp2Operations for Fp2Operations.Fp2Point;
+    using Fp2Operations for IFieldOperations.Fp2Point;
 
-    struct G2Point {
-        Fp2Operations.Fp2Point x;
-        Fp2Operations.Fp2Point y;
-    }
-
-    function getTWISTB() internal pure returns (Fp2Operations.Fp2Point memory) {
+    function getTWISTB() internal pure returns (IFieldOperations.Fp2Point memory) {
         // Current solidity version does not support Constants of non-value type
         // so we implemented this function
-        return Fp2Operations.Fp2Point({
+        return IFieldOperations.Fp2Point({
             a: 19485874751759354771024239261021720505790618469301721065564631296452457478373,
             b: 266929791119991161246907387137283842545076965332900288569378510910307636690
         });
     }
 
-    function getG2Generator() internal pure returns (G2Point memory) {
+    function getG2Generator() internal pure returns (IFieldOperations.G2Point memory) {
         // Current solidity version does not support Constants of non-value type
         // so we implemented this function
-        return G2Point({
-            x: Fp2Operations.Fp2Point({
+        return IFieldOperations.G2Point({
+            x: IFieldOperations.Fp2Point({
                 a: 10857046999023057135944570762232829481370756359578518086990519993285655852781,
                 b: 11559732032986387107991004021392285783925812861821192530917403151452391805634
             }),
-            y: Fp2Operations.Fp2Point({
+            y: IFieldOperations.Fp2Point({
                 a: 8495653923123431417604973247489272438418190587263600148770280649306958101930,
                 b: 4082367875863433681332203403145435568316851327593401208105741076214120093531
             })
         });
     }
 
-    function getG2Zero() internal pure returns (G2Point memory) {
+    function getG2Zero() internal pure returns (IFieldOperations.G2Point memory) {
         // Current solidity version does not support Constants of non-value type
         // so we implemented this function
-        return G2Point({
-            x: Fp2Operations.Fp2Point({
+        return IFieldOperations.G2Point({
+            x: IFieldOperations.Fp2Point({
                 a: 0,
                 b: 0
             }),
-            y: Fp2Operations.Fp2Point({
+            y: IFieldOperations.Fp2Point({
                 a: 1,
                 b: 0
             })
         });
     }
 
-    function isG2Point(Fp2Operations.Fp2Point memory x, Fp2Operations.Fp2Point memory y) internal pure returns (bool) {
+    function isG2Point(
+        IFieldOperations.Fp2Point memory x,
+        IFieldOperations.Fp2Point memory y
+    )
+        internal
+        pure
+        returns (bool)
+    {
         if (isG2ZeroPoint(x, y)) {
             return true;
         }
-        Fp2Operations.Fp2Point memory squaredY = y.squaredFp2();
-        Fp2Operations.Fp2Point memory res = squaredY.minusFp2(
+        IFieldOperations.Fp2Point memory squaredY = y.squaredFp2();
+        IFieldOperations.Fp2Point memory res = squaredY.minusFp2(
                 x.squaredFp2().mulFp2(x)
             ).minusFp2(getTWISTB());
         return res.a == 0 && res.b == 0;
     }
 
-    function isG2(G2Point memory value) internal pure returns (bool) {
+    function isG2(IFieldOperations.G2Point memory value) internal pure returns (bool) {
         return isG2Point(value.x, value.y);
     }
 
     function isG2ZeroPoint(
-        Fp2Operations.Fp2Point memory x,
-        Fp2Operations.Fp2Point memory y
+        IFieldOperations.Fp2Point memory x,
+        IFieldOperations.Fp2Point memory y
     )
         internal
         pure
@@ -208,13 +232,13 @@ library G2Operations {
         return x.a == 0 && x.b == 0 && y.a == 1 && y.b == 0;
     }
 
-    function isG2Zero(G2Point memory value) internal pure returns (bool) {
+    function isG2Zero(IFieldOperations.G2Point memory value) internal pure returns (bool) {
         return value.x.a == 0 && value.x.b == 0 && value.y.a == 1 && value.y.b == 0;
     }
 
     function isEqual(
-        G2Point memory value1,
-        G2Point memory value2
+        IFieldOperations.G2Point memory value1,
+        IFieldOperations.G2Point memory value2
     )
         internal
         pure
