@@ -1,0 +1,29 @@
+[[section-design-decisions]]
+== Design Decisions
+
+=== Problem Background
+
+As a central requirement IMA must work as relible and highly secure bridge between Ethereum blockchains such as Main Net and S-Chain.
+
+=== Influences on the Decision
+
+- Security constraints
+- No stable network connection guarantee
+- Problem with covering message transfer expenses
+
+=== Assumptions
+
+As a result of long time investigation, the following implementation designs were chosen:
+
+- IMA is two sets of smart contracts maintaining sequentially numbered messages
+- Only standard Ethereum JSON RPC is used used to contact blockchains
+- BLS signatures are used to assume transferred message is secure
+- IMA must maintain reimbursement wallet to conver message transfer expenses
+
+=== Considered Alternatives
+
+There are no arbitrary asset transfer systems and Ethereum bridges known as alternatives. Other bridges ether require human attention to add support for new tokens or locked by transfer restrictions and do not allow to operate arbitrary assets.
+
+=== Decision
+
+Under the given constraints and desision influences the quality goals can generally be achieved for all the listed above assumptions.
