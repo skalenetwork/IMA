@@ -1,0 +1,186 @@
+[[section-deployment-view]]
+
+
+== Deployment View
+
+.Deployment View
+
+[plantuml]
+....
+@startuml
+
+cloud "Main Net (level 1)" {
+    rectangle IMA_Main_Net
+}
+
+cloud "S-Chain (level 2)" {
+    component "Hosted Node 1" {
+        component "SKALED\ncontainer 1" {
+            rectangle SKALED_1
+            rectangle IMA_S_Chain_1
+        }
+        component "IMA Agent\ncontainer 1" {
+            rectangle IMA_Agent_1
+        }
+        component "Transaction Manager\ncontainer 1" {
+            rectangle TM_1
+        }
+    }
+
+    component "Hosted Node 2" {
+        component "SKALED\ncontainer 2" {
+            rectangle SKALED_2
+            rectangle IMA_S_Chain_2
+        }
+        component "IMA Agent\ncontainer 2" {
+            rectangle IMA_Agent_2
+        }
+        component "Transaction Manager\ncontainer 2" {
+            rectangle TM_2
+        }
+    }
+
+    component "Hosted Node N" {
+        component "SKALED\ncontainer N" {
+            rectangle SKALED_N
+            rectangle IMA_S_Chain_N
+        }
+        component "IMA Agent\ncontainer N" {
+            rectangle IMA_Agent_N
+        }
+        component "Transaction Manager\ncontainer N" {
+            rectangle TM_N
+        }
+    }
+
+    rectangle SGX_1
+    rectangle SGX_2
+    rectangle SGX_N
+}
+
+IMA_Main_Net <--> IMA_Agent_1 : Contract call
+IMA_Main_Net <--> IMA_Agent_2 : Contract call
+IMA_Main_Net <--> IMA_Agent_N : Contract call
+
+IMA_Agent_1 <-> SKALED_1 : RPC
+IMA_Agent_2 <-> SKALED_2 : RPC
+IMA_Agent_N <-> SKALED_N : RPC
+
+IMA_Agent_1 <-> IMA_S_Chain_1 : Contract call
+IMA_Agent_2 <-> IMA_S_Chain_2 : Contract call
+IMA_Agent_N <-> IMA_S_Chain_N : Contract call
+
+IMA_Main_Net <--> SKALED_1 : RPC
+IMA_Main_Net <--> SKALED_2 : RPC
+IMA_Main_Net <--> SKALED_N : RPC
+
+SKALED_1 ..> IMA_S_Chain_1 : Pre-deployed
+SKALED_2 ..> IMA_S_Chain_2 : Pre-deployed
+SKALED_N ..> IMA_S_Chain_N : Pre-deployed
+
+SKALED_1 <--> TM_1 : RPC
+SKALED_2 <--> TM_2 : RPC
+SKALED_N <--> TM_N : RPC
+
+TM_1 <...> SGX_1 : RPC
+TM_2 <...> SGX_2 : RPC
+TM_N <...> SGX_N : RPC
+
+@enduml
+....
+
+[%header, cols="1,6"]
+|===
+| Participant
+| Description
+
+| IMA Main Net
+| Smart contracts implementing Main Net part of IMA
+
+| IMA S-Chain
+| Pre-deployed smart contracts implementing S-Chain part of IMA
+
+| IMA Agent
+| Node JS app connecting Main Net and S-Chain parts of IMA
+
+| SKALED
+| S-Chain node
+
+| Transaction Manager
+| Component which signgs transactions via call to SGX Wallet and taking care about nonce values and query concurrency automatically
+
+| SGX
+| SGX Wallet
+
+|===
+
+=== Infrastructure Level 1
+
+Main Net part of IMA is a set of samrt contracts deployed and initialize before any S-Chain is created.
+
+
+Quality and/or Performance Features::
+
+* BLS common public keys
+* Correctness of smart contract implementation
+* Optimized costs of smart contract calls
+
+=== Infrastructure Level 2
+
+_SGXWallet docker container has number of binaries inside it that are used by main application to sign ssl certificates, run secure encalve functions, enable SGX module etc._
+
+
+==== _<Infrastructure Element 1>_
+
+_<diagram + explanation>._
+
+_sgxwallet - docker container application entrypoint, initializes secure enclave and starts all servers._
+
+==== _<Infrastructure Element 2>_
+
+_<diagram + explanation>_
+
+_secure_enclave/secure_enclave.so - enclave itself, loaded into application in sgxwallet code._
+
+==== _<Infrastructure Element 3>_
+
+_<diagram + explanation>_
+
+_sgx_util - utility tool used for getting information from leveldb through the SGXInfoServer( dump all keys, get key's timestamp, get latest created key, get all signed certificates, get flags sgxwallet running with ), NOT USED IN CODE._
+
+==== _<Infrastructure Element 4>_
+
+_<diagram + explanation>_
+
+_sgx_enable - binary provided by Intel to enable sgx, NOT USED IN CODE._
+
+==== _<Infrastructure Element 5>_
+
+_<diagram + explanation>_
+
+_scripts/sgx_linux_driver, scripts/sgx_linux_sdk - binaries to install in system to start developing sgxwallet in HW mode (real mode, not simulation)._
+
+==== _<Infrastructure Element 6>_
+
+_<diagram + explanation>_
+
+_cert/verify_client_cert - verifies incoming client certificate, USED IN CODE._
+
+==== _<Infrastructure Element 7>_
+
+_<diagram + explanation>_
+
+_cert/create_client_cert - creates client certificate based on csr incoming from a node, USED IN CODE._
+
+==== _<Infrastructure Element 8>_
+
+_<diagram + explanation>_
+
+_cert/create_CA - creates certificate authority for sgxwallet server, USED IN CODE._
+
+==== _<Infrastructure Element 9>_
+
+_<diagram + explanation>_
+
+_cert/create_server_cert - creates server certificate for sgxwallet server, USED IN CODE._
+
