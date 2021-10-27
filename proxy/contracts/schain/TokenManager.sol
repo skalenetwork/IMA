@@ -21,6 +21,8 @@
 
 pragma solidity 0.8.6;
 
+import "@skalenetwork/ima-interfaces/schain/ITokenManager.sol";
+
 import "./MessageProxyForSchain.sol";
 import "./TokenManagerLinker.sol";
 import "./CommunityLocker.sol";
@@ -33,7 +35,7 @@ import "./CommunityLocker.sol";
  * LockAndDataForSchain*. When a user exits a SKALE chain, TokenFactory
  * burns tokens.
  */
-abstract contract TokenManager is AccessControlEnumerableUpgradeable, IMessageReceiver {
+abstract contract TokenManager is AccessControlEnumerableUpgradeable, ITokenManager {
 
     string constant public MAINNET_NAME = "Mainnet";
     bytes32 constant public MAINNET_HASH = keccak256(abi.encodePacked(MAINNET_NAME));
@@ -98,7 +100,7 @@ abstract contract TokenManager is AccessControlEnumerableUpgradeable, IMessageRe
     /**
      * @dev Allows Schain owner turn on automatic deploy on schain.
      */
-    function enableAutomaticDeploy() external onlyAutomaticDeploy {
+    function enableAutomaticDeploy() external override onlyAutomaticDeploy {
         automaticDeploy = true;
     }
 
@@ -120,7 +122,7 @@ abstract contract TokenManager is AccessControlEnumerableUpgradeable, IMessageRe
      * - SKALE chain must not already be added.
      * - TokenManager address must be non-zero.
      */
-    function addTokenManager(string calldata schainName, address newTokenManager) external {
+    function addTokenManager(string calldata schainName, address newTokenManager) external override {
         require(
             msg.sender == address(tokenManagerLinker) ||
             hasRole(DEFAULT_ADMIN_ROLE, msg.sender), "Not authorized caller"
@@ -140,7 +142,7 @@ abstract contract TokenManager is AccessControlEnumerableUpgradeable, IMessageRe
      * - `msg.sender` must be schain owner or contract owner
      * - SKALE chain must already be set.
      */
-    function removeTokenManager(string calldata schainName) external {
+    function removeTokenManager(string calldata schainName) external override {
         require(
             msg.sender == address(tokenManagerLinker) ||
             hasRole(DEFAULT_ADMIN_ROLE, msg.sender), "Not authorized caller"
@@ -168,7 +170,7 @@ abstract contract TokenManager is AccessControlEnumerableUpgradeable, IMessageRe
     /**
      * @dev Checks whether TokenManager is connected to a {schainName} SKALE chain TokenManager.
      */
-    function hasTokenManager(string calldata schainName) external view returns (bool) {
+    function hasTokenManager(string calldata schainName) external view override returns (bool) {
         return tokenManagers[keccak256(abi.encodePacked(schainName))] != address(0);
     }
 

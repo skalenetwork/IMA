@@ -23,6 +23,8 @@
 
 pragma solidity 0.8.6;
 
+import "@skalenetwork/ima-interfaces/mainnet/ICommunityPool.sol";
+
 import "../Messages.sol";
 import "./MessageProxyForMainnet.sol";
 import "./Linker.sol";
@@ -31,7 +33,7 @@ import "./Linker.sol";
  * @title CommunityPool
  * @dev Contract contains logic to perform automatic self-recharging ether for nodes
  */
-contract CommunityPool is Twin {
+contract CommunityPool is Twin, ICommunityPool {
 
     using AddressUpgradeable for address payable;
 
@@ -67,6 +69,7 @@ contract CommunityPool is Twin {
         uint gas
     ) 
         external
+        override
         onlyMessageProxy
     {
         require(activeUsers[user][schainHash], "User should be active");
@@ -92,7 +95,7 @@ contract CommunityPool is Twin {
      * - 'msg.sender` should recharge their gas wallet for amount that enough to reimburse any 
      *   transaction from schain to mainnet.
      */
-    function rechargeUserWallet(string calldata schainName, address user) external payable {
+    function rechargeUserWallet(string calldata schainName, address user) external payable override {
         bytes32 schainHash = keccak256(abi.encodePacked(schainName));
         require(
             msg.value + _userWallets[user][schainHash] >= minTransactionGas * tx.gasprice,
@@ -109,7 +112,7 @@ contract CommunityPool is Twin {
         }
     }
 
-    function withdrawFunds(string calldata schainName, uint amount) external {
+    function withdrawFunds(string calldata schainName, uint amount) external override {
         bytes32 schainHash = keccak256(abi.encodePacked(schainName));
         require(amount <= _userWallets[msg.sender][schainHash], "Balance is too low");
         _userWallets[msg.sender][schainHash] = _userWallets[msg.sender][schainHash] - amount;

@@ -22,13 +22,19 @@
 pragma solidity 0.8.6;
 
 import "@openzeppelin/contracts-upgradeable/utils/AddressUpgradeable.sol";
+import "@skalenetwork/ima-interfaces/schain/IMessageProxyForSchain.sol";
 
 import "../MessageProxy.sol";
 import "./bls/SkaleVerifier.sol";
 import "./KeyStorage.sol";
 
 
-contract MessageProxyForSchain is MessageProxy {
+interface IMessageProxyForSchainInitializable is IMessageProxyForSchain {
+    function initialize(KeyStorage blsKeyStorage, string memory schainName) external;
+}
+
+
+contract MessageProxyForSchain is MessageProxy, IMessageProxyForSchainInitializable {
     using AddressUpgradeable for address;
 
     /**
@@ -45,14 +51,6 @@ contract MessageProxyForSchain is MessageProxy {
      * ID of this schain, Chain 0 represents ETH mainnet,
      */
 
-    struct OutgoingMessageData {
-        bytes32 dstChain;
-        uint256 msgCounter;
-        address srcContract;
-        address dstContract;
-        bytes data;
-    }
-
     KeyStorage public keyStorage;
     bytes32 public schainHash;
 
@@ -68,6 +66,7 @@ contract MessageProxyForSchain is MessageProxy {
         address extraContract
     )
         external
+        override
         onlyExtraContractRegistrar
     {
         bytes32 chainHash = keccak256(abi.encodePacked(chainName));
@@ -75,7 +74,14 @@ contract MessageProxyForSchain is MessageProxy {
         _registerExtraContract(chainHash, extraContract);
     }
 
-    function removeExtraContract(string memory chainName, address extraContract) external onlyExtraContractRegistrar {
+    function removeExtraContract(
+        string memory chainName,
+        address extraContract
+    )
+        external
+        override
+        onlyExtraContractRegistrar
+    {
         bytes32 chainHash = keccak256(abi.encodePacked(chainName));
         require(chainHash != schainHash, "Schain hash can not be equal Mainnet");
         _removeExtraContract(chainHash, extraContract);
@@ -120,6 +126,7 @@ contract MessageProxyForSchain is MessageProxy {
     )
         external
         view
+        override
         returns (bool isValidMessage)
     {
         bytes32 messageDataHash = _outgoingMessageDataHash[message.dstChain][message.msgCounter];
@@ -129,6 +136,7 @@ contract MessageProxyForSchain is MessageProxy {
 
     function initialize(KeyStorage blsKeyStorage, string memory schainName)
         public
+        override
         virtual
         initializer
     {
@@ -147,7 +155,13 @@ contract MessageProxyForSchain is MessageProxy {
         // will be added to registryContracts
     }
 
-    function removeConnectedChain(string memory chainName) public override onlyChainConnector {
+    function removeConnectedChain(
+        string memory chainName
+    )
+        public
+        override(IMessageProxy, MessageProxy)
+        onlyChainConnector
+    {
         bytes32 chainHash = keccak256(abi.encodePacked(chainName));
         require(chainHash != MAINNET_HASH, "Mainnet cannot be removed");
         super.removeConnectedChain(chainName);
@@ -160,7 +174,7 @@ contract MessageProxyForSchain is MessageProxy {
         bytes memory data
     )
         public
-        override
+        override(IMessageProxy, MessageProxy)
     {
         super.postOutgoingMessage(targetChainHash, targetContract, data);
 

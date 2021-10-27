@@ -22,17 +22,23 @@
 pragma solidity 0.8.6;
 
 import "@openzeppelin/contracts-upgradeable/access/AccessControlEnumerableUpgradeable.sol";
+import "@skalenetwork/ima-interfaces/schain/ITokenManagerLinker.sol";
 
 import "../Messages.sol";
 import "../MessageProxy.sol";
 import "./TokenManager.sol";
 
 
+interface ITokenManagerLinkerInitializable is ITokenManagerLinker {
+    function initialize(MessageProxy newMessageProxyAddress, address linker) external;
+}
+
+
 /**
  * @title TokenManagerLinker
  * @dev Runs on Schain
  */
-contract TokenManagerLinker is AccessControlEnumerableUpgradeable, IMessageReceiver {
+contract TokenManagerLinker is AccessControlEnumerableUpgradeable, ITokenManagerLinkerInitializable {
 
     string constant public MAINNET_NAME = "Mainnet";
     bytes32 constant public MAINNET_HASH = keccak256(abi.encodePacked(MAINNET_NAME));
@@ -40,7 +46,7 @@ contract TokenManagerLinker is AccessControlEnumerableUpgradeable, IMessageRecei
 
     MessageProxy public messageProxy;
     address public linkerAddress;
-    TokenManager[] public tokenManagers;	
+    ITokenManager[] public tokenManagers;
     bool public interchainConnections;    
 
     event InterchainConnectionAllowed(bool isAllowed);
@@ -52,7 +58,7 @@ contract TokenManagerLinker is AccessControlEnumerableUpgradeable, IMessageRecei
 
     function initialize(MessageProxy newMessageProxyAddress, address linker)
         external
-        virtual
+        override
         initializer
     {
         require(linker != address(0), "Linker address has to be set");
@@ -64,11 +70,11 @@ contract TokenManagerLinker is AccessControlEnumerableUpgradeable, IMessageRecei
 	    linkerAddress = linker;
     }  
 
-    function registerTokenManager(TokenManager newTokenManager) external onlyRegistrar {
+    function registerTokenManager(ITokenManager newTokenManager) external override onlyRegistrar {
         tokenManagers.push(newTokenManager);
     }
 
-    function removeTokenManager(TokenManager tokenManagerAddress) external onlyRegistrar {
+    function removeTokenManager(ITokenManager tokenManagerAddress) external override onlyRegistrar {
         uint index;
         uint length = tokenManagers.length;
         for (index = 0; index < length; index++) {
@@ -89,6 +95,7 @@ contract TokenManagerLinker is AccessControlEnumerableUpgradeable, IMessageRecei
         address[] calldata tokenManagerAddresses
     )
         external
+        override
         onlyRegistrar
     {
         require(interchainConnections, "Interchain connection not allowed");
@@ -123,7 +130,7 @@ contract TokenManagerLinker is AccessControlEnumerableUpgradeable, IMessageRecei
         return address(0);
     }
 
-    function disconnectSchain(string calldata schainName) external onlyRegistrar {
+    function disconnectSchain(string calldata schainName) external override onlyRegistrar {
         uint length = tokenManagers.length;
         for (uint i = 0; i < length; i++) {
             tokenManagers[i].removeTokenManager(schainName);
@@ -131,7 +138,7 @@ contract TokenManagerLinker is AccessControlEnumerableUpgradeable, IMessageRecei
         messageProxy.removeConnectedChain(schainName);
     }
 
-    function hasTokenManager(TokenManager tokenManager) external view returns (bool) {
+    function hasTokenManager(ITokenManager tokenManager) external view override returns (bool) {
         uint index;
         uint length = tokenManagers.length;
         for (index = 0; index < length; index++) {
@@ -142,7 +149,7 @@ contract TokenManagerLinker is AccessControlEnumerableUpgradeable, IMessageRecei
         return false;
     }
 
-    function hasSchain(string calldata schainName) external view returns (bool connected) {
+    function hasSchain(string calldata schainName) external view override returns (bool connected) {
         uint length = tokenManagers.length;
         connected = true;
         for (uint i = 0; i < length; i++) {

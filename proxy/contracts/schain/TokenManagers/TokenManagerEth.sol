@@ -21,9 +21,22 @@
 
 pragma solidity 0.8.6;
 
+import "@skalenetwork/ima-interfaces/schain/TokenManagers/ITokenManagerEth.sol";
+
 import "../../Messages.sol";
-import "../tokens/EthErc20.sol";
 import "../TokenManager.sol";
+
+
+interface ITokenManagerEthInitializable is ITokenManagerEth {
+    function initialize(
+        string memory newChainName,
+        MessageProxyForSchain newMessageProxy,
+        TokenManagerLinker newIMALinker,
+        CommunityLocker newCommunityLocker,
+        address newDepositBox,
+        IEthErc20 ethErc20Address
+    ) external;
+}
 
 
 /**
@@ -38,13 +51,13 @@ import "../TokenManager.sol";
  * LockAndDataForSchain*. When a user exits a SKALE chain, TokenFactory
  * burns tokens.
  */
-contract TokenManagerEth is TokenManager {
+contract TokenManagerEth is TokenManager, ITokenManagerEthInitializable {
 
-    EthErc20 public ethErc20;
+    IEthErc20 public ethErc20;
 
     /// Create a new token manager    
 
-    function setEthErc20Address(EthErc20 newEthErc20Address) external {
+    function setEthErc20Address(IEthErc20 newEthErc20Address) external override {
         require(hasRole(DEFAULT_ADMIN_ROLE, msg.sender), "Not authorized caller");
         require(ethErc20 != newEthErc20Address, "Must be new address");
         ethErc20 = newEthErc20Address;
@@ -53,7 +66,7 @@ contract TokenManagerEth is TokenManager {
     /**
      * @dev Performs an exit (post outgoing message) to Mainnet.
      */
-    function exitToMain(uint256 amount) external {
+    function exitToMain(uint256 amount) external override {
         communityLocker.checkAllowedToSendMessage(msg.sender);
         _exit(MAINNET_HASH, depositBox, msg.sender, amount);
     }
@@ -63,6 +76,7 @@ contract TokenManagerEth is TokenManager {
         uint256 amount
     )
         external
+        override
         rightTransaction(targetSchainName, msg.sender)
     {
         bytes32 targetSchainHash = keccak256(abi.encodePacked(targetSchainName));
@@ -104,10 +118,10 @@ contract TokenManagerEth is TokenManager {
         TokenManagerLinker newIMALinker,
         CommunityLocker newCommunityLocker,
         address newDepositBox,
-        EthErc20 ethErc20Address
+        IEthErc20 ethErc20Address
     )
         external
-        virtual
+        override
         initializer
     {
         TokenManager.initializeTokenManager(

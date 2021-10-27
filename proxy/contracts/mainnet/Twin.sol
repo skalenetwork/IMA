@@ -23,11 +23,13 @@
 
 pragma solidity 0.8.6;
 
+import "@skalenetwork/ima-interfaces/mainnet/ITwin.sol";
+
 import "./MessageProxyForMainnet.sol";
 import "./SkaleManagerClient.sol";
 
 
-abstract contract Twin is SkaleManagerClient {
+abstract contract Twin is SkaleManagerClient, ITwin {
 
     MessageProxyForMainnet public messageProxy;
     mapping(bytes32 => address) public schainLinks;
@@ -48,7 +50,7 @@ abstract contract Twin is SkaleManagerClient {
      * - SKALE chain must not already be added.
      * - Address of contract on schain must be non-zero.
      */
-    function addSchainContract(string calldata schainName, address contractReceiver) external {
+    function addSchainContract(string calldata schainName, address contractReceiver) external override {
         bytes32 schainHash = keccak256(abi.encodePacked(schainName));
         require(
             hasRole(LINKER_ROLE, msg.sender) ||
@@ -67,7 +69,7 @@ abstract contract Twin is SkaleManagerClient {
      * - `msg.sender` must be schain owner or has required role
      * - SKALE chain must already be set.
      */
-    function removeSchainContract(string calldata schainName) external {
+    function removeSchainContract(string calldata schainName) external override {
         bytes32 schainHash = keccak256(abi.encodePacked(schainName));
         require(
             hasRole(LINKER_ROLE, msg.sender) ||
@@ -77,7 +79,7 @@ abstract contract Twin is SkaleManagerClient {
         delete schainLinks[schainHash];
     }
 
-    function hasSchainContract(string calldata schainName) external view returns (bool) {
+    function hasSchainContract(string calldata schainName) external view override returns (bool) {
         return schainLinks[keccak256(abi.encodePacked(schainName))] != address(0);
     }
     

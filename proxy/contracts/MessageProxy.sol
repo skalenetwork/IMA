@@ -23,10 +23,11 @@ pragma solidity 0.8.6;
 
 import "@openzeppelin/contracts-upgradeable/access/AccessControlEnumerableUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/utils/AddressUpgradeable.sol";
+import "@skalenetwork/ima-interfaces/IMessageProxy.sol";
 import "@skalenetwork/ima-interfaces/IMessageReceiver.sol";
 
 
-abstract contract MessageProxy is AccessControlEnumerableUpgradeable {
+abstract contract MessageProxy is AccessControlEnumerableUpgradeable, IMessageProxy {
     using AddressUpgradeable for address;
 
     struct ConnectedChainInfo {
@@ -34,19 +35,6 @@ abstract contract MessageProxy is AccessControlEnumerableUpgradeable {
         uint256 incomingMessageCounter;
         uint256 outgoingMessageCounter;
         bool inited;
-    }
-
-    struct Message {
-        address sender;
-        address destinationContract;
-        bytes data;
-    }
-
-    struct Signature {
-        uint256[2] blsSignature;
-        uint256 hashA;
-        uint256 hashB;
-        uint256 counter;
     }
 
     bytes32 public constant MAINNET_HASH = keccak256(abi.encodePacked("Mainnet"));
@@ -99,44 +87,24 @@ abstract contract MessageProxy is AccessControlEnumerableUpgradeable {
     }
 
     /**
-     * @dev Allows LockAndData to add a `schainName`.
-     * 
-     * Requirements:
-     * 
-     * - `msg.sender` must be SKALE Node address.
-     * - `schainName` must not be "Mainnet".
-     * - `schainName` must not already be added.
-     */
-    function addConnectedChain(string calldata schainName) external virtual;
-
-    function postIncomingMessages(
-        string calldata fromSchainName,
-        uint256 startingCounter,
-        Message[] calldata messages,
-        Signature calldata sign
-    )
-        external
-        virtual;
-
-    /**
      * @dev Sets gasLimit to a new value
      * 
      * Requirements:
      * 
      * - `msg.sender` must be granted CONSTANT_SETTER_ROLE.
      */
-    function setNewGasLimit(uint256 newGasLimit) external onlyConstantSetter {
+    function setNewGasLimit(uint256 newGasLimit) external override onlyConstantSetter {
         emit GasLimitWasChanged(gasLimit, newGasLimit);
         gasLimit = newGasLimit;
     }
 
-    function registerExtraContractForAll(address extraContract) external onlyExtraContractRegistrar {
+    function registerExtraContractForAll(address extraContract) external override onlyExtraContractRegistrar {
         require(extraContract.isContract(), "Given address is not a contract");
         require(!registryContracts[bytes32(0)][extraContract], "Extra contract is already registered");
         registryContracts[bytes32(0)][extraContract] = true;
     }
 
-    function removeExtraContractForAll(address extraContract) external onlyExtraContractRegistrar {
+    function removeExtraContractForAll(address extraContract) external override onlyExtraContractRegistrar {
         require(registryContracts[bytes32(0)][extraContract], "Extra contract is not registered");
         delete registryContracts[bytes32(0)][extraContract];
     }
@@ -151,6 +119,7 @@ abstract contract MessageProxy is AccessControlEnumerableUpgradeable {
     )
         external
         view
+        override 
         returns (bool)
     {
         return registryContracts[keccak256(abi.encodePacked(schainName))][contractAddress] ||
@@ -167,6 +136,7 @@ abstract contract MessageProxy is AccessControlEnumerableUpgradeable {
     function getOutgoingMessagesCounter(string calldata targetSchainName)
         external
         view
+        override
         returns (uint256)
     {
         bytes32 dstChainHash = keccak256(abi.encodePacked(targetSchainName));
@@ -184,6 +154,7 @@ abstract contract MessageProxy is AccessControlEnumerableUpgradeable {
     function getIncomingMessagesCounter(string calldata fromSchainName)
         external
         view
+        override
         returns (uint256)
     {
         bytes32 srcChainHash = keccak256(abi.encodePacked(fromSchainName));
@@ -208,7 +179,7 @@ abstract contract MessageProxy is AccessControlEnumerableUpgradeable {
      * - `msg.sender` must be LockAndData contract.
      * - `schainName` must be initialized.
      */
-    function removeConnectedChain(string memory schainName) public virtual onlyChainConnector {
+    function removeConnectedChain(string memory schainName) public virtual override onlyChainConnector {
         bytes32 schainHash = keccak256(abi.encodePacked(schainName));
         require(connectedChains[schainHash].inited, "Chain is not initialized");
         delete connectedChains[schainHash];
@@ -229,6 +200,7 @@ abstract contract MessageProxy is AccessControlEnumerableUpgradeable {
     )
         public
         virtual
+        override
     {
         require(connectedChains[targetChainHash].inited, "Destination chain is not initialized");
         require(
@@ -255,6 +227,7 @@ abstract contract MessageProxy is AccessControlEnumerableUpgradeable {
         public
         view
         virtual
+        override
         returns (bool)
     {
         return connectedChains[keccak256(abi.encodePacked(schainName))].inited;

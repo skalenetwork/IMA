@@ -23,10 +23,22 @@ pragma solidity 0.8.6;
 
 import "@openzeppelin/contracts-upgradeable/token/ERC1155/IERC1155Upgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/utils/AddressUpgradeable.sol";
+import "@skalenetwork/ima-interfaces/schain/TokenManagers/ITokenManagerERC1155.sol";
 
 import "../../Messages.sol";
 import "../tokens/ERC1155OnChain.sol";
 import "../TokenManager.sol";
+
+
+interface ITokenManagerERC1155Initializable is ITokenManagerERC1155 {
+    function initialize(
+        string memory newChainName,
+        MessageProxyForSchain newMessageProxy,
+        TokenManagerLinker newIMALinker,
+        CommunityLocker newCommunityLocker,
+        address newDepositBox
+    ) external;
+}
 
 
 /**
@@ -36,7 +48,7 @@ import "../TokenManager.sol";
  * LockAndDataForSchain*. When a user exits a SKALE chain, TokenFactory
  * burns tokens.
  */
-contract TokenManagerERC1155 is TokenManager {
+contract TokenManagerERC1155 is TokenManager, ITokenManagerERC1155Initializable {
     using AddressUpgradeable for address;
 
     // address of ERC1155 on Mainnet => ERC1155 on Schain
@@ -65,6 +77,7 @@ contract TokenManagerERC1155 is TokenManager {
         uint256 amount
     )
         external
+        override
     {
         communityLocker.checkAllowedToSendMessage(msg.sender);
         _exit(MAINNET_HASH, depositBox, contractOnMainnet, msg.sender, id, amount);
@@ -76,6 +89,7 @@ contract TokenManagerERC1155 is TokenManager {
         uint256[] memory amounts
     )
         external
+        override
     {
         communityLocker.checkAllowedToSendMessage(msg.sender);
         _exitBatch(MAINNET_HASH, depositBox, contractOnMainnet, msg.sender, ids, amounts);
@@ -88,6 +102,7 @@ contract TokenManagerERC1155 is TokenManager {
         uint256 amount
     ) 
         external
+        override
         rightTransaction(targetSchainName, msg.sender)
     {
         bytes32 targetSchainHash = keccak256(abi.encodePacked(targetSchainName));
@@ -101,6 +116,7 @@ contract TokenManagerERC1155 is TokenManager {
         uint256[] memory amounts
     ) 
         external
+        override
         rightTransaction(targetSchainName, msg.sender)
     {
         bytes32 targetSchainHash = keccak256(abi.encodePacked(targetSchainName));
@@ -152,17 +168,18 @@ contract TokenManagerERC1155 is TokenManager {
      */
     function addERC1155TokenByOwner(
         address erc1155OnMainnet,
-        ERC1155OnChain erc1155OnSchain
+        address erc1155OnSchain
     )
         external
+        override
         onlyTokenRegistrar
     {
-        require(address(erc1155OnSchain).isContract(), "Given address is not a contract");
+        require(erc1155OnSchain.isContract(), "Given address is not a contract");
         require(address(clonesErc1155[erc1155OnMainnet]) == address(0), "Could not relink clone");
-        require(!addedClones[erc1155OnSchain], "Clone was already added");
-        clonesErc1155[erc1155OnMainnet] = erc1155OnSchain;
-        addedClones[erc1155OnSchain] = true;
-        emit ERC1155TokenAdded(erc1155OnMainnet, address(erc1155OnSchain));
+        require(!addedClones[ERC1155OnChain(erc1155OnSchain)], "Clone was already added");
+        clonesErc1155[erc1155OnMainnet] = ERC1155OnChain(erc1155OnSchain);
+        addedClones[ERC1155OnChain(erc1155OnSchain)] = true;
+        emit ERC1155TokenAdded(erc1155OnMainnet, erc1155OnSchain);
     }
 
     function initialize(
@@ -173,6 +190,7 @@ contract TokenManagerERC1155 is TokenManager {
         address newDepositBox
     )
         external
+        override
         initializer
     {
         TokenManager.initializeTokenManager(
@@ -278,7 +296,7 @@ contract TokenManagerERC1155 is TokenManager {
         require(address(contractOnSchain).isContract(), "No token clone on schain");
         require(contractOnSchain.isApprovedForAll(msg.sender, address(this)), "Not allowed ERC1155 Token");
         contractOnSchain.burn(msg.sender, id, amount);
-        bytes memory data = Messages.encodeTransferErc1155Message(contractOnMainnet, to, id, amount);        
+        bytes memory data = Messages.encodeTransferErc1155Message(contractOnMainnet, to, id, amount);
         messageProxy.postOutgoingMessage(chainHash, messageReceiver, data);
     }
 
