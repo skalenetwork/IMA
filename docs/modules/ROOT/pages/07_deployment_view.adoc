@@ -118,7 +118,6 @@ TM_N <...> SGX_N : RPC
 
 Main Net part of IMA is a set of samrt contracts deployed and initialize before any S-Chain is created.
 
-
 Quality and/or Performance Features::
 
 * BLS common public keys
@@ -127,60 +126,14 @@ Quality and/or Performance Features::
 
 === Infrastructure Level 2
 
-_SGXWallet docker container has number of binaries inside it that are used by main application to sign ssl certificates, run secure encalve functions, enable SGX module etc._
+S-Chain part of IMA consists of IMA smart contracts, IMA Agent application, message verification and signing algorithms implemented as part of SKALED and contacting SGX Wallet through Transaction Manager.
 
+Quality and/or Performance Features::
 
-==== _<Infrastructure Element 1>_
+* JSON RPC performance of SKALED
+* Correctness of smart contract implementation
+* Correctness of message fetching and grouping
+* Message search performance for Main Net logs
+* BLS signature and glue correctness and performance
 
-_<diagram + explanation>._
-
-_sgxwallet - docker container application entrypoint, initializes secure enclave and starts all servers._
-
-==== _<Infrastructure Element 2>_
-
-_<diagram + explanation>_
-
-_secure_enclave/secure_enclave.so - enclave itself, loaded into application in sgxwallet code._
-
-==== _<Infrastructure Element 3>_
-
-_<diagram + explanation>_
-
-_sgx_util - utility tool used for getting information from leveldb through the SGXInfoServer( dump all keys, get key's timestamp, get latest created key, get all signed certificates, get flags sgxwallet running with ), NOT USED IN CODE._
-
-==== _<Infrastructure Element 4>_
-
-_<diagram + explanation>_
-
-_sgx_enable - binary provided by Intel to enable sgx, NOT USED IN CODE._
-
-==== _<Infrastructure Element 5>_
-
-_<diagram + explanation>_
-
-_scripts/sgx_linux_driver, scripts/sgx_linux_sdk - binaries to install in system to start developing sgxwallet in HW mode (real mode, not simulation)._
-
-==== _<Infrastructure Element 6>_
-
-_<diagram + explanation>_
-
-_cert/verify_client_cert - verifies incoming client certificate, USED IN CODE._
-
-==== _<Infrastructure Element 7>_
-
-_<diagram + explanation>_
-
-_cert/create_client_cert - creates client certificate based on csr incoming from a node, USED IN CODE._
-
-==== _<Infrastructure Element 8>_
-
-_<diagram + explanation>_
-
-_cert/create_CA - creates certificate authority for sgxwallet server, USED IN CODE._
-
-==== _<Infrastructure Element 9>_
-
-_<diagram + explanation>_
-
-_cert/create_server_cert - creates server certificate for sgxwallet server, USED IN CODE._
 
