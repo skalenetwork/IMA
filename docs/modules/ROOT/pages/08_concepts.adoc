@@ -1,0 +1,32 @@
+[[section-concepts]]
+== Cross-cutting Concepts
+
+IMA is data transfer system with accent to data protection, sequrity and stability.
+
+=== Message numbering
+
+Each IMA message has uniqnue and growing number called `nonce`. Main Net to S-Chain transfer direction maintans its own `nonce` sequence independently from opposite transfer direction. The `outgoing message counter` on Main Net is next `nonce` value for next transferred message. The `incoming message counter` on S-Chain is `nonce` of next message will be received. By comparing these two message counters `IMA Agent` detects new messages to transfer.
+
+=== Agent time framing
+
+S-Chain consists of equal number of `IMA Agent` application instances and `SKALED` nodes. Earch `IMA Agent` corresponds to its `SKALED`. Both `IMA Agent` and `SKALED` know their indices in S-Chain. Indices are numbers from `0` to `15` in `16` node S-Chain. All `IMA Agent` application do not work at a same time. They work one by one. Each `IMA Agent` detects it's own working range of time called `Time Frame` by using index of `IMA Agent`, beginning of time `1 January 1970` and time period which is `5` minutes by default.
+
+=== Force successful transfers
+
+IMA is designed to perform cross chain message trasfers which are always successful. Each message should not block next message transfer. This means smart contract calls initiating message transfer must be successful only of message can be deliverd successfully. That is why IMA needs `gas reimbursement` to cover transfer expences and guarantee successful message transfers.
+
+=== Gas reimbursement and frozen wallets
+
+`Gas reimbursement` is feature which allows to cover message transfer expences. `Gas reimbursement wallet` is part of IMA on Main Net. When user re-charges wallet on Main Net, IMA sends internal message to S-Chain where this user is marked as `un-forozen`. Only `un-forozen` user wallets allowed to transfer messages from S-Chain to Main Net.
+
+=== ERC20 representation of ETH on S-Chain
+
+ETH transfered from Main Net to S-Chain becames ERC20 token on S-Chain.
+
+=== Asset locking
+
+ETH and tokens transferred from Main Net to S-Chain really became locked on Main Net and their copies are minted on S-Chain. Assets returned from S-Chain to Main Net became burned on S-Chain and un-locked on Main Net.
+
+=== Custom messages and IMA extensability
+
+IMA supports custom messages which consist of any custom data fields or even any bytes. This brings unlimited extensability to IMA. Dapps can create any new features IMA even does not know about.
