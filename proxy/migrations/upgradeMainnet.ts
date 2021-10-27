@@ -4,9 +4,9 @@ import { contracts, getContractKeyInAbiFile } from "./deployMainnet";
 import { upgrade } from "./upgrade";
 import { getManifestAdmin } from "@openzeppelin/hardhat-upgrades/dist/admin";
 import chalk from "chalk";
-import { MessageProxyForMainnet, DepositBoxERC20, DepositBoxERC721, DepositBoxERC1155 } from "../typechain/";
+import { MessageProxyForMainnet, DepositBoxERC20, DepositBoxERC721, DepositBoxERC1155, DepositBox } from "../typechain/";
 import { encodeTransaction } from "./tools/multiSend";
-import { TypedEvent } from "../typechain/commons";
+import { TypedEvent, TypedEventFilter } from "../typechain/commons";
 
 function arrayValue(value: string[] | undefined): string[] {
     if (value) {
@@ -51,6 +51,43 @@ async function runInitialize(
     });
 }
 
+async function findEventsAndInitialize(
+    safeTransactions: string[],
+    abi: any,
+    depositBoxName: string,
+    eventName: string,
+    blockStart: number, // Block where tx DepositBox deployment
+    depositBoxType: "erc20" | "erc721" | "erc1155"
+) {
+    const depositBoxFactory = await ethers.getContractFactory(depositBoxName);
+    const depositBoxAddress = abi[getContractKeyInAbiFile(depositBoxName) + "_address"];
+    if (depositBoxAddress) {
+        console.log(chalk.yellow("Will find all " + eventName + " events in " + depositBoxName + " and initialize"));
+        let depositBox: DepositBoxERC20 | DepositBoxERC721 | DepositBoxERC1155;
+        if (depositBoxType === "erc20") {
+            depositBox = depositBoxFactory.attach(depositBoxAddress) as DepositBoxERC20;
+        } else if (depositBoxType === "erc721") {
+            depositBox = depositBoxFactory.attach(depositBoxAddress) as DepositBoxERC721;
+        } else {
+            depositBox = depositBoxFactory.attach(depositBoxAddress) as DepositBoxERC1155;
+        }
+        const eventFilter: TypedEventFilter<[string, string], { schainName: string, contractOnMainnet: string}> = {
+            address: depositBoxAddress,
+            topics: [ ethers.utils.id(eventName + "(string,address)") ]
+        }
+        const events = await depositBox.queryFilter(eventFilter, blockStart);
+        if (events.length > 0) {
+            await runInitialize(safeTransactions, events, depositBox, eventName);
+        } else {
+            console.log(chalk.yellow("No events " + eventName + " found - no reason to run initialize"));
+        }
+    } else {
+        console.log(chalk.red("" + depositBoxName + " was not found!"));
+        console.log(chalk.red("Check your abi!!!"));
+        process.exit(1);
+    }
+}
+
 async function main() {
     await upgrade(
         "1.1.0",
@@ -87,66 +124,9 @@ async function main() {
                 console.log(chalk.red("Check your abi!!!"));
                 process.exit(1);
             }
-            const depositBoxERC20Name = "DepositBoxERC20";
-            const depositBoxERC20Factory = await ethers.getContractFactory(depositBoxERC20Name);
-            const depositBoxERC20Address = abi[getContractKeyInAbiFile(depositBoxERC20Name) + "_address"];
-            if (depositBoxERC20Address) {
-                console.log(chalk.yellow("Will find all ERC20TokenAdded events in DepositBoxERC20 and initialize"));
-                const depositBoxERC20 = depositBoxERC20Factory.attach(depositBoxERC20Address) as DepositBoxERC20;
-                const eventFilter = await depositBoxERC20.filters.ERC20TokenAdded(null, null);
-                // Block where tx DepositBoxERC20 deployment
-                const depositBoxERC20BlockStart = 12858653;
-                const events = await depositBoxERC20.queryFilter(eventFilter, depositBoxERC20BlockStart);
-                if (events.length > 0) {
-                    await runInitialize(safeTransactions, events, depositBoxERC20, "ERC20TokenAdded");
-                } else {
-                    console.log(chalk.yellow("No events ERC20TokenAdded found - no reason to run initialize"));
-                }
-            } else {
-                console.log(chalk.red("DepositBoxERC20 was not found!"));
-                console.log(chalk.red("Check your abi!!!"));
-                process.exit(1);
-            }
-            const depositBoxERC721Name = "DepositBoxERC721";
-            const depositBoxERC721Factory = await ethers.getContractFactory(depositBoxERC721Name);
-            const depositBoxERC721Address = abi[getContractKeyInAbiFile(depositBoxERC721Name) + "_address"];
-            if (depositBoxERC721Address) {
-                console.log(chalk.yellow("Will find all ERC721TokenAdded events in DepositBoxERC721 and initialize"));
-                const depositBoxERC721 = depositBoxERC721Factory.attach(depositBoxERC721Address) as DepositBoxERC721;
-                const eventFilter = await depositBoxERC721.filters.ERC721TokenAdded(null, null);
-                // Block where tx DepositBoxERC721 deployment
-                const depositBoxERC721BlockStart = 12858665;
-                const events = await depositBoxERC721.queryFilter(eventFilter, depositBoxERC721BlockStart);
-                if (events.length > 0) {
-                    await runInitialize(safeTransactions, events, depositBoxERC721, "ERC721TokenAdded");
-                } else {
-                    console.log(chalk.yellow("No events ERC721TokenAdded found - no reason to run initialize"));
-                }
-            } else {
-                console.log(chalk.red("DepositBoxERC721 was not found!"));
-                console.log(chalk.red("Check your abi!!!"));
-                process.exit(1);
-            }
-            const depositBoxERC1155Name = "DepositBoxERC1155";
-            const depositBoxERC1155Factory = await ethers.getContractFactory(depositBoxERC1155Name);
-            const depositBoxERC1155Address = abi[getContractKeyInAbiFile(depositBoxERC1155Name) + "_address"];
-            if (depositBoxERC1155Address) {
-                console.log(chalk.yellow("Will find all ERC1155TokenAdded events in DepositBoxERC1155 and initialize"));
-                const depositBoxERC1155 = depositBoxERC1155Factory.attach(depositBoxERC1155Address) as DepositBoxERC1155;
-                const eventFilter = depositBoxERC1155.filters.ERC1155TokenAdded(null, null);
-                // Block where tx DepositBoxERC1155 deployment
-                const depositBoxERC1155BlockStart = 12858680;
-                const events = await depositBoxERC1155.queryFilter(eventFilter, depositBoxERC1155BlockStart);
-                if (events.length > 0) {
-                    await runInitialize(safeTransactions, events, depositBoxERC1155, "ERC1155TokenAdded");
-                } else {
-                    console.log(chalk.yellow("No events ERC1155TokenAdded found - no reason to run initialize"));
-                }
-            } else {
-                console.log(chalk.red("DepositBoxERC1155 was not found!"));
-                console.log(chalk.red("Check your abi!!!"));
-                process.exit(1);
-            }
+            await findEventsAndInitialize(safeTransactions, abi, "DepositBoxERC20", "ERC20TokenAdded", 12858653, "erc20");
+            await findEventsAndInitialize(safeTransactions, abi, "DepositBoxERC721", "ERC721TokenAdded", 12858665, "erc721");
+            await findEventsAndInitialize(safeTransactions, abi, "DepositBoxERC1155", "ERC1155TokenAdded", 12858680, "erc1155");
         },
         "proxyMainnet"
     );
