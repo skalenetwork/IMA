@@ -151,6 +151,8 @@ contract DepositBoxERC721 is DepositBox, IDepositBoxERC721 {
      * Requirements:
      * 
      * - DepositBoxERC721 contract should own such token.
+     * - msg.sender should be an owner of schain
+     * - IMA transfers Mainnet <-> schain should be killed
      */
     function getFunds(string calldata schainName, address erc721OnMainnet, address receiver, uint tokenId)
         external
