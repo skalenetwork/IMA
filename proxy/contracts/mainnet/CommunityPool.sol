@@ -29,11 +29,20 @@ import "../Messages.sol";
 import "./MessageProxyForMainnet.sol";
 import "./Linker.sol";
 
+
+interface ICommunityPoolInitializable is ICommunityPool {
+    function initialize(
+        IContractManager contractManagerOfSkaleManagerValue,
+        Linker linker,
+        MessageProxyForMainnet messageProxyValue
+    ) external;
+}
+
 /**
  * @title CommunityPool
  * @dev Contract contains logic to perform automatic self-recharging ether for nodes
  */
-contract CommunityPool is Twin, ICommunityPool {
+contract CommunityPool is Twin, ICommunityPoolInitializable {
 
     using AddressUpgradeable for address payable;
 
@@ -55,6 +64,7 @@ contract CommunityPool is Twin, ICommunityPool {
         MessageProxyForMainnet messageProxyValue
     )
         external
+        override
         initializer
     {
         Twin.initialize(contractManagerOfSkaleManagerValue, messageProxyValue);
@@ -130,13 +140,13 @@ contract CommunityPool is Twin, ICommunityPool {
         payable(msg.sender).sendValue(amount);
     }
 
-    function setMinTransactionGas(uint newMinTransactionGas) external {
+    function setMinTransactionGas(uint newMinTransactionGas) external override {
         require(hasRole(CONSTANT_SETTER_ROLE, msg.sender), "CONSTANT_SETTER_ROLE is required");
         emit MinTransactionGasWasChanged(minTransactionGas, newMinTransactionGas);
         minTransactionGas = newMinTransactionGas;
     }
 
-    function getBalance(address user, string calldata schainName) external view returns (uint) {
+    function getBalance(address user, string calldata schainName) external view override returns (uint) {
         return _userWallets[user][keccak256(abi.encodePacked(schainName))];
     }
 }
