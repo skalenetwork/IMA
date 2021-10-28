@@ -176,6 +176,8 @@ contract DepositBoxERC20 is DepositBox {
      * Requirements:
      * 
      * - Amount of tokens on schain should be equal or more than transferred amount.
+     * - msg.sender should be an owner of schain
+     * - IMA transfers Mainnet <-> schain should be killed
      */
     function getFunds(string calldata schainName, address erc20OnMainnet, address receiver, uint amount)
         external
