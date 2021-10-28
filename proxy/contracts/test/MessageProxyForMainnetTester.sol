@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: AGPL-3.0-only
 
 /**
- *   MessageProxyForMainnetTester.sol - SKALE Interchain Messaging Agent
+ *   MessageProxyForSchainTester.sol - SKALE Interchain Messaging Agent
  *   Copyright (C) 2021-Present SKALE Labs
  *   @author Dmytro Stebaiev
  *
@@ -22,50 +22,29 @@
 pragma solidity 0.8.6;
 
 import "../mainnet/MessageProxyForMainnet.sol";
-import "../schain/MessageProxyForSchain.sol";
 
 
 interface IMessageProxyForMainnetTester {
-    function postOutgoingMessageTester(
-        MessageProxyForMainnet messageProxyForMainnet,
-        bytes32 targetChainHash,
-        address targetContract,
-        bytes calldata data
-    )
-    external;
-    function postOutgoingMessageTesterOnSchain(
-        MessageProxyForSchain messageProxyForSchain,
-        bytes32 targetChainHash,
-        address targetContract,
-        bytes calldata data
-    )
-    external;
+    function refundGasByUser(
+        bytes32 fromSchainHash,
+        address payable node,
+        address user,
+        uint256 gas
+    ) external;
 }
 
 
-contract MessageProxyForMainnetTester is IMessageProxyForMainnetTester {
+contract MessageProxyForMainnetTester is MessageProxyForMainnet, IMessageProxyForMainnetTester {    
 
-    function postOutgoingMessageTester(
-        MessageProxyForMainnet messageProxyForMainnet,
-        bytes32 targetChainHash,
-        address targetContract,
-        bytes calldata data
+    function refundGasByUser(
+        bytes32 fromSchainHash,
+        address payable node,
+        address user,
+        uint256 gas
     )
         external
         override
     {
-        messageProxyForMainnet.postOutgoingMessage(targetChainHash, targetContract, data);
-    }
-
-    function postOutgoingMessageTesterOnSchain(
-        MessageProxyForSchain messageProxyForSchain,
-        bytes32 targetChainHash,
-        address targetContract,
-        bytes calldata data
-    )
-        external
-        override
-    {
-        messageProxyForSchain.postOutgoingMessage(targetChainHash, targetContract, data);
+        communityPool.refundGasByUser(fromSchainHash, node, user, gas);
     }
 }

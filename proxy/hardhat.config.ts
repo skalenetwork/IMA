@@ -48,7 +48,6 @@ const config: HardhatUserConfig = {
   },
   networks: {
     hardhat: {
-      hardfork: "berlin",
       blockGasLimit: 12000000,
       allowUnlimitedContractSize: true
     },

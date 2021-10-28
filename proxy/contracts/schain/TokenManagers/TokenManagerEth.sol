@@ -40,16 +40,10 @@ interface ITokenManagerEthInitializable is ITokenManagerEth {
 
 
 /**
- * This contract runs on schains and accepts messages from main net creates ETH clones.
- * When the user exits, it burns them
- */
-
-/**
- * @title Token Manager
- * @dev Runs on SKALE Chains, accepts messages from mainnet, and instructs
- * TokenFactory to create clones. TokenManager mints tokens via
- * LockAndDataForSchain*. When a user exits a SKALE chain, TokenFactory
- * burns tokens.
+ * @title TokenManagerEth
+ * @dev Runs on SKALE Chains and
+ * accepts messages from mainnet.
+ * TokenManagerEth mints EthErc20 tokens. When a user exits a SKALE chain, it burns them.
  */
 contract TokenManagerEth is TokenManager, ITokenManagerEthInitializable {
 
@@ -57,6 +51,9 @@ contract TokenManagerEth is TokenManager, ITokenManagerEthInitializable {
 
     /// Create a new token manager    
 
+    /**
+     * @dev Register EthErc20 token.
+     */
     function setEthErc20Address(IEthErc20 newEthErc20Address) external override {
         require(hasRole(DEFAULT_ADMIN_ROLE, msg.sender), "Not authorized caller");
         require(ethErc20 != newEthErc20Address, "Must be new address");
@@ -64,13 +61,21 @@ contract TokenManagerEth is TokenManager, ITokenManagerEthInitializable {
     }
 
     /**
-     * @dev Performs an exit (post outgoing message) to Mainnet.
+     * @dev Move ETH from schain to mainnet.
+     * 
+     * EthErc20 tokens are burned on schain and ETH are unlocked on mainnet for {to} address.
      */
     function exitToMain(uint256 amount) external override {
         communityLocker.checkAllowedToSendMessage(msg.sender);
         _exit(MAINNET_HASH, depositBox, msg.sender, amount);
     }
 
+    /**
+     * @dev Move ETH from schain to schain.
+     * 
+     * EthErc20 tokens are burned on origin schain.
+     * and are minted on {targetSchainName} schain for {to} address.
+     */
     function transferToSchain(
         string memory targetSchainName,
         uint256 amount
@@ -86,8 +91,6 @@ contract TokenManagerEth is TokenManager, ITokenManagerEthInitializable {
     /**
      * @dev Allows MessageProxy to post operational message from mainnet
      * or SKALE chains.
-     * 
-     * Emits an {Error} event upon failure.
      *
      * Requirements:
      * 
@@ -112,6 +115,9 @@ contract TokenManagerEth is TokenManager, ITokenManagerEthInitializable {
         return receiver;
     }
 
+    /**
+     * @dev Is called once during contract deployment.
+     */
     function initialize(
         string memory newChainName,
         MessageProxyForSchain newMessageProxy,
@@ -136,6 +142,9 @@ contract TokenManagerEth is TokenManager, ITokenManagerEthInitializable {
 
     // private
 
+    /**
+     * @dev Burn EthErc20 tokens on schain and send message to unlock ETH on target chain.
+     */
     function _exit(
         bytes32 chainHash,
         address messageReceiver,

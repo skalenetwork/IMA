@@ -28,21 +28,27 @@ import "@skalenetwork/ima-interfaces/mainnet/ITwin.sol";
 import "./MessageProxyForMainnet.sol";
 import "./SkaleManagerClient.sol";
 
-
+/**
+ * @title Twin
+ * @dev Runs on Mainnet,
+ * contains logic for connecting paired contracts on Mainnet and on Schain.
+ */
 abstract contract Twin is SkaleManagerClient, ITwin {
 
     MessageProxyForMainnet public messageProxy;
     mapping(bytes32 => address) public schainLinks;
     bytes32 public constant LINKER_ROLE = keccak256("LINKER_ROLE");
 
-
+    /**
+     * @dev Modifier for checking whether caller is MessageProxy contract.
+     */
     modifier onlyMessageProxy() {
         require(msg.sender == address(messageProxy), "Sender is not a MessageProxy");
         _;
     }
 
     /**
-     * @dev Binds a contract on mainnet with his twin on schain
+     * @dev Binds a contract on mainnet with their twin on schain.
      *
      * Requirements:
      *
@@ -62,11 +68,11 @@ abstract contract Twin is SkaleManagerClient, ITwin {
     }
 
     /**
-     * @dev Removes connection with contract on schain
+     * @dev Removes connection with contract on schain.
      *
      * Requirements:
      *
-     * - `msg.sender` must be schain owner or has required role
+     * - `msg.sender` must be schain owner or has required role.
      * - SKALE chain must already be set.
      */
     function removeSchainContract(string calldata schainName) external override {
@@ -79,6 +85,9 @@ abstract contract Twin is SkaleManagerClient, ITwin {
         delete schainLinks[schainHash];
     }
 
+    /**
+     * @dev Returns true if mainnet contract and schain contract are connected together for transferring messages.
+     */
     function hasSchainContract(string calldata schainName) external view override returns (bool) {
         return schainLinks[keccak256(abi.encodePacked(schainName))] != address(0);
     }

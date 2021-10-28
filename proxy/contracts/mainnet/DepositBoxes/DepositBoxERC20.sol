@@ -29,11 +29,16 @@ import "../../Messages.sol";
 import "../DepositBox.sol";
 
 
-// This contract runs on the main net and accepts deposits
+/**
+ * @title DepositBoxERC20
+ * @dev Runs on mainnet,
+ * accepts messages from schain,
+ * stores deposits of ERC20.
+ */
 contract DepositBoxERC20 is DepositBox, IDepositBoxERC20 {
     using AddressUpgradeable for address;
 
-        // schainHash => address of ERC on Mainnet
+    // schainHash => address of ERC20 on Mainnet
     mapping(bytes32 => mapping(address => bool)) public schainToERC20;
     mapping(bytes32 => mapping(address => uint256)) public transferredAmount;
 
@@ -48,6 +53,17 @@ contract DepositBoxERC20 is DepositBox, IDepositBoxERC20 {
      */
     event ERC20TokenReady(address indexed contractOnMainnet, uint256 amount);
 
+    /**
+     * @dev Allows `msg.sender` to send ERC20 token from mainnet to schain
+     * 
+     * Requirements:
+     * 
+     * - Schain name must not be `Mainnet`.
+     * - Receiver account on schain cannot be null.
+     * - Schain that receives tokens should not be killed.
+     * - Receiver contract should be defined.
+     * - `msg.sender` should approve their tokens for DepositBoxERC20 address.
+     */
     function depositERC20(
         string calldata schainName,
         address erc20OnMainnet,
@@ -88,6 +104,15 @@ contract DepositBoxERC20 is DepositBox, IDepositBoxERC20 {
         );
     }
 
+    /**
+     * @dev Allows MessageProxyForMainnet contract to execute transferring ERC20 token from schain to mainnet.
+     * 
+     * Requirements:
+     * 
+     * - Schain from which the tokens came should not be killed.
+     * - Sender contract should be defined and schain name cannot be `Mainnet`.
+     * - Amount of tokens on DepositBoxERC20 should be equal or more than transferred amount.
+     */
     function postMessage(
         bytes32 schainHash,
         address sender,
@@ -114,6 +139,13 @@ contract DepositBoxERC20 is DepositBox, IDepositBoxERC20 {
 
     /**
      * @dev Allows Schain owner to add an ERC20 token to DepositBoxERC20.
+     * 
+     * Emits an {ERC20TokenAdded} event.
+     * 
+     * Requirements:
+     * 
+     * - Schain should not be killed.
+     * - Only owner of the schain able to run function.
      */
     function addERC20TokenByOwner(string calldata schainName, address erc20OnMainnet)
         external
@@ -124,6 +156,15 @@ contract DepositBoxERC20 is DepositBox, IDepositBoxERC20 {
         _addERC20ForSchain(schainName, erc20OnMainnet);
     }
 
+    /**
+     * @dev Allows Schain owner to return each user their tokens.
+     * The Schain owner decides which tokens to send to which address, 
+     * since the contract on mainnet does not store information about which tokens belong to whom.
+     *
+     * Requirements:
+     * 
+     * - Amount of tokens on schain should be equal or more than transferred amount.
+     */
     function getFunds(string calldata schainName, address erc20OnMainnet, address receiver, uint amount)
         external
         override
@@ -139,8 +180,24 @@ contract DepositBoxERC20 is DepositBox, IDepositBoxERC20 {
         );
     }
 
+    function gasPayer(
+        bytes32 schainHash,
+        address sender,
+        bytes calldata data
+    )
+        external
+        view
+        override
+        checkReceiverChain(schainHash, sender)
+        returns (address)
+    {
+        Messages.TransferErc20Message memory message = Messages.decodeTransferErc20Message(data);
+        return message.receiver;
+    }
+
     /**
-     * @dev Should return true if token in whitelist.
+     * @dev Should return true if token was added by Schain owner or 
+     * added automatically after sending to schain if whitelist was turned off.
      */
     function getSchainToERC20(
         string calldata schainName,
@@ -154,7 +211,9 @@ contract DepositBoxERC20 is DepositBox, IDepositBoxERC20 {
         return schainToERC20[keccak256(abi.encodePacked(schainName))][erc20OnMainnet];
     }
 
-    /// Create a new deposit box
+    /**
+     * @dev Creates a new DepositBoxERC20 contract.
+     */
     function initialize(
         IContractManager contractManagerOfSkaleManagerValue,
         Linker linkerValue,
@@ -167,23 +226,29 @@ contract DepositBoxERC20 is DepositBox, IDepositBoxERC20 {
         DepositBox.initialize(contractManagerOfSkaleManagerValue, linkerValue, messageProxyValue);
     }
 
+    /**
+     * @dev Saves amount of tokens that was transferred to schain.
+     */
     function _saveTransferredAmount(bytes32 schainHash, address erc20Token, uint256 amount) private {
         transferredAmount[schainHash][erc20Token] += amount;
     }
 
+    /**
+     * @dev Removes amount of tokens that was transferred from schain.
+     */
     function _removeTransferredAmount(bytes32 schainHash, address erc20Token, uint256 amount) private {
         transferredAmount[schainHash][erc20Token] -= amount;
     }
 
     /**
-     * @dev Allows DepositBox to receive ERC20 tokens.
+     * @dev Allows DepositBoxERC20 to receive ERC20 tokens.
      * 
-     * Emits an {ERC20TokenAdded} event on token mapping in DepositBoxERC20.
      * Emits an {ERC20TokenReady} event.
      * 
      * Requirements:
      * 
      * - Amount must be less than or equal to the total supply of the ERC20 contract.
+     * - Whitelist should be turned off for auto adding tokens to DepositBoxERC20.
      */
     function _receiveERC20(
         string calldata schainName,
@@ -220,6 +285,15 @@ contract DepositBoxERC20 is DepositBox, IDepositBoxERC20 {
         emit ERC20TokenReady(erc20OnMainnet, amount);
     }
 
+    /**
+     * @dev Adds an ERC20 token to DepositBoxERC20.
+     * 
+     * Emits an {ERC20TokenAdded} event.
+     * 
+     * Requirements:
+     * 
+     * - Given address should be contract.
+     */
     function _addERC20ForSchain(string calldata schainName, address erc20OnMainnet) private {
         bytes32 schainHash = keccak256(abi.encodePacked(schainName));
         require(erc20OnMainnet.isContract(), "Given address is not a contract");
@@ -227,10 +301,16 @@ contract DepositBoxERC20 is DepositBox, IDepositBoxERC20 {
         emit ERC20TokenAdded(schainName, erc20OnMainnet);
     }
 
+    /**
+     * @dev Returns total supply of ERC20 token.
+     */
     function _getErc20TotalSupply(ERC20Upgradeable erc20Token) private view returns (uint256) {
         return erc20Token.totalSupply();
     }
 
+    /**
+     * @dev Returns info about ERC20 token such as token name, decimals, symbol.
+     */
     function _getErc20TokenInfo(ERC20Upgradeable erc20Token) private view returns (Messages.Erc20TokenInfo memory) {
         return Messages.Erc20TokenInfo({
             name: erc20Token.name(),

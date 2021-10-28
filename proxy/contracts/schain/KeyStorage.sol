@@ -27,6 +27,10 @@ import "@skalenetwork/ima-interfaces/schain/IKeyStorage.sol";
 import "./bls/FieldOperations.sol";
 
 
+/**
+ * @title KeyStorage
+ * @dev Holds common BLS public key.
+ */
 interface IKeyStorageInitializable is IKeyStorage {
     function initialize() external;
 }
@@ -35,8 +39,16 @@ interface IKeyStorageInitializable is IKeyStorage {
 contract KeyStorage is AccessControlEnumerableUpgradeable, IKeyStorageInitializable {
 
     uint256 public constant FREE_MEM_PTR = 0x40;
+
+    /**
+     * @dev Address of custom precompiled contract on SKALE chain
+     * to get uin256 value from the config.
+     */
     uint256 public constant FN_NUM_GET_CONFIG_VARIABLE_UINT256 = 0x13;
 
+    /**
+     * @dev Is called once during contract deployment.
+     */
     function initialize()
         external
         override
@@ -46,6 +58,9 @@ contract KeyStorage is AccessControlEnumerableUpgradeable, IKeyStorageInitializa
         _setupRole(DEFAULT_ADMIN_ROLE, msg.sender);
     }
 
+    /**
+     * @dev Get BLS common public key.
+     */
     function getBlsCommonPublicKey() external view override virtual returns (IFieldOperations.G2Point memory) {
         return IFieldOperations.G2Point({
             x: IFieldOperations.Fp2Point({
@@ -61,6 +76,9 @@ contract KeyStorage is AccessControlEnumerableUpgradeable, IKeyStorageInitializa
 
     // private
 
+    /**
+     * @dev Get uint256 value from the skaled config.
+     */
     function _getConfigVariableUint256(
         string memory strConfigVariableName
     )

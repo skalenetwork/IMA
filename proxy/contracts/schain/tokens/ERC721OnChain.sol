@@ -28,6 +28,10 @@ import "@openzeppelin/contracts-upgradeable/access/AccessControlEnumerableUpgrad
 import "@skalenetwork/ima-interfaces/schain/tokens/IERC721OnChain.sol";
 
 
+/**
+ * @title ERC721OnChain
+ * @dev ERC721 token that is used as an automatically deployed clone of ERC721 on mainnet.
+ */
 contract ERC721OnChain is
     AccessControlEnumerableUpgradeable,
     ERC721BurnableUpgradeable,
@@ -35,6 +39,9 @@ contract ERC721OnChain is
     IERC721OnChain
 {
 
+    /**
+     * @dev id of a role that allows token minting.
+     */
     bytes32 public constant MINTER_ROLE = keccak256("MINTER_ROLE");
 
     constructor(
@@ -49,6 +56,14 @@ contract ERC721OnChain is
         _setupRole(MINTER_ROLE, _msgSender());
     }
 
+    /**
+     * @dev Set URI of ERC721 token.
+     * 
+     * Requirements:
+     * 
+     * - token with {tokenId} must exist.
+     * - sender must be the token owner or approved for the token.
+     */
     function setTokenURI(uint256 tokenId, string calldata tokenUri)
         external
         override
@@ -60,6 +75,13 @@ contract ERC721OnChain is
         return true;
     }
 
+    /**
+     * @dev Mint token.
+     * 
+     * Requirements:
+     * 
+     * - sender must be granted with {MINTER_ROLE}.
+     */
     function mint(address account, uint256 tokenId)
         external
         override
@@ -68,6 +90,11 @@ contract ERC721OnChain is
         _mint(account, tokenId);
     }
 
+    /**
+     * @dev Check if contract support {interfaceId} interface.
+     * 
+     * See https://eips.ethereum.org/EIPS/eip-165 for more details.
+     */
     function supportsInterface(
         bytes4 interfaceId
     )
@@ -79,6 +106,9 @@ contract ERC721OnChain is
         return super.supportsInterface(interfaceId);
     }
 
+    /**
+     * @dev Get token URI.
+     */
     function tokenURI(
         uint256 tokenId
     )
@@ -92,6 +122,9 @@ contract ERC721OnChain is
 
     // private
 
+    /**
+     * @dev Burn {tokenId}.
+     */
     function _burn(uint256 tokenId) internal override (ERC721Upgradeable, ERC721URIStorageUpgradeable) {
         ERC721URIStorageUpgradeable._burn(tokenId);
     }

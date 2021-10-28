@@ -213,9 +213,26 @@ node ./main.js --verbose=9 --expose --colors \
     --cid-s-chain=-4 \
     --abi-main-net=../proxy/data/proxyMainnet.json \
     --abi-s-chain=../proxy/data/proxySchain_Bob.json \
-    --key-main-net=$PRIVATE_KEY_FOR_ETHEREUM \
     --reimbursement-chain=Bob \
     --reimbursement-balance
+    --receiver=$ADDRESS_FOR_ETHEREUM
+```
+
+Estimate amount:
+
+```shell
+node ./main.js --verbose=9 --expose --colors \
+    --url-main-net=$URL_W3_ETHEREUM \
+    --url-s-chain=$URL_W3_S_CHAIN \
+    --id-main-net=Mainnet \
+    --id-s-chain=Bob \
+    --cid-main-net=-4 \
+    --cid-s-chain=-4 \
+    --abi-main-net=../proxy/data/proxyMainnet.json \
+    --abi-s-chain=../proxy/data/proxySchain_Bob.json \
+    --reimbursement-chain=Bob \
+    --reimbursement-estimate \
+    --receiver=$ADDRESS_FOR_ETHEREUM
 ```
 
 Recharge balance with 1 ETH:

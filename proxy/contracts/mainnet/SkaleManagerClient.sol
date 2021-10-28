@@ -35,14 +35,15 @@ interface ISkaleManagerClientInitializable is ISkaleManagerClient {
 
 /**
  * @title SkaleManagerClient - contract that knows ContractManager
- * and makes calls to SkaleManager contracts
- * @author Artem Payvin
- * @author Dmytro Stebaiev
+ * and makes calls to SkaleManager contracts.
  */
 contract SkaleManagerClient is Initializable, AccessControlEnumerableUpgradeable, ISkaleManagerClientInitializable {
 
     IContractManager public contractManagerOfSkaleManager;
 
+    /**
+     * @dev Modifier for checking whether caller is owner of SKALE chain.
+     */
     modifier onlySchainOwner(string memory schainName) {
         require(
             isSchainOwner(msg.sender, keccak256(abi.encodePacked(schainName))),
@@ -52,8 +53,8 @@ contract SkaleManagerClient is Initializable, AccessControlEnumerableUpgradeable
     }
 
     /**
-     * @dev initialize - sets current address of ContractManager of SkaleManager
-     * @param newContractManagerOfSkaleManager - current address of ContractManager of SkaleManager
+     * @dev initialize - sets current address of ContractManager of SkaleManager.
+     * @param newContractManagerOfSkaleManager - current address of ContractManager of SkaleManager.
      */
     function initialize(
         IContractManager newContractManagerOfSkaleManager

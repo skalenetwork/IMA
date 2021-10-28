@@ -23,6 +23,7 @@
  * @copyright SKALE Labs 2019-Present
  */
 
+import { solidity } from "ethereum-waffle";
 import chaiAsPromised from "chai-as-promised";
 import chai = require("chai");
 import {
@@ -55,6 +56,7 @@ import {
 
 chai.should();
 chai.use((chaiAsPromised as any));
+chai.use(solidity);
 
 import { deployLinker } from "../utils/deploy/mainnet/linker";
 import { deployDepositBoxEth } from "../utils/deploy/mainnet/depositBoxEth";
@@ -350,6 +352,15 @@ describe("ERC721MintingFromSchainToMainnet", () => {
             hashB: HashB,
         };
 
+        await messageProxyForMainnet.connect(deployer).postIncomingMessages(
+            schainName,
+            0,
+            [message],
+            sign
+        ).should.be.rejectedWith("Schain wallet has not enough funds");
+
+        await wallets.connect(deployer).rechargeSchainWallet(stringValue(schainNameHash), {value: "1000000000000000000"});
+
         const resPost = await (await messageProxyForMainnet.connect(deployer).postIncomingMessages(
             schainName,
             0,
@@ -358,6 +369,47 @@ describe("ERC721MintingFromSchainToMainnet", () => {
         )).wait();
         expect(await ERC721TokenOnMainnet.ownerOf(1)).to.equal(user.address);
         expect(await ERC721TokenOnMainnet.tokenURI(1)).to.equal("MyToken1");
+    });
+
+    it("should not revert POST message for token 1 with incorrect destination contract", async () => {
+        const dataToPost = await extensionSchain.connect(user).encodeParams(user.address, 1, "MyToken1");
+        const message = {
+            data: dataToPost,
+            destinationContract: user.address,
+            sender: extensionSchain.address,
+        };
+
+        // prepare BLS signature
+        // P.s. this is test signature from test of SkaleManager.SkaleVerifier - please do not use it!!!
+        const BlsSignature: [BigNumber, BigNumber] = [
+            BigNumber.from("178325537405109593276798394634841698946852714038246117383766698579865918287"),
+            BigNumber.from("493565443574555904019191451171395204672818649274520396086461475162723833781"),
+        ];
+        const HashA = "3080491942974172654518861600747466851589809241462384879086673256057179400078";
+        const HashB = "15163860114293529009901628456926790077787470245128337652112878212941459329347";
+        const Counter = 0;
+        const sign = {
+            blsSignature: BlsSignature,
+            counter: Counter,
+            hashA: HashA,
+            hashB: HashB,
+        };
+
+        await messageProxyForMainnet.connect(deployer).postIncomingMessages(
+            schainName,
+            0,
+            [message],
+            sign
+        ).should.be.rejectedWith("Schain wallet has not enough funds");
+
+        await wallets.connect(deployer).rechargeSchainWallet(stringValue(schainNameHash), {value: "1000000000000000000"});
+
+        await expect(messageProxyForMainnet.connect(deployer).postIncomingMessages(
+            schainName,
+            0,
+            [message],
+            sign
+        )).to.emit(messageProxyForMainnet, "PostMessageError").withArgs(0, ethers.utils.hexlify(ethers.utils.toUtf8Bytes("Destination contract is not a contract")));
     });
 
     it("should POST message for token 5", async () => {
@@ -383,6 +435,15 @@ describe("ERC721MintingFromSchainToMainnet", () => {
             hashA: HashA,
             hashB: HashB,
         };
+
+        await messageProxyForMainnet.connect(deployer).postIncomingMessages(
+            schainName,
+            0,
+            [message],
+            sign
+        ).should.be.rejectedWith("Schain wallet has not enough funds");
+
+        await wallets.connect(deployer).rechargeSchainWallet(stringValue(schainNameHash), {value: "1000000000000000000"});
 
         const resPost = await (await messageProxyForMainnet.connect(deployer).postIncomingMessages(
             schainName,
