@@ -24,12 +24,14 @@ pragma solidity 0.8.6;
 import "@openzeppelin/contracts-upgradeable/utils/AddressUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/token/ERC1155/extensions/IERC1155MetadataURIUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/token/ERC1155/utils/ERC1155ReceiverUpgradeable.sol";
+import "@skalenetwork/ima-interfaces/mainnet/DepositBoxes/IDepositBoxERC1155.sol";
+
 import "../DepositBox.sol";
 import "../../Messages.sol";
 
 
 // This contract runs on the main net and accepts deposits
-contract DepositBoxERC1155 is DepositBox, ERC1155ReceiverUpgradeable {
+contract DepositBoxERC1155 is DepositBox, ERC1155ReceiverUpgradeable, IDepositBoxERC1155 {
 
     using AddressUpgradeable for address;
 
@@ -51,6 +53,7 @@ contract DepositBoxERC1155 is DepositBox, ERC1155ReceiverUpgradeable {
         uint256 amount
     )
         external
+        override
         rightTransaction(schainName, msg.sender)
         whenNotKilled(keccak256(abi.encodePacked(schainName)))
     {
@@ -85,6 +88,7 @@ contract DepositBoxERC1155 is DepositBox, ERC1155ReceiverUpgradeable {
         uint256[] calldata amounts
     )
         external
+        override
         rightTransaction(schainName, msg.sender)
         whenNotKilled(keccak256(abi.encodePacked(schainName)))
     {
@@ -167,6 +171,7 @@ contract DepositBoxERC1155 is DepositBox, ERC1155ReceiverUpgradeable {
         address erc1155OnMainnet
     )
         external
+        override
         onlySchainOwner(schainName)
         whenNotKilled(keccak256(abi.encodePacked(schainName)))
     {
@@ -181,6 +186,7 @@ contract DepositBoxERC1155 is DepositBox, ERC1155ReceiverUpgradeable {
         uint256[] memory amounts
     )
         external
+        override
         onlySchainOwner(schainName)
         whenKilled(keccak256(abi.encodePacked(schainName)))
     {
@@ -234,7 +240,15 @@ contract DepositBoxERC1155 is DepositBox, ERC1155ReceiverUpgradeable {
     /**
      * @dev Should return true if token in whitelist.
      */
-    function getSchainToERC1155(string calldata schainName, address erc1155OnMainnet) external view returns (bool) {
+    function getSchainToERC1155(
+        string calldata schainName,
+        address erc1155OnMainnet
+    )
+        external
+        view
+        override
+        returns (bool)
+    {
         return schainToERC1155[keccak256(abi.encodePacked(schainName))][erc1155OnMainnet];
     }
 

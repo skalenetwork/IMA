@@ -1068,10 +1068,10 @@
   resolved "https://registry.yarnpkg.com/@sindresorhus/is/-/is-0.14.0.tgz#9fb3a3cf3132328151f353de4632e01e52102bea"
   integrity sha512-9NET910DNaIPngYnLLPeg+Ogzqsi9uM4mSboU5y6p8S5DzMTVEsJZrawi+BoDNUVBa2DhJqQYUFvMDfgU062LQ==
 
-"@skalenetwork/ima-interfaces@^0.0.1-develop.12":
-  version "0.0.1-develop.12"
-  resolved "https://registry.yarnpkg.com/@skalenetwork/ima-interfaces/-/ima-interfaces-0.0.1-develop.12.tgz#753c3dbe60641f62b247415a2a2d0bb27359cf32"
-  integrity sha512-w5OhHbGyfovZqnoOtGZwVCI4LO2naVG+vxWCJ4sfA/c7vnlHwL7MJtNqwUcnvIw+Fhn4ikd8fsm4LEx2w9GLOw==
+"@skalenetwork/ima-interfaces@^0.0.1-develop.13":
+  version "0.0.1-develop.13"
+  resolved "https://registry.yarnpkg.com/@skalenetwork/ima-interfaces/-/ima-interfaces-0.0.1-develop.13.tgz#7ad125bbd31beda0bcce628e710d515880a6c285"
+  integrity sha512-D75uRygL0kPZCqXD5iYKom30mMRndf1EvPAxUx41whG5HWuEgakTS8rSeNeOKwkcEULmrX4Ikg0cabD/fY7y6g==
 
 "@skalenetwork/skale-manager-interfaces@^0.1.1":
   version "0.1.1"

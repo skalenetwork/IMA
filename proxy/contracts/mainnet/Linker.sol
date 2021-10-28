@@ -23,11 +23,11 @@ pragma solidity 0.8.6;
 
 import "@openzeppelin/contracts-upgradeable/utils/structs/EnumerableSetUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/utils/AddressUpgradeable.sol";
+import "@skalenetwork/ima-interfaces/mainnet/ILinker.sol";
 
 import "../Messages.sol";
-import "./Twin.sol";
-
 import "./MessageProxyForMainnet.sol";
+import "./Twin.sol";
 
 
 /**
@@ -35,7 +35,7 @@ import "./MessageProxyForMainnet.sol";
  * @dev Runs on Mainnet, holds deposited ETH, and contains mappings and
  * balances of ETH tokens received through DepositBox.
  */
-contract Linker is Twin {
+contract Linker is Twin, ILinker {
     using AddressUpgradeable for address;
     using EnumerableSetUpgradeable for EnumerableSetUpgradeable.AddressSet;
 
@@ -50,15 +50,22 @@ contract Linker is Twin {
         _;
     }
 
-    function registerMainnetContract(address newMainnetContract) external onlyLinker {
+    function registerMainnetContract(address newMainnetContract) external override onlyLinker {
         require(_mainnetContracts.add(newMainnetContract), "The contracts was not registered");
     }
 
-    function removeMainnetContract(address mainnetContract) external onlyLinker {
+    function removeMainnetContract(address mainnetContract) external override onlyLinker {
         require(_mainnetContracts.remove(mainnetContract), "The contract was not removed");
     }
 
-    function connectSchain(string calldata schainName, address[] calldata schainContracts) external onlyLinker {
+    function connectSchain(
+        string calldata schainName,
+        address[] calldata schainContracts
+    )
+        external
+        override
+        onlyLinker
+    {
         require(schainContracts.length == _mainnetContracts.length(), "Incorrect number of addresses");
         for (uint i = 0; i < schainContracts.length; i++) {
             Twin(_mainnetContracts.at(i)).addSchainContract(schainName, schainContracts[i]);
@@ -66,7 +73,7 @@ contract Linker is Twin {
         messageProxy.addConnectedChain(schainName);
     }
 
-    function allowInterchainConnections(string calldata schainName) external onlySchainOwner(schainName) {
+    function allowInterchainConnections(string calldata schainName) external override onlySchainOwner(schainName) {
         bytes32 schainHash = keccak256(abi.encodePacked(schainName));
         require(statuses[schainHash] == KillProcess.NotKilled, "Schain is in kill process");
         interchainConnections[schainHash] = true;
@@ -77,7 +84,7 @@ contract Linker is Twin {
         );
     }
 
-    function kill(string calldata schainName) external {
+    function kill(string calldata schainName) override external {
         require(!interchainConnections[keccak256(abi.encodePacked(schainName))], "Interchain connections turned on");
         bytes32 schainHash = keccak256(abi.encodePacked(schainName));
         if (statuses[schainHash] == KillProcess.NotKilled) {
@@ -103,7 +110,7 @@ contract Linker is Twin {
         }
     }
 
-    function disconnectSchain(string calldata schainName) external onlyLinker {
+    function disconnectSchain(string calldata schainName) external override onlyLinker {
         uint length = _mainnetContracts.length();
         for (uint i = 0; i < length; i++) {
             Twin(_mainnetContracts.at(i)).removeSchainContract(schainName);
@@ -111,15 +118,15 @@ contract Linker is Twin {
         messageProxy.removeConnectedChain(schainName);
     }
 
-    function isNotKilled(bytes32 schainHash) external view returns (bool) {
+    function isNotKilled(bytes32 schainHash) external view override returns (bool) {
         return statuses[schainHash] != KillProcess.Killed;
     }
 
-    function hasMainnetContract(address mainnetContract) external view returns (bool) {
+    function hasMainnetContract(address mainnetContract) external view override returns (bool) {
         return _mainnetContracts.contains(mainnetContract);
     }
 
-    function hasSchain(string calldata schainName) external view returns (bool connected) {
+    function hasSchain(string calldata schainName) external view override returns (bool connected) {
         uint length = _mainnetContracts.length();
         connected = messageProxy.isConnectedChain(schainName);
         for (uint i = 0; connected && i < length; i++) {

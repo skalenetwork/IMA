@@ -22,6 +22,7 @@
 pragma solidity 0.8.6;
 
 import "@openzeppelin/contracts-upgradeable/utils/AddressUpgradeable.sol";
+import "@skalenetwork/ima-interfaces/mainnet/DepositBoxes/IDepositBoxEth.sol";
 
 import "../DepositBox.sol";
 import "../../Messages.sol";
@@ -29,20 +30,21 @@ import "../../Messages.sol";
 
 
 // This contract runs on the main net and accepts deposits
-contract DepositBoxEth is DepositBox {
+contract DepositBoxEth is DepositBox, IDepositBoxEth {
     using AddressUpgradeable for address payable;
 
     mapping(address => uint256) public approveTransfers;
 
     mapping(bytes32 => uint256) public transferredAmount;
 
-    receive() external payable {
+    receive() external payable override {
         revert("Use deposit function");
     }
 
     function deposit(string memory schainName)
         external
         payable
+        override
         rightTransaction(schainName, msg.sender)
         whenNotKilled(keccak256(abi.encodePacked(schainName)))
     {
@@ -89,7 +91,7 @@ contract DepositBoxEth is DepositBox {
      * - LockAndDataForMainnet must have sufficient ETH.
      * - User must be approved for ETH transfer.
      */
-    function getMyEth() external {
+    function getMyEth() external override {
         require(
             address(this).balance >= approveTransfers[msg.sender],
             "Not enough ETH in DepositBox"
@@ -102,6 +104,7 @@ contract DepositBoxEth is DepositBox {
 
     function getFunds(string calldata schainName, address payable receiver, uint amount)
         external
+        override
         onlySchainOwner(schainName)
         whenKilled(keccak256(abi.encodePacked(schainName)))
     {

@@ -22,14 +22,15 @@
 pragma solidity 0.8.6;
 
 import "@openzeppelin/contracts-upgradeable/utils/AddressUpgradeable.sol";
-
 import "@openzeppelin/contracts-upgradeable/token/ERC20/ERC20Upgradeable.sol";
+import "@skalenetwork/ima-interfaces/mainnet/DepositBoxes/IDepositBoxERC20.sol";
+
 import "../../Messages.sol";
 import "../DepositBox.sol";
 
 
 // This contract runs on the main net and accepts deposits
-contract DepositBoxERC20 is DepositBox {
+contract DepositBoxERC20 is DepositBox, IDepositBoxERC20 {
     using AddressUpgradeable for address;
 
         // schainHash => address of ERC on Mainnet
@@ -53,6 +54,7 @@ contract DepositBoxERC20 is DepositBox {
         uint256 amount
     )
         external
+        override
         rightTransaction(schainName, msg.sender)
         whenNotKilled(keccak256(abi.encodePacked(schainName)))
     {
@@ -115,6 +117,7 @@ contract DepositBoxERC20 is DepositBox {
      */
     function addERC20TokenByOwner(string calldata schainName, address erc20OnMainnet)
         external
+        override
         onlySchainOwner(schainName)
         whenNotKilled(keccak256(abi.encodePacked(schainName)))
     {
@@ -123,6 +126,7 @@ contract DepositBoxERC20 is DepositBox {
 
     function getFunds(string calldata schainName, address erc20OnMainnet, address receiver, uint amount)
         external
+        override
         onlySchainOwner(schainName)
         whenKilled(keccak256(abi.encodePacked(schainName)))
     {
@@ -138,7 +142,15 @@ contract DepositBoxERC20 is DepositBox {
     /**
      * @dev Should return true if token in whitelist.
      */
-    function getSchainToERC20(string calldata schainName, address erc20OnMainnet) external view returns (bool) {
+    function getSchainToERC20(
+        string calldata schainName,
+        address erc20OnMainnet
+    )
+        external
+        view
+        override
+        returns (bool)
+    {
         return schainToERC20[keccak256(abi.encodePacked(schainName))][erc20OnMainnet];
     }
 

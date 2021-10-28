@@ -23,13 +23,14 @@ pragma solidity 0.8.6;
 
 import "@openzeppelin/contracts-upgradeable/token/ERC721/extensions/IERC721MetadataUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/utils/AddressUpgradeable.sol";
+import "@skalenetwork/ima-interfaces/mainnet/DepositBoxes/IDepositBoxERC721.sol";
 
 import "../DepositBox.sol";
 import "../../Messages.sol";
 
 
 // This contract runs on the main net and accepts deposits
-contract DepositBoxERC721 is DepositBox {
+contract DepositBoxERC721 is DepositBox, IDepositBoxERC721 {
     using AddressUpgradeable for address;
 
     // schainHash => address of ERC on Mainnet
@@ -48,6 +49,7 @@ contract DepositBoxERC721 is DepositBox {
         uint256 tokenId
     )
         external
+        override
         rightTransaction(schainName, msg.sender)
         whenNotKilled(keccak256(abi.encodePacked(schainName)))
     {
@@ -100,6 +102,7 @@ contract DepositBoxERC721 is DepositBox {
      */
     function addERC721TokenByOwner(string calldata schainName, address erc721OnMainnet)
         external
+        override
         onlySchainOwner(schainName)
         whenNotKilled(keccak256(abi.encodePacked(schainName)))
     {
@@ -108,6 +111,7 @@ contract DepositBoxERC721 is DepositBox {
 
     function getFunds(string calldata schainName, address erc721OnMainnet, address receiver, uint tokenId)
         external
+        override
         onlySchainOwner(schainName)
         whenKilled(keccak256(abi.encodePacked(schainName)))
     {
@@ -120,7 +124,15 @@ contract DepositBoxERC721 is DepositBox {
     /**
      * @dev Should return true if token in whitelist.
      */
-    function getSchainToERC721(string calldata schainName, address erc721OnMainnet) external view returns (bool) {
+    function getSchainToERC721(
+        string calldata schainName,
+        address erc721OnMainnet
+    )
+        external
+        view
+        override
+        returns (bool) 
+    {
         return schainToERC721[keccak256(abi.encodePacked(schainName))][erc721OnMainnet];
     }
 

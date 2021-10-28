@@ -22,15 +22,26 @@
 
 pragma solidity 0.8.6;
 
+import "@skalenetwork/ima-interfaces/mainnet/IDepositBox.sol";
+
 import "./Linker.sol";
 import "./MessageProxyForMainnet.sol";
+
+
+interface IDepositBoxInitializable is IDepositBox {
+    function initialize(
+        IContractManager contractManagerOfSkaleManagerValue,
+        Linker newLinker,
+        MessageProxyForMainnet messageProxyValue
+    ) external;
+}
 
 
 /**
  * @title ProxyConnectorMainnet - connected module for Upgradeable approach, knows ContractManager
  * @author Artem Payvin
  */
-abstract contract DepositBox is IMessageReceiver, Twin {
+abstract contract DepositBox is IDepositBoxInitializable, Twin {
 
     Linker public linker;
 
@@ -69,14 +80,14 @@ abstract contract DepositBox is IMessageReceiver, Twin {
     /**
      * @dev Allows Schain owner turn on whitelist of tokens.
      */
-    function enableWhitelist(string memory schainName) external onlySchainOwner(schainName) {
+    function enableWhitelist(string memory schainName) external override onlySchainOwner(schainName) {
         _automaticDeploy[keccak256(abi.encodePacked(schainName))] = false;
     }
 
     /**
      * @dev Allows Schain owner turn off whitelist of tokens.
      */
-    function disableWhitelist(string memory schainName) external onlySchainOwner(schainName) {
+    function disableWhitelist(string memory schainName) external override onlySchainOwner(schainName) {
         _automaticDeploy[keccak256(abi.encodePacked(schainName))] = true;
     }
 
@@ -86,6 +97,7 @@ abstract contract DepositBox is IMessageReceiver, Twin {
         MessageProxyForMainnet messageProxyValue
     )
         public
+        override
         virtual
         initializer
     {
@@ -97,7 +109,7 @@ abstract contract DepositBox is IMessageReceiver, Twin {
     /**
      * @dev Returns is whitelist enabled on schain
      */
-    function isWhitelisted(string memory schainName) public view returns (bool) {
+    function isWhitelisted(string memory schainName) public view override returns (bool) {
         return !_automaticDeploy[keccak256(abi.encodePacked(schainName))];
     }
 }

@@ -24,6 +24,7 @@
 pragma solidity 0.8.6;
 
 import "@openzeppelin/contracts-upgradeable/access/AccessControlEnumerableUpgradeable.sol";
+import "@skalenetwork/ima-interfaces/schain/ICommunityLocker.sol";
 
 import "../Messages.sol";
 import "../mainnet/CommunityPool.sol";
@@ -31,11 +32,21 @@ import "./MessageProxyForSchain.sol";
 import "./TokenManagerLinker.sol";
 
 
+interface ICommunityLockerInitializable is ICommunityLocker {
+    function initialize(
+        string memory newSchainName,
+        MessageProxyForSchain newMessageProxy,
+        TokenManagerLinker newTokenManagerLinker,
+        address newCommunityPool
+    ) external;
+}
+
+
 /**
  * @title CommunityLocker
  * @dev Contract contains logic to perform automatic self-recharging ether for nodes
  */
-contract CommunityLocker is IMessageReceiver, AccessControlEnumerableUpgradeable {
+contract CommunityLocker is ICommunityLockerInitializable, AccessControlEnumerableUpgradeable {
 
     string constant public MAINNET_NAME = "Mainnet";
     bytes32 constant public MAINNET_HASH = keccak256(abi.encodePacked(MAINNET_NAME));
@@ -91,7 +102,7 @@ contract CommunityLocker is IMessageReceiver, AccessControlEnumerableUpgradeable
         return message.receiver;
     }
 
-    function checkAllowedToSendMessage(address receiver) external {
+    function checkAllowedToSendMessage(address receiver) external override {
         require(
             tokenManagerLinker.hasTokenManager(TokenManager(msg.sender)),
             "Sender is not registered token manager"
@@ -104,7 +115,7 @@ contract CommunityLocker is IMessageReceiver, AccessControlEnumerableUpgradeable
         _lastMessageTimeStamp[receiver] = block.timestamp;
     }
 
-    function setTimeLimitPerMessage(uint newTimeLimitPerMessage) external {
+    function setTimeLimitPerMessage(uint newTimeLimitPerMessage) external override {
         require(hasRole(CONSTANT_SETTER_ROLE, msg.sender), "Not enough permissions to set constant");
         emit TimeLimitPerMessageWasChanged(timeLimitPerMessage, newTimeLimitPerMessage);
         timeLimitPerMessage = newTimeLimitPerMessage;
@@ -117,7 +128,7 @@ contract CommunityLocker is IMessageReceiver, AccessControlEnumerableUpgradeable
         address newCommunityPool
     )
         external
-        virtual
+        override
         initializer
     {
         require(newCommunityPool != address(0), "Node address has to be set");
@@ -129,5 +140,4 @@ contract CommunityLocker is IMessageReceiver, AccessControlEnumerableUpgradeable
         timeLimitPerMessage = 5 minutes;
         communityPool = newCommunityPool;
     }
-
 }
