@@ -728,10 +728,10 @@
   dependencies:
     "@sinonjs/commons" "^1.7.0"
 
-"@skalenetwork/ima-interfaces@^0.0.1":
-  version "0.0.1"
-  resolved "https://registry.yarnpkg.com/@skalenetwork/ima-interfaces/-/ima-interfaces-0.0.1.tgz#ed9645e004f671d03111b698faf1a90b2afdb7d0"
-  integrity sha512-naLB8ZqyTZmRwayahx4wIuW9oCgB5/VI3XJhAoBXqBgVDuZU1p270kJSqT4eyh+MUttIBtnSzorzSbPteFs6AQ==
+"@skalenetwork/ima-interfaces@^0.1.0-develop.0":
+  version "0.1.0-develop.0"
+  resolved "https://registry.yarnpkg.com/@skalenetwork/ima-interfaces/-/ima-interfaces-0.1.0-develop.0.tgz#f2d6671376ae54ef857b803ca7bab6f0af28680b"
+  integrity sha512-KOrGhBUGz50CY5Orzf8LWR7ndBrBglZKhyLOS4QrDH0J31FpcTnve+l9uI4g6JEO1hP/xdQcljUcmINIDiZuYA==
 
 "@skalenetwork/skale-manager-interfaces@^0.1.2":
   version "0.1.2"
