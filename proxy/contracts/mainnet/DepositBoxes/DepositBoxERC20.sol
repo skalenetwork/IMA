@@ -72,6 +72,7 @@ contract DepositBoxERC20 is DepositBox {
         for (uint256 i = 0; i < tokens.length; i++) {
             if (_deprecated[schainHash][tokens[i]] && !_schainToERC20[schainHash].contains(tokens[i])) {
                 _schainToERC20[schainHash].add(tokens[i]);
+                delete _deprecated[schainHash][tokens[i]];
             }
         }
     }

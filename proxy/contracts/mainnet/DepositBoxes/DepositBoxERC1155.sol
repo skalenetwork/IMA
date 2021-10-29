@@ -106,6 +106,7 @@ contract DepositBoxERC1155 is DepositBox, ERC1155ReceiverUpgradeable {
         for (uint256 i = 0; i < tokens.length; i++) {
             if (_deprecated[schainHash][tokens[i]] && !_schainToERC1155[schainHash].contains(tokens[i])) {
                 _schainToERC1155[schainHash].add(tokens[i]);
+                delete _deprecated[schainHash][tokens[i]];
             }
         }
     }
