@@ -180,8 +180,7 @@ abstract contract TokenManager is AccessControlEnumerableUpgradeable, IMessageRe
     }
 
     /**
-     * @dev Adds a TokenManagerEth address to
-     * depositBox.
+     * @dev Adds a TokenManager on SKALE chain to this TokenManager.
      *
      * Requirements:
      *
