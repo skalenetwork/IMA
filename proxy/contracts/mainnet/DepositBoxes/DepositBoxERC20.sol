@@ -42,7 +42,7 @@ contract DepositBoxERC20 is DepositBox {
     // schainHash => address of ERC20 on Mainnet
     mapping(bytes32 => mapping(address => bool)) private _deprecated;
     mapping(bytes32 => mapping(address => uint256)) public transferredAmount;
-    mapping(bytes32 => EnumerableSetUpgradeable.AddressSet) private _schainToAllERC20;
+    mapping(bytes32 => EnumerableSetUpgradeable.AddressSet) private _schainToERC20;
 
     /**
      * @dev Emitted when token is mapped in DepositBoxERC20.
@@ -70,8 +70,8 @@ contract DepositBoxERC20 is DepositBox {
         require(hasRole(DEFAULT_ADMIN_ROLE, msg.sender), "Sender is not authorized");
         bytes32 schainHash = keccak256(abi.encodePacked(schainName));
         for (uint256 i = 0; i < tokens.length; i++) {
-            if (_deprecated[schainHash][tokens[i]] && !_schainToAllERC20[schainHash].contains(tokens[i])) {
-                _schainToAllERC20[schainHash].add(tokens[i]);
+            if (_deprecated[schainHash][tokens[i]] && !_schainToERC20[schainHash].contains(tokens[i])) {
+                _schainToERC20[schainHash].add(tokens[i]);
             }
         }
     }
@@ -222,7 +222,7 @@ contract DepositBoxERC20 is DepositBox {
      * added automatically after sending to schain if whitelist was turned off.
      */
     function getSchainToERC20(string calldata schainName, address erc20OnMainnet) external view returns (bool) {
-        return _schainToAllERC20[keccak256(abi.encodePacked(schainName))].contains(erc20OnMainnet);
+        return _schainToERC20[keccak256(abi.encodePacked(schainName))].contains(erc20OnMainnet);
     }
 
     /**
@@ -230,7 +230,7 @@ contract DepositBoxERC20 is DepositBox {
      * or added automatically after sending to schain if whitelist was turned off.
      */
     function getSchainToAllERC20Length(string calldata schainName) external view returns (uint256) {
-        return _schainToAllERC20[keccak256(abi.encodePacked(schainName))].length();
+        return _schainToERC20[keccak256(abi.encodePacked(schainName))].length();
     }
 
     /**
@@ -247,12 +247,12 @@ contract DepositBoxERC20 is DepositBox {
         returns (address[] memory tokensInRange)
     {
         require(
-            from < to && to - from <= 10 && to <= _schainToAllERC20[keccak256(abi.encodePacked(schainName))].length(),
+            from < to && to - from <= 10 && to <= _schainToERC20[keccak256(abi.encodePacked(schainName))].length(),
             "Range is incorrect"
         );
         tokensInRange = new address[](to - from);
         for (uint256 i = from; i < to; i++) {
-            tokensInRange[i - from] = _schainToAllERC20[keccak256(abi.encodePacked(schainName))].at(i);
+            tokensInRange[i - from] = _schainToERC20[keccak256(abi.encodePacked(schainName))].at(i);
         }
     }
 
@@ -315,7 +315,7 @@ contract DepositBoxERC20 is DepositBox {
         ERC20Upgradeable erc20 = ERC20Upgradeable(erc20OnMainnet);
         uint256 totalSupply = erc20.totalSupply();
         require(amount <= totalSupply, "Amount is incorrect");
-        bool isERC20AddedToSchain = _schainToAllERC20[schainHash].contains(erc20OnMainnet);
+        bool isERC20AddedToSchain = _schainToERC20[schainHash].contains(erc20OnMainnet);
         if (!isERC20AddedToSchain) {
             require(!isWhitelisted(schainName), "Whitelist is enabled");
             _addERC20ForSchain(schainName, erc20OnMainnet);
@@ -349,8 +349,8 @@ contract DepositBoxERC20 is DepositBox {
     function _addERC20ForSchain(string calldata schainName, address erc20OnMainnet) private {
         bytes32 schainHash = keccak256(abi.encodePacked(schainName));
         require(erc20OnMainnet.isContract(), "Given address is not a contract");
-        require(!_schainToAllERC20[schainHash].contains(erc20OnMainnet), "ERC20 Token was already added");
-        _schainToAllERC20[schainHash].add(erc20OnMainnet);
+        require(!_schainToERC20[schainHash].contains(erc20OnMainnet), "ERC20 Token was already added");
+        _schainToERC20[schainHash].add(erc20OnMainnet);
         emit ERC20TokenAdded(schainName, erc20OnMainnet);
     }
 

@@ -42,7 +42,7 @@ contract DepositBoxERC721 is DepositBox {
     // schainHash => address of ERC on Mainnet
     mapping(bytes32 => mapping(address => bool)) private _deprecated;
     mapping(address => mapping(uint256 => bytes32)) public transferredAmount;
-    mapping(bytes32 => EnumerableSetUpgradeable.AddressSet) private _schainToAllERC721;
+    mapping(bytes32 => EnumerableSetUpgradeable.AddressSet) private _schainToERC721;
 
     /**
      * @dev Emitted when token is mapped in DepositBoxERC721.
@@ -70,8 +70,8 @@ contract DepositBoxERC721 is DepositBox {
         require(hasRole(DEFAULT_ADMIN_ROLE, msg.sender), "Sender is not authorized");
         bytes32 schainHash = keccak256(abi.encodePacked(schainName));
         for (uint256 i = 0; i < tokens.length; i++) {
-            if (_deprecated[schainHash][tokens[i]] && !_schainToAllERC721[schainHash].contains(tokens[i])) {
-                _schainToAllERC721[schainHash].add(tokens[i]);
+            if (_deprecated[schainHash][tokens[i]] && !_schainToERC721[schainHash].contains(tokens[i])) {
+                _schainToERC721[schainHash].add(tokens[i]);
             }
         }
     }
@@ -206,7 +206,7 @@ contract DepositBoxERC721 is DepositBox {
      * automatically added after sending to schain if whitelist was turned off.
      */
     function getSchainToERC721(string calldata schainName, address erc721OnMainnet) external view returns (bool) {
-        return _schainToAllERC721[keccak256(abi.encodePacked(schainName))].contains(erc721OnMainnet);
+        return _schainToERC721[keccak256(abi.encodePacked(schainName))].contains(erc721OnMainnet);
     }
 
     /**
@@ -214,7 +214,7 @@ contract DepositBoxERC721 is DepositBox {
      * or added automatically after sending to schain if whitelist was turned off.
      */
     function getSchainToAllERC721Length(string calldata schainName) external view returns (uint256) {
-        return _schainToAllERC721[keccak256(abi.encodePacked(schainName))].length();
+        return _schainToERC721[keccak256(abi.encodePacked(schainName))].length();
     }
 
     /**
@@ -231,12 +231,12 @@ contract DepositBoxERC721 is DepositBox {
         returns (address[] memory tokensInRange)
     {
         require(
-            from < to && to - from <= 10 && to <= _schainToAllERC721[keccak256(abi.encodePacked(schainName))].length(),
+            from < to && to - from <= 10 && to <= _schainToERC721[keccak256(abi.encodePacked(schainName))].length(),
             "Range is incorrect"
         );
         tokensInRange = new address[](to - from);
         for (uint256 i = from; i < to; i++) {
-            tokensInRange[i - from] = _schainToAllERC721[keccak256(abi.encodePacked(schainName))].at(i);
+            tokensInRange[i - from] = _schainToERC721[keccak256(abi.encodePacked(schainName))].at(i);
         }
     }
 
@@ -295,7 +295,7 @@ contract DepositBoxERC721 is DepositBox {
         returns (bytes memory data)
     {
         bytes32 schainHash = keccak256(abi.encodePacked(schainName));
-        bool isERC721AddedToSchain = _schainToAllERC721[schainHash].contains(erc721OnMainnet);
+        bool isERC721AddedToSchain = _schainToERC721[schainHash].contains(erc721OnMainnet);
         if (!isERC721AddedToSchain) {
             require(!isWhitelisted(schainName), "Whitelist is enabled");
             _addERC721ForSchain(schainName, erc721OnMainnet);
@@ -323,8 +323,8 @@ contract DepositBoxERC721 is DepositBox {
     function _addERC721ForSchain(string calldata schainName, address erc721OnMainnet) private {
         bytes32 schainHash = keccak256(abi.encodePacked(schainName));
         require(erc721OnMainnet.isContract(), "Given address is not a contract");
-        require(!_schainToAllERC721[schainHash].contains(erc721OnMainnet), "ERC721 Token was already added");
-        _schainToAllERC721[schainHash].add(erc721OnMainnet);
+        require(!_schainToERC721[schainHash].contains(erc721OnMainnet), "ERC721 Token was already added");
+        _schainToERC721[schainHash].add(erc721OnMainnet);
         emit ERC721TokenAdded(schainName, erc721OnMainnet);
     }
 
