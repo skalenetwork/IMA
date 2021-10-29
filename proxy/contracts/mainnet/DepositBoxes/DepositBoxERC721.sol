@@ -40,7 +40,7 @@ contract DepositBoxERC721 is DepositBox {
     using EnumerableSetUpgradeable for EnumerableSetUpgradeable.AddressSet;
 
     // schainHash => address of ERC on Mainnet
-    mapping(bytes32 => mapping(address => bool)) public schainToERC721;
+    mapping(bytes32 => mapping(address => bool)) private _deprecated;
     mapping(address => mapping(uint256 => bytes32)) public transferredAmount;
     mapping(bytes32 => EnumerableSetUpgradeable.AddressSet) private _schainToAllERC721;
 
@@ -70,7 +70,7 @@ contract DepositBoxERC721 is DepositBox {
         require(hasRole(DEFAULT_ADMIN_ROLE, msg.sender), "Sender is not authorized");
         bytes32 schainHash = keccak256(abi.encodePacked(schainName));
         for (uint256 i = 0; i < tokens.length; i++) {
-            if (schainToERC721[schainHash][tokens[i]]) {
+            if (_deprecated[schainHash][tokens[i]] && !_schainToAllERC721[schainHash].contains(tokens[i])) {
                 _schainToAllERC721[schainHash].add(tokens[i]);
             }
         }
@@ -206,7 +206,7 @@ contract DepositBoxERC721 is DepositBox {
      * automatically added after sending to schain if whitelist was turned off.
      */
     function getSchainToERC721(string calldata schainName, address erc721OnMainnet) external view returns (bool) {
-        return schainToERC721[keccak256(abi.encodePacked(schainName))][erc721OnMainnet];
+        return _schainToAllERC721[keccak256(abi.encodePacked(schainName))].contains(erc721OnMainnet);
     }
 
     /**
@@ -256,6 +256,13 @@ contract DepositBoxERC721 is DepositBox {
     }
 
     /**
+     * @dev initialize deprecated variable
+     */
+    function _initializeDeprecated() private {
+        _deprecated[bytes32(0)][address(0)] = true;
+    }
+
+    /**
      * @dev Saves the ids of tokens that was transferred to schain.
      */
     function _saveTransferredAmount(bytes32 schainHash, address erc721Token, uint256 tokenId) private {
@@ -288,7 +295,7 @@ contract DepositBoxERC721 is DepositBox {
         returns (bytes memory data)
     {
         bytes32 schainHash = keccak256(abi.encodePacked(schainName));
-        bool isERC721AddedToSchain = schainToERC721[schainHash][erc721OnMainnet];
+        bool isERC721AddedToSchain = _schainToAllERC721[schainHash].contains(erc721OnMainnet);
         if (!isERC721AddedToSchain) {
             require(!isWhitelisted(schainName), "Whitelist is enabled");
             _addERC721ForSchain(schainName, erc721OnMainnet);
@@ -316,8 +323,7 @@ contract DepositBoxERC721 is DepositBox {
     function _addERC721ForSchain(string calldata schainName, address erc721OnMainnet) private {
         bytes32 schainHash = keccak256(abi.encodePacked(schainName));
         require(erc721OnMainnet.isContract(), "Given address is not a contract");
-        require(!schainToERC721[schainHash][erc721OnMainnet], "ERC721 Token was already added");
-        schainToERC721[schainHash][erc721OnMainnet] = true;
+        require(!_schainToAllERC721[schainHash].contains(erc721OnMainnet), "ERC721 Token was already added");
         _schainToAllERC721[schainHash].add(erc721OnMainnet);
         emit ERC721TokenAdded(schainName, erc721OnMainnet);
     }
