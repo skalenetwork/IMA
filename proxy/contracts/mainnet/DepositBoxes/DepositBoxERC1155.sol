@@ -41,10 +41,8 @@ contract DepositBoxERC1155 is DepositBox, ERC1155ReceiverUpgradeable {
     using EnumerableSetUpgradeable for EnumerableSetUpgradeable.AddressSet;
 
 
-    // deprecated variable
-    mapping(bytes32 => mapping(address => bool)) public schainToERC721;
-    //
-
+    // schainHash => address of ERC on Mainnet
+    mapping(bytes32 => mapping(address => bool)) private _deprecated;
     mapping(bytes32 => mapping(address => mapping(uint256 => uint256))) public transferredAmount;
     mapping(bytes32 => EnumerableSetUpgradeable.AddressSet) private _schainToAllERC1155;
 
@@ -106,7 +104,7 @@ contract DepositBoxERC1155 is DepositBox, ERC1155ReceiverUpgradeable {
         require(hasRole(DEFAULT_ADMIN_ROLE, msg.sender), "Sender is not authorized");
         bytes32 schainHash = keccak256(abi.encodePacked(schainName));
         for (uint256 i = 0; i < tokens.length; i++) {
-            if (schainToERC721[schainHash][tokens[i]] && !_schainToAllERC1155[schainHash].contains(tokens[i])) {
+            if (_deprecated[schainHash][tokens[i]] && !_schainToAllERC1155[schainHash].contains(tokens[i])) {
                 _schainToAllERC1155[schainHash].add(tokens[i]);
             }
         }
@@ -406,7 +404,7 @@ contract DepositBoxERC1155 is DepositBox, ERC1155ReceiverUpgradeable {
      * @dev initialize deprecated variable
      */
     function _initializeDeprecated() private {
-        schainToERC721[bytes32(0)][address(0)] = true;
+        _deprecated[bytes32(0)][address(0)] = true;
     }
 
     /**
