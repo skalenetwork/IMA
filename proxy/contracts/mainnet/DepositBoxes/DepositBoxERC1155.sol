@@ -42,7 +42,7 @@ contract DepositBoxERC1155 is DepositBox, ERC1155ReceiverUpgradeable {
 
 
     // schainHash => address of ERC on Mainnet
-    mapping(bytes32 => mapping(address => bool)) private _deprecated;
+    mapping(bytes32 => mapping(address => bool)) private _deprecatedSchainToERC1155;
     mapping(bytes32 => mapping(address => mapping(uint256 => uint256))) public transferredAmount;
     mapping(bytes32 => EnumerableSetUpgradeable.AddressSet) private _schainToERC1155;
 
@@ -104,9 +104,12 @@ contract DepositBoxERC1155 is DepositBox, ERC1155ReceiverUpgradeable {
         require(hasRole(DEFAULT_ADMIN_ROLE, msg.sender), "Sender is not authorized");
         bytes32 schainHash = keccak256(abi.encodePacked(schainName));
         for (uint256 i = 0; i < tokens.length; i++) {
-            if (_deprecated[schainHash][tokens[i]] && !_schainToERC1155[schainHash].contains(tokens[i])) {
+            if (
+                _deprecatedSchainToERC1155[schainHash][tokens[i]] &&
+                !_schainToERC1155[schainHash].contains(tokens[i])
+            ) {
                 _schainToERC1155[schainHash].add(tokens[i]);
-                delete _deprecated[schainHash][tokens[i]];
+                delete _deprecatedSchainToERC1155[schainHash][tokens[i]];
             }
         }
     }
@@ -401,12 +404,12 @@ contract DepositBoxERC1155 is DepositBox, ERC1155ReceiverUpgradeable {
             || super.supportsInterface(interfaceId);
     }
 
-    /**
-     * @dev initialize deprecated variable
-     */
-    function _initializeDeprecated() private {
-        _deprecated[bytes32(0)][address(0)] = true;
-    }
+    // /**
+    //  * @dev initialize deprecated variable
+    //  */
+    // function _initializeDeprecated() private {
+    //     _deprecatedSchainToERC1155[bytes32(0)][address(0)] = true;
+    // }
 
     /**
      * @dev Saves amount of tokens that was transferred to schain.
