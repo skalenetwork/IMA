@@ -3,9 +3,9 @@ import hre from "hardhat";
 import { contracts, getContractKeyInAbiFile } from "./deployMainnet";
 import { upgrade } from "./upgrade";
 import { getManifestAdmin } from "@openzeppelin/hardhat-upgrades/dist/admin";
-import { getImplementationAddress, hashBytecode, Manifest } from "@openzeppelin/upgrades-core";
+import { Manifest } from "@openzeppelin/upgrades-core";
 import chalk from "chalk";
-import { MessageProxyForMainnet, DepositBoxERC20, DepositBoxERC721, DepositBoxERC1155, DepositBox } from "../typechain/";
+import { MessageProxyForMainnet, DepositBoxERC20, DepositBoxERC721, DepositBoxERC1155 } from "../typechain/";
 import { encodeTransaction } from "./tools/multiSend";
 import { TypedEvent, TypedEventFilter } from "../typechain/commons";
 
@@ -48,53 +48,39 @@ async function runInitialize(
     });
 }
 
-async function getBlockNumber(tries: number = 3): Promise<number> {
-    let block = 0;
-    let successful = false;
-    while (!successful && tries > 0) {
-        try {
-            block = await ethers.provider.getBlockNumber();
-            successful = true;
-            console.log(chalk.yellow("Successfully getBlockNumber " + block));
-        } catch(e) {
-            console.log(chalk.red("Error getBlockNumber"));
-            console.log(e);
-        }
-        tries--;
-    }
-    return block;
-}
-
-async function getCode(address: string, blockNumber: number, tries: number = 3): Promise<string> {
-    let code = "0x";
-    let successful = false;
-    while (!successful && tries > 0) {
-        try {
-            code = await ethers.provider.getCode(address, blockNumber);
-            successful = true;
-            console.log(chalk.yellow("Successfully getCode for address " + address + " in block " + blockNumber));
-            console.log(chalk.yellow("Contract: " + (code === "0x" ? "No" : "Yes")));
-        } catch(e) {
-            console.log(chalk.red("Error getCode"));
-            console.log(e);
-        }
-        tries--;
-    }
-    return code;
-}
-
 async function getContractDeploymentBlock(address: string): Promise<number> {
     let left = 0;
-    let right = await getBlockNumber();
+    let right: number = 0;
+    try {
+        right = await ethers.provider.getBlockNumber();
+    } catch (e) {
+        console.log(chalk.red("Could not getBlockNumber"));
+        console.log(e);
+        process.exit(1);
+    }
 
     while (left < right) {
         const mid = left + (right - left - (right - left) % 2) / 2;
-        const codeSize = await getCode(address, mid);
-        if (codeSize === "0x") {
+        let codeSize: string = "";
+        try {
+            codeSize = await ethers.provider.getCode(address, mid);
+
+        } catch (e) {
+            console.log(chalk.red("Could not getCode"));
+            console.log(e);
+            process.exit(1);
+        }
+        if (codeSize === "") {
+            console.log(chalk.red("Could not getCode - unknown reason"));
+            process.exit(1);
+        }
+        else if (codeSize === "0x") {
             left = mid + 1;
         } else {
             right = mid
         }
+        console.log(chalk.yellow("Successfully getCode for address " + address + " in block " + mid));
+        console.log(chalk.yellow("Contract: " + (codeSize === "0x" ? "No" : "Yes")));
     }
     console.log(chalk.yellow("Successfully found block creation number for contract " + address + " in block " + left));
     return left;
@@ -122,7 +108,22 @@ async function findEventsAndInitialize(
             address: depositBoxAddress,
             topics: [ ethers.utils.id(eventName + "(string,address)") ]
         }
-        const blockStart = await getContractDeploymentBlock(depositBoxAddress);
+        const manifest = await Manifest.forNetwork(hre.network.provider);
+        const deploymentProxy = await manifest.getProxyFromAddress(depositBoxAddress);
+        let blockStart: number | undefined;
+        if (deploymentProxy?.txHash) {
+            const blockNumber = (await ethers.provider.getTransaction(deploymentProxy?.txHash)).blockNumber;
+            if (blockNumber) {
+                blockStart = blockNumber;
+                console.log(chalk.yellow("Successfully extract block number for contract creation from manifest"));
+                console.log(chalk.yellow("Contract " + depositBoxAddress + " in block " + blockStart));
+            }
+        }
+        if (!blockStart) {
+            console.log(chalk.yellow("No deploy transaction in manifest for " + depositBoxAddress));
+            console.log(chalk.yellow("Will find block creation number"));
+            blockStart = await getContractDeploymentBlock(depositBoxAddress);
+        }
         const events = await depositBox.queryFilter(eventFilter, blockStart);
         if (events.length > 0) {
             await runInitialize(safeTransactions, events, depositBox, eventName);
