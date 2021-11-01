@@ -23,6 +23,7 @@ pragma solidity 0.8.6;
 
 import "@openzeppelin/contracts-upgradeable/access/AccessControlEnumerableUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/utils/AddressUpgradeable.sol";
+import "@openzeppelin/contracts-upgradeable/utils/structs/EnumerableSetUpgradeable.sol";
 
 import "./interfaces/IMessageReceiver.sol";
 import "./interfaces/IGasReimbursable.sol";
@@ -33,6 +34,7 @@ import "./interfaces/IGasReimbursable.sol";
  */
 abstract contract MessageProxy is AccessControlEnumerableUpgradeable {
     using AddressUpgradeable for address;
+    using EnumerableSetUpgradeable for EnumerableSetUpgradeable.AddressSet;
 
     bytes32 public constant MAINNET_HASH = keccak256(abi.encodePacked("Mainnet"));
     bytes32 public constant CHAIN_CONNECTOR_ROLE = keccak256("CHAIN_CONNECTOR_ROLE");
@@ -74,9 +76,11 @@ abstract contract MessageProxy is AccessControlEnumerableUpgradeable {
     //   schainHash => ConnectedChainInfo
     mapping(bytes32 => ConnectedChainInfo) public connectedChains;
     //   schainHash => contract address => allowed
-    mapping(bytes32 => mapping(address => bool)) public registryContracts;
+    mapping(bytes32 => mapping(address => bool)) private _deprecatedRegistryContracts;
 
     uint256 public gasLimit;
+
+    mapping(bytes32 => EnumerableSetUpgradeable.AddressSet) private _registryContracts;
 
     /**
      * @dev Emitted for every outgoing message to schain.
@@ -128,6 +132,30 @@ abstract contract MessageProxy is AccessControlEnumerableUpgradeable {
     modifier onlyConstantSetter() {
         require(hasRole(CONSTANT_SETTER_ROLE, msg.sender), "Not enough permissions to set constant");
         _;
+    }
+
+    /**
+     * @dev Allows DEFAULT_ADMIN_ROLE to initialize registered contracts
+     * Notice - this function will be executed only once during upgrade
+     * 
+     * Requirements:
+     * 
+     * `msg.sender` should has DEFAULT_ADMIN_ROLE
+     */
+    function initializeAllTokensForSchain(
+        bytes32 schainHash,
+        address[] calldata contracts
+    ) external {
+        require(hasRole(DEFAULT_ADMIN_ROLE, msg.sender), "Sender is not authorized");
+        for (uint256 i = 0; i < contracts.length; i++) {
+            if (
+                _deprecatedRegistryContracts[schainHash][contracts[i]] &&
+                !_registryContracts[schainHash].contains(contracts[i])
+            ) {
+                _registryContracts[schainHash].add(contracts[i]);
+                delete _deprecatedRegistryContracts[schainHash][contracts[i]];
+            }
+        }
     }
 
     function initializeMessageProxy(uint newGasLimit) public initializer {
@@ -206,8 +234,8 @@ abstract contract MessageProxy is AccessControlEnumerableUpgradeable {
     {
         require(connectedChains[targetChainHash].inited, "Destination chain is not initialized");
         require(
-            registryContracts[bytes32(0)][msg.sender] || 
-            registryContracts[targetChainHash][msg.sender],
+            _registryContracts[bytes32(0)].contains(msg.sender) || 
+            _registryContracts[targetChainHash].contains(msg.sender),
             "Sender contract is not registered"
         );        
         
@@ -246,8 +274,8 @@ abstract contract MessageProxy is AccessControlEnumerableUpgradeable {
      */
     function registerExtraContractForAll(address extraContract) external onlyExtraContractRegistrar {
         require(extraContract.isContract(), "Given address is not a contract");
-        require(!registryContracts[bytes32(0)][extraContract], "Extra contract is already registered");
-        registryContracts[bytes32(0)][extraContract] = true;
+        require(!_registryContracts[bytes32(0)].contains(extraContract), "Extra contract is already registered");
+        _registryContracts[bytes32(0)].add(extraContract);
     }
 
     /**
@@ -259,23 +287,54 @@ abstract contract MessageProxy is AccessControlEnumerableUpgradeable {
      * - `msg.sender` must be granted as EXTRA_CONTRACT_REGISTRAR_ROLE.
      */
     function removeExtraContractForAll(address extraContract) external onlyExtraContractRegistrar {
-        require(registryContracts[bytes32(0)][extraContract], "Extra contract is not registered");
-        delete registryContracts[bytes32(0)][extraContract];
+        require(_registryContracts[bytes32(0)].contains(extraContract), "Extra contract is not registered");
+        _registryContracts[bytes32(0)].remove(extraContract);
     }
 
     /**
      * @dev Checks whether contract is currently registered as extra contract.
      */
     function isContractRegistered(
-        string calldata schainName,
+        bytes32 schainHash,
         address contractAddress
     )
-        external
+        public
         view
         returns (bool)
     {
-        return registryContracts[keccak256(abi.encodePacked(schainName))][contractAddress] ||
-               registryContracts[bytes32(0)][contractAddress];
+        return _registryContracts[schainHash].contains(contractAddress);
+    }
+
+    /**
+     * @dev Should return length or contract registered by schainHash.
+     */
+    function getContractRegisteredLength(bytes32 schainHash) external view returns (uint256) {
+        return _registryContracts[schainHash].length();
+    }
+
+    /**
+     * @dev Should return a range of contracts registered by schainHash.
+     * 
+     * Requirements:
+     * range should be less or equal 10 contracts
+     */
+    function getContractRegisteredRange(
+        bytes32 schainHash,
+        uint256 from,
+        uint256 to
+    )
+        external
+        view
+        returns (address[] memory contractsInRange)
+    {
+        require(
+            from < to && to - from <= 10 && to <= _registryContracts[schainHash].length(),
+            "Range is incorrect"
+        );
+        contractsInRange = new address[](to - from);
+        for (uint256 i = from; i < to; i++) {
+            contractsInRange[i - from] = _registryContracts[schainHash].at(i);
+        }
     }
 
     /**
@@ -414,10 +473,13 @@ abstract contract MessageProxy is AccessControlEnumerableUpgradeable {
         internal
     {      
         require(extraContract.isContract(), "Given address is not a contract");
-        require(!registryContracts[chainHash][extraContract], "Extra contract is already registered");
-        require(!registryContracts[bytes32(0)][extraContract], "Extra contract is already registered for all chains");
+        require(!_registryContracts[chainHash].contains(extraContract), "Extra contract is already registered");
+        require(
+            !_registryContracts[bytes32(0)].contains(extraContract),
+            "Extra contract is already registered for all chains"
+        );
         
-        registryContracts[chainHash][extraContract] = true;
+        _registryContracts[chainHash].add(extraContract);
     }
 
     /**
@@ -434,8 +496,8 @@ abstract contract MessageProxy is AccessControlEnumerableUpgradeable {
     )
         internal
     {
-        require(registryContracts[chainHash][extraContract], "Extra contract is not registered");
-        delete registryContracts[chainHash][extraContract];
+        require(_registryContracts[chainHash].contains(extraContract), "Extra contract is not registered");
+        _registryContracts[chainHash].remove(extraContract);
     }
 
     /**

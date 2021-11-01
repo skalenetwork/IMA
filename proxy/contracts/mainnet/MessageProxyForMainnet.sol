@@ -179,7 +179,7 @@ contract MessageProxyForMainnet is SkaleManagerClient, MessageProxy {
         uint notReimbursedGas = 0;
         for (uint256 i = 0; i < messages.length; i++) {
             gasTotal = gasleft();
-            if (registryContracts[bytes32(0)][messages[i].destinationContract]) {
+            if (isContractRegistered(bytes32(0), messages[i].destinationContract)) {
                 address receiver = _getGasPayer(fromSchainHash, messages[i], startingCounter + i);
                 _callReceiverContract(fromSchainHash, messages[i], startingCounter + i);
                 notReimbursedGas += communityPool.refundGasByUser(
