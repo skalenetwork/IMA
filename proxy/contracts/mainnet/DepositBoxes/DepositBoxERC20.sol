@@ -242,7 +242,7 @@ contract DepositBoxERC20 is DepositBox, IDepositBoxERC20 {
      * @dev Should return length of a set of all mapped tokens which were added by Schain owner 
      * or added automatically after sending to schain if whitelist was turned off.
      */
-    function getSchainToAllERC20Length(string calldata schainName) external view returns (uint256) {
+    function getSchainToAllERC20Length(string calldata schainName) external view override returns (uint256) {
         return _schainToERC20[keccak256(abi.encodePacked(schainName))].length();
     }
 
@@ -257,6 +257,7 @@ contract DepositBoxERC20 is DepositBox, IDepositBoxERC20 {
     )
         external
         view
+        override
         returns (address[] memory tokensInRange)
     {
         require(
