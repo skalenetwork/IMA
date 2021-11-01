@@ -29,6 +29,13 @@ import "@openzeppelin/contracts-upgradeable/utils/structs/EnumerableSetUpgradeab
 import "../DepositBox.sol";
 import "../../Messages.sol";
 
+interface IDepositBoxERC721InitializeAllTokensForSchain is IDepositBoxERC721 {
+    function initializeAllTokensForSchain(
+        string calldata schainName,
+        address[] calldata tokens
+    ) external;
+}
+
 
 /**
  * @title DepositBoxERC721
@@ -36,7 +43,7 @@ import "../../Messages.sol";
  * accepts messages from schain,
  * stores deposits of ERC721.
  */
-contract DepositBoxERC721 is DepositBox, IDepositBoxERC721 {
+contract DepositBoxERC721 is DepositBox, IDepositBoxERC721InitializeAllTokensForSchain {
     using AddressUpgradeable for address;
     using EnumerableSetUpgradeable for EnumerableSetUpgradeable.AddressSet;
 
@@ -67,7 +74,10 @@ contract DepositBoxERC721 is DepositBox, IDepositBoxERC721 {
     function initializeAllTokensForSchain(
         string calldata schainName,
         address[] calldata tokens
-    ) external {
+    )
+        external
+        override
+    {
         require(hasRole(DEFAULT_ADMIN_ROLE, msg.sender), "Sender is not authorized");
         bytes32 schainHash = keccak256(abi.encodePacked(schainName));
         for (uint256 i = 0; i < tokens.length; i++) {

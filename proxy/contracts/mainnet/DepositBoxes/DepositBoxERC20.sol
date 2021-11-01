@@ -29,6 +29,13 @@ import "@skalenetwork/ima-interfaces/mainnet/DepositBoxes/IDepositBoxERC20.sol";
 import "../../Messages.sol";
 import "../DepositBox.sol";
 
+interface IDepositBoxERC20InitializeAllTokensForSchain is IDepositBoxERC20 {
+    function initializeAllTokensForSchain(
+        string calldata schainName,
+        address[] calldata tokens
+    ) external;
+}
+
 
 /**
  * @title DepositBoxERC20
@@ -36,7 +43,7 @@ import "../DepositBox.sol";
  * accepts messages from schain,
  * stores deposits of ERC20.
  */
-contract DepositBoxERC20 is DepositBox, IDepositBoxERC20 {
+contract DepositBoxERC20 is DepositBox, IDepositBoxERC20InitializeAllTokensForSchain {
     using AddressUpgradeable for address;
     using EnumerableSetUpgradeable for EnumerableSetUpgradeable.AddressSet;
 
@@ -67,7 +74,10 @@ contract DepositBoxERC20 is DepositBox, IDepositBoxERC20 {
     function initializeAllTokensForSchain(
         string calldata schainName,
         address[] calldata tokens
-    ) external {
+    )
+        external
+        override
+    {
         require(hasRole(DEFAULT_ADMIN_ROLE, msg.sender), "Sender is not authorized");
         bytes32 schainHash = keccak256(abi.encodePacked(schainName));
         for (uint256 i = 0; i < tokens.length; i++) {
