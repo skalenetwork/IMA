@@ -3,18 +3,11 @@ import hre from "hardhat";
 import { contracts, getContractKeyInAbiFile } from "./deployMainnet";
 import { upgrade } from "./upgrade";
 import { getManifestAdmin } from "@openzeppelin/hardhat-upgrades/dist/admin";
+import { getImplementationAddress, hashBytecode, Manifest } from "@openzeppelin/upgrades-core";
 import chalk from "chalk";
 import { MessageProxyForMainnet, DepositBoxERC20, DepositBoxERC721, DepositBoxERC1155, DepositBox } from "../typechain/";
 import { encodeTransaction } from "./tools/multiSend";
 import { TypedEvent, TypedEventFilter } from "../typechain/commons";
-
-function arrayValue(value: string[] | undefined): string[] {
-    if (value) {
-        return value;
-    } else {
-        return [];
-    }
-}
 
 async function runInitialize(
     safeTransactions: string[],
@@ -25,9 +18,13 @@ async function runInitialize(
     console.log(chalk.yellow("" + events.length + " events " + eventName + " found"));
     const schainToTokens = new Map<string, string[]>();
     for (const event of events) {
-        const currentArrayOfTokens: string[] = arrayValue(schainToTokens.get(event.args.schainName));
-        currentArrayOfTokens.push(event.args.contractOnMainnet);
-        schainToTokens.set(event.args.schainName, currentArrayOfTokens);
+        const addedTokens = schainToTokens.get(event.args.schainName);
+        if (addedTokens) {
+            addedTokens.push(event.args.contractOnMainnet);
+        } else {
+            schainToTokens.set(event.args.schainName, [event.args.contractOnMainnet]);
+        }
+
     }
     schainToTokens.forEach((tokens: string[], schainName: string) => {
         console.log(chalk.yellow("" + tokens.length + " tokens found for schain " + schainName));
@@ -51,22 +48,72 @@ async function runInitialize(
     });
 }
 
+async function getBlockNumber(tries: number = 3): Promise<number> {
+    let block = 0;
+    let successful = false;
+    while (!successful && tries > 0) {
+        try {
+            block = await ethers.provider.getBlockNumber();
+            successful = true;
+            console.log(chalk.yellow("Successfully getBlockNumber " + block));
+        } catch(e) {
+            console.log(chalk.red("Error getBlockNumber"));
+            console.log(e);
+        }
+        tries--;
+    }
+    return block;
+}
+
+async function getCode(address: string, blockNumber: number, tries: number = 3): Promise<string> {
+    let code = "0x";
+    let successful = false;
+    while (!successful && tries > 0) {
+        try {
+            code = await ethers.provider.getCode(address, blockNumber);
+            successful = true;
+            console.log(chalk.yellow("Successfully getCode for address " + address + " in block " + blockNumber));
+            console.log(chalk.yellow("Contract: " + (code === "0x" ? "No" : "Yes")));
+        } catch(e) {
+            console.log(chalk.red("Error getCode"));
+            console.log(e);
+        }
+        tries--;
+    }
+    return code;
+}
+
+async function getContractDeploymentBlock(address: string): Promise<number> {
+    let left = 0;
+    let right = await getBlockNumber();
+
+    while (left < right) {
+        const mid = left + (right - left - (right - left) % 2) / 2;
+        const codeSize = await getCode(address, mid);
+        if (codeSize === "0x") {
+            left = mid + 1;
+        } else {
+            right = mid
+        }
+    }
+    console.log(chalk.yellow("Successfully found block creation number for contract " + address + " in block " + left));
+    return left;
+}
+
 async function findEventsAndInitialize(
     safeTransactions: string[],
     abi: any,
-    depositBoxName: string,
-    eventName: string,
-    blockStart: number, // Block where tx DepositBox deployment
-    depositBoxType: "erc20" | "erc721" | "erc1155"
+    depositBoxName: "DepositBoxERC20" | "DepositBoxERC721" | "DepositBoxERC1155",
+    eventName: string
 ) {
     const depositBoxFactory = await ethers.getContractFactory(depositBoxName);
     const depositBoxAddress = abi[getContractKeyInAbiFile(depositBoxName) + "_address"];
     if (depositBoxAddress) {
         console.log(chalk.yellow("Will find all " + eventName + " events in " + depositBoxName + " and initialize"));
         let depositBox: DepositBoxERC20 | DepositBoxERC721 | DepositBoxERC1155;
-        if (depositBoxType === "erc20") {
+        if (depositBoxName === "DepositBoxERC20") {
             depositBox = depositBoxFactory.attach(depositBoxAddress) as DepositBoxERC20;
-        } else if (depositBoxType === "erc721") {
+        } else if (depositBoxName === "DepositBoxERC721") {
             depositBox = depositBoxFactory.attach(depositBoxAddress) as DepositBoxERC721;
         } else {
             depositBox = depositBoxFactory.attach(depositBoxAddress) as DepositBoxERC1155;
@@ -75,6 +122,7 @@ async function findEventsAndInitialize(
             address: depositBoxAddress,
             topics: [ ethers.utils.id(eventName + "(string,address)") ]
         }
+        const blockStart = await getContractDeploymentBlock(depositBoxAddress);
         const events = await depositBox.queryFilter(eventFilter, blockStart);
         if (events.length > 0) {
             await runInitialize(safeTransactions, events, depositBox, eventName);
@@ -124,9 +172,9 @@ async function main() {
                 console.log(chalk.red("Check your abi!!!"));
                 process.exit(1);
             }
-            await findEventsAndInitialize(safeTransactions, abi, "DepositBoxERC20", "ERC20TokenAdded", 12858653, "erc20");
-            await findEventsAndInitialize(safeTransactions, abi, "DepositBoxERC721", "ERC721TokenAdded", 12858665, "erc721");
-            await findEventsAndInitialize(safeTransactions, abi, "DepositBoxERC1155", "ERC1155TokenAdded", 12858680, "erc1155");
+            await findEventsAndInitialize(safeTransactions, abi, "DepositBoxERC20", "ERC20TokenAdded");
+            await findEventsAndInitialize(safeTransactions, abi, "DepositBoxERC721", "ERC721TokenAdded");
+            await findEventsAndInitialize(safeTransactions, abi, "DepositBoxERC1155", "ERC1155TokenAdded");
         },
         "proxyMainnet"
     );
