@@ -64,7 +64,6 @@ async function getContractDeploymentBlock(address: string): Promise<number> {
         let codeSize: string = "";
         try {
             codeSize = await ethers.provider.getCode(address, mid);
-
         } catch (e) {
             console.log(chalk.red("Could not getCode"));
             console.log(e);
