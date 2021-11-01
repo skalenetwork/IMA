@@ -404,13 +404,6 @@ contract DepositBoxERC1155 is DepositBox, ERC1155ReceiverUpgradeable {
             || super.supportsInterface(interfaceId);
     }
 
-    // /**
-    //  * @dev initialize deprecated variable
-    //  */
-    // function _initializeDeprecated() private {
-    //     _deprecatedSchainToERC1155[bytes32(0)][address(0)] = true;
-    // }
-
     /**
      * @dev Saves amount of tokens that was transferred to schain.
      */
