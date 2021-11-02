@@ -23,17 +23,23 @@ pragma solidity 0.8.6;
 
 import "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
 
-contract SafeMock is OwnableUpgradeable {
-    constructor() public {
+interface ISafeMock {
+    function transferProxyAdminOwnership(OwnableUpgradeable proxyAdmin, address newOwner) external;
+    function destroy() external;
+    function multiSend(bytes memory transactions) external;
+}
+
+contract SafeMock is OwnableUpgradeable, ISafeMock {
+    constructor() {
         OwnableUpgradeable.__Ownable_init();
         multiSend(""); // this is needed to remove slither warning
     }
 
-    function transferProxyAdminOwnership(OwnableUpgradeable proxyAdmin, address newOwner) external onlyOwner {
+    function transferProxyAdminOwnership(OwnableUpgradeable proxyAdmin, address newOwner) external override onlyOwner {
         proxyAdmin.transferOwnership(newOwner);
     }
 
-    function destroy() external onlyOwner {
+    function destroy() external override onlyOwner {
         selfdestruct(payable(msg.sender));
     }
 
@@ -45,8 +51,7 @@ contract SafeMock is OwnableUpgradeable {
     ///                     data length as a uint256 (=> 32 bytes),
     ///                     data as bytes.
     ///                     see abi.encodePacked for more information on packed encoding
-    function multiSend(bytes memory transactions)
-        public
+    function multiSend(bytes memory transactions) public override
     {
         // solhint-disable-next-line no-inline-assembly
         assembly {

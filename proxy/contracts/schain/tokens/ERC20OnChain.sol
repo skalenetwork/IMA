@@ -24,13 +24,14 @@ pragma solidity 0.8.6;
 
 import "@openzeppelin/contracts-upgradeable/token/ERC20/extensions/ERC20BurnableUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/access/AccessControlEnumerableUpgradeable.sol";
+import "@skalenetwork/ima-interfaces/schain/tokens/IERC20OnChain.sol";
 
 
 /**
  * @title ERC20OnChain
  * @dev ERC20 token that is used as an automatically deployed clone of ERC20 on mainnet.
  */
-contract ERC20OnChain is AccessControlEnumerableUpgradeable, ERC20BurnableUpgradeable {
+contract ERC20OnChain is AccessControlEnumerableUpgradeable, ERC20BurnableUpgradeable, IERC20OnChain {
 
     /**
      * @dev id of a role that allows token minting.
@@ -56,7 +57,7 @@ contract ERC20OnChain is AccessControlEnumerableUpgradeable, ERC20BurnableUpgrad
      * 
      * - sender must be granted with {MINTER_ROLE}.
      */
-    function mint(address account, uint256 value) external {
+    function mint(address account, uint256 value) external override {
         require(hasRole(MINTER_ROLE, _msgSender()), "Sender is not a Minter");
         _mint(account, value);
     }

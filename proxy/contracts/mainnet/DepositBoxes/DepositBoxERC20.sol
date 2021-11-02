@@ -23,8 +23,9 @@ pragma solidity 0.8.6;
 
 import "@openzeppelin/contracts-upgradeable/utils/AddressUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/utils/structs/EnumerableSetUpgradeable.sol";
-
 import "@openzeppelin/contracts-upgradeable/token/ERC20/ERC20Upgradeable.sol";
+import "@skalenetwork/ima-interfaces/mainnet/DepositBoxes/IDepositBoxERC20.sol";
+
 import "../../Messages.sol";
 import "../DepositBox.sol";
 
@@ -35,7 +36,7 @@ import "../DepositBox.sol";
  * accepts messages from schain,
  * stores deposits of ERC20.
  */
-contract DepositBoxERC20 is DepositBox {
+contract DepositBoxERC20 is DepositBox, IDepositBoxERC20 {
     using AddressUpgradeable for address;
     using EnumerableSetUpgradeable for EnumerableSetUpgradeable.AddressSet;
 
@@ -66,7 +67,10 @@ contract DepositBoxERC20 is DepositBox {
     function initializeAllTokensForSchain(
         string calldata schainName,
         address[] calldata tokens
-    ) external {
+    )
+        external
+        override
+    {
         require(hasRole(DEFAULT_ADMIN_ROLE, msg.sender), "Sender is not authorized");
         bytes32 schainHash = keccak256(abi.encodePacked(schainName));
         for (uint256 i = 0; i < tokens.length; i++) {
@@ -94,6 +98,7 @@ contract DepositBoxERC20 is DepositBox {
         uint256 amount
     )
         external
+        override
         rightTransaction(schainName, msg.sender)
         whenNotKilled(keccak256(abi.encodePacked(schainName)))
     {
@@ -160,21 +165,6 @@ contract DepositBoxERC20 is DepositBox {
         return message.receiver;
     }
 
-    function gasPayer(
-        bytes32 schainHash,
-        address sender,
-        bytes calldata data
-    )
-        external
-        view
-        override
-        checkReceiverChain(schainHash, sender)
-        returns (address)
-    {
-        Messages.TransferErc20Message memory message = Messages.decodeTransferErc20Message(data);
-        return message.receiver;
-    }
-
     /**
      * @dev Allows Schain owner to add an ERC20 token to DepositBoxERC20.
      * 
@@ -187,6 +177,7 @@ contract DepositBoxERC20 is DepositBox {
      */
     function addERC20TokenByOwner(string calldata schainName, address erc20OnMainnet)
         external
+        override
         onlySchainOwner(schainName)
         whenNotKilled(keccak256(abi.encodePacked(schainName)))
     {
@@ -206,6 +197,7 @@ contract DepositBoxERC20 is DepositBox {
      */
     function getFunds(string calldata schainName, address erc20OnMainnet, address receiver, uint amount)
         external
+        override
         onlySchainOwner(schainName)
         whenKilled(keccak256(abi.encodePacked(schainName)))
     {
@@ -218,11 +210,34 @@ contract DepositBoxERC20 is DepositBox {
         );
     }
 
+    function gasPayer(
+        bytes32 schainHash,
+        address sender,
+        bytes calldata data
+    )
+        external
+        view
+        override
+        checkReceiverChain(schainHash, sender)
+        returns (address)
+    {
+        Messages.TransferErc20Message memory message = Messages.decodeTransferErc20Message(data);
+        return message.receiver;
+    }
+
     /**
      * @dev Should return true if token was added by Schain owner or 
      * added automatically after sending to schain if whitelist was turned off.
      */
-    function getSchainToERC20(string calldata schainName, address erc20OnMainnet) external view returns (bool) {
+    function getSchainToERC20(
+        string calldata schainName,
+        address erc20OnMainnet
+    )
+        external
+        view
+        override
+        returns (bool)
+    {
         return _schainToERC20[keccak256(abi.encodePacked(schainName))].contains(erc20OnMainnet);
     }
 
@@ -230,7 +245,7 @@ contract DepositBoxERC20 is DepositBox {
      * @dev Should return length of a set of all mapped tokens which were added by Schain owner 
      * or added automatically after sending to schain if whitelist was turned off.
      */
-    function getSchainToAllERC20Length(string calldata schainName) external view returns (uint256) {
+    function getSchainToAllERC20Length(string calldata schainName) external view override returns (uint256) {
         return _schainToERC20[keccak256(abi.encodePacked(schainName))].length();
     }
 
@@ -245,6 +260,7 @@ contract DepositBoxERC20 is DepositBox {
     )
         external
         view
+        override
         returns (address[] memory tokensInRange)
     {
         require(
@@ -262,11 +278,11 @@ contract DepositBoxERC20 is DepositBox {
      */
     function initialize(
         IContractManager contractManagerOfSkaleManagerValue,
-        Linker linkerValue,
-        MessageProxyForMainnet messageProxyValue
+        ILinker linkerValue,
+        IMessageProxyForMainnet messageProxyValue
     )
         public
-        override
+        override(DepositBox, IDepositBox)
         initializer
     {
         DepositBox.initialize(contractManagerOfSkaleManagerValue, linkerValue, messageProxyValue);

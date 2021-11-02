@@ -24,22 +24,17 @@ pragma solidity 0.8.6;
 import "@openzeppelin/contracts-upgradeable/access/AccessControlEnumerableUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/utils/AddressUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/utils/structs/EnumerableSetUpgradeable.sol";
+import "@skalenetwork/ima-interfaces/IGasReimbursable.sol";
+import "@skalenetwork/ima-interfaces/IMessageProxy.sol";
+import "@skalenetwork/ima-interfaces/IMessageReceiver.sol";
 
-import "./interfaces/IMessageReceiver.sol";
-import "./interfaces/IGasReimbursable.sol";
 
 /**
  * @title MessageProxy
  * @dev Abstract contract for MessageProxyForMainnet and MessageProxyForSchain.
  */
-abstract contract MessageProxy is AccessControlEnumerableUpgradeable {
+abstract contract MessageProxy is AccessControlEnumerableUpgradeable, IMessageProxy {
     using AddressUpgradeable for address;
-
-    bytes32 public constant MAINNET_HASH = keccak256(abi.encodePacked("Mainnet"));
-    bytes32 public constant CHAIN_CONNECTOR_ROLE = keccak256("CHAIN_CONNECTOR_ROLE");
-    bytes32 public constant EXTRA_CONTRACT_REGISTRAR_ROLE = keccak256("EXTRA_CONTRACT_REGISTRAR_ROLE");
-    bytes32 public constant CONSTANT_SETTER_ROLE = keccak256("CONSTANT_SETTER_ROLE");
-    uint256 public constant MESSAGES_LENGTH = 10;
 
     /**
      * @dev Structure that stores counters for outgoing and incoming messages.
@@ -51,26 +46,11 @@ abstract contract MessageProxy is AccessControlEnumerableUpgradeable {
         bool inited;
     }
 
-    /**
-     * @dev Structure that describes message. Should contain sender of message,
-     * destination contract on schain that will receiver message,
-     * data that contains all needed info about token or ETH.
-     */
-    struct Message {
-        address sender;
-        address destinationContract;
-        bytes data;
-    }
-
-    /**
-     * @dev Structure that contains fields for bls signature.
-     */
-    struct Signature {
-        uint256[2] blsSignature;
-        uint256 hashA;
-        uint256 hashB;
-        uint256 counter;
-    }
+    bytes32 public constant MAINNET_HASH = keccak256(abi.encodePacked("Mainnet"));
+    bytes32 public constant CHAIN_CONNECTOR_ROLE = keccak256("CHAIN_CONNECTOR_ROLE");
+    bytes32 public constant EXTRA_CONTRACT_REGISTRAR_ROLE = keccak256("EXTRA_CONTRACT_REGISTRAR_ROLE");
+    bytes32 public constant CONSTANT_SETTER_ROLE = keccak256("CONSTANT_SETTER_ROLE");
+    uint256 public constant MESSAGES_LENGTH = 10;
 
     //   schainHash => ConnectedChainInfo
     mapping(bytes32 => ConnectedChainInfo) public connectedChains;
@@ -129,50 +109,7 @@ abstract contract MessageProxy is AccessControlEnumerableUpgradeable {
     modifier onlyConstantSetter() {
         require(hasRole(CONSTANT_SETTER_ROLE, msg.sender), "Not enough permissions to set constant");
         _;
-    }
-
-    function initializeMessageProxy(uint newGasLimit) public initializer {
-        AccessControlEnumerableUpgradeable.__AccessControlEnumerable_init();
-        _setupRole(DEFAULT_ADMIN_ROLE, msg.sender);
-        _setupRole(CHAIN_CONNECTOR_ROLE, msg.sender);
-        _setupRole(EXTRA_CONTRACT_REGISTRAR_ROLE, msg.sender);
-        _setupRole(CONSTANT_SETTER_ROLE, msg.sender);
-        emit GasLimitWasChanged(gasLimit, newGasLimit);
-        gasLimit = newGasLimit;
-    }
-
-    /**
-     * @dev Checks whether schain was connected to MessageProxy.
-     */
-    function isConnectedChain(
-        string memory schainName
-    )
-        public
-        view
-        virtual
-        returns (bool)
-    {
-        return connectedChains[keccak256(abi.encodePacked(schainName))].inited;
-    }
-
-    /**
-     * @dev Allows `msg.sender` to connect schain with MessageProxy for transferring messages.
-     */
-    function addConnectedChain(string calldata schainName) external virtual;
-
-    /**
-     * @dev Allows `msg.sender` to disconnect schain with MessageProxy for transferring messages.
-     *
-     * Requirements:
-     *  
-     * - `msg.sender` must be granted CHAIN_CONNECTOR_ROLE.
-     * - Chain must be initialized.
-     */
-    function removeConnectedChain(string memory schainName) public virtual onlyChainConnector {
-        bytes32 schainHash = keccak256(abi.encodePacked(schainName));
-        require(connectedChains[schainHash].inited, "Chain is not initialized");
-        delete connectedChains[schainHash];
-    }
+    }    
 
     /**
      * @dev Sets gasLimit to a new value.
@@ -181,45 +118,9 @@ abstract contract MessageProxy is AccessControlEnumerableUpgradeable {
      * 
      * - `msg.sender` must be granted CONSTANT_SETTER_ROLE.
      */
-    function setNewGasLimit(uint256 newGasLimit) external onlyConstantSetter {
+    function setNewGasLimit(uint256 newGasLimit) external override onlyConstantSetter {
         emit GasLimitWasChanged(gasLimit, newGasLimit);
         gasLimit = newGasLimit;
-    }
-
-    /**
-     * @dev Posts message from this contract to `targetChainHash` MessageProxy contract.
-     * This is called by a smart contract to make a cross-chain call.
-     * 
-     * Emits an {OutgoingMessage} event.
-     *
-     * Requirements:
-     * 
-     * - Target chain must be initialized.
-     * - Target chain must be registered as external contract.
-     */
-    function postOutgoingMessage(
-        bytes32 targetChainHash,
-        address targetContract,
-        bytes memory data
-    )
-        public
-        virtual
-    {
-        require(connectedChains[targetChainHash].inited, "Destination chain is not initialized");
-        require(
-            isContractRegistered(bytes32(0), msg.sender) || isContractRegistered(targetChainHash, msg.sender),
-            "Sender contract is not registered"
-        );        
-        
-        emit OutgoingMessage(
-            targetChainHash,
-            connectedChains[targetChainHash].outgoingMessageCounter,
-            msg.sender,
-            targetContract,
-            data
-        );
-
-        connectedChains[targetChainHash].outgoingMessageCounter += 1;
     }
 
     /**
@@ -244,6 +145,7 @@ abstract contract MessageProxy is AccessControlEnumerableUpgradeable {
         public
         view
         virtual
+        override
         returns (bool);
 
     /**
@@ -256,6 +158,7 @@ abstract contract MessageProxy is AccessControlEnumerableUpgradeable {
     function getOutgoingMessagesCounter(string calldata targetSchainName)
         external
         view
+        override
         returns (uint256)
     {
         bytes32 dstChainHash = keccak256(abi.encodePacked(targetSchainName));
@@ -273,11 +176,85 @@ abstract contract MessageProxy is AccessControlEnumerableUpgradeable {
     function getIncomingMessagesCounter(string calldata fromSchainName)
         external
         view
+        override
         returns (uint256)
     {
         bytes32 srcChainHash = keccak256(abi.encodePacked(fromSchainName));
         require(connectedChains[srcChainHash].inited, "Source chain is not initialized");
         return connectedChains[srcChainHash].incomingMessageCounter;
+    }
+
+    function initializeMessageProxy(uint newGasLimit) public initializer {
+        AccessControlEnumerableUpgradeable.__AccessControlEnumerable_init();
+        _setupRole(DEFAULT_ADMIN_ROLE, msg.sender);
+        _setupRole(CHAIN_CONNECTOR_ROLE, msg.sender);
+        _setupRole(EXTRA_CONTRACT_REGISTRAR_ROLE, msg.sender);
+        _setupRole(CONSTANT_SETTER_ROLE, msg.sender);
+        gasLimit = newGasLimit;
+    }
+
+    /**
+     * @dev Posts message from this contract to `targetChainHash` MessageProxy contract.
+     * This is called by a smart contract to make a cross-chain call.
+     * 
+     * Emits an {OutgoingMessage} event.
+     *
+     * Requirements:
+     * 
+     * - Target chain must be initialized.
+     * - Target chain must be registered as external contract.
+     */
+    function postOutgoingMessage(
+        bytes32 targetChainHash,
+        address targetContract,
+        bytes memory data
+    )
+        public
+        override
+        virtual
+    {
+        require(connectedChains[targetChainHash].inited, "Destination chain is not initialized");
+        require(
+            isContractRegistered(bytes32(0), msg.sender) || isContractRegistered(targetChainHash, msg.sender),
+            "Sender contract is not registered"
+        );        
+        
+        emit OutgoingMessage(
+            targetChainHash,
+            connectedChains[targetChainHash].outgoingMessageCounter,
+            msg.sender,
+            targetContract,
+            data
+        );
+
+        connectedChains[targetChainHash].outgoingMessageCounter += 1;
+    }
+
+    /**
+     * @dev Allows LockAndData to remove connected chain from this contract.
+     * 
+     * Requirements:
+     * 
+     * - `msg.sender` must be LockAndData contract.
+     * - `schainName` must be initialized.
+     */
+    function removeConnectedChain(string memory schainName) public virtual override onlyChainConnector {
+        bytes32 schainHash = keccak256(abi.encodePacked(schainName));
+        require(connectedChains[schainHash].inited, "Chain is not initialized");
+        delete connectedChains[schainHash];
+    }    
+
+    // Registration state detection
+    function isConnectedChain(
+        string memory schainName
+    )
+        public
+        view
+        virtual
+        override
+        returns (bool)
+    {
+        return connectedChains[keccak256(abi.encodePacked(schainName))].inited;
     }
 
     /**

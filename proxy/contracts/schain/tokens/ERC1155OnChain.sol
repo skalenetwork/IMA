@@ -24,13 +24,14 @@ pragma solidity 0.8.6;
 
 import "@openzeppelin/contracts-upgradeable/token/ERC1155/extensions/ERC1155BurnableUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/access/AccessControlEnumerableUpgradeable.sol";
+import "@skalenetwork/ima-interfaces/schain/tokens/IERC1155OnChain.sol";
 
 
 /**
  * @title ERC1155OnChain
  * @dev ERC1155 token that is used as an automatically deployed clone of ERC1155 on mainnet.
  */
-contract ERC1155OnChain is AccessControlEnumerableUpgradeable, ERC1155BurnableUpgradeable {
+contract ERC1155OnChain is AccessControlEnumerableUpgradeable, ERC1155BurnableUpgradeable, IERC1155OnChain {
 
     /**
      * @dev id of a role that allows token minting.
@@ -63,6 +64,7 @@ contract ERC1155OnChain is AccessControlEnumerableUpgradeable, ERC1155BurnableUp
         bytes memory data
     )
         external
+        override
     {
         require(hasRole(MINTER_ROLE, _msgSender()), "Sender is not a Minter");
         _mint(account, id, amount, data);
@@ -82,6 +84,7 @@ contract ERC1155OnChain is AccessControlEnumerableUpgradeable, ERC1155BurnableUp
         bytes memory data
     )
         external
+        override
     {
         require(hasRole(MINTER_ROLE, _msgSender()), "Sender is not a Minter");
         _mintBatch(account, ids, amounts, data);
