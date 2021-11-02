@@ -35,7 +35,7 @@ import "./SkaleManagerClient.sol";
  */
 abstract contract Twin is SkaleManagerClient, ITwin {
 
-    MessageProxyForMainnet public messageProxy;
+    IMessageProxyForMainnet public messageProxy;
     mapping(bytes32 => address) public schainLinks;
     bytes32 public constant LINKER_ROLE = keccak256("LINKER_ROLE");
 
@@ -94,7 +94,7 @@ abstract contract Twin is SkaleManagerClient, ITwin {
     
     function initialize(
         IContractManager contractManagerOfSkaleManagerValue,
-        MessageProxyForMainnet newMessageProxy
+        IMessageProxyForMainnet newMessageProxy
     )
         public
         virtual

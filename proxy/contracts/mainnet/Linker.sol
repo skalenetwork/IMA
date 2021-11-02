@@ -201,7 +201,7 @@ contract Linker is Twin, ILinker {
      */
     function initialize(
         IContractManager contractManagerOfSkaleManagerValue,
-        MessageProxyForMainnet messageProxyValue
+        IMessageProxyForMainnet messageProxyValue
     )
         public
         override

@@ -31,19 +31,11 @@ import "./MessageProxyForMainnet.sol";
 import "./Linker.sol";
 
 
-interface ICommunityPoolInitializable is ICommunityPool {
-    function initialize(
-        IContractManager contractManagerOfSkaleManagerValue,
-        Linker linker,
-        MessageProxyForMainnet messageProxyValue
-    ) external;
-}
-
 /**
  * @title CommunityPool
  * @dev Contract contains logic to perform automatic self-recharging ETH for nodes.
  */
-contract CommunityPool is Twin, ICommunityPoolInitializable {
+contract CommunityPool is Twin, ICommunityPool {
 
     using AddressUpgradeable for address payable;
 
@@ -67,8 +59,8 @@ contract CommunityPool is Twin, ICommunityPoolInitializable {
 
     function initialize(
         IContractManager contractManagerOfSkaleManagerValue,
-        Linker linker,
-        MessageProxyForMainnet messageProxyValue
+        ILinker linker,
+        IMessageProxyForMainnet messageProxyValue
     )
         external
         override
