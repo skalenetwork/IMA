@@ -28,16 +28,11 @@ import "@skalenetwork/skale-manager-interfaces/ISchainsInternal.sol";
 import "@skalenetwork/ima-interfaces/mainnet/ISkaleManagerClient.sol";
 
 
-interface ISkaleManagerClientInitializable is ISkaleManagerClient {
-    function initialize(IContractManager newContractManagerOfSkaleManager) external;
-}
-
-
 /**
  * @title SkaleManagerClient - contract that knows ContractManager
  * and makes calls to SkaleManager contracts.
  */
-contract SkaleManagerClient is Initializable, AccessControlEnumerableUpgradeable, ISkaleManagerClientInitializable {
+contract SkaleManagerClient is Initializable, AccessControlEnumerableUpgradeable, ISkaleManagerClient {
 
     IContractManager public contractManagerOfSkaleManager;
 
