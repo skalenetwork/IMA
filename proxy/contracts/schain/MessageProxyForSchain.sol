@@ -52,6 +52,7 @@ import "./KeyStorage.sol";
  */
 contract MessageProxyForSchain is MessageProxy {
     using AddressUpgradeable for address;
+    using EnumerableSetUpgradeable for EnumerableSetUpgradeable.AddressSet;
 
     /**
      * @dev Structure that contains information about outgoing message.
@@ -91,6 +92,32 @@ contract MessageProxyForSchain is MessageProxy {
      */
     //      schainHash  => tail of unprocessed messages
     mapping(bytes32 => uint) private _idxTail;
+
+    mapping(bytes32 => EnumerableSetUpgradeable.AddressSet) private _registryContracts;
+
+    /**
+     * @dev Allows DEFAULT_ADMIN_ROLE to initialize registered contracts
+     * Notice - this function will be executed only once during upgrade
+     * 
+     * Requirements:
+     * 
+     * `msg.sender` should has DEFAULT_ADMIN_ROLE
+     */
+    function initializeAllRegisteredContracts(
+        bytes32 chainHash,
+        address[] calldata contracts
+    ) external {
+        require(hasRole(DEFAULT_ADMIN_ROLE, msg.sender), "Sender is not authorized");
+        for (uint256 i = 0; i < contracts.length; i++) {
+            if (
+                deprecatedRegistryContracts[chainHash][contracts[i]] &&
+                !_registryContracts[chainHash].contains(contracts[i])
+            ) {
+                _registryContracts[chainHash].add(contracts[i]);
+                delete deprecatedRegistryContracts[chainHash][contracts[i]];
+            }
+        }
+    }
 
     function registerExtraContract(
         string memory chainName,
@@ -230,6 +257,35 @@ contract MessageProxyForSchain is MessageProxy {
     }
 
     /**
+     * @dev Allows `msg.sender` to register extra contract for all schains
+     * for being able to transfer messages from custom contracts.
+     * 
+     * Requirements:
+     * 
+     * - `msg.sender` must be granted as EXTRA_CONTRACT_REGISTRAR_ROLE.
+     * - Passed address should be contract.
+     * - Extra contract must not be registered.
+     */
+    function registerExtraContractForAll(address extraContract) external onlyExtraContractRegistrar {
+        require(extraContract.isContract(), "Given address is not a contract");
+        require(!_registryContracts[bytes32(0)].contains(extraContract), "Extra contract is already registered");
+        _registryContracts[bytes32(0)].add(extraContract);
+    }
+
+    /**
+     * @dev Allows `msg.sender` to remove extra contract for all schains.
+     * Extra contract will no longer be able to send messages through MessageProxy.
+     * 
+     * Requirements:
+     * 
+     * - `msg.sender` must be granted as EXTRA_CONTRACT_REGISTRAR_ROLE.
+     */
+    function removeExtraContractForAll(address extraContract) external onlyExtraContractRegistrar {
+        require(_registryContracts[bytes32(0)].contains(extraContract), "Extra contract is not registered");
+        _registryContracts[bytes32(0)].remove(extraContract);
+    }
+
+    /**
      * @dev Verify if the message metadata is valid.
      */
     function verifyOutgoingMessageData(
@@ -242,6 +298,53 @@ contract MessageProxyForSchain is MessageProxy {
         bytes32 messageDataHash = _outgoingMessageDataHash[message.dstChainHash][message.msgCounter];
         if (messageDataHash == _hashOfMessage(message))
             isValidMessage = true;
+    }
+
+    /**
+     * @dev Checks whether contract is currently registered as extra contract.
+     */
+    function isContractRegistered(
+        bytes32 chainHash,
+        address contractAddress
+    )
+        public
+        view
+        override
+        returns (bool)
+    {
+        return _registryContracts[chainHash].contains(contractAddress);
+    }
+
+    /**
+     * @dev Should return length or contract registered by chainHash.
+     */
+    function getContractRegisteredLength(bytes32 chainHash) external view returns (uint256) {
+        return _registryContracts[chainHash].length();
+    }
+
+    /**
+     * @dev Should return a range of contracts registered by chainHash.
+     * 
+     * Requirements:
+     * range should be less or equal 10 contracts
+     */
+    function getContractRegisteredRange(
+        bytes32 chainHash,
+        uint256 from,
+        uint256 to
+    )
+        external
+        view
+        returns (address[] memory contractsInRange)
+    {
+        require(
+            from < to && to - from <= 10 && to <= _registryContracts[chainHash].length(),
+            "Range is incorrect"
+        );
+        contractsInRange = new address[](to - from);
+        for (uint256 i = from; i < to; i++) {
+            contractsInRange[i - from] = _registryContracts[chainHash].at(i);
+        }
     }
 
     // private
@@ -285,5 +388,48 @@ contract MessageProxyForSchain is MessageProxy {
             signature.hashB,
             keyStorage.getBlsCommonPublicKey()
         );
+    }
+
+    /**
+     * @dev Allows MessageProxy to register extra contract for being able to transfer messages from custom contracts.
+     * 
+     * Requirements:
+     * 
+     * - Extra contract address must be contract.
+     * - Extra contract must not be registered.
+     * - Extra contract must not be registered for all chains.
+     */
+    function _registerExtraContract(
+        bytes32 chainHash,
+        address extraContract
+    )
+        internal
+    {      
+        require(extraContract.isContract(), "Given address is not a contract");
+        require(!_registryContracts[chainHash].contains(extraContract), "Extra contract is already registered");
+        require(
+            !_registryContracts[bytes32(0)].contains(extraContract),
+            "Extra contract is already registered for all chains"
+        );
+        
+        _registryContracts[chainHash].add(extraContract);
+    }
+
+    /**
+     * @dev Allows MessageProxy to remove extra contract,
+     * thus `extraContract` will no longer be available to transfer messages from mainnet to schain.
+     * 
+     * Requirements:
+     * 
+     * - Extra contract must be registered.
+     */
+    function _removeExtraContract(
+        bytes32 chainHash,
+        address extraContract
+    )
+        internal
+    {
+        require(_registryContracts[chainHash].contains(extraContract), "Extra contract is not registered");
+        _registryContracts[chainHash].remove(extraContract);
     }
 }

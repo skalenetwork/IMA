@@ -34,7 +34,6 @@ import "./interfaces/IGasReimbursable.sol";
  */
 abstract contract MessageProxy is AccessControlEnumerableUpgradeable {
     using AddressUpgradeable for address;
-    using EnumerableSetUpgradeable for EnumerableSetUpgradeable.AddressSet;
 
     bytes32 public constant MAINNET_HASH = keccak256(abi.encodePacked("Mainnet"));
     bytes32 public constant CHAIN_CONNECTOR_ROLE = keccak256("CHAIN_CONNECTOR_ROLE");
@@ -76,11 +75,9 @@ abstract contract MessageProxy is AccessControlEnumerableUpgradeable {
     //   schainHash => ConnectedChainInfo
     mapping(bytes32 => ConnectedChainInfo) public connectedChains;
     //   schainHash => contract address => allowed
-    mapping(bytes32 => mapping(address => bool)) private _deprecatedRegistryContracts;
+    mapping(bytes32 => mapping(address => bool)) internal deprecatedRegistryContracts;
 
     uint256 public gasLimit;
-
-    mapping(bytes32 => EnumerableSetUpgradeable.AddressSet) private _registryContracts;
 
     /**
      * @dev Emitted for every outgoing message to schain.
@@ -132,30 +129,6 @@ abstract contract MessageProxy is AccessControlEnumerableUpgradeable {
     modifier onlyConstantSetter() {
         require(hasRole(CONSTANT_SETTER_ROLE, msg.sender), "Not enough permissions to set constant");
         _;
-    }
-
-    /**
-     * @dev Allows DEFAULT_ADMIN_ROLE to initialize registered contracts
-     * Notice - this function will be executed only once during upgrade
-     * 
-     * Requirements:
-     * 
-     * `msg.sender` should has DEFAULT_ADMIN_ROLE
-     */
-    function initializeAllTokensForSchain(
-        bytes32 schainHash,
-        address[] calldata contracts
-    ) external {
-        require(hasRole(DEFAULT_ADMIN_ROLE, msg.sender), "Sender is not authorized");
-        for (uint256 i = 0; i < contracts.length; i++) {
-            if (
-                _deprecatedRegistryContracts[schainHash][contracts[i]] &&
-                !_registryContracts[schainHash].contains(contracts[i])
-            ) {
-                _registryContracts[schainHash].add(contracts[i]);
-                delete _deprecatedRegistryContracts[schainHash][contracts[i]];
-            }
-        }
     }
 
     function initializeMessageProxy(uint newGasLimit) public initializer {
@@ -234,8 +207,7 @@ abstract contract MessageProxy is AccessControlEnumerableUpgradeable {
     {
         require(connectedChains[targetChainHash].inited, "Destination chain is not initialized");
         require(
-            _registryContracts[bytes32(0)].contains(msg.sender) || 
-            _registryContracts[targetChainHash].contains(msg.sender),
+            isContractRegistered(bytes32(0), msg.sender) || isContractRegistered(targetChainHash, msg.sender),
             "Sender contract is not registered"
         );        
         
@@ -263,35 +235,6 @@ abstract contract MessageProxy is AccessControlEnumerableUpgradeable {
         virtual;
 
     /**
-     * @dev Allows `msg.sender` to register extra contract for all schains
-     * for being able to transfer messages from custom contracts.
-     * 
-     * Requirements:
-     * 
-     * - `msg.sender` must be granted as EXTRA_CONTRACT_REGISTRAR_ROLE.
-     * - Passed address should be contract.
-     * - Extra contract must not be registered.
-     */
-    function registerExtraContractForAll(address extraContract) external onlyExtraContractRegistrar {
-        require(extraContract.isContract(), "Given address is not a contract");
-        require(!_registryContracts[bytes32(0)].contains(extraContract), "Extra contract is already registered");
-        _registryContracts[bytes32(0)].add(extraContract);
-    }
-
-    /**
-     * @dev Allows `msg.sender` to remove extra contract for all schains.
-     * Extra contract will no longer be able to send messages through MessageProxy.
-     * 
-     * Requirements:
-     * 
-     * - `msg.sender` must be granted as EXTRA_CONTRACT_REGISTRAR_ROLE.
-     */
-    function removeExtraContractForAll(address extraContract) external onlyExtraContractRegistrar {
-        require(_registryContracts[bytes32(0)].contains(extraContract), "Extra contract is not registered");
-        _registryContracts[bytes32(0)].remove(extraContract);
-    }
-
-    /**
      * @dev Checks whether contract is currently registered as extra contract.
      */
     function isContractRegistered(
@@ -300,42 +243,8 @@ abstract contract MessageProxy is AccessControlEnumerableUpgradeable {
     )
         public
         view
-        returns (bool)
-    {
-        return _registryContracts[schainHash].contains(contractAddress);
-    }
-
-    /**
-     * @dev Should return length or contract registered by schainHash.
-     */
-    function getContractRegisteredLength(bytes32 schainHash) external view returns (uint256) {
-        return _registryContracts[schainHash].length();
-    }
-
-    /**
-     * @dev Should return a range of contracts registered by schainHash.
-     * 
-     * Requirements:
-     * range should be less or equal 10 contracts
-     */
-    function getContractRegisteredRange(
-        bytes32 schainHash,
-        uint256 from,
-        uint256 to
-    )
-        external
-        view
-        returns (address[] memory contractsInRange)
-    {
-        require(
-            from < to && to - from <= 10 && to <= _registryContracts[schainHash].length(),
-            "Range is incorrect"
-        );
-        contractsInRange = new address[](to - from);
-        for (uint256 i = from; i < to; i++) {
-            contractsInRange[i - from] = _registryContracts[schainHash].at(i);
-        }
-    }
+        virtual
+        returns (bool);
 
     /**
      * @dev Returns number of outgoing messages.
@@ -455,49 +364,6 @@ abstract contract MessageProxy is AccessControlEnumerableUpgradeable {
             );
             return address(0);
         }
-    }
-    
-    /**
-     * @dev Allows MessageProxy to register extra contract for being able to transfer messages from custom contracts.
-     * 
-     * Requirements:
-     * 
-     * - Extra contract address must be contract.
-     * - Extra contract must not be registered.
-     * - Extra contract must not be registered for all chains.
-     */
-    function _registerExtraContract(
-        bytes32 chainHash,
-        address extraContract
-    )
-        internal
-    {      
-        require(extraContract.isContract(), "Given address is not a contract");
-        require(!_registryContracts[chainHash].contains(extraContract), "Extra contract is already registered");
-        require(
-            !_registryContracts[bytes32(0)].contains(extraContract),
-            "Extra contract is already registered for all chains"
-        );
-        
-        _registryContracts[chainHash].add(extraContract);
-    }
-
-    /**
-     * @dev Allows MessageProxy to remove extra contract,
-     * thus `extraContract` will no longer be available to transfer messages from mainnet to schain.
-     * 
-     * Requirements:
-     * 
-     * - Extra contract must be registered.
-     */
-    function _removeExtraContract(
-        bytes32 chainHash,
-        address extraContract
-    )
-        internal
-    {
-        require(_registryContracts[chainHash].contains(extraContract), "Extra contract is not registered");
-        _registryContracts[chainHash].remove(extraContract);
     }
 
     /**
