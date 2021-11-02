@@ -27,19 +27,6 @@ import "@openzeppelin/contracts-upgradeable/access/AccessControlEnumerableUpgrad
 import "@skalenetwork/ima-interfaces/schain/ICommunityLocker.sol";
 
 import "../Messages.sol";
-import "../mainnet/CommunityPool.sol";
-import "./MessageProxyForSchain.sol";
-import "./TokenManagerLinker.sol";
-
-
-interface ICommunityLockerInitializable is ICommunityLocker {
-    function initialize(
-        string memory newSchainName,
-        MessageProxyForSchain newMessageProxy,
-        TokenManagerLinker newTokenManagerLinker,
-        address newCommunityPool
-    ) external;
-}
 
 
 /**
@@ -47,7 +34,7 @@ interface ICommunityLockerInitializable is ICommunityLocker {
  * @dev Contract contains logic to perform automatic reimbursement
  * of gas fees for sent messages
  */
-contract CommunityLocker is ICommunityLockerInitializable, AccessControlEnumerableUpgradeable {
+contract CommunityLocker is ICommunityLocker, AccessControlEnumerableUpgradeable {
 
     /**
      * @dev Mainnet identifier.
@@ -67,12 +54,12 @@ contract CommunityLocker is ICommunityLockerInitializable, AccessControlEnumerab
     /**
      * @dev Address of MessageProxyForSchain.
      */
-    MessageProxyForSchain public messageProxy;
+    IMessageProxyForSchain public messageProxy;
 
     /**
      * @dev Address of TokenManagerLinker.
      */
-    TokenManagerLinker public tokenManagerLinker;
+    ITokenManagerLinker public tokenManagerLinker;
 
     /**
      * @dev Address of CommunityPool on mainnet.
@@ -175,7 +162,7 @@ contract CommunityLocker is ICommunityLockerInitializable, AccessControlEnumerab
      */
     function checkAllowedToSendMessage(address receiver) external override {
         require(
-            tokenManagerLinker.hasTokenManager(TokenManager(msg.sender)),
+            tokenManagerLinker.hasTokenManager(ITokenManager(msg.sender)),
             "Sender is not registered token manager"
         );
         require(activeUsers[receiver], "Recipient must be active");
@@ -206,8 +193,8 @@ contract CommunityLocker is ICommunityLockerInitializable, AccessControlEnumerab
      */
     function initialize(
         string memory newSchainName,
-        MessageProxyForSchain newMessageProxy,
-        TokenManagerLinker newTokenManagerLinker,
+        IMessageProxyForSchain newMessageProxy,
+        ITokenManagerLinker newTokenManagerLinker,
         address newCommunityPool
     )
         external
