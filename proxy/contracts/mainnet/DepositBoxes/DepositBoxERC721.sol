@@ -269,11 +269,11 @@ contract DepositBoxERC721 is DepositBox, IDepositBoxERC721InitializeAllTokensFor
      */
     function initialize(
         IContractManager contractManagerOfSkaleManagerValue,        
-        Linker linkerValue,
-        MessageProxyForMainnet messageProxyValue
+        ILinker linkerValue,
+        IMessageProxyForMainnet messageProxyValue
     )
         public
-        override
+        override(DepositBox, IDepositBox)
         initializer
     {
         DepositBox.initialize(contractManagerOfSkaleManagerValue, linkerValue, messageProxyValue);

@@ -24,26 +24,16 @@ pragma solidity 0.8.6;
 
 import "@skalenetwork/ima-interfaces/mainnet/IDepositBox.sol";
 
-import "./Linker.sol";
-import "./MessageProxyForMainnet.sol";
-
-
-interface IDepositBoxInitializable is IDepositBox {
-    function initialize(
-        IContractManager contractManagerOfSkaleManagerValue,
-        Linker newLinker,
-        MessageProxyForMainnet messageProxyValue
-    ) external;
-}
+import "./Twin.sol";
 
 
 /**
  * @title DepositBox
  * @dev Abstract contracts for DepositBoxes on mainnet.
  */
-abstract contract DepositBox is IDepositBoxInitializable, IGasReimbursable, Twin {
+abstract contract DepositBox is IDepositBox, Twin {
 
-    Linker public linker;
+    ILinker public linker;
 
     // schainHash => true if automatic deployment tokens on schain was enabled 
     mapping(bytes32 => bool) private _automaticDeploy;
@@ -108,8 +98,8 @@ abstract contract DepositBox is IDepositBoxInitializable, IGasReimbursable, Twin
 
     function initialize(
         IContractManager contractManagerOfSkaleManagerValue,
-        Linker newLinker,
-        MessageProxyForMainnet messageProxyValue
+        ILinker newLinker,
+        IMessageProxyForMainnet messageProxyValue
     )
         public
         override

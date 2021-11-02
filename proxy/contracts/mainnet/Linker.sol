@@ -44,7 +44,7 @@ contract Linker is Twin, ILinker {
     EnumerableSetUpgradeable.AddressSet private _mainnetContracts;
 
     // schainHash => true if interchain connection was enabled
-    mapping(bytes32 => bool) public interchainConnections;
+    mapping(bytes32 => bool) public override interchainConnections;
 
     // schainHash => schain status of killing process 
     mapping(bytes32 => KillProcess) public statuses;

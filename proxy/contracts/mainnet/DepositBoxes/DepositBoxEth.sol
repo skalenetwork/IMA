@@ -166,11 +166,11 @@ contract DepositBoxEth is DepositBox, IDepositBoxEth {
      */
     function initialize(
         IContractManager contractManagerOfSkaleManagerValue,        
-        Linker linkerValue,
-        MessageProxyForMainnet messageProxyValue
+        ILinker linkerValue,
+        IMessageProxyForMainnet messageProxyValue
     )
         public
-        override
+        override(DepositBox, IDepositBox)
         initializer
     {
         DepositBox.initialize(contractManagerOfSkaleManagerValue, linkerValue, messageProxyValue);

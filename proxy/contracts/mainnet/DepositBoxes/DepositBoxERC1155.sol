@@ -30,6 +30,7 @@ import "@skalenetwork/ima-interfaces/mainnet/DepositBoxes/IDepositBoxERC1155.sol
 import "../DepositBox.sol";
 import "../../Messages.sol";
 
+
 interface IDepositBoxERC1155InitializeAllTokensForSchain is IDepositBoxERC1155 {
     function initializeAllTokensForSchain(
         string calldata schainName,
@@ -403,11 +404,11 @@ contract DepositBoxERC1155 is DepositBox, ERC1155ReceiverUpgradeable, IDepositBo
      */
     function initialize(
         IContractManager contractManagerOfSkaleManagerValue,        
-        Linker linkerValue,
-        MessageProxyForMainnet messageProxyValue
+        ILinker linkerValue,
+        IMessageProxyForMainnet messageProxyValue
     )
         public
-        override
+        override(DepositBox, IDepositBox)
         initializer
     {
         DepositBox.initialize(contractManagerOfSkaleManagerValue, linkerValue, messageProxyValue);
