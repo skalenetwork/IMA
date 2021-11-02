@@ -29,13 +29,6 @@ import "@skalenetwork/ima-interfaces/mainnet/DepositBoxes/IDepositBoxERC20.sol";
 import "../../Messages.sol";
 import "../DepositBox.sol";
 
-interface IDepositBoxERC20InitializeAllTokensForSchain is IDepositBoxERC20 {
-    function initializeAllTokensForSchain(
-        string calldata schainName,
-        address[] calldata tokens
-    ) external;
-}
-
 
 /**
  * @title DepositBoxERC20
@@ -43,7 +36,7 @@ interface IDepositBoxERC20InitializeAllTokensForSchain is IDepositBoxERC20 {
  * accepts messages from schain,
  * stores deposits of ERC20.
  */
-contract DepositBoxERC20 is DepositBox, IDepositBoxERC20InitializeAllTokensForSchain {
+contract DepositBoxERC20 is DepositBox, IDepositBoxERC20 {
     using AddressUpgradeable for address;
     using EnumerableSetUpgradeable for EnumerableSetUpgradeable.AddressSet;
 

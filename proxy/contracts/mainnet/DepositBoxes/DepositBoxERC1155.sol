@@ -31,21 +31,13 @@ import "../DepositBox.sol";
 import "../../Messages.sol";
 
 
-interface IDepositBoxERC1155InitializeAllTokensForSchain is IDepositBoxERC1155 {
-    function initializeAllTokensForSchain(
-        string calldata schainName,
-        address[] calldata tokens
-    ) external;
-}
-
-
 /**
  * @title DepositBoxERC1155
  * @dev Runs on mainnet,
  * accepts messages from schain,
  * stores deposits of ERC1155.
  */
-contract DepositBoxERC1155 is DepositBox, ERC1155ReceiverUpgradeable, IDepositBoxERC1155InitializeAllTokensForSchain {
+contract DepositBoxERC1155 is DepositBox, ERC1155ReceiverUpgradeable, IDepositBoxERC1155 {
 
     using AddressUpgradeable for address;
     using EnumerableSetUpgradeable for EnumerableSetUpgradeable.AddressSet;

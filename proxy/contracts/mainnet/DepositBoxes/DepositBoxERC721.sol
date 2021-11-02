@@ -29,13 +29,6 @@ import "@openzeppelin/contracts-upgradeable/utils/structs/EnumerableSetUpgradeab
 import "../DepositBox.sol";
 import "../../Messages.sol";
 
-interface IDepositBoxERC721InitializeAllTokensForSchain is IDepositBoxERC721 {
-    function initializeAllTokensForSchain(
-        string calldata schainName,
-        address[] calldata tokens
-    ) external;
-}
-
 
 /**
  * @title DepositBoxERC721
@@ -43,7 +36,7 @@ interface IDepositBoxERC721InitializeAllTokensForSchain is IDepositBoxERC721 {
  * accepts messages from schain,
  * stores deposits of ERC721.
  */
-contract DepositBoxERC721 is DepositBox, IDepositBoxERC721InitializeAllTokensForSchain {
+contract DepositBoxERC721 is DepositBox, IDepositBoxERC721 {
     using AddressUpgradeable for address;
     using EnumerableSetUpgradeable for EnumerableSetUpgradeable.AddressSet;
 
