@@ -8,6 +8,8 @@ import chalk from "chalk";
 import { MessageProxyForMainnet, DepositBoxERC20, DepositBoxERC721, DepositBoxERC1155 } from "../typechain/";
 import { encodeTransaction } from "./tools/multiSend";
 import { TypedEvent, TypedEventFilter } from "../typechain/commons";
+import { promises as fs } from "fs";
+import { read } from "./tools/csv";
 
 async function runInitialize(
     safeTransactions: string[],
@@ -48,7 +50,7 @@ async function runInitialize(
     });
 }
 
-async function getContractDeploymentBlock(address: string): Promise<number> {
+async function findContractDeploymentBlock(address: string): Promise<number> {
     let left = 0;
     let right: number = 0;
     try {
@@ -85,6 +87,26 @@ async function getContractDeploymentBlock(address: string): Promise<number> {
     return left;
 }
 
+async function getContractDeploymentBlock(address: string) {
+    const manifest = await Manifest.forNetwork(hre.network.provider);
+    const deploymentProxy = await manifest.getProxyFromAddress(address);
+    let blockStart: number | undefined;
+    if (deploymentProxy?.txHash) {
+        const blockNumber = (await ethers.provider.getTransaction(deploymentProxy?.txHash)).blockNumber;
+        if (blockNumber) {
+            blockStart = blockNumber;
+            console.log(chalk.yellow("Successfully extract block number for contract creation from manifest"));
+            console.log(chalk.yellow("Contract " + address + " in block " + blockStart));
+        }
+    }
+    if (!blockStart) {
+        console.log(chalk.yellow("No deploy transaction in manifest for " + address));
+        console.log(chalk.yellow("Will find block creation number"));
+        blockStart = await findContractDeploymentBlock(address);
+    }
+    return blockStart;
+}
+
 async function findEventsAndInitialize(
     safeTransactions: string[],
     abi: any,
@@ -107,23 +129,7 @@ async function findEventsAndInitialize(
             address: depositBoxAddress,
             topics: [ ethers.utils.id(eventName + "(string,address)") ]
         }
-        const manifest = await Manifest.forNetwork(hre.network.provider);
-        const deploymentProxy = await manifest.getProxyFromAddress(depositBoxAddress);
-        let blockStart: number | undefined;
-        if (deploymentProxy?.txHash) {
-            const blockNumber = (await ethers.provider.getTransaction(deploymentProxy?.txHash)).blockNumber;
-            if (blockNumber) {
-                blockStart = blockNumber;
-                console.log(chalk.yellow("Successfully extract block number for contract creation from manifest"));
-                console.log(chalk.yellow("Contract " + depositBoxAddress + " in block " + blockStart));
-            }
-        }
-        if (!blockStart) {
-            console.log(chalk.yellow("No deploy transaction in manifest for " + depositBoxAddress));
-            console.log(chalk.yellow("Will find block creation number"));
-            blockStart = await getContractDeploymentBlock(depositBoxAddress);
-        }
-        const events = await depositBox.queryFilter(eventFilter, blockStart);
+        const events = await depositBox.queryFilter(eventFilter, await getContractDeploymentBlock(depositBoxAddress));
         if (events.length > 0) {
             await runInitialize(safeTransactions, events, depositBox, eventName);
         } else {
@@ -136,7 +142,39 @@ async function findEventsAndInitialize(
     }
 }
 
+async function checkStartBlockInCSV() {
+    if (!process.env.ABI) {
+        console.log(chalk.red("Set path to file with ABI and addresses to ABI environment variables"));
+        process.exit(1);
+    }
+
+    if (!process.env.CSV) {
+        console.log(chalk.red("Set path to the exported CSV file with txs of MessageProxy contract from Etherscan"));
+        process.exit(1);
+    }
+
+    if (process.env.TEST_UPGRADE) {
+        console.log();
+        console.log(chalk.red("!!! TEST UPGRADE mode !!!"));
+        console.log(chalk.red("Initialize registered contracts later"));
+        console.log(chalk.red("Or use it on your own risk"));
+        console.log();
+        return;
+    }
+
+    const abiFilename = process.env.ABI;
+    const abi = JSON.parse(await fs.readFile(abiFilename, "utf-8"));
+
+    const csvFilename = process.env.CSV;
+    const txs = read(csvFilename);
+
+    const messageProxyForMainnetName = "MessageProxyForMainnet";
+    const messageProxyForMainnetFactory = await ethers.getContractFactory(messageProxyForMainnetName);
+    const messageProxyForMainnetAddress = abi[getContractKeyInAbiFile(messageProxyForMainnetName) + "_address"];
+}
+
 async function main() {
+    await checkStartBlockInCSV()
     await upgrade(
         "1.1.0",
         contracts,
