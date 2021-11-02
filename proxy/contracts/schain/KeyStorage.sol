@@ -31,12 +31,7 @@ import "./bls/FieldOperations.sol";
  * @title KeyStorage
  * @dev Holds common BLS public key.
  */
-interface IKeyStorageInitializable is IKeyStorage {
-    function initialize() external;
-}
-
-
-contract KeyStorage is AccessControlEnumerableUpgradeable, IKeyStorageInitializable {
+contract KeyStorage is IKeyStorage, AccessControlEnumerableUpgradeable {
 
     uint256 public constant FREE_MEM_PTR = 0x40;
 
