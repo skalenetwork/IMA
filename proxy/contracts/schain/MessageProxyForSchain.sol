@@ -26,7 +26,6 @@ import "@skalenetwork/ima-interfaces/schain/IMessageProxyForSchain.sol";
 
 import "../MessageProxy.sol";
 import "./bls/SkaleVerifier.sol";
-import "./KeyStorage.sol";
 
 
 /**
@@ -50,12 +49,7 @@ import "./KeyStorage.sol";
  * Call postIncomingMessages function passing (un)signed message array
  * ID of this schain, Chain 0 represents ETH mainnet,
  */
-interface IMessageProxyForSchainInitializable is IMessageProxyForSchain {
-    function initialize(KeyStorage blsKeyStorage, string memory schainName) external;
-}
-
-
-contract MessageProxyForSchain is MessageProxy, IMessageProxyForSchainInitializable {
+contract MessageProxyForSchain is MessageProxy, IMessageProxyForSchain {
     using AddressUpgradeable for address;
 
     /**
@@ -65,7 +59,7 @@ contract MessageProxyForSchain is MessageProxy, IMessageProxyForSchainInitializa
     /**
      * @dev Address of {KeyStorage}.
      */
-    KeyStorage public keyStorage;
+    IKeyStorage public keyStorage;
 
     /**
      * @dev Keccak256 hash of schain name.
@@ -185,7 +179,7 @@ contract MessageProxyForSchain is MessageProxy, IMessageProxyForSchainInitializa
     /**
      * @dev Is called once during contract deployment.
      */
-    function initialize(KeyStorage blsKeyStorage, string memory schainName)
+    function initialize(IKeyStorage blsKeyStorage, string memory schainName)
         public
         override
         virtual

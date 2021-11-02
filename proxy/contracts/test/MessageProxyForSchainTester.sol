@@ -44,7 +44,7 @@ interface IMessageProxyForSchainTester {
 
 contract MessageProxyForSchainTester is MessageProxyForSchain, IMessageProxyForSchainTester {    
 
-    constructor(KeyStorage _keyStorage, string memory schainName) {
+    constructor(IKeyStorage _keyStorage, string memory schainName) {
         MessageProxyForSchain.initialize(_keyStorage, schainName);
     }
 
