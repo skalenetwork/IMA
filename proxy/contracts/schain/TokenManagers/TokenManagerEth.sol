@@ -27,25 +27,13 @@ import "../../Messages.sol";
 import "../TokenManager.sol";
 
 
-interface ITokenManagerEthInitializable is ITokenManagerEth {
-    function initialize(
-        string memory newChainName,
-        MessageProxyForSchain newMessageProxy,
-        TokenManagerLinker newIMALinker,
-        CommunityLocker newCommunityLocker,
-        address newDepositBox,
-        IEthErc20 ethErc20Address
-    ) external;
-}
-
-
 /**
  * @title TokenManagerEth
  * @dev Runs on SKALE Chains and
  * accepts messages from mainnet.
  * TokenManagerEth mints EthErc20 tokens. When a user exits a SKALE chain, it burns them.
  */
-contract TokenManagerEth is TokenManager, ITokenManagerEthInitializable {
+contract TokenManagerEth is TokenManager, ITokenManagerEth {
 
     IEthErc20 public ethErc20;
 
@@ -120,9 +108,9 @@ contract TokenManagerEth is TokenManager, ITokenManagerEthInitializable {
      */
     function initialize(
         string memory newChainName,
-        MessageProxyForSchain newMessageProxy,
-        TokenManagerLinker newIMALinker,
-        CommunityLocker newCommunityLocker,
+        IMessageProxyForSchain newMessageProxy,
+        ITokenManagerLinker newIMALinker,
+        ICommunityLocker newCommunityLocker,
         address newDepositBox,
         IEthErc20 ethErc20Address
     )

@@ -29,16 +29,6 @@ import "../tokens/ERC721OnChain.sol";
 import "../TokenManager.sol";
 
 
-interface ITokenManagerERC721Initializable is ITokenManagerERC721 {
-    function initialize(
-        string memory newChainName,
-        MessageProxyForSchain newMessageProxy,
-        TokenManagerLinker newIMALinker,
-        CommunityLocker newCommunityLocker,
-        address newDepositBox
-    ) external;
-}
-
 /**
  * @title TokenManagerERC721
  * @dev Runs on SKALE Chains,
@@ -46,7 +36,7 @@ interface ITokenManagerERC721Initializable is ITokenManagerERC721 {
  * and creates ERC721 clones.
  * TokenManagerERC721 mints tokens. When a user exits a SKALE chain, it burns them.
  */
-contract TokenManagerERC721 is TokenManager, ITokenManagerERC721Initializable {
+contract TokenManagerERC721 is TokenManager, ITokenManagerERC721 {
     using AddressUpgradeable for address;
 
     // address of ERC721 on Mainnet => ERC721 on Schain
@@ -162,9 +152,9 @@ contract TokenManagerERC721 is TokenManager, ITokenManagerERC721Initializable {
      */
     function initialize(
         string memory newChainName,
-        MessageProxyForSchain newMessageProxy,
-        TokenManagerLinker newIMALinker,
-        CommunityLocker newCommunityLocker,
+        IMessageProxyForSchain newMessageProxy,
+        ITokenManagerLinker newIMALinker,
+        ICommunityLocker newCommunityLocker,
         address newDepositBox
     )
         external

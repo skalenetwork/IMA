@@ -60,17 +60,17 @@ abstract contract TokenManager is AccessControlEnumerableUpgradeable, ITokenMana
     /**
      * @dev Address of MessageProxyForSchain.
      */
-    MessageProxyForSchain public messageProxy;
+    IMessageProxyForSchain public messageProxy;
 
     /**
      * @dev Address of TokenManagerLinker.
      */
-    TokenManagerLinker public tokenManagerLinker;
+    ITokenManagerLinker public tokenManagerLinker;
 
     /**
      * @dev Address of CommunityLocker.
      */
-    CommunityLocker public communityLocker;
+    ICommunityLocker public communityLocker;
 
     /**
      * @dev Keccak256 hash of schain name.
@@ -246,9 +246,9 @@ abstract contract TokenManager is AccessControlEnumerableUpgradeable, ITokenMana
      */
     function initializeTokenManager(
         string memory newSchainName,
-        MessageProxyForSchain newMessageProxy,
-        TokenManagerLinker newIMALinker,
-        CommunityLocker newCommunityLocker,
+        IMessageProxyForSchain newMessageProxy,
+        ITokenManagerLinker newIMALinker,
+        ICommunityLocker newCommunityLocker,
         address newDepositBox
     )
         public

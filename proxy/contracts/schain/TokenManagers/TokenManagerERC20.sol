@@ -31,17 +31,6 @@ import "../tokens/ERC20OnChain.sol";
 import "../TokenManager.sol";
 
 
-interface ITokenManagerERC20Initializable is ITokenManagerERC20 {
-    function initialize(
-        string memory newChainName,
-        MessageProxyForSchain newMessageProxy,
-        TokenManagerLinker newIMALinker,
-        CommunityLocker newCommunityLocker,
-        address newDepositBox
-    ) external;
-}
-
-
 /**
  * @title TokenManagerERC20
  * @dev Runs on SKALE Chains,
@@ -49,7 +38,7 @@ interface ITokenManagerERC20Initializable is ITokenManagerERC20 {
  * and creates ERC20 clones.
  * TokenManagerERC20 mints tokens. When a user exits a SKALE chain, it burns them.
  */
-contract TokenManagerERC20 is TokenManager, ITokenManagerERC20Initializable {
+contract TokenManagerERC20 is TokenManager, ITokenManagerERC20 {
     using AddressUpgradeable for address;
 
     // address of ERC20 on Mainnet => ERC20 on Schain
@@ -169,9 +158,9 @@ contract TokenManagerERC20 is TokenManager, ITokenManagerERC20Initializable {
      */
     function initialize(
         string memory newChainName,
-        MessageProxyForSchain newMessageProxy,
-        TokenManagerLinker newIMALinker,
-        CommunityLocker newCommunityLocker,
+        IMessageProxyForSchain newMessageProxy,
+        ITokenManagerLinker newIMALinker,
+        ICommunityLocker newCommunityLocker,
         address newDepositBox
     )
         external

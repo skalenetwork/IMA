@@ -30,17 +30,6 @@ import "../tokens/ERC1155OnChain.sol";
 import "../TokenManager.sol";
 
 
-interface ITokenManagerERC1155Initializable is ITokenManagerERC1155 {
-    function initialize(
-        string memory newChainName,
-        MessageProxyForSchain newMessageProxy,
-        TokenManagerLinker newIMALinker,
-        CommunityLocker newCommunityLocker,
-        address newDepositBox
-    ) external;
-}
-
-
 /**
  * @title TokenManagerERC1155
  * @dev Runs on SKALE Chains,
@@ -48,7 +37,7 @@ interface ITokenManagerERC1155Initializable is ITokenManagerERC1155 {
  * and creates ERC1155 clones.
  * TokenManagerERC1155 mints tokens. When a user exits a SKALE chain, it burns them.
  */
-contract TokenManagerERC1155 is TokenManager, ITokenManagerERC1155Initializable {
+contract TokenManagerERC1155 is TokenManager, ITokenManagerERC1155 {
     using AddressUpgradeable for address;
 
     // address of ERC1155 on Mainnet => ERC1155 on Schain
@@ -213,9 +202,9 @@ contract TokenManagerERC1155 is TokenManager, ITokenManagerERC1155Initializable 
      */
     function initialize(
         string memory newChainName,
-        MessageProxyForSchain newMessageProxy,
-        TokenManagerLinker newIMALinker,
-        CommunityLocker newCommunityLocker,
+        IMessageProxyForSchain newMessageProxy,
+        ITokenManagerLinker newIMALinker,
+        ICommunityLocker newCommunityLocker,
         address newDepositBox
     )
         external
