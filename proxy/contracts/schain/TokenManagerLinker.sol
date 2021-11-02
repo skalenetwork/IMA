@@ -29,16 +29,11 @@ import "../MessageProxy.sol";
 import "./TokenManager.sol";
 
 
-interface ITokenManagerLinkerInitializable is ITokenManagerLinker {
-    function initialize(MessageProxy newMessageProxyAddress, address linker) external;
-}
-
-
 /**
  * @title TokenManagerLinker
  * @dev Links custom TokenManagers to MessageProxy.
  */
-contract TokenManagerLinker is AccessControlEnumerableUpgradeable, ITokenManagerLinkerInitializable {
+contract TokenManagerLinker is ITokenManagerLinker, AccessControlEnumerableUpgradeable {
 
     /**
      * @dev Mainnet identifier.
@@ -58,7 +53,7 @@ contract TokenManagerLinker is AccessControlEnumerableUpgradeable, ITokenManager
     /**
      * @dev Address of MessageProxyForSchain.
      */
-    MessageProxy public messageProxy;
+    IMessageProxyForSchain public messageProxy;
 
     /**
      * @dev Address of {Linker} on mainnet.
@@ -95,7 +90,7 @@ contract TokenManagerLinker is AccessControlEnumerableUpgradeable, ITokenManager
      * 
      * - Function caller has to be granted with {REGISTRAR_ROLE}.
      */
-    function initialize(MessageProxy newMessageProxyAddress, address linker)
+    function initialize(IMessageProxyForSchain newMessageProxyAddress, address linker)
         external
         override
         initializer
