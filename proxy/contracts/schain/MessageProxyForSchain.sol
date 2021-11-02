@@ -172,7 +172,7 @@ contract MessageProxyForSchain is MessageProxy, IMessageProxyForSchain {
         Signature calldata signature 
     )
         external
-        override
+        override(IMessageProxy, MessageProxy)
     {
         bytes32 fromChainHash = keccak256(abi.encodePacked(fromChainName));
         require(connectedChains[fromChainHash].inited, "Chain is not initialized");
@@ -197,7 +197,7 @@ contract MessageProxyForSchain is MessageProxy, IMessageProxyForSchain {
      * - Passed address should be contract.
      * - Extra contract must not be registered.
      */
-    function registerExtraContractForAll(address extraContract) external onlyExtraContractRegistrar {
+    function registerExtraContractForAll(address extraContract) external override onlyExtraContractRegistrar {
         require(extraContract.isContract(), "Given address is not a contract");
         require(!_registryContracts[bytes32(0)].contains(extraContract), "Extra contract is already registered");
         _registryContracts[bytes32(0)].add(extraContract);
@@ -211,7 +211,7 @@ contract MessageProxyForSchain is MessageProxy, IMessageProxyForSchain {
      * 
      * - `msg.sender` must be granted as EXTRA_CONTRACT_REGISTRAR_ROLE.
      */
-    function removeExtraContractForAll(address extraContract) external onlyExtraContractRegistrar {
+    function removeExtraContractForAll(address extraContract) external override onlyExtraContractRegistrar {
         require(_registryContracts[bytes32(0)].contains(extraContract), "Extra contract is not registered");
         _registryContracts[bytes32(0)].remove(extraContract);
     }

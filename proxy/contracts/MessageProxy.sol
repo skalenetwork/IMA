@@ -133,7 +133,8 @@ abstract contract MessageProxy is AccessControlEnumerableUpgradeable, IMessagePr
         Signature calldata sign
     )
         external
-        virtual;
+        virtual
+        override;
 
     /**
      * @dev Checks whether contract is currently registered as extra contract.
@@ -145,7 +146,7 @@ abstract contract MessageProxy is AccessControlEnumerableUpgradeable, IMessagePr
         public
         view
         virtual
-        override
+        // override
         returns (bool);
 
     /**

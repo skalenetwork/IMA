@@ -191,7 +191,7 @@ contract MessageProxyForMainnet is SkaleManagerClient, MessageProxy, IMessagePro
         Signature calldata sign
     )
         external
-        override
+        override(IMessageProxy, MessageProxy)
     {
         uint256 gasTotal = gasleft();
         bytes32 fromSchainHash = keccak256(abi.encodePacked(fromSchainName));
@@ -260,7 +260,7 @@ contract MessageProxyForMainnet is SkaleManagerClient, MessageProxy, IMessagePro
      * - Passed address should be contract.
      * - Extra contract must not be registered.
      */
-    function registerExtraContractForAll(address extraContract) external onlyExtraContractRegistrar {
+    function registerExtraContractForAll(address extraContract) external override onlyExtraContractRegistrar {
         require(extraContract.isContract(), "Given address is not a contract");
         require(!_registryContracts[bytes32(0)].contains(extraContract), "Extra contract is already registered");
         _registryContracts[bytes32(0)].add(extraContract);
@@ -274,7 +274,7 @@ contract MessageProxyForMainnet is SkaleManagerClient, MessageProxy, IMessagePro
      * 
      * - `msg.sender` must be granted as EXTRA_CONTRACT_REGISTRAR_ROLE.
      */
-    function removeExtraContractForAll(address extraContract) external onlyExtraContractRegistrar {
+    function removeExtraContractForAll(address extraContract) external override onlyExtraContractRegistrar {
         require(_registryContracts[bytes32(0)].contains(extraContract), "Extra contract is not registered");
         _registryContracts[bytes32(0)].remove(extraContract);
     }
