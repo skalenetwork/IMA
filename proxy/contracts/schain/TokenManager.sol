@@ -21,10 +21,11 @@
 
 pragma solidity 0.8.6;
 
+import "@skalenetwork/ima-interfaces/schain/ITokenManager.sol";
+
 import "./MessageProxyForSchain.sol";
 import "./TokenManagerLinker.sol";
 import "./CommunityLocker.sol";
-import "../interfaces/IMessageReceiver.sol";
 
 
 /**
@@ -34,7 +35,7 @@ import "../interfaces/IMessageReceiver.sol";
  * Runs on SKALE Chains, accepts messages from mainnet, creates clones of tokens.
  * TokenManager mints tokens when user locks tokens on mainnet and burn them when user exits.
  */
-abstract contract TokenManager is AccessControlEnumerableUpgradeable, IMessageReceiver {
+abstract contract TokenManager is AccessControlEnumerableUpgradeable, ITokenManager {
 
     /**
      * @dev Mainnet identifier.
@@ -59,17 +60,17 @@ abstract contract TokenManager is AccessControlEnumerableUpgradeable, IMessageRe
     /**
      * @dev Address of MessageProxyForSchain.
      */
-    MessageProxyForSchain public messageProxy;
+    IMessageProxyForSchain public messageProxy;
 
     /**
      * @dev Address of TokenManagerLinker.
      */
-    TokenManagerLinker public tokenManagerLinker;
+    ITokenManagerLinker public tokenManagerLinker;
 
     /**
      * @dev Address of CommunityLocker.
      */
-    CommunityLocker public communityLocker;
+    ICommunityLocker public communityLocker;
 
     /**
      * @dev Keccak256 hash of schain name.
@@ -164,7 +165,7 @@ abstract contract TokenManager is AccessControlEnumerableUpgradeable, IMessageRe
      * 
      * - Function caller has to be granted with {AUTOMATIC_DEPLOY_ROLE}.
      */
-    function enableAutomaticDeploy() external onlyAutomaticDeploy {
+    function enableAutomaticDeploy() external override onlyAutomaticDeploy {
         automaticDeploy = true;
     }
 
@@ -188,7 +189,7 @@ abstract contract TokenManager is AccessControlEnumerableUpgradeable, IMessageRe
      * - SKALE chain must not already be added.
      * - TokenManager address must be non-zero.
      */
-    function addTokenManager(string calldata schainName, address newTokenManager) external {
+    function addTokenManager(string calldata schainName, address newTokenManager) external override {
         require(
             msg.sender == address(tokenManagerLinker) ||
             hasRole(DEFAULT_ADMIN_ROLE, msg.sender), "Not authorized caller"
@@ -207,7 +208,7 @@ abstract contract TokenManager is AccessControlEnumerableUpgradeable, IMessageRe
      * - `msg.sender` must be contract owner or {TokenManagerLinker} contract.
      * - SKALE chain must already be set.
      */
-    function removeTokenManager(string calldata schainName) external {
+    function removeTokenManager(string calldata schainName) external override {
         require(
             msg.sender == address(tokenManagerLinker) ||
             hasRole(DEFAULT_ADMIN_ROLE, msg.sender), "Not authorized caller"
@@ -236,7 +237,7 @@ abstract contract TokenManager is AccessControlEnumerableUpgradeable, IMessageRe
     /**
      * @dev Checks whether TokenManager is connected to a {schainName} SKALE chain TokenManager.
      */
-    function hasTokenManager(string calldata schainName) external view returns (bool) {
+    function hasTokenManager(string calldata schainName) external view override returns (bool) {
         return tokenManagers[keccak256(abi.encodePacked(schainName))] != address(0);
     }
 
@@ -245,9 +246,9 @@ abstract contract TokenManager is AccessControlEnumerableUpgradeable, IMessageRe
      */
     function initializeTokenManager(
         string memory newSchainName,
-        MessageProxyForSchain newMessageProxy,
-        TokenManagerLinker newIMALinker,
-        CommunityLocker newCommunityLocker,
+        IMessageProxyForSchain newMessageProxy,
+        ITokenManagerLinker newIMALinker,
+        ICommunityLocker newCommunityLocker,
         address newDepositBox
     )
         public

@@ -23,6 +23,7 @@ pragma solidity 0.8.6;
 
 import "@openzeppelin/contracts-upgradeable/token/ERC721/extensions/IERC721MetadataUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/utils/AddressUpgradeable.sol";
+import "@skalenetwork/ima-interfaces/mainnet/DepositBoxes/IDepositBoxERC721.sol";
 import "@openzeppelin/contracts-upgradeable/utils/structs/EnumerableSetUpgradeable.sol";
 
 import "../DepositBox.sol";
@@ -35,7 +36,7 @@ import "../../Messages.sol";
  * accepts messages from schain,
  * stores deposits of ERC721.
  */
-contract DepositBoxERC721 is DepositBox {
+contract DepositBoxERC721 is DepositBox, IDepositBoxERC721 {
     using AddressUpgradeable for address;
     using EnumerableSetUpgradeable for EnumerableSetUpgradeable.AddressSet;
 
@@ -66,7 +67,10 @@ contract DepositBoxERC721 is DepositBox {
     function initializeAllTokensForSchain(
         string calldata schainName,
         address[] calldata tokens
-    ) external {
+    )
+        external
+        override
+    {
         require(hasRole(DEFAULT_ADMIN_ROLE, msg.sender), "Sender is not authorized");
         bytes32 schainHash = keccak256(abi.encodePacked(schainName));
         for (uint256 i = 0; i < tokens.length; i++) {
@@ -91,6 +95,7 @@ contract DepositBoxERC721 is DepositBox {
         uint256 tokenId
     )
         external
+        override
         rightTransaction(schainName, msg.sender)
         whenNotKilled(keccak256(abi.encodePacked(schainName)))
     {
@@ -147,21 +152,6 @@ contract DepositBoxERC721 is DepositBox {
         return message.receiver;
     }
 
-    function gasPayer(
-        bytes32 schainHash,
-        address sender,
-        bytes calldata data
-    )
-        external
-        view
-        override
-        checkReceiverChain(schainHash, sender)
-        returns (address)
-    {
-        Messages.TransferErc721Message memory message = Messages.decodeTransferErc721Message(data);
-        return message.receiver;
-    }
-
     /**
      * @dev Allows Schain owner to add an ERC721 token to DepositBoxERC721.
      * 
@@ -174,6 +164,7 @@ contract DepositBoxERC721 is DepositBox {
      */
     function addERC721TokenByOwner(string calldata schainName, address erc721OnMainnet)
         external
+        override
         onlySchainOwner(schainName)
         whenNotKilled(keccak256(abi.encodePacked(schainName)))
     {
@@ -193,6 +184,7 @@ contract DepositBoxERC721 is DepositBox {
      */
     function getFunds(string calldata schainName, address erc721OnMainnet, address receiver, uint tokenId)
         external
+        override
         onlySchainOwner(schainName)
         whenKilled(keccak256(abi.encodePacked(schainName)))
     {
@@ -202,11 +194,34 @@ contract DepositBoxERC721 is DepositBox {
         IERC721Upgradeable(erc721OnMainnet).transferFrom(address(this), receiver, tokenId);
     }
 
+    function gasPayer(
+        bytes32 schainHash,
+        address sender,
+        bytes calldata data
+    )
+        external
+        view
+        override
+        checkReceiverChain(schainHash, sender)
+        returns (address)
+    {
+        Messages.TransferErc721Message memory message = Messages.decodeTransferErc721Message(data);
+        return message.receiver;
+    }
+
     /**
      * @dev Should return true if token was added by Schain owner or 
      * automatically added after sending to schain if whitelist was turned off.
      */
-    function getSchainToERC721(string calldata schainName, address erc721OnMainnet) external view returns (bool) {
+    function getSchainToERC721(
+        string calldata schainName,
+        address erc721OnMainnet
+    )
+        external
+        view
+        override
+        returns (bool)
+    {
         return _schainToERC721[keccak256(abi.encodePacked(schainName))].contains(erc721OnMainnet);
     }
 
@@ -214,7 +229,7 @@ contract DepositBoxERC721 is DepositBox {
      * @dev Should return length of a set of all mapped tokens which were added by Schain owner 
      * or added automatically after sending to schain if whitelist was turned off.
      */
-    function getSchainToAllERC721Length(string calldata schainName) external view returns (uint256) {
+    function getSchainToAllERC721Length(string calldata schainName) external view override returns (uint256) {
         return _schainToERC721[keccak256(abi.encodePacked(schainName))].length();
     }
 
@@ -229,6 +244,7 @@ contract DepositBoxERC721 is DepositBox {
     )
         external
         view
+        override
         returns (address[] memory tokensInRange)
     {
         require(
@@ -246,11 +262,11 @@ contract DepositBoxERC721 is DepositBox {
      */
     function initialize(
         IContractManager contractManagerOfSkaleManagerValue,        
-        Linker linkerValue,
-        MessageProxyForMainnet messageProxyValue
+        ILinker linkerValue,
+        IMessageProxyForMainnet messageProxyValue
     )
         public
-        override
+        override(DepositBox, IDepositBox)
         initializer
     {
         DepositBox.initialize(contractManagerOfSkaleManagerValue, linkerValue, messageProxyValue);

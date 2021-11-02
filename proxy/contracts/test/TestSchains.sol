@@ -29,11 +29,16 @@ import "./KeyStorageMock.sol";
 import "./SkaleVerifierMock.sol";
 
 
-contract Schains is ISchains {
+interface ISchainsTester is ISchains {
+    function addContractManager(address newContractManager) external;
+}
+
+
+contract Schains is ISchainsTester {
 
     ContractManager public contractManager;
 
-    function addContractManager(address newContractManager) external {
+    function addContractManager(address newContractManager) external override {
         contractManager = ContractManager(newContractManager);
     }
 
@@ -52,13 +57,13 @@ contract Schains is ISchains {
         returns (bool)
     {
         SkaleVerifierMock skaleVerifier = SkaleVerifierMock(contractManager.getContract("SkaleVerifier"));
-        G2Operations.G2Point memory publicKey = KeyStorageMock(
+        IFieldOperations.G2Point memory publicKey = KeyStorageMock(
             contractManager.getContract("KeyStorage")
         ).getBlsCommonPublicKeyForSchain(
             keccak256(abi.encodePacked(schainName))
         );
         return skaleVerifier.verify(
-            Fp2Operations.Fp2Point({
+            IFieldOperations.Fp2Point({
                 a: signatureA,
                 b: signatureB
             }),

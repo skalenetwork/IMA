@@ -25,6 +25,8 @@ import "@openzeppelin/contracts-upgradeable/utils/AddressUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/utils/structs/EnumerableSetUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/token/ERC1155/extensions/IERC1155MetadataURIUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/token/ERC1155/utils/ERC1155ReceiverUpgradeable.sol";
+import "@skalenetwork/ima-interfaces/mainnet/DepositBoxes/IDepositBoxERC1155.sol";
+
 import "../DepositBox.sol";
 import "../../Messages.sol";
 
@@ -35,7 +37,7 @@ import "../../Messages.sol";
  * accepts messages from schain,
  * stores deposits of ERC1155.
  */
-contract DepositBoxERC1155 is DepositBox, ERC1155ReceiverUpgradeable {
+contract DepositBoxERC1155 is DepositBox, ERC1155ReceiverUpgradeable, IDepositBoxERC1155 {
 
     using AddressUpgradeable for address;
     using EnumerableSetUpgradeable for EnumerableSetUpgradeable.AddressSet;
@@ -57,38 +59,6 @@ contract DepositBoxERC1155 is DepositBox, ERC1155ReceiverUpgradeable {
      */
     event ERC1155TokenReady(address indexed contractOnMainnet, uint256[] ids, uint256[] amounts);
 
-    function onERC1155Received(
-        address operator,
-        address,
-        uint256,
-        uint256,
-        bytes calldata
-    )
-        external
-        view
-        override
-        returns(bytes4)
-    {
-        require(operator == address(this), "Revert ERC1155 transfer");
-        return bytes4(keccak256("onERC1155Received(address,address,uint256,uint256,bytes)"));
-    }
-
-    function onERC1155BatchReceived(
-        address operator,
-        address,
-        uint256[] calldata,
-        uint256[] calldata,
-        bytes calldata
-    )
-        external
-        view
-        override
-        returns(bytes4)
-    {
-        require(operator == address(this), "Revert ERC1155 batch transfer");
-        return bytes4(keccak256("onERC1155BatchReceived(address,address,uint256[],uint256[],bytes)"));
-    }
-
     /**
      * @dev Allows DEFAULT_ADMIN_ROLE to initialize token mapping
      * Notice - this function will be executed only once during upgrade
@@ -100,7 +70,10 @@ contract DepositBoxERC1155 is DepositBox, ERC1155ReceiverUpgradeable {
     function initializeAllTokensForSchain(
         string calldata schainName,
         address[] calldata tokens
-    ) external {
+    )
+        external
+        override
+    {
         require(hasRole(DEFAULT_ADMIN_ROLE, msg.sender), "Sender is not authorized");
         bytes32 schainHash = keccak256(abi.encodePacked(schainName));
         for (uint256 i = 0; i < tokens.length; i++) {
@@ -129,6 +102,7 @@ contract DepositBoxERC1155 is DepositBox, ERC1155ReceiverUpgradeable {
         uint256 amount
     )
         external
+        override
         rightTransaction(schainName, msg.sender)
         whenNotKilled(keccak256(abi.encodePacked(schainName)))
     {
@@ -171,6 +145,7 @@ contract DepositBoxERC1155 is DepositBox, ERC1155ReceiverUpgradeable {
         uint256[] calldata amounts
     )
         external
+        override
         rightTransaction(schainName, msg.sender)
         whenNotKilled(keccak256(abi.encodePacked(schainName)))
     {
@@ -254,28 +229,6 @@ contract DepositBoxERC1155 is DepositBox, ERC1155ReceiverUpgradeable {
         }
     }
 
-    function gasPayer(
-        bytes32 schainHash,
-        address sender,
-        bytes calldata data
-    )
-        external
-        view
-        override
-        checkReceiverChain(schainHash, sender)
-        returns (address)
-    {
-        Messages.MessageType operation = Messages.getMessageType(data);
-        if (operation == Messages.MessageType.TRANSFER_ERC1155) {
-            Messages.TransferErc1155Message memory message = Messages.decodeTransferErc1155Message(data);
-            return message.receiver;
-        } else if (operation == Messages.MessageType.TRANSFER_ERC1155_BATCH) {
-            Messages.TransferErc1155BatchMessage memory message = Messages.decodeTransferErc1155BatchMessage(data);
-            return message.receiver;
-        }
-        return address(0);
-    }
-
     /**
      * @dev Allows Schain owner to add an ERC1155 token to DepositBoxERC1155.
      * 
@@ -291,6 +244,7 @@ contract DepositBoxERC1155 is DepositBox, ERC1155ReceiverUpgradeable {
         address erc1155OnMainnet
     )
         external
+        override
         onlySchainOwner(schainName)
         whenNotKilled(keccak256(abi.encodePacked(schainName)))
     {
@@ -316,6 +270,7 @@ contract DepositBoxERC1155 is DepositBox, ERC1155ReceiverUpgradeable {
         uint256[] memory amounts
     )
         external
+        override
         onlySchainOwner(schainName)
         whenKilled(keccak256(abi.encodePacked(schainName)))
     {
@@ -334,11 +289,73 @@ contract DepositBoxERC1155 is DepositBox, ERC1155ReceiverUpgradeable {
         );
     }
 
+    function gasPayer(
+        bytes32 schainHash,
+        address sender,
+        bytes calldata data
+    )
+        external
+        view
+        override
+        checkReceiverChain(schainHash, sender)
+        returns (address)
+    {
+        Messages.MessageType operation = Messages.getMessageType(data);
+        if (operation == Messages.MessageType.TRANSFER_ERC1155) {
+            Messages.TransferErc1155Message memory message = Messages.decodeTransferErc1155Message(data);
+            return message.receiver;
+        } else if (operation == Messages.MessageType.TRANSFER_ERC1155_BATCH) {
+            Messages.TransferErc1155BatchMessage memory message = Messages.decodeTransferErc1155BatchMessage(data);
+            return message.receiver;
+        }
+        return address(0);
+    }
+
+    function onERC1155Received(
+        address operator,
+        address,
+        uint256,
+        uint256,
+        bytes calldata
+    )
+        external
+        view
+        override
+        returns(bytes4)
+    {
+        require(operator == address(this), "Revert ERC1155 transfer");
+        return bytes4(keccak256("onERC1155Received(address,address,uint256,uint256,bytes)"));
+    }
+
+    function onERC1155BatchReceived(
+        address operator,
+        address,
+        uint256[] calldata,
+        uint256[] calldata,
+        bytes calldata
+    )
+        external
+        view
+        override
+        returns(bytes4)
+    {
+        require(operator == address(this), "Revert ERC1155 batch transfer");
+        return bytes4(keccak256("onERC1155BatchReceived(address,address,uint256[],uint256[],bytes)"));
+    }
+
     /**
      * @dev Should return true if token was added by Schain owner or 
      * added automatically after sending to schain if whitelist was turned off.
      */
-    function getSchainToERC1155(string calldata schainName, address erc1155OnMainnet) external view returns (bool) {
+    function getSchainToERC1155(
+        string calldata schainName,
+        address erc1155OnMainnet
+    )
+        external
+        view
+        override
+        returns (bool)
+    {
         return _schainToERC1155[keccak256(abi.encodePacked(schainName))].contains(erc1155OnMainnet);
     }
 
@@ -346,7 +363,7 @@ contract DepositBoxERC1155 is DepositBox, ERC1155ReceiverUpgradeable {
      * @dev Should return length of a set of all mapped tokens which were added by Schain owner 
      * or added automatically after sending to schain if whitelist was turned off.
      */
-    function getSchainToAllERC1155Length(string calldata schainName) external view returns (uint256) {
+    function getSchainToAllERC1155Length(string calldata schainName) external view override returns (uint256) {
         return _schainToERC1155[keccak256(abi.encodePacked(schainName))].length();
     }
 
@@ -361,6 +378,7 @@ contract DepositBoxERC1155 is DepositBox, ERC1155ReceiverUpgradeable {
     )
         external
         view
+        override
         returns (address[] memory tokensInRange)
     {
         require(
@@ -378,11 +396,11 @@ contract DepositBoxERC1155 is DepositBox, ERC1155ReceiverUpgradeable {
      */
     function initialize(
         IContractManager contractManagerOfSkaleManagerValue,        
-        Linker linkerValue,
-        MessageProxyForMainnet messageProxyValue
+        ILinker linkerValue,
+        IMessageProxyForMainnet messageProxyValue
     )
         public
-        override
+        override(DepositBox, IDepositBox)
         initializer
     {
         DepositBox.initialize(contractManagerOfSkaleManagerValue, linkerValue, messageProxyValue);

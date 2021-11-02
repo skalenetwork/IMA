@@ -24,6 +24,7 @@ pragma solidity 0.8.6;
 import "@openzeppelin/contracts-upgradeable/token/ERC20/IERC20Upgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/utils/AddressUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/utils/math/SafeMathUpgradeable.sol";
+import "@skalenetwork/ima-interfaces/schain/TokenManagers/ITokenManagerERC20.sol";
 
 import "../../Messages.sol";
 import "../tokens/ERC20OnChain.sol";
@@ -37,7 +38,7 @@ import "../TokenManager.sol";
  * and creates ERC20 clones.
  * TokenManagerERC20 mints tokens. When a user exits a SKALE chain, it burns them.
  */
-contract TokenManagerERC20 is TokenManager {
+contract TokenManagerERC20 is TokenManager, ITokenManagerERC20 {
     using AddressUpgradeable for address;
 
     // address of ERC20 on Mainnet => ERC20 on Schain
@@ -74,6 +75,7 @@ contract TokenManagerERC20 is TokenManager {
         uint256 amount
     )
         external
+        override
     {
         communityLocker.checkAllowedToSendMessage(msg.sender);
         _exit(MAINNET_HASH, depositBox, contractOnMainnet, msg.sender, amount);
@@ -91,6 +93,7 @@ contract TokenManagerERC20 is TokenManager {
         uint256 amount
     )
         external
+        override
         rightTransaction(targetSchainName, msg.sender)
     {
         bytes32 targetSchainHash = keccak256(abi.encodePacked(targetSchainName));
@@ -135,18 +138,19 @@ contract TokenManagerERC20 is TokenManager {
      */
     function addERC20TokenByOwner(
         address erc20OnMainnet,
-        ERC20OnChain erc20OnSchain
+        address erc20OnSchain
      )
         external
+        override
         onlyTokenRegistrar
     {
-        require(address(erc20OnSchain).isContract(), "Given address is not a contract");
-        require(erc20OnSchain.totalSupply() == 0, "TotalSupply is not zero");
+        require(erc20OnSchain.isContract(), "Given address is not a contract");
+        require(ERC20OnChain(erc20OnSchain).totalSupply() == 0, "TotalSupply is not zero");
         require(address(clonesErc20[erc20OnMainnet]) == address(0), "Could not relink clone");
-        require(!addedClones[erc20OnSchain], "Clone was already added");
-        clonesErc20[erc20OnMainnet] = erc20OnSchain;
-        addedClones[erc20OnSchain] = true;
-        emit ERC20TokenAdded(erc20OnMainnet, address(erc20OnSchain));
+        require(!addedClones[ERC20OnChain(erc20OnSchain)], "Clone was already added");
+        clonesErc20[erc20OnMainnet] = ERC20OnChain(erc20OnSchain);
+        addedClones[ERC20OnChain(erc20OnSchain)] = true;
+        emit ERC20TokenAdded(erc20OnMainnet, erc20OnSchain);
     }
 
     /**
@@ -154,12 +158,13 @@ contract TokenManagerERC20 is TokenManager {
      */
     function initialize(
         string memory newChainName,
-        MessageProxyForSchain newMessageProxy,
-        TokenManagerLinker newIMALinker,
-        CommunityLocker newCommunityLocker,
+        IMessageProxyForSchain newMessageProxy,
+        ITokenManagerLinker newIMALinker,
+        ICommunityLocker newCommunityLocker,
         address newDepositBox
     )
-        external        
+        external
+        override        
     {
         TokenManager.initializeTokenManager(
             newChainName,
