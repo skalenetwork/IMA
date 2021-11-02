@@ -1,4 +1,4 @@
-import { ethers } from "hardhat";
+import { ethers, web3 } from "hardhat";
 import hre from "hardhat";
 import { contracts, getContractKeyInAbiFile } from "./deployMainnet";
 import { upgrade } from "./upgrade";
@@ -10,6 +10,28 @@ import { encodeTransaction } from "./tools/multiSend";
 import { TypedEvent, TypedEventFilter } from "../typechain/commons";
 import { promises as fs } from "fs";
 import { read } from "./tools/csv";
+import { hexZeroPad } from "@ethersproject/bytes";
+import { Interface } from "@ethersproject/abi";
+import { Contract } from "@ethersproject/contracts";
+
+function prepareInitializeFromMap(
+    safeTransactions: any,
+    map: Map<string, string[]>,
+    contract: Contract,
+    functionName: string
+) {
+    map.forEach((value: string[], key: string) => {
+        console.log(chalk.yellow("" + value.length + " items found for key " + key));
+        console.log(value);
+        safeTransactions.push(encodeTransaction(
+            0,
+            contract.address,
+            0,
+            contract.interface.encodeFunctionData(functionName, [key, value])
+        ));
+        console.log(chalk.yellow("Transaction initialize prepared"));
+    });
+}
 
 async function runInitialize(
     safeTransactions: string[],
@@ -23,31 +45,12 @@ async function runInitialize(
         const addedTokens = schainToTokens.get(event.args.schainName);
         if (addedTokens) {
             addedTokens.push(event.args.contractOnMainnet);
+            schainToTokens.set(event.args.schainName, addedTokens);
         } else {
             schainToTokens.set(event.args.schainName, [event.args.contractOnMainnet]);
         }
-
     }
-    schainToTokens.forEach((tokens: string[], schainName: string) => {
-        console.log(chalk.yellow("" + tokens.length + " tokens found for schain " + schainName));
-        console.log(tokens);
-        console.log(chalk.yellow("Will prepare " + (tokens.length - 1) / 10 + 1 + " transaction" + ((tokens.length - 1) / 10 > 0 ? "s" : "") + " initialize"));
-        for (let i = 0; i * 10 < tokens.length; i++) {
-            let tokensRange: string[];
-            if ((i + 1) * 10 < tokens.length) {
-                tokensRange = tokens.slice(i * 10, (i + 1) * 10);
-            } else {
-                tokensRange = tokens.slice(i * 10, tokens.length);
-            }
-            safeTransactions.push(encodeTransaction(
-                0,
-                depositBox.address,
-                0,
-                depositBox.interface.encodeFunctionData("initializeAllTokensForSchain", [schainName, tokensRange])
-            ));
-            console.log(chalk.yellow("" + i + 1 + " transaction initialize prepared"));
-        }
-    });
+    prepareInitializeFromMap(safeTransactions, schainToTokens, depositBox, "initializeAllTokensForSchain");
 }
 
 async function findContractDeploymentBlock(address: string): Promise<number> {
@@ -142,14 +145,14 @@ async function findEventsAndInitialize(
     }
 }
 
-async function checkStartBlockInCSV() {
+function getValueFromCSV(txs: any, index: number, field: string) {
+    const deploymentTx = txs[index];
+    return deploymentTx[field];
+}
+
+async function checkAndCleanCSV() {
     if (!process.env.ABI) {
         console.log(chalk.red("Set path to file with ABI and addresses to ABI environment variables"));
-        process.exit(1);
-    }
-
-    if (!process.env.CSV) {
-        console.log(chalk.red("Set path to the exported CSV file with txs of MessageProxy contract from Etherscan"));
         process.exit(1);
     }
 
@@ -159,22 +162,120 @@ async function checkStartBlockInCSV() {
         console.log(chalk.red("Initialize registered contracts later"));
         console.log(chalk.red("Or use it on your own risk"));
         console.log();
-        return;
+        return [];
     }
+
+    if (!process.env.CSV) {
+        console.log(chalk.red("Set path to the exported CSV file with txs of MessageProxy contract from Etherscan"));
+        process.exit(1);
+    }
+
 
     const abiFilename = process.env.ABI;
     const abi = JSON.parse(await fs.readFile(abiFilename, "utf-8"));
 
     const csvFilename = process.env.CSV;
-    const txs = read(csvFilename);
+    const txs = await read(csvFilename);
+    if (!Array.isArray(txs)) {
+        console.log(chalk.red("CSV file is incorrect - did not parse as an array"));
+        process.exit(1);
+    }
 
     const messageProxyForMainnetName = "MessageProxyForMainnet";
     const messageProxyForMainnetFactory = await ethers.getContractFactory(messageProxyForMainnetName);
     const messageProxyForMainnetAddress = abi[getContractKeyInAbiFile(messageProxyForMainnetName) + "_address"];
+
+    const blockNumberFromCSV = getValueFromCSV(txs, 0, "Blockno");
+    const contractAddressFromCSV = getValueFromCSV(txs, 0, "ContractAddress");
+    const blocknumberFromContract = await getContractDeploymentBlock(messageProxyForMainnetAddress);
+    if (
+        blockNumberFromCSV.toString() !== blocknumberFromContract.toString() ||
+        contractAddressFromCSV.toString() !== messageProxyForMainnetAddress.toString()
+    ) {
+        console.log(chalk.red("CSV file is incorrect - contract address or block creation number mismatched"));
+        process.exit(1);
+    }
+
+    for (let i = 1; i < txs.length; i++) {
+        const receiver = getValueFromCSV(txs, i, "To");
+        if (receiver !== messageProxyForMainnetAddress) {
+            console.log(chalk.red("CSV file is incorrect - tx number " + (i + 1) + " from the list is invalid"));
+            process.exit(1);
+        }
+    }
+    // remove all txs deploy, status > 0, ErrCode > 0
+    // remove all fields price, status, ErrCode, Method, _16, DateTime, UnixTimestamp
+    return txs;
+}
+
+async function findTxContractRegisteredAndInitialize(
+    safeTransactions: string[],
+    messageProxyForMainnet: MessageProxyForMainnet,
+    txs: any[],
+) {
+    if (txs.length === 0) {
+        console.log(chalk.yellow("No transactions from csv file provided"));
+        return;
+    }
+
+    const chainToRegisteredContracts = new Map<string, string[]>();
+    for (let i = 1; i < txs.length; i++) {
+        const tx = getValueFromCSV(txs, i, "Txhash");
+        const inputData = (await ethers.provider.getTransaction(tx)).data;
+        const functionSignature = inputData.slice(10);
+        const functionName = messageProxyForMainnet.interface.getFunction(functionSignature).name;
+        let hash = hexZeroPad("0x0", 32);
+        let address = hexZeroPad("0x0", 20);
+        let add = true;
+        if (functionName === "registerExtraContract") {
+            const decodedData = messageProxyForMainnet.interface.decodeFunctionData("registerExtraContract", inputData);
+            hash = ethers.utils.id(decodedData.schainName);
+            address = decodedData.extraContract;
+            console.log(chalk.yellow("Find Function " + functionName));
+        } else if (functionName === "registerExtraContractForAll") {
+            const decodedData = messageProxyForMainnet.interface.decodeFunctionData("registerExtraContractForAll", inputData);
+            address = decodedData.extraContract;
+            console.log(chalk.yellow("Find Function " + functionName));
+        } else if (functionName === "removeExtraContract") {
+            const decodedData = messageProxyForMainnet.interface.decodeFunctionData("removeExtraContract", inputData);
+            hash = ethers.utils.id(decodedData.schainName);
+            address = decodedData.extraContract;
+            add = false
+            console.log(chalk.yellow("Find Function " + functionName));
+        } else if (functionName === "removeExtraContractForAll") {
+            const decodedData = messageProxyForMainnet.interface.decodeFunctionData("removeExtraContractForAll", inputData);
+            address = decodedData.extraContract;
+            add = false
+            console.log(chalk.yellow("Find Function " + functionName));
+        } else {
+            console.log(chalk.yellow("Skip function " + functionName));
+        }
+        if (address !== hexZeroPad("0x0", 20)) {
+            let addedRegisteredContracts = chainToRegisteredContracts.get(hash);
+            if (add) {
+                if (addedRegisteredContracts) {
+                    addedRegisteredContracts.push(address);
+                    chainToRegisteredContracts.set(hash, addedRegisteredContracts);
+                } else {
+                    chainToRegisteredContracts.set(hash, [address]);
+                }
+                console.log(chalk.yellow("Add hash " + hash + " and address " + address));
+            } else {
+                if (addedRegisteredContracts) {
+                    addedRegisteredContracts = addedRegisteredContracts.filter((value) => {return value !== address;});
+                    chainToRegisteredContracts.set(hash, addedRegisteredContracts);
+                } else {
+                    chainToRegisteredContracts.delete(hash);
+                }
+                console.log(chalk.yellow("Remove hash " + hash + " and address " + address));
+            }
+        }
+    }
+    prepareInitializeFromMap(safeTransactions, chainToRegisteredContracts, messageProxyForMainnet, "initializeAllRegisteredContracts");
 }
 
 async function main() {
-    await checkStartBlockInCSV()
+    const txs = await checkAndCleanCSV();
     await upgrade(
         "1.1.0",
         contracts,
@@ -185,9 +286,10 @@ async function main() {
             const messageProxyForMainnetName = "MessageProxyForMainnet";
             const messageProxyForMainnetFactory = await ethers.getContractFactory(messageProxyForMainnetName);
             const messageProxyForMainnetAddress = abi[getContractKeyInAbiFile(messageProxyForMainnetName) + "_address"];
+            let messageProxyForMainnet;
             if (messageProxyForMainnetAddress) {
                 console.log(chalk.yellow("Prepare transaction to set message gas cost to 9000"));
-                const messageProxyForMainnet = messageProxyForMainnetFactory.attach(messageProxyForMainnetAddress) as MessageProxyForMainnet;
+                messageProxyForMainnet = messageProxyForMainnetFactory.attach(messageProxyForMainnetAddress) as MessageProxyForMainnet;
                 const constantSetterRole = await messageProxyForMainnet.CONSTANT_SETTER_ROLE();
                 const isHasRole = await messageProxyForMainnet.hasRole(constantSetterRole, owner);
                 if (!isHasRole) {
@@ -213,6 +315,7 @@ async function main() {
             await findEventsAndInitialize(safeTransactions, abi, "DepositBoxERC20", "ERC20TokenAdded");
             await findEventsAndInitialize(safeTransactions, abi, "DepositBoxERC721", "ERC721TokenAdded");
             await findEventsAndInitialize(safeTransactions, abi, "DepositBoxERC1155", "ERC1155TokenAdded");
+            await findTxContractRegisteredAndInitialize(safeTransactions, messageProxyForMainnet, txs);
         },
         "proxyMainnet"
     );
