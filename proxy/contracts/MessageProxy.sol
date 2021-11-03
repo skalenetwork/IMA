@@ -88,6 +88,22 @@ abstract contract MessageProxy is AccessControlEnumerableUpgradeable, IMessagePr
     );
 
     /**
+     * @dev Emitted when extra contract was added.
+     */
+    event ExtraContractRegistered(
+        bytes32 indexed chainHash,
+        address contractAddress
+    );
+
+    /**
+     * @dev Emitted when extra contract was removed.
+     */
+    event ExtraContractRemoved(
+        bytes32 indexed chainHash,
+        address contractAddress
+    );
+
+    /**
      * @dev Modifier to make a function callable only if caller is granted with {CHAIN_CONNECTOR_ROLE}.
      */
     modifier onlyChainConnector() {

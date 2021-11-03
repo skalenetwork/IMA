@@ -208,6 +208,7 @@ contract MessageProxyForSchain is MessageProxy, IMessageProxyForSchainInitialize
         require(extraContract.isContract(), "Given address is not a contract");
         require(!_registryContracts[bytes32(0)].contains(extraContract), "Extra contract is already registered");
         _registryContracts[bytes32(0)].add(extraContract);
+        emit ExtraContractRegistered(bytes32(0), extraContract);
     }
 
     /**
@@ -221,6 +222,7 @@ contract MessageProxyForSchain is MessageProxy, IMessageProxyForSchainInitialize
     function removeExtraContractForAll(address extraContract) external override onlyExtraContractRegistrar {
         require(_registryContracts[bytes32(0)].contains(extraContract), "Extra contract is not registered");
         _registryContracts[bytes32(0)].remove(extraContract);
+        emit ExtraContractRemoved(bytes32(0), extraContract);
     }
 
     /**
@@ -388,6 +390,7 @@ contract MessageProxyForSchain is MessageProxy, IMessageProxyForSchainInitialize
         );
         
         _registryContracts[chainHash].add(extraContract);
+        emit ExtraContractRegistered(chainHash, extraContract);
     }
 
     /**
@@ -406,6 +409,7 @@ contract MessageProxyForSchain is MessageProxy, IMessageProxyForSchainInitialize
     {
         require(_registryContracts[chainHash].contains(extraContract), "Extra contract is not registered");
         _registryContracts[chainHash].remove(extraContract);
+        emit ExtraContractRemoved(chainHash, extraContract);
     }
 
     /**
