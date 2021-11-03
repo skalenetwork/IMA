@@ -27,6 +27,13 @@ import "@skalenetwork/ima-interfaces/schain/IMessageProxyForSchain.sol";
 import "../MessageProxy.sol";
 import "./bls/SkaleVerifier.sol";
 
+interface IMessageProxyForSchainInitializeFunction is IMessageProxyForSchain {
+    function initializeAllRegisteredContracts(
+        bytes32 schainHash,
+        address[] calldata contracts
+    ) external;
+}
+
 
 /**
  * @title MessageProxyForSchain
@@ -49,7 +56,7 @@ import "./bls/SkaleVerifier.sol";
  * Call postIncomingMessages function passing (un)signed message array
  * ID of this schain, Chain 0 represents ETH mainnet,
  */
-contract MessageProxyForSchain is MessageProxy, IMessageProxyForSchain {
+contract MessageProxyForSchain is MessageProxy, IMessageProxyForSchainInitializeFunction {
     using AddressUpgradeable for address;
     using EnumerableSetUpgradeable for EnumerableSetUpgradeable.AddressSet;
 
@@ -98,7 +105,7 @@ contract MessageProxyForSchain is MessageProxy, IMessageProxyForSchain {
     function initializeAllRegisteredContracts(
         bytes32 chainHash,
         address[] calldata contracts
-    ) external {
+    ) external override {
         require(hasRole(DEFAULT_ADMIN_ROLE, msg.sender), "Sender is not authorized");
         for (uint256 i = 0; i < contracts.length; i++) {
             if (
@@ -233,21 +240,6 @@ contract MessageProxyForSchain is MessageProxy, IMessageProxyForSchain {
     }
 
     /**
-     * @dev Checks whether contract is currently registered as extra contract.
-     */
-    function isContractRegistered(
-        bytes32 chainHash,
-        address contractAddress
-    )
-        public
-        view
-        override(IMessageProxy, MessageProxy)
-        returns (bool)
-    {
-        return _registryContracts[chainHash].contains(contractAddress);
-    }
-
-    /**
      * @dev Should return length or contract registered by chainHash.
      */
     function getContractRegisteredLength(bytes32 chainHash) external view override returns (uint256) {
@@ -356,34 +348,22 @@ contract MessageProxyForSchain is MessageProxy, IMessageProxyForSchain {
         _idxTail[dstChainHash] += 1;
     }
 
-    // private
-
     /**
-     * @dev Converts calldata structure to memory structure and checks
-     * whether message BLS signature is valid.
-     * Returns true if signature is valid.
+     * @dev Checks whether contract is currently registered as extra contract.
      */
-    function _verifyMessages(
-        bytes32 hashedMessages,
-        MessageProxyForSchain.Signature calldata signature
+    function isContractRegistered(
+        bytes32 chainHash,
+        address contractAddress
     )
-        internal
+        public
         view
-        virtual
+        override(IMessageProxy, MessageProxy)
         returns (bool)
     {
-        return SkaleVerifier.verify(
-            IFieldOperations.Fp2Point({
-                a: signature.blsSignature[0],
-                b: signature.blsSignature[1]
-            }),
-            hashedMessages,
-            signature.counter,
-            signature.hashA,
-            signature.hashB,
-            keyStorage.getBlsCommonPublicKey()
-        );
+        return _registryContracts[chainHash].contains(contractAddress);
     }
+
+    // private
 
     /**
      * @dev Allows MessageProxy to register extra contract for being able to transfer messages from custom contracts.
@@ -426,6 +406,33 @@ contract MessageProxyForSchain is MessageProxy, IMessageProxyForSchain {
     {
         require(_registryContracts[chainHash].contains(extraContract), "Extra contract is not registered");
         _registryContracts[chainHash].remove(extraContract);
+    }
+
+    /**
+     * @dev Converts calldata structure to memory structure and checks
+     * whether message BLS signature is valid.
+     * Returns true if signature is valid.
+     */
+    function _verifyMessages(
+        bytes32 hashedMessages,
+        MessageProxyForSchain.Signature calldata signature
+    )
+        internal
+        view
+        virtual
+        returns (bool)
+    {
+        return SkaleVerifier.verify(
+            IFieldOperations.Fp2Point({
+                a: signature.blsSignature[0],
+                b: signature.blsSignature[1]
+            }),
+            hashedMessages,
+            signature.counter,
+            signature.hashA,
+            signature.hashB,
+            keyStorage.getBlsCommonPublicKey()
+        );
     }
 
     /**

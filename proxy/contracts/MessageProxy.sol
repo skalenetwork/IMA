@@ -137,19 +137,6 @@ abstract contract MessageProxy is AccessControlEnumerableUpgradeable, IMessagePr
         override;
 
     /**
-     * @dev Checks whether contract is currently registered as extra contract.
-     */
-    function isContractRegistered(
-        bytes32 schainHash,
-        address contractAddress
-    )
-        public
-        view
-        virtual
-        override
-        returns (bool);
-
-    /**
      * @dev Returns number of outgoing messages.
      * 
      * Requirements:
@@ -257,6 +244,19 @@ abstract contract MessageProxy is AccessControlEnumerableUpgradeable, IMessagePr
     {
         return connectedChains[keccak256(abi.encodePacked(schainName))].inited;
     }
+
+    /**
+     * @dev Checks whether contract is currently registered as extra contract.
+     */
+    function isContractRegistered(
+        bytes32 schainHash,
+        address contractAddress
+    )
+        public
+        view
+        virtual
+        override
+        returns (bool);
 
     /**
      * @dev Allows MessageProxy to connect schain with MessageProxyOnMainnet for transferring messages.

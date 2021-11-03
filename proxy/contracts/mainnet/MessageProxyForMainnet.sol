@@ -31,6 +31,13 @@ import "../MessageProxy.sol";
 import "./SkaleManagerClient.sol";
 import "./CommunityPool.sol";
 
+interface IMessageProxyForMainnetInitializeFunction is IMessageProxyForMainnet {
+    function initializeAllRegisteredContracts(
+        bytes32 schainHash,
+        address[] calldata contracts
+    ) external;
+}
+
 
 /**
  * @title Message Proxy for Mainnet
@@ -42,7 +49,7 @@ import "./CommunityPool.sol";
  * nodes in the chain. Since Ethereum Mainnet has no BLS public key, mainnet
  * messages do not need to be signed.
  */
-contract MessageProxyForMainnet is SkaleManagerClient, MessageProxy, IMessageProxyForMainnet {
+contract MessageProxyForMainnet is SkaleManagerClient, MessageProxy, IMessageProxyForMainnetInitializeFunction {
 
     using AddressUpgradeable for address;
     using EnumerableSetUpgradeable for EnumerableSetUpgradeable.AddressSet;
@@ -95,7 +102,7 @@ contract MessageProxyForMainnet is SkaleManagerClient, MessageProxy, IMessagePro
     function initializeAllRegisteredContracts(
         bytes32 schainHash,
         address[] calldata contracts
-    ) external {
+    ) external override {
         require(hasRole(DEFAULT_ADMIN_ROLE, msg.sender), "Sender is not authorized");
         for (uint256 i = 0; i < contracts.length; i++) {
             if (
@@ -280,43 +287,6 @@ contract MessageProxyForMainnet is SkaleManagerClient, MessageProxy, IMessagePro
     }
 
     /**
-     * @dev Checks whether chain is currently connected.
-     * 
-     * Note: Mainnet chain does not have a public key, and is implicitly 
-     * connected to MessageProxy.
-     * 
-     * Requirements:
-     * 
-     * - `schainName` must not be Mainnet.
-     */
-    function isConnectedChain(
-        string memory schainName
-    )
-        public
-        view
-        override(IMessageProxy, MessageProxy)
-        returns (bool)
-    {
-        require(keccak256(abi.encodePacked(schainName)) != MAINNET_HASH, "Schain id can not be equal Mainnet");
-        return super.isConnectedChain(schainName);
-    }
-
-    /**
-     * @dev Checks whether contract is currently registered as extra contract.
-     */
-    function isContractRegistered(
-        bytes32 schainHash,
-        address contractAddress
-    )
-        public
-        view
-        override(IMessageProxy, MessageProxy)
-        returns (bool)
-    {
-        return _registryContracts[schainHash].contains(contractAddress);
-    }
-
-    /**
      * @dev Should return length or contract registered by schainHash.
      */
     function getContractRegisteredLength(bytes32 schainHash) external view override returns (uint256) {
@@ -357,38 +327,43 @@ contract MessageProxyForMainnet is SkaleManagerClient, MessageProxy, IMessagePro
         MessageProxy.initializeMessageProxy(1e6);
         headerMessageGasCost = 70000;
         messageGasCost = 9000;
-    }    
-
-    /**
-     * @dev Converts calldata structure to memory structure and checks
-     * whether message BLS signature is valid.
-     */
-    function _verifyMessages(
-        string calldata fromSchainName,
-        bytes32 hashedMessages,
-        MessageProxyForMainnet.Signature calldata sign
-    )
-        internal
-        view
-        returns (bool)
-    {
-        return ISchains(
-            contractManagerOfSkaleManager.getContract("Schains")
-        ).verifySchainSignature(
-            sign.blsSignature[0],
-            sign.blsSignature[1],
-            hashedMessages,
-            sign.counter,
-            sign.hashA,
-            sign.hashB,
-            fromSchainName
-        );
     }
 
-    function _checkSchainBalance(bytes32 schainHash) internal view returns (bool) {
-        return IWallets(
-            contractManagerOfSkaleManager.getContract("Wallets")
-        ).getSchainBalance(schainHash) >= (MESSAGES_LENGTH + 1) * gasLimit * tx.gasprice;
+    /**
+     * @dev Checks whether chain is currently connected.
+     * 
+     * Note: Mainnet chain does not have a public key, and is implicitly 
+     * connected to MessageProxy.
+     * 
+     * Requirements:
+     * 
+     * - `schainName` must not be Mainnet.
+     */
+    function isConnectedChain(
+        string memory schainName
+    )
+        public
+        view
+        override(IMessageProxy, MessageProxy)
+        returns (bool)
+    {
+        require(keccak256(abi.encodePacked(schainName)) != MAINNET_HASH, "Schain id can not be equal Mainnet");
+        return super.isConnectedChain(schainName);
+    }
+
+    /**
+     * @dev Checks whether contract is currently registered as extra contract.
+     */
+    function isContractRegistered(
+        bytes32 schainHash,
+        address contractAddress
+    )
+        public
+        view
+        override(IMessageProxy, MessageProxy)
+        returns (bool)
+    {
+        return _registryContracts[schainHash].contains(contractAddress);
     }
 
     /**
@@ -432,5 +407,37 @@ contract MessageProxyForMainnet is SkaleManagerClient, MessageProxy, IMessagePro
     {
         require(_registryContracts[chainHash].contains(extraContract), "Extra contract is not registered");
         _registryContracts[chainHash].remove(extraContract);
+    }
+
+    /**
+     * @dev Converts calldata structure to memory structure and checks
+     * whether message BLS signature is valid.
+     */
+    function _verifyMessages(
+        string calldata fromSchainName,
+        bytes32 hashedMessages,
+        MessageProxyForMainnet.Signature calldata sign
+    )
+        internal
+        view
+        returns (bool)
+    {
+        return ISchains(
+            contractManagerOfSkaleManager.getContract("Schains")
+        ).verifySchainSignature(
+            sign.blsSignature[0],
+            sign.blsSignature[1],
+            hashedMessages,
+            sign.counter,
+            sign.hashA,
+            sign.hashB,
+            fromSchainName
+        );
+    }
+
+    function _checkSchainBalance(bytes32 schainHash) internal view returns (bool) {
+        return IWallets(
+            contractManagerOfSkaleManager.getContract("Wallets")
+        ).getSchainBalance(schainHash) >= (MESSAGES_LENGTH + 1) * gasLimit * tx.gasprice;
     }
 }
