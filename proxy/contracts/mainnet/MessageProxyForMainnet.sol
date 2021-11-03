@@ -310,7 +310,7 @@ contract MessageProxyForMainnet is SkaleManagerClient, MessageProxy, IMessagePro
     )
         public
         view
-        override
+        override(IMessageProxy, MessageProxy)
         returns (bool)
     {
         return _registryContracts[schainHash].contains(contractAddress);
@@ -319,7 +319,7 @@ contract MessageProxyForMainnet is SkaleManagerClient, MessageProxy, IMessagePro
     /**
      * @dev Should return length or contract registered by schainHash.
      */
-    function getContractRegisteredLength(bytes32 schainHash) external view returns (uint256) {
+    function getContractRegisteredLength(bytes32 schainHash) external view override returns (uint256) {
         return _registryContracts[schainHash].length();
     }
 
@@ -336,6 +336,7 @@ contract MessageProxyForMainnet is SkaleManagerClient, MessageProxy, IMessagePro
     )
         external
         view
+        override
         returns (address[] memory contractsInRange)
     {
         require(

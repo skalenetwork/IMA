@@ -146,7 +146,7 @@ abstract contract MessageProxy is AccessControlEnumerableUpgradeable, IMessagePr
         public
         view
         virtual
-        // override
+        override
         returns (bool);
 
     /**

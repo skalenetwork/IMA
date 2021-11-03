@@ -241,7 +241,7 @@ contract MessageProxyForSchain is MessageProxy, IMessageProxyForSchain {
     )
         public
         view
-        override
+        override(IMessageProxy, MessageProxy)
         returns (bool)
     {
         return _registryContracts[chainHash].contains(contractAddress);
@@ -250,7 +250,7 @@ contract MessageProxyForSchain is MessageProxy, IMessageProxyForSchain {
     /**
      * @dev Should return length or contract registered by chainHash.
      */
-    function getContractRegisteredLength(bytes32 chainHash) external view returns (uint256) {
+    function getContractRegisteredLength(bytes32 chainHash) external view override returns (uint256) {
         return _registryContracts[chainHash].length();
     }
 
@@ -267,6 +267,7 @@ contract MessageProxyForSchain is MessageProxy, IMessageProxyForSchain {
     )
         external
         view
+        override
         returns (address[] memory contractsInRange)
     {
         require(
