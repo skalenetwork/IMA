@@ -1,6 +1,5 @@
-import etherscan from "etherscan-api";
 import axios from "axios";
-import { ethers } from "hardhat";
+
 
 function getEtherscanApiUrl(chainId: number) {
     if (chainId === 1) {
@@ -18,12 +17,12 @@ function getEtherscanApiUrl(chainId: number) {
     }
 }
 
-export async function getTxsFromEtherscan(address: string) {
-    const etherscanApiUrl = getEtherscanApiUrl((await ethers.provider.getNetwork()).chainId);
+export async function getTxsFromEtherscan(chainId: number, address: string) {
+    const etherscanApiUrl = getEtherscanApiUrl(chainId);
     let txlist;
     if (etherscanApiUrl) {
         try {
-            const txlistResponse = await axios.get(`${etherscanApiUrl}/api?module=account&action=txlist&address=${address}&apiKey=${process.env.ETHERSCAN}`);
+            const txlistResponse = await axios.get(`${etherscanApiUrl}api?module=account&action=txlist&address=${address}&apiKey=${process.env.ETHERSCAN}`);
             txlist = txlistResponse.data.result;
         } catch (e: any) {
             console.log(e);

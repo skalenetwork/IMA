@@ -152,7 +152,7 @@ async function findTxContractRegisteredAndInitialize(
     safeTransactions: string[],
     messageProxyForMainnet: MessageProxyForMainnet,
 ) {
-    const txs = await getTxsFromEtherscan(messageProxyForMainnet.address);
+    const txs = await getTxsFromEtherscan((await ethers.provider.getNetwork()).chainId, messageProxyForMainnet.address);
     if (!Array.isArray(txs)) {
         console.log(chalk.red("Respose from etherscan unknown"));
         process.exit(1);
@@ -163,55 +163,57 @@ async function findTxContractRegisteredAndInitialize(
     }
 
     const chainToRegisteredContracts = new Map<string, string[]>();
-    for (let i = 1; i < txs.length; i++) {
-        const tx = txs[i]["hash"];
-        const inputData = (await ethers.provider.getTransaction(tx)).data;
-        const functionSignature = inputData.slice(10);
-        const functionName = messageProxyForMainnet.interface.getFunction(functionSignature).name;
-        let hash = hexZeroPad("0x0", 32);
-        let address = hexZeroPad("0x0", 20);
-        let add = true;
-        if (functionName === "registerExtraContract") {
-            const decodedData = messageProxyForMainnet.interface.decodeFunctionData("registerExtraContract", inputData);
-            hash = ethers.utils.id(decodedData.schainName);
-            address = decodedData.extraContract;
-            console.log(chalk.yellow("Find Function " + functionName));
-        } else if (functionName === "registerExtraContractForAll") {
-            const decodedData = messageProxyForMainnet.interface.decodeFunctionData("registerExtraContractForAll", inputData);
-            address = decodedData.extraContract;
-            console.log(chalk.yellow("Find Function " + functionName));
-        } else if (functionName === "removeExtraContract") {
-            const decodedData = messageProxyForMainnet.interface.decodeFunctionData("removeExtraContract", inputData);
-            hash = ethers.utils.id(decodedData.schainName);
-            address = decodedData.extraContract;
-            add = false
-            console.log(chalk.yellow("Find Function " + functionName));
-        } else if (functionName === "removeExtraContractForAll") {
-            const decodedData = messageProxyForMainnet.interface.decodeFunctionData("removeExtraContractForAll", inputData);
-            address = decodedData.extraContract;
-            add = false
-            console.log(chalk.yellow("Find Function " + functionName));
-        } else {
-            console.log(chalk.yellow("Skip function " + functionName));
-        }
-        if (address !== hexZeroPad("0x0", 20)) {
-            let addedRegisteredContracts = chainToRegisteredContracts.get(hash);
-            if (add) {
-                if (addedRegisteredContracts) {
-                    addedRegisteredContracts.push(address);
-                    chainToRegisteredContracts.set(hash, addedRegisteredContracts);
-                } else {
-                    chainToRegisteredContracts.set(hash, [address]);
-                }
-                console.log(chalk.yellow("Add hash " + hash + " and address " + address));
+    for (let i = 0; i < txs.length; i++) {
+        const tx = txs[i];
+        if (tx["contractAddress"] === "" && tx["txreceipt_status"] === "1") {
+            const inputData = tx["input"];
+            const functionSignature = inputData.slice(10);
+            const functionName = messageProxyForMainnet.interface.getFunction(functionSignature).name;
+            let hash = hexZeroPad("0x0", 32);
+            let address = hexZeroPad("0x0", 20);
+            let add = true;
+            if (functionName === "registerExtraContract") {
+                const decodedData = messageProxyForMainnet.interface.decodeFunctionData("registerExtraContract", inputData);
+                hash = ethers.utils.id(decodedData.schainName);
+                address = decodedData.extraContract;
+                console.log(chalk.yellow("Find Function " + functionName));
+            } else if (functionName === "registerExtraContractForAll") {
+                const decodedData = messageProxyForMainnet.interface.decodeFunctionData("registerExtraContractForAll", inputData);
+                address = decodedData.extraContract;
+                console.log(chalk.yellow("Find Function " + functionName));
+            } else if (functionName === "removeExtraContract") {
+                const decodedData = messageProxyForMainnet.interface.decodeFunctionData("removeExtraContract", inputData);
+                hash = ethers.utils.id(decodedData.schainName);
+                address = decodedData.extraContract;
+                add = false
+                console.log(chalk.yellow("Find Function " + functionName));
+            } else if (functionName === "removeExtraContractForAll") {
+                const decodedData = messageProxyForMainnet.interface.decodeFunctionData("removeExtraContractForAll", inputData);
+                address = decodedData.extraContract;
+                add = false
+                console.log(chalk.yellow("Find Function " + functionName));
             } else {
-                if (addedRegisteredContracts) {
-                    addedRegisteredContracts = addedRegisteredContracts.filter((value) => {return value !== address;});
-                    chainToRegisteredContracts.set(hash, addedRegisteredContracts);
+                console.log(chalk.yellow("Skip function " + functionName));
+            }
+            if (address !== hexZeroPad("0x0", 20)) {
+                let addedRegisteredContracts = chainToRegisteredContracts.get(hash);
+                if (add) {
+                    if (addedRegisteredContracts) {
+                        addedRegisteredContracts.push(address);
+                        chainToRegisteredContracts.set(hash, addedRegisteredContracts);
+                    } else {
+                        chainToRegisteredContracts.set(hash, [address]);
+                    }
+                    console.log(chalk.yellow("Add hash " + hash + " and address " + address));
                 } else {
-                    chainToRegisteredContracts.delete(hash);
+                    if (addedRegisteredContracts) {
+                        addedRegisteredContracts = addedRegisteredContracts.filter((value) => {return value !== address;});
+                        chainToRegisteredContracts.set(hash, addedRegisteredContracts);
+                    } else {
+                        chainToRegisteredContracts.delete(hash);
+                    }
+                    console.log(chalk.yellow("Remove hash " + hash + " and address " + address));
                 }
-                console.log(chalk.yellow("Remove hash " + hash + " and address " + address));
             }
         }
     }
