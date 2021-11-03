@@ -153,20 +153,15 @@ async function findTxContractRegisteredAndInitialize(
     messageProxyForMainnet: MessageProxyForMainnet,
 ) {
     const txs = await getTxsFromEtherscan((await ethers.provider.getNetwork()).chainId, messageProxyForMainnet.address);
-    if (!Array.isArray(txs)) {
-        console.log(chalk.red("Respose from etherscan unknown"));
-        process.exit(1);
-    }
-    if (txs.length === 0) {
+    if (!Array.isArray(txs) || txs.length === 0) {
         console.log(chalk.yellow("No transactions from etherscan found"));
         return;
     }
-
     const chainToRegisteredContracts = new Map<string, string[]>();
-    for (let i = 0; i < txs.length; i++) {
-        const tx = txs[i];
-        if (tx["contractAddress"] === "" && tx["txreceipt_status"] === "1") {
-            const inputData = tx["input"];
+    for (const tx of txs) {
+        // const tx = txs[i];
+        if (tx.contractAddress === "" && tx.txreceipt_status === "1") {
+            const inputData = tx.input;
             const functionSignature = inputData.slice(10);
             const functionName = messageProxyForMainnet.interface.getFunction(functionSignature).name;
             let hash = hexZeroPad("0x0", 32);

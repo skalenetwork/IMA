@@ -10,7 +10,7 @@ function getEtherscanApiUrl(chainId: number) {
         return "https://api-rinkeby.etherscan.io/";
     } else if (chainId === 42) {
         return "https://api-kovan.etherscan.io/";
-    } else if (chainId = 420) {
+    } else if (chainId === 420) {
         return "https://api-goerli.etherscan.io/";
     } else {
         return undefined;
