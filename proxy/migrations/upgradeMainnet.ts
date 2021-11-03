@@ -1,4 +1,4 @@
-import { ethers, web3 } from "hardhat";
+import { ethers } from "hardhat";
 import hre from "hardhat";
 import { contracts, getContractKeyInAbiFile } from "./deployMainnet";
 import { upgrade } from "./upgrade";
@@ -8,10 +8,8 @@ import chalk from "chalk";
 import { MessageProxyForMainnet, DepositBoxERC20, DepositBoxERC721, DepositBoxERC1155 } from "../typechain/";
 import { encodeTransaction } from "./tools/multiSend";
 import { TypedEvent, TypedEventFilter } from "../typechain/commons";
-import { promises as fs } from "fs";
-import { read } from "./tools/csv";
+import { getTxsFromEtherscan } from "./tools/etherscan-api";
 import { hexZeroPad } from "@ethersproject/bytes";
-import { Interface } from "@ethersproject/abi";
 import { Contract } from "@ethersproject/contracts";
 
 function prepareInitializeFromMap(
@@ -145,82 +143,28 @@ async function findEventsAndInitialize(
     }
 }
 
-function getValueFromCSV(txs: any, index: number, field: string) {
+function getValueFromTXList(txs: any, index: number, field: string) {
     const deploymentTx = txs[index];
     return deploymentTx[field];
-}
-
-async function checkAndCleanCSV() {
-    if (!process.env.ABI) {
-        console.log(chalk.red("Set path to file with ABI and addresses to ABI environment variables"));
-        process.exit(1);
-    }
-
-    if (process.env.TEST_UPGRADE) {
-        console.log();
-        console.log(chalk.red("!!! TEST UPGRADE mode !!!"));
-        console.log(chalk.red("Initialize registered contracts later"));
-        console.log(chalk.red("Or use it on your own risk"));
-        console.log();
-        return [];
-    }
-
-    if (!process.env.CSV) {
-        console.log(chalk.red("Set path to the exported CSV file with txs of MessageProxy contract from Etherscan"));
-        process.exit(1);
-    }
-
-
-    const abiFilename = process.env.ABI;
-    const abi = JSON.parse(await fs.readFile(abiFilename, "utf-8"));
-
-    const csvFilename = process.env.CSV;
-    const txs = await read(csvFilename);
-    if (!Array.isArray(txs)) {
-        console.log(chalk.red("CSV file is incorrect - did not parse as an array"));
-        process.exit(1);
-    }
-
-    const messageProxyForMainnetName = "MessageProxyForMainnet";
-    const messageProxyForMainnetFactory = await ethers.getContractFactory(messageProxyForMainnetName);
-    const messageProxyForMainnetAddress = abi[getContractKeyInAbiFile(messageProxyForMainnetName) + "_address"];
-
-    const blockNumberFromCSV = getValueFromCSV(txs, 0, "Blockno");
-    const contractAddressFromCSV = getValueFromCSV(txs, 0, "ContractAddress");
-    const blocknumberFromContract = await getContractDeploymentBlock(messageProxyForMainnetAddress);
-    if (
-        blockNumberFromCSV.toString() !== blocknumberFromContract.toString() ||
-        contractAddressFromCSV.toString() !== messageProxyForMainnetAddress.toString()
-    ) {
-        console.log(chalk.red("CSV file is incorrect - contract address or block creation number mismatched"));
-        process.exit(1);
-    }
-
-    for (let i = 1; i < txs.length; i++) {
-        const receiver = getValueFromCSV(txs, i, "To");
-        if (receiver !== messageProxyForMainnetAddress) {
-            console.log(chalk.red("CSV file is incorrect - tx number " + (i + 1) + " from the list is invalid"));
-            process.exit(1);
-        }
-    }
-    // remove all txs deploy, status > 0, ErrCode > 0
-    // remove all fields price, status, ErrCode, Method, _16, DateTime, UnixTimestamp
-    return txs;
 }
 
 async function findTxContractRegisteredAndInitialize(
     safeTransactions: string[],
     messageProxyForMainnet: MessageProxyForMainnet,
-    txs: any[],
 ) {
+    const txs = await getTxsFromEtherscan(messageProxyForMainnet.address);
+    if (!Array.isArray(txs)) {
+        console.log(chalk.red("Respose from etherscan unknown"));
+        process.exit(1);
+    }
     if (txs.length === 0) {
-        console.log(chalk.yellow("No transactions from csv file provided"));
+        console.log(chalk.yellow("No transactions from etherscan found"));
         return;
     }
 
     const chainToRegisteredContracts = new Map<string, string[]>();
     for (let i = 1; i < txs.length; i++) {
-        const tx = getValueFromCSV(txs, i, "Txhash");
+        const tx = txs[i]["hash"];
         const inputData = (await ethers.provider.getTransaction(tx)).data;
         const functionSignature = inputData.slice(10);
         const functionName = messageProxyForMainnet.interface.getFunction(functionSignature).name;
@@ -275,7 +219,6 @@ async function findTxContractRegisteredAndInitialize(
 }
 
 async function main() {
-    const txs = await checkAndCleanCSV();
     await upgrade(
         "1.1.0",
         contracts,
@@ -315,7 +258,7 @@ async function main() {
             await findEventsAndInitialize(safeTransactions, abi, "DepositBoxERC20", "ERC20TokenAdded");
             await findEventsAndInitialize(safeTransactions, abi, "DepositBoxERC721", "ERC721TokenAdded");
             await findEventsAndInitialize(safeTransactions, abi, "DepositBoxERC1155", "ERC1155TokenAdded");
-            await findTxContractRegisteredAndInitialize(safeTransactions, messageProxyForMainnet, txs);
+            await findTxContractRegisteredAndInitialize(safeTransactions, messageProxyForMainnet);
         },
         "proxyMainnet"
     );
