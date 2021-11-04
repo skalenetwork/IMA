@@ -78,7 +78,22 @@ export async function upgrade(
     const abi = JSON.parse(await fs.readFile(abiFilename, "utf-8"));
 
     const proxyAdmin = await getManifestAdmin(hre);
+    let deployedVersion = "";
+    try {
+        deployedVersion = await skaleManager.version();
+    } catch {
+        console.log("Can't read deployed version");
+    };
     const version = await getVersion();
+    if (deployedVersion) {
+        if (deployedVersion !== targetVersion) {
+            console.log(chalk.red(`This script can't upgrade version ${deployedVersion} to ${version}`));
+            process.exit(1);
+        }
+    } else {
+        console.log(chalk.yellow("Can't check currently deployed version of skale-manager"));
+    }
+    console.log(`Will mark updated version as ${version}`);
 
     const [ deployer ] = await ethers.getSigners();
     let safe = await proxyAdmin.owner();

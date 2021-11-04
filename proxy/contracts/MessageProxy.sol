@@ -122,6 +122,20 @@ abstract contract MessageProxy is AccessControlEnumerableUpgradeable, IMessagePr
         gasLimit = newGasLimit;
     }
 
+
+    /**
+     * @dev Sets new version of contracts on mainnet and schain
+     * 
+     * Requirements:
+     * 
+     * - `msg.sender` must be granted DEFAULT_ADMIN_ROLE.
+     */
+    function setVersion(string calldata newVersion) external {
+        require(hasRole(DEFAULT_ADMIN_ROLE, msg.sender), "DEFAULT_ADMIN_ROLE is required");
+        emit VersionUpdated(version, newVersion);
+        version = newVersion;
+    }
+
     /**
      * @dev Allows `msg.sender` to register extra contract for all schains
      * for being able to transfer messages from custom contracts.
