@@ -1,4 +1,4 @@
-from ..contract_generator import ContractGenerator, calculate_mapping_value_slot, calculate_array_value_slot, next_slot, to_bytes32
+from ..contract_generator import ContractGenerator, calculate_mapping_value_slot, calculate_array_value_slot, next_slot
 from ..addresses import COMMUNITY_LOCKER_ADDRESS, KEY_STORAGE_ADDRESS, TOKEN_MANAGER_ERC1155_ADDRESS,\
     TOKEN_MANAGER_ERC20_ADDRESS, TOKEN_MANAGER_ERC721_ADDRESS, TOKEN_MANAGER_ETH_ADDRESS
 from web3 import Web3
@@ -84,8 +84,9 @@ class MessageProxyForSchainGenerator(ContractGenerator):
             TOKEN_MANAGER_ERC721_ADDRESS,
             TOKEN_MANAGER_ERC1155_ADDRESS,
             COMMUNITY_LOCKER_ADDRESS]
+        self._write_uint256(any_schain_contracts_slot, len(allowed_contracts))
         for i, contract in enumerate(allowed_contracts):
             contract_slot = calculate_array_value_slot(any_schain_contracts_slot, i)
-            self._write_bytes32(contract_slot, to_bytes32(contract))
-            indexes_slot = calculate_mapping_value_slot(any_schain_contracts_slot + 1, to_bytes32(contract), 'bytes32')
+            self._write_address(contract_slot, contract)
+            indexes_slot = calculate_mapping_value_slot(any_schain_contracts_slot + 1, contract, 'bytes32')
             self._write_uint256(contract_slot, i)

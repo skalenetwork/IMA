@@ -17,17 +17,6 @@ def add_0x(bytes_string: str) -> str:
     else:
         return '0x' + bytes_string
 
-def to_bytes32(bytes_string: str) -> str:
-    new_bytes_string = ""
-    if bytes_string.startswith('0x'):
-        new_bytes_string = bytes_string
-    else:
-        new_bytes_string = "0x" + bytes_string
-    assert len(new_bytes_string) <= 66
-    while len(new_bytes_string) < 66:
-        new_bytes_string = "0x0" + new_bytes_string[2:]
-    return new_bytes_string
-
 
 def calculate_mapping_value_slot(slot: int, key: any, key_type: str) -> int:
     if key_type == 'address':
