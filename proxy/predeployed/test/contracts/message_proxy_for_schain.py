@@ -26,18 +26,18 @@ def check_message_proxy_for_schain(owner_address, schain_name):
         raise AssertionError
     if not message_proxy_for_schain.functions.gasLimit().call() == MessageProxyForSchainGenerator.GAS_LIMIT:
         raise AssertionError
-    if not message_proxy_for_schain.functions.registryContracts(MessageProxyForSchainGenerator.ANY_SCHAIN,
+    if not message_proxy_for_schain.functions.isContractRegistered(MessageProxyForSchainGenerator.ANY_SCHAIN,
                                                                 TOKEN_MANAGER_ETH_ADDRESS).call():
         raise AssertionError
-    if not message_proxy_for_schain.functions.registryContracts(MessageProxyForSchainGenerator.ANY_SCHAIN,
+    if not message_proxy_for_schain.functions.isContractRegistered(MessageProxyForSchainGenerator.ANY_SCHAIN,
                                                                 TOKEN_MANAGER_ERC20_ADDRESS).call():
         raise AssertionError
-    if not message_proxy_for_schain.functions.registryContracts(MessageProxyForSchainGenerator.ANY_SCHAIN,
+    if not message_proxy_for_schain.functions.isContractRegistered(MessageProxyForSchainGenerator.ANY_SCHAIN,
                                                                 TOKEN_MANAGER_ERC721_ADDRESS).call():
         raise AssertionError
-    if not message_proxy_for_schain.functions.registryContracts(MessageProxyForSchainGenerator.ANY_SCHAIN,
+    if not message_proxy_for_schain.functions.isContractRegistered(MessageProxyForSchainGenerator.ANY_SCHAIN,
                                                                 TOKEN_MANAGER_ERC1155_ADDRESS).call():
         raise AssertionError
-    if not message_proxy_for_schain.functions.registryContracts(MessageProxyForSchainGenerator.ANY_SCHAIN,
+    if not message_proxy_for_schain.functions.isContractRegistered(MessageProxyForSchainGenerator.ANY_SCHAIN,
                                                                 COMMUNITY_LOCKER_ADDRESS).call():
         raise AssertionError
