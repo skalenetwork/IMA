@@ -5,6 +5,7 @@ import { encodeTransaction } from "./tools/multiSend";
 import { upgrade } from "./upgrade";
 import { hexZeroPad } from "@ethersproject/bytes";
 import chalk from "chalk";
+import { ethers } from "hardhat";
 
 function stringValue(value: string | undefined) {
     if (value) {
