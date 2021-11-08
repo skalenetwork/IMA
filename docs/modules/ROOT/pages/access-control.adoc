@@ -2,28 +2,130 @@
 
 == Introduction
 
-The SKALE Chain owner has special permissions to configure SKALE Chain access control. The owner may choose a permissive policy, restricting access to only certain users and/or tokens, or may choose a permissionless policy, enabling any user and/or tokens. This access control includes several features: 
+The SKALE Chain owner has special permissions to configure SKALE Chain access control. The owner may choose a "permission-by-owner" policy, selectively restricting access to only certain users and/or tokens, or may choose a permissionless policy, enabling any user and/or tokens. This access control includes several features: 
 
 .SKALE Chain ETH
-    * controlling how users access SKALE Chain ETH to perform transactions.
+    * controlling how users access SKALE Chain ETH (skETH) to perform transactions.
 
 .IMA token exchange
     * controlling which tokens transfer between Mainnet and SKALE Chains.
 
-This document describes how SKALE Chain owners can set permissions for IMA token exchange.
+This document describes how SKALE Chain owners can set permissions for the IMA Bridge.  There are two general categories:
 
-IMA permissions include:
+* Owner permissions for IMA Mainnet
+* Owner permissions for IMA SKALE Chain
 
-* Enable/disable IMA token whitelist on mainnet (default: enabled)
-* Enable/disable automatic deployment on SKALE Chain (default: disabled)
-* AddERC20TokenByOwner on mainnet and on SKALE Chain
-* AddERC721TokenByOwner on mainnet and on SKALE Chain
-* AddERC1155TokenByOwner on mainnet and on SKALE Chain
+There are several IMA SKALE Chain roles that can be granted by the owner, these include:
 
-The general architecture is that:
+* CHAIN_CONNECTOR_ROLE
+* EXTRA_CONTRACT_REGISTRAR_ROLE
+* CONSTANT_SETTER_ROLE (MessageProxy)
+* CONSTANT_SETTER_ROLE (CommunityLocker)
+* REGISTRAR_ROLE
+* AUTOMATIC_DEPLOY_ROLE
+* TOKEN_REGISTRAR_ROLE
 
-* Enable/disable permissions are set using DepositBox and TokenManager contracts on Ethereum and on a SKALE Chain.  
-* Mapping (AddERC20TokenByOwner, AddERC721TokenByOwner, AddERC1155TokenByOwner) are set using the respective DepositBoxERC20, DepositBoxERC721, DepositBoxERC1155.
+== Owner IMA Mainnet Permissions
+
+.Owner IMA Mainnet Permissions
+[%header, cols="1,1,3"]
+|===
+| Contracts
+| Functions
+| Description
+
+.2+|
+
+DepositBoxERC20 DepositBoxERC721 DepositBoxERC1155
+
+| xref:ima:api:depositbox.adoc#_enablewhitelist_enablewhiteliststring_schainname_external[enableWhitelist] xref:ima:api:depositbox.adoc#_disablewhitelist_disablewhiteliststring_schainname_external[disableWhitelist]
+
+
+| Enable/disable whitelist (**default: enabled**). Whitelist allows only specific tokens to be used with the IMA Bridge.
+
+| addERC20TokenByOwner addERC721TokenByOwner addERC1155TokenByOwner
+| Allows owner to manually map tokens to the bridge.
+
+| DepositBoxEth DepositBoxERC20 DepositBoxERC721 DepositBoxERC1155
+| getFunds
+
+
+| If the `kill` operation is executed, allows owner to return tokens to end-users.
+
+| MessageProxyForMainnet
+| registerExtraContract removeExtraContract
+| Allows owner to add/remove extra contracts to/from the IMA Bridge.
+
+.2+| Linker
+| allowInterchainConnections
+
+| Allows owner to connect other chains (that they own) to the IMA bridge.
+
+| kill
+| Allows owner and contract deployer to kill the SKALE Chain IMA Bridge and allow owner to execute getFunds(). Both roles must call this function to execute. Reserved only for extraordinary situations.
+
+|===
+
+== IMA SKALE Chain Permissions
+
+.IMA SKALE Chain Permissions
+[%header, cols="1,1,3"]
+|===
+| Contracts
+| Functions
+| Description
+
+| ProxyAdmin
+| 
+| Allows owner to upgrade contracts.
+
+.4+| MessageProxyForSchain
+| grantRole
+| Allows owner to grant `CHAIN_CONNECTOR_ROLE`, `EXTRA_CONTRACT_REGISTRAR_ROLE`, `REGISTRAR_ROLE`, `AUTOMATIC_DEPLOY_ROLE`, `TOKEN_REGISTRAR_ROLE` and `CONSTANT_SETTER_ROLE`.
+
+| addConnectedChain removeConnectedChain
+| Allows owner or `CHAIN_CONNECTOR_ROLE` to add/remove a chain.
+
+| registerExtraContract removeExtraContract
+| Allows owner or `EXTRA_CONTRACT_REGISTRAR_ROLE` to add/remove an extra SKALE Chain contract to/from the IMA Bridge.
+
+| setNewGasLimit
+| Allows owner or `CONSTANT_SETTER_ROLE` to set a new gas limit for MessageProxy outgoing messages.
+
+| TokenManagerEth
+| setEthErc20Address
+| Allows owner to set a new address for ETHERC20 (wrapped ETH) on SKALE.
+
+.5+| TokenManagerERC20 TokenManagerERC721 TokenManagerERC1155
+| grantRole
+| Allows owner to grant `AUTOMATIC_DEPLOY_ROLE`, and `TOKEN_REGISTRAR_ROLE`.
+
+| addTokenManager removeTokenManager
+| Allows owner to add/remove other TokenManagers to the IMA Bridge.
+
+| changeDepositBoxAddress
+| Allows owner to set a new DepositBox address. 
+
+| enableAutomaticDeploy disableAutomaticDeploy
+| Allows owner or `AUTOMATIC_DEPLOY_ROLE` to enable/disable automatic deployment (**default: disabled**).
+
+| addERC20TokenByOwner addERC721TokenByOwner addERC1155TokenByOwner
+| Allows owner or `TOKEN_REGISTRAR_ROLE` to manually map tokens to the SKALE Chain side of the IMA Bridge.
+
+.2+| TokenManagerLinker
+| registerTokenManager removeTokenManager
+| Allows owner or `REGISTRAR_ROLE` to add/remove TokenManager contracts.
+
+| connectSchain disconnectSchain
+| Allows owner or `REGISTRAR_ROLE` to connect/disconnect SKALE Chains.
+
+| CommunityLocker
+| setTimeLimitPerMessage
+| Allows owner or `CONSTANT_SETTER_ROLE` to set a new rate limit for exit messages. (**default: 5 minutes per SKALE Chain exit message**).
+
+|
+
+|===
 
 == Enable or Disable the Whitelist
 
