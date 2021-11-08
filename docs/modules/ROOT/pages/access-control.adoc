@@ -121,7 +121,7 @@ DepositBoxERC20 DepositBoxERC721 DepositBoxERC1155
 
 | CommunityLocker
 | setTimeLimitPerMessage
-| Allows owner or `CONSTANT_SETTER_ROLE` to set a new rate limit for exit messages. Default is 5 minutes per SKALE Chain exit message.
+| Allows owner or `CONSTANT_SETTER_ROLE` to set a new rate limit for exit messages. (**default: 5 minutes per SKALE Chain exit message**).
 
 |
 
