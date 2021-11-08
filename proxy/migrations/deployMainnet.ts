@@ -30,6 +30,7 @@ import { deployLibraries, getLinkedContractFactory } from "./tools/factory";
 import { getAbi } from './tools/abi';
 import { verify, verifyProxy } from './tools/verification';
 import { Manifest, hashBytecode } from "@openzeppelin/upgrades-core";
+import { getMainnetVersion } from './tools/version';
 
 export function getContractKeyInAbiFile(contract: string) {
     if (contract === "MessageProxyForMainnet") {
@@ -106,6 +107,7 @@ async function main() {
     const deployed = new Map<string, {address: string, interface: Interface}>();
 
     const contractManager = getContractManager();
+    const version = await getMainnetVersion();
 
     const messageProxyForMainnetName = "MessageProxyForMainnet";
     console.log("Deploy", messageProxyForMainnetName);
@@ -125,6 +127,13 @@ async function main() {
     await verifyProxy(messageProxyForMainnetName, messageProxyForMainnet.address, []);
     const extraContractRegistrarRole = await messageProxyForMainnet.EXTRA_CONTRACT_REGISTRAR_ROLE();
     await (await messageProxyForMainnet.grantRole(extraContractRegistrarRole, owner.address)).wait();
+
+    try {
+        console.log(`Set version ${version}`)
+        await (await (messageProxyForMainnet as MessageProxyForMainnet).setVersion(version)).wait();
+    } catch {
+        console.log("Failed to set ima version on mainnet");
+    }
 
     const linkerName = "Linker";
     console.log("Deploy", linkerName);

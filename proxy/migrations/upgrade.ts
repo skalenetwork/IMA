@@ -10,7 +10,7 @@ import { encodeTransaction } from "./tools/multiSend";
 import { createMultiSendTransaction, sendSafeTransaction } from "./tools/gnosis-safe";
 import chalk from "chalk";
 import { verify } from "./tools/verification";
-import { getVersion } from "./tools/version";
+import { MessageProxy } from "../typechain";
 
 function getContractKeyInAbiFile(contract: string) {
     if (contract === "MessageProxyForMainnet") {
@@ -60,6 +60,42 @@ export async function getContractFactoryAndUpdateManifest(contract: string) {
     return await getLinkedContractFactory(contract, libraries);
 }
 
+async function checkDeployedVersion(version: string, targetVersion: string, messageProxy: MessageProxy) {
+    let deployedVersion = "";
+    try {
+        deployedVersion = await messageProxy.version();
+    } catch {
+        console.log("Can't read deployed version");
+    };
+
+    if (deployedVersion) {
+        if (deployedVersion !== targetVersion) {
+            console.log(chalk.red(`This script can't upgrade version ${deployedVersion} to ${version}`));
+            process.exit(1);
+        }
+    } else {
+        console.log(chalk.yellow("Can't check currently deployed version of skale-manager"));
+    }
+    console.log(`Will mark updated version as ${version}`);
+}
+
+async function getMessageProxyName(fileName: string) {
+    if (fileName === "proxyMainnet") {
+        return "MessageProxyForMainnet";
+    } else if (fileName === "proxySchain") {
+        return "MessageProxyForSchain";
+    }
+    console.log(chalk.red("Invalid filename"));
+    process.exit(1);
+}
+
+async function getMessageProxyInstance(fileName: string, abi: any) : Promise<MessageProxy> {
+    const messageProxyName = await getMessageProxyName(fileName);
+    const messageProxyFactory = await ethers.getContractFactory(messageProxyName);
+    const messageProxy = (messageProxyFactory.attach(abi[getContractKeyInAbiFile(messageProxyName) + "_address"])) as MessageProxy;
+    return messageProxy;
+}
+
 type DeploymentAction = (safeTransactions: string[], abi: any) => Promise<void>;
 
 export async function upgrade(
@@ -67,6 +103,7 @@ export async function upgrade(
     contractNamesToUpgrade: string[],
     deployNewContracts: DeploymentAction,
     initialize: DeploymentAction,
+    getVersion: () => Promise<string>,
     fileName: string)
 {
     if (!process.env.ABI) {
@@ -79,6 +116,8 @@ export async function upgrade(
 
     const proxyAdmin = await getManifestAdmin(hre);
     const version = await getVersion();
+    const messageProxy = await getMessageProxyInstance(fileName, abi);
+    await checkDeployedVersion(version, targetVersion, messageProxy);
 
     const [ deployer ] = await ethers.getSigners();
     let safe = await proxyAdmin.owner();
@@ -147,6 +186,18 @@ export async function upgrade(
     }
 
     await initialize(safeTransactions, abi);
+
+    // write version
+    if (safeMock) {
+        console.log(chalk.blue("Grant access to set version"));
+        await (await messageProxy.grantRole(await messageProxy.DEFAULT_ADMIN_ROLE(), safe)).wait();
+    }
+    safeTransactions.push(encodeTransaction(
+        0,
+        messageProxy.address,
+        0,
+        messageProxy.interface.encodeFunctionData("setVersion", [version]),
+    ));
 
     await fs.writeFile(`data/transactions-${version}-${network.name}.json`, JSON.stringify(safeTransactions, null, 4));
 

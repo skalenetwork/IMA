@@ -87,6 +87,11 @@ abstract contract MessageProxy is AccessControlEnumerableUpgradeable, IMessagePr
     );
 
     /**
+     * @dev Emitted when the version was updated
+     */
+    event VersionUpdated(string oldVersion, string newVersion);
+
+    /**
      * @dev Modifier to make a function callable only if caller is granted with {CHAIN_CONNECTOR_ROLE}.
      */
     modifier onlyChainConnector() {

@@ -65,6 +65,8 @@ contract MessageProxyForMainnet is SkaleManagerClient, MessageProxy, IMessagePro
     uint256 public headerMessageGasCost;
     uint256 public messageGasCost;
 
+    string public version;
+
     /**
      * @dev Emitted when gas cost for message header was changed.
      */
@@ -221,6 +223,19 @@ contract MessageProxyForMainnet is SkaleManagerClient, MessageProxy, IMessagePro
     function setNewMessageGasCost(uint256 newMessageGasCost) external override onlyConstantSetter {
         emit GasCostMessageWasChanged(messageGasCost, newMessageGasCost);
         messageGasCost = newMessageGasCost;
+    }
+
+    /**
+     * @dev Sets new version of contracts on mainnet
+     * 
+     * Requirements:
+     * 
+     * - `msg.sender` must be granted DEFAULT_ADMIN_ROLE.
+     */
+    function setVersion(string calldata newVersion) external override {
+        require(hasRole(DEFAULT_ADMIN_ROLE, msg.sender), "DEFAULT_ADMIN_ROLE is required");
+        emit VersionUpdated(version, newVersion);
+        version = newVersion;
     }
 
     /**
