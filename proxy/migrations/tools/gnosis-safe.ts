@@ -30,8 +30,10 @@ const URLS = {
     }
 }
 
-function getMultiSendAddress(chainId: number) {
-    if (chainId === Network.MAINNET) {
+function getMultiSendAddress(chainId: number, isSafeMock: boolean = false) {
+    if (isSafeMock) {
+        return ZERO_ADDRESS;
+    } else if (chainId === Network.MAINNET) {
         return ADDRESSES.multiSend[chainId];
     } else if (chainId === Network.RINKEBY) {
         return ADDRESSES.multiSend[chainId];
@@ -74,7 +76,7 @@ function concatTransactions(transactions: string[]) {
 
 export async function createMultiSendTransaction(ethers: any, safeAddress: string, privateKey: string, transactions: string[], isSafeMock: boolean = false) {
     const chainId: number = (await ethers.provider.getNetwork()).chainId;
-    const multiSendAddress = getMultiSendAddress(chainId);
+    const multiSendAddress = getMultiSendAddress(chainId, isSafeMock);
     const multiSendAbi = [{"constant":false,"inputs":[{"internalType":"bytes","name":"transactions","type":"bytes"}],"name":"multiSend","outputs":[],"payable":false,"stateMutability":"nonpayable","type":"function"}];
     const multiSend = new ethers.Contract(multiSendAddress, new ethers.utils.Interface(multiSendAbi), ethers.provider);
 
