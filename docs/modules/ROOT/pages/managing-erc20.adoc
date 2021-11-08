@@ -615,7 +615,8 @@ This method is called from the SKALE Chain to send funds and move the token back
 Note that the SKALE Chain user must have:
 
 * skETH to conduct the exitToMain transaction on the SKALE Chain TokenManager contract.
-* a sufficient balance of ETH in the Community Pool to initiate the exit to Ethereum *xref:funding-exits.adoc[See Funding Exits].
+* a sufficient balance of ETH in the Community Pool to initiate the exit to Ethereum xref:funding-exits.adoc[See Funding Exits].
+* not have exceeded the exit message rate (default is 5 minutes per SKALE Chain exit message). xref:api:schain/CommunityLocker.adoc#_checkallowedtosendmessage_checkallowedtosendmessageaddress_receiver_external[See Community Locker].
 
 The **TokenManagerERC20** IMA contract is pre-deployed to your SKALE Chain. Please reach out to your account manager to receive the ABIs specific for your SKALE Chain.  
 
