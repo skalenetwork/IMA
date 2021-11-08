@@ -41,7 +41,7 @@ DepositBoxERC20 DepositBoxERC721 DepositBoxERC1155
 | xref:ima:api:depositbox.adoc#_enablewhitelist_enablewhiteliststring_schainname_external[enableWhitelist] xref:ima:api:depositbox.adoc#_disablewhitelist_disablewhiteliststring_schainname_external[disableWhitelist]
 
 
-| Enable/disable whitelist (**default: enabled**).
+| Enable/disable whitelist (**default: enabled**). Whitelist allows only specific tokens to be used with the IMA Bridge.
 
 | addERC20TokenByOwner addERC721TokenByOwner addERC1155TokenByOwner
 | Allows owner to manually map tokens to the bridge.
@@ -50,19 +50,19 @@ DepositBoxERC20 DepositBoxERC721 DepositBoxERC1155
 | getFunds
 
 
-| If kill operation is executed, allows owner to return tokens to end-users.
+| If the `kill` operation is executed, allows owner to return tokens to end-users.
 
 | MessageProxyForMainnet
 | registerExtraContract removeExtraContract
-| Allows owner to add/remove extra contracts to the IMA Bridge.
+| Allows owner to add/remove extra contracts to/from the IMA Bridge.
 
 .2+| Linker
 | allowInterchainConnections
 
-| Allows owner to connect other chains that they own to the bridge.
+| Allows owner to connect other chains (that they own) to the IMA bridge.
 
 | kill
-| Allows owner and contract deployer to kill the SKALE Chain and allow owner to execute getFunds(). Both roles must call this function to execute.
+| Allows owner and contract deployer to kill the SKALE Chain IMA Bridge and allow owner to execute getFunds(). Both roles must call this function to execute. Reserved only for extraordinary situations.
 
 |===
 
@@ -87,7 +87,7 @@ DepositBoxERC20 DepositBoxERC721 DepositBoxERC1155
 | Allows owner or `CHAIN_CONNECTOR_ROLE` to add/remove a chain.
 
 | registerExtraContract removeExtraContract
-| Allows owner or `EXTRA_CONTRACT_REGISTRAR_ROLE` to add/remove an extra SKALE Chain contract to the IMA Bridge.
+| Allows owner or `EXTRA_CONTRACT_REGISTRAR_ROLE` to add/remove an extra SKALE Chain contract to/from the IMA Bridge.
 
 | setNewGasLimit
 | Allows owner or `CONSTANT_SETTER_ROLE` to set a new gas limit for MessageProxy outgoing messages.
@@ -114,14 +114,14 @@ DepositBoxERC20 DepositBoxERC721 DepositBoxERC1155
 
 .2+| TokenManagerLinker
 | registerTokenManager removeTokenManager
-| Allows owner or `REGISTRAR_ROLE` to add/remove
+| Allows owner or `REGISTRAR_ROLE` to add/remove TokenManager contracts.
 
 | connectSchain disconnectSchain
-| Allows owner or `REGISTRAR_ROLE` to connect/disconnect SKALE Chains 
+| Allows owner or `REGISTRAR_ROLE` to connect/disconnect SKALE Chains.
 
 | CommunityLocker
 | setTimeLimitPerMessage
-| Allows owner or `CONSTANT_SETTER_ROLE` 
+| Allows owner or `CONSTANT_SETTER_ROLE` to set a new rate limit for exit messages. Default is 5 minutes per SKALE Chain exit message.
 
 |
 
