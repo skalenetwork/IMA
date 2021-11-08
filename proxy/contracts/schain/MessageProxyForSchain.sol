@@ -84,6 +84,8 @@ contract MessageProxyForSchain is MessageProxy, IMessageProxyForSchain {
     //      schainHash  => tail of unprocessed messages
     mapping(bytes32 => uint) private _idxTail;
 
+    string public version;
+
     function registerExtraContract(
         string memory chainName,
         address extraContract
@@ -158,6 +160,19 @@ contract MessageProxyForSchain is MessageProxy, IMessageProxyForSchain {
             _callReceiverContract(fromChainHash, messages[i], startingCounter + 1);
         }
         connectedChains[fromChainHash].incomingMessageCounter += messages.length;
+    }
+
+    /**
+     * @dev Sets new version of contracts on schain
+     * 
+     * Requirements:
+     * 
+     * - `msg.sender` must be granted DEFAULT_ADMIN_ROLE.
+     */
+    function setVersion(string calldata newVersion) external override {
+        require(hasRole(DEFAULT_ADMIN_ROLE, msg.sender), "DEFAULT_ADMIN_ROLE is required");
+        emit VersionUpdated(version, newVersion);
+        version = newVersion;
     }
 
     /**
