@@ -38,7 +38,7 @@ There are several IMA SKALE Chain roles that can be granted by the owner, these 
 
 DepositBoxERC20 DepositBoxERC721 DepositBoxERC1155
 
-| xref:ima:api:depositbox.adoc#_enablewhitelist_enablewhiteliststring_schainname_external[enableWhitelist] xref:ima:api:depositbox.adoc#_disablewhitelist_disablewhiteliststring_schainname_external[disableWhitelist]
+| xref:api:mainnet/DepositBox.adoc#_enablewhitelist_enablewhiteliststring_schainname_external[enableWhitelist] xref:api:mainnet/DepositBox.adoc#_disablewhitelist_disablewhiteliststring_schainname_external[disableWhitelist]
 
 
 | Enable/disable whitelist (**default: enabled**). Whitelist allows only specific tokens to be used with the IMA Bridge.
