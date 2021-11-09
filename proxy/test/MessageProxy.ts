@@ -273,7 +273,7 @@ describe("MessageProxy", () => {
                 .postIncomingMessages(
                     schainName,
                     startingCounter,
-                    [message1, message1, message1, message1, message1, message1, message1, message1, message1, message1, message1],
+                    Array(11).fill(message1),
                     sign
                     ).should.be.eventually.rejectedWith("Too many messages");
 
