@@ -1,6 +1,5 @@
 import { contracts } from "./deploySchain";
 import { manifestSetup } from "./generateManifest";
-import { getSchainVersion } from "./tools/version";
 import { upgrade } from "./upgrade";
 
 function stringValue(value: string | undefined) {
@@ -19,7 +18,6 @@ async function main() {
         contracts,
         async( safeTransactions, abi ) => undefined,
         async( safeTransactions, abi ) => undefined,
-        getSchainVersion,
         "proxySchain"
     );
 }

@@ -11,6 +11,7 @@ import { createMultiSendTransaction, sendSafeTransaction } from "./tools/gnosis-
 import chalk from "chalk";
 import { verify } from "./tools/verification";
 import { MessageProxy } from "../typechain";
+import { getVersion } from "./tools/version";
 
 function getContractKeyInAbiFile(contract: string) {
     if (contract === "MessageProxyForMainnet") {
@@ -103,7 +104,6 @@ export async function upgrade(
     contractNamesToUpgrade: string[],
     deployNewContracts: DeploymentAction,
     initialize: DeploymentAction,
-    getVersion: () => Promise<string>,
     fileName: string)
 {
     if (!process.env.ABI) {

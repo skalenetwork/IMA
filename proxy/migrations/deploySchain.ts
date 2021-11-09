@@ -33,7 +33,7 @@ import { getManifestAdmin } from "@openzeppelin/hardhat-upgrades/dist/admin";
 import { Contract } from '@ethersproject/contracts';
 import { CommunityLocker, EthErc20, KeyStorage, MessageProxyForSchain, TokenManagerERC20, TokenManagerERC721, TokenManagerEth, TokenManagerLinker } from '../typechain';
 import { TokenManagerERC1155 } from '../typechain/TokenManagerERC1155';
-import { getSchainVersion } from './tools/version';
+import { getVersion } from './tools/version';
 
 export function getContractKeyInAbiFile(contract: string): string {
     if (contract === "MessageProxyForSchain") {
@@ -100,7 +100,7 @@ export const contracts = [
 
 async function main() {
     const [ owner,] = await ethers.getSigners();
-    const version = await getSchainVersion();
+    const version = await getVersion();
 
     if( process.env.CHAIN_NAME_SCHAIN === undefined || process.env.CHAIN_NAME_SCHAIN === "" ) {
         console.log( "Please set CHAIN_NAME_SCHAIN to .env file" );

@@ -8,7 +8,6 @@ import chalk from "chalk";
 import { MessageProxyForMainnet, DepositBoxERC20, DepositBoxERC721, DepositBoxERC1155 } from "../typechain/";
 import { encodeTransaction } from "./tools/multiSend";
 import { TypedEvent, TypedEventFilter } from "../typechain/commons";
-import { getMainnetVersion } from "./tools/version";
 
 async function runInitialize(
     safeTransactions: string[],
@@ -177,7 +176,6 @@ async function main() {
             await findEventsAndInitialize(safeTransactions, abi, "DepositBoxERC721", "ERC721TokenAdded");
             await findEventsAndInitialize(safeTransactions, abi, "DepositBoxERC1155", "ERC1155TokenAdded");
         },
-        getMainnetVersion,
         "proxyMainnet"
     );
 }

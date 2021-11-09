@@ -30,7 +30,7 @@ import { deployLibraries, getLinkedContractFactory } from "./tools/factory";
 import { getAbi } from './tools/abi';
 import { verify, verifyProxy } from './tools/verification';
 import { Manifest, hashBytecode } from "@openzeppelin/upgrades-core";
-import { getMainnetVersion } from './tools/version';
+import { getVersion } from './tools/version';
 
 export function getContractKeyInAbiFile(contract: string) {
     if (contract === "MessageProxyForMainnet") {
@@ -107,7 +107,7 @@ async function main() {
     const deployed = new Map<string, {address: string, interface: Interface}>();
 
     const contractManager = getContractManager();
-    const version = await getMainnetVersion();
+    const version = await getVersion();
 
     const messageProxyForMainnetName = "MessageProxyForMainnet";
     console.log("Deploy", messageProxyForMainnetName);

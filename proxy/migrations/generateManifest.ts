@@ -12,7 +12,7 @@ import {
     StorageLayout,
     isCurrentValidationData
 } from "@openzeppelin/upgrades-core";
-import { getSchainVersion as version } from "./tools/version";
+import { getVersion as version } from "./tools/version";
 import { ValidationsCacheNotFound, ValidationsCacheOutdated } from "@openzeppelin/hardhat-upgrades/dist/utils";
 
 type Addresses = {
