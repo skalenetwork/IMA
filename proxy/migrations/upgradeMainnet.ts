@@ -8,6 +8,7 @@ import chalk from "chalk";
 import { MessageProxyForMainnet, DepositBoxERC20, DepositBoxERC721, DepositBoxERC1155 } from "../typechain/";
 import { encodeTransaction } from "./tools/multiSend";
 import { TypedEvent, TypedEventFilter } from "../typechain/commons";
+import { promises as fs } from "fs";
 import { getTxsFromEtherscan } from "./tools/etherscan-api";
 import { hexZeroPad } from "@ethersproject/bytes";
 import { Contract } from "@ethersproject/contracts";
@@ -143,71 +144,42 @@ async function findEventsAndInitialize(
     }
 }
 
-function getValueFromTXList(txs: any, index: number, field: string) {
-    const deploymentTx = txs[index];
-    return deploymentTx[field];
-}
-
-async function findTxContractRegisteredAndInitialize(
+async function prepareContractRegisteredAndInitialize(
     safeTransactions: string[],
+    abi: any,
     messageProxyForMainnet: MessageProxyForMainnet,
 ) {
-    const txs = await getTxsFromEtherscan((await ethers.provider.getNetwork()).chainId, messageProxyForMainnet.address);
-    if (!Array.isArray(txs) || txs.length === 0) {
-        console.log(chalk.yellow("No transactions from etherscan found"));
-        return;
-    }
     const chainToRegisteredContracts = new Map<string, string[]>();
-    for (const tx of txs) {
-        // const tx = txs[i];
-        if (tx.contractAddress === "" && tx.txreceipt_status === "1") {
-            const inputData = tx.input;
-            const functionSignature = inputData.slice(10);
-            const functionName = messageProxyForMainnet.interface.getFunction(functionSignature).name;
-            let hash = hexZeroPad("0x0", 32);
-            let address = hexZeroPad("0x0", 20);
-            let add = true;
-            if (functionName === "registerExtraContract") {
-                const decodedData = messageProxyForMainnet.interface.decodeFunctionData("registerExtraContract", inputData);
-                hash = ethers.utils.id(decodedData.schainName);
-                address = decodedData.extraContract;
-                console.log(chalk.yellow("Find Function " + functionName));
-            } else if (functionName === "registerExtraContractForAll") {
-                const decodedData = messageProxyForMainnet.interface.decodeFunctionData("registerExtraContractForAll", inputData);
-                address = decodedData.extraContract;
-                console.log(chalk.yellow("Find Function " + functionName));
-            } else if (functionName === "removeExtraContract") {
-                const decodedData = messageProxyForMainnet.interface.decodeFunctionData("removeExtraContract", inputData);
-                hash = ethers.utils.id(decodedData.schainName);
-                address = decodedData.extraContract;
-                add = false
-                console.log(chalk.yellow("Find Function " + functionName));
-            } else if (functionName === "removeExtraContractForAll") {
-                const decodedData = messageProxyForMainnet.interface.decodeFunctionData("removeExtraContractForAll", inputData);
-                address = decodedData.extraContract;
-                add = false
-                console.log(chalk.yellow("Find Function " + functionName));
-            } else {
-                console.log(chalk.yellow("Skip function " + functionName));
-            }
-            if (address !== hexZeroPad("0x0", 20)) {
-                let addedRegisteredContracts = chainToRegisteredContracts.get(hash);
-                if (add) {
-                    if (addedRegisteredContracts) {
-                        addedRegisteredContracts.push(address);
-                        chainToRegisteredContracts.set(hash, addedRegisteredContracts);
-                    } else {
-                        chainToRegisteredContracts.set(hash, [address]);
-                    }
-                    console.log(chalk.yellow("Add hash " + hash + " and address " + address));
+    const contractsToRegisterForAll = [
+        "Linker",
+        "CommunityPool",
+        "DepositBoxEth",
+        "DepositBoxERC20",
+        "DepositBoxERC721",
+        "DepositBoxERc1155"
+    ];
+    const zeroHash = hexZeroPad("0x0", 32);
+    for (const contract of contractsToRegisterForAll) {
+        const addedRegisteredContracts = chainToRegisteredContracts.get(zeroHash);
+        const address = abi[getContractKeyInAbiFile(contract) + "_address"];
+        if (addedRegisteredContracts) {
+            addedRegisteredContracts.push(address);
+            chainToRegisteredContracts.set(zeroHash, addedRegisteredContracts);
+        } else {
+            chainToRegisteredContracts.set(zeroHash, [address]);
+        }
+    }
+    const fileToAdditionalAddresses = process.env.REGISTERED_ADDRESSES;
+    if (fileToAdditionalAddresses) {
+        const addresses = JSON.parse(await fs.readFile(fileToAdditionalAddresses, "utf-8"));
+        for (const hash of addresses) {
+            for (const address of addresses[hash]) {
+                const addedRegisteredContracts = chainToRegisteredContracts.get(hash);
+                if (addedRegisteredContracts) {
+                    addedRegisteredContracts.push(address);
+                    chainToRegisteredContracts.set(hash, addedRegisteredContracts);
                 } else {
-                    if (addedRegisteredContracts) {
-                        addedRegisteredContracts = addedRegisteredContracts.filter((value) => {return value !== address;});
-                        chainToRegisteredContracts.set(hash, addedRegisteredContracts);
-                    } else {
-                        chainToRegisteredContracts.delete(hash);
-                    }
-                    console.log(chalk.yellow("Remove hash " + hash + " and address " + address));
+                    chainToRegisteredContracts.set(hash, [address]);
                 }
             }
         }
@@ -255,7 +227,7 @@ async function main() {
             await findEventsAndInitialize(safeTransactions, abi, "DepositBoxERC20", "ERC20TokenAdded");
             await findEventsAndInitialize(safeTransactions, abi, "DepositBoxERC721", "ERC721TokenAdded");
             await findEventsAndInitialize(safeTransactions, abi, "DepositBoxERC1155", "ERC1155TokenAdded");
-            await findTxContractRegisteredAndInitialize(safeTransactions, messageProxyForMainnet);
+            await prepareContractRegisteredAndInitialize(safeTransactions, abi, messageProxyForMainnet);
         },
         "proxyMainnet"
     );

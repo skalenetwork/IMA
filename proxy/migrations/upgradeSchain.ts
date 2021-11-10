@@ -6,6 +6,8 @@ import { upgrade } from "./upgrade";
 import { hexZeroPad } from "@ethersproject/bytes";
 import chalk from "chalk";
 import { ethers } from "hardhat";
+import { Contract } from "ethers";
+import { promises as fs } from "fs";
 
 function stringValue(value: string | undefined) {
     if (value) {
@@ -13,6 +15,67 @@ function stringValue(value: string | undefined) {
     } else {
         return "";
     }
+}
+
+function prepareInitializeFromMap(
+    safeTransactions: any,
+    map: Map<string, string[]>,
+    contract: Contract,
+    functionName: string
+) {
+    map.forEach((value: string[], key: string) => {
+        console.log(chalk.yellow("" + value.length + " items found for key " + key));
+        console.log(value);
+        safeTransactions.push(encodeTransaction(
+            0,
+            contract.address,
+            0,
+            contract.interface.encodeFunctionData(functionName, [key, value])
+        ));
+        console.log(chalk.yellow("Transaction initialize prepared"));
+    });
+}
+
+async function prepareContractRegisteredAndInitialize(
+    safeTransactions: string[],
+    abi: any,
+    messageProxyForSchain: MessageProxyForSchain,
+) {
+    const chainToRegisteredContracts = new Map<string, string[]>();
+    const contractsToRegisterForAll = [
+        "CommunityLocker",
+        "TokenManagerEth",
+        "TokenManagerERC20",
+        "TokenManagerERC721",
+        "TokenManagerERc1155"
+    ];
+    const zeroHash = hexZeroPad("0x0", 32);
+    for (const contract of contractsToRegisterForAll) {
+        const addedRegisteredContracts = chainToRegisteredContracts.get(zeroHash);
+        const address = abi[getContractKeyInAbiFile(contract) + "_address"];
+        if (addedRegisteredContracts) {
+            addedRegisteredContracts.push(address);
+            chainToRegisteredContracts.set(zeroHash, addedRegisteredContracts);
+        } else {
+            chainToRegisteredContracts.set(zeroHash, [address]);
+        }
+    }
+    const fileToAdditionalAddresses = process.env.REGISTERED_ADDRESSES;
+    if (fileToAdditionalAddresses) {
+        const addresses = JSON.parse(await fs.readFile(fileToAdditionalAddresses, "utf-8"));
+        for (const hash of addresses) {
+            for (const address of addresses[hash]) {
+                const addedRegisteredContracts = chainToRegisteredContracts.get(hash);
+                if (addedRegisteredContracts) {
+                    addedRegisteredContracts.push(address);
+                    chainToRegisteredContracts.set(hash, addedRegisteredContracts);
+                } else {
+                    chainToRegisteredContracts.set(hash, [address]);
+                }
+            }
+        }
+    }
+    prepareInitializeFromMap(safeTransactions, chainToRegisteredContracts, messageProxyForSchain, "initializeAllRegisteredContracts");
 }
 
 async function main() {
@@ -32,29 +95,10 @@ async function main() {
             const tokenManagerERC1155Address = abi[getContractKeyInAbiFile("TokenManagerERC1155") + "_address"];
             const communityLockerAddress = abi[getContractKeyInAbiFile("CommunityLocker") + "_address"];
             let messageProxyForSchain;
-            if (
-                messageProxyForSchainAddress ||
-                tokenManagerEthAddress ||
-                tokenManagerERC20Address ||
-                tokenManagerERC721Address ||
-                tokenManagerERC1155Address ||
-                communityLockerAddress
-            ) {
+            if (messageProxyForSchainAddress) {
                 console.log(chalk.yellow("Prepare transaction to initialize extra contracts for all"));
                 messageProxyForSchain = messageProxyForSchainFactory.attach(messageProxyForSchainAddress) as MessageProxyForSchain;
-                const arrayOfAddresses = [
-                    tokenManagerEthAddress,
-                    tokenManagerERC20Address,
-                    tokenManagerERC721Address,
-                    tokenManagerERC1155Address,
-                    communityLockerAddress
-                ]
-                safeTransactions.push(encodeTransaction(
-                    0,
-                    messageProxyForSchainAddress,
-                    0,
-                    messageProxyForSchain.interface.encodeFunctionData("initializeAllRegisteredContracts", [hexZeroPad("0x0", 32), arrayOfAddresses])
-                ));
+                await prepareContractRegisteredAndInitialize(safeTransactions, abi, messageProxyForSchain);
             } else {
                 console.log(chalk.red("Addresses were not found!"));
                 console.log(chalk.red("Check your abi!!!"));
