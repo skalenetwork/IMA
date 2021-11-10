@@ -9,7 +9,6 @@ import { MessageProxyForMainnet, DepositBoxERC20, DepositBoxERC721, DepositBoxER
 import { encodeTransaction } from "./tools/multiSend";
 import { TypedEvent, TypedEventFilter } from "../typechain/commons";
 import { promises as fs } from "fs";
-import { getTxsFromEtherscan } from "./tools/etherscan-api";
 import { hexZeroPad } from "@ethersproject/bytes";
 import { Contract } from "@ethersproject/contracts";
 
