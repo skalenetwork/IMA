@@ -88,5 +88,5 @@ class MessageProxyForSchainGenerator(ContractGenerator):
         for i, contract in enumerate(allowed_contracts):
             contract_slot = calculate_array_value_slot(any_schain_contracts_slot, i)
             self._write_address(contract_slot, contract)
-            indexes_slot = calculate_mapping_value_slot(any_schain_contracts_slot + 1, contract, 'bytes32')
-            self._write_uint256(contract_slot, i)
+            indexes_slot = calculate_mapping_value_slot(any_schain_contracts_slot + 1, contract, 'uint256')
+            self._write_uint256(contract_slot, i + 1)
