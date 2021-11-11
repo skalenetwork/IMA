@@ -76,7 +76,7 @@ class MessageProxyForSchainGenerator(ContractGenerator):
         self._write_uint256(inited_slot, 1)
         self._write_uint256(self.GAS_LIMIT_SLOT, self.GAS_LIMIT)
 
-        any_schain_contracts_slot = calculate_mapping_value_slot(
+        registry_contracts_slot = calculate_mapping_value_slot(
             self.REGISTRY_CONTRACTS_SLOT, self.ANY_SCHAIN, 'bytes32')
         allowed_contracts = [
             TOKEN_MANAGER_ETH_ADDRESS,
@@ -84,9 +84,9 @@ class MessageProxyForSchainGenerator(ContractGenerator):
             TOKEN_MANAGER_ERC721_ADDRESS,
             TOKEN_MANAGER_ERC1155_ADDRESS,
             COMMUNITY_LOCKER_ADDRESS]
-        self._write_uint256(any_schain_contracts_slot, len(allowed_contracts))
+        values_slot = registry_contracts_slot
+        indexes_slot = registry_contracts_slot + 1
+        self._write_uint256(values_slot, len(allowed_contracts))
         for i, contract in enumerate(allowed_contracts):
-            contract_slot = calculate_array_value_slot(any_schain_contracts_slot, i)
-            self._write_address(contract_slot, contract)
-            indexes_slot = calculate_mapping_value_slot(any_schain_contracts_slot + 1, contract, 'bytes32')
-            self._write_uint256(indexes_slot, i + 1)
+            self._write_address(calculate_array_value_slot(values_slot, i), contract)
+            self._write_uint256(calculate_mapping_value_slot(indexes_slot, int(contract, 16), 'uint256'), i + 1)
