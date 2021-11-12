@@ -64,3 +64,60 @@ web3.eth
 ----
 --
 ====
+
+== Exit Reimbursement Flow Process
+
+The exit flow through IMA is conducted as follows:
+
+[plantuml]
+....
+@startuml
+
+User -> CommunityPool: rechargeUserWallet(schainName)
+User -> TokenManager: exitToMain()
+TokenManager -> CommunityLocker: checkAllowedToSendMessage()
+CommunityLocker --> CommunityLocker: registeredTokenManager?
+CommunityLocker --> CommunityLocker: receiverIsActive?
+CommunityLocker --> CommunityLocker: exitMessageRate?
+TokenManager --> TokenManager: burn()
+TokenManager -> MessageProxySchain: postOutgoingMessage()
+
+MessageProxySchain --> NodeIMAAgent: newMessageEvent
+Node -> TransactionManager: exit + gasEstimate
+TransactionManager -> MessageProxyMainnet: postIncomingMessage()
+
+alt sufficient CommunityPool Funds
+
+  MessageProxyMainnet -> CommunityPool: refundGasByUser()
+  CommunityPool -> Node: sendValue()
+
+else insufficient CommunityPool Funds
+
+  MessageProxyMainnet -> CommunityPool: refundGasByUser()
+
+  CommunityPool -> MessageProxySchain: postMessage(lockUser)
+  MessageProxyMainnet -> CommunityPool:  refundGasBySchainWallet()
+  CommunityPool -> Wallets: refundGasBySchain()
+  Wallets -> Node: sendValue()
+  MessageProxySchain -> CommunityLocker: emit LockUser()
+
+
+end
+
+@enduml
+....
+
+
+=== Description
+
+.Using gasPayer() implementing contracts
+. User must first fund CommunityPool.
+. User executes exitToMain().
+. TokenManager then checks Community Locker whether exit conditions are met.
+. TokenManager then burns the token(s) and posts an outgoing message via MessageProxy for Schain.
+. MessageProxy for Schain posts a new event which is found by 1 out of 16 SKALE Chain nodes running IMA agent.
+. The selected node's agent prepares the transaction and estimates the gas required
+. Agent sends the transaction via transaction-manager through MessageProxy for Mainnet, and the node wallet funds the transaction.
+. MessageProxy for Mainnet then requests CommmunityPool to refund the node.
+. CommunityPool sends funds to the node.
+. If CommunityPool has insufficient user's funds, then CommunityPool posts a LockUser request to CommunityLocker, and refund is requested by the SKALE Chain self-recharging wallet.  In this case, the self-recharging wallet sends funds to the node wallet and the user is Locked via the CommunityLocker.
