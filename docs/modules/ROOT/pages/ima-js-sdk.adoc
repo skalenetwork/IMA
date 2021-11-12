@@ -34,7 +34,7 @@ async function chainSetup(ima) {
 === 2. Work with IMA-JS
 
 Once chain is connected you can do anything that you want with your chain!
-In this example we will transfer ETH from the Mainnet to the sChain and back.
+In this example we will transfer ETH from the Mainnet to the SKALE Chain and back.
 
 === 2.1 Recharge user's reimbursement wallet
 
@@ -69,7 +69,6 @@ async function ethTransferDemo(ima) {
 
     await ima.mainnet.depositETHtoSChain(
         SCHAIN_NAME,
-        address,
         txOpts
     );
     await ima.schain.waitETHBalanceChange(address, sChainBalanceBefore);
@@ -79,14 +78,13 @@ async function ethTransferDemo(ima) {
 
     console.log('M -> S transfer complete!');
     console.log('Mainnet balance before deposit: ', mainnetBalanceBefore);
-    console.log('sChain balance before deposit: ', sChainBalanceBefore);
+    console.log('SKALE Chain balance before deposit: ', sChainBalanceBefore);
     console.log('Mainnet balance after deposit: ', mainnetBalanceAfterDeposit);
-    console.log('sChain balance after deposit: ', sChainBalanceAfterDeposit);
+    console.log('SKALE Chain balance after deposit: ', sChainBalanceAfterDeposit);
 
     let lockedETHAmount = await ima.mainnet.lockedETHAmount(address);
 
     await ima.schain.withdrawETH(
-        address,
         TEST_WEI_TRANSFER_VALUE,
         {
             address: address,
@@ -107,9 +105,9 @@ async function ethTransferDemo(ima) {
 
     console.log('S -> M transfer complete!');
     console.log('Mainnet balance before withdraw: ', mainnetBalanceAfterDeposit);
-    console.log('sChain balance before withdraw: ', sChainBalanceAfterDeposit);
+    console.log('SKALE Chain balance before withdraw: ', sChainBalanceAfterDeposit);
     console.log('Mainnet balance after withdraw: ', mainnetBalanceAfterWithdraw);
-    console.log('sChain balance after withdraw: ', sChainBalanceAfterWithdraw);
+    console.log('SKALE Chain balance after withdraw: ', sChainBalanceAfterWithdraw);
 }
 
 async function main() {
