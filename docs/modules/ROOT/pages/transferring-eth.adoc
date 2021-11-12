@@ -45,7 +45,6 @@ export async function makeDeposit(ima) {
 
   await ima.mainnet.depositETHtoSChain(
     schainName,
-    address,
     txOpts
   );
 }
