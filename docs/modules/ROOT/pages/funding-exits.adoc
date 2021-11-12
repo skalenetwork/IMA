@@ -6,7 +6,28 @@ The **CommunityPool** contract is on Rinkeby. Check out the https://github.com/s
 
 [tabs]
 ====
-Javascript::
+IMA-JS::
++
+--
+
+[source, javascript]
+----
+async function reimburseWallet(ima) {
+    let testAddress = helper.privateKeyToAddress(ima.schain.web3, TEST_PRIVATE_KEY);
+    let txOpts = {
+        value: TEST_WEI_REIMBURSEMENT_VALUE,
+        address: testAddress,
+        privateKey: TEST_PRIVATE_KEY
+    };
+    await ima.mainnet.reimbursementWalletRecharge(
+        SCHAIN_NAME,
+        txOpts
+    );
+}
+----
+--
+
+Web3 JS::
 +
 --
 [source,javascript]
