@@ -213,7 +213,7 @@ abstract contract MessageProxy is AccessControlEnumerableUpgradeable, IMessagePr
         );
         contractsInRange = new address[](to - from);
         for (uint256 i = from; i < to; i++) {
-            contractsInRange[i - from] = _getRegistryContracts()[schainHash].at(i + 1);
+            contractsInRange[i - from] = _getRegistryContracts()[schainHash].at(i);
         }
     }
 
