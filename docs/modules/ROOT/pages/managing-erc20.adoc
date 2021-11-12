@@ -480,8 +480,6 @@ export async function depositERC20(ima) {
   await ima.mainnet.depositERC20(
     schainName,
     tokenName,
-    address,
-    amount,
     txOpts
   );
 
@@ -666,7 +664,6 @@ export async function exit(ima) {
 
   await ima.schain.withdrawERC20(
     mainnetERC20TokenAddress,
-    address,
     amount,
     txOpts
   );

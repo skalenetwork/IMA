@@ -453,7 +453,7 @@ export async function depositERC721(ima) {
     await ima.mainnet.approveERC721Transfer(tokenName, erc721TokenId, txOpts); // approve transfer only if token is not already locked
   }
 
-  await ima.mainnet.depositERC721(schainName, tokenName, address, erc721TokenId, txOpts);
+  await ima.mainnet.depositERC721(schainName, tokenName, erc721TokenId, txOpts);
 
   // optional
   await ima.schain.waitERC721OwnerChange(tokenName, erc721TokenId, erc721OwnerSchain); // wait for the owner to be changed on the sChain side
@@ -635,7 +635,7 @@ export async function exit(ima) {
   await ima.schain.approveERC721Transfer(tokenName, erc721TokenId, txOpts);
 
   // 1. for single object
-  await ima.withdrawERC721(tokenName, address, erc721TokenId, txOpts); 
+  await ima.withdrawERC721(tokenName, erc721TokenId, txOpts); 
   // 2. for separate sChain object
   await ima.schain.withdrawERC721("[ADDRESS_OF_ERC721_ON_MAINNET]", address, erc721TokenId, txOpts);
 
