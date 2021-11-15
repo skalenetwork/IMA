@@ -35,6 +35,7 @@ const ethereumjs_util = require( "ethereumjs-util" );
 
 const Redis = require( "ioredis" );
 let redis = null;
+let loopTmSendingCnt = 0;
 
 const log = require( "../skale-log/log.js" );
 const cc = log.cc;
@@ -758,6 +759,9 @@ async function tm_ensure_transaction( details, w3, priority, txAdjusted, cntAtte
 }
 
 async function safe_sign_transaction_with_account( details, w3, tx, rawTx, joAccount ) {
+    const sendingCnt = loopTmSendingCnt++;
+    details.write( cc.debug( "Sending transaction to Mainnet " ) + cc.debug ( " sending cnt  " ) +  cc.info( sendingCnt ) ) + cc.debug( " rawTx " ) + cc.info( rawTx );
+    log.write( cc.debug( "Sending transaction to Mainnet " ) + cc.debug ( " sending cnt  " ) +  cc.info( sendingCnt ) );
     const joSR = {
         joACI: get_account_connectivity_info( joAccount ),
         tx: null,
@@ -963,6 +967,8 @@ async function safe_sign_transaction_with_account( details, w3, tx, rawTx, joAcc
     } // switch( joSR.joACI.strType )
     details.write( cc.debug( "Signed transaction is " ) + cc.notice( JSON.stringify( tx ) ) + "\n" );
     joSR.tx = tx;
+    details.write( cc.debug( "Finished Mainnet transaction" ) + cc.debug ( " sending cnt  " ) +  cc.info( sendingCnt ) ) + cc.debug( " rawTx " ) + cc.info( rawTx );
+    log.write( cc.debug( "Finished transaction to Mainnet " ) + cc.debug ( " sending cnt  " ) +  cc.info( sendingCnt ) );
     return joSR;
 }
 
