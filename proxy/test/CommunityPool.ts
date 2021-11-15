@@ -3,6 +3,7 @@ import {
     ContractManager,
     Linker,
     MessageProxyForMainnet,
+    MessageProxyForMainnetTester,
     CommunityPool
 } from "../typechain";
 
@@ -20,8 +21,10 @@ import { initializeSchain } from "./utils/skale-manager-utils/schainsInternal";
 
 import { deployLinker } from "./utils/deploy/mainnet/linker";
 import { deployMessageProxyForMainnet } from "./utils/deploy/mainnet/messageProxyForMainnet";
+import { deployMessageProxyForMainnetTester } from "./utils/deploy/test/messageProxyForMainnetTester";
 import { deployContractManager } from "./utils/skale-manager-utils/contractManager";
 import { deployCommunityPool } from "./utils/deploy/mainnet/communityPool";
+import { deployCommunityPoolTester } from "./utils/deploy/test/communityPoolTester";
 
 import { ethers, web3 } from "hardhat";
 import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
@@ -232,6 +235,75 @@ describe("CommunityPool", () => {
     it("should set rejected when call refundGasByUser not from messageProxy contract", async () => {
         const schainHash = stringValue(web3.utils.soliditySha3("Schain"));
         await communityPool.connect(deployer).refundGasByUser(schainHash, node.address, user.address, 0)
+            .should.be.eventually.rejectedWith("Sender is not a MessageProxy");
+    });
+
+    describe("tests for refundGasByUser", async () => {
+        let messageProxyTester: MessageProxyForMainnetTester;
+        let linkerTester: Linker;
+        let communityPoolTester: CommunityPool;
+        const schainNameRGBU = "SchainRGBU";
+        const schainHashRGBU = stringValue(web3.utils.soliditySha3("SchainRGBU"));
+
+        beforeEach(async () => {
+            messageProxyTester = await deployMessageProxyForMainnetTester(contractManager);
+            linkerTester = await deployLinker(contractManager, messageProxyTester);
+            communityPoolTester = await deployCommunityPoolTester(contractManager, linkerTester, messageProxyTester);
+        });
+
+        it("should be rejected with Node address must be set", async () => {
+            const tx = await messageProxyTester.addConnectedChain(schainNameRGBU);
+            await messageProxyTester.registerExtraContract(schainNameRGBU, communityPoolTester.address);
+            const gasPrice = tx.gasPrice;
+            const wei = minTransactionGas.mul(gasPrice).mul(2);
+            await communityPoolTester.connect(user).rechargeUserWallet(schainNameRGBU, user.address, { value: wei.toString() });
+            await messageProxyTester.connect(deployer).refundGasByUser(schainHashRGBU, "0x0000000000000000000000000000000000000000", user.address, 0)
+                .should.be.eventually.rejectedWith("Node address must be set");
+        });
+
+        it("should refund node", async () => {
+            const balanceBefore = await getBalance(node.address);
+            const tx = await messageProxyTester.addConnectedChain(schainNameRGBU);
+            await messageProxyTester.registerExtraContract(schainNameRGBU, communityPoolTester.address);
+            const gasPrice = tx.gasPrice;
+            const wei = minTransactionGas.mul(gasPrice).mul(2);
+            await communityPoolTester.connect(user).rechargeUserWallet(schainNameRGBU, user.address, { value: wei.toString() });
+            await messageProxyTester.connect(deployer).refundGasByUser(schainHashRGBU, node.address, user.address, 1000000, {gasPrice});
+            const balanceAfter = await getBalance(node.address);
+            (balanceAfter).should.be.almost(balanceBefore + (1000000 * BigNumber.from(gasPrice).toNumber()) / 1e18);
+        });
+
+        it("should lock user", async () => {
+            const tx = await messageProxyTester.addConnectedChain(schainNameRGBU);
+            await messageProxyTester.registerExtraContract(schainNameRGBU, communityPoolTester.address);
+            const gasPrice = tx.gasPrice;
+            const wei = minTransactionGas.mul(gasPrice);
+            expect(await communityPoolTester.activeUsers(user.address, schainHashRGBU)).to.be.false;
+            await communityPoolTester.connect(user).rechargeUserWallet(schainNameRGBU, user.address, { value: wei.toString() });
+            expect(await communityPoolTester.activeUsers(user.address, schainHashRGBU)).to.be.true;
+            await messageProxyTester.connect(deployer).refundGasByUser(schainHashRGBU, node.address, user.address, 1000000, {gasPrice});
+            expect(await communityPoolTester.activeUsers(user.address, schainHashRGBU)).to.be.false;
+        });
+
+        it("should lock user with extra low balance", async () => {
+            const tx = await messageProxyTester.addConnectedChain(schainNameRGBU);
+            await messageProxyTester.registerExtraContract(schainNameRGBU, communityPoolTester.address);
+            let gasPrice = tx.gasPrice;
+            const wei = minTransactionGas.mul(gasPrice);
+            gasPrice = gasPrice?.mul(2);
+            expect(await communityPoolTester.activeUsers(user.address, schainHashRGBU)).to.be.false;
+            await communityPoolTester.connect(user).rechargeUserWallet(schainNameRGBU, user.address, { value: wei.toString()});
+            expect(await communityPoolTester.activeUsers(user.address, schainHashRGBU)).to.be.true;
+            await messageProxyTester.connect(deployer).refundGasByUser(schainHashRGBU, node.address, user.address, 1000000, {gasPrice});
+            expect(await communityPoolTester.activeUsers(user.address, schainHashRGBU)).to.be.false;
+        });
+    });
+
+
+
+    it("should set rejected when call refundGasBySchainWallet not from messageProxy contract", async () => {
+        const schainHash = stringValue(web3.utils.soliditySha3("Schain"));
+        await communityPool.connect(deployer).refundGasBySchainWallet(schainHash, node.address, 0)
             .should.be.eventually.rejectedWith("Sender is not a MessageProxy");
     });
 
