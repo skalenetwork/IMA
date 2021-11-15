@@ -110,7 +110,7 @@ export async function upgrade(
         try {
             const safeMockFactory = await ethers.getContractFactory("SafeMock");
             const checkSafeMock = (safeMockFactory.attach(safe)) as SafeMock;
-            if (await checkSafeMock.isSafeMock()) {
+            if (await checkSafeMock.IS_SAFE_MOCK()) {
                 safeMock = checkSafeMock;
             }
         } catch (e: any) {

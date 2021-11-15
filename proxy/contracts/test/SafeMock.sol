@@ -27,10 +27,12 @@ interface ISafeMock {
     function transferProxyAdminOwnership(OwnableUpgradeable proxyAdmin, address newOwner) external;
     function destroy() external;
     function multiSend(bytes memory transactions) external;
-    function isSafeMock() external view returns (bool);
 }
 
 contract SafeMock is OwnableUpgradeable, ISafeMock {
+
+    bool public constant IS_SAFE_MOCK = true;
+
     constructor() {
         OwnableUpgradeable.__Ownable_init();
         multiSend(""); // this is needed to remove slither warning
@@ -42,10 +44,6 @@ contract SafeMock is OwnableUpgradeable, ISafeMock {
 
     function destroy() external override onlyOwner {
         selfdestruct(payable(msg.sender));
-    }
-
-    function isSafeMock() external view override returns (bool) {
-        return true;
     }
 
     /// @dev Sends multiple transactions and reverts all if one fails.
