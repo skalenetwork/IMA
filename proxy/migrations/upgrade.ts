@@ -106,15 +106,16 @@ export async function upgrade(
             console.log(chalk.blue(`Grant access to ${contractName}`));
             await (await contract.grantRole(await contract.DEFAULT_ADMIN_ROLE(), safe)).wait();
         }
-    }
-    try {
-        const safeMockFactory = await ethers.getContractFactory("SafeMock");
-        const checkSafeMock = (safeMockFactory.attach(safe)) as SafeMock;
-        if (await checkSafeMock.isSafeMock()) {
-            safeMock = checkSafeMock;
+    } else {
+        try {
+            const safeMockFactory = await ethers.getContractFactory("SafeMock");
+            const checkSafeMock = (safeMockFactory.attach(safe)) as SafeMock;
+            if (await checkSafeMock.isSafeMock()) {
+                safeMock = checkSafeMock;
+            }
+        } catch (e: any) {
+            console.log(chalk.yellow("Owner is not SafeMock"));
         }
-    } catch (e: any) {
-        console.log(chalk.yellow("Owner is not SafeMock"));
     }
 
     // Deploy new contracts
