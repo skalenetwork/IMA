@@ -292,7 +292,7 @@ describe("CommunityPool", () => {
             const wei = minTransactionGas.mul(gasPrice);
             gasPrice = gasPrice?.mul(2);
             expect(await communityPoolTester.activeUsers(user.address, schainHashRGBU)).to.be.false;
-            await communityPoolTester.connect(user).rechargeUserWallet(schainNameRGBU, { value: wei.toString()});
+            await communityPoolTester.connect(user).rechargeUserWallet(schainNameRGBU, user.address, { value: wei.toString()});
             expect(await communityPoolTester.activeUsers(user.address, schainHashRGBU)).to.be.true;
             await messageProxyTester.connect(deployer).refundGasByUser(schainHashRGBU, node.address, user.address, 1000000, {gasPrice});
             expect(await communityPoolTester.activeUsers(user.address, schainHashRGBU)).to.be.false;
