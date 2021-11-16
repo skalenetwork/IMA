@@ -427,6 +427,17 @@ To view all mapped tokens (including those mapped manually and automatically)
 
 [tabs]
 ====
+IMA-JS::
++
+--
+
+[source,javascript]
+----
+let erc1155Len = await ima.mainnet.getSchainToAllERC1155Length(SCHAIN_NAME);
+let allErc1155Tokens = await ima.mainnet.getSchainToAllERC1155(SCHAIN_NAME, 0, erc1155Len);
+----
+--
+
 Web3 JS::
 +
 --
