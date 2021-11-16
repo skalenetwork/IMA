@@ -457,13 +457,12 @@ let mappedNumber = depositBox.methods
   )
   .call();
 
-let mappedArray = depositBox.methods
-    .getSchainToAllERC20(
-    schainName,
-    0,
-    mappedNumber
-  )
-  .call();
+let mappedArray = Array();
+for (let i = 0; i < (mappedNumber + 9) / 10; i++) {
+    let nextIndex = ((i + 1) * 10 < mappedNumber ? (I + 1) * 10 : mappedNumber);
+    let mappedArrayPart = depositBox.methods.getSchainToAllERC20(schainName, i * 10, nextIndex).call();
+    mappedArrayPart.forEach( (address) => { mappedArray.push(address) });
+}
 
 ----
 --
