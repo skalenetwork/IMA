@@ -185,7 +185,7 @@ abstract contract MessageProxy is AccessControlEnumerableUpgradeable, IMessagePr
     }
 
     /**
-     * @dev Should return length or contract registered by schainHash.
+     * @dev Should return length of contract registered by schainHash.
      */
     function getContractRegisteredLength(bytes32 schainHash) external view override returns (uint256) {
         return _getRegistryContracts()[schainHash].length();

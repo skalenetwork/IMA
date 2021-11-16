@@ -97,7 +97,7 @@ contract MessageProxyForMainnet is SkaleManagerClient, MessageProxy, IMessagePro
      * 
      * Requirements:
      * 
-     * `msg.sender` should has DEFAULT_ADMIN_ROLE
+     * `msg.sender` should have DEFAULT_ADMIN_ROLE
      */
     function initializeAllRegisteredContracts(
         bytes32 schainHash,
