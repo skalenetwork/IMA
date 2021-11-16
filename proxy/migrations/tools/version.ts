@@ -11,6 +11,6 @@ export async function getVersion() {
         const tag = (await exec("git describe --tags")).stdout.trim();
         return tag;
     } catch {
-        return (await fs.readFile("../../../VERSION", "utf-8")).trim();
+        return (await fs.readFile("../VERSION", "utf-8")).trim();
     }
 }
