@@ -27,6 +27,13 @@ import "@skalenetwork/ima-interfaces/schain/IMessageProxyForSchain.sol";
 import "../MessageProxy.sol";
 import "./bls/SkaleVerifier.sol";
 
+interface IMessageProxyForSchainInitializeFunction is IMessageProxyForSchain {
+    function initializeAllRegisteredContracts(
+        bytes32 schainHash,
+        address[] calldata contracts
+    ) external;
+}
+
 
 /**
  * @title MessageProxyForSchain
@@ -49,8 +56,9 @@ import "./bls/SkaleVerifier.sol";
  * Call postIncomingMessages function passing (un)signed message array
  * ID of this schain, Chain 0 represents ETH mainnet,
  */
-contract MessageProxyForSchain is MessageProxy, IMessageProxyForSchain {
+contract MessageProxyForSchain is MessageProxy, IMessageProxyForSchainInitializeFunction {
     using AddressUpgradeable for address;
+    using EnumerableSetUpgradeable for EnumerableSetUpgradeable.AddressSet;
 
     /**
      * @dev Structure that contains information about outgoing message.
@@ -85,6 +93,32 @@ contract MessageProxyForSchain is MessageProxy, IMessageProxyForSchain {
     mapping(bytes32 => uint) private _idxTail;
 
     string public version;
+
+    mapping(bytes32 => EnumerableSetUpgradeable.AddressSet) private _registryContracts;
+
+    /**
+     * @dev Allows DEFAULT_ADMIN_ROLE to initialize registered contracts
+     * Notice - this function will be executed only once during upgrade
+     * 
+     * Requirements:
+     * 
+     * `msg.sender` should have DEFAULT_ADMIN_ROLE
+     */
+    function initializeAllRegisteredContracts(
+        bytes32 chainHash,
+        address[] calldata contracts
+    ) external override {
+        require(hasRole(DEFAULT_ADMIN_ROLE, msg.sender), "Sender is not authorized");
+        for (uint256 i = 0; i < contracts.length; i++) {
+            if (
+                deprecatedRegistryContracts[chainHash][contracts[i]] &&
+                !_registryContracts[chainHash].contains(contracts[i])
+            ) {
+                _registryContracts[chainHash].add(contracts[i]);
+                delete deprecatedRegistryContracts[chainHash][contracts[i]];
+            }
+        }
+    }
 
     function registerExtraContract(
         string memory chainName,
@@ -147,7 +181,7 @@ contract MessageProxyForSchain is MessageProxy, IMessageProxyForSchain {
         Signature calldata signature 
     )
         external
-        override
+        override(IMessageProxy, MessageProxy)
     {
         bytes32 fromChainHash = keccak256(abi.encodePacked(fromChainName));
         require(connectedChains[fromChainHash].inited, "Chain is not initialized");
@@ -294,6 +328,15 @@ contract MessageProxyForSchain is MessageProxy, IMessageProxyForSchain {
             signature.hashB,
             keyStorage.getBlsCommonPublicKey()
         );
+    }
+
+    function _getRegistryContracts()
+        internal
+        view
+        override
+        returns (mapping(bytes32 => EnumerableSetUpgradeable.AddressSet) storage)
+    {
+        return _registryContracts;
     }
 
     /**

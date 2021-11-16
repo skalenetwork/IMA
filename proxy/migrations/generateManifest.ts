@@ -138,12 +138,12 @@ export async function manifestSetup(pathToManifest: string) {
     const correctManifestPath = `.openzeppelin/unknown-${chainId}.json`;
     if (pathToManifest === "" || pathToManifest === correctManifestPath) {
         fs.access(correctManifestPath);
-        console.log("Current Manifest file detected");
+        console.log("Current Manifest file detected - will use this one");
         return;
     }
     try {
         fs.access(correctManifestPath);
-        console.log("Current Manifest file detected");
+        console.log("Current Manifest file detected - will remove it");
         try {
             await fs.unlink(correctManifestPath);
             console.log("Current Manifest file removed");
