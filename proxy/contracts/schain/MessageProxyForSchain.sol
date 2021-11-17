@@ -92,9 +92,9 @@ contract MessageProxyForSchain is MessageProxy, IMessageProxyForSchainInitialize
     //      schainHash  => tail of unprocessed messages
     mapping(bytes32 => uint) private _idxTail;
 
-    string public version;
-
     mapping(bytes32 => EnumerableSetUpgradeable.AddressSet) private _registryContracts;
+
+    string public version;
 
     /**
      * @dev Allows DEFAULT_ADMIN_ROLE to initialize registered contracts

@@ -43,6 +43,7 @@ class MessageProxyForSchainGenerator(ContractGenerator):
     # 207:  _idxHead
     # 208:  _idxTail
     # 209:  _registryContracts
+    # 210:  version
 
     INITIALIZED_SLOT = 0
     ROLES_SLOT = 101
@@ -56,6 +57,7 @@ class MessageProxyForSchainGenerator(ContractGenerator):
     IDX_HEAD = next_slot(OUTGOING_MESSAGE_DATA_HASH)
     IDX_TAIL = next_slot(IDX_HEAD)
     REGISTRY_CONTRACTS_SLOT = next_slot(IDX_TAIL)
+    VERSION_SLOT = next_slot(REGISTRY_CONTRACTS_SLOT)
     
 
     def __init__(self, deployer_address: str, schain_name: str):
