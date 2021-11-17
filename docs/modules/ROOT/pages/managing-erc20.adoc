@@ -417,6 +417,69 @@ export function registerOnSchain() {
 
 For a Javascript sandbox version of registering contracts on your SKALE Chain, see <https://codesandbox.io/s/erc20-transfer-skale-interchain-messaging-agent-forked-w1t5m?file=/src/schain_addERC20TokenByOwner.js>
 
+[[view]]
+== Show All Mapped Tokens
+
+To view all mapped tokens (including those mapped manually and automatically)
+
+[tabs]
+====
+IMA-JS::
++
+--
+
+[source,javascript]
+----
+let erc20Len = await ima.mainnet.getSchainToAllERC20Length(SCHAIN_NAME);
+let allErc20Tokens = await ima.mainnet.getSchainToAllERC20(SCHAIN_NAME, 0, erc20Len);
+----
+--
+
+Web3 JS::
++
+--
+
+You can use the getSchainToAllERC20Length() and getSchainToAllERC20() functions to return the length and an array of a set of mapped tokens. Note that getSchainToAllERC20() can only return a maximum set of 10 tokens at a time.
+
+
+[source,javascript]
+----
+const Web3 = require('web3');
+
+let rinkebyABIs = "[YOUR_SKALE_ABIs_ON_RINKEBY]";
+let rinkebyERC20ABI = "[YOUR_ERC20_ABI_ON_RINKEBY]";
+
+let rinkeby = "[RINKEBY_ENDPOINT]";
+let schainName = "[YOUR_SKALE_CHAIN_NAME]";
+
+const depositBoxAddress = rinkebyABIs.deposit_box_erc20_address;
+const depositBoxABI = rinkebyABIs.deposit_box_erc20_abi;
+
+const web3ForMainnet = new Web3(rinkeby);
+
+let depositBox = new web3ForMainnet.eth.Contract(
+  depositBoxABI,
+  depositBoxAddress
+);
+
+let mappedNumber = depositBox.methods
+  .getSchainToAllERC20Length(
+    schainName
+  )
+  .call();
+
+let mappedArray = Array();
+for (let i = 0; i < (mappedNumber + 9) / 10; i++) {
+    let nextIndex = ((i + 1) * 10 < mappedNumber ? (I + 1) * 10 : mappedNumber);
+    let mappedArrayPart = depositBox.methods.getSchainToAllERC20(schainName, i * 10, nextIndex).call();
+    mappedArrayPart.forEach( (address) => { mappedArray.push(address) });
+}
+
+----
+--
+
+====
+
 [[transfer]]
 == Get Started with ERC20 Transfer
 

@@ -420,6 +420,69 @@ let addERC1155TokenByOwner = TokenManager.methods
 --
 ====
 
+[[view]]
+== Show All Mapped Tokens
+
+To view all mapped tokens (including those mapped manually and automatically)
+
+[tabs]
+====
+IMA-JS::
++
+--
+
+[source,javascript]
+----
+let erc1155Len = await ima.mainnet.getSchainToAllERC1155Length(SCHAIN_NAME);
+let allErc1155Tokens = await ima.mainnet.getSchainToAllERC1155(SCHAIN_NAME, 0, erc1155Len);
+----
+--
+
+Web3 JS::
++
+--
+
+You can use the getSchainToAllERC1155Length() and getSchainToAllERC1155() functions to return the length and an array of a set of mapped tokens. Note that getSchainToAllERC1155() can only return a maximum set of 10 tokens at a time.
+
+
+[source,javascript]
+----
+const Web3 = require('web3');
+
+let rinkebyABIs = "[YOUR_SKALE_ABIs_ON_RINKEBY]";
+let rinkebyERC1155ABI = "[YOUR_ERC1155_ABI_ON_RINKEBY]";
+
+let rinkeby = "[RINKEBY_ENDPOINT]";
+let schainName = "[YOUR_SKALE_CHAIN_NAME]";
+
+const depositBoxAddress = rinkebyABIs.deposit_box_erc1155_address;
+const depositBoxABI = rinkebyABIs.deposit_box_erc1155_abi;
+
+const web3ForMainnet = new Web3(rinkeby);
+
+let depositBox = new web3ForMainnet.eth.Contract(
+  depositBoxABI,
+  depositBoxAddress
+);
+
+let mappedNumber = depositBox.methods
+  .getSchainToAllERC1155Length(
+    schainName
+  )
+  .call();
+
+let mappedArray = Array();
+for (let i = 0; i < (mappedNumber + 9) / 10; i++) {
+    let nextIndex = ((i + 1) * 10 < mappedNumber ? (I + 1) * 10 : mappedNumber);
+    let mappedArrayPart = depositBox.methods.getSchainToAllERC1155(schainName, i * 10, nextIndex).call();
+    mappedArrayPart.forEach( (address) => { mappedArray.push(address) });
+}
+
+----
+--
+
+====
+
 [[transfer]]
 == Get Started with ERC1155 Transfer
 
