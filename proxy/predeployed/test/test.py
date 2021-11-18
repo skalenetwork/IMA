@@ -22,12 +22,13 @@ with open('config.json') as config_file:
     erc1155_deposit_box = config['erc1155_deposit_box']
     linker_address = config['linker']
     community_pool = config['community_pool']
+    version = open("../version.txt").readline().rstrip()
 
 
 def main():
     check_proxy_admin(owner_address)
     check_admin_upgradeability_proxy()
-    check_message_proxy_for_schain(owner_address, schain_name)
+    check_message_proxy_for_schain(owner_address, schain_name, version)
     check_key_storage(owner_address)
     check_community_locker(owner_address, schain_name, community_pool)
     check_token_manager_linker(owner_address, linker_address)

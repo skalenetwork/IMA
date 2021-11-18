@@ -60,13 +60,13 @@ class MessageProxyForSchainGenerator(ContractGenerator):
     VERSION_SLOT = next_slot(REGISTRY_CONTRACTS_SLOT)
     
 
-    def __init__(self, deployer_address: str, schain_name: str):
+    def __init__(self, deployer_address: str, schain_name: str, version: str):
         super().__init__(self.ARTIFACT_FILENAME)
-        self._setup(deployer_address, schain_name)
+        self._setup(deployer_address, schain_name, version)
 
     # private
 
-    def _setup(self, deployer_address: str, schain_name: str) -> None:
+    def _setup(self, deployer_address: str, schain_name: str, version: str) -> None:
         self._write_uint256(self.INITIALIZED_SLOT, 1)
         self._setup_role(self.ROLES_SLOT, self.ROLE_MEMBERS_SLOT, self.DEFAULT_ADMIN_ROLE, [deployer_address])
         self._write_address(self.KEY_STORAGE_SLOT, KEY_STORAGE_ADDRESS)
@@ -77,6 +77,7 @@ class MessageProxyForSchainGenerator(ContractGenerator):
         inited_slot = connected_chain_info_slot + 2
         self._write_uint256(inited_slot, 1)
         self._write_uint256(self.GAS_LIMIT_SLOT, self.GAS_LIMIT)
+        self._write_string(self.VERSION_SLOT, version)
 
         registry_contracts_slot = calculate_mapping_value_slot(
             self.REGISTRY_CONTRACTS_SLOT, self.ANY_SCHAIN, 'bytes32')
