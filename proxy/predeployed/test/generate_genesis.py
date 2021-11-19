@@ -1,27 +1,26 @@
 #!/usr/bin/env python
 from ima_predeployed.generator import generate_contracts
+from pkg_resources import get_distribution
 import json
 import sys
 
 
 def main():
-    if len(sys.argv) < 4:
+    if len(sys.argv) < 3:
         print("Usage:")
         print("./generate_genesis.py base_genesis.json config.json [target_key]")
         exit(1)
     base_genesis_filename = sys.argv[1]    
     config_filename = sys.argv[2]
-    version_filename = sys.argv[3]
     target_key = 'alloc'
-    if len(sys.argv) > 4:
+    if len(sys.argv) > 3:
         target_key = sys.argv[-1]
     with open(base_genesis_filename) as base_genesis_file:
         with open(config_filename) as config_file:
-            with open(version_filename) as version_file:
                 base_genesis = json.load(base_genesis_file)
                 config = json.load(config_file)
                 genesis = base_genesis
-                version = version_file.readline().rstrip()
+                version = get_distribution('ima_predeployed').version
                 genesis[target_key].update(generate_contracts(
                     config['schain_owner'],
                     config['schain_name'],
