@@ -471,6 +471,8 @@ async function check_correctness_of_messages_to_sign( details, strLogPrefix, str
 
 async function do_sign_messages_impl( strDirection, jarrMessages, nIdxCurrentMsgBlockStart, details, fn ) {
     const strLogPrefix = cc.bright( strDirection ) + " " + cc.info( "Sign msgs:" ) + " ";
+    log.write( strLogPrefix + cc.debug( " Invoking signing messages procedure " ) + "\n" );
+    details.write( strLogPrefix + cc.debug( " Invoking signing messages procedure " ) + "\n" );
     fn = fn || function() {};
     if( !( imaState.bSignMessages && imaState.strPathBlsGlue.length > 0 && imaState.joSChainNetworkInfo ) ) {
         details.write( strLogPrefix + cc.debug( "BLS message signing is " ) + cc.error( "turned off" ) +
@@ -505,6 +507,7 @@ async function do_sign_messages_impl( strDirection, jarrMessages, nIdxCurrentMsg
     // }
     //
     details.write( strLogPrefix + cc.debug( "Will sign " ) + cc.info( jarrMessages.length ) + cc.debug( " message(s)..." ) + "\n" );
+    log.write( strLogPrefix + cc.debug( "Will sign " ) + cc.info( jarrMessages ) + cc.debug( " message(s)..." ) + "\n" );
     const joGatheringTracker = {
         nCountReceived: 0, // including errors
         nCountErrors: 0,
@@ -529,6 +532,7 @@ async function do_sign_messages_impl( strDirection, jarrMessages, nIdxCurrentMsg
     //     details.write( strLogPrefix + cc.warning( "Minimal BLS parts number for dicovery was increased." ) + "\n" );
     //     nCountOfBlsPartsToCollect = 2;
     // }
+    log.write( strLogPrefix + cc.debug( "Will collect " ) + cc.info( nCountOfBlsPartsToCollect ) + "\n" );
     details.write( strLogPrefix + cc.debug( "Will collect " ) + cc.info( nCountOfBlsPartsToCollect ) + cc.debug( " from " ) + cc.info( jarrNodes.length ) + cc.debug( " nodes" ) + "\n" );
     for( let i = 0; i < jarrNodes.length; ++i ) {
         const joNode = jarrNodes[i];
@@ -673,14 +677,17 @@ async function do_sign_messages_impl( strDirection, jarrMessages, nIdxCurrentMsg
             } ); // joCall.call ...
         } ); // rpcCall.create ...
     }
-    const promice_gathering_complete = new Promise( ( resolve, reject ) => {
+
+    log.write( strLogPrefix + cc.debug( "Waiting for BLS glue result " ) + "\n" );
+    details.write( strLogPrefix + cc.debug( "Waiting for BLS glue result " ) + "\n" );
+    const promise_gathering_complete = new Promise( ( resolve, reject ) => {
         const iv = setInterval( async function() {
             ++ joGatheringTracker.nWaitIntervalStepsDone;
             const cntSuccess = joGatheringTracker.nCountReceived - joGatheringTracker.nCountErrors;
             if( cntSuccess >= nCountOfBlsPartsToCollect ) {
                 const strLogPrefixB = cc.bright( strDirection ) + cc.debug( "/" ) + cc.info( "BLS" ) + cc.debug( "/" ) + cc.sunny( "Summary" ) + cc.debug( ":" ) + " ";
                 clearInterval( iv );
-                let strError = null;
+                let strError = null, strSuccessfulResultDescription = null;
                 const joGlueResult = perform_bls_glue( details, strDirection, jarrMessages, arrSignResults );
                 if( joGlueResult ) {
                     details.write( strLogPrefixB + cc.success( "Got BLS glue result: " ) + cc.j( joGlueResult ) + "\n" );
@@ -688,9 +695,9 @@ async function do_sign_messages_impl( strDirection, jarrMessages, nIdxCurrentMsg
                         const joCommonPublicKey = discover_common_public_key( imaState.joSChainNetworkInfo );
                         // console.log(joCommonPublicKey);
                         if( perform_bls_verify( details, strDirection, joGlueResult, jarrMessages, joCommonPublicKey ) ) {
-                            const strSuccessfulResultDescription = "Got successful summary BLS verification result";
+                            strSuccessfulResultDescription = "Got successful summary BLS verification result";
                             details.write( strLogPrefixB + cc.success( strSuccessfulResultDescription ) + "\n" );
-                            resolve( strSuccessfulResultDescription );
+                            // resolve( strSuccessfulResultDescription );
                         } else {
                             strError = "BLS verify failed";
                             log.write( strLogPrefixB + cc.fatal( "CRITICAL ERROR:" ) + cc.error( strError ) + "\n" );
@@ -704,12 +711,16 @@ async function do_sign_messages_impl( strDirection, jarrMessages, nIdxCurrentMsg
                     log.write( strErrorMessage );
                     details.write( strErrorMessage );
                 }
+                log.write( cc.debug( "Will call sending function (fn) for " ) + "\n");
+                details.write( cc.debug( "Will call sending function (fn) for " ) + cc.info( jarrMessages ) + "\n");
                 await fn( strError, jarrMessages, joGlueResult ).catch( ( err ) => {
                     const strErrorMessage = cc.error( "Problem(2) in BLS sign result handler: " ) + cc.warning( err ) + "\n";
                     log.write( strErrorMessage );
                     details.write( strErrorMessage );
                     reject( new Error( strErrorMessage ) );
                 } );
+                if( ! strError )
+                    resolve( strSuccessfulResultDescription );
                 return;
             }
             if( joGatheringTracker.nCountReceived >= jarrNodes.length ) {
@@ -741,9 +752,11 @@ async function do_sign_messages_impl( strDirection, jarrMessages, nIdxCurrentMsg
         }, joGatheringTracker.nWaitIntervalStepMilliseconds );
     } );
     details.write( cc.info( "Will await BLS sign result..." ) + "\n" );
-    await Promise.all( [ promice_gathering_complete ] ).then( strSuccessfulResultDescription => {
+    log.write( cc.info( "Will await BLS sign result..." ) + "\n" );
+    await Promise.all( [ promise_gathering_complete ] ).then( strSuccessfulResultDescription => {
         const strLogMessage = cc.success( "BLS sign result await finished with: " ) + cc.info( strSuccessfulResultDescription ) + "\n";
         details.write( strLogMessage );
+        log.write( strLogMessage );
     } ).catch( err => {
         const strErrorMessage = cc.error( "Failed BLS sign result awaiting: " ) + cc.warning( err.toString() ) + "\n";
         log.write( strErrorMessage );
