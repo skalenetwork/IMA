@@ -494,6 +494,8 @@ describe("MessageProxy", () => {
         it("should set version of contracts on mainnet", async () => {
             const version = "1.0.0"
             expect(await messageProxyForMainnet.version()).to.be.equal('');
+            await messageProxyForMainnet.connect(user).setVersion(version)
+                .should.be.eventually.rejectedWith("DEFAULT_ADMIN_ROLE is required");
             await messageProxyForMainnet.setVersion(version);
             expect(await messageProxyForMainnet.version()).to.be.equal(version);
         });
@@ -890,6 +892,8 @@ describe("MessageProxy", () => {
         it("should set version of contracts on schain", async () => {
             const version = "1.0.0"
             expect(await messageProxyForSchain.version()).to.be.equal('');
+            await messageProxyForSchain.connect(user).setVersion(version)
+                .should.be.eventually.rejectedWith("DEFAULT_ADMIN_ROLE is required");
             await messageProxyForSchain.setVersion(version);
             expect(await messageProxyForSchain.version()).to.be.equal(version);
         });
