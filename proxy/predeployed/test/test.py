@@ -9,6 +9,7 @@ from contracts.token_manager_erc721 import check_token_manager_erc721
 from contracts.token_manager_erc1155 import check_token_manager_erc1155
 from contracts.token_manager_eth import check_token_manager_eth
 from contracts.token_manager_linker import check_token_manager_linker
+from pkg_resources import get_distribution
 import json
 
 
@@ -22,10 +23,10 @@ with open('config.json') as config_file:
     erc1155_deposit_box = config['erc1155_deposit_box']
     linker_address = config['linker']
     community_pool = config['community_pool']
-    version = open("../version.txt").readline().rstrip()
 
 
 def main():
+    version = get_distribution('ima_predeployed').version
     check_proxy_admin(owner_address)
     check_admin_upgradeability_proxy()
     check_message_proxy_for_schain(owner_address, schain_name, version)
