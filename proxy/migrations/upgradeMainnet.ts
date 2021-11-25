@@ -8,6 +8,28 @@ import chalk from "chalk";
 import { MessageProxyForMainnet, DepositBoxERC20, DepositBoxERC721, DepositBoxERC1155 } from "../typechain/";
 import { encodeTransaction } from "./tools/multiSend";
 import { TypedEvent, TypedEventFilter } from "../typechain/commons";
+import { promises as fs } from "fs";
+import { hexZeroPad } from "@ethersproject/bytes";
+import { Contract } from "@ethersproject/contracts";
+
+function prepareInitializeFromMap(
+    safeTransactions: any,
+    map: Map<string, string[]>,
+    contract: Contract,
+    functionName: string
+) {
+    map.forEach((value: string[], key: string) => {
+        console.log(chalk.yellow("" + value.length + " items found for key " + key));
+        console.log(value);
+        safeTransactions.push(encodeTransaction(
+            0,
+            contract.address,
+            0,
+            contract.interface.encodeFunctionData(functionName, [key, value])
+        ));
+        console.log(chalk.yellow("Transaction initialize prepared"));
+    });
+}
 
 async function runInitialize(
     safeTransactions: string[],
@@ -21,34 +43,15 @@ async function runInitialize(
         const addedTokens = schainToTokens.get(event.args.schainName);
         if (addedTokens) {
             addedTokens.push(event.args.contractOnMainnet);
+            schainToTokens.set(event.args.schainName, addedTokens);
         } else {
             schainToTokens.set(event.args.schainName, [event.args.contractOnMainnet]);
         }
-
     }
-    schainToTokens.forEach((tokens: string[], schainName: string) => {
-        console.log(chalk.yellow("" + tokens.length + " tokens found for schain " + schainName));
-        console.log(tokens);
-        console.log(chalk.yellow("Will prepare " + (tokens.length - 1) / 10 + 1 + " transaction" + ((tokens.length - 1) / 10 > 0 ? "s" : "") + " initialize"));
-        for (let i = 0; i * 10 < tokens.length; i++) {
-            let tokensRange: string[];
-            if ((i + 1) * 10 < tokens.length) {
-                tokensRange = tokens.slice(i * 10, (i + 1) * 10);
-            } else {
-                tokensRange = tokens.slice(i * 10, tokens.length);
-            }
-            safeTransactions.push(encodeTransaction(
-                0,
-                depositBox.address,
-                0,
-                depositBox.interface.encodeFunctionData("initializeAllTokensForSchain", [schainName, tokensRange])
-            ));
-            console.log(chalk.yellow("" + i + 1 + " transaction initialize prepared"));
-        }
-    });
+    prepareInitializeFromMap(safeTransactions, schainToTokens, depositBox, "initializeAllTokensForSchain");
 }
 
-async function getContractDeploymentBlock(address: string): Promise<number> {
+async function findContractDeploymentBlock(address: string): Promise<number> {
     let left = 0;
     let right: number = 0;
     try {
@@ -85,6 +88,26 @@ async function getContractDeploymentBlock(address: string): Promise<number> {
     return left;
 }
 
+async function getContractDeploymentBlock(address: string) {
+    const manifest = await Manifest.forNetwork(hre.network.provider);
+    const deploymentProxy = await manifest.getProxyFromAddress(address);
+    let blockStart: number | undefined;
+    if (deploymentProxy?.txHash) {
+        const blockNumber = (await ethers.provider.getTransaction(deploymentProxy?.txHash)).blockNumber;
+        if (blockNumber) {
+            blockStart = blockNumber;
+            console.log(chalk.yellow("Successfully extract block number for contract creation from manifest"));
+            console.log(chalk.yellow("Contract " + address + " in block " + blockStart));
+        }
+    }
+    if (!blockStart) {
+        console.log(chalk.yellow("No deploy transaction in manifest for " + address));
+        console.log(chalk.yellow("Will find block creation number"));
+        blockStart = await findContractDeploymentBlock(address);
+    }
+    return blockStart;
+}
+
 async function findEventsAndInitialize(
     safeTransactions: string[],
     abi: any,
@@ -107,23 +130,7 @@ async function findEventsAndInitialize(
             address: depositBoxAddress,
             topics: [ ethers.utils.id(eventName + "(string,address)") ]
         }
-        const manifest = await Manifest.forNetwork(hre.network.provider);
-        const deploymentProxy = await manifest.getProxyFromAddress(depositBoxAddress);
-        let blockStart: number | undefined;
-        if (deploymentProxy?.txHash) {
-            const blockNumber = (await ethers.provider.getTransaction(deploymentProxy?.txHash)).blockNumber;
-            if (blockNumber) {
-                blockStart = blockNumber;
-                console.log(chalk.yellow("Successfully extract block number for contract creation from manifest"));
-                console.log(chalk.yellow("Contract " + depositBoxAddress + " in block " + blockStart));
-            }
-        }
-        if (!blockStart) {
-            console.log(chalk.yellow("No deploy transaction in manifest for " + depositBoxAddress));
-            console.log(chalk.yellow("Will find block creation number"));
-            blockStart = await getContractDeploymentBlock(depositBoxAddress);
-        }
-        const events = await depositBox.queryFilter(eventFilter, blockStart);
+        const events = await depositBox.queryFilter(eventFilter, await getContractDeploymentBlock(depositBoxAddress));
         if (events.length > 0) {
             await runInitialize(safeTransactions, events, depositBox, eventName);
         } else {
@@ -134,6 +141,49 @@ async function findEventsAndInitialize(
         console.log(chalk.red("Check your abi!!!"));
         process.exit(1);
     }
+}
+
+async function prepareContractRegisteredAndInitialize(
+    safeTransactions: string[],
+    abi: any,
+    messageProxyForMainnet: MessageProxyForMainnet,
+) {
+    const chainToRegisteredContracts = new Map<string, string[]>();
+    const contractsToRegisterForAll = [
+        "Linker",
+        "CommunityPool",
+        "DepositBoxEth",
+        "DepositBoxERC20",
+        "DepositBoxERC721",
+        "DepositBoxERc1155"
+    ];
+    const zeroHash = hexZeroPad("0x0", 32);
+    for (const contract of contractsToRegisterForAll) {
+        const addedRegisteredContracts = chainToRegisteredContracts.get(zeroHash);
+        const address = abi[getContractKeyInAbiFile(contract) + "_address"];
+        if (addedRegisteredContracts) {
+            addedRegisteredContracts.push(address);
+            chainToRegisteredContracts.set(zeroHash, addedRegisteredContracts);
+        } else {
+            chainToRegisteredContracts.set(zeroHash, [address]);
+        }
+    }
+    const fileToAdditionalAddresses = process.env.REGISTERED_ADDRESSES;
+    if (fileToAdditionalAddresses) {
+        const addresses = JSON.parse(await fs.readFile(fileToAdditionalAddresses, "utf-8"));
+        for (const hash of addresses) {
+            for (const address of addresses[hash]) {
+                const addedRegisteredContracts = chainToRegisteredContracts.get(hash);
+                if (addedRegisteredContracts) {
+                    addedRegisteredContracts.push(address);
+                    chainToRegisteredContracts.set(hash, addedRegisteredContracts);
+                } else {
+                    chainToRegisteredContracts.set(hash, [address]);
+                }
+            }
+        }
+    }
+    prepareInitializeFromMap(safeTransactions, chainToRegisteredContracts, messageProxyForMainnet, "initializeAllRegisteredContracts");
 }
 
 async function main() {
@@ -147,9 +197,10 @@ async function main() {
             const messageProxyForMainnetName = "MessageProxyForMainnet";
             const messageProxyForMainnetFactory = await ethers.getContractFactory(messageProxyForMainnetName);
             const messageProxyForMainnetAddress = abi[getContractKeyInAbiFile(messageProxyForMainnetName) + "_address"];
+            let messageProxyForMainnet;
             if (messageProxyForMainnetAddress) {
                 console.log(chalk.yellow("Prepare transaction to set message gas cost to 9000"));
-                const messageProxyForMainnet = messageProxyForMainnetFactory.attach(messageProxyForMainnetAddress) as MessageProxyForMainnet;
+                messageProxyForMainnet = messageProxyForMainnetFactory.attach(messageProxyForMainnetAddress) as MessageProxyForMainnet;
                 const constantSetterRole = await messageProxyForMainnet.CONSTANT_SETTER_ROLE();
                 const isHasRole = await messageProxyForMainnet.hasRole(constantSetterRole, owner);
                 if (!isHasRole) {
@@ -175,6 +226,7 @@ async function main() {
             await findEventsAndInitialize(safeTransactions, abi, "DepositBoxERC20", "ERC20TokenAdded");
             await findEventsAndInitialize(safeTransactions, abi, "DepositBoxERC721", "ERC721TokenAdded");
             await findEventsAndInitialize(safeTransactions, abi, "DepositBoxERC1155", "ERC1155TokenAdded");
+            await prepareContractRegisteredAndInitialize(safeTransactions, abi, messageProxyForMainnet);
         },
         "proxyMainnet"
     );

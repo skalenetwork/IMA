@@ -7,7 +7,7 @@ DEPLOYED_DIR=$GITHUB_WORKSPACE/deployed-proxy/
 
 git clone --branch "$DEPLOYED_TAG" "https://github.com/$GITHUB_REPOSITORY.git" "$DEPLOYED_DIR"
 
-npx ganache-cli --gasLimit 8000000 --quiet --allowUnlimitedContractSize &
+npx ganache-cli --gasLimit 9000000 --quiet --allowUnlimitedContractSize &
 GANACHE_PID=$!
 
 cd "$DEPLOYED_DIR"
@@ -37,7 +37,7 @@ cd "$GITHUB_WORKSPACE"
 rm -r --interactive=never "$DEPLOYED_DIR"
 cd proxy
 
-ABI="data/$ABI_FILENAME_MAINNET" npx hardhat run migrations/upgradeMainnet.ts --network localhost || exit $?
+ABI="data/$ABI_FILENAME_MAINNET" TEST_UPGRADE=true npx hardhat run migrations/upgradeMainnet.ts --network localhost || exit $?
 
 ABI="data/$ABI_FILENAME_SCHAIN" MANIFEST="data/ima-schain-$DEPLOYED_VERSION-manifest.json" npx hardhat run migrations/upgradeSchain.ts --network localhost || exit $?
 
