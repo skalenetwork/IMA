@@ -28,7 +28,6 @@ from .addresses import \
 def generate_contracts(
         owner_address: str,
         schain_name: str,
-        version: str,
         contracts_on_mainnet: dict) -> dict:
     proxy_admin = ProxyAdminGenerator(owner_address)
 
@@ -36,7 +35,7 @@ def generate_contracts(
     message_proxy_for_schain = UpgradeableContractGenerator(
         MESSAGE_PROXY_FOR_SCHAIN_IMPLEMENTATION_ADDRESS,
         PROXY_ADMIN_ADDRESS,
-        MessageProxyForSchainGenerator(owner_address, schain_name, version))
+        MessageProxyForSchainGenerator(owner_address, schain_name))
 
     key_storage_implementation = ContractGenerator(KeyStorageGenerator.ARTIFACT_FILENAME)
     key_storage = UpgradeableContractGenerator(
