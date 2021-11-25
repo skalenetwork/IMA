@@ -1,6 +1,5 @@
 #!/usr/bin/env python
 from ima_predeployed.generator import generate_contracts
-from pkg_resources import get_distribution
 import json
 import sys
 
@@ -20,11 +19,9 @@ def main():
                 base_genesis = json.load(base_genesis_file)
                 config = json.load(config_file)
                 genesis = base_genesis
-                version = get_distribution('ima_predeployed').version
                 genesis[target_key].update(generate_contracts(
                     config['schain_owner'],
                     config['schain_name'],
-                    version,
                     {
                         'deposit_box_eth_address': config['eth_deposit_box'],
                         'deposit_box_erc20_address': config['erc20_deposit_box'],
