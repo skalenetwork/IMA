@@ -89,6 +89,11 @@ abstract contract MessageProxy is AccessControlEnumerableUpgradeable, IMessagePr
     );
 
     /**
+     * @dev Emitted when the version was updated
+     */
+    event VersionUpdated(string oldVersion, string newVersion);
+
+    /**
      * @dev Emitted when extra contract was added.
      */
     event ExtraContractRegistered(

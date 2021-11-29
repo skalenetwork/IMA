@@ -33,6 +33,7 @@ import { getManifestAdmin } from "@openzeppelin/hardhat-upgrades/dist/admin";
 import { Contract } from '@ethersproject/contracts';
 import { CommunityLocker, EthErc20, KeyStorage, MessageProxyForSchain, TokenManagerERC20, TokenManagerERC721, TokenManagerEth, TokenManagerLinker } from '../typechain';
 import { TokenManagerERC1155 } from '../typechain/TokenManagerERC1155';
+import { getVersion } from './tools/version';
 
 export function getContractKeyInAbiFile(contract: string): string {
     if (contract === "MessageProxyForSchain") {
@@ -99,6 +100,7 @@ export const contracts = [
 
 async function main() {
     const [ owner,] = await ethers.getSigners();
+    const version = await getVersion();
 
     if( process.env.CHAIN_NAME_SCHAIN === undefined || process.env.CHAIN_NAME_SCHAIN === "" ) {
         console.log( "Please set CHAIN_NAME_SCHAIN to .env file" );
@@ -148,6 +150,13 @@ async function main() {
     await messageProxy.deployTransaction.wait();
     deployed.set( "MessageProxyForSchain", { address: messageProxy.address, interface: messageProxy.interface } );
     console.log("Contract MessageProxyForSchain deployed to", messageProxy.address);
+
+    try {
+        console.log(`Set version ${version}`)
+        await (await (messageProxy as MessageProxyForSchain).setVersion(version)).wait();
+    } catch {
+        console.log("Failed to set ima version on schain");
+    }
 
     console.log("Deploy TokenManagerLinker");
     const tokenManagerLinkerFactory = await ethers.getContractFactory("TokenManagerLinker");

@@ -94,6 +94,8 @@ contract MessageProxyForSchain is MessageProxy, IMessageProxyForSchainInitialize
 
     mapping(bytes32 => EnumerableSetUpgradeable.AddressSet) private _registryContracts;
 
+    string public version;
+
     /**
      * @dev Allows DEFAULT_ADMIN_ROLE to initialize registered contracts
      * Notice - this function will be executed only once during upgrade
@@ -192,6 +194,19 @@ contract MessageProxyForSchain is MessageProxy, IMessageProxyForSchainInitialize
             _callReceiverContract(fromChainHash, messages[i], startingCounter + 1);
         }
         connectedChains[fromChainHash].incomingMessageCounter += messages.length;
+    }
+
+    /**
+     * @dev Sets new version of contracts on schain
+     * 
+     * Requirements:
+     * 
+     * - `msg.sender` must be granted DEFAULT_ADMIN_ROLE.
+     */
+    function setVersion(string calldata newVersion) external override {
+        require(hasRole(DEFAULT_ADMIN_ROLE, msg.sender), "DEFAULT_ADMIN_ROLE is required");
+        emit VersionUpdated(version, newVersion);
+        version = newVersion;
     }
 
     /**
