@@ -2,6 +2,7 @@
 
 import os
 import sys
+import subprocess
 
 
 def calculate_version(release_version):
@@ -22,14 +23,21 @@ def calculate_version(release_version):
     else:
         return main_part + '.dev' + str(abs(hash(tail_part)))
 
+def getVersion():
+    version_key = 'VERSION'
+    if os.environ.get(version_key):
+        return os.environ.get(version_key)
+
+    try:
+        tag = subprocess.run("git describe --tags", shell=True, check=True, capture_output=True)
+        return tag.stdout.decode('utf-8')[:-1]
+    except:
+        with open('../../VERSION') as f:
+            return f.readline().rstrip()
 
 def main():
-    version_key = 'VERSION'
-    if version_key not in os.environ or not os.environ[version_key]:
-        print('VERSION environment variable is not set', file=sys.stderr)
-        exit(1)
-    
-    print(calculate_version(os.environ[version_key]))
+    version = getVersion()
+    print(calculate_version(version))
 
 
 if __name__ == '__main__':
