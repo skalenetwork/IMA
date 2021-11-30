@@ -21,12 +21,14 @@
 
 pragma solidity 0.8.6;
 
+import "@skalenetwork/ima-interfaces/extensions/IERC721ReferenceMintAndMetadataMainnet.sol";
+
 import "../schain/tokens/ERC721OnChain.sol";
 import "./interfaces/MessageReceiver.sol";
 
 
 // This contract runs on the main net and accepts deposits
-contract ERC721ReferenceMintAndMetadataMainnet is MessageReceiver {
+contract ERC721ReferenceMintAndMetadataMainnet is MessageReceiver, IERC721ReferenceMintAndMetadataMainnet {
 
     address public erc721ContractOnMainnet;
     address public senderContractOnSchain;
@@ -52,7 +54,7 @@ contract ERC721ReferenceMintAndMetadataMainnet is MessageReceiver {
         owner = msg.sender;
     }
 
-    function setSenderContractOnSchain(address newSenderContractOnSchain) external onlyOwner {
+    function setSenderContractOnSchain(address newSenderContractOnSchain) external override onlyOwner {
         require(newSenderContractOnSchain != address(0), "Sender contract has to be set");
         senderContractOnSchain = newSenderContractOnSchain;
     }

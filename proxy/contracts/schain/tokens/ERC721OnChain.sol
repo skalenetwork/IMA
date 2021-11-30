@@ -25,13 +25,19 @@ pragma solidity 0.8.6;
 import "@openzeppelin/contracts-upgradeable/token/ERC721/extensions/ERC721BurnableUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/token/ERC721/extensions/ERC721URIStorageUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/access/AccessControlEnumerableUpgradeable.sol";
+import "@skalenetwork/ima-interfaces/schain/tokens/IERC721OnChain.sol";
 
 
 /**
  * @title ERC721OnChain
  * @dev ERC721 token that is used as an automatically deployed clone of ERC721 on mainnet.
  */
-contract ERC721OnChain is AccessControlEnumerableUpgradeable, ERC721BurnableUpgradeable, ERC721URIStorageUpgradeable {
+contract ERC721OnChain is
+    AccessControlEnumerableUpgradeable,
+    ERC721BurnableUpgradeable,
+    ERC721URIStorageUpgradeable,
+    IERC721OnChain
+{
 
     /**
      * @dev id of a role that allows token minting.
@@ -60,6 +66,7 @@ contract ERC721OnChain is AccessControlEnumerableUpgradeable, ERC721BurnableUpgr
      */
     function setTokenURI(uint256 tokenId, string calldata tokenUri)
         external
+        override
         returns (bool)
     {
         require(_exists(tokenId), "Token does not exists");
@@ -77,6 +84,7 @@ contract ERC721OnChain is AccessControlEnumerableUpgradeable, ERC721BurnableUpgr
      */
     function mint(address account, uint256 tokenId)
         external
+        override
     {
         require(hasRole(MINTER_ROLE, _msgSender()), "Sender is not a Minter");
         _mint(account, tokenId);

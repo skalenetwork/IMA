@@ -22,6 +22,7 @@
 pragma solidity 0.8.6;
 
 import "@openzeppelin/contracts-upgradeable/utils/AddressUpgradeable.sol";
+import "@skalenetwork/ima-interfaces/schain/TokenManagers/ITokenManagerERC721.sol";
 
 import "../../Messages.sol";
 import "../tokens/ERC721OnChain.sol";
@@ -35,7 +36,7 @@ import "../TokenManager.sol";
  * and creates ERC721 clones.
  * TokenManagerERC721 mints tokens. When a user exits a SKALE chain, it burns them.
  */
-contract TokenManagerERC721 is TokenManager {
+contract TokenManagerERC721 is TokenManager, ITokenManagerERC721 {
     using AddressUpgradeable for address;
 
     // address of ERC721 on Mainnet => ERC721 on Schain
@@ -66,13 +67,13 @@ contract TokenManagerERC721 is TokenManager {
      */
     function exitToMainERC721(
         address contractOnMainnet,
-        address to,
         uint256 tokenId
     )
         external
+        override
     {
-        communityLocker.checkAllowedToSendMessage(to);
-        _exit(MAINNET_HASH, depositBox, contractOnMainnet, to, tokenId);
+        communityLocker.checkAllowedToSendMessage(msg.sender);
+        _exit(MAINNET_HASH, depositBox, contractOnMainnet, msg.sender, tokenId);
     }
 
     /**
@@ -84,14 +85,14 @@ contract TokenManagerERC721 is TokenManager {
     function transferToSchainERC721(
         string calldata targetSchainName,
         address contractOnMainnet,
-        address to,
         uint256 tokenId
     ) 
         external
-        rightTransaction(targetSchainName, to)
+        override
+        rightTransaction(targetSchainName, msg.sender)
     {
         bytes32 targetSchainHash = keccak256(abi.encodePacked(targetSchainName));
-        _exit(targetSchainHash, tokenManagers[targetSchainHash], contractOnMainnet, to, tokenId);
+        _exit(targetSchainHash, tokenManagers[targetSchainHash], contractOnMainnet, msg.sender, tokenId);
     }
 
     /**
@@ -132,17 +133,18 @@ contract TokenManagerERC721 is TokenManager {
      */
     function addERC721TokenByOwner(
         address erc721OnMainnet,
-        ERC721OnChain erc721OnSchain
+        address erc721OnSchain
     )
         external
+        override
         onlyTokenRegistrar
     {
-        require(address(erc721OnSchain).isContract(), "Given address is not a contract");
+        require(erc721OnSchain.isContract(), "Given address is not a contract");
         require(address(clonesErc721[erc721OnMainnet]) == address(0), "Could not relink clone");
-        require(!addedClones[erc721OnSchain], "Clone was already added");
-        clonesErc721[erc721OnMainnet] = erc721OnSchain;
-        addedClones[erc721OnSchain] = true;
-        emit ERC721TokenAdded(erc721OnMainnet, address(erc721OnSchain));
+        require(!addedClones[ERC721OnChain(erc721OnSchain)], "Clone was already added");
+        clonesErc721[erc721OnMainnet] = ERC721OnChain(erc721OnSchain);
+        addedClones[ERC721OnChain(erc721OnSchain)] = true;
+        emit ERC721TokenAdded(erc721OnMainnet, erc721OnSchain);
     }
 
     /**
@@ -150,12 +152,13 @@ contract TokenManagerERC721 is TokenManager {
      */
     function initialize(
         string memory newChainName,
-        MessageProxyForSchain newMessageProxy,
-        TokenManagerLinker newIMALinker,
-        CommunityLocker newCommunityLocker,
+        IMessageProxyForSchain newMessageProxy,
+        ITokenManagerLinker newIMALinker,
+        ICommunityLocker newCommunityLocker,
         address newDepositBox
     )
         external
+        override
     {
         TokenManager.initializeTokenManager(
             newChainName,

@@ -79,7 +79,7 @@ class Senderc721ToMainnet(TestCase):
         self.erc721_clone = self.blockchain.get_erc721_on_schain("Mainnet", self.erc721.address)
 
     def _execute(self):
-        source_address = self.blockchain.key_to_address(self.config.schain_key)
+        source_address = self.blockchain.key_to_address(self.config.mainnet_key)
         destination_address = self.blockchain.key_to_address(self.config.mainnet_key)
 
         if self.erc721_clone.functions.ownerOf(self.token_id).call() != source_address:
@@ -90,8 +90,8 @@ class Senderc721ToMainnet(TestCase):
         self.agent.transfer_erc721_from_schain_to_mainnet(
             self.erc721_clone,
             self.erc721,
-            self.config.schain_key,
             self.config.mainnet_key,
+            self.config.schain_key,
             self.token_id,
             6 * 10 ** 16,
             self.timeout

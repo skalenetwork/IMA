@@ -30,8 +30,12 @@ import { deployLibraries, getLinkedContractFactory } from "./tools/factory";
 import { getAbi } from './tools/abi';
 import { verify, verifyProxy } from './tools/verification';
 import { Manifest, hashBytecode } from "@openzeppelin/upgrades-core";
+import { getVersion } from './tools/version';
 
 export function getContractKeyInAbiFile(contract: string) {
+    if (contract === "MessageProxyForMainnet") {
+        return "message_proxy_mainnet";
+    }
     return contract.replace(/([a-z0-9])(?=[A-Z])/g, '$1_').toLowerCase();
 }
 
@@ -103,6 +107,7 @@ async function main() {
     const deployed = new Map<string, {address: string, interface: Interface}>();
 
     const contractManager = getContractManager();
+    const version = await getVersion();
 
     const messageProxyForMainnetName = "MessageProxyForMainnet";
     console.log("Deploy", messageProxyForMainnetName);
@@ -119,9 +124,16 @@ async function main() {
             interface: messageProxyForMainnet.interface
         }
     );
-    await verifyProxy(messageProxyForMainnetName, messageProxyForMainnet.address);
+    await verifyProxy(messageProxyForMainnetName, messageProxyForMainnet.address, []);
     const extraContractRegistrarRole = await messageProxyForMainnet.EXTRA_CONTRACT_REGISTRAR_ROLE();
     await (await messageProxyForMainnet.grantRole(extraContractRegistrarRole, owner.address)).wait();
+
+    try {
+        console.log(`Set version ${version}`)
+        await (await (messageProxyForMainnet as MessageProxyForMainnet).setVersion(version)).wait();
+    } catch {
+        console.log("Failed to set ima version on mainnet");
+    }
 
     const linkerName = "Linker";
     console.log("Deploy", linkerName);
@@ -142,7 +154,7 @@ async function main() {
             interface: linker.interface
         }
     );
-    await verifyProxy(linkerName, linker.address);
+    await verifyProxy(linkerName, linker.address, []);
 
     const communityPoolName = "CommunityPool";
     const communityPoolFactory = await getContractFactory(communityPoolName);
@@ -170,7 +182,7 @@ async function main() {
             interface: communityPool.interface
         }
     );
-    await verifyProxy(communityPoolName, communityPool.address);
+    await verifyProxy(communityPoolName, communityPool.address, []);
 
     for (const contract of contractsToDeploy) {
         const contractFactory = await getContractFactory(contract);
@@ -201,17 +213,14 @@ async function main() {
                 interface: proxy.interface
             }
         );
-        await verifyProxy(contract, proxy.address);
+        await verifyProxy(contract, proxy.address, []);
     }
 
     console.log("Store ABIs");
 
     const outputObject: {[k: string]: any} = {};
     for (const contract of contracts) {
-        let contractKey = getContractKeyInAbiFile(contract);
-        if (contract === "MessageProxyForMainnet") {
-            contractKey = "message_proxy_mainnet";
-        }
+        const contractKey = getContractKeyInAbiFile(contract);
         outputObject[contractKey + "_address"] = deployed.get(contract)?.address;
         outputObject[contractKey + "_abi"] = getAbi(deployed.get(contract)?.interface);
     }

@@ -24,11 +24,9 @@
 pragma solidity 0.8.6;
 
 import "@openzeppelin/contracts-upgradeable/access/AccessControlEnumerableUpgradeable.sol";
+import "@skalenetwork/ima-interfaces/schain/ICommunityLocker.sol";
 
 import "../Messages.sol";
-import "../mainnet/CommunityPool.sol";
-import "./MessageProxyForSchain.sol";
-import "./TokenManagerLinker.sol";
 
 
 /**
@@ -36,7 +34,7 @@ import "./TokenManagerLinker.sol";
  * @dev Contract contains logic to perform automatic reimbursement
  * of gas fees for sent messages
  */
-contract CommunityLocker is IMessageReceiver, AccessControlEnumerableUpgradeable {
+contract CommunityLocker is ICommunityLocker, AccessControlEnumerableUpgradeable {
 
     /**
      * @dev Mainnet identifier.
@@ -56,12 +54,12 @@ contract CommunityLocker is IMessageReceiver, AccessControlEnumerableUpgradeable
     /**
      * @dev Address of MessageProxyForSchain.
      */
-    MessageProxyForSchain public messageProxy;
+    IMessageProxyForSchain public messageProxy;
 
     /**
      * @dev Address of TokenManagerLinker.
      */
-    TokenManagerLinker public tokenManagerLinker;
+    ITokenManagerLinker public tokenManagerLinker;
 
     /**
      * @dev Address of CommunityPool on mainnet.
@@ -162,9 +160,9 @@ contract CommunityLocker is IMessageReceiver, AccessControlEnumerableUpgradeable
      * - Previous message sent by {receiver} must be sent earlier then {timeLimitPerMessage} seconds before current time
      * or there are no messages sent by {receiver}.
      */
-    function checkAllowedToSendMessage(address receiver) external {
+    function checkAllowedToSendMessage(address receiver) external override {
         require(
-            tokenManagerLinker.hasTokenManager(TokenManager(msg.sender)),
+            tokenManagerLinker.hasTokenManager(ITokenManager(msg.sender)),
             "Sender is not registered token manager"
         );
         require(activeUsers[receiver], "Recipient must be active");
@@ -184,7 +182,7 @@ contract CommunityLocker is IMessageReceiver, AccessControlEnumerableUpgradeable
      * 
      * Emits a {TimeLimitPerMessageWasChanged} event.
      */
-    function setTimeLimitPerMessage(uint newTimeLimitPerMessage) external {
+    function setTimeLimitPerMessage(uint newTimeLimitPerMessage) external override {
         require(hasRole(CONSTANT_SETTER_ROLE, msg.sender), "Not enough permissions to set constant");
         emit TimeLimitPerMessageWasChanged(timeLimitPerMessage, newTimeLimitPerMessage);
         timeLimitPerMessage = newTimeLimitPerMessage;
@@ -195,12 +193,12 @@ contract CommunityLocker is IMessageReceiver, AccessControlEnumerableUpgradeable
      */
     function initialize(
         string memory newSchainName,
-        MessageProxyForSchain newMessageProxy,
-        TokenManagerLinker newTokenManagerLinker,
+        IMessageProxyForSchain newMessageProxy,
+        ITokenManagerLinker newTokenManagerLinker,
         address newCommunityPool
     )
         external
-        virtual
+        override
         initializer
     {
         require(newCommunityPool != address(0), "Node address has to be set");
@@ -212,5 +210,4 @@ contract CommunityLocker is IMessageReceiver, AccessControlEnumerableUpgradeable
         timeLimitPerMessage = 5 minutes;
         communityPool = newCommunityPool;
     }
-
 }

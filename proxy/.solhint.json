@@ -9,7 +9,7 @@
     "state-visibility": "error",
     "no-empty-blocks": "error",
     "check-send-result": "error",
-    "private-vars-leading-underscore": "error",
+    "private-vars-leading-underscore": "warn",
     "code-complexity": "error",
     "visibility-modifier-order": "error",
     "func-name-mixedcase": "error",
@@ -20,6 +20,7 @@
     "ordering": "error",
     "avoid-tx-origin": "error",
     "const-name-snakecase": "error",
-    "func-visibility": ["error", {"ignoreConstructors":true} ]
+    "func-visibility": ["error", {"ignoreConstructors":true} ],
+    "comprehensive-interface": "error"
   }
 }

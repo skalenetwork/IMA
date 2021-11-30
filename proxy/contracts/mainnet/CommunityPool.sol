@@ -23,17 +23,18 @@
 
 pragma solidity 0.8.6;
 
+import "@skalenetwork/ima-interfaces/mainnet/ICommunityPool.sol";
 import "@skalenetwork/skale-manager-interfaces/IWallets.sol";
 
 import "../Messages.sol";
-import "./MessageProxyForMainnet.sol";
-import "./Linker.sol";
+import "./Twin.sol";
+
 
 /**
  * @title CommunityPool
  * @dev Contract contains logic to perform automatic self-recharging ETH for nodes.
  */
-contract CommunityPool is Twin {
+contract CommunityPool is Twin, ICommunityPool {
 
     using AddressUpgradeable for address payable;
 
@@ -57,10 +58,11 @@ contract CommunityPool is Twin {
 
     function initialize(
         IContractManager contractManagerOfSkaleManagerValue,
-        Linker linker,
-        MessageProxyForMainnet messageProxyValue
+        ILinker linker,
+        IMessageProxyForMainnet messageProxyValue
     )
         external
+        override
         initializer
     {
         Twin.initialize(contractManagerOfSkaleManagerValue, messageProxyValue);
@@ -84,12 +86,18 @@ contract CommunityPool is Twin {
         uint gas
     )
         external
+        override
         onlyMessageProxy
-        returns (bool)
+        returns (uint)
     {
-        require(activeUsers[user][schainHash], "User should be active");
         require(node != address(0), "Node address must be set");
+        if (!activeUsers[user][schainHash]) {
+            return gas;
+        }
         uint amount = tx.gasprice * gas;
+        if (amount > _userWallets[user][schainHash]) {
+            amount = _userWallets[user][schainHash];
+        }
         _userWallets[user][schainHash] = _userWallets[user][schainHash] - amount;
         if (!_balanceIsSufficient(schainHash, user, 0)) {
             activeUsers[user][schainHash] = false;
@@ -100,7 +108,7 @@ contract CommunityPool is Twin {
             );
         }
         node.sendValue(amount);
-        return true;
+        return (tx.gasprice * gas - amount) / tx.gasprice;
     }
 
     function refundGasBySchainWallet(
@@ -109,6 +117,7 @@ contract CommunityPool is Twin {
         uint gas
     )
         external
+        override
         onlyMessageProxy
         returns (bool)
     {
@@ -131,19 +140,19 @@ contract CommunityPool is Twin {
      * - 'msg.sender` should recharge their gas wallet for amount that enough to reimburse any 
      *   transaction from schain to mainnet.
      */
-    function rechargeUserWallet(string calldata schainName) external payable {
+    function rechargeUserWallet(string calldata schainName, address user) external payable override {
         bytes32 schainHash = keccak256(abi.encodePacked(schainName));
         require(
-            _balanceIsSufficient(schainHash, msg.sender, msg.value),
+            _balanceIsSufficient(schainHash, user, msg.value),
             "Not enough ETH for transaction"
         );
-        _userWallets[msg.sender][schainHash] = _userWallets[msg.sender][schainHash] + msg.value;
-        if (!activeUsers[msg.sender][schainHash]) {
-            activeUsers[msg.sender][schainHash] = true;
+        _userWallets[user][schainHash] = _userWallets[user][schainHash] + msg.value;
+        if (!activeUsers[user][schainHash]) {
+            activeUsers[user][schainHash] = true;
             messageProxy.postOutgoingMessage(
                 schainHash,
                 schainLinks[schainHash],
-                Messages.encodeActivateUserMessage(msg.sender)
+                Messages.encodeActivateUserMessage(user)
             );
         }
     }
@@ -157,7 +166,7 @@ contract CommunityPool is Twin {
      * 
      * - 'msg.sender` must have sufficient amount of ETH on their gas wallet.
      */
-    function withdrawFunds(string calldata schainName, uint amount) external {
+    function withdrawFunds(string calldata schainName, uint amount) external override {
         bytes32 schainHash = keccak256(abi.encodePacked(schainName));
         require(amount <= _userWallets[msg.sender][schainHash], "Balance is too low");
         _userWallets[msg.sender][schainHash] = _userWallets[msg.sender][schainHash] - amount;
@@ -183,7 +192,7 @@ contract CommunityPool is Twin {
      * 
      * - 'msg.sender` must have sufficient amount of ETH on their gas wallet.
      */
-    function setMinTransactionGas(uint newMinTransactionGas) external {
+    function setMinTransactionGas(uint newMinTransactionGas) external override {
         require(hasRole(CONSTANT_SETTER_ROLE, msg.sender), "CONSTANT_SETTER_ROLE is required");
         emit MinTransactionGasWasChanged(minTransactionGas, newMinTransactionGas);
         minTransactionGas = newMinTransactionGas;
@@ -192,11 +201,11 @@ contract CommunityPool is Twin {
     /**
      * @dev Returns the amount of ETH on gas wallet for particular user.
      */
-    function getBalance(address user, string calldata schainName) external view returns (uint) {
+    function getBalance(address user, string calldata schainName) external view override returns (uint) {
         return _userWallets[user][keccak256(abi.encodePacked(schainName))];
     }
 
-    function checkUserBalance(bytes32 schainHash, address receiver) external view returns (bool) {
+    function checkUserBalance(bytes32 schainHash, address receiver) external view override returns (bool) {
         return activeUsers[receiver][schainHash] && _balanceIsSufficient(schainHash, receiver, 0);
     }
 

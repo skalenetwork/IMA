@@ -908,6 +908,10 @@ function parse( joExternalHandlers, argv ) {
             imaState.isShowReimbursementBalance = true;
             continue;
         }
+        if( joArg.name == "reimbursement-estimate" ) {
+            imaState.nReimbursementEstimate = true;
+            continue;
+        }
         if( joArg.name == "reimbursement-range" ) {
             owaspUtils.verifyArgumentWithNonEmptyValue( joArg );
             imaState.nReimbursementRange = owaspUtils.toInteger( joArg.value );

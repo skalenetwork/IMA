@@ -27,7 +27,19 @@ import "@skalenetwork/skale-manager-interfaces/ISchainsInternal.sol";
 import "./TestContractManager.sol";
 import "./TestNodes.sol";
 
-contract SchainsInternal is ISchainsInternal {
+
+interface ISchainsInternalTester is ISchainsInternal {
+    function addContractManager(address newContractManager) external;
+    function initializeSchain(
+        string calldata name,
+        address from,
+        uint lifetime,
+        uint deposit) external;
+    function addNodesToSchainsGroups(bytes32 schainHash, uint[] memory nodes) external;
+}
+
+
+contract SchainsInternal is ISchainsInternalTester {
 
     struct Schain {
         string name;
@@ -49,7 +61,7 @@ contract SchainsInternal is ISchainsInternal {
 
     mapping (bytes32 => uint[]) public schainsGroups;
 
-    function addContractManager(address newContractManager) external {
+    function addContractManager(address newContractManager) external override {
         contractManager = ContractManager(newContractManager);
     }
 
@@ -57,7 +69,7 @@ contract SchainsInternal is ISchainsInternal {
         string calldata name,
         address from,
         uint lifetime,
-        uint deposit) external
+        uint deposit) external override
     {
         bytes32 schainHash = keccak256(abi.encodePacked(name));
         schains[schainHash].name = name;
@@ -70,7 +82,7 @@ contract SchainsInternal is ISchainsInternal {
         isSchainActive[schainHash] = true;
     }
 
-    function addNodesToSchainsGroups(bytes32 schainHash, uint[] memory nodes) external {
+    function addNodesToSchainsGroups(bytes32 schainHash, uint[] memory nodes) external override {
         schainsGroups[schainHash] = nodes;
     }
 

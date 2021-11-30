@@ -149,6 +149,7 @@ function setWaitForNextBlockOnSChain( val ) {
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 const sleep = ( milliseconds ) => { return new Promise( resolve => setTimeout( resolve, milliseconds ) ); };
+const current_timestamp = () => { return parseInt( parseInt( Date.now().valueOf() ) / 1000 ); };
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -581,11 +582,12 @@ async function dry_run_call( details, w3, methodWithArguments, joAccount, strDRC
     strLogPrefix += cc.attention( ":" ) + " ";
     if( ! dry_run_is_enabled() ) {
         details.write( strLogPrefix + cc.success( "Skipped, dry run is disabled" ) + "\n" );
-        return;
+        return null;
     }
     try {
         const addressFrom = joAccount.address( w3 );
-        details.write( strLogPrefix + cc.debug( " will call method" ) +
+        details.write(
+            strLogPrefix + cc.debug( " will call method" ) +
             // cc.debug( " with data " ) + cc.normal( cc.safeStringifyJSON( methodWithArguments ) ) +
             cc.debug( " from address " ) + cc.sunny( addressFrom ) +
             "\n" );
@@ -604,9 +606,15 @@ async function dry_run_call( details, w3, methodWithArguments, joAccount, strDRC
             strErrorMessage += cc.fatal( "CRITICAL DRY RUN FAIL:" );
         strErrorMessage += " " + cc.error( err ) + "\n";
         details.write( strErrorMessage );
-        if( ! ( isIgnore || dry_run_is_ignored() ) )
-            throw new Error( "CRITICAL DRY RUN FAIL invoking the \"" + strMethodName + "\" method: " + err.toString() );
+        if( ! ( isIgnore || dry_run_is_ignored() ) ) {
+            details.write(
+                strLogPrefix + cc.fatal( "CRITICAL DRY RUN FAIL" ) + " " +
+                cc.error( " invoking the " ) + cc.info( strMethodName ) + cc.error( " method: " ) +
+                cc.warning( err.toString() ) + "\n" );
+            return "CRITICAL DRY RUN FAIL invoking the \"" + strMethodName + "\" method: " + err.toString();
+        }
     }
+    return null;
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -661,18 +669,21 @@ function tm_make_record( tx = {}, score ) {
 }
 
 function tm_make_score( priority ) {
-    const ts = Math.floor( ( new Date() ).getTime() / 1000 );
+    const ts = current_timestamp();
     return priority * Math.pow( 10, ts.toString().length ) + ts;
 }
 
 async function tm_send( details, tx, priority = 5 ) {
-    details.write( cc.debug( "TM - sending tx " ) + cc.j( tx ) + "\n" );
+    details.write( cc.debug( "TM - sending tx " ) + cc.j( tx ) +
+        cc.debug( " ts: " ) + cc.info( current_timestamp() ) + "\n" );
     const id = tm_make_id( details );
     const score = tm_make_score( priority );
     const record = tm_make_record( tx, score );
     details.write( cc.debug( "TM - Sending score: " ) + cc.info( score ) + cc.debug( ", record: " ) + cc.info( record ) + "\n" );
+    expiration = 24 * 60 * 60; // 1 day;
+
     await redis.multi()
-        .set( id, record )
+        .set( id, record, "EX", expiration )
         .zadd( g_tm_pool, score, id )
         .exec();
     return id;
@@ -681,31 +692,36 @@ async function tm_send( details, tx, priority = 5 ) {
 function tm_is_finished( record ) {
     if( record == null )
         return null;
-    const status = "status" in record ? record.status : null;
-    return [ "SUCCESS", "FAILED", "DROPPED" ].includes( status );
+    return [ "SUCCESS", "FAILED", "DROPPED" ].includes( record.status );
 }
 
-async function tm_get_record( tx_id ) {
-    const r = await redis.get( tx_id );
+async function tm_get_record( txId ) {
+    const r = await redis.get( txId );
     if( r != null )
         return JSON.parse( r );
     return null;
 }
 
-async function tm_wait( details, tx_id, w3 ) {
-    details.write( cc.debug( "TM - waiting for TX ID: " ) + cc.info( tx_id ) + cc.debug( "..." ) + "\n" );
-    let hash;
-    while( hash === undefined ) {
-        const r = await tm_get_record( tx_id );
-        if( tm_is_finished( r ) ) {
-            if( r.status == "DROPPED" )
-                return null;
-        }
-        hash = r.tx_hash;
+async function tm_wait( details, txId, w3, allowedTime = 36000 ) {
+    details.write(
+        cc.debug( "TM - waiting for TX ID: " ) +
+        cc.info( txId ) +
+        cc.debug( " for " ) + cc.info( allowedTime ) + cc.debug( "s" ) + "\n" );
+    const startTs = current_timestamp();
+    while( !tm_is_finished( await tm_get_record( txId ) ) && current_timestamp() - startTs < allowedTime )
+        await sleep( 10 );
+
+    const r = await tm_get_record( txId );
+    details.write( cc.debug( "TM - TX record is " ) + cc.info( JSON.stringify( r ) ) + "\n" );
+
+    if( !tm_is_finished( r ) || r.status == "DROPPED" ) {
+        log.write( cc.debug( "TM - transaction " ) + cc.info( txId ) + " status " + cc.info( r.status ) +
+            cc.debug( " was unsuccessful" ) + "\n" );
+        details.write( cc.debug( "TM - transaction " ) + cc.info( txId ) + " status " + cc.info( r.status ) +
+            cc.debug( " was unsuccessful" ) + "\n" );
+        return null;
     }
-    details.write( cc.debug( "TM - TX hash is " ) + cc.info( hash ) + "\n" );
-    // return await w3.eth.getTransactionReceipt( hash );
-    return await get_web3_transactionReceipt( details, 10, w3, hash );
+    return await get_web3_transactionReceipt( details, 10, w3, r.tx_hash );
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -714,25 +730,31 @@ async function tm_wait( details, tx_id, w3 ) {
 async function tm_ensure_transaction( details, w3, priority, txAdjusted, cntAttempts, sleepMilliseconds ) {
     cntAttempts = cntAttempts || 10;
     sleepMilliseconds = sleepMilliseconds || 3000;
-    let tx_id = "";
+    let txId = "";
     let joReceipt = null;
     let idxAttempt = 0;
     for( ; idxAttempt < cntAttempts; ++idxAttempt ) {
-        tx_id = await tm_send( details, txAdjusted, priority );
-        details.write( cc.debug( "TM - generated TX ID: " ) + cc.info( tx_id ) + "\n" );
-        joReceipt = await tm_wait( details, tx_id, w3 );
+        txId = await tm_send( details, txAdjusted, priority );
+        details.write( cc.debug( "TM - next TX ID: " ) + cc.info( txId ) + "\n" );
+        log.write( cc.debug( "TM - next TX ID: " ) + cc.info( txId ) + "\n" );
+        joReceipt = await tm_wait( details, txId, w3 );
         if( joReceipt )
             break;
-        details.write( cc.warning( "TM - unsuccessful TX sending attempt " ) + cc.info( idxAttempt ) + cc.warning( " of " ) + cc.info( cntAttempts ) + "\n" );
+        log.write( cc.warning( "TM - unsuccessful TX sending attempt " ) + cc.info( idxAttempt ) +
+            cc.warning( " of " ) + cc.info( cntAttempts ) +
+            cc.debug( " receipt: " ) + cc.info( joReceipt ) + "\n" );
+        details.write( cc.warning( "TM - unsuccessful TX sending attempt " ) + cc.info( idxAttempt ) +
+            cc.warning( " of " ) + cc.info( cntAttempts ) +
+            cc.debug( " receipt: " ) + cc.info( joReceipt ) + "\n" );
         await sleep( sleepMilliseconds );
     }
     if( !joReceipt ) {
-        details.write( cc.fatal( "BAD ERROR:" ) + " " + cc.error( "TM transaction " ) + cc.info( tx_id ) + cc.error( " transaction has been dropped" ) + "\n" );
-        log.write( cc.fatal( "BAD ERROR:" ) + " " + cc.error( "TM transaction " ) + cc.info( tx_id ) + cc.error( " transaction has been dropped" ) + "\n" );
-        throw new Error( "TM transaction " + tx_id + " transaction has been dropped" );
+        details.write( cc.fatal( "BAD ERROR:" ) + " " + cc.error( "TM transaction " ) + cc.info( txId ) + cc.error( " transaction has been dropped" ) + "\n" );
+        log.write( cc.fatal( "BAD ERROR:" ) + " " + cc.error( "TM transaction " ) + cc.info( txId ) + cc.error( " transaction has been dropped" ) + "\n" );
+        throw new Error( "TM unseccessful transaction " + txId + "" );
     }
     details.write( cc.success( "TM - successful TX sending attempt " ) + cc.info( idxAttempt ) + cc.success( " of " ) + cc.info( cntAttempts ) + "\n" );
-    return [ tx_id, joReceipt ];
+    return [ txId, joReceipt ];
 }
 
 async function safe_sign_transaction_with_account( details, w3, tx, rawTx, joAccount ) {
@@ -802,6 +824,11 @@ async function safe_sign_transaction_with_account( details, w3, tx, rawTx, joAcc
         await sleep( 5000 );
         await wait_for_transaction_receipt( details, w3, joSR.txHashSent );
         */
+        log.write(
+            cc.debug( "Will sign with Transaction Manager wallet, transaction is " ) + cc.j( tx ) +
+            cc.debug( ", raw transaction is " ) + cc.j( rawTx ) + "\n" +
+            cc.debug( " using account " ) + cc.j( joAccount ) + "\n"
+        );
         details.write(
             cc.debug( "Will sign with Transaction Manager wallet, transaction is " ) + cc.j( tx ) +
             cc.debug( ", raw transaction is " ) + cc.j( rawTx ) + "\n" +
@@ -1114,7 +1141,9 @@ async function register_s_chain_in_deposit_boxes( // step 1
         //
         const isIgnore = false;
         const strDRC = "register_s_chain_in_deposit_boxes, step 1, connectSchain";
-        await dry_run_call( details, w3_main_net, methodWithArguments, joAccount_main_net, strDRC, isIgnore, gasPrice, estimatedGas, "0" );
+        const strErrorOfDryRun = await dry_run_call( details, w3_main_net, methodWithArguments, joAccount_main_net, strDRC, isIgnore, gasPrice, estimatedGas, "0" );
+        if( strErrorOfDryRun )
+            throw new Error( strErrorOfDryRun );
         //
         const rawTx = {
             chainId: cid_main_net,
@@ -1178,7 +1207,7 @@ async function register_s_chain_in_deposit_boxes( // step 1
 async function reimbursement_show_balance(
     w3_main_net,
     jo_community_pool,
-    joAccount_main_net,
+    joReceiver_main_net,
     strChainName_main_net,
     cid_main_net,
     tc_main_net,
@@ -1189,11 +1218,12 @@ async function reimbursement_show_balance(
     let s = "";
     const strLogPrefix = cc.info( "Gas Reimbursement - Show Balance" ) + " ";
     try {
-        details.write( strLogPrefix + cc.debug( "Querying wallet " ) + cc.notice( strReimbursementChain ) + cc.debug( " balance..." ) + "\n" );
-        const addressFrom = joAccount_main_net.address( w3_main_net );
-        const xWei = await jo_community_pool.methods.getBalance( addressFrom, strReimbursementChain ).call( {
-            from: addressFrom
-        } );
+        const addressFrom = joReceiver_main_net;
+        details.write( strLogPrefix +
+            cc.debug( "Querying wallet " ) + cc.notice( strReimbursementChain ) +
+            cc.debug( "/" ) + cc.info( addressFrom ) +
+            cc.debug( " balance..." ) + "\n" );
+        const xWei = await jo_community_pool.methods.getBalance( addressFrom, strReimbursementChain ).call();
         //
         s = strLogPrefix + cc.success( "Balance(wei): " ) + cc.attention( xWei ) + "\n";
         if( isForcePrintOut || verbose_get() >= RV_VERBOSE.information )
@@ -1216,6 +1246,85 @@ async function reimbursement_show_balance(
             log.write( s );
         details.write( s );
         details.exposeDetailsTo( log, "reimbursement_show_balance", false );
+        details.close();
+        return 0;
+    }
+}
+
+async function reimbursement_estimate_amount(
+    w3_main_net,
+    jo_community_pool,
+    joReceiver_main_net,
+    strChainName_main_net,
+    cid_main_net,
+    tc_main_net,
+    strReimbursementChain,
+    isForcePrintOut
+) {
+    const details = log.createMemoryStream();
+    let s = "";
+    const strLogPrefix = cc.info( "Gas Reimbursement - Estimate Amount To Recharge" ) + " ";
+    try {
+        details.write( strLogPrefix + cc.debug( "Querying wallet " ) + cc.notice( strReimbursementChain ) + cc.debug( " balance..." ) + "\n" );
+        const addressReceiver = joReceiver_main_net;
+        const xWei = await jo_community_pool.methods.getBalance( addressReceiver, strReimbursementChain ).call();
+        //
+        s = strLogPrefix + cc.success( "Balance(wei): " ) + cc.attention( xWei ) + "\n";
+        if( isForcePrintOut || verbose_get() >= RV_VERBOSE.information )
+            log.write( s );
+        details.write( s );
+        //
+        const xEth = w3_main_net.utils.fromWei( xWei, "ether" );
+        s = strLogPrefix + cc.success( "Balance(eth): " ) + cc.attention( xEth ) + "\n";
+        if( isForcePrintOut || verbose_get() >= RV_VERBOSE.information )
+            log.write( s );
+        details.write( s );
+        //
+        const minTransactionGas = parseIntOrHex( await jo_community_pool.methods.minTransactionGas().call() );
+        s = strLogPrefix + cc.success( "MinTransactionGas: " ) + cc.attention( minTransactionGas ) + "\n";
+        if( isForcePrintOut || verbose_get() >= RV_VERBOSE.information )
+            log.write( s );
+        details.write( s );
+        //
+        const gasPrice = await tc_main_net.computeGasPrice( w3_main_net, 200000000000 );
+        s = strLogPrefix + cc.success( "Multiplied Gas Price: " ) + cc.attention( gasPrice ) + "\n";
+        if( isForcePrintOut || verbose_get() >= RV_VERBOSE.information )
+            log.write( s );
+        details.write( s );
+        //
+        const minAmount = minTransactionGas * gasPrice;
+        s = strLogPrefix + cc.success( "Minimum recharge balance: " ) + cc.attention( minAmount ) + "\n";
+        if( isForcePrintOut || verbose_get() >= RV_VERBOSE.information )
+            log.write( s );
+        details.write( s );
+        //
+        let amountToRecharge;
+        if( xWei >= minAmount )
+            amountToRecharge = 1;
+        else
+            amountToRecharge = minAmount - xWei;
+
+        s = strLogPrefix + cc.success( "Estimated amount to recharge(wei): " ) + cc.attention( amountToRecharge ) + "\n";
+        if( isForcePrintOut || verbose_get() >= RV_VERBOSE.information )
+            log.write( s );
+        details.write( s );
+        //
+        const amountToRechargeEth = w3_main_net.utils.fromWei( amountToRecharge.toString(), "ether" );
+        s = strLogPrefix + cc.success( "Estimated amount to recharge(eth): " ) + cc.attention( amountToRechargeEth ) + "\n";
+        if( isForcePrintOut || verbose_get() >= RV_VERBOSE.information )
+            log.write( s );
+        details.write( s );
+        //
+        if( expose_details_get() )
+            details.exposeDetailsTo( log, "reimbursement_estimate_amount", true );
+        details.close();
+        return amountToRecharge;
+    } catch ( err ) {
+        const s = strLogPrefix + cc.fatal( "CRITICAL ERROR:" ) + cc.error( " Payment error in reimbursement_estimate_amount(): " ) + cc.error( err ) + "\n";
+        if( verbose_get() >= RV_VERBOSE.fatal )
+            log.write( s );
+        details.write( s );
+        details.exposeDetailsTo( log, "reimbursement_estimate_amount", false );
         details.close();
         return 0;
     }
@@ -1244,9 +1353,11 @@ async function reimbursement_wallet_recharge(
         details.write( strLogPrefix + cc.debug( "Got " ) + cc.info( tcnt ) + cc.debug( " from " ) + cc.notice( strActionName ) + "\n" );
         //
         //
+        const addressReceiver = joAccount_main_net.address( w3_main_net );
         const methodWithArguments = jo_community_pool.methods.rechargeUserWallet(
             // call params, last is destination account on S-chain
-            strReimbursementChain
+            strReimbursementChain,
+            addressReceiver
         );
         const dataTx = methodWithArguments.encodeABI(); // the encoded ABI of the method
         //
@@ -1257,7 +1368,9 @@ async function reimbursement_wallet_recharge(
         //
         const isIgnore = false;
         const strDRC = "reimbursement_wallet_recharge";
-        await dry_run_call( details, w3_main_net, methodWithArguments, joAccount_main_net, strDRC, isIgnore, gasPrice, estimatedGas, nReimbursementRecharge );
+        const strErrorOfDryRun = await dry_run_call( details, w3_main_net, methodWithArguments, joAccount_main_net, strDRC, isIgnore, gasPrice, estimatedGas, nReimbursementRecharge );
+        if( strErrorOfDryRun )
+            throw new Error( strErrorOfDryRun );
         //
         const rawTx = {
             chainId: cid_main_net,
@@ -1341,7 +1454,9 @@ async function reimbursement_wallet_withdraw(
         //
         const isIgnore = false;
         const strDRC = "reimbursement_wallet_withdraw";
-        await dry_run_call( details, w3_main_net, methodWithArguments, joAccount_main_net, strDRC, isIgnore, gasPrice, estimatedGas, wei_how_much );
+        const strErrorOfDryRun = await dry_run_call( details, w3_main_net, methodWithArguments, joAccount_main_net, strDRC, isIgnore, gasPrice, estimatedGas, wei_how_much );
+        if( strErrorOfDryRun )
+            throw new Error( strErrorOfDryRun );
         //
         const rawTx = {
             chainId: cid_main_net,
@@ -1406,6 +1521,7 @@ async function reimbursement_set_range(
         //
         strActionName = "w3_s_chain.eth.getTransactionCount()";
         details.write( strLogPrefix + cc.debug( "Will call " ) + cc.notice( strActionName ) + cc.debug( "..." ) + "\n" );
+        const accountForSchain = joAccount_s_chain.address( w3_s_chain );
         const tcnt = await get_web3_transactionCount( details, 10, w3_s_chain, joAccount_s_chain.address( w3_s_chain ), null );
         details.write( strLogPrefix + cc.debug( "Got " ) + cc.info( tcnt ) + cc.debug( " from " ) + cc.notice( strActionName ) + "\n" );
         //
@@ -1423,10 +1539,13 @@ async function reimbursement_set_range(
         //
         const isIgnore = false;
         const strDRC = "reimbursement_set_range";
-        await dry_run_call( details, w3_s_chain, methodWithArguments, joAccount_s_chain, strDRC, isIgnore, gasPrice, estimatedGas, wei_how_much );
+        const strErrorOfDryRun = await dry_run_call( details, w3_s_chain, methodWithArguments, joAccount_s_chain, strDRC, isIgnore, gasPrice, estimatedGas, wei_how_much );
+        if( strErrorOfDryRun )
+            throw new Error( strErrorOfDryRun );
         //
         const rawTx = {
             chainId: cid_s_chain,
+            from: accountForSchain,
             nonce: tcnt,
             gasPrice: gasPrice,
             // gasLimit: estimatedGas,
@@ -1435,6 +1554,7 @@ async function reimbursement_set_range(
             data: dataTx,
             value: 0 // how much money to send
         };
+        await checkTransactionToSchain( w3_s_chain, rawTx, details );
         const tx = compose_tx_instance( details, strLogPrefix, rawTx );
         const joSR = await safe_sign_transaction_with_account( details, w3_s_chain, tx, rawTx, joAccount_s_chain );
         let joReceipt = null;
@@ -1508,7 +1628,7 @@ async function do_eth_payment_from_main_net(
         //
         const methodWithArguments = jo_deposit_box.methods.deposit(
             // call params, last is destination account on S-chain
-            chain_id_s_chain, joAccountDst.address( w3_main_net )
+            chain_id_s_chain
         );
         const dataTx = methodWithArguments.encodeABI(); // the encoded ABI of the method
         //
@@ -1519,7 +1639,9 @@ async function do_eth_payment_from_main_net(
         //
         const isIgnore = false;
         const strDRC = "do_eth_payment_from_main_net, deposit";
-        await dry_run_call( details, w3_main_net, methodWithArguments, joAccountSrc, strDRC, isIgnore, gasPrice, estimatedGas, wei_how_much );
+        const strErrorOfDryRun = await dry_run_call( details, w3_main_net, methodWithArguments, joAccountSrc, strDRC, isIgnore, gasPrice, estimatedGas, wei_how_much );
+        if( strErrorOfDryRun )
+            throw new Error( strErrorOfDryRun );
         //
         const rawTx = {
             chainId: cid_main_net,
@@ -1617,6 +1739,7 @@ async function do_eth_payment_from_s_chain(
         let gasPrice = await tc_s_chain.computeGasPrice( w3_s_chain, 200000000000 );
         details.write( strLogPrefix + cc.debug( "Using computed " ) + cc.info( "gasPrice" ) + cc.debug( "=" ) + cc.notice( gasPrice ) + "\n" ); //
         //
+        const accountForSchain = joAccountSrc.address( w3_s_chain );
         const tcnt = await get_web3_transactionCount( details, 10, w3_s_chain, joAccountSrc.address( w3_s_chain ), null );
         details.write( strLogPrefix + cc.debug( "Got " ) + cc.info( tcnt ) + cc.debug( " from " ) + cc.notice( strActionName ) + "\n" );
         //
@@ -1624,7 +1747,6 @@ async function do_eth_payment_from_s_chain(
         strActionName = "jo_token_manager_eth.methods.exitToMain()/do_eth_payment_from_s_chain";
         const methodWithArguments = jo_token_manager_eth.methods.exitToMain(
             // call params, last is destination account on S-chain
-            joAccountDst.address( w3_s_chain ),
             "0x" + w3_s_chain.utils.toBN( wei_how_much ).toString( 16 )
         );
         const dataTx = methodWithArguments.encodeABI(); // the encoded ABI of the method
@@ -1637,10 +1759,13 @@ async function do_eth_payment_from_s_chain(
         //
         const isIgnore = true;
         const strDRC = "do_eth_payment_from_s_chain, exitToMain";
-        await dry_run_call( details, w3_s_chain, methodWithArguments, joAccountSrc, strDRC, isIgnore, gasPrice, estimatedGas, "0" );
+        const strErrorOfDryRun = await dry_run_call( details, w3_s_chain, methodWithArguments, joAccountSrc, strDRC, isIgnore, gasPrice, estimatedGas, "0" );
+        if( strErrorOfDryRun )
+            throw new Error( strErrorOfDryRun );
         //
         const rawTx = {
             chainId: cid_s_chain,
+            from: accountForSchain,
             nonce: tcnt,
             gasPrice: gasPrice,
             // "gasLimit": 3000000,
@@ -1649,6 +1774,7 @@ async function do_eth_payment_from_s_chain(
             data: dataTx,
             value: 0 // how much money to send
         };
+        await checkTransactionToSchain( w3_s_chain, rawTx, details );
         const tx = compose_tx_instance( details, strLogPrefix, rawTx );
         const joSR = await safe_sign_transaction_with_account( details, w3_s_chain, tx, rawTx, joAccountSrc );
         let joReceipt = null;
@@ -1727,7 +1853,9 @@ async function receive_eth_payment_from_s_chain_on_main_net(
         //
         const isIgnore = false;
         const strDRC = "receive_eth_payment_from_s_chain_on_main_net, getMyEth";
-        await dry_run_call( details, w3_main_net, methodWithArguments, joAccount_main_net, strDRC, isIgnore, gasPrice, estimatedGas, "0" );
+        const strErrorOfDryRun = await dry_run_call( details, w3_main_net, methodWithArguments, joAccount_main_net, strDRC, isIgnore, gasPrice, estimatedGas, "0" );
+        if( strErrorOfDryRun )
+            throw new Error( strErrorOfDryRun );
         //
         const rawTx = {
             chainId: cid_main_net,
@@ -1853,7 +1981,6 @@ async function do_erc721_payment_from_main_net(
         const contractERC721 = new w3_main_net.eth.Contract( erc721ABI, erc721Address_main_net );
         // prepare the smart contract function deposit(string schainName, address to)
         const depositBoxAddress = jo_deposit_box_erc721.options.address;
-        const accountForSchain = joAccountDst.address( w3_s_chain );
         const methodWithArguments_approve = contractERC721.methods.approve( // same as approve in 20
             // joAccountSrc.address( w3_main_net ),
             depositBoxAddress,
@@ -1864,7 +1991,6 @@ async function do_erc721_payment_from_main_net(
         const methodWithArguments_rawDepositERC721 = jo_deposit_box_erc721.methods.depositERC721(
             chain_id_s_chain,
             erc721Address_main_net,
-            accountForSchain,
             "0x" + w3_main_net.utils.toBN( token_id ).toString( 16 )
         );
         dataTxDeposit = methodWithArguments_rawDepositERC721.encodeABI();
@@ -1881,7 +2007,9 @@ async function do_erc721_payment_from_main_net(
         //
         const isIgnore_approve = false;
         const strDRC_approve = "do_erc721_payment_from_main_net, approve";
-        await dry_run_call( details, w3_main_net, methodWithArguments_approve, joAccountSrc, strDRC_approve, isIgnore_approve, gasPrice, estimatedGas_approve, "0" );
+        const strErrorOfDryRun_approve = await dry_run_call( details, w3_main_net, methodWithArguments_approve, joAccountSrc, strDRC_approve, isIgnore_approve, gasPrice, estimatedGas_approve, "0" );
+        if( strErrorOfDryRun_approve )
+            throw new Error( strErrorOfDryRun_approve );
         //
         const rawTxApprove = {
             chainId: cid_main_net,
@@ -1925,7 +2053,9 @@ async function do_erc721_payment_from_main_net(
         //
         const isIgnore_rawDepositERC721 = true;
         const strDRC_rawDepositERC721 = "do_erc721_payment_from_main_net, rawDepositERC721";
-        await dry_run_call( details, w3_main_net, methodWithArguments_rawDepositERC721, joAccountSrc, strDRC_rawDepositERC721, isIgnore_rawDepositERC721, gasPrice, estimatedGas_deposit, "0" );
+        const strErrorOfDryRun_rawDepositERC721 = await dry_run_call( details, w3_main_net, methodWithArguments_rawDepositERC721, joAccountSrc, strDRC_rawDepositERC721, isIgnore_rawDepositERC721, gasPrice, estimatedGas_deposit, "0" );
+        if( strErrorOfDryRun_rawDepositERC721 )
+            throw new Error( strErrorOfDryRun_rawDepositERC721 );
         //
         const rawTxDeposit = {
             chainId: cid_main_net,
@@ -2040,7 +2170,6 @@ async function do_erc20_payment_from_main_net(
         const contractERC20 = new w3_main_net.eth.Contract( erc20ABI, erc20Address_main_net );
         // prepare the smart contract function deposit(string schainName, address to)
         const depositBoxAddress = jo_deposit_box_erc20.options.address;
-        const accountForSchain = joAccountDst.address( w3_s_chain );
         const methodWithArguments_approve = contractERC20.methods.approve(
             depositBoxAddress, "0x" + w3_main_net.utils.toBN( token_amount ).toString( 16 )
         );
@@ -2049,7 +2178,6 @@ async function do_erc20_payment_from_main_net(
         const methodWithArguments_rawDepositERC20 = jo_deposit_box_erc20.methods.depositERC20(
             chain_id_s_chain,
             erc20Address_main_net,
-            accountForSchain,
             "0x" + w3_main_net.utils.toBN( token_amount ).toString( 16 )
         );
         dataTxDeposit = methodWithArguments_rawDepositERC20.encodeABI();
@@ -2066,7 +2194,9 @@ async function do_erc20_payment_from_main_net(
         //
         const isIgnore_approve = false;
         const strDRC_approve = "do_erc20_payment_from_main_net, approve";
-        await dry_run_call( details, w3_main_net, methodWithArguments_approve, joAccountSrc, strDRC_approve, isIgnore_approve, gasPrice, estimatedGas_approve, "0" );
+        const strErrorOfDryRun_approve = await dry_run_call( details, w3_main_net, methodWithArguments_approve, joAccountSrc, strDRC_approve, isIgnore_approve, gasPrice, estimatedGas_approve, "0" );
+        if( strErrorOfDryRun_approve )
+            throw new Error( strErrorOfDryRun_approve );
         //
         const rawTxApprove = {
             chainId: cid_main_net,
@@ -2109,7 +2239,9 @@ async function do_erc20_payment_from_main_net(
         //
         const isIgnore_rawDepositERC20 = true;
         const strDRC_rawDepositERC20 = "do_erc20_payment_from_main_net, rawDepositERC20";
-        await dry_run_call( details, w3_main_net, methodWithArguments_rawDepositERC20, joAccountSrc, strDRC_rawDepositERC20, isIgnore_rawDepositERC20, gasPrice, estimatedGas_deposit, "0" );
+        const strErrorOfDryRun_rawDepositERC20 = await dry_run_call( details, w3_main_net, methodWithArguments_rawDepositERC20, joAccountSrc, strDRC_rawDepositERC20, isIgnore_rawDepositERC20, gasPrice, estimatedGas_deposit, "0" );
+        if( strErrorOfDryRun_rawDepositERC20 )
+            throw new Error( strErrorOfDryRun_rawDepositERC20 );
         //
         tcnt += 1;
         const rawTxDeposit = {
@@ -2218,7 +2350,6 @@ async function do_erc1155_payment_from_main_net(
         const contractERC1155 = new w3_main_net.eth.Contract( erc1155ABI, erc1155Address_main_net );
         // prepare the smart contract function deposit(string schainName, address to)
         const depositBoxAddress = jo_deposit_box_erc1155.options.address;
-        const accountForSchain = joAccountDst.address( w3_s_chain );
         const methodWithArguments_approve = contractERC1155.methods.setApprovalForAll( // same as approve in 20
             // joAccountSrc.address( w3_main_net ),
             depositBoxAddress,
@@ -2229,7 +2360,6 @@ async function do_erc1155_payment_from_main_net(
         const methodWithArguments_rawDepositERC1155 = jo_deposit_box_erc1155.methods.depositERC1155(
             chain_id_s_chain,
             erc1155Address_main_net,
-            accountForSchain,
             "0x" + w3_main_net.utils.toBN( token_id ).toString( 16 ),
             "0x" + w3_main_net.utils.toBN( token_amount ).toString( 16 )
         );
@@ -2247,7 +2377,9 @@ async function do_erc1155_payment_from_main_net(
         //
         const isIgnore_approve = false;
         const strDRC_approve = "do_erc1155_payment_from_main_net, approve";
-        await dry_run_call( details, w3_main_net, methodWithArguments_approve, joAccountSrc, strDRC_approve, isIgnore_approve, gasPrice, estimatedGas_approve, "0" );
+        const strErrorOfDryRun_approve = await dry_run_call( details, w3_main_net, methodWithArguments_approve, joAccountSrc, strDRC_approve, isIgnore_approve, gasPrice, estimatedGas_approve, "0" );
+        if( strErrorOfDryRun_approve )
+            throw new Error( strErrorOfDryRun_approve );
         //
         const rawTxApprove = {
             chainId: cid_main_net,
@@ -2291,7 +2423,9 @@ async function do_erc1155_payment_from_main_net(
         //
         const isIgnore_rawDepositERC1155 = true;
         const strDRC_rawDepositERC1155 = "do_erc1155_payment_from_main_net, rawDepositERC1155";
-        await dry_run_call( details, w3_main_net, methodWithArguments_rawDepositERC1155, joAccountSrc, strDRC_rawDepositERC1155, isIgnore_rawDepositERC1155, gasPrice, estimatedGas_deposit, "0" );
+        const strErrorOfDryRun_rawDepositERC1155 = await dry_run_call( details, w3_main_net, methodWithArguments_rawDepositERC1155, joAccountSrc, strDRC_rawDepositERC1155, isIgnore_rawDepositERC1155, gasPrice, estimatedGas_deposit, "0" );
+        if( strErrorOfDryRun_rawDepositERC1155 )
+            throw new Error( strErrorOfDryRun_rawDepositERC1155 );
         //
         const rawTxDeposit = {
             chainId: cid_main_net,
@@ -2400,7 +2534,6 @@ async function do_erc1155_batch_payment_from_main_net(
         const contractERC1155 = new w3_main_net.eth.Contract( erc1155ABI, erc1155Address_main_net );
         // prepare the smart contract function deposit(string schainName, address to)
         const depositBoxAddress = jo_deposit_box_erc1155.options.address;
-        const accountForSchain = joAccountDst.address( w3_s_chain );
         const methodWithArguments_approve = contractERC1155.methods.setApprovalForAll( // same as approve in 20
             // joAccountSrc.address( w3_main_net ),
             depositBoxAddress,
@@ -2411,7 +2544,6 @@ async function do_erc1155_batch_payment_from_main_net(
         const methodWithArguments_rawDepositERC1155Batch = jo_deposit_box_erc1155.methods.depositERC1155Batch(
             chain_id_s_chain,
             erc1155Address_main_net,
-            accountForSchain,
             token_ids, //"0x" + w3_main_net.utils.toBN( token_id ).toString( 16 ),
             token_amounts //"0x" + w3_main_net.utils.toBN( token_amount ).toString( 16 )
         );
@@ -2429,7 +2561,9 @@ async function do_erc1155_batch_payment_from_main_net(
         //
         const isIgnore_approve = false;
         const strDRC_approve = "do_erc1155_batch_payment_from_main_net, approve";
-        await dry_run_call( details, w3_main_net, methodWithArguments_approve, joAccountSrc, strDRC_approve, isIgnore_approve, gasPrice, estimatedGas_approve, "0" );
+        const strErrorOfDryRun_approve = await dry_run_call( details, w3_main_net, methodWithArguments_approve, joAccountSrc, strDRC_approve, isIgnore_approve, gasPrice, estimatedGas_approve, "0" );
+        if( strErrorOfDryRun_approve )
+            throw new Error( strErrorOfDryRun_approve );
         //
         const rawTxApprove = {
             chainId: cid_main_net,
@@ -2473,7 +2607,9 @@ async function do_erc1155_batch_payment_from_main_net(
         //
         const isIgnore_rawDepositERC1155Batch = true;
         const strDRC_rawDepositERC1155Batch = "do_erc1155_batch_payment_from_main_net, rawDepositERC1155Batch";
-        await dry_run_call( details, w3_main_net, methodWithArguments_rawDepositERC1155Batch, joAccountSrc, strDRC_rawDepositERC1155Batch, isIgnore_rawDepositERC1155Batch, gasPrice, estimatedGas_deposit, "0" );
+        const strErrorOfDryRun_rawDepositERC1155Batch = await dry_run_call( details, w3_main_net, methodWithArguments_rawDepositERC1155Batch, joAccountSrc, strDRC_rawDepositERC1155Batch, isIgnore_rawDepositERC1155Batch, gasPrice, estimatedGas_deposit, "0" );
+        if( strErrorOfDryRun_rawDepositERC1155Batch )
+            throw new Error( strErrorOfDryRun_rawDepositERC1155Batch );
         //
         const rawTxDeposit = {
             chainId: cid_main_net,
@@ -2576,7 +2712,6 @@ async function do_erc20_payment_from_s_chain(
         //
         //
         strActionName = "ERC20 prepare S->M";
-        const accountForMainnet = joAccountDst.address( w3_main_net );
         const accountForSchain = joAccountSrc.address( w3_s_chain );
         const erc20ABI = joErc20_s_chain[strCoinNameErc20_s_chain + "_abi"];
         const erc20Address_s_chain = joErc20_s_chain[strCoinNameErc20_s_chain + "_address"];
@@ -2593,7 +2728,6 @@ async function do_erc20_payment_from_s_chain(
         const erc20Address_main_net = joErc20_main_net[strCoinNameErc20_main_net + "_address"];
         const methodWithArguments_rawExitToMainERC20 = jo_token_manager_erc20.methods.exitToMainERC20(
             erc20Address_main_net,
-            accountForMainnet,
             "0x" + w3_main_net.utils.toBN( token_amount ).toString( 16 )
             // "0x" + w3_main_net.utils.toBN( wei_how_much ).toString( 16 )
         );
@@ -2612,7 +2746,9 @@ async function do_erc20_payment_from_s_chain(
         //
         const isIgnore_approve = false;
         const strDRC_approve = "do_erc20_payment_from_s_chain, approve";
-        await dry_run_call( details, w3_s_chain, methodWithArguments_approve, joAccountSrc, strDRC_approve, isIgnore_approve, gasPrice, estimatedGas_approve, "0" );
+        const strErrorOfDryRun_approve = await dry_run_call( details, w3_s_chain, methodWithArguments_approve, joAccountSrc, strDRC_approve, isIgnore_approve, gasPrice, estimatedGas_approve, "0" );
+        if( strErrorOfDryRun_approve )
+            throw new Error( strErrorOfDryRun_approve );
         //
         let tcnt = parseIntOrHex( await get_web3_transactionCount( details, 10, w3_s_chain, joAccountSrc.address( w3_s_chain ), null ) );
         details.write( strLogPrefix + cc.debug( "Got " ) + cc.info( tcnt ) + cc.debug( " from " ) + cc.notice( strActionName ) + "\n" );
@@ -2625,6 +2761,7 @@ async function do_erc20_payment_from_s_chain(
             gasPrice: gasPrice,
             gas: estimatedGas_approve
         };
+        await checkTransactionToSchain( w3_s_chain, rawTxApprove, details );
         const txApprove = compose_tx_instance( details, strLogPrefix, rawTxApprove );
         strActionName = "sign ERC20/approve transaction S->M";
         const joApproveSR = await safe_sign_transaction_with_account( details, w3_s_chain, txApprove, rawTxApprove, joAccountSrc );
@@ -2665,7 +2802,9 @@ async function do_erc20_payment_from_s_chain(
         //
         const isIgnore_rawExitToMainERC20 = true;
         const strDRC_rawExitToMainERC20 = "do_erc20_payment_from_s_chain, rawExitToMainERC20";
-        await dry_run_call( details, w3_s_chain, methodWithArguments_rawExitToMainERC20, joAccountSrc, strDRC_rawExitToMainERC20, isIgnore_rawExitToMainERC20, gasPrice, estimatedGas_rawExitToMainERC20, "0" );
+        const strErrorOfDryRun_rawExitToMainERC20 = await dry_run_call( details, w3_s_chain, methodWithArguments_rawExitToMainERC20, joAccountSrc, strDRC_rawExitToMainERC20, isIgnore_rawExitToMainERC20, gasPrice, estimatedGas_rawExitToMainERC20, "0" );
+        if( strErrorOfDryRun_rawExitToMainERC20 )
+            throw new Error( strErrorOfDryRun_rawExitToMainERC20 );
         //
         const rawTxExitToMainERC20 = {
             chainId: cid_s_chain,
@@ -2676,6 +2815,7 @@ async function do_erc20_payment_from_s_chain(
             gasPrice: gasPrice,
             gas: estimatedGas_rawExitToMainERC20
         };
+        await checkTransactionToSchain( w3_s_chain, rawTxExitToMainERC20, details );
         const txExitToMainERC20 = compose_tx_instance( details, strLogPrefix, rawTxExitToMainERC20 );
         strActionName = "sign ERC20/exitToMain transaction S->M";
         const joExitToMainERC20SR = await safe_sign_transaction_with_account( details, w3_s_chain, txExitToMainERC20, rawTxExitToMainERC20, joAccountSrc );
@@ -2753,7 +2893,6 @@ async function do_erc721_payment_from_s_chain(
         //
         //
         strActionName = "ERC721 prepare S->M";
-        const accountForMainnet = joAccountDst.address( w3_main_net );
         const accountForSchain = joAccountSrc.address( w3_s_chain );
         const erc721ABI = joErc721_s_chain[strCoinNameErc721_s_chain + "_abi"];
         const erc721Address_s_chain = joErc721_s_chain[strCoinNameErc721_s_chain + "_address"];
@@ -2771,7 +2910,6 @@ async function do_erc721_payment_from_s_chain(
         const erc721Address_main_net = joErc721_main_net[strCoinNameErc721_main_net + "_address"];
         const methodWithArguments_rawExitToMainERC721 = jo_token_manager_erc721.methods.exitToMainERC721(
             erc721Address_main_net,
-            accountForMainnet,
             "0x" + w3_main_net.utils.toBN( token_id ).toString( 16 )
             // "0x" + w3_main_net.utils.toBN( wei_how_much ).toString( 16 )
         );
@@ -2792,7 +2930,9 @@ async function do_erc721_payment_from_s_chain(
         //
         const isIgnore_approve = false;
         const strDRC_approve = "erc721_payment_from_s_chain, approve";
-        await dry_run_call( details, w3_s_chain, methodWithArguments_approve, joAccountSrc, strDRC_approve,isIgnore_approve, gasPrice, estimatedGas_approve, "0" );
+        const strErrorOfDryRun_approve = await dry_run_call( details, w3_s_chain, methodWithArguments_approve, joAccountSrc, strDRC_approve,isIgnore_approve, gasPrice, estimatedGas_approve, "0" );
+        if( strErrorOfDryRun_approve )
+            throw new Error( strErrorOfDryRun_approve );
         //
         const rawTxApprove = {
             chainId: cid_s_chain,
@@ -2803,6 +2943,7 @@ async function do_erc721_payment_from_s_chain(
             gasPrice: gasPrice,
             gas: estimatedGas_approve
         };
+        await checkTransactionToSchain( w3_s_chain, rawTxApprove, details );
         const txApprove = compose_tx_instance( details, strLogPrefix, rawTxApprove );
         strActionName = "sign ERC721/approve transaction S->M";
         const joApproveSR = await safe_sign_transaction_with_account( details, w3_s_chain, txApprove, rawTxApprove, joAccountSrc );
@@ -2844,21 +2985,20 @@ async function do_erc721_payment_from_s_chain(
         //
         const isIgnore_rawExitToMainERC721 = true;
         const strDRC_rawExitToMainERC721 = "erc721_payment_from_s_chain, rawExitToMainERC721";
-        await dry_run_call( details, w3_s_chain, methodWithArguments_rawExitToMainERC721, joAccountSrc, strDRC_rawExitToMainERC721, isIgnore_rawExitToMainERC721, gasPrice, estimatedGas_exitToMainERC721, "0" );
+        const strErrorOfDryRun_rawExitToMainERC721 = await dry_run_call( details, w3_s_chain, methodWithArguments_rawExitToMainERC721, joAccountSrc, strDRC_rawExitToMainERC721, isIgnore_rawExitToMainERC721, gasPrice, estimatedGas_exitToMainERC721, "0" );
+        if( strErrorOfDryRun_rawExitToMainERC721 )
+            throw new Error( strErrorOfDryRun_rawExitToMainERC721 );
         //
-        const rawTxExitToMainERC721 = compose_tx_instance(
-            details,
-            strLogPrefix,
-            {
-                chainId: cid_s_chain,
-                from: accountForSchain,
-                nonce: "0x" + tcnt.toString( 16 ),
-                data: dataTxExitToMainERC721,
-                to: tokenManagerAddress,
-                gasPrice: gasPrice,
-                gas: estimatedGas_exitToMainERC721
-            }
-        );
+        const rawTxExitToMainERC721 = {
+            chainId: cid_s_chain,
+            from: accountForSchain,
+            nonce: "0x" + tcnt.toString( 16 ),
+            data: dataTxExitToMainERC721,
+            to: tokenManagerAddress,
+            gasPrice: gasPrice,
+            gas: estimatedGas_exitToMainERC721
+        };
+        await checkTransactionToSchain( w3_s_chain, rawTxExitToMainERC721, details );
         const txExitToMainERC721 = compose_tx_instance( details, strLogPrefix, rawTxExitToMainERC721 );
         strActionName = "sign ERC721/rawExitToMain transaction S->M";
         const joExitToMainErc721SR = await safe_sign_transaction_with_account( details, w3_s_chain, txExitToMainERC721, rawTxExitToMainERC721, joAccountSrc );
@@ -2935,7 +3075,6 @@ async function do_erc1155_payment_from_s_chain(
         //
         //
         strActionName = "ERC1155 prepare S->M";
-        const accountForMainnet = joAccountDst.address( w3_main_net );
         const accountForSchain = joAccountSrc.address( w3_s_chain );
         const erc1155ABI = joErc1155_s_chain[strCoinNameErc1155_s_chain + "_abi"];
         const erc1155Address_s_chain = joErc1155_s_chain[strCoinNameErc1155_s_chain + "_address"];
@@ -2953,7 +3092,6 @@ async function do_erc1155_payment_from_s_chain(
         const erc1155Address_main_net = joErc1155_main_net[strCoinNameErc1155_main_net + "_address"];
         const methodWithArguments_rawExitToMainERC1155 = jo_token_manager_erc1155.methods.exitToMainERC1155(
             erc1155Address_main_net,
-            accountForMainnet,
             "0x" + w3_main_net.utils.toBN( token_id ).toString( 16 ),
             "0x" + w3_main_net.utils.toBN( token_amount ).toString( 16 )
             // "0x" + w3_main_net.utils.toBN( wei_how_much ).toString( 16 )
@@ -2975,7 +3113,9 @@ async function do_erc1155_payment_from_s_chain(
         //
         const isIgnore_approve = false;
         const strDRC_approve = "erc1155_payment_from_s_chain, approve";
-        await dry_run_call( details, w3_s_chain, methodWithArguments_approve, joAccountSrc, strDRC_approve,isIgnore_approve, gasPrice, estimatedGas_approve, "0" );
+        const strErrorOfDryRun_approve = await dry_run_call( details, w3_s_chain, methodWithArguments_approve, joAccountSrc, strDRC_approve,isIgnore_approve, gasPrice, estimatedGas_approve, "0" );
+        if( strErrorOfDryRun_approve )
+            throw new Error( strErrorOfDryRun_approve );
         //
         const rawTxApprove = {
             chainId: cid_s_chain,
@@ -2986,6 +3126,7 @@ async function do_erc1155_payment_from_s_chain(
             gasPrice: gasPrice,
             gas: estimatedGas_approve
         };
+        await checkTransactionToSchain( w3_s_chain, rawTxApprove, details );
         const txApprove = compose_tx_instance( details, strLogPrefix, rawTxApprove );
         strActionName = "sign ERC1155/approve transaction S->M";
         const joApproveSR = await safe_sign_transaction_with_account( details, w3_s_chain, txApprove, rawTxApprove, joAccountSrc );
@@ -3027,21 +3168,20 @@ async function do_erc1155_payment_from_s_chain(
         //
         const isIgnore_rawExitToMainERC1155 = true;
         const strDRC_rawExitToMainERC1155 = "erc1155_payment_from_s_chain, rawExitToMainERC1155";
-        await dry_run_call( details, w3_s_chain, methodWithArguments_rawExitToMainERC1155, joAccountSrc, strDRC_rawExitToMainERC1155, isIgnore_rawExitToMainERC1155, gasPrice, estimatedGas_exitToMainERC1155, "0" );
+        const strErrorOfDryRun_rawExitToMainERC1155 = await dry_run_call( details, w3_s_chain, methodWithArguments_rawExitToMainERC1155, joAccountSrc, strDRC_rawExitToMainERC1155, isIgnore_rawExitToMainERC1155, gasPrice, estimatedGas_exitToMainERC1155, "0" );
+        if( strErrorOfDryRun_rawExitToMainERC1155 )
+            throw new Error( strErrorOfDryRun_rawExitToMainERC1155 );
         //
-        const rawTxExitToMainERC1155 = compose_tx_instance(
-            details,
-            strLogPrefix,
-            {
-                chainId: cid_s_chain,
-                from: accountForSchain,
-                nonce: "0x" + tcnt.toString( 16 ),
-                data: dataTxExitToMainERC1155,
-                to: tokenManagerAddress,
-                gasPrice: gasPrice,
-                gas: estimatedGas_exitToMainERC1155
-            }
-        );
+        const rawTxExitToMainERC1155 = {
+            chainId: cid_s_chain,
+            from: accountForSchain,
+            nonce: "0x" + tcnt.toString( 16 ),
+            data: dataTxExitToMainERC1155,
+            to: tokenManagerAddress,
+            gasPrice: gasPrice,
+            gas: estimatedGas_exitToMainERC1155
+        };
+        await checkTransactionToSchain( w3_s_chain, rawTxExitToMainERC1155, details );
         const txExitToMainERC1155 = compose_tx_instance( details, strLogPrefix, rawTxExitToMainERC1155 );
         strActionName = "sign ERC1155/rawExitToMain transaction S->M";
         const joExitToMainErc1155SR = await safe_sign_transaction_with_account( details, w3_s_chain, txExitToMainERC1155, rawTxExitToMainERC1155, joAccountSrc );
@@ -3118,7 +3258,6 @@ async function do_erc1155_batch_payment_from_s_chain(
         //
         //
         strActionName = "ERC1155 Batch prepare S->M";
-        const accountForMainnet = joAccountDst.address( w3_main_net );
         const accountForSchain = joAccountSrc.address( w3_s_chain );
         const erc1155ABI = joErc1155_s_chain[strCoinNameErc1155_s_chain + "_abi"];
         const erc1155Address_s_chain = joErc1155_s_chain[strCoinNameErc1155_s_chain + "_address"];
@@ -3136,7 +3275,6 @@ async function do_erc1155_batch_payment_from_s_chain(
         const erc1155Address_main_net = joErc1155_main_net[strCoinNameErc1155_main_net + "_address"];
         const methodWithArguments_rawExitToMainERC1155Batch = jo_token_manager_erc1155.methods.exitToMainERC1155Batch(
             erc1155Address_main_net,
-            accountForMainnet,
             token_ids, //"0x" + w3_main_net.utils.toBN( token_id ).toString( 16 ),
             token_amounts //"0x" + w3_main_net.utils.toBN( token_amount ).toString( 16 )
             // "0x" + w3_main_net.utils.toBN( wei_how_much ).toString( 16 )
@@ -3158,7 +3296,9 @@ async function do_erc1155_batch_payment_from_s_chain(
         //
         const isIgnore_approve = false;
         const strDRC_approve = "erc1155_payment_from_s_chain, approve";
-        await dry_run_call( details, w3_s_chain, methodWithArguments_approve, joAccountSrc, strDRC_approve,isIgnore_approve, gasPrice, estimatedGas_approve, "0" );
+        const strErrorOfDryRun_approve = await dry_run_call( details, w3_s_chain, methodWithArguments_approve, joAccountSrc, strDRC_approve,isIgnore_approve, gasPrice, estimatedGas_approve, "0" );
+        if( strErrorOfDryRun_approve )
+            throw new Error( strErrorOfDryRun_approve );
         //
         const rawTxApprove = {
             chainId: cid_s_chain,
@@ -3169,6 +3309,7 @@ async function do_erc1155_batch_payment_from_s_chain(
             gasPrice: gasPrice,
             gas: estimatedGas_approve
         };
+        await checkTransactionToSchain( w3_s_chain, rawTxApprove, details );
         const txApprove = compose_tx_instance( details, strLogPrefix, rawTxApprove );
         strActionName = "sign ERC1155 Batch/approve transaction S->M";
         const joApproveSR = await safe_sign_transaction_with_account( details, w3_s_chain, txApprove, rawTxApprove, joAccountSrc );
@@ -3210,21 +3351,20 @@ async function do_erc1155_batch_payment_from_s_chain(
         //
         const isIgnore_rawExitToMainERC1155Batch = true;
         const strDRC_rawExitToMainERC1155Batch = "erc1155_batch_payment_from_s_chain, rawExitToMainERC1155Batch";
-        await dry_run_call( details, w3_s_chain, methodWithArguments_rawExitToMainERC1155Batch, joAccountSrc, strDRC_rawExitToMainERC1155Batch, isIgnore_rawExitToMainERC1155Batch, gasPrice, estimatedGas_exitToMainERC1155Batch, "0" );
+        const strErrorOfDryRun_rawExitToMainERC1155Batch = await dry_run_call( details, w3_s_chain, methodWithArguments_rawExitToMainERC1155Batch, joAccountSrc, strDRC_rawExitToMainERC1155Batch, isIgnore_rawExitToMainERC1155Batch, gasPrice, estimatedGas_exitToMainERC1155Batch, "0" );
+        if( strErrorOfDryRun_rawExitToMainERC1155Batch )
+            throw new Error( strErrorOfDryRun_rawExitToMainERC1155Batch );
         //
-        const rawTxExitToMainERC1155Batch = compose_tx_instance(
-            details,
-            strLogPrefix,
-            {
-                chainId: cid_s_chain,
-                from: accountForSchain,
-                nonce: "0x" + tcnt.toString( 16 ),
-                data: dataTxExitToMainERC1155Batch,
-                to: tokenManagerAddress,
-                gasPrice: gasPrice,
-                gas: estimatedGas_exitToMainERC1155Batch
-            }
-        );
+        const rawTxExitToMainERC1155Batch = {
+            chainId: cid_s_chain,
+            from: accountForSchain,
+            nonce: "0x" + tcnt.toString( 16 ),
+            data: dataTxExitToMainERC1155Batch,
+            to: tokenManagerAddress,
+            gasPrice: gasPrice,
+            gas: estimatedGas_exitToMainERC1155Batch
+        };
+        await checkTransactionToSchain( w3_s_chain, rawTxExitToMainERC1155Batch, details );
         const txExitToMainERC1155Batch = compose_tx_instance( details, strLogPrefix, rawTxExitToMainERC1155Batch );
         strActionName = "sign ERC1155 Batch/rawExitToMain transaction S->M";
         const joExitToMainErc1155BatchSR = await safe_sign_transaction_with_account( details, w3_s_chain, txExitToMainERC1155Batch, rawTxExitToMainERC1155Batch, joAccountSrc );
@@ -3677,8 +3817,9 @@ async function do_transfer(
         details.write( strLogPrefix + cc.debug( "Using internal signing stub function" ) + "\n" );
         fn_sign_messages = async function( jarrMessages, nIdxCurrentMsgBlockStart, details, fnAfter ) {
             details.write( strLogPrefix + cc.debug( "Message signing callback was " ) + cc.error( "not provided" ) +
-                cc.debug( " to IMA, message start index is " ) + cc.info( nIdxCurrentMsgBlockStart ) + cc.debug( ", have " ) +
-                cc.info( jarrMessages.length ) + cc.debug( " message(s) to process:" ) + cc.j( jarrMessages ) + "\n" );
+                cc.debug( " to IMA, first real message index is:" ) + cc.info( nIdxCurrentMsgBlockStart ) +
+                cc.debug( ", have " ) + cc.info( jarrMessages.length ) + cc.debug( " message(s) to process:" ) + cc.j( jarrMessages ) +
+                "\n" );
             await fnAfter( null, jarrMessages, null ); // null - no error, null - no signatures
         };
     } else
@@ -3749,7 +3890,7 @@ async function do_transfer(
                 return;
             }
             const arrMessageCounters = [];
-            const messages = [];
+            const jarrMessages = [];
             const nIdxCurrentMsgBlockStart = 0 + nIdxCurrentMsg;
             //
             // inner loop wil create block of transactions
@@ -3892,7 +4033,7 @@ async function do_transfer(
                             throw new Error( "Block \"timestamp\" is not a valid integer value: " + joBlock.timestamp );
                         const timestampBlock = owaspUtils.toInteger( joBlock.timestamp );
                         details.write( strLogPrefix + cc.debug( "Block   TS is " ) + cc.info( timestampBlock ) + "\n" );
-                        const timestampCurrent = parseInt( parseInt( Date.now().valueOf() ) / 1000 );
+                        const timestampCurrent = current_timestamp();
                         details.write( strLogPrefix + cc.debug( "Current TS is " ) + cc.info( timestampCurrent ) + "\n" );
                         const tsDiff = timestampCurrent - timestampBlock;
                         details.write( strLogPrefix + cc.debug( "Diff    TS is " ) + cc.info( tsDiff ) + "\n" );
@@ -3932,7 +4073,7 @@ async function do_transfer(
                 //
                 details.write( strLogPrefix + cc.debug( "Will process message counter value " ) + cc.info( nIdxCurrentMsg ) + "\n" );
                 arrMessageCounters.push( nIdxCurrentMsg );
-                messages.push( {
+                jarrMessages.push( {
                     sender: joValues.srcContract,
                     destinationContract: joValues.dstContract,
                     to: joValues.to,
@@ -4053,8 +4194,14 @@ async function do_transfer(
             //
             //
             strActionName = "sign messages";
-            await fn_sign_messages( messages, nIdxCurrentMsgBlockStart, details, async function( err, jarrMessages, joGlueResult ) {
+            details.write( strLogPrefix + cc.debug( "Will invoke message signing callback, first real message index is:" ) +
+                cc.info( nIdxCurrentMsgBlockStart ) + cc.info( jarrMessages.length ) + cc.debug( " message(s) to process:" ) + cc.j( jarrMessages ) +
+                "\n" );
+            await fn_sign_messages( jarrMessages, nIdxCurrentMsgBlockStart, details, async function( err, jarrMessages, joGlueResult ) {
                 const details = log.createMemoryStream();
+                details.write( strLogPrefix + cc.debug( "Did invoked message signing callback, first real message index is:" ) +
+                cc.info( nIdxCurrentMsgBlockStart ) + cc.info( jarrMessages.length ) + cc.debug( " message(s) to process:" ) + cc.j( jarrMessages ) +
+                "\n" );
                 if( err ) {
                     bErrorInSigningMessages = true;
                     const s = strLogPrefix + cc.fatal( "CRITICAL ERROR:" ) + cc.error( " Error signing messages: " ) + cc.error( err ) + "\n";
@@ -4111,7 +4258,7 @@ async function do_transfer(
                     // call params
                     chain_id_src,
                     nIdxCurrentMsgBlockStart,
-                    jarrMessages, // messages
+                    jarrMessages,
                     sign //, // bls signature components
                     // idxLastToPopNotIncluding
                 );
@@ -4122,7 +4269,7 @@ async function do_transfer(
                         chain_id_src,
                         chain_id_dst,
                         nIdxCurrentMsgBlockStart,
-                        jarrMessages, // messages
+                        jarrMessages,
                         [ signature.X, signature.Y ], // BLS glue of signatures
                         hashPoint.X, // G1.X from joGlueResult.hashSrc
                         hashPoint.Y, // G1.Y from joGlueResult.hashSrc
@@ -4142,10 +4289,13 @@ async function do_transfer(
                 //
                 const isIgnore_postIncomingMessages = false;
                 const strDRC_postIncomingMessages = "postIncomingMessages in message signer";
-                await dry_run_call( details, w3_dst, methodWithArguments_postIncomingMessages, joAccountDst, strDRC_postIncomingMessages,isIgnore_postIncomingMessages, gasPrice, estimatedGas_postIncomingMessages, "0" );
+                const strErrorOfDryRun = await dry_run_call( details, w3_dst, methodWithArguments_postIncomingMessages, joAccountDst, strDRC_postIncomingMessages,isIgnore_postIncomingMessages, gasPrice, estimatedGas_postIncomingMessages, "0" );
+                if( strErrorOfDryRun )
+                    throw new Error( strErrorOfDryRun );
                 //
                 const raw_tx_postIncomingMessages = {
                     chainId: cid_dst,
+                    from: joAccountDst.address( w3_dst ),
                     nonce: tcnt,
                     gas: estimatedGas_postIncomingMessages,
                     gasPrice: gasPrice,
@@ -4154,6 +4304,9 @@ async function do_transfer(
                     data: dataTx_postIncomingMessages //,
                     // "value": wei_amount // 1000000000000000000 // w3_dst.utils.toWei( (1).toString(), "ether" ) // how much money to send
                 };
+                if( chain_id_dst !== "Mainnet" )
+                    await checkTransactionToSchain( w3_dst, raw_tx_postIncomingMessages, details );
+
                 const tx_postIncomingMessages = compose_tx_instance( details, strLogPrefix, raw_tx_postIncomingMessages );
                 const joPostIncomingMessagesSR = await safe_sign_transaction_with_account( details, w3_dst, tx_postIncomingMessages, raw_tx_postIncomingMessages, joAccountDst );
                 let joReceipt = null;
@@ -4233,6 +4386,10 @@ async function do_transfer(
                 if( expose_details_get() )
                     details.exposeDetailsTo( log, "do_transfer", true );
                 details.close();
+            } ).catch( ( err ) => {
+                bErrorInSigningMessages = true;
+                if( verbose_get() >= RV_VERBOSE.fatal )
+                    log.write( strLogPrefix + cc.error( "Problem in transfer handler: " ) + cc.warning( err ) + "\n" );
             } );
             if( bErrorInSigningMessages )
                 break;
@@ -4337,6 +4494,47 @@ class TransactionCustomizer {
 
 const tc_main_net = new TransactionCustomizer( 1.25, 1.25 );
 const tc_s_chain = new TransactionCustomizer( null, 1.25 );
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+async function checkTransactionToSchain( w3_s_chain, tx, details ) {
+    const sender = tx.from;
+    const requiredBalance = tx.gasPrice * tx.gas;
+    const balance = await w3_s_chain.eth.getBalance( sender );
+    if( balance < requiredBalance ) {
+        details.write(
+            cc.normal( "Insufficient funds for " ) + cc.bright( tx.from ) +
+            cc.normal( "; Running PoW for mining " ) + cc.bright( tx.gas ) + " gas\n" );
+        const powNumber = await calculatePowNumber( sender, tx.nonce, tx.gas );
+        tx.gasPrice = ethereumjs_util.addHexPrefix( powNumber );
+    }
+    return tx;
+}
+
+async function calculatePowNumber( address, nonce, gas ) {
+    const path = require( "path" );
+    let _address = ethereumjs_util.addHexPrefix( address );
+    _address = ethereumjs_util.toChecksumAddress( _address );
+    _address = ethereumjs_util.stripHexPrefix( _address );
+    const _nonce = parseIntOrHex( nonce );
+    const _gas = parseIntOrHex( gas );
+    const powScriptPath = path.join( __dirname, "pow" );
+    const cmd = `${powScriptPath} ${_address} ${_nonce} ${_gas}`;
+    return await execShellCommand( cmd );
+}
+
+function execShellCommand( cmd ) {
+    const exec = require( "child_process" ).exec;
+    return new Promise( ( resolve, reject ) => {
+        exec( cmd, ( error, stdout, stderr ) => {
+            if( error )
+                reject( new Error( stderr ) );
+            else
+                resolve( stdout ? stdout : stderr );
+        } );
+    } );
+}
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -4472,6 +4670,7 @@ module.exports.check_is_registered_s_chain_in_deposit_boxes = check_is_registere
 // module.exports.check_is_registered_main_net_on_s_chain = check_is_registered_main_net_on_s_chain; // step 2B
 
 module.exports.reimbursement_show_balance = reimbursement_show_balance;
+module.exports.reimbursement_estimate_amount = reimbursement_estimate_amount;
 module.exports.reimbursement_wallet_recharge = reimbursement_wallet_recharge;
 module.exports.reimbursement_wallet_withdraw = reimbursement_wallet_withdraw;
 module.exports.reimbursement_set_range = reimbursement_set_range;
