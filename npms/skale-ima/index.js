@@ -755,14 +755,15 @@ async function tm_ensure_transaction( details, w3, priority, txAdjusted, cntAtte
         log.write( cc.fatal( "BAD ERROR:" ) + " " + cc.error( "TM transaction " ) + cc.info( txId ) + cc.error( " transaction has been dropped" ) + "\n" );
         throw new Error( "TM unseccessful transaction " + txId + "" );
     }
-    details.write( cc.success( "TM - successful TX sending attempt " ) + cc.info( idxAttempt ) + cc.success( " of " ) + cc.info( cntAttempts ) + "\n" );
+    details.write( cc.success( "TM - successful TX, id: ") + cc.info( txId ) + cc.debug(", sending attempt " ) + cc.info( idxAttempt ) + cc.success( " of " ) + cc.info( cntAttempts ) + "\n" );
+    log.write( cc.success( "TM - successful TX, id: ") + cc.info( txId ) + cc.debug(", sending attempt " ) + cc.info( idxAttempt ) + cc.success( " of " ) + cc.info( cntAttempts ) + "\n" );
     return [ txId, joReceipt ];
 }
 
 async function safe_sign_transaction_with_account( details, w3, tx, rawTx, joAccount ) {
     const sendingCnt = loopTmSendingCnt++;
-    details.write( cc.debug( "Sending transaction with account " ) + cc.debug ( " sending cnt  " ) +  cc.info( sendingCnt ) + cc.debug( " rawTx " ) + cc.info( rawTx ) + "\n");
-    log.write( cc.debug( "Sending transaction to account " ) + cc.debug ( " sending cnt  " ) +  cc.info( sendingCnt ) + "\n" );
+    details.write( cc.debug( "Sending transaction with account " ) + cc.debug ( " sending cnt " ) +  cc.info( sendingCnt ) + cc.debug( " rawTx " ) + cc.info( rawTx ) + "\n");
+    log.write( cc.debug( "Sending transaction to account " ) + cc.debug ( " sending cnt " ) +  cc.info( sendingCnt ) + "\n" );
     const joSR = {
         joACI: get_account_connectivity_info( joAccount ),
         tx: null,
@@ -968,8 +969,8 @@ async function safe_sign_transaction_with_account( details, w3, tx, rawTx, joAcc
     } // switch( joSR.joACI.strType )
     details.write( cc.debug( "Signed transaction is " ) + cc.notice( JSON.stringify( tx ) ) + "\n" );
     joSR.tx = tx;
-    details.write( cc.debug( "Transaction with account completed " ) + cc.debug ( " sending cnt  " ) +  cc.info( sendingCnt ) ) + cc.debug( " rawTx " ) + cc.info( rawTx );
-    log.write( cc.debug( "Transaction with account completed  " ) + cc.debug ( " sending cnt  " ) +  cc.info( sendingCnt ) );
+    details.write( cc.debug( "Transaction with account completed " ) + cc.debug ( " sending cnt " ) +  cc.info( sendingCnt ) + cc.debug( " rawTx " ) + cc.info( rawTx ) + "\n");
+    log.write( cc.debug( "Transaction with account completed  " ) + cc.debug ( " sending cnt " ) +  cc.info( sendingCnt )  + "\n");
     return joSR;
 }
 

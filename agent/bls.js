@@ -711,8 +711,8 @@ async function do_sign_messages_impl( strDirection, jarrMessages, nIdxCurrentMsg
                     log.write( strErrorMessage );
                     details.write( strErrorMessage );
                 }
-                log.write( cc.debug( "Will call sending function (fn) for " ) + "\n");
-                details.write( cc.debug( "Will call sending function (fn) for " ) + cc.info( jarrMessages ) + "\n");
+                log.write( cc.debug( "Will call sending function (fn)" ) + "\n");
+                details.write( cc.debug( "Will call sending function (fn) for " ) +  "\n");
                 await fn( strError, jarrMessages, joGlueResult ).catch( ( err ) => {
                     const strErrorMessage = cc.error( "Problem(2) in BLS sign result handler: " ) + cc.warning( err ) + "\n";
                     log.write( strErrorMessage );
