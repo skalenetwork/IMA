@@ -9,7 +9,6 @@ from contracts.token_manager_erc721 import check_token_manager_erc721
 from contracts.token_manager_erc1155 import check_token_manager_erc1155
 from contracts.token_manager_eth import check_token_manager_eth
 from contracts.token_manager_linker import check_token_manager_linker
-from pkg_resources import get_distribution
 import json
 
 
@@ -26,10 +25,9 @@ with open('config.json') as config_file:
 
 
 def main():
-    version = get_distribution('ima_predeployed').version
     check_proxy_admin(owner_address)
     check_admin_upgradeability_proxy()
-    check_message_proxy_for_schain(owner_address, schain_name, version)
+    check_message_proxy_for_schain(owner_address, schain_name)
     check_key_storage(owner_address)
     check_community_locker(owner_address, schain_name, community_pool)
     check_token_manager_linker(owner_address, linker_address)

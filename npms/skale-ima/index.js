@@ -35,6 +35,7 @@ const ethereumjs_util = require( "ethereumjs-util" );
 
 const Redis = require( "ioredis" );
 let redis = null;
+let loopTmSendingCnt = 0;
 
 const log = require( "../skale-log/log.js" );
 const cc = log.cc;
@@ -210,6 +211,7 @@ async function get_web3_transactionCount( details, attempts, w3, address, param 
     }
     if( idxAttempt + 1 > cntAttempts && txc === "" )
         throw new Error( "Could not not get Transaction Count" );
+
     return txc;
 }
 
@@ -753,11 +755,15 @@ async function tm_ensure_transaction( details, w3, priority, txAdjusted, cntAtte
         log.write( cc.fatal( "BAD ERROR:" ) + " " + cc.error( "TM transaction " ) + cc.info( txId ) + cc.error( " transaction has been dropped" ) + "\n" );
         throw new Error( "TM unseccessful transaction " + txId + "" );
     }
-    details.write( cc.success( "TM - successful TX sending attempt " ) + cc.info( idxAttempt ) + cc.success( " of " ) + cc.info( cntAttempts ) + "\n" );
+    details.write( cc.success( "TM - successful TX, id: " ) + cc.info( txId ) + cc.debug( ", sending attempt " ) + cc.info( idxAttempt ) + cc.success( " of " ) + cc.info( cntAttempts ) + "\n" );
+    log.write( cc.success( "TM - successful TX, id: " ) + cc.info( txId ) + cc.debug( ", sending attempt " ) + cc.info( idxAttempt ) + cc.success( " of " ) + cc.info( cntAttempts ) + "\n" );
     return [ txId, joReceipt ];
 }
 
 async function safe_sign_transaction_with_account( details, w3, tx, rawTx, joAccount ) {
+    const sendingCnt = loopTmSendingCnt++;
+    details.write( cc.debug( "Sending transaction with account " ) + cc.debug( " sending cnt " ) + cc.info( sendingCnt ) + cc.debug( " rawTx " ) + cc.info( rawTx ) + "\n" );
+    log.write( cc.debug( "Sending transaction to account " ) + cc.debug( " sending cnt " ) + cc.info( sendingCnt ) + "\n" );
     const joSR = {
         joACI: get_account_connectivity_info( joAccount ),
         tx: null,
@@ -963,6 +969,8 @@ async function safe_sign_transaction_with_account( details, w3, tx, rawTx, joAcc
     } // switch( joSR.joACI.strType )
     details.write( cc.debug( "Signed transaction is " ) + cc.notice( JSON.stringify( tx ) ) + "\n" );
     joSR.tx = tx;
+    details.write( cc.debug( "Transaction with account completed " ) + cc.debug( " sending cnt " ) + cc.info( sendingCnt ) + cc.debug( " rawTx " ) + cc.info( rawTx ) + "\n" );
+    log.write( cc.debug( "Transaction with account completed  " ) + cc.debug( " sending cnt " ) + cc.info( sendingCnt ) + "\n" );
     return joSR;
 }
 
@@ -4197,11 +4205,14 @@ async function do_transfer(
             details.write( strLogPrefix + cc.debug( "Will invoke message signing callback, first real message index is:" ) +
                 cc.info( nIdxCurrentMsgBlockStart ) + cc.info( jarrMessages.length ) + cc.debug( " message(s) to process:" ) + cc.j( jarrMessages ) +
                 "\n" );
+            log.write( strLogPrefix + cc.debug( "Will invoke message signing callback, first real message index is:" ) +
+                cc.info( nIdxCurrentMsgBlockStart ) + cc.info( jarrMessages.length ) + cc.debug( " message(s) to process:" ) + cc.j( jarrMessages ) +
+                "\n" );
             await fn_sign_messages( jarrMessages, nIdxCurrentMsgBlockStart, details, async function( err, jarrMessages, joGlueResult ) {
                 const details = log.createMemoryStream();
                 details.write( strLogPrefix + cc.debug( "Did invoked message signing callback, first real message index is:" ) +
-                cc.info( nIdxCurrentMsgBlockStart ) + cc.info( jarrMessages.length ) + cc.debug( " message(s) to process:" ) + cc.j( jarrMessages ) +
-                "\n" );
+                cc.info( nIdxCurrentMsgBlockStart ) + cc.info( jarrMessages.length ) + cc.debug( " message(s) to process:" ) + cc.j( jarrMessages ) + "\n" );
+                log.write( strLogPrefix + cc.debug( "Did invoked message signing callback, " ) + cc.info( jarrMessages.length ) + cc.debug( " message(s) to process" ) + "\n" );
                 if( err ) {
                     bErrorInSigningMessages = true;
                     const s = strLogPrefix + cc.fatal( "CRITICAL ERROR:" ) + cc.error( " Error signing messages: " ) + cc.error( err ) + "\n";
@@ -4214,12 +4225,9 @@ async function do_transfer(
                     return;
                 }
                 if( "check_time_framing" in global && ( ! global.check_time_framing() ) ) {
-                    if( verbose_get() >= RV_VERBOSE.information ) {
-                        log.write(
-                            strLogPrefix + cc.error( "WARNING:" ) + " " +
-                            cc.warning( "Time framing overflow (after signing messages)" ) +
-                            "\n" );
-                    }
+                    if( verbose_get() >= RV_VERBOSE.information )
+                        log.write( strLogPrefix + cc.error( "WARNING:" ) + " " + cc.warning( "Time framing overflow (after signing messages)" ) + "\n" );
+
                     details.close();
                     return;
                 }
@@ -4237,6 +4245,7 @@ async function do_transfer(
                     cc.debug( ", " ) + cc.notice( "message counters =" ) + cc.debug( " are " ) + cc.info( JSON.stringify( arrMessageCounters ) ) +
                     cc.debug( "..." ) + "\n"
                 );
+                log.write( strLogPrefix + cc.debug( "Will call " ) + cc.notice( strActionName ) + cc.debug( " for " ) + "\n" );
                 //
                 //
                 let signature = joGlueResult ? joGlueResult.signature : null;
