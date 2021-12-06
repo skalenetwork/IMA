@@ -87,7 +87,7 @@ contract CommunityLocker is ICommunityLocker, AccessControlEnumerableUpgradeable
      * @dev Timestamp of previous sent message by user.
      */
     // user address => timestamp of last message
-    mapping(address => uint) private _lastMessageTimeStamp;
+    mapping(address => uint) public lastMessageTimeStamp;
 
     /**
      * @dev Emitted when a user becomes active.
@@ -167,10 +167,10 @@ contract CommunityLocker is ICommunityLocker, AccessControlEnumerableUpgradeable
         );
         require(activeUsers[receiver], "Recipient must be active");
         require(
-            _lastMessageTimeStamp[receiver] + timeLimitPerMessage < block.timestamp,
+            lastMessageTimeStamp[receiver] + timeLimitPerMessage < block.timestamp,
             "Trying to send messages too often"
         );
-        _lastMessageTimeStamp[receiver] = block.timestamp;
+        lastMessageTimeStamp[receiver] = block.timestamp;
     }
 
     /**
