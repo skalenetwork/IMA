@@ -454,4 +454,50 @@ describe("ERC721MintingFromSchainToMainnet", () => {
         expect(await ERC721TokenOnMainnet.ownerOf(5)).to.equal(user.address);
         expect(await ERC721TokenOnMainnet.tokenURI(5)).to.equal("MyToken5Unique");
     });
+
+    it("should POST message for token 11", async () => {
+        const longURI = "{\"description\":\"Something for Ivy.\",\"external_url\":\"https://openseacreatures.io/3\",\"image\":\"https://gateway.ipfs.io/ipfs/QmQYTMKWVnLHMfRfcRjJngt2TVR1JRy3aR2LcYdJowAW23\",\"name\":\"Kate Saker\",\"attributes\":[]}";
+        const dataToPost = await extensionSchain.connect(user).encodeParams(user.address, 11, longURI);
+        const message = {
+            data: dataToPost,
+            destinationContract: extensionMainnet.address,
+            sender: extensionSchain.address,
+        };
+
+        // prepare BLS signature
+        // P.s. this is test signature from test of SkaleManager.SkaleVerifier - please do not use it!!!
+        const BlsSignature: [BigNumber, BigNumber] = [
+            BigNumber.from("178325537405109593276798394634841698946852714038246117383766698579865918287"),
+            BigNumber.from("493565443574555904019191451171395204672818649274520396086461475162723833781"),
+        ];
+        const HashA = "3080491942974172654518861600747466851589809241462384879086673256057179400078";
+        const HashB = "15163860114293529009901628456926790077787470245128337652112878212941459329347";
+        const Counter = 0;
+        const sign = {
+            blsSignature: BlsSignature,
+            counter: Counter,
+            hashA: HashA,
+            hashB: HashB,
+        };
+
+        await messageProxyForMainnet.connect(deployer).postIncomingMessages(
+            schainName,
+            0,
+            [message],
+            sign
+        ).should.be.rejectedWith("Schain wallet has not enough funds");
+
+        await wallets.connect(deployer).rechargeSchainWallet(stringValue(schainNameHash), {value: "1000000000000000000"});
+
+        const resPost = await (await messageProxyForMainnet.connect(deployer).postIncomingMessages(
+            schainName,
+            0,
+            [message],
+            sign
+        )).wait();
+        expect(await ERC721TokenOnMainnet.ownerOf(11)).to.equal(user.address);
+        expect(await ERC721TokenOnMainnet.tokenURI(11)).to.equal(longURI);
+        console.log(resPost.gasUsed.toNumber());
+        console.log(await web3.eth.getTransaction(resPost.transactionHash));
+    });
 });
