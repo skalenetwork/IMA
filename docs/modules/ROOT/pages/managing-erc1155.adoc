@@ -8,6 +8,9 @@ As a SKALE Chain Owner, there are two main steps to managing ERC1155 through IMA
 
 Once you have completed step 1 to setup and map your ERC1155 tokens, you can then setup transfer flow to allow end-users to transfer ERC1155 tokens between Ethereum and your SKALE Chain.
 
+[WARNING]
+All IMA messages (ETH, ERC20, ERC721, ERC1155, and customMessages) have a set gas limit of 1000000. This limit may be breached when using `exitToMainERC1155Batch` or `transferToSchainERC1155Batch` when sending a large batch of transfers from SKALE Chain to Mainnet or SKALE Chain to SKALE Chain. To avoid loosing tokens, only use these functions for batches that fall under this gas limit.
+
 [[setup]]
 == Setup and Map ERC1155 Transfers
 
