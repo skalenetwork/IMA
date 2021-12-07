@@ -23,6 +23,7 @@ pragma solidity 0.8.6;
 
 import "@openzeppelin/contracts-upgradeable/utils/AddressUpgradeable.sol";
 import "@skalenetwork/ima-interfaces/schain/IMessageProxyForSchain.sol";
+import "@skalenetwork/etherbase-interfaces/IEtherbaseUpgradeable.sol";
 
 import "../MessageProxy.sol";
 import "./bls/SkaleVerifier.sol";
@@ -59,6 +60,11 @@ interface IMessageProxyForSchainInitializeFunction is IMessageProxyForSchain {
 contract MessageProxyForSchain is MessageProxy, IMessageProxyForSchainInitializeFunction {
     using AddressUpgradeable for address;
     using EnumerableSetUpgradeable for EnumerableSetUpgradeable.AddressSet;
+
+    IEtherbaseUpgradeable public constant ETHERBASE = IEtherbaseUpgradeable(
+        payable(0xd2bA3e0000000000000000000000000000000000)
+    );
+    uint public constant MINIMUM_BALANCE = 1 ether;
 
     /**
      * @dev Structure that contains information about outgoing message.
@@ -194,6 +200,7 @@ contract MessageProxyForSchain is MessageProxy, IMessageProxyForSchainInitialize
             _callReceiverContract(fromChainHash, messages[i], startingCounter + 1);
         }
         connectedChains[fromChainHash].incomingMessageCounter += messages.length;
+        _topUpBalance();
     }
 
     /**
@@ -337,6 +344,21 @@ contract MessageProxyForSchain is MessageProxy, IMessageProxyForSchainInitialize
         returns (mapping(bytes32 => EnumerableSetUpgradeable.AddressSet) storage)
     {
         return _registryContracts;
+    }
+
+    function _topUpBalance() private {
+        uint balance = msg.sender.balance + gasleft() * tx.gasprice;
+        if (address(ETHERBASE).isContract()
+            && ETHERBASE.hasRole(ETHERBASE.ETHER_MANAGER_ROLE(), address(this)) 
+            && balance < MINIMUM_BALANCE
+        ) {
+            uint missingAmount = MINIMUM_BALANCE - balance;
+            if (missingAmount < address(ETHERBASE).balance) {
+                ETHERBASE.partiallyRetrieve(payable(msg.sender), missingAmount);
+            } else {
+                ETHERBASE.retrieve(payable(msg.sender));
+            }
+        }
     }
 
     /**
