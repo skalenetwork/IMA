@@ -346,17 +346,28 @@ contract MessageProxyForSchain is MessageProxy, IMessageProxyForSchainInitialize
         return _registryContracts;
     }
 
+    /**
+     * @dev Returns Etherbase contract
+     */
+    function _getEtherbase() internal view virtual returns (IEtherbaseUpgradeable) {
+        return ETHERBASE;
+    }
+
+    /**
+     * @dev Move skETH from Etherbase if the balance is too low
+     */
     function _topUpBalance() private {
         uint balance = msg.sender.balance + gasleft() * tx.gasprice;
-        if (address(ETHERBASE).isContract()
-            && ETHERBASE.hasRole(ETHERBASE.ETHER_MANAGER_ROLE(), address(this)) 
+        IEtherbaseUpgradeable etherbase = _getEtherbase();
+        if (address(etherbase).isContract()
+            && etherbase.hasRole(etherbase.ETHER_MANAGER_ROLE(), address(this)) 
             && balance < MINIMUM_BALANCE
         ) {
             uint missingAmount = MINIMUM_BALANCE - balance;
-            if (missingAmount < address(ETHERBASE).balance) {
-                ETHERBASE.partiallyRetrieve(payable(msg.sender), missingAmount);
+            if (missingAmount < address(etherbase).balance) {
+                etherbase.partiallyRetrieve(payable(msg.sender), missingAmount);
             } else {
-                ETHERBASE.retrieve(payable(msg.sender));
+                etherbase.retrieve(payable(msg.sender));
             }
         }
     }

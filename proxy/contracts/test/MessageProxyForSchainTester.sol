@@ -39,10 +39,13 @@ interface IMessageProxyForSchainTester {
         bytes calldata data
     )
     external;
+    function setEtherbase(IEtherbaseUpgradeable etherbaseAddress) external;
 }
 
 
 contract MessageProxyForSchainTester is MessageProxyForSchain, IMessageProxyForSchainTester {    
+
+    IEtherbaseUpgradeable public etherbase = ETHERBASE;
 
     constructor(IKeyStorage _keyStorage, string memory schainName) {
         MessageProxyForSchain.initialize(_keyStorage, schainName);
@@ -70,5 +73,13 @@ contract MessageProxyForSchainTester is MessageProxyForSchain, IMessageProxyForS
     override
     {
         targetContract.postOutgoingMessage(targetChainHash, dstContract, data);
+    }
+
+    function setEtherbase(IEtherbaseUpgradeable etherbaseAddress) external override {
+        etherbase = etherbaseAddress;
+    }
+
+    function _getEtherbase() internal view override returns (IEtherbaseUpgradeable) {
+        return etherbase;
     }
 }
