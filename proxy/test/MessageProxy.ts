@@ -56,7 +56,7 @@ import { deployMessages } from "./utils/deploy/messages";
 import { deployKeyStorageMock } from "./utils/deploy/test/keyStorageMock";
 import { ethers, web3 } from "hardhat";
 import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/dist/src/signer-with-address";
-import { BigNumber } from "ethers";
+import { BigNumber, Wallet } from "ethers";
 import { assert, expect } from "chai";
 import { MessageProxyForSchainTester } from "../typechain/MessageProxyForSchainTester";
 import { deployMessageProxyForSchainTester } from "./utils/deploy/test/messageProxyForSchainTester";
@@ -369,10 +369,18 @@ describe("MessageProxy", () => {
             incomingMessagesCounter.should.be.deep.equal(BigNumber.from(2));
         });
 
-        it("should get incoming messages counter", async () => {
+        it("should get outgoing messages counter", async () => {
             await initializeSchain(contractManager, schainName, deployer.address, 1, 1);
             await rechargeSchainWallet(contractManager, schainName, deployer.address, "1000000000000000000");
             await setCommonPublicKey(contractManager, schainName);
+
+            // chain should be inited:
+            await messageProxyForMainnet.getIncomingMessagesCounter(schainName).should.be.rejected;
+
+            await messageProxyForMainnet.connect(deployer).addConnectedChain(schainName);
+
+            const incomingMessagesCounter0 = await messageProxyForMainnet.getIncomingMessagesCounter(schainName);
+            incomingMessagesCounter0.should.be.equal(0);
 
             const startingCounter = 0;
             const message1 = {
@@ -397,27 +405,24 @@ describe("MessageProxy", () => {
                 hashB: HashB,
             };
 
-            // chain should be inited:
-            await messageProxyForMainnet.getIncomingMessagesCounter(schainName).should.be.rejected;
+            await messageProxyForMainnet
+                .connect(deployer)
+                .postIncomingMessages(
+                    schainName,
+                    startingCounter,
+                    outgoingMessages,
+                    sign
+                );
 
-            await messageProxyForMainnet.connect(deployer).addConnectedChain(schainName);
-
-            const incomingMessagesCounter0 = BigNumber.from(
-                await messageProxyForMainnet.getIncomingMessagesCounter(schainName));
-            incomingMessagesCounter0.should.be.deep.equal(BigNumber.from(0));
-
-            // console.log("Gas for postIncomingMessages Eth:", res.receipt.gasUsed);
-            const incomingMessagesCounter = BigNumber.from(
-                await messageProxyForMainnet.getIncomingMessagesCounter(schainName));
-            incomingMessagesCounter.should.be.deep.equal(BigNumber.from(2));
+            const incomingMessagesCounter = await messageProxyForMainnet.getIncomingMessagesCounter(schainName);
+            incomingMessagesCounter.should.be.equal(2);
 
             const amount = 5;
             const addressTo = client.address;
             const bytesData = await messages.encodeTransferEthMessage(addressTo, amount);
 
-            const outgoingMessagesCounter0 = BigNumber.from(
-                await messageProxyForMainnet.getOutgoingMessagesCounter(schainName));
-            outgoingMessagesCounter0.should.be.deep.equal(BigNumber.from(0));
+            const outgoingMessagesCounter0 = await messageProxyForMainnet.getOutgoingMessagesCounter(schainName);
+            outgoingMessagesCounter0.should.be.equal(0);
 
             await caller.postOutgoingMessageTester(messageProxyForMainnet.address,
                 stringValue(web3.utils.soliditySha3(schainName)),
@@ -425,9 +430,8 @@ describe("MessageProxy", () => {
                 bytesData,
             );
 
-            const outgoingMessagesCounter = BigNumber.from(
-                await messageProxyForMainnet.getOutgoingMessagesCounter(schainName));
-            outgoingMessagesCounter.should.be.deep.equal(BigNumber.from(1));
+            const outgoingMessagesCounter = await messageProxyForMainnet.getOutgoingMessagesCounter(schainName);
+            outgoingMessagesCounter.should.be.equal(1);
         });
 
         it("should check gas limit issue", async () => {
@@ -686,24 +690,16 @@ describe("MessageProxy", () => {
             // IMPORTANT: if this address does not have 0 nonce the mock address is changed
             // and signature becomes incorrect
 
-            const testPrivateKey = "0x27e29ffbb26fb7e77da65afc0cea8918655bad55f4d6f8e4b6daaddcf622781a";
-            const testAddress = "0xd2000c8962Ba034be9eAe372B177D405D5bd4970";
-
-            await web3.eth.sendTransaction({
-                from: deployer.address,
-                value: "500000",
-                to: testAddress
-            });
+            const testAccount = new Wallet("0x27e29ffbb26fb7e77da65afc0cea8918655bad55f4d6f8e4b6daaddcf622781a").connect(ethers.provider);
 
             const bytecode = ABIReceiverMock.bytecode;
-            const deployTx = {
-                gas: 500000,
-                gasPrice: 1,
-                data: bytecode
-            }
-            const signedDeployTx = await web3.eth.accounts.signTransaction(deployTx, testPrivateKey);
-            const receipt = await web3.eth.sendSignedTransaction(stringValue(signedDeployTx.rawTransaction));
-            const receiverMockAddress = stringValue(receipt.contractAddress);
+            await deployer.sendTransaction({
+                to: testAccount.address,
+                value: (await testAccount.estimateGas({data: bytecode})).mul((await ethers.provider.getFeeData()).maxFeePerGas as BigNumber)
+            });
+            const deployTx = await testAccount.sendTransaction({data: bytecode});
+            const deployReceipt = await deployTx.wait();
+            const receiverMockAddress = deployReceipt.contractAddress;
             assert(
                 receiverMockAddress === "0xb2DD6f3FE1487daF2aC8196Ae8639DDC2763b871",
                 "ReceiverMock address was changed. BLS signature has to be regenerated"
