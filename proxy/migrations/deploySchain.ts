@@ -107,11 +107,6 @@ async function main() {
         process.exit( 126 );
     }
     const schainName = process.env.CHAIN_NAME_SCHAIN;
-    let messageProxyFactory = await ethers.getContractFactory("MessageProxyForSchain");
-    if( process.env.NO_SIGNATURES === "true" ) {
-        console.log( "Deploy IMA without signature verification" );
-        messageProxyFactory = await ethers.getContractFactory("MessageProxyForSchainWithoutSignature");
-    }
     const deployed = new Map<string, {address: string, interface: Interface}>();
 
     if(
@@ -145,8 +140,18 @@ async function main() {
     deployed.set( "KeyStorage", { address: keyStorage.address, interface: keyStorage.interface } );
     console.log("Contract KeyStorage deployed to", keyStorage.address);
 
-    console.log("Deploy MessageProxyForSchain");
-    const messageProxy = await upgrades.deployProxy(messageProxyFactory, [keyStorage.address, schainName]) as MessageProxyForSchain;
+    let messageProxy: Contract;
+    if( process.env.NO_SIGNATURES === "true" ) {
+        console.log( "Deploy IMA without signature verification" );
+        console.log("Deploy MessageProxyForSchainWithoutSignature");
+        messageProxy = await (await ethers.getContractFactory("MessageProxyForSchainWithoutSignature")).deploy(schainName);
+    } else {
+        console.log("Deploy MessageProxyForSchain");
+        messageProxy = await upgrades.deployProxy(
+            await ethers.getContractFactory("MessageProxyForSchain"),
+            [keyStorage.address, schainName]
+        );
+    }
     await messageProxy.deployTransaction.wait();
     deployed.set( "MessageProxyForSchain", { address: messageProxy.address, interface: messageProxy.interface } );
     console.log("Contract MessageProxyForSchain deployed to", messageProxy.address);
