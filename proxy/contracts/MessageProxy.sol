@@ -56,6 +56,7 @@ abstract contract MessageProxy is AccessControlEnumerableUpgradeable, IMessagePr
     //   schainHash => ConnectedChainInfo
     mapping(bytes32 => ConnectedChainInfo) public connectedChains;
     //   schainHash => contract address => allowed
+    // solhint-disable-next-line private-vars-leading-underscore
     mapping(bytes32 => mapping(address => bool)) internal deprecatedRegistryContracts;
 
     uint256 public gasLimit;
