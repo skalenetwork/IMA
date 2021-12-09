@@ -23,7 +23,6 @@
  * @copyright SKALE Labs 2019-Present
  */
 
-import { deployMockContract, solidity } from "ethereum-waffle";
 import chaiAsPromised from "chai-as-promised";
 import chai = require("chai");
 import {
@@ -32,14 +31,12 @@ import {
     Linker,
     MessageProxyForMainnet,
     MessageProxyCaller,
-    MessageProxyForSchain,
     MessageProxyForSchainWithoutSignature,
     MessagesTester,
     ReceiverGasLimitMainnetMock,
     ReceiverGasLimitSchainMock,
     KeyStorageMock,
     CommunityPool,
-    IEtherbaseUpgradeable__factory,
     EtherbaseMock
 } from "../typechain/";
 import { randomString, stringValue } from "./utils/helper";
@@ -61,11 +58,9 @@ import { assert, expect } from "chai";
 import { MessageProxyForSchainTester } from "../typechain/MessageProxyForSchainTester";
 import { deployMessageProxyForSchainTester } from "./utils/deploy/test/messageProxyForSchainTester";
 import { deployCommunityPool } from "./utils/deploy/mainnet/communityPool";
-import { FormatTypes } from "ethers/lib/utils";
 
 chai.should();
 chai.use((chaiAsPromised));
-chai.use(solidity);
 
 describe("MessageProxy", () => {
     let deployer: SignerWithAddress;
@@ -923,6 +918,48 @@ describe("MessageProxy", () => {
                         ethers.utils.parseEther("0.001").toNumber());
 
                 await etherbase.retrieve(agent.address);
+            });
+
+            it("should partially top up agent balance if etherbase balance is too low", async () => {
+                const startingCounter = 0;
+                const message1 = {
+                    amount: 0,
+                    data: "0x11",
+                    destinationContract: receiverMock.address,
+                    sender: deployer.address,
+                    to: client.address
+                };
+                const outgoingMessages = [message1];
+
+                const etherbase = await (await ethers.getContractFactory("EtherbaseMock")).deploy() as EtherbaseMock;
+                await etherbase.initialize(deployer.address);
+                await etherbase.grantRole(await etherbase.ETHER_MANAGER_ROLE(), messageProxyForSchainWithoutSignature.address);
+
+                await messageProxyForSchainWithoutSignature.registerExtraContract("Mainnet", receiverMock.address);
+                await messageProxyForSchainWithoutSignature.setEtherbase(etherbase.address);
+
+                const etherbaseBalance = ethers.utils.parseEther("0.5");
+                const smallBalance = ethers.utils.parseEther("0.02");
+                const rest = (await agent.getBalance()).sub(smallBalance).sub(etherbaseBalance);
+                // left small amount of eth on agent balance to emulate PoW.
+                await agent.sendTransaction({to: etherbase.address, value: etherbaseBalance});
+                await agent.sendTransaction({to: deployer.address, value: rest});
+
+                await messageProxyForSchainWithoutSignature
+                    .connect(agent)
+                    .postIncomingMessages(
+                        "Mainnet",
+                        startingCounter,
+                        outgoingMessages,
+                        randomSignature
+                    );
+
+                (await ethers.provider.getBalance(etherbase.address))
+                    .should.be.equal(0);
+                (await agent.getBalance())
+                    .should.be.gt(etherbaseBalance);
+
+                await deployer.sendTransaction({to: agent.address, value: rest});
             });
         });
 
