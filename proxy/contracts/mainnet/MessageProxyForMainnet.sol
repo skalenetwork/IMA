@@ -302,6 +302,17 @@ contract MessageProxyForMainnet is SkaleManagerClient, MessageProxy, IMessagePro
         return super.isConnectedChain(schainName);
     }
 
+    // private
+
+    function _authorizeOutgoingMessageSender(bytes32 targetChainHash) internal view override {
+        require(
+            isContractRegistered(bytes32(0), msg.sender)
+                || isContractRegistered(targetChainHash, msg.sender)
+                || isSchainOwner(msg.sender, targetChainHash),
+            "Sender contract is not registered"
+        );        
+    }
+
     /**
      * @dev Converts calldata structure to memory structure and checks
      * whether message BLS signature is valid.
