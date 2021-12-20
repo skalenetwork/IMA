@@ -1,9 +1,9 @@
 // SPDX-License-Identifier: AGPL-3.0-only
 
 /**
- *   MessageProxyForSchainTester.sol - SKALE Interchain Messaging Agent
+ *   IGasReimbursable.sol - SKALE Interchain Messaging Agent
  *   Copyright (C) 2021-Present SKALE Labs
- *   @author Dmytro Stebaiev
+ *   @author Artem Payvin
  *
  *   SKALE IMA is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU Affero General Public License as published
@@ -21,18 +21,15 @@
 
 pragma solidity 0.8.6;
 
-import "../mainnet/MessageProxyForMainnet.sol";
+import "./IMessageReceiver.sol";
 
-contract MessageProxyForMainnetTester is MessageProxyForMainnet {    
 
-    function refundGasByUser(
-        bytes32 fromSchainHash,
-        address payable node,
-        address user,
-        uint256 gas
+interface IGasReimbursable is IMessageReceiver {
+    function gasPayer(
+        bytes32 schainHash,
+        address sender,
+        bytes calldata data
     )
         external
-    {
-        communityPool.refundGasByUser(fromSchainHash, node, user, gas);
-    }
+        returns (address);
 }

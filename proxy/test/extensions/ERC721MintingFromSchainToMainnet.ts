@@ -350,6 +350,15 @@ describe("ERC721MintingFromSchainToMainnet", () => {
             hashB: HashB,
         };
 
+        await messageProxyForMainnet.connect(deployer).postIncomingMessages(
+            schainName,
+            0,
+            [message],
+            sign
+        ).should.be.rejectedWith("Schain wallet has not enough funds");
+
+        await wallets.connect(deployer).rechargeSchainWallet(stringValue(schainNameHash), {value: "1000000000000000000"});
+
         const resPost = await (await messageProxyForMainnet.connect(deployer).postIncomingMessages(
             schainName,
             0,
@@ -383,6 +392,15 @@ describe("ERC721MintingFromSchainToMainnet", () => {
             hashA: HashA,
             hashB: HashB,
         };
+
+        await messageProxyForMainnet.connect(deployer).postIncomingMessages(
+            schainName,
+            0,
+            [message],
+            sign
+        ).should.be.rejectedWith("Schain wallet has not enough funds");
+
+        await wallets.connect(deployer).rechargeSchainWallet(stringValue(schainNameHash), {value: "1000000000000000000"});
 
         const resPost = await (await messageProxyForMainnet.connect(deployer).postIncomingMessages(
             schainName,
