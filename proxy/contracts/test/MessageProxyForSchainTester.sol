@@ -23,9 +23,31 @@ pragma solidity 0.8.6;
 
 import "../schain/MessageProxyForSchain.sol";
 
-contract MessageProxyForSchainTester is MessageProxyForSchain {    
 
-    constructor(KeyStorage _keyStorage, string memory schainName) {
+interface IMessageProxyForSchainTester {
+    function postMessage(
+        IMessageReceiver targetContract,
+        bytes32 fromSchainHash,
+        address sender,
+        bytes calldata data
+    )
+    external;
+    function postOutgoingMessageTester(
+        MessageProxyForSchain targetContract,
+        bytes32 targetChainHash,
+        address dstContract,
+        bytes calldata data
+    )
+    external;
+    function setEtherbase(IEtherbaseUpgradeable etherbaseAddress) external;
+}
+
+
+contract MessageProxyForSchainTester is MessageProxyForSchain, IMessageProxyForSchainTester {    
+
+    IEtherbaseUpgradeable public etherbase = ETHERBASE;
+
+    constructor(IKeyStorage _keyStorage, string memory schainName) {
         MessageProxyForSchain.initialize(_keyStorage, schainName);
     }
 
@@ -36,6 +58,7 @@ contract MessageProxyForSchainTester is MessageProxyForSchain {
         bytes calldata data
     )
     external
+    override
     {
         targetContract.postMessage(fromSchainHash, sender, data);
     }
@@ -47,7 +70,16 @@ contract MessageProxyForSchainTester is MessageProxyForSchain {
         bytes calldata data
     )
     external
+    override
     {
         targetContract.postOutgoingMessage(targetChainHash, dstContract, data);
+    }
+
+    function setEtherbase(IEtherbaseUpgradeable etherbaseAddress) external override {
+        etherbase = etherbaseAddress;
+    }
+
+    function _getEtherbase() internal view override returns (IEtherbaseUpgradeable) {
+        return etherbase;
     }
 }

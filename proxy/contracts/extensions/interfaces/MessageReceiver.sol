@@ -21,8 +21,10 @@
 
 pragma solidity 0.8.6;
 
+import "@skalenetwork/ima-interfaces/IMessageReceiver.sol";
+
 import "./MessageProxyClient.sol";
-import "../../interfaces/IMessageReceiver.sol";
+
 
 // solhint-disable-next-line no-empty-blocks
 abstract contract MessageReceiver is MessageProxyClient, IMessageReceiver {}

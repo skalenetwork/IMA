@@ -22,31 +22,47 @@
 pragma solidity 0.8.6;
 
 import "@openzeppelin/contracts-upgradeable/access/AccessControlEnumerableUpgradeable.sol";
+import "@skalenetwork/ima-interfaces/schain/IKeyStorage.sol";
 
 import "./bls/FieldOperations.sol";
 
 
-contract KeyStorage is AccessControlEnumerableUpgradeable {
+/**
+ * @title KeyStorage
+ * @dev Holds common BLS public key.
+ */
+contract KeyStorage is IKeyStorage, AccessControlEnumerableUpgradeable {
 
     uint256 public constant FREE_MEM_PTR = 0x40;
+
+    /**
+     * @dev Address of custom precompiled contract on SKALE chain
+     * to get uin256 value from the config.
+     */
     uint256 public constant FN_NUM_GET_CONFIG_VARIABLE_UINT256 = 0x13;
 
+    /**
+     * @dev Is called once during contract deployment.
+     */
     function initialize()
         external
-        virtual
+        override
         initializer
     {
         AccessControlEnumerableUpgradeable.__AccessControlEnumerable_init();
         _setupRole(DEFAULT_ADMIN_ROLE, msg.sender);
     }
 
-    function getBlsCommonPublicKey() external view virtual returns (G2Operations.G2Point memory) {
-        return G2Operations.G2Point({
-            x: Fp2Operations.Fp2Point({
+    /**
+     * @dev Get BLS common public key.
+     */
+    function getBlsCommonPublicKey() external view override virtual returns (IFieldOperations.G2Point memory) {
+        return IFieldOperations.G2Point({
+            x: IFieldOperations.Fp2Point({
                 a: _getConfigVariableUint256("skaleConfig.nodeInfo.wallets.ima.commonBLSPublicKey0"),
                 b: _getConfigVariableUint256("skaleConfig.nodeInfo.wallets.ima.commonBLSPublicKey1")
             }),
-            y: Fp2Operations.Fp2Point({
+            y: IFieldOperations.Fp2Point({
                 a: _getConfigVariableUint256("skaleConfig.nodeInfo.wallets.ima.commonBLSPublicKey2"),
                 b: _getConfigVariableUint256("skaleConfig.nodeInfo.wallets.ima.commonBLSPublicKey3")
             })
@@ -55,6 +71,9 @@ contract KeyStorage is AccessControlEnumerableUpgradeable {
 
     // private
 
+    /**
+     * @dev Get uint256 value from the skaled config.
+     */
     function _getConfigVariableUint256(
         string memory strConfigVariableName
     )

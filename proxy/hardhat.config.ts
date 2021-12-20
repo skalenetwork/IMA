@@ -1,5 +1,6 @@
 import { HardhatUserConfig, task } from "hardhat/config";
 import "@nomiclabs/hardhat-etherscan";
+import "@nomiclabs/hardhat-waffle";
 import "@nomiclabs/hardhat-web3";
 import "@openzeppelin/hardhat-upgrades";
 import "hardhat-typechain";
@@ -48,7 +49,6 @@ const config: HardhatUserConfig = {
   },
   networks: {
     hardhat: {
-      hardfork: "berlin",
       blockGasLimit: 12000000,
       allowUnlimitedContractSize: true
     },
@@ -68,7 +68,7 @@ const config: HardhatUserConfig = {
     }
   },
   etherscan: {
-    apiKey: "QSW5NZN9RCYXSZWVB32DMUN83UZ5EJUREI"
+    apiKey: process.env.ETHERSCAN
   }
 };
 

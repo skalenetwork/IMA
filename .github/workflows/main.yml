@@ -2,8 +2,14 @@
 
 name: Build and test
 
-on: [push, pull_request]
-
+on: 
+  push:
+    branches-ignore:
+      - 'docs-v*'
+  pull_request:
+    branches-ignore:
+      - 'docs-v*'
+  
 # A workflow run is made up of one or more jobs that can run sequentially or in parallel
 jobs:
   test-contracts:
@@ -34,10 +40,10 @@ jobs:
         restore-keys: |
           ${{ runner.os }}-pip-
 
-    - name: Set up Node
+    - name: Install NODE JS
       uses: actions/setup-node@v2
       with:
-        node-version: '12'
+        node-version: '14'
 
     - name: Set up Python
       uses: actions/setup-python@v2
@@ -46,7 +52,9 @@ jobs:
 
     - name: Install project
       working-directory: ${{env.working-directory}}
-      run: yarn install
+      run: |
+        ../npms/scrypt/get_scrypt_npm.sh
+        yarn install
 
     - name: Install slither
       working-directory: ${{env.working-directory}}
@@ -71,6 +79,9 @@ jobs:
     - name: Gas calculation test
       working-directory: ${{env.working-directory}}
       run: npx hardhat test gas/calculateGas.ts
+    
+    - name: Test upgrade
+      run: bash ./proxy/scripts/test_upgrade.sh
     
     - name: Run tests
       working-directory: ${{env.working-directory}}
@@ -303,7 +314,9 @@ jobs:
 
     - name: Compile contracts
       working-directory: ./proxy
-      run: yarn install
+      run: |
+        ../npms/scrypt/get_scrypt_npm.sh
+        yarn install
 
     - name: Install agent      
       run: |

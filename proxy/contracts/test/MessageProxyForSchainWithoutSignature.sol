@@ -21,17 +21,13 @@
 
 pragma solidity 0.8.6;
 
-import "../schain/MessageProxyForSchain.sol";
+import "./MessageProxyForSchainTester.sol";
 
-contract MessageProxyForSchainWithoutSignature is MessageProxyForSchain {
+contract MessageProxyForSchainWithoutSignature is MessageProxyForSchainTester {
 
-    function initialize(KeyStorage, string memory schainName)
-        public
-        override
-        initializer
-    {
-        MessageProxyForSchain.initialize(KeyStorage(address(0)), schainName);
-    }
+    constructor(string memory schainName) MessageProxyForSchainTester(IKeyStorage(address(0)), schainName)
+    // solhint-disable-next-line no-empty-blocks
+    {}
 
     function _verifyMessages(
         bytes32,
