@@ -23,6 +23,7 @@ pragma solidity 0.8.6;
 
 import "@openzeppelin/contracts-upgradeable/token/ERC1155/IERC1155Upgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/utils/AddressUpgradeable.sol";
+import "@skalenetwork/ima-interfaces/schain/TokenManagers/ITokenManagerERC1155.sol";
 
 import "../../Messages.sol";
 import "../tokens/ERC1155OnChain.sol";
@@ -30,13 +31,13 @@ import "../TokenManager.sol";
 
 
 /**
- * @title Token Manager
- * @dev Runs on SKALE Chains, accepts messages from mainnet, and instructs
- * TokenFactory to create clones. TokenManager mints tokens via
- * LockAndDataForSchain*. When a user exits a SKALE chain, TokenFactory
- * burns tokens.
+ * @title TokenManagerERC1155
+ * @dev Runs on SKALE Chains,
+ * accepts messages from mainnet,
+ * and creates ERC1155 clones.
+ * TokenManagerERC1155 mints tokens. When a user exits a SKALE chain, it burns them.
  */
-contract TokenManagerERC1155 is TokenManager {
+contract TokenManagerERC1155 is TokenManager, ITokenManagerERC1155 {
     using AddressUpgradeable for address;
 
     // address of ERC1155 on Mainnet => ERC1155 on Schain
@@ -50,8 +51,14 @@ contract TokenManagerERC1155 is TokenManager {
      */
     event ERC1155TokenAdded(address indexed erc1155OnMainnet, address indexed erc1155OnSchain);
 
+    /**
+     * @dev Emitted when TokenManagerERC1155 automatically deploys new ERC1155 clone.
+     */
     event ERC1155TokenCreated(address indexed erc1155OnMainnet, address indexed erc1155OnSchain);
 
+    /**
+     * @dev Emitted when someone sends tokens from mainnet to schain.
+     */
     event ERC1155TokenReceived(
         address indexed erc1155OnMainnet,
         address indexed erc1155OnSchain,
@@ -59,28 +66,46 @@ contract TokenManagerERC1155 is TokenManager {
         uint256[] amounts
     );  
 
+    /**
+     * @dev Move tokens from schain to mainnet.
+     * 
+     * {contractOnMainnet} tokens are burned on schain and unlocked on mainnet for {to} address.
+     */
     function exitToMainERC1155(
         address contractOnMainnet,
         uint256 id,
         uint256 amount
     )
         external
+        override
     {
         communityLocker.checkAllowedToSendMessage(msg.sender);
         _exit(MAINNET_HASH, depositBox, contractOnMainnet, msg.sender, id, amount);
     }
 
+    /**
+     * @dev Move batch of tokens from schain to mainnet.
+     * 
+     * {contractOnMainnet} tokens are burned on schain and unlocked on mainnet for {to} address.
+     */
     function exitToMainERC1155Batch(
         address contractOnMainnet,
         uint256[] memory ids,
         uint256[] memory amounts
     )
         external
+        override
     {
         communityLocker.checkAllowedToSendMessage(msg.sender);
         _exitBatch(MAINNET_HASH, depositBox, contractOnMainnet, msg.sender, ids, amounts);
     }
 
+    /**
+     * @dev Move tokens from schain to schain.
+     * 
+     * {contractOnMainnet} tokens are burned on origin schain
+     * and are minted on {targetSchainName} schain for {to} address.
+     */
     function transferToSchainERC1155(
         string calldata targetSchainName,
         address contractOnMainnet,
@@ -88,12 +113,19 @@ contract TokenManagerERC1155 is TokenManager {
         uint256 amount
     ) 
         external
+        override
         rightTransaction(targetSchainName, msg.sender)
     {
         bytes32 targetSchainHash = keccak256(abi.encodePacked(targetSchainName));
         _exit(targetSchainHash, tokenManagers[targetSchainHash], contractOnMainnet, msg.sender, id, amount);
     }
 
+    /**
+     * @dev Move batch of tokens from schain to schain.
+     * 
+     * {contractOnMainnet} tokens are burned on origin schain
+     * and are minted on {targetSchainName} schain for {to} address.
+     */
     function transferToSchainERC1155Batch(
         string calldata targetSchainName,
         address contractOnMainnet,
@@ -101,6 +133,7 @@ contract TokenManagerERC1155 is TokenManager {
         uint256[] memory amounts
     ) 
         external
+        override
         rightTransaction(targetSchainName, msg.sender)
     {
         bytes32 targetSchainHash = keccak256(abi.encodePacked(targetSchainName));
@@ -110,13 +143,11 @@ contract TokenManagerERC1155 is TokenManager {
     /**
      * @dev Allows MessageProxy to post operational message from mainnet
      * or SKALE chains.
-     * 
-     * Emits an {Error} event upon failure.
      *
      * Requirements:
      * 
      * - MessageProxy must be the sender.
-     * - `fromSchainName` must exist in TokenManager addresses.
+     * - `fromSchainName` must exist in TokenManagerERC1155 addresses.
      */
     function postMessage(
         bytes32 fromChainHash,
@@ -148,31 +179,36 @@ contract TokenManagerERC1155 is TokenManager {
     }
 
     /**
-     * @dev Allows Schain owner to add an ERC1155 token to LockAndDataForSchainERC1155.
+     * @dev Allows Schain owner to register an ERC1155 token clone in the token manager.
      */
     function addERC1155TokenByOwner(
         address erc1155OnMainnet,
-        ERC1155OnChain erc1155OnSchain
+        address erc1155OnSchain
     )
         external
+        override
         onlyTokenRegistrar
     {
-        require(address(erc1155OnSchain).isContract(), "Given address is not a contract");
+        require(erc1155OnSchain.isContract(), "Given address is not a contract");
         require(address(clonesErc1155[erc1155OnMainnet]) == address(0), "Could not relink clone");
-        require(!addedClones[erc1155OnSchain], "Clone was already added");
-        clonesErc1155[erc1155OnMainnet] = erc1155OnSchain;
-        addedClones[erc1155OnSchain] = true;
-        emit ERC1155TokenAdded(erc1155OnMainnet, address(erc1155OnSchain));
+        require(!addedClones[ERC1155OnChain(erc1155OnSchain)], "Clone was already added");
+        clonesErc1155[erc1155OnMainnet] = ERC1155OnChain(erc1155OnSchain);
+        addedClones[ERC1155OnChain(erc1155OnSchain)] = true;
+        emit ERC1155TokenAdded(erc1155OnMainnet, erc1155OnSchain);
     }
 
+    /**
+     * @dev Is called once during contract deployment.
+     */
     function initialize(
         string memory newChainName,
-        MessageProxyForSchain newMessageProxy,
-        TokenManagerLinker newIMALinker,
-        CommunityLocker newCommunityLocker,
+        IMessageProxyForSchain newMessageProxy,
+        ITokenManagerLinker newIMALinker,
+        ICommunityLocker newCommunityLocker,
         address newDepositBox
     )
         external
+        override
         initializer
     {
         TokenManager.initializeTokenManager(
@@ -188,7 +224,8 @@ contract TokenManagerERC1155 is TokenManager {
     /**
      * @dev Allows TokenManager to send ERC1155 tokens.
      *  
-     * Emits a {ERC1155TokenCreated} event if to address = 0.
+     * Emits a {ERC20TokenCreated} event if token did not exist and was automatically deployed.
+     * Emits a {ERC20TokenReceived} event on success.
      */
     function _sendERC1155(bytes calldata data) private returns (address) {
         Messages.MessageType messageType = Messages.getMessageType(data);
@@ -226,9 +263,10 @@ contract TokenManagerERC1155 is TokenManager {
     }
 
     /**
-     * @dev Allows TokenManager to send ERC1155 tokens.
+     * @dev Allows TokenManager to send a batch of ERC1155 tokens.
      *  
-     * Emits a {ERC1155TokenCreated} event if to address = 0.
+     * Emits a {ERC20TokenCreated} event if token did not exist and was automatically deployed.
+     * Emits a {ERC20TokenReceived} event on success.
      */
     function _sendERC1155Batch(bytes calldata data) private returns (address) {
         Messages.MessageType messageType = Messages.getMessageType(data);
@@ -264,6 +302,9 @@ contract TokenManagerERC1155 is TokenManager {
         return receiver;
     }
 
+    /**
+     * @dev Burn tokens on schain and send message to unlock them on target chain.
+     */
     function _exit(
         bytes32 chainHash,
         address messageReceiver,
@@ -278,10 +319,13 @@ contract TokenManagerERC1155 is TokenManager {
         require(address(contractOnSchain).isContract(), "No token clone on schain");
         require(contractOnSchain.isApprovedForAll(msg.sender, address(this)), "Not allowed ERC1155 Token");
         contractOnSchain.burn(msg.sender, id, amount);
-        bytes memory data = Messages.encodeTransferErc1155Message(contractOnMainnet, to, id, amount);        
+        bytes memory data = Messages.encodeTransferErc1155Message(contractOnMainnet, to, id, amount);
         messageProxy.postOutgoingMessage(chainHash, messageReceiver, data);
     }
 
+    /**
+     * @dev Burn batch of tokens on schain and send message to unlock them on target chain.
+     */
     function _exitBatch(
         bytes32 chainHash,
         address messageReceiver,
@@ -300,6 +344,9 @@ contract TokenManagerERC1155 is TokenManager {
         messageProxy.postOutgoingMessage(chainHash, messageReceiver, data);
     }
 
+    /**
+     * @dev Create array with single element in it.
+     */
     function _asSingletonArray(uint256 element) private pure returns (uint256[] memory array) {
         array = new uint256[](1);
         array[0] = element;

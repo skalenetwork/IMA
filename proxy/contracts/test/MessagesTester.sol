@@ -25,9 +25,72 @@ pragma solidity 0.8.6;
 import "../Messages.sol";
 
 
-contract MessagesTester {
+interface IMessagesTester {
+    function encodeTransferEthMessage(address receiver, uint256 amount) external pure returns (bytes memory);
+    function encodeTransferErc20Message(
+        address token,
+        address receiver,
+        uint256 amount
+    ) external pure returns (bytes memory);
+    function encodeTransferErc20AndTotalSupplyMessage(
+        address token,
+        address receiver,
+        uint256 amount,
+        uint256 totalSupply
+    ) external pure returns (bytes memory);
+    function encodeTransferErc20AndTokenInfoMessage(
+        address token,
+        address receiver,
+        uint256 amount,
+        uint256 totalSupply,
+        Messages.Erc20TokenInfo memory tokenInfo
+    ) external pure returns (bytes memory);
+    function encodeTransferErc721Message(
+        address token,
+        address receiver,
+        uint256 tokenId
+    ) external pure returns (bytes memory);
+    function encodeTransferErc721AndTokenInfoMessage(
+        address token,
+        address receiver,
+        uint256 tokenId,
+        Messages.Erc721TokenInfo memory tokenInfo
+    ) external pure returns (bytes memory);
+    function encodeActivateUserMessage(address receiver) external pure returns (bytes memory);
+    function encodeLockUserMessage(address receiver) external pure returns (bytes memory);
+    function encodeInterchainConnectionMessage(bool isAllowed) external pure returns (bytes memory);
+    function encodeTransferErc1155Message(
+        address token,
+        address receiver,
+        uint256 id,
+        uint256 amount
+    ) external pure returns (bytes memory);
+    function encodeTransferErc1155AndTokenInfoMessage(
+        address token,
+        address receiver,
+        uint256 id,
+        uint256 amount,
+        Messages.Erc1155TokenInfo memory tokenInfo
+    ) external pure returns (bytes memory);
+    function encodeTransferErc1155BatchMessage(
+        address token,
+        address receiver,
+        uint256[] memory ids,
+        uint256[] memory amounts
+    ) external pure returns (bytes memory);
+    function encodeTransferErc1155BatchAndTokenInfoMessage(
+        address token,
+        address receiver,
+        uint256[] memory ids,
+        uint256[] memory amounts,
+        Messages.Erc1155TokenInfo memory tokenInfo
+    ) external pure returns (bytes memory);
+}
 
-    function encodeTransferEthMessage(address receiver, uint256 amount) external pure returns (bytes memory) {
+
+contract MessagesTester is IMessagesTester {
+
+    function encodeTransferEthMessage(address receiver, uint256 amount) external pure override returns (bytes memory) {
         return Messages.encodeTransferEthMessage(receiver, amount);
     }
 
@@ -35,7 +98,7 @@ contract MessagesTester {
         address token,
         address receiver,
         uint256 amount
-    ) external pure returns (bytes memory) {
+    ) external pure override returns (bytes memory) {
         return Messages.encodeTransferErc20Message(token, receiver, amount);
     }
 
@@ -44,7 +107,7 @@ contract MessagesTester {
         address receiver,
         uint256 amount,
         uint256 totalSupply
-    ) external pure returns (bytes memory) {
+    ) external pure override returns (bytes memory) {
         return Messages.encodeTransferErc20AndTotalSupplyMessage(token, receiver, amount, totalSupply);
     }
 
@@ -54,7 +117,7 @@ contract MessagesTester {
         uint256 amount,
         uint256 totalSupply,
         Messages.Erc20TokenInfo memory tokenInfo
-    ) external pure returns (bytes memory) {
+    ) external pure override returns (bytes memory) {
         return Messages.encodeTransferErc20AndTokenInfoMessage(token, receiver, amount, totalSupply, tokenInfo);
     }
 
@@ -62,7 +125,7 @@ contract MessagesTester {
         address token,
         address receiver,
         uint256 tokenId
-    ) external pure returns (bytes memory) {
+    ) external pure override returns (bytes memory) {
         return Messages.encodeTransferErc721Message(token, receiver, tokenId);
     }
 
@@ -71,19 +134,19 @@ contract MessagesTester {
         address receiver,
         uint256 tokenId,
         Messages.Erc721TokenInfo memory tokenInfo
-    ) external pure returns (bytes memory) {
+    ) external pure override returns (bytes memory) {
         return Messages.encodeTransferErc721AndTokenInfoMessage(token, receiver, tokenId, tokenInfo);
     }
 
-    function encodeActivateUserMessage(address receiver) external pure returns (bytes memory) {
+    function encodeActivateUserMessage(address receiver) external pure override returns (bytes memory) {
         return Messages.encodeActivateUserMessage(receiver);
     }
 
-    function encodeLockUserMessage(address receiver) external pure returns (bytes memory) {
+    function encodeLockUserMessage(address receiver) external pure override returns (bytes memory) {
         return Messages.encodeLockUserMessage(receiver);
     }
 
-    function encodeInterchainConnectionMessage(bool isAllowed) external pure returns (bytes memory) {
+    function encodeInterchainConnectionMessage(bool isAllowed) external pure override returns (bytes memory) {
         return Messages.encodeInterchainConnectionMessage(isAllowed);
     }
 
@@ -92,7 +155,7 @@ contract MessagesTester {
         address receiver,
         uint256 id,
         uint256 amount
-    ) external pure returns (bytes memory) {
+    ) external pure override returns (bytes memory) {
         return Messages.encodeTransferErc1155Message(token, receiver, id, amount);
     }
 
@@ -102,7 +165,7 @@ contract MessagesTester {
         uint256 id,
         uint256 amount,
         Messages.Erc1155TokenInfo memory tokenInfo
-    ) external pure returns (bytes memory) {
+    ) external pure override returns (bytes memory) {
         return Messages.encodeTransferErc1155AndTokenInfoMessage(token, receiver, id, amount, tokenInfo);
     }
 
@@ -111,7 +174,7 @@ contract MessagesTester {
         address receiver,
         uint256[] memory ids,
         uint256[] memory amounts
-    ) external pure returns (bytes memory) {
+    ) external pure override returns (bytes memory) {
         return Messages.encodeTransferErc1155BatchMessage(token, receiver, ids, amounts);
     }
 
@@ -121,7 +184,7 @@ contract MessagesTester {
         uint256[] memory ids,
         uint256[] memory amounts,
         Messages.Erc1155TokenInfo memory tokenInfo
-    ) external pure returns (bytes memory) {
+    ) external pure override returns (bytes memory) {
         return Messages.encodeTransferErc1155BatchAndTokenInfoMessage(token, receiver, ids, amounts, tokenInfo);
     }
 }

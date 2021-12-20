@@ -23,7 +23,13 @@
 pragma solidity 0.8.6;
 
 
-contract Nodes {
+interface INodesTester {
+    function createNode(address, Nodes.NodeCreationParams calldata params) external;
+    function getNodeAddress(uint nodeIndex) external view returns (address);
+}
+
+
+contract Nodes is INodesTester {
 
     enum NodeStatus {Active, Leaving, Left, In_Maintenance}
 
@@ -58,7 +64,7 @@ contract Nodes {
     }
 
     function createNode(address, NodeCreationParams calldata params)
-        external
+        external override
     {
         nodes.push(Node({
             name: params.name,
@@ -77,6 +83,7 @@ contract Nodes {
     function getNodeAddress(uint nodeIndex)
         external
         view
+        override
         checkNodeExists(nodeIndex)
         returns (address)
     {

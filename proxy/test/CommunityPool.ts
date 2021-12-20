@@ -256,7 +256,7 @@ describe("CommunityPool", () => {
             await messageProxyTester.registerExtraContract(schainNameRGBU, communityPoolTester.address);
             const gasPrice = tx.gasPrice;
             const wei = minTransactionGas.mul(gasPrice).mul(2);
-            await communityPoolTester.connect(user).rechargeUserWallet(schainNameRGBU, user.address, { value: wei.toString() });
+            await communityPoolTester.connect(user).rechargeUserWallet(schainNameRGBU, user.address, { value: wei.toString()});
             await messageProxyTester.connect(deployer).refundGasByUser(schainHashRGBU, "0x0000000000000000000000000000000000000000", user.address, 0)
                 .should.be.eventually.rejectedWith("Node address must be set");
         });
@@ -267,7 +267,7 @@ describe("CommunityPool", () => {
             await messageProxyTester.registerExtraContract(schainNameRGBU, communityPoolTester.address);
             const gasPrice = tx.gasPrice;
             const wei = minTransactionGas.mul(gasPrice).mul(2);
-            await communityPoolTester.connect(user).rechargeUserWallet(schainNameRGBU, user.address, { value: wei.toString() });
+            await communityPoolTester.connect(user).rechargeUserWallet(schainNameRGBU, user.address, { value: wei.toString()});
             await messageProxyTester.connect(deployer).refundGasByUser(schainHashRGBU, node.address, user.address, 1000000, {gasPrice});
             const balanceAfter = await getBalance(node.address);
             (balanceAfter).should.be.almost(balanceBefore + (1000000 * BigNumber.from(gasPrice).toNumber()) / 1e18);
@@ -279,7 +279,7 @@ describe("CommunityPool", () => {
             const gasPrice = tx.gasPrice;
             const wei = minTransactionGas.mul(gasPrice);
             expect(await communityPoolTester.activeUsers(user.address, schainHashRGBU)).to.be.false;
-            await communityPoolTester.connect(user).rechargeUserWallet(schainNameRGBU, user.address, { value: wei.toString() });
+            await communityPoolTester.connect(user).rechargeUserWallet(schainNameRGBU, user.address, { value: wei.toString()});
             expect(await communityPoolTester.activeUsers(user.address, schainHashRGBU)).to.be.true;
             await messageProxyTester.connect(deployer).refundGasByUser(schainHashRGBU, node.address, user.address, 1000000, {gasPrice});
             expect(await communityPoolTester.activeUsers(user.address, schainHashRGBU)).to.be.false;

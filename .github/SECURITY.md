@@ -6,9 +6,10 @@ Please refer to the [security policy](https://skale.network/security).
 
 ## Independent Audits
 
-IMA Proxy contracts are periodically audited by third parties, and have been audited independently by [Quantstamp](https://www.quantstamp.com).
+IMA Proxy contracts are periodically audited by third parties, and have been audited independently by [Quantstamp](https://www.quantstamp.com) and [Bramah Systems](https://www.bramah.systems/).
 
--   <https://certificate.quantstamp.com/full/skale-proxy-contracts>
+-   Nov 2020 <https://certificate.quantstamp.com/full/skale-proxy-contracts>
+-   Jun 2021 <https://bramah.systems/audits/SKALE_Audit_Bramah.pdf>
 
 ## Reporting a Bug
 

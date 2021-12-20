@@ -21,9 +21,22 @@
 
 pragma solidity 0.8.6;
 
-
+/**
+ * @title Precompiled
+ * @dev This library is a wrapper to call precompiled contracts
+ * 
+ * Defined calls:
+ * 
+ * - bn256Pairing
+ */
 library Precompiled {
 
+    /**
+     * @dev Calls precompiled contract with address 0x8
+     * for elliptic curve pairing operations are required in order to perform zkSNARK verification
+     * within the block gas limit.
+     * see https://github.com/ethereum/EIPs/blob/master/EIPS/eip-197.md for more details
+     */
     function bn256Pairing(
         uint x1,
         uint y1,

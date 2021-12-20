@@ -22,6 +22,7 @@
 pragma solidity 0.8.6;
 
 import "@openzeppelin/contracts-upgradeable/utils/AddressUpgradeable.sol";
+import "@skalenetwork/ima-interfaces/schain/TokenManagers/ITokenManagerERC721.sol";
 
 import "../../Messages.sol";
 import "../tokens/ERC721OnChain.sol";
@@ -29,13 +30,13 @@ import "../TokenManager.sol";
 
 
 /**
- * @title Token Manager
- * @dev Runs on SKALE Chains, accepts messages from mainnet, and instructs
- * TokenFactory to create clones. TokenManager mints tokens via
- * LockAndDataForSchain*. When a user exits a SKALE chain, TokenFactory
- * burns tokens.
+ * @title TokenManagerERC721
+ * @dev Runs on SKALE Chains,
+ * accepts messages from mainnet,
+ * and creates ERC721 clones.
+ * TokenManagerERC721 mints tokens. When a user exits a SKALE chain, it burns them.
  */
-contract TokenManagerERC721 is TokenManager {
+contract TokenManagerERC721 is TokenManager, ITokenManagerERC721 {
     using AddressUpgradeable for address;
 
     // address of ERC721 on Mainnet => ERC721 on Schain
@@ -49,26 +50,45 @@ contract TokenManagerERC721 is TokenManager {
      */
     event ERC721TokenAdded(address indexed erc721OnMainnet, address indexed erc721OnSchain);
 
+    /**
+     * @dev Emitted when TokenManagerERC721 automatically deploys new ERC721 clone.
+     */
     event ERC721TokenCreated(address indexed erc721OnMainnet, address indexed erc721OnSchain);
 
+    /**
+     * @dev Emitted when someone sends tokens from mainnet to schain.
+     */
     event ERC721TokenReceived(address indexed erc721OnMainnet, address indexed erc721OnSchain, uint256 tokenId);
 
+    /**
+     * @dev Move tokens from schain to mainnet.
+     * 
+     * {contractOnMainnet} tokens are burned on schain and unlocked on mainnet for {to} address.
+     */
     function exitToMainERC721(
         address contractOnMainnet,
         uint256 tokenId
     )
         external
+        override
     {
         communityLocker.checkAllowedToSendMessage(msg.sender);
         _exit(MAINNET_HASH, depositBox, contractOnMainnet, msg.sender, tokenId);
     }
 
+    /**
+     * @dev Move tokens from schain to schain.
+     * 
+     * {contractOnMainnet} tokens are burned on origin schain
+     * and are minted on {targetSchainName} schain for {to} address.
+     */
     function transferToSchainERC721(
         string calldata targetSchainName,
         address contractOnMainnet,
         uint256 tokenId
     ) 
         external
+        override
         rightTransaction(targetSchainName, msg.sender)
     {
         bytes32 targetSchainHash = keccak256(abi.encodePacked(targetSchainName));
@@ -78,8 +98,6 @@ contract TokenManagerERC721 is TokenManager {
     /**
      * @dev Allows MessageProxy to post operational message from mainnet
      * or SKALE chains.
-     * 
-     * Emits an {Error} event upon failure.
      *
      * Requirements:
      * 
@@ -111,31 +129,36 @@ contract TokenManagerERC721 is TokenManager {
     }
 
     /**
-     * @dev Allows Schain owner to add an ERC721 token to LockAndDataForSchainERC721.
+     * @dev Allows Schain owner to register an ERC721 token clone in the token manager.
      */
     function addERC721TokenByOwner(
         address erc721OnMainnet,
-        ERC721OnChain erc721OnSchain
+        address erc721OnSchain
     )
         external
+        override
         onlyTokenRegistrar
     {
-        require(address(erc721OnSchain).isContract(), "Given address is not a contract");
+        require(erc721OnSchain.isContract(), "Given address is not a contract");
         require(address(clonesErc721[erc721OnMainnet]) == address(0), "Could not relink clone");
-        require(!addedClones[erc721OnSchain], "Clone was already added");
-        clonesErc721[erc721OnMainnet] = erc721OnSchain;
-        addedClones[erc721OnSchain] = true;
-        emit ERC721TokenAdded(erc721OnMainnet, address(erc721OnSchain));
+        require(!addedClones[ERC721OnChain(erc721OnSchain)], "Clone was already added");
+        clonesErc721[erc721OnMainnet] = ERC721OnChain(erc721OnSchain);
+        addedClones[ERC721OnChain(erc721OnSchain)] = true;
+        emit ERC721TokenAdded(erc721OnMainnet, erc721OnSchain);
     }
 
+    /**
+     * @dev Is called once during contract deployment.
+     */
     function initialize(
         string memory newChainName,
-        MessageProxyForSchain newMessageProxy,
-        TokenManagerLinker newIMALinker,
-        CommunityLocker newCommunityLocker,
+        IMessageProxyForSchain newMessageProxy,
+        ITokenManagerLinker newIMALinker,
+        ICommunityLocker newCommunityLocker,
         address newDepositBox
     )
         external
+        override
     {
         TokenManager.initializeTokenManager(
             newChainName,
@@ -151,7 +174,8 @@ contract TokenManagerERC721 is TokenManager {
     /**
      * @dev Allows TokenManager to send ERC721 tokens.
      *  
-     * Emits a {ERC721TokenCreated} event if to address = 0.
+     * Emits a {ERC20TokenCreated} event if token did not exist and was automatically deployed.
+     * Emits a {ERC20TokenReceived} event on success.
      */
     function _sendERC721(bytes calldata data) private returns (address) {
         Messages.MessageType messageType = Messages.getMessageType(data);
@@ -185,6 +209,9 @@ contract TokenManagerERC721 is TokenManager {
         return receiver;
     }
 
+    /**
+     * @dev Burn tokens on schain and send message to unlock them on target chain.
+     */
     function _exit(
         bytes32 chainHash,
         address messageReceiver,

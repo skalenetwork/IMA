@@ -23,42 +23,78 @@ pragma solidity 0.8.6;
 
 import "@openzeppelin/contracts-upgradeable/utils/structs/EnumerableSetUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/utils/AddressUpgradeable.sol";
+import "@skalenetwork/ima-interfaces/mainnet/ILinker.sol";
 
 import "../Messages.sol";
-import "./Twin.sol";
-
 import "./MessageProxyForMainnet.sol";
+import "./Twin.sol";
 
 
 /**
  * @title Linker For Mainnet
- * @dev Runs on Mainnet, holds deposited ETH, and contains mappings and
- * balances of ETH tokens received through DepositBox.
+ * @dev Runs on Mainnet,
+ * links contracts on mainnet with their twin on schain,
+ * allows to kill schain when interchain connection was not enabled.
  */
-contract Linker is Twin {
+contract Linker is Twin, ILinker {
     using AddressUpgradeable for address;
     using EnumerableSetUpgradeable for EnumerableSetUpgradeable.AddressSet;
 
     enum KillProcess {NotKilled, PartiallyKilledBySchainOwner, PartiallyKilledByContractOwner, Killed}
     EnumerableSetUpgradeable.AddressSet private _mainnetContracts;
 
-    mapping(bytes32 => bool) public interchainConnections;
+    // schainHash => true if interchain connection was enabled
+    mapping(bytes32 => bool) public override interchainConnections;
+
+    // schainHash => schain status of killing process 
     mapping(bytes32 => KillProcess) public statuses;
 
+    /**
+     * @dev Modifier to make a function callable only if caller is granted with {LINKER_ROLE}.
+     */
     modifier onlyLinker() {
         require(hasRole(LINKER_ROLE, msg.sender), "Linker role is required");
         _;
     }
 
-    function registerMainnetContract(address newMainnetContract) external onlyLinker {
+    /**
+     * @dev Allows Linker to register external mainnet contracts.
+     * 
+     * Requirements:
+     * 
+     * - Contract must be not registered.
+     */
+    function registerMainnetContract(address newMainnetContract) external override onlyLinker {
         require(_mainnetContracts.add(newMainnetContract), "The contracts was not registered");
     }
 
-    function removeMainnetContract(address mainnetContract) external onlyLinker {
+    /**
+     * @dev Allows Linker to remove external mainnet contracts.
+     * 
+     * Requirements:
+     * 
+     * - Contract must be registered.
+     */
+    function removeMainnetContract(address mainnetContract) external override onlyLinker {
         require(_mainnetContracts.remove(mainnetContract), "The contract was not removed");
     }
 
-    function connectSchain(string calldata schainName, address[] calldata schainContracts) external onlyLinker {
+    /**
+     * @dev Allows Linker to connect mainnet contracts with their receivers on schain.
+     * 
+     * Requirements:
+     * 
+     * - Numbers of mainnet contracts and schain contracts must be equal.
+     * - Mainnet contract must implement method `addSchainContract`.
+     */
+    function connectSchain(
+        string calldata schainName,
+        address[] calldata schainContracts
+    )
+        external
+        override
+        onlyLinker
+    {
         require(schainContracts.length == _mainnetContracts.length(), "Incorrect number of addresses");
         for (uint i = 0; i < schainContracts.length; i++) {
             Twin(_mainnetContracts.at(i)).addSchainContract(schainName, schainContracts[i]);
@@ -66,7 +102,15 @@ contract Linker is Twin {
         messageProxy.addConnectedChain(schainName);
     }
 
-    function allowInterchainConnections(string calldata schainName) external onlySchainOwner(schainName) {
+    /**
+     * @dev Allows Schain owner to connect others chains with their own,
+     * thus others schains have opportunity to send messages from chain to chain.
+     * 
+     * Requirements:
+     * 
+     * - Schain should not be in the process of being killed.
+     */
+    function allowInterchainConnections(string calldata schainName) external override onlySchainOwner(schainName) {
         bytes32 schainHash = keccak256(abi.encodePacked(schainName));
         require(statuses[schainHash] == KillProcess.NotKilled, "Schain is in kill process");
         interchainConnections[schainHash] = true;
@@ -77,7 +121,15 @@ contract Linker is Twin {
         );
     }
 
-    function kill(string calldata schainName) external {
+    /**
+     * @dev Allows Schain owner and contract deployer to kill schain. 
+     * To kill the schain, both entities must call this function, and the order is not important.
+     * 
+     * Requirements:
+     * 
+     * - Interchain connection should be turned off.
+     */
+    function kill(string calldata schainName) override external {
         require(!interchainConnections[keccak256(abi.encodePacked(schainName))], "Interchain connections turned on");
         bytes32 schainHash = keccak256(abi.encodePacked(schainName));
         if (statuses[schainHash] == KillProcess.NotKilled) {
@@ -103,7 +155,15 @@ contract Linker is Twin {
         }
     }
 
-    function disconnectSchain(string calldata schainName) external onlyLinker {
+    /**
+     * @dev Allows Linker disconnect schain from the network. This will remove all receiver contracts on schain.
+     * Thus, messages will not go from the mainnet to the schain.
+     * 
+     * Requirements:
+     * 
+     * - Mainnet contract should implement method `removeSchainContract`.
+     */
+    function disconnectSchain(string calldata schainName) external override onlyLinker {
         uint length = _mainnetContracts.length();
         for (uint i = 0; i < length; i++) {
             Twin(_mainnetContracts.at(i)).removeSchainContract(schainName);
@@ -111,15 +171,24 @@ contract Linker is Twin {
         messageProxy.removeConnectedChain(schainName);
     }
 
-    function isNotKilled(bytes32 schainHash) external view returns (bool) {
+    /**
+     * @dev Returns true if schain is not killed.
+     */
+    function isNotKilled(bytes32 schainHash) external view override returns (bool) {
         return statuses[schainHash] != KillProcess.Killed;
     }
 
-    function hasMainnetContract(address mainnetContract) external view returns (bool) {
+    /**
+     * @dev Returns true if list of mainnet contracts has particular contract.
+     */
+    function hasMainnetContract(address mainnetContract) external view override returns (bool) {
         return _mainnetContracts.contains(mainnetContract);
     }
 
-    function hasSchain(string calldata schainName) external view returns (bool connected) {
+    /**
+     * @dev Returns true if mainnet contracts and schain contracts are connected together for transferring messages.
+     */
+    function hasSchain(string calldata schainName) external view override returns (bool connected) {
         uint length = _mainnetContracts.length();
         connected = messageProxy.isConnectedChain(schainName);
         for (uint i = 0; connected && i < length; i++) {
@@ -127,9 +196,12 @@ contract Linker is Twin {
         }
     }
 
+    /**
+     * @dev Create a new Linker contract.
+     */
     function initialize(
         IContractManager contractManagerOfSkaleManagerValue,
-        MessageProxyForMainnet messageProxyValue
+        IMessageProxyForMainnet messageProxyValue
     )
         public
         override
