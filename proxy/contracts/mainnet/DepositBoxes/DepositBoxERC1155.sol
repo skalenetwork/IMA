@@ -229,28 +229,6 @@ contract DepositBoxERC1155 is DepositBox, ERC1155ReceiverUpgradeable, IDepositBo
         }
     }
 
-    function gasPayer(
-        bytes32 schainHash,
-        address sender,
-        bytes calldata data
-    )
-        external
-        view
-        override
-        checkReceiverChain(schainHash, sender)
-        returns (address)
-    {
-        Messages.MessageType operation = Messages.getMessageType(data);
-        if (operation == Messages.MessageType.TRANSFER_ERC1155) {
-            Messages.TransferErc1155Message memory message = Messages.decodeTransferErc1155Message(data);
-            return message.receiver;
-        } else if (operation == Messages.MessageType.TRANSFER_ERC1155_BATCH) {
-            Messages.TransferErc1155BatchMessage memory message = Messages.decodeTransferErc1155BatchMessage(data);
-            return message.receiver;
-        }
-        return address(0);
-    }
-
     /**
      * @dev Allows Schain owner to add an ERC1155 token to DepositBoxERC1155.
      * 
