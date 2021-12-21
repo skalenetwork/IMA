@@ -15,7 +15,8 @@ cd proxy
 yarn install
 CHAIN_NAME_SCHAIN="Test" VERSION="$DEPLOYED_VERSION" npx hardhat run migrations/deploySkaleManagerComponents.ts --network localhost || exit $?
 VERSION="$DEPLOYED_VERSION" npx hardhat run migrations/deployMainnet.ts --network localhost || exit $?
-
+rm ./migrations/deploySchain.ts
+curl -o ./migrations/deploySchain.ts https://raw.githubusercontent.com/skalenetwork/IMA/deploy-script-for-1.0.0-stable.1/proxy/migrations/deploySchain.ts
 CHAIN_NAME_SCHAIN="Test" VERSION="$DEPLOYED_VERSION" npx hardhat run migrations/deploySchain.ts --network localhost || exit $?
 cp "$GITHUB_WORKSPACE/proxy/migrations/generateManifest.ts" ./migrations/generateManifest.ts
 cp "$GITHUB_WORKSPACE/proxy/migrations/changeManifest.ts" ./migrations/changeManifest.ts
