@@ -308,6 +308,14 @@ contract MessageProxyForSchain is MessageProxy, IMessageProxyForSchainInitialize
         _idxTail[dstChainHash] += 1;
     }
 
+    function verifySignature(bytes32 hashedMessage, MessageProxyForSchain.Signature calldata signature)
+        public
+        view
+        returns (bool)
+    {
+        return _verifyMessages(hashedMessage, signature);
+    }
+
     // private
 
     /**
