@@ -24,9 +24,28 @@
 pragma solidity 0.8.6;
 
 import "@openzeppelin/contracts-upgradeable/access/AccessControlEnumerableUpgradeable.sol";
-import "@skalenetwork/ima-interfaces/schain/ICommunityLocker.sol";
+import "@skalenetwork/ima-interfaces/IMessageReceiver.sol";
+import "@skalenetwork/ima-interfaces/schain/IMessageProxyForSchain.sol";
+import "@skalenetwork/ima-interfaces/schain/ITokenManagerLinker.sol";
 
 import "../Messages.sol";
+
+
+interface IMessageProxyTemp is IMessageProxyForSchain {
+    function verifySignature(bytes32 hashedMessage, Signature memory signature) external view returns (bool);
+}
+
+interface ICommunityLockerTemp is IMessageReceiver {
+    function initialize(
+        string memory newSchainName,
+        IMessageProxyTemp newMessageProxy,
+        ITokenManagerLinker newTokenManagerLinker,
+        address newCommunityPool
+    ) external;
+    function checkAllowedToSendMessage(address receiver) external;
+    function setTimeLimitPerMessage(uint newTimeLimitPerMessage) external;
+    function setGasPrice(uint gasPrice, IMessageProxyForSchain.Signature memory signature) external;
+}
 
 
 /**
@@ -34,7 +53,7 @@ import "../Messages.sol";
  * @dev Contract contains logic to perform automatic reimbursement
  * of gas fees for sent messages
  */
-contract CommunityLocker is ICommunityLocker, AccessControlEnumerableUpgradeable {
+contract CommunityLocker is ICommunityLockerTemp, AccessControlEnumerableUpgradeable {
 
     /**
      * @dev Mainnet identifier.
@@ -54,7 +73,7 @@ contract CommunityLocker is ICommunityLocker, AccessControlEnumerableUpgradeable
     /**
      * @dev Address of MessageProxyForSchain.
      */
-    IMessageProxyForSchain public messageProxy;
+    IMessageProxyTemp public messageProxy;
 
     /**
      * @dev Address of TokenManagerLinker.
@@ -207,7 +226,7 @@ contract CommunityLocker is ICommunityLocker, AccessControlEnumerableUpgradeable
      * 
      * Emits a {MainnerGasPriceWasChanged} event.
      */
-    function setGasPrice(uint gasPrice, IMessageProxyForSchain.Signature memory signature) external {
+    function setGasPrice(uint gasPrice, IMessageProxyForSchain.Signature memory signature) external override {
         require(messageProxy.verifySignature(keccak256(abi.encodePacked(gasPrice)), signature), "Signature is not verified");
         emit MainnetGasPriceWasChanged(mainnetGasPrice, gasPrice);
         mainnetGasPrice = gasPrice;
@@ -218,7 +237,7 @@ contract CommunityLocker is ICommunityLocker, AccessControlEnumerableUpgradeable
      */
     function initialize(
         string memory newSchainName,
-        IMessageProxyForSchain newMessageProxy,
+        IMessageProxyTemp newMessageProxy,
         ITokenManagerLinker newTokenManagerLinker,
         address newCommunityPool
     )
