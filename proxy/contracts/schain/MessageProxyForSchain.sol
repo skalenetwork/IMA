@@ -233,6 +233,18 @@ contract MessageProxyForSchain is MessageProxy, IMessageProxyForSchainInitialize
     }
 
     /**
+     * @dev Verify signature of hashed message
+     */
+    function verifySignature(bytes32 hashedMessage, MessageProxyForSchain.Signature calldata signature)
+        external
+        view
+        override
+        returns (bool)
+    {
+        return _verifyMessages(hashedMessage, signature);
+    }
+
+    /**
      * @dev Is called once during contract deployment.
      */
     function initialize(IKeyStorage blsKeyStorage, string memory schainName)
@@ -306,15 +318,6 @@ contract MessageProxyForSchain is MessageProxy, IMessageProxyForSchainInitialize
         bytes32 dstChainHash = outgoingMessageData.dstChainHash;
         _outgoingMessageDataHash[dstChainHash][_idxTail[dstChainHash]] = _hashOfMessage(outgoingMessageData);
         _idxTail[dstChainHash] += 1;
-    }
-
-    function verifySignature(bytes32 hashedMessage, MessageProxyForSchain.Signature calldata signature)
-        public
-        view
-        override
-        returns (bool)
-    {
-        return _verifyMessages(hashedMessage, signature);
     }
 
     // private
