@@ -208,7 +208,10 @@ contract CommunityLocker is ICommunityLocker, AccessControlEnumerableUpgradeable
      * Emits a {MainnerGasPriceWasChanged} event.
      */
     function setGasPrice(uint gasPrice, IMessageProxyForSchain.Signature memory signature) external override {
-        require(messageProxy.verifySignature(keccak256(abi.encodePacked(gasPrice)), signature), "Signature is not verified");
+        require(
+            messageProxy.verifySignature(keccak256(abi.encodePacked(gasPrice)), signature),
+            "Signature is not verified"
+        );
         emit MainnetGasPriceWasChanged(mainnetGasPrice, gasPrice);
         mainnetGasPrice = gasPrice;
     }
