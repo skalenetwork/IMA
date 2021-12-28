@@ -24,28 +24,9 @@
 pragma solidity 0.8.6;
 
 import "@openzeppelin/contracts-upgradeable/access/AccessControlEnumerableUpgradeable.sol";
-import "@skalenetwork/ima-interfaces/IMessageReceiver.sol";
-import "@skalenetwork/ima-interfaces/schain/IMessageProxyForSchain.sol";
-import "@skalenetwork/ima-interfaces/schain/ITokenManagerLinker.sol";
+import "@skalenetwork/ima-interfaces/schain/ICommunityLocker.sol";
 
 import "../Messages.sol";
-
-
-interface IMessageProxyTemp is IMessageProxyForSchain {
-    function verifySignature(bytes32 hashedMessage, Signature memory signature) external view returns (bool);
-}
-
-interface ICommunityLockerTemp is IMessageReceiver {
-    function initialize(
-        string memory newSchainName,
-        IMessageProxyTemp newMessageProxy,
-        ITokenManagerLinker newTokenManagerLinker,
-        address newCommunityPool
-    ) external;
-    function checkAllowedToSendMessage(address receiver) external;
-    function setTimeLimitPerMessage(uint newTimeLimitPerMessage) external;
-    function setGasPrice(uint gasPrice, IMessageProxyForSchain.Signature memory signature) external;
-}
 
 
 /**
@@ -53,7 +34,7 @@ interface ICommunityLockerTemp is IMessageReceiver {
  * @dev Contract contains logic to perform automatic reimbursement
  * of gas fees for sent messages
  */
-contract CommunityLocker is ICommunityLockerTemp, AccessControlEnumerableUpgradeable {
+contract CommunityLocker is ICommunityLocker, AccessControlEnumerableUpgradeable {
 
     /**
      * @dev Mainnet identifier.
@@ -73,7 +54,7 @@ contract CommunityLocker is ICommunityLockerTemp, AccessControlEnumerableUpgrade
     /**
      * @dev Address of MessageProxyForSchain.
      */
-    IMessageProxyTemp public messageProxy;
+    IMessageProxyForSchain public messageProxy;
 
     /**
      * @dev Address of TokenManagerLinker.
@@ -237,7 +218,7 @@ contract CommunityLocker is ICommunityLockerTemp, AccessControlEnumerableUpgrade
      */
     function initialize(
         string memory newSchainName,
-        IMessageProxyTemp newMessageProxy,
+        IMessageProxyForSchain newMessageProxy,
         ITokenManagerLinker newTokenManagerLinker,
         address newCommunityPool
     )

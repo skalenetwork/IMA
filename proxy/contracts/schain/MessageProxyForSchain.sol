@@ -311,6 +311,7 @@ contract MessageProxyForSchain is MessageProxy, IMessageProxyForSchainInitialize
     function verifySignature(bytes32 hashedMessage, MessageProxyForSchain.Signature calldata signature)
         public
         view
+        override
         returns (bool)
     {
         return _verifyMessages(hashedMessage, signature);
