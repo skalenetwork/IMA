@@ -89,6 +89,8 @@ contract CommunityLocker is ICommunityLocker, AccessControlEnumerableUpgradeable
     // user address => timestamp of last message
     mapping(address => uint) public lastMessageTimeStamp;
 
+    uint256 public mainnetGasPrice;
+
     /**
      * @dev Emitted when a user becomes active.
      */
@@ -109,6 +111,14 @@ contract CommunityLocker is ICommunityLocker, AccessControlEnumerableUpgradeable
      * @dev Emitted when value of {timeLimitPerMessage} was changed.
      */
     event TimeLimitPerMessageWasChanged(
+        uint256 oldValue,
+        uint256 newValue
+    );
+
+    /**
+     * @dev Emitted when value of {mainnetGasPrice} was changed.
+     */
+    event MainnetGasPriceWasChanged(
         uint256 oldValue,
         uint256 newValue
     );
@@ -186,6 +196,24 @@ contract CommunityLocker is ICommunityLocker, AccessControlEnumerableUpgradeable
         require(hasRole(CONSTANT_SETTER_ROLE, msg.sender), "Not enough permissions to set constant");
         emit TimeLimitPerMessageWasChanged(timeLimitPerMessage, newTimeLimitPerMessage);
         timeLimitPerMessage = newTimeLimitPerMessage;
+    }
+
+    /**
+     * @dev Set value of {mainnetGasPrice}.
+     *
+     * Requirements:
+     * 
+     * - Signature should be verified.
+     * 
+     * Emits a {MainnerGasPriceWasChanged} event.
+     */
+    function setGasPrice(uint gasPrice, IMessageProxyForSchain.Signature memory signature) external override {
+        require(
+            messageProxy.verifySignature(keccak256(abi.encodePacked(gasPrice)), signature),
+            "Signature is not verified"
+        );
+        emit MainnetGasPriceWasChanged(mainnetGasPrice, gasPrice);
+        mainnetGasPrice = gasPrice;
     }
 
     /**

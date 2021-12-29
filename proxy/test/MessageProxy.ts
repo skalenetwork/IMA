@@ -291,9 +291,11 @@ describe("MessageProxy", () => {
                 .postIncomingMessages(
                     schainName,
                     startingCounter,
-                    [message1, message1, message1, message1, message1, message1, message1, message1, message1, message1, message1],
+                    Array(11).fill(message1),
                     sign
                     ).should.be.eventually.rejectedWith("Too many messages");
+
+            await communityPool.connect(client).rechargeUserWallet(schainName, client.address, {value: amountWei.toString()});
 
             await messageProxyForMainnet
                 .connect(deployer)
@@ -304,7 +306,7 @@ describe("MessageProxy", () => {
                     sign
                 );
 
-            await communityPool.connect(client).rechargeUserWallet(schainName, client.address, {value: amountWei.toString()});
+            await communityPool.connect(client).rechargeUserWallet(schainName, user.address, {value: amountWei.toString()});
 
             await messageProxyForMainnet
                 .connect(deployer)
