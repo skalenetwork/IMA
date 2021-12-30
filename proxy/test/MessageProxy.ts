@@ -37,7 +37,8 @@ import {
     ReceiverGasLimitSchainMock,
     KeyStorageMock,
     CommunityPool,
-    EtherbaseMock
+    EtherbaseMock,
+    SchainsInternal
 } from "../typechain/";
 import { randomString, stringValue } from "./utils/helper";
 import ABIReceiverMock = require("../artifacts/contracts/test/ReceiverMock.sol/ReceiverMock.json");
@@ -83,6 +84,7 @@ describe("MessageProxy", () => {
     const contractManagerAddress = "0x0000000000000000000000000000000000000000";
     const zeroBytes32 = "0x0000000000000000000000000000000000000000000000000000000000000000"
     const schainName = "Schain";
+    const schainHash = ethers.utils.solidityKeccak256(["string"], [schainName]);
 
     const BlsSignature: [BigNumber, BigNumber] = [
         BigNumber.from("178325537405109593276798394634841698946852714038246117383766698579865918287"),
@@ -206,16 +208,41 @@ describe("MessageProxy", () => {
             const bytesData = await messages.encodeTransferEthMessage(user.address, amount);
 
             await caller
-                .postOutgoingMessageTester(messageProxyForMainnet.address, stringValue(web3.utils.soliditySha3(schainName)), contractAddress, bytesData)
+                .postOutgoingMessageTester(messageProxyForMainnet.address, schainHash, contractAddress, bytesData)
                 .should.be.rejectedWith("Destination chain is not initialized");
 
             await messageProxyForMainnet.connect(deployer).addConnectedChain(schainName);
             await caller
-                .postOutgoingMessageTester(messageProxyForMainnet.address, stringValue(web3.utils.soliditySha3(schainName)), contractAddress, bytesData);
+                .postOutgoingMessageTester(messageProxyForMainnet.address, schainHash, contractAddress, bytesData);
             const outgoingMessagesCounter = BigNumber.from(
                 await messageProxyForMainnet.getOutgoingMessagesCounter(schainName));
             outgoingMessagesCounter.should.be.deep.equal(BigNumber.from(1));
         });
+
+        it("should allow schain owner to send message", async () => {
+            const message = "0xd2";
+            const schainOwner = user;
+            const schainsInternal = (await ethers.getContractFactory("SchainsInternal")).attach(await contractManager.getContract("SchainsInternal")) as SchainsInternal;
+            const otherSchainName = "something else";
+            const otherSchainHash = ethers.utils.solidityKeccak256(["string"], [otherSchainName]);
+
+            await schainsInternal.initializeSchain(schainName, schainOwner.address, 0, 0);
+            await messageProxyForMainnet.addConnectedChain(schainName);
+            await messageProxyForMainnet.addConnectedChain(otherSchainName);
+
+            await messageProxyForMainnet.connect(schainOwner).postOutgoingMessage(schainHash, schainOwner.address, message)
+                .should.emit(messageProxyForMainnet, "OutgoingMessage")
+                .withArgs(
+                    schainHash,
+                    0,
+                    schainOwner.address,
+                    schainOwner.address,
+                    message
+                );
+
+            await messageProxyForMainnet.connect(schainOwner).postOutgoingMessage(otherSchainHash, schainOwner.address, message)
+                .should.be.revertedWith("Sender contract is not registered");
+        })
 
         it("should post incoming messages", async () => {
             const startingCounter = 0;
@@ -310,7 +337,7 @@ describe("MessageProxy", () => {
             outgoingMessagesCounter0.should.be.deep.equal(BigNumber.from(0));
 
             await caller
-                .postOutgoingMessageTester(messageProxyForMainnet.address, stringValue(web3.utils.soliditySha3(schainName)), contractAddress, bytesData);
+                .postOutgoingMessageTester(messageProxyForMainnet.address, schainHash, contractAddress, bytesData);
 
             const outgoingMessagesCounter = BigNumber.from(
                 await messageProxyForMainnet.getOutgoingMessagesCounter(schainName));
@@ -422,7 +449,7 @@ describe("MessageProxy", () => {
             outgoingMessagesCounter0.should.be.equal(0);
 
             await caller.postOutgoingMessageTester(messageProxyForMainnet.address,
-                stringValue(web3.utils.soliditySha3(schainName)),
+                schainHash,
                 depositBox.address,
                 bytesData,
             );
@@ -494,15 +521,15 @@ describe("MessageProxy", () => {
                 await messageProxyForMainnet.registerExtraContract(schainName, fakeContractOnSchain)
                     .should.be.eventually.rejectedWith("Given address is not a contract");
 
-                expect((await messageProxyForMainnet.getContractRegisteredLength(stringValue(web3.utils.soliditySha3(schainName)))).toString()).to.be.equal("1");
-                expect(await messageProxyForMainnet.isContractRegistered(stringValue(web3.utils.soliditySha3(schainName)), depositBox.address)).to.be.equal(false);
+                expect((await messageProxyForMainnet.getContractRegisteredLength(schainHash)).toString()).to.be.equal("1");
+                expect(await messageProxyForMainnet.isContractRegistered(schainHash, depositBox.address)).to.be.equal(false);
                 await messageProxyForMainnet.registerExtraContract(schainName, depositBox.address);
-                expect(await messageProxyForMainnet.isContractRegistered(stringValue(web3.utils.soliditySha3(schainName)), depositBox.address)).to.be.equal(true);
-                expect((await messageProxyForMainnet.getContractRegisteredLength(stringValue(web3.utils.soliditySha3(schainName)))).toString()).to.be.equal("2");
-                expect((await messageProxyForMainnet.getContractRegisteredRange(stringValue(web3.utils.soliditySha3(schainName)), 0, 1)).length).to.be.equal(1);
-                expect((await messageProxyForMainnet.getContractRegisteredRange(stringValue(web3.utils.soliditySha3(schainName)), 0, 2))[1]).to.be.equal(depositBox.address);
-                await messageProxyForMainnet.getContractRegisteredRange(stringValue(web3.utils.soliditySha3(schainName)), 0, 11).should.be.eventually.rejectedWith("Range is incorrect");
-                await messageProxyForMainnet.getContractRegisteredRange(stringValue(web3.utils.soliditySha3(schainName)), 1, 0).should.be.eventually.rejectedWith("Range is incorrect");;
+                expect(await messageProxyForMainnet.isContractRegistered(schainHash, depositBox.address)).to.be.equal(true);
+                expect((await messageProxyForMainnet.getContractRegisteredLength(schainHash)).toString()).to.be.equal("2");
+                expect((await messageProxyForMainnet.getContractRegisteredRange(schainHash, 0, 1)).length).to.be.equal(1);
+                expect((await messageProxyForMainnet.getContractRegisteredRange(schainHash, 0, 2))[1]).to.be.equal(depositBox.address);
+                await messageProxyForMainnet.getContractRegisteredRange(schainHash, 0, 11).should.be.eventually.rejectedWith("Range is incorrect");
+                await messageProxyForMainnet.getContractRegisteredRange(schainHash, 1, 0).should.be.eventually.rejectedWith("Range is incorrect");;
 
                 await messageProxyForMainnet.registerExtraContract(schainName, depositBox.address)
                     .should.be.eventually.rejectedWith("Extra contract is already registered");
@@ -539,25 +566,25 @@ describe("MessageProxy", () => {
                 await messageProxyForMainnet.removeExtraContract(schainName, fakeContractOnSchain)
                     .should.be.eventually.rejectedWith("Extra contract is not registered");
 
-                expect((await messageProxyForMainnet.getContractRegisteredLength(stringValue(web3.utils.soliditySha3(schainName)))).toString()).to.be.equal("1");
+                expect((await messageProxyForMainnet.getContractRegisteredLength(schainHash)).toString()).to.be.equal("1");
                 await expect(
                     messageProxyForMainnet.registerExtraContract(schainName, depositBox.address)
                 ).to.emit(
                     messageProxyForMainnet,
                     "ExtraContractRegistered"
-                ).withArgs(stringValue(web3.utils.soliditySha3(schainName)), depositBox.address);
-                expect((await messageProxyForMainnet.getContractRegisteredLength(stringValue(web3.utils.soliditySha3(schainName)))).toString()).to.be.equal("2");
+                ).withArgs(schainHash, depositBox.address);
+                expect((await messageProxyForMainnet.getContractRegisteredLength(schainHash)).toString()).to.be.equal("2");
                 await expect(
                     messageProxyForMainnet.removeExtraContract(schainName, depositBox.address)
                 ).to.emit(
                     messageProxyForMainnet,
                     "ExtraContractRemoved"
-                ).withArgs(stringValue(web3.utils.soliditySha3(schainName)), depositBox.address);
-                expect((await messageProxyForMainnet.getContractRegisteredLength(stringValue(web3.utils.soliditySha3(schainName)))).toString()).to.be.equal("1");
+                ).withArgs(schainHash, depositBox.address);
+                expect((await messageProxyForMainnet.getContractRegisteredLength(schainHash)).toString()).to.be.equal("1");
 
                 await messageProxyForMainnet.removeExtraContract(schainName, depositBox.address)
                     .should.be.eventually.rejectedWith("Extra contract is not registered");
-                expect(await messageProxyForMainnet.isContractRegistered(stringValue(web3.utils.soliditySha3(schainName)), depositBox.address)).to.be.equal(false);
+                expect(await messageProxyForMainnet.isContractRegistered(schainHash, depositBox.address)).to.be.equal(false);
             });
 
             it("should remove extra contract for all", async () => {
@@ -666,12 +693,12 @@ describe("MessageProxy", () => {
             const addressTo = user.address;
             const bytesData = await messages.encodeTransferEthMessage(addressTo, amount);
             await caller
-                .postOutgoingMessageTesterOnSchain(messageProxyForSchain.address, stringValue(web3.utils.soliditySha3(schainName)), contractAddress, bytesData)
+                .postOutgoingMessageTesterOnSchain(messageProxyForSchain.address, schainHash, contractAddress, bytesData)
                 .should.be.rejectedWith("Destination chain is not initialized");
 
             await messageProxyForSchain.connect(deployer).addConnectedChain(schainName);
             await caller
-                .postOutgoingMessageTesterOnSchain(messageProxyForSchain.address, stringValue(web3.utils.soliditySha3(schainName)), contractAddress, bytesData);
+                .postOutgoingMessageTesterOnSchain(messageProxyForSchain.address, schainHash, contractAddress, bytesData);
             const outgoingMessagesCounter = BigNumber.from(
                 await messageProxyForSchain.getOutgoingMessagesCounter(schainName));
             outgoingMessagesCounter.should.be.deep.equal(BigNumber.from(1));
@@ -808,7 +835,7 @@ describe("MessageProxy", () => {
             outgoingMessagesCounter0.should.be.deep.equal(BigNumber.from(0));
 
             await caller
-                .postOutgoingMessageTesterOnSchain(messageProxyForSchain.address, stringValue(web3.utils.soliditySha3(schainName)), messages.address, bytesData);
+                .postOutgoingMessageTesterOnSchain(messageProxyForSchain.address, schainHash, messages.address, bytesData);
 
             const outgoingMessagesCounter = BigNumber.from(
                 await messageProxyForSchain.getOutgoingMessagesCounter(schainName));
@@ -973,15 +1000,15 @@ describe("MessageProxy", () => {
                 await messageProxyForSchain.registerExtraContract(schainName, fakeContractOnSchain)
                     .should.be.eventually.rejectedWith("Given address is not a contract");
 
-                expect((await messageProxyForSchain.getContractRegisteredLength(stringValue(web3.utils.soliditySha3(schainName)))).toString()).to.be.equal("1");
-                expect(await messageProxyForSchain.isContractRegistered(stringValue(web3.utils.soliditySha3(schainName)), messages.address)).to.be.equal(false);
+                expect((await messageProxyForSchain.getContractRegisteredLength(schainHash)).toString()).to.be.equal("1");
+                expect(await messageProxyForSchain.isContractRegistered(schainHash, messages.address)).to.be.equal(false);
                 await messageProxyForSchain.registerExtraContract(schainName, messages.address);
-                expect(await messageProxyForSchain.isContractRegistered(stringValue(web3.utils.soliditySha3(schainName)), messages.address)).to.be.equal(true);
-                expect((await messageProxyForSchain.getContractRegisteredLength(stringValue(web3.utils.soliditySha3(schainName)))).toString()).to.be.equal("2");
-                expect((await messageProxyForSchain.getContractRegisteredRange(stringValue(web3.utils.soliditySha3(schainName)), 0, 1)).length).to.be.equal(1);
-                expect((await messageProxyForSchain.getContractRegisteredRange(stringValue(web3.utils.soliditySha3(schainName)), 0, 2))[1]).to.be.equal(messages.address);
-                await messageProxyForSchain.getContractRegisteredRange(stringValue(web3.utils.soliditySha3(schainName)), 0, 11).should.be.eventually.rejectedWith("Range is incorrect");
-                await messageProxyForSchain.getContractRegisteredRange(stringValue(web3.utils.soliditySha3(schainName)), 1, 0).should.be.eventually.rejectedWith("Range is incorrect");;
+                expect(await messageProxyForSchain.isContractRegistered(schainHash, messages.address)).to.be.equal(true);
+                expect((await messageProxyForSchain.getContractRegisteredLength(schainHash)).toString()).to.be.equal("2");
+                expect((await messageProxyForSchain.getContractRegisteredRange(schainHash, 0, 1)).length).to.be.equal(1);
+                expect((await messageProxyForSchain.getContractRegisteredRange(schainHash, 0, 2))[1]).to.be.equal(messages.address);
+                await messageProxyForSchain.getContractRegisteredRange(schainHash, 0, 11).should.be.eventually.rejectedWith("Range is incorrect");
+                await messageProxyForSchain.getContractRegisteredRange(schainHash, 1, 0).should.be.eventually.rejectedWith("Range is incorrect");;
 
                 await messageProxyForSchain.registerExtraContract(schainName, messages.address)
                     .should.be.eventually.rejectedWith("Extra contract is already registered");
@@ -1019,25 +1046,25 @@ describe("MessageProxy", () => {
                 await messageProxyForSchain.removeExtraContract(schainName, fakeContractOnSchain)
                     .should.be.eventually.rejectedWith("Extra contract is not registered");
 
-                expect((await messageProxyForSchain.getContractRegisteredLength(stringValue(web3.utils.soliditySha3(schainName)))).toString()).to.be.equal("1");
+                expect((await messageProxyForSchain.getContractRegisteredLength(schainHash)).toString()).to.be.equal("1");
                 await expect(
                     messageProxyForSchain.registerExtraContract(schainName, messages.address)
                 ).to.emit(
                     messageProxyForSchain,
                     "ExtraContractRegistered"
-                ).withArgs(stringValue(web3.utils.soliditySha3(schainName)), messages.address);
-                expect((await messageProxyForSchain.getContractRegisteredLength(stringValue(web3.utils.soliditySha3(schainName)))).toString()).to.be.equal("2");
+                ).withArgs(schainHash, messages.address);
+                expect((await messageProxyForSchain.getContractRegisteredLength(schainHash)).toString()).to.be.equal("2");
                 await expect(
                     messageProxyForSchain.removeExtraContract(schainName, messages.address)
                 ).to.emit(
                     messageProxyForSchain,
                     "ExtraContractRemoved"
-                ).withArgs(stringValue(web3.utils.soliditySha3(schainName)), messages.address);
-                expect((await messageProxyForSchain.getContractRegisteredLength(stringValue(web3.utils.soliditySha3(schainName)))).toString()).to.be.equal("1");
+                ).withArgs(schainHash, messages.address);
+                expect((await messageProxyForSchain.getContractRegisteredLength(schainHash)).toString()).to.be.equal("1");
 
                 await messageProxyForSchain.removeExtraContract(schainName, messages.address)
                     .should.be.eventually.rejectedWith("Extra contract is not registered");
-                expect(await messageProxyForSchain.isContractRegistered(stringValue(web3.utils.soliditySha3(schainName)), messages.address)).to.be.equal(false);
+                expect(await messageProxyForSchain.isContractRegistered(schainHash, messages.address)).to.be.equal(false);
             });
 
             it("should remove extra contract for all", async () => {

@@ -289,10 +289,7 @@ abstract contract MessageProxy is AccessControlEnumerableUpgradeable, IMessagePr
         virtual
     {
         require(connectedChains[targetChainHash].inited, "Destination chain is not initialized");
-        require(
-            isContractRegistered(bytes32(0), msg.sender) || isContractRegistered(targetChainHash, msg.sender),
-            "Sender contract is not registered"
-        );        
+        _authorizeOutgoingMessageSender(targetChainHash);
         
         emit OutgoingMessage(
             targetChainHash,
@@ -476,6 +473,13 @@ abstract contract MessageProxy is AccessControlEnumerableUpgradeable, IMessagePr
             );
             return address(0);
         }
+    }
+
+    function _authorizeOutgoingMessageSender(bytes32 targetChainHash) internal view virtual {
+        require(
+            isContractRegistered(bytes32(0), msg.sender) || isContractRegistered(targetChainHash, msg.sender),
+            "Sender contract is not registered"
+        );        
     }
 
     function _getRegistryContracts()
