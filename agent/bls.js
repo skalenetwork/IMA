@@ -139,7 +139,7 @@ function compose_one_message_byte_sequence( joMessage ) {
 }
 
 function compose_summary_message_to_sign( jarrMessages, isHash ) {
-    let arrBytes = "";
+    let arrBytes = new Uint8Array();
     let i = 0; const cnt = jarrMessages.length;
     for( i = 0; i < cnt; ++i ) {
         const joMessage = jarrMessages[i];
@@ -157,7 +157,7 @@ function compose_summary_message_to_sign( jarrMessages, isHash ) {
 }
 
 function compose_summary_message_to_sign_u256( u256, isHash ) {
-    let arrBytes = "";
+    let arrBytes = new Uint8Array();
     //
     let bytes_u256 = imaUtils.hexToBytes( u256 );
     bytes_u256 = imaUtils.invertArrayItemsLR( bytes_u256 );
@@ -433,8 +433,8 @@ function perform_bls_verify_i( details, strDirection, nZeroBasedNodeIndex, joRes
         fnShellRestore();
         return true;
     } catch ( err ) {
-        const s1 = strLogPrefix + cc.fatal( "CRITICAL ERROR: BLS node " ) + cc.notice( "#" ) + cc.info( nZeroBasedNodeIndex ) + cc.error( " verify error:" ) + cc.normal( " error description is: " ) + cc.warning( err.toString() ) + "\n";
-        const s2 = strLogPrefix + cc.error( "CRITICAL ERROR: BLS node " ) + cc.notice( "#" ) + cc.info( nZeroBasedNodeIndex ) + cc.error( " verify output is:\n" ) + cc.notice( strOutput ) + "\n";
+        const s1 = strLogPrefix + cc.fatal( "CRITICAL ERROR:" ) + cc.error( " BLS node " ) + cc.notice( "#" ) + cc.info( nZeroBasedNodeIndex ) + cc.error( " verify error:" ) + cc.normal( " error description is: " ) + cc.warning( err.toString() ) + "\n";
+        const s2 = strLogPrefix + cc.error( "CRITICAL ERROR:" ) + cc.error( " BLS node " ) + cc.notice( "#" ) + cc.info( nZeroBasedNodeIndex ) + cc.error( " verify output is:\n" ) + cc.notice( strOutput ) + "\n";
         log.write( s1 );
         details.write( s1 );
         log.write( s2 );
@@ -460,7 +460,7 @@ function perform_bls_verify_i_u256( details, nZeroBasedNodeIndex, joResultFromNo
     try {
         shell.cd( strActionDir );
         const joMsg = { message: compose_summary_message_to_sign_u256( u256, true ) };
-        details.write( strLogPrefix + cc.debug( "BLS node " ) + cc.notice( "#" ) + cc.info( nZeroBasedNodeIndex ) + cc.debug( " verify message " ) + cc.j( joMsg ) + cc.debug( " composed from " ) + cc.j( u256 ) + cc.debug( " using glue " ) + cc.j( joResultFromNode ) + cc.debug( " and public key " ) + cc.j( joPublicKey ) + "\n" );
+        details.write( strLogPrefix + cc.debug( "BLS u256 node " ) + cc.notice( "#" ) + cc.info( nZeroBasedNodeIndex ) + cc.debug( " verify message " ) + cc.j( joMsg ) + cc.debug( " composed from " ) + cc.j( u256 ) + cc.debug( " using glue " ) + cc.j( joResultFromNode ) + cc.debug( " and public key " ) + cc.j( joPublicKey ) + "\n" );
         const strSignResultFileName = strActionDir + "/sign-result" + nZeroBasedNodeIndex + ".json";
         // console.log( "--- joResultFromNode ---", JSON.stringify( joResultFromNode ) );
         // console.log( "--- joMsg ---", JSON.stringify( joMsg ) );
@@ -475,15 +475,15 @@ function perform_bls_verify_i_u256( details, nZeroBasedNodeIndex, joResultFromNo
             " --j " + nZeroBasedNodeIndex +
             " --input " + strSignResultFileName
             ;
-        details.write( strLogPrefix + cc.normal( "Will execute node " ) + cc.notice( "#" ) + cc.info( nZeroBasedNodeIndex ) + cc.normal( " BLS verify command:\n" ) + cc.notice( strVerifyCommand ) + "\n" );
+        details.write( strLogPrefix + cc.normal( "Will execute node " ) + cc.notice( "#" ) + cc.info( nZeroBasedNodeIndex ) + cc.normal( " BLS u256 verify command:\n" ) + cc.notice( strVerifyCommand ) + "\n" );
         strOutput = child_process.execSync( strVerifyCommand );
-        details.write( strLogPrefix + cc.normal( "BLS node " ) + cc.notice( "#" ) + cc.info( nZeroBasedNodeIndex ) + cc.normal( " verify output is:\n" ) + cc.notice( strOutput ) + "\n" );
-        details.write( strLogPrefix + cc.success( "BLS node " ) + cc.notice( "#" ) + cc.info( nZeroBasedNodeIndex ) + cc.success( " verify success" ) + "\n" );
+        details.write( strLogPrefix + cc.normal( "BLS u256 node " ) + cc.notice( "#" ) + cc.info( nZeroBasedNodeIndex ) + cc.normal( " verify output is:\n" ) + cc.notice( strOutput ) + "\n" );
+        details.write( strLogPrefix + cc.success( "BLS u256 node " ) + cc.notice( "#" ) + cc.info( nZeroBasedNodeIndex ) + cc.success( " verify success" ) + "\n" );
         fnShellRestore();
         return true;
     } catch ( err ) {
-        const s1 = strLogPrefix + cc.fatal( "CRITICAL ERROR: BLS node " ) + cc.notice( "#" ) + cc.info( nZeroBasedNodeIndex ) + cc.error( " verify error:" ) + cc.normal( " error description is: " ) + cc.warning( err.toString() ) + "\n";
-        const s2 = strLogPrefix + cc.error( "CRITICAL ERROR: BLS node " ) + cc.notice( "#" ) + cc.info( nZeroBasedNodeIndex ) + cc.error( " verify output is:\n" ) + cc.notice( strOutput ) + "\n";
+        const s1 = strLogPrefix + cc.fatal( "CRITICAL ERROR:" ) + cc.error( " BLS u256 node " ) + cc.notice( "#" ) + cc.info( nZeroBasedNodeIndex ) + cc.error( " verify error:" ) + cc.normal( " error description is: " ) + cc.warning( err.toString() ) + "\n";
+        const s2 = strLogPrefix + cc.error( "CRITICAL ERROR:" ) + cc.error( " BLS u256 node " ) + cc.notice( "#" ) + cc.info( nZeroBasedNodeIndex ) + cc.error( " verify output is:\n" ) + cc.notice( strOutput ) + "\n";
         log.write( s1 );
         details.write( s1 );
         log.write( s2 );
@@ -542,6 +542,64 @@ function perform_bls_verify( details, strDirection, joGlueResult, jarrMessages, 
     } catch ( err ) {
         const s1 = strLogPrefix + cc.fatal( "BLS/summary verify CRITICAL ERROR:" ) + cc.normal( " error description is: " ) + cc.warning( err.toString() ) + "\n";
         const s2 = strLogPrefix + cc.error( "BLS/summary verify output is:\n" ) + cc.notice( strOutput ) + "\n";
+        log.write( s1 );
+        details.write( s1 );
+        log.write( s2 );
+        details.write( s2 );
+        fnShellRestore();
+    }
+    return false;
+}
+
+function perform_bls_verify_u256( details, joGlueResult, u256, joCommonPublicKey ) {
+    if( !joGlueResult )
+        return true;
+    const nThreshold = discover_bls_threshold( imaState.joSChainNetworkInfo );
+    const nParticipants = discover_bls_participants( imaState.joSChainNetworkInfo );
+    const strPWD = shell.pwd();
+    const strActionDir = alloc_bls_tmp_action_dir();
+    const fnShellRestore = function() {
+        shell.cd( strPWD );
+        shell.rm( "-rf", strActionDir );
+    };
+    let strOutput = "";
+    const strLogPrefix = cc.info( "BLS u256" ) + cc.debug( "/" ) + cc.sunny( "Summary" ) + cc.debug( ":" ) + " ";
+    try {
+        shell.cd( strActionDir );
+        const joMsg = { message: compose_summary_message_to_sign_u256( u256, true ) };
+        details.write( strLogPrefix + cc.debug( "BLS u256/summary verify message " ) + cc.j( joMsg ) + cc.debug( " composed from " ) + cc.j( u256 ) + cc.debug( " using glue " ) + cc.j( joGlueResult ) + cc.debug( " and common public key " ) + cc.j( joCommonPublicKey ) + "\n" );
+        imaUtils.jsonFileSave( strActionDir + "/glue-result.json", joGlueResult );
+        imaUtils.jsonFileSave( strActionDir + "/hash.json", joMsg );
+        // let joCommonPublicKey_for_O = joCommonPublicKey;
+        // const joCommonPublicKey_for_O = {
+        //     commonBLSPublicKey0: joCommonPublicKey.commonBLSPublicKey1,
+        //     commonBLSPublicKey1: joCommonPublicKey.commonBLSPublicKey0,
+        //     commonBLSPublicKey2: joCommonPublicKey.commonBLSPublicKey3,
+        //     commonBLSPublicKey3: joCommonPublicKey.commonBLSPublicKey2
+        // };
+        const joCommonPublicKey_for_O = {
+            commonBLSPublicKey0: joCommonPublicKey.commonBLSPublicKey0,
+            commonBLSPublicKey1: joCommonPublicKey.commonBLSPublicKey1,
+            commonBLSPublicKey2: joCommonPublicKey.commonBLSPublicKey2,
+            commonBLSPublicKey3: joCommonPublicKey.commonBLSPublicKey3
+        };
+        imaUtils.jsonFileSave( strActionDir + "/common_public_key.json", joCommonPublicKey_for_O );
+        details.write( strLogPrefix + cc.normal( "BLS u256 common public key for verification is:\n" ) + cc.j( joCommonPublicKey ) + "\n" );
+        const strVerifyCommand = "" +
+            imaState.strPathBlsVerify +
+            " --t " + nThreshold +
+            " --n " + nParticipants +
+            " --input " + "./glue-result.json"
+            ;
+        details.write( strLogPrefix + cc.normal( "Will execute BLS u256/summary verify command:\n" ) + cc.notice( strVerifyCommand ) + "\n" );
+        strOutput = child_process.execSync( strVerifyCommand );
+        details.write( strLogPrefix + cc.normal( "BLS u256/summary verify output is:\n" ) + cc.notice( strOutput ) + "\n" );
+        details.write( strLogPrefix + cc.success( "BLS u256/summary verify success" ) + "\n" );
+        fnShellRestore();
+        return true;
+    } catch ( err ) {
+        const s1 = strLogPrefix + cc.fatal( "BLS u256/summary verify CRITICAL ERROR:" ) + cc.normal( " error description is: " ) + cc.warning( err.toString() ) + "\n";
+        const s2 = strLogPrefix + cc.error( "BLS u256/summary verify output is:\n" ) + cc.notice( strOutput ) + "\n";
         log.write( s1 );
         details.write( s1 );
         log.write( s2 );
@@ -1136,7 +1194,7 @@ async function do_sign_u256( u256, details, fn ) {
                     if( imaState.strPathBlsVerify.length > 0 ) {
                         const joCommonPublicKey = discover_common_public_key( imaState.joSChainNetworkInfo );
                         // console.log(joCommonPublicKey);
-                        if( perform_bls_verify_i_u256( details, joGlueResult, u256, joCommonPublicKey ) ) {
+                        if( perform_bls_verify_u256( details, joGlueResult, u256, joCommonPublicKey ) ) {
                             strSuccessfulResultDescription = "Got successful summary BLS u256 verification result";
                             details.write( strLogPrefixB + cc.success( strSuccessfulResultDescription ) + "\n" );
                             // resolve( strSuccessfulResultDescription );

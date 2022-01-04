@@ -418,8 +418,8 @@ async function do_oracle_gas_price_setup(
         await fn_sign( gasPriceOnMainNet, details, async function( strError, u256, joGlueResult ) {
             if( strError ) {
                 if( verbose_get() >= RV_VERBOSE.fatal )
-                    log.write( strLogPrefix + cc.fatal( "CRITICAL ERROR:" ) + cc.error( " Error in do_oracle_gas_price_setup() during " + strActionName + ": " ) + cc.error( err ) + "\n" );
-                details.write( strLogPrefix + cc.fatal( "CRITICAL ERROR:" ) + cc.error( " Error in do_oracle_gas_price_setup() during " + strActionName + ": " ) + cc.error( err ) + "\n" );
+                    log.write( strLogPrefix + cc.fatal( "CRITICAL ERROR:" ) + cc.error( " Error in do_oracle_gas_price_setup() during " + strActionName + ": " ) + cc.error( strError ) + "\n" );
+                details.write( strLogPrefix + cc.fatal( "CRITICAL ERROR:" ) + cc.error( " Error in do_oracle_gas_price_setup() during " + strActionName + ": " ) + cc.error( strError ) + "\n" );
                 details.exposeDetailsTo( log, "do_oracle_gas_price_setup", false );
                 save_transfer_error( details.toString() );
                 details.close();
