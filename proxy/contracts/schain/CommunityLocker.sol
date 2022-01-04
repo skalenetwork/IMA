@@ -206,7 +206,14 @@ contract CommunityLocker is ICommunityLocker, AccessControlEnumerableUpgradeable
      * 
      * Emits a {ConstantUpdated} event.
      */
-    function setGasPrice(uint gasPrice, uint timestamp, IMessageProxyForSchain.Signature memory signature) external override {
+    function setGasPrice(
+        uint gasPrice,
+        uint timestamp,
+        IMessageProxyForSchain.Signature memory
+    )
+        external
+        override
+    {
         require(block.timestamp - timestamp <= gasPriceTimeDelay, "Gas price time delay exceeded");
         // TODO: uncomment when oracle finished
         // require(
