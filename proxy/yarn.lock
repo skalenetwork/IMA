@@ -741,10 +741,10 @@
   resolved "https://registry.yarnpkg.com/@skalenetwork/etherbase-interfaces/-/etherbase-interfaces-0.0.1-develop.20.tgz#33f61e18d695fd47063aa39dce4df335d26b9528"
   integrity sha512-j3xnuQtOtjvjAoUMJgSUFxRa9/Egkg1RyA8r6PjcEb33VksE4LWLBy0PNFUFehLZv48595JROTcViGeXXwg5HQ==
 
-"@skalenetwork/ima-interfaces@1.0.0-skale-4822-add-timestamp.1":
-  version "1.0.0-skale-4822-add-timestamp.1"
-  resolved "https://registry.yarnpkg.com/@skalenetwork/ima-interfaces/-/ima-interfaces-1.0.0-skale-4822-add-timestamp.1.tgz#c7ba1f9368324b98bc9ef1a6a8a4a68c24a45753"
-  integrity sha512-tpfmJfALaxkpOipKmKrCEdblk36n8DTwxtdI49KtGTRNPzTO+Ft7i+KdwuIj1yQAWiEsfSE6qrhXwpHkFioiDQ==
+"@skalenetwork/ima-interfaces@1.0.0-skale-4822-add-timestamp.2":
+  version "1.0.0-skale-4822-add-timestamp.2"
+  resolved "https://registry.yarnpkg.com/@skalenetwork/ima-interfaces/-/ima-interfaces-1.0.0-skale-4822-add-timestamp.2.tgz#3e9766cd91b7a96c427ed35552e1ea8105f1a346"
+  integrity sha512-MPMhJNXdGHkAmd57nCsCr0ESoTy+/j+gDC1UzBd91R1eFB43ULOG3r9JiEivNHjA0nA6i8350i0g85wq2HNKVw==
   dependencies:
     "@skalenetwork/skale-manager-interfaces" "^0.1.2"
 
