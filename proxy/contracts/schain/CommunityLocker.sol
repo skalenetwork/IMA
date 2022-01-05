@@ -91,6 +91,8 @@ contract CommunityLocker is ICommunityLocker, AccessControlEnumerableUpgradeable
 
     uint256 public mainnetGasPrice;
 
+    uint256 public gasPriceTimestamp;
+
     /**
      * @dev Emitted when a user becomes active.
      */
@@ -108,19 +110,12 @@ contract CommunityLocker is ICommunityLocker, AccessControlEnumerableUpgradeable
     ); 
 
     /**
-     * @dev Emitted when value of {timeLimitPerMessage} was changed.
+     * @dev Emitted when constants updated.
      */
-    event TimeLimitPerMessageWasChanged(
-        uint256 oldValue,
-        uint256 newValue
-    );
-
-    /**
-     * @dev Emitted when value of {mainnetGasPrice} was changed.
-     */
-    event MainnetGasPriceWasChanged(
-        uint256 oldValue,
-        uint256 newValue
+    event ConstantUpdated(
+        bytes32 indexed constantHash,
+        uint previousValue,
+        uint newValue
     );
 
     /**
@@ -190,11 +185,15 @@ contract CommunityLocker is ICommunityLocker, AccessControlEnumerableUpgradeable
      * 
      * - Function caller has to be granted with {CONSTANT_SETTER_ROLE}.
      * 
-     * Emits a {TimeLimitPerMessageWasChanged} event.
+     * Emits a {ConstantUpdated} event.
      */
     function setTimeLimitPerMessage(uint newTimeLimitPerMessage) external override {
         require(hasRole(CONSTANT_SETTER_ROLE, msg.sender), "Not enough permissions to set constant");
-        emit TimeLimitPerMessageWasChanged(timeLimitPerMessage, newTimeLimitPerMessage);
+        emit ConstantUpdated(
+            keccak256(abi.encodePacked("TimeLimitPerMessage")),
+            timeLimitPerMessage,
+            newTimeLimitPerMessage
+        );
         timeLimitPerMessage = newTimeLimitPerMessage;
     }
 
@@ -205,15 +204,30 @@ contract CommunityLocker is ICommunityLocker, AccessControlEnumerableUpgradeable
      * 
      * - Signature should be verified.
      * 
-     * Emits a {MainnerGasPriceWasChanged} event.
+     * Emits a {ConstantUpdated} event.
      */
-    function setGasPrice(uint gasPrice, IMessageProxyForSchain.Signature memory signature) external override {
-        require(
-            messageProxy.verifySignature(keccak256(abi.encodePacked(gasPrice)), signature),
-            "Signature is not verified"
+    function setGasPrice(
+        uint gasPrice,
+        uint timestamp,
+        IMessageProxyForSchain.Signature memory
+    )
+        external
+        override
+    {
+        require(timestamp > gasPriceTimestamp, "Gas price timestamp already updated");
+        require(timestamp <= block.timestamp, "Timestamp should not be in the future");
+        // TODO: uncomment when oracle finished
+        // require(
+        //     messageProxy.verifySignature(keccak256(abi.encodePacked(gasPrice, timestamp)), signature),
+        //     "Signature is not verified"
+        // );
+        emit ConstantUpdated(
+            keccak256(abi.encodePacked("MainnetGasPrice")),
+            mainnetGasPrice,
+            gasPrice
         );
-        emit MainnetGasPriceWasChanged(mainnetGasPrice, gasPrice);
         mainnetGasPrice = gasPrice;
+        gasPriceTimestamp = timestamp;
     }
 
     /**
