@@ -174,8 +174,9 @@ describe("DepositBoxEth", () => {
             await depositBoxEth.connect(user2).getFunds(schainName, user.address, wei).should.be.eventually.rejectedWith("Schain is not killed");
             await linker.connect(deployer).kill(schainName);
             await linker.connect(user2).kill(schainName);
-            const userBalanceBefore = await web3.eth.getBalance(user.address);
             await depositBoxEth.connect(user2).getFunds(schainName, user.address, wei2).should.be.eventually.rejectedWith("Incorrect amount");
+            await depositBoxEth.connect(user).getFunds(schainName, user.address, wei).should.be.eventually.rejectedWith("Sender is not an Schain owner");
+            const userBalanceBefore = await web3.eth.getBalance(user.address);
             await depositBoxEth.connect(user2).getFunds(schainName, user.address, wei);
             expect(BigNumber.from(await web3.eth.getBalance(user.address)).toString()).to.equal(BigNumber.from(userBalanceBefore).add(BigNumber.from(wei)).toString());
         });
@@ -435,6 +436,80 @@ describe("DepositBoxEth", () => {
             await depositBoxEth.connect(user2).getMyEth()
                 .should.be.eventually.rejectedWith("User has insufficient ETH");
             await depositBoxEth.connect(user).getMyEth();
+        });
+
+        it("should transfer eth actively", async () => {
+
+            const senderFromSchain = deployer.address;
+            const wei = "30000000000000000";
+            const bytesData = await messages.encodeTransferEthMessage(user.address, wei);
+            const schainHash = stringValue(web3.utils.soliditySha3(schainName));
+
+            await setCommonPublicKey(contractManager, schainName);
+
+            const sign = {
+                blsSignature: BlsSignature,
+                counter: Counter,
+                hashA: HashA,
+                hashB: HashB,
+            };
+
+            const message = {
+                data: bytesData,
+                destinationContract: depositBoxEth.address,
+                sender: senderFromSchain,
+            };
+
+            await initializeSchain(contractManager, schainName, deployer.address, 1, 1);
+
+            await linker
+                .connect(deployer)
+                .connectSchain(schainName, [deployer.address, deployer.address, deployer.address]);
+
+            await linker.allowInterchainConnections(schainName);
+
+            await communityPool
+                .connect(user)
+                .rechargeUserWallet(schainName, user.address, { value: wei });
+
+            await depositBoxEth
+                .connect(deployer)
+                .deposit(schainName, { value: wei });
+
+            await depositBoxEth
+                .connect(deployer)
+                .deposit(schainName, { value: wei });
+
+            expect(BigNumber.from(await depositBoxEth.transferredAmount(schainHash)).toString()).to.be.equal(BigNumber.from(0).toString());
+
+            const balanceBefore = await getBalance(deployer.address);
+            await messageProxy.connect(deployer).postIncomingMessages(schainName, 0, [message], sign);
+            const balance = await getBalance(deployer.address);
+            balance.should.not.be.lessThan(balanceBefore);
+            balance.should.be.almost(balanceBefore);
+
+            expect(BigNumber.from(await depositBoxEth.approveTransfers(user.address)).toString()).to.equal(BigNumber.from(wei).toString());
+
+            await depositBoxEth.connect(user2).getMyEth()
+                .should.be.eventually.rejectedWith("User has insufficient ETH");
+
+            expect(BigNumber.from(await depositBoxEth.approveTransfers(user.address)).toString()).to.equal(BigNumber.from(wei).toString());
+            
+            expect(await depositBoxEth.activeEthTransfers(schainHash)).to.be.equal(false);
+            await depositBoxEth.connect(user2).switchActiveEthTransfers(schainName).should.be.rejectedWith("Sender is not an Schain owner");
+            await depositBoxEth.connect(deployer).switchActiveEthTransfers(schainName);
+            expect(await depositBoxEth.activeEthTransfers(schainHash)).to.be.equal(true);
+
+            let userBalanceBefore = await web3.eth.getBalance(user.address);
+            
+            await messageProxy.connect(deployer).postIncomingMessages(schainName, 1, [message], sign);
+            expect(BigNumber.from(await web3.eth.getBalance(user.address)).toString()).to.equal(BigNumber.from(userBalanceBefore).add(BigNumber.from(wei)).toString());
+
+            expect(BigNumber.from(await depositBoxEth.approveTransfers(user.address)).toString()).to.equal(BigNumber.from(wei).toString());
+            await depositBoxEth.connect(user).getMyEth();
+            expect(BigNumber.from(await depositBoxEth.approveTransfers(user.address)).toString()).to.equal(BigNumber.from(0).toString());
+            await depositBoxEth.connect(user).getMyEth()
+                .should.be.eventually.rejectedWith("User has insufficient ETH");
         });
     });
 });
