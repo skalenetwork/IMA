@@ -102,13 +102,13 @@ contract DepositBoxEth is DepositBox, IDepositBoxEth {
             message.amount <= address(this).balance,
             "Not enough money to finish this transaction"
         );
+        if (!linker.interchainConnections(schainHash))
+            _removeTransferredAmount(schainHash, message.amount);
         if (!activeEthTransfers[schainHash]) {
             approveTransfers[message.receiver] += message.amount;
         } else {
             payable(message.receiver).sendValue(message.amount);
         }
-        if (!linker.interchainConnections(schainHash))
-            _removeTransferredAmount(schainHash, message.amount);
         return message.receiver;
     }
 

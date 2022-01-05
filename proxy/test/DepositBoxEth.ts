@@ -494,14 +494,14 @@ describe("DepositBoxEth", () => {
                 .should.be.eventually.rejectedWith("User has insufficient ETH");
 
             expect(BigNumber.from(await depositBoxEth.approveTransfers(user.address)).toString()).to.equal(BigNumber.from(wei).toString());
-            
+
             expect(await depositBoxEth.activeEthTransfers(schainHash)).to.be.equal(false);
             await depositBoxEth.connect(user2).switchActiveEthTransfers(schainName).should.be.rejectedWith("Sender is not an Schain owner");
             await depositBoxEth.connect(deployer).switchActiveEthTransfers(schainName);
             expect(await depositBoxEth.activeEthTransfers(schainHash)).to.be.equal(true);
 
-            let userBalanceBefore = await web3.eth.getBalance(user.address);
-            
+            const userBalanceBefore = await web3.eth.getBalance(user.address);
+
             await messageProxy.connect(deployer).postIncomingMessages(schainName, 1, [message], sign);
             expect(BigNumber.from(await web3.eth.getBalance(user.address)).toString()).to.equal(BigNumber.from(userBalanceBefore).add(BigNumber.from(wei)).toString());
 
