@@ -1799,7 +1799,8 @@ async function single_transfer_loop() {
                 imaState.joAccount_s_chain,
                 imaState.cid_main_net,
                 imaState.cid_s_chain,
-                imaBLS.do_sign_u256 // fn_sign
+                imaBLS.do_sign_u256, // fn_sign
+                imaState.optsPendingTxAnalysis
             ) : true;
 
     const b1 = await IMA.do_transfer( // main-net --> s-chain

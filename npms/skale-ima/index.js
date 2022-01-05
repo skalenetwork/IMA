@@ -389,10 +389,11 @@ async function do_oracle_gas_price_setup(
     w3_schain,
     tc_schain,
     jo_community_locker,
-    joAccountSC,
+    joAccount_s_chain,
     chain_id_mainnet,
     chain_id_schain,
-    fn_sign
+    fn_sign,
+    optsPendingTxAnalysis
 ) {
     if( getOracleGasPriceMode() == 0 )
         return;
@@ -410,9 +411,18 @@ async function do_oracle_gas_price_setup(
         details.write( strLogPrefix + cc.debug( "Using externally provided u256 signing function" ) + "\n" );
     let strActionName = "";
     try {
+        strActionName = "do_oracle_gas_price_setup.latestBlockNumber()";
+        const latestBlockNumber = await w3_main_net.eth.getBlockNumber();
+        details.write( cc.debug( "Latest block on Main Net is " ) + cc.info( latestBlockNumber ) + "\n" );
+        strActionName = "do_oracle_gas_price_setup.timestampOfBlock()";
+        const latestBlock = await w3_main_net.eth.getBlock( latestBlockNumber );
+        let timestampOfBlock = parseInt( latestBlock.timestamp );
+        details.write( cc.debug( "Timestamp on Main Net is " ) + cc.info( timestampOfBlock ) + cc.debug( " (original)" ) + "\n" );
+        timestampOfBlock -= 10;
+        details.write( cc.debug( "Timestamp on Main Net is " ) + cc.info( timestampOfBlock ) + cc.debug( " (adjusted to past a bit)" ) + "\n" );
         strActionName = "do_oracle_gas_price_setup.getGasPrice()";
         const gasPriceOnMainNet = "0x" + w3_main_net.utils.toBN( await w3_main_net.eth.getGasPrice() ).toString( 16 );
-        details.write( cc.info( "Main Net gas price" ) + cc.info( " is " ) + cc.bright( gasPriceOnMainNet ) + "\n" );
+        details.write( cc.info( "Main Net gas price" ) + cc.debug( " is " ) + cc.bright( gasPriceOnMainNet ) + "\n" );
         //
         strActionName = "do_oracle_gas_price_setup.fn_sign()";
         await fn_sign( gasPriceOnMainNet, details, async function( strError, u256, joGlueResult ) {
@@ -447,6 +457,7 @@ async function do_oracle_gas_price_setup(
             const methodWithArguments_setGasPrice = jo_community_locker.methods.setGasPrice(
                 // call params
                 u256,
+                timestampOfBlock,
                 sign // bls signature components
             );
             const dataTx_setGasPrice = methodWithArguments_setGasPrice.encodeABI(); // the encoded ABI of the method
@@ -466,23 +477,25 @@ async function do_oracle_gas_price_setup(
             //
             const gasPrice = await tc_schain.computeGasPrice( w3_schain, 200000000000 );
             details.write( strLogPrefix + cc.debug( "Using computed " ) + cc.info( "gasPrice" ) + cc.debug( "=" ) + cc.notice( gasPrice ) + "\n" );
-            const estimatedGas_setGasPrice = await tc_schain.computeGas( methodWithArguments_setGasPrice, w3_schain, 10000000, gasPrice, joAccountSC.address( w3_schain ), "0" );
+            const estimatedGas_setGasPrice = await tc_schain.computeGas( methodWithArguments_setGasPrice, w3_schain, 10000000, gasPrice, joAccount_s_chain.address( w3_schain ), "0" );
             details.write( strLogPrefix + cc.debug( "Using estimated " ) + cc.info( "gas" ) + cc.debug( "=" ) + cc.notice( estimatedGas_setGasPrice ) + "\n" );
             //
             const isIgnore_setGasPrice = false;
             const strDRC_setGasPrice = "setGasPrice in message signer";
-            const strErrorOfDryRun = await dry_run_call( details, w3_schain, methodWithArguments_setGasPrice, joAccountSC, strDRC_setGasPrice,isIgnore_setGasPrice, gasPrice, estimatedGas_setGasPrice, "0" );
+            const strErrorOfDryRun = await dry_run_call( details, w3_schain, methodWithArguments_setGasPrice, joAccount_s_chain, strDRC_setGasPrice,isIgnore_setGasPrice, gasPrice, estimatedGas_setGasPrice, "0" );
             if( strErrorOfDryRun )
                 throw new Error( strErrorOfDryRun );
             //
+            const tcnt = await get_web3_transactionCount( details, 10, w3_schain, joAccount_s_chain.address( w3_main_net ), null );
+            details.write( strLogPrefix + cc.debug( "Got " ) + cc.info( tcnt ) + cc.debug( " from " ) + cc.notice( strActionName ) + "\n" );
             const raw_tx_setGasPrice = {
-                chainId: cid_schain,
-                from: joAccountSC.address( w3_schain ),
+                chainId: chain_id_schain,
+                from: joAccount_s_chain.address( w3_schain ),
                 nonce: tcnt,
                 gas: estimatedGas_setGasPrice,
                 gasPrice: gasPrice,
                 // "gasLimit": 3000000,
-                to: jo_message_proxy_schain.options.address, // contract address
+                to: jo_community_locker.options.address, // contract address
                 data: dataTx_setGasPrice //,
                 // "value": wei_amount // 1000000000000000000 // w3_schain.utils.toWei( (1).toString(), "ether" ) // how much money to send
             };
@@ -490,7 +503,7 @@ async function do_oracle_gas_price_setup(
                 await checkTransactionToSchain( w3_schain, raw_tx_setGasPrice, details );
 
             const tx_setGasPrice = compose_tx_instance( details, strLogPrefix, raw_tx_setGasPrice );
-            const joSetGasPriceSR = await safe_sign_transaction_with_account( details, w3_schain, tx_setGasPrice, raw_tx_setGasPrice, joAccountSC );
+            const joSetGasPriceSR = await safe_sign_transaction_with_account( details, w3_schain, tx_setGasPrice, raw_tx_setGasPrice, joAccount_s_chain );
             let joReceipt = null;
             if( joSetGasPriceSR.joACI.isAutoSend ) {
                 if( optsPendingTxAnalysis && "isEnabled" in optsPendingTxAnalysis && optsPendingTxAnalysis.isEnabled )
@@ -917,8 +930,8 @@ async function tm_ensure_transaction( details, w3, priority, txAdjusted, cntAtte
 
 async function safe_sign_transaction_with_account( details, w3, tx, rawTx, joAccount ) {
     const sendingCnt = loopTmSendingCnt++;
-    details.write( cc.debug( "Sending transaction with account " ) + cc.debug( " sending cnt " ) + cc.info( sendingCnt ) + cc.debug( " rawTx " ) + cc.info( rawTx ) + "\n" );
-    log.write( cc.debug( "Sending transaction to account " ) + cc.debug( " sending cnt " ) + cc.info( sendingCnt ) + "\n" );
+    details.write( cc.debug( "Sending transaction with account(" ) + cc.notice( " sending cnt" ) + cc.debug( "=" ) + cc.info( sendingCnt ) + cc.debug( ") rawTx " ) + cc.info( rawTx ) + "\n" );
+    log.write( cc.debug( "Sending transaction to account(" ) + cc.notice( " sending cnt" ) + cc.debug( "=" ) + cc.info( sendingCnt ) + cc.debug( ")" ) + "\n" );
     const joSR = {
         joACI: get_account_connectivity_info( joAccount ),
         tx: null,
