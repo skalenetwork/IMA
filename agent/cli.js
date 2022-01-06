@@ -353,6 +353,9 @@ function parse( joExternalHandlers, argv ) {
             console.log( soi + cc.debug( "--" ) + cc.bright( "bs-progressive-enable" ) + cc.debug( "........." ) + cc.notice( "Enables progressive block scan to search past events." ) );
             console.log( soi + cc.debug( "--" ) + cc.bright( "bs-progressive-disable" ) + cc.debug( "........" ) + cc.notice( "Disables progressive block scan to search past events." ) );
             //
+            console.log( cc.sunny( "ORACLE GAS PRICE MANAGEMENT" ) + cc.info( " options:" ) );
+            console.log( soi + cc.debug( "--" ) + cc.bright( "ogp-mode" ) + cc.sunny( "=" ) + cc.note( "number" ) + cc.debug( "..............." ) + cc.notice( "Oracle gas price mode: 0 - disable(default), 1 - invoke before message transfer loop." ) );
+            //
             console.log( cc.sunny( "TEST" ) + cc.info( " options:" ) );
             console.log( soi + cc.debug( "--" ) + cc.bright( "browse-s-chain" ) + cc.debug( "................" ) + cc.notice( "Download S-Chain network information." ) );
             //
@@ -938,6 +941,11 @@ function parse( joExternalHandlers, argv ) {
         }
         if( joArg.name == "bs-progressive-disable" ) {
             IMA.setEnabledProgressiveEventsScan( false );
+            continue;
+        }
+        if( joArg.name == "ogp-mode" ) {
+            owaspUtils.verifyArgumentIsInteger( joArg );
+            IMA.setOracleGasPriceMode( owaspUtils.toInteger( joArg.value ) );
             continue;
         }
         if( joArg.name == "register" ||
@@ -1535,6 +1543,7 @@ function ima_common_init() {
         log.write( cc.info( "Pending transaction analysis 2nd attempt after" ) + cc.debug( "......." ) + cc.bright( imaState.optsPendingTxAnalysis.nTimeoutSecondsBeforeSecondAttempt ) + "\n" );
         log.write( cc.info( "Ignore result of PTX is" ) + cc.debug( ".............................." ) + ( imaState.optsPendingTxAnalysis.isIgnore ? cc.success( "yes" ) : cc.error( "no" ) ) + "\n" );
         log.write( cc.info( "Ignore secondary result of PTX is" ) + cc.debug( "...................." ) + ( imaState.optsPendingTxAnalysis.isIgnore2 ? cc.success( "yes" ) : cc.error( "no" ) ) + "\n" );
+        log.write( cc.info( "Oracle gas price mode is" ) + cc.debug( "............................." ) + cc.info( IMA.getOracleGasPriceMode() ) + "\n" );
     }
     //
     //

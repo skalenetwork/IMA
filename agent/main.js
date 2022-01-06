@@ -1789,6 +1789,20 @@ async function single_transfer_loop() {
     if( IMA.verbose_get() >= IMA.RV_VERBOSE.information )
         log.write( strLogPrefix + cc.debug( "Will invoke M2S transfer..." ) + "\n" );
 
+    const b0 =
+        ( IMA.getOracleGasPriceMode() == 1 )
+            ? IMA.do_oracle_gas_price_setup(
+                imaState.w3_main_net,
+                imaState.w3_s_chain,
+                imaState.tc_s_chain,
+                imaState.jo_community_locker,
+                imaState.joAccount_s_chain,
+                imaState.cid_main_net,
+                imaState.cid_s_chain,
+                imaBLS.do_sign_u256, // fn_sign
+                imaState.optsPendingTxAnalysis
+            ) : true;
+
     const b1 = await IMA.do_transfer( // main-net --> s-chain
         "M2S",
         //
@@ -1848,7 +1862,7 @@ async function single_transfer_loop() {
     if( IMA.verbose_get() >= IMA.RV_VERBOSE.information )
         log.write( strLogPrefix + cc.debug( "S2M transfer done: " ) + cc.tf( b2 ) + "\n" );
 
-    const b3 = b1 && b2;
+    const b3 = b0 && b1 && b2;
     if( IMA.verbose_get() >= IMA.RV_VERBOSE.information )
         log.write( strLogPrefix + cc.debug( "Completed: " ) + cc.tf( b3 ) + "\n" );
 

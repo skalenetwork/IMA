@@ -375,6 +375,174 @@ function setEnabledProgressiveEventsScan( isEnabled ) {
     g_bIsEnabledProgressiveEventsScan = isEnabled ? true : false;
 }
 
+let g_nOracleGasPriceMode = 0;
+
+function getOracleGasPriceMode() {
+    return 0 + g_nOracleGasPriceMode;
+}
+function setOracleGasPriceMode( mode ) {
+    g_nOracleGasPriceMode = 0 + parseInt( mode ? mode.toString() : "0" );
+}
+
+async function do_oracle_gas_price_setup(
+    w3_main_net,
+    w3_schain,
+    tc_schain,
+    jo_community_locker,
+    joAccount_s_chain,
+    chain_id_mainnet,
+    chain_id_schain,
+    fn_sign,
+    optsPendingTxAnalysis
+) {
+    if( getOracleGasPriceMode() == 0 )
+        return;
+    const details = log.createMemoryStream();
+    const jarrReceipts = []; // do_transfer
+    //let bErrorInSigningMessages = false;
+    const strLogPrefix = cc.info( "Oracle gas price setup:" ) + " ";
+    if( fn_sign == null || fn_sign == undefined ) {
+        details.write( strLogPrefix + cc.debug( "Using internal u256 signing stub function" ) + "\n" );
+        fn_sign = async function( u256, details, fnAfter ) {
+            details.write( strLogPrefix + cc.debug( "u256 signing callback was " ) + cc.error( "not provided" ) + "\n" );
+            await fnAfter( null, u256, null ); // null - no error, null - no signatures
+        };
+    } else
+        details.write( strLogPrefix + cc.debug( "Using externally provided u256 signing function" ) + "\n" );
+    let strActionName = "";
+    try {
+        strActionName = "do_oracle_gas_price_setup.latestBlockNumber()";
+        const latestBlockNumber = await w3_main_net.eth.getBlockNumber();
+        details.write( cc.debug( "Latest block on Main Net is " ) + cc.info( latestBlockNumber ) + "\n" );
+        strActionName = "do_oracle_gas_price_setup.timestampOfBlock()";
+        const latestBlock = await w3_main_net.eth.getBlock( latestBlockNumber );
+        let timestampOfBlock = parseInt( latestBlock.timestamp );
+        details.write( cc.debug( "Timestamp on Main Net is " ) + cc.info( timestampOfBlock ) + cc.debug( " (original)" ) + "\n" );
+        timestampOfBlock -= 10;
+        details.write( cc.debug( "Timestamp on Main Net is " ) + cc.info( timestampOfBlock ) + cc.debug( " (adjusted to past a bit)" ) + "\n" );
+        strActionName = "do_oracle_gas_price_setup.getGasPrice()";
+        const gasPriceOnMainNet = "0x" + w3_main_net.utils.toBN( await w3_main_net.eth.getGasPrice() ).toString( 16 );
+        details.write( cc.info( "Main Net gas price" ) + cc.debug( " is " ) + cc.bright( gasPriceOnMainNet ) + "\n" );
+        //
+        strActionName = "do_oracle_gas_price_setup.fn_sign()";
+        await fn_sign( gasPriceOnMainNet, details, async function( strError, u256, joGlueResult ) {
+            if( strError ) {
+                if( verbose_get() >= RV_VERBOSE.fatal )
+                    log.write( strLogPrefix + cc.fatal( "CRITICAL ERROR:" ) + cc.error( " Error in do_oracle_gas_price_setup() during " + strActionName + ": " ) + cc.error( strError ) + "\n" );
+                details.write( strLogPrefix + cc.fatal( "CRITICAL ERROR:" ) + cc.error( " Error in do_oracle_gas_price_setup() during " + strActionName + ": " ) + cc.error( strError ) + "\n" );
+                details.exposeDetailsTo( log, "do_oracle_gas_price_setup", false );
+                save_transfer_error( details.toString() );
+                details.close();
+                return;
+            }
+            //
+            //
+            strActionName = "do_oracle_gas_price_setup.formatSignature";
+            let signature = joGlueResult ? joGlueResult.signature : null;
+            if( !signature )
+                signature = { X: "0", Y: "0" };
+            let hashPoint = joGlueResult ? joGlueResult.hashPoint : null;
+            if( !hashPoint )
+                hashPoint = { X: "0", Y: "0" };
+            let hint = joGlueResult ? joGlueResult.hint : null;
+            if( !hint )
+                hint = "0";
+            const sign = {
+                blsSignature: [ signature.X, signature.Y ], // BLS glue of signatures
+                hashA: hashPoint.X, // G1.X from joGlueResult.hashSrc
+                hashB: hashPoint.Y, // G1.Y from joGlueResult.hashSrc
+                counter: hint
+            };
+            strActionName = "do_oracle_gas_price_setup.CommunityLocker.setGasPrice()";
+            const methodWithArguments_setGasPrice = jo_community_locker.methods.setGasPrice(
+                // call params
+                u256,
+                timestampOfBlock,
+                sign // bls signature components
+            );
+            const dataTx_setGasPrice = methodWithArguments_setGasPrice.encodeABI(); // the encoded ABI of the method
+            //
+            if( verbose_get() >= RV_VERBOSE.trace ) {
+                const joDebugArgs = [
+                    [ signature.X, signature.Y ], // BLS glue of signatures
+                    hashPoint.X, // G1.X from joGlueResult.hashSrc
+                    hashPoint.Y, // G1.Y from joGlueResult.hashSrc
+                    hint
+                ];
+                details.write(
+                    strLogPrefix +
+                    cc.debug( "....debug args for " ) + cc.debug( ": " ) +
+                    cc.j( joDebugArgs ) + "\n" );
+            }
+            //
+            const gasPrice = await tc_schain.computeGasPrice( w3_schain, 200000000000 );
+            details.write( strLogPrefix + cc.debug( "Using computed " ) + cc.info( "gasPrice" ) + cc.debug( "=" ) + cc.notice( gasPrice ) + "\n" );
+            const estimatedGas_setGasPrice = await tc_schain.computeGas( methodWithArguments_setGasPrice, w3_schain, 10000000, gasPrice, joAccount_s_chain.address( w3_schain ), "0" );
+            details.write( strLogPrefix + cc.debug( "Using estimated " ) + cc.info( "gas" ) + cc.debug( "=" ) + cc.notice( estimatedGas_setGasPrice ) + "\n" );
+            //
+            const isIgnore_setGasPrice = false;
+            const strDRC_setGasPrice = "setGasPrice in message signer";
+            const strErrorOfDryRun = await dry_run_call( details, w3_schain, methodWithArguments_setGasPrice, joAccount_s_chain, strDRC_setGasPrice,isIgnore_setGasPrice, gasPrice, estimatedGas_setGasPrice, "0" );
+            if( strErrorOfDryRun )
+                throw new Error( strErrorOfDryRun );
+            //
+            const tcnt = await get_web3_transactionCount( details, 10, w3_schain, joAccount_s_chain.address( w3_main_net ), null );
+            details.write( strLogPrefix + cc.debug( "Got " ) + cc.info( tcnt ) + cc.debug( " from " ) + cc.notice( strActionName ) + "\n" );
+            const raw_tx_setGasPrice = {
+                chainId: chain_id_schain,
+                from: joAccount_s_chain.address( w3_schain ),
+                nonce: tcnt,
+                gas: estimatedGas_setGasPrice,
+                gasPrice: gasPrice,
+                // "gasLimit": 3000000,
+                to: jo_community_locker.options.address, // contract address
+                data: dataTx_setGasPrice //,
+                // "value": wei_amount // 1000000000000000000 // w3_schain.utils.toWei( (1).toString(), "ether" ) // how much money to send
+            };
+            if( chain_id_schain !== "Mainnet" )
+                await checkTransactionToSchain( w3_schain, raw_tx_setGasPrice, details );
+
+            const tx_setGasPrice = compose_tx_instance( details, strLogPrefix, raw_tx_setGasPrice );
+            const joSetGasPriceSR = await safe_sign_transaction_with_account( details, w3_schain, tx_setGasPrice, raw_tx_setGasPrice, joAccount_s_chain );
+            let joReceipt = null;
+            if( joSetGasPriceSR.joACI.isAutoSend ) {
+                if( optsPendingTxAnalysis && "isEnabled" in optsPendingTxAnalysis && optsPendingTxAnalysis.isEnabled )
+                    await async_pending_tx_start( details, w3_schain, w3_main_net, chain_id_schain, chain_id_mainnet, "" + joSetGasPriceSR.txHashSent );
+                joReceipt = await get_web3_transactionReceipt( details, 10, w3_schain, joSetGasPriceSR.txHashSent );
+            } else {
+                const serializedTx_setGasPrice = tx_setGasPrice.serialize();
+                strActionName = "w3_schain.eth.sendSignedTransaction()";
+                // let joReceipt = await w3_schain.eth.sendSignedTransaction( "0x" + serializedTx_setGasPrice.toString( "hex" ) );
+                joReceipt = await safe_send_signed_transaction( details, w3_schain, serializedTx_setGasPrice, strActionName, strLogPrefix );
+            }
+            details.write( strLogPrefix + cc.success( "Result receipt: " ) + cc.j( joReceipt ) + "\n" );
+
+            if( joReceipt && typeof joReceipt == "object" && "gasUsed" in joReceipt ) {
+                jarrReceipts.push( {
+                    "description": "do_transfer/setGasPrice",
+                    "receipt": joReceipt
+                } );
+                print_gas_usage_report_from_array( "(intermediate result) ORACLE GAS PRICE SETUP ", jarrReceipts );
+                if( optsPendingTxAnalysis && "isEnabled" in optsPendingTxAnalysis && optsPendingTxAnalysis.isEnabled )
+                    await async_pending_tx_complete( details, w3_schain, w3_main_net, chain_id_schain, chain_id_mainnet, "" + joReceipt.transactionHash );
+            }
+        } );
+    } catch ( err ) {
+        if( verbose_get() >= RV_VERBOSE.fatal )
+            log.write( strLogPrefix + cc.fatal( "CRITICAL ERROR:" ) + cc.error( " Error in do_oracle_gas_price_setup() during " + strActionName + ": " ) + cc.error( err ) + "\n" );
+        details.write( strLogPrefix + cc.fatal( "CRITICAL ERROR:" ) + cc.error( " Error in do_oracle_gas_price_setup() during " + strActionName + ": " ) + cc.error( err ) + "\n" );
+        details.exposeDetailsTo( log, "do_oracle_gas_price_setup", false );
+        save_transfer_error( details.toString() );
+        details.close();
+        return false;
+    }
+    print_gas_usage_report_from_array( "ORACLE GAS PRICE SETUP ", jarrReceipts );
+    if( expose_details_get() )
+        details.exposeDetailsTo( log, "do_oracle_gas_price_setup", true );
+    details.close();
+    return true;
+}
+
 function create_progressive_events_scan_plan( details, nLatestBlockNumber ) {
     // assume Main Net mines 6 blocks per minute
     const blks_in_1_minute = 6;
@@ -762,8 +930,8 @@ async function tm_ensure_transaction( details, w3, priority, txAdjusted, cntAtte
 
 async function safe_sign_transaction_with_account( details, w3, tx, rawTx, joAccount ) {
     const sendingCnt = loopTmSendingCnt++;
-    details.write( cc.debug( "Sending transaction with account " ) + cc.debug( " sending cnt " ) + cc.info( sendingCnt ) + cc.debug( " rawTx " ) + cc.info( rawTx ) + "\n" );
-    log.write( cc.debug( "Sending transaction to account " ) + cc.debug( " sending cnt " ) + cc.info( sendingCnt ) + "\n" );
+    details.write( cc.debug( "Sending transaction with account(" ) + cc.notice( " sending cnt" ) + cc.debug( "=" ) + cc.info( sendingCnt ) + cc.debug( ") rawTx " ) + cc.info( rawTx ) + "\n" );
+    log.write( cc.debug( "Sending transaction to account(" ) + cc.notice( " sending cnt" ) + cc.debug( "=" ) + cc.info( sendingCnt ) + cc.debug( ")" ) + "\n" );
     const joSR = {
         joACI: get_account_connectivity_info( joAccount ),
         tx: null,
@@ -4723,6 +4891,9 @@ module.exports.getMaxIterationsInAllRangeEventsScan = getMaxIterationsInAllRange
 module.exports.setMaxIterationsInAllRangeEventsScan = setMaxIterationsInAllRangeEventsScan;
 module.exports.getEnabledProgressiveEventsScan = getEnabledProgressiveEventsScan;
 module.exports.setEnabledProgressiveEventsScan = setEnabledProgressiveEventsScan;
+module.exports.getOracleGasPriceMode = getOracleGasPriceMode;
+module.exports.setOracleGasPriceMode = setOracleGasPriceMode;
+module.exports.do_oracle_gas_price_setup = do_oracle_gas_price_setup;
 
 module.exports.parseIntOrHex = parseIntOrHex;
 
