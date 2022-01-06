@@ -289,10 +289,6 @@ contract MessageProxyForMainnet is SkaleManagerClient, MessageProxy, IMessagePro
         messageGasCost = 9000;
     }
 
-    // function messageInProgress() external view override returns (bool) {
-    //     return _messageInProgress;
-    // }
-
     /**
      * @dev Checks whether chain is currently connected.
      * 
