@@ -74,6 +74,7 @@ contract MessageProxyForMainnet is SkaleManagerClient, MessageProxy, IMessagePro
     uint256 public messageGasCost;
     mapping(bytes32 => EnumerableSetUpgradeable.AddressSet) private _registryContracts;
     string public version;
+    bool public override messageInProgress;
 
     /**
      * @dev Emitted when gas cost for message header was changed.
@@ -90,6 +91,13 @@ contract MessageProxyForMainnet is SkaleManagerClient, MessageProxy, IMessagePro
         uint256 oldValue,
         uint256 newValue
     );
+
+    modifier messageInProgressLocker() {
+        require(!messageInProgress, "Message is in progress");
+        messageInProgress = true;
+        _;
+        messageInProgress = false;
+    }
 
     /**
      * @dev Allows DEFAULT_ADMIN_ROLE to initialize registered contracts
@@ -199,6 +207,7 @@ contract MessageProxyForMainnet is SkaleManagerClient, MessageProxy, IMessagePro
     )
         external
         override(IMessageProxy, MessageProxy)
+        messageInProgressLocker
     {
         uint256 gasTotal = gasleft();
         bytes32 fromSchainHash = keccak256(abi.encodePacked(fromSchainName));
