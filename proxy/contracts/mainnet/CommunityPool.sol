@@ -169,6 +169,7 @@ contract CommunityPool is Twin, ICommunityPool {
     function withdrawFunds(string calldata schainName, uint amount) external override {
         bytes32 schainHash = keccak256(abi.encodePacked(schainName));
         require(amount <= _userWallets[msg.sender][schainHash], "Balance is too low");
+        require(!messageProxy.messageInProgress(), "Message is in progress");
         _userWallets[msg.sender][schainHash] = _userWallets[msg.sender][schainHash] - amount;
         if (
             !_balanceIsSufficient(schainHash, msg.sender, 0) &&
