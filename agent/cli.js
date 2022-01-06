@@ -1133,33 +1133,35 @@ function ima_common_init() {
     // imaState.eth_erc721 = new imaState.w3_s_chain.eth.Contract( imaState.joAbiPublishResult_s_chain.eth_erc721_abi, imaState.joAbiPublishResult_s_chain.eth_erc721_address ); // only s-chain
     imaState.eth_erc20 = new imaState.w3_s_chain.eth.Contract( imaState.joAbiPublishResult_s_chain.eth_erc20_abi, imaState.joAbiPublishResult_s_chain.eth_erc20_address ); // only s-chain
 
-    imaState.jo_constants_holder = new imaState.w3_main_net.eth.Contract( imaState.joAbiPublishResult_skale_manager.constants_holder_abi, imaState.joAbiPublishResult_skale_manager.constants_holder_address );
-    // jo_contract_manager
-    // jo_decryption
-    // jo_delegation_controller
-    // jo_delegation_period_manager
-    // jo_distributor
-    // jo_ecdh
-    // jo_manager_data
-    // jo_monitors_functionality
-    imaState.jo_nodes = new imaState.w3_main_net.eth.Contract( imaState.joAbiPublishResult_skale_manager.nodes_abi, imaState.joAbiPublishResult_skale_manager.nodes_address );
-    // jo_pricing
-    // jo_punisher
-    imaState.jo_key_storage = new imaState.w3_main_net.eth.Contract( imaState.joAbiPublishResult_skale_manager.key_storage_abi, imaState.joAbiPublishResult_skale_manager.key_storage_address );
-    imaState.jo_schains = new imaState.w3_main_net.eth.Contract( imaState.joAbiPublishResult_skale_manager.schains_abi, imaState.joAbiPublishResult_skale_manager.schains_address );
-    imaState.jo_schains_internal = new imaState.w3_main_net.eth.Contract( imaState.joAbiPublishResult_skale_manager.schains_internal_abi, imaState.joAbiPublishResult_skale_manager.schains_internal_address );
-    // jo_schains_functionality
-    // jo_schains_functionality_internal
-    imaState.jo_skale_dkg = new imaState.w3_main_net.eth.Contract( imaState.joAbiPublishResult_skale_manager.skale_d_k_g_abi, imaState.joAbiPublishResult_skale_manager.skale_d_k_g_address );
-    imaState.jo_skale_manager = new imaState.w3_main_net.eth.Contract( imaState.joAbiPublishResult_skale_manager.skale_manager_abi, imaState.joAbiPublishResult_skale_manager.skale_manager_address );
-    imaState.jo_skale_token = new imaState.w3_main_net.eth.Contract( imaState.joAbiPublishResult_skale_manager.skale_token_abi, imaState.joAbiPublishResult_skale_manager.skale_token_address );
-    // jo_skale_verifier
-    // jo_slashing_table
-    // jo_time_helpers
-    // jo_time_helpers_with_debug
-    // jo_token_state
-    imaState.jo_validator_service = new imaState.w3_main_net.eth.Contract( imaState.joAbiPublishResult_skale_manager.validator_service_abi, imaState.joAbiPublishResult_skale_manager.validator_service_address );
-    imaState.jo_wallets = new imaState.w3_main_net.eth.Contract( imaState.joAbiPublishResult_skale_manager.wallets_abi, imaState.joAbiPublishResult_skale_manager.wallets_address );
+    if( imaState.bHaveSkaleManagerABI ) {
+        imaState.jo_constants_holder = new imaState.w3_main_net.eth.Contract( imaState.joAbiPublishResult_skale_manager.constants_holder_abi, imaState.joAbiPublishResult_skale_manager.constants_holder_address );
+        // jo_contract_manager
+        // jo_decryption
+        // jo_delegation_controller
+        // jo_delegation_period_manager
+        // jo_distributor
+        // jo_ecdh
+        // jo_manager_data
+        // jo_monitors_functionality
+        imaState.jo_nodes = new imaState.w3_main_net.eth.Contract( imaState.joAbiPublishResult_skale_manager.nodes_abi, imaState.joAbiPublishResult_skale_manager.nodes_address );
+        // jo_pricing
+        // jo_punisher
+        imaState.jo_key_storage = new imaState.w3_main_net.eth.Contract( imaState.joAbiPublishResult_skale_manager.key_storage_abi, imaState.joAbiPublishResult_skale_manager.key_storage_address );
+        imaState.jo_schains = new imaState.w3_main_net.eth.Contract( imaState.joAbiPublishResult_skale_manager.schains_abi, imaState.joAbiPublishResult_skale_manager.schains_address );
+        imaState.jo_schains_internal = new imaState.w3_main_net.eth.Contract( imaState.joAbiPublishResult_skale_manager.schains_internal_abi, imaState.joAbiPublishResult_skale_manager.schains_internal_address );
+        // jo_schains_functionality
+        // jo_schains_functionality_internal
+        imaState.jo_skale_dkg = new imaState.w3_main_net.eth.Contract( imaState.joAbiPublishResult_skale_manager.skale_d_k_g_abi, imaState.joAbiPublishResult_skale_manager.skale_d_k_g_address );
+        imaState.jo_skale_manager = new imaState.w3_main_net.eth.Contract( imaState.joAbiPublishResult_skale_manager.skale_manager_abi, imaState.joAbiPublishResult_skale_manager.skale_manager_address );
+        imaState.jo_skale_token = new imaState.w3_main_net.eth.Contract( imaState.joAbiPublishResult_skale_manager.skale_token_abi, imaState.joAbiPublishResult_skale_manager.skale_token_address );
+        // jo_skale_verifier
+        // jo_slashing_table
+        // jo_time_helpers
+        // jo_time_helpers_with_debug
+        // jo_token_state
+        imaState.jo_validator_service = new imaState.w3_main_net.eth.Contract( imaState.joAbiPublishResult_skale_manager.validator_service_abi, imaState.joAbiPublishResult_skale_manager.validator_service_address );
+        imaState.jo_wallets = new imaState.w3_main_net.eth.Contract( imaState.joAbiPublishResult_skale_manager.wallets_abi, imaState.joAbiPublishResult_skale_manager.wallets_address );
+    } // if( imaState.bHaveSkaleManagerABI )
 
     log.write( cc.bright( "IMA contracts:" ) + "\n" );
     log.write( cc.info( "Main-net " ) + cc.sunny( "DepositBoxEth" ) + cc.debug( "................address is....." ) + cc.bright( imaState.jo_deposit_box_eth.options.address ) + "\n" );
