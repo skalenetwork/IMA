@@ -100,7 +100,8 @@ async function load_schain_parts( w3, jo_schain, addressFrom, opts ) {
             name: node[0],
             ip: owaspUtils.ip_from_hex( node[1] ),
             base_port: node[3],
-            domain: await jo_nodes.methods.getNodeDomainName( node_id ).call( { from: addressFrom } )
+            domain: await jo_nodes.methods.getNodeDomainName( node_id ).call( { from: addressFrom } ),
+            isMaintenance: await jo_nodes.methods.isNodeInMaintenance( node_id ).call( { from: addressFrom } )
         };
         if( opts && opts.bStopNeeded )
             return;
@@ -156,7 +157,7 @@ async function load_schain( w3, addressFrom, idxSChain, cntSChains, opts ) {
         return null;
     await load_schain_parts( w3, jo_schain, addressFrom, opts );
     if( opts && opts.details ) {
-        opts.details.write( cc.debug( "    Desc " ) + cc.slj( cc.j( jo_schain.data ) ) + "\n" );
+        opts.details.write( cc.debug( "    Desc " ) + cc.j( jo_schain.data ) + "\n" );
         opts.details.write( cc.success( "Done" ) + "\n" );
     }
     return jo_schain;
@@ -179,7 +180,7 @@ async function load_schains( w3, addressFrom, opts ) {
         arr_schains.push( jo_schain );
     }
     if( opts && opts.details ) {
-        // opts.details.write( cc.debug( "Got S-Chain descriptions ") + cc.slj( cc.j( arr_schains ) ) + "\n" );
+        // opts.details.write( cc.debug( "Got S-Chain descriptions ") + cc.j( cc.j( arr_schains ) ) + "\n" );
         opts.details.write( cc.success( "All " ) + cc.info( cntSChains ) + cc.debug( " S-Chain(s) loaded" ) + "\n" );
     }
     return arr_schains;
@@ -206,7 +207,7 @@ function merge_schains_array_from_to( arrSrc, arrDst, arrNew, arrOld, opts ) {
         j = find_schain_index_in_array_by_name( arrDst, jo_schain.data.name );
         if( j < 0 ) {
             if( opts && opts.details )
-                opts.details.write( cc.debug( "Found new " ) + cc.notice( "#" ) + cc.info( i + 1 ) + cc.debug( " S-Chain " ) + slj( cc.j( jo_schain ) ) + "\n" );
+                opts.details.write( cc.debug( "Found new " ) + cc.notice( "#" ) + cc.info( i + 1 ) + cc.debug( " S-Chain " ) + cc.j( jo_schain ) + "\n" );
             arrNew.push( jo_schain );
         }
     }
@@ -218,7 +219,7 @@ function merge_schains_array_from_to( arrSrc, arrDst, arrNew, arrOld, opts ) {
         j = find_schain_index_in_array_by_name( arrSrc, jo_schain.data.name );
         if( j < 0 ) {
             if( opts && opts.details )
-                opts.details.write( cc.debug( "Found old S-Chain " ) + cc.notice( "#" ) + cc.info( i + 1 ) + cc.debug( " " ) + slj( cc.j( jo_schain ) ) + "\n" );
+                opts.details.write( cc.debug( "Found old S-Chain " ) + cc.notice( "#" ) + cc.info( i + 1 ) + cc.debug( " " ) + cc.j( jo_schain ) + "\n" );
             arrOld.push( jo_schain );
         }
     }

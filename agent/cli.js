@@ -1025,7 +1025,7 @@ function ima_common_init() {
     let n1 = 0;
     let n2 = 0;
     imaState.bHaveSkaleManagerABI = false;
-    if( imaState.strPathAbiJson_skale_manager && ( typeof strPathAbiJson_skale_manager == "string" ) && strPathAbiJson_skale_manager.length > 0 ) {
+    if( imaState.strPathAbiJson_skale_manager && ( typeof imaState.strPathAbiJson_skale_manager == "string" ) && imaState.strPathAbiJson_skale_manager.length > 0 ) {
         imaState.joAbiPublishResult_skale_manager = imaUtils.jsonFileLoad( imaState.strPathAbiJson_skale_manager, null );
         imaState.bHaveSkaleManagerABI = true;
     }

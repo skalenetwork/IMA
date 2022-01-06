@@ -31,17 +31,6 @@ function replaceAll( str, find, replace ) {
     return str.replace( new RegExp( find, "g" ), replace );
 }
 
-function slj( s ) {
-    s = replaceAll( s, "\r", " " );
-    s = replaceAll( s, "\n", " " );
-    for( ; true; ) {
-        const s2 = replaceAll( s, "  ", "" );
-        if( s2 == s )
-            return s.trim();
-        s = s2;
-    }
-}
-
 function toBoolean( value ) {
     let b = false;
     try {
@@ -818,6 +807,5 @@ module.exports = {
     safeURL: safeURL,
     getCircularReplacerForJsonStringify: getCircularReplacerForJsonStringify,
     toBoolean: toBoolean,
-    replaceAll: replaceAll,
-    slj: slj
+    replaceAll: replaceAll
 }; // module.exports
