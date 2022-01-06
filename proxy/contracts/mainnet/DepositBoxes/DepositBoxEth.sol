@@ -158,15 +158,36 @@ contract DepositBoxEth is DepositBox, IDepositBoxEth {
      * - msg.sender should be an owner of schain
      * - IMA transfers Mainnet <-> schain should be killed
      */
-    function switchActiveEthTransfers(string calldata schainName)
+    function enableActiveEthTransfers(string calldata schainName)
         external
         override
         onlySchainOwner(schainName)
         whenNotKilled(keccak256(abi.encodePacked(schainName)))
     {
         bytes32 schainHash = keccak256(abi.encodePacked(schainName));
-        emit ActiveEthTransfers(schainHash, !activeEthTransfers[schainHash]);
-        activeEthTransfers[schainHash] = !activeEthTransfers[schainHash];
+        require(!activeEthTransfers[schainHash], "Active eth transfers enabled");
+        emit ActiveEthTransfers(schainHash, true);
+        activeEthTransfers[schainHash] = true;
+    }
+
+    /**
+     * @dev Allows Schain owner to switch on or switch off active eth transfers.
+     *
+     * Requirements:
+     *
+     * - msg.sender should be an owner of schain
+     * - IMA transfers Mainnet <-> schain should be killed
+     */
+    function disableActiveEthTransfers(string calldata schainName)
+        external
+        override
+        onlySchainOwner(schainName)
+        whenNotKilled(keccak256(abi.encodePacked(schainName)))
+    {
+        bytes32 schainHash = keccak256(abi.encodePacked(schainName));
+        require(activeEthTransfers[schainHash], "Active eth transfers disabled");
+        emit ActiveEthTransfers(schainHash, false);
+        activeEthTransfers[schainHash] = false;
     }
 
     /**

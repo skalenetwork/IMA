@@ -497,8 +497,11 @@ describe("DepositBoxEth", () => {
             expect(BigNumber.from(await depositBoxEth.approveTransfers(user.address)).toString()).to.equal(BigNumber.from(wei).toString());
 
             expect(await depositBoxEth.activeEthTransfers(schainHash)).to.be.equal(false);
-            await depositBoxEth.connect(user2).switchActiveEthTransfers(schainName).should.be.rejectedWith("Sender is not an Schain owner");
-            await depositBoxEth.connect(deployer).switchActiveEthTransfers(schainName);
+            await depositBoxEth.connect(user2).enableActiveEthTransfers(schainName).should.be.rejectedWith("Sender is not an Schain owner");
+            await depositBoxEth.connect(user2).disableActiveEthTransfers(schainName).should.be.rejectedWith("Sender is not an Schain owner");
+            await depositBoxEth.connect(deployer).disableActiveEthTransfers(schainName).should.be.eventually.rejectedWith("Active eth transfers disabled");
+            await depositBoxEth.connect(deployer).enableActiveEthTransfers(schainName);
+            await depositBoxEth.connect(deployer).enableActiveEthTransfers(schainName).should.be.eventually.rejectedWith("Active eth transfers enabled");
             expect(await depositBoxEth.activeEthTransfers(schainHash)).to.be.equal(true);
 
             const userBalanceBefore = await web3.eth.getBalance(user.address);
@@ -573,8 +576,11 @@ describe("DepositBoxEth", () => {
             expect(BigNumber.from(await depositBoxEth.approveTransfers(fallbackEthTester.address)).toString()).to.equal(BigNumber.from(wei).toString());
 
             expect(await depositBoxEth.activeEthTransfers(schainHash)).to.be.equal(false);
-            await depositBoxEth.connect(user2).switchActiveEthTransfers(schainName).should.be.rejectedWith("Sender is not an Schain owner");
-            await depositBoxEth.connect(deployer).switchActiveEthTransfers(schainName);
+            await depositBoxEth.connect(user2).enableActiveEthTransfers(schainName).should.be.rejectedWith("Sender is not an Schain owner");
+            await depositBoxEth.connect(user2).disableActiveEthTransfers(schainName).should.be.rejectedWith("Sender is not an Schain owner");
+            await depositBoxEth.connect(deployer).disableActiveEthTransfers(schainName).should.be.eventually.rejectedWith("Active eth transfers disabled");
+            await depositBoxEth.connect(deployer).enableActiveEthTransfers(schainName);
+            await depositBoxEth.connect(deployer).enableActiveEthTransfers(schainName).should.be.eventually.rejectedWith("Active eth transfers enabled");
             expect(await depositBoxEth.activeEthTransfers(schainHash)).to.be.equal(true);
 
             const userBalanceBefore = await web3.eth.getBalance(fallbackEthTester.address);
