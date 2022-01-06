@@ -385,6 +385,18 @@ function remove_starting_0x( s ) {
     return s;
 }
 
+function inet_ntoa( n ) {
+    const a = ( ( n >> 24 ) & 0xFF ) >>> 0;
+    const b = ( ( n >> 16 ) & 0xFF ) >>> 0;
+    const c = ( ( n >> 8 ) & 0xFF ) >>> 0;
+    const d = ( n & 0xFF ) >>> 0;
+    return ( a + "." + b + "." + c + "." + d );
+}
+
+function ip_from_hex( hex ) {
+    return inet_ntoa( parseInt( remove_starting_0x( hex ), 16 ) );
+}
+
 function private_key_2_public_key( w3, keyPrivate ) {
     if( w3 == null || w3 == undefined || keyPrivate == null || keyPrivate == undefined )
         return "";
@@ -587,6 +599,8 @@ module.exports = {
     verifyArgumentIsArrayOfIntegers: verifyArgumentIsArrayOfIntegers,
     ensure_starts_with_0x: ensure_starts_with_0x,
     remove_starting_0x: remove_starting_0x,
+    inet_ntoa: inet_ntoa,
+    ip_from_hex: ip_from_hex,
     private_key_2_public_key: private_key_2_public_key,
     public_key_2_account_address: public_key_2_account_address,
     private_key_2_account_address: private_key_2_account_address,

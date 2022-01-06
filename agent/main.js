@@ -46,6 +46,7 @@ global.cc = global.imaUtils.cc;
 global.imaCLI = require( "./cli.js" );
 global.imaBLS = require( "./bls.js" );
 global.rpcCall = require( "./rpc-call.js" );
+global.skale_observer = require( "../npms/skale-observer/observer.js" );
 global.rpcCall.init();
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -63,8 +64,9 @@ global.imaState = {
     "strPathHashG1": "", // path to hash_g1 app, must have if --sign-messages specified
     "strPathBlsVerify": "", // path to verify_bls app, optional, if specified then we will verify gathered BLS signature
 
-    "joTrufflePublishResult_main_net": { },
-    "joTrufflePublishResult_s_chain": { },
+    "joAbiPublishResult_skale_manager": { },
+    "joAbiPublishResult_main_net": { },
+    "joAbiPublishResult_s_chain": { },
 
     "joErc20_main_net": null,
     "joErc20_s_chain": null,
@@ -85,6 +87,7 @@ global.imaState = {
     "strCoinNameErc1155_main_net": "", // in-JSON coin name
     "strCoinNameErc1155_s_chain": "", // in-JSON coin name
 
+    "strPathAbiJson_skale_manager": imaUtils.normalizePath( "../proxy/data/skaleManager.json" ), // "./abi_skale_manager.json"
     "strPathAbiJson_main_net": imaUtils.normalizePath( "../proxy/data/proxyMainnet.json" ), // "./abi_main_net.json"
     "strPathAbiJson_s_chain": imaUtils.normalizePath( "../proxy/data/proxySchain.json" ), // "./abi_s_chain.json"
 
@@ -266,7 +269,7 @@ imaCLI.parse( {
                 const b = await check_registration_all();
                 const nExitCode = b ? 0 : 150; // 0 - OKay - registered; non-zero -  not registered or error
                 log.write( cc.notice( "Exiting with code " ) + cc.info( nExitCode ) + "\n" );
-                process.exit( nExitCode ); // 150
+                process.exit( nExitCode );
             }
         } );
     },
@@ -279,7 +282,7 @@ imaCLI.parse( {
                 const b = await check_registration_step1();
                 const nExitCode = b ? 0 : 152; // 0 - OKay - registered; non-zero -  not registered or error
                 log.write( cc.notice( "Exiting with code " ) + cc.info( nExitCode ) + "\n" );
-                process.exit( nExitCode ); // 152
+                process.exit( nExitCode );
             }
         } );
     },
@@ -864,7 +867,7 @@ imaCLI.parse( {
         imaState.arrActions.push( {
             "name": "Brows S-Chain network",
             "fn": async function() {
-                const strLogPrefix = cc.info( "S Browse:" ) + " ";
+                const strLogPrefix = cc.info( "S-Chain Browse:" ) + " ";
                 if( imaState.strURL_s_chain.length === 0 ) {
                     console.log( cc.fatal( "CRITICAL ERROR:" ) + cc.error( " missing S-Chain URL, please specify " ) + cc.info( "url-s-chain" ) );
                     process.exit( 154 );
@@ -930,6 +933,32 @@ imaCLI.parse( {
                         }, 100 );
                     } );
                 } );
+                return true;
+            }
+        } );
+    },
+    "browse-skale-network": function() {
+        // imaState.bIsNeededCommonInit = false;
+        imaState.arrActions.push( {
+            "name": "Brows S-Chain network",
+            "fn": async function() {
+                const strLogPrefix = cc.info( "SKALE NETWORK Browse:" ) + " ";
+                if( imaState.strPathAbiJson_skale_manager.length === 0 ) {
+                    console.log( cc.fatal( "CRITICAL ERROR:" ) + cc.error( " missing Skale Manager ABI, please specify " ) + cc.info( "abi-skale-manager" ) );
+                    process.exit( 159 );
+                }
+                log.write( strLogPrefix + cc.normal( "Downloading SKALE network information " ) + cc.normal( "..." ) + "\n" ); // just print value
+                const arr_schains = await skale_observer.load_schains(
+                    imaState.w3_main_net,
+                    imaState.joAccount_main_net.address( imaState.w3_main_net ),
+                    {
+                        "jo_schains_internal": imaState.jo_schains_internal,
+                        "jo_nodes": imaState.jo_nodes,
+                        "details": log,
+                        "bStopNeeded": false
+                    }
+                );
+                log.write( strLogPrefix + cc.normal( "Got " ) + cc.info( "SKALE NETWORK" ) + cc.normal( " information: " ) + cc.j( arr_schains ) + "\n" );
                 return true;
             }
         } );
@@ -1017,7 +1046,7 @@ if( imaState.nReimbursementWithdraw ) {
 if( haveReimbursementCommands ) {
     if( imaState.strReimbursementChain == "" ) {
         console.log( cc.fatal( "CRITICAL ERROR:" ) + cc.error( " missing value for " ) + cc.warning( "reimbursement-chain" ) + cc.error( " parameter, must be non-empty chain name" ) + "\n" );
-        process.exit( 130 );
+        process.exit( 161 );
     }
 }
 if( imaState.nReimbursementRange >= 0 ) {
@@ -1611,18 +1640,18 @@ async function do_the_job() {
 if( imaState.bSignMessages ) {
     if( imaState.strPathBlsGlue.length == 0 ) {
         log.write( cc.fatal( "FATAL, CRITICAL ERROR:" ) + cc.error( " please specify --bls-glue parameter." ) + "\n" );
-        process.exit( 159 );
+        process.exit( 162 );
     }
     if( imaState.strPathHashG1.length == 0 ) {
         log.write( cc.fatal( "FATAL, CRITICAL ERROR:" ) + cc.error( " please specify --hash-g1 parameter." ) + "\n" );
-        process.exit( 160 );
+        process.exit( 163 );
     }
     if( ! imaState.bNoWaitSChainStarted ) {
         const isSilent = imaState.joSChainDiscovery.isSilentReDiscovery;
         wait_until_s_chain_started().then( function() { // uses call to discover_s_chain_network()
             discover_s_chain_network( function( err, joSChainNetworkInfo ) {
                 if( err )
-                    process.exit( 161 ); // error information is printed by discover_s_chain_network()
+                    process.exit( 164 ); // error information is printed by discover_s_chain_network()
                 if( IMA.verbose_get() >= IMA.RV_VERBOSE.information )
                     log.write( cc.success( "S-Chain network was discovered: " ) + cc.j( joSChainNetworkInfo ) + "\n" );
                 imaState.joSChainNetworkInfo = joSChainNetworkInfo;
@@ -1688,7 +1717,7 @@ async function register_step1( isPrintSummaryRegistrationCosts ) {
     if( !bSuccess ) {
         const nRetCode = 163;
         log.write( strLogPrefix + cc.fatal( "FATAL, CRITICAL ERROR:" ) + cc.error( " failed to register S-Chain in deposit box, will return code " ) + cc.warning( nRetCode ) + "\n" );
-        process.exit( nRetCode ); // 163
+        process.exit( nRetCode );
     }
     return true;
 }

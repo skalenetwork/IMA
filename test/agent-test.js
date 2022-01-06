@@ -63,8 +63,9 @@ global.imaState = {
     "strPathHashG1": "", // path to hash_g1 app, must have if --sign-messages specified
     "strPathBlsVerify": "", // path to verify_bls app, optional, if specified then we will verify gathered BLS signature
 
-    "joTrufflePublishResult_main_net": { },
-    "joTrufflePublishResult_s_chain": { },
+    "joAbiPublishResult_skale_manager": { },
+    "joAbiPublishResult_main_net": { },
+    "joAbiPublishResult_s_chain": { },
 
     "joErc20_main_net": null,
     "joErc20_s_chain": null,
@@ -85,6 +86,7 @@ global.imaState = {
     "strCoinNameErc1155_main_net": "", // in-JSON coin name
     "strCoinNameErc1155_s_chain": "", // in-JSON coin name
 
+    // "strPathAbiJson_skale_manager": imaUtils.normalizePath( "../proxy/data/skaleManager.json" ), // "./abi_skale_manager.json"
     // "strPathAbiJson_main_net": imaUtils.normalizePath( "../proxy/data/proxyMainnet.json" ),
     // "strPathAbiJson_s_chain": imaUtils.normalizePath( "../proxy/data/proxySchain_Bob.json" ),
     "strPathAbiJson_main_net": imaUtils.normalizePath( "./agent-test-data/proxyMainnet.json" ),
@@ -625,6 +627,7 @@ describe( "CLI", function() {
                 "--address-s-chain=" + imaState.joAccount_s_chain.address(),
                 "--key-main-net=" + imaState.joAccount_main_net.privateKey,
                 "--key-s-chain=" + imaState.joAccount_s_chain.privateKey,
+                //"--abi-skale-manager=" + imaState.strPathAbiJson_skale_manager,
                 "--abi-main-net=" + imaState.strPathAbiJson_main_net,
                 "--abi-s-chain=" + imaState.strPathAbiJson_s_chain,
                 // --erc721-main-net --erc721-s-chain --addr-erc721-s-chain
