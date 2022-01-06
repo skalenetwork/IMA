@@ -47,7 +47,8 @@ const owaspUtils = require( "../skale-owasp/owasp-util.js" );
 
 const g_mtaStrLongSeparator = "=======================================================================================================================";
 
-const perMessageGasForTransfer = 1000100;
+const perMessageGasForTransfer = 1000000;
+const additionalGasForTransfer = 100;
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -4465,7 +4466,7 @@ async function do_transfer(
                 details.write( strLogPrefix + cc.debug( "Using computed " ) + cc.info( "gasPrice" ) + cc.debug( "=" ) + cc.notice( gasPrice ) + "\n" );
                 const estimatedGas_postIncomingMessages = await tc_dst.computeGas( methodWithArguments_postIncomingMessages, w3_dst, 10000000, gasPrice, joAccountDst.address( w3_dst ), "0" );
                 details.write( strLogPrefix + cc.debug( "Using estimated " ) + cc.info( "gas" ) + cc.debug( "=" ) + cc.notice( estimatedGas_postIncomingMessages ) + "\n" );
-                postIncomingMessagesGasLimit = perMessageGasForTransfer * jarrMessages.length;
+                postIncomingMessagesGasLimit = perMessageGasForTransfer * jarrMessages.length + additionalGasForTransfer;
                 //
                 const isIgnore_postIncomingMessages = false;
                 const strDRC_postIncomingMessages = "postIncomingMessages in message signer";
