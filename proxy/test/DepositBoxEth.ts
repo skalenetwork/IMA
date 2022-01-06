@@ -518,7 +518,7 @@ describe("DepositBoxEth", () => {
             const senderFromSchain = deployer.address;
             const wei = "30000000000000000";
             const schainHash = stringValue(web3.utils.soliditySha3(schainName));
-            
+
             const fallbackEthTester = await deployFallbackEthTester(depositBoxEth, communityPool, schainName);
             const bytesData = await messages.encodeTransferEthMessage(fallbackEthTester.address, wei);
 
@@ -584,7 +584,6 @@ describe("DepositBoxEth", () => {
             if (res.events) {
                 assert.equal(res.events[0].event, "PostMessageError");
                 assert.equal(res.events[0].args?.msgCounter.toString(), "1");
-                console.log(res.events[0].args?.message);
                 const messageError = res.events[0].args?.message.toString();
                 const error = "Address: unable to send value, recipient may have reverted";
                 assert.equal(Buffer.from(messageError.slice(2), 'hex').toString(), error);

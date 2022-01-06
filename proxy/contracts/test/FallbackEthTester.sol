@@ -25,8 +25,15 @@ pragma solidity 0.8.6;
 import "@skalenetwork/ima-interfaces/mainnet/DepositBoxes/IDepositBoxEth.sol";
 import "@skalenetwork/ima-interfaces/mainnet/ICommunityPool.sol";
 
+interface IFallbackEthTester {
+    receive() external payable;
+    function deposit() external payable;
+    function rechargeUserWallet() external payable;
+    function getMyEth() external;
+}
 
-contract FallbackEthTester {
+
+contract FallbackEthTester is IFallbackEthTester {
     IDepositBoxEth public depositBoxEth;
     ICommunityPool public communityPool;
 
@@ -39,13 +46,13 @@ contract FallbackEthTester {
         IDepositBoxEth newDepositBoxEth,
         ICommunityPool newCommunityPool,
         string memory newSchainName
-    ) public {
+    ) {
         depositBoxEth = newDepositBoxEth;
         communityPool = newCommunityPool;
         schainName = newSchainName;
     }
 
-    receive() external payable {
+    receive() external payable override {
         if (!_receiveInProgress && !_getMyEthInProgress) {
             _receiveInProgress = true;
             uint256 balance = communityPool.getBalance(address(this), schainName);
@@ -54,15 +61,15 @@ contract FallbackEthTester {
         }
     }
 
-    function deposit() external payable {
+    function deposit() external payable override {
         depositBoxEth.deposit{value: msg.value}(schainName);
     }
 
-    function rechargeUserWallet() external payable {
+    function rechargeUserWallet() external payable override {
         communityPool.rechargeUserWallet{value: msg.value}(schainName, address(this));
     }
 
-    function getMyEth() external {
+    function getMyEth() external override {
         _getMyEthInProgress = true;
         depositBoxEth.getMyEth();
         _getMyEthInProgress = false;
