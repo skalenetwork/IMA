@@ -1024,12 +1024,15 @@ function ima_common_init() {
 
     let n1 = 0;
     let n2 = 0;
-    if( imaState.strPathAbiJson_skale_manager )
+    imaState.bHaveSkaleManagerABI = false;
+    if( imaState.strPathAbiJson_skale_manager && ( typeof strPathAbiJson_skale_manager == "string" ) && strPathAbiJson_skale_manager.length > 0 ) {
         imaState.joAbiPublishResult_skale_manager = imaUtils.jsonFileLoad( imaState.strPathAbiJson_skale_manager, null );
+        imaState.bHaveSkaleManagerABI = true;
+    }
     imaState.joAbiPublishResult_main_net = imaUtils.jsonFileLoad( imaState.strPathAbiJson_main_net, null );
     imaState.joAbiPublishResult_s_chain = imaUtils.jsonFileLoad( imaState.strPathAbiJson_s_chain, null );
 
-    if( imaState.joAbiPublishResult_skale_manager ) {
+    if( imaState.bHaveSkaleManagerABI ) {
         imaUtils.check_keys_exist_in_abi( "skale-manager", imaState.strPathAbiJson_skale_manager, imaState.joAbiPublishResult_skale_manager, [
             // partial list of Skale Manager's contracts specified here:
             "constants_holder_abi",
@@ -1175,7 +1178,7 @@ function ima_common_init() {
     log.write( cc.info( "S-Chain  " ) + cc.sunny( "TokenManagerLinker" ) + cc.debug( " ..........address is....." ) + cc.bright( imaState.jo_token_manager_linker.options.address ) + "\n" );
     log.write( cc.info( "S-Chain  " ) + cc.sunny( "ERC20" ) + cc.debug( " .......................address is....." ) + cc.bright( imaState.eth_erc20.options.address ) + "\n" );
 
-    if( imaState.joAbiPublishResult_skale_manager ) {
+    if( imaState.bHaveSkaleManagerABI ) {
         log.write( cc.bright( "Skale Manager contracts:" ) + "\n" );
         log.write( cc.sunny( "ConstantsHolder" ) + cc.debug( ".......................address is....." ) + cc.bright( imaState.jo_constants_holder.options.address ) + "\n" );
         log.write( cc.sunny( "Nodes" ) + cc.debug( ".................................address is....." ) + cc.bright( imaState.jo_nodes.options.address ) + "\n" );
