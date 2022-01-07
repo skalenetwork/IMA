@@ -186,6 +186,34 @@ async function load_schains( w3, addressFrom, opts ) {
     return arr_schains;
 }
 
+async function check_connected_schains( arr_schains, w3schain, addressFrom, opts ) {
+    const jo_message_proxy_s_chain = opts ? opts.jo_message_proxy_s_chain : null;
+    if( ! jo_schains_internal )
+        throw new Error( "Cannot load S-Chains in observer, no SChainsInternal contract is provided" );
+    const cntSChains = arr_schains.length;
+    for( let idxSChain = 0; idxSChain < cntSChains; ++ idxSChain ) {
+        if( opts && opts.bStopNeeded )
+            break;
+        const jo_schain = arr_schains[i];
+        jo_schain.isConnected = await jo_message_proxy_s_chain.methods.isConnectedChain( jo_schain.name ).call( { from: addressFrom } );
+    }
+    return arr_schains;
+}
+
+async function filter_connected_schains( arr_schains, w3schain, addressFrom, opts ) {
+    await check_connected_schains( arr_schains, w3schain, addressFrom, opts );
+    const arr_connected_schains = [];
+    const cntSChains = arr_schains.length;
+    for( let idxSChain = 0; idxSChain < cntSChains; ++ idxSChain ) {
+        if( opts && opts.bStopNeeded )
+            break;
+        const jo_schain = arr_schains[i];
+        if( jo_schain.isConnected )
+            arr_connected_schains.push( jo_schain );
+    }
+    return arr_connected_schains;
+}
+
 function find_schain_index_in_array_by_name( arr_schains, strSChainName ) {
     for( let i = 0; i < arr_schains.length; ++ i ) {
         const jo_schain = arr_schains[i];
@@ -255,5 +283,7 @@ module.exports.cc = cc;
 module.exports.get_schains_count = get_schains_count;
 module.exports.load_schain = load_schain;
 module.exports.load_schains = load_schains;
+module.exports.check_connected_schains = check_connected_schains;
+module.exports.filter_connected_schains = filter_connected_schains;
 module.exports.find_schain_index_in_array_by_name = find_schain_index_in_array_by_name;
 module.exports.merge_schains_array_from_to = merge_schains_array_from_to;
