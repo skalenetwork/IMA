@@ -222,6 +222,11 @@ global.imaState = {
         "repeatIntervalMilliseconds": 10 * 1000 // zero to disable (for debugging only)
     },
 
+    "sXs": { // S-Chain to S-Chain transfer options
+        "isEnabled": true, // is S-Chain to S-Chain transfers enabled
+        "secondsToReDiscoverSkaleNetwork": 10 * 60 // seconts to re-discover SKALE network, 0 to disable
+    },
+
     "arrActions": [] // array of actions to run
 };
 
@@ -844,6 +849,7 @@ imaCLI.parse( {
         } );
     },
     "loop": function() {
+        //if( imaState.sXs.isEnabled )
         imaState.arrActions.push( {
             "name": "M<->S transfer loop",
             "fn": async function() {

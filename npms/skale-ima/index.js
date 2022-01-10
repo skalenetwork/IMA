@@ -398,7 +398,7 @@ async function do_oracle_gas_price_setup(
     if( getOracleGasPriceMode() == 0 )
         return;
     const details = log.createMemoryStream();
-    const jarrReceipts = []; // do_transfer
+    const jarrReceipts = [];
     //let bErrorInSigningMessages = false;
     const strLogPrefix = cc.info( "Oracle gas price setup:" ) + " ";
     if( fn_sign == null || fn_sign == undefined ) {
@@ -519,7 +519,7 @@ async function do_oracle_gas_price_setup(
 
             if( joReceipt && typeof joReceipt == "object" && "gasUsed" in joReceipt ) {
                 jarrReceipts.push( {
-                    "description": "do_transfer/setGasPrice",
+                    "description": "do_oracle_gas_price_setup/setGasPrice",
                     "receipt": joReceipt
                 } );
                 print_gas_usage_report_from_array( "(intermediate result) ORACLE GAS PRICE SETUP ", jarrReceipts );
@@ -3985,7 +3985,7 @@ async function do_transfer(
     optsStateFile
 ) {
     const details = log.createMemoryStream();
-    const jarrReceipts = []; // do_transfer
+    const jarrReceipts = [];
     let bErrorInSigningMessages = false;
     await init_ima_state_file( details, w3_src, strDirection, optsStateFile );
     const strLogPrefix = cc.info( "Transfer from " ) + cc.notice( chain_id_src ) + cc.info( " to " ) + cc.notice( chain_id_dst ) + cc.info( ":" ) + " ";
@@ -4148,8 +4148,9 @@ async function do_transfer(
                 }
                 details.write( strLogPrefix + cc.normal( "Next forecasted block number for logs search is " ) + cc.info( blockNumberNextForecast ) + "\n" );
                 if( joValues == "" ) {
-                    log.write( strLogPrefix + cc.fatal( "CRITICAL ERROR:" ) + " " + cc.error( "Can't get events from MessageProxy" ) + "\n" );
-                    details.write( strLogPrefix + cc.fatal( "CRITICAL ERROR:" ) + " " + cc.error( "Can't get events from MessageProxy" ) + "\n" );
+                    const strError = strLogPrefix + cc.fatal( "CRITICAL ERROR:" ) + " " + cc.error( "Can't get events from MessageProxy" );
+                    log.write( strError + "\n" );
+                    details.write( strError + "\n" );
                     details.exposeDetailsTo( log, "do_transfer", false );
                     save_transfer_error( details.toString() );
                     details.close();
@@ -4572,9 +4573,12 @@ async function do_transfer(
                 break;
         } // while( nIdxCurrentMsg < nOutMsgCnt )
     } catch ( err ) {
+        const strError = strLogPrefix + cc.fatal( "CRITICAL ERROR:" ) +
+            cc.error( " Error in " ) + cc.info( "do_transfer()" ) +
+            cc.error( " during " + strActionName + ": " ) + cc.error( err );
         if( verbose_get() >= RV_VERBOSE.fatal )
-            log.write( strLogPrefix + cc.fatal( "CRITICAL ERROR:" ) + cc.error( " Error in do_transfer() during " + strActionName + ": " ) + cc.error( err ) + "\n" );
-        details.write( strLogPrefix + cc.fatal( "CRITICAL ERROR:" ) + cc.error( " Error in do_transfer() during " + strActionName + ": " ) + cc.error( err ) + "\n" );
+            log.write( strError + "\n" );
+        details.write( strError + "\n" );
         details.exposeDetailsTo( log, "do_transfer", false );
         save_transfer_error( details.toString() );
         details.close();

@@ -251,7 +251,7 @@ function parse( joExternalHandlers, argv ) {
                 cc.debug( " shell variables were specified. " )
             );
             //
-            console.log( cc.sunny( "TRANSFER" ) + cc.info( " options:" ) );
+            console.log( cc.sunny( "GENERAL TRANSFER" ) + cc.info( " options:" ) );
             console.log( soi + cc.debug( "--" ) + cc.bright( "value" ) + cc.sunny( "=" ) + cc.attention( "number" ) + cc.warning( "unitName" ) + cc.debug( ".........." ) + cc.notice( "Amount of " ) + cc.attention( "unitName" ) + cc.notice( " to transfer, where " ) + cc.attention( "unitName" ) + cc.notice( " is well known Ethereum unit name like " ) + cc.attention( "ether" ) + cc.notice( " or " ) + cc.attention( "wei" ) + cc.notice( "." ) );
             console.log( soi + cc.debug( "--" ) + cc.bright( "wei" ) + cc.sunny( "=" ) + cc.attention( "number" ) + cc.debug( "...................." ) + cc.notice( "Amount of " ) + cc.attention( "wei" ) + cc.notice( " to transfer." ) );
             console.log( soi + cc.debug( "--" ) + cc.bright( "babbage" ) + cc.sunny( "=" ) + cc.attention( "number" ) + cc.debug( "................" ) + cc.notice( "Amount of " ) + cc.attention( "babbage" ) + cc.info( "(wei*1000)" ) + cc.notice( " to transfer." ) );
@@ -266,6 +266,11 @@ function parse( joExternalHandlers, argv ) {
             console.log( soi + cc.debug( "--" ) + cc.bright( "tids" ) + cc.sunny( "=" ) + cc.attention( "array of numbers" ) + cc.debug( "........." ) + cc.bright( "ERC1155" ) + cc.notice( " token amount to transfer in batch." ) );
             console.log( soi + cc.debug( "--" ) + cc.bright( "sleep-between-tx" ) + cc.sunny( "=" ) + cc.attention( "number" ) + cc.debug( "......." ) + cc.notice( "Number of of " ) + cc.attention( "milliseconds" ) + cc.notice( " to sleep between transactions during complex operations." ) );
             console.log( soi + cc.debug( "--" ) + cc.bright( "wait-next-block" ) + cc.debug( "..............." ) + cc.notice( "Wait for next block between transactions during complex operations." ) );
+            //
+            console.log( cc.sunny( "S-CHAIN TO S-CHAIN TRANSFER" ) + cc.info( " options:" ) );
+            console.log( soi + cc.debug( "--" ) + cc.bright( "s2s-enable" ) + cc.debug( "...................." ) + cc.success( "Enables" ) + " " + cc.note( "S-Chain" ) + cc.notice( " to " ) + cc.note( "S-Chain" ) + cc.notice( " transfers. Default mode. The " ) + cc.bright( "abi-skale-manager" ) + cc.notice( " path must be provided." ) );
+            console.log( soi + cc.debug( "--" ) + cc.bright( "s2s-disable" ) + cc.debug( "..................." ) + cc.error( "Disables" ) + " " + cc.note( "S-Chain" ) + cc.notice( " to " ) + cc.note( "S-Chain" ) + cc.notice( " transfers." ) );
+            console.log( soi + cc.debug( "--" ) + cc.bright( "net-rediscover" ) + cc.sunny( "=" ) + cc.attention( "number" ) + cc.debug( "........." ) + cc.note( "SKALE NETWORK" ) + cc.notice( " re-discovery interval in " ) + cc.attention( "seconds" ) + cc.notice( ". Default is " ) + cc.sunny( "600" ) + cc.notice( ", specify " ) + cc.sunny( "0" ) + cc.notice( " to " ) + cc.error( "disable" ) + " " + cc.note( "SKALE NETWORK" ) + cc.notice( " re-discovery." ) );
             //
             console.log( cc.sunny( "PAYMENT TRANSACTION" ) + cc.info( " options:" ) );
             console.log( soi + cc.debug( "--" ) + cc.bright( "gas-price-multiplier-mn" ) + cc.debug( "......." ) + cc.notice( "Sets " ) + cc.attention( "Gas Price Multiplier" ) + cc.notice( " for " ) + cc.attention( "Main Net" ) + cc.notice( " transactions, Default value is " ) + cc.sunny( "1.25" ) + cc.notice( ". Specify value " ) + cc.sunny( "0.0" ) + cc.notice( " to " ) + cc.error( "disable" ) + " " + cc.attention( "Gas Price Customization" ) + cc.notice( " for " ) + cc.attention( "Main Net" ) + cc.notice( "." ) );
@@ -717,6 +722,20 @@ function parse( joExternalHandlers, argv ) {
             continue;
         }
         //
+        if( joArg.name == "s2s-enable" ) {
+            imaState.sXs.isEnabled = true;
+            continue;
+        }
+        if( joArg.name == "s2s-disable" ) {
+            imaState.sXs.isEnabled = false;
+            continue;
+        }
+        if( joArg.name == "net-rediscover" ) {
+            owaspUtils.verifyArgumentIsInteger( joArg );
+            imaState.sXs.secondsToReDiscoverSkaleNetwork = owaspUtils.toInteger( joArg.value );
+            continue;
+        }
+        //
         if( joArg.name == "show-config" ) {
             imaState.bShowConfigMode = true;
             continue;
@@ -1056,6 +1075,9 @@ function ima_common_init() {
             "wallets_abi",
             "wallets_address"
         ] );
+    } else if( imaState.sXs.isEnabled ) {
+        log.write( cc.fatal( "FATAL, CRITICAL ERROR:" ) + cc.error( "Missing " ) + cc.warning( "Skale Manager" ) + cc.error( " ABI path for S-Chain to S-Chain transfers" ) + "\n" );
+        process.exit( 126 );
     }
 
     imaUtils.check_keys_exist_in_abi( "main-net", imaState.strPathAbiJson_main_net, imaState.joAbiPublishResult_main_net, [
@@ -1632,6 +1654,8 @@ function ima_common_init() {
         log.write( cc.info( "Ignore result of PTX is" ) + cc.debug( ".............................." ) + ( imaState.optsPendingTxAnalysis.isIgnore ? cc.success( "yes" ) : cc.error( "no" ) ) + "\n" );
         log.write( cc.info( "Ignore secondary result of PTX is" ) + cc.debug( "...................." ) + ( imaState.optsPendingTxAnalysis.isIgnore2 ? cc.success( "yes" ) : cc.error( "no" ) ) + "\n" );
         log.write( cc.info( "Oracle gas price mode is" ) + cc.debug( "............................." ) + cc.info( IMA.getOracleGasPriceMode() ) + "\n" );
+        log.write( cc.info( "S-Chain to S-Chain transferring is" ) + cc.debug( "..................." ) + ( imaState.sXs.isEnabled ? cc.success( "enabled" ) : cc.error( "disabled" ) ) + "\n" );
+        log.write( cc.info( "SKALE network re-discovery interval is" ) + cc.debug( "..............." ) + ( imaState.sXs.secondsToReDiscoverSkaleNetwork ? cc.info( imaState.sXs.secondsToReDiscoverSkaleNetwork.toString() ) : cc.error( "disabled" ) ) + "\n" );
     }
     //
     //
