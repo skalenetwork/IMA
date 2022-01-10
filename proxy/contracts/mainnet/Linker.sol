@@ -43,8 +43,9 @@ contract Linker is Twin, ILinker {
     enum KillProcess {NotKilled, PartiallyKilledBySchainOwner, PartiallyKilledByContractOwner, Killed}
     EnumerableSetUpgradeable.AddressSet private _mainnetContracts;
 
-    // schainHash => true if interchain connection was enabled
-    mapping(bytes32 => bool) public override interchainConnections;
+    // Unused variable
+    mapping(bytes32 => bool) private  _interchainConnections;
+    //
 
     // schainHash => schain status of killing process 
     mapping(bytes32 => KillProcess) public statuses;
@@ -103,25 +104,6 @@ contract Linker is Twin, ILinker {
     }
 
     /**
-     * @dev Allows Schain owner to connect others chains with their own,
-     * thus others schains have opportunity to send messages from chain to chain.
-     * 
-     * Requirements:
-     * 
-     * - Schain should not be in the process of being killed.
-     */
-    function allowInterchainConnections(string calldata schainName) external override onlySchainOwner(schainName) {
-        bytes32 schainHash = keccak256(abi.encodePacked(schainName));
-        require(statuses[schainHash] == KillProcess.NotKilled, "Schain is in kill process");
-        interchainConnections[schainHash] = true;
-        messageProxy.postOutgoingMessage(
-            schainHash,
-            schainLinks[schainHash],
-            Messages.encodeInterchainConnectionMessage(true)
-        );
-    }
-
-    /**
      * @dev Allows Schain owner and contract deployer to kill schain. 
      * To kill the schain, both entities must call this function, and the order is not important.
      * 
@@ -130,7 +112,6 @@ contract Linker is Twin, ILinker {
      * - Interchain connection should be turned off.
      */
     function kill(string calldata schainName) override external {
-        require(!interchainConnections[keccak256(abi.encodePacked(schainName))], "Interchain connections turned on");
         bytes32 schainHash = keccak256(abi.encodePacked(schainName));
         if (statuses[schainHash] == KillProcess.NotKilled) {
             if (hasRole(DEFAULT_ADMIN_ROLE, msg.sender)) {

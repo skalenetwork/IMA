@@ -65,15 +65,10 @@ contract TokenManagerLinker is ITokenManagerLinker, AccessControlEnumerableUpgra
      */
     ITokenManager[] public tokenManagers;
 
-    /**
-     * @dev Flag that allows direct messaging between SKALE chains.
-     */	
-    bool public interchainConnections;    
+    // Unused variable
+    bool private _interchainConnections;
+    //
 
-    /**
-     * @dev Emitted when {interchainConnections} was changed.
-     */
-    event InterchainConnectionAllowed(bool isAllowed);
 
     /**
      * @dev Modifier to make a function callable only if caller is granted with {REGISTRAR_ROLE}.
@@ -141,55 +136,16 @@ contract TokenManagerLinker is ITokenManagerLinker, AccessControlEnumerableUpgra
      * - Amount of token managers on target SKALE chain must be equal to the amount on current one.
      */
     function connectSchain(
-        string calldata schainName,
-        address[] calldata tokenManagerAddresses
+        string calldata schainName
     )
         external
         override
         onlyRegistrar
     {
-        require(interchainConnections, "Interchain connection not allowed");
-        require(tokenManagerAddresses.length == tokenManagers.length, "Incorrect number of addresses");
-        for (uint i = 0; i < tokenManagerAddresses.length; i++) {
-            tokenManagers[i].addTokenManager(schainName, tokenManagerAddresses[i]);
+        for (uint i = 0; i < tokenManagers.length; i++) {
+            tokenManagers[i].addTokenManager(schainName, address(tokenManagers[i]));
         }
         messageProxy.addConnectedChain(schainName);
-    }
-
-    /**
-     * @dev Allows MessageProxy to post operational message from mainnet
-     * or SKALE chains.
-     *
-     * Requirements:
-     * 
-     * - MessageProxy must be the caller of the function.
-     * - {Linker} must be an origin of the message on mainnet.
-     * - The message must come from the mainnet.
-     * - The message must contains information about interchain connection allowance.
-     * - Interchain connection allowance in the message must be different from the current one.
-     */
-    function postMessage(
-        bytes32 fromChainHash,
-        address sender,
-        bytes calldata data
-    )
-        external
-        override
-        returns (address)
-    {
-        require(msg.sender == address(messageProxy), "Sender is not a message proxy");
-        require(sender == linkerAddress, "Sender from Mainnet is incorrect");
-        require(fromChainHash == MAINNET_HASH, "Source chain name should be Mainnet");
-        Messages.MessageType operation = Messages.getMessageType(data);
-        require(
-            operation == Messages.MessageType.INTERCHAIN_CONNECTION,
-            "The message should contain a interchain connection state"
-        );
-        Messages.InterchainConnectionMessage memory message = Messages.decodeInterchainConnectionMessage(data);
-        require(interchainConnections != message.isAllowed, "Interchain connection state should be different");
-        interchainConnections = message.isAllowed;
-        emit InterchainConnectionAllowed(message.isAllowed);
-        return address(0);
     }
 
     /**

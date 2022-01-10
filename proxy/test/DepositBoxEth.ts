@@ -416,7 +416,6 @@ describe("DepositBoxEth", () => {
                 .connect(deployer)
                 .connectSchain(schainName, [deployer.address, deployer.address, deployer.address]);
 
-            await linker.allowInterchainConnections(schainName);
 
             await communityPool
                 .connect(user)
@@ -426,7 +425,7 @@ describe("DepositBoxEth", () => {
                 .connect(deployer)
                 .deposit(schainName, { value: wei });
 
-            expect(BigNumber.from(await depositBoxEth.transferredAmount(schainHash)).toString()).to.be.equal(BigNumber.from(0).toString());
+            expect(BigNumber.from(await depositBoxEth.transferredAmount(schainHash)).toString()).to.be.equal(BigNumber.from(wei).toString());
 
             const balanceBefore = await getBalance(deployer.address);
             await messageProxy.connect(deployer).postIncomingMessages(schainName, 0, [message], sign);
@@ -467,8 +466,6 @@ describe("DepositBoxEth", () => {
                 .connect(deployer)
                 .connectSchain(schainName, [deployer.address, deployer.address, deployer.address]);
 
-            await linker.allowInterchainConnections(schainName);
-
             await communityPool
                 .connect(user)
                 .rechargeUserWallet(schainName, user.address, { value: wei });
@@ -481,7 +478,7 @@ describe("DepositBoxEth", () => {
                 .connect(deployer)
                 .deposit(schainName, { value: wei });
 
-            expect(BigNumber.from(await depositBoxEth.transferredAmount(schainHash)).toString()).to.be.equal(BigNumber.from(0).toString());
+            expect(BigNumber.from(await depositBoxEth.transferredAmount(schainHash)).toString()).to.be.equal(BigNumber.from(wei).mul(2).toString());
 
             const balanceBefore = await getBalance(deployer.address);
             await messageProxy.connect(deployer).postIncomingMessages(schainName, 0, [message], sign);
@@ -546,8 +543,6 @@ describe("DepositBoxEth", () => {
                 .connect(deployer)
                 .connectSchain(schainName, [deployer.address, deployer.address, deployer.address]);
 
-            await linker.allowInterchainConnections(schainName);
-
             await fallbackEthTester
                 .connect(user)
                 .rechargeUserWallet({ value: wei });
@@ -560,7 +555,7 @@ describe("DepositBoxEth", () => {
                 .connect(deployer)
                 .deposit(schainName, { value: wei });
 
-            expect(BigNumber.from(await depositBoxEth.transferredAmount(schainHash)).toString()).to.be.equal(BigNumber.from(0).toString());
+            expect(BigNumber.from(await depositBoxEth.transferredAmount(schainHash)).toString()).to.be.equal(BigNumber.from(wei).mul(2).toString());
 
             const balanceBefore = await getBalance(deployer.address);
             await messageProxy.connect(deployer).postIncomingMessages(schainName, 0, [message], sign);
