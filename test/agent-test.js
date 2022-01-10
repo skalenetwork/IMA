@@ -617,6 +617,7 @@ describe( "CLI", function() {
             const joExternalHandlers = {};
             const argv = [
                 "--verbose=9",
+                "--s2s-disable",
                 "--url-main-net=" + imaState.strURL_main_net,
                 "--url-s-chain=" + imaState.strURL_s_chain,
                 "--id-main-net=" + imaState.strChainName_main_net,
