@@ -97,6 +97,9 @@ contract TokenManagerLinker is ITokenManagerLinker, AccessControlEnumerableUpgra
         _setupRole(REGISTRAR_ROLE, msg.sender);
         messageProxy = newMessageProxyAddress;    
 	    linkerAddress = linker;
+
+        // fake usage of variable
+        delete _interchainConnections;
     }  
 
     function registerTokenManager(ITokenManager newTokenManager) external override onlyRegistrar {

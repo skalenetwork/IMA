@@ -191,5 +191,8 @@ contract Linker is Twin, ILinker {
         Twin.initialize(contractManagerOfSkaleManagerValue, messageProxyValue);
         _setupRole(LINKER_ROLE, msg.sender);
         _setupRole(LINKER_ROLE, address(this));
+
+        // fake usage of variable
+        delete _interchainConnections[bytes32(0)];
     }
 }

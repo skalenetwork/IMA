@@ -67,7 +67,7 @@ describe("Linker", () => {
     const contractManagerAddress = "0x0000000000000000000000000000000000000000";
 
     before(async () => {
-        [deployer, user, user2] = await ethers.getSigners();
+        [deployer, user] = await ethers.getSigners();
     });
 
     beforeEach(async () => {
