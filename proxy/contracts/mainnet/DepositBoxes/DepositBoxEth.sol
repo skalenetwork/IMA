@@ -67,8 +67,7 @@ contract DepositBoxEth is DepositBox, IDepositBoxEth {
         bytes32 schainHash = keccak256(abi.encodePacked(schainName));
         address contractReceiver = schainLinks[schainHash];
         require(contractReceiver != address(0), "Unconnected chain");
-        if (!linker.interchainConnections(schainHash))
-            _saveTransferredAmount(schainHash, msg.value);
+        _saveTransferredAmount(schainHash, msg.value);
         messageProxy.postOutgoingMessage(
             schainHash,
             contractReceiver,
@@ -102,8 +101,7 @@ contract DepositBoxEth is DepositBox, IDepositBoxEth {
             message.amount <= address(this).balance,
             "Not enough money to finish this transaction"
         );
-        if (!linker.interchainConnections(schainHash))
-            _removeTransferredAmount(schainHash, message.amount);
+        _removeTransferredAmount(schainHash, message.amount);
         if (!activeEthTransfers[schainHash]) {
             approveTransfers[message.receiver] += message.amount;
         } else {

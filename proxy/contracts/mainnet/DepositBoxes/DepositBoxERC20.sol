@@ -115,8 +115,7 @@ contract DepositBoxERC20 is DepositBox, IDepositBoxERC20 {
             msg.sender,
             amount
         );
-        if (!linker.interchainConnections(schainHash))
-            _saveTransferredAmount(schainHash, erc20OnMainnet, amount);
+        _saveTransferredAmount(schainHash, erc20OnMainnet, amount);
         require(
             ERC20Upgradeable(erc20OnMainnet).transferFrom(
                 msg.sender,
@@ -156,8 +155,7 @@ contract DepositBoxERC20 is DepositBox, IDepositBoxERC20 {
         Messages.TransferErc20Message memory message = Messages.decodeTransferErc20Message(data);
         require(message.token.isContract(), "Given address is not a contract");
         require(ERC20Upgradeable(message.token).balanceOf(address(this)) >= message.amount, "Not enough money");
-        if (!linker.interchainConnections(schainHash))
-            _removeTransferredAmount(schainHash, message.token, message.amount);
+        _removeTransferredAmount(schainHash, message.token, message.amount);
         require(
             ERC20Upgradeable(message.token).transfer(message.receiver, message.amount),
             "Transfer was failed"
