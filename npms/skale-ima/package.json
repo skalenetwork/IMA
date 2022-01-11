@@ -36,7 +36,7 @@
         "ethereumjs-wallet": "1.0.1",
         "ethereumjs-util": "7.1.0",
         "web3": "^1.5.0",
-        "ioredis": "^4.27.9"
+        "ioredis": "^4.28.2"
     },
     "devDependencies": {},
     "resolutions": {
