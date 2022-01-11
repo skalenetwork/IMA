@@ -343,7 +343,6 @@ describe("DepositBoxERC721", () => {
                 destinationContract: depositBoxERC721.address,
                 sender: senderFromSchain
             };
-            await linker.connect(user).allowInterchainConnections(schainName);
 
             await erc721.mint(deployer.address, tokenId);
             await erc721.approve(depositBoxERC721.address, tokenId);
