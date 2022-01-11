@@ -11,7 +11,7 @@
         "ethereumjs-tx": "2.1.2",
         "ethereumjs-wallet": "1.0.1",
         "ethereumjs-util": "7.1.0",
-        "web3": "^1.5.3",
+        "web3": "^1.6.1",
         "uuid": "8.3.2",
         "ws": "^8.2.2",
         "request": "^2.88.2",
