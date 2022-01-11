@@ -120,8 +120,7 @@ contract DepositBoxERC1155 is DepositBox, ERC1155ReceiverUpgradeable, IDepositBo
             id,
             amount
         );
-        if (!linker.interchainConnections(schainHash))
-            _saveTransferredAmount(schainHash, erc1155OnMainnet, _asSingletonArray(id), _asSingletonArray(amount));
+        _saveTransferredAmount(schainHash, erc1155OnMainnet, _asSingletonArray(id), _asSingletonArray(amount));
         IERC1155Upgradeable(erc1155OnMainnet).safeTransferFrom(msg.sender, address(this), id, amount, "");
         messageProxy.postOutgoingMessage(
             schainHash,
@@ -163,8 +162,7 @@ contract DepositBoxERC1155 is DepositBox, ERC1155ReceiverUpgradeable, IDepositBo
             ids,
             amounts
         );
-        if (!linker.interchainConnections(schainHash))
-            _saveTransferredAmount(schainHash, erc1155OnMainnet, ids, amounts);
+        _saveTransferredAmount(schainHash, erc1155OnMainnet, ids, amounts);
         IERC1155Upgradeable(erc1155OnMainnet).safeBatchTransferFrom(msg.sender, address(this), ids, amounts, "");
         messageProxy.postOutgoingMessage(
             schainHash,
@@ -198,13 +196,12 @@ contract DepositBoxERC1155 is DepositBox, ERC1155ReceiverUpgradeable, IDepositBo
         if (operation == Messages.MessageType.TRANSFER_ERC1155) {
             Messages.TransferErc1155Message memory message = Messages.decodeTransferErc1155Message(data);
             require(message.token.isContract(), "Given address is not a contract");
-            if (!linker.interchainConnections(schainHash))
-                _removeTransferredAmount(
-                    schainHash,
-                    message.token,
-                    _asSingletonArray(message.id),
-                    _asSingletonArray(message.amount)
-                );
+            _removeTransferredAmount(
+                schainHash,
+                message.token,
+                _asSingletonArray(message.id),
+                _asSingletonArray(message.amount)
+            );
             IERC1155Upgradeable(message.token).safeTransferFrom(
                 address(this),
                 message.receiver,
@@ -216,8 +213,7 @@ contract DepositBoxERC1155 is DepositBox, ERC1155ReceiverUpgradeable, IDepositBo
         } else if (operation == Messages.MessageType.TRANSFER_ERC1155_BATCH) {
             Messages.TransferErc1155BatchMessage memory message = Messages.decodeTransferErc1155BatchMessage(data);
             require(message.token.isContract(), "Given address is not a contract");
-            if (!linker.interchainConnections(schainHash))
-                _removeTransferredAmount(schainHash, message.token, message.ids, message.amounts);
+            _removeTransferredAmount(schainHash, message.token, message.ids, message.amounts);
             IERC1155Upgradeable(message.token).safeBatchTransferFrom(
                 address(this),
                 message.receiver,
