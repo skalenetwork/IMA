@@ -70,7 +70,7 @@ library Messages {
     struct UserStatusMessage {
         BaseMessage message;
         address receiver;
-        bool isActive;
+        uint256 amount;
     }
 
     /**
@@ -389,19 +389,16 @@ library Messages {
     }
 
     /**
-     * @dev Encodes message for activating user on schain. 
+     * @dev Encodes message for user on schain. 
      * Returns encoded message.
      */
-    function encodeActivateUserMessage(address receiver) internal pure returns (bytes memory){
-        return _encodeUserStatusMessage(receiver, true);
-    }
-
-    /**
-     * @dev Encodes message for locking user on schain. 
-     * Returns encoded message.
-     */
-    function encodeLockUserMessage(address receiver) internal pure returns (bytes memory){
-        return _encodeUserStatusMessage(receiver, false);
+    function encodeUserStatusMessage(address receiver, uint256 amount) internal pure returns (bytes memory){
+        UserStatusMessage memory message = UserStatusMessage(
+            BaseMessage(MessageType.USER_STATUS),
+            receiver,
+            amount
+        );
+        return abi.encode(message);
     }
 
     /**
@@ -579,18 +576,4 @@ library Messages {
         );
         return abi.decode(data, (TransferErc1155BatchAndTokenInfoMessage));
     }
-
-    /**
-     * @dev Encodes message for transferring user status on schain.
-     * Returns encoded message.
-     */
-    function _encodeUserStatusMessage(address receiver, bool isActive) private pure returns (bytes memory) {
-        UserStatusMessage memory message = UserStatusMessage(
-            BaseMessage(MessageType.USER_STATUS),
-            receiver,
-            isActive
-        );
-        return abi.encode(message);
-    }
-
 }

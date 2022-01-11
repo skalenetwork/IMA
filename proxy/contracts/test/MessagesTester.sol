@@ -56,8 +56,7 @@ interface IMessagesTester {
         uint256 tokenId,
         Messages.Erc721TokenInfo memory tokenInfo
     ) external pure returns (bytes memory);
-    function encodeActivateUserMessage(address receiver) external pure returns (bytes memory);
-    function encodeLockUserMessage(address receiver) external pure returns (bytes memory);
+    function encodeUserStatusMessage(address receiver, uint256 amount) external pure returns (bytes memory);
     function encodeInterchainConnectionMessage(bool isAllowed) external pure returns (bytes memory);
     function encodeTransferErc1155Message(
         address token,
@@ -138,12 +137,8 @@ contract MessagesTester is IMessagesTester {
         return Messages.encodeTransferErc721AndTokenInfoMessage(token, receiver, tokenId, tokenInfo);
     }
 
-    function encodeActivateUserMessage(address receiver) external pure override returns (bytes memory) {
-        return Messages.encodeActivateUserMessage(receiver);
-    }
-
-    function encodeLockUserMessage(address receiver) external pure override returns (bytes memory) {
-        return Messages.encodeLockUserMessage(receiver);
+    function encodeUserStatusMessage(address receiver, uint256 amount) external pure override returns (bytes memory) {
+        return Messages.encodeUserStatusMessage(receiver, amount);
     }
 
     function encodeInterchainConnectionMessage(bool isAllowed) external pure override returns (bytes memory) {

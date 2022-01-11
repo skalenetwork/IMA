@@ -99,14 +99,15 @@ contract CommunityPool is Twin, ICommunityPool {
             amount = _userWallets[user][schainHash];
         }
         _userWallets[user][schainHash] = _userWallets[user][schainHash] - amount;
-        if (!_balanceIsSufficient(schainHash, user, 0)) {
-            activeUsers[user][schainHash] = false;
-            messageProxy.postOutgoingMessage(
-                schainHash,
-                schainLinks[schainHash],
-                Messages.encodeLockUserMessage(user)
-            );
-        }
+        // if (!_balanceIsSufficient(schainHash, user, 0)) {
+        //     activeUsers[user][schainHash] = false;
+        //     // messageProxy.postOutgoingMessage(
+        //     //     schainHash,
+        //     //     schainLinks[schainHash],
+        //     //     Messages.encodeLockUserMessage(user)
+        //     // );
+        // }
+        _postUpdateMessage(schainHash, user);
         node.sendValue(amount);
         return (tx.gasprice * gas - amount) / tx.gasprice;
     }
@@ -147,14 +148,15 @@ contract CommunityPool is Twin, ICommunityPool {
             "Not enough ETH for transaction"
         );
         _userWallets[user][schainHash] = _userWallets[user][schainHash] + msg.value;
-        if (!activeUsers[user][schainHash]) {
-            activeUsers[user][schainHash] = true;
-            messageProxy.postOutgoingMessage(
-                schainHash,
-                schainLinks[schainHash],
-                Messages.encodeActivateUserMessage(user)
-            );
-        }
+        // if (!activeUsers[user][schainHash]) {
+        //     activeUsers[user][schainHash] = true;
+        // }
+        // messageProxy.postOutgoingMessage(
+        //     schainHash,
+        //     schainLinks[schainHash],
+        //     Messages.encodeUserMessage(user, _userWallets[user][schainHash] + msg.value)
+        // );
+        _postUpdateMessage(schainHash, user);
     }
 
     /**
@@ -171,17 +173,18 @@ contract CommunityPool is Twin, ICommunityPool {
         require(amount <= _userWallets[msg.sender][schainHash], "Balance is too low");
         require(!messageProxy.messageInProgress(), "Message is in progress");
         _userWallets[msg.sender][schainHash] = _userWallets[msg.sender][schainHash] - amount;
-        if (
-            !_balanceIsSufficient(schainHash, msg.sender, 0) &&
-            activeUsers[msg.sender][schainHash]
-        ) {
-            activeUsers[msg.sender][schainHash] = false;
-            messageProxy.postOutgoingMessage(
-                schainHash,
-                schainLinks[schainHash],
-                Messages.encodeLockUserMessage(msg.sender)
-            );
-        }
+        // if (
+        //     !_balanceIsSufficient(schainHash, msg.sender, 0) &&
+        //     activeUsers[msg.sender][schainHash]
+        // ) {
+        //     activeUsers[msg.sender][schainHash] = false;
+        //     // messageProxy.postOutgoingMessage(
+        //     //     schainHash,
+        //     //     schainLinks[schainHash],
+        //     //     Messages.encodeLockUserMessage(msg.sender)
+        //     // );
+        // }
+        _postUpdateMessage(schainHash, msg.sender);
         payable(msg.sender).sendValue(amount);
     }
 
@@ -208,6 +211,14 @@ contract CommunityPool is Twin, ICommunityPool {
 
     function checkUserBalance(bytes32 schainHash, address receiver) external view override returns (bool) {
         return activeUsers[receiver][schainHash] && _balanceIsSufficient(schainHash, receiver, 0);
+    }
+
+    function _postUpdateMessage(bytes32 schainHash, address receiver) private {
+        messageProxy.postOutgoingMessage(
+            schainHash,
+            schainLinks[schainHash],
+            Messages.encodeUserStatusMessage(receiver, _userWallets[receiver][schainHash])
+        );
     }
 
     function _balanceIsSufficient(bytes32 schainHash, address receiver, uint256 delta) private view returns (bool) {

@@ -81,7 +81,7 @@ contract CommunityLocker is ICommunityLocker, AccessControlEnumerableUpgradeable
      * @dev Mapping of users who are allowed to send a message.
      */
     // user address => allowed to send message
-    mapping(address => bool) public activeUsers;
+    mapping(address => uint256) public usersBalance;
 
     /**
      * @dev Timestamp of previous sent message by user.
@@ -94,20 +94,12 @@ contract CommunityLocker is ICommunityLocker, AccessControlEnumerableUpgradeable
     uint256 public gasPriceTimestamp;
 
     /**
-     * @dev Emitted when a user becomes active.
+     * @dev Emitted when a receive user status message.
      */
-    event ActivateUser(
-        bytes32 schainHash,
-        address user
+    event UserStatus(
+        address indexed user,
+        uint256 amount
     );
-
-    /**
-     * @dev Emitted when a user stops being active.
-     */
-    event LockUser(
-        bytes32 schainHash,
-        address user
-    ); 
 
     /**
      * @dev Emitted when constants updated.
@@ -145,13 +137,14 @@ contract CommunityLocker is ICommunityLocker, AccessControlEnumerableUpgradeable
         Messages.MessageType operation = Messages.getMessageType(data);
         require(operation == Messages.MessageType.USER_STATUS, "The message should contain a status of user");
         Messages.UserStatusMessage memory message = Messages.decodeUserStatusMessage(data);
-        require(activeUsers[message.receiver] != message.isActive, "Active user statuses must be different");
-        activeUsers[message.receiver] = message.isActive;
-        if (message.isActive) {
-            emit ActivateUser(schainHash, message.receiver);
-        } else {
-            emit LockUser(schainHash, message.receiver);
-        }
+        // require(usersBalance[message.receiver] != message.amount, "Active user statuses must be different");
+        usersBalance[message.receiver] = message.amount;
+        emit UserStatus(message.receiver, message.amount);
+        // if (message.isActive) {
+        //     emit ActivateUser(schainHash, message.receiver);
+        // } else {
+        //     emit LockUser(schainHash, message.receiver);
+        // }
         return message.receiver;
     }
 
@@ -170,7 +163,7 @@ contract CommunityLocker is ICommunityLocker, AccessControlEnumerableUpgradeable
             tokenManagerLinker.hasTokenManager(ITokenManager(msg.sender)),
             "Sender is not registered token manager"
         );
-        require(activeUsers[receiver], "Recipient must be active");
+        // require(usersBalance[receiver], "Recipient must be active");
         require(
             lastMessageTimeStamp[receiver] + timeLimitPerMessage < block.timestamp,
             "Trying to send messages too often"
