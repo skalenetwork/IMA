@@ -59,24 +59,6 @@ contract TokenManagerEth is TokenManager, ITokenManagerEth {
     }
 
     /**
-     * @dev Move ETH from schain to schain.
-     * 
-     * EthErc20 tokens are burned on origin schain.
-     * and are minted on {targetSchainName} schain for {to} address.
-     */
-    function transferToSchain(
-        string memory targetSchainName,
-        uint256 amount
-    )
-        external
-        override
-        rightTransaction(targetSchainName, msg.sender)
-    {
-        bytes32 targetSchainHash = keccak256(abi.encodePacked(targetSchainName));
-        _exit(targetSchainHash, tokenManagers[targetSchainHash], msg.sender, amount);
-    }
-
-    /**
      * @dev Allows MessageProxy to post operational message from mainnet
      * or SKALE chains.
      *
@@ -129,6 +111,10 @@ contract TokenManagerEth is TokenManager, ITokenManagerEth {
     }
 
     // private
+
+    function _checkSender(bytes32 fromChainHash, address sender) internal view override returns (bool) {
+        return fromChainHash == MAINNET_HASH && sender == depositBox;
+    }
 
     /**
      * @dev Burn EthErc20 tokens on schain and send message to unlock ETH on target chain.
