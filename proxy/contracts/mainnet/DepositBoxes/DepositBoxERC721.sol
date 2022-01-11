@@ -112,8 +112,7 @@ contract DepositBoxERC721 is DepositBox, IDepositBoxERC721 {
             msg.sender,
             tokenId
         );
-        if (!linker.interchainConnections(schainHash))
-            _saveTransferredAmount(schainHash, erc721OnMainnet, tokenId);
+        _saveTransferredAmount(schainHash, erc721OnMainnet, tokenId);
         IERC721Upgradeable(erc721OnMainnet).transferFrom(msg.sender, address(this), tokenId);
         messageProxy.postOutgoingMessage(
             schainHash,
@@ -146,8 +145,7 @@ contract DepositBoxERC721 is DepositBox, IDepositBoxERC721 {
         Messages.TransferErc721Message memory message = Messages.decodeTransferErc721Message(data);
         require(message.token.isContract(), "Given address is not a contract");
         require(IERC721Upgradeable(message.token).ownerOf(message.tokenId) == address(this), "Incorrect tokenId");
-        if (!linker.interchainConnections(schainHash))
-            _removeTransferredAmount(message.token, message.tokenId);
+        _removeTransferredAmount(message.token, message.tokenId);
         IERC721Upgradeable(message.token).transferFrom(address(this), message.receiver, message.tokenId);
         return message.receiver;
     }
