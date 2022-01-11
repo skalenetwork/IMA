@@ -723,16 +723,16 @@ function parse( joExternalHandlers, argv ) {
         }
         //
         if( joArg.name == "s2s-enable" ) {
-            imaState.sXs.isEnabled = true;
+            imaState.s2s_opts.isEnabled = true;
             continue;
         }
         if( joArg.name == "s2s-disable" ) {
-            imaState.sXs.isEnabled = false;
+            imaState.s2s_opts.isEnabled = false;
             continue;
         }
         if( joArg.name == "net-rediscover" ) {
             owaspUtils.verifyArgumentIsInteger( joArg );
-            imaState.sXs.secondsToReDiscoverSkaleNetwork = owaspUtils.toInteger( joArg.value );
+            imaState.s2s_opts.secondsToReDiscoverSkaleNetwork = owaspUtils.toInteger( joArg.value );
             continue;
         }
         //
@@ -1075,7 +1075,7 @@ function ima_common_init() {
             "wallets_abi",
             "wallets_address"
         ] );
-    } else if( imaState.sXs.isEnabled ) {
+    } else if( imaState.s2s_opts.isEnabled ) {
         log.write( cc.fatal( "FATAL, CRITICAL ERROR:" ) + cc.error( "Missing " ) + cc.warning( "Skale Manager" ) + cc.error( " ABI path for S-Chain to S-Chain transfers" ) + "\n" );
         process.exit( 126 );
     }
@@ -1654,8 +1654,8 @@ function ima_common_init() {
         log.write( cc.info( "Ignore result of PTX is" ) + cc.debug( ".............................." ) + ( imaState.optsPendingTxAnalysis.isIgnore ? cc.success( "yes" ) : cc.error( "no" ) ) + "\n" );
         log.write( cc.info( "Ignore secondary result of PTX is" ) + cc.debug( "...................." ) + ( imaState.optsPendingTxAnalysis.isIgnore2 ? cc.success( "yes" ) : cc.error( "no" ) ) + "\n" );
         log.write( cc.info( "Oracle gas price mode is" ) + cc.debug( "............................." ) + cc.info( IMA.getOracleGasPriceMode() ) + "\n" );
-        log.write( cc.info( "S-Chain to S-Chain transferring is" ) + cc.debug( "..................." ) + ( imaState.sXs.isEnabled ? cc.success( "enabled" ) : cc.error( "disabled" ) ) + "\n" );
-        log.write( cc.info( "SKALE network re-discovery interval is" ) + cc.debug( "..............." ) + ( imaState.sXs.secondsToReDiscoverSkaleNetwork ? cc.info( imaState.sXs.secondsToReDiscoverSkaleNetwork.toString() ) : cc.error( "disabled" ) ) + "\n" );
+        log.write( cc.info( "S-Chain to S-Chain transferring is" ) + cc.debug( "..................." ) + ( imaState.s2s_opts.isEnabled ? cc.success( "enabled" ) : cc.error( "disabled" ) ) + "\n" );
+        log.write( cc.info( "SKALE network re-discovery interval is" ) + cc.debug( "..............." ) + ( imaState.s2s_opts.secondsToReDiscoverSkaleNetwork ? cc.info( imaState.s2s_opts.secondsToReDiscoverSkaleNetwork.toString() ) : cc.error( "disabled" ) ) + "\n" );
     }
     //
     //
