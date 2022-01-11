@@ -65,7 +65,7 @@ contract TokenManagerLinker is ITokenManagerLinker, AccessControlEnumerableUpgra
      */
     ITokenManager[] public tokenManagers;
 
-    // Unused variable
+    // Deprecated variable
     bool private _interchainConnections;
     //
 

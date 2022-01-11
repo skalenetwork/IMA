@@ -43,7 +43,7 @@ contract Linker is Twin, ILinker {
     enum KillProcess {NotKilled, PartiallyKilledBySchainOwner, PartiallyKilledByContractOwner, Killed}
     EnumerableSetUpgradeable.AddressSet private _mainnetContracts;
 
-    // Unused variable
+    // Deprecated variable
     mapping(bytes32 => bool) private _interchainConnections;
     //
 
