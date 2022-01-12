@@ -44,6 +44,7 @@ log.addStdout();
 // log.add( strFilePath, nMaxSizeBeforeRotation, nMaxFilesCount ); // example: log output to file
 
 const owaspUtils = require( "../skale-owasp/owasp-util.js" );
+const { getWeb3FromURL } = require( "../../agent/cli.js" );
 
 const g_mtaStrLongSeparator = "=======================================================================================================================";
 
@@ -3979,16 +3980,22 @@ async function do_transfer(
     nBlockAge,
     fn_sign_messages,
     //
-    tc_dst, // same as w3_dst
+    tc_dst,
     //
     optsPendingTxAnalysis,
     optsStateFile
 ) {
+    const strGatheredDetailsName = "" +
+        strDirection + "-" + "do_transfer()" +
+        "-" + chain_id_src + "-->" + chain_id_dst;
+    const strGatheredDetailsNameColored = "" +
+        cc.bright( strDirection ) + cc.debug( "-" ) + cc.info( "do_transfer()" ) +
+        cc.debug( "-" ) + cc.notice( chain_id_src ) + cc.debug( "-->" ) + cc.notice( chain_id_dst );
     const details = log.createMemoryStream();
     const jarrReceipts = [];
     let bErrorInSigningMessages = false;
     await init_ima_state_file( details, w3_src, strDirection, optsStateFile );
-    const strLogPrefix = cc.info( "Transfer from " ) + cc.notice( chain_id_src ) + cc.info( " to " ) + cc.notice( chain_id_dst ) + cc.info( ":" ) + " ";
+    const strLogPrefix = cc.bright( strDirection ) + cc.info( " transfer from " ) + cc.notice( chain_id_src ) + cc.info( " to " ) + cc.notice( chain_id_dst ) + cc.info( ":" ) + " ";
     if( fn_sign_messages == null || fn_sign_messages == undefined ) {
         details.write( strLogPrefix + cc.debug( "Using internal signing stub function" ) + "\n" );
         fn_sign_messages = async function( jarrMessages, nIdxCurrentMsgBlockStart, details, fnAfter ) {
@@ -4151,7 +4158,7 @@ async function do_transfer(
                     const strError = strLogPrefix + cc.fatal( "CRITICAL ERROR:" ) + " " + cc.error( "Can't get events from MessageProxy" );
                     log.write( strError + "\n" );
                     details.write( strError + "\n" );
-                    details.exposeDetailsTo( log, "do_transfer", false );
+                    details.exposeDetailsTo( log, strGatheredDetailsName, false );
                     save_transfer_error( details.toString() );
                     details.close();
                     return; // process.exit( 126 );
@@ -4180,7 +4187,7 @@ async function do_transfer(
                         if( verbose_get() >= RV_VERBOSE.fatal )
                             log.write( s );
                         details.write( s );
-                        details.exposeDetailsTo( log, "do_transfer", false );
+                        details.exposeDetailsTo( log, strGatheredDetailsName, false );
                         save_transfer_error( details.toString() );
                         details.close();
                         return false;
@@ -4224,7 +4231,7 @@ async function do_transfer(
                         if( verbose_get() >= RV_VERBOSE.fatal )
                             log.write( s );
                         details.write( s );
-                        details.exposeDetailsTo( log, "do_transfer", false );
+                        details.exposeDetailsTo( log, strGatheredDetailsName, false );
                         save_transfer_error( details.toString() );
                         details.close();
                         return false;
@@ -4388,7 +4395,7 @@ async function do_transfer(
                     if( verbose_get() >= RV_VERBOSE.fatal )
                         log.write( s );
                     details.write( s );
-                    details.exposeDetailsTo( log, "do_transfer", false );
+                    details.exposeDetailsTo( log, strGatheredDetailsName, false );
                     save_transfer_error( details.toString() );
                     details.close();
                     return;
@@ -4502,7 +4509,8 @@ async function do_transfer(
 
                 if( joReceipt && typeof joReceipt == "object" && "gasUsed" in joReceipt ) {
                     jarrReceipts.push( {
-                        "description": "do_transfer/postIncomingMessages",
+                        "description": "do_transfer/postIncomingMessages()",
+                        "detailsString": "" + strGatheredDetailsName,
                         "receipt": joReceipt
                     } );
                     print_gas_usage_report_from_array( "(intermediate result) TRANSFER " + chain_id_src + " -> " + chain_id_dst, jarrReceipts );
@@ -4562,7 +4570,7 @@ async function do_transfer(
                 //
                 //
                 if( expose_details_get() )
-                    details.exposeDetailsTo( log, "do_transfer", true );
+                    details.exposeDetailsTo( log, strGatheredDetailsName, true );
                 details.close();
             } ).catch( ( err ) => {
                 bErrorInSigningMessages = true;
@@ -4574,22 +4582,91 @@ async function do_transfer(
         } // while( nIdxCurrentMsg < nOutMsgCnt )
     } catch ( err ) {
         const strError = strLogPrefix + cc.fatal( "CRITICAL ERROR:" ) +
-            cc.error( " Error in " ) + cc.info( "do_transfer()" ) +
+            cc.error( " Error in " ) + strGatheredDetailsNameColored +
             cc.error( " during " + strActionName + ": " ) + cc.error( err );
         if( verbose_get() >= RV_VERBOSE.fatal )
             log.write( strError + "\n" );
         details.write( strError + "\n" );
-        details.exposeDetailsTo( log, "do_transfer", false );
+        details.exposeDetailsTo( log, strGatheredDetailsName, false );
         save_transfer_error( details.toString() );
         details.close();
         return false;
     }
     print_gas_usage_report_from_array( "TRANSFER " + chain_id_src + " -> " + chain_id_dst, jarrReceipts );
     if( expose_details_get() )
-        details.exposeDetailsTo( log, "do_transfer", true );
+        details.exposeDetailsTo( log, strGatheredDetailsName, true );
     details.close();
     return true;
 } // async function do_transfer( ...
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+async function do_s2s_all( // s-chain --> s-chain
+    imaState,
+    skale_observer,
+    w3_dst,
+    jo_message_proxy_dst,
+    joAccountDst,
+    chain_id_dst,
+    cid_dst,
+    jo_token_manager_schain, // for logs validation on s-chain
+    //
+    nTransactionsCountInBlock,
+    nMaxTransactionsCount,
+    nBlockAwaitDepth,
+    nBlockAge,
+    fn_sign_messages,
+    //
+    tc_dst,
+    //
+    optsPendingTxAnalysis,
+    optsStateFile
+) {
+    const arr_schains_cached = skale_observer.get_last_cached_schains();
+    const cntSChains = arr_schains_cached.length;
+    for( let idxSChain = 0; idxSChain < cntSChains; ++ idxSChain ) {
+        const jo_schain = arr_schains_cached[idxSChain];
+        const url_src = skale_observer.pick_random_schain_w3_url( jo_schain );
+        const w3_src = getWeb3FromURL( url_src );
+        const joAccountSrc = joAccountDst; // ???
+        const chain_id_src = "" + jo_schain.data.name;
+        const cid_src = "" + jo_schain.data.computed.chainId;
+        // ??? assuming all S-Chains have same ABIs here
+        const jo_message_proxy_src = new w3_src.eth.Contract( imaState.joAbiPublishResult_s_chain.message_proxy_chain_abi, imaState.joAbiPublishResult_s_chain.message_proxy_chain_address );
+        const jo_deposit_box_src = new w3_src.eth.Contract( imaState.joAbiPublishResult_s_chain.message_proxy_chain_abi, imaState.joAbiPublishResult_s_chain.message_proxy_chain_address );
+        await do_transfer(
+            strDirection,
+            //
+            w3_src,
+            jo_message_proxy_src,
+            joAccountSrc,
+            w3_dst,
+            jo_message_proxy_dst,
+            //
+            joAccountDst,
+            //
+            chain_id_src,
+            chain_id_dst,
+            cid_src,
+            cid_dst,
+            //
+            jo_deposit_box_src, // for logs validation on mainnet or source S-Chain
+            jo_token_manager_schain, // for logs validation on s-chain
+            //
+            nTransactionsCountInBlock,
+            nMaxTransactionsCount,
+            nBlockAwaitDepth,
+            nBlockAge,
+            fn_sign_messages,
+            //
+            tc_dst,
+            //
+            optsPendingTxAnalysis,
+            optsStateFile
+        );
+    }
+}
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -4869,6 +4946,7 @@ module.exports.do_erc1155_payment_from_s_chain = do_erc1155_payment_from_s_chain
 module.exports.do_erc1155_batch_payment_from_main_net = do_erc1155_batch_payment_from_main_net;
 module.exports.do_erc1155_batch_payment_from_s_chain = do_erc1155_batch_payment_from_s_chain;
 module.exports.do_transfer = do_transfer;
+module.exports.do_s2s_all = do_s2s_all;
 module.exports.save_transfer_error = save_transfer_error;
 module.exports.get_last_transfer_errors = get_last_transfer_errors;
 

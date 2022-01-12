@@ -295,10 +295,11 @@ function parse( joExternalHandlers, argv ) {
             console.log( soi + cc.debug( "--" ) + cc.bright( "s2m-payment" ) + cc.debug( "..................." ) + cc.notice( "Do one " ) + cc.note( "payment from S-chain user account to Main-net" ) + cc.notice( " user account." ) );
             console.log( soi + cc.debug( "--" ) + cc.bright( "s2m-receive" ) + cc.debug( "..................." ) + cc.notice( "Receive one " ) + cc.note( "payment from S-chain user account to Main-net" ) + cc.notice( " user account(ETH only, receives all the ETH pending in transfer)." ) );
             console.log( soi + cc.debug( "--" ) + cc.bright( "s2m-view" ) + cc.debug( "......................" ) + cc.notice( "View money amount user can receive as " ) + cc.note( "payment from S-chain user account to Main-net" ) + cc.notice( " user account(ETH only, receives all the ETH pending in transfer)." ) );
-            console.log( soi + cc.debug( "--" ) + cc.bright( "m2s-transfer" ) + cc.debug( ".................." ) + cc.notice( "Do single money " ) + cc.note( "transfer loop from Main-net to S-chain." ) );
-            console.log( soi + cc.debug( "--" ) + cc.bright( "s2m-transfer" ) + cc.debug( ".................." ) + cc.notice( "Do single money " ) + cc.note( "transfer loop from S-chain to Main-net." ) );
-            console.log( soi + cc.debug( "--" ) + cc.bright( "transfer" ) + cc.debug( "......................" ) + cc.notice( "Run " ) + cc.note( "single M<->S transfer loop iteration." ) );
-            console.log( soi + cc.debug( "--" ) + cc.bright( "loop" ) + cc.debug( ".........................." ) + cc.notice( "Run " ) + cc.note( "M<->S transfer loop." ) );
+            console.log( soi + cc.debug( "--" ) + cc.bright( "m2s-transfer" ) + cc.debug( ".................." ) + cc.notice( "Do single " ) + cc.attention( "money transfer loop" ) + cc.notice( " from " ) + cc.note( "Main-net" ) + cc.notice( " to " ) + cc.note( "S-chain" ) + cc.notice( "." ) );
+            console.log( soi + cc.debug( "--" ) + cc.bright( "s2m-transfer" ) + cc.debug( ".................." ) + cc.notice( "Do single " ) + cc.attention( "money transfer loop" ) + cc.notice( " from " ) + cc.note( "S-chain" ) + cc.notice( " to " ) + cc.note( "Main-net" ) + cc.notice( "." ) );
+            console.log( soi + cc.debug( "--" ) + cc.bright( "s2s-transfer" ) + cc.debug( ".................." ) + cc.notice( "Do single " ) + cc.attention( "money transfer loop" ) + cc.notice( " from " ) + cc.note( "S-chain" ) + cc.notice( " to " ) + cc.note( "S-chain" ) + cc.notice( "." ) );
+            console.log( soi + cc.debug( "--" ) + cc.bright( "transfer" ) + cc.debug( "......................" ) + cc.notice( "Run " ) + cc.note( "single M<->S and, optionally, S->S transfer loop iteration" ) + cc.notice( "." ) );
+            console.log( soi + cc.debug( "--" ) + cc.bright( "loop" ) + cc.debug( ".........................." ) + cc.notice( "Run " ) + cc.note( "M<->S and, optionally, S->S transfer loop." ) + cc.notice( "." ) );
             console.log( soi + cc.debug( "--" ) + cc.bright( "load-node-config" ) + cc.sunny( "=" ) + cc.success( "path" ) + cc.debug( "........." ) + cc.notice( "Use specified " ) + cc.note( "S-Chain node JSON configuration file" ) + cc.notice( " to load parameters(like " ) + cc.note( "node index" ) + cc.notice( ", " ) + cc.note( "nodes count" ) + cc.notice( ")." ) );
             //
             console.log( cc.sunny( "ADDITIONAL ACTION" ) + cc.info( " options:" ) );
@@ -309,15 +310,19 @@ function parse( joExternalHandlers, argv ) {
             console.log( soi + cc.debug( "--" ) + cc.bright( "dry-run" ) + cc.debug( "......................." ) + cc.notice( "Use error results of " ) + cc.note( "dry run" ) + cc.notice( " contract method calls as actual errors and stop execute." ) );
             console.log( soi + cc.debug( "--" ) + cc.bright( "m2s-transfer-block-size" ) + cc.debug( "......." ) + cc.notice( "Number of transactions in one block to use in money transfer loop from " ) + cc.note( "Main-net" ) + cc.notice( " to " ) + cc.note( "S-chain" ) + cc.notice( "." ) );
             console.log( soi + cc.debug( "--" ) + cc.bright( "s2m-transfer-block-size" ) + cc.debug( "......." ) + cc.notice( "Number of transactions in one block to use in money transfer loop from " ) + cc.note( "S-chain" ) + cc.notice( " to " ) + cc.note( "Main-net" ) + cc.notice( "." ) );
+            console.log( soi + cc.debug( "--" ) + cc.bright( "s2s-transfer-block-size" ) + cc.debug( "......." ) + cc.notice( "Number of transactions in one block to use in money transfer loop from " ) + cc.note( "S-chain" ) + cc.notice( " to " ) + cc.note( "S-chain" ) + cc.notice( "." ) );
             console.log( soi + cc.debug( "--" ) + cc.bright( "transfer-block-size" ) + cc.debug( "..........." ) + cc.notice( "Number of transactions in one block to use in both money transfer loops." ) );
             console.log( soi + cc.debug( "--" ) + cc.bright( "m2s-max-transactions" ) + cc.debug( ".........." ) + cc.notice( "Maximal number of transactions to do in money transfer loop from " ) + cc.note( "ain-net" ) + cc.notice( " to " ) + cc.note( "S-chain" ) + cc.notice( " (" ) + cc.sunny( "0" ) + cc.notice( " is unlimited)." ) );
             console.log( soi + cc.debug( "--" ) + cc.bright( "s2m-max-transactions" ) + cc.debug( ".........." ) + cc.notice( "Maximal number of transactions to do in money transfer loop from " ) + cc.note( "-chain" ) + cc.notice( " to " ) + cc.note( "Main-net" ) + cc.notice( " (" ) + cc.sunny( "0" ) + cc.notice( " is unlimited)." ) );
+            console.log( soi + cc.debug( "--" ) + cc.bright( "s2s-max-transactions" ) + cc.debug( ".........." ) + cc.notice( "Maximal number of transactions to do in money transfer loop from " ) + cc.note( "-chain" ) + cc.notice( " to " ) + cc.note( "S-chain" ) + cc.notice( " (" ) + cc.sunny( "0" ) + cc.notice( " is unlimited)." ) );
             console.log( soi + cc.debug( "--" ) + cc.bright( "max-transactions" ) + cc.debug( ".............." ) + cc.notice( "Maximal number of transactions to do in both money transfer loops (" ) + cc.sunny( "0" ) + cc.notice( " is unlimited)." ) );
             console.log( soi + cc.debug( "--" ) + cc.bright( "m2s-await-blocks" ) + cc.debug( ".............." ) + cc.notice( "Maximal number of blocks to wait to appear in blockchain before transaction from " ) + cc.note( "Main-net" ) + cc.notice( " to " ) + cc.note( "S-chain" ) + cc.notice( " (" ) + cc.sunny( "0" ) + cc.notice( " is no wait)." ) );
             console.log( soi + cc.debug( "--" ) + cc.bright( "s2m-await-blocks" ) + cc.debug( ".............." ) + cc.notice( "Maximal number of blocks to wait to appear in blockchain before transaction from " ) + cc.note( "S-chain" ) + cc.notice( " to " ) + cc.note( "Main-net" ) + cc.notice( " (" ) + cc.sunny( "0" ) + cc.notice( " is no wait)." ) );
+            console.log( soi + cc.debug( "--" ) + cc.bright( "s2s-await-blocks" ) + cc.debug( ".............." ) + cc.notice( "Maximal number of blocks to wait to appear in blockchain before transaction from " ) + cc.note( "S-chain" ) + cc.notice( " to " ) + cc.note( "S-chain" ) + cc.notice( " (" ) + cc.sunny( "0" ) + cc.notice( " is no wait)." ) );
             console.log( soi + cc.debug( "--" ) + cc.bright( "await-blocks" ) + cc.debug( ".................." ) + cc.notice( "Maximal number of blocks to wait to appear in blockchain before transaction between both " ) + cc.note( "S-chain" ) + cc.notice( " and " ) + cc.note( "Main-net" ) + cc.notice( " (" ) + cc.sunny( "0 " ) + cc.notice( "is no wait)." ) );
             console.log( soi + cc.debug( "--" ) + cc.bright( "m2s-await-time" ) + cc.debug( "................" ) + cc.notice( "Minimal age of transaction message in seconds before it will be transferred from " ) + cc.note( "Main-net" ) + cc.notice( " to " ) + cc.note( "S-chain" ) + cc.notice( " (" ) + cc.sunny( "0" ) + cc.notice( " is no wait)." ) );
             console.log( soi + cc.debug( "--" ) + cc.bright( "s2m-await-time" ) + cc.debug( "................" ) + cc.notice( "Minimal age of transaction message in seconds before it will be transferred from " ) + cc.note( "S-chain" ) + cc.notice( " to " ) + cc.note( "Main-net" ) + cc.notice( " (" ) + cc.sunny( "0" ) + cc.notice( " is no wait)." ) );
+            console.log( soi + cc.debug( "--" ) + cc.bright( "s2s-await-time" ) + cc.debug( "................" ) + cc.notice( "Minimal age of transaction message in seconds before it will be transferred from " ) + cc.note( "S-chain" ) + cc.notice( " to " ) + cc.note( "S-chain" ) + cc.notice( " (" ) + cc.sunny( "0" ) + cc.notice( " is no wait)." ) );
             console.log( soi + cc.debug( "--" ) + cc.bright( "await-time" ) + cc.debug( "...................." ) + cc.notice( "Minimal age of transaction message in seconds before it will be transferred between both " ) + cc.note( "S-chain" ) + cc.notice( " and " ) + cc.note( "Main-net" ) + cc.notice( " (" ) + cc.sunny( "0" ) + cc.notice( " is no wait)." ) );
             console.log( soi + cc.debug( "--" ) + cc.bright( "period" ) + cc.debug( "........................" ) + cc.notice( "Transfer " ) + cc.note( "loop period" ) + cc.notice( "(seconds)." ) );
             console.log( soi + cc.debug( "--" ) + cc.bright( "node-number" ) + cc.sunny( "=" ) + cc.info( "value" ) + cc.debug( "............." ) + cc.note( "S-Chain" ) + " " + cc.bright( "node number" ) + cc.notice( "(" ) + cc.sunny( "0" ) + cc.notice( "-based)." ) );
@@ -365,6 +370,7 @@ function parse( joExternalHandlers, argv ) {
             console.log( cc.sunny( "TEST" ) + cc.info( " options:" ) );
             console.log( soi + cc.debug( "--" ) + cc.bright( "browse-s-chain" ) + cc.debug( "................" ) + cc.notice( "Download own " ) + cc.note( "S-Chain" ) + cc.notice( " network information." ) );
             console.log( soi + cc.debug( "--" ) + cc.bright( "browse-skale-network" ) + cc.debug( ".........." ) + cc.notice( "Download entire " ) + cc.note( "SKALE network" ) + cc.notice( " description." ) );
+            console.log( soi + cc.debug( "--" ) + cc.bright( "browse-connected-schains" ) + cc.debug( "......" ) + cc.notice( "Download " ) + cc.note( "S-Chains" ) + cc.notice( " conected to " ) + cc.note( "S-Chain" ) + cc.notice( " with name specified in " ) + cc.bright( "id-s-chain" ) + cc.notice( " command line parameter." ) );
             //
             console.log( cc.sunny( "LOGGING" ) + cc.info( " options:" ) );
             console.log( soi + cc.debug( "--" ) + cc.bright( "expose" ) + cc.debug( "........................" ) + cc.notice( "Expose " ) + cc.note( "low-level log details" ) + cc.notice( " after " ) + cc.success( "successful operations" ) + cc.notice( ". By default details exposed only " ) + cc.error( "on errors" ) + cc.notice( "." ) );
@@ -775,9 +781,14 @@ function parse( joExternalHandlers, argv ) {
             imaState.nTransferBlockSizeS2M = owaspUtils.toInteger( joArg.value );
             continue;
         }
+        if( joArg.name == "s2s-transfer-block-size" ) {
+            owaspUtils.verifyArgumentIsInteger( joArg );
+            imaState.nTransferBlockSizeS2S = owaspUtils.toInteger( joArg.value );
+            continue;
+        }
         if( joArg.name == "transfer-block-size" ) {
             owaspUtils.verifyArgumentIsInteger( joArg );
-            imaState.nTransferBlockSizeM2S = imaState.nTransferBlockSizeS2M = owaspUtils.toInteger( joArg.value );
+            imaState.nTransferBlockSizeM2S = imaState.nTransferBlockSizeS2M = imaState.nTransferBlockSizeS2S = owaspUtils.toInteger( joArg.value );
             continue;
         }
         if( joArg.name == "m2s-max-transactions" ) {
@@ -790,9 +801,14 @@ function parse( joExternalHandlers, argv ) {
             imaState.nMaxTransactionsS2M = owaspUtils.toInteger( joArg.value );
             continue;
         }
+        if( joArg.name == "s2s-max-transactions" ) {
+            owaspUtils.verifyArgumentIsInteger( joArg );
+            imaState.nMaxTransactionsS2S = owaspUtils.toInteger( joArg.value );
+            continue;
+        }
         if( joArg.name == "max-transactions" ) {
             owaspUtils.verifyArgumentIsInteger( joArg );
-            imaState.nMaxTransactionsM2S = imaState.nMaxTransactionsS2M = owaspUtils.toInteger( joArg.value );
+            imaState.nMaxTransactionsM2S = imaState.nMaxTransactionsS2M = imaState.nMaxTransactionsS2S = owaspUtils.toInteger( joArg.value );
             continue;
         }
         if( joArg.name == "m2s-await-blocks" ) {
@@ -805,9 +821,14 @@ function parse( joExternalHandlers, argv ) {
             imaState.nBlockAwaitDepthS2M = owaspUtils.toInteger( joArg.value );
             continue;
         }
+        if( joArg.name == "s2s-await-blocks" ) {
+            owaspUtils.verifyArgumentIsInteger( joArg );
+            imaState.nBlockAwaitDepthS2S = owaspUtils.toInteger( joArg.value );
+            continue;
+        }
         if( joArg.name == "await-blocks" ) {
             owaspUtils.verifyArgumentIsInteger( joArg );
-            imaState.nBlockAwaitDepthM2S = imaState.nBlockAwaitDepthS2M = owaspUtils.toInteger( joArg.value );
+            imaState.nBlockAwaitDepthM2S = imaState.nBlockAwaitDepthS2M = imaState.nBlockAwaitDepthS2S = owaspUtils.toInteger( joArg.value );
             continue;
         }
         if( joArg.name == "m2s-await-time" ) {
@@ -820,9 +841,14 @@ function parse( joExternalHandlers, argv ) {
             imaState.nBlockAgeS2M = owaspUtils.toInteger( joArg.value );
             continue;
         }
+        if( joArg.name == "s2s-await-time" ) {
+            owaspUtils.verifyArgumentIsInteger( joArg );
+            imaState.nBlockAgeS2S = owaspUtils.toInteger( joArg.value );
+            continue;
+        }
         if( joArg.name == "await-time" ) {
             owaspUtils.verifyArgumentIsInteger( joArg );
-            imaState.nBlockAgeM2S = imaState.nBlockAgeS2M = owaspUtils.toInteger( joArg.value );
+            imaState.nBlockAgeM2S = imaState.nBlockAgeS2M = imaState.nBlockAgeS2S = owaspUtils.toInteger( joArg.value );
             continue;
         }
         if( joArg.name == "period" ) {
@@ -987,10 +1013,12 @@ function parse( joExternalHandlers, argv ) {
             joArg.name == "s2m-view" ||
             joArg.name == "m2s-transfer" ||
             joArg.name == "s2m-transfer" ||
+            joArg.name == "s2s-transfer" ||
             joArg.name == "transfer" ||
             joArg.name == "loop" ||
             joArg.name == "browse-s-chain" ||
-            joArg.name == "browse-skale-network"
+            joArg.name == "browse-skale-network" ||
+            joArg.name == "browse-connected-schains"
         ) {
             joExternalHandlers[joArg.name]();
             continue;
@@ -1547,24 +1575,44 @@ function ima_common_init() {
         ensure_have_value( "S->M transfer block size", imaState.nTransferBlockSizeS2M, false, true, null, ( x ) => {
             return cc.note( x );
         } );
+        if( imaState.bHaveSkaleManagerABI ) {
+            ensure_have_value( "S->S transfer block size", imaState.nTransferBlockSizeS2S, false, true, null, ( x ) => {
+                return cc.note( x );
+            } );
+        }
         ensure_have_value( "M->S transactions limit", imaState.nMaxTransactionsM2S, false, true, null, ( x ) => {
             return cc.note( x );
         } );
         ensure_have_value( "S->M transactions limit", imaState.nMaxTransactionsS2M, false, true, null, ( x ) => {
             return cc.note( x );
         } );
+        if( imaState.bHaveSkaleManagerABI ) {
+            ensure_have_value( "S->S transactions limit", imaState.nMaxTransactionsS2S, false, true, null, ( x ) => {
+                return cc.note( x );
+            } );
+        }
         ensure_have_value( "M->S await blocks", imaState.nBlockAwaitDepthM2S, false, true, null, ( x ) => {
             return cc.note( x );
         } );
         ensure_have_value( "S->M await blocks", imaState.nBlockAwaitDepthS2M, false, true, null, ( x ) => {
             return cc.note( x );
         } );
+        if( imaState.bHaveSkaleManagerABI ) {
+            ensure_have_value( "S->S await blocks", imaState.nBlockAwaitDepthS2S, false, true, null, ( x ) => {
+                return cc.note( x );
+            } );
+        }
         ensure_have_value( "M->S minimal block age", imaState.nBlockAgeM2S, false, true, null, ( x ) => {
             return cc.note( x );
         } );
         ensure_have_value( "S->M minimal block age", imaState.nBlockAgeS2M, false, true, null, ( x ) => {
             return cc.note( x );
         } );
+        if( imaState.bHaveSkaleManagerABI ) {
+            ensure_have_value( "S->S minimal block age", imaState.nBlockAgeS2S, false, true, null, ( x ) => {
+                return cc.note( x );
+            } );
+        }
         ensure_have_value( "Transfer loop period(seconds)", imaState.nLoopPeriodSeconds, false, true, null, ( x ) => {
             return cc.success( x );
         } );

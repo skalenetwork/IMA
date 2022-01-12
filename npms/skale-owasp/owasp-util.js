@@ -568,6 +568,15 @@ function fn_address_impl_( w3 ) {
     return this.address_;
 }
 
+function compute_chain_id_from_schain_name( w3, strName ) {
+    let h = w3.utils.soliditySha3( strName );
+    h = remove_starting_0x( h ).toLowerCase();
+    while( h.length < 64 )
+        h = "0" + h;
+    h = h.substr( 0, 14 );
+    return "0x" + h;
+}
+
 module.exports = {
     cc: cc,
     w3mod: w3mod,
@@ -607,5 +616,6 @@ module.exports = {
     is_numeric: is_numeric,
     parseMoneyUnitName: parseMoneyUnitName,
     parseMoneySpecToWei: parseMoneySpecToWei,
-    fn_address_impl_: fn_address_impl_
+    fn_address_impl_: fn_address_impl_,
+    compute_chain_id_from_schain_name: compute_chain_id_from_schain_name
 }; // module.exports

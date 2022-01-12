@@ -25,6 +25,7 @@
  */
 
 const owaspUtils = require( "../skale-owasp/owasp-util.js" );
+const { getWeb3FromURL } = require( "../../agent/cli.js" );
 const cc = owaspUtils.cc;
 
 const PORTS_PER_SCHAIN = 64;
@@ -81,31 +82,28 @@ function calc_ports( jo_schain, schain_base_port ) {
 
 // see https://github.com/skalenetwork/skale-proxy/blob/develop/endpoints.py
 async function load_schain_parts( w3, jo_schain, addressFrom, opts ) {
-    const jo_schains_internal = opts ? opts.jo_schains_internal : null;
-    if( ! jo_schains_internal )
-        throw new Error( "Cannot load S-Chain parts in observer, no SChainsInternal contract is provided" );
-    const jo_nodes = opts ? opts.jo_nodes : null;
-    if( ! jo_nodes )
-        throw new Error( "Cannot load S-Chain parts in observer, no Nodes contract is provided" );
+    if( ! opts.imaState )
+        throw new Error( "Cannot load S-Chain parts in observer, no imaState is provided" );
     jo_schain.data.computed = {};
     const schain_id = w3.utils.soliditySha3( jo_schain.data.name );
-    const node_ids = await jo_schains_internal.methods.getNodesInGroup( schain_id ).call( { from: addressFrom } );
+    const chainId = owaspUtils.compute_chain_id_from_schain_name( w3, jo_schain.data.name );
+    const node_ids = await opts.imaState.jo_schains_internal.methods.getNodesInGroup( schain_id ).call( { from: addressFrom } );
     const nodes = [];
     for( const node_id of node_ids ) {
         if( opts && opts.bStopNeeded )
             return;
-        const node = await jo_nodes.methods.nodes( node_id ).call( { from: addressFrom } );
+        const node = await opts.imaState.jo_nodes.methods.nodes( node_id ).call( { from: addressFrom } );
         const node_dict = {
             id: node_id,
             name: node[0],
             ip: owaspUtils.ip_from_hex( node[1] ),
             base_port: node[3],
-            domain: await jo_nodes.methods.getNodeDomainName( node_id ).call( { from: addressFrom } ),
-            isMaintenance: await jo_nodes.methods.isNodeInMaintenance( node_id ).call( { from: addressFrom } )
+            domain: await opts.imaState.jo_nodes.methods.getNodeDomainName( node_id ).call( { from: addressFrom } ),
+            isMaintenance: await opts.imaState.jo_nodes.methods.isNodeInMaintenance( node_id ).call( { from: addressFrom } )
         };
         if( opts && opts.bStopNeeded )
             return;
-        const schain_ids = await jo_schains_internal.methods.getSchainIdsForNode( node_id ).call( { from: addressFrom } );
+        const schain_ids = await opts.imaState.jo_schains_internal.methods.getSchainIdsForNode( node_id ).call( { from: addressFrom } );
         node_dict.schain_base_port = get_schain_base_port_on_node( schain_id, schain_ids, node_dict.base_port );
         calc_ports( jo_schain, node_dict.schain_base_port );
         compose_endpoints( jo_schain, node_dict, "ip" );
@@ -114,17 +112,17 @@ async function load_schain_parts( w3, jo_schain, addressFrom, opts ) {
         if( opts && opts.bStopNeeded )
             return;
     }
-    // const schain = await jo_schains_internal.methods.schains( schain_id ).call( { from: addressFrom } );
+    // const schain = await opts.imaState.jo_schains_internal.methods.schains( schain_id ).call( { from: addressFrom } );
     // jo_schain.data.computed.schain = schain;
     jo_schain.data.computed.schain_id = schain_id;
+    jo_schain.data.computed.chainId = chainId;
     jo_schain.data.computed.nodes = nodes;
 }
 
 async function get_schains_count( w3, addressFrom, opts ) {
-    const jo_schains_internal = opts ? opts.jo_schains_internal : null;
-    if( ! jo_schains_internal )
-        throw new Error( "Cannot get S-Chains count in observer, no SChainsInternal contract is provided" );
-    const cntSChains = await jo_schains_internal.methods.numberOfSchains().call( { from: addressFrom } );
+    if( ! opts.imaState )
+        throw new Error( "Cannot get S-Chains count, no imaState is provided" );
+    const cntSChains = await opts.imaState.jo_schains_internal.methods.numberOfSchains().call( { from: addressFrom } );
     return cntSChains;
 }
 
@@ -139,17 +137,16 @@ function remove_schain_desc_data_num_keys( jo_schain ) {
 }
 
 async function load_schain( w3, addressFrom, idxSChain, cntSChains, opts ) {
-    const jo_schains_internal = opts ? opts.jo_schains_internal : null;
-    if( ! jo_schains_internal )
-        throw new Error( "Cannot load S-Chain description in observer, no SChainsInternal contract is provided" );
+    if( ! opts.imaState )
+        throw new Error( "Cannot load S-Chain description in observer, no imaState is provided" );
     if( opts && opts.details )
         opts.details.write( cc.debug( "Loading S-Chain " ) + cc.notice( "#" ) + cc.info( idxSChain + 1 ) + cc.debug( " of " ) + cc.info( cntSChains ) + cc.debug( "..." ) + "\n" );
-    const hash = await jo_schains_internal.methods.schainsAtSystem( idxSChain ).call( { from: addressFrom } );
+    const hash = await opts.imaState.jo_schains_internal.methods.schainsAtSystem( idxSChain ).call( { from: addressFrom } );
     if( opts && opts.details )
         opts.details.write( cc.debug( "    Hash " ) + cc.attention( hash ) + "\n" );
     if( opts && opts.bStopNeeded )
         return null;
-    let jo_data = await jo_schains_internal.methods.schains( hash ).call( { from: addressFrom } );
+    let jo_data = await opts.imaState.jo_schains_internal.methods.schains( hash ).call( { from: addressFrom } );
     jo_data = JSON.parse( JSON.stringify( jo_data ) );
     const jo_schain = { data: jo_data };
     remove_schain_desc_data_num_keys( jo_schain.data, addressFrom );
@@ -160,13 +157,13 @@ async function load_schain( w3, addressFrom, idxSChain, cntSChains, opts ) {
         opts.details.write( cc.debug( "    Desc " ) + cc.j( jo_schain.data ) + "\n" );
         opts.details.write( cc.success( "Done" ) + "\n" );
     }
+    jo_schain.isConnected = false;
     return jo_schain;
 }
 
 async function load_schains( w3, addressFrom, opts ) {
-    const jo_schains_internal = opts ? opts.jo_schains_internal : null;
-    if( ! jo_schains_internal )
-        throw new Error( "Cannot load S-Chains in observer, no SChainsInternal contract is provided" );
+    if( ! opts.imaState )
+        throw new Error( "Cannot load S-Chains in observer, no imaState is provided" );
     const cntSChains = await get_schains_count( w3, addressFrom, opts );
     if( opts && opts.details )
         opts.details.write( cc.debug( "Have " ) + cc.info( cntSChains ) + cc.debug( " S-Chain(s) to load..." ) + "\n" );
@@ -186,28 +183,48 @@ async function load_schains( w3, addressFrom, opts ) {
     return arr_schains;
 }
 
-async function check_connected_schains( arr_schains, w3schain, addressFrom, opts ) {
-    const jo_message_proxy_s_chain = opts ? opts.jo_message_proxy_s_chain : null;
-    if( ! jo_schains_internal )
-        throw new Error( "Cannot load S-Chains in observer, no SChainsInternal contract is provided" );
+async function check_connected_schains( strChainNameConnectedTo, arr_schains, addressFrom, opts ) {
+    if( ! opts.imaState )
+        throw new Error( "Cannot load S-Chains in observer, no imaState is provided" );
     const cntSChains = arr_schains.length;
     for( let idxSChain = 0; idxSChain < cntSChains; ++ idxSChain ) {
         if( opts && opts.bStopNeeded )
             break;
-        const jo_schain = arr_schains[i];
-        jo_schain.isConnected = await jo_message_proxy_s_chain.methods.isConnectedChain( jo_schain.name ).call( { from: addressFrom } );
+        const jo_schain = arr_schains[idxSChain];
+        jo_schain.isConnected = false;
+        if( jo_schain.data.name == strChainNameConnectedTo )
+            continue;
+        try {
+            //jo_schain.isConnected = await opts.imaState.jo_message_proxy_s_chain.methods.isConnectedChain( strChainNameConnectedTo ).call( { from: addressFrom } );
+            const url = pick_random_schain_w3_url( jo_schain );
+            if( opts && opts.details ) {
+                opts.details.write(
+                    cc.debug( "Querying via URL " ) + cc.u( url ) + cc.debug( " to S-Chain " ) +
+                    cc.info( jo_schain.data.name ) + cc.debug( " whether it's connected to S-Chain " ) +
+                    cc.info( strChainNameConnectedTo ) + cc.debug( "..." ) + "\n" );
+            }
+            const w3 = getWeb3FromURL( url );
+            const jo_message_proxy_s_chain = new w3.eth.Contract( imaState.joAbiPublishResult_s_chain.message_proxy_chain_abi, imaState.joAbiPublishResult_s_chain.message_proxy_chain_address );
+            jo_schain.isConnected = await jo_message_proxy_s_chain.methods.isConnectedChain( strChainNameConnectedTo ).call( { from: addressFrom } );
+            if( opts && opts.details ) {
+                opts.details.write(
+                    cc.debug( "Got " ) + cc.yn( jo_schain.isConnected ) + "\n" );
+            }
+        } catch ( err ) {
+            if( opts && opts.details )
+                opts.details.write( cc.error( "Got error: " ) + cc.warning( err.toString() ) + "\n" );
+        }
     }
     return arr_schains;
 }
 
-async function filter_connected_schains( arr_schains, w3schain, addressFrom, opts ) {
-    await check_connected_schains( arr_schains, w3schain, addressFrom, opts );
+async function filter_schains_marked_as_connected( arr_schains, opts ) {
     const arr_connected_schains = [];
     const cntSChains = arr_schains.length;
     for( let idxSChain = 0; idxSChain < cntSChains; ++ idxSChain ) {
         if( opts && opts.bStopNeeded )
             break;
-        const jo_schain = arr_schains[i];
+        const jo_schain = arr_schains[idxSChain];
         if( jo_schain.isConnected )
             arr_connected_schains.push( jo_schain );
     }
@@ -215,8 +232,8 @@ async function filter_connected_schains( arr_schains, w3schain, addressFrom, opt
 }
 
 function find_schain_index_in_array_by_name( arr_schains, strSChainName ) {
-    for( let i = 0; i < arr_schains.length; ++ i ) {
-        const jo_schain = arr_schains[i];
+    for( let idxSChain = 0; idxSChain < arr_schains.length; ++ idxSChain ) {
+        const jo_schain = arr_schains[idxSChain];
         if( jo_schain.data.name.toString() == strSChainName.toString() )
             return i;
     }
@@ -278,12 +295,100 @@ function merge_schains_array_from_to( arrSrc, arrDst, arrNew, arrOld, opts ) {
         opts.details.write( cc.success( "Finally, have " ) + cc.info( arrDst.length ) + cc.success( " S-Chain(s)" ) + "\n" );
 }
 
+let g_arr_schains_cached = null;
+
+async function cache_schains( strChainNameConnectedTo, w3, addressFrom, opts ) {
+    try {
+        const arr_schains = await load_schains( w3, addressFrom, opts );
+        if( strChainNameConnectedTo && ( typeof strChainNameConnectedTo == "string" ) && strChainNameConnectedTo.length > 0 ) {
+            await check_connected_schains(
+                strChainNameConnectedTo,
+                arr_schains,
+                addressFrom,
+                opts
+            );
+            g_arr_schains_cached = await filter_schains_marked_as_connected(
+                arr_schains,
+                opts
+            );
+        } else
+            g_arr_schains_cached = arr_schains;
+        if( opts.fn_chache_changed )
+            opts.fn_chache_changed( g_arr_schains_cached, null ); // null - no error
+        return null;
+    } catch ( err ) {
+        let strError = err.toString();
+        if( ! strError )
+            strError = "unknown exception during S-Chains download";
+        if( opts.fn_chache_changed )
+            opts.fn_chache_changed( g_arr_schains_cached, strError );
+        return strError;
+    }
+}
+
+function get_last_cached_schains() {
+    return JSON.parse( JSON.stringify( g_arr_schains_cached ) );
+}
+
+let g_intervalPeriodicSchainsCaching = null;
+let g_bIsPeriodicCachingStepInProgress = false;
+
+async function periodic_caching_start( strChainNameConnectedTo, w3, addressFrom, opts ) {
+    await periodic_caching_stop();
+    if( ! ( "secondsToReDiscoverSkaleNetwork" in opts ) )
+        return false;
+    const secondsToReDiscoverSkaleNetwork = parseInt( opts.secondsToReDiscoverSkaleNetwork );
+    if( secondsToReDiscoverSkaleNetwork <= 0 )
+        return false;
+    g_intervalPeriodicSchainsCaching = setInterval( async function() {
+        if( g_bIsPeriodicCachingStepInProgress )
+            return;
+        g_bIsPeriodicCachingStepInProgress = true;
+        // const strError =
+        await cache_schains( strChainNameConnectedTo, w3, addressFrom, opts );
+        g_bIsPeriodicCachingStepInProgress = false;
+    }, secondsToReDiscoverSkaleNetwork * 1000 );
+    return true;
+}
+async function periodic_caching_stop() {
+    if( ! g_intervalPeriodicSchainsCaching )
+        return false;
+    clearInterval( g_intervalPeriodicSchainsCaching );
+    g_intervalPeriodicSchainsCaching = null;
+    g_bIsPeriodicCachingStepInProgress = false;
+    return true;
+}
+
+function pick_random_schain_node_index( jo_schain ) {
+    let min = 0, max = jo_schain.data.computed.nodes.length;
+    min = Math.ceil( min );
+    max = Math.floor( max );
+    const idxNode = Math.floor( Math.random() * ( max - min + 1 ) ) + min;
+    return idxNode;
+}
+function pick_random_schain_node( jo_schain ) {
+    const idxNode = pick_random_schain_node_index( jo_schain );
+    return jo_schain.data.computed.nodes[idxNode];
+}
+
+function pick_random_schain_w3_url( jo_schain ) {
+    const jo_node = pick_random_schain_node( jo_schain );
+    return "" + jo_node.http_endpoint_ip;
+}
+
 module.exports.owaspUtils = owaspUtils;
 module.exports.cc = cc;
 module.exports.get_schains_count = get_schains_count;
 module.exports.load_schain = load_schain;
 module.exports.load_schains = load_schains;
 module.exports.check_connected_schains = check_connected_schains;
-module.exports.filter_connected_schains = filter_connected_schains;
+module.exports.filter_schains_marked_as_connected = filter_schains_marked_as_connected;
 module.exports.find_schain_index_in_array_by_name = find_schain_index_in_array_by_name;
 module.exports.merge_schains_array_from_to = merge_schains_array_from_to;
+module.exports.cache_schains = cache_schains;
+module.exports.get_last_cached_schains = get_last_cached_schains;
+module.exports.periodic_caching_start = periodic_caching_start;
+module.exports.periodic_caching_stop = periodic_caching_stop;
+module.exports.pick_random_schain_node_index = pick_random_schain_node_index;
+module.exports.pick_random_schain_node = pick_random_schain_node;
+module.exports.pick_random_schain_w3_url = pick_random_schain_w3_url;

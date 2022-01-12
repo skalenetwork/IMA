@@ -124,13 +124,17 @@ global.imaState = {
 
     "nTransferBlockSizeM2S": 4, // 10
     "nTransferBlockSizeS2M": 4, // 10
+    "nTransferBlockSizeS2S": 4, // 10
     "nMaxTransactionsM2S": 0,
     "nMaxTransactionsS2M": 0,
+    "nMaxTransactionsS2S": 0,
 
     "nBlockAwaitDepthM2S": 0,
     "nBlockAwaitDepthS2M": 0,
+    "nBlockAwaitDepthS2S": 0,
     "nBlockAgeM2S": 0,
     "nBlockAgeS2M": 0,
+    "nBlockAgeS2S": 0,
 
     "nLoopPeriodSeconds": 10,
 
@@ -649,15 +653,19 @@ describe( "CLI", function() {
                 "--skip-dry-run", // --skip-dry-run --ignore-dry-run --dry-run
                 "--m2s-transfer-block-size=4",
                 "--s2m-transfer-block-size=4",
+                "--s2s-transfer-block-size=4",
                 "--transfer-block-size=4",
                 "--m2s-max-transactions=0",
                 "--s2m-max-transactions=0",
+                "--s2s-max-transactions=0",
                 "--max-transactions=0",
                 "--m2s-await-blocks=0",
                 "--s2m-await-blocks=0",
+                "--s2s-await-blocks=0",
                 "--await-blocks=0",
                 "--m2s-await-time=0",
                 "--s2m-await-time=0",
+                "--s2s-await-time=0",
                 "--await-time=0",
                 "--period=300",
                 "--node-number=0",
