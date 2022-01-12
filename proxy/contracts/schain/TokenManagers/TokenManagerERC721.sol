@@ -63,7 +63,7 @@ contract TokenManagerERC721 is TokenManager, ITokenManagerERC721 {
     /**
      * @dev Move tokens from schain to mainnet.
      * 
-     * {contractOnMainnet} tokens are burned on schain and unlocked on mainnet for {to} address.
+     * {contractOnMainnet} tokens are burned on schain and unlocked on mainnet for same address as sender.
      */
     function exitToMainERC721(
         address contractOnMainnet,
@@ -74,6 +74,24 @@ contract TokenManagerERC721 is TokenManager, ITokenManagerERC721 {
     {
         communityLocker.checkAllowedToSendMessage(msg.sender);
         _exit(MAINNET_HASH, depositBox, contractOnMainnet, msg.sender, tokenId);
+    }
+
+    /**
+     * @dev Move tokens from schain to mainnet.
+     * 
+     * {contractOnMainnet} tokens are burned on schain and unlocked on mainnet for `to` address.
+     */
+    function exitToMainERC721(
+        address contractOnMainnet,
+        address to,
+        uint256 tokenId
+    )
+        external
+        override
+    {
+        require(to != address(0), "Destination cannot be 0 address");
+        communityLocker.checkAllowedToSendMessage(msg.sender);
+        _exit(MAINNET_HASH, depositBox, contractOnMainnet, to, tokenId);
     }
 
     /**
@@ -93,6 +111,26 @@ contract TokenManagerERC721 is TokenManager, ITokenManagerERC721 {
     {
         bytes32 targetSchainHash = keccak256(abi.encodePacked(targetSchainName));
         _exit(targetSchainHash, tokenManagers[targetSchainHash], contractOnMainnet, msg.sender, tokenId);
+    }
+
+    /**
+     * @dev Move tokens from schain to schain.
+     * 
+     * {contractOnMainnet} tokens are burned on origin schain
+     * and are minted on {targetSchainName} schain for {to} address.
+     */
+    function transferToSchainERC721(
+        string calldata targetSchainName,
+        address contractOnMainnet,
+        address to,
+        uint256 tokenId
+    ) 
+        external
+        override
+        rightTransaction(targetSchainName, to)
+    {
+        bytes32 targetSchainHash = keccak256(abi.encodePacked(targetSchainName));
+        _exit(targetSchainHash, tokenManagers[targetSchainHash], contractOnMainnet, to, tokenId);
     }
 
     /**

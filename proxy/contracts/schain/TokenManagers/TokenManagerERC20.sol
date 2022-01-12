@@ -68,7 +68,7 @@ contract TokenManagerERC20 is TokenManager, ITokenManagerERC20 {
     /**
      * @dev Move tokens from schain to mainnet.
      * 
-     * {contractOnMainnet} tokens are burned on schain and unlocked on mainnet for {to} address.
+     * {contractOnMainnet} tokens are burned on schain and unlocked on mainnet for same address as sender.
      */
     function exitToMainERC20(
         address contractOnMainnet,
@@ -79,6 +79,25 @@ contract TokenManagerERC20 is TokenManager, ITokenManagerERC20 {
     {
         communityLocker.checkAllowedToSendMessage(msg.sender);
         _exit(MAINNET_HASH, depositBox, contractOnMainnet, msg.sender, amount);
+    }
+
+    /**
+     * @dev Move tokens from schain to mainnet.
+     * 
+     * {contractOnMainnet} tokens are burned on schain and unlocked on mainnet for {to} address.
+     * - destination `to` cannot be 0 address.
+     */
+    function exitToMainERC20(
+        address contractOnMainnet,
+        address to,
+        uint256 amount
+    )
+        external
+        override
+    {
+        require(to != address(0), "Destination cannot be 0 address");
+        communityLocker.checkAllowedToSendMessage(msg.sender);
+        _exit(MAINNET_HASH, depositBox, contractOnMainnet, to, amount);
     }
 
     /**
@@ -98,6 +117,27 @@ contract TokenManagerERC20 is TokenManager, ITokenManagerERC20 {
     {
         bytes32 targetSchainHash = keccak256(abi.encodePacked(targetSchainName));
         _exit(targetSchainHash, tokenManagers[targetSchainHash], contractOnMainnet, msg.sender, amount);
+    }
+
+    /**
+     * @dev Move tokens from schain to schain.
+     * 
+     * {contractOnMainnet} tokens are burned on origin schain
+     * and are minted on {targetSchainName} schain for `to` address.
+     * - destination `to` cannot be 0 address.
+     */
+    function transferToSchainERC20(
+        string calldata targetSchainName,
+        address contractOnMainnet,
+        address to,
+        uint256 amount
+    )
+        external
+        override
+        rightTransaction(targetSchainName, to)
+    {
+        bytes32 targetSchainHash = keccak256(abi.encodePacked(targetSchainName));
+        _exit(targetSchainHash, tokenManagers[targetSchainHash], contractOnMainnet, to, amount);
     }
 
     /**

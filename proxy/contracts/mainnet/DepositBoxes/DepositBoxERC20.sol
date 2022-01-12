@@ -102,6 +102,45 @@ contract DepositBoxERC20 is DepositBox, IDepositBoxERC20 {
         rightTransaction(schainName, msg.sender)
         whenNotKilled(keccak256(abi.encodePacked(schainName)))
     {
+        _depositTransferERC20(schainName, erc20OnMainnet, msg.sender, amount);
+    }
+
+    /**
+     * @dev Allows `msg.sender` to send ERC20 token from mainnet to a specific schain destination address.
+     * This is potentially dangerous if the destination address is invalid.
+     * Consider depositERC20() instead.
+     * 
+     * Requirements:
+     * 
+     * - Schain name must not be `Mainnet`.
+     * - Receiver account on schain cannot be null.
+     * - Schain that receives tokens should not be killed.
+     * - Receiver contract should be defined.
+     * - destination {to} cannot be 0 address.
+     * - `msg.sender` should approve their tokens for DepositBoxERC20 address.
+     */
+    function transferERC20(
+        string calldata schainName,
+        address erc20OnMainnet,
+        address to,
+        uint256 amount
+    )
+        external
+        override
+        rightTransaction(schainName, to)
+        whenNotKilled(keccak256(abi.encodePacked(schainName)))
+    {
+        _depositTransferERC20(schainName, erc20OnMainnet, to, amount);
+    }
+
+    function _depositTransferERC20(
+        string calldata schainName,
+        address erc20OnMainnet,
+        address to,
+        uint256 amount
+    )
+        private
+    {
         bytes32 schainHash = keccak256(abi.encodePacked(schainName));
         address contractReceiver = schainLinks[schainHash];
         require(contractReceiver != address(0), "Unconnected chain");
@@ -112,7 +151,7 @@ contract DepositBoxERC20 is DepositBox, IDepositBoxERC20 {
         bytes memory data = _receiveERC20(
             schainName,
             erc20OnMainnet,
-            msg.sender,
+            to,
             amount
         );
         _saveTransferredAmount(schainHash, erc20OnMainnet, amount);

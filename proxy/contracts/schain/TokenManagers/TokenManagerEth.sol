@@ -59,10 +59,21 @@ contract TokenManagerEth is TokenManager, ITokenManagerEth {
     }
 
     /**
+     * @dev Move ETH from schain to specific mainnet address.
+     * 
+     * EthErc20 tokens are burned on schain and ETH are unlocked on mainnet for `to` address.
+     */
+    function exitToMain(address to, uint256 amount) external override {
+        require(to != address(0), "Incorrect receiver address");
+        communityLocker.checkAllowedToSendMessage(msg.sender);
+        _exit(MAINNET_HASH, depositBox, to, amount);
+    }
+
+    /**
      * @dev Move ETH from schain to schain.
      * 
      * EthErc20 tokens are burned on origin schain.
-     * and are minted on {targetSchainName} schain for {to} address.
+     * and are minted on {targetSchainName} schain for same sender address.
      */
     function transferToSchain(
         string memory targetSchainName,
@@ -74,6 +85,25 @@ contract TokenManagerEth is TokenManager, ITokenManagerEth {
     {
         bytes32 targetSchainHash = keccak256(abi.encodePacked(targetSchainName));
         _exit(targetSchainHash, tokenManagers[targetSchainHash], msg.sender, amount);
+    }
+
+    /**
+     * @dev Move ETH from schain to specific schain destination address.
+     * 
+     * EthErc20 tokens are burned on origin schain.
+     * and are minted on {targetSchainName} schain for {to} address.
+     */
+    function transferToSchain(
+        string memory targetSchainName,
+        address to,
+        uint256 amount
+    )
+        external
+        override
+        rightTransaction(targetSchainName, to)
+    {
+        bytes32 targetSchainHash = keccak256(abi.encodePacked(targetSchainName));
+        _exit(targetSchainHash, tokenManagers[targetSchainHash], to, amount);
     }
 
     /**
