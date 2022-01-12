@@ -106,6 +106,44 @@ contract DepositBoxERC1155 is DepositBox, ERC1155ReceiverUpgradeable, IDepositBo
         rightTransaction(schainName, msg.sender)
         whenNotKilled(keccak256(abi.encodePacked(schainName)))
     {
+        _depositTransferERC1155(schainName, erc1155OnMainnet, msg.sender, id, amount);
+    }
+
+    /**
+     * @dev Allows `msg.sender` to send ERC1155 token from mainnet to a specific schain destination address.
+     * This is potentially dangerous if the destination address is invalid.
+     * Consider depositERC1155() instead.
+     * 
+     * Requirements:
+     * 
+     * - Receiver contract should be defined.
+     * - `msg.sender` should approve their tokens for DepositBoxERC1155 address.
+     * - destination `to` cannot be 0 address.
+     */
+    function transferERC1155(
+        string calldata schainName,
+        address erc1155OnMainnet,
+        address to,
+        uint256 id,
+        uint256 amount
+    )
+        external
+        override
+        rightTransaction(schainName, to)
+        whenNotKilled(keccak256(abi.encodePacked(schainName)))
+    {
+        _depositTransferERC1155(schainName, erc1155OnMainnet, to, id, amount);
+    }
+
+    function _depositTransferERC1155(
+        string calldata schainName,
+        address erc1155OnMainnet,
+        address to,
+        uint256 id,
+        uint256 amount
+    )
+        private
+    {
         bytes32 schainHash = keccak256(abi.encodePacked(schainName));
         address contractReceiver = schainLinks[schainHash];
         require(contractReceiver != address(0), "Unconnected chain");
@@ -116,7 +154,7 @@ contract DepositBoxERC1155 is DepositBox, ERC1155ReceiverUpgradeable, IDepositBo
         bytes memory data = _receiveERC1155(
             schainName,
             erc1155OnMainnet,
-            msg.sender,
+            to,
             id,
             amount
         );
@@ -149,6 +187,50 @@ contract DepositBoxERC1155 is DepositBox, ERC1155ReceiverUpgradeable, IDepositBo
         rightTransaction(schainName, msg.sender)
         whenNotKilled(keccak256(abi.encodePacked(schainName)))
     {
+        _depositERC1155Batch(schainName, erc1155OnMainnet, msg.sender, ids, amounts);
+    }
+
+    /**
+     * @dev Allows `msg.sender` to send batch of ERC1155 tokens from mainnet to a specific schain destination address.
+     * 
+     * Requirements:
+     * 
+     * - Receiver contract should be defined.
+     * - `msg.sender` should approve their tokens for DepositBoxERC1155 address.
+     * - destination `to` cannot be 0 address.
+     */
+    function transferERC1155Batch(
+        string calldata schainName,
+        address erc1155OnMainnet,
+        address to,
+        uint256[] calldata ids,
+        uint256[] calldata amounts
+    )
+        external
+        override
+        rightTransaction(schainName, to)
+        whenNotKilled(keccak256(abi.encodePacked(schainName)))
+    {
+        _depositERC1155Batch(schainName, erc1155OnMainnet, to, ids, amounts);
+    }
+
+    /**
+     * @dev Allows `msg.sender` to send batch of ERC1155 tokens from mainnet to schain.
+     * 
+     * Requirements:
+     * 
+     * - Receiver contract should be defined.
+     * - `msg.sender` should approve their tokens for DepositBoxERC1155 address.
+     */
+    function _depositTransferERC1155Batch(
+        string calldata schainName,
+        address erc1155OnMainnet,
+        address to,
+        uint256[] calldata ids,
+        uint256[] calldata amounts
+    )
+        private
+    {
         bytes32 schainHash = keccak256(abi.encodePacked(schainName));
         address contractReceiver = schainLinks[schainHash];
         require(contractReceiver != address(0), "Unconnected chain");
@@ -159,7 +241,7 @@ contract DepositBoxERC1155 is DepositBox, ERC1155ReceiverUpgradeable, IDepositBo
         bytes memory data = _receiveERC1155Batch(
             schainName,
             erc1155OnMainnet,
-            msg.sender,
+            to,
             ids,
             amounts
         );

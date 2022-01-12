@@ -69,7 +69,7 @@ contract TokenManagerERC1155 is TokenManager, ITokenManagerERC1155 {
     /**
      * @dev Move tokens from schain to mainnet.
      * 
-     * {contractOnMainnet} tokens are burned on schain and unlocked on mainnet for {to} address.
+     * {contractOnMainnet} tokens are burned on schain and unlocked on mainnet for same sender address.
      */
     function exitToMainERC1155(
         address contractOnMainnet,
@@ -84,9 +84,28 @@ contract TokenManagerERC1155 is TokenManager, ITokenManagerERC1155 {
     }
 
     /**
-     * @dev Move batch of tokens from schain to mainnet.
+     * @dev Move tokens from schain to mainnet.
      * 
      * {contractOnMainnet} tokens are burned on schain and unlocked on mainnet for {to} address.
+     */
+    function exitToMainERC1155(
+        address contractOnMainnet,
+        address to,
+        uint256 id,
+        uint256 amount
+    )
+        external
+        override
+    {
+        require(to != address(0), "Destination cannot be 0 address");
+        communityLocker.checkAllowedToSendMessage(msg.sender);
+        _exit(MAINNET_HASH, depositBox, contractOnMainnet, to, id, amount);
+    }
+
+    /**
+     * @dev Move batch of tokens from schain to mainnet.
+     * 
+     * {contractOnMainnet} tokens are burned on schain and unlocked on mainnet for same address as sender.
      */
     function exitToMainERC1155Batch(
         address contractOnMainnet,
@@ -98,6 +117,25 @@ contract TokenManagerERC1155 is TokenManager, ITokenManagerERC1155 {
     {
         communityLocker.checkAllowedToSendMessage(msg.sender);
         _exitBatch(MAINNET_HASH, depositBox, contractOnMainnet, msg.sender, ids, amounts);
+    }
+
+    /**
+     * @dev Move batch of tokens from schain to mainnet.
+     * 
+     * {contractOnMainnet} tokens are burned on schain and unlocked on mainnet for {to} address.
+     */
+    function exitToMainERC1155Batch(
+        address contractOnMainnet,
+        address to,
+        uint256[] memory ids,
+        uint256[] memory amounts
+    )
+        external
+        override
+    {
+        require(to != address(0), "Destination cannot be 0 address");
+        communityLocker.checkAllowedToSendMessage(msg.sender);
+        _exitBatch(MAINNET_HASH, depositBox, contractOnMainnet, to, ids, amounts);
     }
 
     /**
@@ -121,6 +159,27 @@ contract TokenManagerERC1155 is TokenManager, ITokenManagerERC1155 {
     }
 
     /**
+     * @dev Move tokens from schain to schain.
+     * 
+     * {contractOnMainnet} tokens are burned on origin schain
+     * and are minted on {targetSchainName} schain for {to} address.
+     */
+    function transferToSchainERC1155(
+        string calldata targetSchainName,
+        address contractOnMainnet,
+        address to,
+        uint256 id,
+        uint256 amount
+    ) 
+        external
+        override
+        rightTransaction(targetSchainName, to)
+    {
+        bytes32 targetSchainHash = keccak256(abi.encodePacked(targetSchainName));
+        _exit(targetSchainHash, tokenManagers[targetSchainHash], contractOnMainnet, to, id, amount);
+    }
+
+    /**
      * @dev Move batch of tokens from schain to schain.
      * 
      * {contractOnMainnet} tokens are burned on origin schain
@@ -138,6 +197,27 @@ contract TokenManagerERC1155 is TokenManager, ITokenManagerERC1155 {
     {
         bytes32 targetSchainHash = keccak256(abi.encodePacked(targetSchainName));
         _exitBatch(targetSchainHash, tokenManagers[targetSchainHash], contractOnMainnet, msg.sender, ids, amounts);
+    }
+
+    /**
+     * @dev Move batch of tokens from schain to schain.
+     * 
+     * {contractOnMainnet} tokens are burned on origin schain
+     * and are minted on {targetSchainName} schain for {to} address.
+     */
+    function transferToSchainERC1155Batch(
+        string calldata targetSchainName,
+        address contractOnMainnet,
+        address to,
+        uint256[] memory ids,
+        uint256[] memory amounts
+    ) 
+        external
+        override
+        rightTransaction(targetSchainName, to)
+    {
+        bytes32 targetSchainHash = keccak256(abi.encodePacked(targetSchainName));
+        _exitBatch(targetSchainHash, tokenManagers[targetSchainHash], contractOnMainnet, to, ids, amounts);
     }
 
     /**

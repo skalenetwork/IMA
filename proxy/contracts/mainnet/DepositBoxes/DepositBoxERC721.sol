@@ -99,6 +99,42 @@ contract DepositBoxERC721 is DepositBox, IDepositBoxERC721 {
         rightTransaction(schainName, msg.sender)
         whenNotKilled(keccak256(abi.encodePacked(schainName)))
     {
+        _depositTransferERC721(schainName, erc721OnMainnet, msg.sender, tokenId);
+    }
+
+    /**
+     * @dev Allows `msg.sender` to send ERC721 token from mainnet to a specific schain destination address.
+     * This is potentially dangerous if the destination address is invalid.
+     * Consider depositERC721() instead.
+     * 
+     * Requirements:
+     * 
+     * - Receiver contract should be defined.
+     * - `msg.sender` should approve their token for DepositBoxERC721 address.
+     * - destination `to` cannot be 0 address.
+     */
+    function transferERC721(
+        string calldata schainName,
+        address erc721OnMainnet,
+        address to,
+        uint256 tokenId
+    )
+        external
+        override
+        rightTransaction(schainName, to)
+        whenNotKilled(keccak256(abi.encodePacked(schainName)))
+    {
+        _depositTransferERC721(schainName, erc721OnMainnet, to, tokenId);
+    }
+
+    function _depositTransferERC721(
+        string calldata schainName,
+        address erc721OnMainnet,
+        address to,
+        uint256 tokenId
+    )
+        private
+    {
         bytes32 schainHash = keccak256(abi.encodePacked(schainName));
         address contractReceiver = schainLinks[schainHash];
         require(contractReceiver != address(0), "Unconnected chain");
@@ -109,7 +145,7 @@ contract DepositBoxERC721 is DepositBox, IDepositBoxERC721 {
         bytes memory data = _receiveERC721(
             schainName,
             erc721OnMainnet,
-            msg.sender,
+            to,
             tokenId
         );
         if (!linker.interchainConnections(schainHash))

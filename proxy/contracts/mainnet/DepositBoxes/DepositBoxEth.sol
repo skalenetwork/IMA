@@ -64,6 +64,34 @@ contract DepositBoxEth is DepositBox, IDepositBoxEth {
         rightTransaction(schainName, msg.sender)
         whenNotKilled(keccak256(abi.encodePacked(schainName)))
     {
+        _depositTransfer(schainName, msg.sender);
+    }
+
+    /**
+     * @dev Allows `msg.sender` to send ETH from mainnet to a specific schain destination address.
+     * This is potentially dangerous if the destination address is invalid.
+     * Consider deposit() instead.
+     * 
+     * Requirements:
+     * 
+     * - Schain name must not be `Mainnet`.
+     * - Receiver contract should be added as twin contract on schain.
+     * - Schain that receives tokens should not be killed.
+     * - destination `to` cannot be 0 address.
+     */
+    function transfer(string memory schainName, address to)
+        external
+        payable
+        override
+        rightTransaction(schainName, to)
+        whenNotKilled(keccak256(abi.encodePacked(schainName)))
+    {
+        _depositTransfer(schainName, to);
+    }
+
+    function _depositTransfer(string memory schainName, address to)
+        private
+    {
         bytes32 schainHash = keccak256(abi.encodePacked(schainName));
         address contractReceiver = schainLinks[schainHash];
         require(contractReceiver != address(0), "Unconnected chain");
@@ -72,7 +100,7 @@ contract DepositBoxEth is DepositBox, IDepositBoxEth {
         messageProxy.postOutgoingMessage(
             schainHash,
             contractReceiver,
-            Messages.encodeTransferEthMessage(msg.sender, msg.value)
+            Messages.encodeTransferEthMessage(to, msg.value)
         );
     }
 
