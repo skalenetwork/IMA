@@ -43,7 +43,7 @@ jobs:
     - name: Install NODE JS
       uses: actions/setup-node@v2
       with:
-        node-version: '14'
+        node-version: '16'
 
     - name: Set up Python
       uses: actions/setup-python@v2
@@ -188,7 +188,7 @@ jobs:
         echo ------------ check lcov
         lcov --version || true
 
-    - name: NODE 12.x
+    - name: NODE JS INSTALL
       run: |
         echo ------------ uninstall
         sudo apt-get remove nodejs || true
