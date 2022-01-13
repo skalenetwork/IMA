@@ -417,7 +417,7 @@ async function do_oracle_gas_price_setup(
         details.write( cc.debug( "Latest block on Main Net is " ) + cc.info( latestBlockNumber ) + "\n" );
         strActionName = "do_oracle_gas_price_setup.timestampOfBlock()";
         const latestBlock = await w3_main_net.eth.getBlock( latestBlockNumber );
-        let timestampOfBlock = parseInt( latestBlock.timestamp );
+        let timestampOfBlock = "0x" + w3_main_net.utils.toBN( latestBlock.timestamp ).toString( 16 );
         details.write( cc.debug( "Timestamp on Main Net is " ) + cc.info( timestampOfBlock ) + cc.debug( " (original)" ) + "\n" );
         timestampOfBlock -= 10;
         details.write( cc.debug( "Timestamp on Main Net is " ) + cc.info( timestampOfBlock ) + cc.debug( " (adjusted to past a bit)" ) + "\n" );

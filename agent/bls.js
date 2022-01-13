@@ -998,8 +998,8 @@ async function do_sign_messages_s2m( jarrMessages, nIdxCurrentMsgBlockStart, det
 
 async function do_sign_u256( u256, details, fn ) {
     const strLogPrefix = cc.info( "Sign u256:" ) + " ";
-    log.write( strLogPrefix + cc.debug( " Invoking signing u256 procedure " ) + "\n" );
-    details.write( strLogPrefix + cc.debug( " Invoking signing u256 procedure " ) + "\n" );
+    log.write( strLogPrefix + cc.debug( "Invoking signing u256 procedure " ) + "\n" );
+    details.write( strLogPrefix + cc.debug( "Invoking signing u256 procedure " ) + "\n" );
     fn = fn || function() {};
     if( !( /*imaState.bSignMessages &&*/ imaState.strPathBlsGlue.length > 0 && imaState.joSChainNetworkInfo ) ) {
         details.write( strLogPrefix + cc.debug( "BLS u256 signing is " ) + cc.error( "unavailable" ) + "\n" );
