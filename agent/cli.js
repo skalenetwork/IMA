@@ -27,7 +27,7 @@ const fs = require( "fs" );
 const { cc } = require( "./utils" );
 // const path = require( "path" );
 // const url = require( "url" );
-// const os = require( "os" );
+const os = require( "os" );
 // const shell = require( "shelljs" );
 
 function init() {
@@ -1067,7 +1067,35 @@ function getWeb3FromURL( strURL ) {
 }
 
 function ima_common_init() {
-    log.write( cc.info( "This process " ) + cc.sunny( "PID" ) + cc.info( " is " ) + cc.bright( process.pid ) + "\n" );
+    log.write( cc.debug( "This process " ) + cc.sunny( "PID" ) + cc.debug( " is " ) + cc.bright( process.pid ) + "\n" );
+    log.write( cc.debug( "This process " ) + cc.sunny( "PPID" ) + cc.debug( " is " ) + cc.bright( process.ppid ) + "\n" );
+    log.write( cc.debug( "This process " ) + cc.sunny( "EGID" ) + cc.debug( " is " ) + cc.bright( process.getegid() ) + "\n" );
+    log.write( cc.debug( "This process " ) + cc.sunny( "EUID" ) + cc.debug( " is " ) + cc.bright( process.geteuid() ) + "\n" );
+    log.write( cc.debug( "This process " ) + cc.sunny( "GID" ) + cc.debug( " is " ) + cc.bright( process.getgid() ) + "\n" );
+    log.write( cc.debug( "This process " ) + cc.sunny( "UID" ) + cc.debug( " is " ) + cc.bright( process.getuid() ) + "\n" );
+    log.write( cc.debug( "This process " ) + cc.sunny( "groups" ) + cc.debug( " are " ) + cc.j( process.getgroups() ) + "\n" );
+    log.write( cc.debug( "This process " ) + cc.sunny( "CWD" ) + cc.debug( " is " ) + cc.bright( process.cwd() ) + "\n" );
+    log.write( cc.debug( "This process " ) + cc.sunny( "platform" ) + cc.debug( " is " ) + cc.bright( process.platform ) + "\n" );
+    log.write( cc.debug( "This process " ) + cc.sunny( "release" ) + cc.debug( " is " ) + cc.j( process.release ) + "\n" );
+    log.write( cc.debug( "This process " ) + cc.sunny( "report" ) + cc.debug( " is " ) + cc.j( process.report ) + "\n" );
+    log.write( cc.debug( "This process " ) + cc.sunny( "config" ) + cc.debug( " is " ) + cc.j( process.config ) + "\n" );
+    log.write( cc.sunny( "Node JS" ) + " " + cc.bright( "detailed version information" ) + cc.debug( " is " ) + cc.j( process.versions ) + "\n" );
+    log.write( cc.sunny( "OS" ) + " " + cc.bright( "type" ) + cc.debug( " is " ) + cc.bright( os.type() ) + "\n" );
+    log.write( cc.sunny( "OS" ) + " " + cc.bright( "platform" ) + cc.debug( " is " ) + cc.bright( os.platform() ) + "\n" );
+    log.write( cc.sunny( "OS" ) + " " + cc.bright( "release" ) + cc.debug( " is " ) + cc.bright( os.release() ) + "\n" );
+    log.write( cc.sunny( "OS" ) + " " + cc.bright( "architecture" ) + cc.debug( " is " ) + cc.bright( os.arch() ) + "\n" );
+    log.write( cc.sunny( "OS" ) + " " + cc.bright( "endianness" ) + cc.debug( " is " ) + cc.bright( os.endianness() ) + "\n" );
+    log.write( cc.sunny( "OS" ) + " " + cc.bright( "host name" ) + cc.debug( " is " ) + cc.bright( os.hostname() ) + "\n" );
+    log.write( cc.sunny( "OS" ) + " " + cc.bright( "CPUs" ) + cc.debug( " are " ) + cc.j( os.cpus() ) + "\n" );
+    log.write( cc.sunny( "OS" ) + " " + cc.bright( "network interfaces" ) + cc.debug( " are " ) + cc.j( os.networkInterfaces() ) + "\n" );
+    log.write( cc.sunny( "OS" ) + " " + cc.bright( "home dir" ) + cc.debug( " is " ) + cc.bright( os.homedir() ) + "\n" );
+    log.write( cc.sunny( "OS" ) + " " + cc.bright( "tmp dir" ) + cc.debug( " is " ) + cc.bright( os.tmpdir() ) + "\n" );
+    log.write( cc.sunny( "OS" ) + " " + cc.bright( "uptime" ) + cc.debug( " is " ) + cc.bright( os.uptime() ) + "\n" );
+    log.write( cc.sunny( "OS" ) + " " + cc.bright( "user" ) + cc.debug( " is " ) + cc.j( os.userInfo() ) + "\n" );
+    const joMemory = { total: os.totalmem(), free: os.freemem() };
+    joMemory.freePercent = ( joMemory.free / joMemory.total ) * 100.0;
+    log.write( cc.sunny( "OS" ) + " " + cc.bright( "memory" ) + cc.debug( " is " ) + cc.j( joMemory ) + "\n" );
+    log.write( cc.sunny( "OS" ) + " " + cc.bright( "average load" ) + cc.debug( " is " ) + cc.j( os.loadavg() ) + "\n" );
 
     let n1 = 0;
     let n2 = 0;
