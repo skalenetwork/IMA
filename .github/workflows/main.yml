@@ -75,7 +75,18 @@ jobs:
         npm --version
         echo ------------ yarn
         sudo npm install -g yarn
+        which yarn
         yarn --version
+        echo ------------ node-gyp
+        sudo npm install --global node-gyp
+        echo ------------ truffle
+        sudo yarn global add truffle
+        which truffle
+        truffle --version
+        echo ------------ ganache-cli
+        sudo yarn global add ganache-cli
+        which ganache-cli
+        ganache-cli --version
 
     - name: Install project
       working-directory: ${{env.working-directory}}
