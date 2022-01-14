@@ -145,6 +145,9 @@ jobs:
       run: |
         killall -9 node || true # stop any ganache-cli, etc
         killall -9 geth || true # stop any geth, etc
+        echo "-------------- checking occupied ports"
+        netstat -ltnp
+        echo "-------------- running tests"
         ./predeployed/test/prepare_environment.sh
         ./predeployed/test/test.sh
 
