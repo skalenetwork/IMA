@@ -82,7 +82,7 @@ jobs:
         echo ------------ truffle
         sudo yarn global add truffle
         which truffle
-        truffle --version
+        truffle --version || true
         echo ------------ ganache-cli
         sudo yarn global add ganache-cli
         which ganache-cli
