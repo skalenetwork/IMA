@@ -143,6 +143,8 @@ jobs:
     - name: Test predeployed pip package
       working-directory: ${{env.working-directory}}
       run: |
+        killall -9 node || true # stop any ganache-cli, etc
+        killall -9 geth || true # stop any geth, etc
         ./predeployed/test/prepare_environment.sh
         ./predeployed/test/test.sh
 
