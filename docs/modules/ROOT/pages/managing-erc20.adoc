@@ -81,7 +81,7 @@ If you aren't using OpenZeppelin's framework, then you can simply manually add h
 
 === 2. Add a Minter Role
 
-Now you need to add the pre-deployed **TokenManagerERC20** contact on your SKALE Chain as the MINTER_ROLE for the modified SKALE Chain contract. With OpenZeppelin's framework, you simply need to execute an AddMinter transaction on the SKALE chain token contract.
+Now you need to add the pre-deployed **TokenManagerERC20** contract on your SKALE Chain as the MINTER_ROLE for the modified SKALE Chain contract. With OpenZeppelin's framework, you simply need to execute an AddMinter transaction on the SKALE chain token contract.
 
 [discrete]
 ==== Example Add Minter Role 
