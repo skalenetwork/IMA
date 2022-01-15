@@ -4623,6 +4623,7 @@ async function do_s2s_all( // s-chain --> s-chain
     optsPendingTxAnalysis,
     optsStateFile
 ) {
+    const strDirection = "S2S";
     const arr_schains_cached = skale_observer.get_last_cached_schains();
     const cntSChains = arr_schains_cached.length;
     for( let idxSChain = 0; idxSChain < cntSChains; ++ idxSChain ) {

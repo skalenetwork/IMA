@@ -930,7 +930,7 @@ imaCLI.parse( {
     "loop": function() {
         fnInitActionSkaleNetworkScanForS2S();
         imaState.arrActions.push( {
-            "name": "M<->S transfer loop",
+            "name": "M<->S and S->S transfer loop",
             "fn": async function() {
                 IMA.isPreventExitAfterLastAction = true;
                 if( ! imaState.bNoWaitSChainStarted )

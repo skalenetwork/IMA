@@ -360,7 +360,7 @@ async function periodic_caching_stop() {
 }
 
 function pick_random_schain_node_index( jo_schain ) {
-    let min = 0, max = jo_schain.data.computed.nodes.length;
+    let min = 0, max = jo_schain.data.computed.nodes.length - 1;
     min = Math.ceil( min );
     max = Math.floor( max );
     const idxNode = Math.floor( Math.random() * ( max - min + 1 ) ) + min;
