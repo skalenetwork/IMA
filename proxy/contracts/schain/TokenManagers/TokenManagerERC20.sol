@@ -50,6 +50,8 @@ contract TokenManagerERC20 is TokenManager, ITokenManagerERC20 {
     // address clone on schain => added or not
     mapping(ERC20OnChain => bool) public addedClones;
 
+    mapping(bytes32 => mapping(address => ERC20OnChain)) public interchainClonesErc20;
+
     /**
      * @dev Emitted when schain owner register new ERC20 clone.
      */
@@ -126,7 +128,7 @@ contract TokenManagerERC20 is TokenManager, ITokenManagerERC20 {
             operation == Messages.MessageType.TRANSFER_ERC20_AND_TOKEN_INFO ||
             operation == Messages.MessageType.TRANSFER_ERC20_AND_TOTAL_SUPPLY
         ) {
-            receiver = _sendERC20(data);
+            receiver = _sendERC20(fromChainHash, data);
         } else {
             revert("MessageType is unknown");
         }
@@ -183,7 +185,7 @@ contract TokenManagerERC20 is TokenManager, ITokenManagerERC20 {
      * Emits a {ERC20TokenCreated} event if token did not exist and was automatically deployed.
      * Emits a {ERC20TokenReceived} event on success.
      */
-    function _sendERC20(bytes calldata data) private returns (address) {        
+    function _sendERC20(bytes32 fromChainHash, bytes calldata data) private returns (address) {        
         Messages.MessageType messageType = Messages.getMessageType(data);
         address receiver;
         address token;
@@ -197,7 +199,11 @@ contract TokenManagerERC20 is TokenManager, ITokenManagerERC20 {
             token = message.baseErc20transfer.token;
             amount = message.baseErc20transfer.amount;
             totalSupply = message.totalSupply;
-            contractOnSchain = clonesErc20[token];
+            if (fromChainHash == MAINNET_HASH) {
+                contractOnSchain = clonesErc20[token];
+            } else {
+                contractOnSchain = interchainClonesErc20[fromChainHash][token];
+            }
         } else {
             Messages.TransferErc20AndTokenInfoMessage memory message =
                 Messages.decodeTransferErc20AndTokenInfoMessage(data);
