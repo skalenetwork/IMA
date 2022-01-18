@@ -186,8 +186,12 @@ async function get_web3_blockNumber( details, attempts, w3 ) {
         } catch ( e ) {}
         idxAttempt++;
     }
-    if( idxAttempt + 1 > cntAttempts && nLatestBlockNumber === "" )
-        throw new Error( "Could not not get blockNumber" );
+    if( ( idxAttempt + 1 ) > cntAttempts && nLatestBlockNumber === "" ) {
+        details.write( cc.fatal( "ERROR:" ) +
+            cc.error( " Could not not get " ) + cc.warning( "blockNumber" ) + cc.error( " after " ) +
+            cc.info( cntAttempts ) + cc.error( " attempts, previous result is: " ) + cc.info( nLatestBlockNumber ) + "\n" );
+        throw new Error( "Could not get \"blockNumber\" after " + cntAttempts + " attempts" );
+    }
     return nLatestBlockNumber;
 }
 
@@ -200,19 +204,20 @@ async function get_web3_transactionCount( details, attempts, w3, address, param 
     let idxAttempt = 2;
     while( txc === "" && idxAttempt <= cntAttempts ) {
         details.write(
-            cc.warning( "Repeat " ) + cc.error( "getTransactionCount" ) +
-            cc.warning( " attempt " ) + cc.error( idxAttempt ) +
-            cc.warning( ", previous result is: " ) + cc.info( txc ) + "\n"
-        );
+            cc.warning( "Repeat " ) + cc.error( "getTransactionCount" ) + cc.warning( " attempt " ) + cc.error( idxAttempt ) +
+            cc.warning( ", previous result is: " ) + cc.info( txc ) + "\n" );
         await sleep( 10000 );
         try {
             txc = await w3.eth.getBlockNumber();
         } catch ( e ) {}
         idxAttempt++;
     }
-    if( idxAttempt + 1 > cntAttempts && txc === "" )
-        throw new Error( "Could not not get Transaction Count" );
-
+    if( ( idxAttempt + 1 ) > cntAttempts && txc === "" ) {
+        details.write( cc.fatal( "ERROR:" ) +
+            cc.error( " Could not " ) + cc.warning( "getTransactionCount" ) + cc.error( " after " ) +
+            cc.warning( cntAttempts ) + cc.error( " attempts, previous result is: " ) + cc.info( txc ) + "\n" );
+        throw new Error( "Could not \"getTransactionCount\" after " + cntAttempts + " attempts" );
+    }
     return txc;
 }
 
@@ -233,8 +238,12 @@ async function get_web3_transactionReceipt( details, attempts, w3, txHash ) {
         } catch ( e ) {}
         idxAttempt++;
     }
-    if( idxAttempt + 1 > cntAttempts && ( txReceipt === "" || txReceipt === undefined ) )
-        throw new Error( "Could not not get Transaction Receipt" );
+    if( ( idxAttempt + 1 ) > cntAttempts && ( txReceipt === "" || txReceipt === undefined ) ) {
+        details.write( cc.fatal( "ERROR:" ) +
+            cc.error( " Could not " ) + cc.warning( "getTransactionReceipt" ) + cc.error( " after " ) +
+            cc.info( cntAttempts ) + cc.error( " attempts, previous result is: " ) + cc.j( txReceipt ) + "\n" );
+        throw new Error( "Could not \"getTransactionReceipt\" after " + cntAttempts + " attempts" );
+    }
     return txReceipt;
 }
 
@@ -251,7 +260,7 @@ async function get_web3_pastEvents( details, w3, attempts, joContract, strEventN
     let idxAttempt = 2;
     while( joAllEventsInBlock === "" && idxAttempt <= cntAttempts ) {
         details.write(
-            cc.warning( "Repeat " ) + cc.error( "getPastEvents" ) + cc.warning( "/" ) + cc.error( strEventName ) +
+            cc.warning( "Repeat " ) + cc.info( "getPastEvents" ) + cc.warning( "/" ) + cc.error( attention ) +
             cc.warning( ", attempt " ) + cc.error( idxAttempt ) +
             cc.warning( ", from block " ) + cc.info( nBlockFrom ) +
             cc.warning( ", to block " ) + cc.info( nBlockTo ) +
@@ -266,10 +275,16 @@ async function get_web3_pastEvents( details, w3, attempts, joContract, strEventN
         } catch ( err ) {}
         idxAttempt++;
     }
-    if( idxAttempt + 1 === cntAttempts && joAllEventsInBlock === "" ) {
+    if( ( idxAttempt + 1 ) === cntAttempts && joAllEventsInBlock === "" ) {
+        details.write( cc.fatal( "ERROR:" ) +
+            cc.error( "Could not get event " ) + cc.attention( strEventName ) + cc.error( " with " ) + cc.info( "getPastEvents" ) +
+            cc.error( ", from block " ) + cc.warning( nBlockFrom ) + cc.error( ", to block " ) + cc.warning( nBlockTo ) +
+            cc.error( " after " ) + cc.warning( cntAttempts ) + cc.error( " attempts, previous result is: " ) +
+            cc.j( joAllEventsInBlock ) + "\n" );
         throw new Error(
-            "Could not not get Event \"" + strEventName +
-            "\", from block " + nBlockFrom + ", to block " + nBlockTo
+            "Could not get Event \"" + strEventName +
+            "\", from block " + nBlockFrom + ", to block " + nBlockTo +
+            " after " + cntAttempts + " attempts"
         );
     }
     return joAllEventsInBlock;
@@ -3593,33 +3608,6 @@ async function do_erc1155_batch_payment_from_s_chain(
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-function w3provider_2_url( provider ) {
-    if( ! provider )
-        return null;
-    if( "host" in provider ) {
-        const u = provider.host.toString();
-        if( u && cc.safeURL( u ) )
-            return u;
-    }
-    if( "url" in provider ) {
-        const u = provider.url.toString();
-        if( u && cc.safeURL( u ) )
-            return u;
-    }
-    return null;
-}
-
-function w3_2_url( w3 ) {
-    if( ! w3 )
-        return null;
-    if( !( "currentProvider" in w3 ) )
-        return null;
-    return w3provider_2_url( w3.currentProvider );
-}
-
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
 function parseIntOrHex( s ) {
     if( typeof s != "string" )
         return parseInt( s );
@@ -3636,8 +3624,8 @@ async function async_pending_tx_start( details, w3, w3_opposite, chain_id, chain
     const strLogPrefix = "";
     try {
         if( chain_id == "Mainnet" ) {
-            details.write( strLogPrefix + cc.debug( "Reporting pending transaction " ) + cc.notice( txHash ) + + cc.debug( " start from " ) + cc.u( w3_2_url( w3 ) ) + cc.debug( "..." ) + "\n" );
-            const strNodeURL = w3_2_url( w3_opposite );
+            details.write( strLogPrefix + cc.debug( "Reporting pending transaction " ) + cc.notice( txHash ) + + cc.debug( " start from " ) + cc.u( owaspUtils.w3_2_url( w3 ) ) + cc.debug( "..." ) + "\n" );
+            const strNodeURL = owaspUtils.w3_2_url( w3_opposite );
             details.write( strLogPrefix + cc.debug( "Will report pending work cache to " ) + cc.u( strNodeURL ) + cc.debug( "..." ) + "\n" );
             const rpcCallOpts = null;
             await rpcCall.create( strNodeURL, rpcCallOpts, async function( joCall, err ) {
@@ -3685,7 +3673,7 @@ async function async_pending_tx_start( details, w3, w3_opposite, chain_id, chain
         }
     } catch ( err ) {
         const s =
-            strLogPrefix + cc.error( "PENDING WORK START ERROR: API call error from " ) + cc.u( w3_2_url( w3 ) ) +
+            strLogPrefix + cc.error( "PENDING WORK START ERROR: API call error from " ) + cc.u( owaspUtils.w3_2_url( w3 ) ) +
             cc.error( ": " ) + cc.error( err ) +
             "\n";
         if( verbose_get() >= RV_VERBOSE.error )
@@ -3698,8 +3686,8 @@ async function async_pending_tx_complete( details, w3, w3_opposite, chain_id, ch
     const strLogPrefix = "";
     try {
         if( chain_id == "Mainnet" ) {
-            details.write( strLogPrefix + cc.debug( "Reporting pending transaction " ) + cc.notice( txHash ) + + cc.debug( " completion from " ) + cc.u( w3_2_url( w3 ) ) + cc.debug( "..." ) + "\n" );
-            const strNodeURL = w3_2_url( w3_opposite );
+            details.write( strLogPrefix + cc.debug( "Reporting pending transaction " ) + cc.notice( txHash ) + + cc.debug( " completion from " ) + cc.u( owaspUtils.w3_2_url( w3 ) ) + cc.debug( "..." ) + "\n" );
+            const strNodeURL = owaspUtils.w3_2_url( w3_opposite );
             details.write( strLogPrefix + cc.debug( "Will report pending work cache to " ) + cc.u( strNodeURL ) + cc.debug( "..." ) + "\n" );
             const rpcCallOpts = null;
             await rpcCall.create( strNodeURL, rpcCallOpts, async function( joCall, err ) {
@@ -3747,7 +3735,7 @@ async function async_pending_tx_complete( details, w3, w3_opposite, chain_id, ch
         }
     } catch ( err ) {
         const s =
-            strLogPrefix + cc.error( "PENDING WORK COMPLETE ERROR: API call error from " ) + cc.u( w3_2_url( w3 ) ) +
+            strLogPrefix + cc.error( "PENDING WORK COMPLETE ERROR: API call error from " ) + cc.u( owaspUtils.w3_2_url( w3 ) ) +
             cc.error( ": " ) + cc.error( err ) +
             "\n";
         if( verbose_get() >= RV_VERBOSE.error )
@@ -3764,9 +3752,9 @@ async function async_pending_tx_scanner( details, w3, w3_opposite, chain_id, cha
     cb = cb || function( tx ) { };
     const strLogPrefix = "";
     try {
-        details.write( strLogPrefix + cc.debug( "Scanning pending transactions from " ) + cc.u( w3_2_url( w3 ) ) + cc.debug( "..." ) + "\n" );
+        details.write( strLogPrefix + cc.debug( "Scanning pending transactions from " ) + cc.u( owaspUtils.w3_2_url( w3 ) ) + cc.debug( "..." ) + "\n" );
         if( chain_id == "Mainnet" ) {
-            const strNodeURL = w3_2_url( w3_opposite );
+            const strNodeURL = owaspUtils.w3_2_url( w3_opposite );
             details.write( strLogPrefix + cc.debug( "Using pending work cache from " ) + cc.u( strNodeURL ) + cc.debug( "..." ) + "\n" );
             let havePendingWorkInfo = false;
             const rpcCallOpts = null;
@@ -3865,7 +3853,7 @@ async function async_pending_tx_scanner( details, w3, w3_opposite, chain_id, cha
                     } catch ( err ) {
                         if( verbose_get() >= RV_VERBOSE.error ) {
                             const s =
-                                strLogPrefix + cc.error( "PENDING TRANSACTIONS ENUMERATION HANDLER ERROR: from " ) + cc.u( w3_2_url( w3 ) ) +
+                                strLogPrefix + cc.error( "PENDING TRANSACTIONS ENUMERATION HANDLER ERROR: from " ) + cc.u( owaspUtils.w3_2_url( w3 ) ) +
                                 cc.error( ": " ) + cc.error( err ) +
                                 "\n";
                             if( verbose_get() >= RV_VERBOSE.error )
@@ -3882,7 +3870,7 @@ async function async_pending_tx_scanner( details, w3, w3_opposite, chain_id, cha
         } // else from if( chain_id == "Mainnet" )
     } catch ( err ) {
         const s =
-            strLogPrefix + cc.error( "PENDING TRANSACTIONS SCAN ERROR: API call error from " ) + cc.u( w3_2_url( w3 ) ) +
+            strLogPrefix + cc.error( "PENDING TRANSACTIONS SCAN ERROR: API call error from " ) + cc.u( owaspUtils.w3_2_url( w3 ) ) +
             cc.error( ": " ) + cc.error( err ) +
             "\n";
         if( verbose_get() >= RV_VERBOSE.error )
@@ -3979,6 +3967,7 @@ async function do_transfer(
     nBlockAwaitDepth,
     nBlockAge,
     fn_sign_messages,
+    joExtraSignOpts,
     //
     tc_dst,
     //
@@ -3998,7 +3987,7 @@ async function do_transfer(
     const strLogPrefix = cc.bright( strDirection ) + cc.info( " transfer from " ) + cc.notice( chain_id_src ) + cc.info( " to " ) + cc.notice( chain_id_dst ) + cc.info( ":" ) + " ";
     if( fn_sign_messages == null || fn_sign_messages == undefined ) {
         details.write( strLogPrefix + cc.debug( "Using internal signing stub function" ) + "\n" );
-        fn_sign_messages = async function( jarrMessages, nIdxCurrentMsgBlockStart, details, fnAfter ) {
+        fn_sign_messages = async function( jarrMessages, nIdxCurrentMsgBlockStart, details, joExtraSignOpts, fnAfter ) {
             details.write( strLogPrefix + cc.debug( "Message signing callback was " ) + cc.error( "not provided" ) +
                 cc.debug( " to IMA, first real message index is:" ) + cc.info( nIdxCurrentMsgBlockStart ) +
                 cc.debug( ", have " ) + cc.info( jarrMessages.length ) + cc.debug( " message(s) to process:" ) + cc.j( jarrMessages ) +
@@ -4301,7 +4290,7 @@ async function do_transfer(
                     } );
                     if( joFoundPendingTX ) {
                         details.write(
-                            strLogPrefix + cc.warning( "PENDING TRANSACTION ANALYSIS(1) from " ) + cc.u( w3_2_url( w3_dst ) ) +
+                            strLogPrefix + cc.warning( "PENDING TRANSACTION ANALYSIS(1) from " ) + cc.u( owaspUtils.w3_2_url( w3_dst ) ) +
                             cc.warning( " found un-finished transaction(s) in pending queue to be processed by destination message proxy: " ) +
                             cc.j( joFoundPendingTX ) +
                             "\n" );
@@ -4328,14 +4317,14 @@ async function do_transfer(
                             } );
                             if( joFoundPendingTX ) {
                                 details.write(
-                                    strLogPrefix + cc.warning( "PENDING TRANSACTION ANALYSIS(2) from " ) + cc.u( w3_2_url( w3_dst ) ) +
+                                    strLogPrefix + cc.warning( "PENDING TRANSACTION ANALYSIS(2) from " ) + cc.u( owaspUtils.w3_2_url( w3_dst ) ) +
                                     cc.warning( " found un-finished transaction(s) in pending queue to be processed by destination message proxy: " ) +
                                     cc.j( joFoundPendingTX ) +
                                     "\n" );
                                 if( "isIgnore2" in optsPendingTxAnalysis && ( !optsPendingTxAnalysis.isIgnore2 ) )
                                     return; // return after 2nd pending transactions analysis
                                 details.write(
-                                    strLogPrefix + cc.warning( "PENDING TRANSACTION ANALYSIS(2) from " ) + cc.u( w3_2_url( w3_dst ) ) +
+                                    strLogPrefix + cc.warning( "PENDING TRANSACTION ANALYSIS(2) from " ) + cc.u( owaspUtils.w3_2_url( w3_dst ) ) +
                                     cc.warning( " result is " ) + cc.error( "ignored" ) +
                                     "\n" );
                                 wasIgnoredPTX = true;
@@ -4344,7 +4333,7 @@ async function do_transfer(
                             if( "isIgnore" in optsPendingTxAnalysis && ( !optsPendingTxAnalysis.isIgnore ) )
                                 return; // return after first 1st transactions analysis
                             details.write(
-                                strLogPrefix + cc.warning( "PENDING TRANSACTION ANALYSIS(1) from " ) + cc.u( w3_2_url( w3_dst ) ) +
+                                strLogPrefix + cc.warning( "PENDING TRANSACTION ANALYSIS(1) from " ) + cc.u( owaspUtils.w3_2_url( w3_dst ) ) +
                                 cc.warning( " result is " ) + cc.error( "ignored" ) +
                                 "\n" );
                             wasIgnoredPTX = true;
@@ -4354,7 +4343,7 @@ async function do_transfer(
                 } catch ( err ) {
                     const s =
                         strLogPrefix + cc.error( "PENDING TRANSACTION ANALYSIS ERROR: API call error from " ) +
-                        cc.u( w3_2_url( w3_dst ) ) + cc.error( ": " ) + cc.error( err ) + "\n";
+                        cc.u( owaspUtils.w3_2_url( w3_dst ) ) + cc.error( ": " ) + cc.error( err ) + "\n";
                     if( verbose_get() >= RV_VERBOSE.error )
                         log.write( s );
                     details.write( s );
@@ -4384,7 +4373,7 @@ async function do_transfer(
             log.write( strLogPrefix + cc.debug( "Will invoke message signing callback, first real message index is:" ) +
                 cc.info( nIdxCurrentMsgBlockStart ) + cc.info( jarrMessages.length ) + cc.debug( " message(s) to process:" ) + cc.j( jarrMessages ) +
                 "\n" );
-            await fn_sign_messages( jarrMessages, nIdxCurrentMsgBlockStart, details, async function( err, jarrMessages, joGlueResult ) {
+            await fn_sign_messages( jarrMessages, nIdxCurrentMsgBlockStart, details, joExtraSignOpts, async function( err, jarrMessages, joGlueResult ) {
                 const details = log.createMemoryStream();
                 details.write( strLogPrefix + cc.debug( "Did invoked message signing callback, first real message index is:" ) +
                 cc.info( nIdxCurrentMsgBlockStart ) + cc.info( jarrMessages.length ) + cc.debug( " message(s) to process:" ) + cc.j( jarrMessages ) + "\n" );
@@ -4636,6 +4625,17 @@ async function do_s2s_all( // s-chain --> s-chain
         // ??? assuming all S-Chains have same ABIs here
         const jo_message_proxy_src = new w3_src.eth.Contract( imaState.joAbiPublishResult_s_chain.message_proxy_chain_abi, imaState.joAbiPublishResult_s_chain.message_proxy_chain_address );
         const jo_deposit_box_src = new w3_src.eth.Contract( imaState.joAbiPublishResult_s_chain.message_proxy_chain_abi, imaState.joAbiPublishResult_s_chain.message_proxy_chain_address );
+        const joExtraSignOpts = {
+            skale_observer: skale_observer,
+            chain_id_src: chain_id_src,
+            cid_src: cid_src,
+            chain_id_dst: chain_id_dst,
+            cid_dst: cid_dst,
+            joAccountSrc: joAccountSrc,
+            joAccountDst: joAccountDst,
+            w3_src: w3_src,
+            w3_dst: w3_dst
+        };
         await do_transfer(
             strDirection,
             //
@@ -4660,6 +4660,7 @@ async function do_s2s_all( // s-chain --> s-chain
             nBlockAwaitDepth,
             nBlockAge,
             fn_sign_messages,
+            joExtraSignOpts,
             //
             tc_dst,
             //

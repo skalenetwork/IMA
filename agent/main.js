@@ -843,6 +843,7 @@ imaCLI.parse( {
                     imaState.nBlockAwaitDepthM2S,
                     imaState.nBlockAgeM2S,
                     imaBLS.do_sign_messages_m2s, // fn_sign_messages
+                    null, // joExtraSignOpts
                     imaState.tc_s_chain,
                     imaState.optsPendingTxAnalysis,
                     imaState.optsStateFile
@@ -877,6 +878,7 @@ imaCLI.parse( {
                     imaState.nBlockAwaitDepthS2M,
                     imaState.nBlockAgeS2M,
                     imaBLS.do_sign_messages_s2m, // fn_sign_messages
+                    null, // joExtraSignOpts
                     imaState.tc_main_net,
                     imaState.optsPendingTxAnalysis,
                     imaState.optsStateFile
@@ -1973,6 +1975,7 @@ async function single_transfer_loop() {
         imaState.nBlockAwaitDepthM2S,
         imaState.nBlockAgeM2S,
         imaBLS.do_sign_messages_m2s, // fn_sign_messages
+        null, // joExtraSignOpts
         imaState.tc_s_chain,
         imaState.optsPendingTxAnalysis,
         imaState.optsStateFile
@@ -2003,6 +2006,7 @@ async function single_transfer_loop() {
         imaState.nBlockAwaitDepthS2M,
         imaState.nBlockAgeS2M,
         imaBLS.do_sign_messages_s2m, // fn_sign_messages
+        null, // joExtraSignOpts
         imaState.tc_main_net,
         imaState.optsPendingTxAnalysis,
         imaState.optsStateFile
@@ -2028,7 +2032,7 @@ async function single_transfer_loop() {
             imaState.nMaxTransactionsM2S,
             imaState.nBlockAwaitDepthM2S,
             imaState.nBlockAgeM2S,
-            imaBLS.do_sign_messages_s2m, // fn_sign_messages
+            imaBLS.do_sign_messages_s2s, // fn_sign_messages
             imaState.tc_s_chain,
             imaState.optsPendingTxAnalysis,
             null // imaState.optsStateFile
