@@ -71,6 +71,7 @@ const SkaledPorts = {
 };
 
 function calc_ports( jo_schain, schain_base_port ) {
+    // TO-DO: these temporary port values should be in "node", not in "schain"
     jo_schain.data.computed.ports = {
         httpRpcPort: schain_base_port + SkaledPorts.HTTP_JSON,
         httpsRpcPort: schain_base_port + SkaledPorts.HTTPS_JSON,

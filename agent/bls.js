@@ -784,34 +784,36 @@ async function do_sign_messages_impl( strDirection, jarrMessages, nIdxCurrentMsg
                 details.write( strErrorMessage );
                 return;
             }
-            let targetChainName = ""; let fromChainName = "";
-            let targetChainURL = ""; let fromChainURL = "";
+            let targetChainName = "";
+            let fromChainName = "";
+            // let targetChainURL = "";
+            // let fromChainURL = "";
             if( strDirection == "M2S" ) {
                 targetChainName = "" + ( imaState.strChainName_s_chain ? imaState.strChainName_s_chain : "" );
                 fromChainName = "" + ( imaState.strChainName_main_net ? imaState.strChainName_main_net : "" );
-                targetChainURL = strNodeURL;
-                fromChainURL = owaspUtils.w3_2_url( imaState.w3_main_net );
+                // targetChainURL = strNodeURL;
+                // fromChainURL = owaspUtils.w3_2_url( imaState.w3_main_net );
             } else if( strDirection == "S2M" ) {
                 targetChainName = "" + ( imaState.strChainName_main_net ? imaState.strChainName_main_net : "" );
                 fromChainName = "" + ( imaState.strChainName_s_chain ? imaState.strChainName_s_chain : "" );
-                targetChainURL = owaspUtils.w3_2_url( imaState.w3_main_net );
-                fromChainURL = strNodeURL;
+                // targetChainURL = owaspUtils.w3_2_url( imaState.w3_main_net );
+                // fromChainURL = strNodeURL;
             } else if( strDirection == "S2S" ) {
                 targetChainName = "" + joExtraSignOpts.chain_id_dst;
                 fromChainName = "" + joExtraSignOpts.chain_id_src;
-                targetChainURL = owaspUtils.w3_2_url( joExtraSignOpts.w3_dst );
-                fromChainURL = owaspUtils.w3_2_url( joExtraSignOpts.w3_src );
+                // targetChainURL = owaspUtils.w3_2_url( joExtraSignOpts.w3_dst );
+                // fromChainURL = owaspUtils.w3_2_url( joExtraSignOpts.w3_src );
             } else
                 throw new Error( "CRITICAL ERROR: Failed do_sign_messages_impl() with unknown directon \"" + strDirection + "\"" );
 
             const joParams = {
                 direction: "" + strDirection,
                 startMessageIdx: nIdxCurrentMsgBlockStart,
-                dstChainID: targetChainName,
-                srcChainID: fromChainName,
-                messages: jarrMessages,
-                fromChainURL: fromChainURL,
-                targetChainURL: targetChainURL
+                dstChainName: targetChainName,
+                srcChainName: fromChainName,
+                messages: jarrMessages
+                // fromChainURL: fromChainURL,
+                // targetChainURL: targetChainURL
             };
             details.write(
                 strLogPrefix + cc.debug( "Will invoke " ) + cc.info( "skale_imaVerifyAndSign" ) +
