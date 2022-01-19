@@ -132,6 +132,7 @@ contract TokenManagerERC721 is TokenManager, ITokenManagerERC721 {
      * @dev Allows Schain owner to register an ERC721 token clone in the token manager.
      */
     function addERC721TokenByOwner(
+        string calldata targetChainName,
         address erc721OnMainnet,
         address erc721OnSchain
     )

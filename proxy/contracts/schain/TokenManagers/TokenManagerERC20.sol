@@ -42,7 +42,7 @@ contract TokenManagerERC20 is TokenManager, ITokenManagerERC20 {
     using AddressUpgradeable for address;
 
     // address of ERC20 on Mainnet => ERC20 on Schain
-    mapping(address => ERC20OnChain) public clonesErc20;
+    mapping(address => ERC20OnChain) public deprecatedClonesErc20;
     
     // address of clone on schain => totalSupplyOnMainnet
     mapping(IERC20Upgradeable => uint) public totalSupplyOnMainnet;
@@ -50,22 +50,22 @@ contract TokenManagerERC20 is TokenManager, ITokenManagerERC20 {
     // address clone on schain => added or not
     mapping(ERC20OnChain => bool) public addedClones;
 
-    mapping(bytes32 => mapping(address => ERC20OnChain)) public interchainClonesErc20;
+    mapping(bytes32 => mapping(address => ERC20OnChain)) public clonesErc20;
 
     /**
      * @dev Emitted when schain owner register new ERC20 clone.
      */
-    event ERC20TokenAdded(address indexed erc20OnMainnet, address indexed erc20OnSchain);
+    event ERC20TokenAdded(address indexed erc20OnMainChain, address indexed erc20OnSchain);
 
     /**
      * @dev Emitted when TokenManagerERC20 automatically deploys new ERC20 clone.
      */
-    event ERC20TokenCreated(address indexed erc20OnMainnet, address indexed erc20OnSchain);
+    event ERC20TokenCreated(address indexed erc20OnMainChain, address indexed erc20OnSchain);
 
     /**
      * @dev Emitted when someone sends tokens from mainnet to schain.
      */
-    event ERC20TokenReceived(address indexed erc20OnMainnet, address indexed erc20OnSchain, uint256 amount);
+    event ERC20TokenReceived(address indexed erc20OnMainChain, address indexed erc20OnSchain, uint256 amount);
 
     /**
      * @dev Move tokens from schain to mainnet.
@@ -139,20 +139,23 @@ contract TokenManagerERC20 is TokenManager, ITokenManagerERC20 {
      * @dev Allows Schain owner to register an ERC20 token clone in the token manager.
      */
     function addERC20TokenByOwner(
-        address erc20OnMainnet,
+        string calldata targetChainName,
+        address erc20OnMainChain,
         address erc20OnSchain
      )
         external
         override
         onlyTokenRegistrar
     {
+        require(messageProxy.isConnectedChain(targetChainName), "Chain is not connected");
         require(erc20OnSchain.isContract(), "Given address is not a contract");
         require(ERC20OnChain(erc20OnSchain).totalSupply() == 0, "TotalSupply is not zero");
-        require(address(clonesErc20[erc20OnMainnet]) == address(0), "Could not relink clone");
+        bytes32 schainHash = keccak256(abi.encodePacked(targetChainName));
+        require(address(clonesErc20[schainHash][erc20OnMainChain]) == address(0), "Could not relink clone");
         require(!addedClones[ERC20OnChain(erc20OnSchain)], "Clone was already added");
-        clonesErc20[erc20OnMainnet] = ERC20OnChain(erc20OnSchain);
+        clonesErc20[schainHash][erc20OnMainChain] = ERC20OnChain(erc20OnSchain);
         addedClones[ERC20OnChain(erc20OnSchain)] = true;
-        emit ERC20TokenAdded(erc20OnMainnet, erc20OnSchain);
+        emit ERC20TokenAdded(erc20OnMainChain, erc20OnSchain);
     }
 
     /**
@@ -199,11 +202,7 @@ contract TokenManagerERC20 is TokenManager, ITokenManagerERC20 {
             token = message.baseErc20transfer.token;
             amount = message.baseErc20transfer.amount;
             totalSupply = message.totalSupply;
-            if (fromChainHash == MAINNET_HASH) {
-                contractOnSchain = clonesErc20[token];
-            } else {
-                contractOnSchain = interchainClonesErc20[fromChainHash][token];
-            }
+            contractOnSchain = clonesErc20[fromChainHash][token];
         } else {
             Messages.TransferErc20AndTokenInfoMessage memory message =
                 Messages.decodeTransferErc20AndTokenInfoMessage(data);
@@ -211,11 +210,12 @@ contract TokenManagerERC20 is TokenManager, ITokenManagerERC20 {
             token = message.baseErc20transfer.token;
             amount = message.baseErc20transfer.amount;
             totalSupply = message.totalSupply;
-            contractOnSchain = clonesErc20[token];
+            contractOnSchain = clonesErc20[fromChainHash][token];
+
             if (address(contractOnSchain) == address(0)) {
                 require(automaticDeploy, "Automatic deploy is disabled");
                 contractOnSchain = new ERC20OnChain(message.tokenInfo.name, message.tokenInfo.symbol);
-                clonesErc20[token] = contractOnSchain;
+                clonesErc20[fromChainHash][token] = contractOnSchain;
                 addedClones[contractOnSchain] = true;
                 emit ERC20TokenCreated(token, address(contractOnSchain));
             }
@@ -241,13 +241,13 @@ contract TokenManagerERC20 is TokenManager, ITokenManagerERC20 {
     function _exit(
         bytes32 chainHash,
         address messageReceiver,
-        address contractOnMainnet,
+        address contractOnMainChain,
         address to,
         uint256 amount
     )
         private
     {
-        ERC20BurnableUpgradeable contractOnSchain = clonesErc20[contractOnMainnet];
+        ERC20BurnableUpgradeable contractOnSchain = clonesErc20[chainHash][contractOnMainChain];
         require(address(contractOnSchain).isContract(), "No token clone on schain");
         require(contractOnSchain.balanceOf(msg.sender) >= amount, "Insufficient funds");
         require(
@@ -265,7 +265,7 @@ contract TokenManagerERC20 is TokenManager, ITokenManagerERC20 {
         messageProxy.postOutgoingMessage(
             chainHash,
             messageReceiver,
-            Messages.encodeTransferErc20Message(contractOnMainnet, to, amount)
+            Messages.encodeTransferErc20Message(contractOnMainChain, to, amount)
         );
     }
 }

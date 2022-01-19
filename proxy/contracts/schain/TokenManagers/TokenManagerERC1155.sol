@@ -182,6 +182,7 @@ contract TokenManagerERC1155 is TokenManager, ITokenManagerERC1155 {
      * @dev Allows Schain owner to register an ERC1155 token clone in the token manager.
      */
     function addERC1155TokenByOwner(
+        string calldata targetChainName,
         address erc1155OnMainnet,
         address erc1155OnSchain
     )
