@@ -4252,7 +4252,7 @@ async function do_transfer(
                 //
                 details.write( strLogPrefix + cc.debug( "Will process message counter value " ) + cc.info( nIdxCurrentMsg ) + "\n" );
                 arrMessageCounters.push( nIdxCurrentMsg );
-                var msg =  {
+                const msg = {
                     sender: joValues.srcContract,
                     destinationContract: joValues.dstContract,
                     to: joValues.to,
@@ -4468,9 +4468,9 @@ async function do_transfer(
                 const estimatedGas_postIncomingMessages = await tc_dst.computeGas( methodWithArguments_postIncomingMessages, w3_dst, 10000000, gasPrice, joAccountDst.address( w3_dst ), "0" );
                 details.write( strLogPrefix + cc.debug( "Using estimated " ) + cc.info( "gas" ) + cc.debug( "=" ) + cc.notice( estimatedGas_postIncomingMessages ) + "\n" );
                 let postIncomingMessagesGasLimit = estimatedGas_postIncomingMessages;
-                if (strDirection == "S2M") {
-                    let expectedGasLimit = perMessageGasForTransfer * jarrMessages.length + additionalS2MTransferOverhead;
-                    postIncomingMessagesGasLimit = Math.max(postIncomingMessagesGasLimit, expectedGasLimit);
+                if( strDirection == "S2M" ) {
+                    const expectedGasLimit = perMessageGasForTransfer * jarrMessages.length + additionalS2MTransferOverhead;
+                    postIncomingMessagesGasLimit = Math.max( postIncomingMessagesGasLimit, expectedGasLimit );
                 }
 
                 const isIgnore_postIncomingMessages = false;
