@@ -238,7 +238,7 @@ function find_schain_index_in_array_by_name( arr_schains, strSChainName ) {
     for( let idxSChain = 0; idxSChain < arr_schains.length; ++ idxSChain ) {
         const jo_schain = arr_schains[idxSChain];
         if( jo_schain.data.name.toString() == strSChainName.toString() )
-            return i;
+            return idxSChain;
     }
     return -1;
 }

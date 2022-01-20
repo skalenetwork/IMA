@@ -4059,7 +4059,7 @@ async function do_transfer(
                         "\n" );
                 }
                 details.close();
-                return;
+                return false;
             }
             const arrMessageCounters = [];
             const jarrMessages = [];
@@ -4109,8 +4109,10 @@ async function do_transfer(
                 //
                 //
                 strActionName = "src-chain->MessageProxy->scan-past-events()";
-                details.write( strLogPrefix + cc.debug( "Will call " ) + cc.notice( strActionName ) +
-                cc.debug( " for " ) + cc.info( "OutgoingMessage" ) + cc.debug( " event..." ) + "\n" );
+                details.write(
+                    strLogPrefix + cc.debug( "Will call " ) + cc.notice( strActionName ) +
+                    cc.debug( " for " ) + cc.info( "OutgoingMessage" ) + cc.debug( " event..." ) +
+                    "\n" );
                 r = await get_web3_pastEventsProgressive(
                     details,
                     w3_src,
@@ -4150,7 +4152,7 @@ async function do_transfer(
                     details.exposeDetailsTo( log, strGatheredDetailsName, false );
                     save_transfer_error( details.toString() );
                     details.close();
-                    return; // process.exit( 126 );
+                    return false; // process.exit( 126 );
                 }
                 //
                 //
@@ -4246,13 +4248,14 @@ async function do_transfer(
                 //
                 details.write( strLogPrefix + cc.debug( "Will process message counter value " ) + cc.info( nIdxCurrentMsg ) + "\n" );
                 arrMessageCounters.push( nIdxCurrentMsg );
-                jarrMessages.push( {
+                const joMessage = {
                     sender: joValues.srcContract,
                     destinationContract: joValues.dstContract,
                     to: joValues.to,
                     amount: joValues.amount,
                     data: joValues.data
-                } );
+                };
+                jarrMessages.push( joMessage );
             } // for( let idxInBlock = 0; nIdxCurrentMsg < nOutMsgCnt && idxInBlock < nTransactionsCountInBlock; ++ nIdxCurrentMsg, ++ idxInBlock, ++cntAccumulatedForBlock )
             if( cntAccumulatedForBlock == 0 )
                 break;
@@ -4264,7 +4267,7 @@ async function do_transfer(
                         "\n" );
                 }
                 details.close();
-                return;
+                return false;
             }
             //
             //
@@ -4322,7 +4325,7 @@ async function do_transfer(
                                     cc.j( joFoundPendingTX ) +
                                     "\n" );
                                 if( "isIgnore2" in optsPendingTxAnalysis && ( !optsPendingTxAnalysis.isIgnore2 ) )
-                                    return; // return after 2nd pending transactions analysis
+                                    return false; // return after 2nd pending transactions analysis
                                 details.write(
                                     strLogPrefix + cc.warning( "PENDING TRANSACTION ANALYSIS(2) from " ) + cc.u( owaspUtils.w3_2_url( w3_dst ) ) +
                                     cc.warning( " result is " ) + cc.error( "ignored" ) +
@@ -4331,14 +4334,13 @@ async function do_transfer(
                             }
                         } else {
                             if( "isIgnore" in optsPendingTxAnalysis && ( !optsPendingTxAnalysis.isIgnore ) )
-                                return; // return after first 1st transactions analysis
+                                return false; // return after first 1st transactions analysis
                             details.write(
                                 strLogPrefix + cc.warning( "PENDING TRANSACTION ANALYSIS(1) from " ) + cc.u( owaspUtils.w3_2_url( w3_dst ) ) +
                                 cc.warning( " result is " ) + cc.error( "ignored" ) +
                                 "\n" );
                             wasIgnoredPTX = true;
                         }
-
                     }
                 } catch ( err ) {
                     const s =
@@ -4361,9 +4363,191 @@ async function do_transfer(
                             "\n" );
                     }
                     details.close();
-                    return;
+                    return false;
                 }
             }
+            //
+            //
+            //
+            if( strDirection == "S2S" ) {
+                strActionName = "S2S message analysis";
+                if( ! joExtraSignOpts )
+                    throw new Error( "Could not validate S2S messages, no extra options provided to transfer algorithm" );
+                if( ! joExtraSignOpts.skale_observer )
+                    throw new Error( "Could not validate S2S messages, no SKALE NETWORK observer provided to transfer algorithm" );
+                const arr_schains_cached = joExtraSignOpts.skale_observer.get_last_cached_schains();
+                if( ( !arr_schains_cached ) || arr_schains_cached.length == 0 )
+                    throw new Error( "Could not validate S2S messages, no S-Chains in SKALE NETWORK observer cached yet, try again later" );
+                const idxSChain = joExtraSignOpts.skale_observer.find_schain_index_in_array_by_name( arr_schains_cached, chain_id_src );
+                if( idxSChain < 0 ) {
+                    throw new Error(
+                        "Could not validate S2S messages, source S-Chain \"" + chain_id_src +
+                        "\" is not in SKALE NETWORK observer cache yet or it's not connected to this \"" + chain_id_dst +
+                        "\" S-Chain yet, try again later" );
+                }
+                const cntMessages = jarrMessages.length;
+                const jo_schain = arr_schains_cached[idxSChain];
+                const cntNodes = jo_schain.data.computed.nodes.length;
+                const cntNodesShouldPass =
+                    ( cntNodes == 16 )
+                        ? 11
+                        : (
+                            ( cntNodes == 4 )
+                                ? 3
+                                : (
+                                    ( cntNodes == 2 || cntNodes == 1 )
+                                        ? ( 0 + cntNodes )
+                                        : parseInt( ( cntNodes * 2 ) / 3 )
+                                )
+                        );
+                const cntNodesMayFail = cntNodes - cntNodesShouldPass;
+                details.write( strLogPrefix +
+                    cc.sunny( strDirection ) + cc.debug( " message analysis will be performed o S-Chain " ) +
+                    cc.info( chain_id_src ) + cc.debug( " with " ) +
+                    cc.info( cntNodes ) + cc.debug( " node(s), " ) +
+                    cc.info( cntNodesShouldPass ) + cc.debug( " node(s) should have same message(s), " ) +
+                    cc.info( cntNodesMayFail ) + cc.debug( " node(s) allowed to fail message(s) comparison, " ) +
+                    cc.info( cntMessages ) + cc.debug( " message(s) to check..." ) +
+                    "\n" );
+
+                // jarrMessages.push( {
+                //     sender: joValues.srcContract,
+                //     destinationContract: joValues.dstContract,
+                //     to: joValues.to,
+                //     amount: joValues.amount,
+                //     data: joValues.data
+                // } );
+                for( let idxMessage = 0; idxMessage < cntMessages; ++ idxMessage ) {
+                    const idxImaMessage = arrMessageCounters[idxMessage];
+                    const joMessage = jarrMessages[idxMessage];
+                    details.write( strLogPrefix +
+                        cc.sunny( strDirection ) + cc.debug( " message analysis for message " ) +
+                        cc.info( idxMessage + 1 ) + cc.debug( " of " ) + cc.info( cntMessages ) +
+                        cc.debug( " with IMA message index " ) + cc.j( idxImaMessage ) +
+                        cc.debug( " and message envelope data:" ) + cc.j( joMessage ) +
+                        "\n" );
+                    let cntPassedNodes = 0, cntFailedNodes = 0;
+                    try {
+                        for( let idxNode = 0; idxNode < cntNodes; ++ idxNode ) {
+                            const jo_node = jo_schain.data.computed.nodes[idxNode];
+                            details.write( strLogPrefix +
+                                cc.debug( "Validating " ) + cc.sunny( strDirection ) + cc.debug( " message " ) + cc.info( idxMessage + 1 ) +
+                                cc.debug( " on node " ) + cc.info( jo_node.name ) +
+                                cc.debug( " using URL " ) + cc.info( jo_node.http_endpoint_ip ) +
+                                cc.debug( "..." ) + "\n" );
+                            try {
+                                const w3_node = getWeb3FromURL( jo_node.http_endpoint_ip );
+                                const jo_message_proxy_node = new w3_node.eth.Contract( imaState.joAbiPublishResult_s_chain.message_proxy_chain_abi, imaState.joAbiPublishResult_s_chain.message_proxy_chain_address );
+                                const node_r = await get_web3_pastEventsProgressive(
+                                    details,
+                                    w3_node,
+                                    10,
+                                    jo_message_proxy_node,
+                                    "OutgoingMessage",
+                                    0, // nBlockFrom
+                                    "latest", // nBlockTo
+                                    {
+                                        dstChainHash: [ w3_node.utils.soliditySha3( chain_id_dst ) ],
+                                        msgCounter: [ idxImaMessage ]
+                                    }
+                                );
+                                const cntEvents = node_r.length;
+                                details.write( strLogPrefix +
+                                    cc.debug( "Got " ) + cc.info( cntEvents ) + cc.debug( " events on node " ) +
+                                    cc.info( jo_node.name ) + cc.debug( " with data: " ) + cc.j( node_r ) + "\n" );
+                                for( let idxEvent = 0; idxEvent < cntEvents; ++ idxEvent ) {
+                                    const joEvent = node_r[idxEvent];
+                                    if( owaspUtils.ensure_starts_with_0x( joMessage.sender ).toLowerCase() ==
+                                        owaspUtils.ensure_starts_with_0x( joEvent.returnValues.srcContract ).toLowerCase() &&
+                                        owaspUtils.ensure_starts_with_0x( joMessage.destinationContract ).toLowerCase() ==
+                                        owaspUtils.ensure_starts_with_0x( joEvent.returnValues.dstContract ).toLowerCase()
+                                    )
+                                        bEventIsFound = true;
+                                    if( bEventIsFound )
+                                        break;
+                                } // for( let idxEvent = 0; idxEvent < cntEvents; ++ idxEvent )
+                            } catch ( err ) {
+                                ++ cntFailedNodes;
+                                const strError = strLogPrefix + cc.fatal( strDirection + " message analysis error:" ) + " " +
+                                    cc.error( "Failed to scan events on node " ) + cc.info( jo_node.name ) +
+                                    cc.debug( ", error is: " ) + cc.warning( err.toString() ) + "\n";
+                                details.write( strError );
+                                if( verbose_get() >= RV_VERBOSE.fatal )
+                                    log.write( strError );
+                                // details.exposeDetailsTo( log, strGatheredDetailsName, false );
+                                // save_transfer_error( details.toString() );
+                                // details.close();
+                                // return false;
+                                continue;
+                            }
+                            if( bEventIsFound ) {
+                                ++ cntPassedNodes;
+                                details.write( strLogPrefix + cc.sunny( strDirection ) +
+                                    cc.success( " message " ) + cc.info( idxMessage + 1 ) + cc.success( " validation on node " ) +
+                                    cc.info( jo_node.name ) + cc.success( " using URL " ) + cc.info( jo_node.http_endpoint_ip ) +
+                                    cc.success( " is passed" ) + "\n" );
+                            } else {
+                                ++ cntFailedNodes;
+                                const strError = strLogPrefix + cc.sunny( strDirection ) +
+                                    cc.error( " message " ) + cc.info( idxMessage + 1 ) + cc.error( " validation on node " ) +
+                                    cc.info( jo_node.name ) + cc.success( " using URL " ) + cc.info( jo_node.http_endpoint_ip ) +
+                                    cc.error( " is failed" ) + "\n"; ;
+                                details.write( strError );
+                                if( verbose_get() >= RV_VERBOSE.fatal )
+                                    log.write( strError );
+                            }
+                            if( cntFailedNodes > cntNodesMayFail )
+                                break;
+                            if( cntPassedNodes >= cntNodesShouldPass ) {
+                                details.write( strLogPrefix + cc.sunny( strDirection ) +
+                                cc.success( " message " ) + cc.info( idxMessage + 1 ) + cc.success( " validation on node " ) +
+                                cc.info( jo_node.name ) + cc.success( " using URL " ) + cc.info( jo_node.http_endpoint_ip ) +
+                                cc.success( " is passed" ) + "\n" );
+                                break;
+                            }
+                        } // for( let idxNode = 0; idxNode < cntNodes; ++ idxNode )
+                    } catch ( err ) {
+                        const strError = strLogPrefix + cc.fatal( strDirection + " message analysis error:" ) + " " +
+                            cc.error( "Failed to process events for " ) + cc.sunny( strDirection ) + cc.error( " message " ) +
+                            cc.info( idxMessage + 1 ) + cc.error( " on node " ) + cc.info( jo_node.name ) +
+                            cc.success( " using URL " ) + cc.info( jo_node.http_endpoint_ip ) +
+                            cc.debug( ", error is: " ) + cc.warning( err.toString() ) + "\n";
+                        details.write( strError );
+                        if( verbose_get() >= RV_VERBOSE.fatal )
+                            log.write( strError );
+                    }
+                    if( cntFailedNodes > cntNodesMayFail ) {
+                        const s =
+                            strLogPrefix + cc.fatal( "CRITICAL ERROR:" ) + cc.error( " Error validating " ) + cc.sunny( strDirection ) +
+                            cc.error( " messages, failed node count " ) + cc.info( cntFailedNodes ) +
+                            cc.error( " is greater then allowed to fail " ) + cc.info( cntNodesMayFail ) +
+                            "\n";
+                        if( verbose_get() >= RV_VERBOSE.fatal )
+                            log.write( s );
+                        details.write( s );
+                        details.exposeDetailsTo( log, strGatheredDetailsName, false );
+                        save_transfer_error( details.toString() );
+                        details.close();
+                        return false;
+                    }
+                    if( ! ( cntPassedNodes >= cntNodesShouldPass ) ) {
+                        const s =
+                            strLogPrefix + cc.fatal( "CRITICAL ERROR:" ) + cc.error( " Error validating " ) + cc.sunny( strDirection ) +
+                            cc.error( " messages, passed node count " ) + cc.info( cntFailedNodes ) +
+                            cc.error( " is less then needed count " ) + cc.info( cntNodesShouldPass ) +
+                            "\n";
+                        if( verbose_get() >= RV_VERBOSE.fatal )
+                            log.write( s );
+                        details.write( s );
+                        details.exposeDetailsTo( log, strGatheredDetailsName, false );
+                        save_transfer_error( details.toString() );
+                        details.close();
+                        return false;
+                    }
+                } // for( let idxMessage = 0; idxMessage < cntMessages; ++ idxMessage )
+
+            } // if( strDirection == "S2S" ) //// "S2S message analysis
+            //
             //
             //
             strActionName = "sign messages";
@@ -4387,14 +4571,14 @@ async function do_transfer(
                     details.exposeDetailsTo( log, strGatheredDetailsName, false );
                     save_transfer_error( details.toString() );
                     details.close();
-                    return;
+                    return false;
                 }
                 if( "check_time_framing" in global && ( ! global.check_time_framing() ) ) {
                     if( verbose_get() >= RV_VERBOSE.information )
                         log.write( strLogPrefix + cc.error( "WARNING:" ) + " " + cc.warning( "Time framing overflow (after signing messages)" ) + "\n" );
 
                     details.close();
-                    return;
+                    return false;
                 }
                 strActionName = "dst-chain.getTransactionCount()";
                 const tcnt = await get_web3_transactionCount( details, 10, w3_dst, joAccountDst.address( w3_dst ), null );
