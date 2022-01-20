@@ -178,8 +178,10 @@ async function load_schains( w3, addressFrom, opts ) {
         arr_schains.push( jo_schain );
     }
     if( opts && opts.details ) {
-        // opts.details.write( cc.debug( "Got S-Chain descriptions ") + cc.j( cc.j( arr_schains ) ) + "\n" );
-        opts.details.write( cc.success( "All " ) + cc.info( cntSChains ) + cc.debug( " S-Chain(s) loaded" ) + "\n" );
+        opts.details.write(
+            cc.success( "All " ) + cc.info( cntSChains ) +
+            cc.debug( " S-Chain(s) loaded:" ) + cc.j( arr_schains ) +
+            "\n" );
     }
     return arr_schains;
 }
@@ -299,6 +301,7 @@ function merge_schains_array_from_to( arrSrc, arrDst, arrNew, arrOld, opts ) {
 let g_arr_schains_cached = null;
 
 async function cache_schains( strChainNameConnectedTo, w3, addressFrom, opts ) {
+    let strError = null;
     try {
         const arr_schains = await load_schains( w3, addressFrom, opts );
         if( strChainNameConnectedTo && ( typeof strChainNameConnectedTo == "string" ) && strChainNameConnectedTo.length > 0 ) {
@@ -314,17 +317,23 @@ async function cache_schains( strChainNameConnectedTo, w3, addressFrom, opts ) {
             );
         } else
             g_arr_schains_cached = arr_schains;
+        if( opts && opts.details ) {
+            opts.details.write(
+                cc.debug( "Connected" ) + cc.attention( "S-Chains" ) + cc.debug( " cache was updated: " ) +
+                cc.j( g_arr_schains_cached ) + "\n" );
+        }
         if( opts.fn_chache_changed )
             opts.fn_chache_changed( g_arr_schains_cached, null ); // null - no error
-        return null;
     } catch ( err ) {
-        let strError = err.toString();
+        strError = err.toString();
         if( ! strError )
             strError = "unknown exception during S-Chains download";
         if( opts.fn_chache_changed )
             opts.fn_chache_changed( g_arr_schains_cached, strError );
-        return strError;
+        if( opts && opts.details )
+            opts.details.write( cc.fatal( "ERROR:" ) + cc.error( " Failed to cache: " ) + cc.error( err ) + "\n" );
     }
+    return strError; // null on success
 }
 
 function get_last_cached_schains() {
