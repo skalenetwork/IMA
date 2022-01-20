@@ -48,7 +48,7 @@ const owaspUtils = require( "../skale-owasp/owasp-util.js" );
 const g_mtaStrLongSeparator = "=======================================================================================================================";
 
 const perMessageGasForTransfer = 1000000;
-const additionalGasForTransfer = 100;
+const additionalS2MTransferOverhead = 200000;
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -4252,13 +4252,14 @@ async function do_transfer(
                 //
                 details.write( strLogPrefix + cc.debug( "Will process message counter value " ) + cc.info( nIdxCurrentMsg ) + "\n" );
                 arrMessageCounters.push( nIdxCurrentMsg );
-                jarrMessages.push( {
+                var msg =  {
                     sender: joValues.srcContract,
                     destinationContract: joValues.dstContract,
                     to: joValues.to,
                     amount: joValues.amount,
                     data: joValues.data
-                } );
+                };
+                jarrMessages.push( msg );
             } // for( let idxInBlock = 0; nIdxCurrentMsg < nOutMsgCnt && idxInBlock < nTransactionsCountInBlock; ++ nIdxCurrentMsg, ++ idxInBlock, ++cntAccumulatedForBlock )
             if( cntAccumulatedForBlock == 0 )
                 break;
@@ -4466,8 +4467,12 @@ async function do_transfer(
                 details.write( strLogPrefix + cc.debug( "Using computed " ) + cc.info( "gasPrice" ) + cc.debug( "=" ) + cc.notice( gasPrice ) + "\n" );
                 const estimatedGas_postIncomingMessages = await tc_dst.computeGas( methodWithArguments_postIncomingMessages, w3_dst, 10000000, gasPrice, joAccountDst.address( w3_dst ), "0" );
                 details.write( strLogPrefix + cc.debug( "Using estimated " ) + cc.info( "gas" ) + cc.debug( "=" ) + cc.notice( estimatedGas_postIncomingMessages ) + "\n" );
-                postIncomingMessagesGasLimit = perMessageGasForTransfer * jarrMessages.length + additionalGasForTransfer;
-                //
+                let postIncomingMessagesGasLimit = estimatedGas_postIncomingMessages;
+                if (strDirection == "S2M") {
+                    let expectedGasLimit = perMessageGasForTransfer * jarrMessages.length + additionalS2MTransferOverhead;
+                    postIncomingMessagesGasLimit = Math.max(postIncomingMessagesGasLimit, expectedGasLimit);
+                }
+
                 const isIgnore_postIncomingMessages = false;
                 const strDRC_postIncomingMessages = "postIncomingMessages in message signer";
                 const strErrorOfDryRun = await dry_run_call( details, w3_dst, methodWithArguments_postIncomingMessages, joAccountDst, strDRC_postIncomingMessages,isIgnore_postIncomingMessages, gasPrice, estimatedGas_postIncomingMessages, "0" );
