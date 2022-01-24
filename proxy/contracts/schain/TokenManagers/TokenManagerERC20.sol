@@ -52,6 +52,8 @@ contract TokenManagerERC20 is TokenManager, ITokenManagerERC20 {
 
     mapping(bytes32 => mapping(address => ERC20OnChain)) public clonesErc20;
 
+    mapping(bytes32 => mapping(address => uint256)) public transferredAmount;
+
     /**
      * @dev Emitted when schain owner register new ERC20 clone.
      */
@@ -125,6 +127,7 @@ contract TokenManagerERC20 is TokenManager, ITokenManagerERC20 {
         Messages.MessageType operation = Messages.getMessageType(data);
         address receiver = address(0);
         if (
+            operation == Messages.MessageType.TRANSFER_ERC20 ||
             operation == Messages.MessageType.TRANSFER_ERC20_AND_TOKEN_INFO ||
             operation == Messages.MessageType.TRANSFER_ERC20_AND_TOTAL_SUPPLY
         ) {
@@ -195,7 +198,20 @@ contract TokenManagerERC20 is TokenManager, ITokenManagerERC20 {
         uint256 amount;
         uint256 totalSupply;                
         ERC20OnChain contractOnSchain;
-        if (messageType == Messages.MessageType.TRANSFER_ERC20_AND_TOTAL_SUPPLY) {
+        if (messageType == Messages.MessageType.TRANSFER_ERC20) {
+            Messages.TransferErc20Message memory message =
+                Messages.decodeTransferErc20Message(data);
+            receiver = message.baseErc20transfer.receiver;
+            token = message.baseErc20transfer.token;
+            amount = message.baseErc20transfer.amount;
+            require(token.isContract() && !addedClones[token], "Incorrect main token");
+            require(ERC20Upgradeable(message.token).balanceOf(address(this)) >= message.amount, "Not enough money");
+            _removeTransferredAmount(schainHash, message.token, message.amount);
+            require(
+                ERC20Upgradeable(message.token).transfer(message.receiver, message.amount),
+                "Transfer was failed"
+            );
+        } else if (messageType == Messages.MessageType.TRANSFER_ERC20_AND_TOTAL_SUPPLY) {
             Messages.TransferErc20AndTotalSupplyMessage memory message =
                 Messages.decodeTransferErc20AndTotalSupplyMessage(data);
             receiver = message.baseErc20transfer.receiver;
@@ -247,8 +263,13 @@ contract TokenManagerERC20 is TokenManager, ITokenManagerERC20 {
     )
         private
     {
+        bool isMainToken;
         ERC20BurnableUpgradeable contractOnSchain = clonesErc20[chainHash][contractOnMainChain];
-        require(address(contractOnSchain).isContract(), "No token clone on schain");
+        if (contractOnSchain == address(0)) {
+            contractOnSchain = ERC20BurnableUpgradeable(contractOnMainChain);
+            isMainToken = true;
+        }
+        require(address(contractOnSchain).isContract(), "Token is not a contract");
         require(contractOnSchain.balanceOf(msg.sender) >= amount, "Insufficient funds");
         require(
             contractOnSchain.allowance(
@@ -261,11 +282,17 @@ contract TokenManagerERC20 is TokenManager, ITokenManagerERC20 {
             contractOnSchain.transferFrom(msg.sender, address(this), amount),
             "Transfer was failed"
         );
-        contractOnSchain.burn(amount);
-        messageProxy.postOutgoingMessage(
-            chainHash,
-            messageReceiver,
-            Messages.encodeTransferErc20Message(contractOnMainChain, to, amount)
-        );
+        if (isMainToken) {
+            contractOnSchain.burn(amount);
+            if (transferredAmount[chainHash][contractOnSchain] == 0) {
+
+            }
+        } else {
+            messageProxy.postOutgoingMessage(
+                chainHash,
+                messageReceiver,
+                Messages.encodeTransferErc20Message(contractOnMainChain, to, amount)
+            );
+        }
     }
 }
