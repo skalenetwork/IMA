@@ -1,4 +1,4 @@
-FROM node:14
+FROM node:16
 
 RUN apt-get update
 RUN apt-get install -y build-essential zlib1g-dev libncurses5-dev libgdbm-dev libnss3-dev libssl-dev libreadline-dev libffi-dev wget

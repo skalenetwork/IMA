@@ -46,6 +46,7 @@ global.cc = global.imaUtils.cc;
 global.imaCLI = require( "./cli.js" );
 global.imaBLS = require( "./bls.js" );
 global.rpcCall = require( "./rpc-call.js" );
+global.skale_observer = require( "../npms/skale-observer/observer.js" );
 global.rpcCall.init();
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -63,8 +64,9 @@ global.imaState = {
     "strPathHashG1": "", // path to hash_g1 app, must have if --sign-messages specified
     "strPathBlsVerify": "", // path to verify_bls app, optional, if specified then we will verify gathered BLS signature
 
-    "joTrufflePublishResult_main_net": { },
-    "joTrufflePublishResult_s_chain": { },
+    "joAbiPublishResult_skale_manager": { },
+    "joAbiPublishResult_main_net": { },
+    "joAbiPublishResult_s_chain": { },
 
     "joErc20_main_net": null,
     "joErc20_s_chain": null,
@@ -85,6 +87,7 @@ global.imaState = {
     "strCoinNameErc1155_main_net": "", // in-JSON coin name
     "strCoinNameErc1155_s_chain": "", // in-JSON coin name
 
+    "strPathAbiJson_skale_manager": "", // imaUtils.normalizePath( "../proxy/data/skaleManager.json" ), // "./abi_skale_manager.json"
     "strPathAbiJson_main_net": imaUtils.normalizePath( "../proxy/data/proxyMainnet.json" ), // "./abi_main_net.json"
     "strPathAbiJson_s_chain": imaUtils.normalizePath( "../proxy/data/proxySchain.json" ), // "./abi_s_chain.json"
 
@@ -117,13 +120,17 @@ global.imaState = {
 
     "nTransferBlockSizeM2S": 4, // 10
     "nTransferBlockSizeS2M": 4, // 10
+    "nTransferBlockSizeS2S": 4, // 10
     "nMaxTransactionsM2S": 0,
     "nMaxTransactionsS2M": 0,
+    "nMaxTransactionsS2S": 0,
 
     "nBlockAwaitDepthM2S": 0,
     "nBlockAwaitDepthS2M": 0,
+    "nBlockAwaitDepthS2S": 0,
     "nBlockAgeM2S": 0,
     "nBlockAgeS2M": 0,
+    "nBlockAgeS2S": 0,
 
     "nLoopPeriodSeconds": 10,
 
@@ -219,6 +226,11 @@ global.imaState = {
         "repeatIntervalMilliseconds": 10 * 1000 // zero to disable (for debugging only)
     },
 
+    "s2s_opts": { // S-Chain to S-Chain transfer options
+        "isEnabled": true, // is S-Chain to S-Chain transfers enabled
+        "secondsToReDiscoverSkaleNetwork": 10 * 60 // seconts to re-discover SKALE network, 0 to disable
+    },
+
     "arrActions": [] // array of actions to run
 };
 
@@ -234,6 +246,48 @@ imaBLS.init();
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+const fnInitActionSkaleNetworkScanForS2S = function() {
+    if( ! imaState.s2s_opts.isEnabled )
+        return;
+    imaState.arrActions.push( {
+        "name": "SKALE network scan for S2S",
+        "fn": async function() {
+            const strLogPrefix = cc.info( "SKALE network scan for S2S:" ) + " ";
+            if( imaState.strPathAbiJson_skale_manager.length === 0 ) {
+                console.log( cc.fatal( "CRITICAL ERROR:" ) + cc.error( " missing Skale Manager ABI, please specify " ) + cc.info( "abi-skale-manager" ) );
+                process.exit( 159 );
+            }
+            log.write( strLogPrefix + cc.normal( "Downloading SKALE network information " ) + cc.normal( "..." ) + "\n" ); // just print value
+            const opts = {
+                imaState: imaState,
+                "details": log,
+                "bStopNeeded": false,
+                "secondsToReDiscoverSkaleNetwork": imaState.s2s_opts.secondsToReDiscoverSkaleNetwork
+            };
+            const addressFrom = imaState.joAccount_main_net.address( imaState.w3_main_net );
+            const strError = await skale_observer.cache_schains(
+                imaState.strChainName_s_chain, // strChainNameConnectedTo
+                imaState.w3_main_net,
+                addressFrom,
+                opts
+            );
+            if( strError ) {
+                log.write( strLogPrefix + cc.error( "Failed to get " ) + cc.info( "SKALE NETWORK" ) + cc.error( " information: " ) + cc.warning( strError ) + "\n" );
+                return true;
+            }
+            const arr_schains = skale_observer.get_last_cached_schains();
+            log.write( strLogPrefix + cc.normal( "Got " ) + cc.info( "SKALE NETWORK" ) + cc.normal( " information: " ) + cc.j( arr_schains ) + "\n" );
+            await skale_observer.periodic_caching_start(
+                imaState.strChainName_s_chain, // strChainNameConnectedTo
+                imaState.w3_main_net,
+                addressFrom,
+                opts
+            );
+            return true;
+        }
+    } );
+};
 
 imaCLI.init();
 imaCLI.parse( {
@@ -266,7 +320,7 @@ imaCLI.parse( {
                 const b = await check_registration_all();
                 const nExitCode = b ? 0 : 150; // 0 - OKay - registered; non-zero -  not registered or error
                 log.write( cc.notice( "Exiting with code " ) + cc.info( nExitCode ) + "\n" );
-                process.exit( nExitCode ); // 150
+                process.exit( nExitCode );
             }
         } );
     },
@@ -279,7 +333,7 @@ imaCLI.parse( {
                 const b = await check_registration_step1();
                 const nExitCode = b ? 0 : 152; // 0 - OKay - registered; non-zero -  not registered or error
                 log.write( cc.notice( "Exiting with code " ) + cc.info( nExitCode ) + "\n" );
-                process.exit( nExitCode ); // 152
+                process.exit( nExitCode );
             }
         } );
     },
@@ -789,6 +843,7 @@ imaCLI.parse( {
                     imaState.nBlockAwaitDepthM2S,
                     imaState.nBlockAgeM2S,
                     imaBLS.do_sign_messages_m2s, // fn_sign_messages
+                    null, // joExtraSignOpts
                     imaState.tc_s_chain,
                     imaState.optsPendingTxAnalysis,
                     imaState.optsStateFile
@@ -823,6 +878,7 @@ imaCLI.parse( {
                     imaState.nBlockAwaitDepthS2M,
                     imaState.nBlockAgeS2M,
                     imaBLS.do_sign_messages_s2m, // fn_sign_messages
+                    null, // joExtraSignOpts
                     imaState.tc_main_net,
                     imaState.optsPendingTxAnalysis,
                     imaState.optsStateFile
@@ -830,10 +886,43 @@ imaCLI.parse( {
             }
         } );
     },
+    "s2s-transfer": function() {
+        imaState.arrActions.push( {
+            "name": "single S->S transfer loop",
+            "fn": async function() {
+                if( ! imaState.s2s_opts.isEnabled )
+                    return;
+                fnInitActionSkaleNetworkScanForS2S();
+                if( ! imaState.bNoWaitSChainStarted )
+                    await wait_until_s_chain_started(); // s-chain --> main-net transfer
+                return await IMA.do_s2s_all( // s-chain --> s-chain
+                    imaState,
+                    skale_observer,
+                    imaState.w3_s_chain,
+                    imaState.jo_message_proxy_s_chain,
+                    //
+                    imaState.joAccount_s_chain,
+                    imaState.strChainName_s_chain,
+                    imaState.cid_s_chain,
+                    imaState.jo_token_manager_eth, // for logs validation on s-chain
+                    imaState.nTransferBlockSizeM2S,
+                    imaState.nMaxTransactionsM2S,
+                    imaState.nBlockAwaitDepthM2S,
+                    imaState.nBlockAgeM2S,
+                    imaBLS.do_sign_messages_m2s, // fn_sign_messages
+                    imaState.tc_s_chain,
+                    imaState.optsPendingTxAnalysis,
+                    null // imaState.optsStateFile
+                );
+            }
+        } );
+    },
     "transfer": function() {
+        fnInitActionSkaleNetworkScanForS2S();
         imaState.arrActions.push( {
             "name": "Single M<->S transfer loop iteration",
             "fn": async function() {
+                fnInitActionSkaleNetworkScanForS2S();
                 if( ! imaState.bNoWaitSChainStarted )
                     await wait_until_s_chain_started(); // single_transfer_loop
                 return await single_transfer_loop();
@@ -841,8 +930,9 @@ imaCLI.parse( {
         } );
     },
     "loop": function() {
+        fnInitActionSkaleNetworkScanForS2S();
         imaState.arrActions.push( {
-            "name": "M<->S transfer loop",
+            "name": "M<->S and S->S transfer loop",
             "fn": async function() {
                 IMA.isPreventExitAfterLastAction = true;
                 if( ! imaState.bNoWaitSChainStarted )
@@ -864,7 +954,7 @@ imaCLI.parse( {
         imaState.arrActions.push( {
             "name": "Brows S-Chain network",
             "fn": async function() {
-                const strLogPrefix = cc.info( "S Browse:" ) + " ";
+                const strLogPrefix = cc.info( "S-Chain Browse:" ) + " ";
                 if( imaState.strURL_s_chain.length === 0 ) {
                     console.log( cc.fatal( "CRITICAL ERROR:" ) + cc.error( " missing S-Chain URL, please specify " ) + cc.info( "url-s-chain" ) );
                     process.exit( 154 );
@@ -930,6 +1020,63 @@ imaCLI.parse( {
                         }, 100 );
                     } );
                 } );
+                return true;
+            }
+        } );
+    },
+    "browse-skale-network": function() {
+        // imaState.bIsNeededCommonInit = false;
+        imaState.arrActions.push( {
+            "name": "Browse S-Chain network",
+            "fn": async function() {
+                const strLogPrefix = cc.info( "SKALE NETWORK Browse:" ) + " ";
+                if( imaState.strPathAbiJson_skale_manager.length === 0 ) {
+                    console.log( cc.fatal( "CRITICAL ERROR:" ) + cc.error( " missing Skale Manager ABI, please specify " ) + cc.info( "abi-skale-manager" ) );
+                    process.exit( 159 );
+                }
+                log.write( strLogPrefix + cc.normal( "Downloading SKALE network information " ) + cc.normal( "..." ) + "\n" ); // just print value
+                const opts = {
+                    imaState: imaState,
+                    "details": log,
+                    "bStopNeeded": false
+                };
+                const addressFrom = imaState.joAccount_main_net.address( imaState.w3_main_net );
+                const arr_schains = await skale_observer.load_schains( imaState.w3_main_net, addressFrom, opts );
+                log.write( strLogPrefix + cc.normal( "Got " ) + cc.info( "SKALE NETWORK" ) + cc.normal( " information: " ) + cc.j( arr_schains ) + "\n" );
+                return true;
+            }
+        } );
+    },
+    "browse-connected-schains": function() {
+        // imaState.bIsNeededCommonInit = false;
+        imaState.arrActions.push( {
+            "name": "Browse connected S-Chains",
+            "fn": async function() {
+                const strLogPrefix = cc.info( "Browse connected S-Chains:" ) + " ";
+                if( imaState.strPathAbiJson_skale_manager.length === 0 ) {
+                    console.log( cc.fatal( "CRITICAL ERROR:" ) + cc.error( " missing Skale Manager ABI, please specify " ) + cc.info( "abi-skale-manager" ) );
+                    process.exit( 159 );
+                }
+                log.write( strLogPrefix + cc.normal( "Downloading SKALE network information " ) + cc.normal( "..." ) + "\n" ); // just print value
+
+                const opts = {
+                    imaState: imaState,
+                    "details": log,
+                    "bStopNeeded": false
+                };
+                const addressFrom = imaState.joAccount_main_net.address( imaState.w3_main_net );
+                const arr_schains = await skale_observer.load_schains( imaState.w3_main_net, addressFrom, opts );
+                await check_connected_schains(
+                    imaState.strChainName_s_chain, // strChainNameConnectedTo
+                    arr_schains,
+                    addressFrom,
+                    opts
+                );
+                const arr_schains_cached = await skale_observer.filter_schains_marked_as_connected(
+                    arr_schains,
+                    opts
+                );
+                log.write( strLogPrefix + cc.normal( "Got " ) + cc.info( "connected S-Chains" ) + cc.normal( " information: " ) + cc.j( arr_schains_cached ) + "\n" );
                 return true;
             }
         } );
@@ -1017,7 +1164,7 @@ if( imaState.nReimbursementWithdraw ) {
 if( haveReimbursementCommands ) {
     if( imaState.strReimbursementChain == "" ) {
         console.log( cc.fatal( "CRITICAL ERROR:" ) + cc.error( " missing value for " ) + cc.warning( "reimbursement-chain" ) + cc.error( " parameter, must be non-empty chain name" ) + "\n" );
-        process.exit( 130 );
+        process.exit( 161 );
     }
 }
 if( imaState.nReimbursementRange >= 0 ) {
@@ -1611,18 +1758,18 @@ async function do_the_job() {
 if( imaState.bSignMessages ) {
     if( imaState.strPathBlsGlue.length == 0 ) {
         log.write( cc.fatal( "FATAL, CRITICAL ERROR:" ) + cc.error( " please specify --bls-glue parameter." ) + "\n" );
-        process.exit( 159 );
+        process.exit( 162 );
     }
     if( imaState.strPathHashG1.length == 0 ) {
         log.write( cc.fatal( "FATAL, CRITICAL ERROR:" ) + cc.error( " please specify --hash-g1 parameter." ) + "\n" );
-        process.exit( 160 );
+        process.exit( 163 );
     }
     if( ! imaState.bNoWaitSChainStarted ) {
         const isSilent = imaState.joSChainDiscovery.isSilentReDiscovery;
         wait_until_s_chain_started().then( function() { // uses call to discover_s_chain_network()
             discover_s_chain_network( function( err, joSChainNetworkInfo ) {
                 if( err )
-                    process.exit( 161 ); // error information is printed by discover_s_chain_network()
+                    process.exit( 164 ); // error information is printed by discover_s_chain_network()
                 if( IMA.verbose_get() >= IMA.RV_VERBOSE.information )
                     log.write( cc.success( "S-Chain network was discovered: " ) + cc.j( joSChainNetworkInfo ) + "\n" );
                 imaState.joSChainNetworkInfo = joSChainNetworkInfo;
@@ -1688,7 +1835,7 @@ async function register_step1( isPrintSummaryRegistrationCosts ) {
     if( !bSuccess ) {
         const nRetCode = 163;
         log.write( strLogPrefix + cc.fatal( "FATAL, CRITICAL ERROR:" ) + cc.error( " failed to register S-Chain in deposit box, will return code " ) + cc.warning( nRetCode ) + "\n" );
-        process.exit( nRetCode ); // 163
+        process.exit( nRetCode );
     }
     return true;
 }
@@ -1783,26 +1930,30 @@ async function single_transfer_loop() {
     if( ! global.check_time_framing() ) {
         if( IMA.verbose_get() >= IMA.RV_VERBOSE.debug )
             log.write( strLogPrefix + cc.warning( "Skipped due to time framing" ) + "\n" );
-
         return true;
     }
+
+    if( IMA.verbose_get() >= IMA.RV_VERBOSE.information )
+        log.write( strLogPrefix + cc.debug( "Will invoke Oracle gas price setup..." ) + "\n" );
+    let b0 = true;
+    if( IMA.getOracleGasPriceMode() == 1 ) {
+        b0 = IMA.do_oracle_gas_price_setup(
+            imaState.w3_main_net,
+            imaState.w3_s_chain,
+            imaState.tc_s_chain,
+            imaState.jo_community_locker,
+            imaState.joAccount_s_chain,
+            imaState.cid_main_net,
+            imaState.cid_s_chain,
+            imaBLS.do_sign_u256, // fn_sign
+            imaState.optsPendingTxAnalysis
+        );
+        if( IMA.verbose_get() >= IMA.RV_VERBOSE.information )
+            log.write( strLogPrefix + cc.debug( "Oracle gas price setup done: " ) + cc.tf( b0 ) + "\n" );
+    }
+
     if( IMA.verbose_get() >= IMA.RV_VERBOSE.information )
         log.write( strLogPrefix + cc.debug( "Will invoke M2S transfer..." ) + "\n" );
-
-    const b0 =
-        ( IMA.getOracleGasPriceMode() == 1 )
-            ? IMA.do_oracle_gas_price_setup(
-                imaState.w3_main_net,
-                imaState.w3_s_chain,
-                imaState.tc_s_chain,
-                imaState.jo_community_locker,
-                imaState.joAccount_s_chain,
-                imaState.cid_main_net,
-                imaState.cid_s_chain,
-                imaBLS.do_sign_u256, // fn_sign
-                imaState.optsPendingTxAnalysis
-            ) : true;
-
     const b1 = await IMA.do_transfer( // main-net --> s-chain
         "M2S",
         //
@@ -1824,6 +1975,7 @@ async function single_transfer_loop() {
         imaState.nBlockAwaitDepthM2S,
         imaState.nBlockAgeM2S,
         imaBLS.do_sign_messages_m2s, // fn_sign_messages
+        null, // joExtraSignOpts
         imaState.tc_s_chain,
         imaState.optsPendingTxAnalysis,
         imaState.optsStateFile
@@ -1833,7 +1985,6 @@ async function single_transfer_loop() {
 
     if( IMA.verbose_get() >= IMA.RV_VERBOSE.information )
         log.write( strLogPrefix + cc.debug( "Will invoke S2M transfer..." ) + "\n" );
-
     const b2 = await IMA.do_transfer( // s-chain --> main-net
         "S2M",
         //
@@ -1855,6 +2006,7 @@ async function single_transfer_loop() {
         imaState.nBlockAwaitDepthS2M,
         imaState.nBlockAgeS2M,
         imaBLS.do_sign_messages_s2m, // fn_sign_messages
+        null, // joExtraSignOpts
         imaState.tc_main_net,
         imaState.optsPendingTxAnalysis,
         imaState.optsStateFile
@@ -1862,11 +2014,37 @@ async function single_transfer_loop() {
     if( IMA.verbose_get() >= IMA.RV_VERBOSE.information )
         log.write( strLogPrefix + cc.debug( "S2M transfer done: " ) + cc.tf( b2 ) + "\n" );
 
-    const b3 = b0 && b1 && b2;
-    if( IMA.verbose_get() >= IMA.RV_VERBOSE.information )
-        log.write( strLogPrefix + cc.debug( "Completed: " ) + cc.tf( b3 ) + "\n" );
+    let b3 = true;
+    if( imaState.s2s_opts.isEnabled ) {
+        if( IMA.verbose_get() >= IMA.RV_VERBOSE.information )
+            log.write( strLogPrefix + cc.debug( "Will invoke all S2S transfers..." ) + "\n" );
+        b3 = await IMA.do_s2s_all( // s-chain --> s-chain
+            imaState,
+            skale_observer,
+            imaState.w3_s_chain,
+            imaState.jo_message_proxy_s_chain,
+            //
+            imaState.joAccount_s_chain,
+            imaState.strChainName_s_chain,
+            imaState.cid_s_chain,
+            imaState.jo_token_manager_eth, // for logs validation on s-chain
+            imaState.nTransferBlockSizeM2S,
+            imaState.nMaxTransactionsM2S,
+            imaState.nBlockAwaitDepthM2S,
+            imaState.nBlockAgeM2S,
+            imaBLS.do_sign_messages_s2s, // fn_sign_messages
+            imaState.tc_s_chain,
+            imaState.optsPendingTxAnalysis,
+            null // imaState.optsStateFile
+        );
+        if( IMA.verbose_get() >= IMA.RV_VERBOSE.information )
+            log.write( strLogPrefix + cc.debug( "All S2S transfers done: " ) + cc.tf( b3 ) + "\n" );
+    }
 
-    return b3;
+    const bResult = b0 && b1 && b2 && b3;
+    if( IMA.verbose_get() >= IMA.RV_VERBOSE.information )
+        log.write( strLogPrefix + cc.debug( "Completed: " ) + cc.tf( bResult ) + "\n" );
+    return bResult;
 }
 async function single_transfer_loop_with_repeat() {
     await single_transfer_loop();
