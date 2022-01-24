@@ -48,6 +48,9 @@ const { getWeb3FromURL } = require( "../../agent/cli.js" );
 
 const g_mtaStrLongSeparator = "=======================================================================================================================";
 
+const perMessageGasForTransfer = 1000000;
+const additionalS2MTransferOverhead = 200000;
+
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 //
@@ -4248,6 +4251,7 @@ async function do_transfer(
                 //
                 details.write( strLogPrefix + cc.debug( "Will process message counter value " ) + cc.info( nIdxCurrentMsg ) + "\n" );
                 arrMessageCounters.push( nIdxCurrentMsg );
+
                 const joMessage = {
                     sender: joValues.srcContract,
                     destinationContract: joValues.dstContract,
@@ -4256,6 +4260,7 @@ async function do_transfer(
                     data: joValues.data
                 };
                 jarrMessages.push( joMessage );
+
             } // for( let idxInBlock = 0; nIdxCurrentMsg < nOutMsgCnt && idxInBlock < nTransactionsCountInBlock; ++ nIdxCurrentMsg, ++ idxInBlock, ++cntAccumulatedForBlock )
             if( cntAccumulatedForBlock == 0 )
                 break;
@@ -4644,7 +4649,12 @@ async function do_transfer(
                 details.write( strLogPrefix + cc.debug( "Using computed " ) + cc.info( "gasPrice" ) + cc.debug( "=" ) + cc.notice( gasPrice ) + "\n" );
                 const estimatedGas_postIncomingMessages = await tc_dst.computeGas( methodWithArguments_postIncomingMessages, w3_dst, 10000000, gasPrice, joAccountDst.address( w3_dst ), "0" );
                 details.write( strLogPrefix + cc.debug( "Using estimated " ) + cc.info( "gas" ) + cc.debug( "=" ) + cc.notice( estimatedGas_postIncomingMessages ) + "\n" );
-                //
+                let postIncomingMessagesGasLimit = estimatedGas_postIncomingMessages;
+                if( strDirection == "S2M" ) {
+                    const expectedGasLimit = perMessageGasForTransfer * jarrMessages.length + additionalS2MTransferOverhead;
+                    postIncomingMessagesGasLimit = Math.max( postIncomingMessagesGasLimit, expectedGasLimit );
+                }
+
                 const isIgnore_postIncomingMessages = false;
                 const strDRC_postIncomingMessages = "postIncomingMessages in message signer";
                 const strErrorOfDryRun = await dry_run_call( details, w3_dst, methodWithArguments_postIncomingMessages, joAccountDst, strDRC_postIncomingMessages,isIgnore_postIncomingMessages, gasPrice, estimatedGas_postIncomingMessages, "0" );
@@ -4655,7 +4665,7 @@ async function do_transfer(
                     chainId: cid_dst,
                     from: joAccountDst.address( w3_dst ),
                     nonce: tcnt,
-                    gas: estimatedGas_postIncomingMessages,
+                    gas: postIncomingMessagesGasLimit,
                     gasPrice: gasPrice,
                     // "gasLimit": 3000000,
                     to: jo_message_proxy_dst.options.address, // contract address
