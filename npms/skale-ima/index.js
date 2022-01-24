@@ -44,6 +44,7 @@ log.addStdout();
 // log.add( strFilePath, nMaxSizeBeforeRotation, nMaxFilesCount ); // example: log output to file
 
 const owaspUtils = require( "../skale-owasp/owasp-util.js" );
+const { getWeb3FromURL } = require( "../../agent/cli.js" );
 
 const g_mtaStrLongSeparator = "=======================================================================================================================";
 
@@ -185,8 +186,12 @@ async function get_web3_blockNumber( details, attempts, w3 ) {
         } catch ( e ) {}
         idxAttempt++;
     }
-    if( idxAttempt + 1 > cntAttempts && nLatestBlockNumber === "" )
-        throw new Error( "Could not not get blockNumber" );
+    if( ( idxAttempt + 1 ) > cntAttempts && nLatestBlockNumber === "" ) {
+        details.write( cc.fatal( "ERROR:" ) +
+            cc.error( " Could not not get " ) + cc.warning( "blockNumber" ) + cc.error( " after " ) +
+            cc.info( cntAttempts ) + cc.error( " attempts, previous result is: " ) + cc.info( nLatestBlockNumber ) + "\n" );
+        throw new Error( "Could not get \"blockNumber\" after " + cntAttempts + " attempts" );
+    }
     return nLatestBlockNumber;
 }
 
@@ -199,19 +204,20 @@ async function get_web3_transactionCount( details, attempts, w3, address, param 
     let idxAttempt = 2;
     while( txc === "" && idxAttempt <= cntAttempts ) {
         details.write(
-            cc.warning( "Repeat " ) + cc.error( "getTransactionCount" ) +
-            cc.warning( " attempt " ) + cc.error( idxAttempt ) +
-            cc.warning( ", previous result is: " ) + cc.info( txc ) + "\n"
-        );
+            cc.warning( "Repeat " ) + cc.error( "getTransactionCount" ) + cc.warning( " attempt " ) + cc.error( idxAttempt ) +
+            cc.warning( ", previous result is: " ) + cc.info( txc ) + "\n" );
         await sleep( 10000 );
         try {
             txc = await w3.eth.getBlockNumber();
         } catch ( e ) {}
         idxAttempt++;
     }
-    if( idxAttempt + 1 > cntAttempts && txc === "" )
-        throw new Error( "Could not not get Transaction Count" );
-
+    if( ( idxAttempt + 1 ) > cntAttempts && txc === "" ) {
+        details.write( cc.fatal( "ERROR:" ) +
+            cc.error( " Could not " ) + cc.warning( "getTransactionCount" ) + cc.error( " after " ) +
+            cc.warning( cntAttempts ) + cc.error( " attempts, previous result is: " ) + cc.info( txc ) + "\n" );
+        throw new Error( "Could not \"getTransactionCount\" after " + cntAttempts + " attempts" );
+    }
     return txc;
 }
 
@@ -232,8 +238,12 @@ async function get_web3_transactionReceipt( details, attempts, w3, txHash ) {
         } catch ( e ) {}
         idxAttempt++;
     }
-    if( idxAttempt + 1 > cntAttempts && ( txReceipt === "" || txReceipt === undefined ) )
-        throw new Error( "Could not not get Transaction Receipt" );
+    if( ( idxAttempt + 1 ) > cntAttempts && ( txReceipt === "" || txReceipt === undefined ) ) {
+        details.write( cc.fatal( "ERROR:" ) +
+            cc.error( " Could not " ) + cc.warning( "getTransactionReceipt" ) + cc.error( " after " ) +
+            cc.info( cntAttempts ) + cc.error( " attempts, previous result is: " ) + cc.j( txReceipt ) + "\n" );
+        throw new Error( "Could not \"getTransactionReceipt\" after " + cntAttempts + " attempts" );
+    }
     return txReceipt;
 }
 
@@ -250,7 +260,7 @@ async function get_web3_pastEvents( details, w3, attempts, joContract, strEventN
     let idxAttempt = 2;
     while( joAllEventsInBlock === "" && idxAttempt <= cntAttempts ) {
         details.write(
-            cc.warning( "Repeat " ) + cc.error( "getPastEvents" ) + cc.warning( "/" ) + cc.error( strEventName ) +
+            cc.warning( "Repeat " ) + cc.info( "getPastEvents" ) + cc.warning( "/" ) + cc.error( attention ) +
             cc.warning( ", attempt " ) + cc.error( idxAttempt ) +
             cc.warning( ", from block " ) + cc.info( nBlockFrom ) +
             cc.warning( ", to block " ) + cc.info( nBlockTo ) +
@@ -265,10 +275,16 @@ async function get_web3_pastEvents( details, w3, attempts, joContract, strEventN
         } catch ( err ) {}
         idxAttempt++;
     }
-    if( idxAttempt + 1 === cntAttempts && joAllEventsInBlock === "" ) {
+    if( ( idxAttempt + 1 ) === cntAttempts && joAllEventsInBlock === "" ) {
+        details.write( cc.fatal( "ERROR:" ) +
+            cc.error( "Could not get event " ) + cc.attention( strEventName ) + cc.error( " with " ) + cc.info( "getPastEvents" ) +
+            cc.error( ", from block " ) + cc.warning( nBlockFrom ) + cc.error( ", to block " ) + cc.warning( nBlockTo ) +
+            cc.error( " after " ) + cc.warning( cntAttempts ) + cc.error( " attempts, previous result is: " ) +
+            cc.j( joAllEventsInBlock ) + "\n" );
         throw new Error(
-            "Could not not get Event \"" + strEventName +
-            "\", from block " + nBlockFrom + ", to block " + nBlockTo
+            "Could not get Event \"" + strEventName +
+            "\", from block " + nBlockFrom + ", to block " + nBlockTo +
+            " after " + cntAttempts + " attempts"
         );
     }
     return joAllEventsInBlock;
@@ -398,7 +414,7 @@ async function do_oracle_gas_price_setup(
     if( getOracleGasPriceMode() == 0 )
         return;
     const details = log.createMemoryStream();
-    const jarrReceipts = []; // do_transfer
+    const jarrReceipts = [];
     //let bErrorInSigningMessages = false;
     const strLogPrefix = cc.info( "Oracle gas price setup:" ) + " ";
     if( fn_sign == null || fn_sign == undefined ) {
@@ -416,7 +432,7 @@ async function do_oracle_gas_price_setup(
         details.write( cc.debug( "Latest block on Main Net is " ) + cc.info( latestBlockNumber ) + "\n" );
         strActionName = "do_oracle_gas_price_setup.timestampOfBlock()";
         const latestBlock = await w3_main_net.eth.getBlock( latestBlockNumber );
-        let timestampOfBlock = parseInt( latestBlock.timestamp );
+        let timestampOfBlock = "0x" + w3_main_net.utils.toBN( latestBlock.timestamp ).toString( 16 );
         details.write( cc.debug( "Timestamp on Main Net is " ) + cc.info( timestampOfBlock ) + cc.debug( " (original)" ) + "\n" );
         timestampOfBlock -= 10;
         details.write( cc.debug( "Timestamp on Main Net is " ) + cc.info( timestampOfBlock ) + cc.debug( " (adjusted to past a bit)" ) + "\n" );
@@ -519,7 +535,7 @@ async function do_oracle_gas_price_setup(
 
             if( joReceipt && typeof joReceipt == "object" && "gasUsed" in joReceipt ) {
                 jarrReceipts.push( {
-                    "description": "do_transfer/setGasPrice",
+                    "description": "do_oracle_gas_price_setup/setGasPrice",
                     "receipt": joReceipt
                 } );
                 print_gas_usage_report_from_array( "(intermediate result) ORACLE GAS PRICE SETUP ", jarrReceipts );
@@ -3592,33 +3608,6 @@ async function do_erc1155_batch_payment_from_s_chain(
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-function w3provider_2_url( provider ) {
-    if( ! provider )
-        return null;
-    if( "host" in provider ) {
-        const u = provider.host.toString();
-        if( u && cc.safeURL( u ) )
-            return u;
-    }
-    if( "url" in provider ) {
-        const u = provider.url.toString();
-        if( u && cc.safeURL( u ) )
-            return u;
-    }
-    return null;
-}
-
-function w3_2_url( w3 ) {
-    if( ! w3 )
-        return null;
-    if( !( "currentProvider" in w3 ) )
-        return null;
-    return w3provider_2_url( w3.currentProvider );
-}
-
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
 function parseIntOrHex( s ) {
     if( typeof s != "string" )
         return parseInt( s );
@@ -3635,8 +3624,8 @@ async function async_pending_tx_start( details, w3, w3_opposite, chain_id, chain
     const strLogPrefix = "";
     try {
         if( chain_id == "Mainnet" ) {
-            details.write( strLogPrefix + cc.debug( "Reporting pending transaction " ) + cc.notice( txHash ) + + cc.debug( " start from " ) + cc.u( w3_2_url( w3 ) ) + cc.debug( "..." ) + "\n" );
-            const strNodeURL = w3_2_url( w3_opposite );
+            details.write( strLogPrefix + cc.debug( "Reporting pending transaction " ) + cc.notice( txHash ) + + cc.debug( " start from " ) + cc.u( owaspUtils.w3_2_url( w3 ) ) + cc.debug( "..." ) + "\n" );
+            const strNodeURL = owaspUtils.w3_2_url( w3_opposite );
             details.write( strLogPrefix + cc.debug( "Will report pending work cache to " ) + cc.u( strNodeURL ) + cc.debug( "..." ) + "\n" );
             const rpcCallOpts = null;
             await rpcCall.create( strNodeURL, rpcCallOpts, async function( joCall, err ) {
@@ -3684,7 +3673,7 @@ async function async_pending_tx_start( details, w3, w3_opposite, chain_id, chain
         }
     } catch ( err ) {
         const s =
-            strLogPrefix + cc.error( "PENDING WORK START ERROR: API call error from " ) + cc.u( w3_2_url( w3 ) ) +
+            strLogPrefix + cc.error( "PENDING WORK START ERROR: API call error from " ) + cc.u( owaspUtils.w3_2_url( w3 ) ) +
             cc.error( ": " ) + cc.error( err ) +
             "\n";
         if( verbose_get() >= RV_VERBOSE.error )
@@ -3697,8 +3686,8 @@ async function async_pending_tx_complete( details, w3, w3_opposite, chain_id, ch
     const strLogPrefix = "";
     try {
         if( chain_id == "Mainnet" ) {
-            details.write( strLogPrefix + cc.debug( "Reporting pending transaction " ) + cc.notice( txHash ) + + cc.debug( " completion from " ) + cc.u( w3_2_url( w3 ) ) + cc.debug( "..." ) + "\n" );
-            const strNodeURL = w3_2_url( w3_opposite );
+            details.write( strLogPrefix + cc.debug( "Reporting pending transaction " ) + cc.notice( txHash ) + + cc.debug( " completion from " ) + cc.u( owaspUtils.w3_2_url( w3 ) ) + cc.debug( "..." ) + "\n" );
+            const strNodeURL = owaspUtils.w3_2_url( w3_opposite );
             details.write( strLogPrefix + cc.debug( "Will report pending work cache to " ) + cc.u( strNodeURL ) + cc.debug( "..." ) + "\n" );
             const rpcCallOpts = null;
             await rpcCall.create( strNodeURL, rpcCallOpts, async function( joCall, err ) {
@@ -3746,7 +3735,7 @@ async function async_pending_tx_complete( details, w3, w3_opposite, chain_id, ch
         }
     } catch ( err ) {
         const s =
-            strLogPrefix + cc.error( "PENDING WORK COMPLETE ERROR: API call error from " ) + cc.u( w3_2_url( w3 ) ) +
+            strLogPrefix + cc.error( "PENDING WORK COMPLETE ERROR: API call error from " ) + cc.u( owaspUtils.w3_2_url( w3 ) ) +
             cc.error( ": " ) + cc.error( err ) +
             "\n";
         if( verbose_get() >= RV_VERBOSE.error )
@@ -3763,9 +3752,9 @@ async function async_pending_tx_scanner( details, w3, w3_opposite, chain_id, cha
     cb = cb || function( tx ) { };
     const strLogPrefix = "";
     try {
-        details.write( strLogPrefix + cc.debug( "Scanning pending transactions from " ) + cc.u( w3_2_url( w3 ) ) + cc.debug( "..." ) + "\n" );
+        details.write( strLogPrefix + cc.debug( "Scanning pending transactions from " ) + cc.u( owaspUtils.w3_2_url( w3 ) ) + cc.debug( "..." ) + "\n" );
         if( chain_id == "Mainnet" ) {
-            const strNodeURL = w3_2_url( w3_opposite );
+            const strNodeURL = owaspUtils.w3_2_url( w3_opposite );
             details.write( strLogPrefix + cc.debug( "Using pending work cache from " ) + cc.u( strNodeURL ) + cc.debug( "..." ) + "\n" );
             let havePendingWorkInfo = false;
             const rpcCallOpts = null;
@@ -3864,7 +3853,7 @@ async function async_pending_tx_scanner( details, w3, w3_opposite, chain_id, cha
                     } catch ( err ) {
                         if( verbose_get() >= RV_VERBOSE.error ) {
                             const s =
-                                strLogPrefix + cc.error( "PENDING TRANSACTIONS ENUMERATION HANDLER ERROR: from " ) + cc.u( w3_2_url( w3 ) ) +
+                                strLogPrefix + cc.error( "PENDING TRANSACTIONS ENUMERATION HANDLER ERROR: from " ) + cc.u( owaspUtils.w3_2_url( w3 ) ) +
                                 cc.error( ": " ) + cc.error( err ) +
                                 "\n";
                             if( verbose_get() >= RV_VERBOSE.error )
@@ -3881,7 +3870,7 @@ async function async_pending_tx_scanner( details, w3, w3_opposite, chain_id, cha
         } // else from if( chain_id == "Mainnet" )
     } catch ( err ) {
         const s =
-            strLogPrefix + cc.error( "PENDING TRANSACTIONS SCAN ERROR: API call error from " ) + cc.u( w3_2_url( w3 ) ) +
+            strLogPrefix + cc.error( "PENDING TRANSACTIONS SCAN ERROR: API call error from " ) + cc.u( owaspUtils.w3_2_url( w3 ) ) +
             cc.error( ": " ) + cc.error( err ) +
             "\n";
         if( verbose_get() >= RV_VERBOSE.error )
@@ -3978,20 +3967,27 @@ async function do_transfer(
     nBlockAwaitDepth,
     nBlockAge,
     fn_sign_messages,
+    joExtraSignOpts,
     //
-    tc_dst, // same as w3_dst
+    tc_dst,
     //
     optsPendingTxAnalysis,
     optsStateFile
 ) {
+    const strGatheredDetailsName = "" +
+        strDirection + "-" + "do_transfer()" +
+        "-" + chain_id_src + "-->" + chain_id_dst;
+    const strGatheredDetailsNameColored = "" +
+        cc.bright( strDirection ) + cc.debug( "-" ) + cc.info( "do_transfer()" ) +
+        cc.debug( "-" ) + cc.notice( chain_id_src ) + cc.debug( "-->" ) + cc.notice( chain_id_dst );
     const details = log.createMemoryStream();
-    const jarrReceipts = []; // do_transfer
+    const jarrReceipts = [];
     let bErrorInSigningMessages = false;
     await init_ima_state_file( details, w3_src, strDirection, optsStateFile );
-    const strLogPrefix = cc.info( "Transfer from " ) + cc.notice( chain_id_src ) + cc.info( " to " ) + cc.notice( chain_id_dst ) + cc.info( ":" ) + " ";
+    const strLogPrefix = cc.bright( strDirection ) + cc.info( " transfer from " ) + cc.notice( chain_id_src ) + cc.info( " to " ) + cc.notice( chain_id_dst ) + cc.info( ":" ) + " ";
     if( fn_sign_messages == null || fn_sign_messages == undefined ) {
         details.write( strLogPrefix + cc.debug( "Using internal signing stub function" ) + "\n" );
-        fn_sign_messages = async function( jarrMessages, nIdxCurrentMsgBlockStart, details, fnAfter ) {
+        fn_sign_messages = async function( jarrMessages, nIdxCurrentMsgBlockStart, details, joExtraSignOpts, fnAfter ) {
             details.write( strLogPrefix + cc.debug( "Message signing callback was " ) + cc.error( "not provided" ) +
                 cc.debug( " to IMA, first real message index is:" ) + cc.info( nIdxCurrentMsgBlockStart ) +
                 cc.debug( ", have " ) + cc.info( jarrMessages.length ) + cc.debug( " message(s) to process:" ) + cc.j( jarrMessages ) +
@@ -4063,7 +4059,7 @@ async function do_transfer(
                         "\n" );
                 }
                 details.close();
-                return;
+                return false;
             }
             const arrMessageCounters = [];
             const jarrMessages = [];
@@ -4113,8 +4109,10 @@ async function do_transfer(
                 //
                 //
                 strActionName = "src-chain->MessageProxy->scan-past-events()";
-                details.write( strLogPrefix + cc.debug( "Will call " ) + cc.notice( strActionName ) +
-                cc.debug( " for " ) + cc.info( "OutgoingMessage" ) + cc.debug( " event..." ) + "\n" );
+                details.write(
+                    strLogPrefix + cc.debug( "Will call " ) + cc.notice( strActionName ) +
+                    cc.debug( " for " ) + cc.info( "OutgoingMessage" ) + cc.debug( " event..." ) +
+                    "\n" );
                 r = await get_web3_pastEventsProgressive(
                     details,
                     w3_src,
@@ -4148,12 +4146,13 @@ async function do_transfer(
                 }
                 details.write( strLogPrefix + cc.normal( "Next forecasted block number for logs search is " ) + cc.info( blockNumberNextForecast ) + "\n" );
                 if( joValues == "" ) {
-                    log.write( strLogPrefix + cc.fatal( "CRITICAL ERROR:" ) + " " + cc.error( "Can't get events from MessageProxy" ) + "\n" );
-                    details.write( strLogPrefix + cc.fatal( "CRITICAL ERROR:" ) + " " + cc.error( "Can't get events from MessageProxy" ) + "\n" );
-                    details.exposeDetailsTo( log, "do_transfer", false );
+                    const strError = strLogPrefix + cc.fatal( "CRITICAL ERROR:" ) + " " + cc.error( "Can't get events from MessageProxy" );
+                    log.write( strError + "\n" );
+                    details.write( strError + "\n" );
+                    details.exposeDetailsTo( log, strGatheredDetailsName, false );
                     save_transfer_error( details.toString() );
                     details.close();
-                    return; // process.exit( 126 );
+                    return false; // process.exit( 126 );
                 }
                 //
                 //
@@ -4179,7 +4178,7 @@ async function do_transfer(
                         if( verbose_get() >= RV_VERBOSE.fatal )
                             log.write( s );
                         details.write( s );
-                        details.exposeDetailsTo( log, "do_transfer", false );
+                        details.exposeDetailsTo( log, strGatheredDetailsName, false );
                         save_transfer_error( details.toString() );
                         details.close();
                         return false;
@@ -4223,7 +4222,7 @@ async function do_transfer(
                         if( verbose_get() >= RV_VERBOSE.fatal )
                             log.write( s );
                         details.write( s );
-                        details.exposeDetailsTo( log, "do_transfer", false );
+                        details.exposeDetailsTo( log, strGatheredDetailsName, false );
                         save_transfer_error( details.toString() );
                         details.close();
                         return false;
@@ -4249,13 +4248,14 @@ async function do_transfer(
                 //
                 details.write( strLogPrefix + cc.debug( "Will process message counter value " ) + cc.info( nIdxCurrentMsg ) + "\n" );
                 arrMessageCounters.push( nIdxCurrentMsg );
-                jarrMessages.push( {
+                const joMessage = {
                     sender: joValues.srcContract,
                     destinationContract: joValues.dstContract,
                     to: joValues.to,
                     amount: joValues.amount,
                     data: joValues.data
-                } );
+                };
+                jarrMessages.push( joMessage );
             } // for( let idxInBlock = 0; nIdxCurrentMsg < nOutMsgCnt && idxInBlock < nTransactionsCountInBlock; ++ nIdxCurrentMsg, ++ idxInBlock, ++cntAccumulatedForBlock )
             if( cntAccumulatedForBlock == 0 )
                 break;
@@ -4267,7 +4267,7 @@ async function do_transfer(
                         "\n" );
                 }
                 details.close();
-                return;
+                return false;
             }
             //
             //
@@ -4293,7 +4293,7 @@ async function do_transfer(
                     } );
                     if( joFoundPendingTX ) {
                         details.write(
-                            strLogPrefix + cc.warning( "PENDING TRANSACTION ANALYSIS(1) from " ) + cc.u( w3_2_url( w3_dst ) ) +
+                            strLogPrefix + cc.warning( "PENDING TRANSACTION ANALYSIS(1) from " ) + cc.u( owaspUtils.w3_2_url( w3_dst ) ) +
                             cc.warning( " found un-finished transaction(s) in pending queue to be processed by destination message proxy: " ) +
                             cc.j( joFoundPendingTX ) +
                             "\n" );
@@ -4320,33 +4320,32 @@ async function do_transfer(
                             } );
                             if( joFoundPendingTX ) {
                                 details.write(
-                                    strLogPrefix + cc.warning( "PENDING TRANSACTION ANALYSIS(2) from " ) + cc.u( w3_2_url( w3_dst ) ) +
+                                    strLogPrefix + cc.warning( "PENDING TRANSACTION ANALYSIS(2) from " ) + cc.u( owaspUtils.w3_2_url( w3_dst ) ) +
                                     cc.warning( " found un-finished transaction(s) in pending queue to be processed by destination message proxy: " ) +
                                     cc.j( joFoundPendingTX ) +
                                     "\n" );
                                 if( "isIgnore2" in optsPendingTxAnalysis && ( !optsPendingTxAnalysis.isIgnore2 ) )
-                                    return; // return after 2nd pending transactions analysis
+                                    return false; // return after 2nd pending transactions analysis
                                 details.write(
-                                    strLogPrefix + cc.warning( "PENDING TRANSACTION ANALYSIS(2) from " ) + cc.u( w3_2_url( w3_dst ) ) +
+                                    strLogPrefix + cc.warning( "PENDING TRANSACTION ANALYSIS(2) from " ) + cc.u( owaspUtils.w3_2_url( w3_dst ) ) +
                                     cc.warning( " result is " ) + cc.error( "ignored" ) +
                                     "\n" );
                                 wasIgnoredPTX = true;
                             }
                         } else {
                             if( "isIgnore" in optsPendingTxAnalysis && ( !optsPendingTxAnalysis.isIgnore ) )
-                                return; // return after first 1st transactions analysis
+                                return false; // return after first 1st transactions analysis
                             details.write(
-                                strLogPrefix + cc.warning( "PENDING TRANSACTION ANALYSIS(1) from " ) + cc.u( w3_2_url( w3_dst ) ) +
+                                strLogPrefix + cc.warning( "PENDING TRANSACTION ANALYSIS(1) from " ) + cc.u( owaspUtils.w3_2_url( w3_dst ) ) +
                                 cc.warning( " result is " ) + cc.error( "ignored" ) +
                                 "\n" );
                             wasIgnoredPTX = true;
                         }
-
                     }
                 } catch ( err ) {
                     const s =
                         strLogPrefix + cc.error( "PENDING TRANSACTION ANALYSIS ERROR: API call error from " ) +
-                        cc.u( w3_2_url( w3_dst ) ) + cc.error( ": " ) + cc.error( err ) + "\n";
+                        cc.u( owaspUtils.w3_2_url( w3_dst ) ) + cc.error( ": " ) + cc.error( err ) + "\n";
                     if( verbose_get() >= RV_VERBOSE.error )
                         log.write( s );
                     details.write( s );
@@ -4364,9 +4363,191 @@ async function do_transfer(
                             "\n" );
                     }
                     details.close();
-                    return;
+                    return false;
                 }
             }
+            //
+            //
+            //
+            if( strDirection == "S2S" ) {
+                strActionName = "S2S message analysis";
+                if( ! joExtraSignOpts )
+                    throw new Error( "Could not validate S2S messages, no extra options provided to transfer algorithm" );
+                if( ! joExtraSignOpts.skale_observer )
+                    throw new Error( "Could not validate S2S messages, no SKALE NETWORK observer provided to transfer algorithm" );
+                const arr_schains_cached = joExtraSignOpts.skale_observer.get_last_cached_schains();
+                if( ( !arr_schains_cached ) || arr_schains_cached.length == 0 )
+                    throw new Error( "Could not validate S2S messages, no S-Chains in SKALE NETWORK observer cached yet, try again later" );
+                const idxSChain = joExtraSignOpts.skale_observer.find_schain_index_in_array_by_name( arr_schains_cached, chain_id_src );
+                if( idxSChain < 0 ) {
+                    throw new Error(
+                        "Could not validate S2S messages, source S-Chain \"" + chain_id_src +
+                        "\" is not in SKALE NETWORK observer cache yet or it's not connected to this \"" + chain_id_dst +
+                        "\" S-Chain yet, try again later" );
+                }
+                const cntMessages = jarrMessages.length;
+                const jo_schain = arr_schains_cached[idxSChain];
+                const cntNodes = jo_schain.data.computed.nodes.length;
+                const cntNodesShouldPass =
+                    ( cntNodes == 16 )
+                        ? 11
+                        : (
+                            ( cntNodes == 4 )
+                                ? 3
+                                : (
+                                    ( cntNodes == 2 || cntNodes == 1 )
+                                        ? ( 0 + cntNodes )
+                                        : parseInt( ( cntNodes * 2 ) / 3 )
+                                )
+                        );
+                const cntNodesMayFail = cntNodes - cntNodesShouldPass;
+                details.write( strLogPrefix +
+                    cc.sunny( strDirection ) + cc.debug( " message analysis will be performed o S-Chain " ) +
+                    cc.info( chain_id_src ) + cc.debug( " with " ) +
+                    cc.info( cntNodes ) + cc.debug( " node(s), " ) +
+                    cc.info( cntNodesShouldPass ) + cc.debug( " node(s) should have same message(s), " ) +
+                    cc.info( cntNodesMayFail ) + cc.debug( " node(s) allowed to fail message(s) comparison, " ) +
+                    cc.info( cntMessages ) + cc.debug( " message(s) to check..." ) +
+                    "\n" );
+
+                // jarrMessages.push( {
+                //     sender: joValues.srcContract,
+                //     destinationContract: joValues.dstContract,
+                //     to: joValues.to,
+                //     amount: joValues.amount,
+                //     data: joValues.data
+                // } );
+                for( let idxMessage = 0; idxMessage < cntMessages; ++ idxMessage ) {
+                    const idxImaMessage = arrMessageCounters[idxMessage];
+                    const joMessage = jarrMessages[idxMessage];
+                    details.write( strLogPrefix +
+                        cc.sunny( strDirection ) + cc.debug( " message analysis for message " ) +
+                        cc.info( idxMessage + 1 ) + cc.debug( " of " ) + cc.info( cntMessages ) +
+                        cc.debug( " with IMA message index " ) + cc.j( idxImaMessage ) +
+                        cc.debug( " and message envelope data:" ) + cc.j( joMessage ) +
+                        "\n" );
+                    let cntPassedNodes = 0, cntFailedNodes = 0;
+                    try {
+                        for( let idxNode = 0; idxNode < cntNodes; ++ idxNode ) {
+                            const jo_node = jo_schain.data.computed.nodes[idxNode];
+                            details.write( strLogPrefix +
+                                cc.debug( "Validating " ) + cc.sunny( strDirection ) + cc.debug( " message " ) + cc.info( idxMessage + 1 ) +
+                                cc.debug( " on node " ) + cc.info( jo_node.name ) +
+                                cc.debug( " using URL " ) + cc.info( jo_node.http_endpoint_ip ) +
+                                cc.debug( "..." ) + "\n" );
+                            try {
+                                const w3_node = getWeb3FromURL( jo_node.http_endpoint_ip );
+                                const jo_message_proxy_node = new w3_node.eth.Contract( imaState.joAbiPublishResult_s_chain.message_proxy_chain_abi, imaState.joAbiPublishResult_s_chain.message_proxy_chain_address );
+                                const node_r = await get_web3_pastEventsProgressive(
+                                    details,
+                                    w3_node,
+                                    10,
+                                    jo_message_proxy_node,
+                                    "OutgoingMessage",
+                                    0, // nBlockFrom
+                                    "latest", // nBlockTo
+                                    {
+                                        dstChainHash: [ w3_node.utils.soliditySha3( chain_id_dst ) ],
+                                        msgCounter: [ idxImaMessage ]
+                                    }
+                                );
+                                const cntEvents = node_r.length;
+                                details.write( strLogPrefix +
+                                    cc.debug( "Got " ) + cc.info( cntEvents ) + cc.debug( " events on node " ) +
+                                    cc.info( jo_node.name ) + cc.debug( " with data: " ) + cc.j( node_r ) + "\n" );
+                                for( let idxEvent = 0; idxEvent < cntEvents; ++ idxEvent ) {
+                                    const joEvent = node_r[idxEvent];
+                                    if( owaspUtils.ensure_starts_with_0x( joMessage.sender ).toLowerCase() ==
+                                        owaspUtils.ensure_starts_with_0x( joEvent.returnValues.srcContract ).toLowerCase() &&
+                                        owaspUtils.ensure_starts_with_0x( joMessage.destinationContract ).toLowerCase() ==
+                                        owaspUtils.ensure_starts_with_0x( joEvent.returnValues.dstContract ).toLowerCase()
+                                    )
+                                        bEventIsFound = true;
+                                    if( bEventIsFound )
+                                        break;
+                                } // for( let idxEvent = 0; idxEvent < cntEvents; ++ idxEvent )
+                            } catch ( err ) {
+                                ++ cntFailedNodes;
+                                const strError = strLogPrefix + cc.fatal( strDirection + " message analysis error:" ) + " " +
+                                    cc.error( "Failed to scan events on node " ) + cc.info( jo_node.name ) +
+                                    cc.debug( ", error is: " ) + cc.warning( err.toString() ) + "\n";
+                                details.write( strError );
+                                if( verbose_get() >= RV_VERBOSE.fatal )
+                                    log.write( strError );
+                                // details.exposeDetailsTo( log, strGatheredDetailsName, false );
+                                // save_transfer_error( details.toString() );
+                                // details.close();
+                                // return false;
+                                continue;
+                            }
+                            if( bEventIsFound ) {
+                                ++ cntPassedNodes;
+                                details.write( strLogPrefix + cc.sunny( strDirection ) +
+                                    cc.success( " message " ) + cc.info( idxMessage + 1 ) + cc.success( " validation on node " ) +
+                                    cc.info( jo_node.name ) + cc.success( " using URL " ) + cc.info( jo_node.http_endpoint_ip ) +
+                                    cc.success( " is passed" ) + "\n" );
+                            } else {
+                                ++ cntFailedNodes;
+                                const strError = strLogPrefix + cc.sunny( strDirection ) +
+                                    cc.error( " message " ) + cc.info( idxMessage + 1 ) + cc.error( " validation on node " ) +
+                                    cc.info( jo_node.name ) + cc.success( " using URL " ) + cc.info( jo_node.http_endpoint_ip ) +
+                                    cc.error( " is failed" ) + "\n"; ;
+                                details.write( strError );
+                                if( verbose_get() >= RV_VERBOSE.fatal )
+                                    log.write( strError );
+                            }
+                            if( cntFailedNodes > cntNodesMayFail )
+                                break;
+                            if( cntPassedNodes >= cntNodesShouldPass ) {
+                                details.write( strLogPrefix + cc.sunny( strDirection ) +
+                                cc.success( " message " ) + cc.info( idxMessage + 1 ) + cc.success( " validation on node " ) +
+                                cc.info( jo_node.name ) + cc.success( " using URL " ) + cc.info( jo_node.http_endpoint_ip ) +
+                                cc.success( " is passed" ) + "\n" );
+                                break;
+                            }
+                        } // for( let idxNode = 0; idxNode < cntNodes; ++ idxNode )
+                    } catch ( err ) {
+                        const strError = strLogPrefix + cc.fatal( strDirection + " message analysis error:" ) + " " +
+                            cc.error( "Failed to process events for " ) + cc.sunny( strDirection ) + cc.error( " message " ) +
+                            cc.info( idxMessage + 1 ) + cc.error( " on node " ) + cc.info( jo_node.name ) +
+                            cc.success( " using URL " ) + cc.info( jo_node.http_endpoint_ip ) +
+                            cc.debug( ", error is: " ) + cc.warning( err.toString() ) + "\n";
+                        details.write( strError );
+                        if( verbose_get() >= RV_VERBOSE.fatal )
+                            log.write( strError );
+                    }
+                    if( cntFailedNodes > cntNodesMayFail ) {
+                        const s =
+                            strLogPrefix + cc.fatal( "CRITICAL ERROR:" ) + cc.error( " Error validating " ) + cc.sunny( strDirection ) +
+                            cc.error( " messages, failed node count " ) + cc.info( cntFailedNodes ) +
+                            cc.error( " is greater then allowed to fail " ) + cc.info( cntNodesMayFail ) +
+                            "\n";
+                        if( verbose_get() >= RV_VERBOSE.fatal )
+                            log.write( s );
+                        details.write( s );
+                        details.exposeDetailsTo( log, strGatheredDetailsName, false );
+                        save_transfer_error( details.toString() );
+                        details.close();
+                        return false;
+                    }
+                    if( ! ( cntPassedNodes >= cntNodesShouldPass ) ) {
+                        const s =
+                            strLogPrefix + cc.fatal( "CRITICAL ERROR:" ) + cc.error( " Error validating " ) + cc.sunny( strDirection ) +
+                            cc.error( " messages, passed node count " ) + cc.info( cntFailedNodes ) +
+                            cc.error( " is less then needed count " ) + cc.info( cntNodesShouldPass ) +
+                            "\n";
+                        if( verbose_get() >= RV_VERBOSE.fatal )
+                            log.write( s );
+                        details.write( s );
+                        details.exposeDetailsTo( log, strGatheredDetailsName, false );
+                        save_transfer_error( details.toString() );
+                        details.close();
+                        return false;
+                    }
+                } // for( let idxMessage = 0; idxMessage < cntMessages; ++ idxMessage )
+
+            } // if( strDirection == "S2S" ) //// "S2S message analysis
+            //
             //
             //
             strActionName = "sign messages";
@@ -4376,7 +4557,7 @@ async function do_transfer(
             log.write( strLogPrefix + cc.debug( "Will invoke message signing callback, first real message index is:" ) +
                 cc.info( nIdxCurrentMsgBlockStart ) + cc.info( jarrMessages.length ) + cc.debug( " message(s) to process:" ) + cc.j( jarrMessages ) +
                 "\n" );
-            await fn_sign_messages( jarrMessages, nIdxCurrentMsgBlockStart, details, async function( err, jarrMessages, joGlueResult ) {
+            await fn_sign_messages( jarrMessages, nIdxCurrentMsgBlockStart, details, joExtraSignOpts, async function( err, jarrMessages, joGlueResult ) {
                 const details = log.createMemoryStream();
                 details.write( strLogPrefix + cc.debug( "Did invoked message signing callback, first real message index is:" ) +
                 cc.info( nIdxCurrentMsgBlockStart ) + cc.info( jarrMessages.length ) + cc.debug( " message(s) to process:" ) + cc.j( jarrMessages ) + "\n" );
@@ -4387,17 +4568,17 @@ async function do_transfer(
                     if( verbose_get() >= RV_VERBOSE.fatal )
                         log.write( s );
                     details.write( s );
-                    details.exposeDetailsTo( log, "do_transfer", false );
+                    details.exposeDetailsTo( log, strGatheredDetailsName, false );
                     save_transfer_error( details.toString() );
                     details.close();
-                    return;
+                    return false;
                 }
                 if( "check_time_framing" in global && ( ! global.check_time_framing() ) ) {
                     if( verbose_get() >= RV_VERBOSE.information )
                         log.write( strLogPrefix + cc.error( "WARNING:" ) + " " + cc.warning( "Time framing overflow (after signing messages)" ) + "\n" );
 
                     details.close();
-                    return;
+                    return false;
                 }
                 strActionName = "dst-chain.getTransactionCount()";
                 const tcnt = await get_web3_transactionCount( details, 10, w3_dst, joAccountDst.address( w3_dst ), null );
@@ -4501,7 +4682,8 @@ async function do_transfer(
 
                 if( joReceipt && typeof joReceipt == "object" && "gasUsed" in joReceipt ) {
                     jarrReceipts.push( {
-                        "description": "do_transfer/postIncomingMessages",
+                        "description": "do_transfer/postIncomingMessages()",
+                        "detailsString": "" + strGatheredDetailsName,
                         "receipt": joReceipt
                     } );
                     print_gas_usage_report_from_array( "(intermediate result) TRANSFER " + chain_id_src + " -> " + chain_id_dst, jarrReceipts );
@@ -4561,7 +4743,7 @@ async function do_transfer(
                 //
                 //
                 if( expose_details_get() )
-                    details.exposeDetailsTo( log, "do_transfer", true );
+                    details.exposeDetailsTo( log, strGatheredDetailsName, true );
                 details.close();
             } ).catch( ( err ) => {
                 bErrorInSigningMessages = true;
@@ -4572,20 +4754,105 @@ async function do_transfer(
                 break;
         } // while( nIdxCurrentMsg < nOutMsgCnt )
     } catch ( err ) {
+        const strError = strLogPrefix + cc.fatal( "CRITICAL ERROR:" ) +
+            cc.error( " Error in " ) + strGatheredDetailsNameColored +
+            cc.error( " during " + strActionName + ": " ) + cc.error( err );
         if( verbose_get() >= RV_VERBOSE.fatal )
-            log.write( strLogPrefix + cc.fatal( "CRITICAL ERROR:" ) + cc.error( " Error in do_transfer() during " + strActionName + ": " ) + cc.error( err ) + "\n" );
-        details.write( strLogPrefix + cc.fatal( "CRITICAL ERROR:" ) + cc.error( " Error in do_transfer() during " + strActionName + ": " ) + cc.error( err ) + "\n" );
-        details.exposeDetailsTo( log, "do_transfer", false );
+            log.write( strError + "\n" );
+        details.write( strError + "\n" );
+        details.exposeDetailsTo( log, strGatheredDetailsName, false );
         save_transfer_error( details.toString() );
         details.close();
         return false;
     }
     print_gas_usage_report_from_array( "TRANSFER " + chain_id_src + " -> " + chain_id_dst, jarrReceipts );
     if( expose_details_get() )
-        details.exposeDetailsTo( log, "do_transfer", true );
+        details.exposeDetailsTo( log, strGatheredDetailsName, true );
     details.close();
     return true;
 } // async function do_transfer( ...
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+async function do_s2s_all( // s-chain --> s-chain
+    imaState,
+    skale_observer,
+    w3_dst,
+    jo_message_proxy_dst,
+    joAccountDst,
+    chain_id_dst,
+    cid_dst,
+    jo_token_manager_schain, // for logs validation on s-chain
+    //
+    nTransactionsCountInBlock,
+    nMaxTransactionsCount,
+    nBlockAwaitDepth,
+    nBlockAge,
+    fn_sign_messages,
+    //
+    tc_dst,
+    //
+    optsPendingTxAnalysis,
+    optsStateFile
+) {
+    const strDirection = "S2S";
+    const arr_schains_cached = skale_observer.get_last_cached_schains();
+    const cntSChains = arr_schains_cached.length;
+    for( let idxSChain = 0; idxSChain < cntSChains; ++ idxSChain ) {
+        const jo_schain = arr_schains_cached[idxSChain];
+        const url_src = skale_observer.pick_random_schain_w3_url( jo_schain );
+        const w3_src = getWeb3FromURL( url_src );
+        const joAccountSrc = joAccountDst; // ???
+        const chain_id_src = "" + jo_schain.data.name;
+        const cid_src = "" + jo_schain.data.computed.chainId;
+        // ??? assuming all S-Chains have same ABIs here
+        const jo_message_proxy_src = new w3_src.eth.Contract( imaState.joAbiPublishResult_s_chain.message_proxy_chain_abi, imaState.joAbiPublishResult_s_chain.message_proxy_chain_address );
+        const jo_deposit_box_src = new w3_src.eth.Contract( imaState.joAbiPublishResult_s_chain.message_proxy_chain_abi, imaState.joAbiPublishResult_s_chain.message_proxy_chain_address );
+        const joExtraSignOpts = {
+            skale_observer: skale_observer,
+            chain_id_src: chain_id_src,
+            cid_src: cid_src,
+            chain_id_dst: chain_id_dst,
+            cid_dst: cid_dst,
+            joAccountSrc: joAccountSrc,
+            joAccountDst: joAccountDst,
+            w3_src: w3_src,
+            w3_dst: w3_dst
+        };
+        await do_transfer(
+            strDirection,
+            //
+            w3_src,
+            jo_message_proxy_src,
+            joAccountSrc,
+            w3_dst,
+            jo_message_proxy_dst,
+            //
+            joAccountDst,
+            //
+            chain_id_src,
+            chain_id_dst,
+            cid_src,
+            cid_dst,
+            //
+            jo_deposit_box_src, // for logs validation on mainnet or source S-Chain
+            jo_token_manager_schain, // for logs validation on s-chain
+            //
+            nTransactionsCountInBlock,
+            nMaxTransactionsCount,
+            nBlockAwaitDepth,
+            nBlockAge,
+            fn_sign_messages,
+            joExtraSignOpts,
+            //
+            tc_dst,
+            //
+            optsPendingTxAnalysis,
+            optsStateFile
+        );
+    }
+}
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -4865,6 +5132,7 @@ module.exports.do_erc1155_payment_from_s_chain = do_erc1155_payment_from_s_chain
 module.exports.do_erc1155_batch_payment_from_main_net = do_erc1155_batch_payment_from_main_net;
 module.exports.do_erc1155_batch_payment_from_s_chain = do_erc1155_batch_payment_from_s_chain;
 module.exports.do_transfer = do_transfer;
+module.exports.do_s2s_all = do_s2s_all;
 module.exports.save_transfer_error = save_transfer_error;
 module.exports.get_last_transfer_errors = get_last_transfer_errors;
 

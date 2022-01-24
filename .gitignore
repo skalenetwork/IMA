@@ -51,7 +51,18 @@ proxy/predeployed/test/genesis.json
 .nyc_output
 
 # Dependency directories
-node_modules/
+node_modules
+agent/node_modules
+proxy/node_modules
+test/node_modules
+test-tokens/node_modules
+npms/scrypt/node-scrypt
+npms/scrypt/node_modules
+npms/skale-cc/node_modules
+npms/skale-ima/node_modules
+npms/skale-log/node_modules
+npms/skale-observer/node_modules
+npms/skale-owasp/node_modules
 
 # TypeScript v1 declaration files
 typings/
@@ -100,5 +111,3 @@ hash_g1
 verify_bls
 
 venv
-
-npms/scrypt/node-scrypt

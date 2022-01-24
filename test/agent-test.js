@@ -63,8 +63,9 @@ global.imaState = {
     "strPathHashG1": "", // path to hash_g1 app, must have if --sign-messages specified
     "strPathBlsVerify": "", // path to verify_bls app, optional, if specified then we will verify gathered BLS signature
 
-    "joTrufflePublishResult_main_net": { },
-    "joTrufflePublishResult_s_chain": { },
+    "joAbiPublishResult_skale_manager": { },
+    "joAbiPublishResult_main_net": { },
+    "joAbiPublishResult_s_chain": { },
 
     "joErc20_main_net": null,
     "joErc20_s_chain": null,
@@ -85,6 +86,7 @@ global.imaState = {
     "strCoinNameErc1155_main_net": "", // in-JSON coin name
     "strCoinNameErc1155_s_chain": "", // in-JSON coin name
 
+    // "strPathAbiJson_skale_manager": "", // imaUtils.normalizePath( "../proxy/data/skaleManager.json" ), // "./abi_skale_manager.json"
     // "strPathAbiJson_main_net": imaUtils.normalizePath( "../proxy/data/proxyMainnet.json" ),
     // "strPathAbiJson_s_chain": imaUtils.normalizePath( "../proxy/data/proxySchain_Bob.json" ),
     "strPathAbiJson_main_net": imaUtils.normalizePath( "./agent-test-data/proxyMainnet.json" ),
@@ -122,13 +124,17 @@ global.imaState = {
 
     "nTransferBlockSizeM2S": 4, // 10
     "nTransferBlockSizeS2M": 4, // 10
+    "nTransferBlockSizeS2S": 4, // 10
     "nMaxTransactionsM2S": 0,
     "nMaxTransactionsS2M": 0,
+    "nMaxTransactionsS2S": 0,
 
     "nBlockAwaitDepthM2S": 0,
     "nBlockAwaitDepthS2M": 0,
+    "nBlockAwaitDepthS2S": 0,
     "nBlockAgeM2S": 0,
     "nBlockAgeS2M": 0,
+    "nBlockAgeS2S": 0,
 
     "nLoopPeriodSeconds": 10,
 
@@ -182,6 +188,11 @@ global.imaState = {
 
     optsPendingTxAnalysis: {
         isEnabled: true
+    },
+
+    "s2s_opts": { // S-Chain to S-Chain transfer options
+        "isEnabled": false, // is S-Chain to S-Chain transfers enabled
+        "secondsToReDiscoverSkaleNetwork": 10 * 60 // seconts to re-discover SKALE network, 0 to disable
     },
 
     "arrActions": [] // array of actions to run
@@ -615,6 +626,7 @@ describe( "CLI", function() {
             const joExternalHandlers = {};
             const argv = [
                 "--verbose=9",
+                "--s2s-disable",
                 "--url-main-net=" + imaState.strURL_main_net,
                 "--url-s-chain=" + imaState.strURL_s_chain,
                 "--id-main-net=" + imaState.strChainName_main_net,
@@ -625,6 +637,7 @@ describe( "CLI", function() {
                 "--address-s-chain=" + imaState.joAccount_s_chain.address(),
                 "--key-main-net=" + imaState.joAccount_main_net.privateKey,
                 "--key-s-chain=" + imaState.joAccount_s_chain.privateKey,
+                //"--abi-skale-manager=" + imaState.strPathAbiJson_skale_manager,
                 "--abi-main-net=" + imaState.strPathAbiJson_main_net,
                 "--abi-s-chain=" + imaState.strPathAbiJson_s_chain,
                 // --erc721-main-net --erc721-s-chain --addr-erc721-s-chain
@@ -640,15 +653,19 @@ describe( "CLI", function() {
                 "--skip-dry-run", // --skip-dry-run --ignore-dry-run --dry-run
                 "--m2s-transfer-block-size=4",
                 "--s2m-transfer-block-size=4",
+                "--s2s-transfer-block-size=4",
                 "--transfer-block-size=4",
                 "--m2s-max-transactions=0",
                 "--s2m-max-transactions=0",
+                "--s2s-max-transactions=0",
                 "--max-transactions=0",
                 "--m2s-await-blocks=0",
                 "--s2m-await-blocks=0",
+                "--s2s-await-blocks=0",
                 "--await-blocks=0",
                 "--m2s-await-time=0",
                 "--s2m-await-time=0",
+                "--s2s-await-time=0",
                 "--await-time=0",
                 "--period=300",
                 "--node-number=0",
