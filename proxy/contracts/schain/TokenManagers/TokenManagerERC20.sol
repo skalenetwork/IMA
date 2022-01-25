@@ -285,10 +285,6 @@ contract TokenManagerERC20 is TokenManager, ITokenManagerERC20 {
             ) >= amount,
             "Transfer is not approved by token holder"
         );
-        require(
-            contractOnSchain.transferFrom(msg.sender, address(this), amount),
-            "Transfer was failed"
-        );
         bytes memory data = Messages.encodeTransferErc20Message(address(contractOnSchain), to, amount);
         if (isMainChainToken) {
             data = _receiveERC20(
@@ -298,7 +294,15 @@ contract TokenManagerERC20 is TokenManager, ITokenManagerERC20 {
                 amount
             );
             _saveTransferredAmount(chainHash, address(contractOnSchain), amount);
+            require(
+                contractOnSchain.transferFrom(msg.sender, address(this), amount),
+                "Transfer was failed"
+            );
         } else {
+            require(
+                contractOnSchain.transferFrom(msg.sender, address(this), amount),
+                "Transfer was failed"
+            );
             contractOnSchain.burn(amount);
         }
         messageProxy.postOutgoingMessage(
@@ -311,15 +315,15 @@ contract TokenManagerERC20 is TokenManager, ITokenManagerERC20 {
     /**
      * @dev Saves amount of tokens that was transferred to schain.
      */
-    function _saveTransferredAmount(bytes32 schainHash, address erc20Token, uint256 amount) private {
-        transferredAmount[schainHash][erc20Token] += amount;
+    function _saveTransferredAmount(bytes32 chainHash, address erc20Token, uint256 amount) private {
+        transferredAmount[chainHash][erc20Token] += amount;
     }
 
     /**
      * @dev Removes amount of tokens that was transferred from schain.
      */
-    function _removeTransferredAmount(bytes32 schainHash, address erc20Token, uint256 amount) private {
-        transferredAmount[schainHash][erc20Token] -= amount;
+    function _removeTransferredAmount(bytes32 chainHash, address erc20Token, uint256 amount) private {
+        transferredAmount[chainHash][erc20Token] -= amount;
     }
 
     /**
@@ -333,7 +337,7 @@ contract TokenManagerERC20 is TokenManager, ITokenManagerERC20 {
      * - Whitelist should be turned off for auto adding tokens to DepositBoxERC20.
      */
     function _receiveERC20(
-        bytes32 schainHash,
+        bytes32 chainHash,
         address erc20OnMainChain,
         address to,
         uint256 amount
@@ -344,9 +348,9 @@ contract TokenManagerERC20 is TokenManager, ITokenManagerERC20 {
         ERC20BurnableUpgradeable erc20 = ERC20BurnableUpgradeable(erc20OnMainChain);
         uint256 totalSupply = erc20.totalSupply();
         require(amount <= totalSupply, "Amount is incorrect");
-        bool isERC20AddedToSchain = _schainToERC20[schainHash].contains(erc20OnMainChain);
+        bool isERC20AddedToSchain = _schainToERC20[chainHash].contains(erc20OnMainChain);
         if (!isERC20AddedToSchain) {
-            _addERC20ForSchain(schainHash, erc20OnMainChain);
+            _addERC20ForSchain(chainHash, erc20OnMainChain);
             data = Messages.encodeTransferErc20AndTokenInfoMessage(
                 erc20OnMainChain,
                 to,
@@ -362,7 +366,7 @@ contract TokenManagerERC20 is TokenManager, ITokenManagerERC20 {
                 _getErc20TotalSupply(erc20)
             );
         }
-        emit ERC20TokenReady(schainHash, erc20OnMainChain, amount);
+        emit ERC20TokenReady(chainHash, erc20OnMainChain, amount);
     }
 
     /**
@@ -374,11 +378,11 @@ contract TokenManagerERC20 is TokenManager, ITokenManagerERC20 {
      * 
      * - Given address should be contract.
      */
-    function _addERC20ForSchain(bytes32 schainHash, address erc20OnMainChain) private {
+    function _addERC20ForSchain(bytes32 chainHash, address erc20OnMainChain) private {
         require(erc20OnMainChain.isContract(), "Given address is not a contract");
-        require(!_schainToERC20[schainHash].contains(erc20OnMainChain), "ERC20 Token was already added");
-        _schainToERC20[schainHash].add(erc20OnMainChain);
-        emit ERC20TokenAdded(schainHash, erc20OnMainChain, address(0));
+        require(!_schainToERC20[chainHash].contains(erc20OnMainChain), "ERC20 Token was already added");
+        _schainToERC20[chainHash].add(erc20OnMainChain);
+        emit ERC20TokenAdded(chainHash, erc20OnMainChain, address(0));
     }
 
     /**
@@ -402,27 +406,33 @@ contract TokenManagerERC20 is TokenManager, ITokenManagerERC20 {
     function _decodeErc20Message(bytes calldata data)
         private
         pure
-        returns (address receiver, address token, uint256 amount)
+        returns (address, address, uint256)
     {
         Messages.MessageType messageType = Messages.getMessageType(data);
         if (messageType == Messages.MessageType.TRANSFER_ERC20) {
             Messages.TransferErc20Message memory message =
                 Messages.decodeTransferErc20Message(data);
-            receiver = message.receiver;
-            token = message.token;
-            amount = message.amount;
+            return (
+                message.receiver,
+                message.token,
+                message.amount
+            );
         } else if (messageType == Messages.MessageType.TRANSFER_ERC20_AND_TOTAL_SUPPLY) {
-            Messages.TransferErc20AndTotalSupplyMessage memory message =
+            Messages.TransferErc20AndTotalSupplyMessage memory messageTotalSupply =
                 Messages.decodeTransferErc20AndTotalSupplyMessage(data);
-            receiver = message.baseErc20transfer.receiver;
-            token = message.baseErc20transfer.token;
-            amount = message.baseErc20transfer.amount;
+            return (
+                messageTotalSupply.baseErc20transfer.receiver,
+                messageTotalSupply.baseErc20transfer.token,
+                messageTotalSupply.baseErc20transfer.amount
+            );
         } else {
-            Messages.TransferErc20AndTokenInfoMessage memory message =
+            Messages.TransferErc20AndTokenInfoMessage memory messageTokenInfo =
                 Messages.decodeTransferErc20AndTokenInfoMessage(data);
-            receiver = message.baseErc20transfer.receiver;
-            token = message.baseErc20transfer.token;
-            amount = message.baseErc20transfer.amount;
+            return (
+                messageTokenInfo.baseErc20transfer.receiver,
+                messageTokenInfo.baseErc20transfer.token,
+                messageTokenInfo.baseErc20transfer.amount
+            );
         }
     }
 }

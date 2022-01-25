@@ -435,28 +435,28 @@ contract TokenManagerERC1155 is TokenManager, ITokenManagerERC1155 {
      * @dev Saves amount of tokens that was transferred to schain.
      */
     function _saveTransferredAmount(
-        bytes32 schainHash,
+        bytes32 chainHash,
         address erc1155Token,
         uint256[] memory ids,
         uint256[] memory amounts
     ) private {
         require(ids.length == amounts.length, "Incorrect length of arrays");
         for (uint256 i = 0; i < ids.length; i++)
-            transferredAmount[schainHash][erc1155Token][ids[i]] += amounts[i];
+            transferredAmount[chainHash][erc1155Token][ids[i]] += amounts[i];
     }
 
     /**
      * @dev Removes amount of tokens that was transferred from schain.
      */
     function _removeTransferredAmount(
-        bytes32 schainHash,
+        bytes32 chainHash,
         address erc1155Token,
         uint256[] memory ids,
         uint256[] memory amounts
     ) private {
         require(ids.length == amounts.length, "Incorrect length of arrays");
         for (uint256 i = 0; i < ids.length; i++)
-            transferredAmount[schainHash][erc1155Token][ids[i]] -= amounts[i];
+            transferredAmount[chainHash][erc1155Token][ids[i]] -= amounts[i];
     }
 
     /**
@@ -469,7 +469,7 @@ contract TokenManagerERC1155 is TokenManager, ITokenManagerERC1155 {
      * - Whitelist should be turned off for auto adding tokens to DepositBoxERC1155.
      */
     function _receiveERC1155(
-        bytes32 schainHash,
+        bytes32 chainHash,
         address erc1155OnMainChain,
         address to,
         uint256 id,
@@ -478,9 +478,9 @@ contract TokenManagerERC1155 is TokenManager, ITokenManagerERC1155 {
         private
         returns (bytes memory data)
     {
-        bool isERC1155AddedToSchain = _schainToERC1155[schainHash].contains(erc1155OnMainChain);
+        bool isERC1155AddedToSchain = _schainToERC1155[chainHash].contains(erc1155OnMainChain);
         if (!isERC1155AddedToSchain) {
-            _addERC1155ForSchain(schainHash, erc1155OnMainChain);
+            _addERC1155ForSchain(chainHash, erc1155OnMainChain);
             data = Messages.encodeTransferErc1155AndTokenInfoMessage(
                 erc1155OnMainChain,
                 to,
@@ -492,7 +492,7 @@ contract TokenManagerERC1155 is TokenManager, ITokenManagerERC1155 {
             data = Messages.encodeTransferErc1155Message(erc1155OnMainChain, to, id, amount);
         }
         
-        emit ERC1155TokenReady(schainHash, erc1155OnMainChain, _asSingletonArray(id), _asSingletonArray(amount));
+        emit ERC1155TokenReady(chainHash, erc1155OnMainChain, _asSingletonArray(id), _asSingletonArray(amount));
     }
 
     /**
@@ -505,7 +505,7 @@ contract TokenManagerERC1155 is TokenManager, ITokenManagerERC1155 {
      * - Whitelist should be turned off for auto adding tokens to DepositBoxERC1155.
      */
     function _receiveERC1155Batch(
-        bytes32 schainHash,
+        bytes32 chainHash,
         address erc1155OnMainChain,
         address to,
         uint256[] calldata ids,
@@ -514,9 +514,9 @@ contract TokenManagerERC1155 is TokenManager, ITokenManagerERC1155 {
         private
         returns (bytes memory data)
     {
-        bool isERC1155AddedToSchain = _schainToERC1155[schainHash].contains(erc1155OnMainChain);
+        bool isERC1155AddedToSchain = _schainToERC1155[chainHash].contains(erc1155OnMainChain);
         if (!isERC1155AddedToSchain) {
-            _addERC1155ForSchain(schainHash, erc1155OnMainChain);
+            _addERC1155ForSchain(chainHash, erc1155OnMainChain);
             data = Messages.encodeTransferErc1155BatchAndTokenInfoMessage(
                 erc1155OnMainChain,
                 to,
@@ -527,7 +527,7 @@ contract TokenManagerERC1155 is TokenManager, ITokenManagerERC1155 {
         } else {
             data = Messages.encodeTransferErc1155BatchMessage(erc1155OnMainChain, to, ids, amounts);
         }
-        emit ERC1155TokenReady(schainHash, erc1155OnMainChain, ids, amounts);
+        emit ERC1155TokenReady(chainHash, erc1155OnMainChain, ids, amounts);
     }
 
     /**
@@ -539,11 +539,11 @@ contract TokenManagerERC1155 is TokenManager, ITokenManagerERC1155 {
      * 
      * - Given address should be contract.
      */
-    function _addERC1155ForSchain(bytes32 schainHash, address erc1155OnMainChain) private {
+    function _addERC1155ForSchain(bytes32 chainHash, address erc1155OnMainChain) private {
         require(erc1155OnMainChain.isContract(), "Given address is not a contract");
-        require(!_schainToERC1155[schainHash].contains(erc1155OnMainChain), "ERC1155 Token was already added");
-        _schainToERC1155[schainHash].add(erc1155OnMainChain);
-        emit ERC1155TokenAdded(schainHash, erc1155OnMainChain, address(0));
+        require(!_schainToERC1155[chainHash].contains(erc1155OnMainChain), "ERC1155 Token was already added");
+        _schainToERC1155[chainHash].add(erc1155OnMainChain);
+        emit ERC1155TokenAdded(chainHash, erc1155OnMainChain, address(0));
     }
 
     /**

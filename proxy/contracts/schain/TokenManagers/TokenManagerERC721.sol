@@ -265,7 +265,6 @@ contract TokenManagerERC721 is TokenManager, ITokenManagerERC721 {
         }
         require(address(contractOnSchain).isContract(), "No token clone on schain");
         require(contractOnSchain.getApproved(tokenId) == address(this), "Not allowed ERC721 Token");
-        contractOnSchain.transferFrom(msg.sender, address(this), tokenId);
         bytes memory data = Messages.encodeTransferErc721Message(contractOnMainChain, to, tokenId);
         if (isMainChainToken) {
             data = _receiveERC721(
@@ -275,7 +274,9 @@ contract TokenManagerERC721 is TokenManager, ITokenManagerERC721 {
                 tokenId
             );
             _saveTransferredAmount(chainHash, address(contractOnSchain), tokenId);
+            contractOnSchain.transferFrom(msg.sender, address(this), tokenId);
         } else {
+            contractOnSchain.transferFrom(msg.sender, address(this), tokenId);
             contractOnSchain.burn(tokenId);
         }
         messageProxy.postOutgoingMessage(chainHash, messageReceiver, data);
@@ -284,16 +285,16 @@ contract TokenManagerERC721 is TokenManager, ITokenManagerERC721 {
     /**
      * @dev Saves the ids of tokens that was transferred to schain.
      */
-    function _saveTransferredAmount(bytes32 schainHash, address erc721Token, uint256 tokenId) private {
+    function _saveTransferredAmount(bytes32 chainHash, address erc721Token, uint256 tokenId) private {
         require(transferredAmount[erc721Token][tokenId] == bytes32(0), "Token was already transferred to chain");
-        transferredAmount[erc721Token][tokenId] = schainHash;
+        transferredAmount[erc721Token][tokenId] = chainHash;
     }
 
     /**
      * @dev Removes the ids of tokens that was transferred from schain.
      */
-    function _removeTransferredAmount(bytes32 schainHash, address erc721Token, uint256 tokenId) private {
-        require(transferredAmount[erc721Token][tokenId] == schainHash, "Token was already transferred from chain");
+    function _removeTransferredAmount(bytes32 chainHash, address erc721Token, uint256 tokenId) private {
+        require(transferredAmount[erc721Token][tokenId] == chainHash, "Token was already transferred from chain");
         transferredAmount[erc721Token][tokenId] = bytes32(0);
     }
 
@@ -307,7 +308,7 @@ contract TokenManagerERC721 is TokenManager, ITokenManagerERC721 {
      * - Whitelist should be turned off for auto adding tokens to DepositBoxERC721.
      */
     function _receiveERC721(
-        bytes32 schainHash,
+        bytes32 chainHash,
         address erc721OnMainChain,
         address to,
         uint256 tokenId
@@ -315,9 +316,9 @@ contract TokenManagerERC721 is TokenManager, ITokenManagerERC721 {
         private
         returns (bytes memory data)
     {
-        bool isERC721AddedToSchain = _schainToERC721[schainHash].contains(erc721OnMainChain);
+        bool isERC721AddedToSchain = _schainToERC721[chainHash].contains(erc721OnMainChain);
         if (!isERC721AddedToSchain) {
-            _addERC721ForSchain(schainHash, erc721OnMainChain);
+            _addERC721ForSchain(chainHash, erc721OnMainChain);
             data = Messages.encodeTransferErc721AndTokenInfoMessage(
                 erc721OnMainChain,
                 to,
@@ -327,7 +328,7 @@ contract TokenManagerERC721 is TokenManager, ITokenManagerERC721 {
         } else {
             data = Messages.encodeTransferErc721Message(erc721OnMainChain, to, tokenId);
         }
-        emit ERC721TokenReady(schainHash, erc721OnMainChain, tokenId);
+        emit ERC721TokenReady(chainHash, erc721OnMainChain, tokenId);
     }
 
     /**
@@ -339,11 +340,11 @@ contract TokenManagerERC721 is TokenManager, ITokenManagerERC721 {
      * 
      * - Given address should be contract.
      */
-    function _addERC721ForSchain(bytes32 schainHash, address erc721OnMainChain) private {
+    function _addERC721ForSchain(bytes32 chainHash, address erc721OnMainChain) private {
         require(erc721OnMainChain.isContract(), "Given address is not a contract");
-        require(!_schainToERC721[schainHash].contains(erc721OnMainChain), "ERC721 Token was already added");
-        _schainToERC721[schainHash].add(erc721OnMainChain);
-        emit ERC721TokenAdded(schainHash, erc721OnMainChain, address(0));
+        require(!_schainToERC721[chainHash].contains(erc721OnMainChain), "ERC721 Token was already added");
+        _schainToERC721[chainHash].add(erc721OnMainChain);
+        emit ERC721TokenAdded(chainHash, erc721OnMainChain, address(0));
     }
 
     /**
