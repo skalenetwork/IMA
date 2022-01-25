@@ -40,6 +40,7 @@ import "../TokenManager.sol";
  */
 contract TokenManagerERC20 is TokenManager, ITokenManagerERC20 {
     using AddressUpgradeable for address;
+    using EnumerableSetUpgradeable for EnumerableSetUpgradeable.AddressSet;
 
     // address of ERC20 on Mainnet => ERC20 on Schain
     mapping(address => ERC20OnChain) public deprecatedClonesErc20;
@@ -54,20 +55,37 @@ contract TokenManagerERC20 is TokenManager, ITokenManagerERC20 {
 
     mapping(bytes32 => mapping(address => uint256)) public transferredAmount;
 
+    mapping(bytes32 => EnumerableSetUpgradeable.AddressSet) private _schainToERC20;
+
     /**
      * @dev Emitted when schain owner register new ERC20 clone.
      */
-    event ERC20TokenAdded(address indexed erc20OnMainChain, address indexed erc20OnSchain);
+    event ERC20TokenAdded(bytes32 indexed chainHash, address indexed erc20OnMainChain, address indexed erc20OnSchain);
 
     /**
      * @dev Emitted when TokenManagerERC20 automatically deploys new ERC20 clone.
      */
-    event ERC20TokenCreated(address indexed erc20OnMainChain, address indexed erc20OnSchain);
+    event ERC20TokenCreated(
+        bytes32 indexed chainHash,
+        address indexed erc20OnMainChain,
+        address indexed erc20OnSchain
+    );
 
     /**
      * @dev Emitted when someone sends tokens from mainnet to schain.
      */
-    event ERC20TokenReceived(address indexed erc20OnMainChain, address indexed erc20OnSchain, uint256 amount);
+    event ERC20TokenReceived(
+        bytes32 indexed chainHash,
+        address indexed erc20OnMainChain,
+        address indexed erc20OnSchain,
+        uint256 amount
+    );
+
+    /**
+     * @dev Emitted when token is received by TokenManager and is ready to be cloned
+     * or transferred on SKALE chain.
+     */
+    event ERC20TokenReady(bytes32 indexed chainHash, address indexed contractOnMainnet, uint256 amount);
 
     /**
      * @dev Move tokens from schain to mainnet.
@@ -153,12 +171,12 @@ contract TokenManagerERC20 is TokenManager, ITokenManagerERC20 {
         require(messageProxy.isConnectedChain(targetChainName), "Chain is not connected");
         require(erc20OnSchain.isContract(), "Given address is not a contract");
         require(ERC20OnChain(erc20OnSchain).totalSupply() == 0, "TotalSupply is not zero");
-        bytes32 schainHash = keccak256(abi.encodePacked(targetChainName));
-        require(address(clonesErc20[schainHash][erc20OnMainChain]) == address(0), "Could not relink clone");
+        bytes32 targetChainHash = keccak256(abi.encodePacked(targetChainName));
+        require(address(clonesErc20[targetChainHash][erc20OnMainChain]) == address(0), "Could not relink clone");
         require(!addedClones[ERC20OnChain(erc20OnSchain)], "Clone was already added");
-        clonesErc20[schainHash][erc20OnMainChain] = ERC20OnChain(erc20OnSchain);
+        clonesErc20[targetChainHash][erc20OnMainChain] = ERC20OnChain(erc20OnSchain);
         addedClones[ERC20OnChain(erc20OnSchain)] = true;
-        emit ERC20TokenAdded(erc20OnMainChain, erc20OnSchain);
+        emit ERC20TokenAdded(targetChainHash, erc20OnMainChain, erc20OnSchain);
     }
 
     /**
@@ -201,53 +219,55 @@ contract TokenManagerERC20 is TokenManager, ITokenManagerERC20 {
         if (messageType == Messages.MessageType.TRANSFER_ERC20) {
             Messages.TransferErc20Message memory message =
                 Messages.decodeTransferErc20Message(data);
-            receiver = message.baseErc20transfer.receiver;
-            token = message.baseErc20transfer.token;
-            amount = message.baseErc20transfer.amount;
-            require(token.isContract() && !addedClones[token], "Incorrect main token");
-            require(ERC20Upgradeable(message.token).balanceOf(address(this)) >= message.amount, "Not enough money");
-            _removeTransferredAmount(schainHash, message.token, message.amount);
+            receiver = message.receiver;
+            token = message.token;
+            amount = message.amount;
+            require(token.isContract() && _schainToERC20[fromChainHash].contains(token), "Incorrect main chain token");
+            require(ERC20Upgradeable(token).balanceOf(address(this)) >= message.amount, "Not enough money");
+            _removeTransferredAmount(fromChainHash, token, message.amount);
             require(
-                ERC20Upgradeable(message.token).transfer(message.receiver, message.amount),
+                ERC20Upgradeable(token).transfer(receiver, amount),
                 "Transfer was failed"
             );
-        } else if (messageType == Messages.MessageType.TRANSFER_ERC20_AND_TOTAL_SUPPLY) {
-            Messages.TransferErc20AndTotalSupplyMessage memory message =
-                Messages.decodeTransferErc20AndTotalSupplyMessage(data);
-            receiver = message.baseErc20transfer.receiver;
-            token = message.baseErc20transfer.token;
-            amount = message.baseErc20transfer.amount;
-            totalSupply = message.totalSupply;
-            contractOnSchain = clonesErc20[fromChainHash][token];
         } else {
-            Messages.TransferErc20AndTokenInfoMessage memory message =
-                Messages.decodeTransferErc20AndTokenInfoMessage(data);
-            receiver = message.baseErc20transfer.receiver;
-            token = message.baseErc20transfer.token;
-            amount = message.baseErc20transfer.amount;
-            totalSupply = message.totalSupply;
-            contractOnSchain = clonesErc20[fromChainHash][token];
+            if (messageType == Messages.MessageType.TRANSFER_ERC20_AND_TOTAL_SUPPLY) {
+                Messages.TransferErc20AndTotalSupplyMessage memory message =
+                    Messages.decodeTransferErc20AndTotalSupplyMessage(data);
+                receiver = message.baseErc20transfer.receiver;
+                token = message.baseErc20transfer.token;
+                amount = message.baseErc20transfer.amount;
+                totalSupply = message.totalSupply;
+                contractOnSchain = clonesErc20[fromChainHash][token];
+            } else {
+                Messages.TransferErc20AndTokenInfoMessage memory message =
+                    Messages.decodeTransferErc20AndTokenInfoMessage(data);
+                receiver = message.baseErc20transfer.receiver;
+                token = message.baseErc20transfer.token;
+                amount = message.baseErc20transfer.amount;
+                totalSupply = message.totalSupply;
+                contractOnSchain = clonesErc20[fromChainHash][token];
 
-            if (address(contractOnSchain) == address(0)) {
-                require(automaticDeploy, "Automatic deploy is disabled");
-                contractOnSchain = new ERC20OnChain(message.tokenInfo.name, message.tokenInfo.symbol);
-                clonesErc20[fromChainHash][token] = contractOnSchain;
-                addedClones[contractOnSchain] = true;
-                emit ERC20TokenCreated(token, address(contractOnSchain));
+                if (address(contractOnSchain) == address(0)) {
+                    require(automaticDeploy, "Automatic deploy is disabled");
+                    contractOnSchain = new ERC20OnChain(message.tokenInfo.name, message.tokenInfo.symbol);
+                    clonesErc20[fromChainHash][token] = contractOnSchain;
+                    addedClones[contractOnSchain] = true;
+                    emit ERC20TokenCreated(fromChainHash, token, address(contractOnSchain));
+                }
             }
+            if (totalSupply != totalSupplyOnMainnet[contractOnSchain]) {
+                totalSupplyOnMainnet[contractOnSchain] = totalSupply;
+            }
+            bool noOverflow;
+            uint updatedTotalSupply;
+            (noOverflow, updatedTotalSupply) = SafeMathUpgradeable.tryAdd(contractOnSchain.totalSupply(), amount);
+            require(
+                noOverflow && updatedTotalSupply <= totalSupplyOnMainnet[contractOnSchain],
+                "Total supply exceeded"
+            );
+            contractOnSchain.mint(receiver, amount);
         }
-        if (totalSupply != totalSupplyOnMainnet[contractOnSchain]) {
-            totalSupplyOnMainnet[contractOnSchain] = totalSupply;
-        }
-        bool noOverflow;
-        uint updatedTotalSupply;
-        (noOverflow, updatedTotalSupply) = SafeMathUpgradeable.tryAdd(contractOnSchain.totalSupply(), amount);
-        require(
-            noOverflow && updatedTotalSupply <= totalSupplyOnMainnet[contractOnSchain],
-            "Total supply exceeded"
-        );
-        contractOnSchain.mint(receiver, amount);
-        emit ERC20TokenReceived(token, address(contractOnSchain), amount);
+        emit ERC20TokenReceived(fromChainHash, token, address(contractOnSchain), amount);
         return receiver;
     }
 
@@ -263,11 +283,11 @@ contract TokenManagerERC20 is TokenManager, ITokenManagerERC20 {
     )
         private
     {
-        bool isMainToken;
+        bool isMainChainToken;
         ERC20BurnableUpgradeable contractOnSchain = clonesErc20[chainHash][contractOnMainChain];
-        if (contractOnSchain == address(0)) {
+        if (address(contractOnSchain) == address(0)) {
             contractOnSchain = ERC20BurnableUpgradeable(contractOnMainChain);
-            isMainToken = true;
+            isMainChainToken = true;
         }
         require(address(contractOnSchain).isContract(), "Token is not a contract");
         require(contractOnSchain.balanceOf(msg.sender) >= amount, "Insufficient funds");
@@ -282,17 +302,113 @@ contract TokenManagerERC20 is TokenManager, ITokenManagerERC20 {
             contractOnSchain.transferFrom(msg.sender, address(this), amount),
             "Transfer was failed"
         );
-        if (isMainToken) {
-            contractOnSchain.burn(amount);
-            if (transferredAmount[chainHash][contractOnSchain] == 0) {
-
-            }
-        } else {
-            messageProxy.postOutgoingMessage(
+        bytes memory data = Messages.encodeTransferErc20Message(address(contractOnSchain), to, amount);
+        if (isMainChainToken) {
+            data = _receiveERC20(
                 chainHash,
-                messageReceiver,
-                Messages.encodeTransferErc20Message(contractOnMainChain, to, amount)
+                address(contractOnSchain),
+                msg.sender,
+                amount
+            );
+            _saveTransferredAmount(chainHash, address(contractOnSchain), amount);
+        } else {
+            contractOnSchain.burn(amount);
+        }
+        messageProxy.postOutgoingMessage(
+            chainHash,
+            messageReceiver,
+            data
+        );
+    }
+
+    /**
+     * @dev Saves amount of tokens that was transferred to schain.
+     */
+    function _saveTransferredAmount(bytes32 schainHash, address erc20Token, uint256 amount) private {
+        transferredAmount[schainHash][erc20Token] += amount;
+    }
+
+    /**
+     * @dev Removes amount of tokens that was transferred from schain.
+     */
+    function _removeTransferredAmount(bytes32 schainHash, address erc20Token, uint256 amount) private {
+        transferredAmount[schainHash][erc20Token] -= amount;
+    }
+
+    /**
+     * @dev Allows DepositBoxERC20 to receive ERC20 tokens.
+     * 
+     * Emits an {ERC20TokenReady} event.
+     * 
+     * Requirements:
+     * 
+     * - Amount must be less than or equal to the total supply of the ERC20 contract.
+     * - Whitelist should be turned off for auto adding tokens to DepositBoxERC20.
+     */
+    function _receiveERC20(
+        bytes32 schainHash,
+        address erc20OnMainChain,
+        address to,
+        uint256 amount
+    )
+        private
+        returns (bytes memory data)
+    {
+        ERC20BurnableUpgradeable erc20 = ERC20BurnableUpgradeable(erc20OnMainChain);
+        uint256 totalSupply = erc20.totalSupply();
+        require(amount <= totalSupply, "Amount is incorrect");
+        bool isERC20AddedToSchain = _schainToERC20[schainHash].contains(erc20OnMainChain);
+        if (!isERC20AddedToSchain) {
+            _addERC20ForSchain(schainHash, erc20OnMainChain);
+            data = Messages.encodeTransferErc20AndTokenInfoMessage(
+                erc20OnMainChain,
+                to,
+                amount,
+                _getErc20TotalSupply(erc20),
+                _getErc20TokenInfo(erc20)
+            );
+        } else {
+            data = Messages.encodeTransferErc20AndTotalSupplyMessage(
+                erc20OnMainChain,
+                to,
+                amount,
+                _getErc20TotalSupply(erc20)
             );
         }
+        emit ERC20TokenReady(schainHash, erc20OnMainChain, amount);
+    }
+
+    /**
+     * @dev Adds an ERC20 token to DepositBoxERC20.
+     * 
+     * Emits an {ERC20TokenAdded} event.
+     * 
+     * Requirements:
+     * 
+     * - Given address should be contract.
+     */
+    function _addERC20ForSchain(bytes32 schainHash, address erc20OnMainChain) private {
+        require(erc20OnMainChain.isContract(), "Given address is not a contract");
+        require(!_schainToERC20[schainHash].contains(erc20OnMainChain), "ERC20 Token was already added");
+        _schainToERC20[schainHash].add(erc20OnMainChain);
+        emit ERC20TokenAdded(schainHash, erc20OnMainChain, address(0));
+    }
+
+    /**
+     * @dev Returns total supply of ERC20 token.
+     */
+    function _getErc20TotalSupply(ERC20Upgradeable erc20Token) private view returns (uint256) {
+        return erc20Token.totalSupply();
+    }
+
+    /**
+     * @dev Returns info about ERC20 token such as token name, decimals, symbol.
+     */
+    function _getErc20TokenInfo(ERC20Upgradeable erc20Token) private view returns (Messages.Erc20TokenInfo memory) {
+        return Messages.Erc20TokenInfo({
+            name: erc20Token.name(),
+            decimals: erc20Token.decimals(),
+            symbol: erc20Token.symbol()
+        });
     }
 }
