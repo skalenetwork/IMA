@@ -142,7 +142,7 @@ describe("TokenManagerERC721", () => {
         await tokenClone.connect(deployer).mint(user.address, tokenId);
         await tokenManagerERC721.connect(user).exitToMainERC721(token.address, tokenId)
             .should.be.eventually.rejectedWith("Not allowed ERC721 Token");
-        
+
         await tokenClone.connect(user).approve(tokenManagerERC721.address, tokenId);
         await tokenManagerERC721.connect(user).exitToMainERC721(token.address, tokenId)
             .should.be.eventually.rejectedWith("Sender contract is not registered");
