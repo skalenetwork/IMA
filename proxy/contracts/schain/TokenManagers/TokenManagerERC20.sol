@@ -276,7 +276,7 @@ contract TokenManagerERC20 is TokenManager, ITokenManagerERC20 {
             contractOnSchain = ERC20BurnableUpgradeable(contractOnMainChain);
             isMainChainToken = true;
         }
-        require(address(contractOnSchain).isContract(), "Token is not a contract");
+        require(address(contractOnSchain).isContract(), "No token clone on schain");
         require(contractOnSchain.balanceOf(msg.sender) >= amount, "Insufficient funds");
         require(
             contractOnSchain.allowance(

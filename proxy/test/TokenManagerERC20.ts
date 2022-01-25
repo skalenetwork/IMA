@@ -141,7 +141,7 @@ describe("TokenManagerERC20", () => {
         if (!res.events) {
             assert("No events were emitted");
         } else {
-            newAddress = "0x" + res.events[res.events.length - 1].topics[2].slice(-40);
+            newAddress = "0x" + res.events[res.events.length - 1].topics[3].slice(-40);
             const newERC20Contract = await (await ethers.getContractFactory("ERC20OnChain")).attach(newAddress) as ERC20OnChain;
             let balance = await newERC20Contract.functions.balanceOf(to);
             parseInt(balance.toString(), 10).should.be.equal(amount);
@@ -251,12 +251,12 @@ describe("TokenManagerERC20", () => {
         const amountReduceCost = "8000000000000000";
         const newSchainName = randomString(10);
         await messageProxyForSchain.registerExtraContract(newSchainName, tokenManagerErc20.address);
-        await tokenManagerErc20.connect(schainOwner).addERC20TokenByOwner(mainnetName,  erc20OnMainnet.address, erc20OnChain.address);
-
+        
         // add connected chain:
         await messageProxyForSchain.connect(deployer).grantRole(await messageProxyForSchain.CHAIN_CONNECTOR_ROLE(), deployer.address);
         await messageProxyForSchain.connect(deployer).addConnectedChain(newSchainName);
-
+        
+        await tokenManagerErc20.connect(schainOwner).addERC20TokenByOwner(newSchainName,  erc20OnMainnet.address, erc20OnChain.address);
         await erc20OnChain.connect(deployer).mint(user.address, amount);
         await erc20OnChain.connect(user).approve(tokenManagerErc20.address, amount);
 
@@ -292,7 +292,7 @@ describe("TokenManagerERC20", () => {
             const fromSchainName = randomString(10);
             const fromSchainHash = stringValue(web3.utils.soliditySha3(fromSchainName));
             await tokenManagerErc20.addTokenManager(fromSchainName, remoteTokenManagerAddress);
-            await tokenManagerErc20.connect(schainOwner).addERC20TokenByOwner(mainnetName,  erc20OnMainnet.address, erc20OnChain.address);
+            // await tokenManagerErc20.connect(schainOwner).addERC20TokenByOwner(mainnetName,  erc20OnMainnet.address, erc20OnChain.address);
 
             await erc20OnMainnet.mint(deployer.address, amount);
             const data = await messages.encodeTransferErc20AndTokenInfoMessage(
@@ -311,7 +311,7 @@ describe("TokenManagerERC20", () => {
             // execution
             await messageProxyForSchain.postMessage(tokenManagerErc20.address, fromSchainHash, remoteTokenManagerAddress, data);
             // expectation
-            const addressERC20OnSchain = await tokenManagerErc20.clonesErc20(mainnetId, erc20OnMainnet.address);
+            const addressERC20OnSchain = await tokenManagerErc20.clonesErc20(fromSchainHash, erc20OnMainnet.address);
             const targetErc20OnChain = await (await ethers.getContractFactory("ERC20OnChain")).attach(addressERC20OnSchain) as ERC20OnChain;
             expect(parseInt((await targetErc20OnChain.functions.balanceOf(to)).toString(), 10))
                 .to.be.equal(amount);
@@ -322,8 +322,9 @@ describe("TokenManagerERC20", () => {
             const remoteTokenManagerAddress = fakeDepositBox;
             const fromSchainName = randomString(10);
             const fromSchainHash = stringValue(web3.utils.soliditySha3(fromSchainName));
+            await messageProxyForSchain.connect(deployer).addConnectedChain(fromSchainName);
             await tokenManagerErc20.addTokenManager(fromSchainName, remoteTokenManagerAddress);
-            await tokenManagerErc20.connect(schainOwner).addERC20TokenByOwner(mainnetName,  erc20OnMainnet.address, erc20OnChain.address);
+            await tokenManagerErc20.connect(schainOwner).addERC20TokenByOwner(fromSchainName,  erc20OnMainnet.address, erc20OnChain.address);
 
             const amount = 10;
             const to = user.address;
@@ -339,7 +340,7 @@ describe("TokenManagerERC20", () => {
             // execution
             await messageProxyForSchain.postMessage(tokenManagerErc20.address, fromSchainHash, remoteTokenManagerAddress, data);
             // expectation
-            const addressERC20OnSchain = await tokenManagerErc20.clonesErc20(mainnetId, erc20OnMainnet.address);
+            const addressERC20OnSchain = await tokenManagerErc20.clonesErc20(fromSchainHash, erc20OnMainnet.address);
             const targetErc20OnChain = await (await ethers.getContractFactory("ERC20OnChain")).attach(addressERC20OnSchain) as ERC20OnChain;
             expect(parseInt((await targetErc20OnChain.functions.balanceOf(to)).toString(), 10))
                 .to.be.equal(amount);
@@ -376,7 +377,7 @@ describe("TokenManagerERC20", () => {
             await messageProxyForSchain.postMessage(tokenManagerErc20.address, fromSchainHash, remoteTokenManagerAddress, data);
 
             // expectation
-            const addressERC20OnSchain = await tokenManagerErc20.clonesErc20(mainnetId, erc20OnMainnet.address);
+            const addressERC20OnSchain = await tokenManagerErc20.clonesErc20(fromSchainHash, erc20OnMainnet.address);
             const targetErc20OnChain = await (await ethers.getContractFactory("ERC20OnChain")).attach(addressERC20OnSchain) as ERC20OnChain;
             expect(parseInt((await targetErc20OnChain.functions.balanceOf(to)).toString(), 10))
                 .to.be.equal(amount);
