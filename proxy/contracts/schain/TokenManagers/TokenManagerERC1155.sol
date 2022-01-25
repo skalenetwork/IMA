@@ -442,8 +442,7 @@ contract TokenManagerERC1155 is TokenManager, ITokenManagerERC1155 {
     ) private {
         require(ids.length == amounts.length, "Incorrect length of arrays");
         for (uint256 i = 0; i < ids.length; i++)
-            transferredAmount[schainHash][erc1155Token][ids[i]] =
-                transferredAmount[schainHash][erc1155Token][ids[i]] + amounts[i];
+            transferredAmount[schainHash][erc1155Token][ids[i]] += amounts[i];
     }
 
     /**
@@ -457,8 +456,7 @@ contract TokenManagerERC1155 is TokenManager, ITokenManagerERC1155 {
     ) private {
         require(ids.length == amounts.length, "Incorrect length of arrays");
         for (uint256 i = 0; i < ids.length; i++)
-            transferredAmount[schainHash][erc1155Token][ids[i]] =
-                transferredAmount[schainHash][erc1155Token][ids[i]] - amounts[i];
+            transferredAmount[schainHash][erc1155Token][ids[i]] -= amounts[i];
     }
 
     /**
