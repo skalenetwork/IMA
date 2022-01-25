@@ -131,8 +131,9 @@ describe("TokenManagerERC721", () => {
     });
 
     it("should successfully call exitToMainERC721", async () => {
+        // should be "No token clone on schain" if chains were different
         await tokenManagerERC721.connect(user).exitToMainERC721(token.address, tokenId)
-            .should.be.eventually.rejectedWith("No token clone on schain");
+            .should.be.eventually.rejectedWith("ERC721: approved query for nonexistent token");
 
         await tokenManagerERC721.connect(schainOwner).addERC721TokenByOwner(mainnetName,  token.address, tokenClone.address);
         await tokenManagerERC721.connect(user).exitToMainERC721(token.address, tokenId)
@@ -141,7 +142,7 @@ describe("TokenManagerERC721", () => {
         await tokenClone.connect(deployer).mint(user.address, tokenId);
         await tokenManagerERC721.connect(user).exitToMainERC721(token.address, tokenId)
             .should.be.eventually.rejectedWith("Not allowed ERC721 Token");
-
+        
         await tokenClone.connect(user).approve(tokenManagerERC721.address, tokenId);
         await tokenManagerERC721.connect(user).exitToMainERC721(token.address, tokenId)
             .should.be.eventually.rejectedWith("Sender contract is not registered");
@@ -211,7 +212,7 @@ describe("TokenManagerERC721", () => {
             .should.be.eventually.rejectedWith("Incorrect Token Manager address");
 
         await tokenManagerERC721.addTokenManager(newSchainName, deployer.address);
-        await tokenManagerERC721.connect(schainOwner).addERC721TokenByOwner(mainnetName,  token.address, tokenClone.address);
+        await tokenManagerERC721.connect(schainOwner).addERC721TokenByOwner(newSchainName,  token.address, tokenClone.address);
         await tokenClone.connect(deployer).mint(deployer.address, tokenId);
 
         await tokenManagerERC721
