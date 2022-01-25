@@ -187,7 +187,6 @@ abstract contract TokenManager is AccessControlEnumerableUpgradeable, ITokenMana
             msg.sender == address(tokenManagerLinker) ||
             hasRole(DEFAULT_ADMIN_ROLE, msg.sender), "Not authorized caller"
         );
-        require(_allowChain(schainName), "Chain is not allowed");
         bytes32 newSchainHash = keccak256(abi.encodePacked(schainName));
         require(tokenManagers[newSchainHash] == address(0), "Token Manager is already set");
         require(newTokenManager != address(0), "Incorrect Token Manager address");
@@ -207,7 +206,6 @@ abstract contract TokenManager is AccessControlEnumerableUpgradeable, ITokenMana
             msg.sender == address(tokenManagerLinker) ||
             hasRole(DEFAULT_ADMIN_ROLE, msg.sender), "Not authorized caller"
         );
-        require(_allowChain(schainName), "Chain is not allowed");
         bytes32 newSchainHash = keccak256(abi.encodePacked(schainName));
         require(tokenManagers[newSchainHash] != address(0), "Token Manager is not set");
         delete tokenManagers[newSchainHash];
@@ -268,9 +266,5 @@ abstract contract TokenManager is AccessControlEnumerableUpgradeable, ITokenMana
 
     function _checkSender(bytes32 fromChainHash, address sender) internal view virtual returns (bool) {
         return fromChainHash == MAINNET_HASH ? sender == depositBox : sender == tokenManagers[fromChainHash];
-    }
-
-    function _allowChain(string memory chainName) internal view virtual returns (bool) {
-        return keccak256(abi.encodePacked(chainName)) != MAINNET_HASH && messageProxy.isConnectedChain(chainName);
     }
 }

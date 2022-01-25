@@ -123,16 +123,42 @@ describe("TokenManagerEth", () => {
         expect(await tokenManagerEth.depositBox()).to.equal(newDepositBox);
     });
 
-    it("should not add tokenManager", async () => {
+    it("should add tokenManager", async () => {
         const tokenManagerAddress = user.address;
         const nullAddress = "0x0000000000000000000000000000000000000000";
         const schainName2 = "TestSchain2";
 
         // only owner can add deposit box:
-        await tokenManagerEth.connect(user).addTokenManager(schainName2, tokenManagerAddress).should.be.rejectedWith("Not authorized caller");
-        await tokenManagerEth.connect(deployer).addTokenManager(schainName2, tokenManagerAddress).should.be.rejectedWith("Chain is not allowed");
+        await tokenManagerEth.connect(user).addTokenManager(schainName2, tokenManagerAddress).should.be.rejected;
+
+        // deposit box address shouldn't be equal zero:
+        await tokenManagerEth.connect(deployer).addTokenManager(schainName2, nullAddress)
+            .should.be.rejectedWith("Incorrect Token Manager address");
+
+        // add deposit box:
+        await tokenManagerEth.connect(deployer).addTokenManager(schainName2, tokenManagerAddress);
+
+        // deposit box can't be added twice:
+        await tokenManagerEth.connect(deployer).addTokenManager(schainName2, tokenManagerAddress).
+            should.be.rejectedWith("Token Manager is already set");
+
+        const storedDepositBox = await tokenManagerEth.tokenManagers(stringValue(web3.utils.soliditySha3(schainName2)));
+        expect(storedDepositBox).to.equal(tokenManagerAddress);
     });
 
+    it("should return true when invoke `hasTokenManager`", async () => {
+        // preparation
+        const tokenManagerAddress = user.address;
+        const schainName2 = "TestSchain2";
+        // add schain for return `true` after `hasTokenManager` invoke
+        await tokenManagerEth.connect(deployer).addTokenManager(schainName2, tokenManagerAddress);
+        // execution
+        const res = await tokenManagerEth
+            .connect(deployer)
+            .hasTokenManager(schainName2);
+        // expectation
+        expect(res).to.be.true;
+    });
 
     it("should return false when invoke `hasTokenManager`", async () => {
         // preparation
@@ -145,15 +171,26 @@ describe("TokenManagerEth", () => {
         expect(res).to.be.false;
     });
 
-    it("should not invoke `removeTokenManager`", async () => {
+    it("should invoke `removeTokenManager` without mistakes", async () => {
         // preparation
         const tokenManagerAddress = user.address;
         const nullAddress = "0x0000000000000000000000000000000000000000";
         const schainName2 = "TestSchain2";
         // add deposit box:
-        await tokenManagerEth.connect(deployer).addTokenManager(schainName2, tokenManagerAddress).should.be.rejectedWith("Chain is not allowed");
+        await tokenManagerEth.connect(deployer).addTokenManager(schainName2, tokenManagerAddress);
         // execution
-        await tokenManagerEth.connect(deployer).removeTokenManager(schainName2).should.be.rejectedWith("Chain is not allowed");
+        await tokenManagerEth.connect(deployer).removeTokenManager(schainName2);
+        // expectation
+        const getMapping = await tokenManagerEth.tokenManagers(stringValue(web3.utils.soliditySha3(schainName2)));
+        expect(getMapping).to.equal(nullAddress);
+    });
+
+    it("should invoke `removeTokenManager` with 0 depositBoxes", async () => {
+        // preparation
+        const error = "Token Manager is not set";
+        const schainName2 = "TestSchain2";
+        // execution/expectation
+        await tokenManagerEth.connect(deployer).removeTokenManager(schainName2).should.be.rejectedWith(error);
     });
 
     it("should send Eth to somebody on Mainnet, closed to Mainnet, called by schain", async () => {
@@ -227,7 +264,10 @@ describe("TokenManagerEth", () => {
             // redeploy tokenManagerEth with `developer` address instead `messageProxyForSchain.address`
             // to avoid `Not a sender` error
             tokenManagerEth = await deployTokenManagerEth(schainName, deployer.address, tokenManagerLinker, communityLocker, fakeDepositBox, ethERC20.address);
-
+            // add schain to avoid the `Receiver chain is incorrect` error
+            await tokenManagerEth
+                .connect(deployer)
+                .addTokenManager(schainName, deployer.address);
             // execution
             await tokenManagerEth
                 .connect(deployer)
@@ -248,6 +288,9 @@ describe("TokenManagerEth", () => {
             // to avoid `Not a sender` error
             tokenManagerEth = await deployTokenManagerEth(schainName, deployer.address, tokenManagerLinker, communityLocker, fakeDepositBox, ethERC20.address);
             // add schain to avoid the `Receiver chain is incorrect` error
+            await tokenManagerEth
+                .connect(deployer)
+                .addTokenManager(fromSchainName, deployer.address);
             await ethERC20.connect(deployer).grantRole(await ethERC20.MINTER_ROLE(), tokenManagerEth.address);
             await ethERC20.connect(deployer).grantRole(await ethERC20.BURNER_ROLE(), tokenManagerEth.address);
             // execution
@@ -264,7 +307,6 @@ describe("TokenManagerEth", () => {
             await tokenManagerEth
                 .connect(deployer)
                 .postMessage(mainnetHash, fakeDepositBox, bytesData);
-                // .should.be.eventually.rejectedWith("Receiver chain is incorrect");
             // expectation
             expect(parseInt((BigNumber.from(await ethERC20.balanceOf(to))).toString(), 10))
                 .to.be.equal(parseInt(amount, 10));

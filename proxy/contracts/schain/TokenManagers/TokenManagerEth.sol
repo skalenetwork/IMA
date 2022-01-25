@@ -116,10 +116,6 @@ contract TokenManagerEth is TokenManager, ITokenManagerEth {
         return fromChainHash == MAINNET_HASH && sender == depositBox;
     }
 
-    function _allowChain(string memory) internal view override returns (bool) {
-        return false;
-    }
-
     /**
      * @dev Burn EthErc20 tokens on schain and send message to unlock ETH on target chain.
      */
