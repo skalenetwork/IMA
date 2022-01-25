@@ -40,6 +40,11 @@ contract KeyStorage is IKeyStorage, AccessControlEnumerableUpgradeable {
      * to get uin256 value from the config.
      */
     uint256 public constant FN_NUM_GET_CONFIG_VARIABLE_UINT256 = 0x13;
+    /**
+     * @dev Address of custom precompiled contract on SKALE chain
+     * to get current BLS public key.
+     */
+    uint256 public constant FN_NUM_GET_CURRENT_BLS_PUBLIC_KEY = 0x16;
 
     /**
      * @dev Is called once during contract deployment.
@@ -57,16 +62,7 @@ contract KeyStorage is IKeyStorage, AccessControlEnumerableUpgradeable {
      * @dev Get BLS common public key.
      */
     function getBlsCommonPublicKey() external view override virtual returns (IFieldOperations.G2Point memory) {
-        return IFieldOperations.G2Point({
-            x: IFieldOperations.Fp2Point({
-                a: _getConfigVariableUint256("skaleConfig.nodeInfo.wallets.ima.commonBLSPublicKey0"),
-                b: _getConfigVariableUint256("skaleConfig.nodeInfo.wallets.ima.commonBLSPublicKey1")
-            }),
-            y: IFieldOperations.Fp2Point({
-                a: _getConfigVariableUint256("skaleConfig.nodeInfo.wallets.ima.commonBLSPublicKey2"),
-                b: _getConfigVariableUint256("skaleConfig.nodeInfo.wallets.ima.commonBLSPublicKey3")
-            })
-        });
+        return _getCurrentBLSPublicKey();
     }
 
     // private
@@ -96,5 +92,34 @@ contract KeyStorage is IKeyStorage, AccessControlEnumerableUpgradeable {
             rv := mload(ptr)
         }
         require(success, "Get config uint256 failed");
+    }
+
+    /**
+     * @dev Get current BLS public key the skaled.
+     */
+    function _getCurrentBLSPublicKey()
+        private
+        view
+        returns ( IFieldOperations.G2Point pk )
+    {
+        uint256 fmp = FREE_MEM_PTR;
+        uint256 blocks = (bytes(strConfigVariableName).length + 31) / 32 + 1;
+        bool success;
+        // solhint-disable-next-line no-inline-assembly
+        assembly {
+            let ptr := mload(fmp)
+            success := staticcall(not(0), FN_NUM_GET_CONFIG_VARIABLE_UINT256, ptr, 0, ptr, 128)
+            pk := IFieldOperations.G2Point({
+                x: IFieldOperations.Fp2Point({
+                    a: mload(ptr),
+                    b: mload(ptr + 32)
+                }),
+                y: IFieldOperations.Fp2Point({
+                    a: mload(ptr + 64),
+                    b: mload(ptr + 96)
+                })
+            })
+        }
+        require(success, "Get current BLS public key failed");
     }
 }
