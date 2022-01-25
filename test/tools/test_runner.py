@@ -47,8 +47,11 @@ class TestRunner:
                 else:
                     info(f'Execute test {test_name}')
 
+                info(f'Preparing test {test_name}')
                 test.prepare()
+                info(f'Starting test {test_name}')
                 test.execute()
+                info(f'Cleaning up after test {test_name}')
                 test.clean_up()
 
                 if test.is_passed():

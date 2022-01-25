@@ -71,6 +71,63 @@ function _tf_( flag ) {
 // function isFloat( n ) {
 //     return !( ( Number( n ) === n && n % 1 !== 0 ) );
 // }
+const g_map_color_definitions = {
+    reset: "\x1b[0m",
+    enlight: "\x1b[1m",
+    dim: "\x1b[2m",
+    underscore: "\x1b[4m",
+    blink: "\x1b[5m",
+    reverse: "\x1b[7m",
+    hidden: "\x1b[8m",
+    fgBlack: "\x1b[30m",
+    fgRed: "\x1b[31m",
+    fgGreen: "\x1b[32m",
+    fgYellow: "\x1b[33m",
+    fgBlue: "\x1b[34m",
+    fgMagenta: "\x1b[35m",
+    fgCyan: "\x1b[36m",
+    fgWhite: "\x1b[37m",
+    bgBlack: "\x1b[40m",
+    bgRed: "\x1b[41m",
+    bgGreen: "\x1b[42m",
+    bgYellow: "\x1b[43m",
+    bgBlue: "\x1b[44m",
+    bgMagenta: "\x1b[45m",
+    bgCyan: "\x1b[46m",
+    bBgWhite: "\x1b[47m"
+};
+
+const g_arrRainbowParts = [
+    g_map_color_definitions.enlight + g_map_color_definitions.fgRed,
+    g_map_color_definitions.fgRed,
+    g_map_color_definitions.enlight + g_map_color_definitions.fgYellow,
+    g_map_color_definitions.fgYellow,
+    g_map_color_definitions.enlight + g_map_color_definitions.fgGreen,
+    g_map_color_definitions.fgGreen,
+    g_map_color_definitions.enlight + g_map_color_definitions.fgCyan,
+    g_map_color_definitions.fgCyan,
+    g_map_color_definitions.enlight + g_map_color_definitions.fgBlue,
+    g_map_color_definitions.fgBlue,
+    g_map_color_definitions.enlight + g_map_color_definitions.fgMagenta,
+    g_map_color_definitions.fgMagenta
+];
+
+function raibow_part( s, i ) {
+    if( !g_bEnabled )
+        return s;
+    const j = i % g_arrRainbowParts.length;
+    return g_arrRainbowParts[j] + s + g_map_color_definitions.reset;
+}
+
+function rainbow( s ) {
+    if( ( !g_bEnabled ) || ( !s ) || ( typeof s != "string" ) || s.length == 0 )
+        return s;
+    let res = "";
+    const cnt = s.length;
+    for( let i = 0; i < cnt; ++ i )
+        res = res + raibow_part( s[i], i );
+    return res;
+}
 
 function isInt2( n ) {
     const intRegex = /^-?\d+$/;
@@ -550,29 +607,29 @@ module.exports = {
         return !!g_bEnabled;
     },
     safeStringifyJSON: safeStringifyJSON,
-    reset: "\x1b[0m",
-    enlight: "\x1b[1m",
-    dim: "\x1b[2m",
-    underscore: "\x1b[4m",
-    blink: "\x1b[5m",
-    reverse: "\x1b[7m",
-    hidden: "\x1b[8m",
-    fgBlack: "\x1b[30m",
-    fgRed: "\x1b[31m",
-    fgGreen: "\x1b[32m",
-    fgYellow: "\x1b[33m",
-    fgBlue: "\x1b[34m",
-    fgMagenta: "\x1b[35m",
-    fgCyan: "\x1b[36m",
-    fgWhite: "\x1b[37m",
-    bgBlack: "\x1b[40m",
-    bgRed: "\x1b[41m",
-    bgGreen: "\x1b[42m",
-    bgYellow: "\x1b[43m",
-    bgBlue: "\x1b[44m",
-    bgMagenta: "\x1b[45m",
-    bgCyan: "\x1b[46m",
-    bBgWhite: "\x1b[47m",
+    reset: g_map_color_definitions.reset,
+    enlight: g_map_color_definitions.enlight,
+    dim: g_map_color_definitions.dim,
+    underscore: g_map_color_definitions.underscore,
+    blink: g_map_color_definitions.blink,
+    reverse: g_map_color_definitions.reverse,
+    hidden: g_map_color_definitions.hidden,
+    fgBlack: g_map_color_definitions.fgBlack,
+    fgRed: g_map_color_definitions.fgRed,
+    fgGreen: g_map_color_definitions.fgGreen,
+    fgYellow: g_map_color_definitions.fgYellow,
+    fgBlue: g_map_color_definitions.fgBlue,
+    fgMagenta: g_map_color_definitions.fgMagenta,
+    fgCyan: g_map_color_definitions.fgCyan,
+    fgWhite: g_map_color_definitions.fgWhite,
+    bgBlack: g_map_color_definitions.bgBlack,
+    bgRed: g_map_color_definitions.bgRed,
+    bgGreen: g_map_color_definitions.bgGreen,
+    bgYellow: g_map_color_definitions.bgYellow,
+    bgBlue: g_map_color_definitions.bgBlue,
+    bgMagenta: g_map_color_definitions.bgMagenta,
+    bgCyan: g_map_color_definitions.bgCyan,
+    bBgWhite: g_map_color_definitions.bBgWhite,
     normal: function( s ) {
         if( !g_bEnabled )
             return s;
@@ -745,8 +802,10 @@ module.exports = {
     u: function( x ) {
         return url_colorized( x );
     },
+    rainbow: rainbow,
     syntaxHighlightJSON: syntaxHighlightJSON,
     safeURL: safeURL,
     getCircularReplacerForJsonStringify: getCircularReplacerForJsonStringify,
-    toBoolean: toBoolean
+    toBoolean: toBoolean,
+    replaceAll: replaceAll
 }; // module.exports

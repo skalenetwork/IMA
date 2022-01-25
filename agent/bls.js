@@ -30,6 +30,7 @@
 const child_process = require( "child_process" );
 const shell = require( "shelljs" );
 const { Keccak } = require( "sha3" );
+const { cc } = require( "../npms/skale-ima" );
 
 function init() {
     owaspUtils.owaspAddUsageRef();
@@ -609,7 +610,7 @@ function perform_bls_verify_u256( details, joGlueResult, u256, joCommonPublicKey
     return false;
 }
 
-async function check_correctness_of_messages_to_sign( details, strLogPrefix, strDirection, jarrMessages, nIdxCurrentMsgBlockStart ) {
+async function check_correctness_of_messages_to_sign( details, strLogPrefix, strDirection, jarrMessages, nIdxCurrentMsgBlockStart, joExtraSignOpts ) {
     let w3 = null; let joMessageProxy = null; let joAccount = null; let joChainName = null;
     if( strDirection == "M2S" ) {
         w3 = imaState.w3_main_net;
@@ -621,7 +622,14 @@ async function check_correctness_of_messages_to_sign( details, strLogPrefix, str
         joMessageProxy = imaState.jo_message_proxy_s_chain;
         joAccount = imaState.joAccount_s_chain;
         joChainName = imaState.strChainName_main_net;
-    }
+    } else if( strDirection == "S2S" ) {
+        w3 = joExtraSignOpts.w3_src;
+        joMessageProxy = new w3.eth.Contract( imaState.joAbiPublishResult_s_chain.message_proxy_chain_abi, imaState.joAbiPublishResult_s_chain.message_proxy_chain_address );
+        joAccount = imaState.joAccount_s_chain;
+        joChainName = joExtraSignOpts.chain_id_dst;
+    } else
+        throw new Error( "CRITICAL ERROR: Failed check_correctness_of_messages_to_sign() with unknown directon \"" + strDirection + "\"" );
+
     const strCallerAccountAddress = joAccount.address( w3 );
     details.write( strLogPrefix + cc.sunny( strDirection ) + cc.debug( " message correctness validation through call to " ) +
         cc.notice( "verifyOutgoingMessageData" ) + cc.debug( " method of " ) + cc.bright( "MessageProxy" ) +
@@ -633,7 +641,7 @@ async function check_correctness_of_messages_to_sign( details, strLogPrefix, str
         "\n" );
     let cntBadMessages = 0, i = 0;
     const cnt = jarrMessages.length;
-    if( strDirection == "S2M" ) {
+    if( strDirection == "S2M" || strDirection == "S2S" ) {
         for( i = 0; i < cnt; ++i ) {
             const joMessage = jarrMessages[i];
             const idxMessage = nIdxCurrentMsgBlockStart + i;
@@ -680,8 +688,8 @@ async function check_correctness_of_messages_to_sign( details, strLogPrefix, str
                 log.write( s );
                 details.write( s );
             }
-        }
-    } // for( let i = 0; i < jarrMessages.length; ++ i )
+        } // for( i = 0; i < cnt; ++i )
+    } // if( strDirection == "S2M" || strDirection == "S2S" )
     // TODO: M2S - check events
     if( cntBadMessages > 0 ) {
         const s =
@@ -694,10 +702,10 @@ async function check_correctness_of_messages_to_sign( details, strLogPrefix, str
         details.write( strLogPrefix + cc.success( "Correctness validation passed for " ) + cc.info( cnt ) + cc.success( " message(s)" ) + "\n" );
 }
 
-async function do_sign_messages_impl( strDirection, jarrMessages, nIdxCurrentMsgBlockStart, details, fn ) {
+async function do_sign_messages_impl( strDirection, jarrMessages, nIdxCurrentMsgBlockStart, details, joExtraSignOpts, fn ) {
     const strLogPrefix = cc.bright( strDirection ) + " " + cc.info( "Sign msgs:" ) + " ";
-    log.write( strLogPrefix + cc.debug( " Invoking signing messages procedure " ) + "\n" );
-    details.write( strLogPrefix + cc.debug( " Invoking signing messages procedure " ) + "\n" );
+    log.write( strLogPrefix + cc.debug( " Invoking " ) + cc.bright( strDirection ) + cc.debug( " signing messages procedure " ) + "\n" );
+    details.write( strLogPrefix + cc.debug( " Invoking " ) + cc.bright( strDirection ) + cc.debug( " signing messages procedure " ) + "\n" );
     fn = fn || function() {};
     if( !( imaState.bSignMessages && imaState.strPathBlsGlue.length > 0 && imaState.joSChainNetworkInfo ) ) {
         details.write( strLogPrefix + cc.debug( "BLS message signing is " ) + cc.error( "turned off" ) +
@@ -705,10 +713,10 @@ async function do_sign_messages_impl( strDirection, jarrMessages, nIdxCurrentMsg
             cc.debug( ", have " ) + cc.info( jarrMessages.length ) +
             cc.debug( " message(s) to process:" ) + cc.j( jarrMessages ) +
             "\n" );
-        await check_correctness_of_messages_to_sign( details, strLogPrefix, strDirection, jarrMessages, nIdxCurrentMsgBlockStart );
+        await check_correctness_of_messages_to_sign( details, strLogPrefix, strDirection, jarrMessages, nIdxCurrentMsgBlockStart, joExtraSignOpts );
         await fn( null, jarrMessages, null );
     }
-    await check_correctness_of_messages_to_sign( details, strLogPrefix, strDirection, jarrMessages, nIdxCurrentMsgBlockStart );
+    await check_correctness_of_messages_to_sign( details, strLogPrefix, strDirection, jarrMessages, nIdxCurrentMsgBlockStart, joExtraSignOpts );
     //
     // each message in array looks like:
     // {
@@ -776,23 +784,45 @@ async function do_sign_messages_impl( strDirection, jarrMessages, nIdxCurrentMsg
                 details.write( strErrorMessage );
                 return;
             }
-            let targetChainName = ""; let fromChainName = "";
+            let targetChainName = "";
+            let fromChainName = "";
+            // let targetChainURL = "";
+            // let fromChainURL = "";
             if( strDirection == "M2S" ) {
                 targetChainName = "" + ( imaState.strChainName_s_chain ? imaState.strChainName_s_chain : "" );
                 fromChainName = "" + ( imaState.strChainName_main_net ? imaState.strChainName_main_net : "" );
-            } else {
+                // targetChainURL = strNodeURL;
+                // fromChainURL = owaspUtils.w3_2_url( imaState.w3_main_net );
+            } else if( strDirection == "S2M" ) {
                 targetChainName = "" + ( imaState.strChainName_main_net ? imaState.strChainName_main_net : "" );
                 fromChainName = "" + ( imaState.strChainName_s_chain ? imaState.strChainName_s_chain : "" );
-            }
+                // targetChainURL = owaspUtils.w3_2_url( imaState.w3_main_net );
+                // fromChainURL = strNodeURL;
+            } else if( strDirection == "S2S" ) {
+                targetChainName = "" + joExtraSignOpts.chain_id_dst;
+                fromChainName = "" + joExtraSignOpts.chain_id_src;
+                // targetChainURL = owaspUtils.w3_2_url( joExtraSignOpts.w3_dst );
+                // fromChainURL = owaspUtils.w3_2_url( joExtraSignOpts.w3_src );
+            } else
+                throw new Error( "CRITICAL ERROR: Failed do_sign_messages_impl() with unknown directon \"" + strDirection + "\"" );
+
+            const joParams = {
+                direction: "" + strDirection,
+                startMessageIdx: nIdxCurrentMsgBlockStart,
+                dstChainName: targetChainName,
+                srcChainName: fromChainName,
+                messages: jarrMessages
+                // fromChainURL: fromChainURL,
+                // targetChainURL: targetChainURL
+            };
+            details.write(
+                strLogPrefix + cc.debug( "Will invoke " ) + cc.info( "skale_imaVerifyAndSign" ) +
+                cc.debug( " for transfer from chain " ) + cc.info( fromChainName ) +
+                cc.debug( " to chain " ) + cc.info( targetChainName ) +
+                cc.debug( " with params " ) + cc.j( joParams ) + "\n" );
             await joCall.call( {
                 method: "skale_imaVerifyAndSign",
-                params: {
-                    direction: "" + strDirection,
-                    startMessageIdx: nIdxCurrentMsgBlockStart,
-                    dstChainID: targetChainName,
-                    srcChainID: fromChainName,
-                    messages: jarrMessages
-                }
+                params: joParams
             }, function( joIn, joOut, err ) {
                 ++joGatheringTracker.nCountReceived; // including errors
                 if( err ) {
@@ -988,18 +1018,22 @@ async function do_sign_messages_impl( strDirection, jarrMessages, nIdxCurrentMsg
     } );
 }
 
-async function do_sign_messages_m2s( jarrMessages, nIdxCurrentMsgBlockStart, details, fn ) {
-    return await do_sign_messages_impl( "M2S", jarrMessages, nIdxCurrentMsgBlockStart, details, fn );
+async function do_sign_messages_m2s( jarrMessages, nIdxCurrentMsgBlockStart, details, joExtraSignOpts, fn ) {
+    return await do_sign_messages_impl( "M2S", jarrMessages, nIdxCurrentMsgBlockStart, details, joExtraSignOpts, fn );
 }
 
-async function do_sign_messages_s2m( jarrMessages, nIdxCurrentMsgBlockStart, details, fn ) {
-    return await do_sign_messages_impl( "S2M", jarrMessages, nIdxCurrentMsgBlockStart, details, fn );
+async function do_sign_messages_s2m( jarrMessages, nIdxCurrentMsgBlockStart, details, joExtraSignOpts, fn ) {
+    return await do_sign_messages_impl( "S2M", jarrMessages, nIdxCurrentMsgBlockStart, details, joExtraSignOpts, fn );
+}
+
+async function do_sign_messages_s2s( jarrMessages, nIdxCurrentMsgBlockStart, details, joExtraSignOpts, fn ) {
+    return await do_sign_messages_impl( "S2S", jarrMessages, nIdxCurrentMsgBlockStart, details, joExtraSignOpts, fn );
 }
 
 async function do_sign_u256( u256, details, fn ) {
     const strLogPrefix = cc.info( "Sign u256:" ) + " ";
-    log.write( strLogPrefix + cc.debug( " Invoking signing u256 procedure " ) + "\n" );
-    details.write( strLogPrefix + cc.debug( " Invoking signing u256 procedure " ) + "\n" );
+    log.write( strLogPrefix + cc.debug( "Invoking signing u256 procedure " ) + "\n" );
+    details.write( strLogPrefix + cc.debug( "Invoking signing u256 procedure " ) + "\n" );
     fn = fn || function() {};
     if( !( /*imaState.bSignMessages &&*/ imaState.strPathBlsGlue.length > 0 && imaState.joSChainNetworkInfo ) ) {
         details.write( strLogPrefix + cc.debug( "BLS u256 signing is " ) + cc.error( "unavailable" ) + "\n" );
@@ -1268,5 +1302,6 @@ module.exports = {
     init: init,
     do_sign_messages_m2s: do_sign_messages_m2s,
     do_sign_messages_s2m: do_sign_messages_s2m,
+    do_sign_messages_s2s: do_sign_messages_s2s,
     do_sign_u256: do_sign_u256
 }; // module.exports
