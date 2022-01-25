@@ -55,7 +55,11 @@ contract TokenManagerERC721 is TokenManager, ITokenManagerERC721 {
     /**
      * @dev Emitted when schain owner register new ERC721 clone.
      */
-    event ERC721TokenAdded(bytes32 indexed chainHash, address indexed erc721OnMainChain, address indexed erc721OnSchain);
+    event ERC721TokenAdded(
+        bytes32 indexed chainHash,
+        address indexed erc721OnMainChain,
+        address indexed erc721OnSchain
+    );
 
     /**
      * @dev Emitted when TokenManagerERC721 automatically deploys new ERC721 clone.
@@ -262,7 +266,7 @@ contract TokenManagerERC721 is TokenManager, ITokenManagerERC721 {
         require(address(contractOnSchain).isContract(), "No token clone on schain");
         require(contractOnSchain.getApproved(tokenId) == address(this), "Not allowed ERC721 Token");
         contractOnSchain.transferFrom(msg.sender, address(this), tokenId);
-        bytes memory data = Messages.encodeTransferErc721Message(contractOnMainChain, to, tokenId);    
+        bytes memory data = Messages.encodeTransferErc721Message(contractOnMainChain, to, tokenId);
         if (isMainChainToken) {
             data = _receiveERC721(
                 chainHash,
@@ -271,8 +275,9 @@ contract TokenManagerERC721 is TokenManager, ITokenManagerERC721 {
                 tokenId
             );
             _saveTransferredAmount(chainHash, address(contractOnSchain), tokenId);
+        } else {
+            contractOnSchain.burn(tokenId);
         }
-        contractOnSchain.burn(tokenId);
         messageProxy.postOutgoingMessage(chainHash, messageReceiver, data);
     }
 

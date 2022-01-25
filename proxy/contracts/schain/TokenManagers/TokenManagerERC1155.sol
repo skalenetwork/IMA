@@ -39,6 +39,7 @@ import "../TokenManager.sol";
  */
 contract TokenManagerERC1155 is TokenManager, ITokenManagerERC1155 {
     using AddressUpgradeable for address;
+    using EnumerableSetUpgradeable for EnumerableSetUpgradeable.AddressSet;
 
     // address of ERC1155 on Mainnet => ERC1155 on Schain
     mapping(address => ERC1155OnChain) public deprecatedClonesErc1155;
@@ -48,25 +49,49 @@ contract TokenManagerERC1155 is TokenManager, ITokenManagerERC1155 {
 
     mapping(bytes32 => mapping(address => ERC1155OnChain)) public clonesErc1155;
 
+    mapping(bytes32 => mapping(address => mapping(uint256 => uint256))) public transferredAmount;
+
+    mapping(bytes32 => EnumerableSetUpgradeable.AddressSet) private _schainToERC1155;
+
     /**
      * @dev Emitted when schain owner register new ERC1155 clone.
      */
-    event ERC1155TokenAdded(address indexed erc1155OnMainnet, address indexed erc1155OnSchain);
+    event ERC1155TokenAdded(
+        bytes32 indexed chainHash,
+        address indexed erc1155OnMainnet,
+        address indexed erc1155OnSchain
+    );
 
     /**
      * @dev Emitted when TokenManagerERC1155 automatically deploys new ERC1155 clone.
      */
-    event ERC1155TokenCreated(address indexed erc1155OnMainnet, address indexed erc1155OnSchain);
+    event ERC1155TokenCreated(
+        bytes32 indexed chainHash,
+        address indexed erc1155OnMainnet,
+        address indexed erc1155OnSchain
+    );
 
     /**
      * @dev Emitted when someone sends tokens from mainnet to schain.
      */
     event ERC1155TokenReceived(
+        bytes32 indexed chainHash,
         address indexed erc1155OnMainnet,
         address indexed erc1155OnSchain,
         uint256[] ids,
         uint256[] amounts
-    );  
+    );
+
+    /**
+     * @dev Emitted when token is received by TokenManager and is ready to be cloned
+     * or transferred on SKALE chain.
+     */
+    event ERC1155TokenReady(
+        bytes32 indexed chainHash,
+        address indexed contractOnMainnet,
+        uint256[] ids,
+        uint256[] amounts
+    );
 
     /**
      * @dev Move tokens from schain to mainnet.
@@ -92,8 +117,8 @@ contract TokenManagerERC1155 is TokenManager, ITokenManagerERC1155 {
      */
     function exitToMainERC1155Batch(
         address contractOnMainnet,
-        uint256[] memory ids,
-        uint256[] memory amounts
+        uint256[] calldata ids,
+        uint256[] calldata amounts
     )
         external
         override
@@ -131,8 +156,8 @@ contract TokenManagerERC1155 is TokenManager, ITokenManagerERC1155 {
     function transferToSchainERC1155Batch(
         string calldata targetSchainName,
         address contractOnMainnet,
-        uint256[] memory ids,
-        uint256[] memory amounts
+        uint256[] calldata ids,
+        uint256[] calldata amounts
     ) 
         external
         override
@@ -199,7 +224,7 @@ contract TokenManagerERC1155 is TokenManager, ITokenManagerERC1155 {
         require(!addedClones[ERC1155OnChain(erc1155OnSchain)], "Clone was already added");
         clonesErc1155[targetChainHash][erc1155OnMainnet] = ERC1155OnChain(erc1155OnSchain);
         addedClones[ERC1155OnChain(erc1155OnSchain)] = true;
-        emit ERC1155TokenAdded(erc1155OnMainnet, erc1155OnSchain);
+        emit ERC1155TokenAdded(targetChainHash, erc1155OnMainnet, erc1155OnSchain);
     }
 
     /**
@@ -259,11 +284,23 @@ contract TokenManagerERC1155 is TokenManager, ITokenManagerERC1155 {
                 contractOnSchain = new ERC1155OnChain(message.tokenInfo.uri);
                 clonesErc1155[fromChainHash][token] = contractOnSchain;
                 addedClones[contractOnSchain] = true;
-                emit ERC1155TokenCreated(token, address(contractOnSchain));
+                emit ERC1155TokenCreated(fromChainHash, token, address(contractOnSchain));
             }
         }
-        contractOnSchain.mint(receiver, id, amount, "");
-        emit ERC1155TokenReceived(token, address(contractOnSchain), _asSingletonArray(id), _asSingletonArray(amount));
+        if (messageType == Messages.MessageType.TRANSFER_ERC721 && fromChainHash != MAINNET_HASH) {
+            require(token.isContract(), "Incorrect main chain token");
+            _removeTransferredAmount(fromChainHash, token, _asSingletonArray(id), _asSingletonArray(amount));
+            IERC1155Upgradeable(token).safeTransferFrom(address(this), receiver, id, amount, "");
+        } else {
+            contractOnSchain.mint(receiver, id, amount, "");
+        }
+        emit ERC1155TokenReceived(
+            fromChainHash,
+            token,
+            address(contractOnSchain),
+            _asSingletonArray(id),
+            _asSingletonArray(amount)
+        );
         return receiver;
     }
 
@@ -299,11 +336,17 @@ contract TokenManagerERC1155 is TokenManager, ITokenManagerERC1155 {
                 require(automaticDeploy, "Automatic deploy is disabled");
                 contractOnSchain = new ERC1155OnChain(message.tokenInfo.uri);
                 clonesErc1155[fromChainHash][token] = contractOnSchain;
-                emit ERC1155TokenCreated(token, address(contractOnSchain));
+                emit ERC1155TokenCreated(fromChainHash, token, address(contractOnSchain));
             }
         }
-        contractOnSchain.mintBatch(receiver, ids, amounts, "");
-        emit ERC1155TokenReceived(token, address(contractOnSchain), ids, amounts);
+        if (messageType == Messages.MessageType.TRANSFER_ERC721 && fromChainHash != MAINNET_HASH) {
+            require(token.isContract(), "Incorrect main chain token");
+            _removeTransferredAmount(fromChainHash, token, ids, amounts);
+            IERC1155Upgradeable(token).safeBatchTransferFrom(address(this), receiver, ids, amounts, "");
+        } else {
+            contractOnSchain.mintBatch(receiver, ids, amounts, "");
+        }
+        emit ERC1155TokenReceived(fromChainHash, token, address(contractOnSchain), ids, amounts);
         return receiver;
     }
 
@@ -313,18 +356,40 @@ contract TokenManagerERC1155 is TokenManager, ITokenManagerERC1155 {
     function _exit(
         bytes32 chainHash,
         address messageReceiver,
-        address contractOnMainnet,
+        address contractOnMainChain,
         address to,
         uint256 id,
         uint256 amount
     )
         private
     {
-        ERC1155BurnableUpgradeable contractOnSchain = clonesErc1155[chainHash][contractOnMainnet];
+        bool isMainChainToken;
+        ERC1155BurnableUpgradeable contractOnSchain = clonesErc1155[chainHash][contractOnMainChain];
+        if (address(contractOnSchain) == address(0)) {
+            contractOnSchain = ERC1155BurnableUpgradeable(contractOnMainChain);
+            isMainChainToken = true;
+        }
         require(address(contractOnSchain).isContract(), "No token clone on schain");
         require(contractOnSchain.isApprovedForAll(msg.sender, address(this)), "Not allowed ERC1155 Token");
-        contractOnSchain.burn(msg.sender, id, amount);
-        bytes memory data = Messages.encodeTransferErc1155Message(contractOnMainnet, to, id, amount);
+        bytes memory data = Messages.encodeTransferErc1155Message(contractOnMainChain, to, id, amount);
+        if (isMainChainToken) {
+            data = _receiveERC1155(
+                chainHash,
+                address(contractOnSchain),
+                msg.sender,
+                id,
+                amount
+            );
+            _saveTransferredAmount(
+                chainHash,
+                address(contractOnSchain),
+                _asSingletonArray(id),
+                _asSingletonArray(amount)
+            );
+            contractOnSchain.safeTransferFrom(msg.sender, address(this), id, amount, "");
+        } else {
+            contractOnSchain.burn(msg.sender, id, amount);
+        }
         messageProxy.postOutgoingMessage(chainHash, messageReceiver, data);
     }
 
@@ -334,19 +399,166 @@ contract TokenManagerERC1155 is TokenManager, ITokenManagerERC1155 {
     function _exitBatch(
         bytes32 chainHash,
         address messageReceiver,
-        address contractOnMainnet,
+        address contractOnMainChain,
         address to,
-        uint256[] memory ids,
-        uint256[] memory amounts
+        uint256[] calldata ids,
+        uint256[] calldata amounts
     )
         private
     {
-        ERC1155BurnableUpgradeable contractOnSchain = clonesErc1155[chainHash][contractOnMainnet];
+        bool isMainChainToken;
+        ERC1155BurnableUpgradeable contractOnSchain = clonesErc1155[chainHash][contractOnMainChain];
+        if (address(contractOnSchain) == address(0)) {
+            contractOnSchain = ERC1155BurnableUpgradeable(contractOnMainChain);
+            isMainChainToken = true;
+        }
         require(address(contractOnSchain).isContract(), "No token clone on schain");
         require(contractOnSchain.isApprovedForAll(msg.sender, address(this)), "Not allowed ERC1155 Token");
-        contractOnSchain.burnBatch(msg.sender, ids, amounts);
-        bytes memory data = Messages.encodeTransferErc1155BatchMessage(contractOnMainnet, to, ids, amounts);
+        bytes memory data = Messages.encodeTransferErc1155BatchMessage(contractOnMainChain, to, ids, amounts);
+        if (isMainChainToken) {
+            data = _receiveERC1155Batch(
+                chainHash,
+                address(contractOnSchain),
+                msg.sender,
+                ids,
+                amounts
+            );
+            _saveTransferredAmount(chainHash, address(contractOnSchain), ids, amounts);
+            contractOnSchain.safeBatchTransferFrom(msg.sender, address(this), ids, amounts, "");
+        } else {
+            contractOnSchain.burnBatch(msg.sender, ids, amounts);
+        }
         messageProxy.postOutgoingMessage(chainHash, messageReceiver, data);
+    }
+
+    /**
+     * @dev Saves amount of tokens that was transferred to schain.
+     */
+    function _saveTransferredAmount(
+        bytes32 schainHash,
+        address erc1155Token,
+        uint256[] memory ids,
+        uint256[] memory amounts
+    ) private {
+        require(ids.length == amounts.length, "Incorrect length of arrays");
+        for (uint256 i = 0; i < ids.length; i++)
+            transferredAmount[schainHash][erc1155Token][ids[i]] =
+                transferredAmount[schainHash][erc1155Token][ids[i]] + amounts[i];
+    }
+
+    /**
+     * @dev Removes amount of tokens that was transferred from schain.
+     */
+    function _removeTransferredAmount(
+        bytes32 schainHash,
+        address erc1155Token,
+        uint256[] memory ids,
+        uint256[] memory amounts
+    ) private {
+        require(ids.length == amounts.length, "Incorrect length of arrays");
+        for (uint256 i = 0; i < ids.length; i++)
+            transferredAmount[schainHash][erc1155Token][ids[i]] =
+                transferredAmount[schainHash][erc1155Token][ids[i]] - amounts[i];
+    }
+
+    /**
+     * @dev Allows DepositBoxERC1155 to receive ERC1155 tokens.
+     * 
+     * Emits an {ERC1155TokenReady} event.
+     * 
+     * Requirements:
+     * 
+     * - Whitelist should be turned off for auto adding tokens to DepositBoxERC1155.
+     */
+    function _receiveERC1155(
+        bytes32 schainHash,
+        address erc1155OnMainChain,
+        address to,
+        uint256 id,
+        uint256 amount
+    )
+        private
+        returns (bytes memory data)
+    {
+        bool isERC1155AddedToSchain = _schainToERC1155[schainHash].contains(erc1155OnMainChain);
+        if (!isERC1155AddedToSchain) {
+            _addERC1155ForSchain(schainHash, erc1155OnMainChain);
+            data = Messages.encodeTransferErc1155AndTokenInfoMessage(
+                erc1155OnMainChain,
+                to,
+                id,
+                amount,
+                _getTokenInfo(IERC1155MetadataURIUpgradeable(erc1155OnMainChain))
+            );
+        } else {
+            data = Messages.encodeTransferErc1155Message(erc1155OnMainChain, to, id, amount);
+        }
+        
+        emit ERC1155TokenReady(schainHash, erc1155OnMainChain, _asSingletonArray(id), _asSingletonArray(amount));
+    }
+
+    /**
+     * @dev Allows DepositBoxERC1155 to receive ERC1155 tokens.
+     * 
+     * Emits an {ERC1155TokenReady} event.
+     * 
+     * Requirements:
+     * 
+     * - Whitelist should be turned off for auto adding tokens to DepositBoxERC1155.
+     */
+    function _receiveERC1155Batch(
+        bytes32 schainHash,
+        address erc1155OnMainChain,
+        address to,
+        uint256[] calldata ids,
+        uint256[] calldata amounts
+    )
+        private
+        returns (bytes memory data)
+    {
+        bool isERC1155AddedToSchain = _schainToERC1155[schainHash].contains(erc1155OnMainChain);
+        if (!isERC1155AddedToSchain) {
+            _addERC1155ForSchain(schainHash, erc1155OnMainChain);
+            data = Messages.encodeTransferErc1155BatchAndTokenInfoMessage(
+                erc1155OnMainChain,
+                to,
+                ids,
+                amounts,
+                _getTokenInfo(IERC1155MetadataURIUpgradeable(erc1155OnMainChain))
+            );
+        } else {
+            data = Messages.encodeTransferErc1155BatchMessage(erc1155OnMainChain, to, ids, amounts);
+        }
+        emit ERC1155TokenReady(schainHash, erc1155OnMainChain, ids, amounts);
+    }
+
+    /**
+     * @dev Adds an ERC1155 token to DepositBoxERC1155.
+     * 
+     * Emits an {ERC1155TokenAdded} event.
+     * 
+     * Requirements:
+     * 
+     * - Given address should be contract.
+     */
+    function _addERC1155ForSchain(bytes32 schainHash, address erc1155OnMainChain) private {
+        require(erc1155OnMainChain.isContract(), "Given address is not a contract");
+        require(!_schainToERC1155[schainHash].contains(erc1155OnMainChain), "ERC1155 Token was already added");
+        _schainToERC1155[schainHash].add(erc1155OnMainChain);
+        emit ERC1155TokenAdded(schainHash, erc1155OnMainChain, address(0));
+    }
+
+    /**
+     * @dev Returns info about ERC1155 token.
+     */
+    function _getTokenInfo(
+        IERC1155MetadataURIUpgradeable erc1155
+    )
+        private
+        view
+        returns (Messages.Erc1155TokenInfo memory)
+    {
+        return Messages.Erc1155TokenInfo({uri: erc1155.uri(0)});
     }
 
     /**
