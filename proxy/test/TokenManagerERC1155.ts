@@ -133,8 +133,9 @@ describe("TokenManagerERC1155", () => {
     });
 
     it("should successfully call exitToMainERC1155", async () => {
+        // should be "No token clone on schain" if chains were different
         await tokenManagerERC1155.connect(user).exitToMainERC1155(token.address, id, amount)
-            .should.be.eventually.rejectedWith("No token clone on schain");
+            .should.be.eventually.rejectedWith("Not allowed ERC1155 Token");
 
         await tokenManagerERC1155.connect(schainOwner).addERC1155TokenByOwner(mainnetName,  token.address, tokenClone.address);
         await tokenManagerERC1155.connect(user).exitToMainERC1155(token.address, id, amount)
@@ -154,8 +155,9 @@ describe("TokenManagerERC1155", () => {
     });
 
     it("should successfully call exitToMainERC1155Batch", async () => {
+        // should be "No token clone on schain" if chains were different
         await tokenManagerERC1155.connect(user).exitToMainERC1155Batch(token.address, ids, amounts)
-            .should.be.eventually.rejectedWith("No token clone on schain");
+            .should.be.eventually.rejectedWith("Not allowed ERC1155 Token");
 
         await tokenManagerERC1155.connect(schainOwner).addERC1155TokenByOwner(mainnetName,  token.address, tokenClone.address);
         await tokenManagerERC1155.connect(user).exitToMainERC1155Batch(token.address, ids, amounts)
@@ -202,7 +204,7 @@ describe("TokenManagerERC1155", () => {
             .should.be.eventually.rejectedWith("Incorrect Token Manager address");
 
         await tokenManagerERC1155.addTokenManager(newSchainName, deployer.address);
-        await tokenManagerERC1155.connect(schainOwner).addERC1155TokenByOwner(mainnetName,  token.address, tokenClone.address);
+        await tokenManagerERC1155.connect(schainOwner).addERC1155TokenByOwner(newSchainName,  token.address, tokenClone.address);
         await tokenClone.connect(deployer).mint(deployer.address, id, amount, "0x");
 
         await tokenManagerERC1155
@@ -236,7 +238,7 @@ describe("TokenManagerERC1155", () => {
             .should.be.eventually.rejectedWith("Incorrect Token Manager address");
 
         await tokenManagerERC1155.addTokenManager(newSchainName, deployer.address);
-        await tokenManagerERC1155.connect(schainOwner).addERC1155TokenByOwner(mainnetName,  token.address, tokenClone.address);
+        await tokenManagerERC1155.connect(schainOwner).addERC1155TokenByOwner(newSchainName,  token.address, tokenClone.address);
         await tokenClone.connect(deployer).mintBatch(deployer.address, ids, amounts, "0x");
 
         await tokenManagerERC1155
