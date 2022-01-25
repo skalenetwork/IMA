@@ -227,7 +227,7 @@ describe("TokenManagerEth", () => {
             // redeploy tokenManagerEth with `developer` address instead `messageProxyForSchain.address`
             // to avoid `Not a sender` error
             tokenManagerEth = await deployTokenManagerEth(schainName, deployer.address, tokenManagerLinker, communityLocker, fakeDepositBox, ethERC20.address);
-            
+
             // execution
             await tokenManagerEth
                 .connect(deployer)
