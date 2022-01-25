@@ -251,11 +251,11 @@ describe("TokenManagerERC20", () => {
         const amountReduceCost = "8000000000000000";
         const newSchainName = randomString(10);
         await messageProxyForSchain.registerExtraContract(newSchainName, tokenManagerErc20.address);
-        
+
         // add connected chain:
         await messageProxyForSchain.connect(deployer).grantRole(await messageProxyForSchain.CHAIN_CONNECTOR_ROLE(), deployer.address);
         await messageProxyForSchain.connect(deployer).addConnectedChain(newSchainName);
-        
+
         await tokenManagerErc20.connect(schainOwner).addERC20TokenByOwner(newSchainName,  erc20OnMainnet.address, erc20OnChain.address);
         await erc20OnChain.connect(deployer).mint(user.address, amount);
         await erc20OnChain.connect(user).approve(tokenManagerErc20.address, amount);
