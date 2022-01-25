@@ -40,10 +40,12 @@ contract TokenManagerERC721 is TokenManager, ITokenManagerERC721 {
     using AddressUpgradeable for address;
 
     // address of ERC721 on Mainnet => ERC721 on Schain
-    mapping(address => ERC721OnChain) public clonesErc721;
+    mapping(address => ERC721OnChain) public deprecatedClonesErc721;
 
     // address clone on schain => added or not
     mapping(ERC721OnChain => bool) public addedClones;
+
+    mapping(bytes32 => mapping(address => ERC721OnChain)) public clonesErc721;
 
     /**
      * @dev Emitted when schain owner register new ERC721 clone.
@@ -121,7 +123,7 @@ contract TokenManagerERC721 is TokenManager, ITokenManagerERC721 {
             operation == Messages.MessageType.TRANSFER_ERC721_AND_TOKEN_INFO ||
             operation == Messages.MessageType.TRANSFER_ERC721
         ) {
-            receiver = _sendERC721(data);
+            receiver = _sendERC721(fromChainHash, data);
         } else {
             revert("MessageType is unknown");
         }
@@ -133,19 +135,21 @@ contract TokenManagerERC721 is TokenManager, ITokenManagerERC721 {
      */
     function addERC721TokenByOwner(
         string calldata targetChainName,
-        address erc721OnMainnet,
+        address erc721OnMainChain,
         address erc721OnSchain
     )
         external
         override
         onlyTokenRegistrar
     {
+        require(messageProxy.isConnectedChain(targetChainName), "Chain is not connected");
         require(erc721OnSchain.isContract(), "Given address is not a contract");
-        require(address(clonesErc721[erc721OnMainnet]) == address(0), "Could not relink clone");
+        bytes32 targetChainHash = keccak256(abi.encodePacked(targetChainName));
+        require(address(clonesErc721[targetChainHash][erc721OnMainChain]) == address(0), "Could not relink clone");
         require(!addedClones[ERC721OnChain(erc721OnSchain)], "Clone was already added");
-        clonesErc721[erc721OnMainnet] = ERC721OnChain(erc721OnSchain);
+        clonesErc721[targetChainHash][erc721OnMainChain] = ERC721OnChain(erc721OnSchain);
         addedClones[ERC721OnChain(erc721OnSchain)] = true;
-        emit ERC721TokenAdded(erc721OnMainnet, erc721OnSchain);
+        emit ERC721TokenAdded(erc721OnMainChain, erc721OnSchain);
     }
 
     /**
@@ -178,7 +182,7 @@ contract TokenManagerERC721 is TokenManager, ITokenManagerERC721 {
      * Emits a {ERC20TokenCreated} event if token did not exist and was automatically deployed.
      * Emits a {ERC20TokenReceived} event on success.
      */
-    function _sendERC721(bytes calldata data) private returns (address) {
+    function _sendERC721(bytes32 fromChainHash, bytes calldata data) private returns (address) {
         Messages.MessageType messageType = Messages.getMessageType(data);
         address receiver;
         address token;
@@ -189,18 +193,18 @@ contract TokenManagerERC721 is TokenManager, ITokenManagerERC721 {
             receiver = message.receiver;
             token = message.token;
             tokenId = message.tokenId;
-            contractOnSchain = clonesErc721[token];
+            contractOnSchain = clonesErc721[fromChainHash][token];
         } else {
             Messages.TransferErc721AndTokenInfoMessage memory message =
                 Messages.decodeTransferErc721AndTokenInfoMessage(data);
             receiver = message.baseErc721transfer.receiver;
             token = message.baseErc721transfer.token;
             tokenId = message.baseErc721transfer.tokenId;
-            contractOnSchain = clonesErc721[token];
+            contractOnSchain = clonesErc721[fromChainHash][token];
             if (address(contractOnSchain) == address(0)) {
                 require(automaticDeploy, "Automatic deploy is disabled");
                 contractOnSchain = new ERC721OnChain(message.tokenInfo.name, message.tokenInfo.symbol);           
-                clonesErc721[token] = contractOnSchain;
+                clonesErc721[fromChainHash][token] = contractOnSchain;
                 addedClones[contractOnSchain] = true;
                 emit ERC721TokenCreated(token, address(contractOnSchain));
             }
@@ -222,7 +226,7 @@ contract TokenManagerERC721 is TokenManager, ITokenManagerERC721 {
     )
         private
     {
-        ERC721BurnableUpgradeable contractOnSchain = clonesErc721[contractOnMainnet];
+        ERC721BurnableUpgradeable contractOnSchain = clonesErc721[chainHash][contractOnMainnet];
         require(address(contractOnSchain).isContract(), "No token clone on schain");
         require(contractOnSchain.getApproved(tokenId) == address(this), "Not allowed ERC721 Token");
         contractOnSchain.transferFrom(msg.sender, address(this), tokenId);

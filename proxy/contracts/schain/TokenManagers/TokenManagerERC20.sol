@@ -211,39 +211,26 @@ contract TokenManagerERC20 is TokenManager, ITokenManagerERC20 {
      */
     function _sendERC20(bytes32 fromChainHash, bytes calldata data) private returns (address) {        
         Messages.MessageType messageType = Messages.getMessageType(data);
-        address receiver;
-        address token;
-        uint256 amount;
-        uint256 totalSupply;                
+        (address receiver, address token, uint256 amount) = _decodeErc20Message(data);
         ERC20OnChain contractOnSchain;
         if (messageType == Messages.MessageType.TRANSFER_ERC20) {
-            Messages.TransferErc20Message memory message =
-                Messages.decodeTransferErc20Message(data);
-            receiver = message.receiver;
-            token = message.token;
-            amount = message.amount;
             require(token.isContract() && _schainToERC20[fromChainHash].contains(token), "Incorrect main chain token");
-            require(ERC20Upgradeable(token).balanceOf(address(this)) >= message.amount, "Not enough money");
-            _removeTransferredAmount(fromChainHash, token, message.amount);
+            require(ERC20Upgradeable(token).balanceOf(address(this)) >= amount, "Not enough money");
+            _removeTransferredAmount(fromChainHash, token, amount);
             require(
-                ERC20Upgradeable(token).transfer(receiver, amount),
+                ERC20Upgradeable(token).transferFrom(address(this), receiver, amount),
                 "Transfer was failed"
             );
         } else {
+            uint256 totalSupply;
             if (messageType == Messages.MessageType.TRANSFER_ERC20_AND_TOTAL_SUPPLY) {
                 Messages.TransferErc20AndTotalSupplyMessage memory message =
                     Messages.decodeTransferErc20AndTotalSupplyMessage(data);
-                receiver = message.baseErc20transfer.receiver;
-                token = message.baseErc20transfer.token;
-                amount = message.baseErc20transfer.amount;
                 totalSupply = message.totalSupply;
                 contractOnSchain = clonesErc20[fromChainHash][token];
             } else {
                 Messages.TransferErc20AndTokenInfoMessage memory message =
                     Messages.decodeTransferErc20AndTokenInfoMessage(data);
-                receiver = message.baseErc20transfer.receiver;
-                token = message.baseErc20transfer.token;
-                amount = message.baseErc20transfer.amount;
                 totalSupply = message.totalSupply;
                 contractOnSchain = clonesErc20[fromChainHash][token];
 
@@ -410,5 +397,32 @@ contract TokenManagerERC20 is TokenManager, ITokenManagerERC20 {
             decimals: erc20Token.decimals(),
             symbol: erc20Token.symbol()
         });
+    }
+
+    function _decodeErc20Message(bytes calldata data)
+        private
+        pure
+        returns (address receiver, address token, uint256 amount)
+    {
+        Messages.MessageType messageType = Messages.getMessageType(data);
+        if (messageType == Messages.MessageType.TRANSFER_ERC20) {
+            Messages.TransferErc20Message memory message =
+                Messages.decodeTransferErc20Message(data);
+            receiver = message.receiver;
+            token = message.token;
+            amount = message.amount;
+        } else if (messageType == Messages.MessageType.TRANSFER_ERC20_AND_TOTAL_SUPPLY) {
+            Messages.TransferErc20AndTotalSupplyMessage memory message =
+                Messages.decodeTransferErc20AndTotalSupplyMessage(data);
+            receiver = message.baseErc20transfer.receiver;
+            token = message.baseErc20transfer.token;
+            amount = message.baseErc20transfer.amount;
+        } else {
+            Messages.TransferErc20AndTokenInfoMessage memory message =
+                Messages.decodeTransferErc20AndTokenInfoMessage(data);
+            receiver = message.baseErc20transfer.receiver;
+            token = message.baseErc20transfer.token;
+            amount = message.baseErc20transfer.amount;
+        }
     }
 }
