@@ -33,7 +33,7 @@ Deposits and withdraws take only seconds, and are secured using BLS Threshold si
 
 * When attempting a transaction on the SKALE Chain, why do I receive an error message about balance and gas?
 
-Ensure that the msg.sender has sufficient skETH on the SKALE Chain. Users attempting transactions on the SKALE Chain will need some skETH to conduct transactions. Remember skETH has no value, and is distributed by the SKALE Chain owner to permit users to conduct transactions. When transactions are "mined" by users, the skETH gets redistributed to the SKALE Chain owner account. Conducting a getBalance call on the SKALE chain endpoint user's account will return the skETH balance. To display locked ETH, use one of the Informational Ports of the endpoint to return a user's ETH.
+Ensure that the msg.sender has sufficient sFUEL on the SKALE Chain. Users attempting transactions on the SKALE Chain will need some sFUEL to conduct transactions. Remember sFUEL has no value, and is distributed by the SKALE Chain owner to permit users to conduct transactions. When transactions are "mined" by users, the sFUEL gets redistributed to the SKALE Chain owner account. Conducting a getBalance call on the SKALE chain endpoint user's account will return the sFUEL balance. To display locked ETH, use one of the Informational Ports of the endpoint to return a user's ETH.
 
 * I can't seem to conduct an exit, and I receive a "Recipient must be active" revert message.
 

@@ -3,7 +3,7 @@ include::ima-sandboxes.adoc[]
 
 You can use the Interchain Messaging Agent for managing ETH between Ethereum and SKALE.  The following three steps guide you through a complete transfer from Ethereum to SKALE and back. Unlike ERC20, ERC721, and ERC1155, ETH is natively supported so there is no need for you to set up and map ETH on your SKALE Chain.
 
-Also, note that the following steps apply to transferring Ethereum ETH to SKALE Chains, rather than describing SKALE Chain ETH (skETH), which has no monetary value and is used exclusively on SKALE Chains.
+Also, note that the following steps apply to transferring Ethereum ETH to SKALE Chains, rather than describing SKALE Chain FUEL (sFUEL), which has no monetary value and is used exclusively on SKALE Chains.
 
 link:{eth-sandbox}[See ETH IMA Demo: {eth-sandbox}]
 
@@ -131,7 +131,7 @@ This method is called from the SKALE Chain to send funds and move the token back
 
 Note that the SKALE Chain user must have:
 
-* skETH to conduct the exitToMain transaction on the SKALE Chain TokenManager contract.
+* sFUEL to conduct the exitToMain transaction on the SKALE Chain TokenManager contract.
 * a sufficient balance of ETH in the Community Pool to initiate the exit to Ethereum *xref:funding-exits.adoc[See Funding Exits].
 
 The **TokenManager** contract is on your SKALE Chain. Check out the https://github.com/skalenetwork/skale-network/tree/master/releases/rinkeby/IMA[current release page] for ABIs.

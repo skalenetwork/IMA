@@ -4,8 +4,8 @@
 
 The SKALE Chain owner has special permissions to configure SKALE Chain access control. The owner may choose a "permission-by-owner" policy, selectively restricting access to only certain users and/or tokens, or may choose a permissionless policy, enabling any user and/or tokens. This access control includes several features: 
 
-.SKALE Chain ETH
-    * controlling how users access SKALE Chain ETH (skETH) to perform transactions.
+.SKALE Chain FUEL
+    * controlling how users access SKALE Chain FUEL (sFUEL) to perform transactions.
 
 .IMA token exchange
     * controlling which tokens transfer between Mainnet and SKALE Chains.

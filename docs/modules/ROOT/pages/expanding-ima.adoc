@@ -1,0 +1,5 @@
+= Extending IMA Bridge
+
+You can write any contract logic to work with the IMA Messaging system. 
+
+For example, say you want to modify the DepositBoxERC20 to allow the SKALE Chain wallet to fund the deposit transaction. 
