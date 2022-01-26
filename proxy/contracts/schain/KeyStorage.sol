@@ -44,7 +44,7 @@ contract KeyStorage is IKeyStorage, AccessControlEnumerableUpgradeable {
      * @dev Address of custom precompiled contract on SKALE chain
      * to get current BLS public key.
      */
-    uint256 public constant FN_NUM_GET_CURRENT_BLS_PUBLIC_KEY = 0x16;
+    uint256 public constant FN_NUM_GET_CURRENT_BLS_PUBLIC_KEY = 0x19;
 
     /**
      * @dev Is called once during contract deployment.
