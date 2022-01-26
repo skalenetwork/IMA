@@ -68,7 +68,8 @@ echo "NODES_COUNT: $NODES_COUNT"
 
 BASE_OPTIONS="--gas-price-multiplier=$GAS_PRICE_MULTIPLIER \
 --verbose=$VERBOSE \
---s2s-disable \
+--s2s-enable \
+--abi-skale-manager=$MANAGER_ABI_PATH \
 --url-main-net=$MAINNET_RPC_URL \
 --url-s-chain=$SCHAIN_RPC_URL \
 --id-main-net=Mainnet \
