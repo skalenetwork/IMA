@@ -285,7 +285,7 @@ contract TokenManagerERC20 is TokenManager, ITokenManagerERC20 {
             ) >= amount,
             "Transfer is not approved by token holder"
         );
-        bytes memory data = Messages.encodeTransferErc20Message(address(contractOnSchain), to, amount);
+        bytes memory data = Messages.encodeTransferErc20Message(address(contractOnMainChain), to, amount);
         if (isMainChainToken) {
             data = _receiveERC20(
                 chainHash,
