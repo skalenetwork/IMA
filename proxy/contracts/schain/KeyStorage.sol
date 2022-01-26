@@ -100,26 +100,27 @@ contract KeyStorage is IKeyStorage, AccessControlEnumerableUpgradeable {
     function _getCurrentBLSPublicKey()
         private
         view
-        returns ( IFieldOperations.G2Point pk )
+        returns ( IFieldOperations.G2Point memory pk )
     {
         uint256 fmp = FREE_MEM_PTR;
-        uint256 blocks = (bytes(strConfigVariableName).length + 31) / 32 + 1;
         bool success;
+        uint xa;
+        uint xb;
+        uint ya;
+        uint yb;
         // solhint-disable-next-line no-inline-assembly
         assembly {
             let ptr := mload(fmp)
-            success := staticcall(not(0), FN_NUM_GET_CONFIG_VARIABLE_UINT256, ptr, 0, ptr, 128)
-            pk := IFieldOperations.G2Point({
-                x: IFieldOperations.Fp2Point({
-                    a: mload(ptr),
-                    b: mload(ptr + 32)
-                }),
-                y: IFieldOperations.Fp2Point({
-                    a: mload(ptr + 64),
-                    b: mload(ptr + 96)
-                })
-            })
+            success := staticcall(not(0), FN_NUM_GET_CURRENT_BLS_PUBLIC_KEY, ptr, 0, ptr, 128)
+            xa := mload(ptr)
+            xb := mload(add(ptr, 32))
+            ya := mload(add(ptr, 64))
+            yb := mload(add(ptr, 96))
         }
+        pk.x.a = xa;
+        pk.x.b = xb;
+        pk.y.a = ya;
+        pk.y.b = yb;
         require(success, "Get current BLS public key failed");
     }
 }
