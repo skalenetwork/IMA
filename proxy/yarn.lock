@@ -607,22 +607,23 @@
   resolved "https://registry.yarnpkg.com/@openzeppelin/contracts-upgradeable/-/contracts-upgradeable-4.3.2.tgz#92df481362e366c388fc02133cf793029c744cea"
   integrity sha512-i/pOaOtcqDk4UqsrOv735uYyTbn6dvfiuVu5hstsgV6c4ZKUtu88/31zT2BzkCg+3JfcwOfgg2TtRKVKKZIGkQ==
 
-"@openzeppelin/hardhat-upgrades@^1.9.0":
-  version "1.10.0"
-  resolved "https://registry.yarnpkg.com/@openzeppelin/hardhat-upgrades/-/hardhat-upgrades-1.10.0.tgz#e7751e3b9a005ccc9cef4e0de190628b181b59b6"
-  integrity sha512-iGe058iV7Ba/g11RxlbqBG47nbqbZn1FRdg1FCQq7xPmvjRhXmFsoI/5gGw5el0aZlLDRtpFOBZbzMZvI/S7iw==
+"@openzeppelin/hardhat-upgrades@^1.13.0":
+  version "1.13.0"
+  resolved "https://registry.yarnpkg.com/@openzeppelin/hardhat-upgrades/-/hardhat-upgrades-1.13.0.tgz#c2b6a3e0a1694f877b501003b159cf4550452a8b"
+  integrity sha512-0pSSUimzd4JL/mKhdNcczDGhv6ELPcI8cWWyCYjTwKoI3wL+AnRrbIQ+yrpHVpia3dAmI/+1sLOz70HvFKNzNQ==
   dependencies:
-    "@openzeppelin/upgrades-core" "^1.9.0"
+    "@openzeppelin/upgrades-core" "^1.11.0"
+    chalk "^4.1.0"
 
-"@openzeppelin/upgrades-core@^1.9.0":
-  version "1.9.2"
-  resolved "https://registry.yarnpkg.com/@openzeppelin/upgrades-core/-/upgrades-core-1.9.2.tgz#9d7497f58b1f2bb704c162c716302bfff7923749"
-  integrity sha512-LU2NMvnz+6jXheh3Rnfql4UgtS7ViHWwcivS3JRI9DMCazmlyibwMYz5QMakrNNGAF7bY0t0Sw1UCfe5qTYxjA==
+"@openzeppelin/upgrades-core@^1.11.0":
+  version "1.11.1"
+  resolved "https://registry.yarnpkg.com/@openzeppelin/upgrades-core/-/upgrades-core-1.11.1.tgz#fc15ff4b247225fa5cad1ad1495a85612b920913"
+  integrity sha512-CgzE5+/PE8wVHEv5F+PJtE+s2grccM0l8k07yCluSi3qeE+68IK/sv2VLlMYAjsHtJTZyI5WpkwPZK/h3QVhvQ==
   dependencies:
     bn.js "^5.1.2"
     cbor "^8.0.0"
     chalk "^4.1.0"
-    compare-versions "^3.6.0"
+    compare-versions "^4.0.0"
     debug "^4.1.1"
     ethereumjs-util "^7.0.3"
     proper-lockfile "^4.1.1"
@@ -757,10 +758,10 @@
   resolved "https://registry.yarnpkg.com/@skalenetwork/etherbase-interfaces/-/etherbase-interfaces-0.0.1-develop.20.tgz#33f61e18d695fd47063aa39dce4df335d26b9528"
   integrity sha512-j3xnuQtOtjvjAoUMJgSUFxRa9/Egkg1RyA8r6PjcEb33VksE4LWLBy0PNFUFehLZv48595JROTcViGeXXwg5HQ==
 
-"@skalenetwork/ima-interfaces@1.0.0-skale-4866-token-mananger-interchain-interfaces.1":
-  version "1.0.0-skale-4866-token-mananger-interchain-interfaces.1"
-  resolved "https://registry.yarnpkg.com/@skalenetwork/ima-interfaces/-/ima-interfaces-1.0.0-skale-4866-token-mananger-interchain-interfaces.1.tgz#774a0dfd4bd8bbd280743ab004b383806220f14b"
-  integrity sha512-7SH69r3mnRs/Ff2wqWqP+sL+DbnH+fj7Q2KHcj2rs9H2IPrUQ4WGg/m+d7MR0o63GfHojxt5Tjp8XGQIMBe8tg==
+"@skalenetwork/ima-interfaces@1.0.0-develop.14":
+  version "1.0.0-develop.14"
+  resolved "https://registry.yarnpkg.com/@skalenetwork/ima-interfaces/-/ima-interfaces-1.0.0-develop.14.tgz#51efd2fa0ed3bc12c2a9a0e3a97dfff8dd98a9c8"
+  integrity sha512-R3rJl1u5c9miAFbE07YjII9uRZNZAVT7BaeKgMer69plVRnIf3Sd9NLth8K/e9ATLIjb7V0tk7mz32E3ptF+Ow==
   dependencies:
     "@skalenetwork/skale-manager-interfaces" "^0.1.2"
 
@@ -2590,10 +2591,10 @@ commander@^2.12.1:
   resolved "https://registry.yarnpkg.com/commander/-/commander-2.20.3.tgz#fd485e84c03eb4881c20722ba48035e8531aeb33"
   integrity sha512-GpVkmM8vF2vQUkj2LvZmD35JxeJOLCwJ9cUkugyk2nuhbv3+mJvpLYYt+0+USMxE+oj+ey/lJEnhZw75x/OMcQ==
 
-compare-versions@^3.6.0:
-  version "3.6.0"
-  resolved "https://registry.yarnpkg.com/compare-versions/-/compare-versions-3.6.0.tgz#1a5689913685e5a87637b8d3ffca75514ec41d62"
-  integrity sha512-W6Af2Iw1z4CB7q4uU4hv646dW9GQuBM+YpC0UvUCWSD8w90SJjp+ujJuXaEMtAXBtSqGfMPuFOVn4/+FlaqfBA==
+compare-versions@^4.0.0:
+  version "4.1.3"
+  resolved "https://registry.yarnpkg.com/compare-versions/-/compare-versions-4.1.3.tgz#8f7b8966aef7dc4282b45dfa6be98434fc18a1a4"
+  integrity sha512-WQfnbDcrYnGr55UwbxKiQKASnTtNnaAWVi8jZyy8NTpVAXWACSne8lMD1iaIo9AiU6mnuLvSVshCzewVuWxHUg==
 
 component-emitter@^1.2.1:
   version "1.3.0"
