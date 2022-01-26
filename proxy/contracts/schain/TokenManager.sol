@@ -146,15 +146,7 @@ abstract contract TokenManager is AccessControlEnumerableUpgradeable, ITokenMana
      * sender is deposit box on mainnet or token manager on other SKALE chain.
      */
     modifier checkReceiverChain(bytes32 fromChainHash, address sender) {
-        require(
-            fromChainHash != schainHash && 
-                (
-                    fromChainHash == MAINNET_HASH ?
-                    sender == depositBox :
-                    sender == tokenManagers[fromChainHash]
-                ),
-            "Receiver chain is incorrect"
-        );
+        require(fromChainHash != schainHash && _checkSender(fromChainHash, sender), "Receiver chain is incorrect");
         _;
     }
 
@@ -270,5 +262,9 @@ abstract contract TokenManager is AccessControlEnumerableUpgradeable, ITokenMana
         depositBox = newDepositBox;
 
         emit DepositBoxWasChanged(address(0), newDepositBox);
+    }
+
+    function _checkSender(bytes32 fromChainHash, address sender) internal view virtual returns (bool) {
+        return fromChainHash == MAINNET_HASH ? sender == depositBox : sender == tokenManagers[fromChainHash];
     }
 }

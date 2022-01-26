@@ -64,6 +64,7 @@ describe("TokenManagerERC1155", () => {
     const ids = [1, 2, 3, 4];
     const amounts = [4, 3, 2, 1];
     const schainId = web3.utils.soliditySha3(schainName);
+    const mainnetName = "Mainnet";
     const mainnetId = stringValue(web3.utils.soliditySha3("Mainnet"));
     let to: string;
     let token: ERC1155OnChain;
@@ -132,10 +133,11 @@ describe("TokenManagerERC1155", () => {
     });
 
     it("should successfully call exitToMainERC1155", async () => {
+        // should be "No token clone on schain" if chains were different
         await tokenManagerERC1155.connect(user).exitToMainERC1155(token.address, id, amount)
-            .should.be.eventually.rejectedWith("No token clone on schain");
+            .should.be.eventually.rejectedWith("Not allowed ERC1155 Token");
 
-        await tokenManagerERC1155.connect(schainOwner).addERC1155TokenByOwner(token.address, tokenClone.address);
+        await tokenManagerERC1155.connect(schainOwner).addERC1155TokenByOwner(mainnetName,  token.address, tokenClone.address);
         await tokenManagerERC1155.connect(user).exitToMainERC1155(token.address, id, amount)
             .should.be.eventually.rejectedWith("Not allowed ERC1155 Token");
 
@@ -153,10 +155,11 @@ describe("TokenManagerERC1155", () => {
     });
 
     it("should successfully call exitToMainERC1155Batch", async () => {
+        // should be "No token clone on schain" if chains were different
         await tokenManagerERC1155.connect(user).exitToMainERC1155Batch(token.address, ids, amounts)
-            .should.be.eventually.rejectedWith("No token clone on schain");
+            .should.be.eventually.rejectedWith("Not allowed ERC1155 Token");
 
-        await tokenManagerERC1155.connect(schainOwner).addERC1155TokenByOwner(token.address, tokenClone.address);
+        await tokenManagerERC1155.connect(schainOwner).addERC1155TokenByOwner(mainnetName,  token.address, tokenClone.address);
         await tokenManagerERC1155.connect(user).exitToMainERC1155Batch(token.address, ids, amounts)
             .should.be.eventually.rejectedWith("Not allowed ERC1155 Token");
 
@@ -174,18 +177,18 @@ describe("TokenManagerERC1155", () => {
     });
 
     it("should successfully call addERC1155TokenByOwner", async () => {
-        await tokenManagerERC1155.connect(user).addERC1155TokenByOwner(token.address, tokenClone.address)
+        await tokenManagerERC1155.connect(user).addERC1155TokenByOwner(mainnetName,  token.address, tokenClone.address)
             .should.be.eventually.rejectedWith("TOKEN_REGISTRAR_ROLE is required");
 
-        await tokenManagerERC1155.connect(schainOwner).addERC1155TokenByOwner(token.address, deployer.address)
+        await tokenManagerERC1155.connect(schainOwner).addERC1155TokenByOwner(mainnetName,  token.address, deployer.address)
             .should.be.eventually.rejectedWith("Given address is not a contract");
 
-        await tokenManagerERC1155.connect(schainOwner).addERC1155TokenByOwner(token.address, tokenClone.address);
+        await tokenManagerERC1155.connect(schainOwner).addERC1155TokenByOwner(mainnetName,  token.address, tokenClone.address);
 
-        await tokenManagerERC1155.connect(schainOwner).addERC1155TokenByOwner(token2.address, tokenClone.address)
+        await tokenManagerERC1155.connect(schainOwner).addERC1155TokenByOwner(mainnetName,  token2.address, tokenClone.address)
             .should.be.eventually.rejectedWith("Clone was already added");
 
-        await tokenManagerERC1155.connect(schainOwner).addERC1155TokenByOwner(token.address, tokenClone2.address)
+        await tokenManagerERC1155.connect(schainOwner).addERC1155TokenByOwner(mainnetName,  token.address, tokenClone2.address)
             .should.be.eventually.rejectedWith("Could not relink clone");
     });
 
@@ -201,7 +204,7 @@ describe("TokenManagerERC1155", () => {
             .should.be.eventually.rejectedWith("Incorrect Token Manager address");
 
         await tokenManagerERC1155.addTokenManager(newSchainName, deployer.address);
-        await tokenManagerERC1155.connect(schainOwner).addERC1155TokenByOwner(token.address, tokenClone.address);
+        await tokenManagerERC1155.connect(schainOwner).addERC1155TokenByOwner(newSchainName,  token.address, tokenClone.address);
         await tokenClone.connect(deployer).mint(deployer.address, id, amount, "0x");
 
         await tokenManagerERC1155
@@ -235,7 +238,7 @@ describe("TokenManagerERC1155", () => {
             .should.be.eventually.rejectedWith("Incorrect Token Manager address");
 
         await tokenManagerERC1155.addTokenManager(newSchainName, deployer.address);
-        await tokenManagerERC1155.connect(schainOwner).addERC1155TokenByOwner(token.address, tokenClone.address);
+        await tokenManagerERC1155.connect(schainOwner).addERC1155TokenByOwner(newSchainName,  token.address, tokenClone.address);
         await tokenClone.connect(deployer).mintBatch(deployer.address, ids, amounts, "0x");
 
         await tokenManagerERC1155
@@ -275,14 +278,14 @@ describe("TokenManagerERC1155", () => {
 
             await tokenManagerERC1155.connect(schainOwner).enableAutomaticDeploy();
             await messageProxyForSchain.postMessage(tokenManagerERC1155.address, mainnetId, fakeDepositBox, data);
-            const addressERC1155OnSchain = await tokenManagerERC1155.clonesErc1155(token.address);
+            const addressERC1155OnSchain = await tokenManagerERC1155.clonesErc1155(mainnetId, token.address);
             const erc1155OnChain = (await ethers.getContractFactory("ERC1155OnChain")).attach(addressERC1155OnSchain) as ERC1155OnChain;
             expect(BigNumber.from((await erc1155OnChain.functions.balanceOf(to, id))[0]).toNumber()).to.be.equal(amount);
         });
 
         it("should transfer ERC1155 token on schain", async () => {
             //  preparation
-            await tokenManagerERC1155.connect(schainOwner).addERC1155TokenByOwner(token.address, tokenClone.address);
+            await tokenManagerERC1155.connect(schainOwner).addERC1155TokenByOwner(mainnetName,  token.address, tokenClone.address);
             await tokenClone.connect(deployer).grantRole(await tokenClone.MINTER_ROLE(), tokenManagerERC1155.address);
 
             const data = await messages.encodeTransferErc1155Message(
@@ -293,7 +296,7 @@ describe("TokenManagerERC1155", () => {
             );
 
             await messageProxyForSchain.postMessage(tokenManagerERC1155.address, mainnetId, fakeDepositBox, data);
-            const addressERC1155OnSchain = await tokenManagerERC1155.clonesErc1155(token.address);
+            const addressERC1155OnSchain = await tokenManagerERC1155.clonesErc1155(mainnetId, token.address);
             const erc1155OnChain = (await ethers.getContractFactory("ERC1155OnChain")).attach(addressERC1155OnSchain) as ERC1155OnChain;
             expect(BigNumber.from((await erc1155OnChain.functions.balanceOf(to, id))[0]).toNumber()).to.be.equal(amount);
         });
@@ -315,7 +318,7 @@ describe("TokenManagerERC1155", () => {
 
             await tokenManagerERC1155.connect(schainOwner).enableAutomaticDeploy();
             await messageProxyForSchain.postMessage(tokenManagerERC1155.address, mainnetId, fakeDepositBox, data);
-            const addressERC1155OnSchain = await tokenManagerERC1155.clonesErc1155(token.address);
+            const addressERC1155OnSchain = await tokenManagerERC1155.clonesErc1155(mainnetId, token.address);
             const erc1155OnChain = await (await ethers.getContractFactory("ERC1155OnChain")).attach(addressERC1155OnSchain) as ERC1155OnChain;
 
             const balanceIds = await erc1155OnChain.balanceOfBatch([to, to, to, to], ids);
@@ -328,7 +331,7 @@ describe("TokenManagerERC1155", () => {
 
         it("should transfer ERC1155 token batch on schain", async () => {
             //  preparation
-            await tokenManagerERC1155.connect(schainOwner).addERC1155TokenByOwner(token.address, tokenClone.address);
+            await tokenManagerERC1155.connect(schainOwner).addERC1155TokenByOwner(mainnetName,  token.address, tokenClone.address);
             await tokenClone.connect(deployer).grantRole(await tokenClone.MINTER_ROLE(), tokenManagerERC1155.address);
 
             const data = await messages.encodeTransferErc1155BatchMessage(
@@ -339,7 +342,7 @@ describe("TokenManagerERC1155", () => {
             );
 
             await messageProxyForSchain.postMessage(tokenManagerERC1155.address, mainnetId, fakeDepositBox, data);
-            const addressERC1155OnSchain = await tokenManagerERC1155.clonesErc1155(token.address);
+            const addressERC1155OnSchain = await tokenManagerERC1155.clonesErc1155(mainnetId, token.address);
             const erc1155OnChain = (await ethers.getContractFactory("ERC1155OnChain")).attach(addressERC1155OnSchain) as ERC1155OnChain;
             const balanceIds = await erc1155OnChain.balanceOfBatch([to, to, to, to], ids);
             const balanceIdsNumber: number[] = [];
