@@ -23,7 +23,18 @@ pragma solidity 0.8.6;
 
 import "../mainnet/MessageProxyForMainnet.sol";
 
-contract MessageProxyForMainnetTester is MessageProxyForMainnet {    
+
+interface IMessageProxyForMainnetTester {
+    function refundGasByUser(
+        bytes32 fromSchainHash,
+        address payable node,
+        address user,
+        uint256 gas
+    ) external;
+}
+
+
+contract MessageProxyForMainnetTester is MessageProxyForMainnet, IMessageProxyForMainnetTester {    
 
     function refundGasByUser(
         bytes32 fromSchainHash,
@@ -32,6 +43,7 @@ contract MessageProxyForMainnetTester is MessageProxyForMainnet {
         uint256 gas
     )
         external
+        override
     {
         communityPool.refundGasByUser(fromSchainHash, node, user, gas);
     }

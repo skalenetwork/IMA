@@ -24,7 +24,24 @@ pragma solidity 0.8.6;
 import "../mainnet/MessageProxyForMainnet.sol";
 import "../schain/MessageProxyForSchain.sol";
 
-contract MessageProxyCaller {    
+
+interface IMessageProxyCaller {
+    function postOutgoingMessageTester(
+        MessageProxyForMainnet messageProxyForMainnet,
+        bytes32 targetChainHash,
+        address targetContract,
+        bytes calldata data
+    ) external;
+    function postOutgoingMessageTesterOnSchain(
+        MessageProxyForSchain messageProxyForSchain,
+        bytes32 targetChainHash,
+        address targetContract,
+        bytes calldata data
+    ) external;
+}
+
+
+contract MessageProxyCaller is IMessageProxyCaller {    
 
     function postOutgoingMessageTester(
         MessageProxyForMainnet messageProxyForMainnet,
@@ -33,6 +50,7 @@ contract MessageProxyCaller {
         bytes calldata data
     )
         external
+        override
     {
         messageProxyForMainnet.postOutgoingMessage(targetChainHash, targetContract, data);
     }
@@ -44,15 +62,8 @@ contract MessageProxyCaller {
         bytes calldata data
     )
         external
+        override
     {
         messageProxyForSchain.postOutgoingMessage(targetChainHash, targetContract, data);
     }
-
-    // function initialize2(IContractManager newContractManagerOfSkaleManager) public  {
-    //     MessageProxyForMainnet.initialize(newContractManagerOfSkaleManager);
-    // }
-    
-    // constructor(IContractManager newContractManagerOfSkaleManager) public  {
-    //     MessageProxyForMainnet.initialize(newContractManagerOfSkaleManager);
-    // }
 }

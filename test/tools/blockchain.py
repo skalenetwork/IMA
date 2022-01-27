@@ -281,7 +281,8 @@ class BlockChain:
 
     def get_erc20_on_schain(self, schain_name, erc20_address_mainnet):
         lock_erc20 = self._get_contract_on_schain('token_manager_erc20')
-        erc20_address = lock_erc20.functions.clonesErc20(erc20_address_mainnet).call()
+        mainnet_hash = Web3.solidityKeccak(['string'], ["Mainnet"])
+        erc20_address = lock_erc20.functions.clonesErc20(mainnet_hash, erc20_address_mainnet).call()
         if erc20_address == '0x0000000000000000000000000000000000000000':
             raise ValueError('No such token')
         with open(self.config.proxy_root + '/artifacts/contracts/schain/tokens/ERC20OnChain.sol/ERC20OnChain.json') as erc20_on_chain_file:
@@ -290,7 +291,8 @@ class BlockChain:
 
     def get_erc721_on_schain(self, schain_name, erc721_address_mainnet):
         lock_erc721 = self._get_contract_on_schain('token_manager_erc721')
-        erc721_address = lock_erc721.functions.clonesErc721(erc721_address_mainnet).call()
+        mainnet_hash = Web3.solidityKeccak(['string'], ["Mainnet"])
+        erc721_address = lock_erc721.functions.clonesErc721(mainnet_hash, erc721_address_mainnet).call()
         if erc721_address == '0x0000000000000000000000000000000000000000':
             raise ValueError('No such token')
         with open(self.config.proxy_root + '/artifacts/contracts/schain/tokens/ERC721OnChain.sol/ERC721OnChain.json') as erc721_on_chain_file:
@@ -299,7 +301,8 @@ class BlockChain:
 
     def get_erc1155_on_schain(self, schain_name, erc1155_address_mainnet):
         lock_erc1155 = self._get_contract_on_schain('token_manager_erc1155')
-        erc1155_address = lock_erc1155.functions.clonesErc1155(erc1155_address_mainnet).call()
+        mainnet_hash = Web3.solidityKeccak(['string'], ["Mainnet"])
+        erc1155_address = lock_erc1155.functions.clonesErc1155(mainnet_hash, erc1155_address_mainnet).call()
         if erc1155_address == '0x0000000000000000000000000000000000000000':
             raise ValueError('No such token')
         with open(self.config.proxy_root + '/artifacts/contracts/schain/tokens/ERC1155OnChain.sol/ERC1155OnChain.json') as erc1155_on_chain_file:

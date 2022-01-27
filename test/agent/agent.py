@@ -425,6 +425,7 @@ class Agent:
     def _get_default_flags(self):
         return {
             'verbose': 9,
+            's2s-disable': None,
             'url-main-net': self.config.mainnet_rpc_url,
             'url-s-chain': self.config.schain_rpc_url,
             'id-main-net': 'Mainnet',

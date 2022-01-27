@@ -3,6 +3,7 @@ from ima_predeployed.addresses import MESSAGE_PROXY_FOR_SCHAIN_ADDRESS, KEY_STOR
     TOKEN_MANAGER_ERC1155_ADDRESS
 from ima_predeployed.contracts.message_proxy_for_schain import MessageProxyForSchainGenerator
 from tools import load_abi, w3
+from pkg_resources import get_distribution
 
 
 def check_message_proxy_for_schain(owner_address, schain_name):
@@ -26,18 +27,30 @@ def check_message_proxy_for_schain(owner_address, schain_name):
         raise AssertionError
     if not message_proxy_for_schain.functions.gasLimit().call() == MessageProxyForSchainGenerator.GAS_LIMIT:
         raise AssertionError
-    if not message_proxy_for_schain.functions.registryContracts(MessageProxyForSchainGenerator.ANY_SCHAIN,
+    if not message_proxy_for_schain.functions.getContractRegisteredLength(MessageProxyForSchainGenerator.ANY_SCHAIN).call() == 5:
+        raise AssertionError
+    if not message_proxy_for_schain.functions.getContractRegisteredRange(MessageProxyForSchainGenerator.ANY_SCHAIN, 0, 5).call() == [
+        TOKEN_MANAGER_ETH_ADDRESS,
+        TOKEN_MANAGER_ERC20_ADDRESS,
+        TOKEN_MANAGER_ERC721_ADDRESS,
+        TOKEN_MANAGER_ERC1155_ADDRESS,
+        COMMUNITY_LOCKER_ADDRESS
+    ]:
+        raise AssertionError
+    if not message_proxy_for_schain.functions.isContractRegistered(MessageProxyForSchainGenerator.ANY_SCHAIN,
                                                                 TOKEN_MANAGER_ETH_ADDRESS).call():
         raise AssertionError
-    if not message_proxy_for_schain.functions.registryContracts(MessageProxyForSchainGenerator.ANY_SCHAIN,
+    if not message_proxy_for_schain.functions.isContractRegistered(MessageProxyForSchainGenerator.ANY_SCHAIN,
                                                                 TOKEN_MANAGER_ERC20_ADDRESS).call():
         raise AssertionError
-    if not message_proxy_for_schain.functions.registryContracts(MessageProxyForSchainGenerator.ANY_SCHAIN,
+    if not message_proxy_for_schain.functions.isContractRegistered(MessageProxyForSchainGenerator.ANY_SCHAIN,
                                                                 TOKEN_MANAGER_ERC721_ADDRESS).call():
         raise AssertionError
-    if not message_proxy_for_schain.functions.registryContracts(MessageProxyForSchainGenerator.ANY_SCHAIN,
+    if not message_proxy_for_schain.functions.isContractRegistered(MessageProxyForSchainGenerator.ANY_SCHAIN,
                                                                 TOKEN_MANAGER_ERC1155_ADDRESS).call():
         raise AssertionError
-    if not message_proxy_for_schain.functions.registryContracts(MessageProxyForSchainGenerator.ANY_SCHAIN,
+    if not message_proxy_for_schain.functions.isContractRegistered(MessageProxyForSchainGenerator.ANY_SCHAIN,
                                                                 COMMUNITY_LOCKER_ADDRESS).call():
+        raise AssertionError
+    if not message_proxy_for_schain.functions.version().call() == get_distribution('ima_predeployed').version:
         raise AssertionError

@@ -21,56 +21,115 @@
 
 pragma solidity 0.8.6;
 
+import "@skalenetwork/ima-interfaces/schain/ITokenManager.sol";
+import "@skalenetwork/ima-interfaces/schain/ICommunityLocker.sol";
+
 import "./MessageProxyForSchain.sol";
 import "./TokenManagerLinker.sol";
 import "./CommunityLocker.sol";
-import "../interfaces/IMessageReceiver.sol";
 
 
 /**
- * @title Token Manager
- * @dev Runs on SKALE Chains, accepts messages from mainnet, and instructs
- * TokenFactory to create clones. TokenManager mints tokens via
- * LockAndDataForSchain*. When a user exits a SKALE chain, TokenFactory
- * burns tokens.
+ * @title TokenManager
+ * @dev Base contract for all token managers.
+ * 
+ * Runs on SKALE Chains, accepts messages from mainnet, creates clones of tokens.
+ * TokenManager mints tokens when user locks tokens on mainnet and burn them when user exits.
  */
-abstract contract TokenManager is AccessControlEnumerableUpgradeable, IMessageReceiver {
+abstract contract TokenManager is AccessControlEnumerableUpgradeable, ITokenManager {
 
+    /**
+     * @dev Mainnet identifier.
+     */
     string constant public MAINNET_NAME = "Mainnet";
+
+    /**
+     * @dev Keccak256 hash of mainnet name.
+     */
     bytes32 constant public MAINNET_HASH = keccak256(abi.encodePacked(MAINNET_NAME));
 
+    /**
+     * @dev id of a role that allows turning on and turning off of automatic token clones deployment.
+     */
     bytes32 public constant AUTOMATIC_DEPLOY_ROLE = keccak256("AUTOMATIC_DEPLOY_ROLE");
-    bytes32 public constant TOKEN_REGISTRAR_ROLE = keccak256("TOKEN_REGISTRAR_ROLE");
 
-    MessageProxyForSchain public messageProxy;
-    TokenManagerLinker public tokenManagerLinker;
-    CommunityLocker public communityLocker;
+    /**
+     * @dev id of a role that allows to register deployed token clone.
+     */
+    bytes32 public constant TOKEN_REGISTRAR_ROLE = keccak256("TOKEN_REGISTRAR_ROLE");
+    
+    /**
+     * @dev Address of MessageProxyForSchain.
+     */
+    IMessageProxyForSchain public messageProxy;
+
+    /**
+     * @dev Address of TokenManagerLinker.
+     */
+    ITokenManagerLinker public tokenManagerLinker;
+
+    /**
+     * @dev Address of CommunityLocker.
+     */
+    ICommunityLocker public communityLocker;
+
+    /**
+     * @dev Keccak256 hash of schain name.
+     */
     bytes32 public schainHash;
+
+    /**
+     * @dev Address of corresponding deposit box on mainnet.
+     */
     address public depositBox;
+
+    /**
+     * @dev Show if automatic deploy of token clones are allowed.
+     */
     bool public automaticDeploy;
 
+    /**
+     * @dev Addresses of corresponding token manager on other SKALE chains.
+     */
+    //   schainHash => TokenManager
     mapping(bytes32 => address) public tokenManagers;    
 
+    /**
+     * @dev Emitted when deposit box address was changed.
+     */
     event DepositBoxWasChanged(
         address oldValue,
         address newValue
     );
 
+    /**
+     * @dev Modifier to make a function callable only if caller is granted with {AUTOMATIC_DEPLOY_ROLE}.
+     */
     modifier onlyAutomaticDeploy() {
         require(hasRole(AUTOMATIC_DEPLOY_ROLE, msg.sender), "AUTOMATIC_DEPLOY_ROLE is required");
         _;
     }
 
+    /**
+     * @dev Modifier to make a function callable only if caller is granted with {TOKEN_REGISTRAR_ROLE}.
+     */
     modifier onlyTokenRegistrar() {
         require(hasRole(TOKEN_REGISTRAR_ROLE, msg.sender), "TOKEN_REGISTRAR_ROLE is required");
         _;
     }
 
+    /**
+     * @dev Modifier to make a function callable only if caller is {MessageProxy}.
+     */
     modifier onlyMessageProxy() {
         require(msg.sender == address(messageProxy), "Sender is not a MessageProxy");
         _;
     }
 
+    /**
+     * @dev Modifier to make a function callable only if
+     * a message does not aim mainnet, target SKALE chain has token manager and receiver is set.
+     */
     modifier rightTransaction(string memory targetSchainName, address to) {
         bytes32 targetSchainHash = keccak256(abi.encodePacked(targetSchainName));
         require(
@@ -82,46 +141,48 @@ abstract contract TokenManager is AccessControlEnumerableUpgradeable, IMessageRe
         _;
     }
 
+    /**
+     * @dev Modifier to make a function callable only if
+     * sender is deposit box on mainnet or token manager on other SKALE chain.
+     */
     modifier checkReceiverChain(bytes32 fromChainHash, address sender) {
-        require(
-            fromChainHash != schainHash && 
-                (
-                    fromChainHash == MAINNET_HASH ?
-                    sender == depositBox :
-                    sender == tokenManagers[fromChainHash]
-                ),
-            "Receiver chain is incorrect"
-        );
+        require(fromChainHash != schainHash && _checkSender(fromChainHash, sender), "Receiver chain is incorrect");
         _;
     }
 
 
     /**
-     * @dev Allows Schain owner turn on automatic deploy on schain.
+     * @dev Turn on automatic deploy on schain.
+     * 
+     * Requirements:
+     * 
+     * - Function caller has to be granted with {AUTOMATIC_DEPLOY_ROLE}.
      */
-    function enableAutomaticDeploy() external onlyAutomaticDeploy {
+    function enableAutomaticDeploy() external override onlyAutomaticDeploy {
         automaticDeploy = true;
     }
 
     /**
-     * @dev Allows Schain owner turn off automatic deploy on schain.
+     * @dev Turn off automatic deploy on schain.
+     * 
+     * Requirements:
+     * 
+     * - Function caller has to be granted with {AUTOMATIC_DEPLOY_ROLE}.
      */
     function disableAutomaticDeploy() external onlyAutomaticDeploy {
         automaticDeploy = false;
     }
 
     /**
-     * @dev Adds a TokenManagerEth address to
-     * depositBox.
+     * @dev Adds a TokenManager on SKALE chain to this TokenManager.
      *
      * Requirements:
      *
-     * - `msg.sender` must be schain owner or contract owner
-     * = or imaLinker contract.
+     * - `msg.sender` must be contract owner or {TokenManagerLinker} contract.
      * - SKALE chain must not already be added.
      * - TokenManager address must be non-zero.
      */
-    function addTokenManager(string calldata schainName, address newTokenManager) external {
+    function addTokenManager(string calldata schainName, address newTokenManager) external override {
         require(
             msg.sender == address(tokenManagerLinker) ||
             hasRole(DEFAULT_ADMIN_ROLE, msg.sender), "Not authorized caller"
@@ -133,15 +194,14 @@ abstract contract TokenManager is AccessControlEnumerableUpgradeable, IMessageRe
     }
 
     /**
-     * @dev Allows Owner to remove a TokenManager on SKALE chain
-     * from TokenManager.
+     * @dev Remove a TokenManager on SKALE chain from TokenManager.
      *
      * Requirements:
      *
-     * - `msg.sender` must be schain owner or contract owner
+     * - `msg.sender` must be contract owner or {TokenManagerLinker} contract.
      * - SKALE chain must already be set.
      */
-    function removeTokenManager(string calldata schainName) external {
+    function removeTokenManager(string calldata schainName) external override {
         require(
             msg.sender == address(tokenManagerLinker) ||
             hasRole(DEFAULT_ADMIN_ROLE, msg.sender), "Not authorized caller"
@@ -152,12 +212,13 @@ abstract contract TokenManager is AccessControlEnumerableUpgradeable, IMessageRe
     }
 
     /**
-     * @dev Allows Schain Owner to change Deposit Box address
-     * This function should be executed only in Emergency.
+     * @dev Change Deposit Box address
+     * This function should be executed only in emergency.
      *
      * Requirements:
      *
-     * - `msg.sender` must be schain owner
+     * - `msg.sender` must be contract owner.
+     * - {newDepositBox} must be set.
      */
     function changeDepositBoxAddress(address newDepositBox) external {
         require(hasRole(DEFAULT_ADMIN_ROLE, msg.sender), "DEFAULT_ADMIN_ROLE is required");
@@ -169,15 +230,18 @@ abstract contract TokenManager is AccessControlEnumerableUpgradeable, IMessageRe
     /**
      * @dev Checks whether TokenManager is connected to a {schainName} SKALE chain TokenManager.
      */
-    function hasTokenManager(string calldata schainName) external view returns (bool) {
+    function hasTokenManager(string calldata schainName) external view override returns (bool) {
         return tokenManagers[keccak256(abi.encodePacked(schainName))] != address(0);
     }
 
+    /**
+     * @dev Is called once during contract deployment.
+     */
     function initializeTokenManager(
         string memory newSchainName,
-        MessageProxyForSchain newMessageProxy,
-        TokenManagerLinker newIMALinker,
-        CommunityLocker newCommunityLocker,
+        IMessageProxyForSchain newMessageProxy,
+        ITokenManagerLinker newIMALinker,
+        ICommunityLocker newCommunityLocker,
         address newDepositBox
     )
         public
@@ -198,5 +262,9 @@ abstract contract TokenManager is AccessControlEnumerableUpgradeable, IMessageRe
         depositBox = newDepositBox;
 
         emit DepositBoxWasChanged(address(0), newDepositBox);
+    }
+
+    function _checkSender(bytes32 fromChainHash, address sender) internal view virtual returns (bool) {
+        return fromChainHash == MAINNET_HASH ? sender == depositBox : sender == tokenManagers[fromChainHash];
     }
 }

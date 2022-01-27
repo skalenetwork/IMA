@@ -21,59 +21,46 @@
 
 pragma solidity 0.8.6;
 
+import "@skalenetwork/ima-interfaces/schain/TokenManagers/ITokenManagerEth.sol";
+
 import "../../Messages.sol";
-import "../tokens/EthErc20.sol";
 import "../TokenManager.sol";
 
 
 /**
- * This contract runs on schains and accepts messages from main net creates ETH clones.
- * When the user exits, it burns them
+ * @title TokenManagerEth
+ * @dev Runs on SKALE Chains and
+ * accepts messages from mainnet.
+ * TokenManagerEth mints EthErc20 tokens. When a user exits a SKALE chain, it burns them.
  */
+contract TokenManagerEth is TokenManager, ITokenManagerEth {
 
-/**
- * @title Token Manager
- * @dev Runs on SKALE Chains, accepts messages from mainnet, and instructs
- * TokenFactory to create clones. TokenManager mints tokens via
- * LockAndDataForSchain*. When a user exits a SKALE chain, TokenFactory
- * burns tokens.
- */
-contract TokenManagerEth is TokenManager {
-
-    EthErc20 public ethErc20;
+    IEthErc20 public ethErc20;
 
     /// Create a new token manager    
 
-    function setEthErc20Address(EthErc20 newEthErc20Address) external {
+    /**
+     * @dev Register EthErc20 token.
+     */
+    function setEthErc20Address(IEthErc20 newEthErc20Address) external override {
         require(hasRole(DEFAULT_ADMIN_ROLE, msg.sender), "Not authorized caller");
         require(ethErc20 != newEthErc20Address, "Must be new address");
         ethErc20 = newEthErc20Address;
     }
 
     /**
-     * @dev Performs an exit (post outgoing message) to Mainnet.
+     * @dev Move ETH from schain to mainnet.
+     * 
+     * EthErc20 tokens are burned on schain and ETH are unlocked on mainnet for {to} address.
      */
-    function exitToMain(uint256 amount) external {
+    function exitToMain(uint256 amount) external override {
         communityLocker.checkAllowedToSendMessage(msg.sender);
         _exit(MAINNET_HASH, depositBox, msg.sender, amount);
-    }
-
-    function transferToSchain(
-        string memory targetSchainName,
-        uint256 amount
-    )
-        external
-        rightTransaction(targetSchainName, msg.sender)
-    {
-        bytes32 targetSchainHash = keccak256(abi.encodePacked(targetSchainName));
-        _exit(targetSchainHash, tokenManagers[targetSchainHash], msg.sender, amount);
     }
 
     /**
      * @dev Allows MessageProxy to post operational message from mainnet
      * or SKALE chains.
-     * 
-     * Emits an {Error} event upon failure.
      *
      * Requirements:
      * 
@@ -98,16 +85,19 @@ contract TokenManagerEth is TokenManager {
         return receiver;
     }
 
+    /**
+     * @dev Is called once during contract deployment.
+     */
     function initialize(
         string memory newChainName,
-        MessageProxyForSchain newMessageProxy,
-        TokenManagerLinker newIMALinker,
-        CommunityLocker newCommunityLocker,
+        IMessageProxyForSchain newMessageProxy,
+        ITokenManagerLinker newIMALinker,
+        ICommunityLocker newCommunityLocker,
         address newDepositBox,
-        EthErc20 ethErc20Address
+        IEthErc20 ethErc20Address
     )
         external
-        virtual
+        override
         initializer
     {
         TokenManager.initializeTokenManager(
@@ -122,6 +112,13 @@ contract TokenManagerEth is TokenManager {
 
     // private
 
+    function _checkSender(bytes32 fromChainHash, address sender) internal view override returns (bool) {
+        return fromChainHash == MAINNET_HASH && sender == depositBox;
+    }
+
+    /**
+     * @dev Burn EthErc20 tokens on schain and send message to unlock ETH on target chain.
+     */
     function _exit(
         bytes32 chainHash,
         address messageReceiver,

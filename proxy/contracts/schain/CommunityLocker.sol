@@ -24,48 +24,112 @@
 pragma solidity 0.8.6;
 
 import "@openzeppelin/contracts-upgradeable/access/AccessControlEnumerableUpgradeable.sol";
+import "@skalenetwork/ima-interfaces/schain/ICommunityLocker.sol";
 
 import "../Messages.sol";
-import "../mainnet/CommunityPool.sol";
-import "./MessageProxyForSchain.sol";
-import "./TokenManagerLinker.sol";
 
 
 /**
  * @title CommunityLocker
- * @dev Contract contains logic to perform automatic self-recharging ether for nodes
+ * @dev Contract contains logic to perform automatic reimbursement
+ * of gas fees for sent messages
  */
-contract CommunityLocker is IMessageReceiver, AccessControlEnumerableUpgradeable {
+contract CommunityLocker is ICommunityLocker, AccessControlEnumerableUpgradeable {
 
+    /**
+     * @dev Mainnet identifier.
+     */
     string constant public MAINNET_NAME = "Mainnet";
+
+    /**
+     * @dev Keccak256 hash of mainnet name.
+     */
     bytes32 constant public MAINNET_HASH = keccak256(abi.encodePacked(MAINNET_NAME));
+
+    /**
+     * @dev id of a role that allows changing of the contract parameters.
+     */
     bytes32 public constant CONSTANT_SETTER_ROLE = keccak256("CONSTANT_SETTER_ROLE");
 
-    MessageProxyForSchain public messageProxy;
-    TokenManagerLinker public tokenManagerLinker;
+    /**
+     * @dev Address of MessageProxyForSchain.
+     */
+    IMessageProxyForSchain public messageProxy;
+
+    /**
+     * @dev Address of TokenManagerLinker.
+     */
+    ITokenManagerLinker public tokenManagerLinker;
+
+    /**
+     * @dev Address of CommunityPool on mainnet.
+     */
     address public communityPool;
 
+    /**
+     * @dev Keccak256 hash of schain name.
+     */
     bytes32 public schainHash;
+
+    /**
+     * @dev Amount of seconds after message sending
+     * when next message cannot be sent.
+     */
     uint public timeLimitPerMessage;
 
+    /**
+     * @dev Mapping of users who are allowed to send a message.
+     */
+    // user address => allowed to send message
     mapping(address => bool) public activeUsers;
-    mapping(address => uint) private _lastMessageTimeStamp;
 
+    /**
+     * @dev Timestamp of previous sent message by user.
+     */
+    // user address => timestamp of last message
+    mapping(address => uint) public lastMessageTimeStamp;
+
+    uint256 public mainnetGasPrice;
+
+    uint256 public gasPriceTimestamp;
+
+    /**
+     * @dev Emitted when a user becomes active.
+     */
     event ActivateUser(
         bytes32 schainHash,
         address user
     );
 
+    /**
+     * @dev Emitted when a user stops being active.
+     */
     event LockUser(
         bytes32 schainHash,
         address user
     ); 
 
-    event TimeLimitPerMessageWasChanged(
-        uint256 oldValue,
-        uint256 newValue
+    /**
+     * @dev Emitted when constants updated.
+     */
+    event ConstantUpdated(
+        bytes32 indexed constantHash,
+        uint previousValue,
+        uint newValue
     );
 
+    /**
+     * @dev Allows MessageProxy to post operational message from mainnet
+     * or SKALE chains.
+     *
+     * Requirements:
+     * 
+     * - MessageProxy must be the caller of the function.
+     * - CommunityPool must be an origin of the message on mainnet.
+     * - The message must come from the mainnet.
+     * - The message must contains status of a user.
+     * - Status of a user in the message must be different from the current status.
+     */
     function postMessage(
         bytes32 fromChainHash,
         address sender,
@@ -91,33 +155,92 @@ contract CommunityLocker is IMessageReceiver, AccessControlEnumerableUpgradeable
         return message.receiver;
     }
 
-    function checkAllowedToSendMessage(address receiver) external {
+    /**
+     * @dev Reverts if {receiver} is not allowed to send a message.
+     *
+     * Requirements:
+     * 
+     * - Function caller has to be registered in TokenManagerLinker as a TokenManager.
+     * - {receiver} must be an active user.
+     * - Previous message sent by {receiver} must be sent earlier then {timeLimitPerMessage} seconds before current time
+     * or there are no messages sent by {receiver}.
+     */
+    function checkAllowedToSendMessage(address receiver) external override {
         require(
-            tokenManagerLinker.hasTokenManager(TokenManager(msg.sender)),
+            tokenManagerLinker.hasTokenManager(ITokenManager(msg.sender)),
             "Sender is not registered token manager"
         );
         require(activeUsers[receiver], "Recipient must be active");
         require(
-            _lastMessageTimeStamp[receiver] + timeLimitPerMessage < block.timestamp,
+            lastMessageTimeStamp[receiver] + timeLimitPerMessage < block.timestamp,
             "Trying to send messages too often"
         );
-        _lastMessageTimeStamp[receiver] = block.timestamp;
+        lastMessageTimeStamp[receiver] = block.timestamp;
     }
 
-    function setTimeLimitPerMessage(uint newTimeLimitPerMessage) external {
+    /**
+     * @dev Set value of {timeLimitPerMessage}.
+     *
+     * Requirements:
+     * 
+     * - Function caller has to be granted with {CONSTANT_SETTER_ROLE}.
+     * 
+     * Emits a {ConstantUpdated} event.
+     */
+    function setTimeLimitPerMessage(uint newTimeLimitPerMessage) external override {
         require(hasRole(CONSTANT_SETTER_ROLE, msg.sender), "Not enough permissions to set constant");
-        emit TimeLimitPerMessageWasChanged(timeLimitPerMessage, newTimeLimitPerMessage);
+        emit ConstantUpdated(
+            keccak256(abi.encodePacked("TimeLimitPerMessage")),
+            timeLimitPerMessage,
+            newTimeLimitPerMessage
+        );
         timeLimitPerMessage = newTimeLimitPerMessage;
     }
 
+    /**
+     * @dev Set value of {mainnetGasPrice}.
+     *
+     * Requirements:
+     * 
+     * - Signature should be verified.
+     * 
+     * Emits a {ConstantUpdated} event.
+     */
+    function setGasPrice(
+        uint gasPrice,
+        uint timestamp,
+        IMessageProxyForSchain.Signature memory
+    )
+        external
+        override
+    {
+        require(timestamp > gasPriceTimestamp, "Gas price timestamp already updated");
+        require(timestamp <= block.timestamp, "Timestamp should not be in the future");
+        // TODO: uncomment when oracle finished
+        // require(
+        //     messageProxy.verifySignature(keccak256(abi.encodePacked(gasPrice, timestamp)), signature),
+        //     "Signature is not verified"
+        // );
+        emit ConstantUpdated(
+            keccak256(abi.encodePacked("MainnetGasPrice")),
+            mainnetGasPrice,
+            gasPrice
+        );
+        mainnetGasPrice = gasPrice;
+        gasPriceTimestamp = timestamp;
+    }
+
+    /**
+     * @dev Is called once during contract deployment.
+     */
     function initialize(
         string memory newSchainName,
-        MessageProxyForSchain newMessageProxy,
-        TokenManagerLinker newTokenManagerLinker,
+        IMessageProxyForSchain newMessageProxy,
+        ITokenManagerLinker newTokenManagerLinker,
         address newCommunityPool
     )
         external
-        virtual
+        override
         initializer
     {
         require(newCommunityPool != address(0), "Node address has to be set");
@@ -129,5 +252,4 @@ contract CommunityLocker is IMessageReceiver, AccessControlEnumerableUpgradeable
         timeLimitPerMessage = 5 minutes;
         communityPool = newCommunityPool;
     }
-
 }
