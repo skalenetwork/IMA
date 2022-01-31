@@ -45,7 +45,6 @@ export async function makeDeposit(ima) {
 
   await ima.mainnet.depositETHtoSChain(
     schainName,
-    address,
     txOpts
   );
 }
@@ -159,7 +158,6 @@ export async function withdrawETH(ima) {
   };
 
   await schain.withdrawETH(
-    address,
     schain.web3.utils.toWei("1", "ether"),
     txOpts
   );

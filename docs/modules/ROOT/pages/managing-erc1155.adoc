@@ -547,7 +547,7 @@ export async function depositERC1155Single(ima) {
 
   await ima.mainnet.approveAllERC1155(erc1155Name, opts); // approve all transfers
 
-  await ima.depositERC1155(schainName, tokenName, address, erc1155TokenId, amount, opts);
+  await ima.depositERC1155(schainName, tokenName, erc1155TokenId, amount, opts);
 
   // optional
   await ima.schain.waitERC1155BalanceChange(tokenName, address, erc1155TokenId, balanceSchain); // wait for the balance to be changed on the sChain side
@@ -734,7 +734,7 @@ export async function exit(ima) {
   await ima.schain.approveAllERC1155(erc1155Name, erc1155TokenId, opts); // approve all transfers
   
   // 1. for single object
-  await ima.withdrawERC1155(tokenName, address, erc1155TokenId, amount, txOpts); 
+  await ima.withdrawERC1155(tokenName, erc1155TokenId, amount, txOpts); 
   // 2. for separate sChain object
   await ima.schain.withdrawERC1155("[ADDRESS_OF_ERC1155_ON_MAINNET]", address, erc1155TokenId, amount, txOpts);
 
