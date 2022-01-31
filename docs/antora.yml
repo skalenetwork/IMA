@@ -1,7 +1,6 @@
 name: ima
 title: Ethereum <> SKALE Bridge
 version: 1.1.x
-prerelease: Preview
 nav:
   - modules/ROOT/nav.adoc
   - modules/api/nav.adoc
