@@ -60,7 +60,7 @@ group Transferring
     ://TokenManager mints clone//;
     -[#green,dashed]-> transfer among 
     end-users using 
-    skETH for "gas";
+    sFUEL for "gas";
     if (**User decides to exit**) is (1. fund ETH) then
         |Mainnet|
         :**User funds ETH**
@@ -141,7 +141,7 @@ group Transferring
     ://TokenManager mints clones//;
     -[#green,dashed]-> transfer among 
     end-users using 
-    skETH for "gas";
+    sFUEL for "gas";
     if (**User decides to exit**) is (1. fund ETH) then
         |Mainnet|
         :**User funds ETH**
@@ -221,7 +221,7 @@ group Transferring
     ://TokenManager mints clones//;
     -[#green,dashed]-> transfer among 
     end-users using 
-    skETH for "gas";
+    sFUEL for "gas";
     if (**User decides to exit**) is (1. fund ETH) then
         |Mainnet|
         :**User funds ETH**
