@@ -85,3 +85,69 @@ web3.eth
 ----
 --
 ====
+
+== Exit Reimbursement Flow Process
+
+The exit flow through IMA is conducted as follows:
+
+ifdef::env-github[image::https://www.plantuml.com/plantuml/svg/jLF1RXix3BplL-YOuC4_i7X8uWPfOQ1EZSPfpwf4hmLBP21ITlptNNdNYDKL2bzwivSpGt8uUc3HKLBmZVQY3A54ROJLmSbMTPfN-WZnvhPHwfKXgjcTUgGG4ZevheXygoAOhOuTvF9FxJt83VTV73xh09UyDUq0bnfr1x5LyEvaJSiUbyMBOj7aAvbTnfijcDtSUpg0NTCBe5q2Sm_Fz1AU5MeI4Jh70X7iPRVxw-a6t1xYWkT6-XzN4_Egux3VjS3zPDs9ERzIhDioogmYlHzVJYwtwerOlYNfo67tuGbuXZ_EIKdg5ntEnX-t7AI7pmNI91OAZuDiPlnlOG-UtY3EXjeiRpiBqBUpTmsWRPhfqAULdyd2OZcVTu3IAeJ3Y7lQ0qgJgwVKH8siZJWgiwF-oxiyiRYW1Pe2LhKhHmr11hyMQ2WKVftYpscpSSO1IfbozJcXvQPHDSNgczZqX2-QFnrVUJIx51ptRnK3sX_Qfpp3S3I7_swCoHn_oTJP6z_7EDDlh-vxsNWIfG9Rf6_2olXpkUwOgaolgcymE57vpzc88PeFW3O5_ni0[]]
+ifndef::env-github[]
+
+[plantuml]
+....
+@startuml
+alt contracts with gasPayer()
+  User -> CommunityPool: rechargeUserWallet(schainName)
+  User -> TokenManager: exitToMain()
+  TokenManager -> CommunityLocker: checkAllowedToSendMessage()
+  CommunityLocker --> CommunityLocker: registeredTokenManager?
+  CommunityLocker --> CommunityLocker: receiverIsActive?
+  CommunityLocker --> CommunityLocker: exitMessageRate?
+  TokenManager --> TokenManager: burn()
+  TokenManager -> MessageProxySchain: postOutgoingMessage()
+else contracts without gasPayer()
+  User -> Wallets: rechargeSchainWallet()
+  User -> customContracts: <developer-custom-exit-method>
+end
+
+MessageProxySchain --> NodeIMAAgent: newMessageEvent
+Node -> TransactionManager: exit + gasEstimate
+TransactionManager -> MessageProxyMainnet: postIncomingMessage()
+
+alt sufficient CommunityPool Funds
+
+  MessageProxyMainnet -> CommunityPool: refundGasByUser()
+  CommunityPool -> Node: sendValue()
+
+else insufficient CommunityPool Funds
+
+  MessageProxyMainnet -> CommunityPool: refundGasByUser()
+
+  CommunityPool -> MessageProxySchain: postMessage(lockUser)
+  MessageProxyMainnet -> CommunityPool:  refundGasBySchainWallet()
+  CommunityPool -> Wallets: refundGasBySchain()
+  Wallets -> Node: sendValue()
+  MessageProxySchain -> CommunityLocker: emit LockUser()
+
+
+end
+
+@enduml
+....
+
+endif::[]
+
+
+=== Description
+
+.Using gasPayer() implementing contracts
+. User must first fund CommunityPool.
+. User executes exitToMain().
+. TokenManager then checks Community Locker whether exit conditions are met.
+. TokenManager then burns the token(s) and posts an outgoing message via MessageProxy for Schain.
+. MessageProxy for Schain posts a new event which is found by 1 out of 16 SKALE Chain nodes running IMA agent.
+. The selected node's agent prepares the transaction and estimates the gas required
+. Agent sends the transaction via transaction-manager through MessageProxy for Mainnet, and the node wallet funds the transaction.
+. MessageProxy for Mainnet then requests CommmunityPool to refund the node.
+. CommunityPool sends funds to the node.
+. If CommunityPool has insufficient user's funds, then CommunityPool posts a LockUser request to CommunityLocker, and refund is requested by the SKALE Chain self-recharging wallet.  In this case, the self-recharging wallet sends funds to the node wallet and the user is Locked via the CommunityLocker.
