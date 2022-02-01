@@ -1,5 +1,6 @@
-= What's New in IMA 1.1
+= What's New in IMA 1.2
 
-* Removed receiver argument from deposit and exit methods.
-* Added gasPayer reimbursement methods to include SKALE Chain Wallet in reimbursement logic.
-* Prevented relinking of token clones.
+* Added support for SKALE Chain to SKALE Chain transfers.
+* Added SKALE Oracle support for Ethereum gas price calculation.
+* Added gas reimbursement from SKALE Chain wallet for custom messages.
+* Various improvements and bug fixes.

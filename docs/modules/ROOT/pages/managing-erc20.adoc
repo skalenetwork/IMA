@@ -24,58 +24,18 @@ First, review the Mainnet ERC20 token implementation and (if needed) modify a SK
 [discrete]
 ==== Example Mainnet contract
 
-```javascript
-pragma solidity >=0.4.22 <0.6.0;
-
-import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
-import "@openzeppelin/contracts/token/ERC20/ERC20Detailed.sol";
-import "@openzeppelin/contracts/token/ERC20/ERC20Mintable.sol";
-
-interface tokenRecipient {
-    function receiveApproval(address _from, uint256 _value, address _token, bytes calldata _extraData) external;
-}
-
-contract MyERC20 is ERC20, ERC20Detailed, ERC20Mintable{
-
-    constructor(
-    uint256 _amount,
-    string memory _name,
-    string memory _symbol,
-    uint256 _decimals
-
-  )
-    ERC20Detailed(_name, _symbol, 18)
-    public
-  {
-    require(_amount > 0, "amount has to be greater than 0");
-    _mint(msg.sender, _amount.mul(10 ** uint256(_decimals)));
-    }
-}
-```
+[source,javascript]
+----
+include::example$base-erc20-contract.sol[]
+----
 
 [discrete]
 ==== Example Modified SKALE Chain contract
 
-```javascript
-pragma solidity >=0.4.22 <0.6.0;
-
-import "@openzeppelin/contracts/token/ERC20/ERC20Burnable.sol";
-import "@openzeppelin/contracts/token/ERC20/ERC20Detailed.sol";
-import "@openzeppelin/contracts/token/ERC20/ERC20Mintable.sol";
-
-contract MyERC20 is ERC20Burnable, ERC20Detailed, ERC20Mintable {
-
-    constructor(
-      string memory _name,
-      string memory _symbol,
-      uint256 _decimals
-    )
-    ERC20Detailed(_name, _symbol, 18)
-    public
-    {
-    }
-}
-```
+[source,javascript]
+----
+include::example$modified-erc20-contract.sol[]
+----
 
 If you aren't using OpenZeppelin's framework, then you can simply manually add https://github.com/OpenZeppelin/openzeppelin-contracts/blob/c3178ff942f9f487b9fda2c648aa19e633560adb/contracts/token/ERC20/ERC20.sol#L233[Mintable] and https://github.com/OpenZeppelin/openzeppelin-contracts/blob/c3178ff942f9f487b9fda2c648aa19e633560adb/contracts/token/ERC20/ERC20.sol#L254[Burnable] functions, and finally https://github.com/OpenZeppelin/openzeppelin-contracts/blob/v2.5.1/contracts/access/roles/MinterRole.sol[add MINTER_ROLE access control]. 
 
@@ -94,89 +54,16 @@ Web3 JS::
 
 [source,javascript]
 ----
-import Common from "ethereumjs-common";
-const Tx = require("ethereumjs-tx").Transaction;
-const Web3 = require("web3");
-
-export function addMinter() {
-  let schainABIs = require("./contracts/schain_ABIs.json");
-  let schainERC20ABI = require("./contracts/schain_ERC20_ABI.json");
-
-  let contractOwnerPrivateKey = new Buffer(
-    process.env.REACT_APP_INSECURE_CONTRACT_OWNER_PRIVATE_KEY,
-    "hex"
-  );
-  let contractOwnerAccount =
-    process.env.REACT_APP_INSECURE_CONTRACT_OWNER_ACCOUNT;
-
-  let schainEndpoint = process.env.REACT_APP_INSECURE_SKALE_CHAIN;
-  let chainId = process.env.REACT_APP_INSECURE_CHAIN_ID;
-
-  const customCommon = Common.forCustomChain(
-    "mainnet",
-    {
-      name: "skale-network",
-      chainId: chainId
-    },
-    "istanbul"
-  );
-
-  const erc20ABI = schainERC20ABI.erc20_abi;
-  const erc20Address = schainERC20ABI.erc20_address;
-
-  const tokenManagerERC20Address = schainABIs.token_manager_erc20_address;
-
-  const web3ForSchain = new Web3(schainEndpoint);
-
-  let schainERC20Contract = new web3ForSchain.eth.Contract(
-    erc20ABI,
-    erc20Address
-  );
-
-  /**
-   * Uses the openzeppelin ERC20Mintable
-   * contract function addMinter
-   * https://github.com/OpenZeppelin/openzeppelin-contracts/tree/master/contracts/token/ERC20
-   */
-let addMinter = schainERC20Contract.methods
-    .addMinter(tokenManagerERC20Address)
-    .encodeABI();
-
-  web3ForSchain.eth.getTransactionCount(contractOwnerAccount).then((nonce) => {
-    //create raw transaction
-    const rawTxAddMinter = {
-      chainId: chainId,
-      from: contractOwnerAccount,
-      nonce: nonce,
-      data: addMinter,
-      to: erc20Address,
-      gasPrice: 100000000000,
-      gas: 8000000,
-      value: 0
-    };
-    //sign transaction
-    const txAddMinter = new Tx(rawTxAddMinter, { common: customCommon });
-    txAddMinter.sign(contractOwnerPrivateKey);
-
-    const serializedTxAddMinter = txAddMinter.serialize();
-
-    //send signed transaction (add minter)
-    web3ForSchain.eth
-      .sendSignedTransaction("0x" + serializedTxAddMinter.toString("hex"))
-      .on("receipt", (receipt) => {
-        console.log(receipt);
-      })
-      .catch(console.error);
-  });
+include::example$add-minter-role-erc20.js
 ----
 --
 ====
 
 For a Javascript sandbox of the minter implementation, see <https://codesandbox.io/s/erc20-transfer-skale-interchain-messaging-agent-forked-w1t5m?file=/src/addMinter.js>
 
-=== 3. Register Mainnet contract to IMA
+=== 3. Register Ethereum Mainnet contract to IMA
 
-Third, you need to register the Mainnet token contract into IMA on Mainnet using the addERC20TokenByOwner method in the DepositBoxERC20 contract.
+Third, you need to register the Ethereum Mainnet token contract into IMA on Ethereum Mainnet using the addERC20TokenByOwner method in the DepositBoxERC20 contract.
 
 [tabs]
 ====
@@ -184,29 +71,11 @@ IMA-JS::
 +
 --
 
-In all ima-js code samples we're assuming that library is already inited. See init instructions xref:ima-js-overview.adoc[here]. For the 2 objects usage drop `ima.` prefix.  
+In all ima-js code samples we&#39;re assuming that library is already inited. See init instructions xref:ima-js-overview.adoc[here]. For the 2 objects usage drop `ima.` prefix.  
 
 [source, javascript]
 ----
-// import & init ima-js here
-
-export async function linkERC20TokenMainnet(ima) {
-  let schainName = "[YOUR_SKALE_CHAIN_NAME]";
-  let erc20OnMainnet = "[ADDRESS_OF_ERC20_TOKEN_ON_MAINNET]";
-
-  let address = "[YOUR_ADDRESS]";
-  let privateKey = "[YOUR_PRIVATE_KEY]";
-
-  let txOpts = {
-    address: address,
-    privateKey: privateKey // remove privateKey from txOpts to use Metamask signing
-  };
-
-  const isERC20AddedMainnet = await ima.mainnet.isERC20Added(chainName, erc20OnMainnet);
-  if (!isERC20AddedMainnet){ // check if token is already added
-    await ima.mainnet.addERC20TokenByOwner(chainName, erc20OnMainnet, txOpts);
-  }
-}
+include::example$erc20-register-mainnet-imajs.js[]
 ----
 
 --
@@ -217,76 +86,7 @@ Web3 JS::
 
 [source,javascript]
 ----
-const Web3 = require("web3");
-const Tx = require("ethereumjs-tx").Transaction;
-
-export function registerOnMainnet() {
-  let rinkebyABIs = require("./contracts/rinkeby_ABIs.json");
-  let rinkebyERC20ABI = require("./contracts/rinkeby_ERC20_ABI.json");
-
-  let privateKey = new Buffer(
-    process.env.REACT_APP_INSECURE_SCHAIN_OWNER_PRIVATE_KEY,
-    "hex"
-  );
-  let erc20OwnerForMainnet =
-    process.env.REACT_APP_INSECURE_SCHAIN_OWNER_ACCOUNT;
-
-  let rinkeby = process.env.REACT_APP_INSECURE_RINKEBY;
-  let schainName = process.env.REACT_APP_INSECURE_CHAIN_NAME;
-  let chainId = process.env.REACT_APP_INSECURE_RINKEBY_CHAIN_ID;
-
-  const depositBoxAddress = rinkebyABIs.deposit_box_erc20_address;
-  const depositBoxABI = rinkebyABIs.deposit_box_erc20_abi;
-
-  const erc20AddressOnMainnet = rinkebyERC20ABI.erc20_address;
-
-  const web3ForMainnet = new Web3(rinkeby);
-
-  let DepositBox = new web3ForMainnet.eth.Contract(
-    depositBoxABI,
-    depositBoxAddress
-  );
-
-  /**
-   * Uses the SKALE DepositBoxERC20
-   * contract function addERC20TokenByOwner
-   */
-let addERC20TokenByOwner = DepositBox.methods
-    .addERC20TokenByOwner(schainName, erc20AddressOnMainnet)
-    .encodeABI();
-
-  web3ForMainnet.eth.getTransactionCount(erc20OwnerForMainnet).then((nonce) => {
-    const rawTxAddERC20TokenByOwner = {
-      chainId: chainId,
-      from: erc20OwnerForMainnet,
-      nonce: "0x" + nonce.toString(16),
-      data: addERC20TokenByOwner,
-      to: depositBoxAddress,
-      gas: 6500000,
-      gasPrice: 100000000000,
-      value: web3ForMainnet.utils.toHex(
-        web3ForMainnet.utils.toWei("0", "ether")
-      )
-    };
-
-    //sign transaction
-    const txAddERC20TokenByOwner = new Tx(rawTxAddERC20TokenByOwner, {
-      chain: "rinkeby",
-      hardfork: "petersburg"
-    });
-
-    txAddERC20TokenByOwner.sign(privateKey);
-
-    const serializedTxDeposit = txAddERC20TokenByOwner.serialize();
-
-    //send signed transaction (addERC20TokenByOwner)
-    web3ForMainnet.eth
-      .sendSignedTransaction("0x" + serializedTxDeposit.toString("hex"))
-      .on("receipt", (receipt) => {
-        console.log(receipt);
-      })
-      .catch(console.error);
-  });
+include::example$erc20-register-mainnet-web3.js[]
 ----
 --
 ====
@@ -307,27 +107,7 @@ In all ima-js code samples we're assuming that library is already inited. See in
 
 [source, javascript]
 ----
-// import & init ima-js here
-
-export async function linkERC20TokenSchain(ima) {
-  let erc20OnMainnet = "[ADDRESS_OF_ERC20_TOKEN_ON_MAINNET]";
-  let erc20OnSchain = "[ADDRESS_OF_ERC20_TOKEN_ON_SCHAIN]";
-
-  const ZERO_ADDRESS = '0x0000000000000000000000000000000000000000';
-
-  let address = "[YOUR_ADDRESS]";
-  let privateKey = "[YOUR_PRIVATE_KEY]";
-
-  let txOpts = {
-    address: address,
-    privateKey: privateKey // remove privateKey from txOpts to use Metamask signing
-  };
-
-  const isERC20AddedSchain = await this.schain.isERC20Added(erc20OnMainnet);
-  if (isERC20AddedSchain === ZERO_ADDRESS) { // check if token is already added
-      await this.schain.addERC20TokenByOwner(erc20OnMainnet, erc20OnSchain, txOpts);
-  }
-}
+include::example$erc20-register-schain-imajs.js[]
 ----
 --
 
@@ -337,80 +117,7 @@ Web3 JS::
 
 [source,javascript]
 ----
-import Common from "ethereumjs-common";
-const Web3 = require("web3");
-const Tx = require("ethereumjs-tx").Transaction;
-
-export function registerOnSchain() {
-  let schainABIs = require("./contracts/schain_ABIs.json");
-  let schainERC20ABI = require("./contracts/schain_ERC20_ABI.json");
-  let rinkebyERC20ABI = require("./contracts/rinkeby_ERC20_ABI.json");
-
-  let privateKey = new Buffer(
-    process.env.REACT_APP_INSECURE_SCHAIN_OWNER_PRIVATE_KEY,
-    "hex"
-  );
-  let erc20OwnerForSchain = process.env.REACT_APP_INSECURE_SCHAIN_OWNER_ACCOUNT;
-
-  let schain = process.env.REACT_APP_INSECURE_SKALE_CHAIN;
-  let chainId = process.env.REACT_APP_INSECURE_CHAIN_ID;
-
-  const customCommon = Common.forCustomChain(
-    "mainnet",
-    {
-      name: "skale-network",
-      chainId: chainId
-    },
-    "istanbul"
-  );
-
-  const tokenManagerAddress = schainABIs.token_manager_erc20_address;
-  const tokenManagerABI = schainABIs.token_manager_erc20_abi;
-
-  const erc20AddressOnMainnet = rinkebyERC20ABI.erc20_address;
-  const erc20AddressOnSchain = schainERC20ABI.erc20_address;
-
-  const web3ForSchain = new Web3(schain);
-
-  let TokenManager = new web3ForSchain.eth.Contract(
-    tokenManagerABI,
-    tokenManagerAddress
-  );
-
-  /**
-   * Uses the SKALE TokenManagerERC20
-   * contract function addERC20TokenByOwner
-   */
-  let addERC20TokenByOwner = TokenManager.methods
-    .addERC20TokenByOwner(erc20AddressOnMainnet, erc20AddressOnSchain)
-    .encodeABI();
-
-  web3ForSchain.eth.getTransactionCount(erc20OwnerForSchain).then((nonce) => {
-    const rawTxAddERC20TokenByOwner = {
-      from: erc20OwnerForSchain,
-      nonce: "0x" + nonce.toString(16),
-      data: addERC20TokenByOwner,
-      to: tokenManagerAddress,
-      gas: 6500000,
-      gasPrice: 100000000000,
-      value: web3ForSchain.utils.toHex(web3ForSchain.utils.toWei("0", "ether"))
-    };
-
-    //sign transaction
-    const txAddERC20TokenByOwner = new Tx(rawTxAddERC20TokenByOwner);
-
-    txAddERC20TokenByOwner.sign(privateKey);
-
-    const serializedTxDeposit = txAddERC20TokenByOwner.serialize();
-
-    //send signed transaction (addERC20TokenByOwner)
-    web3ForSchain.eth
-      .sendSignedTransaction("0x" + serializedTxDeposit.toString("hex"))
-      .on("receipt", (receipt) => {
-        console.log(receipt);
-      })
-      .catch(console.error);
-  });
+include::example$erc20-register-schain-web3.js
 ----
 --
 ====
@@ -444,37 +151,7 @@ You can use the getSchainToAllERC20Length() and getSchainToAllERC20() functions 
 
 [source,javascript]
 ----
-const Web3 = require('web3');
-
-let rinkebyABIs = "[YOUR_SKALE_ABIs_ON_RINKEBY]";
-let rinkebyERC20ABI = "[YOUR_ERC20_ABI_ON_RINKEBY]";
-
-let rinkeby = "[RINKEBY_ENDPOINT]";
-let schainName = "[YOUR_SKALE_CHAIN_NAME]";
-
-const depositBoxAddress = rinkebyABIs.deposit_box_erc20_address;
-const depositBoxABI = rinkebyABIs.deposit_box_erc20_abi;
-
-const web3ForMainnet = new Web3(rinkeby);
-
-let depositBox = new web3ForMainnet.eth.Contract(
-  depositBoxABI,
-  depositBoxAddress
-);
-
-let mappedNumber = depositBox.methods
-  .getSchainToAllERC20Length(
-    schainName
-  )
-  .call();
-
-let mappedArray = Array();
-for (let i = 0; i < (mappedNumber + 9) / 10; i++) {
-    let nextIndex = ((i + 1) * 10 < mappedNumber ? (I + 1) * 10 : mappedNumber);
-    let mappedArrayPart = depositBox.methods.getSchainToAllERC20(schainName, i * 10, nextIndex).call();
-    mappedArrayPart.forEach( (address) => { mappedArray.push(address) });
-}
-
+include::example$view-mapped-erc20-tokens.js[]
 ----
 --
 
@@ -483,7 +160,7 @@ for (let i = 0; i < (mappedNumber + 9) / 10; i++) {
 [[transfer]]
 == Get Started with ERC20 Transfer
 
-The Interchain Messaging Agent can be used for managing ERC20 tokens between Ethereum and SKALE.  The following steps guide you through a complete transfer from Ethereum to SKALE and back. Be sure to follow any one-time setup and mapping steps described xref:setup[here] before initiating transfers.
+The Interchain Messaging Agent can be used for managing ERC20 tokens between Ethereum and SKALE. The following steps guide you through a complete transfer from Ethereum to SKALE and back. Be sure to follow any one-time setup and mapping steps described xref:setup[here] before initiating transfers.
 
 link:{erc20-sandbox}[Live ERC20 IMA Demo]
 
@@ -506,49 +183,7 @@ link:{eth-ima-js-sandbox}?file=/src/deposit.js[See IMA-JS deposit.js sandbox]
 
 [source, javascript]
 ----
-// import & init ima-js here
-
-export function initTestTokenContract(ima) {
-  // initialize ERC20 contract
-  const abiData = require("[ERC20_ABI_ON_ETHEREUM]");
-  return new ima.mainnet.web3.eth.Contract(
-    abiData.erc20_abi,
-    abiData.erc20_address);
-}
-
-export async function depositERC20(ima) {
-  let tokenName = "[ERC20_TOKEN_NAME";
-  let schainName = "[YOUR_SKALE_CHAIN_NAME]";
-  let amount = "[AMOUNT_IN_WEI]";
-
-  let contractObject = initTestTokenContract(ima);
-  ima.mainnet.addERC20Token(tokenName, contractObject);
-
-  let address = "[YOUR_ADDRESS]";
-  let privateKey = "[YOUR_PRIVATE_KEY]";
-
-  let txOpts = { // transaction options
-    address: address,
-    privateKey: privateKey // remove privateKey from txOpts to use Metamask signing
-  };
-
-  const balanceSchain = await ima.schain.getERC20Balance(tokenName, address); // get sChain balance before the transfer
-
-  await ima.mainnet.approveERC20Transfers(
-    tokenName,
-    amount,
-    txOpts
-  );
-
-  await ima.mainnet.depositERC20(
-    schainName,
-    tokenName,
-    txOpts
-  );
-
-  // optional
-  await ima.schain.waitERC20BalanceChange(tokenName, address, balanceSchain); // wait for the balance to be changed on the sChain side
-}
+include::example$deposit-erc20-imajs.js[]
 ----
 --
 
@@ -558,111 +193,7 @@ Web3 JS::
 
 [source,javascript]
 ----
-const Web3 = require('web3');
-const Tx = require('ethereumjs-tx').Transaction;
-
-let rinkebyABIs = "[YOUR_SKALE_ABIs_ON_RINKEBY]";
-let rinkebyERC20ABI = "[YOUR_ERC20_ABI_ON_RINKEBY]";
-
-let privateKeyForMainnet = new Buffer("[YOUR_MAINNET_ACCOUNT_PRIVATE_KEY]", 'hex')
-
-let accountForMainnet = "[YOUR_MAINNET_ACCOUNT_ADDRESS]";
-let accountForSchain = "[YOUR_SCHAIN_ACCOUNT_ADDRESS]";
-
-let rinkeby = "[RINKEBY_ENDPOINT]";
-let schainName = "[YOUR_SKALE_CHAIN_NAME]";
-let chainId = "RINKEBY_CHAIN_ID";
-
-const depositBoxAddress = rinkebyABIs.deposit_box_erc20_address;
-const depositBoxABI = rinkebyABIs.deposit_box_erc20_abi;
-
-const erc20ABI = rinkebyERC20ABI.erc20_abi;
-const erc20Address = rinkebyERC20ABI.erc20_address;
-
-const web3ForMainnet = new Web3(rinkeby);
-
-let depositBox = new web3ForMainnet.eth.Contract(
-  depositBoxABI,
-  depositBoxAddress
-);
-
-let contractERC20 = new web3ForMainnet.eth.Contract(erc20ABI, erc20Address);
-
-let approve = contractERC20.methods
-  .approve(
-    depositBoxAddress,
-    web3ForMainnet.utils.toHex(web3ForMainnet.utils.toWei("1", "ether"))
-  )
-  .encodeABI();
-
-let deposit = depositBox.methods
-  .depositERC20(
-    schainName,
-    erc20Address,
-    web3ForMainnet.utils.toHex(web3ForMainnet.utils.toWei("1", "ether"))
-  )
-  .encodeABI();
-
-web3ForMainnet.eth.getTransactionCount(accountForMainnet).then(nonce => {
-  //create raw transaction
-  const rawTxApprove = {
-    chainId: chainId,
-    from: accountForMainnet,
-    nonce: "0x" + nonce.toString(16),
-    data: approve,
-    to: erc20Address,
-    gas: 6500000,
-    gasPrice: 100000000000
-  };
-
-  //sign transaction
-  const txApprove = new Tx(rawTxApprove, {
-    chain: "rinkeby",
-    hardfork: "petersburg"
-  });
-  txApprove.sign(privateKeyForMainnet);
-
-  const serializedTxApprove = txApprove.serialize();
-
-  //send signed transaction (approve)
-  web3ForMainnet.eth
-    .sendSignedTransaction("0x" + serializedTxApprove.toString("hex"))
-    .on("receipt", receipt => {
-      console.log(receipt);
-      web3ForMainnet.eth
-        .getTransactionCount(accountForMainnet)
-        .then(nonce => {
-          const rawTxDeposit = {
-            chainId: chainId,
-            from: accountForMainnet,
-            nonce: "0x" + nonce.toString(16),
-            data: deposit,
-            to: depositBoxAddress,
-            gas: 6500000,
-            gasPrice: 100000000000
-          };
-
-          //sign transaction
-          const txDeposit = new Tx(rawTxDeposit, {
-              chain: "rinkeby",
-              hardfork: "petersburg"
-            });
-
-          txDeposit.sign(privateKeyForMainnet);
-
-          const serializedTxDeposit = txDeposit.serialize();
-
-          //send signed transaction (deposit)
-          web3ForMainnet.eth
-            .sendSignedTransaction("0x" + serializedTxDeposit.toString("hex"))
-            .on("receipt", receipt => {
-              console.log(receipt);
-            })
-            .catch(console.error);
-        });
-    })
-    .catch(console.error);
-});
+include::example$deposit-erc20-web3.js[]
 ----
 --
 ====
@@ -688,50 +219,7 @@ link:{eth-ima-js-sandbox}?file=/src/deposit.js[See IMA-JS deposit.js sandbox]
 
 [source, javascript]
 ----
-// import & init ima-js here
-
-export function initTestTokenContract(ima) {
-  // initialize ERC20 contract
-  const abiData = require("[ERC20_ABI_ON_SCHAIN]");
-  return new ima.schain.web3.eth.Contract(
-    abiData.erc20_abi,
-    abiData.erc20_address);
-}
-
-export async function exit(ima) {
-  let tokenName = "[ERC20_TOKEN_NAME]";
-  let mainnetERC20TokenAddress = "[ERC20_MAINNET_TOKEN_ADDRESS]";
-  let amount = "[AMOUNT_IN_WEI]";
-
-  let contractObject = initTestTokenContract(ima);
-  ima.schain.addERC20Token(tokenName, contractObject);
-
-  let address = "[YOUR_ADDRESS]";
-  let privateKey = "[YOUR_PRIVATE_KEY]";
-
-  let txOpts = { // transaction options
-    address: address,
-    privateKey: privateKey // remove privateKey from txOpts to use Metamask signing
-  };
-
-  const balanceMainnet = await ima.mainnet.getERC20Balance(tokenName, address); // get Mainnet balance before the transfer
-
-  await ima.schain.approveERC20Transfers(
-    tokenName,
-    "MAX_APPROVAL_IN_WEI",
-    txOpts
-  );
-
-  await ima.schain.withdrawERC20(
-    mainnetERC20TokenAddress,
-    amount,
-    txOpts
-  );
-
-  // optional
-  await ima.mainnet.waitERC20BalanceChange(tokenName, address, balanceMainnet); // wait for the balance to be changed on the Mainnet side
-}
-
+include::example$exit-erc20-imajs.js[]
 ----
 --
 
@@ -741,127 +229,7 @@ Web3 JS::
 
 [source,javascript]
 ----
-const Web3 = require('web3');
-import Common from "ethereumjs-common";
-const Tx = require('ethereumjs-tx').Transaction;
-
-let schainABIs = "[YOUR_SKALE_CHAIN_ABIs]";
-let rinkebyERC20ABI = "[YOUR_RINKEBY_ERC20_ABI]";
-let schainERC20ABI = "[YOUR_SKALE_CHAIN_ERC20_ABI]";
-
-let privateKeyForSchain = new Buffer('[YOUR_SCHAIN_ADDRESS_PRIVATE_KEY]', 'hex')
-
-let accountForMainnet = "[YOUR_MAINNET_ADDRESS]";
-let accountForSchain = "[YOUR_SCHAIN_ADDRESS]";
-let schainEndpoint = "[YOUR_SKALE_CHAIN_ENDPOINT]";
-let chainId = "YOUR_SCHAIN_CHAIN_ID";
-
-const customCommon = Common.forCustomChain(
-    "mainnet",
-    {
-      name: "skale-network",
-      chainId: chainId
-    },
-    "istanbul"
-  );
-
-const tokenManagerAddress = schainABIs.token_manager_erc20_address;
-const tokenManagerABI = schainABIs.token_manager_erc20_abi;
-
-const schainERC20ABI = schainERC20ABI.erc20_abi;
-const schainERC20Address = schainERC20ABI.erc20_address;
-
-const erc20AddressOnMainnet = rinkebyERC20ABI.erc20_address;
-
-const web3ForSchain = new Web3(schainEndpoint);
-
-let tokenManager = new web3ForSchain.eth.Contract(
-  tokenManagerABI,
-  tokenManagerAddress
-);
-
-let contractERC20 = new web3ForSchain.eth.Contract(
-  schainERC20ABI, 
-  schainERC20Address
-);
-
-//approve the ERC20 transfer 
-let approve = contractERC20.methods
-  .approve(
-    tokenManagerAddress,
-    web3ForSchain.utils.toHex(web3ForSchain.utils.toWei("1", "ether"))
-  )
-  .encodeABI();
-
-/**
-   * Uses the SKALE TokenManager
-   * contract function exitToMainERC20
-   */
-let exit = tokenManager.methods
-  .exitToMainERC20(
-    erc20AddressOnMainnet,
-    web3ForSchain.utils.toHex(web3ForSchain.utils.toWei("1", "ether"))
-  )
-  .encodeABI();
-
-//get nonce
-web3ForSchain.eth.getTransactionCount(accountForSchain).then(nonce => {
-  
-  //create raw transaction (approval)
-  const rawTxApprove = {
-    chainId: chainId,
-    from: accountForSchain,
-    nonce: "0x" + nonce.toString(16),
-    data: approve,
-    to: erc20Address,
-    gasPrice: 100000000000,
-    gas: 8000000
-  };
-
-  //sign transaction (approval)
-  const txApprove = new Tx(rawTxApprove, { common: customCommon });
-  txApprove.sign(privateKeyForSchain);
-
-  //serialize transaction  (approval)
-  const serializedTxApprove = txApprove.serialize();
-
-  //send signed transaction (approval)
-  web3ForSchain.eth
-    .sendSignedTransaction("0x" + serializedTxApprove.toString("hex"))
-    .on("receipt", receipt => {
-      console.log(receipt);
-
-      //get next nonce
-      web3ForSchain.eth.getTransactionCount(accountForSchain).then(nonce => {
-        
-        //create raw transaction (exit)
-        const rawTxExit = {
-          chainId: chainId,
-          from: accountForSchain,
-          nonce: "0x" + nonce.toString(16),
-          data: exit,
-          to: tokenManagerAddress,
-          gasPrice: 100000000000,
-          gas: 8000000
-        };
-
-        //sign transaction (exit)
-        const txExit = new Tx(rawTxExit, { common: customCommon });
-        txExit.sign(privateKeyForSchain);
-
-        const serializedTxExit = txExit.serialize();
-
-        //send signed transaction (exit)
-        web3ForSchain.eth
-          .sendSignedTransaction("0x" + serializedTxExit.toString("hex"))
-          .on("receipt", receipt => {
-            console.log(receipt);
-          })
-          .catch(console.error);
-      });
-    })
-    .catch(console.error);
-});
+include::example$exit-erc20-web3.js[]
 ----
 --
 ====
