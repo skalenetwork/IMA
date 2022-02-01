@@ -1,4 +1,5 @@
 module.exports = {
+    "ignorePatterns": ["docs/**"],
     "env": {
         "browser": false,
         "es6": true
