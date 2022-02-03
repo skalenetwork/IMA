@@ -218,7 +218,7 @@ contract TokenManagerERC20 is TokenManager, ITokenManagerERC20 {
             require(ERC20Upgradeable(token).balanceOf(address(this)) >= amount, "Not enough money");
             _removeTransferredAmount(fromChainHash, token, amount);
             require(
-                ERC20Upgradeable(token).transfer(receiver, amount), // ERC20Upgradeable(token).transferFrom(address(this), receiver, amount),
+                ERC20Upgradeable(token).transfer(receiver, amount),
                 "Transfer was failed"
             );
         } else {
