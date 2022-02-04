@@ -59,16 +59,17 @@ describe("TokenManagerERC1155", () => {
     let schainOwner: SignerWithAddress;
 
     const schainName = "V-chain";
+    const schainId = stringValue(web3.utils.soliditySha3(schainName));
     const id = 1;
     const amount = 4;
     const ids = [1, 2, 3, 4];
     const amounts = [4, 3, 2, 1];
-    const schainId = web3.utils.soliditySha3(schainName);
     const mainnetName = "Mainnet";
     const mainnetId = stringValue(web3.utils.soliditySha3("Mainnet"));
     let to: string;
     let token: ERC1155OnChain;
     let fakeDepositBox: string;
+    let fakeCommunityPool: string;
     let tokenClone: ERC1155OnChain;
     let tokenManagerERC1155: TokenManagerERC1155;
     let tokenManagerLinker: TokenManagerLinker;
@@ -90,7 +91,7 @@ describe("TokenManagerERC1155", () => {
         tokenManagerLinker = await deployTokenManagerLinker(messageProxyForSchain, deployer.address);
         messages = await deployMessages();
         fakeDepositBox = messages.address;
-        const fakeCommunityPool = messages.address;
+        fakeCommunityPool = messages.address;
 
         communityLocker = await deployCommunityLocker(schainName, messageProxyForSchain.address, tokenManagerLinker, fakeCommunityPool);
 
@@ -192,37 +193,790 @@ describe("TokenManagerERC1155", () => {
             .should.be.eventually.rejectedWith("Could not relink clone");
     });
 
-    it("should successfully call transferToSchainERC1155", async () => {
-        const newSchainName = randomString(10);
-        const chainConnectorRole = await messageProxyForSchain.CHAIN_CONNECTOR_ROLE();
-        await messageProxyForSchain.grantRole(chainConnectorRole, deployer.address);
-        await messageProxyForSchain.connect(deployer).addConnectedChain(newSchainName);
+    describe("tests for transferToSchainERC1155", async () => {
 
-        await tokenManagerERC1155
-            .connect(deployer)
-            .transferToSchainERC1155(newSchainName, token.address, id, amount)
-            .should.be.eventually.rejectedWith("Incorrect Token Manager address");
+        let erc1155OnOriginChain: ERC1155OnChain;
+        let erc1155OnTargetChain: ERC1155OnChain;
+        let messageProxyForSchain2: MessageProxyForSchainTester;
+        let tokenManagerLinker2: TokenManagerLinker;
+        let tokenManagerERC11552: TokenManagerERC1155;
+        let communityLocker2: CommunityLocker;
+        const newSchainName = "NewChain";
+        const newSchainId = stringValue(web3.utils.soliditySha3(newSchainName));
 
-        await tokenManagerERC1155.addTokenManager(newSchainName, deployer.address);
-        await tokenManagerERC1155.connect(schainOwner).addERC1155TokenByOwner(newSchainName,  token.address, tokenClone.address);
-        await tokenClone.connect(deployer).mint(deployer.address, id, amount, "0x");
+        beforeEach(async () => {
+            erc1155OnOriginChain = await deployERC1155OnChain("NewToken");
+            erc1155OnTargetChain = await deployERC1155OnChain("NewToke1n");
 
-        await tokenManagerERC1155
-            .connect(deployer)
-            .transferToSchainERC1155(newSchainName, token.address, id, amount)
-            .should.be.eventually.rejectedWith("Not allowed ERC1155 Token");
+            const keyStorage2 = await deployKeyStorageMock();
+            messageProxyForSchain2 = await deployMessageProxyForSchainTester(keyStorage2.address, newSchainName);
+            tokenManagerLinker2 = await deployTokenManagerLinker(messageProxyForSchain2, deployer.address);
+            communityLocker2 = await deployCommunityLocker(newSchainName, messageProxyForSchain2.address, tokenManagerLinker2, fakeCommunityPool);
+            tokenManagerERC11552 = await deployTokenManagerERC1155(newSchainName, messageProxyForSchain2.address, tokenManagerLinker2, communityLocker2, fakeDepositBox);
+            await erc1155OnTargetChain.connect(deployer).grantRole(await erc1155OnTargetChain.MINTER_ROLE(), tokenManagerERC11552.address);
+            await tokenManagerLinker2.registerTokenManager(tokenManagerERC11552.address);
+        });
 
-        await tokenClone.connect(deployer).setApprovalForAll(tokenManagerERC1155.address, true);
+        it("should invoke `transferToSchainERC1155` without mistakes", async () => {
+            // add connected chain:
+            await messageProxyForSchain.connect(deployer).grantRole(await messageProxyForSchain.CHAIN_CONNECTOR_ROLE(), deployer.address);
+            await messageProxyForSchain.connect(deployer).addConnectedChain(newSchainName);
 
-        // execution:
-        await tokenManagerERC1155
-            .connect(deployer)
-            .transferToSchainERC1155(newSchainName, token.address, id, amount);
-        // expectation:
-        const outgoingMessagesCounter = BigNumber.from(
-            await messageProxyForSchain.getOutgoingMessagesCounter(newSchainName)
-        );
-        outgoingMessagesCounter.should.be.deep.equal(BigNumber.from(1));
+            await erc1155OnOriginChain.connect(deployer).mint(user.address, id, amount, "0x");
+            await erc1155OnOriginChain.connect(user).setApprovalForAll(tokenManagerERC1155.address, true);
+
+            await tokenManagerERC1155
+                .connect(user)
+                .transferToSchainERC1155(newSchainName, erc1155OnOriginChain.address, id, amount)
+                .should.be.eventually.rejectedWith("Incorrect Token Manager address");
+
+            await tokenManagerERC1155
+                .connect(user)
+                .transferToSchainERC1155("Mainnet", erc1155OnOriginChain.address, id, amount)
+                .should.be.eventually.rejectedWith("This function is not for transferring to Mainnet");
+
+            await tokenManagerERC1155.addTokenManager(newSchainName, tokenManagerERC11552.address);
+
+            // execution:
+            await tokenManagerERC1155
+                .connect(user)
+                .transferToSchainERC1155(newSchainName, erc1155OnOriginChain.address, id, amount);
+
+            // expectation:
+            const outgoingMessagesCounter = BigNumber.from(
+                await messageProxyForSchain.getOutgoingMessagesCounter(newSchainName));
+            outgoingMessagesCounter.should.be.deep.equal(BigNumber.from(1));
+        });
+
+        it("should invoke `transferToSchainERC1155` and receive tokens without mistakes", async () => {
+            // add connected chain:
+            await messageProxyForSchain.connect(deployer).grantRole(await messageProxyForSchain.CHAIN_CONNECTOR_ROLE(), deployer.address);
+            await messageProxyForSchain.connect(deployer).addConnectedChain(newSchainName);
+
+            await erc1155OnOriginChain.connect(deployer).mint(user.address, id, amount, "0x");
+            await erc1155OnOriginChain.connect(user).setApprovalForAll(tokenManagerERC1155.address, true);
+
+            await tokenManagerERC1155
+                .connect(user)
+                .transferToSchainERC1155(newSchainName, erc1155OnOriginChain.address, id, amount)
+                .should.be.eventually.rejectedWith("Incorrect Token Manager address");
+
+            await tokenManagerERC1155
+                .connect(user)
+                .transferToSchainERC1155("Mainnet", erc1155OnOriginChain.address, id, amount)
+                .should.be.eventually.rejectedWith("This function is not for transferring to Mainnet");
+
+            await tokenManagerERC1155.addTokenManager(newSchainName, tokenManagerERC11552.address);
+
+            // execution:
+            await tokenManagerERC1155
+                .connect(user)
+                .transferToSchainERC1155(newSchainName, erc1155OnOriginChain.address, id, amount);
+
+            const data = await messages.encodeTransferErc1155AndTokenInfoMessage(
+                erc1155OnOriginChain.address,
+                user.address,
+                id,
+                amount,
+                {
+                    uri: await erc1155OnOriginChain.uri(0)
+                }
+            );
+
+            // expectation:
+            const outgoingMessagesCounter = BigNumber.from(
+                await messageProxyForSchain.getOutgoingMessagesCounter(newSchainName));
+            outgoingMessagesCounter.should.be.deep.equal(BigNumber.from(1));
+
+            // receive:
+            //  registration:
+            await messageProxyForSchain2.connect(deployer).addConnectedChain(schainName);
+            await tokenManagerERC11552.addTokenManager(schainName, tokenManagerERC1155.address);
+
+
+            await messageProxyForSchain2.postMessage(tokenManagerERC11552.address, schainId, tokenManagerERC1155.address, data).should.be.eventually.rejectedWith("Automatic deploy is disabled");
+
+            await tokenManagerERC11552.enableAutomaticDeploy();
+
+            await messageProxyForSchain2.postMessage(tokenManagerERC11552.address, schainId, tokenManagerERC1155.address, data);
+
+            const addressERC1155OnSchain = await tokenManagerERC11552.clonesErc1155(schainId, erc1155OnOriginChain.address);
+            const targetErc1155OnChain = await (await ethers.getContractFactory("ERC1155OnChain")).attach(addressERC1155OnSchain) as ERC1155OnChain;
+            expect((await targetErc1155OnChain.functions.balanceOf(user.address, id)).toString()).to.be.equal(amount.toString());
+
+        });
+
+        it("should invoke `transferToSchainERC1155` and receive tokens without mistakes double", async () => {
+            // add connected chain:
+            await messageProxyForSchain.connect(deployer).grantRole(await messageProxyForSchain.CHAIN_CONNECTOR_ROLE(), deployer.address);
+            await messageProxyForSchain.connect(deployer).addConnectedChain(newSchainName);
+
+            await erc1155OnOriginChain.connect(deployer).mint(user.address, id, amount, "0x");
+            await erc1155OnOriginChain.connect(user).setApprovalForAll(tokenManagerERC1155.address, true);
+
+            await tokenManagerERC1155
+                .connect(user)
+                .transferToSchainERC1155(newSchainName, erc1155OnOriginChain.address, id, amount)
+                .should.be.eventually.rejectedWith("Incorrect Token Manager address");
+
+            await tokenManagerERC1155
+                .connect(user)
+                .transferToSchainERC1155("Mainnet", erc1155OnOriginChain.address, id, amount)
+                .should.be.eventually.rejectedWith("This function is not for transferring to Mainnet");
+
+            await tokenManagerERC1155.addTokenManager(newSchainName, tokenManagerERC11552.address);
+
+            // execution:
+            await tokenManagerERC1155
+                .connect(user)
+                .transferToSchainERC1155(newSchainName, erc1155OnOriginChain.address, id, amount);
+
+            let data = await messages.encodeTransferErc1155AndTokenInfoMessage(
+                erc1155OnOriginChain.address,
+                user.address,
+                id,
+                amount,
+                {
+                    uri: await erc1155OnOriginChain.uri(0)
+                }
+            );
+
+            // expectation:
+            const outgoingMessagesCounter = BigNumber.from(
+                await messageProxyForSchain.getOutgoingMessagesCounter(newSchainName));
+            outgoingMessagesCounter.should.be.deep.equal(BigNumber.from(1));
+
+            // receive:
+            //  registration:
+            await messageProxyForSchain2.connect(deployer).addConnectedChain(schainName);
+            await tokenManagerERC11552.addTokenManager(schainName, tokenManagerERC1155.address);
+
+
+            await messageProxyForSchain2.postMessage(tokenManagerERC11552.address, schainId, tokenManagerERC1155.address, data).should.be.eventually.rejectedWith("Automatic deploy is disabled");
+
+            await tokenManagerERC11552.enableAutomaticDeploy();
+
+            await messageProxyForSchain2.postMessage(tokenManagerERC11552.address, schainId, tokenManagerERC1155.address, data);
+
+            const addressERC1155OnSchain = await tokenManagerERC11552.clonesErc1155(schainId, erc1155OnOriginChain.address);
+            const targetErc1155OnChain = await (await ethers.getContractFactory("ERC1155OnChain")).attach(addressERC1155OnSchain) as ERC1155OnChain;
+            expect((await targetErc1155OnChain.functions.balanceOf(user.address, id)).toString()).to.be.equal(amount.toString());
+
+            const amount2 = 77;
+
+            await erc1155OnOriginChain.connect(deployer).mint(user.address, id, amount2, "0x");
+
+            await tokenManagerERC1155
+                .connect(user)
+                .transferToSchainERC1155(newSchainName, erc1155OnOriginChain.address, id, amount2);
+
+            data = await messages.encodeTransferErc1155Message(
+                erc1155OnOriginChain.address,
+                user.address,
+                id,
+                amount2
+            );
+
+            await messageProxyForSchain2.postMessage(tokenManagerERC11552.address, schainId, tokenManagerERC1155.address, data);
+
+            const amountSum = 81;
+
+            expect((await targetErc1155OnChain.functions.balanceOf(user.address, id)).toString()).to.be.equal(amountSum.toString());
+
+        });
+
+        it("should invoke `transferToSchainERC1155` and receive tokens without mistakes double with attached token", async () => {
+            // add connected chain:
+            await messageProxyForSchain.connect(deployer).grantRole(await messageProxyForSchain.CHAIN_CONNECTOR_ROLE(), deployer.address);
+            await messageProxyForSchain.connect(deployer).addConnectedChain(newSchainName);
+
+            await erc1155OnOriginChain.connect(deployer).mint(user.address, id, amount, "0x");
+            await erc1155OnOriginChain.connect(user).setApprovalForAll(tokenManagerERC1155.address, true);
+
+            await tokenManagerERC1155
+                .connect(user)
+                .transferToSchainERC1155(newSchainName, erc1155OnOriginChain.address, id, amount)
+                .should.be.eventually.rejectedWith("Incorrect Token Manager address");
+
+            await tokenManagerERC1155
+                .connect(user)
+                .transferToSchainERC1155("Mainnet", erc1155OnOriginChain.address, id, amount)
+                .should.be.eventually.rejectedWith("This function is not for transferring to Mainnet");
+
+            await tokenManagerERC1155.addTokenManager(newSchainName, tokenManagerERC11552.address);
+
+            // execution:
+            await tokenManagerERC1155
+                .connect(user)
+                .transferToSchainERC1155(newSchainName, erc1155OnOriginChain.address, id, amount);
+
+            let data = await messages.encodeTransferErc1155AndTokenInfoMessage(
+                erc1155OnOriginChain.address,
+                user.address,
+                id,
+                amount,
+                {
+                    uri: await erc1155OnOriginChain.uri(0)
+                }
+            );
+
+            // expectation:
+            const outgoingMessagesCounter = BigNumber.from(
+                await messageProxyForSchain.getOutgoingMessagesCounter(newSchainName));
+            outgoingMessagesCounter.should.be.deep.equal(BigNumber.from(1));
+
+            // receive:
+            //  registration:
+
+            await tokenManagerERC11552.connect(schainOwner).addERC1155TokenByOwner(schainName,  erc1155OnOriginChain.address, erc1155OnTargetChain.address).should.be.eventually.rejectedWith("TOKEN_REGISTRAR_ROLE is required");
+            await tokenManagerERC11552.connect(deployer).grantRole(await tokenManagerERC11552.TOKEN_REGISTRAR_ROLE(), schainOwner.address);
+            await tokenManagerERC11552.connect(schainOwner).addERC1155TokenByOwner(schainName,  erc1155OnOriginChain.address, erc1155OnTargetChain.address).should.be.eventually.rejectedWith("Chain is not connected");
+
+            await messageProxyForSchain2.connect(deployer).addConnectedChain(schainName);
+            await tokenManagerERC11552.connect(schainOwner).addERC1155TokenByOwner(schainName,  erc1155OnOriginChain.address, erc1155OnTargetChain.address);
+            await tokenManagerERC11552.addTokenManager(schainName, tokenManagerERC1155.address);
+
+            await messageProxyForSchain2.postMessage(tokenManagerERC11552.address, schainId, tokenManagerERC1155.address, data);
+
+            expect((await erc1155OnTargetChain.functions.balanceOf(user.address, id)).toString()).to.be.equal(amount.toString());
+
+            const amount2 = 77;
+
+            await erc1155OnOriginChain.connect(deployer).mint(user.address, id, amount2, "0x");
+
+            await tokenManagerERC1155
+                .connect(user)
+                .transferToSchainERC1155(newSchainName, erc1155OnOriginChain.address, id, amount2);
+
+            data = await messages.encodeTransferErc1155Message(
+                erc1155OnOriginChain.address,
+                user.address,
+                id,
+                amount2
+            );
+
+            await messageProxyForSchain2.postMessage(tokenManagerERC11552.address, schainId, tokenManagerERC1155.address, data);
+
+            const amountSum = 81;
+
+            expect((await erc1155OnTargetChain.functions.balanceOf(user.address, id)).toString()).to.be.equal(amountSum.toString());
+
+        });
+
+        it("should invoke `transferToSchainERC1155` and transfer back without mistakes", async () => {
+            // add connected chain:
+            await messageProxyForSchain.connect(deployer).grantRole(await messageProxyForSchain.CHAIN_CONNECTOR_ROLE(), deployer.address);
+            await messageProxyForSchain.connect(deployer).addConnectedChain(newSchainName);
+
+            await erc1155OnOriginChain.connect(deployer).mint(user.address, id, amount, "0x");
+            await erc1155OnOriginChain.connect(user).setApprovalForAll(tokenManagerERC1155.address, true);
+
+            await tokenManagerERC1155
+                .connect(user)
+                .transferToSchainERC1155(newSchainName, erc1155OnOriginChain.address, id, amount)
+                .should.be.eventually.rejectedWith("Incorrect Token Manager address");
+
+            await tokenManagerERC1155
+                .connect(user)
+                .transferToSchainERC1155("Mainnet", erc1155OnOriginChain.address, id, amount)
+                .should.be.eventually.rejectedWith("This function is not for transferring to Mainnet");
+
+            await tokenManagerERC1155.addTokenManager(newSchainName, tokenManagerERC11552.address);
+
+            // execution:
+            await tokenManagerERC1155
+                .connect(user)
+                .transferToSchainERC1155(newSchainName, erc1155OnOriginChain.address, id, amount);
+
+            let data = await messages.encodeTransferErc1155AndTokenInfoMessage(
+                erc1155OnOriginChain.address,
+                user.address,
+                id,
+                amount,
+                {
+                    uri: await erc1155OnOriginChain.uri(0)
+                }
+            );
+
+            // expectation:
+            const outgoingMessagesCounter = BigNumber.from(
+                await messageProxyForSchain.getOutgoingMessagesCounter(newSchainName));
+            outgoingMessagesCounter.should.be.deep.equal(BigNumber.from(1));
+
+            // receive:
+            //  registration:
+            await messageProxyForSchain2.connect(deployer).addConnectedChain(schainName);
+            await tokenManagerERC11552.addTokenManager(schainName, tokenManagerERC1155.address);
+
+
+            await messageProxyForSchain2.postMessage(tokenManagerERC11552.address, schainId, tokenManagerERC1155.address, data).should.be.eventually.rejectedWith("Automatic deploy is disabled");
+
+            await tokenManagerERC11552.enableAutomaticDeploy();
+
+            await messageProxyForSchain2.postMessage(tokenManagerERC11552.address, schainId, tokenManagerERC1155.address, data);
+
+            const addressERC1155OnSchain = await tokenManagerERC11552.clonesErc1155(schainId, erc1155OnOriginChain.address);
+            const targetErc1155OnChain = await (await ethers.getContractFactory("ERC1155OnChain")).attach(addressERC1155OnSchain) as ERC1155OnChain;
+            expect((await targetErc1155OnChain.functions.balanceOf(user.address, id)).toString()).to.be.equal(amount.toString());
+
+            await tokenManagerERC11552
+                .connect(user)
+                .transferToSchainERC1155(newSchainName, erc1155OnOriginChain.address, id, amount)
+                .should.be.eventually.rejectedWith("Incorrect Token Manager address");
+
+            await tokenManagerERC11552
+                .connect(user)
+                .transferToSchainERC1155("Mainnet", erc1155OnOriginChain.address, id, amount)
+                .should.be.eventually.rejectedWith("This function is not for transferring to Mainnet");
+
+            await tokenManagerERC11552
+                .connect(user)
+                .transferToSchainERC1155(schainName, erc1155OnOriginChain.address, id, amount)
+                .should.be.eventually.rejectedWith("Not allowed ERC1155 Token");
+
+            await targetErc1155OnChain.connect(user).setApprovalForAll(tokenManagerERC11552.address, true);
+
+            await tokenManagerERC11552
+                .connect(user)
+                .transferToSchainERC1155(schainName, erc1155OnOriginChain.address, id, amount)
+                .should.be.eventually.rejectedWith("Sender contract is not registered");
+
+            await messageProxyForSchain2.registerExtraContract(schainName, tokenManagerERC11552.address);
+
+            await tokenManagerERC11552
+                .connect(user)
+                .transferToSchainERC1155(schainName, erc1155OnOriginChain.address, id, amount);
+
+            data = await messages.encodeTransferErc1155Message(
+                erc1155OnOriginChain.address,
+                user.address,
+                id,
+                amount
+            );
+
+            await messageProxyForSchain.postMessage(tokenManagerERC1155.address, newSchainId, tokenManagerERC11552.address, data);
+
+            expect((await erc1155OnOriginChain.functions.balanceOf(user.address, id)).toString()).to.be.equal(amount.toString());
+
+        });
+
+        it("should invoke `transferToSchainERC1155` and transfer back without mistakes with attached tokens", async () => {
+            // add connected chain:
+            await messageProxyForSchain.connect(deployer).grantRole(await messageProxyForSchain.CHAIN_CONNECTOR_ROLE(), deployer.address);
+            await messageProxyForSchain.connect(deployer).addConnectedChain(newSchainName);
+
+            await erc1155OnOriginChain.connect(deployer).mint(user.address, id, amount, "0x");
+            await erc1155OnOriginChain.connect(user).setApprovalForAll(tokenManagerERC1155.address, true);
+
+            await tokenManagerERC1155
+                .connect(user)
+                .transferToSchainERC1155(newSchainName, erc1155OnOriginChain.address, id, amount)
+                .should.be.eventually.rejectedWith("Incorrect Token Manager address");
+
+            await tokenManagerERC1155
+                .connect(user)
+                .transferToSchainERC1155("Mainnet", erc1155OnOriginChain.address, id, amount)
+                .should.be.eventually.rejectedWith("This function is not for transferring to Mainnet");
+
+            await tokenManagerERC1155.addTokenManager(newSchainName, tokenManagerERC11552.address);
+
+            // execution:
+            await tokenManagerERC1155
+                .connect(user)
+                .transferToSchainERC1155(newSchainName, erc1155OnOriginChain.address, id, amount);
+
+            let data = await messages.encodeTransferErc1155AndTokenInfoMessage(
+                erc1155OnOriginChain.address,
+                user.address,
+                id,
+                amount,
+                {
+                    uri: await erc1155OnOriginChain.uri(0)
+                }
+            );
+
+            // expectation:
+            const outgoingMessagesCounter = BigNumber.from(
+                await messageProxyForSchain.getOutgoingMessagesCounter(newSchainName));
+            outgoingMessagesCounter.should.be.deep.equal(BigNumber.from(1));
+
+            // receive:
+            //  registration:
+            await messageProxyForSchain2.connect(deployer).addConnectedChain(schainName);
+            await tokenManagerERC11552.addTokenManager(schainName, tokenManagerERC1155.address);
+
+            await tokenManagerERC11552.connect(deployer).grantRole(await tokenManagerERC11552.TOKEN_REGISTRAR_ROLE(), schainOwner.address);
+            await tokenManagerERC11552.connect(schainOwner).addERC1155TokenByOwner(schainName,  erc1155OnOriginChain.address, erc1155OnTargetChain.address);
+
+
+            await messageProxyForSchain2.postMessage(tokenManagerERC11552.address, schainId, tokenManagerERC1155.address, data);
+
+            await tokenManagerERC11552
+                .connect(user)
+                .transferToSchainERC1155(newSchainName, erc1155OnOriginChain.address, id, amount)
+                .should.be.eventually.rejectedWith("Incorrect Token Manager address");
+
+            await tokenManagerERC11552
+                .connect(user)
+                .transferToSchainERC1155("Mainnet", erc1155OnOriginChain.address, id, amount)
+                .should.be.eventually.rejectedWith("This function is not for transferring to Mainnet");
+
+            await tokenManagerERC11552
+                .connect(user)
+                .transferToSchainERC1155(schainName, erc1155OnOriginChain.address, id, amount)
+                .should.be.eventually.rejectedWith("Not allowed ERC1155 Token");
+
+            await erc1155OnTargetChain.connect(user).setApprovalForAll(tokenManagerERC11552.address, true);
+
+            await tokenManagerERC11552
+                .connect(user)
+                .transferToSchainERC1155(schainName, erc1155OnOriginChain.address, id, amount)
+                .should.be.eventually.rejectedWith("Sender contract is not registered");
+
+            await messageProxyForSchain2.registerExtraContract(schainName, tokenManagerERC11552.address);
+
+            await tokenManagerERC11552
+                .connect(user)
+                .transferToSchainERC1155(schainName, erc1155OnOriginChain.address, id, amount);
+
+            data = await messages.encodeTransferErc1155Message(
+                erc1155OnOriginChain.address,
+                user.address,
+                id,
+                amount
+            );
+
+            await messageProxyForSchain.postMessage(tokenManagerERC1155.address, newSchainId, tokenManagerERC11552.address, data);
+            expect((await erc1155OnOriginChain.functions.balanceOf(user.address, id)).toString()).to.be.equal(amount.toString());
+
+        });
+
+
+        it("should invoke `transferToSchainERC1155` and transfer back without mistakes double", async () => {
+            // add connected chain:
+            await messageProxyForSchain.connect(deployer).grantRole(await messageProxyForSchain.CHAIN_CONNECTOR_ROLE(), deployer.address);
+            await messageProxyForSchain.connect(deployer).addConnectedChain(newSchainName);
+
+            await erc1155OnOriginChain.connect(deployer).mint(user.address, id, amount, "0x");
+            await erc1155OnOriginChain.connect(user).setApprovalForAll(tokenManagerERC1155.address, true);
+
+            await tokenManagerERC1155
+                .connect(user)
+                .transferToSchainERC1155(newSchainName, erc1155OnOriginChain.address, id, amount)
+                .should.be.eventually.rejectedWith("Incorrect Token Manager address");
+
+            await tokenManagerERC1155
+                .connect(user)
+                .transferToSchainERC1155("Mainnet", erc1155OnOriginChain.address, id, amount)
+                .should.be.eventually.rejectedWith("This function is not for transferring to Mainnet");
+
+            await tokenManagerERC1155.addTokenManager(newSchainName, tokenManagerERC11552.address);
+
+            // execution:
+            await tokenManagerERC1155
+                .connect(user)
+                .transferToSchainERC1155(newSchainName, erc1155OnOriginChain.address, id, amount);
+
+            let data = await messages.encodeTransferErc1155AndTokenInfoMessage(
+                erc1155OnOriginChain.address,
+                user.address,
+                id,
+                amount,
+                {
+                    uri: await erc1155OnOriginChain.uri(0)
+                }
+            );
+
+            // expectation:
+            const outgoingMessagesCounter = BigNumber.from(
+                await messageProxyForSchain.getOutgoingMessagesCounter(newSchainName));
+            outgoingMessagesCounter.should.be.deep.equal(BigNumber.from(1));
+
+            // receive:
+            //  registration:
+            await messageProxyForSchain2.connect(deployer).addConnectedChain(schainName);
+            await tokenManagerERC11552.addTokenManager(schainName, tokenManagerERC1155.address);
+
+
+            await messageProxyForSchain2.postMessage(tokenManagerERC11552.address, schainId, tokenManagerERC1155.address, data).should.be.eventually.rejectedWith("Automatic deploy is disabled");
+
+            await tokenManagerERC11552.enableAutomaticDeploy();
+
+            await messageProxyForSchain2.postMessage(tokenManagerERC11552.address, schainId, tokenManagerERC1155.address, data);
+
+            const addressERC1155OnSchain = await tokenManagerERC11552.clonesErc1155(schainId, erc1155OnOriginChain.address);
+            const targetErc1155OnChain = await (await ethers.getContractFactory("ERC1155OnChain")).attach(addressERC1155OnSchain) as ERC1155OnChain;
+            expect((await targetErc1155OnChain.functions.balanceOf(user.address, id)).toString()).to.be.equal(amount.toString());
+
+            await tokenManagerERC11552
+                .connect(user)
+                .transferToSchainERC1155(newSchainName, erc1155OnOriginChain.address, id, amount)
+                .should.be.eventually.rejectedWith("Incorrect Token Manager address");
+
+            await tokenManagerERC11552
+                .connect(user)
+                .transferToSchainERC1155("Mainnet", erc1155OnOriginChain.address, id, amount)
+                .should.be.eventually.rejectedWith("This function is not for transferring to Mainnet");
+
+            await tokenManagerERC11552
+                .connect(user)
+                .transferToSchainERC1155(schainName, erc1155OnOriginChain.address, id, amount)
+                .should.be.eventually.rejectedWith("Not allowed ERC1155 Token");
+
+            await targetErc1155OnChain.connect(user).setApprovalForAll(tokenManagerERC11552.address, true);
+
+            await tokenManagerERC11552
+                .connect(user)
+                .transferToSchainERC1155(schainName, erc1155OnOriginChain.address, id, amount)
+                .should.be.eventually.rejectedWith("Sender contract is not registered");
+
+            await messageProxyForSchain2.registerExtraContract(schainName, tokenManagerERC11552.address);
+
+            await tokenManagerERC11552
+                .connect(user)
+                .transferToSchainERC1155(schainName, erc1155OnOriginChain.address, id, amount);
+
+            data = await messages.encodeTransferErc1155Message(
+                erc1155OnOriginChain.address,
+                user.address,
+                id,
+                amount
+            );
+
+            await messageProxyForSchain.postMessage(tokenManagerERC1155.address, newSchainId, tokenManagerERC11552.address, data);
+            expect((await erc1155OnOriginChain.functions.balanceOf(user.address, id)).toString()).to.be.equal(amount.toString());
+
+            await erc1155OnOriginChain.connect(user).setApprovalForAll(tokenManagerERC1155.address, true);
+
+            await tokenManagerERC1155
+                .connect(user)
+                .transferToSchainERC1155(newSchainName, erc1155OnOriginChain.address, id, amount);
+
+            data = await messages.encodeTransferErc1155Message(
+                erc1155OnOriginChain.address,
+                user.address,
+                id,
+                amount
+            );
+
+            await messageProxyForSchain2.postMessage(tokenManagerERC11552.address, schainId, tokenManagerERC1155.address, data);
+
+            expect((await targetErc1155OnChain.functions.balanceOf(user.address, id)).toString()).to.be.equal(amount.toString());
+
+            const amount2 = 77;
+
+            await erc1155OnOriginChain.connect(deployer).mint(user.address, id, amount2, "0x");
+
+            await tokenManagerERC1155
+                .connect(user)
+                .transferToSchainERC1155(newSchainName, erc1155OnOriginChain.address, id, amount2);
+
+            data = await messages.encodeTransferErc1155Message(
+                erc1155OnOriginChain.address,
+                user.address,
+                id,
+                amount2
+            );
+
+            await messageProxyForSchain2.postMessage(tokenManagerERC11552.address, schainId, tokenManagerERC1155.address, data);
+
+            const amountSum = 81;
+
+            expect((await targetErc1155OnChain.functions.balanceOf(user.address, id)).toString()).to.be.equal(amountSum.toString());
+
+            await targetErc1155OnChain.connect(user).setApprovalForAll(tokenManagerERC11552.address, true);
+
+            await tokenManagerERC11552
+                .connect(user)
+                .transferToSchainERC1155(schainName, erc1155OnOriginChain.address, id, amount);
+
+            data = await messages.encodeTransferErc1155Message(
+                erc1155OnOriginChain.address,
+                user.address,
+                id,
+                amount
+            );
+
+            await messageProxyForSchain.postMessage(tokenManagerERC1155.address, newSchainId, tokenManagerERC11552.address, data);
+            expect((await erc1155OnOriginChain.functions.balanceOf(user.address, id)).toString()).to.be.equal(amount.toString());
+
+            await tokenManagerERC11552
+                .connect(user)
+                .transferToSchainERC1155(schainName, erc1155OnOriginChain.address, id, amount2);
+
+            data = await messages.encodeTransferErc1155Message(
+                erc1155OnOriginChain.address,
+                user.address,
+                id,
+                amount2
+            );
+
+            await messageProxyForSchain.postMessage(tokenManagerERC1155.address, newSchainId, tokenManagerERC11552.address, data);
+
+            expect((await erc1155OnOriginChain.functions.balanceOf(user.address, id)).toString()).to.be.equal(amountSum.toString());
+
+        });
+
+        it("should invoke `transferToSchainERC1155` and transfer back without mistakes double with attached tokens", async () => {
+            // add connected chain:
+            await messageProxyForSchain.connect(deployer).grantRole(await messageProxyForSchain.CHAIN_CONNECTOR_ROLE(), deployer.address);
+            await messageProxyForSchain.connect(deployer).addConnectedChain(newSchainName);
+
+            await erc1155OnOriginChain.connect(deployer).mint(user.address, id, amount, "0x");
+            await erc1155OnOriginChain.connect(user).setApprovalForAll(tokenManagerERC1155.address, true);
+
+            await tokenManagerERC1155
+                .connect(user)
+                .transferToSchainERC1155(newSchainName, erc1155OnOriginChain.address, id, amount)
+                .should.be.eventually.rejectedWith("Incorrect Token Manager address");
+
+            await tokenManagerERC1155
+                .connect(user)
+                .transferToSchainERC1155("Mainnet", erc1155OnOriginChain.address, id, amount)
+                .should.be.eventually.rejectedWith("This function is not for transferring to Mainnet");
+
+            await tokenManagerERC1155.addTokenManager(newSchainName, tokenManagerERC11552.address);
+
+            // execution:
+            await tokenManagerERC1155
+                .connect(user)
+                .transferToSchainERC1155(newSchainName, erc1155OnOriginChain.address, id, amount);
+
+            let data = await messages.encodeTransferErc1155AndTokenInfoMessage(
+                erc1155OnOriginChain.address,
+                user.address,
+                id,
+                amount,
+                {
+                    uri: await erc1155OnOriginChain.uri(0)
+                }
+            );
+
+            // expectation:
+            const outgoingMessagesCounter = BigNumber.from(
+                await messageProxyForSchain.getOutgoingMessagesCounter(newSchainName));
+            outgoingMessagesCounter.should.be.deep.equal(BigNumber.from(1));
+
+            // receive:
+            //  registration:
+            await messageProxyForSchain2.connect(deployer).addConnectedChain(schainName);
+            await tokenManagerERC11552.addTokenManager(schainName, tokenManagerERC1155.address);
+
+            await tokenManagerERC11552.connect(deployer).grantRole(await tokenManagerERC11552.TOKEN_REGISTRAR_ROLE(), schainOwner.address);
+            await tokenManagerERC11552.connect(schainOwner).addERC1155TokenByOwner(schainName,  erc1155OnOriginChain.address, erc1155OnTargetChain.address);
+
+
+            await messageProxyForSchain2.postMessage(tokenManagerERC11552.address, schainId, tokenManagerERC1155.address, data);
+
+            await tokenManagerERC11552
+                .connect(user)
+                .transferToSchainERC1155(newSchainName, erc1155OnOriginChain.address, id, amount)
+                .should.be.eventually.rejectedWith("Incorrect Token Manager address");
+
+            await tokenManagerERC11552
+                .connect(user)
+                .transferToSchainERC1155("Mainnet", erc1155OnOriginChain.address, id, amount)
+                .should.be.eventually.rejectedWith("This function is not for transferring to Mainnet");
+
+            await tokenManagerERC11552
+                .connect(user)
+                .transferToSchainERC1155(schainName, erc1155OnOriginChain.address, id, amount)
+                .should.be.eventually.rejectedWith("Not allowed ERC1155 Token");
+
+            await erc1155OnTargetChain.connect(user).setApprovalForAll(tokenManagerERC11552.address, true);
+
+            await tokenManagerERC11552
+                .connect(user)
+                .transferToSchainERC1155(schainName, erc1155OnOriginChain.address, id, amount)
+                .should.be.eventually.rejectedWith("Sender contract is not registered");
+
+            await messageProxyForSchain2.registerExtraContract(schainName, tokenManagerERC11552.address);
+
+            await tokenManagerERC11552
+                .connect(user)
+                .transferToSchainERC1155(schainName, erc1155OnOriginChain.address, id, amount);
+
+            data = await messages.encodeTransferErc1155Message(
+                erc1155OnOriginChain.address,
+                user.address,
+                id,
+                amount
+            );
+
+            await messageProxyForSchain.postMessage(tokenManagerERC1155.address, newSchainId, tokenManagerERC11552.address, data);
+            expect((await erc1155OnOriginChain.functions.balanceOf(user.address, id)).toString()).to.be.equal(amount.toString());
+
+            await erc1155OnOriginChain.connect(user).setApprovalForAll(tokenManagerERC1155.address, true);
+
+            await tokenManagerERC1155
+                .connect(user)
+                .transferToSchainERC1155(newSchainName, erc1155OnOriginChain.address, id, amount);
+
+            data = await messages.encodeTransferErc1155Message(
+                erc1155OnOriginChain.address,
+                user.address,
+                id,
+                amount
+            );
+
+            await messageProxyForSchain2.postMessage(tokenManagerERC11552.address, schainId, tokenManagerERC1155.address, data);
+
+            expect((await erc1155OnTargetChain.functions.balanceOf(user.address, id)).toString()).to.be.equal(amount.toString());
+
+            const amount2 = 77;
+
+            await erc1155OnOriginChain.connect(deployer).mint(user.address, id, amount2, "0x");
+
+            await tokenManagerERC1155
+                .connect(user)
+                .transferToSchainERC1155(newSchainName, erc1155OnOriginChain.address, id, amount2);
+
+            data = await messages.encodeTransferErc1155Message(
+                erc1155OnOriginChain.address,
+                user.address,
+                id,
+                amount2
+            );
+
+            await messageProxyForSchain2.postMessage(tokenManagerERC11552.address, schainId, tokenManagerERC1155.address, data);
+
+            const amountSum = 81;
+
+            expect((await erc1155OnTargetChain.functions.balanceOf(user.address, id)).toString()).to.be.equal(amountSum.toString());
+
+            await erc1155OnTargetChain.connect(user).setApprovalForAll(tokenManagerERC11552.address, true);
+
+            await tokenManagerERC11552
+                .connect(user)
+                .transferToSchainERC1155(schainName, erc1155OnOriginChain.address, id, amount);
+
+            data = await messages.encodeTransferErc1155Message(
+                erc1155OnOriginChain.address,
+                user.address,
+                id,
+                amount
+            );
+
+            await messageProxyForSchain.postMessage(tokenManagerERC1155.address, newSchainId, tokenManagerERC11552.address, data);
+            expect((await erc1155OnOriginChain.functions.balanceOf(user.address, id)).toString()).to.be.equal(amount.toString());
+
+            await tokenManagerERC11552
+                .connect(user)
+                .transferToSchainERC1155(schainName, erc1155OnOriginChain.address, id, amount2);
+
+            data = await messages.encodeTransferErc1155Message(
+                erc1155OnOriginChain.address,
+                user.address,
+                id,
+                amount2
+            );
+
+            await messageProxyForSchain.postMessage(tokenManagerERC1155.address, newSchainId, tokenManagerERC11552.address, data);
+
+            expect((await erc1155OnOriginChain.functions.balanceOf(user.address, id)).toString()).to.be.equal(amountSum.toString());
+
+        });
+
     });
 
     it("should successfully call transferToSchainERC1155Batch", async () => {

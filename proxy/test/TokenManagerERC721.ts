@@ -202,7 +202,7 @@ describe("TokenManagerERC721", () => {
             .should.be.eventually.rejectedWith("Could not relink clone");
     });
 
-    describe.only("tests for transferToSchainERC721", async () => {
+    describe("tests for transferToSchainERC721", async () => {
 
         let erc721OnOriginChain: ERC721OnChain;
         let erc721OnTargetChain: ERC721OnChain;

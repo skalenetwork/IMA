@@ -23,6 +23,7 @@ pragma solidity 0.8.6;
 
 import "@openzeppelin/contracts-upgradeable/token/ERC1155/IERC1155Upgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/utils/AddressUpgradeable.sol";
+import "@openzeppelin/contracts-upgradeable/token/ERC1155/utils/ERC1155ReceiverUpgradeable.sol";
 import "@skalenetwork/ima-interfaces/schain/TokenManagers/ITokenManagerERC1155.sol";
 
 import "../../Messages.sol";
@@ -37,7 +38,7 @@ import "../TokenManager.sol";
  * and creates ERC1155 clones.
  * TokenManagerERC1155 mints tokens. When a user exits a SKALE chain, it burns them.
  */
-contract TokenManagerERC1155 is TokenManager, ITokenManagerERC1155 {
+contract TokenManagerERC1155 is TokenManager, ERC1155ReceiverUpgradeable, ITokenManagerERC1155 {
     using AddressUpgradeable for address;
     using EnumerableSetUpgradeable for EnumerableSetUpgradeable.AddressSet;
 
@@ -250,6 +251,53 @@ contract TokenManagerERC1155 is TokenManager, ITokenManagerERC1155 {
         );
     }
 
+    function onERC1155Received(
+        address operator,
+        address,
+        uint256,
+        uint256,
+        bytes calldata
+    )
+        external
+        view
+        override
+        returns(bytes4)
+    {
+        require(operator == address(this), "Revert ERC1155 transfer");
+        return bytes4(keccak256("onERC1155Received(address,address,uint256,uint256,bytes)"));
+    }
+
+    function onERC1155BatchReceived(
+        address operator,
+        address,
+        uint256[] calldata,
+        uint256[] calldata,
+        bytes calldata
+    )
+        external
+        view
+        override
+        returns(bytes4)
+    {
+        require(operator == address(this), "Revert ERC1155 batch transfer");
+        return bytes4(keccak256("onERC1155BatchReceived(address,address,uint256[],uint256[],bytes)"));
+    }
+
+    /**
+     * @dev Checks whether contract supports such interface (first 4 bytes of method name and its params).
+     */
+    function supportsInterface(
+        bytes4 interfaceId
+    )
+        public
+        view
+        override(AccessControlEnumerableUpgradeable, ERC1155ReceiverUpgradeable)
+        returns (bool)
+    {
+        return interfaceId == type(TokenManager).interfaceId
+            || super.supportsInterface(interfaceId);
+    }
+
 
     /**
      * @dev Allows TokenManager to send ERC1155 tokens.
@@ -287,7 +335,11 @@ contract TokenManagerERC1155 is TokenManager, ITokenManagerERC1155 {
                 emit ERC1155TokenCreated(fromChainHash, token, address(contractOnSchain));
             }
         }
-        if (messageType == Messages.MessageType.TRANSFER_ERC721 && fromChainHash != MAINNET_HASH) {
+        if (
+            messageType == Messages.MessageType.TRANSFER_ERC1155 &&
+            fromChainHash != MAINNET_HASH &&
+            _schainToERC1155[fromChainHash].contains(token)
+        ) {
             require(token.isContract(), "Incorrect main chain token");
             _removeTransferredAmount(fromChainHash, token, _asSingletonArray(id), _asSingletonArray(amount));
             IERC1155Upgradeable(token).safeTransferFrom(address(this), receiver, id, amount, "");
@@ -339,7 +391,11 @@ contract TokenManagerERC1155 is TokenManager, ITokenManagerERC1155 {
                 emit ERC1155TokenCreated(fromChainHash, token, address(contractOnSchain));
             }
         }
-        if (messageType == Messages.MessageType.TRANSFER_ERC721 && fromChainHash != MAINNET_HASH) {
+        if (
+            messageType == Messages.MessageType.TRANSFER_ERC1155_BATCH &&
+            fromChainHash != MAINNET_HASH &&
+            _schainToERC1155[fromChainHash].contains(token)
+        ) {
             require(token.isContract(), "Incorrect main chain token");
             _removeTransferredAmount(fromChainHash, token, ids, amounts);
             IERC1155Upgradeable(token).safeBatchTransferFrom(address(this), receiver, ids, amounts, "");
