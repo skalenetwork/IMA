@@ -27,7 +27,7 @@ IMA-JS::
 
 [source,javascript]
 ----
-include::automatic-deploy-imajs.js[]
+include::example$automatic-deploy-imajs.js[]
 ----
 --
 
