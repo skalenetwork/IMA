@@ -23,12 +23,40 @@ pragma solidity 0.8.6;
 
 import "@openzeppelin/contracts-upgradeable/token/ERC1155/IERC1155Upgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/utils/AddressUpgradeable.sol";
-import "@openzeppelin/contracts-upgradeable/token/ERC1155/utils/ERC1155ReceiverUpgradeable.sol";
 import "@skalenetwork/ima-interfaces/schain/TokenManagers/ITokenManagerERC1155.sol";
 
 import "../../Messages.sol";
 import "../tokens/ERC1155OnChain.sol";
 import "../TokenManager.sol";
+
+abstract contract ERC1155ReceiverUpgradeableWithoutGap is
+    Initializable,
+    ERC165Upgradeable,
+    IERC1155ReceiverUpgradeable
+{
+    /**
+     * @dev See {IERC165-supportsInterface}.
+     */
+    function supportsInterface(bytes4 interfaceId)
+        public
+        view
+        virtual
+        override(ERC165Upgradeable, IERC165Upgradeable)
+        returns (bool)
+    {
+        return interfaceId == type(IERC1155ReceiverUpgradeable).interfaceId || super.supportsInterface(interfaceId);
+    }
+
+    // solhint-disable-next-line func-name-mixedcase
+    function __ERC1155Receiver_init() internal initializer {
+        __ERC165_init_unchained();
+        __ERC1155Receiver_init_unchained();
+    }
+
+    // solhint-disable-next-line func-name-mixedcase, no-empty-blocks
+    function __ERC1155Receiver_init_unchained() internal initializer {
+    }
+}
 
 
 /**
@@ -38,7 +66,7 @@ import "../TokenManager.sol";
  * and creates ERC1155 clones.
  * TokenManagerERC1155 mints tokens. When a user exits a SKALE chain, it burns them.
  */
-contract TokenManagerERC1155 is TokenManager, ERC1155ReceiverUpgradeable, ITokenManagerERC1155 {
+contract TokenManagerERC1155 is TokenManager, ERC1155ReceiverUpgradeableWithoutGap, ITokenManagerERC1155 {
     using AddressUpgradeable for address;
     using EnumerableSetUpgradeable for EnumerableSetUpgradeable.AddressSet;
 
@@ -291,7 +319,7 @@ contract TokenManagerERC1155 is TokenManager, ERC1155ReceiverUpgradeable, IToken
     )
         public
         view
-        override(AccessControlEnumerableUpgradeable, ERC1155ReceiverUpgradeable)
+        override(AccessControlEnumerableUpgradeable, ERC1155ReceiverUpgradeableWithoutGap)
         returns (bool)
     {
         return interfaceId == type(TokenManager).interfaceId

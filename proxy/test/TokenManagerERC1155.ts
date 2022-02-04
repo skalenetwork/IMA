@@ -979,7 +979,7 @@ describe("TokenManagerERC1155", () => {
 
     });
 
-    describe.only("tests for transferToSchainERC1155Batch", async () => {
+    describe("tests for transferToSchainERC1155Batch", async () => {
 
         let erc1155OnOriginChain: ERC1155OnChain;
         let erc1155OnTargetChain: ERC1155OnChain;
