@@ -46,6 +46,9 @@ Web3 JS::
 
 Add the `target` chain by using `connectSchain` within the **TokenManagerLinker** contract on the `origin` chain.
 
+[NOTE]
+Only the `REGISTRAR_ROLE` may execute `connectSchain`.
+
 [tabs]
 ====
 IMA-JS::
