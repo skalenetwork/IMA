@@ -263,7 +263,7 @@ async function get_web3_pastEvents( details, w3, attempts, joContract, strEventN
     let idxAttempt = 2;
     while( joAllEventsInBlock === "" && idxAttempt <= cntAttempts ) {
         details.write(
-            cc.warning( "Repeat " ) + cc.info( "getPastEvents" ) + cc.warning( "/" ) + cc.error( attention ) +
+            cc.warning( "Repeat " ) + cc.info( "getPastEvents" ) + cc.warning( "/" ) + cc.error( attempts ) +
             cc.warning( ", attempt " ) + cc.error( idxAttempt ) +
             cc.warning( ", from block " ) + cc.info( nBlockFrom ) +
             cc.warning( ", to block " ) + cc.info( nBlockTo ) +
@@ -373,7 +373,14 @@ async function get_web3_pastEventsIterative( details, w3, attempts, joContract, 
                     cc.success( " block range is " ) + cc.j( joAllEventsInBlock ) + "\n" );
                 return joAllEventsInBlock;
             }
-        } catch ( err ) {}
+        } catch ( err ) {
+            details.write(
+                cc.error( "Got scan error during interative scan of " ) +
+                cc.info( idxBlockSubRangeFrom ) + cc.error( "/" ) + cc.info( idxBlockSubRangeTo ) +
+                cc.error( " block sub-range in " ) + cc.info( nBlockFrom ) + cc.error( "/" ) + cc.info( nBlockTo ) +
+                cc.error( " block range, error is: " ) + cc.warning( err.toString() ) + "\n"
+            );
+        }
         idxBlockSubRangeFrom = idxBlockSubRangeTo;
         if( idxBlockSubRangeFrom == nBlockTo )
             break;

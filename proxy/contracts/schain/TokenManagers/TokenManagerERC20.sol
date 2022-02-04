@@ -213,15 +213,7 @@ contract TokenManagerERC20 is TokenManager, ITokenManagerERC20 {
         Messages.MessageType messageType = Messages.getMessageType(data);
         (address receiver, address token, uint256 amount) = _decodeErc20Message(data);
         ERC20OnChain contractOnSchain;
-        if (messageType == Messages.MessageType.TRANSFER_ERC20) {
-            require(token.isContract() && _schainToERC20[fromChainHash].contains(token), "Incorrect main chain token");
-            require(ERC20Upgradeable(token).balanceOf(address(this)) >= amount, "Not enough money");
-            _removeTransferredAmount(fromChainHash, token, amount);
-            require(
-                ERC20Upgradeable(token).transferFrom(address(this), receiver, amount),
-                "Transfer was failed"
-            );
-        } else {
+        if (messageType != Messages.MessageType.TRANSFER_ERC20) {
             uint256 totalSupply;
             if (messageType == Messages.MessageType.TRANSFER_ERC20_AND_TOTAL_SUPPLY) {
                 Messages.TransferErc20AndTotalSupplyMessage memory message =
@@ -253,6 +245,14 @@ contract TokenManagerERC20 is TokenManager, ITokenManagerERC20 {
                 "Total supply exceeded"
             );
             contractOnSchain.mint(receiver, amount);
+        } else {
+            require(token.isContract() && _schainToERC20[fromChainHash].contains(token), "Incorrect main chain token");
+            require(ERC20Upgradeable(token).balanceOf(address(this)) >= amount, "Not enough money");
+            _removeTransferredAmount(fromChainHash, token, amount);
+            require(
+                ERC20Upgradeable(token).transfer(receiver, amount),
+                "Transfer was failed"
+            );
         }
         emit ERC20TokenReceived(fromChainHash, token, address(contractOnSchain), amount);
         return receiver;

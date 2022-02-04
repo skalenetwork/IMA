@@ -233,7 +233,11 @@ contract TokenManagerERC721 is TokenManager, ITokenManagerERC721 {
                 emit ERC721TokenCreated(fromChainHash, token, address(contractOnSchain));
             }
         }
-        if (messageType == Messages.MessageType.TRANSFER_ERC721 && fromChainHash != MAINNET_HASH) {
+        if (
+            messageType == Messages.MessageType.TRANSFER_ERC721 &&
+            fromChainHash != MAINNET_HASH &&
+            _schainToERC721[fromChainHash].contains(token)
+        ) {
             require(token.isContract(), "Incorrect main chain token");
             require(IERC721Upgradeable(token).ownerOf(tokenId) == address(this), "Incorrect tokenId");
             _removeTransferredAmount(fromChainHash, token, tokenId);

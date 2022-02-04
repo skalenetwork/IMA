@@ -319,7 +319,7 @@ async function cache_schains( strChainNameConnectedTo, w3, addressFrom, opts ) {
             g_arr_schains_cached = arr_schains;
         if( opts && opts.details ) {
             opts.details.write(
-                cc.debug( "Connected" ) + cc.attention( "S-Chains" ) + cc.debug( " cache was updated: " ) +
+                cc.debug( "Connected " ) + cc.attention( "S-Chains" ) + cc.debug( " cache was updated: " ) +
                 cc.j( g_arr_schains_cached ) + "\n" );
         }
         if( opts.fn_chache_changed )

@@ -60,7 +60,7 @@ describe("TokenManagerERC20", () => {
 
     const mainnetName = "Mainnet";
     const schainName = "D2-chain";
-    const schainId = web3.utils.soliditySha3(schainName);
+    const schainId = stringValue(web3.utils.soliditySha3(schainName));
     const mainnetId = stringValue(web3.utils.soliditySha3("Mainnet"));
     let fakeDepositBox: string;
     let fakeCommunityPool: any;
@@ -246,41 +246,827 @@ describe("TokenManagerERC20", () => {
         outgoingMessagesCounterMainnet.should.be.deep.equal(BigNumber.from(1));
     });
 
-    it("should invoke `transferToSchainERC20` without mistakes", async () => {
-        const amount = "20000000000000000";
-        const amountReduceCost = "8000000000000000";
-        const newSchainName = randomString(10);
-        await messageProxyForSchain.registerExtraContract(newSchainName, tokenManagerErc20.address);
+    describe("tests for transferToSchainERC20", async () => {
 
-        // add connected chain:
-        await messageProxyForSchain.connect(deployer).grantRole(await messageProxyForSchain.CHAIN_CONNECTOR_ROLE(), deployer.address);
-        await messageProxyForSchain.connect(deployer).addConnectedChain(newSchainName);
+        let erc20OnOriginChain: ERC20OnChain;
+        let erc20OnTargetChain: ERC20OnChain;
+        let messageProxyForSchain2: MessageProxyForSchainTester;
+        let tokenManagerLinker2: TokenManagerLinker;
+        let tokenManagerErc202: TokenManagerERC20;
+        let communityLocker2: CommunityLocker;
+        const newSchainName = "NewChain";
+        const newSchainId = stringValue(web3.utils.soliditySha3(newSchainName));
 
-        await tokenManagerErc20.connect(schainOwner).addERC20TokenByOwner(newSchainName,  erc20OnMainnet.address, erc20OnChain.address);
-        await erc20OnChain.connect(deployer).mint(user.address, amount);
-        await erc20OnChain.connect(user).approve(tokenManagerErc20.address, amount);
+        beforeEach(async () => {
+            erc20OnOriginChain = await deployERC20OnChain("NewToken", "NTN");
+            erc20OnTargetChain = await deployERC20OnChain("NewToke1n", "NTN1");
 
-        await tokenManagerErc20
-            .connect(user)
-            .transferToSchainERC20(newSchainName, erc20OnMainnet.address, amountReduceCost)
-            .should.be.eventually.rejectedWith("Incorrect Token Manager address");
+            const keyStorage2 = await deployKeyStorageMock();
+            messageProxyForSchain2 = await deployMessageProxyForSchainTester(keyStorage2.address, newSchainName);
+            tokenManagerLinker2 = await deployTokenManagerLinker(messageProxyForSchain2, deployer.address);
+            communityLocker2 = await deployCommunityLocker(newSchainName, messageProxyForSchain2.address, tokenManagerLinker2, fakeCommunityPool);
+            tokenManagerErc202 = await deployTokenManagerERC20(newSchainName, messageProxyForSchain2.address, tokenManagerLinker2, communityLocker2, fakeDepositBox);
+            await erc20OnTargetChain.connect(deployer).grantRole(await erc20OnTargetChain.MINTER_ROLE(), tokenManagerErc202.address);
+            await tokenManagerLinker2.registerTokenManager(tokenManagerErc202.address);
+        });
 
-        await tokenManagerErc20
-            .connect(user)
-            .transferToSchainERC20("Mainnet", erc20OnMainnet.address, amountReduceCost)
-            .should.be.eventually.rejectedWith("This function is not for transferring to Mainnet");
+        it("should invoke `transferToSchainERC20` without mistakes", async () => {
+            const amount = "20000000000000000";
+            await messageProxyForSchain.registerExtraContract(newSchainName, tokenManagerErc20.address);
 
-        await tokenManagerErc20.addTokenManager(newSchainName, tokenManagerErc20.address);
+            // add connected chain:
+            await messageProxyForSchain.connect(deployer).grantRole(await messageProxyForSchain.CHAIN_CONNECTOR_ROLE(), deployer.address);
+            await messageProxyForSchain.connect(deployer).addConnectedChain(newSchainName);
 
-        // execution:
-        await tokenManagerErc20
-            .connect(user)
-            .transferToSchainERC20(newSchainName, erc20OnMainnet.address, amountReduceCost);
+            await erc20OnOriginChain.connect(deployer).mint(user.address, amount);
+            await erc20OnOriginChain.connect(user).approve(tokenManagerErc20.address, amount);
 
-        // expectation:
-        const outgoingMessagesCounter = BigNumber.from(
-            await messageProxyForSchain.getOutgoingMessagesCounter(newSchainName));
-        outgoingMessagesCounter.should.be.deep.equal(BigNumber.from(1));
+            await tokenManagerErc20
+                .connect(user)
+                .transferToSchainERC20(newSchainName, erc20OnOriginChain.address, amount)
+                .should.be.eventually.rejectedWith("Incorrect Token Manager address");
+
+            await tokenManagerErc20
+                .connect(user)
+                .transferToSchainERC20("Mainnet", erc20OnOriginChain.address, amount)
+                .should.be.eventually.rejectedWith("This function is not for transferring to Mainnet");
+
+            await tokenManagerErc20.addTokenManager(newSchainName, tokenManagerErc202.address);
+
+            // execution:
+            await tokenManagerErc20
+                .connect(user)
+                .transferToSchainERC20(newSchainName, erc20OnOriginChain.address, amount);
+
+            // expectation:
+            const outgoingMessagesCounter = BigNumber.from(
+                await messageProxyForSchain.getOutgoingMessagesCounter(newSchainName));
+            outgoingMessagesCounter.should.be.deep.equal(BigNumber.from(1));
+        });
+
+        it("should invoke `transferToSchainERC20` and receive tokens without mistakes", async () => {
+            const amount = "20000000000000000";
+            await messageProxyForSchain.registerExtraContract(newSchainName, tokenManagerErc20.address);
+
+            // add connected chain:
+            await messageProxyForSchain.connect(deployer).grantRole(await messageProxyForSchain.CHAIN_CONNECTOR_ROLE(), deployer.address);
+            await messageProxyForSchain.connect(deployer).addConnectedChain(newSchainName);
+
+            await erc20OnOriginChain.connect(deployer).mint(user.address, amount);
+            await erc20OnOriginChain.connect(user).approve(tokenManagerErc20.address, amount);
+
+            await tokenManagerErc20
+                .connect(user)
+                .transferToSchainERC20(newSchainName, erc20OnOriginChain.address, amount)
+                .should.be.eventually.rejectedWith("Incorrect Token Manager address");
+
+            await tokenManagerErc20
+                .connect(user)
+                .transferToSchainERC20("Mainnet", erc20OnOriginChain.address, amount)
+                .should.be.eventually.rejectedWith("This function is not for transferring to Mainnet");
+
+            await tokenManagerErc20.addTokenManager(newSchainName, tokenManagerErc202.address);
+
+            // execution:
+            await tokenManagerErc20
+                .connect(user)
+                .transferToSchainERC20(newSchainName, erc20OnOriginChain.address, amount);
+
+            const data = await messages.encodeTransferErc20AndTokenInfoMessage(
+                erc20OnOriginChain.address,
+                user.address,
+                amount,
+                (await erc20OnOriginChain.totalSupply()).toString(),
+                {
+                    name: await erc20OnOriginChain.name(),
+                    symbol: await erc20OnOriginChain.symbol(),
+                    decimals: BigNumber.from(await erc20OnOriginChain.decimals()).toString()
+                }
+            );
+
+            // expectation:
+            const outgoingMessagesCounter = BigNumber.from(
+                await messageProxyForSchain.getOutgoingMessagesCounter(newSchainName));
+            outgoingMessagesCounter.should.be.deep.equal(BigNumber.from(1));
+
+            // receive:
+            //  registration:
+            await messageProxyForSchain2.connect(deployer).addConnectedChain(schainName);
+            await tokenManagerErc202.addTokenManager(schainName, tokenManagerErc20.address);
+
+
+            await messageProxyForSchain2.postMessage(tokenManagerErc202.address, schainId, tokenManagerErc20.address, data).should.be.eventually.rejectedWith("Automatic deploy is disabled");
+
+            await tokenManagerErc202.enableAutomaticDeploy();
+
+            await messageProxyForSchain2.postMessage(tokenManagerErc202.address, schainId, tokenManagerErc20.address, data);
+
+            const addressERC20OnSchain = await tokenManagerErc202.clonesErc20(schainId, erc20OnOriginChain.address);
+            const targetErc20OnChain = await (await ethers.getContractFactory("ERC20OnChain")).attach(addressERC20OnSchain) as ERC20OnChain;
+            expect((await targetErc20OnChain.functions.balanceOf(user.address)).toString()).to.be.equal(amount);
+
+        });
+
+        it("should invoke `transferToSchainERC20` and receive tokens without mistakes double", async () => {
+            const amount = "20000000000000000";
+            await messageProxyForSchain.registerExtraContract(newSchainName, tokenManagerErc20.address);
+
+            // add connected chain:
+            await messageProxyForSchain.connect(deployer).grantRole(await messageProxyForSchain.CHAIN_CONNECTOR_ROLE(), deployer.address);
+            await messageProxyForSchain.connect(deployer).addConnectedChain(newSchainName);
+
+            await erc20OnOriginChain.connect(deployer).mint(user.address, amount);
+            await erc20OnOriginChain.connect(user).approve(tokenManagerErc20.address, amount);
+
+            await tokenManagerErc20
+                .connect(user)
+                .transferToSchainERC20(newSchainName, erc20OnOriginChain.address, amount)
+                .should.be.eventually.rejectedWith("Incorrect Token Manager address");
+
+            await tokenManagerErc20
+                .connect(user)
+                .transferToSchainERC20("Mainnet", erc20OnOriginChain.address, amount)
+                .should.be.eventually.rejectedWith("This function is not for transferring to Mainnet");
+
+            await tokenManagerErc20.addTokenManager(newSchainName, tokenManagerErc202.address);
+
+            // execution:
+            await tokenManagerErc20
+                .connect(user)
+                .transferToSchainERC20(newSchainName, erc20OnOriginChain.address, amount);
+
+            let data = await messages.encodeTransferErc20AndTokenInfoMessage(
+                erc20OnOriginChain.address,
+                user.address,
+                amount,
+                (await erc20OnOriginChain.totalSupply()).toString(),
+                {
+                    name: await erc20OnOriginChain.name(),
+                    symbol: await erc20OnOriginChain.symbol(),
+                    decimals: BigNumber.from(await erc20OnOriginChain.decimals()).toString()
+                }
+            );
+
+            // expectation:
+            const outgoingMessagesCounter = BigNumber.from(
+                await messageProxyForSchain.getOutgoingMessagesCounter(newSchainName));
+            outgoingMessagesCounter.should.be.deep.equal(BigNumber.from(1));
+
+            // receive:
+            //  registration:
+            await messageProxyForSchain2.connect(deployer).addConnectedChain(schainName);
+            await tokenManagerErc202.addTokenManager(schainName, tokenManagerErc20.address);
+
+
+            await messageProxyForSchain2.postMessage(tokenManagerErc202.address, schainId, tokenManagerErc20.address, data).should.be.eventually.rejectedWith("Automatic deploy is disabled");
+
+            await tokenManagerErc202.enableAutomaticDeploy();
+
+            await messageProxyForSchain2.postMessage(tokenManagerErc202.address, schainId, tokenManagerErc20.address, data);
+
+            const addressERC20OnSchain = await tokenManagerErc202.clonesErc20(schainId, erc20OnOriginChain.address);
+            const targetErc20OnChain = await (await ethers.getContractFactory("ERC20OnChain")).attach(addressERC20OnSchain) as ERC20OnChain;
+            expect((await targetErc20OnChain.functions.balanceOf(user.address)).toString()).to.be.equal(amount);
+
+            const amount2 = "50000000000000000";
+
+            await erc20OnOriginChain.connect(deployer).mint(user.address, amount2);
+            await erc20OnOriginChain.connect(user).approve(tokenManagerErc20.address, amount2);
+
+            await tokenManagerErc20
+                .connect(user)
+                .transferToSchainERC20(newSchainName, erc20OnOriginChain.address, amount2);
+
+            data = await messages.encodeTransferErc20AndTotalSupplyMessage(
+                erc20OnOriginChain.address,
+                user.address,
+                amount2,
+                (await erc20OnOriginChain.totalSupply()).toString()
+            );
+
+            await messageProxyForSchain2.postMessage(tokenManagerErc202.address, schainId, tokenManagerErc20.address, data);
+
+            const amountSum = "70000000000000000";
+
+            expect((await targetErc20OnChain.functions.balanceOf(user.address)).toString()).to.be.equal(amountSum);
+
+        });
+
+        it("should invoke `transferToSchainERC20` and receive tokens without mistakes double with attached token", async () => {
+            const amount = "20000000000000000";
+            await messageProxyForSchain.registerExtraContract(newSchainName, tokenManagerErc20.address);
+
+            // add connected chain:
+            await messageProxyForSchain.connect(deployer).grantRole(await messageProxyForSchain.CHAIN_CONNECTOR_ROLE(), deployer.address);
+            await messageProxyForSchain.connect(deployer).addConnectedChain(newSchainName);
+
+            await erc20OnOriginChain.connect(deployer).mint(user.address, amount);
+            await erc20OnOriginChain.connect(user).approve(tokenManagerErc20.address, amount);
+
+            await tokenManagerErc20
+                .connect(user)
+                .transferToSchainERC20(newSchainName, erc20OnOriginChain.address, amount)
+                .should.be.eventually.rejectedWith("Incorrect Token Manager address");
+
+            await tokenManagerErc20
+                .connect(user)
+                .transferToSchainERC20("Mainnet", erc20OnOriginChain.address, amount)
+                .should.be.eventually.rejectedWith("This function is not for transferring to Mainnet");
+
+            await tokenManagerErc20.addTokenManager(newSchainName, tokenManagerErc202.address);
+
+            // execution:
+            await tokenManagerErc20
+                .connect(user)
+                .transferToSchainERC20(newSchainName, erc20OnOriginChain.address, amount);
+
+            let data = await messages.encodeTransferErc20AndTokenInfoMessage(
+                erc20OnOriginChain.address,
+                user.address,
+                amount,
+                (await erc20OnOriginChain.totalSupply()).toString(),
+                {
+                    name: await erc20OnOriginChain.name(),
+                    symbol: await erc20OnOriginChain.symbol(),
+                    decimals: BigNumber.from(await erc20OnOriginChain.decimals()).toString()
+                }
+            );
+
+            // expectation:
+            const outgoingMessagesCounter = BigNumber.from(
+                await messageProxyForSchain.getOutgoingMessagesCounter(newSchainName));
+            outgoingMessagesCounter.should.be.deep.equal(BigNumber.from(1));
+
+            // receive:
+            //  registration:
+
+            await tokenManagerErc202.connect(schainOwner).addERC20TokenByOwner(schainName,  erc20OnOriginChain.address, erc20OnTargetChain.address).should.be.eventually.rejectedWith("TOKEN_REGISTRAR_ROLE is required");
+            await tokenManagerErc202.connect(deployer).grantRole(await tokenManagerErc202.TOKEN_REGISTRAR_ROLE(), schainOwner.address);
+            await tokenManagerErc202.connect(schainOwner).addERC20TokenByOwner(schainName,  erc20OnOriginChain.address, erc20OnTargetChain.address).should.be.eventually.rejectedWith("Chain is not connected");
+
+            await messageProxyForSchain2.connect(deployer).addConnectedChain(schainName);
+            await tokenManagerErc202.connect(schainOwner).addERC20TokenByOwner(schainName,  erc20OnOriginChain.address, erc20OnTargetChain.address);
+            await tokenManagerErc202.addTokenManager(schainName, tokenManagerErc20.address);
+
+            await messageProxyForSchain2.postMessage(tokenManagerErc202.address, schainId, tokenManagerErc20.address, data);
+
+            expect((await erc20OnTargetChain.functions.balanceOf(user.address)).toString()).to.be.equal(amount);
+
+            const amount2 = "50000000000000000";
+
+            await erc20OnOriginChain.connect(deployer).mint(user.address, amount2);
+            await erc20OnOriginChain.connect(user).approve(tokenManagerErc20.address, amount2);
+
+            await tokenManagerErc20
+                .connect(user)
+                .transferToSchainERC20(newSchainName, erc20OnOriginChain.address, amount2);
+
+            data = await messages.encodeTransferErc20AndTotalSupplyMessage(
+                erc20OnOriginChain.address,
+                user.address,
+                amount2,
+                (await erc20OnOriginChain.totalSupply()).toString()
+            );
+
+            await messageProxyForSchain2.postMessage(tokenManagerErc202.address, schainId, tokenManagerErc20.address, data);
+
+            const amountSum = "70000000000000000";
+
+            expect((await erc20OnTargetChain.functions.balanceOf(user.address)).toString()).to.be.equal(amountSum);
+
+        });
+
+        it("should invoke `transferToSchainERC20` and transfer back without mistakes", async () => {
+            const amount = "20000000000000000";
+            await messageProxyForSchain.registerExtraContract(newSchainName, tokenManagerErc20.address);
+
+            // add connected chain:
+            await messageProxyForSchain.connect(deployer).grantRole(await messageProxyForSchain.CHAIN_CONNECTOR_ROLE(), deployer.address);
+            await messageProxyForSchain.connect(deployer).addConnectedChain(newSchainName);
+
+            await erc20OnOriginChain.connect(deployer).mint(user.address, amount);
+            await erc20OnOriginChain.connect(user).approve(tokenManagerErc20.address, amount);
+
+            await tokenManagerErc20
+                .connect(user)
+                .transferToSchainERC20(newSchainName, erc20OnOriginChain.address, amount)
+                .should.be.eventually.rejectedWith("Incorrect Token Manager address");
+
+            await tokenManagerErc20
+                .connect(user)
+                .transferToSchainERC20("Mainnet", erc20OnOriginChain.address, amount)
+                .should.be.eventually.rejectedWith("This function is not for transferring to Mainnet");
+
+            await tokenManagerErc20.addTokenManager(newSchainName, tokenManagerErc202.address);
+
+            // execution:
+            await tokenManagerErc20
+                .connect(user)
+                .transferToSchainERC20(newSchainName, erc20OnOriginChain.address, amount);
+
+            let data = await messages.encodeTransferErc20AndTokenInfoMessage(
+                erc20OnOriginChain.address,
+                user.address,
+                amount,
+                (await erc20OnOriginChain.totalSupply()).toString(),
+                {
+                    name: await erc20OnOriginChain.name(),
+                    symbol: await erc20OnOriginChain.symbol(),
+                    decimals: BigNumber.from(await erc20OnOriginChain.decimals()).toString()
+                }
+            );
+
+            // expectation:
+            const outgoingMessagesCounter = BigNumber.from(
+                await messageProxyForSchain.getOutgoingMessagesCounter(newSchainName));
+            outgoingMessagesCounter.should.be.deep.equal(BigNumber.from(1));
+
+            // receive:
+            //  registration:
+            await messageProxyForSchain2.connect(deployer).addConnectedChain(schainName);
+            await tokenManagerErc202.addTokenManager(schainName, tokenManagerErc20.address);
+
+
+            await messageProxyForSchain2.postMessage(tokenManagerErc202.address, schainId, tokenManagerErc20.address, data).should.be.eventually.rejectedWith("Automatic deploy is disabled");
+
+            await tokenManagerErc202.enableAutomaticDeploy();
+
+            await messageProxyForSchain2.postMessage(tokenManagerErc202.address, schainId, tokenManagerErc20.address, data);
+
+            const addressERC20OnSchain = await tokenManagerErc202.clonesErc20(schainId, erc20OnOriginChain.address);
+            const targetErc20OnChain = await (await ethers.getContractFactory("ERC20OnChain")).attach(addressERC20OnSchain) as ERC20OnChain;
+            expect((await targetErc20OnChain.functions.balanceOf(user.address)).toString()).to.be.equal(amount);
+
+            await tokenManagerErc202
+                .connect(user)
+                .transferToSchainERC20(newSchainName, erc20OnOriginChain.address, amount)
+                .should.be.eventually.rejectedWith("Incorrect Token Manager address");
+
+            await tokenManagerErc202
+                .connect(user)
+                .transferToSchainERC20("Mainnet", erc20OnOriginChain.address, amount)
+                .should.be.eventually.rejectedWith("This function is not for transferring to Mainnet");
+
+            await tokenManagerErc202
+                .connect(user)
+                .transferToSchainERC20(schainName, erc20OnOriginChain.address, amount)
+                .should.be.eventually.rejectedWith("Transfer is not approved by token holder");
+
+            await targetErc20OnChain.connect(user).approve(tokenManagerErc202.address, amount);
+
+            await tokenManagerErc202
+                .connect(user)
+                .transferToSchainERC20(schainName, erc20OnOriginChain.address, amount)
+                .should.be.eventually.rejectedWith("Sender contract is not registered");
+
+            await messageProxyForSchain2.registerExtraContract(schainName, tokenManagerErc202.address);
+
+            await tokenManagerErc202
+                .connect(user)
+                .transferToSchainERC20(schainName, erc20OnOriginChain.address, amount);
+
+            data = await messages.encodeTransferErc20Message(
+                erc20OnOriginChain.address,
+                user.address,
+                amount
+            );
+
+            await messageProxyForSchain.postMessage(tokenManagerErc20.address, newSchainId, tokenManagerErc202.address, data);
+            expect((await erc20OnOriginChain.functions.balanceOf(user.address)).toString()).to.be.equal(amount);
+
+        });
+
+        it("should invoke `transferToSchainERC20` and transfer back without mistakes with attached tokens", async () => {
+            const amount = "20000000000000000";
+            await messageProxyForSchain.registerExtraContract(newSchainName, tokenManagerErc20.address);
+
+            // add connected chain:
+            await messageProxyForSchain.connect(deployer).grantRole(await messageProxyForSchain.CHAIN_CONNECTOR_ROLE(), deployer.address);
+            await messageProxyForSchain.connect(deployer).addConnectedChain(newSchainName);
+
+            await erc20OnOriginChain.connect(deployer).mint(user.address, amount);
+            await erc20OnOriginChain.connect(user).approve(tokenManagerErc20.address, amount);
+
+            await tokenManagerErc20
+                .connect(user)
+                .transferToSchainERC20(newSchainName, erc20OnOriginChain.address, amount)
+                .should.be.eventually.rejectedWith("Incorrect Token Manager address");
+
+            await tokenManagerErc20
+                .connect(user)
+                .transferToSchainERC20("Mainnet", erc20OnOriginChain.address, amount)
+                .should.be.eventually.rejectedWith("This function is not for transferring to Mainnet");
+
+            await tokenManagerErc20.addTokenManager(newSchainName, tokenManagerErc202.address);
+
+            // execution:
+            await tokenManagerErc20
+                .connect(user)
+                .transferToSchainERC20(newSchainName, erc20OnOriginChain.address, amount);
+
+            let data = await messages.encodeTransferErc20AndTokenInfoMessage(
+                erc20OnOriginChain.address,
+                user.address,
+                amount,
+                (await erc20OnOriginChain.totalSupply()).toString(),
+                {
+                    name: await erc20OnOriginChain.name(),
+                    symbol: await erc20OnOriginChain.symbol(),
+                    decimals: BigNumber.from(await erc20OnOriginChain.decimals()).toString()
+                }
+            );
+
+            // expectation:
+            const outgoingMessagesCounter = BigNumber.from(
+                await messageProxyForSchain.getOutgoingMessagesCounter(newSchainName));
+            outgoingMessagesCounter.should.be.deep.equal(BigNumber.from(1));
+
+            // receive:
+            //  registration:
+            await messageProxyForSchain2.connect(deployer).addConnectedChain(schainName);
+            await tokenManagerErc202.addTokenManager(schainName, tokenManagerErc20.address);
+
+            await tokenManagerErc202.connect(deployer).grantRole(await tokenManagerErc202.TOKEN_REGISTRAR_ROLE(), schainOwner.address);
+            await tokenManagerErc202.connect(schainOwner).addERC20TokenByOwner(schainName,  erc20OnOriginChain.address, erc20OnTargetChain.address);
+
+
+            await messageProxyForSchain2.postMessage(tokenManagerErc202.address, schainId, tokenManagerErc20.address, data);
+
+            await tokenManagerErc202
+                .connect(user)
+                .transferToSchainERC20(newSchainName, erc20OnOriginChain.address, amount)
+                .should.be.eventually.rejectedWith("Incorrect Token Manager address");
+
+            await tokenManagerErc202
+                .connect(user)
+                .transferToSchainERC20("Mainnet", erc20OnOriginChain.address, amount)
+                .should.be.eventually.rejectedWith("This function is not for transferring to Mainnet");
+
+            await tokenManagerErc202
+                .connect(user)
+                .transferToSchainERC20(schainName, erc20OnOriginChain.address, amount)
+                .should.be.eventually.rejectedWith("Transfer is not approved by token holder");
+
+            await erc20OnTargetChain.connect(user).approve(tokenManagerErc202.address, amount);
+
+            await tokenManagerErc202
+                .connect(user)
+                .transferToSchainERC20(schainName, erc20OnOriginChain.address, amount)
+                .should.be.eventually.rejectedWith("Sender contract is not registered");
+
+            await messageProxyForSchain2.registerExtraContract(schainName, tokenManagerErc202.address);
+
+            await tokenManagerErc202
+                .connect(user)
+                .transferToSchainERC20(schainName, erc20OnOriginChain.address, amount);
+
+            data = await messages.encodeTransferErc20Message(
+                erc20OnOriginChain.address,
+                user.address,
+                amount
+            );
+
+            await messageProxyForSchain.postMessage(tokenManagerErc20.address, newSchainId, tokenManagerErc202.address, data);
+            expect((await erc20OnOriginChain.functions.balanceOf(user.address)).toString()).to.be.equal(amount);
+
+        });
+
+
+        it("should invoke `transferToSchainERC20` and transfer back without mistakes double", async () => {
+            const amount = "20000000000000000";
+            await messageProxyForSchain.registerExtraContract(newSchainName, tokenManagerErc20.address);
+
+            // add connected chain:
+            await messageProxyForSchain.connect(deployer).grantRole(await messageProxyForSchain.CHAIN_CONNECTOR_ROLE(), deployer.address);
+            await messageProxyForSchain.connect(deployer).addConnectedChain(newSchainName);
+
+            await erc20OnOriginChain.connect(deployer).mint(user.address, amount);
+            await erc20OnOriginChain.connect(user).approve(tokenManagerErc20.address, amount);
+
+            await tokenManagerErc20
+                .connect(user)
+                .transferToSchainERC20(newSchainName, erc20OnOriginChain.address, amount)
+                .should.be.eventually.rejectedWith("Incorrect Token Manager address");
+
+            await tokenManagerErc20
+                .connect(user)
+                .transferToSchainERC20("Mainnet", erc20OnOriginChain.address, amount)
+                .should.be.eventually.rejectedWith("This function is not for transferring to Mainnet");
+
+            await tokenManagerErc20.addTokenManager(newSchainName, tokenManagerErc202.address);
+
+            // execution:
+            await tokenManagerErc20
+                .connect(user)
+                .transferToSchainERC20(newSchainName, erc20OnOriginChain.address, amount);
+
+            let data = await messages.encodeTransferErc20AndTokenInfoMessage(
+                erc20OnOriginChain.address,
+                user.address,
+                amount,
+                (await erc20OnOriginChain.totalSupply()).toString(),
+                {
+                    name: await erc20OnOriginChain.name(),
+                    symbol: await erc20OnOriginChain.symbol(),
+                    decimals: BigNumber.from(await erc20OnOriginChain.decimals()).toString()
+                }
+            );
+
+            // expectation:
+            const outgoingMessagesCounter = BigNumber.from(
+                await messageProxyForSchain.getOutgoingMessagesCounter(newSchainName));
+            outgoingMessagesCounter.should.be.deep.equal(BigNumber.from(1));
+
+            // receive:
+            //  registration:
+            await messageProxyForSchain2.connect(deployer).addConnectedChain(schainName);
+            await tokenManagerErc202.addTokenManager(schainName, tokenManagerErc20.address);
+
+
+            await messageProxyForSchain2.postMessage(tokenManagerErc202.address, schainId, tokenManagerErc20.address, data).should.be.eventually.rejectedWith("Automatic deploy is disabled");
+
+            await tokenManagerErc202.enableAutomaticDeploy();
+
+            await messageProxyForSchain2.postMessage(tokenManagerErc202.address, schainId, tokenManagerErc20.address, data);
+
+            const addressERC20OnSchain = await tokenManagerErc202.clonesErc20(schainId, erc20OnOriginChain.address);
+            const targetErc20OnChain = await (await ethers.getContractFactory("ERC20OnChain")).attach(addressERC20OnSchain) as ERC20OnChain;
+            expect((await targetErc20OnChain.functions.balanceOf(user.address)).toString()).to.be.equal(amount);
+
+            await tokenManagerErc202
+                .connect(user)
+                .transferToSchainERC20(newSchainName, erc20OnOriginChain.address, amount)
+                .should.be.eventually.rejectedWith("Incorrect Token Manager address");
+
+            await tokenManagerErc202
+                .connect(user)
+                .transferToSchainERC20("Mainnet", erc20OnOriginChain.address, amount)
+                .should.be.eventually.rejectedWith("This function is not for transferring to Mainnet");
+
+            await tokenManagerErc202
+                .connect(user)
+                .transferToSchainERC20(schainName, erc20OnOriginChain.address, amount)
+                .should.be.eventually.rejectedWith("Transfer is not approved by token holder");
+
+            await targetErc20OnChain.connect(user).approve(tokenManagerErc202.address, amount);
+
+            await tokenManagerErc202
+                .connect(user)
+                .transferToSchainERC20(schainName, erc20OnOriginChain.address, amount)
+                .should.be.eventually.rejectedWith("Sender contract is not registered");
+
+            await messageProxyForSchain2.registerExtraContract(schainName, tokenManagerErc202.address);
+
+            await tokenManagerErc202
+                .connect(user)
+                .transferToSchainERC20(schainName, erc20OnOriginChain.address, amount);
+
+            data = await messages.encodeTransferErc20Message(
+                erc20OnOriginChain.address,
+                user.address,
+                amount
+            );
+
+            await messageProxyForSchain.postMessage(tokenManagerErc20.address, newSchainId, tokenManagerErc202.address, data);
+            expect((await erc20OnOriginChain.functions.balanceOf(user.address)).toString()).to.be.equal(amount);
+
+            await erc20OnOriginChain.connect(user).approve(tokenManagerErc20.address, amount);
+
+            await tokenManagerErc20
+                .connect(user)
+                .transferToSchainERC20(newSchainName, erc20OnOriginChain.address, amount);
+
+            data = await messages.encodeTransferErc20AndTotalSupplyMessage(
+                erc20OnOriginChain.address,
+                user.address,
+                amount,
+                (await erc20OnOriginChain.totalSupply()).toString()
+            );
+
+            await messageProxyForSchain2.postMessage(tokenManagerErc202.address, schainId, tokenManagerErc20.address, data);
+
+            expect((await targetErc20OnChain.functions.balanceOf(user.address)).toString()).to.be.equal(amount);
+
+            const amount2 = "50000000000000000";
+
+            await erc20OnOriginChain.connect(deployer).mint(user.address, amount2);
+            await erc20OnOriginChain.connect(user).approve(tokenManagerErc20.address, amount2);
+
+            await tokenManagerErc20
+                .connect(user)
+                .transferToSchainERC20(newSchainName, erc20OnOriginChain.address, amount2);
+
+            data = await messages.encodeTransferErc20AndTotalSupplyMessage(
+                erc20OnOriginChain.address,
+                user.address,
+                amount2,
+                (await erc20OnOriginChain.totalSupply()).toString()
+            );
+
+            await messageProxyForSchain2.postMessage(tokenManagerErc202.address, schainId, tokenManagerErc20.address, data);
+
+            const amountSum = "70000000000000000";
+
+            expect((await targetErc20OnChain.functions.balanceOf(user.address)).toString()).to.be.equal(amountSum);
+
+            await targetErc20OnChain.connect(user).approve(tokenManagerErc202.address, amount);
+
+            await tokenManagerErc202
+                .connect(user)
+                .transferToSchainERC20(schainName, erc20OnOriginChain.address, amount);
+
+            data = await messages.encodeTransferErc20Message(
+                erc20OnOriginChain.address,
+                user.address,
+                amount
+            );
+
+            await messageProxyForSchain.postMessage(tokenManagerErc20.address, newSchainId, tokenManagerErc202.address, data);
+            expect((await erc20OnOriginChain.functions.balanceOf(user.address)).toString()).to.be.equal(amount);
+
+            await targetErc20OnChain.connect(user).approve(tokenManagerErc202.address, amount2);
+
+            await tokenManagerErc202
+                .connect(user)
+                .transferToSchainERC20(schainName, erc20OnOriginChain.address, amount2);
+
+            data = await messages.encodeTransferErc20Message(
+                erc20OnOriginChain.address,
+                user.address,
+                amount2
+            );
+
+            await messageProxyForSchain.postMessage(tokenManagerErc20.address, newSchainId, tokenManagerErc202.address, data);
+
+            expect((await erc20OnOriginChain.functions.balanceOf(user.address)).toString()).to.be.equal(amountSum);
+
+        });
+
+        it("should invoke `transferToSchainERC20` and transfer back without mistakes double with attached tokens", async () => {
+            const amount = "20000000000000000";
+            await messageProxyForSchain.registerExtraContract(newSchainName, tokenManagerErc20.address);
+
+            // add connected chain:
+            await messageProxyForSchain.connect(deployer).grantRole(await messageProxyForSchain.CHAIN_CONNECTOR_ROLE(), deployer.address);
+            await messageProxyForSchain.connect(deployer).addConnectedChain(newSchainName);
+
+            await erc20OnOriginChain.connect(deployer).mint(user.address, amount);
+            await erc20OnOriginChain.connect(user).approve(tokenManagerErc20.address, amount);
+
+            await tokenManagerErc20
+                .connect(user)
+                .transferToSchainERC20(newSchainName, erc20OnOriginChain.address, amount)
+                .should.be.eventually.rejectedWith("Incorrect Token Manager address");
+
+            await tokenManagerErc20
+                .connect(user)
+                .transferToSchainERC20("Mainnet", erc20OnOriginChain.address, amount)
+                .should.be.eventually.rejectedWith("This function is not for transferring to Mainnet");
+
+            await tokenManagerErc20.addTokenManager(newSchainName, tokenManagerErc202.address);
+
+            // execution:
+            await tokenManagerErc20
+                .connect(user)
+                .transferToSchainERC20(newSchainName, erc20OnOriginChain.address, amount);
+
+            let data = await messages.encodeTransferErc20AndTokenInfoMessage(
+                erc20OnOriginChain.address,
+                user.address,
+                amount,
+                (await erc20OnOriginChain.totalSupply()).toString(),
+                {
+                    name: await erc20OnOriginChain.name(),
+                    symbol: await erc20OnOriginChain.symbol(),
+                    decimals: BigNumber.from(await erc20OnOriginChain.decimals()).toString()
+                }
+            );
+
+            // expectation:
+            const outgoingMessagesCounter = BigNumber.from(
+                await messageProxyForSchain.getOutgoingMessagesCounter(newSchainName));
+            outgoingMessagesCounter.should.be.deep.equal(BigNumber.from(1));
+
+            // receive:
+            //  registration:
+            await messageProxyForSchain2.connect(deployer).addConnectedChain(schainName);
+            await tokenManagerErc202.addTokenManager(schainName, tokenManagerErc20.address);
+
+            await tokenManagerErc202.connect(deployer).grantRole(await tokenManagerErc202.TOKEN_REGISTRAR_ROLE(), schainOwner.address);
+            await tokenManagerErc202.connect(schainOwner).addERC20TokenByOwner(schainName,  erc20OnOriginChain.address, erc20OnTargetChain.address);
+
+
+            await messageProxyForSchain2.postMessage(tokenManagerErc202.address, schainId, tokenManagerErc20.address, data);
+
+            await tokenManagerErc202
+                .connect(user)
+                .transferToSchainERC20(newSchainName, erc20OnOriginChain.address, amount)
+                .should.be.eventually.rejectedWith("Incorrect Token Manager address");
+
+            await tokenManagerErc202
+                .connect(user)
+                .transferToSchainERC20("Mainnet", erc20OnOriginChain.address, amount)
+                .should.be.eventually.rejectedWith("This function is not for transferring to Mainnet");
+
+            await tokenManagerErc202
+                .connect(user)
+                .transferToSchainERC20(schainName, erc20OnOriginChain.address, amount)
+                .should.be.eventually.rejectedWith("Transfer is not approved by token holder");
+
+            await erc20OnTargetChain.connect(user).approve(tokenManagerErc202.address, amount);
+
+            await tokenManagerErc202
+                .connect(user)
+                .transferToSchainERC20(schainName, erc20OnOriginChain.address, amount)
+                .should.be.eventually.rejectedWith("Sender contract is not registered");
+
+            await messageProxyForSchain2.registerExtraContract(schainName, tokenManagerErc202.address);
+
+            await tokenManagerErc202
+                .connect(user)
+                .transferToSchainERC20(schainName, erc20OnOriginChain.address, amount);
+
+            data = await messages.encodeTransferErc20Message(
+                erc20OnOriginChain.address,
+                user.address,
+                amount
+            );
+
+            await messageProxyForSchain.postMessage(tokenManagerErc20.address, newSchainId, tokenManagerErc202.address, data);
+            expect((await erc20OnOriginChain.functions.balanceOf(user.address)).toString()).to.be.equal(amount);
+
+            await erc20OnOriginChain.connect(user).approve(tokenManagerErc20.address, amount);
+
+            await tokenManagerErc20
+                .connect(user)
+                .transferToSchainERC20(newSchainName, erc20OnOriginChain.address, amount);
+
+            data = await messages.encodeTransferErc20AndTotalSupplyMessage(
+                erc20OnOriginChain.address,
+                user.address,
+                amount,
+                (await erc20OnOriginChain.totalSupply()).toString()
+            );
+
+            await messageProxyForSchain2.postMessage(tokenManagerErc202.address, schainId, tokenManagerErc20.address, data);
+
+            expect((await erc20OnTargetChain.functions.balanceOf(user.address)).toString()).to.be.equal(amount);
+
+            const amount2 = "50000000000000000";
+
+            await erc20OnOriginChain.connect(deployer).mint(user.address, amount2);
+            await erc20OnOriginChain.connect(user).approve(tokenManagerErc20.address, amount2);
+
+            await tokenManagerErc20
+                .connect(user)
+                .transferToSchainERC20(newSchainName, erc20OnOriginChain.address, amount2);
+
+            data = await messages.encodeTransferErc20AndTotalSupplyMessage(
+                erc20OnOriginChain.address,
+                user.address,
+                amount2,
+                (await erc20OnOriginChain.totalSupply()).toString()
+            );
+
+            await messageProxyForSchain2.postMessage(tokenManagerErc202.address, schainId, tokenManagerErc20.address, data);
+
+            const amountSum = "70000000000000000";
+
+            expect((await erc20OnTargetChain.functions.balanceOf(user.address)).toString()).to.be.equal(amountSum);
+
+            await erc20OnTargetChain.connect(user).approve(tokenManagerErc202.address, amount);
+
+            await tokenManagerErc202
+                .connect(user)
+                .transferToSchainERC20(schainName, erc20OnOriginChain.address, amount);
+
+            data = await messages.encodeTransferErc20Message(
+                erc20OnOriginChain.address,
+                user.address,
+                amount
+            );
+
+            await messageProxyForSchain.postMessage(tokenManagerErc20.address, newSchainId, tokenManagerErc202.address, data);
+            expect((await erc20OnOriginChain.functions.balanceOf(user.address)).toString()).to.be.equal(amount);
+
+            await erc20OnTargetChain.connect(user).approve(tokenManagerErc202.address, amount2);
+
+            await tokenManagerErc202
+                .connect(user)
+                .transferToSchainERC20(schainName, erc20OnOriginChain.address, amount2);
+
+            data = await messages.encodeTransferErc20Message(
+                erc20OnOriginChain.address,
+                user.address,
+                amount2
+            );
+
+            await messageProxyForSchain.postMessage(tokenManagerErc20.address, newSchainId, tokenManagerErc202.address, data);
+
+            expect((await erc20OnOriginChain.functions.balanceOf(user.address)).toString()).to.be.equal(amountSum);
+
+        });
+
     });
 
     describe("tests for `postMessage` function", async () => {
