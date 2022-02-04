@@ -4,7 +4,7 @@ const Tx = require('ethereumjs-tx').Transaction;
 let rinkebyABIs = "[YOUR_SKALE_ABIs_ON_RINKEBY]";
 let rinkebyERC20ABI = "[YOUR_ERC20_ABI_ON_RINKEBY]";
 
-let privateKeyForMainnet = new Buffer("[YOUR_MAINNET_ACCOUNT_PRIVATE_KEY]", 'hex')
+let privateKeyForMainnet = Buffer.from("[YOUR_MAINNET_ACCOUNT_PRIVATE_KEY]", 'hex')
 
 let accountForMainnet = "[YOUR_MAINNET_ACCOUNT_ADDRESS]";
 let accountForSchain = "[YOUR_SCHAIN_ACCOUNT_ADDRESS]";

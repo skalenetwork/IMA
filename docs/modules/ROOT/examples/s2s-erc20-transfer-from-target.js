@@ -1,25 +1,26 @@
 const Web3 = require("web3");
 const Tx = require("ethereumjs-tx").Transaction;
 
-let originABIs = "IMA_ABI_ON_ORIGIN";
+let targetABIs = "IMA_ABI_ON_TARGET";
 let originERC20ABI = "ERC20_ABI_ON_ORIGIN";
 
 let privateKey = Buffer.from("END_USER_PRIVATE_KEY", 'hex')
 let address = "ADDRESS";
 
-let origin = "ORIGIN_ENDPOINT";
-let targetChainName = "TARGET_CHAIN_NAME";
-let originChainId = "ORIGIN_CHAIN_ID";
+let target = "TARGET_ENDPOINT";
+let originChainName = "ORIGIN_CHAIN_NAME";
+let targetChainId = "TARGET_CHAIN_ID";
 
-const tokenManagerAddress = originABIs.token_manager_erc20_address;
-const tokenManagerABI = originABIs.token_manager_erc20_abi;
+const tokenManagerAddress = targetABIs.token_manager_erc20_address;
+const tokenManagerABI = targetABIs.token_manager_erc20_abi;
 
-const erc20ABI = originERC20ABI.erc20_abi;
-const erc20Address = originERC20ABI.erc20_address;
+const erc20ABI = targetERC20ABI.erc20_abi;
+const erc20TargetAddress = targetERC20ABI.erc20_address;
+const erc20OriginAddress = originERC20ABI.erc20_address;
 
-const web3ForOrigin = new Web3(origin);
+const web3ForTarget = new Web3(target);
 
-let tokenManager = new web3ForOrigin.eth.Contract(
+let tokenManager = new web3ForTarget.eth.Contract(
     tokenManagerABI,
     tokenManagerAddress
 );
@@ -27,32 +28,32 @@ let tokenManager = new web3ForOrigin.eth.Contract(
 const customCommon = Common.forCustomChain(
     "mainnet", {
         name: "skale-network",
-        chainId: originChainId
+        chainId: targetChainId
     },
     "istanbul"
 );
 
-let contractERC20 = new web3ForOrigin.eth.Contract(erc20ABI, erc20Address);
+let contractERC20 = new web3ForTarget.eth.Contract(erc20ABI, erc20TargetAddress);
 
 let approve = contractERC20.methods
     .approve(
         tokenManagerAddress,
-        web3ForOrigin.utils.toHex(web3ForOrigin.utils.toWei("1", "ether"))
+        web3ForTarget.utils.toHex(web3ForTarget.utils.toWei("1", "ether"))
     )
     .encodeABI();
 
 let transfer = tokenManager.methods
     .transferToSchainERC20(
-        targetChainName,
-        erc20Address,
-        web3ForOrigin.utils.toHex(web3ForOrigin.utils.toWei("1", "ether"))
+        originChainName,
+        erc20OriginAddress,
+        web3ForTarget.utils.toHex(web3ForTarget.utils.toWei("1", "ether"))
     )
     .encodeABI();
 
-web3ForOrigin.eth.getTransactionCount(address).then(nonce => {
+    web3ForTarget.eth.getTransactionCount(address).then(nonce => {
     //create raw transaction
     const rawTxApprove = {
-        chainId: originChainId,
+        chainId: targetChainId,
         from: address,
         nonce: "0x" + nonce.toString(16),
         data: approve,
@@ -70,15 +71,15 @@ web3ForOrigin.eth.getTransactionCount(address).then(nonce => {
     const serializedTxApprove = txApprove.serialize();
 
     //send signed transaction (approve)
-    web3ForOrigin.eth
+    web3ForTarget.eth
         .sendSignedTransaction("0x" + serializedTxApprove.toString("hex"))
         .on("receipt", receipt => {
             console.log(receipt);
-            web3ForOrigin.eth
+            web3ForTarget.eth
                 .getTransactionCount(address)
                 .then(nonce => {
                     const rawTxDeposit = {
-                        chainId: originChainId,
+                        chainId: targetChainId,
                         from: address,
                         nonce: "0x" + nonce.toString(16),
                         data: transfer,
@@ -97,7 +98,7 @@ web3ForOrigin.eth.getTransactionCount(address).then(nonce => {
                     const serializedTxDeposit = txDeposit.serialize();
 
                     //send signed transaction (deposit)
-                    web3ForOrigin.eth
+                    web3ForTarget.eth
                         .sendSignedTransaction("0x" + serializedTxDeposit
                             .toString("hex"))
                         .on("receipt", receipt => {
