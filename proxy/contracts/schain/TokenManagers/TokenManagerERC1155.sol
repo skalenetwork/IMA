@@ -28,35 +28,7 @@ import "@skalenetwork/ima-interfaces/schain/TokenManagers/ITokenManagerERC1155.s
 import "../../Messages.sol";
 import "../tokens/ERC1155OnChain.sol";
 import "../TokenManager.sol";
-
-abstract contract ERC1155ReceiverUpgradeableWithoutGap is
-    Initializable,
-    ERC165Upgradeable,
-    IERC1155ReceiverUpgradeable
-{
-    /**
-     * @dev See {IERC165-supportsInterface}.
-     */
-    function supportsInterface(bytes4 interfaceId)
-        public
-        view
-        virtual
-        override(ERC165Upgradeable, IERC165Upgradeable)
-        returns (bool)
-    {
-        return interfaceId == type(IERC1155ReceiverUpgradeable).interfaceId || super.supportsInterface(interfaceId);
-    }
-
-    // solhint-disable-next-line func-name-mixedcase
-    function __ERC1155Receiver_init() internal initializer {
-        __ERC165_init_unchained();
-        __ERC1155Receiver_init_unchained();
-    }
-
-    // solhint-disable-next-line func-name-mixedcase, no-empty-blocks
-    function __ERC1155Receiver_init_unchained() internal initializer {
-    }
-}
+import "../../thirdparty/ERC1155ReceiverUpgradeableWithoutGap.sol";
 
 
 /**
