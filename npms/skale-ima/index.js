@@ -211,7 +211,7 @@ async function get_web3_transactionCount( details, attempts, w3, address, param 
             cc.warning( ", previous result is: " ) + cc.info( txc ) + "\n" );
         await sleep( 10000 );
         try {
-            txc = await w3.eth.getBlockNumber();
+            txc = await w3.eth.getTransactionCount( address, param );
         } catch ( e ) {}
         idxAttempt++;
     }
