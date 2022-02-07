@@ -224,7 +224,7 @@ function perform_bls_glue( details, strDirection, jarrMessages, arrSignResults )
         for( i = 0; i < cnt; ++i ) {
             const jo = arrSignResults[i];
             const strPath = strActionDir + "/sign-result" + jo.index + ".json";
-            details.write( strLogPrefix + cc.normal( "Saving " ) + cc.notice( strPath ) + cc.debug( " file..." ) + "\n" );
+            details.write( strLogPrefix + cc.normal( "Saving " ) + cc.notice( strPath ) + cc.debug( " file containing " ) + cc.j( jo ) + "\n" );
             imaUtils.jsonFileSave( strPath, jo );
             strInput += " --input " + strPath;
         }
@@ -234,11 +234,11 @@ function perform_bls_glue( details, strDirection, jarrMessages, arrSignResults )
             " --n " + nParticipants +
             strInput +
             " --output " + strActionDir + "/glue-result.json";
-        details.write( strLogPrefix + cc.normal( "Will execute BLS glue command:\n" ) + cc.notice( strGlueCommand ) + "\n" );
+        details.write( strLogPrefix + cc.debug( "Will execute BLS glue command:\n" ) + cc.notice( strGlueCommand ) + "\n" );
         strOutput = child_process.execSync( strGlueCommand );
-        details.write( strLogPrefix + cc.normal( "BLS glue output is:\n" ) + cc.notice( strOutput ) + "\n" );
+        details.write( strLogPrefix + cc.debug( "BLS glue output is:\n" ) + cc.notice( strOutput ) + "\n" );
         joGlueResult = imaUtils.jsonFileLoad( strActionDir + "/glue-result.json" );
-        details.write( strLogPrefix + cc.normal( "BLS glue result is: " ) + cc.j( joGlueResult ) + "\n" );
+        details.write( strLogPrefix + cc.debug( "BLS glue result is: " ) + cc.j( joGlueResult ) + "\n" );
         if( "X" in joGlueResult.signature && "Y" in joGlueResult.signature ) {
             details.write( strLogPrefix + cc.success( "BLS glue success" ) + "\n" );
             joGlueResult.hashSrc = strSummaryMessage;
@@ -703,6 +703,7 @@ async function check_correctness_of_messages_to_sign( details, strLogPrefix, str
 }
 
 async function do_sign_messages_impl( strDirection, jarrMessages, nIdxCurrentMsgBlockStart, details, joExtraSignOpts, fn ) {
+    let bHaveResultReportCalled = false;
     const strLogPrefix = cc.bright( strDirection ) + " " + cc.info( "Sign msgs:" ) + " ";
     log.write( strLogPrefix + cc.debug( " Invoking " ) + cc.bright( strDirection ) + cc.debug( " signing messages procedure " ) + "\n" );
     details.write( strLogPrefix + cc.debug( " Invoking " ) + cc.bright( strDirection ) + cc.debug( " signing messages procedure " ) + "\n" );
@@ -715,6 +716,8 @@ async function do_sign_messages_impl( strDirection, jarrMessages, nIdxCurrentMsg
             "\n" );
         await check_correctness_of_messages_to_sign( details, strLogPrefix, strDirection, jarrMessages, nIdxCurrentMsgBlockStart, joExtraSignOpts );
         await fn( null, jarrMessages, null );
+        bHaveResultReportCalled = true;
+        return;
     }
     await check_correctness_of_messages_to_sign( details, strLogPrefix, strDirection, jarrMessages, nIdxCurrentMsgBlockStart, joExtraSignOpts );
     //
@@ -739,7 +742,7 @@ async function do_sign_messages_impl( strDirection, jarrMessages, nIdxCurrentMsg
     // }
     //
     details.write( strLogPrefix + cc.debug( "Will sign " ) + cc.info( jarrMessages.length ) + cc.debug( " message(s)..." ) + "\n" );
-    log.write( strLogPrefix + cc.debug( "Will sign " ) + cc.info( jarrMessages ) + cc.debug( " message(s)..." ) + "\n" );
+    log.write( strLogPrefix + cc.debug( "Will sign " ) + cc.j( jarrMessages ) + cc.debug( " message(s)..." ) + "\n" );
     const joGatheringTracker = {
         nCountReceived: 0, // including errors
         nCountErrors: 0,
@@ -757,6 +760,7 @@ async function do_sign_messages_impl( strDirection, jarrMessages, nIdxCurrentMsg
     details.write( strLogPrefix + cc.debug( "Discovered number of BLS participants is " ) + cc.info( nParticipants ) + cc.debug( "." ) + "\n" );
     if( nThreshold <= 0 ) {
         await fn( "signature error, S-Chain information was not discovered properly and BLS threshold is unknown", jarrMessages, null );
+        bHaveResultReportCalled = true;
         return;
     }
     const nCountOfBlsPartsToCollect = 0 + nThreshold;
@@ -764,7 +768,7 @@ async function do_sign_messages_impl( strDirection, jarrMessages, nIdxCurrentMsg
     //     details.write( strLogPrefix + cc.warning( "Minimal BLS parts number for dicovery was increased." ) + "\n" );
     //     nCountOfBlsPartsToCollect = 2;
     // }
-    log.write( strLogPrefix + cc.debug( "Will collect " ) + cc.info( nCountOfBlsPartsToCollect ) + "\n" );
+    log.write( strLogPrefix + cc.debug( "Will collect " ) + cc.info( nCountOfBlsPartsToCollect ) + cc.debug( " signature(s)" ) + "\n" );
     details.write( strLogPrefix + cc.debug( "Will collect " ) + cc.info( nCountOfBlsPartsToCollect ) + cc.debug( " from " ) + cc.info( jarrNodes.length ) + cc.debug( " nodes" ) + "\n" );
     for( let i = 0; i < jarrNodes.length; ++i ) {
         const joNode = jarrNodes[i];
@@ -973,8 +977,11 @@ async function do_sign_messages_impl( strDirection, jarrMessages, nIdxCurrentMsg
                     details.write( strErrorMessage );
                     reject( new Error( strErrorMessage ) );
                 } );
+                bHaveResultReportCalled = true;
                 if( ! strError )
                     resolve( strSuccessfulResultDescription );
+                else
+                    reject( new Error( strError ) );
                 return;
             }
             if( joGatheringTracker.nCountReceived >= jarrNodes.length ) {
@@ -988,6 +995,7 @@ async function do_sign_messages_impl( strDirection, jarrMessages, nIdxCurrentMsg
                     details.write( strErrorMessage );
                     reject( new Error( strErrorMessage ) );
                 } );
+                bHaveResultReportCalled = true;
                 return;
             }
             if( joGatheringTracker.nWaitIntervalStepsDone >= joGatheringTracker.nWaitIntervalMaxSteps ) {
@@ -1001,6 +1009,7 @@ async function do_sign_messages_impl( strDirection, jarrMessages, nIdxCurrentMsg
                     details.write( strErrorMessage );
                     reject( new Error( strErrorMessage ) );
                 } );
+                bHaveResultReportCalled = true;
                 return;
             }
         }, joGatheringTracker.nWaitIntervalStepMilliseconds );
@@ -1011,11 +1020,36 @@ async function do_sign_messages_impl( strDirection, jarrMessages, nIdxCurrentMsg
         const strLogMessage = cc.success( "BLS sign result await finished with: " ) + cc.info( strSuccessfulResultDescription ) + "\n";
         details.write( strLogMessage );
         log.write( strLogMessage );
-    } ).catch( err => {
-        const strErrorMessage = cc.error( "Failed BLS sign result awaiting: " ) + cc.warning( err.toString() ) + "\n";
+    } ).catch( async err => {
+        const strErrorMessage = cc.error( "Failed BLS sign result awaiting(1): " ) + cc.warning( err.toString() ) + "\n";
         log.write( strErrorMessage );
         details.write( strErrorMessage );
+        if( ! bHaveResultReportCalled ) {
+            bHaveResultReportCalled = true;
+            await fn( "Failed to gather BLS signatures in " + jarrNodes.length + " node(s), trakcer data is: " + JSON.stringify( joGatheringTracker ), jarrMessages, null ).catch( ( err ) => {
+                const strErrorMessage =
+                    cc.error( "Problem(5) in BLS sign result handler, not enough successful BLS signature parts(" ) +
+                    cc.info( cntSuccess ) + cc.error( ") and timeout reached, error details: " ) +
+                    cc.warning( err ) + "\n";
+                log.write( strErrorMessage );
+                details.write( strErrorMessage );
+            } );
+        }
     } );
+    if( ! bHaveResultReportCalled ) {
+        const strErrorMessage = cc.error( "Failed BLS sign result awaiting(2): " ) + cc.warning( err.toString() ) + "\n";
+        log.write( strErrorMessage );
+        details.write( strErrorMessage );
+        bHaveResultReportCalled = true;
+        await fn( "Failed to gather BLS signatures in " + jarrNodes.length + " node(s), trakcer data is: " + JSON.stringify( joGatheringTracker ), jarrMessages, null ).catch( ( err ) => {
+            const strErrorMessage =
+                cc.error( "Problem(6) in BLS sign result handler, not enough successful BLS signature parts(" ) +
+                cc.info( cntSuccess ) + cc.error( ") and timeout reached, error details: " ) +
+                cc.warning( err ) + "\n";
+            log.write( strErrorMessage );
+            details.write( strErrorMessage );
+        } );
+    }
 }
 
 async function do_sign_messages_m2s( jarrMessages, nIdxCurrentMsgBlockStart, details, joExtraSignOpts, fn ) {
