@@ -1343,7 +1343,7 @@ function ima_common_init() {
     // message_proxy_chain_address   --> message_proxy_chain_abi
 
     //
-    if( imaState.strURL_main_net.length > 0 )
+    if( imaState.strURL_main_net && typeof imaState.strURL_main_net == "string" && imaState.strURL_main_net.length > 0 )
         imaState.w3_main_net = getWeb3FromURL( imaState.strURL_main_net );
     else {
         log.write(
@@ -1353,7 +1353,7 @@ function ima_common_init() {
             "\n" );
     }
     //
-    if( imaState.strURL_s_chain.length > 0 )
+    if( imaState.strURL_s_chain && typeof imaState.strURL_s_chain == "string" && imaState.strURL_s_chain.length > 0 )
         imaState.w3_s_chain = getWeb3FromURL( imaState.strURL_s_chain );
     else {
         log.write(
@@ -1363,7 +1363,7 @@ function ima_common_init() {
             "\n" );
     }
     //
-    if( imaState.strURL_t_chain.length > 0 )
+    if( imaState.strURL_t_chain && typeof imaState.strURL_t_chain == "string" && imaState.strURL_t_chain.length > 0 )
         imaState.w3_t_chain = getWeb3FromURL( imaState.strURL_t_chain );
     else {
         log.write(
