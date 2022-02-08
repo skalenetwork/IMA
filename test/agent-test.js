@@ -92,8 +92,8 @@ global.imaState = {
     "strCoinNameErc1155_s_chain": "", // in-JSON coin name
 
     "strPathAbiJson_skale_manager": null, // "", // imaUtils.normalizePath( "../proxy/data/skaleManager.json" ), // "./abi_skale_manager.json"
-    "strPathAbiJson_main_net": null, // imaUtils.normalizePath( "./agent-test-data/proxyMainnet.json" ),
-    "strPathAbiJson_s_chain": null, // imaUtils.normalizePath( "./agent-test-data/proxySchain_Bob.json" ),
+    "strPathAbiJson_main_net": imaUtils.normalizePath( "./agent-test-data/proxyMainnet.json" ),
+    "strPathAbiJson_s_chain": imaUtils.normalizePath( "./agent-test-data/proxySchain_Bob.json" ),
     "strPathAbiJson_t_chain": null,
 
     "bShowConfigMode": false, // true - just show configuration values and exit
