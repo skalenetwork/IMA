@@ -67,6 +67,11 @@ global.imaState = {
     "joAbiPublishResult_skale_manager": { },
     "joAbiPublishResult_main_net": { },
     "joAbiPublishResult_s_chain": { },
+    "joAbiPublishResult_t_chain": { },
+    "bHaveSkaleManagerABI": false,
+    "bHaveImaAbiMainNet": false,
+    "bHaveImaAbiSchain": false,
+    "bHaveImaAbiSchainTarget": false,
 
     "joErc20_main_net": null,
     "joErc20_s_chain": null,
@@ -87,9 +92,10 @@ global.imaState = {
     "strCoinNameErc1155_main_net": "", // in-JSON coin name
     "strCoinNameErc1155_s_chain": "", // in-JSON coin name
 
-    "strPathAbiJson_skale_manager": "", // imaUtils.normalizePath( "../proxy/data/skaleManager.json" ), // "./abi_skale_manager.json"
-    "strPathAbiJson_main_net": imaUtils.normalizePath( "../proxy/data/proxyMainnet.json" ), // "./abi_main_net.json"
-    "strPathAbiJson_s_chain": imaUtils.normalizePath( "../proxy/data/proxySchain.json" ), // "./abi_s_chain.json"
+    "strPathAbiJson_skale_manager": "", // imaUtils.normalizePath( "../proxy/data/skaleManager.json" ),
+    "strPathAbiJson_main_net": null, // imaUtils.normalizePath( "../proxy/data/proxyMainnet.json" ),
+    "strPathAbiJson_s_chain": null, // imaUtils.normalizePath( "../proxy/data/proxySchain.json" ),
+    "strPathAbiJson_t_chain": null, // imaUtils.normalizePath( "../proxy/data/proxySchainTarget.json" ),
 
     "bShowConfigMode": false, // true - just show configuration values and exit
 
@@ -99,9 +105,11 @@ global.imaState = {
 
     "strURL_main_net": owaspUtils.toStringURL( process.env.URL_W3_ETHEREUM ), // example: "http://127.0.0.1:8545"
     "strURL_s_chain": owaspUtils.toStringURL( process.env.URL_W3_S_CHAIN ), // example: "http://127.0.0.1:2231"
+    "strURL_t_chain": owaspUtils.toStringURL( process.env.URL_W3_S_CHAIN_TARGET ), // example: "http://127.0.0.1:2231"
 
     "strChainName_main_net": ( process.env.CHAIN_NAME_ETHEREUM || "Mainnet" ).toString().trim(),
     "strChainName_s_chain": ( process.env.CHAIN_NAME_SCHAIN || "id-S-chain" ).toString().trim(),
+    "strChainName_t_chain": ( process.env.CHAIN_NAME_SCHAIN_TARGET || "id-T-chain" ).toString().trim(),
     "cid_main_net": owaspUtils.toInteger( process.env.CID_ETHEREUM ) || -4,
     "cid_s_chain": owaspUtils.toInteger( process.env.CID_SCHAIN ) || -4,
 
@@ -139,9 +147,9 @@ global.imaState = {
     "nTimeFrameSeconds": 0, // 0-disable, 60-recommended
     "nNextFrameGap": 10,
 
-    //
     "w3_main_net": null,
     "w3_s_chain": null,
+    "w3_t_chain": null,
 
     "jo_community_pool": null, // only main net
     "jo_deposit_box_eth": null, // only main net
@@ -165,12 +173,14 @@ global.imaState = {
     //
     // "joAccount_main_net": { "name": "g3",    "privateKey": "<YOUR_PRIVATE_KEY_HERE>", "address": IMA.owaspUtils.fn_address_impl_ },
     // "joAccount_s_chain ": { "name": "Bob",   "privateKey": "<YOUR_PRIVATE_KEY_HERE>", "address": IMA.owaspUtils.fn_address_impl_ },
+    // "joAccount_t_chain ": { "name": "Alice", "privateKey": "<YOUR_PRIVATE_KEY_HERE>", "address": IMA.owaspUtils.fn_address_impl_ },
     //
     //
     // example of empty values to fill from command line arguments:
     //
     // "joAccount_main_net": { "privateKey": "", "address": IMA.owaspUtils.fn_address_impl_ },
     // "joAccount_s_chain": { "privateKey": "", "address": IMA.owaspUtils.fn_address_impl_ },
+    // "joAccount_t_chain": { "privateKey": "", "address": IMA.owaspUtils.fn_address_impl_ },
     //
     "joAccount_main_net": {
         "privateKey": owaspUtils.toEthPrivateKey( process.env.PRIVATE_KEY_FOR_ETHEREUM ),
@@ -192,10 +202,21 @@ global.imaState = {
         "strPathSslKey": ( process.env.SGX_SSL_KEY_FILE_S_CHAIN || "" ).toString().trim(),
         "strPathSslCert": ( process.env.SGX_SSL_CERT_FILE_S_CHAIN || "" ).toString().trim()
     },
+    "joAccount_t_chain": {
+        "privateKey": owaspUtils.toEthPrivateKey( process.env.PRIVATE_KEY_FOR_SCHAIN_TARGET ),
+        "address": IMA.owaspUtils.fn_address_impl_,
+        "strTransactionManagerURL": owaspUtils.toStringURL( process.env.TRANSACTION_MANAGER_URL_S_CHAIN_TARGET ),
+        "tm_priority": owaspUtils.toStringURL( process.env.TRANSACTION_MANAGER_PRIORITY_S_CHAIN_TARGET ) || 5,
+        "strSgxURL": owaspUtils.toStringURL( process.env.SGX_URL_S_CHAIN_TARGET ),
+        "strSgxKeyName": owaspUtils.toStringURL( process.env.SGX_KEY_S_CHAIN_TARGET ),
+        "strPathSslKey": ( process.env.SGX_SSL_KEY_FILE_S_CHAIN_TARGET || "" ).toString().trim(),
+        "strPathSslCert": ( process.env.SGX_SSL_CERT_FILE_S_CHAIN_TARGET || "" ).toString().trim()
+    },
 
     //
     "tc_main_net": IMA.tc_main_net,
     "tc_s_chain": IMA.tc_s_chain,
+    "tc_t_chain": IMA.tc_t_chain,
     //
 
     "doEnableDryRun": function( isEnable ) { return IMA.dry_run_enable( isEnable ); },
@@ -236,11 +257,13 @@ global.imaState = {
 
 const tmp_address_MN_from_env = owaspUtils.toEthPrivateKey( process.env.ACCOUNT_FOR_ETHEREUM );
 const tmp_address_SC_from_env = owaspUtils.toEthPrivateKey( process.env.ACCOUNT_FOR_SCHAIN );
+const tmp_address_TC_from_env = owaspUtils.toEthPrivateKey( process.env.ACCOUNT_FOR_SCHAIN_TARGET );
 if( tmp_address_MN_from_env && typeof tmp_address_MN_from_env == "string" && tmp_address_MN_from_env.length > 0 )
     imaState.joAccount_main_net.address_ = "" + tmp_address_MN_from_env;
-
 if( tmp_address_SC_from_env && typeof tmp_address_SC_from_env == "string" && tmp_address_SC_from_env.length > 0 )
     imaState.joAccount_s_chain.address_ = "" + tmp_address_SC_from_env;
+if( tmp_address_TC_from_env && typeof tmp_address_TC_from_env == "string" && tmp_address_TC_from_env.length > 0 )
+    imaState.joAccount_t_chain.address_ = "" + tmp_address_TC_from_env;
 
 imaBLS.init();
 
@@ -1643,21 +1666,28 @@ if( imaState.nMonitoringPort > 0 ) {
 
                             "strURL_main_net",
                             "strURL_s_chain",
+                            //"strURL_t_chain",
 
                             "strChainName_main_net",
                             "strChainName_s_chain",
+                            //"strChainName_t_chain",
                             "cid_main_net",
                             "cid_s_chain",
+                            //"cid_t_chain",
 
                             "nTransferBlockSizeM2S",
                             "nTransferBlockSizeS2M",
+                            "nTransferBlockSizeS2S",
                             "nMaxTransactionsM2S",
                             "nMaxTransactionsS2M",
+                            "nMaxTransactionsS2S",
 
                             "nBlockAwaitDepthM2S",
                             "nBlockAwaitDepthS2M",
+                            "nBlockAwaitDepthS2S",
                             "nBlockAgeM2S",
                             "nBlockAgeS2M",
+                            "nBlockAgeS2S",
 
                             "nLoopPeriodSeconds",
 
