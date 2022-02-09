@@ -815,6 +815,8 @@ imaCLI.parse( {
             }
         } );
     },
+    "s2s-payment": function() {
+    },
     "s2m-receive": function() {
         imaState.arrActions.push( {
             "name": "receive one S->M single ETH payment",

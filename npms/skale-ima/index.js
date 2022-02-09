@@ -378,6 +378,7 @@ async function get_web3_pastEvents( details, w3, cntAttempts, joContract, strEve
         retValOnFail = "";
     let ret = retValOnFail;
     let idxAttempt = 1;
+    const strErrorTextAboutNotExistingEvent = "Event \"" + strEventName + "\" doesn't exist in this contract";
     try {
         ret = await joContract[strFnName]( "" + strEventName, {
             filter: joFilter,
@@ -394,6 +395,14 @@ async function get_web3_pastEvents( details, w3, cntAttempts, joContract, strEve
             cc.error( ", from block " ) + cc.warning( nBlockFrom ) + cc.error( ", to block " ) + cc.warning( nBlockTo ) +
             cc.error( ", error is: " ) + cc.warning( err.toString() ) +
             "\n" );
+        if( err.toString().indexOf( strErrorTextAboutNotExistingEvent ) >= 0 ) {
+            details.write(
+                cc.error( "Did stopped calls to " ) + cc.note( strFnName + "()" ) +
+                cc.error( " because event " ) + cc.notice( strEventName ) +
+                cc.error( " does not exist in smart contract " ) +
+                "\n" );
+            return ret;
+        }
     }
     ++ idxAttempt;
     while( ret === "" && idxAttempt <= cntAttempts ) {
@@ -432,6 +441,14 @@ async function get_web3_pastEvents( details, w3, cntAttempts, joContract, strEve
                 cc.error( ", from block " ) + cc.warning( nBlockFrom ) + cc.error( ", to block " ) + cc.warning( nBlockTo ) +
                 cc.error( ", error is: " ) + cc.warning( err.toString() ) +
                 "\n" );
+            if( err.toString().indexOf( strErrorTextAboutNotExistingEvent ) >= 0 ) {
+                details.write(
+                    cc.error( "Did stopped calls to " ) + cc.note( strFnName + "()" ) +
+                    cc.error( " because event " ) + cc.notice( strEventName ) +
+                    cc.error( " does not exist in smart contract " ) +
+                    "\n" );
+                return ret;
+            }
         }
         ++ idxAttempt;
     }
