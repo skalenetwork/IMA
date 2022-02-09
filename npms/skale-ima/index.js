@@ -172,125 +172,282 @@ async function wait_for_next_block_to_appear( details, w3 ) {
     }
 }
 
-async function get_web3_blockNumber( details, attempts, w3 ) {
-    const cntAttempts = parseIntOrHex( attempts ) < 1 ? 1 : parseIntOrHex( attempts );
-    let nLatestBlockNumber = "";
+async function get_web3_blockNumber( details, cntAttempts, w3, retValOnFail, throwIfServerOffline ) {
+    const strFnName = "getBlockNumber";
+    const u = owaspUtils.w3_2_url( w3 );
+    const nWaitStepMilliseconds = 10 * 1000;
+    if( throwIfServerOffline == null || throwIfServerOffline == undefined )
+        throwIfServerOffline = true;
+    cntAttempts = parseIntOrHex( cntAttempts ) < 1 ? 1 : parseIntOrHex( cntAttempts );
+    if( retValOnFail == null || retValOnFail == undefined )
+        retValOnFail = "";
+    let idxAttempt = 1;
+    let ret = retValOnFail;
     try {
-        nLatestBlockNumber = await w3.eth.getBlockNumber();
-    } catch ( e ) {}
-    let idxAttempt = 2;
-    while( nLatestBlockNumber === "" && idxAttempt <= cntAttempts ) {
+        ret = await w3.eth[strFnName]();
+        return ret;
+    } catch ( err ) {
+        ret = retValOnFail;
         details.write(
-            cc.warning( "Repeat " ) + cc.error( "getBlockNumber" ) + cc.warning( ", attempt " ) + cc.info( idxAttempt ) +
-            cc.info( ", previous result is: " ) + cc.info( nLatestBlockNumber ) + "\n" );
-        await sleep( 10000 );
+            cc.error( "Failed call attempt " ) + cc.info( idxAttempt ) +
+            cc.error( " to " ) + cc.note( strFnName + "()" ) +
+            cc.error( " via " ) + cc.u( u ) +
+            cc.error( ", error is: " ) + cc.warning( err.toString() ) +
+            "\n" );
+    }
+    ++ idxAttempt;
+    while( ret === "" && idxAttempt <= cntAttempts ) {
+        const isOnlone = rpcCall.check_url( u, nWaitStepMilliseconds );
+        if( ! isOnlone ) {
+            ret = retValOnFail;
+            if( ! throwIfServerOffline )
+                return ret;
+            details.write(
+                cc.error( "Cannot call " ) + cc.note( strFnName + "()" ) + cc.error( " via " ) + cc.u( u ) +
+                cc.warning( " because server is off-line" ) + "\n" );
+            throw new Error( "Cannot " + strFnName + "() via " + u.toString() + " because server is off-line" );
+        }
+        details.write(
+            cc.warning( "Repeat call to " ) + cc.note( strFnName + "()" ) +
+            cc.error( " via " ) + cc.u( u ) +
+            cc.warning( ", attempt " ) + cc.info( idxAttempt ) +
+            "\n" );
+        // await sleep( nWaitStepMilliseconds );
         try {
-            nLatestBlockNumber = await w3.eth.getBlockNumber();
-        } catch ( e ) {}
-        idxAttempt++;
+            ret = await w3.eth[strFnName]();
+            return ret;
+        } catch ( err ) {
+            ret = retValOnFail;
+            details.write(
+                cc.error( "Failed call attempt " ) + cc.info( idxAttempt ) +
+                cc.error( " to " ) + cc.note( strFnName + "()" ) +
+                cc.error( " via " ) + cc.u( u ) +
+                cc.error( ", error is: " ) + cc.warning( err.toString() ) +
+                "\n" );
+        }
+        ++ idxAttempt;
     }
-    if( ( idxAttempt + 1 ) > cntAttempts && nLatestBlockNumber === "" ) {
+    if( ( idxAttempt + 1 ) > cntAttempts && ret === "" ) {
         details.write( cc.fatal( "ERROR:" ) +
-            cc.error( " Could not not get " ) + cc.warning( "blockNumber" ) + cc.error( " after " ) +
-            cc.info( cntAttempts ) + cc.error( " attempts, previous result is: " ) + cc.info( nLatestBlockNumber ) + "\n" );
-        throw new Error( "Could not get \"blockNumber\" after " + cntAttempts + " attempts" );
+            cc.error( " Failed call to " ) + cc.note( strFnName + "()" ) +
+            + cc.error( " via " ) + cc.u( u ) + cc.error( " after " ) + cc.info( cntAttempts ) + cc.error( " attempts " ) +
+            "\n" );
+        throw new Error( "Failed call to " + strFnName + "() via " + u.toString() + " after " + cntAttempts + " attempts" );
     }
-    return nLatestBlockNumber;
+    return ret;
 }
 
-async function get_web3_transactionCount( details, attempts, w3, address, param ) {
-    const cntAttempts = parseIntOrHex( attempts ) < 1 ? 1 : parseIntOrHex( attempts );
-    let txc = "";
+async function get_web3_transactionCount( details, cntAttempts, w3, address, param, retValOnFail, throwIfServerOffline ) {
+    const strFnName = "getTransactionCount";
+    const u = owaspUtils.w3_2_url( w3 );
+    const nWaitStepMilliseconds = 10 * 1000;
+    if( throwIfServerOffline == null || throwIfServerOffline == undefined )
+        throwIfServerOffline = true;
+    cntAttempts = parseIntOrHex( cntAttempts ) < 1 ? 1 : parseIntOrHex( cntAttempts );
+    if( retValOnFail == null || retValOnFail == undefined )
+        retValOnFail = "";
+    let ret = retValOnFail;
+    let idxAttempt = 1;
     try {
-        txc = await w3.eth.getTransactionCount( address, param );
-    } catch ( e ) {}
-    let idxAttempt = 2;
-    while( txc === "" && idxAttempt <= cntAttempts ) {
+        ret = await w3.eth[strFnName]( address, param );
+        return ret;
+    } catch ( err ) {
+        ret = retValOnFail;
         details.write(
-            cc.warning( "Repeat " ) + cc.error( "getTransactionCount" ) + cc.warning( " attempt " ) + cc.error( idxAttempt ) +
-            cc.warning( ", previous result is: " ) + cc.info( txc ) + "\n" );
-        await sleep( 10000 );
+            cc.error( "Failed call attempt " ) + cc.info( idxAttempt ) +
+            cc.error( " to " ) + cc.note( strFnName + "()" ) +
+            cc.error( " via " ) + cc.u( u ) +
+            cc.error( ", error is: " ) + cc.warning( err.toString() ) +
+            "\n" );
+    }
+    ++ idxAttempt;
+    while( ret === "" && idxAttempt <= cntAttempts ) {
+        const isOnlone = rpcCall.check_url( u, nWaitStepMilliseconds );
+        if( ! isOnlone ) {
+            ret = retValOnFail;
+            if( ! throwIfServerOffline )
+                return ret;
+            details.write(
+                cc.error( "Cannot call " ) + cc.note( strFnName + "()" ) + cc.error( " via " ) + cc.u( u ) +
+                cc.warning( " because server is off-line" ) + "\n" );
+            throw new Error( "Cannot " + strFnName + "() via " + u.toString() + " because server is off-line" );
+        }
+        details.write(
+            cc.warning( "Repeat call to " ) + cc.note( strFnName + "()" ) +
+            cc.error( " via " ) + cc.u( u ) +
+            cc.warning( ", attempt " ) + cc.info( idxAttempt ) +
+            "\n" );
+        // await sleep( nWaitStepMilliseconds );
         try {
-            txc = await w3.eth.getTransactionCount( address, param );
-        } catch ( e ) {}
-        idxAttempt++;
+            ret = await w3.eth[strFnName]( address, param );
+            return ret;
+        } catch ( err ) {
+            ret = retValOnFail;
+            details.write(
+                cc.error( "Failed call attempt " ) + cc.info( idxAttempt ) +
+                cc.error( " to " ) + cc.note( strFnName + "()" ) +
+                cc.error( " via " ) + cc.u( u ) +
+                cc.error( ", error is: " ) + cc.warning( err.toString() ) +
+                "\n" );
+        }
+        ++ idxAttempt;
     }
-    if( ( idxAttempt + 1 ) > cntAttempts && txc === "" ) {
+    if( ( idxAttempt + 1 ) > cntAttempts && ret === "" ) {
         details.write( cc.fatal( "ERROR:" ) +
-            cc.error( " Could not " ) + cc.warning( "getTransactionCount" ) + cc.error( " after " ) +
-            cc.warning( cntAttempts ) + cc.error( " attempts, previous result is: " ) + cc.info( txc ) + "\n" );
-        throw new Error( "Could not \"getTransactionCount\" after " + cntAttempts + " attempts" );
+            cc.error( " Failed call to " ) + cc.note( strFnName + "()" ) +
+            + cc.error( " via " ) + cc.u( u ) + cc.error( " after " ) + cc.info( cntAttempts ) + cc.error( " attempts " ) +
+            "\n" );
+        throw new Error( "Failed call to " + strFnName + "() via " + u.toString() + " after " + cntAttempts + " attempts" );
     }
-    return txc;
+    return ret;
 }
 
-async function get_web3_transactionReceipt( details, attempts, w3, txHash ) {
-    const cntAttempts = parseIntOrHex( attempts ) < 1 ? 1 : parseIntOrHex( attempts );
-    let txReceipt = "";
+async function get_web3_transactionReceipt( details, cntAttempts, w3, txHash, retValOnFail, throwIfServerOffline ) {
+    const strFnName = "getTransactionReceipt";
+    const u = owaspUtils.w3_2_url( w3 );
+    const nWaitStepMilliseconds = 10 * 1000;
+    if( throwIfServerOffline == null || throwIfServerOffline == undefined )
+        throwIfServerOffline = true;
+    cntAttempts = parseIntOrHex( cntAttempts ) < 1 ? 1 : parseIntOrHex( cntAttempts );
+    if( retValOnFail == null || retValOnFail == undefined )
+        retValOnFail = "";
+    let ret = retValOnFail;
+    let idxAttempt = 1;
     try {
-        txReceipt = await w3.eth.getTransactionReceipt( txHash );
-    } catch ( e ) {}
-    let idxAttempt = 2;
+        ret = await w3.eth[strFnName]( txHash );
+        return ret;
+    } catch ( err ) {
+        ret = retValOnFail;
+        details.write(
+            cc.error( "Failed call attempt " ) + cc.info( idxAttempt ) +
+            cc.error( " to " ) + cc.note( strFnName + "()" ) +
+            cc.error( " via " ) + cc.u( u ) +
+            cc.error( ", error is: " ) + cc.warning( err.toString() ) +
+            "\n" );
+    }
+    ++ idxAttempt;
     while( txReceipt === "" && idxAttempt <= cntAttempts ) {
+        const isOnlone = rpcCall.check_url( u, nWaitStepMilliseconds );
+        if( ! isOnlone ) {
+            ret = retValOnFail;
+            if( ! throwIfServerOffline )
+                return ret;
+            details.write(
+                cc.error( "Cannot call " ) + cc.note( strFnName + "()" ) + cc.error( " via " ) + cc.u( u ) +
+                cc.warning( " because server is off-line" ) + "\n" );
+            throw new Error( "Cannot " + strFnName + "() via " + u.toString() + " because server is off-line" );
+        }
         details.write(
-            cc.warning( "Repeat " ) + cc.error( "getTransactionReceipt" ) + cc.warning( ", attempt " ) + cc.error( idxAttempt ) +
-            cc.warning( ", previous result is: " ) + cc.j( txReceipt ) + "\n" );
-        await sleep( 10000 );
+            cc.warning( "Repeat call to " ) + cc.note( strFnName + "()" ) +
+            cc.error( " via " ) + cc.u( u ) +
+            cc.warning( ", attempt " ) + cc.info( idxAttempt ) +
+            "\n" );
+        // await sleep( nWaitStepMilliseconds );
         try {
-            txReceipt = await w3.eth.getTransactionReceipt( txHash );
-        } catch ( e ) {}
-        idxAttempt++;
+            ret = await w3.eth[strFnName]( txHash );
+            return ret;
+        } catch ( err ) {
+            ret = retValOnFail;
+            details.write(
+                cc.error( "Failed call attempt " ) + cc.info( idxAttempt ) +
+                cc.error( " to " ) + cc.note( strFnName + "()" ) +
+                cc.error( " via " ) + cc.u( u ) +
+                cc.error( ", error is: " ) + cc.warning( err.toString() ) +
+                "\n" );
+        }
+        ++ idxAttempt;
     }
     if( ( idxAttempt + 1 ) > cntAttempts && ( txReceipt === "" || txReceipt === undefined ) ) {
         details.write( cc.fatal( "ERROR:" ) +
-            cc.error( " Could not " ) + cc.warning( "getTransactionReceipt" ) + cc.error( " after " ) +
-            cc.info( cntAttempts ) + cc.error( " attempts, previous result is: " ) + cc.j( txReceipt ) + "\n" );
-        throw new Error( "Could not \"getTransactionReceipt\" after " + cntAttempts + " attempts" );
+            cc.error( " Failed call to " ) + cc.note( strFnName + "()" ) +
+            + cc.error( " via " ) + cc.u( u ) + cc.error( " after " ) + cc.info( cntAttempts ) + cc.error( " attempts " ) +
+            "\n" );
+        throw new Error( "Failed call to " + strFnName + "() via " + u.toString() + " after " + cntAttempts + " attempts" );
     }
-    return txReceipt;
+    return ret;
 }
 
-async function get_web3_pastEvents( details, w3, attempts, joContract, strEventName, nBlockFrom, nBlockTo, joFilter ) {
-    const cntAttempts = parseIntOrHex( attempts ) < 1 ? 1 : parseIntOrHex( attempts );
-    let joAllEventsInBlock = "";
+async function get_web3_pastEvents( details, w3, cntAttempts, joContract, strEventName, nBlockFrom, nBlockTo, joFilter, retValOnFail, throwIfServerOffline ) {
+    const strFnName = "getPastEvents";
+    const u = owaspUtils.w3_2_url( w3 );
+    const nWaitStepMilliseconds = 10 * 1000;
+    if( throwIfServerOffline == null || throwIfServerOffline == undefined )
+        throwIfServerOffline = true;
+    cntAttempts = parseIntOrHex( cntAttempts ) < 1 ? 1 : parseIntOrHex( cntAttempts );
+    if( retValOnFail == null || retValOnFail == undefined )
+        retValOnFail = "";
+    let ret = retValOnFail;
+    let idxAttempt = 1;
     try {
-        joAllEventsInBlock = await joContract.getPastEvents( "" + strEventName, {
+        ret = await joContract[strFnName]( "" + strEventName, {
             filter: joFilter,
             fromBlock: nBlockFrom,
             toBlock: nBlockTo
         } );
-    } catch ( err ) {}
-    let idxAttempt = 2;
-    while( joAllEventsInBlock === "" && idxAttempt <= cntAttempts ) {
+        return ret;
+    } catch ( err ) {
+        ret = retValOnFail;
         details.write(
-            cc.warning( "Repeat " ) + cc.info( "getPastEvents" ) + cc.warning( "/" ) + cc.error( attempts ) +
-            cc.warning( ", attempt " ) + cc.error( idxAttempt ) +
-            cc.warning( ", from block " ) + cc.info( nBlockFrom ) +
-            cc.warning( ", to block " ) + cc.info( nBlockTo ) +
-            cc.warning( ", previous result is: " ) + cc.j( joAllEventsInBlock ) + "\n" );
-        await sleep( 1000 );
+            cc.error( "Failed call attempt " ) + cc.info( idxAttempt ) +
+            cc.error( " to " ) + cc.note( strFnName + "()" ) +
+            cc.error( " via " ) + cc.u( u ) +
+            cc.error( ", from block " ) + cc.warning( nBlockFrom ) + cc.error( ", to block " ) + cc.warning( nBlockTo ) +
+            cc.error( ", error is: " ) + cc.warning( err.toString() ) +
+            "\n" );
+    }
+    ++ idxAttempt;
+    while( ret === "" && idxAttempt <= cntAttempts ) {
+        const isOnlone = rpcCall.check_url( u, nWaitStepMilliseconds );
+        if( ! isOnlone ) {
+            ret = retValOnFail;
+            if( ! throwIfServerOffline )
+                return ret;
+            details.write(
+                cc.error( "Cannot call " ) + cc.note( strFnName + "()" ) + cc.error( " via " ) + cc.u( u ) +
+                cc.warning( " because server is off-line" ) + "\n" );
+            throw new Error(
+                "Cannot " + strFnName + "(), from block " + nBlockFrom + ", to block " + nBlockTo +
+                " via " + u.toString() + " because server is off-line"
+            );
+        }
+        details.write(
+            cc.warning( "Repeat call to " ) + cc.note( strFnName + "()" ) +
+            cc.error( " via " ) + cc.u( u ) +
+            cc.warning( ", attempt " ) + cc.info( idxAttempt ) +
+            "\n" );
+        // await sleep( nWaitStepMilliseconds );
         try {
-            joAllEventsInBlock = await joContract.getPastEvents( "" + strEventName, {
+            ret = await joContract[strFnName]( "" + strEventName, {
                 filter: joFilter,
                 fromBlock: nBlockFrom,
                 toBlock: nBlockTo
             } );
-        } catch ( err ) {}
-        idxAttempt++;
+            return ret;
+        } catch ( err ) {
+            ret = retValOnFail;
+            details.write(
+                cc.error( "Failed call attempt " ) + cc.info( idxAttempt ) +
+                cc.error( " to " ) + cc.note( strFnName + "()" ) +
+                cc.error( " via " ) + cc.u( u ) +
+                cc.error( ", from block " ) + cc.warning( nBlockFrom ) + cc.error( ", to block " ) + cc.warning( nBlockTo ) +
+                cc.error( ", error is: " ) + cc.warning( err.toString() ) +
+                "\n" );
+        }
+        ++ idxAttempt;
     }
-    if( ( idxAttempt + 1 ) === cntAttempts && joAllEventsInBlock === "" ) {
+    if( ( idxAttempt + 1 ) === cntAttempts && ret === "" ) {
         details.write( cc.fatal( "ERROR:" ) +
-            cc.error( "Could not get event " ) + cc.attention( strEventName ) + cc.error( " with " ) + cc.info( "getPastEvents" ) +
+            cc.error( " Failed call to " ) + cc.note( strFnName + "()" ) +
+            + cc.error( " via " ) + cc.u( u ) +
             cc.error( ", from block " ) + cc.warning( nBlockFrom ) + cc.error( ", to block " ) + cc.warning( nBlockTo ) +
-            cc.error( " after " ) + cc.warning( cntAttempts ) + cc.error( " attempts, previous result is: " ) +
-            cc.j( joAllEventsInBlock ) + "\n" );
+            cc.error( " after " ) + cc.info( cntAttempts ) + cc.error( " attempts " ) +
+            "\n" );
         throw new Error(
-            "Could not get Event \"" + strEventName +
-            "\", from block " + nBlockFrom + ", to block " + nBlockTo +
-            " after " + cntAttempts + " attempts"
+            "Failed call to " + strFnName + "(), from block " + nBlockFrom + ", to block " + nBlockTo +
+            " via " + u.toString() + " after " + cntAttempts + " attempts"
         );
     }
-    return joAllEventsInBlock;
+    return ret;
 }
 
 let g_nCountOfBlocksInIterativeStep = 1000;

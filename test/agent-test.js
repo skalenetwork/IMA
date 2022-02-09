@@ -74,22 +74,30 @@ global.imaState = {
 
     "joErc20_main_net": null,
     "joErc20_s_chain": null,
-
+    "joErc20_t_chain": null,
     "strAddrErc20_explicit": "",
+    "strAddrErc20_explicit_target": "", // S<->S target
     "strCoinNameErc20_main_net": "", // in-JSON coin name
     "strCoinNameErc20_s_chain": "", // in-JSON coin name
+    "strCoinNameErc20_t_chain": "", // in-JSON coin name
 
     "joErc721_main_net": null,
     "joErc721_s_chain": null,
+    "joErc721_t_chain": null,
     "strAddrErc721_explicit": "",
+    "strAddrErc721_explicit_target": "", // S<->S target
     "strCoinNameErc721_main_net": "", // in-JSON coin name
     "strCoinNameErc721_s_chain": "", // in-JSON coin name
+    "strCoinNameErc721_t_chain": "", // in-JSON coin name
 
     "joErc1155_main_net": null,
     "joErc1155_s_chain": null,
+    "joErc1155_t_chain": null,
     "strAddrErc1155_explicit": "",
+    "strAddrErc1155_explicit_target": "", // S<->S target
     "strCoinNameErc1155_main_net": "", // in-JSON coin name
     "strCoinNameErc1155_s_chain": "", // in-JSON coin name
+    "strCoinNameErc1155_t_chain": "", // in-JSON coin name
 
     "strPathAbiJson_skale_manager": null, // "", // imaUtils.normalizePath( "../proxy/data/skaleManager.json" ), // "./abi_skale_manager.json"
     "strPathAbiJson_main_net": imaUtils.normalizePath( "./agent-test-data/proxyMainnet.json" ),
@@ -114,12 +122,13 @@ global.imaState = {
 
     "strPathJsonErc20_main_net": "",
     "strPathJsonErc20_s_chain": "",
-
+    "strPathJsonErc20_t_chain": "",
     "strPathJsonErc721_main_net": "",
     "strPathJsonErc721_s_chain": "",
-
+    "strPathJsonErc721_t_chain": "",
     "strPathJsonErc1155_main_net": "",
     "strPathJsonErc1155_s_chain": "",
+    "strPathJsonErc1155_t_chain": "",
 
     "nAmountOfWei": 0,
     "nAmountOfToken": 0,
