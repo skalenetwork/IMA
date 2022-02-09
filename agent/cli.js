@@ -315,6 +315,8 @@ function parse( joExternalHandlers, argv ) {
             console.log( soi + cc.debug( "--" ) + cc.bright( "s2m-receive" ) + cc.debug( "..................." ) + cc.notice( "Receive one payment from " ) + cc.note( "S-chain" ) + cc.notice( " user account to " ) + cc.note( "Main-net" ) + cc.notice( " user account" ) + cc.debug( "(ETH only, receives all the ETH pending in transfer)" ) + cc.notice( "." ) );
             console.log( soi + cc.debug( "--" ) + cc.bright( "s2m-view" ) + cc.debug( "......................" ) + cc.notice( "View money amount user can receive as payment from " ) + cc.note( "S-chain" ) + cc.notice( " user account to " ) + cc.note( "Main-net" ) + cc.notice( " user account" ) + cc.debug( "(ETH only, receives all the ETH pending in transfer)" ) + cc.notice( "." ) );
             console.log( soi + cc.debug( "--" ) + cc.bright( "s2s-payment" ) + cc.debug( "..................." ) + cc.notice( "Do one payment from " ) + cc.note( "S-chain" ) + cc.notice( " user account to other " ) + cc.note( "S-chain" ) + cc.notice( " user account." ) );
+            console.log( soi + cc.debug( "--" ) + cc.bright( "s2s-forward" ) + cc.debug( "..................." ) + cc.notice( "Indicates " ) + cc.note( "S<->S" ) + cc.notice( " transfer direction is " ) + cc.attention( "forward" ) + cc.notice( ". I.e. source " ) + cc.note( "S-chain" ) + cc.notice( " is token minter and instantiator. " ) + cc.debug( "This is default mode" ) + cc.notice( "." ) );
+            console.log( soi + cc.debug( "--" ) + cc.bright( "s2s-reverse" ) + cc.debug( "..................." ) + cc.notice( "Indicates " ) + cc.note( "S<->S" ) + cc.notice( " transfer direction is " ) + cc.attention( "reverse" ) + cc.notice( ". I.e. destination " ) + cc.note( "S-chain" ) + cc.notice( " is token minter and instantiator." ) );
             console.log( soi + cc.debug( "--" ) + cc.bright( "m2s-transfer" ) + cc.debug( ".................." ) + cc.notice( "Do single " ) + cc.attention( "money transfer loop" ) + cc.notice( " from " ) + cc.note( "Main-net" ) + cc.notice( " to " ) + cc.note( "S-chain" ) + cc.notice( "." ) );
             console.log( soi + cc.debug( "--" ) + cc.bright( "s2m-transfer" ) + cc.debug( ".................." ) + cc.notice( "Do single " ) + cc.attention( "money transfer loop" ) + cc.notice( " from " ) + cc.note( "S-chain" ) + cc.notice( " to " ) + cc.note( "Main-net" ) + cc.notice( "." ) );
             console.log( soi + cc.debug( "--" ) + cc.bright( "s2s-transfer" ) + cc.debug( ".................." ) + cc.notice( "Do single " ) + cc.attention( "money transfer loop" ) + cc.notice( " from " ) + cc.note( "S-chain" ) + cc.notice( " to " ) + cc.note( "S-chain" ) + cc.notice( "." ) );
@@ -401,7 +403,7 @@ function parse( joExternalHandlers, argv ) {
             console.log( soi + cc.debug( "--" ) + cc.bright( "log-size" ) + cc.sunny( "=" ) + cc.note( "value" ) + cc.debug( "................" ) + cc.notice( "Max size" ) + cc.debug( "(in bytes)" ) + cc.notice( " of one log file" ) + cc.debug( "(affects to log log rotation)" ) + cc.notice( "." ) );
             console.log( soi + cc.debug( "--" ) + cc.bright( "log-files" ) + cc.sunny( "=" ) + cc.note( "value" ) + cc.debug( "..............." ) + cc.notice( "Maximum number of log files for log rotation." ) );
             //
-            process.exit( 0 ); // return 0;
+            process.exit( 0 );
         }
         if( joArg.name == "version" ) {
             print_about();
@@ -1132,6 +1134,14 @@ function parse( joExternalHandlers, argv ) {
         if( joArg.name == "ogp-mode" ) {
             owaspUtils.verifyArgumentIsInteger( joArg );
             IMA.setOracleGasPriceMode( owaspUtils.toInteger( joArg.value ) );
+            continue;
+        }
+        if( joArg.name == "s2s-forward" ) {
+            IMA.setForwardS2S();
+            continue;
+        }
+        if( joArg.name == "s2s-reverse" ) {
+            IMA.setReverseS2S();
             continue;
         }
         if( joArg.name == "register" ||
@@ -2071,6 +2081,7 @@ function ima_common_init() {
         log.write( cc.info( "Oracle gas price mode is" ) + cc.debug( "............................." ) + cc.info( IMA.getOracleGasPriceMode() ) + "\n" );
         log.write( cc.info( "S-Chain to S-Chain transferring is" ) + cc.debug( "..................." ) + ( imaState.s2s_opts.isEnabled ? cc.success( "enabled" ) : cc.error( "disabled" ) ) + "\n" );
         log.write( cc.info( "SKALE network re-discovery interval is" ) + cc.debug( "..............." ) + ( imaState.s2s_opts.secondsToReDiscoverSkaleNetwork ? cc.info( imaState.s2s_opts.secondsToReDiscoverSkaleNetwork.toString() ) : cc.error( "disabled" ) ) + "\n" );
+        log.write( cc.info( "S<->S transfer mode is" ) + cc.debug( "..............................." ) + IMA.get_S2S_transfer_mode_description_colorized() + "\n" );
     }
     //
     //

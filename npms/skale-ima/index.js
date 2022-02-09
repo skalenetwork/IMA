@@ -743,6 +743,36 @@ async function do_oracle_gas_price_setup(
     return true;
 }
 
+let g_isForwardS2S = true; // default S<->S transfer mode for "--s2s-transfer" is "forward"
+
+function get_S2S_transfer_mode_description() {
+    return g_isForwardS2S ? "forward" : "reverse";
+}
+
+function get_S2S_transfer_mode_description_colorized() {
+    return g_isForwardS2S ? cc.success( "forward" ) : cc.error( "reverse" );
+}
+
+function isForwardS2S() {
+    return g_isForwardS2S ? true : false;
+}
+
+function isReverseS2S() {
+    return g_isForwardS2S ? false : true;
+}
+
+function setForwardS2S( b ) {
+    if( b == null || b == undefined )
+        b = true;
+    g_isForwardS2S = b ? true : false;
+}
+
+function setReverseS2S( b ) {
+    if( b == null || b == undefined )
+        b = true;
+    g_isForwardS2S = b ? false : true;
+}
+
 function create_progressive_events_scan_plan( details, nLatestBlockNumber ) {
     // assume Main Net mines 6 blocks per minute
     const blks_in_1_minute = 6;
@@ -1159,7 +1189,7 @@ async function safe_sign_transaction_with_account( details, w3, tx, rawTx, joAcc
                 if( verbose_get() >= RV_VERBOSE.error )
                     log.write( s );
                 details.write( s );
-                return; // process.exit( 155 );
+                return;
             }
             const txAdjusted = JSON.parse( JSON.stringify( rawTx ) ); // tx // rawTx
             if( "chainId" in txAdjusted )
@@ -1181,7 +1211,7 @@ async function safe_sign_transaction_with_account( details, w3, tx, rawTx, joAcc
                         if( verbose_get() >= RV_VERBOSE.error )
                             log.write( s );
                         details.write( s );
-                        return; // process.exit( 156 );
+                        return;
                     }
                     details.write( cc.debug( "Transaction Manager sign-and-send result is: " ) + cc.j( joOut ) + "\n" );
                     if( joOut && "data" in joOut && joOut.data && "transaction_hash" in joOut.data )
@@ -1191,7 +1221,7 @@ async function safe_sign_transaction_with_account( details, w3, tx, rawTx, joAcc
                         if( verbose_get() >= RV_VERBOSE.error )
                             log.write( s );
                         details.write( s );
-                        return; // process.exit( 156 );
+                        return;
                     }
                 } );
         } );
@@ -1251,7 +1281,7 @@ async function safe_sign_transaction_with_account( details, w3, tx, rawTx, joAcc
                 if( verbose_get() >= RV_VERBOSE.error )
                     log.write( s );
                 details.write( s );
-                return; // process.exit( 155 );
+                return;
             }
             const msgHash = tx.hash( false );
             const strHash = msgHash.toString( "hex" );
@@ -1271,7 +1301,7 @@ async function safe_sign_transaction_with_account( details, w3, tx, rawTx, joAcc
                     if( verbose_get() >= RV_VERBOSE.error )
                         log.write( s );
                     details.write( s );
-                    return; // process.exit( 156 );
+                    return;
                 }
                 details.write( cc.debug( "SGX wallet ECDSA sign result is: " ) + cc.j( joOut ) + "\n" );
                 const joNeededResult = {
@@ -2059,14 +2089,14 @@ async function do_eth_payment_from_main_net(
             else
                 throw new Error( "Verification failed for the \"OutgoingMessage\" event of the \"MessageProxy\"/" + jo_message_proxy_main_net.options.address + " contract, no events found" );
         } // if( jo_message_proxy_main_net )
-        if( jo_deposit_box ) {
-            details.write( strLogPrefix + cc.debug( "Verifying the " ) + cc.info( "Error" ) + cc.debug( " event of the " ) + cc.info( "DepositBox" ) + cc.debug( "/" ) + cc.notice( jo_deposit_box.options.address ) + cc.debug( " contract..." ) + "\n" );
-            const joEvents = await get_contract_call_events( details, w3_main_net, jo_deposit_box, "Error", joReceipt.blockNumber, joReceipt.transactionHash, {} );
-            if( joEvents.length == 0 )
-                details.write( strLogPrefix + cc.success( "Success, verified the " ) + cc.info( "Error" ) + cc.success( " event of the " ) + cc.info( "DepositBox" ) + cc.success( "/" ) + cc.notice( jo_deposit_box.options.address ) + cc.success( " contract, no event found" ) + "\n" );
-            else
-                throw new Error( "Verification failed for the \"Error\" event of the \"DepositBox\"/" + jo_deposit_box.options.address + " contract, no events found" );
-        } // if( jo_deposit_box )
+        // if( jo_deposit_box ) {
+        //     details.write( strLogPrefix + cc.debug( "Verifying the " ) + cc.info( "Error" ) + cc.debug( " event of the " ) + cc.info( "DepositBox" ) + cc.debug( "/" ) + cc.notice( jo_deposit_box.options.address ) + cc.debug( " contract..." ) + "\n" );
+        //     const joEvents = await get_contract_call_events( details, w3_main_net, jo_deposit_box, "Error", joReceipt.blockNumber, joReceipt.transactionHash, {} );
+        //     if( joEvents.length == 0 )
+        //         details.write( strLogPrefix + cc.success( "Success, verified the " ) + cc.info( "Error" ) + cc.success( " event of the " ) + cc.info( "DepositBox" ) + cc.success( "/" ) + cc.notice( jo_deposit_box.options.address ) + cc.success( " contract, no event found" ) + "\n" );
+        //     else
+        //         throw new Error( "Verification failed for the \"Error\" event of the \"DepositBox\"/" + jo_deposit_box.options.address + " contract, no events found" );
+        // } // if( jo_deposit_box )
     } catch ( err ) {
         const s = strLogPrefix + cc.fatal( "CRITICAL ERROR:" ) + cc.error( " Payment error in " + strActionName + ": " ) + cc.error( err ) + "\n";
         if( verbose_get() >= RV_VERBOSE.fatal )
@@ -2107,7 +2137,8 @@ async function do_eth_payment_from_s_chain(
 ) {
     const details = log.createMemoryStream();
     const jarrReceipts = []; // do_eth_payment_from_s_chain
-    let strActionName = ""; const strLogPrefix = cc.info( "S2M ETH Payment:" ) + " ";
+    let strActionName = "";
+    const strLogPrefix = cc.info( "S2M ETH Payment:" ) + " ";
     try {
         strActionName = "w3_s_chain.eth.getTransactionCount()/do_eth_payment_from_s_chain";
         details.write( strLogPrefix + cc.debug( "Will call " ) + cc.notice( strActionName ) + cc.debug( "..." ) + "\n" );
@@ -2209,7 +2240,8 @@ async function receive_eth_payment_from_s_chain_on_main_net(
 ) {
     const details = log.createMemoryStream();
     const jarrReceipts = []; // receive_eth_payment_from_s_chain_on_main_net
-    let strActionName = ""; const strLogPrefix = cc.info( "M2S ETH Receive:" ) + " ";
+    let strActionName = "";
+    const strLogPrefix = cc.info( "M2S ETH Receive:" ) + " ";
     try {
         strActionName = "w3_main_net.eth.getTransactionCount()/receive_eth_payment_from_s_chain_on_main_net";
         details.write( strLogPrefix + cc.debug( "Will call " ) + cc.notice( strActionName ) + cc.debug( "..." ) + "\n" );
@@ -2286,7 +2318,8 @@ async function view_eth_payment_from_s_chain_on_main_net(
     jo_deposit_box_eth
 ) {
     const details = log.createMemoryStream();
-    let strActionName = ""; const strLogPrefix = cc.info( "S ETH View:" ) + " ";
+    let strActionName = "";
+    const strLogPrefix = cc.info( "S ETH View:" ) + " ";
     try {
         strActionName = "w3_main_net.eth.getTransactionCount()/view_eth_payment_from_s_chain_on_main_net";
         details.write( strLogPrefix + cc.debug( "Will call " ) + cc.notice( strActionName ) + cc.debug( "..." ) + "\n" );
@@ -2343,7 +2376,8 @@ async function do_erc721_payment_from_main_net(
 ) {
     const details = log.createMemoryStream();
     const jarrReceipts = []; // do_erc721_payment_from_main_net
-    let strActionName = ""; const strLogPrefix = cc.info( "M2S ERC721 Payment:" ) + " ";
+    let strActionName = "";
+    const strLogPrefix = cc.info( "M2S ERC721 Payment:" ) + " ";
     try {
         strActionName = "w3_main_net.eth.getTransactionCount()/do_erc721_payment_from_main_net";
         details.write( strLogPrefix + cc.debug( "Will call " ) + cc.notice( strActionName ) + cc.debug( "..." ) + "\n" );
@@ -2480,14 +2514,14 @@ async function do_erc721_payment_from_main_net(
             else
                 throw new Error( "Verification failed for the \"OutgoingMessage\" event of the \"MessageProxy\"/" + jo_message_proxy_main_net.options.address + " contract, no events found" );
         } // if( jo_message_proxy_main_net )
-        if( jo_deposit_box_erc721 ) {
-            details.write( strLogPrefix + cc.debug( "Verifying the " ) + cc.info( "Error" ) + cc.debug( " event of the " ) + cc.info( "DepositBox" ) + cc.debug( "/" ) + cc.notice( jo_deposit_box_erc721.options.address ) + cc.debug( " contract..." ) + "\n" );
-            const joEvents = await get_contract_call_events( details, w3_main_net, jo_deposit_box_erc721, "Error", joReceipt.blockNumber, joReceipt.transactionHash, {} );
-            if( joEvents.length == 0 )
-                details.write( strLogPrefix + cc.success( "Success, verified the " ) + cc.info( "Error" ) + cc.success( " event of the " ) + cc.info( "DepositBox" ) + cc.success( "/" ) + cc.notice( jo_deposit_box_erc721.options.address ) + cc.success( " contract, no event found" ) + "\n" );
-            else
-                throw new Error( "Verification failed for the \"Error\" event of the \"DepositBox\"/" + jo_deposit_box_erc721.options.address + " contract, no events found" );
-        } // if( jo_deposit_box )
+        // if( jo_deposit_box_erc721 ) {
+        //     details.write( strLogPrefix + cc.debug( "Verifying the " ) + cc.info( "Error" ) + cc.debug( " event of the " ) + cc.info( "DepositBox" ) + cc.debug( "/" ) + cc.notice( jo_deposit_box_erc721.options.address ) + cc.debug( " contract..." ) + "\n" );
+        //     const joEvents = await get_contract_call_events( details, w3_main_net, jo_deposit_box_erc721, "Error", joReceipt.blockNumber, joReceipt.transactionHash, {} );
+        //     if( joEvents.length == 0 )
+        //         details.write( strLogPrefix + cc.success( "Success, verified the " ) + cc.info( "Error" ) + cc.success( " event of the " ) + cc.info( "DepositBox" ) + cc.success( "/" ) + cc.notice( jo_deposit_box_erc721.options.address ) + cc.success( " contract, no event found" ) + "\n" );
+        //     else
+        //         throw new Error( "Verification failed for the \"Error\" event of the \"DepositBox\"/" + jo_deposit_box_erc721.options.address + " contract, no events found" );
+        // } // if( jo_deposit_box )
     } catch ( err ) {
         const s = strLogPrefix + cc.fatal( "CRITICAL ERROR:" ) + cc.error( " Payment error in " + strActionName + ": " ) + cc.error( err ) + "\n";
         if( verbose_get() >= RV_VERBOSE.fatal )
@@ -2522,14 +2556,15 @@ async function do_erc20_payment_from_main_net(
     wei_how_much, // how much ETH
     jo_token_manager_erc20, // only s-chain
     strCoinNameErc20_main_net,
-    erc20PrivateTestnetJson_main_net,
+    erc20_main_net,
     strCoinNameErc20_s_chain,
-    erc20PrivateTestnetJson_s_chain,
+    erc20_s_chain,
     tc_main_net
 ) {
     const details = log.createMemoryStream();
     const jarrReceipts = []; // do_erc20_payment_from_main_net
-    let strActionName = ""; const strLogPrefix = cc.info( "M2S ERC20 Payment:" ) + " ";
+    let strActionName = "";
+    const strLogPrefix = cc.info( "M2S ERC20 Payment:" ) + " ";
     try {
         strActionName = "w3_main_net.eth.getTransactionCount()/do_erc20_payment_from_main_net";
         details.write( strLogPrefix + cc.debug( "Will call " ) + cc.notice( strActionName ) + cc.debug( "..." ) + "\n" );
@@ -2538,10 +2573,10 @@ async function do_erc20_payment_from_main_net(
         //
         //
         strActionName = "ERC20 prepare M->S";
-        const erc20ABI = erc20PrivateTestnetJson_main_net[strCoinNameErc20_main_net + "_abi"];
-        // details.write( strLogPrefix + cc.normal("erc20PrivateTestnetJson_main_net = ") + cc.j(erc20PrivateTestnetJson_main_net) + "\n" )
+        const erc20ABI = erc20_main_net[strCoinNameErc20_main_net + "_abi"];
+        // details.write( strLogPrefix + cc.normal("erc20_main_net = ") + cc.j(erc20_main_net) + "\n" )
         // details.write( strLogPrefix + cc.normal("strCoinNameErc20_main_net = ") + cc.info(strCoinNameErc20_main_net) + "\n" )
-        const erc20Address_main_net = erc20PrivateTestnetJson_main_net[strCoinNameErc20_main_net + "_address"];
+        const erc20Address_main_net = erc20_main_net[strCoinNameErc20_main_net + "_address"];
         // details.write( strLogPrefix + cc.normal("erc20Address_main_net = ") + cc.info(erc20Address_main_net) + "\n" )
         const contractERC20 = new w3_main_net.eth.Contract( erc20ABI, erc20Address_main_net );
         // prepare the smart contract function deposit(string schainName, address to)
@@ -2666,14 +2701,14 @@ async function do_erc20_payment_from_main_net(
             else
                 throw new Error( "Verification failed for th\"OutgoingMessage\" event of the \"MessageProxy\"/" + jo_message_proxy_main_net.options.address + " contract, no events found" );
         } // if( jo_message_proxy_main_net )
-        if( jo_deposit_box_erc20 ) {
-            details.write( strLogPrefix + cc.debug( "Verifying the " ) + cc.info( "Error" ) + cc.debug( " event of the " ) + cc.info( "DepositBox" ) + cc.debug( "/" ) + cc.notice( jo_deposit_box_erc20.options.address ) + cc.debug( " contract..." ) + "\n" );
-            const joEvents = await get_contract_call_events( details, w3_main_net, jo_deposit_box_erc20, "Error", joReceipt.blockNumber, joReceipt.transactionHash, {} );
-            if( joEvents.length == 0 )
-                details.write( strLogPrefix + cc.success( "Success, verified the " ) + cc.info( "Error" ) + cc.success( " event of the " ) + cc.info( "DepositBox" ) + cc.success( "/" ) + cc.notice( jo_deposit_box_erc20.options.address ) + cc.success( " contract, no event found" ) + "\n" );
-            else
-                throw new Error( "Verification failed for the \"Error\" event of the \"DepositBox\"/" + jo_deposit_box_erc20.options.address + " contract, no events found" );
-        } // if( jo_deposit_box )
+        // if( jo_deposit_box_erc20 ) {
+        //     details.write( strLogPrefix + cc.debug( "Verifying the " ) + cc.info( "Error" ) + cc.debug( " event of the " ) + cc.info( "DepositBox" ) + cc.debug( "/" ) + cc.notice( jo_deposit_box_erc20.options.address ) + cc.debug( " contract..." ) + "\n" );
+        //     const joEvents = await get_contract_call_events( details, w3_main_net, jo_deposit_box_erc20, "Error", joReceipt.blockNumber, joReceipt.transactionHash, {} );
+        //     if( joEvents.length == 0 )
+        //         details.write( strLogPrefix + cc.success( "Success, verified the " ) + cc.info( "Error" ) + cc.success( " event of the " ) + cc.info( "DepositBox" ) + cc.success( "/" ) + cc.notice( jo_deposit_box_erc20.options.address ) + cc.success( " contract, no event found" ) + "\n" );
+        //     else
+        //         throw new Error( "Verification failed for the \"Error\" event of the \"DepositBox\"/" + jo_deposit_box_erc20.options.address + " contract, no events found" );
+        // } // if( jo_deposit_box )
     } catch ( err ) {
         const s = strLogPrefix + cc.fatal( "CRITICAL ERROR:" ) + cc.error( " Payment error in " + strActionName + ": " ) + cc.error( err ) + "\n";
         if( verbose_get() >= RV_VERBOSE.fatal )
@@ -2712,7 +2747,8 @@ async function do_erc1155_payment_from_main_net(
 ) {
     const details = log.createMemoryStream();
     const jarrReceipts = []; // do_erc1155_payment_from_main_net
-    let strActionName = ""; const strLogPrefix = cc.info( "M2S ERC1155 Payment:" ) + " ";
+    let strActionName = "";
+    const strLogPrefix = cc.info( "M2S ERC1155 Payment:" ) + " ";
     try {
         strActionName = "w3_main_net.eth.getTransactionCount()/do_erc1155_payment_from_main_net";
         details.write( strLogPrefix + cc.debug( "Will call " ) + cc.notice( strActionName ) + cc.debug( "..." ) + "\n" );
@@ -2850,14 +2886,14 @@ async function do_erc1155_payment_from_main_net(
             else
                 throw new Error( "Verification failed for the \"OutgoingMessage\" event of the \"MessageProxy\"/" + jo_message_proxy_main_net.options.address + " contract, no events found" );
         } // if( jo_message_proxy_main_net )
-        if( jo_deposit_box_erc1155 ) {
-            details.write( strLogPrefix + cc.debug( "Verifying the " ) + cc.info( "Error" ) + cc.debug( " event of the " ) + cc.info( "DepositBox" ) + cc.debug( "/" ) + cc.notice( jo_deposit_box_erc1155.options.address ) + cc.debug( " contract..." ) + "\n" );
-            const joEvents = await get_contract_call_events( details, w3_main_net, jo_deposit_box_erc1155, "Error", joReceipt.blockNumber, joReceipt.transactionHash, {} );
-            if( joEvents.length == 0 )
-                details.write( strLogPrefix + cc.success( "Success, verified the " ) + cc.info( "Error" ) + cc.success( " event of the " ) + cc.info( "DepositBox" ) + cc.success( "/" ) + cc.notice( jo_deposit_box_erc1155.options.address ) + cc.success( " contract, no event found" ) + "\n" );
-            else
-                throw new Error( "Verification failed for the \"Error\" event of the \"DepositBox\"/" + jo_deposit_box_erc1155.options.address + " contract, no events found" );
-        } // if( jo_deposit_box )
+        // if( jo_deposit_box_erc1155 ) {
+        //     details.write( strLogPrefix + cc.debug( "Verifying the " ) + cc.info( "Error" ) + cc.debug( " event of the " ) + cc.info( "DepositBox" ) + cc.debug( "/" ) + cc.notice( jo_deposit_box_erc1155.options.address ) + cc.debug( " contract..." ) + "\n" );
+        //     const joEvents = await get_contract_call_events( details, w3_main_net, jo_deposit_box_erc1155, "Error", joReceipt.blockNumber, joReceipt.transactionHash, {} );
+        //     if( joEvents.length == 0 )
+        //         details.write( strLogPrefix + cc.success( "Success, verified the " ) + cc.info( "Error" ) + cc.success( " event of the " ) + cc.info( "DepositBox" ) + cc.success( "/" ) + cc.notice( jo_deposit_box_erc1155.options.address ) + cc.success( " contract, no event found" ) + "\n" );
+        //     else
+        //         throw new Error( "Verification failed for the \"Error\" event of the \"DepositBox\"/" + jo_deposit_box_erc1155.options.address + " contract, no events found" );
+        // } // if( jo_deposit_box )
     } catch ( err ) {
         const s = strLogPrefix + cc.fatal( "CRITICAL ERROR:" ) + cc.error( " Payment error in " + strActionName + ": " ) + cc.error( err ) + "\n";
         if( verbose_get() >= RV_VERBOSE.fatal )
@@ -2896,7 +2932,8 @@ async function do_erc1155_batch_payment_from_main_net(
 ) {
     const details = log.createMemoryStream();
     const jarrReceipts = []; // do_erc1155_batch_payment_from_main_net
-    let strActionName = ""; const strLogPrefix = cc.info( "M2S ERC1155 Batch Payment:" ) + " ";
+    let strActionName = "";
+    const strLogPrefix = cc.info( "M2S ERC1155 Batch Payment:" ) + " ";
     try {
         strActionName = "w3_main_net.eth.getTransactionCount()/do_erc1155_batch_payment_from_main_net";
         details.write( strLogPrefix + cc.debug( "Will call " ) + cc.notice( strActionName ) + cc.debug( "..." ) + "\n" );
@@ -3034,14 +3071,14 @@ async function do_erc1155_batch_payment_from_main_net(
             else
                 throw new Error( "Verification failed for the \"OutgoingMessage\" event of the \"MessageProxy\"/" + jo_message_proxy_main_net.options.address + " contract, no events found" );
         } // if( jo_message_proxy_main_net )
-        if( jo_deposit_box_erc1155 ) {
-            details.write( strLogPrefix + cc.debug( "Verifying the " ) + cc.info( "Error" ) + cc.debug( " event of the " ) + cc.info( "DepositBox" ) + cc.debug( "/" ) + cc.notice( jo_deposit_box_erc1155.options.address ) + cc.debug( " contract..." ) + "\n" );
-            const joEvents = await get_contract_call_events( details, w3_main_net, jo_deposit_box_erc1155, "Error", joReceipt.blockNumber, joReceipt.transactionHash, {} );
-            if( joEvents.length == 0 )
-                details.write( strLogPrefix + cc.success( "Success, verified the " ) + cc.info( "Error" ) + cc.success( " event of the " ) + cc.info( "DepositBox" ) + cc.success( "/" ) + cc.notice( jo_deposit_box_erc1155.options.address ) + cc.success( " contract, no event found" ) + "\n" );
-            else
-                throw new Error( "Verification failed for the \"Error\" event of the \"DepositBox\"/" + jo_deposit_box_erc1155.options.address + " contract, no events found" );
-        } // if( jo_deposit_box )
+        // if( jo_deposit_box_erc1155 ) {
+        //     details.write( strLogPrefix + cc.debug( "Verifying the " ) + cc.info( "Error" ) + cc.debug( " event of the " ) + cc.info( "DepositBox" ) + cc.debug( "/" ) + cc.notice( jo_deposit_box_erc1155.options.address ) + cc.debug( " contract..." ) + "\n" );
+        //     const joEvents = await get_contract_call_events( details, w3_main_net, jo_deposit_box_erc1155, "Error", joReceipt.blockNumber, joReceipt.transactionHash, {} );
+        //     if( joEvents.length == 0 )
+        //         details.write( strLogPrefix + cc.success( "Success, verified the " ) + cc.info( "Error" ) + cc.success( " event of the " ) + cc.info( "DepositBox" ) + cc.success( "/" ) + cc.notice( jo_deposit_box_erc1155.options.address ) + cc.success( " contract, no event found" ) + "\n" );
+        //     else
+        //         throw new Error( "Verification failed for the \"Error\" event of the \"DepositBox\"/" + jo_deposit_box_erc1155.options.address + " contract, no events found" );
+        // } // if( jo_deposit_box )
     } catch ( err ) {
         const s = strLogPrefix + cc.fatal( "CRITICAL ERROR:" ) + cc.error( " Payment error in " + strActionName + ": " ) + cc.error( err ) + "\n";
         if( verbose_get() >= RV_VERBOSE.fatal )
@@ -3081,7 +3118,8 @@ async function do_erc20_payment_from_s_chain(
 ) {
     const details = log.createMemoryStream();
     const jarrReceipts = []; // do_erc20_payment_from_s_chain
-    let strActionName = ""; const strLogPrefix = cc.info( "S2M ERC20 Payment:" ) + " ";
+    let strActionName = "";
+    const strLogPrefix = cc.info( "S2M ERC20 Payment:" ) + " ";
     try {
         strActionName = "w3_s_chain.eth.getTransactionCount()/do_erc20_payment_from_s_chain";
         details.write( strLogPrefix + cc.debug( "Will call " ) + cc.notice( strActionName ) + cc.debug( "..." ) + "\n" );
@@ -3262,7 +3300,8 @@ async function do_erc721_payment_from_s_chain(
 ) {
     const details = log.createMemoryStream();
     const jarrReceipts = []; // do_erc721_payment_from_s_chain
-    let strActionName = ""; const strLogPrefix = cc.info( "S2M ERC721 Payment:" ) + " ";
+    let strActionName = "";
+    const strLogPrefix = cc.info( "S2M ERC721 Payment:" ) + " ";
     try {
         strActionName = "w3_s_chain.eth.getTransactionCount()/do_erc721_payment_from_s_chain";
         details.write( strLogPrefix + cc.debug( "Will call " ) + cc.notice( strActionName ) + cc.debug( "..." ) + "\n" );
@@ -3444,7 +3483,8 @@ async function do_erc1155_payment_from_s_chain(
 ) {
     const details = log.createMemoryStream();
     const jarrReceipts = []; // do_erc1155_payment_from_s_chain
-    let strActionName = ""; const strLogPrefix = cc.info( "S2M ERC1155 Payment:" ) + " ";
+    let strActionName = "";
+    const strLogPrefix = cc.info( "S2M ERC1155 Payment:" ) + " ";
     try {
         strActionName = "w3_s_chain.eth.getTransactionCount()/do_erc1155_payment_from_s_chain";
         details.write( strLogPrefix + cc.debug( "Will call " ) + cc.notice( strActionName ) + cc.debug( "..." ) + "\n" );
@@ -3627,7 +3667,8 @@ async function do_erc1155_batch_payment_from_s_chain(
 ) {
     const details = log.createMemoryStream();
     const jarrReceipts = []; // do_erc1155_batch_payment_from_s_chain
-    let strActionName = ""; const strLogPrefix = cc.info( "S2M ERC1155 Batch Payment:" ) + " ";
+    let strActionName = "";
+    const strLogPrefix = cc.info( "S2M ERC1155 Batch Payment:" ) + " ";
     try {
         strActionName = "w3_s_chain.eth.getTransactionCount()/do_erc1155_batch_payment_from_s_chain";
         details.write( strLogPrefix + cc.debug( "Will call " ) + cc.notice( strActionName ) + cc.debug( "..." ) + "\n" );
@@ -3789,6 +3830,203 @@ async function do_erc1155_batch_payment_from_s_chain(
     return true;
 } // async function do_erc1155_batch_payment_from_s_chain(...
 
+//
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+//
+async function do_erc20_payment_s2s(
+    isForward,
+    w3_src, w3_dst,
+    cid_src, cid_dst,
+    joAccountSrc, joAccountDst,
+    jo_message_proxy_src, jo_message_proxy_dst,
+    strChainName_src, strChainName_dst,
+    nAmountOfToken, // how much ERC20 tokens to send
+    nAmountOfWei, // how much to send
+    jo_token_manager_erc20,
+    strCoinNameErc20_src,
+    joErc20_src,
+    // ,
+    // imaState.strCoinNameErc20_t_chain,
+    // imaState.joErc20_t_chain,
+    tc
+) {
+    const details = log.createMemoryStream();
+    const jarrReceipts = []; // do_erc20_payment_from_main_net
+    let strActionName = "";
+    const strLogPrefix = cc.info( "S2S ERC20 Payment(" + ( isForward ? "forward" : "reverse" ) + "):" ) + " ";
+    try {
+        strActionName = "w3_src.eth.getTransactionCount()/do_erc20_payment_s2s/" + ( isForward ? "forward" : "reverse" );
+        details.write( strLogPrefix + cc.debug( "Will call " ) + cc.notice( strActionName ) + cc.debug( "..." ) + "\n" );
+        let tcnt = await get_web3_transactionCount( details, 10, w3_src, joAccountSrc.address( w3_src ), null );
+        details.write( strLogPrefix + cc.debug( "Got " ) + cc.info( tcnt ) + cc.debug( " from " ) + cc.notice( strActionName ) + "\n" );
+        //
+        //
+        strActionName = "ERC20 prepare S->S " + ( isForward ? "forward" : "reverse" );
+        const erc20ABI = erc20_main_net[strCoinNameErc20_main_net + "_abi"];
+        const erc20Address_main_net = erc20_main_net[strCoinNameErc20_main_net + "_address"];
+        const contractERC20 = new w3_main_net.eth.Contract( erc20ABI, erc20Address_main_net );
+        const depositBoxAddress = jo_deposit_box_erc20.options.address;
+        const methodWithArguments_approve = contractERC20.methods.approve(
+            depositBoxAddress, "0x" + w3_main_net.utils.toBN( token_amount ).toString( 16 )
+        );
+        const dataTxApprove = methodWithArguments_approve.encodeABI();
+        let dataTxDeposit = null;
+        const methodWithArguments_rawDepositERC20 = jo_deposit_box_erc20.methods.depositERC20(
+            chain_id_s_chain,
+            erc20Address_main_net,
+            "0x" + w3_main_net.utils.toBN( token_amount ).toString( 16 )
+        );
+        dataTxDeposit = methodWithArguments_rawDepositERC20.encodeABI();
+        //
+        //
+        strActionName = "compute gas price for ERC20 transactions M->S";
+        let gasPrice = await tc_main_net.computeGasPrice( w3_main_net, 200000000000 );
+        details.write( strLogPrefix + cc.debug( "Using computed " ) + cc.info( "gasPrice" ) + cc.debug( "=" ) + cc.notice( gasPrice ) + "\n" );
+        //
+        //
+        strActionName = "create ERC20/approve transaction M->S";
+        const estimatedGas_approve = await tc_main_net.computeGas( methodWithArguments_approve, w3_main_net, 8000000, gasPrice, joAccountSrc.address( w3_main_net ), "0" );
+        details.write( strLogPrefix + cc.debug( "Using estimated(approve) " ) + cc.info( "gas" ) + cc.debug( "=" ) + cc.notice( estimatedGas_approve ) + "\n" );
+        //
+        const isIgnore_approve = false;
+        const strDRC_approve = "do_erc20_payment_from_main_net, approve";
+        const strErrorOfDryRun_approve = await dry_run_call( details, w3_main_net, methodWithArguments_approve, joAccountSrc, strDRC_approve, isIgnore_approve, gasPrice, estimatedGas_approve, "0" );
+        if( strErrorOfDryRun_approve )
+            throw new Error( strErrorOfDryRun_approve );
+        //
+        const rawTxApprove = {
+            chainId: cid_main_net,
+            from: joAccountSrc.address( w3_main_net ), // accountForMainnet
+            nonce: "0x" + tcnt.toString( 16 ),
+            data: dataTxApprove,
+            to: erc20Address_main_net,
+            gasPrice: gasPrice, // 0
+            gas: estimatedGas_approve
+        };
+        const txApprove = compose_tx_instance( details, strLogPrefix, rawTxApprove );
+        strActionName = "sign ERC20/approve transaction M->S";
+        const joApproveSR = await safe_sign_transaction_with_account( details, w3_main_net, txApprove, rawTxApprove, joAccountSrc );
+        let joReceiptApprove = null;
+        if( joApproveSR.joACI.isAutoSend )
+            joReceiptApprove = await get_web3_transactionReceipt( details, 10, w3_main_net, joApproveSR.txHashSent );
+        else {
+            const serializedTxApprove = txApprove.serialize();
+            strActionName = "w3_main_net.eth.sendSignedTransaction()/Approve";
+            details.write( cc.normal( "Will send ERC20/approve signed transaction from " ) + cc.warning( joAccountSrc.address( w3_main_net ) ) + "\n" );
+            // let joReceiptApprove = await w3_main_net.eth.sendSignedTransaction( "0x" + serializedTxApprove.toString( "hex" ) );
+            joReceiptApprove = await safe_send_signed_transaction( details, w3_main_net, serializedTxApprove, strActionName, strLogPrefix );
+        }
+        details.write( strLogPrefix + cc.success( "Result receipt for Approve: " ) + cc.j( joReceiptApprove ) + "\n" );
+        if( joReceiptApprove && typeof joReceiptApprove == "object" && "gasUsed" in joReceiptApprove ) {
+            jarrReceipts.push( {
+                "description": "do_erc20_payment_from_main_net/approve",
+                "receipt": joReceiptApprove
+            } );
+        }
+        //
+        //
+        strActionName = "create ERC20/deposit transaction M->S";
+        //
+        gasPrice = await tc_main_net.computeGasPrice( w3_main_net, 200000000000 );
+        details.write( strLogPrefix + cc.debug( "Using computed " ) + cc.info( "gasPrice" ) + cc.debug( "=" ) + cc.notice( gasPrice ) + "\n" );
+        //
+        const estimatedGas_deposit = await tc_main_net.computeGas( methodWithArguments_rawDepositERC20, w3_main_net, 8000000, gasPrice, joAccountSrc.address( w3_main_net ), "0" );
+        details.write( strLogPrefix + cc.debug( "Using estimated(deposit) " ) + cc.info( "gas" ) + cc.debug( "=" ) + cc.notice( estimatedGas_deposit ) + "\n" );
+        //
+        const isIgnore_rawDepositERC20 = true;
+        const strDRC_rawDepositERC20 = "do_erc20_payment_from_main_net, rawDepositERC20";
+        const strErrorOfDryRun_rawDepositERC20 = await dry_run_call( details, w3_main_net, methodWithArguments_rawDepositERC20, joAccountSrc, strDRC_rawDepositERC20, isIgnore_rawDepositERC20, gasPrice, estimatedGas_deposit, "0" );
+        if( strErrorOfDryRun_rawDepositERC20 )
+            throw new Error( strErrorOfDryRun_rawDepositERC20 );
+        //
+        tcnt += 1;
+        const rawTxDeposit = {
+            chainId: cid_main_net,
+            from: joAccountSrc.address( w3_main_net ), // accountForMainnet
+            nonce: "0x" + tcnt.toString( 16 ),
+            data: dataTxDeposit,
+            to: depositBoxAddress,
+            gasPrice: gasPrice, // 0
+            gas: estimatedGas_deposit
+            // value: "0x" + w3_main_net.utils.toBN( wei_how_much ).toString( 16 )
+        };
+        const txDeposit = compose_tx_instance( details, strLogPrefix, rawTxDeposit );
+        strActionName = "sign ERC20/deposit transaction M->S";
+        const joDepositSR = await safe_sign_transaction_with_account( details, w3_main_net, txDeposit, rawTxDeposit, joAccountSrc );
+        let joReceiptDeposit = null;
+        if( joDepositSR.joACI.isAutoSend )
+            joReceiptDeposit = await get_web3_transactionReceipt( details, 10, w3_main_net, joDepositSR.txHashSent );
+        else {
+            const serializedTxDeposit = txDeposit.serialize();
+            // send transactions
+            strActionName = "w3_main_net.eth.sendSignedTransaction()/Deposit";
+            details.write( cc.normal( "Will send ERC20/deposit signed transaction from " ) + cc.warning( joAccountSrc.address( w3_main_net ) ) + "\n" );
+            // let joReceiptDeposit = await w3_main_net.eth.sendSignedTransaction( "0x" + serializedTxDeposit.toString( "hex" ) );
+            joReceiptDeposit = await safe_send_signed_transaction( details, w3_main_net, serializedTxDeposit, strActionName, strLogPrefix );
+        }
+        details.write( strLogPrefix + cc.success( "Result receipt for Deposit: " ) + cc.j( joReceiptDeposit ) + "\n" );
+        if( joReceiptDeposit && typeof joReceiptDeposit == "object" && "gasUsed" in joReceiptDeposit ) {
+            jarrReceipts.push( {
+                "description": "do_erc20_payment_from_main_net/deposit",
+                "receipt": joReceiptDeposit
+            } );
+        }
+        //
+        //
+        const joReceipt = joReceiptDeposit;
+        //
+        // Must-have event(s) analysis as indicator(s) of success
+        //
+        if( jo_message_proxy_main_net ) {
+            details.write( strLogPrefix + cc.debug( "Verifying the " ) + cc.info( "OutgoingMessage" ) + cc.debug( " event of the " ) + cc.info( "MessageProxy" ) + cc.debug( "/" ) + cc.notice( jo_message_proxy_main_net.options.address ) + cc.debug( " contract ..." ) + "\n" );
+            await sleep( g_nSleepBeforeFetchOutgoingMessageEvent );
+            const joEvents = await get_contract_call_events( details, w3_main_net, jo_message_proxy_main_net, "OutgoingMessage", joReceipt.blockNumber, joReceipt.transactionHash, {} );
+            if( joEvents.length > 0 )
+                details.write( strLogPrefix + cc.success( "Success, verified the " ) + cc.info( "OutgoingMessage" ) + cc.success( " event of the " ) + cc.info( "MessageProxy" ) + cc.success( "/" ) + cc.notice( jo_message_proxy_main_net.options.address ) + cc.success( " contract, found event(s): " ) + cc.j( joEvents ) + "\n" );
+            else
+                throw new Error( "Verification failed for th\"OutgoingMessage\" event of the \"MessageProxy\"/" + jo_message_proxy_main_net.options.address + " contract, no events found" );
+        } // if( jo_message_proxy_main_net )
+    } catch ( err ) {
+        const s = strLogPrefix + cc.fatal( "CRITICAL ERROR:" ) + cc.error( " Payment error in " + strActionName + ": " ) + cc.error( err ) + "\n";
+        if( verbose_get() >= RV_VERBOSE.fatal )
+            log.write( s );
+        details.write( s );
+        details.exposeDetailsTo( log, "do_erc20_payment_from_main_net", false );
+        details.close();
+        return false;
+    }
+    print_gas_usage_report_from_array( "ERC-20 PAYMENT FROM MAIN NET", jarrReceipts );
+    if( expose_details_get() )
+        details.exposeDetailsTo( log, "do_erc20_payment_from_main_net", true );
+    details.close();
+    return true;
+}
+
+//
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+//
+async function do_erc721_payment_s2s(
+) {
+}
+
+//
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+//
+async function do_erc1155_payment_s2s(
+) {
+}
+
+//
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+//
+async function do_erc1155_batch_payment_s2s(
+) {
+}
+
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -3818,7 +4056,7 @@ async function async_pending_tx_start( details, w3, w3_opposite, chain_id, chain
                     if( verbose_get() >= RV_VERBOSE.error )
                         log.write( s );
                     details.write( s );
-                    return; // process.exit( 155 );
+                    return;
                 }
                 const joIn = {
                     method: "skale_imaTxnInsert",
@@ -3833,7 +4071,7 @@ async function async_pending_tx_start( details, w3, w3_opposite, chain_id, chain
                         if( verbose_get() >= RV_VERBOSE.error )
                             log.write( s );
                         details.write( s );
-                        return; // process.exit( 156 );
+                        return;
                     }
                     details.write( cc.debug( "Pending work start result is: " ) + cc.j( joOut ) + "\n" );
                     if( joOut && "result" in joOut && "success" in joOut.result ) {
@@ -3849,7 +4087,7 @@ async function async_pending_tx_start( details, w3, w3_opposite, chain_id, chain
                         if( verbose_get() >= RV_VERBOSE.error )
                             log.write( s );
                         details.write( s );
-                        return; // process.exit( 156 );
+                        return;
                     }
                 } );
             } );
@@ -3880,7 +4118,7 @@ async function async_pending_tx_complete( details, w3, w3_opposite, chain_id, ch
                     if( verbose_get() >= RV_VERBOSE.error )
                         log.write( s );
                     details.write( s );
-                    return; // process.exit( 155 );
+                    return;
                 }
                 const joIn = {
                     method: "skale_imaTxnErase",
@@ -3895,7 +4133,7 @@ async function async_pending_tx_complete( details, w3, w3_opposite, chain_id, ch
                         if( verbose_get() >= RV_VERBOSE.error )
                             log.write( s );
                         details.write( s );
-                        return; // process.exit( 156 );
+                        return;
                     }
                     details.write( cc.debug( "Pending work complete result is: " ) + cc.j( joOut ) + "\n" );
                     if( joOut && "result" in joOut && "success" in joOut.result ) {
@@ -3911,7 +4149,7 @@ async function async_pending_tx_complete( details, w3, w3_opposite, chain_id, ch
                         if( verbose_get() >= RV_VERBOSE.error )
                             log.write( s );
                         details.write( s );
-                        return; // process.exit( 156 );
+                        return;
                     }
                 } );
             } );
@@ -3948,7 +4186,7 @@ async function async_pending_tx_scanner( details, w3, w3_opposite, chain_id, cha
                     if( verbose_get() >= RV_VERBOSE.error )
                         log.write( s );
                     details.write( s );
-                    return; // process.exit( 155 );
+                    return;
                 }
                 const joIn = {
                     method: "skale_imaTxnListAll",
@@ -3962,7 +4200,7 @@ async function async_pending_tx_scanner( details, w3, w3_opposite, chain_id, cha
                         if( verbose_get() >= RV_VERBOSE.error )
                             log.write( s );
                         details.write( s );
-                        return; // process.exit( 156 );
+                        return;
                     }
                     details.write( cc.debug( "Pending work cache result is: " ) + cc.j( joOut ) + "\n" );
                     if( joOut && "result" in joOut && "success" in joOut.result ) {
@@ -3993,7 +4231,7 @@ async function async_pending_tx_scanner( details, w3, w3_opposite, chain_id, cha
                             log.write( s );
                         details.write( s );
                         havePendingWorkInfo = true;
-                        return; // process.exit( 156 );
+                        return;
                     }
                 } );
             } );
@@ -4336,7 +4574,7 @@ async function do_transfer(
                     details.exposeDetailsTo( log, strGatheredDetailsName, false );
                     save_transfer_error( details.toString() );
                     details.close();
-                    return false; // process.exit( 126 );
+                    return false;
                 }
                 //
                 //
@@ -5345,12 +5583,16 @@ module.exports.receive_eth_payment_from_s_chain_on_main_net = receive_eth_paymen
 module.exports.view_eth_payment_from_s_chain_on_main_net = view_eth_payment_from_s_chain_on_main_net;
 module.exports.do_erc20_payment_from_main_net = do_erc20_payment_from_main_net;
 module.exports.do_erc20_payment_from_s_chain = do_erc20_payment_from_s_chain;
+module.exports.do_erc20_payment_s2s = do_erc20_payment_s2s;
 module.exports.do_erc721_payment_from_main_net = do_erc721_payment_from_main_net;
 module.exports.do_erc721_payment_from_s_chain = do_erc721_payment_from_s_chain;
+module.exports.do_erc721_payment_s2s = do_erc721_payment_s2s;
 module.exports.do_erc1155_payment_from_main_net = do_erc1155_payment_from_main_net;
 module.exports.do_erc1155_payment_from_s_chain = do_erc1155_payment_from_s_chain;
+module.exports.do_erc1155_payment_s2s = do_erc1155_payment_s2s;
 module.exports.do_erc1155_batch_payment_from_main_net = do_erc1155_batch_payment_from_main_net;
 module.exports.do_erc1155_batch_payment_from_s_chain = do_erc1155_batch_payment_from_s_chain;
+module.exports.do_erc1155_batch_payment_s2s = do_erc1155_batch_payment_s2s;
 module.exports.do_transfer = do_transfer;
 module.exports.do_s2s_all = do_s2s_all;
 module.exports.save_transfer_error = save_transfer_error;
@@ -5383,6 +5625,13 @@ module.exports.setEnabledProgressiveEventsScan = setEnabledProgressiveEventsScan
 module.exports.getOracleGasPriceMode = getOracleGasPriceMode;
 module.exports.setOracleGasPriceMode = setOracleGasPriceMode;
 module.exports.do_oracle_gas_price_setup = do_oracle_gas_price_setup;
+
+module.exports.get_S2S_transfer_mode_description = get_S2S_transfer_mode_description;
+module.exports.get_S2S_transfer_mode_description_colorized = get_S2S_transfer_mode_description_colorized;
+module.exports.isForwardS2S = isForwardS2S;
+module.exports.isReverseS2S = isReverseS2S;
+module.exports.setForwardS2S = setForwardS2S;
+module.exports.setReverseS2S = setReverseS2S;
 
 module.exports.parseIntOrHex = parseIntOrHex;
 

@@ -243,7 +243,7 @@ function get_valid_host_and_port( s ) {
         return null;
     const jo = {
         strHost: u.hostname,
-        nPort: parseInt( u.port )
+        nPort: parseInt( u.port, 10 )
     };
     return jo;
 }
@@ -257,7 +257,7 @@ function check_tcp_promise( strHost, nPort, nTimeoutMilliseconds, isLog ) {
             resolve();
         } );
         if( nTimeoutMilliseconds )
-            nTimeoutMilliseconds = parseInt( nTimeoutMilliseconds.toString() );
+            nTimeoutMilliseconds = parseInt( nTimeoutMilliseconds.toString(), 10 );
         if( nTimeoutMilliseconds > 0 )
             conn.setTimeout( nTimeoutMilliseconds );
         conn.on( "timeout", err => {
