@@ -1211,6 +1211,29 @@ function getWeb3FromURL( strURL ) {
     return w3;
 }
 
+async function async_check_url_at_startup( u, name ) {
+    const details = log; // log.createMemoryStream();
+    const nTimeoutMilliseconds = 10 * 1000;
+    try {
+        details.write( cc.debug( "Will check URL " ) + cc.u( u ) + cc.debug( " connectivity for " ) + cc.info( name ) + cc.debug( " at start-up..." ) + "\n" );
+        const isLog = false;
+        const isOnLine = await rpcCall.check_url( u, nTimeoutMilliseconds, isLog );
+        if( isOnLine )
+            details.write( cc.success( "Done, start-up checking URL " ) + cc.u( u ) + cc.success( " connectivity for " ) + cc.info( name ) + cc.success( ", URL is on-line." ) + "\n" );
+        else
+            details.write( cc.error( "Done, start-up checking URL " ) + cc.u( u ) + cc.error( " connectivity for " ) + cc.info( name ) + cc.error( ", URL is off-line." ) + "\n" );
+        return isOnLine;
+    } catch ( err ) {
+        details.write(
+            cc.fatal( "ERROR:" ) + cc.error( " Failed to check URL " ) +
+            cc.u( u ) + cc.error( " connectivity for " ) + cc.info( name ) + cc.error( " at start-up, error is: " ) + cc.warning( err.toString() ) +
+            "\n" );
+    }
+    // details.exposeDetailsTo( log, "async_check_url_at_startup( \"" + u + "\", \"" + name + "\" )", true );
+    // details.close();
+    return false;
+}
+
 function ima_common_init() {
     log.write( cc.debug( "This process " ) + cc.sunny( "PID" ) + cc.debug( " is " ) + cc.bright( process.pid ) + "\n" );
     log.write( cc.debug( "This process " ) + cc.sunny( "PPID" ) + cc.debug( " is " ) + cc.bright( process.ppid ) + "\n" );
@@ -1250,8 +1273,8 @@ function ima_common_init() {
     } else {
         imaState.bHaveSkaleManagerABI = false;
         log.write(
-            cc.error( "WARNING:" ) + cc.warning( " No " ) + cc.info( "Skale Manager" ) +
-            cc.warning( " ABI file path is provided in command line  arguments" ) +
+            cc.error( "WARNING:" ) + cc.warning( " No " ) + cc.note( "Skale Manager" ) +
+            cc.warning( " ABI file path is provided in command line arguments" ) +
             cc.debug( "(needed for particular operations only)" ) +
             "\n" );
     }
@@ -1263,7 +1286,7 @@ function ima_common_init() {
         imaState.bHaveImaAbiMainNet = false;
         log.write(
             cc.error( "WARNING:" ) + cc.warning( " No " ) + cc.note( "Main-net" ) +
-            cc.warning( " IMA ABI file path is provided in command line  arguments" ) +
+            cc.warning( " IMA ABI file path is provided in command line arguments" ) +
             cc.debug( "(needed for particular operations only)" ) +
             "\n" );
     }
@@ -1275,7 +1298,7 @@ function ima_common_init() {
         imaState.bHaveImaAbiSchain = false;
         log.write(
             cc.error( "WARNING:" ) + cc.warning( " No " ) + cc.note( "S-Chain" ) +
-            cc.warning( " IMA ABI file path is provided in command line  arguments" ) +
+            cc.warning( " IMA ABI file path is provided in command line arguments" ) +
             cc.debug( "(needed for particular operations only)" ) +
             "\n" );
     }
@@ -1287,7 +1310,7 @@ function ima_common_init() {
         imaState.bHaveImaAbiSchainTarget = false;
         log.write(
             cc.error( "WARNING:" ) + cc.warning( " No " ) + cc.note( "S<->S Target S-Chain" ) +
-            cc.warning( " IMA ABI file path is provided in command line  arguments" ) +
+            cc.warning( " IMA ABI file path is provided in command line arguments" ) +
             cc.debug( "(needed for particular operations only)" ) +
             "\n" );
     }
@@ -1317,10 +1340,9 @@ function ima_common_init() {
             "wallets_abi",
             "wallets_address"
         ] );
-    } else if( imaState.s2s_opts.isEnabled ) {
-        log.write( cc.fatal( "FATAL, CRITICAL ERROR:" ) + cc.error( " Missing " ) + cc.warning( "Skale Manager" ) + cc.error( " ABI path for S-Chain to S-Chain transfers" ) + "\n" );
-        process.exit( 126 );
-    }
+    } else if( imaState.s2s_opts.isEnabled )
+        log.write( cc.error( "WARNING:" ) + cc.warning( " Missing " ) + cc.note( "Skale Manager" ) + cc.warning( " ABI path for " ) + cc.note( "S-Chain" ) + cc.warning( " to " ) + cc.note( "S-Chain" ) + cc.warning( " transfers" ) + "\n" );
+        // process.exit( 126 );
 
     if( imaState.bHaveImaAbiMainNet ) {
         imaUtils.check_keys_exist_in_abi( "main-net", imaState.strPathAbiJson_main_net, imaState.joAbiPublishResult_main_net, [
@@ -1391,9 +1413,11 @@ function ima_common_init() {
     // message_proxy_chain_address   --> message_proxy_chain_abi
 
     //
-    if( imaState.strURL_main_net && typeof imaState.strURL_main_net == "string" && imaState.strURL_main_net.length > 0 )
-        imaState.w3_main_net = getWeb3FromURL( imaState.strURL_main_net );
-    else {
+    if( imaState.strURL_main_net && typeof imaState.strURL_main_net == "string" && imaState.strURL_main_net.length > 0 ) {
+        const u = imaState.strURL_main_net;
+        async_check_url_at_startup( u, "Main-net" );
+        imaState.w3_main_net = getWeb3FromURL( u );
+    } else {
         log.write(
             cc.error( "WARNING:" ) + cc.warning( " No " ) + cc.note( "Main-net" ) +
             cc.warning( " URL specified in command line arguments" ) +
@@ -1401,9 +1425,11 @@ function ima_common_init() {
             "\n" );
     }
     //
-    if( imaState.strURL_s_chain && typeof imaState.strURL_s_chain == "string" && imaState.strURL_s_chain.length > 0 )
-        imaState.w3_s_chain = getWeb3FromURL( imaState.strURL_s_chain );
-    else {
+    if( imaState.strURL_s_chain && typeof imaState.strURL_s_chain == "string" && imaState.strURL_s_chain.length > 0 ) {
+        const u = imaState.strURL_s_chain;
+        async_check_url_at_startup( u, "S-Chain" );
+        imaState.w3_s_chain = getWeb3FromURL( u );
+    } else {
         log.write(
             cc.error( "WARNING:" ) + cc.warning( " No " ) + cc.note( "S-Chain" ) +
             cc.warning( " URL specified in command line arguments" ) +
@@ -1411,9 +1437,11 @@ function ima_common_init() {
             "\n" );
     }
     //
-    if( imaState.strURL_t_chain && typeof imaState.strURL_t_chain == "string" && imaState.strURL_t_chain.length > 0 )
-        imaState.w3_t_chain = getWeb3FromURL( imaState.strURL_t_chain );
-    else {
+    if( imaState.strURL_t_chain && typeof imaState.strURL_t_chain == "string" && imaState.strURL_t_chain.length > 0 ) {
+        const u = imaState.strURL_t_chain;
+        async_check_url_at_startup( u, "S<->S Target S-Chain" );
+        imaState.w3_t_chain = getWeb3FromURL( u );
+    } else {
         log.write(
             cc.error( "WARNING:" ) + cc.warning( " No " ) + cc.note( "S<->S Target S-Chain" ) +
             cc.warning( " URL specified in command line arguments" ) +
@@ -1438,8 +1466,21 @@ function ima_common_init() {
         imaState.jo_community_locker = new imaState.w3_s_chain.eth.Contract( imaState.joAbiPublishResult_s_chain.community_locker_abi, imaState.joAbiPublishResult_s_chain.community_locker_address ); // only s-chain
         imaState.jo_message_proxy_s_chain = new imaState.w3_s_chain.eth.Contract( imaState.joAbiPublishResult_s_chain.message_proxy_chain_abi, imaState.joAbiPublishResult_s_chain.message_proxy_chain_address );
         imaState.jo_token_manager_linker = new imaState.w3_s_chain.eth.Contract( imaState.joAbiPublishResult_s_chain.token_manager_linker_abi, imaState.joAbiPublishResult_s_chain.token_manager_linker_address );
-        // imaState.eth_erc721 = new imaState.w3_s_chain.eth.Contract( imaState.joAbiPublishResult_s_chain.eth_erc721_abi, imaState.joAbiPublishResult_s_chain.eth_erc721_address ); // only s-chain
         imaState.eth_erc20 = new imaState.w3_s_chain.eth.Contract( imaState.joAbiPublishResult_s_chain.eth_erc20_abi, imaState.joAbiPublishResult_s_chain.eth_erc20_address ); // only s-chain
+        // imaState.eth_erc721 = new imaState.w3_s_chain.eth.Contract( imaState.joAbiPublishResult_s_chain.eth_erc721_abi, imaState.joAbiPublishResult_s_chain.eth_erc721_address ); // only s-chain
+        // imaState.eth_erc1155 = new imaState.w3_s_chain.eth.Contract( imaState.joAbiPublishResult_s_chain.eth_erc1155_abi, imaState.joAbiPublishResult_s_chain.eth_erc721_address ); // only s-chain
+    }
+    if( imaState.bHaveImaAbiSchainTarget ) {
+        // imaState.jo_token_manager_eth_target = new imaState.w3_s_chain.eth.Contract( imaState.joAbiPublishResult_t_chain.token_manager_eth_abi, imaState.joAbiPublishResult_t_chain.token_manager_eth_address ); // only s-chain
+        imaState.jo_token_manager_erc20_target = new imaState.w3_s_chain.eth.Contract( imaState.joAbiPublishResult_t_chain.token_manager_erc20_abi, imaState.joAbiPublishResult_t_chain.token_manager_erc20_address ); // only s-chain
+        imaState.jo_token_manager_erc721_target = new imaState.w3_s_chain.eth.Contract( imaState.joAbiPublishResult_t_chain.token_manager_erc721_abi, imaState.joAbiPublishResult_t_chain.token_manager_erc721_address ); // only s-chain
+        imaState.jo_token_manager_erc1155_target = new imaState.w3_s_chain.eth.Contract( imaState.joAbiPublishResult_t_chain.token_manager_erc1155_abi, imaState.joAbiPublishResult_t_chain.token_manager_erc1155_address ); // only s-chain
+        imaState.jo_community_locker_target = new imaState.w3_s_chain.eth.Contract( imaState.joAbiPublishResult_t_chain.community_locker_abi, imaState.joAbiPublishResult_t_chain.community_locker_address ); // only s-chain
+        imaState.jo_message_proxy_s_chain_target = new imaState.w3_s_chain.eth.Contract( imaState.joAbiPublishResult_t_chain.message_proxy_chain_abi, imaState.joAbiPublishResult_t_chain.message_proxy_chain_address );
+        imaState.jo_token_manager_linker_target = new imaState.w3_s_chain.eth.Contract( imaState.joAbiPublishResult_t_chain.token_manager_linker_abi, imaState.joAbiPublishResult_t_chain.token_manager_linker_address );
+        imaState.eth_erc20_target = new imaState.w3_s_chain.eth.Contract( imaState.joAbiPublishResult_t_chain.eth_erc20_abi, imaState.joAbiPublishResult_t_chain.eth_erc20_address ); // only s-chain
+        // imaState.eth_erc721_target = new imaState.w3_s_chain.eth.Contract( imaState.joAbiPublishResult_t_chain.eth_erc721_abi, imaState.joAbiPublishResult_t_chain.eth_erc721_address ); // only s-chain
+        // imaState.eth_erc1155_target = new imaState.w3_s_chain.eth.Contract( imaState.joAbiPublishResult_t_chain.eth_erc1155_abi, imaState.joAbiPublishResult_t_chain.eth_erc721_address ); // only s-chain
     }
     if( imaState.bHaveSkaleManagerABI ) {
         imaState.jo_constants_holder = new imaState.w3_main_net.eth.Contract( imaState.joAbiPublishResult_skale_manager.constants_holder_abi, imaState.joAbiPublishResult_skale_manager.constants_holder_address );
@@ -1477,35 +1518,49 @@ function ima_common_init() {
         return cc.error( "contract is not available" );
     };
 
-    log.write( cc.bright( "IMA contracts:" ) + "\n" );
-    log.write( cc.info( "Main-net " ) + cc.sunny( "DepositBoxEth" ) + cc.debug( "................address is....." ) + oct( imaState.jo_deposit_box_eth ) + "\n" );
-    log.write( cc.info( "Main-net " ) + cc.sunny( "DepositBoxERC20" ) + cc.debug( "..............address is....." ) + oct( imaState.jo_deposit_box_erc20 ) + "\n" );
-    log.write( cc.info( "Main-net " ) + cc.sunny( "DepositBoxERC721" ) + cc.debug( ".............address is....." ) + oct( imaState.jo_deposit_box_erc721 ) + "\n" );
-    log.write( cc.info( "Main-net " ) + cc.sunny( "DepositBoxERC1155" ) + cc.debug( "............address is....." ) + oct( imaState.jo_deposit_box_erc1155 ) + "\n" );
-    log.write( cc.info( "Main-net " ) + cc.sunny( "CommunityPool" ) + cc.debug( "................address is....." ) + oct( imaState.jo_community_pool ) + "\n" );
-    log.write( cc.info( "S-Chain  " ) + cc.sunny( "TokenManagerEth" ) + cc.debug( "..............address is....." ) + oct( imaState.jo_token_manager_eth ) + "\n" );
-    log.write( cc.info( "S-Chain  " ) + cc.sunny( "TokenManagerERC20" ) + cc.debug( "............address is....." ) + oct( imaState.jo_token_manager_erc20 ) + "\n" );
-    log.write( cc.info( "S-Chain  " ) + cc.sunny( "TokenManagerERC721" ) + cc.debug( " ..........address is....." ) + oct( imaState.jo_token_manager_erc721 ) + "\n" );
-    log.write( cc.info( "S-Chain  " ) + cc.sunny( "TokenManagerERC1155" ) + cc.debug( "..........address is....." ) + oct( imaState.jo_token_manager_erc1155 ) + "\n" );
-    log.write( cc.info( "S-Chain  " ) + cc.sunny( "CommunityLocker" ) + cc.debug( "..............address is....." ) + oct( imaState.jo_community_locker ) + "\n" );
-    log.write( cc.info( "Main-net " ) + cc.sunny( "MessageProxy" ) + cc.debug( ".................address is....." ) + oct( imaState.jo_message_proxy_main_net ) + "\n" );
-    log.write( cc.info( "S-Chain  " ) + cc.sunny( "MessageProxy" ) + cc.debug( ".................address is....." ) + oct( imaState.jo_message_proxy_s_chain ) + "\n" );
-    log.write( cc.info( "Main-net " ) + cc.sunny( "Linker" ) + cc.debug( ".......................address is....." ) + oct( imaState.jo_linker ) + "\n" );
-    log.write( cc.info( "S-Chain  " ) + cc.sunny( "TokenManagerLinker" ) + cc.debug( " ..........address is....." ) + oct( imaState.jo_token_manager_linker ) + "\n" );
-    log.write( cc.info( "S-Chain  " ) + cc.sunny( "ERC20" ) + cc.debug( " .......................address is....." ) + oct( imaState.eth_erc20 ) + "\n" );
+    log.write( cc.bright( "IMA contracts(Main Net):" ) + "\n" );
+    log.write( cc.sunny( "DepositBoxEth" ) + cc.debug( "................address is....." ) + oct( imaState.jo_deposit_box_eth ) + "\n" );
+    log.write( cc.sunny( "DepositBoxERC20" ) + cc.debug( "..............address is....." ) + oct( imaState.jo_deposit_box_erc20 ) + "\n" );
+    log.write( cc.sunny( "DepositBoxERC721" ) + cc.debug( ".............address is....." ) + oct( imaState.jo_deposit_box_erc721 ) + "\n" );
+    log.write( cc.sunny( "DepositBoxERC1155" ) + cc.debug( "............address is....." ) + oct( imaState.jo_deposit_box_erc1155 ) + "\n" );
+    log.write( cc.sunny( "CommunityPool" ) + cc.debug( "................address is....." ) + oct( imaState.jo_community_pool ) + "\n" );
+    log.write( cc.sunny( "MessageProxy" ) + cc.debug( ".................address is....." ) + oct( imaState.jo_message_proxy_main_net ) + "\n" );
+    log.write( cc.sunny( "Linker" ) + cc.debug( ".......................address is....." ) + oct( imaState.jo_linker ) + "\n" );
+    log.write( cc.bright( "IMA contracts(S-Chain):" ) + "\n" );
+    log.write( cc.sunny( "TokenManagerEth" ) + cc.debug( "..............address is....." ) + oct( imaState.jo_token_manager_eth ) + "\n" );
+    log.write( cc.sunny( "TokenManagerERC20" ) + cc.debug( "............address is....." ) + oct( imaState.jo_token_manager_erc20 ) + "\n" );
+    log.write( cc.sunny( "TokenManagerERC721" ) + cc.debug( " ..........address is....." ) + oct( imaState.jo_token_manager_erc721 ) + "\n" );
+    log.write( cc.sunny( "TokenManagerERC1155" ) + cc.debug( "..........address is....." ) + oct( imaState.jo_token_manager_erc1155 ) + "\n" );
+    log.write( cc.sunny( "CommunityLocker" ) + cc.debug( "..............address is....." ) + oct( imaState.jo_community_locker ) + "\n" );
+    log.write( cc.sunny( "MessageProxy" ) + cc.debug( ".................address is....." ) + oct( imaState.jo_message_proxy_s_chain ) + "\n" );
+    log.write( cc.sunny( "TokenManagerLinker" ) + cc.debug( " ..........address is....." ) + oct( imaState.jo_token_manager_linker ) + "\n" );
+    log.write( cc.sunny( "ERC20" ) + cc.debug( " .......................address is....." ) + oct( imaState.eth_erc20 ) + "\n" );
+    // log.write( "S-Chain  " ) + cc.sunny( "ERC721" ) + cc.debug( " ......................address is....." ) + oct( imaState.eth_erc721 ) + "\n" );
+    // log.write( "S-Chain  " ) + cc.sunny( "ERC1155" ) + cc.debug( " .....................address is....." ) + oct( imaState.eth_erc1155 ) + "\n" );
+    log.write( cc.bright( "IMA contracts(Target S-Chain):" ) + "\n" );
+    // log.write( "S-Chain  " ) + cc.sunny( "TokenManagerEth" ) + cc.debug( "..............address is....." ) + oct( imaState.jo_token_manager_eth_target ) + "\n" );
+    log.write( cc.sunny( "TokenManagerERC20" ) + cc.debug( "............address is....." ) + oct( imaState.jo_token_manager_erc20_target ) + "\n" );
+    log.write( cc.sunny( "TokenManagerERC721" ) + cc.debug( " ..........address is....." ) + oct( imaState.jo_token_manager_erc721_target ) + "\n" );
+    log.write( cc.sunny( "TokenManagerERC1155" ) + cc.debug( "..........address is....." ) + oct( imaState.jo_token_manager_erc1155_target ) + "\n" );
+    log.write( cc.sunny( "CommunityLocker" ) + cc.debug( "..............address is....." ) + oct( imaState.jo_community_locker_target ) + "\n" );
+    log.write( cc.sunny( "MessageProxy" ) + cc.debug( ".................address is....." ) + oct( imaState.jo_message_proxy_s_chain_target ) + "\n" );
+    log.write( cc.sunny( "TokenManagerLinker" ) + cc.debug( " ..........address is....." ) + oct( imaState.jo_token_manager_linker_target ) + "\n" );
+    log.write( cc.sunny( "ERC20" ) + cc.debug( " .......................address is....." ) + oct( imaState.eth_erc20_target ) + "\n" );
+    // log.write( "S-Chain  " ) + cc.sunny( "ERC721" ) + cc.debug( " ......................address is....." ) + oct( imaState.eth_erc721_target ) + "\n" );
+    // log.write( "S-Chain  " ) + cc.sunny( "ERC1155" ) + cc.debug( " .....................address is....." ) + oct( imaState.eth_erc1155_target ) + "\n" );
 
     // if( imaState.bHaveSkaleManagerABI ) {
     log.write( cc.bright( "Skale Manager contracts:" ) + "\n" );
-    log.write( cc.sunny( "ConstantsHolder" ) + cc.debug( ".......................address is....." ) + oct( imaState.jo_constants_holder ) + "\n" );
-    log.write( cc.sunny( "Nodes" ) + cc.debug( ".................................address is....." ) + oct( imaState.jo_nodes ) + "\n" );
-    log.write( cc.sunny( "KeyStorage" ) + cc.debug( "............................address is....." ) + oct( imaState.jo_key_storage ) + "\n" );
-    log.write( cc.sunny( "Schains" ) + cc.debug( "...............................address is....." ) + oct( imaState.jo_schains ) + "\n" );
-    log.write( cc.sunny( "SchainsInternal" ) + cc.debug( ".......................address is....." ) + oct( imaState.jo_schains_internal ) + "\n" );
-    log.write( cc.sunny( "SkaleDKG" ) + cc.debug( "..............................address is....." ) + oct( imaState.jo_skale_dkg ) + "\n" );
-    log.write( cc.sunny( "SkaleManager" ) + cc.debug( "..........................address is....." ) + oct( imaState.jo_skale_manager ) + "\n" );
-    log.write( cc.sunny( "SkaleToken" ) + cc.debug( "............................address is....." ) + oct( imaState.jo_skale_token ) + "\n" );
-    log.write( cc.sunny( "ValidatorService" ) + cc.debug( "......................address is....." ) + oct( imaState.jo_validator_service ) + "\n" );
-    log.write( cc.sunny( "Wallets" ) + cc.debug( "...............................address is....." ) + oct( imaState.jo_wallets ) + "\n" );
+    log.write( cc.sunny( "ConstantsHolder" ) + cc.debug( "..............address is....." ) + oct( imaState.jo_constants_holder ) + "\n" );
+    log.write( cc.sunny( "Nodes" ) + cc.debug( "........................address is....." ) + oct( imaState.jo_nodes ) + "\n" );
+    log.write( cc.sunny( "KeyStorage" ) + cc.debug( "...................address is....." ) + oct( imaState.jo_key_storage ) + "\n" );
+    log.write( cc.sunny( "Schains" ) + cc.debug( "......................address is....." ) + oct( imaState.jo_schains ) + "\n" );
+    log.write( cc.sunny( "SchainsInternal" ) + cc.debug( "..............address is....." ) + oct( imaState.jo_schains_internal ) + "\n" );
+    log.write( cc.sunny( "SkaleDKG" ) + cc.debug( ".....................address is....." ) + oct( imaState.jo_skale_dkg ) + "\n" );
+    log.write( cc.sunny( "SkaleManager" ) + cc.debug( ".................address is....." ) + oct( imaState.jo_skale_manager ) + "\n" );
+    log.write( cc.sunny( "SkaleToken" ) + cc.debug( "...................address is....." ) + oct( imaState.jo_skale_token ) + "\n" );
+    log.write( cc.sunny( "ValidatorService" ) + cc.debug( ".............address is....." ) + oct( imaState.jo_validator_service ) + "\n" );
+    log.write( cc.sunny( "Wallets" ) + cc.debug( "......................address is....." ) + oct( imaState.jo_wallets ) + "\n" );
     // } else
     //     log.write( cc.error( "WARNING:" ) + " " + cc.warning( "no Skale Manager contracts to list, Skale Manager ABI was not provided" ) + "\n" );
 
