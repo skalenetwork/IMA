@@ -842,8 +842,12 @@ imaCLI.parse( {
                 // const jo_message_proxy_dst = isForward ? imaState.jo_message_proxy_t_chain : imaState.jo_message_proxy_s_chain;
                 const jo_token_manager_erc20_src = isForward ? imaState.jo_token_manager_erc20 : imaState.jo_token_manager_erc20_target;
                 // const jo_token_manager_erc20_dst = isForward ? imaState.jo_token_manager_erc20_target : imaState.jo_token_manager_erc20
-                // const strChainName_src = isForward ? imaState.strChainName_t_chain : imaState.strChainName_s_chain;
-                const strChainName_dst = isForward ? imaState.strChainName_s_chain : imaState.strChainName_t_chain;
+                const jo_token_manager_erc721_src = isForward ? imaState.jo_token_manager_erc721 : imaState.jo_token_manager_erc721_target;
+                // const jo_token_manager_erc721_dst = isForward ? imaState.jo_token_manager_erc721_target : imaState.jo_token_manager_erc721
+                const jo_token_manager_erc1155_src = isForward ? imaState.jo_token_manager_erc1155 : imaState.jo_token_manager_erc1155_target;
+                // const jo_token_manager_erc1155_dst = isForward ? imaState.jo_token_manager_erc1155_target : imaState.jo_token_manager_erc1155
+                // const strChainName_src = isForward ? imaState.strChainName_s_chain : imaState.strChainName_t_chain;
+                const strChainName_dst = isForward ? imaState.strChainName_t_chain : imaState.strChainName_s_chain;
                 const strCoinNameErc20_src = isForward ? imaState.strCoinNameErc20_s_chain : imaState.strCoinNameErc20_t_chain;
                 // const strCoinNameErc20_dst = isForward ? imaState.strCoinNameErc20_t_chain : imaState.strCoinNameErc20_s_chain;
                 const strCoinNameErc721_src = isForward ? imaState.strCoinNameErc721_s_chain : imaState.strCoinNameErc721_t_chain;
@@ -892,7 +896,7 @@ imaCLI.parse( {
                         imaState.nAmountOfWei, // how much to send
                         strCoinNameErc721_src,
                         joErc721_src,
-                        strAddrErc721_dst,
+                        strAddrErc721_dst, // only reverse payment needs it
                         tc
                     );
                 }
@@ -910,7 +914,7 @@ imaCLI.parse( {
                         imaState.nAmountOfWei, // how much to send
                         strCoinNameErc20_src,
                         joErc20_src,
-                        strAddrErc20_dst,
+                        strAddrErc20_dst, // only reverse payment needs it
                         tc
                     );
                 }
@@ -935,17 +939,18 @@ imaCLI.parse( {
                         imaState.nAmountOfWei, // how much to send
                         strCoinNameErc1155_src,
                         joErc1155_src,
-                        strAddrErc1155_dst,
+                        strAddrErc1155_dst, // only reverse payment needs it
                         tc
                     );
                 }
                 if(
-                    imaState.strCoinNameErc1155_s_chain.length > 0 &&
+                    strCoinNameErc1155_src.length > 0 &&
                     imaState.idTokens && imaState.idTokens !== null && imaState.idTokens !== undefined &&
                     imaState.nAmountOfTokens && imaState.nAmountOfTokens !== null && imaState.nAmountOfTokens !== undefined &&
                     ( !imaState.idToken || imaState.idToken === null || imaState.idToken === undefined ) &&
                     ( !imaState.nAmountOfToken || imaState.nAmountOfToken === null || imaState.nAmountOfToken === undefined )
                 ) {
+                    console.log( "------------------- imaState.idTokens", imaState.idTokens );
                     // ERC1155 Batch payment
                     log.write( cc.info( "one S->S single ERC1155 Batch payment: " ) + cc.sunny( imaState.idTokens ) + " " + cc.sunny( imaState.nAmountOfTokens ) + "\n" ); // just print value
                     return await IMA.do_erc1155_batch_payment_s2s(

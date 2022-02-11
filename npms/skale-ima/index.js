@@ -3844,7 +3844,7 @@ async function do_erc20_payment_s2s(
     nAmountOfWei, // how much to send
     strCoinNameErc20_src,
     joErc20_src,
-    erc20_address_dst,
+    erc20_address_dst, // only reverse payment needs it
     tc
 ) {
     const isReverse = isForward ? false : true;
@@ -3864,10 +3864,21 @@ async function do_erc20_payment_s2s(
             throw new Error( "Need full source ERC20 information, like ABI" );
         if( ! joErc20_src )
             throw new Error( "No source ERC20 ABI provided" );
-        if( ! erc20_address_dst )
-            throw new Error( "No destination ERC20 address provided" );
+        if( isReverse ) {
+            if( ! erc20_address_dst )
+                throw new Error( "No destination ERC20 address provided" );
+        }
         if( ! tc )
             throw new Error( "No transaction customizer provided" );
+        const erc20_abi_src = joErc20_src[strCoinNameErc20_src + "_abi"];
+        const erc20_address_src = joErc20_src[strCoinNameErc20_src + "_address"];
+        details.write( strLogPrefix + cc.attention( "Token Manager ERC20" ) + cc.debug( " address on source chain...." ) + cc.note( jo_token_manager_erc20_src.options.address ) + "\n" );
+        details.write( strLogPrefix + cc.attention( "Source ERC20" ) + cc.debug( " coin name........................." ) + cc.note( strCoinNameErc20_src ) + "\n" );
+        details.write( strLogPrefix + cc.attention( "Source ERC20" ) + cc.debug( " token address....................." ) + cc.note( erc20_address_src ) + "\n" );
+        if( isReverse || erc20_address_dst )
+            details.write( strLogPrefix + cc.attention( "Destination ERC20" ) + cc.debug( " token address................" ) + cc.note( erc20_address_dst ) + "\n" );
+        details.write( strLogPrefix + cc.attention( "Destination chain name" ) + cc.debug( "........................." ) + cc.note( strChainName_dst ) + "\n" );
+        details.write( strLogPrefix + cc.attention( "Amount of tokens" ) + cc.debug( " to transfer..................." ) + cc.note( nAmountOfToken ) + "\n" );
         //
         strActionName = "w3_src.eth.getTransactionCount()/do_erc20_payment_s2s/" + ( isForward ? "forward" : "reverse" );
         details.write( strLogPrefix + cc.debug( "Will call " ) + cc.notice( strActionName ) + cc.debug( "..." ) + "\n" );
@@ -3876,14 +3887,12 @@ async function do_erc20_payment_s2s(
         //
         //
         strActionName = "ERC20 prepare S->S " + ( isForward ? "forward" : "reverse" ) + " approve";
-        const erc20_abi_src = joErc20_src[strCoinNameErc20_src + "_abi"];
-        const erc20_address_src = joErc20_src[strCoinNameErc20_src + "_address"];
         const contractERC20 = new w3_src.eth.Contract(
             erc20_abi_src,
             erc20_address_src
         );
         const methodWithArguments_approve = contractERC20.methods.approve(
-            contractERC20.options.address, "0x" + w3_src.utils.toBN( nAmountOfToken ).toString( 16 )
+            jo_token_manager_erc20_src.options.address, "0x" + w3_src.utils.toBN( nAmountOfToken ).toString( 16 )
         );
         const dataTx_approve = methodWithArguments_approve.encodeABI();
         //
@@ -3981,19 +3990,19 @@ async function do_erc20_payment_s2s(
         }
         //
         //
-        const joReceipt = joReceipt_transfer;
+        // const joReceipt = joReceipt_transfer;
         //
         // Must-have event(s) analysis as indicator(s) of success
         //
-        if( jo_token_manager_erc20_src ) {
-            details.write( strLogPrefix + cc.debug( "Verifying the " ) + cc.info( "OutgoingMessage" ) + cc.debug( " event of the " ) + cc.info( "MessageProxy" ) + cc.debug( "/" ) + cc.notice( jo_token_manager_erc20_src.options.address ) + cc.debug( " contract ..." ) + "\n" );
-            await sleep( g_nSleepBeforeFetchOutgoingMessageEvent );
-            const joEvents = await get_contract_call_events( details, w3_src, jo_token_manager_erc20_src, "OutgoingMessage", joReceipt.blockNumber, joReceipt.transactionHash, {} );
-            if( joEvents.length > 0 )
-                details.write( strLogPrefix + cc.success( "Success, verified the " ) + cc.info( "OutgoingMessage" ) + cc.success( " event of the " ) + cc.info( "MessageProxy" ) + cc.success( "/" ) + cc.notice( jo_token_manager_erc20_src.options.address ) + cc.success( " contract, found event(s): " ) + cc.j( joEvents ) + "\n" );
-            else
-                throw new Error( "Verification failed for th\"OutgoingMessage\" event of the \"MessageProxy\"/" + jo_token_manager_erc20_src.options.address + " contract, no events found" );
-        } // if( jo_token_manager_erc20_src )
+        // if( jo_token_manager_erc20_src ) {
+        //     details.write( strLogPrefix + cc.debug( "Verifying the " ) + cc.info( "OutgoingMessage" ) + cc.debug( " event of the " ) + cc.info( "MessageProxy" ) + cc.debug( "/" ) + cc.notice( jo_token_manager_erc20_src.options.address ) + cc.debug( " contract ..." ) + "\n" );
+        //     await sleep( g_nSleepBeforeFetchOutgoingMessageEvent );
+        //     const joEvents = await get_contract_call_events( details, w3_src, jo_token_manager_erc20_src, "OutgoingMessage", joReceipt.blockNumber, joReceipt.transactionHash, {} );
+        //     if( joEvents.length > 0 )
+        //         details.write( strLogPrefix + cc.success( "Success, verified the " ) + cc.info( "OutgoingMessage" ) + cc.success( " event of the " ) + cc.info( "MessageProxy" ) + cc.success( "/" ) + cc.notice( jo_token_manager_erc20_src.options.address ) + cc.success( " contract, found event(s): " ) + cc.j( joEvents ) + "\n" );
+        //     else
+        //         throw new Error( "Verification failed for th\"OutgoingMessage\" event of the \"MessageProxy\"/" + jo_token_manager_erc20_src.options.address + " contract, no events found" );
+        // } // if( jo_token_manager_erc20_src )
     } catch ( err ) {
         const s = strLogPrefix + cc.fatal( "CRITICAL ERROR:" ) + cc.error( " Payment error in " + strActionName + ": " ) + cc.error( err ) + "\n";
         if( verbose_get() >= RV_VERBOSE.fatal )
@@ -4015,7 +4024,190 @@ async function do_erc20_payment_s2s(
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 //
 async function do_erc721_payment_s2s(
+    isForward,
+    w3_src,
+    cid_src,
+    strChainName_dst,
+    joAccountSrc,
+    jo_token_manager_erc721_src,
+    token_id, // which ERC721 token id to send
+    nAmountOfWei, // how much to send
+    strCoinNameErc721_src,
+    joErc721_src,
+    erc721_address_dst, // only reverse payment needs it
+    tc
 ) {
+    const isReverse = isForward ? false : true;
+    const details = log.createMemoryStream();
+    const jarrReceipts = []; // do_erc721_payment_s2s
+    let strActionName = "";
+    const strLogPrefix = cc.info( "S2S ERC721 Payment(" + ( isForward ? "forward" : "reverse" ) + "):" ) + " ";
+    try {
+        strActionName = "validateArgs/do_erc721_payment_s2s/" + ( isForward ? "forward" : "reverse" );
+        if( ! w3_src )
+            throw new Error( "No web3 provided for source of transfer" );
+        if( ! strChainName_dst )
+            throw new Error( "No destination chain name provided" );
+        if( ! joAccountSrc )
+            throw new Error( "No account or sign TX way provided" );
+        if( ! strCoinNameErc721_src )
+            throw new Error( "Need full source ERC721 information, like ABI" );
+        if( ! joErc721_src )
+            throw new Error( "No source ERC721 ABI provided" );
+        if( isReverse ) {
+            if( ! erc721_address_dst )
+                throw new Error( "No destination ERC721 address provided" );
+        }
+        if( ! tc )
+            throw new Error( "No transaction customizer provided" );
+        const erc721_abi_src = joErc721_src[strCoinNameErc721_src + "_abi"];
+        const erc721_address_src = joErc721_src[strCoinNameErc721_src + "_address"];
+        details.write( strLogPrefix + cc.attention( "Token Manager ERC721" ) + cc.debug( " address on source chain...." ) + cc.note( jo_token_manager_erc721_src.options.address ) + "\n" );
+        details.write( strLogPrefix + cc.attention( "Source ERC721" ) + cc.debug( " coin name........................." ) + cc.note( strCoinNameErc721_src ) + "\n" );
+        details.write( strLogPrefix + cc.attention( "Source ERC721" ) + cc.debug( " token address....................." ) + cc.note( erc721_address_src ) + "\n" );
+        if( isReverse || erc721_address_dst )
+            details.write( strLogPrefix + cc.attention( "Destination ERC721" ) + cc.debug( " token address................" ) + cc.note( erc721_address_dst ) + "\n" );
+        details.write( strLogPrefix + cc.attention( "Destination chain name" ) + cc.debug( "........................." ) + cc.note( strChainName_dst ) + "\n" );
+        details.write( strLogPrefix + cc.attention( "Token ID" ) + cc.debug( " to transfer..........................." ) + cc.note( token_id ) + "\n" );
+        //
+        strActionName = "w3_src.eth.getTransactionCount()/do_erc721_payment_s2s/" + ( isForward ? "forward" : "reverse" );
+        details.write( strLogPrefix + cc.debug( "Will call " ) + cc.notice( strActionName ) + cc.debug( "..." ) + "\n" );
+        let tcnt = await get_web3_transactionCount( details, 10, w3_src, joAccountSrc.address( w3_src ), null );
+        details.write( strLogPrefix + cc.debug( "Got " ) + cc.info( tcnt ) + cc.debug( " from " ) + cc.notice( strActionName ) + "\n" );
+        //
+        //
+        strActionName = "ERC721 prepare S->S " + ( isForward ? "forward" : "reverse" ) + " approve";
+        const contractERC721 = new w3_src.eth.Contract(
+            erc721_abi_src,
+            erc721_address_src
+        );
+        const methodWithArguments_approve = contractERC721.methods.approve(
+            jo_token_manager_erc721_src.options.address,
+            "0x" + w3_src.utils.toBN( token_id ).toString( 16 )
+        );
+        const dataTx_approve = methodWithArguments_approve.encodeABI();
+        //
+        strActionName = "ERC721 prepare S->S " + ( isForward ? "forward" : "reverse" ) + " transfer";
+        const methodWithArguments_transfer = jo_token_manager_erc721_src.methods.transferToSchainERC721(
+            strChainName_dst,
+            isReverse ? erc721_address_dst : erc721_address_src,
+            "0x" + w3_src.utils.toBN( token_id ).toString( 16 )
+        );
+        const dataTx_transfer = methodWithArguments_transfer.encodeABI();
+        //
+        //
+        strActionName = "compute gas price for ERC721 transactions S->S " + ( isForward ? "forward" : "reverse" );
+        let gasPrice = await tc.computeGasPrice( w3_src, 7210000000000 );
+        details.write( strLogPrefix + cc.debug( "Using computed " ) + cc.info( "gasPrice" ) + cc.debug( "=" ) + cc.notice( gasPrice ) + "\n" );
+        strActionName = "create ERC721/approve transaction S->S " + ( isForward ? "forward" : "reverse" );
+        const estimatedGas_approve = await tc.computeGas( methodWithArguments_approve, w3_src, 8000000, gasPrice, joAccountSrc.address( w3_src ), "0" );
+        details.write( strLogPrefix + cc.debug( "Using estimated(approve) " ) + cc.info( "gas" ) + cc.debug( "=" ) + cc.notice( estimatedGas_approve ) + "\n" );
+        const isIgnore_approve = false;
+        const strDRC_approve = "do_erc721_payment_s2s, approve, " + ( isForward ? "forward" : "reverse" );
+        const strErrorOfDryRun_approve = await dry_run_call( details, w3_src, methodWithArguments_approve, joAccountSrc, strDRC_approve, isIgnore_approve, gasPrice, estimatedGas_approve, "0" );
+        if( strErrorOfDryRun_approve )
+            throw new Error( strErrorOfDryRun_approve );
+        const rawTx_approve = {
+            chainId: cid_src,
+            from: joAccountSrc.address( w3_src ), // accountForMainnet
+            nonce: "0x" + tcnt.toString( 16 ),
+            data: dataTx_approve,
+            to: erc721_address_src,
+            gasPrice: gasPrice, // 0
+            gas: estimatedGas_approve
+        };
+        const tx_approve = compose_tx_instance( details, strLogPrefix, rawTx_approve );
+        strActionName = "sign ERC721/approve transaction S->S " + ( isForward ? "forward" : "reverse" );
+        const joSR_approve = await safe_sign_transaction_with_account( details, w3_src, tx_approve, rawTx_approve, joAccountSrc );
+        let joReceipt_approve = null;
+        if( joSR_approve.joACI.isAutoSend )
+            joReceipt_approve = await get_web3_transactionReceipt( details, 10, w3_src, joSR_approve.txHashSent );
+        else {
+            const serializedTx_approve = tx_approve.serialize();
+            strActionName = "w3_src.eth.sendSignedTransaction()/Approve/" + ( isForward ? "forward" : "reverse" );
+            details.write( cc.normal( "Will send ERC721/approve signed transaction from " ) + cc.warning( joAccountSrc.address( w3_src ) ) + "\n" );
+            joReceipt_approve = await safe_send_signed_transaction( details, w3_src, serializedTx_approve, strActionName, strLogPrefix );
+        }
+        details.write( strLogPrefix + cc.success( "Result receipt for Approve: " ) + cc.j( joReceipt_approve ) + "\n" );
+        if( joReceipt_approve && typeof joReceipt_approve == "object" && "gasUsed" in joReceipt_approve ) {
+            jarrReceipts.push( {
+                "description": "do_erc721_payment_s2s/approve/" + ( isForward ? "forward" : "reverse" ),
+                "receipt": joReceipt_approve
+            } );
+        }
+        //
+        //
+        strActionName = "create ERC721/transfer transaction S->S " + ( isForward ? "forward" : "reverse" );
+        gasPrice = await tc.computeGasPrice( w3_src, 7210000000000 );
+        details.write( strLogPrefix + cc.debug( "Using computed " ) + cc.info( "gasPrice" ) + cc.debug( "=" ) + cc.notice( gasPrice ) + "\n" );
+        const estimatedGas_transfer = await tc.computeGas( methodWithArguments_transfer, w3_src, 8000000, gasPrice, joAccountSrc.address( w3_src ), "0" );
+        details.write( strLogPrefix + cc.debug( "Using estimated(transfer) " ) + cc.info( "gas" ) + cc.debug( "=" ) + cc.notice( estimatedGas_transfer ) + "\n" );
+        const isIgnore_transferERC721 = true;
+        const strDRC_transferERC721 = "do_erc721_payment_s2s, transferERC721";
+        const strErrorOfDryRun_transferERC721 = await dry_run_call( details, w3_src, methodWithArguments_transfer, joAccountSrc, strDRC_transferERC721, isIgnore_transferERC721, gasPrice, estimatedGas_transfer, "0" );
+        if( strErrorOfDryRun_transferERC721 )
+            throw new Error( strErrorOfDryRun_transferERC721 );
+        //
+        tcnt += 1;
+        const rawTx_transfer = {
+            chainId: cid_src,
+            from: joAccountSrc.address( w3_src ),
+            nonce: "0x" + tcnt.toString( 16 ),
+            data: dataTx_transfer,
+            to: jo_token_manager_erc721_src.options.address,
+            gasPrice: gasPrice, // 0
+            gas: estimatedGas_transfer
+            // value: "0x" + w3_src.utils.toBN( wei_how_much ).toString( 16 )
+        };
+        const tx_transfer = compose_tx_instance( details, strLogPrefix, rawTx_transfer );
+        strActionName = "sign ERC721/transfer transaction S->S " + ( isForward ? "forward" : "reverse" );
+        const joSR_transfer = await safe_sign_transaction_with_account( details, w3_src, tx_transfer, rawTx_transfer, joAccountSrc );
+        let joReceipt_transfer = null;
+        if( joSR_transfer.joACI.isAutoSend )
+            joReceipt_transfer = await get_web3_transactionReceipt( details, 10, w3_src, joSR_transfer.txHashSent );
+        else {
+            const serializedTx_transfer = tx_transfer.serialize();
+            // send transactions
+            strActionName = "w3_src.eth.sendSignedTransaction()/Transfer/" + ( isForward ? "forward" : "reverse" );
+            details.write( cc.normal( "Will send ERC721/transfer signed transaction from " ) + cc.warning( joAccountSrc.address( w3_src ) ) + "\n" );
+            joReceipt_transfer = await safe_send_signed_transaction( details, w3_src, serializedTx_transfer, strActionName, strLogPrefix );
+        }
+        details.write( strLogPrefix + cc.success( "Result receipt for Transfer: " ) + cc.j( joReceipt_transfer ) + "\n" );
+        if( joReceipt_transfer && typeof joReceipt_transfer == "object" && "gasUsed" in joReceipt_transfer ) {
+            jarrReceipts.push( {
+                "description": "do_erc721_payment_from_src/transfer",
+                "receipt": joReceipt_transfer
+            } );
+        }
+        //
+        //
+        // const joReceipt = joReceipt_transfer;
+        //
+        // Must-have event(s) analysis as indicator(s) of success
+        //
+        // if( jo_token_manager_erc721_src ) {
+        //     details.write( strLogPrefix + cc.debug( "Verifying the " ) + cc.info( "OutgoingMessage" ) + cc.debug( " event of the " ) + cc.info( "MessageProxy" ) + cc.debug( "/" ) + cc.notice( jo_token_manager_erc721_src.options.address ) + cc.debug( " contract ..." ) + "\n" );
+        //     await sleep( g_nSleepBeforeFetchOutgoingMessageEvent );
+        //     const joEvents = await get_contract_call_events( details, w3_src, jo_token_manager_erc721_src, "OutgoingMessage", joReceipt.blockNumber, joReceipt.transactionHash, {} );
+        //     if( joEvents.length > 0 )
+        //         details.write( strLogPrefix + cc.success( "Success, verified the " ) + cc.info( "OutgoingMessage" ) + cc.success( " event of the " ) + cc.info( "MessageProxy" ) + cc.success( "/" ) + cc.notice( jo_token_manager_erc721_src.options.address ) + cc.success( " contract, found event(s): " ) + cc.j( joEvents ) + "\n" );
+        //     else
+        //         throw new Error( "Verification failed for th\"OutgoingMessage\" event of the \"MessageProxy\"/" + jo_token_manager_erc721_src.options.address + " contract, no events found" );
+        // } // if( jo_token_manager_erc721_src )
+    } catch ( err ) {
+        const s = strLogPrefix + cc.fatal( "CRITICAL ERROR:" ) + cc.error( " Payment error in " + strActionName + ": " ) + cc.error( err ) + "\n";
+        if( verbose_get() >= RV_VERBOSE.fatal )
+            log.write( s );
+        details.write( s );
+        details.exposeDetailsTo( log, "do_erc721_payment_s2s/" + ( isForward ? "forward" : "reverse" ), false );
+        details.close();
+        return false;
+    }
+    print_gas_usage_report_from_array( "ERC-721 PAYMENT FROM S2S/" + ( isForward ? "forward" : "reverse" ), jarrReceipts );
+    if( expose_details_get() )
+        details.exposeDetailsTo( log, "do_erc721_payment_s2s/" + ( isForward ? "forward" : "reverse" ), true );
+    details.close();
+    return true;
 }
 
 //
@@ -4023,7 +4215,193 @@ async function do_erc721_payment_s2s(
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 //
 async function do_erc1155_payment_s2s(
+    isForward,
+    w3_src,
+    cid_src,
+    strChainName_dst,
+    joAccountSrc,
+    jo_token_manager_erc1155_src,
+    token_id, // which ERC721 token id to send
+    nAmountOfToken, // how much ERC1155 tokens to send
+    nAmountOfWei, // how much to send
+    strCoinNameErc1155_src,
+    joErc1155_src,
+    erc1155_address_dst, // only reverse payment needs it
+    tc
 ) {
+    const isReverse = isForward ? false : true;
+    const details = log.createMemoryStream();
+    const jarrReceipts = []; // do_erc1155_payment_s2s
+    let strActionName = "";
+    const strLogPrefix = cc.info( "S2S ERC1155 Payment(" + ( isForward ? "forward" : "reverse" ) + "):" ) + " ";
+    try {
+        strActionName = "validateArgs/do_erc1155_payment_s2s/" + ( isForward ? "forward" : "reverse" );
+        if( ! w3_src )
+            throw new Error( "No web3 provided for source of transfer" );
+        if( ! strChainName_dst )
+            throw new Error( "No destination chain name provided" );
+        if( ! joAccountSrc )
+            throw new Error( "No account or sign TX way provided" );
+        if( ! strCoinNameErc1155_src )
+            throw new Error( "Need full source ERC1155 information, like ABI" );
+        if( ! joErc1155_src )
+            throw new Error( "No source ERC1155 ABI provided" );
+        if( isReverse ) {
+            if( ! erc1155_address_dst )
+                throw new Error( "No destination ERC1155 address provided" );
+        }
+        if( ! tc )
+            throw new Error( "No transaction customizer provided" );
+        const erc1155_abi_src = joErc1155_src[strCoinNameErc1155_src + "_abi"];
+        const erc1155_address_src = joErc1155_src[strCoinNameErc1155_src + "_address"];
+        details.write( strLogPrefix + cc.attention( "Token Manager ERC1155" ) + cc.debug( " address on source chain...." ) + cc.note( jo_token_manager_erc1155_src.options.address ) + "\n" );
+        details.write( strLogPrefix + cc.attention( "Source ERC1155" ) + cc.debug( " coin name........................." ) + cc.note( strCoinNameErc1155_src ) + "\n" );
+        details.write( strLogPrefix + cc.attention( "Source ERC1155" ) + cc.debug( " token address....................." ) + cc.note( erc1155_address_src ) + "\n" );
+        if( isReverse || erc1155_address_dst )
+            details.write( strLogPrefix + cc.attention( "Destination ERC1155" ) + cc.debug( " token address................" ) + cc.note( erc1155_address_dst ) + "\n" );
+        details.write( strLogPrefix + cc.attention( "Destination chain name" ) + cc.debug( "........................." ) + cc.note( strChainName_dst ) + "\n" );
+        details.write( strLogPrefix + cc.attention( "Token ID" ) + cc.debug( " to transfer..........................." ) + cc.note( token_id ) + "\n" );
+        details.write( strLogPrefix + cc.attention( "Amount of tokens" ) + cc.debug( " to transfer..................." ) + cc.note( nAmountOfToken ) + "\n" );
+        //
+        strActionName = "w3_src.eth.getTransactionCount()/do_erc1155_payment_s2s/" + ( isForward ? "forward" : "reverse" );
+        details.write( strLogPrefix + cc.debug( "Will call " ) + cc.notice( strActionName ) + cc.debug( "..." ) + "\n" );
+        let tcnt = await get_web3_transactionCount( details, 10, w3_src, joAccountSrc.address( w3_src ), null );
+        details.write( strLogPrefix + cc.debug( "Got " ) + cc.info( tcnt ) + cc.debug( " from " ) + cc.notice( strActionName ) + "\n" );
+        //
+        //
+        strActionName = "ERC1155 prepare S->S " + ( isForward ? "forward" : "reverse" ) + " approve";
+        const contractERC1155 = new w3_src.eth.Contract(
+            erc1155_abi_src,
+            erc1155_address_src
+        );
+        const methodWithArguments_approve = contractERC1155.methods.setApprovalForAll(
+            jo_token_manager_erc1155_src.options.address,
+            true
+        );
+        const dataTx_approve = methodWithArguments_approve.encodeABI();
+        //
+        strActionName = "ERC1155 prepare S->S " + ( isForward ? "forward" : "reverse" ) + " transfer";
+        const methodWithArguments_transfer = jo_token_manager_erc1155_src.methods.transferToSchainERC1155(
+            strChainName_dst,
+            isReverse ? erc1155_address_dst : erc1155_address_src,
+            "0x" + w3_src.utils.toBN( token_id ).toString( 16 ),
+            "0x" + w3_src.utils.toBN( nAmountOfToken ).toString( 16 )
+        );
+        const dataTx_transfer = methodWithArguments_transfer.encodeABI();
+        //
+        //
+        strActionName = "compute gas price for ERC1155 transactions S->S " + ( isForward ? "forward" : "reverse" );
+        let gasPrice = await tc.computeGasPrice( w3_src, 11550000000000 );
+        details.write( strLogPrefix + cc.debug( "Using computed " ) + cc.info( "gasPrice" ) + cc.debug( "=" ) + cc.notice( gasPrice ) + "\n" );
+        strActionName = "create ERC1155/approve transaction S->S " + ( isForward ? "forward" : "reverse" );
+        const estimatedGas_approve = await tc.computeGas( methodWithArguments_approve, w3_src, 8000000, gasPrice, joAccountSrc.address( w3_src ), "0" );
+        details.write( strLogPrefix + cc.debug( "Using estimated(approve) " ) + cc.info( "gas" ) + cc.debug( "=" ) + cc.notice( estimatedGas_approve ) + "\n" );
+        const isIgnore_approve = false;
+        const strDRC_approve = "do_erc1155_payment_s2s, approve, " + ( isForward ? "forward" : "reverse" );
+        const strErrorOfDryRun_approve = await dry_run_call( details, w3_src, methodWithArguments_approve, joAccountSrc, strDRC_approve, isIgnore_approve, gasPrice, estimatedGas_approve, "0" );
+        if( strErrorOfDryRun_approve )
+            throw new Error( strErrorOfDryRun_approve );
+        const rawTx_approve = {
+            chainId: cid_src,
+            from: joAccountSrc.address( w3_src ), // accountForMainnet
+            nonce: "0x" + tcnt.toString( 16 ),
+            data: dataTx_approve,
+            to: erc1155_address_src,
+            gasPrice: gasPrice, // 0
+            gas: estimatedGas_approve
+        };
+        const tx_approve = compose_tx_instance( details, strLogPrefix, rawTx_approve );
+        strActionName = "sign ERC1155/approve transaction S->S " + ( isForward ? "forward" : "reverse" );
+        const joSR_approve = await safe_sign_transaction_with_account( details, w3_src, tx_approve, rawTx_approve, joAccountSrc );
+        let joReceipt_approve = null;
+        if( joSR_approve.joACI.isAutoSend )
+            joReceipt_approve = await get_web3_transactionReceipt( details, 10, w3_src, joSR_approve.txHashSent );
+        else {
+            const serializedTx_approve = tx_approve.serialize();
+            strActionName = "w3_src.eth.sendSignedTransaction()/Approve/" + ( isForward ? "forward" : "reverse" );
+            details.write( cc.normal( "Will send ERC1155/approve signed transaction from " ) + cc.warning( joAccountSrc.address( w3_src ) ) + "\n" );
+            joReceipt_approve = await safe_send_signed_transaction( details, w3_src, serializedTx_approve, strActionName, strLogPrefix );
+        }
+        details.write( strLogPrefix + cc.success( "Result receipt for Approve: " ) + cc.j( joReceipt_approve ) + "\n" );
+        if( joReceipt_approve && typeof joReceipt_approve == "object" && "gasUsed" in joReceipt_approve ) {
+            jarrReceipts.push( {
+                "description": "do_erc1155_payment_s2s/approve/" + ( isForward ? "forward" : "reverse" ),
+                "receipt": joReceipt_approve
+            } );
+        }
+        //
+        //
+        strActionName = "create ERC1155/transfer transaction S->S " + ( isForward ? "forward" : "reverse" );
+        gasPrice = await tc.computeGasPrice( w3_src, 11550000000000 );
+        details.write( strLogPrefix + cc.debug( "Using computed " ) + cc.info( "gasPrice" ) + cc.debug( "=" ) + cc.notice( gasPrice ) + "\n" );
+        const estimatedGas_transfer = await tc.computeGas( methodWithArguments_transfer, w3_src, 8000000, gasPrice, joAccountSrc.address( w3_src ), "0" );
+        details.write( strLogPrefix + cc.debug( "Using estimated(transfer) " ) + cc.info( "gas" ) + cc.debug( "=" ) + cc.notice( estimatedGas_transfer ) + "\n" );
+        const isIgnore_transferERC1155 = true;
+        const strDRC_transferERC1155 = "do_erc1155_payment_s2s, transferERC1155";
+        const strErrorOfDryRun_transferERC1155 = await dry_run_call( details, w3_src, methodWithArguments_transfer, joAccountSrc, strDRC_transferERC1155, isIgnore_transferERC1155, gasPrice, estimatedGas_transfer, "0" );
+        if( strErrorOfDryRun_transferERC1155 )
+            throw new Error( strErrorOfDryRun_transferERC1155 );
+        //
+        tcnt += 1;
+        const rawTx_transfer = {
+            chainId: cid_src,
+            from: joAccountSrc.address( w3_src ),
+            nonce: "0x" + tcnt.toString( 16 ),
+            data: dataTx_transfer,
+            to: jo_token_manager_erc1155_src.options.address,
+            gasPrice: gasPrice, // 0
+            gas: estimatedGas_transfer
+            // value: "0x" + w3_src.utils.toBN( wei_how_much ).toString( 16 )
+        };
+        const tx_transfer = compose_tx_instance( details, strLogPrefix, rawTx_transfer );
+        strActionName = "sign ERC1155/transfer transaction S->S " + ( isForward ? "forward" : "reverse" );
+        const joSR_transfer = await safe_sign_transaction_with_account( details, w3_src, tx_transfer, rawTx_transfer, joAccountSrc );
+        let joReceipt_transfer = null;
+        if( joSR_transfer.joACI.isAutoSend )
+            joReceipt_transfer = await get_web3_transactionReceipt( details, 10, w3_src, joSR_transfer.txHashSent );
+        else {
+            const serializedTx_transfer = tx_transfer.serialize();
+            // send transactions
+            strActionName = "w3_src.eth.sendSignedTransaction()/Transfer/" + ( isForward ? "forward" : "reverse" );
+            details.write( cc.normal( "Will send ERC1155/transfer signed transaction from " ) + cc.warning( joAccountSrc.address( w3_src ) ) + "\n" );
+            joReceipt_transfer = await safe_send_signed_transaction( details, w3_src, serializedTx_transfer, strActionName, strLogPrefix );
+        }
+        details.write( strLogPrefix + cc.success( "Result receipt for Transfer: " ) + cc.j( joReceipt_transfer ) + "\n" );
+        if( joReceipt_transfer && typeof joReceipt_transfer == "object" && "gasUsed" in joReceipt_transfer ) {
+            jarrReceipts.push( {
+                "description": "do_erc1155_payment_from_src/transfer",
+                "receipt": joReceipt_transfer
+            } );
+        }
+        //
+        //
+        // const joReceipt = joReceipt_transfer;
+        //
+        // Must-have event(s) analysis as indicator(s) of success
+        //
+        // if( jo_token_manager_erc1155_src ) {
+        //     details.write( strLogPrefix + cc.debug( "Verifying the " ) + cc.info( "OutgoingMessage" ) + cc.debug( " event of the " ) + cc.info( "MessageProxy" ) + cc.debug( "/" ) + cc.notice( jo_token_manager_erc1155_src.options.address ) + cc.debug( " contract ..." ) + "\n" );
+        //     await sleep( g_nSleepBeforeFetchOutgoingMessageEvent );
+        //     const joEvents = await get_contract_call_events( details, w3_src, jo_token_manager_erc1155_src, "OutgoingMessage", joReceipt.blockNumber, joReceipt.transactionHash, {} );
+        //     if( joEvents.length > 0 )
+        //         details.write( strLogPrefix + cc.success( "Success, verified the " ) + cc.info( "OutgoingMessage" ) + cc.success( " event of the " ) + cc.info( "MessageProxy" ) + cc.success( "/" ) + cc.notice( jo_token_manager_erc1155_src.options.address ) + cc.success( " contract, found event(s): " ) + cc.j( joEvents ) + "\n" );
+        //     else
+        //         throw new Error( "Verification failed for th\"OutgoingMessage\" event of the \"MessageProxy\"/" + jo_token_manager_erc1155_src.options.address + " contract, no events found" );
+        // } // if( jo_token_manager_erc1155_src )
+    } catch ( err ) {
+        const s = strLogPrefix + cc.fatal( "CRITICAL ERROR:" ) + cc.error( " Payment error in " + strActionName + ": " ) + cc.error( err ) + "\n";
+        if( verbose_get() >= RV_VERBOSE.fatal )
+            log.write( s );
+        details.write( s );
+        details.exposeDetailsTo( log, "do_erc1155_payment_s2s/" + ( isForward ? "forward" : "reverse" ), false );
+        details.close();
+        return false;
+    }
+    print_gas_usage_report_from_array( "ERC-1155 PAYMENT FROM S2S/" + ( isForward ? "forward" : "reverse" ), jarrReceipts );
+    if( expose_details_get() )
+        details.exposeDetailsTo( log, "do_erc1155_payment_s2s/" + ( isForward ? "forward" : "reverse" ), true );
+    details.close();
+    return true;
 }
 
 //
@@ -4031,7 +4409,193 @@ async function do_erc1155_payment_s2s(
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 //
 async function do_erc1155_batch_payment_s2s(
+    isForward,
+    w3_src,
+    cid_src,
+    strChainName_dst,
+    joAccountSrc,
+    jo_token_manager_erc1155_src,
+    token_ids, // which ERC1155 token id to send
+    token_amounts, // which ERC1155 token id to send
+    nAmountOfWei, // how much to send
+    strCoinNameErc1155_src,
+    joErc1155_src,
+    erc1155_address_dst, // only reverse payment needs it
+    tc
 ) {
+    const isReverse = isForward ? false : true;
+    const details = log.createMemoryStream();
+    const jarrReceipts = []; // do_erc1155_batch_payment_s2s
+    let strActionName = "";
+    const strLogPrefix = cc.info( "S2S Batch ERC1155 Payment(" + ( isForward ? "forward" : "reverse" ) + "):" ) + " ";
+    try {
+        strActionName = "validateArgs/do_erc1155_batch_payment_s2s/" + ( isForward ? "forward" : "reverse" );
+        if( ! w3_src )
+            throw new Error( "No web3 provided for source of transfer" );
+        if( ! strChainName_dst )
+            throw new Error( "No destination chain name provided" );
+        if( ! joAccountSrc )
+            throw new Error( "No account or sign TX way provided" );
+        if( ! strCoinNameErc1155_src )
+            throw new Error( "Need full source ERC1155 information, like ABI" );
+        if( ! joErc1155_src )
+            throw new Error( "No source ERC1155 ABI provided" );
+        if( isReverse ) {
+            if( ! erc1155_address_dst )
+                throw new Error( "No destination ERC1155 address provided" );
+        }
+        if( ! tc )
+            throw new Error( "No transaction customizer provided" );
+        const erc1155_abi_src = joErc1155_src[strCoinNameErc1155_src + "_abi"];
+        const erc1155_address_src = joErc1155_src[strCoinNameErc1155_src + "_address"];
+        details.write( strLogPrefix + cc.attention( "Token Manager ERC1155" ) + cc.debug( " address on source chain...." ) + cc.note( jo_token_manager_erc1155_src.options.address ) + "\n" );
+        details.write( strLogPrefix + cc.attention( "Source ERC1155" ) + cc.debug( " coin name........................." ) + cc.note( strCoinNameErc1155_src ) + "\n" );
+        details.write( strLogPrefix + cc.attention( "Source ERC1155" ) + cc.debug( " token address....................." ) + cc.note( erc1155_address_src ) + "\n" );
+        if( isReverse || erc1155_address_dst )
+            details.write( strLogPrefix + cc.attention( "Destination ERC1155" ) + cc.debug( " token address................" ) + cc.note( erc1155_address_dst ) + "\n" );
+        details.write( strLogPrefix + cc.attention( "Destination chain name" ) + cc.debug( "........................." ) + cc.note( strChainName_dst ) + "\n" );
+        details.write( strLogPrefix + cc.attention( "Token IDs" ) + cc.debug( " to transfer.........................." ) + cc.j( token_ids ) + "\n" );
+        details.write( strLogPrefix + cc.attention( "Amounts of tokens" ) + cc.debug( " to transfer.................." ) + cc.j( token_amounts ) + "\n" );
+        //
+        strActionName = "w3_src.eth.getTransactionCount()/do_erc1155_batch_payment_s2s/" + ( isForward ? "forward" : "reverse" );
+        details.write( strLogPrefix + cc.debug( "Will call " ) + cc.notice( strActionName ) + cc.debug( "..." ) + "\n" );
+        let tcnt = await get_web3_transactionCount( details, 10, w3_src, joAccountSrc.address( w3_src ), null );
+        details.write( strLogPrefix + cc.debug( "Got " ) + cc.info( tcnt ) + cc.debug( " from " ) + cc.notice( strActionName ) + "\n" );
+        //
+        //
+        strActionName = "ERC1155-batch prepare S->S " + ( isForward ? "forward" : "reverse" ) + " approve";
+        const contractERC1155 = new w3_src.eth.Contract(
+            erc1155_abi_src,
+            erc1155_address_src
+        );
+        const methodWithArguments_approve = contractERC1155.methods.setApprovalForAll(
+            jo_token_manager_erc1155_src.options.address,
+            true
+        );
+        const dataTx_approve = methodWithArguments_approve.encodeABI();
+        //
+        strActionName = "ERC1155-batch prepare S->S " + ( isForward ? "forward" : "reverse" ) + " transfer";
+        const methodWithArguments_transfer = jo_token_manager_erc1155_src.methods.transferToSchainERC1155Batch(
+            strChainName_dst,
+            isReverse ? erc1155_address_dst : erc1155_address_src,
+            token_ids,
+            token_amounts
+        );
+        const dataTx_transfer = methodWithArguments_transfer.encodeABI();
+        //
+        //
+        strActionName = "compute gas price for ERC1155-batch transactions S->S " + ( isForward ? "forward" : "reverse" );
+        let gasPrice = await tc.computeGasPrice( w3_src, 11550000000000 );
+        details.write( strLogPrefix + cc.debug( "Using computed " ) + cc.info( "gasPrice" ) + cc.debug( "=" ) + cc.notice( gasPrice ) + "\n" );
+        strActionName = "create ERC1155-batch/approve transaction S->S " + ( isForward ? "forward" : "reverse" );
+        const estimatedGas_approve = await tc.computeGas( methodWithArguments_approve, w3_src, 8000000, gasPrice, joAccountSrc.address( w3_src ), "0" );
+        details.write( strLogPrefix + cc.debug( "Using estimated(approve) " ) + cc.info( "gas" ) + cc.debug( "=" ) + cc.notice( estimatedGas_approve ) + "\n" );
+        const isIgnore_approve = false;
+        const strDRC_approve = "do_erc1155_batch_payment_s2s, approve, " + ( isForward ? "forward" : "reverse" );
+        const strErrorOfDryRun_approve = await dry_run_call( details, w3_src, methodWithArguments_approve, joAccountSrc, strDRC_approve, isIgnore_approve, gasPrice, estimatedGas_approve, "0" );
+        if( strErrorOfDryRun_approve )
+            throw new Error( strErrorOfDryRun_approve );
+        const rawTx_approve = {
+            chainId: cid_src,
+            from: joAccountSrc.address( w3_src ), // accountForMainnet
+            nonce: "0x" + tcnt.toString( 16 ),
+            data: dataTx_approve,
+            to: erc1155_address_src,
+            gasPrice: gasPrice, // 0
+            gas: estimatedGas_approve
+        };
+        const tx_approve = compose_tx_instance( details, strLogPrefix, rawTx_approve );
+        strActionName = "sign ERC1155-batch/approve transaction S->S " + ( isForward ? "forward" : "reverse" );
+        const joSR_approve = await safe_sign_transaction_with_account( details, w3_src, tx_approve, rawTx_approve, joAccountSrc );
+        let joReceipt_approve = null;
+        if( joSR_approve.joACI.isAutoSend )
+            joReceipt_approve = await get_web3_transactionReceipt( details, 10, w3_src, joSR_approve.txHashSent );
+        else {
+            const serializedTx_approve = tx_approve.serialize();
+            strActionName = "w3_src.eth.sendSignedTransaction()/Approve/" + ( isForward ? "forward" : "reverse" );
+            details.write( cc.normal( "Will send ERC1155/approve signed transaction from " ) + cc.warning( joAccountSrc.address( w3_src ) ) + "\n" );
+            joReceipt_approve = await safe_send_signed_transaction( details, w3_src, serializedTx_approve, strActionName, strLogPrefix );
+        }
+        details.write( strLogPrefix + cc.success( "Result receipt for Approve: " ) + cc.j( joReceipt_approve ) + "\n" );
+        if( joReceipt_approve && typeof joReceipt_approve == "object" && "gasUsed" in joReceipt_approve ) {
+            jarrReceipts.push( {
+                "description": "do_erc1155_batch_payment_s2s/approve/" + ( isForward ? "forward" : "reverse" ),
+                "receipt": joReceipt_approve
+            } );
+        }
+        //
+        //
+        strActionName = "create ERC1155-batch/transfer transaction S->S " + ( isForward ? "forward" : "reverse" );
+        gasPrice = await tc.computeGasPrice( w3_src, 11550000000000 );
+        details.write( strLogPrefix + cc.debug( "Using computed " ) + cc.info( "gasPrice" ) + cc.debug( "=" ) + cc.notice( gasPrice ) + "\n" );
+        const estimatedGas_transfer = await tc.computeGas( methodWithArguments_transfer, w3_src, 8000000, gasPrice, joAccountSrc.address( w3_src ), "0" );
+        details.write( strLogPrefix + cc.debug( "Using estimated(transfer) " ) + cc.info( "gas" ) + cc.debug( "=" ) + cc.notice( estimatedGas_transfer ) + "\n" );
+        const isIgnore_transferERC1155 = true;
+        const strDRC_transferERC1155 = "do_erc1155_batch_payment_s2s, transferERC1155";
+        const strErrorOfDryRun_transferERC1155 = await dry_run_call( details, w3_src, methodWithArguments_transfer, joAccountSrc, strDRC_transferERC1155, isIgnore_transferERC1155, gasPrice, estimatedGas_transfer, "0" );
+        if( strErrorOfDryRun_transferERC1155 )
+            throw new Error( strErrorOfDryRun_transferERC1155 );
+        //
+        tcnt += 1;
+        const rawTx_transfer = {
+            chainId: cid_src,
+            from: joAccountSrc.address( w3_src ),
+            nonce: "0x" + tcnt.toString( 16 ),
+            data: dataTx_transfer,
+            to: jo_token_manager_erc1155_src.options.address,
+            gasPrice: gasPrice, // 0
+            gas: estimatedGas_transfer
+            // value: "0x" + w3_src.utils.toBN( wei_how_much ).toString( 16 )
+        };
+        const tx_transfer = compose_tx_instance( details, strLogPrefix, rawTx_transfer );
+        strActionName = "sign ERC1155/transfer transaction S->S " + ( isForward ? "forward" : "reverse" );
+        const joSR_transfer = await safe_sign_transaction_with_account( details, w3_src, tx_transfer, rawTx_transfer, joAccountSrc );
+        let joReceipt_transfer = null;
+        if( joSR_transfer.joACI.isAutoSend )
+            joReceipt_transfer = await get_web3_transactionReceipt( details, 10, w3_src, joSR_transfer.txHashSent );
+        else {
+            const serializedTx_transfer = tx_transfer.serialize();
+            // send transactions
+            strActionName = "w3_src.eth.sendSignedTransaction()/Transfer/" + ( isForward ? "forward" : "reverse" );
+            details.write( cc.normal( "Will send ERC1155/transfer signed transaction from " ) + cc.warning( joAccountSrc.address( w3_src ) ) + "\n" );
+            joReceipt_transfer = await safe_send_signed_transaction( details, w3_src, serializedTx_transfer, strActionName, strLogPrefix );
+        }
+        details.write( strLogPrefix + cc.success( "Result receipt for Transfer: " ) + cc.j( joReceipt_transfer ) + "\n" );
+        if( joReceipt_transfer && typeof joReceipt_transfer == "object" && "gasUsed" in joReceipt_transfer ) {
+            jarrReceipts.push( {
+                "description": "do_erc1155_payment_from_src/transfer",
+                "receipt": joReceipt_transfer
+            } );
+        }
+        //
+        //
+        // const joReceipt = joReceipt_transfer;
+        //
+        // Must-have event(s) analysis as indicator(s) of success
+        //
+        // if( jo_token_manager_erc1155_src ) {
+        //     details.write( strLogPrefix + cc.debug( "Verifying the " ) + cc.info( "OutgoingMessage" ) + cc.debug( " event of the " ) + cc.info( "MessageProxy" ) + cc.debug( "/" ) + cc.notice( jo_token_manager_erc1155_src.options.address ) + cc.debug( " contract ..." ) + "\n" );
+        //     await sleep( g_nSleepBeforeFetchOutgoingMessageEvent );
+        //     const joEvents = await get_contract_call_events( details, w3_src, jo_token_manager_erc1155_src, "OutgoingMessage", joReceipt.blockNumber, joReceipt.transactionHash, {} );
+        //     if( joEvents.length > 0 )
+        //         details.write( strLogPrefix + cc.success( "Success, verified the " ) + cc.info( "OutgoingMessage" ) + cc.success( " event of the " ) + cc.info( "MessageProxy" ) + cc.success( "/" ) + cc.notice( jo_token_manager_erc1155_src.options.address ) + cc.success( " contract, found event(s): " ) + cc.j( joEvents ) + "\n" );
+        //     else
+        //         throw new Error( "Verification failed for th\"OutgoingMessage\" event of the \"MessageProxy\"/" + jo_token_manager_erc1155_src.options.address + " contract, no events found" );
+        // } // if( jo_token_manager_erc1155_src )
+    } catch ( err ) {
+        const s = strLogPrefix + cc.fatal( "CRITICAL ERROR:" ) + cc.error( " Payment error in " + strActionName + ": " ) + cc.error( err ) + "\n";
+        if( verbose_get() >= RV_VERBOSE.fatal )
+            log.write( s );
+        details.write( s );
+        details.exposeDetailsTo( log, "do_erc1155_batch_payment_s2s/" + ( isForward ? "forward" : "reverse" ), false );
+        details.close();
+        return false;
+    }
+    print_gas_usage_report_from_array( "ERC-1155-batch PAYMENT FROM S2S/" + ( isForward ? "forward" : "reverse" ), jarrReceipts );
+    if( expose_details_get() )
+        details.exposeDetailsTo( log, "do_erc1155_batch_payment_s2s/" + ( isForward ? "forward" : "reverse" ), true );
+    details.close();
+    return true;
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
