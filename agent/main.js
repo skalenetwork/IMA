@@ -950,7 +950,6 @@ imaCLI.parse( {
                     ( !imaState.idToken || imaState.idToken === null || imaState.idToken === undefined ) &&
                     ( !imaState.nAmountOfToken || imaState.nAmountOfToken === null || imaState.nAmountOfToken === undefined )
                 ) {
-                    console.log( "------------------- imaState.idTokens", imaState.idTokens );
                     // ERC1155 Batch payment
                     log.write( cc.info( "one S->S single ERC1155 Batch payment: " ) + cc.sunny( imaState.idTokens ) + " " + cc.sunny( imaState.nAmountOfTokens ) + "\n" ); // just print value
                     return await IMA.do_erc1155_batch_payment_s2s(
