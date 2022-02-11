@@ -131,7 +131,7 @@ async function findEventsAndInitialize(
         } else {
             tokenManager = tokenManagerFactory.attach(tokenManagerAddress) as TokenManagerERC1155;
         }
-        const eventFilter: TypedEventFilter<[string, string], { schainName: string, contractOnMainnet: string}> = {
+        const eventFilter: TypedEventFilter<[string, string], { tokenOnMainnet: string, tokenOnSchain: string}> = {
             address: tokenManagerAddress,
             topics: [ ethers.utils.id(eventName + "(string,address)") ]
         }
