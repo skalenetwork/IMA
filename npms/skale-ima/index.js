@@ -1368,7 +1368,7 @@ async function safe_sign_transaction_with_account( details, w3, tx, rawTx, joAcc
     details.write( cc.debug( "Signed transaction is " ) + cc.notice( JSON.stringify( tx ) ) + "\n" );
     joSR.tx = tx;
     details.write( cc.debug( "Transaction with account completed " ) + cc.notice( "sending counter" ) + cc.debug( " is " ) + cc.info( sendingCnt ) + cc.debug( ", raw TX object is " ) + cc.j( rawTx ) + "\n" );
-    log.write( cc.debug( "Transaction with account completed  " ) + cc.notice( "sending counter " ) + cc.debug( " is " ) + cc.info( sendingCnt ) + "\n" );
+    log.write( cc.debug( "Transaction with account completed " ) + cc.notice( "sending counter" ) + cc.debug( " is " ) + cc.info( sendingCnt ) + "\n" );
     return joSR;
 }
 

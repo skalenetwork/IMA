@@ -303,9 +303,9 @@ async function check_tcp( strHost, nPort, nTimeoutMilliseconds, isLog ) {
 async function check_url( u, nTimeoutMilliseconds, isLog ) {
     const jo = get_valid_host_and_port( u );
     if( isLog )
-        console.log( "${g_strTcpConnectionHeader}Extracted from URL \"" + u.toString() + "\" data fields are: " + JSON.stringify( jo ) );
+        console.log( g_strTcpConnectionHeader + "Extracted from URL \"" + u.toString() + "\" data fields are: " + JSON.stringify( jo ) );
     if( ! ( jo && jo.strHost && "nPort" in jo ) ) {
-        console.log( "${g_strTcpConnectionHeader}Extracted from URL \"" + u.toString() + "\" data fields are bad, returning \"false\" as result of TCP connection check" );
+        console.log( g_strTcpConnectionHeader + "Extracted from URL \"" + u.toString() + "\" data fields are bad, returning \"false\" as result of TCP connection check" );
         return false;
     }
     return await check_tcp( jo.strHost, jo.nPort, nTimeoutMilliseconds, isLog );
