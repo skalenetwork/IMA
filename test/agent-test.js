@@ -66,31 +66,43 @@ global.imaState = {
     "joAbiPublishResult_skale_manager": { },
     "joAbiPublishResult_main_net": { },
     "joAbiPublishResult_s_chain": { },
+    "joAbiPublishResult_t_chain": { },
+    "bHaveSkaleManagerABI": false,
+    "bHaveImaAbiMainNet": false,
+    "bHaveImaAbiSchain": false,
+    "bHaveImaAbiSchainTarget": false,
 
     "joErc20_main_net": null,
     "joErc20_s_chain": null,
-
+    "joErc20_t_chain": null,
     "strAddrErc20_explicit": "",
+    "strAddrErc20_explicit_target": "", // S<->S target
     "strCoinNameErc20_main_net": "", // in-JSON coin name
     "strCoinNameErc20_s_chain": "", // in-JSON coin name
+    "strCoinNameErc20_t_chain": "", // in-JSON coin name
 
     "joErc721_main_net": null,
     "joErc721_s_chain": null,
+    "joErc721_t_chain": null,
     "strAddrErc721_explicit": "",
+    "strAddrErc721_explicit_target": "", // S<->S target
     "strCoinNameErc721_main_net": "", // in-JSON coin name
     "strCoinNameErc721_s_chain": "", // in-JSON coin name
+    "strCoinNameErc721_t_chain": "", // in-JSON coin name
 
     "joErc1155_main_net": null,
     "joErc1155_s_chain": null,
+    "joErc1155_t_chain": null,
     "strAddrErc1155_explicit": "",
+    "strAddrErc1155_explicit_target": "", // S<->S target
     "strCoinNameErc1155_main_net": "", // in-JSON coin name
     "strCoinNameErc1155_s_chain": "", // in-JSON coin name
+    "strCoinNameErc1155_t_chain": "", // in-JSON coin name
 
-    // "strPathAbiJson_skale_manager": "", // imaUtils.normalizePath( "../proxy/data/skaleManager.json" ), // "./abi_skale_manager.json"
-    // "strPathAbiJson_main_net": imaUtils.normalizePath( "../proxy/data/proxyMainnet.json" ),
-    // "strPathAbiJson_s_chain": imaUtils.normalizePath( "../proxy/data/proxySchain_Bob.json" ),
+    "strPathAbiJson_skale_manager": null, // "", // imaUtils.normalizePath( "../proxy/data/skaleManager.json" ), // "./abi_skale_manager.json"
     "strPathAbiJson_main_net": imaUtils.normalizePath( "./agent-test-data/proxyMainnet.json" ),
     "strPathAbiJson_s_chain": imaUtils.normalizePath( "./agent-test-data/proxySchain_Bob.json" ),
+    "strPathAbiJson_t_chain": null,
 
     "bShowConfigMode": false, // true - just show configuration values and exit
 
@@ -103,17 +115,20 @@ global.imaState = {
 
     "strChainName_main_net": ( process.env.CHAIN_NAME_ETHEREUM || "Mainnet" ).toString().trim(),
     "strChainName_s_chain": ( process.env.CHAIN_NAME_SCHAIN || "Bob" ).toString().trim(),
+    "strChainName_t_chain": ( process.env.CHAIN_NAME_SCHAIN_TARGET || "Alice" ).toString().trim(),
     "cid_main_net": owaspUtils.toInteger( process.env.CID_ETHEREUM ) || -4,
     "cid_s_chain": owaspUtils.toInteger( process.env.CID_SCHAIN ) || -4,
+    "cid_t_chain": owaspUtils.toInteger( process.env.CID_SCHAIN_TARGET ) || -4,
 
     "strPathJsonErc20_main_net": "",
     "strPathJsonErc20_s_chain": "",
-
+    "strPathJsonErc20_t_chain": "",
     "strPathJsonErc721_main_net": "",
     "strPathJsonErc721_s_chain": "",
-
+    "strPathJsonErc721_t_chain": "",
     "strPathJsonErc1155_main_net": "",
     "strPathJsonErc1155_s_chain": "",
+    "strPathJsonErc1155_t_chain": "",
 
     "nAmountOfWei": 0,
     "nAmountOfToken": 0,
@@ -143,9 +158,9 @@ global.imaState = {
     "nTimeFrameSeconds": 0, // 0-disable, 60-recommended
     "nNextFrameGap": 10,
 
-    //
     "w3_main_net": null,
     "w3_s_chain": null,
+    "w3_t_chain": null,
 
     "jo_deposit_box_eth": null, // only main net
     "jo_deposit_box_erc20": null, // only main net
@@ -177,10 +192,20 @@ global.imaState = {
         "strPathSslKey": ( process.env.SGX_SSL_KEY_FILE_S_CHAIN || "" ).toString().trim(),
         "strPathSslCert": ( process.env.SGX_SSL_CERT_FILE_S_CHAIN || "" ).toString().trim()
     },
+    "joAccount_t_chain": {
+        "privateKey": owaspUtils.toEthPrivateKey( process.env.PRIVATE_KEY_FOR_SCHAIN_TARGET ),
+        "address": IMA.owaspUtils.fn_address_impl_,
+        "strTransactionManagerURL": owaspUtils.toStringURL( process.env.TRANSACTION_MANAGER_URL_S_CHAIN_TARGET ),
+        "strSgxURL": owaspUtils.toStringURL( process.env.SGX_URL_S_CHAIN_TARGET ),
+        "strSgxKeyName": owaspUtils.toStringURL( process.env.SGX_KEY_S_CHAIN_TARGET ),
+        "strPathSslKey": ( process.env.SGX_SSL_KEY_FILE_S_CHAIN_TARGET || "" ).toString().trim(),
+        "strPathSslCert": ( process.env.SGX_SSL_CERT_FILE_S_CHAIN_TARGET || "" ).toString().trim()
+    },
 
     //
     "tc_main_net": IMA.tc_main_net,
     "tc_s_chain": IMA.tc_s_chain,
+    "tc_t_chain": IMA.tc_t_chain,
     //
 
     "doEnableDryRun": function( isEnable ) { return IMA.dry_run_enable( isEnable ); },

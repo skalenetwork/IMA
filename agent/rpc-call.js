@@ -25,6 +25,7 @@
 
 const ws = require( "ws" ); // https://www.npmjs.com/package/ws
 const request = require( "request" ); // https://www.npmjs.com/package/request
+const net = require( "net" );
 
 function is_http_url( strURL ) {
     try {
@@ -214,6 +215,102 @@ function enrich_top_level_json_fields( jo ) {
     return jo;
 }
 
+function is_valid_url( s ) {
+    if( ! s )
+        return false;
+    try {
+        const u = new URL( s.toString() );
+        if( u )
+            return true;
+    } catch ( err ) {
+    }
+    return false;
+}
+
+function get_valid_url( s ) {
+    if( ! s )
+        return null;
+    try {
+        return new URL( s.toString() );
+    } catch ( err ) {
+    }
+    return null;
+}
+
+function get_valid_host_and_port( s ) {
+    const u = get_valid_url( s );
+    if( ! u )
+        return null;
+    const jo = {
+        strHost: u.hostname,
+        nPort: parseInt( u.port, 10 )
+    };
+    return jo;
+}
+
+const g_strTcpConnectionHeader = "TCP connection checker: ";
+
+function check_tcp_promise( strHost, nPort, nTimeoutMilliseconds, isLog ) {
+    return new Promise( ( resolve, reject ) => {
+        if( isLog )
+            console.log( `${g_strTcpConnectionHeader}Will establish TCP connection to ${strHost}:${nPort}...` );
+        const conn = net.createConnection( { host: strHost, port: nPort }, () => {
+            if( isLog )
+                console.log( `${g_strTcpConnectionHeader}Done, TCP connection to ${strHost}:${nPort} established` );
+            conn.end();
+            resolve();
+        } );
+        if( isLog )
+            console.log( `${g_strTcpConnectionHeader}Did created NET object for TCP connection to ${strHost}:${nPort}...` );
+        if( nTimeoutMilliseconds )
+            nTimeoutMilliseconds = parseInt( nTimeoutMilliseconds.toString(), 10 );
+        if( nTimeoutMilliseconds > 0 ) {
+            console.error( `${g_strTcpConnectionHeader}Will use TCP connection to ${strHost}:${nPort} timeout ${nTimeoutMilliseconds} milliseconds...` );
+            conn.setTimeout( nTimeoutMilliseconds );
+        } else
+            console.error( `${g_strTcpConnectionHeader}Will use default TCP connection to ${strHost}:${nPort} timeout...` );
+        conn.on( "timeout", err => {
+            if( isLog )
+                console.error( `${g_strTcpConnectionHeader}TCP connection to ${strHost}:${nPort} timed out` );
+            conn.destroy();
+            reject( err );
+        } );
+        conn.on( "error", err => {
+            if( isLog )
+                console.error( `${g_strTcpConnectionHeader}TCP connection to ${strHost}:${nPort} failed` );
+            reject( err );
+        } );
+        if( isLog )
+            console.log( `${g_strTcpConnectionHeader}TCP connection to ${strHost}:${nPort} check started...` );
+    } );
+}
+
+async function check_tcp( strHost, nPort, nTimeoutMilliseconds, isLog ) {
+    let isOnline = false;
+    const promise_tcp = check_tcp_promise( strHost, nPort, nTimeoutMilliseconds, isLog )
+        .then( () => ( isOnline = true ) )
+        .catch( () => ( isOnline = false ) )
+        //.finally( () => console.log( { isOnline } ) )
+        ;
+    if( isLog )
+        console.log( `${g_strTcpConnectionHeader}Waiting for TCP connection to ${strHost}:${nPort} check done...` );
+    await Promise.all( [ promise_tcp ] );
+    if( isLog )
+        console.log( `${g_strTcpConnectionHeader}TCP connection to ${strHost}:${nPort} check finished` );
+    return isOnline;
+}
+
+async function check_url( u, nTimeoutMilliseconds, isLog ) {
+    const jo = get_valid_host_and_port( u );
+    if( isLog )
+        console.log( g_strTcpConnectionHeader + "Extracted from URL \"" + u.toString() + "\" data fields are: " + JSON.stringify( jo ) );
+    if( ! ( jo && jo.strHost && "nPort" in jo ) ) {
+        console.log( g_strTcpConnectionHeader + "Extracted from URL \"" + u.toString() + "\" data fields are bad, returning \"false\" as result of TCP connection check" );
+        return false;
+    }
+    return await check_tcp( jo.strHost, jo.nPort, nTimeoutMilliseconds, isLog );
+}
+
 module.exports = {
     rpcCallAddUsageRef: function() { },
     is_http_url: is_http_url,
@@ -222,5 +319,11 @@ module.exports = {
     create: rpc_call_create,
     generate_random_integer_in_range: generate_random_integer_in_range,
     generate_random_rpc_call_id: generate_random_rpc_call_id,
-    enrich_top_level_json_fields: enrich_top_level_json_fields
+    enrich_top_level_json_fields: enrich_top_level_json_fields,
+    is_valid_url: is_valid_url,
+    get_valid_url: get_valid_url,
+    get_valid_host_and_port: get_valid_host_and_port,
+    check_tcp_promise: check_tcp_promise,
+    check_tcp: check_tcp,
+    check_url: check_url
 }; // module.exports
