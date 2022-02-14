@@ -352,6 +352,22 @@ function parse( joExternalHandlers, argv ) {
             console.log( soi + cc.debug( "--" ) + cc.bright( "time-framing" ) + cc.sunny( "=" ) + cc.note( "value" ) + cc.debug( "............" ) + cc.notice( "Specifies " ) + cc.note( "period" ) + cc.debug( "(in seconds) " ) + cc.note( "for time framing" ) + cc.debug( "(" ) + cc.sunny( "0" ) + cc.debug( " to " ) + cc.error( "disable" ) + cc.debug( " time framing)" ) + cc.notice( "." ) );
             console.log( soi + cc.debug( "--" ) + cc.bright( "time-gap" ) + cc.sunny( "=" ) + cc.note( "value" ) + cc.debug( "................" ) + cc.notice( "Specifies " ) + cc.note( "gap" ) + cc.debug( "(in seconds) " ) + cc.note( "before next time frame" ) + cc.notice( "." ) );
             //
+            console.log( cc.sunny( "TOKEN TESTING" ) + cc.info( " commands:" ) );
+            console.log( soi + cc.debug( "--" ) + cc.bright( "mint-erc20" ) + cc.debug( "...................." ) + cc.notice( "Mint " ) + cc.note( "ERC20" ) + cc.notice( " tokens." ) );
+            console.log( soi + cc.debug( "--" ) + cc.bright( "mint-erc721" ) + cc.debug( "..................." ) + cc.notice( "Mint " ) + cc.note( "ERC721" ) + cc.notice( " tokens." ) );
+            console.log( soi + cc.debug( "--" ) + cc.bright( "mint-erc1155" ) + cc.debug( ".................." ) + cc.notice( "Mint " ) + cc.note( "ERC1155" ) + cc.notice( " tokens." ) );
+            console.log( soi + cc.debug( "--" ) + cc.bright( "burn-erc20" ) + cc.debug( "...................." ) + cc.notice( "Burn " ) + cc.note( "ERC20" ) + cc.notice( " tokens." ) );
+            console.log( soi + cc.debug( "--" ) + cc.bright( "burn-erc721" ) + cc.debug( "..................." ) + cc.notice( "Burn " ) + cc.note( "ERC721" ) + cc.notice( " tokens." ) );
+            console.log( soi + cc.debug( "--" ) + cc.bright( "burn-erc1155" ) + cc.debug( ".................." ) + cc.notice( "Burn " ) + cc.note( "ERC1155" ) + cc.notice( " tokens." ) );
+            console.log( soi + cc.debug( "Please notice, token testing commands require " ) +
+                cc.attention( "--tm-url-t-chain" ) + cc.debug( ", " ) + cc.attention( "cid-t-chain" ) + cc.debug( ", " ) +
+                cc.attention( "erc20-t-chain" ) + cc.debug( " or " ) + cc.attention( "erc721-t-chain" ) + cc.debug( " or " ) +
+                cc.attention( "erc1155-t-chain" ) + cc.debug( ", account information (like private key " ) +
+                cc.attention( "key-t-chain" ) + cc.debug( ") command line arguments specified. Token amounts are specified via " ) +
+                cc.attention( "amount" ) + cc.debug( " command line arguments specified. Token IDs are specified via " ) +
+                cc.attention( "tid" ) + cc.debug( " or " ) + cc.attention( "tids" ) + cc.debug( " command line arguments." )
+            );
+            //
             console.log( cc.sunny( "PENDING TRANSACTIONS ANALYSIS" ) + cc.info( " options:" ) );
             console.log( soi + cc.debug( "--" ) + cc.bright( "ptx" ) + cc.debug( "..........................." ) + cc.success( "Enable" ) + " " + cc.attention( "pending transaction analysis" ) + cc.notice( " to avoid transaction conflicts." ) );
             console.log( soi + cc.debug( "--" ) + cc.bright( "no-ptx" ) + cc.debug( "........................" ) + cc.error( "Disable" ) + " " + cc.attention( "pending transaction analysis" ) + cc.notice( ". " ) + cc.warning( "Not recommended" ) + cc.notice( " for slow and overloaded blockchains." ) );
@@ -791,7 +807,7 @@ function parse( joExternalHandlers, argv ) {
             continue;
         }
         if( joArg.name == "amounts" ) {
-            imaState.nAmountOfTokens = owaspUtils.verifyArgumentIsArrayOfIntegers( joArg );
+            imaState.arrAmountsOfTokens = owaspUtils.verifyArgumentIsArrayOfIntegers( joArg );
             continue;
         }
         if( joArg.name == "tids" ) {
@@ -1150,6 +1166,12 @@ function parse( joExternalHandlers, argv ) {
             joArg.name == "check-registration1" ||
             joArg.name == "check-registration2" ||
             joArg.name == "check-registration3" ||
+            joArg.name == "mint-erc20" ||
+            joArg.name == "mint-erc721" ||
+            joArg.name == "mint-erc1155" ||
+            joArg.name == "burn-erc20" ||
+            joArg.name == "burn-erc721" ||
+            joArg.name == "burn-erc1155" ||
             joArg.name == "show-balance" ||
             joArg.name == "m2s-payment" ||
             joArg.name == "s2m-payment" ||
@@ -2106,7 +2128,7 @@ function ima_common_init() {
                     ensure_have_value( "ERC1155 batch of token ids ", imaState.idTokens, false, true, null, ( x ) => {
                         return cc.info( x );
                     } );
-                    ensure_have_value( "ERC1155 batch of token amounts ", imaState.nAmountOfTokens, false, true, null, ( x ) => {
+                    ensure_have_value( "ERC1155 batch of token amounts ", imaState.arrAmountsOfTokens, false, true, null, ( x ) => {
                         return cc.info( x );
                     } );
                 } catch ( e2 ) {

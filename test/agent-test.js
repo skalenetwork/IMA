@@ -132,6 +132,7 @@ global.imaState = {
 
     "nAmountOfWei": 0,
     "nAmountOfToken": 0,
+    "arrAmountsOfTokens": null,
     "idToken": 0,
     "idTokens": [],
     "have_idToken": false,
