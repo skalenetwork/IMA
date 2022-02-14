@@ -486,15 +486,62 @@ imaCLI.parse( {
         imaState.arrActions.push( {
             "name": "burn ERC20",
             "fn": async function() {
-                return true;
+                let bBurnIsOK = false;
+                if( imaState.strCoinNameErc20_t_chain.length > 0 ) {
+                    try {
+                        const strAddressBurnFrom = imaState.joAccount_t_chain.address( imaState.w3_t_chain ); // same as caller/transaction signer
+                        bBurnIsOK = await IMA.burnERC20(
+                            imaState.w3_t_chain,
+                            imaState.cid_t_chain,
+                            imaState.strChainName_t_chain,
+                            imaState.joAccount_t_chain,
+                            strAddressBurnFrom,
+                            imaState.nAmountOfToken,
+                            imaState.joErc20_t_chain[imaState.strCoinNameErc20_t_chain + "_address"],
+                            imaState.joErc20_t_chain[imaState.strCoinNameErc20_t_chain + "_abi"],
+                            imaState.tc_t_chain
+                        ) ? true : false;
+                    } catch ( err ) {
+                        bBurnIsOK = false;
+                    }
+                }
+                return bBurnIsOK;
             }
         } );
     },
     "burn-erc721": function() {
         imaState.arrActions.push( {
-            "name": "burn ERC621",
+            "name": "burn ERC721",
             "fn": async function() {
-                return true;
+                let bBurnIsOK = false;
+                if( imaState.strCoinNameErc721_t_chain.length > 0 ) {
+                    try {
+                        // const strAddressBurnFrom = imaState.joAccount_t_chain.address( imaState.w3_t_chain ); // same as caller/transaction signer
+                        const idTokens = imaState.have_idTokens ? imaState.idTokens : [];
+                        if( imaState.have_idToken )
+                            idTokens.push( imaState.idToken );
+                        if( idTokens.length > 0 ) {
+                            for( let i = 0; i < idTokens.length; ++ i ) {
+                                const idToken = idTokens[i];
+                                bBurnIsOK = await IMA.burnERC721(
+                                    imaState.w3_t_chain,
+                                    imaState.cid_t_chain,
+                                    imaState.strChainName_t_chain,
+                                    imaState.joAccount_t_chain,
+                                    // strAddressBurnFrom,
+                                    idToken,
+                                    imaState.joErc721_t_chain[imaState.strCoinNameErc721_t_chain + "_address"],
+                                    imaState.joErc721_t_chain[imaState.strCoinNameErc721_t_chain + "_abi"],
+                                    imaState.tc_t_chain
+                                ) ? true : false;
+                            }
+                        }
+
+                    } catch ( err ) {
+                        bBurnIsOK = false;
+                    }
+                }
+                return bBurnIsOK;
             }
         } );
     },
@@ -502,7 +549,36 @@ imaCLI.parse( {
         imaState.arrActions.push( {
             "name": "burn ERC1155",
             "fn": async function() {
-                return true;
+                let bBurnIsOK = false;
+                if( imaState.strCoinNameErc1155_t_chain.length > 0 ) {
+                    try {
+                        const strAddressBurnFrom = imaState.joAccount_t_chain.address( imaState.w3_t_chain ); // same as caller/transaction signer
+                        const idTokens = imaState.have_idTokens ? imaState.idTokens : [];
+                        if( imaState.have_idToken )
+                            idTokens.push( imaState.idToken );
+                        if( idTokens.length > 0 ) {
+                            for( let i = 0; i < idTokens.length; ++ i ) {
+                                const idToken = idTokens[i];
+                                bBurnIsOK = await IMA.burnERC1155(
+                                    imaState.w3_t_chain,
+                                    imaState.cid_t_chain,
+                                    imaState.strChainName_t_chain,
+                                    imaState.joAccount_t_chain,
+                                    strAddressBurnFrom,
+                                    idToken,
+                                    imaState.nAmountOfToken,
+                                    imaState.joErc1155_t_chain[imaState.strCoinNameErc1155_t_chain + "_address"],
+                                    imaState.joErc1155_t_chain[imaState.strCoinNameErc1155_t_chain + "_abi"],
+                                    imaState.tc_t_chain
+                                ) ? true : false;
+                            }
+                        }
+
+                    } catch ( err ) {
+                        bBurnIsOK = false;
+                    }
+                }
+                return bBurnIsOK;
             }
         } );
     },
