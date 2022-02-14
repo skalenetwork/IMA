@@ -6060,7 +6060,6 @@ async function balanceERC1155(
     isMainNet,
     w3,
     cid,
-    chainName,
     joAccount,
     strCoinName,
     joABI,
@@ -6285,6 +6284,92 @@ async function mintERC1155(
     joTokenContractABI,
     tc
 ) {
+    let strActionName = "mintERC1155() init";
+    const strLogPrefix = cc.info( "mintERC1155() call" ) + " ";
+    const details = log.createMemoryStream();
+    try {
+        details.write( strLogPrefix + cc.debug( "Mint " ) + cc.info( "ERC1155" ) + cc.debug( " token ID " ) + cc.notice( idToken ) + cc.debug( " token amount " ) + cc.notice( nAmount ) + "\n" );
+        if( ! ( w3 &&
+            joAccount &&
+            strAddressMintTo && typeof strAddressMintTo == "string" && strAddressMintTo.length > 0 &&
+            strTokenContractAddress && typeof strTokenContractAddress == "string" && strTokenContractAddress.length > 0 &&
+            joTokenContractABI
+        ) )
+            throw new Error( "Missing valid arguments" );
+        strActionName = "mintERC1155() instantiate token contract";
+        const contract = new w3.eth.Contract( joTokenContractABI, strTokenContractAddress );
+        const methodWithArguments_mint = contract.methods.mint(
+            // call params
+            strAddressMintTo,
+            idToken,
+            nAmount,
+            [] // data
+        );
+        const dataTx_mint = methodWithArguments_mint.encodeABI(); // the encoded ABI of the method
+        const gasPrice = await tc.computeGasPrice( w3, 200000000000 );
+        details.write( strLogPrefix + cc.debug( "Using computed " ) + cc.info( "gasPrice" ) + cc.debug( "=" ) + cc.notice( gasPrice ) + "\n" );
+        const estimatedGas_mint = await tc.computeGas( methodWithArguments_mint, w3, 10000000, gasPrice, joAccount.address( w3 ), "0" );
+        details.write( strLogPrefix + cc.debug( "Using estimated " ) + cc.info( "gas" ) + cc.debug( "=" ) + cc.notice( estimatedGas_mint ) + "\n" );
+        //
+        strActionName = "mintERC1155() dry run";
+        const isIgnore_mint = false;
+        const strDRC_mint = "mintERC1155() in message signer";
+        const strErrorOfDryRun = await dry_run_call( details, w3, methodWithArguments_mint, joAccount, strDRC_mint,isIgnore_mint, gasPrice, estimatedGas_mint, "0" );
+        if( strErrorOfDryRun )
+            throw new Error( strErrorOfDryRun );
+        //
+        strActionName = "mintERC1155() fetch transaction count";
+        const tcnt = await get_web3_transactionCount( details, 10, w3, joAccount.address( w3 ), null );
+        details.write( strLogPrefix + cc.debug( "Got " ) + cc.info( tcnt ) + cc.debug( " from " ) + cc.notice( strActionName ) + "\n" );
+        strActionName = "mintERC1155() compose transaction";
+        const raw_tx_mint = {
+            chainId: cid,
+            from: joAccount.address( w3 ),
+            nonce: tcnt,
+            gas: estimatedGas_mint,
+            gasPrice: gasPrice,
+            // "gasLimit": 3000000,
+            to: contract.options.address, // contract address
+            data: dataTx_mint //,
+            // "value": wei_amount // 1000000000000000000 // w3.utils.toWei( (1).toString(), "ether" ) // how much money to send
+        };
+        strActionName = "mintERC1155() check transaction on S-Chain";
+        if( chainName !== "Mainnet" )
+            await checkTransactionToSchain( w3, raw_tx_mint, details );
+        //
+        strActionName = "mintERC1155() prepare composed transaction";
+        const tx_mint = compose_tx_instance( details, strLogPrefix, raw_tx_mint );
+        strActionName = "mintERC1155() sign transaction";
+        const joSR = await safe_sign_transaction_with_account( details, w3, tx_mint, raw_tx_mint, joAccount );
+        let joReceipt = null;
+        if( joSR.joACI.isAutoSend ) {
+            if( optsPendingTxAnalysis && "isEnabled" in optsPendingTxAnalysis && optsPendingTxAnalysis.isEnabled )
+                await async_pending_tx_start( details, w3, w3, cid, cid, "" + joSR.txHashSent );
+            joReceipt = await get_web3_transactionReceipt( details, 10, w3, joSR.txHashSent );
+        } else {
+            const serializedTx_mint = tx_mint.serialize();
+            strActionName = "w3.eth.sendSignedTransaction()";
+            // let joReceipt = await w3.eth.sendSignedTransaction( "0x" + serializedTx_mint.toString( "hex" ) );
+            joReceipt = await safe_send_signed_transaction( details, w3, serializedTx_mint, strActionName, strLogPrefix );
+        }
+        details.write( strLogPrefix + cc.success( "Result receipt: " ) + cc.j( joReceipt ) + "\n" );
+        print_gas_usage_report_from_array( "MINT ERC1155 ", [ {
+            "description": "mintERC1155()/mint",
+            "receipt": joReceipt
+        } ] );
+        if( expose_details_get() )
+            details.exposeDetailsTo( log, "mintERC1155", true );
+        details.close();
+        return joReceipt; // can be used as "true" boolean value
+    } catch ( err ) {
+        if( verbose_get() >= RV_VERBOSE.fatal )
+            log.write( strLogPrefix + cc.fatal( "CRITICAL ERROR:" ) + cc.error( " Error in mintERC1155() during " + strActionName + ": " ) + cc.error( err ) + "\n" );
+        details.write( strLogPrefix + cc.fatal( "CRITICAL ERROR:" ) + cc.error( " Error in mintERC1155() during " + strActionName + ": " ) + cc.error( err ) + "\n" );
+        details.exposeDetailsTo( log, "mintERC1155()", false );
+        save_transfer_error( details.toString() );
+        details.close();
+        return false;
+    }
 }
 
 async function burnERC20() {}
