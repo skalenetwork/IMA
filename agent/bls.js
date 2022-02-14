@@ -103,7 +103,7 @@ function discover_common_public_key( joSChainNetworkInfo ) {
 }
 
 function compose_one_message_byte_sequence( joMessage ) {
-    const w3 = imaState.w3_s_chain ? imaState.w3_s_chain : imaState.w3_main_net;
+    const w3 = imaState.w3_s_chain ? imaState.w3_s_chain : ( imaState.w3_main_net ? imaState.w3_main_net : imaState.w3_t_chain );
     if( !w3 )
         throw new Error( "w3.utils is needed for BN operations but no w3 provided" );
     let arrBytes = new Uint8Array();
