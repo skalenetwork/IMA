@@ -2321,6 +2321,8 @@ async function view_eth_payment_from_s_chain_on_main_net(
     let strActionName = "";
     const strLogPrefix = cc.info( "S ETH View:" ) + " ";
     try {
+        if( ! ( w3_main_net && joAccountMN && jo_deposit_box_eth ) )
+            return null;
         strActionName = "w3_main_net.eth.getTransactionCount()/view_eth_payment_from_s_chain_on_main_net";
         details.write( strLogPrefix + cc.debug( "Will call " ) + cc.notice( strActionName ) + cc.debug( "..." ) + "\n" );
         const tcnt = await get_web3_transactionCount( details, 10, w3_main_net, joAccountMN.address( w3_main_net ), null );
@@ -5989,6 +5991,8 @@ async function balanceETH(
 ) {
     strLogPrefix = cc.info( "balanceETH() call" ) + " ";
     try {
+        if( ! ( w3 && joAccount ) )
+            return "<no-data>";
         const strAddress = joAccount.address( w3 );
         if( ( !isMainNet ) && contractERC20 ) {
             const balance = await contractERC20.methods.balanceOf( strAddress ).call( { from: strAddress } );
@@ -6011,8 +6015,10 @@ async function balanceERC20(
     strCoinName,
     joABI
 ) {
-    strLogPrefix = cc.info( "balanceETH() call" ) + " ";
+    strLogPrefix = cc.info( "balanceERC20() call" ) + " ";
     try {
+        if( ! ( w3 && joAccount && strCoinName && joABI && ( strCoinName + "_abi" ) in joABI && ( strCoinName + "_address" ) in joABI ) )
+            return "<no-data>";
         const strAddress = joAccount.address( w3 );
         const contractERC20 = new w3.eth.Contract( joABI[strCoinName + "_abi"], joABI[strCoinName + "_address"] );
         const balance = await contractERC20.methods.balanceOf( strAddress ).call( { from: strAddress } );
@@ -6035,6 +6041,8 @@ async function ownerOfERC721(
 ) {
     strLogPrefix = cc.info( "ownerOfERC721() call" ) + " ";
     try {
+        if( ! ( w3 && joAccount && strCoinName && joABI && ( strCoinName + "_abi" ) in joABI && ( strCoinName + "_address" ) in joABI ) )
+            return "<no-data>";
         const strAddress = joAccount.address( w3 );
         const contractERC721 = new w3.eth.Contract( joABI[strCoinName + "_abi"], joABI[strCoinName + "_address"] );
         const owner = await contractERC721.methods.ownerOf( idToken ).call( { from: strAddress } );
@@ -6057,6 +6065,8 @@ async function balanceERC1155(
 ) {
     strLogPrefix = cc.info( "balanceERC1155() call" ) + " ";
     try {
+        if( ! ( w3 && joAccount && strCoinName && joABI && ( strCoinName + "_abi" ) in joABI && ( strCoinName + "_address" ) in joABI ) )
+            return "<no-data>";
         const strAddress = joAccount.address( w3 );
         const contractERC1155 = new w3.eth.Contract( joABI[strCoinName + "_abi"], joABI[strCoinName + "_address"] );
         const balance = await contractERC1155.methods.balanceOf( strAddress, idToken ).call( { from: strAddress } );

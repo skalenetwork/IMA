@@ -386,6 +386,7 @@ imaCLI.parse( {
         imaState.arrActions.push( {
             "name": "show balance",
             "fn": async function() {
+                let assetAddress = null;
                 const arrBalancesMN = [], arrBalancesSC = [];
                 arrBalancesMN.push( {
                     assetName: "RealETH",
@@ -404,9 +405,10 @@ imaCLI.parse( {
                         imaState.jo_deposit_box_eth
                     )
                 } );
+                try { assetAddress = imaState.eth_erc20.options.address; } catch ( err ) { assetAddress = null; }
                 arrBalancesSC.push( {
                     assetName: "RealETH",
-                    assetAddress: imaState.eth_erc20.options.address,
+                    assetAddress: assetAddress,
                     balance: await IMA.balanceETH(
                         false, // isMainNet
                         imaState.w3_s_chain,
@@ -425,9 +427,10 @@ imaCLI.parse( {
                     )
                 } );
                 if( imaState.strCoinNameErc20_main_net.length > 0 ) {
+                    try { assetAddress = imaState.joErc20_main_net[imaState.strCoinNameErc20_main_net + "_address"]; } catch ( err ) { assetAddress = null; }
                     arrBalancesMN.push( {
                         assetName: "ERC20",
-                        assetAddress: imaState.joErc20_main_net[imaState.strCoinNameErc20_main_net + "_address"],
+                        assetAddress: assetAddress,
                         balance: await IMA.balanceERC20(
                             true, // isMainNet
                             imaState.w3_main_net,
@@ -439,9 +442,10 @@ imaCLI.parse( {
                     } );
                 }
                 if( imaState.strCoinNameErc20_s_chain.length > 0 ) {
+                    try { assetAddress = imaState.joErc20_s_chain[imaState.strCoinNameErc20_s_chain + "_address"]; } catch ( err ) { assetAddress = null; }
                     arrBalancesSC.push( {
                         assetName: "ERC20",
-                        assetAddress: imaState.joErc20_s_chain[imaState.strCoinNameErc20_main_net + "_address"],
+                        assetAddress: assetAddress,
                         balance: await IMA.balanceERC20(
                             false, // isMainNet
                             imaState.w3_s_chain,
@@ -459,9 +463,10 @@ imaCLI.parse( {
                     if( imaState.strCoinNameErc721_main_net.length > 0 ) {
                         for( let i = 0; i < idTokens.length; ++ i ) {
                             const idToken = idTokens[i];
+                            try { assetAddress = imaState.joErc721_main_net[imaState.strCoinNameErc721_main_net + "_address"]; } catch ( err ) { assetAddress = null; }
                             arrBalancesMN.push( {
                                 assetName: "ERC721",
-                                assetAddress: imaState.joErc721_main_net[imaState.strCoinNameErc721_main_net + "_address"],
+                                assetAddress: assetAddress,
                                 idToken: idToken,
                                 owner: await IMA.ownerOfERC721(
                                     true, // isMainNet
@@ -478,9 +483,10 @@ imaCLI.parse( {
                     if( imaState.strCoinNameErc721_s_chain.length > 0 ) {
                         for( let i = 0; i < idTokens.length; ++ i ) {
                             const idToken = idTokens[i];
+                            try { assetAddress = imaState.joErc721_s_chain[imaState.strCoinNameErc721_s_chain + "_address"]; } catch ( err ) { assetAddress = null; }
                             arrBalancesSC.push( {
                                 assetName: "ERC721",
-                                assetAddress: imaState.joErc721_s_chain[imaState.strCoinNameErc721_s_chain + "_address"],
+                                assetAddress: assetAddress,
                                 idToken: idToken,
                                 owner: await IMA.ownerOfERC721(
                                     false, // isMainNet
@@ -497,9 +503,10 @@ imaCLI.parse( {
                     if( imaState.strCoinNameErc1155_main_net.length > 0 ) {
                         for( let i = 0; i < idTokens.length; ++ i ) {
                             const idToken = idTokens[i];
+                            try { assetAddress = imaState.joErc1155_main_net[imaState.strCoinNameErc1155_main_net + "_address"]; } catch ( err ) { assetAddress = null; }
                             arrBalancesMN.push( {
                                 assetName: "ERC1155",
-                                assetAddress: imaState.joErc1155_main_net[imaState.strCoinNameErc1155_main_net + "_address"],
+                                assetAddress: assetAddress,
                                 idToken: idToken,
                                 balance: await IMA.balanceERC1155(
                                     true, // isMainNet
@@ -516,9 +523,10 @@ imaCLI.parse( {
                     if( imaState.strCoinNameErc1155_s_chain.length > 0 ) {
                         for( let i = 0; i < idTokens.length; ++ i ) {
                             const idToken = idTokens[i];
+                            try { assetAddress = imaState.joErc1155_s_chain[imaState.strCoinNameErc1155_s_chain + "_address"]; } catch ( err ) { assetAddress = null; }
                             arrBalancesSC.push( {
                                 assetName: "ERC1155",
-                                assetAddress: imaState.joErc1155_s_chain[imaState.strCoinNameErc1155_s_chain + "_address"],
+                                assetAddress: assetAddress,
                                 idToken: idToken,
                                 balance: await IMA.balanceERC1155(
                                     false, // isMainNet
@@ -544,7 +552,9 @@ imaCLI.parse( {
                     s += ( bi.assetName == "ERC721" ) ? cc.bright( bi.owner ) : cc.sunny( bi.balance );
                     if( bi.assetName == "ERC721" ) {
                         const isSame = ( bi.owner.trim().toLowerCase() == strAddress.trim().toLowerCase() );
-                        s += " " + ( isSame ? cc.success( "same" ) : cc.error( "different" ) );
+                        s += " " + ( isSame
+                            ? cc.success( "same (as account " ) + cc.attention( strAddress ) + cc.success( " specified in the command line arguments)" )
+                            : cc.error( "different (than account " ) + cc.attention( strAddress ) + cc.error( " specified in the command line arguments)" ) );
                     }
                     return s;
                 };
@@ -573,6 +583,7 @@ imaCLI.parse( {
                     }
                 } else
                     log.write( cc.warning( "No balances to scan." ) );
+                return true;
             }
         } );
     },
