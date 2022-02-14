@@ -6096,6 +6096,7 @@ async function mintERC20(
     const strLogPrefix = cc.info( "mintERC20() call" ) + " ";
     const details = log.createMemoryStream();
     try {
+        details.write( strLogPrefix + cc.debug( "Mint " ) + cc.info( "ERC20" ) + cc.debug( " token amount " ) + cc.notice( nAmount ) + "\n" );
         if( ! ( w3 &&
             joAccount &&
             strAddressMintTo && typeof strAddressMintTo == "string" && strAddressMintTo.length > 0 &&
@@ -6176,8 +6177,116 @@ async function mintERC20(
     }
 }
 
-async function mintERC721() {}
-async function mintERC1155() {}
+async function mintERC721(
+    w3,
+    cid,
+    chainName,
+    joAccount,
+    strAddressMintTo,
+    idToken,
+    strTokenContractAddress,
+    joTokenContractABI,
+    tc
+) {
+    let strActionName = "mintERC721() init";
+    const strLogPrefix = cc.info( "mintERC721() call" ) + " ";
+    const details = log.createMemoryStream();
+    try {
+        details.write( strLogPrefix + cc.debug( "Mint " ) + cc.info( "ERC721" ) + cc.debug( " token ID " ) + cc.notice( idToken ) + "\n" );
+        if( ! ( w3 &&
+            joAccount &&
+            strAddressMintTo && typeof strAddressMintTo == "string" && strAddressMintTo.length > 0 &&
+            strTokenContractAddress && typeof strTokenContractAddress == "string" && strTokenContractAddress.length > 0 &&
+            joTokenContractABI
+        ) )
+            throw new Error( "Missing valid arguments" );
+        strActionName = "mintERC721() instantiate token contract";
+        const contract = new w3.eth.Contract( joTokenContractABI, strTokenContractAddress );
+        const methodWithArguments_mint = contract.methods.mint(
+            // call params
+            strAddressMintTo, idToken
+        );
+        const dataTx_mint = methodWithArguments_mint.encodeABI(); // the encoded ABI of the method
+        const gasPrice = await tc.computeGasPrice( w3, 200000000000 );
+        details.write( strLogPrefix + cc.debug( "Using computed " ) + cc.info( "gasPrice" ) + cc.debug( "=" ) + cc.notice( gasPrice ) + "\n" );
+        const estimatedGas_mint = await tc.computeGas( methodWithArguments_mint, w3, 10000000, gasPrice, joAccount.address( w3 ), "0" );
+        details.write( strLogPrefix + cc.debug( "Using estimated " ) + cc.info( "gas" ) + cc.debug( "=" ) + cc.notice( estimatedGas_mint ) + "\n" );
+        //
+        strActionName = "mintERC721() dry run";
+        const isIgnore_mint = false;
+        const strDRC_mint = "mintERC721() in message signer";
+        const strErrorOfDryRun = await dry_run_call( details, w3, methodWithArguments_mint, joAccount, strDRC_mint,isIgnore_mint, gasPrice, estimatedGas_mint, "0" );
+        if( strErrorOfDryRun )
+            throw new Error( strErrorOfDryRun );
+        //
+        strActionName = "mintERC721() fetch transaction count";
+        const tcnt = await get_web3_transactionCount( details, 10, w3, joAccount.address( w3 ), null );
+        details.write( strLogPrefix + cc.debug( "Got " ) + cc.info( tcnt ) + cc.debug( " from " ) + cc.notice( strActionName ) + "\n" );
+        strActionName = "mintERC721() compose transaction";
+        const raw_tx_mint = {
+            chainId: cid,
+            from: joAccount.address( w3 ),
+            nonce: tcnt,
+            gas: estimatedGas_mint,
+            gasPrice: gasPrice,
+            // "gasLimit": 3000000,
+            to: contract.options.address, // contract address
+            data: dataTx_mint //,
+            // "value": wei_amount // 1000000000000000000 // w3.utils.toWei( (1).toString(), "ether" ) // how much money to send
+        };
+        strActionName = "mintERC721() check transaction on S-Chain";
+        if( chainName !== "Mainnet" )
+            await checkTransactionToSchain( w3, raw_tx_mint, details );
+        //
+        strActionName = "mintERC721() prepare composed transaction";
+        const tx_mint = compose_tx_instance( details, strLogPrefix, raw_tx_mint );
+        strActionName = "mintERC721() sign transaction";
+        const joSR = await safe_sign_transaction_with_account( details, w3, tx_mint, raw_tx_mint, joAccount );
+        let joReceipt = null;
+        if( joSR.joACI.isAutoSend ) {
+            if( optsPendingTxAnalysis && "isEnabled" in optsPendingTxAnalysis && optsPendingTxAnalysis.isEnabled )
+                await async_pending_tx_start( details, w3, w3, cid, cid, "" + joSR.txHashSent );
+            joReceipt = await get_web3_transactionReceipt( details, 10, w3, joSR.txHashSent );
+        } else {
+            const serializedTx_mint = tx_mint.serialize();
+            strActionName = "w3.eth.sendSignedTransaction()";
+            // let joReceipt = await w3.eth.sendSignedTransaction( "0x" + serializedTx_mint.toString( "hex" ) );
+            joReceipt = await safe_send_signed_transaction( details, w3, serializedTx_mint, strActionName, strLogPrefix );
+        }
+        details.write( strLogPrefix + cc.success( "Result receipt: " ) + cc.j( joReceipt ) + "\n" );
+        print_gas_usage_report_from_array( "MINT ERC721 ", [ {
+            "description": "mintERC721()/mint",
+            "receipt": joReceipt
+        } ] );
+        if( expose_details_get() )
+            details.exposeDetailsTo( log, "mintERC721", true );
+        details.close();
+        return joReceipt; // can be used as "true" boolean value
+    } catch ( err ) {
+        if( verbose_get() >= RV_VERBOSE.fatal )
+            log.write( strLogPrefix + cc.fatal( "CRITICAL ERROR:" ) + cc.error( " Error in mintERC721() during " + strActionName + ": " ) + cc.error( err ) + "\n" );
+        details.write( strLogPrefix + cc.fatal( "CRITICAL ERROR:" ) + cc.error( " Error in mintERC721() during " + strActionName + ": " ) + cc.error( err ) + "\n" );
+        details.exposeDetailsTo( log, "mintERC721()", false );
+        save_transfer_error( details.toString() );
+        details.close();
+        return false;
+    }
+}
+
+async function mintERC1155(
+    w3,
+    cid,
+    chainName,
+    joAccount,
+    strAddressMintTo,
+    idToken,
+    nAmount,
+    strTokenContractAddress,
+    joTokenContractABI,
+    tc
+) {
+}
+
 async function burnERC20() {}
 async function burnERC721() {}
 async function burnERC1155() {}
