@@ -854,77 +854,27 @@
 :xref-ERC1155ReceiverUpgradeableWithoutGap-__ERC1155Receiver_init--: xref:thirdparty/erc1155receiverupgradeablewithoutgap.adoc#ERC1155ReceiverUpgradeableWithoutGap-__ERC1155Receiver_init--
 :ERC1155ReceiverUpgradeableWithoutGap-__ERC1155Receiver_init_unchained: pass:normal[xref:thirdparty/erc1155receiverupgradeablewithoutgap.adoc#ERC1155ReceiverUpgradeableWithoutGap-__ERC1155Receiver_init_unchained--[`ERC1155ReceiverUpgradeableWithoutGap.__ERC1155Receiver_init_unchained`]]
 :xref-ERC1155ReceiverUpgradeableWithoutGap-__ERC1155Receiver_init_unchained--: xref:thirdparty/erc1155receiverupgradeablewithoutgap.adoc#ERC1155ReceiverUpgradeableWithoutGap-__ERC1155Receiver_init_unchained--
-:Fp2Operations: pass:normal[xref:#Fp2Operations[`++Fp2Operations++`]]
-:P: pass:normal[xref:#Fp2Operations-P-uint256[`++P++`]]
-:addFp2: pass:normal[xref:#Fp2Operations-addFp2-struct-IFieldOperations-Fp2Point-struct-IFieldOperations-Fp2Point-[`++addFp2++`]]
-:scalarMulFp2: pass:normal[xref:#Fp2Operations-scalarMulFp2-struct-IFieldOperations-Fp2Point-uint256-[`++scalarMulFp2++`]]
-:minusFp2: pass:normal[xref:#Fp2Operations-minusFp2-struct-IFieldOperations-Fp2Point-struct-IFieldOperations-Fp2Point-[`++minusFp2++`]]
-:mulFp2: pass:normal[xref:#Fp2Operations-mulFp2-struct-IFieldOperations-Fp2Point-struct-IFieldOperations-Fp2Point-[`++mulFp2++`]]
-:squaredFp2: pass:normal[xref:#Fp2Operations-squaredFp2-struct-IFieldOperations-Fp2Point-[`++squaredFp2++`]]
-:isEqual: pass:normal[xref:#Fp2Operations-isEqual-struct-IFieldOperations-Fp2Point-struct-IFieldOperations-Fp2Point-[`++isEqual++`]]
+:IMessageProxyForSchainInitializeFunction: pass:normal[xref:#IMessageProxyForSchainInitializeFunction[`++IMessageProxyForSchainInitializeFunction++`]]
+:initializeAllRegisteredContracts: pass:normal[xref:#IMessageProxyForSchainInitializeFunction-initializeAllRegisteredContracts-bytes32-address---[`++initializeAllRegisteredContracts++`]]
 
 [.contract]
-[[Fp2Operations]]
-= Fp2Operations
+[[IMessageProxyForSchainInitializeFunction]]
+= IMessageProxyForSchainInitializeFunction
 
-This library contains operations of field that is an extension by imaginary unit of 
-a field of division remainders of a prime number
 
-Element of field is Fp2Point
-
-Prime divisor is P
-
-Defined operations:
-
-- addition
-- subtraction
-- scalar multiplication
-- multiplication
-- squaring
-- comparison for equality
 
 
 [.contract-index]
 .Functions
 --
-* {xref-Fp2Operations-addFp2-struct-IFieldOperations-Fp2Point-struct-IFieldOperations-Fp2Point-}[`++addFp2(value1, value2)++`]
-* {xref-Fp2Operations-scalarMulFp2-struct-IFieldOperations-Fp2Point-uint256-}[`++scalarMulFp2(value, scalar)++`]
-* {xref-Fp2Operations-minusFp2-struct-IFieldOperations-Fp2Point-struct-IFieldOperations-Fp2Point-}[`++minusFp2(diminished, subtracted)++`]
-* {xref-Fp2Operations-mulFp2-struct-IFieldOperations-Fp2Point-struct-IFieldOperations-Fp2Point-}[`++mulFp2(value1, value2)++`]
-* {xref-Fp2Operations-squaredFp2-struct-IFieldOperations-Fp2Point-}[`++squaredFp2(value)++`]
-* {xref-Fp2Operations-isEqual-struct-IFieldOperations-Fp2Point-struct-IFieldOperations-Fp2Point-}[`++isEqual(value1, value2)++`]
+* {xref-IMessageProxyForSchainInitializeFunction-initializeAllRegisteredContracts-bytes32-address---}[`++initializeAllRegisteredContracts(schainHash, contracts)++`]
 --
 
 
 
 [.contract-item]
-== +++<a class="heading-anchor" area-hidden="true" name=Fp2Operations-addFp2-struct-IFieldOperations-Fp2Point-struct-IFieldOperations-Fp2Point->addFp2</a>+++ `++addFp2(++[.var-type]#++struct IFieldOperations.Fp2Point++#++ ++[.var-name]#++value1++#++, ++[.var-type]#++struct IFieldOperations.Fp2Point++#++ ++[.var-name]#++value2++#++) → ++[.var-type]#++struct IFieldOperations.Fp2Point++#++++` [.item-kind]#internal#
+== +++<a class="heading-anchor" area-hidden="true" name=IMessageProxyForSchainInitializeFunction-initializeAllRegisteredContracts-bytes32-address--->initializeAllRegisteredContracts</a>+++ `++initializeAllRegisteredContracts(++[.var-type]#++bytes32++#++ ++[.var-name]#++schainHash++#++, ++[.var-type]#++address[]++#++ ++[.var-name]#++contracts++#++)++` [.item-kind]#external#
 
-Add {value1} to {value2}
 
-[.contract-item]
-== +++<a class="heading-anchor" area-hidden="true" name=Fp2Operations-scalarMulFp2-struct-IFieldOperations-Fp2Point-uint256->scalarMulFp2</a>+++ `++scalarMulFp2(++[.var-type]#++struct IFieldOperations.Fp2Point++#++ ++[.var-name]#++value++#++, ++[.var-type]#++uint256++#++ ++[.var-name]#++scalar++#++) → ++[.var-type]#++struct IFieldOperations.Fp2Point++#++++` [.item-kind]#internal#
-
-Perform scalar multiplication of {value} by {scalar}
-
-[.contract-item]
-== +++<a class="heading-anchor" area-hidden="true" name=Fp2Operations-minusFp2-struct-IFieldOperations-Fp2Point-struct-IFieldOperations-Fp2Point->minusFp2</a>+++ `++minusFp2(++[.var-type]#++struct IFieldOperations.Fp2Point++#++ ++[.var-name]#++diminished++#++, ++[.var-type]#++struct IFieldOperations.Fp2Point++#++ ++[.var-name]#++subtracted++#++) → ++[.var-type]#++struct IFieldOperations.Fp2Point++#++ ++[.var-name]#++difference++#++++` [.item-kind]#internal#
-
-Subtract {subtracted} from {diminished}
-
-[.contract-item]
-== +++<a class="heading-anchor" area-hidden="true" name=Fp2Operations-mulFp2-struct-IFieldOperations-Fp2Point-struct-IFieldOperations-Fp2Point->mulFp2</a>+++ `++mulFp2(++[.var-type]#++struct IFieldOperations.Fp2Point++#++ ++[.var-name]#++value1++#++, ++[.var-type]#++struct IFieldOperations.Fp2Point++#++ ++[.var-name]#++value2++#++) → ++[.var-type]#++struct IFieldOperations.Fp2Point++#++ ++[.var-name]#++result++#++++` [.item-kind]#internal#
-
-Multiply {value1} by {value2}
-
-[.contract-item]
-== +++<a class="heading-anchor" area-hidden="true" name=Fp2Operations-squaredFp2-struct-IFieldOperations-Fp2Point->squaredFp2</a>+++ `++squaredFp2(++[.var-type]#++struct IFieldOperations.Fp2Point++#++ ++[.var-name]#++value++#++) → ++[.var-type]#++struct IFieldOperations.Fp2Point++#++++` [.item-kind]#internal#
-
-Square {value}
-
-[.contract-item]
-== +++<a class="heading-anchor" area-hidden="true" name=Fp2Operations-isEqual-struct-IFieldOperations-Fp2Point-struct-IFieldOperations-Fp2Point->isEqual</a>+++ `++isEqual(++[.var-type]#++struct IFieldOperations.Fp2Point++#++ ++[.var-name]#++value1++#++, ++[.var-type]#++struct IFieldOperations.Fp2Point++#++ ++[.var-name]#++value2++#++) → ++[.var-type]#++bool++#++++` [.item-kind]#internal#
-
-Check if {value1} is equal to {value2}
 
 
