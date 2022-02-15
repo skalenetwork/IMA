@@ -9,7 +9,7 @@ IMA bridge consists of four general parts:
 . Message Proxy contracts
 . IMA Agent - a containerized service on each SKALE Chain node that relays messages between chains.
 
-.Simplified Diagram of 2 IMA Bridges
+.Simplified Diagram of 4 SKALE Chains and Ethereum. Chains 1 and 3 are connected to Ethereum.  Chain 2 is connected to chain 1. Chain 4 is not yet connected.
 [plantuml]
 ....
 @startuml
@@ -20,10 +20,12 @@ node Ethereum {
 
 agent "IMA Agent" as IMA1
 agent "IMA Agent" as IMA2
+agent "IMA Agent" as IMA3
 
 node "SKALE chain 1" as sc1 {
     collections "Token Managers" as tm1
     agent "Message Proxy" as mp2
+    agent "Custom contract" as cs2
 }
 
 node "SKALE chain 2" as sc2 {
@@ -31,14 +33,33 @@ node "SKALE chain 2" as sc2 {
     agent "Message Proxy" as mp3
 }
 
+node "SKALE chain 3" as sc3 {
+    collections "Token Managers" as tm3
+    agent "Message Proxy" as mp4
+    agent "Custom Contract" as cs1
+}
+
+node "SKALE chain 4" as sc4 {
+    collections "Token Managers" as tm4
+    agent "Message Proxy" as mp5
+}
+
 Ethereum .. IMA1
+Ethereum .. IMA3
 IMA1 .. sc1
 IMA2 .. sc2
+IMA3 .. sc3
 sc1 .. IMA2
+mp1 .. DP
+mp2 .. tm1
+mp3 .. tm2
+mp4 .. tm3
+mp5 .. tm4
+mp4 .. cs1
+mp2 .. cs2
 
 
 @enduml
-
 ....
 
 Developing with IMA using out of the box contracts is straight forward. You will only need to interact with the IMA contracts on each chain using Web3. The IMA Agent works behind the scenes to relay messages between chains.
@@ -87,8 +108,5 @@ You can transfer tokens and messages, for free between any two SKALE chains. Tra
 === Custom Messages
 
 * The IMA bridge is highly configurable and expandable. Using the base Message Proxy system, you can design any arbitrary flow for end-users. What is presented out-of-the-box is a suggested system. DYOR and security assessment! Configuration options for the bridge can be controlled by a multisig.  
-
-* When using ERC721s, be careful with *MINT_ID*. This is the mapping between Mainnet and SKALE Chain ERC721s. Improper or corrupt mapping may cause loss of ERC721.
-
-* Be sure to use Web3.js 1.5.1.  
+ 
 

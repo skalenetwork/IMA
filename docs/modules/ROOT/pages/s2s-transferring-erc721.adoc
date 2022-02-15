@@ -1,0 +1,141 @@
+= SKALE Chain to SKALE Chain ERC721 Transfer
+
+As a SKALE chain Owner, there are two main steps to managing SKALE Chain to SKALE Chain (S2S) ERC721 transfer through IMA:
+
+1.  xref:setup[One-time setup to another SKALE Chain]
+2.  xref:transfer[Transferring ERC721 S2S]
+
+Once you have completed step 1 to setup ERC721 tokens with another chain, end-users can transfer ERC721 tokens between SKALE Chains.
+
+[[setup]]
+== Setup ERC721 S2S Transfers
+
+The following one-time setup is required for SKALE Chains with a default access control policy (default settings are: whitelisting enabled, automatic deployment disabled). For more information on IMA access control, xref:access-control.adoc[see here].
+
+=== 1. Enable Automatic Deploy
+
+First, enable automatic deploy on the `origin` chain.
+
+[NOTE]
+Only the `AUTOMATIC_DEPLOYER_ROLE` may enable or disable automatic deployment.
+
+[tabs]
+====
+IMA-JS::
++
+--
+
+[source,javascript]
+----
+include::example$automatic-deploy-imajs.js[]
+----
+--
+
+Web3 JS::
++
+--
+
+[source,javascript]
+----
+// TODO
+----
+--
+====
+
+=== 2. Connect the target SKALE chain
+
+Add the `target` chain by using `connectSchain` within the **TokenManagerLinker** contract on the `origin` chain.
+
+[NOTE]
+Only the `REGISTRAR_ROLE` may execute `connectSchain`.
+
+[tabs]
+====
+IMA-JS::
++
+--
+
+[source,javascript]
+----
+// TODO
+----
+--
+
+Web3 JS::
++
+--
+
+[source,javascript]
+----
+include::example$connect-chain-web3.js[]
+----
+--
+====
+
+[[transfer]]
+== Get Started with S2S ERC721 Transfer
+
+[NOTE]
+Be sure to follow any one-time setup and mapping steps described xref:setup[here] before initiating S2S transfers.
+
+=== 1. S2S Transfer ERC721 From Origin
+
+To send ERC721 tokens from a user's wallet to another SKALE Chain, you will need to use the https://github.com/skalenetwork/IMA/blob/develop/proxy/contracts/schain/TokenManagers/TokenManagerERC721.sol#L106-L122[transferToSchainERC721] function within the **TokenManagerERC721** IMA contract on the origin chain.  
+
+This method is called from the origin chain to move ERC721 tokens to a target chain.  
+
+The **TokenManagerERC721** contract is predeployed on each SKALE Chain. To get the SKALE Chain ABIs, check out the https://github.com/skalenetwork/skale-network/tree/master/releases/mainnet/IMA[current release page].
+
+[tabs]
+====
+IMA-JS::
++
+--
+
+[source, javascript]
+----
+// todo
+
+----
+--
+
+Web3 JS::
++
+--
+
+[source,javascript]
+----
+include::example$s2s-erc721-transfer-from-origin.js[]
+----
+--
+====
+
+=== 2. Exit from SKALE Chain
+
+To exit ERC721 tokens back to the origin chain, you will need to use the `transferToSchainERC721` function within the **TokenManagerERC721** IMA contract on the target chain, and **specify the erc721Address on the origin chain**.  
+
+The **TokenManagerERC721** IMA contract is pre-deployed to your SKALE Chain. Please reach out to your account manager to receive the ABIs specific for your SKALE Chain.  
+
+[tabs]
+====
+IMA-JS::
++
+--
+
+[source, javascript]
+----
+// todo
+
+----
+--
+
+Web3 JS::
++
+--
+
+[source,javascript]
+----
+include::example$s2s-erc721-transfer-from-target.js[]
+----
+--
+====

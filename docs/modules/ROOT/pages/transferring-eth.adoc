@@ -16,8 +16,6 @@ This method is called from Ethereum to lock the funds.
 
 The **DepositBox** contract is on Rinkeby testnet and Mainnet. To get the ABIs to interact with IMA on Rinkeby, check out the https://github.com/skalenetwork/skale-network/tree/master/releases/rinkeby/IMA[current release page].  
 
-Be sure you are using web3.js version 1.5.1.
-
 [tabs]
 ====
 IMA-JS::

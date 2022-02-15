@@ -39,7 +39,3 @@ Deposits and withdrawals take only seconds and are secured using BLS Threshold s
 
 * The SKALE Chain TokenManager contract must be assigned the minter role for your modified token contract. This enables IMA to mint token clones as the tokens are Locked on mainnet contracts.
 
-* When using ERC-721s be careful with *MINT_ID*. This is the mapping between Mainnet and SKALE Chain ERC-721s. Improper or corrupt mapping may cause loss of ERC721.
-
-* It's recommended to use Web3.js 1.5.1.  Don't use Web3.js 2.x.x.
-
