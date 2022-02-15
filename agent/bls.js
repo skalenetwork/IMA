@@ -827,7 +827,7 @@ async function do_sign_messages_impl( strDirection, jarrMessages, nIdxCurrentMsg
             await joCall.call( {
                 method: "skale_imaVerifyAndSign",
                 params: joParams
-            }, function( joIn, joOut, err ) {
+            }, async function( joIn, joOut, err ) {
                 ++joGatheringTracker.nCountReceived; // including errors
                 if( err ) {
                     ++joGatheringTracker.nCountErrors;
@@ -1137,7 +1137,7 @@ async function do_sign_u256( u256, details, fn ) {
                 params: {
                     valueToSign: u256
                 }
-            }, function( joIn, joOut, err ) {
+            }, async function( joIn, joOut, err ) {
                 ++joGatheringTracker.nCountReceived; // including errors
                 if( err ) {
                     ++joGatheringTracker.nCountErrors;

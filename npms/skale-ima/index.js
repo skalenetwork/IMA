@@ -1204,8 +1204,7 @@ async function safe_sign_transaction_with_account( details, w3, tx, rawTx, joAcc
             details.write( cc.debug( "Calling Transaction Manager to sign-and-send with " ) + cc.j( txAdjusted ) + "\n" );
             await joCall.call(
                 joIn,
-                // async
-                function( joIn, joOut, err ) {
+                async function( joIn, joOut, err ) {
                     if( err ) {
                         const s = cc.fatal( "CRITICAL TRANSACTION SIGNING ERROR:" ) + cc.error( " JSON RPC call to Transaction Manager failed, error: " ) + cc.warning( err ) + "\n";
                         if( verbose_get() >= RV_VERBOSE.error )
@@ -1295,7 +1294,7 @@ async function safe_sign_transaction_with_account( details, w3, tx, rawTx, joAcc
                 }
             };
             details.write( cc.debug( "Calling SGX to sign using ECDSA key with: " ) + cc.j( joIn ) + "\n" );
-            await joCall.call( joIn, /*async*/ function( joIn, joOut, err ) {
+            await joCall.call( joIn, async function( joIn, joOut, err ) {
                 if( err ) {
                     const s = cc.fatal( "CRITICAL TRANSACTION SIGNING ERROR:" ) + cc.error( " JSON RPC call to SGX wallet failed, error: " ) + cc.warning( err ) + "\n";
                     if( verbose_get() >= RV_VERBOSE.error )
@@ -4606,7 +4605,7 @@ async function async_pending_tx_start( details, w3, w3_opposite, chain_id, chain
                     }
                 };
                 details.write( cc.debug( "Starting pending work with " ) + cc.j( joIn ) + "\n" );
-                await joCall.call( joIn, /*async*/ function( joIn, joOut, err ) {
+                await joCall.call( joIn, async function( joIn, joOut, err ) {
                     if( err ) {
                         const s = cc.fatal( "PENDING WORK START ERROR:" ) + cc.error( " JSON RPC call to S-Chain node, error: " ) + cc.warning( err ) + "\n";
                         if( verbose_get() >= RV_VERBOSE.error )
@@ -4668,7 +4667,7 @@ async function async_pending_tx_complete( details, w3, w3_opposite, chain_id, ch
                     }
                 };
                 details.write( cc.debug( "Completing pending work with " ) + cc.j( joIn ) + "\n" );
-                await joCall.call( joIn, /*async*/ function( joIn, joOut, err ) {
+                await joCall.call( joIn, async function( joIn, joOut, err ) {
                     if( err ) {
                         const s = cc.fatal( "PENDING WORK COMPLETE ERROR:" ) + cc.error( " JSON RPC call to S-Chain node, error: " ) + cc.warning( err ) + "'n";
                         if( verbose_get() >= RV_VERBOSE.error )
@@ -4734,7 +4733,7 @@ async function async_pending_tx_scanner( details, w3, w3_opposite, chain_id, cha
                     params: {}
                 };
                 details.write( cc.debug( "Calling pending work cache with " ) + cc.j( joIn ) + "\n" );
-                await joCall.call( joIn, /*async*/ function( joIn, joOut, err ) {
+                await joCall.call( joIn, async function( joIn, joOut, err ) {
                     if( err ) {
                         havePendingWorkInfo = true;
                         const s = cc.fatal( "PENDING WORK CACHE ERROR:" ) + cc.error( " JSON RPC call to S-Chain node, error: " ) + cc.warning( err );
