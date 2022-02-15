@@ -1514,7 +1514,7 @@ imaCLI.parse( {
                         "fnSave": function( chainID ) { imaState.cid_t_chain = chainID; }
                     } );
                 }
-                if( arr_urls_to_discover.length == 0 ) {
+                if( arr_urls_to_discover.length === 0 ) {
                     console.log( cc.fatal( "CRITICAL ERROR:" ) +
                         cc.error( " no URLs privided to discover chain IDs, please specify " ) +
                         cc.warning( "--url-main-net" ) + cc.error( " and/or " ) +
@@ -1526,14 +1526,21 @@ imaCLI.parse( {
                 for( let i = 0; i < arr_urls_to_discover.length; ++ i ) {
                     const joDiscoverEntry = arr_urls_to_discover[i];
                     const chainID = await skale_observer.discover_chain_id( joDiscoverEntry.strURL );
-                    const cid16 = "0x" + w3mod.utils.toBN( chainID ).toString( 16 );
-                    const cid10 = "" + w3mod.utils.toBN( chainID ).toString( 10 );
-                    log.write( strLogPrefix +
-                        cc.normal( "Got " ) + cc.note( joDiscoverEntry.name ) + " " +
-                        cc.attention( "chain ID" ) + cc.normal( "=" ) + cc.note( cid16 ) + cc.normal( "=" ) +
-                        cc.note( cid10 ) + cc.normal( " from URL " ) + cc.u( joDiscoverEntry.strURL ) +
-                        "\n" );
-                    joDiscoverEntry.fnSave( chainID );
+                    if( chainID === null ) {
+                        log.write( strLogPrefix +
+                            cc.error( "Failed to detect " ) + cc.note( joDiscoverEntry.name ) + " " +
+                            cc.attention( "chain ID" ) +
+                            "\n" );
+                    } else {
+                        const cid16 = "0x" + w3mod.utils.toBN( chainID ).toString( 16 );
+                        const cid10 = "" + w3mod.utils.toBN( chainID ).toString( 10 );
+                        log.write( strLogPrefix +
+                            cc.normal( "Got " ) + cc.note( joDiscoverEntry.name ) + " " +
+                            cc.attention( "chain ID" ) + cc.normal( "=" ) + cc.note( cid16 ) + cc.normal( "=" ) +
+                            cc.note( cid10 ) + cc.normal( " from URL " ) + cc.u( joDiscoverEntry.strURL ) +
+                            "\n" );
+                        joDiscoverEntry.fnSave( chainID );
+                    }
                 }
                 return true;
             }

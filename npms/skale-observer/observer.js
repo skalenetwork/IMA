@@ -391,7 +391,7 @@ async function discover_chain_id( strURL ) {
     const rpcCallOpts = null;
     await rpcCall.create( strURL, rpcCallOpts, async function( joCall, err ) {
         if( err ) {
-            ret = "Failed to create RPC (" + strURL + ") call: " + err.toString();
+            //ret = "Failed to create RPC (" + strURL + ") call: " + err.toString();
             return;
         }
         await joCall.call( {
@@ -399,11 +399,11 @@ async function discover_chain_id( strURL ) {
             "params": []
         }, async function( joIn, joOut, err ) {
             if( err ) {
-                ret = "Failed to query RPC (" + strURL + ") for chain ID: " + err.toString();
+                //ret = "Failed to query RPC (" + strURL + ") for chain ID: " + err.toString();
                 return;
             }
             if( ! ( "result" in joOut && joOut.result ) ) {
-                ret = "Failed to query RPC (" + strURL + ") for chain ID, got bad result: " + JSON.stringify( joOut );
+                //ret = "Failed to query RPC (" + strURL + ") for chain ID, got bad result: " + JSON.stringify( joOut );
                 return;
             }
             ret = joOut.result;
