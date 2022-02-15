@@ -26,7 +26,6 @@
 const ws = require( "ws" ); // https://www.npmjs.com/package/ws
 const urllib = require( "urllib" ); // https://www.npmjs.com/package/urllib
 const net = require( "net" );
-const cc = require( "../../s_chain_gen/cc" );
 
 function is_http_url( strURL ) {
     try {
