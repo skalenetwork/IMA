@@ -57,54 +57,54 @@ function rpc_call_init() {
 
 async function do_connect( joCall, opts, fn ) {
     try {
-        fn = fn || function() {};
+        fn = fn || async function() {};
         if( !owaspUtils.validateURL( joCall.url ) )
             throw new Error( "JSON RPC CALLER cannot connect web socket to invalid URL: " + joCall.url );
         if( is_ws_url( joCall.url ) ) {
             joCall.wsConn = new ws( joCall.url );
-            joCall.wsConn.on( "open", function() {
-                fn( joCall, null );
+            joCall.wsConn.on( "open", async function() {
+                await fn( joCall, null );
             } );
-            joCall.wsConn.on( "close", function() {
+            joCall.wsConn.on( "close", async function() {
                 joCall.wsConn = 0;
             } );
-            joCall.wsConn.on( "error", function( err ) {
+            joCall.wsConn.on( "error", async function( err ) {
                 log.write( cc.u( joCall.url ) + cc.error( " WS error " ) + cc.warning( err ) + "\n" );
             } );
-            joCall.wsConn.on( "fail", function( err ) {
+            joCall.wsConn.on( "fail", async function( err ) {
                 log.write( cc.u( joCall.url ) + cc.error( " WS fail " ) + cc.warning( err ) + "\n" );
             } );
-            joCall.wsConn.on( "message", function incoming( data ) {
+            joCall.wsConn.on( "message", async function incoming( data ) {
                 // log.write( cc.info( "WS message " ) + cc.attention( data ) + "\n" );
                 const joOut = JSON.parse( data );
                 if( joOut.id in joCall.mapPendingByCallID ) {
                     const entry = joCall.mapPendingByCallID[joOut.id];
                     delete joCall.mapPendingByCallID[joOut.id];
                     clearTimeout( entry.out );
-                    entry.fn( entry.joIn, joOut, null );
+                    await entry.fn( entry.joIn, joOut, null );
                 }
             } );
             return;
         }
-        fn( joCall, null );
+        await fn( joCall, null );
     } catch ( err ) {
         joCall.wsConn = null;
-        fn( joCall, err );
+        await fn( joCall, err );
     }
 }
 
 async function do_connect_if_needed( joCall, opts, fn ) {
     try {
-        fn = fn || function() {};
+        fn = fn || async function() {};
         if( !owaspUtils.validateURL( joCall.url ) )
             throw new Error( "JSON RPC CALLER cannot connect web socket to invalid URL: " + joCall.url );
         if( is_ws_url( joCall.url ) && ( !joCall.wsConn ) ) {
-            joCall.reconnect( fn );
+            await joCall.reconnect( fn );
             return;
         }
-        fn( joCall, null );
+        await fn( joCall, null );
     } catch ( err ) {
-        fn( joCall, err );
+        await fn( joCall, err );
     }
 }
 
@@ -112,7 +112,7 @@ async function do_call( joCall, joIn, fn ) {
     // console.log( "--- --- --- initial joIn is", joIn );
     joIn = enrich_top_level_json_fields( joIn );
     // console.log( "--- --- --- enriched joIn is", joIn );
-    fn = fn || function() {};
+    fn = fn || async function() {};
     if( joCall.wsConn ) {
         const entry = {
             joIn: joIn,
@@ -125,44 +125,51 @@ async function do_call( joCall, joIn, fn ) {
         }, 20 * 1000 );
         joCall.wsConn.send( JSON.stringify( joIn ) );
     } else {
-        // console.log( "--- --- --- call URL is", joCall.url );
-        if( !owaspUtils.validateURL( joCall.url ) )
-            throw new Error( "JSON RPC CALLER cannot do query post to invalid URL: " + joCall.url );
-        const agentOptions = {
-            "ca": ( joCall.joRpcOptions && joCall.joRpcOptions.ca && typeof joCall.joRpcOptions.ca == "string" ) ? joCall.joRpcOptions.ca : null,
-            "cert": ( joCall.joRpcOptions && joCall.joRpcOptions.cert && typeof joCall.joRpcOptions.cert == "string" ) ? joCall.joRpcOptions.cert : null,
-            "key": ( joCall.joRpcOptions && joCall.joRpcOptions.key && typeof joCall.joRpcOptions.key == "string" ) ? joCall.joRpcOptions.key : null
-        };
-        const strBody = JSON.stringify( joIn );
-        // console.log( "--- --- --- agentOptions is", agentOptions );
-        // console.log( "--- --- --- joIn is", strBody );
-        request.post( {
-            "uri": joCall.url,
-            "content-type": "application/json",
-            // "Accept": "*/*",
-            // "Content-Length": strBody.length,
-            "headers": {
-                "content-type": "application/json"
-                // "Accept": "*/*",
-                // "Content-Length": strBody.length,
-            },
-            "body": strBody,
-            "agentOptions": agentOptions
-        },
-        function( err, response, body ) {
-            // console.log( "--- --- --- err is", err );
-            // console.log( "--- --- --- response is", response );
-            // console.log( "--- --- --- body is", body );
-            if( response && response.statusCode && response.statusCode !== 200 )
-                log.write( cc.error( "WARNING:" ) + cc.warning( " REST call status code is " ) + cc.info( response.statusCode ) + "\n" );
-            if( err ) {
-                log.write( cc.u( joCall.url ) + cc.error( " REST error " ) + cc.warning( err ) + "\n" );
-                fn( joIn, null, err );
+        const promiseComplete = new Promise( function( resolve, reject ) {
+            // console.log( "--- --- --- call URL is", joCall.url );
+            if( !owaspUtils.validateURL( joCall.url ) ) {
+                // throw new Error( "JSON RPC CALLER cannot do query post to invalid URL: " + joCall.url );
+                reject( new Error( "JSON RPC CALLER cannot do query post to invalid URL: " + joCall.url ) );
                 return;
             }
-            const joOut = JSON.parse( body );
-            fn( joIn, joOut, null );
+            const agentOptions = {
+                "ca": ( joCall.joRpcOptions && joCall.joRpcOptions.ca && typeof joCall.joRpcOptions.ca == "string" ) ? joCall.joRpcOptions.ca : null,
+                "cert": ( joCall.joRpcOptions && joCall.joRpcOptions.cert && typeof joCall.joRpcOptions.cert == "string" ) ? joCall.joRpcOptions.cert : null,
+                "key": ( joCall.joRpcOptions && joCall.joRpcOptions.key && typeof joCall.joRpcOptions.key == "string" ) ? joCall.joRpcOptions.key : null
+            };
+            const strBody = JSON.stringify( joIn );
+            // console.log( "--- --- --- agentOptions is", agentOptions );
+            // console.log( "--- --- --- joIn is", strBody );
+            request.post( {
+                "uri": joCall.url,
+                "content-type": "application/json",
+                // "Accept": "*/*",
+                // "Content-Length": strBody.length,
+                "headers": {
+                    "content-type": "application/json"
+                    // "Accept": "*/*",
+                    // "Content-Length": strBody.length,
+                },
+                "body": strBody,
+                "agentOptions": agentOptions
+            },
+            async function( err, response, body ) {
+                // console.log( "--- --- --- err is", err );
+                // console.log( "--- --- --- response is", response );
+                // console.log( "--- --- --- body is", body );
+                if( response && response.statusCode && response.statusCode !== 200 )
+                    log.write( cc.error( "WARNING:" ) + cc.warning( " REST call status code is " ) + cc.info( response.statusCode ) + "\n" );
+                if( err ) {
+                    log.write( cc.u( joCall.url ) + cc.error( " REST error " ) + cc.warning( err ) + "\n" );
+                    await fn( joIn, null, err );
+                    return;
+                }
+                const joOut = JSON.parse( body );
+                await fn( joIn, joOut, null );
+                resolve();
+            } );
         } );
+        await Promise.all( [ promiseComplete ] );
     }
 }
 
@@ -177,24 +184,24 @@ async function rpc_call_create( strURL, opts, fn ) {
         "joRpcOptions": opts ? opts : null,
         "mapPendingByCallID": { },
         "wsConn": null,
-        "reconnect": function( fnAfter ) {
-            do_connect( joCall, fnAfter );
+        "reconnect": async function( fnAfter ) {
+            await do_connect( joCall, fnAfter );
         },
-        "reconnect_if_needed": function( fnAfter ) {
-            do_connect_if_needed( joCall, opts, fnAfter );
+        "reconnect_if_needed": async function( fnAfter ) {
+            await do_connect_if_needed( joCall, opts, fnAfter );
         },
         "call": async function( joIn, fnAfter ) {
             const self = this;
-            self.reconnect_if_needed( function( joCall, err ) {
+            await self.reconnect_if_needed( async function( joCall, err ) {
                 if( err ) {
-                    fnAfter( joIn, null, err );
+                    await fnAfter( joIn, null, err );
                     return;
                 }
-                do_call( joCall, joIn, fnAfter );
+                await do_call( joCall, joIn, fnAfter );
             } );
         }
     };
-    do_connect( joCall, opts, fn );
+    await do_connect( joCall, opts, fn );
 }
 
 function generate_random_integer_in_range( min, max ) {
