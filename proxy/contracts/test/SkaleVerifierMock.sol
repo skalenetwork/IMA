@@ -27,7 +27,22 @@ import "../schain/bls/FieldOperations.sol";
 import "./PrecompiledMock.sol";
 
 
-contract SkaleVerifierMock {
+interface ISkaleVerifierMock {
+    function verify(
+        IFieldOperations.Fp2Point calldata signature,
+        bytes32 hash,
+        uint counter,
+        uint hashA,
+        uint hashB,
+        IFieldOperations.G2Point calldata publicKey
+    )
+        external
+        view
+        returns (bool);
+}
+
+
+contract SkaleVerifierMock is ISkaleVerifierMock {
 
     /**
     * @dev Verifies a BLS signature.
@@ -40,15 +55,16 @@ contract SkaleVerifierMock {
     * - Public Key in G2.
     */
     function verify(
-        Fp2Operations.Fp2Point calldata signature,
+        IFieldOperations.Fp2Point calldata signature,
         bytes32 hash,
         uint counter,
         uint hashA,
         uint hashB,
-        G2Operations.G2Point calldata publicKey
+        IFieldOperations.G2Point calldata publicKey
     )
         external
         view
+        override
         returns (bool)
     {
         require(G1Operations.checkRange(signature), "Signature is not valid");
@@ -67,7 +83,7 @@ contract SkaleVerifierMock {
         require(G1Operations.isG1Point(signature.a, newSignB) || true, "Sign not in G1");
         require(G1Operations.isG1Point(hashA, hashB) || true, "Hash not in G1");
 
-        G2Operations.G2Point memory g2 = G2Operations.getG2Generator();
+        IFieldOperations.G2Point memory g2 = G2Operations.getG2Generator();
         require(
             G2Operations.isG2(publicKey),
             "Public Key not in G2"

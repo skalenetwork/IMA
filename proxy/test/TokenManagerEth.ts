@@ -221,37 +221,6 @@ describe("TokenManagerEth", () => {
 
     });
 
-    it("should transfer to somebody on schain Eth and some data", async () => {
-        const amount = BigNumber.from("20000000000000000");
-        const amountTo = BigNumber.from("2000000000000000");
-        const amountAfter = BigNumber.from("18000000000000000");
-        const bytesData = "0x0";
-        const to = deployer.address;
-        const newSchainName = randomString(10);
-        await messageProxyForSchain.registerExtraContract(newSchainName, tokenManagerEth.address);
-
-        // set contract TokenManagerEth:
-        // await tokenManagerEth.setContract("TokenManagerEth", tokenManagerEth.address, {from: deployer});
-
-        const chainConnectorRole = await messageProxyForSchain.CHAIN_CONNECTOR_ROLE();
-        await messageProxyForSchain.connect(deployer).grantRole(chainConnectorRole, deployer.address);
-
-        // add connected chain:
-        await messageProxyForSchain.connect(deployer).addConnectedChain(newSchainName);
-
-        await ethERC20.connect(deployer).grantRole(await ethERC20.MINTER_ROLE(), deployer.address);
-        await ethERC20.connect(deployer).mint(user.address, amount);
-
-        // add schain:
-        await tokenManagerEth.connect(deployer).addTokenManager(newSchainName, user.address);
-
-        // send Eth and data to a client on schain:
-        await tokenManagerEth.connect(user).transferToSchain(newSchainName, amountTo);
-
-        const balanceAfter = BigNumber.from(await ethERC20.balanceOf(user.address));
-        balanceAfter.should.be.deep.equal(amountAfter);
-    });
-
     describe("tests for `postMessage` function", async () => {
         it("should rejected with `Sender is not a MessageProxy`", async () => {
             //  preparation
@@ -327,7 +296,17 @@ describe("TokenManagerEth", () => {
             // execution
             await tokenManagerEth
                 .connect(deployer)
-                .postMessage(fromSchainId, sender, bytesData);
+                .postMessage(fromSchainId, sender, bytesData)
+                .should.be.eventually.rejectedWith("Receiver chain is incorrect");
+
+            await tokenManagerEth
+                .connect(deployer)
+                .postMessage(mainnetHash, sender, bytesData)
+                .should.be.eventually.rejectedWith("Receiver chain is incorrect");
+
+            await tokenManagerEth
+                .connect(deployer)
+                .postMessage(mainnetHash, fakeDepositBox, bytesData);
             // expectation
             expect(parseInt((BigNumber.from(await ethERC20.balanceOf(to))).toString(), 10))
                 .to.be.equal(parseInt(amount, 10));

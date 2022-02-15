@@ -22,8 +22,8 @@
 pragma solidity 0.8.6;
 
 import "@openzeppelin/contracts-upgradeable/access/AccessControlEnumerableUpgradeable.sol";
+import "@skalenetwork/ima-interfaces/schain/ITokenManagerLinker.sol";
 
-import "../interfaces/IMessageReceiver.sol";
 import "../Messages.sol";
 import "../MessageProxy.sol";
 import "./TokenManager.sol";
@@ -33,7 +33,7 @@ import "./TokenManager.sol";
  * @title TokenManagerLinker
  * @dev Links custom TokenManagers to MessageProxy.
  */
-contract TokenManagerLinker is AccessControlEnumerableUpgradeable, IMessageReceiver {
+contract TokenManagerLinker is ITokenManagerLinker, AccessControlEnumerableUpgradeable {
 
     /**
      * @dev Mainnet identifier.
@@ -53,7 +53,7 @@ contract TokenManagerLinker is AccessControlEnumerableUpgradeable, IMessageRecei
     /**
      * @dev Address of MessageProxyForSchain.
      */
-    MessageProxy public messageProxy;
+    IMessageProxyForSchain public messageProxy;
 
     /**
      * @dev Address of {Linker} on mainnet.
@@ -63,17 +63,12 @@ contract TokenManagerLinker is AccessControlEnumerableUpgradeable, IMessageRecei
     /**
      * @dev List of address of registered token managers.
      */
-    TokenManager[] public tokenManagers;
+    ITokenManager[] public tokenManagers;
 
-    /**
-     * @dev Flag that allows direct messaging between SKALE chains.
-     */	
-    bool public interchainConnections;    
+    // Deprecated variable
+    bool private _interchainConnections;
+    //
 
-    /**
-     * @dev Emitted when {interchainConnections} was changed.
-     */
-    event InterchainConnectionAllowed(bool isAllowed);
 
     /**
      * @dev Modifier to make a function callable only if caller is granted with {REGISTRAR_ROLE}.
@@ -90,7 +85,24 @@ contract TokenManagerLinker is AccessControlEnumerableUpgradeable, IMessageRecei
      * 
      * - Function caller has to be granted with {REGISTRAR_ROLE}.
      */
-    function registerTokenManager(TokenManager newTokenManager) external onlyRegistrar {
+    function initialize(IMessageProxyForSchain newMessageProxyAddress, address linker)
+        external
+        override
+        initializer
+    {
+        require(linker != address(0), "Linker address has to be set");
+
+        AccessControlEnumerableUpgradeable.__AccessControlEnumerable_init();
+        _setupRole(DEFAULT_ADMIN_ROLE, msg.sender);
+        _setupRole(REGISTRAR_ROLE, msg.sender);
+        messageProxy = newMessageProxyAddress;    
+	    linkerAddress = linker;
+
+        // fake usage of variable
+        delete _interchainConnections;
+    }  
+
+    function registerTokenManager(ITokenManager newTokenManager) external override onlyRegistrar {
         tokenManagers.push(newTokenManager);
     }
 
@@ -101,7 +113,7 @@ contract TokenManagerLinker is AccessControlEnumerableUpgradeable, IMessageRecei
      * 
      * - Function caller has to be granted with {REGISTRAR_ROLE}.
      */
-    function removeTokenManager(TokenManager tokenManagerAddress) external onlyRegistrar {
+    function removeTokenManager(ITokenManager tokenManagerAddress) external override onlyRegistrar {
         uint index;
         uint length = tokenManagers.length;
         for (index = 0; index < length; index++) {
@@ -127,54 +139,16 @@ contract TokenManagerLinker is AccessControlEnumerableUpgradeable, IMessageRecei
      * - Amount of token managers on target SKALE chain must be equal to the amount on current one.
      */
     function connectSchain(
-        string calldata schainName,
-        address[] calldata tokenManagerAddresses
-    )
-        external
-        onlyRegistrar
-    {
-        require(interchainConnections, "Interchain connection not allowed");
-        require(tokenManagerAddresses.length == tokenManagers.length, "Incorrect number of addresses");
-        for (uint i = 0; i < tokenManagerAddresses.length; i++) {
-            tokenManagers[i].addTokenManager(schainName, tokenManagerAddresses[i]);
-        }
-        messageProxy.addConnectedChain(schainName);
-    }
-
-    /**
-     * @dev Allows MessageProxy to post operational message from mainnet
-     * or SKALE chains.
-     *
-     * Requirements:
-     * 
-     * - MessageProxy must be the caller of the function.
-     * - {Linker} must be an origin of the message on mainnet.
-     * - The message must come from the mainnet.
-     * - The message must contains information about interchain connection allowance.
-     * - Interchain connection allowance in the message must be different from the current one.
-     */
-    function postMessage(
-        bytes32 fromChainHash,
-        address sender,
-        bytes calldata data
+        string calldata schainName
     )
         external
         override
-        returns (address)
+        onlyRegistrar
     {
-        require(msg.sender == address(messageProxy), "Sender is not a message proxy");
-        require(sender == linkerAddress, "Sender from Mainnet is incorrect");
-        require(fromChainHash == MAINNET_HASH, "Source chain name should be Mainnet");
-        Messages.MessageType operation = Messages.getMessageType(data);
-        require(
-            operation == Messages.MessageType.INTERCHAIN_CONNECTION,
-            "The message should contain a interchain connection state"
-        );
-        Messages.InterchainConnectionMessage memory message = Messages.decodeInterchainConnectionMessage(data);
-        require(interchainConnections != message.isAllowed, "Interchain connection state should be different");
-        interchainConnections = message.isAllowed;
-        emit InterchainConnectionAllowed(message.isAllowed);
-        return address(0);
+        for (uint i = 0; i < tokenManagers.length; i++) {
+            tokenManagers[i].addTokenManager(schainName, address(tokenManagers[i]));
+        }
+        messageProxy.addConnectedChain(schainName);
     }
 
     /**
@@ -184,7 +158,7 @@ contract TokenManagerLinker is AccessControlEnumerableUpgradeable, IMessageRecei
      * 
      * - Function caller has to be granted with {REGISTRAR_ROLE}.
      */
-    function disconnectSchain(string calldata schainName) external onlyRegistrar {
+    function disconnectSchain(string calldata schainName) external override onlyRegistrar {
         uint length = tokenManagers.length;
         for (uint i = 0; i < length; i++) {
             tokenManagers[i].removeTokenManager(schainName);
@@ -195,7 +169,7 @@ contract TokenManagerLinker is AccessControlEnumerableUpgradeable, IMessageRecei
     /**
      * @dev Check if {tokenManager} is registered in IMA.
      */
-    function hasTokenManager(TokenManager tokenManager) external view returns (bool) {
+    function hasTokenManager(ITokenManager tokenManager) external view override returns (bool) {
         uint index;
         uint length = tokenManagers.length;
         for (index = 0; index < length; index++) {
@@ -209,29 +183,12 @@ contract TokenManagerLinker is AccessControlEnumerableUpgradeable, IMessageRecei
     /**
      * @dev Check if SKALE chain with name {schainName} is registered in IMA.
      */
-    function hasSchain(string calldata schainName) external view returns (bool connected) {
+    function hasSchain(string calldata schainName) external view override returns (bool connected) {
         uint length = tokenManagers.length;
         connected = true;
         for (uint i = 0; i < length; i++) {
             connected = connected && tokenManagers[i].hasTokenManager(schainName);
         }
         connected = connected && messageProxy.isConnectedChain(schainName);
-    }
-
-    /**
-     * @dev Is called once during contract deployment.
-     */
-    function initialize(MessageProxy newMessageProxyAddress, address linker)
-        external
-        virtual
-        initializer
-    {
-        require(linker != address(0), "Linker address has to be set");
-
-        AccessControlEnumerableUpgradeable.__AccessControlEnumerable_init();
-        _setupRole(DEFAULT_ADMIN_ROLE, msg.sender);
-        _setupRole(REGISTRAR_ROLE, msg.sender);
-        messageProxy = newMessageProxyAddress;    
-	    linkerAddress = linker;
     }
 }

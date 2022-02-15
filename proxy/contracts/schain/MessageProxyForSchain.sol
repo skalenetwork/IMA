@@ -22,11 +22,18 @@
 pragma solidity 0.8.6;
 
 import "@openzeppelin/contracts-upgradeable/utils/AddressUpgradeable.sol";
+import "@skalenetwork/ima-interfaces/schain/IMessageProxyForSchain.sol";
+import "@skalenetwork/etherbase-interfaces/IEtherbaseUpgradeable.sol";
 
-import "../interfaces/IMessageReceiver.sol";
 import "../MessageProxy.sol";
 import "./bls/SkaleVerifier.sol";
-import "./KeyStorage.sol";
+
+interface IMessageProxyForSchainInitializeFunction is IMessageProxyForSchain {
+    function initializeAllRegisteredContracts(
+        bytes32 schainHash,
+        address[] calldata contracts
+    ) external;
+}
 
 
 /**
@@ -50,24 +57,23 @@ import "./KeyStorage.sol";
  * Call postIncomingMessages function passing (un)signed message array
  * ID of this schain, Chain 0 represents ETH mainnet,
  */
-contract MessageProxyForSchain is MessageProxy {
+contract MessageProxyForSchain is MessageProxy, IMessageProxyForSchainInitializeFunction {
     using AddressUpgradeable for address;
+    using EnumerableSetUpgradeable for EnumerableSetUpgradeable.AddressSet;
+
+    IEtherbaseUpgradeable public constant ETHERBASE = IEtherbaseUpgradeable(
+        payable(0xd2bA3e0000000000000000000000000000000000)
+    );
+    uint public constant MINIMUM_BALANCE = 1 ether;
 
     /**
      * @dev Structure that contains information about outgoing message.
      */
-    struct OutgoingMessageData {
-        bytes32 dstChainHash; // destination chain
-        uint256 msgCounter; // message counter
-        address srcContract; // origin
-        address dstContract; // receiver
-        bytes data; // payload
-    }
 
     /**
      * @dev Address of {KeyStorage}.
      */
-    KeyStorage public keyStorage;
+    IKeyStorage public keyStorage;
 
     /**
      * @dev Keccak256 hash of schain name.
@@ -92,11 +98,40 @@ contract MessageProxyForSchain is MessageProxy {
     //      schainHash  => tail of unprocessed messages
     mapping(bytes32 => uint) private _idxTail;
 
+    mapping(bytes32 => EnumerableSetUpgradeable.AddressSet) private _registryContracts;
+
+    string public version;
+
+    /**
+     * @dev Allows DEFAULT_ADMIN_ROLE to initialize registered contracts
+     * Notice - this function will be executed only once during upgrade
+     * 
+     * Requirements:
+     * 
+     * `msg.sender` should have DEFAULT_ADMIN_ROLE
+     */
+    function initializeAllRegisteredContracts(
+        bytes32 chainHash,
+        address[] calldata contracts
+    ) external override {
+        require(hasRole(DEFAULT_ADMIN_ROLE, msg.sender), "Sender is not authorized");
+        for (uint256 i = 0; i < contracts.length; i++) {
+            if (
+                deprecatedRegistryContracts[chainHash][contracts[i]] &&
+                !_registryContracts[chainHash].contains(contracts[i])
+            ) {
+                _registryContracts[chainHash].add(contracts[i]);
+                delete deprecatedRegistryContracts[chainHash][contracts[i]];
+            }
+        }
+    }
+
     function registerExtraContract(
         string memory chainName,
         address extraContract
     )
         external
+        override
         onlyExtraContractRegistrar
     {
         bytes32 chainHash = keccak256(abi.encodePacked(chainName));
@@ -104,33 +139,17 @@ contract MessageProxyForSchain is MessageProxy {
         _registerExtraContract(chainHash, extraContract);
     }
 
-    function removeExtraContract(string memory chainName, address extraContract) external onlyExtraContractRegistrar {
+    function removeExtraContract(
+        string memory chainName,
+        address extraContract
+    )
+        external
+        override
+        onlyExtraContractRegistrar
+    {
         bytes32 chainHash = keccak256(abi.encodePacked(chainName));
         require(chainHash != schainHash, "Schain hash can not be equal Mainnet");
         _removeExtraContract(chainHash, extraContract);
-    }
-
-    /**
-     * @dev Is called once during contract deployment.
-     */
-    function initialize(KeyStorage blsKeyStorage, string memory schainName)
-        public
-        virtual
-        initializer
-    {
-        MessageProxy.initializeMessageProxy(3e6);
-        keyStorage = blsKeyStorage;
-        connectedChains[
-            MAINNET_HASH
-        ] = ConnectedChainInfo(
-            0,
-            0,
-            true
-        );
-	    schainHash = keccak256(abi.encodePacked(schainName));
-
-        // In predeployed mode all token managers and community locker
-        // will be added to registryContracts
     }
 
     /**
@@ -147,53 +166,7 @@ contract MessageProxyForSchain is MessageProxy {
         bytes32 chainHash = keccak256(abi.encodePacked(chainName));
         require(chainHash != schainHash, "Schain cannot connect itself");
         _addConnectedChain(chainHash);
-    }
-
-    /**
-     * @dev Unlink external SKALE chain.
-     * 
-     * Requirements:
-     * 
-     * - Function caller has to be granted with {CHAIN_CONNECTOR_ROLE}.
-     * - Target chain must be different from Mainnet.
-     */
-    function removeConnectedChain(string memory chainName) public override onlyChainConnector {
-        bytes32 chainHash = keccak256(abi.encodePacked(chainName));
-        require(chainHash != MAINNET_HASH, "Mainnet cannot be removed");
-        super.removeConnectedChain(chainName);
-    }
-
-    /**
-     * @dev This function is called by a smart contract
-     * that wants to make a cross-chain call.
-     * 
-     * Requirements:
-     * 
-     * - Destination chain has to be registered.
-     * - Sender contract has to be registered.
-     */
-    function postOutgoingMessage(
-        bytes32 targetChainHash,
-        address targetContract,
-        bytes memory data
-    )
-        public
-        override
-    {
-        super.postOutgoingMessage(targetChainHash, targetContract, data);
-
-        OutgoingMessageData memory outgoingMessageData = OutgoingMessageData(
-            targetChainHash,
-            connectedChains[targetChainHash].outgoingMessageCounter - 1,
-            msg.sender,
-            targetContract,
-            data
-        );
-
-        bytes32 dstChainHash = outgoingMessageData.dstChainHash;
-        _outgoingMessageDataHash[dstChainHash][_idxTail[dstChainHash]] = _hashOfMessage(outgoingMessageData);
-        _idxTail[dstChainHash] += 1;
-    }
+    }    
 
     /**
      * @dev Entry point for incoming messages.
@@ -214,7 +187,7 @@ contract MessageProxyForSchain is MessageProxy {
         Signature calldata signature 
     )
         external
-        override
+        override(IMessageProxy, MessageProxy)
     {
         bytes32 fromChainHash = keccak256(abi.encodePacked(fromChainName));
         require(connectedChains[fromChainHash].inited, "Chain is not initialized");
@@ -227,6 +200,20 @@ contract MessageProxyForSchain is MessageProxy {
             _callReceiverContract(fromChainHash, messages[i], startingCounter + 1);
         }
         connectedChains[fromChainHash].incomingMessageCounter += messages.length;
+        _topUpBalance();
+    }
+
+    /**
+     * @dev Sets new version of contracts on schain
+     * 
+     * Requirements:
+     * 
+     * - `msg.sender` must be granted DEFAULT_ADMIN_ROLE.
+     */
+    function setVersion(string calldata newVersion) external override {
+        require(hasRole(DEFAULT_ADMIN_ROLE, msg.sender), "DEFAULT_ADMIN_ROLE is required");
+        emit VersionUpdated(version, newVersion);
+        version = newVersion;
     }
 
     /**
@@ -237,6 +224,7 @@ contract MessageProxyForSchain is MessageProxy {
     )
         external
         view
+        override
         returns (bool isValidMessage)
     {
         bytes32 messageDataHash = _outgoingMessageDataHash[message.dstChainHash][message.msgCounter];
@@ -244,21 +232,95 @@ contract MessageProxyForSchain is MessageProxy {
             isValidMessage = true;
     }
 
-    // private
+    /**
+     * @dev Verify signature of hashed message
+     */
+    function verifySignature(bytes32 hashedMessage, MessageProxyForSchain.Signature calldata signature)
+        external
+        view
+        override
+        returns (bool)
+    {
+        return _verifyMessages(hashedMessage, signature);
+    }
 
     /**
-     * @dev Calculate a message hash.
+     * @dev Is called once during contract deployment.
      */
-    function _hashOfMessage(OutgoingMessageData memory message) private pure returns (bytes32) {
-        bytes memory data = abi.encodePacked(
-            message.dstChainHash,
-            bytes32(message.msgCounter),
-            bytes32(bytes20(message.srcContract)),
-            bytes32(bytes20(message.dstContract)),
-            message.data
+    function initialize(IKeyStorage blsKeyStorage, string memory schainName)
+        public
+        override
+        virtual
+        initializer
+    {
+        MessageProxy.initializeMessageProxy(3e6);
+        keyStorage = blsKeyStorage;
+        connectedChains[
+            MAINNET_HASH
+        ] = ConnectedChainInfo(
+            0,
+            0,
+            true
         );
-        return keccak256(data);
+	    schainHash = keccak256(abi.encodePacked(schainName));
+
+        // In predeployed mode all token managers and community locker
+        // will be added to registryContracts
     }
+
+    /**
+     * @dev Unlink external SKALE chain.
+     * 
+     * Requirements:
+     * 
+     * - Function caller has to be granted with {CHAIN_CONNECTOR_ROLE}.
+     * - Target chain must be different from Mainnet.
+     */
+    function removeConnectedChain(
+        string memory chainName
+    )
+        public
+        override(IMessageProxy, MessageProxy)
+        onlyChainConnector
+    {
+        bytes32 chainHash = keccak256(abi.encodePacked(chainName));
+        require(chainHash != MAINNET_HASH, "Mainnet cannot be removed");
+        super.removeConnectedChain(chainName);
+    }
+
+    /**
+     * @dev This function is called by a smart contract
+     * that wants to make a cross-chain call.
+     * 
+     * Requirements:
+     * 
+     * - Destination chain has to be registered.
+     * - Sender contract has to be registered.
+     */
+    function postOutgoingMessage(
+        bytes32 targetChainHash,
+        address targetContract,
+        bytes memory data
+    )
+        public
+        override(IMessageProxy, MessageProxy)
+    {
+        super.postOutgoingMessage(targetChainHash, targetContract, data);
+
+        OutgoingMessageData memory outgoingMessageData = OutgoingMessageData(
+            targetChainHash,
+            connectedChains[targetChainHash].outgoingMessageCounter - 1,
+            msg.sender,
+            targetContract,
+            data
+        );
+
+        bytes32 dstChainHash = outgoingMessageData.dstChainHash;
+        _outgoingMessageDataHash[dstChainHash][_idxTail[dstChainHash]] = _hashOfMessage(outgoingMessageData);
+        _idxTail[dstChainHash] += 1;
+    }
+
+    // private
 
     /**
      * @dev Converts calldata structure to memory structure and checks
@@ -275,7 +337,7 @@ contract MessageProxyForSchain is MessageProxy {
         returns (bool)
     {
         return SkaleVerifier.verify(
-            Fp2Operations.Fp2Point({
+            IFieldOperations.Fp2Point({
                 a: signature.blsSignature[0],
                 b: signature.blsSignature[1]
             }),
@@ -286,4 +348,53 @@ contract MessageProxyForSchain is MessageProxy {
             keyStorage.getBlsCommonPublicKey()
         );
     }
+
+    function _getRegistryContracts()
+        internal
+        view
+        override
+        returns (mapping(bytes32 => EnumerableSetUpgradeable.AddressSet) storage)
+    {
+        return _registryContracts;
+    }
+
+    /**
+     * @dev Returns Etherbase contract
+     */
+    function _getEtherbase() internal view virtual returns (IEtherbaseUpgradeable) {
+        return ETHERBASE;
+    }
+
+    /**
+     * @dev Move skETH from Etherbase if the balance is too low
+     */
+    function _topUpBalance() private {
+        uint balance = msg.sender.balance + gasleft() * tx.gasprice;
+        IEtherbaseUpgradeable etherbase = _getEtherbase();
+        if (address(etherbase).isContract()
+            && etherbase.hasRole(etherbase.ETHER_MANAGER_ROLE(), address(this)) 
+            && balance < MINIMUM_BALANCE
+        ) {
+            uint missingAmount = MINIMUM_BALANCE - balance;
+            if (missingAmount < address(etherbase).balance) {
+                etherbase.partiallyRetrieve(payable(msg.sender), missingAmount);
+            } else {
+                etherbase.retrieve(payable(msg.sender));
+            }
+        }
+    }
+
+    /**
+     * @dev Calculate a message hash.
+     */
+    function _hashOfMessage(OutgoingMessageData memory message) private pure returns (bytes32) {
+        bytes memory data = abi.encodePacked(
+            message.dstChainHash,
+            bytes32(message.msgCounter),
+            bytes32(bytes20(message.srcContract)),
+            bytes32(bytes20(message.dstContract)),
+            message.data
+        );
+        return keccak256(data);
+    }    
 }

@@ -23,37 +23,13 @@
  * @copyright SKALE Labs 2019-Present
  */
 
-import  Web3 = require("web3");
-import { IpcProvider } from "web3-core";
+import { ethers } from "hardhat";
 
-let requestId = 0xd2;
-
-function responseCallback(error: Error | null, val?: any) {
-    if (error !== null) {
-        console.log(error, val);
-    }
+export async function skipTime(seconds: number) {
+    await ethers.provider.send("evm_increaseTime", [seconds]);
+    await ethers.provider.send("evm_mine", []);
 }
 
-export function skipTime(web3: {currentProvider: IpcProvider}, seconds: number) {
-    web3.currentProvider.send(
-        {
-            id: requestId++,
-            jsonrpc: "2.0",
-            method: "evm_increaseTime",
-            params: [seconds],
-        },
-        responseCallback);
-
-    web3.currentProvider.send(
-        {
-            id: requestId++,
-            jsonrpc: "2.0",
-            method: "evm_mine",
-            params: [],
-        },
-        responseCallback);
-}
-
-export async function currentTime(web3: Web3.default) {
-    return (await web3.eth.getBlock("latest")).timestamp;
+export async function currentTime() {
+    return (await ethers.provider.getBlock("latest")).timestamp;
 }

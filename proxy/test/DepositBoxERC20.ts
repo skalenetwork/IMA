@@ -201,7 +201,13 @@ describe("DepositBoxERC20", () => {
             await depositBoxERC20.connect(user).addERC20TokenByOwner(schainName, fakeERC20Contract)
                 .should.be.eventually.rejectedWith("Given address is not a contract");
             await depositBoxERC20.connect(user).addERC20TokenByOwner(schainName, erc20.address);
+            await depositBoxERC20.connect(user).addERC20TokenByOwner(schainName, erc20.address).should.be.eventually.rejectedWith("ERC20 Token was already added");
             expect(await depositBoxERC20.getSchainToERC20(schainName, erc20.address)).to.be.equal(true);
+            expect((await depositBoxERC20.getSchainToAllERC20(schainName, 0, 1))[0]).to.be.equal(erc20.address);
+            expect((await depositBoxERC20.getSchainToAllERC20(schainName, 0, 1)).length).to.be.equal(1);
+            expect((await depositBoxERC20.getSchainToAllERC20Length(schainName)).toString()).to.be.equal("1");
+            await depositBoxERC20.getSchainToAllERC20(schainName, 1, 0).should.be.eventually.rejectedWith("Range is incorrect");
+            await depositBoxERC20.getSchainToAllERC20(schainName, 0, 11).should.be.eventually.rejectedWith("Range is incorrect");
         });
 
         it("should not allow to add token by schain owner if schain killed", async () => {
@@ -308,7 +314,6 @@ describe("DepositBoxERC20", () => {
             balance.should.not.be.lessThan(balanceBefore);
             balance.should.be.almost(balanceBefore);
 
-            await linker.allowInterchainConnections(schainName);
             await depositBoxERC20.connect(user).depositERC20(schainName, erc20.address, amount);
             await messageProxy.connect(deployer).postIncomingMessages(schainName, 3, [message], sign);
             expect(BigNumber.from(await depositBoxERC20.transferredAmount(schainHash, erc20.address)).toString()).to.be.equal(BigNumber.from(0).toString());

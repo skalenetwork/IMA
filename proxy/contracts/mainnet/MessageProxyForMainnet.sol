@@ -24,10 +24,19 @@ pragma solidity 0.8.6;
 import "@openzeppelin/contracts-upgradeable/utils/AddressUpgradeable.sol";
 import "@skalenetwork/skale-manager-interfaces/IWallets.sol";
 import "@skalenetwork/skale-manager-interfaces/ISchains.sol";
+import "@skalenetwork/ima-interfaces/mainnet/IMessageProxyForMainnet.sol";
+import "@skalenetwork/ima-interfaces/mainnet/ICommunityPool.sol";
 
 import "../MessageProxy.sol";
 import "./SkaleManagerClient.sol";
 import "./CommunityPool.sol";
+
+interface IMessageProxyForMainnetInitializeFunction is IMessageProxyForMainnet {
+    function initializeAllRegisteredContracts(
+        bytes32 schainHash,
+        address[] calldata contracts
+    ) external;
+}
 
 
 /**
@@ -40,9 +49,10 @@ import "./CommunityPool.sol";
  * nodes in the chain. Since Ethereum Mainnet has no BLS public key, mainnet
  * messages do not need to be signed.
  */
-contract MessageProxyForMainnet is SkaleManagerClient, MessageProxy {
+contract MessageProxyForMainnet is SkaleManagerClient, MessageProxy, IMessageProxyForMainnetInitializeFunction {
 
     using AddressUpgradeable for address;
+    using EnumerableSetUpgradeable for EnumerableSetUpgradeable.AddressSet;
 
     /**
      * 16 Agents
@@ -58,10 +68,13 @@ contract MessageProxyForMainnet is SkaleManagerClient, MessageProxy {
      * ID of this schain, Chain 0 represents ETH mainnet,
     */
 
-    CommunityPool public communityPool;
+    ICommunityPool public communityPool;
 
     uint256 public headerMessageGasCost;
     uint256 public messageGasCost;
+    mapping(bytes32 => EnumerableSetUpgradeable.AddressSet) private _registryContracts;
+    string public version;
+    bool public override messageInProgress;
 
     /**
      * @dev Emitted when gas cost for message header was changed.
@@ -78,6 +91,37 @@ contract MessageProxyForMainnet is SkaleManagerClient, MessageProxy {
         uint256 oldValue,
         uint256 newValue
     );
+
+    modifier messageInProgressLocker() {
+        require(!messageInProgress, "Message is in progress");
+        messageInProgress = true;
+        _;
+        messageInProgress = false;
+    }
+
+    /**
+     * @dev Allows DEFAULT_ADMIN_ROLE to initialize registered contracts
+     * Notice - this function will be executed only once during upgrade
+     * 
+     * Requirements:
+     * 
+     * `msg.sender` should have DEFAULT_ADMIN_ROLE
+     */
+    function initializeAllRegisteredContracts(
+        bytes32 schainHash,
+        address[] calldata contracts
+    ) external override {
+        require(hasRole(DEFAULT_ADMIN_ROLE, msg.sender), "Sender is not authorized");
+        for (uint256 i = 0; i < contracts.length; i++) {
+            if (
+                deprecatedRegistryContracts[schainHash][contracts[i]] &&
+                !_registryContracts[schainHash].contains(contracts[i])
+            ) {
+                _registryContracts[schainHash].add(contracts[i]);
+                delete deprecatedRegistryContracts[schainHash][contracts[i]];
+            }
+        }
+    }
 
     /**
      * @dev Allows `msg.sender` to connect schain with MessageProxyOnMainnet for transferring messages.
@@ -100,7 +144,7 @@ contract MessageProxyForMainnet is SkaleManagerClient, MessageProxy {
      * - `msg.sender` must be granted as DEFAULT_ADMIN_ROLE.
      * - Address of CommunityPool contract must not be null.
      */
-    function setCommunityPool(CommunityPool newCommunityPoolAddress) external {
+    function setCommunityPool(ICommunityPool newCommunityPoolAddress) external override {
         require(hasRole(DEFAULT_ADMIN_ROLE, msg.sender), "Not authorized caller");
         require(address(newCommunityPoolAddress) != address(0), "CommunityPool address has to be set");
         communityPool = newCommunityPoolAddress;
@@ -114,7 +158,7 @@ contract MessageProxyForMainnet is SkaleManagerClient, MessageProxy {
      * - `msg.sender` must be granted as EXTRA_CONTRACT_REGISTRAR_ROLE.
      * - Schain name must not be `Mainnet`.
      */
-    function registerExtraContract(string memory schainName, address extraContract) external {
+    function registerExtraContract(string memory schainName, address extraContract) external override {
         bytes32 schainHash = keccak256(abi.encodePacked(schainName));
         require(
             hasRole(EXTRA_CONTRACT_REGISTRAR_ROLE, msg.sender) ||
@@ -134,7 +178,7 @@ contract MessageProxyForMainnet is SkaleManagerClient, MessageProxy {
      * - `msg.sender` must be granted as EXTRA_CONTRACT_REGISTRAR_ROLE.
      * - Schain name must not be `Mainnet`.
      */
-    function removeExtraContract(string memory schainName, address extraContract) external {
+    function removeExtraContract(string memory schainName, address extraContract) external override {
         bytes32 schainHash = keccak256(abi.encodePacked(schainName));
         require(
             hasRole(EXTRA_CONTRACT_REGISTRAR_ROLE, msg.sender) ||
@@ -162,7 +206,8 @@ contract MessageProxyForMainnet is SkaleManagerClient, MessageProxy {
         Signature calldata sign
     )
         external
-        override
+        override(IMessageProxy, MessageProxy)
+        messageInProgressLocker
     {
         uint256 gasTotal = gasleft();
         bytes32 fromSchainHash = keccak256(abi.encodePacked(fromSchainName));
@@ -179,7 +224,7 @@ contract MessageProxyForMainnet is SkaleManagerClient, MessageProxy {
         uint notReimbursedGas = 0;
         for (uint256 i = 0; i < messages.length; i++) {
             gasTotal = gasleft();
-            if (registryContracts[bytes32(0)][messages[i].destinationContract]) {
+            if (isContractRegistered(bytes32(0), messages[i].destinationContract)) {
                 address receiver = _getGasPayer(fromSchainHash, messages[i], startingCounter + i);
                 _callReceiverContract(fromSchainHash, messages[i], startingCounter + i);
                 notReimbursedGas += communityPool.refundGasByUser(
@@ -204,7 +249,7 @@ contract MessageProxyForMainnet is SkaleManagerClient, MessageProxy {
      * 
      * - `msg.sender` must be granted as CONSTANT_SETTER_ROLE.
      */
-    function setNewHeaderMessageGasCost(uint256 newHeaderMessageGasCost) external onlyConstantSetter {
+    function setNewHeaderMessageGasCost(uint256 newHeaderMessageGasCost) external override onlyConstantSetter {
         emit GasCostMessageHeaderWasChanged(headerMessageGasCost, newHeaderMessageGasCost);
         headerMessageGasCost = newHeaderMessageGasCost;
     }
@@ -216,9 +261,32 @@ contract MessageProxyForMainnet is SkaleManagerClient, MessageProxy {
      * 
      * - `msg.sender` must be granted as CONSTANT_SETTER_ROLE.
      */
-    function setNewMessageGasCost(uint256 newMessageGasCost) external onlyConstantSetter {
+    function setNewMessageGasCost(uint256 newMessageGasCost) external override onlyConstantSetter {
         emit GasCostMessageWasChanged(messageGasCost, newMessageGasCost);
         messageGasCost = newMessageGasCost;
+    }
+
+    /**
+     * @dev Sets new version of contracts on mainnet
+     * 
+     * Requirements:
+     * 
+     * - `msg.sender` must be granted DEFAULT_ADMIN_ROLE.
+     */
+    function setVersion(string calldata newVersion) external override {
+        require(hasRole(DEFAULT_ADMIN_ROLE, msg.sender), "DEFAULT_ADMIN_ROLE is required");
+        emit VersionUpdated(version, newVersion);
+        version = newVersion;
+    }
+
+    /**
+     * @dev Creates a new MessageProxyForMainnet contract.
+     */
+    function initialize(IContractManager contractManagerOfSkaleManagerValue) public virtual override initializer {
+        SkaleManagerClient.initialize(contractManagerOfSkaleManagerValue);
+        MessageProxy.initializeMessageProxy(1e6);
+        headerMessageGasCost = 70000;
+        messageGasCost = 9000;
     }
 
     /**
@@ -236,21 +304,23 @@ contract MessageProxyForMainnet is SkaleManagerClient, MessageProxy {
     )
         public
         view
-        override
+        override(IMessageProxy, MessageProxy)
         returns (bool)
     {
         require(keccak256(abi.encodePacked(schainName)) != MAINNET_HASH, "Schain id can not be equal Mainnet");
         return super.isConnectedChain(schainName);
     }
-    /**
-     * @dev Creates a new MessageProxyForMainnet contract.
-     */
-    function initialize(IContractManager contractManagerOfSkaleManagerValue) public virtual override initializer {
-        SkaleManagerClient.initialize(contractManagerOfSkaleManagerValue);
-        MessageProxy.initializeMessageProxy(1e6);
-        headerMessageGasCost = 70000;
-        messageGasCost = 8790;
-    }    
+
+    // private
+
+    function _authorizeOutgoingMessageSender(bytes32 targetChainHash) internal view override {
+        require(
+            isContractRegistered(bytes32(0), msg.sender)
+                || isContractRegistered(targetChainHash, msg.sender)
+                || isSchainOwner(msg.sender, targetChainHash),
+            "Sender contract is not registered"
+        );        
+    }
 
     /**
      * @dev Converts calldata structure to memory structure and checks
@@ -282,5 +352,14 @@ contract MessageProxyForMainnet is SkaleManagerClient, MessageProxy {
         return IWallets(
             contractManagerOfSkaleManager.getContract("Wallets")
         ).getSchainBalance(schainHash) >= (MESSAGES_LENGTH + 1) * gasLimit * tx.gasprice;
+    }
+
+    function _getRegistryContracts()
+        internal
+        view
+        override
+        returns (mapping(bytes32 => EnumerableSetUpgradeable.AddressSet) storage)
+    {
+        return _registryContracts;
     }
 }

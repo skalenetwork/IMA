@@ -25,13 +25,14 @@ import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
 import "@openzeppelin/contracts-upgradeable/access/AccessControlEnumerableUpgradeable.sol";
 import "@skalenetwork/skale-manager-interfaces/IContractManager.sol";
 import "@skalenetwork/skale-manager-interfaces/ISchainsInternal.sol";
+import "@skalenetwork/ima-interfaces/mainnet/ISkaleManagerClient.sol";
 
 
 /**
  * @title SkaleManagerClient - contract that knows ContractManager
  * and makes calls to SkaleManager contracts.
  */
-contract SkaleManagerClient is Initializable, AccessControlEnumerableUpgradeable {
+contract SkaleManagerClient is Initializable, AccessControlEnumerableUpgradeable, ISkaleManagerClient {
 
     IContractManager public contractManagerOfSkaleManager;
 
@@ -47,14 +48,6 @@ contract SkaleManagerClient is Initializable, AccessControlEnumerableUpgradeable
     }
 
     /**
-     * @dev Checks whether sender is owner of SKALE chain.
-     */
-    function isSchainOwner(address sender, bytes32 schainHash) public view returns (bool) {
-        address skaleChainsInternal = contractManagerOfSkaleManager.getContract("SchainsInternal");
-        return ISchainsInternal(skaleChainsInternal).isOwnerAddress(sender, schainHash);
-    }
-
-    /**
      * @dev initialize - sets current address of ContractManager of SkaleManager.
      * @param newContractManagerOfSkaleManager - current address of ContractManager of SkaleManager.
      */
@@ -62,11 +55,20 @@ contract SkaleManagerClient is Initializable, AccessControlEnumerableUpgradeable
         IContractManager newContractManagerOfSkaleManager
     )
         public
+        override
         virtual
         initializer
     {
         AccessControlEnumerableUpgradeable.__AccessControlEnumerable_init();
         _setupRole(DEFAULT_ADMIN_ROLE, msg.sender);
         contractManagerOfSkaleManager = newContractManagerOfSkaleManager;
+    }
+
+    /**
+     * @dev Checks whether sender is owner of SKALE chain
+     */
+    function isSchainOwner(address sender, bytes32 schainHash) public view override returns (bool) {
+        address skaleChainsInternal = contractManagerOfSkaleManager.getContract("SchainsInternal");
+        return ISchainsInternal(skaleChainsInternal).isOwnerAddress(sender, schainHash);
     }
 }

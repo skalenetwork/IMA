@@ -59,6 +59,7 @@ import { setCommonPublicKey } from "./utils/skale-manager-utils/keyStorage";
 import { deployMessages } from "./utils/deploy/messages";
 import { deployERC20OnChain } from "./utils/deploy/erc20OnChain";
 import { deployCommunityPool } from "./utils/deploy/mainnet/communityPool";
+import { deployFallbackEthTester } from "./utils/deploy/test/fallbackEthTester";
 
 import { ethers, web3 } from "hardhat";
 import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/dist/src/signer-with-address";
@@ -174,8 +175,9 @@ describe("DepositBoxEth", () => {
             await depositBoxEth.connect(user2).getFunds(schainName, user.address, wei).should.be.eventually.rejectedWith("Schain is not killed");
             await linker.connect(deployer).kill(schainName);
             await linker.connect(user2).kill(schainName);
-            const userBalanceBefore = await web3.eth.getBalance(user.address);
             await depositBoxEth.connect(user2).getFunds(schainName, user.address, wei2).should.be.eventually.rejectedWith("Incorrect amount");
+            await depositBoxEth.connect(user).getFunds(schainName, user.address, wei).should.be.eventually.rejectedWith("Sender is not an Schain owner");
+            const userBalanceBefore = await web3.eth.getBalance(user.address);
             await depositBoxEth.connect(user2).getFunds(schainName, user.address, wei);
             expect(BigNumber.from(await web3.eth.getBalance(user.address)).toString()).to.equal(BigNumber.from(userBalanceBefore).add(BigNumber.from(wei)).toString());
         });
@@ -414,7 +416,6 @@ describe("DepositBoxEth", () => {
                 .connect(deployer)
                 .connectSchain(schainName, [deployer.address, deployer.address, deployer.address]);
 
-            await linker.allowInterchainConnections(schainName);
 
             await communityPool
                 .connect(user)
@@ -424,7 +425,7 @@ describe("DepositBoxEth", () => {
                 .connect(deployer)
                 .deposit(schainName, { value: wei });
 
-            expect(BigNumber.from(await depositBoxEth.transferredAmount(schainHash)).toString()).to.be.equal(BigNumber.from(0).toString());
+            expect(BigNumber.from(await depositBoxEth.transferredAmount(schainHash)).toString()).to.be.equal(BigNumber.from(wei).toString());
 
             const balanceBefore = await getBalance(deployer.address);
             await messageProxy.connect(deployer).postIncomingMessages(schainName, 0, [message], sign);
@@ -435,6 +436,167 @@ describe("DepositBoxEth", () => {
             await depositBoxEth.connect(user2).getMyEth()
                 .should.be.eventually.rejectedWith("User has insufficient ETH");
             await depositBoxEth.connect(user).getMyEth();
+        });
+
+        it("should transfer eth actively", async () => {
+
+            const senderFromSchain = deployer.address;
+            const wei = "30000000000000000";
+            const bytesData = await messages.encodeTransferEthMessage(user.address, wei);
+            const schainHash = stringValue(web3.utils.soliditySha3(schainName));
+
+            await setCommonPublicKey(contractManager, schainName);
+
+            const sign = {
+                blsSignature: BlsSignature,
+                counter: Counter,
+                hashA: HashA,
+                hashB: HashB,
+            };
+
+            const message = {
+                data: bytesData,
+                destinationContract: depositBoxEth.address,
+                sender: senderFromSchain,
+            };
+
+            await initializeSchain(contractManager, schainName, deployer.address, 1, 1);
+
+            await linker
+                .connect(deployer)
+                .connectSchain(schainName, [deployer.address, deployer.address, deployer.address]);
+
+            await communityPool
+                .connect(user)
+                .rechargeUserWallet(schainName, user.address, { value: wei });
+
+            await depositBoxEth
+                .connect(deployer)
+                .deposit(schainName, { value: wei });
+
+            await depositBoxEth
+                .connect(deployer)
+                .deposit(schainName, { value: wei });
+
+            expect(BigNumber.from(await depositBoxEth.transferredAmount(schainHash)).toString()).to.be.equal(BigNumber.from(wei).mul(2).toString());
+
+            const balanceBefore = await getBalance(deployer.address);
+            await messageProxy.connect(deployer).postIncomingMessages(schainName, 0, [message], sign);
+            const balance = await getBalance(deployer.address);
+            balance.should.not.be.lessThan(balanceBefore);
+            balance.should.be.almost(balanceBefore);
+
+            expect(BigNumber.from(await depositBoxEth.approveTransfers(user.address)).toString()).to.equal(BigNumber.from(wei).toString());
+
+            await depositBoxEth.connect(user2).getMyEth()
+                .should.be.eventually.rejectedWith("User has insufficient ETH");
+
+            expect(BigNumber.from(await depositBoxEth.approveTransfers(user.address)).toString()).to.equal(BigNumber.from(wei).toString());
+
+            expect(await depositBoxEth.activeEthTransfers(schainHash)).to.be.equal(false);
+            await depositBoxEth.connect(user2).enableActiveEthTransfers(schainName).should.be.rejectedWith("Sender is not an Schain owner");
+            await depositBoxEth.connect(user2).disableActiveEthTransfers(schainName).should.be.rejectedWith("Sender is not an Schain owner");
+            await depositBoxEth.connect(deployer).disableActiveEthTransfers(schainName).should.be.eventually.rejectedWith("Active eth transfers disabled");
+            await depositBoxEth.connect(deployer).enableActiveEthTransfers(schainName);
+            await depositBoxEth.connect(deployer).enableActiveEthTransfers(schainName).should.be.eventually.rejectedWith("Active eth transfers enabled");
+            expect(await depositBoxEth.activeEthTransfers(schainHash)).to.be.equal(true);
+
+            const userBalanceBefore = await web3.eth.getBalance(user.address);
+
+            await messageProxy.connect(deployer).postIncomingMessages(schainName, 1, [message], sign);
+            expect(BigNumber.from(await web3.eth.getBalance(user.address)).toString()).to.equal(BigNumber.from(userBalanceBefore).add(BigNumber.from(wei)).toString());
+
+            expect(BigNumber.from(await depositBoxEth.approveTransfers(user.address)).toString()).to.equal(BigNumber.from(wei).toString());
+            await depositBoxEth.connect(user).getMyEth();
+            expect(BigNumber.from(await depositBoxEth.approveTransfers(user.address)).toString()).to.equal(BigNumber.from(0).toString());
+            await depositBoxEth.connect(user).getMyEth()
+                .should.be.eventually.rejectedWith("User has insufficient ETH");
+        });
+
+        it("should transfer eth fallback attack", async () => {
+
+            const senderFromSchain = deployer.address;
+            const wei = "30000000000000000";
+            const schainHash = stringValue(web3.utils.soliditySha3(schainName));
+
+            const fallbackEthTester = await deployFallbackEthTester(depositBoxEth, communityPool, schainName);
+            const bytesData = await messages.encodeTransferEthMessage(fallbackEthTester.address, wei);
+
+            await setCommonPublicKey(contractManager, schainName);
+
+            const sign = {
+                blsSignature: BlsSignature,
+                counter: Counter,
+                hashA: HashA,
+                hashB: HashB,
+            };
+
+            const message = {
+                data: bytesData,
+                destinationContract: depositBoxEth.address,
+                sender: senderFromSchain,
+            };
+
+            await initializeSchain(contractManager, schainName, deployer.address, 1, 1);
+
+            await linker
+                .connect(deployer)
+                .connectSchain(schainName, [deployer.address, deployer.address, deployer.address]);
+
+            await fallbackEthTester
+                .connect(user)
+                .rechargeUserWallet({ value: wei });
+
+            await depositBoxEth
+                .connect(deployer)
+                .deposit(schainName, { value: wei });
+
+            await depositBoxEth
+                .connect(deployer)
+                .deposit(schainName, { value: wei });
+
+            expect(BigNumber.from(await depositBoxEth.transferredAmount(schainHash)).toString()).to.be.equal(BigNumber.from(wei).mul(2).toString());
+
+            const balanceBefore = await getBalance(deployer.address);
+            await messageProxy.connect(deployer).postIncomingMessages(schainName, 0, [message], sign);
+            const balance = await getBalance(deployer.address);
+            balance.should.not.be.lessThan(balanceBefore);
+            balance.should.be.almost(balanceBefore);
+
+            expect(BigNumber.from(await depositBoxEth.approveTransfers(fallbackEthTester.address)).toString()).to.equal(BigNumber.from(wei).toString());
+
+            await depositBoxEth.connect(user2).getMyEth()
+                .should.be.eventually.rejectedWith("User has insufficient ETH");
+
+            expect(BigNumber.from(await depositBoxEth.approveTransfers(fallbackEthTester.address)).toString()).to.equal(BigNumber.from(wei).toString());
+
+            expect(await depositBoxEth.activeEthTransfers(schainHash)).to.be.equal(false);
+            await depositBoxEth.connect(user2).enableActiveEthTransfers(schainName).should.be.rejectedWith("Sender is not an Schain owner");
+            await depositBoxEth.connect(user2).disableActiveEthTransfers(schainName).should.be.rejectedWith("Sender is not an Schain owner");
+            await depositBoxEth.connect(deployer).disableActiveEthTransfers(schainName).should.be.eventually.rejectedWith("Active eth transfers disabled");
+            await depositBoxEth.connect(deployer).enableActiveEthTransfers(schainName);
+            await depositBoxEth.connect(deployer).enableActiveEthTransfers(schainName).should.be.eventually.rejectedWith("Active eth transfers enabled");
+            expect(await depositBoxEth.activeEthTransfers(schainHash)).to.be.equal(true);
+
+            const userBalanceBefore = await web3.eth.getBalance(fallbackEthTester.address);
+
+            const res = await (await messageProxy.connect(deployer).postIncomingMessages(schainName, 1, [message], sign)).wait();
+
+            if (res.events) {
+                assert.equal(res.events[0].event, "PostMessageError");
+                assert.equal(res.events[0].args?.msgCounter.toString(), "1");
+                const messageError = res.events[0].args?.message.toString();
+                const error = "Address: unable to send value, recipient may have reverted";
+                assert.equal(Buffer.from(messageError.slice(2), 'hex').toString(), error);
+            } else {
+                assert(false, "No events were emitted");
+            }
+
+            expect(BigNumber.from(await depositBoxEth.approveTransfers(fallbackEthTester.address)).toString()).to.equal(BigNumber.from(wei).toString());
+            await fallbackEthTester.connect(user).getMyEth();
+            expect(BigNumber.from(await depositBoxEth.approveTransfers(fallbackEthTester.address)).toString()).to.equal(BigNumber.from(0).toString());
+            await fallbackEthTester.connect(user).getMyEth()
+                .should.be.eventually.rejectedWith("User has insufficient ETH");
         });
     });
 });

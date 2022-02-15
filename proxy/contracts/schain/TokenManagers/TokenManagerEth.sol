@@ -21,8 +21,9 @@
 
 pragma solidity 0.8.6;
 
+import "@skalenetwork/ima-interfaces/schain/TokenManagers/ITokenManagerEth.sol";
+
 import "../../Messages.sol";
-import "../tokens/EthErc20.sol";
 import "../TokenManager.sol";
 
 
@@ -32,16 +33,16 @@ import "../TokenManager.sol";
  * accepts messages from mainnet.
  * TokenManagerEth mints EthErc20 tokens. When a user exits a SKALE chain, it burns them.
  */
-contract TokenManagerEth is TokenManager {
+contract TokenManagerEth is TokenManager, ITokenManagerEth {
 
-    EthErc20 public ethErc20;
+    IEthErc20 public ethErc20;
 
     /// Create a new token manager    
 
     /**
      * @dev Register EthErc20 token.
      */
-    function setEthErc20Address(EthErc20 newEthErc20Address) external {
+    function setEthErc20Address(IEthErc20 newEthErc20Address) external override {
         require(hasRole(DEFAULT_ADMIN_ROLE, msg.sender), "Not authorized caller");
         require(ethErc20 != newEthErc20Address, "Must be new address");
         ethErc20 = newEthErc20Address;
@@ -52,26 +53,9 @@ contract TokenManagerEth is TokenManager {
      * 
      * EthErc20 tokens are burned on schain and ETH are unlocked on mainnet for {to} address.
      */
-    function exitToMain(uint256 amount) external {
+    function exitToMain(uint256 amount) external override {
         communityLocker.checkAllowedToSendMessage(msg.sender);
         _exit(MAINNET_HASH, depositBox, msg.sender, amount);
-    }
-
-    /**
-     * @dev Move ETH from schain to schain.
-     * 
-     * EthErc20 tokens are burned on origin schain.
-     * and are minted on {targetSchainName} schain for {to} address.
-     */
-    function transferToSchain(
-        string memory targetSchainName,
-        uint256 amount
-    )
-        external
-        rightTransaction(targetSchainName, msg.sender)
-    {
-        bytes32 targetSchainHash = keccak256(abi.encodePacked(targetSchainName));
-        _exit(targetSchainHash, tokenManagers[targetSchainHash], msg.sender, amount);
     }
 
     /**
@@ -106,14 +90,14 @@ contract TokenManagerEth is TokenManager {
      */
     function initialize(
         string memory newChainName,
-        MessageProxyForSchain newMessageProxy,
-        TokenManagerLinker newIMALinker,
-        CommunityLocker newCommunityLocker,
+        IMessageProxyForSchain newMessageProxy,
+        ITokenManagerLinker newIMALinker,
+        ICommunityLocker newCommunityLocker,
         address newDepositBox,
-        EthErc20 ethErc20Address
+        IEthErc20 ethErc20Address
     )
         external
-        virtual
+        override
         initializer
     {
         TokenManager.initializeTokenManager(
@@ -127,6 +111,10 @@ contract TokenManagerEth is TokenManager {
     }
 
     // private
+
+    function _checkSender(bytes32 fromChainHash, address sender) internal view override returns (bool) {
+        return fromChainHash == MAINNET_HASH && sender == depositBox;
+    }
 
     /**
      * @dev Burn EthErc20 tokens on schain and send message to unlock ETH on target chain.

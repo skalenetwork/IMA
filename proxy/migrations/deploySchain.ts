@@ -25,15 +25,21 @@
 import { promises as fs } from 'fs';
 import { Interface } from "ethers/lib/utils";
 import { ethers, artifacts, upgrades } from "hardhat";
+import hre from "hardhat";
 import { deployLibraries, getLinkedContractFactory } from "./tools/factory";
 import { getAbi } from './tools/abi';
 import { Manifest, hashBytecode } from "@openzeppelin/upgrades-core";
+import { getManifestAdmin } from "@openzeppelin/hardhat-upgrades/dist/admin";
 import { Contract } from '@ethersproject/contracts';
 import { CommunityLocker, EthErc20, KeyStorage, MessageProxyForSchain, TokenManagerERC20, TokenManagerERC721, TokenManagerEth, TokenManagerLinker } from '../typechain';
 import { TokenManagerERC1155 } from '../typechain/TokenManagerERC1155';
+import { getVersion } from './tools/version';
 
-export function getContractKeyInAbiFile(contract: string) {
-    return contract.replace(/([a-zA-Z])(?=[A-Z])/g, '$1_').toLowerCase();
+export function getContractKeyInAbiFile(contract: string): string {
+    if (contract === "MessageProxyForSchain") {
+        return "message_proxy_chain";
+    }
+    return contract.replace(/([a-z0-9])(?=[A-Z])/g, '$1_').toLowerCase();
 }
 
 export async function getManifestFile(): Promise<string> {
@@ -89,26 +95,18 @@ export const contracts = [
     "TokenManagerERC721",
     "TokenManagerERC1155",
     "EthErc20",
-    "SkaleFeatures"
+    "KeyStorage"
 ];
 
 async function main() {
     const [ owner,] = await ethers.getSigners();
+    const version = await getVersion();
 
     if( process.env.CHAIN_NAME_SCHAIN === undefined || process.env.CHAIN_NAME_SCHAIN === "" ) {
         console.log( "Please set CHAIN_NAME_SCHAIN to .env file" );
         process.exit( 126 );
     }
-    if( process.env.PRIVATE_KEY_FOR_SCHAIN === undefined || process.env.PRIVATE_KEY_FOR_SCHAIN === "" ) {
-        console.log( "Please set PRIVATE_KEY_FOR_SCHAIN to .env file" );
-        process.exit( 126 );
-    }
     const schainName = process.env.CHAIN_NAME_SCHAIN;
-    let messageProxyFactory = await ethers.getContractFactory("MessageProxyForSchain");
-    if( process.env.NO_SIGNATURES === "true" ) {
-        console.log( "Deploy IMA without signature verification" );
-        messageProxyFactory = await ethers.getContractFactory("MessageProxyForSchainWithoutSignature");
-    }
     const deployed = new Map<string, {address: string, interface: Interface}>();
 
     if(
@@ -139,12 +137,31 @@ async function main() {
     const keyStorageFactory = await ethers.getContractFactory("KeyStorage");
     const keyStorage = await upgrades.deployProxy(keyStorageFactory) as KeyStorage;
     await keyStorage.deployTransaction.wait();
+    deployed.set( "KeyStorage", { address: keyStorage.address, interface: keyStorage.interface } );
+    console.log("Contract KeyStorage deployed to", keyStorage.address);
 
-    console.log("Deploy MessageProxyForSchain");
-    const messageProxy = await upgrades.deployProxy(messageProxyFactory, [keyStorage.address, schainName]) as MessageProxyForSchain;
+    let messageProxy: Contract;
+    if( process.env.NO_SIGNATURES === "true" ) {
+        console.log( "Deploy IMA without signature verification" );
+        console.log("Deploy MessageProxyForSchainWithoutSignature");
+        messageProxy = await (await ethers.getContractFactory("MessageProxyForSchainWithoutSignature")).deploy(schainName);
+    } else {
+        console.log("Deploy MessageProxyForSchain");
+        messageProxy = await upgrades.deployProxy(
+            await ethers.getContractFactory("MessageProxyForSchain"),
+            [keyStorage.address, schainName]
+        );
+    }
     await messageProxy.deployTransaction.wait();
     deployed.set( "MessageProxyForSchain", { address: messageProxy.address, interface: messageProxy.interface } );
     console.log("Contract MessageProxyForSchain deployed to", messageProxy.address);
+
+    try {
+        console.log(`Set version ${version}`)
+        await (await (messageProxy as MessageProxyForSchain).setVersion(version)).wait();
+    } catch {
+        console.log("Failed to set ima version on schain");
+    }
 
     console.log("Deploy TokenManagerLinker");
     const tokenManagerLinkerFactory = await ethers.getContractFactory("TokenManagerLinker");
@@ -241,8 +258,6 @@ async function main() {
     await communityLocker.grantRole(constantSetterRole, owner.address);
     console.log("Grant CONSTANT_SETTER_ROLE to owner of schain");
 
-    const schainOwner = new ethers.Wallet( process.env.PRIVATE_KEY_FOR_SCHAIN );
-
     let extraContract: Contract;
     const extraContracts = [
         tokenManagerEth,
@@ -260,11 +275,7 @@ async function main() {
 
     const jsonObjectABI: {[k: string]: any} = { };
     for( const contractName of contracts ) {
-        let propertyName: string;
-        if( contractName !== "MessageProxyForSchain" )
-            propertyName = contractName.replace( /([a-z0-9])(?=[A-Z])/g, "$1_" ).toLowerCase();
-        else
-            propertyName = "message_proxy_chain";
+        const propertyName = getContractKeyInAbiFile(contractName);
 
         jsonObjectABI[propertyName + "_address"] = deployed.get( contractName )?.address;
         jsonObjectABI[propertyName + "_abi"] = getAbi(deployed.get( contractName )?.interface);
@@ -275,6 +286,9 @@ async function main() {
     jsonObjectABI.ERC721OnChain_abi = getAbi(erc721OnChainFactory.interface);
     const erc1155OnChainFactory = await ethers.getContractFactory("ERC1155OnChain");
     jsonObjectABI.ERC1155OnChain_abi = getAbi(erc1155OnChainFactory.interface);
+    const proxyAdmin = await getManifestAdmin(hre);
+    jsonObjectABI.proxy_admin_address = proxyAdmin.address;
+    jsonObjectABI.proxy_admin_abi = getAbi(proxyAdmin.interface);
 
     await fs.writeFile( `data/proxySchain_${schainName}.json`, JSON.stringify( jsonObjectABI ) );
     console.log( `Done, check proxySchain_${schainName}.json file in data folder.` );

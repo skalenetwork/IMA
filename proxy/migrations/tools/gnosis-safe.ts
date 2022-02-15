@@ -30,8 +30,10 @@ const URLS = {
     }
 }
 
-function getMultiSendAddress(chainId: number) {
-    if (chainId === Network.MAINNET) {
+function getMultiSendAddress(chainId: number, isSafeMock: boolean = false) {
+    if (isSafeMock) {
+        return ZERO_ADDRESS;
+    } else if (chainId === Network.MAINNET) {
         return ADDRESSES.multiSend[chainId];
     } else if (chainId === Network.RINKEBY) {
         return ADDRESSES.multiSend[chainId];
@@ -72,19 +74,21 @@ function concatTransactions(transactions: string[]) {
     }).join("");
 }
 
-export async function createMultiSendTransaction(ethers: any, safeAddress: string, privateKey: string, transactions: string[]) {
+export async function createMultiSendTransaction(ethers: any, safeAddress: string, privateKey: string, transactions: string[], isSafeMock: boolean = false) {
     const chainId: number = (await ethers.provider.getNetwork()).chainId;
-    const multiSendAddress = getMultiSendAddress(chainId);
+    const multiSendAddress = getMultiSendAddress(chainId, isSafeMock);
     const multiSendAbi = [{"constant":false,"inputs":[{"internalType":"bytes","name":"transactions","type":"bytes"}],"name":"multiSend","outputs":[],"payable":false,"stateMutability":"nonpayable","type":"function"}];
     const multiSend = new ethers.Contract(multiSendAddress, new ethers.utils.Interface(multiSendAbi), ethers.provider);
 
     let nonce = 0;
-    try {
-        const nonceResponse = await axios.get(`${getSafeTransactionUrl(chainId)}/api/v1/safes/${safeAddress}/`);
-        nonce = nonceResponse.data.nonce;
-    } catch (e: any) {
-        if (!e.toString().startsWith("Error: Can't get safe-transaction url")) {
-            throw e;
+    if (!isSafeMock) {
+        try {
+            const nonceResponse = await axios.get(`${getSafeTransactionUrl(chainId)}/api/v1/safes/${safeAddress}/`);
+            nonce = nonceResponse.data.nonce;
+        } catch (e: any) {
+            if (!e.toString().startsWith("Error: Can't get safe-transaction url")) {
+                throw e;
+            }
         }
     }
 
@@ -142,7 +146,7 @@ export async function createMultiSendTransaction(ethers: any, safeAddress: strin
         // Owner of the Safe proposing the transaction. Must match one of the signatures
         "sender": ethers.utils.getAddress(ethUtil.bufferToHex(ethUtil.privateToAddress(privateKeyBuffer))),
         "signature": signature,  // One or more ethereum ECDSA signatures of the `contractTransactionHash` as an hex string
-        "origin": "Upgrade skale-manager"  // Give more information about the transaction, e.g. "My Custom Safe app"
+        "origin": "Upgrade IMA"  // Give more information about the transaction, e.g. "My Custom Safe app"
     }
 
     return txToSend;
