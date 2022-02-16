@@ -5528,10 +5528,7 @@ async function do_transfer(
                 cc.debug( " message(s) to process: " ) + cc.j( jarrMessages ) +
                 "\n" );
             await fn_sign_messages(
-                jarrMessages,
-                nIdxCurrentMsgBlockStart,
-                chain_id_src,
-                details,
+                jarrMessages, nIdxCurrentMsgBlockStart, chain_id_src,
                 joExtraSignOpts,
                 async function( err, jarrMessages, joGlueResult ) {
                     const details = log.createMemoryStream();
