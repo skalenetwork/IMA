@@ -450,7 +450,7 @@ function perform_bls_verify_i(
         shell.cd( strActionDir );
         log.write( strLogPrefix + cc.debug( "BLS node " ) + cc.notice( "#" ) + cc.info( nZeroBasedNodeIndex ) + cc.debug( " first message nonce is " ) + cc.info( nIdxCurrentMsgBlockStart ) + "\n" );
         log.write( strLogPrefix + cc.debug( "BLS node " ) + cc.notice( "#" ) + cc.info( nZeroBasedNodeIndex ) + cc.debug( " first source chain name is " ) + cc.info( strFromChainName ) + "\n" );
-        log.write( strLogPrefix + cc.debug( "BLS node " ) + cc.notice( "#" ) + cc.info( nZeroBasedNodeIndex ) + cc.debug( " messages " ) + cc.j(jarrMessages ) + "\n" );
+        log.write( strLogPrefix + cc.debug( "BLS node " ) + cc.notice( "#" ) + cc.info( nZeroBasedNodeIndex ) + cc.debug( " messages " ) + cc.j( jarrMessages ) + "\n" );
         const strFullMessage = compose_summary_message_to_sign( jarrMessages, nIdxCurrentMsgBlockStart, strFromChainName, false );
         const strHashedMessage = compose_summary_message_to_sign( jarrMessages, nIdxCurrentMsgBlockStart, strFromChainName, true );
         details.write( strLogPrefix + cc.debug( "BLS node " ) + cc.notice( "#" ) + cc.info( nZeroBasedNodeIndex ) + cc.debug( " full non-hashed verify message is " ) + cc.info( strFullMessage ) + "\n" );
@@ -540,7 +540,13 @@ function perform_bls_verify_i_u256( details, nZeroBasedNodeIndex, joResultFromNo
     return false;
 }
 
-function perform_bls_verify( details, strDirection, joGlueResult, jarrMessages, joCommonPublicKey ) {
+function perform_bls_verify(
+    details,
+    strDirection,
+    joGlueResult,
+    jarrMessages, nIdxCurrentMsgBlockStart, strFromChainName,
+    joCommonPublicKey
+) {
     if( !joGlueResult )
         return true;
     const nThreshold = discover_bls_threshold( imaState.joSChainNetworkInfo );
@@ -756,7 +762,6 @@ async function do_sign_messages_impl(
     fn
 ) {
     details = log;
-
 
     let bHaveResultReportCalled = false;
     const strLogPrefix = cc.bright( strDirection ) + " " + cc.info( "Sign msgs:" ) + " ";
