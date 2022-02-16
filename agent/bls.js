@@ -157,7 +157,6 @@ function compose_summary_message_to_sign( jarrMessages, nIdxCurrentMsgBlockStart
     ) {
         let u256, bytes_u256;
         u256 = "0x" + w3.utils.toBN( nIdxCurrentMsgBlockStart ).toString( 16 ); ;
-        console.log( "---- packing start nonce", nIdxCurrentMsgBlockStart, "which is", u256 );
         bytes_u256 = imaUtils.hexToBytes( u256 );
         bytes_u256 = imaUtils.invertArrayItemsLR( bytes_u256 );
         bytes_u256 = imaUtils.bytesAlignLeftWithZeroes( bytes_u256, 32 );
@@ -165,7 +164,6 @@ function compose_summary_message_to_sign( jarrMessages, nIdxCurrentMsgBlockStart
         arrBytes = imaUtils.bytesConcat( arrBytes, bytes_u256 );
         //
         u256 = w3.utils.soliditySha3( strFromChainName );
-        console.log( "---- packing chain", strFromChainName, "name hash", u256 );
         bytes_u256 = imaUtils.hexToBytes( u256 );
         bytes_u256 = imaUtils.invertArrayItemsLR( bytes_u256 );
         bytes_u256 = imaUtils.bytesAlignLeftWithZeroes( bytes_u256, 32 );
