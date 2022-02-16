@@ -14,9 +14,9 @@ function getPageTitle (directory) {
   return startCase(directory);
 }
 
-const exceptionFolders = ["extensions/", "interfaces/", "bls/", "tokens/"];
+const exceptionFolders = ["extensions/", "interfaces/", "bls/", "thirdparty", "tokens/"];
 
-const exceptionFiles = ["Messages.adoc"];
+const exceptionFiles = ["Messages.adoc", "IMessageProxyForMainnetInitializeFunction.adoc", "IMessageProxyForSchainInitializeFunction.adoc"];
 
 const files = proc.execFileSync(
   'find', [baseDir, '-type', 'f'], { encoding: 'utf8' }
