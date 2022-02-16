@@ -754,7 +754,7 @@ describe("MessageProxy", () => {
             }
             await keyStorage.setBlsCommonPublicKey(blsCommonPublicKey);
 
-            const newBLSSignature: [BigNumber, BigNumber] = [                
+            const newBLSSignature: [BigNumber, BigNumber] = [
                 BigNumber.from("0x2941571996e28b11b80d3fda9c94918bbe717ee65cc9f8c0db493d6d055ae67b"),
                 BigNumber.from("0x1f2cdb822eb4f60aeb9ed5c71ae109ea443a01c8bb12b453729cde30ec6add88")
             ];
