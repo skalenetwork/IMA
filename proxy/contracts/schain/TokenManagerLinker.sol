@@ -102,6 +102,9 @@ contract TokenManagerLinker is ITokenManagerLinker, AccessControlEnumerableUpgra
         delete _interchainConnections;
     }  
 
+    /**
+     * @dev Adds new TokenManager.
+     */
     function registerTokenManager(ITokenManager newTokenManager) external override onlyRegistrar {
         tokenManagers.push(newTokenManager);
     }
