@@ -303,11 +303,11 @@ abstract contract MessageProxy is AccessControlEnumerableUpgradeable, IMessagePr
     }
 
     /**
-     * @dev Allows LockAndData to remove connected chain from this contract.
+     * @dev Allows CHAIN_CONNECTOR_ROLE to remove connected chain from this contract.
      * 
      * Requirements:
      * 
-     * - `msg.sender` must be LockAndData contract.
+     * - `msg.sender` must be granted CHAIN_CONNECTOR_ROLE.
      * - `schainName` must be initialized.
      */
     function removeConnectedChain(string memory schainName) public virtual override onlyChainConnector {
@@ -316,7 +316,9 @@ abstract contract MessageProxy is AccessControlEnumerableUpgradeable, IMessagePr
         delete connectedChains[schainHash];
     }    
 
-    // Registration state detection
+    /**
+     * @dev Checks whether chain is currently connected.
+     */
     function isConnectedChain(
         string memory schainName
     )
@@ -446,6 +448,9 @@ abstract contract MessageProxy is AccessControlEnumerableUpgradeable, IMessagePr
         }
     }
 
+    /**
+     * @dev Returns receiver of message.
+     */
     function _getGasPayer(
         bytes32 schainHash,
         Message calldata message,
@@ -475,6 +480,9 @@ abstract contract MessageProxy is AccessControlEnumerableUpgradeable, IMessagePr
         }
     }
 
+    /**
+     * @dev Checks whether msg.sender is registered as custom extra contract.
+     */
     function _authorizeOutgoingMessageSender(bytes32 targetChainHash) internal view virtual {
         require(
             isContractRegistered(bytes32(0), msg.sender) || isContractRegistered(targetChainHash, msg.sender),
@@ -482,6 +490,9 @@ abstract contract MessageProxy is AccessControlEnumerableUpgradeable, IMessagePr
         );        
     }
 
+    /**
+     * @dev Returns list of registered custom extra contracts.
+     */
     function _getRegistryContracts()
         internal
         view

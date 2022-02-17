@@ -264,6 +264,9 @@ abstract contract TokenManager is AccessControlEnumerableUpgradeable, ITokenMana
         emit DepositBoxWasChanged(address(0), newDepositBox);
     }
 
+    /**
+     * @dev Checks whether sender contract is DepositBox or TokenManager depending on chainHash.
+     */
     function _checkSender(bytes32 fromChainHash, address sender) internal view virtual returns (bool) {
         return fromChainHash == MAINNET_HASH ? sender == depositBox : sender == tokenManagers[fromChainHash];
     }

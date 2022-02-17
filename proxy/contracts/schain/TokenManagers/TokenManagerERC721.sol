@@ -89,7 +89,7 @@ contract TokenManagerERC721 is TokenManager, ITokenManagerERC721 {
     /**
      * @dev Move tokens from schain to mainnet.
      * 
-     * {contractOnMainnet} tokens are burned on schain and unlocked on mainnet for {to} address.
+     * {contractOnMainnet} tokens are burned on schain and unlocked on mainnet for {msg.sender} address.
      */
     function exitToMainERC721(
         address contractOnMainnet,
@@ -106,7 +106,7 @@ contract TokenManagerERC721 is TokenManager, ITokenManagerERC721 {
      * @dev Move tokens from schain to schain.
      * 
      * {contractOnMainnet} tokens are burned on origin schain
-     * and are minted on {targetSchainName} schain for {to} address.
+     * and are minted on {targetSchainName} schain for {msg.sender} address.
      */
     function transferToSchainERC721(
         string calldata targetSchainName,
@@ -128,7 +128,7 @@ contract TokenManagerERC721 is TokenManager, ITokenManagerERC721 {
      * Requirements:
      * 
      * - MessageProxy must be the sender.
-     * - `fromSchainName` must exist in TokenManager addresses.
+     * - `fromChainHash` must exist in TokenManager addresses.
      */
     function postMessage(
         bytes32 fromChainHash,
