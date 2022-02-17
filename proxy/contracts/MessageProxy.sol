@@ -508,7 +508,7 @@ abstract contract MessageProxy is AccessControlEnumerableUpgradeable, IMessagePr
         data = abi.encodePacked(
             data,
             bytes32(startingCounter),
-            bytes32(keccak256(abi.encodePacked(fromChainName)))
+            keccak256(bytes(fromChainName))
         );
         return keccak256(data);
     }

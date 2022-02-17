@@ -4888,6 +4888,8 @@ async function init_ima_state_file( details, w3, strDirection, optsStateFile ) {
     }
 }
 
+let g_nTransferLoopCounter = 0;
+
 //
 // Do real money movement from main-net to S-chain by sniffing events
 // 1) main-net.MessageProxyForMainnet.getOutgoingMessagesCounter -> save to nOutMsgCnt
@@ -4936,11 +4938,14 @@ async function do_transfer(
     optsPendingTxAnalysis,
     optsStateFile
 ) {
-    const strGatheredDetailsName = "" +
-        strDirection + "-" + "do_transfer()" +
+    const nTransferLoopCounter = g_nTransferLoopCounter;
+    ++ g_nTransferLoopCounter;
+    //
+    const strGatheredDetailsName = "" + strDirection + "-" +
+        "do_transfer-A-#" + nTransferLoopCounter +
         "-" + chain_id_src + "-->" + chain_id_dst;
-    const strGatheredDetailsNameColored = "" +
-        cc.bright( strDirection ) + cc.debug( "-" ) + cc.info( "do_transfer()" ) +
+    const strGatheredDetailsNameColored = "" + cc.bright( strDirection ) + cc.debug( "-" ) +
+        cc.info( "do_transfer-A-" ) + cc.debug( "-" ) + cc.notice( "#" ) + cc.note( nTransferLoopCounter ) +
         cc.debug( "-" ) + cc.notice( chain_id_src ) + cc.debug( "-->" ) + cc.notice( chain_id_dst );
     const details = log.createMemoryStream();
     const jarrReceipts = [];
@@ -5111,7 +5116,7 @@ async function do_transfer(
                     const strError = strLogPrefix + cc.fatal( "CRITICAL ERROR:" ) + " " + cc.error( "Can't get events from MessageProxy" );
                     log.write( strError + "\n" );
                     details.write( strError + "\n" );
-                    details.exposeDetailsTo( log, strGatheredDetailsName || "sign-callback", false );
+                    details.exposeDetailsTo( log, strGatheredDetailsName, false );
                     save_transfer_error( details.toString() );
                     details.close();
                     return false;
@@ -5528,9 +5533,13 @@ async function do_transfer(
                 cc.debug( " message(s) to process: " ) + cc.j( jarrMessages ) +
                 "\n" );
             await fn_sign_messages(
+                nTransferLoopCounter,
                 jarrMessages, nIdxCurrentMsgBlockStart, chain_id_src,
                 joExtraSignOpts,
                 async function( err, jarrMessages, joGlueResult ) {
+                    const strGatheredDetailsName = "" + strDirection + "-" +
+                    "do_transfer-B-#" + nTransferLoopCounter +
+                    "-" + chain_id_src + "-->" + chain_id_dst;
                     const details = log.createMemoryStream();
                     details.write( strLogPrefix +
                         cc.debug( "Did invoked message signing callback, first real message index is: " ) +

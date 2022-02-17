@@ -753,6 +753,7 @@ async function check_correctness_of_messages_to_sign( details, strLogPrefix, str
 }
 
 async function do_sign_messages_impl(
+    nTransferLoopCounter,
     strDirection,
     jarrMessages, nIdxCurrentMsgBlockStart, strFromChainName,
     joExtraSignOpts,
@@ -771,8 +772,8 @@ async function do_sign_messages_impl(
     const arrSignResults = [];
     let cntSuccess = 0;
     let details = log.createMemoryStream();
-    const strGatheredDetailsName = strDirection + "-" + "do_sign_messages_impl()" +
-        "-" + strFromChainName + "-#" + nIdxCurrentMsgBlockStart;
+    const strGatheredDetailsName = strDirection + "-" + "do_sign_messages_impl-#" + nTransferLoopCounter +
+        "-" + strFromChainName + "-msg#" + nIdxCurrentMsgBlockStart;
     try {
         log.write( strLogPrefix + cc.debug( " Invoking " ) + cc.bright( strDirection ) + cc.debug( " signing messages procedure " ) + "\n" );
         details.write( strLogPrefix + cc.debug( " Invoking " ) + cc.bright( strDirection ) + cc.debug( " signing messages procedure " ) + "\n" );
@@ -1171,11 +1172,14 @@ async function do_sign_messages_impl(
 }
 
 async function do_sign_messages_m2s(
+    nTransferLoopCounter,
     jarrMessages, nIdxCurrentMsgBlockStart, strFromChainName,
     joExtraSignOpts,
     fn
 ) {
-    return await do_sign_messages_impl( "M2S",
+    return await do_sign_messages_impl(
+        nTransferLoopCounter,
+        "M2S",
         jarrMessages, nIdxCurrentMsgBlockStart, strFromChainName,
         joExtraSignOpts,
         fn
@@ -1183,11 +1187,14 @@ async function do_sign_messages_m2s(
 }
 
 async function do_sign_messages_s2m(
+    nTransferLoopCounter,
     jarrMessages, nIdxCurrentMsgBlockStart, strFromChainName,
     joExtraSignOpts,
     fn
 ) {
-    return await do_sign_messages_impl( "S2M",
+    return await do_sign_messages_impl(
+        nTransferLoopCounter,
+        "S2M",
         jarrMessages, nIdxCurrentMsgBlockStart, strFromChainName,
         joExtraSignOpts,
         fn
@@ -1195,11 +1202,14 @@ async function do_sign_messages_s2m(
 }
 
 async function do_sign_messages_s2s(
+    nTransferLoopCounter,
     jarrMessages, nIdxCurrentMsgBlockStart, strFromChainName,
     joExtraSignOpts,
     fn
 ) {
-    return await do_sign_messages_impl( "S2S",
+    return await do_sign_messages_impl(
+        nTransferLoopCounter,
+        "S2S",
         jarrMessages, nIdxCurrentMsgBlockStart, strFromChainName,
         joExtraSignOpts,
         fn
