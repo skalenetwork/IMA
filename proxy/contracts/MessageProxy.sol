@@ -506,11 +506,9 @@ abstract contract MessageProxy is AccessControlEnumerableUpgradeable, IMessagePr
             hash = keccak256(
                 abi.encodePacked(
                     hash,
-                    abi.encodePacked(
-                        bytes32(bytes20(messages[i].sender)),
-                        bytes32(bytes20(messages[i].destinationContract)),
-                        messages[i].data
-                    )
+                    bytes32(bytes20(messages[i].sender)),
+                    bytes32(bytes20(messages[i].destinationContract)),
+                    messages[i].data
                 )
             );
         }
