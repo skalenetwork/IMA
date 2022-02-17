@@ -285,6 +285,13 @@ contract DepositBoxERC1155 is DepositBox, ERC1155ReceiverUpgradeable, IDepositBo
         );
     }
 
+    /**
+     * @dev Returns receiver of message.
+     *
+     * Requirements:
+     *
+     * - Sender contract should be defined and schain name cannot be `Mainnet`.
+     */
     function gasPayer(
         bytes32 schainHash,
         address sender,
@@ -307,6 +314,10 @@ contract DepositBoxERC1155 is DepositBox, ERC1155ReceiverUpgradeable, IDepositBo
         return address(0);
     }
 
+
+    /**
+     * @dev Returns selector of onERC1155Received.
+     */
     function onERC1155Received(
         address operator,
         address,
@@ -323,6 +334,10 @@ contract DepositBoxERC1155 is DepositBox, ERC1155ReceiverUpgradeable, IDepositBo
         return bytes4(keccak256("onERC1155Received(address,address,uint256,uint256,bytes)"));
     }
 
+
+    /**
+     * @dev Returns selector of onERC1155BatchReceived.
+     */
     function onERC1155BatchReceived(
         address operator,
         address,

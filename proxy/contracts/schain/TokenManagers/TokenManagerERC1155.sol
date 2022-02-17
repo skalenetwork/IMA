@@ -175,7 +175,7 @@ contract TokenManagerERC1155 is TokenManager, ERC1155ReceiverUpgradeableWithoutG
      * Requirements:
      * 
      * - MessageProxy must be the sender.
-     * - `fromSchainName` must exist in TokenManagerERC1155 addresses.
+     * - `fromChainHash` must exist in TokenManagerERC1155 addresses.
      */
     function postMessage(
         bytes32 fromChainHash,
