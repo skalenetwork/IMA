@@ -102,85 +102,97 @@ function discover_common_public_key( joSChainNetworkInfo ) {
     return null;
 }
 
-function compose_one_message_byte_sequence( joMessage ) {
-    const w3 = imaState.w3_s_chain ? imaState.w3_s_chain : ( imaState.w3_main_net ? imaState.w3_main_net : imaState.w3_t_chain );
-    if( !w3 )
-        throw new Error( "w3.utils is needed for BN operations but no w3 provided" );
-    let arrBytes = new Uint8Array();
+let g_w3 = null;
 
-    let bytesSender = imaUtils.hexToBytes( joMessage.sender );
-    bytesSender = imaUtils.invertArrayItemsLR( bytesSender );
-    bytesSender = imaUtils.bytesAlignLeftWithZeroes( bytesSender, 32 );
-    bytesSender = imaUtils.invertArrayItemsLR( bytesSender );
-    arrBytes = imaUtils.bytesConcat( arrBytes, bytesSender );
-    //
-    let bytesDestinationContract = imaUtils.hexToBytes( joMessage.destinationContract );
-    bytesDestinationContract = imaUtils.invertArrayItemsLR( bytesDestinationContract );
-    bytesDestinationContract = imaUtils.bytesAlignLeftWithZeroes( bytesDestinationContract, 32 );
-    bytesDestinationContract = imaUtils.invertArrayItemsLR( bytesDestinationContract );
-    arrBytes = imaUtils.bytesConcat( arrBytes, bytesDestinationContract );
-    //
-    // let bytesTo = imaUtils.hexToBytes( joMessage.to );
-    // bytesTo = imaUtils.invertArrayItemsLR( bytesTo );
-    // bytesTo = imaUtils.bytesAlignLeftWithZeroes( bytesTo, 32 );
-    // bytesTo = imaUtils.invertArrayItemsLR( bytesTo );
-    // arrBytes = imaUtils.bytesConcat( arrBytes, bytesTo );
-    //
-    // const strHexAmount = "0x" + w3.utils.toBN( joMessage.amount ).toString( 16 );
-    // let bytesAmount = imaUtils.hexToBytes( strHexAmount );
-    // /////////////////// bytesAmount = imaUtils.invertArrayItemsLR( bytesAmount );
-    // bytesAmount = imaUtils.bytesAlignLeftWithZeroes( bytesAmount, 32 );
-    // arrBytes = imaUtils.bytesConcat( arrBytes, bytesAmount );
-    //
-    const bytesData = imaUtils.hexToBytes( joMessage.data );
-    // bytesData = imaUtils.invertArrayItemsLR( bytesData ); // do not invert byte order data field (see SKALE-3554 for details)
-    arrBytes = imaUtils.bytesConcat( arrBytes, bytesData );
-    //
+function get_w3() {
+    if( ! g_w3 )
+        g_w3 = global.g_w3mod || require( "web3" );
+    return g_w3;
+}
+
+function hexPrepare( strHex, isInvertBefore, isInvertAfter ) {
+    if( isInvertBefore == undefined )
+        isInvertBefore = true;
+    if( isInvertAfter == undefined )
+        isInvertAfter = true;
+    let arrBytes = imaUtils.hexToBytes( strHex );
+    if( isInvertBefore )
+        arrBytes = imaUtils.invertArrayItemsLR( arrBytes );
+    arrBytes = imaUtils.bytesAlignLeftWithZeroes( arrBytes, 32 );
+    if( isInvertAfter )
+        arrBytes = imaUtils.invertArrayItemsLR( arrBytes );
     return arrBytes;
 }
 
-let g_w3 = null;
+function s2ha( s ) {
+    const str_u256 = get_w3().utils.soliditySha3( s );
+    return hexPrepare( str_u256, true, true );
+}
 
-function compose_summary_message_to_sign( jarrMessages, nIdxCurrentMsgBlockStart, strFromChainName, isHash ) {
-    if( ! g_w3 )
-        g_w3 = global.g_w3mod || require( "web3" );
-    const w3 = g_w3;
-    let arrBytes = new Uint8Array();
+// function n2ha( n ) {
+//     const str_u256 = "0x" + get_w3().utils.toBN( n ).toString( 16 );
+//     return hexPrepare( str_u256, true, false );
+// }
+
+function a2ha( arrBytes ) {
+    const k = new Keccak( 256 );
+    k.update( imaUtils.toBuffer( arrBytes ) );
+    const h = k.digest( "hex" );
+    return imaUtils.hexToBytes( "0x" + h );
+}
+
+function keccak256_message( jarrMessages, nIdxCurrentMsgBlockStart, strFromChainName ) {
+    let arrBytes = s2ha( strFromChainName );
+    // arrBytes = imaUtils.bytesConcat( arrBytes, n2ha( nIdxCurrentMsgBlockStart ) );
+    arrBytes = imaUtils.bytesConcat( arrBytes, hexPrepare( "0x" + nIdxCurrentMsgBlockStart.toString( 16 ), false, false ) );
+    // console.log( "1 ---------------", "0x" + imaUtils.bytesToHex( arrBytes, false ) );
+    arrBytes = a2ha( arrBytes );
+    // console.log( "2 ---------------", "0x" + imaUtils.bytesToHex( arrBytes, false ) );
     let i = 0; const cnt = jarrMessages.length;
     for( i = 0; i < cnt; ++i ) {
         const joMessage = jarrMessages[i];
-        const arrMessageBytes = compose_one_message_byte_sequence( joMessage );
-        arrBytes = imaUtils.bytesConcat( arrBytes, arrMessageBytes );
-    }
-    if( nIdxCurrentMsgBlockStart != null && nIdxCurrentMsgBlockStart != undefined &&
-        strFromChainName != null && strFromChainName != undefined && typeof strFromChainName == "string"
-    ) {
-        let u256, bytes_u256;
-        u256 = "0x" + w3.utils.toBN( nIdxCurrentMsgBlockStart ).toString( 16 ); ;
-        bytes_u256 = imaUtils.hexToBytes( u256 );
-        bytes_u256 = imaUtils.invertArrayItemsLR( bytes_u256 );
-        bytes_u256 = imaUtils.bytesAlignLeftWithZeroes( bytes_u256, 32 );
-        bytes_u256 = imaUtils.invertArrayItemsLR( bytes_u256 );
-        arrBytes = imaUtils.bytesConcat( arrBytes, bytes_u256 );
         //
-        u256 = w3.utils.soliditySha3( strFromChainName );
-        bytes_u256 = imaUtils.hexToBytes( u256 );
-        bytes_u256 = imaUtils.invertArrayItemsLR( bytes_u256 );
-        bytes_u256 = imaUtils.bytesAlignLeftWithZeroes( bytes_u256, 32 );
-        bytes_u256 = imaUtils.invertArrayItemsLR( bytes_u256 );
-        arrBytes = imaUtils.bytesConcat( arrBytes, bytes_u256 );
+        let bytesSender = imaUtils.hexToBytes( joMessage.sender );
+        // bytesSender = imaUtils.invertArrayItemsLR( bytesSender );
+        bytesSender = imaUtils.bytesAlignLeftWithZeroes( bytesSender, 32 );
+        // bytesSender = imaUtils.invertArrayItemsLR( bytesSender );
+        arrBytes = imaUtils.bytesConcat( arrBytes, bytesSender );
+        //
+        let bytesDestinationContract = imaUtils.hexToBytes( joMessage.destinationContract );
+        // bytesDestinationContract = imaUtils.invertArrayItemsLR( bytesDestinationContract );
+        bytesDestinationContract = imaUtils.bytesAlignLeftWithZeroes( bytesDestinationContract, 32 );
+        // bytesDestinationContract = imaUtils.invertArrayItemsLR( bytesDestinationContract );
+        arrBytes = imaUtils.bytesConcat( arrBytes, bytesDestinationContract );
+        //
+        const bytesData = imaUtils.hexToBytes( joMessage.data );
+        // bytesData = imaUtils.bytesAlignLeftWithZeroes( bytesData, 32 );
+        // bytesData = imaUtils.invertArrayItemsLR( bytesData ); // do not invert byte order data field (see SKALE-3554 for details)
+        arrBytes = imaUtils.bytesConcat( arrBytes, bytesData );
+        // console.log( "3 ---------------", "0x" + imaUtils.bytesToHex( arrBytes, false ) );
+        //
+        // arrBytes = imaUtils.invertArrayItemsLR( arrBytes );
+        arrBytes = a2ha( arrBytes );
+        // console.log( "4 ---------------", "0x" + imaUtils.bytesToHex( arrBytes, false ) );
     }
-    let strSummaryMessage = "";
-    if( isHash ) {
-        const hash = new Keccak( 256 );
-        hash.update( imaUtils.toBuffer( arrBytes ) );
-        strSummaryMessage = hash.digest( "hex" );
-    } else
-        strSummaryMessage = "0x" + imaUtils.bytesToHex( arrBytes );
-    return strSummaryMessage;
+    return "0x" + imaUtils.bytesToHex( arrBytes, false );
 }
 
-function compose_summary_message_to_sign_u256( u256, isHash ) {
+// const strHashExpected = "0x3094d655630537e78650506931ca36191bc2d4a85ab3216632f5bf107265c8ea".toLowerCase(), strHashComputed =
+// keccak256_message(
+//     [ {
+//         "sender": "0x0000000000000000000000000000000000000001",
+//         "destinationContract": "0x0000000000000000000000000000000000000002",
+//         "data": "0x030405" // 0x010203"
+//     } ],
+//     6,
+//     "d2"
+// ).toLowerCase();
+// console.log( "----------------- computed.....", strHashComputed );
+// console.log( "----------------- expected.....", strHashExpected );
+// console.log( "----------------- equal........", ( strHashComputed == strHashExpected ) ? "yes" : "no" );
+// process.exit( 0 );
+
+function keccak256_u256( u256, isHash ) {
     let arrBytes = new Uint8Array();
     //
     let bytes_u256 = imaUtils.hexToBytes( u256 );
@@ -189,14 +201,14 @@ function compose_summary_message_to_sign_u256( u256, isHash ) {
     bytes_u256 = imaUtils.invertArrayItemsLR( bytes_u256 );
     arrBytes = imaUtils.bytesConcat( arrBytes, bytes_u256 );
     //
-    let strSummaryMessage = "";
+    let strMessageHash = "";
     if( isHash ) {
         const hash = new Keccak( 256 );
         hash.update( imaUtils.toBuffer( arrBytes ) );
-        strSummaryMessage = hash.digest( "hex" );
+        strMessageHash = hash.digest( "hex" );
     } else
-        strSummaryMessage = "0x" + imaUtils.bytesToHex( arrBytes );
-    return strSummaryMessage;
+        strMessageHash = "0x" + imaUtils.bytesToHex( arrBytes );
+    return strMessageHash;
 }
 
 function split_signature_share( signatureShare ) {
@@ -234,9 +246,8 @@ function perform_bls_glue(
     const nParticipants = discover_bls_participants( imaState.joSChainNetworkInfo );
     details.write( strLogPrefix + cc.debug( "Discovered BLS threshold is " ) + cc.info( nThreshold ) + cc.debug( "." ) + "\n" );
     details.write( strLogPrefix + cc.debug( "Discovered number of BLS participants is " ) + cc.info( nParticipants ) + cc.debug( "." ) + "\n" );
-    details.write( strLogPrefix + cc.debug( "Original long message is " ) + cc.info( compose_summary_message_to_sign( jarrMessages, nIdxCurrentMsgBlockStart, strFromChainName, false ) ) + "\n" );
-    const strSummaryMessage = compose_summary_message_to_sign( jarrMessages, nIdxCurrentMsgBlockStart, strFromChainName, true );
-    details.write( strLogPrefix + cc.debug( "Message hash to sign is " ) + cc.info( strSummaryMessage ) + "\n" );
+    const strMessageHash = keccak256_message( jarrMessages, nIdxCurrentMsgBlockStart, strFromChainName );
+    details.write( strLogPrefix + cc.debug( "Message hash to sign is " ) + cc.info( strMessageHash ) + "\n" );
     const strPWD = shell.pwd();
     const strActionDir = alloc_bls_tmp_action_dir();
     details.write( strLogPrefix + cc.debug( "perform_bls_glue will work in " ) + cc.info( strActionDir ) + cc.debug( " director with " ) + cc.info( arrSignResults.length ) + cc.debug( " sign results..." ) + "\n" );
@@ -269,14 +280,14 @@ function perform_bls_glue(
         details.write( strLogPrefix + cc.debug( "BLS glue result is: " ) + cc.j( joGlueResult ) + "\n" );
         if( "X" in joGlueResult.signature && "Y" in joGlueResult.signature ) {
             details.write( strLogPrefix + cc.success( "BLS glue success" ) + "\n" );
-            joGlueResult.hashSrc = strSummaryMessage;
+            joGlueResult.hashSrc = strMessageHash;
             //
             //
             //
             details.write( strLogPrefix + cc.debug( "Computing " ) + cc.info( "G1" ) + cc.debug( " hash point..." ) + "\n" );
             const strPath = strActionDir + "/hash.json";
             details.write( strLogPrefix + cc.normal( "Saving " ) + cc.notice( strPath ) + cc.debug( " file..." ) + "\n" );
-            imaUtils.jsonFileSave( strPath, { message: strSummaryMessage } );
+            imaUtils.jsonFileSave( strPath, { message: strMessageHash } );
             const strHasG1Command =
                 imaState.strPathHashG1 +
                 " --t " + nThreshold +
@@ -333,9 +344,9 @@ function perform_bls_glue_u256( details, u256, arrSignResults ) {
     const nParticipants = discover_bls_participants( imaState.joSChainNetworkInfo );
     details.write( strLogPrefix + cc.debug( "Discovered BLS threshold is " ) + cc.info( nThreshold ) + cc.debug( "." ) + "\n" );
     details.write( strLogPrefix + cc.debug( "Discovered number of BLS participants is " ) + cc.info( nParticipants ) + cc.debug( "." ) + "\n" );
-    details.write( strLogPrefix + cc.debug( "Original long message is " ) + cc.info( compose_summary_message_to_sign_u256( u256, false ) ) + "\n" );
-    const strSummaryMessage = compose_summary_message_to_sign_u256( u256, true );
-    details.write( strLogPrefix + cc.debug( "Message hash to sign is " ) + cc.info( strSummaryMessage ) + "\n" );
+    details.write( strLogPrefix + cc.debug( "Original long message is " ) + cc.info( keccak256_u256( u256, false ) ) + "\n" );
+    const strMessageHash = keccak256_u256( u256, true );
+    details.write( strLogPrefix + cc.debug( "Message hash to sign is " ) + cc.info( strMessageHash ) + "\n" );
     const strPWD = shell.pwd();
     const strActionDir = alloc_bls_tmp_action_dir();
     details.write( strLogPrefix + cc.debug( "perform_bls_glue_u256 will work in " ) + cc.info( strActionDir ) + cc.debug( " director with " ) + cc.info( arrSignResults.length ) + cc.debug( " sign results..." ) + "\n" );
@@ -368,14 +379,14 @@ function perform_bls_glue_u256( details, u256, arrSignResults ) {
         details.write( strLogPrefix + cc.normal( "BLS glue result is: " ) + cc.j( joGlueResult ) + "\n" );
         if( "X" in joGlueResult.signature && "Y" in joGlueResult.signature ) {
             details.write( strLogPrefix + cc.success( "BLS glue success" ) + "\n" );
-            joGlueResult.hashSrc = strSummaryMessage;
+            joGlueResult.hashSrc = strMessageHash;
             //
             //
             //
             details.write( strLogPrefix + cc.debug( "Computing " ) + cc.info( "G1" ) + cc.debug( " hash point..." ) + "\n" );
             const strPath = strActionDir + "/hash.json";
             details.write( strLogPrefix + cc.normal( "Saving " ) + cc.notice( strPath ) + cc.debug( " file..." ) + "\n" );
-            imaUtils.jsonFileSave( strPath, { message: strSummaryMessage } );
+            imaUtils.jsonFileSave( strPath, { message: strMessageHash } );
             const strHasG1Command =
                 imaState.strPathHashG1 +
                 " --t " + nThreshold +
@@ -449,12 +460,10 @@ function perform_bls_verify_i(
         log.write( strLogPrefix + cc.debug( "BLS node " ) + cc.notice( "#" ) + cc.info( nZeroBasedNodeIndex ) + cc.debug( " - first message nonce is " ) + cc.info( nIdxCurrentMsgBlockStart ) + "\n" );
         log.write( strLogPrefix + cc.debug( "BLS node " ) + cc.notice( "#" ) + cc.info( nZeroBasedNodeIndex ) + cc.debug( " - first source chain name is " ) + cc.info( strFromChainName ) + "\n" );
         log.write( strLogPrefix + cc.debug( "BLS node " ) + cc.notice( "#" ) + cc.info( nZeroBasedNodeIndex ) + cc.debug( " - messages array " ) + cc.j( jarrMessages ) + "\n" );
-        const strFullMessage = compose_summary_message_to_sign( jarrMessages, nIdxCurrentMsgBlockStart, strFromChainName, false );
-        const strHashedMessage = compose_summary_message_to_sign( jarrMessages, nIdxCurrentMsgBlockStart, strFromChainName, true );
-        details.write( strLogPrefix + cc.debug( "BLS node " ) + cc.notice( "#" ) + cc.info( nZeroBasedNodeIndex ) + cc.debug( " - full non-hashed verify message is " ) + cc.info( strFullMessage ) + "\n" );
-        details.write( strLogPrefix + cc.debug( "BLS node " ) + cc.notice( "#" ) + cc.info( nZeroBasedNodeIndex ) + cc.debug( " - hashed verify message is " ) + cc.info( strHashedMessage ) + "\n" );
+        const strMessageHash = keccak256_message( jarrMessages, nIdxCurrentMsgBlockStart, strFromChainName );
+        details.write( strLogPrefix + cc.debug( "BLS node " ) + cc.notice( "#" ) + cc.info( nZeroBasedNodeIndex ) + cc.debug( " - hashed verify message is " ) + cc.info( strMessageHash ) + "\n" );
         const joMsg = {
-            message: strHashedMessage
+            message: strMessageHash
         };
         details.write( strLogPrefix + cc.debug( "BLS node " ) + cc.notice( "#" ) + cc.info( nZeroBasedNodeIndex ) + cc.debug( " - composed  " ) + cc.j( joMsg ) + cc.debug( " composed from " ) + cc.j( jarrMessages ) + cc.debug( " using glue " ) + cc.j( joResultFromNode ) + cc.debug( " and public key " ) + cc.j( joPublicKey ) + "\n" );
         const strSignResultFileName = strActionDir + "/sign-result" + nZeroBasedNodeIndex + ".json";
@@ -504,7 +513,7 @@ function perform_bls_verify_i_u256( details, nZeroBasedNodeIndex, joResultFromNo
     let strOutput = "";
     try {
         shell.cd( strActionDir );
-        const joMsg = { message: compose_summary_message_to_sign_u256( u256, true ) };
+        const joMsg = { message: keccak256_u256( u256, true ) };
         details.write( strLogPrefix + cc.debug( "BLS u256 node " ) + cc.notice( "#" ) + cc.info( nZeroBasedNodeIndex ) + cc.debug( " verify message " ) + cc.j( joMsg ) + cc.debug( " composed from " ) + cc.j( u256 ) + cc.debug( " using glue " ) + cc.j( joResultFromNode ) + cc.debug( " and public key " ) + cc.j( joPublicKey ) + "\n" );
         const strSignResultFileName = strActionDir + "/sign-result" + nZeroBasedNodeIndex + ".json";
         // console.log( "--- joResultFromNode ---", JSON.stringify( joResultFromNode ) );
@@ -562,11 +571,9 @@ function perform_bls_verify(
         log.write( strLogPrefix + cc.debug( "BLS/summary verify message - first message nonce is " ) + cc.info( nIdxCurrentMsgBlockStart ) + "\n" );
         log.write( strLogPrefix + cc.debug( "BLS/summary verify message - first source chain name is " ) + cc.info( strFromChainName ) + "\n" );
         log.write( strLogPrefix + cc.debug( "BLS/summary verify message - messages array " ) + cc.j( jarrMessages ) + "\n" );
-        const strFullMessage = compose_summary_message_to_sign( jarrMessages, nIdxCurrentMsgBlockStart, strFromChainName, false );
-        const strHashedMessage = compose_summary_message_to_sign( jarrMessages, nIdxCurrentMsgBlockStart, strFromChainName, true );
-        details.write( strLogPrefix + cc.debug( "BLS/summary verify message - full non-hashed verify message is " ) + cc.info( strFullMessage ) + "\n" );
-        details.write( strLogPrefix + cc.debug( "BLS/summary verify message - hashed verify message is " ) + cc.info( strHashedMessage ) + "\n" );
-        const joMsg = { message: strHashedMessage };
+        const strMessageHash = keccak256_message( jarrMessages, nIdxCurrentMsgBlockStart, strFromChainName );
+        details.write( strLogPrefix + cc.debug( "BLS/summary verify message - hashed verify message is " ) + cc.info( strMessageHash ) + "\n" );
+        const joMsg = { message: strMessageHash };
         details.write( strLogPrefix + cc.debug( "BLS/summary verify message - composed JSON " ) + cc.j( joMsg ) + cc.debug( " from messages array " ) + cc.j( jarrMessages ) + cc.debug( " using glue " ) + cc.j( joGlueResult ) + cc.debug( " and common public key " ) + cc.j( joCommonPublicKey ) + "\n" );
         imaUtils.jsonFileSave( strActionDir + "/glue-result.json", joGlueResult );
         imaUtils.jsonFileSave( strActionDir + "/hash.json", joMsg );
@@ -624,7 +631,7 @@ function perform_bls_verify_u256( details, joGlueResult, u256, joCommonPublicKey
     const strLogPrefix = cc.info( "BLS u256" ) + cc.debug( "/" ) + cc.sunny( "Summary" ) + cc.debug( ":" ) + " ";
     try {
         shell.cd( strActionDir );
-        const joMsg = { message: compose_summary_message_to_sign_u256( u256, true ) };
+        const joMsg = { message: keccak256_u256( u256, true ) };
         details.write( strLogPrefix + cc.debug( "BLS u256/summary verify message " ) + cc.j( joMsg ) + cc.debug( " composed from " ) + cc.j( u256 ) + cc.debug( " using glue " ) + cc.j( joGlueResult ) + cc.debug( " and common public key " ) + cc.j( joCommonPublicKey ) + "\n" );
         imaUtils.jsonFileSave( strActionDir + "/glue-result.json", joGlueResult );
         imaUtils.jsonFileSave( strActionDir + "/hash.json", joMsg );
