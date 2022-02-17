@@ -92,6 +92,9 @@ contract MessageProxyForMainnet is SkaleManagerClient, MessageProxy, IMessagePro
         uint256 newValue
     );
 
+    /**
+     * @dev Reentrancy guard for postIncomingMessages.
+     */
     modifier messageInProgressLocker() {
         require(!messageInProgress, "Message is in progress");
         messageInProgress = true;
@@ -351,12 +354,19 @@ contract MessageProxyForMainnet is SkaleManagerClient, MessageProxy, IMessagePro
         );
     }
 
+    /**
+     * @dev Checks whether balance of schain wallet is sufficient for 
+     * for reimbursement custom message.
+     */
     function _checkSchainBalance(bytes32 schainHash) internal view returns (bool) {
         return IWallets(
             contractManagerOfSkaleManager.getContract("Wallets")
         ).getSchainBalance(schainHash) >= (MESSAGES_LENGTH + 1) * gasLimit * tx.gasprice;
     }
 
+    /**
+     * @dev Returns list of registered custom extra contracts.
+     */
     function _getRegistryContracts()
         internal
         view
