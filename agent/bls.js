@@ -446,17 +446,17 @@ function perform_bls_verify_i(
     let strOutput = "";
     try {
         shell.cd( strActionDir );
-        log.write( strLogPrefix + cc.debug( "BLS node " ) + cc.notice( "#" ) + cc.info( nZeroBasedNodeIndex ) + cc.debug( " first message nonce is " ) + cc.info( nIdxCurrentMsgBlockStart ) + "\n" );
-        log.write( strLogPrefix + cc.debug( "BLS node " ) + cc.notice( "#" ) + cc.info( nZeroBasedNodeIndex ) + cc.debug( " first source chain name is " ) + cc.info( strFromChainName ) + "\n" );
-        log.write( strLogPrefix + cc.debug( "BLS node " ) + cc.notice( "#" ) + cc.info( nZeroBasedNodeIndex ) + cc.debug( " messages " ) + cc.j( jarrMessages ) + "\n" );
+        log.write( strLogPrefix + cc.debug( "BLS node " ) + cc.notice( "#" ) + cc.info( nZeroBasedNodeIndex ) + cc.debug( " - first message nonce is " ) + cc.info( nIdxCurrentMsgBlockStart ) + "\n" );
+        log.write( strLogPrefix + cc.debug( "BLS node " ) + cc.notice( "#" ) + cc.info( nZeroBasedNodeIndex ) + cc.debug( " - first source chain name is " ) + cc.info( strFromChainName ) + "\n" );
+        log.write( strLogPrefix + cc.debug( "BLS node " ) + cc.notice( "#" ) + cc.info( nZeroBasedNodeIndex ) + cc.debug( " - messages array " ) + cc.j( jarrMessages ) + "\n" );
         const strFullMessage = compose_summary_message_to_sign( jarrMessages, nIdxCurrentMsgBlockStart, strFromChainName, false );
         const strHashedMessage = compose_summary_message_to_sign( jarrMessages, nIdxCurrentMsgBlockStart, strFromChainName, true );
-        details.write( strLogPrefix + cc.debug( "BLS node " ) + cc.notice( "#" ) + cc.info( nZeroBasedNodeIndex ) + cc.debug( " full non-hashed verify message is " ) + cc.info( strFullMessage ) + "\n" );
-        details.write( strLogPrefix + cc.debug( "BLS node " ) + cc.notice( "#" ) + cc.info( nZeroBasedNodeIndex ) + cc.debug( " hashed verify message is " ) + cc.info( strHashedMessage ) + "\n" );
+        details.write( strLogPrefix + cc.debug( "BLS node " ) + cc.notice( "#" ) + cc.info( nZeroBasedNodeIndex ) + cc.debug( " - full non-hashed verify message is " ) + cc.info( strFullMessage ) + "\n" );
+        details.write( strLogPrefix + cc.debug( "BLS node " ) + cc.notice( "#" ) + cc.info( nZeroBasedNodeIndex ) + cc.debug( " - hashed verify message is " ) + cc.info( strHashedMessage ) + "\n" );
         const joMsg = {
             message: strHashedMessage
         };
-        details.write( strLogPrefix + cc.debug( "BLS node " ) + cc.notice( "#" ) + cc.info( nZeroBasedNodeIndex ) + cc.debug( " verify message " ) + cc.j( joMsg ) + cc.debug( " composed from " ) + cc.j( jarrMessages ) + cc.debug( " using glue " ) + cc.j( joResultFromNode ) + cc.debug( " and public key " ) + cc.j( joPublicKey ) + "\n" );
+        details.write( strLogPrefix + cc.debug( "BLS node " ) + cc.notice( "#" ) + cc.info( nZeroBasedNodeIndex ) + cc.debug( " - composed  " ) + cc.j( joMsg ) + cc.debug( " composed from " ) + cc.j( jarrMessages ) + cc.debug( " using glue " ) + cc.j( joResultFromNode ) + cc.debug( " and public key " ) + cc.j( joPublicKey ) + "\n" );
         const strSignResultFileName = strActionDir + "/sign-result" + nZeroBasedNodeIndex + ".json";
         // console.log( "--- joResultFromNode ---", JSON.stringify( joResultFromNode ) );
         // console.log( "--- joMsg ---", JSON.stringify( joMsg ) );
@@ -559,8 +559,15 @@ function perform_bls_verify(
     const strLogPrefix = cc.bright( strDirection ) + cc.debug( "/" ) + cc.info( "BLS" ) + cc.debug( "/" ) + cc.sunny( "Summary" ) + cc.debug( ":" ) + " ";
     try {
         shell.cd( strActionDir );
-        const joMsg = { message: compose_summary_message_to_sign( jarrMessages, nIdxCurrentMsgBlockStart, strFromChainName, true ) };
-        details.write( strLogPrefix + cc.debug( "BLS/summary verify message " ) + cc.j( joMsg ) + cc.debug( " composed from " ) + cc.j( jarrMessages ) + cc.debug( " using glue " ) + cc.j( joGlueResult ) + cc.debug( " and common public key " ) + cc.j( joCommonPublicKey ) + "\n" );
+        log.write( strLogPrefix + cc.debug( "BLS/summary verify message - first message nonce is " ) + cc.info( nIdxCurrentMsgBlockStart ) + "\n" );
+        log.write( strLogPrefix + cc.debug( "BLS/summary verify message - first source chain name is " ) + cc.info( strFromChainName ) + "\n" );
+        log.write( strLogPrefix + cc.debug( "BLS/summary verify message - messages array " ) + cc.j( jarrMessages ) + "\n" );
+        const strFullMessage = compose_summary_message_to_sign( jarrMessages, nIdxCurrentMsgBlockStart, strFromChainName, false );
+        const strHashedMessage = compose_summary_message_to_sign( jarrMessages, nIdxCurrentMsgBlockStart, strFromChainName, true );
+        details.write( strLogPrefix + cc.debug( "BLS/summary verify message - full non-hashed verify message is " ) + cc.info( strFullMessage ) + "\n" );
+        details.write( strLogPrefix + cc.debug( "BLS/summary verify message - hashed verify message is " ) + cc.info( strHashedMessage ) + "\n" );
+        const joMsg = { message: strHashedMessage };
+        details.write( strLogPrefix + cc.debug( "BLS/summary verify message - composed JSON " ) + cc.j( joMsg ) + cc.debug( " from messages array " ) + cc.j( jarrMessages ) + cc.debug( " using glue " ) + cc.j( joGlueResult ) + cc.debug( " and common public key " ) + cc.j( joCommonPublicKey ) + "\n" );
         imaUtils.jsonFileSave( strActionDir + "/glue-result.json", joGlueResult );
         imaUtils.jsonFileSave( strActionDir + "/hash.json", joMsg );
         // let joCommonPublicKey_for_O = joCommonPublicKey;
