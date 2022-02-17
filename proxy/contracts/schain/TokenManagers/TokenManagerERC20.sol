@@ -90,7 +90,7 @@ contract TokenManagerERC20 is TokenManager, ITokenManagerERC20 {
     /**
      * @dev Move tokens from schain to mainnet.
      * 
-     * {contractOnMainnet} tokens are burned on schain and unlocked on mainnet for {to} address.
+     * {contractOnMainnet} tokens are burned on schain and unlocked on mainnet for {msg.sender} address.
      */
     function exitToMainERC20(
         address contractOnMainnet,
@@ -107,7 +107,7 @@ contract TokenManagerERC20 is TokenManager, ITokenManagerERC20 {
      * @dev Move tokens from schain to schain.
      * 
      * {contractOnMainnet} tokens are burned on origin schain
-     * and are minted on {targetSchainName} schain for {to} address.
+     * and are minted on {targetSchainName} schain for {msg.sender} address.
      */
     function transferToSchainERC20(
         string calldata targetSchainName,
@@ -129,7 +129,7 @@ contract TokenManagerERC20 is TokenManager, ITokenManagerERC20 {
      * Requirements:
      * 
      * - MessageProxy must be the sender.
-     * - `fromSchainName` must exist in TokenManager addresses.
+     * - `fromChainHash` must exist in TokenManager addresses.
      */
     function postMessage(
         bytes32 fromChainHash,
@@ -157,7 +157,7 @@ contract TokenManagerERC20 is TokenManager, ITokenManagerERC20 {
     }
 
     /**
-     * @dev Allows Schain owner to register an ERC20 token clone in the token manager.
+     * @dev Allows Schain owner to register an ERC20 token clone in the TokenManager.
      */
     function addERC20TokenByOwner(
         string calldata targetChainName,
@@ -403,6 +403,10 @@ contract TokenManagerERC20 is TokenManager, ITokenManagerERC20 {
         });
     }
 
+
+    /**
+     * @dev Decodes ERC20 transfer message depending on type of message.
+     */
     function _decodeErc20Message(bytes calldata data)
         private
         pure
