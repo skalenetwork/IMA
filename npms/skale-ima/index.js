@@ -5532,7 +5532,7 @@ async function do_transfer(
                 cc.info( nIdxCurrentMsgBlockStart ) + cc.info( jarrMessages.length ) +
                 cc.debug( " message(s) to process: " ) + cc.j( jarrMessages ) +
                 "\n" );
-            const detailsB = log.createMemoryStream();
+            let detailsB = log.createMemoryStream();
             await fn_sign_messages(
                 nTransferLoopCounter,
                 jarrMessages, nIdxCurrentMsgBlockStart, chain_id_src,
