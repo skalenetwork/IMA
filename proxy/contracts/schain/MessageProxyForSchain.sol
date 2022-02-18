@@ -156,7 +156,9 @@ contract MessageProxyForSchain is MessageProxy {
         bytes32 fromChainHash = keccak256(abi.encodePacked(fromChainName));
         require(connectedChains[fromChainHash].inited, "Chain is not initialized");
         require(messages.length <= MESSAGES_LENGTH, "Too many messages");
-        require(_verifyMessages(_hashedArray(messages), signature), "Signature is not verified");
+        require(_verifyMessages(
+            _hashedArray(messages, startingCounter, fromChainName), signature),
+            "Signature is not verified");
         require(
             startingCounter == connectedChains[fromChainHash].incomingMessageCounter,
             "Starting counter is not qual to incoming message counter");
