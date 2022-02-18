@@ -192,6 +192,21 @@ function keccak256_message( jarrMessages, nIdxCurrentMsgBlockStart, strFromChain
 // console.log( "----------------- equal........", ( strHashComputed == strHashExpected ) ? "yes" : "no" );
 // process.exit( 0 );
 
+// const strHashComputed = keccak256_message( [
+//     {
+//         "data": "0x00000000000000000000000000000000000000000000000000000000000000070000000000000000000000007aa5e36aa15e93d10f4f26357c30f052dacdde5f0000000000000000000000000000000000000000000000000000000000000001",
+//         "destinationContract": "0xD2aaa00300000000000000000000000000000000",
+//         "sender": "0xA06CF5F4806372D9D6E52728b53d0EdF52b9Ae89"
+//     },
+//     {
+//         "data": "0x00000000000000000000000000000000000000000000000000000000000000010000000000000000000000007aa5e36aa15e93d10f4f26357c30f052dacdde5f00000000000000000000000000000000000000000000006c6b935b8bbd400000",
+//         "destinationContract": "0xd2AaA00400000000000000000000000000000000",
+//         "sender": "0xAe79233541427BC70Bd3Bfe452ca4B1c69d5a82e"
+//     }
+// ], 0, "Mainnet" ).toLowerCase();
+// console.log( "----------------- computed.....", strHashComputed );
+// process.exit( 0 );
+
 function keccak256_u256( u256, isHash ) {
     let arrBytes = new Uint8Array();
     //
@@ -246,7 +261,7 @@ function perform_bls_glue(
     const nParticipants = discover_bls_participants( imaState.joSChainNetworkInfo );
     details.write( strLogPrefix + cc.debug( "Discovered BLS threshold is " ) + cc.info( nThreshold ) + cc.debug( "." ) + "\n" );
     details.write( strLogPrefix + cc.debug( "Discovered number of BLS participants is " ) + cc.info( nParticipants ) + cc.debug( "." ) + "\n" );
-    const strMessageHash = keccak256_message( jarrMessages, nIdxCurrentMsgBlockStart, strFromChainName );
+    const strMessageHash = owaspUtils.remove_starting_0x( keccak256_message( jarrMessages, nIdxCurrentMsgBlockStart, strFromChainName ) );
     details.write( strLogPrefix + cc.debug( "Message hash to sign is " ) + cc.info( strMessageHash ) + "\n" );
     const strPWD = shell.pwd();
     const strActionDir = alloc_bls_tmp_action_dir();
@@ -457,10 +472,10 @@ function perform_bls_verify_i(
     let strOutput = "";
     try {
         shell.cd( strActionDir );
-        log.write( strLogPrefix + cc.debug( "BLS node " ) + cc.notice( "#" ) + cc.info( nZeroBasedNodeIndex ) + cc.debug( " - first message nonce is " ) + cc.info( nIdxCurrentMsgBlockStart ) + "\n" );
-        log.write( strLogPrefix + cc.debug( "BLS node " ) + cc.notice( "#" ) + cc.info( nZeroBasedNodeIndex ) + cc.debug( " - first source chain name is " ) + cc.info( strFromChainName ) + "\n" );
-        log.write( strLogPrefix + cc.debug( "BLS node " ) + cc.notice( "#" ) + cc.info( nZeroBasedNodeIndex ) + cc.debug( " - messages array " ) + cc.j( jarrMessages ) + "\n" );
-        const strMessageHash = keccak256_message( jarrMessages, nIdxCurrentMsgBlockStart, strFromChainName );
+        details.write( strLogPrefix + cc.debug( "BLS node " ) + cc.notice( "#" ) + cc.info( nZeroBasedNodeIndex ) + cc.debug( " - first message nonce is " ) + cc.info( nIdxCurrentMsgBlockStart ) + "\n" );
+        details.write( strLogPrefix + cc.debug( "BLS node " ) + cc.notice( "#" ) + cc.info( nZeroBasedNodeIndex ) + cc.debug( " - first source chain name is " ) + cc.info( strFromChainName ) + "\n" );
+        details.write( strLogPrefix + cc.debug( "BLS node " ) + cc.notice( "#" ) + cc.info( nZeroBasedNodeIndex ) + cc.debug( " - messages array " ) + cc.j( jarrMessages ) + "\n" );
+        const strMessageHash = owaspUtils.remove_starting_0x( keccak256_message( jarrMessages, nIdxCurrentMsgBlockStart, strFromChainName ) );
         details.write( strLogPrefix + cc.debug( "BLS node " ) + cc.notice( "#" ) + cc.info( nZeroBasedNodeIndex ) + cc.debug( " - hashed verify message is " ) + cc.info( strMessageHash ) + "\n" );
         const joMsg = {
             message: strMessageHash
@@ -571,7 +586,7 @@ function perform_bls_verify(
         log.write( strLogPrefix + cc.debug( "BLS/summary verify message - first message nonce is " ) + cc.info( nIdxCurrentMsgBlockStart ) + "\n" );
         log.write( strLogPrefix + cc.debug( "BLS/summary verify message - first source chain name is " ) + cc.info( strFromChainName ) + "\n" );
         log.write( strLogPrefix + cc.debug( "BLS/summary verify message - messages array " ) + cc.j( jarrMessages ) + "\n" );
-        const strMessageHash = keccak256_message( jarrMessages, nIdxCurrentMsgBlockStart, strFromChainName );
+        const strMessageHash = owaspUtils.remove_starting_0x( keccak256_message( jarrMessages, nIdxCurrentMsgBlockStart, strFromChainName ) );
         details.write( strLogPrefix + cc.debug( "BLS/summary verify message - hashed verify message is " ) + cc.info( strMessageHash ) + "\n" );
         const joMsg = { message: strMessageHash };
         details.write( strLogPrefix + cc.debug( "BLS/summary verify message - composed JSON " ) + cc.j( joMsg ) + cc.debug( " from messages array " ) + cc.j( jarrMessages ) + cc.debug( " using glue " ) + cc.j( joGlueResult ) + cc.debug( " and common public key " ) + cc.j( joCommonPublicKey ) + "\n" );
