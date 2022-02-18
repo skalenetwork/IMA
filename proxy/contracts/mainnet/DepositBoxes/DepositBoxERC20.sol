@@ -110,21 +110,6 @@ contract DepositBoxERC20 is DepositBox {
         return message.receiver;
     }
 
-    function gasPayer(
-        bytes32 schainHash,
-        address sender,
-        bytes calldata data
-    )
-        external
-        view
-        override
-        checkReceiverChain(schainHash, sender)
-        returns (address)
-    {
-        Messages.TransferErc20Message memory message = Messages.decodeTransferErc20Message(data);
-        return message.receiver;
-    }
-
     /**
      * @dev Allows Schain owner to add an ERC20 token to DepositBoxERC20.
      */
@@ -155,6 +140,21 @@ contract DepositBoxERC20 is DepositBox {
      */
     function getSchainToERC20(string calldata schainName, address erc20OnMainnet) external view returns (bool) {
         return schainToERC20[keccak256(abi.encodePacked(schainName))][erc20OnMainnet];
+    }
+
+    function gasPayer(
+        bytes32 schainHash,
+        address sender,
+        bytes calldata data
+    )
+        external
+        view
+        override
+        checkReceiverChain(schainHash, sender)
+        returns (address)
+    {
+        Messages.TransferErc20Message memory message = Messages.decodeTransferErc20Message(data);
+        return message.receiver;
     }
 
     /// Create a new deposit box

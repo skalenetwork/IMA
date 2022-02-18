@@ -118,6 +118,20 @@ contract TokenManagerLinker is AccessControlEnumerableUpgradeable, IMessageRecei
         messageProxy.removeConnectedChain(schainName);
     }
 
+    function initialize(MessageProxy newMessageProxyAddress, address linker)
+        external
+        virtual
+        initializer
+    {
+        require(linker != address(0), "Linker address has to be set");
+
+        AccessControlEnumerableUpgradeable.__AccessControlEnumerable_init();
+        _setupRole(DEFAULT_ADMIN_ROLE, msg.sender);
+        _setupRole(REGISTRAR_ROLE, msg.sender);
+        messageProxy = newMessageProxyAddress;    
+	    linkerAddress = linker;
+    }
+
     function hasTokenManager(TokenManager tokenManager) external view returns (bool) {
         uint index;
         uint length = tokenManagers.length;
@@ -136,19 +150,5 @@ contract TokenManagerLinker is AccessControlEnumerableUpgradeable, IMessageRecei
             connected = connected && tokenManagers[i].hasTokenManager(schainName);
         }
         connected = connected && messageProxy.isConnectedChain(schainName);
-    }
-
-    function initialize(MessageProxy newMessageProxyAddress, address linker)
-        external
-        virtual
-        initializer
-    {
-        require(linker != address(0), "Linker address has to be set");
-
-        AccessControlEnumerableUpgradeable.__AccessControlEnumerable_init();
-        _setupRole(DEFAULT_ADMIN_ROLE, msg.sender);
-        _setupRole(REGISTRAR_ROLE, msg.sender);
-        messageProxy = newMessageProxyAddress;    
-	    linkerAddress = linker;
-    }    
+    }  
 }
