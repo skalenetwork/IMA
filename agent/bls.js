@@ -194,16 +194,11 @@ function keccak256_message( jarrMessages, nIdxCurrentMsgBlockStart, strFromChain
 
 // const strHashComputed = keccak256_message( [
 //     {
-//         "data": "0x00000000000000000000000000000000000000000000000000000000000000070000000000000000000000007aa5e36aa15e93d10f4f26357c30f052dacdde5f0000000000000000000000000000000000000000000000000000000000000001",
-//         "destinationContract": "0xD2aaa00300000000000000000000000000000000",
-//         "sender": "0xA06CF5F4806372D9D6E52728b53d0EdF52b9Ae89"
-//     },
-//     {
-//         "data": "0x00000000000000000000000000000000000000000000000000000000000000010000000000000000000000007aa5e36aa15e93d10f4f26357c30f052dacdde5f00000000000000000000000000000000000000000000006c6b935b8bbd400000",
-//         "destinationContract": "0xd2AaA00400000000000000000000000000000000",
-//         "sender": "0xAe79233541427BC70Bd3Bfe452ca4B1c69d5a82e"
+//         sender: "0xAe79233541427BC70Bd3Bfe452ca4B1c69d5a82e",
+//         destinationContract: "0xd2AaA00400000000000000000000000000000000",
+//         data: "0x00000000000000000000000000000000000000000000000000000000000000010000000000000000000000007aa5e36aa15e93d10f4f26357c30f052dacdde5f00000000000000000000000000000000000000000000006c6b935b8bbd400000"
 //     }
-// ], 0, "Mainnet" ).toLowerCase();
+// ], 1, "Mainnet" ).toLowerCase();
 // console.log( "----------------- computed.....", strHashComputed );
 // process.exit( 0 );
 
@@ -1043,7 +1038,7 @@ async function do_sign_messages_impl(
                     }
                 } ); // joCall.call ...
             } ); // rpcCall.create ...
-        }
+        } // for( let i = 0; i < jarrNodes.length; ++i )
 
         log.write( strLogPrefix + cc.debug( "Waiting for BLS glue result " ) + "\n" );
         details.write( strLogPrefix + cc.debug( "Waiting for BLS glue result " ) + "\n" );

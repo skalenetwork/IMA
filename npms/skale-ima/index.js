@@ -5532,6 +5532,7 @@ async function do_transfer(
                 cc.info( nIdxCurrentMsgBlockStart ) + cc.info( jarrMessages.length ) +
                 cc.debug( " message(s) to process: " ) + cc.j( jarrMessages ) +
                 "\n" );
+            const detailsB = log.createMemoryStream();
             await fn_sign_messages(
                 nTransferLoopCounter,
                 jarrMessages, nIdxCurrentMsgBlockStart, chain_id_src,
@@ -5540,7 +5541,6 @@ async function do_transfer(
                     const strGatheredDetailsName = "" + strDirection + "-" +
                         "do_transfer-B-#" + nTransferLoopCounter +
                         "-" + chain_id_src + "-->" + chain_id_dst;
-                    const detailsB = log.createMemoryStream();
                     detailsB.write( strLogPrefix +
                         cc.debug( "Did invoked message signing callback, first real message index is: " ) +
                         cc.info( nIdxCurrentMsgBlockStart ) + cc.info( jarrMessages.length ) +
@@ -5726,7 +5726,7 @@ async function do_transfer(
                             }
                         }
                     }
-                } ).catch( ( err ) => {
+                } ).catch( ( err ) => { // callback fn as argument of fn_sign_messages
                 bErrorInSigningMessages = true;
                 if( verbose_get() >= RV_VERBOSE.fatal ) {
                     const strErrorMessage = strLogPrefix + cc.error( "Problem in transfer handler: " ) + cc.warning( err );
@@ -5742,7 +5742,7 @@ async function do_transfer(
                         detailsB.exposeDetailsTo( log, strGatheredDetailsName, true );
                     detailsB.close();
                 }
-            } );
+            } ); // fn_sign_messages
             if( bErrorInSigningMessages )
                 break;
         } // while( nIdxCurrentMsg < nOutMsgCnt )
@@ -5759,9 +5759,11 @@ async function do_transfer(
         return false;
     }
     print_gas_usage_report_from_array( "TRANSFER " + chain_id_src + " -> " + chain_id_dst, jarrReceipts );
-    if( expose_details_get() )
-        details.exposeDetailsTo( log, strGatheredDetailsName, true );
-    details.close();
+    if( details ) {
+        if( expose_details_get() && details.exposeDetailsTo )
+            details.exposeDetailsTo( log, strGatheredDetailsName, true );
+        details.close();
+    }
     return true;
 } // async function do_transfer( ...
 
