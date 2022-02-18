@@ -27,7 +27,7 @@ const fs = require( "fs" );
 const { cc } = require( "./utils" );
 // const path = require( "path" );
 // const url = require( "url" );
-const os = require( "os" );
+// const os = require( "os" );
 // const shell = require( "shelljs" );
 
 function init() {
