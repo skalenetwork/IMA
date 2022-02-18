@@ -104,7 +104,7 @@ async function main() {
         process.exit( 126 );
     }
     const schainName = process.env.CHAIN_NAME_SCHAIN;
-    let messageProxyFactory = await ethers.getContractFactory("MessageProxyForSchain");
+    const messageProxyFactory = await ethers.getContractFactory("MessageProxyForSchain");
     if( process.env.NO_SIGNATURES === "true" ) {
         console.log( "Deploy IMA without signature verification" );
         throw Error("Not implemented");
