@@ -107,7 +107,8 @@ async function main() {
     let messageProxyFactory = await ethers.getContractFactory("MessageProxyForSchain");
     if( process.env.NO_SIGNATURES === "true" ) {
         console.log( "Deploy IMA without signature verification" );
-        messageProxyFactory = await ethers.getContractFactory("MessageProxyForSchainWithoutSignature");
+        throw Error("Not implemented");
+        // messageProxyFactory = await ethers.getContractFactory("MessageProxyForSchainWithoutSignature");
     }
     const deployed = new Map<string, {address: string, interface: Interface}>();
 
