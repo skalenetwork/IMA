@@ -491,16 +491,29 @@ abstract contract MessageProxy is AccessControlEnumerableUpgradeable, IMessagePr
     /**
      * @dev Returns hash of message array.
      */
-    function _hashedArray(Message[] calldata messages) internal pure returns (bytes32) {
-        bytes memory data;
+    function _hashedArray(
+        Message[] calldata messages,
+        uint256 startingCounter,
+        string calldata fromChainName
+    )
+        internal
+        pure
+        returns (bytes32)
+    {
+        bytes32 sourceHash = keccak256(abi.encodePacked(fromChainName));
+        bytes32 hash = keccak256(abi.encodePacked(sourceHash, bytes32(startingCounter)));
         for (uint256 i = 0; i < messages.length; i++) {
-            data = abi.encodePacked(
-                data,
-                bytes32(bytes20(messages[i].sender)),
-                bytes32(bytes20(messages[i].destinationContract)),
-                messages[i].data
+            hash = keccak256(
+                abi.encodePacked(
+                    abi.encode(
+                        hash,
+                        messages[i].sender,
+                        messages[i].destinationContract
+                    ),
+                    messages[i].data
+                )
             );
         }
-        return keccak256(data);
+        return hash;
     }
 }

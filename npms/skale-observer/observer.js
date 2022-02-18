@@ -386,6 +386,32 @@ function pick_random_schain_w3_url( jo_schain ) {
     return "" + jo_node.http_endpoint_ip;
 }
 
+async function discover_chain_id( strURL ) {
+    let ret = null;
+    const rpcCallOpts = null;
+    await rpcCall.create( strURL, rpcCallOpts, async function( joCall, err ) {
+        if( err ) {
+            //ret = "Failed to create RPC (" + strURL + ") call: " + err.toString();
+            return;
+        }
+        await joCall.call( {
+            "method": "eth_chainId",
+            "params": []
+        }, async function( joIn, joOut, err ) {
+            if( err ) {
+                //ret = "Failed to query RPC (" + strURL + ") for chain ID: " + err.toString();
+                return;
+            }
+            if( ! ( "result" in joOut && joOut.result ) ) {
+                //ret = "Failed to query RPC (" + strURL + ") for chain ID, got bad result: " + JSON.stringify( joOut );
+                return;
+            }
+            ret = joOut.result;
+        } ); // joCall.call ...
+    } ); // rpcCall.create ...
+    return ret;
+}
+
 module.exports.owaspUtils = owaspUtils;
 module.exports.cc = cc;
 module.exports.get_schains_count = get_schains_count;
@@ -402,3 +428,4 @@ module.exports.periodic_caching_stop = periodic_caching_stop;
 module.exports.pick_random_schain_node_index = pick_random_schain_node_index;
 module.exports.pick_random_schain_node = pick_random_schain_node;
 module.exports.pick_random_schain_w3_url = pick_random_schain_w3_url;
+module.exports.discover_chain_id = discover_chain_id;
