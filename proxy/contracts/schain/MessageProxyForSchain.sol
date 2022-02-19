@@ -118,18 +118,6 @@ contract MessageProxyForSchain is MessageProxy {
         connectedChains[fromChainHash].incomingMessageCounter += messages.length;
     }
 
-    function verifyOutgoingMessageData(
-        OutgoingMessageData memory message
-    )
-        external
-        view
-        returns (bool isValidMessage)
-    {
-        bytes32 messageDataHash = _outgoingMessageDataHash[message.dstChain][message.msgCounter];
-        if (messageDataHash == _hashOfMessage(message))
-            isValidMessage = true;
-    }
-
     function initialize(KeyStorage blsKeyStorage, string memory schainName)
         public
         virtual
