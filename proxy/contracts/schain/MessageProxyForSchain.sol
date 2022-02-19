@@ -217,17 +217,6 @@ contract MessageProxyForSchain is MessageProxy {
             isValidMessage = true;
     }
 
-    function _hashOfMessage(OutgoingMessageData memory message) private pure returns (bytes32) {
-        bytes memory data = abi.encodePacked(
-            message.dstChain,
-            bytes32(message.msgCounter),
-            bytes32(bytes20(message.srcContract)),
-            bytes32(bytes20(message.dstContract)),
-            message.data
-        );
-        return keccak256(data);
-    }
-
     /**
      * @dev Converts calldata structure to memory structure and checks
      * whether message BLS signature is valid.
