@@ -180,6 +180,54 @@ contract MessageProxyForSchain is MessageProxy {
         _idxTail[dstChainHash] += 1;
     }
 
+    function postIncomingMessages(
+        string calldata fromChainName,
+        uint256 startingCounter,
+        Message[] calldata messages,
+        Signature calldata signature 
+    )
+        external
+        override
+    {
+        bytes32 fromChainHash = keccak256(abi.encodePacked(fromChainName));
+        require(connectedChains[fromChainHash].inited, "Chain is not initialized");
+        require(messages.length <= MESSAGES_LENGTH, "Too many messages");
+        require(
+            _verifyMessages(_hashedArray(messages, startingCounter, fromChainName), signature),
+            "Signature is not verified"
+        );
+        require(
+            startingCounter == connectedChains[fromChainHash].incomingMessageCounter,
+            "Starting counter is not qual to incoming message counter");
+        for (uint256 i = 0; i < messages.length; i++) {
+            _callReceiverContract(fromChainHash, messages[i], startingCounter + 1);
+        }
+        connectedChains[fromChainHash].incomingMessageCounter += messages.length;
+    }
+
+    function verifyOutgoingMessageData(
+        OutgoingMessageData memory message
+    )
+        external
+        view
+        returns (bool isValidMessage)
+    {
+        bytes32 messageDataHash = _outgoingMessageDataHash[message.dstChain][message.msgCounter];
+        if (messageDataHash == _hashOfMessage(message))
+            isValidMessage = true;
+    }
+
+    function _hashOfMessage(OutgoingMessageData memory message) private pure returns (bytes32) {
+        bytes memory data = abi.encodePacked(
+            message.dstChain,
+            bytes32(message.msgCounter),
+            bytes32(bytes20(message.srcContract)),
+            bytes32(bytes20(message.dstContract)),
+            message.data
+        );
+        return keccak256(data);
+    }
+
     /**
      * @dev Converts calldata structure to memory structure and checks
      * whether message BLS signature is valid.

@@ -144,10 +144,10 @@ contract MessageProxyForMainnet is SkaleManagerClient, MessageProxy {
             startingCounter == connectedChains[fromSchainHash].incomingMessageCounter,
             "Starting counter is not equal to incoming message counter");
 
-        require(_verifyMessages(
-            fromSchainName,
-            _hashedArray(messages, startingCounter, fromSchainName), sign),
-            "Signature is not verified");
+        require(
+            _verifyMessages(fromSchainName, _hashedArray(messages, startingCounter, fromSchainName), sign),
+            "Signature is not verified"
+        );
         uint additionalGasPerMessage = 
             (gasTotal - gasleft() + headerMessageGasCost + messages.length * messageGasCost) / messages.length;
         uint notReimbursedGas = 0;
