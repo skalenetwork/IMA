@@ -8,8 +8,8 @@ killall -9 geth
 echo "--- Checking there are no old geth instances are still running..."
 ps -A | grep geth
 
-#BLOCKCHAIN_DIR="/tmp/blockchain/"
-BLOCKCHAIN_DIR="$(pwd)/blockchain/"
+BLOCKCHAIN_DIR="/tmp/blockchain/"
+#BLOCKCHAIN_DIR="$(pwd)/blockchain/"
 
 geth --datadir $BLOCKCHAIN_DIR --dev --http &
 GETH_PID=$!
