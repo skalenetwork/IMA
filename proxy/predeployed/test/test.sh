@@ -4,13 +4,18 @@ set -e
 
 cd "$(dirname "$0")"
 
+killall -9 geth
+echo "--- Checking there are no old geth instances are still running..."
+ps -A | grep geth
+
 geth --datadir /tmp/blockchain/ --dev --http &
 GETH_PID=$!
-echo ----- GETH_PID=$GETH_PID
-echo "Sleeping to let geth start..."
+echo --- GETH_PID=$GETH_PID
+echo "--- Sleeping to let new geth instance geth start..."
 sleep 20
-echo "Checking geth is running..."
-ps -A | grep geth
+echo "--- Checking new geth instance geth is running..."
+ps -lax | grep geth
+echo "--- Done"
 
 source venv/bin/activate
 pip install -r requirements.txt
