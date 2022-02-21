@@ -692,26 +692,26 @@ describe("MessageProxy", () => {
 
             const blsCommonPublicKey = {
                 x: {
-                    a: "0x117899a4eef45b19c0c3e7f9be0bc70e7e576452704c5cc85ed772cb1a61571f",
-                    b: "0x2e4359ec9edb496b87a8ef1b44d50b30ed734a2cc991d109be75e62fff2e91f2"
+                    a: "0x21077d994a98c01844085f9c6f5935a7ee867c107e382d5844f4b7e795259ac6",
+                    b: "0xccdca3e6eea977401b926cf0f8d8885353cabef8839b1ba8d412738ec0b7928"
                 },
                 y: {
-                    a: "0x13d4c965ff05891a8e50b11690a2942ce6be8849af6a798b8e4fb464c33ee4f6",
-                    b: "0x256f39ba1d0ae9d402321f6a4f8c46dac3e8bae3d83b23b85262203a400d178e"
+                    a: "0x1ba20d253703e22575a6754667082897e52094d7101482815908aaad22586ec",
+                    b: "0x20f1e76fc3f0f7963a874c3563f8e73001f2fb40eafa28cce0dca35a32d7494f"
                 }
             }
             await keyStorage.setBlsCommonPublicKey(blsCommonPublicKey);
 
             const newBLSSignature: [BigNumber, BigNumber] = [
-                BigNumber.from("0x2dedd4eaeac95881fbcaa4146f95a438494545c607bd57d560aa1d13d2679db8"),
-                BigNumber.from("0x2e9a10a0baf75ccdbd2b5cf81491673108917ade57dea40d350d4cbebd7b0965")
+                BigNumber.from("0x10723653a5e97c42fe0f98d565a86b0bd6349255218126b73a0691be60f93ac2"),
+                BigNumber.from("0x179c95d0f8c134e3ac4e81248ebd25e3b1ac95bda7dfb85f3f92bf791a3cb887")
             ];
 
-            const sign = {
+            let sign = {
                 blsSignature: newBLSSignature,
-                counter: 0,
-                hashA: "0x24079dfb76803f93456a4d274cddcf154a874ae92c1092ef17a979d42ec6d4d4",
-                hashB: "0x1a44d878121e17e3f136ddbbba438a38d2dd0fdea786b0a815157828c2154047",
+                counter: 1,
+                hashA: "0x05f707bf15aa74a7c9e44d47bb6f8412413f42b520bf27af996676c14a914359",
+                hashB: "0x25b5d09f47e850a7d7a60d5620509dbc87a21ba9adcefc70794b9d36994bda03",
             };
 
             const fakeSign = {
@@ -745,8 +745,7 @@ describe("MessageProxy", () => {
                 startingCounter + 1,
                 outgoingMessages,
                 sign
-            // ).should.be.eventually.rejectedWith("Starting counter is not qual to incoming message counter");
-            ).should.be.eventually.rejectedWith("Signature is not verified");
+            ).should.be.eventually.rejectedWith("Starting counter is not qual to incoming message counter");
 
             (await messageProxyForSchain.getIncomingMessagesCounter(schainName)).toNumber().should.be.equal(0);
 
@@ -758,16 +757,24 @@ describe("MessageProxy", () => {
                 sign
             ).should.be.eventually.rejectedWith("Too many messages");
 
+            sign = {
+                blsSignature: [
+                    BigNumber.from("0x31a116fa8b9a039299d20bed04b9b04ff0a454ced82e7c67094dbc5837ae5ba"),
+                    BigNumber.from("0x2c344093898809aeb8c959a8981deae69aab6f04702a3c47a6cc13073f0fd05c")
+                ],
+                counter: 2,
+                hashA: "0x17cae0db103a21ddbff34223630de5e36a0c013ef3bf9171daa9d1b9276ca36",
+                hashB: "0x1e2611eded1877d7f8184108c0cc0e1babf11c29b6c85d329b33c6f8f8e83766",
+            }
+
             await messageProxyForSchain.connect(deployer).postIncomingMessages(
                 schainName,
                 startingCounter,
                 outgoingMessages,
                 sign
-            // should pass after generation a new signature
-            // );
-            ).should.be.eventually.rejectedWith("Signature is not verified");
+            );
 
-            // (await messageProxyForSchain.getIncomingMessagesCounter(schainName)).toNumber().should.be.equal(2);
+            (await messageProxyForSchain.getIncomingMessagesCounter(schainName)).toNumber().should.be.equal(2);
         });
 
         it("should get outgoing messages counter", async () => {
