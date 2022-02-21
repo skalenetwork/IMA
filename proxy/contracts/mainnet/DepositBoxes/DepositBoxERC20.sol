@@ -208,6 +208,13 @@ contract DepositBoxERC20 is DepositBox, IDepositBoxERC20 {
         );
     }
 
+    /**
+     * @dev Returns receiver of message.
+     *
+     * Requirements:
+     *
+     * - Sender contract should be defined and schain name cannot be `Mainnet`.
+     */
     function gasPayer(
         bytes32 schainHash,
         address sender,

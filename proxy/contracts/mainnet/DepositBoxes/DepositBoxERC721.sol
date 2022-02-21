@@ -192,6 +192,13 @@ contract DepositBoxERC721 is DepositBox, IDepositBoxERC721 {
         IERC721Upgradeable(erc721OnMainnet).transferFrom(address(this), receiver, tokenId);
     }
 
+    /**
+     * @dev Returns receiver of message.
+     *
+     * Requirements:
+     *
+     * - Sender contract should be defined and schain name cannot be `Mainnet`.
+     */
     function gasPayer(
         bytes32 schainHash,
         address sender,
