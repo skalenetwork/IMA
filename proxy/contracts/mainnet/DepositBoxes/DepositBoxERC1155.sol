@@ -44,38 +44,6 @@ contract DepositBoxERC1155 is DepositBox, ERC1155ReceiverUpgradeable {
     event ERC1155TokenAdded(string schainName, address indexed contractOnMainnet);
     event ERC1155TokenReady(address indexed contractOnMainnet, uint256[] ids, uint256[] amounts);
 
-    function onERC1155Received(
-        address operator,
-        address,
-        uint256,
-        uint256,
-        bytes calldata
-    )
-        external
-        view
-        override
-        returns(bytes4)
-    {
-        require(operator == address(this), "Revert ERC1155 transfer");
-        return bytes4(keccak256("onERC1155Received(address,address,uint256,uint256,bytes)"));
-    }
-
-    function onERC1155BatchReceived(
-        address operator,
-        address,
-        uint256[] calldata,
-        uint256[] calldata,
-        bytes calldata
-    )
-        external
-        view
-        override
-        returns(bytes4)
-    {
-        require(operator == address(this), "Revert ERC1155 batch transfer");
-        return bytes4(keccak256("onERC1155BatchReceived(address,address,uint256[],uint256[],bytes)"));
-    }
-
     function depositERC1155(
         string calldata schainName,
         address erc1155OnMainnet,
@@ -191,28 +159,6 @@ contract DepositBoxERC1155 is DepositBox, ERC1155ReceiverUpgradeable {
         }
     }
 
-    function gasPayer(
-        bytes32 schainHash,
-        address sender,
-        bytes calldata data
-    )
-        external
-        view
-        override
-        checkReceiverChain(schainHash, sender)
-        returns (address)
-    {
-        Messages.MessageType operation = Messages.getMessageType(data);
-        if (operation == Messages.MessageType.TRANSFER_ERC1155) {
-            Messages.TransferErc1155Message memory message = Messages.decodeTransferErc1155Message(data);
-            return message.receiver;
-        } else if (operation == Messages.MessageType.TRANSFER_ERC1155_BATCH) {
-            Messages.TransferErc1155BatchMessage memory message = Messages.decodeTransferErc1155BatchMessage(data);
-            return message.receiver;
-        }
-        return address(0);
-    }
-
     /**
      * @dev Allows Schain owner to add an ERC1155 token to LockAndDataForMainnetERC20.
      */
@@ -258,6 +204,60 @@ contract DepositBoxERC1155 is DepositBox, ERC1155ReceiverUpgradeable {
      */
     function getSchainToERC1155(string calldata schainName, address erc1155OnMainnet) external view returns (bool) {
         return schainToERC1155[keccak256(abi.encodePacked(schainName))][erc1155OnMainnet];
+    }
+
+    function gasPayer(
+        bytes32 schainHash,
+        address sender,
+        bytes calldata data
+    )
+        external
+        view
+        override
+        checkReceiverChain(schainHash, sender)
+        returns (address)
+    {
+        Messages.MessageType operation = Messages.getMessageType(data);
+        if (operation == Messages.MessageType.TRANSFER_ERC1155) {
+            Messages.TransferErc1155Message memory message = Messages.decodeTransferErc1155Message(data);
+            return message.receiver;
+        } else if (operation == Messages.MessageType.TRANSFER_ERC1155_BATCH) {
+            Messages.TransferErc1155BatchMessage memory message = Messages.decodeTransferErc1155BatchMessage(data);
+            return message.receiver;
+        }
+        return address(0);
+    }
+
+    function onERC1155Received(
+        address operator,
+        address,
+        uint256,
+        uint256,
+        bytes calldata
+    )
+        external
+        view
+        override
+        returns(bytes4)
+    {
+        require(operator == address(this), "Revert ERC1155 transfer");
+        return bytes4(keccak256("onERC1155Received(address,address,uint256,uint256,bytes)"));
+    }
+
+    function onERC1155BatchReceived(
+        address operator,
+        address,
+        uint256[] calldata,
+        uint256[] calldata,
+        bytes calldata
+    )
+        external
+        view
+        override
+        returns(bytes4)
+    {
+        require(operator == address(this), "Revert ERC1155 batch transfer");
+        return bytes4(keccak256("onERC1155BatchReceived(address,address,uint256[],uint256[],bytes)"));
     }
 
     /// Create a new deposit box

@@ -38,7 +38,7 @@ The following function registers new **S-Chain** on _Mainnet_ and vice versa:
         var b1 = await IMA.register_s_chain_in_deposit_box(
             g_w3_main_net,
             g_jo_deposit_box, // only main net
-            g_joAccount_main_net,
+            joAccountMN,
             g_jo_token_manager, // only s-chain
             g_chain_id_s_chain,
             tc_main_net
@@ -47,8 +47,8 @@ The following function registers new **S-Chain** on _Mainnet_ and vice versa:
             g_w3_s_chain,
             g_jo_token_manager, // only s-chain
             g_jo_deposit_box, // only main net
-            g_joAccount_s_chain,
-            g_cid_s_chain,
+            joAccountSC,
+            chainID_s_chain,
             tc_s_chain
             );
         var b3 = b1 && b2;
@@ -60,13 +60,13 @@ The following code demonstrates money transfer event processing:
     var b1 = await IMA.do_transfer( // main-net --> s-chain
         /**/ g_w3_main_net,
         g_jo_message_proxy_main_net,
-        g_joAccount_main_net,
+        joAccountMN,
         g_w3_s_chain,
         g_jo_message_proxy_s_chain,
-        /**/ g_joAccount_s_chain,
+        joAccountSC,
         g_chain_id_main_net,
         g_chain_id_s_chain,
-        g_cid_main_net,
+        chainID_main_net,
         g_cit_s_chain,
         null, // imaState.jo_deposit_box - for logs validation on mainnet
         jo_token_manager, // for logs validation on s-chain
@@ -81,14 +81,14 @@ The following code demonstrates money transfer event processing:
     var b2 = await IMA.do_transfer( // s-chain --> main-net
         /**/ g_w3_s_chain,
         g_jo_message_proxy_s_chain,
-        g_joAccount_s_chain,
+        joAccountSC,
         g_w3_main_net,
         g_jo_message_proxy_main_net,
-        /**/ g_joAccount_main_net,
+        /**/ joAccountMN,
         g_chain_id_s_chain,
         g_chain_id_main_net,
-        g_cid_s_chain,
-        g_cid_main_net,
+        chainID_s_chain,
+        chainID_main_net,
         imaState.jo_deposit_box, // for logs validation on mainnet
         null, // imaState.jo_token_manager, // for logs validation on s-chain
         g_nTransferBlockSizeS2M,
@@ -104,16 +104,16 @@ The following code demonstrates cross-chain payments:
 
     IMA.do_payment_from_main_net(
         g_w3_main_net,
-        g_joAccount_main_net,
-        g_joAccount_s_chain,
+        joAccountMN,
+        joAccountSC,
         g_jo_deposit_box, // only main net
         g_chain_id_s_chain,
         g_wei_amount // how much money to send
         );
     await IMA.do_payment_from_s_chain(
         g_w3_s_chain,
-        g_joAccount_s_chain,
-        g_joAccount_main_net,
+        joAccountSC,
+        joAccountMN,
         g_jo_token_manager, // only s-chain
         g_wei_amount // how much money to send
         );

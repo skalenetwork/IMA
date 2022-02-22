@@ -1,9 +1,9 @@
 import { ethers } from "hardhat";
-import { MessageProxyForMainnet, Linker, ContractManager } from "../../../../typechain";
+import { MessageProxyForMainnet, Linker, ContractManager, MessageProxyForMainnetTester } from "../../../../typechain";
 
 export async function deployLinker(
     contractManager: ContractManager,
-    messageProxy: MessageProxyForMainnet
+    messageProxy: MessageProxyForMainnet | MessageProxyForMainnetTester
 ) {
     const factory = await ethers.getContractFactory("Linker");
     const instance = await factory.deploy() as Linker;

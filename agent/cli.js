@@ -83,12 +83,11 @@ function ensure_have_value( name, value, isExitIfEmpty, isPrintValue, fnNameColo
         return cc.notice( x );
     } );
     let retVal = true;
-    value = value.toString();
+    value = value ? value.toString() : "";
     if( value.length === 0 ) {
         retVal = false;
-        console.log( cc.fatal( "CRITICAL ERROR:" ) +
-            cc.error( " missing value for " ) + fnNameColorizer( name )
-        );
+        if( ! isPrintValue )
+            console.log( cc.fatal( "CRITICAL ERROR:" ) + cc.error( " missing value for " ) + fnNameColorizer( name ) );
         if( isExitIfEmpty )
             process.exit( 126 );
     }
@@ -96,16 +95,17 @@ function ensure_have_value( name, value, isExitIfEmpty, isPrintValue, fnNameColo
     let n = 50 - name.length;
     for( ; n > 0; --n )
         strDots += ".";
-    log.write( fnNameColorizer( name ) + cc.debug( strDots ) + fnValueColorizer( value ) + "\n" ); // just print value
+    if( isPrintValue )
+        log.write( fnNameColorizer( name ) + cc.debug( strDots ) + fnValueColorizer( value ) + "\n" ); // just print value
     return retVal;
 }
 
 function ensure_have_chain_credentials( strFriendlyChainName, joAccount, isExitIfEmpty, isPrintValue ) {
     strFriendlyChainName = strFriendlyChainName || "<UNKNOWN>";
     if( ! ( typeof joAccount == "object" ) ) {
-        console.log( cc.fatal( "CRITICAL ARGUMENTS VALIDATION ERROR:" ) +
-            cc.error( " bad account specified for " ) + cc.warning( strFriendlyChainName ) +
-            cc.error( " chain" )
+        log.write( cc.error( "ARGUMENTS VALIDATION WARNING:" ) +
+            cc.warning( " bad account specified for " ) + cc.info( strFriendlyChainName ) +
+            cc.warning( " chain" ) + "\n"
         );
         if( isExitIfEmpty )
             process.exit( 126 );
@@ -126,9 +126,9 @@ function ensure_have_chain_credentials( strFriendlyChainName, joAccount, isExitI
     else if( "address_" in joAccount && typeof joAccount.address_ == "string" && joAccount.address_.length > 0 )
         ensure_have_value( "" + strFriendlyChainName + "/walletAddress", joAccount.address_, isExitIfEmpty, isPrintValue );
     else {
-        console.log( cc.fatal( "CRITICAL ARGUMENTS VALIDATION ERROR:" ) +
-            cc.error( " bad credentials information specified for " ) + cc.warning( strFriendlyChainName ) +
-            cc.error( " chain, no explicit SGX, no explicit private key, no wallet address found" )
+        log.write( cc.error( "ARGUMENTS VALIDATION WARNING:" ) +
+            cc.warning( " bad credentials information specified for " ) + cc.info( strFriendlyChainName ) +
+            cc.warning( " chain, no explicit SGX, no explicit private key, no wallet address found" ) + "\n"
         );
         if( isExitIfEmpty )
             process.exit( 126 );
@@ -365,11 +365,11 @@ function parse( joExternalHandlers, argv ) {
             console.log( soi + cc.debug( "--" ) + cc.bright( "log-size" ) + cc.sunny( "=" ) + cc.note( "value" ) + cc.debug( "................" ) + cc.notice( "Max size(in bytes) of one log file(affects to log log rotation)." ) );
             console.log( soi + cc.debug( "--" ) + cc.bright( "log-files" ) + cc.sunny( "=" ) + cc.note( "value" ) + cc.debug( "..............." ) + cc.notice( "Maximum number of log files for log rotation." ) );
             //
-            process.exit( 0 ); // return 0;
+            process.exit( 0 );
         }
         if( joArg.name == "version" ) {
             print_about();
-            return 0;
+            process.exit( 0 );
         }
         if( joArg.name == "colors" ) {
             cc.enable( true );
@@ -654,7 +654,7 @@ function parse( joExternalHandlers, argv ) {
             continue;
         }
         if( joArg.name == "amounts" ) {
-            imaState.nAmountOfTokens = owaspUtils.verifyArgumentIsArrayOfIntegers( joArg );
+            imaState.arrAmountsOfTokens = owaspUtils.verifyArgumentIsArrayOfIntegers( joArg );
             continue;
         }
         if( joArg.name == "tids" ) {
@@ -1515,7 +1515,7 @@ function ima_common_init() {
                     ensure_have_value( "ERC1155 batch of token ids ", imaState.idTokens, false, true, null, ( x ) => {
                         return cc.info( x );
                     } );
-                    ensure_have_value( "ERC1155 batch of token amounts ", imaState.nAmountOfTokens, false, true, null, ( x ) => {
+                    ensure_have_value( "ERC1155 batch of token amounts ", imaState.arrAmountsOfTokens, false, true, null, ( x ) => {
                         return cc.info( x );
                     } );
                 } catch ( e2 ) {

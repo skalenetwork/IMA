@@ -82,6 +82,42 @@ contract MessageProxyForSchain is MessageProxy {
         _removeExtraContract(chainHash, extraContract);
     }
 
+    /**
+     * This is called by  schain owner.
+     * On mainnet, SkaleManager will call it every time a SKALE chain is
+     * created. Therefore, any SKALE chain is always connected to the main chain.
+     * To connect to other chains, the owner needs to explicitly call this function
+     */
+    function addConnectedChain(string calldata chainName) external override {
+        bytes32 chainHash = keccak256(abi.encodePacked(chainName));
+        require(chainHash != schainHash, "Schain cannot connect itself");
+        _addConnectedChain(chainHash);
+    }
+
+    function postIncomingMessages(
+        string calldata fromChainName,
+        uint256 startingCounter,
+        Message[] calldata messages,
+        Signature calldata signature 
+    )
+        external
+        override
+    {
+        bytes32 fromChainHash = keccak256(abi.encodePacked(fromChainName));
+        require(connectedChains[fromChainHash].inited, "Chain is not initialized");
+        require(messages.length <= MESSAGES_LENGTH, "Too many messages");
+        require(_verifyMessages(
+            _hashedArray(messages, startingCounter, fromChainName), signature),
+            "Signature is not verified");
+        require(
+            startingCounter == connectedChains[fromChainHash].incomingMessageCounter,
+            "Starting counter is not qual to incoming message counter");
+        for (uint256 i = 0; i < messages.length; i++) {
+            _callReceiverContract(fromChainHash, messages[i], startingCounter + 1);
+        }
+        connectedChains[fromChainHash].incomingMessageCounter += messages.length;
+    }
+
     function initialize(KeyStorage blsKeyStorage, string memory schainName)
         public
         virtual
@@ -100,18 +136,6 @@ contract MessageProxyForSchain is MessageProxy {
 
         // In predeployed mode all token managers and community locker
         // will be added to registryContracts
-    }
-
-    /**
-     * This is called by  schain owner.
-     * On mainnet, SkaleManager will call it every time a SKALE chain is
-     * created. Therefore, any SKALE chain is always connected to the main chain.
-     * To connect to other chains, the owner needs to explicitly call this function
-     */
-    function addConnectedChain(string calldata chainName) external override {
-        bytes32 chainHash = keccak256(abi.encodePacked(chainName));
-        require(chainHash != schainHash, "Schain cannot connect itself");
-        _addConnectedChain(chainHash);
     }
 
     function removeConnectedChain(string memory chainName) public override onlyChainConnector {
@@ -144,28 +168,6 @@ contract MessageProxyForSchain is MessageProxy {
         _idxTail[dstChainHash] += 1;
     }
 
-    function postIncomingMessages(
-        string calldata fromChainName,
-        uint256 startingCounter,
-        Message[] calldata messages,
-        Signature calldata signature 
-    )
-        external
-        override
-    {
-        bytes32 fromChainHash = keccak256(abi.encodePacked(fromChainName));
-        require(connectedChains[fromChainHash].inited, "Chain is not initialized");
-        require(messages.length <= MESSAGES_LENGTH, "Too many messages");
-        require(_verifyMessages(_hashedArray(messages), signature), "Signature is not verified");
-        require(
-            startingCounter == connectedChains[fromChainHash].incomingMessageCounter,
-            "Starting counter is not qual to incoming message counter");
-        for (uint256 i = 0; i < messages.length; i++) {
-            _callReceiverContract(fromChainHash, messages[i], startingCounter + 1);
-        }
-        connectedChains[fromChainHash].incomingMessageCounter += messages.length;
-    }
-
     function verifyOutgoingMessageData(
         OutgoingMessageData memory message
     )
@@ -176,17 +178,6 @@ contract MessageProxyForSchain is MessageProxy {
         bytes32 messageDataHash = _outgoingMessageDataHash[message.dstChain][message.msgCounter];
         if (messageDataHash == _hashOfMessage(message))
             isValidMessage = true;
-    }
-
-    function _hashOfMessage(OutgoingMessageData memory message) private pure returns (bytes32) {
-        bytes memory data = abi.encodePacked(
-            message.dstChain,
-            bytes32(message.msgCounter),
-            bytes32(bytes20(message.srcContract)),
-            bytes32(bytes20(message.dstContract)),
-            message.data
-        );
-        return keccak256(data);
     }
 
     /**
@@ -214,5 +205,16 @@ contract MessageProxyForSchain is MessageProxy {
             signature.hashB,
             keyStorage.getBlsCommonPublicKey()
         );
+    }
+
+    function _hashOfMessage(OutgoingMessageData memory message) private pure returns (bytes32) {
+        bytes memory data = abi.encodePacked(
+            message.dstChain,
+            bytes32(message.msgCounter),
+            bytes32(bytes20(message.srcContract)),
+            bytes32(bytes20(message.dstContract)),
+            message.data
+        );
+        return keccak256(data);
     }
 }

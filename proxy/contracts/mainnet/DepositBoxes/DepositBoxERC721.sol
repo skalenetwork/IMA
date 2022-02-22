@@ -95,21 +95,6 @@ contract DepositBoxERC721 is DepositBox {
         return message.receiver;
     }
 
-    function gasPayer(
-        bytes32 schainHash,
-        address sender,
-        bytes calldata data
-    )
-        external
-        view
-        override
-        checkReceiverChain(schainHash, sender)
-        returns (address)
-    {
-        Messages.TransferErc721Message memory message = Messages.decodeTransferErc721Message(data);
-        return message.receiver;
-    }
-
     /**
      * @dev Allows Schain owner to add an ERC721 token to LockAndDataForMainnetERC20.
      */
@@ -137,6 +122,21 @@ contract DepositBoxERC721 is DepositBox {
      */
     function getSchainToERC721(string calldata schainName, address erc721OnMainnet) external view returns (bool) {
         return schainToERC721[keccak256(abi.encodePacked(schainName))][erc721OnMainnet];
+    }
+
+    function gasPayer(
+        bytes32 schainHash,
+        address sender,
+        bytes calldata data
+    )
+        external
+        view
+        override
+        checkReceiverChain(schainHash, sender)
+        returns (address)
+    {
+        Messages.TransferErc721Message memory message = Messages.decodeTransferErc721Message(data);
+        return message.receiver;
     }
 
     /// Create a new deposit box

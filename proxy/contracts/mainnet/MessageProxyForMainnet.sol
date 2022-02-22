@@ -144,7 +144,10 @@ contract MessageProxyForMainnet is SkaleManagerClient, MessageProxy {
             startingCounter == connectedChains[fromSchainHash].incomingMessageCounter,
             "Starting counter is not equal to incoming message counter");
 
-        require(_verifyMessages(fromSchainName, _hashedArray(messages), sign), "Signature is not verified");
+        require(
+            _verifyMessages(fromSchainName, _hashedArray(messages, startingCounter, fromSchainName), sign),
+            "Signature is not verified"
+        );
         uint additionalGasPerMessage = 
             (gasTotal - gasleft() + headerMessageGasCost + messages.length * messageGasCost) / messages.length;
         uint notReimbursedGas = 0;
@@ -192,6 +195,15 @@ contract MessageProxyForMainnet is SkaleManagerClient, MessageProxy {
         messageGasCost = newMessageGasCost;
     }
 
+    // Create a new message proxy
+
+    function initialize(IContractManager contractManagerOfSkaleManagerValue) public virtual override initializer {
+        SkaleManagerClient.initialize(contractManagerOfSkaleManagerValue);
+        MessageProxy.initializeMessageProxy(1e6);
+        headerMessageGasCost = 70000;
+        messageGasCost = 8790;
+    }
+
     /**
      * @dev Checks whether chain is currently connected.
      * 
@@ -213,15 +225,6 @@ contract MessageProxyForMainnet is SkaleManagerClient, MessageProxy {
         require(keccak256(abi.encodePacked(schainName)) != MAINNET_HASH, "Schain id can not be equal Mainnet");
         return super.isConnectedChain(schainName);
     }
-
-    // Create a new message proxy
-
-    function initialize(IContractManager contractManagerOfSkaleManagerValue) public virtual override initializer {
-        SkaleManagerClient.initialize(contractManagerOfSkaleManagerValue);
-        MessageProxy.initializeMessageProxy(1e6);
-        headerMessageGasCost = 70000;
-        messageGasCost = 8790;
-    }    
 
     /**
      * @dev Converts calldata structure to memory structure and checks
