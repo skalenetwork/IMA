@@ -1,7 +1,6 @@
-import { getManifestAdmin } from "@openzeppelin/hardhat-upgrades/dist/admin";
 import { ethers, upgrades, run } from "hardhat";
-import hre from "hardhat";
 import { ProxyAdmin } from "../typechain/ProxyAdmin";
+import * as ProxyAdminArtifacts from "@openzeppelin/upgrades-core/artifacts/ProxyAdmin.json"
 
 async function main() {
     if ((await ethers.provider.getNetwork()).chainId < 10) {
@@ -41,8 +40,12 @@ async function main() {
         // SKALE chain
 
         let messageProxyAddress = "0xd2AAa00100000000000000000000000000000000";
+        let proxyAdminAddress = "0xd2aAa00000000000000000000000000000000000"
         if (process.env.MESSAGE_PROXY !== undefined) {
             messageProxyAddress = process.env.MESSAGE_PROXY;
+        }
+        if (process.env.PROXY_ADMIN !== undefined) {
+            proxyAdminAddress = process.env.PROXY_ADMIN;
         }
 
         console.log("Deploy new implementation");
@@ -50,13 +53,18 @@ async function main() {
                 await ethers.getContractFactory("MessageProxyForSchain")
             ).deploy();
         await newImplementation.deployTransaction.wait();
+        console.log(`Deployed on address ${newImplementation.address}`)
 
         console.log("Upgrade a proxy");
-        const proxyAdmin = await getManifestAdmin(hre) as ProxyAdmin;
+        const proxyAdmin = (new ethers.Contract(proxyAdminAddress, ProxyAdminArtifacts.abi, ethers.provider))
+            .connect((await ethers.getSigners())[0]) as ProxyAdmin;
         const upgradeTransaction = await proxyAdmin.upgrade(messageProxyAddress, newImplementation.address);
-        await upgradeTransaction.wait();
-
-        console.log("Successfully upgraded");
+        const receipt = await upgradeTransaction.wait();
+        if (receipt.status === 1) {
+            console.log("Successfully upgraded");
+        } else {
+            console.log("Something went wrong");
+        }
     }
 }
 
