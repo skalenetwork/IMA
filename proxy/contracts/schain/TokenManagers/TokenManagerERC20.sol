@@ -30,7 +30,6 @@ import "../../Messages.sol";
 import "../tokens/ERC20OnChain.sol";
 import "../TokenManager.sol";
 
-
 /**
  * @title TokenManagerERC20
  * @dev Runs on SKALE Chains,
@@ -271,9 +270,10 @@ contract TokenManagerERC20 is TokenManager, ITokenManagerERC20 {
         private
     {
         bool isMainChainToken;
-        ERC20BurnableUpgradeable contractOnSchain = clonesErc20[chainHash][contractOnMainChain];
+        ERC20OnChain contractOnSchain = clonesErc20[chainHash][contractOnMainChain];
         if (address(contractOnSchain) == address(0)) {
-            contractOnSchain = ERC20BurnableUpgradeable(contractOnMainChain);
+            contractOnSchain = ERC20OnChain(contractOnMainChain);
+            require(!addedClones[contractOnSchain], "Incorrect main chain token");
             isMainChainToken = true;
         }
         require(address(contractOnSchain).isContract(), "No token clone on schain");
@@ -287,6 +287,7 @@ contract TokenManagerERC20 is TokenManager, ITokenManagerERC20 {
         );
         bytes memory data = Messages.encodeTransferErc20Message(address(contractOnMainChain), to, amount);
         if (isMainChainToken) {
+            require(chainHash != MAINNET_HASH, "Main chain token could not be transfered to Mainnet");
             data = _receiveERC20(
                 chainHash,
                 address(contractOnSchain),
