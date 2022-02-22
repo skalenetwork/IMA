@@ -140,7 +140,6 @@ jobs:
         python3 -m pip install build==0.4.0
         ./predeployed/scripts/build_package.sh
 
-    TODO: enable after geth fix
     - name: Test predeployed pip package
       working-directory: ${{env.working-directory}}
       run: |
