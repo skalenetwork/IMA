@@ -77,10 +77,10 @@ jobs:
         ../npms/scrypt/get_scrypt_npm.sh
         yarn install
 
-    - name: Generate Manifest
-      working-directory: ${{env.PROXY_DIR}}
-      run: |
-        npx hardhat run migrations/generateManifest.ts
+    # - name: Generate Manifest
+    #   working-directory: ${{env.PROXY_DIR}}
+    #   run: |
+    #     npx hardhat run migrations/generateManifest.ts
 
     - name: Build predeployed pip package
       working-directory: ${{env.PROXY_DIR}}
