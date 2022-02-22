@@ -94,38 +94,38 @@ jobs:
         ../npms/scrypt/get_scrypt_npm.sh
         yarn install
 
-    # - name: Install slither
-    #   working-directory: ${{env.working-directory}}
-    #   run: pip3 install -r scripts/requirements.txt
+    - name: Install slither
+      working-directory: ${{env.working-directory}}
+      run: pip3 install -r scripts/requirements.txt
 
-    # - name: Lint solidity
-    #   working-directory: ${{env.working-directory}}
-    #   run: yarn lint
+    - name: Lint solidity
+      working-directory: ${{env.working-directory}}
+      run: yarn lint
 
-    # - name: Compile typescript
-    #   working-directory: ${{env.working-directory}}
-    #   run: yarn tsc
+    - name: Compile typescript
+      working-directory: ${{env.working-directory}}
+      run: yarn tsc
 
-    # - name: Lint typescript
-    #   working-directory: ${{env.working-directory}}
-    #   run: yarn tslint
+    - name: Lint typescript
+      working-directory: ${{env.working-directory}}
+      run: yarn tslint
 
-    # - name: Slither checks
-    #   working-directory: ${{env.working-directory}}
-    #   run: yarn slither
+    - name: Slither checks
+      working-directory: ${{env.working-directory}}
+      run: yarn slither
 
-    # - name: Gas calculation test
-    #   working-directory: ${{env.working-directory}}
-    #   run: npx hardhat test gas/calculateGas.ts
+    - name: Gas calculation test
+      working-directory: ${{env.working-directory}}
+      run: npx hardhat test gas/calculateGas.ts
     
-    # # - name: Test upgrade
-    # #   run: bash ./proxy/scripts/test_upgrade.sh
+    # - name: Test upgrade
+    #   run: bash ./proxy/scripts/test_upgrade.sh
     
-    # - name: Run tests
-    #   working-directory: ${{env.working-directory}}
-    #   run: |
-    #     npx hardhat coverage --solcoverjs .solcover.js
-    #     bash <(curl -s https://codecov.io/bash) -f coverage/lcov.info -t $CODECOV_TOKEN || echo "Codecov did not collect coverage reports"         
+    - name: Run tests
+      working-directory: ${{env.working-directory}}
+      run: |
+        npx hardhat coverage --solcoverjs .solcover.js
+        bash <(curl -s https://codecov.io/bash) -f coverage/lcov.info -t $CODECOV_TOKEN || echo "Codecov did not collect coverage reports"         
 
     - name: Install geth
       run: |
