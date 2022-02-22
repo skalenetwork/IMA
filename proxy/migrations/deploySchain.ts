@@ -29,7 +29,7 @@ import { deployLibraries, getLinkedContractFactory } from "./tools/factory";
 import { getAbi } from './tools/abi';
 import { Manifest, hashBytecode } from "@openzeppelin/upgrades-core";
 import { Contract } from '@ethersproject/contracts';
-import { CommunityLocker, EthErc20, KeyStorage, MessageProxyForSchain, TokenManagerERC20, TokenManagerERC721, TokenManagerEth, TokenManagerLinker } from '../typechain';
+import { CommunityLocker, EthErc20, KeyStorage, MessageProxyForSchain, MessageProxyForSchainWithoutSignature__factory, MessageProxyForSchain__factory, TokenManagerERC20, TokenManagerERC721, TokenManagerEth, TokenManagerLinker } from '../typechain';
 import { TokenManagerERC1155 } from '../typechain/TokenManagerERC1155';
 
 export function getContractKeyInAbiFile(contract: string) {
@@ -104,11 +104,11 @@ async function main() {
         process.exit( 126 );
     }
     const schainName = process.env.CHAIN_NAME_SCHAIN;
-    const messageProxyFactory = await ethers.getContractFactory("MessageProxyForSchain");
+    let messageProxyFactory: MessageProxyForSchain__factory | MessageProxyForSchainWithoutSignature__factory
+        = await ethers.getContractFactory("MessageProxyForSchain");
     if( process.env.NO_SIGNATURES === "true" ) {
         console.log( "Deploy IMA without signature verification" );
-        throw Error("Not implemented");
-        // messageProxyFactory = await ethers.getContractFactory("MessageProxyForSchainWithoutSignature");
+        messageProxyFactory = await ethers.getContractFactory("MessageProxyForSchainWithoutSignature");
     }
     const deployed = new Map<string, {address: string, interface: Interface}>();
 
