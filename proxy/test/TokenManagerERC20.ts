@@ -1150,7 +1150,7 @@ describe("TokenManagerERC20", () => {
                 .should.be.eventually.rejectedWith("Incorrect main chain token");
         });
 
-        it.only("should not be able to transfer main chain token or clone to mainnet", async () => {
+        it("should not be able to transfer main chain token or clone to mainnet", async () => {
             const amount = "20000000000000000";
             await messageProxyForSchain.registerExtraContract(newSchainName, tokenManagerErc20.address);
 
