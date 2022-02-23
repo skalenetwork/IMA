@@ -219,9 +219,8 @@ describe("MessageProxy", () => {
             outgoingMessagesCounter.should.be.deep.equal(BigNumber.from(1));
         });
 
-        it.only("should not post outgoing message with big data", async () => {
+        it("should not post outgoing message with big data", async () => {
             const contractAddress = messageProxyForMainnet.address;
-            const amount = 4;
 
             const bytesData256 = "0x0000000000000000000000000000000000000000000000000000000000000000" +
             "0000000000000000000000000000000000000000000000000000000000000000" + 
