@@ -566,6 +566,50 @@ async function get_web3_pastEventsIterative( details, w3, attempts, joContract, 
     return "";
 }
 
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+function verify_transfer_error_category_name( strCategory ) {
+    return "" + ( strCategory ? strCategory : "default" );
+}
+
+const g_nMaxLastTransferErrors = 20;
+const g_arrLastTransferErrors = [];
+let g_mapTransferErrorCategories = { };
+
+function save_transfer_error( strCategory, textLog ) {
+    const ts = Math.round( ( new Date() ).getTime() / 1000 );
+    const c = verify_transfer_error_category_name( strCategory );
+    g_arrLastTransferErrors.push( {
+        ts: ts,
+        category: "" + c,
+        textLog: "" + textLog.toString()
+    } );
+    while( g_arrLastTransferErrors.length > g_nMaxLastTransferErrors )
+        g_arrLastTransferErrors.shift();
+    g_mapTransferErrorCategories["" + c] = true;
+}
+
+function save_transfer_success( strCategory ) {
+    const c = verify_transfer_error_category_name( strCategory );
+    try { delete g_mapTransferErrorCategories["" + c]; } catch ( err ) { }
+}
+
+function save_transfer_success_all() {
+    g_mapTransferErrorCategories = { }; // clear all transfer error categories, out of time frame
+}
+
+function get_last_transfer_errors() {
+    return JSON.parse( JSON.stringify( g_arrLastTransferErrors ) );
+}
+
+function get_last_error_categories() {
+    return Object.keys( g_mapTransferErrorCategories );
+}
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 let g_bIsEnabledProgressiveEventsScan = true;
 
 function getEnabledProgressiveEventsScan() {
@@ -3877,23 +3921,6 @@ async function async_pending_tx_scanner( details, w3, w3_opposite, chain_id, cha
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-const g_nMaxLastTransferErrors = 10;
-const g_arrLastTransferErrors = [];
-
-function save_transfer_error( textLog ) {
-    const ts = Math.round( ( new Date() ).getTime() / 1000 );
-    g_arrLastTransferErrors.push( {
-        ts: ts,
-        textLog: "" + textLog.toString()
-    } );
-    while( g_arrLastTransferErrors.length > g_nMaxLastTransferErrors )
-        g_arrLastTransferErrors.shift();
-}
-
-function get_last_transfer_errors( textLog ) {
-    return JSON.parse( JSON.stringify( g_arrLastTransferErrors ) );
-}
-
 async function init_ima_state_file( details, w3, strDirection, optsStateFile ) {
     if( strDirection != "M2S" )
         return;
@@ -3974,6 +4001,7 @@ async function do_transfer(
     const nTransferLoopCounter = g_nTransferLoopCounter;
     ++ g_nTransferLoopCounter;
     //
+    const strTransferErrorCategoryName = "loop-" + strDirection;
     const strGatheredDetailsName = "" + strDirection + "-" +
         "do_transfer-A-#" + nTransferLoopCounter +
         "-" + chain_id_src + "-->" + chain_id_dst;
@@ -4059,6 +4087,7 @@ async function do_transfer(
                         "\n" );
                 }
                 details.close();
+                save_transfer_success_all();
                 return false;
             }
             const arrMessageCounters = [];
@@ -4150,7 +4179,7 @@ async function do_transfer(
                     log.write( strError + "\n" );
                     details.write( strError + "\n" );
                     details.exposeDetailsTo( log, strGatheredDetailsName, false );
-                    save_transfer_error( details.toString() );
+                    save_transfer_error( strTransferErrorCategoryName, details.toString() );
                     details.close();
                     return false;
                 }
@@ -4179,7 +4208,7 @@ async function do_transfer(
                             log.write( s );
                         details.write( s );
                         details.exposeDetailsTo( log, strGatheredDetailsName, false );
-                        save_transfer_error( details.toString() );
+                        save_transfer_error( strTransferErrorCategoryName, details.toString() );
                         details.close();
                         return false;
                     }
@@ -4223,7 +4252,7 @@ async function do_transfer(
                             log.write( s );
                         details.write( s );
                         details.exposeDetailsTo( log, strGatheredDetailsName, false );
-                        save_transfer_error( details.toString() );
+                        save_transfer_error( strTransferErrorCategoryName, details.toString() );
                         details.close();
                         return false;
                     }
@@ -4269,6 +4298,7 @@ async function do_transfer(
                         "\n" );
                 }
                 details.close();
+                save_transfer_success_all();
                 return false;
             }
             //
@@ -4365,6 +4395,7 @@ async function do_transfer(
                             "\n" );
                     }
                     details.close();
+                    save_transfer_success_all();
                     return false;
                 }
             }
@@ -4479,7 +4510,7 @@ async function do_transfer(
                                 if( verbose_get() >= RV_VERBOSE.fatal )
                                     log.write( strError );
                                 // details.exposeDetailsTo( log, strGatheredDetailsName, false );
-                                // save_transfer_error( details.toString() );
+                                // save_transfer_error( strTransferErrorCategoryName, details.toString() );
                                 // details.close();
                                 // return false;
                                 continue;
@@ -4530,7 +4561,7 @@ async function do_transfer(
                             log.write( s );
                         details.write( s );
                         details.exposeDetailsTo( log, strGatheredDetailsName, false );
-                        save_transfer_error( details.toString() );
+                        save_transfer_error( strTransferErrorCategoryName, details.toString() );
                         details.close();
                         return false;
                     }
@@ -4544,7 +4575,7 @@ async function do_transfer(
                             log.write( s );
                         details.write( s );
                         details.exposeDetailsTo( log, strGatheredDetailsName, false );
-                        save_transfer_error( details.toString() );
+                        save_transfer_error( strTransferErrorCategoryName, details.toString() );
                         details.close();
                         return false;
                     }
@@ -4588,7 +4619,7 @@ async function do_transfer(
                                 log.write( s );
                             detailsB.write( s );
                             detailsB.exposeDetailsTo( log, strGatheredDetailsName, false );
-                            save_transfer_error( detailsB.toString() );
+                            save_transfer_error( strTransferErrorCategoryName, detailsB.toString() );
                             detailsB.close();
                             return false;
                         }
@@ -4596,6 +4627,7 @@ async function do_transfer(
                             if( verbose_get() >= RV_VERBOSE.information )
                                 log.write( strLogPrefix + cc.error( "WARNING:" ) + " " + cc.warning( "Time framing overflow (after signing messages)" ) + "\n" );
                             detailsB.close();
+                            save_transfer_success_all();
                             return false;
                         }
                         strActionName = "dst-chain.getTransactionCount()";
@@ -4734,7 +4766,7 @@ async function do_transfer(
                                     else {
                                         log.write( strLogPrefix + cc.fatal( "CRITICAL ERROR:" ) + cc.warning( " Failed" ) + cc.error( " verification of the " ) + cc.warning( "PostMessageError" ) + cc.error( " event of the " ) + cc.warning( "MessageProxy" ) + cc.error( "/" ) + cc.notice( jo_message_proxy_dst.options.address ) + cc.error( " contract, found event(s): " ) + cc.j( joEvents ) + "\n" );
                                         detailsB.write( strLogPrefix + cc.fatal( "CRITICAL ERROR:" ) + cc.warning( " Failed" ) + cc.error( " verification of the " ) + cc.warning( "PostMessageError" ) + cc.error( " event of the " ) + cc.warning( "MessageProxy" ) + cc.error( "/" ) + cc.notice( jo_message_proxy_dst.options.address ) + cc.error( " contract, found event(s): " ) + cc.j( joEvents ) + "\n" );
-                                        save_transfer_error( detailsB.toString() );
+                                        save_transfer_error( strTransferErrorCategoryName, detailsB.toString() );
                                         throw new Error( "Verification failed for the \"PostMessageError\" event of the \"MessageProxy\"/" + jo_message_proxy_dst.options.address + " contract, error events found" );
                                     }
                                     detailsB.write( strLogPrefix + cc.success( "Done, validated transfer to Main Net via MessageProxy error absence on Main Net" ) + "\n" );
@@ -4767,7 +4799,7 @@ async function do_transfer(
                         log.write( strErrorMessage + "\n" );
                         detailsB.write( strErrorMessage + "\n" );
                         detailsB.exposeDetailsTo( log, strGatheredDetailsName, false );
-                        save_transfer_error( detailsB.toString() );
+                        save_transfer_error( strTransferErrorCategoryName, detailsB.toString() );
                         detailsB.close();
                         detailsB = null;
                     }
@@ -4779,7 +4811,7 @@ async function do_transfer(
                 } ); // fn_sign_messages
             } catch ( err ) {
                 const strError = strLogPrefix + cc.fatal( "CRITICAL ERROR:" ) +
-                    cc.error( " Exception from siginin messages function: " ) + cc.error( err.toString() );
+                    cc.error( " Exception from sigining messages function: " ) + cc.error( err.toString() );
                 log.write( strError + "\n" );
                 details.write( strError + "\n" );
                 if( detailsB )
@@ -4801,7 +4833,7 @@ async function do_transfer(
             log.write( strError + "\n" );
         details.write( strError + "\n" );
         details.exposeDetailsTo( log, strGatheredDetailsName, false );
-        save_transfer_error( details.toString() );
+        save_transfer_error( strTransferErrorCategoryName, details.toString() );
         details.close();
         return false;
     }
@@ -4811,6 +4843,8 @@ async function do_transfer(
             details.exposeDetailsTo( log, strGatheredDetailsName, true );
         details.close();
     }
+    if( ! bErrorInSigningMessages )
+        save_transfer_success( strTransferErrorCategoryName );
     return true;
 } // async function do_transfer( ...
 
@@ -5102,8 +5136,13 @@ module.exports.do_erc1155_payment_from_s_chain = do_erc1155_payment_from_s_chain
 module.exports.do_erc1155_batch_payment_from_main_net = do_erc1155_batch_payment_from_main_net;
 module.exports.do_erc1155_batch_payment_from_s_chain = do_erc1155_batch_payment_from_s_chain;
 module.exports.do_transfer = do_transfer;
+
+module.exports.verify_transfer_error_category_name = verify_transfer_error_category_name;
 module.exports.save_transfer_error = save_transfer_error;
+module.exports.save_transfer_success = save_transfer_success;
+module.exports.save_transfer_success_all = save_transfer_success_all;
 module.exports.get_last_transfer_errors = get_last_transfer_errors;
+module.exports.get_last_error_categories = get_last_error_categories;
 
 module.exports.compose_gas_usage_report_from_array = compose_gas_usage_report_from_array;
 module.exports.print_gas_usage_report_from_array = print_gas_usage_report_from_array;

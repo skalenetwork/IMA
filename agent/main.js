@@ -30,7 +30,6 @@ process.env.NODE_TLS_REJECT_UNAUTHORIZED = 0; // allow self-signed wss and https
 // const url = require( "url" );
 // const os = require( "os" );
 const ws = require( "ws" ); // https://www.npmjs.com/package/ws
-const { cc } = require( "../npms/skale-ima" );
 global.IMA = require( "../npms/skale-ima" );
 global.w3mod = IMA.w3mod;
 global.ethereumjs_tx = IMA.ethereumjs_tx;
@@ -1548,6 +1547,7 @@ if( imaState.nMonitoringPort > 0 ) {
                     // call:   { "id": 1, "method": "get_last_transfer_errors" }
                     // answer: { "id": 1, "method": "get_last_transfer_errors", "error": null, "last_transfer_errors": [ { ts: ..., textLog: ... }, ... ] }
                     joAnswer.last_transfer_errors = IMA.get_last_transfer_errors();
+                    joAnswer.last_error_categories = IMA.get_last_error_categories();
                     break;
                 default:
                     throw new Error( "Unknown method name \"" + joMessage.method + "\" was specified" );
@@ -1575,7 +1575,7 @@ if( imaState.nMonitoringPort > 0 ) {
         } );
         // ws_peer.send( "something" );
     } );
-}
+} // if( imaState.nMonitoringPort > 0 )
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -1792,84 +1792,87 @@ global.check_time_framing = function( d ) {
 
 async function single_transfer_loop() {
     const strLogPrefix = cc.attention( "Single Loop:" ) + " ";
-    if( IMA.verbose_get() >= IMA.RV_VERBOSE.debug )
-        log.write( strLogPrefix + cc.debug( IMA.longSeparator ) + "\n" );
-
-    if( ! global.check_time_framing() ) {
+    try {
         if( IMA.verbose_get() >= IMA.RV_VERBOSE.debug )
-            log.write( strLogPrefix + cc.warning( "Skipped due to time framing" ) + "\n" );
-        return true;
+            log.write( strLogPrefix + cc.debug( IMA.longSeparator ) + "\n" );
+
+        if( ! global.check_time_framing() ) {
+            if( IMA.verbose_get() >= IMA.RV_VERBOSE.debug )
+                log.write( strLogPrefix + cc.warning( "Skipped due to time framing" ) + "\n" );
+            IMA.save_transfer_success_all();
+            return true;
+        }
+
+        if( IMA.verbose_get() >= IMA.RV_VERBOSE.information )
+            log.write( strLogPrefix + cc.debug( "Will invoke M2S transfer..." ) + "\n" );
+        const b1 = await IMA.do_transfer( // main-net --> s-chain
+            "M2S",
+            //
+            imaState.w3_main_net,
+            imaState.jo_message_proxy_main_net,
+            imaState.joAccount_main_net,
+            imaState.w3_s_chain,
+            imaState.jo_message_proxy_s_chain,
+            //
+            imaState.joAccount_s_chain,
+            imaState.strChainName_main_net,
+            imaState.strChainName_s_chain,
+            imaState.cid_main_net,
+            imaState.cid_s_chain,
+            null, // imaState.jo_deposit_box - for logs validation on mainnet
+            imaState.jo_token_manager_eth, // for logs validation on s-chain
+            imaState.nTransferBlockSizeM2S,
+            imaState.nMaxTransactionsM2S,
+            imaState.nBlockAwaitDepthM2S,
+            imaState.nBlockAgeM2S,
+            imaBLS.do_sign_messages_m2s, // fn_sign_messages
+            null, // joExtraSignOpts
+            imaState.tc_s_chain,
+            imaState.optsPendingTxAnalysis,
+            imaState.optsStateFile
+        );
+        if( IMA.verbose_get() >= IMA.RV_VERBOSE.information )
+            log.write( strLogPrefix + cc.debug( "M2S transfer done: " ) + cc.tf( b1 ) + "\n" );
+
+        if( IMA.verbose_get() >= IMA.RV_VERBOSE.information )
+            log.write( strLogPrefix + cc.debug( "Will invoke S2M transfer..." ) + "\n" );
+        const b2 = await IMA.do_transfer( // s-chain --> main-net
+            "S2M",
+            //
+            imaState.w3_s_chain,
+            imaState.jo_message_proxy_s_chain,
+            imaState.joAccount_s_chain,
+            imaState.w3_main_net,
+            imaState.jo_message_proxy_main_net,
+            //
+            imaState.joAccount_main_net,
+            imaState.strChainName_s_chain,
+            imaState.strChainName_main_net,
+            imaState.cid_s_chain,
+            imaState.cid_main_net,
+            imaState.jo_deposit_box_eth, // for logs validation on mainnet
+            null, // imaState.jo_token_manager, // for logs validation on s-chain
+            imaState.nTransferBlockSizeS2M,
+            imaState.nMaxTransactionsS2M,
+            imaState.nBlockAwaitDepthS2M,
+            imaState.nBlockAgeS2M,
+            imaBLS.do_sign_messages_s2m, // fn_sign_messages
+            null, // joExtraSignOpts
+            imaState.tc_main_net,
+            imaState.optsPendingTxAnalysis,
+            imaState.optsStateFile
+        );
+        if( IMA.verbose_get() >= IMA.RV_VERBOSE.information )
+            log.write( strLogPrefix + cc.debug( "S2M transfer done: " ) + cc.tf( b2 ) + "\n" );
+
+        const bResult = b1 && b2;
+        if( IMA.verbose_get() >= IMA.RV_VERBOSE.information )
+            log.write( strLogPrefix + cc.debug( "Completed: " ) + cc.tf( bResult ) + "\n" );
+        return bResult;
+    } catch ( err ) {
+        log.write( strLogPrefix + cc.fatal( "Exception:" ) + + cc.error( err.toString() ) + "\n" );
+        return false;
     }
-
-    if( IMA.verbose_get() >= IMA.RV_VERBOSE.information )
-        log.write( strLogPrefix + cc.debug( "Will invoke M2S transfer..." ) + "\n" );
-
-    if( IMA.verbose_get() >= IMA.RV_VERBOSE.information )
-        log.write( strLogPrefix + cc.debug( "Will invoke M2S transfer..." ) + "\n" );
-    const b1 = await IMA.do_transfer( // main-net --> s-chain
-        "M2S",
-        //
-        imaState.w3_main_net,
-        imaState.jo_message_proxy_main_net,
-        imaState.joAccount_main_net,
-        imaState.w3_s_chain,
-        imaState.jo_message_proxy_s_chain,
-        //
-        imaState.joAccount_s_chain,
-        imaState.strChainName_main_net,
-        imaState.strChainName_s_chain,
-        imaState.cid_main_net,
-        imaState.cid_s_chain,
-        null, // imaState.jo_deposit_box - for logs validation on mainnet
-        imaState.jo_token_manager_eth, // for logs validation on s-chain
-        imaState.nTransferBlockSizeM2S,
-        imaState.nMaxTransactionsM2S,
-        imaState.nBlockAwaitDepthM2S,
-        imaState.nBlockAgeM2S,
-        imaBLS.do_sign_messages_m2s, // fn_sign_messages
-        null, // joExtraSignOpts
-        imaState.tc_s_chain,
-        imaState.optsPendingTxAnalysis,
-        imaState.optsStateFile
-    );
-    if( IMA.verbose_get() >= IMA.RV_VERBOSE.information )
-        log.write( strLogPrefix + cc.debug( "M2S transfer done: " ) + cc.tf( b1 ) + "\n" );
-
-    if( IMA.verbose_get() >= IMA.RV_VERBOSE.information )
-        log.write( strLogPrefix + cc.debug( "Will invoke S2M transfer..." ) + "\n" );
-    const b2 = await IMA.do_transfer( // s-chain --> main-net
-        "S2M",
-        //
-        imaState.w3_s_chain,
-        imaState.jo_message_proxy_s_chain,
-        imaState.joAccount_s_chain,
-        imaState.w3_main_net,
-        imaState.jo_message_proxy_main_net,
-        //
-        imaState.joAccount_main_net,
-        imaState.strChainName_s_chain,
-        imaState.strChainName_main_net,
-        imaState.cid_s_chain,
-        imaState.cid_main_net,
-        imaState.jo_deposit_box_eth, // for logs validation on mainnet
-        null, // imaState.jo_token_manager, // for logs validation on s-chain
-        imaState.nTransferBlockSizeS2M,
-        imaState.nMaxTransactionsS2M,
-        imaState.nBlockAwaitDepthS2M,
-        imaState.nBlockAgeS2M,
-        imaBLS.do_sign_messages_s2m, // fn_sign_messages
-        null, // joExtraSignOpts
-        imaState.tc_main_net,
-        imaState.optsPendingTxAnalysis,
-        imaState.optsStateFile
-    );
-    if( IMA.verbose_get() >= IMA.RV_VERBOSE.information )
-        log.write( strLogPrefix + cc.debug( "S2M transfer done: " ) + cc.tf( b2 ) + "\n" );
-
-    const bResult = b1 && b2;
-    if( IMA.verbose_get() >= IMA.RV_VERBOSE.information )
-        log.write( strLogPrefix + cc.debug( "Completed: " ) + cc.tf( bResult ) + "\n" );
-    return bResult;
 }
 async function single_transfer_loop_with_repeat() {
     await single_transfer_loop();
