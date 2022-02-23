@@ -2078,8 +2078,8 @@ describe("TokenManagerERC1155", () => {
 
             await messageProxyForSchain2.postMessage(tokenManagerERC11552.address, schainId, tokenManagerERC1155.address, data);
 
-            let balanceIds = await erc1155OnTargetChain.balanceOfBatch([user.address, user.address, user.address, user.address], ids);
-            let balanceIdsNumber: number[] = [];
+            const balanceIds = await erc1155OnTargetChain.balanceOfBatch([user.address, user.address, user.address, user.address], ids);
+            const balanceIdsNumber: number[] = [];
             balanceIds.forEach((element: any) => {
                 balanceIdsNumber.push(BigNumber.from(element).toNumber())
             });
@@ -2200,7 +2200,7 @@ describe("TokenManagerERC1155", () => {
             );
 
             await messageProxyForSchain.postMessage(tokenManagerERC1155.address, newSchainId, tokenManagerERC11552.address, data);
-            
+
             balanceIds = await erc1155OnOriginChain.balanceOfBatch([user.address, user.address, user.address, user.address], ids);
             balanceIdsNumber = [];
             balanceIds.forEach((element: any) => {
