@@ -639,7 +639,7 @@ async function do_oracle_gas_price_setup(
     joAccountSC,
     chain_id_mainnet,
     chain_id_schain,
-    fn_sign,
+    fn_sign_o_msg,
     optsPendingTxAnalysis
 ) {
     if( getOracleGasPriceMode() == 0 )
@@ -647,9 +647,9 @@ async function do_oracle_gas_price_setup(
     const details = log.createMemoryStream();
     const jarrReceipts = [];
     const strLogPrefix = cc.info( "Oracle gas price setup:" ) + " ";
-    if( fn_sign == null || fn_sign == undefined ) {
+    if( fn_sign_o_msg == null || fn_sign_o_msg == undefined ) {
         details.write( strLogPrefix + cc.debug( "Using internal u256 signing stub function" ) + "\n" );
-        fn_sign = async function( u256, details, fnAfter ) {
+        fn_sign_o_msg = async function( u256, details, fnAfter ) {
             details.write( strLogPrefix + cc.debug( "u256 signing callback was " ) + cc.error( "not provided" ) + "\n" );
             await fnAfter( null, u256, null ); // null - no error, null - no signatures
         };
@@ -670,8 +670,8 @@ async function do_oracle_gas_price_setup(
         const gasPriceOnMainNet = "0x" + w3_main_net.utils.toBN( await w3_main_net.eth.getGasPrice() ).toString( 16 );
         details.write( cc.info( "Main Net gas price" ) + cc.debug( " is " ) + cc.bright( gasPriceOnMainNet ) + "\n" );
         //
-        strActionName = "do_oracle_gas_price_setup.fn_sign()";
-        await fn_sign( gasPriceOnMainNet, details, async function( strError, u256, joGlueResult ) {
+        strActionName = "do_oracle_gas_price_setup.fn_sign_o_msg()";
+        await fn_sign_o_msg( gasPriceOnMainNet, details, async function( strError, u256, joGlueResult ) {
             if( strError ) {
                 if( verbose_get() >= RV_VERBOSE.fatal )
                     log.write( strLogPrefix + cc.fatal( "CRITICAL ERROR:" ) + cc.error( " Error in do_oracle_gas_price_setup() during " + strActionName + ": " ) + cc.error( strError ) + "\n" );
@@ -5780,7 +5780,7 @@ async function do_transfer(
                 } ); // fn_sign_messages
             } catch ( err ) {
                 const strError = strLogPrefix + cc.fatal( "CRITICAL ERROR:" ) +
-                    cc.error( " Exception from siginin messages function: " ) + cc.error( err.toString() );
+                    cc.error( " Exception from sigining messages function: " ) + cc.error( err.toString() );
                 log.write( strError + "\n" );
                 details.write( strError + "\n" );
                 if( detailsB )
