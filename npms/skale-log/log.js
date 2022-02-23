@@ -109,7 +109,9 @@ function createStandardOutputStream() {
 			  close: function() { this.objStream = null; },
 			  open: function() { try { this.objStream = process.stdout; } catch ( err ) { } },
 			  size: function() { return 0; },
-			  rotate: function( nBytesToWrite ) { }
+			  rotate: function( nBytesToWrite ) { },
+            toString: function() { return "" + strFilePath; },
+            exposeDetailsTo: function( otherStream, strTitle, isSuccess ) { }
         };
         objEntry.open();
         return objEntry;
@@ -223,7 +225,9 @@ function createFileOutput( strFilePath, nMaxSizeBeforeRotation, nMaxFilesCount )
                     this.open();
                 } catch ( err ) {
                 }
-            }
+            },
+            toString: function() { return "" + strFilePath; },
+            exposeDetailsTo: function( otherStream, strTitle, isSuccess ) { }
         };
         objEntry.open();
         return objEntry;
