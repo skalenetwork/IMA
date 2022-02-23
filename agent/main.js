@@ -2152,6 +2152,7 @@ if( imaState.nMonitoringPort > 0 ) {
                     // call:   { "id": 1, "method": "get_last_transfer_errors" }
                     // answer: { "id": 1, "method": "get_last_transfer_errors", "error": null, "last_transfer_errors": [ { ts: ..., textLog: ... }, ... ] }
                     joAnswer.last_transfer_errors = IMA.get_last_transfer_errors();
+                    joAnswer.last_error_categories = IMA.get_last_error_categories();
                     break;
                 default:
                     throw new Error( "Unknown method name \"" + joMessage.method + "\" was specified" );
@@ -2179,7 +2180,7 @@ if( imaState.nMonitoringPort > 0 ) {
         } );
         // ws_peer.send( "something" );
     } );
-}
+} // if( imaState.nMonitoringPort > 0 )
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -2402,6 +2403,7 @@ async function single_transfer_loop() {
     if( ! global.check_time_framing() ) {
         if( IMA.verbose_get() >= IMA.RV_VERBOSE.debug )
             log.write( strLogPrefix + cc.warning( "Skipped due to time framing" ) + "\n" );
+        IMA.save_transfer_success_all();
         return true;
     }
 
