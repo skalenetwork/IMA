@@ -222,35 +222,23 @@ describe("MessageProxy", () => {
         it("should not post outgoing message with big data", async () => {
             const contractAddress = messageProxyForMainnet.address;
 
-            const bytesData256 = "0x0000000000000000000000000000000000000000000000000000000000000000" +
-            "0000000000000000000000000000000000000000000000000000000000000000" +
-            "0000000000000000000000000000000000000000000000000000000000000000" +
-            "0000000000000000000000000000000000000000000000000000000000000000" +
-            "0000000000000000000000000000000000000000000000000000000000000000" +
-            "0000000000000000000000000000000000000000000000000000000000000000" +
-            "0000000000000000000000000000000000000000000000000000000000000000" +
-            "0000000000000000000000000000000000000000000000000000000000000000";
+            const bytesData1024 = "0x0000000000000000000000000000000000000000000000000000000000000000" +
+            "0000000000000000000000000000000000000000000000000000000000000000".repeat(31);
 
-            const bytesData257 = "0x0000000000000000000000000000000000000000000000000000000000000000" +
-            "0000000000000000000000000000000000000000000000000000000000000000" +
-            "0000000000000000000000000000000000000000000000000000000000000000" +
-            "0000000000000000000000000000000000000000000000000000000000000000" +
-            "0000000000000000000000000000000000000000000000000000000000000000" +
-            "0000000000000000000000000000000000000000000000000000000000000000" +
-            "0000000000000000000000000000000000000000000000000000000000000000" +
-            "0000000000000000000000000000000000000000000000000000000000000000" +
+            const bytesData1025 = "0x0000000000000000000000000000000000000000000000000000000000000000" +
+            "0000000000000000000000000000000000000000000000000000000000000000".repeat(31) +
             "00";
 
             await caller
-                .postOutgoingMessageTester(messageProxyForMainnet.address, schainHash, contractAddress, bytesData257)
+                .postOutgoingMessageTester(messageProxyForMainnet.address, schainHash, contractAddress, bytesData1025)
                 .should.be.rejectedWith("Destination chain is not initialized");
 
             await messageProxyForMainnet.connect(deployer).addConnectedChain(schainName);
             await caller
-                .postOutgoingMessageTester(messageProxyForMainnet.address, schainHash, contractAddress, bytesData257)
+                .postOutgoingMessageTester(messageProxyForMainnet.address, schainHash, contractAddress, bytesData1025)
                 .should.be.rejectedWith("Message is too long");
             await caller
-                .postOutgoingMessageTester(messageProxyForMainnet.address, schainHash, contractAddress, bytesData256)
+                .postOutgoingMessageTester(messageProxyForMainnet.address, schainHash, contractAddress, bytesData1024)
             const outgoingMessagesCounter = BigNumber.from(
                 await messageProxyForMainnet.getOutgoingMessagesCounter(schainName));
             outgoingMessagesCounter.should.be.deep.equal(BigNumber.from(1));
