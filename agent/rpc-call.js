@@ -27,6 +27,8 @@ const ws = require( "ws" ); // https://www.npmjs.com/package/ws
 const urllib = require( "urllib" ); // https://www.npmjs.com/package/urllib
 const net = require( "net" );
 
+const g_nConnectionTimeoutSeconds = 60;
+
 function is_http_url( strURL ) {
     try {
         if( !owaspUtils.validateURL( strURL ) )
@@ -72,7 +74,7 @@ async function wait_web_socket_is_open( socket, fnDone, fnStep ) {
                     reject( new Error( "web socket wait timout by callback on step " + nStep ) );
                 }
             }
-        }, 1000 );
+        }, 1000 ); // 1 second
     } );
     await Promise.all( [ promiseComplete ] );
 }
@@ -118,7 +120,7 @@ async function do_connect( joCall, opts, fn ) {
                         log.write( cc.u( joCall.url ) + cc.error( " web socket wait error detected: " ) + cc.warning( strWsError ) + "\n" );
                         return false;
                     }
-                    if( nStep >= 60 ) {
+                    if( nStep >= g_nConnectionTimeoutSeconds ) {
                         strWsError = "wait timeout, web socket is connecting too long";
                         log.write( cc.u( joCall.url ) + cc.error( " web socket wait timeout detected" ) + "\n" );
                         return false; // stop waiting
@@ -182,6 +184,7 @@ async function do_call( joCall, joIn, fn ) {
             // console.log( "--- --- --- joIn is", strBody );
             urllib.request( joCall.url, {
                 "method": "POST",
+                "timeout": g_nConnectionTimeoutSeconds * 1000, // in milliseconds
                 "headers": {
                     "content-type": "application/json"
                     // "Accept": "*/*",
