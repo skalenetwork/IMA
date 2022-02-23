@@ -219,6 +219,44 @@ describe("MessageProxy", () => {
             outgoingMessagesCounter.should.be.deep.equal(BigNumber.from(1));
         });
 
+        it.only("should not post outgoing message with big data", async () => {
+            const contractAddress = messageProxyForMainnet.address;
+            const amount = 4;
+
+            const bytesData256 = "0x0000000000000000000000000000000000000000000000000000000000000000" +
+            "0000000000000000000000000000000000000000000000000000000000000000" + 
+            "0000000000000000000000000000000000000000000000000000000000000000" +
+            "0000000000000000000000000000000000000000000000000000000000000000" +
+            "0000000000000000000000000000000000000000000000000000000000000000" +
+            "0000000000000000000000000000000000000000000000000000000000000000" + 
+            "0000000000000000000000000000000000000000000000000000000000000000" +
+            "0000000000000000000000000000000000000000000000000000000000000000";
+
+            const bytesData257 = "0x0000000000000000000000000000000000000000000000000000000000000000" +
+            "0000000000000000000000000000000000000000000000000000000000000000" + 
+            "0000000000000000000000000000000000000000000000000000000000000000" +
+            "0000000000000000000000000000000000000000000000000000000000000000" +
+            "0000000000000000000000000000000000000000000000000000000000000000" +
+            "0000000000000000000000000000000000000000000000000000000000000000" + 
+            "0000000000000000000000000000000000000000000000000000000000000000" +
+            "0000000000000000000000000000000000000000000000000000000000000000" +
+            "00";
+
+            await caller
+                .postOutgoingMessageTester(messageProxyForMainnet.address, schainHash, contractAddress, bytesData257)
+                .should.be.rejectedWith("Destination chain is not initialized");
+
+            await messageProxyForMainnet.connect(deployer).addConnectedChain(schainName);
+            await caller
+                .postOutgoingMessageTester(messageProxyForMainnet.address, schainHash, contractAddress, bytesData257)
+                .should.be.rejectedWith("Message is too long");
+            await caller
+                .postOutgoingMessageTester(messageProxyForMainnet.address, schainHash, contractAddress, bytesData256)
+            const outgoingMessagesCounter = BigNumber.from(
+                await messageProxyForMainnet.getOutgoingMessagesCounter(schainName));
+            outgoingMessagesCounter.should.be.deep.equal(BigNumber.from(1));
+        });
+
         it("should allow schain owner to send message", async () => {
             const message = "0xd2";
             const schainOwner = user;

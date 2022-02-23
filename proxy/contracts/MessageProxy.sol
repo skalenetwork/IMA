@@ -289,6 +289,7 @@ abstract contract MessageProxy is AccessControlEnumerableUpgradeable, IMessagePr
         virtual
     {
         require(connectedChains[targetChainHash].inited, "Destination chain is not initialized");
+        require(data.length <= 256, "Message is too long");
         _authorizeOutgoingMessageSender(targetChainHash);
         
         emit OutgoingMessage(
