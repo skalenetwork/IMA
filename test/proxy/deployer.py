@@ -44,7 +44,7 @@ class Deployer:
 
     def deploy_second_schain(self):
         self.deploy()
-        self.deploy_schain("d3")
+        self.deploy_schain(self.config.schain_name_2)
 
 
     # private
