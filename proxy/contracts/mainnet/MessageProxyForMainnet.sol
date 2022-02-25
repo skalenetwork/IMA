@@ -293,6 +293,7 @@ contract MessageProxyForMainnet is SkaleManagerClient, MessageProxy, IMessagePro
         MessageProxy.initializeMessageProxy(1e6);
         headerMessageGasCost = 70000;
         messageGasCost = 9000;
+        messageBytesLength = 1024;
     }
 
     /**

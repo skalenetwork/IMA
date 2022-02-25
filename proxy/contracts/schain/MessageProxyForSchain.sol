@@ -282,6 +282,7 @@ contract MessageProxyForSchain is MessageProxy, IMessageProxyForSchainInitialize
             true
         );
 	    schainHash = keccak256(abi.encodePacked(schainName));
+        messageBytesLength = 1024;
 
         // In predeployed mode all token managers and community locker
         // will be added to registryContracts
