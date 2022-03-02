@@ -537,10 +537,10 @@ abstract contract MessageProxy is AccessControlEnumerableUpgradeable, IMessagePr
         return hash;
     }
 
-    function _getSlice(bytes memory text, uint end) private view returns (bytes memory) {
-        uint end = end < text.length ? end : text.length;
-        bytes memory sliced = new bytes(end);
-        for(uint i = 0; i < end; i++){
+    function _getSlice(bytes memory text, uint end) private pure returns (bytes memory) {
+        uint slicedEnd = end < text.length ? end : text.length;
+        bytes memory sliced = new bytes(slicedEnd);
+        for(uint i = 0; i < slicedEnd; i++){
             sliced[i] = text[i];
         }
         return sliced;    
