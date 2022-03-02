@@ -52,6 +52,7 @@ abstract contract MessageProxy is AccessControlEnumerableUpgradeable, IMessagePr
     bytes32 public constant EXTRA_CONTRACT_REGISTRAR_ROLE = keccak256("EXTRA_CONTRACT_REGISTRAR_ROLE");
     bytes32 public constant CONSTANT_SETTER_ROLE = keccak256("CONSTANT_SETTER_ROLE");
     uint256 public constant MESSAGES_LENGTH = 10;
+    uint256 public constant REVERT_REASON_LENGTH = 64;
 
     //   schainHash => ConnectedChainInfo
     mapping(bytes32 => ConnectedChainInfo) public connectedChains;
@@ -418,33 +419,35 @@ abstract contract MessageProxy is AccessControlEnumerableUpgradeable, IMessagePr
         uint counter
     )
         internal
-        returns (address)
     {
         if (!message.destinationContract.isContract()) {
             emit PostMessageError(
                 counter,
                 "Destination contract is not a contract"
             );
-            return address(0);
+            return;
         }
         try IMessageReceiver(message.destinationContract).postMessage{gas: gasLimit}(
             schainHash,
             message.sender,
             message.data
-        ) returns (address receiver) {
-            return receiver;
+        ) {
+            return;
         } catch Error(string memory reason) {
             emit PostMessageError(
                 counter,
-                bytes(reason)
+                _getSlice(bytes(reason), REVERT_REASON_LENGTH)
             );
-            return address(0);
+        } catch Panic(uint errorCode) {
+               emit PostMessageError(
+                counter,
+                abi.encodePacked(errorCode)
+            );
         } catch (bytes memory revertData) {
             emit PostMessageError(
                 counter,
-                revertData
+                _getSlice(revertData, REVERT_REASON_LENGTH)
             );
-            return address(0);
         }
     }
 
@@ -468,13 +471,19 @@ abstract contract MessageProxy is AccessControlEnumerableUpgradeable, IMessagePr
         } catch Error(string memory reason) {
             emit PostMessageError(
                 counter,
-                bytes(reason)
+                _getSlice(bytes(reason), REVERT_REASON_LENGTH)
+            );
+            return address(0);
+        } catch Panic(uint errorCode) {
+               emit PostMessageError(
+                counter,
+                abi.encodePacked(errorCode)
             );
             return address(0);
         } catch (bytes memory revertData) {
             emit PostMessageError(
                 counter,
-                revertData
+                _getSlice(revertData, REVERT_REASON_LENGTH)
             );
             return address(0);
         }
@@ -526,5 +535,14 @@ abstract contract MessageProxy is AccessControlEnumerableUpgradeable, IMessagePr
             );
         }
         return hash;
+    }
+
+    function _getSlice(bytes memory text, uint end) private view returns (bytes memory) {
+        uint end = end < text.length ? end : text.length;
+        bytes memory sliced = new bytes(end);
+        for(uint i = 0; i < end; i++){
+            sliced[i] = text[i];
+        }
+        return sliced;    
     }
 }
