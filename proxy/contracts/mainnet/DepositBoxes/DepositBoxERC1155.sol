@@ -190,7 +190,6 @@ contract DepositBoxERC1155 is DepositBox, ERC1155ReceiverUpgradeable, IDepositBo
         onlyMessageProxy
         whenNotKilled(schainHash)
         checkReceiverChain(schainHash, sender)
-        returns (address receiver)
     {
         Messages.MessageType operation = Messages.getMessageType(data);
         if (operation == Messages.MessageType.TRANSFER_ERC1155) {
@@ -209,7 +208,6 @@ contract DepositBoxERC1155 is DepositBox, ERC1155ReceiverUpgradeable, IDepositBo
                 message.amount,
                 ""
             );
-            receiver = message.receiver;
         } else if (operation == Messages.MessageType.TRANSFER_ERC1155_BATCH) {
             Messages.TransferErc1155BatchMessage memory message = Messages.decodeTransferErc1155BatchMessage(data);
             require(message.token.isContract(), "Given address is not a contract");
@@ -221,7 +219,6 @@ contract DepositBoxERC1155 is DepositBox, ERC1155ReceiverUpgradeable, IDepositBo
                 message.amounts,
                 ""
             );
-            receiver = message.receiver;
         }
     }
 

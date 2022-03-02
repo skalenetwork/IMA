@@ -34,8 +34,7 @@ contract ReceiverMock is IMessageReceiver {
         external
         pure
         override
-        returns (address) 
     {
-        return address(0);
+        return;
     }
 }

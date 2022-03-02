@@ -34,11 +34,9 @@ contract ReceiverGasLimitSchainMock is IMessageReceiver {
     )
         external
         override
-        returns (address) 
     {
         while(true) {
             a++;
         }
-        return address(0);
     }
 }
