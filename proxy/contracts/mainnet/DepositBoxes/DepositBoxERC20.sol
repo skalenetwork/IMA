@@ -150,7 +150,6 @@ contract DepositBoxERC20 is DepositBox, IDepositBoxERC20 {
         onlyMessageProxy
         whenNotKilled(schainHash)
         checkReceiverChain(schainHash, sender)
-        returns (address)
     {
         Messages.TransferErc20Message memory message = Messages.decodeTransferErc20Message(data);
         require(message.token.isContract(), "Given address is not a contract");
@@ -160,7 +159,6 @@ contract DepositBoxERC20 is DepositBox, IDepositBoxERC20 {
             ERC20Upgradeable(message.token).transfer(message.receiver, message.amount),
             "Transfer was failed"
         );
-        return message.receiver;
     }
 
     /**

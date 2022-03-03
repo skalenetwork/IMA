@@ -218,7 +218,6 @@ contract TokenManagerERC1155 is
         override
         onlyMessageProxy
         checkReceiverChain(fromChainHash, sender)
-        returns (address)
     {
         Messages.MessageType operation = Messages.getMessageType(data);
         address receiver = address(0);
@@ -235,7 +234,6 @@ contract TokenManagerERC1155 is
         } else {
             revert("MessageType is unknown");
         }
-        return receiver;
     }
 
     /**

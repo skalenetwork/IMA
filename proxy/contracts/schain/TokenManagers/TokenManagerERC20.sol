@@ -168,7 +168,6 @@ contract TokenManagerERC20 is TokenManager, ITokenManagerERC20InitializeFunction
         override
         onlyMessageProxy
         checkReceiverChain(fromChainHash, sender)
-        returns (address)
     {
         Messages.MessageType operation = Messages.getMessageType(data);
         address receiver = address(0);
@@ -181,7 +180,6 @@ contract TokenManagerERC20 is TokenManager, ITokenManagerERC20InitializeFunction
         } else {
             revert("MessageType is unknown");
         }
-        return receiver;
     }
 
     /**

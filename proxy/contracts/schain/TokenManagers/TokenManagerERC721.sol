@@ -167,7 +167,6 @@ contract TokenManagerERC721 is TokenManager, ITokenManagerERC721InitializeFuncti
         override
         onlyMessageProxy
         checkReceiverChain(fromChainHash, sender)
-        returns (address)
     {
         Messages.MessageType operation = Messages.getMessageType(data);
         address receiver = address(0);
@@ -179,7 +178,6 @@ contract TokenManagerERC721 is TokenManager, ITokenManagerERC721InitializeFuncti
         } else {
             revert("MessageType is unknown");
         }
-        return receiver;
     }
 
     /**

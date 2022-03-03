@@ -40,7 +40,7 @@ import {
     EtherbaseMock,
     SchainsInternal
 } from "../typechain/";
-import { randomString, stringValue } from "./utils/helper";
+import { randomString, stringToHex } from "./utils/helper";
 import ABIReceiverMock = require("../artifacts/contracts/test/ReceiverMock.sol/ReceiverMock.json");
 import { deployLinker } from "./utils/deploy/mainnet/linker";
 import { deployMessageProxyForMainnet } from "./utils/deploy/mainnet/messageProxyForMainnet";
@@ -503,6 +503,97 @@ describe("MessageProxy", () => {
             expect(res.gasUsed.toNumber()).to.be.greaterThan(1000000);
 
         });
+
+        it("should slice revert message", async () => {
+            await initializeSchain(contractManager, schainName, deployer.address, 1, 1);
+            await rechargeSchainWallet(contractManager, schainName, deployer.address, "1000000000000000000");
+            await setCommonPublicKey(contractManager, schainName);
+            await messageProxyForMainnet.connect(deployer).addConnectedChain(schainName);
+
+            const testCallReceiverContract = await ethers.getContractFactory("TestCallReceiverContract");
+            const receiverMock = await testCallReceiverContract.deploy();
+            await messageProxyForMainnet.registerExtraContract(schainName, receiverMock.address);
+
+            const startingCounter = 0;
+            const message1 = {
+                amount: 0,
+                data: ethers.utils.defaultAbiCoder.encode(["uint"], [1]),
+                destinationContract: receiverMock.address,
+                sender: deployer.address,
+                to: client.address
+            };
+
+            const sign = {
+                blsSignature: BlsSignature,
+                counter: Counter,
+                hashA: HashA,
+                hashB: HashB,
+            };
+
+            const sixtyFourTimesA ="0x" + stringToHex("".padStart(64,"A"), null);
+            const event = {
+                msgCounter: BigNumber.from(0),
+                message: sixtyFourTimesA
+            }
+            await expect(
+                messageProxyForMainnet
+                .connect(deployer)
+                .postIncomingMessages(
+                    schainName,
+                    startingCounter,
+                    [message1],
+                    sign
+                ))
+                .to.emit(messageProxyForMainnet, 'PostMessageError')
+                .withArgs(event.msgCounter, event.message);
+
+        });
+
+        it("should return panic error message", async () => {
+            await initializeSchain(contractManager, schainName, deployer.address, 1, 1);
+            await rechargeSchainWallet(contractManager, schainName, deployer.address, "1000000000000000000");
+            await setCommonPublicKey(contractManager, schainName);
+            await messageProxyForMainnet.connect(deployer).addConnectedChain(schainName);
+
+            const testCallReceiverContract = await ethers.getContractFactory("TestCallReceiverContract");
+            const receiverMock = await testCallReceiverContract.deploy();
+            await messageProxyForMainnet.registerExtraContract(schainName, receiverMock.address);
+
+            const startingCounter = 0;
+
+            const message1 = {
+                amount: 0,
+                data: ethers.utils.defaultAbiCoder.encode(["uint"], [2]),
+                destinationContract: receiverMock.address,
+                sender: deployer.address,
+                to: client.address
+            };
+
+            const sign = {
+                blsSignature: BlsSignature,
+                counter: Counter,
+                hashA: HashA,
+                hashB: HashB,
+            };
+
+            const panicErrorCodeDivideByZero = "12";
+            const event = {
+                msgCounter: BigNumber.from(0),
+                message: "0x" + panicErrorCodeDivideByZero.padStart(64, "0")
+            }
+            await expect(
+                messageProxyForMainnet
+                .connect(deployer)
+                .postIncomingMessages(
+                    schainName,
+                    startingCounter,
+                    [message1],
+                    sign
+                ))
+                .to.emit(messageProxyForMainnet, 'PostMessageError')
+                .withArgs(event.msgCounter, event.message);
+        });
+
 
         it("should set version of contracts on mainnet", async () => {
             const version = "1.0.0"
