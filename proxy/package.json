@@ -27,7 +27,7 @@
         "@skalenetwork/etherbase-interfaces": "^0.0.1-develop.20",
         "@skalenetwork/ima-interfaces": "1.0.0-develop.15",
         "@skalenetwork/skale-manager-interfaces": "^0.1.2",
-        "axios": "^0.21.4",
+        "axios": "^0.26.0",
         "dotenv": "^10.0.0",
         "web3": "^1.6.1",
         "ethereumjs-tx": "2.1.2",
