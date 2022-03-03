@@ -23,7 +23,7 @@
         "@nomiclabs/hardhat-ethers": "^2.0.2",
         "@nomiclabs/hardhat-web3": "^2.0.0",
         "@openzeppelin/contracts-upgradeable": "^4.3.2",
-        "@openzeppelin/hardhat-upgrades": "^1.9.0",
+        "@openzeppelin/hardhat-upgrades": "^1.15.0",
         "@skalenetwork/etherbase-interfaces": "^0.0.1-develop.20",
         "@skalenetwork/ima-interfaces": "1.0.0-develop.15",
         "@skalenetwork/skale-manager-interfaces": "^0.1.2",
