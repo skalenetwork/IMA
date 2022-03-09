@@ -757,10 +757,10 @@
   resolved "https://registry.yarnpkg.com/@skalenetwork/etherbase-interfaces/-/etherbase-interfaces-0.0.1-develop.20.tgz#33f61e18d695fd47063aa39dce4df335d26b9528"
   integrity sha512-j3xnuQtOtjvjAoUMJgSUFxRa9/Egkg1RyA8r6PjcEb33VksE4LWLBy0PNFUFehLZv48595JROTcViGeXXwg5HQ==
 
-"@skalenetwork/ima-interfaces@1.0.0-develop.15":
-  version "1.0.0-develop.15"
-  resolved "https://registry.yarnpkg.com/@skalenetwork/ima-interfaces/-/ima-interfaces-1.0.0-develop.15.tgz#111c6f58ceb43a728ed1fd9e1da7d16eb1a7b0c0"
-  integrity sha512-R8fDUjxuoXzq3h4jWEBJR63Y2icAK6U3x4o5jE1PoPcv19VoWN5iWgkh/1vge4W3zQ8jgvn4vB50gOvSEN02pA==
+"@skalenetwork/ima-interfaces@1.0.0-develop.16":
+  version "1.0.0-develop.16"
+  resolved "https://registry.yarnpkg.com/@skalenetwork/ima-interfaces/-/ima-interfaces-1.0.0-develop.16.tgz#9f79790c6e7eb960498f6930e978705f4ee60cc2"
+  integrity sha512-lsNonWKt3BLUlS7tk+w1Yp1o/07Bjj9Hr22zt0dzAqvRhCAB8ITBEeHlysXeQs60lE+bBqvmU/SRMdmMF/kliA==
   dependencies:
     "@skalenetwork/skale-manager-interfaces" "^0.1.2"
 
