@@ -360,7 +360,7 @@ contract MessageProxyForMainnet is SkaleManagerClient, MessageProxy, IMessagePro
      */
     function _checkSchainBalance(bytes32 schainHash) internal view returns (bool) {
         return IWallets(
-            contractManagerOfSkaleManager.getContract("Wallets")
+            payable(contractManagerOfSkaleManager.getContract("Wallets"))
         ).getSchainBalance(schainHash) >= (MESSAGES_LENGTH + 1) * gasLimit * tx.gasprice;
     }
 
