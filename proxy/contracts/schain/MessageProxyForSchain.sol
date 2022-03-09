@@ -101,6 +101,17 @@ contract MessageProxyForSchain is MessageProxy, IMessageProxyForSchainInitialize
     mapping(bytes32 => EnumerableSetUpgradeable.AddressSet) private _registryContracts;
 
     string public version;
+    bool public override messageInProgress;
+
+    /**
+     * @dev Reentrancy guard for postIncomingMessages.
+     */
+    modifier messageInProgressLocker() {
+        require(!messageInProgress, "Message is in progress");
+        messageInProgress = true;
+        _;
+        messageInProgress = false;
+    }
 
     /**
      * @dev Allows DEFAULT_ADMIN_ROLE to initialize registered contracts
@@ -205,6 +216,7 @@ contract MessageProxyForSchain is MessageProxy, IMessageProxyForSchainInitialize
     )
         external
         override(IMessageProxy, MessageProxy)
+        messageInProgressLocker
     {
         bytes32 fromChainHash = keccak256(abi.encodePacked(fromChainName));
         require(connectedChains[fromChainHash].inited, "Chain is not initialized");
@@ -215,10 +227,10 @@ contract MessageProxyForSchain is MessageProxy, IMessageProxyForSchainInitialize
         require(
             startingCounter == connectedChains[fromChainHash].incomingMessageCounter,
             "Starting counter is not qual to incoming message counter");
+        connectedChains[fromChainHash].incomingMessageCounter += messages.length;
         for (uint256 i = 0; i < messages.length; i++) {
             _callReceiverContract(fromChainHash, messages[i], startingCounter + 1);
         }
-        connectedChains[fromChainHash].incomingMessageCounter += messages.length;
         _topUpBalance();
     }
 

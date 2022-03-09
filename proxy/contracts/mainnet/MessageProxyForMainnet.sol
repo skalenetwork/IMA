@@ -228,6 +228,7 @@ contract MessageProxyForMainnet is SkaleManagerClient, MessageProxy, IMessagePro
         uint additionalGasPerMessage = 
             (gasTotal - gasleft() + headerMessageGasCost + messages.length * messageGasCost) / messages.length;
         uint notReimbursedGas = 0;
+        connectedChains[fromSchainHash].incomingMessageCounter += messages.length;
         for (uint256 i = 0; i < messages.length; i++) {
             gasTotal = gasleft();
             if (isContractRegistered(bytes32(0), messages[i].destinationContract)) {
@@ -244,7 +245,6 @@ contract MessageProxyForMainnet is SkaleManagerClient, MessageProxy, IMessagePro
                 notReimbursedGas += gasTotal - gasleft() + additionalGasPerMessage;
             }
         }
-        connectedChains[fromSchainHash].incomingMessageCounter += messages.length;
         communityPool.refundGasBySchainWallet(fromSchainHash, payable(msg.sender), notReimbursedGas);
     }
 
