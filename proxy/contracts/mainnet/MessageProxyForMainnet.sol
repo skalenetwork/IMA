@@ -26,6 +26,8 @@ import "@skalenetwork/skale-manager-interfaces/IWallets.sol";
 import "@skalenetwork/skale-manager-interfaces/ISchains.sol";
 import "@skalenetwork/ima-interfaces/mainnet/IMessageProxyForMainnet.sol";
 import "@skalenetwork/ima-interfaces/mainnet/ICommunityPool.sol";
+import "@skalenetwork/skale-manager-interfaces/ISchainsInternal.sol";
+
 
 import "../MessageProxy.sol";
 import "./SkaleManagerClient.sol";
@@ -135,7 +137,9 @@ contract MessageProxyForMainnet is SkaleManagerClient, MessageProxy, IMessagePro
      */
     function addConnectedChain(string calldata schainName) external override {
         bytes32 schainHash = keccak256(abi.encodePacked(schainName));
-        require(schainHash != MAINNET_HASH, "SKALE chain name is incorrect");
+        require(ISchainsInternal(
+            contractManagerOfSkaleManager.getContract("SchainsInternal")
+        ).isSchainExist(schainHash), "SKALE chain must exist");
         _addConnectedChain(schainHash);
     }
 
