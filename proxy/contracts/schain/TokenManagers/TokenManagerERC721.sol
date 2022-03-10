@@ -288,15 +288,17 @@ contract TokenManagerERC721 is TokenManager, ITokenManagerERC721InitializeFuncti
         private
     {
         bool isMainChainToken;
-        ERC721BurnableUpgradeable contractOnSchain = clonesErc721[chainHash][contractOnMainChain];
+        ERC721OnChain contractOnSchain = clonesErc721[chainHash][contractOnMainChain];
         if (address(contractOnSchain) == address(0)) {
-            contractOnSchain = ERC721BurnableUpgradeable(contractOnMainChain);
+            contractOnSchain = ERC721OnChain(contractOnMainChain);
+            require(!addedClones[contractOnSchain], "Incorrect main chain token");
             isMainChainToken = true;
         }
         require(address(contractOnSchain).isContract(), "No token clone on schain");
         require(contractOnSchain.getApproved(tokenId) == address(this), "Not allowed ERC721 Token");
         bytes memory data = Messages.encodeTransferErc721Message(contractOnMainChain, to, tokenId);
         if (isMainChainToken) {
+            require(chainHash != MAINNET_HASH, "Main chain token could not be transfered to Mainnet");
             data = _receiveERC721(
                 chainHash,
                 address(contractOnSchain),
