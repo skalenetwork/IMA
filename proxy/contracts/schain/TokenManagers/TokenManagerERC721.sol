@@ -29,6 +29,13 @@ import "../tokens/ERC721OnChain.sol";
 import "../TokenManager.sol";
 
 
+interface ITokenManagerERC721InitializeFunction is ITokenManagerERC721 {
+    function initializeAllClonesERC721(
+        address[] calldata contracts
+    ) external;
+}
+
+
 /**
  * @title TokenManagerERC721
  * @dev Runs on SKALE Chains,
@@ -36,7 +43,7 @@ import "../TokenManager.sol";
  * and creates ERC721 clones.
  * TokenManagerERC721 mints tokens. When a user exits a SKALE chain, it burns them.
  */
-contract TokenManagerERC721 is TokenManager, ITokenManagerERC721 {
+contract TokenManagerERC721 is TokenManager, ITokenManagerERC721InitializeFunction {
     using AddressUpgradeable for address;
     using EnumerableSetUpgradeable for EnumerableSetUpgradeable.AddressSet;
 
@@ -85,6 +92,27 @@ contract TokenManagerERC721 is TokenManager, ITokenManagerERC721 {
      * or transferred on SKALE chain.
      */
     event ERC721TokenReady(bytes32 indexed chainHash, address indexed contractOnMainnet, uint256 tokenId);
+
+    /**
+     * @dev Allows DEFAULT_ADMIN_ROLE to initialize clones ERC721
+     * Notice - this function will be executed only once during upgrade
+     * 
+     * Requirements:
+     * 
+     * `msg.sender` should have DEFAULT_ADMIN_ROLE
+     */
+    function initializeAllClonesERC721(address[] calldata contracts) external override {
+        require(hasRole(DEFAULT_ADMIN_ROLE, msg.sender), "Sender is not authorized");
+        for (uint256 i = 0; i < contracts.length; i++) {
+            if (
+                address(deprecatedClonesErc721[contracts[i]]).isContract() &&
+                !address(clonesErc721[MAINNET_HASH][contracts[i]]).isContract()
+            ) {
+                clonesErc721[MAINNET_HASH][contracts[i]] = deprecatedClonesErc721[contracts[i]];
+                delete deprecatedClonesErc721[contracts[i]];
+            }
+        }
+    }
 
     /**
      * @dev Move tokens from schain to mainnet.
@@ -139,7 +167,6 @@ contract TokenManagerERC721 is TokenManager, ITokenManagerERC721 {
         override
         onlyMessageProxy
         checkReceiverChain(fromChainHash, sender)
-        returns (address)
     {
         Messages.MessageType operation = Messages.getMessageType(data);
         address receiver = address(0);
@@ -151,7 +178,6 @@ contract TokenManagerERC721 is TokenManager, ITokenManagerERC721 {
         } else {
             revert("MessageType is unknown");
         }
-        return receiver;
     }
 
     /**

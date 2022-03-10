@@ -27,6 +27,8 @@ const ws = require( "ws" ); // https://www.npmjs.com/package/ws
 const urllib = require( "urllib" ); // https://www.npmjs.com/package/urllib
 const net = require( "net" );
 
+const g_nConnectionTimeoutSeconds = 60;
+
 function is_http_url( strURL ) {
     try {
         if( !owaspUtils.validateURL( strURL ) )
@@ -72,7 +74,7 @@ async function wait_web_socket_is_open( socket, fnDone, fnStep ) {
                     reject( new Error( "web socket wait timout by callback on step " + nStep ) );
                 }
             }
-        }, 1000 );
+        }, 1000 ); // 1 second
     } );
     await Promise.all( [ promiseComplete ] );
 }
@@ -118,7 +120,7 @@ async function do_connect( joCall, opts, fn ) {
                         log.write( cc.u( joCall.url ) + cc.error( " web socket wait error detected: " ) + cc.warning( strWsError ) + "\n" );
                         return false;
                     }
-                    if( nStep >= 60 ) {
+                    if( nStep >= g_nConnectionTimeoutSeconds ) {
                         strWsError = "wait timeout, web socket is connecting too long";
                         log.write( cc.u( joCall.url ) + cc.error( " web socket wait timeout detected" ) + "\n" );
                         return false; // stop waiting
@@ -153,6 +155,8 @@ async function do_connect_if_needed( joCall, opts, fn ) {
     }
 }
 
+const impl_sleep = ( milliseconds ) => { return new Promise( resolve => setTimeout( resolve, milliseconds ) ); };
+
 async function do_call( joCall, joIn, fn ) {
     // console.log( "--- --- --- initial joIn is", joIn );
     joIn = enrich_top_level_json_fields( joIn );
@@ -170,46 +174,72 @@ async function do_call( joCall, joIn, fn ) {
         }, 20 * 1000 );
         joCall.wsConn.send( JSON.stringify( joIn ) );
     } else {
-        const promiseComplete = new Promise( function( resolve, reject ) {
-            // console.log( "--- --- --- call URL is", joCall.url );
-            if( !owaspUtils.validateURL( joCall.url ) ) {
-                // throw new Error( "JSON RPC CALLER cannot do query post to invalid URL: " + joCall.url );
-                reject( new Error( "JSON RPC CALLER cannot do query post to invalid URL: " + joCall.url ) );
+        // console.log( "--- --- --- call URL is", joCall.url );
+        if( !owaspUtils.validateURL( joCall.url ) ) {
+            // throw new Error( "JSON RPC CALLER cannot do query post to invalid URL: " + joCall.url );
+            await fn( joIn, null, "JSON RPC CALLER cannot do query post to invalid URL: " + joCall.url );
+            return;
+        }
+        const strBody = JSON.stringify( joIn );
+        // console.log( "--- --- --- agentOptions is", agentOptions );
+        // console.log( "--- --- --- joIn is", strBody );
+        let bCompleteFlag = false;
+        let errCall = null, joOut = null;
+        urllib.request( joCall.url, {
+            "method": "POST",
+            "timeout": g_nConnectionTimeoutSeconds * 1000, // in milliseconds
+            "headers": {
+                "content-type": "application/json"
+                // "Accept": "*/*",
+                // "Content-Length": strBody.length,
+            },
+            "content": strBody,
+            "ca": ( joCall.joRpcOptions && joCall.joRpcOptions.ca && typeof joCall.joRpcOptions.ca == "string" ) ? joCall.joRpcOptions.ca : null,
+            "cert": ( joCall.joRpcOptions && joCall.joRpcOptions.cert && typeof joCall.joRpcOptions.cert == "string" ) ? joCall.joRpcOptions.cert : null,
+            "key": ( joCall.joRpcOptions && joCall.joRpcOptions.key && typeof joCall.joRpcOptions.key == "string" ) ? joCall.joRpcOptions.key : null
+        }, function( err, body, response ) {
+            // console.log( "--- --- --- err is", err );
+            // console.log( "--- --- --- response is", response );
+            // console.log( "--- --- --- body is", body );
+            if( response && response.statusCode && response.statusCode !== 200 )
+                log.write( cc.error( "WARNING:" ) + cc.warning( " REST call status code is " ) + cc.info( response.statusCode ) + "\n" );
+            if( err ) {
+                log.write( cc.u( joCall.url ) + cc.error( " REST error " ) + cc.warning( err.toString() ) + "\n" );
+                bCompleteFlag = true;
+                joOut = null;
+                errCall = "RPC call error: " + err.toString();
                 return;
             }
-            const strBody = JSON.stringify( joIn );
-            // console.log( "--- --- --- agentOptions is", agentOptions );
-            // console.log( "--- --- --- joIn is", strBody );
-            urllib.request( joCall.url, {
-                "method": "POST",
-                "headers": {
-                    "content-type": "application/json"
-                    // "Accept": "*/*",
-                    // "Content-Length": strBody.length,
-                },
-                "content": strBody,
-                "ca": ( joCall.joRpcOptions && joCall.joRpcOptions.ca && typeof joCall.joRpcOptions.ca == "string" ) ? joCall.joRpcOptions.ca : null,
-                "cert": ( joCall.joRpcOptions && joCall.joRpcOptions.cert && typeof joCall.joRpcOptions.cert == "string" ) ? joCall.joRpcOptions.cert : null,
-                "key": ( joCall.joRpcOptions && joCall.joRpcOptions.key && typeof joCall.joRpcOptions.key == "string" ) ? joCall.joRpcOptions.key : null
-            },
-            async function( err, body, response ) {
-                // console.log( "--- --- --- err is", err );
-                // console.log( "--- --- --- response is", response );
-                // console.log( "--- --- --- body is", body );
-                if( response && response.statusCode && response.statusCode !== 200 )
-                    log.write( cc.error( "WARNING:" ) + cc.warning( " REST call status code is " ) + cc.info( response.statusCode ) + "\n" );
-                if( err ) {
-                    log.write( cc.u( joCall.url ) + cc.error( " REST error " ) + cc.warning( err.toString() ) + "\n" );
-                    await fn( joIn, null, err );
-                    reject( new Error( "" + joCall.url + " REST error " + err.toString() ) );
-                    return;
-                }
-                const joOut = JSON.parse( body );
-                await fn( joIn, joOut, null );
-                resolve();
-            } );
+            try {
+                joOut = JSON.parse( body );
+                errCall = null;
+            } catch ( err ) {
+                bCompleteFlag = true;
+                joOut = null;
+                errCall = "Responce body parse error: " + err.toString();
+                return;
+            }
+            bCompleteFlag = true;
         } );
-        await Promise.all( [ promiseComplete ] );
+        for( let idxWait = 0; ! bCompleteFlag; ++ idxWait ) {
+            if( idxWait < 50 )
+                await impl_sleep( 5 );
+            else if( idxWait < 100 )
+                await impl_sleep( 10 );
+            else if( idxWait < 1000 )
+                await impl_sleep( 100 );
+            else {
+                const nLastWaitPeriod = 200;
+                if( ( idxWait - 1000 ) * nLastWaitPeriod > g_nConnectionTimeoutSeconds )
+                    bCompleteFlag = true;
+                else
+                    await impl_sleep( nLastWaitPeriod );
+            }
+        } // for( let idxWait = 0; ! bCompleteFlag; ++ idxWait )
+        try {
+            await fn( joIn, joOut, errCall );
+        } catch ( err ) {
+        }
     }
 }
 

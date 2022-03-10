@@ -31,6 +31,13 @@ import "../TokenManager.sol";
 import "../../thirdparty/ERC1155ReceiverUpgradeableWithoutGap.sol";
 
 
+interface ITokenManagerERC1155InitializeFunction is ITokenManagerERC1155 {
+    function initializeAllClonesERC1155(
+        address[] calldata contracts
+    ) external;
+}
+
+
 /**
  * @title TokenManagerERC1155
  * @dev Runs on SKALE Chains,
@@ -38,7 +45,11 @@ import "../../thirdparty/ERC1155ReceiverUpgradeableWithoutGap.sol";
  * and creates ERC1155 clones.
  * TokenManagerERC1155 mints tokens. When a user exits a SKALE chain, it burns them.
  */
-contract TokenManagerERC1155 is TokenManager, ERC1155ReceiverUpgradeableWithoutGap, ITokenManagerERC1155 {
+contract TokenManagerERC1155 is
+    TokenManager,
+    ERC1155ReceiverUpgradeableWithoutGap,
+    ITokenManagerERC1155InitializeFunction
+{
     using AddressUpgradeable for address;
     using EnumerableSetUpgradeable for EnumerableSetUpgradeable.AddressSet;
 
@@ -93,6 +104,27 @@ contract TokenManagerERC1155 is TokenManager, ERC1155ReceiverUpgradeableWithoutG
         uint256[] ids,
         uint256[] amounts
     );
+
+    /**
+     * @dev Allows DEFAULT_ADMIN_ROLE to initialize clones ERC1155
+     * Notice - this function will be executed only once during upgrade
+     * 
+     * Requirements:
+     * 
+     * `msg.sender` should have DEFAULT_ADMIN_ROLE
+     */
+    function initializeAllClonesERC1155(address[] calldata contracts) external override {
+        require(hasRole(DEFAULT_ADMIN_ROLE, msg.sender), "Sender is not authorized");
+        for (uint256 i = 0; i < contracts.length; i++) {
+            if (
+                address(deprecatedClonesErc1155[contracts[i]]).isContract() &&
+                !address(clonesErc1155[MAINNET_HASH][contracts[i]]).isContract()
+            ) {
+                clonesErc1155[MAINNET_HASH][contracts[i]] = deprecatedClonesErc1155[contracts[i]];
+                delete deprecatedClonesErc1155[contracts[i]];
+            }
+        }
+    }
 
     /**
      * @dev Move tokens from schain to mainnet.
@@ -186,7 +218,6 @@ contract TokenManagerERC1155 is TokenManager, ERC1155ReceiverUpgradeableWithoutG
         override
         onlyMessageProxy
         checkReceiverChain(fromChainHash, sender)
-        returns (address)
     {
         Messages.MessageType operation = Messages.getMessageType(data);
         address receiver = address(0);
@@ -203,7 +234,6 @@ contract TokenManagerERC1155 is TokenManager, ERC1155ReceiverUpgradeableWithoutG
         } else {
             revert("MessageType is unknown");
         }
-        return receiver;
     }
 
     /**
