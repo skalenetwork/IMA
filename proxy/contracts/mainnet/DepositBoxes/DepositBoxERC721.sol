@@ -136,6 +136,7 @@ contract DepositBoxERC721 is DepositBox, IDepositBoxERC721 {
         bytes calldata data
     )
         external
+        virtual
         override
         onlyMessageProxy
         whenNotKilled(schainHash)
@@ -204,6 +205,7 @@ contract DepositBoxERC721 is DepositBox, IDepositBoxERC721 {
     )
         external
         view
+        virtual
         override
         checkReceiverChain(schainHash, sender)
         returns (address)
@@ -285,7 +287,7 @@ contract DepositBoxERC721 is DepositBox, IDepositBoxERC721 {
     /**
      * @dev Removes the ids of tokens that was transferred from schain.
      */
-    function _removeTransferredAmount(address erc721Token, uint256 tokenId) private {
+    function _removeTransferredAmount(address erc721Token, uint256 tokenId) internal {
         transferredAmount[erc721Token][tokenId] = bytes32(0);
     }
 
@@ -304,7 +306,8 @@ contract DepositBoxERC721 is DepositBox, IDepositBoxERC721 {
         address to,
         uint256 tokenId
     )
-        private
+        internal
+        virtual
         returns (bytes memory data)
     {
         bytes32 schainHash = keccak256(abi.encodePacked(schainName));
@@ -333,7 +336,7 @@ contract DepositBoxERC721 is DepositBox, IDepositBoxERC721 {
      * 
      * - Given address should be contract.
      */
-    function _addERC721ForSchain(string calldata schainName, address erc721OnMainnet) private {
+    function _addERC721ForSchain(string calldata schainName, address erc721OnMainnet) internal {
         bytes32 schainHash = keccak256(abi.encodePacked(schainName));
         require(erc721OnMainnet.isContract(), "Given address is not a contract");
         require(!_schainToERC721[schainHash].contains(erc721OnMainnet), "ERC721 Token was already added");
@@ -344,10 +347,14 @@ contract DepositBoxERC721 is DepositBox, IDepositBoxERC721 {
     /**
      * @dev Returns info about ERC721 token such as token name, symbol.
      */
-    function _getTokenInfo(IERC721MetadataUpgradeable erc721) private view returns (Messages.Erc721TokenInfo memory) {
+    function _getTokenInfo(IERC721MetadataUpgradeable erc721) internal view returns (Messages.Erc721TokenInfo memory) {
         return Messages.Erc721TokenInfo({
             name: erc721.name(),
             symbol: erc721.symbol()
         });
+    }
+
+    function _isERC721AddedToSchain(bytes32 schainHash, address erc721OnMainnet) internal view returns (bool) {
+        return _schainToERC721[schainHash].contains(erc721OnMainnet);
     }
 }
