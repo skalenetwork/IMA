@@ -36,6 +36,7 @@ interface ISchainsInternalTester {
     function addNodesToSchainsGroups(bytes32 schainHash, uint[] memory nodes) external;
     function isNodeAddressesInGroup(bytes32 schainHash, address sender) external view returns (bool);
     function isOwnerAddress(address from, bytes32 schainHash) external view returns (bool);
+    function isSchainExist(bytes32 schainHash) external view returns (bool);
 }
 
 
@@ -98,5 +99,9 @@ contract SchainsInternal is ISchainsInternalTester {
 
     function isOwnerAddress(address from, bytes32 schainHash) external view override returns (bool) {
         return schains[schainHash].owner == from;
+    }
+
+    function isSchainExist(bytes32) external view override returns (bool) {
+        return true;
     }
 }
