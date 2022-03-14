@@ -436,7 +436,10 @@ library Messages {
     function decodeTransferErc721MessageWithMetadata(
         bytes calldata data
     ) internal pure returns (TransferErc721MessageWithMetadata memory) {
-        require(getMessageType(data) == MessageType.TRANSFER_ERC721_WITH_METADATA, "Message type is not ERC721 transfer");
+        require(
+            getMessageType(data) == MessageType.TRANSFER_ERC721_WITH_METADATA,
+            "Message type is not ERC721 transfer"
+        );
         return abi.decode(data, (TransferErc721MessageWithMetadata));
     }
 

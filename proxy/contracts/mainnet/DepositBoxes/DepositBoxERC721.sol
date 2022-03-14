@@ -280,7 +280,7 @@ contract DepositBoxERC721 is DepositBox, IDepositBoxERC721 {
     /**
      * @dev Saves the ids of tokens that was transferred to schain.
      */
-    function _saveTransferredAmount(bytes32 schainHash, address erc721Token, uint256 tokenId) private {
+    function _saveTransferredAmount(bytes32 schainHash, address erc721Token, uint256 tokenId) internal {
         transferredAmount[erc721Token][tokenId] = schainHash;
     }
 
