@@ -70,7 +70,11 @@ contract ERC721OnChain is
         returns (bool)
     {
         require(_exists(tokenId), "Token does not exists");
-        require(_isApprovedOrOwner(msg.sender, tokenId), "Sender can not set token URI");
+        require(
+            _isApprovedOrOwner(msg.sender, tokenId) ||
+            hasRole(MINTER_ROLE, _msgSender()),
+            "Sender can not set token URI"
+        );
         _setTokenURI(tokenId, tokenUri);
         return true;
     }
