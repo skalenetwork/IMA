@@ -215,22 +215,6 @@ contract DepositBoxERC721 is DepositBox, IDepositBoxERC721 {
     }
 
     /**
-     * @dev Should return true if token was added by Schain owner or 
-     * automatically added after sending to schain if whitelist was turned off.
-     */
-    function getSchainToERC721(
-        string calldata schainName,
-        address erc721OnMainnet
-    )
-        external
-        view
-        override
-        returns (bool)
-    {
-        return _schainToERC721[keccak256(abi.encodePacked(schainName))].contains(erc721OnMainnet);
-    }
-
-    /**
      * @dev Should return length of a set of all mapped tokens which were added by Schain owner 
      * or added automatically after sending to schain if whitelist was turned off.
      */
@@ -278,10 +262,19 @@ contract DepositBoxERC721 is DepositBox, IDepositBoxERC721 {
     }
 
     /**
-     * @dev Saves the ids of tokens that was transferred to schain.
+     * @dev Should return true if token was added by Schain owner or 
+     * automatically added after sending to schain if whitelist was turned off.
      */
-    function _saveTransferredAmount(bytes32 schainHash, address erc721Token, uint256 tokenId) internal {
-        transferredAmount[erc721Token][tokenId] = schainHash;
+    function getSchainToERC721(
+        string calldata schainName,
+        address erc721OnMainnet
+    )
+        public
+        view
+        override
+        returns (bool)
+    {
+        return _schainToERC721[keccak256(abi.encodePacked(schainName))].contains(erc721OnMainnet);
     }
 
     /**
@@ -354,7 +347,10 @@ contract DepositBoxERC721 is DepositBox, IDepositBoxERC721 {
         });
     }
 
-    function _isERC721AddedToSchain(bytes32 schainHash, address erc721OnMainnet) internal view returns (bool) {
-        return _schainToERC721[schainHash].contains(erc721OnMainnet);
+    /**
+     * @dev Saves the ids of tokens that was transferred to schain.
+     */
+    function _saveTransferredAmount(bytes32 schainHash, address erc721Token, uint256 tokenId) private {
+        transferredAmount[erc721Token][tokenId] = schainHash;
     }
 }

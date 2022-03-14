@@ -164,6 +164,7 @@ contract TokenManagerERC721 is TokenManager, ITokenManagerERC721InitializeFuncti
         bytes calldata data
     )
         external
+        virtual
         override
         onlyMessageProxy
         checkReceiverChain(fromChainHash, sender)
@@ -232,7 +233,7 @@ contract TokenManagerERC721 is TokenManager, ITokenManagerERC721InitializeFuncti
      * Emits a {ERC20TokenCreated} event if token did not exist and was automatically deployed.
      * Emits a {ERC20TokenReceived} event on success.
      */
-    function _sendERC721(bytes32 fromChainHash, bytes calldata data) private returns (address) {
+    function _sendERC721(bytes32 fromChainHash, bytes calldata data) internal virtual returns (address) {
         Messages.MessageType messageType = Messages.getMessageType(data);
         address receiver;
         address token;
@@ -273,6 +274,78 @@ contract TokenManagerERC721 is TokenManager, ITokenManagerERC721InitializeFuncti
         }
         emit ERC721TokenReceived(fromChainHash, token, address(contractOnSchain), tokenId);
         return receiver;
+    }
+
+    /**
+     * @dev Removes the ids of tokens that was transferred from schain.
+     */
+    function _removeTransferredAmount(bytes32 chainHash, address erc721Token, uint256 tokenId) internal {
+        require(transferredAmount[erc721Token][tokenId] == chainHash, "Token was already transferred from chain");
+        transferredAmount[erc721Token][tokenId] = bytes32(0);
+    }
+
+    /**
+     * @dev Allows DepositBoxERC721 to receive ERC721 tokens.
+     * 
+     * Emits an {ERC721TokenReady} event.
+     * 
+     * Requirements:
+     * 
+     * - Whitelist should be turned off for auto adding tokens to DepositBoxERC721.
+     */
+    function _receiveERC721(
+        bytes32 chainHash,
+        address erc721OnMainChain,
+        address to,
+        uint256 tokenId
+    )
+        internal
+        virtual
+        returns (bytes memory data)
+    {
+        bool isERC721AddedToSchain = _schainToERC721[chainHash].contains(erc721OnMainChain);
+        if (!isERC721AddedToSchain) {
+            _addERC721ForSchain(chainHash, erc721OnMainChain);
+            data = Messages.encodeTransferErc721AndTokenInfoMessage(
+                erc721OnMainChain,
+                to,
+                tokenId,
+                _getTokenInfo(IERC721MetadataUpgradeable(erc721OnMainChain))
+            );
+        } else {
+            data = Messages.encodeTransferErc721Message(erc721OnMainChain, to, tokenId);
+        }
+        emit ERC721TokenReady(chainHash, erc721OnMainChain, tokenId);
+    }
+
+    /**
+     * @dev Adds an ERC721 token to DepositBoxERC721.
+     * 
+     * Emits an {ERC721TokenAdded} event.
+     * 
+     * Requirements:
+     * 
+     * - Given address should be contract.
+     */
+    function _addERC721ForSchain(bytes32 chainHash, address erc721OnMainChain) internal {
+        require(erc721OnMainChain.isContract(), "Given address is not a contract");
+        require(!_schainToERC721[chainHash].contains(erc721OnMainChain), "ERC721 Token was already added");
+        _schainToERC721[chainHash].add(erc721OnMainChain);
+        emit ERC721TokenAdded(chainHash, erc721OnMainChain, address(0));
+    }
+
+    /**
+     * @dev Returns info about ERC721 token such as token name, symbol.
+     */
+    function _getTokenInfo(IERC721MetadataUpgradeable erc721) internal view returns (Messages.Erc721TokenInfo memory) {
+        return Messages.Erc721TokenInfo({
+            name: erc721.name(),
+            symbol: erc721.symbol()
+        });
+    }
+
+    function _isERC721AddedToSchain(bytes32 chainHash, address erc721OnMainChain) internal view returns (bool) {
+        return _schainToERC721[chainHash].contains(erc721OnMainChain);
     }
 
     /**
@@ -320,72 +393,5 @@ contract TokenManagerERC721 is TokenManager, ITokenManagerERC721InitializeFuncti
     function _saveTransferredAmount(bytes32 chainHash, address erc721Token, uint256 tokenId) private {
         require(transferredAmount[erc721Token][tokenId] == bytes32(0), "Token was already transferred to chain");
         transferredAmount[erc721Token][tokenId] = chainHash;
-    }
-
-    /**
-     * @dev Removes the ids of tokens that was transferred from schain.
-     */
-    function _removeTransferredAmount(bytes32 chainHash, address erc721Token, uint256 tokenId) private {
-        require(transferredAmount[erc721Token][tokenId] == chainHash, "Token was already transferred from chain");
-        transferredAmount[erc721Token][tokenId] = bytes32(0);
-    }
-
-    /**
-     * @dev Allows DepositBoxERC721 to receive ERC721 tokens.
-     * 
-     * Emits an {ERC721TokenReady} event.
-     * 
-     * Requirements:
-     * 
-     * - Whitelist should be turned off for auto adding tokens to DepositBoxERC721.
-     */
-    function _receiveERC721(
-        bytes32 chainHash,
-        address erc721OnMainChain,
-        address to,
-        uint256 tokenId
-    )
-        private
-        returns (bytes memory data)
-    {
-        bool isERC721AddedToSchain = _schainToERC721[chainHash].contains(erc721OnMainChain);
-        if (!isERC721AddedToSchain) {
-            _addERC721ForSchain(chainHash, erc721OnMainChain);
-            data = Messages.encodeTransferErc721AndTokenInfoMessage(
-                erc721OnMainChain,
-                to,
-                tokenId,
-                _getTokenInfo(IERC721MetadataUpgradeable(erc721OnMainChain))
-            );
-        } else {
-            data = Messages.encodeTransferErc721Message(erc721OnMainChain, to, tokenId);
-        }
-        emit ERC721TokenReady(chainHash, erc721OnMainChain, tokenId);
-    }
-
-    /**
-     * @dev Adds an ERC721 token to DepositBoxERC721.
-     * 
-     * Emits an {ERC721TokenAdded} event.
-     * 
-     * Requirements:
-     * 
-     * - Given address should be contract.
-     */
-    function _addERC721ForSchain(bytes32 chainHash, address erc721OnMainChain) private {
-        require(erc721OnMainChain.isContract(), "Given address is not a contract");
-        require(!_schainToERC721[chainHash].contains(erc721OnMainChain), "ERC721 Token was already added");
-        _schainToERC721[chainHash].add(erc721OnMainChain);
-        emit ERC721TokenAdded(chainHash, erc721OnMainChain, address(0));
-    }
-
-    /**
-     * @dev Returns info about ERC721 token such as token name, symbol.
-     */
-    function _getTokenInfo(IERC721MetadataUpgradeable erc721) private view returns (Messages.Erc721TokenInfo memory) {
-        return Messages.Erc721TokenInfo({
-            name: erc721.name(),
-            symbol: erc721.symbol()
-        });
     }
 }

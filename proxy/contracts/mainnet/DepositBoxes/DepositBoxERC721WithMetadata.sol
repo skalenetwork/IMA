@@ -23,8 +23,6 @@ pragma solidity 0.8.6;
 
 import "@openzeppelin/contracts-upgradeable/token/ERC721/extensions/IERC721MetadataUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/utils/AddressUpgradeable.sol";
-import "@skalenetwork/ima-interfaces/mainnet/DepositBoxes/IDepositBoxERC721.sol";
-import "@openzeppelin/contracts-upgradeable/utils/structs/EnumerableSetUpgradeable.sol";
 
 import "./DepositBoxERC721.sol";
 import "../../Messages.sol";
@@ -108,8 +106,7 @@ contract DepositBoxERC721WithMetadata is DepositBoxERC721 {
         override
         returns (bytes memory data)
     {
-        bytes32 schainHash = keccak256(abi.encodePacked(schainName));
-        bool isERC721AddedToSchain = _isERC721AddedToSchain(schainHash, erc721OnMainnet);
+        bool isERC721AddedToSchain = getSchainToERC721(schainName, erc721OnMainnet);
         if (!isERC721AddedToSchain) {
             require(!isWhitelisted(schainName), "Whitelist is enabled");
             _addERC721ForSchain(schainName, erc721OnMainnet);
