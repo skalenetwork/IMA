@@ -100,8 +100,7 @@ export const contracts = [
     "DepositBoxEth",
     "DepositBoxERC20",
     "DepositBoxERC721",
-    "DepositBoxERC1155",
-    "DepositBoxERC721WithMetadata"
+    "DepositBoxERC1155"
 ]
 
 async function main() {
@@ -226,6 +225,9 @@ async function main() {
         outputObject[contractKey + "_address"] = deployed.get(contract)?.address;
         outputObject[contractKey + "_abi"] = getAbi(deployed.get(contract)?.interface);
     }
+
+    outputObject[getContractKeyInAbiFile("DepositBoxERC721WithMetadata") + "_address"] = deployed.get("DepositBoxERC721WithMetadata")?.address;
+    outputObject[getContractKeyInAbiFile("DepositBoxERC721WithMetadata") + "_abi"] = getAbi(deployed.get("DepositBoxERC721WithMetadata")?.interface);
 
     await fs.writeFile("data/proxyMainnet.json", JSON.stringify(outputObject, null, 4));
 
