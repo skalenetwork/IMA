@@ -513,7 +513,7 @@ describe("DepositBoxEth", () => {
                 .should.be.eventually.rejectedWith("User has insufficient ETH");
         });
 
-        it("should transfer eth fallback attack", async () => {
+        it.only("should transfer eth fallback attack", async () => {
 
             const senderFromSchain = deployer.address;
             const wei = "30000000000000000";
@@ -558,8 +558,10 @@ describe("DepositBoxEth", () => {
             expect(BigNumber.from(await depositBoxEth.transferredAmount(schainHash)).toString()).to.be.equal(BigNumber.from(wei).mul(2).toString());
 
             const balanceBefore = await getBalance(deployer.address);
-            await messageProxy.connect(deployer).postIncomingMessages(schainName, 0, [message], sign);
+            const tx = await messageProxy.connect(deployer).postIncomingMessages(schainName, 0, [message], sign);
             const balance = await getBalance(deployer.address);
+            const gasprice = (tx.gasPrice)?.toNumber() as number;
+            console.log((balance-balanceBefore)*1e18/gasprice);
             balance.should.not.be.lessThan(balanceBefore);
             balance.should.be.almost(balanceBefore);
 
