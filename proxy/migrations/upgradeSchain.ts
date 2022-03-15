@@ -223,14 +223,14 @@ async function main() {
             await tokenManagerERC721WithMetadata.deployTransaction.wait();
             console.log(chalk.yellowBright("Grant role DEFAULT_ADMIN_ROLE of", tokenManagerERC721WithMetadata.address, "to", safe));
             await (await tokenManagerERC721WithMetadata.grantRole(await tokenManagerERC721WithMetadata.DEFAULT_ADMIN_ROLE(), safe)).wait();
-            console.log(chalk.yellow("Prepare transaction to register DepositBox", tokenManagerERC721WithMetadata.address, "in Linker", abi.linker_address));
+            console.log(chalk.yellow("Prepare transaction to register TokenManager", tokenManagerERC721WithMetadata.address, "in Linker", abi[getContractKeyInAbiFile(tokenManagerLinkerName) + "_address"]));
             safeTransactions.push(encodeTransaction(
                 0,
                 abi[getContractKeyInAbiFile(tokenManagerLinkerName) + "_address"],
                 0,
                 tokenManagerLinker.interface.encodeFunctionData("registerTokenManager", [tokenManagerERC721WithMetadata.address])
             ));
-            console.log(chalk.yellow("Prepare transaction to register DepositBox", tokenManagerERC721WithMetadata.address, "as contract for all in MessageProxy", abi.message_proxy_for_mainnet_address));
+            console.log(chalk.yellow("Prepare transaction to register TokenManager", tokenManagerERC721WithMetadata.address, "as contract for all in MessageProxy", abi[getContractKeyInAbiFile(messageProxyForSchainName) + "_address"]));
             safeTransactions.push(encodeTransaction(
                 0,
                 abi[getContractKeyInAbiFile(messageProxyForSchainName) + "_address"],

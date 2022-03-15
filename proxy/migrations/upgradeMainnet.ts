@@ -248,14 +248,14 @@ async function main() {
                 console.log(chalk.yellowBright("Revoke role DEFAULT_ADMIN_ROLE of", depositBoxERC721WithMetadata.address, "from", deployer.address));
                 await (await depositBoxERC721WithMetadata.revokeRole(await depositBoxERC721WithMetadata.DEFAULT_ADMIN_ROLE(), deployer.address)).wait();
             }
-            console.log(chalk.yellow("Prepare transaction to register DepositBox", depositBoxERC721WithMetadata.address, "in Linker", abi.linker_address));
+            console.log(chalk.yellow("Prepare transaction to register DepositBox", depositBoxERC721WithMetadata.address, "in Linker", abi[getContractKeyInAbiFile(linkerName) + "_address"]));
             safeTransactions.push(encodeTransaction(
                 0,
                 abi[getContractKeyInAbiFile(linkerName) + "_address"],
                 0,
                 linker.interface.encodeFunctionData("registerMainnetContract", [depositBoxERC721WithMetadata.address])
             ));
-            console.log(chalk.yellow("Prepare transaction to register DepositBox", depositBoxERC721WithMetadata.address, "as contract for all in MessageProxy", abi.message_proxy_for_mainnet_address));
+            console.log(chalk.yellow("Prepare transaction to register DepositBox", depositBoxERC721WithMetadata.address, "as contract for all in MessageProxy", abi[getContractKeyInAbiFile(messageProxyForMainnetName) + "_address"]));
             safeTransactions.push(encodeTransaction(
                 0,
                 abi[getContractKeyInAbiFile(messageProxyForMainnetName) + "_address"],
