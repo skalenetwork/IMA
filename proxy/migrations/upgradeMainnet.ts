@@ -1,16 +1,18 @@
-import { ethers } from "hardhat";
+import { ethers, upgrades } from "hardhat";
 import hre from "hardhat";
-import { contracts, getContractKeyInAbiFile } from "./deployMainnet";
+import { contracts, getContractKeyInAbiFile, getContractManager } from "./deployMainnet";
 import { upgrade } from "./upgrade";
 import { getManifestAdmin } from "@openzeppelin/hardhat-upgrades/dist/admin";
 import { Manifest } from "@openzeppelin/upgrades-core";
 import chalk from "chalk";
-import { MessageProxyForMainnet, DepositBoxERC20, DepositBoxERC721, DepositBoxERC1155 } from "../typechain/";
+import { MessageProxyForMainnet, DepositBoxERC20, DepositBoxERC721, DepositBoxERC1155, DepositBoxERC721WithMetadata, Linker } from "../typechain/";
 import { encodeTransaction } from "./tools/multiSend";
 import { TypedEvent, TypedEventFilter } from "../typechain/commons";
 import { promises as fs } from "fs";
 import { hexZeroPad } from "@ethersproject/bytes";
 import { Contract } from "@ethersproject/contracts";
+import { verifyProxy } from "./tools/verification";
+import { getAbi } from "./tools/abi";
 
 function prepareInitializeFromMap(
     safeTransactions: any,
@@ -190,7 +192,80 @@ async function main() {
     await upgrade(
         "1.1.0",
         contracts,
-        async (safeTransactions, abi) => undefined,
+        async (safeTransactions, abi) => {
+            const proxyAdmin = await getManifestAdmin(hre);
+            const safe = await proxyAdmin.owner();
+            const [ deployer ] = await ethers.getSigners();
+            const contractManager = getContractManager();
+            const chainId: number = (await ethers.provider.getNetwork()).chainId;
+
+            const linkerName = "Linker";
+            const messageProxyForMainnetName = "MessageProxyForMainnet";
+
+            const messageProxyForMainnetFactory = await ethers.getContractFactory(messageProxyForMainnetName);
+            const messageProxyForMainnetAddress = abi[getContractKeyInAbiFile(messageProxyForMainnetName) + "_address"];
+            let messageProxyForMainnet;
+            const linkerFactory = await ethers.getContractFactory(linkerName);
+            const linkerAddress = abi[getContractKeyInAbiFile(linkerName) + "_address"];
+            let linker;
+
+            if (messageProxyForMainnetAddress) {
+                messageProxyForMainnet = messageProxyForMainnetFactory.attach(messageProxyForMainnetAddress) as MessageProxyForMainnet;
+            } else {
+                console.log(chalk.red("Message Proxy address was not found!"));
+                console.log(chalk.red("Check your abi!!!"));
+                process.exit(1);
+            }
+
+            if (linkerAddress) {
+                linker = linkerFactory.attach(linkerAddress) as Linker;
+            } else {
+                console.log(chalk.red("Linker address was not found!"));
+                console.log(chalk.red("Check your abi!!!"));
+                process.exit(1);
+            }
+
+            const depositBoxERC721WithMetadataName = "DepositBoxERC721WithMetadata";
+            const depositBoxERC721WithMetadataFactory = await ethers.getContractFactory(depositBoxERC721WithMetadataName);
+            console.log("Deploy", depositBoxERC721WithMetadataName);
+            const depositBoxERC721WithMetadata = (
+                await upgrades.deployProxy(
+                    depositBoxERC721WithMetadataFactory,
+                    [
+                        contractManager?.address,
+                        abi[getContractKeyInAbiFile(linkerName) + "_address"],
+                        abi[getContractKeyInAbiFile(messageProxyForMainnetName) + "_address"]
+                    ],
+                    {
+                        initializer: 'initialize(address,address,address)'
+                    }
+                )
+            ) as DepositBoxERC721WithMetadata;
+            await depositBoxERC721WithMetadata.deployTransaction.wait();
+            console.log(chalk.yellowBright("Grant role DEFAULT_ADMIN_ROLE of", depositBoxERC721WithMetadata.address, "to", safe));
+            await (await depositBoxERC721WithMetadata.grantRole(await depositBoxERC721WithMetadata.DEFAULT_ADMIN_ROLE(), safe)).wait();
+            if (chainId === 1) {
+                console.log(chalk.yellowBright("Revoke role DEFAULT_ADMIN_ROLE of", depositBoxERC721WithMetadata.address, "from", deployer.address));
+                await (await depositBoxERC721WithMetadata.revokeRole(await depositBoxERC721WithMetadata.DEFAULT_ADMIN_ROLE(), deployer.address)).wait();
+            }
+            console.log(chalk.yellow("Prepare transaction to register DepositBox", depositBoxERC721WithMetadata.address, "in Linker", abi.linker_address));
+            safeTransactions.push(encodeTransaction(
+                0,
+                abi[getContractKeyInAbiFile(linkerName) + "_address"],
+                0,
+                linker.interface.encodeFunctionData("registerMainnetContract", [depositBoxERC721WithMetadata.address])
+            ));
+            console.log(chalk.yellow("Prepare transaction to register DepositBox", depositBoxERC721WithMetadata.address, "as contract for all in MessageProxy", abi.message_proxy_for_mainnet_address));
+            safeTransactions.push(encodeTransaction(
+                0,
+                abi[getContractKeyInAbiFile(messageProxyForMainnetName) + "_address"],
+                0,
+                messageProxyForMainnet.interface.encodeFunctionData("registerExtraContractForAll", [depositBoxERC721WithMetadata.address])
+            ));
+            await verifyProxy(depositBoxERC721WithMetadataName, depositBoxERC721WithMetadata.address, []);
+            abi[getContractKeyInAbiFile(depositBoxERC721WithMetadataName) + "_abi"] = getAbi(depositBoxERC721WithMetadata.interface);
+            abi[getContractKeyInAbiFile(depositBoxERC721WithMetadataName) + "_address"] = depositBoxERC721WithMetadata.address;
+        },
         async (safeTransactions, abi) => {
             const proxyAdmin = await getManifestAdmin(hre);
             const owner = await proxyAdmin.owner();

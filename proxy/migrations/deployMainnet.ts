@@ -72,7 +72,7 @@ export async function getContractFactory(contract: string) {
 }
 
 
-function getContractManager() {
+export function getContractManager() {
     const defaultFilePath = "../data/skaleManagerComponents.json";
     const jsonData = require(defaultFilePath);
     try {

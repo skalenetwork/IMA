@@ -84,7 +84,7 @@ export async function getContractFactory(contract: string) {
     return await getLinkedContractFactory(contract, libraries);
 }
 
-function getProxyMainnet(contractName: string) {
+export function getProxyMainnet(contractName: string) {
     const defaultFilePath = "../data/proxyMainnet.json";
     const jsonData = require(defaultFilePath);
     try {
