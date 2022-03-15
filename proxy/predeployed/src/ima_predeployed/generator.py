@@ -90,7 +90,7 @@ def generate_contracts(
     token_manager_erc721_with_metadata = UpgradeableContractGenerator(
         TOKEN_MANAGER_ERC721_WITH_METADATA_IMPLEMENTATION_ADDRESS,
         PROXY_ADMIN_ADDRESS,
-        TokenManagerErc721WothMetadataGenerator(owner_address, contracts_on_mainnet['deposit_box_erc721_with_metadata_address'], schain_name)
+        TokenManagerErc721WithMetadataGenerator(owner_address, contracts_on_mainnet['deposit_box_erc721_with_metadata_address'], schain_name)
     )
 
     eth_erc20_implementation = ContractGenerator(EthErc20Generator.ARTIFACT_FILENAME)
