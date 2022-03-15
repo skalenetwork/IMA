@@ -513,7 +513,7 @@ describe("DepositBoxEth", () => {
                 .should.be.eventually.rejectedWith("User has insufficient ETH");
         });
 
-        it.only("should transfer eth fallback attack", async () => {
+        it("should transfer eth fallback attack", async () => {
 
             const senderFromSchain = deployer.address;
             const wei = "30000000000000000";
