@@ -243,17 +243,34 @@ async function main() {
             ) as DepositBoxERC721WithMetadata;
             await depositBoxERC721WithMetadata.deployTransaction.wait();
             console.log(chalk.yellowBright("Grant role DEFAULT_ADMIN_ROLE of", depositBoxERC721WithMetadata.address, "to", safe));
-            await (await depositBoxERC721WithMetadata.grantRole(await depositBoxERC721WithMetadata.DEFAULT_ADMIN_ROLE(), safe)).wait();
+            const defaultAdminRole = await depositBoxERC721WithMetadata.DEFAULT_ADMIN_ROLE();
+            await (await depositBoxERC721WithMetadata.grantRole(defaultAdminRole, safe)).wait();
             if (chainId === 1) {
                 console.log(chalk.yellowBright("Revoke role DEFAULT_ADMIN_ROLE of", depositBoxERC721WithMetadata.address, "from", deployer.address));
-                await (await depositBoxERC721WithMetadata.revokeRole(await depositBoxERC721WithMetadata.DEFAULT_ADMIN_ROLE(), deployer.address)).wait();
+                await (await depositBoxERC721WithMetadata.revokeRole(defaultAdminRole, deployer.address)).wait();
             }
+            const linkerRole = await linker.LINKER_ROLE();
+            console.log(chalk.yellow("Prepare transaction to grant Role LINKER for", safe, "in Linker", abi[getContractKeyInAbiFile(linkerName) + "_address"]));
+            safeTransactions.push(encodeTransaction(
+                0,
+                abi[getContractKeyInAbiFile(linkerName) + "_address"],
+                0,
+                linker.interface.encodeFunctionData("grantRole", [linkerRole, safe])
+            ));
             console.log(chalk.yellow("Prepare transaction to register DepositBox", depositBoxERC721WithMetadata.address, "in Linker", abi[getContractKeyInAbiFile(linkerName) + "_address"]));
             safeTransactions.push(encodeTransaction(
                 0,
                 abi[getContractKeyInAbiFile(linkerName) + "_address"],
                 0,
                 linker.interface.encodeFunctionData("registerMainnetContract", [depositBoxERC721WithMetadata.address])
+            ));
+            const extraContractRegistrarRole = await messageProxyForMainnet.EXTRA_CONTRACT_REGISTRAR_ROLE();
+            console.log(chalk.yellow("Prepare transaction to grant Role extraContract Registrar for", safe, "in MessageProxy", abi[getContractKeyInAbiFile(messageProxyForMainnetName) + "_address"]));
+            safeTransactions.push(encodeTransaction(
+                0,
+                abi[getContractKeyInAbiFile(messageProxyForMainnetName) + "_address"],
+                0,
+                messageProxyForMainnet.interface.encodeFunctionData("grantRole", [extraContractRegistrarRole, safe])
             ));
             console.log(chalk.yellow("Prepare transaction to register DepositBox", depositBoxERC721WithMetadata.address, "as contract for all in MessageProxy", abi[getContractKeyInAbiFile(messageProxyForMainnetName) + "_address"]));
             safeTransactions.push(encodeTransaction(

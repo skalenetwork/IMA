@@ -104,7 +104,7 @@ export const contracts = [
     "TokenManagerERC20",
     "TokenManagerERC721",
     "TokenManagerERC1155",
-    "TokenManagerERC721WithMetadata",
+    // "TokenManagerERC721WithMetadata",
     "EthErc20",
     "KeyStorage"
 ];
@@ -309,6 +309,8 @@ async function main() {
         jsonObjectABI[propertyName + "_address"] = deployed.get( contractName )?.address;
         jsonObjectABI[propertyName + "_abi"] = getAbi(deployed.get( contractName )?.interface);
     }
+    jsonObjectABI[getContractKeyInAbiFile("TokenManagerERC721WithMetadata") + "_address"] = deployed.get( "TokenManagerERC721WithMetadata" )?.address;
+    jsonObjectABI[getContractKeyInAbiFile("TokenManagerERC721WithMetadata") + "_abi"] = getAbi(deployed.get( "TokenManagerERC721WithMetadata" )?.interface);
     const erc20OnChainFactory = await ethers.getContractFactory("ERC20OnChain");
     jsonObjectABI.ERC20OnChain_abi = getAbi(erc20OnChainFactory.interface);
     const erc721OnChainFactory = await ethers.getContractFactory("ERC721OnChain");

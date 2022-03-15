@@ -39,6 +39,9 @@ cd proxy
 
 ABI="data/$ABI_FILENAME_MAINNET" TEST_UPGRADE=true npx hardhat run migrations/upgradeMainnet.ts --network localhost || exit $?
 
-ABI="data/$ABI_FILENAME_SCHAIN" MANIFEST="data/ima-schain-$DEPLOYED_VERSION-manifest.json" npx hardhat run migrations/upgradeSchain.ts --network localhost || exit $?
+VERSION="$(git describe --tags)"
+mv "data/proxyMainnet-$VERSION-localhost-abi.json" "data/proxyMainnet.json"
+
+ABI="data/$ABI_FILENAME_SCHAIN" MANIFEST="data/ima-schain-$DEPLOYED_VERSION-manifest.json" CHAIN_NAME_SCHAIN="Test" npx hardhat run migrations/upgradeSchain.ts --network localhost || exit $?
 
 kill "$GANACHE_PID"
