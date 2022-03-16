@@ -65,7 +65,7 @@ contract TokenManagerEth is TokenManager, ITokenManagerEth {
      * Requirements:
      * 
      * - MessageProxy must be the sender.
-     * - `fromSchainName` must exist in TokenManager addresses.
+     * - `fromChainHash` must exist in TokenManager addresses.
      */
     function postMessage(
         bytes32 fromChainHash,
@@ -76,13 +76,11 @@ contract TokenManagerEth is TokenManager, ITokenManagerEth {
         override
         onlyMessageProxy
         checkReceiverChain(fromChainHash, sender)
-        returns (address)
     {
         Messages.TransferEthMessage memory decodedMessage = Messages.decodeTransferEthMessage(data);
         address receiver = decodedMessage.receiver;
         require(receiver != address(0), "Incorrect receiver");
         ethErc20.mint(receiver, decodedMessage.amount);
-        return receiver;
     }
 
     /**
@@ -112,6 +110,9 @@ contract TokenManagerEth is TokenManager, ITokenManagerEth {
 
     // private
 
+    /**
+     * @dev Checks whether sender contract is DepositBox.
+     */
     function _checkSender(bytes32 fromChainHash, address sender) internal view override returns (bool) {
         return fromChainHash == MAINNET_HASH && sender == depositBox;
     }

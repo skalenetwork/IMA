@@ -190,7 +190,6 @@ contract DepositBoxERC1155 is DepositBox, ERC1155ReceiverUpgradeable, IDepositBo
         onlyMessageProxy
         whenNotKilled(schainHash)
         checkReceiverChain(schainHash, sender)
-        returns (address receiver)
     {
         Messages.MessageType operation = Messages.getMessageType(data);
         if (operation == Messages.MessageType.TRANSFER_ERC1155) {
@@ -209,7 +208,6 @@ contract DepositBoxERC1155 is DepositBox, ERC1155ReceiverUpgradeable, IDepositBo
                 message.amount,
                 ""
             );
-            receiver = message.receiver;
         } else if (operation == Messages.MessageType.TRANSFER_ERC1155_BATCH) {
             Messages.TransferErc1155BatchMessage memory message = Messages.decodeTransferErc1155BatchMessage(data);
             require(message.token.isContract(), "Given address is not a contract");
@@ -221,7 +219,6 @@ contract DepositBoxERC1155 is DepositBox, ERC1155ReceiverUpgradeable, IDepositBo
                 message.amounts,
                 ""
             );
-            receiver = message.receiver;
         }
     }
 
@@ -285,6 +282,13 @@ contract DepositBoxERC1155 is DepositBox, ERC1155ReceiverUpgradeable, IDepositBo
         );
     }
 
+    /**
+     * @dev Returns receiver of message.
+     *
+     * Requirements:
+     *
+     * - Sender contract should be defined and schain name cannot be `Mainnet`.
+     */
     function gasPayer(
         bytes32 schainHash,
         address sender,
@@ -307,6 +311,10 @@ contract DepositBoxERC1155 is DepositBox, ERC1155ReceiverUpgradeable, IDepositBo
         return address(0);
     }
 
+
+    /**
+     * @dev Returns selector of onERC1155Received.
+     */
     function onERC1155Received(
         address operator,
         address,
@@ -323,6 +331,10 @@ contract DepositBoxERC1155 is DepositBox, ERC1155ReceiverUpgradeable, IDepositBo
         return bytes4(keccak256("onERC1155Received(address,address,uint256,uint256,bytes)"));
     }
 
+
+    /**
+     * @dev Returns selector of onERC1155BatchReceived.
+     */
     function onERC1155BatchReceived(
         address operator,
         address,

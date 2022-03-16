@@ -26,6 +26,8 @@ import "@skalenetwork/skale-manager-interfaces/IWallets.sol";
 import "@skalenetwork/skale-manager-interfaces/ISchains.sol";
 import "@skalenetwork/ima-interfaces/mainnet/IMessageProxyForMainnet.sol";
 import "@skalenetwork/ima-interfaces/mainnet/ICommunityPool.sol";
+import "@skalenetwork/skale-manager-interfaces/ISchainsInternal.sol";
+
 
 import "../MessageProxy.sol";
 import "./SkaleManagerClient.sol";
@@ -92,6 +94,9 @@ contract MessageProxyForMainnet is SkaleManagerClient, MessageProxy, IMessagePro
         uint256 newValue
     );
 
+    /**
+     * @dev Reentrancy guard for postIncomingMessages.
+     */
     modifier messageInProgressLocker() {
         require(!messageInProgress, "Message is in progress");
         messageInProgress = true;
@@ -132,7 +137,9 @@ contract MessageProxyForMainnet is SkaleManagerClient, MessageProxy, IMessagePro
      */
     function addConnectedChain(string calldata schainName) external override {
         bytes32 schainHash = keccak256(abi.encodePacked(schainName));
-        require(schainHash != MAINNET_HASH, "SKALE chain name is incorrect");
+        require(ISchainsInternal(
+            contractManagerOfSkaleManager.getContract("SchainsInternal")
+        ).isSchainExist(schainHash), "SKALE chain must exist");
         _addConnectedChain(schainHash);
     }
 
@@ -225,6 +232,7 @@ contract MessageProxyForMainnet is SkaleManagerClient, MessageProxy, IMessagePro
         uint additionalGasPerMessage = 
             (gasTotal - gasleft() + headerMessageGasCost + messages.length * messageGasCost) / messages.length;
         uint notReimbursedGas = 0;
+        connectedChains[fromSchainHash].incomingMessageCounter += messages.length;
         for (uint256 i = 0; i < messages.length; i++) {
             gasTotal = gasleft();
             if (isContractRegistered(bytes32(0), messages[i].destinationContract)) {
@@ -241,7 +249,6 @@ contract MessageProxyForMainnet is SkaleManagerClient, MessageProxy, IMessagePro
                 notReimbursedGas += gasTotal - gasleft() + additionalGasPerMessage;
             }
         }
-        connectedChains[fromSchainHash].incomingMessageCounter += messages.length;
         communityPool.refundGasBySchainWallet(fromSchainHash, payable(msg.sender), notReimbursedGas);
     }
 
@@ -288,7 +295,7 @@ contract MessageProxyForMainnet is SkaleManagerClient, MessageProxy, IMessagePro
     function initialize(IContractManager contractManagerOfSkaleManagerValue) public virtual override initializer {
         SkaleManagerClient.initialize(contractManagerOfSkaleManagerValue);
         MessageProxy.initializeMessageProxy(1e6);
-        headerMessageGasCost = 70000;
+        headerMessageGasCost = 73800;
         messageGasCost = 9000;
     }
 
@@ -351,12 +358,19 @@ contract MessageProxyForMainnet is SkaleManagerClient, MessageProxy, IMessagePro
         );
     }
 
+    /**
+     * @dev Checks whether balance of schain wallet is sufficient for 
+     * for reimbursement custom message.
+     */
     function _checkSchainBalance(bytes32 schainHash) internal view returns (bool) {
         return IWallets(
-            contractManagerOfSkaleManager.getContract("Wallets")
+            payable(contractManagerOfSkaleManager.getContract("Wallets"))
         ).getSchainBalance(schainHash) >= (MESSAGES_LENGTH + 1) * gasLimit * tx.gasprice;
     }
 
+    /**
+     * @dev Returns list of registered custom extra contracts.
+     */
     function _getRegistryContracts()
         internal
         view

@@ -167,6 +167,7 @@ global.imaState = {
     "jo_deposit_box_erc20": null, // only main net
     "jo_deposit_box_erc721": null, // only main net
     "jo_deposit_box_erc1155": null, // only main net
+    "jo_deposit_box_erc721_with_metadata": null, // only main net
     "jo_linker": null, // only main net
 
     "jo_token_manager_eth": null, // only s-chain
@@ -177,6 +178,8 @@ global.imaState = {
     "jo_token_manager_erc721_target": null, // only s-chain target
     "jo_token_manager_erc1155": null, // only s-chain
     "jo_token_manager_erc1155_target": null, // only s-chain target
+    "jo_token_manager_erc721_with_metadata": null, // only s-chain target
+    "jo_token_manager_erc721_with_metadata_target": null, // only s-chain target
     "jo_community_locker": null, // only s-chain
     "jo_community_locker_target": null, // only s-chain target
     "jo_message_proxy_main_net": null,
@@ -1058,6 +1061,8 @@ imaCLI.parse( {
                 // const jo_token_manager_erc721_dst = isForward ? imaState.jo_token_manager_erc721_target : imaState.jo_token_manager_erc721
                 const jo_token_manager_erc1155_src = isForward ? imaState.jo_token_manager_erc1155 : imaState.jo_token_manager_erc1155_target;
                 // const jo_token_manager_erc1155_dst = isForward ? imaState.jo_token_manager_erc1155_target : imaState.jo_token_manager_erc1155
+                // const jo_token_manager_erc72_with_metadata_src = isForward ? imaState.jo_token_manager_erc721_with_metadata : imaState.jo_token_manager_erc721_with_metadata_target;
+                // const jo_token_manager_erc72_with_metadata_dst = isForward ? imaState.jo_token_manager_erc721_with_metadata_target : imaState.jo_token_manager_erc721_with_metadata
                 // const strChainName_src = isForward ? imaState.strChainName_s_chain : imaState.strChainName_t_chain;
                 const strChainName_dst = isForward ? imaState.strChainName_t_chain : imaState.strChainName_s_chain;
                 const strCoinNameErc20_src = isForward ? imaState.strCoinNameErc20_s_chain : imaState.strCoinNameErc20_t_chain;
@@ -2291,6 +2296,7 @@ async function register_step1( isPrintSummaryRegistrationCosts ) {
             imaState.jo_token_manager_erc20, // only s-chain
             imaState.jo_token_manager_erc721, // only s-chain
             imaState.jo_token_manager_erc1155, // only s-chain
+            imaState.jo_token_manager_erc721_with_metadata, // only s-chain
             imaState.jo_community_locker, // only s-chain
             imaState.jo_token_manager_linker, // only s-chain
             imaState.strChainName_s_chain,

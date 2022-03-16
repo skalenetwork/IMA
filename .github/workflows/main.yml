@@ -120,7 +120,7 @@ jobs:
     
     - name: Test upgrade
       run: bash ./proxy/scripts/test_upgrade.sh
-    
+
     - name: Run tests
       working-directory: ${{env.working-directory}}
       run: |

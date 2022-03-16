@@ -72,7 +72,7 @@ export async function getContractFactory(contract: string) {
 }
 
 
-function getContractManager() {
+export function getContractManager() {
     const defaultFilePath = "../data/skaleManagerComponents.json";
     const jsonData = require(defaultFilePath);
     try {
@@ -89,7 +89,8 @@ export const contractsToDeploy = [
     "DepositBoxEth",
     "DepositBoxERC20",
     "DepositBoxERC721",
-    "DepositBoxERC1155"
+    "DepositBoxERC1155",
+    "DepositBoxERC721WithMetadata"
 ]
 
 export const contracts = [
@@ -100,6 +101,8 @@ export const contracts = [
     "DepositBoxERC20",
     "DepositBoxERC721",
     "DepositBoxERC1155"
+
+    // "DepositBoxERC721WithMetadata"
 ]
 
 async function main() {
@@ -224,6 +227,9 @@ async function main() {
         outputObject[contractKey + "_address"] = deployed.get(contract)?.address;
         outputObject[contractKey + "_abi"] = getAbi(deployed.get(contract)?.interface);
     }
+
+    outputObject[getContractKeyInAbiFile("DepositBoxERC721WithMetadata") + "_address"] = deployed.get("DepositBoxERC721WithMetadata")?.address;
+    outputObject[getContractKeyInAbiFile("DepositBoxERC721WithMetadata") + "_abi"] = getAbi(deployed.get("DepositBoxERC721WithMetadata")?.interface);
 
     await fs.writeFile("data/proxyMainnet.json", JSON.stringify(outputObject, null, 4));
 

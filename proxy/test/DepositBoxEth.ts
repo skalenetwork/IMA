@@ -63,7 +63,7 @@ import { deployFallbackEthTester } from "./utils/deploy/test/fallbackEthTester";
 
 import { ethers, web3 } from "hardhat";
 import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/dist/src/signer-with-address";
-import { BigNumber } from "ethers";
+import { BigNumber, ContractTransaction } from "ethers";
 
 import { assert, expect } from "chai";
 
@@ -78,6 +78,29 @@ const Counter = 0;
 async function getBalance(address: string) {
     return parseFloat(web3.utils.fromWei(await web3.eth.getBalance(address)));
 }
+
+const weiTolerance = ethers.utils.parseEther("0.002").toNumber();
+
+async function reimbursed(transaction: ContractTransaction, operation?: string) {
+    const receipt = await transaction.wait();
+    const sender = transaction.from;
+    const balanceBefore = await ethers.provider.getBalance(sender, receipt.blockNumber - 1);
+    const balanceAfter = await ethers.provider.getBalance(sender, receipt.blockNumber);
+    if (balanceAfter.lt(balanceBefore)) {
+        const shortageEth = balanceBefore.sub(balanceAfter);
+        const shortageGas = shortageEth.div(receipt.effectiveGasPrice);
+
+        console.log("Reimbursement failed.")
+        console.log(`${shortageGas.toString()} gas units was not reimbursed`);
+        if (operation !== undefined) {
+            console.log(`During ${operation}`);
+        }
+
+    }
+    balanceAfter.should.be.least(balanceBefore);
+    balanceAfter.should.be.closeTo(balanceBefore, weiTolerance);
+}
+
 describe("DepositBoxEth", () => {
     let deployer: SignerWithAddress;
     let user: SignerWithAddress;
@@ -557,11 +580,7 @@ describe("DepositBoxEth", () => {
 
             expect(BigNumber.from(await depositBoxEth.transferredAmount(schainHash)).toString()).to.be.equal(BigNumber.from(wei).mul(2).toString());
 
-            const balanceBefore = await getBalance(deployer.address);
-            await messageProxy.connect(deployer).postIncomingMessages(schainName, 0, [message], sign);
-            const balance = await getBalance(deployer.address);
-            balance.should.not.be.lessThan(balanceBefore);
-            balance.should.be.almost(balanceBefore);
+            await reimbursed(await messageProxy.connect(deployer).postIncomingMessages(schainName, 0, [message], sign));
 
             expect(BigNumber.from(await depositBoxEth.approveTransfers(fallbackEthTester.address)).toString()).to.equal(BigNumber.from(wei).toString());
 

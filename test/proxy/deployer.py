@@ -37,21 +37,27 @@ class Deployer:
         execute('yarn deploy-skale-manager-components')
         execute('yarn deploy-to-mainnet')
 
-    def deploy_schain(self):
+    def deploy_schain(self, schain_name):
         chdir(self.config.proxy_root)
-        self._prepare_env_file()
+        self._prepare_env_file(schain_name)
         execute('yarn deploy-to-schain')
+
+    def deploy_second_schain(self):
+        self.deploy()
+        self.deploy_schain(self.config.schain_name_2)
+
 
     # private
 
-    def _prepare_env_file(self):
+    def _prepare_env_file(self, schain_name=''):
+        if schain_name == '' : schain_name = self.config.schain_name
         env_file = [f'NETWORK_FOR_ETHEREUM="{self.config.network_for_mainnet}"',
                     f'NETWORK_FOR_SCHAIN="{self.config.network_for_schain}"',
                     f'PRIVATE_KEY_FOR_ETHEREUM="{self.config.mainnet_key}"',
                     f'URL_W3_ETHEREUM="{self.config.mainnet_rpc_url}"',
                     f'PRIVATE_KEY_FOR_SCHAIN="{self.config.schain_key}"',
                     f'URL_W3_S_CHAIN="{self.config.schain_rpc_url}"',
-                    f'CHAIN_NAME_SCHAIN="{self.config.schain_name}"',
+                    f'CHAIN_NAME_SCHAIN="{schain_name}"',
                     'NO_SIGNATURES=true']
 
         with open('.env', 'w') as dot_env:

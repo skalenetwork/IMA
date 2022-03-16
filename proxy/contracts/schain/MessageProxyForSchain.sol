@@ -101,6 +101,17 @@ contract MessageProxyForSchain is MessageProxy, IMessageProxyForSchainInitialize
     mapping(bytes32 => EnumerableSetUpgradeable.AddressSet) private _registryContracts;
 
     string public version;
+    bool public override messageInProgress;
+
+    /**
+     * @dev Reentrancy guard for postIncomingMessages.
+     */
+    modifier messageInProgressLocker() {
+        require(!messageInProgress, "Message is in progress");
+        messageInProgress = true;
+        _;
+        messageInProgress = false;
+    }
 
     /**
      * @dev Allows DEFAULT_ADMIN_ROLE to initialize registered contracts
@@ -126,6 +137,14 @@ contract MessageProxyForSchain is MessageProxy, IMessageProxyForSchainInitialize
         }
     }
 
+    /**
+     * @dev Allows MessageProxy to register extra contract for being able to transfer messages from custom contracts.
+     * 
+     * Requirements:
+     * 
+     * - Function caller has to be granted with {EXTRA_CONTRACT_REGISTRAR_ROLE}.
+     * - Destination chain hash cannot be equal to itself
+     */
     function registerExtraContract(
         string memory chainName,
         address extraContract
@@ -135,10 +154,19 @@ contract MessageProxyForSchain is MessageProxy, IMessageProxyForSchainInitialize
         onlyExtraContractRegistrar
     {
         bytes32 chainHash = keccak256(abi.encodePacked(chainName));
-        require(chainHash != schainHash, "Schain hash can not be equal Mainnet");
+        require(chainHash != schainHash, "Destination chain hash cannot be equal to itself");
         _registerExtraContract(chainHash, extraContract);
     }
 
+    /**
+     * @dev Allows MessageProxy to remove extra contract,
+     * thus `extraContract` will no longer be available to transfer messages from chain to chain.
+     * 
+     * Requirements:
+     * 
+     * - Function caller has to be granted with {EXTRA_CONTRACT_REGISTRAR_ROLE}.
+     * - Destination chain hash cannot be equal to itself
+     */
     function removeExtraContract(
         string memory chainName,
         address extraContract
@@ -148,7 +176,7 @@ contract MessageProxyForSchain is MessageProxy, IMessageProxyForSchainInitialize
         onlyExtraContractRegistrar
     {
         bytes32 chainHash = keccak256(abi.encodePacked(chainName));
-        require(chainHash != schainHash, "Schain hash can not be equal Mainnet");
+        require(chainHash != schainHash, "Destination chain hash cannot be equal to itself");
         _removeExtraContract(chainHash, extraContract);
     }
 
@@ -188,6 +216,7 @@ contract MessageProxyForSchain is MessageProxy, IMessageProxyForSchainInitialize
     )
         external
         override(IMessageProxy, MessageProxy)
+        messageInProgressLocker
     {
         bytes32 fromChainHash = keccak256(abi.encodePacked(fromChainName));
         require(connectedChains[fromChainHash].inited, "Chain is not initialized");
@@ -198,10 +227,10 @@ contract MessageProxyForSchain is MessageProxy, IMessageProxyForSchainInitialize
         require(
             startingCounter == connectedChains[fromChainHash].incomingMessageCounter,
             "Starting counter is not qual to incoming message counter");
+        connectedChains[fromChainHash].incomingMessageCounter += messages.length;
         for (uint256 i = 0; i < messages.length; i++) {
             _callReceiverContract(fromChainHash, messages[i], startingCounter + 1);
         }
-        connectedChains[fromChainHash].incomingMessageCounter += messages.length;
         _topUpBalance();
     }
 
@@ -351,6 +380,9 @@ contract MessageProxyForSchain is MessageProxy, IMessageProxyForSchainInitialize
         );
     }
 
+    /**
+     * @dev Returns list of registered custom extra contracts.
+     */
     function _getRegistryContracts()
         internal
         view

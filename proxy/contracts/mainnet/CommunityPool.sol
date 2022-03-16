@@ -122,7 +122,7 @@ contract CommunityPool is Twin, ICommunityPool {
         returns (bool)
     {
         if (gas > 0) {
-            IWallets(contractManagerOfSkaleManager.getContract("Wallets")).refundGasBySchain(
+            IWallets(payable(contractManagerOfSkaleManager.getContract("Wallets"))).refundGasBySchain(
                 schainHash,
                 node,
                 gas,
@@ -206,10 +206,15 @@ contract CommunityPool is Twin, ICommunityPool {
         return _userWallets[user][keccak256(abi.encodePacked(schainName))];
     }
 
+    /**
+     * @dev Checks whether user is active and wallet was recharged for sufficient amount.
+     */
     function checkUserBalance(bytes32 schainHash, address receiver) external view override returns (bool) {
         return activeUsers[receiver][schainHash] && _balanceIsSufficient(schainHash, receiver, 0);
     }
-
+    /**
+     * @dev Checks whether user wallet was recharged for sufficient amount.
+     */
     function _balanceIsSufficient(bytes32 schainHash, address receiver, uint256 delta) private view returns (bool) {
         return delta + _userWallets[receiver][schainHash] >= minTransactionGas * tx.gasprice;
     } 
