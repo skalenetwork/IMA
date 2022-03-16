@@ -64,7 +64,6 @@ import { deployFallbackEthTester } from "./utils/deploy/test/fallbackEthTester";
 import { ethers, web3 } from "hardhat";
 import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/dist/src/signer-with-address";
 import { BigNumber, ContractTransaction } from "ethers";
-// const { balance, BN } = require('@openzeppelin/test-helpers');
 
 import { assert, expect } from "chai";
 
@@ -581,14 +580,7 @@ describe("DepositBoxEth", () => {
 
             expect(BigNumber.from(await depositBoxEth.transferredAmount(schainHash)).toString()).to.be.equal(BigNumber.from(wei).mul(2).toString());
 
-            // const balanceBefore = await getBalance(deployer.address);
-            // const tracker = await balance.tracker(deployer.address);
             await reimbursed(await messageProxy.connect(deployer).postIncomingMessages(schainName, 0, [message], sign));
-            // const deltaEther = parseInt((await tracker.delta()).toString(), 10)/1e18;
-            // console.log(deltaEther);
-            // const balanceAfter = await getBalance(deployer.address);
-            // balanceAfter.should.not.be.lessThan(balanceBefore);
-            // balanceAfter.should.be.almost(balanceBefore);
 
             expect(BigNumber.from(await depositBoxEth.approveTransfers(fallbackEthTester.address)).toString()).to.equal(BigNumber.from(wei).toString());
 
