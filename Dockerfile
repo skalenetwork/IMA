@@ -18,6 +18,7 @@ WORKDIR /ima
 COPY proxy proxy
 COPY agent agent
 COPY npms npms
+COPY VERSION VERSION
 
 RUN mkdir /ima/bls_binaries
 COPY scripts/bls_binaries /ima/bls_binaries
