@@ -1549,6 +1549,7 @@ async function register_s_chain_in_deposit_boxes( // step 1
     jo_token_manager_erc20, // only s-chain
     jo_token_manager_erc721, // only s-chain
     jo_token_manager_erc1155, // only s-chain
+    jo_token_manager_erc721_with_metadata, // only s-chain
     jo_community_locker, // only s-chain
     jo_token_manager_linker,
     chain_id_s_chain,
@@ -1580,7 +1581,8 @@ async function register_s_chain_in_deposit_boxes( // step 1
                 jo_token_manager_eth.options.address, // call params
                 jo_token_manager_erc20.options.address, // call params
                 jo_token_manager_erc721.options.address, // call params
-                jo_token_manager_erc1155.options.address // call params
+                jo_token_manager_erc1155.options.address, // call params
+                jo_token_manager_erc721_with_metadata.options.address // call params
             ]
         );
         const dataTx = methodWithArguments.encodeABI(); // the encoded ABI of the method

@@ -31,7 +31,17 @@ import { getAbi } from './tools/abi';
 import { Manifest, hashBytecode } from "@openzeppelin/upgrades-core";
 import { getManifestAdmin } from "@openzeppelin/hardhat-upgrades/dist/admin";
 import { Contract } from '@ethersproject/contracts';
-import { CommunityLocker, EthErc20, KeyStorage, MessageProxyForSchain, TokenManagerERC20, TokenManagerERC721, TokenManagerEth, TokenManagerLinker } from '../typechain';
+import {
+    CommunityLocker,
+    EthErc20,
+    KeyStorage,
+    MessageProxyForSchain,
+    TokenManagerERC20,
+    TokenManagerERC721,
+    TokenManagerEth,
+    TokenManagerLinker,
+    TokenManagerERC721WithMetadata
+} from '../typechain';
 import { TokenManagerERC1155 } from '../typechain/TokenManagerERC1155';
 import { getVersion } from './tools/version';
 
@@ -74,7 +84,7 @@ export async function getContractFactory(contract: string) {
     return await getLinkedContractFactory(contract, libraries);
 }
 
-function getProxyMainnet(contractName: string) {
+export function getProxyMainnet(contractName: string) {
     const defaultFilePath = "../data/proxyMainnet.json";
     const jsonData = require(defaultFilePath);
     try {
@@ -94,6 +104,7 @@ export const contracts = [
     "TokenManagerERC20",
     "TokenManagerERC721",
     "TokenManagerERC1155",
+    // "TokenManagerERC721WithMetadata",
     "EthErc20",
     "KeyStorage"
 ];
@@ -118,6 +129,8 @@ async function main() {
         getProxyMainnet("deposit_box_erc721_address") === "" ||
         getProxyMainnet("deposit_box_erc1155_address") === undefined ||
         getProxyMainnet("deposit_box_erc1155_address") === "" ||
+        getProxyMainnet("deposit_box_erc721_with_metadata_address") === undefined ||
+        getProxyMainnet("deposit_box_erc721_with_metadata_address") === "" ||
         getProxyMainnet("community_pool_address") === undefined ||
         getProxyMainnet("community_pool_address") === "" ||
         getProxyMainnet("linker_address") === undefined ||
@@ -130,6 +143,7 @@ async function main() {
     const depositBoxERC20Address = getProxyMainnet("deposit_box_erc20_address");
     const depositBoxERC721Address = getProxyMainnet("deposit_box_erc721_address");
     const depositBoxERC1155Address = getProxyMainnet("deposit_box_erc1155_address");
+    const depositBoxERC721WithMetadataAddress = getProxyMainnet("deposit_box_erc721_with_metadata_address");
     const communityPoolAddress = getProxyMainnet("community_pool_address");
     const linkerAddress = getProxyMainnet("linker_address");
 
@@ -233,11 +247,25 @@ async function main() {
     deployed.set( "TokenManagerERC1155", { address: tokenManagerERC1155.address, interface: tokenManagerERC1155.interface } );
     console.log("Contract TokenManagerERC1155 deployed to", tokenManagerERC1155.address);
 
+    console.log("Deploy TokenManagerERC721WithMetadata");
+    const tokenManagerERC721WithMetadataFactory = await ethers.getContractFactory("TokenManagerERC721WithMetadata");
+    const tokenManagerERC721WithMetadata = await upgrades.deployProxy(tokenManagerERC721WithMetadataFactory, [
+        schainName,
+        messageProxy.address,
+        tokenManagerLinker.address,
+        communityLocker.address,
+        depositBoxERC721WithMetadataAddress
+    ]) as TokenManagerERC721WithMetadata;
+    await tokenManagerERC721WithMetadata.deployTransaction.wait();
+    deployed.set( "TokenManagerERC721WithMetadata", { address: tokenManagerERC721WithMetadata.address, interface: tokenManagerERC721WithMetadata.interface } );
+    console.log("Contract TokenManagerERC721WithMetadata deployed to", tokenManagerERC721WithMetadata.address);
+
     console.log("Register token managers");
     await (await tokenManagerLinker.registerTokenManager(tokenManagerEth.address)).wait();
     await (await tokenManagerLinker.registerTokenManager(tokenManagerERC20.address)).wait();
     await (await tokenManagerLinker.registerTokenManager(tokenManagerERC721.address)).wait();
     await (await tokenManagerLinker.registerTokenManager(tokenManagerERC1155.address)).wait();
+    await (await tokenManagerLinker.registerTokenManager(tokenManagerERC721WithMetadata.address)).wait();
 
     console.log("Deploy EthErc20");
     const ethERC20Factory = await ethers.getContractFactory("EthErc20");
@@ -264,7 +292,8 @@ async function main() {
         tokenManagerERC20,
         tokenManagerERC721,
         tokenManagerERC1155,
-        communityLocker
+        communityLocker,
+        tokenManagerERC721WithMetadata
     ];
     const extraContractRegistrarRole = await messageProxy.EXTRA_CONTRACT_REGISTRAR_ROLE();
     await messageProxy.grantRole(extraContractRegistrarRole, owner.address);
@@ -280,6 +309,8 @@ async function main() {
         jsonObjectABI[propertyName + "_address"] = deployed.get( contractName )?.address;
         jsonObjectABI[propertyName + "_abi"] = getAbi(deployed.get( contractName )?.interface);
     }
+    jsonObjectABI[getContractKeyInAbiFile("TokenManagerERC721WithMetadata") + "_address"] = deployed.get( "TokenManagerERC721WithMetadata" )?.address;
+    jsonObjectABI[getContractKeyInAbiFile("TokenManagerERC721WithMetadata") + "_abi"] = getAbi(deployed.get( "TokenManagerERC721WithMetadata" )?.interface);
     const erc20OnChainFactory = await ethers.getContractFactory("ERC20OnChain");
     jsonObjectABI.ERC20OnChain_abi = getAbi(erc20OnChainFactory.interface);
     const erc721OnChainFactory = await ethers.getContractFactory("ERC721OnChain");

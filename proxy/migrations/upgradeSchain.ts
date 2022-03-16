@@ -1,14 +1,18 @@
-import { MessageProxyForSchain, TokenManagerERC20, TokenManagerERC721, TokenManagerERC1155 } from "../typechain";
-import { contracts, getContractKeyInAbiFile } from "./deploySchain";
+import { MessageProxyForSchain, TokenManagerERC20, TokenManagerERC721, TokenManagerERC1155, TokenManagerERC721WithMetadata, TokenManagerLinker } from "../typechain";
+import hre from "hardhat";
+import { contracts, getContractKeyInAbiFile, getProxyMainnet } from "./deploySchain";
 import { manifestSetup } from "./generateManifest";
 import { encodeTransaction } from "./tools/multiSend";
 import { upgrade } from "./upgrade";
 import { hexZeroPad } from "@ethersproject/bytes";
 import chalk from "chalk";
-import { ethers } from "hardhat";
+import { ethers, upgrades } from "hardhat";
 import { Contract } from "ethers";
 import { promises as fs } from "fs";
 import { TypedEvent, TypedEventFilter } from "../typechain/commons";
+import { getManifestAdmin } from "@openzeppelin/hardhat-upgrades/dist/admin";
+import { verifyProxy } from "./tools/verification";
+import { getAbi } from "./tools/abi";
 
 function stringValue(value: string | undefined) {
     if (value) {
@@ -154,7 +158,105 @@ async function main() {
     await upgrade(
         "1.1.0",
         contracts,
-        async( safeTransactions, abi ) => undefined,
+        async (safeTransactions, abi) => {
+            const proxyAdmin = await getManifestAdmin(hre);
+            const safe = await proxyAdmin.owner();
+
+            const messageProxyForSchainName = "MessageProxyForSchain";
+            const tokenManagerLinkerName = "TokenManagerLinker";
+            const communityLockerName = "CommunityLocker";
+            const messageProxyForSchainFactory = await ethers.getContractFactory(messageProxyForSchainName);
+            const messageProxyForSchainAddress = abi[getContractKeyInAbiFile(messageProxyForSchainName) + "_address"];
+            let messageProxyForSchain;
+
+            const tokenManagerLinkerFactory = await ethers.getContractFactory(tokenManagerLinkerName);
+            const tokenManagerLinkerAddress = abi[getContractKeyInAbiFile(tokenManagerLinkerName) + "_address"];
+            let tokenManagerLinker;
+
+            const schainName = process.env.CHAIN_NAME_SCHAIN;
+
+            if (schainName === undefined || schainName === "" || schainName === null) {
+                console.log(chalk.red("PLEASE PROVIDE A CHAIN_NAME_SCHAIN"));
+                process.exit(1);
+            }
+
+            if (messageProxyForSchainAddress) {
+                messageProxyForSchain = messageProxyForSchainFactory.attach(messageProxyForSchainAddress) as MessageProxyForSchain;
+            } else {
+                console.log(chalk.red("Message Proxy address was not found!"));
+                console.log(chalk.red("Check your abi!!!"));
+                process.exit(1);
+            }
+
+            if (tokenManagerLinkerAddress) {
+                tokenManagerLinker = tokenManagerLinkerFactory.attach(tokenManagerLinkerAddress) as TokenManagerLinker;
+            } else {
+                console.log(chalk.red("Token Manager Linker address was not found!"));
+                console.log(chalk.red("Check your abi!!!"));
+                process.exit(1);
+            }
+
+            if(
+                getProxyMainnet("deposit_box_erc721_with_metadata_address") === undefined ||
+                getProxyMainnet("deposit_box_erc721_with_metadata_address") === ""
+            ) {
+                console.log( "Please provide correct abi for mainnet contracts in IMA/proxy/data/proxyMainnet.json" );
+                process.exit( 126 );
+            }
+            const depositBoxERC721WithMetadataAddress = getProxyMainnet("deposit_box_erc721_with_metadata_address");
+
+            const tokenManagerERC721WithMetadataName = "TokenManagerERC721WithMetadata";
+            const tokenManagerERC721WithMetadataFactory = await ethers.getContractFactory(tokenManagerERC721WithMetadataName);
+            console.log("Deploy", tokenManagerERC721WithMetadataName);
+            const tokenManagerERC721WithMetadata = (
+                await upgrades.deployProxy(
+                    tokenManagerERC721WithMetadataFactory,
+                    [
+                        schainName,
+                        abi[getContractKeyInAbiFile(messageProxyForSchainName) + "_address"],
+                        abi[getContractKeyInAbiFile(tokenManagerLinkerName) + "_address"],
+                        abi[getContractKeyInAbiFile(communityLockerName) + "_address"],
+                        depositBoxERC721WithMetadataAddress
+                    ]
+                )
+            ) as TokenManagerERC721WithMetadata;
+            await tokenManagerERC721WithMetadata.deployTransaction.wait();
+            console.log(chalk.yellowBright("Grant role DEFAULT_ADMIN_ROLE of", tokenManagerERC721WithMetadata.address, "to", safe));
+            await (await tokenManagerERC721WithMetadata.grantRole(await tokenManagerERC721WithMetadata.DEFAULT_ADMIN_ROLE(), safe)).wait();
+            const registrarRole = await tokenManagerLinker.REGISTRAR_ROLE();
+            console.log(chalk.yellow("Prepare transaction to grant Role REGISTRAR for", safe, "in TokenManagerLinker", abi[getContractKeyInAbiFile(tokenManagerLinkerName) + "_address"]));
+            safeTransactions.push(encodeTransaction(
+                0,
+                abi[getContractKeyInAbiFile(tokenManagerLinkerName) + "_address"],
+                0,
+                tokenManagerLinker.interface.encodeFunctionData("grantRole", [registrarRole, safe])
+            ));
+            console.log(chalk.yellow("Prepare transaction to register TokenManager", tokenManagerERC721WithMetadata.address, "in Linker", abi[getContractKeyInAbiFile(tokenManagerLinkerName) + "_address"]));
+            safeTransactions.push(encodeTransaction(
+                0,
+                abi[getContractKeyInAbiFile(tokenManagerLinkerName) + "_address"],
+                0,
+                tokenManagerLinker.interface.encodeFunctionData("registerTokenManager", [tokenManagerERC721WithMetadata.address])
+            ));
+            const extraContractRegistrarRole = await messageProxyForSchain.EXTRA_CONTRACT_REGISTRAR_ROLE();
+            console.log(chalk.yellow("Prepare transaction to grant Role extraContract Registrar for", safe, "as contract for all in MessageProxy", abi[getContractKeyInAbiFile(messageProxyForSchainName) + "_address"]));
+            safeTransactions.push(encodeTransaction(
+                0,
+                abi[getContractKeyInAbiFile(messageProxyForSchainName) + "_address"],
+                0,
+                messageProxyForSchain.interface.encodeFunctionData("grantRole", [extraContractRegistrarRole, safe])
+            ));
+            console.log(chalk.yellow("Prepare transaction to register TokenManager", tokenManagerERC721WithMetadata.address, "as contract for all in MessageProxy", abi[getContractKeyInAbiFile(messageProxyForSchainName) + "_address"]));
+            safeTransactions.push(encodeTransaction(
+                0,
+                abi[getContractKeyInAbiFile(messageProxyForSchainName) + "_address"],
+                0,
+                messageProxyForSchain.interface.encodeFunctionData("registerExtraContractForAll", [tokenManagerERC721WithMetadata.address])
+            ));
+            await verifyProxy(tokenManagerERC721WithMetadataName, tokenManagerERC721WithMetadata.address, []);
+            abi[getContractKeyInAbiFile(tokenManagerERC721WithMetadataName) + "_abi"] = getAbi(tokenManagerERC721WithMetadata.interface);
+            abi[getContractKeyInAbiFile(tokenManagerERC721WithMetadataName) + "_address"] = tokenManagerERC721WithMetadata.address;
+        },
         async( safeTransactions, abi ) => {
             const messageProxyForSchainName = "MessageProxyForSchain";
             const messageProxyForSchainFactory = await ethers.getContractFactory(messageProxyForSchainName);
