@@ -25,16 +25,24 @@ pragma solidity 0.8.6;
 import "@skalenetwork/ima-interfaces/IMessageReceiver.sol";
 
 
-contract ReceiverMock is IMessageReceiver {
+contract TestCallReceiverContract is IMessageReceiver {
+    event Error(uint error);
+
     function postMessage(
         bytes32,
         address,
-        bytes calldata
+        bytes calldata data
     )
         external
-        pure
         override
     {
-        return;
+        uint revertCode = abi.decode(data, (uint));
+        uint one = 1;
+        uint zero = 0;
+        if (revertCode == 1) {
+            revert("AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA");
+        } else if (revertCode == 2) {
+            emit Error(one / zero);
+        }
     }
 }

@@ -94,7 +94,6 @@ contract DepositBoxEth is DepositBox, IDepositBoxEth {
         onlyMessageProxy
         whenNotKilled(schainHash)
         checkReceiverChain(schainHash, sender)
-        returns (address)
     {
         Messages.TransferEthMessage memory message = Messages.decodeTransferEthMessage(data);
         require(
@@ -107,7 +106,6 @@ contract DepositBoxEth is DepositBox, IDepositBoxEth {
         } else {
             payable(message.receiver).sendValue(message.amount);
         }
-        return message.receiver;
     }
 
     /**

@@ -21,12 +21,18 @@
 
 pragma solidity 0.8.6;
 
-import "@skalenetwork/skale-manager-interfaces/IWallets.sol";
-
 import "./TestSchainsInternal.sol";
 
-interface IWalletsTester is IWallets {
+interface IWalletsTester {
     function addContractManager(address newContractManager) external;
+     function refundGasBySchain(
+        bytes32 schainHash,
+        address payable spender,
+        uint spentGas,
+        bool
+    ) external;
+    function rechargeSchainWallet(bytes32 schainHash) external payable;
+    function getSchainBalance(bytes32 schainHash) external view returns (uint);
 }
 
 

@@ -30,6 +30,12 @@ import "../../Messages.sol";
 import "../tokens/ERC20OnChain.sol";
 import "../TokenManager.sol";
 
+interface ITokenManagerERC20InitializeFunction is ITokenManagerERC20 {
+    function initializeAllClonesERC20(
+        address[] calldata contracts
+    ) external;
+}
+
 
 /**
  * @title TokenManagerERC20
@@ -38,7 +44,7 @@ import "../TokenManager.sol";
  * and creates ERC20 clones.
  * TokenManagerERC20 mints tokens. When a user exits a SKALE chain, it burns them.
  */
-contract TokenManagerERC20 is TokenManager, ITokenManagerERC20 {
+contract TokenManagerERC20 is TokenManager, ITokenManagerERC20InitializeFunction {
     using AddressUpgradeable for address;
     using EnumerableSetUpgradeable for EnumerableSetUpgradeable.AddressSet;
 
@@ -88,9 +94,30 @@ contract TokenManagerERC20 is TokenManager, ITokenManagerERC20 {
     event ERC20TokenReady(bytes32 indexed chainHash, address indexed contractOnMainnet, uint256 amount);
 
     /**
+     * @dev Allows DEFAULT_ADMIN_ROLE to initialize clones ERC20
+     * Notice - this function will be executed only once during upgrade
+     * 
+     * Requirements:
+     * 
+     * `msg.sender` should have DEFAULT_ADMIN_ROLE
+     */
+    function initializeAllClonesERC20(address[] calldata contracts) external override {
+        require(hasRole(DEFAULT_ADMIN_ROLE, msg.sender), "Sender is not authorized");
+        for (uint256 i = 0; i < contracts.length; i++) {
+            if (
+                address(deprecatedClonesErc20[contracts[i]]).isContract() &&
+                !address(clonesErc20[MAINNET_HASH][contracts[i]]).isContract()
+            ) {
+                clonesErc20[MAINNET_HASH][contracts[i]] = deprecatedClonesErc20[contracts[i]];
+                delete deprecatedClonesErc20[contracts[i]];
+            }
+        }
+    }
+
+    /**
      * @dev Move tokens from schain to mainnet.
      * 
-     * {contractOnMainnet} tokens are burned on schain and unlocked on mainnet for {to} address.
+     * {contractOnMainnet} tokens are burned on schain and unlocked on mainnet for {msg.sender} address.
      */
     function exitToMainERC20(
         address contractOnMainnet,
@@ -107,7 +134,7 @@ contract TokenManagerERC20 is TokenManager, ITokenManagerERC20 {
      * @dev Move tokens from schain to schain.
      * 
      * {contractOnMainnet} tokens are burned on origin schain
-     * and are minted on {targetSchainName} schain for {to} address.
+     * and are minted on {targetSchainName} schain for {msg.sender} address.
      */
     function transferToSchainERC20(
         string calldata targetSchainName,
@@ -129,7 +156,7 @@ contract TokenManagerERC20 is TokenManager, ITokenManagerERC20 {
      * Requirements:
      * 
      * - MessageProxy must be the sender.
-     * - `fromSchainName` must exist in TokenManager addresses.
+     * - `fromChainHash` must exist in TokenManager addresses.
      */
     function postMessage(
         bytes32 fromChainHash,
@@ -140,7 +167,6 @@ contract TokenManagerERC20 is TokenManager, ITokenManagerERC20 {
         override
         onlyMessageProxy
         checkReceiverChain(fromChainHash, sender)
-        returns (address)
     {
         Messages.MessageType operation = Messages.getMessageType(data);
         address receiver = address(0);
@@ -153,11 +179,10 @@ contract TokenManagerERC20 is TokenManager, ITokenManagerERC20 {
         } else {
             revert("MessageType is unknown");
         }
-        return receiver;
     }
 
     /**
-     * @dev Allows Schain owner to register an ERC20 token clone in the token manager.
+     * @dev Allows Schain owner to register an ERC20 token clone in the TokenManager.
      */
     function addERC20TokenByOwner(
         string calldata targetChainName,
@@ -271,9 +296,10 @@ contract TokenManagerERC20 is TokenManager, ITokenManagerERC20 {
         private
     {
         bool isMainChainToken;
-        ERC20BurnableUpgradeable contractOnSchain = clonesErc20[chainHash][contractOnMainChain];
+        ERC20OnChain contractOnSchain = clonesErc20[chainHash][contractOnMainChain];
         if (address(contractOnSchain) == address(0)) {
-            contractOnSchain = ERC20BurnableUpgradeable(contractOnMainChain);
+            contractOnSchain = ERC20OnChain(contractOnMainChain);
+            require(!addedClones[contractOnSchain], "Incorrect main chain token");
             isMainChainToken = true;
         }
         require(address(contractOnSchain).isContract(), "No token clone on schain");
@@ -287,6 +313,7 @@ contract TokenManagerERC20 is TokenManager, ITokenManagerERC20 {
         );
         bytes memory data = Messages.encodeTransferErc20Message(address(contractOnMainChain), to, amount);
         if (isMainChainToken) {
+            require(chainHash != MAINNET_HASH, "Main chain token could not be transfered to Mainnet");
             data = _receiveERC20(
                 chainHash,
                 address(contractOnSchain),
@@ -403,6 +430,10 @@ contract TokenManagerERC20 is TokenManager, ITokenManagerERC20 {
         });
     }
 
+
+    /**
+     * @dev Decodes ERC20 transfer message depending on type of message.
+     */
     function _decodeErc20Message(bytes calldata data)
         private
         pure

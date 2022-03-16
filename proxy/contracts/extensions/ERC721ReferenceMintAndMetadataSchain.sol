@@ -30,8 +30,8 @@ import "./interfaces/MessageSender.sol";
 /**
  * @title Token Manager
  * @dev Runs on SKALE Chains, accepts messages from mainnet, and instructs
- * TokenFactory to create clones. TokenManager mints tokens via
- * LockAndDataForSchain*. When a user exits a SKALE chain, TokenFactory
+ * TokenFactory to create clones.
+  When a user exits a SKALE chain, TokenFactory
  * burns tokens.
  */
 contract ERC721ReferenceMintAndMetadataSchain is MessageSender, IERC721ReferenceMintAndMetadataSchain {

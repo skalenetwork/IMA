@@ -137,7 +137,6 @@ contract CommunityLocker is ICommunityLocker, AccessControlEnumerableUpgradeable
     )
         external
         override
-        returns (address)
     {
         require(msg.sender == address(messageProxy), "Sender is not a message proxy");
         require(sender == communityPool, "Sender must be CommunityPool");
@@ -152,7 +151,6 @@ contract CommunityLocker is ICommunityLocker, AccessControlEnumerableUpgradeable
         } else {
             emit LockUser(schainHash, message.receiver);
         }
-        return message.receiver;
     }
 
     /**

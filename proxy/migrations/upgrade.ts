@@ -234,7 +234,7 @@ export async function upgrade(
             console.log(chalk.blue("Return ownership to wallet"));
             await (await safeMock.transferProxyAdminOwnership(proxyAdmin.address, deployer.address)).wait();
             if (await proxyAdmin.owner() === deployer.address) {
-                await (await safeMock.destroy()).wait();
+                await (await safeMock.destroy({gasLimit: 1000000})).wait();
             } else {
                 console.log(chalk.blue("Something went wrong with ownership transfer"));
                 process.exit(1);
