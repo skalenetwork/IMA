@@ -26,6 +26,8 @@ import "@skalenetwork/skale-manager-interfaces/IWallets.sol";
 import "@skalenetwork/skale-manager-interfaces/ISchains.sol";
 import "@skalenetwork/ima-interfaces/mainnet/IMessageProxyForMainnet.sol";
 import "@skalenetwork/ima-interfaces/mainnet/ICommunityPool.sol";
+import "@skalenetwork/skale-manager-interfaces/ISchainsInternal.sol";
+
 
 import "../MessageProxy.sol";
 import "./SkaleManagerClient.sol";
@@ -135,7 +137,9 @@ contract MessageProxyForMainnet is SkaleManagerClient, MessageProxy, IMessagePro
      */
     function addConnectedChain(string calldata schainName) external override {
         bytes32 schainHash = keccak256(abi.encodePacked(schainName));
-        require(schainHash != MAINNET_HASH, "SKALE chain name is incorrect");
+        require(ISchainsInternal(
+            contractManagerOfSkaleManager.getContract("SchainsInternal")
+        ).isSchainExist(schainHash), "SKALE chain must exist");
         _addConnectedChain(schainHash);
     }
 
@@ -291,7 +295,7 @@ contract MessageProxyForMainnet is SkaleManagerClient, MessageProxy, IMessagePro
     function initialize(IContractManager contractManagerOfSkaleManagerValue) public virtual override initializer {
         SkaleManagerClient.initialize(contractManagerOfSkaleManagerValue);
         MessageProxy.initializeMessageProxy(1e6);
-        headerMessageGasCost = 70000;
+        headerMessageGasCost = 73800;
         messageGasCost = 9000;
     }
 
@@ -360,7 +364,7 @@ contract MessageProxyForMainnet is SkaleManagerClient, MessageProxy, IMessagePro
      */
     function _checkSchainBalance(bytes32 schainHash) internal view returns (bool) {
         return IWallets(
-            contractManagerOfSkaleManager.getContract("Wallets")
+            payable(contractManagerOfSkaleManager.getContract("Wallets"))
         ).getSchainBalance(schainHash) >= (MESSAGES_LENGTH + 1) * gasLimit * tx.gasprice;
     }
 

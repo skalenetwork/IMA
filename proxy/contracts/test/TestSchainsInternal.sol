@@ -22,13 +22,11 @@
 
 pragma solidity 0.8.6;
 
-import "@skalenetwork/skale-manager-interfaces/ISchainsInternal.sol";
-
 import "./TestContractManager.sol";
 import "./TestNodes.sol";
 
 
-interface ISchainsInternalTester is ISchainsInternal {
+interface ISchainsInternalTester {
     function addContractManager(address newContractManager) external;
     function initializeSchain(
         string calldata name,
@@ -36,6 +34,9 @@ interface ISchainsInternalTester is ISchainsInternal {
         uint lifetime,
         uint deposit) external;
     function addNodesToSchainsGroups(bytes32 schainHash, uint[] memory nodes) external;
+    function isNodeAddressesInGroup(bytes32 schainHash, address sender) external view returns (bool);
+    function isOwnerAddress(address from, bytes32 schainHash) external view returns (bool);
+    function isSchainExist(bytes32 schainHash) external view returns (bool);
 }
 
 
@@ -98,5 +99,9 @@ contract SchainsInternal is ISchainsInternalTester {
 
     function isOwnerAddress(address from, bytes32 schainHash) external view override returns (bool) {
         return schains[schainHash].owner == from;
+    }
+
+    function isSchainExist(bytes32) external view override returns (bool) {
+        return true;
     }
 }

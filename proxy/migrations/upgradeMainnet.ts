@@ -310,6 +310,12 @@ async function main() {
                     0,
                     messageProxyForMainnet.interface.encodeFunctionData("setNewMessageGasCost", [9000])
                 ));
+                safeTransactions.push(encodeTransaction(
+                    0,
+                    messageProxyForMainnetAddress,
+                    0,
+                    messageProxyForMainnet.interface.encodeFunctionData("setNewHeaderMessageGasCost", [73800])
+                ));
             } else {
                 console.log(chalk.red("MessageProxyForMainnet was not found!"));
                 console.log(chalk.red("Check your abi!!!"));
