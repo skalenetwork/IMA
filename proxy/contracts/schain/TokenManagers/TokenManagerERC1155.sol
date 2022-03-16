@@ -450,15 +450,17 @@ contract TokenManagerERC1155 is
         private
     {
         bool isMainChainToken;
-        ERC1155BurnableUpgradeable contractOnSchain = clonesErc1155[chainHash][contractOnMainChain];
+        ERC1155OnChain contractOnSchain = clonesErc1155[chainHash][contractOnMainChain];
         if (address(contractOnSchain) == address(0)) {
-            contractOnSchain = ERC1155BurnableUpgradeable(contractOnMainChain);
+            contractOnSchain = ERC1155OnChain(contractOnMainChain);
+            require(!addedClones[contractOnSchain], "Incorrect main chain token");
             isMainChainToken = true;
         }
         require(address(contractOnSchain).isContract(), "No token clone on schain");
         require(contractOnSchain.isApprovedForAll(msg.sender, address(this)), "Not allowed ERC1155 Token");
         bytes memory data = Messages.encodeTransferErc1155Message(contractOnMainChain, to, id, amount);
         if (isMainChainToken) {
+            require(chainHash != MAINNET_HASH, "Main chain token could not be transfered to Mainnet");
             data = _receiveERC1155(
                 chainHash,
                 address(contractOnSchain),
@@ -493,15 +495,17 @@ contract TokenManagerERC1155 is
         private
     {
         bool isMainChainToken;
-        ERC1155BurnableUpgradeable contractOnSchain = clonesErc1155[chainHash][contractOnMainChain];
+        ERC1155OnChain contractOnSchain = clonesErc1155[chainHash][contractOnMainChain];
         if (address(contractOnSchain) == address(0)) {
-            contractOnSchain = ERC1155BurnableUpgradeable(contractOnMainChain);
+            contractOnSchain = ERC1155OnChain(contractOnMainChain);
+            require(!addedClones[contractOnSchain], "Incorrect main chain token");
             isMainChainToken = true;
         }
         require(address(contractOnSchain).isContract(), "No token clone on schain");
         require(contractOnSchain.isApprovedForAll(msg.sender, address(this)), "Not allowed ERC1155 Token");
         bytes memory data = Messages.encodeTransferErc1155BatchMessage(contractOnMainChain, to, ids, amounts);
         if (isMainChainToken) {
+            require(chainHash != MAINNET_HASH, "Main chain token could not be transfered to Mainnet");
             data = _receiveERC1155Batch(
                 chainHash,
                 address(contractOnSchain),

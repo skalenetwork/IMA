@@ -33,8 +33,10 @@ class Config:
     schain_key = ''
     schain_rpc_url = 'http://localhost:8545'
     schain_name = 'd2'
+    schain_name_2 = 'd3'
     abi_mainnet = 'data/proxyMainnet.json'
     abi_schain = 'data/proxySchain_'
+    abi_schain_2 = 'data/proxySchain_'
     user_key = ''
 
     def __init__(self, src_root, config_json):
@@ -63,5 +65,6 @@ class Config:
 
         self.abi_mainnet = self.proxy_root + '/' + self.abi_mainnet
         self.abi_schain = self.proxy_root + '/' + self.abi_schain + self.schain_name + '.json'
+        self.abi_schain_2 = self.proxy_root + '/' + self.abi_schain_2 + self.schain_name_2 + '.json'
 
 
