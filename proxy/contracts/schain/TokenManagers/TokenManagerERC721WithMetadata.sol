@@ -85,17 +85,17 @@ contract TokenManagerERC721WithMetadata is TokenManagerERC721 {
         if (messageType == Messages.MessageType.TRANSFER_ERC721_WITH_METADATA) {
             Messages.TransferErc721MessageWithMetadata memory message =
                 Messages.decodeTransferErc721MessageWithMetadata(data);
-            receiver = message.receiver;
-            token = message.token;
-            tokenId = message.tokenId;
+            receiver = message.erc721message.receiver;
+            token = message.erc721message.token;
+            tokenId = message.erc721message.tokenId;
             tokenURI = message.tokenURI;
             contractOnSchain = clonesErc721[fromChainHash][token];
         } else {
             Messages.TransferErc721WithMetadataAndTokenInfoMessage memory message =
                 Messages.decodeTransferErc721WithMetadataAndTokenInfoMessage(data);
-            receiver = message.baseErc721transferWithMetadata.receiver;
-            token = message.baseErc721transferWithMetadata.token;
-            tokenId = message.baseErc721transferWithMetadata.tokenId;
+            receiver = message.baseErc721transferWithMetadata.erc721message.receiver;
+            token = message.baseErc721transferWithMetadata.erc721message.token;
+            tokenId = message.baseErc721transferWithMetadata.erc721message.tokenId;
             tokenURI = message.baseErc721transferWithMetadata.tokenURI;
             contractOnSchain = clonesErc721[fromChainHash][token];
             if (address(contractOnSchain) == address(0)) {

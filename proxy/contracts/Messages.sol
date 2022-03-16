@@ -125,10 +125,7 @@ library Messages {
      * @dev Structure for describing base ERC721 with metadata.
      */
     struct TransferErc721MessageWithMetadata {
-        BaseMessage message;
-        address token;
-        address receiver;
-        uint256 tokenId;
+        TransferErc721Message erc721message;
         string tokenURI;
     }
 
@@ -420,10 +417,12 @@ library Messages {
         string memory tokenURI
     ) internal pure returns (bytes memory) {
         TransferErc721MessageWithMetadata memory message = TransferErc721MessageWithMetadata(
-            BaseMessage(MessageType.TRANSFER_ERC721_WITH_METADATA),
-            token,
-            receiver,
-            tokenId,
+            TransferErc721Message(
+                BaseMessage(MessageType.TRANSFER_ERC721_WITH_METADATA),
+                token,
+                receiver,
+                tokenId
+            ),
             tokenURI
         );
         return abi.encode(message);
@@ -456,10 +455,12 @@ library Messages {
     ) internal pure returns (bytes memory) {
         TransferErc721WithMetadataAndTokenInfoMessage memory message = TransferErc721WithMetadataAndTokenInfoMessage(
             TransferErc721MessageWithMetadata(
-                BaseMessage(MessageType.TRANSFER_ERC721_WITH_METADATA_AND_TOKEN_INFO),
-                token,
-                receiver,
-                tokenId,
+                TransferErc721Message(
+                    BaseMessage(MessageType.TRANSFER_ERC721_WITH_METADATA_AND_TOKEN_INFO),
+                    token,
+                    receiver,
+                    tokenId
+                ),
                 tokenURI
             ),
             tokenInfo
