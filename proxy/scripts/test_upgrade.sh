@@ -40,7 +40,7 @@ cd proxy
 
 ABI="data/$ABI_FILENAME_MAINNET" TEST_UPGRADE=true npx hardhat run migrations/upgradeMainnet.ts --network localhost || exit $?
 
-VERSION="$(git describe --tags | $VERSION_TAG)"
+VERSION="$(git describe --tags | echo $VERSION_TAG)"
 echo "$VERSION"
 mv "data/proxyMainnet-$VERSION-localhost-abi.json" "data/proxyMainnet.json"
 
