@@ -157,6 +157,157 @@ signed_txn = self.web3_mainnet.eth.account.signTransaction(dict(
 self.web3_mainnet.eth.sendRawTransaction(signed_txn.rawTransaction)
 ----
 --
+
+Web3.js sync::
++
+--
+
+[source,javascript]
+----
+const Web3 = require('web3');
+const Tx = require('ethereumjs-tx');
+
+let rinkebyABIs = require("[YOUR_SKALE_ABIs_ON_RINKEBY]");
+let privateKey = new Buffer('[YOUR_PRIVATE_KEY]', 'hex')
+let account = "[YOUR_ACCOUNT_ADDRESS]";
+let rinkeby = "[RINKEBY_ENDPOINT]";
+let schainName = "[YOUR_SKALE_CHAIN_NAME]";
+let chainID = "[ETHEREUM_CHAIN_ID]";
+
+const depositBoxERC20Address = rinkebyABIs.deposit_box_erc20_address;
+const depositBoxERC20ABI = rinkebyABIs.deposit_box_erc20_abi;
+
+const web3 = new Web3(rinkeby);
+
+let contract = new web3.eth.Contract(depositBoxERC20ABI, depositBoxERC20Address);
+
+/*
+ * prepare the smart contract function
+ * disableWhitelist(string chainName)
+ */
+let disableWhitelist = contract.methods
+  .disableWhitelist(
+    schainName
+    )
+  .encodeABI();
+
+//get nonce
+web3.eth.getTransactionCount(account).then(nonce => {
+
+  //create raw transaction to send 1 ETH
+  const rawTx = {
+    chainId: chainId,
+    from: account,
+    nonce: "0x" + nonce.toString(16),
+    data: disableWhitelist,
+    to: depositBoxERC20Address,
+    gas: 200000,
+    gasPrice: 10000000000
+  };
+
+  //sign transaction
+  const tx = new Tx(rawTx);
+  tx.sign(privateKey);
+
+  //serialize transaction
+  const serializedTx = tx.serialize();
+
+  //send signed transaction
+  web3.eth
+    .sendSignedTransaction("0x" + serializedTx.toString("hex"))
+    .on("receipt", receipt => {
+      //record receipt to console
+      console.log(receipt);
+    })
+    .catch(console.error);
+});
+----
+--
+
+Web3.js async::
++
+--
+
+[source,javascript]
+----
+const Web3 = require('web3');
+const Tx = require('ethereumjs-tx');
+
+let rinkebyABIs = require("[YOUR_SKALE_ABIs_ON_RINKEBY]");
+let privateKey = new Buffer('[YOUR_PRIVATE_KEY]', 'hex')
+let account = "[YOUR_ACCOUNT_ADDRESS]";
+let rinkeby = "[RINKEBY_ENDPOINT]";
+let skaleChainName = "[YOUR_SKALE_CHAIN_NAME]";
+let chainID = "[ETHEREUM_CHAIN_ID]";
+
+const depositBoxERC20Address = rinkebyABIs.deposit_box_erc20_address;
+const depositBoxERC20ABI = rinkebyABIs.deposit_box_erc20_abi;
+
+const web3 = new Web3(rinkeby);
+
+let depositBoxERC20 = new web3.eth.Contract(depositBoxERC20ABI, depositBoxERC20Address);
+
+async function disableWhitelist(contract, chainName) {
+    const disableWhitelistMethod = contract.methods.disableWhitelist(chainName).encodeABI();
+    const nonce = await web3.eth.getTransactionCount(account);
+    const rawTX = {
+        chainId: chainId,
+        from: account,
+        nonce: "0x" + nonce.toString(16),
+        data: disableWhitelistMethod,
+        to: contract.address,
+        gas: 200000,
+        gasPrice: 100000000000
+    };
+    const tx = new Tx(rawTx);
+    tx.sign(privateKey);
+    const serializedTx = tx.serialize();
+    const txReceipt = await web3.eth.sendSignedTransaction("0x" + serializedTx.toString("hex"));
+    console.log("Receipt:", txReceipt);
+}
+
+// run function
+disableWhitelist(depositBoxERC20, skaleChainName);
+----
+--
+
+Hardhat typescript::
++
+--
+
+[source, typescript]
+----
+// add account and network to the hardhat config file
+
+// run from the console:
+// npx hardhat run PATH_TO_SCRIPT --network rinkeby
+
+import { ethers } from "hardhat";
+import { promises as fs } from "fs";
+
+const abiFilename = "[YOUR_SKALE_ABIs_ON_RINKEBY]"
+const skaleChainName = "[YOUR_SKALE_CHAIN_NAME]";
+
+async function disableWhitelist(schainName: string) {
+    const abi = JSON.parse(await fs.readFile(abiFilename, "utf-8"));
+    const [ deployer ] = await ethers.getSigners();
+    const depositBoxERC20Address = abi["deposit_box_erc20_address"];
+    const depositBoxERC20Abi = abi["deposit_box_erc20_abi"];
+    const depositBoxERC20Factory = await ethers.Contract(depositBoxERC20Address, depositBoxERC20Abi, deployer);
+    const txReceipt = await( await(depositBoxERC20.disableWhitelist(schainName))).wait();
+    console.log("Receipt:", txReceipt);
+}
+
+if (require.main === module) {
+    disableWhitelist(skaleChainName)
+        .then(() => process.exit(0))
+        .catch(error => {
+            console.error(error);
+            process.exit(1);
+        });
+}
+----
+--
 ====
 
 To re-enable the whitelist:
@@ -183,6 +334,157 @@ signed_txn = self.web3_mainnet.eth.account.signTransaction(dict(
     from_key)
 
 self.web3_mainnet.eth.sendRawTransaction(signed_txn.rawTransaction)
+----
+--
+
+Web3.js sync::
++
+--
+
+[source,javascript]
+----
+const Web3 = require('web3');
+const Tx = require('ethereumjs-tx');
+
+let rinkebyABIs = require("[YOUR_SKALE_ABIs_ON_RINKEBY]");
+let privateKey = new Buffer('[YOUR_PRIVATE_KEY]', 'hex')
+let account = "[YOUR_ACCOUNT_ADDRESS]";
+let rinkeby = "[RINKEBY_ENDPOINT]";
+let schainName = "[YOUR_SKALE_CHAIN_NAME]";
+let chainID = "[ETHEREUM_CHAIN_ID]";
+
+const depositBoxERC20Address = rinkebyABIs.deposit_box_erc20_address;
+const depositBoxERC20ABI = rinkebyABIs.deposit_box_erc20_abi;
+
+const web3 = new Web3(rinkeby);
+
+let contract = new web3.eth.Contract(depositBoxERC20ABI, depositBoxERC20Address);
+
+/*
+ * prepare the smart contract function
+ * enableWhitelist(string chainName)
+ */
+let enableWhitelist = contract.methods
+  .enableWhitelist(
+    schainName
+    )
+  .encodeABI();
+
+//get nonce
+web3.eth.getTransactionCount(account).then(nonce => {
+
+  //create raw transaction to send 1 ETH
+  const rawTx = {
+    chainId: chainId,
+    from: account,
+    nonce: "0x" + nonce.toString(16),
+    data: enableWhitelist,
+    to: depositBoxERC20Address,
+    gas: 200000,
+    gasPrice: 100000000000
+  };
+
+  //sign transaction
+  const tx = new Tx(rawTx);
+  tx.sign(privateKey);
+
+  //serialize transaction
+  const serializedTx = tx.serialize();
+
+  //send signed transaction
+  web3.eth
+    .sendSignedTransaction("0x" + serializedTx.toString("hex"))
+    .on("receipt", receipt => {
+      //record receipt to console
+      console.log(receipt);
+    })
+    .catch(console.error);
+});
+----
+--
+
+Web3.js async::
++
+--
+
+[source,javascript]
+----
+const Web3 = require('web3');
+const Tx = require('ethereumjs-tx');
+
+let rinkebyABIs = require("[YOUR_SKALE_ABIs_ON_RINKEBY]");
+let privateKey = new Buffer('[YOUR_PRIVATE_KEY]', 'hex')
+let account = "[YOUR_ACCOUNT_ADDRESS]";
+let rinkeby = "[RINKEBY_ENDPOINT]";
+let skaleChainName = "[YOUR_SKALE_CHAIN_NAME]";
+let chainID = "[ETHEREUM_CHAIN_ID]";
+
+const depositBoxERC20Address = rinkebyABIs.deposit_box_erc20_address;
+const depositBoxERC20ABI = rinkebyABIs.deposit_box_erc20_abi;
+
+const web3 = new Web3(rinkeby);
+
+let depositBoxERC20 = new web3.eth.Contract(depositBoxERC20ABI, depositBoxERC20Address);
+
+async function enableWhitelist(contract, chainName) {
+    const enableWhitelistMethod = contract.methods.enableWhitelist(chainName).encodeABI();
+    const nonce = await web3.eth.getTransactionCount(account);
+    const rawTX = {
+        chainId: chainId,
+        from: account,
+        nonce: "0x" + nonce.toString(16),
+        data: enableWhitelistMethod,
+        to: contract.address,
+        gas: 200000,
+        gasPrice: 100000000000
+    };
+    const tx = new Tx(rawTx);
+    tx.sign(privateKey);
+    const serializedTx = tx.serialize();
+    const txReceipt = await web3.eth.sendSignedTransaction("0x" + serializedTx.toString("hex"));
+    console.log("Receipt:", txReceipt);
+}
+
+// run function
+enableWhitelist(depositBoxERC20, skaleChainName);
+----
+--
+
+Hardhat typescript::
++
+--
+
+[source, typescript]
+----
+// add account and network to the hardhat config file
+
+// run from the console:
+// npx hardhat run PATH_TO_SCRIPT --network rinkeby
+
+import { ethers } from "hardhat";
+import { promises as fs } from "fs";
+
+const abiFilename = "[YOUR_SKALE_ABIs_ON_RINKEBY]"
+const skaleChainName = "[YOUR_SKALE_CHAIN_NAME]";
+
+async function enableWhitelist(schainName: string) {
+    const abi = JSON.parse(await fs.readFile(abiFilename, "utf-8"));
+    const [ deployer ] = await ethers.getSigners();
+    const depositBoxERC20Address = abi["deposit_box_erc20_address"];
+    const depositBoxERC20Abi = abi["deposit_box_erc20_abi"];
+    const depositBoxERC20Factory = await ethers.Contract(depositBoxERC20Address, depositBoxERC20Abi, deployer);
+    const txReceipt = await( await(depositBoxERC20.enableWhitelist(schainName))).wait();
+    console.log("Receipt:", txReceipt);
+}
+
+if (require.main === module) {
+    enableWhitelist(skaleChainName)
+        .then(() => process.exit(0))
+        .catch(error => {
+            console.error(error);
+            process.exit(1);
+        });
+}
 ----
 --
 ====
