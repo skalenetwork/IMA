@@ -271,7 +271,7 @@ disableWhitelist(depositBoxERC20, skaleChainName);
 ----
 --
 
-Hardhat typescript::
+Hardhat TS::
 +
 --
 
@@ -450,7 +450,7 @@ enableWhitelist(depositBoxERC20, skaleChainName);
 ----
 --
 
-Hardhat typescript::
+Hardhat TS::
 +
 --
 
