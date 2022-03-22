@@ -85,6 +85,7 @@ class MessageProxyForSchainGenerator(ContractGenerator):
             TOKEN_MANAGER_ERC20_ADDRESS,
             TOKEN_MANAGER_ERC721_ADDRESS,
             TOKEN_MANAGER_ERC1155_ADDRESS,
+            TOKEN_MANAGER_ERC721_WITH_METADATA_ADDRESS,
             COMMUNITY_LOCKER_ADDRESS]
         values_slot = registry_contracts_slot
         indexes_slot = registry_contracts_slot + 1
