@@ -124,6 +124,51 @@ contract TokenManagerERC721WithMetadata is TokenManagerERC721 {
     }
 
     /**
+     * @dev Burn tokens on schain and send message to unlock them on target chain.
+     */
+    function _exit(
+        bytes32 chainHash,
+        address messageReceiver,
+        address contractOnMainChain,
+        address to,
+        uint256 tokenId
+    )
+        internal
+        override
+    {
+        bool isMainChainToken;
+        ERC721OnChain contractOnSchain = clonesErc721[chainHash][contractOnMainChain];
+        if (address(contractOnSchain) == address(0)) {
+            contractOnSchain = ERC721OnChain(contractOnMainChain);
+            require(!addedClones[contractOnSchain], "Incorrect main chain token");
+            isMainChainToken = true;
+        }
+        require(address(contractOnSchain).isContract(), "No token clone on schain");
+        require(contractOnSchain.getApproved(tokenId) == address(this), "Not allowed ERC721 Token");
+        bytes memory data = Messages.encodeTransferErc721MessageWithMetadata(
+            contractOnMainChain,
+            to,
+            tokenId,
+            _getTokenURI(IERC721MetadataUpgradeable(contractOnSchain), tokenId)
+        );
+        if (isMainChainToken) {
+            require(chainHash != MAINNET_HASH, "Main chain token could not be transfered to Mainnet");
+            data = _receiveERC721(
+                chainHash,
+                address(contractOnSchain),
+                msg.sender,
+                tokenId
+            );
+            _saveTransferredAmount(chainHash, address(contractOnSchain), tokenId);
+            contractOnSchain.transferFrom(msg.sender, address(this), tokenId);
+        } else {
+            contractOnSchain.transferFrom(msg.sender, address(this), tokenId);
+            contractOnSchain.burn(tokenId);
+        }
+        messageProxy.postOutgoingMessage(chainHash, messageReceiver, data);
+    }
+
+    /**
      * @dev Allows DepositBoxERC721 to receive ERC721 tokens.
      * 
      * Emits an {ERC721TokenReady} event.

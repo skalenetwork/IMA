@@ -335,20 +335,6 @@ contract TokenManagerERC721 is TokenManager, ITokenManagerERC721InitializeFuncti
     }
 
     /**
-     * @dev Returns info about ERC721 token such as token name, symbol.
-     */
-    function _getTokenInfo(IERC721MetadataUpgradeable erc721) internal view returns (Messages.Erc721TokenInfo memory) {
-        return Messages.Erc721TokenInfo({
-            name: erc721.name(),
-            symbol: erc721.symbol()
-        });
-    }
-
-    function _isERC721AddedToSchain(bytes32 chainHash, address erc721OnMainChain) internal view returns (bool) {
-        return _schainToERC721[chainHash].contains(erc721OnMainChain);
-    }
-
-    /**
      * @dev Burn tokens on schain and send message to unlock them on target chain.
      */
     function _exit(
@@ -358,7 +344,8 @@ contract TokenManagerERC721 is TokenManager, ITokenManagerERC721InitializeFuncti
         address to,
         uint256 tokenId
     )
-        private
+        internal
+        virtual
     {
         bool isMainChainToken;
         ERC721OnChain contractOnSchain = clonesErc721[chainHash][contractOnMainChain];
@@ -390,8 +377,22 @@ contract TokenManagerERC721 is TokenManager, ITokenManagerERC721InitializeFuncti
     /**
      * @dev Saves the ids of tokens that was transferred to schain.
      */
-    function _saveTransferredAmount(bytes32 chainHash, address erc721Token, uint256 tokenId) private {
+    function _saveTransferredAmount(bytes32 chainHash, address erc721Token, uint256 tokenId) internal {
         require(transferredAmount[erc721Token][tokenId] == bytes32(0), "Token was already transferred to chain");
         transferredAmount[erc721Token][tokenId] = chainHash;
+    }
+
+    /**
+     * @dev Returns info about ERC721 token such as token name, symbol.
+     */
+    function _getTokenInfo(IERC721MetadataUpgradeable erc721) internal view returns (Messages.Erc721TokenInfo memory) {
+        return Messages.Erc721TokenInfo({
+            name: erc721.name(),
+            symbol: erc721.symbol()
+        });
+    }
+
+    function _isERC721AddedToSchain(bytes32 chainHash, address erc721OnMainChain) internal view returns (bool) {
+        return _schainToERC721[chainHash].contains(erc721OnMainChain);
     }
 }
