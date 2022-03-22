@@ -809,7 +809,7 @@ imaCLI.parse( {
                         imaState.cid_s_chain,
                         imaState.joAccount_main_net,
                         imaState.joAccount_s_chain,
-                        imaState.jo_deposit_box_erc721, // only main net
+                        imaState.isWithMetadata721 ? imaState.jo_deposit_box_erc721_with_metadata : imaState.jo_deposit_box_erc721, // only main net
                         imaState.jo_message_proxy_main_net, // for checking logs
                         imaState.strChainName_s_chain,
                         imaState.idToken, // which ERC721 token id to send
@@ -939,7 +939,7 @@ imaCLI.parse( {
                         imaState.joAccount_main_net,
                         imaState.isWithMetadata721 ? imaState.jo_token_manager_erc721_with_metadata : imaState.jo_token_manager_erc721, // only s-chain
                         imaState.jo_message_proxy_s_chain, // for checking logs
-                        imaState.jo_deposit_box_erc721, // only main net
+                        imaState.isWithMetadata721 ? imaState.jo_deposit_box_erc721_with_metadata : imaState.jo_deposit_box_erc721, // only main net
                         imaState.idToken, // which ERC721 token id to send
                         imaState.nAmountOfWei, // how much to send
                         imaState.strCoinNameErc721_main_net,
@@ -2295,7 +2295,7 @@ async function register_step1( isPrintSummaryRegistrationCosts ) {
             imaState.w3_main_net,
             // imaState.jo_deposit_box_eth, // only main net
             // imaState.jo_deposit_box_erc20, // only main net
-            // imaState.jo_deposit_box_erc721, // only main net
+            // imaState.isWithMetadata721 ? imaState.jo_deposit_box_erc721_with_metadata : imaState.jo_deposit_box_erc721, // only main net
             imaState.jo_linker,
             imaState.joAccount_main_net,
             imaState.jo_token_manager_eth, // only s-chain
