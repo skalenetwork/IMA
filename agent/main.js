@@ -170,6 +170,8 @@ global.imaState = {
     "jo_deposit_box_erc721_with_metadata": null, // only main net
     "jo_linker": null, // only main net
 
+    "isWithMetadata721": false,
+
     "jo_token_manager_eth": null, // only s-chain
     // "jo_token_manager_eth_target": null, // only s-chain target
     "jo_token_manager_erc20": null, // only s-chain
@@ -807,12 +809,12 @@ imaCLI.parse( {
                         imaState.cid_s_chain,
                         imaState.joAccount_main_net,
                         imaState.joAccount_s_chain,
-                        imaState.jo_deposit_box_erc721, // only main net
+                        imaState.isWithMetadata721 ? imaState.jo_deposit_box_erc721_with_metadata : imaState.jo_deposit_box_erc721, // only main net
                         imaState.jo_message_proxy_main_net, // for checking logs
                         imaState.strChainName_s_chain,
                         imaState.idToken, // which ERC721 token id to send
                         imaState.nAmountOfWei, // how much to send
-                        imaState.jo_token_manager_erc721, // only s-chain
+                        imaState.isWithMetadata721 ? imaState.jo_token_manager_erc721_with_metadata : imaState.jo_token_manager_erc721, // only s-chain
                         imaState.strCoinNameErc721_main_net,
                         imaState.joErc721_main_net,
                         imaState.strCoinNameErc721_s_chain,
@@ -935,9 +937,9 @@ imaCLI.parse( {
                         imaState.cid_s_chain,
                         imaState.joAccount_s_chain,
                         imaState.joAccount_main_net,
-                        imaState.jo_token_manager_erc721, // only s-chain
+                        imaState.isWithMetadata721 ? imaState.jo_token_manager_erc721_with_metadata : imaState.jo_token_manager_erc721, // only s-chain
                         imaState.jo_message_proxy_s_chain, // for checking logs
-                        imaState.jo_deposit_box_erc721, // only main net
+                        imaState.isWithMetadata721 ? imaState.jo_deposit_box_erc721_with_metadata : imaState.jo_deposit_box_erc721, // only main net
                         imaState.idToken, // which ERC721 token id to send
                         imaState.nAmountOfWei, // how much to send
                         imaState.strCoinNameErc721_main_net,
@@ -1057,12 +1059,16 @@ imaCLI.parse( {
                 // const jo_message_proxy_dst = isForward ? imaState.jo_message_proxy_t_chain : imaState.jo_message_proxy_s_chain;
                 const jo_token_manager_erc20_src = isForward ? imaState.jo_token_manager_erc20 : imaState.jo_token_manager_erc20_target;
                 // const jo_token_manager_erc20_dst = isForward ? imaState.jo_token_manager_erc20_target : imaState.jo_token_manager_erc20
-                const jo_token_manager_erc721_src = isForward ? imaState.jo_token_manager_erc721 : imaState.jo_token_manager_erc721_target;
-                // const jo_token_manager_erc721_dst = isForward ? imaState.jo_token_manager_erc721_target : imaState.jo_token_manager_erc721
+                const jo_token_manager_erc721_src = isForward
+                    ? ( imaState.isWithMetadata721 ? imaState.jo_token_manager_erc721_with_metadata : imaState.jo_token_manager_erc721 )
+                    : ( imaState.isWithMetadata721 ? imaState.jo_token_manager_erc721_with_metadata_target : imaState.jo_token_manager_erc721_target )
+                    ;
+                // const jo_token_manager_erc721_dst = isForward
+                //     ? ( imaState.isWithMetadata721 ? imaState.jo_token_manager_erc721_with_metadata_target : imaState.jo_token_manager_erc721_target )
+                //     : ( imaState.isWithMetadata721 ? imaState.jo_token_manager_erc721_with_metadata : imaState.jo_token_manager_erc721 )
+                //     ;
                 const jo_token_manager_erc1155_src = isForward ? imaState.jo_token_manager_erc1155 : imaState.jo_token_manager_erc1155_target;
                 // const jo_token_manager_erc1155_dst = isForward ? imaState.jo_token_manager_erc1155_target : imaState.jo_token_manager_erc1155
-                // const jo_token_manager_erc72_with_metadata_src = isForward ? imaState.jo_token_manager_erc721_with_metadata : imaState.jo_token_manager_erc721_with_metadata_target;
-                // const jo_token_manager_erc72_with_metadata_dst = isForward ? imaState.jo_token_manager_erc721_with_metadata_target : imaState.jo_token_manager_erc721_with_metadata
                 // const strChainName_src = isForward ? imaState.strChainName_s_chain : imaState.strChainName_t_chain;
                 const strChainName_dst = isForward ? imaState.strChainName_t_chain : imaState.strChainName_s_chain;
                 const strCoinNameErc20_src = isForward ? imaState.strCoinNameErc20_s_chain : imaState.strCoinNameErc20_t_chain;
@@ -2289,7 +2295,7 @@ async function register_step1( isPrintSummaryRegistrationCosts ) {
             imaState.w3_main_net,
             // imaState.jo_deposit_box_eth, // only main net
             // imaState.jo_deposit_box_erc20, // only main net
-            // imaState.jo_deposit_box_erc721, // only main net
+            // imaState.isWithMetadata721 ? imaState.jo_deposit_box_erc721_with_metadata : imaState.jo_deposit_box_erc721, // only main net
             imaState.jo_linker,
             imaState.joAccount_main_net,
             imaState.jo_token_manager_eth, // only s-chain

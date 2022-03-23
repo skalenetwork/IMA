@@ -321,6 +321,7 @@ function parse( joExternalHandlers, argv ) {
             console.log( soi + cc.debug( "--" ) + cc.bright( "m2s-transfer" ) + cc.debug( ".................." ) + cc.notice( "Do single " ) + cc.attention( "money transfer loop" ) + cc.notice( " from " ) + cc.note( "Main-net" ) + cc.notice( " to " ) + cc.note( "S-chain" ) + cc.notice( "." ) );
             console.log( soi + cc.debug( "--" ) + cc.bright( "s2m-transfer" ) + cc.debug( ".................." ) + cc.notice( "Do single " ) + cc.attention( "money transfer loop" ) + cc.notice( " from " ) + cc.note( "S-chain" ) + cc.notice( " to " ) + cc.note( "Main-net" ) + cc.notice( "." ) );
             console.log( soi + cc.debug( "--" ) + cc.bright( "s2s-transfer" ) + cc.debug( ".................." ) + cc.notice( "Do single " ) + cc.attention( "money transfer loop" ) + cc.notice( " from " ) + cc.note( "S-chain" ) + cc.notice( " to " ) + cc.note( "S-chain" ) + cc.notice( "." ) );
+            console.log( soi + cc.debug( "--" ) + cc.bright( "with-metadata" ) + cc.debug( "................." ) + cc.notice( "Makes " ) + cc.bright( "ERC721" ) + cc.notice( " transfer using special version of " ) + cc.bright( "Token Manager" ) + cc.notice( " to transfer token metadata." ) );
             console.log( soi + cc.debug( "--" ) + cc.bright( "transfer" ) + cc.debug( "......................" ) + cc.notice( "Run single " ) + cc.note( "M<->S" ) + cc.notice( " and, optionally, " ) + cc.note( "S->S" ) + cc.notice( " transfer loop iteration" ) + cc.notice( "." ) );
             console.log( soi + cc.debug( "--" ) + cc.bright( "loop" ) + cc.debug( ".........................." ) + cc.notice( "Run " ) + cc.note( "M<->S" ) + cc.notice( " and, optionally, " ) + cc.note( "S->S" ) + cc.notice( " transfer loop." ) );
             console.log( soi + cc.debug( "--" ) + cc.bright( "load-node-config" ) + cc.sunny( "=" ) + cc.success( "path" ) + cc.debug( "........." ) + cc.notice( "Use specified " ) + cc.note( "S-Chain" ) + cc.notice( " node JSON configuration file to load parameters" ) + cc.debug( "(like " ) + cc.attention( "node index" ) + cc.debug( ", " ) + cc.attention( "nodes count" ) + cc.debug( ")" ) + cc.notice( "." ) );
@@ -895,6 +896,10 @@ function parse( joExternalHandlers, argv ) {
         if( joArg.name == "net-rediscover" ) {
             owaspUtils.verifyArgumentIsInteger( joArg );
             imaState.s2s_opts.secondsToReDiscoverSkaleNetwork = owaspUtils.toInteger( joArg.value );
+            continue;
+        }
+        if( joArg.name == "with-metadata" ) {
+            imaState.isWithMetadata721 = true;
             continue;
         }
         //

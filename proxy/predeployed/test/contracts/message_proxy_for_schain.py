@@ -1,6 +1,6 @@
 from ima_predeployed.addresses import MESSAGE_PROXY_FOR_SCHAIN_ADDRESS, KEY_STORAGE_ADDRESS, \
     TOKEN_MANAGER_ETH_ADDRESS, TOKEN_MANAGER_ERC20_ADDRESS, COMMUNITY_LOCKER_ADDRESS, TOKEN_MANAGER_ERC721_ADDRESS, \
-    TOKEN_MANAGER_ERC1155_ADDRESS
+    TOKEN_MANAGER_ERC1155_ADDRESS, TOKEN_MANAGER_ERC721_WITH_METADATA_ADDRESS
 from ima_predeployed.contracts.message_proxy_for_schain import MessageProxyForSchainGenerator
 from tools import load_abi, w3
 from pkg_resources import get_distribution
@@ -34,6 +34,7 @@ def check_message_proxy_for_schain(owner_address, schain_name):
         TOKEN_MANAGER_ERC20_ADDRESS,
         TOKEN_MANAGER_ERC721_ADDRESS,
         TOKEN_MANAGER_ERC1155_ADDRESS,
+        TOKEN_MANAGER_ERC721_WITH_METADATA_ADDRESS,
         COMMUNITY_LOCKER_ADDRESS
     ]:
         raise AssertionError
@@ -48,6 +49,9 @@ def check_message_proxy_for_schain(owner_address, schain_name):
         raise AssertionError
     if not message_proxy_for_schain.functions.isContractRegistered(MessageProxyForSchainGenerator.ANY_SCHAIN,
                                                                 TOKEN_MANAGER_ERC1155_ADDRESS).call():
+        raise AssertionError
+    if not message_proxy_for_schain.functions.isContractRegistered(MessageProxyForSchainGenerator.ANY_SCHAIN,
+                                                                TOKEN_MANAGER_ERC721_WITH_METADATA_ADDRESS).call():
         raise AssertionError
     if not message_proxy_for_schain.functions.isContractRegistered(MessageProxyForSchainGenerator.ANY_SCHAIN,
                                                                 COMMUNITY_LOCKER_ADDRESS).call():
