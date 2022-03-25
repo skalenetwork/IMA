@@ -131,6 +131,27 @@ contract TokenManagerERC20 is TokenManager, ITokenManagerERC20InitializeFunction
     }
 
     /**
+     * @dev Move tokens from schain to mainnet.
+     * Notice - unlike this exitToMainERC20, this can be called by a contract on behalf of a user.
+     * 
+     * {contractOnMainnet} tokens are burned from {msg.sender} address on schain and
+     * unlocked on mainnet for {recipient} address.
+     */
+    function exitToMainRecipientERC20(
+        address contractOnMainnet,
+        uint256 amount,
+        address recipient
+    )
+        external
+        override
+    {
+        require(recipient != address(0), "Cannot exit to the null address");
+        require(recipient != contractOnMainnet, "Cannot exit to contractOnMainnet");
+        communityLocker.checkAllowedToSendMessage(tx.origin);
+        _exit(MAINNET_HASH, depositBox, contractOnMainnet, recipient, amount);
+    }
+
+    /**
      * @dev Move tokens from schain to schain.
      * 
      * {contractOnMainnet} tokens are burned on origin schain
@@ -147,6 +168,29 @@ contract TokenManagerERC20 is TokenManager, ITokenManagerERC20InitializeFunction
     {
         bytes32 targetSchainHash = keccak256(abi.encodePacked(targetSchainName));
         _exit(targetSchainHash, tokenManagers[targetSchainHash], contractOnMainnet, msg.sender, amount);
+    }
+
+    /**
+     * @dev Move tokens from schain to schain.
+     * Notice - unlike this exitToMainERC20, this can be called by a contract on behalf of a user.
+     * 
+     * {contractOnMainnet} tokens are burned from {msg.sender} address on origin schain
+     * and are minted on {targetSchainName} schain for {recipient} address.
+     */
+    function transferToSchainRecipientERC20(
+        string calldata targetSchainName,
+        address contractOnMainnet,
+        uint256 amount,
+        address recipient
+    )
+        external
+        override
+        rightTransaction(targetSchainName, msg.sender)
+    {
+        require(recipient != address(0), "Cannot exit to the null address");
+        require(recipient != contractOnMainnet, "Cannot exit to contractOnMainnet");
+        bytes32 targetSchainHash = keccak256(abi.encodePacked(targetSchainName));
+        _exit(targetSchainHash, tokenManagers[targetSchainHash], contractOnMainnet, recipient, amount);
     }
 
     /**
