@@ -134,21 +134,18 @@ contract TokenManagerERC20 is TokenManager, ITokenManagerERC20InitializeFunction
      * @dev Move tokens from schain to mainnet.
      * Notice - unlike this exitToMainERC20, this can be called by a contract on behalf of a user.
      * 
-     * {contractOnMainnet} tokens are burned from {msg.sender} address on schain and
-     * unlocked on mainnet for {recipient} address.
+     * {contractOnMainnet} tokens are burned from {tx.origin} address on schain and
+     * unlocked on mainnet for {tx.origin} address.
      */
-    function exitToMainRecipientERC20(
+    function exitToMainFromOriginERC20(
         address contractOnMainnet,
-        uint256 amount,
-        address recipient
+        uint256 amount
     )
         external
         override
     {
-        require(recipient != address(0), "Cannot exit to the null address");
-        require(recipient != contractOnMainnet, "Cannot exit to contractOnMainnet");
         communityLocker.checkAllowedToSendMessage(tx.origin);
-        _exit(MAINNET_HASH, depositBox, contractOnMainnet, recipient, amount);
+        _exit(MAINNET_HASH, depositBox, contractOnMainnet, tx.origin, amount);
     }
 
     /**
@@ -174,23 +171,20 @@ contract TokenManagerERC20 is TokenManager, ITokenManagerERC20InitializeFunction
      * @dev Move tokens from schain to schain.
      * Notice - unlike this exitToMainERC20, this can be called by a contract on behalf of a user.
      * 
-     * {contractOnMainnet} tokens are burned from {msg.sender} address on origin schain
-     * and are minted on {targetSchainName} schain for {recipient} address.
+     * {contractOnMainnet} tokens are burned from {tx.origin} address on origin schain
+     * and are minted on {targetSchainName} schain for {tx.origin} address.
      */
-    function transferToSchainRecipientERC20(
+    function transferToSchainFromOriginERC20(
         string calldata targetSchainName,
         address contractOnMainnet,
-        uint256 amount,
-        address recipient
+        uint256 amount
     )
         external
         override
-        rightTransaction(targetSchainName, msg.sender)
+        rightTransaction(targetSchainName, tx.origin)
     {
-        require(recipient != address(0), "Cannot exit to the null address");
-        require(recipient != contractOnMainnet, "Cannot exit to contractOnMainnet");
         bytes32 targetSchainHash = keccak256(abi.encodePacked(targetSchainName));
-        _exit(targetSchainHash, tokenManagers[targetSchainHash], contractOnMainnet, recipient, amount);
+        _exit(targetSchainHash, tokenManagers[targetSchainHash], contractOnMainnet, tx.origin, amount);
     }
 
     /**
@@ -334,7 +328,7 @@ contract TokenManagerERC20 is TokenManager, ITokenManagerERC20InitializeFunction
         bytes32 chainHash,
         address messageReceiver,
         address contractOnMainChain,
-        address to,
+        address user,
         uint256 amount
     )
         private
@@ -347,31 +341,31 @@ contract TokenManagerERC20 is TokenManager, ITokenManagerERC20InitializeFunction
             isMainChainToken = true;
         }
         require(address(contractOnSchain).isContract(), "No token clone on schain");
-        require(contractOnSchain.balanceOf(msg.sender) >= amount, "Insufficient funds");
+        require(contractOnSchain.balanceOf(user) >= amount, "Insufficient funds");
         require(
             contractOnSchain.allowance(
-                msg.sender,
+                user,
                 address(this)
             ) >= amount,
             "Transfer is not approved by token holder"
         );
-        bytes memory data = Messages.encodeTransferErc20Message(address(contractOnMainChain), to, amount);
+        bytes memory data = Messages.encodeTransferErc20Message(address(contractOnMainChain), user, amount);
         if (isMainChainToken) {
             require(chainHash != MAINNET_HASH, "Main chain token could not be transfered to Mainnet");
             data = _receiveERC20(
                 chainHash,
                 address(contractOnSchain),
-                msg.sender,
+                user,
                 amount
             );
             _saveTransferredAmount(chainHash, address(contractOnSchain), amount);
             require(
-                contractOnSchain.transferFrom(msg.sender, address(this), amount),
+                contractOnSchain.transferFrom(user, address(this), amount),
                 "Transfer was failed"
             );
         } else {
             require(
-                contractOnSchain.transferFrom(msg.sender, address(this), amount),
+                contractOnSchain.transferFrom(user, address(this), amount),
                 "Transfer was failed"
             );
             contractOnSchain.burn(amount);
