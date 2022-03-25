@@ -328,7 +328,7 @@ contract TokenManagerERC20 is TokenManager, ITokenManagerERC20InitializeFunction
         bytes32 chainHash,
         address messageReceiver,
         address contractOnMainChain,
-        address user,
+        address to,
         uint256 amount
     )
         private
@@ -341,31 +341,31 @@ contract TokenManagerERC20 is TokenManager, ITokenManagerERC20InitializeFunction
             isMainChainToken = true;
         }
         require(address(contractOnSchain).isContract(), "No token clone on schain");
-        require(contractOnSchain.balanceOf(user) >= amount, "Insufficient funds");
+        require(contractOnSchain.balanceOf(to) >= amount, "Insufficient funds");
         require(
             contractOnSchain.allowance(
-                user,
+                to,
                 address(this)
             ) >= amount,
             "Transfer is not approved by token holder"
         );
-        bytes memory data = Messages.encodeTransferErc20Message(address(contractOnMainChain), user, amount);
+        bytes memory data = Messages.encodeTransferErc20Message(address(contractOnMainChain), to, amount);
         if (isMainChainToken) {
             require(chainHash != MAINNET_HASH, "Main chain token could not be transfered to Mainnet");
             data = _receiveERC20(
                 chainHash,
                 address(contractOnSchain),
-                user,
+                to,
                 amount
             );
             _saveTransferredAmount(chainHash, address(contractOnSchain), amount);
             require(
-                contractOnSchain.transferFrom(user, address(this), amount),
+                contractOnSchain.transferFrom(to, address(this), amount),
                 "Transfer was failed"
             );
         } else {
             require(
-                contractOnSchain.transferFrom(user, address(this), amount),
+                contractOnSchain.transferFrom(to, address(this), amount),
                 "Transfer was failed"
             );
             contractOnSchain.burn(amount);
