@@ -1,5 +1,5 @@
 import axios from "axios";
-import { TypedDataUtils } from "ethers-eip712";
+import { ethers } from "ethers";
 import * as ethUtil from 'ethereumjs-util';
 import chalk from "chalk";
 
@@ -32,13 +32,13 @@ const URLS = {
 
 function getMultiSendAddress(chainId: number, isSafeMock: boolean = false) {
     if (isSafeMock) {
-        return ZERO_ADDRESS;
+        return ethers.constants.AddressZero;
     } else if (chainId === Network.MAINNET) {
         return ADDRESSES.multiSend[chainId];
     } else if (chainId === Network.RINKEBY) {
         return ADDRESSES.multiSend[chainId];
     } else if ([Network.GANACHE, Network.HARDHAT].includes(chainId)) {
-        return ZERO_ADDRESS;
+        return ethers.constants.AddressZero;
     } else {
         throw Error("Can't get multiSend contract at network with chainId = " + chainId);
     }
@@ -79,6 +79,22 @@ export async function createMultiSendTransaction(ethers: any, safeAddress: strin
     const multiSendAddress = getMultiSendAddress(chainId, isSafeMock);
     const multiSendAbi = [{"constant":false,"inputs":[{"internalType":"bytes","name":"transactions","type":"bytes"}],"name":"multiSend","outputs":[],"payable":false,"stateMutability":"nonpayable","type":"function"}];
     const multiSend = new ethers.Contract(multiSendAddress, new ethers.utils.Interface(multiSendAbi), ethers.provider);
+    const safeAbi = [{"constant":true,"inputs":[{"internalType":"address","name":"to","type":"address"},{"internalType":"uint256","name":"value","type":"uint256"},{"internalType":"bytes","name":"data","type":"bytes"},{"internalType":"enum Enum.Operation","name":"operation","type":"uint8"},{"internalType":"uint256","name":"safeTxGas","type":"uint256"},{"internalType":"uint256","name":"baseGas","type":"uint256"},{"internalType":"uint256","name":"gasPrice","type":"uint256"},{"internalType":"address","name":"gasToken","type":"address"},{"internalType":"address","name":"refundReceiver","type":"address"},{"internalType":"uint256","name":"_nonce","type":"uint256"}],"name":"getTransactionHash","outputs":[{"internalType":"bytes32","name":"","type":"bytes32"}],"payable":false,"stateMutability":"view","type":"function"}];
+    interface Safe extends ethers.Contract {
+        getTransactionHash: (
+            to: string,
+            value: number,
+            data: string,
+            operation: number,
+            safeTxGas: number,
+            baseGas: number,
+            gasPrice: number,
+            gasToken: string,
+            refundReceiver: string,
+            nonce: number
+        ) => Promise<string>
+    }
+    const safe = new ethers.Contract(safeAddress, new ethers.utils.Interface(safeAbi), ethers.provider) as Safe;
 
     let nonce = 0;
     if (!isSafeMock) {
@@ -97,44 +113,26 @@ export async function createMultiSendTransaction(ethers: any, safeAddress: strin
         "value": 0, // Value in wei
         "data": multiSend.interface.encodeFunctionData("multiSend", [ concatTransactions(transactions) ]),
         "operation": 1,  // 0 CALL, 1 DELEGATE_CALL
-        "gasToken": ZERO_ADDRESS, // Token address (hold by the Safe) to be used as a refund to the sender, if `null` is Ether
+        "gasToken": ethers.constants.AddressZero, // Token address (hold by the Safe) to be used as a refund to the sender, if `null` is Ether
         "safeTxGas": 0,  // Max gas to use in the transaction
         "baseGas": 0,  // Gas costs not related to the transaction execution (signature check, refund payment...)
         "gasPrice": 0,  // Gas price used for the refund calculation
-        "refundReceiver": ZERO_ADDRESS, // Address of receiver of gas payment (or `null` if tx.origin)
+        "refundReceiver": ethers.constants.AddressZero, // Address of receiver of gas payment (or `null` if tx.origin)
         "nonce": nonce,  // Nonce of the Safe, transaction cannot be executed until Safe's nonce is not equal to this nonce
     }
 
-    const typedData = {
-        types: {
-            EIP712Domain: [
-                {name: "verifyingContract", type: "address"},
-            ],
-            SafeTx: [
-                { type: "address", name: "to" },
-                { type: "uint256", name: "value" },
-                { type: "bytes", name: "data" },
-                { type: "uint8", name: "operation" },
-                { type: "uint256", name: "safeTxGas" },
-                { type: "uint256", name: "baseGas" },
-                { type: "uint256", name: "gasPrice" },
-                { type: "address", name: "gasToken" },
-                { type: "address", name: "refundReceiver" },
-                { type: "uint256", name: "nonce" },
-            ]
-        },
-        primaryType: 'SafeTx' as const,
-        domain: {
-          verifyingContract: safeAddress
-        },
-        message: {
-          ...tx,
-          data: ethers.utils.arrayify(tx.data)
-        }
-    }
-
-    const digest = TypedDataUtils.encodeDigest(typedData)
-    const digestHex = ethers.utils.hexlify(digest)
+    const digestHex = await safe.getTransactionHash(
+        tx.to,
+        tx.value,
+        tx.data,
+        tx.operation,
+        tx.safeTxGas,
+        tx.baseGas,
+        tx.gasPrice,
+        tx.gasToken,
+        tx.refundReceiver,
+        tx.nonce
+    );
 
     const privateKeyBuffer = ethUtil.toBuffer(privateKey);
     const { r, s, v } = ethUtil.ecsign(ethUtil.toBuffer(digestHex), privateKeyBuffer);
