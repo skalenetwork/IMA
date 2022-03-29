@@ -37,6 +37,7 @@ interface ISchainsInternalTester {
     function isNodeAddressesInGroup(bytes32 schainHash, address sender) external view returns (bool);
     function isOwnerAddress(address from, bytes32 schainHash) external view returns (bool);
     function isSchainExist(bytes32 schainHash) external view returns (bool);
+    function getSchains() external view returns (bytes32[] memory);
 }
 
 
@@ -62,6 +63,8 @@ contract SchainsInternal is ISchainsInternalTester {
 
     mapping (bytes32 => uint[]) public schainsGroups;
 
+    bytes32[] public schainsAtSystem;
+
     function addContractManager(address newContractManager) external override {
         contractManager = ContractManager(newContractManager);
     }
@@ -81,6 +84,7 @@ contract SchainsInternal is ISchainsInternalTester {
         schains[schainHash].deposit = deposit;
         schains[schainHash].index = 1337;
         isSchainActive[schainHash] = true;
+        schainsAtSystem.push(schainHash);
     }
 
     function addNodesToSchainsGroups(bytes32 schainHash, uint[] memory nodes) external override {
@@ -103,5 +107,17 @@ contract SchainsInternal is ISchainsInternalTester {
 
     function isSchainExist(bytes32) external view override returns (bool) {
         return true;
+    }
+
+    function getSchains() external view override returns (bytes32[] memory) {
+        return schainsAtSystem;
+    }
+
+    function getSchainName(bytes32 schainHash)
+        external
+        view
+        returns (string memory)
+    {
+        return schains[schainHash].name;
     }
 }
