@@ -328,11 +328,14 @@ async function main() {
                 const contractManagerAddress = await messageProxyForMainnet.contractManagerOfSkaleManager();
                 const contractManagerName = "ContractManager";
                 const contractManagerFactory = await ethers.getContractFactory(contractManagerName);
+                console.log(chalk.yellow("Will use contractManager with address " + contractManagerAddress));
                 const contractManager = contractManagerFactory.attach(contractManagerAddress) as ContractManager;
                 const schainsInternalName = "SchainsInternal";
                 const schainsInternalAddress = await contractManager.getContract(schainsInternalName);
                 const schainsInternalFactory = await ethers.getContractFactory(schainsInternalName);
+                console.log(chalk.yellow("Will use schainsInternal with address " + schainsInternalAddress));
                 const schainsInternal = schainsInternalFactory.attach(schainsInternalAddress) as SchainsInternal;
+                console.log(chalk.yellow("Will get schains"));
                 const allSchainHashes = await schainsInternal.getSchains();
                 console.log(chalk.yellow("Found " + allSchainHashes.length + "schains"));
                 const connectedSchains: string[] = [];
