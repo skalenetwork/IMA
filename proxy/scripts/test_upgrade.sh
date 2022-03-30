@@ -13,6 +13,7 @@ GANACHE_PID=$!
 
 cd "$DEPLOYED_DIR"
 cd proxy
+cp ../../proxy/contracts/test/TestSchainsInternal.sol ./contracts/test/TestSchainsInternal.sol
 yarn install
 CHAIN_NAME_SCHAIN="Test" VERSION="$DEPLOYED_VERSION" npx hardhat run migrations/deploySkaleManagerComponents.ts --network localhost || exit $?
 VERSION="$DEPLOYED_VERSION" npx hardhat run migrations/deployMainnet.ts --network localhost || exit $?

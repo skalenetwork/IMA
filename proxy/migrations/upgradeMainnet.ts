@@ -5,7 +5,16 @@ import { upgrade } from "./upgrade";
 import { getManifestAdmin } from "@openzeppelin/hardhat-upgrades/dist/admin";
 import { Manifest } from "@openzeppelin/upgrades-core";
 import chalk from "chalk";
-import { MessageProxyForMainnet, DepositBoxERC20, DepositBoxERC721, DepositBoxERC1155, DepositBoxERC721WithMetadata, Linker } from "../typechain/";
+import {
+    MessageProxyForMainnet,
+    DepositBoxERC20,
+    DepositBoxERC721,
+    DepositBoxERC1155,
+    DepositBoxERC721WithMetadata,
+    Linker,
+    ContractManager,
+    SchainsInternal
+} from "../typechain/";
 import { encodeTransaction } from "./tools/multiSend";
 import { TypedEvent, TypedEventFilter } from "../typechain/commons";
 import { promises as fs } from "fs";
@@ -291,12 +300,11 @@ async function main() {
             const messageProxyForMainnetAddress = abi[getContractKeyInAbiFile(messageProxyForMainnetName) + "_address"];
             let messageProxyForMainnet;
             if (messageProxyForMainnetAddress) {
-                console.log(chalk.yellow("Prepare transaction to set message gas cost to 9000"));
                 messageProxyForMainnet = messageProxyForMainnetFactory.attach(messageProxyForMainnetAddress) as MessageProxyForMainnet;
                 const constantSetterRole = await messageProxyForMainnet.CONSTANT_SETTER_ROLE();
                 const isHasRole = await messageProxyForMainnet.hasRole(constantSetterRole, owner);
                 if (!isHasRole) {
-                    console.log(chalk.yellow("Prepare transaction to grantRole CONSTANT_SETTER_ROLE to" + owner));
+                    console.log(chalk.yellow("Prepare transaction to grantRole CONSTANT_SETTER_ROLE to " + owner));
                     safeTransactions.push(encodeTransaction(
                         0,
                         messageProxyForMainnetAddress,
@@ -304,18 +312,76 @@ async function main() {
                         messageProxyForMainnet.interface.encodeFunctionData("grantRole", [constantSetterRole, owner])
                     ));
                 }
+                console.log(chalk.yellow("Prepare transaction to set message gas cost to 9000"));
                 safeTransactions.push(encodeTransaction(
                     0,
                     messageProxyForMainnetAddress,
                     0,
                     messageProxyForMainnet.interface.encodeFunctionData("setNewMessageGasCost", [9000])
                 ));
+                console.log(chalk.yellow("Prepare transaction to set header message gas cost to 73800"));
                 safeTransactions.push(encodeTransaction(
                     0,
                     messageProxyForMainnetAddress,
                     0,
                     messageProxyForMainnet.interface.encodeFunctionData("setNewHeaderMessageGasCost", [73800])
                 ));
+                const contractManagerAddress = await messageProxyForMainnet.contractManagerOfSkaleManager();
+                const contractManagerName = "ContractManager";
+                const contractManagerFactory = await ethers.getContractFactory(contractManagerName);
+                console.log(chalk.yellow("Will use contractManager with address " + contractManagerAddress));
+                const contractManager = contractManagerFactory.attach(contractManagerAddress) as ContractManager;
+                const schainsInternalName = "SchainsInternal";
+                const schainsInternalAddress = await contractManager.getContract(schainsInternalName);
+                const schainsInternalFactory = await ethers.getContractFactory(schainsInternalName);
+                console.log(chalk.yellow("Will use schainsInternal with address " + schainsInternalAddress));
+                const schainsInternal = schainsInternalFactory.attach(schainsInternalAddress) as SchainsInternal;
+                console.log(chalk.yellow("Will get schains"));
+                const allSchainHashes = await schainsInternal.getSchains();
+                console.log(chalk.yellow("Found " + allSchainHashes.length + "schains"));
+                const connectedSchains: string[] = [];
+                for (const schainHash of allSchainHashes) {
+                    console.log(chalk.yellow("Get a schainHash " + schainHash));
+                    const schainNameFromHash = await schainsInternal.getSchainName(schainHash);
+                    console.log(chalk.yellow("Get a schainName " + schainNameFromHash + " from the schainHash above "));
+                    const isConnected = await messageProxyForMainnet.isConnectedChain(schainNameFromHash);
+                    console.log(chalk.yellow("Is schain connected to IMA " + isConnected));
+                    if (isConnected) {
+                        console.log(chalk.yellow("Save schainName"));
+                        connectedSchains.push(schainNameFromHash);
+                    }
+                }
+                if (connectedSchains.length > 0) {
+                    const depositBoxERC721WithMetadataName = "DepositBoxERC721WithMetadata";
+                    const depositBoxERC721WithMetadataFactory = await ethers.getContractFactory(depositBoxERC721WithMetadataName);
+                    const depositBoxERC721WithMetadataAddress = abi[getContractKeyInAbiFile(depositBoxERC721WithMetadataName) + "_address"];
+                    const depositBoxERC721WithMetadata = depositBoxERC721WithMetadataFactory.attach(depositBoxERC721WithMetadataAddress) as DepositBoxERC721WithMetadata;
+                    const linkerRole = await depositBoxERC721WithMetadata.LINKER_ROLE();
+                    const tokenManagerERC721WithMetadataAddress = "0xd2AaA00a00000000000000000000000000000000";
+                    console.log(chalk.yellow("Prepare transaction to grantRole LINKER_ROLE of DepositBoxERC721WithMetadata to" + owner));
+                    safeTransactions.push(encodeTransaction(
+                        0,
+                        depositBoxERC721WithMetadataAddress,
+                        0,
+                        depositBoxERC721WithMetadata.interface.encodeFunctionData("grantRole", [linkerRole, owner])
+                    ));
+                    for (const connectedSchainName of connectedSchains) {
+                        console.log(chalk.yellow("Prepare transaction to addSchainContract of tokenManagerERC721WithMetadata for " + connectedSchainName));
+                        safeTransactions.push(encodeTransaction(
+                            0,
+                            depositBoxERC721WithMetadataAddress,
+                            0,
+                            depositBoxERC721WithMetadata.interface.encodeFunctionData("addSchainContract", [connectedSchainName, tokenManagerERC721WithMetadataAddress])
+                        ));
+                    }
+                    console.log(chalk.yellow("Prepare transaction to revokeRole LINKER_ROLE of DepositBoxERC721WithMetadata to" + owner));
+                    safeTransactions.push(encodeTransaction(
+                        0,
+                        depositBoxERC721WithMetadataAddress,
+                        0,
+                        depositBoxERC721WithMetadata.interface.encodeFunctionData("revokeRole", [linkerRole, owner])
+                    ));
+                }
             } else {
                 console.log(chalk.red("MessageProxyForMainnet was not found!"));
                 console.log(chalk.red("Check your abi!!!"));

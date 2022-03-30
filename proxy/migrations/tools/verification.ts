@@ -12,7 +12,7 @@ export async function verify(contractName: string, contractAddress: string, cons
                 });
                 break;
             } catch (e: any) {
-                if (e.toString().includes("Contract source code already verified")) {
+                if (e.toString().includes("Already Verified")) {
                     console.log(chalk.grey(`${contractName} is already verified`));
                     return;
                 }
