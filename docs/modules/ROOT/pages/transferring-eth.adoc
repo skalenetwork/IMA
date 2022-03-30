@@ -27,7 +27,7 @@ link:{eth-ima-js-sandbox}?file=/src/deposit.js[See IMA-JS deposit.js sandbox]
 
 [source, javascript]
 ----
-include::deposit-eth-imajs.js[]
+include::example$deposit-eth-imajs.js[]
 ----
 --
 
@@ -39,7 +39,7 @@ Using raw Web3.js, create and sign the `deposit()` transaction.
 
 [source,javascript]
 ----
-include::deposit-eth-web3.js[]
+include::example$deposit-eth-web3.js[]
 ----
 --
 ====
