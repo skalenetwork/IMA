@@ -12,8 +12,8 @@ import {
     DepositBoxERC1155,
     DepositBoxERC721WithMetadata,
     Linker,
-    TestContractManager,
-    TestSchainsInternal
+    ContractManager,
+    SchainsInternal
 } from "../typechain/";
 import { encodeTransaction } from "./tools/multiSend";
 import { TypedEvent, TypedEventFilter } from "../typechain/commons";
@@ -328,14 +328,14 @@ async function main() {
                 const contractManagerAddress = await messageProxyForMainnet.contractManagerOfSkaleManager();
                 const contractManagerName = "ContractManager";
                 const contractManagerFactory = await ethers.getContractFactory(contractManagerName);
-                const contractManager = contractManagerFactory.attach(contractManagerAddress) as TestContractManager;
+                const contractManager = contractManagerFactory.attach(contractManagerAddress) as ContractManager;
                 const schainsInternalName = "SchainsInternal";
                 const schainsInternalAddress = await contractManager.getContract(schainsInternalName);
                 const schainsInternalFactory = await ethers.getContractFactory(schainsInternalName);
-                const schainsInternal = schainsInternalFactory.attach(schainsInternalAddress) as TestSchainsInternal;
+                const schainsInternal = schainsInternalFactory.attach(schainsInternalAddress) as SchainsInternal;
                 const allSchainHashes = await schainsInternal.getSchains();
                 console.log(chalk.yellow("Found " + allSchainHashes.length + "schains"));
-                let connectedSchains: string[] = [];
+                const connectedSchains: string[] = [];
                 for (const schainHash of allSchainHashes) {
                     console.log(chalk.yellow("Get a schainHash " + schainHash));
                     const schainNameFromHash = await schainsInternal.getSchainName(schainHash);

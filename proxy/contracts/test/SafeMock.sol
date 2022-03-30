@@ -47,12 +47,12 @@ contract SafeMock is OwnableUpgradeable, ISafeMock {
 
     bool public constant IS_SAFE_MOCK = true;
     bytes32 public constant SAFE_TX_TYPE_HASH = keccak256(
-         "SafeTx(address to,uint256 value,bytes data,uint8 operation,uint256 safeTxGas,uint256 baseGas,uint256 gasPrice,"
-         "address gasToken,address refundReceiver,uint256 nonce)"
-     );
-     bytes32 public constant DOMAIN_SEPARATOR_TYPE_HASH = keccak256(
-         "EIP712Domain(uint256 chainId,address verifyingContract)"
-     );
+        "SafeTx(address to,uint256 value,bytes data,uint8 operation,uint256 safeTxGas,uint256 baseGas,uint256 gasPrice,"
+        "address gasToken,address refundReceiver,uint256 nonce)"
+    );
+    bytes32 public constant DOMAIN_SEPARATOR_TYPE_HASH = keccak256(
+        "EIP712Domain(uint256 chainId,address verifyingContract)"
+    );
 
     constructor() {
         OwnableUpgradeable.__Ownable_init();

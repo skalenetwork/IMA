@@ -2,6 +2,9 @@ import axios from "axios";
 import { ethers } from "ethers";
 import * as ethUtil from 'ethereumjs-util';
 import chalk from "chalk";
+import { HardhatEthersHelpers } from "@nomiclabs/hardhat-ethers/types";
+
+type Ethers = typeof ethers & HardhatEthersHelpers;
 
 enum Network {
     MAINNET = 1,
@@ -74,11 +77,11 @@ function concatTransactions(transactions: string[]) {
     }).join("");
 }
 
-export async function createMultiSendTransaction(ethers: any, safeAddress: string, privateKey: string, transactions: string[], isSafeMock: boolean = false) {
-    const chainId: number = (await ethers.provider.getNetwork()).chainId;
+export async function createMultiSendTransaction(ethersProvider: Ethers, safeAddress: string, privateKey: string, transactions: string[], isSafeMock: boolean = false) {
+    const chainId: number = (await ethersProvider.provider.getNetwork()).chainId;
     const multiSendAddress = getMultiSendAddress(chainId, isSafeMock);
     const multiSendAbi = [{"constant":false,"inputs":[{"internalType":"bytes","name":"transactions","type":"bytes"}],"name":"multiSend","outputs":[],"payable":false,"stateMutability":"nonpayable","type":"function"}];
-    const multiSend = new ethers.Contract(multiSendAddress, new ethers.utils.Interface(multiSendAbi), ethers.provider);
+    const multiSend = new ethers.Contract(multiSendAddress, new ethers.utils.Interface(multiSendAbi), ethersProvider.provider);
     const safeAbi = [{"constant":true,"inputs":[{"internalType":"address","name":"to","type":"address"},{"internalType":"uint256","name":"value","type":"uint256"},{"internalType":"bytes","name":"data","type":"bytes"},{"internalType":"enum Enum.Operation","name":"operation","type":"uint8"},{"internalType":"uint256","name":"safeTxGas","type":"uint256"},{"internalType":"uint256","name":"baseGas","type":"uint256"},{"internalType":"uint256","name":"gasPrice","type":"uint256"},{"internalType":"address","name":"gasToken","type":"address"},{"internalType":"address","name":"refundReceiver","type":"address"},{"internalType":"uint256","name":"_nonce","type":"uint256"}],"name":"getTransactionHash","outputs":[{"internalType":"bytes32","name":"","type":"bytes32"}],"payable":false,"stateMutability":"view","type":"function"}];
     interface Safe extends ethers.Contract {
         getTransactionHash: (
@@ -94,7 +97,7 @@ export async function createMultiSendTransaction(ethers: any, safeAddress: strin
             nonce: number
         ) => Promise<string>
     }
-    const safe = new ethers.Contract(safeAddress, new ethers.utils.Interface(safeAbi), ethers.provider) as Safe;
+    const safe = new ethers.Contract(safeAddress, new ethers.utils.Interface(safeAbi), ethersProvider.provider) as Safe;
 
     let nonce = 0;
     if (!isSafeMock) {

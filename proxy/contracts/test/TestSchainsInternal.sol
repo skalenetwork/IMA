@@ -38,6 +38,7 @@ interface ISchainsInternalTester {
     function isOwnerAddress(address from, bytes32 schainHash) external view returns (bool);
     function isSchainExist(bytes32 schainHash) external view returns (bool);
     function getSchains() external view returns (bytes32[] memory);
+    function getSchainName(bytes32 schainHash) external view returns (string memory);
 }
 
 
@@ -116,6 +117,7 @@ contract SchainsInternal is ISchainsInternalTester {
     function getSchainName(bytes32 schainHash)
         external
         view
+        override
         returns (string memory)
     {
         return schains[schainHash].name;
