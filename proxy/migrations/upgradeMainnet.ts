@@ -300,12 +300,11 @@ async function main() {
             const messageProxyForMainnetAddress = abi[getContractKeyInAbiFile(messageProxyForMainnetName) + "_address"];
             let messageProxyForMainnet;
             if (messageProxyForMainnetAddress) {
-                console.log(chalk.yellow("Prepare transaction to set message gas cost to 9000"));
                 messageProxyForMainnet = messageProxyForMainnetFactory.attach(messageProxyForMainnetAddress) as MessageProxyForMainnet;
                 const constantSetterRole = await messageProxyForMainnet.CONSTANT_SETTER_ROLE();
                 const isHasRole = await messageProxyForMainnet.hasRole(constantSetterRole, owner);
                 if (!isHasRole) {
-                    console.log(chalk.yellow("Prepare transaction to grantRole CONSTANT_SETTER_ROLE to" + owner));
+                    console.log(chalk.yellow("Prepare transaction to grantRole CONSTANT_SETTER_ROLE to " + owner));
                     safeTransactions.push(encodeTransaction(
                         0,
                         messageProxyForMainnetAddress,
@@ -313,12 +312,14 @@ async function main() {
                         messageProxyForMainnet.interface.encodeFunctionData("grantRole", [constantSetterRole, owner])
                     ));
                 }
+                console.log(chalk.yellow("Prepare transaction to set message gas cost to 9000"));
                 safeTransactions.push(encodeTransaction(
                     0,
                     messageProxyForMainnetAddress,
                     0,
                     messageProxyForMainnet.interface.encodeFunctionData("setNewMessageGasCost", [9000])
                 ));
+                console.log(chalk.yellow("Prepare transaction to set header message gas cost to 73800"));
                 safeTransactions.push(encodeTransaction(
                     0,
                     messageProxyForMainnetAddress,
@@ -342,7 +343,7 @@ async function main() {
                 for (const schainHash of allSchainHashes) {
                     console.log(chalk.yellow("Get a schainHash " + schainHash));
                     const schainNameFromHash = await schainsInternal.getSchainName(schainHash);
-                    console.log(chalk.yellow("Get a schainName from the schainHash above " + schainNameFromHash));
+                    console.log(chalk.yellow("Get a schainName " + schainNameFromHash + " from the schainHash above "));
                     const isConnected = await messageProxyForMainnet.isConnectedChain(schainNameFromHash);
                     console.log(chalk.yellow("Is schain connected to IMA " + isConnected));
                     if (isConnected) {
