@@ -160,6 +160,8 @@ global.imaState = {
     "nTimeFrameSeconds": 0, // 0-disable, 60-recommended
     "nNextFrameGap": 10,
 
+    "nAutoExitAfterSeconds": 0, // 0-disable
+
     "w3_main_net": null,
     "w3_s_chain": null,
     "w3_t_chain": null,

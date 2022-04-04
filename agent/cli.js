@@ -353,6 +353,7 @@ function parse( joExternalHandlers, argv ) {
             console.log( soi + cc.debug( "--" ) + cc.bright( "nodes-count" ) + cc.sunny( "=" ) + cc.info( "value" ) + cc.debug( "............." ) + cc.note( "S-Chain" ) + " " + cc.bright( "nodes count" ) + cc.notice( "." ) );
             console.log( soi + cc.debug( "--" ) + cc.bright( "time-framing" ) + cc.sunny( "=" ) + cc.note( "value" ) + cc.debug( "............" ) + cc.notice( "Specifies " ) + cc.note( "period" ) + cc.debug( "(in seconds) " ) + cc.note( "for time framing" ) + cc.debug( "(" ) + cc.sunny( "0" ) + cc.debug( " to " ) + cc.error( "disable" ) + cc.debug( " time framing)" ) + cc.notice( "." ) );
             console.log( soi + cc.debug( "--" ) + cc.bright( "time-gap" ) + cc.sunny( "=" ) + cc.note( "value" ) + cc.debug( "................" ) + cc.notice( "Specifies " ) + cc.note( "gap" ) + cc.debug( "(in seconds) " ) + cc.note( "before next time frame" ) + cc.notice( "." ) );
+            console.log( soi + cc.debug( "--" ) + cc.bright( "auto-exit" ) + cc.sunny( "=" ) + cc.note( "seconds" ) + cc.debug( "............." ) + cc.notice( "Automatically exit " ) + cc.bright( "IMA Agent" ) + cc.notice( " after specified number of seconds" ) + cc.debug( "(" ) + cc.sunny( "0" ) + cc.debug( " is no automatic exit, " ) + cc.sunny( "3600" ) + cc.debug( " is no default)" ) + cc.notice( "." ) );
             //
             console.log( cc.sunny( "TOKEN TESTING" ) + cc.info( " commands:" ) );
             console.log( soi + cc.debug( "--" ) + cc.bright( "mint-erc20" ) + cc.debug( "...................." ) + cc.notice( "Mint " ) + cc.note( "ERC20" ) + cc.notice( " tokens." ) );
@@ -1035,6 +1036,11 @@ function parse( joExternalHandlers, argv ) {
         if( joArg.name == "time-gap" ) {
             owaspUtils.verifyArgumentIsInteger( joArg );
             imaState.nNextFrameGap = owaspUtils.toInteger( joArg.value );
+            continue;
+        }
+        if( joArg.name == "auto-exit" ) {
+            owaspUtils.verifyArgumentIsInteger( joArg );
+            imaState.nAutoExitAfterSeconds = owaspUtils.toInteger( joArg.value );
             continue;
         }
         if( joArg.name == "ptx" ) {
@@ -2126,6 +2132,9 @@ function ima_common_init() {
         ensure_have_value( "S-Chain nodes count", imaState.nNodesCount, false, isPrintGathered, null, ( x ) => {
             return cc.info( x );
         } );
+
+        ensure_have_value( "Automatic exit(seconds)", imaState.nAutoExitAfterSeconds, false, isPrintGathered );
+
         if( imaState.strLogFilePath.length > 0 ) {
             ensure_have_value( "Log file path", imaState.strLogFilePath, false, isPrintGathered, null, ( x ) => {
                 return cc.info( x );
