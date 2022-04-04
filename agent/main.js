@@ -133,6 +133,8 @@ global.imaState = {
     "nTimeFrameSeconds": 0, // 0-disable, 60-recommended
     "nNextFrameGap": 10,
 
+    "nAutoExitAfterSeconds": 3600, // 0-disable
+
     "w3_main_net": null,
     "w3_s_chain": null,
 
@@ -1051,6 +1053,15 @@ if( imaState.nReimbursementRange >= 0 ) {
         }
     } );
 }
+
+if( imaState.nAutoExitAfterSeconds > 0 ) {
+    log.write( cc.debug( "Automatic exit after " ) + cc.info( imaState.nAutoExitAfterSeconds ) + cc.debug( " second(s) is requested." ) + "\n" );
+    setInterval( function() {
+        log.write( cc.debug( "Performing automatic exit after " ) + cc.info( imaState.nAutoExitAfterSeconds ) + cc.debug( " second(s)..." ) + "\n" );
+        process.exit( 0 );
+    }, imaState.nAutoExitAfterSeconds * 1000 );
+} else
+    log.write( cc.debug( "Automatic exit was not requested, skipping it." ) + "\n" );
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
