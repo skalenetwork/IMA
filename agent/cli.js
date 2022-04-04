@@ -1468,7 +1468,7 @@ function ima_common_init() {
             return cc.info( x );
         } );
 
-        ensure_have_value( "Automatic exit(seconds)", imaState.nAutoExitAfterSeconds, false, isPrintGathered );
+        ensure_have_value( "Automatic exit(seconds)", imaState.nAutoExitAfterSeconds, false, true );
 
         if( imaState.strLogFilePath.length > 0 ) {
             ensure_have_value( "Log file path", imaState.strLogFilePath, false, true, null, ( x ) => {
