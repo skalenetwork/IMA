@@ -318,6 +318,7 @@ function parse( joExternalHandlers, argv ) {
             console.log( soi + cc.debug( "--" ) + cc.bright( "nodes-count" ) + cc.sunny( "=" ) + cc.info( "value" ) + cc.debug( "............." ) + cc.notice( "S-Chain " ) + cc.note( "nodes count" ) + cc.notice( "." ) );
             console.log( soi + cc.debug( "--" ) + cc.bright( "time-framing" ) + cc.sunny( "=" ) + cc.note( "value" ) + cc.debug( "............" ) + cc.notice( "Specifies " ) + cc.note( "period" ) + cc.notice( "(in seconds) " ) + cc.note( "for time framing" ) + cc.notice( ". Zero means disable time framing." ) );
             console.log( soi + cc.debug( "--" ) + cc.bright( "time-gap" ) + cc.sunny( "=" ) + cc.note( "value" ) + cc.debug( "................" ) + cc.notice( "Specifies " ) + cc.note( "gap" ) + cc.notice( "(in seconds) " ) + cc.note( "before next time frame" ) + cc.notice( "." ) );
+            console.log( soi + cc.debug( "--" ) + cc.bright( "auto-exit" ) + cc.sunny( "=" ) + cc.note( "seconds" ) + cc.debug( "............." ) + cc.notice( "Automatically exit " ) + cc.bright( "IMA Agent" ) + cc.notice( " after specified number of seconds" ) + cc.debug( "(" ) + cc.sunny( "0" ) + cc.debug( " is no automatic exit, " ) + cc.sunny( "3600" ) + cc.debug( " is no default)" ) + cc.notice( "." ) );
             //
             console.log( cc.sunny( "PENDING TRANSACTIONS ANALYSIS" ) + cc.info( " options:" ) );
             console.log( soi + cc.debug( "--" ) + cc.bright( "ptx" ) + cc.debug( "..........................." ) + cc.notice( "Enable pending transaction analysis to avoid transaction conflicts." ) );
@@ -819,6 +820,11 @@ function parse( joExternalHandlers, argv ) {
         if( joArg.name == "time-gap" ) {
             owaspUtils.verifyArgumentIsInteger( joArg );
             imaState.nNextFrameGap = owaspUtils.toInteger( joArg.value );
+            continue;
+        }
+        if( joArg.name == "auto-exit" ) {
+            owaspUtils.verifyArgumentIsInteger( joArg );
+            imaState.nAutoExitAfterSeconds = owaspUtils.toInteger( joArg.value );
             continue;
         }
         if( joArg.name == "ptx" ) {
@@ -1461,6 +1467,9 @@ function ima_common_init() {
         ensure_have_value( "S-Chain nodes count", imaState.nNodesCount, false, true, null, ( x ) => {
             return cc.info( x );
         } );
+
+        ensure_have_value( "Automatic exit(seconds)", imaState.nAutoExitAfterSeconds, false, true );
+
         if( imaState.strLogFilePath.length > 0 ) {
             ensure_have_value( "Log file path", imaState.strLogFilePath, false, true, null, ( x ) => {
                 return cc.info( x );
