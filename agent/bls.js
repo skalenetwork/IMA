@@ -1218,8 +1218,8 @@ async function do_sign_messages_impl(
             } );
         }
     }
-    log.write( strGatheredDetailsName + "complete" );
-    details.write( strGatheredDetailsName + "complete" );
+    log.write( strGatheredDetailsName + " completed" );
+    details.write( strGatheredDetailsName + " completed" );
     if( details ) {
         details.exposeDetailsTo( log, strGatheredDetailsName, true );
         details.close();
