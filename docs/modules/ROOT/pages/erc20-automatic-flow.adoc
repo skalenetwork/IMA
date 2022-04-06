@@ -6,6 +6,8 @@
 [NOTE]
 Owner can enable autodeploy and keep whitelist enabled to allow automatic mapping of only certain tokens.
 
+include::partial$autodeploy-note.adoc[]
+
 ## Transfer Flow
 
 Deposit
