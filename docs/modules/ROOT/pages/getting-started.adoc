@@ -97,7 +97,9 @@ You can transfer tokens and messages, for free between any two SKALE chains. Tra
 
 === Manual vs Automatic Deployment
 
-* You can choose to manually map tokens between chains, or you can choose to use automatic deployment, which automatically creates a token clone on the target chain. Note: the token clone only supports basic token functions, and does not clone over special functions like hooks used in ERC-777.
+* You can choose to manually map tokens between chains, or you can choose to use automatic deployment, which automatically creates a token clone on the target chain.
+
+include::partial$autodeploy-note.adoc[]
 
 * Manual token mapping requires you to manually deploy a token clone on the target chain, and set the minter to the Token Manager. 
 

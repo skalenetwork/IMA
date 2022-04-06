@@ -643,7 +643,9 @@ self.web3_mainnet.eth.sendRawTransaction(signed_txn.rawTransaction)
 
 == Automatic deployment
 
-Automatic deployment is disabled by default and requires that the SKALE Chain owner deploys the token contract on the schain. 
+Automatic deployment is disabled by default and requires that the SKALE Chain owner deploys the token contract on the SKALE Chain. 
 
 If enabled, then tokens are automatically deployed on the schain by the TokenFactory contract after a token is received through DepositBox on mainnet.
+
+include::partial$autodeploy-note.adoc[]
 

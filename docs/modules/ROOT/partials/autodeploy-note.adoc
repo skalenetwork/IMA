@@ -1,0 +1,7 @@
+[IMPORTANT]
+====
+There are several limits to using automatic deployment. When using this method:
+
+* All token types support only basic token functionality. For example, special features such as ERC777 hooks and operators, fee-on-transfer, inflationary, etc., **will not** be mapped over. Be sure to review the token features supported by automatic deployment of each token type here: <https://github.com/skalenetwork/IMA/tree/develop/proxy/contracts/schain/tokens>. If you require any specialized features, please use the manual mapping process.
+* ERC20 token clones are based on OpenZeppelin's library and use 18 decimals. See: <https://github.com/OpenZeppelin/openzeppelin-contracts/blob/d4d8d2ed9798cc3383912a23b5e8d5cb602f7d4b/contracts/token/ERC20/ERC20.sol#L87>. If you require a different representation, then use the manual deployment process.
+====

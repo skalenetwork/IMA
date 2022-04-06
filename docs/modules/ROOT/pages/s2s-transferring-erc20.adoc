@@ -14,6 +14,8 @@ The following one-time setup is required for SKALE Chains with a default access 
 
 === 1. Enable Automatic Deploy
 
+include::partial$autodeploy-note.adoc[]
+
 First, enable automatic deploy on the `origin` chain.
 
 [NOTE]
