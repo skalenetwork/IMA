@@ -50,10 +50,11 @@ async function test_local() {
     console.log( "CLIENT >>>", JSON.stringify( joTestMessage ) );
     client.send( joTestMessage );
     await sleep( 100 );
-    return {
+    const joReturnValue = {
         server: server,
         client: client
     };
+    return joReturnValue;
 }
 
 async function test_worker() {
@@ -77,10 +78,11 @@ async function test_worker() {
     console.log( "CLIENT >>>", JSON.stringify( joTestMessage ) );
     client.send( joTestMessage );
     await sleep( 100 );
-    return {
+    const joReturnValue = {
         worker: worker,
         client: client
     };
+    return joReturnValue;
 }
 
 async function test_web_socket() {
@@ -103,10 +105,11 @@ async function test_web_socket() {
     console.log( "CLIENT >>>", JSON.stringify( joTestMessage ) );
     client.send( joTestMessage );
     await sleep( 100 );
-    return {
+    const joReturnValue = {
         server: server,
         client: client
     };
+    return joReturnValue;
 }
 
 // async function test_wrtc() {
@@ -142,10 +145,11 @@ async function test_web_socket() {
 //     console.log( "CLIENT >>>", JSON.stringify( joTestMessage ) );
 //     client.send( joTestMessage );
 //     await sleep( 1000 );
-//     return {
+//     const joReturnValue = {
 //         server: server,
 //         client: client
 //     };
+//     return joReturnValue;
 // }
 
 async function test() {
