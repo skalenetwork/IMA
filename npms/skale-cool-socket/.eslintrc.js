@@ -23,7 +23,7 @@
  * @copyright SKALE Labs 2019-Present
  */
 
- module.exports = {
+module.exports = {
     "env": {
         "browser": true,
         "es6": true
@@ -39,35 +39,47 @@
     },
     "rules": {
         "indent": ["error", 4],
-        "linebreak-style": [ "error", "unix" ],
-        "quotes": [ "error", "double" ],
-        "semi": [ "error", "always" ],
+        "linebreak-style": ["error", "unix"],
+        "quotes": ["error", "double"],
+        "semi": ["error", "always"],
         "camelcase": "off",
         // "no-unused-vars": "off",
         "eqeqeq": "off",
-        "comma-dangle": [ "error", "never" ],
-        "comma-style": [ "error", "last" ],
+        "comma-dangle": ["error", "never"],
+        "comma-style": ["error", "last"],
         "comma-spacing": "off",
-        "space-before-function-paren": [ "error", "never" ],
-        "space-in-parens": [ "error", "always" ],
-        "keyword-spacing": [ "error", {
+        "space-before-function-paren": ["error", "never"],
+        "space-in-parens": ["error", "always"],
+        "keyword-spacing": ["error", {
             "overrides": {
-                "if": { "before": false, "after": false }
-                , "else": { "before": true, "after": true }
-                , "for": { "before": false, "after": false }
-                , "while": { "before": false, "after": false }
+                "if": {
+                    "before": false,
+                    "after": false
+                },
+                "else": {
+                    "before": true,
+                    "after": true
+                },
+                "for": {
+                    "before": false,
+                    "after": false
+                },
+                "while": {
+                    "before": false,
+                    "after": false
+                }
             }
-        } ],
-        "space-before-blocks": [ "error", "always" ],
-        "array-bracket-spacing": [ "error", "always" ],
-        "object-curly-spacing": [ "error", "always" ],
+        }],
+        "space-before-blocks": ["error", "always"],
+        "array-bracket-spacing": ["error", "always"],
+        "object-curly-spacing": ["error", "always"],
         "space-unary-ops": "off",
         "spaced-comment": "off",
-        "curly": [ "error", "multi-or-nest" ],
-        "nonblock-statement-body-position": [ "error", "below" ],
+        "curly": ["error", "multi-or-nest"],
+        "nonblock-statement-body-position": ["error", "below"],
         "one-var": "off",
         "no-unneeded-ternary": "off",
-        "no-cond-assign": [ "error", "always" ],
+        "no-cond-assign": ["error", "always"],
         "no-console": "off",
         "new-cap": "off",
         "no-tabs": "off",
@@ -83,7 +95,7 @@
         "no-useless-catch": "off",
         "padded-blocks": "off",
         "no-use-before-define": "off", // [ "error", { "variables": false,  "functions": false } ],
-        "lines-between-class-members": [ "error", "never" ],
+        "lines-between-class-members": ["error", "never"],
         "no-var": "error",
         "no-unused-vars": "error"
     }
