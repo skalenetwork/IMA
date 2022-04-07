@@ -54,7 +54,7 @@ Web3 JS::
 
 [source,javascript]
 ----
-include::example$add-minter-role-erc20.js
+include::example$add-minter-role-erc20.js[]
 ----
 --
 ====
@@ -117,7 +117,7 @@ Web3 JS::
 
 [source,javascript]
 ----
-include::example$erc20-register-schain-web3.js
+include::example$erc20-register-schain-web3.js[]
 ----
 --
 ====
