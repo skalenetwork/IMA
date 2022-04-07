@@ -33,7 +33,7 @@ const uuid_v4 = function() {
 };
 
 const getRandomInt = function( nMax ) {
-    return parseInt( Math.floor( Math.random() * Math.floor( nMax ) ) );
+    return parseInt( Math.floor( Math.random() * Math.floor( nMax ) ), 10 );
 };
 
 const randomFixedInteger = function( length ) {
@@ -41,7 +41,7 @@ const randomFixedInteger = function( length ) {
 };
 
 const randomStringABC = function( length, arrCharacters ) {
-    length = parseInt( length );
+    length = parseInt( length, 10 );
     if( length <= 0 || arrCharacters.length == 0 )
         return "";
     let s = "";
@@ -51,7 +51,7 @@ const randomStringABC = function( length, arrCharacters ) {
 };
 
 const randomString = function( length, isABC, isDigits, isSpecChr, isPunctuation ) { // by default only isABC=true
-    length = parseInt( length );
+    length = parseInt( length, 10 );
     if( length <= 0 )
         return "";
     isABC = ( isABC == null || isABC == undefined ) ? true : ( isABC ? true : false );
@@ -181,12 +181,12 @@ const parse_date_time = function( ts ) {
     //  0----|----1----|----2----|----
     //  012345678901234567890123456789
     // "2020/03/19-19:42:55.663"
-    const year = parseInt( ts.substring( 0, 4 ) );
-    const month = parseInt( ts.substring( 5, 7 ) ) + 1;
-    const day = parseInt( ts.substring( 8, 10 ) );
-    const hour = parseInt( ts.substring( 11, 13 ) );
-    const minute = parseInt( ts.substring( 14, 16 ) );
-    const second = parseInt( ts.substring( 17, 19 ) );
+    const year = parseInt( ts.substring( 0, 4 ), 10 );
+    const month = parseInt( ts.substring( 5, 7 ), 10 ) + 1;
+    const day = parseInt( ts.substring( 8, 10 ), 10 );
+    const hour = parseInt( ts.substring( 11, 13 ), 10 );
+    const minute = parseInt( ts.substring( 14, 16 ), 10 );
+    const second = parseInt( ts.substring( 17, 19 ), 10 );
     let millisecond = ts.substring( 20 );
     if( millisecond.length > 3 )
         millisecond = millisecond.substring( 0, 3 );
@@ -194,7 +194,7 @@ const parse_date_time = function( ts ) {
         while( millisecond.length < 3 )
             millisecond = "0" + millisecond;
     }
-    millisecond = parseInt( millisecond );
+    millisecond = parseInt( millisecond, 10 );
     const u = Date.UTC( year, month, day, hour, minute, second, millisecond );
     const d = new Date( u );
     d.setMilliseconds( millisecond );

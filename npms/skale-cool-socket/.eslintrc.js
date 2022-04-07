@@ -69,7 +69,7 @@ module.exports = {
                     "after": false
                 }
             }
-        }],
+        } ],
         "space-before-blocks": [ "error", "always" ],
         "array-bracket-spacing": [ "error", "always" ],
         "object-curly-spacing": [ "error", "always" ],
@@ -100,3 +100,4 @@ module.exports = {
         "no-unused-vars": "error"
     }
 };
+

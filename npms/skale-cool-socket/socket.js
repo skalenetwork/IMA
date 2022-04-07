@@ -1009,7 +1009,7 @@ class LocalSocketServerPipe extends DirectPipe {
         this.socketSubtype = "server";
         this.isConnected = true;
         this.acceptor = acceptor;
-        this.clientPort = 0 + parseInt( clientPort );
+        this.clientPort = 0 + parseInt( clientPort, 10 );
         this.url = "local_server_pipe://" + acceptor.strEndPoint + ":" + clientPort;
         this.acceptor.mapClients["" + clientPort] = this;
         const self = this;
@@ -1330,7 +1330,7 @@ class WebSocketClientPipe extends BasicSocketPipe {
             console.warn( "WS client connect error:", err );
         }
         if( reconnectAfterMilliseconds != null && reconnectAfterMilliseconds != undefined ) {
-            reconnectAfterMilliseconds = parseInt( reconnectAfterMilliseconds );
+            reconnectAfterMilliseconds = parseInt( reconnectAfterMilliseconds, 10 );
             if( reconnectAfterMilliseconds > 0 ) {
                 setTimeout( function() {
                     self.ws_connect_attempt( url, reconnectAfterMilliseconds );
@@ -1740,10 +1740,10 @@ class RTCServerPeer extends RTCConnection {
         this.timerPublishing = null;
         this.timerSignalingNegotiation = null;
         this.timeToPublishMilliseconds = timeToPublishMilliseconds
-            ? parseInt( timeToPublishMilliseconds )
+            ? parseInt( timeToPublishMilliseconds, 10 )
             : settings.net.rtc.timeToPublishMilliseconds;
         this.timeToSignalingNegotiationMilliseconds = timeToSignalingNegotiationMilliseconds
-            ? parseInt( timeToSignalingNegotiationMilliseconds )
+            ? parseInt( timeToSignalingNegotiationMilliseconds, 10 )
             : settings.net.rtc.timeToSignalingNegotiationMilliseconds;
         this.peerConfiguration = ( peerConfiguration && typeof peerConfiguration == "object" ) ? peerConfiguration : settings.net.rtc.peerConfiguration;
         this.peerAdditionalOptions = ( peerAdditionalOptions && typeof peerAdditionalOptions == "object" ) ? peerAdditionalOptions : settings.net.rtc.peerAdditionalOptions;
@@ -2409,15 +2409,15 @@ class WebRTCServerAcceptor extends BasicServerAcceptor {
         this.peerConfiguration = ( peerConfiguration && typeof peerConfiguration == "object" ) ? peerConfiguration : settings.net.rtc.peerConfiguration;
         this.peerAdditionalOptions = ( peerAdditionalOptions && typeof peerAdditionalOptions == "object" ) ? peerAdditionalOptions : settings.net.rtc.peerAdditionalOptions;
         this.socketType = "WebRTC";
-        this.maxActiveOfferCount = ( maxActiveOfferCount != null && maxActiveOfferCount != undefined ) ? parseInt( maxActiveOfferCount ) : settings.net.rtc.maxActiveOfferCount;
+        this.maxActiveOfferCount = ( maxActiveOfferCount != null && maxActiveOfferCount != undefined ) ? parseInt( maxActiveOfferCount, 10 ) : settings.net.rtc.maxActiveOfferCount;
         if( this.maxActiveOfferCount < 1 )
             this.maxActiveOfferCount = 1;
         this.mapPendingOffers = { }; // idOffer -> RTCServerPeer
         this.timeToPublishMilliseconds = timeToPublishMilliseconds
-            ? parseInt( timeToPublishMilliseconds )
+            ? parseInt( timeToPublishMilliseconds, 10 )
             : settings.net.rtc.timeToPublishMilliseconds;
         this.timeToSignalingNegotiationMilliseconds = timeToSignalingNegotiationMilliseconds
-            ? parseInt( timeToSignalingNegotiationMilliseconds )
+            ? parseInt( timeToSignalingNegotiationMilliseconds, 10 )
             : settings.net.rtc.timeToSignalingNegotiationMilliseconds;
         this.rtcCreator = new RTCCreator( "" + this.strSignalingServerURL, "" + this.idRtcParticipant, this.offerOptions, this.signalingOptions );
         this.isListening = true;
