@@ -42,7 +42,7 @@ export function registerOnSchain() {
      * contract function addERC20TokenByOwner
      */
     let addERC20TokenByOwner = TokenManager.methods
-        .addERC20TokenByOwner(erc20AddressOnMainnet, erc20AddressOnSchain)
+        .addERC20TokenByOwner("Mainnet", erc20AddressOnMainnet, erc20AddressOnSchain)
         .encodeABI();
 
     web3ForSchain.eth.getTransactionCount(erc20OwnerForSchain).then((nonce) => {
