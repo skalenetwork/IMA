@@ -100,4 +100,3 @@ module.exports = {
         "no-unused-vars": "error"
     }
 };
-
