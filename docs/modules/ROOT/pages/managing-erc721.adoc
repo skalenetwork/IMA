@@ -8,6 +8,8 @@ As a SKALE Chain Owner, there are two main steps to managing ERC721 through IMA:
 
 Once you have completed step 1 to setup and map your ERC721 tokens, you can then setup transfer flow to allow end-users to transfer ERC721 tokens between Ethereum and your SKALE Chain.
 
+NOTE: Please use TokenManagerERC721WithMetadata to transfer ERC721 token with tokenURI, TokenManagerERC721 will transfer ERC721 token without tokenURI. The flow to use TokenManagerERC721WithMetadata is similar to the flow of using TokenManagerERC721
+
 [[setup]]
 == Setup and Map ERC721 Transfers
 
