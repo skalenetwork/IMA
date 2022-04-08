@@ -355,6 +355,7 @@ let TokenManager = new web3ForSchain.eth.Contract(
 
 let addERC721TokenByOwner = TokenManager.methods
     .addERC721TokenByOwner(
+      "Mainnet",
       erc721AddressOnMainnet,
       erc721AddressOnSchain
     )
