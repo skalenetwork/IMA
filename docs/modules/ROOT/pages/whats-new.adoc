@@ -1,6 +1,3 @@
-= What's New in IMA 1.2
+= What's New in IMA 1.3
 
-* Added support for SKALE Chain to SKALE Chain (S2S) transfers.
-* Added network support for ERC721 with Metadata.
-* Added gas reimbursement from SKALE Chain wallet for custom messages.
-* Various improvements and bug fixes.
+* Added ERC721WithMetadata DepositBoxes and TokenManagers
