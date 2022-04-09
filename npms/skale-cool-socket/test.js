@@ -114,6 +114,8 @@ async function test_web_socket() {
 
 // async function test_wrtc() {
 //     //
+//     // Needed in package.json: "wrtc": "^0.4.6",
+//     //
 //     // ## Coturn - own STUN and/or TURN server
 //     //
 //     // See <https://github.com/coturn/coturn> and see <https://www.allerstorfer.at/install-coturn-on-ubuntu/>
