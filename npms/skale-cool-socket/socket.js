@@ -199,7 +199,8 @@ class BasicServerAcceptor extends EventDispatcher {
         serverPipe.acceptor = this;
         this.mapClients["" + serverPipe.clientPort] = serverPipe;
         const self = this;
-        setTimeout( function() {
+        const iv = setTimeout( function() {
+            clearTimeout( iv );
             serverPipe.dispatchEvent( new UniversalDispatcherEvent( "open", { socket: serverPipe } ) );
             self.dispatchEvent( new UniversalDispatcherEvent( "connection", { socket: serverPipe, remoteAddress: "" + self.url } ) );
             clientPipe.dispatchEvent( new UniversalDispatcherEvent( "open", { socket: clientPipe } ) );
@@ -483,7 +484,8 @@ class InWorkerServerPipe extends BasicSocketPipe {
         this.acceptor.mapClients[this.clientPort] = this;
         this.fnSend( "in_worker_connect", this.acceptor.strEndPoint, this.clientPort, {} );
         const self = this;
-        setTimeout( function() {
+        const iv = setTimeout( function() {
+            clearTimeout( iv );
             self.dispatchEvent( new UniversalDispatcherEvent( "open", { socket: self } ) );
             self.acceptor.dispatchEvent( new UniversalDispatcherEvent( "connection", { socket: self, remoteAddress: "" + self.url } ) );
         }, 0 );
@@ -542,7 +544,8 @@ class InWorkerSocketServerAcceptor extends BasicServerAcceptor {
         this.fnSend = fnSend || in_worker_apis.on_send_message;
         this.isListening = true;
         const self = this;
-        setTimeout( function() {
+        const iv = setTimeout( function() {
+            clearTimeout( iv );
             self.dispatchEvent( new UniversalDispatcherEvent( "open", { socket: self } ) );
         }, 0 );
     }
@@ -948,7 +951,8 @@ class DirectPipe extends BasicSocketPipe {
             this.counterPipe.isConnected = true;
             if( isBroadcastOpenEvents ) {
                 const self = this;
-                setTimeout( function() {
+                const iv = setTimeout( function() {
+                    clearTimeout( iv );
                     self.dispatchEvent( new UniversalDispatcherEvent( "open", { socket: self } ) );
                     // self.acceptor.dispatchEvent( new UniversalDispatcherEvent( "connection", { socket: serverPipe, remoteAddress: "" + self.url } ) );
                     self.counterPipe.dispatchEvent( new UniversalDispatcherEvent( "open", { socket: self.counterPipe } ) );
@@ -1013,7 +1017,8 @@ class LocalSocketServerPipe extends DirectPipe {
         this.url = "local_server_pipe://" + acceptor.strEndPoint + ":" + clientPort;
         this.acceptor.mapClients["" + clientPort] = this;
         const self = this;
-        setTimeout( function() {
+        const iv = setTimeout( function() {
+            clearTimeout( iv );
             self.dispatchEvent( new UniversalDispatcherEvent( "open", { socket: self } ) );
         }, 0 );
     }
@@ -1036,7 +1041,8 @@ class LocalSocketServerAcceptor extends BasicServerAcceptor {
         g_mapLocalServers[this.strEndPoint] = this;
         this.isListening = true;
         const self = this;
-        setTimeout( function() {
+        const iv = setTimeout( function() {
+            clearTimeout( iv );
             self.dispatchEvent( new UniversalDispatcherEvent( "open", { socket: self } ) );
         }, 0 );
     }
@@ -1081,7 +1087,8 @@ class LocalSocketClientPipe extends DirectPipe {
             clientPipe: this
         };
         const self = this;
-        setTimeout( function() {
+        const iv = setTimeout( function() {
+            clearTimeout( iv );
             self.dispatchEvent( new UniversalDispatcherEvent( "open", { socket: self } ) );
             self.acceptor.dispatchEvent( new UniversalDispatcherEvent( "connection", { socket: serverPipe, remoteAddress: "" + self.url } ) );
         }, 0 );
@@ -1135,7 +1142,8 @@ class WebSocketServerPipe extends BasicSocketPipe {
         ws_conn.addEventListener( "error", this._onWsError );
         ws_conn.addEventListener( "message", this._onWsMessage );
         this.acceptor.mapClients["" + this.clientPort] = this;
-        setTimeout( function() {
+        const iv = setTimeout( function() {
+            clearTimeout( iv );
             self.dispatchEvent( new UniversalDispatcherEvent( "open", { socket: self } ) );
             self.acceptor.dispatchEvent( new UniversalDispatcherEvent( "connection", { socket: self, remoteAddress: "" + remoteAddress } ) );
         }, 0 );
@@ -1219,7 +1227,8 @@ class WebSocketServerAcceptor extends BasicServerAcceptor {
             ws_conn.serverPipe = new WebSocketServerPipe( self, ws_conn, req.connection.remoteAddress );
         } );
         this.isListening = true;
-        setTimeout( function() {
+        const iv = setTimeout( function() {
+            clearTimeout( iv );
             self.dispatchEvent( new UniversalDispatcherEvent( "open", { socket: self } ) );
         }, 0 );
     }
@@ -1277,7 +1286,7 @@ class WebSocketClientPipe extends BasicSocketPipe {
             return;
         this.ws_disconnect();
     }
-    ws_connect_attempt( url, reconnectAfterMilliseconds ) {
+    ws_connect_attempt( url, reconnectAfterMilliseconds, iv ) {
         const self = this;
         try {
             if( this.isConnected || this.ws_conn )
@@ -1325,15 +1334,21 @@ class WebSocketClientPipe extends BasicSocketPipe {
             this.ws_conn.addEventListener( "close", this._onWsClose );
             this.ws_conn.addEventListener( "error", this._onWsError );
             this.ws_conn.addEventListener( "message", this._onWsMessage );
+            if( iv )
+                clearTimeout( iv );
             return true;
         } catch ( err ) {
             console.warn( "WS client connect error:", err );
         }
         if( reconnectAfterMilliseconds != null && reconnectAfterMilliseconds != undefined ) {
             reconnectAfterMilliseconds = parseInt( reconnectAfterMilliseconds, 10 );
-            if( reconnectAfterMilliseconds > 0 ) {
-                setTimeout( function() {
-                    self.ws_connect_attempt( url, reconnectAfterMilliseconds );
+            if( reconnectAfterMilliseconds > 0 && ( !iv ) ) {
+                const iv = setTimeout( function() {
+                    try {
+                        if( self.ws_connect_attempt( url, reconnectAfterMilliseconds, iv ) )
+                            clearTimeout( iv );
+                    } catch ( err ) {
+                    }
                 }, reconnectAfterMilliseconds );
             }
         }
@@ -1345,7 +1360,7 @@ class WebSocketClientPipe extends BasicSocketPipe {
             this.dispatchEvent( new UniversalDispatcherEvent( "error", { socket: this, message: "" + s } ) );
             throw new Error( s );
         }
-        this.ws_connect_attempt( url, settings.net.ws.client.reconnectAfterMilliseconds );
+        this.ws_connect_attempt( url, settings.net.ws.client.reconnectAfterMilliseconds, null );
     }
     ws_disconnect() {
         if( this._removeWsEventListeners ) {

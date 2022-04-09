@@ -103,23 +103,6 @@ const isOdd = function( n ) {
     return Math.abs( n % 2 ) == 1;
 };
 
-const waitUntilCondition = function( fnCheck, nTimeoutMS ) {
-    if( ! fnCheck )
-        return;
-    if( ! nTimeoutMS )
-        nTimeoutMS = 100;
-    const wait_opts = {};
-    wait_opts.fnCheckCondition = function() {
-        if( fnCheck() )
-            return;
-        wait_opts.fnStep();
-    };
-    wait_opts.fnStep = function() {
-        setTimeout( wait_opts.fnCheckCondition, nTimeoutMS );
-    };
-    wait_opts.fnCheckCondition();
-};
-
 const g_nCallIdDigits = 10;
 const randomCallID = function() {
     const id = randomHexString( g_nCallIdDigits );
@@ -256,7 +239,6 @@ module.exports = {
     abstractUniqueID: abstractUniqueID,
     isEven: isEven,
     isOdd: isOdd,
-    waitUntilCondition: waitUntilCondition,
     g_nCallIdDigits: g_nCallIdDigits,
     randomCallID: randomCallID,
     g_nDirectPipeIdDigits: g_nDirectPipeIdDigits,

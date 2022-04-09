@@ -1665,8 +1665,9 @@ if( imaState.nReimbursementRange >= 0 ) {
 
 if( imaState.nAutoExitAfterSeconds > 0 ) {
     log.write( cc.debug( "Automatic exit after " ) + cc.info( imaState.nAutoExitAfterSeconds ) + cc.debug( " second(s) is requested." ) + "\n" );
-    setInterval( function() {
+    const iv = setInterval( function() {
         log.write( cc.debug( "Performing automatic exit after " ) + cc.info( imaState.nAutoExitAfterSeconds ) + cc.debug( " second(s)..." ) + "\n" );
+        clearInterval( iv );
         process.exit( 0 );
     }, imaState.nAutoExitAfterSeconds * 1000 );
 } else

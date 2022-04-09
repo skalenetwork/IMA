@@ -108,7 +108,10 @@ async function do_connect( joCall, opts, fn ) {
                 if( joOut.id in joCall.mapPendingByCallID ) {
                     const entry = joCall.mapPendingByCallID[joOut.id];
                     delete joCall.mapPendingByCallID[joOut.id];
-                    clearTimeout( entry.out );
+                    if( entry.iv ) {
+                        clearTimeout( entry.iv );
+                        entry.iv = null;
+                    }
                     await entry.fn( entry.joIn, joOut, null );
                 }
             } );
@@ -169,7 +172,9 @@ async function do_call( joCall, joIn, fn ) {
             out: null
         };
         joCall.mapPendingByCallID[joIn.id] = entry;
-        entry.out = setTimeout( function() {
+        entry.iv = setTimeout( function() {
+            clearTimeout( entry.iv );
+            entry.iv = null;
             delete joCall.mapPendingByCallID[joIn.id];
         }, 20 * 1000 );
         joCall.wsConn.send( JSON.stringify( joIn ) );

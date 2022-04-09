@@ -40,7 +40,7 @@ const messageVerifySendTimeoutSeconds = 2 * 60 * 60; // 2 hours
 const messageVerifySendTimeoutError = new Error( "MessageVerifySendTimeout" );
 
 const with_timeout = ( promise, seconds ) => {
-    let timer;
+    let timer = null;
     return Promise.race( [
         promise,
         new Promise( ( resolve, reject ) => {
@@ -1148,11 +1148,13 @@ async function do_sign_messages_impl(
         } );
         log.write( cc.info( "Will await for message BLS verification and sending..." ) + "\n" );
         details.write( cc.info( "Will await for message BLS verification and sending..." ) + "\n" );
-        with_timeout( promise_gathering_complete, messageVerifySendTimeoutSeconds ).then( strSuccessfulResultDescription => {
+        const iv = with_timeout( promise_gathering_complete, messageVerifySendTimeoutSeconds ).then( strSuccessfulResultDescription => {
+            clearTimeout( iv );
             details.write( cc.info( "Message promise awaited." ) + "\n" );
             log.write( cc.info( "Message promise awaited." ) + "\n" );
         } ).catch(
             err => {
+                clearTimeout( iv );
                 const strErrorMessage = cc.error( "Failed to verify BLS and send message : " ) + cc.warning( err.toString() ) + "\n";
                 log.write( strErrorMessage );
                 details.write( strErrorMessage );
@@ -1541,11 +1543,13 @@ async function do_sign_u256( u256, details, fn ) {
     } );
     details.write( cc.info( "Will await BLS u256 sign result..." ) + "\n" );
     log.write( cc.info( "Will await BLS u256 sign result..." ) + "\n" );
-    with_timeout( promise_gathering_complete, messageVerifySendTimeoutSeconds ).then( strSuccessfulResultDescription => {
+    const iv = with_timeout( promise_gathering_complete, messageVerifySendTimeoutSeconds ).then( strSuccessfulResultDescription => {
+        clearTimeout( iv );
         details.write( cc.info( "Message promise awaited." ) + "\n" );
         log.write( cc.info( "Message promise awaited." ) + "\n" );
     } ).catch(
         err => {
+            clearTimeout( iv );
             const strErrorMessage = cc.error( "Failed to verify BLS and send message : " ) + cc.warning( err.toString() ) + "\n";
             log.write( strErrorMessage );
             details.write( strErrorMessage );
