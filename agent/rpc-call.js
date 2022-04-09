@@ -62,7 +62,11 @@ async function wait_web_socket_is_open( socket, fnDone, fnStep ) {
     fnDone = fnStep || async function( nStep ) { return true; };
     const nStep = 0;
     const promiseComplete = new Promise( function( resolve, reject ) {
-        const iv = setInterval( async function() {
+        let isInsideAsyncHandler = false;
+        const fn_async_handler = async function() {
+            if( isInsideAsyncHandler )
+                return;
+            isInsideAsyncHandler = true;
             if( socket.readyState === 1 ) {
                 // console.log( "Connection is made" )
                 clearInterval( iv );
@@ -74,6 +78,15 @@ async function wait_web_socket_is_open( socket, fnDone, fnStep ) {
                     reject( new Error( "web socket wait timout by callback on step " + nStep ) );
                 }
             }
+            isInsideAsyncHandler = false;
+        };
+        const iv = setInterval( function() {
+            if( isInsideAsyncHandler )
+                return;
+            fn_async_handler()
+                .then( () => {
+                } ).catch( () => {
+                } );
         }, 1000 ); // 1 second
     } );
     await Promise.all( [ promiseComplete ] );

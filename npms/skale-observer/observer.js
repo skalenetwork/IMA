@@ -350,13 +350,21 @@ async function periodic_caching_start( strChainNameConnectedTo, w3, addressFrom,
     const secondsToReDiscoverSkaleNetwork = parseInt( opts.secondsToReDiscoverSkaleNetwork );
     if( secondsToReDiscoverSkaleNetwork <= 0 )
         return false;
-    g_intervalPeriodicSchainsCaching = setInterval( async function() {
+    const fn_async_handler = async function() {
         if( g_bIsPeriodicCachingStepInProgress )
             return;
         g_bIsPeriodicCachingStepInProgress = true;
         // const strError =
         await cache_schains( strChainNameConnectedTo, w3, addressFrom, opts );
         g_bIsPeriodicCachingStepInProgress = false;
+    };
+    g_intervalPeriodicSchainsCaching = setInterval( function() {
+        if( g_bIsPeriodicCachingStepInProgress )
+            return;
+        fn_async_handler()
+            .then( () => {
+            } ).catch( () => {
+            } );
     }, secondsToReDiscoverSkaleNetwork * 1000 );
     return true;
 }
