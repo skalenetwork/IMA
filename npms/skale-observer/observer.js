@@ -24,11 +24,57 @@
  * @copyright SKALE Labs 2019-Present
  */
 
+const network_layer = require( "../skale-cool-socket/socket.js" );
+const { Worker } = require( "worker_threads" );
+const path = require( "path" );
+
 const owaspUtils = require( "../skale-owasp/owasp-util.js" );
-const { getWeb3FromURL } = require( "../../agent/cli.js" );
 const cc = owaspUtils.cc;
 
+const w3mod = require( "web3" );
+// const ethereumjs_tx = require( "ethereumjs-tx" );
+// const ethereumjs_wallet = require( "ethereumjs-wallet" );
+// const ethereumjs_util = require( "ethereumjs-util" );
+
 const PORTS_PER_SCHAIN = 64;
+
+function getWeb3FromURL( strURL, log ) {
+    let w3 = null;
+    log = log || { write: console.log };
+    try {
+        const u = cc.safeURL( strURL );
+        const strProtocol = u.protocol.trim().toLowerCase().replace( ":", "" ).replace( "/", "" );
+        if( strProtocol == "ws" || strProtocol == "wss" ) {
+            const w3ws = new w3mod.providers.WebsocketProvider( strURL, {
+                // see: https://github.com/ChainSafe/web3.js/tree/1.x/packages/web3-providers-ws#usage
+                clientConfig: {
+                    // // if requests are large:
+                    // maxReceivedFrameSize: 100000000,   // bytes - default: 1MiB
+                    // maxReceivedMessageSize: 100000000, // bytes - default: 8MiB
+                    // keep a connection alive
+                    keepalive: true,
+                    keepaliveInterval: 200000 // ms
+                },
+                reconnect: { // enable auto reconnection
+                    auto: true,
+                    delay: 5000, // ms
+                    maxAttempts: 10000000, // 10 million times
+                    onTimeout: false
+                }
+            } );
+            w3 = new w3mod( w3ws );
+        } else {
+            const w3http = new w3mod.providers.HttpProvider( strURL );
+            w3 = new w3mod( w3http );
+        }
+    } catch ( err ) {
+        log.write( cc.fatal( "CRITICAL ERROR:" ) + cc.error( " Failed to create " ) +
+            cc.attention( "Web3" ) + cc.error( " connection to " ) + cc.info( strURL ) +
+            cc.error( ": " ) + cc.warning( err.toString() ) );
+        w3 = null;
+    }
+    return w3;
+}
 
 function get_schain_index_in_node( schain_id, schains_ids_on_node ) {
     let i = 0;
@@ -198,7 +244,6 @@ async function check_connected_schains( strChainNameConnectedTo, arr_schains, ad
         if( jo_schain.data.name == strChainNameConnectedTo )
             continue;
         try {
-            //jo_schain.isConnected = await opts.imaState.jo_message_proxy_s_chain.methods.isConnectedChain( strChainNameConnectedTo ).call( { from: addressFrom } );
             const url = pick_random_schain_w3_url( jo_schain );
             if( opts && opts.details ) {
                 opts.details.write(
@@ -206,16 +251,18 @@ async function check_connected_schains( strChainNameConnectedTo, arr_schains, ad
                     cc.info( jo_schain.data.name ) + cc.debug( " whether it's connected to S-Chain " ) +
                     cc.info( strChainNameConnectedTo ) + cc.debug( "..." ) + "\n" );
             }
-            const w3 = getWeb3FromURL( url );
-            const jo_message_proxy_s_chain = new w3.eth.Contract( imaState.joAbiPublishResult_s_chain.message_proxy_chain_abi, imaState.joAbiPublishResult_s_chain.message_proxy_chain_address );
+            const w3 = getWeb3FromURL( url, opts.details );
+            const jo_message_proxy_s_chain = new w3.eth.Contract( opts.imaState.joAbiPublishResult_s_chain.message_proxy_chain_abi, opts.imaState.joAbiPublishResult_s_chain.message_proxy_chain_address );
             jo_schain.isConnected = await jo_message_proxy_s_chain.methods.isConnectedChain( strChainNameConnectedTo ).call( { from: addressFrom } );
             if( opts && opts.details ) {
                 opts.details.write(
                     cc.debug( "Got " ) + cc.yn( jo_schain.isConnected ) + "\n" );
             }
         } catch ( err ) {
-            if( opts && opts.details )
+            if( opts && opts.details ) {
                 opts.details.write( cc.error( "Got error: " ) + cc.warning( err.toString() ) + "\n" );
+                opts.details.write( err.stack );
+            }
         }
     }
     return arr_schains;
@@ -298,7 +345,7 @@ function merge_schains_array_from_to( arrSrc, arrDst, arrNew, arrOld, opts ) {
         opts.details.write( cc.success( "Finally, have " ) + cc.info( arrDst.length ) + cc.success( " S-Chain(s)" ) + "\n" );
 }
 
-let g_arr_schains_cached = null;
+let g_arr_schains_cached = [];
 
 async function cache_schains( strChainNameConnectedTo, w3, addressFrom, opts ) {
     let strError = null;
@@ -319,7 +366,7 @@ async function cache_schains( strChainNameConnectedTo, w3, addressFrom, opts ) {
             g_arr_schains_cached = arr_schains;
         if( opts && opts.details ) {
             opts.details.write(
-                cc.debug( "Connected " ) + cc.attention( "S-Chains" ) + cc.debug( " cache was updated: " ) +
+                cc.debug( "Connected " ) + cc.attention( "S-Chains" ) + cc.debug( " cache was updated in this thread: " ) +
                 cc.j( g_arr_schains_cached ) + "\n" );
         }
         if( opts.fn_chache_changed )
@@ -330,8 +377,10 @@ async function cache_schains( strChainNameConnectedTo, w3, addressFrom, opts ) {
             strError = "unknown exception during S-Chains download";
         if( opts.fn_chache_changed )
             opts.fn_chache_changed( g_arr_schains_cached, strError );
-        if( opts && opts.details )
+        if( opts && opts.details ) {
             opts.details.write( cc.fatal( "ERROR:" ) + cc.error( " Failed to cache: " ) + cc.error( err ) + "\n" );
+            opts.details.write( err.stack );
+        }
     }
     return strError; // null on success
 }
@@ -340,41 +389,139 @@ function get_last_cached_schains() {
     return JSON.parse( JSON.stringify( g_arr_schains_cached ) );
 }
 
-let g_intervalPeriodicSchainsCaching = null;
-let g_bIsPeriodicCachingStepInProgress = false;
+const impl_sleep = ( milliseconds ) => { return new Promise( resolve => setTimeout( resolve, milliseconds ) ); };
+
+let g_worker = null;
+let g_client = null;
+
+async function ensure_have_worker( opts ) {
+    if( g_worker )
+        return g_worker;
+    const url = "skale_observer_worker_server";
+    g_worker = new Worker( path.join( __dirname, "observer_worker.js" ) );
+    // console.log( "Will connect to " + url );
+    g_worker.on( "message", jo => {
+        if( network_layer.out_of_worker_apis.on_message( g_worker, jo ) )
+            return;
+    } );
+    g_client = new network_layer.OutOfWorkerSocketClientPipe( url, g_worker );
+    g_client.on( "message", function( eventData ) {
+        const joMessage = eventData.message;
+        // console.log( "CLIENT <<<", JSON.stringify( joMessage ) );
+        switch ( joMessage.method ) {
+        case "periodic_caching_do_now":
+            g_arr_schains_cached = joMessage.message;
+            if( opts && opts.details ) {
+                opts.details.write(
+                    cc.debug( "Connected " ) + cc.attention( "S-Chains" ) +
+                    cc.debug( " cache was updated using data arrived from SNB worker: " ) +
+                    cc.j( g_arr_schains_cached ) + "\n" );
+            }
+            break;
+        case "log":
+            log.write( cc.attention( "SNB WORKER" ) + " " + joMessage.message );
+            break;
+        } // switch ( joMessage.method )
+    } );
+    await impl_sleep( 1000 );
+    const jo = {
+        method: "init",
+        message: {
+            opts: {
+                imaState: {
+                    "joAbiPublishResult_skale_manager": opts.imaState.joAbiPublishResult_skale_manager,
+                    "joAbiPublishResult_main_net": opts.imaState.joAbiPublishResult_main_net,
+                    "joAbiPublishResult_s_chain": opts.imaState.joAbiPublishResult_s_chain,
+                    "bHaveSkaleManagerABI": opts.imaState.bHaveSkaleManagerABI,
+                    "bHaveImaAbiMainNet": opts.imaState.bHaveImaAbiMainNet,
+                    "bNoWaitSChainStarted": opts.imaState.bNoWaitSChainStarted,
+                    "nMaxWaitSChainAttempts": opts.imaState.nMaxWaitSChainAttempts,
+                    "strURL_main_net": opts.imaState.strURL_main_net,
+                    "strChainName_main_net": opts.imaState.strChainName_main_net,
+                    "cid_main_net": opts.imaState.cid_main_net,
+                    "nNodeNumber": opts.imaState.nNodeNumber, // S-Chain node number(zero based)
+                    "nNodesCount": opts.imaState.nNodesCount,
+                    "nTimeFrameSeconds": opts.imaState.nTimeFrameSeconds, // 0-disable, 60-recommended
+                    "nNextFrameGap": opts.imaState.nNextFrameGap,
+                    "joAccount_main_net": {
+                        "privateKey": opts.imaState.joAccount_main_net.privateKey,
+                        // "address": IMA.owaspUtils.fn_address_impl_,
+                        "strTransactionManagerURL": opts.imaState.joAccount_main_net.strTransactionManagerURL,
+                        "tm_priority": opts.imaState.joAccount_main_net.tm_priority,
+                        "strSgxURL": opts.imaState.joAccount_main_net.strSgxURL,
+                        "strSgxKeyName": opts.imaState.joAccount_main_net.strSgxKeyName,
+                        "strPathSslKey": opts.imaState.joAccount_main_net.strPathSslKey,
+                        "strPathSslCert": opts.imaState.joAccount_main_net.strPathSslCert
+                    },
+                    // "tc_main_net": IMA.tc_main_net,
+                    // "doEnableDryRun": function( isEnable ) { return IMA.dry_run_enable( isEnable ); },
+                    // "doIgnoreDryRun": function( isIgnore ) { return IMA.dry_run_ignore( isIgnore ); },
+                    "joSChainDiscovery": {
+                        "isSilentReDiscovery": opts.imaState.joSChainDiscovery.isSilentReDiscovery,
+                        "repeatIntervalMilliseconds": opts.imaState.joSChainDiscovery.repeatIntervalMilliseconds // zero to disable (for debugging only)
+                    }
+                }
+            },
+            "cc": {
+                "isEnabled": cc.isEnabled()
+            }
+        }
+    };
+    g_client.send( jo );
+}
+
+// let g_intervalPeriodicSchainsCaching = null;
+// let g_bIsPeriodicCachingStepInProgress = false;
 
 async function periodic_caching_start( strChainNameConnectedTo, w3, addressFrom, opts ) {
-    await periodic_caching_stop();
-    if( ! ( "secondsToReDiscoverSkaleNetwork" in opts ) )
-        return false;
-    const secondsToReDiscoverSkaleNetwork = parseInt( opts.secondsToReDiscoverSkaleNetwork );
-    if( secondsToReDiscoverSkaleNetwork <= 0 )
-        return false;
-    const fn_async_handler = async function() {
-        if( g_bIsPeriodicCachingStepInProgress )
-            return;
-        g_bIsPeriodicCachingStepInProgress = true;
-        // const strError =
-        await cache_schains( strChainNameConnectedTo, w3, addressFrom, opts );
-        g_bIsPeriodicCachingStepInProgress = false;
+    // await periodic_caching_stop();
+    // if( ! ( "secondsToReDiscoverSkaleNetwork" in opts ) )
+    //     return false;
+    // const secondsToReDiscoverSkaleNetwork = parseInt( opts.secondsToReDiscoverSkaleNetwork );
+    // if( secondsToReDiscoverSkaleNetwork <= 0 )
+    //     return false;
+    // const fn_async_handler = async function() {
+    //     if( g_bIsPeriodicCachingStepInProgress )
+    //         return;
+    //     g_bIsPeriodicCachingStepInProgress = true;
+    //     // const strError =
+    //     await cache_schains( strChainNameConnectedTo, w3, addressFrom, opts );
+    //     g_bIsPeriodicCachingStepInProgress = false;
+    // };
+    // g_intervalPeriodicSchainsCaching = setInterval( function() {
+    //     if( g_bIsPeriodicCachingStepInProgress )
+    //         return;
+    //     fn_async_handler()
+    //         .then( () => {
+    //         } ).catch( () => {
+    //         } );
+    // }, secondsToReDiscoverSkaleNetwork * 1000 );
+    // return true;
+    await ensure_have_worker( opts );
+    const jo = {
+        method: "periodic_caching_start",
+        message: {
+            secondsToReDiscoverSkaleNetwork: parseInt( opts.secondsToReDiscoverSkaleNetwork ),
+            strChainNameConnectedTo: strChainNameConnectedTo,
+            addressFrom: addressFrom
+        }
     };
-    g_intervalPeriodicSchainsCaching = setInterval( function() {
-        if( g_bIsPeriodicCachingStepInProgress )
-            return;
-        fn_async_handler()
-            .then( () => {
-            } ).catch( () => {
-            } );
-    }, secondsToReDiscoverSkaleNetwork * 1000 );
-    return true;
+    g_client.send( jo );
 }
 async function periodic_caching_stop() {
-    if( ! g_intervalPeriodicSchainsCaching )
-        return false;
-    clearInterval( g_intervalPeriodicSchainsCaching );
-    g_intervalPeriodicSchainsCaching = null;
-    g_bIsPeriodicCachingStepInProgress = false;
-    return true;
+    // if( ! g_intervalPeriodicSchainsCaching )
+    //     return false;
+    // clearInterval( g_intervalPeriodicSchainsCaching );
+    // g_intervalPeriodicSchainsCaching = null;
+    // g_bIsPeriodicCachingStepInProgress = false;
+    // return true;
+    await ensure_have_worker( opts );
+    const jo = {
+        method: "periodic_caching_stop",
+        message: {
+        }
+    };
+    g_client.send( jo );
 }
 
 function pick_random_schain_node_index( jo_schain ) {
@@ -420,6 +567,8 @@ async function discover_chain_id( strURL ) {
     return ret;
 }
 
+module.exports.w3mod = w3mod;
+module.exports.getWeb3FromURL = getWeb3FromURL;
 module.exports.owaspUtils = owaspUtils;
 module.exports.cc = cc;
 module.exports.get_schains_count = get_schains_count;

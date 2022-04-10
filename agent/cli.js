@@ -1220,8 +1220,9 @@ function parse( joExternalHandlers, argv ) {
     return 0;
 }
 
-function getWeb3FromURL( strURL ) {
+function getWeb3FromURL( strURL, log ) {
     let w3 = null;
+    log = log || { write: console.log };
     try {
         const u = cc.safeURL( strURL );
         const strProtocol = u.protocol.trim().toLowerCase().replace( ":", "" ).replace( "/", "" );
@@ -1473,7 +1474,7 @@ function ima_common_init() {
     if( imaState.strURL_main_net && typeof imaState.strURL_main_net == "string" && imaState.strURL_main_net.length > 0 ) {
         const u = imaState.strURL_main_net;
         async_check_url_at_startup( u, "Main-net" );
-        imaState.w3_main_net = getWeb3FromURL( u );
+        imaState.w3_main_net = getWeb3FromURL( u, log );
     } else {
         log.write(
             cc.error( "WARNING:" ) + cc.warning( " No " ) + cc.note( "Main-net" ) +
@@ -1485,7 +1486,7 @@ function ima_common_init() {
     if( imaState.strURL_s_chain && typeof imaState.strURL_s_chain == "string" && imaState.strURL_s_chain.length > 0 ) {
         const u = imaState.strURL_s_chain;
         async_check_url_at_startup( u, "S-Chain" );
-        imaState.w3_s_chain = getWeb3FromURL( u );
+        imaState.w3_s_chain = getWeb3FromURL( u, log );
     } else {
         log.write(
             cc.error( "WARNING:" ) + cc.warning( " No " ) + cc.note( "S-Chain" ) +
@@ -1497,7 +1498,7 @@ function ima_common_init() {
     if( imaState.strURL_t_chain && typeof imaState.strURL_t_chain == "string" && imaState.strURL_t_chain.length > 0 ) {
         const u = imaState.strURL_t_chain;
         async_check_url_at_startup( u, "S<->S Target S-Chain" );
-        imaState.w3_t_chain = getWeb3FromURL( u );
+        imaState.w3_t_chain = getWeb3FromURL( u, log );
     } else {
         log.write(
             cc.error( "WARNING:" ) + cc.warning( " No " ) + cc.note( "S<->S Target S-Chain" ) +

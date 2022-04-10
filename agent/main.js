@@ -311,7 +311,7 @@ const fnInitActionSkaleNetworkScanForS2S = function() {
                 console.log( cc.fatal( "CRITICAL ERROR:" ) + cc.error( " missing Skale Manager ABI, please specify " ) + cc.info( "abi-skale-manager" ) );
                 process.exit( 153 );
             }
-            log.write( strLogPrefix + cc.normal( "Downloading SKALE network information " ) + cc.normal( "..." ) + "\n" ); // just print value
+            log.write( strLogPrefix + cc.debug( "Downloading SKALE network information..." ) + "\n" ); // just print value
             const opts = {
                 imaState: imaState,
                 "details": log,
@@ -319,24 +319,26 @@ const fnInitActionSkaleNetworkScanForS2S = function() {
                 "secondsToReDiscoverSkaleNetwork": imaState.s2s_opts.secondsToReDiscoverSkaleNetwork
             };
             const addressFrom = imaState.joAccount_main_net.address( imaState.w3_main_net );
-            const strError = await skale_observer.cache_schains(
-                imaState.strChainName_s_chain, // strChainNameConnectedTo
-                imaState.w3_main_net,
-                addressFrom,
-                opts
-            );
-            if( strError ) {
-                log.write( strLogPrefix + cc.error( "Failed to get " ) + cc.info( "SKALE NETWORK" ) + cc.error( " information: " ) + cc.warning( strError ) + "\n" );
-                return true;
-            }
-            const arr_schains = skale_observer.get_last_cached_schains();
-            log.write( strLogPrefix + cc.normal( "Got " ) + cc.info( "SKALE NETWORK" ) + cc.normal( " information: " ) + cc.j( arr_schains ) + "\n" );
+            // const strError = await skale_observer.cache_schains(
+            //     imaState.strChainName_s_chain, // strChainNameConnectedTo
+            //     imaState.w3_main_net,
+            //     addressFrom,
+            //     opts
+            // );
+            // if( strError ) {
+            //     log.write( strLogPrefix + cc.error( "Failed to get " ) + cc.info( "SKALE NETWORK" ) + cc.error( " information: " ) + cc.warning( strError ) + "\n" );
+            //     return true;
+            // }
+            // const arr_schains = skale_observer.get_last_cached_schains();
+            // log.write( strLogPrefix + cc.normal( "Got " ) + cc.info( "SKALE NETWORK" ) + cc.normal( " information: " ) + cc.j( arr_schains ) + "\n" );
+            log.write( strLogPrefix + cc.debug( "Will start periodic S-Chains caching..." ) + "\n" );
             await skale_observer.periodic_caching_start(
                 imaState.strChainName_s_chain, // strChainNameConnectedTo
                 imaState.w3_main_net,
                 addressFrom,
                 opts
             );
+            log.write( strLogPrefix + cc.success( "Done, did started periodic S-Chains caching." ) + "\n" );
             return true;
         }
     } );
@@ -1452,7 +1454,7 @@ imaCLI.parse( {
                     console.log( cc.fatal( "CRITICAL ERROR:" ) + cc.error( " missing Skale Manager ABI, please specify " ) + cc.info( "abi-skale-manager" ) );
                     process.exit( 160 );
                 }
-                log.write( strLogPrefix + cc.normal( "Downloading SKALE network information " ) + cc.normal( "..." ) + "\n" ); // just print value
+                log.write( strLogPrefix + cc.debug( "Downloading SKALE network information..." ) + "\n" ); // just print value
                 const opts = {
                     imaState: imaState,
                     "details": log,
@@ -1475,7 +1477,7 @@ imaCLI.parse( {
                     console.log( cc.fatal( "CRITICAL ERROR:" ) + cc.error( " missing Skale Manager ABI, please specify " ) + cc.info( "abi-skale-manager" ) );
                     process.exit( 161 );
                 }
-                log.write( strLogPrefix + cc.normal( "Downloading SKALE network information " ) + cc.normal( "..." ) + "\n" ); // just print value
+                log.write( strLogPrefix + cc.debug( "Downloading SKALE network information..." ) + "\n" ); // just print value
 
                 const opts = {
                     imaState: imaState,

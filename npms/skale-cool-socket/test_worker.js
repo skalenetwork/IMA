@@ -49,4 +49,4 @@ function doSendMessage( type, endpoint, worker_uuid, data ) {
 const url = "local_worker_server";
 const acceptor = new network_layer.InWorkerSocketServerAcceptor( url, doSendMessage );
 const server = new TestServer( acceptor );
-server.on( "dispose", function() { console.log( "disposed in-worked server" ); } );
+server.on( "dispose", function() { console.log( "disposed in-worker server" ); } );

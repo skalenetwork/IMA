@@ -30,13 +30,14 @@ class Server extends EventDispatcher {
     constructor( acceptor ) {
         super();
         if( acceptor == null || acceptor == undefined || typeof acceptor != "object" )
-            throw new Error( "Cannot create test server on bad acceptor" );
+            throw new Error( "Cannot create server on bad acceptor" );
         const self = this;
+        self.log = console.log;
         self.acceptor = acceptor;
         self.mapApiHandlers = {};
         self.mapAcceptedPipes = { };
         self.isLogAcceptedSocket = false;
-        self.isLogSocketErrors = false;
+        self.isLogSocketErrors = true;
         self.isLogSocketTraffic = false;
         self.isLogSocketTrafficRaw = false;
         acceptor.on( "connection", function( eventData ) {
@@ -46,12 +47,12 @@ class Server extends EventDispatcher {
             else
                 socket.strSavedRemoteAddress = "" + eventData.remoteAddress;
             if( self.isLogAcceptedSocket )
-                console.log( "New test server connection \"" + socket.strSavedRemoteAddress + "\"" );
+                self.log( "New server connection \"" + socket.strSavedRemoteAddress + "\"" );
             self.mapAcceptedPipes[socket] = { };
             let _offAllPipeEventListeners = null;
             let _onPipeClose = function() {
                 if( self.isLogAcceptedSocket )
-                    console.log( "Test accepted socket closed \"" + socket.strSavedRemoteAddress + "\"" );
+                    self.log( "Accepted socket closed \"" + socket.strSavedRemoteAddress + "\"" );
                 if( _offAllPipeEventListeners ) {
                     _offAllPipeEventListeners();
                     _offAllPipeEventListeners = null;
@@ -60,7 +61,7 @@ class Server extends EventDispatcher {
             };
             let _onPipeError = function( eventData ) {
                 if( self.isLogSocketErrors )
-                    console.warn( "Socket error \"" + socket.strSavedRemoteAddress + "\"" );
+                    self.log( "Socket error \"" + socket.strSavedRemoteAddress + "\"" );
                 if( _offAllPipeEventListeners ) {
                     _offAllPipeEventListeners();
                     _offAllPipeEventListeners = null;
@@ -69,10 +70,10 @@ class Server extends EventDispatcher {
             };
             let _onPipeMessage = function( eventData ) {
                 if( self.isLogSocketTrafficRaw )
-                    console.log( "Test accepted socket \"" + socket.strSavedRemoteAddress + "\" raw message", eventData );
+                    self.log( "Accepted socket \"" + socket.strSavedRemoteAddress + "\" raw message", eventData );
                 const joMessage = eventData.message;
                 if( self.isLogAcceptedSocket )
-                    console.log( "Test accepted socket \"" + socket.strSavedRemoteAddress + "\" message", joMessage );
+                    self.log( "Accepted socket \"" + socket.strSavedRemoteAddress + "\" message", joMessage );
                 let joAnswer = null;
                 let isFlush = false;
                 try {
@@ -86,12 +87,12 @@ class Server extends EventDispatcher {
                         joAnswer.error = "Unhandled message";
                         joAnswer.joMessage = joMessage; // send it back ))
                         if( self.isLogSocketTraffic )
-                            console.warn( "Test accepted socket \"" + socket.strSavedRemoteAddress + "\" unhandled message", joMessage );
+                            self.log( "Accepted socket \"" + socket.strSavedRemoteAddress + "\" unhandled message", joMessage );
                         isFlush = true;
                     }
                 } catch ( err ) {
                     if( self.isLogSocketErrors )
-                        console.warn( "Server method", joMessage.method, "RPC exception:", err );
+                        self.log( "Server method", joMessage.method, "RPC exception:", err );
                     joAnswer = utils.prepareAnswerJSON( joMessage );
                     joAnswer.error = "" + err.toString();
                 }
@@ -100,10 +101,10 @@ class Server extends EventDispatcher {
                 if( joAnswer != null && joAnswer != undefined ) {
                     if( typeof joAnswer.error == "string" && joAnswer.error.length > 0 ) {
                         if( self.isLogSocketErrors )
-                            console.warn( "Test accepted socket \"" + socket.strSavedRemoteAddress + "\" error answer", joAnswer );
+                            self.log( "Accepted socket \"" + socket.strSavedRemoteAddress + "\" error answer", joAnswer );
                     } else {
-                        if( self.isLogSocketErrors )
-                            console.log( "Test accepted socket \"" + socket.strSavedRemoteAddress + " answer", joAnswer );
+                        if( self.isLogSocketTraffic )
+                            self.log( "Accepted socket \"" + socket.strSavedRemoteAddress + " answer", joAnswer );
                     }
                     socket.send( joAnswer, isFlush );
                 }
