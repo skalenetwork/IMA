@@ -1148,67 +1148,100 @@ async function tm_get_record( txId ) {
     return null;
 }
 
-async function tm_wait( details, txId, w3, allowedTime = 36000 ) {
-    details.write(
-        cc.debug( "TM - waiting for TX ID: " ) +
-        cc.info( txId ) +
-        cc.debug( " for " ) + cc.info( allowedTime ) + cc.debug( "s" ) + "\n" );
+async function tm_wait( details, txId, w3, nWaitSeconds = 36000 ) {
+    const strPrefixDetails = cc.debug( "(gathered details)" ) + " ";
+    const strPrefixLog = cc.debug( "(immediate log)" ) + " ";
+    let strMsg =
+        cc.debug( "TM - will wait TX " ) + cc.info( txId ) +
+        cc.debug( " to complete for " ) + cc.info( nWaitSeconds ) + cc.debug( " second(s) maximum" );
+    details.write( strPrefixDetails + strMsg + "\n" );
+    log.write( strPrefixLog + strMsg + "\n" );
     const startTs = current_timestamp();
-    while( !tm_is_finished( await tm_get_record( txId ) ) && current_timestamp() - startTs < allowedTime )
-        await sleep( 10 );
-
+    while( ! tm_is_finished( await tm_get_record( txId ) ) && ( current_timestamp() - startTs ) < nWaitSeconds )
+        await sleep( 500 );
     const r = await tm_get_record( txId );
-    details.write( cc.debug( "TM - TX record is " ) + cc.info( JSON.stringify( r ) ) + "\n" );
-
-    if( !tm_is_finished( r ) || r.status == "DROPPED" ) {
-        log.write( cc.debug( "TM - transaction " ) + cc.info( txId ) + " status " + cc.info( r.status ) +
-            cc.debug( " was unsuccessful" ) + "\n" );
-        details.write( cc.debug( "TM - transaction " ) + cc.info( txId ) + " status " + cc.info( r.status ) +
-            cc.debug( " was unsuccessful" ) + "\n" );
+    strMsg = cc.debug( "TM - TX " ) + cc.info( txId ) + cc.debug( " record is " ) + cc.info( JSON.stringify( r ) );
+    details.write( strPrefixDetails + strMsg + "\n" );
+    log.write( strPrefixLog + strMsg + "\n" );
+    if( ( !r ) ) {
+        strMsg = cc.error( "TM - TX " ) + cc.info( txId ) + cc.error( " status is " ) + cc.warning( "NULL RECORD" );
+        details.write( strPrefixDetails + strMsg + "\n" );
+        log.write( strPrefixLog + strMsg + "\n" );
+    } else if( r.status == "SUCCESS" ) {
+        strMsg = cc.success( "TM - TX " ) + cc.info( txId ) + cc.success( " success" );
+        details.write( strPrefixDetails + strMsg + "\n" );
+        log.write( strPrefixLog + strMsg + "\n" );
+    } else {
+        strMsg = cc.error( "TM - TX " ) + cc.info( txId ) + cc.error( " status is " ) + cc.warning( r.status );
+        details.write( strPrefixDetails + strMsg + "\n" );
+        log.write( strPrefixLog + strMsg + "\n" );
+    }
+    if( ( !tm_is_finished( r ) ) || r.status == "DROPPED" ) {
+        log.write( cc.error( "TM - TX " ) + cc.info( txId ) + cc.error( " was unsuccessful, wait failed" ) + "\n" );
         return null;
     }
-    return await get_web3_transactionReceipt( details, 10, w3, r.tx_hash );
+    const joReceipt = await get_web3_transactionReceipt( details, 10, w3, r.tx_hash );
+    if( !joReceipt ) {
+        strMsg = cc.error( "TM - TX " ) + cc.info( txId ) + cc.error( " was unsuccessful, failed to fetch transaction receipt" );
+        details.write( strPrefixDetails + strMsg + "\n" );
+        log.write( strPrefixLog + strMsg + "\n" );
+        return null;
+    }
+    return joReceipt;
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 async function tm_ensure_transaction( details, w3, priority, txAdjusted, cntAttempts, sleepMilliseconds ) {
-    cntAttempts = cntAttempts || 40;
-    sleepMilliseconds = sleepMilliseconds || 3000;
-    // NOTICE: here we have cntAttempts * sleepMilliseconds = 40 * 3000 = by default is 120 seconds to wait
+    cntAttempts = cntAttempts || 20;
+    sleepMilliseconds = sleepMilliseconds || ( 3 * 1000 );
     let txId = "";
     let joReceipt = null;
     let idxAttempt = 0;
+    const strPrefixDetails = cc.debug( "(gathered details)" ) + " ";
+    const strPrefixLog = cc.debug( "(immediate log)" ) + " ";
+    let strMsg;
     for( ; idxAttempt < cntAttempts; ++idxAttempt ) {
         txId = await tm_send( details, txAdjusted, priority );
-        details.write( cc.debug( "TM - next TX ID: " ) + cc.info( txId ) + "\n" );
-        log.write( cc.debug( "TM - next TX ID: " ) + cc.info( txId ) + "\n" );
+        strMsg = cc.debug( "TM - next TX " ) + cc.info( txId );
+        details.write( strPrefixDetails + strMsg + "\n" );
+        log.write( strPrefixLog + strMsg + "\n" );
         joReceipt = await tm_wait( details, txId, w3 );
         if( joReceipt )
             break;
-        log.write( cc.warning( "TM - unsuccessful TX sending attempt " ) + cc.info( idxAttempt ) +
-            cc.warning( " of " ) + cc.info( cntAttempts ) +
-            cc.debug( " receipt: " ) + cc.info( joReceipt ) + "\n" );
-        details.write( cc.warning( "TM - unsuccessful TX sending attempt " ) + cc.info( idxAttempt ) +
-            cc.warning( " of " ) + cc.info( cntAttempts ) +
-            cc.debug( " receipt: " ) + cc.info( joReceipt ) + "\n" );
+        strMsg =
+            cc.warning( "TM - unsuccessful TX " ) + cc.info( txId ) + cc.warning( " sending attempt " ) + cc.info( idxAttempt ) +
+            cc.warning( " of " ) + cc.info( cntAttempts ) + cc.debug( " receipt: " ) + cc.info( joReceipt );
+        details.write( strPrefixDetails + strMsg + "\n" );
+        log.write( strPrefixLog + strMsg + "\n" );
         await sleep( sleepMilliseconds );
     }
     if( !joReceipt ) {
-        details.write( cc.fatal( "BAD ERROR:" ) + " " + cc.error( "TM transaction " ) + cc.info( txId ) + cc.error( " transaction has been dropped" ) + "\n" );
-        log.write( cc.fatal( "BAD ERROR:" ) + " " + cc.error( "TM transaction " ) + cc.info( txId ) + cc.error( " transaction has been dropped" ) + "\n" );
-        throw new Error( "TM unseccessful transaction " + txId + "" );
+        strMsg =
+            cc.fatal( "BAD ERROR:" ) + " " + cc.error( "TM TX " ) + cc.info( txId ) +
+            cc.error( " transaction has been dropped" );
+        details.write( strPrefixDetails + strMsg + "\n" );
+        log.write( strPrefixLog + strMsg + "\n" );
+        throw new Error( "TM unseccessful transaction " + txId );
     }
-    details.write( cc.success( "TM - successful TX, id: " ) + cc.info( txId ) + cc.debug( ", sending attempt " ) + cc.info( idxAttempt ) + cc.success( " of " ) + cc.info( cntAttempts ) + "\n" );
-    log.write( cc.success( "TM - successful TX, id: " ) + cc.info( txId ) + cc.debug( ", sending attempt " ) + cc.info( idxAttempt ) + cc.success( " of " ) + cc.info( cntAttempts ) + "\n" );
+    strMsg =
+        cc.success( "TM - successful TX " ) + cc.info( txId ) + cc.success( ", sending attempt " ) + cc.info( idxAttempt ) +
+        cc.success( " of " ) + cc.info( cntAttempts );
+    details.write( strPrefixDetails + strMsg + "\n" );
+    log.write( strPrefixLog + strMsg + "\n" );
     return [ txId, joReceipt ];
 }
 
 async function safe_sign_transaction_with_account( details, w3, tx, rawTx, joAccount ) {
+    const strPrefixDetails = cc.debug( "(gathered details)" ) + " ";
+    const strPrefixLog = cc.debug( "(immediate log)" ) + " ";
     const sendingCnt = loopTmSendingCnt++;
-    details.write( cc.debug( "Sending transaction with account(" ) + cc.notice( "sending counter" ) + cc.debug( " is " ) + cc.info( sendingCnt ) + cc.debug( "), raw TX object is " ) + cc.j( rawTx ) + "\n" );
-    log.write( cc.debug( "Sending transaction to account(" ) + cc.notice( "sending counter" ) + cc.debug( " is " ) + cc.info( sendingCnt ) + cc.debug( ")" ) + "\n" );
+    let strMsg =
+        cc.debug( "Sending transaction with account(" ) + cc.notice( "sending counter" ) + cc.debug( " is " ) +
+        cc.info( sendingCnt ) + cc.debug( "), raw TX object is " ) + cc.j( rawTx );
+    details.write( strPrefixDetails + strMsg + "\n" );
+    log.write( strPrefixLog + strMsg + "\n" );
     const joSR = {
         joACI: get_account_connectivity_info( joAccount ),
         tx: null,
@@ -1274,16 +1307,12 @@ async function safe_sign_transaction_with_account( details, w3, tx, rawTx, joAcc
         await sleep( 5000 );
         await wait_for_transaction_receipt( details, w3, joSR.txHashSent );
         */
-        log.write(
+        strMsg =
             cc.debug( "Will sign with Transaction Manager wallet, transaction is " ) + cc.j( tx ) +
             cc.debug( ", raw transaction is " ) + cc.j( rawTx ) + "\n" +
-            cc.debug( " using account " ) + cc.j( joAccount ) + "\n"
-        );
-        details.write(
-            cc.debug( "Will sign with Transaction Manager wallet, transaction is " ) + cc.j( tx ) +
-            cc.debug( ", raw transaction is " ) + cc.j( rawTx ) + "\n" +
-            cc.debug( " using account " ) + cc.j( joAccount ) + "\n"
-        );
+            cc.debug( " using account " ) + cc.j( joAccount );
+        details.write( strPrefixDetails + strMsg + "\n" );
+        log.write( strPrefixLog + strMsg + "\n" );
         const txAdjusted = JSON.parse( JSON.stringify( rawTx ) ); // tx // rawTx
         if( "chainId" in txAdjusted )
             delete txAdjusted.chainId;
@@ -1300,8 +1329,12 @@ async function safe_sign_transaction_with_account( details, w3, tx, rawTx, joAcc
             joSR.joReceipt = joReceipt;
             joSR.tm_tx_id = tx_id;
         } catch ( err ) {
-            details.write( cc.fatal( "BAD ERROR:" ) + " " + cc.error( "TM - transaction was not sent, underlying error is: " ) + cc.warning( err.toString() ) + "\n" );
-            log.write( cc.fatal( "BAD ERROR:" ) + " " + cc.error( "TM - transaction was not sent, underlying error is: " ) + cc.warning( err.toString() ) + "\n" );
+            strMsg =
+                cc.fatal( "BAD ERROR:" ) + " " +
+                cc.error( "TM - transaction was not sent, underlying error is: " ) +
+                cc.warning( err.toString() );
+            details.write( strPrefixDetails + strMsg + "\n" );
+            log.write( strPrefixLog + strMsg + "\n" );
             // throw err;
         }
     } break;
@@ -1413,14 +1446,22 @@ async function safe_sign_transaction_with_account( details, w3, tx, rawTx, joAcc
     } // switch( joSR.joACI.strType )
     details.write( cc.debug( "Signed transaction is " ) + cc.notice( JSON.stringify( tx ) ) + "\n" );
     joSR.tx = tx;
-    details.write( cc.debug( "Transaction with account completed " ) + cc.notice( "sending counter" ) + cc.debug( " is " ) + cc.info( sendingCnt ) + cc.debug( ", raw TX object is " ) + cc.j( rawTx ) + "\n" );
-    log.write( cc.debug( "Transaction with account completed " ) + cc.notice( "sending counter" ) + cc.debug( " is " ) + cc.info( sendingCnt ) + "\n" );
+    strMsg =
+        cc.debug( "Transaction with account completed " ) + cc.notice( "sending counter" ) +
+        cc.debug( " is " ) + cc.info( sendingCnt );
+    details.write( strPrefixDetails + strMsg + "\n" );
+    log.write( strPrefixLog + strMsg + "\n" );
     return joSR;
 }
 
 async function safe_send_signed_transaction( details, w3, serializedTx, strActionName, strLogPrefix ) {
-    details.write( cc.attention( "SEND TRANSACTION" ) + cc.normal( " is using " ) + cc.bright( "Web3" ) + cc.normal( " version " ) + cc.sunny( w3.version ) + "\n" );
-    details.write( strLogPrefix + cc.debug( "....signed serialized TX is " ) + cc.notice( JSON.stringify( serializedTx ) ) + "\n" );
+    const strPrefixDetails = cc.debug( "(gathered details)" ) + " ";
+    const strPrefixLog = cc.debug( "(immediate log)" ) + " ";
+    const strMsg =
+        cc.attention( "SEND TRANSACTION" ) + cc.normal( " is using " ) +
+        cc.bright( "Web3" ) + cc.normal( " version " ) + cc.sunny( w3.version );
+    details.write( strPrefixDetails + strMsg + "\n" );
+    log.write( strPrefixLog + strMsg + "\n" );
     const strTX = "0x" + serializedTx.toString( "hex" ); // strTX is string starting from "0x"
     details.write( strLogPrefix + cc.debug( "....signed raw TX is " ) + cc.j( strTX ) + "\n" );
     let joReceipt = null;
