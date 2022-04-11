@@ -1174,8 +1174,9 @@ async function tm_wait( details, txId, w3, allowedTime = 36000 ) {
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 async function tm_ensure_transaction( details, w3, priority, txAdjusted, cntAttempts, sleepMilliseconds ) {
-    cntAttempts = cntAttempts || 10;
+    cntAttempts = cntAttempts || 40;
     sleepMilliseconds = sleepMilliseconds || 3000;
+    // NOTICE: here we have cntAttempts * sleepMilliseconds = 40 * 3000 = by default is 120 seconds to wait
     let txId = "";
     let joReceipt = null;
     let idxAttempt = 0;
@@ -5440,7 +5441,7 @@ async function do_transfer(
                                 cc.debug( " using URL " ) + cc.info( jo_node.http_endpoint_ip ) +
                                 cc.debug( "..." ) + "\n" );
                             try {
-                                const w3_node = getWeb3FromURL( jo_node.http_endpoint_ip );
+                                const w3_node = getWeb3FromURL( jo_node.http_endpoint_ip, details );
                                 const jo_message_proxy_node = new w3_node.eth.Contract( imaState.joAbiPublishResult_s_chain.message_proxy_chain_abi, imaState.joAbiPublishResult_s_chain.message_proxy_chain_address );
                                 const node_r = await get_web3_pastEventsProgressive(
                                     details,
@@ -5850,7 +5851,7 @@ async function do_s2s_all( // s-chain --> s-chain
     for( let idxSChain = 0; idxSChain < cntSChains; ++ idxSChain ) {
         const jo_schain = arr_schains_cached[idxSChain];
         const url_src = skale_observer.pick_random_schain_w3_url( jo_schain );
-        const w3_src = getWeb3FromURL( url_src );
+        const w3_src = getWeb3FromURL( url_src, log );
         const joAccountSrc = joAccountDst; // ???
         const chain_id_src = "" + jo_schain.data.name;
         const cid_src = "" + jo_schain.data.computed.chainId;
