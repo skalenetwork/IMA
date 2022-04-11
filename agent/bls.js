@@ -1148,7 +1148,7 @@ async function do_sign_messages_impl(
         } );
         log.write( cc.info( "Will await for message BLS verification and sending..." ) + "\n" );
         details.write( cc.info( "Will await for message BLS verification and sending..." ) + "\n" );
-        with_timeout( promise_gathering_complete, messageVerifySendTimeoutSeconds ).then( strSuccessfulResultDescription => {
+        await with_timeout( promise_gathering_complete, messageVerifySendTimeoutSeconds ).then( strSuccessfulResultDescription => {
             details.write( cc.info( "Message promise awaited." ) + "\n" );
             log.write( cc.info( "Message promise awaited." ) + "\n" );
         } ).catch(
