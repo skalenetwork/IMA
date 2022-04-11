@@ -1174,8 +1174,9 @@ async function tm_wait( details, txId, w3, allowedTime = 36000 ) {
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 async function tm_ensure_transaction( details, w3, priority, txAdjusted, cntAttempts, sleepMilliseconds ) {
-    cntAttempts = cntAttempts || 10;
+    cntAttempts = cntAttempts || 40;
     sleepMilliseconds = sleepMilliseconds || 3000;
+    // NOTICE: here we have cntAttempts * sleepMilliseconds = 40 * 3000 = by default is 120 seconds to wait
     let txId = "";
     let joReceipt = null;
     let idxAttempt = 0;
