@@ -40,7 +40,7 @@ const messageVerifySendTimeoutSeconds = 2 * 60 * 60; // 2 hours
 const messageVerifySendTimeoutError = new Error( "MessageVerifySendTimeout" );
 
 const with_timeout = ( promise, seconds ) => {
-    let timer;
+    let timer = null;
     return Promise.race( [
         promise,
         new Promise( ( resolve, reject ) => {
@@ -51,7 +51,8 @@ const with_timeout = ( promise, seconds ) => {
 };
 
 function discover_bls_threshold( joSChainNetworkInfo ) {
-    const jarrNodes = imaState.joSChainNetworkInfo.network;
+    joSChainNetworkInfo = joSChainNetworkInfo || imaState.joSChainNetworkInfo;
+    const jarrNodes = joSChainNetworkInfo.network;
     for( let i = 0; i < jarrNodes.length; ++i ) {
         const joNode = jarrNodes[i];
         if( joNode && "imaInfo" in joNode && typeof joNode.imaInfo === "object" &&
@@ -64,7 +65,8 @@ function discover_bls_threshold( joSChainNetworkInfo ) {
 }
 
 function discover_bls_participants( joSChainNetworkInfo ) {
-    const jarrNodes = imaState.joSChainNetworkInfo.network;
+    joSChainNetworkInfo = joSChainNetworkInfo || imaState.joSChainNetworkInfo;
+    const jarrNodes = joSChainNetworkInfo.network;
     for( let i = 0; i < jarrNodes.length; ++i ) {
         const joNode = jarrNodes[i];
         if( joNode && "imaInfo" in joNode && typeof joNode.imaInfo === "object" &&
@@ -1148,16 +1150,14 @@ async function do_sign_messages_impl(
         } );
         log.write( cc.info( "Will await for message BLS verification and sending..." ) + "\n" );
         details.write( cc.info( "Will await for message BLS verification and sending..." ) + "\n" );
-        with_timeout( promise_gathering_complete, messageVerifySendTimeoutSeconds ).then( strSuccessfulResultDescription => {
+        await with_timeout( promise_gathering_complete, messageVerifySendTimeoutSeconds ).then( strSuccessfulResultDescription => {
             details.write( cc.info( "Message promise awaited." ) + "\n" );
             log.write( cc.info( "Message promise awaited." ) + "\n" );
-        } ).catch(
-            err => {
-                const strErrorMessage = cc.error( "Failed to verify BLS and send message : " ) + cc.warning( err.toString() ) + "\n";
-                log.write( strErrorMessage );
-                details.write( strErrorMessage );
-            }
-        );
+        } ).catch( err => {
+            const strErrorMessage = cc.error( "Failed to verify BLS and send message : " ) + cc.warning( err.toString() ) + "\n";
+            log.write( strErrorMessage );
+            details.write( strErrorMessage );
+        } );
         if( errGathering ) {
             const strErrorMessage = cc.error( "Failed BLS sign result awaiting(1): " ) + cc.warning( errGathering.toString() ) + "\n";
             log.write( strErrorMessage );
@@ -1541,16 +1541,14 @@ async function do_sign_u256( u256, details, fn ) {
     } );
     details.write( cc.info( "Will await BLS u256 sign result..." ) + "\n" );
     log.write( cc.info( "Will await BLS u256 sign result..." ) + "\n" );
-    with_timeout( promise_gathering_complete, messageVerifySendTimeoutSeconds ).then( strSuccessfulResultDescription => {
+    await with_timeout( promise_gathering_complete, messageVerifySendTimeoutSeconds ).then( strSuccessfulResultDescription => {
         details.write( cc.info( "Message promise awaited." ) + "\n" );
         log.write( cc.info( "Message promise awaited." ) + "\n" );
-    } ).catch(
-        err => {
-            const strErrorMessage = cc.error( "Failed to verify BLS and send message : " ) + cc.warning( err.toString() ) + "\n";
-            log.write( strErrorMessage );
-            details.write( strErrorMessage );
-        }
-    );
+    } ).catch( err => {
+        const strErrorMessage = cc.error( "Failed to verify BLS and send message : " ) + cc.warning( err.toString() ) + "\n";
+        log.write( strErrorMessage );
+        details.write( strErrorMessage );
+    } );
     if( errGathering ) {
         const strErrorMessage = cc.error( "Failed BLS u256 sign result awaiting: " ) + cc.warning( errGathering.toString() ) + "\n";
         log.write( strErrorMessage );
