@@ -1148,18 +1148,14 @@ async function do_sign_messages_impl(
         } );
         log.write( cc.info( "Will await for message BLS verification and sending..." ) + "\n" );
         details.write( cc.info( "Will await for message BLS verification and sending..." ) + "\n" );
-        const iv = with_timeout( promise_gathering_complete, messageVerifySendTimeoutSeconds ).then( strSuccessfulResultDescription => {
-            clearTimeout( iv );
+        await with_timeout( promise_gathering_complete, messageVerifySendTimeoutSeconds ).then( strSuccessfulResultDescription => {
             details.write( cc.info( "Message promise awaited." ) + "\n" );
             log.write( cc.info( "Message promise awaited." ) + "\n" );
-        } ).catch(
-            err => {
-                clearTimeout( iv );
-                const strErrorMessage = cc.error( "Failed to verify BLS and send message : " ) + cc.warning( err.toString() ) + "\n";
-                log.write( strErrorMessage );
-                details.write( strErrorMessage );
-            }
-        );
+        } ).catch( err => {
+            const strErrorMessage = cc.error( "Failed to verify BLS and send message : " ) + cc.warning( err.toString() ) + "\n";
+            log.write( strErrorMessage );
+            details.write( strErrorMessage );
+        } );
         if( errGathering ) {
             const strErrorMessage = cc.error( "Failed BLS sign result awaiting(1): " ) + cc.warning( errGathering.toString() ) + "\n";
             log.write( strErrorMessage );
@@ -1543,18 +1539,14 @@ async function do_sign_u256( u256, details, fn ) {
     } );
     details.write( cc.info( "Will await BLS u256 sign result..." ) + "\n" );
     log.write( cc.info( "Will await BLS u256 sign result..." ) + "\n" );
-    const iv = with_timeout( promise_gathering_complete, messageVerifySendTimeoutSeconds ).then( strSuccessfulResultDescription => {
-        clearTimeout( iv );
+    await with_timeout( promise_gathering_complete, messageVerifySendTimeoutSeconds ).then( strSuccessfulResultDescription => {
         details.write( cc.info( "Message promise awaited." ) + "\n" );
         log.write( cc.info( "Message promise awaited." ) + "\n" );
-    } ).catch(
-        err => {
-            clearTimeout( iv );
-            const strErrorMessage = cc.error( "Failed to verify BLS and send message : " ) + cc.warning( err.toString() ) + "\n";
-            log.write( strErrorMessage );
-            details.write( strErrorMessage );
-        }
-    );
+    } ).catch( err => {
+        const strErrorMessage = cc.error( "Failed to verify BLS and send message : " ) + cc.warning( err.toString() ) + "\n";
+        log.write( strErrorMessage );
+        details.write( strErrorMessage );
+    } );
     if( errGathering ) {
         const strErrorMessage = cc.error( "Failed BLS u256 sign result awaiting: " ) + cc.warning( errGathering.toString() ) + "\n";
         log.write( strErrorMessage );
