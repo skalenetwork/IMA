@@ -1560,8 +1560,8 @@ async function do_sign_u256( u256, details, fn ) {
             }
         }, joGatheringTracker.nWaitIntervalStepMilliseconds );
     } );
-    details.write( cc.info( "Will await BLS u256 sign result..." ) + "\n" );
-    log.write( cc.info( "Will await BLS u256 sign result..." ) + "\n" );
+    details.write( cc.debug( "Will await BLS u256 sign result..." ) + "\n" );
+    log.write( cc.debug( "Will await BLS u256 sign result..." ) + "\n" );
     await with_timeout( "BLS u256 sign", promise_gathering_complete, g_secondsMessageVerifySendTimeout ).then( strSuccessfulResultDescription => {
         details.write( cc.info( "BLS u256 sign promise awaited." ) + "\n" );
         log.write( cc.info( "BLS u256 sign promise awaited." ) + "\n" );
