@@ -35,23 +35,47 @@ function init() {
     owaspUtils.owaspAddUsageRef();
 }
 
-const messageVerifySendTimeoutSeconds = 2 * 60 * 60; // 2 hours
+const sleep = ( milliseconds ) => { return new Promise( resolve => setTimeout( resolve, milliseconds ) ); };
 
-const messageVerifySendTimeoutError = new Error( "MessageVerifySendTimeout" );
+// const g_secondsMessageVerifySendTimeout = 2 * 60 * 60; // 2 hours
 
-const with_timeout = ( promise, seconds ) => {
-    let timer = null;
-    return Promise.race( [
-        promise,
-        new Promise( ( resolve, reject ) => {
-            timer = setTimeout( reject, seconds * 1000, messageVerifySendTimeoutError );
-            return timer;
-        } )
-    ] ).finally( () => clearTimeout( timer ) );
+async function with_timeout( strDescription, promise, seconds ) {
+    strDescription = strDescription || "with_timeout()";
+    // let timer = null, result_err = null;
+    // await Promise.race( [
+    //     promise,
+    //     new Promise( function( resolve, reject ) {
+    //         timer = setTimeout( reject, seconds * 1000, new Error( "MessageVerifySendTimeout" ) );
+    //         return timer;
+    //     } )
+    // ] ).catch( function( err ) {
+    //     result_err = new Error( err.toString() );
+    // } ).finally( function() {
+    //     if( timer )
+    //         clearTimeout( timer );
+    // } );
+    // if( result_err )
+    //     throw result_err;
+    let result_err = null, isComplete = false;
+    promise.catch( function( err ) {
+        result_err = new Error( strDescription + "error: " + err.toString() );
+    } ).finally( function() {
+        isComplete = true;
+    } );
+    for( let idxWaitStep = 0; idxWaitStep < seconds; ++ idxWaitStep ) {
+        if( isComplete )
+            break;
+        await sleep( 1000 );
+    }
+    if( result_err )
+        throw result_err;
+    if( ! isComplete )
+        throw new Error( strDescription + " reached limit of " + seconds + "second(s)" );
 };
 
 function discover_bls_threshold( joSChainNetworkInfo ) {
-    const jarrNodes = imaState.joSChainNetworkInfo.network;
+    joSChainNetworkInfo = joSChainNetworkInfo || imaState.joSChainNetworkInfo;
+    const jarrNodes = joSChainNetworkInfo.network;
     for( let i = 0; i < jarrNodes.length; ++i ) {
         const joNode = jarrNodes[i];
         if( joNode && "imaInfo" in joNode && typeof joNode.imaInfo === "object" &&
@@ -64,7 +88,8 @@ function discover_bls_threshold( joSChainNetworkInfo ) {
 }
 
 function discover_bls_participants( joSChainNetworkInfo ) {
-    const jarrNodes = imaState.joSChainNetworkInfo.network;
+    joSChainNetworkInfo = joSChainNetworkInfo || imaState.joSChainNetworkInfo;
+    const jarrNodes = joSChainNetworkInfo.network;
     for( let i = 0; i < jarrNodes.length; ++i ) {
         const joNode = jarrNodes[i];
         if( joNode && "imaInfo" in joNode && typeof joNode.imaInfo === "object" &&
@@ -77,7 +102,8 @@ function discover_bls_participants( joSChainNetworkInfo ) {
 }
 
 function discover_public_key_by_index( nNodeIndex, joSChainNetworkInfo ) {
-    const jarrNodes = imaState.joSChainNetworkInfo.network;
+    joSChainNetworkInfo = joSChainNetworkInfo || imaState.joSChainNetworkInfo;
+    const jarrNodes = joSChainNetworkInfo.network;
     const joNode = jarrNodes[nNodeIndex];
     if( joNode && "imaInfo" in joNode && typeof joNode.imaInfo === "object" &&
         "BLSPublicKey0" in joNode.imaInfo && typeof joNode.imaInfo.BLSPublicKey0 === "string" && joNode.imaInfo.BLSPublicKey0.length > 0 &&
@@ -96,7 +122,8 @@ function discover_public_key_by_index( nNodeIndex, joSChainNetworkInfo ) {
 }
 
 function discover_common_public_key( joSChainNetworkInfo ) {
-    const jarrNodes = imaState.joSChainNetworkInfo.network;
+    joSChainNetworkInfo = joSChainNetworkInfo || imaState.joSChainNetworkInfo;
+    const jarrNodes = joSChainNetworkInfo.network;
     for( let i = 0; i < jarrNodes.length; ++i ) {
         const joNode = jarrNodes[i];
         if( joNode && "imaInfo" in joNode && typeof joNode.imaInfo === "object" &&
@@ -1148,18 +1175,14 @@ async function do_sign_messages_impl(
         } );
         log.write( cc.info( "Will await for message BLS verification and sending..." ) + "\n" );
         details.write( cc.info( "Will await for message BLS verification and sending..." ) + "\n" );
-        const iv = with_timeout( promise_gathering_complete, messageVerifySendTimeoutSeconds ).then( strSuccessfulResultDescription => {
-            clearTimeout( iv );
+        await with_timeout( "BLS verification and sending", promise_gathering_complete, g_secondsMessageVerifySendTimeout ).then( strSuccessfulResultDescription => {
             details.write( cc.info( "Message promise awaited." ) + "\n" );
             log.write( cc.info( "Message promise awaited." ) + "\n" );
-        } ).catch(
-            err => {
-                clearTimeout( iv );
-                const strErrorMessage = cc.error( "Failed to verify BLS and send message : " ) + cc.warning( err.toString() ) + "\n";
-                log.write( strErrorMessage );
-                details.write( strErrorMessage );
-            }
-        );
+        } ).catch( err => {
+            const strErrorMessage = cc.error( "Failed to verify BLS and send message : " ) + cc.warning( err.toString() ) + "\n";
+            log.write( strErrorMessage );
+            details.write( strErrorMessage );
+        } );
         if( errGathering ) {
             const strErrorMessage = cc.error( "Failed BLS sign result awaiting(1): " ) + cc.warning( errGathering.toString() ) + "\n";
             log.write( strErrorMessage );
@@ -1543,18 +1566,14 @@ async function do_sign_u256( u256, details, fn ) {
     } );
     details.write( cc.info( "Will await BLS u256 sign result..." ) + "\n" );
     log.write( cc.info( "Will await BLS u256 sign result..." ) + "\n" );
-    const iv = with_timeout( promise_gathering_complete, messageVerifySendTimeoutSeconds ).then( strSuccessfulResultDescription => {
-        clearTimeout( iv );
+    await with_timeout( "BLS u256 sign", promise_gathering_complete, g_secondsMessageVerifySendTimeout ).then( strSuccessfulResultDescription => {
         details.write( cc.info( "Message promise awaited." ) + "\n" );
         log.write( cc.info( "Message promise awaited." ) + "\n" );
-    } ).catch(
-        err => {
-            clearTimeout( iv );
-            const strErrorMessage = cc.error( "Failed to verify BLS and send message : " ) + cc.warning( err.toString() ) + "\n";
-            log.write( strErrorMessage );
-            details.write( strErrorMessage );
-        }
-    );
+    } ).catch( err => {
+        const strErrorMessage = cc.error( "Failed to verify BLS and send message : " ) + cc.warning( err.toString() ) + "\n";
+        log.write( strErrorMessage );
+        details.write( strErrorMessage );
+    } );
     if( errGathering ) {
         const strErrorMessage = cc.error( "Failed BLS u256 sign result awaiting: " ) + cc.warning( errGathering.toString() ) + "\n";
         log.write( strErrorMessage );
