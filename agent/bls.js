@@ -51,7 +51,8 @@ const with_timeout = ( promise, seconds ) => {
 };
 
 function discover_bls_threshold( joSChainNetworkInfo ) {
-    const jarrNodes = imaState.joSChainNetworkInfo.network;
+    joSChainNetworkInfo = joSChainNetworkInfo || imaState.joSChainNetworkInfo;
+    const jarrNodes = joSChainNetworkInfo.network;
     for( let i = 0; i < jarrNodes.length; ++i ) {
         const joNode = jarrNodes[i];
         if( joNode && "imaInfo" in joNode && typeof joNode.imaInfo === "object" &&
@@ -64,7 +65,8 @@ function discover_bls_threshold( joSChainNetworkInfo ) {
 }
 
 function discover_bls_participants( joSChainNetworkInfo ) {
-    const jarrNodes = imaState.joSChainNetworkInfo.network;
+    joSChainNetworkInfo = joSChainNetworkInfo || imaState.joSChainNetworkInfo;
+    const jarrNodes = joSChainNetworkInfo.network;
     for( let i = 0; i < jarrNodes.length; ++i ) {
         const joNode = jarrNodes[i];
         if( joNode && "imaInfo" in joNode && typeof joNode.imaInfo === "object" &&
