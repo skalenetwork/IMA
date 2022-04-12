@@ -37,27 +37,13 @@ function init() {
 
 const sleep = ( milliseconds ) => { return new Promise( resolve => setTimeout( resolve, milliseconds ) ); };
 
-// const g_secondsMessageVerifySendTimeout = 2 * 60 * 60; // 2 hours
+const g_secondsMessageVerifySendTimeout = 2 * 60;
 
 async function with_timeout( strDescription, promise, seconds ) {
     strDescription = strDescription || "with_timeout()";
-    // let timer = null, result_err = null;
-    // await Promise.race( [
-    //     promise,
-    //     new Promise( function( resolve, reject ) {
-    //         timer = setTimeout( reject, seconds * 1000, new Error( "MessageVerifySendTimeout" ) );
-    //         return timer;
-    //     } )
-    // ] ).catch( function( err ) {
-    //     result_err = new Error( err.toString() );
-    // } ).finally( function() {
-    //     if( timer )
-    //         clearTimeout( timer );
-    // } );
-    // if( result_err )
-    //     throw result_err;
     let result_err = null, isComplete = false;
     promise.catch( function( err ) {
+        isComplete = true;
         result_err = new Error( strDescription + "error: " + err.toString() );
     } ).finally( function() {
         isComplete = true;
@@ -70,7 +56,7 @@ async function with_timeout( strDescription, promise, seconds ) {
     if( result_err )
         throw result_err;
     if( ! isComplete )
-        throw new Error( strDescription + " reached limit of " + seconds + "second(s)" );
+        throw new Error( strDescription + " reached limit of " + seconds + " second(s)" );
 };
 
 function discover_bls_threshold( joSChainNetworkInfo ) {
@@ -1135,8 +1121,11 @@ async function do_sign_messages_impl(
                         return;
                     } );
                     bHaveResultReportCalled = true;
-                    if( strError )
+                    if( strError ) {
                         errGathering = strError;
+                        reject( new Error( errGathering ) );
+                    } else
+                        resolve();
                     return;
                 }
                 if( joGatheringTracker.nCountReceived >= jarrNodes.length ) {
@@ -1151,6 +1140,7 @@ async function do_sign_messages_impl(
                         errGathering =
                             "Problem(3) in BLS sign result handler, not enough successful BLS signature parts(" +
                             cntSuccess + " when all attempts done, error details: " + err.toString();
+                        reject( new Error( errGathering ) );
                     } );
                     bHaveResultReportCalled = true;
                     return;
@@ -1167,17 +1157,18 @@ async function do_sign_messages_impl(
                         errGathering =
                             "Problem(4) in BLS sign result handler, not enough successful BLS signature parts(" +
                             cntSuccess + ") and timeout reached, error details: " + err.toString();
+                        reject( new Error( errGathering ) );
                     } );
                     bHaveResultReportCalled = true;
                     return;
                 }
             }, joGatheringTracker.nWaitIntervalStepMilliseconds );
         } );
-        log.write( cc.info( "Will await for message BLS verification and sending..." ) + "\n" );
-        details.write( cc.info( "Will await for message BLS verification and sending..." ) + "\n" );
+        log.write( cc.debug( "Will await for message BLS verification and sending..." ) + "\n" );
+        details.write( cc.debug( "Will await for message BLS verification and sending..." ) + "\n" );
         await with_timeout( "BLS verification and sending", promise_gathering_complete, g_secondsMessageVerifySendTimeout ).then( strSuccessfulResultDescription => {
-            details.write( cc.info( "Message promise awaited." ) + "\n" );
-            log.write( cc.info( "Message promise awaited." ) + "\n" );
+            details.write( cc.success( "BLS verification and sending promise awaited." ) + "\n" );
+            log.write( cc.success( "BLS verification and sending promise awaited." ) + "\n" );
         } ).catch( err => {
             const strErrorMessage = cc.error( "Failed to verify BLS and send message : " ) + cc.warning( err.toString() ) + "\n";
             log.write( strErrorMessage );
@@ -1528,8 +1519,11 @@ async function do_sign_u256( u256, details, fn ) {
                     details.write( strErrorMessage );
                     errGathering = "Problem(2) in BLS u256 sign result handler: " + err.toString();
                 } );
-                if( strError )
+                if( strError ) {
                     errGathering = strError;
+                    reject( new Error( errGathering ) );
+                } else
+                    resolve();
                 return;
             }
             if( joGatheringTracker.nCountReceived >= jarrNodes.length ) {
@@ -1544,6 +1538,7 @@ async function do_sign_u256( u256, details, fn ) {
                     errGathering =
                         "Problem(3) in BLS u256 sign result handler, not enough successful BLS signature parts(" +
                         cntSuccess + " when all attempts done, error details: " + err.toString();
+                    reject( new Error( errGathering ) );
                 } );
                 return;
             }
@@ -1559,16 +1554,17 @@ async function do_sign_u256( u256, details, fn ) {
                     errGathering =
                         "Problem(4) in BLS u256 sign result handler, not enough successful BLS signature parts(" +
                         cntSuccess + ") and timeout reached, error details: " + err.toString();
+                    reject( new Error( errGathering ) );
                 } );
                 return;
             }
         }, joGatheringTracker.nWaitIntervalStepMilliseconds );
     } );
-    details.write( cc.info( "Will await BLS u256 sign result..." ) + "\n" );
-    log.write( cc.info( "Will await BLS u256 sign result..." ) + "\n" );
+    details.write( cc.debug( "Will await BLS u256 sign result..." ) + "\n" );
+    log.write( cc.debug( "Will await BLS u256 sign result..." ) + "\n" );
     await with_timeout( "BLS u256 sign", promise_gathering_complete, g_secondsMessageVerifySendTimeout ).then( strSuccessfulResultDescription => {
-        details.write( cc.info( "Message promise awaited." ) + "\n" );
-        log.write( cc.info( "Message promise awaited." ) + "\n" );
+        details.write( cc.info( "BLS u256 sign promise awaited." ) + "\n" );
+        log.write( cc.info( "BLS u256 sign promise awaited." ) + "\n" );
     } ).catch( err => {
         const strErrorMessage = cc.error( "Failed to verify BLS and send message : " ) + cc.warning( err.toString() ) + "\n";
         log.write( strErrorMessage );
