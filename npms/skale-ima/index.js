@@ -1194,8 +1194,8 @@ async function tm_wait( details, txId, w3, nWaitSeconds = 36000 ) {
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 async function tm_ensure_transaction( details, w3, priority, txAdjusted, cntAttempts, sleepMilliseconds ) {
-    cntAttempts = cntAttempts || 20;
-    sleepMilliseconds = sleepMilliseconds || ( 3 * 1000 );
+    cntAttempts = cntAttempts || 3;
+    sleepMilliseconds = sleepMilliseconds || ( 30 * 1000 );
     let txId = "";
     let joReceipt = null;
     let idxAttempt = 0;
