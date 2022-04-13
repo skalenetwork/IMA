@@ -1071,12 +1071,10 @@ async function do_sign_messages_impl(
         details.write( strLogPrefix + cc.debug( "Waiting for BLS glue result " ) + "\n" );
         let errGathering = null;
         const promise_gathering_complete = new Promise( ( resolve, reject ) => {
-            const iv = setInterval( async function() {
-                ++ joGatheringTracker.nWaitIntervalStepsDone;
+                ++joGatheringTracker.nWaitIntervalStepsDone;
                 cntSuccess = joGatheringTracker.nCountReceived - joGatheringTracker.nCountErrors;
-                if( cntSuccess >= nCountOfBlsPartsToCollect ) {
+                while ( cntSuccess >= nCountOfBlsPartsToCollect ) {
                     const strLogPrefixB = cc.bright( strDirection ) + cc.debug( "/" ) + cc.info( "BLS" ) + cc.debug( "/" ) + cc.sunny( "Summary" ) + cc.debug( ":" ) + " ";
-                    clearInterval( iv );
                     let strError = null, strSuccessfulResultDescription = null;
                     const joGlueResult = perform_bls_glue(
                         details,
@@ -1129,7 +1127,6 @@ async function do_sign_messages_impl(
                     return;
                 }
                 if( joGatheringTracker.nCountReceived >= jarrNodes.length ) {
-                    clearInterval( iv );
                     await fn( "signature error(2), got " + joGatheringTracker.nCountErrors + " errors(s) for " + jarrNodes.length + " node(s)", jarrMessages, null ).catch( ( err ) => {
                         const strErrorMessage =
                             cc.error( "Problem(3) in BLS sign result handler, not enough successful BLS signature parts(" ) +
@@ -1146,7 +1143,6 @@ async function do_sign_messages_impl(
                     return;
                 }
                 if( joGatheringTracker.nWaitIntervalStepsDone >= joGatheringTracker.nWaitIntervalMaxSteps ) {
-                    clearInterval( iv );
                     await fn( "signature error(3), got " + joGatheringTracker.nCountErrors + " errors(s) for " + jarrNodes.length + " node(s)", jarrMessages, null ).catch( ( err ) => {
                         const strErrorMessage =
                             cc.error( "Problem(4) in BLS sign result handler, not enough successful BLS signature parts(" ) +
@@ -1162,8 +1158,7 @@ async function do_sign_messages_impl(
                     bHaveResultReportCalled = true;
                     return;
                 }
-            }, joGatheringTracker.nWaitIntervalStepMilliseconds );
-        } );
+        });
         log.write( cc.debug( "Will await for message BLS verification and sending..." ) + "\n" );
         details.write( cc.debug( "Will await for message BLS verification and sending..." ) + "\n" );
         await with_timeout( "BLS verification and sending", promise_gathering_complete, g_secondsMessageVerifySendTimeout ).then( strSuccessfulResultDescription => {
