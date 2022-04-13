@@ -1365,7 +1365,7 @@ imaCLI.parse( {
                 }
                 if( isPrintSummaryRegistrationCosts )
                     print_summary_registration_costs();
-                return await run_transfer_loop();
+                return await run_transfer_loop( false );
             }
         } );
     },
@@ -2429,13 +2429,22 @@ global.check_time_framing = function( d ) {
     return true;
 };
 
+let g_is_single_transfer_loop = false;
+
 async function single_transfer_loop() {
     const strLogPrefix = cc.attention( "Single Loop:" ) + " ";
     try {
+        if( g_is_single_transfer_loop ) {
+            if( IMA.verbose_get() >= IMA.RV_VERBOSE.debug )
+                log.write( strLogPrefix + cc.warning( "Skipped due to other single transfer loop is in progress rignt now" ) + "\n" );
+            return true;
+        }
+        g_is_single_transfer_loop = true;
         if( IMA.verbose_get() >= IMA.RV_VERBOSE.debug )
             log.write( strLogPrefix + cc.debug( IMA.longSeparator ) + "\n" );
 
         if( ! global.check_time_framing() ) {
+            g_is_single_transfer_loop = false;
             if( IMA.verbose_get() >= IMA.RV_VERBOSE.debug )
                 log.write( strLogPrefix + cc.warning( "Skipped due to time framing" ) + "\n" );
             IMA.save_transfer_success_all();
@@ -2550,14 +2559,16 @@ async function single_transfer_loop() {
                 log.write( strLogPrefix + cc.debug( "All S2S transfers done: " ) + cc.tf( b3 ) + "\n" );
         }
 
+        g_is_single_transfer_loop = false;
         const bResult = b0 && b1 && b2 && b3;
         if( IMA.verbose_get() >= IMA.RV_VERBOSE.information )
             log.write( strLogPrefix + cc.debug( "Completed: " ) + cc.tf( bResult ) + "\n" );
         return bResult;
     } catch ( err ) {
         log.write( strLogPrefix + cc.fatal( "Exception:" ) + + cc.error( err.toString() ) + "\n" );
-        return false;
     }
+    g_is_single_transfer_loop = false;
+    return false;
 }
 async function single_transfer_loop_with_repeat() {
     await single_transfer_loop();
@@ -2569,7 +2580,6 @@ async function run_transfer_loop( isDelayFirstRun ) {
         setTimeout( single_transfer_loop_with_repeat, imaState.nLoopPeriodSeconds * 1000 );
     else
         await single_transfer_loop_with_repeat();
-
     return true;
 }
 
