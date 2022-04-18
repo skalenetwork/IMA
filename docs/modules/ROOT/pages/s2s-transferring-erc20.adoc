@@ -12,12 +12,9 @@ Once you have completed step 1 to setup ERC20 tokens with another chain, end-use
 
 The following one-time setup is required for SKALE Chains with a default access control policy (default settings are: whitelisting enabled, automatic deployment disabled). For more information on IMA access control, xref:access-control.adoc[see here].
 
-=== 1. Connect the SKALE Chains
+=== 1. Connect the target to origin
 
 On the `origin` chain, add the `target` chain by using `connectSchain` within the **TokenManagerLinker** contract.
-
-[IMPORTANT]
-Repeat the same respective process on the `target` chain to connect the `origin` chain.
 
 [NOTE]
 Only the `REGISTRAR_ROLE` may execute `connectSchain`.
@@ -44,6 +41,13 @@ include::example$connect-chain-web3.js[]
 ----
 --
 ====
+
+=== 2. Connect the origin to target
+
+Repeating step 1 but on the `target` chain, add the `origin` chain by using `connectSchain` within the **TokenManagerLinker** contract.
+
+[NOTE]
+Only the `REGISTRAR_ROLE` may execute `connectSchain`.
 
 Next, jump to either the <<automatic,Automatic Deploy>> or <<manual, Manual Deploy>> process.
 
