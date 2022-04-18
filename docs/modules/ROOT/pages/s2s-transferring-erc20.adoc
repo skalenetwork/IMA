@@ -12,9 +12,47 @@ Once you have completed step 1 to setup ERC20 tokens with another chain, end-use
 
 The following one-time setup is required for SKALE Chains with a default access control policy (default settings are: whitelisting enabled, automatic deployment disabled). For more information on IMA access control, xref:access-control.adoc[see here].
 
-=== 1. Enable Automatic Deploy
+=== 1. Connect the SKALE Chains
+
+On the `origin` chain, add the `target` chain by using `connectSchain` within the **TokenManagerLinker** contract.
+
+[IMPORTANT]
+Repeat the same respective process on the `target` chain to connect the `origin` chain.
+
+[NOTE]
+Only the `REGISTRAR_ROLE` may execute `connectSchain`.
+
+[tabs]
+====
+IMA-JS::
++
+--
+
+[source,javascript]
+----
+// TODO
+----
+--
+
+Web3 JS::
++
+--
+
+[source,javascript]
+----
+include::example$connect-chain-web3.js[]
+----
+--
+====
+
+Next, jump to either the <<automatic,Automatic Deploy>> or <<manual, Manual Deploy>> process.
 
 include::partial$autodeploy-note.adoc[]
+
+[[automatic]]
+=== Automatic Deployment
+
+==== 2. Enable Automatic Deploy
 
 First, enable automatic deploy on the `origin` chain.
 
@@ -44,12 +82,15 @@ Web3 JS::
 --
 ====
 
-=== 2. Connect the target SKALE Chain
+[[manual]]
+=== Manual Deployment
+==== 2. Deploy token contract on the origin Chain.
 
-Add the `target` chain by using `connectSchain` within the **TokenManagerLinker** contract on the `origin` chain.
+Deploy the token contract on the origin chain and proceed to step 3 with the deployment address.
 
-[NOTE]
-Only the `REGISTRAR_ROLE` may execute `connectSchain`.
+==== 3. Register the token contract to origin's TokenManagerERC20
+
+You need to register the token contract on the origin chain using the `TokenManagerERC20.addERC20TokenByOwner` method. Note that you need to register the contract on the origin chain first, so that the registration on the target chain can reference the origin chain's token address.
 
 [tabs]
 ====
@@ -57,9 +98,11 @@ IMA-JS::
 +
 --
 
-[source,javascript]
+In all ima-js code samples we're assuming that library is already inited. See init instructions xref:ima-js-overview.adoc[here]. For the 2 objects usage drop `ima.` prefix.  
+
+[source, javascript]
 ----
-// TODO
+include::example$erc20-register-schain-imajs.js[]
 ----
 --
 
@@ -69,10 +112,24 @@ Web3 JS::
 
 [source,javascript]
 ----
-include::example$connect-chain-web3.js[]
+include::example$erc20-register-schain-web3.js[]
 ----
 --
 ====
+
+==== 4. Deploy token contract on the target Chain.
+
+[NOTE]
+Be sure token contract supports mint and burn functions.
+
+==== 5. Register the token contract to target's TokenManagerERC20 
+
+Repeat step 2 for the targetChain's TokenManagerERC20.addERC20TokenByOwner.
+
+==== 6. Assign the token's minter role to TokenManagerERC20
+
+Now you need to add the pre-deployed **TokenManagerERC20** contact on the target chain as the `MINTER_ROLE` for the target chain token contract. With OpenZeppelin's framework, you simply need to execute an AddMinter transaction on the SKALE chain token contract.
+
 
 [[transfer]]
 == Get Started with S2S ERC20 Transfer
