@@ -8,8 +8,7 @@ export async function withdrawETH(ima) {
       address: address,
       privateKey: privateKey // remove privateKey from txOpts to use Metamask signing
     };
-  
-    await schain.withdrawETH(
+    await ima.schain.eth.withdraw(
       schain.web3.utils.toWei("1", "ether"),
       txOpts
     );

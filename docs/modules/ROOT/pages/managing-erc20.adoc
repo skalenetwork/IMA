@@ -54,7 +54,7 @@ Web3 JS::
 
 [source,javascript]
 ----
-include::example$add-minter-role-erc20.js[]
+include::example$erc20/add-minter-role.js[]
 ----
 --
 ====
@@ -75,7 +75,7 @@ In all ima-js code samples we&#39;re assuming that library is already inited. Se
 
 [source, javascript]
 ----
-include::example$erc20-register-mainnet-imajs.js[]
+include::example$erc20/register-mainnet-imajs.js[]
 ----
 
 --
@@ -86,7 +86,7 @@ Web3 JS::
 
 [source,javascript]
 ----
-include::example$erc20-register-mainnet-web3.js[]
+include::example$erc20/register-mainnet-web3.js[]
 ----
 --
 ====
@@ -107,7 +107,7 @@ In all ima-js code samples we're assuming that library is already inited. See in
 
 [source, javascript]
 ----
-include::example$erc20-register-schain-imajs.js[]
+include::example$erc20/register-schain-imajs.js[]
 ----
 --
 
@@ -117,7 +117,7 @@ Web3 JS::
 
 [source,javascript]
 ----
-include::example$erc20-register-schain-web3.js[]
+include::example$erc20/register-schain-web3.js[]
 ----
 --
 ====
@@ -137,8 +137,8 @@ IMA-JS::
 
 [source,javascript]
 ----
-let erc20Len = await ima.mainnet.getSchainToAllERC20Length(SCHAIN_NAME);
-let allErc20Tokens = await ima.mainnet.getSchainToAllERC20(SCHAIN_NAME, 0, erc20Len);
+let erc20Len = await ima.mainnet.erc20.getTokenMappingsLength(SCHAIN_NAME);
+let erc20Tokens = await ima.mainnet.erc20.getTokenMappings(SCHAIN_NAME, 0, erc20Len);
 ----
 --
 
@@ -151,7 +151,7 @@ You can use the getSchainToAllERC20Length() and getSchainToAllERC20() functions 
 
 [source,javascript]
 ----
-include::example$view-mapped-erc20-tokens.js[]
+include::example$erc20/mappings-web3.js[]
 ----
 --
 
@@ -183,7 +183,7 @@ link:{eth-ima-js-sandbox}?file=/src/deposit.js[See IMA-JS deposit.js sandbox]
 
 [source, javascript]
 ----
-include::example$deposit-erc20-imajs.js[]
+include::example$erc20/deposit-imajs.js[]
 ----
 --
 
@@ -193,7 +193,7 @@ Web3 JS::
 
 [source,javascript]
 ----
-include::example$deposit-erc20-web3.js[]
+include::example$erc20/deposit-web3.js[]
 ----
 --
 ====
@@ -219,7 +219,7 @@ link:{eth-ima-js-sandbox}?file=/src/deposit.js[See IMA-JS deposit.js sandbox]
 
 [source, javascript]
 ----
-include::example$exit-erc20-imajs.js[]
+include::example$erc20/exit-imajs.js[]
 ----
 --
 
@@ -229,7 +229,7 @@ Web3 JS::
 
 [source,javascript]
 ----
-include::example$exit-erc20-web3.js[]
+include::example$erc20/exit-web3.js[]
 ----
 --
 ====

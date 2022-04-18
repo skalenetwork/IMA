@@ -110,7 +110,7 @@ export async function retrieveETH(ima) {
   };
 
   // retrieve all ETH from DepositBox
-  await ima.mainnet.getMyEth(txOpts);
+  await ima.mainnet.eth.getMyEth(txOpts);
 }
 
 ----
