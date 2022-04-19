@@ -55,6 +55,7 @@ global.imaState = {
     "strLogFilePath": "",
     "nLogMaxSizeBeforeRotation": -1,
     "nLogMaxFilesCount": -1,
+    "isPrintGathered": true,
 
     "bIsNeededCommonInit": true,
     "bSignMessages": false, // use BLS message signing, turned on with --sign-messages
@@ -63,32 +64,46 @@ global.imaState = {
     "strPathHashG1": "", // path to hash_g1 app, must have if --sign-messages specified
     "strPathBlsVerify": "", // path to verify_bls app, optional, if specified then we will verify gathered BLS signature
 
-    "joTrufflePublishResult_main_net": { },
-    "joTrufflePublishResult_s_chain": { },
+    "joAbiPublishResult_skale_manager": { },
+    "joAbiPublishResult_main_net": { },
+    "joAbiPublishResult_s_chain": { },
+    "joAbiPublishResult_t_chain": { },
+    "bHaveSkaleManagerABI": false,
+    "bHaveImaAbiMainNet": false,
+    "bHaveImaAbiSchain": false,
+    "bHaveImaAbiSchainTarget": false,
 
     "joErc20_main_net": null,
     "joErc20_s_chain": null,
-
+    "joErc20_t_chain": null,
     "strAddrErc20_explicit": "",
+    "strAddrErc20_explicit_target": "", // S<->S target
     "strCoinNameErc20_main_net": "", // in-JSON coin name
     "strCoinNameErc20_s_chain": "", // in-JSON coin name
+    "strCoinNameErc20_t_chain": "", // in-JSON coin name
 
     "joErc721_main_net": null,
     "joErc721_s_chain": null,
+    "joErc721_t_chain": null,
     "strAddrErc721_explicit": "",
+    "strAddrErc721_explicit_target": "", // S<->S target
     "strCoinNameErc721_main_net": "", // in-JSON coin name
     "strCoinNameErc721_s_chain": "", // in-JSON coin name
+    "strCoinNameErc721_t_chain": "", // in-JSON coin name
 
     "joErc1155_main_net": null,
     "joErc1155_s_chain": null,
+    "joErc1155_t_chain": null,
     "strAddrErc1155_explicit": "",
+    "strAddrErc1155_explicit_target": "", // S<->S target
     "strCoinNameErc1155_main_net": "", // in-JSON coin name
     "strCoinNameErc1155_s_chain": "", // in-JSON coin name
+    "strCoinNameErc1155_t_chain": "", // in-JSON coin name
 
-    // "strPathAbiJson_main_net": imaUtils.normalizePath( "../proxy/data/proxyMainnet.json" ),
-    // "strPathAbiJson_s_chain": imaUtils.normalizePath( "../proxy/data/proxySchain_Bob.json" ),
+    "strPathAbiJson_skale_manager": null, // "", // imaUtils.normalizePath( "../proxy/data/skaleManager.json" ), // "./abi_skale_manager.json"
     "strPathAbiJson_main_net": imaUtils.normalizePath( "./agent-test-data/proxyMainnet.json" ),
     "strPathAbiJson_s_chain": imaUtils.normalizePath( "./agent-test-data/proxySchain_Bob.json" ),
+    "strPathAbiJson_t_chain": null,
 
     "bShowConfigMode": false, // true - just show configuration values and exit
 
@@ -101,20 +116,24 @@ global.imaState = {
 
     "strChainName_main_net": ( process.env.CHAIN_NAME_ETHEREUM || "Mainnet" ).toString().trim(),
     "strChainName_s_chain": ( process.env.CHAIN_NAME_SCHAIN || "Bob" ).toString().trim(),
+    "strChainName_t_chain": ( process.env.CHAIN_NAME_SCHAIN_TARGET || "Alice" ).toString().trim(),
     "cid_main_net": owaspUtils.toInteger( process.env.CID_ETHEREUM ) || -4,
     "cid_s_chain": owaspUtils.toInteger( process.env.CID_SCHAIN ) || -4,
+    "cid_t_chain": owaspUtils.toInteger( process.env.CID_SCHAIN_TARGET ) || -4,
 
     "strPathJsonErc20_main_net": "",
     "strPathJsonErc20_s_chain": "",
-
+    "strPathJsonErc20_t_chain": "",
     "strPathJsonErc721_main_net": "",
     "strPathJsonErc721_s_chain": "",
-
+    "strPathJsonErc721_t_chain": "",
     "strPathJsonErc1155_main_net": "",
     "strPathJsonErc1155_s_chain": "",
+    "strPathJsonErc1155_t_chain": "",
 
     "nAmountOfWei": 0,
     "nAmountOfToken": 0,
+    "arrAmountsOfTokens": null,
     "idToken": 0,
     "idTokens": [],
     "have_idToken": false,
@@ -122,13 +141,17 @@ global.imaState = {
 
     "nTransferBlockSizeM2S": 4, // 10
     "nTransferBlockSizeS2M": 4, // 10
+    "nTransferBlockSizeS2S": 4, // 10
     "nMaxTransactionsM2S": 0,
     "nMaxTransactionsS2M": 0,
+    "nMaxTransactionsS2S": 0,
 
     "nBlockAwaitDepthM2S": 0,
     "nBlockAwaitDepthS2M": 0,
+    "nBlockAwaitDepthS2S": 0,
     "nBlockAgeM2S": 0,
     "nBlockAgeS2M": 0,
+    "nBlockAgeS2S": 0,
 
     "nLoopPeriodSeconds": 10,
 
@@ -141,6 +164,7 @@ global.imaState = {
 
     "w3_main_net": null,
     "w3_s_chain": null,
+    "w3_t_chain": null,
 
     "jo_deposit_box_eth": null, // only main net
     "jo_deposit_box_erc20": null, // only main net
@@ -172,10 +196,20 @@ global.imaState = {
         "strPathSslKey": ( process.env.SGX_SSL_KEY_FILE_S_CHAIN || "" ).toString().trim(),
         "strPathSslCert": ( process.env.SGX_SSL_CERT_FILE_S_CHAIN || "" ).toString().trim()
     },
+    "joAccount_t_chain": {
+        "privateKey": owaspUtils.toEthPrivateKey( process.env.PRIVATE_KEY_FOR_SCHAIN_TARGET ),
+        "address": IMA.owaspUtils.fn_address_impl_,
+        "strTransactionManagerURL": owaspUtils.toStringURL( process.env.TRANSACTION_MANAGER_URL_S_CHAIN_TARGET ),
+        "strSgxURL": owaspUtils.toStringURL( process.env.SGX_URL_S_CHAIN_TARGET ),
+        "strSgxKeyName": owaspUtils.toStringURL( process.env.SGX_KEY_S_CHAIN_TARGET ),
+        "strPathSslKey": ( process.env.SGX_SSL_KEY_FILE_S_CHAIN_TARGET || "" ).toString().trim(),
+        "strPathSslCert": ( process.env.SGX_SSL_CERT_FILE_S_CHAIN_TARGET || "" ).toString().trim()
+    },
 
     //
     "tc_main_net": IMA.tc_main_net,
     "tc_s_chain": IMA.tc_s_chain,
+    "tc_t_chain": IMA.tc_t_chain,
     //
 
     "doEnableDryRun": function( isEnable ) { return IMA.dry_run_enable( isEnable ); },
@@ -183,6 +217,11 @@ global.imaState = {
 
     optsPendingTxAnalysis: {
         isEnabled: true
+    },
+
+    "s2s_opts": { // S-Chain to S-Chain transfer options
+        "isEnabled": false, // is S-Chain to S-Chain transfers enabled
+        "secondsToReDiscoverSkaleNetwork": 10 * 60 // seconts to re-discover SKALE network, 0 to disable
     },
 
     "arrActions": [] // array of actions to run
@@ -616,6 +655,7 @@ describe( "CLI", function() {
             const joExternalHandlers = {};
             const argv = [
                 "--verbose=9",
+                "--s2s-disable",
                 "--url-main-net=" + imaState.strURL_main_net,
                 "--url-s-chain=" + imaState.strURL_s_chain,
                 "--id-main-net=" + imaState.strChainName_main_net,
@@ -626,6 +666,7 @@ describe( "CLI", function() {
                 "--address-s-chain=" + imaState.joAccount_s_chain.address(),
                 "--key-main-net=" + imaState.joAccount_main_net.privateKey,
                 "--key-s-chain=" + imaState.joAccount_s_chain.privateKey,
+                //"--abi-skale-manager=" + imaState.strPathAbiJson_skale_manager,
                 "--abi-main-net=" + imaState.strPathAbiJson_main_net,
                 "--abi-s-chain=" + imaState.strPathAbiJson_s_chain,
                 // --erc721-main-net --erc721-s-chain --addr-erc721-s-chain
@@ -641,15 +682,19 @@ describe( "CLI", function() {
                 "--skip-dry-run", // --skip-dry-run --ignore-dry-run --dry-run
                 "--m2s-transfer-block-size=4",
                 "--s2m-transfer-block-size=4",
+                "--s2s-transfer-block-size=4",
                 "--transfer-block-size=4",
                 "--m2s-max-transactions=0",
                 "--s2m-max-transactions=0",
+                "--s2s-max-transactions=0",
                 "--max-transactions=0",
                 "--m2s-await-blocks=0",
                 "--s2m-await-blocks=0",
+                "--s2s-await-blocks=0",
                 "--await-blocks=0",
                 "--m2s-await-time=0",
                 "--s2m-await-time=0",
+                "--s2s-await-time=0",
                 "--await-time=0",
                 "--period=300",
                 "--node-number=0",

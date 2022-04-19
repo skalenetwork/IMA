@@ -118,9 +118,9 @@ jobs:
       working-directory: ${{env.working-directory}}
       run: npx hardhat test gas/calculateGas.ts
     
-    # - name: Test upgrade
-    #   run: bash ./proxy/scripts/test_upgrade.sh
-    
+    - name: Test upgrade
+      run: bash ./proxy/scripts/test_upgrade.sh
+
     - name: Run tests
       working-directory: ${{env.working-directory}}
       run: |
@@ -140,16 +140,17 @@ jobs:
         python3 -m pip install build==0.4.0
         ./predeployed/scripts/build_package.sh
 
-    - name: Test predeployed pip package
-      working-directory: ${{env.working-directory}}
-      run: |
-        killall -9 node || true # stop any ganache-cli, etc
-        killall -9 geth || true # stop any geth, etc
-        echo "-------------- checking occupied ports"
-        netstat -ltnp
-        echo "-------------- running tests"
-        ./predeployed/test/prepare_environment.sh
-        ./predeployed/test/test.sh
+    # TODO: enable after geth fix
+    # - name: Test predeployed pip package
+    #   working-directory: ${{env.working-directory}}
+    #   run: |
+    #     killall -9 node || true # stop any ganache-cli, etc
+    #     killall -9 geth || true # stop any geth, etc
+    #     echo "-------------- checking occupied ports"
+    #     netstat -ltnp
+    #     echo "-------------- running tests"
+    #     ./predeployed/test/prepare_environment.sh
+    #     ./predeployed/test/test.sh
 
   test-agent:
     # The type of runner that the job will run on

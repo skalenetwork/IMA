@@ -35,12 +35,33 @@ function init() {
     owaspUtils.owaspAddUsageRef();
 }
 
-const g_nBlsSignaturesGatheringTimeoutSeconds = 60;
+const sleep = ( milliseconds ) => { return new Promise( resolve => setTimeout( resolve, milliseconds ) ); };
 
-const impl_sleep = ( milliseconds ) => { return new Promise( resolve => setTimeout( resolve, milliseconds ) ); };
+const g_secondsMessageVerifySendTimeout = 2 * 60;
+
+async function with_timeout( strDescription, promise, seconds ) {
+    strDescription = strDescription || "with_timeout()";
+    let result_err = null, isComplete = false;
+    promise.catch( function( err ) {
+        isComplete = true;
+        result_err = new Error( strDescription + "error: " + err.toString() );
+    } ).finally( function() {
+        isComplete = true;
+    } );
+    for( let idxWaitStep = 0; idxWaitStep < seconds; ++ idxWaitStep ) {
+        if( isComplete )
+            break;
+        await sleep( 1000 );
+    }
+    if( result_err )
+        throw result_err;
+    if( ! isComplete )
+        throw new Error( strDescription + " reached limit of " + seconds + " second(s)" );
+};
 
 function discover_bls_threshold( joSChainNetworkInfo ) {
-    const jarrNodes = imaState.joSChainNetworkInfo.network;
+    joSChainNetworkInfo = joSChainNetworkInfo || imaState.joSChainNetworkInfo;
+    const jarrNodes = joSChainNetworkInfo.network;
     for( let i = 0; i < jarrNodes.length; ++i ) {
         const joNode = jarrNodes[i];
         if( joNode && "imaInfo" in joNode && typeof joNode.imaInfo === "object" &&
@@ -53,7 +74,8 @@ function discover_bls_threshold( joSChainNetworkInfo ) {
 }
 
 function discover_bls_participants( joSChainNetworkInfo ) {
-    const jarrNodes = imaState.joSChainNetworkInfo.network;
+    joSChainNetworkInfo = joSChainNetworkInfo || imaState.joSChainNetworkInfo;
+    const jarrNodes = joSChainNetworkInfo.network;
     for( let i = 0; i < jarrNodes.length; ++i ) {
         const joNode = jarrNodes[i];
         if( joNode && "imaInfo" in joNode && typeof joNode.imaInfo === "object" &&
@@ -66,7 +88,8 @@ function discover_bls_participants( joSChainNetworkInfo ) {
 }
 
 function discover_public_key_by_index( nNodeIndex, joSChainNetworkInfo ) {
-    const jarrNodes = imaState.joSChainNetworkInfo.network;
+    joSChainNetworkInfo = joSChainNetworkInfo || imaState.joSChainNetworkInfo;
+    const jarrNodes = joSChainNetworkInfo.network;
     const joNode = jarrNodes[nNodeIndex];
     if( joNode && "imaInfo" in joNode && typeof joNode.imaInfo === "object" &&
         "BLSPublicKey0" in joNode.imaInfo && typeof joNode.imaInfo.BLSPublicKey0 === "string" && joNode.imaInfo.BLSPublicKey0.length > 0 &&
@@ -85,7 +108,8 @@ function discover_public_key_by_index( nNodeIndex, joSChainNetworkInfo ) {
 }
 
 function discover_common_public_key( joSChainNetworkInfo ) {
-    const jarrNodes = imaState.joSChainNetworkInfo.network;
+    joSChainNetworkInfo = joSChainNetworkInfo || imaState.joSChainNetworkInfo;
+    const jarrNodes = joSChainNetworkInfo.network;
     for( let i = 0; i < jarrNodes.length; ++i ) {
         const joNode = jarrNodes[i];
         if( joNode && "imaInfo" in joNode && typeof joNode.imaInfo === "object" &&
@@ -1045,115 +1069,111 @@ async function do_sign_messages_impl(
 
         log.write( strLogPrefix + cc.debug( "Waiting for BLS glue result " ) + "\n" );
         details.write( strLogPrefix + cc.debug( "Waiting for BLS glue result " ) + "\n" );
-        let errGathering = null, isResolvedGathering = false;
-        const iv = setInterval( async function() {
-            ++ joGatheringTracker.nWaitIntervalStepsDone;
-            cntSuccess = joGatheringTracker.nCountReceived - joGatheringTracker.nCountErrors;
-            if( cntSuccess >= nCountOfBlsPartsToCollect ) {
-                const strLogPrefixB = cc.bright( strDirection ) + cc.debug( "/" ) + cc.info( "BLS" ) + cc.debug( "/" ) + cc.sunny( "Summary" ) + cc.debug( ":" ) + " ";
-                clearInterval( iv );
-                let strError = null, strSuccessfulResultDescription = null;
-                const joGlueResult = perform_bls_glue(
-                    details,
-                    strDirection,
-                    jarrMessages, nIdxCurrentMsgBlockStart, strFromChainName,
-                    arrSignResults
-                );
-                if( joGlueResult ) {
-                    details.write( strLogPrefixB + cc.success( "Got BLS glue result: " ) + cc.j( joGlueResult ) + "\n" );
-                    if( imaState.strPathBlsVerify.length > 0 ) {
-                        const joCommonPublicKey = discover_common_public_key( imaState.joSChainNetworkInfo );
-                        // console.log(joCommonPublicKey);
-                        if( perform_bls_verify(
-                            details,
-                            strDirection,
-                            joGlueResult,
-                            jarrMessages, nIdxCurrentMsgBlockStart, strFromChainName,
-                            joCommonPublicKey
-                        ) ) {
-                            strSuccessfulResultDescription = "Got successful summary BLS verification result";
-                            details.write( strLogPrefixB + cc.success( strSuccessfulResultDescription ) + "\n" );
-                            // isResolvedGathering = true; // strSuccessfulResultDescription;
-                        } else {
-                            strError = "BLS verify failed";
-                            log.write( strLogPrefixB + cc.fatal( "CRITICAL ERROR:" ) + cc.error( strError ) + "\n" );
-                            details.write( strLogPrefixB + cc.fatal( "CRITICAL ERROR:" ) + cc.error( strError ) + "\n" );
+        let errGathering = null;
+        const promise_gathering_complete = new Promise( ( resolve, reject ) => {
+            const iv = setInterval( async function() {
+                ++ joGatheringTracker.nWaitIntervalStepsDone;
+                cntSuccess = joGatheringTracker.nCountReceived - joGatheringTracker.nCountErrors;
+                if( cntSuccess >= nCountOfBlsPartsToCollect ) {
+                    const strLogPrefixB = cc.bright( strDirection ) + cc.debug( "/" ) + cc.info( "BLS" ) + cc.debug( "/" ) + cc.sunny( "Summary" ) + cc.debug( ":" ) + " ";
+                    clearInterval( iv );
+                    let strError = null, strSuccessfulResultDescription = null;
+                    const joGlueResult = perform_bls_glue(
+                        details,
+                        strDirection,
+                        jarrMessages, nIdxCurrentMsgBlockStart, strFromChainName,
+                        arrSignResults
+                    );
+                    if( joGlueResult ) {
+                        details.write( strLogPrefixB + cc.success( "Got BLS glue result: " ) + cc.j( joGlueResult ) + "\n" );
+                        if( imaState.strPathBlsVerify.length > 0 ) {
+                            const joCommonPublicKey = discover_common_public_key( imaState.joSChainNetworkInfo );
+                            // console.log(joCommonPublicKey);
+                            if( perform_bls_verify(
+                                details,
+                                strDirection,
+                                joGlueResult,
+                                jarrMessages, nIdxCurrentMsgBlockStart, strFromChainName,
+                                joCommonPublicKey
+                            ) ) {
+                                strSuccessfulResultDescription = "Got successful summary BLS verification result";
+                                details.write( strLogPrefixB + cc.success( strSuccessfulResultDescription ) + "\n" );
+                            } else {
+                                strError = "BLS verify failed";
+                                log.write( strLogPrefixB + cc.fatal( "CRITICAL ERROR:" ) + cc.error( strError ) + "\n" );
+                                details.write( strLogPrefixB + cc.fatal( "CRITICAL ERROR:" ) + cc.error( strError ) + "\n" );
+                            }
                         }
+                    } else {
+                        strError = "BLS glue failed, no glue result arrived";
+                        const strErrorMessage =
+                            strLogPrefixB + cc.error( "Problem(1) in BLS sign result handler: " ) + cc.warning( strError ) + "\n";
+                        log.write( strErrorMessage );
+                        details.write( strErrorMessage );
                     }
-                } else {
-                    strError = "BLS glue failed, no glue result arrived";
-                    const strErrorMessage =
-                        strLogPrefixB + cc.error( "Problem(1) in BLS sign result handler: " ) + cc.warning( strError ) + "\n";
-                    log.write( strErrorMessage );
-                    details.write( strErrorMessage );
-                }
-                log.write( cc.debug( "Will call sending function (fn)" ) + "\n" );
-                details.write( cc.debug( "Will call sending function (fn) for " ) + "\n" );
-                /*await*/ fn( strError, jarrMessages, joGlueResult ).catch( ( err ) => {
-                    const strErrorMessage = cc.error( "Problem(2) in BLS sign result handler: " ) + cc.warning( err.toString() ) + "\n";
-                    log.write( strErrorMessage );
-                    details.write( strErrorMessage );
-                    errGathering = "Problem(2) in BLS sign result handler: " + err.toString();
+                    log.write( cc.debug( "Will call sending function (fn)" ) + "\n" );
+                    details.write( cc.debug( "Will call sending function (fn) for " ) + "\n" );
+                    /*await*/ fn( strError, jarrMessages, joGlueResult ).catch( ( err ) => {
+                        const strErrorMessage = cc.error( "Problem(2) in BLS sign result handler: " ) + cc.warning( err.toString() ) + "\n";
+                        log.write( strErrorMessage );
+                        details.write( strErrorMessage );
+                        errGathering = "Problem(2) in BLS sign result handler: " + err.toString();
+                        return;
+                    } );
+                    bHaveResultReportCalled = true;
+                    if( strError ) {
+                        errGathering = strError;
+                        reject( new Error( errGathering ) );
+                    } else
+                        resolve();
                     return;
-                } );
-                bHaveResultReportCalled = true;
-                if( ! strError )
-                    isResolvedGathering = true; // strSuccessfulResultDescription;
-                else
-                    errGathering = strError;
-                return;
-            }
-            if( joGatheringTracker.nCountReceived >= jarrNodes.length ) {
-                clearInterval( iv );
-                await fn( "signature error(2), got " + joGatheringTracker.nCountErrors + " errors(s) for " + jarrNodes.length + " node(s)", jarrMessages, null ).catch( ( err ) => {
-                    const strErrorMessage =
-                        cc.error( "Problem(3) in BLS sign result handler, not enough successful BLS signature parts(" ) +
-                        cc.info( cntSuccess ) + cc.error( " when all attempts done, error details: " ) + cc.warning( err.toString() ) +
-                        "\n";
-                    log.write( strErrorMessage );
-                    details.write( strErrorMessage );
-                    errGathering =
-                        "Problem(3) in BLS sign result handler, not enough successful BLS signature parts(" +
-                        cntSuccess + " when all attempts done, error details: " + err.toString();
-                } );
-                bHaveResultReportCalled = true;
-                return;
-            }
-            if( joGatheringTracker.nWaitIntervalStepsDone >= joGatheringTracker.nWaitIntervalMaxSteps ) {
-                clearInterval( iv );
-                await fn( "signature error(3), got " + joGatheringTracker.nCountErrors + " errors(s) for " + jarrNodes.length + " node(s)", jarrMessages, null ).catch( ( err ) => {
-                    const strErrorMessage =
-                        cc.error( "Problem(4) in BLS sign result handler, not enough successful BLS signature parts(" ) +
-                        cc.info( cntSuccess ) + cc.error( ") and timeout reached, error details: " ) +
-                        cc.warning( err.toString() ) + "\n";
-                    log.write( strErrorMessage );
-                    details.write( strErrorMessage );
-                    errGathering =
-                        "Problem(4) in BLS sign result handler, not enough successful BLS signature parts(" +
-                        cntSuccess + ") and timeout reached, error details: " + err.toString();
-                } );
-                bHaveResultReportCalled = true;
-                return;
-            }
-        }, joGatheringTracker.nWaitIntervalStepMilliseconds );
-        details.write( cc.info( "Will await BLS sign result..." ) + "\n" );
-        log.write( cc.info( "Will await BLS sign result..." ) + "\n" );
-        for( let idxWait = 0; ( !isResolvedGathering ) && ( !errGathering ); ++ idxWait ) {
-            if( idxWait < 50 )
-                await impl_sleep( 5 );
-            else if( idxWait < 100 )
-                await impl_sleep( 10 );
-            else if( idxWait < 1000 )
-                await impl_sleep( 100 );
-            else {
-                const nLastWaitPeriod = 200;
-                if( ( idxWait - 1000 ) * nLastWaitPeriod > g_nBlsSignaturesGatheringTimeoutSeconds ) {
-                    isResolvedGathering = true;
-                    errGathering = "BLS signatures gathering timeout";
-                } else
-                    await impl_sleep( nLastWaitPeriod );
-            }
-        } // for( let idxWait = 0;  (!isResolvedGathering) && (!errGathering); ++ idxWait ) {
+                }
+                if( joGatheringTracker.nCountReceived >= jarrNodes.length ) {
+                    clearInterval( iv );
+                    await fn( "signature error(2), got " + joGatheringTracker.nCountErrors + " errors(s) for " + jarrNodes.length + " node(s)", jarrMessages, null ).catch( ( err ) => {
+                        const strErrorMessage =
+                            cc.error( "Problem(3) in BLS sign result handler, not enough successful BLS signature parts(" ) +
+                            cc.info( cntSuccess ) + cc.error( " when all attempts done, error details: " ) + cc.warning( err.toString() ) +
+                            "\n";
+                        log.write( strErrorMessage );
+                        details.write( strErrorMessage );
+                        errGathering =
+                            "Problem(3) in BLS sign result handler, not enough successful BLS signature parts(" +
+                            cntSuccess + " when all attempts done, error details: " + err.toString();
+                        reject( new Error( errGathering ) );
+                    } );
+                    bHaveResultReportCalled = true;
+                    return;
+                }
+                if( joGatheringTracker.nWaitIntervalStepsDone >= joGatheringTracker.nWaitIntervalMaxSteps ) {
+                    clearInterval( iv );
+                    await fn( "signature error(3), got " + joGatheringTracker.nCountErrors + " errors(s) for " + jarrNodes.length + " node(s)", jarrMessages, null ).catch( ( err ) => {
+                        const strErrorMessage =
+                            cc.error( "Problem(4) in BLS sign result handler, not enough successful BLS signature parts(" ) +
+                            cc.info( cntSuccess ) + cc.error( ") and timeout reached, error details: " ) +
+                            cc.warning( err.toString() ) + "\n";
+                        log.write( strErrorMessage );
+                        details.write( strErrorMessage );
+                        errGathering =
+                            "Problem(4) in BLS sign result handler, not enough successful BLS signature parts(" +
+                            cntSuccess + ") and timeout reached, error details: " + err.toString();
+                        reject( new Error( errGathering ) );
+                    } );
+                    bHaveResultReportCalled = true;
+                    return;
+                }
+            }, joGatheringTracker.nWaitIntervalStepMilliseconds );
+        } );
+        log.write( cc.debug( "Will await for message BLS verification and sending..." ) + "\n" );
+        details.write( cc.debug( "Will await for message BLS verification and sending..." ) + "\n" );
+        await with_timeout( "BLS verification and sending", promise_gathering_complete, g_secondsMessageVerifySendTimeout ).then( strSuccessfulResultDescription => {
+            details.write( cc.success( "BLS verification and sending promise awaited." ) + "\n" );
+            log.write( cc.success( "BLS verification and sending promise awaited." ) + "\n" );
+        } ).catch( err => {
+            const strErrorMessage = cc.error( "Failed to verify BLS and send message : " ) + cc.warning( err.toString() ) + "\n";
+            log.write( strErrorMessage );
+            details.write( strErrorMessage );
+        } );
         if( errGathering ) {
             const strErrorMessage = cc.error( "Failed BLS sign result awaiting(1): " ) + cc.warning( errGathering.toString() ) + "\n";
             log.write( strErrorMessage );
@@ -1214,6 +1234,8 @@ async function do_sign_messages_impl(
             } );
         }
     }
+    log.write( strGatheredDetailsName + " completed" );
+    details.write( strGatheredDetailsName + " completed" );
     if( details ) {
         details.exposeDetailsTo( log, strGatheredDetailsName, true );
         details.close();
@@ -1458,104 +1480,104 @@ async function do_sign_u256( u256, details, fn ) {
 
     log.write( strLogPrefix + cc.debug( "Waiting for BLS glue result " ) + "\n" );
     details.write( strLogPrefix + cc.debug( "Waiting for BLS glue result " ) + "\n" );
-    let isResolvedGathering = false, errGathering = null;
-    const iv = setInterval( async function() {
-        ++ joGatheringTracker.nWaitIntervalStepsDone;
-        const cntSuccess = joGatheringTracker.nCountReceived - joGatheringTracker.nCountErrors;
-        if( cntSuccess >= nCountOfBlsPartsToCollect ) {
-            const strLogPrefixB = cc.info( "BLS u256" ) + cc.debug( "/" ) + cc.sunny( "Summary" ) + cc.debug( ":" ) + " ";
-            clearInterval( iv );
-            let strError = null, strSuccessfulResultDescription = null;
-            const joGlueResult = perform_bls_glue_u256( details, u256, arrSignResults );
-            if( joGlueResult ) {
-                details.write( strLogPrefixB + cc.success( "Got BLS glue u256 result: " ) + cc.j( joGlueResult ) + "\n" );
-                if( imaState.strPathBlsVerify.length > 0 ) {
-                    const joCommonPublicKey = discover_common_public_key( imaState.joSChainNetworkInfo );
-                    // console.log(joCommonPublicKey);
-                    if( perform_bls_verify_u256( details, joGlueResult, u256, joCommonPublicKey ) ) {
-                        strSuccessfulResultDescription = "Got successful summary BLS u256 verification result";
-                        details.write( strLogPrefixB + cc.success( strSuccessfulResultDescription ) + "\n" );
-                        // isResolvedGathering = true; // strSuccessfulResultDescription;
-                    } else {
-                        strError = "BLS verify failed";
-                        log.write( strLogPrefixB + cc.fatal( "CRITICAL ERROR:" ) + cc.error( strError ) + "\n" );
-                        details.write( strLogPrefixB + cc.fatal( "CRITICAL ERROR:" ) + cc.error( strError ) + "\n" );
+    errGathering = null;
+    const promise_gathering_complete = new Promise( ( resolve, reject ) => {
+        const iv = setInterval( async function() {
+            ++ joGatheringTracker.nWaitIntervalStepsDone;
+            const cntSuccess = joGatheringTracker.nCountReceived - joGatheringTracker.nCountErrors;
+            if( cntSuccess >= nCountOfBlsPartsToCollect ) {
+                const strLogPrefixB = cc.info( "BLS u256" ) + cc.debug( "/" ) + cc.sunny( "Summary" ) + cc.debug( ":" ) + " ";
+                clearInterval( iv );
+                let strError = null, strSuccessfulResultDescription = null;
+                const joGlueResult = perform_bls_glue_u256( details, u256, arrSignResults );
+                if( joGlueResult ) {
+                    details.write( strLogPrefixB + cc.success( "Got BLS glue u256 result: " ) + cc.j( joGlueResult ) + "\n" );
+                    if( imaState.strPathBlsVerify.length > 0 ) {
+                        const joCommonPublicKey = discover_common_public_key( imaState.joSChainNetworkInfo );
+                        // console.log(joCommonPublicKey);
+                        if( perform_bls_verify_u256( details, joGlueResult, u256, joCommonPublicKey ) ) {
+                            strSuccessfulResultDescription = "Got successful summary BLS u256 verification result";
+                            details.write( strLogPrefixB + cc.success( strSuccessfulResultDescription ) + "\n" );
+                        } else {
+                            strError = "BLS verify failed";
+                            log.write( strLogPrefixB + cc.fatal( "CRITICAL ERROR:" ) + cc.error( strError ) + "\n" );
+                            details.write( strLogPrefixB + cc.fatal( "CRITICAL ERROR:" ) + cc.error( strError ) + "\n" );
+                        }
                     }
+                } else {
+                    strError = "BLS u256 glue failed, no glue result arrived";
+                    const strErrorMessage =
+                        strLogPrefixB + cc.error( "Problem(1) in BLS u256 sign result handler: " ) + cc.warning( strError ) + "\n";
+                    log.write( strErrorMessage );
+                    details.write( strErrorMessage );
                 }
-            } else {
-                strError = "BLS u256 glue failed, no glue result arrived";
-                const strErrorMessage =
-                    strLogPrefixB + cc.error( "Problem(1) in BLS u256 sign result handler: " ) + cc.warning( strError ) + "\n";
-                log.write( strErrorMessage );
-                details.write( strErrorMessage );
+                log.write( cc.debug( "Will call sending function (fn)" ) + "\n" );
+                details.write( cc.debug( "Will call sending function (fn) for " ) + "\n" );
+                await fn( strError, u256, joGlueResult ).catch( ( err ) => {
+                    const strErrorMessage = cc.error( "Problem(2) in BLS u256 sign result handler: " ) + cc.warning( err.toString() ) + "\n";
+                    log.write( strErrorMessage );
+                    details.write( strErrorMessage );
+                    errGathering = "Problem(2) in BLS u256 sign result handler: " + err.toString();
+                } );
+                if( strError ) {
+                    errGathering = strError;
+                    reject( new Error( errGathering ) );
+                } else
+                    resolve();
+                return;
             }
-            log.write( cc.debug( "Will call sending function (fn)" ) + "\n" );
-            details.write( cc.debug( "Will call sending function (fn) for " ) + "\n" );
-            await fn( strError, u256, joGlueResult ).catch( ( err ) => {
-                const strErrorMessage = cc.error( "Problem(2) in BLS u256 sign result handler: " ) + cc.warning( err.toString() ) + "\n";
-                log.write( strErrorMessage );
-                details.write( strErrorMessage );
-                errGathering = "Problem(2) in BLS u256 sign result handler: " + err.toString();
-            } );
-            if( ! strError )
-                isResolvedGathering = true; // strSuccessfulResultDescription;
-            return;
-        }
-        if( joGatheringTracker.nCountReceived >= jarrNodes.length ) {
-            clearInterval( iv );
-            await fn( "signature error(2, u256), got " + joGatheringTracker.nCountErrors + " errors(s) for " + jarrNodes.length + " node(s)", u256, null ).catch( ( err ) => {
-                const strErrorMessage =
-                    cc.error( "Problem(3) in BLS u256 sign result handler, not enough successful BLS signature parts(" ) +
-                    cc.info( cntSuccess ) + cc.error( " when all attempts done, error details: " ) + cc.warning( err.toString() ) +
-                    "\n";
-                log.write( strErrorMessage );
-                details.write( strErrorMessage );
-                errGathering =
-                    "Problem(3) in BLS u256 sign result handler, not enough successful BLS signature parts(" +
-                    cntSuccess + " when all attempts done, error details: " + err.toString();
-            } );
-            return;
-        }
-        if( joGatheringTracker.nWaitIntervalStepsDone >= joGatheringTracker.nWaitIntervalMaxSteps ) {
-            clearInterval( iv );
-            await fn( "signature error(3, u256), got " + joGatheringTracker.nCountErrors + " errors(s) for " + jarrNodes.length + " node(s)", u256, null ).catch( ( err ) => {
-                const strErrorMessage =
-                    cc.error( "Problem(4) in BLS u256 sign result handler, not enough successful BLS signature parts(" ) +
-                    cc.info( cntSuccess ) + cc.error( ") and timeout reached, error details: " ) +
-                    cc.warning( err.toString() ) + "\n";
-                log.write( strErrorMessage );
-                details.write( strErrorMessage );
-                errGathering =
-                    "Problem(4) in BLS u256 sign result handler, not enough successful BLS signature parts(" +
-                    cntSuccess + ") and timeout reached, error details: " + err.toString();
-            } );
-            return;
-        }
-    }, joGatheringTracker.nWaitIntervalStepMilliseconds );
-    details.write( cc.info( "Will await BLS u256 sign result..." ) + "\n" );
-    log.write( cc.info( "Will await BLS u256 sign result..." ) + "\n" );
-    for( let idxWait = 0; ( !isResolvedGathering ) && ( !errGathering ); ++ idxWait ) {
-        if( idxWait < 50 )
-            await impl_sleep( 5 );
-        else if( idxWait < 100 )
-            await impl_sleep( 10 );
-        else if( idxWait < 1000 )
-            await impl_sleep( 100 );
-        else {
-            const nLastWaitPeriod = 200;
-            if( ( idxWait - 1000 ) * nLastWaitPeriod > g_nBlsSignaturesGatheringTimeoutSeconds ) {
-                isResolvedGathering = true;
-                errGathering = "BLS signatures gathering timeout";
-            } else
-                await impl_sleep( nLastWaitPeriod );
-        }
-    } // for( let idxWait = 0;  (!isResolvedGathering) && (!errGathering); ++ idxWait ) {
+            if( joGatheringTracker.nCountReceived >= jarrNodes.length ) {
+                clearInterval( iv );
+                await fn( "signature error(2, u256), got " + joGatheringTracker.nCountErrors + " errors(s) for " + jarrNodes.length + " node(s)", u256, null ).catch( ( err ) => {
+                    const strErrorMessage =
+                        cc.error( "Problem(3) in BLS u256 sign result handler, not enough successful BLS signature parts(" ) +
+                        cc.info( cntSuccess ) + cc.error( " when all attempts done, error details: " ) + cc.warning( err.toString() ) +
+                        "\n";
+                    log.write( strErrorMessage );
+                    details.write( strErrorMessage );
+                    errGathering =
+                        "Problem(3) in BLS u256 sign result handler, not enough successful BLS signature parts(" +
+                        cntSuccess + " when all attempts done, error details: " + err.toString();
+                    reject( new Error( errGathering ) );
+                } );
+                return;
+            }
+            if( joGatheringTracker.nWaitIntervalStepsDone >= joGatheringTracker.nWaitIntervalMaxSteps ) {
+                clearInterval( iv );
+                await fn( "signature error(3, u256), got " + joGatheringTracker.nCountErrors + " errors(s) for " + jarrNodes.length + " node(s)", u256, null ).catch( ( err ) => {
+                    const strErrorMessage =
+                        cc.error( "Problem(4) in BLS u256 sign result handler, not enough successful BLS signature parts(" ) +
+                        cc.info( cntSuccess ) + cc.error( ") and timeout reached, error details: " ) +
+                        cc.warning( err.toString() ) + "\n";
+                    log.write( strErrorMessage );
+                    details.write( strErrorMessage );
+                    errGathering =
+                        "Problem(4) in BLS u256 sign result handler, not enough successful BLS signature parts(" +
+                        cntSuccess + ") and timeout reached, error details: " + err.toString();
+                    reject( new Error( errGathering ) );
+                } );
+                return;
+            }
+        }, joGatheringTracker.nWaitIntervalStepMilliseconds );
+    } );
+    details.write( cc.debug( "Will await BLS u256 sign result..." ) + "\n" );
+    log.write( cc.debug( "Will await BLS u256 sign result..." ) + "\n" );
+    await with_timeout( "BLS u256 sign", promise_gathering_complete, g_secondsMessageVerifySendTimeout ).then( strSuccessfulResultDescription => {
+        details.write( cc.info( "BLS u256 sign promise awaited." ) + "\n" );
+        log.write( cc.info( "BLS u256 sign promise awaited." ) + "\n" );
+    } ).catch( err => {
+        const strErrorMessage = cc.error( "Failed to verify BLS and send message : " ) + cc.warning( err.toString() ) + "\n";
+        log.write( strErrorMessage );
+        details.write( strErrorMessage );
+    } );
     if( errGathering ) {
         const strErrorMessage = cc.error( "Failed BLS u256 sign result awaiting: " ) + cc.warning( errGathering.toString() ) + "\n";
         log.write( strErrorMessage );
         details.write( strErrorMessage );
         return;
     }
+    log.write( strLogPrefix + cc.debug( "Completed signing u256 procedure " ) + "\n" );
+    details.write( strLogPrefix + cc.debug( "Completed signing u256 procedure " ) + "\n" );
 }
 
 module.exports = {

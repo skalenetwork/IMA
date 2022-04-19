@@ -23,27 +23,34 @@
 
 pragma solidity 0.8.6;
 
+import "@skalenetwork/ima-interfaces/mainnet/ICommunityPool.sol";
 import "@skalenetwork/skale-manager-interfaces/IWallets.sol";
 
 import "../Messages.sol";
-import "./MessageProxyForMainnet.sol";
-import "./Linker.sol";
+import "./Twin.sol";
+
 
 /**
  * @title CommunityPool
- * @dev Contract contains logic to perform automatic self-recharging ether for nodes
+ * @dev Contract contains logic to perform automatic self-recharging ETH for nodes.
  */
-contract CommunityPool is Twin {
+contract CommunityPool is Twin, ICommunityPool {
 
     using AddressUpgradeable for address payable;
 
     bytes32 public constant CONSTANT_SETTER_ROLE = keccak256("CONSTANT_SETTER_ROLE");
 
+    // address of user => schainHash => balance of gas wallet in ETH
     mapping(address => mapping(bytes32 => uint)) private _userWallets;
+
+    // address of user => schainHash => true if unlocked for transferring
     mapping(address => mapping(bytes32 => bool)) public activeUsers;
 
     uint public minTransactionGas;    
 
+    /**
+     * @dev Emitted when minimal value in gas for transactions from schain to mainnet was changed 
+     */
     event MinTransactionGasWasChanged(
         uint oldValue,
         uint newValue
@@ -51,10 +58,11 @@ contract CommunityPool is Twin {
 
     function initialize(
         IContractManager contractManagerOfSkaleManagerValue,
-        Linker linker,
-        MessageProxyForMainnet messageProxyValue
+        ILinker linker,
+        IMessageProxyForMainnet messageProxyValue
     )
         external
+        override
         initializer
     {
         Twin.initialize(contractManagerOfSkaleManagerValue, messageProxyValue);
@@ -62,6 +70,15 @@ contract CommunityPool is Twin {
         minTransactionGas = 1e6;
     }
 
+    /**
+     * @dev Allows MessageProxyForMainnet to reimburse gas for transactions 
+     * that transfer funds from schain to mainnet.
+     * 
+     * Requirements:
+     * 
+     * - User that receives funds should have enough funds in their gas wallet.
+     * - Address that should be reimbursed for executing transaction must not be null.
+     */
     function refundGasByUser(
         bytes32 schainHash,
         address payable node,
@@ -69,6 +86,7 @@ contract CommunityPool is Twin {
         uint gas
     )
         external
+        override
         onlyMessageProxy
         returns (uint)
     {
@@ -99,11 +117,12 @@ contract CommunityPool is Twin {
         uint gas
     )
         external
+        override
         onlyMessageProxy
         returns (bool)
     {
         if (gas > 0) {
-            IWallets(contractManagerOfSkaleManager.getContract("Wallets")).refundGasBySchain(
+            IWallets(payable(contractManagerOfSkaleManager.getContract("Wallets"))).refundGasBySchain(
                 schainHash,
                 node,
                 gas,
@@ -121,10 +140,10 @@ contract CommunityPool is Twin {
      * - 'msg.sender` should recharge their gas wallet for amount that enough to reimburse any 
      *   transaction from schain to mainnet.
      */
-    function rechargeUserWallet(string calldata schainName, address user) external payable {
+    function rechargeUserWallet(string calldata schainName, address user) external payable override {
         bytes32 schainHash = keccak256(abi.encodePacked(schainName));
         require(
-            _balanceIsSufficient(schainHash, msg.sender, msg.value),
+            _balanceIsSufficient(schainHash, user, msg.value),
             "Not enough ETH for transaction"
         );
         _userWallets[user][schainHash] = _userWallets[user][schainHash] + msg.value;
@@ -138,9 +157,19 @@ contract CommunityPool is Twin {
         }
     }
 
-    function withdrawFunds(string calldata schainName, uint amount) external {
+    /**
+     * @dev Allows `msg.sender` to withdraw funds from their gas wallet.
+     * If `msg.sender` withdraws too much funds,
+     * then he will no longer be able to transfer their tokens on ETH from schain to mainnet.
+     * 
+     * Requirements:
+     * 
+     * - 'msg.sender` must have sufficient amount of ETH on their gas wallet.
+     */
+    function withdrawFunds(string calldata schainName, uint amount) external override {
         bytes32 schainHash = keccak256(abi.encodePacked(schainName));
         require(amount <= _userWallets[msg.sender][schainHash], "Balance is too low");
+        require(!messageProxy.messageInProgress(), "Message is in progress");
         _userWallets[msg.sender][schainHash] = _userWallets[msg.sender][schainHash] - amount;
         if (
             !_balanceIsSufficient(schainHash, msg.sender, 0) &&
@@ -156,20 +185,36 @@ contract CommunityPool is Twin {
         payable(msg.sender).sendValue(amount);
     }
 
-    function setMinTransactionGas(uint newMinTransactionGas) external {
+    /**
+     * @dev Allows `msg.sender` set the amount of gas that should be 
+     * enough for reimbursing any transaction from schain to mainnet.
+     * 
+     * Requirements:
+     * 
+     * - 'msg.sender` must have sufficient amount of ETH on their gas wallet.
+     */
+    function setMinTransactionGas(uint newMinTransactionGas) external override {
         require(hasRole(CONSTANT_SETTER_ROLE, msg.sender), "CONSTANT_SETTER_ROLE is required");
         emit MinTransactionGasWasChanged(minTransactionGas, newMinTransactionGas);
         minTransactionGas = newMinTransactionGas;
     }
 
-    function getBalance(address user, string calldata schainName) external view returns (uint) {
+    /**
+     * @dev Returns the amount of ETH on gas wallet for particular user.
+     */
+    function getBalance(address user, string calldata schainName) external view override returns (uint) {
         return _userWallets[user][keccak256(abi.encodePacked(schainName))];
     }
 
-    function checkUserBalance(bytes32 schainHash, address receiver) external view returns (bool) {
+    /**
+     * @dev Checks whether user is active and wallet was recharged for sufficient amount.
+     */
+    function checkUserBalance(bytes32 schainHash, address receiver) external view override returns (bool) {
         return activeUsers[receiver][schainHash] && _balanceIsSufficient(schainHash, receiver, 0);
     }
-
+    /**
+     * @dev Checks whether user wallet was recharged for sufficient amount.
+     */
     function _balanceIsSufficient(bytes32 schainHash, address receiver, uint256 delta) private view returns (bool) {
         return delta + _userWallets[receiver][schainHash] >= minTransactionGas * tx.gasprice;
     } 

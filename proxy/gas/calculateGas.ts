@@ -138,6 +138,7 @@ describe("Gas calculation", () => {
     const schainName = "GasCalculation";
     const schainNameHash = web3.utils.soliditySha3("GasCalculation");
     const contractManagerAddress = "0x0000000000000000000000000000000000000000";
+    const mainnetName = "Mainnet";
 
     before(async () => {
         [deployer, schainOwner, user] = await ethers.getSigners();
@@ -340,7 +341,7 @@ describe("Gas calculation", () => {
 
     describe("ERC20 init", async () => {
         beforeEach(async () => {
-            let res = await (await tokenManagerERC20.connect(schainOwner).addERC20TokenByOwner(ERC20TokenOnMainnet.address, ERC20TokenOnSchain.address)).wait();
+            let res = await (await tokenManagerERC20.connect(schainOwner).addERC20TokenByOwner(mainnetName,  ERC20TokenOnMainnet.address, ERC20TokenOnSchain.address)).wait();
             console.log("Registration of ERC20 token in TokenManager cost:", res.gasUsed.toNumber());
             res = await (await depositBoxERC20.connect(schainOwner).addERC20TokenByOwner(schainName, ERC20TokenOnMainnet.address)).wait();
             console.log("Registration of ERC20 token in DepositBox cost:", res.gasUsed.toNumber());
@@ -378,7 +379,7 @@ describe("Gas calculation", () => {
 
     describe("ERC721 init", async () => {
         beforeEach(async () => {
-            let res = await (await tokenManagerERC721.connect(schainOwner).addERC721TokenByOwner(ERC721TokenOnMainnet.address, ERC721TokenOnSchain.address)).wait();
+            let res = await (await tokenManagerERC721.connect(schainOwner).addERC721TokenByOwner(mainnetName,  ERC721TokenOnMainnet.address, ERC721TokenOnSchain.address)).wait();
             console.log("Registration of ERC721 token in TokenManager cost:", res.gasUsed.toNumber());
             res = await (await depositBoxERC721.connect(schainOwner).addERC721TokenByOwner(schainName, ERC721TokenOnMainnet.address)).wait();
             console.log("Registration of ERC721 token in DepositBox cost:", res.gasUsed.toNumber());
@@ -487,7 +488,7 @@ describe("Gas calculation", () => {
 
     describe("ERC1155 init", async () => {
         beforeEach(async () => {
-            let res = await (await tokenManagerERC1155.connect(schainOwner).addERC1155TokenByOwner(ERC1155TokenOnMainnet.address, ERC1155TokenOnSchain.address)).wait();
+            let res = await (await tokenManagerERC1155.connect(schainOwner).addERC1155TokenByOwner(mainnetName,  ERC1155TokenOnMainnet.address, ERC1155TokenOnSchain.address)).wait();
             console.log("Registration of ERC1155 token in TokenManager cost:", res.gasUsed.toNumber());
             res = await (await depositBoxERC1155.connect(schainOwner).addERC1155TokenByOwner(schainName, ERC1155TokenOnMainnet.address)).wait();
             console.log("Registration of ERC1155 token in DepositBox cost:", res.gasUsed.toNumber());
@@ -832,7 +833,7 @@ describe("Gas calculation", () => {
             }
 
             beforeEach(async () => {
-                await tokenManagerERC20.connect(schainOwner).addERC20TokenByOwner(ERC20TokenOnMainnet.address, ERC20TokenOnSchain.address);
+                await tokenManagerERC20.connect(schainOwner).addERC20TokenByOwner(mainnetName,  ERC20TokenOnMainnet.address, ERC20TokenOnSchain.address);
                 await depositBoxERC20.connect(schainOwner).addERC20TokenByOwner(schainName, ERC20TokenOnMainnet.address);
                 await ERC20TokenOnMainnet.connect(user).approve(depositBoxERC20.address, 5);
             });
@@ -943,7 +944,7 @@ describe("Gas calculation", () => {
             }
 
             beforeEach(async() => {
-                await tokenManagerERC721.connect(schainOwner).addERC721TokenByOwner(ERC721TokenOnMainnet.address, ERC721TokenOnSchain.address);
+                await tokenManagerERC721.connect(schainOwner).addERC721TokenByOwner(mainnetName,  ERC721TokenOnMainnet.address, ERC721TokenOnSchain.address);
                 await depositBoxERC721.connect(schainOwner).addERC721TokenByOwner(schainName, ERC721TokenOnMainnet.address);
                 await ERC721TokenOnMainnet.connect(user).approve(depositBoxERC721.address, 1);
                 await ERC721TokenOnMainnet.connect(user).approve(depositBoxERC721.address, 2);
@@ -1092,7 +1093,7 @@ describe("Gas calculation", () => {
             }
 
             beforeEach(async() => {
-                await tokenManagerERC1155.connect(schainOwner).addERC1155TokenByOwner(ERC1155TokenOnMainnet.address, ERC1155TokenOnSchain.address);
+                await tokenManagerERC1155.connect(schainOwner).addERC1155TokenByOwner(mainnetName,  ERC1155TokenOnMainnet.address, ERC1155TokenOnSchain.address);
                 await depositBoxERC1155.connect(schainOwner).addERC1155TokenByOwner(schainName, ERC1155TokenOnMainnet.address);
                 await ERC1155TokenOnMainnet.connect(user).setApprovalForAll(depositBoxERC1155.address, true);
             });

@@ -22,7 +22,7 @@
 
 pragma solidity 0.8.6;
 
-import "../interfaces/IMessageReceiver.sol";
+import "@skalenetwork/ima-interfaces/IMessageReceiver.sol";
 
 
 contract ReceiverMock is IMessageReceiver {
@@ -34,8 +34,7 @@ contract ReceiverMock is IMessageReceiver {
         external
         pure
         override
-        returns (address) 
     {
-        return address(0);
+        return;
     }
 }
