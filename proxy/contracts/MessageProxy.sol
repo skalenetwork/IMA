@@ -54,12 +54,6 @@ abstract contract MessageProxy is AccessControlEnumerableUpgradeable, IMessagePr
     uint256 public constant MESSAGES_LENGTH = 10;
     uint256 public constant REVERT_REASON_LENGTH = 64;
 
-    bytes32 public constant MAINNET_HASH = keccak256(abi.encodePacked("Mainnet"));
-    bytes32 public constant CHAIN_CONNECTOR_ROLE = keccak256("CHAIN_CONNECTOR_ROLE");
-    bytes32 public constant EXTRA_CONTRACT_REGISTRAR_ROLE = keccak256("EXTRA_CONTRACT_REGISTRAR_ROLE");
-    bytes32 public constant CONSTANT_SETTER_ROLE = keccak256("CONSTANT_SETTER_ROLE");
-    uint256 public constant MESSAGES_LENGTH = 10;
-
     //   schainHash => ConnectedChainInfo
     mapping(bytes32 => ConnectedChainInfo) public connectedChains;
     //   schainHash => contract address => allowed
