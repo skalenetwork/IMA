@@ -7,10 +7,10 @@ export async function linkERC1155TokenSchain(ima) {
     let address = "[YOUR_ADDRESS]";
     let privateKey = "[YOUR_PRIVATE_KEY]";
   
-    let txOpts = {
+    let opts = {
       address: address,
       privateKey: privateKey // remove privateKey from txOpts to use Metamask signing
     };
   
-    await ima.schain.addERC1155TokenByOwner(erc1155OnMainnet, erc1155OnSchain, txOpts);
+    await ima.schain.erc1155.addTokenByOwner(erc1155OnMainnet, erc1155OnSchain, opts);
   }

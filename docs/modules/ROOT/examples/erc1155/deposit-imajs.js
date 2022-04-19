@@ -27,7 +27,7 @@ export async function depositERC1155Single(ima) {
   let mainnetERC1155 = initTestTokenContract(ima);
   let schainERC1155 = initTestTokenContractSchain(ima);
 
-  ima.addERC721Token(tokenName, mainnetERC1155, schainERC1155);
+  ima.addERC1155Token(tokenName, mainnetERC1155, schainERC1155);
 
   let address = "[YOUR_ADDRESS]";
   let privateKey = "[YOUR_PRIVATE_KEY]";

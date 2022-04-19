@@ -11,7 +11,7 @@ export function initTestTokenContract(ima) {
 export function initTestTokenContractSchain(ima) {
     // initialize ERC20 contract
     const abiData = require("[ERC20_ABI_ON_CHAIN]");
-    return new ima.mainnet.web3.eth.Contract(
+    return new ima.schain.web3.eth.Contract(
         abiData.erc20_abi,
         abiData.erc20_address);
 }
