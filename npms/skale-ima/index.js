@@ -6101,47 +6101,6 @@ function execShellCommand( cmd ) {
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-async function checkTransactionToSchain( w3_s_chain, tx, details ) {
-    const sender = tx.from;
-    const requiredBalance = tx.gasPrice * tx.gas;
-    const balance = await w3_s_chain.eth.getBalance( sender );
-    if( balance < requiredBalance ) {
-        details.write(
-            cc.normal( "Insufficient funds for " ) + cc.bright( tx.from ) +
-            cc.normal( "; Running PoW for mining " ) + cc.bright( tx.gas ) + " gas\n" );
-        const powNumber = await calculatePowNumber( sender, tx.nonce, tx.gas );
-        tx.gasPrice = ethereumjs_util.addHexPrefix( powNumber );
-    }
-    return tx;
-}
-
-async function calculatePowNumber( address, nonce, gas ) {
-    const path = require( "path" );
-    let _address = ethereumjs_util.addHexPrefix( address );
-    _address = ethereumjs_util.toChecksumAddress( _address );
-    _address = ethereumjs_util.stripHexPrefix( _address );
-    const _nonce = parseIntOrHex( nonce );
-    const _gas = parseIntOrHex( gas );
-    const powScriptPath = path.join( __dirname, "pow" );
-    const cmd = `${powScriptPath} ${_address} ${_nonce} ${_gas}`;
-    return await execShellCommand( cmd );
-}
-
-function execShellCommand( cmd ) {
-    const exec = require( "child_process" ).exec;
-    return new Promise( ( resolve, reject ) => {
-        exec( cmd, ( error, stdout, stderr ) => {
-            if( error )
-                reject( new Error( stderr ) );
-            else
-                resolve( stdout ? stdout : stderr );
-        } );
-    } );
-}
-
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
 async function balanceETH(
     isMainNet,
     w3,
