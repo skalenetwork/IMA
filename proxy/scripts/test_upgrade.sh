@@ -13,9 +13,9 @@ git clone --branch "$DEPLOYED_TAG" "https://github.com/$GITHUB_REPOSITORY.git" "
 npx ganache-cli --gasLimit 9000000 --quiet --allowUnlimitedContractSize &
 
 cd "$DEPLOYED_DIR"
+yarn install
 cd proxy
 cp ../../proxy/contracts/test/TestSchainsInternal.sol ./contracts/test/TestSchainsInternal.sol
-yarn install
 CHAIN_NAME_SCHAIN="Test" VERSION="$DEPLOYED_VERSION" npx hardhat run migrations/deploySkaleManagerComponents.ts --network localhost
 VERSION="$DEPLOYED_VERSION" npx hardhat run migrations/deployMainnet.ts --network localhost
 rm ./migrations/deploySchain.ts
