@@ -11,7 +11,6 @@ DEPLOYED_DIR=$GITHUB_WORKSPACE/deployed-proxy/
 git clone --branch "$DEPLOYED_TAG" "https://github.com/$GITHUB_REPOSITORY.git" "$DEPLOYED_DIR"
 
 npx ganache-cli --gasLimit 9000000 --quiet --allowUnlimitedContractSize &
-GANACHE_PID=$!
 
 cd "$DEPLOYED_DIR"
 cd proxy
@@ -49,4 +48,4 @@ mv "data/proxyMainnet-$VERSION-localhost-abi.json" "data/proxyMainnet.json"
 
 ABI="data/$ABI_FILENAME_SCHAIN" MANIFEST="data/ima-schain-$DEPLOYED_VERSION-manifest.json" CHAIN_NAME_SCHAIN="Test" npx hardhat run migrations/upgradeSchain.ts --network localhost
 
-kill "$GANACHE_PID"
+npx kill-port 8545

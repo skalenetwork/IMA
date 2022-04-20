@@ -55,6 +55,7 @@
         "codecov": "^3.7.1",
         "ethereum-waffle": "^3.3.0",
         "ganache-cli": "^6.12.1",
+        "kill-port": "^1.6.1",
         "solhint": "3.3.6",
         "solidity-coverage": "^0.7.16",
         "ts-generator": "^0.1.1",
