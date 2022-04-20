@@ -16,12 +16,13 @@ import {
     SchainsInternal
 } from "../typechain/";
 import { encodeTransaction } from "./tools/multiSend";
-import { TypedEvent, TypedEventFilter } from "../typechain/commons";
 import { promises as fs } from "fs";
 import { hexZeroPad } from "@ethersproject/bytes";
 import { Contract } from "@ethersproject/contracts";
 import { verifyProxy } from "./tools/verification";
 import { getAbi } from "./tools/abi";
+import { TypedEvent, TypedEventFilter } from "../typechain/common";
+import { string } from "hardhat/internal/core/params/argumentTypes";
 
 function prepareInitializeFromMap(
     safeTransactions: any,
@@ -44,7 +45,7 @@ function prepareInitializeFromMap(
 
 async function runInitialize(
     safeTransactions: string[],
-    events: TypedEvent<[string, string] & { schainName: string; contractOnMainnet: string; }>[],
+    events: TypedEvent<[string, string], { schainName: string; contractOnMainnet: string; }>[],
     depositBox: DepositBoxERC20 | DepositBoxERC721 | DepositBoxERC1155,
     eventName: string
 ) {
@@ -137,7 +138,7 @@ async function findEventsAndInitialize(
         } else {
             depositBox = depositBoxFactory.attach(depositBoxAddress) as DepositBoxERC1155;
         }
-        const eventFilter: TypedEventFilter<[string, string], { schainName: string, contractOnMainnet: string}> = {
+        const eventFilter: TypedEventFilter<TypedEvent<[string, string], { schainName: string, contractOnMainnet: string}>> = {
             address: depositBoxAddress,
             topics: [ ethers.utils.id(eventName + "(string,address)") ]
         }

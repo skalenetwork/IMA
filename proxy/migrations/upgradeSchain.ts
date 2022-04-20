@@ -9,7 +9,7 @@ import chalk from "chalk";
 import { ethers, upgrades } from "hardhat";
 import { Contract } from "ethers";
 import { promises as fs } from "fs";
-import { TypedEvent, TypedEventFilter } from "../typechain/commons";
+import { TypedEvent, TypedEventFilter } from "../typechain/common";
 import { getManifestAdmin } from "@openzeppelin/hardhat-upgrades/dist/admin";
 import { verifyProxy } from "./tools/verification";
 import { getAbi } from "./tools/abi";
@@ -86,7 +86,7 @@ async function prepareContractRegisteredAndInitialize(
 async function runInitialize(
     safeTransactions: string[],
     abi: any,
-    events: TypedEvent<[string, string] & { tokenOnMainnet: string; tokenOnSchain: string; }>[],
+    events: TypedEvent<[string, string], { tokenOnMainnet: string; tokenOnSchain: string; }>[],
     tokenManagerName: "TokenManagerERC20" | "TokenManagerERC721" | "TokenManagerERC1155",
     eventName: string
 ) {
@@ -135,7 +135,7 @@ async function findEventsAndInitialize(
         } else {
             tokenManager = tokenManagerFactory.attach(tokenManagerAddress) as TokenManagerERC1155;
         }
-        const eventFilter: TypedEventFilter<[string, string], { tokenOnMainnet: string, tokenOnSchain: string}> = {
+        const eventFilter: TypedEventFilter<TypedEvent<[string, string], { tokenOnMainnet: string, tokenOnSchain: string}>> = {
             address: tokenManagerAddress,
             topics: [ ethers.utils.id(eventName + "(string,address)") ]
         }
