@@ -4,7 +4,7 @@
 * Ethereum &harr; SKALE
 ** xref:transferring-eth.adoc[Transferring ETH]
 ** xref:managing-erc20.adoc[Managing ERC20]
-** xref:managing-erc721.adoc[Managing ERC721]
+** xref:managing-erc721.adoc[Managing ERC721 and ERC721 with metadata]
 ** xref:managing-erc1155.adoc[Managing ERC1155]
 ** xref:funding-exits.adoc[Funding Exits]
 * SKALE &harr; SKALE (S2S)

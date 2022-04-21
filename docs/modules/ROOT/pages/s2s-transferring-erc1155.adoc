@@ -29,7 +29,7 @@ IMA-JS::
 
 [source,javascript]
 ----
-include::example$automatic-deploy-imajs.js[]
+include::example$s2s/automatic-deploy-imajs.js[]
 ----
 --
 
@@ -59,7 +59,7 @@ IMA-JS::
 
 [source,javascript]
 ----
-// TODO
+include::example$s2s/connect-chain-imajs.js[]
 ----
 --
 
@@ -69,7 +69,7 @@ Web3 JS::
 
 [source,javascript]
 ----
-include::example$connect-chain-web3.js[]
+include::example$s2s/connect-chain-web3.js[]
 ----
 --
 ====
@@ -88,6 +88,9 @@ This method is called from the origin chain to move ERC1155 tokens to a target c
 
 The **TokenManagerERC1155** contract is predeployed on each SKALE Chain. To get the SKALE Chain ABIs, check out the https://github.com/skalenetwork/skale-network/tree/master/releases/mainnet/IMA[current release page].
 
+[NOTE]
+It's also possible to transfer a batch of ERC1155 tokens at once. To do that, just pass `tokenIds` and `amounts` arrays instead of `tokenId` and `amount` to `transferToSchain` function.
+
 [tabs]
 ====
 IMA-JS::
@@ -96,8 +99,7 @@ IMA-JS::
 
 [source, javascript]
 ----
-// todo
-
+include::example$s2s/erc1155/transfer-from-origin-imajs.js[]
 ----
 --
 
@@ -107,7 +109,7 @@ Web3 JS::
 
 [source,javascript]
 ----
-include::example$s2s-erc1155-transfer-from-origin.js[]
+include::example$s2s/erc1155/transfer-from-origin-web3.js[]
 ----
 --
 ====
@@ -118,6 +120,9 @@ To exit ERC1155 tokens back to the origin chain, you will need to use the `trans
 
 The **TokenManagerERC1155** IMA contract is pre-deployed to your SKALE Chain. Please reach out to your account manager to receive the ABIs specific for your SKALE Chain.  
 
+[NOTE]
+It's also possible to transfer a batch of ERC1155 tokens at once. To do that, just pass `tokenIds` and `amounts` arrays instead of `tokenId` and `amount` to `transferToSchain` function.
+
 [tabs]
 ====
 IMA-JS::
@@ -126,8 +131,7 @@ IMA-JS::
 
 [source, javascript]
 ----
-// todo
-
+include::example$s2s/erc1155/transfer-from-target-imajs.js[]
 ----
 --
 
@@ -137,7 +141,7 @@ Web3 JS::
 
 [source,javascript]
 ----
-include::example$s2s-erc1155-transfer-from-target.js[]
+include::example$s2s/erc1155/transfer-from-target-web3.js[]
 ----
 --
 ====

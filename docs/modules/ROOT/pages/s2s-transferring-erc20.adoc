@@ -29,7 +29,7 @@ IMA-JS::
 
 [source,javascript]
 ----
-include::example$automatic-deploy-imajs.js[]
+include::example$s2s/automatic-deploy-imajs.js[]
 ----
 --
 
@@ -59,7 +59,7 @@ IMA-JS::
 
 [source,javascript]
 ----
-// TODO
+include::example$s2s/connect-chain-imajs.js[]
 ----
 --
 
@@ -69,7 +69,7 @@ Web3 JS::
 
 [source,javascript]
 ----
-include::example$connect-chain-web3.js[]
+include::example$s2s/connect-chain-web3.js[]
 ----
 --
 ====
@@ -96,8 +96,7 @@ IMA-JS::
 
 [source, javascript]
 ----
-// todo
-
+include::example$s2s/erc20/transfer-from-origin-imajs.js[]
 ----
 --
 
@@ -107,7 +106,7 @@ Web3 JS::
 
 [source,javascript]
 ----
-include::example$s2s-erc20-transfer-from-origin.js[]
+include::example$s2s/erc20/transfer-from-origin-web3.js[]
 ----
 --
 ====
@@ -126,8 +125,7 @@ IMA-JS::
 
 [source, javascript]
 ----
-// todo
-
+include::example$s2s/erc20/transfer-from-target-imajs.js[]
 ----
 --
 
@@ -137,7 +135,7 @@ Web3 JS::
 
 [source,javascript]
 ----
-include::example$s2s-erc20-transfer-from-target.js[]
+include::example$s2s/erc20/transfer-from-target-web3.js[]
 ----
 --
 ====
