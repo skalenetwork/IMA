@@ -605,7 +605,7 @@ function get_last_transfer_errors( isIncludeTextLog ) {
     const jarr = JSON.parse( JSON.stringify( g_arrLastTransferErrors ) );
     if( ! isIncludeTextLog ) {
         for( let i = 0; i < jarr.length; ++ i ) {
-            const jo = jarr[ i ];
+            const jo = jarr[i];
             if( "textLog" in jo )
                 delete jo.textLog;
         }
