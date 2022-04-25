@@ -599,8 +599,18 @@ function save_transfer_success_all() {
     g_mapTransferErrorCategories = { }; // clear all transfer error categories, out of time frame
 }
 
-function get_last_transfer_errors() {
-    return JSON.parse( JSON.stringify( g_arrLastTransferErrors ) );
+function get_last_transfer_errors( isIncludeTextLog ) {
+    if( typeof isIncludeTextLog == "undefined" )
+        isIncludeTextLog = true;
+    const jarr = JSON.parse( JSON.stringify( g_arrLastTransferErrors ) );
+    if( ! isIncludeTextLog ) {
+        for( let i = 0; i < jarr.length; ++ i ) {
+            const jo = jarr[ i ];
+            if( "textLog" in jo )
+                delete jo.textLog;
+        }
+    } // if( ! isIncludeTextLog )
+    return jarr;
 }
 
 function get_last_error_categories() {
