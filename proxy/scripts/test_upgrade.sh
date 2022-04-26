@@ -29,9 +29,6 @@ cp "$GITHUB_WORKSPACE/proxy/migrations/tools/version.ts" ./migrations/tools/vers
 ABI_FILENAME_SCHAIN="proxySchain_Test.json"
 ABI="data/$ABI_FILENAME_SCHAIN" MANIFEST=".openzeppelin/unknown-1337.json" VERSION="$DEPLOYED_VERSION" npx hardhat run migrations/changeManifest.ts --network localhost
 
-rm "$GITHUB_WORKSPACE"/proxy/.openzeppelin/unknown-*.json
-rm "$GITHUB_WORKSPACE/proxy/data/skaleManagerComponents.json"
-rm "$GITHUB_WORKSPACE/proxy/data/ima-schain-$DEPLOYED_VERSION-manifest.json"
 cp .openzeppelin/unknown-*.json "$GITHUB_WORKSPACE/proxy/.openzeppelin"
 cp ./data/skaleManagerComponents.json "$GITHUB_WORKSPACE/proxy/data/"
 cp "./data/ima-schain-$DEPLOYED_VERSION-manifest.json" "$GITHUB_WORKSPACE/proxy/data/"
