@@ -4,7 +4,7 @@ set -e
 
 cd "$(dirname "$0")"
 
-killall -9 geth
+killall -9 geth || true
 echo "--- Checking there are no old geth instances are still running..."
 ps -A | grep geth
 
