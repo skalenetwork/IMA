@@ -24,25 +24,43 @@ pragma solidity 0.8.6;
 import "../schain/KeyStorage.sol";
 
 
-contract KeyStorageMock is KeyStorage {
+interface IKeyStorageMock is IKeyStorage {
+    function setBlsCommonPublicKey(IFieldOperations.G2Point calldata key) external;
+    function setBlsCommonPublicKeyForSchain(bytes32 schainHash, IFieldOperations.G2Point calldata key) external;
+    function getBlsCommonPublicKeyForSchain(bytes32 schainHash) external view returns (IFieldOperations.G2Point memory);
+}
+
+
+contract KeyStorageMock is KeyStorage, IKeyStorageMock {
     
-    G2Operations.G2Point public blsCommonPublicKey;
-    mapping (bytes32 => G2Operations.G2Point) public blsCommonPublicKeys;
+    IFieldOperations.G2Point public blsCommonPublicKey;
+    mapping (bytes32 => IFieldOperations.G2Point) public blsCommonPublicKeys;
     string public hello = "Hello";
 
-    function setBlsCommonPublicKey(G2Operations.G2Point calldata key) external {
+    function setBlsCommonPublicKey(IFieldOperations.G2Point calldata key) external override {
         // TODO: remove when update compiler will be updated
-        G2Operations.G2Point memory _key = key;
+        IFieldOperations.G2Point memory _key = key;
         blsCommonPublicKey = _key;        
     }
 
-    function setBlsCommonPublicKeyForSchain(bytes32 schainHash, G2Operations.G2Point calldata key) external {
+    function setBlsCommonPublicKeyForSchain(
+        bytes32 schainHash,
+        IFieldOperations.G2Point calldata key
+    )
+        external
+        override
+    {
         // TODO: remove when update compiler will be updated
-        G2Operations.G2Point memory _key = key;
+        IFieldOperations.G2Point memory _key = key;
         blsCommonPublicKeys[schainHash] = _key;
     }
 
-    function getBlsCommonPublicKey() external view override returns (G2Operations.G2Point memory) {
+    function getBlsCommonPublicKey()
+        external
+        view
+        override(IKeyStorage, KeyStorage)
+        returns (IFieldOperations.G2Point memory)
+    {
         require(
             !(blsCommonPublicKey.x.a == 0 &&
               blsCommonPublicKey.x.b == 0 &&
@@ -53,8 +71,15 @@ contract KeyStorageMock is KeyStorage {
         return blsCommonPublicKey;
     }
 
-    function getBlsCommonPublicKeyForSchain(bytes32 schainHash) external view returns (G2Operations.G2Point memory) {
-        G2Operations.G2Point memory key = blsCommonPublicKeys[schainHash];
+    function getBlsCommonPublicKeyForSchain(
+        bytes32 schainHash
+    )
+        external
+        view
+        override
+        returns (IFieldOperations.G2Point memory)
+    {
+        IFieldOperations.G2Point memory key = blsCommonPublicKeys[schainHash];
         require(
             !(key.x.a == 0 &&
               key.x.b == 0 &&

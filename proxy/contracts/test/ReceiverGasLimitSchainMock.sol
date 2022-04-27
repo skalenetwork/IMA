@@ -22,7 +22,7 @@
 
 pragma solidity 0.8.6;
 
-import "../interfaces/IMessageReceiver.sol";
+import "@skalenetwork/ima-interfaces/IMessageReceiver.sol";
 
 
 contract ReceiverGasLimitSchainMock is IMessageReceiver {
@@ -34,11 +34,9 @@ contract ReceiverGasLimitSchainMock is IMessageReceiver {
     )
         external
         override
-        returns (address) 
     {
         while(true) {
             a++;
         }
-        return address(0);
     }
 }

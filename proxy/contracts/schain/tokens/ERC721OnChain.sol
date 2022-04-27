@@ -25,10 +25,23 @@ pragma solidity 0.8.6;
 import "@openzeppelin/contracts-upgradeable/token/ERC721/extensions/ERC721BurnableUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/token/ERC721/extensions/ERC721URIStorageUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/access/AccessControlEnumerableUpgradeable.sol";
+import "@skalenetwork/ima-interfaces/schain/tokens/IERC721OnChain.sol";
 
 
-contract ERC721OnChain is AccessControlEnumerableUpgradeable, ERC721BurnableUpgradeable, ERC721URIStorageUpgradeable {
+/**
+ * @title ERC721OnChain
+ * @dev ERC721 token that is used as an automatically deployed clone of ERC721 on mainnet.
+ */
+contract ERC721OnChain is
+    AccessControlEnumerableUpgradeable,
+    ERC721BurnableUpgradeable,
+    ERC721URIStorageUpgradeable,
+    IERC721OnChain
+{
 
+    /**
+     * @dev id of a role that allows token minting.
+     */
     bytes32 public constant MINTER_ROLE = keccak256("MINTER_ROLE");
 
     constructor(
@@ -43,23 +56,49 @@ contract ERC721OnChain is AccessControlEnumerableUpgradeable, ERC721BurnableUpgr
         _setupRole(MINTER_ROLE, _msgSender());
     }
 
+    /**
+     * @dev Set URI of ERC721 token.
+     * 
+     * Requirements:
+     * 
+     * - token with {tokenId} must exist.
+     * - sender must be the token owner or approved for the token.
+     */
     function setTokenURI(uint256 tokenId, string calldata tokenUri)
         external
+        override
         returns (bool)
     {
         require(_exists(tokenId), "Token does not exists");
-        require(_isApprovedOrOwner(msg.sender, tokenId), "Sender can not set token URI");
+        require(
+            _isApprovedOrOwner(msg.sender, tokenId) ||
+            hasRole(MINTER_ROLE, _msgSender()),
+            "Sender can not set token URI"
+        );
         _setTokenURI(tokenId, tokenUri);
         return true;
     }
 
+    /**
+     * @dev Mint token.
+     * 
+     * Requirements:
+     * 
+     * - sender must be granted with {MINTER_ROLE}.
+     */
     function mint(address account, uint256 tokenId)
         external
+        override
     {
         require(hasRole(MINTER_ROLE, _msgSender()), "Sender is not a Minter");
         _mint(account, tokenId);
     }
 
+    /**
+     * @dev Check if contract support {interfaceId} interface.
+     * 
+     * See https://eips.ethereum.org/EIPS/eip-165 for more details.
+     */
     function supportsInterface(
         bytes4 interfaceId
     )
@@ -71,6 +110,9 @@ contract ERC721OnChain is AccessControlEnumerableUpgradeable, ERC721BurnableUpgr
         return super.supportsInterface(interfaceId);
     }
 
+    /**
+     * @dev Get token URI.
+     */
     function tokenURI(
         uint256 tokenId
     )
@@ -84,6 +126,9 @@ contract ERC721OnChain is AccessControlEnumerableUpgradeable, ERC721BurnableUpgr
 
     // private
 
+    /**
+     * @dev Burn {tokenId}.
+     */
     function _burn(uint256 tokenId) internal override (ERC721Upgradeable, ERC721URIStorageUpgradeable) {
         ERC721URIStorageUpgradeable._burn(tokenId);
     }

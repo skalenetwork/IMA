@@ -5,6 +5,7 @@ from ima_predeployed.contracts.eth_erc20 import EthErc20Generator
 from ima_predeployed.contracts.token_manager_erc20 import TokenManagerErc20Generator
 from ima_predeployed.contracts.token_manager_erc721 import TokenManagerErc721Generator
 from ima_predeployed.contracts.token_manager_erc1155 import TokenManagerErc1155Generator
+from ima_predeployed.contracts.token_manager_erc721_with_metadata import TokenManagerErc721WithMetadataGenerator
 from ima_predeployed.contracts.token_manager_eth import TokenManagerEthGenerator
 from ima_predeployed.contracts.token_manager_linker import TokenManagerLinkerGenerator
 from .contracts.community_locker import CommunityLockerGenerator
@@ -22,7 +23,7 @@ from .addresses import \
     TOKEN_MANAGER_LINKER_ADDRESS, TOKEN_MANAGER_ETH_IMPLEMENTATION_ADDRESS, TOKEN_MANAGER_ETH_ADDRESS, \
     TOKEN_MANAGER_ERC20_IMPLEMENTATION_ADDRESS, TOKEN_MANAGER_ERC20_ADDRESS, \
     TOKEN_MANAGER_ERC721_IMPLEMENTATION_ADDRESS, TOKEN_MANAGER_ERC721_ADDRESS, ETH_ERC20_IMPLEMENTATION_ADDRESS, \
-    ETH_ERC20_ADDRESS
+    ETH_ERC20_ADDRESS, TOKEN_MANAGER_ERC721_WITH_METADATA_IMPLEMENTATION_ADDRESS, TOKEN_MANAGER_ERC721_WITH_METADATA_ADDRESS
 
 
 def generate_contracts(
@@ -85,6 +86,13 @@ def generate_contracts(
         TokenManagerErc1155Generator(owner_address, contracts_on_mainnet['deposit_box_erc1155_address'], schain_name)
     )
 
+    token_manager_erc721_with_metadata_implementation = ContractGenerator(TokenManagerErc721WithMetadataGenerator.ARTIFACT_FILENAME)
+    token_manager_erc721_with_metadata = UpgradeableContractGenerator(
+        TOKEN_MANAGER_ERC721_WITH_METADATA_IMPLEMENTATION_ADDRESS,
+        PROXY_ADMIN_ADDRESS,
+        TokenManagerErc721WithMetadataGenerator(owner_address, contracts_on_mainnet['deposit_box_erc721_with_metadata_address'], schain_name)
+    )
+
     eth_erc20_implementation = ContractGenerator(EthErc20Generator.ARTIFACT_FILENAME)
     eth_erc20 = UpgradeableContractGenerator(
         ETH_ERC20_IMPLEMENTATION_ADDRESS,
@@ -118,6 +126,9 @@ def generate_contracts(
 
         TOKEN_MANAGER_ERC1155_ADDRESS: token_manager_erc1155.generate_contract(),
         TOKEN_MANAGER_ERC1155_IMPLEMENTATION_ADDRESS: token_manager_erc1155_implementation.generate_contract(),
+
+        TOKEN_MANAGER_ERC721_WITH_METADATA_ADDRESS: token_manager_erc721_with_metadata.generate_contract(),
+        TOKEN_MANAGER_ERC721_WITH_METADATA_IMPLEMENTATION_ADDRESS: token_manager_erc721_with_metadata_implementation.generate_contract(),
 
         ETH_ERC20_ADDRESS: eth_erc20.generate_contract(),
         ETH_ERC20_IMPLEMENTATION_ADDRESS: eth_erc20_implementation.generate_contract()
@@ -169,6 +180,10 @@ def generate_abi() -> dict:
             'token_manager_erc1155',
             TOKEN_MANAGER_ERC1155_ADDRESS,
             ContractGenerator(TokenManagerErc1155Generator.ARTIFACT_FILENAME).abi),
+        **generate_abi_key(
+            'token_manager_erc721_with_metadata',
+            TOKEN_MANAGER_ERC721_WITH_METADATA_ADDRESS,
+            ContractGenerator(TokenManagerErc721WithMetadataGenerator.ARTIFACT_FILENAME).abi),
         **generate_abi_key(
             'eth_erc20',
             ETH_ERC20_ADDRESS,

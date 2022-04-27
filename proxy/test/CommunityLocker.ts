@@ -27,7 +27,7 @@ import chaiAsPromised from "chai-as-promised";
 import chai = require("chai");
 import {
     CommunityLocker,
-    MessageProxyForSchainTester,
+    MessageProxyForSchainWithoutSignature,
     MessagesTester,
     TokenManagerLinker,
 } from "../typechain";
@@ -43,10 +43,9 @@ import { ethers, web3 } from "hardhat";
 import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/dist/src/signer-with-address";
 
 import { assert, expect } from "chai";
-import { deployMessageProxyForSchainTester } from "./utils/deploy/test/messageProxyForSchainTester";
-import { deployKeyStorageMock } from "./utils/deploy/test/keyStorageMock";
 import { deployTokenManagerLinker } from "./utils/deploy/schain/tokenManagerLinker";
 import { BigNumber } from "ethers";
+import { currentTime, skipTime } from "./utils/time";
 
 const schainName = "TestSchain";
 
@@ -55,7 +54,7 @@ describe("CommunityLocker", () => {
     let user: SignerWithAddress;
 
     let tokenManagerLinker: TokenManagerLinker;
-    let messageProxyForSchain: MessageProxyForSchainTester;
+    let messageProxyForSchain: MessageProxyForSchainWithoutSignature;
     let messages: MessagesTester;
     let communityLocker: CommunityLocker;
     let fakeCommunityPool: any;
@@ -66,10 +65,10 @@ describe("CommunityLocker", () => {
     });
 
     beforeEach(async () => {
-        const keyStorage = await deployKeyStorageMock();
         messages = await deployMessages();
         fakeCommunityPool = messages.address;
-        messageProxyForSchain = await deployMessageProxyForSchainTester(keyStorage.address, schainName);
+        const messageProxyForSchainWithoutSignatureFactory = await ethers.getContractFactory("MessageProxyForSchainWithoutSignature");
+        messageProxyForSchain = await messageProxyForSchainWithoutSignatureFactory.deploy("MyChain") as MessageProxyForSchainWithoutSignature;
         tokenManagerLinker = await deployTokenManagerLinker(messageProxyForSchain, deployer.address);
         communityLocker = await deployCommunityLocker(schainName, messageProxyForSchain.address, tokenManagerLinker, fakeCommunityPool);
     })
@@ -107,11 +106,38 @@ describe("CommunityLocker", () => {
         expect(await communityLocker.activeUsers(user.address)).to.be.equal(false);
     });
 
-    it("should time limit per message", async () => {
+    it("should set time limit per message", async () => {
         await communityLocker.setTimeLimitPerMessage(0)
             .should.be.eventually.rejectedWith("Not enough permissions to set constant");
         await communityLocker.grantRole(await communityLocker.CONSTANT_SETTER_ROLE(), deployer.address);
         await communityLocker.setTimeLimitPerMessage(0);
         expect(BigNumber.from(await communityLocker.timeLimitPerMessage()).toString()).to.be.equal(BigNumber.from(0).toString());
+    });
+
+    it("should set gasprice", async () => {
+        const newBLSSignature: [BigNumber, BigNumber] = [
+            BigNumber.from("0x2dedd4eaeac95881fbcaa4146f95a438494545c607bd57d560aa1d13d2679db8"),
+            BigNumber.from("0x2e9a10a0baf75ccdbd2b5cf81491673108917ade57dea40d350d4cbebd7b0965")
+        ];
+        const sign = {
+            blsSignature: newBLSSignature,
+            counter: 0,
+            hashA: "0x24079dfb76803f93456a4d274cddcf154a874ae92c1092ef17a979d42ec6d4d4",
+            hashB: "0x1a44d878121e17e3f136ddbbba438a38d2dd0fdea786b0a815157828c2154047",
+        };
+        const time = await currentTime();
+        await communityLocker.setGasPrice(100, time + 200, sign).should.be.eventually.rejectedWith("Timestamp should not be in the future");
+        await communityLocker.setGasPrice(100, time, sign);
+        expect(BigNumber.from(await communityLocker.mainnetGasPrice()).toString()).to.be.equal(BigNumber.from(100).toString());
+        expect(BigNumber.from(await communityLocker.gasPriceTimestamp()).toString()).to.be.equal(BigNumber.from(time).toString());
+
+        skipTime(60);
+
+        await communityLocker.setGasPrice(101, time - 20, sign).should.be.eventually.rejectedWith("Gas price timestamp already updated");
+        await communityLocker.setGasPrice(101, time, sign).should.be.eventually.rejectedWith("Gas price timestamp already updated");
+        await communityLocker.setGasPrice(101, time + 70, sign).should.be.eventually.rejectedWith("Timestamp should not be in the future");
+        await communityLocker.setGasPrice(101, time + 40, sign);
+        expect(BigNumber.from(await communityLocker.mainnetGasPrice()).toString()).to.be.equal(BigNumber.from(101).toString());
+        expect(BigNumber.from(await communityLocker.gasPriceTimestamp()).toString()).to.be.equal(BigNumber.from(time + 40).toString());
     });
 });
