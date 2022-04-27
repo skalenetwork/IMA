@@ -48,9 +48,19 @@ include::example$s2s/connect-chain-web3.js[]
 
 Deploy your ERC20 contract on the Origin chain.
 
+[source,javascript]
+----
+include::example$erc20/token.sol[]
+----
+
 === 3. Deploy ERC20 clone on Target
 
 The ERC20 clone on the target chain MUST have both mint and burn functionalities. If the original ERC20 contract on origin does not have burn functionalities, then you must add burn() to the clone.
+
+[source,javascript]
+----
+include::example$erc20/token-clone.sol[]
+----
 
 === 4. Register ERC20 in TokenManager on Origin
 
@@ -78,7 +88,6 @@ include::example$s2s/erc20-register-web3.js[]
 ----
 --
 ====
-
 
 === 5. Register ERC20 clone in TokenManger on Target
 
