@@ -1,5 +1,7 @@
 #!/usr/bin/env bash
 
+set -e
+
 yarn compile
 VERSION=$(cat ../VERSION)
 VERSION=$VERSION ./predeployed/scripts/build_package.sh
