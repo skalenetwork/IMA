@@ -3,7 +3,7 @@ import "@nomiclabs/hardhat-etherscan";
 import "@nomiclabs/hardhat-waffle";
 import "@nomiclabs/hardhat-web3";
 import "@openzeppelin/hardhat-upgrades";
-import "hardhat-typechain";
+import "@typechain/hardhat";
 import "solidity-coverage";
 import * as dotenv from "dotenv";
 
@@ -38,7 +38,7 @@ const config: HardhatUserConfig = {
   solidity: {
     version: '0.8.6',
     settings: {
-      optimizer:{
+      optimizer: {
         enabled: true,
         runs: 200
       }
@@ -69,6 +69,10 @@ const config: HardhatUserConfig = {
   },
   etherscan: {
     apiKey: process.env.ETHERSCAN
+  },
+  typechain: {
+    outDir: "typechain/",
+    externalArtifacts: ['node_modules/@openzeppelin/upgrades-core/artifacts/*.json']
   }
 };
 

@@ -27,9 +27,9 @@ def check_message_proxy_for_schain(owner_address, schain_name):
         raise AssertionError
     if not message_proxy_for_schain.functions.gasLimit().call() == MessageProxyForSchainGenerator.GAS_LIMIT:
         raise AssertionError
-    if not message_proxy_for_schain.functions.getContractRegisteredLength(MessageProxyForSchainGenerator.ANY_SCHAIN).call() == 5:
+    if not message_proxy_for_schain.functions.getContractRegisteredLength(MessageProxyForSchainGenerator.ANY_SCHAIN).call() == 6:
         raise AssertionError
-    if not message_proxy_for_schain.functions.getContractRegisteredRange(MessageProxyForSchainGenerator.ANY_SCHAIN, 0, 5).call() == [
+    if not message_proxy_for_schain.functions.getContractRegisteredRange(MessageProxyForSchainGenerator.ANY_SCHAIN, 0, 6).call() == [
         TOKEN_MANAGER_ETH_ADDRESS,
         TOKEN_MANAGER_ERC20_ADDRESS,
         TOKEN_MANAGER_ERC721_ADDRESS,
