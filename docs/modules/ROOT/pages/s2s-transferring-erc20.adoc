@@ -76,7 +76,7 @@ IMA-JS::
 
 [source,javascript]
 ----
-// TODO
+include::examples$s2s/erc20/register-origin-imajs.js[]
 ----
 --
 
@@ -86,7 +86,7 @@ Web3 JS::
 
 [source,javascript]
 ----
-include::example$s2s/erc20-register-web3.js[]
+include::example$s2s/erc20/register-origin-web3.js[]
 ----
 --
 ====
@@ -97,6 +97,29 @@ You need to register the target token contract using the addERC20TokenByOwner me
 
 [IMPORTANT]
 The parameters on target TokenManagerERC20.addERC20TokenByOwner() are not symmetric to origin! The only parameter to swap is the first parameter for SchainName.
+
+[tabs]
+====
+IMA-JS::
++
+--
+
+[source,javascript]
+----
+include::examples$s2s/erc20/register-target-imajs.js[]
+----
+--
+
+Web3 JS::
++
+--
+
+[source,javascript]
+----
+include::example$s2s/erc20/register-target-web3.js[]
+----
+--
+====
 
 === 6. Assign MINTER and BURNER roles to TokenManager on Target.
 
