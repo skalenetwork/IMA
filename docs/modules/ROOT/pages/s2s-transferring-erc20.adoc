@@ -14,12 +14,14 @@ The following one-time setup is required for SKALE Chains with a default access 
 
 === 1. Connect each SKALE Chain
 
-⇢ Add the `target` chain using `connectSchain` within the **TokenManagerLinker** contract on the `origin` chain. 
+You must connect each chain in both directions by executing two connectSchain() transaction on each respective chain.
 
-⇠ To exit from the target, you must also reciprocate the connection by adding the `origin` chain using `connectSchain` on the `target` chain.
+⇢ To connect the `target` chain to the `origin` chain, run `connectSchain(targetSchainName)` in **TokenManagerLinker** contract on the `origin` chain. 
+
+⇠ To connect the `origin` chain to the `target` chain, run `connectSchain(originSchainName)` in **TokenManagerLinker** contract on the `target` chain.
 
 [NOTE]
-Only the `REGISTRAR_ROLE` may execute `connectSchain`.
+Only the `REGISTRAR_ROLE` in TokenManagerLinker may execute `connectSchain`. So you must be granted with this role on this contract.
 
 [tabs]
 ====
@@ -98,7 +100,7 @@ The parameters on target TokenManagerERC20.addERC20TokenByOwner() are not symmet
 
 === 6. Assign MINTER and BURNER roles to TokenManager on Target.
 
-Now you need to assign the **TokenManagerERC20** contact on your SKALE Chain as the MINTER_ROLE and BURNER_ROLE for the ERC20 clone on the target. With OpenZeppelin's framework, you simply need to execute an AddMinter and AddBurner transaction on the SKALE chain token contract.
+Now you need to assign the **TokenManagerERC20** contact on your SKALE Chain as the MINTER_ROLE and BURNER_ROLE for the ERC20 clone on the target. With OpenZeppelin's framework, you simply need to execute an AddMinter, AddBurner, and/or grantRole transaction on the SKALE chain token contract.
 
 [discrete]
 ==== Example Add Minter Role 
