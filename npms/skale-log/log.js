@@ -255,8 +255,7 @@ module.exports = {
 	  write: function() {
         let s = generateTimestampPrefix(); let i = 0; let cnt = 0;
         try {
-            cnt = arguments.length;
-            for( i = 0; i < cnt; ++i ) {
+            for( i = 0; i < arguments.length; ++i ) {
                 try {
                     s += arguments[i];
                 } catch ( err ) {
