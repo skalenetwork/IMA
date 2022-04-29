@@ -47,27 +47,27 @@ include::example$s2s/connect-chain-web3.js[]
 --
 ====
 
-=== 2. Deploy ERC20 on Origin
+=== 2. Deploy ERC1155 on Origin
 
-Deploy your ERC20 contract on the Origin chain.
+Deploy your ERC1155 contract on the Origin chain.
 
 [source,javascript]
 ----
 include::example$erc20/token.sol[]
 ----
 
-=== 3. Deploy ERC20 clone on Target
+=== 3. Deploy ERC1155 clone on Target
 
-The ERC20 clone on the target chain MUST have both mint and burn functionalities. If the original ERC20 contract on origin does not have burn functionalities, then you must add burn() to the clone.
+The ERC1155 clone on the target chain MUST have both mint and burn functionalities. If the original ERC1155 contract on origin does not have burn functionalities, then you must add burn() to the clone.
 
 [source,javascript]
 ----
 include::example$erc20/token-clone.sol[]
 ----
 
-=== 4. Register ERC20 in TokenManager on Origin
+=== 4. Register ERC1155 in TokenManager on Origin
 
-You need to register the origin token contract using the addERC20TokenByOwner method in the TokenManagerERC20 contract. `addERC20TokenByOwner(targetSchainName, originERC20Address, targetERC20Address)`
+You need to register the origin token contract using the addERC1155TokenByOwner method in the TokenManagerERC1155 contract. `addERC1155TokenByOwner(targetSchainName, originERC1155Address, targetERC1155Address)`
 
 [tabs]
 ====
@@ -77,7 +77,7 @@ IMA-JS::
 
 [source,javascript]
 ----
-include::examples$s2s/erc20/register-origin-imajs.js[]
+include::examples$s2s/erc1155/register-origin-imajs.js[]
 ----
 --
 
@@ -87,17 +87,17 @@ Web3 JS::
 
 [source,javascript]
 ----
-include::example$s2s/erc20/register-origin-web3.js[]
+include::example$s2s/erc1155/register-origin-web3.js[]
 ----
 --
 ====
 
-=== 5. Register ERC20 clone in TokenManger on Target
+=== 5. Register ERC1155 clone in TokenManger on Target
 
-You need to register the target token contract using the addERC20TokenByOwner method in the TokenManagerERC20 contract on the targetSchain. `addERC20TokenByOwner(originSchainName, originERC20Address, targetERC20Address)`
+You need to register the target token contract using the addERC1155TokenByOwner method in the TokenManagerERC1155 contract on the targetSchain. `addERC1155TokenByOwner(originSchainName, originERC1155Address, targetERC1155Address)`
 
 [IMPORTANT]
-The parameters on target TokenManagerERC20.addERC20TokenByOwner() are not symmetric to origin! The only parameter to swap is the first parameter for SchainName.
+The parameters on target TokenManagerERC1155.addERC1155TokenByOwner() are not symmetric to origin! The only parameter to swap is the first parameter for SchainName.
 
 [tabs]
 ====
@@ -106,7 +106,7 @@ IMA-JS::
 --
 [source,javascript]
 ----
-include::examples$s2s/erc20/register-target-imajs.js[]
+include::examples$s2s/erc1155/register-target-imajs.js[]
 ----
 --
 Web3 JS::
@@ -114,14 +114,14 @@ Web3 JS::
 --
 [source,javascript]
 ----
-include::example$s2s/erc20/register-target-web3.js[]
+include::example$s2s/erc1155/register-target-web3.js[]
 ----
 --
 ====
 
 === 6. Assign MINTER and BURNER roles to TokenManager on Target.
 
-Now you need to assign the **TokenManagerERC20** contact on your SKALE Chain as the MINTER_ROLE and BURNER_ROLE for the ERC20 clone on the target. With OpenZeppelin's framework, you simply need to execute an AddMinter, AddBurner, and/or grantRole transaction on the SKALE chain token contract.
+Now you need to assign the **TokenManagerERC1155** contact on your SKALE Chain as the MINTER_ROLE and BURNER_ROLE for the ERC1155 clone on the target. With OpenZeppelin's framework, you simply need to execute an AddMinter, AddBurner, and/or grantRole transaction on the SKALE chain token contract.
 
 [discrete]
 ==== Example Add Minter Role 
@@ -133,7 +133,7 @@ Web3 JS::
 --
 [source,javascript]
 ----
-include::example$erc20/add-minter-role.js[]
+include::example$erc1155/add-minter-role.js[]
 ----
 --
 ====
