@@ -1,3 +1,28 @@
+// SPDX-License-Identifier: AGPL-3.0-only
+
+/**
+ * @license
+ * SKALE IMA
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Affero General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Affero General Public License for more details.
+ *
+ * You should have received a copy of the GNU Affero General Public License
+ * along with this program.  If not, see <https://www.gnu.org/licenses/>.
+ */
+
+/**
+ * @file oracle.js
+ * @copyright SKALE Labs 2019-Present
+ */
+
 const numberToBN = require( "number-to-bn" );
 const { keccak256 } = require( "js-sha3" );
 
@@ -13,7 +38,7 @@ const g_bnUpperPart = g_bn2.pow( g_bn256 ).sub( g_bn1 );
 
 const sleep = ( milliseconds ) => { return new Promise( resolve => setTimeout( resolve, milliseconds ) ); };
 
-function init() {
+function oracle_init() {
 }
 
 function get_utc_timestamp_string( d ) {
@@ -159,6 +184,6 @@ function oracle_get_gas_price( oracleOpts ) {
 }
 
 module.exports = {
-    init: init,
-    oracle_get_gas_price: oracle_get_gas_price
+    init: oracle_init,
+    get_gas_price: oracle_get_gas_price
 }; // module.exports

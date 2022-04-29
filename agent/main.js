@@ -2456,7 +2456,7 @@ async function single_transfer_loop() {
         if( IMA.verbose_get() >= IMA.RV_VERBOSE.information )
             log.write( strLogPrefix + cc.debug( "Will invoke Oracle gas price setup..." ) + "\n" );
         let b0 = true;
-        if( IMA.getOracleGasPriceMode() == 1 ) {
+        if( IMA.getEnabledOracle() ) {
             b0 = IMA.do_oracle_gas_price_setup(
                 imaState.w3_main_net,
                 imaState.w3_s_chain,

@@ -632,13 +632,14 @@ function setEnabledProgressiveEventsScan( isEnabled ) {
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-let g_nOracleGasPriceMode = 0;
+let g_bIsEnabledOracle = true;
 
-function getOracleGasPriceMode() {
-    return 0 + g_nOracleGasPriceMode;
+function getEnabledOracle( isEnabled ) {
+    return g_bIsEnabledOracle ? true : false;
 }
-function setOracleGasPriceMode( mode ) {
-    g_nOracleGasPriceMode = 0 + parseInt( mode ? mode.toString() : "0" );
+
+function setEnabledOracle( isEnabled ) {
+    g_bIsEnabledOracle = isEnabled ? true : false;
 }
 
 async function do_oracle_gas_price_setup(
@@ -652,7 +653,7 @@ async function do_oracle_gas_price_setup(
     fn_sign_o_msg,
     optsPendingTxAnalysis
 ) {
-    if( getOracleGasPriceMode() == 0 )
+    if( ! getEnabledOracle() )
         return;
     const details = log.createMemoryStream();
     const jarrReceipts = [];
@@ -677,8 +678,40 @@ async function do_oracle_gas_price_setup(
         timestampOfBlock -= 10;
         details.write( cc.debug( "Timestamp on Main Net is " ) + cc.info( timestampOfBlock ) + cc.debug( " (adjusted to past a bit)" ) + "\n" );
         strActionName = "do_oracle_gas_price_setup.getGasPrice()";
-        const gasPriceOnMainNet = "0x" + w3_main_net.utils.toBN( await w3_main_net.eth.getGasPrice() ).toString( 16 );
-        details.write( cc.info( "Main Net gas price" ) + cc.debug( " is " ) + cc.bright( gasPriceOnMainNet ) + "\n" );
+        let gasPriceOnMainNet = null;
+        if( IMA.getEnabledOracle() ) {
+            const oracleOpts = {
+                url: owaspUtils.w3_2_url( w3_schain ),
+                callOpts: { },
+                nMillisecondsSleepBefore: 1000,
+                nMillisecondsSleepPeriod: 3000,
+                cntAttempts: 40,
+                isVerbose: ( verbose_get() >= RV_VERBOSE.information ) ? true : false
+            };
+            details.write(
+                cc.debug( "Will fetch " ) + cc.info( "Main Net gas price" ) +
+                cc.debug( " via call to " ) + cc.info( "Oracle" ) +
+                cc.debug( " with options " ) + cc.j( oracleOpts ) +
+                cc.debug( "..." ) + "\n" );
+            try {
+                gasPriceOnMainNet = owaspUtils.ensure_starts_with_0x( ( await imaOracle.get_gas_price( oracleOpts ) ).toString( 16 ) );
+            } catch ( err ) {
+                gasPriceOnMainNet = null;
+                details.write(
+                    cc.error( "Failed to fetch " ) + cc.info( "Main Net gas price" ) +
+                    cc.error( " via call to " ) + cc.info( "Oracle" ) +
+                    cc.error( ", error is: " ) + cc.warning( err.toString() ) + "\n" );
+            }
+        }
+        if( gasPriceOnMainNet === null ) {
+            details.write(
+                cc.debug( "Will fetch " ) + cc.info( "Main Net gas price" ) +
+                cc.debug( " directly..." ) + "\n" );
+            gasPriceOnMainNet = "0x" + w3_main_net.utils.toBN( await w3_main_net.eth.getGasPrice() ).toString( 16 );
+        }
+        details.write(
+            cc.success( "Done, " ) + cc.info( "Main Net gas price" ) +
+            cc.success( " is " ) + cc.bright( gasPriceOnMainNet ) + "\n" );
         //
         strActionName = "do_oracle_gas_price_setup.fn_sign_o_msg()";
         await fn_sign_o_msg( gasPriceOnMainNet, details, async function( strError, u256, joGlueResult ) {
@@ -6874,8 +6907,8 @@ module.exports.getMaxIterationsInAllRangeEventsScan = getMaxIterationsInAllRange
 module.exports.setMaxIterationsInAllRangeEventsScan = setMaxIterationsInAllRangeEventsScan;
 module.exports.getEnabledProgressiveEventsScan = getEnabledProgressiveEventsScan;
 module.exports.setEnabledProgressiveEventsScan = setEnabledProgressiveEventsScan;
-module.exports.getOracleGasPriceMode = getOracleGasPriceMode;
-module.exports.setOracleGasPriceMode = setOracleGasPriceMode;
+module.exports.getEnabledOracle = getEnabledOracle;
+module.exports.setEnabledOracle = setEnabledOracle;
 module.exports.do_oracle_gas_price_setup = do_oracle_gas_price_setup;
 
 module.exports.get_S2S_transfer_mode_description = get_S2S_transfer_mode_description;
