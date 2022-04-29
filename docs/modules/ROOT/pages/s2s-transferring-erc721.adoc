@@ -12,44 +12,16 @@ Once you have completed step 1 to setup ERC721 tokens with another chain, end-us
 
 The following one-time setup is required for SKALE Chains with a default access control policy (default settings are: whitelisting enabled, automatic deployment disabled). For more information on IMA access control, xref:access-control.adoc[see here].
 
-=== 1. Enable Automatic Deploy
+=== 1. Connect each SKALE Chain
 
-include::partial$autodeploy-note.adoc[]
+You must connect each chain in both directions by executing two connectSchain() transaction on each respective chain.
 
-First, enable automatic deploy on the `origin` chain.
+⇢ To connect the `target` chain to the `origin` chain, run `connectSchain(targetSchainName)` in **TokenManagerLinker** contract on the `origin` chain. 
 
-[NOTE]
-Only the `AUTOMATIC_DEPLOYER_ROLE` may enable or disable automatic deployment.
-
-[tabs]
-====
-IMA-JS::
-+
---
-
-[source,javascript]
-----
-include::example$s2s/automatic-deploy-imajs.js[]
-----
---
-
-Web3 JS::
-+
---
-
-[source,javascript]
-----
-// TODO
-----
---
-====
-
-=== 2. Connect the target SKALE chain
-
-Add the `target` chain by using `connectSchain` within the **TokenManagerLinker** contract on the `origin` chain.
+⇠ To connect the `origin` chain to the `target` chain, run `connectSchain(originSchainName)` in **TokenManagerLinker** contract on the `target` chain.
 
 [NOTE]
-Only the `REGISTRAR_ROLE` may execute `connectSchain`.
+Only the `REGISTRAR_ROLE` in TokenManagerLinker may execute `connectSchain`. So you must be granted with this role on this contract.
 
 [tabs]
 ====
@@ -70,6 +42,97 @@ Web3 JS::
 [source,javascript]
 ----
 include::example$s2s/connect-chain-web3.js[]
+----
+--
+====
+
+=== 2. Deploy ERC20 on Origin
+
+Deploy your ERC20 contract on the Origin chain.
+
+[source,javascript]
+----
+include::example$erc20/token.sol[]
+----
+
+=== 3. Deploy ERC20 clone on Target
+
+The ERC20 clone on the target chain MUST have both mint and burn functionalities. If the original ERC20 contract on origin does not have burn functionalities, then you must add burn() to the clone.
+
+[source,javascript]
+----
+include::example$erc20/token-clone.sol[]
+----
+
+=== 4. Register ERC20 in TokenManager on Origin
+
+You need to register the origin token contract using the addERC20TokenByOwner method in the TokenManagerERC20 contract. `addERC20TokenByOwner(targetSchainName, originERC20Address, targetERC20Address)`
+
+[tabs]
+====
+IMA-JS::
++
+--
+
+[source,javascript]
+----
+include::examples$s2s/erc20/register-origin-imajs.js[]
+----
+--
+
+Web3 JS::
++
+--
+
+[source,javascript]
+----
+include::example$s2s/erc20/register-origin-web3.js[]
+----
+--
+====
+
+=== 5. Register ERC20 clone in TokenManger on Target
+
+You need to register the target token contract using the addERC20TokenByOwner method in the TokenManagerERC20 contract on the targetSchain. `addERC20TokenByOwner(originSchainName, originERC20Address, targetERC20Address)`
+
+[IMPORTANT]
+The parameters on target TokenManagerERC20.addERC20TokenByOwner() are not symmetric to origin! The only parameter to swap is the first parameter for SchainName.
+
+[tabs]
+====
+IMA-JS::
++
+--
+[source,javascript]
+----
+include::examples$s2s/erc20/register-target-imajs.js[]
+----
+--
+Web3 JS::
++
+--
+[source,javascript]
+----
+include::example$s2s/erc20/register-target-web3.js[]
+----
+--
+====
+
+=== 6. Assign MINTER and BURNER roles to TokenManager on Target.
+
+Now you need to assign the **TokenManagerERC20** contact on your SKALE Chain as the MINTER_ROLE and BURNER_ROLE for the ERC20 clone on the target. With OpenZeppelin's framework, you simply need to execute an AddMinter, AddBurner, and/or grantRole transaction on the SKALE chain token contract.
+
+[discrete]
+==== Example Add Minter Role 
+
+[tabs]
+====
+Web3 JS::
++
+--
+[source,javascript]
+----
+include::example$erc20/add-minter-role.js[]
 ----
 --
 ====
