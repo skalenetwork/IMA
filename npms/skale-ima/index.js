@@ -731,10 +731,31 @@ async function do_oracle_gas_price_setup(
             gasPriceOnMainNet = "0x" + w3_main_net.utils.toBN( await w3_main_net.eth.getGasPrice() ).toString( 16 );
         }
         details.write(
-            cc.success( "Done, " ) + cc.info( "Main Net gas price" ) +
+            cc.success( "Done, " ) + cc.info( "Oracle" ) + cc.success( " did computed new " ) + cc.info( "Main Net gas price" ) +
             cc.success( "=" ) + cc.bright( w3_main_net.utils.toBN( gasPriceOnMainNet ).toString() ) +
             cc.success( "=" ) + cc.bright( gasPriceOnMainNet ) +
             "\n" );
+        //
+        const joGasPriceOnMainNetOld =
+            await jo_community_locker.methods.mainnetGasPrice().call( {
+                from: joAccountSC.address( w3_schain )
+            } );
+        const bnGasPriceOnMainNetOld = w3_schain.utils.toBN( joGasPriceOnMainNetOld );
+        details.write(
+            cc.debug( "Previous " ) + cc.info( "Main Net gas price" ) + cc.debug( " saved and kept in " ) + cc.info( "CommunityLocker" ) +
+            cc.debug( "=" ) + cc.bright( bnGasPriceOnMainNetOld.toString() ) +
+            cc.debug( "=" ) + cc.bright( bnGasPriceOnMainNetOld.toString( 16 ) ) +
+            "\n" );
+        if( bnGasPriceOnMainNetOld.eq( w3_schain.utils.toBN( gasPriceOnMainNet ) ) ) {
+            details.write(
+                cc.debug( "Previous " ) + cc.info( "Main Net gas price" ) +
+                cc.debug( " is equal to new one, will skip setting it in " ) + cc.info( "CommunityLocker" ) +
+                "\n" );
+            if( expose_details_get() )
+                details.exposeDetailsTo( log, "do_oracle_gas_price_setup", true );
+            details.close();
+            return;
+        }
         //
         strActionName = "do_oracle_gas_price_setup.fn_sign_o_msg()";
         await fn_sign_o_msg( gasPriceOnMainNet, details, async function( strError, u256, joGlueResult ) {
