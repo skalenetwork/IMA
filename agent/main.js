@@ -2453,10 +2453,10 @@ async function single_transfer_loop() {
             return true;
         }
 
-        if( IMA.verbose_get() >= IMA.RV_VERBOSE.information )
-            log.write( strLogPrefix + cc.debug( "Will invoke Oracle gas price setup..." ) + "\n" );
         let b0 = true;
         if( IMA.getEnabledOracle() ) {
+            if( IMA.verbose_get() >= IMA.RV_VERBOSE.information )
+                log.write( strLogPrefix + cc.debug( "Will invoke Oracle gas price setup..." ) + "\n" );
             b0 = IMA.do_oracle_gas_price_setup(
                 imaState.w3_main_net,
                 imaState.w3_s_chain,
