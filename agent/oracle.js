@@ -125,7 +125,7 @@ function oracle_get_gas_price( oracleOpts, details ) {
                             return;
                         }
                         for( let idxAttempt = 0; idxAttempt < cntAttempts; ++idxAttempt ) {
-                            const nMillisecondsToSleep = ( idxAttempt == 0 ) ? nMillisecondsSleepBefore : nMillisecondsSleepPeriod;
+                            const nMillisecondsToSleep = ( ! idxAttempt ) ? nMillisecondsSleepBefore : nMillisecondsSleepPeriod;
                             if( nMillisecondsToSleep > 0 )
                                 await sleep( nMillisecondsToSleep );
                             try {
