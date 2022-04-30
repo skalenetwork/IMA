@@ -49,13 +49,14 @@ function get_utc_timestamp_string( d ) {
     return t;
 }
 
-function find_pow_number( strRequestPart, isVerbose ) {
+function find_pow_number( strRequestPart, details, isVerbose ) {
+    details = details || log;
     if( isVerbose )
-        log.write( cc.debug( "source part of request to find " ) + cc.sunny( "PoW number" ) + cc.debug( " is " ) + cc.notice( strRequestPart ) + "\n" );
+        details.write( cc.debug( "source part of request to find " ) + cc.sunny( "PoW number" ) + cc.debug( " is " ) + cc.notice( strRequestPart ) + "\n" );
     const t = get_utc_timestamp_string();
     let i = 0, n = 0, s = "";
     if( isVerbose )
-        log.write( cc.debug( "source " ) + cc.sunny( "t" ) + cc.debug( "=" ) + cc.info( t ) + cc.debug( ", this is " ) + cc.sunny( "UTC timestamp" ) + "\n" );
+        details.write( cc.debug( "source " ) + cc.sunny( "t" ) + cc.debug( "=" ) + cc.info( t ) + cc.debug( ", this is " ) + cc.sunny( "UTC timestamp" ) + "\n" );
     for( ; i < MAX_POW_NUMBER; ++ i ) {
         n = "" + i;
         s = "{" + strRequestPart + ",\"time\":" + t + ",\"pow\":" + n + "}";
@@ -63,10 +64,10 @@ function find_pow_number( strRequestPart, isVerbose ) {
         const r = g_bnUpperPart.div( f ); // r = ( 2 ** 256 - 1 ) / f;
         if( r.gt( g_bnMIN_POW_RESULT ) ) { // if( r > MIN_POW_RESULT )
             if( isVerbose ) {
-                log.write( cc.debug( "computed " ) + cc.sunny( "n" ) + cc.debug( "=" ) + cc.info( i ) + cc.debug( ", this is resulting " ) + cc.sunny( "PoW number" ) + "\n" );
-                log.write( cc.debug( "computed " ) + cc.sunny( "f" ) + cc.debug( "=" ) + cc.info( f.toString() ) + cc.debug( "=" ) + cc.info( "0x" + f.toString( 16 ) ) + "\n" );
-                log.write( cc.debug( "computed " ) + cc.sunny( "r" ) + cc.debug( "=" ) + cc.info( "(2**256-1)/f" ) + cc.debug( "=" ) + cc.info( r.toString() ) + cc.debug( "=" ) + cc.info( "0x" + r.toString( 16 ) ) + "\n" );
-                log.write( cc.debug( "computed " ) + cc.sunny( "s" ) + cc.debug( "=" ) + cc.info( s ) + "\n" );
+                details.write( cc.debug( "computed " ) + cc.sunny( "n" ) + cc.debug( "=" ) + cc.info( i ) + cc.debug( ", this is resulting " ) + cc.sunny( "PoW number" ) + "\n" );
+                details.write( cc.debug( "computed " ) + cc.sunny( "f" ) + cc.debug( "=" ) + cc.info( f.toString() ) + cc.debug( "=" ) + cc.info( "0x" + f.toString( 16 ) ) + "\n" );
+                details.write( cc.debug( "computed " ) + cc.sunny( "r" ) + cc.debug( "=" ) + cc.info( "(2**256-1)/f" ) + cc.debug( "=" ) + cc.info( r.toString() ) + cc.debug( "=" ) + cc.info( "0x" + r.toString( 16 ) ) + "\n" );
+                details.write( cc.debug( "computed " ) + cc.sunny( "s" ) + cc.debug( "=" ) + cc.info( s ) + "\n" );
             }
             break;
         }
@@ -74,11 +75,13 @@ function find_pow_number( strRequestPart, isVerbose ) {
     return s;
 }
 
-function oracle_get_gas_price( oracleOpts ) {
+function oracle_get_gas_price( oracleOpts, details ) {
+    details = details || log;
     const promise_complete = new Promise( ( resolve, reject ) => {
         try {
             const url = oracleOpts.url;
             const isVerbose = "isVerbose" in oracleOpts ? oracleOpts.isVerbose : false;
+            const isVerboseTraceDetails = "isVerboseTraceDetails" in oracleOpts ? oracleOpts.isVerboseTraceDetails : false;
             const callOpts = "callOpts" in oracleOpts ? oracleOpts.callOpts : { };
             const nMillisecondsSleepBefore = "nMillisecondsSleepBefore" in oracleOpts ? oracleOpts.nMillisecondsSleepBefore : 1000;
             const nMillisecondsSleepPeriod = "nMillisecondsSleepPeriod" in oracleOpts ? oracleOpts.nMillisecondsSleepPeriod : 3000;
@@ -87,34 +90,37 @@ function oracle_get_gas_price( oracleOpts ) {
                 cntAttempts = 1;
             rpcCall.create( url, callOpts || { }, async function( joCall, err ) {
                 if( err ) {
-                    log.write( cc.fatal( "CRITICAL ORACLE CALL ERROR:" ) + cc.error( " RPC connection problem for url " ) + cc.u( url ) + cc.error( ", error description: " ) + cc.warning( err.toString() ) + "\n" );
-                    log.write( err.stack + "\n" );
+                    details.write( cc.fatal( "CRITICAL ORACLE CALL ERROR:" ) + cc.error( " RPC connection problem for url " ) + cc.u( url ) + cc.error( ", error description: " ) + cc.warning( err.toString() ) + "\n" );
+                    details.write( err.stack + "\n" );
                     reject( new Error( "CRITICAL ORACLE CALL ERROR: RPC connection problem for url \"" + url + "\", error description: " + err.toString() ) );
                     return;
                 }
                 try {
                     const s = find_pow_number(
                         "\"cid\":1000,\"uri\":\"geth://\",\"jsps\":[\"/result\"],\"post\":\"{\\\"jsonrpc\\\":\\\"2.0\\\",\\\"method\\\":\\\"eth_gasPrice\\\",\\\"params\\\":[],\\\"id\\\":1}\"",
+                        details,
                         isVerbose
                     );
                     const joIn = {
                         method: "oracle_submitRequest",
                         params: [ s ]
                     };
-                    if( isVerbose )
-                        log.write( cc.debug( "RPC call" ) + cc.normal( "(" ) + cc.attention( "oracle_submitRequest" ) + cc.normal( ")" ) + cc.debug( " is " ) + cc.j( joIn ) + "\n" );
+                    if( isVerboseTraceDetails )
+                        details.write( cc.debug( "RPC call" ) + cc.normal( "(" ) + cc.attention( "oracle_submitRequest" ) + cc.normal( ")" ) + cc.debug( " is " ) + cc.j( joIn ) + "\n" );
                     await joCall.call( joIn, async function( joIn, joOut, err ) {
                         if( err ) {
-                            log.write( cc.fatal( "CRITICAL ORACLE CALL ERROR:" ) + cc.error( " JSON RPC call" ) + cc.debug( "(" ) + cc.attention( "oracle_submitRequest" ) + cc.normal( ")" ) + cc.error( " failed, error: " ) + cc.warning( err.toString() ) + "\n" );
-                            log.write( err.stack + "\n" );
+                            if( isVerboseTraceDetails ) {
+                                details.write( cc.fatal( "CRITICAL ORACLE CALL ERROR:" ) + cc.error( " JSON RPC call" ) + cc.debug( "(" ) + cc.attention( "oracle_submitRequest" ) + cc.normal( ")" ) + cc.error( " failed, error: " ) + cc.warning( err.toString() ) + "\n" );
+                                details.write( err.stack + "\n" );
+                            }
                             reject( new Error( "CRITICAL ORACLE CALL ERROR: JSON RPC call(oracle_submitRequest) failed, error: " + err.toString() ) );
                             return;
                         }
-                        if( isVerbose )
-                            log.write( cc.debug( "RPC call" ) + cc.normal( "(" ) + cc.attention( "oracle_submitRequest" ) + cc.normal( ")" ) + cc.debug( " result is: " ) + cc.j( joOut ) + "\n" );
+                        if( isVerboseTraceDetails )
+                            details.write( cc.debug( "RPC call" ) + cc.normal( "(" ) + cc.attention( "oracle_submitRequest" ) + cc.normal( ")" ) + cc.debug( " result is: " ) + cc.j( joOut ) + "\n" );
                         if( !( "result" in joOut && typeof joOut.result == "string" && joOut.result.length > 0 ) ) {
-                            log.write( cc.fatal( "CRITICAL ORACLE CALL ERROR:" ) + cc.error( " bad unexpecected result" ) + cc.normal( "(" ) + cc.attention( "oracle_submitRequest" ) + cc.normal( ")" ) + "\n" );
-                            log.write( err.stack + "\n" );
+                            details.write( cc.fatal( "CRITICAL ORACLE CALL ERROR:" ) + cc.error( " bad unexpecected result" ) + cc.normal( "(" ) + cc.attention( "oracle_submitRequest" ) + cc.normal( ")" ) + "\n" );
+                            details.write( err.stack + "\n" );
                             reject( new Error( "CRITICAL ORACLE CALL ERROR: bad unexpecected result(oracle_submitRequest)" ) );
                             return;
                         }
@@ -127,55 +133,59 @@ function oracle_get_gas_price( oracleOpts ) {
                                     method: "oracle_checkResult",
                                     params: [ joOut.result ]
                                 };
-                                if( isVerbose ) {
-                                    log.write( cc.debug( "RPC call" ) + cc.normal( "(" ) + cc.attention( "oracle_checkResult" ) + cc.normal( ")" ) + cc.debug( " attempt " ) + cc.info( idxAttempt ) + cc.debug( " of " ) + cc.info( cntAttempts ) + cc.debug( "..." ) + "\n" );
-                                    log.write( cc.debug( "RPC call" ) + cc.normal( "(" ) + cc.attention( "oracle_checkResult" ) + cc.normal( ")" ) + cc.debug( " is " ) + cc.j( joIn ) + "\n" );
+                                if( isVerboseTraceDetails ) {
+                                    details.write( cc.debug( "RPC call" ) + cc.normal( "(" ) + cc.attention( "oracle_checkResult" ) + cc.normal( ")" ) + cc.debug( " attempt " ) + cc.info( idxAttempt ) + cc.debug( " of " ) + cc.info( cntAttempts ) + cc.debug( "..." ) + "\n" );
+                                    details.write( cc.debug( "RPC call" ) + cc.normal( "(" ) + cc.attention( "oracle_checkResult" ) + cc.normal( ")" ) + cc.debug( " is " ) + cc.j( joIn ) + "\n" );
                                 }
                                 await joCall.call( joIn, async function( joIn, joOut, err ) {
                                     if( err ) {
-                                        log.write( cc.fatal( "CRITICAL ORACLE CALL ERROR:" ) + cc.error( " JSON RPC call" ) + cc.debug( "(" ) + cc.attention( "oracle_checkResult" ) + cc.normal( ")" ) + cc.error( " failed, error: " ) + cc.warning( err.toString() ) + "\n" );
-                                        log.write( err.stack + "\n" );
-                                        reject( new Error( "CRITICAL ORACLE CALL ERROR: JSON RPC call(oracle_checkResult) failed, error: " + err.toString() ) );
+                                        if( isVerboseTraceDetails ) {
+                                            details.write( cc.fatal( "CRITICAL ORACLE CALL ERROR:" ) + cc.error( " JSON RPC call" ) + cc.debug( "(" ) + cc.attention( "oracle_checkResult" ) + cc.normal( ")" ) + cc.error( " failed, error: " ) + cc.warning( err.toString() ) + "\n" );
+                                            details.write( err.stack + "\n" );
+                                        }
+                                        //reject( new Error( "CRITICAL ORACLE CALL ERROR: JSON RPC call(oracle_checkResult) failed, error: " + err.toString() ) );
                                         return;
                                     }
-                                    if( isVerbose )
-                                        log.write( cc.debug( "RPC call" ) + cc.normal( "(" ) + cc.attention( "oracle_checkResult" ) + cc.normal( ")" ) + cc.debug( " result is: " ) + cc.j( joOut ) + "\n" );
+                                    if( isVerboseTraceDetails )
+                                        details.write( cc.debug( "RPC call" ) + cc.normal( "(" ) + cc.attention( "oracle_checkResult" ) + cc.normal( ")" ) + cc.debug( " result is: " ) + cc.j( joOut ) + "\n" );
                                     if( !( "result" in joOut && typeof joOut.result == "string" && joOut.result.length > 0 ) ) {
-                                        log.write( cc.fatal( "CRITICAL ORACLE CALL ERROR:" ) + cc.error( " bad unexpecected result" ) + cc.normal( "(" ) + cc.attention( "oracle_checkResult" ) + cc.normal( ")" ) + "\n" );
-                                        log.write( err.stack + "\n" );
-                                        reject( new Error( "CRITICAL ORACLE CALL ERROR: bad unexpecected result(oracle_checkResult)" ) );
+                                        if( isVerboseTraceDetails ) {
+                                            details.write( cc.fatal( "CRITICAL ORACLE CALL ERROR:" ) + cc.error( " bad unexpecected result" ) + cc.normal( "(" ) + cc.attention( "oracle_checkResult" ) + cc.normal( ")" ) + "\n" );
+                                            details.write( err.stack + "\n" );
+                                        }
+                                        // reject( new Error( "CRITICAL ORACLE CALL ERROR: bad unexpecected result(oracle_checkResult)" ) );
                                         return;
                                     }
                                     const joResult = JSON.parse( joOut.result );
-                                    if( isVerbose )
-                                        log.write( cc.debug( "RPC call" ) + cc.normal( "(" ) + cc.attention( "oracle_checkResult" ) + cc.normal( ")" ) + cc.debug( " parsed " ) + cc.sunny( "result" ) + cc.debug( " field is: " ) + cc.j( joResult ) + "\n" );
+                                    if( isVerboseTraceDetails )
+                                        details.write( cc.debug( "RPC call" ) + cc.normal( "(" ) + cc.attention( "oracle_checkResult" ) + cc.normal( ")" ) + cc.debug( " parsed " ) + cc.sunny( "result" ) + cc.debug( " field is: " ) + cc.j( joResult ) + "\n" );
                                     const gp = numberToBN( joResult.rslts[0] );
                                     if( isVerbose )
-                                        log.write( cc.success( "success, computed " ) + cc.sunny( "Gas Price" ) + cc.success( "=" ) + cc.info( gp.toString() ) + cc.success( "=" ) + cc.info( "0x" + gp.toString( 16 ) ) + "\n" );
+                                        details.write( cc.success( "success, computed " ) + cc.sunny( "Gas Price" ) + cc.success( "=" ) + cc.info( gp.toString() ) + cc.success( "=" ) + cc.info( "0x" + gp.toString( 16 ) ) + "\n" );
                                     resolve( gp );
                                     return;
                                 } );
                             } catch ( err ) {
-                                log.write( cc.fatal( "CRITICAL ORACLE CALL ERROR:" ) + cc.error( " RPC call" ) + cc.normal( "(" ) + cc.attention( "oracle_checkResult" ) + cc.normal( ")" ) + cc.error( " exception is: " ) + cc.warning( err.toString() ) + "\n" );
-                                log.write( err.stack + "\n" );
+                                details.write( cc.fatal( "CRITICAL ORACLE CALL ERROR:" ) + cc.error( " RPC call" ) + cc.normal( "(" ) + cc.attention( "oracle_checkResult" ) + cc.normal( ")" ) + cc.error( " exception is: " ) + cc.warning( err.toString() ) + "\n" );
+                                details.write( err.stack + "\n" );
                                 reject( err );
                                 return;
                             }
                         } // for( let idxAttempt = 0; idxAttempt < cntAttempts; ++idxAttempt )
-                        log.write( cc.fatal( "CRITICAL ORACLE CALL ERROR:" ) + cc.error( " RPC call" ) + cc.normal( "(" ) + cc.attention( "oracle_checkResult" ) + cc.normal( ")" ) + cc.error( " all attempts timed out" ) + "\n" );
+                        details.write( cc.fatal( "CRITICAL ORACLE CALL ERROR:" ) + cc.error( " RPC call" ) + cc.normal( "(" ) + cc.attention( "oracle_checkResult" ) + cc.normal( ")" ) + cc.error( " all attempts timed out" ) + "\n" );
                         reject( new Error( "RPC call(oracle_checkResult) all attempts timed out" ) );
                         return;
                     } );
                 } catch ( err ) {
-                    log.write( cc.fatal( "CRITICAL ORACLE CALL ERROR:" ) + cc.error( " RPC call" ) + cc.normal( "(" ) + cc.attention( "oracle_submitRequest" ) + cc.normal( ")" ) + cc.error( " exception is: " ) + cc.warning( err.toString() ) + "\n" );
-                    log.write( err.stack + "\n" );
+                    details.write( cc.fatal( "CRITICAL ORACLE CALL ERROR:" ) + cc.error( " RPC call" ) + cc.normal( "(" ) + cc.attention( "oracle_submitRequest" ) + cc.normal( ")" ) + cc.error( " exception is: " ) + cc.warning( err.toString() ) + "\n" );
+                    details.write( err.stack + "\n" );
                     reject( err );
                     return;
                 }
             } );
         } catch ( err ) {
-            log.write( cc.fatal( "CRITICAL ORACLE CALL ERROR:" ) + cc.error( " RPC call object creation failed, error is: " ) + cc.warning( err.toString() ) + "\n" );
-            log.write( err.stack + "\n" );
+            details.write( cc.fatal( "CRITICAL ORACLE CALL ERROR:" ) + cc.error( " RPC call object creation failed, error is: " ) + cc.warning( err.toString() ) + "\n" );
+            details.write( err.stack + "\n" );
             reject( err );
             return;
         }
