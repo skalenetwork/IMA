@@ -12,44 +12,17 @@ Once you have completed step 1 to setup ERC1155 tokens with another chain, end-u
 
 The following one-time setup is required for SKALE Chains with a default access control policy (default settings are: whitelisting enabled, automatic deployment disabled). For more information on IMA access control, xref:access-control.adoc[see here].
 
-=== 1. Enable Automatic Deploy
+=== 1. Connect each SKALE Chain
 
-include::partial$autodeploy-note.adoc[]
+You must connect each chain in both directions by executing two connectSchain() transaction on each respective chain.
 
-First, enable automatic deploy on the `origin` chain.
+⇢ To connect the `target` chain to the `origin` chain, run `connectSchain(targetSchainName)` in **TokenManagerLinker** contract on the `origin` chain. 
 
-[NOTE]
-Only the `AUTOMATIC_DEPLOYER_ROLE` may enable or disable automatic deployment.
+⇠ To connect the `origin` chain to the `target` chain, run `connectSchain(originSchainName)` in **TokenManagerLinker** contract on the `target` chain.
 
-[tabs]
-====
-IMA-JS::
-+
---
-
-[source,javascript]
-----
-include::example$s2s/automatic-deploy-imajs.js[]
-----
---
-
-Web3 JS::
-+
---
-
-[source,javascript]
-----
-// TODO
-----
---
-====
-
-=== 2. Connect the target SKALE chain
-
-Add the `target` chain by using `connectSchain` within the **TokenManagerLinker** contract on the `origin` chain.
 
 [NOTE]
-Only the `REGISTRAR_ROLE` may execute `connectSchain`.
+Only the `REGISTRAR_ROLE` in TokenManagerLinker may execute `connectSchain`. So you must be granted with this role on this contract.
 
 [tabs]
 ====
@@ -70,6 +43,97 @@ Web3 JS::
 [source,javascript]
 ----
 include::example$s2s/connect-chain-web3.js[]
+----
+--
+====
+
+=== 2. Deploy ERC1155 on Origin
+
+Deploy your ERC1155 contract on the Origin chain.
+
+[source,javascript]
+----
+include::example$erc1155/token.sol[]
+----
+
+=== 3. Deploy ERC1155 clone on Target
+
+The ERC1155 clone on the target chain MUST have both mint and burn functionalities. If the original ERC1155 contract on origin does not have burn functionalities, then you must add burn() to the clone.
+
+[source,javascript]
+----
+include::example$erc1155/token-clone.sol[]
+----
+
+=== 4. Register ERC1155 in TokenManager on Origin
+
+You need to register the origin token contract using the addERC1155TokenByOwner method in the TokenManagerERC1155 contract. `addERC1155TokenByOwner(targetSchainName, originERC1155Address, targetERC1155Address)`
+
+[tabs]
+====
+IMA-JS::
++
+--
+
+[source,javascript]
+----
+include::examples$s2s/erc1155/register-origin-imajs.js[]
+----
+--
+
+Web3 JS::
++
+--
+
+[source,javascript]
+----
+include::example$s2s/erc1155/register-origin-web3.js[]
+----
+--
+====
+
+=== 5. Register ERC1155 clone in TokenManger on Target
+
+You need to register the target token contract using the addERC1155TokenByOwner method in the TokenManagerERC1155 contract on the targetSchain. `addERC1155TokenByOwner(originSchainName, originERC1155Address, targetERC1155Address)`
+
+[IMPORTANT]
+The parameters on target TokenManagerERC1155.addERC1155TokenByOwner() are not symmetric to origin! The only parameter to swap is the first parameter for SchainName.
+
+[tabs]
+====
+IMA-JS::
++
+--
+[source,javascript]
+----
+include::examples$s2s/erc1155/register-target-imajs.js[]
+----
+--
+Web3 JS::
++
+--
+[source,javascript]
+----
+include::example$s2s/erc1155/register-target-web3.js[]
+----
+--
+====
+
+=== 6. Assign MINTER and BURNER roles to TokenManager on Target.
+
+Now you need to assign the **TokenManagerERC1155** contact on your SKALE Chain as the MINTER_ROLE and BURNER_ROLE for the ERC1155 clone on the target. With OpenZeppelin's framework, you simply need to execute an AddMinter, AddBurner, and/or grantRole transaction on the SKALE chain token contract.
+
+[discrete]
+==== Example Add Minter Role 
+
+[tabs]
+====
+Web3 JS::
++
+--
+[source,javascript]
+----
+include::example$erc1155/add-minter-role.js[]
 ----
 --
 ====
