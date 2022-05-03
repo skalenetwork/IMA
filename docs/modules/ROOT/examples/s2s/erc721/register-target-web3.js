@@ -21,8 +21,8 @@ export function registerOnTargetChain() {
   const targetTokenManagerAddress = targetABIs.token_manager_erc721_address;
   const targetTokenManagerABI = targetABIs.token_manager_erc721_abi;
 
-  const erc20AddressOnOrigin = originERC20ABI.erc20_address;
-  const erc20AddressOnTarget = targetERC20ABI.erc20_address;
+  const erc721AddressOnOrigin = originERC721ABI.erc721_address;
+  const erc721AddressOnTarget = targetERC721ABI.erc721_address;
 
   const web3ForTarget = new Web3(target);
 
@@ -36,15 +36,15 @@ export function registerOnTargetChain() {
    * contract function addERC721TokenByOwner
    */
 let addERC721TokenByOwner = TokenManager.methods
-    .addERC721TokenByOwner(originChainName, erc20AddressOnOrigin, erc20AddressOnTarget)
+    .addERC721TokenByOwner(originChainName, erc721AddressOnOrigin, erc721AddressOnTarget)
     .encodeABI();     // IMPORTANT: arguments here are not symmetric to origin addERC721TokenByOwner
 
-    web3ForTarget.eth.getTransactionCount(erc20OwnerForTarget).then((nonce) => {
+    web3ForTarget.eth.getTransactionCount(erc721OwnerForTarget).then((nonce) => {
     const rawTxAddERC721TokenByOwner = {
       chainId: targetChainId,
-      from: erc20OwnerForTarget,
+      from: erc721OwnerForTarget,
       nonce: "0x" + nonce.toString(16),
-      data: addERC20TokenByOwner,
+      data: addERC721TokenByOwner,
       to: targetTokenManagerAddress,
       gas: 6500000,
       gasPrice: 100000000000,
@@ -54,16 +54,16 @@ let addERC721TokenByOwner = TokenManager.methods
     };
 
     //sign transaction
-    const txAddERC20TokenByOwner = new Tx(rawTxAddERC20TokenByOwner, {
+    const txAddERC721TokenByOwner = new Tx(rawTxAddERC721TokenByOwner, {
       chain: "rinkeby",
       hardfork: "petersburg"
     });
 
-    txAddERC20TokenByOwner.sign(privateKey);
+    txAddERC721TokenByOwner.sign(privateKey);
 
-    const serializedTxDeposit = txAddERC20TokenByOwner.serialize();
+    const serializedTxDeposit = txAddERC721TokenByOwner.serialize();
 
-    //send signed transaction (addERC20TokenByOwner)
+    //send signed transaction (addERC721TokenByOwner)
     web3ForTarget.eth
       .sendSignedTransaction("0x" + serializedTxDeposit.toString("hex"))
       .on("receipt", (receipt) => {
