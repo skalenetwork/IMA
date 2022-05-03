@@ -48,11 +48,11 @@ include::example$s2s/connect-chain-web3.js[]
 
 === 2. Deploy ERC721 on Origin
 
-Deploy your ERC20 contract on the Origin chain.
+Deploy your ERC721 contract on the Origin chain.
 
 [source,javascript]
 ----
-include::example$erc20/token.sol[]
+include::example$erc721/token.sol[]
 ----
 
 === 3. Deploy ERC721 clone on Target
