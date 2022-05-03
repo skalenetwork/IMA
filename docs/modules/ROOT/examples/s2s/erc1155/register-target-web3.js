@@ -36,15 +36,15 @@ export function registerOnTargetChain() {
    * contract function addERC1155TokenByOwner
    */
 let addERC1155TokenByOwner = TokenManager.methods
-    .addERC20TokenByOwner(originChainName, erc20AddressOnOrigin, erc20AddressOnTarget)
+    .addERC1155TokenByOwner(originChainName, erc1155AddressOnOrigin, erc1155AddressOnTarget)
     .encodeABI();     // IMPORTANT: arguments here are not symmetric to origin addERC1155TokenByOwner
 
-    web3ForTarget.eth.getTransactionCount(erc20OwnerForTarget).then((nonce) => {
+    web3ForTarget.eth.getTransactionCount(erc1155OwnerForTarget).then((nonce) => {
     const rawTxAddERC1155TokenByOwner = {
       chainId: targetChainId,
-      from: erc20OwnerForTarget,
+      from: erc1155OwnerForTarget,
       nonce: "0x" + nonce.toString(16),
-      data: addERC20TokenByOwner,
+      data: addERC1155TokenByOwner,
       to: targetTokenManagerAddress,
       gas: 6500000,
       gasPrice: 100000000000,
@@ -54,16 +54,16 @@ let addERC1155TokenByOwner = TokenManager.methods
     };
 
     //sign transaction
-    const txAddERC20TokenByOwner = new Tx(rawTxAddERC20TokenByOwner, {
+    const txAddERC1155TokenByOwner = new Tx(rawTxAddERC1155TokenByOwner, {
       chain: "rinkeby",
       hardfork: "petersburg"
     });
 
-    txAddERC20TokenByOwner.sign(privateKey);
+    txAddERC1155TokenByOwner.sign(privateKey);
 
-    const serializedTxDeposit = txAddERC20TokenByOwner.serialize();
+    const serializedTxDeposit = txAddERC1155TokenByOwner.serialize();
 
-    //send signed transaction (addERC20TokenByOwner)
+    //send signed transaction (addERC1155TokenByOwner)
     web3ForTarget.eth
       .sendSignedTransaction("0x" + serializedTxDeposit.toString("hex"))
       .on("receipt", (receipt) => {
