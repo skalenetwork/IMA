@@ -7,6 +7,8 @@
         "postinstall": "echo \"----- installing in OWASP\n\" && cd ../npms/skale-owasp && yarn install && cd ../../agent && echo \"----- installing in IMA CORE\n\" && cd ../npms/skale-ima && yarn install && cd ../../agent && echo \"----- installing in IMA OBSERVER\n\" && cd ../npms/skale-observer && yarn install && cd ../../agent && echo \"----- installing in SKALE COOL SOCKET\n\" && cd ../npms/skale-cool-socket && yarn install && cd ../../agent"
     },
     "dependencies": {
+        "js-sha3": "^0.8.0",
+        "number-to-bn": "^1.7.0",
         "ethereumjs-tx": "2.1.2",
         "ethereumjs-wallet": "^1.0.2",
         "ethereumjs-util": "^7.1.3",
