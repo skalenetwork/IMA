@@ -53,7 +53,7 @@ Deploy your ERC1155 contract on the Origin chain.
 
 [source,javascript]
 ----
-include::example$erc20/token.sol[]
+include::example$erc1155/token.sol[]
 ----
 
 === 3. Deploy ERC1155 clone on Target
@@ -62,7 +62,7 @@ The ERC1155 clone on the target chain MUST have both mint and burn functionaliti
 
 [source,javascript]
 ----
-include::example$erc20/token-clone.sol[]
+include::example$erc1155/token-clone.sol[]
 ----
 
 === 4. Register ERC1155 in TokenManager on Origin
