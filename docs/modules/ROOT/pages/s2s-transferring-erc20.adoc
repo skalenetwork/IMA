@@ -76,7 +76,7 @@ IMA-JS::
 
 [source,javascript]
 ----
-include::examples$s2s/erc20/register-origin-imajs.js[]
+include::example$s2s/erc20/register-origin-imajs.js[]
 ----
 --
 
@@ -106,7 +106,7 @@ IMA-JS::
 
 [source,javascript]
 ----
-include::examples$s2s/erc20/register-target-imajs.js[]
+include::example$s2s/erc20/register-target-imajs.js[]
 ----
 --
 
