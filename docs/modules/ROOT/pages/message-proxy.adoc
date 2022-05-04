@@ -22,10 +22,14 @@ When the IMA Agent receives a message from `postOutgoingMessage`, the agent call
 
 .To register contracts to your SKALE Chain with MessageProxy on Mainnet:
 
+NOTE: `msg.sender` must be the SKALE Chain owner.
+
 * Add extra mainnet contract by calling `registerExtraContract([SKALE_CHAIN_NAME], [CONTRACT_ADDRESS_ON_MAINNET])`
 * Remove extra mainnet contract by calling `removeExtraContract([SKALE_CHAIN_NAME], [CONTRACT_ADDRESS_ON_MAINNET])`.
 
 .To register contracts to Mainnet with MessageProxy on your SKALE Chain:
+
+NOTE: `msg.sender` must be granted `EXTRA_CONTRACT_REGISTRAR_ROLE`.
 
 * Add extra SKALE Chain contract by calling `registerExtraContract("Mainnet", [CONTRACT_ADDRESS_ON_SCHAIN])`.
 * Remove extra SKALE Chain contract by calling `removeExtraContract("Mainnet", [CONTRACT_ADDRESS_ON_SCHAIN])`.
