@@ -10,6 +10,16 @@ The MessageProxy contract sends messages to any contract. The IMA system uses Me
 * When the Agent receives an Outgoing Message on either blockchain, it sends the message onward via `postIncomingMessage` to another MessageProxy contract on the destination chain to which it's sent.
 * You can view how `postOutgoingMessage` is used by DepositBox and TokenManager when a transfer is initiated to another chain (Mainnet or SKALE Chain).
 
+[IMPORTANT] 
+====
+Messages are limited to 1M gas by default. To change this limit, use the respective MessageProxy... contract. Below is shown for MessageProxyForSchain:
+
+```javascript
+MessageProxyForSchain.grantRole(keccak256("CONSTANT_SETTER_ROLE"), YOUR_ADDRESS)
+MessageProxyForSchain.setNewGasLimit(3M)
+```
+====
+
 == Implementation
 
 First, your contracts must be registered to MessageProxy on Mainnet and on your SKALE Chain. This enables MessageProxy to interact with your specific contracts.
