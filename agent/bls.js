@@ -907,7 +907,7 @@ async function do_sign_messages_impl(
                 cc.normal( "(" ) + cc.bright( i ) + cc.normal( "/" ) + cc.bright( jarrNodes.length ) + cc.normal( ", ID " ) + cc.info( joNode.nodeID ) + cc.normal( ")" ) +
                 cc.normal( ", " ) + cc.notice( "sequence ID" ) + cc.normal( " is " ) + cc.attention( sequence_id );
             const rpcCallOpts = null;
-            await rpcCall.create( strNodeURL, rpcCallOpts, async function( joCall, err ) {
+            /*await*/ rpcCall.create( strNodeURL, rpcCallOpts, async function( joCall, err ) {
                 if( err ) {
                     ++joGatheringTracker.nCountReceived; // including errors
                     ++joGatheringTracker.nCountErrors;
@@ -960,7 +960,7 @@ async function do_sign_messages_impl(
                     cc.debug( " with params " ) + cc.j( joParams ) +
                     cc.debug( ", " ) + cc.notice( "sequence ID" ) + cc.debug( " is " ) + cc.attention( sequence_id ) +
                     "\n" );
-                await joCall.call( {
+                /*await*/ joCall.call( {
                     method: "skale_imaVerifyAndSign",
                     params: joParams,
                     qa: {
