@@ -1335,8 +1335,8 @@ async function safe_sign_transaction_with_account( details, w3, tx, rawTx, joAcc
         /*
         details.write(
             cc.debug( "Will sign with Transaction Manager wallet, transaction is " ) + cc.j( tx ) +
-            cc.debug( ", raw transaction is " ) + cc.j( rawTx ) + "\n" +
-            cc.debug( " using account " ) + cc.j( joAccount ) + "\n"
+            cc.debug( ", raw transaction is " ) + cc.j( rawTx ) + "\n"
+            // + cc.debug( " using account " ) + cc.j( joAccount ) + "\n"
         );
         let rpcCallOpts = null;
         if( "strPathSslKey" in joAccount && typeof joAccount.strPathSslKey == "string" && joAccount.strPathSslKey.length > 0 &&
@@ -1392,8 +1392,9 @@ async function safe_sign_transaction_with_account( details, w3, tx, rawTx, joAcc
         */
         strMsg =
             cc.debug( "Will sign with Transaction Manager wallet, transaction is " ) + cc.j( tx ) +
-            cc.debug( ", raw transaction is " ) + cc.j( rawTx ) + "\n" +
-            cc.debug( " using account " ) + cc.j( joAccount );
+            cc.debug( ", raw transaction is " ) + cc.j( rawTx )
+            // + "\n" + cc.debug( " using account " ) + cc.j( joAccount )
+        ;
         details.write( strPrefixDetails + strMsg + "\n" );
         log.write( strPrefixLog + strMsg + "\n" );
         const txAdjusted = JSON.parse( JSON.stringify( rawTx ) ); // tx // rawTx
@@ -1424,8 +1425,8 @@ async function safe_sign_transaction_with_account( details, w3, tx, rawTx, joAcc
     case "sgx": {
         details.write(
             cc.debug( "Will sign with SGX wallet, transaction is " ) + cc.j( tx ) +
-            cc.debug( ", raw transaction is " ) + cc.j( rawTx ) + "\n" +
-            cc.debug( " using account " ) + cc.j( joAccount ) + "\n"
+            cc.debug( ", raw transaction is " ) + cc.j( rawTx ) + "\n"
+            // + cc.debug( " using account " ) + cc.j( joAccount ) + "\n"
         );
         let rpcCallOpts = null;
         if( "strPathSslKey" in joAccount && typeof joAccount.strPathSslKey == "string" && joAccount.strPathSslKey.length > 0 &&
@@ -1508,16 +1509,17 @@ async function safe_sign_transaction_with_account( details, w3, tx, rawTx, joAcc
     case "direct": {
         details.write(
             cc.debug( "Will sign with private key, transaction is " ) + cc.notice( JSON.stringify( tx ) ) +
-            cc.debug( ", raw transaction is " ) + cc.notice( JSON.stringify( rawTx ) ) + "\n" +
-            cc.debug( " using account " ) + cc.j( joAccount ) + "\n"
+            cc.debug( ", raw transaction is " ) + cc.notice( JSON.stringify( rawTx ) ) + "\n"
+            // + cc.debug( " using account " ) + cc.j( joAccount ) + "\n"
         );
         const key = Buffer.from( joAccount.privateKey, "hex" ); // convert private key to buffer
         tx.sign( key ); // arg is privateKey as buffer
     } break;
     default: {
         const s = cc.fatal( "CRITICAL TRANSACTION SIGNING ERROR:" ) +
-            cc.error( " bad credentials information specified, no explicit SGX and no explicit private key found, account is: " ) +
-            cc.j( joAccount ) + "\n";
+            cc.error( " bad credentials information specified, no explicit SGX and no explicit private key found" ) +
+            // + cc.error( ", account is: " ) + cc.j( joAccount )
+            "\n";
         details.write( s );
         log.write( s );
         if( isExitIfEmpty ) {
