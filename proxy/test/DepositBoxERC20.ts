@@ -179,6 +179,32 @@ describe("DepositBoxERC20", () => {
                     .depositERC20(schainName, erc20.address, amount + 1)
                     .should.be.eventually.rejectedWith("Amount is incorrect");
             });
+
+            it("should invoke `depositERC20` for non standard ERC20", async () => {
+                // preparation
+                // mint some quantity of ERC20 tokens for `deployer` address
+                const erc20TWR = await (await ethers.getContractFactory("ERC20TransferWithoutReturn")).deploy("Test", "TST");
+                const erc20IT = await (await ethers.getContractFactory("ERC20IncorrectTransfer")).deploy("Test", "TST");
+                const amount = 10;
+                await erc20TWR.connect(deployer).mint(deployer.address, amount);
+                await erc20IT.connect(deployer).mint(deployer.address, amount);
+                await erc20.connect(deployer).mint(deployer.address, amount);
+                await erc20TWR.connect(deployer).approve(depositBoxERC20.address, amount);
+                await erc20IT.connect(deployer).approve(depositBoxERC20.address, amount);
+                await erc20.connect(deployer).approve(depositBoxERC20.address, amount);
+                // execution
+                await depositBoxERC20.connect(user).disableWhitelist(schainName);
+                await depositBoxERC20
+                    .connect(deployer)
+                    .depositERC20(schainName, erc20.address, 1);
+                await depositBoxERC20
+                    .connect(deployer)
+                    .depositERC20(schainName, erc20TWR.address, 1);
+                await depositBoxERC20
+                    .connect(deployer)
+                    .depositERC20(schainName, erc20IT.address, 1)
+                    .should.be.eventually.rejectedWith("Transfer was failed");
+            });
         });
 
         it("should get funds after kill", async () => {

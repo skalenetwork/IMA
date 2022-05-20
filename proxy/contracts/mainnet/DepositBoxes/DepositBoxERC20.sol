@@ -29,6 +29,9 @@ import "@skalenetwork/ima-interfaces/mainnet/DepositBoxes/IDepositBoxERC20.sol";
 import "../../Messages.sol";
 import "../DepositBox.sol";
 
+interface IERC20TransferWithoutReturn {
+    function transferFrom(address _from, address _to, uint256 _amount) external;
+}
 
 /**
  * @title DepositBoxERC20
@@ -116,14 +119,10 @@ contract DepositBoxERC20 is DepositBox, IDepositBoxERC20 {
             amount
         );
         _saveTransferredAmount(schainHash, erc20OnMainnet, amount);
-        require(
-            ERC20Upgradeable(erc20OnMainnet).transferFrom(
-                msg.sender,
-                address(this),
-                amount
-            ),
-            "Transfer was failed"
-        );
+        // solhint-disable-next-line no-empty-blocks
+        try IERC20TransferWithoutReturn(erc20OnMainnet).transferFrom(msg.sender, address(this), amount) {} catch {
+            revert("Transfer was failed");
+        }
         messageProxy.postOutgoingMessage(
             schainHash,
             contractReceiver,
