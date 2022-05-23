@@ -29,7 +29,7 @@ import "@skalenetwork/ima-interfaces/mainnet/DepositBoxes/IDepositBoxERC20.sol";
 import "../../Messages.sol";
 import "../DepositBox.sol";
 
-interface IERC20TransferWithoutReturn {
+interface IERC20TransferVoid {
     function transferFrom(address _from, address _to, uint256 _amount) external;
     function transfer(address _to, uint256 _amount) external;
 }
@@ -124,7 +124,10 @@ contract DepositBoxERC20 is DepositBox, IDepositBoxERC20 {
         );
         _saveTransferredAmount(schainHash, erc20OnMainnet, amount);
         if (erc20OnMainnet == _USDT_ADDRESS) {
-            IERC20TransferWithoutReturn(erc20OnMainnet).transferFrom(msg.sender, address(this), amount);
+            // solhint-disable-next-line no-empty-blocks
+            try IERC20TransferVoid(erc20OnMainnet).transferFrom(msg.sender, address(this), amount) {} catch {
+                revert("Transfer was failed");
+            }
         } else {
             require(
                 ERC20Upgradeable(erc20OnMainnet).transferFrom(
@@ -167,7 +170,10 @@ contract DepositBoxERC20 is DepositBox, IDepositBoxERC20 {
         require(ERC20Upgradeable(message.token).balanceOf(address(this)) >= message.amount, "Not enough money");
         _removeTransferredAmount(schainHash, message.token, message.amount);
         if (message.token == _USDT_ADDRESS) {
-            IERC20TransferWithoutReturn(message.token).transfer(message.receiver, message.amount);
+            // solhint-disable-next-line no-empty-blocks
+            try IERC20TransferVoid(message.token).transfer(message.receiver, message.amount) {} catch {
+                revert("Transfer was failed");
+            }
         } else {
             require(
                 ERC20Upgradeable(message.token).transfer(message.receiver, message.amount),
