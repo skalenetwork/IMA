@@ -1181,11 +1181,11 @@ function parse( joExternalHandlers, argv ) {
             continue;
         }
         if( joArg.name == "enable-oracle" ) {
-            IMA.setEnabledOracle( true );
+            // IMA.setEnabledOracle( true );
             continue;
         }
         if( joArg.name == "disable-oracle" ) {
-            IMA.setEnabledOracle( false );
+            // IMA.setEnabledOracle( false );
             continue;
         }
         if( joArg.name == "s2s-forward" ) {
