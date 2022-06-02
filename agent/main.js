@@ -2453,23 +2453,23 @@ async function single_transfer_loop() {
         }
 
         let b0 = true;
-        if( IMA.getEnabledOracle() ) {
-            if( IMA.verbose_get() >= IMA.RV_VERBOSE.information )
-                log.write( strLogPrefix + cc.debug( "Will invoke Oracle gas price setup..." ) + "\n" );
-            b0 = IMA.do_oracle_gas_price_setup(
-                imaState.w3_main_net,
-                imaState.w3_s_chain,
-                imaState.tc_s_chain,
-                imaState.jo_community_locker,
-                imaState.joAccount_s_chain,
-                imaState.cid_main_net,
-                imaState.cid_s_chain,
-                imaBLS.do_sign_u256, // fn_sign
-                imaState.optsPendingTxAnalysis
-            );
-            if( IMA.verbose_get() >= IMA.RV_VERBOSE.information )
-                log.write( strLogPrefix + cc.debug( "Oracle gas price setup done: " ) + cc.tf( b0 ) + "\n" );
-        }
+        // if( IMA.getEnabledOracle() ) {
+        //     if( IMA.verbose_get() >= IMA.RV_VERBOSE.information )
+        //         log.write( strLogPrefix + cc.debug( "Will invoke Oracle gas price setup..." ) + "\n" );
+        //     b0 = IMA.do_oracle_gas_price_setup(
+        //         imaState.w3_main_net,
+        //         imaState.w3_s_chain,
+        //         imaState.tc_s_chain,
+        //         imaState.jo_community_locker,
+        //         imaState.joAccount_s_chain,
+        //         imaState.cid_main_net,
+        //         imaState.cid_s_chain,
+        //         imaBLS.do_sign_u256, // fn_sign
+        //         imaState.optsPendingTxAnalysis
+        //     );
+        //     if( IMA.verbose_get() >= IMA.RV_VERBOSE.information )
+        //         log.write( strLogPrefix + cc.debug( "Oracle gas price setup done: " ) + cc.tf( b0 ) + "\n" );
+        // }
 
         if( IMA.verbose_get() >= IMA.RV_VERBOSE.information )
             log.write( strLogPrefix + cc.debug( "Will invoke M2S transfer..." ) + "\n" );
