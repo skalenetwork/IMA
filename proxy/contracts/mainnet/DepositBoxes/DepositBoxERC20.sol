@@ -29,6 +29,11 @@ import "@skalenetwork/ima-interfaces/mainnet/DepositBoxes/IDepositBoxERC20.sol";
 import "../../Messages.sol";
 import "../DepositBox.sol";
 
+interface IERC20TransferVoid {
+    function transferFrom(address _from, address _to, uint256 _amount) external;
+    function transfer(address _to, uint256 _amount) external;
+}
+
 
 /**
  * @title DepositBoxERC20
@@ -39,6 +44,8 @@ import "../DepositBox.sol";
 contract DepositBoxERC20 is DepositBox, IDepositBoxERC20 {
     using AddressUpgradeable for address;
     using EnumerableSetUpgradeable for EnumerableSetUpgradeable.AddressSet;
+
+    address private constant _USDT_ADDRESS = 0xdAC17F958D2ee523a2206206994597C13D831ec7;
 
     // schainHash => address of ERC20 on Mainnet
     mapping(bytes32 => mapping(address => bool)) private _deprecatedSchainToERC20;
@@ -116,14 +123,21 @@ contract DepositBoxERC20 is DepositBox, IDepositBoxERC20 {
             amount
         );
         _saveTransferredAmount(schainHash, erc20OnMainnet, amount);
-        require(
-            ERC20Upgradeable(erc20OnMainnet).transferFrom(
-                msg.sender,
-                address(this),
-                amount
-            ),
-            "Transfer was failed"
-        );
+        if (erc20OnMainnet == _USDT_ADDRESS) {
+            // solhint-disable-next-line no-empty-blocks
+            try IERC20TransferVoid(erc20OnMainnet).transferFrom(msg.sender, address(this), amount) {} catch {
+                revert("Transfer was failed");
+            }
+        } else {
+            require(
+                ERC20Upgradeable(erc20OnMainnet).transferFrom(
+                    msg.sender,
+                    address(this),
+                    amount
+                ),
+                "Transfer was failed"
+            );
+        }
         messageProxy.postOutgoingMessage(
             schainHash,
             contractReceiver,
@@ -155,10 +169,17 @@ contract DepositBoxERC20 is DepositBox, IDepositBoxERC20 {
         require(message.token.isContract(), "Given address is not a contract");
         require(ERC20Upgradeable(message.token).balanceOf(address(this)) >= message.amount, "Not enough money");
         _removeTransferredAmount(schainHash, message.token, message.amount);
-        require(
-            ERC20Upgradeable(message.token).transfer(message.receiver, message.amount),
-            "Transfer was failed"
-        );
+        if (message.token == _USDT_ADDRESS) {
+            // solhint-disable-next-line no-empty-blocks
+            try IERC20TransferVoid(message.token).transfer(message.receiver, message.amount) {} catch {
+                revert("Transfer was failed");
+            }
+        } else {
+            require(
+                ERC20Upgradeable(message.token).transfer(message.receiver, message.amount),
+                "Transfer was failed"
+            );
+        }
     }
 
     /**

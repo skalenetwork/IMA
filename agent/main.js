@@ -279,7 +279,7 @@ global.imaState = {
 
     "s2s_opts": { // S-Chain to S-Chain transfer options
         "isEnabled": true, // is S-Chain to S-Chain transfers enabled
-        "secondsToReDiscoverSkaleNetwork": 10 * 60 // seconts to re-discover SKALE network, 0 to disable
+        "secondsToReDiscoverSkaleNetwork": 1 * 60 * 60 // seconts to re-discover SKALE network, 0 to disable
     },
 
     "arrActions": [] // array of actions to run
