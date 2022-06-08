@@ -47,6 +47,8 @@ global.imaBLS = require( "./bls.js" );
 global.rpcCall = require( "./rpc-call.js" );
 global.skale_observer = require( "../npms/skale-observer/observer.js" );
 global.rpcCall.init();
+global.imaOracle = require( "./oracle.js" );
+global.imaOracle.init();
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -56,6 +58,7 @@ global.imaState = {
     "nLogMaxSizeBeforeRotation": -1,
     "nLogMaxFilesCount": -1,
     "isPrintGathered": true,
+    "isPrintSecurityValues": false,
 
     "bIsNeededCommonInit": true,
     "bSignMessages": false, // use BLS message signing, turned on with --sign-messages
@@ -311,7 +314,7 @@ const fnInitActionSkaleNetworkScanForS2S = function() {
                 console.log( cc.fatal( "CRITICAL ERROR:" ) + cc.error( " missing Skale Manager ABI, please specify " ) + cc.info( "abi-skale-manager" ) );
                 process.exit( 153 );
             }
-            log.write( strLogPrefix + cc.normal( "Downloading SKALE network information " ) + cc.normal( "..." ) + "\n" ); // just print value
+            log.write( strLogPrefix + cc.debug( "Downloading SKALE network information..." ) + "\n" ); // just print value
             const opts = {
                 imaState: imaState,
                 "details": log,
@@ -319,24 +322,26 @@ const fnInitActionSkaleNetworkScanForS2S = function() {
                 "secondsToReDiscoverSkaleNetwork": imaState.s2s_opts.secondsToReDiscoverSkaleNetwork
             };
             const addressFrom = imaState.joAccount_main_net.address( imaState.w3_main_net );
-            const strError = await skale_observer.cache_schains(
-                imaState.strChainName_s_chain, // strChainNameConnectedTo
-                imaState.w3_main_net,
-                addressFrom,
-                opts
-            );
-            if( strError ) {
-                log.write( strLogPrefix + cc.error( "Failed to get " ) + cc.info( "SKALE NETWORK" ) + cc.error( " information: " ) + cc.warning( strError ) + "\n" );
-                return true;
-            }
-            const arr_schains = skale_observer.get_last_cached_schains();
-            log.write( strLogPrefix + cc.normal( "Got " ) + cc.info( "SKALE NETWORK" ) + cc.normal( " information: " ) + cc.j( arr_schains ) + "\n" );
+            // const strError = await skale_observer.cache_schains(
+            //     imaState.strChainName_s_chain, // strChainNameConnectedTo
+            //     imaState.w3_main_net,
+            //     addressFrom,
+            //     opts
+            // );
+            // if( strError ) {
+            //     log.write( strLogPrefix + cc.error( "Failed to get " ) + cc.info( "SKALE NETWORK" ) + cc.error( " information: " ) + cc.warning( strError ) + "\n" );
+            //     return true;
+            // }
+            // const arr_schains = skale_observer.get_last_cached_schains();
+            // log.write( strLogPrefix + cc.normal( "Got " ) + cc.info( "SKALE NETWORK" ) + cc.normal( " information: " ) + cc.j( arr_schains ) + "\n" );
+            log.write( strLogPrefix + cc.debug( "Will start periodic S-Chains caching..." ) + "\n" );
             await skale_observer.periodic_caching_start(
                 imaState.strChainName_s_chain, // strChainNameConnectedTo
                 imaState.w3_main_net,
                 addressFrom,
                 opts
             );
+            log.write( strLogPrefix + cc.success( "Done, did started periodic S-Chains caching." ) + "\n" );
             return true;
         }
     } );
@@ -1452,7 +1457,7 @@ imaCLI.parse( {
                     console.log( cc.fatal( "CRITICAL ERROR:" ) + cc.error( " missing Skale Manager ABI, please specify " ) + cc.info( "abi-skale-manager" ) );
                     process.exit( 160 );
                 }
-                log.write( strLogPrefix + cc.normal( "Downloading SKALE network information " ) + cc.normal( "..." ) + "\n" ); // just print value
+                log.write( strLogPrefix + cc.debug( "Downloading SKALE network information..." ) + "\n" ); // just print value
                 const opts = {
                     imaState: imaState,
                     "details": log,
@@ -1475,7 +1480,7 @@ imaCLI.parse( {
                     console.log( cc.fatal( "CRITICAL ERROR:" ) + cc.error( " missing Skale Manager ABI, please specify " ) + cc.info( "abi-skale-manager" ) );
                     process.exit( 161 );
                 }
-                log.write( strLogPrefix + cc.normal( "Downloading SKALE network information " ) + cc.normal( "..." ) + "\n" ); // just print value
+                log.write( strLogPrefix + cc.debug( "Downloading SKALE network information..." ) + "\n" ); // just print value
 
                 const opts = {
                     imaState: imaState,
@@ -1749,8 +1754,11 @@ async function continue_schain_discovery_in_background_if_needed( isSilent ) {
         return;
     if( imaState.joSChainDiscovery.repeatIntervalMilliseconds <= 0 )
         return; // no S-Chain re-discovery (for debugging only)
-    g_timer_s_chain_discovery = setInterval( async function() {
+    const fn_async_handler = async function() {
+        if( g_b_in_s_chain_discovery )
+            return;
         if( g_b_in_s_chain_discovery ) {
+            isInsideAsyncHandler = false;
             if( IMA.verbose_get() >= IMA.RV_VERBOSE.information )
                 log.write( cc.warning( "Notice: long S-Chain discovery is in progress" ) + "\n" );
             return;
@@ -1760,7 +1768,7 @@ async function continue_schain_discovery_in_background_if_needed( isSilent ) {
             if( IMA.verbose_get() >= IMA.RV_VERBOSE.information ) {
                 log.write(
                     cc.info( "Will re-discover " ) + cc.notice( cntNodes ) + cc.info( "-node S-Chain network, " ) +
-                    cc.notice( cntDiscovered ) + cc.info( " node(s) already discovered..." ) + "\n" );
+                        cc.notice( cntDiscovered ) + cc.info( " node(s) already discovered..." ) + "\n" );
             }
             await discover_s_chain_network( function( err, joSChainNetworkInfo ) {
                 if( ! err ) {
@@ -1768,14 +1776,14 @@ async function continue_schain_discovery_in_background_if_needed( isSilent ) {
                     if( IMA.verbose_get() >= IMA.RV_VERBOSE.information ) {
                         const strDiscoveryStatus = cc.info( cntDiscoveredNew ) + cc.success( " nodes known" );
                         let strMessage =
-                            cc.success( "S-Chain network was re-discovered, " ) + cc.info( cntDiscoveredNew ) +
-                            cc.success( " of " ) + cc.info( cntNodes ) +
-                            cc.success( " node(s) (" ) + strDiscoveryStatus + cc.success( ")" );
+                                cc.success( "S-Chain network was re-discovered, " ) + cc.info( cntDiscoveredNew ) +
+                                cc.success( " of " ) + cc.info( cntNodes ) +
+                                cc.success( " node(s) (" ) + strDiscoveryStatus + cc.success( ")" );
                         const cntStillUnknown = cntNodes - cntDiscoveredNew;
                         if( cntStillUnknown > 0 ) {
                             strMessage += cc.success( ", " ) +
-                                cc.info( cntStillUnknown ) + cc.success( " of " ) + cc.info( cntNodes ) +
-                                cc.success( " still unknown (" );
+                                    cc.info( cntStillUnknown ) + cc.success( " of " ) + cc.info( cntNodes ) +
+                                    cc.success( " still unknown (" );
                             try {
                                 const jarrNodes = joSChainNetworkInfo.network;
                                 let cntBad = 0;
@@ -1783,13 +1791,13 @@ async function continue_schain_discovery_in_background_if_needed( isSilent ) {
                                     const joNode = jarrNodes[i];
                                     try {
                                         if( ! ( joNode && "imaInfo" in joNode && typeof joNode.imaInfo === "object" &&
-                                            "t" in joNode.imaInfo && typeof joNode.imaInfo.t === "number" ) ) {
+                                                "t" in joNode.imaInfo && typeof joNode.imaInfo.t === "number" ) ) {
                                             if( cntBad > 0 )
                                                 strMessage += cc.success( ", " );
                                             const strNodeURL = imaUtils.compose_schain_node_url( joNode );
                                             const strNodeDescColorized =
-                                                cc.notice( "#" ) + cc.info( i ) +
-                                                cc.attention( "(" ) + cc.u( strNodeURL ) + cc.attention( ")" );
+                                                    cc.notice( "#" ) + cc.info( i ) +
+                                                    cc.attention( "(" ) + cc.u( strNodeURL ) + cc.attention( ")" );
                                             strMessage += strNodeDescColorized;
                                             ++ cntBad;
                                         }
@@ -1800,8 +1808,8 @@ async function continue_schain_discovery_in_background_if_needed( isSilent ) {
                         }
                         if( ! isSilent ) {
                             strMessage +=
-                                cc.success( ", complete re-discovered S-Chain network info: " ) +
-                                cc.j( joSChainNetworkInfo );
+                                    cc.success( ", complete re-discovered S-Chain network info: " ) +
+                                    cc.j( joSChainNetworkInfo );
                         }
                         log.write( strMessage + "\n" );
                     }
@@ -1811,12 +1819,17 @@ async function continue_schain_discovery_in_background_if_needed( isSilent ) {
             }, isSilent, imaState.joSChainNetworkInfo, cntNodes ).catch( ( err ) => {
                 log.write(
                     cc.fatal( "CRITICAL ERROR:" ) +
-                    cc.error( " S-Chain network re-discovery failed: " ) +
-                    cc.warning( err ) + "\n"
+                        cc.error( " S-Chain network re-discovery failed: " ) +
+                        cc.warning( err ) + "\n"
                 );
             } );
         } catch ( err ) { }
         g_b_in_s_chain_discovery = false;
+    };
+    g_timer_s_chain_discovery = setInterval( function() {
+        if( g_b_in_s_chain_discovery )
+            return;
+        fn_async_handler();
     }, imaState.joSChainDiscovery.repeatIntervalMilliseconds );
 }
 
@@ -2173,8 +2186,8 @@ if( imaState.nMonitoringPort > 0 ) {
                     } break;
                 case "get_last_transfer_errors":
                     // call:   { "id": 1, "method": "get_last_transfer_errors" }
-                    // answer: { "id": 1, "method": "get_last_transfer_errors", "error": null, "last_transfer_errors": [ { ts: ..., textLog: ... }, ... ] }
-                    joAnswer.last_transfer_errors = IMA.get_last_transfer_errors();
+                    // answer: { "id": 1, "method": "get_last_transfer_errors", "isIncludeTextLog": true, "error": null, "last_transfer_errors": [ { ts: ..., textLog: ... }, ... ] }
+                    joAnswer.last_transfer_errors = IMA.get_last_transfer_errors( ( ( "isIncludeTextLog" in joMessage ) && joMessage.isIncludeTextLog ) ? true : false );
                     joAnswer.last_error_categories = IMA.get_last_error_categories();
                     break;
                 default:
@@ -2441,10 +2454,10 @@ async function single_transfer_loop() {
             return true;
         }
 
-        if( IMA.verbose_get() >= IMA.RV_VERBOSE.information )
-            log.write( strLogPrefix + cc.debug( "Will invoke Oracle gas price setup..." ) + "\n" );
         let b0 = true;
-        if( IMA.getOracleGasPriceMode() == 1 ) {
+        if( IMA.getEnabledOracle() ) {
+            if( IMA.verbose_get() >= IMA.RV_VERBOSE.information )
+                log.write( strLogPrefix + cc.debug( "Will invoke Oracle gas price setup..." ) + "\n" );
             b0 = IMA.do_oracle_gas_price_setup(
                 imaState.w3_main_net,
                 imaState.w3_s_chain,
