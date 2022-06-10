@@ -36,7 +36,7 @@ import {
     ERC20OnChain,
     CommunityPool
 } from "../typechain";
-import { randomString, stringFromHex, stringValue } from "./utils/helper";
+import { randomString, stringFromHex, stringValue, getPublicKey } from "./utils/helper";
 
 import chai = require("chai");
 import chaiAlmost = require("chai-almost");
@@ -49,7 +49,7 @@ import { deployDepositBoxERC20 } from "./utils/deploy/mainnet/depositBoxERC20";
 import { deployLinker } from "./utils/deploy/mainnet/linker";
 import { deployMessageProxyForMainnet } from "./utils/deploy/mainnet/messageProxyForMainnet";
 import { deployContractManager } from "./utils/skale-manager-utils/contractManager";
-import { initializeSchain } from "./utils/skale-manager-utils/schainsInternal";
+import { initializeSchain, addNodesToSchain } from "./utils/skale-manager-utils/schainsInternal";
 import { rechargeSchainWallet } from "./utils/skale-manager-utils/wallets";
 import { setCommonPublicKey } from "./utils/skale-manager-utils/keyStorage";
 import { deployMessages } from "./utils/deploy/messages";
@@ -60,9 +60,10 @@ import { deployCommunityPool } from "./utils/deploy/mainnet/communityPool";
 
 import { ethers, web3 } from "hardhat";
 import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/dist/src/signer-with-address";
-import { BigNumber } from "ethers";
+import { BigNumber, Wallet } from "ethers";
 
 import { assert, expect } from "chai";
+import { createNode } from "./utils/skale-manager-utils/nodes";
 
 const BlsSignature: [BigNumber, BigNumber] = [
     BigNumber.from("178325537405109593276798394634841698946852714038246117383766698579865918287"),
@@ -79,6 +80,7 @@ describe("DepositBoxERC20", () => {
     let deployer: SignerWithAddress;
     let user: SignerWithAddress;
     let user2: SignerWithAddress;
+    let nodeAddress: Wallet;
 
     let depositBoxERC20: DepositBoxERC20;
     let contractManager: ContractManager;
@@ -101,6 +103,19 @@ describe("DepositBoxERC20", () => {
         await messageProxy.grantRole(await messageProxy.CHAIN_CONNECTOR_ROLE(), linker.address);
         await messageProxy.grantRole(await messageProxy.EXTRA_CONTRACT_REGISTRAR_ROLE(), deployer.address);
         await initializeSchain(contractManager, schainName, user.address, 1, 1);
+        nodeAddress = Wallet.createRandom().connect(ethers.provider);
+        const nodeCreationParams = {
+            port: 1337,
+            nonce: 1337,
+            ip: "0x12345678",
+            publicIp: "0x12345678",
+            publicKey: getPublicKey(nodeAddress),
+            name: "GasCalculationNode",
+            domainName: "gascalculationnode.com"
+        };
+        await createNode(contractManager, nodeAddress.address, nodeCreationParams);
+        await addNodesToSchain(contractManager, schainName, [0]);
+        await deployer.sendTransaction({to: nodeAddress.address, value: ethers.utils.parseEther("1")});
         await rechargeSchainWallet(contractManager, schainName, user2.address, "1000000000000000000");
         await messageProxy.registerExtraContractForAll(depositBoxERC20.address);
         await messageProxy.registerExtraContract(schainName, communityPool.address);
@@ -298,7 +313,7 @@ describe("DepositBoxERC20", () => {
 
             await depositBoxERC20.connect(user).depositERC20(schainName, erc20.address, amount);
 
-            const res = await (await messageProxy.connect(deployer).postIncomingMessages(schainName, 0, [messageWithWrongTokenAddress, messageWithNotMintedToken], sign)).wait();
+            const res = await (await messageProxy.connect(nodeAddress).postIncomingMessages(schainName, 0, [messageWithWrongTokenAddress, messageWithNotMintedToken], sign)).wait();
             if (res.events) {
                 assert.equal(res.events[0].event, "PostMessageError");
                 assert.equal(stringFromHex(res.events[0].args?.message), "Given address is not a contract");
@@ -309,13 +324,13 @@ describe("DepositBoxERC20", () => {
             }
 
             const balanceBefore = await getBalance(deployer.address);
-            await messageProxy.connect(deployer).postIncomingMessages(schainName, 2, [message], sign);
+            await messageProxy.connect(nodeAddress).postIncomingMessages(schainName, 2, [message], sign);
             const balance = await getBalance(deployer.address);
             balance.should.not.be.lessThan(balanceBefore);
             balance.should.be.almost(balanceBefore);
 
             await depositBoxERC20.connect(user).depositERC20(schainName, erc20.address, amount);
-            await messageProxy.connect(deployer).postIncomingMessages(schainName, 3, [message], sign);
+            await messageProxy.connect(nodeAddress).postIncomingMessages(schainName, 3, [message], sign);
             expect(BigNumber.from(await depositBoxERC20.transferredAmount(schainHash, erc20.address)).toString()).to.be.equal(BigNumber.from(0).toString());
 
             (await erc20.balanceOf(user.address)).toString().should.be.equal((amount * 2).toString());

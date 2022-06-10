@@ -86,11 +86,11 @@ import { deployTokenManagerERC1155 } from "../test/utils/deploy/schain/tokenMana
 import { deployMessageProxyForSchain } from "../test/utils/deploy/schain/messageProxyForSchain";
 import { deployMessages } from "../test/utils/deploy/messages";
 
-import { randomString, stringValue } from "../test/utils/helper";
+import { randomString, stringValue, getPublicKey } from "../test/utils/helper";
 
 import { ethers, web3 } from "hardhat";
 import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/dist/src/signer-with-address";
-import { BigNumber, BytesLike } from "ethers";
+import { BigNumber, BytesLike, Wallet } from "ethers";
 
 import { assert, expect } from "chai";
 import { deployCommunityLocker } from "../test/utils/deploy/schain/communityLocker";
@@ -101,6 +101,7 @@ describe("Gas calculation", () => {
     let deployer: SignerWithAddress;
     let user: SignerWithAddress;
     let schainOwner: SignerWithAddress;
+    let nodeAddress: Wallet;
 
     let imaLinker: Linker;
     let depositBoxEth: DepositBoxEth;
@@ -165,10 +166,8 @@ describe("Gas calculation", () => {
         await schainsInternal.connect(deployer).addContractManager(contractManager.address);
         await wallets.connect(deployer).addContractManager(contractManager.address);
 
-        const nodePublicKey: [BytesLike, BytesLike] = [
-            "0x1122334455667788990011223344556677889900112233445566778899001122",
-            "0x1122334455667788990011223344556677889900112233445566778899001122"
-        ];
+        nodeAddress = Wallet.createRandom().connect(ethers.provider);
+        await deployer.sendTransaction({to: nodeAddress.address, value: ethers.utils.parseEther("1")});
 
         // setup 16 nodes
         const nodeCreationParams = {
@@ -176,26 +175,26 @@ describe("Gas calculation", () => {
             nonce: 1337,
             ip: "0x12345678",
             publicIp: "0x12345678",
-            publicKey: nodePublicKey,
+            publicKey: getPublicKey(nodeAddress),
             name: "GasCalculationNode",
             domainName: "gascalculationnode.com"
         };
-        await nodes.connect(deployer).createNode(deployer.address, nodeCreationParams);
-        await nodes.connect(deployer).createNode(deployer.address, nodeCreationParams);
-        await nodes.connect(deployer).createNode(deployer.address, nodeCreationParams);
-        await nodes.connect(deployer).createNode(deployer.address, nodeCreationParams);
-        await nodes.connect(deployer).createNode(deployer.address, nodeCreationParams);
-        await nodes.connect(deployer).createNode(deployer.address, nodeCreationParams);
-        await nodes.connect(deployer).createNode(deployer.address, nodeCreationParams);
-        await nodes.connect(deployer).createNode(deployer.address, nodeCreationParams);
-        await nodes.connect(deployer).createNode(deployer.address, nodeCreationParams);
-        await nodes.connect(deployer).createNode(deployer.address, nodeCreationParams);
-        await nodes.connect(deployer).createNode(deployer.address, nodeCreationParams);
-        await nodes.connect(deployer).createNode(deployer.address, nodeCreationParams);
-        await nodes.connect(deployer).createNode(deployer.address, nodeCreationParams);
-        await nodes.connect(deployer).createNode(deployer.address, nodeCreationParams);
-        await nodes.connect(deployer).createNode(deployer.address, nodeCreationParams);
-        await nodes.connect(deployer).createNode(deployer.address, nodeCreationParams);
+        await nodes.connect(deployer).createNode(nodeAddress.address, nodeCreationParams);
+        await nodes.connect(deployer).createNode(nodeAddress.address, nodeCreationParams);
+        await nodes.connect(deployer).createNode(nodeAddress.address, nodeCreationParams);
+        await nodes.connect(deployer).createNode(nodeAddress.address, nodeCreationParams);
+        await nodes.connect(deployer).createNode(nodeAddress.address, nodeCreationParams);
+        await nodes.connect(deployer).createNode(nodeAddress.address, nodeCreationParams);
+        await nodes.connect(deployer).createNode(nodeAddress.address, nodeCreationParams);
+        await nodes.connect(deployer).createNode(nodeAddress.address, nodeCreationParams);
+        await nodes.connect(deployer).createNode(nodeAddress.address, nodeCreationParams);
+        await nodes.connect(deployer).createNode(nodeAddress.address, nodeCreationParams);
+        await nodes.connect(deployer).createNode(nodeAddress.address, nodeCreationParams);
+        await nodes.connect(deployer).createNode(nodeAddress.address, nodeCreationParams);
+        await nodes.connect(deployer).createNode(nodeAddress.address, nodeCreationParams);
+        await nodes.connect(deployer).createNode(nodeAddress.address, nodeCreationParams);
+        await nodes.connect(deployer).createNode(nodeAddress.address, nodeCreationParams);
+        await nodes.connect(deployer).createNode(nodeAddress.address, nodeCreationParams);
 
         // initialize schain and data
         await schainsInternal.connect(deployer).initializeSchain(schainName, schainOwner.address, 12345678, 12345678);
@@ -565,7 +564,7 @@ describe("Gas calculation", () => {
         };
 
         async function postIncomingMessages(startingCounter: number, arrayOfMessages: any, action: string) {
-            const res = await (await messageProxyForMainnet.connect(deployer).postIncomingMessages(
+            const res = await (await messageProxyForMainnet.connect(nodeAddress).postIncomingMessages(
                 schainName,
                 startingCounter,
                 arrayOfMessages,

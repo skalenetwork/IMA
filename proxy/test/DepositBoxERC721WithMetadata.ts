@@ -34,7 +34,7 @@ import {
     MessagesTester,
     CommunityPool
 } from "../typechain";
-import { randomString, stringFromHex, stringValue } from "./utils/helper";
+import { randomString, stringFromHex, stringValue, getPublicKey } from "./utils/helper";
 
 import chai = require("chai");
 import chaiAlmost = require("chai-almost");
@@ -47,7 +47,7 @@ import { deployDepositBoxERC721WithMetadata } from "./utils/deploy/mainnet/depos
 import { deployLinker } from "./utils/deploy/mainnet/linker";
 import { deployMessageProxyForMainnet } from "./utils/deploy/mainnet/messageProxyForMainnet";
 import { deployContractManager } from "./utils/skale-manager-utils/contractManager";
-import { initializeSchain } from "./utils/skale-manager-utils/schainsInternal";
+import { initializeSchain, addNodesToSchain } from "./utils/skale-manager-utils/schainsInternal";
 import { rechargeSchainWallet } from "./utils/skale-manager-utils/wallets";
 import { setCommonPublicKey } from "./utils/skale-manager-utils/keyStorage";
 import { deployMessages } from "./utils/deploy/messages";
@@ -56,9 +56,10 @@ import { deployCommunityPool } from "./utils/deploy/mainnet/communityPool";
 
 import { ethers, web3 } from "hardhat";
 import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/dist/src/signer-with-address";
-import { BigNumber } from "ethers";
+import { BigNumber, Wallet } from "ethers";
 
 import { assert, expect } from "chai";
+import { createNode } from "./utils/skale-manager-utils/nodes";
 
 const BlsSignature: [BigNumber, BigNumber] = [
     BigNumber.from("178325537405109593276798394634841698946852714038246117383766698579865918287"),
@@ -75,6 +76,7 @@ describe("DepositBoxERC721WithMetadata", () => {
     let deployer: SignerWithAddress;
     let user: SignerWithAddress;
     let user2: SignerWithAddress;
+    let nodeAddress: Wallet;
 
     let depositBoxERC721WithMetadata: DepositBoxERC721WithMetadata;
     let contractManager: ContractManager;
@@ -97,6 +99,19 @@ describe("DepositBoxERC721WithMetadata", () => {
         await messageProxy.grantRole(await messageProxy.CHAIN_CONNECTOR_ROLE(), linker.address);
         await messageProxy.grantRole(await messageProxy.EXTRA_CONTRACT_REGISTRAR_ROLE(), deployer.address);
         await initializeSchain(contractManager, schainName, user.address, 1, 1);
+        nodeAddress = Wallet.createRandom().connect(ethers.provider);
+        const nodeCreationParams = {
+            port: 1337,
+            nonce: 1337,
+            ip: "0x12345678",
+            publicIp: "0x12345678",
+            publicKey: getPublicKey(nodeAddress),
+            name: "GasCalculationNode",
+            domainName: "gascalculationnode.com"
+        };
+        await createNode(contractManager, nodeAddress.address, nodeCreationParams);
+        await addNodesToSchain(contractManager, schainName, [0]);
+        await deployer.sendTransaction({to: nodeAddress.address, value: ethers.utils.parseEther("1")});
         await rechargeSchainWallet(contractManager, schainName, user2.address, "1000000000000000000");
         await messageProxy.registerExtraContractForAll(depositBoxERC721WithMetadata.address);
         await messageProxy.registerExtraContract(schainName, communityPool.address);
@@ -282,7 +297,7 @@ describe("DepositBoxERC721WithMetadata", () => {
             await erc721.connect(deployer).transferFrom(deployer.address, depositBoxERC721WithMetadata.address, tokenId);
 
             const balanceBefore = await getBalance(deployer.address);
-            await messageProxy.connect(deployer).postIncomingMessages(schainName, 0, [message], sign);
+            await messageProxy.connect(nodeAddress).postIncomingMessages(schainName, 0, [message], sign);
             const balance = await getBalance(deployer.address);
             balance.should.not.be.lessThan(balanceBefore);
             balance.should.be.almost(balanceBefore);
@@ -308,7 +323,7 @@ describe("DepositBoxERC721WithMetadata", () => {
             await erc721.connect(deployer).setTokenURI(tokenId, tokenURI);
             await erc721.connect(deployer).transferFrom(deployer.address, depositBoxERC721WithMetadata.address, tokenId);
 
-            const res = await (await messageProxy.connect(deployer).postIncomingMessages(schainName, 0, [messageWithWrongTokenAddress], sign)).wait();
+            const res = await (await messageProxy.connect(nodeAddress).postIncomingMessages(schainName, 0, [messageWithWrongTokenAddress], sign)).wait();
             if (res.events) {
                 assert.equal(res.events[0].event, "PostMessageError");
                 assert.equal(stringFromHex(res.events[0].args?.message), "Given address is not a contract");
@@ -332,7 +347,7 @@ describe("DepositBoxERC721WithMetadata", () => {
             await erc721.connect(deployer).mint(deployer.address, tokenId);
             await erc721.connect(deployer).setTokenURI(tokenId, tokenURI);
 
-            const res = await (await messageProxy.connect(deployer).postIncomingMessages(schainName, 0, [messageWithWrongTokenAddress], sign)).wait();
+            const res = await (await messageProxy.connect(nodeAddress).postIncomingMessages(schainName, 0, [messageWithWrongTokenAddress], sign)).wait();
             if (res.events) {
                 assert.equal(res.events[0].event, "PostMessageError");
                 assert.equal(stringFromHex(res.events[0].args?.message), "Incorrect tokenId");
@@ -364,7 +379,7 @@ describe("DepositBoxERC721WithMetadata", () => {
                 .depositERC721(schainName, erc721.address, tokenId);
 
             const balanceBefore = await getBalance(deployer.address);
-            await messageProxy.connect(deployer).postIncomingMessages(schainName, 0, [message], sign);
+            await messageProxy.connect(nodeAddress).postIncomingMessages(schainName, 0, [message], sign);
             const balance = await getBalance(deployer.address);
             balance.should.not.be.lessThan(balanceBefore);
             balance.should.be.almost(balanceBefore);

@@ -84,11 +84,11 @@ import { deployTokenManagerERC721 } from "../utils/deploy/schain/tokenManagerERC
 import { deployMessageProxyForSchain } from "../utils/deploy/schain/messageProxyForSchain";
 import { deployMessages } from "../utils/deploy/messages";
 
-import { randomString, stringValue } from "../utils/helper";
+import { randomString, stringValue, getPublicKey } from "../utils/helper";
 
 import { ethers, web3 } from "hardhat";
 import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/dist/src/signer-with-address";
-import { BigNumber, BytesLike } from "ethers";
+import { BigNumber, BytesLike, Wallet } from "ethers";
 
 import { assert, expect } from "chai";
 import { deployCommunityLocker } from "../utils/deploy/schain/communityLocker";
@@ -99,6 +99,7 @@ describe("ERC721MintingFromSchainToMainnet", () => {
     let deployer: SignerWithAddress;
     let user: SignerWithAddress;
     let schainOwner: SignerWithAddress;
+    let nodeAddress: Wallet;
 
     let imaLinker: Linker;
     let communityPool: CommunityPool;
@@ -149,10 +150,8 @@ describe("ERC721MintingFromSchainToMainnet", () => {
         await schainsInternal.connect(deployer).addContractManager(contractManager.address);
         await wallets.connect(deployer).addContractManager(contractManager.address);
 
-        const nodePublicKey: [BytesLike, BytesLike] = [
-            "0x1122334455667788990011223344556677889900112233445566778899001122",
-            "0x1122334455667788990011223344556677889900112233445566778899001122"
-        ];
+        nodeAddress = Wallet.createRandom().connect(ethers.provider);
+        await deployer.sendTransaction({to: nodeAddress.address, value: ethers.utils.parseEther("1")});
 
         // setup 16 nodes
         const nodeCreationParams = {
@@ -160,7 +159,7 @@ describe("ERC721MintingFromSchainToMainnet", () => {
             nonce: 1337,
             ip: "0x12345678",
             publicIp: "0x12345678",
-            publicKey: nodePublicKey,
+            publicKey: getPublicKey(nodeAddress),
             name: "ExtensionChainNode",
             domainName: "gascalculationnode.com"
         };
@@ -352,7 +351,7 @@ describe("ERC721MintingFromSchainToMainnet", () => {
             hashB: HashB,
         };
 
-        await messageProxyForMainnet.connect(deployer).postIncomingMessages(
+        await messageProxyForMainnet.connect(nodeAddress).postIncomingMessages(
             schainName,
             0,
             [message],
@@ -361,7 +360,7 @@ describe("ERC721MintingFromSchainToMainnet", () => {
 
         await wallets.connect(deployer).rechargeSchainWallet(stringValue(schainNameHash), {value: "1000000000000000000"});
 
-        const resPost = await (await messageProxyForMainnet.connect(deployer).postIncomingMessages(
+        const resPost = await (await messageProxyForMainnet.connect(nodeAddress).postIncomingMessages(
             schainName,
             0,
             [message],
@@ -395,7 +394,7 @@ describe("ERC721MintingFromSchainToMainnet", () => {
             hashB: HashB,
         };
 
-        await messageProxyForMainnet.connect(deployer).postIncomingMessages(
+        await messageProxyForMainnet.connect(nodeAddress).postIncomingMessages(
             schainName,
             0,
             [message],
@@ -404,7 +403,7 @@ describe("ERC721MintingFromSchainToMainnet", () => {
 
         await wallets.connect(deployer).rechargeSchainWallet(stringValue(schainNameHash), {value: "1000000000000000000"});
 
-        await expect(messageProxyForMainnet.connect(deployer).postIncomingMessages(
+        await expect(messageProxyForMainnet.connect(nodeAddress).postIncomingMessages(
             schainName,
             0,
             [message],
@@ -436,7 +435,7 @@ describe("ERC721MintingFromSchainToMainnet", () => {
             hashB: HashB,
         };
 
-        await messageProxyForMainnet.connect(deployer).postIncomingMessages(
+        await messageProxyForMainnet.connect(nodeAddress).postIncomingMessages(
             schainName,
             0,
             [message],
@@ -445,7 +444,7 @@ describe("ERC721MintingFromSchainToMainnet", () => {
 
         await wallets.connect(deployer).rechargeSchainWallet(stringValue(schainNameHash), {value: "1000000000000000000"});
 
-        const resPost = await (await messageProxyForMainnet.connect(deployer).postIncomingMessages(
+        const resPost = await (await messageProxyForMainnet.connect(nodeAddress).postIncomingMessages(
             schainName,
             0,
             [message],

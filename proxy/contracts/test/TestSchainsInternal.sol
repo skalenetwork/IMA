@@ -39,6 +39,7 @@ interface ISchainsInternalTester {
     function isSchainExist(bytes32 schainHash) external view returns (bool);
     function getSchains() external view returns (bytes32[] memory);
     function getSchainName(bytes32 schainHash) external view returns (string memory);
+    function getNodesInGroup(bytes32 schainHash) external view returns (uint[] memory);
 }
 
 
@@ -66,6 +67,8 @@ contract SchainsInternal is ISchainsInternalTester {
 
     bytes32[] public schainsAtSystem;
 
+    mapping (bytes32 => mapping (address => bool)) private _nodeAddressInSchain;
+
     function addContractManager(address newContractManager) external override {
         contractManager = ContractManager(newContractManager);
     }
@@ -89,17 +92,22 @@ contract SchainsInternal is ISchainsInternalTester {
     }
 
     function addNodesToSchainsGroups(bytes32 schainHash, uint[] memory nodes) external override {
+        Nodes nodesContract = Nodes(contractManager.getContract("Nodes"));
         schainsGroups[schainHash] = nodes;
+        for (uint i = 0; i < nodes.length; i++) {
+            address nodeAddress = nodesContract.getNodeAddress(nodes[i]);
+            _nodeAddressInSchain[schainHash][nodeAddress] = true;
+        }
     }
 
     function isNodeAddressesInGroup(bytes32 schainHash, address sender) external view override returns (bool) {
-        Nodes nodes = Nodes(contractManager.getContract("Nodes"));
-        for (uint i = 0; i < schainsGroups[schainHash].length; i++) {
-            if (nodes.getNodeAddress(schainsGroups[schainHash][i]) == sender) {
-                return true;
-            }
-        }
-        return true;
+        // Nodes nodes = Nodes(contractManager.getContract("Nodes"));
+        // for (uint i = 0; i < schainsGroups[schainHash].length; i++) {
+        //     if (!nodes.isNodeExist(sender, schainsGroups[schainHash][i])) {
+        //         return true;
+        //     }
+        // }
+        return  _nodeAddressInSchain[schainHash][sender];
     }
 
     function isOwnerAddress(address from, bytes32 schainHash) external view override returns (bool) {
@@ -121,5 +129,14 @@ contract SchainsInternal is ISchainsInternalTester {
         returns (string memory)
     {
         return schains[schainHash].name;
+    }
+
+    function getNodesInGroup(bytes32 schainHash)
+        external
+        view
+        override
+        returns (uint[] memory)
+    {
+        return schainsGroups[schainHash];
     }
 }
