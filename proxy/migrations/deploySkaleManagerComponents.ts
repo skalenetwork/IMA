@@ -28,6 +28,8 @@ import { deployLibraries, getLinkedContractFactory } from "./tools/factory";
 import { getAbi } from './tools/abi';
 import { Manifest, hashBytecode } from "@openzeppelin/upgrades-core";
 import { KeyStorageMock } from '../typechain/KeyStorageMock';
+import { Wallet } from 'ethers';
+import { getPublicKey, stringValue } from '../test/utils/helper';
 
 export function getContractKeyInAbiFile(contract: string) {
     return contract.replace(/([a-z0-9])(?=[A-Z])/g, '$1_').toLowerCase();
@@ -128,8 +130,37 @@ async function main() {
     console.log("Set KeyStorage", keyStorage.address, "to ContractManager", contractManager.address, "\n");
     await contractManager.setContractsAddress( "Nodes", nodes.address );
     console.log("Set Nodes", nodes.address, "to ContractManager", contractManager.address, "\n");
+    const nodeAddress1 = new Wallet(stringValue(process.env.PRIVATE_KEY_FOR_ETHEREUM)).connect(ethers.provider);
+    const nodeAddress2 = new Wallet(stringValue(process.env.PRIVATE_KEY_FOR_SCHAIN)).connect(ethers.provider);
+    await owner.sendTransaction({to: nodeAddress1.address, value: ethers.utils.parseEther("1")});
+    await owner.sendTransaction({to: nodeAddress2.address, value: ethers.utils.parseEther("1")});
+
+    const nodeCreationParams1 = {
+        port: 1337,
+        nonce: 1337,
+        ip: "0x12345678",
+        publicIp: "0x12345678",
+        publicKey: getPublicKey(nodeAddress1),
+        name: "TestNode1",
+        domainName: "testnode1.com"
+    };
+    const nodeCreationParams2 = {
+        port: 1337,
+        nonce: 1337,
+        ip: "0x12345678",
+        publicIp: "0x12345678",
+        publicKey: getPublicKey(nodeAddress1),
+        name: "TestNode2",
+        domainName: "testnode2.com"
+    };
+    await nodes.connect(owner).createNode(nodeAddress1.address, nodeCreationParams1);
+    console.log("Create Node 0 with address", nodeAddress1.address, "\n");
+    await nodes.connect(owner).createNode(nodeAddress2.address, nodeCreationParams2);
+    console.log("Create Node 1 with address", nodeAddress2.address, "\n");
     await schainsInternal.initializeSchain( schainName, owner.address, 1, 1 );
     console.log("Initialize Schain", schainName, "with address", owner.address, "\n");
+    await schainsInternal.connect(owner).addNodesToSchainsGroups(stringValue(ethers.utils.id(schainName)), [0, 1]);
+    console.log("Add Nodes 0 and 1 to schain", schainName, "\n");
     const BLSPublicKey = {
         x: {
             a: "8276253263131369565695687329790911140957927205765534740198480597854608202714",
