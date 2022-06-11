@@ -116,6 +116,8 @@ async function main() {
 
     await schains.addContractManager( contractManager.address );
     console.log("Add ContractManager address", contractManager.address, "as ContractManager to Contract Schains", schains.address, "\n");
+    await schainsInternal.addContractManager( contractManager.address );
+    console.log("Add ContractManager address", contractManager.address, "as ContractManager to Contract SchainsInternal", schainsInternal.address, "\n");
     await wallets.addContractManager( contractManager.address );
     console.log("Add ContractManager address", contractManager.address, "as ContractManager to Contract Wallets", wallets.address, "\n");
     await contractManager.setContractsAddress( "Schains", schains.address );
