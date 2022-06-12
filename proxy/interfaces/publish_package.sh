@@ -11,13 +11,13 @@ then
 fi
 
 SCRIPT_DIR="$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )"
-ROOT_DIR="$(dirname $SCRIPT_DIR)"
+ROOT_DIR="$(dirname "$SCRIPT_DIR")"
 INTERFACES_DIR="$ROOT_DIR/contracts/interfaces"
 
 cd "$ROOT_DIR"
 
-BRANCH="$(echo $BRANCH | tr [:upper:] [:lower:] | tr -d [:space:])"
-VERSION="$(BRANCH=$BRANCH $ROOT_DIR/predeployed/scripts/calculate_version.sh)"
+BRANCH="$(echo "$BRANCH" | tr [:upper:] [:lower:] | tr -d [:space:])"
+VERSION="$(BRANCH="$BRANCH" "$ROOT_DIR/predeployed/scripts/calculate_version.sh")"
 
 TAG=""
 if ! [[ $BRANCH == 'stable' ]]
