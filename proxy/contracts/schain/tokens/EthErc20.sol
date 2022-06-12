@@ -23,7 +23,7 @@ pragma solidity 0.8.6;
 
 import "@openzeppelin/contracts-upgradeable/access/AccessControlEnumerableUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/token/ERC20/extensions/ERC20BurnableUpgradeable.sol";
-import "@skalenetwork/ima-interfaces/schain/tokens/IEthErc20.sol";
+import "../../interfaces/schain/tokens/IEthErc20.sol";
 
 
 /**

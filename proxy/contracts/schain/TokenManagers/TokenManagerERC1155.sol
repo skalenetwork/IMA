@@ -23,7 +23,7 @@ pragma solidity 0.8.6;
 
 import "@openzeppelin/contracts-upgradeable/token/ERC1155/IERC1155Upgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/utils/AddressUpgradeable.sol";
-import "@skalenetwork/ima-interfaces/schain/TokenManagers/ITokenManagerERC1155.sol";
+import "../../interfaces/schain/TokenManagers/ITokenManagerERC1155.sol";
 
 import "../../Messages.sol";
 import "../tokens/ERC1155OnChain.sol";

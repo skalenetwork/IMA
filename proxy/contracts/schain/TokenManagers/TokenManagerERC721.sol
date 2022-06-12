@@ -22,7 +22,7 @@
 pragma solidity 0.8.6;
 
 import "@openzeppelin/contracts-upgradeable/utils/AddressUpgradeable.sol";
-import "@skalenetwork/ima-interfaces/schain/TokenManagers/ITokenManagerERC721.sol";
+import "../../interfaces/schain/TokenManagers/ITokenManagerERC721.sol";
 
 import "../../Messages.sol";
 import "../tokens/ERC721OnChain.sol";

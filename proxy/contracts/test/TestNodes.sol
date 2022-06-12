@@ -22,8 +22,6 @@
 
 pragma solidity 0.8.6;
 
-import "hardhat/console.sol";
-
 
 interface INodesTester {
     function createNode(address, Nodes.NodeCreationParams calldata params) external;
@@ -109,7 +107,6 @@ contract Nodes is INodesTester {
         checkNodeExists(nodeIndex)
         returns (bool)
     {
-        console.log("Inside", nodeIndex);
         return nodeIndexes[from].isNodeExist[nodeIndex];
     }
 

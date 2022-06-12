@@ -22,7 +22,7 @@
 
 pragma solidity 0.8.6;
 
-import "@skalenetwork/ima-interfaces/IMessageReceiver.sol";
+import "../interfaces/IMessageReceiver.sol";
 
 
 contract ReceiverGasLimitSchainMock is IMessageReceiver {

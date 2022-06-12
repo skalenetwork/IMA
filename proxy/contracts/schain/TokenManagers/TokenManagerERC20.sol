@@ -24,7 +24,7 @@ pragma solidity 0.8.6;
 import "@openzeppelin/contracts-upgradeable/token/ERC20/IERC20Upgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/utils/AddressUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/utils/math/SafeMathUpgradeable.sol";
-import "@skalenetwork/ima-interfaces/schain/TokenManagers/ITokenManagerERC20.sol";
+import "../../interfaces/schain/TokenManagers/ITokenManagerERC20.sol";
 
 import "../../Messages.sol";
 import "../tokens/ERC20OnChain.sol";

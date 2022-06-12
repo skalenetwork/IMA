@@ -24,7 +24,7 @@
 pragma solidity 0.8.6;
 
 import "@openzeppelin/contracts-upgradeable/access/AccessControlEnumerableUpgradeable.sol";
-import "@skalenetwork/ima-interfaces/schain/ICommunityLocker.sol";
+import "../interfaces/schain/ICommunityLocker.sol";
 
 import "../Messages.sol";
 

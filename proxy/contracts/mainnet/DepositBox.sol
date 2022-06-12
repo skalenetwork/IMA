@@ -22,7 +22,7 @@
 
 pragma solidity 0.8.6;
 
-import "@skalenetwork/ima-interfaces/mainnet/IDepositBox.sol";
+import "../interfaces/mainnet/IDepositBox.sol";
 
 import "./Twin.sol";
 

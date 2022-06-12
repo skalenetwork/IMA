@@ -22,7 +22,7 @@
 
 pragma solidity 0.8.6;
 
-import "@skalenetwork/ima-interfaces/schain/bls/IFieldOperations.sol";
+import "../../interfaces/schain/bls/IFieldOperations.sol";
 
 import "./Precompiled.sol";
 

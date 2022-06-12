@@ -25,7 +25,7 @@ import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
 import "@openzeppelin/contracts-upgradeable/access/AccessControlEnumerableUpgradeable.sol";
 import "@skalenetwork/skale-manager-interfaces/IContractManager.sol";
 import "@skalenetwork/skale-manager-interfaces/ISchainsInternal.sol";
-import "@skalenetwork/ima-interfaces/mainnet/ISkaleManagerClient.sol";
+import "../interfaces/mainnet/ISkaleManagerClient.sol";
 
 
 /**
@@ -72,7 +72,7 @@ contract SkaleManagerClient is Initializable, AccessControlEnumerableUpgradeable
         return ISchainsInternal(skaleChainsInternal).isOwnerAddress(sender, schainHash);
     }
 
-    function isAgentAuthorized(bytes32 schainHash, address sender) public view returns (bool) {
+    function isAgentAuthorized(bytes32 schainHash, address sender) public view override returns (bool) {
         address skaleChainsInternal = contractManagerOfSkaleManager.getContract("SchainsInternal");
         return ISchainsInternal(skaleChainsInternal).isNodeAddressesInGroup(schainHash, sender);
     }

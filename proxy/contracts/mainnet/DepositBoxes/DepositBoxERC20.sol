@@ -24,7 +24,7 @@ pragma solidity 0.8.6;
 import "@openzeppelin/contracts-upgradeable/utils/AddressUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/utils/structs/EnumerableSetUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/token/ERC20/ERC20Upgradeable.sol";
-import "@skalenetwork/ima-interfaces/mainnet/DepositBoxes/IDepositBoxERC20.sol";
+import "../../interfaces/mainnet/DepositBoxes/IDepositBoxERC20.sol";
 
 import "../../Messages.sol";
 import "../DepositBox.sol";

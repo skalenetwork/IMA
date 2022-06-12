@@ -24,9 +24,9 @@ pragma solidity 0.8.6;
 import "@openzeppelin/contracts-upgradeable/access/AccessControlEnumerableUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/utils/AddressUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/utils/structs/EnumerableSetUpgradeable.sol";
-import "@skalenetwork/ima-interfaces/IGasReimbursable.sol";
-import "@skalenetwork/ima-interfaces/IMessageProxy.sol";
-import "@skalenetwork/ima-interfaces/IMessageReceiver.sol";
+import "./interfaces/IGasReimbursable.sol";
+import "./interfaces/IMessageProxy.sol";
+import "./interfaces/IMessageReceiver.sol";
 
 
 /**

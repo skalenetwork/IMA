@@ -21,10 +21,20 @@
 
 pragma solidity 0.8.6;
 
-import "@skalenetwork/ima-interfaces/extensions/IERC721ReferenceMintAndMetadataSchain.sol";
-
 import "../schain/tokens/ERC721OnChain.sol";
-import "./interfaces/MessageSender.sol";
+import "../interfaces/MessageSender.sol";
+
+interface IERC721ReferenceMintAndMetadataSchain {
+    function sendTokenToMainnet(address receiver, uint256 tokenId) external;
+    function encodeParams(
+        address receiver,
+        uint256 tokenId,
+        string memory tokenURI
+    )
+        external
+        pure
+        returns (bytes memory data);
+}
 
 
 /**
