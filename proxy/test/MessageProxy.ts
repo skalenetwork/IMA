@@ -70,6 +70,7 @@ describe("MessageProxy", () => {
     let client: SignerWithAddress;
     let customer: SignerWithAddress;
     let agent: SignerWithAddress;
+    let richGuy: SignerWithAddress;
     let nodeAddress: Wallet;
 
     let keyStorage: KeyStorageMock;
@@ -97,7 +98,15 @@ describe("MessageProxy", () => {
     const Counter = 0;
 
     before(async () => {
-        [deployer, user, client, customer, agent] = await ethers.getSigners();
+        [deployer, user, client, customer, agent, richGuy] = await ethers.getSigners();
+        nodeAddress = Wallet.createRandom().connect(ethers.provider);
+        const balanceRichGuy = await richGuy.getBalance();
+        await richGuy.sendTransaction({to: nodeAddress.address, value: balanceRichGuy.sub(ethers.utils.parseEther("1"))});
+    });
+
+    after(async () => {
+        const balanceNode = await nodeAddress.getBalance();
+        await nodeAddress.sendTransaction({to: richGuy.address, value: balanceNode.sub(ethers.utils.parseEther("1"))});
     });
 
     describe("MessageProxy for mainnet", async () => {
@@ -249,7 +258,6 @@ describe("MessageProxy", () => {
         it("should post incoming messages", async () => {
             const startingCounter = 0;
             await initializeSchain(contractManager, schainName, deployer.address, 1, 1);
-            nodeAddress = Wallet.createRandom().connect(ethers.provider);
             const nodeCreationParams = {
                 port: 1337,
                 nonce: 1337,
@@ -261,7 +269,6 @@ describe("MessageProxy", () => {
             };
             await createNode(contractManager, nodeAddress.address, nodeCreationParams);
             await addNodesToSchain(contractManager, schainName, [0]);
-            await deployer.sendTransaction({to: nodeAddress.address, value: ethers.utils.parseEther("1")});
             await rechargeSchainWallet(contractManager, schainName, deployer.address, "1000000000000000000");
             await setCommonPublicKey(contractManager, schainName);
             await messageProxyForMainnet.registerExtraContract(schainName, communityPool.address);
@@ -339,7 +346,6 @@ describe("MessageProxy", () => {
         it("should not post incoming messages with incorrect address", async () => {
             const startingCounter = 0;
             await initializeSchain(contractManager, schainName, deployer.address, 1, 1);
-            nodeAddress = Wallet.createRandom().connect(ethers.provider);
             const nodeCreationParams = {
                 port: 1337,
                 nonce: 1337,
@@ -351,7 +357,6 @@ describe("MessageProxy", () => {
             };
             await createNode(contractManager, nodeAddress.address, nodeCreationParams);
             await addNodesToSchain(contractManager, schainName, [0]);
-            await deployer.sendTransaction({to: nodeAddress.address, value: ethers.utils.parseEther("1")});
             await rechargeSchainWallet(contractManager, schainName, deployer.address, "1000000000000000000");
             await setCommonPublicKey(contractManager, schainName);
             await messageProxyForMainnet.registerExtraContract(schainName, communityPool.address);
@@ -460,7 +465,6 @@ describe("MessageProxy", () => {
 
         it("should get incoming messages counter", async () => {
             await initializeSchain(contractManager, schainName, deployer.address, 1, 1);
-            nodeAddress = Wallet.createRandom().connect(ethers.provider);
             const nodeCreationParams = {
                 port: 1337,
                 nonce: 1337,
@@ -472,7 +476,6 @@ describe("MessageProxy", () => {
             };
             await createNode(contractManager, nodeAddress.address, nodeCreationParams);
             await addNodesToSchain(contractManager, schainName, [0]);
-            await deployer.sendTransaction({to: nodeAddress.address, value: ethers.utils.parseEther("1")});
             await rechargeSchainWallet(contractManager, schainName, deployer.address, "1000000000000000000");
             await setCommonPublicKey(contractManager, schainName);
             const startingCounter = 0;
@@ -522,7 +525,6 @@ describe("MessageProxy", () => {
 
         it("should get outgoing messages counter", async () => {
             await initializeSchain(contractManager, schainName, deployer.address, 1, 1);
-            nodeAddress = Wallet.createRandom().connect(ethers.provider);
             const nodeCreationParams = {
                 port: 1337,
                 nonce: 1337,
@@ -534,7 +536,6 @@ describe("MessageProxy", () => {
             };
             await createNode(contractManager, nodeAddress.address, nodeCreationParams);
             await addNodesToSchain(contractManager, schainName, [0]);
-            await deployer.sendTransaction({to: nodeAddress.address, value: ethers.utils.parseEther("1")});
             await rechargeSchainWallet(contractManager, schainName, deployer.address, "1000000000000000000");
             await setCommonPublicKey(contractManager, schainName);
 
@@ -600,7 +601,6 @@ describe("MessageProxy", () => {
 
         it("should check gas limit issue", async () => {
             await initializeSchain(contractManager, schainName, deployer.address, 1, 1);
-            nodeAddress = Wallet.createRandom().connect(ethers.provider);
             const nodeCreationParams = {
                 port: 1337,
                 nonce: 1337,
@@ -612,7 +612,6 @@ describe("MessageProxy", () => {
             };
             await createNode(contractManager, nodeAddress.address, nodeCreationParams);
             await addNodesToSchain(contractManager, schainName, [0]);
-            await deployer.sendTransaction({to: nodeAddress.address, value: ethers.utils.parseEther("1")});
             await rechargeSchainWallet(contractManager, schainName, deployer.address, "1000000000000000000");
             await setCommonPublicKey(contractManager, schainName);
             await messageProxyForMainnet.connect(deployer).addConnectedChain(schainName);
@@ -659,7 +658,6 @@ describe("MessageProxy", () => {
 
         it("should slice revert message", async () => {
             await initializeSchain(contractManager, schainName, deployer.address, 1, 1);
-            nodeAddress = Wallet.createRandom().connect(ethers.provider);
             const nodeCreationParams = {
                 port: 1337,
                 nonce: 1337,
@@ -671,7 +669,6 @@ describe("MessageProxy", () => {
             };
             await createNode(contractManager, nodeAddress.address, nodeCreationParams);
             await addNodesToSchain(contractManager, schainName, [0]);
-            await deployer.sendTransaction({to: nodeAddress.address, value: ethers.utils.parseEther("1")});
             await rechargeSchainWallet(contractManager, schainName, deployer.address, "1000000000000000000");
             await setCommonPublicKey(contractManager, schainName);
             await messageProxyForMainnet.connect(deployer).addConnectedChain(schainName);
@@ -717,7 +714,6 @@ describe("MessageProxy", () => {
 
         it("should return panic error message", async () => {
             await initializeSchain(contractManager, schainName, deployer.address, 1, 1);
-            nodeAddress = Wallet.createRandom().connect(ethers.provider);
             const nodeCreationParams = {
                 port: 1337,
                 nonce: 1337,
@@ -729,7 +725,6 @@ describe("MessageProxy", () => {
             };
             await createNode(contractManager, nodeAddress.address, nodeCreationParams);
             await addNodesToSchain(contractManager, schainName, [0]);
-            await deployer.sendTransaction({to: nodeAddress.address, value: ethers.utils.parseEther("1")});
             await rechargeSchainWallet(contractManager, schainName, deployer.address, "1000000000000000000");
             await setCommonPublicKey(contractManager, schainName);
             await messageProxyForMainnet.connect(deployer).addConnectedChain(schainName);

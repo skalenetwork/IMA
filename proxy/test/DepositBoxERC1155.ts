@@ -76,6 +76,7 @@ describe("DepositBoxERC1155", () => {
     let deployer: SignerWithAddress;
     let user: SignerWithAddress;
     let user2: SignerWithAddress;
+    let richGuy: SignerWithAddress;
     let nodeAddress: Wallet;
 
     let depositBoxERC1155: DepositBoxERC1155;
@@ -87,7 +88,15 @@ describe("DepositBoxERC1155", () => {
     const schainName = "Schain";
 
     before(async () => {
-        [deployer, user, user2] = await ethers.getSigners();
+        [deployer, user, user2, richGuy] = await ethers.getSigners();
+        nodeAddress = Wallet.createRandom().connect(ethers.provider);
+        const balanceRichGuy = await richGuy.getBalance();
+        await richGuy.sendTransaction({to: nodeAddress.address, value: balanceRichGuy.sub(ethers.utils.parseEther("1"))});
+    });
+
+    after(async () => {
+        const balanceNode = await nodeAddress.getBalance();
+        await nodeAddress.sendTransaction({to: richGuy.address, value: balanceNode.sub(ethers.utils.parseEther("1"))});
     });
 
     beforeEach(async () => {
@@ -99,7 +108,6 @@ describe("DepositBoxERC1155", () => {
         await messageProxy.grantRole(await messageProxy.CHAIN_CONNECTOR_ROLE(), linker.address);
         await messageProxy.grantRole(await messageProxy.EXTRA_CONTRACT_REGISTRAR_ROLE(), deployer.address);
         await initializeSchain(contractManager, schainName, user.address, 1, 1);
-        nodeAddress = Wallet.createRandom().connect(ethers.provider);
         const nodeCreationParams = {
             port: 1337,
             nonce: 1337,
@@ -111,7 +119,6 @@ describe("DepositBoxERC1155", () => {
         };
         await createNode(contractManager, nodeAddress.address, nodeCreationParams);
         await addNodesToSchain(contractManager, schainName, [0]);
-        await deployer.sendTransaction({to: nodeAddress.address, value: ethers.utils.parseEther("1")});
         await rechargeSchainWallet(contractManager, schainName, user2.address, "1000000000000000000");
         await messageProxy.registerExtraContractForAll(depositBoxERC1155.address);
         await messageProxy.registerExtraContract(schainName, communityPool.address);

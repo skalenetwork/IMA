@@ -99,6 +99,7 @@ describe("ERC721MintingFromSchainToMainnet", () => {
     let deployer: SignerWithAddress;
     let user: SignerWithAddress;
     let schainOwner: SignerWithAddress;
+    let richGuy: SignerWithAddress;
     let nodeAddress: Wallet;
 
     let imaLinker: Linker;
@@ -126,7 +127,10 @@ describe("ERC721MintingFromSchainToMainnet", () => {
     const contractManagerAddress = "0x0000000000000000000000000000000000000000";
 
     before(async () => {
-        [deployer, schainOwner, user] = await ethers.getSigners();
+        [deployer, schainOwner, user, richGuy] = await ethers.getSigners();
+        nodeAddress = Wallet.createRandom().connect(ethers.provider);
+        const balanceRichGuy = await richGuy.getBalance();
+        await richGuy.sendTransaction({to: nodeAddress.address, value: balanceRichGuy.sub(ethers.utils.parseEther("1"))});
     })
 
     beforeEach(async () => {
@@ -149,9 +153,6 @@ describe("ERC721MintingFromSchainToMainnet", () => {
         await schains.connect(deployer).addContractManager(contractManager.address);
         await schainsInternal.connect(deployer).addContractManager(contractManager.address);
         await wallets.connect(deployer).addContractManager(contractManager.address);
-
-        nodeAddress = Wallet.createRandom().connect(ethers.provider);
-        await deployer.sendTransaction({to: nodeAddress.address, value: ethers.utils.parseEther("1")});
 
         // setup 16 nodes
         const nodeCreationParams = {
