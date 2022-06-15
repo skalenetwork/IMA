@@ -12,6 +12,10 @@ Once you have completed step 1 to setup ERC20 tokens with another chain, end-use
 
 The following one-time setup is required for SKALE Chains with a default access control policy (default settings are: whitelisting enabled, automatic deployment disabled). For more information on IMA access control, xref:access-control.adoc[see here].
 
+=== 0. Assign role
+
+include::partial$missing-chain-connector-role.adoc[]
+
 === 1. Connect each SKALE Chain
 
 You must connect each chain in both directions by executing two connectSchain() transaction on each respective chain.
@@ -57,7 +61,7 @@ include::example$erc20/token.sol[]
 
 === 3. Deploy ERC20 clone on Target
 
-The ERC20 clone on the target chain MUST have both mint and burn functionalities. If the original ERC20 contract on origin does not have burn functionalities, then you must add burn() to the clone.
+The ERC20 clone on the target chain MUST have both mint and burn functionalities. If the original ERC20 contract on origin does not have burn functionalities, then you must either assign `BURNER_ROLE` (if using Open Zeppelin's Role-Based Access control) or add a burn() to the clone that is assigned/callable by the TokenManagerERC20.
 
 [source,javascript]
 ----
