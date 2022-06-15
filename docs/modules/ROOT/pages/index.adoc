@@ -37,5 +37,7 @@ Deposits and withdrawals take only seconds and are secured using BLS Threshold s
 
 * In order for an Ethereum Mainnet token contract to work with IMA on your SKALE Chain, **the token contract copy deployed on SKALE may need to be modified to include MINTABLE and BURNABLE functions**. SKALE Chain IMA contracts need to mint and burn the token on SKALE chains to maintain the 1:1 peg with Ethereum. If the token is already using OpenZeppelin's framework, you can do this by importing ERC20Mintable/ERC721Mintable and ERC20Burnable/ERC721Burnable contracts that extend the functionality to include mintable and burnable functions. You can also do this by manually modifying the contract by adding mintable and burnable functions.
 
-* The SKALE Chain TokenManager contract must be assigned the minter role for your modified token contract. This enables IMA to mint token clones as the tokens are Locked on mainnet contracts.
+* The SKALE Chain TokenManager contract must be allowed to call the mint and burn functions (or assigned Minter and Burner roles if using role-based access control) for token contract on SKALE. This enables IMA to mint and burn token clones as the tokens are locked or released on mainnet contracts.
+
+* The IMA bridge agent batches transactions between chains: up to 4 messages at a time. 
 
