@@ -1,6 +1,6 @@
 // import & init ima-js here
 
-export async function linkERC20TokenOrigin(ima) {
+export async function linkERC20TokenOrigin(schain) {
     let erc20OnOrigin = "[ADDRESS_OF_ERC20_TOKEN_ON_ORIGIN]";
     let erc20OnTarget = "[ADDRESS_OF_ERC20_TOKEN_ON_TARGET]";
 
@@ -14,9 +14,9 @@ export async function linkERC20TokenOrigin(ima) {
         privateKey: privateKey // remove privateKey from txOpts to use Metamask signing
     };
 
-    const isERC20AddedOrigin = await ima.schain.erc20.isTokenAdded(erc20OnOrigin);
+    const isERC20AddedOrigin = await schain.erc20.getTokenCloneAddress(erc20OnOrigin);
     if (isERC20AddedOrigin === ZERO_ADDRESS) {
-        await ima.schain.erc20.addTokenByOwner(
+        await schain.erc20.addTokenByOwner(
             targetChainName,
             erc20OnOrigin,
             erc20OnTarget,

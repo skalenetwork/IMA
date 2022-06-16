@@ -14,7 +14,7 @@ export async function linkERC20TokenSchain(ima) {
         privateKey: privateKey // remove privateKey from txOpts to use Metamask signing
     };
 
-    const isERC20AddedSchain = await ima.schain.erc20.isTokenAdded(erc20OnMainnet);
+    const isERC20AddedSchain = await ima.schain.erc20.getTokenCloneAddress(erc20OnMainnet);
     if (isERC20AddedSchain === ZERO_ADDRESS) {
         await ima.schain.erc20.addTokenByOwner(
             originChainName,
