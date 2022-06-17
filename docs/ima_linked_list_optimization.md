@@ -115,10 +115,46 @@ For a new outgoing message:
 
 7. Take the olgest IMA message for the block and get ```previousOutgoingMessageBlockId```
 
-8 Set ```currentBlock = previousOutgoingMessageBlockID```
-
+8. Set ```currentBlock = previousOutgoingMessageBlockID```
 
 9. Go to 4. and repeat until all required messages have been read.
+
+
+## 6 Update strategy for the network.
+
+### 6.1: Implement new behavior in the IMA agent.
+
+Implement new behavior in the IMA agent, but keep it switched off.
+
+Also, for the old behavior, change IMA agent to ignore the first 128 bits of ConnectedChain.oitgoingMessageCounter and OutgoingMessage.messageCounter
+
+### 6.2: Update the network with the new agent.
+
+Update the network with the new agent but keep the new behavior switched off.
+
+### 6.3: Update the main net smart contracts.
+
+Update the ETH main net smart contracts. Note, that the old behavior will still work with new contracts.
+
+### 6.4. Wait until all old messages are delivered.
+
+Wait until all old messages are delivered. These are messages that do not have ```previousOutgoingMessageBlockId```.
+
+### 6.5. Switch IMA to use the new behavior
+
+Switch the IMA to use the new behavior.
+
+
+## 7. Advantages
+
+- new behavior totally removes the need for search while not increasing gas costs significantly
+
+- old behavior can still be executed if needed
+
+- contract changes and agent changes are relatively small
+
+
+
 
 
 
