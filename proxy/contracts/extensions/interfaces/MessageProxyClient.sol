@@ -21,10 +21,10 @@
 
 pragma solidity 0.8.6;
 
-import "@skalenetwork/ima-interfaces/IMessageProxy.sol";
+import "../../MessageProxy.sol";
 
 abstract contract MessageProxyClient {
-    IMessageProxy public messageProxy;
+    MessageProxy public messageProxy;
 
     modifier onlyMessageProxy() {
         require(msg.sender == address(messageProxy), "Sender is not a message proxy");
@@ -32,6 +32,6 @@ abstract contract MessageProxyClient {
     }
 
     constructor(address newMessageProxyAddress) {
-        messageProxy = IMessageProxy(newMessageProxyAddress);
+        messageProxy = MessageProxy(newMessageProxyAddress);
     }
 }

@@ -22,8 +22,8 @@
 pragma solidity 0.8.6;
 
 import "@openzeppelin/contracts-upgradeable/utils/AddressUpgradeable.sol";
-import "@skalenetwork/etherbase-interfaces/IEtherbaseUpgradeable.sol";
 import "@skalenetwork/ima-interfaces/schain/IMessageProxyForSchain.sol";
+import "@skalenetwork/etherbase-interfaces/IEtherbaseUpgradeable.sol";
 
 import "../MessageProxy.sol";
 import "./bls/SkaleVerifier.sol";

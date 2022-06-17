@@ -24,9 +24,9 @@ pragma solidity 0.8.6;
 import "@openzeppelin/contracts-upgradeable/utils/AddressUpgradeable.sol";
 import "@skalenetwork/skale-manager-interfaces/IWallets.sol";
 import "@skalenetwork/skale-manager-interfaces/ISchains.sol";
-import "@skalenetwork/skale-manager-interfaces/ISchainsInternal.sol";
 import "@skalenetwork/ima-interfaces/mainnet/IMessageProxyForMainnet.sol";
 import "@skalenetwork/ima-interfaces/mainnet/ICommunityPool.sol";
+import "@skalenetwork/skale-manager-interfaces/ISchainsInternal.sol";
 
 
 import "../MessageProxy.sol";

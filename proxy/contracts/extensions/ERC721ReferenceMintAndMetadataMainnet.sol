@@ -21,12 +21,10 @@
 
 pragma solidity 0.8.6;
 
+import "@skalenetwork/ima-interfaces/extensions/IERC721ReferenceMintAndMetadataMainnet.sol";
+
 import "../schain/tokens/ERC721OnChain.sol";
 import "./interfaces/MessageReceiver.sol";
-
-interface IERC721ReferenceMintAndMetadataMainnet {
-    function setSenderContractOnSchain(address newSenderContractOnSchain) external;
-}
 
 
 // This contract runs on the main net and accepts deposits

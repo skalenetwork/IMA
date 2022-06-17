@@ -4,16 +4,6 @@ import { BytesLike } from "ethers";
 
 const nameNodes = "Nodes";
 
-// const nodeCreationParams = {
-//     port: 1337,
-//     nonce: 1337,
-//     ip: "0x12345678",
-//     publicIp: "0x12345678",
-//     publicKey: getPublicKey(nodeAddress),
-//     name: "GasCalculationNode",
-//     domainName: "gascalculationnode.com"
-// };
-
 type NodeCreationParams = {
     port: number;
     nonce: number;
@@ -29,8 +19,8 @@ export async function createNode(
     from: string,
     nodeCreationParams: NodeCreationParams
 ) {
-    const nodesFactory = await ethers.getContractFactory("Nodes");
-    const nodesAddres = await contractManager.getContract("Nodes");
+    const nodesFactory = await ethers.getContractFactory(nameNodes);
+    const nodesAddres = await contractManager.getContract(nameNodes);
     const nodes = nodesFactory.attach(nodesAddres) as Nodes;
     await nodes.createNode(from, nodeCreationParams);
 }
