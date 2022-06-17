@@ -27,7 +27,7 @@ SSTORE operations does not change.
 
 
 
-## 3 Implementation details
+## 3 Proposed changes to IMA contracts
 
 ### 3.1 Add lastOutgoingMessageBlockId to ConnectedChainInfo.outgoingMessageCounter
 
@@ -84,9 +84,18 @@ Since no new fields are introduced in the event, the gas costs wont change signi
 _Proposed change:_
 
 
-Add separate getter functions for lastOutgoingMessageBlockId and outgoingMessageCounter variables. This is to make IMA smart contracts
+Add separate getter functions for ```lastOutgoingMessageBlockId``` and ```outgoingMessageCounter``` variables. This is to make IMA smart contracts
 easy to use by IMA agent.
 
+## Pseudo code of IMA contract operation:
+
+For a new outgoing message:
+
+1. Read and parse ```lastOutgoingMessageBlockId``` and ```outgoingMessageCounter```
+2. Increment ```outgoingMessageCounter```
+3. Create message event setting ```previousOutgoingMessageBlockId``` to ```lastOutgoingMessageBlockId``` and ```messageCounter``` to ```outgoingMessageCounter```
+4. Set ```lastOutgoingMessageBlockId``` to the current block id.
+5. Write back ```lastOutgoingMessageBlockId``` and ```outgoingMessageCounter``` 
 
 
 
