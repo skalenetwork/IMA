@@ -1,9 +1,9 @@
 // SPDX-License-Identifier: AGPL-3.0-only
 
 /**
- *   ICommunityLocker.sol - SKALE Interchain Messaging Agent
+ *   MessageReceiver.sol - SKALE Interchain Messaging Agent
  *   Copyright (C) 2021-Present SKALE Labs
- *   @author Dmytro Stebaiev
+ *   @author Artem Payvin
  *
  *   SKALE IMA is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU Affero General Public License as published
@@ -19,22 +19,12 @@
  *   along with SKALE IMA.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-pragma solidity >=0.6.10 <0.9.0;
+pragma solidity 0.8.6;
 
-import "../IMessageReceiver.sol";
+import "@skalenetwork/ima-interfaces/IMessageReceiver.sol";
 
-import "./IMessageProxyForSchain.sol";
-import "./ITokenManagerLinker.sol";
+import "./MessageProxyClient.sol";
 
 
-interface ICommunityLocker is IMessageReceiver {
-    function initialize(
-        string memory newSchainName,
-        IMessageProxyForSchain newMessageProxy,
-        ITokenManagerLinker newTokenManagerLinker,
-        address newCommunityPool
-    ) external;
-    function checkAllowedToSendMessage(address receiver) external;
-    function setTimeLimitPerMessage(uint newTimeLimitPerMessage) external;
-    function setGasPrice(uint gasPrice, uint timestamp, IMessageProxyForSchain.Signature memory signature) external;
-}
+// solhint-disable-next-line no-empty-blocks
+abstract contract MessageReceiver is MessageProxyClient, IMessageReceiver {}

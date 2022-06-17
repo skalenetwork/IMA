@@ -23,7 +23,7 @@ pragma solidity 0.8.6;
 
 import "@openzeppelin/contracts-upgradeable/utils/structs/EnumerableSetUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/utils/AddressUpgradeable.sol";
-import "../interfaces/mainnet/ILinker.sol";
+import "@skalenetwork/ima-interfaces/mainnet/ILinker.sol";
 
 import "../Messages.sol";
 import "./MessageProxyForMainnet.sol";

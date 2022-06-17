@@ -24,7 +24,7 @@ pragma solidity 0.8.6;
 
 import "@openzeppelin/contracts-upgradeable/token/ERC20/extensions/ERC20BurnableUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/access/AccessControlEnumerableUpgradeable.sol";
-import "../../interfaces/schain/tokens/IERC20OnChain.sol";
+import "@skalenetwork/ima-interfaces/schain/tokens/IERC20OnChain.sol";
 
 
 /**

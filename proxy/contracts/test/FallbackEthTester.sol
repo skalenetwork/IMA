@@ -22,8 +22,8 @@
 
 pragma solidity 0.8.6;
 
-import "../interfaces/mainnet/DepositBoxes/IDepositBoxEth.sol";
-import "../interfaces/mainnet/ICommunityPool.sol";
+import "@skalenetwork/ima-interfaces/mainnet/DepositBoxes/IDepositBoxEth.sol";
+import "@skalenetwork/ima-interfaces/mainnet/ICommunityPool.sol";
 
 interface IFallbackEthTester {
     receive() external payable;

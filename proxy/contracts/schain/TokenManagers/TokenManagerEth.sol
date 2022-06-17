@@ -21,7 +21,7 @@
 
 pragma solidity 0.8.6;
 
-import "../../interfaces/schain/TokenManagers/ITokenManagerEth.sol";
+import "@skalenetwork/ima-interfaces/schain/TokenManagers/ITokenManagerEth.sol";
 
 import "../../Messages.sol";
 import "../TokenManager.sol";

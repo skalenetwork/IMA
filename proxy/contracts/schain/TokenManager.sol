@@ -21,8 +21,8 @@
 
 pragma solidity 0.8.6;
 
-import "../interfaces/schain/ITokenManager.sol";
-import "../interfaces/schain/ICommunityLocker.sol";
+import "@skalenetwork/ima-interfaces/schain/ITokenManager.sol";
+import "@skalenetwork/ima-interfaces/schain/ICommunityLocker.sol";
 
 import "./MessageProxyForSchain.sol";
 import "./TokenManagerLinker.sol";

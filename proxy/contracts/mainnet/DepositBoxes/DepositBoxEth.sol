@@ -22,7 +22,7 @@
 pragma solidity 0.8.6;
 
 import "@openzeppelin/contracts-upgradeable/utils/AddressUpgradeable.sol";
-import "../../interfaces/mainnet/DepositBoxes/IDepositBoxEth.sol";
+import "@skalenetwork/ima-interfaces/mainnet/DepositBoxes/IDepositBoxEth.sol";
 
 import "../DepositBox.sol";
 import "../../Messages.sol";

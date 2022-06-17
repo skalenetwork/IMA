@@ -22,7 +22,7 @@
 pragma solidity 0.8.6;
 
 import "@openzeppelin/contracts-upgradeable/access/AccessControlEnumerableUpgradeable.sol";
-import "../interfaces/schain/ITokenManagerLinker.sol";
+import "@skalenetwork/ima-interfaces/schain/ITokenManagerLinker.sol";
 
 import "../Messages.sol";
 import "../MessageProxy.sol";

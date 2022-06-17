@@ -25,7 +25,7 @@ import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
 import "@openzeppelin/contracts-upgradeable/access/AccessControlEnumerableUpgradeable.sol";
 import "@skalenetwork/skale-manager-interfaces/IContractManager.sol";
 import "@skalenetwork/skale-manager-interfaces/ISchainsInternal.sol";
-import "../interfaces/mainnet/ISkaleManagerClient.sol";
+import "@skalenetwork/ima-interfaces/mainnet/ISkaleManagerClient.sol";
 
 
 /**

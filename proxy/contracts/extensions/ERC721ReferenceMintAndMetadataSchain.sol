@@ -22,7 +22,7 @@
 pragma solidity 0.8.6;
 
 import "../schain/tokens/ERC721OnChain.sol";
-import "../interfaces/MessageSender.sol";
+import "./interfaces/MessageSender.sol";
 
 interface IERC721ReferenceMintAndMetadataSchain {
     function sendTokenToMainnet(address receiver, uint256 tokenId) external;
