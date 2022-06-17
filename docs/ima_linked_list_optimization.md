@@ -20,7 +20,7 @@ SSTORE operations does not change.
 
 ## Implementation details
 
-### 1. Add lastOutgoingMessageBlockId to ConnectedChainInfo.outgoingMessageCounter
+### Change 1. Add lastOutgoingMessageBlockId to ConnectedChainInfo.outgoingMessageCounter
 
 
 Currently IMA uses ```ConnectedChainInfo.outgoingMessageCounter``` variable which has 256 bits.  Note, that the first 128 bits of this variable are always zero and can be used to store useful data.
@@ -41,7 +41,7 @@ B.  Each time a new outgoing message is received update lastOutgoingMessageBlock
 It will require a single SSTORE operation, so the gas costs wont change significantly compared to what IMA has now. 
 
 
-### 1. Add lastOutgoingMessageBlockId to outgoingMessageCounter
+### Change 2. Add lastOutgoingMessageBlockId to outgoingMessageCounter
 
 
 
