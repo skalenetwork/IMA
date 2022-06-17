@@ -15,10 +15,39 @@ To find all messages, one starts from the latest message and then goes back in h
 On each step, $eth_getLogs$ is called for a single block only.
 
 This spec does not significantly increase gas costs, since existing variables are used and the number of 
-SSTORE operations does not change.
+SSTORE operations does not change. 
 
 
-## Implementation
+## Implementation details
+
+### 1. Add lastOutgoingMessageBlockId to ConnectedChainInfo.outgoingMessageCounter
+
+
+Currently IMA uses ```ConnectedChainInfo.outgoingMessageCounter``` variable which has 256 bits.  Note, that the first 128 bits of this variable are always zero and can be used to store useful data.
+
+
+```Proposed change```
+
+
+A. Use first 128 bits of ```outgoingMessageCounter```  to store ```lastOutgoingMessageBlockId```. This variable will store the block ID of the last outgoing message, which is the head of the linked list.
+
+
+```ConnectedChainInfo.outgoingMessageCounter = lastOutgoingMessageBlockId || outgoingMessageCounter```
+
+
+B.  Each time a new outgoing message is received update lastOutgoingMessageBlockID and outgoingmessageCounter, and then save the 
+```ConnectedChainInfo.outgoingMessageCounter``` variable. 
+
+It will require a single SSTORE operation, so the gas costs wont change significantly compared to what IMA has now. 
+
+
+### 1. Add lastOutgoingMessageBlockId to outgoingMessageCounter
+
+
+
+
+
+
 
 
 
