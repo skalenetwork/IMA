@@ -1,13 +1,13 @@
 # IMA Linked List Optimization
 
-## TL;DR
+## 1 TL;DR
 
-### Problem
+### 1.1 Problem
 
 Currently IMA puts lots of computational load on geth by searching history for IMA message events.
 This can significantly slow IMA performance.
 
-### Solution
+### 1.2 Solution
 
 This proposal totally eliminates searches by creating a linked list of IMA messages. 
 Each message includes the block number of the previous message.  This glues all IMA messages into a linked list,
@@ -16,20 +16,20 @@ where one can easily go back in history.
 To find all messages, one starts from the latest message and then goes back in history by traversing the linked list. 
 On each step, ```eth_getLoggs``` is called for a single block only.
 
-### Gas cost
+### 1.3 Gas cost
 
 This spec does not significantly increase gas costs, since existing variables are used and the number of 
 SSTORE operations does not change. 
 
-## Illustration
+## 2 Illustration
 
 ![Alt text](illustration1.png)
 
 
 
-## Implementation details
+## 3 Implementation details
 
-### Change 1. Add lastOutgoingMessageBlockId to ConnectedChainInfo.outgoingMessageCounter
+### 3.1 Add lastOutgoingMessageBlockId to ConnectedChainInfo.outgoingMessageCounter
 
 
 Currently IMA uses ```ConnectedChainInfo.outgoingMessageCounter``` variable which has 256 bits.  Note, that the first 128 bits of this variable are always zero and can be used to store useful data.
@@ -53,7 +53,7 @@ It will require a single SSTORE operation, so the gas costs wont change signific
 Note: if IMA did not yet have any outgoing messages , ```lastOutgoingMessageBlockId``` will be zero.
 
 
-### Change 2. Add previousOutgoingMessageBlockId to event OutgoingMessage.messageCounter
+### 3.2 Add previousOutgoingMessageBlockId to event OutgoingMessage.messageCounter
 
 
 Currently IMA outgoing message event has ```OutgoingMessage.messageCounter``` field, which has 256 bits.  Note, that the first 128 bits of this field are always zero and can be used to store useful data.
@@ -78,7 +78,7 @@ Since no new fields are introduced in the event, the gas costs wont change signi
 
 
 
-### Change 3. Add separate getter functions for lastOutgoingMessageBlockId and outgoingMessageCounter.
+### 3.3 Add separate getter functions for lastOutgoingMessageBlockId and outgoingMessageCounter.
 
 
 _Proposed change:_
