@@ -23,6 +23,9 @@ SSTORE operations does not change.
 
 ## Diagram
 
+![Alt text](illustration1.png)
+
+
 
 ## Implementation details
 
