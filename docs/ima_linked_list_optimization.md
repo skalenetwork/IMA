@@ -41,10 +41,42 @@ B.  Each time a new outgoing message is received update lastOutgoingMessageBlock
 It will require a single SSTORE operation, so the gas costs wont change significantly compared to what IMA has now. 
 
 
-### Change 2. Add lastOutgoingMessageBlockId to outgoingMessageCounter
+Note: if IMA did not yet have any outgoing messages , ```lastOutgoingMessageBlockId``` will be zero.
+
+
+### Change 2. Add previousOutgoingMessageBlockId to event OutgoingMessage.messageCounter
+
+
+Currently IMA outgoing message event uses ```OutgoingMessage.messageCounter``` field which has 256 bits.  Note, that the first 128 bits of this field are always zero and can be used to store useful data.
+
+
+```Proposed change```
+
+
+A. Use first 128 bits of ```OutgoingMessage.messageCounter```  to store ```previousOutgoingMessageBlockId```. This variable will store the block ID of the previous outgoing message, which will form a link in the the linked list.
+
+
+```ConnectedChainInfo.outgoingMessageCounter = lastOutgoingMessageBlockId || outgoingMessageCounter```
+
+Note: for the first message , ```previousOutgoingMessageBlockId``` will be zero.
 
 
 
+B.  Each time a new outgoing message is received update lastOutgoingMessageBlockID and outgoingmessageCounter, and then save the 
+```ConnectedChainInfo.outgoingMessageCounter``` variable. 
+
+Since no new fields are introduced in the event, the gas costs wont change significantly compared to what IMA has now. 
+
+
+
+### Change 3. Add separate getter functions for lastOutgoingMessageBlockId and outgoingMessageCounter.
+
+
+```Proposed change```
+
+
+Add separate getter functions for lastOutgoingMessageBlockId and outgoingMessageCounter variables. This is to make IMA smart contracts
+easy to use by IMA agent.
 
 
 
