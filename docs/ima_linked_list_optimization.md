@@ -21,6 +21,8 @@ On each step, ```eth_getLoggs``` is called for a single block only.
 This spec does not significantly increase gas costs, since existing variables are used and the number of 
 SSTORE operations does not change. 
 
+## Diagram
+
 
 ## Implementation details
 
