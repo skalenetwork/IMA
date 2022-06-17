@@ -7,7 +7,7 @@
 Currently IMA puts lots of computational load on geth by searching history for IMA message events.
 This can significantly slow IMA performance.
 
-###Solution
+### Solution
 
 This proposal totally eliminates searches by creating a linked list of IMA messages. 
 Each message includes the block number of the previous message.  This glues all IMA messages into a linked list,
