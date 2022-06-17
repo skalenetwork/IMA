@@ -21,7 +21,7 @@ On each step, ```eth_getLoggs``` is called for a single block only.
 This spec does not significantly increase gas costs, since existing variables are used and the number of 
 SSTORE operations does not change. 
 
-## Diagram
+## Illustration
 
 ![Alt text](illustration1.png)
 
@@ -44,7 +44,7 @@ A. Use first 128 bits of ```outgoingMessageCounter```  to store ```lastOutgoingM
 ```ConnectedChainInfo.outgoingMessageCounter = lastOutgoingMessageBlockId || outgoingMessageCounter```
 
 
-B.  Each time a new outgoing message is received update lastOutgoingMessageBlockID and outgoingmessageCounter, and then save the 
+B.  Each time a new outgoing message is received update ```lastOutgoingMessageBlockID``` and ```outgoingmessageCounter```, and then save the 
 ```ConnectedChainInfo.outgoingMessageCounter``` variable. 
 
 It will require a single SSTORE operation, so the gas costs wont change significantly compared to what IMA has now. 
@@ -56,10 +56,10 @@ Note: if IMA did not yet have any outgoing messages , ```lastOutgoingMessageBloc
 ### Change 2. Add previousOutgoingMessageBlockId to event OutgoingMessage.messageCounter
 
 
-Currently IMA outgoing message event uses ```OutgoingMessage.messageCounter``` field which has 256 bits.  Note, that the first 128 bits of this field are always zero and can be used to store useful data.
+Currently IMA outgoing message event has ```OutgoingMessage.messageCounter``` field, which has 256 bits.  Note, that the first 128 bits of this field are always zero and can be used to store useful data.
 
 
-```Proposed change```
+_Proposed change:_
 
 
 A. Use first 128 bits of ```OutgoingMessage.messageCounter```  to store ```previousOutgoingMessageBlockId```. This variable will store the block ID of the previous outgoing message, which will form a link in the the linked list.
@@ -81,7 +81,7 @@ Since no new fields are introduced in the event, the gas costs wont change signi
 ### Change 3. Add separate getter functions for lastOutgoingMessageBlockId and outgoingMessageCounter.
 
 
-```Proposed change```
+_Proposed change:_
 
 
 Add separate getter functions for lastOutgoingMessageBlockId and outgoingMessageCounter variables. This is to make IMA smart contracts
@@ -94,3 +94,4 @@ easy to use by IMA agent.
 
 
 
+:
