@@ -5,7 +5,7 @@
 ### 1.1 Problem
 
 Currently IMA puts lots of computational load on geth by searching history for IMA message events.
-This can significantly slow IMA performance.
+This can significantly slow IMA performance and limit the numnber of chains we can run.
 
 ### 1.2 Solution
 
