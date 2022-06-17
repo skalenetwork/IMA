@@ -14,7 +14,7 @@ Each message includes the block number of the previous message.  This glues all 
 where one can easily go back in history.
 
 To find all messages, one starts from the latest message and then goes back in history by traversing the linked list. 
-On each step, ```eth_getLoggs``` is called for a single block only.
+On each step, ```eth_getLogs``` is called for a single block only.
 
 ### 1.3 Gas cost
 
@@ -96,6 +96,29 @@ For a new outgoing message:
 3. Create message event setting ```previousOutgoingMessageBlockId``` to ```lastOutgoingMessageBlockId``` and ```messageCounter``` to ```outgoingMessageCounter```
 4. Set ```lastOutgoingMessageBlockId``` to the current block id.
 5. Write back ```lastOutgoingMessageBlockId``` and ```outgoingMessageCounter``` 
+
+
+## 5 Pseudo code of IMA agent
+
+
+1. Read and ```outgoingMessageCounter``` for the source chain and ```incomingMessageCounter``` for the destination chains.
+
+2. Calculate ```numberOfMessagesToBeDelivered = outgoingMessageCounter - incomingMessageCounter```
+
+3. Read ```lastOutgoingMessageBlockID``` 
+
+4. Set ```currentBlock = lastOutgoingMessageBlockID``` 
+
+5. Get events for this block using ```eth_getLogs```
+
+6. Parse all IMA messages in this block. 
+
+7. Take the olgest IMA message for the block and get ```previousOutgoingMessageBlockId```
+
+8 Set ```currentBlock = previousOutgoingMessageBlockID```
+
+
+9. Go to 4. and repeat until all required messages have been read.
 
 
 
