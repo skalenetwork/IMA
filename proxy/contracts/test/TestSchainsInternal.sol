@@ -101,12 +101,6 @@ contract SchainsInternal is ISchainsInternalTester {
     }
 
     function isNodeAddressesInGroup(bytes32 schainHash, address sender) external view override returns (bool) {
-        // Nodes nodes = Nodes(contractManager.getContract("Nodes"));
-        // for (uint i = 0; i < schainsGroups[schainHash].length; i++) {
-        //     if (!nodes.isNodeExist(sender, schainsGroups[schainHash][i])) {
-        //         return true;
-        //     }
-        // }
         return  _nodeAddressInSchain[schainHash][sender];
     }
 

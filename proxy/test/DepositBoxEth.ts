@@ -192,7 +192,6 @@ describe("DepositBoxEth", () => {
             await depositBoxEth
                 .connect(deployer)
                 .deposit(schainName, { value: wei });
-            // console.log("Gas for deposit:", tx.receipt.gasUsed);
 
             const lockAndDataBalance = await web3.eth.getBalance(depositBoxEth.address);
             // expectation
@@ -284,7 +283,6 @@ describe("DepositBoxEth", () => {
             // execution
 
             const res = await (await messageProxy.connect(nodeAddress).postIncomingMessages(schainName, 0, [message], sign)).wait();
-            // console.log(res.logs);
             if (res.events) {
                 assert.equal(res.events[0].event, "PostMessageError");
                 assert.equal(res.events[0].args?.msgCounter.toString(), "0");
