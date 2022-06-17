@@ -87,7 +87,7 @@ _Proposed change:_
 Add separate getter functions for ```lastOutgoingMessageBlockId``` and ```outgoingMessageCounter``` variables. This is to make IMA smart contracts
 easy to use by IMA agent.
 
-## Pseudo code of IMA contract operation:
+## 4 Pseudo code of IMA contract operation:
 
 For a new outgoing message:
 
