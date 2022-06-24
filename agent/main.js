@@ -257,7 +257,7 @@ global.imaState = {
 
     "optsPendingTxAnalysis": {
         "isEnabled": false, // disable bv default
-        "nTimeoutSecondsBeforeSecondAttempt": 30, // 0 - disable 2nd attempt
+        "nTimeoutSecondsBeforeSecondAttempt": 3, // 0 - disable 2nd attempt
         "isIgnore": false, // ignore PTX result
         "isIgnore2": true // ignore secondary PTX result
     },

@@ -2,13 +2,6 @@ import { Wallet } from "@ethersproject/wallet";
 import { ethers } from "hardhat";
 import { ContractManager, KeyStorageMock, Nodes, Schains, SchainsInternal, SkaleVerifierMock, Wallets } from "../../../typechain";
 
-// const contractManager: ContractManagerContract = artifacts.require("./ContractManager");
-// const keyStorage: KeyStorageContract = artifacts.require("./KeyStorage");
-// const nodes: NodesContract = artifacts.require("./Nodes");
-// const schains: SchainsContract = artifacts.require("./Schains");
-// const schainsInternal: SchainsInternalContract = artifacts.require("./SchainsInternal");
-// const skaleVerifier: SkaleVerifierMockContract = artifacts.require("./SkaleVerifierMock");
-// const wallets: WalletsContract = artifacts.require("./Wallets");
 const nameNodes = "Nodes";
 const nameSchains = "Schains";
 const nameSchainsInternal = "SchainsInternal";
@@ -38,6 +31,7 @@ export async function deployContractManager(contractManagerAddress: string) {
     }
     if (await instance.getContract(nameSchainsInternal) === "0x0000000000000000000000000000000000000000") {
         const schainsInternalInstance = await (await ethers.getContractFactory(nameSchainsInternal)).deploy() as SchainsInternal;
+        await schainsInternalInstance.addContractManager(instance.address);
         await instance.setContractsAddress(nameSchainsInternal, schainsInternalInstance.address);
     }
     if (await instance.getContract(nameSkaleVerifier) === "0x0000000000000000000000000000000000000000") {

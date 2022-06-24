@@ -26,6 +26,7 @@ pragma solidity 0.8.6;
 interface INodesTester {
     function createNode(address, Nodes.NodeCreationParams calldata params) external;
     function getNodeAddress(uint nodeIndex) external view returns (address);
+    function isNodeExist(address from, uint nodeIndex) external view returns (bool);
 }
 
 
@@ -56,14 +57,21 @@ contract Nodes is INodesTester {
         string domainName;
     }
 
+    struct CreatedNodes {
+        mapping (uint => bool) isNodeExist;
+        uint numberOfNodes;
+    }
+
     Node[] public nodes;
+
+    mapping (address => CreatedNodes) public nodeIndexes;
 
     modifier checkNodeExists(uint nodeIndex) {
         _checkNodeIndex(nodeIndex);
         _;
     }
 
-    function createNode(address, NodeCreationParams calldata params)
+    function createNode(address from, NodeCreationParams calldata params)
         external override
     {
         nodes.push(Node({
@@ -78,6 +86,8 @@ contract Nodes is INodesTester {
             status: NodeStatus.Active,
             validatorId: 1337
         }));
+        nodeIndexes[from].isNodeExist[nodes.length - 1] = true;
+        nodeIndexes[from].numberOfNodes++;
     }
 
     function getNodeAddress(uint nodeIndex)
@@ -88,6 +98,16 @@ contract Nodes is INodesTester {
         returns (address)
     {
         return _publicKeyToAddress(nodes[nodeIndex].publicKey);
+    }
+
+    function isNodeExist(address from, uint nodeIndex)
+        public
+        view
+        override
+        checkNodeExists(nodeIndex)
+        returns (bool)
+    {
+        return nodeIndexes[from].isNodeExist[nodeIndex];
     }
 
     function _checkNodeIndex(uint nodeIndex) private view {
