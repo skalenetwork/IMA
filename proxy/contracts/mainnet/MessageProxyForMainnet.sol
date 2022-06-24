@@ -218,6 +218,7 @@ contract MessageProxyForMainnet is SkaleManagerClient, MessageProxy, IMessagePro
     {
         uint256 gasTotal = gasleft();
         bytes32 fromSchainHash = keccak256(abi.encodePacked(fromSchainName));
+        require(isAgentAuthorized(fromSchainHash, msg.sender), "Agent is not authorized");
         require(_checkSchainBalance(fromSchainHash), "Schain wallet has not enough funds");
         require(connectedChains[fromSchainHash].inited, "Chain is not initialized");
         require(messages.length <= MESSAGES_LENGTH, "Too many messages");

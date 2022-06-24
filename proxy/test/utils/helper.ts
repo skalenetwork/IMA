@@ -1,3 +1,9 @@
+import { Wallet, BytesLike, ethers } from "ethers";
+
+import { ec } from "elliptic";
+
+const secp256k1EC = new ec("secp256k1");
+
 // SPDX-License-Identifier: AGPL-3.0-only
 
 /**
@@ -68,4 +74,9 @@ export function stringValue(value: string | null | undefined) {
     } else {
         return "";
     }
+}
+
+export function getPublicKey(wallet: Wallet): [BytesLike, BytesLike] {
+    const publicKey = secp256k1EC.keyFromPrivate(wallet.privateKey.slice(2)).getPublic();
+    return [ethers.utils.hexlify(publicKey.getX().toBuffer()), ethers.utils.hexlify(publicKey.getY().toBuffer())]
 }

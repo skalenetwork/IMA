@@ -71,4 +71,9 @@ contract SkaleManagerClient is Initializable, AccessControlEnumerableUpgradeable
         address skaleChainsInternal = contractManagerOfSkaleManager.getContract("SchainsInternal");
         return ISchainsInternal(skaleChainsInternal).isOwnerAddress(sender, schainHash);
     }
+
+    function isAgentAuthorized(bytes32 schainHash, address sender) public view override returns (bool) {
+        address skaleChainsInternal = contractManagerOfSkaleManager.getContract("SchainsInternal");
+        return ISchainsInternal(skaleChainsInternal).isNodeAddressesInGroup(schainHash, sender);
+    }
 }
