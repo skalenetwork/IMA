@@ -948,9 +948,14 @@ async function do_sign_messages_impl(
                     startMessageIdx: nIdxCurrentMsgBlockStart,
                     dstChainName: targetChainName,
                     srcChainName: fromChainName,
-                    messages: jarrMessages
+                    messages: jarrMessages,
                     // fromChainURL: fromChainURL,
-                    // targetChainURL: targetChainURL
+                    // targetChainURL: targetChainURL,
+                    qa: {
+                        skaled_no: 0 + i,
+                        sequence_id: "" + sequence_id,
+                        ts: "" + log.generate_timestamp_string( null, false )
+                    }
                 };
                 details.write(
                     strLogPrefix + log.generate_timestamp_string( null, true ) + " " +
@@ -962,12 +967,7 @@ async function do_sign_messages_impl(
                     "\n" );
                 /*await*/ joCall.call( {
                     method: "skale_imaVerifyAndSign",
-                    params: joParams,
-                    qa: {
-                        skaled_no: 0 + i,
-                        sequence_id: "" + sequence_id,
-                        ts: "" + log.generate_timestamp_string( null, false )
-                    }
+                    params: joParams
                 }, async function( joIn, joOut, err ) {
                     ++joGatheringTracker.nCountReceived; // including errors
                     if( err ) {
