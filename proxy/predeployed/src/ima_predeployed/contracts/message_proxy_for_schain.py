@@ -1,12 +1,19 @@
-from ..contract_generator import ContractGenerator, calculate_mapping_value_slot, calculate_array_value_slot, next_slot
+from os.path import join, dirname
+from typing import Dict
+
+from predeployed_generator.openzeppelin.access_control_enumerable_generator import (
+    AccessControlEnumerableGenerator as Generator
+)
 from ..addresses import COMMUNITY_LOCKER_ADDRESS, KEY_STORAGE_ADDRESS, TOKEN_MANAGER_ERC1155_ADDRESS, \
     TOKEN_MANAGER_ERC20_ADDRESS, TOKEN_MANAGER_ERC721_ADDRESS, TOKEN_MANAGER_ETH_ADDRESS, \
     TOKEN_MANAGER_ERC721_WITH_METADATA_ADDRESS, TOKEN_MANAGER_LINKER_ADDRESS
 from web3 import Web3
 from pkg_resources import get_distribution
 
-class MessageProxyForSchainGenerator(ContractGenerator):
+
+class MessageProxyForSchainGenerator(Generator):
     ARTIFACT_FILENAME = "MessageProxyForSchain.json"
+    META_FILENAME = "MessageProxyForSchain.meta.json"
     DEFAULT_ADMIN_ROLE = (0).to_bytes(32, 'big')
     CHAIN_CONNECTOR_ROLE = Web3.solidityKeccak(['string'], ['CHAIN_CONNECTOR_ROLE'])
     MAINNET_HASH = Web3.solidityKeccak(['string'], ['Mainnet'])
@@ -51,38 +58,46 @@ class MessageProxyForSchainGenerator(ContractGenerator):
     ROLES_SLOT = 101
     ROLE_MEMBERS_SLOT = 151
     CONNECTED_CHAINS_SLOT = 201
-    DEPRECATED_REGISTRY_CONTRACTS_SLOT = next_slot(CONNECTED_CHAINS_SLOT)
-    GAS_LIMIT_SLOT = next_slot(DEPRECATED_REGISTRY_CONTRACTS_SLOT)
-    KEY_STORAGE_SLOT = next_slot(GAS_LIMIT_SLOT)
-    SCHAIN_HASH_SLOT = next_slot(KEY_STORAGE_SLOT)
-    OUTGOING_MESSAGE_DATA_HASH = next_slot(SCHAIN_HASH_SLOT)
-    IDX_HEAD = next_slot(OUTGOING_MESSAGE_DATA_HASH)
-    IDX_TAIL = next_slot(IDX_HEAD)
-    REGISTRY_CONTRACTS_SLOT = next_slot(IDX_TAIL)
-    VERSION_SLOT = next_slot(REGISTRY_CONTRACTS_SLOT)
+    DEPRECATED_REGISTRY_CONTRACTS_SLOT = Generator.next_slot(CONNECTED_CHAINS_SLOT)
+    GAS_LIMIT_SLOT = Generator.next_slot(DEPRECATED_REGISTRY_CONTRACTS_SLOT)
+    KEY_STORAGE_SLOT = Generator.next_slot(GAS_LIMIT_SLOT)
+    SCHAIN_HASH_SLOT = Generator.next_slot(KEY_STORAGE_SLOT)
+    OUTGOING_MESSAGE_DATA_HASH = Generator.next_slot(SCHAIN_HASH_SLOT)
+    IDX_HEAD = Generator.next_slot(OUTGOING_MESSAGE_DATA_HASH)
+    IDX_TAIL = Generator.next_slot(IDX_HEAD)
+    REGISTRY_CONTRACTS_SLOT = Generator.next_slot(IDX_TAIL)
+    VERSION_SLOT = Generator.next_slot(REGISTRY_CONTRACTS_SLOT)
     
+    def __init__(self):
+        generator = MessageProxyForSchainGenerator.from_hardhat_artifact(
+            join(dirname(__file__), 'artifacts', self.ARTIFACT_FILENAME),
+            join(dirname(__file__), 'artifacts', self.META_FILENAME))
+        super().__init__(bytecode=generator.bytecode, abi=generator.abi, meta=generator.meta)
 
-    def __init__(self, deployer_address: str, schain_name: str):
-        super().__init__(self.ARTIFACT_FILENAME)
-        self._setup(deployer_address, schain_name)
+    @classmethod
+    def generate_storage(cls, **kwargs) -> Dict[str, str]:
+        deployer_address = kwargs['deployer_address']
+        schain_name = kwargs['schain_name']
+        storage: Dict[str, str] = {}
+        roles_slots = cls.RolesSlots(roles=cls.ROLES_SLOT, role_members=cls.ROLE_MEMBERS_SLOT)
+        
+        cls._write_uint256(storage, cls.INITIALIZED_SLOT, 1)
+        cls._setup_role(storage, roles_slots, cls.DEFAULT_ADMIN_ROLE, [deployer_address])
+        cls._setup_role(storage, roles_slots, cls.CHAIN_CONNECTOR_ROLE,
+                        [TOKEN_MANAGER_LINKER_ADDRESS])
+        cls._write_address(storage, cls.KEY_STORAGE_SLOT, KEY_STORAGE_ADDRESS)
+        cls._write_bytes32(storage, cls.SCHAIN_HASH_SLOT,
+                           Web3.solidityKeccak(['string'], [schain_name]))
 
-    # private
-
-    def _setup(self, deployer_address: str, schain_name: str) -> None:
-        self._write_uint256(self.INITIALIZED_SLOT, 1)
-        self._setup_role(self.ROLES_SLOT, self.ROLE_MEMBERS_SLOT, self.DEFAULT_ADMIN_ROLE, [deployer_address])
-        self._setup_role(self.ROLES_SLOT, self.ROLE_MEMBERS_SLOT, self.CHAIN_CONNECTOR_ROLE, [TOKEN_MANAGER_LINKER_ADDRESS])
-        self._write_address(self.KEY_STORAGE_SLOT, KEY_STORAGE_ADDRESS)
-        self._write_bytes32(self.SCHAIN_HASH_SLOT, Web3.solidityKeccak(['string'], [schain_name]))
-
-        connected_chain_info_slot = calculate_mapping_value_slot(
-            self.CONNECTED_CHAINS_SLOT, self.MAINNET_HASH, 'bytes32')
+        connected_chain_info_slot = Generator.calculate_mapping_value_slot(
+            cls.CONNECTED_CHAINS_SLOT, cls.MAINNET_HASH, 'bytes32')
         inited_slot = connected_chain_info_slot + 2
-        self._write_uint256(inited_slot, 1)
-        self._write_uint256(self.GAS_LIMIT_SLOT, self.GAS_LIMIT)
-        self._write_string(self.VERSION_SLOT, get_distribution('ima_predeployed').version)
-        registry_contracts_slot = calculate_mapping_value_slot(
-            self.REGISTRY_CONTRACTS_SLOT, self.ANY_SCHAIN, 'bytes32')
+        cls._write_uint256(storage, inited_slot, 1)
+        cls._write_uint256(storage, cls.GAS_LIMIT_SLOT, cls.GAS_LIMIT)
+        cls._write_string(storage, cls.VERSION_SLOT,
+                          get_distribution('ima_predeployed').version)
+        registry_contracts_slot = Generator.calculate_mapping_value_slot(
+            cls.REGISTRY_CONTRACTS_SLOT, cls.ANY_SCHAIN, 'bytes32')
         allowed_contracts = [
             TOKEN_MANAGER_ETH_ADDRESS,
             TOKEN_MANAGER_ERC20_ADDRESS,
@@ -92,7 +107,15 @@ class MessageProxyForSchainGenerator(ContractGenerator):
             COMMUNITY_LOCKER_ADDRESS]
         values_slot = registry_contracts_slot
         indexes_slot = registry_contracts_slot + 1
-        self._write_uint256(values_slot, len(allowed_contracts))
+        cls._write_uint256(storage, values_slot, len(allowed_contracts))
         for i, contract in enumerate(allowed_contracts):
-            self._write_address(calculate_array_value_slot(values_slot, i), contract)
-            self._write_uint256(calculate_mapping_value_slot(indexes_slot, int(contract, 16), 'uint256'), i + 1)
+            cls._write_address(
+                storage,
+                Generator.calculate_array_value_slot(values_slot, i),
+                contract)
+            cls._write_uint256(
+                storage,
+                Generator.calculate_mapping_value_slot(indexes_slot, int(contract, 16), 'uint256'),
+                i + 1)
+            
+        return storage
