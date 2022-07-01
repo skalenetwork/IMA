@@ -1,11 +1,17 @@
+from os.path import join, dirname
+from typing import Dict
+
 from ima_predeployed.addresses import MESSAGE_PROXY_FOR_SCHAIN_ADDRESS, TOKEN_MANAGER_LINKER_ADDRESS, \
     COMMUNITY_LOCKER_ADDRESS
-from ima_predeployed.contract_generator import ContractGenerator, next_slot
+from predeployed_generator.openzeppelin.access_control_enumerable_generator import (
+    AccessControlEnumerableGenerator as Generator
+)
 from web3 import Web3
 
 
-class TokenManagerGenerator(ContractGenerator):
+class TokenManagerGenerator(Generator):
     ARTIFACT_FILENAME = "TokenManager.json"
+    META_FILENAME = "TokenManager.meta.json"
     DEFAULT_ADMIN_ROLE = (0).to_bytes(32, 'big')
     AUTOMATIC_DEPLOY_ROLE = Web3.solidityKeccak(['string'], ['AUTOMATIC_DEPLOY_ROLE'])
     TOKEN_REGISTRAR_ROLE = Web3.solidityKeccak(['string'], ['TOKEN_REGISTRAR_ROLE'])
@@ -43,26 +49,35 @@ class TokenManagerGenerator(ContractGenerator):
     ROLES_SLOT = 101
     ROLE_MEMBERS_SLOT = 151
     MESSAGE_PROXY_SLOT = 201
-    TOKEN_MANAGER_LINKER_SLOT = next_slot(MESSAGE_PROXY_SLOT)
-    COMMUNITY_LOCKER_SLOT = next_slot(TOKEN_MANAGER_LINKER_SLOT)
-    SCHAIN_HASH_SLOT = next_slot(COMMUNITY_LOCKER_SLOT)
-    DEPOSIT_BOX_SLOT = next_slot(SCHAIN_HASH_SLOT)
+    TOKEN_MANAGER_LINKER_SLOT = Generator.next_slot(MESSAGE_PROXY_SLOT)
+    COMMUNITY_LOCKER_SLOT = Generator.next_slot(TOKEN_MANAGER_LINKER_SLOT)
+    SCHAIN_HASH_SLOT = Generator.next_slot(COMMUNITY_LOCKER_SLOT)
+    DEPOSIT_BOX_SLOT = Generator.next_slot(SCHAIN_HASH_SLOT)
     AUTOMATIC_DEPLOY_SLOT = DEPOSIT_BOX_SLOT
-    TOKEN_MANAGERS_SLOT = next_slot(AUTOMATIC_DEPLOY_SLOT)
+    TOKEN_MANAGERS_SLOT = Generator.next_slot(AUTOMATIC_DEPLOY_SLOT)
 
-    def __init__(self, deployer_address: str, deposit_box_address: str, schain_name: str):
-        super().__init__(self.ARTIFACT_FILENAME)
-        self._setup_token_manager(deployer_address, deposit_box_address, schain_name)
+    def __init__(self):
+        generator = TokenManagerGenerator.from_hardhat_artifact(
+            join(dirname(__file__), 'artifacts', self.ARTIFACT_FILENAME),
+            join(dirname(__file__), 'artifacts', self.META_FILENAME))
+        super().__init__(bytecode=generator.bytecode, abi=generator.abi, meta=generator.meta)
 
-    # private
-
-    def _setup_token_manager(self, deployer_address: str, deposit_box_address: str, schain_name: str) -> None:
-        self._write_uint256(self.INITIALIZED_SLOT, 1)
-        self._setup_role(self.ROLES_SLOT, self.ROLE_MEMBERS_SLOT, self.DEFAULT_ADMIN_ROLE, [deployer_address])
-        self._setup_role(self.ROLES_SLOT, self.ROLE_MEMBERS_SLOT, self.AUTOMATIC_DEPLOY_ROLE, [deployer_address])
-        self._setup_role(self.ROLES_SLOT, self.ROLE_MEMBERS_SLOT, self.TOKEN_REGISTRAR_ROLE, [deployer_address])
-        self._write_address(self.MESSAGE_PROXY_SLOT, MESSAGE_PROXY_FOR_SCHAIN_ADDRESS)
-        self._write_address(self.TOKEN_MANAGER_LINKER_SLOT, TOKEN_MANAGER_LINKER_ADDRESS)
-        self._write_address(self.COMMUNITY_LOCKER_SLOT, COMMUNITY_LOCKER_ADDRESS)
-        self._write_bytes32(self.SCHAIN_HASH_SLOT, Web3.solidityKeccak(['string'], [schain_name]))
-        self._write_address(self.DEPOSIT_BOX_SLOT, deposit_box_address)
+    @classmethod
+    def generate_storage(cls, **kwargs) -> Dict[str, str]:
+        deployer_address = kwargs['deployer_address']
+        schain_name = kwargs['schain_name']
+        deposit_box_address = kwargs['deposit_box_address']
+        storage: Dict[str, str] = {}
+        roles_slots = cls.RolesSlots(roles=cls.ROLES_SLOT, role_members=cls.ROLE_MEMBERS_SLOT)
+        
+        cls._write_uint256(storage, cls.INITIALIZED_SLOT, 1)
+        cls._setup_role(storage, roles_slots, cls.DEFAULT_ADMIN_ROLE, [deployer_address])
+        cls._setup_role(storage, roles_slots, cls.AUTOMATIC_DEPLOY_ROLE, [deployer_address])
+        cls._setup_role(storage, roles_slots, cls.TOKEN_REGISTRAR_ROLE, [deployer_address])
+        cls._write_address(storage, cls.MESSAGE_PROXY_SLOT, MESSAGE_PROXY_FOR_SCHAIN_ADDRESS)
+        cls._write_address(storage, cls.TOKEN_MANAGER_LINKER_SLOT, TOKEN_MANAGER_LINKER_ADDRESS)
+        cls._write_address(storage, cls.COMMUNITY_LOCKER_SLOT, COMMUNITY_LOCKER_ADDRESS)
+        cls._write_bytes32(storage, cls.SCHAIN_HASH_SLOT, Web3.solidityKeccak(['string'], [schain_name]))
+        cls._write_address(storage, cls.DEPOSIT_BOX_SLOT, deposit_box_address)
+        
+        return storage
