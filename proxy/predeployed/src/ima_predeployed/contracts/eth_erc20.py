@@ -1,10 +1,16 @@
+from os.path import join, dirname
+from typing import Dict
+
 from ima_predeployed.addresses import TOKEN_MANAGER_ETH_ADDRESS
-from ima_predeployed.contract_generator import ContractGenerator, next_slot
+from predeployed_generator.openzeppelin.access_control_enumerable_generator import (
+    AccessControlEnumerableGenerator
+)
 from web3 import Web3
 
 
-class EthErc20Generator(ContractGenerator):
+class EthErc20Generator(AccessControlEnumerableGenerator):
     ARTIFACT_FILENAME = "EthErc20.json"
+    META_FILENAME = "EthErc20.meta.json"
     DEFAULT_ADMIN_ROLE = (0).to_bytes(32, 'big')
     MINTER_ROLE = Web3.solidityKeccak(['string'], ['MINTER_ROLE'])
     BURNER_ROLE = Web3.solidityKeccak(['string'], ['BURNER_ROLE'])
@@ -53,20 +59,28 @@ class EthErc20Generator(ContractGenerator):
     ROLES_SLOT = 101
     ROLE_MEMBERS_SLOT = 151
     NAME_SLOT = 204
-    SYMBOL_SLOT = next_slot(NAME_SLOT)
-    DECIMALS_SLOT = next_slot(SYMBOL_SLOT)
+    SYMBOL_SLOT = AccessControlEnumerableGenerator.next_slot(NAME_SLOT)
+    DECIMALS_SLOT = AccessControlEnumerableGenerator.next_slot(SYMBOL_SLOT)
 
-    def __init__(self, deployer_address: str):
-        super().__init__(self.ARTIFACT_FILENAME)
-        self._setup(deployer_address)
+    def __init__(self):
+        generator = EthErc20Generator.from_hardhat_artifact(
+            join(dirname(__file__), 'artifacts', self.ARTIFACT_FILENAME),
+            join(dirname(__file__), 'artifacts', self.META_FILENAME))
+        super().__init__(bytecode=generator.bytecode, abi=generator.abi, meta=generator.meta)
 
-    # private
+    @classmethod
+    def generate_storage(cls, **kwargs) -> Dict[str, str]:
+        deployer_address = kwargs['deployer_address']
 
-    def _setup(self, deployer_address: str) -> None:
-        self._write_uint256(self.INITIALIZED_SLOT, 1)
-        self._setup_role(self.ROLES_SLOT, self.ROLE_MEMBERS_SLOT, self.DEFAULT_ADMIN_ROLE, [deployer_address])
-        self._setup_role(self.ROLES_SLOT, self.ROLE_MEMBERS_SLOT, self.MINTER_ROLE, [TOKEN_MANAGER_ETH_ADDRESS])
-        self._setup_role(self.ROLES_SLOT, self.ROLE_MEMBERS_SLOT, self.BURNER_ROLE, [TOKEN_MANAGER_ETH_ADDRESS])
-        self._write_string(self.NAME_SLOT, self.NAME)
-        self._write_string(self.SYMBOL_SLOT, self.SYMBOL)
-        self._write_uint256(self.DECIMALS_SLOT, self.DECIMALS)
+        storage: Dict[str, str] = {}
+        roles_slots = cls.RolesSlots(roles=cls.ROLES_SLOT, role_members=cls.ROLE_MEMBERS_SLOT)
+
+        cls._write_uint256(storage, cls.INITIALIZED_SLOT, 1)
+        cls._setup_role(storage, roles_slots, cls.DEFAULT_ADMIN_ROLE, [deployer_address])
+        cls._setup_role(storage, roles_slots, cls.MINTER_ROLE, [TOKEN_MANAGER_ETH_ADDRESS])
+        cls._setup_role(storage, roles_slots, cls.BURNER_ROLE, [TOKEN_MANAGER_ETH_ADDRESS])
+        cls._write_string(storage, cls.NAME_SLOT, cls.NAME)
+        cls._write_string(storage, cls.SYMBOL_SLOT, cls.SYMBOL)
+        cls._write_uint256(storage, cls.DECIMALS_SLOT, cls.DECIMALS)
+
+        return storage
