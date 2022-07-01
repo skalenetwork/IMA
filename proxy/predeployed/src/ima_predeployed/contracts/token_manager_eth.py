@@ -1,10 +1,11 @@
-from ima_predeployed.addresses import ETH_ERC20_ADDRESS
-from ima_predeployed.contract_generator import next_slot
-from ima_predeployed.contracts.token_manager import TokenManagerGenerator
+from typing import Dict
+from ..addresses import ETH_ERC20_ADDRESS
+from .token_manager import TokenManagerGenerator
 
 
 class TokenManagerEthGenerator(TokenManagerGenerator):
     ARTIFACT_FILENAME = "TokenManagerEth.json"
+    META_FILENAME = "TokenManagerEth.meta.json"
 
     # ---------- storage ----------
     # --------Initializable--------
@@ -37,13 +38,13 @@ class TokenManagerEthGenerator(TokenManagerGenerator):
     # -------TokenManagerEth-------
     # 207:  ethErc20
 
-    ETH_ERC_20_SLOT = next_slot(TokenManagerGenerator.TOKEN_MANAGERS_SLOT)
+    ETH_ERC_20_SLOT = TokenManagerGenerator.next_slot(TokenManagerGenerator.TOKEN_MANAGERS_SLOT)
 
-    def __init__(self, deployer_address: str, deposit_box_address: str, schain_name: str):
-        super().__init__(deployer_address, deposit_box_address, schain_name)
-        self._setup()
+    def __init__(self):
+        super().__init__()
 
-    # private
-
-    def _setup(self) -> None:
-        self._write_address(self.ETH_ERC_20_SLOT, ETH_ERC20_ADDRESS)
+    @classmethod
+    def generate_storage(cls, **kwargs) -> Dict[str, str]:
+        storage = super().generate_storage(**kwargs)
+        cls._write_address(storage, cls.ETH_ERC_20_SLOT, ETH_ERC20_ADDRESS)
+        return storage

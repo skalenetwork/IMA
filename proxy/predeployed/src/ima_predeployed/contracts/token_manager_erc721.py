@@ -1,8 +1,9 @@
-from ima_predeployed.contracts.token_manager import TokenManagerGenerator
+from .token_manager import TokenManagerGenerator
 
 
 class TokenManagerErc721Generator(TokenManagerGenerator):
     ARTIFACT_FILENAME = "TokenManagerERC721.json"
+    META_FILENAME = "TokenManagerERC721.meta.json"
 
     # ---------- storage ----------
     # --------Initializable--------
@@ -35,5 +36,5 @@ class TokenManagerErc721Generator(TokenManagerGenerator):
     # ------TokenManagerERC721------
     # 207:  clonesErc721
 
-    def __init__(self, deployer_address: str, deposit_box_address: str, schain_name: str):
-        super().__init__(deployer_address, deposit_box_address, schain_name)
+    def __init__(self):
+        super().__init__()
