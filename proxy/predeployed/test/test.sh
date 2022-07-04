@@ -22,6 +22,9 @@ geth --datadir "$BLOCKCHAIN_DIR" --dev --http &
 GETH_PID=$!
 sleep 3
 
+source venv/bin/activate
+export PYTHONPATH=../src
+echo $PYTHONPATH
 python test.py
 
 kill $GETH_PID
