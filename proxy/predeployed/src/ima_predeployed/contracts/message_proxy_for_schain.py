@@ -4,6 +4,8 @@ from typing import Dict
 from predeployed_generator.openzeppelin.access_control_enumerable_generator import (
     AccessControlEnumerableGenerator as Generator
 )
+from predeployed_generator.upgradeable_contract_generator import UpgradeableContractGenerator
+
 from ..addresses import COMMUNITY_LOCKER_ADDRESS, KEY_STORAGE_ADDRESS, TOKEN_MANAGER_ERC1155_ADDRESS, \
     TOKEN_MANAGER_ERC20_ADDRESS, TOKEN_MANAGER_ERC721_ADDRESS, TOKEN_MANAGER_ETH_ADDRESS, \
     TOKEN_MANAGER_ERC721_WITH_METADATA_ADDRESS, TOKEN_MANAGER_LINKER_ADDRESS
@@ -119,3 +121,11 @@ class MessageProxyForSchainGenerator(Generator):
                 i + 1)
             
         return storage
+
+
+class UpgradeableMessageProxyForSchainGenerator(UpgradeableContractGenerator):
+    """Generates upgradeable instance of MessageProxyForSchainUpgradeable
+    """
+
+    def __init__(self):
+        super().__init__(implementation_generator=MessageProxyForSchainGenerator())

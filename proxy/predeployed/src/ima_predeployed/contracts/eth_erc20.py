@@ -1,7 +1,9 @@
 from os.path import join, dirname
 from typing import Dict
 
-from ima_predeployed.addresses import TOKEN_MANAGER_ETH_ADDRESS
+from predeployed_generator.upgradeable_contract_generator import UpgradeableContractGenerator
+
+from ..addresses import TOKEN_MANAGER_ETH_ADDRESS
 from predeployed_generator.openzeppelin.access_control_enumerable_generator import (
     AccessControlEnumerableGenerator
 )
@@ -84,3 +86,11 @@ class EthErc20Generator(AccessControlEnumerableGenerator):
         cls._write_uint256(storage, cls.DECIMALS_SLOT, cls.DECIMALS)
 
         return storage
+
+
+class UpgradeableEthErc20Generator(UpgradeableContractGenerator):
+    """Generates upgradeable instance of EthErc20Upgradeable
+    """
+
+    def __init__(self):
+        super().__init__(implementation_generator=EthErc20Generator())

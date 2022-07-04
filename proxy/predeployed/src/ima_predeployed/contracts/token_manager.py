@@ -1,6 +1,8 @@
 from os.path import join, dirname
 from typing import Dict
 
+from predeployed_generator.upgradeable_contract_generator import UpgradeableContractGenerator
+
 from ..addresses import MESSAGE_PROXY_FOR_SCHAIN_ADDRESS, TOKEN_MANAGER_LINKER_ADDRESS, \
     COMMUNITY_LOCKER_ADDRESS
 from predeployed_generator.openzeppelin.access_control_enumerable_generator import (
@@ -81,3 +83,11 @@ class TokenManagerGenerator(Generator):
         cls._write_address(storage, cls.DEPOSIT_BOX_SLOT, deposit_box_address)
         
         return storage
+
+
+class UpgradeableTokenManagerGenerator(UpgradeableContractGenerator):
+    """Generates upgradeable instance of TokenManagerUpgradeable
+    """
+
+    def __init__(self):
+        super().__init__(implementation_generator=TokenManagerGenerator())

@@ -1,4 +1,7 @@
 from typing import Dict
+
+from predeployed_generator.upgradeable_contract_generator import UpgradeableContractGenerator
+
 from ..addresses import ETH_ERC20_ADDRESS
 from .token_manager import TokenManagerGenerator
 
@@ -48,3 +51,11 @@ class TokenManagerEthGenerator(TokenManagerGenerator):
         storage = super().generate_storage(**kwargs)
         cls._write_address(storage, cls.ETH_ERC_20_SLOT, ETH_ERC20_ADDRESS)
         return storage
+
+
+class UpgradeableTokenManagerEthGenerator(UpgradeableContractGenerator):
+    """Generates upgradeable instance of TokenManagerEthUpgradeable
+    """
+
+    def __init__(self):
+        super().__init__(implementation_generator=TokenManagerEthGenerator())

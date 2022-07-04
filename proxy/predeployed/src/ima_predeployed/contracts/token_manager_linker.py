@@ -4,6 +4,8 @@ from typing import Dict
 from predeployed_generator.openzeppelin.access_control_enumerable_generator import (
     AccessControlEnumerableGenerator as Generator
 )
+from predeployed_generator.upgradeable_contract_generator import UpgradeableContractGenerator
+
 from ..addresses import (
     MESSAGE_PROXY_FOR_SCHAIN_ADDRESS, TOKEN_MANAGER_ERC20_ADDRESS,
     TOKEN_MANAGER_ERC721_ADDRESS, TOKEN_MANAGER_ETH_ADDRESS,
@@ -78,3 +80,11 @@ class TokenManagerLinkerGenerator(Generator):
                 TOKEN_MANAGER_ERC1155_ADDRESS,
                 TOKEN_MANAGER_ERC721_WITH_METADATA_ADDRESS])
         return storage
+
+
+class UpgradeableTokenManagerLinkerGenerator(UpgradeableContractGenerator):
+    """Generates upgradeable instance of TokenManagerLinkerUpgradeable
+    """
+
+    def __init__(self):
+        super().__init__(implementation_generator=TokenManagerLinkerGenerator())

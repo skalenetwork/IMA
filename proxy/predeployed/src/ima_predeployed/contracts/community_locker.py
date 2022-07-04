@@ -1,7 +1,9 @@
 from os.path import join, dirname
 from typing import Dict
 
-from ima_predeployed.addresses import MESSAGE_PROXY_FOR_SCHAIN_ADDRESS, TOKEN_MANAGER_LINKER_ADDRESS
+from predeployed_generator.upgradeable_contract_generator import UpgradeableContractGenerator
+
+from ..addresses import MESSAGE_PROXY_FOR_SCHAIN_ADDRESS, TOKEN_MANAGER_LINKER_ADDRESS
 from predeployed_generator.openzeppelin.access_control_enumerable_generator import (
     AccessControlEnumerableGenerator
 )
@@ -76,3 +78,11 @@ class CommunityLockerGenerator(AccessControlEnumerableGenerator):
         cls._write_uint256(storage, cls.TIME_LIMIT_PER_MESSAGE_SLOT, cls.DEFAULT_TIME_LIMIT_SEC)
 
         return storage
+
+
+class UpgradeableCommunityLockerGenerator(UpgradeableContractGenerator):
+    """Generates upgradeable instance of CommunityLockerUpgradeable
+    """
+
+    def __init__(self):
+        super().__init__(implementation_generator=CommunityLockerGenerator())

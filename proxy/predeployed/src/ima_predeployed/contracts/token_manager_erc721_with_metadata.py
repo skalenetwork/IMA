@@ -1,3 +1,5 @@
+from predeployed_generator.upgradeable_contract_generator import UpgradeableContractGenerator
+
 from .token_manager import TokenManagerGenerator
 
 
@@ -39,3 +41,11 @@ class TokenManagerErc721WithMetadataGenerator(TokenManagerGenerator):
 
     def __init__(self):
         super().__init__()
+
+
+class UpgradeableTokenManagerErc721WithMetadataGenerator(UpgradeableContractGenerator):
+    """Generates upgradeable instance of TokenManagerErc721WithMetadataUpgradeable
+    """
+
+    def __init__(self):
+        super().__init__(implementation_generator=TokenManagerErc721WithMetadataGenerator())

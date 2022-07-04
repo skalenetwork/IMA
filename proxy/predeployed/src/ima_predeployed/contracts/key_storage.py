@@ -4,6 +4,7 @@ from typing import Dict
 from predeployed_generator.openzeppelin.access_control_enumerable_generator import (
     AccessControlEnumerableGenerator
 )
+from predeployed_generator.upgradeable_contract_generator import UpgradeableContractGenerator
 
 
 class KeyStorageGenerator(AccessControlEnumerableGenerator):
@@ -54,3 +55,11 @@ class KeyStorageGenerator(AccessControlEnumerableGenerator):
         cls._setup_role(storage, roles_slots, cls.DEFAULT_ADMIN_ROLE, [deployer_address])
 
         return storage
+
+
+class UpgradeableKeyStorageGenerator(UpgradeableContractGenerator):
+    """Generates upgradeable instance of KeyStorageUpgradeable
+    """
+
+    def __init__(self):
+        super().__init__(implementation_generator=KeyStorageGenerator())
