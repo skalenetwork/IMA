@@ -62,11 +62,7 @@ async function wait_web_socket_is_open( socket, fnDone, fnStep ) {
     fnDone = fnStep || async function( nStep ) { return true; };
     const nStep = 0;
     const promiseComplete = new Promise( function( resolve, reject ) {
-        let isInsideAsyncHandler = false;
-        const fn_async_handler = async function() {
-            if( isInsideAsyncHandler )
-                return;
-            isInsideAsyncHandler = true;
+        const iv = setInterval( async function() {
             if( socket.readyState === 1 ) {
                 // console.log( "Connection is made" )
                 clearInterval( iv );
@@ -78,15 +74,6 @@ async function wait_web_socket_is_open( socket, fnDone, fnStep ) {
                     reject( new Error( "web socket wait timout by callback on step " + nStep ) );
                 }
             }
-            isInsideAsyncHandler = false;
-        };
-        const iv = setInterval( function() {
-            if( isInsideAsyncHandler )
-                return;
-            fn_async_handler()
-                .then( () => {
-                } ).catch( () => {
-                } );
         }, 1000 ); // 1 second
     } );
     await Promise.all( [ promiseComplete ] );
@@ -121,10 +108,7 @@ async function do_connect( joCall, opts, fn ) {
                 if( joOut.id in joCall.mapPendingByCallID ) {
                     const entry = joCall.mapPendingByCallID[joOut.id];
                     delete joCall.mapPendingByCallID[joOut.id];
-                    if( entry.iv ) {
-                        clearTimeout( entry.iv );
-                        entry.iv = null;
-                    }
+                    clearTimeout( entry.out );
                     await entry.fn( entry.joIn, joOut, null );
                 }
             } );
@@ -185,9 +169,7 @@ async function do_call( joCall, joIn, fn ) {
             out: null
         };
         joCall.mapPendingByCallID[joIn.id] = entry;
-        entry.iv = setTimeout( function() {
-            clearTimeout( entry.iv );
-            entry.iv = null;
+        entry.out = setTimeout( function() {
             delete joCall.mapPendingByCallID[joIn.id];
         }, 20 * 1000 );
         joCall.wsConn.send( JSON.stringify( joIn ) );

@@ -63,7 +63,6 @@ npms/skale-ima/node_modules
 npms/skale-log/node_modules
 npms/skale-observer/node_modules
 npms/skale-owasp/node_modules
-npms/skale-cool-socket/node_modules
 
 # TypeScript v1 declaration files
 typings/
