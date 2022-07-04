@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-from src.ima_predeployed.generator import generate_contracts
+from ima_predeployed.generator import generate_contracts
 import json
 import sys
 

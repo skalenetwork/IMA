@@ -39,7 +39,7 @@ def generate_contracts(
     )
 
     message_proxy_for_schain = UpgradeableMessageProxyForSchainGenerator().generate_storage(
-        proxy_admin_address=PROXY_ADMIN_ADDRESS,
+        admin_address=PROXY_ADMIN_ADDRESS,
         contract_address=MESSAGE_PROXY_FOR_SCHAIN_ADDRESS,
         implementation_address=MESSAGE_PROXY_FOR_SCHAIN_IMPLEMENTATION_ADDRESS,
         owner_address=owner_address,
@@ -47,14 +47,14 @@ def generate_contracts(
     )
 
     key_storage = UpgradeableKeyStorageGenerator().generate_storage(
-        proxy_admin_address=PROXY_ADMIN_ADDRESS,
+        admin_address=PROXY_ADMIN_ADDRESS,
         contract_address=KEY_STORAGE_ADDRESS,
         implementation_address=KEY_STORAGE_IMPLEMENTATION_ADDRESS,
         owner_address=owner_address
     )
 
     community_locker = UpgradeableCommunityLockerGenerator().generate_storage(
-        proxy_admin_address=PROXY_ADMIN_ADDRESS,
+        admin_address=PROXY_ADMIN_ADDRESS,
         contract_address=COMMUNITY_LOCKER_ADDRESS,
         implementation_address=COMMUNITY_LOCKER_IMPLEMENTATION_ADDRESS,
         owner_address=owner_address,
@@ -63,7 +63,7 @@ def generate_contracts(
     )
 
     token_manager_linker = UpgradeableTokenManagerLinkerGenerator().generate_storage(
-        proxy_admin_address=PROXY_ADMIN_ADDRESS,
+        admin_address=PROXY_ADMIN_ADDRESS,
         contract_address=TOKEN_MANAGER_LINKER_ADDRESS,
         implementation_address=TOKEN_MANAGER_LINKER_IMPLEMENTATION_ADDRESS,
         owner_address=owner_address,
@@ -71,7 +71,7 @@ def generate_contracts(
     )
 
     token_manager_eth = UpgradeableTokenManagerEthGenerator().generate_storage(
-        proxy_admin_address=PROXY_ADMIN_ADDRESS,
+        admin_address=PROXY_ADMIN_ADDRESS,
         contract_address=TOKEN_MANAGER_ETH_ADDRESS,
         implementation_address=TOKEN_MANAGER_ETH_IMPLEMENTATION_ADDRESS,
         owner_address=owner_address,
@@ -80,7 +80,7 @@ def generate_contracts(
     )
 
     token_manager_erc20 = UpgradeableTokenManagerErc20Generator().generate_storage(
-        proxy_admin_address=PROXY_ADMIN_ADDRESS,
+        admin_address=PROXY_ADMIN_ADDRESS,
         contract_address=TOKEN_MANAGER_ERC20_ADDRESS,
         implementation_address=TOKEN_MANAGER_ERC20_IMPLEMENTATION_ADDRESS,
         owner_address=owner_address,
@@ -89,7 +89,7 @@ def generate_contracts(
     )
 
     token_manager_erc721 = UpgradeableTokenManagerErc721Generator().generate_storage(
-        proxy_admin_address=PROXY_ADMIN_ADDRESS,
+        admin_address=PROXY_ADMIN_ADDRESS,
         contract_address=TOKEN_MANAGER_ERC721_ADDRESS,
         implementation_address=TOKEN_MANAGER_ERC721_IMPLEMENTATION_ADDRESS,
         owner_address=owner_address,
@@ -98,7 +98,7 @@ def generate_contracts(
     )
 
     token_manager_erc1155 = UpgradeableTokenManagerErc1155Generator().generate_storage(
-        proxy_admin_address=PROXY_ADMIN_ADDRESS,
+        admin_address=PROXY_ADMIN_ADDRESS,
         contract_address=TOKEN_MANAGER_ERC1155_ADDRESS,
         implementation_address=TOKEN_MANAGER_ERC1155_IMPLEMENTATION_ADDRESS,
         owner_address=owner_address,
@@ -107,7 +107,7 @@ def generate_contracts(
     )
 
     token_manager_erc1155_wm = UpgradeableTokenManagerErc721WMGenerator().generate_storage(
-        proxy_admin_address=PROXY_ADMIN_ADDRESS,
+        admin_address=PROXY_ADMIN_ADDRESS,
         contract_address=TOKEN_MANAGER_ERC721_WITH_METADATA_ADDRESS,
         implementation_address=TOKEN_MANAGER_ERC721_WITH_METADATA_IMPLEMENTATION_ADDRESS,
         owner_address=owner_address,
@@ -116,7 +116,7 @@ def generate_contracts(
     )
 
     eth_erc20 = UpgradeableEthErc20Generator().generate_storage(
-        proxy_admin_address=PROXY_ADMIN_ADDRESS,
+        admin_address=PROXY_ADMIN_ADDRESS,
         contract_address=ETH_ERC20_ADDRESS,
         implementation_address=ETH_ERC20_IMPLEMENTATION_ADDRESS,
         owner_address=owner_address
