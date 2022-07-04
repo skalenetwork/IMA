@@ -3,7 +3,7 @@ import { upgrade } from "./upgrade";
 
 async function main() {
     await upgrade(
-        "1.3.0",
+        "1.3.2",
         contracts,
         async (safeTransactions, abi) => undefined,
         async (safeTransactions, abi) => undefined,
