@@ -10,10 +10,21 @@ export async function initializeSchain(
     lifetime: number,
     deposit: number
 ) {
-    const schainsInternalFactory = await ethers.getContractFactory("SchainsInternal");
-    const schainsInternalAddres = await contractManager.getContract("SchainsInternal");
+    const schainsInternalFactory = await ethers.getContractFactory(nameSchainsInternal);
+    const schainsInternalAddres = await contractManager.getContract(nameSchainsInternal);
     const schainsInternal = schainsInternalFactory.attach(schainsInternalAddres) as SchainsInternal;
     await schainsInternal.initializeSchain(schainName, owner, lifetime, deposit);
+}
+
+export async function addNodesToSchain(
+    contractManager: ContractManager,
+    schainName: string,
+    nodes: number[]
+) {
+    const schainsInternalFactory = await ethers.getContractFactory(nameSchainsInternal);
+    const schainsInternalAddres = await contractManager.getContract(nameSchainsInternal);
+    const schainsInternal = schainsInternalFactory.attach(schainsInternalAddres) as SchainsInternal;
+    await schainsInternal.addNodesToSchainsGroups(ethers.utils.id(schainName), nodes);
 }
 
 export async function isSchainActive(
