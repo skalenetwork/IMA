@@ -33,93 +33,93 @@ def generate_contracts(
         owner_address: str,
         schain_name: str,
         contracts_on_mainnet: dict) -> dict:
-    proxy_admin = ProxyAdminGenerator.generate_storage(
+    proxy_admin = ProxyAdminGenerator().generate_allocation(
         contract_address=PROXY_ADMIN_ADDRESS,
         owner_address=owner_address
     )
 
-    message_proxy_for_schain = UpgradeableMessageProxyForSchainGenerator().generate_storage(
-        admin_address=PROXY_ADMIN_ADDRESS,
+    message_proxy_for_schain = UpgradeableMessageProxyForSchainGenerator().generate_allocation(
+        proxy_admin_address=PROXY_ADMIN_ADDRESS,
         contract_address=MESSAGE_PROXY_FOR_SCHAIN_ADDRESS,
         implementation_address=MESSAGE_PROXY_FOR_SCHAIN_IMPLEMENTATION_ADDRESS,
-        owner_address=owner_address,
+        deployer_address=owner_address,
         schain_name=schain_name
     )
 
-    key_storage = UpgradeableKeyStorageGenerator().generate_storage(
-        admin_address=PROXY_ADMIN_ADDRESS,
+    key_storage = UpgradeableKeyStorageGenerator().generate_allocation(
+        proxy_admin_address=PROXY_ADMIN_ADDRESS,
         contract_address=KEY_STORAGE_ADDRESS,
         implementation_address=KEY_STORAGE_IMPLEMENTATION_ADDRESS,
-        owner_address=owner_address
+        deployer_address=owner_address
     )
 
-    community_locker = UpgradeableCommunityLockerGenerator().generate_storage(
-        admin_address=PROXY_ADMIN_ADDRESS,
+    community_locker = UpgradeableCommunityLockerGenerator().generate_allocation(
+        proxy_admin_address=PROXY_ADMIN_ADDRESS,
         contract_address=COMMUNITY_LOCKER_ADDRESS,
         implementation_address=COMMUNITY_LOCKER_IMPLEMENTATION_ADDRESS,
-        owner_address=owner_address,
+        deployer_address=owner_address,
         schain_name=schain_name,
         community_pool_address=contracts_on_mainnet['community_pool_address']
     )
 
-    token_manager_linker = UpgradeableTokenManagerLinkerGenerator().generate_storage(
-        admin_address=PROXY_ADMIN_ADDRESS,
+    token_manager_linker = UpgradeableTokenManagerLinkerGenerator().generate_allocation(
+        proxy_admin_address=PROXY_ADMIN_ADDRESS,
         contract_address=TOKEN_MANAGER_LINKER_ADDRESS,
         implementation_address=TOKEN_MANAGER_LINKER_IMPLEMENTATION_ADDRESS,
-        owner_address=owner_address,
-        community_pool_address=contracts_on_mainnet['linker_address']
+        deployer_address=owner_address,
+        linker_address=contracts_on_mainnet['linker_address']
     )
 
-    token_manager_eth = UpgradeableTokenManagerEthGenerator().generate_storage(
-        admin_address=PROXY_ADMIN_ADDRESS,
+    token_manager_eth = UpgradeableTokenManagerEthGenerator().generate_allocation(
+        proxy_admin_address=PROXY_ADMIN_ADDRESS,
         contract_address=TOKEN_MANAGER_ETH_ADDRESS,
         implementation_address=TOKEN_MANAGER_ETH_IMPLEMENTATION_ADDRESS,
-        owner_address=owner_address,
+        deployer_address=owner_address,
         schain_name=schain_name,
-        community_pool_address=contracts_on_mainnet['deposit_box_eth_address']
+        deposit_box_address=contracts_on_mainnet['deposit_box_eth_address']
     )
 
-    token_manager_erc20 = UpgradeableTokenManagerErc20Generator().generate_storage(
-        admin_address=PROXY_ADMIN_ADDRESS,
+    token_manager_erc20 = UpgradeableTokenManagerErc20Generator().generate_allocation(
+        proxy_admin_address=PROXY_ADMIN_ADDRESS,
         contract_address=TOKEN_MANAGER_ERC20_ADDRESS,
         implementation_address=TOKEN_MANAGER_ERC20_IMPLEMENTATION_ADDRESS,
-        owner_address=owner_address,
+        deployer_address=owner_address,
         schain_name=schain_name,
-        community_pool_address=contracts_on_mainnet['deposit_box_erc20_address']
+        deposit_box_address=contracts_on_mainnet['deposit_box_erc20_address']
     )
 
-    token_manager_erc721 = UpgradeableTokenManagerErc721Generator().generate_storage(
-        admin_address=PROXY_ADMIN_ADDRESS,
+    token_manager_erc721 = UpgradeableTokenManagerErc721Generator().generate_allocation(
+        proxy_admin_address=PROXY_ADMIN_ADDRESS,
         contract_address=TOKEN_MANAGER_ERC721_ADDRESS,
         implementation_address=TOKEN_MANAGER_ERC721_IMPLEMENTATION_ADDRESS,
-        owner_address=owner_address,
+        deployer_address=owner_address,
         schain_name=schain_name,
-        community_pool_address=contracts_on_mainnet['deposit_box_erc721_address']
+        deposit_box_address=contracts_on_mainnet['deposit_box_erc721_address']
     )
 
-    token_manager_erc1155 = UpgradeableTokenManagerErc1155Generator().generate_storage(
-        admin_address=PROXY_ADMIN_ADDRESS,
+    token_manager_erc1155 = UpgradeableTokenManagerErc1155Generator().generate_allocation(
+        proxy_admin_address=PROXY_ADMIN_ADDRESS,
         contract_address=TOKEN_MANAGER_ERC1155_ADDRESS,
         implementation_address=TOKEN_MANAGER_ERC1155_IMPLEMENTATION_ADDRESS,
-        owner_address=owner_address,
+        deployer_address=owner_address,
         schain_name=schain_name,
-        community_pool_address=contracts_on_mainnet['deposit_box_erc1155_address']
+        deposit_box_address=contracts_on_mainnet['deposit_box_erc1155_address']
     )
 
-    token_manager_erc1155_wm = UpgradeableTokenManagerErc721WMGenerator().generate_storage(
-        admin_address=PROXY_ADMIN_ADDRESS,
+    token_manager_erc1155_wm = UpgradeableTokenManagerErc721WMGenerator().generate_allocation(
+        proxy_admin_address=PROXY_ADMIN_ADDRESS,
         contract_address=TOKEN_MANAGER_ERC721_WITH_METADATA_ADDRESS,
         implementation_address=TOKEN_MANAGER_ERC721_WITH_METADATA_IMPLEMENTATION_ADDRESS,
-        owner_address=owner_address,
+        deployer_address=owner_address,
         schain_name=schain_name,
-        community_pool_address=contracts_on_mainnet['deposit_box_erc721_with_metadata_address']
+        deposit_box_address=contracts_on_mainnet['deposit_box_erc721_with_metadata_address']
     )
 
-    eth_erc20 = UpgradeableEthErc20Generator().generate_storage(
-        admin_address=PROXY_ADMIN_ADDRESS,
+    eth_erc20 = UpgradeableEthErc20Generator().generate_allocation(
+        proxy_admin_address=PROXY_ADMIN_ADDRESS,
         contract_address=ETH_ERC20_ADDRESS,
         implementation_address=ETH_ERC20_IMPLEMENTATION_ADDRESS,
-        owner_address=owner_address
+        deployer_address=owner_address
     )
 
     return {

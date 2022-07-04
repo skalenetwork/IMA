@@ -62,7 +62,7 @@ class TokenManagerLinkerGenerator(Generator):
     @classmethod
     def generate_storage(cls, **kwargs) -> Dict[str, str]:
         deployer_address = kwargs['deployer_address']
-        linker_addres = kwargs['linker_addres']
+        linker_addres = kwargs['linker_address']
         storage: Dict[str, str] = {}
         roles_slots = cls.RolesSlots(roles=cls.ROLES_SLOT, role_members=cls.ROLE_MEMBERS_SLOT)
 
