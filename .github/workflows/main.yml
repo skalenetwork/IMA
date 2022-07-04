@@ -134,6 +134,9 @@ jobs:
         yarn install
         npm run compile
 
+    - name: Install python testing staff
+      run: pip3 install -r predeployed/test/requirements.txt
+
     - name: Install geth
       run: |
         sudo add-apt-repository -y ppa:ethereum/ethereum
@@ -144,7 +147,6 @@ jobs:
       env:
         VERSION: "0.0.0"
       run: |
-        pip install -e predeployed/
         python3 -m pip install build==0.4.0
         ./predeployed/scripts/build_package.sh
 
