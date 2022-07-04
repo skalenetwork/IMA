@@ -135,6 +135,7 @@ jobs:
         npm run compile
 
     - name: Install python testing staff
+      working-directory: ${{env.working-directory}}
       run: pip3 install -r predeployed/test/requirements.txt
 
     - name: Install geth
