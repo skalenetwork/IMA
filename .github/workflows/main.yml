@@ -154,7 +154,7 @@ jobs:
     - name: Test predeployed pip package
       working-directory: ${{env.working-directory}}
       env:
-        PYTHONPATH: predeployed/src
+        PYTHONPATH: src
       run: |
         killall -9 node || true # stop any ganache-cli, etc
         killall -9 geth || true # stop any geth, etc
