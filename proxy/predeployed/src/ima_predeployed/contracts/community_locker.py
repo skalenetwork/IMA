@@ -7,6 +7,7 @@ from ..addresses import MESSAGE_PROXY_FOR_SCHAIN_ADDRESS, TOKEN_MANAGER_LINKER_A
 from predeployed_generator.openzeppelin.access_control_enumerable_generator import (
     AccessControlEnumerableGenerator
 )
+from web3 import Web3
 
 
 class CommunityLockerGenerator(AccessControlEnumerableGenerator):
@@ -74,7 +75,8 @@ class CommunityLockerGenerator(AccessControlEnumerableGenerator):
         cls._write_address(storage, cls.MESSAGE_PROXY_SLOT, MESSAGE_PROXY_FOR_SCHAIN_ADDRESS)
         cls._write_address(storage, cls.TOKEN_MANAGER_LINKER_SLOT, TOKEN_MANAGER_LINKER_ADDRESS)
         cls._write_address(storage, cls.COMMUNITY_POOL_SLOT, community_pool_address)
-        cls._write_string(storage, cls.SCHAIN_HASH_SLOT, schain_name)
+
+        cls._write_bytes32(storage, cls.SCHAIN_HASH_SLOT, Web3.solidityKeccak(['string'], [schain_name]))
         cls._write_uint256(storage, cls.TIME_LIMIT_PER_MESSAGE_SLOT, cls.DEFAULT_TIME_LIMIT_SEC)
 
         return storage
