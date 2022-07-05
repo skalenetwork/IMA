@@ -37,22 +37,27 @@ function n2s( n, sz ) {
     return s;
 }
 
-function generateTimestamp() {
-    const ts = new Date();
+function generate_timestamp_string( ts, isColorized ) {
+    isColorized = ( typeof isColorized == "undefined" ) ? true : ( isColorized ? true : false );
+    ts = ( ts instanceof Date ) ? ts : new Date();
+    const cc_date = function( x ) { return isColorized ? cc.date( x ) : x; };
+    const cc_time = function( x ) { return isColorized ? cc.time( x ) : x; };
+    const cc_frac_time = function( x ) { return isColorized ? cc.frac_time( x ) : x; };
+    const cc_bright = function( x ) { return isColorized ? cc.bright( x ) : x; };
     const s =
-	"" + cc.date( n2s( ts.getUTCFullYear(), 4 ) ) +
-	cc.bright( "-" ) + cc.date( n2s( ts.getUTCMonth() + 1, 2 ) ) +
-	cc.bright( "-" ) + cc.date( n2s( ts.getUTCDate(), 2 ) ) +
-	" " + cc.time( n2s( ts.getUTCHours(), 2 ) ) +
-	cc.bright( ":" ) + cc.time( n2s( ts.getUTCMinutes(), 2 ) ) +
-	cc.bright( ":" ) + cc.time( n2s( ts.getUTCSeconds(), 2 ) ) +
-	cc.bright( "." ) + cc.frac_time( n2s( ts.getUTCMilliseconds(), 3 ) )
-	;
+        "" + cc_date( n2s( ts.getUTCFullYear(), 4 ) ) +
+        cc_bright( "-" ) + cc_date( n2s( ts.getUTCMonth() + 1, 2 ) ) +
+        cc_bright( "-" ) + cc_date( n2s( ts.getUTCDate(), 2 ) ) +
+        " " + cc_time( n2s( ts.getUTCHours(), 2 ) ) +
+        cc_bright( ":" ) + cc_time( n2s( ts.getUTCMinutes(), 2 ) ) +
+        cc_bright( ":" ) + cc_time( n2s( ts.getUTCSeconds(), 2 ) ) +
+        cc_bright( "." ) + cc_frac_time( n2s( ts.getUTCMilliseconds(), 3 ) )
+        ;
     return s;
 }
 
-function generateTimestampPrefix() {
-    return generateTimestamp() + cc.bright( ":" ) + " ";
+function generate_timestamp_prefix( ts, isColorized ) {
+    return generate_timestamp_string( ts, isColorized ) + cc.bright( ":" ) + " ";
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -251,12 +256,13 @@ function insertFileOutput( strFilePath, nMaxSizeBeforeRotation, nMaxFilesCount )
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 module.exports = {
+    generate_timestamp_string: generate_timestamp_string,
+    generate_timestamp_prefix: generate_timestamp_prefix,
     cc: cc,
-	  write: function() {
-        let s = generateTimestampPrefix(); let i = 0; let cnt = 0;
+    write: function() {
+        let s = generate_timestamp_prefix( null, true ); let i = 0; let cnt = 0;
         try {
-            cnt = arguments.length;
-            for( i = 0; i < cnt; ++i ) {
+            for( i = 0; i < arguments.length; ++i ) {
                 try {
                     s += arguments[i];
                 } catch ( err ) {
