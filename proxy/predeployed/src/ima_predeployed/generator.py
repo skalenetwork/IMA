@@ -5,17 +5,19 @@ from predeployed_generator.openzeppelin.proxy_admin_generator import ProxyAdminG
 
 from .contract_generator import ContractGenerator
 from .contracts.eth_erc20 import UpgradeableEthErc20Generator
-from .contracts.token_manager_erc20 import UpgradeableTokenManagerErc20Generator
-from .contracts.token_manager_erc721 import UpgradeableTokenManagerErc721Generator
-from .contracts.token_manager_erc1155 import UpgradeableTokenManagerErc1155Generator
+from .contracts.token_manager_erc20 import UpgradeableTokenManagerErc20Generator, TokenManagerErc20Generator
+from .contracts.token_manager_erc721 import UpgradeableTokenManagerErc721Generator, TokenManagerErc721Generator
+from .contracts.token_manager_erc1155 import UpgradeableTokenManagerErc1155Generator, TokenManagerErc1155Generator
 from .contracts.token_manager_erc721_with_metadata import (
-    UpgradeableTokenManagerErc721WithMetadataGenerator as UpgradeableTokenManagerErc721WMGenerator
+    UpgradeableTokenManagerErc721WithMetadataGenerator as UpgradeableTokenManagerErc721WMGenerator,
+    TokenManagerErc721WithMetadataGenerator as TokenManagerErc721WMGenerator
 )
-from .contracts.token_manager_eth import UpgradeableTokenManagerEthGenerator
-from .contracts.token_manager_linker import UpgradeableTokenManagerLinkerGenerator
-from .contracts.community_locker import UpgradeableCommunityLockerGenerator
-from .contracts.key_storage import UpgradeableKeyStorageGenerator
-from .contracts.message_proxy_for_schain import UpgradeableMessageProxyForSchainGenerator
+from .contracts.token_manager_eth import UpgradeableTokenManagerEthGenerator, TokenManagerEthGenerator
+from .contracts.token_manager_linker import UpgradeableTokenManagerLinkerGenerator, TokenManagerLinkerGenerator
+from .contracts.community_locker import UpgradeableCommunityLockerGenerator, CommunityLockerGenerator
+from .contracts.key_storage import UpgradeableKeyStorageGenerator, KeyStorageGenerator
+from .contracts.message_proxy_for_schain import UpgradeableMessageProxyForSchainGenerator, \
+    MessageProxyForSchainGenerator
 from .addresses import (
     PROXY_ADMIN_ADDRESS, MESSAGE_PROXY_FOR_SCHAIN_ADDRESS,
     MESSAGE_PROXY_FOR_SCHAIN_IMPLEMENTATION_ADDRESS, KEY_STORAGE_IMPLEMENTATION_ADDRESS,
@@ -189,12 +191,28 @@ def generate_abi() -> dict:
         **generate_abi_key(
             'eth_erc20',
             ETH_ERC20_ADDRESS,
-            UpgradeableTokenManagerErc20Generator().get_abi()),
+            UpgradeableEthErc20Generator().get_abi()),
         **{
             'ERC20OnChain_abi': ContractGenerator('ERC20OnChain.json').abi,
             'ERC721OnChain_abi': ContractGenerator('ERC721OnChain.json').abi,
             'ERC1155OnChain_abi': ContractGenerator('ERC1155OnChain.json').abi
         }
+    }
+
+
+def generate_meta() -> dict:
+    return {
+        PROXY_ADMIN_ADDRESS: ProxyAdminGenerator().get_meta(),
+        MESSAGE_PROXY_FOR_SCHAIN_ADDRESS: MessageProxyForSchainGenerator().get_meta(),
+        KEY_STORAGE_ADDRESS: KeyStorageGenerator().get_meta(),
+        COMMUNITY_LOCKER_ADDRESS: CommunityLockerGenerator().get_meta(),
+        TOKEN_MANAGER_LINKER_ADDRESS: TokenManagerLinkerGenerator().get_meta(),
+        TOKEN_MANAGER_ETH_ADDRESS: TokenManagerEthGenerator().get_meta(),
+        TOKEN_MANAGER_ERC20_ADDRESS: TokenManagerErc20Generator().get_meta(),
+        TOKEN_MANAGER_ERC721_ADDRESS: TokenManagerErc721Generator().get_meta(),
+        TOKEN_MANAGER_ERC1155_ADDRESS: TokenManagerErc1155Generator().get_meta(),
+        TOKEN_MANAGER_ERC721_WITH_METADATA_ADDRESS: TokenManagerErc721WMGenerator().get_meta(),
+        ETH_ERC20_ADDRESS: TokenManagerErc20Generator().get_meta()
     }
 
 
