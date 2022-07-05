@@ -3,6 +3,9 @@ import os
 
 from predeployed_generator.openzeppelin.proxy_admin_generator import ProxyAdminGenerator
 
+from ima_predeployed.contracts.erc1155_on_chain import Erc1155OnChainGenerator
+from ima_predeployed.contracts.erc20_on_chain import Erc20OnChainGenerator
+from ima_predeployed.contracts.erc721_on_chain import Erc721OnChainGenerator
 from .contract_generator import ContractGenerator
 from .contracts.eth_erc20 import UpgradeableEthErc20Generator
 from .contracts.token_manager_erc20 import UpgradeableTokenManagerErc20Generator, TokenManagerErc20Generator
@@ -193,9 +196,9 @@ def generate_abi() -> dict:
             ETH_ERC20_ADDRESS,
             UpgradeableEthErc20Generator().get_abi()),
         **{
-            'ERC20OnChain_abi': ContractGenerator('ERC20OnChain.json').abi,
-            'ERC721OnChain_abi': ContractGenerator('ERC721OnChain.json').abi,
-            'ERC1155OnChain_abi': ContractGenerator('ERC1155OnChain.json').abi
+            'ERC20OnChain_abi': Erc20OnChainGenerator().get_abi(),
+            'ERC721OnChain_abi': Erc721OnChainGenerator().get_abi(),
+            'ERC1155OnChain_abi': Erc1155OnChainGenerator().get_abi()
         }
     }
 
