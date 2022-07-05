@@ -72,13 +72,13 @@ jobs:
       working-directory: ${{env.working-directory}}
       run: yarn tslint
 
-    # - name: Slither checks
-    #   working-directory: ${{env.working-directory}}
-    #   run: yarn slither
+    - name: Slither checks
+      working-directory: ${{env.working-directory}}
+      run: yarn slither
 
-    # - name: Gas calculation test
-    #   working-directory: ${{env.working-directory}}
-    #   run: npx hardhat test gas/calculateGas.ts
+    - name: Gas calculation test
+      working-directory: ${{env.working-directory}}
+      run: npx hardhat test gas/calculateGas.ts
     
     - name: Test upgrade
       run: bash ./proxy/scripts/test_upgrade.sh
