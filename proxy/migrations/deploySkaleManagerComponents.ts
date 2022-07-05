@@ -141,7 +141,7 @@ async function main() {
     await contractManager.setContractsAddress( "KeyStorage", keyStorage.address );
     console.log("Set KeyStorage", keyStorage.address, "to ContractManager", contractManager.address, "\n");
     await contractManager.setContractsAddress( "Nodes", nodes.address );
-    console.log("Set Nodes", nodes.address, "to ContractManager", contractManager.address, "\n");    
+    console.log("Set Nodes", nodes.address, "to ContractManager", contractManager.address, "\n");
     const nodeAddress1 = new Wallet(process.env.PRIVATE_KEY_FOR_ETHEREUM).connect(ethers.provider);
     const nodeAddress2 = new Wallet(process.env.PRIVATE_KEY_FOR_SCHAIN).connect(ethers.provider);
     await owner.sendTransaction({to: nodeAddress1.address, value: ethers.utils.parseEther("1")});
