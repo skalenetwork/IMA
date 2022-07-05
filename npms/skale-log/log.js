@@ -139,15 +139,19 @@ function insertStandardOutputStream() {
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-function createMemoryOutputStream() {
+function createMemoryOutputStream( isAutoAddTimestamps ) {
     try {
         const objEntry = {
             strPath: "memory",
             nMaxSizeBeforeRotation: -1,
             nMaxFilesCount: -1,
             strAccumulatedLogText: "",
+            isWithTimestamps: ( isAutoAddTimestamps || ( typeof isAutoAddTimestamps == "undefined" ) ) ? true : false,
             write: function( s ) {
-                this.strAccumulatedLogText += s;
+                let strPrefix = "";
+                if( this.isWithTimestamps )
+                    strPrefix = generate_timestamp_prefix( null, true );
+                this.strAccumulatedLogText += strPrefix + s;
             },
             clear: function() { this.strAccumulatedLogText = ""; },
             close: function() { this.clear(); },
@@ -293,8 +297,8 @@ module.exports = {
     addMemory: function() {
         return insertMemoryOutputStream();
     },
-    createMemoryStream: function() {
-        return createMemoryOutputStream();
+    createMemoryStream: function( isAutoAddTimestamps ) {
+        return createMemoryOutputStream( isAutoAddTimestamps );
     },
     add: function( strFilePath, nMaxSizeBeforeRotation, nMaxFilesCount ) {
         return insertFileOutput(

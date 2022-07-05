@@ -822,7 +822,7 @@ async function do_sign_messages_impl(
     };
     const arrSignResults = [];
     let cntSuccess = 0;
-    let details = log.createMemoryStream();
+    let details = log.createMemoryStream( true );
     const strGatheredDetailsName = strDirection + "-" + "do_sign_messages_impl-#" + nTransferLoopCounter +
         "-" + strFromChainName + "-msg#" + nIdxCurrentMsgBlockStart;
     try {
