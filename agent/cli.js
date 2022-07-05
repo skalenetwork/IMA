@@ -1258,7 +1258,7 @@ function getWeb3FromURL( strURL ) {
 }
 
 async function async_check_url_at_startup( u, name ) {
-    const details = log.createMemoryStream();
+    const details = log.createMemoryStream( true );
     const nTimeoutMilliseconds = 10 * 1000;
     try {
         details.write( cc.debug( "Will check URL " ) + cc.u( u ) + cc.debug( " connectivity for " ) + cc.info( name ) + cc.debug( " at start-up..." ) + "\n" );
