@@ -82,6 +82,10 @@ jobs:
       run: |
         npx hardhat run migrations/generateManifest.ts
 
+    - name: Install python testing staff
+      working-directory: ${{env.PROXY_DIR}}
+      run: pip3 install -r predeployed/test/requirements.txt
+
     - name: Build predeployed pip package
       working-directory: ${{env.PROXY_DIR}}
       env:

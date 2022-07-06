@@ -3,10 +3,9 @@ import os
 
 from predeployed_generator.openzeppelin.proxy_admin_generator import ProxyAdminGenerator
 
-from ima_predeployed.contracts.erc1155_on_chain import Erc1155OnChainGenerator
-from ima_predeployed.contracts.erc20_on_chain import Erc20OnChainGenerator
-from ima_predeployed.contracts.erc721_on_chain import Erc721OnChainGenerator
-from .contract_generator import ContractGenerator
+from .contracts.erc1155_on_chain import Erc1155OnChainGenerator
+from .contracts.erc20_on_chain import Erc20OnChainGenerator
+from .contracts.erc721_on_chain import Erc721OnChainGenerator
 from .contracts.eth_erc20 import UpgradeableEthErc20Generator
 from .contracts.token_manager_erc20 import UpgradeableTokenManagerErc20Generator, TokenManagerErc20Generator
 from .contracts.token_manager_erc721 import UpgradeableTokenManagerErc721Generator, TokenManagerErc721Generator
@@ -206,16 +205,26 @@ def generate_abi() -> dict:
 def generate_meta() -> dict:
     return {
         PROXY_ADMIN_ADDRESS: ProxyAdminGenerator().get_meta(),
-        MESSAGE_PROXY_FOR_SCHAIN_ADDRESS: MessageProxyForSchainGenerator().get_meta(),
-        KEY_STORAGE_ADDRESS: KeyStorageGenerator().get_meta(),
-        COMMUNITY_LOCKER_ADDRESS: CommunityLockerGenerator().get_meta(),
-        TOKEN_MANAGER_LINKER_ADDRESS: TokenManagerLinkerGenerator().get_meta(),
-        TOKEN_MANAGER_ETH_ADDRESS: TokenManagerEthGenerator().get_meta(),
-        TOKEN_MANAGER_ERC20_ADDRESS: TokenManagerErc20Generator().get_meta(),
-        TOKEN_MANAGER_ERC721_ADDRESS: TokenManagerErc721Generator().get_meta(),
-        TOKEN_MANAGER_ERC1155_ADDRESS: TokenManagerErc1155Generator().get_meta(),
-        TOKEN_MANAGER_ERC721_WITH_METADATA_ADDRESS: TokenManagerErc721WMGenerator().get_meta(),
-        ETH_ERC20_ADDRESS: TokenManagerErc20Generator().get_meta()
+        MESSAGE_PROXY_FOR_SCHAIN_ADDRESS: UpgradeableMessageProxyForSchainGenerator().get_meta(),
+        MESSAGE_PROXY_FOR_SCHAIN_IMPLEMENTATION_ADDRESS: MessageProxyForSchainGenerator().get_meta(),
+        KEY_STORAGE_ADDRESS: UpgradeableKeyStorageGenerator().get_meta(),
+        KEY_STORAGE_IMPLEMENTATION_ADDRESS: KeyStorageGenerator().get_meta(),
+        COMMUNITY_LOCKER_ADDRESS: UpgradeableCommunityLockerGenerator().get_meta(),
+        COMMUNITY_LOCKER_IMPLEMENTATION_ADDRESS: CommunityLockerGenerator().get_meta(),
+        TOKEN_MANAGER_LINKER_ADDRESS: UpgradeableTokenManagerLinkerGenerator().get_meta(),
+        TOKEN_MANAGER_LINKER_IMPLEMENTATION_ADDRESS: TokenManagerLinkerGenerator().get_meta(),
+        TOKEN_MANAGER_ETH_ADDRESS: UpgradeableTokenManagerEthGenerator().get_meta(),
+        TOKEN_MANAGER_ETH_IMPLEMENTATION_ADDRESS: TokenManagerEthGenerator().get_meta(),
+        TOKEN_MANAGER_ERC20_ADDRESS: UpgradeableTokenManagerErc20Generator().get_meta(),
+        TOKEN_MANAGER_ERC20_IMPLEMENTATION_ADDRESS: TokenManagerErc20Generator().get_meta(),
+        TOKEN_MANAGER_ERC721_ADDRESS: UpgradeableTokenManagerErc721Generator().get_meta(),
+        TOKEN_MANAGER_ERC721_IMPLEMENTATION_ADDRESS: TokenManagerErc721Generator().get_meta(),
+        TOKEN_MANAGER_ERC1155_ADDRESS: UpgradeableTokenManagerErc1155Generator().get_meta(),
+        TOKEN_MANAGER_ERC1155_IMPLEMENTATION_ADDRESS: TokenManagerErc1155Generator().get_meta(),
+        TOKEN_MANAGER_ERC721_WITH_METADATA_ADDRESS: UpgradeableTokenManagerErc721WMGenerator().get_meta(),
+        TOKEN_MANAGER_ERC721_WITH_METADATA_IMPLEMENTATION_ADDRESS: TokenManagerErc721WMGenerator().get_meta(),
+        ETH_ERC20_ADDRESS: UpgradeableTokenManagerErc20Generator().get_meta(),
+        ETH_ERC20_IMPLEMENTATION_ADDRESS: TokenManagerErc20Generator().get_meta()
     }
 
 
