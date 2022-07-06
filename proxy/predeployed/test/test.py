@@ -8,7 +8,7 @@ from contracts.token_manager_erc1155 import check_token_manager_erc1155
 from contracts.token_manager_erc721_with_metadata import check_token_manager_erc721_with_metadata
 from contracts.token_manager_eth import check_token_manager_eth
 from contracts.token_manager_linker import check_token_manager_linker
-from .test_generator import check_meta_generator
+from test_generator import check_meta_generator
 import json
 
 with open('config.json') as config_file:
