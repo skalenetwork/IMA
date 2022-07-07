@@ -75,9 +75,9 @@ web3.eth
 --
 ====
 
-== Exit Reimbursement Flow Process
+== Exit Reimbursement Flow Process to Ethereum
 
-The exit flow through IMA is conducted as follows:
+The exit flow and reimbursement process through IMA to Ethereum is conducted as follows:
 
 ifdef::env-github[image::https://www.plantuml.com/plantuml/svg/jLF1RXix3BplL-YOuC4_i7X8uWPfOQ1EZSPfpwf4hmLBP21ITlptNNdNYDKL2bzwivSpGt8uUc3HKLBmZVQY3A54ROJLmSbMTPfN-WZnvhPHwfKXgjcTUgGG4ZevheXygoAOhOuTvF9FxJt83VTV73xh09UyDUq0bnfr1x5LyEvaJSiUbyMBOj7aAvbTnfijcDtSUpg0NTCBe5q2Sm_Fz1AU5MeI4Jh70X7iPRVxw-a6t1xYWkT6-XzN4_Egux3VjS3zPDs9ERzIhDioogmYlHzVJYwtwerOlYNfo67tuGbuXZ_EIKdg5ntEnX-t7AI7pmNI91OAZuDiPlnlOG-UtY3EXjeiRpiBqBUpTmsWRPhfqAULdyd2OZcVTu3IAeJ3Y7lQ0qgJgwVKH8siZJWgiwF-oxiyiRYW1Pe2LhKhHmr11hyMQ2WKVftYpscpSSO1IfbozJcXvQPHDSNgczZqX2-QFnrVUJIx51ptRnK3sX_Qfpp3S3I7_swCoHn_oTJP6z_7EDDlh-vxsNWIfG9Rf6_2olXpkUwOgaolgcymE57vpzc88PeFW3O5_ni0[]]
 ifndef::env-github[]
