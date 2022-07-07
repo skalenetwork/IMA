@@ -5105,7 +5105,7 @@ async function do_transfer(
     const strGatheredDetailsNameColored = "" + cc.bright( strDirection ) + cc.debug( "-" ) +
         cc.info( "do_transfer-A-" ) + cc.debug( "-" ) + cc.notice( "#" ) + cc.note( nTransferLoopCounter ) +
         cc.debug( "-" ) + cc.notice( chain_id_src ) + cc.debug( "-->" ) + cc.notice( chain_id_dst );
-    const details = log.createMemoryStream();
+    const details = log.createMemoryStream( true );
     const jarrReceipts = [];
     let bErrorInSigningMessages = false;
     await init_ima_state_file( details, w3_src, strDirection, optsStateFile );
@@ -5693,7 +5693,7 @@ async function do_transfer(
                 cc.info( nIdxCurrentMsgBlockStart ) + cc.info( jarrMessages.length ) +
                 cc.debug( " message(s) to process: " ) + cc.j( jarrMessages ) +
                 "\n" );
-            let detailsB = log.createMemoryStream();
+            let detailsB = log.createMemoryStream( true );
             const strGatheredDetailsName = "" + strDirection + "-" +
                 "do_transfer-B-#" + nTransferLoopCounter +
                 "-" + chain_id_src + "-->" + chain_id_dst;
