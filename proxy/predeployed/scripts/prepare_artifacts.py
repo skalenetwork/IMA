@@ -25,6 +25,9 @@ def prepare():
     tokens_hardhat_path = join(hardhat_contracts_path, 'tokens')
     tokens_handler = ArtifactsHandler(tokens_hardhat_path, package_artifacts_path)
     tokens_handler.prepare_artifacts('EthErc20')
+    tokens_handler.prepare_artifacts('ERC20OnChain')
+    tokens_handler.prepare_artifacts('ERC721OnChain')
+    tokens_handler.prepare_artifacts('ERC1155OnChain')
 
 
 if __name__ == '__main__':

@@ -109,7 +109,7 @@ jobs:
         source scripts/venv/bin/activate
         pip install dist/ima_predeployed-*.whl
         mkdir data
-        scripts/generate_abi.py > data/ima-$VERSION-predeployed-abi.json
+        python scripts/generate_abi.py > data/ima-$VERSION-predeployed-abi.json
 
     - name: Create Release
       id: create_release
