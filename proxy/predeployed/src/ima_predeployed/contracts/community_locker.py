@@ -12,7 +12,7 @@ from web3 import Web3
 
 class CommunityLockerGenerator(AccessControlEnumerableGenerator):
     ARTIFACT_FILENAME = 'CommunityLocker.json'
-    META_FILENAME = 'CommunityLocker.json'
+    META_FILENAME = 'CommunityLocker.meta.json'
     DEFAULT_ADMIN_ROLE = (0).to_bytes(32, 'big')
     DEFAULT_TIME_LIMIT_SEC = 5 * 60
 
