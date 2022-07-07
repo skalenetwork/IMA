@@ -87,13 +87,62 @@ jobs:
       working-directory: ${{env.working-directory}}
       run: |
         npx hardhat coverage --solcoverjs .solcover.js
-        bash <(curl -s https://codecov.io/bash) -f coverage/lcov.info -t $CODECOV_TOKEN || echo "Codecov did not collect coverage reports"         
+        bash <(curl -s https://codecov.io/bash) -f coverage/lcov.info -t $CODECOV_TOKEN || echo "Codecov did not collect coverage reports"
+
+  test-predeployed:
+    runs-on: ubuntu-latest
+
+    env:
+      working-directory: ./proxy
+
+    steps:
+    - uses: actions/checkout@v2
+
+    - name: Get yarn cache directory path
+      id: yarn-cache-dir-path
+      run: echo "::set-output name=dir::$(yarn cache dir)"
+
+    - uses: actions/cache@v2
+      id: yarn-cache
+      with:
+        path: ${{ steps.yarn-cache-dir-path.outputs.dir }}
+        key: ${{ runner.os }}-yarn-${{ hashFiles('**/yarn.lock') }}
+        restore-keys: |
+          ${{ runner.os }}-yarn-
+
+    - uses: actions/cache@v2
+      with:
+        path: ~/.cache/pip
+        key: ${{ runner.os }}-pip-${{ hashFiles('**/requirements.txt') }}
+        restore-keys: |
+          ${{ runner.os }}-pip-
+
+    - name: Install PYTHON
+      uses: actions/setup-python@v2
+      with:
+        python-version: 3.8
+
+    - name: Install NODE JS
+      uses: actions/setup-node@v2
+      with:
+        node-version: 16
+
+    - name: Install project
+      working-directory: ${{env.working-directory}}
+      run: |
+        ../npms/scrypt/get_scrypt_npm.sh
+        yarn install
+        npm run compile
+
+    - name: Install python testing staff
+      working-directory: ${{env.working-directory}}
+      run: pip3 install -r predeployed/test/requirements.txt
 
     - name: Install geth
       run: |
         sudo add-apt-repository -y ppa:ethereum/ethereum
         sudo apt install ethereum
-    
+
     - name: Build predeployed pip package
       working-directory: ${{env.working-directory}}
       env:
@@ -104,6 +153,8 @@ jobs:
 
     - name: Test predeployed pip package
       working-directory: ${{env.working-directory}}
+      env:
+        PYTHONPATH: src
       run: |
         killall -9 node || true # stop any ganache-cli, etc
         killall -9 geth || true # stop any geth, etc
