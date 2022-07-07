@@ -1,0 +1,43 @@
+.ERC721/ERC1155 Transfer Flow
+
+ifdef::env-github[image::https://www.plantuml.com/plantuml/svg/RLB1gjim4BpxAvRNYsrUR99BeOMID7KfD87IElHGUb2ijIqYIqOhbHJoyRKb9wYGFMbNCyDeLbkop5WtoEHMsHuDkk6MT4Qx4Mh35BLeZ51T0bD5YBbzb-SdGWExSJJw3rAU-t7rVVzsi_R7WeMhD7l_7-CJZfg4lJEMzgE-nbmUfc5qLrZzUdEMhBcyScqjyj-h3y7PZw-xGmNxdWcrc2lBMbzG7PbY7HeOXB84ZTGAgImVOfr1LA-SKU_5m2vl1ZPerO67eU8hDzacS2JkG_fygWxGQWCl7QEN82XQI9SdScm4HmAh0Q_2vda6WY1T5z0wnQ6glsGmfQayxqcuKLoUGJF5vnLghuV1AM7_VjDQFgQ5mQPdfiEPzvD9YJOa5-eYPC2Y98HqKu3VldUO-OkdOSPcF9Q0AGvdPzGIQMGiJZrQftStSsjzd7JZhVg4HVlqYvMbGOcCa4EWpBkRuE2_Q49MZybswjqW_m40[]]
+ifndef::env-github[]
+
+[plantuml]
+....
+@startuml
+|Ethereum|
+group Transferring
+    |Ethereum|
+    :**User Approves**
+    ERC721
+    .approve();
+    :**User Deposits**
+    DepositBoxERC721
+    .depositERC721();
+    -[#black,dotted]->
+    |SKALE Chain|
+    ://TokenManager mints clones//;
+    -[#green,dashed]-> transfer among 
+    end-users using 
+    sFUEL for "gas";
+    if (**User decides to exit**) is (1. fund ETH) then
+        |Ethereum|
+        :**User funds ETH**
+        CommunityPool
+        .rechargeUserWallet();
+        kill
+    else (2. start exit)
+        |SKALE Chain|
+        :**User exits and burns clone**
+        TokenManagerERC721
+        .exitToMainERC721();
+    endif
+    |Ethereum|
+    ://released ERC721//;
+end group
+stop
+@enduml
+....
+
+endif::[]

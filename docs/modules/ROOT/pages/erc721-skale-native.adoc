@@ -1,8 +1,8 @@
 The following flow applies equally to 721 and 1155 contracts.
 
-.ERC721/1155 Flow, with Mint first on SKALE
+.ERC721/1155 Setup Flow, with Mint first on SKALE
 
-ifdef::env-github[image::https://www.plantuml.com/plantuml/svg/fLDVJzj037_Ff_1Zcqb1y3A9eWaeeA7HCK4HpxV4JJsklkfy1QfrttrEBhj4AqAJbgVaRF_y-tCvbM1ysAniTY9XQ_5JPif0pnIs5sHgRrRmCmDzpatvL7ktuMhghFFmkAI0RUM66EFPkTKcFVkLdHnqOBkP8MOCksnt_-NivXAcIptOjOFx9osNzctXl29rpt6UN-3QkYryW1bnWAzNSydpIUe4Koj6wczuhk6AB4fmtjIHPqBRA9IfW5PQaODdgj298lyGnvFKYLn5dApxwYWb-9bPhudhD92K3cdVlZ1wYEILSIfrlN3v6f2574igNTvDFnuTGkauU8r2NzRRoJxc7TOa0Rtq67aE_G8KKNdVl7lTfiF2TqCwuisqsp0gYcASDkodygOMk2-RXk7oVoNvlnpVzred6CiW41mCbBn9e10CzyWL-ZzxRZdgYllsqSz4g6RfNC2gIsieYZXe8mqafomZO7-puaMQUyEoGE_ZRNehWUC7KKoF9T8pIdFz8nGjO9JdRR72aYfiPUChXJmVDnn6XmKiDgmyvv_749R8xteOePe1QIPw3sU6DIa_qFbehCKWmzpKELzZD32M_xBnYQoD5bX161qLyOTl2O_Vlu29NDChO5JIzutdHkyJ3ZDDhWzJvchUjCrTftaqJb7G8jjtuxZFRaKSH9tJgEfb5_SaDcaCy49X6JbSNm19suvLKu-d3tVNpHzCM4soFdW9RfsTwlTcPNy3[]]
+ifdef::env-github[image::https://www.plantuml.com/plantuml/svg/fLBDRjH03BxdANo48AM22n9ReRRRxOKkHLqapgF4f8R44usTqeZmxhZ9C1ifAu54JZFsv-zdd0jH5xHlc-nST6ZmVUPAfKVIuPfS7LmBFpEmxygLt-lWUwwsll41lZoGujIv9SQvTjKOo6g_ilEpI3Rk7J6ZZjbu-71vkuFjWnN6QN1TcRnCfwy-65FytkNvDNQD7-0Lx8aLFjvybZpV92IusZWI_jbd1pVKeAWFhfvz9hRUg5m5r5f7pXwfGY_6_4qyRn8IkPfvidXBbYBztdKTSPq6KjAbxRiVZ05cy-OujI8MTa-ABEHPKcjtlttxvZMKdZNOAkpG3PirvptM98f1ZXnv3aS15B5udu9_6bAn2778HeBRHeKNHL6yJ0ghhPpE0eVo6R0K_rUJ_-Fnxszj4uob2gY7HPAJ1Wf1FI1N6FxetF6SA-gjs2z5g6Q9hu1LtDOo5B4Qa1QHqovdmkEV9UgxxCBkVTly1W00[]]
 ifndef::env-github[]
 
 [plantuml]
@@ -44,11 +44,26 @@ activityDiagram {
         :**Owner Assigns Deployed ERC721**
         Minter is Extension contract;
     end group
+stop
+@enduml
+....
+
+endif::[]
+
+.ERC721/1155 Transfer Flow, with Mint first on SKALE
+
+ifdef::env-github[image::https://www.plantuml.com/plantuml/svg/RP4nZwCm48Lx_uefWG8fQKuAJKuvJXVTPek4Q6il332A6IAFsKt1ZrzZ8f8YxkQzvwVFdgquRTtG6JNchaMBGpUgnlR35GghMMgqbhXHuCzu-l_xBOTTgud7e6pEWXOibaXVAF3-jyY2JZL4IHBC2akglETwm1kv98c11A9L2lN05UJ5lnXSYwpWVXuSYxIPky8DcQvCRJFCGRDkq2R94lxGng2JPKuzNgjjWwTo0f_jA4tJE5io5p8c36W48Lgd4Bub4CV1UFt-9xYG5T1SmUTWUNhm1Vc9AxyvPA6U7sI2N1LJhEWFlfCzrntA6rIh5z-nMMgW8tO2hlNBQbh8ZxjVwrKsX_mYu9jSEqFi_m19Y6CL_A2UZtie-ojXbIdqr67fIbn_LLi_3vtv0G00[]]
+ifndef::env-github[]
+
+[plantuml]
+....
+@startuml
+|Ethereum|
 group Transferring
     |SKALE Chain|
     :User receives NFT;
     if (**User decides to exit**) is (1. fund ETH) then
-        |Mainnet|
+        |Ethereum|
         :**User funds ETH to SKALE Manager**
         Wallets
         .rechargeSchainWallet(...);
@@ -59,7 +74,7 @@ group Transferring
         Extension
         .sendTokenToMainnet();
     endif
-    |Mainnet|
+    |Ethereum|
     :Extension mints through ERC721;
     :NFT with tokenID is minted
     tokenURI copied;
@@ -77,19 +92,19 @@ endif::[]
 
 ## One-time Setup Steps
 
-. [Mainnet] Owner deploys Extension + NFT contract copy
-. [Mainnet] Owner registers extension
+. [Ethereum] Owner deploys Extension + NFT contract copy
+. [Ethereum] Owner registers extension
 . [SKALE Chain] Owner deploys Extension
 . [SKALE Chain] Owner registers extension
 . [SKALE Chain] Owner deploys clone
-. [Mainnet] Owner sets Extension to SKALE Chain Extension
-. [Mainnet] Owner assigns NFT Minter to Extension
+. [Ethereum] Owner sets Extension to SKALE Chain Extension
+. [Ethereum] Owner assigns NFT Minter to Extension
 
 ## Transfer Flow
 
 Withdrawal
 
-. [Mainnet] User funds SKALE Manager Wallet ETH for exit
+. [Ethereum] User funds SKALE Manager Wallet ETH for exit
 . [SKALE Chain] User exits from Extension
-. [Mainnet] _Extension contract executes NFT mint_
-. [Mainnet] _NFT of tokenID minted, with same tokenURI and other metadata_
+. [Ethereum] _Extension contract executes NFT mint_
+. [Ethereum] _NFT of tokenID minted, with same tokenURI and other metadata_

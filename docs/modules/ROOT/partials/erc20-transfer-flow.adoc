@@ -1,0 +1,49 @@
+.ERC20 Transfer Flow 
+
+ifdef::env-github[image::https://www.plantuml.com/plantuml/svg/RLB1Rjim3BtxAuZkaXYDi_Mu5aMRrCE0fS2mfUXXs46rQ5k8B1aaNJHOz--rPRNG8Jo9J-yHJq-yOL4aGsUpAvQZnUjCLMAUZHplZ6f8TV0lWx4sgZeqv0UdjzvwWiVM28QRdN4uOnixaaRiVtQrZiDUIscHSEXUiqdTmvwKung9Z6k2F65CxTSyVs0akErxyi_8UHxWyjVsudCu5Mg-MHH5iRnCDN27lMSZxvhORlnBejOp691anEhFfwV9_Rds8gZ_hgvdSxz_tEvAsBRAkEXllTxx0xfxvLI319rnmb1Pxv3NwuzX3I6wSwsu3SD0uhD1TTur46Zez6fW98Q1pJl8tnxA7TIUuAnHV3OFD3KiuXirLaOZWtZ05oDvlWJ3iFXIG3qu3UN--nAaHHTq9_9DyWeAdYGniAcslki6P-JuqtlxWHQ4LQkemKdtgAn5ISARwc3iJ4VB28kB0i9Y1PFBo3gLP-8dS1cKq_0qa8kf9jxIuEENnYecwTxVA-FIduqfc_hafX5QL8mQWkGo6vaGbZHZyNrsC_P3Pzy0[]]
+ifndef::env-github[]
+
+[plantuml]
+....
+@startuml
+<style>
+activityDiagram {
+    BackgroundColor White
+    LineColor Black
+  }
+</style>
+|Ethereum|
+group Transferring
+    |Ethereum|
+    :**User Approves**
+    ERC20
+    .approve(...);
+    :**User Deposits**
+    DepositBoxERC20
+    .depositERC20(...);
+    -[#black,dotted]->
+    |SKALE Chain|
+    ://TokenManager mints clones//;
+    -[#green,dashed]-> transfer among 
+    end-users using 
+    sFUEL for "gas";
+    if (**User decides to exit**) is (1. fund ETH) then
+        |Ethereum|
+        :**User funds ETH**
+        CommunityPool
+        .rechargeUserWallet(...);
+        kill
+    else (2. start exit)
+        |SKALE Chain|
+        :**User exits and burns clone**
+        TokenManagerERC20
+        .exitToMainERC20(...);
+    endif
+    |Ethereum|
+    :released ERC20;
+end group
+stop
+@enduml
+....
+
+endif::[]

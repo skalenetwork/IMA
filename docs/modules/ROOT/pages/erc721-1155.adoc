@@ -1,6 +1,6 @@
 ## ERC721 Manual - Setup Steps
 
-. [Mainnet] Owner registers ERC721
+. [Ethereum] Owner registers ERC721
 . [SKALE Chain] Owner deploys clone
 . [SKALE Chain] Owner assigns clone minter
 . [SKALE Chain] Owner registers clone
@@ -9,19 +9,19 @@
 
 Deposit
 
-. [Mainnet] User Approves ERC721 transfer
-. [Mainnet] User deposits ERC721 to DepositBox
+. [Ethereum] User Approves ERC721 transfer
+. [Ethereum] User deposits ERC721 to DepositBox
 . [SKALE Chain] User can now transfer clone
 
 Withdrawal
 
-. [Mainnet] User funds CommunityPool ETH for exit
+. [Ethereum] User funds CommunityPool ETH for exit
 . [SKALE Chain] User exits from TokenManager
-. [Mainnet] User can now transfer ERC721
+. [Ethereum] User can now transfer ERC721
 
-.ERC721/1155 Flow with Manual Mapping
+.ERC721/1155 Setup Flow with Manual Mapping
 
-ifdef::env-github[image::https://www.plantuml.com/plantuml/svg/ZPFVQzim4CVV_LSS7Op4D37jos0ffSsFCLZ2HfVIXx47DRhO8lB9wEIsOTd_llZa10UMCRtvUtVVk_j8lkEWVAXBcznms5gyJTGgc1SJjbEZSgzA-9N0_epLQfDxLvEUEEiyF1Kce4JcXZ1gOxjFsck_avkiDTijb272i4kaJz9OLB1GLMKeb_AFQVhrbT330-Q60te6ZPLrMzGmUvXykBvAKqcSOkNOXB5xYxA8GwLr_5ow3T9uArwz_aYYk-zVxkSpc1JAqEwqsrHwSDjYOXrXs-VLX09AGm7UmtFjQNHQUCziSZefX8MXW3vDHsSsQfrbn8KYbQF_hnsGD0Yn3iT8SEaLyHgzxs1yv6QyglBk1GyjJzh4aC3fLBHS-P-OTLIZT70O_7Ztt5pvfNOXeFuvk3r7FSkwkmjTXbN3BikENhb7f4kjk10l2EsEe4f7EKWQaXxKZ9wXPdCG-TFZR0vhv-4YLtmH3SqQUks66bT68qDmW6ycf6aV34FlQWZhcZJCbf_x40ga1Dfpf2rA1vOKS5CHQScPkBAioOJjD-ViKHrwN1NAvzZKFIbhCKHkyMoCZRbe6Q5tFGJvGMJ0lWJ-Zh8pZEGoADBoJbkWXy7ElpUPhgbTkcRFxfqAOBDEkX2EL-ZHekBZRvbbtGVAmLN97PAkI_i7[]]
+ifdef::env-github[image::https://www.plantuml.com/plantuml/svg/ZL6zJiCm4Dxz53SXy0221ObMg4tQYLP81OdPr2VdLETisGub8hmxnicI0GblzzttuxjRnQH2wbehbZ7r5X-5EYRweDHlI9cWMlWIa5-bZYSJNCUwTjO5U6ieOUdiY774Afj96ViMovl9RDYc1WDsxI1AaFZryB1NtXERed-GyldC6E20XcB2446Zjwv73Tj3VNztAsKXRj2xIAbodoDSm6kbzLY-kXDorHUlowj5wGulJ-lT5kf64G_pj4t9Y5D4RHtZb7Ecr41BdE02thl0Yxbm7ICPdWbXdzaOf5pyCT7aNBwuLwmCXd_DWAoXR2nlptcnodK-rGy0[]]
 ifndef::env-github[]
 
 [plantuml]
@@ -33,7 +33,7 @@ activityDiagram {
     LineColor Black
   }
 </style>
-|Mainnet|
+|Ethereum|
 start
 group Mapping
     :**Owner Registers deployed ERC721**
@@ -47,38 +47,11 @@ group Mapping
     TokenManagerERC721
     .addERC721TokenByOwner();
 end group
-|Mainnet|
-group Transferring
-    :**User Approves**
-    ERC721
-    .approve();
-    :**User Deposits**
-    DepositBoxERC721
-    .depositERC721();
-    -[#black,dotted]->
-    |SKALE Chain|
-    ://TokenManager mints clone//;
-    -[#green,dashed]-> transfer among 
-    end-users using 
-    sFUEL for "gas";
-    if (**User decides to exit**) is (1. fund ETH) then
-        |Mainnet|
-        :**User funds ETH**
-        CommunityPool
-        .rechargeUserWallet();
-        kill
-    else (2. start exit)
-        |SKALE Chain|
-        :**User exits and burns clone**
-        TokenManagerERC721
-        .exitToMainERC721();
-    endif
-    |Mainnet|
-    ://released ERC721//;
-end group
 stop
 @enduml
 ....
+
+include::partial$erc721-1155-transfer-flow.adoc[]
 
 endif::[]
 
@@ -86,25 +59,25 @@ endif::[]
 ## ERC721 Automatic - Setup Steps
 
 . [SKALE Chain] Owner sets Autodeploy Mapping
-. [Mainnet] Owner sets whitelist
+. [Ethereum] Owner sets whitelist
 
 ## ERC721 Transfer Flow
 
 Deposit
 
-. [Mainnet] User Approves ERC721 transfer
-. [Mainnet] User deposits ERC721 to DepositBox
+. [Ethereum] User Approves ERC721 transfer
+. [Ethereum] User deposits ERC721 to DepositBox
 . [SKALE Chain] User can now transfer clone
 
 Withdrawal
 
-. [Mainnet] User funds CommunityPool ETH for exit
+. [Ethereum] User funds CommunityPool ETH for exit
 . [SKALE Chain] User exits from TokenManager
-. [Mainnet] User can now transfer ERC721
+. [Ethereum] User can now transfer ERC721
 
-.ERC721 Flow with Automatic Mapping
+.ERC721 Setup Flow with Automatic Mapping
 
-ifdef::env-github[image::https://www.plantuml.com/plantuml/svg/VLB1Qjj04BthAuRqOfj48haKqX0IEuP2OrfQ5nzA3sljM5wycXKxeoIcxhzN6icfm4tt9BsPz-RDsxrZCL7gqYStB7kFjud9nJqvsJyuKqHJmgy4cZCr-Qw8eIOx2pv4M6sTe5OU7M67JNtJr62_avki5piiZ2D2EIGjkOA5gIf7XH8FtpxTFyvXjcrQ3ege5_swdam-FnD6O1G6KqkmMFcmdqoql0mxf8KXKs2SVvszlxfKE4KoQu_tJNjfnEKFoXcDFsZrhvVJ2S_jEjwnz0CQPc0dq_0obBUEM_tLiNcKfcaZZcH1r-kNN4P3lC4O-qrF9tzdZ71VLJ4y8VSZXuDCLrBd0qRlYlzliaCxwAXmyUFTkhsTSnj4qFwyk7tZ2gwpR1Wkb8w48VU1aBFiLQo8Y7Hk3MzL3AHV6KmPg01jGx8NDMDagDaTGTxDbnzX4oAS5ORFEa6tWL6_eiNSMMIG0FZYckiOWsCONQQmgSb2Gnw3R96KTvhj82qbSClGkBep2sLPavFzbn3yAvf6pBSc5jZoLiPx50skFpldkrxqZ32wIhk7gWR7MZZ9yiHCsyjWoCAwZjGdUZJszejMTort6TezXvUg0RlDlnvObaNqQ1WjT8mi6xvIbb0bTyr_NVe_[]]
+ifdef::env-github[image::https://www.plantuml.com/plantuml/svg/PKzDJyCm3BtdL-GuUYY22n9CQ5lN4vkG06bdqrgjjJI94eTHKVuxgHdI97AAtyTxzYeo14w3KSl8ey571GtJ1_6u9UW23FfBwVmsq1oxu99jAsTSq8UU68NPaSLVR6EoA6FVQdbz3fjgxZ5W6YOrkxtUW_TaEt5Ehq_hNQsh7iXEWiWoyhilYkUJnQ0ZSjIGsBNeZHkBGkWtTqIx1miTXlgbkhkz4RX42-y6rra-05Ep5S_Ywa7OYsN-LvpcWmn5FZTagul46_TvcTzId0iEV-95MPOv7MshvJuLsNcrodCQp0y0[]]
 ifndef::env-github[]
 
 [plantuml]
@@ -116,46 +89,17 @@ activityDiagram {
     LineColor Black
   }
 </style>
-|Mainnet|
+|Ethereum|
 group Mapping
     |SKALE Chain|
     start
     :**Owner sets autodeploy**
     TokenManagerERC721
     .enableAutomaticDeploy();
-    |Mainnet|
+    |Ethereum|
     :**Owner sets whitelist**
     DepositBoxERC721
     .disableWhitelist(...);
-end group
-group Transferring
-    |Mainnet|
-    :**User Approves**
-    ERC721
-    .approve();
-    :**User Deposits**
-    DepositBoxERC721
-    .depositERC721();
-    -[#black,dotted]->
-    |SKALE Chain|
-    ://TokenManager mints clones//;
-    -[#green,dashed]-> transfer among 
-    end-users using 
-    sFUEL for "gas";
-    if (**User decides to exit**) is (1. fund ETH) then
-        |Mainnet|
-        :**User funds ETH**
-        CommunityPool
-        .rechargeUserWallet();
-        kill
-    else (2. start exit)
-        |SKALE Chain|
-        :**User exits and burns clone**
-        TokenManagerERC721
-        .exitToMainERC721();
-    endif
-    |Mainnet|
-    ://released ERC721//;
 end group
 stop
 @enduml
@@ -163,28 +107,30 @@ stop
 
 endif::[]
 
+include::partial$erc721-1155-transfer-flow.adoc[]
+
 ## ERC1155 Automatic Setup Steps
 
 . [SKALE Chain] Owner sets Autodeploy Mapping
-. [Mainnet] Owner sets whitelist
+. [Ethereum] Owner sets whitelist
 
 ## ERC1155 Transfer Flow
 
 Deposit
 
-. [Mainnet] User Approves ERC1155 transfer
-. [Mainnet] User deposits ERC1155 to DepositBox
+. [Ethereum] User Approves ERC1155 transfer
+. [Ethereum] User deposits ERC1155 to DepositBox
 . [SKALE Chain] User can now transfer clone
 
 Withdrawal
 
-. [Mainnet] User funds CommunityPool ETH for exit
+. [Ethereum] User funds CommunityPool ETH for exit
 . [SKALE Chain] User exits from TokenManager
-. [Mainnet] User can now transfer ERC1155
+. [Ethereum] User can now transfer ERC1155
 
 .ERC1155 Flow with Automatic Mapping
 
-ifdef::env-github[image::https://www.plantuml.com/plantuml/svg/XL9DQzj04BthLmpfnJQnX0EXa8OGsp4K6jFIklXGUbXhn_BYrQpO6IKnTVzxfTNQk7L3zhIycJVlpSSzY_9IbpQvPTbPl4jKBkR9oEx1gCAh4dubqBo9ohU5TpNfgRFEmt9Z14FaqH1ssCGsIGtsExdDOh7zN1aYb7tIaYkOgweoL0JY_jkdyUCCfficPH-Gu2NyRWQ3py-47XY5GTNYD5RMxGQ345wuBT9SaIhGpxvEHwFhwu2dI6fbSTpabqfC_X18lVw7Jl1evbpYkUt76fQeq30T6vcubx_gQyEjmFAGtKlJjAcEf24q6DjSU4MyHkzZh-VItnazZAlAkoVagDaelRyQTKAg2qNhHqQqnM-uxE287MeCVxnRjHkwr4u4zS_XtIjhkCcoqm53QKWOSki8ESkEnGgFI9TQyIOK0ubDWoeT5H3IaFImPlGCDPi3oDlPuYEidOUBGl55Lz2ieHURr9WRZGpY05zCiv4-68RUA8LrJHeQSXzaWnHuvzCzcLSWSCle1XRUr9LbJKPsNvopHpJrc6-KBx3bBPMrA75muMsDxNBHCaBlAksEDHZiXy3PBC_CjBaCYZIiQaznej7OwrSTxRNaXMiR_MUjIDgi_tTaMURHecBK42bPTdggBAvAxf5qNTe_[]]
+ifdef::env-github[image::https://www.plantuml.com/plantuml/svg/PKyzJyCm4DtzApoM344Tka25sgIPQ8K4I9sFv9ISwjYHVQP4XF-ESnG9L4--zt7ltYOmU8wzKUl0ey471JNJE_6u8sWzzFfJwVGAg4-jTz4sfJFEwsD7ZCBioU8FLfWaIjYNMjzUbaqLT-WnzfEQtOC-m32GRSKvlJnkzvKkEo0x2IB7oEykovxE5hqEo453PDVWODoOPKA_kXFQ0rXeqLVFvNAvMWcUeuKtWzkaxu6ftebfSNClx9zhhZFESoD3WIyHoUe2SU4-_WKq5EQ4uwzwaUTvMe-sqT9G1NQ3sgGvzkOR[]]
 ifndef::env-github[]
 
 [plantuml]
@@ -196,49 +142,22 @@ activityDiagram {
     LineColor Black
   }
 </style>
-|Mainnet|
+|Ethereum|
 group Mapping
     |SKALE Chain|
     start
     :**Owner sets autodeploy**
     TokenManagerERC1155
     .enableAutomaticDeploy();
-    |Mainnet|
+    |Ethereum|
     :**Owner sets whitelist**
     DepositBoxERC1155
     .disableWhitelist(...);
-end group
-group Transferring
-    |Mainnet|
-    :**User Approves**
-    ERC721
-    .approve();
-    :**User Deposits**
-    DepositBoxERC1155
-    .depositERC1155();
-    -[#black,dotted]->
-    |SKALE Chain|
-    ://TokenManager mints clones//;
-    -[#green,dashed]-> transfer among 
-    end-users using 
-    sFUEL for "gas";
-    if (**User decides to exit**) is (1. fund ETH) then
-        |Mainnet|
-        :**User funds ETH**
-        CommunityPool
-        .rechargeUserWallet();
-        kill
-    else (2. start exit)
-        |SKALE Chain|
-        :**User exits and burns clone**
-        TokenManagerERC1155
-        .exitToMainERC1155();
-    endif
-    |Mainnet|
-    ://released ERC1155//;
 end group
 stop
 @enduml
 ....
 
 endif::[]
+
+include::partial$erc721-1155-transfer-flow.adoc[]
