@@ -1,6 +1,6 @@
 ## Manual - Setup Steps
 
-. [Mainnet] Owner registers ERC20
+. [Ethereum] Owner registers ERC20
 . [SKALE Chain] Owner deploys clone
 . [SKALE Chain] Owner assigns clone minter
 . [SKALE Chain] Owner registers clone
@@ -9,19 +9,19 @@
 
 Deposit
 
-. [Mainnet] User Approves ERC20 transfer
-. [Mainnet] User deposits ERC20 to DepositBox
+. [Ethereum] User Approves ERC20 transfer
+. [Ethereum] User deposits ERC20 to DepositBox
 . [SKALE Chain] User can now transfer clone
 
 Withdrawal
 
-. [Mainnet] User funds CommunityPool ETH for exit
+. [Ethereum] User funds CommunityPool ETH for exit
 . [SKALE Chain] User exits from TokenManager
-. [Mainnet] User can now transfer ERC20
+. [Ethereum] User can now transfer ERC20
 
-.ERC20 Flow with Manual Mapping
+.ERC20 Setup Flow with Manual Mapping
 
-ifdef::env-github[image::https://www.plantuml.com/plantuml/svg/ZPDFRzim3CNl_XH4TqcC9jbwR8kYpPzXm19iw5BqCEoWHemYHAOCKUuQBFlkYsahS15qg6v-UYGVVxPlEQeGgy9brnnt3cyojOhssSRTr2eJL05_CZYSiLfjJV0LwObtFi3ZnaQKcxabRBInEvWEsj_iUjGsso-K9SAupsHELhSeOQ7AqfAHyiiy__QRCC0z6iiH0uF6qlaTQfZTJou-vhdufbXwjd7iNqGLRQYqbgUbtoADTzAerx-Io_sFhtVp6KmsojB-zQYf3E2c_yHvmZo_UcsvOxQ6kXPOM8eOalCqTnjKiYmKAOFX7L6HD0YL3gk6qZ8euZM6q47rm7MsiWp-6TF0xf3c9Y5e2n8x_XzAtOYYfFh1pmzFzJizrpv6rBy6Ds-H7OswQqDXAJAiQcoZqR6N2OXqhXLlf1V4Ta5GXIS3OaFIWuenC5HiayYV7sPpMFi0PqRnMTFGhg7NxgTnPJKoH0_uOcEUzy4oz3uDOLsHXjdoIn_Y1Yc3zXnH9oMXaWAkAuHLSoQ-A2goSVVTUtTKXm5N6nKCrdMFoZcCmgqzM-iQBpf6w5qCGVu02TXFhbEKtJ3YPL2auQaAr09DmTxyr2HSNRhqzPhfZIQyTfsT8hWCw51n-kUwdoL7NsQtIBegt3y0[]]
+ifdef::env-github[image::https://www.plantuml.com/plantuml/svg/ZP4_JyCm4CLtVmgFu04G8wrGcpyJZP0A4hDLdvnJdRDbEq14-EwOQmSo83NRlVlblQVp9cKTypWuiKvvSl0ez27ZE-QfGMsZ7kINaEMhzE5een_9rDxvADzwpC2R7HASjCeLg6ZVOdrxDflRt4E4SPW51ubVZo0x7GAIvVyVb7h-88Xo3nPJXfYaWU3y14Qs-_h-JYdc6WW-OQxy9wkitMXZU7hrHw1gOgEhwnKlvvUdxQwLTQ-HvcLKmm7fv5yxJw3KQebiKq9BVn7P8MM8XVodzxaeT-aqQGlnWgf0Hl9LoeLy49iob-Vu0G00[]]
 ifndef::env-github[]
 
 [plantuml]
@@ -33,7 +33,7 @@ activityDiagram {
     LineColor Black
   }
 </style>
-|Mainnet|
+|Ethereum|
 start
 group Mapping
     :**Owner Registers deployed ERC20**
@@ -46,37 +46,8 @@ group Mapping
     TokenManagerERC20
     .addERC20TokenByOwner();
 end group
-|Mainnet|
-group Transferring
-    :**User Approves**
-    ERC20
-    .approve();
-    :**User Deposits**
-    DepositBoxERC20
-    .depositERC20();
-    -[#black,dotted]->
-    |SKALE Chain|
-    ://TokenManager mints clone//;
-    -[#green,dashed]-> transfer among 
-    end-users using 
-    sFUEL for "gas";
-    if (**User decides to exit**) is (1. fund ETH) then
-        |Mainnet|
-        :**User funds ETH**
-        CommunityPool
-        .rechargeUserWallet();
-        kill
-    else (2. start exit)
-        |SKALE Chain|
-        :**User exits and burns clone**
-        TokenManagerERC20
-        .exitToMainERC20();
-    endif
-    |Mainnet|
-    :released ERC20;
-end group
 stop
 @enduml
 ....
 
-endif::[]
+include::partial$erc20-transfer-flow.adoc[]
