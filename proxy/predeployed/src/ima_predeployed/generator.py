@@ -6,7 +6,7 @@ from predeployed_generator.openzeppelin.proxy_admin_generator import ProxyAdminG
 from .contracts.erc1155_on_chain import Erc1155OnChainGenerator
 from .contracts.erc20_on_chain import Erc20OnChainGenerator
 from .contracts.erc721_on_chain import Erc721OnChainGenerator
-from .contracts.eth_erc20 import UpgradeableEthErc20Generator
+from .contracts.eth_erc20 import UpgradeableEthErc20Generator, EthErc20Generator
 from .contracts.token_manager_erc20 import UpgradeableTokenManagerErc20Generator, TokenManagerErc20Generator
 from .contracts.token_manager_erc721 import UpgradeableTokenManagerErc721Generator, TokenManagerErc721Generator
 from .contracts.token_manager_erc1155 import UpgradeableTokenManagerErc1155Generator, TokenManagerErc1155Generator
@@ -157,43 +157,43 @@ def generate_abi() -> dict:
         **generate_abi_key(
             'message_proxy_chain',
             MESSAGE_PROXY_FOR_SCHAIN_ADDRESS,
-            UpgradeableMessageProxyForSchainGenerator().get_abi()),
+            MessageProxyForSchainGenerator().get_abi()),
         **generate_abi_key(
             'key_storage',
             KEY_STORAGE_ADDRESS,
-            UpgradeableKeyStorageGenerator().get_abi()),
+            KeyStorageGenerator().get_abi()),
         **generate_abi_key(
             'community_locker',
             COMMUNITY_LOCKER_ADDRESS,
-            UpgradeableCommunityLockerGenerator().get_abi()),
+            CommunityLockerGenerator().get_abi()),
         **generate_abi_key(
             'token_manager_linker',
             TOKEN_MANAGER_LINKER_ADDRESS,
-            UpgradeableTokenManagerLinkerGenerator().get_abi()),
+            TokenManagerLinkerGenerator().get_abi()),
         **generate_abi_key(
             'token_manager_eth',
             TOKEN_MANAGER_ETH_ADDRESS,
-            UpgradeableTokenManagerEthGenerator().get_abi()),
+            TokenManagerEthGenerator().get_abi()),
         **generate_abi_key(
             'token_manager_erc20',
             TOKEN_MANAGER_ERC20_ADDRESS,
-            UpgradeableTokenManagerErc20Generator().get_abi()),
+            TokenManagerErc20Generator().get_abi()),
         **generate_abi_key(
             'token_manager_erc721',
             TOKEN_MANAGER_ERC721_ADDRESS,
-            UpgradeableTokenManagerErc721Generator().get_abi()),
+            TokenManagerErc721Generator().get_abi()),
         **generate_abi_key(
             'token_manager_erc1155',
             TOKEN_MANAGER_ERC1155_ADDRESS,
-            UpgradeableTokenManagerErc1155Generator().get_abi()),
+            TokenManagerErc1155Generator().get_abi()),
         **generate_abi_key(
             'token_manager_erc721_with_metadata',
             TOKEN_MANAGER_ERC721_WITH_METADATA_ADDRESS,
-            UpgradeableTokenManagerErc721WMGenerator().get_abi()),
+            TokenManagerErc721WMGenerator().get_abi()),
         **generate_abi_key(
             'eth_erc20',
             ETH_ERC20_ADDRESS,
-            UpgradeableEthErc20Generator().get_abi()),
+            EthErc20Generator().get_abi()),
         **{
             'ERC20OnChain_abi': Erc20OnChainGenerator().get_abi(),
             'ERC721OnChain_abi': Erc721OnChainGenerator().get_abi(),
