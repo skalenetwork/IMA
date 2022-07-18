@@ -56,6 +56,7 @@ global.imaState = {
     "nLogMaxSizeBeforeRotation": -1,
     "nLogMaxFilesCount": -1,
     "isPrintGathered": true,
+    "isPrintSecurityValues": false,
 
     "bIsNeededCommonInit": true,
     "bSignMessages": false, // use BLS message signing, turned on with --sign-messages
@@ -311,7 +312,7 @@ const fnInitActionSkaleNetworkScanForS2S = function() {
                 console.log( cc.fatal( "CRITICAL ERROR:" ) + cc.error( " missing Skale Manager ABI, please specify " ) + cc.info( "abi-skale-manager" ) );
                 process.exit( 153 );
             }
-            log.write( strLogPrefix + cc.normal( "Downloading SKALE network information " ) + cc.normal( "..." ) + "\n" ); // just print value
+            log.write( strLogPrefix + cc.debug( "Downloading SKALE network information..." ) + "\n" ); // just print value
             const opts = {
                 imaState: imaState,
                 "details": log,
@@ -337,6 +338,7 @@ const fnInitActionSkaleNetworkScanForS2S = function() {
                 addressFrom,
                 opts
             );
+            log.write( strLogPrefix + cc.success( "Done, did started periodic S-Chains caching." ) + "\n" );
             return true;
         }
     } );
@@ -1452,7 +1454,7 @@ imaCLI.parse( {
                     console.log( cc.fatal( "CRITICAL ERROR:" ) + cc.error( " missing Skale Manager ABI, please specify " ) + cc.info( "abi-skale-manager" ) );
                     process.exit( 160 );
                 }
-                log.write( strLogPrefix + cc.normal( "Downloading SKALE network information " ) + cc.normal( "..." ) + "\n" ); // just print value
+                log.write( strLogPrefix + cc.debug( "Downloading SKALE network information..." ) + "\n" ); // just print value
                 const opts = {
                     imaState: imaState,
                     "details": log,
@@ -1475,7 +1477,7 @@ imaCLI.parse( {
                     console.log( cc.fatal( "CRITICAL ERROR:" ) + cc.error( " missing Skale Manager ABI, please specify " ) + cc.info( "abi-skale-manager" ) );
                     process.exit( 161 );
                 }
-                log.write( strLogPrefix + cc.normal( "Downloading SKALE network information " ) + cc.normal( "..." ) + "\n" ); // just print value
+                log.write( strLogPrefix + cc.debug( "Downloading SKALE network information..." ) + "\n" ); // just print value
 
                 const opts = {
                     imaState: imaState,

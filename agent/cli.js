@@ -422,8 +422,10 @@ function parse( joExternalHandlers, argv ) {
             console.log( soi + cc.debug( "--" ) + cc.bright( "log" ) + cc.sunny( "=" ) + cc.note( "path" ) + cc.debug( "......................" ) + cc.notice( "Write program output to specified " ) + cc.note( "log file" ) + cc.debug( "(multiple files can be specified)" ) + cc.notice( "." ) );
             console.log( soi + cc.debug( "--" ) + cc.bright( "log-size" ) + cc.sunny( "=" ) + cc.note( "value" ) + cc.debug( "................" ) + cc.notice( "Max size" ) + cc.debug( "(in bytes)" ) + cc.notice( " of one log file" ) + cc.debug( "(affects to log log rotation)" ) + cc.notice( "." ) );
             console.log( soi + cc.debug( "--" ) + cc.bright( "log-files" ) + cc.sunny( "=" ) + cc.note( "value" ) + cc.debug( "..............." ) + cc.notice( "Maximum number of log files for log rotation." ) );
-            console.log( soi + cc.debug( "--" ) + cc.bright( "gathered" ) + cc.debug( "......................" ) + cc.notice( "Print details of gathering data from command line arguments. " ) + cc.debug( "Default mode." ) );
+            console.log( soi + cc.debug( "--" ) + cc.bright( "gathered" ) + cc.debug( "......................" ) + cc.notice( "Print details of gathering data from command line arguments. " ) + cc.debug( "Default mode" ) + cc.notice( "." ) );
             console.log( soi + cc.debug( "--" ) + cc.bright( "no-gathered" ) + cc.debug( "..................." ) + cc.notice( "Do not print details of gathering data from command line arguments." ) );
+            console.log( soi + cc.debug( "--" ) + cc.bright( "expose-security-info" ) + cc.debug( ".........." ) + cc.notice( "Expose security-related values in log output." ) + " " + cc.debug( "This mode is needed for debugging purposes only" ) + cc.notice( "." ) );
+            console.log( soi + cc.debug( "--" ) + cc.bright( "no-expose-security-info" ) + cc.debug( "......." ) + cc.notice( "Do not expose security-related values in log output." ) + " " + cc.debug( "Default mode" ) + cc.notice( "." ) );
             //
             process.exit( 0 );
         }
@@ -1093,6 +1095,14 @@ function parse( joExternalHandlers, argv ) {
         }
         if( joArg.name == "no-gathered" ) {
             imaState.isPrintGathered = false;
+            continue;
+        }
+        if( joArg.name == "expose-security-info" ) {
+            imaState.isPrintSecurityValues = true;
+            continue;
+        }
+        if( joArg.name == "no-expose-security-info" ) {
+            imaState.isPrintSecurityValues = false;
             continue;
         }
         if( joArg.name == "log" ) {
@@ -1989,6 +1999,7 @@ function ima_common_init() {
 
     if( IMA.verbose_get() > IMA.RV_VERBOSE.information || imaState.bShowConfigMode ) {
         const isPrintGathered = imaState.isPrintGathered ? true : false;
+        const isPrintSecurityValues = imaState.isPrintSecurityValues ? true : false;
         if( isPrintGathered ) {
             print_about( true );
             log.write( cc.attention( "IMA AGENT" ) + cc.normal( " is using " ) + cc.bright( "Web3" ) + cc.normal( " version " ) + cc.sunny( IMA.w3mod.version ) + "\n" );
@@ -2041,33 +2052,33 @@ function ima_common_init() {
         //
         //
         try {
-            ensure_have_value( "Main-net user account address", imaState.joAccount_main_net.address( imaState.w3_main_net ), false, isPrintGathered );
+            ensure_have_value( "Main-net user account address", imaState.joAccount_main_net.address( imaState.w3_main_net ), false, isPrintGathered && isPrintSecurityValues );
         } catch ( err ) {}
         try {
-            ensure_have_value( "S-chain user account address", imaState.joAccount_s_chain.address( imaState.w3_s_chain ), false, isPrintGathered );
+            ensure_have_value( "S-chain user account address", imaState.joAccount_s_chain.address( imaState.w3_s_chain ), false, isPrintGathered && isPrintSecurityValues );
         } catch ( err ) {}
         try {
             ensure_have_value( "S<->S Target S-chain user account address", imaState.joAccount_t_chain.address( imaState.w3_t_chain ), false, isPrintGathered );
         } catch ( err ) {}
         //
-        // ensure_have_value( "Private key for main-net user account address", imaState.joAccount_main_net.privateKey, false, isPrintGathered, null, ( x ) => {
+        // ensure_have_value( "Private key for main-net user account address", imaState.joAccount_main_net.privateKey, false, isPrintGathered && isPrintSecurityValues, null, ( x ) => {
         //     return cc.attention( x );
         // } );
-        // ensure_have_value( "Private key for S-Chain user account address", imaState.joAccount_s_chain.privateKey, false, isPrintGathered, null, ( x ) => {
+        // ensure_have_value( "Private key for S-Chain user account address", imaState.joAccount_s_chain.privateKey, false, isPrintGathered && isPrintSecurityValues, null, ( x ) => {
         //     return cc.attention( x );
         // } );
-        // ensure_have_value( "Private key for S<->S Target S-Chain user account address", imaState.joAccount_t_chain.privateKey, false, isPrintGathered, null, ( x ) => {
+        // ensure_have_value( "Private key for S<->S Target S-Chain user account address", imaState.joAccount_t_chain.privateKey, false, isPrintGathered && isPrintSecurityValues, null, ( x ) => {
         //     return cc.attention( x );
         // } );
         //
         try {
-            ensure_have_chain_credentials( "Main Net", imaState.joAccount_main_net, false, isPrintGathered );
+            ensure_have_chain_credentials( "Main Net", imaState.joAccount_main_net, false, isPrintGathered && isPrintSecurityValues );
         } catch ( err ) {}
         try {
-            ensure_have_chain_credentials( "S-Chain", imaState.joAccount_s_chain, false, isPrintGathered );
+            ensure_have_chain_credentials( "S-Chain", imaState.joAccount_s_chain, false, isPrintGathered && isPrintSecurityValues );
         } catch ( err ) {}
         try {
-            ensure_have_chain_credentials( "S<->S Target S-Chain", imaState.joAccount_t_chain, false, isPrintGathered );
+            ensure_have_chain_credentials( "S<->S Target S-Chain", imaState.joAccount_t_chain, false, isPrintGathered && isPrintSecurityValues );
         } catch ( err ) {}
         //
         //
@@ -2133,7 +2144,7 @@ function ima_common_init() {
             return cc.info( x );
         } );
 
-        ensure_have_value( "Automatic exit(seconds)", imaState.nAutoExitAfterSeconds, false, isPrintGathered );
+        ensure_have_value( "Automatic exit(seconds)", imaState.nAutoExitAfterSeconds, false, isPrintGathered && isPrintSecurityValues );
 
         if( imaState.strLogFilePath.length > 0 ) {
             ensure_have_value( "Log file path", imaState.strLogFilePath, false, isPrintGathered, null, ( x ) => {
