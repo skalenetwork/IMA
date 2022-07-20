@@ -53,11 +53,6 @@ contract MessageProxyForMainnet is SkaleManagerClient, MessageProxy, IMessagePro
 
     uint256 public constant PAUSE_LIMIT_BY_FOUNDATION = 4 hours;
 
-    struct Pause {
-        bool pauseUnlimited;
-        uint256 pausedUntil;
-    }
-
     /**
      * 16 Agents
      * Synchronize time with time.nist.gov
@@ -240,21 +235,6 @@ contract MessageProxyForMainnet is SkaleManagerClient, MessageProxy, IMessagePro
     }
 
     /**
-     * @dev PostOutgoingMessage function with whenNotPaused modifier
-     */
-    function postOutgoingMessage(
-        bytes32 targetChainHash,
-        address targetContract,
-        bytes memory data
-    )
-        public
-        override(IMessageProxy, MessageProxy)
-        whenNotPaused(targetChainHash)
-    {
-        super.postOutgoingMessage(targetChainHash, targetContract, data);
-    }
-
-    /**
      * @dev Sets headerMessageGasCost to a new value.
      * 
      * Requirements:
@@ -326,7 +306,10 @@ contract MessageProxyForMainnet is SkaleManagerClient, MessageProxy, IMessagePro
      */
     function unpause(string calldata schainName) external override {
         bytes32 schainHash = keccak256(abi.encodePacked(schainName));
-        require(pauseInfo[schainHash].pauseUnlimited || pauseInfo[schainHash].pausedUntil > block.timestamp, "Already unpaused");
+        require(
+            pauseInfo[schainHash].pauseUnlimited || pauseInfo[schainHash].pausedUntil > block.timestamp,
+            "Already unpaused"
+        );
         require(hasRole(DEFAULT_ADMIN_ROLE, msg.sender) || isSchainOwner(msg.sender, schainHash), "Incorrect sender");
         pauseInfo[schainHash].pauseUnlimited = false;
         pauseInfo[schainHash].pausedUntil = 0;
@@ -340,6 +323,21 @@ contract MessageProxyForMainnet is SkaleManagerClient, MessageProxy, IMessagePro
         MessageProxy.initializeMessageProxy(1e6);
         headerMessageGasCost = 73800;
         messageGasCost = 9000;
+    }
+
+    /**
+     * @dev PostOutgoingMessage function with whenNotPaused modifier
+     */
+    function postOutgoingMessage(
+        bytes32 targetChainHash,
+        address targetContract,
+        bytes memory data
+    )
+        public
+        override(IMessageProxy, MessageProxy)
+        whenNotPaused(targetChainHash)
+    {
+        super.postOutgoingMessage(targetChainHash, targetContract, data);
     }
 
     /**
