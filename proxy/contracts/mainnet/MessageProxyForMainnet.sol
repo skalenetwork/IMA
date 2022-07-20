@@ -33,13 +33,6 @@ import "../MessageProxy.sol";
 import "./SkaleManagerClient.sol";
 import "./CommunityPool.sol";
 
-interface IMessageProxyForMainnetInitializeFunction is IMessageProxyForMainnet {
-    function initializeAllRegisteredContracts(
-        bytes32 schainHash,
-        address[] calldata contracts
-    ) external;
-}
-
 
 /**
  * @title Message Proxy for Mainnet
@@ -51,10 +44,19 @@ interface IMessageProxyForMainnetInitializeFunction is IMessageProxyForMainnet {
  * nodes in the chain. Since Ethereum Mainnet has no BLS public key, mainnet
  * messages do not need to be signed.
  */
-contract MessageProxyForMainnet is SkaleManagerClient, MessageProxy, IMessageProxyForMainnetInitializeFunction {
+contract MessageProxyForMainnet is SkaleManagerClient, MessageProxy, IMessageProxyForMainnet {
 
     using AddressUpgradeable for address;
     using EnumerableSetUpgradeable for EnumerableSetUpgradeable.AddressSet;
+
+    bytes32 public constant PAUSABLE_ROLE = keccak256(abi.encodePacked("PAUSABLE_ROLE"));
+
+    uint256 public constant PAUSE_LIMIT_BY_FOUNDATION = 4 hours;
+
+    struct Pause {
+        bool pauseUnlimited;
+        uint256 pausedUntil;
+    }
 
     /**
      * 16 Agents
@@ -77,6 +79,8 @@ contract MessageProxyForMainnet is SkaleManagerClient, MessageProxy, IMessagePro
     mapping(bytes32 => EnumerableSetUpgradeable.AddressSet) private _registryContracts;
     string public version;
     bool public override messageInProgress;
+
+    mapping(bytes32 => Pause) public pauseInfo;
 
     /**
      * @dev Emitted when gas cost for message header was changed.
@@ -104,28 +108,9 @@ contract MessageProxyForMainnet is SkaleManagerClient, MessageProxy, IMessagePro
         messageInProgress = false;
     }
 
-    /**
-     * @dev Allows DEFAULT_ADMIN_ROLE to initialize registered contracts
-     * Notice - this function will be executed only once during upgrade
-     * 
-     * Requirements:
-     * 
-     * `msg.sender` should have DEFAULT_ADMIN_ROLE
-     */
-    function initializeAllRegisteredContracts(
-        bytes32 schainHash,
-        address[] calldata contracts
-    ) external override {
-        require(hasRole(DEFAULT_ADMIN_ROLE, msg.sender), "Sender is not authorized");
-        for (uint256 i = 0; i < contracts.length; i++) {
-            if (
-                deprecatedRegistryContracts[schainHash][contracts[i]] &&
-                !_registryContracts[schainHash].contains(contracts[i])
-            ) {
-                _registryContracts[schainHash].add(contracts[i]);
-                delete deprecatedRegistryContracts[schainHash][contracts[i]];
-            }
-        }
+    modifier whenNotPaused(bytes32 schainHash) {
+        require(!isPaused(schainHash), "IMA bridge is paused with Schain");
+        _;
     }
 
     /**
@@ -215,6 +200,7 @@ contract MessageProxyForMainnet is SkaleManagerClient, MessageProxy, IMessagePro
         external
         override(IMessageProxy, MessageProxy)
         messageInProgressLocker
+        whenNotPaused(keccak256(abi.encodePacked(fromSchainName)))
     {
         uint256 gasTotal = gasleft();
         bytes32 fromSchainHash = keccak256(abi.encodePacked(fromSchainName));
@@ -251,6 +237,21 @@ contract MessageProxyForMainnet is SkaleManagerClient, MessageProxy, IMessagePro
             }
         }
         communityPool.refundGasBySchainWallet(fromSchainHash, payable(msg.sender), notReimbursedGas);
+    }
+
+    /**
+     * @dev PostOutgoingMessage function with whenNotPaused modifier
+     */
+    function postOutgoingMessage(
+        bytes32 targetChainHash,
+        address targetContract,
+        bytes memory data
+    )
+        public
+        override(IMessageProxy, MessageProxy)
+        whenNotPaused(targetChainHash)
+    {
+        super.postOutgoingMessage(targetChainHash, targetContract, data);
     }
 
     /**
@@ -291,6 +292,47 @@ contract MessageProxyForMainnet is SkaleManagerClient, MessageProxy, IMessagePro
     }
 
     /**
+     * @dev Allows PAUSABLE_ROLE to pause IMA bridge unlimited
+     * or DEFAULT_ADMIN_ROLE to pause for 4 hours
+     * or schain owner to pause unlimited after DEFAULT_ADMIN_ROLE pause it
+     * 
+     * Requirements:
+     * 
+     * - IMA bridge to current schain was not paused
+     * - Sender should be PAUSABLE_ROLE, DEFAULT_ADMIN_ROLE or schain owner
+     */
+    function pause(string calldata schainName) external override {
+        bytes32 schainHash = keccak256(abi.encodePacked(schainName));
+        require(!pauseInfo[schainHash].pauseUnlimited, "Already paused");
+        if (hasRole(PAUSABLE_ROLE, msg.sender)) {
+            pauseInfo[schainHash].pauseUnlimited = true;
+        } else if (hasRole(DEFAULT_ADMIN_ROLE, msg.sender) && pauseInfo[schainHash].pausedUntil <= block.timestamp) {
+            pauseInfo[schainHash].pausedUntil = block.timestamp + PAUSE_LIMIT_BY_FOUNDATION;
+        } else if (isSchainOwner(msg.sender, schainHash) && pauseInfo[schainHash].pausedUntil > block.timestamp) {
+            pauseInfo[schainHash].pausedUntil = 0;
+            pauseInfo[schainHash].pauseUnlimited = true;
+        } else {
+            revert("Incorrect sender");
+        }
+    }
+
+/**
+     * @dev Allows DEFAULT_ADMIN_ROLE or schain owner to unpause IMA bridge 
+     * 
+     * Requirements:
+     * 
+     * - IMA bridge to current schain was paused
+     * - Sender should be DEFAULT_ADMIN_ROLE or schain owner
+     */
+    function unpause(string calldata schainName) external override {
+        bytes32 schainHash = keccak256(abi.encodePacked(schainName));
+        require(pauseInfo[schainHash].pauseUnlimited || pauseInfo[schainHash].pausedUntil > block.timestamp, "Already unpaused");
+        require(hasRole(DEFAULT_ADMIN_ROLE, msg.sender) || isSchainOwner(msg.sender, schainHash), "Incorrect sender");
+        pauseInfo[schainHash].pauseUnlimited = false;
+        pauseInfo[schainHash].pausedUntil = 0;
+    }
+
+    /**
      * @dev Creates a new MessageProxyForMainnet contract.
      */
     function initialize(IContractManager contractManagerOfSkaleManagerValue) public virtual override initializer {
@@ -320,6 +362,13 @@ contract MessageProxyForMainnet is SkaleManagerClient, MessageProxy, IMessagePro
     {
         require(keccak256(abi.encodePacked(schainName)) != MAINNET_HASH, "Schain id can not be equal Mainnet");
         return super.isConnectedChain(schainName);
+    }
+
+    /**
+     * @dev Returns true if IMA to schain is paused.
+     */
+    function isPaused(bytes32 schainHash) public view override returns (bool) {
+        return pauseInfo[schainHash].pauseUnlimited || pauseInfo[schainHash].pausedUntil > block.timestamp;
     }
 
     // private
