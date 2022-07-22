@@ -22,6 +22,7 @@
 pragma solidity 0.8.6;
 
 import "@openzeppelin/contracts-upgradeable/utils/AddressUpgradeable.sol";
+import "@openzeppelin/contracts-upgradeable/utils/structs/DoubleEndedQueueUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/utils/structs/EnumerableSetUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/token/ERC20/ERC20Upgradeable.sol";
 import "@skalenetwork/ima-interfaces/mainnet/DepositBoxes/IDepositBoxERC20.sol";
@@ -43,14 +44,36 @@ interface IERC20TransferVoid {
  */
 contract DepositBoxERC20 is DepositBox, IDepositBoxERC20 {
     using AddressUpgradeable for address;
+    using DoubleEndedQueueUpgradeable for DoubleEndedQueueUpgradeable.Bytes32Deque;
     using EnumerableSetUpgradeable for EnumerableSetUpgradeable.AddressSet;
 
+    struct DelayedExit {
+        address receiver;
+        address token;
+        uint256 amount;
+        uint256 untilTimestamp;
+        bool confiscated;
+    }
+
     address private constant _USDT_ADDRESS = 0xdAC17F958D2ee523a2206206994597C13D831ec7;
+    uint256 private constant _QUEUE_PROCESSING_LIMIT = 10;
 
     // schainHash => address of ERC20 on Mainnet
     mapping(bytes32 => mapping(address => bool)) private _deprecatedSchainToERC20;
     mapping(bytes32 => mapping(address => uint256)) public transferredAmount;
     mapping(bytes32 => EnumerableSetUpgradeable.AddressSet) private _schainToERC20;
+
+    // exits delay configuration
+    //   schainHash =>   token address => value
+    mapping(bytes32 => mapping(address => uint256)) public bigExitValue;
+    //   schainHash => time delay in seconds
+    mapping(bytes32 => uint256) public exitDelay;
+
+    uint256 public delayedExitsSize;
+    // delayed exit id => delayed exit
+    mapping(uint256 => DelayedExit) public delayedExits;
+    // receiver address => delayed exits queue
+    mapping(address => DoubleEndedQueueUpgradeable.Bytes32Deque) public delayedExitsByReceiver;    
 
     /**
      * @dev Emitted when token is mapped in DepositBoxERC20.
@@ -169,16 +192,30 @@ contract DepositBoxERC20 is DepositBox, IDepositBoxERC20 {
         require(message.token.isContract(), "Given address is not a contract");
         require(ERC20Upgradeable(message.token).balanceOf(address(this)) >= message.amount, "Not enough money");
         _removeTransferredAmount(schainHash, message.token, message.amount);
-        if (message.token == _USDT_ADDRESS) {
-            // solhint-disable-next-line no-empty-blocks
-            try IERC20TransferVoid(message.token).transfer(message.receiver, message.amount) {} catch {
-                revert("Transfer was failed");
-            }
+
+        uint256 delay = exitDelay[schainHash];
+        if (delay > 0 && message.amount > bigExitValue[schainHash][message.token]) {
+            uint256 delayId = delayedExitsSize++;
+            delayedExits[delayId] = DelayedExit({
+                receiver: message.receiver,
+                token: message.token,
+                amount: message.amount,
+                untilTimestamp: block.timestamp + delay,
+                confiscated: false
+            });
+            _addToDelayedQueue(message.receiver, delayId, block.timestamp + delay);
         } else {
-            require(
-                ERC20Upgradeable(message.token).transfer(message.receiver, message.amount),
-                "Transfer was failed"
-            );
+            if (message.token == _USDT_ADDRESS) {
+                // solhint-disable-next-line no-empty-blocks
+                try IERC20TransferVoid(message.token).transfer(message.receiver, message.amount) {} catch {
+                    revert("Transfer was failed");
+                }
+            } else {
+                require(
+                    ERC20Upgradeable(message.token).transfer(message.receiver, message.amount),
+                    "Transfer was failed"
+                );
+            }
         }
     }
 
@@ -225,6 +262,53 @@ contract DepositBoxERC20 is DepositBox, IDepositBoxERC20 {
             ERC20Upgradeable(erc20OnMainnet).transfer(receiver, amount),
             "Transfer was failed"
         );
+    }
+
+    /**
+     * @dev Set a threshold amount of tokens.
+     * If amount of tokens that exits IMA is bigger than the threshold
+     * the transfer is delayed for configurable amount of time
+     * and can be canceled by a voting
+     *
+     * Requirements:
+     * 
+     * - msg.sender should be an owner of schain
+     */
+    function setBigExitValue(
+        string calldata schainName,
+        address token,
+        uint256 value
+    )
+        external
+        override
+        onlySchainOwner(schainName)
+    {
+        bytes32 schainHash = keccak256(abi.encodePacked(schainName));
+        bigExitValue[schainHash][token] = value;   
+    }
+
+    /**
+     * @dev Set a time delay.
+     * If amount of tokens that exits IMA is bigger than a threshold
+     * the transfer is delayed for set amount of time
+     * and can be canceled by a voting
+     *
+     * Requirements:
+     * 
+     * - msg.sender should be an owner of schain
+     */
+    function setBigExitDelay(
+        string calldata schainName,
+        uint256 delayInSeconds
+    )
+        external
+        override
+        onlySchainOwner(schainName)
+    {
+        bytes32 schainHash = keccak256(abi.encodePacked(schainName));
+        // need to restrict big delays to avoid overflow
+        require(delayInSeconds < 1e8, "Delay is too big"); // no more then ~ 3 years
+        exitDelay[schainHash] = delayInSeconds;   
     }
 
     /**
@@ -386,6 +470,38 @@ contract DepositBoxERC20 is DepositBox, IDepositBoxERC20 {
         require(!_schainToERC20[schainHash].contains(erc20OnMainnet), "ERC20 Token was already added");
         _schainToERC20[schainHash].add(erc20OnMainnet);
         emit ERC20TokenAdded(schainName, erc20OnMainnet);
+    }
+
+
+    function _addToDelayedQueue(
+        address receiver,
+        uint256 id,
+        uint256 until
+    )
+        private
+    {
+        _addToDelayedQueueWithPriority(delayedExitsByReceiver[receiver], id, until, _QUEUE_PROCESSING_LIMIT);
+    }
+
+    function _addToDelayedQueueWithPriority(
+        DoubleEndedQueueUpgradeable.Bytes32Deque storage queue, 
+        uint256 id, 
+        uint256 until, 
+        uint256 depthLimit
+    )
+        private
+    {
+        if (depthLimit == 0 || queue.empty()) {
+            queue.pushBack(bytes32(id));
+        } else {
+            if (delayedExits[uint256(queue.back())].untilTimestamp <= until) {
+                queue.pushBack(bytes32(id));
+            } else {
+                bytes32 lowPriorityValue = queue.popBack();
+                _addToDelayedQueueWithPriority(queue, id, until, depthLimit - 1);
+                queue.pushBack(lowPriorityValue);
+            }
+        }
     }
 
     /**
