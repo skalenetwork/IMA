@@ -321,7 +321,7 @@ contract MessageProxyForMainnet is SkaleManagerClient, MessageProxy, IMessagePro
     function initialize(IContractManager contractManagerOfSkaleManagerValue) public virtual override initializer {
         SkaleManagerClient.initialize(contractManagerOfSkaleManagerValue);
         MessageProxy.initializeMessageProxy(1e6);
-        headerMessageGasCost = 73800;
+        headerMessageGasCost = 78800;
         messageGasCost = 9000;
     }
 
