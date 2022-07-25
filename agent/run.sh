@@ -113,9 +113,10 @@ BASE_OPTIONS="--gas-price-multiplier=$GAS_PRICE_MULTIPLIER \
 --ptx \
 --ptx-attempt=3 "
 
-echo "Base options:"
-echo "$BASE_OPTIONS"
+#echo "Base options:"
+#echo "$BASE_OPTIONS"
 
 echo "Running loop cmd..."
-echo "Going to run: node $DIR/main.js --loop $BASE_OPTIONS"
+#echo "Going to run: node $DIR/main.js --loop $BASE_OPTIONS"
+echo "Going to run: node $DIR/main.js --loop ... ... ..."
 node "$DIR/main.js" --loop $BASE_OPTIONS
