@@ -2015,31 +2015,31 @@ function ima_common_init() {
         ensure_have_value( "Verbose level", IMA.VERBOSE[IMA.verbose_get()], false, isPrintGathered, null, ( x ) => {
             return cc.sunny( x );
         } );
-        ensure_have_value( "Main-net URL", imaState.strURL_main_net, false, isPrintGathered, null, ( x ) => {
+        ensure_have_value( "Main-net URL", imaState.strURL_main_net, false, isPrintGathered && isPrintSecurityValues, null, ( x ) => {
             return cc.u( x );
         } );
-        ensure_have_value( "S-chain URL", imaState.strURL_s_chain, false, isPrintGathered, null, ( x ) => {
+        ensure_have_value( "S-chain URL", imaState.strURL_s_chain, false, isPrintGathered && isPrintSecurityValues, null, ( x ) => {
             return cc.u( x );
         } );
-        ensure_have_value( "S<->S Target S-chain URL", imaState.strURL_t_chain, false, isPrintGathered, null, ( x ) => {
+        ensure_have_value( "S<->S Target S-chain URL", imaState.strURL_t_chain, false, isPrintGathered && isPrintSecurityValues, null, ( x ) => {
             return cc.u( x );
         } );
-        ensure_have_value( "Main-net Ethereum network name", imaState.strChainName_main_net, false, isPrintGathered, null, ( x ) => {
+        ensure_have_value( "Main-net Ethereum network name", imaState.strChainName_main_net, false, isPrintGathered && isPrintSecurityValues, null, ( x ) => {
             return cc.note( x );
         } );
-        ensure_have_value( "S-Chain Ethereum network name", imaState.strChainName_s_chain, false, isPrintGathered, null, ( x ) => {
+        ensure_have_value( "S-Chain Ethereum network name", imaState.strChainName_s_chain, false, isPrintGathered && isPrintSecurityValues, null, ( x ) => {
             return cc.note( x );
         } );
-        ensure_have_value( "S<->S Target S-Chain Ethereum network name", imaState.strChainName_t_chain, false, isPrintGathered, null, ( x ) => {
+        ensure_have_value( "S<->S Target S-Chain Ethereum network name", imaState.strChainName_t_chain, false, isPrintGathered && isPrintSecurityValues, null, ( x ) => {
             return cc.note( x );
         } );
-        ensure_have_value( "Main-net Ethereum chain ID", imaState.cid_main_net, false, isPrintGathered, null, ( x ) => {
+        ensure_have_value( "Main-net Ethereum chain ID", imaState.cid_main_net, false, isPrintGathered && isPrintSecurityValues, null, ( x ) => {
             return cc.note( x );
         } );
-        ensure_have_value( "S-Chain Ethereum chain ID", imaState.cid_s_chain, false, isPrintGathered, null, ( x ) => {
+        ensure_have_value( "S-Chain Ethereum chain ID", imaState.cid_s_chain, false, isPrintGathered && isPrintSecurityValues, null, ( x ) => {
             return cc.note( x );
         } );
-        ensure_have_value( "S<->S Target S-Chain Ethereum chain ID", imaState.cid_t_chain, false, isPrintGathered, null, ( x ) => {
+        ensure_have_value( "S<->S Target S-Chain Ethereum chain ID", imaState.cid_t_chain, false, isPrintGathered && isPrintSecurityValues, null, ( x ) => {
             return cc.note( x );
         } );
         ensure_have_value( "Skale Manager ABI JSON file path", imaState.strPathAbiJson_skale_manager, false, isPrintGathered, null, ( x ) => {
