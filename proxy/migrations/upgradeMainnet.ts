@@ -1,5 +1,6 @@
 import { getManifestAdmin } from "@openzeppelin/hardhat-upgrades/dist/admin";
 import { ethers } from "hardhat";
+import hre from "hardhat";
 import { MessageProxyForMainnet } from "../typechain/MessageProxyForMainnet";
 import { contracts, getContractKeyInAbiFile } from "./deployMainnet";
 import { encodeTransaction } from "./tools/multiSend";
@@ -56,7 +57,3 @@ if( require.main === module ) {
             process.exit( 1 );
         } );
 }
-function hre(hre: any) {
-    throw new Error("Function not implemented.");
-}
-
