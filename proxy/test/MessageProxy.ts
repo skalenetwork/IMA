@@ -583,6 +583,120 @@ describe("MessageProxy", () => {
             incomingMessagesCounter.should.be.deep.equal(BigNumber.from(4));
         });
 
+        it("should not post incoming messages when IMA bridge is paused", async () => {
+            const startingCounter = 0;
+            await initializeSchain(contractManager, schainName, deployer.address, 1, 1);
+            const nodeCreationParams = {
+                port: 1337,
+                nonce: 1337,
+                ip: "0x12345678",
+                publicIp: "0x12345678",
+                publicKey: getPublicKey(nodeAddress),
+                name: "GasCalculationNode",
+                domainName: "gascalculationnode.com"
+            };
+            await createNode(contractManager, nodeAddress.address, nodeCreationParams);
+            await addNodesToSchain(contractManager, schainName, [0]);
+            await rechargeSchainWallet(contractManager, schainName, deployer.address, "1000000000000000000");
+            await setCommonPublicKey(contractManager, schainName);
+            await messageProxyForMainnet.registerExtraContract(schainName, communityPool.address);
+            await depositBox.addSchainContract(schainName, deployer.address);
+            const minTransactionGas = await communityPool.minTransactionGas();
+            const amountWei = minTransactionGas.mul(gasPrice);
+
+            const message1 = {
+                destinationContract: depositBox.address,
+                sender: deployer.address,
+                data: await messages.encodeTransferEthMessage(client.address, 0),
+            };
+
+            const message2 = {
+                destinationContract: depositBox.address,
+                sender: deployer.address,
+                data: await messages.encodeTransferEthMessage(customer.address, 7),
+            };
+
+            const outgoingMessages = [message1, message2];
+            const sign = {
+                blsSignature: BlsSignature,
+                counter: Counter,
+                hashA: HashA,
+                hashB: HashB,
+            };
+
+            // chain should be inited:
+            await messageProxyForMainnet
+                .connect(nodeAddress)
+                .postIncomingMessages(
+                    schainName,
+                    startingCounter,
+                    outgoingMessages,
+                    sign
+                ).should.be.eventually.rejectedWith("Chain is not initialized");
+
+            await messageProxyForMainnet.connect(deployer).addConnectedChain(schainName);
+
+            await messageProxyForMainnet
+                .connect(nodeAddress)
+                .postIncomingMessages(
+                    schainName,
+                    startingCounter,
+                    Array(11).fill(message1),
+                    sign
+                    ).should.be.eventually.rejectedWith("Too many messages");
+
+            await communityPool.connect(client).rechargeUserWallet(schainName, client.address, {value: amountWei.toString()});
+
+            await messageProxyForMainnet
+                .connect(nodeAddress)
+                .postIncomingMessages(
+                    schainName,
+                    startingCounter,
+                    outgoingMessages,
+                    sign
+                );
+
+            await communityPool.connect(client).rechargeUserWallet(schainName, user.address, {value: amountWei.toString()});
+
+            await messageProxyForMainnet
+                .connect(nodeAddress)
+                .postIncomingMessages(
+                    schainName,
+                    startingCounter + 2,
+                    outgoingMessages,
+                    sign
+                );
+            let incomingMessagesCounter = BigNumber.from(
+                await messageProxyForMainnet.getIncomingMessagesCounter(schainName));
+            incomingMessagesCounter.should.be.deep.equal(BigNumber.from(4));
+
+            await messageProxyForMainnet.connect(deployer).pause(schainName);
+
+            await messageProxyForMainnet
+                .connect(nodeAddress)
+                .postIncomingMessages(
+                    schainName,
+                    startingCounter + 4,
+                    outgoingMessages,
+                    sign
+                ).should.be.eventually.rejectedWith("IMA bridge is paused with Schain");
+
+            await messageProxyForMainnet.connect(deployer).unpause(schainName);
+
+            await messageProxyForMainnet
+                .connect(nodeAddress)
+                .postIncomingMessages(
+                    schainName,
+                    startingCounter + 4,
+                    outgoingMessages,
+                    sign
+                );
+
+            incomingMessagesCounter = BigNumber.from(
+                await messageProxyForMainnet.getIncomingMessagesCounter(schainName));
+            incomingMessagesCounter.should.be.deep.equal(BigNumber.from(6));
+        });
+
         it("should not post incoming messages with incorrect address", async () => {
             const startingCounter = 0;
             await initializeSchain(contractManager, schainName, deployer.address, 1, 1);
