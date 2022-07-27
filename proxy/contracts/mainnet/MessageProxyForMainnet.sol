@@ -292,7 +292,7 @@ contract MessageProxyForMainnet is SkaleManagerClient, MessageProxy, IMessagePro
             pauseInfo[schainHash].pausedUntil = 0;
             pauseInfo[schainHash].pauseUnlimited = true;
         } else {
-            revert("Incorrect sender");
+            revert("Incorrect sender or order");
         }
     }
 
