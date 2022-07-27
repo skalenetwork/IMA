@@ -236,7 +236,7 @@ describe("MessageProxy", () => {
             const amount = 4;
             const bytesData = await messages.encodeTransferEthMessage(user.address, amount);
             const schainOwner = user;
-            // 4 * 60 * 60 - 100 = 14400 - 100 = 14300 
+            // 4 * 60 * 60 - 100 = 14400 - 100 = 14300
             const almostFourHours = 14300;
             const delta = 200;
 
@@ -303,7 +303,7 @@ describe("MessageProxy", () => {
             outgoingMessagesCounter = BigNumber.from(
                 await messageProxyForMainnet.getOutgoingMessagesCounter(schainName));
             outgoingMessagesCounter.should.be.deep.equal(BigNumber.from(2));
-            
+
             txRec = await (await messageProxyForMainnet.connect(deployer).pause(schainName)).wait();
 
             timestamp = BigNumber.from((await ethers.provider.getBlock(txRec.blockNumber)).timestamp);
@@ -420,7 +420,7 @@ describe("MessageProxy", () => {
             await messageProxyForMainnet.connect(deployer).grantRole(pauseableRole, client.address);
             await messageProxyForMainnet.connect(client).pause(schainName);
             await messageProxyForMainnet.connect(client).pause(schainName).should.be.rejectedWith("Already paused");
-            
+
             (await messageProxyForMainnet.isPaused(schainHash)).should.be.deep.equal(true);
 
             pausedInfo = await messageProxyForMainnet.pauseInfo(schainHash);
@@ -430,7 +430,7 @@ describe("MessageProxy", () => {
             await caller
                 .postOutgoingMessageTester(messageProxyForMainnet.address, schainHash, contractAddress, bytesData)
                 .should.be.rejectedWith("IMA bridge is paused with Schain");
-            
+
             await messageProxyForMainnet.connect(client).unpause(schainName).should.be.rejectedWith("Incorrect sender");
             await messageProxyForMainnet.connect(schainOwner).unpause(schainName);
             await messageProxyForMainnet.connect(deployer).unpause(schainName).should.be.rejectedWith("Already unpaused");
@@ -458,10 +458,10 @@ describe("MessageProxy", () => {
             await caller
                 .postOutgoingMessageTester(messageProxyForMainnet.address, schainHash, contractAddress, bytesData)
                 .should.be.rejectedWith("IMA bridge is paused with Schain");
-            
+
             await messageProxyForMainnet.connect(deployer).unpause(schainName);
             await messageProxyForMainnet.connect(schainOwner).unpause(schainName).should.be.rejectedWith("Already unpaused");
-        
+
             await caller
                 .postOutgoingMessageTester(messageProxyForMainnet.address, schainHash, contractAddress, bytesData);
             outgoingMessagesCounter = BigNumber.from(
