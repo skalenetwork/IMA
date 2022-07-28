@@ -290,8 +290,8 @@ contract MessageProxyForMainnet is SkaleManagerClient, MessageProxy, IMessagePro
         } else if (hasRole(DEFAULT_ADMIN_ROLE, msg.sender) && pauseInfo[schainHash].pausedUntil <= block.timestamp) {
             pauseInfo[schainHash].pausedUntil = block.timestamp + PAUSE_LIMIT_BY_FOUNDATION;
         } else if (isSchainOwner(msg.sender, schainHash) && pauseInfo[schainHash].pausedUntil > block.timestamp) {
-            pauseInfo[schainHash].pausedUntil = 0;
             pauseInfo[schainHash].pauseUnlimited = true;
+            pauseInfo[schainHash].pausedUntil = 0;
         } else {
             revert("Incorrect sender or order");
         }
