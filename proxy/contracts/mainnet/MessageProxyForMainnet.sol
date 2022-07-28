@@ -286,6 +286,7 @@ contract MessageProxyForMainnet is SkaleManagerClient, MessageProxy, IMessagePro
         require(!pauseInfo[schainHash].pauseUnlimited, "Already paused");
         if (hasRole(PAUSABLE_ROLE, msg.sender)) {
             pauseInfo[schainHash].pauseUnlimited = true;
+            pauseInfo[schainHash].pausedUntil = 0;
         } else if (hasRole(DEFAULT_ADMIN_ROLE, msg.sender) && pauseInfo[schainHash].pausedUntil <= block.timestamp) {
             pauseInfo[schainHash].pausedUntil = block.timestamp + PAUSE_LIMIT_BY_FOUNDATION;
         } else if (isSchainOwner(msg.sender, schainHash) && pauseInfo[schainHash].pausedUntil > block.timestamp) {
