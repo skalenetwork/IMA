@@ -891,7 +891,7 @@ async function do_sign_messages_impl(
         //     details.write( strLogPrefix + cc.warning( "Minimal BLS parts number for dicovery was increased." ) + "\n" );
         //     nCountOfBlsPartsToCollect = 2;
         // }
-        log.write( strLogPrefix +sudo snap install viber-unofficial
+        log.write( strLogPrefix +
             cc.debug( "Will collect " ) + cc.info( nCountOfBlsPartsToCollect ) + cc.debug( " signature(s)" ) +
             cc.debug( ", " ) + cc.notice( "sequence ID" ) + cc.debug( " is " ) + cc.attention( sequence_id ) +
             "\n" );
@@ -1118,7 +1118,7 @@ async function do_sign_messages_impl(
         details.write( strLogPrefix + cc.debug( "Waiting for BLS glue result " ) + "\n" );
         let errGathering = null;
         const promise_gathering_complete = new Promise( ( resolve, reject ) => {
-            const iv = setInterval( function() {
+            const iv = setInterval( async function() {
                 ++ joGatheringTracker.nWaitIntervalStepsDone;
                 cntSuccess = joGatheringTracker.nCountReceived - joGatheringTracker.nCountErrors;
                 if( cntSuccess >= nCountOfBlsPartsToCollect ) {
@@ -1529,7 +1529,7 @@ async function do_sign_u256( u256, details, fn ) {
     details.write( strLogPrefix + cc.debug( "Waiting for BLS glue result " ) + "\n" );
     errGathering = null;
     const promise_gathering_complete = new Promise( ( resolve, reject ) => {
-        const iv = setInterval( function() {
+        const iv = setInterval( async function() {
             ++ joGatheringTracker.nWaitIntervalStepsDone;
             const cntSuccess = joGatheringTracker.nCountReceived - joGatheringTracker.nCountErrors;
             if( cntSuccess >= nCountOfBlsPartsToCollect ) {
