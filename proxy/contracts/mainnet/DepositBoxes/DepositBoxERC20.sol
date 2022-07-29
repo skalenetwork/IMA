@@ -22,6 +22,7 @@
 pragma solidity 0.8.6;
 
 import "@openzeppelin/contracts-upgradeable/utils/AddressUpgradeable.sol";
+import "@openzeppelin/contracts-upgradeable/utils/math/MathUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/utils/structs/DoubleEndedQueueUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/utils/structs/EnumerableSetUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/token/ERC20/ERC20Upgradeable.sol";
@@ -47,7 +48,7 @@ contract DepositBoxERC20 is DepositBox, IDepositBoxERC20 {
     using DoubleEndedQueueUpgradeable for DoubleEndedQueueUpgradeable.Bytes32Deque;
     using EnumerableSetUpgradeable for EnumerableSetUpgradeable.AddressSet;
 
-    struct DelayedExit {
+    struct DelayedTransfer {
         address receiver;
         address token;
         uint256 amount;
@@ -58,6 +59,8 @@ contract DepositBoxERC20 is DepositBox, IDepositBoxERC20 {
     address private constant _USDT_ADDRESS = 0xdAC17F958D2ee523a2206206994597C13D831ec7;
     uint256 private constant _QUEUE_PROCESSING_LIMIT = 10;
 
+    bytes32 public constant TRUSTED_RECEIVER_ROLE = keccak256("TRUSTED_RECEIVER_ROLE");
+
     // schainHash => address of ERC20 on Mainnet
     mapping(bytes32 => mapping(address => bool)) private _deprecatedSchainToERC20;
     mapping(bytes32 => mapping(address => uint256)) public transferredAmount;
@@ -65,15 +68,15 @@ contract DepositBoxERC20 is DepositBox, IDepositBoxERC20 {
 
     // exits delay configuration
     //   schainHash =>   token address => value
-    mapping(bytes32 => mapping(address => uint256)) public bigExitValue;
+    mapping(bytes32 => mapping(address => uint256)) public bigTransferThreshold;
     //   schainHash => time delay in seconds
-    mapping(bytes32 => uint256) public exitDelay;
+    mapping(bytes32 => uint256) public transferDelay;
 
-    uint256 public delayedExitsSize;
-    // delayed exit id => delayed exit
-    mapping(uint256 => DelayedExit) public delayedExits;
-    // receiver address => delayed exits queue
-    mapping(address => DoubleEndedQueueUpgradeable.Bytes32Deque) public delayedExitsByReceiver;    
+    uint256 public delayedTransfersSize;
+    // delayed transfer id => delayed transfer
+    mapping(uint256 => DelayedTransfer) public delayedTransfers;
+    // receiver address => delayed transfers ids queue
+    mapping(address => DoubleEndedQueueUpgradeable.Bytes32Deque) public delayedTransfersByReceiver;    
 
     /**
      * @dev Emitted when token is mapped in DepositBoxERC20.
@@ -193,10 +196,14 @@ contract DepositBoxERC20 is DepositBox, IDepositBoxERC20 {
         require(ERC20Upgradeable(message.token).balanceOf(address(this)) >= message.amount, "Not enough money");
         _removeTransferredAmount(schainHash, message.token, message.amount);
 
-        uint256 delay = exitDelay[schainHash];
-        if (delay > 0 && message.amount > bigExitValue[schainHash][message.token]) {
-            uint256 delayId = delayedExitsSize++;
-            delayedExits[delayId] = DelayedExit({
+        uint256 delay = transferDelay[schainHash];
+        if (
+            delay > 0
+            && message.amount > bigTransferThreshold[schainHash][message.token]
+            && !hasRole(TRUSTED_RECEIVER_ROLE, message.receiver)
+        ) {
+            uint256 delayId = delayedTransfersSize++;
+            delayedTransfers[delayId] = DelayedTransfer({
                 receiver: message.receiver,
                 token: message.token,
                 amount: message.amount,
@@ -205,17 +212,7 @@ contract DepositBoxERC20 is DepositBox, IDepositBoxERC20 {
             });
             _addToDelayedQueue(message.receiver, delayId, block.timestamp + delay);
         } else {
-            if (message.token == _USDT_ADDRESS) {
-                // solhint-disable-next-line no-empty-blocks
-                try IERC20TransferVoid(message.token).transfer(message.receiver, message.amount) {} catch {
-                    revert("Transfer was failed");
-                }
-            } else {
-                require(
-                    ERC20Upgradeable(message.token).transfer(message.receiver, message.amount),
-                    "Transfer was failed"
-                );
-            }
+            _transfer(message.token, message.receiver, message.amount);
         }
     }
 
@@ -284,7 +281,7 @@ contract DepositBoxERC20 is DepositBox, IDepositBoxERC20 {
         onlySchainOwner(schainName)
     {
         bytes32 schainHash = keccak256(abi.encodePacked(schainName));
-        bigExitValue[schainHash][token] = value;   
+        bigTransferThreshold[schainHash][token] = value;   
     }
 
     /**
@@ -308,7 +305,31 @@ contract DepositBoxERC20 is DepositBox, IDepositBoxERC20 {
         bytes32 schainHash = keccak256(abi.encodePacked(schainName));
         // need to restrict big delays to avoid overflow
         require(delayInSeconds < 1e8, "Delay is too big"); // no more then ~ 3 years
-        exitDelay[schainHash] = delayInSeconds;   
+        transferDelay[schainHash] = delayInSeconds;   
+    }
+
+    /**
+     * @dev Transfers tokens that was locked for delay during exit process.
+     * Must be called by receiver.
+     */
+    function retrieve() external {
+        uint256 transfersAmount = MathUpgradeable.min(
+            delayedTransfersByReceiver[msg.sender].length(),
+            _QUEUE_PROCESSING_LIMIT
+        );
+        for (uint256 i = 0; i < transfersAmount; ++i) {
+            uint256 transferId = uint256(delayedTransfersByReceiver[msg.sender].front());
+            DelayedTransfer memory transfer = delayedTransfers[transferId];
+            if (block.timestamp < transfer.untilTimestamp) {
+                break;
+            } else {
+                if (!transfer.confiscated) {
+                    _transfer(transfer.token, transfer.receiver, transfer.amount);
+                }
+                delete delayedTransfers[transferId];
+                delayedTransfersByReceiver[msg.sender].popFront();
+            }
+        }
     }
 
     /**
@@ -378,6 +399,19 @@ contract DepositBoxERC20 is DepositBox, IDepositBoxERC20 {
         tokensInRange = new address[](to - from);
         for (uint256 i = from; i < to; i++) {
             tokensInRange[i - from] = _schainToERC20[keccak256(abi.encodePacked(schainName))].at(i);
+        }
+    }
+
+    /**
+     * @dev Returns token address and amount of tokens and timestamp when they will be unlocked.
+     * If there are no delayed transfers all values are returned as zeros.
+     */
+    function getNextDelayedTransfer() external view returns (address token, uint256 amount, uint256 untilTimestamp) {
+        if (!delayedTransfersByReceiver[msg.sender].empty()) {
+            DelayedTransfer memory transfer = delayedTransfers[uint256(delayedTransfersByReceiver[msg.sender].front())];
+            token = transfer.token;
+            amount = transfer.amount;
+            untilTimestamp = transfer.untilTimestamp;
         }
     }
 
@@ -480,7 +514,7 @@ contract DepositBoxERC20 is DepositBox, IDepositBoxERC20 {
     )
         private
     {
-        _addToDelayedQueueWithPriority(delayedExitsByReceiver[receiver], id, until, _QUEUE_PROCESSING_LIMIT);
+        _addToDelayedQueueWithPriority(delayedTransfersByReceiver[receiver], id, until, _QUEUE_PROCESSING_LIMIT);
     }
 
     function _addToDelayedQueueWithPriority(
@@ -494,13 +528,27 @@ contract DepositBoxERC20 is DepositBox, IDepositBoxERC20 {
         if (depthLimit == 0 || queue.empty()) {
             queue.pushBack(bytes32(id));
         } else {
-            if (delayedExits[uint256(queue.back())].untilTimestamp <= until) {
+            if (delayedTransfers[uint256(queue.back())].untilTimestamp <= until) {
                 queue.pushBack(bytes32(id));
             } else {
                 bytes32 lowPriorityValue = queue.popBack();
                 _addToDelayedQueueWithPriority(queue, id, until, depthLimit - 1);
                 queue.pushBack(lowPriorityValue);
             }
+        }
+    }
+
+    function _transfer(address token, address receiver, uint256 amount) private {
+        if (token == _USDT_ADDRESS) {
+            // solhint-disable-next-line no-empty-blocks
+            try IERC20TransferVoid(token).transfer(receiver, amount) {} catch {
+                revert("Transfer was failed");
+            }
+        } else {
+            require(
+                ERC20Upgradeable(token).transfer(receiver, amount),
+                "Transfer was failed"
+            );
         }
     }
 
