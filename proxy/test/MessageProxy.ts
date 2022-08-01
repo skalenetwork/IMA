@@ -232,21 +232,20 @@ describe("MessageProxy", () => {
             let outgoingMessagesCounter = BigNumber.from(
                 await messageProxyForMainnet.getOutgoingMessagesCounter(schainName)
             );
+            outgoingMessagesCounter.should.be.deep.equal(BigNumber.from(1));
             const lastOutgoingMessageBlockId = BigNumber.from(
                 await messageProxyForMainnet.getLastOutgoingMessageBlockId(schainName)
             );
-            outgoingMessagesCounter.should.be.deep.equal(BigNumber.from(1));
 
             const message2 = caller.postOutgoingMessageTester(messageProxyForMainnet.address, schainHash, contractAddress, bytesData);
             await expect(message2)
                 .to.emit(messageProxyForMainnet, 'PreviousMessageReference')
                 .withArgs(1, lastOutgoingMessageBlockId);
-            
+
             outgoingMessagesCounter = BigNumber.from(
                 await messageProxyForMainnet.getOutgoingMessagesCounter(schainName)
             );
             outgoingMessagesCounter.should.be.deep.equal(BigNumber.from(2));
-
         });
 
         it("should allow schain owner to send message", async () => {
