@@ -213,7 +213,7 @@ describe("MessageProxy", () => {
             notConnectedChain.should.be.deep.equal(Boolean(false));
         });
 
-        it("should post outgoing message", async () => {
+        it.only("should post outgoing message twice", async () => {
             const contractAddress = messageProxyForMainnet.address;
             const amount = 4;
             const bytesData = await messages.encodeTransferEthMessage(user.address, amount);
@@ -223,11 +223,30 @@ describe("MessageProxy", () => {
                 .should.be.rejectedWith("Destination chain is not initialized");
 
             await messageProxyForMainnet.connect(deployer).addConnectedChain(schainName);
-            await caller
-                .postOutgoingMessageTester(messageProxyForMainnet.address, schainHash, contractAddress, bytesData);
-            const outgoingMessagesCounter = BigNumber.from(
-                await messageProxyForMainnet.getOutgoingMessagesCounter(schainName));
+            const message1 = caller.postOutgoingMessageTester(messageProxyForMainnet.address, schainHash, contractAddress, bytesData);
+
+            await expect(message1)
+                .to.emit(messageProxyForMainnet, 'PreviousMessageReference')
+                .withArgs(0, 0);
+
+            let outgoingMessagesCounter = BigNumber.from(
+                await messageProxyForMainnet.getOutgoingMessagesCounter(schainName)
+            );
+            const lastOutgoingMessageBlockId = BigNumber.from(
+                await messageProxyForMainnet.getLastOutgoingMessageBlockId(schainName)
+            );
             outgoingMessagesCounter.should.be.deep.equal(BigNumber.from(1));
+
+            const message2 = caller.postOutgoingMessageTester(messageProxyForMainnet.address, schainHash, contractAddress, bytesData);
+            await expect(message2)
+                .to.emit(messageProxyForMainnet, 'PreviousMessageReference')
+                .withArgs(1, lastOutgoingMessageBlockId);
+            
+            outgoingMessagesCounter = BigNumber.from(
+                await messageProxyForMainnet.getOutgoingMessagesCounter(schainName)
+            );
+            outgoingMessagesCounter.should.be.deep.equal(BigNumber.from(2));
+
         });
 
         it("should allow schain owner to send message", async () => {

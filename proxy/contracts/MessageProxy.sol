@@ -45,6 +45,7 @@ abstract contract MessageProxy is AccessControlEnumerableUpgradeable, IMessagePr
         uint256 incomingMessageCounter;
         uint256 outgoingMessageCounter;
         bool inited;
+        uint256 lastOutgoingMessageBlockId;
     }
 
     bytes32 public constant MAINNET_HASH = keccak256(abi.encodePacked("Mainnet"));
@@ -109,6 +110,14 @@ abstract contract MessageProxy is AccessControlEnumerableUpgradeable, IMessagePr
     event ExtraContractRemoved(
         bytes32 indexed chainHash,
         address contractAddress
+    );
+
+    /**
+     * @dev Emitted when referenced to previous outgoing message.
+     */
+    event PreviousMessageReference (
+        uint256 currentMessage,
+        uint256 previousOutgoingMessageBlockId
     );
 
     /**
@@ -242,6 +251,16 @@ abstract contract MessageProxy is AccessControlEnumerableUpgradeable, IMessagePr
         return connectedChains[dstChainHash].outgoingMessageCounter;
     }
 
+
+    /**
+     * @dev Should return block number of the last message transferred to schain
+     */
+    function getLastOutgoingMessageBlockId(string memory targetSchainName) external view returns (uint) {
+        bytes32 dstChainHash = keccak256(abi.encodePacked(targetSchainName));
+        require(connectedChains[dstChainHash].inited, "Destination chain is not initialized");
+        return connectedChains[dstChainHash].lastOutgoingMessageBlockId;
+    }
+
     /**
      * @dev Returns number of incoming messages.
      * 
@@ -292,15 +311,20 @@ abstract contract MessageProxy is AccessControlEnumerableUpgradeable, IMessagePr
         require(connectedChains[targetChainHash].inited, "Destination chain is not initialized");
         _authorizeOutgoingMessageSender(targetChainHash);
         
+        uint outgoingMessageCounter = connectedChains[targetChainHash].outgoingMessageCounter;
         emit OutgoingMessage(
             targetChainHash,
-            connectedChains[targetChainHash].outgoingMessageCounter,
+            outgoingMessageCounter,
             msg.sender,
             targetContract,
             data
         );
-
-        connectedChains[targetChainHash].outgoingMessageCounter += 1;
+        emit PreviousMessageReference(
+            outgoingMessageCounter,
+            connectedChains[targetChainHash].lastOutgoingMessageBlockId
+        );
+        connectedChains[targetChainHash].outgoingMessageCounter++;
+        connectedChains[targetChainHash].lastOutgoingMessageBlockId = block.number;
     }
 
     /**
@@ -405,7 +429,8 @@ abstract contract MessageProxy is AccessControlEnumerableUpgradeable, IMessagePr
         connectedChains[schainHash] = ConnectedChainInfo({
             incomingMessageCounter: 0,
             outgoingMessageCounter: 0,
-            inited: true
+            inited: true,
+            lastOutgoingMessageBlockId: 0
         });
     }
 
