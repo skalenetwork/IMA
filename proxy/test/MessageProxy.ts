@@ -213,7 +213,7 @@ describe("MessageProxy", () => {
             notConnectedChain.should.be.deep.equal(Boolean(false));
         });
 
-        it.only("should post outgoing message twice", async () => {
+        it("should post outgoing message twice", async () => {
             const contractAddress = messageProxyForMainnet.address;
             const amount = 4;
             const bytesData = await messages.encodeTransferEthMessage(user.address, amount);
