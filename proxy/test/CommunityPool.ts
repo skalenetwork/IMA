@@ -74,6 +74,10 @@ describe("CommunityPool", () => {
     it("should add link to contract on schain", async () => {
         const fakeContractOnSchain = user.address;
         const nullAddress = "0x0000000000000000000000000000000000000000";
+        const schainHash = stringValue(web3.utils.soliditySha3(schainName));
+
+        await communityPool.getSchainContract(schainHash)
+            .should.be.eventually.rejectedWith("Destination contract must be defined");
 
         await communityPool.addSchainContract(schainName, fakeContractOnSchain)
             .should.be.eventually.rejectedWith("Not authorized caller");
