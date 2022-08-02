@@ -196,7 +196,7 @@ describe("CommunityPool", () => {
             const activateUserData = await messages.encodeActivateUserMessage(user.address);
 
             await communityPool.addSchainContract(schainName2, mockContractOnSchain);
-            for (let schain of [schainName, schainName2]) {
+            for (const schain of [schainName, schainName2]) {
                 await messageProxy.registerExtraContract(schain, communityPool.address);
                 await messageProxy.addConnectedChain(schain);
 

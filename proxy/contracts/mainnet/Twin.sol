@@ -91,14 +91,6 @@ abstract contract Twin is SkaleManagerClient, ITwin {
     function hasSchainContract(string calldata schainName) external view override returns (bool) {
         return schainLinks[keccak256(abi.encodePacked(schainName))] != address(0);
     }
-
-    function getSchainContract(bytes32 schainHash) public view returns (address) {
-        require(
-            schainLinks[schainHash] != address(0),
-            "Destination contract must be defined"
-        );
-        return schainLinks[schainHash];
-    }
     
     function initialize(
         IContractManager contractManagerOfSkaleManagerValue,
@@ -110,5 +102,13 @@ abstract contract Twin is SkaleManagerClient, ITwin {
     {
         SkaleManagerClient.initialize(contractManagerOfSkaleManagerValue);
         messageProxy = newMessageProxy;
+    }
+
+    function getSchainContract(bytes32 schainHash) public view returns (address) {
+        require(
+            schainLinks[schainHash] != address(0),
+            "Destination contract must be defined"
+        );
+        return schainLinks[schainHash];
     }
 }
