@@ -291,6 +291,7 @@ describe("MessageProxy", () => {
             await setCommonPublicKey(contractManager, schainName);
             await messageProxyForMainnet.registerExtraContract(schainName, communityPool.address);
             await depositBox.addSchainContract(schainName, deployer.address);
+            await communityPool.addSchainContract(schainName, deployer.address);
             const minTransactionGas = await communityPool.minTransactionGas();
             const amountWei = minTransactionGas.mul(gasPrice);
 
@@ -379,6 +380,7 @@ describe("MessageProxy", () => {
             await setCommonPublicKey(contractManager, schainName);
             await messageProxyForMainnet.registerExtraContract(schainName, communityPool.address);
             await depositBox.addSchainContract(schainName, deployer.address);
+            await communityPool.addSchainContract(schainName, deployer.address);
             const minTransactionGas = await communityPool.minTransactionGas();
             const amountWei = minTransactionGas.mul(gasPrice);
 
