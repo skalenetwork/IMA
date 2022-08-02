@@ -51,8 +51,6 @@ contract MessageProxyForMainnet is SkaleManagerClient, MessageProxy, IMessagePro
 
     bytes32 public constant PAUSABLE_ROLE = keccak256(abi.encodePacked("PAUSABLE_ROLE"));
 
-    uint256 public constant PAUSE_LIMIT_BY_FOUNDATION = 4 hours;
-
     /**
      * 16 Agents
      * Synchronize time with time.nist.gov
@@ -283,18 +281,9 @@ contract MessageProxyForMainnet is SkaleManagerClient, MessageProxy, IMessagePro
      */
     function pause(string calldata schainName) external override {
         bytes32 schainHash = keccak256(abi.encodePacked(schainName));
-        require(!pauseInfo[schainHash].pauseUnlimited, "Already paused");
-        if (hasRole(PAUSABLE_ROLE, msg.sender)) {
-            pauseInfo[schainHash].pauseUnlimited = true;
-            pauseInfo[schainHash].pausedUntil = 0;
-        } else if (hasRole(DEFAULT_ADMIN_ROLE, msg.sender) && pauseInfo[schainHash].pausedUntil <= block.timestamp) {
-            pauseInfo[schainHash].pausedUntil = block.timestamp + PAUSE_LIMIT_BY_FOUNDATION;
-        } else if (isSchainOwner(msg.sender, schainHash) && pauseInfo[schainHash].pausedUntil > block.timestamp) {
-            pauseInfo[schainHash].pauseUnlimited = true;
-            pauseInfo[schainHash].pausedUntil = 0;
-        } else {
-            revert("Incorrect sender or order");
-        }
+        require(hasRole(PAUSABLE_ROLE, msg.sender), "Incorrect sender");
+        require(!pauseInfo[schainHash].paused, "Already paused");
+        pauseInfo[schainHash].paused = true;
     }
 
 /**
@@ -307,13 +296,9 @@ contract MessageProxyForMainnet is SkaleManagerClient, MessageProxy, IMessagePro
      */
     function unpause(string calldata schainName) external override {
         bytes32 schainHash = keccak256(abi.encodePacked(schainName));
-        require(
-            pauseInfo[schainHash].pauseUnlimited || pauseInfo[schainHash].pausedUntil > block.timestamp,
-            "Already unpaused"
-        );
         require(hasRole(DEFAULT_ADMIN_ROLE, msg.sender) || isSchainOwner(msg.sender, schainHash), "Incorrect sender");
-        pauseInfo[schainHash].pauseUnlimited = false;
-        pauseInfo[schainHash].pausedUntil = 0;
+        require(pauseInfo[schainHash].paused, "Already unpaused");
+        pauseInfo[schainHash].paused = false;
     }
 
     /**
@@ -367,7 +352,7 @@ contract MessageProxyForMainnet is SkaleManagerClient, MessageProxy, IMessagePro
      * @dev Returns true if IMA to schain is paused.
      */
     function isPaused(bytes32 schainHash) public view override returns (bool) {
-        return pauseInfo[schainHash].pauseUnlimited || pauseInfo[schainHash].pausedUntil > block.timestamp;
+        return pauseInfo[schainHash].paused;
     }
 
     // private
