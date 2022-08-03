@@ -73,6 +73,7 @@ contract MessageProxyForMainnet is SkaleManagerClient, MessageProxy, IMessagePro
     string public version;
     bool public override messageInProgress;
 
+    // schainHash   => Pause structure
     mapping(bytes32 => Pause) public pauseInfo;
 
     /**
@@ -287,14 +288,14 @@ contract MessageProxyForMainnet is SkaleManagerClient, MessageProxy, IMessagePro
     }
 
 /**
-     * @dev Allows DEFAULT_ADMIN_ROLE or schain owner to unpause IMA bridge 
+     * @dev Allows DEFAULT_ADMIN_ROLE or schain owner to resume IMA bridge 
      * 
      * Requirements:
      * 
      * - IMA bridge to current schain was paused
      * - Sender should be DEFAULT_ADMIN_ROLE or schain owner
      */
-    function unpause(string calldata schainName) external override {
+    function resume(string calldata schainName) external override {
         bytes32 schainHash = keccak256(abi.encodePacked(schainName));
         require(hasRole(DEFAULT_ADMIN_ROLE, msg.sender) || isSchainOwner(msg.sender, schainHash), "Incorrect sender");
         require(pauseInfo[schainHash].paused, "Already unpaused");
