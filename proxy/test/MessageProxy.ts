@@ -277,9 +277,9 @@ describe("MessageProxy", () => {
                 .postOutgoingMessageTester(messageProxyForMainnet.address, schainHash, contractAddress, bytesData)
                 .should.be.rejectedWith("IMA bridge is paused with Schain");
 
-            await messageProxyForMainnet.connect(client).unpause(schainName).should.be.rejectedWith("Incorrect sender");
-            await messageProxyForMainnet.connect(schainOwner).unpause(schainName);
-            await messageProxyForMainnet.connect(deployer).unpause(schainName).should.be.rejectedWith("Already unpaused");
+            await messageProxyForMainnet.connect(client).resume(schainName).should.be.rejectedWith("Incorrect sender");
+            await messageProxyForMainnet.connect(schainOwner).resume(schainName);
+            await messageProxyForMainnet.connect(deployer).resume(schainName).should.be.rejectedWith("Already unpaused");
 
             (await messageProxyForMainnet.isPaused(schainHash)).should.be.deep.equal(false);
 
@@ -303,8 +303,8 @@ describe("MessageProxy", () => {
                 .postOutgoingMessageTester(messageProxyForMainnet.address, schainHash, contractAddress, bytesData)
                 .should.be.rejectedWith("IMA bridge is paused with Schain");
 
-            await messageProxyForMainnet.connect(deployer).unpause(schainName);
-            await messageProxyForMainnet.connect(schainOwner).unpause(schainName).should.be.rejectedWith("Already unpaused");
+            await messageProxyForMainnet.connect(deployer).resume(schainName);
+            await messageProxyForMainnet.connect(schainOwner).resume(schainName).should.be.rejectedWith("Already unpaused");
 
             await caller
                 .postOutgoingMessageTester(messageProxyForMainnet.address, schainHash, contractAddress, bytesData);
@@ -529,7 +529,7 @@ describe("MessageProxy", () => {
                     sign
                 ).should.be.eventually.rejectedWith("IMA bridge is paused with Schain");
 
-            await messageProxyForMainnet.connect(deployer).unpause(schainName);
+            await messageProxyForMainnet.connect(deployer).resume(schainName);
 
             await messageProxyForMainnet
                 .connect(nodeAddress)
