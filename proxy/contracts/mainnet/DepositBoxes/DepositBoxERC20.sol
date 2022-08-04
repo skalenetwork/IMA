@@ -48,17 +48,25 @@ contract DepositBoxERC20 is DepositBox, IDepositBoxERC20 {
     using DoubleEndedQueueUpgradeable for DoubleEndedQueueUpgradeable.Bytes32Deque;
     using EnumerableSetUpgradeable for EnumerableSetUpgradeable.AddressSet;
 
+    enum DelayedTransferStatus {
+        DELAYED,
+        ARBITRAGE,
+        COMPLETED
+    }
+
     struct DelayedTransfer {
         address receiver;
+        bytes32 schainHash;
         address token;
         uint256 amount;
         uint256 untilTimestamp;
-        bool confiscated;
+        DelayedTransferStatus status;
     }
 
     address private constant _USDT_ADDRESS = 0xdAC17F958D2ee523a2206206994597C13D831ec7;
     uint256 private constant _QUEUE_PROCESSING_LIMIT = 10;
 
+    bytes32 public constant ARBITER_ROLE = keccak256("ARBITER_ROLE");
     bytes32 public constant TRUSTED_RECEIVER_ROLE = keccak256("TRUSTED_RECEIVER_ROLE");
 
     // schainHash => address of ERC20 on Mainnet
@@ -71,6 +79,8 @@ contract DepositBoxERC20 is DepositBox, IDepositBoxERC20 {
     mapping(bytes32 => mapping(address => uint256)) public bigTransferThreshold;
     //   schainHash => time delay in seconds
     mapping(bytes32 => uint256) public transferDelay;
+    //   schainHash => time delay in seconds
+    mapping(bytes32 => uint256) public arbitrageDuration;
 
     uint256 public delayedTransfersSize;
     // delayed transfer id => delayed transfer
@@ -205,10 +215,11 @@ contract DepositBoxERC20 is DepositBox, IDepositBoxERC20 {
             uint256 delayId = delayedTransfersSize++;
             delayedTransfers[delayId] = DelayedTransfer({
                 receiver: message.receiver,
+                schainHash: schainHash,
                 token: message.token,
                 amount: message.amount,
                 untilTimestamp: block.timestamp + delay,
-                confiscated: false
+                status: DelayedTransferStatus.DELAYED
             });
             _addToDelayedQueue(message.receiver, delayId, block.timestamp + delay);
         } else {
@@ -271,7 +282,7 @@ contract DepositBoxERC20 is DepositBox, IDepositBoxERC20 {
      * 
      * - msg.sender should be an owner of schain
      */
-    function setBigExitValue(
+    function setBigTransferValue(
         string calldata schainName,
         address token,
         uint256 value
@@ -294,7 +305,7 @@ contract DepositBoxERC20 is DepositBox, IDepositBoxERC20 {
      * 
      * - msg.sender should be an owner of schain
      */
-    function setBigExitDelay(
+    function setBigTransferDelay(
         string calldata schainName,
         uint256 delayInSeconds
     )
@@ -308,28 +319,97 @@ contract DepositBoxERC20 is DepositBox, IDepositBoxERC20 {
         transferDelay[schainHash] = delayInSeconds;   
     }
 
+    function setArbitrageDuration(
+        string calldata schainName,
+        uint256 delayInSeconds
+    )
+        external
+        onlySchainOwner(schainName)
+    {
+        bytes32 schainHash = keccak256(abi.encodePacked(schainName));
+        // need to restrict big delays to avoid overflow
+        require(delayInSeconds < 1e8, "Delay is too big"); // no more then ~ 3 years
+        arbitrageDuration[schainHash] = delayInSeconds;   
+    }
+
     /**
      * @dev Transfers tokens that was locked for delay during exit process.
-     * Must be called by receiver.
+     * Must be called by a receiver.
      */
     function retrieve() external {
+        retrieve(msg.sender);
+    }
+
+    function retrieve(address receiver) public {
         uint256 transfersAmount = MathUpgradeable.min(
-            delayedTransfersByReceiver[msg.sender].length(),
+            delayedTransfersByReceiver[receiver].length(),
             _QUEUE_PROCESSING_LIMIT
         );
+
+        uint256 currentIndex = 0;
         for (uint256 i = 0; i < transfersAmount; ++i) {
-            uint256 transferId = uint256(delayedTransfersByReceiver[msg.sender].front());
+            uint256 transferId = uint256(delayedTransfersByReceiver[receiver].at(currentIndex));
             DelayedTransfer memory transfer = delayedTransfers[transferId];
-            if (block.timestamp < transfer.untilTimestamp) {
-                break;
-            } else {
-                if (!transfer.confiscated) {
+
+            if (transfer.status == DelayedTransferStatus.DELAYED) {
+                if (block.timestamp < transfer.untilTimestamp) {
+                    break;
+                } else {
                     _transfer(transfer.token, transfer.receiver, transfer.amount);
+                    if (currentIndex > 0) {
+                        delayedTransfers[transferId].status = DelayedTransferStatus.COMPLETED;
+                        ++currentIndex;
+                    } else {
+                        delete delayedTransfers[transferId];
+                        delayedTransfersByReceiver[receiver].popFront();
+                    }                    
                 }
-                delete delayedTransfers[transferId];
-                delayedTransfersByReceiver[msg.sender].popFront();
+            } else if (transfer.status == DelayedTransferStatus.ARBITRAGE) {
+                if (block.timestamp < transfer.untilTimestamp) {
+                    continue;
+                } else {
+                    _transfer(transfer.token, transfer.receiver, transfer.amount);
+                    if (currentIndex > 0) {
+                        delayedTransfers[transferId].status = DelayedTransferStatus.COMPLETED;
+                        ++currentIndex;
+                    } else {
+                        delete delayedTransfers[transferId];
+                        delayedTransfersByReceiver[receiver].popFront();
+                    }
+                }
+            } else if (transfer.status == DelayedTransferStatus.COMPLETED) {
+                if (currentIndex > 0) {
+                    ++currentIndex;
+                } else {
+                    delete delayedTransfers[transferId];
+                    delayedTransfersByReceiver[receiver].popFront();
+                }
+            } else {
+                revert("Unknown transfer status");
             }
         }
+    }
+
+    function escalate(uint256 transferId) external {
+        bytes32 schainHash = delayedTransfers[transferId].schainHash;
+        require(
+            hasRole(ARBITER_ROLE, msg.sender) || isSchainOwner(msg.sender, schainHash),
+            "Not enough permissions to request escalation"
+        );
+        require(delayedTransfers[transferId].status == DelayedTransferStatus.DELAYED, "Inappropriate status");
+        delayedTransfers[transferId].status = DelayedTransferStatus.ARBITRAGE;
+        delayedTransfers[transferId].untilTimestamp = MathUpgradeable.max(
+            delayedTransfers[transferId].untilTimestamp,
+            block.timestamp + arbitrageDuration[schainHash]
+        );
+    }
+
+    function validate(uint transferId) external onlySchainOwnerByHash(delayedTransfers[transferId].schainHash) {
+
+    }
+
+    function reject(uint transferId) external onlySchainOwnerByHash(delayedTransfers[transferId].schainHash) {
+
     }
 
     /**
