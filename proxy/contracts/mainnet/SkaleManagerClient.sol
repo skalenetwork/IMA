@@ -48,6 +48,17 @@ contract SkaleManagerClient is Initializable, AccessControlEnumerableUpgradeable
     }
 
     /**
+     * @dev Modifier for checking whether caller is owner of SKALE chain.
+     */
+    modifier onlySchainOwnerByHash(bytes32 schainHash) {
+        require(
+            isSchainOwner(msg.sender, schainHash),
+            "Sender is not an Schain owner"
+        );
+        _;
+    }
+
+    /**
      * @dev initialize - sets current address of ContractManager of SkaleManager.
      * @param newContractManagerOfSkaleManager - current address of ContractManager of SkaleManager.
      */
