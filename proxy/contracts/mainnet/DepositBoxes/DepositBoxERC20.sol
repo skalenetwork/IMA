@@ -212,16 +212,7 @@ contract DepositBoxERC20 is DepositBox, IDepositBoxERC20 {
             && message.amount > bigTransferThreshold[schainHash][message.token]
             && !hasRole(TRUSTED_RECEIVER_ROLE, message.receiver)
         ) {
-            uint256 delayId = delayedTransfersSize++;
-            delayedTransfers[delayId] = DelayedTransfer({
-                receiver: message.receiver,
-                schainHash: schainHash,
-                token: message.token,
-                amount: message.amount,
-                untilTimestamp: block.timestamp + delay,
-                status: DelayedTransferStatus.DELAYED
-            });
-            _addToDelayedQueue(message.receiver, delayId, block.timestamp + delay);
+            _createDelayedTransfer(schainHash, message, delay);
         } else {
             _transfer(message.token, message.receiver, message.amount);
         }
@@ -512,8 +503,7 @@ contract DepositBoxERC20 is DepositBox, IDepositBoxERC20 {
                         delayedTransfers[transferId].status = DelayedTransferStatus.COMPLETED;
                         ++currentIndex;
                     } else {
-                        delete delayedTransfers[transferId];
-                        delayedTransfersByReceiver[receiver].popFront();
+                        _removeOldestDelayedTransfer(receiver);
                     }                    
                 }
             } else if (transfer.status == DelayedTransferStatus.ARBITRAGE) {
@@ -525,16 +515,14 @@ contract DepositBoxERC20 is DepositBox, IDepositBoxERC20 {
                         delayedTransfers[transferId].status = DelayedTransferStatus.COMPLETED;
                         ++currentIndex;
                     } else {
-                        delete delayedTransfers[transferId];
-                        delayedTransfersByReceiver[receiver].popFront();
+                        _removeOldestDelayedTransfer(receiver);
                     }
                 }
             } else if (transfer.status == DelayedTransferStatus.COMPLETED) {
                 if (currentIndex > 0) {
                     ++currentIndex;
                 } else {
-                    delete delayedTransfers[transferId];
-                    delayedTransfersByReceiver[receiver].popFront();
+                    _removeOldestDelayedTransfer(receiver);
                 }
             } else {
                 revert("Unknown transfer status");
@@ -677,6 +665,30 @@ contract DepositBoxERC20 is DepositBox, IDepositBoxERC20 {
                 "Transfer was failed"
             );
         }
+    }
+
+    function _createDelayedTransfer(
+        bytes32 schainHash,
+        Messages.TransferErc20Message memory message,
+        uint256 delay
+    )
+        private
+    {
+        uint256 delayId = delayedTransfersSize++;
+        delayedTransfers[delayId] = DelayedTransfer({
+            receiver: message.receiver,
+            schainHash: schainHash,
+            token: message.token,
+            amount: message.amount,
+            untilTimestamp: block.timestamp + delay,
+            status: DelayedTransferStatus.DELAYED
+        });
+        _addToDelayedQueue(message.receiver, delayId, block.timestamp + delay);
+    }
+
+    function _removeOldestDelayedTransfer(address receiver) private {
+        uint256 transferId = uint256(delayedTransfersByReceiver[receiver].popFront());
+        delete delayedTransfers[transferId];
     }
 
     /**
