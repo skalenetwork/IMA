@@ -494,13 +494,21 @@ contract DepositBoxERC20 is DepositBox, IDepositBoxERC20 {
             uint256 transferId = uint256(delayedTransfersByReceiver[receiver].at(currentIndex));
             DelayedTransfer memory transfer = delayedTransfers[transferId];
 
+            if (currentIndex > 0) {
+                ++currentIndex;
+            } else {
+                _removeOldestDelayedTransfer(receiver);
+            }
+
             if (transfer.status != DelayedTransferStatus.COMPLETED) {
                 if (block.timestamp < transfer.untilTimestamp) {
+                    // disable detector untill slither fix false positive
+                    // https://github.com/crytic/slither/issues/778
+                    // slither-disable-next-line incorrect-equality
                     if (transfer.status == DelayedTransferStatus.DELAYED) {
                         break;
                     } else {
                         // status is ARBITRAGE
-                        ++currentIndex;
                         continue;
                     }
                 } else {
@@ -509,12 +517,6 @@ contract DepositBoxERC20 is DepositBox, IDepositBoxERC20 {
                     }
                     _transfer(transfer.token, transfer.receiver, transfer.amount);
                 }
-            }
-
-            if (currentIndex > 0) {
-                ++currentIndex;
-            } else {
-                _removeOldestDelayedTransfer(receiver);
             }
         }
     }
@@ -643,6 +645,8 @@ contract DepositBoxERC20 is DepositBox, IDepositBoxERC20 {
     }
 
     function _transfer(address token, address receiver, uint256 amount) private {
+        // there is no other reliable way to determine USDT
+        // slither-disable-next-line incorrect-equality
         if (token == _USDT_ADDRESS) {
             // solhint-disable-next-line no-empty-blocks
             try IERC20TransferVoid(token).transfer(receiver, amount) {} catch {
