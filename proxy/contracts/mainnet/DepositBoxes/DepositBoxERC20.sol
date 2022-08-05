@@ -494,38 +494,27 @@ contract DepositBoxERC20 is DepositBox, IDepositBoxERC20 {
             uint256 transferId = uint256(delayedTransfersByReceiver[receiver].at(currentIndex));
             DelayedTransfer memory transfer = delayedTransfers[transferId];
 
-            if (transfer.status == DelayedTransferStatus.DELAYED) {
+            if (transfer.status != DelayedTransferStatus.COMPLETED) {
                 if (block.timestamp < transfer.untilTimestamp) {
-                    break;
-                } else {
-                    _transfer(transfer.token, transfer.receiver, transfer.amount);
-                    if (currentIndex > 0) {
-                        delayedTransfers[transferId].status = DelayedTransferStatus.COMPLETED;
-                        ++currentIndex;
+                    if (transfer.status == DelayedTransferStatus.DELAYED) {
+                        break;
                     } else {
-                        _removeOldestDelayedTransfer(receiver);
-                    }                    
-                }
-            } else if (transfer.status == DelayedTransferStatus.ARBITRAGE) {
-                if (block.timestamp < transfer.untilTimestamp) {
-                    continue;
-                } else {
-                    _transfer(transfer.token, transfer.receiver, transfer.amount);
-                    if (currentIndex > 0) {
-                        delayedTransfers[transferId].status = DelayedTransferStatus.COMPLETED;
+                        // status is ARBITRAGE
                         ++currentIndex;
-                    } else {
-                        _removeOldestDelayedTransfer(receiver);
+                        continue;
                     }
-                }
-            } else if (transfer.status == DelayedTransferStatus.COMPLETED) {
-                if (currentIndex > 0) {
-                    ++currentIndex;
                 } else {
-                    _removeOldestDelayedTransfer(receiver);
+                    if (currentIndex > 0) {
+                        delayedTransfers[transferId].status = DelayedTransferStatus.COMPLETED;
+                    }
+                    _transfer(transfer.token, transfer.receiver, transfer.amount);
                 }
+            }
+
+            if (currentIndex > 0) {
+                ++currentIndex;
             } else {
-                revert("Unknown transfer status");
+                _removeOldestDelayedTransfer(receiver);
             }
         }
     }
