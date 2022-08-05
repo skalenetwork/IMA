@@ -396,7 +396,7 @@ contract DepositBoxERC20 is DepositBox, IDepositBoxERC20 {
             hasRole(ARBITER_ROLE, msg.sender) || isSchainOwner(msg.sender, schainHash),
             "Not enough permissions to request escalation"
         );
-        require(delayedTransfers[transferId].status == DelayedTransferStatus.DELAYED, "Inappropriate status");
+        require(delayedTransfers[transferId].status == DelayedTransferStatus.DELAYED, "The transfer has to be delayed");
         delayedTransfers[transferId].status = DelayedTransferStatus.ARBITRAGE;
         delayedTransfers[transferId].untilTimestamp = MathUpgradeable.max(
             delayedTransfers[transferId].untilTimestamp,
@@ -405,11 +405,20 @@ contract DepositBoxERC20 is DepositBox, IDepositBoxERC20 {
     }
 
     function validate(uint transferId) external onlySchainOwnerByHash(delayedTransfers[transferId].schainHash) {
-
+        DelayedTransfer storage transfer = delayedTransfers[transferId];
+        require(transfer.status == DelayedTransferStatus.ARBITRAGE, "Arbitrage has to be active");
+        transfer.status = DelayedTransferStatus.COMPLETED;
+        delete transfer.untilTimestamp;
+        _transfer(transfer.token, transfer.receiver, transfer.amount);
     }
 
     function reject(uint transferId) external onlySchainOwnerByHash(delayedTransfers[transferId].schainHash) {
-
+        DelayedTransfer storage transfer = delayedTransfers[transferId];
+        require(transfer.status == DelayedTransferStatus.ARBITRAGE, "Arbitrage has to be active");
+        transfer.status = DelayedTransferStatus.COMPLETED;
+        delete transfer.untilTimestamp;
+        // msg.sender is schain owner
+        _transfer(transfer.token, msg.sender, transfer.amount);
     }
 
     /**
@@ -482,16 +491,33 @@ contract DepositBoxERC20 is DepositBox, IDepositBoxERC20 {
         }
     }
 
-    /**
-     * @dev Returns token address and amount of tokens and timestamp when they will be unlocked.
-     * If there are no delayed transfers all values are returned as zeros.
-     */
-    function getNextDelayedTransfer() external view returns (address token, uint256 amount, uint256 untilTimestamp) {
-        if (!delayedTransfersByReceiver[msg.sender].empty()) {
-            DelayedTransfer memory transfer = delayedTransfers[uint256(delayedTransfersByReceiver[msg.sender].front())];
-            token = transfer.token;
-            amount = transfer.amount;
-            untilTimestamp = transfer.untilTimestamp;
+    function getDelayedAmount(address receiver, address token) external view returns (uint256 value) {
+        uint256 delayedTransfersAmount = delayedTransfersByReceiver[receiver].length();
+        for (uint256 i = 0; i < delayedTransfersAmount; ++i) {
+            DelayedTransfer storage transfer = delayedTransfers[uint256(delayedTransfersByReceiver[msg.sender].at(i))];
+            DelayedTransferStatus status = transfer.status;
+            if (transfer.token == token) {
+                if (status == DelayedTransferStatus.DELAYED || status == DelayedTransferStatus.ARBITRAGE) {
+                    value += transfer.amount;
+                }
+            }
+        }
+    }
+
+    function getNextUnlockTimestamp(address receiver, address token) external view returns (uint256 unlockTimestamp) {
+        uint256 delayedTransfersAmount = delayedTransfersByReceiver[receiver].length();
+        unlockTimestamp = type(uint256).max;
+        for (uint256 i = 0; i < delayedTransfersAmount; ++i) {
+            DelayedTransfer storage transfer = delayedTransfers[uint256(delayedTransfersByReceiver[msg.sender].at(i))];
+            DelayedTransferStatus status = transfer.status;
+            if (transfer.token == token) {
+                if (status == DelayedTransferStatus.DELAYED) {
+                    unlockTimestamp = MathUpgradeable.min(unlockTimestamp, transfer.untilTimestamp);
+                    break;
+                } else if (status == DelayedTransferStatus.ARBITRAGE) {
+                    unlockTimestamp = MathUpgradeable.min(unlockTimestamp, transfer.untilTimestamp);
+                }
+            }
         }
     }
 
