@@ -324,6 +324,7 @@ contract DepositBoxERC20 is DepositBox, IDepositBoxERC20 {
         uint256 delayInSeconds
     )
         external
+        override
         onlySchainOwner(schainName)
     {
         bytes32 schainHash = keccak256(abi.encodePacked(schainName));
@@ -336,61 +337,11 @@ contract DepositBoxERC20 is DepositBox, IDepositBoxERC20 {
      * @dev Transfers tokens that was locked for delay during exit process.
      * Must be called by a receiver.
      */
-    function retrieve() external {
+    function retrieve() external override {
         retrieve(msg.sender);
     }
 
-    function retrieve(address receiver) public {
-        uint256 transfersAmount = MathUpgradeable.min(
-            delayedTransfersByReceiver[receiver].length(),
-            _QUEUE_PROCESSING_LIMIT
-        );
-
-        uint256 currentIndex = 0;
-        for (uint256 i = 0; i < transfersAmount; ++i) {
-            uint256 transferId = uint256(delayedTransfersByReceiver[receiver].at(currentIndex));
-            DelayedTransfer memory transfer = delayedTransfers[transferId];
-
-            if (transfer.status == DelayedTransferStatus.DELAYED) {
-                if (block.timestamp < transfer.untilTimestamp) {
-                    break;
-                } else {
-                    _transfer(transfer.token, transfer.receiver, transfer.amount);
-                    if (currentIndex > 0) {
-                        delayedTransfers[transferId].status = DelayedTransferStatus.COMPLETED;
-                        ++currentIndex;
-                    } else {
-                        delete delayedTransfers[transferId];
-                        delayedTransfersByReceiver[receiver].popFront();
-                    }                    
-                }
-            } else if (transfer.status == DelayedTransferStatus.ARBITRAGE) {
-                if (block.timestamp < transfer.untilTimestamp) {
-                    continue;
-                } else {
-                    _transfer(transfer.token, transfer.receiver, transfer.amount);
-                    if (currentIndex > 0) {
-                        delayedTransfers[transferId].status = DelayedTransferStatus.COMPLETED;
-                        ++currentIndex;
-                    } else {
-                        delete delayedTransfers[transferId];
-                        delayedTransfersByReceiver[receiver].popFront();
-                    }
-                }
-            } else if (transfer.status == DelayedTransferStatus.COMPLETED) {
-                if (currentIndex > 0) {
-                    ++currentIndex;
-                } else {
-                    delete delayedTransfers[transferId];
-                    delayedTransfersByReceiver[receiver].popFront();
-                }
-            } else {
-                revert("Unknown transfer status");
-            }
-        }
-    }
-
-    function escalate(uint256 transferId) external {
+    function escalate(uint256 transferId) external override {
         bytes32 schainHash = delayedTransfers[transferId].schainHash;
         require(
             hasRole(ARBITER_ROLE, msg.sender) || isSchainOwner(msg.sender, schainHash),
@@ -404,7 +355,13 @@ contract DepositBoxERC20 is DepositBox, IDepositBoxERC20 {
         );
     }
 
-    function validate(uint transferId) external onlySchainOwnerByHash(delayedTransfers[transferId].schainHash) {
+    function validateTransfer(
+        uint transferId
+    )
+        external
+        override
+        onlySchainOwnerByHash(delayedTransfers[transferId].schainHash)
+    {
         DelayedTransfer storage transfer = delayedTransfers[transferId];
         require(transfer.status == DelayedTransferStatus.ARBITRAGE, "Arbitrage has to be active");
         transfer.status = DelayedTransferStatus.COMPLETED;
@@ -412,7 +369,13 @@ contract DepositBoxERC20 is DepositBox, IDepositBoxERC20 {
         _transfer(transfer.token, transfer.receiver, transfer.amount);
     }
 
-    function reject(uint transferId) external onlySchainOwnerByHash(delayedTransfers[transferId].schainHash) {
+    function rejectTransfer(
+        uint transferId
+    )
+        external
+        override
+        onlySchainOwnerByHash(delayedTransfers[transferId].schainHash)
+    {
         DelayedTransfer storage transfer = delayedTransfers[transferId];
         require(transfer.status == DelayedTransferStatus.ARBITRAGE, "Arbitrage has to be active");
         transfer.status = DelayedTransferStatus.COMPLETED;
@@ -491,7 +454,7 @@ contract DepositBoxERC20 is DepositBox, IDepositBoxERC20 {
         }
     }
 
-    function getDelayedAmount(address receiver, address token) external view returns (uint256 value) {
+    function getDelayedAmount(address receiver, address token) external view override returns (uint256 value) {
         uint256 delayedTransfersAmount = delayedTransfersByReceiver[receiver].length();
         for (uint256 i = 0; i < delayedTransfersAmount; ++i) {
             DelayedTransfer storage transfer = delayedTransfers[uint256(delayedTransfersByReceiver[msg.sender].at(i))];
@@ -504,7 +467,15 @@ contract DepositBoxERC20 is DepositBox, IDepositBoxERC20 {
         }
     }
 
-    function getNextUnlockTimestamp(address receiver, address token) external view returns (uint256 unlockTimestamp) {
+    function getNextUnlockTimestamp(
+        address receiver,
+        address token
+    )
+        external
+        view
+        override
+        returns (uint256 unlockTimestamp)
+    {
         uint256 delayedTransfersAmount = delayedTransfersByReceiver[receiver].length();
         unlockTimestamp = type(uint256).max;
         for (uint256 i = 0; i < delayedTransfersAmount; ++i) {
@@ -517,6 +488,56 @@ contract DepositBoxERC20 is DepositBox, IDepositBoxERC20 {
                 } else if (status == DelayedTransferStatus.ARBITRAGE) {
                     unlockTimestamp = MathUpgradeable.min(unlockTimestamp, transfer.untilTimestamp);
                 }
+            }
+        }
+    }
+
+    function retrieve(address receiver) public override {
+        uint256 transfersAmount = MathUpgradeable.min(
+            delayedTransfersByReceiver[receiver].length(),
+            _QUEUE_PROCESSING_LIMIT
+        );
+
+        uint256 currentIndex = 0;
+        for (uint256 i = 0; i < transfersAmount; ++i) {
+            uint256 transferId = uint256(delayedTransfersByReceiver[receiver].at(currentIndex));
+            DelayedTransfer memory transfer = delayedTransfers[transferId];
+
+            if (transfer.status == DelayedTransferStatus.DELAYED) {
+                if (block.timestamp < transfer.untilTimestamp) {
+                    break;
+                } else {
+                    _transfer(transfer.token, transfer.receiver, transfer.amount);
+                    if (currentIndex > 0) {
+                        delayedTransfers[transferId].status = DelayedTransferStatus.COMPLETED;
+                        ++currentIndex;
+                    } else {
+                        delete delayedTransfers[transferId];
+                        delayedTransfersByReceiver[receiver].popFront();
+                    }                    
+                }
+            } else if (transfer.status == DelayedTransferStatus.ARBITRAGE) {
+                if (block.timestamp < transfer.untilTimestamp) {
+                    continue;
+                } else {
+                    _transfer(transfer.token, transfer.receiver, transfer.amount);
+                    if (currentIndex > 0) {
+                        delayedTransfers[transferId].status = DelayedTransferStatus.COMPLETED;
+                        ++currentIndex;
+                    } else {
+                        delete delayedTransfers[transferId];
+                        delayedTransfersByReceiver[receiver].popFront();
+                    }
+                }
+            } else if (transfer.status == DelayedTransferStatus.COMPLETED) {
+                if (currentIndex > 0) {
+                    ++currentIndex;
+                } else {
+                    delete delayedTransfers[transferId];
+                    delayedTransfersByReceiver[receiver].popFront();
+                }
+            } else {
+                revert("Unknown transfer status");
             }
         }
     }
