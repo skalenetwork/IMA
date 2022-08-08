@@ -24,7 +24,6 @@
  */
 
 import chaiAsPromised from "chai-as-promised";
-// import chaiAlmost from "chai-almost";
 import {
     ContractManager,
     DepositBoxERC20,
@@ -36,10 +35,10 @@ import {
     ERC20OnChain,
     CommunityPool
 } from "../typechain";
-import { randomString, stringFromHex, stringValue, getPublicKey } from "./utils/helper";
+import { stringFromHex, stringValue, getPublicKey } from "./utils/helper";
 
 import chai = require("chai");
-import chaiAlmost = require("chai-almost");
+import chaiAlmost from "chai-almost";
 
 chai.should();
 chai.use((chaiAsPromised as any));

@@ -41,7 +41,7 @@ describe("ERC721OnChain", () => {
 
     it("should invoke `burn`", async () => {
         // preparation
-        const error = "ERC721: owner query for nonexistent token";
+        const error = "ERC721: invalid token ID";
         const tokenId = 55;
         // mint to avoid `owner query for nonexistent token` error
         await eRC721OnChain.connect(deployer).mint(deployer.address, tokenId);
@@ -53,7 +53,7 @@ describe("ERC721OnChain", () => {
 
     it("should reject with `ERC721Burnable: caller is not owner nor approved` when invoke `burn`", async () => {
         // preparation
-        const error = "ERC721Burnable: caller is not owner nor approved";
+        const error = "ERC721: caller is not token owner nor approved";
         const tokenId = 55;
         const account = user;
         // mint to avoid `owner query for nonexistent token` error
