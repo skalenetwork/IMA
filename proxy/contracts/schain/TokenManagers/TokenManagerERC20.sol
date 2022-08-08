@@ -109,6 +109,8 @@ contract TokenManagerERC20 is TokenManager, ITokenManagerERC20InitializeFunction
                 !address(clonesErc20[MAINNET_HASH][contracts[i]]).isContract()
             ) {
                 clonesErc20[MAINNET_HASH][contracts[i]] = deprecatedClonesErc20[contracts[i]];
+                // TODO: legacy code that needs optimization
+                // slither-disable-next-line costly-loop
                 delete deprecatedClonesErc20[contracts[i]];
             }
         }
