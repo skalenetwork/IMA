@@ -1,4 +1,4 @@
-import { ethers } from "hardhat";
+import { ethers, upgrades } from "hardhat";
 import { ContractManager, MessageProxyForMainnet, Linker, DepositBoxERC721WithMetadata } from "../../../../typechain";
 
 export async function deployDepositBoxERC721WithMetadata(
@@ -8,8 +8,11 @@ export async function deployDepositBoxERC721WithMetadata(
 
 ) {
     const factory = await ethers.getContractFactory("DepositBoxERC721WithMetadata");
-    const instance = await factory.deploy() as DepositBoxERC721WithMetadata;
-    await instance["initialize(address,address,address)"](contractManager.address, linker.address, messageProxy.address);
+    const instance = await upgrades.deployProxy(
+        factory,
+        [contractManager.address, linker.address, messageProxy.address],
+        {"initializer": "initialize(address,address,address)"}
+    ) as DepositBoxERC721WithMetadata;
     await linker.registerMainnetContract(instance.address);
     return instance;
 }
