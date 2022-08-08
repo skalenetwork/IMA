@@ -121,6 +121,8 @@ contract TokenManagerERC1155 is
                 !address(clonesErc1155[MAINNET_HASH][contracts[i]]).isContract()
             ) {
                 clonesErc1155[MAINNET_HASH][contracts[i]] = deprecatedClonesErc1155[contracts[i]];
+                // TODO: legacy code that needs optimization
+                // slither-disable-next-line costly-loop
                 delete deprecatedClonesErc1155[contracts[i]];
             }
         }

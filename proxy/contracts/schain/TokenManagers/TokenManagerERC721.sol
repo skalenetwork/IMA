@@ -109,6 +109,8 @@ contract TokenManagerERC721 is TokenManager, ITokenManagerERC721InitializeFuncti
                 !address(clonesErc721[MAINNET_HASH][contracts[i]]).isContract()
             ) {
                 clonesErc721[MAINNET_HASH][contracts[i]] = deprecatedClonesErc721[contracts[i]];
+                // TODO: legacy code that needs optimization
+                // slither-disable-next-line costly-loop
                 delete deprecatedClonesErc721[contracts[i]];
             }
         }

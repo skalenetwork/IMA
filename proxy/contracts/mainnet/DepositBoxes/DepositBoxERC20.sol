@@ -502,7 +502,7 @@ contract DepositBoxERC20 is DepositBox, IDepositBoxERC20 {
 
             if (transfer.status != DelayedTransferStatus.COMPLETED) {
                 if (block.timestamp < transfer.untilTimestamp) {
-                    // disable detector untill slither fix false positive
+                    // disable detector untill slither fixes false positive
                     // https://github.com/crytic/slither/issues/778
                     // slither-disable-next-line incorrect-equality
                     if (transfer.status == DelayedTransferStatus.DELAYED) {
@@ -681,6 +681,9 @@ contract DepositBoxERC20 is DepositBox, IDepositBoxERC20 {
 
     function _removeOldestDelayedTransfer(address receiver) private {
         uint256 transferId = uint256(delayedTransfersByReceiver[receiver].popFront());
+        // For most cases the loop will have only 1 iteration.
+        // In worst case the amount of iterations is limited by _QUEUE_PROCESSING_LIMIT         
+        // slither-disable-next-line costly-loop
         delete delayedTransfers[transferId];
     }
 
