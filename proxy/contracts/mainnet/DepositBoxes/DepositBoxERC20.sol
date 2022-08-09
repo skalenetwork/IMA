@@ -329,7 +329,7 @@ contract DepositBoxERC20 is DepositBox, IDepositBoxERC20 {
      * Must be called by a receiver.
      */
     function retrieve() external override {
-        retrieve(msg.sender);
+        retrieveFor(msg.sender);
     }
 
     function escalate(uint256 transferId) external override {
@@ -483,7 +483,7 @@ contract DepositBoxERC20 is DepositBox, IDepositBoxERC20 {
         }
     }
 
-    function retrieve(address receiver) public override {
+    function retrieveFor(address receiver) public override {
         uint256 transfersAmount = MathUpgradeable.min(
             delayedTransfersByReceiver[receiver].length(),
             _QUEUE_PROCESSING_LIMIT
