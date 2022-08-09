@@ -137,7 +137,7 @@ export async function upgrade(
         }
         console.log(chalk.blue("Deploy SafeMock to simulate upgrade via multisig"));
         const safeMockFactory = await ethers.getContractFactory("SafeMock");
-        safeMock = (await safeMockFactory.deploy()) as SafeMock;
+        safeMock = (await upgrades.deployProxy(safeMockFactory)) as SafeMock;
         await safeMock.deployTransaction.wait();
 
         console.log(chalk.blue("Transfer ownership to SafeMock"));
