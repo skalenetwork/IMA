@@ -34,6 +34,9 @@ cd "$GITHUB_WORKSPACE"
 rm -r --interactive=never "$DEPLOYED_DIR"
 cd proxy
 
+# TODO: remove updateManifest script after upgrade from 1.3.0-stable.0
+./script/updateManifest.py ".openzeppelin/unknown-1337.json"
+
 ABI="data/$ABI_FILENAME_MAINNET" TEST_UPGRADE=true npx hardhat run migrations/upgradeMainnet.ts --network localhost
 
 VERSION="$(git describe --tags | echo "$VERSION_TAG")"
