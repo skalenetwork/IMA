@@ -376,7 +376,7 @@ describe("DepositBoxERC20", () => {
                 await depositBoxERC20.connect(schainOwner).setArbitrageDuration(schainName, arbitrageDuration);
             });
 
-            it.only("should delay a big exit transfer", async () => {
+            it("should delay a big exit transfer", async () => {
                 const balanceBefore = await token.balanceOf(user.address);
 
                 const message = {
