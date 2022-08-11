@@ -183,7 +183,6 @@ describe("DepositBoxERC20", () => {
                 await depositBoxERC20
                     .connect(deployer)
                     .depositERC20(schainName, erc20.address, 1);
-                // console.log("Gas for depositERC20:", res.receipt.gasUsed);
             });
 
             it("should rejected with `Amount is incorrect`", async () => {
@@ -286,7 +285,7 @@ describe("DepositBoxERC20", () => {
                 sender: senderFromSchain
             };
 
-            await initializeSchain(contractManager, schainName, deployer.address, 1, 1);
+            await initializeSchain(contractManager, schainName, schainOwner.address, 1, 1);
             await setCommonPublicKey(contractManager, schainName);
 
             await depositBoxERC20.connect(user).depositERC20(schainName, erc20.address, amount)
@@ -334,8 +333,8 @@ describe("DepositBoxERC20", () => {
         });
 
         describe("When user deposited tokens", async () => {
-            const token = erc20;
-            const token2 = erc20Clone;
+            let token: ERC20OnChain;
+            let token2: ERC20OnChain;
             const amount = 10;
             const bigTransferThreshold = 5;
             const timeDelay = 24 * 60 * 60;
@@ -349,20 +348,21 @@ describe("DepositBoxERC20", () => {
             };
 
             beforeEach(async () => {
-                await initializeSchain(contractManager, schainName, deployer.address, 1, 1);
+                token = erc20;
+                token2 = erc20Clone;
+
+                await initializeSchain(contractManager, schainName, schainOwner.address, 1, 1);
                 await setCommonPublicKey(contractManager, schainName);
 
-                await linker
-                    .connect(deployer)
-                    .connectSchain(schainName, [deployer.address, deployer.address, deployer.address]);
+                await linker.connectSchain(schainName, [deployer.address, deployer.address, deployer.address]);
 
                 await communityPool
                     .connect(user)
                     .rechargeUserWallet(schainName, user.address, { value: ethDeposit });
 
-                await depositBoxERC20.disableWhitelist(schainName);
-                await token.connect(deployer).mint(user.address, amount);
+                await depositBoxERC20.connect(schainOwner).disableWhitelist(schainName);
                 await token.mint(user.address, amount);
+                await token2.mint(user.address, amount);
 
                 await token.connect(user).approve(depositBoxERC20.address, amount);
                 await depositBoxERC20.connect(user).depositERC20(schainName, token.address, amount);
