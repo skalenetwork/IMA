@@ -209,7 +209,7 @@ contract DepositBoxERC20 is DepositBox, IDepositBoxERC20 {
         uint256 delay = transferDelay[schainHash];
         if (
             delay > 0
-            && message.amount > bigTransferThreshold[schainHash][message.token]
+            && bigTransferThreshold[schainHash][message.token] <= message.amount
             && !hasRole(TRUSTED_RECEIVER_ROLE, message.receiver)
         ) {
             _createDelayedTransfer(schainHash, message, delay);
@@ -470,7 +470,7 @@ contract DepositBoxERC20 is DepositBox, IDepositBoxERC20 {
         uint256 delayedTransfersAmount = delayedTransfersByReceiver[receiver].length();
         unlockTimestamp = type(uint256).max;
         for (uint256 i = 0; i < delayedTransfersAmount; ++i) {
-            DelayedTransfer storage transfer = delayedTransfers[uint256(delayedTransfersByReceiver[msg.sender].at(i))];
+            DelayedTransfer storage transfer = delayedTransfers[uint256(delayedTransfersByReceiver[receiver].at(i))];
             DelayedTransferStatus status = transfer.status;
             if (transfer.token == token) {
                 if (status == DelayedTransferStatus.DELAYED) {
@@ -492,13 +492,8 @@ contract DepositBoxERC20 is DepositBox, IDepositBoxERC20 {
         uint256 currentIndex = 0;
         for (uint256 i = 0; i < transfersAmount; ++i) {
             uint256 transferId = uint256(delayedTransfersByReceiver[receiver].at(currentIndex));
-            DelayedTransfer memory transfer = delayedTransfers[transferId];
-
-            if (currentIndex > 0) {
-                ++currentIndex;
-            } else {
-                _removeOldestDelayedTransfer(receiver);
-            }
+            DelayedTransfer memory transfer = delayedTransfers[transferId];            
+            ++currentIndex;
 
             if (transfer.status != DelayedTransferStatus.COMPLETED) {
                 if (block.timestamp < transfer.untilTimestamp) {
@@ -512,10 +507,20 @@ contract DepositBoxERC20 is DepositBox, IDepositBoxERC20 {
                         continue;
                     }
                 } else {
-                    if (currentIndex > 0) {
+                    // it's time to unlock
+                    if (currentIndex == 1) {
+                        --currentIndex;
+                        _removeOldestDelayedTransfer(receiver);
+                    } else {
                         delayedTransfers[transferId].status = DelayedTransferStatus.COMPLETED;
                     }
                     _transfer(transfer.token, transfer.receiver, transfer.amount);
+                }
+            } else {
+                // status is COMPLETED
+                if (currentIndex == 1) {
+                    --currentIndex;
+                    _removeOldestDelayedTransfer(receiver);
                 }
             }
         }
