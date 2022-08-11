@@ -38,11 +38,9 @@ import {
 import { stringFromHex, getPublicKey } from "./utils/helper";
 
 import chai = require("chai");
-import chaiAlmost from "chai-almost";
 
 chai.should();
 chai.use((chaiAsPromised as any));
-chai.use(chaiAlmost(0.002));
 
 import { deployDepositBoxERC20 } from "./utils/deploy/mainnet/depositBoxERC20";
 import { deployLinker } from "./utils/deploy/mainnet/linker";
@@ -299,7 +297,7 @@ describe("DepositBoxERC20", () => {
                 .connect(user)
                 .rechargeUserWallet(schainName, user.address, { value: wei });
 
-            await depositBoxERC20.disableWhitelist(schainName);
+            await depositBoxERC20.connect(schainOwner).disableWhitelist(schainName);
             await erc20.connect(deployer).mint(user.address, amount * 2);
 
             await depositBoxERC20.connect(user).depositERC20(schainName, erc20.address, amount)
@@ -321,8 +319,8 @@ describe("DepositBoxERC20", () => {
             const balanceBefore = await deployer.getBalance();
             await messageProxy.connect(nodeAddress).postIncomingMessages(schainName, 2, [message], sign);
             const balance = await deployer.getBalance();
-            balance.should.not.be.lessThan(balanceBefore);
-            balance.should.be.almost(balanceBefore);
+            balance.should.be.least(balanceBefore);
+            balance.should.be.closeTo(balanceBefore, 10);
 
             await depositBoxERC20.connect(user).depositERC20(schainName, erc20.address, amount);
             await messageProxy.connect(nodeAddress).postIncomingMessages(schainName, 3, [message], sign);
