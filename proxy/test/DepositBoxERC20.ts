@@ -63,7 +63,7 @@ import { BigNumber, Wallet } from "ethers";
 
 import { assert, expect, use } from "chai";
 import { createNode } from "./utils/skale-manager-utils/nodes";
-import { skipTime } from "./utils/time";
+import { currentTime, skipTime } from "./utils/time";
 
 const BlsSignature: [BigNumber, BigNumber] = [
     BigNumber.from("178325537405109593276798394634841698946852714038246117383766698579865918287"),
