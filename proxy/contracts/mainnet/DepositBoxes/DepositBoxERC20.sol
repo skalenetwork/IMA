@@ -67,7 +67,6 @@ contract DepositBoxERC20 is DepositBox, IDepositBoxERC20 {
     uint256 private constant _QUEUE_PROCESSING_LIMIT = 10;
 
     bytes32 public constant ARBITER_ROLE = keccak256("ARBITER_ROLE");
-    bytes32 public constant TRUSTED_RECEIVER_ROLE = keccak256("TRUSTED_RECEIVER_ROLE");
 
     // schainHash => address of ERC20 on Mainnet
     mapping(bytes32 => mapping(address => bool)) private _deprecatedSchainToERC20;
@@ -81,6 +80,8 @@ contract DepositBoxERC20 is DepositBox, IDepositBoxERC20 {
     mapping(bytes32 => uint256) public transferDelay;
     //   schainHash => time delay in seconds
     mapping(bytes32 => uint256) public arbitrageDuration;
+    //   schainHash => addresses
+    mapping(bytes32 => EnumerableSetUpgradeable.AddressSet) private _trustedReceivers;
 
     uint256 public delayedTransfersSize;
     // delayed transfer id => delayed transfer
@@ -115,7 +116,7 @@ contract DepositBoxERC20 is DepositBox, IDepositBoxERC20 {
         override
     {
         require(hasRole(DEFAULT_ADMIN_ROLE, msg.sender), "Sender is not authorized");
-        bytes32 schainHash = keccak256(abi.encodePacked(schainName));
+        bytes32 schainHash = _schainHash(schainName);
         for (uint256 i = 0; i < tokens.length; i++) {
             if (_deprecatedSchainToERC20[schainHash][tokens[i]] && !_schainToERC20[schainHash].contains(tokens[i])) {
                 _schainToERC20[schainHash].add(tokens[i]);
@@ -143,9 +144,9 @@ contract DepositBoxERC20 is DepositBox, IDepositBoxERC20 {
         external
         override
         rightTransaction(schainName, msg.sender)
-        whenNotKilled(keccak256(abi.encodePacked(schainName)))
+        whenNotKilled(_schainHash(schainName))
     {
-        bytes32 schainHash = keccak256(abi.encodePacked(schainName));
+        bytes32 schainHash = _schainHash(schainName);
         address contractReceiver = schainLinks[schainHash];
         require(contractReceiver != address(0), "Unconnected chain");
         require(
@@ -210,7 +211,7 @@ contract DepositBoxERC20 is DepositBox, IDepositBoxERC20 {
         if (
             delay > 0
             && bigTransferThreshold[schainHash][message.token] <= message.amount
-            && !hasRole(TRUSTED_RECEIVER_ROLE, message.receiver)
+            && !isReceiverTrusted(schainHash, message.receiver)
         ) {
             _createDelayedTransfer(schainHash, message, delay);
         } else {
@@ -232,7 +233,7 @@ contract DepositBoxERC20 is DepositBox, IDepositBoxERC20 {
         external
         override
         onlySchainOwner(schainName)
-        whenNotKilled(keccak256(abi.encodePacked(schainName)))
+        whenNotKilled(_schainHash(schainName))
     {
         _addERC20ForSchain(schainName, erc20OnMainnet);
     }
@@ -252,9 +253,9 @@ contract DepositBoxERC20 is DepositBox, IDepositBoxERC20 {
         external
         override
         onlySchainOwner(schainName)
-        whenKilled(keccak256(abi.encodePacked(schainName)))
+        whenKilled(_schainHash(schainName))
     {
-        bytes32 schainHash = keccak256(abi.encodePacked(schainName));
+        bytes32 schainHash = _schainHash(schainName);
         require(transferredAmount[schainHash][erc20OnMainnet] >= amount, "Incorrect amount");
         _removeTransferredAmount(schainHash, erc20OnMainnet, amount);
         require(
@@ -282,7 +283,7 @@ contract DepositBoxERC20 is DepositBox, IDepositBoxERC20 {
         override
         onlySchainOwner(schainName)
     {
-        bytes32 schainHash = keccak256(abi.encodePacked(schainName));
+        bytes32 schainHash = _schainHash(schainName);
         bigTransferThreshold[schainHash][token] = value;   
     }
 
@@ -304,7 +305,7 @@ contract DepositBoxERC20 is DepositBox, IDepositBoxERC20 {
         override
         onlySchainOwner(schainName)
     {
-        bytes32 schainHash = keccak256(abi.encodePacked(schainName));
+        bytes32 schainHash = _schainHash(schainName);
         // need to restrict big delays to avoid overflow
         require(delayInSeconds < 1e8, "Delay is too big"); // no more then ~ 3 years
         transferDelay[schainHash] = delayInSeconds;   
@@ -318,10 +319,32 @@ contract DepositBoxERC20 is DepositBox, IDepositBoxERC20 {
         override
         onlySchainOwner(schainName)
     {
-        bytes32 schainHash = keccak256(abi.encodePacked(schainName));
+        bytes32 schainHash = _schainHash(schainName);
         // need to restrict big delays to avoid overflow
         require(delayInSeconds < 1e8, "Delay is too big"); // no more then ~ 3 years
         arbitrageDuration[schainHash] = delayInSeconds;   
+    }
+
+    function trustReceiver(
+        string calldata schainName,
+        address receiver
+    )
+        external
+        override
+        onlySchainOwner(schainName)
+    {
+        require(_trustedReceivers[_schainHash(schainName)].add(receiver), "Receiver already is trusted");        
+    }
+
+    function stopTrustingReceiver(
+        string calldata schainName,
+        address receiver
+    )
+        external
+        override
+        onlySchainOwner(schainName)
+    {
+        require(_trustedReceivers[_schainHash(schainName)].remove(receiver), "Receiver is not trusted");
     }
 
     /**
@@ -410,7 +433,7 @@ contract DepositBoxERC20 is DepositBox, IDepositBoxERC20 {
         override
         returns (bool)
     {
-        return _schainToERC20[keccak256(abi.encodePacked(schainName))].contains(erc20OnMainnet);
+        return _schainToERC20[_schainHash(schainName)].contains(erc20OnMainnet);
     }
 
     /**
@@ -418,7 +441,7 @@ contract DepositBoxERC20 is DepositBox, IDepositBoxERC20 {
      * or added automatically after sending to schain if whitelist was turned off.
      */
     function getSchainToAllERC20Length(string calldata schainName) external view override returns (uint256) {
-        return _schainToERC20[keccak256(abi.encodePacked(schainName))].length();
+        return _schainToERC20[_schainHash(schainName)].length();
     }
 
     /**
@@ -436,12 +459,12 @@ contract DepositBoxERC20 is DepositBox, IDepositBoxERC20 {
         returns (address[] memory tokensInRange)
     {
         require(
-            from < to && to - from <= 10 && to <= _schainToERC20[keccak256(abi.encodePacked(schainName))].length(),
+            from < to && to - from <= 10 && to <= _schainToERC20[_schainHash(schainName)].length(),
             "Range is incorrect"
         );
         tokensInRange = new address[](to - from);
         for (uint256 i = from; i < to; i++) {
-            tokensInRange[i - from] = _schainToERC20[keccak256(abi.encodePacked(schainName))].at(i);
+            tokensInRange[i - from] = _schainToERC20[_schainHash(schainName)].at(i);
         }
     }
 
@@ -481,6 +504,10 @@ contract DepositBoxERC20 is DepositBox, IDepositBoxERC20 {
                 }
             }
         }
+    }
+
+    function getTrustedReceiver(string calldata schainName, uint256 index) external view override returns (address) {
+        return _trustedReceivers[_schainHash(schainName)].at(index);
     }
 
     function retrieveFor(address receiver) public override {
@@ -541,6 +568,10 @@ contract DepositBoxERC20 is DepositBox, IDepositBoxERC20 {
         DepositBox.initialize(contractManagerOfSkaleManagerValue, linkerValue, messageProxyValue);
     }
 
+    function isReceiverTrusted(bytes32 schainHash, address receiver) public view override returns (bool) {
+        return _trustedReceivers[schainHash].contains(receiver);
+    }
+
     /**
      * @dev Saves amount of tokens that was transferred to schain.
      */
@@ -574,7 +605,7 @@ contract DepositBoxERC20 is DepositBox, IDepositBoxERC20 {
         private
         returns (bytes memory data)
     {
-        bytes32 schainHash = keccak256(abi.encodePacked(schainName));
+        bytes32 schainHash = _schainHash(schainName);
         ERC20Upgradeable erc20 = ERC20Upgradeable(erc20OnMainnet);
         uint256 totalSupply = erc20.totalSupply();
         require(amount <= totalSupply, "Amount is incorrect");
@@ -610,7 +641,7 @@ contract DepositBoxERC20 is DepositBox, IDepositBoxERC20 {
      * - Given address should be contract.
      */
     function _addERC20ForSchain(string calldata schainName, address erc20OnMainnet) private {
-        bytes32 schainHash = keccak256(abi.encodePacked(schainName));
+        bytes32 schainHash = _schainHash(schainName);
         require(erc20OnMainnet.isContract(), "Given address is not a contract");
         require(!_schainToERC20[schainHash].contains(erc20OnMainnet), "ERC20 Token was already added");
         _schainToERC20[schainHash].add(erc20OnMainnet);
