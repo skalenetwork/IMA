@@ -375,6 +375,7 @@ describe("DepositBoxERC20", () => {
             });
 
             it("should delay a big exit transfer", async () => {
+                console.log("Test start");
                 const balanceBefore = await token.balanceOf(user.address);
 
                 const message = {
@@ -385,16 +386,20 @@ describe("DepositBoxERC20", () => {
 
                 await messageProxy.connect(nodeAddress).postIncomingMessages(schainName, 0, [message], randomSignature);
 
+                console.log("Before equality check");
                 await token.balanceOf(user.address).should.be.eventually.equal(balanceBefore);
 
+                console.log("Before early retrieve");
                 await depositBoxERC20.connect(user).retrieve();
 
+                console.log("Before second check");
                 await token.balanceOf(user.address).should.be.eventually.equal(balanceBefore);
 
                 await skipTime(timeDelay);
 
                 await depositBoxERC20.connect(user).retrieve();
 
+                console.log("last check");
                 await token.balanceOf(user.address).should.be.eventually.equal(balanceBefore.add(amount));
             })
 
