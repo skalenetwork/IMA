@@ -1457,7 +1457,7 @@ async function safe_sign_transaction_with_account( details, w3, tx, rawTx, joAcc
                     "base": 16 // 10
                 }
             };
-            details.write( cc.debug( "Calling SGX to sign using ECDSA key with: " ) + cc.j( joIn ) + "\n" );
+            details.write( cc.debug( "Calling SGX to sign using ECDSA key with " ) + cc.info( joIn.method ) + cc.debug( "..." ) + "\n" );
             await joCall.call( joIn, async function( joIn, joOut, err ) {
                 if( err ) {
                     const s = cc.fatal( "CRITICAL TRANSACTION SIGNING ERROR:" ) + cc.error( " JSON RPC call to SGX wallet failed, error: " ) + cc.warning( err ) + "\n";

@@ -901,6 +901,17 @@ async function do_sign_messages_impl(
             cc.debug( ", " ) + cc.notice( "sequence ID" ) + cc.debug( " is " ) + cc.attention( sequence_id ) +
             "\n" );
         for( let i = 0; i < jarrNodes.length; ++i ) {
+            cntSuccess = joGatheringTracker.nCountReceived - joGatheringTracker.nCountErrors;
+            if( cntSuccess >= nCountOfBlsPartsToCollect ) {
+                details.write(
+                    strLogPrefix + log.generate_timestamp_string( null, true ) + " " +
+                    cc.debug( "Stop invoking " ) + cc.info( "skale_imaVerifyAndSign" ) +
+                    cc.debug( " for transfer from chain " ) + cc.info( fromChainName ) +
+                    cc.debug( " at #" ) + cc.info( i ) +
+                    cc.debug( " because successfully gathered count is reached " ) + cc.j( cntSuccess ) +
+                    "\n" );
+                break;
+            }
             const joNode = jarrNodes[i];
             const strNodeURL = imaUtils.compose_schain_node_url( joNode );
             const strNodeDescColorized = cc.u( strNodeURL ) + " " +
