@@ -387,7 +387,7 @@ describe("DepositBoxERC20", () => {
                 await messageProxy.connect(nodeAddress).postIncomingMessages(schainName, 0, [message], randomSignature);
 
                 console.log("Before equality check");
-                await token.balanceOf(user.address).should.be.eventually.equal(balanceBefore);
+                (await token.balanceOf(user.address)).should.be.equal(balanceBefore);
 
                 console.log("Before early retrieve");
                 await depositBoxERC20.connect(user).retrieve();
