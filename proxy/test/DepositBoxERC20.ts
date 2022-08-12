@@ -333,8 +333,8 @@ describe("DepositBoxERC20", () => {
         describe("When user deposited tokens", async () => {
             let token: ERC20OnChain;
             let token2: ERC20OnChain;
-            const amount = 10;
-            const bigTransferThreshold = 5;
+            const amount = 5;
+            const bigAmount = 10;
             const timeDelay = 24 * 60 * 60;
             const arbitrageDuration = 30 * 24 * 60 * 60;
             const ethDeposit = ethers.utils.parseEther("1");
@@ -359,50 +359,132 @@ describe("DepositBoxERC20", () => {
                     .rechargeUserWallet(schainName, user.address, { value: ethDeposit });
 
                 await depositBoxERC20.connect(schainOwner).disableWhitelist(schainName);
-                await token.mint(user.address, amount);
-                await token2.mint(user.address, amount);
 
-                await token.connect(user).approve(depositBoxERC20.address, amount);
-                await depositBoxERC20.connect(user).depositERC20(schainName, token.address, amount);
+                const depositedAmount = bigAmount * 100;
+                await token.mint(user.address, depositedAmount);
+                await token2.mint(user.address, depositedAmount);
 
-                await token2.connect(user).approve(depositBoxERC20.address, amount);
-                await depositBoxERC20.connect(user).depositERC20(schainName, token2.address, amount);
+                await token.connect(user).approve(depositBoxERC20.address, depositedAmount);
+                await depositBoxERC20.connect(user).depositERC20(schainName, token.address, depositedAmount);
 
-                await depositBoxERC20.connect(schainOwner).setBigTransferValue(schainName, token.address, bigTransferThreshold);
-                await depositBoxERC20.connect(schainOwner).setBigTransferValue(schainName, token2.address, bigTransferThreshold);
+                await token2.connect(user).approve(depositBoxERC20.address, depositedAmount);
+                await depositBoxERC20.connect(user).depositERC20(schainName, token2.address, depositedAmount);
+
+                await depositBoxERC20.connect(schainOwner).setBigTransferValue(schainName, token.address, bigAmount);
+                await depositBoxERC20.connect(schainOwner).setBigTransferValue(schainName, token2.address, bigAmount);
                 await depositBoxERC20.connect(schainOwner).setBigTransferDelay(schainName, timeDelay);
                 await depositBoxERC20.connect(schainOwner).setArbitrageDuration(schainName, arbitrageDuration);
+
+                await depositBoxERC20.grantRole(await depositBoxERC20.ARBITER_ROLE(), deployer.address);
             });
 
             it("should delay a big exit transfer", async () => {
-                console.log("Test start");
                 const balanceBefore = await token.balanceOf(user.address);
 
                 const message = {
-                    data: await messages.encodeTransferErc20Message(token.address, user.address, amount),
+                    data: await messages.encodeTransferErc20Message(token.address, user.address, bigAmount),
                     destinationContract: depositBoxERC20.address,
                     sender: deployer.address
                 };
 
                 await messageProxy.connect(nodeAddress).postIncomingMessages(schainName, 0, [message], randomSignature);
 
-                console.log("Before equality check");
                 (await token.balanceOf(user.address)).should.be.equal(balanceBefore);
 
-                console.log("Before early retrieve");
                 await depositBoxERC20.connect(user).retrieve();
 
-                console.log("Before second check");
                 (await token.balanceOf(user.address)).should.be.equal(balanceBefore);
 
                 await skipTime(timeDelay);
 
                 await depositBoxERC20.connect(user).retrieve();
 
-                console.log("last check");
                 (await token.balanceOf(user.address)).should.be.equal(balanceBefore.add(amount));
-            })
+            });
 
+            it("should allow to perform arbitrage", async () => {
+                const smallTransferOfToken1 = {
+                    data: await messages.encodeTransferErc20Message(token.address, user.address, amount),
+                    destinationContract: depositBoxERC20.address,
+                    sender: deployer.address
+                };
+
+                const bigTransferOfToken1 = {
+                    data: await messages.encodeTransferErc20Message(token.address, user.address, bigAmount),
+                    destinationContract: depositBoxERC20.address,
+                    sender: deployer.address
+                };
+
+                const smallTransferOfToken2 = {
+                    data: await messages.encodeTransferErc20Message(token2.address, user.address, amount),
+                    destinationContract: depositBoxERC20.address,
+                    sender: deployer.address
+                };
+
+                const bigTransferOfToken2 = {
+                    data: await messages.encodeTransferErc20Message(token2.address, user.address, bigAmount),
+                    destinationContract: depositBoxERC20.address,
+                    sender: deployer.address
+                };
+
+                const token1BalanceBefore = await token.balanceOf(user.address);
+                const token2BalanceBefore = await token2.balanceOf(user.address);
+
+                await messageProxy.connect(nodeAddress).postIncomingMessages(
+                    schainName,
+                    0,
+                    [
+                        smallTransferOfToken1,
+                        smallTransferOfToken2,
+                        bigTransferOfToken1,
+                        bigTransferOfToken1,
+                        bigTransferOfToken2,
+                        bigTransferOfToken1,
+                        smallTransferOfToken1,
+                        smallTransferOfToken2,
+                        bigTransferOfToken1,
+                    ],
+                    randomSignature
+                );
+
+                // 2 small transfers of token 1 and 2 small transfers of token 2 must be processed without delay
+                (await token.balanceOf(user.address)).should.be.equal(token1BalanceBefore.add(2 * amount));
+                (await token2.balanceOf(user.address)).should.be.equal(token2BalanceBefore.add(2 * amount));
+
+                // #0 - big transfer of token 1
+                // #1 - big transfer of token 1
+                // #2 - big transfer of token 2
+                // #3 - big transfer of token 1
+                // #4 - big transfer of token 1
+
+                const suspicionsTransfers = [0, 1, 4];
+
+                for (const suspicionsTransfer of suspicionsTransfers) {
+                    await depositBoxERC20.escalate(suspicionsTransfer);
+                }
+
+                await skipTime(timeDelay);
+
+                // transfer #2 and #3 must be unlocked
+                await depositBoxERC20.retrieveFor(user.address);
+                (await token.balanceOf(user.address))
+                    .should.be.equal(token1BalanceBefore.add(2 * amount + bigAmount));
+                (await token2.balanceOf(user.address))
+                    .should.be.equal(token2BalanceBefore.add(2 * amount + bigAmount));
+
+                await depositBoxERC20.connect(schainOwner).rejectTransfer(suspicionsTransfers[0]);
+                (await token.balanceOf(schainOwner.address))
+                    .should.be.equal(bigAmount);
+
+                await depositBoxERC20.connect(schainOwner).validateTransfer(suspicionsTransfers[1]);
+                (await token.balanceOf(user.address))
+                    .should.be.equal(token1BalanceBefore.add(2 * amount + 2 * bigAmount));
+
+                await skipTime(arbitrageDuration);
+                await depositBoxERC20.connect(user).retrieve();
+                (await token.balanceOf(user.address))
+                    .should.be.equal(token1BalanceBefore.add(2 * amount + 3 * bigAmount));
+            });
         });
     });
 });
