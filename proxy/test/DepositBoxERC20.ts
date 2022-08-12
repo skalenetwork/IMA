@@ -393,14 +393,14 @@ describe("DepositBoxERC20", () => {
                 await depositBoxERC20.connect(user).retrieve();
 
                 console.log("Before second check");
-                await token.balanceOf(user.address).should.be.eventually.equal(balanceBefore);
+                (await token.balanceOf(user.address)).should.be.equal(balanceBefore);
 
                 await skipTime(timeDelay);
 
                 await depositBoxERC20.connect(user).retrieve();
 
                 console.log("last check");
-                await token.balanceOf(user.address).should.be.eventually.equal(balanceBefore.add(amount));
+                (await token.balanceOf(user.address)).should.be.equal(balanceBefore.add(amount));
             })
 
         });
