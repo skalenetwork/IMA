@@ -399,7 +399,7 @@ describe("DepositBoxERC20", () => {
 
                 await depositBoxERC20.connect(user).retrieve();
 
-                (await token.balanceOf(user.address)).should.be.equal(balanceBefore.add(amount));
+                (await token.balanceOf(user.address)).should.be.equal(balanceBefore.add(bigAmount));
             });
 
             it("should allow to perform arbitrage", async () => {
