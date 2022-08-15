@@ -472,6 +472,9 @@ describe("DepositBoxERC20", () => {
                 (await token2.balanceOf(user.address))
                     .should.be.equal(token2BalanceBefore.add(2 * amount + bigAmount));
 
+                await depositBoxERC20.rejectTransfer(suspicionsTransfers[0])
+                    .should.be.rejectedWith("Sender is not an Schain owner");
+
                 await depositBoxERC20.connect(schainOwner).rejectTransfer(suspicionsTransfers[0]);
                 (await token.balanceOf(schainOwner.address))
                     .should.be.equal(bigAmount);
@@ -485,6 +488,19 @@ describe("DepositBoxERC20", () => {
                 (await token.balanceOf(user.address))
                     .should.be.equal(token1BalanceBefore.add(2 * amount + 3 * bigAmount));
             });
+
+            it("should not allow to set too big delays", async () => {
+                const tenYears = Math.round(60 * 60 * 24 * 365.25 * 10)
+
+                await depositBoxERC20.setBigTransferDelay(schainName, tenYears)
+                    .should.be.rejectedWith("Sender is not an Schain owner");
+
+                await depositBoxERC20.connect(schainOwner).setBigTransferDelay(schainName, tenYears)
+                    .should.be.rejectedWith("Delay is too big");
+
+                await depositBoxERC20.connect(schainOwner).setArbitrageDuration(schainName, tenYears)
+                    .should.be.rejectedWith("Delay is too big");
+            })
         });
     });
 });
