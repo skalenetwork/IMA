@@ -460,7 +460,11 @@ describe("DepositBoxERC20", () => {
                 const suspicionsTransfers = [0, 1, 4];
 
                 for (const suspicionsTransfer of suspicionsTransfers) {
+                    await depositBoxERC20.connect(richGuy).escalate(suspicionsTransfer)
+                        .should.be.rejectedWith("Not enough permissions to request escalation");
                     await depositBoxERC20.escalate(suspicionsTransfer);
+                    await depositBoxERC20.escalate(suspicionsTransfer)
+                        .should.be.rejectedWith("The transfer has to be delayed");
                 }
 
                 await skipTime(timeDelay);
@@ -476,10 +480,14 @@ describe("DepositBoxERC20", () => {
                     .should.be.rejectedWith("Sender is not an Schain owner");
 
                 await depositBoxERC20.connect(schainOwner).rejectTransfer(suspicionsTransfers[0]);
+                await depositBoxERC20.connect(schainOwner).rejectTransfer(suspicionsTransfers[0])
+                    .should.be.rejectedWith("Arbitrage has to be active");
                 (await token.balanceOf(schainOwner.address))
                     .should.be.equal(bigAmount);
 
                 await depositBoxERC20.connect(schainOwner).validateTransfer(suspicionsTransfers[1]);
+                await depositBoxERC20.connect(schainOwner).validateTransfer(suspicionsTransfers[1])
+                    .should.be.rejectedWith("Arbitrage has to be active");
                 (await token.balanceOf(user.address))
                     .should.be.equal(token1BalanceBefore.add(2 * amount + 2 * bigAmount));
 
