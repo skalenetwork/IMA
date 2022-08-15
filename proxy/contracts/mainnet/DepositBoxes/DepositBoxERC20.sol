@@ -471,7 +471,7 @@ contract DepositBoxERC20 is DepositBox, IDepositBoxERC20 {
     function getDelayedAmount(address receiver, address token) external view override returns (uint256 value) {
         uint256 delayedTransfersAmount = delayedTransfersByReceiver[receiver].length();
         for (uint256 i = 0; i < delayedTransfersAmount; ++i) {
-            DelayedTransfer storage transfer = delayedTransfers[uint256(delayedTransfersByReceiver[msg.sender].at(i))];
+            DelayedTransfer storage transfer = delayedTransfers[uint256(delayedTransfersByReceiver[receiver].at(i))];
             DelayedTransferStatus status = transfer.status;
             if (transfer.token == token) {
                 if (status == DelayedTransferStatus.DELAYED || status == DelayedTransferStatus.ARBITRAGE) {

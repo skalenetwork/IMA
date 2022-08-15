@@ -501,6 +501,46 @@ describe("DepositBoxERC20", () => {
                 await depositBoxERC20.connect(schainOwner).setArbitrageDuration(schainName, tenYears)
                     .should.be.rejectedWith("Delay is too big");
             })
+
+            it("should disable delay for trusted receivers", async () => {
+                const bigTransfer = {
+                    data: await messages.encodeTransferErc20Message(token.address, user.address, bigAmount),
+                    destinationContract: depositBoxERC20.address,
+                    sender: deployer.address
+                };
+
+                await depositBoxERC20.trustReceiver(schainName, user.address)
+                    .should.be.rejectedWith("Sender is not an Schain owner");
+                await depositBoxERC20.connect(schainOwner).trustReceiver(schainName, user.address);
+                await depositBoxERC20.connect(schainOwner).trustReceiver(schainName, user.address)
+                    .should.be.rejectedWith("Receiver already is trusted");
+
+                await messageProxy.connect(nodeAddress).postIncomingMessages(
+                    schainName,
+                    0,
+                    [ bigTransfer ],
+                    randomSignature
+                );
+
+                (await token.balanceOf(user.address)).should.be.equal(bigAmount);
+
+                await depositBoxERC20.stopTrustingReceiver(schainName, user.address)
+                    .should.be.rejectedWith("Sender is not an Schain owner")
+                await depositBoxERC20.connect(schainOwner).stopTrustingReceiver(schainName, user.address);
+                await depositBoxERC20.connect(schainOwner).stopTrustingReceiver(schainName, user.address)
+                    .should.be.rejectedWith("Receiver is not trusted");
+
+                await messageProxy.connect(nodeAddress).postIncomingMessages(
+                    schainName,
+                    1,
+                    [ bigTransfer ],
+                    randomSignature
+                );
+
+                (await token.balanceOf(user.address)).should.be.equal(bigAmount);
+                (await depositBoxERC20.getDelayedAmount(user.address, token.address))
+                    .should.be.equal(bigAmount);
+            })
         });
     });
 });
