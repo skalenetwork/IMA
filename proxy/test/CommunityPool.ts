@@ -112,7 +112,8 @@ describe("CommunityPool", () => {
         it("should recharge wallet if user passed enough money with basefee", async () => {
             const blockNumber = await ethers.provider.getBlockNumber();
             const baseFeePerGas = (await ethers.provider.getBlock(blockNumber)).baseFeePerGas;
-            const basefee = baseFeePerGas ? baseFeePerGas : new BigNumber(1, "hex");
+            const baseFeeCandidate = (baseFeePerGas ? baseFeePerGas : new BigNumber(1, "hex"));
+            const basefee = baseFeeCandidate.toNumber() === 0 ? BigNumber.from(1) : baseFeeCandidate;
             const amount = minTransactionGas.mul(basefee);
             //
             // comment this check until issue https://github.com/NomicFoundation/hardhat/issues/1688 would be fixed
