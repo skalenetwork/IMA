@@ -109,6 +109,26 @@ describe("CommunityPool", () => {
             expect(BigNumber.from(await messageProxy.getOutgoingMessagesCounter(schainName)).toString()).to.be.equal(BigNumber.from(1).toString());
         });
 
+        it("should recharge wallet if user passed enough money with basefee", async () => {
+            const blockNumber = await ethers.provider.getBlockNumber();
+            const baseFeePerGas = (await ethers.provider.getBlock(blockNumber)).baseFeePerGas;
+            const basefee = baseFeePerGas ? baseFeePerGas : new BigNumber(0, "hex");
+            const amount = minTransactionGas.mul(basefee);
+            //
+            // comment this check until issue https://github.com/NomicFoundation/hardhat/issues/1688 would be fixed
+            //
+            // (await communityPool.isAmountSufficient(ethers.utils.id(schainName), user.address, amount.sub(1))).should.be.false;
+            // (await communityPool.isAmountSufficient(ethers.utils.id(schainName), user.address, amount)).should.be.true;
+            await communityPool.connect(user).rechargeUserWallet(schainName, user.address, { value: amount.sub(1).toString(), gasPrice: basefee.toNumber()}).should.be.eventually.rejectedWith("Not enough ETH for transaction");
+            await communityPool.connect(user).rechargeUserWallet(schainName, user.address, { value: amount.toString(), gasPrice: basefee.toNumber()});
+            let userBalance = await communityPool.getBalance(user.address, schainName);
+            userBalance.should.be.deep.equal(amount);
+            await communityPool.connect(user).rechargeUserWallet(schainName, user.address, { value: amount.toString(), gasPrice: basefee.toNumber()});
+            userBalance = await communityPool.getBalance(user.address, schainName);
+            userBalance.should.be.deep.equal(amount.mul(2));
+            expect(BigNumber.from(await messageProxy.getOutgoingMessagesCounter(schainName)).toString()).to.be.equal(BigNumber.from(1).toString());
+        });
+
         it("should allow to withdraw money", async () => {
             const amount = minTransactionGas.mul(gasPrice).toNumber();
             await communityPool.connect(user).rechargeUserWallet(schainName, user.address, { value: (amount + 1).toString(), gasPrice });

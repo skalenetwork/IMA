@@ -21,7 +21,7 @@
     along with SKALE Manager.  If not, see <https://www.gnu.org/licenses/>.
 */
 
-pragma solidity 0.8.6;
+pragma solidity 0.8.16;
 
 import "@skalenetwork/ima-interfaces/mainnet/ICommunityPool.sol";
 import "@skalenetwork/skale-manager-interfaces/IWallets.sol";
@@ -122,6 +122,7 @@ contract CommunityPool is Twin, ICommunityPool {
         returns (bool)
     {
         if (gas > 0) {
+
             IWallets(payable(contractManagerOfSkaleManager.getContract("Wallets"))).refundGasBySchain(
                 schainHash,
                 node,
@@ -212,6 +213,23 @@ contract CommunityPool is Twin, ICommunityPool {
     function checkUserBalance(bytes32 schainHash, address receiver) external view override returns (bool) {
         return activeUsers[receiver][schainHash] && _balanceIsSufficient(schainHash, receiver, 0);
     }
+
+    /**
+     * @dev Checks whether passed amount is enough to recharge user wallet with current basefee.
+     */
+    function isAmountSufficient(
+        bytes32 schainHash,
+        address receiver,
+        uint256 amount
+    )
+        public
+        view
+        override
+        returns (bool)
+    {
+        return amount + _userWallets[receiver][schainHash] >= minTransactionGas * block.basefee;
+    }
+
     /**
      * @dev Checks whether user wallet was recharged for sufficient amount.
      */
