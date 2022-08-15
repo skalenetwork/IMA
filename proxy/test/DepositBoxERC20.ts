@@ -447,6 +447,15 @@ describe("DepositBoxERC20", () => {
                     randomSignature
                 );
 
+                (await depositBoxERC20.getDelayedAmount(user.address, token.address))
+                    .should.be.equal(4 * bigAmount);
+                (await depositBoxERC20.getDelayedAmount(user.address, token2.address))
+                    .should.be.equal(bigAmount);
+                (await depositBoxERC20.getNextUnlockTimestamp(user.address, token.address))
+                    .should.be.equal((await currentTime()) + timeDelay);
+                (await depositBoxERC20.getNextUnlockTimestamp(user.address, token2.address))
+                    .should.be.equal((await currentTime()) + timeDelay);
+
                 // 2 small transfers of token 1 and 2 small transfers of token 2 must be processed without delay
                 (await token.balanceOf(user.address)).should.be.equal(token1BalanceBefore.add(2 * amount));
                 (await token2.balanceOf(user.address)).should.be.equal(token2BalanceBefore.add(2 * amount));
@@ -522,6 +531,8 @@ describe("DepositBoxERC20", () => {
                 await depositBoxERC20.connect(schainOwner).trustReceiver(schainName, user.address);
                 await depositBoxERC20.connect(schainOwner).trustReceiver(schainName, user.address)
                     .should.be.rejectedWith("Receiver already is trusted");
+                (await depositBoxERC20.getTrustedReceiver(schainName, 0))
+                    .should.be.equal(user.address);
 
                 await messageProxy.connect(nodeAddress).postIncomingMessages(
                     schainName,
