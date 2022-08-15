@@ -560,6 +560,40 @@ describe("DepositBoxERC20", () => {
                 (await depositBoxERC20.getDelayedAmount(user.address, token.address))
                     .should.be.equal(bigAmount);
             })
+
+            it("should reduce delay", async () => {
+                const bigTransfer = {
+                    data: await messages.encodeTransferErc20Message(token.address, user.address, bigAmount),
+                    destinationContract: depositBoxERC20.address,
+                    sender: deployer.address
+                };
+
+                await messageProxy.connect(nodeAddress).postIncomingMessages(
+                    schainName,
+                    0,
+                    [ bigTransfer ],
+                    randomSignature
+                );
+
+                (await depositBoxERC20.getNextUnlockTimestamp(user.address, token.address))
+                    .should.be.equal(await currentTime() + timeDelay);
+
+
+                const lowerDelay = Math.round(timeDelay / 2);
+                await depositBoxERC20.connect(schainOwner).setBigTransferDelay(schainName, lowerDelay);
+
+                await messageProxy.connect(nodeAddress).postIncomingMessages(
+                    schainName,
+                    1,
+                    [ bigTransfer ],
+                    randomSignature
+                );
+
+                (await depositBoxERC20.getNextUnlockTimestamp(user.address, token.address))
+                    .should.be.equal(await currentTime() + lowerDelay);
+                (await depositBoxERC20.getDelayedAmount(user.address, token.address))
+                    .should.be.equal(2 * bigAmount);
+            });
         });
     });
 });
