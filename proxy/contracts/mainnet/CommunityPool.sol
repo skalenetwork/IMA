@@ -222,7 +222,7 @@ contract CommunityPool is Twin, ICommunityPool {
         address receiver,
         uint256 amount
     )
-        public
+        external
         view
         override
         returns (bool)
