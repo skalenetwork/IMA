@@ -594,6 +594,55 @@ describe("DepositBoxERC20", () => {
                 (await depositBoxERC20.getDelayedAmount(user.address, token.address))
                     .should.be.equal(2 * bigAmount);
             });
+
+            it("should process correctly in non linear order", async () => {
+                const bigTransfer = {
+                    data: await messages.encodeTransferErc20Message(token.address, user.address, bigAmount),
+                    destinationContract: depositBoxERC20.address,
+                    sender: deployer.address
+                };
+
+                await messageProxy.connect(nodeAddress).postIncomingMessages(
+                    schainName,
+                    0,
+                    [
+                        bigTransfer, // #0
+                        bigTransfer  // #1
+                    ],
+                    randomSignature
+                );
+
+                const lockedUntil = await currentTime() + timeDelay;
+
+                await depositBoxERC20.escalate(0);
+
+                (await depositBoxERC20.getNextUnlockTimestamp(user.address, token.address))
+                    .should.be.equal(lockedUntil);
+
+                await skipTime(timeDelay);
+
+                await depositBoxERC20.retrieveFor(user.address);
+
+                (await depositBoxERC20.getDelayedAmount(user.address, token.address))
+                    .should.be.equal(bigAmount);
+
+                await messageProxy.connect(nodeAddress).postIncomingMessages(
+                    schainName,
+                    2,
+                    [
+                        bigTransfer, // #3
+                    ],
+                    randomSignature
+                );
+
+                await skipTime(timeDelay);
+                await depositBoxERC20.retrieveFor(user.address);
+
+                (await depositBoxERC20.getDelayedAmount(user.address, token.address))
+                    .should.be.equal(bigAmount);
+                (await token.balanceOf(user.address))
+                    .should.be.equal(2 * bigAmount);
+            });
         });
     });
 });
