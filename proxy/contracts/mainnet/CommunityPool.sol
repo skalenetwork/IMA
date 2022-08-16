@@ -223,7 +223,7 @@ contract CommunityPool is Twin, ICommunityPool {
      * 
      * - 'msg.sender` must have sufficient amount of ETH on their gas wallet.
      */
-    function setMultiplier(uint newMultiplierNumenator, uint newMultiplierDivider) external override {
+    function setMultiplier(uint newMultiplierNumerator, uint newMultiplierDivider) external override {
         require(hasRole(CONSTANT_SETTER_ROLE, msg.sender), "CONSTANT_SETTER_ROLE is required");
         emit MultiplierWasChanged(
             multiplierNumerator,
@@ -261,7 +261,7 @@ contract CommunityPool is Twin, ICommunityPool {
         override
         returns (uint256)
     {
-        uint256 adaptedBaseFee = block.basefee * multiplierNumerator / multiplierDivider;
+        uint256 adaptedBaseFee = (block.basefee * multiplierNumerator) / multiplierDivider;
         if (minTransactionGas * adaptedBaseFee <= _userWallets[receiver][schainHash]) {
             return 0;
         }
