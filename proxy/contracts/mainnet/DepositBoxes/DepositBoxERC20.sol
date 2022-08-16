@@ -63,6 +63,14 @@ contract DepositBoxERC20 is DepositBox, IDepositBoxERC20 {
         DelayedTransferStatus status;
     }
 
+    struct DelayConfig {
+        // token address => value
+        mapping(address => uint256) bigTransferThreshold;
+        EnumerableSetUpgradeable.AddressSet trustedReceivers;
+        uint256 transferDelay;
+        uint256 arbitrageDuration;    
+    }
+
     address private constant _USDT_ADDRESS = 0xdAC17F958D2ee523a2206206994597C13D831ec7;
     uint256 private constant _QUEUE_PROCESSING_LIMIT = 10;
 
@@ -74,14 +82,8 @@ contract DepositBoxERC20 is DepositBox, IDepositBoxERC20 {
     mapping(bytes32 => EnumerableSetUpgradeable.AddressSet) private _schainToERC20;
 
     // exits delay configuration
-    //   schainHash =>   token address => value
-    mapping(bytes32 => mapping(address => uint256)) public bigTransferThreshold;
-    //   schainHash => time delay in seconds
-    mapping(bytes32 => uint256) public transferDelay;
-    //   schainHash => time delay in seconds
-    mapping(bytes32 => uint256) public arbitrageDuration;
-    //   schainHash => addresses
-    mapping(bytes32 => EnumerableSetUpgradeable.AddressSet) private _trustedReceivers;
+    //   schainHash => delay config
+    mapping(bytes32 => DelayConfig) private _delayConfig;    
 
     uint256 public delayedTransfersSize;
     // delayed transfer id => delayed transfer
@@ -207,10 +209,10 @@ contract DepositBoxERC20 is DepositBox, IDepositBoxERC20 {
         require(ERC20Upgradeable(message.token).balanceOf(address(this)) >= message.amount, "Not enough money");
         _removeTransferredAmount(schainHash, message.token, message.amount);
 
-        uint256 delay = transferDelay[schainHash];
+        uint256 delay = _delayConfig[schainHash].transferDelay;
         if (
             delay > 0
-            && bigTransferThreshold[schainHash][message.token] <= message.amount
+            && _delayConfig[schainHash].bigTransferThreshold[message.token] <= message.amount
             && !isReceiverTrusted(schainHash, message.receiver)
         ) {
             _createDelayedTransfer(schainHash, message, delay);
@@ -284,7 +286,7 @@ contract DepositBoxERC20 is DepositBox, IDepositBoxERC20 {
         onlySchainOwner(schainName)
     {
         bytes32 schainHash = _schainHash(schainName);
-        bigTransferThreshold[schainHash][token] = value;   
+        _delayConfig[schainHash].bigTransferThreshold[token] = value;   
     }
 
     /**
@@ -308,7 +310,7 @@ contract DepositBoxERC20 is DepositBox, IDepositBoxERC20 {
         bytes32 schainHash = _schainHash(schainName);
         // need to restrict big delays to avoid overflow
         require(delayInSeconds < 1e8, "Delay is too big"); // no more then ~ 3 years
-        transferDelay[schainHash] = delayInSeconds;   
+        _delayConfig[schainHash].transferDelay = delayInSeconds;   
     }
 
     function setArbitrageDuration(
@@ -322,7 +324,7 @@ contract DepositBoxERC20 is DepositBox, IDepositBoxERC20 {
         bytes32 schainHash = _schainHash(schainName);
         // need to restrict big delays to avoid overflow
         require(delayInSeconds < 1e8, "Delay is too big"); // no more then ~ 3 years
-        arbitrageDuration[schainHash] = delayInSeconds;   
+        _delayConfig[schainHash].arbitrageDuration = delayInSeconds;   
     }
 
     function trustReceiver(
@@ -333,7 +335,10 @@ contract DepositBoxERC20 is DepositBox, IDepositBoxERC20 {
         override
         onlySchainOwner(schainName)
     {
-        require(_trustedReceivers[_schainHash(schainName)].add(receiver), "Receiver already is trusted");        
+        require(
+            _delayConfig[_schainHash(schainName)].trustedReceivers.add(receiver),
+            "Receiver already is trusted"
+        );        
     }
 
     function stopTrustingReceiver(
@@ -344,7 +349,7 @@ contract DepositBoxERC20 is DepositBox, IDepositBoxERC20 {
         override
         onlySchainOwner(schainName)
     {
-        require(_trustedReceivers[_schainHash(schainName)].remove(receiver), "Receiver is not trusted");
+        require(_delayConfig[_schainHash(schainName)].trustedReceivers.remove(receiver), "Receiver is not trusted");
     }
 
     /**
@@ -365,7 +370,7 @@ contract DepositBoxERC20 is DepositBox, IDepositBoxERC20 {
         delayedTransfers[transferId].status = DelayedTransferStatus.ARBITRAGE;
         delayedTransfers[transferId].untilTimestamp = MathUpgradeable.max(
             delayedTransfers[transferId].untilTimestamp,
-            block.timestamp + arbitrageDuration[schainHash]
+            block.timestamp + _delayConfig[schainHash].arbitrageDuration
         );
     }
 
@@ -506,8 +511,24 @@ contract DepositBoxERC20 is DepositBox, IDepositBoxERC20 {
         }
     }
 
+    function getTrustedReceiversAmount(bytes32 schainHash) external view override returns (uint256) {
+        return _delayConfig[schainHash].trustedReceivers.length();
+    }
+
     function getTrustedReceiver(string calldata schainName, uint256 index) external view override returns (address) {
-        return _trustedReceivers[_schainHash(schainName)].at(index);
+        return _delayConfig[_schainHash(schainName)].trustedReceivers.at(index);
+    }
+
+    function getBigTransferThreshold(bytes32 schainHash, address token) external view override returns (uint256) {
+        return _delayConfig[schainHash].bigTransferThreshold[token];
+    }
+
+    function getTimeDelay(bytes32 schainHash) external view override returns (uint256) {
+        return _delayConfig[schainHash].transferDelay;
+    }
+
+    function getArbitrageDuration(bytes32 schainHash) external view override returns (uint256) {
+        return _delayConfig[schainHash].arbitrageDuration;
     }
 
     function retrieveFor(address receiver) public override {
@@ -569,8 +590,10 @@ contract DepositBoxERC20 is DepositBox, IDepositBoxERC20 {
     }
 
     function isReceiverTrusted(bytes32 schainHash, address receiver) public view override returns (bool) {
-        return _trustedReceivers[schainHash].contains(receiver);
+        return _delayConfig[schainHash].trustedReceivers.contains(receiver);
     }
+
+    // private
 
     /**
      * @dev Saves amount of tokens that was transferred to schain.
