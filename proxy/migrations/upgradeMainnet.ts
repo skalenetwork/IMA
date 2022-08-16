@@ -4,6 +4,8 @@ import { contracts, getContractKeyInAbiFile } from "./deployMainnet";
 import { encodeTransaction } from "./tools/multiSend";
 import { upgrade } from "./upgrade";
 import chalk from "chalk";
+import { ethers } from "hardhat";
+import hre from "hardhat";
 
 async function main() {
     await upgrade(
