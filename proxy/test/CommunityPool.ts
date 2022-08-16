@@ -118,8 +118,8 @@ describe("CommunityPool", () => {
             //
             // comment this check until issue https://github.com/NomicFoundation/hardhat/issues/1688 would be fixed
             //
-            // (await communityPool.isAmountSufficient(ethers.utils.id(schainName), user.address, amount.sub(1))).should.be.false;
-            // (await communityPool.isAmountSufficient(ethers.utils.id(schainName), user.address, amount)).should.be.true;
+            // const amount = await communityPool.getRecommendedRechargeAmount(ethers.utils.id(schainName), user.address));
+            //
             await communityPool.connect(user).rechargeUserWallet(schainName, user.address, { value: amount.sub(1).toString(), gasPrice: basefee.toNumber()}).should.be.eventually.rejectedWith("Not enough ETH for transaction");
             await communityPool.connect(user).rechargeUserWallet(schainName, user.address, { value: amount.toString(), gasPrice: basefee.toNumber()});
             let userBalance = await communityPool.getBalance(user.address, schainName);
@@ -251,6 +251,20 @@ describe("CommunityPool", () => {
             .should.be.eventually.rejectedWith("CONSTANT_SETTER_ROLE is required");
         await communityPool.setMinTransactionGas(newMinTransactionGas);
         expect(BigNumber.from(await communityPool.minTransactionGas()).toString()).to.be.equal(newMinTransactionGas.toString());
+    });
+
+    it("should set new multiplier", async () => {
+        const newMultipliermultiplierNumeratorr = BigNumber.from(5);
+        const newMultiplierDivider = BigNumber.from(4);
+        const CONSTANT_SETTER_ROLE  = await communityPool.CONSTANT_SETTER_ROLE();
+        await communityPool.grantRole(CONSTANT_SETTER_ROLE, deployer.address);
+        expect(BigNumber.from(await communityPool.multiplierNumerator()).toString()).to.be.equal(BigNumber.from(3).toString());
+        expect(BigNumber.from(await communityPool.multiplierDivider()).toString()).to.be.equal(BigNumber.from(2).toString());
+        await communityPool.connect(user).setMultiplier(newMultipliermultiplierNumeratorr, newMultiplierDivider)
+            .should.be.eventually.rejectedWith("CONSTANT_SETTER_ROLE is required");
+        await communityPool.setMultiplier(newMultipliermultiplierNumeratorr, newMultiplierDivider);
+        expect(BigNumber.from(await communityPool.multiplierNumerator()).toString()).to.be.equal(BigNumber.from(newMultipliermultiplierNumeratorr).toString());
+        expect(BigNumber.from(await communityPool.multiplierDivider()).toString()).to.be.equal(BigNumber.from(newMultiplierDivider).toString());
     });
 
     it("should set rejected when call refundGasByUser not from messageProxy contract", async () => {

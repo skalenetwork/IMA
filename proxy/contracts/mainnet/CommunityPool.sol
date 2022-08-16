@@ -46,7 +46,10 @@ contract CommunityPool is Twin, ICommunityPool {
     // address of user => schainHash => true if unlocked for transferring
     mapping(address => mapping(bytes32 => bool)) public activeUsers;
 
-    uint public minTransactionGas;    
+    uint public minTransactionGas;
+
+    uint public multiplierNumerator;
+    uint public multiplierDivider;
 
     /**
      * @dev Emitted when minimal value in gas for transactions from schain to mainnet was changed 
@@ -54,6 +57,16 @@ contract CommunityPool is Twin, ICommunityPool {
     event MinTransactionGasWasChanged(
         uint oldValue,
         uint newValue
+    );
+
+    /**
+     * @dev Emitted when basefee multiplier was changed 
+     */
+    event MultiplierWasChanged(
+        uint oldMultiplierNumerator,
+        uint oldMultiplierDivider,
+        uint newMultiplierNumerator,
+        uint newMultiplierDivider
     );
 
     function initialize(
@@ -68,6 +81,8 @@ contract CommunityPool is Twin, ICommunityPool {
         Twin.initialize(contractManagerOfSkaleManagerValue, messageProxyValue);
         _setupRole(LINKER_ROLE, address(linker));
         minTransactionGas = 1e6;
+        multiplierNumerator = 3;
+        multiplierDivider = 2;
     }
 
     /**
@@ -201,6 +216,26 @@ contract CommunityPool is Twin, ICommunityPool {
     }
 
     /**
+     * @dev Allows `msg.sender` set the amount of gas that should be 
+     * enough for reimbursing any transaction from schain to mainnet.
+     * 
+     * Requirements:
+     * 
+     * - 'msg.sender` must have sufficient amount of ETH on their gas wallet.
+     */
+    function setMultiplier(uint newMultiplierNumenator, uint newMultiplierDivider) external override {
+        require(hasRole(CONSTANT_SETTER_ROLE, msg.sender), "CONSTANT_SETTER_ROLE is required");
+        emit MultiplierWasChanged(
+            multiplierNumerator,
+            multiplierDivider,
+            newMultiplierNumenator,
+            newMultiplierDivider
+        );
+        multiplierNumerator = newMultiplierNumenator;
+        multiplierDivider = newMultiplierDivider;
+    }
+
+    /**
      * @dev Returns the amount of ETH on gas wallet for particular user.
      */
     function getBalance(address user, string calldata schainName) external view override returns (uint) {
@@ -217,17 +252,20 @@ contract CommunityPool is Twin, ICommunityPool {
     /**
      * @dev Checks whether passed amount is enough to recharge user wallet with current basefee.
      */
-    function isAmountSufficient(
+    function getRecommendedRechargeAmount(
         bytes32 schainHash,
-        address receiver,
-        uint256 amount
+        address receiver
     )
         external
         view
         override
-        returns (bool)
+        returns (uint256)
     {
-        return amount + _userWallets[receiver][schainHash] >= minTransactionGas * block.basefee;
+        uint256 adaptedBaseFee = block.basefee * multiplierNumerator / multiplierDivider;
+        if (minTransactionGas * adaptedBaseFee <= _userWallets[receiver][schainHash]) {
+            return 0;
+        }
+        return minTransactionGas * adaptedBaseFee - _userWallets[receiver][schainHash];
     }
 
     /**
