@@ -612,7 +612,7 @@ describe("DepositBoxERC20", () => {
                     randomSignature
                 );
 
-                const lockedUntil = await currentTime() + timeDelay;
+                let lockedUntil = await currentTime() + timeDelay;
 
                 await depositBoxERC20.escalate(0);
 
@@ -634,6 +634,12 @@ describe("DepositBoxERC20", () => {
                     ],
                     randomSignature
                 );
+
+                lockedUntil = await currentTime() + timeDelay;
+                (await depositBoxERC20.getNextUnlockTimestamp(user.address, token.address))
+                    .should.be.equal(lockedUntil);
+                (await depositBoxERC20.getDelayedAmount(user.address, token.address))
+                    .should.be.equal(2 * bigAmount);
 
                 await skipTime(timeDelay);
                 await depositBoxERC20.retrieveFor(user.address);
