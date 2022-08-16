@@ -228,10 +228,10 @@ contract CommunityPool is Twin, ICommunityPool {
         emit MultiplierWasChanged(
             multiplierNumerator,
             multiplierDivider,
-            newMultiplierNumenator,
+            newMultiplierNumerator,
             newMultiplierDivider
         );
-        multiplierNumerator = newMultiplierNumenator;
+        multiplierNumerator = newMultiplierNumerator;
         multiplierDivider = newMultiplierDivider;
     }
 
@@ -261,11 +261,10 @@ contract CommunityPool is Twin, ICommunityPool {
         override
         returns (uint256)
     {
-        uint256 adaptedBaseFee = (block.basefee * multiplierNumerator) / multiplierDivider;
-        if (minTransactionGas * adaptedBaseFee <= _userWallets[receiver][schainHash]) {
+        if (_multiplyOnAdaptedBaseFee(minTransactionGas)  <= _userWallets[receiver][schainHash]) {
             return 0;
         }
-        return minTransactionGas * adaptedBaseFee - _userWallets[receiver][schainHash];
+        return _multiplyOnAdaptedBaseFee(minTransactionGas) - _userWallets[receiver][schainHash];
     }
 
     /**
@@ -273,5 +272,9 @@ contract CommunityPool is Twin, ICommunityPool {
      */
     function _balanceIsSufficient(bytes32 schainHash, address receiver, uint256 delta) private view returns (bool) {
         return delta + _userWallets[receiver][schainHash] >= minTransactionGas * tx.gasprice;
-    } 
+    }
+
+    function _multiplyOnAdaptedBaseFee(uint256 value) private view returns (uint256) {
+        return value * block.basefee * multiplierNumerator / multiplierDivider;
+    }
 }
