@@ -313,6 +313,14 @@ contract DepositBoxERC20 is DepositBox, IDepositBoxERC20 {
         _delayConfig[schainHash].transferDelay = delayInSeconds;   
     }
 
+    /**
+     * @dev Set an arbitrage.
+     * After escalation the transfer is locked for provided period of time.
+     *
+     * Requirements:
+     * 
+     * - msg.sender should be an owner of schain
+     */
     function setArbitrageDuration(
         string calldata schainName,
         uint256 delayInSeconds
@@ -327,6 +335,13 @@ contract DepositBoxERC20 is DepositBox, IDepositBoxERC20 {
         _delayConfig[schainHash].arbitrageDuration = delayInSeconds;   
     }
 
+    /**
+     * @dev Add the address to a whitelist of addresses that can do big transfers without delaying
+     * Requirements:
+     * 
+     * - msg.sender should be an owner of schain
+     * - the address must not be in the whitelist
+     */
     function trustReceiver(
         string calldata schainName,
         address receiver
@@ -341,6 +356,13 @@ contract DepositBoxERC20 is DepositBox, IDepositBoxERC20 {
         );        
     }
 
+    /**
+     * @dev Remove the address from a whitelist of addresses that can do big transfers without delaying
+     * Requirements:
+     * 
+     * - msg.sender should be an owner of schain
+     * - the address must be in the whitelist
+     */
     function stopTrustingReceiver(
         string calldata schainName,
         address receiver
@@ -360,6 +382,14 @@ contract DepositBoxERC20 is DepositBox, IDepositBoxERC20 {
         retrieveFor(msg.sender);
     }
 
+    /**
+     * @dev Initialize arbitrage of a suspicious big transfer
+     *
+     * Requirements:
+     * 
+     * - msg.sender should be an owner of schain or have ARBITER_ROLE role
+     * - transfer must be delayed and arbitrage must not be started
+     */
     function escalate(uint256 transferId) external override {
         bytes32 schainHash = delayedTransfers[transferId].schainHash;
         require(
@@ -374,6 +404,14 @@ contract DepositBoxERC20 is DepositBox, IDepositBoxERC20 {
         );
     }
 
+    /**
+     * @dev Approve a big transfer and immidiately transfer tokens during arbitrage
+     *
+     * Requirements:
+     * 
+     * - msg.sender should be an owner of schain
+     * - arbitrage of the transfer must be started
+     */
     function validateTransfer(
         uint transferId
     )
@@ -388,6 +426,14 @@ contract DepositBoxERC20 is DepositBox, IDepositBoxERC20 {
         _transfer(transfer.token, transfer.receiver, transfer.amount);
     }
 
+    /**
+     * @dev Reject a big transfer and transfer tokens to SKALE chain owner during arbitrage
+     *
+     * Requirements:
+     * 
+     * - msg.sender should be an owner of schain
+     * - arbitrage of the transfer must be started
+     */
     function rejectTransfer(
         uint transferId
     )
@@ -473,6 +519,9 @@ contract DepositBoxERC20 is DepositBox, IDepositBoxERC20 {
         }
     }
 
+    /**
+     * @dev Get amount of tokens that are delayed for specified receiver
+     */
     function getDelayedAmount(address receiver, address token) external view override returns (uint256 value) {
         uint256 delayedTransfersAmount = delayedTransfersByReceiver[receiver].length();
         for (uint256 i = 0; i < delayedTransfersAmount; ++i) {
@@ -486,6 +535,9 @@ contract DepositBoxERC20 is DepositBox, IDepositBoxERC20 {
         }
     }
 
+    /**
+     * @dev Get timestamp of next unlock of tokens that are delayed for specified receiver
+     */
     function getNextUnlockTimestamp(
         address receiver,
         address token
@@ -511,26 +563,44 @@ contract DepositBoxERC20 is DepositBox, IDepositBoxERC20 {
         }
     }
 
+    /**
+     * @dev Get amount of addresses that are added to the whitelist
+     */
     function getTrustedReceiversAmount(bytes32 schainHash) external view override returns (uint256) {
         return _delayConfig[schainHash].trustedReceivers.length();
     }
 
+    /**
+     * @dev Get i-th address of the whitelist
+     */
     function getTrustedReceiver(string calldata schainName, uint256 index) external view override returns (address) {
         return _delayConfig[_schainHash(schainName)].trustedReceivers.at(index);
     }
 
+    /**
+     * @dev Get amount of tokens that are considered as a big transfer
+     */
     function getBigTransferThreshold(bytes32 schainHash, address token) external view override returns (uint256) {
         return _delayConfig[schainHash].bigTransferThreshold[token];
     }
 
+    /**
+     * @dev Get time delay of big transfers
+     */
     function getTimeDelay(bytes32 schainHash) external view override returns (uint256) {
         return _delayConfig[schainHash].transferDelay;
     }
 
+    /**
+     * @dev Get duration of an arbitrage
+     */
     function getArbitrageDuration(bytes32 schainHash) external view override returns (uint256) {
         return _delayConfig[schainHash].arbitrageDuration;
     }
 
+    /**
+     * @dev Retrive tokens that were unlocked after delay for specified receiver
+     */
     function retrieveFor(address receiver) public override {
         uint256 transfersAmount = MathUpgradeable.min(
             delayedTransfersByReceiver[receiver].length(),
@@ -589,6 +659,9 @@ contract DepositBoxERC20 is DepositBox, IDepositBoxERC20 {
         DepositBox.initialize(contractManagerOfSkaleManagerValue, linkerValue, messageProxyValue);
     }
 
+    /**
+     * @dev Check if the receiver is in the delay whitelist
+     */
     function isReceiverTrusted(bytes32 schainHash, address receiver) public view override returns (bool) {
         return _delayConfig[schainHash].trustedReceivers.contains(receiver);
     }
@@ -671,7 +744,9 @@ contract DepositBoxERC20 is DepositBox, IDepositBoxERC20 {
         emit ERC20TokenAdded(schainName, erc20OnMainnet);
     }
 
-
+    /**
+     * @dev Add delayed transfer to receiver specific queue
+     */
     function _addToDelayedQueue(
         address receiver,
         uint256 id,
@@ -682,6 +757,12 @@ contract DepositBoxERC20 is DepositBox, IDepositBoxERC20 {
         _addToDelayedQueueWithPriority(delayedTransfersByReceiver[receiver], id, until, _QUEUE_PROCESSING_LIMIT);
     }
 
+    /**
+     * @dev Add delayed transfer to receiver specific queue at the position
+     * that maintains order from earlier unlocked to later unlocked.
+     * If the position is located further than depthLimit from the back
+     * the element is added at back - depthLimit index
+     */
     function _addToDelayedQueueWithPriority(
         DoubleEndedQueueUpgradeable.Bytes32Deque storage queue, 
         uint256 id, 
@@ -703,6 +784,9 @@ contract DepositBoxERC20 is DepositBox, IDepositBoxERC20 {
         }
     }
 
+    /**
+     * @dev Transfer ERC20 token or USDT
+     */
     function _transfer(address token, address receiver, uint256 amount) private {
         // there is no other reliable way to determine USDT
         // slither-disable-next-line incorrect-equality
@@ -719,6 +803,9 @@ contract DepositBoxERC20 is DepositBox, IDepositBoxERC20 {
         }
     }
 
+    /**
+     * Create instance of DelayedTransfer and initialize all auxiliary fields.
+     */
     function _createDelayedTransfer(
         bytes32 schainHash,
         Messages.TransferErc20Message memory message,
@@ -738,6 +825,9 @@ contract DepositBoxERC20 is DepositBox, IDepositBoxERC20 {
         _addToDelayedQueue(message.receiver, delayId, block.timestamp + delay);
     }
 
+    /**
+     * Remove instance of DelayedTransfer and clean auxiliary fields.
+     */
     function _removeOldestDelayedTransfer(address receiver) private {
         uint256 transferId = uint256(delayedTransfersByReceiver[receiver].popFront());
         // For most cases the loop will have only 1 iteration.
