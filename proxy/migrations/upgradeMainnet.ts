@@ -31,9 +31,11 @@ async function main() {
                 ));
             }
 
+            const newHeaderMessageGasCost = 89331;
+
             console.log(chalk.yellow(
                 "Prepare transaction to set header message gas cost to",
-                (await messageProxyForMainnet.headerMessageGasCost()).toString()
+                newHeaderMessageGasCost.toString()
             ));
             safeTransactions.push(encodeTransaction(
                 0,
@@ -41,7 +43,7 @@ async function main() {
                 0,
                 messageProxyForMainnet.interface.encodeFunctionData(
                     "setNewHeaderMessageGasCost",
-                    [ await messageProxyForMainnet.headerMessageGasCost() ]
+                    [ newHeaderMessageGasCost ]
                 )
             ));
         },
