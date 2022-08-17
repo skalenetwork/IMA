@@ -30,12 +30,6 @@ import "../../Messages.sol";
 import "../tokens/ERC20OnChain.sol";
 import "../TokenManager.sol";
 
-interface ITokenManagerERC20InitializeFunction is ITokenManagerERC20 {
-    function initializeAllClonesERC20(
-        address[] calldata contracts
-    ) external;
-}
-
 
 /**
  * @title TokenManagerERC20
@@ -44,7 +38,7 @@ interface ITokenManagerERC20InitializeFunction is ITokenManagerERC20 {
  * and creates ERC20 clones.
  * TokenManagerERC20 mints tokens. When a user exits a SKALE chain, it burns them.
  */
-contract TokenManagerERC20 is TokenManager, ITokenManagerERC20InitializeFunction {
+contract TokenManagerERC20 is TokenManager, ITokenManagerERC20 {
     using AddressUpgradeable for address;
     using EnumerableSetUpgradeable for EnumerableSetUpgradeable.AddressSet;
 
@@ -92,29 +86,6 @@ contract TokenManagerERC20 is TokenManager, ITokenManagerERC20InitializeFunction
      * or transferred on SKALE chain.
      */
     event ERC20TokenReady(bytes32 indexed chainHash, address indexed contractOnMainnet, uint256 amount);
-
-    /**
-     * @dev Allows DEFAULT_ADMIN_ROLE to initialize clones ERC20
-     * Notice - this function will be executed only once during upgrade
-     * 
-     * Requirements:
-     * 
-     * `msg.sender` should have DEFAULT_ADMIN_ROLE
-     */
-    function initializeAllClonesERC20(address[] calldata contracts) external override {
-        require(hasRole(DEFAULT_ADMIN_ROLE, msg.sender), "Sender is not authorized");
-        for (uint256 i = 0; i < contracts.length; i++) {
-            if (
-                address(deprecatedClonesErc20[contracts[i]]).isContract() &&
-                !address(clonesErc20[MAINNET_HASH][contracts[i]]).isContract()
-            ) {
-                clonesErc20[MAINNET_HASH][contracts[i]] = deprecatedClonesErc20[contracts[i]];
-                // TODO: legacy code that needs optimization
-                // slither-disable-next-line costly-loop
-                delete deprecatedClonesErc20[contracts[i]];
-            }
-        }
-    }
 
     /**
      * @dev Move tokens from schain to mainnet.
