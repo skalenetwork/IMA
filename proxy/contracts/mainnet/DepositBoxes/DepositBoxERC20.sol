@@ -553,11 +553,11 @@ contract DepositBoxERC20 is DepositBox, IDepositBoxERC20 {
             DelayedTransfer storage transfer = delayedTransfers[uint256(delayedTransfersByReceiver[receiver].at(i))];
             DelayedTransferStatus status = transfer.status;
             if (transfer.token == token) {
+                if (status != DelayedTransferStatus.COMPLETED) {
+                    unlockTimestamp = MathUpgradeable.min(unlockTimestamp, transfer.untilTimestamp);
+                }
                 if (status == DelayedTransferStatus.DELAYED) {
-                    unlockTimestamp = MathUpgradeable.min(unlockTimestamp, transfer.untilTimestamp);
                     break;
-                } else if (status == DelayedTransferStatus.ARBITRAGE) {
-                    unlockTimestamp = MathUpgradeable.min(unlockTimestamp, transfer.untilTimestamp);
                 }
             }
         }
