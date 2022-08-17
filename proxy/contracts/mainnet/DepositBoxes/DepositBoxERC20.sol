@@ -608,6 +608,7 @@ contract DepositBoxERC20 is DepositBox, IDepositBoxERC20 {
         );
 
         uint256 currentIndex = 0;
+        bool retrieved = false;
         for (uint256 i = 0; i < transfersAmount; ++i) {
             uint256 transferId = uint256(delayedTransfersByReceiver[receiver].at(currentIndex));
             DelayedTransfer memory transfer = delayedTransfers[transferId];            
@@ -632,6 +633,7 @@ contract DepositBoxERC20 is DepositBox, IDepositBoxERC20 {
                     } else {
                         delayedTransfers[transferId].status = DelayedTransferStatus.COMPLETED;
                     }
+                    retrieved = true;
                     _transfer(transfer.token, transfer.receiver, transfer.amount);
                 }
             } else {
@@ -642,6 +644,7 @@ contract DepositBoxERC20 is DepositBox, IDepositBoxERC20 {
                 }
             }
         }
+        require(retrieved, "There are no transfers available for retrieving");
     }
 
     /**

@@ -391,7 +391,8 @@ describe("DepositBoxERC20", () => {
 
                 (await token.balanceOf(user.address)).should.be.equal(balanceBefore);
 
-                await depositBoxERC20.connect(user).retrieve();
+                await depositBoxERC20.connect(user).retrieve()
+                    .should.be.rejectedWith("There are no transfers available for retrieving");
 
                 (await token.balanceOf(user.address)).should.be.equal(balanceBefore);
 
