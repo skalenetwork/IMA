@@ -115,7 +115,7 @@
           {
             "contract": "Initializable",
             "label": "_initialized",
-            "type": "t_bool",
+            "type": "t_uint8",
             "src": "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol:23"
           },
           {
@@ -312,7 +312,7 @@
           {
             "contract": "Initializable",
             "label": "_initialized",
-            "type": "t_bool",
+            "type": "t_uint8",
             "src": "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol:23"
           },
           {
@@ -498,7 +498,7 @@
           {
             "contract": "Initializable",
             "label": "_initialized",
-            "type": "t_bool",
+            "type": "t_uint8",
             "src": "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol:23"
           },
           {
@@ -678,7 +678,7 @@
           {
             "contract": "Initializable",
             "label": "_initialized",
-            "type": "t_bool",
+            "type": "t_uint8",
             "src": "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol:23"
           },
           {
@@ -864,7 +864,7 @@
           {
             "contract": "Initializable",
             "label": "_initialized",
-            "type": "t_bool",
+            "type": "t_uint8",
             "src": "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol:23"
           },
           {
@@ -1056,7 +1056,7 @@
           {
             "contract": "Initializable",
             "label": "_initialized",
-            "type": "t_bool",
+            "type": "t_uint8",
             "src": "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol:23"
           },
           {
@@ -1248,7 +1248,7 @@
           {
             "contract": "Initializable",
             "label": "_initialized",
-            "type": "t_bool",
+            "type": "t_uint8",
             "src": "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol:23"
           },
           {
@@ -1449,7 +1449,7 @@
           {
             "contract": "Initializable",
             "label": "_initialized",
-            "type": "t_bool",
+            "type": "t_uint8",
             "src": "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol:21"
           },
           {
@@ -1646,7 +1646,7 @@
           {
             "contract": "Initializable",
             "label": "_initialized",
-            "type": "t_bool",
+            "type": "t_uint8",
             "src": "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol:21"
           },
           {
@@ -1832,7 +1832,7 @@
           {
             "contract": "Initializable",
             "label": "_initialized",
-            "type": "t_bool",
+            "type": "t_uint8",
             "src": "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol:21"
           },
           {
@@ -2012,7 +2012,7 @@
           {
             "contract": "Initializable",
             "label": "_initialized",
-            "type": "t_bool",
+            "type": "t_uint8",
             "src": "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol:21"
           },
           {
@@ -2198,7 +2198,7 @@
           {
             "contract": "Initializable",
             "label": "_initialized",
-            "type": "t_bool",
+            "type": "t_uint8",
             "src": "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol:21"
           },
           {
@@ -2390,7 +2390,7 @@
           {
             "contract": "Initializable",
             "label": "_initialized",
-            "type": "t_bool",
+            "type": "t_uint8",
             "src": "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol:21"
           },
           {
@@ -2582,7 +2582,7 @@
           {
             "contract": "Initializable",
             "label": "_initialized",
-            "type": "t_bool",
+            "type": "t_uint8",
             "src": "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol:21"
           },
           {
@@ -2783,7 +2783,7 @@
           {
             "contract": "Initializable",
             "label": "_initialized",
-            "type": "t_bool",
+            "type": "t_uint8",
             "src": "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol:21"
           },
           {
@@ -2980,7 +2980,7 @@
           {
             "contract": "Initializable",
             "label": "_initialized",
-            "type": "t_bool",
+            "type": "t_uint8",
             "src": "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol:21"
           },
           {
@@ -3160,7 +3160,7 @@
           {
             "contract": "Initializable",
             "label": "_initialized",
-            "type": "t_bool",
+            "type": "t_uint8",
             "src": "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol:21"
           },
           {
@@ -3346,7 +3346,7 @@
           {
             "contract": "Initializable",
             "label": "_initialized",
-            "type": "t_bool",
+            "type": "t_uint8",
             "src": "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol:21"
           },
           {
@@ -3538,7 +3538,7 @@
           {
             "contract": "Initializable",
             "label": "_initialized",
-            "type": "t_bool",
+            "type": "t_uint8",
             "src": "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol:21"
           },
           {
@@ -3730,7 +3730,7 @@
           {
             "contract": "Initializable",
             "label": "_initialized",
-            "type": "t_bool",
+            "type": "t_uint8",
             "src": "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol:21"
           },
           {
@@ -3931,7 +3931,7 @@
           {
             "contract": "Initializable",
             "label": "_initialized",
-            "type": "t_bool",
+            "type": "t_uint8",
             "src": "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol:21"
           },
           {
@@ -4128,7 +4128,7 @@
           {
             "contract": "Initializable",
             "label": "_initialized",
-            "type": "t_bool",
+            "type": "t_uint8",
             "src": "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol:21"
           },
           {
@@ -4326,7 +4326,7 @@
           {
             "contract": "Initializable",
             "label": "_initialized",
-            "type": "t_bool",
+            "type": "t_uint8",
             "src": "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol:21"
           },
           {
@@ -4544,7 +4544,7 @@
           {
             "contract": "Initializable",
             "label": "_initialized",
-            "type": "t_bool",
+            "type": "t_uint8",
             "src": "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol:21"
           },
           {
@@ -4730,7 +4730,7 @@
           {
             "contract": "Initializable",
             "label": "_initialized",
-            "type": "t_bool",
+            "type": "t_uint8",
             "src": "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol:21"
           },
           {
@@ -4910,7 +4910,7 @@
           {
             "contract": "Initializable",
             "label": "_initialized",
-            "type": "t_bool",
+            "type": "t_uint8",
             "src": "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol:21"
           },
           {
@@ -5102,7 +5102,7 @@
           {
             "contract": "Initializable",
             "label": "_initialized",
-            "type": "t_bool",
+            "type": "t_uint8",
             "src": "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol:21"
           },
           {
@@ -5300,7 +5300,7 @@
           {
             "contract": "Initializable",
             "label": "_initialized",
-            "type": "t_bool",
+            "type": "t_uint8",
             "src": "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol:21"
           },
           {
@@ -5498,7 +5498,7 @@
           {
             "contract": "Initializable",
             "label": "_initialized",
-            "type": "t_bool",
+            "type": "t_uint8",
             "src": "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol:21"
           },
           {
@@ -5705,7 +5705,7 @@
           {
             "contract": "Initializable",
             "label": "_initialized",
-            "type": "t_bool",
+            "type": "t_uint8",
             "src": "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol:21"
           },
           {

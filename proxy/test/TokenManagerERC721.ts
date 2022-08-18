@@ -135,11 +135,11 @@ describe("TokenManagerERC721", () => {
     it("should successfully call exitToMainERC721", async () => {
         // should be "No token clone on schain" if chains were different
         await tokenManagerERC721.connect(user).exitToMainERC721(token.address, tokenId)
-            .should.be.eventually.rejectedWith("ERC721: approved query for nonexistent token");
+            .should.be.eventually.rejectedWith("ERC721: invalid token ID");
 
         await tokenManagerERC721.connect(schainOwner).addERC721TokenByOwner(mainnetName,  token.address, tokenClone.address);
         await tokenManagerERC721.connect(user).exitToMainERC721(token.address, tokenId)
-            .should.be.eventually.rejectedWith("ERC721: approved query for nonexistent token");
+            .should.be.eventually.rejectedWith("ERC721: invalid token ID");
 
         await tokenClone.connect(deployer).mint(user.address, tokenId);
         await tokenManagerERC721.connect(user).exitToMainERC721(token.address, tokenId)
@@ -1159,7 +1159,7 @@ describe("TokenManagerERC721", () => {
             await tokenManagerERC721
                 .connect(user)
                 .exitToMainERC721(erc721OnTargetChain.address, tokenId)
-                .should.be.eventually.rejectedWith("ERC721: approved query for nonexistent token");
+                .should.be.eventually.rejectedWith("ERC721: invalid token ID");
 
         });
 
