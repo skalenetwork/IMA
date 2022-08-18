@@ -1,4 +1,4 @@
-import { ethers } from "hardhat";
+import { ethers, upgrades } from "hardhat";
 import { TokenManagerERC721, MessageProxyForSchain, TokenManagerLinker, CommunityLocker } from "../../../../typechain";
 
 const name = "TokenManagerERC721";
@@ -11,13 +11,15 @@ export async function deployTokenManagerERC721(
     newDepositBox: string
 ) {
     const factory = await ethers.getContractFactory(name);
-    const instance = await factory.deploy() as TokenManagerERC721;
-    await instance.initialize(
-        schainName,
-        messageProxyForSchain,
-        tokenManagerLinker.address,
-        communityLocker.address,
-        newDepositBox
-    );
+    const instance = await upgrades.deployProxy(
+        factory,
+        [
+            schainName,
+            messageProxyForSchain,
+            tokenManagerLinker.address,
+            communityLocker.address,
+            newDepositBox
+        ]
+    ) as TokenManagerERC721;
     return instance;
 }

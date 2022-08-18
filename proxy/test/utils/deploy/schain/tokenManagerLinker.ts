@@ -1,4 +1,4 @@
-import { ethers } from "hardhat";
+import { ethers, upgrades } from "hardhat";
 import { TokenManagerLinker, MessageProxyForSchain, MessageProxyForSchainTester, MessageProxyForSchainWithoutSignature } from "../../../../typechain";
 
 export async function deployTokenManagerLinker(
@@ -6,7 +6,6 @@ export async function deployTokenManagerLinker(
     newLinkerAddress: string
 ) {
     const factory = await ethers.getContractFactory("TokenManagerLinker");
-    const instance = await factory.deploy() as TokenManagerLinker;
-    await instance.initialize(messageProxyForSchain.address, newLinkerAddress);
+    const instance = await upgrades.deployProxy(factory, [messageProxyForSchain.address, newLinkerAddress]) as TokenManagerLinker;
     return instance;
 }
