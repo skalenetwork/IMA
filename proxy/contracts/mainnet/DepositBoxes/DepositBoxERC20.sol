@@ -77,6 +77,8 @@ contract DepositBoxERC20 is DepositBox, IDepositBoxERC20 {
     bytes32 public constant ARBITER_ROLE = keccak256("ARBITER_ROLE");
 
     // schainHash => address of ERC20 on Mainnet
+    // Deprecated
+    // slither-disable-next-line unused-state
     mapping(bytes32 => mapping(address => bool)) private _deprecatedSchainToERC20;
     mapping(bytes32 => mapping(address => uint256)) public transferredAmount;
     mapping(bytes32 => EnumerableSetUpgradeable.AddressSet) private _schainToERC20;
@@ -101,31 +103,6 @@ contract DepositBoxERC20 is DepositBox, IDepositBoxERC20 {
      * or transferred on SKALE chain.
      */
     event ERC20TokenReady(address indexed contractOnMainnet, uint256 amount);
-
-    /**
-     * @dev Allows DEFAULT_ADMIN_ROLE to initialize token mapping
-     * Notice - this function will be executed only once during upgrade
-     * 
-     * Requirements:
-     * 
-     * `msg.sender` should has DEFAULT_ADMIN_ROLE
-     */
-    function initializeAllTokensForSchain(
-        string calldata schainName,
-        address[] calldata tokens
-    )
-        external
-        override
-    {
-        require(hasRole(DEFAULT_ADMIN_ROLE, msg.sender), "Sender is not authorized");
-        bytes32 schainHash = _schainHash(schainName);
-        for (uint256 i = 0; i < tokens.length; i++) {
-            if (_deprecatedSchainToERC20[schainHash][tokens[i]] && !_schainToERC20[schainHash].contains(tokens[i])) {
-                _schainToERC20[schainHash].add(tokens[i]);
-                delete _deprecatedSchainToERC20[schainHash][tokens[i]];
-            }
-        }
-    }
 
     /**
      * @dev Allows `msg.sender` to send ERC20 token from mainnet to schain
