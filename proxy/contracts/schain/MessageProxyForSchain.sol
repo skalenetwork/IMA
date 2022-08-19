@@ -91,6 +91,7 @@ contract MessageProxyForSchain is MessageProxy, IMessageProxyForSchain {
     //      schainHash  => tail of unprocessed messages
     mapping(bytes32 => uint) private _idxTail;
 
+    // slither-disable-next-line uninitialized-state
     mapping(bytes32 => EnumerableSetUpgradeable.AddressSet) private _registryContracts;
 
     string public version;
