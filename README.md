@@ -44,6 +44,10 @@ A module implementing core IMA functionality.
 
 Data validity verifier module. See [OWASP document](https://www.gitbook.com/download/pdf/book/checkmarx/JS-SCP).
 
+#### SKALE-OBSERVER
+
+[SKALE Network Browser](npms/skale-observer/README.md). Responsible for providing description of all SKALE chains.
+
 #### SKALE-LOG
 
 Console and log file output with rotation.
@@ -65,3 +69,4 @@ Learn more about the SKALE community over on [Discord](https://discord.gg/vvUtWJ
 [![License](https://img.shields.io/github/license/skalenetwork/IMA)](LICENSE)
 All contributions are made under the [GNU Affero General Public License v3](https://www.gnu.org/licenses/agpl-3.0.en.html). See [LICENSE](LICENSE).
 Copyright (C) 2019-Present SKALE Labs.
+[This is a link](src/Test.java)

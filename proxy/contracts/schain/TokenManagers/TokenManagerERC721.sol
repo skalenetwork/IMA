@@ -19,7 +19,7 @@
  *   along with SKALE IMA.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-pragma solidity 0.8.6;
+pragma solidity 0.8.16;
 
 import "@openzeppelin/contracts-upgradeable/utils/AddressUpgradeable.sol";
 import "@skalenetwork/ima-interfaces/schain/TokenManagers/ITokenManagerERC721.sol";
@@ -29,13 +29,6 @@ import "../tokens/ERC721OnChain.sol";
 import "../TokenManager.sol";
 
 
-interface ITokenManagerERC721InitializeFunction is ITokenManagerERC721 {
-    function initializeAllClonesERC721(
-        address[] calldata contracts
-    ) external;
-}
-
-
 /**
  * @title TokenManagerERC721
  * @dev Runs on SKALE Chains,
@@ -43,7 +36,7 @@ interface ITokenManagerERC721InitializeFunction is ITokenManagerERC721 {
  * and creates ERC721 clones.
  * TokenManagerERC721 mints tokens. When a user exits a SKALE chain, it burns them.
  */
-contract TokenManagerERC721 is TokenManager, ITokenManagerERC721InitializeFunction {
+contract TokenManagerERC721 is TokenManager, ITokenManagerERC721 {
     using AddressUpgradeable for address;
     using EnumerableSetUpgradeable for EnumerableSetUpgradeable.AddressSet;
 
@@ -92,27 +85,6 @@ contract TokenManagerERC721 is TokenManager, ITokenManagerERC721InitializeFuncti
      * or transferred on SKALE chain.
      */
     event ERC721TokenReady(bytes32 indexed chainHash, address indexed contractOnMainnet, uint256 tokenId);
-
-    /**
-     * @dev Allows DEFAULT_ADMIN_ROLE to initialize clones ERC721
-     * Notice - this function will be executed only once during upgrade
-     * 
-     * Requirements:
-     * 
-     * `msg.sender` should have DEFAULT_ADMIN_ROLE
-     */
-    function initializeAllClonesERC721(address[] calldata contracts) external override {
-        require(hasRole(DEFAULT_ADMIN_ROLE, msg.sender), "Sender is not authorized");
-        for (uint256 i = 0; i < contracts.length; i++) {
-            if (
-                address(deprecatedClonesErc721[contracts[i]]).isContract() &&
-                !address(clonesErc721[MAINNET_HASH][contracts[i]]).isContract()
-            ) {
-                clonesErc721[MAINNET_HASH][contracts[i]] = deprecatedClonesErc721[contracts[i]];
-                delete deprecatedClonesErc721[contracts[i]];
-            }
-        }
-    }
 
     /**
      * @dev Move tokens from schain to mainnet.

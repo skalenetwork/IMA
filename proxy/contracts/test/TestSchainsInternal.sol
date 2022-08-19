@@ -20,7 +20,7 @@
  */
 
 
-pragma solidity 0.8.6;
+pragma solidity 0.8.16;
 
 import "./TestContractManager.sol";
 import "./TestNodes.sol";
@@ -108,10 +108,6 @@ contract SchainsInternal is ISchainsInternalTester {
         return schains[schainHash].owner == from;
     }
 
-    function isSchainExist(bytes32) external view override returns (bool) {
-        return true;
-    }
-
     function getSchains() external view override returns (bytes32[] memory) {
         return schainsAtSystem;
     }
@@ -132,5 +128,9 @@ contract SchainsInternal is ISchainsInternalTester {
         returns (uint[] memory)
     {
         return schainsGroups[schainHash];
+    }
+
+    function isSchainExist(bytes32) external pure override returns (bool) {
+        return true;
     }
 }

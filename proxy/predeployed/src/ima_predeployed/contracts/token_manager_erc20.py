@@ -1,8 +1,11 @@
-from ima_predeployed.contracts.token_manager import TokenManagerGenerator
+from predeployed_generator.upgradeable_contract_generator import UpgradeableContractGenerator
+
+from .token_manager import TokenManagerGenerator
 
 
 class TokenManagerErc20Generator(TokenManagerGenerator):
     ARTIFACT_FILENAME = "TokenManagerERC20.json"
+    META_FILENAME = "TokenManagerERC20.meta.json"
 
     # ---------- storage ----------
     # --------Initializable--------
@@ -36,5 +39,13 @@ class TokenManagerErc20Generator(TokenManagerGenerator):
     # 207:  clonesErc20
     # 208:  totalSupplyOnMainnet
 
-    def __init__(self, deployer_address: str, deposit_box_address: str, schain_name: str):
-        super().__init__(deployer_address, deposit_box_address, schain_name)
+    def __init__(self):
+        super().__init__()
+
+
+class UpgradeableTokenManagerErc20Generator(UpgradeableContractGenerator):
+    """Generates upgradeable instance of TokenManagerErc20Upgradeable
+    """
+
+    def __init__(self):
+        super().__init__(implementation_generator=TokenManagerErc20Generator())
