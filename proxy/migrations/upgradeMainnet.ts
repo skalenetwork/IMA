@@ -31,7 +31,7 @@ async function main() {
                 ));
             }
 
-            const newHeaderMessageGasCost = 89331;
+            const newHeaderMessageGasCost = 92251;
 
             console.log(chalk.yellow(
                 "Prepare transaction to set header message gas cost to",
