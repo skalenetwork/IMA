@@ -107,7 +107,7 @@ contract MessageProxyForMainnet is SkaleManagerClient, MessageProxy, IMessagePro
     }
 
     modifier whenNotPaused(bytes32 schainHash) {
-        require(!isPaused(schainHash), "IMA bridge is paused with Schain");
+        require(!isPaused(schainHash), "IMA is paused");
         _;
     }
 
