@@ -28,13 +28,6 @@ import "@skalenetwork/etherbase-interfaces/IEtherbaseUpgradeable.sol";
 import "../MessageProxy.sol";
 import "./bls/SkaleVerifier.sol";
 
-interface IMessageProxyForSchainInitializeFunction is IMessageProxyForSchain {
-    function initializeAllRegisteredContracts(
-        bytes32 schainHash,
-        address[] calldata contracts
-    ) external;
-}
-
 
 /**
  * @title MessageProxyForSchain
@@ -57,7 +50,7 @@ interface IMessageProxyForSchainInitializeFunction is IMessageProxyForSchain {
  * Call postIncomingMessages function passing (un)signed message array
  * ID of this schain, Chain 0 represents ETH mainnet,
  */
-contract MessageProxyForSchain is MessageProxy, IMessageProxyForSchainInitializeFunction {
+contract MessageProxyForSchain is MessageProxy, IMessageProxyForSchain {
     using AddressUpgradeable for address;
     using EnumerableSetUpgradeable for EnumerableSetUpgradeable.AddressSet;
 
@@ -98,6 +91,9 @@ contract MessageProxyForSchain is MessageProxy, IMessageProxyForSchainInitialize
     //      schainHash  => tail of unprocessed messages
     mapping(bytes32 => uint) private _idxTail;
 
+    // disable detector until slither will fix this issue
+    // https://github.com/crytic/slither/issues/456
+    // slither-disable-next-line uninitialized-state
     mapping(bytes32 => EnumerableSetUpgradeable.AddressSet) private _registryContracts;
 
     string public version;
@@ -111,30 +107,6 @@ contract MessageProxyForSchain is MessageProxy, IMessageProxyForSchainInitialize
         messageInProgress = true;
         _;
         messageInProgress = false;
-    }
-
-    /**
-     * @dev Allows DEFAULT_ADMIN_ROLE to initialize registered contracts
-     * Notice - this function will be executed only once during upgrade
-     * 
-     * Requirements:
-     * 
-     * `msg.sender` should have DEFAULT_ADMIN_ROLE
-     */
-    function initializeAllRegisteredContracts(
-        bytes32 chainHash,
-        address[] calldata contracts
-    ) external override {
-        require(hasRole(DEFAULT_ADMIN_ROLE, msg.sender), "Sender is not authorized");
-        for (uint256 i = 0; i < contracts.length; i++) {
-            if (
-                deprecatedRegistryContracts[chainHash][contracts[i]] &&
-                !_registryContracts[chainHash].contains(contracts[i])
-            ) {
-                _registryContracts[chainHash].add(contracts[i]);
-                delete deprecatedRegistryContracts[chainHash][contracts[i]];
-            }
-        }
     }
 
     /**
