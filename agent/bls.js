@@ -918,7 +918,7 @@ async function do_sign_messages_impl(
                 cc.normal( "(" ) + cc.bright( i ) + cc.normal( "/" ) + cc.bright( jarrNodes.length ) + cc.normal( ", ID " ) + cc.info( joNode.nodeID ) + cc.normal( ")" ) +
                 cc.normal( ", " ) + cc.notice( "sequence ID" ) + cc.normal( " is " ) + cc.attention( sequence_id );
             const rpcCallOpts = null;
-            /*await*/ rpcCall.create( strNodeURL, rpcCallOpts, async function( joCall, err ) {
+            await rpcCall.create( strNodeURL, rpcCallOpts, async function( joCall, err ) {
                 if( err ) {
                     ++joGatheringTracker.nCountReceived; // including errors
                     ++joGatheringTracker.nCountErrors;
@@ -976,7 +976,7 @@ async function do_sign_messages_impl(
                     cc.debug( " with params " ) + cc.j( joParams ) +
                     cc.debug( ", " ) + cc.notice( "sequence ID" ) + cc.debug( " is " ) + cc.attention( sequence_id ) +
                     "\n" );
-                /*await*/ joCall.call( {
+                await joCall.call( {
                     method: "skale_imaVerifyAndSign",
                     params: joParams
                 }, async function( joIn, joOut, err ) {
@@ -1118,7 +1118,7 @@ async function do_sign_messages_impl(
         details.write( strLogPrefix + cc.debug( "Waiting for BLS glue result " ) + "\n" );
         let errGathering = null;
         const promise_gathering_complete = new Promise( ( resolve, reject ) => {
-            const iv = setInterval( function() {
+            const iv = setInterval( async function() {
                 ++ joGatheringTracker.nWaitIntervalStepsDone;
                 cntSuccess = joGatheringTracker.nCountReceived - joGatheringTracker.nCountErrors;
                 if( cntSuccess >= nCountOfBlsPartsToCollect ) {
@@ -1177,7 +1177,7 @@ async function do_sign_messages_impl(
                 }
                 if( joGatheringTracker.nCountReceived >= jarrNodes.length ) {
                     clearInterval( iv );
-                    /*await*/ fn( "signature error(2), got " + joGatheringTracker.nCountErrors + " errors(s) for " + jarrNodes.length + " node(s)", jarrMessages, null ).catch( ( err ) => {
+                    await fn( "signature error(2), got " + joGatheringTracker.nCountErrors + " errors(s) for " + jarrNodes.length + " node(s)", jarrMessages, null ).catch( ( err ) => {
                         const strErrorMessage =
                             cc.error( "Problem(3) in BLS sign result handler, not enough successful BLS signature parts(" ) +
                             cc.info( cntSuccess ) + cc.error( " when all attempts done, error details: " ) + cc.warning( err.toString() ) +
@@ -1194,7 +1194,7 @@ async function do_sign_messages_impl(
                 }
                 if( joGatheringTracker.nWaitIntervalStepsDone >= joGatheringTracker.nWaitIntervalMaxSteps ) {
                     clearInterval( iv );
-                    /*await*/ fn( "signature error(3), got " + joGatheringTracker.nCountErrors + " errors(s) for " + jarrNodes.length + " node(s)", jarrMessages, null ).catch( ( err ) => {
+                    await fn( "signature error(3), got " + joGatheringTracker.nCountErrors + " errors(s) for " + jarrNodes.length + " node(s)", jarrMessages, null ).catch( ( err ) => {
                         const strErrorMessage =
                             cc.error( "Problem(4) in BLS sign result handler, not enough successful BLS signature parts(" ) +
                             cc.info( cntSuccess ) + cc.error( ") and timeout reached, error details: " ) +
@@ -1529,7 +1529,7 @@ async function do_sign_u256( u256, details, fn ) {
     details.write( strLogPrefix + cc.debug( "Waiting for BLS glue result " ) + "\n" );
     errGathering = null;
     const promise_gathering_complete = new Promise( ( resolve, reject ) => {
-        const iv = setInterval( function() {
+        const iv = setInterval( async function() {
             ++ joGatheringTracker.nWaitIntervalStepsDone;
             const cntSuccess = joGatheringTracker.nCountReceived - joGatheringTracker.nCountErrors;
             if( cntSuccess >= nCountOfBlsPartsToCollect ) {
@@ -1560,7 +1560,7 @@ async function do_sign_u256( u256, details, fn ) {
                 }
                 log.write( cc.debug( "Will call sending function (fn)" ) + "\n" );
                 details.write( cc.debug( "Will call sending function (fn) for " ) + "\n" );
-                /*await*/ fn( strError, u256, joGlueResult ).catch( ( err ) => {
+                await fn( strError, u256, joGlueResult ).catch( ( err ) => {
                     const strErrorMessage = cc.error( "Problem(2) in BLS u256 sign result handler: " ) + cc.warning( err.toString() ) + "\n";
                     log.write( strErrorMessage );
                     details.write( strErrorMessage );
@@ -1575,7 +1575,7 @@ async function do_sign_u256( u256, details, fn ) {
             }
             if( joGatheringTracker.nCountReceived >= jarrNodes.length ) {
                 clearInterval( iv );
-                /*await*/ fn( "signature error(2, u256), got " + joGatheringTracker.nCountErrors + " errors(s) for " + jarrNodes.length + " node(s)", u256, null ).catch( ( err ) => {
+                await fn( "signature error(2, u256), got " + joGatheringTracker.nCountErrors + " errors(s) for " + jarrNodes.length + " node(s)", u256, null ).catch( ( err ) => {
                     const strErrorMessage =
                         cc.error( "Problem(3) in BLS u256 sign result handler, not enough successful BLS signature parts(" ) +
                         cc.info( cntSuccess ) + cc.error( " when all attempts done, error details: " ) + cc.warning( err.toString() ) +
@@ -1591,7 +1591,7 @@ async function do_sign_u256( u256, details, fn ) {
             }
             if( joGatheringTracker.nWaitIntervalStepsDone >= joGatheringTracker.nWaitIntervalMaxSteps ) {
                 clearInterval( iv );
-                /*await*/ fn( "signature error(3, u256), got " + joGatheringTracker.nCountErrors + " errors(s) for " + jarrNodes.length + " node(s)", u256, null ).catch( ( err ) => {
+                await fn( "signature error(3, u256), got " + joGatheringTracker.nCountErrors + " errors(s) for " + jarrNodes.length + " node(s)", u256, null ).catch( ( err ) => {
                     const strErrorMessage =
                         cc.error( "Problem(4) in BLS u256 sign result handler, not enough successful BLS signature parts(" ) +
                         cc.info( cntSuccess ) + cc.error( ") and timeout reached, error details: " ) +

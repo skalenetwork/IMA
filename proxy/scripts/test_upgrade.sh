@@ -10,12 +10,15 @@ DEPLOYED_DIR=$GITHUB_WORKSPACE/deployed-proxy/
 
 git clone --branch "$DEPLOYED_TAG" "https://github.com/$GITHUB_REPOSITORY.git" "$DEPLOYED_DIR"
 
-npx ganache-cli --gasLimit 9000000 --quiet --allowUnlimitedContractSize &
+ACCOUNTS_FILENAME="$DEPLOYED_DIR/proxy/generatedAccounts.json"
+npx ganache-cli --gasLimit 9000000 --quiet --allowUnlimitedContractSize --account_keys_path "$ACCOUNTS_FILENAME" &
 
 cd "$DEPLOYED_DIR"
 yarn install
 cd proxy
-CHAIN_NAME_SCHAIN="Test" VERSION="$DEPLOYED_VERSION" npx hardhat run migrations/deploySkaleManagerComponents.ts --network localhost
+PRIVATE_KEY_FOR_ETHEREUM=$(cat "$ACCOUNTS_FILENAME" | jq -r  '.private_keys | to_entries | .[8].value')
+PRIVATE_KEY_FOR_SCHAIN=$(cat "$ACCOUNTS_FILENAME" | jq -r '.private_keys | to_entries | .[9].value')
+CHAIN_NAME_SCHAIN="Test" VERSION="$DEPLOYED_VERSION" PRIVATE_KEY_FOR_ETHEREUM="$PRIVATE_KEY_FOR_ETHEREUM" PRIVATE_KEY_FOR_SCHAIN="$PRIVATE_KEY_FOR_SCHAIN" npx hardhat run migrations/deploySkaleManagerComponents.ts --network localhost
 VERSION="$DEPLOYED_VERSION" npx hardhat run migrations/deployMainnet.ts --network localhost
 CHAIN_NAME_SCHAIN="Test" VERSION="$DEPLOYED_VERSION" npx hardhat run migrations/deploySchain.ts --network localhost
 cp "$GITHUB_WORKSPACE/proxy/migrations/generateManifest.ts" ./migrations/generateManifest.ts
