@@ -1,4 +1,4 @@
 {
-    "detectors_to_exclude": "uninitialized-local,calls-loop,reentrancy-events,assembly,solc-version,timestamp,unused-return,variable-scope,dead-code,erc20-interface,uninitialized-state,uninitialized-state",
+    "detectors_to_exclude": "uninitialized-local,calls-loop,reentrancy-events,assembly,solc-version,timestamp,unused-return,variable-scope,dead-code,erc20-interface,uninitialized-state",
     "filter_paths": "test|@openzeppelin/contracts|thirdparty"
 }
