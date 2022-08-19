@@ -109,6 +109,27 @@ describe("CommunityPool", () => {
             expect(BigNumber.from(await messageProxy.getOutgoingMessagesCounter(schainName)).toString()).to.be.equal(BigNumber.from(1).toString());
         });
 
+        it("should recharge wallet if user passed enough money with basefee", async () => {
+            const blockNumber = await ethers.provider.getBlockNumber();
+            const baseFeePerGas = (await ethers.provider.getBlock(blockNumber)).baseFeePerGas;
+            const baseFeeCandidate = (baseFeePerGas ? baseFeePerGas : new BigNumber(1, "hex"));
+            const basefee = baseFeeCandidate.toNumber() === 0 ? BigNumber.from(1) : baseFeeCandidate;
+            const amount = minTransactionGas.mul(basefee);
+            //
+            // comment this check until issue https://github.com/NomicFoundation/hardhat/issues/1688 would be fixed
+            //
+            // const amount = await communityPool.getRecommendedRechargeAmount(ethers.utils.id(schainName), user.address));
+            //
+            await communityPool.connect(user).rechargeUserWallet(schainName, user.address, { value: amount.sub(1).toString(), gasPrice: basefee.toNumber()}).should.be.eventually.rejectedWith("Not enough ETH for transaction");
+            await communityPool.connect(user).rechargeUserWallet(schainName, user.address, { value: amount.toString(), gasPrice: basefee.toNumber()});
+            let userBalance = await communityPool.getBalance(user.address, schainName);
+            userBalance.should.be.deep.equal(amount);
+            await communityPool.connect(user).rechargeUserWallet(schainName, user.address, { value: amount.toString(), gasPrice: basefee.toNumber()});
+            userBalance = await communityPool.getBalance(user.address, schainName);
+            userBalance.should.be.deep.equal(amount.mul(2));
+            expect(BigNumber.from(await messageProxy.getOutgoingMessagesCounter(schainName)).toString()).to.be.equal(BigNumber.from(1).toString());
+        });
+
         it("should allow to withdraw money", async () => {
             const amount = minTransactionGas.mul(gasPrice).toNumber();
             await communityPool.connect(user).rechargeUserWallet(schainName, user.address, { value: (amount + 1).toString(), gasPrice });
@@ -230,6 +251,21 @@ describe("CommunityPool", () => {
             .should.be.eventually.rejectedWith("CONSTANT_SETTER_ROLE is required");
         await communityPool.setMinTransactionGas(newMinTransactionGas);
         expect(BigNumber.from(await communityPool.minTransactionGas()).toString()).to.be.equal(newMinTransactionGas.toString());
+    });
+
+    it("should set new multiplier", async () => {
+        const newMultipliermultiplierNumeratorr = BigNumber.from(5);
+        const newMultiplierDivider = BigNumber.from(4);
+        const CONSTANT_SETTER_ROLE  = await communityPool.CONSTANT_SETTER_ROLE();
+        await communityPool.grantRole(CONSTANT_SETTER_ROLE, deployer.address);
+        expect(BigNumber.from(await communityPool.multiplierNumerator()).toString()).to.be.equal(BigNumber.from(3).toString());
+        expect(BigNumber.from(await communityPool.multiplierDivider()).toString()).to.be.equal(BigNumber.from(2).toString());
+        await communityPool.connect(user).setMultiplier(newMultipliermultiplierNumeratorr, newMultiplierDivider)
+            .should.be.eventually.rejectedWith("CONSTANT_SETTER_ROLE is required");
+        await communityPool.setMultiplier(newMultipliermultiplierNumeratorr, 0).should.be.eventually.rejectedWith("Divider is zero");
+        await communityPool.setMultiplier(newMultipliermultiplierNumeratorr, newMultiplierDivider);
+        expect(BigNumber.from(await communityPool.multiplierNumerator()).toString()).to.be.equal(BigNumber.from(newMultipliermultiplierNumeratorr).toString());
+        expect(BigNumber.from(await communityPool.multiplierDivider()).toString()).to.be.equal(BigNumber.from(newMultiplierDivider).toString());
     });
 
     it("should set rejected when call refundGasByUser not from messageProxy contract", async () => {
