@@ -1,4 +1,4 @@
-import { ethers } from "hardhat";
+import { ethers, upgrades } from "hardhat";
 import { ContractManager, MessageProxyForMainnet } from "../../../../typechain";
 
 const name = "MessageProxyForMainnet";
@@ -10,8 +10,7 @@ export async function deployMessageProxyForMainnet(
     if (await contractManager.getContract(name) !== "0x0000000000000000000000000000000000000000") {
         return factory.attach(await contractManager.getContract(name)) as MessageProxyForMainnet;
     } else {
-        const instance = await factory.deploy() as MessageProxyForMainnet;
-        await instance.initialize(contractManager.address);
+        const instance = await upgrades.deployProxy(factory, [contractManager.address]) as MessageProxyForMainnet;
         await contractManager.setContractsAddress(name, instance.address);
         return instance;
     }

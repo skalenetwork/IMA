@@ -41,7 +41,18 @@ contract SkaleManagerClient is Initializable, AccessControlEnumerableUpgradeable
      */
     modifier onlySchainOwner(string memory schainName) {
         require(
-            isSchainOwner(msg.sender, keccak256(abi.encodePacked(schainName))),
+            isSchainOwner(msg.sender, _schainHash(schainName)),
+            "Sender is not an Schain owner"
+        );
+        _;
+    }
+
+    /**
+     * @dev Modifier for checking whether caller is owner of SKALE chain.
+     */
+    modifier onlySchainOwnerByHash(bytes32 schainHash) {
+        require(
+            isSchainOwner(msg.sender, schainHash),
             "Sender is not an Schain owner"
         );
         _;
@@ -75,5 +86,9 @@ contract SkaleManagerClient is Initializable, AccessControlEnumerableUpgradeable
     function isAgentAuthorized(bytes32 schainHash, address sender) public view override returns (bool) {
         address skaleChainsInternal = contractManagerOfSkaleManager.getContract("SchainsInternal");
         return ISchainsInternal(skaleChainsInternal).isNodeAddressesInGroup(schainHash, sender);
+    }
+
+    function _schainHash(string memory schainName) internal pure returns (bytes32) {
+        return keccak256(abi.encodePacked(schainName));
     }
 }

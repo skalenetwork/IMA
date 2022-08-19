@@ -41,6 +41,8 @@ contract DepositBoxERC721 is DepositBox, IDepositBoxERC721 {
     using EnumerableSetUpgradeable for EnumerableSetUpgradeable.AddressSet;
 
     // schainHash => address of ERC on Mainnet
+    // Deprecated
+    // slither-disable-next-line unused-state
     mapping(bytes32 => mapping(address => bool)) private _deprecatedSchainToERC721;
     mapping(address => mapping(uint256 => bytes32)) public transferredAmount;
     mapping(bytes32 => EnumerableSetUpgradeable.AddressSet) private _schainToERC721;
@@ -55,31 +57,6 @@ contract DepositBoxERC721 is DepositBox, IDepositBoxERC721 {
      * or transferred on SKALE chain.
      */
     event ERC721TokenReady(address indexed contractOnMainnet, uint256 tokenId);
-
-    /**
-     * @dev Allows DEFAULT_ADMIN_ROLE to initialize token mapping
-     * Notice - this function will be executed only once during upgrade
-     * 
-     * Requirements:
-     * 
-     * `msg.sender` should has DEFAULT_ADMIN_ROLE
-     */
-    function initializeAllTokensForSchain(
-        string calldata schainName,
-        address[] calldata tokens
-    )
-        external
-        override
-    {
-        require(hasRole(DEFAULT_ADMIN_ROLE, msg.sender), "Sender is not authorized");
-        bytes32 schainHash = keccak256(abi.encodePacked(schainName));
-        for (uint256 i = 0; i < tokens.length; i++) {
-            if (_deprecatedSchainToERC721[schainHash][tokens[i]] && !_schainToERC721[schainHash].contains(tokens[i])) {
-                _schainToERC721[schainHash].add(tokens[i]);
-                delete _deprecatedSchainToERC721[schainHash][tokens[i]];
-            }
-        }
-    }
 
     /**
      * @dev Allows `msg.sender` to send ERC721 token from mainnet to schain.

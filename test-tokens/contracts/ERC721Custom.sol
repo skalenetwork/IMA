@@ -74,7 +74,7 @@ contract ERC721Custom {
     }
 
     function getApproved(uint256 tokenId) public view returns (address) {
-        require(_exists(tokenId), "ERC721: approved query for nonexistent token");
+        require(_exists(tokenId), "ERC721: invalid token ID");
 
         return _tokenApprovals[tokenId];
     }
