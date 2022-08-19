@@ -68,34 +68,7 @@ The ERC20 clone on the target chain MUST have both mint and burn functionalities
 include::example$erc20/token-clone.sol[]
 ----
 
-=== 4. Register ERC20 in TokenManager on Origin
-
-You need to register the origin token contract using the addERC20TokenByOwner method in the TokenManagerERC20 contract. `addERC20TokenByOwner(targetSchainName, originERC20Address, targetERC20Address)`
-
-[tabs]
-====
-IMA-JS::
-+
---
-
-[source,javascript]
-----
-include::example$s2s/erc20/register-origin-imajs.js[]
-----
---
-
-Web3 JS::
-+
---
-
-[source,javascript]
-----
-include::example$s2s/erc20/register-origin-web3.js[]
-----
---
-====
-
-=== 5. Register ERC20 clone in TokenManger on Target
+=== 4. Register ERC20 clone in TokenManger on Target
 
 You need to register the target token contract using the addERC20TokenByOwner method in the TokenManagerERC20 contract on the targetSchain. `addERC20TokenByOwner(originSchainName, originERC20Address, targetERC20Address)`
 
@@ -125,7 +98,7 @@ include::example$s2s/erc20/register-target-web3.js[]
 --
 ====
 
-=== 6. Assign MINTER and BURNER roles to TokenManager on Target.
+=== 5. Assign MINTER and BURNER roles to TokenManager on Target.
 
 Now you need to assign the **TokenManagerERC20** contact on your SKALE Chain as the MINTER_ROLE and BURNER_ROLE for the ERC20 clone on the target. With OpenZeppelin's framework, you simply need to execute an AddMinter, AddBurner, and/or grantRole transaction on the SKALE chain token contract.
 
