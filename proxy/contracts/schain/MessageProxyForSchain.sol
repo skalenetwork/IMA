@@ -91,6 +91,8 @@ contract MessageProxyForSchain is MessageProxy, IMessageProxyForSchain {
     //      schainHash  => tail of unprocessed messages
     mapping(bytes32 => uint) private _idxTail;
 
+    // disable detector until slither will fix this issue
+    // https://github.com/crytic/slither/issues/456
     // slither-disable-next-line uninitialized-state
     mapping(bytes32 => EnumerableSetUpgradeable.AddressSet) private _registryContracts;
 
