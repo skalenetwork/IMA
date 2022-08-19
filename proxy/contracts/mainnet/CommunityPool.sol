@@ -225,6 +225,7 @@ contract CommunityPool is Twin, ICommunityPool {
      */
     function setMultiplier(uint newMultiplierNumerator, uint newMultiplierDivider) external override {
         require(hasRole(CONSTANT_SETTER_ROLE, msg.sender), "CONSTANT_SETTER_ROLE is required");
+        require(newMultiplierDivider > 0, "Divider is zero");
         emit MultiplierWasChanged(
             multiplierNumerator,
             multiplierDivider,
@@ -261,10 +262,11 @@ contract CommunityPool is Twin, ICommunityPool {
         override
         returns (uint256)
     {
-        if (_multiplyOnAdaptedBaseFee(minTransactionGas)  <= _userWallets[receiver][schainHash]) {
+        uint256 currentValue = _multiplyOnAdaptedBaseFee(minTransactionGas);
+        if (currentValue  <= _userWallets[receiver][schainHash]) {
             return 0;
         }
-        return _multiplyOnAdaptedBaseFee(minTransactionGas) - _userWallets[receiver][schainHash];
+        return currentValue - _userWallets[receiver][schainHash];
     }
 
     /**

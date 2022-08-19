@@ -262,6 +262,7 @@ describe("CommunityPool", () => {
         expect(BigNumber.from(await communityPool.multiplierDivider()).toString()).to.be.equal(BigNumber.from(2).toString());
         await communityPool.connect(user).setMultiplier(newMultipliermultiplierNumeratorr, newMultiplierDivider)
             .should.be.eventually.rejectedWith("CONSTANT_SETTER_ROLE is required");
+        await communityPool.setMultiplier(newMultipliermultiplierNumeratorr, 0).should.be.eventually.rejectedWith("Divider is zero");
         await communityPool.setMultiplier(newMultipliermultiplierNumeratorr, newMultiplierDivider);
         expect(BigNumber.from(await communityPool.multiplierNumerator()).toString()).to.be.equal(BigNumber.from(newMultipliermultiplierNumeratorr).toString());
         expect(BigNumber.from(await communityPool.multiplierDivider()).toString()).to.be.equal(BigNumber.from(newMultiplierDivider).toString());
