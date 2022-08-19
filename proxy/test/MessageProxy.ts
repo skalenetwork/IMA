@@ -275,7 +275,7 @@ describe("MessageProxy", () => {
 
             await caller
                 .postOutgoingMessageTester(messageProxyForMainnet.address, schainHash, contractAddress, bytesData)
-                .should.be.rejectedWith("IMA bridge is paused with Schain");
+                .should.be.rejectedWith("IMA is paused");
 
             await messageProxyForMainnet.connect(client).resume(schainName).should.be.rejectedWith("Incorrect sender");
             await messageProxyForMainnet.connect(schainOwner).resume(schainName);
@@ -301,7 +301,7 @@ describe("MessageProxy", () => {
 
             await caller
                 .postOutgoingMessageTester(messageProxyForMainnet.address, schainHash, contractAddress, bytesData)
-                .should.be.rejectedWith("IMA bridge is paused with Schain");
+                .should.be.rejectedWith("IMA is paused");
 
             await messageProxyForMainnet.connect(deployer).resume(schainName);
             await messageProxyForMainnet.connect(schainOwner).resume(schainName).should.be.rejectedWith("Already unpaused");
@@ -527,7 +527,7 @@ describe("MessageProxy", () => {
                     startingCounter + 4,
                     outgoingMessages,
                     sign
-                ).should.be.eventually.rejectedWith("IMA bridge is paused with Schain");
+                ).should.be.eventually.rejectedWith("IMA is paused");
 
             await messageProxyForMainnet.connect(deployer).resume(schainName);
 
