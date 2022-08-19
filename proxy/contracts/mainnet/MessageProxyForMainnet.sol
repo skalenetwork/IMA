@@ -49,6 +49,10 @@ contract MessageProxyForMainnet is SkaleManagerClient, MessageProxy, IMessagePro
     using AddressUpgradeable for address;
     using EnumerableSetUpgradeable for EnumerableSetUpgradeable.AddressSet;
 
+    struct Pause {
+        bool paused;
+    }
+
     bytes32 public constant PAUSABLE_ROLE = keccak256(abi.encodePacked("PAUSABLE_ROLE"));
 
     /**
