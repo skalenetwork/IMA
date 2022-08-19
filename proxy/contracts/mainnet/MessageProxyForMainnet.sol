@@ -73,6 +73,9 @@ contract MessageProxyForMainnet is SkaleManagerClient, MessageProxy, IMessagePro
 
     uint256 public headerMessageGasCost;
     uint256 public messageGasCost;
+
+    // disable detector until slither will fix this issue
+    // https://github.com/crytic/slither/issues/456
     // slither-disable-next-line uninitialized-state
     mapping(bytes32 => EnumerableSetUpgradeable.AddressSet) private _registryContracts;
     string public version;
