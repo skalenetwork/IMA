@@ -111,9 +111,10 @@ BASE_OPTIONS="--gas-price-multiplier=$GAS_PRICE_MULTIPLIER \
 --time-gap=$TIME_GAP \
 --monitoring-port=$MONITORING_PORT"
 
-echo "Base options:"
-echo "$BASE_OPTIONS"
+#echo "Base options:"
+#echo "$BASE_OPTIONS"
 
 echo "Running loop cmd..."
-echo "Going to run: node $DIR/main.js --loop $BASE_OPTIONS"
+#echo "Going to run: node $DIR/main.js --loop $BASE_OPTIONS"
+echo "Going to run: node $DIR/main.js --loop ... ... ..."
 node "$DIR/main.js" --loop $BASE_OPTIONS

@@ -29,7 +29,7 @@ import { getAbi } from './tools/abi';
 import { Manifest, hashBytecode } from "@openzeppelin/upgrades-core";
 import { KeyStorageMock } from '../typechain/KeyStorageMock';
 import { Wallet } from 'ethers';
-import { getPublicKey, stringValue } from '../test/utils/helper';
+import { getPublicKey } from '../test/utils/helper';
 
 export function getContractKeyInAbiFile(contract: string) {
     return contract.replace(/([a-z0-9])(?=[A-Z])/g, '$1_').toLowerCase();
@@ -73,6 +73,16 @@ async function main() {
     if( process.env.CHAIN_NAME_SCHAIN === undefined || process.env.CHAIN_NAME_SCHAIN === "" ) {
         console.log( "Please set CHAIN_NAME_SCHAIN to .env file" );
         process.exit( 126 );
+    }
+
+    if ( process.env.PRIVATE_KEY_FOR_ETHEREUM === undefined || process.env.PRIVATE_KEY_FOR_ETHEREUM === "" ) {
+        console.log( "Please set PRIVATE_KEY_FOR_ETHEREUM to .env file" );
+        process.exit( 127 );
+    }
+
+    if ( process.env.PRIVATE_KEY_FOR_SCHAIN === undefined || process.env.PRIVATE_KEY_FOR_SCHAIN === "" ) {
+        console.log( "Please set PRIVATE_KEY_FOR_ETHEREUM to .env file" );
+        process.exit( 128 );
     }
 
     const schainName = process.env.CHAIN_NAME_SCHAIN;
@@ -132,8 +142,8 @@ async function main() {
     console.log("Set KeyStorage", keyStorage.address, "to ContractManager", contractManager.address, "\n");
     await contractManager.setContractsAddress( "Nodes", nodes.address );
     console.log("Set Nodes", nodes.address, "to ContractManager", contractManager.address, "\n");
-    const nodeAddress1 = new Wallet(stringValue(process.env.PRIVATE_KEY_FOR_ETHEREUM)).connect(ethers.provider);
-    const nodeAddress2 = new Wallet(stringValue(process.env.PRIVATE_KEY_FOR_SCHAIN)).connect(ethers.provider);
+    const nodeAddress1 = new Wallet(process.env.PRIVATE_KEY_FOR_ETHEREUM).connect(ethers.provider);
+    const nodeAddress2 = new Wallet(process.env.PRIVATE_KEY_FOR_SCHAIN).connect(ethers.provider);
     await owner.sendTransaction({to: nodeAddress1.address, value: ethers.utils.parseEther("1")});
     await owner.sendTransaction({to: nodeAddress2.address, value: ethers.utils.parseEther("1")});
 
@@ -161,7 +171,7 @@ async function main() {
     console.log("Create Node 1 with address", nodeAddress2.address, "\n");
     await schainsInternal.initializeSchain( schainName, owner.address, 1, 1 );
     console.log("Initialize Schain", schainName, "with address", owner.address, "\n");
-    await schainsInternal.connect(owner).addNodesToSchainsGroups(stringValue(ethers.utils.id(schainName)), [0, 1]);
+    await schainsInternal.connect(owner).addNodesToSchainsGroups(ethers.utils.id(schainName), [0, 1]);
     console.log("Add Nodes 0 and 1 to schain", schainName, "\n");
     const BLSPublicKey = {
         x: {

@@ -1252,8 +1252,8 @@ async function safe_sign_transaction_with_account( details, w3, tx, rawTx, joAcc
         /*
         details.write(
             cc.debug( "Will sign with Transaction Manager wallet, transaction is " ) + cc.j( tx ) +
-            cc.debug( ", raw transaction is " ) + cc.j( rawTx ) + "\n" +
-            cc.debug( " using account " ) + cc.j( joAccount ) + "\n"
+            cc.debug( ", raw transaction is " ) + cc.j( rawTx ) + "\n"
+            // + cc.debug( " using account " ) + cc.j( joAccount ) + "\n"
         );
         let rpcCallOpts = null;
         if( "strPathSslKey" in joAccount && typeof joAccount.strPathSslKey == "string" && joAccount.strPathSslKey.length > 0 &&
@@ -1309,8 +1309,9 @@ async function safe_sign_transaction_with_account( details, w3, tx, rawTx, joAcc
         */
         strMsg =
             cc.debug( "Will sign with Transaction Manager wallet, transaction is " ) + cc.j( tx ) +
-            cc.debug( ", raw transaction is " ) + cc.j( rawTx ) + "\n" +
-            cc.debug( " using account " ) + cc.j( joAccount );
+            cc.debug( ", raw transaction is " ) + cc.j( rawTx )
+            // + "\n" + cc.debug( " using account " ) + cc.j( joAccount )
+        ;
         details.write( strPrefixDetails + strMsg + "\n" );
         log.write( strPrefixLog + strMsg + "\n" );
         const txAdjusted = JSON.parse( JSON.stringify( rawTx ) ); // tx // rawTx
@@ -1341,8 +1342,8 @@ async function safe_sign_transaction_with_account( details, w3, tx, rawTx, joAcc
     case "sgx": {
         details.write(
             cc.debug( "Will sign with SGX wallet, transaction is " ) + cc.j( tx ) +
-            cc.debug( ", raw transaction is " ) + cc.j( rawTx ) + "\n" +
-            cc.debug( " using account " ) + cc.j( joAccount ) + "\n"
+            cc.debug( ", raw transaction is " ) + cc.j( rawTx ) + "\n"
+            // + cc.debug( " using account " ) + cc.j( joAccount ) + "\n"
         );
         let rpcCallOpts = null;
         if( "strPathSslKey" in joAccount && typeof joAccount.strPathSslKey == "string" && joAccount.strPathSslKey.length > 0 &&
@@ -1373,7 +1374,7 @@ async function safe_sign_transaction_with_account( details, w3, tx, rawTx, joAcc
                     "base": 16 // 10
                 }
             };
-            details.write( cc.debug( "Calling SGX to sign using ECDSA key with: " ) + cc.j( joIn ) + "\n" );
+            details.write( cc.debug( "Calling SGX to sign using ECDSA key with " ) + cc.info( joIn.method ) + cc.debug( "..." ) + "\n" );
             await joCall.call( joIn, async function( joIn, joOut, err ) {
                 if( err ) {
                     const s = cc.fatal( "CRITICAL TRANSACTION SIGNING ERROR:" ) + cc.error( " JSON RPC call to SGX wallet failed, error: " ) + cc.warning( err ) + "\n";
@@ -1425,16 +1426,17 @@ async function safe_sign_transaction_with_account( details, w3, tx, rawTx, joAcc
     case "direct": {
         details.write(
             cc.debug( "Will sign with private key, transaction is " ) + cc.notice( JSON.stringify( tx ) ) +
-            cc.debug( ", raw transaction is " ) + cc.notice( JSON.stringify( rawTx ) ) + "\n" +
-            cc.debug( " using account " ) + cc.j( joAccount ) + "\n"
+            cc.debug( ", raw transaction is " ) + cc.notice( JSON.stringify( rawTx ) ) + "\n"
+            // + cc.debug( " using account " ) + cc.j( joAccount ) + "\n"
         );
         const key = Buffer.from( joAccount.privateKey, "hex" ); // convert private key to buffer
         tx.sign( key ); // arg is privateKey as buffer
     } break;
     default: {
         const s = cc.fatal( "CRITICAL TRANSACTION SIGNING ERROR:" ) +
-            cc.error( " bad credentials information specified, no explicit SGX and no explicit private key found, account is: " ) +
-            cc.j( joAccount ) + "\n";
+            cc.error( " bad credentials information specified, no explicit SGX and no explicit private key found" ) +
+            // + cc.error( ", account is: " ) + cc.j( joAccount )
+            "\n";
         details.write( s );
         log.write( s );
         if( isExitIfEmpty ) {
@@ -4721,7 +4723,6 @@ async function async_pending_tx_start( details, w3, w3_opposite, chain_id, chain
                     }
                 } );
             } );
-
         }
     } catch ( err ) {
         const s =
@@ -5021,7 +5022,7 @@ async function do_transfer(
     const strGatheredDetailsNameColored = "" + cc.bright( strDirection ) + cc.debug( "-" ) +
         cc.info( "do_transfer-A-" ) + cc.debug( "-" ) + cc.notice( "#" ) + cc.note( nTransferLoopCounter ) +
         cc.debug( "-" ) + cc.notice( chain_id_src ) + cc.debug( "-->" ) + cc.notice( chain_id_dst );
-    const details = log.createMemoryStream();
+    const details = log.createMemoryStream( true );
     const jarrReceipts = [];
     let bErrorInSigningMessages = false;
     await init_ima_state_file( details, w3_src, strDirection, optsStateFile );
@@ -5609,7 +5610,7 @@ async function do_transfer(
                 cc.info( nIdxCurrentMsgBlockStart ) + cc.info( jarrMessages.length ) +
                 cc.debug( " message(s) to process: " ) + cc.j( jarrMessages ) +
                 "\n" );
-            let detailsB = log.createMemoryStream();
+            let detailsB = log.createMemoryStream( true );
             const strGatheredDetailsName = "" + strDirection + "-" +
                 "do_transfer-B-#" + nTransferLoopCounter +
                 "-" + chain_id_src + "-->" + chain_id_dst;
@@ -5745,7 +5746,6 @@ async function do_transfer(
                             joReceipt = await safe_send_signed_transaction( detailsB, w3_dst, serializedTx_postIncomingMessages, strActionName, strLogPrefix );
                         }
                         detailsB.write( strLogPrefix + cc.success( "Result receipt: " ) + cc.j( joReceipt ) + "\n" );
-
                         if( joReceipt && typeof joReceipt == "object" && "gasUsed" in joReceipt ) {
                             jarrReceipts.push( {
                                 "description": "do_transfer/postIncomingMessages()",
