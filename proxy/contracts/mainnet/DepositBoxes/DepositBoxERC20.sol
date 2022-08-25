@@ -25,7 +25,8 @@ import "@openzeppelin/contracts-upgradeable/utils/AddressUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/utils/math/MathUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/utils/structs/DoubleEndedQueueUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/utils/structs/EnumerableSetUpgradeable.sol";
-import "@openzeppelin/contracts-upgradeable/token/ERC20/ERC20Upgradeable.sol";
+import "@openzeppelin/contracts-upgradeable/token/ERC20/extensions/IERC20MetadataUpgradeable.sol";
+import "@openzeppelin/contracts-upgradeable/token/ERC20/utils/SafeERC20Upgradeable.sol";
 import "@skalenetwork/ima-interfaces/mainnet/DepositBoxes/IDepositBoxERC20.sol";
 
 import "../../Messages.sol";
@@ -47,6 +48,7 @@ contract DepositBoxERC20 is DepositBox, IDepositBoxERC20 {
     using AddressUpgradeable for address;
     using DoubleEndedQueueUpgradeable for DoubleEndedQueueUpgradeable.Bytes32Deque;
     using EnumerableSetUpgradeable for EnumerableSetUpgradeable.AddressSet;
+    using SafeERC20Upgradeable for IERC20MetadataUpgradeable;
 
     enum DelayedTransferStatus {
         DELAYED,
@@ -133,7 +135,7 @@ contract DepositBoxERC20 is DepositBox, IDepositBoxERC20 {
         address contractReceiver = schainLinks[schainHash];
         require(contractReceiver != address(0), "Unconnected chain");
         require(
-            ERC20Upgradeable(erc20OnMainnet).allowance(msg.sender, address(this)) >= amount,
+            IERC20MetadataUpgradeable(erc20OnMainnet).allowance(msg.sender, address(this)) >= amount,
             "DepositBox was not approved for ERC20 token"
         );
         bytes memory data = _receiveERC20(
@@ -143,21 +145,7 @@ contract DepositBoxERC20 is DepositBox, IDepositBoxERC20 {
             amount
         );
         _saveTransferredAmount(schainHash, erc20OnMainnet, amount);
-        if (erc20OnMainnet == _USDT_ADDRESS) {
-            // solhint-disable-next-line no-empty-blocks
-            try IERC20TransferVoid(erc20OnMainnet).transferFrom(msg.sender, address(this), amount) {} catch {
-                revert("Transfer was failed");
-            }
-        } else {
-            require(
-                ERC20Upgradeable(erc20OnMainnet).transferFrom(
-                    msg.sender,
-                    address(this),
-                    amount
-                ),
-                "Transfer was failed"
-            );
-        }
+        IERC20MetadataUpgradeable(erc20OnMainnet).safeTransferFrom(msg.sender, address(this), amount);
         messageProxy.postOutgoingMessage(
             schainHash,
             contractReceiver,
@@ -187,7 +175,10 @@ contract DepositBoxERC20 is DepositBox, IDepositBoxERC20 {
     {
         Messages.TransferErc20Message memory message = Messages.decodeTransferErc20Message(data);
         require(message.token.isContract(), "Given address is not a contract");
-        require(ERC20Upgradeable(message.token).balanceOf(address(this)) >= message.amount, "Not enough money");
+        require(
+            IERC20MetadataUpgradeable(message.token).balanceOf(address(this)) >= message.amount,
+            "Not enough money"
+        );
         _removeTransferredAmount(schainHash, message.token, message.amount);
 
         uint256 delay = _delayConfig[schainHash].transferDelay;
@@ -198,7 +189,7 @@ contract DepositBoxERC20 is DepositBox, IDepositBoxERC20 {
         ) {
             _createDelayedTransfer(schainHash, message, delay);            
         } else {
-            _transfer(message.token, message.receiver, message.amount);
+            IERC20MetadataUpgradeable(message.token).safeTransfer(message.receiver, message.amount);
         }
     }
 
@@ -241,10 +232,7 @@ contract DepositBoxERC20 is DepositBox, IDepositBoxERC20 {
         bytes32 schainHash = _schainHash(schainName);
         require(transferredAmount[schainHash][erc20OnMainnet] >= amount, "Incorrect amount");
         _removeTransferredAmount(schainHash, erc20OnMainnet, amount);
-        require(
-            ERC20Upgradeable(erc20OnMainnet).transfer(receiver, amount),
-            "Transfer was failed"
-        );
+        IERC20MetadataUpgradeable(erc20OnMainnet).safeTransfer(receiver, amount);
     }
 
     /**
@@ -405,7 +393,7 @@ contract DepositBoxERC20 is DepositBox, IDepositBoxERC20 {
         require(transfer.status == DelayedTransferStatus.ARBITRAGE, "Arbitrage has to be active");
         transfer.status = DelayedTransferStatus.COMPLETED;
         delete transfer.untilTimestamp;
-        _transfer(transfer.token, transfer.receiver, transfer.amount);
+        IERC20MetadataUpgradeable(transfer.token).safeTransfer(transfer.receiver, transfer.amount);
     }
 
     /**
@@ -428,7 +416,7 @@ contract DepositBoxERC20 is DepositBox, IDepositBoxERC20 {
         transfer.status = DelayedTransferStatus.COMPLETED;
         delete transfer.untilTimestamp;
         // msg.sender is schain owner
-        _transfer(transfer.token, msg.sender, transfer.amount);
+        IERC20MetadataUpgradeable(transfer.token).safeTransfer(msg.sender, transfer.amount);
     }
 
     /**
@@ -616,7 +604,7 @@ contract DepositBoxERC20 is DepositBox, IDepositBoxERC20 {
                         delayedTransfers[transferId].status = DelayedTransferStatus.COMPLETED;
                     }
                     retrieved = true;
-                    _transfer(transfer.token, transfer.receiver, transfer.amount);
+                    IERC20MetadataUpgradeable(transfer.token).safeTransfer(transfer.receiver, transfer.amount);
                 }
             } else {
                 // status is COMPLETED
@@ -687,7 +675,7 @@ contract DepositBoxERC20 is DepositBox, IDepositBoxERC20 {
         returns (bytes memory data)
     {
         bytes32 schainHash = _schainHash(schainName);
-        ERC20Upgradeable erc20 = ERC20Upgradeable(erc20OnMainnet);
+        IERC20MetadataUpgradeable erc20 = IERC20MetadataUpgradeable(erc20OnMainnet);
         uint256 totalSupply = erc20.totalSupply();
         require(amount <= totalSupply, "Amount is incorrect");
         bool isERC20AddedToSchain = _schainToERC20[schainHash].contains(erc20OnMainnet);
@@ -770,25 +758,6 @@ contract DepositBoxERC20 is DepositBox, IDepositBoxERC20 {
     }
 
     /**
-     * @dev Transfer ERC20 token or USDT
-     */
-    function _transfer(address token, address receiver, uint256 amount) private {
-        // there is no other reliable way to determine USDT
-        // slither-disable-next-line incorrect-equality
-        if (token == _USDT_ADDRESS) {
-            // solhint-disable-next-line no-empty-blocks
-            try IERC20TransferVoid(token).transfer(receiver, amount) {} catch {
-                revert("Transfer was failed");
-            }
-        } else {
-            require(
-                ERC20Upgradeable(token).transfer(receiver, amount),
-                "Transfer was failed"
-            );
-        }
-    }
-
-    /**
      * Create instance of DelayedTransfer and initialize all auxiliary fields.
      */
     function _createDelayedTransfer(
@@ -825,14 +794,18 @@ contract DepositBoxERC20 is DepositBox, IDepositBoxERC20 {
     /**
      * @dev Returns total supply of ERC20 token.
      */
-    function _getErc20TotalSupply(ERC20Upgradeable erc20Token) private view returns (uint256) {
+    function _getErc20TotalSupply(IERC20MetadataUpgradeable erc20Token) private view returns (uint256) {
         return erc20Token.totalSupply();
     }
 
     /**
      * @dev Returns info about ERC20 token such as token name, decimals, symbol.
      */
-    function _getErc20TokenInfo(ERC20Upgradeable erc20Token) private view returns (Messages.Erc20TokenInfo memory) {
+    function _getErc20TokenInfo(IERC20MetadataUpgradeable erc20Token)
+        private
+        view
+        returns (Messages.Erc20TokenInfo memory)
+    {
         return Messages.Erc20TokenInfo({
             name: erc20Token.name(),
             decimals: erc20Token.decimals(),
