@@ -73,7 +73,6 @@ contract DepositBoxERC20 is DepositBox, IDepositBoxERC20 {
         uint256 arbitrageDuration;    
     }
 
-    address private constant _USDT_ADDRESS = 0xdAC17F958D2ee523a2206206994597C13D831ec7;
     uint256 private constant _QUEUE_PROCESSING_LIMIT = 10;
 
     bytes32 public constant ARBITER_ROLE = keccak256("ARBITER_ROLE");
