@@ -371,7 +371,7 @@ describe("TokenManagerERC20", () => {
             await tokenManagerErc20
                 .connect(user)
                 .transferToSchainERC20(newSchainName, erc20OnOriginChain.address, amount);
-            
+
             BigNumber.from(await messageProxyForSchain.getOutgoingMessagesCounter(newSchainName)).should.be.deep.equal(BigNumber.from(3));
 
             await communityLocker.setTimeLimitPerMessage(newSchainName, 0);

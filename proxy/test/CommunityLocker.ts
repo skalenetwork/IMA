@@ -116,13 +116,15 @@ describe("CommunityLocker", () => {
     });
 
     it("should set time limit per message for schain", async () => {
-        const schainName = "Schain Sierra";
-        const schainHash = ethers.utils.id(schainName);
+        const anotherSchainName = "Schain Sierra";
+        const schainHash = ethers.utils.id(anotherSchainName);
         expect(BigNumber.from(await communityLocker.timeLimitPerMessage(schainHash)).toString()).to.be.equal(BigNumber.from(0).toString());
-        await communityLocker.setTimeLimitPerMessage(schainName, 0)
+        await communityLocker.setTimeLimitPerMessage(anotherSchainName, 1200)
             .should.be.eventually.rejectedWith("Not enough permissions to set constant");
         await communityLocker.grantRole(await communityLocker.CONSTANT_SETTER_ROLE(), deployer.address);
-        await communityLocker.setTimeLimitPerMessage(schainName, 1200);
+        await communityLocker.setTimeLimitPerMessage(schainName, 1200)
+            .should.be.eventually.rejectedWith("Incorrect chain");
+        await communityLocker.setTimeLimitPerMessage(anotherSchainName, 1200);
         expect(BigNumber.from(await communityLocker.timeLimitPerMessage(schainHash)).toString()).to.be.equal(BigNumber.from(1200).toString());
     });
 

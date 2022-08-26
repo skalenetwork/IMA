@@ -325,7 +325,7 @@ describe("TokenManagerERC721", () => {
             await tokenManagerERC721
                 .connect(user)
                 .transferToSchainERC721(newSchainName, erc721OnOriginChain.address, 3);
-            
+
             BigNumber.from(await messageProxyForSchain.getOutgoingMessagesCounter(newSchainName)).should.be.deep.equal(BigNumber.from(3));
 
             await communityLocker.setTimeLimitPerMessage(newSchainName, 0);

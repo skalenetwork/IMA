@@ -307,7 +307,7 @@ describe("TokenManagerERC1155", () => {
             await tokenManagerERC1155
                 .connect(user)
                 .transferToSchainERC1155(newSchainName, erc1155OnOriginChain.address, id, 1);
-            
+
             BigNumber.from(await messageProxyForSchain.getOutgoingMessagesCounter(newSchainName)).should.be.deep.equal(BigNumber.from(3));
 
             await communityLocker.setTimeLimitPerMessage(newSchainName, 0);
@@ -1349,7 +1349,7 @@ describe("TokenManagerERC1155", () => {
             await tokenManagerERC1155
                 .connect(user)
                 .transferToSchainERC1155Batch(newSchainName, erc1155OnOriginChain.address, ids, [1, 1, 1, 1]);
-            
+
             BigNumber.from(await messageProxyForSchain.getOutgoingMessagesCounter(newSchainName)).should.be.deep.equal(BigNumber.from(3));
 
             await communityLocker.setTimeLimitPerMessage(newSchainName, 0);
