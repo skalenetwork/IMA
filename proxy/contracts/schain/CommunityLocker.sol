@@ -79,7 +79,7 @@ contract CommunityLocker is ICommunityLockerInitializer, AccessControlEnumerable
      * @dev Amount of seconds after message sending
      * when next message cannot be sent.
      */
-    // slither-disable-next-line constable-states uninitialized-state
+    // slither-disable-next-line uninitialized-state
     uint private _deprecatedTimeLimitPerMessage;
 
     /**
