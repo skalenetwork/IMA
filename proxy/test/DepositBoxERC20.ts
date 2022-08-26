@@ -233,6 +233,39 @@ describe("DepositBoxERC20", () => {
             await depositBoxERC20.connect(schainOwner).addERC20TokenByOwner(schainName, erc20.address)
                 .should.be.eventually.rejectedWith("Schain is killed");
         });
+
+        it("should invoke `depositERC20` for non standard ERC20", async () => {
+            // preparation
+            // mint some quantity of ERC20 tokens for `deployer` address
+            const erc20TWR = await (await ethers.getContractFactory("ERC20TransferWithoutReturn")).deploy("Test", "TST");
+            const erc20TWFR = await (await ethers.getContractFactory("ERC20TransferWithFalseReturn")).deploy("Test", "TST");
+            const erc20IT = await (await ethers.getContractFactory("ERC20IncorrectTransfer")).deploy("Test", "TST");
+            const amount = 10;
+            await erc20TWR.connect(deployer).mint(deployer.address, amount);
+            await erc20TWFR.connect(deployer).mint(deployer.address, amount);
+            await erc20IT.connect(deployer).mint(deployer.address, amount);
+            await erc20.connect(deployer).mint(deployer.address, amount);
+            await erc20TWR.connect(deployer).approve(depositBoxERC20.address, amount);
+            await erc20TWFR.connect(deployer).approve(depositBoxERC20.address, amount);
+            await erc20IT.connect(deployer).approve(depositBoxERC20.address, amount);
+            await erc20.connect(deployer).approve(depositBoxERC20.address, amount);
+            // execution
+            await depositBoxERC20.connect(schainOwner).disableWhitelist(schainName);
+            await depositBoxERC20
+                .connect(deployer)
+                .depositERC20(schainName, erc20.address, 1);
+            await depositBoxERC20
+                .connect(deployer)
+                .depositERC20(schainName, erc20TWR.address, 1);
+            await depositBoxERC20
+                .connect(deployer)
+                .depositERC20(schainName, erc20IT.address, 1)
+                .should.be.eventually.rejectedWith("SafeERC20: low-level call failed");
+            await depositBoxERC20
+                .connect(deployer)
+                .depositERC20(schainName, erc20TWFR.address, 1)
+                .should.be.eventually.rejectedWith("SafeERC20: ERC20 operation did not succeed");
+        });
     });
 
     describe("tests for `postMessage` function", async () => {
@@ -327,6 +360,73 @@ describe("DepositBoxERC20", () => {
             expect(BigNumber.from(await depositBoxERC20.transferredAmount(schainHash, erc20.address)).toString()).to.be.equal(BigNumber.from(0).toString());
 
             (await erc20.balanceOf(user.address)).toString().should.be.equal((amount * 2).toString());
+
+        });
+
+        it("should transfer non standard ERC20 token", async () => {
+            //  preparation
+            const erc20TWR = await (await ethers.getContractFactory("ERC20TransferWithoutReturn")).deploy("Test", "TST");
+            const amount = 10;
+            const to = user.address;
+            const senderFromSchain = deployer.address;
+            const wei = 1e18.toString();
+
+            const sign = {
+                blsSignature: BlsSignature,
+                counter: Counter,
+                hashA: HashA,
+                hashB: HashB,
+            };
+
+            const message = {
+                data: await messages.encodeTransferErc20Message(erc20.address, to, amount),
+                destinationContract: depositBoxERC20.address,
+                sender: senderFromSchain
+            };
+            const messageTWR = {
+                data: await messages.encodeTransferErc20Message(erc20TWR.address, to, amount),
+                destinationContract: depositBoxERC20.address,
+                sender: senderFromSchain
+            };
+
+            await initializeSchain(contractManager, schainName, schainOwner.address, 1, 1);
+            await setCommonPublicKey(contractManager, schainName);
+
+            await depositBoxERC20.connect(user).depositERC20(schainName, erc20.address, amount)
+                .should.be.eventually.rejectedWith("Unconnected chain");
+
+            await linker
+                .connect(deployer)
+                .connectSchain(schainName, [deployer.address, deployer.address, deployer.address]);
+
+            await communityPool
+                .connect(user)
+                .rechargeUserWallet(schainName, user.address, { value: wei });
+
+            await depositBoxERC20.connect(schainOwner).disableWhitelist(schainName);
+            await erc20.connect(deployer).mint(user.address, amount * 2);
+            await erc20TWR.connect(deployer).mint(user.address, amount * 2);
+
+            await erc20.connect(user).approve(depositBoxERC20.address, amount * 2);
+            await erc20TWR.connect(user).approve(depositBoxERC20.address, amount * 2);
+
+            await depositBoxERC20.connect(user).depositERC20(schainName, erc20.address, amount);
+            await depositBoxERC20.connect(user).depositERC20(schainName, erc20TWR.address, amount);
+
+            const balanceBefore = await deployer.getBalance();
+            await messageProxy.connect(nodeAddress).postIncomingMessages(schainName, 0, [message, messageTWR], sign);
+            const balance = await deployer.getBalance();
+            balance.should.be.least(balanceBefore);
+            balance.should.be.closeTo(balanceBefore, 10);
+
+            await depositBoxERC20.connect(user).depositERC20(schainName, erc20.address, amount);
+            await depositBoxERC20.connect(user).depositERC20(schainName, erc20TWR.address, amount);
+            await messageProxy.connect(nodeAddress).postIncomingMessages(schainName, 2, [message, messageTWR], sign);
+            expect(BigNumber.from(await depositBoxERC20.transferredAmount(schainHash, erc20.address)).toString()).to.be.equal(BigNumber.from(0).toString());
+            expect(BigNumber.from(await depositBoxERC20.transferredAmount(schainHash, erc20TWR.address)).toString()).to.be.equal(BigNumber.from(0).toString());
+
+            (await erc20.balanceOf(user.address)).toString().should.be.equal((amount * 2).toString());
+            (await erc20TWR.balanceOf(user.address)).toString().should.be.equal((amount * 2).toString());
 
         });
 
