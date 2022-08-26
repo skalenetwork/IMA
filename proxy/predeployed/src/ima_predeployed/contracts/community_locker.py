@@ -82,7 +82,7 @@ class CommunityLockerGenerator(AccessControlEnumerableGenerator):
         cls._write_address(storage, cls.COMMUNITY_POOL_SLOT, community_pool_address)
 
         cls._write_bytes32(storage, cls.SCHAIN_HASH_SLOT, Web3.solidityKeccak(['string'], [schain_name]))
-        time_limit_per_message_slot = Generator.calculate_mapping_value_slot(
+        time_limit_per_message_slot = AccessControlEnumerableGenerator.calculate_mapping_value_slot(
             cls.TIME_LIMIT_PER_MESSAGE_SLOT, cls.MAINNET_HASH, 'bytes32')
         cls._write_uint256(storage, time_limit_per_message_slot, cls.DEFAULT_TIME_LIMIT_SEC)
 
