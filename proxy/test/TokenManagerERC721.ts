@@ -120,7 +120,7 @@ describe("TokenManagerERC721", () => {
         await messageProxyForSchain.connect(deployer).grantRole(extraContractRegistrarRole, deployer.address);
 
         await communityLocker.grantRole(await communityLocker.CONSTANT_SETTER_ROLE(), deployer.address);
-        await communityLocker.setTimeLimitPerMessage(0);
+        await communityLocker.setTimeLimitPerMessage("Mainnet", 0);
     });
 
     it("should change depositBox address", async () => {

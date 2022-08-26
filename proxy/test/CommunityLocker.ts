@@ -107,11 +107,11 @@ describe("CommunityLocker", () => {
     });
 
     it("should set time limit per message", async () => {
-        await communityLocker.setTimeLimitPerMessage(0)
+        await communityLocker.setTimeLimitPerMessage("Mainnet", 0)
             .should.be.eventually.rejectedWith("Not enough permissions to set constant");
         await communityLocker.grantRole(await communityLocker.CONSTANT_SETTER_ROLE(), deployer.address);
-        await communityLocker.setTimeLimitPerMessage(0);
-        expect(BigNumber.from(await communityLocker.timeLimitPerMessage()).toString()).to.be.equal(BigNumber.from(0).toString());
+        await communityLocker.setTimeLimitPerMessage("Mainnet", 0);
+        expect(BigNumber.from(await communityLocker.timeLimitPerMessage(mainnetHash)).toString()).to.be.equal(BigNumber.from(0).toString());
     });
 
     it("should set gasprice", async () => {

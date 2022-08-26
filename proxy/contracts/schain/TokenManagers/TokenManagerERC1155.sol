@@ -111,7 +111,7 @@ contract TokenManagerERC1155 is
         external
         override
     {
-        communityLocker.checkAllowedToSendMessage(msg.sender);
+        communityLocker.checkAllowedToSendMessage(MAINNET_HASH, msg.sender);
         _exit(MAINNET_HASH, depositBox, contractOnMainnet, msg.sender, id, amount);
     }
 
@@ -128,7 +128,7 @@ contract TokenManagerERC1155 is
         external
         override
     {
-        communityLocker.checkAllowedToSendMessage(msg.sender);
+        communityLocker.checkAllowedToSendMessage(MAINNET_HASH, msg.sender);
         _exitBatch(MAINNET_HASH, depositBox, contractOnMainnet, msg.sender, ids, amounts);
     }
 

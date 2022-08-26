@@ -99,7 +99,7 @@ contract TokenManagerERC20 is TokenManager, ITokenManagerERC20 {
         external
         override
     {
-        communityLocker.checkAllowedToSendMessage(msg.sender);
+        communityLocker.checkAllowedToSendMessage(MAINNET_HASH, msg.sender);
         _exit(MAINNET_HASH, depositBox, contractOnMainnet, msg.sender, amount);
     }
 

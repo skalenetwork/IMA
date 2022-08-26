@@ -98,7 +98,7 @@ contract TokenManagerERC721 is TokenManager, ITokenManagerERC721 {
         external
         override
     {
-        communityLocker.checkAllowedToSendMessage(msg.sender);
+        communityLocker.checkAllowedToSendMessage(MAINNET_HASH, msg.sender);
         _exit(MAINNET_HASH, depositBox, contractOnMainnet, msg.sender, tokenId);
     }
 

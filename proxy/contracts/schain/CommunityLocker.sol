@@ -28,13 +28,17 @@ import "@skalenetwork/ima-interfaces/schain/ICommunityLocker.sol";
 
 import "../Messages.sol";
 
+interface ICommunityLockerInitializer is ICommunityLocker {
+    function initializeTimestamp() external;
+}
+
 
 /**
  * @title CommunityLocker
  * @dev Contract contains logic to perform automatic reimbursement
  * of gas fees for sent messages
  */
-contract CommunityLocker is ICommunityLocker, AccessControlEnumerableUpgradeable {
+contract CommunityLocker is ICommunityLockerInitializer, AccessControlEnumerableUpgradeable {
 
     /**
      * @dev Mainnet identifier.
@@ -75,7 +79,8 @@ contract CommunityLocker is ICommunityLocker, AccessControlEnumerableUpgradeable
      * @dev Amount of seconds after message sending
      * when next message cannot be sent.
      */
-    uint public timeLimitPerMessage;
+    // slither-disable-next-line constable-states uninitialized-state
+    uint private _deprecatedTimeLimitPerMessage;
 
     /**
      * @dev Mapping of users who are allowed to send a message.
@@ -92,6 +97,10 @@ contract CommunityLocker is ICommunityLocker, AccessControlEnumerableUpgradeable
     uint256 public mainnetGasPrice;
 
     uint256 public gasPriceTimestamp;
+
+    mapping(bytes32 => uint) public timeLimitPerMessage;
+
+    mapping(bytes32 => mapping(address => uint)) public lastMessageTimeStampToSchain;
 
     /**
      * @dev Emitted when a user becomes active.
@@ -117,6 +126,19 @@ contract CommunityLocker is ICommunityLocker, AccessControlEnumerableUpgradeable
         uint previousValue,
         uint newValue
     );
+
+    modifier checkUserBeforeTransfer(bytes32 chainHash, address user) {
+        uint256 lastTimestamp = lastMessageTimeStampToSchain[chainHash][user];
+        if (chainHash == MAINNET_HASH) {
+            require(activeUsers[user], "Recipient must be active");
+            lastTimestamp = lastMessageTimeStamp[user];
+        }
+        require(
+            lastTimestamp + timeLimitPerMessage[chainHash] < block.timestamp,
+            "Trying to send messages too often"
+        );
+        _;
+    }
 
     /**
      * @dev Allows MessageProxy to post operational message from mainnet
@@ -163,21 +185,24 @@ contract CommunityLocker is ICommunityLocker, AccessControlEnumerableUpgradeable
      * - Previous message sent by {receiver} must be sent earlier then {timeLimitPerMessage} seconds before current time
      * or there are no messages sent by {receiver}.
      */
-    function checkAllowedToSendMessage(address receiver) external override {
+    function checkAllowedToSendMessage(bytes32 chainHash, address receiver)
+        external
+        checkUserBeforeTransfer(chainHash, receiver)
+        override
+    {
         require(
             tokenManagerLinker.hasTokenManager(ITokenManager(msg.sender)),
             "Sender is not registered token manager"
         );
-        require(activeUsers[receiver], "Recipient must be active");
-        require(
-            lastMessageTimeStamp[receiver] + timeLimitPerMessage < block.timestamp,
-            "Trying to send messages too often"
-        );
-        lastMessageTimeStamp[receiver] = block.timestamp;
+        if (chainHash == MAINNET_HASH) {
+            lastMessageTimeStamp[receiver] = block.timestamp;
+        } else {
+            lastMessageTimeStampToSchain[chainHash][receiver] = block.timestamp;
+        }
     }
 
     /**
-     * @dev Set value of {timeLimitPerMessage}.
+     * @dev Set value of {timeLimitPerMessage} of given chain.
      *
      * Requirements:
      * 
@@ -185,14 +210,16 @@ contract CommunityLocker is ICommunityLocker, AccessControlEnumerableUpgradeable
      * 
      * Emits a {ConstantUpdated} event.
      */
-    function setTimeLimitPerMessage(uint newTimeLimitPerMessage) external override {
+    function setTimeLimitPerMessage(string memory chainName, uint newTimeLimitPerMessage) external override {
         require(hasRole(CONSTANT_SETTER_ROLE, msg.sender), "Not enough permissions to set constant");
+        bytes32 chainHash = keccak256(abi.encodePacked(chainName));
+        require(chainHash != schainHash, "Incorrect chain");
         emit ConstantUpdated(
             keccak256(abi.encodePacked("TimeLimitPerMessage")),
-            timeLimitPerMessage,
+            timeLimitPerMessage[chainHash],
             newTimeLimitPerMessage
         );
-        timeLimitPerMessage = newTimeLimitPerMessage;
+        timeLimitPerMessage[chainHash] = newTimeLimitPerMessage;
     }
 
     /**
@@ -247,7 +274,13 @@ contract CommunityLocker is ICommunityLocker, AccessControlEnumerableUpgradeable
         messageProxy = newMessageProxy;
         tokenManagerLinker = newTokenManagerLinker;
         schainHash = keccak256(abi.encodePacked(newSchainName));
-        timeLimitPerMessage = 5 minutes;
+        timeLimitPerMessage[MAINNET_HASH] = 5 minutes;
         communityPool = newCommunityPool;
+    }
+
+    function initializeTimestamp() external override {
+        require(hasRole(DEFAULT_ADMIN_ROLE, msg.sender), "Incorrect sender");
+        // slither-disable-next-line uninitialized-state
+        timeLimitPerMessage[MAINNET_HASH] = _deprecatedTimeLimitPerMessage;
     }
 }
