@@ -107,11 +107,23 @@ describe("CommunityLocker", () => {
     });
 
     it("should set time limit per message", async () => {
+        expect(BigNumber.from(await communityLocker.timeLimitPerMessage(mainnetHash)).toString()).to.be.equal(BigNumber.from(300).toString());
         await communityLocker.setTimeLimitPerMessage("Mainnet", 0)
             .should.be.eventually.rejectedWith("Not enough permissions to set constant");
         await communityLocker.grantRole(await communityLocker.CONSTANT_SETTER_ROLE(), deployer.address);
         await communityLocker.setTimeLimitPerMessage("Mainnet", 0);
         expect(BigNumber.from(await communityLocker.timeLimitPerMessage(mainnetHash)).toString()).to.be.equal(BigNumber.from(0).toString());
+    });
+
+    it("should set time limit per message for schain", async () => {
+        const schainName = "Schain Sierra";
+        const schainHash = ethers.utils.id(schainName);
+        expect(BigNumber.from(await communityLocker.timeLimitPerMessage(schainHash)).toString()).to.be.equal(BigNumber.from(0).toString());
+        await communityLocker.setTimeLimitPerMessage(schainName, 0)
+            .should.be.eventually.rejectedWith("Not enough permissions to set constant");
+        await communityLocker.grantRole(await communityLocker.CONSTANT_SETTER_ROLE(), deployer.address);
+        await communityLocker.setTimeLimitPerMessage(schainName, 1200);
+        expect(BigNumber.from(await communityLocker.timeLimitPerMessage(schainHash)).toString()).to.be.equal(BigNumber.from(1200).toString());
     });
 
     it("should set gasprice", async () => {

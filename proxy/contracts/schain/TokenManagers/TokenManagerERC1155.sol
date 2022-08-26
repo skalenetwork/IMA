@@ -149,6 +149,7 @@ contract TokenManagerERC1155 is
         rightTransaction(targetSchainName, msg.sender)
     {
         bytes32 targetSchainHash = keccak256(abi.encodePacked(targetSchainName));
+        communityLocker.checkAllowedToSendMessage(targetSchainHash, msg.sender);
         _exit(targetSchainHash, tokenManagers[targetSchainHash], contractOnMainnet, msg.sender, id, amount);
     }
 
@@ -169,6 +170,7 @@ contract TokenManagerERC1155 is
         rightTransaction(targetSchainName, msg.sender)
     {
         bytes32 targetSchainHash = keccak256(abi.encodePacked(targetSchainName));
+        communityLocker.checkAllowedToSendMessage(targetSchainHash, msg.sender);
         _exitBatch(targetSchainHash, tokenManagers[targetSchainHash], contractOnMainnet, msg.sender, ids, amounts);
     }
 

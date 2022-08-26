@@ -35,6 +35,7 @@ import {
 } from "../typechain";
 
 import { randomString, stringValue } from "./utils/helper";
+import { skipTime } from "./utils/time";
 
 chai.should();
 chai.use((chaiAsPromised as any));
@@ -263,6 +264,106 @@ describe("TokenManagerERC721WithMetadata", () => {
             const outgoingMessagesCounter = BigNumber.from(
                 await messageProxyForSchain.getOutgoingMessagesCounter(newSchainName));
             outgoingMessagesCounter.should.be.deep.equal(BigNumber.from(1));
+        });
+
+        it("should reject `transferToSchainERC721` when executing earlier then allowed", async () => {
+            await messageProxyForSchain.registerExtraContract(newSchainName, tokenManagerERC721WithMetadata.address);
+
+            // add connected chain:
+            await messageProxyForSchain.connect(deployer).grantRole(await messageProxyForSchain.CHAIN_CONNECTOR_ROLE(), deployer.address);
+            await messageProxyForSchain.connect(deployer).addConnectedChain(newSchainName);
+
+            await erc721OnOriginChain.connect(deployer).mint(user.address, 1);
+            await erc721OnOriginChain.connect(user).approve(tokenManagerERC721WithMetadata.address, 1);
+
+            await tokenManagerERC721WithMetadata
+                .connect(user)
+                .transferToSchainERC721(newSchainName, erc721OnOriginChain.address, 1)
+                .should.be.eventually.rejectedWith("Incorrect Token Manager address");
+
+            await tokenManagerERC721WithMetadata
+                .connect(user)
+                .transferToSchainERC721("Mainnet", erc721OnOriginChain.address, 1)
+                .should.be.eventually.rejectedWith("This function is not for transferring to Mainnet");
+
+            await tokenManagerERC721WithMetadata.addTokenManager(newSchainName, tokenManagerERC721WithMetadata2.address);
+
+            await tokenManagerERC721WithMetadata
+                .connect(user)
+                .transferToSchainERC721(newSchainName, erc721OnOriginChain.address, 1);
+
+            BigNumber.from(await messageProxyForSchain.getOutgoingMessagesCounter(newSchainName)).should.be.deep.equal(BigNumber.from(1));
+
+            await erc721OnOriginChain.connect(deployer).mint(user.address, 2);
+            await erc721OnOriginChain.connect(user).approve(tokenManagerERC721WithMetadata.address, 2);
+
+            await tokenManagerERC721WithMetadata
+                .connect(user)
+                .transferToSchainERC721(newSchainName, erc721OnOriginChain.address, 2);
+
+            BigNumber.from(await messageProxyForSchain.getOutgoingMessagesCounter(newSchainName)).should.be.deep.equal(BigNumber.from(2));
+
+            await communityLocker.grantRole(await communityLocker.CONSTANT_SETTER_ROLE(), deployer.address);
+
+            await communityLocker.setTimeLimitPerMessage(newSchainName, 100);
+
+            await erc721OnOriginChain.connect(deployer).mint(user.address, 3);
+            await erc721OnOriginChain.connect(user).approve(tokenManagerERC721WithMetadata.address, 3);
+
+            await tokenManagerERC721WithMetadata
+                .connect(user)
+                .transferToSchainERC721(newSchainName, erc721OnOriginChain.address, 3)
+                .should.be.eventually.rejectedWith("Trying to send messages too often");
+
+            BigNumber.from(await messageProxyForSchain.getOutgoingMessagesCounter(newSchainName)).should.be.deep.equal(BigNumber.from(2));
+
+            await skipTime(90);
+
+            await tokenManagerERC721WithMetadata
+                .connect(user)
+                .transferToSchainERC721(newSchainName, erc721OnOriginChain.address, 3)
+                .should.be.eventually.rejectedWith("Trying to send messages too often");
+
+            BigNumber.from(await messageProxyForSchain.getOutgoingMessagesCounter(newSchainName)).should.be.deep.equal(BigNumber.from(2));
+
+            await skipTime(20);
+
+            await tokenManagerERC721WithMetadata
+                .connect(user)
+                .transferToSchainERC721(newSchainName, erc721OnOriginChain.address, 3);
+            
+            BigNumber.from(await messageProxyForSchain.getOutgoingMessagesCounter(newSchainName)).should.be.deep.equal(BigNumber.from(3));
+
+            await communityLocker.setTimeLimitPerMessage(newSchainName, 0);
+
+            await erc721OnOriginChain.connect(deployer).mint(user.address, 4);
+            await erc721OnOriginChain.connect(user).approve(tokenManagerERC721WithMetadata.address, 4);
+
+            await tokenManagerERC721WithMetadata
+                .connect(user)
+                .transferToSchainERC721(newSchainName, erc721OnOriginChain.address, 4);
+
+            BigNumber.from(await messageProxyForSchain.getOutgoingMessagesCounter(newSchainName)).should.be.deep.equal(BigNumber.from(4));
+
+            await communityLocker.setTimeLimitPerMessage(newSchainName, 100);
+
+            await erc721OnOriginChain.connect(deployer).mint(user.address, 5);
+            await erc721OnOriginChain.connect(user).approve(tokenManagerERC721WithMetadata.address, 5);
+
+            await tokenManagerERC721WithMetadata
+                .connect(user)
+                .transferToSchainERC721(newSchainName, erc721OnOriginChain.address, 5)
+                .should.be.eventually.rejectedWith("Trying to send messages too often");
+
+            BigNumber.from(await messageProxyForSchain.getOutgoingMessagesCounter(newSchainName)).should.be.deep.equal(BigNumber.from(4));
+
+            await skipTime(110);
+
+            await tokenManagerERC721WithMetadata
+                .connect(user)
+                .transferToSchainERC721(newSchainName, erc721OnOriginChain.address, 5);
+
+            BigNumber.from(await messageProxyForSchain.getOutgoingMessagesCounter(newSchainName)).should.be.deep.equal(BigNumber.from(5));
         });
 
         it("should invoke `transferToSchainERC721` and receive tokens without mistakes", async () => {
