@@ -1026,6 +1026,30 @@ describe("MessageProxy", () => {
                     .should.be.eventually.rejectedWith("Extra contract is already registered");
             });
 
+            it("should register reimbursed contract", async () => {
+                const fakeContractOnSchain = deployer.address;
+                await messageProxyForMainnet.connect(user).addReimbursedContract(schainName,  depositBox.address)
+                    .should.be.eventually.rejectedWith("Not enough permissions to add reimbursed contract");
+                await messageProxyForMainnet.addReimbursedContract(schainName, fakeContractOnSchain)
+                    .should.be.eventually.rejectedWith("Given address is not a contract");
+                await messageProxyForMainnet.addReimbursedContract(schainName, depositBox.address)
+                    .should.be.eventually.rejectedWith("Contract is not registered");
+
+                expect((await messageProxyForMainnet.getReimbursedContractsLength(schainHash)).toString()).to.be.equal("0");
+                expect(await messageProxyForMainnet.isReimbursedContract(schainHash, depositBox.address)).to.be.equal(false);
+                await messageProxyForMainnet.registerExtraContract(schainName, depositBox.address);
+                await messageProxyForMainnet.addReimbursedContract(schainName, depositBox.address);
+                expect(await messageProxyForMainnet.isReimbursedContract(schainHash, depositBox.address)).to.be.equal(true);
+                expect((await messageProxyForMainnet.getReimbursedContractsLength(schainHash)).toString()).to.be.equal("1");
+                expect((await messageProxyForMainnet.getReimbursedContractsRange(schainHash, 0, 1)).length).to.be.equal(1);
+                expect((await messageProxyForMainnet.getReimbursedContractsRange(schainHash, 0, 1))[0]).to.be.equal(depositBox.address);
+                await messageProxyForMainnet.getReimbursedContractsRange(schainHash, 0, 11).should.be.eventually.rejectedWith("Range is incorrect");
+                await messageProxyForMainnet.getReimbursedContractsRange(schainHash, 1, 0).should.be.eventually.rejectedWith("Range is incorrect");;
+
+                await messageProxyForMainnet.addReimbursedContract(schainName, depositBox.address)
+                    .should.be.eventually.rejectedWith("Reimbursed contract is already added");
+            });
+
             it("should remove extra contract", async () => {
                 const fakeContractOnSchain = deployer.address;
                 await messageProxyForMainnet.connect(user).removeExtraContract(schainName,  depositBox.address)
@@ -1079,6 +1103,35 @@ describe("MessageProxy", () => {
 
                 await messageProxyForMainnet.removeExtraContractForAll(depositBox.address)
                     .should.be.eventually.rejectedWith("Extra contract is not registered");
+            });
+
+            it("should remove extra contract", async () => {
+                const fakeContractOnSchain = deployer.address;
+                await messageProxyForMainnet.connect(user).removeReimbursedContract(schainName,  depositBox.address)
+                    .should.be.eventually.rejectedWith("Not enough permissions to remove reimbursed contract");
+                await messageProxyForMainnet.removeReimbursedContract(schainName, fakeContractOnSchain)
+                    .should.be.eventually.rejectedWith("Reimbursed contract is not added");
+
+                expect((await messageProxyForMainnet.getReimbursedContractsLength(schainHash)).toString()).to.be.equal("0");
+                await messageProxyForMainnet.registerExtraContract(schainName, depositBox.address);
+                await expect(
+                    messageProxyForMainnet.addReimbursedContract(schainName, depositBox.address)
+                ).to.emit(
+                    messageProxyForMainnet,
+                    "ReimbursedContractAdded"
+                ).withArgs(schainHash, depositBox.address);
+                expect((await messageProxyForMainnet.getReimbursedContractsLength(schainHash)).toString()).to.be.equal("1");
+                await expect(
+                    messageProxyForMainnet.removeReimbursedContract(schainName, depositBox.address)
+                ).to.emit(
+                    messageProxyForMainnet,
+                    "ReimbursedContractRemoved"
+                ).withArgs(schainHash, depositBox.address);
+                expect((await messageProxyForMainnet.getReimbursedContractsLength(schainHash)).toString()).to.be.equal("0");
+
+                await messageProxyForMainnet.removeReimbursedContract(schainName, depositBox.address)
+                    .should.be.eventually.rejectedWith("Reimbursed contract is not added");
+                expect(await messageProxyForMainnet.isReimbursedContract(schainHash, depositBox.address)).to.be.equal(false);
             });
         });
 

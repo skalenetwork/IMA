@@ -223,8 +223,8 @@ contract MessageProxyForMainnet is SkaleManagerClient, MessageProxy, IMessagePro
             isSchainOwner(msg.sender, schainHash),
             "Not enough permissions to add reimbursed contract"
         );
-        require(isContractRegistered(schainHash, reimbursedContract), "Contract is not registered");
         require(reimbursedContract.isContract(), "Given address is not a contract");
+        require(isContractRegistered(schainHash, reimbursedContract), "Contract is not registered");
         require(!_reimbursedContracts[schainHash].contains(reimbursedContract), "Reimbursed contract is already added");
         _reimbursedContracts[schainHash].add(reimbursedContract);
         emit ReimbursedContractAdded(schainHash, reimbursedContract);
@@ -294,7 +294,7 @@ contract MessageProxyForMainnet is SkaleManagerClient, MessageProxy, IMessagePro
         connectedChains[fromSchainHash].incomingMessageCounter += messages.length;
         for (uint256 i = 0; i < messages.length; i++) {
             gasTotal = gasleft();
-            if (isReimbursingContract(fromSchainHash, messages[i].destinationContract)) {
+            if (isReimbursedContract(fromSchainHash, messages[i].destinationContract)) {
                 address receiver = _getGasPayer(fromSchainHash, messages[i], startingCounter + i);
                 _callReceiverContract(fromSchainHash, messages[i], startingCounter + i);
                 notReimbursedGas += communityPool.refundGasByUser(
@@ -381,6 +381,39 @@ contract MessageProxyForMainnet is SkaleManagerClient, MessageProxy, IMessagePro
     }
 
     /**
+     * @dev Should return length of reimbursed contracts by schainHash.
+     */
+    function getReimbursedContractsLength(bytes32 schainHash) external view override returns (uint256) {
+        return _reimbursedContracts[schainHash].length();
+    }
+
+    /**
+     * @dev Should return a range of reimbursed contracts by schainHash.
+     * 
+     * Requirements:
+     * range should be less or equal 10 contracts
+     */
+    function getReimbursedContractsRange(
+        bytes32 schainHash,
+        uint256 from,
+        uint256 to
+    )
+        external
+        view
+        override
+        returns (address[] memory contractsInRange)
+    {
+        require(
+            from < to && to - from <= 10 && to <= _reimbursedContracts[schainHash].length(),
+            "Range is incorrect"
+        );
+        contractsInRange = new address[](to - from);
+        for (uint256 i = from; i < to; i++) {
+            contractsInRange[i - from] = _reimbursedContracts[schainHash].at(i);
+        }
+    }
+
+    /**
      * @dev Creates a new MessageProxyForMainnet contract.
      */
     function initialize(IContractManager contractManagerOfSkaleManagerValue) public virtual override initializer {
@@ -437,7 +470,7 @@ contract MessageProxyForMainnet is SkaleManagerClient, MessageProxy, IMessagePro
     /**
      * @dev Returns true if message to the contract should be reimbursed from CommunityPool.
      */
-    function isReimbursingContract(bytes32 schainHash, address contractAddress) public view override returns (bool) {
+    function isReimbursedContract(bytes32 schainHash, address contractAddress) public view override returns (bool) {
         return
             isContractRegistered(bytes32(0), contractAddress) ||
             _reimbursedContracts[schainHash].contains(contractAddress);
