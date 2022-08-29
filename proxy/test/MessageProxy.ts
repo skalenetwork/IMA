@@ -427,6 +427,95 @@ describe("MessageProxy", () => {
             incomingMessagesCounter.should.be.deep.equal(BigNumber.from(4));
         });
 
+        it("should post incoming message and reimburse from CommunityPool", async () => {
+            const startingCounter = 0;
+            await initializeSchain(contractManager, schainName, deployer.address, 1, 1);
+            const nodeCreationParams = {
+                port: 1337,
+                nonce: 1337,
+                ip: "0x12345678",
+                publicIp: "0x12345678",
+                publicKey: getPublicKey(nodeAddress),
+                name: "GasCalculationNode",
+                domainName: "gascalculationnode.com"
+            };
+            await createNode(contractManager, nodeAddress.address, nodeCreationParams);
+            await addNodesToSchain(contractManager, schainName, [0]);
+            await rechargeSchainWallet(contractManager, schainName, deployer.address, "1000000000000000000");
+            await setCommonPublicKey(contractManager, schainName);
+            await messageProxyForMainnet.registerExtraContract(schainName, communityPool.address);
+            await depositBox.addSchainContract(schainName, deployer.address);
+            const minTransactionGas = await communityPool.minTransactionGas();
+            const amountWei = minTransactionGas.mul(gasPrice).mul(2);
+
+            await messageProxyForMainnet.registerExtraContract(schainName, depositBox.address);
+
+            const message1 = {
+                destinationContract: depositBox.address,
+                sender: deployer.address,
+                data: await messages.encodeTransferEthMessage(client.address, 1),
+            };
+
+            const outgoingMessages = [message1];
+            const sign = {
+                blsSignature: BlsSignature,
+                counter: Counter,
+                hashA: HashA,
+                hashB: HashB,
+            };
+
+            await messageProxyForMainnet.connect(deployer).addConnectedChain(schainName);
+
+            await communityPool.connect(client).rechargeUserWallet(schainName, client.address, {value: amountWei.toString()});
+
+            const testWalletsFactory = await ethers.getContractFactory("Wallets");
+            const testWallets = testWalletsFactory.attach(await contractManager.getContract("Wallets"));
+
+            let balance = await testWallets.getSchainBalance(schainHash);
+            let userBalance = await communityPool.getBalance(client.address, schainName);
+
+            const overrides = {
+                gasPrice: gasPrice
+            }
+
+            await messageProxyForMainnet
+                .connect(nodeAddress)
+                .postIncomingMessages(
+                    schainName,
+                    startingCounter,
+                    outgoingMessages,
+                    sign,
+                    overrides
+                );
+            
+            let newBalance = await testWallets.getSchainBalance(schainHash);
+            let newUserBalance = await communityPool.getBalance(client.address, schainName);
+
+            newBalance.should.be.lt(balance);
+            newUserBalance.should.be.deep.equal(userBalance);
+
+            await messageProxyForMainnet.addReimbursedContract(schainName, depositBox.address);
+
+            balance = newBalance;
+            userBalance = newUserBalance;
+
+            await messageProxyForMainnet
+                .connect(nodeAddress)
+                .postIncomingMessages(
+                    schainName,
+                    startingCounter + 1,
+                    outgoingMessages,
+                    sign,
+                    overrides
+                );
+
+            newBalance = await testWallets.getSchainBalance(schainHash);
+            newUserBalance = await communityPool.getBalance(client.address, schainName);
+
+            newBalance.should.be.deep.equal(balance);
+            newUserBalance.toNumber().should.be.lessThan(userBalance.toNumber());
+        });
+
         it("should not post incoming messages when IMA bridge is paused", async () => {
             const startingCounter = 0;
             await initializeSchain(contractManager, schainName, deployer.address, 1, 1);
