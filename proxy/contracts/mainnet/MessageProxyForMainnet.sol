@@ -84,6 +84,9 @@ contract MessageProxyForMainnet is SkaleManagerClient, MessageProxy, IMessagePro
     // schainHash   => Pause structure
     mapping(bytes32 => Pause) public pauseInfo;
 
+    //   schainHash => Set of addresses of reimbursed contracts
+    mapping(bytes32 => EnumerableSetUpgradeable.AddressSet) private _reimbursedContracts;
+
     /**
      * @dev Emitted when gas cost for message header was changed.
      */
@@ -101,6 +104,22 @@ contract MessageProxyForMainnet is SkaleManagerClient, MessageProxy, IMessagePro
     );
 
     /**
+     * @dev Emitted when reimbursed contract was added
+     */
+    event ReimbursedContractAdded(
+        bytes32 indexed schainHash,
+        address contractAddress
+    );
+
+    /**
+     * @dev Emitted when reimbursed contract was removed
+     */
+    event ReimbursedContractRemoved(
+        bytes32 indexed schainHash,
+        address contractAddress
+    );
+
+    /**
      * @dev Reentrancy guard for postIncomingMessages.
      */
     modifier messageInProgressLocker() {
@@ -110,6 +129,9 @@ contract MessageProxyForMainnet is SkaleManagerClient, MessageProxy, IMessagePro
         messageInProgress = false;
     }
 
+    /**
+     * @dev Modifier to make a function callable only when IMA is active.
+     */
     modifier whenNotPaused(bytes32 schainHash) {
         require(!isPaused(schainHash), "IMA is paused");
         _;
@@ -184,6 +206,54 @@ contract MessageProxyForMainnet is SkaleManagerClient, MessageProxy, IMessagePro
     }
 
     /**
+     * @dev Allows `msg.sender` to add reimbursed contract for being able to reimburse gas amount from CommunityPool
+     * during message transfers from custom contracts.
+     * 
+     * Requirements:
+     * 
+     * - `msg.sender` must be granted as EXTRA_CONTRACT_REGISTRAR_ROLE or owner of given `schainName`.
+     * - Schain name must not be `Mainnet`.
+     * - `reimbursedContract` should be registered as extra contract
+     */
+    function addReimbursedContract(string memory schainName, address reimbursedContract) external override {
+        bytes32 schainHash = keccak256(abi.encodePacked(schainName));
+        require(schainHash != MAINNET_HASH, "Schain hash can not be equal Mainnet");        
+        require(
+            hasRole(EXTRA_CONTRACT_REGISTRAR_ROLE, msg.sender) ||
+            isSchainOwner(msg.sender, schainHash),
+            "Not enough permissions to add reimbursed contract"
+        );
+        require(isContractRegistered(schainHash, reimbursedContract), "Contract is not registered");
+        require(reimbursedContract.isContract(), "Given address is not a contract");
+        require(!_reimbursedContracts[schainHash].contains(reimbursedContract), "Reimbursed contract is already added");
+        _reimbursedContracts[schainHash].add(reimbursedContract);
+        emit ReimbursedContractAdded(schainHash, reimbursedContract);
+    }
+
+    /**
+     * @dev Allows `msg.sender` to remove reimbursed contract,
+     * thus `reimbursedContract` will no longer be available to reimburse gas amount from CommunityPool during
+     * message transfers from mainnet to schain.
+     * 
+     * Requirements:
+     * 
+     * - `msg.sender` must be granted as EXTRA_CONTRACT_REGISTRAR_ROLE or owner of given `schainName`.
+     * - Schain name must not be `Mainnet`.
+     */
+    function removeReimbursedContract(string memory schainName, address reimbursedContract) external override {
+        bytes32 schainHash = keccak256(abi.encodePacked(schainName));
+        require(schainHash != MAINNET_HASH, "Schain hash can not be equal Mainnet");
+        require(
+            hasRole(EXTRA_CONTRACT_REGISTRAR_ROLE, msg.sender) ||
+            isSchainOwner(msg.sender, schainHash),
+            "Not enough permissions to remove reimbursed contract"
+        );
+        require(_reimbursedContracts[schainHash].contains(reimbursedContract), "Reimbursed contract is not added");
+        _reimbursedContracts[schainHash].remove(reimbursedContract);
+        emit ReimbursedContractRemoved(schainHash, reimbursedContract);
+    }
+
+    /**
      * @dev Posts incoming message from `fromSchainName`. 
      * 
      * Requirements:
@@ -224,7 +294,7 @@ contract MessageProxyForMainnet is SkaleManagerClient, MessageProxy, IMessagePro
         connectedChains[fromSchainHash].incomingMessageCounter += messages.length;
         for (uint256 i = 0; i < messages.length; i++) {
             gasTotal = gasleft();
-            if (isContractRegistered(bytes32(0), messages[i].destinationContract)) {
+            if (isReimbursingContract(fromSchainHash, messages[i].destinationContract)) {
                 address receiver = _getGasPayer(fromSchainHash, messages[i], startingCounter + i);
                 _callReceiverContract(fromSchainHash, messages[i], startingCounter + i);
                 notReimbursedGas += communityPool.refundGasByUser(
@@ -362,6 +432,15 @@ contract MessageProxyForMainnet is SkaleManagerClient, MessageProxy, IMessagePro
      */
     function isPaused(bytes32 schainHash) public view override returns (bool) {
         return pauseInfo[schainHash].paused;
+    }
+
+    /**
+     * @dev Returns true if message to the contract should be reimbursed from CommunityPool.
+     */
+    function isReimbursingContract(bytes32 schainHash, address contractAddress) public view override returns (bool) {
+        return
+            isContractRegistered(bytes32(0), contractAddress) ||
+            _reimbursedContracts[schainHash].contains(contractAddress);
     }
 
     // private
