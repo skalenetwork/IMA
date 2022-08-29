@@ -99,6 +99,10 @@ contract MessageProxyForSchain is MessageProxy, IMessageProxyForSchain {
     string public version;
     bool public override messageInProgress;
 
+    // if receiver has no sFuil it's balance is topupped from etherbase
+    // if value is 0 MINIMUM_BALANCE is used
+    uint256 public minimumReceiverBalance;
+
     /**
      * @dev Reentrancy guard for postIncomingMessages.
      */
@@ -203,7 +207,7 @@ contract MessageProxyForSchain is MessageProxy, IMessageProxyForSchain {
         for (uint256 i = 0; i < messages.length; i++) {
             _callReceiverContract(fromChainHash, messages[i], startingCounter + 1);
         }
-        _topUpBalance();
+        _topUpSenderBalance();
     }
 
     /**
@@ -217,6 +221,10 @@ contract MessageProxyForSchain is MessageProxy, IMessageProxyForSchain {
         require(hasRole(DEFAULT_ADMIN_ROLE, msg.sender), "DEFAULT_ADMIN_ROLE is required");
         emit VersionUpdated(version, newVersion);
         version = newVersion;
+    }
+
+    function setMinimumReceiverBalance(uint256 balance) external onlyConstantSetter {
+        minimumReceiverBalance = balance;
     }
 
     /**
@@ -372,20 +380,35 @@ contract MessageProxyForSchain is MessageProxy, IMessageProxyForSchain {
     }
 
     /**
-     * @dev Move skETH from Etherbase if the balance is too low
+     * @dev Move skETH from Etherbase if the sender balance is too low
      */
-    function _topUpBalance() private {
+    function _topUpSenderBalance() private {
         uint balance = msg.sender.balance + gasleft() * tx.gasprice;
+        if (balance < MINIMUM_BALANCE) {
+            _transferFromEtherbase(payable(msg.sender), MINIMUM_BALANCE - balance);
+        }
+    }
+
+    function _topUpReceiverBalance(address payable receiver) private {
+        uint256 balance = receiver.balance;
+        uint256 threashold = minimumReceiverBalance;
+        if (threashold == 0) {
+            threashold = MINIMUM_BALANCE;
+        }
+        if (balance < threashold) {
+            _transferFromEtherbase(receiver, threashold - balance);
+        }
+    }
+
+    function _transferFromEtherbase(address payable target, uint256 value) private {
         IEtherbaseUpgradeable etherbase = _getEtherbase();
         if (address(etherbase).isContract()
             && etherbase.hasRole(etherbase.ETHER_MANAGER_ROLE(), address(this)) 
-            && balance < MINIMUM_BALANCE
         ) {
-            uint missingAmount = MINIMUM_BALANCE - balance;
-            if (missingAmount < address(etherbase).balance) {
-                etherbase.partiallyRetrieve(payable(msg.sender), missingAmount);
+            if (value < address(etherbase).balance) {
+                etherbase.partiallyRetrieve(target, value);
             } else {
-                etherbase.retrieve(payable(msg.sender));
+                etherbase.retrieve(target);
             }
         }
     }
