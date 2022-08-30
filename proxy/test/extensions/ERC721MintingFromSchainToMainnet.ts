@@ -84,7 +84,7 @@ import { deployTokenManagerERC721 } from "../utils/deploy/schain/tokenManagerERC
 import { deployMessageProxyForSchain } from "../utils/deploy/schain/messageProxyForSchain";
 import { deployMessages } from "../utils/deploy/messages";
 
-import { randomString, stringValue, getPublicKey } from "../utils/helper";
+import { stringValue, getPublicKey } from "../utils/helper";
 
 import { ethers, web3 } from "hardhat";
 import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/dist/src/signer-with-address";

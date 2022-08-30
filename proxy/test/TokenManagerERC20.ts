@@ -34,7 +34,7 @@ import {
     CommunityLocker
 } from "../typechain";
 
-import { randomString, stringValue } from "./utils/helper";
+import { stringValue } from "./utils/helper";
 
 chai.should();
 chai.use((chaiAsPromised as any));
@@ -1252,7 +1252,7 @@ describe("TokenManagerERC20", () => {
             const amount = 10;
             const to = user.address;
             const remoteTokenManagerAddress = fakeDepositBox;
-            const fromSchainName = randomString(10);
+            const fromSchainName = "fromSchainName";
             const fromSchainHash = stringValue(web3.utils.soliditySha3(fromSchainName));
             await tokenManagerErc20.addTokenManager(fromSchainName, remoteTokenManagerAddress);
             // await tokenManagerErc20.connect(schainOwner).addERC20TokenByOwner(mainnetName,  erc20OnMainnet.address, erc20OnChain.address);
@@ -1283,7 +1283,7 @@ describe("TokenManagerERC20", () => {
         it("should transfer ERC20 token to schain when token add by schain owner", async () => {
             //  preparation
             const remoteTokenManagerAddress = fakeDepositBox;
-            const fromSchainName = randomString(10);
+            const fromSchainName = "fromSchainName";
             const fromSchainHash = stringValue(web3.utils.soliditySha3(fromSchainName));
             await messageProxyForSchain.connect(deployer).addConnectedChain(fromSchainName);
             await tokenManagerErc20.addTokenManager(fromSchainName, remoteTokenManagerAddress);
@@ -1312,7 +1312,7 @@ describe("TokenManagerERC20", () => {
         it("should should transfer token to schain and automaticaly deploy", async () => {
             //  preparation
             const remoteTokenManagerAddress = fakeDepositBox;
-            const fromSchainName = randomString(10);
+            const fromSchainName = "fromSchainName";
             const fromSchainHash = stringValue(web3.utils.soliditySha3(fromSchainName));
             await tokenManagerErc20.addTokenManager(fromSchainName, remoteTokenManagerAddress);
 
@@ -1361,7 +1361,7 @@ describe("TokenManagerERC20", () => {
             const amount = 10;
             const to = user.address;
             const remoteTokenManagerAddress = fakeDepositBox;
-            const fromSchainName = randomString(10);
+            const fromSchainName = "fromSchainName";
             const fromSchainHash = stringValue(web3.utils.soliditySha3(fromSchainName));
             await tokenManagerErc20.addTokenManager(fromSchainName, remoteTokenManagerAddress);
             await tokenManagerErc20.connect(schainOwner).addERC20TokenByOwner(mainnetName,  erc20OnMainnet.address, erc20OnChain.address);

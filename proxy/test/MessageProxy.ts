@@ -40,7 +40,7 @@ import {
     EtherbaseMock,
     SchainsInternal
 } from "../typechain/";
-import { randomString, stringToHex, getPublicKey } from "./utils/helper";
+import { stringToHex, getPublicKey } from "./utils/helper";
 import ABIReceiverMock = require("../artifacts/contracts/test/ReceiverMock.sol/ReceiverMock.json");
 import { deployLinker } from "./utils/deploy/mainnet/linker";
 import { deployMessageProxyForMainnet } from "./utils/deploy/mainnet/messageProxyForMainnet";
@@ -173,7 +173,7 @@ describe("MessageProxy", () => {
         });
 
         it("should detect registration state by `isConnectedChain` function", async () => {
-            const newSchainName = randomString(10);
+            const newSchainName = "NewSchainName";
             const isConnectedChain = await messageProxyForMainnet.isConnectedChain(newSchainName);
             isConnectedChain.should.be.deep.equal(Boolean(false));
             await messageProxyForMainnet.connect(deployer).addConnectedChain(newSchainName);
