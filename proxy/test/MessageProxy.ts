@@ -475,7 +475,7 @@ describe("MessageProxy", () => {
             let userBalance = await communityPool.getBalance(client.address, schainName);
 
             const overrides = {
-                gasPrice: gasPrice
+                gasPrice
             }
 
             await messageProxyForMainnet
@@ -487,7 +487,7 @@ describe("MessageProxy", () => {
                     sign,
                     overrides
                 );
-            
+
             let newBalance = await testWallets.getSchainBalance(schainHash);
             let newUserBalance = await communityPool.getBalance(client.address, schainName);
 
