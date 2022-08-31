@@ -245,6 +245,7 @@ contract TokenManagerERC721 is TokenManager, ITokenManagerERC721 {
             contractOnSchain.mint(receiver, tokenId);
         }
         emit ERC721TokenReceived(fromChainHash, token, address(contractOnSchain), tokenId);
+        messageProxy.topUpReceiverBalance(payable(receiver));
         return receiver;
     }
 

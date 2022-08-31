@@ -173,6 +173,7 @@ contract TokenManagerLinker is ITokenManagerLinker, AccessControlEnumerableUpgra
      * @dev Check if {tokenManager} is registered in IMA.
      */
     function hasTokenManager(ITokenManager tokenManager) external view override returns (bool) {
+        // TODO: optimize algorithm to save gas
         uint index;
         uint length = tokenManagers.length;
         for (index = 0; index < length; index++) {

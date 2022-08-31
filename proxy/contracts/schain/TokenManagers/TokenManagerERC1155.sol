@@ -355,6 +355,7 @@ contract TokenManagerERC1155 is
             _asSingletonArray(id),
             _asSingletonArray(amount)
         );
+        messageProxy.topUpReceiverBalance(payable(receiver));
         return receiver;
     }
 
@@ -405,6 +406,7 @@ contract TokenManagerERC1155 is
             contractOnSchain.mintBatch(receiver, ids, amounts, "");
         }
         emit ERC1155TokenReceived(fromChainHash, token, address(contractOnSchain), ids, amounts);
+        messageProxy.topUpReceiverBalance(payable(receiver));
         return receiver;
     }
 

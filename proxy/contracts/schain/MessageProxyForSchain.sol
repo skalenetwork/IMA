@@ -223,8 +223,20 @@ contract MessageProxyForSchain is MessageProxy, IMessageProxyForSchain {
         version = newVersion;
     }
 
-    function setMinimumReceiverBalance(uint256 balance) external onlyConstantSetter {
+    function setMinimumReceiverBalance(uint256 balance) external override onlyConstantSetter {
         minimumReceiverBalance = balance;
+    }
+
+    function topUpReceiverBalance(address payable receiver) external override {
+        _authorizeOutgoingMessageSender(schainHash);
+        uint256 balance = receiver.balance;
+        uint256 threashold = minimumReceiverBalance;
+        if (threashold == 0) {
+            threashold = MINIMUM_BALANCE;
+        }
+        if (balance < threashold) {
+            _transferFromEtherbase(receiver, threashold - balance);
+        }
     }
 
     /**
@@ -386,17 +398,6 @@ contract MessageProxyForSchain is MessageProxy, IMessageProxyForSchain {
         uint balance = msg.sender.balance + gasleft() * tx.gasprice;
         if (balance < MINIMUM_BALANCE) {
             _transferFromEtherbase(payable(msg.sender), MINIMUM_BALANCE - balance);
-        }
-    }
-
-    function _topUpReceiverBalance(address payable receiver) private {
-        uint256 balance = receiver.balance;
-        uint256 threashold = minimumReceiverBalance;
-        if (threashold == 0) {
-            threashold = MINIMUM_BALANCE;
-        }
-        if (balance < threashold) {
-            _transferFromEtherbase(receiver, threashold - balance);
         }
     }
 
