@@ -387,7 +387,10 @@ describe("DepositBoxERC20", () => {
                     sender: deployer.address
                 };
 
-                await messageProxy.connect(nodeAddress).postIncomingMessages(schainName, 0, [message], randomSignature);
+                await expect(
+                    messageProxy.connect(nodeAddress).postIncomingMessages(schainName, 0, [message], randomSignature)
+                ).to.emit(depositBoxERC20, "TransferDelayed")
+                    .withArgs(0, user.address, token.address, bigAmount);
 
                 (await token.balanceOf(user.address)).should.be.equal(balanceBefore);
 
