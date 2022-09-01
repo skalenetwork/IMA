@@ -475,7 +475,9 @@ describe("DepositBoxERC20", () => {
                 for (const suspicionsTransfer of suspicionsTransfers) {
                     await depositBoxERC20.connect(richGuy).escalate(suspicionsTransfer)
                         .should.be.rejectedWith("Not enough permissions to request escalation");
-                    await depositBoxERC20.escalate(suspicionsTransfer);
+                    await expect(depositBoxERC20.escalate(suspicionsTransfer))
+                        .to.emit(depositBoxERC20, "Escalated")
+                        .withArgs(suspicionsTransfer);
                     await depositBoxERC20.escalate(suspicionsTransfer)
                         .should.be.rejectedWith("The transfer has to be delayed");
                 }
