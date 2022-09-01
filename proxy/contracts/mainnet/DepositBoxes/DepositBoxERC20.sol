@@ -106,6 +106,8 @@ contract DepositBoxERC20 is DepositBox, IDepositBoxERC20 {
 
     event TransferDelayed(uint256 id, address receiver, address token, uint256 amount);
 
+    event Escalated(uint256 id);
+
     /**
      * @dev Allows `msg.sender` to send ERC20 token from mainnet to schain
      * 
@@ -381,6 +383,7 @@ contract DepositBoxERC20 is DepositBox, IDepositBoxERC20 {
             delayedTransfers[transferId].untilTimestamp,
             block.timestamp + _delayConfig[schainHash].arbitrageDuration
         );
+        emit Escalated(transferId);
     }
 
     /**
