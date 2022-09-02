@@ -27,6 +27,8 @@ import "@skalenetwork/etherbase-interfaces/IEtherbaseUpgradeable.sol";
 
 import "../MessageProxy.sol";
 import "./bls/SkaleVerifier.sol";
+import "./DefaultAddresses.sol";
+import "./TokenManagerLinker.sol";
 
 
 /**
@@ -55,7 +57,7 @@ contract MessageProxyForSchain is MessageProxy, IMessageProxyForSchain {
     using EnumerableSetUpgradeable for EnumerableSetUpgradeable.AddressSet;
 
     IEtherbaseUpgradeable public constant ETHERBASE = IEtherbaseUpgradeable(
-        payable(0xd2bA3e0000000000000000000000000000000000)
+        payable(DefaultAddresses.ETHERBASE)
     );
     uint public constant MINIMUM_BALANCE = 1 ether;
 
@@ -99,9 +101,17 @@ contract MessageProxyForSchain is MessageProxy, IMessageProxyForSchain {
     string public version;
     bool public override messageInProgress;
 
-    // if receiver has no sFuil it's balance is topupped from etherbase
-    // if value is 0 MINIMUM_BALANCE is used
+    /**
+     * @dev if receiver has no sFuil it's balance is topupped from etherbase for the value
+     * if the value is 0 MINIMUM_BALANCE is used
+     */
     uint256 public minimumReceiverBalance;
+
+    /**
+     * @dev Address of TokenManagerLinker
+     * May be set to 0 for old contracts
+     */
+    TokenManagerLinker private _tokenManagerLinker;
 
     /**
      * @dev Reentrancy guard for postIncomingMessages.
@@ -217,8 +227,7 @@ contract MessageProxyForSchain is MessageProxy, IMessageProxyForSchain {
      * 
      * - `msg.sender` must be granted DEFAULT_ADMIN_ROLE.
      */
-    function setVersion(string calldata newVersion) external override {
-        require(hasRole(DEFAULT_ADMIN_ROLE, msg.sender), "DEFAULT_ADMIN_ROLE is required");
+    function setVersion(string calldata newVersion) external override onlyOwner {
         emit VersionUpdated(version, newVersion);
         version = newVersion;
     }
@@ -228,7 +237,8 @@ contract MessageProxyForSchain is MessageProxy, IMessageProxyForSchain {
     }
 
     function topUpReceiverBalance(address payable receiver) external override {
-        _authorizeOutgoingMessageSender(schainHash);
+        // allow only TokenManager to call this function
+        require(_getTokenManagerLinker().hasTokenManager(msg.sender), "Sender is not TokenManager");
         uint256 balance = receiver.balance;
         uint256 threashold = minimumReceiverBalance;
         if (threashold == 0) {
@@ -237,6 +247,10 @@ contract MessageProxyForSchain is MessageProxy, IMessageProxyForSchain {
         if (balance < threashold) {
             _transferFromEtherbase(receiver, threashold - balance);
         }
+    }
+
+    function setTokenManagerLinker(ITokenManagerLinker tokenManagerLinker) external override onlyOwner {
+        _tokenManagerLinker = TokenManagerLinker(address(tokenManagerLinker));
     }
 
     /**
@@ -411,6 +425,15 @@ contract MessageProxyForSchain is MessageProxy, IMessageProxyForSchain {
             } else {
                 etherbase.retrieve(target);
             }
+        }
+    }
+
+    function _getTokenManagerLinker() private returns (TokenManagerLinker) {
+        if (address(_tokenManagerLinker) == address(0)) {
+            require(DefaultAddresses.TOKEN_MANAGER_LINKER.isContract(), "Can't find TokenManagerLinker");
+            return TokenManagerLinker(DefaultAddresses.TOKEN_MANAGER_LINKER);
+        } else {
+            return _tokenManagerLinker;
         }
     }
 

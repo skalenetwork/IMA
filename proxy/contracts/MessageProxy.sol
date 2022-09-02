@@ -132,7 +132,12 @@ abstract contract MessageProxy is AccessControlEnumerableUpgradeable, IMessagePr
     modifier onlyConstantSetter() {
         require(hasRole(CONSTANT_SETTER_ROLE, msg.sender), "Not enough permissions to set constant");
         _;
-    }    
+    }
+
+    modifier onlyOwner() {
+        require(hasRole(DEFAULT_ADMIN_ROLE, msg.sender), "DEFAULT_ADMIN_ROLE is required");
+        _;
+    }
 
     /**
      * @dev Sets gasLimit to a new value.

@@ -165,7 +165,7 @@ contract CommunityLocker is ICommunityLocker, AccessControlEnumerableUpgradeable
      */
     function checkAllowedToSendMessage(address receiver) external override {
         require(
-            tokenManagerLinker.hasTokenManager(ITokenManager(msg.sender)),
+            tokenManagerLinker.hasTokenManager(msg.sender),
             "Sender is not registered token manager"
         );
         require(activeUsers[receiver], "Recipient must be active");
