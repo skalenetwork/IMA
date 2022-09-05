@@ -446,7 +446,7 @@ describe("MessageProxy", () => {
             incomingMessagesCounter.should.be.deep.equal(BigNumber.from(4));
         });
 
-        it("should not post incoming messages when IMA bridge is paused", async () => {
+        it.only("should not post incoming messages when IMA bridge is paused", async () => {
             const startingCounter = 0;
             await initializeSchain(contractManager, schainName, deployer.address, 1, 1);
             const nodeCreationParams = {
@@ -460,10 +460,11 @@ describe("MessageProxy", () => {
             };
             await createNode(contractManager, nodeAddress.address, nodeCreationParams);
             await addNodesToSchain(contractManager, schainName, [0]);
-            await rechargeSchainWallet(contractManager, schainName, deployer.address, "1000000000000000000");
             await setCommonPublicKey(contractManager, schainName);
             await messageProxyForMainnet.registerExtraContract(schainName, communityPool.address);
             await depositBox.addSchainContract(schainName, deployer.address);
+            await communityPool.addSchainContract(schainName, deployer.address);
+            await rechargeSchainWallet(contractManager, schainName, deployer.address, "1000000000000000000");
             const minTransactionGas = await communityPool.minTransactionGas();
             const amountWei = minTransactionGas.mul(gasPrice);
 
