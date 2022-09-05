@@ -1,4 +1,4 @@
-import { ethers } from "hardhat";
+import { ethers, upgrades } from "hardhat";
 import { ContractManager, MessageProxyForMainnet, Linker, DepositBoxERC20 } from "../../../../typechain";
 
 export async function deployDepositBoxERC20(
@@ -8,8 +8,11 @@ export async function deployDepositBoxERC20(
 
 ) {
     const factory = await ethers.getContractFactory("DepositBoxERC20");
-    const instance = await factory.deploy() as DepositBoxERC20;
-    await instance["initialize(address,address,address)"](contractManager.address, linker.address, messageProxy.address);
+    const instance = await upgrades.deployProxy(
+        factory,
+        [contractManager.address, linker.address, messageProxy.address],
+        {"initializer": "initialize(address,address,address)"}
+    ) as DepositBoxERC20;
     await linker.registerMainnetContract(instance.address);
     return instance;
 }

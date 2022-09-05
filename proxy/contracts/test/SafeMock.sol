@@ -19,7 +19,7 @@
     along with SKALE IMA.  If not, see <https://www.gnu.org/licenses/>.
 */
 
-pragma solidity 0.8.6;
+pragma solidity 0.8.16;
 
 import "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
 
@@ -54,7 +54,7 @@ contract SafeMock is OwnableUpgradeable, ISafeMock {
         "EIP712Domain(uint256 chainId,address verifyingContract)"
     );
 
-    constructor() {
+    constructor() initializer {
         OwnableUpgradeable.__Ownable_init();
         multiSend(""); // this is needed to remove slither warning
     }
