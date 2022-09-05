@@ -89,6 +89,7 @@ describe("TokenManagerERC1155", () => {
         const keyStorage = await deployKeyStorageMock();
         messageProxyForSchain = await deployMessageProxyForSchainTester(keyStorage.address, schainName);
         tokenManagerLinker = await deployTokenManagerLinker(messageProxyForSchain, deployer.address);
+        await messageProxyForSchain.setTokenManagerLinker(tokenManagerLinker.address);
         messages = await deployMessages();
         fakeDepositBox = messages.address;
         fakeCommunityPool = messages.address;
