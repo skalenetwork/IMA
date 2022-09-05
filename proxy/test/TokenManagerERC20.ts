@@ -265,6 +265,7 @@ describe("TokenManagerERC20", () => {
             const keyStorage2 = await deployKeyStorageMock();
             messageProxyForSchain2 = await deployMessageProxyForSchainTester(keyStorage2.address, newSchainName);
             tokenManagerLinker2 = await deployTokenManagerLinker(messageProxyForSchain2, deployer.address);
+            await messageProxyForSchain2.setTokenManagerLinker(tokenManagerLinker2.address);
             communityLocker2 = await deployCommunityLocker(newSchainName, messageProxyForSchain2.address, tokenManagerLinker2, fakeCommunityPool);
             tokenManagerErc202 = await deployTokenManagerERC20(newSchainName, messageProxyForSchain2.address, tokenManagerLinker2, communityLocker2, fakeDepositBox);
             await erc20OnTargetChain.connect(deployer).grantRole(await erc20OnTargetChain.MINTER_ROLE(), tokenManagerErc202.address);
