@@ -255,7 +255,7 @@ abstract contract MessageProxy is AccessControlEnumerableUpgradeable, IMessagePr
     /**
      * @dev Should return block number of the last message transferred to schain
      */
-    function getLastOutgoingMessageBlockId(string memory targetSchainName) external view returns (uint) {
+    function getLastOutgoingMessageBlockId(string memory targetSchainName) external view override returns (uint) {
         bytes32 dstChainHash = keccak256(abi.encodePacked(targetSchainName));
         require(connectedChains[dstChainHash].inited, "Destination chain is not initialized");
         return connectedChains[dstChainHash].lastOutgoingMessageBlockId;

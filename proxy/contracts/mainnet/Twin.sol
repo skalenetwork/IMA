@@ -104,7 +104,7 @@ abstract contract Twin is SkaleManagerClient, ITwin {
         messageProxy = newMessageProxy;
     }
 
-    function getSchainContract(bytes32 schainHash) public view returns (address) {
+    function getSchainContract(bytes32 schainHash) public override view returns (address) {
         require(
             schainLinks[schainHash] != address(0),
             "Destination contract must be defined"
