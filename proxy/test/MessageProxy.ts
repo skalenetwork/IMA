@@ -446,7 +446,7 @@ describe("MessageProxy", () => {
             incomingMessagesCounter.should.be.deep.equal(BigNumber.from(4));
         });
 
-        it.only("should not post incoming messages when IMA bridge is paused", async () => {
+        it("should not post incoming messages when IMA bridge is paused", async () => {
             const startingCounter = 0;
             await initializeSchain(contractManager, schainName, deployer.address, 1, 1);
             const nodeCreationParams = {
