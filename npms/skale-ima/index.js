@@ -5018,33 +5018,6 @@ async function async_pending_tx_scanner( details, w3, w3_opposite, chain_id, cha
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-async function init_ima_state_file( details, w3, strDirection, optsStateFile ) {
-    if( strDirection != "M2S" )
-        return;
-    if( ! ( optsStateFile && optsStateFile.isEnabled && "path" in optsStateFile && typeof optsStateFile.path == "string" && optsStateFile.path.length > 0 ) )
-        return;
-    let isFileExist = false;
-    try {
-        if( fs.existsSync( optsStateFile.path ) )
-            isFileExist = true;
-    } catch ( err ) { }
-    if( isFileExist )
-        return;
-    let nBlockFrom = 0;
-    try {
-        nBlockFrom = await w3.eth.getBlockNumber();
-    } catch ( err ) { }
-    const strKeyName = ( strDirection == "M2S" ) ? "lastSearchedStartBlockM2S" : "lastSearchedStartBlockS2M";
-    try {
-        const joStateForLogsSearch = {};
-        details.write( strLogPrefix + cc.normal( "(FIRST TIME) Saving next forecasted block number for logs search value " ) + cc.info( blockNumberNextForecast ) + "\n" );
-        joStateForLogsSearch[strKeyName] = nBlockFrom;
-        const s = JSON.stringify( joStateForLogsSearch, null, 4 );
-        fs.writeFileSync( optsStateFile.path, s );
-    } catch ( err ) {
-    }
-}
-
 let g_nTransferLoopCounter = 0;
 
 //
@@ -5092,8 +5065,7 @@ async function do_transfer(
     //
     tc_dst,
     //
-    optsPendingTxAnalysis,
-    optsStateFile
+    optsPendingTxAnalysis
 ) {
     const nTransferLoopCounter = g_nTransferLoopCounter;
     ++ g_nTransferLoopCounter;
@@ -5108,7 +5080,6 @@ async function do_transfer(
     const details = log.createMemoryStream( true );
     const jarrReceipts = [];
     let bErrorInSigningMessages = false;
-    await init_ima_state_file( details, w3_src, strDirection, optsStateFile );
     const strLogPrefix = cc.bright( strDirection ) + cc.info( " transfer from " ) + cc.notice( chain_id_src ) + cc.info( " to " ) + cc.notice( chain_id_dst ) + cc.info( ":" ) + " ";
     if( fn_sign_messages == null || fn_sign_messages == undefined ) {
         details.write( strLogPrefix + cc.debug( "Using internal signing stub function" ) + "\n" );
@@ -5193,40 +5164,9 @@ async function do_transfer(
             //
             // inner loop wil create block of transactions
             //
-            let cntAccumulatedForBlock = 0, blockNumberNextForecast = 0;
-            let nBlockFrom = 0;
+            let cntAccumulatedForBlock = 0;
+            const nBlockFrom = 0;
             const nBlockTo = "latest";
-            let joStateForLogsSearch = {};
-            // const nLatestBlockNumber = await get_web3_blockNumber( details, 10, w3_src );
-            if( optsStateFile && optsStateFile.isEnabled && "path" in optsStateFile && typeof optsStateFile.path == "string" && optsStateFile.path.length > 0 ) {
-                const strKeyName = ( strDirection == "M2S" ) ? "lastSearchedStartBlockM2S" : "lastSearchedStartBlockS2M";
-                try {
-                    const s = fs.readFileSync( optsStateFile.path );
-                    joStateForLogsSearch = JSON.parse( s );
-                    if( strKeyName in joStateForLogsSearch && typeof joStateForLogsSearch[strKeyName] == "string" ) {
-                        nBlockFrom = "0x" + w3_src.utils.toBN( joStateForLogsSearch[strKeyName] ).toString( 16 );
-                        details.write( strLogPrefix +
-                            cc.normal( "Loaded nearest previously forecasted " ) +
-                            cc.bright( strDirection ) + cc.debug( "/" ) + cc.attention( strKeyName ) +
-                            cc.normal( " block number for logs search value " ) +
-                            cc.info( nBlockFrom ) + "\n" );
-                    } else {
-                        details.write( strLogPrefix +
-                            cc.normal( "Was not found nearest previously forecasted " ) +
-                            cc.bright( strDirection ) + cc.debug( "/" ) + cc.attention( strKeyName ) +
-                            cc.normal( " block number for logs search value " ) +
-                            cc.info( nBlockFrom ) + "\n" );
-                    }
-                } catch ( err ) {
-                    nBlockFrom = 0;
-                    details.write( strLogPrefix +
-                        cc.error( "Was reset nearest previously forecasted " ) +
-                        cc.bright( strDirection ) + cc.debug( "/" ) + cc.attention( strKeyName ) +
-                        cc.error( " block number for logs search value " ) +
-                        cc.error( nBlockFrom ) + cc.error( " due to error: " ) + cc.warning( err ) + "\n" );
-                }
-            }
-            // blockNumberNextForecast = nBlockFrom;
 
             for( let idxInBlock = 0; nIdxCurrentMsg < nOutMsgCnt && idxInBlock < nTransactionsCountInBlock; ++nIdxCurrentMsg, ++idxInBlock, ++cntAccumulatedForBlock ) {
                 const idxProcessing = cntProcessed + idxInBlock;
@@ -5274,16 +5214,6 @@ async function do_transfer(
                             cc.success( "accepted for processing, found event values are " ) + cc.j( joValues ) +
                             cc.success( ", found block number is " ) + cc.info( joValues.savedBlockNumberForOptimizations ) +
                             "\n" );
-                        if( blockNumberNextForecast === 0 )
-                            blockNumberNextForecast = w3mod.utils.toHex( r[i].blockNumber );
-                        else {
-                            const oldBN = w3_src.utils.toBN( blockNumberNextForecast );
-                            const newBN = w3_src.utils.toBN( r[i].blockNumber );
-                            if( newBN.lt( oldBN ) ) {
-                                blockNumberNextForecast = "0x" + newBN.toString( 16 );
-                                details.write( strLogPrefix + cc.normal( "Narrowing next forecasted block number for logs search is " ) + cc.info( blockNumberNextForecast ) + "\n" );
-                            }
-                        }
                         break;
                     } else {
                         details.write( strLogPrefix +
@@ -5292,7 +5222,6 @@ async function do_transfer(
                             "\n" );
                     }
                 }
-                details.write( strLogPrefix + cc.normal( "Next forecasted block number for logs search is " ) + cc.info( blockNumberNextForecast ) + "\n" );
                 if( joValues == "" ) {
                     const strError = strLogPrefix + cc.fatal( "CRITICAL ERROR:" ) + " " + cc.error( "Can't get events from MessageProxy" );
                     log.write( strError + "\n" );
@@ -5901,22 +5830,6 @@ async function do_transfer(
                                 detailsB.write( strLogPrefix + cc.error( "WARNING:" ) + " " + cc.warn( "Cannot validate transfer to Main Net via MessageProxy error absence on Main Net, no MessageProxy provided" ) + "\n" );
                         } // if( chain_id_dst == "Mainnet" )
 
-                        if( optsStateFile && optsStateFile.isEnabled && "path" in optsStateFile && typeof optsStateFile.path == "string" && optsStateFile.path.length > 0 ) {
-                            if( blockNumberNextForecast !== nBlockFrom ) {
-                                const strKeyName = ( strDirection == "M2S" ) ? "lastSearchedStartBlockM2S" : "lastSearchedStartBlockS2M";
-                                try {
-                                    detailsB.write( strLogPrefix +
-                                    cc.normal( "Saving next forecasted " +
-                                    cc.bright( strDirection ) + cc.debug( "/" ) + cc.attention( strKeyName ) +
-                                    " block number for logs search value " ) +
-                                    cc.info( blockNumberNextForecast ) + "\n" );
-                                    joStateForLogsSearch[strKeyName] = blockNumberNextForecast;
-                                    const s = JSON.stringify( joStateForLogsSearch, null, 4 );
-                                    fs.writeFileSync( optsStateFile.path, s );
-                                } catch ( err ) {
-                                }
-                            }
-                        }
                     } ).catch( ( err ) => { // callback fn as argument of fn_sign_messages
                     bErrorInSigningMessages = true;
                     if( verbose_get() >= RV_VERBOSE.fatal ) {
@@ -5994,8 +5907,7 @@ async function do_s2s_all( // s-chain --> s-chain
     //
     tc_dst,
     //
-    optsPendingTxAnalysis,
-    optsStateFile
+    optsPendingTxAnalysis
 ) {
     let cntOK = 0, cntFail = 0;
     const strDirection = "S2S";
@@ -6053,8 +5965,7 @@ async function do_s2s_all( // s-chain --> s-chain
                     //
                     tc_dst,
                     //
-                    optsPendingTxAnalysis,
-                    optsStateFile
+                    optsPendingTxAnalysis
                 );
         } catch ( err ) {
             bOK = false;

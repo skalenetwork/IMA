@@ -262,11 +262,6 @@ global.imaState = {
         "isIgnore2": true // ignore secondary PTX result
     },
 
-    "optsStateFile": {
-        "isEnabled": false, // true
-        "path": "./ima.state.json"
-    },
-
     "nMonitoringPort": 0, // 0 - default, means monitoring server is disabled
 
     "strReimbursementChain": "",
@@ -1268,8 +1263,7 @@ imaCLI.parse( {
                     imaBLS.do_sign_messages_m2s, // fn_sign_messages
                     null, // joExtraSignOpts
                     imaState.tc_s_chain,
-                    imaState.optsPendingTxAnalysis,
-                    imaState.optsStateFile
+                    imaState.optsPendingTxAnalysis
                 );
             }
         } );
@@ -1303,8 +1297,7 @@ imaCLI.parse( {
                     imaBLS.do_sign_messages_s2m, // fn_sign_messages
                     null, // joExtraSignOpts
                     imaState.tc_main_net,
-                    imaState.optsPendingTxAnalysis,
-                    imaState.optsStateFile
+                    imaState.optsPendingTxAnalysis
                 );
             }
         } );
@@ -1334,8 +1327,7 @@ imaCLI.parse( {
                     imaState.nBlockAgeM2S,
                     imaBLS.do_sign_messages_m2s, // fn_sign_messages
                     imaState.tc_s_chain,
-                    imaState.optsPendingTxAnalysis,
-                    null // imaState.optsStateFile
+                    imaState.optsPendingTxAnalysis
                 );
             }
         } );
@@ -2498,8 +2490,7 @@ async function single_transfer_loop() {
             imaBLS.do_sign_messages_m2s, // fn_sign_messages
             null, // joExtraSignOpts
             imaState.tc_s_chain,
-            imaState.optsPendingTxAnalysis,
-            imaState.optsStateFile
+            imaState.optsPendingTxAnalysis
         );
         if( IMA.verbose_get() >= IMA.RV_VERBOSE.information )
             log.write( strLogPrefix + cc.debug( "M2S transfer done: " ) + cc.tf( b1 ) + "\n" );
@@ -2529,8 +2520,7 @@ async function single_transfer_loop() {
             imaBLS.do_sign_messages_s2m, // fn_sign_messages
             null, // joExtraSignOpts
             imaState.tc_main_net,
-            imaState.optsPendingTxAnalysis,
-            imaState.optsStateFile
+            imaState.optsPendingTxAnalysis
         );
         if( IMA.verbose_get() >= IMA.RV_VERBOSE.information )
             log.write( strLogPrefix + cc.debug( "S2M transfer done: " ) + cc.tf( b2 ) + "\n" );
@@ -2555,8 +2545,7 @@ async function single_transfer_loop() {
                 imaState.nBlockAgeM2S,
                 imaBLS.do_sign_messages_s2s, // fn_sign_messages
                 imaState.tc_s_chain,
-                imaState.optsPendingTxAnalysis,
-                null // imaState.optsStateFile
+                imaState.optsPendingTxAnalysis
             );
             if( IMA.verbose_get() >= IMA.RV_VERBOSE.information )
                 log.write( strLogPrefix + cc.debug( "All S2S transfers done: " ) + cc.tf( b3 ) + "\n" );
