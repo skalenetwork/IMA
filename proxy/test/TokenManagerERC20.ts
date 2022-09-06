@@ -31,10 +31,11 @@ import {
     TokenManagerERC20,
     TokenManagerLinker,
     MessageProxyForSchainTester,
-    CommunityLocker
+    CommunityLocker,
+    EtherbaseMock
 } from "../typechain";
 
-import { randomString, stringValue } from "./utils/helper";
+import { randomString } from "./utils/helper";
 
 chai.should();
 chai.use((chaiAsPromised as any));
@@ -46,7 +47,7 @@ import { deployTokenManagerLinker } from "./utils/deploy/schain/tokenManagerLink
 import { deployMessages } from "./utils/deploy/messages";
 import { deployCommunityLocker } from "./utils/deploy/schain/communityLocker";
 
-import { ethers, web3 } from "hardhat";
+import { ethers } from "hardhat";
 import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/dist/src/signer-with-address";
 import { BigNumber } from "ethers";
 
@@ -60,8 +61,8 @@ describe("TokenManagerERC20", () => {
 
     const mainnetName = "Mainnet";
     const schainName = "D2-chain";
-    const schainId = stringValue(web3.utils.soliditySha3(schainName));
-    const mainnetId = stringValue(web3.utils.soliditySha3("Mainnet"));
+    const schainId = ethers.utils.solidityKeccak256(["string"], [schainName]);
+    const mainnetId = ethers.utils.solidityKeccak256(["string"], ["Mainnet"]);
     let fakeDepositBox: string;
     let fakeCommunityPool: any;
     let erc20OnChain: ERC20OnChain;
@@ -256,7 +257,7 @@ describe("TokenManagerERC20", () => {
         let tokenManagerErc202: TokenManagerERC20;
         let communityLocker2: CommunityLocker;
         const newSchainName = "NewChain";
-        const newSchainId = stringValue(web3.utils.soliditySha3(newSchainName));
+        const newSchainId = ethers.utils.solidityKeccak256(["string"], [newSchainName]);
 
         beforeEach(async () => {
             erc20OnOriginChain = await deployERC20OnChain("NewToken", "NTN");
@@ -1255,7 +1256,7 @@ describe("TokenManagerERC20", () => {
             const to = user.address;
             const remoteTokenManagerAddress = fakeDepositBox;
             const fromSchainName = randomString(10);
-            const fromSchainHash = stringValue(web3.utils.soliditySha3(fromSchainName));
+            const fromSchainHash = ethers.utils.solidityKeccak256(["string"], [fromSchainName]);
             await tokenManagerErc20.addTokenManager(fromSchainName, remoteTokenManagerAddress);
             // await tokenManagerErc20.connect(schainOwner).addERC20TokenByOwner(mainnetName,  erc20OnMainnet.address, erc20OnChain.address);
 
@@ -1286,7 +1287,7 @@ describe("TokenManagerERC20", () => {
             //  preparation
             const remoteTokenManagerAddress = fakeDepositBox;
             const fromSchainName = randomString(10);
-            const fromSchainHash = stringValue(web3.utils.soliditySha3(fromSchainName));
+            const fromSchainHash = ethers.utils.solidityKeccak256(["string"], [fromSchainName]);
             await messageProxyForSchain.connect(deployer).addConnectedChain(fromSchainName);
             await tokenManagerErc20.addTokenManager(fromSchainName, remoteTokenManagerAddress);
             await tokenManagerErc20.connect(schainOwner).addERC20TokenByOwner(fromSchainName,  erc20OnMainnet.address, erc20OnChain.address);
@@ -1311,11 +1312,11 @@ describe("TokenManagerERC20", () => {
                 .to.be.equal(amount);
         });
 
-        it("should should transfer token to schain and automaticaly deploy", async () => {
+        it("should should transfer token to schain and automatically deploy", async () => {
             //  preparation
             const remoteTokenManagerAddress = fakeDepositBox;
             const fromSchainName = randomString(10);
-            const fromSchainHash = stringValue(web3.utils.soliditySha3(fromSchainName));
+            const fromSchainHash = ethers.utils.solidityKeccak256(["string"], [fromSchainName]);
             await tokenManagerErc20.addTokenManager(fromSchainName, remoteTokenManagerAddress);
 
             const amount = 10;
@@ -1364,7 +1365,7 @@ describe("TokenManagerERC20", () => {
             const to = user.address;
             const remoteTokenManagerAddress = fakeDepositBox;
             const fromSchainName = randomString(10);
-            const fromSchainHash = stringValue(web3.utils.soliditySha3(fromSchainName));
+            const fromSchainHash = ethers.utils.solidityKeccak256(["string"], [fromSchainName]);
             await tokenManagerErc20.addTokenManager(fromSchainName, remoteTokenManagerAddress);
             await tokenManagerErc20.connect(schainOwner).addERC20TokenByOwner(mainnetName,  erc20OnMainnet.address, erc20OnChain.address);
 
@@ -1395,5 +1396,51 @@ describe("TokenManagerERC20", () => {
             await messageProxyForSchain.postMessage(tokenManagerErc20.address, mainnetId, fakeDepositBox, data)
                 .should.be.eventually.rejectedWith("Total supply exceeded");
         });
+
+        it("should top up a receiver", async () => {
+            const amount = 10;
+            const receiver = ethers.Wallet.createRandom().connect(ethers.provider);
+            const remoteTokenManager = ethers.Wallet.createRandom();
+            const sourceSchainName = randomString(10);
+            const sourceSchainHash = ethers.utils.solidityKeccak256(["string"], [sourceSchainName])
+            await tokenManagerErc20.addTokenManager(sourceSchainName, remoteTokenManager.address);
+            const etherbase = await (await ethers.getContractFactory("EtherbaseMock")).deploy() as EtherbaseMock;
+            await etherbase.initialize(deployer.address);
+            await etherbase.grantRole(await etherbase.ETHER_MANAGER_ROLE(), messageProxyForSchain.address);
+            await messageProxyForSchain.setEtherbase(etherbase.address);
+            await deployer.sendTransaction({to: etherbase.address, value: ethers.utils.parseEther("3")});
+
+            (await receiver.getBalance()).should.be.equal(0);
+
+            const data = await messages.encodeTransferErc20AndTokenInfoMessage(
+                erc20OnMainnet.address,
+                receiver.address,
+                amount,
+                2 * amount,
+                {
+                    name: await erc20OnMainnet.name(),
+                    symbol: await erc20OnMainnet.symbol(),
+                    decimals: await erc20OnMainnet.decimals()
+                }
+            );
+            await tokenManagerErc20.connect(schainOwner).enableAutomaticDeploy();
+            await messageProxyForSchain.postMessage(
+                tokenManagerErc20.address,
+                sourceSchainHash,
+                remoteTokenManager.address,
+                data);
+
+            (await receiver.getBalance()).should.be.equal(await messageProxyForSchain.MINIMUM_BALANCE());
+
+            await messageProxyForSchain.setMinimumReceiverBalance(ethers.utils.parseEther("2"));
+
+            await messageProxyForSchain.postMessage(
+                tokenManagerErc20.address,
+                sourceSchainHash,
+                remoteTokenManager.address,
+                data);
+
+            (await receiver.getBalance()).should.be.equal(await messageProxyForSchain.minimumReceiverBalance());
+        })
     });
 });
