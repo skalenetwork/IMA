@@ -5040,18 +5040,19 @@ async function find_out_reference_log_record( details, w3, jo_message_proxy, nBl
     }
     for( let idxLogRecord = 0; idxLogRecord < cntLogRecord; ++ idxLogRecord ) {
         const joEvent = arrLogRecords[idxLogRecord];
-        const joLogRecord = { // joEvent.returnValues;
+        const joReferenceLogRecord = { // joEvent.returnValues;
             currentMessage: joEvent.returnValues.currentMessage,
-            previousOutgoingMessageBlockId: joEvent.returnValues.previousOutgoingMessageBlockId
+            previousOutgoingMessageBlockId: joEvent.returnValues.previousOutgoingMessageBlockId,
+            currentBlockId: owaspUtils.toInteger( nBlockId.toString() ) // added field
         };
-        const bnCurrentMessage = w3.utils.toBN( joLogRecord.currentMessage.toString() );
+        const bnCurrentMessage = w3.utils.toBN( joReferenceLogRecord.currentMessage.toString() );
         if( bnCurrentMessage.eq( bnMessageNumberToFind ) ) {
             if( isVerbose ) {
                 details.write( strLogPrefix +
                     cc.success( "Found " ) + cc.info( strEventName ) + cc.success( " log record " ) +
-                    cc.j( joLogRecord ) + cc.success( " for message " ) + cc.info( nMessageNumberToFind ) + "\n" );
+                    cc.j( joReferenceLogRecord ) + cc.success( " for message " ) + cc.info( nMessageNumberToFind ) + "\n" );
             }
-            return joLogRecord;
+            return joReferenceLogRecord;
         }
     } // for( let idxLogRecord = 0; idxLogRecord < cntLogRecord; ++ idxLogRecord )
     if( isVerbose ) {
@@ -5083,11 +5084,11 @@ async function find_out_all_reference_log_records( details, w3, jo_message_proxy
     let nWalkMsgNumber = nOutMsgCnt - 1;
     let nWalkBlockId = nBlockId;
     for( ; nWalkMsgNumber >= nIncMsgCnt; -- nWalkMsgNumber ) {
-        const joLogRecord = await find_out_reference_log_record( details, w3, jo_message_proxy, nWalkBlockId, nWalkMsgNumber, isVerbose );
-        if( joLogRecord == null )
+        const joReferenceLogRecord = await find_out_reference_log_record( details, w3, jo_message_proxy, nWalkBlockId, nWalkMsgNumber, isVerbose );
+        if( joReferenceLogRecord == null )
             break;
-        nWalkBlockId = owaspUtils.toInteger( joLogRecord.previousOutgoingMessageBlockId.toString() );
-        arrLogRecordReferences.unshift( joLogRecord );
+        nWalkBlockId = owaspUtils.toInteger( joReferenceLogRecord.previousOutgoingMessageBlockId.toString() );
+        arrLogRecordReferences.unshift( joReferenceLogRecord );
     } // for( ; nWalkMsgNumber >= nIncMsgCnt; -- nWalkMsgNumber )
     const cntFound = arrLogRecordReferences.length;
     if( cntFound != cntExpected ) {
@@ -5229,15 +5230,16 @@ async function do_transfer(
         details.write( strLogPrefix + cc.debug( "Result of " ) + cc.notice( strActionName ) + cc.debug( " call: " ) + cc.info( idxLastToPopNotIncluding ) + "\n" );
 
         //
-        // Optimized scanner
+        // optimized scanner
         //
         const nBlockId = await jo_message_proxy_src.methods.getLastOutgoingMessageBlockId( chain_id_dst ).call( {
             from: joAccountSrc.address( w3_src )
         } );
-        // const joLogRecord = await find_out_reference_log_record( details, w3_src, jo_message_proxy_src, nBlockId, nOutMsgCnt - 1, true );
+        // const joReferenceLogRecord = await find_out_reference_log_record( details, w3_src, jo_message_proxy_src, nBlockId, nOutMsgCnt - 1, true );
         const arrLogRecordReferences = await find_out_all_reference_log_records( details, w3_src, jo_message_proxy_src, nBlockId, nIncMsgCnt, nOutMsgCnt, true );
 
         //
+        // classic scanner
         // outer loop is block former/creator, then transfer
         //
         nIdxCurrentMsg = nIncMsgCnt;
@@ -5265,13 +5267,13 @@ async function do_transfer(
             // inner loop wil create block of transactions
             //
             let cntAccumulatedForBlock = 0;
-            const nBlockFrom = 0;
-            const nBlockTo = "latest";
-
+            // const nBlockFrom = 0;
+            // const nBlockTo = "latest";
             for( let idxInBlock = 0; nIdxCurrentMsg < nOutMsgCnt && idxInBlock < nTransactionsCountInBlock; ++nIdxCurrentMsg, ++idxInBlock, ++cntAccumulatedForBlock ) {
                 const idxProcessing = cntProcessed + idxInBlock;
                 if( idxProcessing > nMaxTransactionsCount )
                     break;
+                const joReferenceLogRecord = arrLogRecordReferences.shift();
                 //
                 //
                 strActionName = "src-chain->MessageProxy->scan-past-events()";
@@ -5285,8 +5287,8 @@ async function do_transfer(
                     10,
                     jo_message_proxy_src,
                     "OutgoingMessage",
-                    nBlockFrom,
-                    nBlockTo,
+                    joReferenceLogRecord.currentBlockId, // nBlockFrom
+                    joReferenceLogRecord.currentBlockId, // nBlockTo
                     {
                         dstChainHash: [ w3_src.utils.soliditySha3( chain_id_dst ) ],
                         msgCounter: [ nIdxCurrentMsg ]
@@ -5415,7 +5417,7 @@ async function do_transfer(
                 //
                 details.write(
                     strLogPrefix +
-                    cc.success( "Got event details from " ) + cc.notice( "getPastEvents()" ) +
+                    cc.success( "Got event dnLatestBlockNumbertails from " ) + cc.notice( "getPastEvents()" ) +
                     cc.success( " event invoked with " ) + cc.notice( "msgCounter" ) + cc.success( " set to " ) + cc.info( nIdxCurrentMsg ) +
                     cc.success( " and " ) + cc.notice( "dstChain" ) + cc.success( " set to " ) + cc.info( chain_id_dst ) +
                     cc.success( ", event description: " ) + cc.j( joValues ) + // + cc.j(evs) +
@@ -5435,7 +5437,6 @@ async function do_transfer(
                     savedBlockNumberForOptimizations: joValues.savedBlockNumberForOptimizations
                 };
                 jarrMessages.push( joMessage );
-
             } // for( let idxInBlock = 0; nIdxCurrentMsg < nOutMsgCnt && idxInBlock < nTransactionsCountInBlock; ++ nIdxCurrentMsg, ++ idxInBlock, ++cntAccumulatedForBlock )
             if( cntAccumulatedForBlock == 0 )
                 break;
