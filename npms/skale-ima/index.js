@@ -5018,6 +5018,98 @@ async function async_pending_tx_scanner( details, w3, w3_opposite, chain_id, cha
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+async function find_out_reference_log_record( details, w3, jo_message_proxy, nBlockId, nMessageNumberToFind, isVerbose ) {
+    const strLogPrefix = "";
+    const bnMessageNumberToFind = w3.utils.toBN( nMessageNumberToFind.toString() );
+    const strEventName = "PreviousMessageReference";
+    const arrLogRecords = await get_web3_pastEventsProgressive(
+        details,
+        w3,
+        10,
+        jo_message_proxy,
+        strEventName,
+        nBlockId, // nBlockFrom
+        nBlockId, // nBlockTo
+        { } // filter
+    );
+    const cntLogRecord = arrLogRecords.length;
+    if( isVerbose ) {
+        details.write( strLogPrefix +
+            cc.debug( "Got " ) + cc.info( cntLogRecord ) + cc.debug( " log record(s) (" ) + cc.info( strEventName ) +
+            cc.debug( ") with data: " ) + cc.j( arrLogRecords ) + "\n" );
+    }
+    for( let idxLogRecord = 0; idxLogRecord < cntLogRecord; ++ idxLogRecord ) {
+        const joEvent = arrLogRecords[idxLogRecord];
+        const joLogRecord = { // joEvent.returnValues;
+            currentMessage: joEvent.returnValues.currentMessage,
+            previousOutgoingMessageBlockId: joEvent.returnValues.previousOutgoingMessageBlockId
+        };
+        const bnCurrentMessage = w3.utils.toBN( joLogRecord.currentMessage.toString() );
+        if( bnCurrentMessage.eq( bnMessageNumberToFind ) ) {
+            if( isVerbose ) {
+                details.write( strLogPrefix +
+                    cc.success( "Found " ) + cc.info( strEventName ) + cc.success( " log record " ) +
+                    cc.j( joLogRecord ) + cc.success( " for message " ) + cc.info( nMessageNumberToFind ) + "\n" );
+            }
+            return joLogRecord;
+        }
+    } // for( let idxLogRecord = 0; idxLogRecord < cntLogRecord; ++ idxLogRecord )
+    if( isVerbose ) {
+        details.write( strLogPrefix +
+            cc.error( "Failed to find " ) + cc.info( strEventName ) + cc.error( " log record for message " ) +
+            cc.info( nMessageNumberToFind ) + "\n" );
+    }
+    return null;
+}
+
+async function find_out_all_reference_log_records( details, w3, jo_message_proxy, nBlockId, nIncMsgCnt, nOutMsgCnt, isVerbose ) {
+    const strLogPrefix = "";
+    if( isVerbose ) {
+        details.write( strLogPrefix +
+            cc.debug( "Optimized IMA message search algorithm will start at block " ) + cc.info( nBlockId.toString() ) +
+            cc.debug( ", will search for ougoing message counter " ) + cc.info( nOutMsgCnt.toString() ) +
+            cc.debug( " and approach down to incoming message counter " ) + cc.info( nIncMsgCnt.toString() ) +
+            "\n" );
+    }
+    const arrLogRecordReferences = [];
+    const cntExpected = nOutMsgCnt - nIncMsgCnt;
+    if( cntExpected <= 0 ) {
+        if( isVerbose ) {
+            details.write( strLogPrefix +
+                cc.success( "Optimized IMA message search algorithm success, nothing to search, result is empty" ) + "\n" );
+        }
+        return arrLogRecordReferences; // nothing to searcharrLogRecordReferences
+    }
+    let nWalkMsgNumber = nOutMsgCnt - 1;
+    let nWalkBlockId = nBlockId;
+    for( ; nWalkMsgNumber >= nIncMsgCnt; -- nWalkMsgNumber ) {
+        const joLogRecord = await find_out_reference_log_record( details, w3, jo_message_proxy, nWalkBlockId, nWalkMsgNumber, isVerbose );
+        if( joLogRecord == null )
+            break;
+        nWalkBlockId = owaspUtils.toInteger( joLogRecord.previousOutgoingMessageBlockId.toString() );
+        arrLogRecordReferences.unshift( joLogRecord );
+    } // for( ; nWalkMsgNumber >= nIncMsgCnt; -- nWalkMsgNumber )
+    const cntFound = arrLogRecordReferences.length;
+    if( cntFound != cntExpected ) {
+        if( isVerbose ) {
+            details.write( strLogPrefix +
+                cc.error( "Optimized IMA message search algorithm fail, found " ) + cc.info( cntFound ) +
+                cc.error( " log record(s), expected " ) + cc.info( cntExpected ) + cc.error( " log record(s), found records are: " ) +
+                cc.j( arrLogRecordReferences ) + "\n" );
+        }
+    } else {
+        if( isVerbose ) {
+            details.write( strLogPrefix +
+                cc.success( "Optimized IMA message search algorithm success, found all " ) +
+                cc.info( cntFound ) + cc.success( " log record(s): " ) + cc.j( arrLogRecordReferences ) + "\n" );
+        }
+    }
+    return arrLogRecordReferences;
+}
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 let g_nTransferLoopCounter = 0;
 
 //
@@ -5104,14 +5196,12 @@ async function do_transfer(
     let nIdxCurrentMsg = 0;
     let nOutMsgCnt = 0;
     let nIncMsgCnt = 0;
-    let idxLastToPopNotIncluding = 0;
     try {
-        let nPossibleIntegerValue = 0;
         details.write( cc.info( "SRC " ) + cc.sunny( "MessageProxy" ) + cc.info( " address is....." ) + cc.bright( jo_message_proxy_src.options.address ) + "\n" );
         details.write( cc.info( "DST " ) + cc.sunny( "MessageProxy" ) + cc.info( " address is....." ) + cc.bright( jo_message_proxy_dst.options.address ) + "\n" );
         strActionName = "src-chain.MessageProxy.getOutgoingMessagesCounter()";
         details.write( strLogPrefix + cc.debug( "Will call " ) + cc.notice( strActionName ) + cc.debug( "..." ) + "\n" );
-        nPossibleIntegerValue = await jo_message_proxy_src.methods.getOutgoingMessagesCounter( chain_id_dst ).call( {
+        let nPossibleIntegerValue = await jo_message_proxy_src.methods.getOutgoingMessagesCounter( chain_id_dst ).call( {
             from: joAccountSrc.address( w3_src )
         } );
         if( !owaspUtils.validateInteger( nPossibleIntegerValue ) )
@@ -5135,8 +5225,18 @@ async function do_transfer(
         } );
         if( !owaspUtils.validateInteger( nPossibleIntegerValue ) )
             throw new Error( "DST chain " + chain_id_dst + " returned incoming message counter " + nPossibleIntegerValue + " which is not a valid integer" );
-        idxLastToPopNotIncluding = owaspUtils.toInteger( nPossibleIntegerValue );
+        const idxLastToPopNotIncluding = owaspUtils.toInteger( nPossibleIntegerValue );
         details.write( strLogPrefix + cc.debug( "Result of " ) + cc.notice( strActionName ) + cc.debug( " call: " ) + cc.info( idxLastToPopNotIncluding ) + "\n" );
+
+        //
+        // Optimized scanner
+        //
+        const nBlockId = await jo_message_proxy_src.methods.getLastOutgoingMessageBlockId( chain_id_dst ).call( {
+            from: joAccountSrc.address( w3_src )
+        } );
+        // const joLogRecord = await find_out_reference_log_record( details, w3_src, jo_message_proxy_src, nBlockId, nOutMsgCnt - 1, true );
+        const arrLogRecordReferences = await find_out_all_reference_log_records( details, w3_src, jo_message_proxy_src, nBlockId, nIncMsgCnt, nOutMsgCnt, true );
+
         //
         // outer loop is block former/creator, then transfer
         //
@@ -5520,12 +5620,13 @@ async function do_transfer(
                             try {
                                 const w3_node = getWeb3FromURL( jo_node.http_endpoint_ip, details );
                                 const jo_message_proxy_node = new w3_node.eth.Contract( imaState.joAbiPublishResult_s_chain.message_proxy_chain_abi, imaState.joAbiPublishResult_s_chain.message_proxy_chain_address );
+                                const strEventName = "OutgoingMessage";
                                 const node_r = await get_web3_pastEventsProgressive(
                                     details,
                                     w3_node,
                                     10,
                                     jo_message_proxy_node,
-                                    "OutgoingMessage",
+                                    strEventName,
                                     joMessage.savedBlockNumberForOptimizations, // 0, // nBlockFrom
                                     joMessage.savedBlockNumberForOptimizations, // "latest", // nBlockTo
                                     {
@@ -5535,7 +5636,7 @@ async function do_transfer(
                                 );
                                 const cntEvents = node_r.length;
                                 details.write( strLogPrefix +
-                                    cc.debug( "Got " ) + cc.info( cntEvents ) + cc.debug( " events on node " ) +
+                                    cc.debug( "Got " ) + cc.info( cntEvents ) + cc.debug( " event(s) (" ) + cc.info( strEventName ) + cc.debug( ") on node " ) +
                                     cc.info( jo_node.name ) + cc.debug( " with data: " ) + cc.j( node_r ) + "\n" );
                                 for( let idxEvent = 0; idxEvent < cntEvents; ++ idxEvent ) {
                                     const joEvent = node_r[idxEvent];
