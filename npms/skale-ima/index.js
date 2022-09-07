@@ -5417,7 +5417,7 @@ async function do_transfer(
                 //
                 details.write(
                     strLogPrefix +
-                    cc.success( "Got event dnLatestBlockNumbertails from " ) + cc.notice( "getPastEvents()" ) +
+                    cc.success( "Got event details from " ) + cc.notice( "getPastEvents()" ) +
                     cc.success( " event invoked with " ) + cc.notice( "msgCounter" ) + cc.success( " set to " ) + cc.info( nIdxCurrentMsg ) +
                     cc.success( " and " ) + cc.notice( "dstChain" ) + cc.success( " set to " ) + cc.info( chain_id_dst ) +
                     cc.success( ", event description: " ) + cc.j( joValues ) + // + cc.j(evs) +
