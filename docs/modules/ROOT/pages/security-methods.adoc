@@ -1,0 +1,24 @@
+= IMA Security Methods
+
+To improve the ability of SKALE Chain owners to manage and respond to security incidents, a few features have been added to the IMA bridge:
+
+* Configurable time delay on exits exceeding certain amounts
+* Pauseable processing of IMA messages
+
+== Time delay on excess amounts of ERC20 tokens
+
+SKALE Chain owners can set a time delay for token exits that exceed certain amounts. If an exit exceeds the limits, then those exited tokens will continue to be locked in the DepositBox contract until a configurable time elapses.  After the time has elapsed, the receive can then pull tokens from the DepositBox contract.
+
+During a triggered time delay, there are two actions that can be executed:
+*  an account granted with an `ARBITER_ROLE` or the SKALE Chain owner may initialize an arbitrage of the transfer. This action increases the time delay/token lock period. 
+* the SKALE Chain owner can cancel the transfer.  In this case, the tokens go to the SKALE Chain owner address.  
+* the SKALE Chain owner can cancel the arbitrage and immediately transfer the tokens to the receiver.  In this case, the receiver does not need to explicitly pull the tokens.
+
+=== Default Values
+
+By default, a time delay for large amounts is disabled. Each SKALE Chain owner must explicitly enable this feature and set a threshold amount for each ERC20 token in IMA.
+
+=== Whitelist
+
+The SKALE Chain owner manages a list of trusted addresses that bypass the delay regardless of exit amount.
+
