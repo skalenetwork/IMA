@@ -22,3 +22,16 @@ By default, a time delay for large amounts is disabled. Each SKALE Chain owner m
 
 The SKALE Chain owner manages a list of trusted addresses that bypass the delay regardless of exit amount.
 
+=== Methods
+
+- setBigTransferValue(schainName, tokenAddress, value): 
+- setBigTransferDelay(schainName, deplayInSeconds):
+- setArbitrageDuration(schainName, delayInSeconds):
+- trustReceiver(schainName, receiver): add receiver to whitelist
+- stopTrustingReceiver(schainName, receiver): remove receiver from whitelist
+- retrieve(): called by receiver to pull tokens after lock period elapses.
+- escalate(transferId): initialize arbitrage of a suspicious transfer.
+- validateTransfer(transferId): 
+- rejectTransfer(transferId):  
+
+
