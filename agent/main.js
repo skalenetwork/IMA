@@ -1457,7 +1457,8 @@ imaCLI.parse( {
                 };
                 const addressFrom = imaState.joAccount_main_net.address( imaState.w3_main_net );
                 const arr_schains = await skale_observer.load_schains( imaState.w3_main_net, addressFrom, opts );
-                log.write( strLogPrefix + cc.normal( "Got " ) + cc.info( "SKALE NETWORK" ) + cc.normal( " information: " ) + cc.j( arr_schains ) + "\n" );
+                const cnt = arr_schains.length;
+                log.write( strLogPrefix + cc.normal( "Got " ) + cc.info( cnt ) + cc.normal( " S-Chains(s) in SKALE NETWORK information: " ) + cc.j( arr_schains ) + "\n" );
                 return true;
             }
         } );
@@ -1491,7 +1492,8 @@ imaCLI.parse( {
                     arr_schains,
                     opts
                 );
-                log.write( strLogPrefix + cc.normal( "Got " ) + cc.info( "connected S-Chains" ) + cc.normal( " information: " ) + cc.j( arr_schains_cached ) + "\n" );
+                const cnt = arr_schains_cached.length;
+                log.write( strLogPrefix + cc.normal( "Got " ) + cc.info( cnt ) + cc.normal( " onnected S-Chain(s): " ) + cc.j( arr_schains_cached ) + "\n" );
                 return true;
             }
         } );

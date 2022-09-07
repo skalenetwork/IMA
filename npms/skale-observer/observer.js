@@ -232,6 +232,31 @@ async function load_schains( w3, addressFrom, opts ) {
     return arr_schains;
 }
 
+async function load_schains2( w3, addressFrom, opts ) {
+    if( ! opts.imaState )
+        throw new Error( "Cannot load S-Chains in observer, no imaState is provided" );
+    if( opts && opts.details )
+        opts.details.write( cc.debug( "Will request all S-Chain(s) hashes..." ) + "\n" );
+    const arrSChainHashes = await opts.imaState.jo_schains_internal.methods.getSchains().call( { from: addressFrom } );
+    const cntSChains = arrSChainHashes.length;
+    if( opts && opts.details )
+        opts.details.write( cc.debug( "Have all " ) + cc.info( cntSChains ) + cc.debug( " S-Chain(s) hashes: " ) + cc.j( arrSChainHashes ) + "\n" );
+    const arr_schains = [];
+    for( let idxSChain = 0; idxSChain < cntSChains; ++ idxSChain ) {
+        const strSChainHash = arrSChainHashes[idxSChain];
+        const strSChainName = await opts.imaState.jo_schains_internal.methods.getSchainName( strSChainHash ).call( { from: addressFrom } );
+        if( opts && opts.details )
+            opts.details.write( cc.debug( "S-Chain " ) + cc.notice( idxSChain ) + cc.debug( " hash " ) + cc.notice( strSChainHash ) + cc.debug( " corresponds to S-Chain name " ) + cc.notice( strSChainName ) + "\n" );
+        if( opts && opts.bStopNeeded )
+            break;
+        const jo_schain = await load_schain( w3, addressFrom, idxSChain, cntSChains, opts );
+        if( ! jo_schain )
+            break;
+        arr_schains.push( jo_schain );
+    }
+    return arr_schains;
+}
+
 async function check_connected_schains( strChainNameConnectedTo, arr_schains, addressFrom, opts ) {
     if( ! opts.imaState )
         throw new Error( "Cannot load S-Chains in observer, no imaState is provided" );
@@ -574,6 +599,7 @@ module.exports.cc = cc;
 module.exports.get_schains_count = get_schains_count;
 module.exports.load_schain = load_schain;
 module.exports.load_schains = load_schains;
+module.exports.load_schains2 = load_schains2;
 module.exports.check_connected_schains = check_connected_schains;
 module.exports.filter_schains_marked_as_connected = filter_schains_marked_as_connected;
 module.exports.find_schain_index_in_array_by_name = find_schain_index_in_array_by_name;
