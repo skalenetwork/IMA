@@ -61,6 +61,7 @@ import { deployMessageProxyForSchainTester } from "./utils/deploy/test/messagePr
 import { deployCommunityPool } from "./utils/deploy/mainnet/communityPool";
 import { createNode } from "./utils/skale-manager-utils/nodes";
 import { skipTime } from "./utils/time";
+import { deployTokenManagerLinker } from "./utils/deploy/schain/tokenManagerLinker";
 
 chai.should();
 chai.use((chaiAsPromised));
@@ -1488,6 +1489,20 @@ describe("MessageProxy", () => {
 
                 await deployer.sendTransaction({to: agent.address, value: rest});
             });
+        });
+
+        it("should not allow anyone to top up balance with sFuel", async () => {
+            await messageProxyForSchain.getTokenManagerLinker()
+                .should.be.rejectedWith("Can't find TokenManagerLinker"); // because contract is not predeployed
+
+            const tokenManagerLinker = await deployTokenManagerLinker(messageProxyForSchain, deployer.address);
+
+            await messageProxyForSchain.setTokenManagerLinker(tokenManagerLinker.address);
+            await messageProxyForSchain.getTokenManagerLinker()
+                .should.eventually.be.equal(tokenManagerLinker.address);
+
+            await messageProxyForSchain.connect(user).topUpReceiverBalance(user.address)
+                .should.be.rejectedWith("Sender is not TokenManager");
         });
 
         describe("register and remove extra contracts", async () => {

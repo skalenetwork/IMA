@@ -238,7 +238,7 @@ contract MessageProxyForSchain is MessageProxy, IMessageProxyForSchain {
 
     function topUpReceiverBalance(address payable receiver) external override {
         // allow only TokenManager to call this function
-        require(_getTokenManagerLinker().hasTokenManager(msg.sender), "Sender is not TokenManager");
+        require(getTokenManagerLinker().hasTokenManager(msg.sender), "Sender is not TokenManager");
         uint256 balance = receiver.balance;
         uint256 threashold = minimumReceiverBalance;
         if (threashold == 0) {
@@ -358,6 +358,15 @@ contract MessageProxyForSchain is MessageProxy, IMessageProxyForSchain {
         _idxTail[dstChainHash] += 1;
     }
 
+    function getTokenManagerLinker() public view override returns (ITokenManagerLinker) {
+        if (address(_tokenManagerLinker) == address(0)) {
+            require(DefaultAddresses.TOKEN_MANAGER_LINKER.isContract(), "Can't find TokenManagerLinker");
+            return ITokenManagerLinker(DefaultAddresses.TOKEN_MANAGER_LINKER);
+        } else {
+            return _tokenManagerLinker;
+        }
+    }
+
     // private
 
     /**
@@ -426,15 +435,6 @@ contract MessageProxyForSchain is MessageProxy, IMessageProxyForSchain {
             } else {
                 etherbase.retrieve(target);
             }
-        }
-    }
-
-    function _getTokenManagerLinker() private returns (TokenManagerLinker) {
-        if (address(_tokenManagerLinker) == address(0)) {
-            require(DefaultAddresses.TOKEN_MANAGER_LINKER.isContract(), "Can't find TokenManagerLinker");
-            return TokenManagerLinker(DefaultAddresses.TOKEN_MANAGER_LINKER);
-        } else {
-            return _tokenManagerLinker;
         }
     }
 
