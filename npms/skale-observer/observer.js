@@ -450,7 +450,7 @@ async function cache_schains( strChainNameConnectedTo, w3_main_net, w3_s_chain, 
 
         let arr_schains = [];
         if( strChainNameConnectedTo && ( typeof strChainNameConnectedTo == "string" ) && strChainNameConnectedTo.length > 0 ) {
-            arr_schains = await skale_observer.load_schains_connected_only(
+            arr_schains = await load_schains_connected_only(
                 w3_main_net,
                 w3_s_chain,
                 strChainNameConnectedTo,
