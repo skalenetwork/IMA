@@ -537,6 +537,9 @@ async function ensure_have_worker( opts ) {
                     "strURL_main_net": opts.imaState.strURL_main_net,
                     "strChainName_main_net": opts.imaState.strChainName_main_net,
                     "cid_main_net": opts.imaState.cid_main_net,
+                    "strURL_s_chain": opts.imaState.strURL_s_chain,
+                    "strChainName_s_chain": opts.imaState.strChainName_s_chain,
+                    "cid_s_chain": opts.imaState.cid_s_chain,
                     "nNodeNumber": opts.imaState.nNodeNumber, // S-Chain node number(zero based)
                     "nNodesCount": opts.imaState.nNodesCount,
                     "nTimeFrameSeconds": opts.imaState.nTimeFrameSeconds, // 0-disable, 60-recommended
@@ -551,7 +554,18 @@ async function ensure_have_worker( opts ) {
                         "strPathSslKey": opts.imaState.joAccount_main_net.strPathSslKey,
                         "strPathSslCert": opts.imaState.joAccount_main_net.strPathSslCert
                     },
+                    "joAccount_s_chain": {
+                        "privateKey": opts.imaState.joAccount_s_chain.privateKey,
+                        // "address": IMA.owaspUtils.fn_address_impl_,
+                        "strTransactionManagerURL": opts.imaState.joAccount_s_chain.strTransactionManagerURL,
+                        "tm_priority": opts.imaState.joAccount_s_chain.tm_priority,
+                        "strSgxURL": opts.imaState.joAccount_s_chain.strSgxURL,
+                        "strSgxKeyName": opts.imaState.joAccount_s_chain.strSgxKeyName,
+                        "strPathSslKey": opts.imaState.joAccount_s_chain.strPathSslKey,
+                        "strPathSslCert": opts.imaState.joAccount_s_chain.strPathSslCert
+                    },
                     // "tc_main_net": IMA.tc_main_net,
+                    // "tc_s_chain": IMA.tc_s_chain,
                     // "doEnableDryRun": function( isEnable ) { return IMA.dry_run_enable( isEnable ); },
                     // "doIgnoreDryRun": function( isIgnore ) { return IMA.dry_run_ignore( isIgnore ); },
                     "joSChainDiscovery": {
