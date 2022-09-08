@@ -243,6 +243,8 @@ async function load_schains2( w3, addressFrom, opts ) {
         opts.details.write( cc.debug( "Have all " ) + cc.info( cntSChains ) + cc.debug( " S-Chain(s) hashes: " ) + cc.j( arrSChainHashes ) + "\n" );
     const arr_schains = [];
     for( let idxSChain = 0; idxSChain < cntSChains; ++ idxSChain ) {
+        if( opts && opts.bStopNeeded )
+            break;
         const strSChainHash = arrSChainHashes[idxSChain];
         const strSChainName = await opts.imaState.jo_schains_internal.methods.getSchainName( strSChainHash ).call( { from: addressFrom } );
         if( opts && opts.details )
@@ -253,6 +255,62 @@ async function load_schains2( w3, addressFrom, opts ) {
         if( ! jo_schain )
             break;
         arr_schains.push( jo_schain );
+    }
+    return arr_schains;
+}
+
+async function load_schains_connected_only( w3_main_net, w3_s_chain, strChainNameConnectedTo, addressFrom, opts ) {
+    if( ! opts.imaState )
+        throw new Error( "Cannot load S-Chains in observer, no imaState is provided" );
+    if( opts && opts.details )
+        opts.details.write( cc.debug( "Will request all S-Chain(s) hashes..." ) + "\n" );
+    const arrSChainHashes = await opts.imaState.jo_schains_internal.methods.getSchains().call( { from: addressFrom } );
+    const cntSChains = arrSChainHashes.length;
+    if( opts && opts.details )
+        opts.details.write( cc.debug( "Have all " ) + cc.info( cntSChains ) + cc.debug( " S-Chain(s) hashes: " ) + cc.j( arrSChainHashes ) + "\n" );
+    const jo_message_proxy_s_chain =
+        new w3_s_chain.eth.Contract(
+            opts.imaState.joAbiPublishResult_s_chain.message_proxy_chain_abi,
+            opts.imaState.joAbiPublishResult_s_chain.message_proxy_chain_address
+        );
+    const arr_schains = [];
+    for( let idxSChain = 0; idxSChain < cntSChains; ++ idxSChain ) {
+        try {
+            if( opts && opts.bStopNeeded )
+                break;
+            const strSChainHash = arrSChainHashes[idxSChain];
+            const strSChainName = await opts.imaState.jo_schains_internal.methods.getSchainName( strSChainHash ).call( { from: addressFrom } );
+            if( opts && opts.details )
+                opts.details.write( cc.debug( "S-Chain " ) + cc.notice( idxSChain ) + cc.debug( " hash " ) + cc.notice( strSChainHash ) + cc.debug( " corresponds to S-Chain name " ) + cc.notice( strSChainName ) + "\n" );
+            if( opts && opts.bStopNeeded )
+                break;
+            //
+            if( strChainNameConnectedTo == strSChainName ) {
+                if( opts && opts.details )
+                    opts.details.write( cc.debug( "Skip this S-Chain " ) + cc.info( strSChainName ) + cc.debug( " connected status check" ) + "\n" );
+                continue;
+            }
+            if( opts && opts.details ) {
+                opts.details.write(
+                    cc.debug( "Querying connected status between S-Chain " ) + cc.info( strSChainName ) + cc.debug( " and S-Chain " ) +
+                    cc.info( strChainNameConnectedTo ) + cc.debug( "..." ) + "\n" );
+            }
+            const isConnected = await jo_message_proxy_s_chain.methods.isConnectedChain( strSChainName ).call( { from: addressFrom } );
+            if( opts && opts.details )
+                opts.details.write( cc.debug( "Got S-Chain " ) + cc.info( strSChainName ) + cc.debug( " connected status: " ) + cc.yn( isConnected ) + "\n" );
+            if( ! isConnected )
+                continue;
+            const jo_schain = await load_schain( w3_main_net, addressFrom, idxSChain, cntSChains, opts );
+            if( ! jo_schain )
+                break;
+            jo_schain.isConnected = true;
+            arr_schains.push( jo_schain );
+        } catch ( err ) {
+            if( opts && opts.details ) {
+                opts.details.write( cc.error( "Got error: " ) + cc.warning( err.toString() ) + "\n" );
+                opts.details.write( err.stack );
+            }
+        }
     }
     return arr_schains;
 }
@@ -372,23 +430,38 @@ function merge_schains_array_from_to( arrSrc, arrDst, arrNew, arrOld, opts ) {
 
 let g_arr_schains_cached = [];
 
-async function cache_schains( strChainNameConnectedTo, w3, addressFrom, opts ) {
+async function cache_schains( strChainNameConnectedTo, w3_main_net, w3_s_chain, addressFrom, opts ) {
     let strError = null;
     try {
-        const arr_schains = await load_schains( w3, addressFrom, opts );
+        // const arr_schains = await load_schains( w3_main_net, addressFrom, opts );
+        // if( strChainNameConnectedTo && ( typeof strChainNameConnectedTo == "string" ) && strChainNameConnectedTo.length > 0 ) {
+        //     await check_connected_schains(
+        //         strChainNameConnectedTo,
+        //         arr_schains,
+        //         addressFrom,
+        //         opts
+        //     );
+        //     g_arr_schains_cached = await filter_schains_marked_as_connected(
+        //         arr_schains,
+        //         opts
+        //     );
+        // } else
+        //     g_arr_schains_cached = arr_schains;
+
+        let arr_schains = [];
         if( strChainNameConnectedTo && ( typeof strChainNameConnectedTo == "string" ) && strChainNameConnectedTo.length > 0 ) {
-            await check_connected_schains(
+            arr_schains = await skale_observer.load_schains_connected_only(
+                w3_main_net,
+                w3_s_chain,
                 strChainNameConnectedTo,
-                arr_schains,
                 addressFrom,
                 opts
             );
-            g_arr_schains_cached = await filter_schains_marked_as_connected(
-                arr_schains,
-                opts
-            );
         } else
-            g_arr_schains_cached = arr_schains;
+            arr_schains = await load_schains( w3_main_net, addressFrom, opts );
+
+        g_arr_schains_cached = arr_schains;
+
         if( opts && opts.details ) {
             opts.details.write(
                 cc.debug( "Connected " ) + cc.attention( "S-Chains" ) + cc.debug( " cache was updated in this thread: " ) +
@@ -498,7 +571,7 @@ async function ensure_have_worker( opts ) {
 // let g_intervalPeriodicSchainsCaching = null;
 // let g_bIsPeriodicCachingStepInProgress = false;
 
-async function periodic_caching_start( strChainNameConnectedTo, w3, addressFrom, opts ) {
+async function periodic_caching_start( strChainNameConnectedTo, w3_main_net, w3_s_chain, addressFrom, opts ) {
     // await periodic_caching_stop();
     // if( ! ( "secondsToReDiscoverSkaleNetwork" in opts ) )
     //     return false;
@@ -510,7 +583,7 @@ async function periodic_caching_start( strChainNameConnectedTo, w3, addressFrom,
     //         return;
     //     g_bIsPeriodicCachingStepInProgress = true;
     //     // const strError =
-    //     await cache_schains( strChainNameConnectedTo, w3, addressFrom, opts );
+    //     await cache_schains( strChainNameConnectedTo, w3_main_net, w3_s_chain, addressFrom, opts );
     //     g_bIsPeriodicCachingStepInProgress = false;
     // };
     // g_intervalPeriodicSchainsCaching = setInterval( function() {
@@ -600,6 +673,7 @@ module.exports.get_schains_count = get_schains_count;
 module.exports.load_schain = load_schain;
 module.exports.load_schains = load_schains;
 module.exports.load_schains2 = load_schains2;
+module.exports.load_schains_connected_only = load_schains_connected_only;
 module.exports.check_connected_schains = check_connected_schains;
 module.exports.filter_schains_marked_as_connected = filter_schains_marked_as_connected;
 module.exports.find_schain_index_in_array_by_name = find_schain_index_in_array_by_name;

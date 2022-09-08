@@ -320,6 +320,7 @@ const fnInitActionSkaleNetworkScanForS2S = function() {
             // const strError = await skale_observer.cache_schains(
             //     imaState.strChainName_s_chain, // strChainNameConnectedTo
             //     imaState.w3_main_net,
+            //     imaState.w3_s_chain,
             //     addressFrom,
             //     opts
             // );
@@ -333,6 +334,7 @@ const fnInitActionSkaleNetworkScanForS2S = function() {
             await skale_observer.periodic_caching_start(
                 imaState.strChainName_s_chain, // strChainNameConnectedTo
                 imaState.w3_main_net,
+                imaState.w3_s_chain,
                 addressFrom,
                 opts
             );
@@ -1481,17 +1483,27 @@ imaCLI.parse( {
                     "bStopNeeded": false
                 };
                 const addressFrom = imaState.joAccount_main_net.address( imaState.w3_main_net );
-                const arr_schains = await skale_observer.load_schains( imaState.w3_main_net, addressFrom, opts );
-                await skale_observer.check_connected_schains(
+
+                // const arr_schains = await skale_observer.load_schains( imaState.w3_main_net, addressFrom, opts );
+                // await skale_observer.check_connected_schains(
+                //     imaState.strChainName_s_chain, // strChainNameConnectedTo
+                //     arr_schains,
+                //     addressFrom,
+                //     opts
+                // );
+                // const arr_schains_cached = await skale_observer.filter_schains_marked_as_connected(
+                //     arr_schains,
+                //     opts
+                // );
+
+                const arr_schains_cached = await skale_observer.load_schains_connected_only(
+                    imaState.w3_main_net,
+                    imaState.w3_s_chain,
                     imaState.strChainName_s_chain, // strChainNameConnectedTo
-                    arr_schains,
                     addressFrom,
                     opts
                 );
-                const arr_schains_cached = await skale_observer.filter_schains_marked_as_connected(
-                    arr_schains,
-                    opts
-                );
+
                 const cnt = arr_schains_cached.length;
                 log.write( strLogPrefix + cc.normal( "Got " ) + cc.info( cnt ) + cc.normal( " onnected S-Chain(s): " ) + cc.j( arr_schains_cached ) + "\n" );
                 return true;

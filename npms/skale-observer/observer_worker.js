@@ -136,7 +136,13 @@ class ObserverServer extends Server {
             return;
         self.bIsPeriodicCachingStepInProgress = true;
         // const strError =
-        await skale_observer.cache_schains( strChainNameConnectedTo, self.opts.imaState.w3_main_net, addressFrom, self.opts );
+        await skale_observer.cache_schains(
+            strChainNameConnectedTo,
+            self.opts.imaState.w3_main_net,
+            self.opts.imaState.w3_s_chain,
+            addressFrom,
+            self.opts
+        );
         self.bIsPeriodicCachingStepInProgress = false;
         const arr_schains = skale_observer.get_last_cached_schains();
         // self.log( cc.normal( "Got " ) + cc.info( "SKALE NETWORK" ) + cc.normal( " information in worker: " ) + cc.j( arr_schains ) + "\n" );
