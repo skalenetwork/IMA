@@ -382,7 +382,7 @@ contract DepositBoxERC20 is DepositBox, IDepositBoxERC20 {
     }
 
     /**
-     * @dev Approve a big transfer and immidiately transfer tokens during arbitrage
+     * @dev Approve a big transfer and immediately transfer tokens during arbitrage
      *
      * Requirements:
      * 
