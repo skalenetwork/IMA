@@ -19,7 +19,7 @@
  *   along with SKALE IMA.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-pragma solidity 0.8.6;
+pragma solidity 0.8.16;
 
 import "@openzeppelin/contracts-upgradeable/utils/AddressUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/utils/structs/EnumerableSetUpgradeable.sol";
@@ -44,6 +44,8 @@ contract DepositBoxERC1155 is DepositBox, ERC1155ReceiverUpgradeable, IDepositBo
 
 
     // schainHash => address of ERC on Mainnet
+    // Deprecated
+    // slither-disable-next-line unused-state
     mapping(bytes32 => mapping(address => bool)) private _deprecatedSchainToERC1155;
     mapping(bytes32 => mapping(address => mapping(uint256 => uint256))) public transferredAmount;
     mapping(bytes32 => EnumerableSetUpgradeable.AddressSet) private _schainToERC1155;
@@ -58,34 +60,6 @@ contract DepositBoxERC1155 is DepositBox, ERC1155ReceiverUpgradeable, IDepositBo
      * or transferred on SKALE chain.
      */
     event ERC1155TokenReady(address indexed contractOnMainnet, uint256[] ids, uint256[] amounts);
-
-    /**
-     * @dev Allows DEFAULT_ADMIN_ROLE to initialize token mapping
-     * Notice - this function will be executed only once during upgrade
-     * 
-     * Requirements:
-     * 
-     * `msg.sender` should has DEFAULT_ADMIN_ROLE
-     */
-    function initializeAllTokensForSchain(
-        string calldata schainName,
-        address[] calldata tokens
-    )
-        external
-        override
-    {
-        require(hasRole(DEFAULT_ADMIN_ROLE, msg.sender), "Sender is not authorized");
-        bytes32 schainHash = keccak256(abi.encodePacked(schainName));
-        for (uint256 i = 0; i < tokens.length; i++) {
-            if (
-                _deprecatedSchainToERC1155[schainHash][tokens[i]] &&
-                !_schainToERC1155[schainHash].contains(tokens[i])
-            ) {
-                _schainToERC1155[schainHash].add(tokens[i]);
-                delete _deprecatedSchainToERC1155[schainHash][tokens[i]];
-            }
-        }
-    }
 
     /**
      * @dev Allows `msg.sender` to send ERC1155 token from mainnet to schain.
@@ -190,7 +164,6 @@ contract DepositBoxERC1155 is DepositBox, ERC1155ReceiverUpgradeable, IDepositBo
         onlyMessageProxy
         whenNotKilled(schainHash)
         checkReceiverChain(schainHash, sender)
-        returns (address receiver)
     {
         Messages.MessageType operation = Messages.getMessageType(data);
         if (operation == Messages.MessageType.TRANSFER_ERC1155) {
@@ -209,7 +182,6 @@ contract DepositBoxERC1155 is DepositBox, ERC1155ReceiverUpgradeable, IDepositBo
                 message.amount,
                 ""
             );
-            receiver = message.receiver;
         } else if (operation == Messages.MessageType.TRANSFER_ERC1155_BATCH) {
             Messages.TransferErc1155BatchMessage memory message = Messages.decodeTransferErc1155BatchMessage(data);
             require(message.token.isContract(), "Given address is not a contract");
@@ -221,7 +193,6 @@ contract DepositBoxERC1155 is DepositBox, ERC1155ReceiverUpgradeable, IDepositBo
                 message.amounts,
                 ""
             );
-            receiver = message.receiver;
         }
     }
 

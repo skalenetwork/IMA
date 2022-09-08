@@ -19,7 +19,7 @@
  *   along with SKALE IMA.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-pragma solidity 0.8.6;
+pragma solidity 0.8.16;
 
 import "@skalenetwork/ima-interfaces/schain/TokenManagers/ITokenManagerEth.sol";
 
@@ -76,13 +76,11 @@ contract TokenManagerEth is TokenManager, ITokenManagerEth {
         override
         onlyMessageProxy
         checkReceiverChain(fromChainHash, sender)
-        returns (address)
     {
         Messages.TransferEthMessage memory decodedMessage = Messages.decodeTransferEthMessage(data);
         address receiver = decodedMessage.receiver;
         require(receiver != address(0), "Incorrect receiver");
         ethErc20.mint(receiver, decodedMessage.amount);
-        return receiver;
     }
 
     /**

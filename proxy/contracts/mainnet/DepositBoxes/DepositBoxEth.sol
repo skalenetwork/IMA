@@ -19,7 +19,7 @@
  *   along with SKALE IMA.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-pragma solidity 0.8.6;
+pragma solidity 0.8.16;
 
 import "@openzeppelin/contracts-upgradeable/utils/AddressUpgradeable.sol";
 import "@skalenetwork/ima-interfaces/mainnet/DepositBoxes/IDepositBoxEth.sol";
@@ -94,7 +94,6 @@ contract DepositBoxEth is DepositBox, IDepositBoxEth {
         onlyMessageProxy
         whenNotKilled(schainHash)
         checkReceiverChain(schainHash, sender)
-        returns (address)
     {
         Messages.TransferEthMessage memory message = Messages.decodeTransferEthMessage(data);
         require(
@@ -107,7 +106,6 @@ contract DepositBoxEth is DepositBox, IDepositBoxEth {
         } else {
             payable(message.receiver).sendValue(message.amount);
         }
-        return message.receiver;
     }
 
     /**

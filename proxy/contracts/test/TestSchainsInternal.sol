@@ -20,15 +20,13 @@
  */
 
 
-pragma solidity 0.8.6;
-
-import "@skalenetwork/skale-manager-interfaces/ISchainsInternal.sol";
+pragma solidity 0.8.16;
 
 import "./TestContractManager.sol";
 import "./TestNodes.sol";
 
 
-interface ISchainsInternalTester is ISchainsInternal {
+interface ISchainsInternalTester {
     function addContractManager(address newContractManager) external;
     function initializeSchain(
         string calldata name,
@@ -36,6 +34,12 @@ interface ISchainsInternalTester is ISchainsInternal {
         uint lifetime,
         uint deposit) external;
     function addNodesToSchainsGroups(bytes32 schainHash, uint[] memory nodes) external;
+    function isNodeAddressesInGroup(bytes32 schainHash, address sender) external view returns (bool);
+    function isOwnerAddress(address from, bytes32 schainHash) external view returns (bool);
+    function isSchainExist(bytes32 schainHash) external view returns (bool);
+    function getSchains() external view returns (bytes32[] memory);
+    function getSchainName(bytes32 schainHash) external view returns (string memory);
+    function getNodesInGroup(bytes32 schainHash) external view returns (uint[] memory);
 }
 
 
@@ -61,6 +65,10 @@ contract SchainsInternal is ISchainsInternalTester {
 
     mapping (bytes32 => uint[]) public schainsGroups;
 
+    bytes32[] public schainsAtSystem;
+
+    mapping (bytes32 => mapping (address => bool)) private _nodeAddressInSchain;
+
     function addContractManager(address newContractManager) external override {
         contractManager = ContractManager(newContractManager);
     }
@@ -80,23 +88,49 @@ contract SchainsInternal is ISchainsInternalTester {
         schains[schainHash].deposit = deposit;
         schains[schainHash].index = 1337;
         isSchainActive[schainHash] = true;
+        schainsAtSystem.push(schainHash);
     }
 
     function addNodesToSchainsGroups(bytes32 schainHash, uint[] memory nodes) external override {
+        Nodes nodesContract = Nodes(contractManager.getContract("Nodes"));
         schainsGroups[schainHash] = nodes;
+        for (uint i = 0; i < nodes.length; i++) {
+            address nodeAddress = nodesContract.getNodeAddress(nodes[i]);
+            _nodeAddressInSchain[schainHash][nodeAddress] = true;
+        }
     }
 
     function isNodeAddressesInGroup(bytes32 schainHash, address sender) external view override returns (bool) {
-        Nodes nodes = Nodes(contractManager.getContract("Nodes"));
-        for (uint i = 0; i < schainsGroups[schainHash].length; i++) {
-            if (nodes.getNodeAddress(schainsGroups[schainHash][i]) == sender) {
-                return true;
-            }
-        }
-        return true;
+        return  _nodeAddressInSchain[schainHash][sender];
     }
 
     function isOwnerAddress(address from, bytes32 schainHash) external view override returns (bool) {
         return schains[schainHash].owner == from;
+    }
+
+    function getSchains() external view override returns (bytes32[] memory) {
+        return schainsAtSystem;
+    }
+
+    function getSchainName(bytes32 schainHash)
+        external
+        view
+        override
+        returns (string memory)
+    {
+        return schains[schainHash].name;
+    }
+
+    function getNodesInGroup(bytes32 schainHash)
+        external
+        view
+        override
+        returns (uint[] memory)
+    {
+        return schainsGroups[schainHash];
+    }
+
+    function isSchainExist(bytes32) external pure override returns (bool) {
+        return true;
     }
 }

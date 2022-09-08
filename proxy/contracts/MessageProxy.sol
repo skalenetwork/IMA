@@ -19,7 +19,7 @@
  *   along with SKALE IMA.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-pragma solidity 0.8.6;
+pragma solidity 0.8.16;
 
 import "@openzeppelin/contracts-upgradeable/access/AccessControlEnumerableUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/utils/AddressUpgradeable.sol";
@@ -45,6 +45,7 @@ abstract contract MessageProxy is AccessControlEnumerableUpgradeable, IMessagePr
         uint256 incomingMessageCounter;
         uint256 outgoingMessageCounter;
         bool inited;
+        uint256 lastOutgoingMessageBlockId;
     }
 
     bytes32 public constant MAINNET_HASH = keccak256(abi.encodePacked("Mainnet"));
@@ -52,6 +53,7 @@ abstract contract MessageProxy is AccessControlEnumerableUpgradeable, IMessagePr
     bytes32 public constant EXTRA_CONTRACT_REGISTRAR_ROLE = keccak256("EXTRA_CONTRACT_REGISTRAR_ROLE");
     bytes32 public constant CONSTANT_SETTER_ROLE = keccak256("CONSTANT_SETTER_ROLE");
     uint256 public constant MESSAGES_LENGTH = 10;
+    uint256 public constant REVERT_REASON_LENGTH = 64;
 
     //   schainHash => ConnectedChainInfo
     mapping(bytes32 => ConnectedChainInfo) public connectedChains;
@@ -108,6 +110,14 @@ abstract contract MessageProxy is AccessControlEnumerableUpgradeable, IMessagePr
     event ExtraContractRemoved(
         bytes32 indexed chainHash,
         address contractAddress
+    );
+
+    /**
+     * @dev Emitted when referenced to previous outgoing message.
+     */
+    event PreviousMessageReference (
+        uint256 currentMessage,
+        uint256 previousOutgoingMessageBlockId
     );
 
     /**
@@ -241,6 +251,16 @@ abstract contract MessageProxy is AccessControlEnumerableUpgradeable, IMessagePr
         return connectedChains[dstChainHash].outgoingMessageCounter;
     }
 
+
+    /**
+     * @dev Should return block number of the last message transferred to schain
+     */
+    function getLastOutgoingMessageBlockId(string memory targetSchainName) external view override returns (uint) {
+        bytes32 dstChainHash = keccak256(abi.encodePacked(targetSchainName));
+        require(connectedChains[dstChainHash].inited, "Destination chain is not initialized");
+        return connectedChains[dstChainHash].lastOutgoingMessageBlockId;
+    }
+
     /**
      * @dev Returns number of incoming messages.
      * 
@@ -291,15 +311,20 @@ abstract contract MessageProxy is AccessControlEnumerableUpgradeable, IMessagePr
         require(connectedChains[targetChainHash].inited, "Destination chain is not initialized");
         _authorizeOutgoingMessageSender(targetChainHash);
         
+        uint outgoingMessageCounter = connectedChains[targetChainHash].outgoingMessageCounter;
         emit OutgoingMessage(
             targetChainHash,
-            connectedChains[targetChainHash].outgoingMessageCounter,
+            outgoingMessageCounter,
             msg.sender,
             targetContract,
             data
         );
-
-        connectedChains[targetChainHash].outgoingMessageCounter += 1;
+        emit PreviousMessageReference(
+            outgoingMessageCounter,
+            connectedChains[targetChainHash].lastOutgoingMessageBlockId
+        );
+        connectedChains[targetChainHash].outgoingMessageCounter++;
+        connectedChains[targetChainHash].lastOutgoingMessageBlockId = block.number;
     }
 
     /**
@@ -404,7 +429,8 @@ abstract contract MessageProxy is AccessControlEnumerableUpgradeable, IMessagePr
         connectedChains[schainHash] = ConnectedChainInfo({
             incomingMessageCounter: 0,
             outgoingMessageCounter: 0,
-            inited: true
+            inited: true,
+            lastOutgoingMessageBlockId: 0
         });
     }
 
@@ -418,33 +444,35 @@ abstract contract MessageProxy is AccessControlEnumerableUpgradeable, IMessagePr
         uint counter
     )
         internal
-        returns (address)
     {
         if (!message.destinationContract.isContract()) {
             emit PostMessageError(
                 counter,
                 "Destination contract is not a contract"
             );
-            return address(0);
+            return;
         }
         try IMessageReceiver(message.destinationContract).postMessage{gas: gasLimit}(
             schainHash,
             message.sender,
             message.data
-        ) returns (address receiver) {
-            return receiver;
+        ) {
+            return;
         } catch Error(string memory reason) {
             emit PostMessageError(
                 counter,
-                bytes(reason)
+                _getSlice(bytes(reason), REVERT_REASON_LENGTH)
             );
-            return address(0);
+        } catch Panic(uint errorCode) {
+               emit PostMessageError(
+                counter,
+                abi.encodePacked(errorCode)
+            );
         } catch (bytes memory revertData) {
             emit PostMessageError(
                 counter,
-                revertData
+                _getSlice(revertData, REVERT_REASON_LENGTH)
             );
-            return address(0);
         }
     }
 
@@ -468,13 +496,19 @@ abstract contract MessageProxy is AccessControlEnumerableUpgradeable, IMessagePr
         } catch Error(string memory reason) {
             emit PostMessageError(
                 counter,
-                bytes(reason)
+                _getSlice(bytes(reason), REVERT_REASON_LENGTH)
+            );
+            return address(0);
+        } catch Panic(uint errorCode) {
+               emit PostMessageError(
+                counter,
+                abi.encodePacked(errorCode)
             );
             return address(0);
         } catch (bytes memory revertData) {
             emit PostMessageError(
                 counter,
-                revertData
+                _getSlice(revertData, REVERT_REASON_LENGTH)
             );
             return address(0);
         }
@@ -502,16 +536,38 @@ abstract contract MessageProxy is AccessControlEnumerableUpgradeable, IMessagePr
     /**
      * @dev Returns hash of message array.
      */
-    function _hashedArray(Message[] calldata messages) internal pure returns (bytes32) {
-        bytes memory data;
+    function _hashedArray(
+        Message[] calldata messages,
+        uint256 startingCounter,
+        string calldata fromChainName
+    )
+        internal
+        pure
+        returns (bytes32)
+    {
+        bytes32 sourceHash = keccak256(abi.encodePacked(fromChainName));
+        bytes32 hash = keccak256(abi.encodePacked(sourceHash, bytes32(startingCounter)));
         for (uint256 i = 0; i < messages.length; i++) {
-            data = abi.encodePacked(
-                data,
-                bytes32(bytes20(messages[i].sender)),
-                bytes32(bytes20(messages[i].destinationContract)),
-                messages[i].data
+            hash = keccak256(
+                abi.encodePacked(
+                    abi.encode(
+                        hash,
+                        messages[i].sender,
+                        messages[i].destinationContract
+                    ),
+                    messages[i].data
+                )
             );
         }
-        return keccak256(data);
+        return hash;
+    }
+
+    function _getSlice(bytes memory text, uint end) private pure returns (bytes memory) {
+        uint slicedEnd = end < text.length ? end : text.length;
+        bytes memory sliced = new bytes(slicedEnd);
+        for(uint i = 0; i < slicedEnd; i++){
+            sliced[i] = text[i];
+        }
+        return sliced;    
     }
 }

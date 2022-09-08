@@ -19,7 +19,7 @@
  *   along with SKALE IMA.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-pragma solidity 0.8.6;
+pragma solidity 0.8.16;
 
 import "@openzeppelin/contracts-upgradeable/utils/AddressUpgradeable.sol";
 import "@skalenetwork/ima-interfaces/schain/TokenManagers/ITokenManagerERC721.sol";
@@ -136,10 +136,10 @@ contract TokenManagerERC721 is TokenManager, ITokenManagerERC721 {
         bytes calldata data
     )
         external
+        virtual
         override
         onlyMessageProxy
         checkReceiverChain(fromChainHash, sender)
-        returns (address)
     {
         Messages.MessageType operation = Messages.getMessageType(data);
         address receiver = address(0);
@@ -151,7 +151,6 @@ contract TokenManagerERC721 is TokenManager, ITokenManagerERC721 {
         } else {
             revert("MessageType is unknown");
         }
-        return receiver;
     }
 
     /**
@@ -206,7 +205,7 @@ contract TokenManagerERC721 is TokenManager, ITokenManagerERC721 {
      * Emits a {ERC20TokenCreated} event if token did not exist and was automatically deployed.
      * Emits a {ERC20TokenReceived} event on success.
      */
-    function _sendERC721(bytes32 fromChainHash, bytes calldata data) private returns (address) {
+    function _sendERC721(bytes32 fromChainHash, bytes calldata data) internal virtual returns (address) {
         Messages.MessageType messageType = Messages.getMessageType(data);
         address receiver;
         address token;
@@ -250,54 +249,9 @@ contract TokenManagerERC721 is TokenManager, ITokenManagerERC721 {
     }
 
     /**
-     * @dev Burn tokens on schain and send message to unlock them on target chain.
-     */
-    function _exit(
-        bytes32 chainHash,
-        address messageReceiver,
-        address contractOnMainChain,
-        address to,
-        uint256 tokenId
-    )
-        private
-    {
-        bool isMainChainToken;
-        ERC721BurnableUpgradeable contractOnSchain = clonesErc721[chainHash][contractOnMainChain];
-        if (address(contractOnSchain) == address(0)) {
-            contractOnSchain = ERC721BurnableUpgradeable(contractOnMainChain);
-            isMainChainToken = true;
-        }
-        require(address(contractOnSchain).isContract(), "No token clone on schain");
-        require(contractOnSchain.getApproved(tokenId) == address(this), "Not allowed ERC721 Token");
-        bytes memory data = Messages.encodeTransferErc721Message(contractOnMainChain, to, tokenId);
-        if (isMainChainToken) {
-            data = _receiveERC721(
-                chainHash,
-                address(contractOnSchain),
-                msg.sender,
-                tokenId
-            );
-            _saveTransferredAmount(chainHash, address(contractOnSchain), tokenId);
-            contractOnSchain.transferFrom(msg.sender, address(this), tokenId);
-        } else {
-            contractOnSchain.transferFrom(msg.sender, address(this), tokenId);
-            contractOnSchain.burn(tokenId);
-        }
-        messageProxy.postOutgoingMessage(chainHash, messageReceiver, data);
-    }
-
-    /**
-     * @dev Saves the ids of tokens that was transferred to schain.
-     */
-    function _saveTransferredAmount(bytes32 chainHash, address erc721Token, uint256 tokenId) private {
-        require(transferredAmount[erc721Token][tokenId] == bytes32(0), "Token was already transferred to chain");
-        transferredAmount[erc721Token][tokenId] = chainHash;
-    }
-
-    /**
      * @dev Removes the ids of tokens that was transferred from schain.
      */
-    function _removeTransferredAmount(bytes32 chainHash, address erc721Token, uint256 tokenId) private {
+    function _removeTransferredAmount(bytes32 chainHash, address erc721Token, uint256 tokenId) internal {
         require(transferredAmount[erc721Token][tokenId] == chainHash, "Token was already transferred from chain");
         transferredAmount[erc721Token][tokenId] = bytes32(0);
     }
@@ -317,7 +271,8 @@ contract TokenManagerERC721 is TokenManager, ITokenManagerERC721 {
         address to,
         uint256 tokenId
     )
-        private
+        internal
+        virtual
         returns (bytes memory data)
     {
         bool isERC721AddedToSchain = _schainToERC721[chainHash].contains(erc721OnMainChain);
@@ -344,7 +299,7 @@ contract TokenManagerERC721 is TokenManager, ITokenManagerERC721 {
      * 
      * - Given address should be contract.
      */
-    function _addERC721ForSchain(bytes32 chainHash, address erc721OnMainChain) private {
+    function _addERC721ForSchain(bytes32 chainHash, address erc721OnMainChain) internal {
         require(erc721OnMainChain.isContract(), "Given address is not a contract");
         require(!_schainToERC721[chainHash].contains(erc721OnMainChain), "ERC721 Token was already added");
         _schainToERC721[chainHash].add(erc721OnMainChain);
@@ -352,12 +307,64 @@ contract TokenManagerERC721 is TokenManager, ITokenManagerERC721 {
     }
 
     /**
+     * @dev Burn tokens on schain and send message to unlock them on target chain.
+     */
+    function _exit(
+        bytes32 chainHash,
+        address messageReceiver,
+        address contractOnMainChain,
+        address to,
+        uint256 tokenId
+    )
+        internal
+        virtual
+    {
+        bool isMainChainToken;
+        ERC721OnChain contractOnSchain = clonesErc721[chainHash][contractOnMainChain];
+        if (address(contractOnSchain) == address(0)) {
+            contractOnSchain = ERC721OnChain(contractOnMainChain);
+            require(!addedClones[contractOnSchain], "Incorrect main chain token");
+            isMainChainToken = true;
+        }
+        require(address(contractOnSchain).isContract(), "No token clone on schain");
+        require(contractOnSchain.getApproved(tokenId) == address(this), "Not allowed ERC721 Token");
+        bytes memory data = Messages.encodeTransferErc721Message(contractOnMainChain, to, tokenId);
+        if (isMainChainToken) {
+            require(chainHash != MAINNET_HASH, "Main chain token could not be transfered to Mainnet");
+            data = _receiveERC721(
+                chainHash,
+                address(contractOnSchain),
+                msg.sender,
+                tokenId
+            );
+            _saveTransferredAmount(chainHash, address(contractOnSchain), tokenId);
+            contractOnSchain.transferFrom(msg.sender, address(this), tokenId);
+        } else {
+            contractOnSchain.transferFrom(msg.sender, address(this), tokenId);
+            contractOnSchain.burn(tokenId);
+        }
+        messageProxy.postOutgoingMessage(chainHash, messageReceiver, data);
+    }
+
+    /**
+     * @dev Saves the ids of tokens that was transferred to schain.
+     */
+    function _saveTransferredAmount(bytes32 chainHash, address erc721Token, uint256 tokenId) internal {
+        require(transferredAmount[erc721Token][tokenId] == bytes32(0), "Token was already transferred to chain");
+        transferredAmount[erc721Token][tokenId] = chainHash;
+    }
+
+    /**
      * @dev Returns info about ERC721 token such as token name, symbol.
      */
-    function _getTokenInfo(IERC721MetadataUpgradeable erc721) private view returns (Messages.Erc721TokenInfo memory) {
+    function _getTokenInfo(IERC721MetadataUpgradeable erc721) internal view returns (Messages.Erc721TokenInfo memory) {
         return Messages.Erc721TokenInfo({
             name: erc721.name(),
             symbol: erc721.symbol()
         });
+    }
+
+    function _isERC721AddedToSchain(bytes32 chainHash, address erc721OnMainChain) internal view returns (bool) {
+        return _schainToERC721[chainHash].contains(erc721OnMainChain);
     }
 }

@@ -20,7 +20,7 @@
  */
 
 
-pragma solidity 0.8.6;
+pragma solidity 0.8.16;
 
 import "../Messages.sol";
 
@@ -54,6 +54,19 @@ interface IMessagesTester {
         address token,
         address receiver,
         uint256 tokenId,
+        Messages.Erc721TokenInfo memory tokenInfo
+    ) external pure returns (bytes memory);
+    function encodeTransferErc721MessageWithMetadata(
+        address token,
+        address receiver,
+        uint256 tokenId,
+        string memory tokenURI
+    ) external pure returns (bytes memory);
+    function encodeTransferErc721WithMetadataAndTokenInfoMessage(
+        address token,
+        address receiver,
+        uint256 tokenId,
+        string memory tokenURI,
         Messages.Erc721TokenInfo memory tokenInfo
     ) external pure returns (bytes memory);
     function encodeActivateUserMessage(address receiver) external pure returns (bytes memory);
@@ -136,6 +149,31 @@ contract MessagesTester is IMessagesTester {
         Messages.Erc721TokenInfo memory tokenInfo
     ) external pure override returns (bytes memory) {
         return Messages.encodeTransferErc721AndTokenInfoMessage(token, receiver, tokenId, tokenInfo);
+    }
+
+    function encodeTransferErc721MessageWithMetadata(
+        address token,
+        address receiver,
+        uint256 tokenId,
+        string memory tokenURI
+    ) external pure override returns (bytes memory) {
+        return Messages.encodeTransferErc721MessageWithMetadata(token, receiver, tokenId, tokenURI);
+    }
+
+    function encodeTransferErc721WithMetadataAndTokenInfoMessage(
+        address token,
+        address receiver,
+        uint256 tokenId,
+        string memory tokenURI,
+        Messages.Erc721TokenInfo memory tokenInfo
+    ) external pure override returns (bytes memory) {
+        return Messages.encodeTransferErc721WithMetadataAndTokenInfoMessage(
+            token,
+            receiver,
+            tokenId,
+            tokenURI,
+            tokenInfo
+        );
     }
 
     function encodeActivateUserMessage(address receiver) external pure override returns (bytes memory) {

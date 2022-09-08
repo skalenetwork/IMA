@@ -6,7 +6,8 @@ cd "$(dirname "$0")/.."
 
 python3 -m venv test/venv
 source test/venv/bin/activate
-pip install --force-reinstall dist/ima_predeployed-*.whl
+export PYTHONPATH=src
+pip install -r test/requirements.txt
 BLOCKCHAIN_DIR="/tmp/blockchain/"
 python test/generate_genesis.py test/base_genesis.json test/config.json > test/genesis.json
 rm -r "$BLOCKCHAIN_DIR" || true
