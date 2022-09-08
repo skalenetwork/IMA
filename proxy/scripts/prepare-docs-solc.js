@@ -2,7 +2,7 @@ const { getCompilersDir } = require('hardhat/internal/util/global-dir');
 const { CompilerDownloader } = require('hardhat/internal/solidity/compiler/downloader');
 const { Compiler } = require('hardhat/internal/solidity/compiler');
 
-const version = "0.8.6";
+const version = "0.8.16";
 
 async function getSolc () {  
   const downloader = new CompilerDownloader(await getCompilersDir(), { forceSolcJs: true });
