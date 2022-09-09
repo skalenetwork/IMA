@@ -1028,34 +1028,20 @@
 :xref-ERC1155ReceiverUpgradeableWithoutGap-__ERC1155Receiver_init--: xref:thirdparty/erc1155receiverupgradeablewithoutgap.adoc#ERC1155ReceiverUpgradeableWithoutGap-__ERC1155Receiver_init--
 :ERC1155ReceiverUpgradeableWithoutGap-__ERC1155Receiver_init_unchained: pass:normal[xref:thirdparty/erc1155receiverupgradeablewithoutgap.adoc#ERC1155ReceiverUpgradeableWithoutGap-__ERC1155Receiver_init_unchained--[`ERC1155ReceiverUpgradeableWithoutGap.__ERC1155Receiver_init_unchained`]]
 :xref-ERC1155ReceiverUpgradeableWithoutGap-__ERC1155Receiver_init_unchained--: xref:thirdparty/erc1155receiverupgradeablewithoutgap.adoc#ERC1155ReceiverUpgradeableWithoutGap-__ERC1155Receiver_init_unchained--
-:TokenManagerERC1155: pass:normal[xref:#TokenManagerERC1155[`++TokenManagerERC1155++`]]
-:deprecatedClonesErc1155: pass:normal[xref:#TokenManagerERC1155-deprecatedClonesErc1155-mapping-address----contract-ERC1155OnChain-[`++deprecatedClonesErc1155++`]]
-:addedClones: pass:normal[xref:#TokenManagerERC1155-addedClones-mapping-contract-ERC1155OnChain----bool-[`++addedClones++`]]
-:clonesErc1155: pass:normal[xref:#TokenManagerERC1155-clonesErc1155-mapping-bytes32----mapping-address----contract-ERC1155OnChain--[`++clonesErc1155++`]]
-:transferredAmount: pass:normal[xref:#TokenManagerERC1155-transferredAmount-mapping-bytes32----mapping-address----mapping-uint256----uint256---[`++transferredAmount++`]]
-:exitToMainERC1155: pass:normal[xref:#TokenManagerERC1155-exitToMainERC1155-address-uint256-uint256-[`++exitToMainERC1155++`]]
-:exitToMainERC1155Batch: pass:normal[xref:#TokenManagerERC1155-exitToMainERC1155Batch-address-uint256---uint256---[`++exitToMainERC1155Batch++`]]
-:transferToSchainERC1155: pass:normal[xref:#TokenManagerERC1155-transferToSchainERC1155-string-address-uint256-uint256-[`++transferToSchainERC1155++`]]
-:transferToSchainERC1155Batch: pass:normal[xref:#TokenManagerERC1155-transferToSchainERC1155Batch-string-address-uint256---uint256---[`++transferToSchainERC1155Batch++`]]
-:postMessage: pass:normal[xref:#TokenManagerERC1155-postMessage-bytes32-address-bytes-[`++postMessage++`]]
-:addERC1155TokenByOwner: pass:normal[xref:#TokenManagerERC1155-addERC1155TokenByOwner-string-address-address-[`++addERC1155TokenByOwner++`]]
-:initialize: pass:normal[xref:#TokenManagerERC1155-initialize-string-contract-IMessageProxyForSchain-contract-ITokenManagerLinker-contract-ICommunityLocker-address-[`++initialize++`]]
-:onERC1155Received: pass:normal[xref:#TokenManagerERC1155-onERC1155Received-address-address-uint256-uint256-bytes-[`++onERC1155Received++`]]
-:onERC1155BatchReceived: pass:normal[xref:#TokenManagerERC1155-onERC1155BatchReceived-address-address-uint256---uint256---bytes-[`++onERC1155BatchReceived++`]]
-:supportsInterface: pass:normal[xref:#TokenManagerERC1155-supportsInterface-bytes4-[`++supportsInterface++`]]
-:ERC1155TokenAdded: pass:normal[xref:#TokenManagerERC1155-ERC1155TokenAdded-bytes32-address-address-[`++ERC1155TokenAdded++`]]
-:ERC1155TokenCreated: pass:normal[xref:#TokenManagerERC1155-ERC1155TokenCreated-bytes32-address-address-[`++ERC1155TokenCreated++`]]
-:ERC1155TokenReceived: pass:normal[xref:#TokenManagerERC1155-ERC1155TokenReceived-bytes32-address-address-uint256---uint256---[`++ERC1155TokenReceived++`]]
-:ERC1155TokenReady: pass:normal[xref:#TokenManagerERC1155-ERC1155TokenReady-bytes32-address-uint256---uint256---[`++ERC1155TokenReady++`]]
+:TokenManagerERC721WithMetadata: pass:normal[xref:#TokenManagerERC721WithMetadata[`++TokenManagerERC721WithMetadata++`]]
+:postMessage: pass:normal[xref:#TokenManagerERC721WithMetadata-postMessage-bytes32-address-bytes-[`++postMessage++`]]
+:_sendERC721: pass:normal[xref:#TokenManagerERC721WithMetadata-_sendERC721-bytes32-bytes-[`++_sendERC721++`]]
+:_exit: pass:normal[xref:#TokenManagerERC721WithMetadata-_exit-bytes32-address-address-address-uint256-[`++_exit++`]]
+:_receiveERC721: pass:normal[xref:#TokenManagerERC721WithMetadata-_receiveERC721-bytes32-address-address-uint256-[`++_receiveERC721++`]]
 
 [.contract]
-[[TokenManagerERC1155]]
-= TokenManagerERC1155
+[[TokenManagerERC721WithMetadata]]
+= TokenManagerERC721WithMetadata
 
 Runs on SKALE Chains,
 accepts messages from mainnet,
-and creates ERC1155 clones.
-TokenManagerERC1155 mints tokens. When a user exits a SKALE chain, it burns them.
+and creates ERC721 clones.
+TokenManagerERC721 mints tokens. When a user exits a SKALE chain, it burns them.
 
 [.contract-index]
 .Modifiers
@@ -1065,60 +1051,20 @@ TokenManagerERC1155 mints tokens. When a user exits a SKALE chain, it burns them
 [.contract-index]
 .Functions
 --
-* {xref-TokenManagerERC1155-exitToMainERC1155-address-uint256-uint256-}[`++exitToMainERC1155(contractOnMainnet, id, amount)++`]
-* {xref-TokenManagerERC1155-exitToMainERC1155Batch-address-uint256---uint256---}[`++exitToMainERC1155Batch(contractOnMainnet, ids, amounts)++`]
-* {xref-TokenManagerERC1155-transferToSchainERC1155-string-address-uint256-uint256-}[`++transferToSchainERC1155(targetSchainName, contractOnMainnet, id, amount)++`]
-* {xref-TokenManagerERC1155-transferToSchainERC1155Batch-string-address-uint256---uint256---}[`++transferToSchainERC1155Batch(targetSchainName, contractOnMainnet, ids, amounts)++`]
-* {xref-TokenManagerERC1155-postMessage-bytes32-address-bytes-}[`++postMessage(fromChainHash, sender, data)++`]
-* {xref-TokenManagerERC1155-addERC1155TokenByOwner-string-address-address-}[`++addERC1155TokenByOwner(targetChainName, erc1155OnMainnet, erc1155OnSchain)++`]
-* {xref-TokenManagerERC1155-initialize-string-contract-IMessageProxyForSchain-contract-ITokenManagerLinker-contract-ICommunityLocker-address-}[`++initialize(newChainName, newMessageProxy, newIMALinker, newCommunityLocker, newDepositBox)++`]
-* {xref-TokenManagerERC1155-onERC1155Received-address-address-uint256-uint256-bytes-}[`++onERC1155Received(operator, _, _, _, _)++`]
-* {xref-TokenManagerERC1155-onERC1155BatchReceived-address-address-uint256---uint256---bytes-}[`++onERC1155BatchReceived(operator, _, _, _, _)++`]
-* {xref-TokenManagerERC1155-supportsInterface-bytes4-}[`++supportsInterface(interfaceId)++`]
+* {xref-TokenManagerERC721WithMetadata-postMessage-bytes32-address-bytes-}[`++postMessage(fromChainHash, sender, data)++`]
+* {xref-TokenManagerERC721WithMetadata-_sendERC721-bytes32-bytes-}[`++_sendERC721(fromChainHash, data)++`]
+* {xref-TokenManagerERC721WithMetadata-_exit-bytes32-address-address-address-uint256-}[`++_exit(chainHash, messageReceiver, contractOnMainChain, to, tokenId)++`]
+* {xref-TokenManagerERC721WithMetadata-_receiveERC721-bytes32-address-address-uint256-}[`++_receiveERC721(chainHash, erc721OnMainChain, to, tokenId)++`]
 --
 
 [.contract-index]
 .Events
 --
-* {xref-TokenManagerERC1155-ERC1155TokenAdded-bytes32-address-address-}[`++ERC1155TokenAdded(chainHash, erc1155OnMainnet, erc1155OnSchain)++`]
-* {xref-TokenManagerERC1155-ERC1155TokenCreated-bytes32-address-address-}[`++ERC1155TokenCreated(chainHash, erc1155OnMainnet, erc1155OnSchain)++`]
-* {xref-TokenManagerERC1155-ERC1155TokenReceived-bytes32-address-address-uint256---uint256---}[`++ERC1155TokenReceived(chainHash, erc1155OnMainnet, erc1155OnSchain, ids, amounts)++`]
-* {xref-TokenManagerERC1155-ERC1155TokenReady-bytes32-address-uint256---uint256---}[`++ERC1155TokenReady(chainHash, contractOnMainnet, ids, amounts)++`]
 --
 
 
 [.contract-item]
-== +++<a class="heading-anchor" area-hidden="true" name=TokenManagerERC1155-exitToMainERC1155-address-uint256-uint256->exitToMainERC1155</a>+++ `++exitToMainERC1155(++[.var-type]#++address++#++ ++[.var-name]#++contractOnMainnet++#++, ++[.var-type]#++uint256++#++ ++[.var-name]#++id++#++, ++[.var-type]#++uint256++#++ ++[.var-name]#++amount++#++)++` [.item-kind]#external#
-
-Move tokens from schain to mainnet.
-
-{contractOnMainnet} tokens are burned on schain and unlocked on mainnet for {to} address.
-
-[.contract-item]
-== +++<a class="heading-anchor" area-hidden="true" name=TokenManagerERC1155-exitToMainERC1155Batch-address-uint256---uint256--->exitToMainERC1155Batch</a>+++ `++exitToMainERC1155Batch(++[.var-type]#++address++#++ ++[.var-name]#++contractOnMainnet++#++, ++[.var-type]#++uint256[]++#++ ++[.var-name]#++ids++#++, ++[.var-type]#++uint256[]++#++ ++[.var-name]#++amounts++#++)++` [.item-kind]#external#
-
-Move batch of tokens from schain to mainnet.
-
-{contractOnMainnet} tokens are burned on schain and unlocked on mainnet for {to} address.
-
-[.contract-item]
-== +++<a class="heading-anchor" area-hidden="true" name=TokenManagerERC1155-transferToSchainERC1155-string-address-uint256-uint256->transferToSchainERC1155</a>+++ `++transferToSchainERC1155(++[.var-type]#++string++#++ ++[.var-name]#++targetSchainName++#++, ++[.var-type]#++address++#++ ++[.var-name]#++contractOnMainnet++#++, ++[.var-type]#++uint256++#++ ++[.var-name]#++id++#++, ++[.var-type]#++uint256++#++ ++[.var-name]#++amount++#++)++` [.item-kind]#external#
-
-Move tokens from schain to schain.
-
-{contractOnMainnet} tokens are burned on origin schain
-and are minted on {targetSchainName} schain for {to} address.
-
-[.contract-item]
-== +++<a class="heading-anchor" area-hidden="true" name=TokenManagerERC1155-transferToSchainERC1155Batch-string-address-uint256---uint256--->transferToSchainERC1155Batch</a>+++ `++transferToSchainERC1155Batch(++[.var-type]#++string++#++ ++[.var-name]#++targetSchainName++#++, ++[.var-type]#++address++#++ ++[.var-name]#++contractOnMainnet++#++, ++[.var-type]#++uint256[]++#++ ++[.var-name]#++ids++#++, ++[.var-type]#++uint256[]++#++ ++[.var-name]#++amounts++#++)++` [.item-kind]#external#
-
-Move batch of tokens from schain to schain.
-
-{contractOnMainnet} tokens are burned on origin schain
-and are minted on {targetSchainName} schain for {to} address.
-
-[.contract-item]
-== +++<a class="heading-anchor" area-hidden="true" name=TokenManagerERC1155-postMessage-bytes32-address-bytes->postMessage</a>+++ `++postMessage(++[.var-type]#++bytes32++#++ ++[.var-name]#++fromChainHash++#++, ++[.var-type]#++address++#++ ++[.var-name]#++sender++#++, ++[.var-type]#++bytes++#++ ++[.var-name]#++data++#++)++` [.item-kind]#external#
+== +++<a class="heading-anchor" area-hidden="true" name=TokenManagerERC721WithMetadata-postMessage-bytes32-address-bytes->postMessage</a>+++ `++postMessage(++[.var-type]#++bytes32++#++ ++[.var-name]#++fromChainHash++#++, ++[.var-type]#++address++#++ ++[.var-name]#++sender++#++, ++[.var-type]#++bytes++#++ ++[.var-name]#++data++#++)++` [.item-kind]#external#
 
 Allows MessageProxy to post operational message from mainnet
 or SKALE chains.
@@ -1126,52 +1072,30 @@ or SKALE chains.
 Requirements:
 
 - MessageProxy must be the sender.
-- `fromChainHash` must exist in TokenManagerERC1155 addresses.
+- `fromChainHash` must exist in TokenManager addresses.
 
 [.contract-item]
-== +++<a class="heading-anchor" area-hidden="true" name=TokenManagerERC1155-addERC1155TokenByOwner-string-address-address->addERC1155TokenByOwner</a>+++ `++addERC1155TokenByOwner(++[.var-type]#++string++#++ ++[.var-name]#++targetChainName++#++, ++[.var-type]#++address++#++ ++[.var-name]#++erc1155OnMainnet++#++, ++[.var-type]#++address++#++ ++[.var-name]#++erc1155OnSchain++#++)++` [.item-kind]#external#
+== +++<a class="heading-anchor" area-hidden="true" name=TokenManagerERC721WithMetadata-_sendERC721-bytes32-bytes->_sendERC721</a>+++ `++_sendERC721(++[.var-type]#++bytes32++#++ ++[.var-name]#++fromChainHash++#++, ++[.var-type]#++bytes++#++ ++[.var-name]#++data++#++) → ++[.var-type]#++address++#++++` [.item-kind]#internal#
 
-Allows Schain owner to register an ERC1155 token clone in the token manager.
-
-[.contract-item]
-== +++<a class="heading-anchor" area-hidden="true" name=TokenManagerERC1155-initialize-string-contract-IMessageProxyForSchain-contract-ITokenManagerLinker-contract-ICommunityLocker-address->initialize</a>+++ `++initialize(++[.var-type]#++string++#++ ++[.var-name]#++newChainName++#++, ++[.var-type]#++contract IMessageProxyForSchain++#++ ++[.var-name]#++newMessageProxy++#++, ++[.var-type]#++contract ITokenManagerLinker++#++ ++[.var-name]#++newIMALinker++#++, ++[.var-type]#++contract ICommunityLocker++#++ ++[.var-name]#++newCommunityLocker++#++, ++[.var-type]#++address++#++ ++[.var-name]#++newDepositBox++#++)++` [.item-kind]#external#
-
-Is called once during contract deployment.
+Allows TokenManager to send ERC721 tokens.
+ 
+Emits a {ERC20TokenCreated} event if token did not exist and was automatically deployed.
+Emits a {ERC20TokenReceived} event on success.
 
 [.contract-item]
-== +++<a class="heading-anchor" area-hidden="true" name=TokenManagerERC1155-onERC1155Received-address-address-uint256-uint256-bytes->onERC1155Received</a>+++ `++onERC1155Received(++[.var-type]#++address++#++ ++[.var-name]#++operator++#++, ++[.var-type]#++address++#++, ++[.var-type]#++uint256++#++, ++[.var-type]#++uint256++#++, ++[.var-type]#++bytes++#++) → ++[.var-type]#++bytes4++#++++` [.item-kind]#external#
+== +++<a class="heading-anchor" area-hidden="true" name=TokenManagerERC721WithMetadata-_exit-bytes32-address-address-address-uint256->_exit</a>+++ `++_exit(++[.var-type]#++bytes32++#++ ++[.var-name]#++chainHash++#++, ++[.var-type]#++address++#++ ++[.var-name]#++messageReceiver++#++, ++[.var-type]#++address++#++ ++[.var-name]#++contractOnMainChain++#++, ++[.var-type]#++address++#++ ++[.var-name]#++to++#++, ++[.var-type]#++uint256++#++ ++[.var-name]#++tokenId++#++)++` [.item-kind]#internal#
 
-
-
-[.contract-item]
-== +++<a class="heading-anchor" area-hidden="true" name=TokenManagerERC1155-onERC1155BatchReceived-address-address-uint256---uint256---bytes->onERC1155BatchReceived</a>+++ `++onERC1155BatchReceived(++[.var-type]#++address++#++ ++[.var-name]#++operator++#++, ++[.var-type]#++address++#++, ++[.var-type]#++uint256[]++#++, ++[.var-type]#++uint256[]++#++, ++[.var-type]#++bytes++#++) → ++[.var-type]#++bytes4++#++++` [.item-kind]#external#
-
-
+Burn tokens on schain and send message to unlock them on target chain.
 
 [.contract-item]
-== +++<a class="heading-anchor" area-hidden="true" name=TokenManagerERC1155-supportsInterface-bytes4->supportsInterface</a>+++ `++supportsInterface(++[.var-type]#++bytes4++#++ ++[.var-name]#++interfaceId++#++) → ++[.var-type]#++bool++#++++` [.item-kind]#public#
+== +++<a class="heading-anchor" area-hidden="true" name=TokenManagerERC721WithMetadata-_receiveERC721-bytes32-address-address-uint256->_receiveERC721</a>+++ `++_receiveERC721(++[.var-type]#++bytes32++#++ ++[.var-name]#++chainHash++#++, ++[.var-type]#++address++#++ ++[.var-name]#++erc721OnMainChain++#++, ++[.var-type]#++address++#++ ++[.var-name]#++to++#++, ++[.var-type]#++uint256++#++ ++[.var-name]#++tokenId++#++) → ++[.var-type]#++bytes++#++ ++[.var-name]#++data++#++++` [.item-kind]#internal#
 
-Checks whether contract supports such interface (first 4 bytes of method name and its params).
+Allows DepositBoxERC721 to receive ERC721 tokens.
 
+Emits an {ERC721TokenReady} event.
 
-[.contract-item]
-== +++<a class="heading-anchor" area-hidden="true" name=TokenManagerERC1155-ERC1155TokenAdded-bytes32-address-address->ERC1155TokenAdded</a>+++ `++ERC1155TokenAdded(++[.var-type]#++bytes32++#++ ++[.var-name]#++chainHash++#++, ++[.var-type]#++address++#++ ++[.var-name]#++erc1155OnMainnet++#++, ++[.var-type]#++address++#++ ++[.var-name]#++erc1155OnSchain++#++)++` [.item-kind]#event#
+Requirements:
 
-Emitted when schain owner register new ERC1155 clone.
+- Whitelist should be turned off for auto adding tokens to DepositBoxERC721.
 
-[.contract-item]
-== +++<a class="heading-anchor" area-hidden="true" name=TokenManagerERC1155-ERC1155TokenCreated-bytes32-address-address->ERC1155TokenCreated</a>+++ `++ERC1155TokenCreated(++[.var-type]#++bytes32++#++ ++[.var-name]#++chainHash++#++, ++[.var-type]#++address++#++ ++[.var-name]#++erc1155OnMainnet++#++, ++[.var-type]#++address++#++ ++[.var-name]#++erc1155OnSchain++#++)++` [.item-kind]#event#
-
-Emitted when TokenManagerERC1155 automatically deploys new ERC1155 clone.
-
-[.contract-item]
-== +++<a class="heading-anchor" area-hidden="true" name=TokenManagerERC1155-ERC1155TokenReceived-bytes32-address-address-uint256---uint256--->ERC1155TokenReceived</a>+++ `++ERC1155TokenReceived(++[.var-type]#++bytes32++#++ ++[.var-name]#++chainHash++#++, ++[.var-type]#++address++#++ ++[.var-name]#++erc1155OnMainnet++#++, ++[.var-type]#++address++#++ ++[.var-name]#++erc1155OnSchain++#++, ++[.var-type]#++uint256[]++#++ ++[.var-name]#++ids++#++, ++[.var-type]#++uint256[]++#++ ++[.var-name]#++amounts++#++)++` [.item-kind]#event#
-
-Emitted when someone sends tokens from mainnet to schain.
-
-[.contract-item]
-== +++<a class="heading-anchor" area-hidden="true" name=TokenManagerERC1155-ERC1155TokenReady-bytes32-address-uint256---uint256--->ERC1155TokenReady</a>+++ `++ERC1155TokenReady(++[.var-type]#++bytes32++#++ ++[.var-name]#++chainHash++#++, ++[.var-type]#++address++#++ ++[.var-name]#++contractOnMainnet++#++, ++[.var-type]#++uint256[]++#++ ++[.var-name]#++ids++#++, ++[.var-type]#++uint256[]++#++ ++[.var-name]#++amounts++#++)++` [.item-kind]#event#
-
-Emitted when token is received by TokenManager and is ready to be cloned
-or transferred on SKALE chain.
 
