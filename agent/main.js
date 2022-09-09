@@ -1484,18 +1484,6 @@ imaCLI.parse( {
                 };
                 const addressFrom = imaState.joAccount_main_net.address( imaState.w3_main_net );
 
-                // const arr_schains = await skale_observer.load_schains( imaState.w3_main_net, addressFrom, opts );
-                // await skale_observer.check_connected_schains(
-                //     imaState.strChainName_s_chain, // strChainNameConnectedTo
-                //     arr_schains,
-                //     addressFrom,
-                //     opts
-                // );
-                // const arr_schains_cached = await skale_observer.filter_schains_marked_as_connected(
-                //     arr_schains,
-                //     opts
-                // );
-
                 const arr_schains_cached = await skale_observer.load_schains_connected_only(
                     imaState.w3_main_net,
                     imaState.w3_s_chain,

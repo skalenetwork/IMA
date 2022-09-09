@@ -183,12 +183,12 @@ function remove_schain_desc_data_num_keys( jo_schain ) {
     }
 }
 
-async function load_schain( w3, addressFrom, idxSChain, cntSChains, opts ) {
+async function load_schain( w3, addressFrom, idxSChain, hash, cntSChains, opts ) {
     if( ! opts.imaState )
         throw new Error( "Cannot load S-Chain description in observer, no imaState is provided" );
     if( opts && opts.details )
         opts.details.write( cc.debug( "Loading S-Chain " ) + cc.notice( "#" ) + cc.info( idxSChain + 1 ) + cc.debug( " of " ) + cc.info( cntSChains ) + cc.debug( "..." ) + "\n" );
-    const hash = await opts.imaState.jo_schains_internal.methods.schainsAtSystem( idxSChain ).call( { from: addressFrom } );
+    hash = hash || await opts.imaState.jo_schains_internal.methods.schainsAtSystem( idxSChain ).call( { from: addressFrom } );
     if( opts && opts.details )
         opts.details.write( cc.debug( "    Hash " ) + cc.attention( hash ) + "\n" );
     if( opts && opts.bStopNeeded )
@@ -218,7 +218,7 @@ async function load_schains( w3, addressFrom, opts ) {
     for( let idxSChain = 0; idxSChain < cntSChains; ++ idxSChain ) {
         if( opts && opts.bStopNeeded )
             break;
-        const jo_schain = await load_schain( w3, addressFrom, idxSChain, cntSChains, opts );
+        const jo_schain = await load_schain( w3, addressFrom, idxSChain, null, cntSChains, opts );
         if( ! jo_schain )
             break;
         arr_schains.push( jo_schain );
@@ -232,7 +232,7 @@ async function load_schains( w3, addressFrom, opts ) {
     return arr_schains;
 }
 
-async function load_schains2( w3, addressFrom, opts ) {
+async function load_cached_schains_simplified( w3, addressFrom, opts ) {
     if( ! opts.imaState )
         throw new Error( "Cannot load S-Chains in observer, no imaState is provided" );
     if( opts && opts.details )
@@ -251,7 +251,7 @@ async function load_schains2( w3, addressFrom, opts ) {
             opts.details.write( cc.debug( "S-Chain " ) + cc.notice( idxSChain ) + cc.debug( " hash " ) + cc.notice( strSChainHash ) + cc.debug( " corresponds to S-Chain name " ) + cc.notice( strSChainName ) + "\n" );
         if( opts && opts.bStopNeeded )
             break;
-        const jo_schain = await load_schain( w3, addressFrom, idxSChain, cntSChains, opts );
+        const jo_schain = await load_schain( w3, addressFrom, idxSChain, strSChainHash, cntSChains, opts );
         if( ! jo_schain )
             break;
         arr_schains.push( jo_schain );
@@ -300,7 +300,7 @@ async function load_schains_connected_only( w3_main_net, w3_s_chain, strChainNam
                 opts.details.write( cc.debug( "Got S-Chain " ) + cc.info( strSChainName ) + cc.debug( " connected status: " ) + cc.yn( isConnected ) + "\n" );
             if( ! isConnected )
                 continue;
-            const jo_schain = await load_schain( w3_main_net, addressFrom, idxSChain, cntSChains, opts );
+            const jo_schain = await load_schain( w3_main_net, addressFrom, idxSChain, strSChainHash, cntSChains, opts );
             if( ! jo_schain )
                 break;
             jo_schain.isConnected = true;
@@ -433,21 +433,6 @@ let g_arr_schains_cached = [];
 async function cache_schains( strChainNameConnectedTo, w3_main_net, w3_s_chain, addressFrom, opts ) {
     let strError = null;
     try {
-        // const arr_schains = await load_schains( w3_main_net, addressFrom, opts );
-        // if( strChainNameConnectedTo && ( typeof strChainNameConnectedTo == "string" ) && strChainNameConnectedTo.length > 0 ) {
-        //     await check_connected_schains(
-        //         strChainNameConnectedTo,
-        //         arr_schains,
-        //         addressFrom,
-        //         opts
-        //     );
-        //     g_arr_schains_cached = await filter_schains_marked_as_connected(
-        //         arr_schains,
-        //         opts
-        //     );
-        // } else
-        //     g_arr_schains_cached = arr_schains;
-
         let arr_schains = [];
         if( strChainNameConnectedTo && ( typeof strChainNameConnectedTo == "string" ) && strChainNameConnectedTo.length > 0 ) {
             arr_schains = await load_schains_connected_only(
@@ -582,33 +567,7 @@ async function ensure_have_worker( opts ) {
     g_client.send( jo );
 }
 
-// let g_intervalPeriodicSchainsCaching = null;
-// let g_bIsPeriodicCachingStepInProgress = false;
-
 async function periodic_caching_start( strChainNameConnectedTo, w3_main_net, w3_s_chain, addressFrom, opts ) {
-    // await periodic_caching_stop();
-    // if( ! ( "secondsToReDiscoverSkaleNetwork" in opts ) )
-    //     return false;
-    // const secondsToReDiscoverSkaleNetwork = parseInt( opts.secondsToReDiscoverSkaleNetwork );
-    // if( secondsToReDiscoverSkaleNetwork <= 0 )
-    //     return false;
-    // const fn_async_handler = async function() {
-    //     if( g_bIsPeriodicCachingStepInProgress )
-    //         return;
-    //     g_bIsPeriodicCachingStepInProgress = true;
-    //     // const strError =
-    //     await cache_schains( strChainNameConnectedTo, w3_main_net, w3_s_chain, addressFrom, opts );
-    //     g_bIsPeriodicCachingStepInProgress = false;
-    // };
-    // g_intervalPeriodicSchainsCaching = setInterval( function() {
-    //     if( g_bIsPeriodicCachingStepInProgress )
-    //         return;
-    //     fn_async_handler()
-    //         .then( () => {
-    //         } ).catch( () => {
-    //         } );
-    // }, secondsToReDiscoverSkaleNetwork * 1000 );
-    // return true;
     await ensure_have_worker( opts );
     const jo = {
         method: "periodic_caching_start",
@@ -621,12 +580,6 @@ async function periodic_caching_start( strChainNameConnectedTo, w3_main_net, w3_
     g_client.send( jo );
 }
 async function periodic_caching_stop() {
-    // if( ! g_intervalPeriodicSchainsCaching )
-    //     return false;
-    // clearInterval( g_intervalPeriodicSchainsCaching );
-    // g_intervalPeriodicSchainsCaching = null;
-    // g_bIsPeriodicCachingStepInProgress = false;
-    // return true;
     await ensure_have_worker( opts );
     const jo = {
         method: "periodic_caching_stop",
@@ -686,7 +639,7 @@ module.exports.cc = cc;
 module.exports.get_schains_count = get_schains_count;
 module.exports.load_schain = load_schain;
 module.exports.load_schains = load_schains;
-module.exports.load_schains2 = load_schains2;
+module.exports.load_cached_schains_simplified = load_cached_schains_simplified;
 module.exports.load_schains_connected_only = load_schains_connected_only;
 module.exports.check_connected_schains = check_connected_schains;
 module.exports.filter_schains_marked_as_connected = filter_schains_marked_as_connected;
