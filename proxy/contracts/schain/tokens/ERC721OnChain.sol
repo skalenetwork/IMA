@@ -20,7 +20,7 @@
  *   along with SKALE IMA.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-pragma solidity 0.8.6;
+pragma solidity 0.8.16;
 
 import "@openzeppelin/contracts-upgradeable/token/ERC721/extensions/ERC721BurnableUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/token/ERC721/extensions/ERC721URIStorageUpgradeable.sol";
@@ -70,7 +70,11 @@ contract ERC721OnChain is
         returns (bool)
     {
         require(_exists(tokenId), "Token does not exists");
-        require(_isApprovedOrOwner(msg.sender, tokenId), "Sender can not set token URI");
+        require(
+            _isApprovedOrOwner(msg.sender, tokenId) ||
+            hasRole(MINTER_ROLE, _msgSender()),
+            "Sender can not set token URI"
+        );
         _setTokenURI(tokenId, tokenUri);
         return true;
     }

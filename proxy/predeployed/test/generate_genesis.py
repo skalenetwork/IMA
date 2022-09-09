@@ -28,7 +28,8 @@ def main():
                     'deposit_box_erc721_address': config['erc721_deposit_box'],
                     'deposit_box_erc1155_address': config['erc1155_deposit_box'],
                     'linker_address': config['linker'],
-                    'community_pool_address': config['community_pool']
+                    'community_pool_address': config['community_pool'],
+                    'deposit_box_erc721_with_metadata_address': config['erc721_with_metadata_deposit_box']
                 }))
             print(json.dumps(genesis, indent=4, sort_keys=True))
 

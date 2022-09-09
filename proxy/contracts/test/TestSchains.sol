@@ -20,17 +20,27 @@
  */
 
 
-pragma solidity 0.8.6;
-
-import "@skalenetwork/skale-manager-interfaces/ISchains.sol";
+pragma solidity 0.8.16;
 
 import "./TestContractManager.sol";
 import "./KeyStorageMock.sol";
 import "./SkaleVerifierMock.sol";
 
 
-interface ISchainsTester is ISchains {
+interface ISchainsTester {
     function addContractManager(address newContractManager) external;
+        function verifySchainSignature(
+        uint signatureA,
+        uint signatureB,
+        bytes32 hash,
+        uint counter,
+        uint hashA,
+        uint hashB,
+        string calldata schainName
+    )
+        external
+        view
+        returns (bool);
 }
 
 

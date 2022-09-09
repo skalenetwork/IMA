@@ -19,7 +19,7 @@
  *   along with SKALE IMA.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-pragma solidity 0.8.6;
+pragma solidity 0.8.16;
 
 import "@openzeppelin/contracts-upgradeable/token/ERC20/IERC20Upgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/utils/AddressUpgradeable.sol";
@@ -140,7 +140,6 @@ contract TokenManagerERC20 is TokenManager, ITokenManagerERC20 {
         override
         onlyMessageProxy
         checkReceiverChain(fromChainHash, sender)
-        returns (address)
     {
         Messages.MessageType operation = Messages.getMessageType(data);
         address receiver = address(0);
@@ -153,7 +152,6 @@ contract TokenManagerERC20 is TokenManager, ITokenManagerERC20 {
         } else {
             revert("MessageType is unknown");
         }
-        return receiver;
     }
 
     /**
@@ -271,9 +269,10 @@ contract TokenManagerERC20 is TokenManager, ITokenManagerERC20 {
         private
     {
         bool isMainChainToken;
-        ERC20BurnableUpgradeable contractOnSchain = clonesErc20[chainHash][contractOnMainChain];
+        ERC20OnChain contractOnSchain = clonesErc20[chainHash][contractOnMainChain];
         if (address(contractOnSchain) == address(0)) {
-            contractOnSchain = ERC20BurnableUpgradeable(contractOnMainChain);
+            contractOnSchain = ERC20OnChain(contractOnMainChain);
+            require(!addedClones[contractOnSchain], "Incorrect main chain token");
             isMainChainToken = true;
         }
         require(address(contractOnSchain).isContract(), "No token clone on schain");
@@ -287,6 +286,7 @@ contract TokenManagerERC20 is TokenManager, ITokenManagerERC20 {
         );
         bytes memory data = Messages.encodeTransferErc20Message(address(contractOnMainChain), to, amount);
         if (isMainChainToken) {
+            require(chainHash != MAINNET_HASH, "Main chain token could not be transfered to Mainnet");
             data = _receiveERC20(
                 chainHash,
                 address(contractOnSchain),

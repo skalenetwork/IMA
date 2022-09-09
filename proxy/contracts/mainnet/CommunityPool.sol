@@ -21,7 +21,7 @@
     along with SKALE Manager.  If not, see <https://www.gnu.org/licenses/>.
 */
 
-pragma solidity 0.8.6;
+pragma solidity 0.8.16;
 
 import "@skalenetwork/ima-interfaces/mainnet/ICommunityPool.sol";
 import "@skalenetwork/skale-manager-interfaces/IWallets.sol";
@@ -46,7 +46,10 @@ contract CommunityPool is Twin, ICommunityPool {
     // address of user => schainHash => true if unlocked for transferring
     mapping(address => mapping(bytes32 => bool)) public activeUsers;
 
-    uint public minTransactionGas;    
+    uint public minTransactionGas;
+
+    uint public multiplierNumerator;
+    uint public multiplierDivider;
 
     /**
      * @dev Emitted when minimal value in gas for transactions from schain to mainnet was changed 
@@ -54,6 +57,16 @@ contract CommunityPool is Twin, ICommunityPool {
     event MinTransactionGasWasChanged(
         uint oldValue,
         uint newValue
+    );
+
+    /**
+     * @dev Emitted when basefee multiplier was changed 
+     */
+    event MultiplierWasChanged(
+        uint oldMultiplierNumerator,
+        uint oldMultiplierDivider,
+        uint newMultiplierNumerator,
+        uint newMultiplierDivider
     );
 
     function initialize(
@@ -68,6 +81,8 @@ contract CommunityPool is Twin, ICommunityPool {
         Twin.initialize(contractManagerOfSkaleManagerValue, messageProxyValue);
         _setupRole(LINKER_ROLE, address(linker));
         minTransactionGas = 1e6;
+        multiplierNumerator = 3;
+        multiplierDivider = 2;
     }
 
     /**
@@ -103,7 +118,7 @@ contract CommunityPool is Twin, ICommunityPool {
             activeUsers[user][schainHash] = false;
             messageProxy.postOutgoingMessage(
                 schainHash,
-                schainLinks[schainHash],
+                getSchainContract(schainHash),
                 Messages.encodeLockUserMessage(user)
             );
         }
@@ -122,7 +137,8 @@ contract CommunityPool is Twin, ICommunityPool {
         returns (bool)
     {
         if (gas > 0) {
-            IWallets(contractManagerOfSkaleManager.getContract("Wallets")).refundGasBySchain(
+
+            IWallets(payable(contractManagerOfSkaleManager.getContract("Wallets"))).refundGasBySchain(
                 schainHash,
                 node,
                 gas,
@@ -151,7 +167,7 @@ contract CommunityPool is Twin, ICommunityPool {
             activeUsers[user][schainHash] = true;
             messageProxy.postOutgoingMessage(
                 schainHash,
-                schainLinks[schainHash],
+                getSchainContract(schainHash),
                 Messages.encodeActivateUserMessage(user)
             );
         }
@@ -178,7 +194,7 @@ contract CommunityPool is Twin, ICommunityPool {
             activeUsers[msg.sender][schainHash] = false;
             messageProxy.postOutgoingMessage(
                 schainHash,
-                schainLinks[schainHash],
+                getSchainContract(schainHash),
                 Messages.encodeLockUserMessage(msg.sender)
             );
         }
@@ -200,6 +216,27 @@ contract CommunityPool is Twin, ICommunityPool {
     }
 
     /**
+     * @dev Allows `msg.sender` set the amount of gas that should be 
+     * enough for reimbursing any transaction from schain to mainnet.
+     * 
+     * Requirements:
+     * 
+     * - 'msg.sender` must have sufficient amount of ETH on their gas wallet.
+     */
+    function setMultiplier(uint newMultiplierNumerator, uint newMultiplierDivider) external override {
+        require(hasRole(CONSTANT_SETTER_ROLE, msg.sender), "CONSTANT_SETTER_ROLE is required");
+        require(newMultiplierDivider > 0, "Divider is zero");
+        emit MultiplierWasChanged(
+            multiplierNumerator,
+            multiplierDivider,
+            newMultiplierNumerator,
+            newMultiplierDivider
+        );
+        multiplierNumerator = newMultiplierNumerator;
+        multiplierDivider = newMultiplierDivider;
+    }
+
+    /**
      * @dev Returns the amount of ETH on gas wallet for particular user.
      */
     function getBalance(address user, string calldata schainName) external view override returns (uint) {
@@ -212,10 +249,34 @@ contract CommunityPool is Twin, ICommunityPool {
     function checkUserBalance(bytes32 schainHash, address receiver) external view override returns (bool) {
         return activeUsers[receiver][schainHash] && _balanceIsSufficient(schainHash, receiver, 0);
     }
+
+    /**
+     * @dev Checks whether passed amount is enough to recharge user wallet with current basefee.
+     */
+    function getRecommendedRechargeAmount(
+        bytes32 schainHash,
+        address receiver
+    )
+        external
+        view
+        override
+        returns (uint256)
+    {
+        uint256 currentValue = _multiplyOnAdaptedBaseFee(minTransactionGas);
+        if (currentValue  <= _userWallets[receiver][schainHash]) {
+            return 0;
+        }
+        return currentValue - _userWallets[receiver][schainHash];
+    }
+
     /**
      * @dev Checks whether user wallet was recharged for sufficient amount.
      */
     function _balanceIsSufficient(bytes32 schainHash, address receiver, uint256 delta) private view returns (bool) {
         return delta + _userWallets[receiver][schainHash] >= minTransactionGas * tx.gasprice;
-    } 
+    }
+
+    function _multiplyOnAdaptedBaseFee(uint256 value) private view returns (uint256) {
+        return value * block.basefee * multiplierNumerator / multiplierDivider;
+    }
 }

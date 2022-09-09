@@ -19,7 +19,7 @@
  *   along with SKALE IMA.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-pragma solidity 0.8.6;
+pragma solidity 0.8.16;
 
 import "@openzeppelin/contracts-upgradeable/utils/AddressUpgradeable.sol";
 import "@skalenetwork/ima-interfaces/schain/IMessageProxyForSchain.sol";
@@ -27,13 +27,6 @@ import "@skalenetwork/etherbase-interfaces/IEtherbaseUpgradeable.sol";
 
 import "../MessageProxy.sol";
 import "./bls/SkaleVerifier.sol";
-
-interface IMessageProxyForSchainInitializeFunction is IMessageProxyForSchain {
-    function initializeAllRegisteredContracts(
-        bytes32 schainHash,
-        address[] calldata contracts
-    ) external;
-}
 
 
 /**
@@ -57,7 +50,7 @@ interface IMessageProxyForSchainInitializeFunction is IMessageProxyForSchain {
  * Call postIncomingMessages function passing (un)signed message array
  * ID of this schain, Chain 0 represents ETH mainnet,
  */
-contract MessageProxyForSchain is MessageProxy, IMessageProxyForSchainInitializeFunction {
+contract MessageProxyForSchain is MessageProxy, IMessageProxyForSchain {
     using AddressUpgradeable for address;
     using EnumerableSetUpgradeable for EnumerableSetUpgradeable.AddressSet;
 
@@ -98,32 +91,22 @@ contract MessageProxyForSchain is MessageProxy, IMessageProxyForSchainInitialize
     //      schainHash  => tail of unprocessed messages
     mapping(bytes32 => uint) private _idxTail;
 
+    // disable detector until slither will fix this issue
+    // https://github.com/crytic/slither/issues/456
+    // slither-disable-next-line uninitialized-state
     mapping(bytes32 => EnumerableSetUpgradeable.AddressSet) private _registryContracts;
 
     string public version;
+    bool public override messageInProgress;
 
     /**
-     * @dev Allows DEFAULT_ADMIN_ROLE to initialize registered contracts
-     * Notice - this function will be executed only once during upgrade
-     * 
-     * Requirements:
-     * 
-     * `msg.sender` should have DEFAULT_ADMIN_ROLE
+     * @dev Reentrancy guard for postIncomingMessages.
      */
-    function initializeAllRegisteredContracts(
-        bytes32 chainHash,
-        address[] calldata contracts
-    ) external override {
-        require(hasRole(DEFAULT_ADMIN_ROLE, msg.sender), "Sender is not authorized");
-        for (uint256 i = 0; i < contracts.length; i++) {
-            if (
-                deprecatedRegistryContracts[chainHash][contracts[i]] &&
-                !_registryContracts[chainHash].contains(contracts[i])
-            ) {
-                _registryContracts[chainHash].add(contracts[i]);
-                delete deprecatedRegistryContracts[chainHash][contracts[i]];
-            }
-        }
+    modifier messageInProgressLocker() {
+        require(!messageInProgress, "Message is in progress");
+        messageInProgress = true;
+        _;
+        messageInProgress = false;
     }
 
     /**
@@ -205,18 +188,21 @@ contract MessageProxyForSchain is MessageProxy, IMessageProxyForSchainInitialize
     )
         external
         override(IMessageProxy, MessageProxy)
+        messageInProgressLocker
     {
         bytes32 fromChainHash = keccak256(abi.encodePacked(fromChainName));
         require(connectedChains[fromChainHash].inited, "Chain is not initialized");
         require(messages.length <= MESSAGES_LENGTH, "Too many messages");
-        require(_verifyMessages(_hashedArray(messages), signature), "Signature is not verified");
+        require(_verifyMessages(
+            _hashedArray(messages, startingCounter, fromChainName), signature),
+            "Signature is not verified");
         require(
             startingCounter == connectedChains[fromChainHash].incomingMessageCounter,
             "Starting counter is not qual to incoming message counter");
+        connectedChains[fromChainHash].incomingMessageCounter += messages.length;
         for (uint256 i = 0; i < messages.length; i++) {
             _callReceiverContract(fromChainHash, messages[i], startingCounter + 1);
         }
-        connectedChains[fromChainHash].incomingMessageCounter += messages.length;
         _topUpBalance();
     }
 
@@ -277,7 +263,8 @@ contract MessageProxyForSchain is MessageProxy, IMessageProxyForSchainInitialize
         ] = ConnectedChainInfo(
             0,
             0,
-            true
+            true,
+            0
         );
 	    schainHash = keccak256(abi.encodePacked(schainName));
 

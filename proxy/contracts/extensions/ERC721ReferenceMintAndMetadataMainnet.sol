@@ -19,7 +19,7 @@
  *   along with SKALE IMA.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-pragma solidity 0.8.6;
+pragma solidity 0.8.16;
 
 import "@skalenetwork/ima-interfaces/extensions/IERC721ReferenceMintAndMetadataMainnet.sol";
 
@@ -67,7 +67,6 @@ contract ERC721ReferenceMintAndMetadataMainnet is MessageReceiver, IERC721Refere
         external
         override
         onlyMessageProxy
-        returns (address)
     {
         require(schainHash == keccak256(abi.encodePacked(schainName)), "Incorrect name of schain");
         require(sender == senderContractOnSchain, "Incorrect sender contract");
@@ -81,6 +80,5 @@ contract ERC721ReferenceMintAndMetadataMainnet is MessageReceiver, IERC721Refere
             "Token URI was not set"
         );
         ERC721OnChain(erc721ContractOnMainnet).transferFrom(address(this), to, tokenId);
-        return address(0);
     }
 }

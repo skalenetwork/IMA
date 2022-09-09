@@ -21,7 +21,7 @@
  *   along with SKALE IMA.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-pragma solidity 0.8.6;
+pragma solidity 0.8.16;
 
 import "@skalenetwork/ima-interfaces/mainnet/ITwin.sol";
 
@@ -102,5 +102,13 @@ abstract contract Twin is SkaleManagerClient, ITwin {
     {
         SkaleManagerClient.initialize(contractManagerOfSkaleManagerValue);
         messageProxy = newMessageProxy;
+    }
+
+    function getSchainContract(bytes32 schainHash) public override view returns (address) {
+        require(
+            schainLinks[schainHash] != address(0),
+            "Destination contract must be defined"
+        );
+        return schainLinks[schainHash];
     }
 }

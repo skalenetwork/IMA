@@ -19,7 +19,7 @@
  *   along with SKALE IMA.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-pragma solidity 0.8.6;
+pragma solidity 0.8.16;
 
 import "@openzeppelin/contracts-upgradeable/token/ERC1155/IERC1155Upgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/utils/AddressUpgradeable.sol";
@@ -38,7 +38,11 @@ import "../../thirdparty/ERC1155ReceiverUpgradeableWithoutGap.sol";
  * and creates ERC1155 clones.
  * TokenManagerERC1155 mints tokens. When a user exits a SKALE chain, it burns them.
  */
-contract TokenManagerERC1155 is TokenManager, ERC1155ReceiverUpgradeableWithoutGap, ITokenManagerERC1155 {
+contract TokenManagerERC1155 is
+    TokenManager,
+    ERC1155ReceiverUpgradeableWithoutGap,
+    ITokenManagerERC1155
+{
     using AddressUpgradeable for address;
     using EnumerableSetUpgradeable for EnumerableSetUpgradeable.AddressSet;
 
@@ -186,7 +190,6 @@ contract TokenManagerERC1155 is TokenManager, ERC1155ReceiverUpgradeableWithoutG
         override
         onlyMessageProxy
         checkReceiverChain(fromChainHash, sender)
-        returns (address)
     {
         Messages.MessageType operation = Messages.getMessageType(data);
         address receiver = address(0);
@@ -203,7 +206,6 @@ contract TokenManagerERC1155 is TokenManager, ERC1155ReceiverUpgradeableWithoutG
         } else {
             revert("MessageType is unknown");
         }
-        return receiver;
     }
 
     /**
@@ -420,15 +422,17 @@ contract TokenManagerERC1155 is TokenManager, ERC1155ReceiverUpgradeableWithoutG
         private
     {
         bool isMainChainToken;
-        ERC1155BurnableUpgradeable contractOnSchain = clonesErc1155[chainHash][contractOnMainChain];
+        ERC1155OnChain contractOnSchain = clonesErc1155[chainHash][contractOnMainChain];
         if (address(contractOnSchain) == address(0)) {
-            contractOnSchain = ERC1155BurnableUpgradeable(contractOnMainChain);
+            contractOnSchain = ERC1155OnChain(contractOnMainChain);
+            require(!addedClones[contractOnSchain], "Incorrect main chain token");
             isMainChainToken = true;
         }
         require(address(contractOnSchain).isContract(), "No token clone on schain");
         require(contractOnSchain.isApprovedForAll(msg.sender, address(this)), "Not allowed ERC1155 Token");
         bytes memory data = Messages.encodeTransferErc1155Message(contractOnMainChain, to, id, amount);
         if (isMainChainToken) {
+            require(chainHash != MAINNET_HASH, "Main chain token could not be transfered to Mainnet");
             data = _receiveERC1155(
                 chainHash,
                 address(contractOnSchain),
@@ -463,15 +467,17 @@ contract TokenManagerERC1155 is TokenManager, ERC1155ReceiverUpgradeableWithoutG
         private
     {
         bool isMainChainToken;
-        ERC1155BurnableUpgradeable contractOnSchain = clonesErc1155[chainHash][contractOnMainChain];
+        ERC1155OnChain contractOnSchain = clonesErc1155[chainHash][contractOnMainChain];
         if (address(contractOnSchain) == address(0)) {
-            contractOnSchain = ERC1155BurnableUpgradeable(contractOnMainChain);
+            contractOnSchain = ERC1155OnChain(contractOnMainChain);
+            require(!addedClones[contractOnSchain], "Incorrect main chain token");
             isMainChainToken = true;
         }
         require(address(contractOnSchain).isContract(), "No token clone on schain");
         require(contractOnSchain.isApprovedForAll(msg.sender, address(this)), "Not allowed ERC1155 Token");
         bytes memory data = Messages.encodeTransferErc1155BatchMessage(contractOnMainChain, to, ids, amounts);
         if (isMainChainToken) {
+            require(chainHash != MAINNET_HASH, "Main chain token could not be transfered to Mainnet");
             data = _receiveERC1155Batch(
                 chainHash,
                 address(contractOnSchain),

@@ -19,13 +19,16 @@
  *   along with SKALE IMA.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-pragma solidity 0.8.6;
+pragma solidity 0.8.16;
 
 import "@openzeppelin/contracts-upgradeable/utils/AddressUpgradeable.sol";
-import "@skalenetwork/skale-manager-interfaces/IContractManager.sol";
 
+interface IContractManagerTester {
+    function setContractsAddress(string calldata contractsName, address newContractsAddress) external;
+    function getContract(string memory contractName) external view returns (address);
+}
 
-contract ContractManager is IContractManager {
+contract ContractManager is IContractManagerTester {
     using AddressUpgradeable for address;
 
     // mapping of actual smart contracts addresses

@@ -10,7 +10,7 @@ import { encodeTransaction } from "./tools/multiSend";
 import { createMultiSendTransaction, sendSafeTransaction } from "./tools/gnosis-safe";
 import chalk from "chalk";
 import { verify } from "./tools/verification";
-import { MessageProxy } from "../typechain";
+import { MessageProxy, MessageProxyForMainnet, MessageProxyForSchain } from "../typechain";
 import { getVersion } from "./tools/version";
 
 function getContractKeyInAbiFile(contract: string) {
@@ -61,7 +61,7 @@ export async function getContractFactoryAndUpdateManifest(contract: string) {
     return await getLinkedContractFactory(contract, libraries);
 }
 
-async function checkDeployedVersion(version: string, targetVersion: string, messageProxy: MessageProxy) {
+async function checkDeployedVersion(version: string, targetVersion: string, messageProxy: MessageProxyForMainnet | MessageProxyForSchain) {
     let deployedVersion = "";
     try {
         deployedVersion = await messageProxy.version();
@@ -90,11 +90,17 @@ async function getMessageProxyName(fileName: string) {
     process.exit(1);
 }
 
-async function getMessageProxyInstance(fileName: string, abi: any) : Promise<MessageProxy> {
+async function getMessageProxyInstance(fileName: string, abi: any) : Promise<MessageProxyForMainnet | MessageProxyForSchain> {
     const messageProxyName = await getMessageProxyName(fileName);
     const messageProxyFactory = await ethers.getContractFactory(messageProxyName);
-    const messageProxy = (messageProxyFactory.attach(abi[getContractKeyInAbiFile(messageProxyName) + "_address"])) as MessageProxy;
-    return messageProxy;
+    const messageProxy = (messageProxyFactory.attach(abi[getContractKeyInAbiFile(messageProxyName) + "_address"]));
+    if (messageProxyName === "MessageProxyForMainnet") {
+        return messageProxy as MessageProxyForMainnet;
+    } else if (messageProxyName === "MessageProxyForSchain") {
+        return messageProxy as MessageProxyForSchain;
+    } else {
+        throw Error("Unknown MessageProxy");
+    }
 }
 
 type DeploymentAction = (safeTransactions: string[], abi: any) => Promise<void>;
@@ -234,7 +240,7 @@ export async function upgrade(
             console.log(chalk.blue("Return ownership to wallet"));
             await (await safeMock.transferProxyAdminOwnership(proxyAdmin.address, deployer.address)).wait();
             if (await proxyAdmin.owner() === deployer.address) {
-                await (await safeMock.destroy()).wait();
+                await (await safeMock.destroy({gasLimit: 1000000})).wait();
             } else {
                 console.log(chalk.blue("Something went wrong with ownership transfer"));
                 process.exit(1);

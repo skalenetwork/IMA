@@ -19,7 +19,7 @@
  *   along with SKALE IMA.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-pragma solidity 0.8.6;
+pragma solidity 0.8.16;
 
 
 /**
@@ -45,7 +45,9 @@ library Messages {
         TRANSFER_ERC1155,
         TRANSFER_ERC1155_AND_TOKEN_INFO,
         TRANSFER_ERC1155_BATCH,
-        TRANSFER_ERC1155_BATCH_AND_TOKEN_INFO
+        TRANSFER_ERC1155_BATCH_AND_TOKEN_INFO,
+        TRANSFER_ERC721_WITH_METADATA,
+        TRANSFER_ERC721_WITH_METADATA_AND_TOKEN_INFO
     }
 
     /**
@@ -120,6 +122,14 @@ library Messages {
     }
 
     /**
+     * @dev Structure for describing base ERC721 with metadata.
+     */
+    struct TransferErc721MessageWithMetadata {
+        TransferErc721Message erc721message;
+        string tokenURI;
+    }
+
+    /**
      * @dev Structure for describing ERC20 with token info.
      */
     struct Erc721TokenInfo {
@@ -132,6 +142,14 @@ library Messages {
      */
     struct TransferErc721AndTokenInfoMessage {
         TransferErc721Message baseErc721transfer;
+        Erc721TokenInfo tokenInfo;
+    }
+
+    /**
+     * @dev Structure for describing additional data for ERC721 token with metadata.
+     */
+    struct TransferErc721WithMetadataAndTokenInfoMessage {
+        TransferErc721MessageWithMetadata baseErc721transferWithMetadata;
         Erc721TokenInfo tokenInfo;
     }
 
@@ -386,6 +404,82 @@ library Messages {
             "Message type is not ERC721 transfer with token info"
         );
         return abi.decode(data, (TransferErc721AndTokenInfoMessage));
+    }
+
+    /**
+     * @dev Encodes message for transferring ERC721. 
+     * Returns encoded message.
+     */
+    function encodeTransferErc721MessageWithMetadata(
+        address token,
+        address receiver,
+        uint256 tokenId,
+        string memory tokenURI
+    ) internal pure returns (bytes memory) {
+        TransferErc721MessageWithMetadata memory message = TransferErc721MessageWithMetadata(
+            TransferErc721Message(
+                BaseMessage(MessageType.TRANSFER_ERC721_WITH_METADATA),
+                token,
+                receiver,
+                tokenId
+            ),
+            tokenURI
+        );
+        return abi.encode(message);
+    }
+
+    /**
+     * @dev Decodes message for transferring ERC721. 
+     * Returns structure `TransferErc721MessageWithMetadata`.
+     */
+    function decodeTransferErc721MessageWithMetadata(
+        bytes calldata data
+    ) internal pure returns (TransferErc721MessageWithMetadata memory) {
+        require(
+            getMessageType(data) == MessageType.TRANSFER_ERC721_WITH_METADATA,
+            "Message type is not ERC721 transfer"
+        );
+        return abi.decode(data, (TransferErc721MessageWithMetadata));
+    }
+
+    /**
+     * @dev Encodes message for transferring ERC721 with token info. 
+     * Returns encoded message.
+     */
+    function encodeTransferErc721WithMetadataAndTokenInfoMessage(
+        address token,
+        address receiver,
+        uint256 tokenId,
+        string memory tokenURI,
+        Erc721TokenInfo memory tokenInfo
+    ) internal pure returns (bytes memory) {
+        TransferErc721WithMetadataAndTokenInfoMessage memory message = TransferErc721WithMetadataAndTokenInfoMessage(
+            TransferErc721MessageWithMetadata(
+                TransferErc721Message(
+                    BaseMessage(MessageType.TRANSFER_ERC721_WITH_METADATA_AND_TOKEN_INFO),
+                    token,
+                    receiver,
+                    tokenId
+                ),
+                tokenURI
+            ),
+            tokenInfo
+        );
+        return abi.encode(message);
+    }
+
+    /**
+     * @dev Decodes message for transferring ERC721 with token info. 
+     * Returns structure `TransferErc721WithMetadataAndTokenInfoMessage`.
+     */
+    function decodeTransferErc721WithMetadataAndTokenInfoMessage(
+        bytes calldata data
+    ) internal pure returns (TransferErc721WithMetadataAndTokenInfoMessage memory) {
+        require(
+            getMessageType(data) == MessageType.TRANSFER_ERC721_WITH_METADATA_AND_TOKEN_INFO,
+            "Message type is not ERC721 transfer with token info"
+        );
+        return abi.decode(data, (TransferErc721WithMetadataAndTokenInfoMessage));
     }
 
     /**

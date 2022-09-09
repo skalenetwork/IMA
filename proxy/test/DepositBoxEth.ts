@@ -37,7 +37,7 @@ import {
     ERC20OnChain,
     CommunityPool
 } from "../typechain";
-import { randomString, stringFromHex, stringValue } from "./utils/helper";
+import { randomString, stringFromHex, stringValue, getPublicKey } from "./utils/helper";
 
 import chai = require("chai");
 import chaiAlmost = require("chai-almost");
@@ -53,7 +53,7 @@ import { deployDepositBoxERC1155 } from "./utils/deploy/mainnet/depositBoxERC115
 import { deployLinker } from "./utils/deploy/mainnet/linker";
 import { deployMessageProxyForMainnet } from "./utils/deploy/mainnet/messageProxyForMainnet";
 import { deployContractManager } from "./utils/skale-manager-utils/contractManager";
-import { initializeSchain } from "./utils/skale-manager-utils/schainsInternal";
+import { initializeSchain, addNodesToSchain } from "./utils/skale-manager-utils/schainsInternal";
 import { rechargeSchainWallet } from "./utils/skale-manager-utils/wallets";
 import { setCommonPublicKey } from "./utils/skale-manager-utils/keyStorage";
 import { deployMessages } from "./utils/deploy/messages";
@@ -63,9 +63,10 @@ import { deployFallbackEthTester } from "./utils/deploy/test/fallbackEthTester";
 
 import { ethers, web3 } from "hardhat";
 import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/dist/src/signer-with-address";
-import { BigNumber } from "ethers";
+import { BigNumber, ContractTransaction, Wallet } from "ethers";
 
 import { assert, expect } from "chai";
+import { createNode } from "./utils/skale-manager-utils/nodes";
 
 const BlsSignature: [BigNumber, BigNumber] = [
     BigNumber.from("178325537405109593276798394634841698946852714038246117383766698579865918287"),
@@ -78,10 +79,35 @@ const Counter = 0;
 async function getBalance(address: string) {
     return parseFloat(web3.utils.fromWei(await web3.eth.getBalance(address)));
 }
+
+const weiTolerance = ethers.utils.parseEther("0.002").toNumber();
+
+async function reimbursed(transaction: ContractTransaction, operation?: string) {
+    const receipt = await transaction.wait();
+    const sender = transaction.from;
+    const balanceBefore = await ethers.provider.getBalance(sender, receipt.blockNumber - 1);
+    const balanceAfter = await ethers.provider.getBalance(sender, receipt.blockNumber);
+    if (balanceAfter.lt(balanceBefore)) {
+        const shortageEth = balanceBefore.sub(balanceAfter);
+        const shortageGas = shortageEth.div(receipt.effectiveGasPrice);
+
+        console.log("Reimbursement failed.")
+        console.log(`${shortageGas.toString()} gas units was not reimbursed`);
+        if (operation !== undefined) {
+            console.log(`During ${operation}`);
+        }
+
+    }
+    balanceAfter.should.be.least(balanceBefore);
+    balanceAfter.should.be.closeTo(balanceBefore, weiTolerance);
+}
+
 describe("DepositBoxEth", () => {
     let deployer: SignerWithAddress;
     let user: SignerWithAddress;
     let user2: SignerWithAddress;
+    let richGuy: SignerWithAddress;
+    let nodeAddress: Wallet;
 
     let depositBoxEth: DepositBoxEth;
     let contractManager: ContractManager;
@@ -92,7 +118,15 @@ describe("DepositBoxEth", () => {
     const schainName = "Schain";
 
     before(async () => {
-        [deployer, user, user2] = await ethers.getSigners();
+        [deployer, user, user2, richGuy] = await ethers.getSigners();
+        nodeAddress = Wallet.createRandom().connect(ethers.provider);
+        const balanceRichGuy = await richGuy.getBalance();
+        await richGuy.sendTransaction({to: nodeAddress.address, value: balanceRichGuy.sub(ethers.utils.parseEther("1"))});
+    });
+
+    after(async () => {
+        const balanceNode = await nodeAddress.getBalance();
+        await nodeAddress.sendTransaction({to: richGuy.address, value: balanceNode.sub(ethers.utils.parseEther("1"))});
     });
 
     beforeEach(async () => {
@@ -104,6 +138,17 @@ describe("DepositBoxEth", () => {
         await messageProxy.grantRole(await messageProxy.CHAIN_CONNECTOR_ROLE(), linker.address);
         await messageProxy.grantRole(await messageProxy.EXTRA_CONTRACT_REGISTRAR_ROLE(), deployer.address);
         await initializeSchain(contractManager, schainName, user.address, 1, 1);
+        const nodeCreationParams = {
+            port: 1337,
+            nonce: 1337,
+            ip: "0x12345678",
+            publicIp: "0x12345678",
+            publicKey: getPublicKey(nodeAddress),
+            name: "GasCalculationNode",
+            domainName: "gascalculationnode.com"
+        };
+        await createNode(contractManager, nodeAddress.address, nodeCreationParams);
+        await addNodesToSchain(contractManager, schainName, [0]);
         await rechargeSchainWallet(contractManager, schainName, user2.address, "1000000000000000000");
         await messageProxy.registerExtraContractForAll(depositBoxEth.address);
         await messageProxy.registerExtraContract(schainName, communityPool.address);
@@ -147,7 +192,6 @@ describe("DepositBoxEth", () => {
             await depositBoxEth
                 .connect(deployer)
                 .deposit(schainName, { value: wei });
-            // console.log("Gas for deposit:", tx.receipt.gasUsed);
 
             const lockAndDataBalance = await web3.eth.getBalance(depositBoxEth.address);
             // expectation
@@ -233,13 +277,13 @@ describe("DepositBoxEth", () => {
             await messageProxy.addConnectedChain(schainName);
             await initializeSchain(contractManager, schainName, deployer.address, 1, 1);
             await setCommonPublicKey(contractManager, schainName);
+            await communityPool.addSchainContract(schainName, deployer.address);
             await communityPool
                 .connect(user)
                 .rechargeUserWallet(schainName, user.address, { value: wei });
             // execution
 
-            const res = await (await messageProxy.connect(deployer).postIncomingMessages(schainName, 0, [message], sign)).wait();
-            // console.log(res.logs);
+            const res = await (await messageProxy.connect(nodeAddress).postIncomingMessages(schainName, 0, [message], sign)).wait();
             if (res.events) {
                 assert.equal(res.events[0].event, "PostMessageError");
                 assert.equal(res.events[0].args?.msgCounter.toString(), "0");
@@ -283,7 +327,7 @@ describe("DepositBoxEth", () => {
                     .connect(user)
                     .rechargeUserWallet(schainName, user.address, { value: wei });
                 // execution
-                const res = await (await messageProxy.connect(deployer).postIncomingMessages(schainName, 0, [message], sign)).wait();
+                const res = await (await messageProxy.connect(nodeAddress).postIncomingMessages(schainName, 0, [message], sign)).wait();
 
                 if (res.events) {
                     assert.equal(res.events[0].event, "PostMessageError");
@@ -328,7 +372,7 @@ describe("DepositBoxEth", () => {
             // to avoid `Incorrect sender` error
             // await lockAndDataForMainnet.setContract("MessageProxy", deployer);
             // execution
-            const res = await (await messageProxy.connect(deployer).postIncomingMessages(schainName, 0, [message], sign)).wait();
+            const res = await (await messageProxy.connect(nodeAddress).postIncomingMessages(schainName, 0, [message], sign)).wait();
 
             if (res.events) {
                 assert.equal(res.events[0].event, "PostMessageError");
@@ -377,7 +421,7 @@ describe("DepositBoxEth", () => {
                 .connect(deployer)
                 .deposit(schainName, { value: wei });
             // execution
-            const res = await (await messageProxy.connect(deployer).postIncomingMessages(schainName, 0, [message], sign)).wait();
+            const res = await (await messageProxy.connect(nodeAddress).postIncomingMessages(schainName, 0, [message], sign)).wait();
 
             if (res.events) {
                 assert.equal(res.events[0].event, "PostMessageError");
@@ -428,7 +472,7 @@ describe("DepositBoxEth", () => {
             expect(BigNumber.from(await depositBoxEth.transferredAmount(schainHash)).toString()).to.be.equal(BigNumber.from(wei).toString());
 
             const balanceBefore = await getBalance(deployer.address);
-            await messageProxy.connect(deployer).postIncomingMessages(schainName, 0, [message], sign);
+            await messageProxy.connect(nodeAddress).postIncomingMessages(schainName, 0, [message], sign);
             const balance = await getBalance(deployer.address);
             balance.should.not.be.lessThan(balanceBefore);
             balance.should.be.almost(balanceBefore);
@@ -481,7 +525,7 @@ describe("DepositBoxEth", () => {
             expect(BigNumber.from(await depositBoxEth.transferredAmount(schainHash)).toString()).to.be.equal(BigNumber.from(wei).mul(2).toString());
 
             const balanceBefore = await getBalance(deployer.address);
-            await messageProxy.connect(deployer).postIncomingMessages(schainName, 0, [message], sign);
+            await messageProxy.connect(nodeAddress).postIncomingMessages(schainName, 0, [message], sign);
             const balance = await getBalance(deployer.address);
             balance.should.not.be.lessThan(balanceBefore);
             balance.should.be.almost(balanceBefore);
@@ -503,7 +547,7 @@ describe("DepositBoxEth", () => {
 
             const userBalanceBefore = await web3.eth.getBalance(user.address);
 
-            await messageProxy.connect(deployer).postIncomingMessages(schainName, 1, [message], sign);
+            await messageProxy.connect(nodeAddress).postIncomingMessages(schainName, 1, [message], sign);
             expect(BigNumber.from(await web3.eth.getBalance(user.address)).toString()).to.equal(BigNumber.from(userBalanceBefore).add(BigNumber.from(wei)).toString());
 
             expect(BigNumber.from(await depositBoxEth.approveTransfers(user.address)).toString()).to.equal(BigNumber.from(wei).toString());
@@ -557,11 +601,7 @@ describe("DepositBoxEth", () => {
 
             expect(BigNumber.from(await depositBoxEth.transferredAmount(schainHash)).toString()).to.be.equal(BigNumber.from(wei).mul(2).toString());
 
-            const balanceBefore = await getBalance(deployer.address);
-            await messageProxy.connect(deployer).postIncomingMessages(schainName, 0, [message], sign);
-            const balance = await getBalance(deployer.address);
-            balance.should.not.be.lessThan(balanceBefore);
-            balance.should.be.almost(balanceBefore);
+            await reimbursed(await messageProxy.connect(nodeAddress).postIncomingMessages(schainName, 0, [message], sign));
 
             expect(BigNumber.from(await depositBoxEth.approveTransfers(fallbackEthTester.address)).toString()).to.equal(BigNumber.from(wei).toString());
 
@@ -580,7 +620,7 @@ describe("DepositBoxEth", () => {
 
             const userBalanceBefore = await web3.eth.getBalance(fallbackEthTester.address);
 
-            const res = await (await messageProxy.connect(deployer).postIncomingMessages(schainName, 1, [message], sign)).wait();
+            const res = await (await messageProxy.connect(nodeAddress).postIncomingMessages(schainName, 1, [message], sign)).wait();
 
             if (res.events) {
                 assert.equal(res.events[0].event, "PostMessageError");
