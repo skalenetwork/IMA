@@ -47,7 +47,7 @@ const SCHAIN_ENDPOINT = '[YOUR_SCHAIN_ENDPOINT]';
 const mainnetWeb3 = new Web3(MAINNET_ENDPOINT);
 const sChainWeb3 = new Web3(SCHAIN_ENDPOINT);
 
-let ima = new IMA(mainnetWeb3, sChainWeb3, mainnetAbi, sChainAbi);
+let ima = new IMA(mainnetWeb3, sChainWeb3, mainnetAbi, schainAbi);
 ```
 
 Accessing Mainnet and sChain parts:
