@@ -75,10 +75,9 @@ contract CommunityLocker is ICommunityLockerInitializer, AccessControlEnumerable
      */
     bytes32 public schainHash;
 
-    /**
-     * @dev Amount of seconds after message sending
-     * when next message cannot be sent.
-     */
+    // Disable slither check due to variable depreciation
+    // and unavailability of making it constant because
+    // it breaks upgradeability pattern.
     // slither-disable-next-line constable-states
     uint private _deprecatedTimeLimitPerMessage;
 
