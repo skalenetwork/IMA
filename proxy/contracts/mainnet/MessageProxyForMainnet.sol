@@ -203,6 +203,9 @@ contract MessageProxyForMainnet is SkaleManagerClient, MessageProxy, IMessagePro
         );
         require(schainHash != MAINNET_HASH, "Schain hash can not be equal Mainnet");
         _removeExtraContract(schainHash, extraContract);
+        if (_reimbursedContracts[schainHash].contains(extraContract)) {
+            _removeReimbursedContract(schainHash, extraContract);
+        }
     }
 
     /**
@@ -249,8 +252,7 @@ contract MessageProxyForMainnet is SkaleManagerClient, MessageProxy, IMessagePro
             "Not enough permissions to remove reimbursed contract"
         );
         require(_reimbursedContracts[schainHash].contains(reimbursedContract), "Reimbursed contract is not added");
-        _reimbursedContracts[schainHash].remove(reimbursedContract);
-        emit ReimbursedContractRemoved(schainHash, reimbursedContract);
+        _removeReimbursedContract(schainHash, reimbursedContract);
     }
 
     /**
@@ -533,5 +535,11 @@ contract MessageProxyForMainnet is SkaleManagerClient, MessageProxy, IMessagePro
         returns (mapping(bytes32 => EnumerableSetUpgradeable.AddressSet) storage)
     {
         return _registryContracts;
+    }
+
+
+    function _removeReimbursedContract(bytes32 schainHash, address reimbursedContract) private {
+        _reimbursedContracts[schainHash].remove(reimbursedContract);
+        emit ReimbursedContractRemoved(schainHash, reimbursedContract);
     }
 }
