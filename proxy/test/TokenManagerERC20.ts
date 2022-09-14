@@ -353,7 +353,7 @@ describe("TokenManagerERC20", () => {
             await tokenManagerErc20
                 .connect(user)
                 .transferToSchainERC20(newSchainName, erc20OnOriginChain.address, amount)
-                .should.be.eventually.rejectedWith("Trying to send messages too often");
+                .should.be.eventually.rejectedWith("Exceeded message rate limit");
 
             BigNumber.from(await messageProxyForSchain.getOutgoingMessagesCounter(newSchainName)).should.be.deep.equal(BigNumber.from(2));
 
@@ -362,7 +362,7 @@ describe("TokenManagerERC20", () => {
             await tokenManagerErc20
                 .connect(user)
                 .transferToSchainERC20(newSchainName, erc20OnOriginChain.address, amount)
-                .should.be.eventually.rejectedWith("Trying to send messages too often");
+                .should.be.eventually.rejectedWith("Exceeded message rate limit");
 
             BigNumber.from(await messageProxyForSchain.getOutgoingMessagesCounter(newSchainName)).should.be.deep.equal(BigNumber.from(2));
 
@@ -393,7 +393,7 @@ describe("TokenManagerERC20", () => {
             await tokenManagerErc20
                 .connect(user)
                 .transferToSchainERC20(newSchainName, erc20OnOriginChain.address, amount)
-                .should.be.eventually.rejectedWith("Trying to send messages too often");
+                .should.be.eventually.rejectedWith("Exceeded message rate limit");
 
             BigNumber.from(await messageProxyForSchain.getOutgoingMessagesCounter(newSchainName)).should.be.deep.equal(BigNumber.from(4));
 

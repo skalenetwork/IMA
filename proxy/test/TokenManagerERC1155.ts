@@ -289,7 +289,7 @@ describe("TokenManagerERC1155", () => {
             await tokenManagerERC1155
                 .connect(user)
                 .transferToSchainERC1155(newSchainName, erc1155OnOriginChain.address, id, 1)
-                .should.be.eventually.rejectedWith("Trying to send messages too often");
+                .should.be.eventually.rejectedWith("Exceeded message rate limit");
 
             BigNumber.from(await messageProxyForSchain.getOutgoingMessagesCounter(newSchainName)).should.be.deep.equal(BigNumber.from(2));
 
@@ -298,7 +298,7 @@ describe("TokenManagerERC1155", () => {
             await tokenManagerERC1155
                 .connect(user)
                 .transferToSchainERC1155(newSchainName, erc1155OnOriginChain.address, id, 1)
-                .should.be.eventually.rejectedWith("Trying to send messages too often");
+                .should.be.eventually.rejectedWith("Exceeded message rate limit");
 
             BigNumber.from(await messageProxyForSchain.getOutgoingMessagesCounter(newSchainName)).should.be.deep.equal(BigNumber.from(2));
 
@@ -323,7 +323,7 @@ describe("TokenManagerERC1155", () => {
             await tokenManagerERC1155
                 .connect(user)
                 .transferToSchainERC1155(newSchainName, erc1155OnOriginChain.address, id, 1)
-                .should.be.eventually.rejectedWith("Trying to send messages too often");
+                .should.be.eventually.rejectedWith("Exceeded message rate limit");
 
             BigNumber.from(await messageProxyForSchain.getOutgoingMessagesCounter(newSchainName)).should.be.deep.equal(BigNumber.from(4));
 
@@ -1331,7 +1331,7 @@ describe("TokenManagerERC1155", () => {
             await tokenManagerERC1155
                 .connect(user)
                 .transferToSchainERC1155Batch(newSchainName, erc1155OnOriginChain.address, ids, [1, 1, 1, 1])
-                .should.be.eventually.rejectedWith("Trying to send messages too often");
+                .should.be.eventually.rejectedWith("Exceeded message rate limit");
 
             BigNumber.from(await messageProxyForSchain.getOutgoingMessagesCounter(newSchainName)).should.be.deep.equal(BigNumber.from(2));
 
@@ -1340,7 +1340,7 @@ describe("TokenManagerERC1155", () => {
             await tokenManagerERC1155
                 .connect(user)
                 .transferToSchainERC1155Batch(newSchainName, erc1155OnOriginChain.address, ids, [1, 1, 1, 1])
-                .should.be.eventually.rejectedWith("Trying to send messages too often");
+                .should.be.eventually.rejectedWith("Exceeded message rate limit");
 
             BigNumber.from(await messageProxyForSchain.getOutgoingMessagesCounter(newSchainName)).should.be.deep.equal(BigNumber.from(2));
 
@@ -1365,7 +1365,7 @@ describe("TokenManagerERC1155", () => {
             await tokenManagerERC1155
                 .connect(user)
                 .transferToSchainERC1155Batch(newSchainName, erc1155OnOriginChain.address, ids, [1, 1, 1, 1])
-                .should.be.eventually.rejectedWith("Trying to send messages too often");
+                .should.be.eventually.rejectedWith("Exceeded message rate limit");
 
             BigNumber.from(await messageProxyForSchain.getOutgoingMessagesCounter(newSchainName)).should.be.deep.equal(BigNumber.from(4));
 

@@ -313,7 +313,7 @@ describe("TokenManagerERC721WithMetadata", () => {
             await tokenManagerERC721WithMetadata
                 .connect(user)
                 .transferToSchainERC721(newSchainName, erc721OnOriginChain.address, 3)
-                .should.be.eventually.rejectedWith("Trying to send messages too often");
+                .should.be.eventually.rejectedWith("Exceeded message rate limit");
 
             BigNumber.from(await messageProxyForSchain.getOutgoingMessagesCounter(newSchainName)).should.be.deep.equal(BigNumber.from(2));
 
@@ -322,7 +322,7 @@ describe("TokenManagerERC721WithMetadata", () => {
             await tokenManagerERC721WithMetadata
                 .connect(user)
                 .transferToSchainERC721(newSchainName, erc721OnOriginChain.address, 3)
-                .should.be.eventually.rejectedWith("Trying to send messages too often");
+                .should.be.eventually.rejectedWith("Exceeded message rate limit");
 
             BigNumber.from(await messageProxyForSchain.getOutgoingMessagesCounter(newSchainName)).should.be.deep.equal(BigNumber.from(2));
 
@@ -353,7 +353,7 @@ describe("TokenManagerERC721WithMetadata", () => {
             await tokenManagerERC721WithMetadata
                 .connect(user)
                 .transferToSchainERC721(newSchainName, erc721OnOriginChain.address, 5)
-                .should.be.eventually.rejectedWith("Trying to send messages too often");
+                .should.be.eventually.rejectedWith("Exceeded message rate limit");
 
             BigNumber.from(await messageProxyForSchain.getOutgoingMessagesCounter(newSchainName)).should.be.deep.equal(BigNumber.from(4));
 
