@@ -79,7 +79,7 @@ contract CommunityLocker is ICommunityLockerInitializer, AccessControlEnumerable
      * @dev Amount of seconds after message sending
      * when next message cannot be sent.
      */
-    // slither-disable-next-line uninitialized-state
+    // slither-disable-next-line constable-states
     uint private _deprecatedTimeLimitPerMessage;
 
     /**
@@ -94,12 +94,28 @@ contract CommunityLocker is ICommunityLockerInitializer, AccessControlEnumerable
     // user address => timestamp of last message
     mapping(address => uint) public lastMessageTimeStamp;
 
+    /**
+     * @dev mainnet gas price(baseFee) value
+     */
     uint256 public mainnetGasPrice;
 
+    /**
+     * @dev Timestamp of previous set of mainnet gas price
+     */
     uint256 public gasPriceTimestamp;
 
+    /**
+     * @dev Amount of seconds after message sending
+     * when next message cannot be sent.
+     */
+    // schainHash   => time limit
     mapping(bytes32 => uint) public timeLimitPerMessage;
 
+    /**
+     * @dev Timestamp of previous sent message by user during
+     * schain to schain transfers
+     */
+    // schainHash   =>           user  => timestamp
     mapping(bytes32 => mapping(address => uint)) public lastMessageTimeStampToSchain;
 
     /**
@@ -135,7 +151,7 @@ contract CommunityLocker is ICommunityLockerInitializer, AccessControlEnumerable
         }
         require(
             lastTimestamp + timeLimitPerMessage[chainHash] < block.timestamp,
-            "Trying to send messages too often"
+            "Exceeded message rate limit"
         );
         _;
     }
@@ -282,5 +298,6 @@ contract CommunityLocker is ICommunityLockerInitializer, AccessControlEnumerable
         require(hasRole(DEFAULT_ADMIN_ROLE, msg.sender), "Incorrect sender");
         // slither-disable-next-line uninitialized-state
         timeLimitPerMessage[MAINNET_HASH] = _deprecatedTimeLimitPerMessage;
+        delete _deprecatedTimeLimitPerMessage;
     }
 }
