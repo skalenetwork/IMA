@@ -294,8 +294,15 @@ contract CommunityLocker is ICommunityLockerInitializer, AccessControlEnumerable
         communityPool = newCommunityPool;
     }
 
+    /**
+     * @dev Initialize timestamp after upgrade and should be removed after upgrade
+     *
+     * Requirements:
+     * Should be called only by address which hold DEFAULT_ADMIN_ROLE role
+     */
     function initializeTimestamp() external override {
         require(hasRole(DEFAULT_ADMIN_ROLE, msg.sender), "Incorrect sender");
+        // Disable slither check due to moving data to the new data structure
         // slither-disable-next-line uninitialized-state
         timeLimitPerMessage[MAINNET_HASH] = _deprecatedTimeLimitPerMessage;
         delete _deprecatedTimeLimitPerMessage;
