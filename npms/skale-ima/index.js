@@ -5238,10 +5238,21 @@ async function do_transfer(
             from: joAccountSrc.address( w3_src )
         } );
         // const joReferenceLogRecord = await find_out_reference_log_record( details, w3_src, jo_message_proxy_src, nBlockId, nOutMsgCnt - 1, true );
-        const arrLogRecordReferences = await find_out_all_reference_log_records( details, w3_src, jo_message_proxy_src, nBlockId, nIncMsgCnt, nOutMsgCnt, true );
+        let arrLogRecordReferences = [];
+        try {
+            arrLogRecordReferences = await find_out_all_reference_log_records( details, w3_src, jo_message_proxy_src, nBlockId, nIncMsgCnt, nOutMsgCnt, true );
+            if( arrLogRecordReferences.length <= 0 )
+                throw new Error( "Nothing was found by optimized IMA messages search algorithm" );
+        } catch ( err ) {
+            arrLogRecordReferences = [];
+            details.write(
+                strLogPrefix + cc.warning( "Optimized log search is " ) + cc.error( "off" ) +
+                cc.warning( ". Running old IMA smart contracts?" ) + cc.success( " Please upgrade, if possible." ) +
+                "\n" );
+        }
 
         //
-        // classic scanner
+        // classic scanner with optional usage of optimizamed IMA messages search algorithm
         // outer loop is block former/creator, then transfer
         //
         nIdxCurrentMsg = nIncMsgCnt;
@@ -5269,14 +5280,18 @@ async function do_transfer(
             // inner loop wil create block of transactions
             //
             let cntAccumulatedForBlock = 0;
-            // const nBlockFrom = 0;
-            // const nBlockTo = "latest";
             for( let idxInBlock = 0; nIdxCurrentMsg < nOutMsgCnt && idxInBlock < nTransactionsCountInBlock; ++nIdxCurrentMsg, ++idxInBlock, ++cntAccumulatedForBlock ) {
                 const idxProcessing = cntProcessed + idxInBlock;
                 if( idxProcessing > nMaxTransactionsCount )
                     break;
-                const joReferenceLogRecord = arrLogRecordReferences.shift();
                 //
+                let nBlockFrom = 0;
+                let nBlockTo = "latest";
+                if( arrLogRecordReferences.length > 0 ) {
+                    const joReferenceLogRecord = arrLogRecordReferences.shift();
+                    nBlockFrom = joReferenceLogRecord.currentBlockId;
+                    nBlockTo = joReferenceLogRecord.currentBlockId;
+                }
                 //
                 strActionName = "src-chain->MessageProxy->scan-past-events()";
                 details.write(
@@ -5289,8 +5304,8 @@ async function do_transfer(
                     10,
                     jo_message_proxy_src,
                     "OutgoingMessage",
-                    joReferenceLogRecord.currentBlockId, // nBlockFrom
-                    joReferenceLogRecord.currentBlockId, // nBlockTo
+                    nBlockFrom,
+                    nBlockTo,
                     {
                         dstChainHash: [ w3_src.utils.soliditySha3( chain_id_dst ) ],
                         msgCounter: [ nIdxCurrentMsg ]
