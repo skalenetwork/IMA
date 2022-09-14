@@ -120,6 +120,7 @@ global.imaState = {
 
     "strChainName_main_net": ( process.env.CHAIN_NAME_ETHEREUM || "Mainnet" ).toString().trim(),
     "strChainName_s_chain": ( process.env.CHAIN_NAME_SCHAIN || "id-S-chain" ).toString().trim(),
+    "strChainName_origin_chain": ( process.env.CHAIN_NAME_SCHAIN_ORIGIN || "Mainnet" ).toString().trim(),
     "strChainName_t_chain": ( process.env.CHAIN_NAME_SCHAIN_TARGET || "id-T-chain" ).toString().trim(),
     "cid_main_net": owaspUtils.toInteger( process.env.CID_ETHEREUM ) || -4,
     "cid_s_chain": owaspUtils.toInteger( process.env.CID_SCHAIN ) || -4,
@@ -1652,7 +1653,7 @@ if( haveReimbursementCommands ) {
 }
 if( imaState.nReimbursementRange >= 0 ) {
     imaState.arrActions.push( {
-        "name": "Gas Reimbursement - Set Minimal time interval from S2M transfers",
+        "name": "Gas Reimbursement - Set Minimal time interval from S2M and S2S transfers",
         "fn": async function() {
             await IMA.reimbursement_set_range(
                 imaState.w3_s_chain,
@@ -1661,6 +1662,7 @@ if( imaState.nReimbursementRange >= 0 ) {
                 imaState.strChainName_s_chain,
                 imaState.cid_s_chain,
                 imaState.tc_s_chain,
+                imaState.strChainName_origin_chain,
                 imaState.nReimbursementRange
             );
             return true;
