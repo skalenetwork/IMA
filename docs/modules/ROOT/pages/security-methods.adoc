@@ -24,6 +24,11 @@ By default, a time delay for large amounts of ERC20 tokens is disabled. Each SKA
 
 The SKALE Chain owner manages a list of trusted addresses that bypass the delay regardless of exit amount (xref:api:mainnet/DepositBox.adoc#_trustreceiver_trustreceiverstring_schainname_address_receiver_external[trustReceiver] and xref:api:mainnet/DepositBox.adoc#_stoptrustingreceiver_stoptrustingreceiverstring_schainname_address_receiver_external[stopTrustingReceiver])
 
+=== Events
+
+- xref:api:mainnet/DepositBox.adoc#_transferdelayed_transferdelayeduint256_id_address_receiver_address_token_uint256_amount_event[TransferDelayed]
+- xref:api:mainnet/DepositBox.adoc#_escalated_escalateduint256_id_event[Escalated]
+
 === Methods
 
 - xref:api:mainnet/DepositBox.adoc#_setbigtransfervalue_setbigtransfervaluestring_schainname_address_token_uint256_value_external[setBigTransferValue]
