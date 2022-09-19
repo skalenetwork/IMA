@@ -8,7 +8,7 @@ if ! [[ "$CURRENT_BRANCH" =~ [/^\w+-v.*/gm] ]]; then
     exit 1
 fi
 
-git checkout develop proxy/
+git checkout beta proxy/
 if [ -n "$(git status --porcelain)" ]; then
     git commit -m "Merge proxy/ from develop"
     echo "Updated proxy"

@@ -851,17 +851,17 @@
   resolved "https://registry.yarnpkg.com/@skalenetwork/etherbase-interfaces/-/etherbase-interfaces-0.0.1-develop.20.tgz#33f61e18d695fd47063aa39dce4df335d26b9528"
   integrity sha512-j3xnuQtOtjvjAoUMJgSUFxRa9/Egkg1RyA8r6PjcEb33VksE4LWLBy0PNFUFehLZv48595JROTcViGeXXwg5HQ==
 
-"@skalenetwork/ima-interfaces@1.0.0-develop.22":
-  version "1.0.0-develop.22"
-  resolved "https://registry.yarnpkg.com/@skalenetwork/ima-interfaces/-/ima-interfaces-1.0.0-develop.22.tgz#ffbdd626840669634b555782c33ef976c27a79a2"
-  integrity sha512-sdtfJJN0QIWnmESY56RV0L6EO0YsNaRp2OAXwCNe7WUnYz9J9xB6aoEsFww0nA+tlIQz8jYi5u23QhKi97E/xQ==
+"@skalenetwork/ima-interfaces@1.0.0-develop.20":
+  version "1.0.0-develop.20"
+  resolved "https://registry.yarnpkg.com/@skalenetwork/ima-interfaces/-/ima-interfaces-1.0.0-develop.20.tgz#e4ae92f9832c08d289690f080b22363fa8f3a339"
+  integrity sha512-OV6lHSg/UiezfLHM/STawOlu2P0IxAXXVL0LilyunuOAtSg3lLfRRyTJKD3D+JePfhgIc25B8DUxJiRyQg4UIg==
   dependencies:
     "@skalenetwork/skale-manager-interfaces" "^0.1.2"
 
-"@skalenetwork/skale-manager-interfaces@1.0.0":
-  version "1.0.0"
-  resolved "https://registry.yarnpkg.com/@skalenetwork/skale-manager-interfaces/-/skale-manager-interfaces-1.0.0.tgz#5456ecbb7e36300544296d24c2345be54c5c9218"
-  integrity sha512-TOgoQZXbYj5KPZnyzs+1L9g6RykSYxE6/9NnPfb8aDYy4Y5Pp/JIK7cy4qSnXetarCGhIGvNo/HBU8naq6dhEQ==
+"@skalenetwork/skale-manager-interfaces@1.0.0-develop.1":
+  version "1.0.0-develop.1"
+  resolved "https://registry.yarnpkg.com/@skalenetwork/skale-manager-interfaces/-/skale-manager-interfaces-1.0.0-develop.1.tgz#8a2d06872dcdc235c041448efc454c0d5f1e55cf"
+  integrity sha512-ZOSWEqvz76Ez5cuWE8n9+j/tnTVQg+t7vaZar/XME0hxnM1YwNFqy34nqjEC/SMhFXg/WnxdOVX9JWWXVZRlkQ==
 
 "@skalenetwork/skale-manager-interfaces@^0.1.2":
   version "0.1.2"
@@ -4149,9 +4149,9 @@ fast-glob@^3.0.3:
     micromatch "^4.0.4"
 
 fast-glob@^3.2.9:
-  version "3.2.11"
-  resolved "https://registry.yarnpkg.com/fast-glob/-/fast-glob-3.2.11.tgz#a1172ad95ceb8a16e20caa5c5e56480e5129c1d9"
-  integrity sha512-xrO3+1bxSo3ZVHAnqzyuewYT6aMFHRAd4Kcs92MAonjwQZLsK9d0SF1IyQ3k5PoirxTW0Oe/RqFgMQ6TcNE5Ew==
+  version "3.2.12"
+  resolved "https://registry.yarnpkg.com/fast-glob/-/fast-glob-3.2.12.tgz#7f39ec99c2e6ab030337142da9e0c18f37afae80"
+  integrity sha512-DVj4CQIYYow0BlaelwK1pHl5n5cRSJfM60UA0zK891sVInoPri2Ekj7+e1CT3/3qxXenpI+nBBmQAcJPJgaj4w==
   dependencies:
     "@nodelib/fs.stat" "^2.0.2"
     "@nodelib/fs.walk" "^1.2.3"

@@ -38,8 +38,6 @@
 :xref-MessageProxy-getContractRegisteredRange-bytes32-uint256-uint256-: xref:./messageproxy.adoc#MessageProxy-getContractRegisteredRange-bytes32-uint256-uint256-
 :MessageProxy-getOutgoingMessagesCounter: pass:normal[xref:./messageproxy.adoc#MessageProxy-getOutgoingMessagesCounter-string-[`MessageProxy.getOutgoingMessagesCounter`]]
 :xref-MessageProxy-getOutgoingMessagesCounter-string-: xref:./messageproxy.adoc#MessageProxy-getOutgoingMessagesCounter-string-
-:MessageProxy-getLastOutgoingMessageBlockId: pass:normal[xref:./messageproxy.adoc#MessageProxy-getLastOutgoingMessageBlockId-string-[`MessageProxy.getLastOutgoingMessageBlockId`]]
-:xref-MessageProxy-getLastOutgoingMessageBlockId-string-: xref:./messageproxy.adoc#MessageProxy-getLastOutgoingMessageBlockId-string-
 :MessageProxy-getIncomingMessagesCounter: pass:normal[xref:./messageproxy.adoc#MessageProxy-getIncomingMessagesCounter-string-[`MessageProxy.getIncomingMessagesCounter`]]
 :xref-MessageProxy-getIncomingMessagesCounter-string-: xref:./messageproxy.adoc#MessageProxy-getIncomingMessagesCounter-string-
 :MessageProxy-initializeMessageProxy: pass:normal[xref:./messageproxy.adoc#MessageProxy-initializeMessageProxy-uint256-[`MessageProxy.initializeMessageProxy`]]
@@ -80,8 +78,6 @@
 :xref-MessageProxy-ExtraContractRegistered-bytes32-address-: xref:./messageproxy.adoc#MessageProxy-ExtraContractRegistered-bytes32-address-
 :MessageProxy-ExtraContractRemoved: pass:normal[xref:./messageproxy.adoc#MessageProxy-ExtraContractRemoved-bytes32-address-[`MessageProxy.ExtraContractRemoved`]]
 :xref-MessageProxy-ExtraContractRemoved-bytes32-address-: xref:./messageproxy.adoc#MessageProxy-ExtraContractRemoved-bytes32-address-
-:MessageProxy-PreviousMessageReference: pass:normal[xref:./messageproxy.adoc#MessageProxy-PreviousMessageReference-uint256-uint256-[`MessageProxy.PreviousMessageReference`]]
-:xref-MessageProxy-PreviousMessageReference-uint256-uint256-: xref:./messageproxy.adoc#MessageProxy-PreviousMessageReference-uint256-uint256-
 :MessageProxy-ConnectedChainInfo: pass:normal[xref:./messageproxy.adoc#MessageProxy-ConnectedChainInfo[`MessageProxy.ConnectedChainInfo`]]
 :xref-MessageProxy-ConnectedChainInfo: xref:./messageproxy.adoc#MessageProxy-ConnectedChainInfo
 :Messages: pass:normal[xref:./messages.adoc#Messages[`Messages`]]
@@ -404,6 +400,10 @@
 :xref-DepositBoxERC20-ERC20TokenAdded-string-address-: xref:mainnet/depositboxes/depositboxerc20.adoc#DepositBoxERC20-ERC20TokenAdded-string-address-
 :DepositBoxERC20-ERC20TokenReady: pass:normal[xref:mainnet/depositboxes/depositboxerc20.adoc#DepositBoxERC20-ERC20TokenReady-address-uint256-[`DepositBoxERC20.ERC20TokenReady`]]
 :xref-DepositBoxERC20-ERC20TokenReady-address-uint256-: xref:mainnet/depositboxes/depositboxerc20.adoc#DepositBoxERC20-ERC20TokenReady-address-uint256-
+:DepositBoxERC20-TransferDelayed: pass:normal[xref:mainnet/depositboxes/depositboxerc20.adoc#DepositBoxERC20-TransferDelayed-uint256-address-address-uint256-[`DepositBoxERC20.TransferDelayed`]]
+:xref-DepositBoxERC20-TransferDelayed-uint256-address-address-uint256-: xref:mainnet/depositboxes/depositboxerc20.adoc#DepositBoxERC20-TransferDelayed-uint256-address-address-uint256-
+:DepositBoxERC20-Escalated: pass:normal[xref:mainnet/depositboxes/depositboxerc20.adoc#DepositBoxERC20-Escalated-uint256-[`DepositBoxERC20.Escalated`]]
+:xref-DepositBoxERC20-Escalated-uint256-: xref:mainnet/depositboxes/depositboxerc20.adoc#DepositBoxERC20-Escalated-uint256-
 :DepositBoxERC20-DelayedTransfer: pass:normal[xref:mainnet/depositboxes/depositboxerc20.adoc#DepositBoxERC20-DelayedTransfer[`DepositBoxERC20.DelayedTransfer`]]
 :xref-DepositBoxERC20-DelayedTransfer: xref:mainnet/depositboxes/depositboxerc20.adoc#DepositBoxERC20-DelayedTransfer
 :DepositBoxERC20-DelayConfig: pass:normal[xref:mainnet/depositboxes/depositboxerc20.adoc#DepositBoxERC20-DelayConfig[`DepositBoxERC20.DelayConfig`]]
@@ -602,8 +602,6 @@
 :xref-Twin-hasSchainContract-string-: xref:mainnet/twin.adoc#Twin-hasSchainContract-string-
 :Twin-initialize: pass:normal[xref:mainnet/twin.adoc#Twin-initialize-contract-IContractManager-contract-IMessageProxyForMainnet-[`Twin.initialize`]]
 :xref-Twin-initialize-contract-IContractManager-contract-IMessageProxyForMainnet-: xref:mainnet/twin.adoc#Twin-initialize-contract-IContractManager-contract-IMessageProxyForMainnet-
-:Twin-getSchainContract: pass:normal[xref:mainnet/twin.adoc#Twin-getSchainContract-bytes32-[`Twin.getSchainContract`]]
-:xref-Twin-getSchainContract-bytes32-: xref:mainnet/twin.adoc#Twin-getSchainContract-bytes32-
 :CommunityLocker: pass:normal[xref:schain/communitylocker.adoc#CommunityLocker[`CommunityLocker`]]
 :xref-CommunityLocker: xref:schain/communitylocker.adoc#CommunityLocker
 :CommunityLocker-MAINNET_NAME: pass:normal[xref:schain/communitylocker.adoc#CommunityLocker-MAINNET_NAME-string[`CommunityLocker.MAINNET_NAME`]]
@@ -1048,7 +1046,6 @@
 :getContractRegisteredLength: pass:normal[xref:#MessageProxy-getContractRegisteredLength-bytes32-[`++getContractRegisteredLength++`]]
 :getContractRegisteredRange: pass:normal[xref:#MessageProxy-getContractRegisteredRange-bytes32-uint256-uint256-[`++getContractRegisteredRange++`]]
 :getOutgoingMessagesCounter: pass:normal[xref:#MessageProxy-getOutgoingMessagesCounter-string-[`++getOutgoingMessagesCounter++`]]
-:getLastOutgoingMessageBlockId: pass:normal[xref:#MessageProxy-getLastOutgoingMessageBlockId-string-[`++getLastOutgoingMessageBlockId++`]]
 :getIncomingMessagesCounter: pass:normal[xref:#MessageProxy-getIncomingMessagesCounter-string-[`++getIncomingMessagesCounter++`]]
 :initializeMessageProxy: pass:normal[xref:#MessageProxy-initializeMessageProxy-uint256-[`++initializeMessageProxy++`]]
 :postOutgoingMessage: pass:normal[xref:#MessageProxy-postOutgoingMessage-bytes32-address-bytes-[`++postOutgoingMessage++`]]
@@ -1069,7 +1066,6 @@
 :VersionUpdated: pass:normal[xref:#MessageProxy-VersionUpdated-string-string-[`++VersionUpdated++`]]
 :ExtraContractRegistered: pass:normal[xref:#MessageProxy-ExtraContractRegistered-bytes32-address-[`++ExtraContractRegistered++`]]
 :ExtraContractRemoved: pass:normal[xref:#MessageProxy-ExtraContractRemoved-bytes32-address-[`++ExtraContractRemoved++`]]
-:PreviousMessageReference: pass:normal[xref:#MessageProxy-PreviousMessageReference-uint256-uint256-[`++PreviousMessageReference++`]]
 :ConnectedChainInfo: pass:normal[xref:#MessageProxy-ConnectedChainInfo[`++ConnectedChainInfo++`]]
 
 [.contract]
@@ -1096,7 +1092,6 @@ Abstract contract for MessageProxyForMainnet and MessageProxyForSchain.
 * {xref-MessageProxy-getContractRegisteredLength-bytes32-}[`++getContractRegisteredLength(schainHash)++`]
 * {xref-MessageProxy-getContractRegisteredRange-bytes32-uint256-uint256-}[`++getContractRegisteredRange(schainHash, from, to)++`]
 * {xref-MessageProxy-getOutgoingMessagesCounter-string-}[`++getOutgoingMessagesCounter(targetSchainName)++`]
-* {xref-MessageProxy-getLastOutgoingMessageBlockId-string-}[`++getLastOutgoingMessageBlockId(targetSchainName)++`]
 * {xref-MessageProxy-getIncomingMessagesCounter-string-}[`++getIncomingMessagesCounter(fromSchainName)++`]
 * {xref-MessageProxy-initializeMessageProxy-uint256-}[`++initializeMessageProxy(newGasLimit)++`]
 * {xref-MessageProxy-postOutgoingMessage-bytes32-address-bytes-}[`++postOutgoingMessage(targetChainHash, targetContract, data)++`]
@@ -1122,7 +1117,6 @@ Abstract contract for MessageProxyForMainnet and MessageProxyForSchain.
 * {xref-MessageProxy-VersionUpdated-string-string-}[`++VersionUpdated(oldVersion, newVersion)++`]
 * {xref-MessageProxy-ExtraContractRegistered-bytes32-address-}[`++ExtraContractRegistered(chainHash, contractAddress)++`]
 * {xref-MessageProxy-ExtraContractRemoved-bytes32-address-}[`++ExtraContractRemoved(chainHash, contractAddress)++`]
-* {xref-MessageProxy-PreviousMessageReference-uint256-uint256-}[`++PreviousMessageReference(currentMessage, previousOutgoingMessageBlockId)++`]
 --
 
 [.contract-item]
@@ -1198,11 +1192,6 @@ Returns number of outgoing messages.
 Requirements:
 
 - Target schain  must be initialized.
-
-[.contract-item]
-== +++<a class="heading-anchor" area-hidden="true" name=MessageProxy-getLastOutgoingMessageBlockId-string->getLastOutgoingMessageBlockId</a>+++ `++getLastOutgoingMessageBlockId(++[.var-type]#++string++#++ ++[.var-name]#++targetSchainName++#++) → ++[.var-type]#++uint256++#++++` [.item-kind]#external#
-
-Should return block number of the last message transferred to schain
 
 [.contract-item]
 == +++<a class="heading-anchor" area-hidden="true" name=MessageProxy-getIncomingMessagesCounter-string->getIncomingMessagesCounter</a>+++ `++getIncomingMessagesCounter(++[.var-type]#++string++#++ ++[.var-name]#++fromSchainName++#++) → ++[.var-type]#++uint256++#++++` [.item-kind]#external#
@@ -1339,9 +1328,4 @@ Emitted when extra contract was added.
 == +++<a class="heading-anchor" area-hidden="true" name=MessageProxy-ExtraContractRemoved-bytes32-address->ExtraContractRemoved</a>+++ `++ExtraContractRemoved(++[.var-type]#++bytes32++#++ ++[.var-name]#++chainHash++#++, ++[.var-type]#++address++#++ ++[.var-name]#++contractAddress++#++)++` [.item-kind]#event#
 
 Emitted when extra contract was removed.
-
-[.contract-item]
-== +++<a class="heading-anchor" area-hidden="true" name=MessageProxy-PreviousMessageReference-uint256-uint256->PreviousMessageReference</a>+++ `++PreviousMessageReference(++[.var-type]#++uint256++#++ ++[.var-name]#++currentMessage++#++, ++[.var-type]#++uint256++#++ ++[.var-name]#++previousOutgoingMessageBlockId++#++)++` [.item-kind]#event#
-
-Emitted when referenced to previous outgoing message.
 

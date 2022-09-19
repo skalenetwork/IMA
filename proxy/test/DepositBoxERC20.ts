@@ -387,7 +387,10 @@ describe("DepositBoxERC20", () => {
                     sender: deployer.address
                 };
 
-                await messageProxy.connect(nodeAddress).postIncomingMessages(schainName, 0, [message], randomSignature);
+                await expect(
+                    messageProxy.connect(nodeAddress).postIncomingMessages(schainName, 0, [message], randomSignature)
+                ).to.emit(depositBoxERC20, "TransferDelayed")
+                    .withArgs(0, user.address, token.address, bigAmount);
 
                 (await token.balanceOf(user.address)).should.be.equal(balanceBefore);
 
@@ -472,7 +475,9 @@ describe("DepositBoxERC20", () => {
                 for (const suspicionsTransfer of suspicionsTransfers) {
                     await depositBoxERC20.connect(richGuy).escalate(suspicionsTransfer)
                         .should.be.rejectedWith("Not enough permissions to request escalation");
-                    await depositBoxERC20.escalate(suspicionsTransfer);
+                    await expect(depositBoxERC20.escalate(suspicionsTransfer))
+                        .to.emit(depositBoxERC20, "Escalated")
+                        .withArgs(suspicionsTransfer);
                     await depositBoxERC20.escalate(suspicionsTransfer)
                         .should.be.rejectedWith("The transfer has to be delayed");
                 }
