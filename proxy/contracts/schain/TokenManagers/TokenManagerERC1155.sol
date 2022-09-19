@@ -111,7 +111,7 @@ contract TokenManagerERC1155 is
         external
         override
     {
-        communityLocker.checkAllowedToSendMessage(MAINNET_HASH, msg.sender);
+        communityLocker.checkAllowedToSendMessage(msg.sender);
         _exit(MAINNET_HASH, depositBox, contractOnMainnet, msg.sender, id, amount);
     }
 
@@ -128,7 +128,7 @@ contract TokenManagerERC1155 is
         external
         override
     {
-        communityLocker.checkAllowedToSendMessage(MAINNET_HASH, msg.sender);
+        communityLocker.checkAllowedToSendMessage(msg.sender);
         _exitBatch(MAINNET_HASH, depositBox, contractOnMainnet, msg.sender, ids, amounts);
     }
 
@@ -149,7 +149,6 @@ contract TokenManagerERC1155 is
         rightTransaction(targetSchainName, msg.sender)
     {
         bytes32 targetSchainHash = keccak256(abi.encodePacked(targetSchainName));
-        communityLocker.checkAllowedToSendMessage(targetSchainHash, msg.sender);
         _exit(targetSchainHash, tokenManagers[targetSchainHash], contractOnMainnet, msg.sender, id, amount);
     }
 
@@ -170,7 +169,6 @@ contract TokenManagerERC1155 is
         rightTransaction(targetSchainName, msg.sender)
     {
         bytes32 targetSchainHash = keccak256(abi.encodePacked(targetSchainName));
-        communityLocker.checkAllowedToSendMessage(targetSchainHash, msg.sender);
         _exitBatch(targetSchainHash, tokenManagers[targetSchainHash], contractOnMainnet, msg.sender, ids, amounts);
     }
 

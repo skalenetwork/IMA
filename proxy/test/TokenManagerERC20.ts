@@ -52,7 +52,6 @@ import { BigNumber } from "ethers";
 
 import { assert, expect } from "chai";
 import { deployKeyStorageMock } from "./utils/deploy/test/keyStorageMock";
-import { skipTime } from "./utils/time";
 
 describe("TokenManagerERC20", () => {
     let deployer: SignerWithAddress;
@@ -303,107 +302,6 @@ describe("TokenManagerERC20", () => {
             const outgoingMessagesCounter = BigNumber.from(
                 await messageProxyForSchain.getOutgoingMessagesCounter(newSchainName));
             outgoingMessagesCounter.should.be.deep.equal(BigNumber.from(1));
-        });
-
-        it("should reject `transferToSchainERC20` when executing earlier then allowed", async () => {
-            const amount = "20000000000000000";
-            await messageProxyForSchain.registerExtraContract(newSchainName, tokenManagerErc20.address);
-
-            // add connected chain:
-            await messageProxyForSchain.connect(deployer).grantRole(await messageProxyForSchain.CHAIN_CONNECTOR_ROLE(), deployer.address);
-            await messageProxyForSchain.connect(deployer).addConnectedChain(newSchainName);
-
-            await erc20OnOriginChain.connect(deployer).mint(user.address, amount);
-            await erc20OnOriginChain.connect(user).approve(tokenManagerErc20.address, amount);
-
-            await tokenManagerErc20
-                .connect(user)
-                .transferToSchainERC20(newSchainName, erc20OnOriginChain.address, amount)
-                .should.be.eventually.rejectedWith("Incorrect Token Manager address");
-
-            await tokenManagerErc20
-                .connect(user)
-                .transferToSchainERC20("Mainnet", erc20OnOriginChain.address, amount)
-                .should.be.eventually.rejectedWith("This function is not for transferring to Mainnet");
-
-            await tokenManagerErc20.addTokenManager(newSchainName, tokenManagerErc202.address);
-
-            await tokenManagerErc20
-                .connect(user)
-                .transferToSchainERC20(newSchainName, erc20OnOriginChain.address, amount);
-
-            BigNumber.from(await messageProxyForSchain.getOutgoingMessagesCounter(newSchainName)).should.be.deep.equal(BigNumber.from(1));
-
-            await erc20OnOriginChain.connect(deployer).mint(user.address, amount);
-            await erc20OnOriginChain.connect(user).approve(tokenManagerErc20.address, amount);
-
-            await tokenManagerErc20
-                .connect(user)
-                .transferToSchainERC20(newSchainName, erc20OnOriginChain.address, amount);
-
-            BigNumber.from(await messageProxyForSchain.getOutgoingMessagesCounter(newSchainName)).should.be.deep.equal(BigNumber.from(2));
-
-            await communityLocker.grantRole(await communityLocker.CONSTANT_SETTER_ROLE(), deployer.address);
-
-            await communityLocker.setTimeLimitPerMessage(newSchainName, 100);
-
-            await erc20OnOriginChain.connect(deployer).mint(user.address, amount);
-            await erc20OnOriginChain.connect(user).approve(tokenManagerErc20.address, amount);
-
-            await tokenManagerErc20
-                .connect(user)
-                .transferToSchainERC20(newSchainName, erc20OnOriginChain.address, amount)
-                .should.be.eventually.rejectedWith("Exceeded message rate limit");
-
-            BigNumber.from(await messageProxyForSchain.getOutgoingMessagesCounter(newSchainName)).should.be.deep.equal(BigNumber.from(2));
-
-            await skipTime(90);
-
-            await tokenManagerErc20
-                .connect(user)
-                .transferToSchainERC20(newSchainName, erc20OnOriginChain.address, amount)
-                .should.be.eventually.rejectedWith("Exceeded message rate limit");
-
-            BigNumber.from(await messageProxyForSchain.getOutgoingMessagesCounter(newSchainName)).should.be.deep.equal(BigNumber.from(2));
-
-            await skipTime(20);
-
-            await tokenManagerErc20
-                .connect(user)
-                .transferToSchainERC20(newSchainName, erc20OnOriginChain.address, amount);
-
-            BigNumber.from(await messageProxyForSchain.getOutgoingMessagesCounter(newSchainName)).should.be.deep.equal(BigNumber.from(3));
-
-            await communityLocker.setTimeLimitPerMessage(newSchainName, 0);
-
-            await erc20OnOriginChain.connect(deployer).mint(user.address, amount);
-            await erc20OnOriginChain.connect(user).approve(tokenManagerErc20.address, amount);
-
-            await tokenManagerErc20
-                .connect(user)
-                .transferToSchainERC20(newSchainName, erc20OnOriginChain.address, amount);
-
-            BigNumber.from(await messageProxyForSchain.getOutgoingMessagesCounter(newSchainName)).should.be.deep.equal(BigNumber.from(4));
-
-            await communityLocker.setTimeLimitPerMessage(newSchainName, 100);
-
-            await erc20OnOriginChain.connect(deployer).mint(user.address, amount);
-            await erc20OnOriginChain.connect(user).approve(tokenManagerErc20.address, amount);
-
-            await tokenManagerErc20
-                .connect(user)
-                .transferToSchainERC20(newSchainName, erc20OnOriginChain.address, amount)
-                .should.be.eventually.rejectedWith("Exceeded message rate limit");
-
-            BigNumber.from(await messageProxyForSchain.getOutgoingMessagesCounter(newSchainName)).should.be.deep.equal(BigNumber.from(4));
-
-            await skipTime(110);
-
-            await tokenManagerErc20
-                .connect(user)
-                .transferToSchainERC20(newSchainName, erc20OnOriginChain.address, amount);
-
-            BigNumber.from(await messageProxyForSchain.getOutgoingMessagesCounter(newSchainName)).should.be.deep.equal(BigNumber.from(5));
         });
 
         it("should invoke `transferToSchainERC20` and receive tokens without mistakes", async () => {

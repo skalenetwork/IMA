@@ -28,17 +28,13 @@ import "@skalenetwork/ima-interfaces/schain/ICommunityLocker.sol";
 
 import "../Messages.sol";
 
-interface ICommunityLockerInitializer is ICommunityLocker {
-    function initializeTimestamp() external;
-}
-
 
 /**
  * @title CommunityLocker
  * @dev Contract contains logic to perform automatic reimbursement
  * of gas fees for sent messages
  */
-contract CommunityLocker is ICommunityLockerInitializer, AccessControlEnumerableUpgradeable {
+contract CommunityLocker is ICommunityLocker, AccessControlEnumerableUpgradeable {
 
     /**
      * @dev Mainnet identifier.
@@ -75,11 +71,11 @@ contract CommunityLocker is ICommunityLockerInitializer, AccessControlEnumerable
      */
     bytes32 public schainHash;
 
-    // Disable slither check due to variable depreciation
-    // and unavailability of making it constant because
-    // it breaks upgradeability pattern.
-    // slither-disable-next-line constable-states
-    uint private _deprecatedTimeLimitPerMessage;
+    /**
+     * @dev Amount of seconds after message sending
+     * when next message cannot be sent.
+     */
+    uint public timeLimitPerMessage;
 
     /**
      * @dev Mapping of users who are allowed to send a message.
@@ -93,29 +89,9 @@ contract CommunityLocker is ICommunityLockerInitializer, AccessControlEnumerable
     // user address => timestamp of last message
     mapping(address => uint) public lastMessageTimeStamp;
 
-    /**
-     * @dev mainnet gas price(baseFee) value
-     */
     uint256 public mainnetGasPrice;
 
-    /**
-     * @dev Timestamp of previous set of mainnet gas price
-     */
     uint256 public gasPriceTimestamp;
-
-    /**
-     * @dev Amount of seconds after message sending
-     * when next message cannot be sent.
-     */
-    // schainHash   => time limit
-    mapping(bytes32 => uint) public timeLimitPerMessage;
-
-    /**
-     * @dev Timestamp of previous sent message by user during
-     * schain to schain transfers
-     */
-    // schainHash   =>           user  => timestamp
-    mapping(bytes32 => mapping(address => uint)) public lastMessageTimeStampToSchain;
 
     /**
      * @dev Emitted when a user becomes active.
@@ -141,19 +117,6 @@ contract CommunityLocker is ICommunityLockerInitializer, AccessControlEnumerable
         uint previousValue,
         uint newValue
     );
-
-    modifier checkUserBeforeTransfer(bytes32 chainHash, address user) {
-        uint256 lastTimestamp = lastMessageTimeStampToSchain[chainHash][user];
-        if (chainHash == MAINNET_HASH) {
-            require(activeUsers[user], "Recipient must be active");
-            lastTimestamp = lastMessageTimeStamp[user];
-        }
-        require(
-            lastTimestamp + timeLimitPerMessage[chainHash] < block.timestamp,
-            "Exceeded message rate limit"
-        );
-        _;
-    }
 
     /**
      * @dev Allows MessageProxy to post operational message from mainnet
@@ -200,24 +163,21 @@ contract CommunityLocker is ICommunityLockerInitializer, AccessControlEnumerable
      * - Previous message sent by {receiver} must be sent earlier then {timeLimitPerMessage} seconds before current time
      * or there are no messages sent by {receiver}.
      */
-    function checkAllowedToSendMessage(bytes32 chainHash, address receiver)
-        external
-        checkUserBeforeTransfer(chainHash, receiver)
-        override
-    {
+    function checkAllowedToSendMessage(address receiver) external override {
         require(
             tokenManagerLinker.hasTokenManager(ITokenManager(msg.sender)),
             "Sender is not registered token manager"
         );
-        if (chainHash == MAINNET_HASH) {
-            lastMessageTimeStamp[receiver] = block.timestamp;
-        } else {
-            lastMessageTimeStampToSchain[chainHash][receiver] = block.timestamp;
-        }
+        require(activeUsers[receiver], "Recipient must be active");
+        require(
+            lastMessageTimeStamp[receiver] + timeLimitPerMessage < block.timestamp,
+            "Trying to send messages too often"
+        );
+        lastMessageTimeStamp[receiver] = block.timestamp;
     }
 
     /**
-     * @dev Set value of {timeLimitPerMessage} of given chain.
+     * @dev Set value of {timeLimitPerMessage}.
      *
      * Requirements:
      * 
@@ -225,16 +185,14 @@ contract CommunityLocker is ICommunityLockerInitializer, AccessControlEnumerable
      * 
      * Emits a {ConstantUpdated} event.
      */
-    function setTimeLimitPerMessage(string memory chainName, uint newTimeLimitPerMessage) external override {
+    function setTimeLimitPerMessage(uint newTimeLimitPerMessage) external override {
         require(hasRole(CONSTANT_SETTER_ROLE, msg.sender), "Not enough permissions to set constant");
-        bytes32 chainHash = keccak256(abi.encodePacked(chainName));
-        require(chainHash != schainHash, "Incorrect chain");
         emit ConstantUpdated(
             keccak256(abi.encodePacked("TimeLimitPerMessage")),
-            timeLimitPerMessage[chainHash],
+            timeLimitPerMessage,
             newTimeLimitPerMessage
         );
-        timeLimitPerMessage[chainHash] = newTimeLimitPerMessage;
+        timeLimitPerMessage = newTimeLimitPerMessage;
     }
 
     /**
@@ -289,21 +247,7 @@ contract CommunityLocker is ICommunityLockerInitializer, AccessControlEnumerable
         messageProxy = newMessageProxy;
         tokenManagerLinker = newTokenManagerLinker;
         schainHash = keccak256(abi.encodePacked(newSchainName));
-        timeLimitPerMessage[MAINNET_HASH] = 5 minutes;
+        timeLimitPerMessage = 5 minutes;
         communityPool = newCommunityPool;
-    }
-
-    /**
-     * @dev Initialize timestamp after upgrade and should be removed after upgrade
-     *
-     * Requirements:
-     * Should be called only by address which hold DEFAULT_ADMIN_ROLE role
-     */
-    function initializeTimestamp() external override {
-        require(hasRole(DEFAULT_ADMIN_ROLE, msg.sender), "Incorrect sender");
-        // Disable slither check due to moving data to the new data structure
-        // slither-disable-next-line uninitialized-state
-        timeLimitPerMessage[MAINNET_HASH] = _deprecatedTimeLimitPerMessage;
-        delete _deprecatedTimeLimitPerMessage;
     }
 }

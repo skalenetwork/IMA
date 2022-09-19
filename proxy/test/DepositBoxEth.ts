@@ -277,7 +277,6 @@ describe("DepositBoxEth", () => {
             await messageProxy.addConnectedChain(schainName);
             await initializeSchain(contractManager, schainName, deployer.address, 1, 1);
             await setCommonPublicKey(contractManager, schainName);
-            await communityPool.addSchainContract(schainName, deployer.address);
             await communityPool
                 .connect(user)
                 .rechargeUserWallet(schainName, user.address, { value: wei });

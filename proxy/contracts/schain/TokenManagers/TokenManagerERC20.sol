@@ -99,7 +99,7 @@ contract TokenManagerERC20 is TokenManager, ITokenManagerERC20 {
         external
         override
     {
-        communityLocker.checkAllowedToSendMessage(MAINNET_HASH, msg.sender);
+        communityLocker.checkAllowedToSendMessage(msg.sender);
         _exit(MAINNET_HASH, depositBox, contractOnMainnet, msg.sender, amount);
     }
 
@@ -119,7 +119,6 @@ contract TokenManagerERC20 is TokenManager, ITokenManagerERC20 {
         rightTransaction(targetSchainName, msg.sender)
     {
         bytes32 targetSchainHash = keccak256(abi.encodePacked(targetSchainName));
-        communityLocker.checkAllowedToSendMessage(targetSchainHash, msg.sender);
         _exit(targetSchainHash, tokenManagers[targetSchainHash], contractOnMainnet, msg.sender, amount);
     }
 

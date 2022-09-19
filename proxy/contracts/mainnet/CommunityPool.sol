@@ -118,7 +118,7 @@ contract CommunityPool is Twin, ICommunityPool {
             activeUsers[user][schainHash] = false;
             messageProxy.postOutgoingMessage(
                 schainHash,
-                getSchainContract(schainHash),
+                schainLinks[schainHash],
                 Messages.encodeLockUserMessage(user)
             );
         }
@@ -167,7 +167,7 @@ contract CommunityPool is Twin, ICommunityPool {
             activeUsers[user][schainHash] = true;
             messageProxy.postOutgoingMessage(
                 schainHash,
-                getSchainContract(schainHash),
+                schainLinks[schainHash],
                 Messages.encodeActivateUserMessage(user)
             );
         }
@@ -194,7 +194,7 @@ contract CommunityPool is Twin, ICommunityPool {
             activeUsers[msg.sender][schainHash] = false;
             messageProxy.postOutgoingMessage(
                 schainHash,
-                getSchainContract(schainHash),
+                schainLinks[schainHash],
                 Messages.encodeLockUserMessage(msg.sender)
             );
         }
