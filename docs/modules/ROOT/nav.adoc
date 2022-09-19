@@ -16,4 +16,5 @@
 * xref:access-control.adoc[IMA Access Control]
 * xref:ima-js-overview.adoc[IMA-JS overview]
 * xref:ima-js-sdk.adoc[Development with IMA-SDK and IMA-JS]
+* xref:security-methods.adoc[Security Methods]
 * xref:troubleshooting.adoc[Troubleshooting]
