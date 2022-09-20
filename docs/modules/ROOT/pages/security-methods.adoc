@@ -40,3 +40,21 @@ The SKALE Chain owner manages a list of trusted addresses that bypass the delay 
 - xref:api:mainnet/DepositBox.adoc#_escalate_escalateuint256_transferid_external[escalate]
 - xref:api:mainnet/DepositBox.adoc#_validatetransfer_validatetransferuint256_transferid_external[validateTransfer]
 - xref:api:mainnet/DepositBox.adoc#_rejecttransfer_rejecttransferuint256_transferid_external[rejectTransfer]
+
+== Pauseable processing of messages
+
+Specific SKALE Chain IMA bridges may be xref:api:mainnet/MessageProxyForMainnet.adoc#_pause_pausestring_schainname_external[paused] by either the respective SKALE Chain owner, the designated `PAUSABLE_ROLE`, or by the `DEFAULT_ADMIN_ROLE`.
+
+=== Pausing
+
+The `PAUSABLE_ROLE` may xref:api:mainnet/MessageProxyForMainnet.adoc#_pause_pausestring_schainname_external[pause] a specific SKALE Chain IMA bridge for an unlimited time.
+The `DEFAULT_ADMIN_ROLE` may initiate a 4 hour xref:api:mainnet/MessageProxyForMainnet.adoc#_pause_pausestring_schainname_external[pause] to IMA messages for a specific SKALE Chain. Once the messages are paused, the SKALE Chain owner may extend the pause for an unlimited time.
+
+=== Resuming
+
+Once paused, the SKALE Chain owner or the `DEFAULT_ADMIN_ROLE` may xref:api:mainnet/MessageProxyForMainnet.adoc#_resume_resumestring_schainname_external[resume] processing IMA messages for a specific SKALE Chain. 
+
+=== Methods
+
+- xref:api:mainnet/MessageProxyForMainnet.adoc#_pause_pausestring_schainname_external[pause]
+- xref:api:mainnet/MessageProxyForMainnet.adoc#_resume_resumestring_schainname_external[resume]
