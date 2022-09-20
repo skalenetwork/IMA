@@ -11,6 +11,7 @@
 ** xref:s2s-transferring-erc20.adoc[S2S ERC20 Transfer]
 ** xref:s2s-transferring-erc721.adoc[S2S ERC721 Transfer]
 ** xref:s2s-transferring-erc1155.adoc[S2S ERC1155 Transfer]
+** xref:s2s-custom-messages.adoc[S2S Custom Messages]
 * xref:message-proxy.adoc[Managing other contracts using Message Proxy]
 * xref:flows.adoc[Example Setup Diagrams]
 * xref:access-control.adoc[IMA Access Control]
