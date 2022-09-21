@@ -1200,14 +1200,12 @@ Requirements:
 [.contract-item]
 == +++<a class="heading-anchor" area-hidden="true" name=MessageProxyForMainnet-pause-string->pause</a>+++ `++pause(++[.var-type]#++string++#++ ++[.var-name]#++schainName++#++)++` [.item-kind]#external#
 
-Allows PAUSABLE_ROLE to pause IMA bridge unlimited
-or DEFAULT_ADMIN_ROLE to pause for 4 hours
-or schain owner to pause unlimited after DEFAULT_ADMIN_ROLE pause it
+Allows PAUSABLE_ROLE to pause IMA bridge
 
 Requirements:
 
 - IMA bridge to current schain was not paused
-- Sender should be PAUSABLE_ROLE, DEFAULT_ADMIN_ROLE or schain owner
+- Sender should be PAUSABLE_ROLE
 
 [.contract-item]
 == +++<a class="heading-anchor" area-hidden="true" name=MessageProxyForMainnet-resume-string->resume</a>+++ `++resume(++[.var-type]#++string++#++ ++[.var-name]#++schainName++#++)++` [.item-kind]#external#
