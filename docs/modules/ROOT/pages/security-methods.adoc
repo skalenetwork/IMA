@@ -11,37 +11,37 @@ SKALE Chain owners can set a time delay for token exits that exceed certain amou
 
 During a triggered time delay, there are two actions that can be executed:
 
-* an account granted with an `ARBITER_ROLE` or the SKALE Chain owner may initialize an arbitrage of the transfer (xref:api:mainnet/depositboxes/depositboxerc20.adoc#_escalate_escalateuint256_transferid_external[escalate]). This action increases the time delay/token lock period by a value configurable by the SKALE Chain owner (xref:api:mainnet/depositboxes/depositboxerc20.adoc#_setarbitrageduration_setarbitragedurationstring_schainname_uint256_delayinseconds_external[setArbitrageDuration]). 
-* the SKALE Chain owner can cancel the transfer (xref:api:mainnet/depositboxes/depositboxerc20.adoc#_rejecttransfer_rejecttransferuint256_transferid_external[rejectTransfer]).  In this case, the tokens go to the SKALE Chain owner address.  
+* an account granted with an `ARBITER_ROLE` or the SKALE Chain owner may initialize an arbitrage of the transfer (xref:api:mainnet/DepositBoxes/DepositBoxERC20.adoc#_escalate_escalateuint256_transferid_external[escalate]). This action increases the time delay/token lock period by a value configurable by the SKALE Chain owner (xref:api:mainnet/DepositBoxes/DepositBoxERC20.adoc#_setarbitrageduration_setarbitragedurationstring_schainname_uint256_delayinseconds_external[setArbitrageDuration]). 
+* the SKALE Chain owner can cancel the transfer (xref:api:mainnet/DepositBoxes/DepositBoxERC20.adoc#_rejecttransfer_rejecttransferuint256_transferid_external[rejectTransfer]).  In this case, the tokens go to the SKALE Chain owner address.  
 
-Once in arbitrage, the SKALE Chain owner can cancel the arbitrage and immediately transfer the tokens to the receiver (xref:api:mainnet/depositboxes/depositboxerc20.adoc#_validatetransfer_validatetransferuint256_transferid_external[validateTransfer]).  In this case, the receiver does not need to explicitly pull the tokens.
+Once in arbitrage, the SKALE Chain owner can cancel the arbitrage and immediately transfer the tokens to the receiver (xref:api:mainnet/DepositBoxes/DepositBoxERC20.adoc#_validatetransfer_validatetransferuint256_transferid_external[validateTransfer]).  In this case, the receiver does not need to explicitly pull the tokens.
 
-If transfer was delayed or arbitraged and time delay passed without any action during this period, receiver can complete the transfer (xref:api:mainnet/depositboxes/depositboxerc20.adoc#_retrieve_retrieve_external[retrieve])
+If transfer was delayed or arbitraged and time delay passed without any action during this period, receiver can complete the transfer (xref:api:mainnet/DepositBoxes/DepositBoxERC20.adoc#_retrieve_retrieve_external[retrieve])
 
 === Default Values
 
-By default, a time delay for large amounts of ERC20 tokens is disabled. Each SKALE Chain owner must explicitly enable this feature (xref:api:mainnet/depositboxes/depositboxerc20.adoc#_setbigtransferdelay_setbigtransferdelaystring_schainname_uint256_delayinseconds_external[setBigTransferDelay]) and set a threshold amount for each ERC20 token in IMA (xref:api:mainnet/depositboxes/depositboxerc20.adoc#_setbigtransfervalue_setbigtransfervaluestring_schainname_address_token_uint256_value_external[setBigTransferValue]).
+By default, a time delay for large amounts of ERC20 tokens is disabled. Each SKALE Chain owner must explicitly enable this feature (xref:api:mainnet/DepositBoxes/DepositBoxERC20.adoc#_setbigtransferdelay_setbigtransferdelaystring_schainname_uint256_delayinseconds_external[setBigTransferDelay]) and set a threshold amount for each ERC20 token in IMA (xref:api:mainnet/DepositBoxes/DepositBoxERC20.adoc#_setbigtransfervalue_setbigtransfervaluestring_schainname_address_token_uint256_value_external[setBigTransferValue]).
 
 === Whitelist
 
-The SKALE Chain owner manages a list of trusted addresses that bypass the delay regardless of exit amount (xref:api:mainnet/depositboxes/depositboxerc20.adoc#_trustreceiver_trustreceiverstring_schainname_address_receiver_external[trustReceiver] and xref:api:mainnet/depositboxes/depositboxerc20.adoc#_stoptrustingreceiver_stoptrustingreceiverstring_schainname_address_receiver_external[stopTrustingReceiver])
+The SKALE Chain owner manages a list of trusted addresses that bypass the delay regardless of exit amount (xref:api:mainnet/DepositBoxes/DepositBoxERC20.adoc#_trustreceiver_trustreceiverstring_schainname_address_receiver_external[trustReceiver] and xref:api:mainnet/DepositBoxes/DepositBoxERC20.adoc#_stoptrustingreceiver_stoptrustingreceiverstring_schainname_address_receiver_external[stopTrustingReceiver])
 
 === Events
 
-- xref:api:mainnet/depositboxes/depositboxerc20.adoc#_transferdelayed_transferdelayeduint256_id_address_receiver_address_token_uint256_amount_event[TransferDelayed]
-- xref:api:mainnet/depositboxes/depositboxerc20.adoc#_escalated_escalateduint256_id_event[Escalated]
+- xref:api:mainnet/DepositBoxes/DepositBoxERC20.adoc#_transferdelayed_transferdelayeduint256_id_address_receiver_address_token_uint256_amount_event[TransferDelayed]
+- xref:api:mainnet/DepositBoxes/DepositBoxERC20.adoc#_escalated_escalateduint256_id_event[Escalated]
 
 === Methods
 
-- xref:api:mainnet/depositboxes/depositboxerc20.adoc#_setbigtransfervalue_setbigtransfervaluestring_schainname_address_token_uint256_value_external[setBigTransferValue]
-- xref:api:mainnet/depositboxes/depositboxerc20.adoc#_setbigtransferdelay_setbigtransferdelaystring_schainname_uint256_delayinseconds_external[setBigTransferDelay]
-- xref:api:mainnet/depositboxes/depositboxerc20.adoc#_setarbitrageduration_setarbitragedurationstring_schainname_uint256_delayinseconds_external[setArbitrageDuration]
-- xref:api:mainnet/depositboxes/depositboxerc20.adoc#_trustreceiver_trustreceiverstring_schainname_address_receiver_external[trustReceiver]
-- xref:api:mainnet/depositboxes/depositboxerc20.adoc#_stoptrustingreceiver_stoptrustingreceiverstring_schainname_address_receiver_external[stopTrustingReceiver]
-- xref:api:mainnet/depositboxes/depositboxerc20.adoc#_retrieve_retrieve_external[retrieve]
-- xref:api:mainnet/depositboxes/depositboxerc20.adoc#_escalate_escalateuint256_transferid_external[escalate]
-- xref:api:mainnet/depositboxes/depositboxerc20.adoc#_validatetransfer_validatetransferuint256_transferid_external[validateTransfer]
-- xref:api:mainnet/depositboxes/depositboxerc20.adoc#_rejecttransfer_rejecttransferuint256_transferid_external[rejectTransfer]
+- xref:api:mainnet/DepositBoxes/DepositBoxERC20.adoc#_setbigtransfervalue_setbigtransfervaluestring_schainname_address_token_uint256_value_external[setBigTransferValue]
+- xref:api:mainnet/DepositBoxes/DepositBoxERC20.adoc#_setbigtransferdelay_setbigtransferdelaystring_schainname_uint256_delayinseconds_external[setBigTransferDelay]
+- xref:api:mainnet/DepositBoxes/DepositBoxERC20.adoc#_setarbitrageduration_setarbitragedurationstring_schainname_uint256_delayinseconds_external[setArbitrageDuration]
+- xref:api:mainnet/DepositBoxes/DepositBoxERC20.adoc#_trustreceiver_trustreceiverstring_schainname_address_receiver_external[trustReceiver]
+- xref:api:mainnet/DepositBoxes/DepositBoxERC20.adoc#_stoptrustingreceiver_stoptrustingreceiverstring_schainname_address_receiver_external[stopTrustingReceiver]
+- xref:api:mainnet/DepositBoxes/DepositBoxERC20.adoc#_retrieve_retrieve_external[retrieve]
+- xref:api:mainnet/DepositBoxes/DepositBoxERC20.adoc#_escalate_escalateuint256_transferid_external[escalate]
+- xref:api:mainnet/DepositBoxes/DepositBoxERC20.adoc#_validatetransfer_validatetransferuint256_transferid_external[validateTransfer]
+- xref:api:mainnet/DepositBoxes/DepositBoxERC20.adoc#_rejecttransfer_rejecttransferuint256_transferid_external[rejectTransfer]
 
 == Pauseable processing of messages
 
