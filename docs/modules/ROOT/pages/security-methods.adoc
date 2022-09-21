@@ -16,9 +16,11 @@ During a triggered time delay, there are two actions that can be executed:
 
 Once in arbitrage, the SKALE Chain owner can cancel the arbitrage and immediately transfer the tokens to the receiver (xref:api:mainnet/DepositBoxERC20.adoc#_validatetransfer_validatetransferuint256_transferid_external[validateTransfer]).  In this case, the receiver does not need to explicitly pull the tokens.
 
+If transfer was delayed or arbitraged and time delay passed without any action during this period, receiver can complete the transfer (xref:api:mainnet/DepositBoxERC20.adoc#_retrieve_retrieve_external[retrieve])
+
 === Default Values
 
-By default, a time delay for large amounts of ERC20 tokens is disabled. Each SKALE Chain owner must explicitly enable this feature and set a threshold amount for each ERC20 token in IMA.
+By default, a time delay for large amounts of ERC20 tokens is disabled. Each SKALE Chain owner must explicitly enable this feature (xref:api:mainnet/DepositBoxERC20.adoc#_setbigtransferdelay_setbigtransferdelaystring_schainname_uint256_delayinseconds_external[setBigTransferDelay]) and set a threshold amount for each ERC20 token in IMA (xref:api:mainnet/DepositBoxERC20.adoc#_setbigtransfervalue_setbigtransfervaluestring_schainname_address_token_uint256_value_external[setBigTransferValue]).
 
 === Whitelist
 
@@ -48,7 +50,7 @@ Specific SKALE Chain IMA bridges may be xref:api:mainnet/MessageProxyForMainnet.
 === Pausing
 
 The `PAUSABLE_ROLE` may xref:api:mainnet/MessageProxyForMainnet.adoc#_pause_pausestring_schainname_external[pause] a specific SKALE Chain IMA bridge for an unlimited time.
-The `DEFAULT_ADMIN_ROLE` may initiate a xref:api:mainnet/MessageProxyForMainnet.adoc#_pause_pausestring_schainname_external[pause] to IMA messages for a specific SKALE Chain. Once the messages are paused, the SKALE Chain owner may extend the pause for an unlimited time.
+The `DEFAULT_ADMIN_ROLE` only can grant `PAUSABLE_ROLE`.
 
 === Unpausing
 
