@@ -2006,6 +2006,7 @@ async function reimbursement_set_range(
     strChainName_s_chain,
     cid_s_chain,
     tc_s_chain,
+    strChainName_origin_chain,
     nReimbursementRange
 ) {
     const details = log.createMemoryStream();
@@ -2025,6 +2026,7 @@ async function reimbursement_set_range(
         //
         const methodWithArguments = jo_community_locker.methods.setTimeLimitPerMessage(
             // call params, last is destination account on S-chain
+            strChainName_origin_chain,
             "0x" + w3_s_chain.utils.toBN( nReimbursementRange ).toString( 16 )
         );
         const dataTx = methodWithArguments.encodeABI(); // the encoded ABI of the method

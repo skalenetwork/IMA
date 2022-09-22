@@ -15,6 +15,7 @@ class CommunityLockerGenerator(AccessControlEnumerableGenerator):
     META_FILENAME = 'CommunityLocker.meta.json'
     DEFAULT_ADMIN_ROLE = (0).to_bytes(32, 'big')
     DEFAULT_TIME_LIMIT_SEC = 5 * 60
+    MAINNET_HASH = Web3.solidityKeccak(['string'], ['Mainnet'])
 
     # ---------- storage ----------
     # --------Initializable--------
@@ -42,9 +43,13 @@ class CommunityLockerGenerator(AccessControlEnumerableGenerator):
     # 202:  tokenManagerLinker
     # 203:  communityPool
     # 204:  schainHash
-    # 205:  timeLimitPerMessage
-    # 206:  _unfrozenUsers
-    # 207:  _lastMessageTimeStamp
+    # 205:  _deprecatedTimeLimitPerMessage
+    # 206:  activeUsers
+    # 207:  lastMessageTimeStamp
+    # 208:  mainnetGasPrice
+    # 209:  gasPriceTimestamp
+    # 210:  timeLimitPerMessage
+    # 211:  lastMessageTimeStampToSchain
 
     INITIALIZED_SLOT = 0
     ROLES_SLOT = 101
@@ -53,7 +58,7 @@ class CommunityLockerGenerator(AccessControlEnumerableGenerator):
     TOKEN_MANAGER_LINKER_SLOT = AccessControlEnumerableGenerator.next_slot(MESSAGE_PROXY_SLOT)
     COMMUNITY_POOL_SLOT = AccessControlEnumerableGenerator.next_slot(TOKEN_MANAGER_LINKER_SLOT)
     SCHAIN_HASH_SLOT = AccessControlEnumerableGenerator.next_slot(COMMUNITY_POOL_SLOT)
-    TIME_LIMIT_PER_MESSAGE_SLOT = AccessControlEnumerableGenerator.next_slot(SCHAIN_HASH_SLOT)
+    TIME_LIMIT_PER_MESSAGE_SLOT = 210
 
     def __init__(self):
         generator = CommunityLockerGenerator.from_hardhat_artifact(
@@ -77,7 +82,9 @@ class CommunityLockerGenerator(AccessControlEnumerableGenerator):
         cls._write_address(storage, cls.COMMUNITY_POOL_SLOT, community_pool_address)
 
         cls._write_bytes32(storage, cls.SCHAIN_HASH_SLOT, Web3.solidityKeccak(['string'], [schain_name]))
-        cls._write_uint256(storage, cls.TIME_LIMIT_PER_MESSAGE_SLOT, cls.DEFAULT_TIME_LIMIT_SEC)
+        time_limit_per_message_slot = AccessControlEnumerableGenerator.calculate_mapping_value_slot(
+            cls.TIME_LIMIT_PER_MESSAGE_SLOT, cls.MAINNET_HASH, 'bytes32')
+        cls._write_uint256(storage, time_limit_per_message_slot, cls.DEFAULT_TIME_LIMIT_SEC)
 
         return storage
 
