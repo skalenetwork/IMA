@@ -483,6 +483,11 @@ function parse( joExternalHandlers, argv ) {
             imaState.strChainName_s_chain = joArg.value;
             continue;
         }
+        if( joArg.name == "id-origin-chain" ) {
+            owaspUtils.verifyArgumentWithNonEmptyValue( joArg );
+            imaState.strChainName_origin_chain = joArg.value;
+            continue;
+        }
         if( joArg.name == "id-t-chain" ) {
             owaspUtils.verifyArgumentWithNonEmptyValue( joArg );
             imaState.strChainName_t_chain = joArg.value;

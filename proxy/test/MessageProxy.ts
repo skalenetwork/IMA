@@ -214,7 +214,7 @@ describe("MessageProxy", () => {
             notConnectedChain.should.be.deep.equal(Boolean(false));
         });
 
-        it("should post outgoing message", async () => {
+        it("should post outgoing message twice", async () => {
             const contractAddress = messageProxyForMainnet.address;
             const amount = 4;
             const bytesData = await messages.encodeTransferEthMessage(user.address, amount);
@@ -224,11 +224,29 @@ describe("MessageProxy", () => {
                 .should.be.rejectedWith("Destination chain is not initialized");
 
             await messageProxyForMainnet.connect(deployer).addConnectedChain(schainName);
-            await caller
-                .postOutgoingMessageTester(messageProxyForMainnet.address, schainHash, contractAddress, bytesData);
-            const outgoingMessagesCounter = BigNumber.from(
-                await messageProxyForMainnet.getOutgoingMessagesCounter(schainName));
+            const message1 = caller.postOutgoingMessageTester(messageProxyForMainnet.address, schainHash, contractAddress, bytesData);
+
+            await expect(message1)
+                .to.emit(messageProxyForMainnet, 'PreviousMessageReference')
+                .withArgs(0, 0);
+
+            let outgoingMessagesCounter = BigNumber.from(
+                await messageProxyForMainnet.getOutgoingMessagesCounter(schainName)
+            );
             outgoingMessagesCounter.should.be.deep.equal(BigNumber.from(1));
+            const lastOutgoingMessageBlockId = BigNumber.from(
+                await messageProxyForMainnet.getLastOutgoingMessageBlockId(schainName)
+            );
+
+            const message2 = caller.postOutgoingMessageTester(messageProxyForMainnet.address, schainHash, contractAddress, bytesData);
+            await expect(message2)
+                .to.emit(messageProxyForMainnet, 'PreviousMessageReference')
+                .withArgs(1, lastOutgoingMessageBlockId);
+
+            outgoingMessagesCounter = BigNumber.from(
+                await messageProxyForMainnet.getOutgoingMessagesCounter(schainName)
+            );
+            outgoingMessagesCounter.should.be.deep.equal(BigNumber.from(2));
         });
 
         it("should pause with a role and unpause", async () => {
@@ -357,6 +375,7 @@ describe("MessageProxy", () => {
             await setCommonPublicKey(contractManager, schainName);
             await messageProxyForMainnet.registerExtraContract(schainName, communityPool.address);
             await depositBox.addSchainContract(schainName, deployer.address);
+            await communityPool.addSchainContract(schainName, deployer.address);
             const minTransactionGas = await communityPool.minTransactionGas();
             const amountWei = minTransactionGas.mul(gasPrice);
 
@@ -530,10 +549,11 @@ describe("MessageProxy", () => {
             };
             await createNode(contractManager, nodeAddress.address, nodeCreationParams);
             await addNodesToSchain(contractManager, schainName, [0]);
-            await rechargeSchainWallet(contractManager, schainName, deployer.address, "1000000000000000000");
             await setCommonPublicKey(contractManager, schainName);
             await messageProxyForMainnet.registerExtraContract(schainName, communityPool.address);
             await depositBox.addSchainContract(schainName, deployer.address);
+            await communityPool.addSchainContract(schainName, deployer.address);
+            await rechargeSchainWallet(contractManager, schainName, deployer.address, "1000000000000000000");
             const minTransactionGas = await communityPool.minTransactionGas();
             const amountWei = minTransactionGas.mul(gasPrice);
 
@@ -652,6 +672,7 @@ describe("MessageProxy", () => {
             await setCommonPublicKey(contractManager, schainName);
             await messageProxyForMainnet.registerExtraContract(schainName, communityPool.address);
             await depositBox.addSchainContract(schainName, deployer.address);
+            await communityPool.addSchainContract(schainName, deployer.address);
             const minTransactionGas = await communityPool.minTransactionGas();
             const amountWei = minTransactionGas.mul(gasPrice);
 

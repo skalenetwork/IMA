@@ -217,7 +217,7 @@ describe("TokenManagerEth", () => {
         await messageProxyForSchain.postMessage(communityLocker.address, mainnetHash, fakeCommunityPool, data1);
 
         await tokenManagerEth.connect(user).exitToMain(amountTo)
-            .should.be.eventually.rejectedWith("Trying to send messages too often");
+            .should.be.eventually.rejectedWith("Exceeded message rate limit");
 
     });
 

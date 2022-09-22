@@ -34,7 +34,8 @@ import {
     CommunityLocker
 } from "../typechain";
 
-import { stringValue } from "./utils/helper";
+import { randomString, stringValue } from "./utils/helper";
+import { skipTime } from "./utils/time";
 
 chai.should();
 chai.use((chaiAsPromised as any));
@@ -246,6 +247,93 @@ describe("TokenManagerERC1155", () => {
             const outgoingMessagesCounter = BigNumber.from(
                 await messageProxyForSchain.getOutgoingMessagesCounter(newSchainName));
             outgoingMessagesCounter.should.be.deep.equal(BigNumber.from(1));
+        });
+
+        it("should reject `transferToSchainERC1155` when executing earlier then allowed", async () => {
+            // add connected chain:
+            await messageProxyForSchain.connect(deployer).grantRole(await messageProxyForSchain.CHAIN_CONNECTOR_ROLE(), deployer.address);
+            await messageProxyForSchain.connect(deployer).addConnectedChain(newSchainName);
+
+            await erc1155OnOriginChain.connect(deployer).mint(user.address, id, 5, "0x");
+            await erc1155OnOriginChain.connect(user).setApprovalForAll(tokenManagerERC1155.address, true);
+
+            await tokenManagerERC1155
+                .connect(user)
+                .transferToSchainERC1155(newSchainName, erc1155OnOriginChain.address, id, 1)
+                .should.be.eventually.rejectedWith("Incorrect Token Manager address");
+
+            await tokenManagerERC1155
+                .connect(user)
+                .transferToSchainERC1155("Mainnet", erc1155OnOriginChain.address, id, 1)
+                .should.be.eventually.rejectedWith("This function is not for transferring to Mainnet");
+
+            await tokenManagerERC1155.addTokenManager(newSchainName, tokenManagerERC11552.address);
+
+            await tokenManagerERC1155
+                .connect(user)
+                .transferToSchainERC1155(newSchainName, erc1155OnOriginChain.address, id, 1);
+
+            BigNumber.from(await messageProxyForSchain.getOutgoingMessagesCounter(newSchainName)).should.be.deep.equal(BigNumber.from(1));
+
+
+            await tokenManagerERC1155
+                .connect(user)
+                .transferToSchainERC1155(newSchainName, erc1155OnOriginChain.address, id, 1);
+
+            BigNumber.from(await messageProxyForSchain.getOutgoingMessagesCounter(newSchainName)).should.be.deep.equal(BigNumber.from(2));
+
+            await communityLocker.grantRole(await communityLocker.CONSTANT_SETTER_ROLE(), deployer.address);
+
+            await communityLocker.setTimeLimitPerMessage(newSchainName, 100);
+
+            await tokenManagerERC1155
+                .connect(user)
+                .transferToSchainERC1155(newSchainName, erc1155OnOriginChain.address, id, 1)
+                .should.be.eventually.rejectedWith("Exceeded message rate limit");
+
+            BigNumber.from(await messageProxyForSchain.getOutgoingMessagesCounter(newSchainName)).should.be.deep.equal(BigNumber.from(2));
+
+            await skipTime(90);
+
+            await tokenManagerERC1155
+                .connect(user)
+                .transferToSchainERC1155(newSchainName, erc1155OnOriginChain.address, id, 1)
+                .should.be.eventually.rejectedWith("Exceeded message rate limit");
+
+            BigNumber.from(await messageProxyForSchain.getOutgoingMessagesCounter(newSchainName)).should.be.deep.equal(BigNumber.from(2));
+
+            await skipTime(20);
+
+            await tokenManagerERC1155
+                .connect(user)
+                .transferToSchainERC1155(newSchainName, erc1155OnOriginChain.address, id, 1);
+
+            BigNumber.from(await messageProxyForSchain.getOutgoingMessagesCounter(newSchainName)).should.be.deep.equal(BigNumber.from(3));
+
+            await communityLocker.setTimeLimitPerMessage(newSchainName, 0);
+
+            await tokenManagerERC1155
+                .connect(user)
+                .transferToSchainERC1155(newSchainName, erc1155OnOriginChain.address, id, 1);
+
+            BigNumber.from(await messageProxyForSchain.getOutgoingMessagesCounter(newSchainName)).should.be.deep.equal(BigNumber.from(4));
+
+            await communityLocker.setTimeLimitPerMessage(newSchainName, 100);
+
+            await tokenManagerERC1155
+                .connect(user)
+                .transferToSchainERC1155(newSchainName, erc1155OnOriginChain.address, id, 1)
+                .should.be.eventually.rejectedWith("Exceeded message rate limit");
+
+            BigNumber.from(await messageProxyForSchain.getOutgoingMessagesCounter(newSchainName)).should.be.deep.equal(BigNumber.from(4));
+
+            await skipTime(110);
+
+            await tokenManagerERC1155
+                .connect(user)
+                .transferToSchainERC1155(newSchainName, erc1155OnOriginChain.address, id, 1);
+
+            BigNumber.from(await messageProxyForSchain.getOutgoingMessagesCounter(newSchainName)).should.be.deep.equal(BigNumber.from(5));
         });
 
         it("should invoke `transferToSchainERC1155` and receive tokens without mistakes", async () => {
@@ -1201,6 +1289,93 @@ describe("TokenManagerERC1155", () => {
             const outgoingMessagesCounter = BigNumber.from(
                 await messageProxyForSchain.getOutgoingMessagesCounter(newSchainName));
             outgoingMessagesCounter.should.be.deep.equal(BigNumber.from(1));
+        });
+
+        it("should reject `transferToSchainERC1155` when executing earlier then allowed", async () => {
+            // add connected chain:
+            await messageProxyForSchain.connect(deployer).grantRole(await messageProxyForSchain.CHAIN_CONNECTOR_ROLE(), deployer.address);
+            await messageProxyForSchain.connect(deployer).addConnectedChain(newSchainName);
+
+            await erc1155OnOriginChain.connect(deployer).mintBatch(user.address, ids, [5, 5, 5, 5], "0x");
+            await erc1155OnOriginChain.connect(user).setApprovalForAll(tokenManagerERC1155.address, true);
+
+            await tokenManagerERC1155
+                .connect(user)
+                .transferToSchainERC1155Batch(newSchainName, erc1155OnOriginChain.address, ids, [1, 1, 1, 1])
+                .should.be.eventually.rejectedWith("Incorrect Token Manager address");
+
+            await tokenManagerERC1155
+                .connect(user)
+                .transferToSchainERC1155Batch("Mainnet", erc1155OnOriginChain.address, ids, [1, 1, 1, 1])
+                .should.be.eventually.rejectedWith("This function is not for transferring to Mainnet");
+
+            await tokenManagerERC1155.addTokenManager(newSchainName, tokenManagerERC11552.address);
+
+            await tokenManagerERC1155
+                .connect(user)
+                .transferToSchainERC1155Batch(newSchainName, erc1155OnOriginChain.address, ids, [1, 1, 1, 1]);
+
+            BigNumber.from(await messageProxyForSchain.getOutgoingMessagesCounter(newSchainName)).should.be.deep.equal(BigNumber.from(1));
+
+
+            await tokenManagerERC1155
+                .connect(user)
+                .transferToSchainERC1155Batch(newSchainName, erc1155OnOriginChain.address, ids, [1, 1, 1, 1]);
+
+            BigNumber.from(await messageProxyForSchain.getOutgoingMessagesCounter(newSchainName)).should.be.deep.equal(BigNumber.from(2));
+
+            await communityLocker.grantRole(await communityLocker.CONSTANT_SETTER_ROLE(), deployer.address);
+
+            await communityLocker.setTimeLimitPerMessage(newSchainName, 100);
+
+            await tokenManagerERC1155
+                .connect(user)
+                .transferToSchainERC1155Batch(newSchainName, erc1155OnOriginChain.address, ids, [1, 1, 1, 1])
+                .should.be.eventually.rejectedWith("Exceeded message rate limit");
+
+            BigNumber.from(await messageProxyForSchain.getOutgoingMessagesCounter(newSchainName)).should.be.deep.equal(BigNumber.from(2));
+
+            await skipTime(90);
+
+            await tokenManagerERC1155
+                .connect(user)
+                .transferToSchainERC1155Batch(newSchainName, erc1155OnOriginChain.address, ids, [1, 1, 1, 1])
+                .should.be.eventually.rejectedWith("Exceeded message rate limit");
+
+            BigNumber.from(await messageProxyForSchain.getOutgoingMessagesCounter(newSchainName)).should.be.deep.equal(BigNumber.from(2));
+
+            await skipTime(20);
+
+            await tokenManagerERC1155
+                .connect(user)
+                .transferToSchainERC1155Batch(newSchainName, erc1155OnOriginChain.address, ids, [1, 1, 1, 1]);
+
+            BigNumber.from(await messageProxyForSchain.getOutgoingMessagesCounter(newSchainName)).should.be.deep.equal(BigNumber.from(3));
+
+            await communityLocker.setTimeLimitPerMessage(newSchainName, 0);
+
+            await tokenManagerERC1155
+                .connect(user)
+                .transferToSchainERC1155Batch(newSchainName, erc1155OnOriginChain.address, ids, [1, 1, 1, 1]);
+
+            BigNumber.from(await messageProxyForSchain.getOutgoingMessagesCounter(newSchainName)).should.be.deep.equal(BigNumber.from(4));
+
+            await communityLocker.setTimeLimitPerMessage(newSchainName, 100);
+
+            await tokenManagerERC1155
+                .connect(user)
+                .transferToSchainERC1155Batch(newSchainName, erc1155OnOriginChain.address, ids, [1, 1, 1, 1])
+                .should.be.eventually.rejectedWith("Exceeded message rate limit");
+
+            BigNumber.from(await messageProxyForSchain.getOutgoingMessagesCounter(newSchainName)).should.be.deep.equal(BigNumber.from(4));
+
+            await skipTime(110);
+
+            await tokenManagerERC1155
+                .connect(user)
+                .transferToSchainERC1155Batch(newSchainName, erc1155OnOriginChain.address, ids, [1, 1, 1, 1]);
+
+            BigNumber.from(await messageProxyForSchain.getOutgoingMessagesCounter(newSchainName)).should.be.deep.equal(BigNumber.from(5));
         });
 
         it("should invoke `transferToSchainERC1155` and receive tokens without mistakes", async () => {

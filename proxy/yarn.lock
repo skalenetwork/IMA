@@ -757,10 +757,10 @@
   resolved "https://registry.yarnpkg.com/@skalenetwork/etherbase-interfaces/-/etherbase-interfaces-0.0.1-develop.20.tgz#33f61e18d695fd47063aa39dce4df335d26b9528"
   integrity sha512-j3xnuQtOtjvjAoUMJgSUFxRa9/Egkg1RyA8r6PjcEb33VksE4LWLBy0PNFUFehLZv48595JROTcViGeXXwg5HQ==
 
-"@skalenetwork/ima-interfaces@1.0.0-reimbursed-contracts-interfaces.3":
-  version "1.0.0-reimbursed-contracts-interfaces.3"
-  resolved "https://registry.yarnpkg.com/@skalenetwork/ima-interfaces/-/ima-interfaces-1.0.0-reimbursed-contracts-interfaces.3.tgz#5bd688a4c6a48ddd079624bbf085960ac6d3a1fc"
-  integrity sha512-slrDYnNlZFoo56pm54ZwuLcVNY878izMg9L4VSjt8hLLRl5ahCZitudIXmmdoAnJ1sGpdNz7fr0qVLdrzkzyqA==
+"@skalenetwork/ima-interfaces@1.0.0-reimbursed-contracts-interfaces.4":
+  version "1.0.0-reimbursed-contracts-interfaces.4"
+  resolved "https://registry.yarnpkg.com/@skalenetwork/ima-interfaces/-/ima-interfaces-1.0.0-reimbursed-contracts-interfaces.4.tgz#5f206a897fd573a4eb9044dec9dfc131d693c9ad"
+  integrity sha512-1CZCp4LnQnd+KoSp+ozt48DprYiYjjWA+UnWwNsul+WwlQsj0/aSHDO6TA+wjRFMCQLPHwDH9TpsWHhGVEHUpg==
   dependencies:
     "@skalenetwork/skale-manager-interfaces" "^0.1.2"
 
