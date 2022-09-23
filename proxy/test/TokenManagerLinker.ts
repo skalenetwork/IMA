@@ -52,7 +52,6 @@ import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/dist/src/signer-wit
 
 import { expect } from "chai";
 import { deployKeyStorageMock } from "./utils/deploy/test/keyStorageMock";
-import { randomString } from "./utils/helper";
 
 describe("TokenManagerLinker", () => {
     let deployer: SignerWithAddress;
@@ -76,7 +75,7 @@ describe("TokenManagerLinker", () => {
     });
 
     beforeEach(async () => {
-        newSchainName = randomString(10);
+        newSchainName = "newSchainName";
         const keyStorage = await deployKeyStorageMock();
         messageProxy = await deployMessageProxyForSchainTester(keyStorage.address, schainName);
         const fakeLinker = deployer.address;

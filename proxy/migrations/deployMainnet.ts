@@ -100,9 +100,8 @@ export const contracts = [
     "DepositBoxEth",
     "DepositBoxERC20",
     "DepositBoxERC721",
-    "DepositBoxERC1155"
-
-    // "DepositBoxERC721WithMetadata"
+    "DepositBoxERC1155",
+    "DepositBoxERC721WithMetadata"
 ]
 
 async function main() {
