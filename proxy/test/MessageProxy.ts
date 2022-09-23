@@ -446,7 +446,7 @@ describe("MessageProxy", () => {
             incomingMessagesCounter.should.be.deep.equal(BigNumber.from(4));
         });
 
-        it.only("should post incoming message and reimburse from CommunityPool", async () => {
+        it("should post incoming message and reimburse from CommunityPool", async () => {
             const startingCounter = 0;
             await initializeSchain(contractManager, schainName, deployer.address, 1, 1);
             const nodeCreationParams = {
