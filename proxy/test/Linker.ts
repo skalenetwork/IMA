@@ -33,7 +33,7 @@ import {
     Linker,
     MessageProxyForMainnet,
 } from "../typechain";
-import { randomString, stringValue } from "./utils/helper";
+import { stringValue } from "./utils/helper";
 
 
 chai.should();

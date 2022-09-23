@@ -34,7 +34,7 @@ import {
     TokenManagerLinker,
 } from "../typechain";
 import { gasMultiplier } from "./utils/command_line";
-import { randomString, stringValue } from "./utils/helper";
+import { stringValue } from "./utils/helper";
 
 chai.should();
 chai.use((chaiAsPromised as any));
@@ -277,7 +277,7 @@ describe("TokenManagerEth", () => {
 
         it("should transfer eth", async () => {
             //  preparation
-            const fromSchainName = randomString(10);
+            const fromSchainName = "fromSchainName";
             const fromSchainId = stringValue(web3.utils.soliditySha3(fromSchainName));
             const amount = "10";
             const sender = deployer.address;
