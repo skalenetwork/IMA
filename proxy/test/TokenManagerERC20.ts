@@ -1532,7 +1532,7 @@ describe("TokenManagerERC20", () => {
                 remoteTokenManager.address,
                 data);
 
-            (await receiver.getBalance()).should.be.equal(await messageProxyForSchain.MINIMUM_BALANCE());
+            (await receiver.getBalance()).should.be.equal(0);
 
             await messageProxyForSchain.setMinimumReceiverBalance(ethers.utils.parseEther("2"));
 
