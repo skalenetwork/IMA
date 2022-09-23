@@ -11,7 +11,7 @@
         "number-to-bn": "^1.7.0",
         "ethereumjs-tx": "2.1.2",
         "ethereumjs-wallet": "^1.0.2",
-        "ethereumjs-util": "^7.1.4",
+        "ethereumjs-util": "^7.1.5",
         "web3": "^1.6.1",
         "uuid": "8.3.2",
         "ws": "^8.6.0",
