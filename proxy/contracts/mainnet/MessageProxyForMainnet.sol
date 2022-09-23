@@ -352,13 +352,11 @@ contract MessageProxyForMainnet is SkaleManagerClient, MessageProxy, IMessagePro
 
     /**
      * @dev Allows PAUSABLE_ROLE to pause IMA bridge unlimited
-     * or DEFAULT_ADMIN_ROLE to pause for 4 hours
-     * or schain owner to pause unlimited after DEFAULT_ADMIN_ROLE pause it
      * 
      * Requirements:
      * 
      * - IMA bridge to current schain was not paused
-     * - Sender should be PAUSABLE_ROLE, DEFAULT_ADMIN_ROLE or schain owner
+     * - Sender should be PAUSABLE_ROLE
      */
     function pause(string calldata schainName) external override {
         bytes32 schainHash = keccak256(abi.encodePacked(schainName));
