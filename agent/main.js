@@ -47,6 +47,8 @@ global.imaBLS = require( "./bls.js" );
 global.rpcCall = require( "./rpc-call.js" );
 global.skale_observer = require( "../npms/skale-observer/observer.js" );
 global.rpcCall.init();
+global.imaOracle = require( "./oracle.js" );
+global.imaOracle.init();
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -256,7 +258,7 @@ global.imaState = {
 
     "optsPendingTxAnalysis": {
         "isEnabled": false, // disable bv default
-        "nTimeoutSecondsBeforeSecondAttempt": 30, // 0 - disable 2nd attempt
+        "nTimeoutSecondsBeforeSecondAttempt": 3, // 0 - disable 2nd attempt
         "isIgnore": false, // ignore PTX result
         "isIgnore2": true // ignore secondary PTX result
     },
@@ -321,18 +323,19 @@ const fnInitActionSkaleNetworkScanForS2S = function() {
                 "secondsToReDiscoverSkaleNetwork": imaState.s2s_opts.secondsToReDiscoverSkaleNetwork
             };
             const addressFrom = imaState.joAccount_main_net.address( imaState.w3_main_net );
-            const strError = await skale_observer.cache_schains(
-                imaState.strChainName_s_chain, // strChainNameConnectedTo
-                imaState.w3_main_net,
-                addressFrom,
-                opts
-            );
-            if( strError ) {
-                log.write( strLogPrefix + cc.error( "Failed to get " ) + cc.info( "SKALE NETWORK" ) + cc.error( " information: " ) + cc.warning( strError ) + "\n" );
-                return true;
-            }
-            const arr_schains = skale_observer.get_last_cached_schains();
-            log.write( strLogPrefix + cc.normal( "Got " ) + cc.info( "SKALE NETWORK" ) + cc.normal( " information: " ) + cc.j( arr_schains ) + "\n" );
+            // const strError = await skale_observer.cache_schains(
+            //     imaState.strChainName_s_chain, // strChainNameConnectedTo
+            //     imaState.w3_main_net,
+            //     addressFrom,
+            //     opts
+            // );
+            // if( strError ) {
+            //     log.write( strLogPrefix + cc.error( "Failed to get " ) + cc.info( "SKALE NETWORK" ) + cc.error( " information: " ) + cc.warning( strError ) + "\n" );
+            //     return true;
+            // }
+            // const arr_schains = skale_observer.get_last_cached_schains();
+            // log.write( strLogPrefix + cc.normal( "Got " ) + cc.info( "SKALE NETWORK" ) + cc.normal( " information: " ) + cc.j( arr_schains ) + "\n" );
+            log.write( strLogPrefix + cc.debug( "Will start periodic S-Chains caching..." ) + "\n" );
             await skale_observer.periodic_caching_start(
                 imaState.strChainName_s_chain, // strChainNameConnectedTo
                 imaState.w3_main_net,
@@ -1753,8 +1756,11 @@ async function continue_schain_discovery_in_background_if_needed( isSilent ) {
         return;
     if( imaState.joSChainDiscovery.repeatIntervalMilliseconds <= 0 )
         return; // no S-Chain re-discovery (for debugging only)
-    g_timer_s_chain_discovery = setInterval( async function() {
+    const fn_async_handler = async function() {
+        if( g_b_in_s_chain_discovery )
+            return;
         if( g_b_in_s_chain_discovery ) {
+            isInsideAsyncHandler = false;
             if( IMA.verbose_get() >= IMA.RV_VERBOSE.information )
                 log.write( cc.warning( "Notice: long S-Chain discovery is in progress" ) + "\n" );
             return;
@@ -1821,6 +1827,11 @@ async function continue_schain_discovery_in_background_if_needed( isSilent ) {
             } );
         } catch ( err ) { }
         g_b_in_s_chain_discovery = false;
+    };
+    g_timer_s_chain_discovery = setInterval( function() {
+        if( g_b_in_s_chain_discovery )
+            return;
+        fn_async_handler();
     }, imaState.joSChainDiscovery.repeatIntervalMilliseconds );
 }
 
@@ -2177,8 +2188,8 @@ if( imaState.nMonitoringPort > 0 ) {
                     } break;
                 case "get_last_transfer_errors":
                     // call:   { "id": 1, "method": "get_last_transfer_errors" }
-                    // answer: { "id": 1, "method": "get_last_transfer_errors", "error": null, "last_transfer_errors": [ { ts: ..., textLog: ... }, ... ] }
-                    joAnswer.last_transfer_errors = IMA.get_last_transfer_errors();
+                    // answer: { "id": 1, "method": "get_last_transfer_errors", "isIncludeTextLog": true, "error": null, "last_transfer_errors": [ { ts: ..., textLog: ... }, ... ] }
+                    joAnswer.last_transfer_errors = IMA.get_last_transfer_errors( ( ( "isIncludeTextLog" in joMessage ) && joMessage.isIncludeTextLog ) ? true : false );
                     joAnswer.last_error_categories = IMA.get_last_error_categories();
                     break;
                 default:
@@ -2448,7 +2459,9 @@ async function single_transfer_loop() {
         if( IMA.verbose_get() >= IMA.RV_VERBOSE.information )
             log.write( strLogPrefix + cc.debug( "Will invoke Oracle gas price setup..." ) + "\n" );
         let b0 = true;
-        if( IMA.getOracleGasPriceMode() == 1 ) {
+        if( IMA.getEnabledOracle() ) {
+            if( IMA.verbose_get() >= IMA.RV_VERBOSE.information )
+                log.write( strLogPrefix + cc.debug( "Will invoke Oracle gas price setup..." ) + "\n" );
             b0 = IMA.do_oracle_gas_price_setup(
                 imaState.w3_main_net,
                 imaState.w3_s_chain,

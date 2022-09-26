@@ -599,8 +599,18 @@ function save_transfer_success_all() {
     g_mapTransferErrorCategories = { }; // clear all transfer error categories, out of time frame
 }
 
-function get_last_transfer_errors() {
-    return JSON.parse( JSON.stringify( g_arrLastTransferErrors ) );
+function get_last_transfer_errors( isIncludeTextLog ) {
+    if( typeof isIncludeTextLog == "undefined" )
+        isIncludeTextLog = true;
+    const jarr = JSON.parse( JSON.stringify( g_arrLastTransferErrors ) );
+    if( ! isIncludeTextLog ) {
+        for( let i = 0; i < jarr.length; ++ i ) {
+            const jo = jarr[i];
+            if( "textLog" in jo )
+                delete jo.textLog;
+        }
+    } // if( ! isIncludeTextLog )
+    return jarr;
 }
 
 function get_last_error_categories() {
@@ -622,13 +632,14 @@ function setEnabledProgressiveEventsScan( isEnabled ) {
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-let g_nOracleGasPriceMode = 0;
+let g_bIsEnabledOracle = false;
 
-function getOracleGasPriceMode() {
-    return 0 + g_nOracleGasPriceMode;
+function getEnabledOracle( isEnabled ) {
+    return g_bIsEnabledOracle ? true : false;
 }
-function setOracleGasPriceMode( mode ) {
-    g_nOracleGasPriceMode = 0 + parseInt( mode ? mode.toString() : "0" );
+
+function setEnabledOracle( isEnabled ) {
+    g_bIsEnabledOracle = isEnabled ? true : false;
 }
 
 async function do_oracle_gas_price_setup(
@@ -642,7 +653,7 @@ async function do_oracle_gas_price_setup(
     fn_sign_o_msg,
     optsPendingTxAnalysis
 ) {
-    if( getOracleGasPriceMode() == 0 )
+    if( ! getEnabledOracle() )
         return;
     const details = log.createMemoryStream();
     const jarrReceipts = [];
@@ -660,15 +671,91 @@ async function do_oracle_gas_price_setup(
         strActionName = "do_oracle_gas_price_setup.latestBlockNumber()";
         const latestBlockNumber = await w3_main_net.eth.getBlockNumber();
         details.write( cc.debug( "Latest block on Main Net is " ) + cc.info( latestBlockNumber ) + "\n" );
-        strActionName = "do_oracle_gas_price_setup.timestampOfBlock()";
+        strActionName = "do_oracle_gas_price_setup.bnTimestampOfBlock()";
         const latestBlock = await w3_main_net.eth.getBlock( latestBlockNumber );
-        let timestampOfBlock = "0x" + w3_main_net.utils.toBN( latestBlock.timestamp ).toString( 16 );
-        details.write( cc.debug( "Timestamp on Main Net is " ) + cc.info( timestampOfBlock ) + cc.debug( " (original)" ) + "\n" );
-        timestampOfBlock -= 10;
-        details.write( cc.debug( "Timestamp on Main Net is " ) + cc.info( timestampOfBlock ) + cc.debug( " (adjusted to past a bit)" ) + "\n" );
+        let bnTimestampOfBlock = w3_main_net.utils.toBN( latestBlock.timestamp );
+        details.write(
+            cc.debug( "Local timestamp on Main Net is " ) + cc.info( bnTimestampOfBlock.toString() ) + cc.debug( "=" ) +
+            cc.info( "0x" + bnTimestampOfBlock.toString( 16 ) ) + cc.debug( " (original)" ) +
+            "\n" );
+        const bnTimeZoneOffset = w3_main_net.utils.toBN( parseInt( new Date( parseInt( bnTimestampOfBlock.toString(), 10 ) ).getTimezoneOffset(), 10 ) );
+        details.write(
+            cc.debug( "Local time zone offset is " ) + cc.info( bnTimeZoneOffset.toString() ) + cc.debug( "=" ) +
+            cc.info( "0x" + bnTimeZoneOffset.toString( 16 ) ) + cc.debug( " (original)" ) +
+            "\n" );
+        bnTimestampOfBlock = bnTimestampOfBlock.add( bnTimeZoneOffset );
+        details.write(
+            cc.debug( "UTC timestamp on Main Net is " ) + cc.info( bnTimestampOfBlock.toString() ) + cc.debug( "=" ) +
+            cc.info( "0x" + bnTimestampOfBlock.toString( 16 ) ) + cc.debug( " (original)" ) +
+            "\n" );
+        const bnValueToSubtractFromTimestamp = w3_main_net.utils.toBN( 60 );
+        details.write(
+            cc.debug( "Value to subtract from timestamp is " ) + cc.info( bnValueToSubtractFromTimestamp ) + cc.debug( "=" ) +
+            cc.info( "0x" + bnValueToSubtractFromTimestamp.toString( 16 ) ) + cc.debug( " (to adjust it to past a bit)" ) + "\n" );
+        bnTimestampOfBlock = bnTimestampOfBlock.sub( bnValueToSubtractFromTimestamp );
+        details.write(
+            cc.debug( "Timestamp on Main Net is " ) + cc.info( bnTimestampOfBlock.toString() ) + cc.debug( "=" ) +
+            cc.info( "0x" + bnTimestampOfBlock.toString( 16 ) ) + cc.debug( " (adjusted to past a bit)" ) +
+            "\n" );
         strActionName = "do_oracle_gas_price_setup.getGasPrice()";
-        const gasPriceOnMainNet = "0x" + w3_main_net.utils.toBN( await w3_main_net.eth.getGasPrice() ).toString( 16 );
-        details.write( cc.info( "Main Net gas price" ) + cc.debug( " is " ) + cc.bright( gasPriceOnMainNet ) + "\n" );
+        let gasPriceOnMainNet = null;
+        if( IMA.getEnabledOracle() ) {
+            const oracleOpts = {
+                url: owaspUtils.w3_2_url( w3_schain ),
+                callOpts: { },
+                nMillisecondsSleepBefore: 1000,
+                nMillisecondsSleepPeriod: 3000,
+                cntAttempts: 40,
+                isVerbose: ( verbose_get() >= RV_VERBOSE.information ) ? true : false,
+                isVerboseTraceDetails: ( verbose_get() >= RV_VERBOSE.trace ) ? true : false
+            };
+            details.write(
+                cc.debug( "Will fetch " ) + cc.info( "Main Net gas price" ) +
+                cc.debug( " via call to " ) + cc.info( "Oracle" ) +
+                cc.debug( " with options " ) + cc.j( oracleOpts ) +
+                cc.debug( "..." ) + "\n" );
+            try {
+                gasPriceOnMainNet = owaspUtils.ensure_starts_with_0x( ( await imaOracle.get_gas_price( oracleOpts, details ) ).toString( 16 ) );
+            } catch ( err ) {
+                gasPriceOnMainNet = null;
+                details.write(
+                    cc.error( "Failed to fetch " ) + cc.info( "Main Net gas price" ) +
+                    cc.error( " via call to " ) + cc.info( "Oracle" ) +
+                    cc.error( ", error is: " ) + cc.warning( err.toString() ) + "\n" );
+            }
+        }
+        if( gasPriceOnMainNet === null ) {
+            details.write(
+                cc.debug( "Will fetch " ) + cc.info( "Main Net gas price" ) +
+                cc.debug( " directly..." ) + "\n" );
+            gasPriceOnMainNet = "0x" + w3_main_net.utils.toBN( await w3_main_net.eth.getGasPrice() ).toString( 16 );
+        }
+        details.write(
+            cc.success( "Done, " ) + cc.info( "Oracle" ) + cc.success( " did computed new " ) + cc.info( "Main Net gas price" ) +
+            cc.success( "=" ) + cc.bright( w3_main_net.utils.toBN( gasPriceOnMainNet ).toString() ) +
+            cc.success( "=" ) + cc.bright( gasPriceOnMainNet ) +
+            "\n" );
+        //
+        const joGasPriceOnMainNetOld =
+            await jo_community_locker.methods.mainnetGasPrice().call( {
+                from: joAccountSC.address( w3_schain )
+            } );
+        const bnGasPriceOnMainNetOld = w3_schain.utils.toBN( joGasPriceOnMainNetOld );
+        details.write(
+            cc.debug( "Previous " ) + cc.info( "Main Net gas price" ) + cc.debug( " saved and kept in " ) + cc.info( "CommunityLocker" ) +
+            cc.debug( "=" ) + cc.bright( bnGasPriceOnMainNetOld.toString() ) +
+            cc.debug( "=" ) + cc.bright( bnGasPriceOnMainNetOld.toString( 16 ) ) +
+            "\n" );
+        if( bnGasPriceOnMainNetOld.eq( w3_schain.utils.toBN( gasPriceOnMainNet ) ) ) {
+            details.write(
+                cc.debug( "Previous " ) + cc.info( "Main Net gas price" ) +
+                cc.debug( " is equal to new one, will skip setting it in " ) + cc.info( "CommunityLocker" ) +
+                "\n" );
+            if( expose_details_get() )
+                details.exposeDetailsTo( log, "do_oracle_gas_price_setup", true );
+            details.close();
+            return;
+        }
         //
         strActionName = "do_oracle_gas_price_setup.fn_sign_o_msg()";
         await fn_sign_o_msg( gasPriceOnMainNet, details, async function( strError, u256, joGlueResult ) {
@@ -703,7 +790,7 @@ async function do_oracle_gas_price_setup(
             const methodWithArguments_setGasPrice = jo_community_locker.methods.setGasPrice(
                 // call params
                 u256,
-                timestampOfBlock,
+                "0x" + bnTimestampOfBlock.toString( 16 ),
                 sign // bls signature components
             );
             const dataTx_setGasPrice = methodWithArguments_setGasPrice.encodeABI(); // the encoded ABI of the method
@@ -751,11 +838,9 @@ async function do_oracle_gas_price_setup(
             const tx_setGasPrice = compose_tx_instance( details, strLogPrefix, raw_tx_setGasPrice );
             const joSetGasPriceSR = await safe_sign_transaction_with_account( details, w3_schain, tx_setGasPrice, raw_tx_setGasPrice, joAccountSC );
             let joReceipt = null;
-            if( joSetGasPriceSR.joACI.isAutoSend ) {
-                if( optsPendingTxAnalysis && "isEnabled" in optsPendingTxAnalysis && optsPendingTxAnalysis.isEnabled )
-                    await async_pending_tx_start( details, w3_schain, w3_main_net, chain_id_schain, chain_id_mainnet, "" + joSetGasPriceSR.txHashSent );
+            if( joSetGasPriceSR.joACI.isAutoSend )
                 joReceipt = await get_web3_transactionReceipt( details, 10, w3_schain, joSetGasPriceSR.txHashSent );
-            } else {
+            else {
                 const serializedTx_setGasPrice = tx_setGasPrice.serialize();
                 strActionName = "w3_schain.eth.sendSignedTransaction()";
                 // let joReceipt = await w3_schain.eth.sendSignedTransaction( "0x" + serializedTx_setGasPrice.toString( "hex" ) );
@@ -768,8 +853,8 @@ async function do_oracle_gas_price_setup(
                     "receipt": joReceipt
                 } );
                 print_gas_usage_report_from_array( "(intermediate result) ORACLE GAS PRICE SETUP ", jarrReceipts );
-                if( optsPendingTxAnalysis && "isEnabled" in optsPendingTxAnalysis && optsPendingTxAnalysis.isEnabled )
-                    await async_pending_tx_complete( details, w3_schain, w3_main_net, chain_id_schain, chain_id_mainnet, "" + joReceipt.transactionHash );
+                // if( optsPendingTxAnalysis && "isEnabled" in optsPendingTxAnalysis && optsPendingTxAnalysis.isEnabled )
+                //     await async_pending_tx_complete( details, w3_schain, w3_main_net, chain_id_schain, chain_id_mainnet, "" + joReceipt.transactionHash );
             }
             save_transfer_success( "oracle" );
         } );
@@ -4725,6 +4810,7 @@ async function async_pending_tx_start( details, w3, w3_opposite, chain_id, chain
                     }
                 } );
             } );
+
         }
     } catch ( err ) {
         const s =
@@ -5508,7 +5594,7 @@ async function do_transfer(
                                 cc.debug( " using URL " ) + cc.info( jo_node.http_endpoint_ip ) +
                                 cc.debug( "..." ) + "\n" );
                             try {
-                                const w3_node = getWeb3FromURL( jo_node.http_endpoint_ip );
+                                const w3_node = getWeb3FromURL( jo_node.http_endpoint_ip, details )
                                 const jo_message_proxy_node = new w3_node.eth.Contract( imaState.joAbiPublishResult_s_chain.message_proxy_chain_abi, imaState.joAbiPublishResult_s_chain.message_proxy_chain_address );
                                 const node_r = await get_web3_pastEventsProgressive(
                                     details,
@@ -5761,6 +5847,9 @@ async function do_transfer(
                         const joPostIncomingMessagesSR = await safe_sign_transaction_with_account( detailsB, w3_dst, tx_postIncomingMessages, raw_tx_postIncomingMessages, joAccountDst );
                         let joReceipt = null;
                         if( joPostIncomingMessagesSR.joACI.isAutoSend ) {
+                            //
+                            // NOTICE: async_pending_tx_start()/ async_pending_tx_complete() must be called only in do_transfer()
+                            //
                             if( optsPendingTxAnalysis && "isEnabled" in optsPendingTxAnalysis && optsPendingTxAnalysis.isEnabled )
                                 await async_pending_tx_start( detailsB, w3_dst, w3_src, chain_id_dst, chain_id_src, "" + joPostIncomingMessagesSR.txHashSent );
                             joReceipt = await get_web3_transactionReceipt( detailsB, 10, w3_dst, joPostIncomingMessagesSR.txHashSent );
@@ -5778,6 +5867,9 @@ async function do_transfer(
                                 "receipt": joReceipt
                             } );
                             print_gas_usage_report_from_array( "(intermediate result) TRANSFER " + chain_id_src + " -> " + chain_id_dst, jarrReceipts );
+                            //
+                            // NOTICE: async_pending_tx_start()/ async_pending_tx_complete() must be called only in do_transfer()
+                            //
                             if( optsPendingTxAnalysis && "isEnabled" in optsPendingTxAnalysis && optsPendingTxAnalysis.isEnabled )
                                 await async_pending_tx_complete( detailsB, w3_dst, w3_src, chain_id_dst, chain_id_src, "" + joReceipt.transactionHash );
                         }
@@ -5917,7 +6009,7 @@ async function do_s2s_all( // s-chain --> s-chain
     for( let idxSChain = 0; idxSChain < cntSChains; ++ idxSChain ) {
         const jo_schain = arr_schains_cached[idxSChain];
         const url_src = skale_observer.pick_random_schain_w3_url( jo_schain );
-        const w3_src = getWeb3FromURL( url_src );
+        const w3_src = getWeb3FromURL( url_src, log );
         const joAccountSrc = joAccountDst; // ???
         const chain_id_src = "" + jo_schain.data.name;
         const cid_src = "" + jo_schain.data.computed.chainId;
@@ -6290,8 +6382,8 @@ async function mintERC20(
         const joSR = await safe_sign_transaction_with_account( details, w3, tx_mint, raw_tx_mint, joAccount );
         let joReceipt = null;
         if( joSR.joACI.isAutoSend ) {
-            if( optsPendingTxAnalysis && "isEnabled" in optsPendingTxAnalysis && optsPendingTxAnalysis.isEnabled )
-                await async_pending_tx_start( details, w3, w3, cid, cid, "" + joSR.txHashSent );
+            // if( optsPendingTxAnalysis && "isEnabled" in optsPendingTxAnalysis && optsPendingTxAnalysis.isEnabled )
+            //     await async_pending_tx_start( details, w3, w3, cid, cid, "" + joSR.txHashSent );
             joReceipt = await get_web3_transactionReceipt( details, 10, w3, joSR.txHashSent );
         } else {
             const serializedTx_mint = tx_mint.serialize();
@@ -6386,8 +6478,8 @@ async function mintERC721(
         const joSR = await safe_sign_transaction_with_account( details, w3, tx_mint, raw_tx_mint, joAccount );
         let joReceipt = null;
         if( joSR.joACI.isAutoSend ) {
-            if( optsPendingTxAnalysis && "isEnabled" in optsPendingTxAnalysis && optsPendingTxAnalysis.isEnabled )
-                await async_pending_tx_start( details, w3, w3, cid, cid, "" + joSR.txHashSent );
+            // if( optsPendingTxAnalysis && "isEnabled" in optsPendingTxAnalysis && optsPendingTxAnalysis.isEnabled )
+            //     await async_pending_tx_start( details, w3, w3, cid, cid, "" + joSR.txHashSent );
             joReceipt = await get_web3_transactionReceipt( details, 10, w3, joSR.txHashSent );
         } else {
             const serializedTx_mint = tx_mint.serialize();
@@ -6485,8 +6577,8 @@ async function mintERC1155(
         const joSR = await safe_sign_transaction_with_account( details, w3, tx_mint, raw_tx_mint, joAccount );
         let joReceipt = null;
         if( joSR.joACI.isAutoSend ) {
-            if( optsPendingTxAnalysis && "isEnabled" in optsPendingTxAnalysis && optsPendingTxAnalysis.isEnabled )
-                await async_pending_tx_start( details, w3, w3, cid, cid, "" + joSR.txHashSent );
+            // if( optsPendingTxAnalysis && "isEnabled" in optsPendingTxAnalysis && optsPendingTxAnalysis.isEnabled )
+            //     await async_pending_tx_start( details, w3, w3, cid, cid, "" + joSR.txHashSent );
             joReceipt = await get_web3_transactionReceipt( details, 10, w3, joSR.txHashSent );
         } else {
             const serializedTx_mint = tx_mint.serialize();
@@ -6581,8 +6673,8 @@ async function burnERC20(
         const joSR = await safe_sign_transaction_with_account( details, w3, tx_burn, raw_tx_burn, joAccount );
         let joReceipt = null;
         if( joSR.joACI.isAutoSend ) {
-            if( optsPendingTxAnalysis && "isEnabled" in optsPendingTxAnalysis && optsPendingTxAnalysis.isEnabled )
-                await async_pending_tx_start( details, w3, w3, cid, cid, "" + joSR.txHashSent );
+            // if( optsPendingTxAnalysis && "isEnabled" in optsPendingTxAnalysis && optsPendingTxAnalysis.isEnabled )
+            //     await async_pending_tx_start( details, w3, w3, cid, cid, "" + joSR.txHashSent );
             joReceipt = await get_web3_transactionReceipt( details, 10, w3, joSR.txHashSent );
         } else {
             const serializedTx_burn = tx_burn.serialize();
@@ -6677,8 +6769,8 @@ async function burnERC721(
         const joSR = await safe_sign_transaction_with_account( details, w3, tx_burn, raw_tx_burn, joAccount );
         let joReceipt = null;
         if( joSR.joACI.isAutoSend ) {
-            if( optsPendingTxAnalysis && "isEnabled" in optsPendingTxAnalysis && optsPendingTxAnalysis.isEnabled )
-                await async_pending_tx_start( details, w3, w3, cid, cid, "" + joSR.txHashSent );
+            // if( optsPendingTxAnalysis && "isEnabled" in optsPendingTxAnalysis && optsPendingTxAnalysis.isEnabled )
+            //     await async_pending_tx_start( details, w3, w3, cid, cid, "" + joSR.txHashSent );
             joReceipt = await get_web3_transactionReceipt( details, 10, w3, joSR.txHashSent );
         } else {
             const serializedTx_burn = tx_burn.serialize();
@@ -6775,8 +6867,8 @@ async function burnERC1155(
         const joSR = await safe_sign_transaction_with_account( details, w3, tx_burn, raw_tx_burn, joAccount );
         let joReceipt = null;
         if( joSR.joACI.isAutoSend ) {
-            if( optsPendingTxAnalysis && "isEnabled" in optsPendingTxAnalysis && optsPendingTxAnalysis.isEnabled )
-                await async_pending_tx_start( details, w3, w3, cid, cid, "" + joSR.txHashSent );
+            // if( optsPendingTxAnalysis && "isEnabled" in optsPendingTxAnalysis && optsPendingTxAnalysis.isEnabled )
+            //     await async_pending_tx_start( details, w3, w3, cid, cid, "" + joSR.txHashSent );
             joReceipt = await get_web3_transactionReceipt( details, 10, w3, joSR.txHashSent );
         } else {
             const serializedTx_burn = tx_burn.serialize();
@@ -6901,8 +6993,8 @@ module.exports.getMaxIterationsInAllRangeEventsScan = getMaxIterationsInAllRange
 module.exports.setMaxIterationsInAllRangeEventsScan = setMaxIterationsInAllRangeEventsScan;
 module.exports.getEnabledProgressiveEventsScan = getEnabledProgressiveEventsScan;
 module.exports.setEnabledProgressiveEventsScan = setEnabledProgressiveEventsScan;
-module.exports.getOracleGasPriceMode = getOracleGasPriceMode;
-module.exports.setOracleGasPriceMode = setOracleGasPriceMode;
+module.exports.getEnabledOracle = getEnabledOracle;
+module.exports.setEnabledOracle = setEnabledOracle;
 module.exports.do_oracle_gas_price_setup = do_oracle_gas_price_setup;
 
 module.exports.get_S2S_transfer_mode_description = get_S2S_transfer_mode_description;

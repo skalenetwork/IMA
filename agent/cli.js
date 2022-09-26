@@ -405,8 +405,9 @@ function parse( joExternalHandlers, argv ) {
             console.log( soi + cc.debug( "--" ) + cc.bright( "bs-progressive-enable" ) + cc.debug( "........." ) + cc.success( "Enables" ) + " " + cc.attention( "progressive block scan" ) + cc.notice( " to search past events." ) );
             console.log( soi + cc.debug( "--" ) + cc.bright( "bs-progressive-disable" ) + cc.debug( "........" ) + cc.error( "Disables" ) + " " + cc.attention( "progressive block scan" ) + cc.notice( " to search past events." ) );
             //
-            console.log( cc.sunny( "ORACLE GAS PRICE MANAGEMENT" ) + cc.info( " options:" ) );
-            console.log( soi + cc.debug( "--" ) + cc.bright( "ogp-mode" ) + cc.sunny( "=" ) + cc.note( "number" ) + cc.debug( "..............." ) + cc.notice( "Oracle gas price mode: " ) + cc.sunny( "0" ) + cc.notice( " - " ) + cc.error( "disable" ) + cc.debug( "(default)" ) + cc.notice( ", " ) + cc.sunny( "1" ) + cc.notice( " - " ) + cc.success( "enable" ) + cc.notice( " and invoke before message transfer loop." ) );
+            console.log( cc.sunny( "ORACLE BASED GAS REIMBURSEMENT" ) + cc.info( " options:" ) );
+            console.log( soi + cc.debug( "--" ) + cc.bright( "enable-oracle" ) + cc.debug( "................." ) + cc.success( "Enable" ) + cc.notice( " call to " ) + cc.note( "Oracle" ) + cc.notice( " to compute " ) + cc.note( "gas price" ) + cc.notice( " for " ) + cc.attention( "gas reimbursement" ) + cc.notice( ". " ) + cc.debug( "Default mode" ) + cc.notice( "." ) );
+            console.log( soi + cc.debug( "--" ) + cc.bright( "disable-oracle" ) + cc.debug( "................" ) + cc.error( "Disable" ) + cc.notice( " call to " ) + cc.note( "Oracle" ) + cc.notice( " to compute " ) + cc.note( "gas price" ) + cc.notice( " for " ) + cc.attention( "gas reimbursement" ) + cc.notice( "." ) );
             //
             console.log( cc.sunny( "TEST" ) + cc.info( " options:" ) );
             console.log( soi + cc.debug( "--" ) + cc.bright( "browse-s-chain" ) + cc.debug( "................" ) + cc.notice( "Download own " ) + cc.note( "S-Chain" ) + cc.notice( " network information." ) );
@@ -1185,9 +1186,12 @@ function parse( joExternalHandlers, argv ) {
             IMA.setEnabledProgressiveEventsScan( false );
             continue;
         }
-        if( joArg.name == "ogp-mode" ) {
-            owaspUtils.verifyArgumentIsInteger( joArg );
-            IMA.setOracleGasPriceMode( owaspUtils.toInteger( joArg.value ) );
+        if( joArg.name == "enable-oracle" ) {
+            IMA.setEnabledOracle( true );
+            continue;
+        }
+        if( joArg.name == "disable-oracle" ) {
+            IMA.setEnabledOracle( false );
             continue;
         }
         if( joArg.name == "s2s-forward" ) {
@@ -1235,8 +1239,9 @@ function parse( joExternalHandlers, argv ) {
     return 0;
 }
 
-function getWeb3FromURL( strURL ) {
+function getWeb3FromURL( strURL, log ) {
     let w3 = null;
+    log = log || { write: console.log };
     try {
         const u = cc.safeURL( strURL );
         const strProtocol = u.protocol.trim().toLowerCase().replace( ":", "" ).replace( "/", "" );
@@ -1488,7 +1493,7 @@ function ima_common_init() {
     if( imaState.strURL_main_net && typeof imaState.strURL_main_net == "string" && imaState.strURL_main_net.length > 0 ) {
         const u = imaState.strURL_main_net;
         async_check_url_at_startup( u, "Main-net" );
-        imaState.w3_main_net = getWeb3FromURL( u );
+        imaState.w3_main_net = getWeb3FromURL( u, log );
     } else {
         log.write(
             cc.error( "WARNING:" ) + cc.warning( " No " ) + cc.note( "Main-net" ) +
@@ -1500,7 +1505,7 @@ function ima_common_init() {
     if( imaState.strURL_s_chain && typeof imaState.strURL_s_chain == "string" && imaState.strURL_s_chain.length > 0 ) {
         const u = imaState.strURL_s_chain;
         async_check_url_at_startup( u, "S-Chain" );
-        imaState.w3_s_chain = getWeb3FromURL( u );
+        imaState.w3_s_chain = getWeb3FromURL( u, log );
     } else {
         log.write(
             cc.error( "WARNING:" ) + cc.warning( " No " ) + cc.note( "S-Chain" ) +
@@ -1512,7 +1517,7 @@ function ima_common_init() {
     if( imaState.strURL_t_chain && typeof imaState.strURL_t_chain == "string" && imaState.strURL_t_chain.length > 0 ) {
         const u = imaState.strURL_t_chain;
         async_check_url_at_startup( u, "S<->S Target S-Chain" );
-        imaState.w3_t_chain = getWeb3FromURL( u );
+        imaState.w3_t_chain = getWeb3FromURL( u, log );
     } else {
         log.write(
             cc.error( "WARNING:" ) + cc.warning( " No " ) + cc.note( "S<->S Target S-Chain" ) +
@@ -2246,7 +2251,7 @@ function ima_common_init() {
             log.write( cc.info( "Pending transaction analysis 2nd attempt after" ) + cc.debug( "......." ) + cc.bright( imaState.optsPendingTxAnalysis.nTimeoutSecondsBeforeSecondAttempt ) + "\n" );
             log.write( cc.info( "Ignore result of PTX is" ) + cc.debug( ".............................." ) + ( imaState.optsPendingTxAnalysis.isIgnore ? cc.success( "yes" ) : cc.error( "no" ) ) + "\n" );
             log.write( cc.info( "Ignore secondary result of PTX is" ) + cc.debug( "...................." ) + ( imaState.optsPendingTxAnalysis.isIgnore2 ? cc.success( "yes" ) : cc.error( "no" ) ) + "\n" );
-            log.write( cc.info( "Oracle gas price mode is" ) + cc.debug( "............................." ) + cc.info( IMA.getOracleGasPriceMode() ) + "\n" );
+            log.write( cc.info( "Oracle based gas reimbursement is" ) + cc.debug( "...................." ) + ( IMA.getEnabledOracle() ? cc.success( "enabled" ) : cc.error( "disabled" ) ) + "\n" );
             log.write( cc.info( "S-Chain to S-Chain transferring is" ) + cc.debug( "..................." ) + ( imaState.s2s_opts.isEnabled ? cc.success( "enabled" ) : cc.error( "disabled" ) ) + "\n" );
             log.write( cc.info( "SKALE network re-discovery interval is" ) + cc.debug( "..............." ) + ( imaState.s2s_opts.secondsToReDiscoverSkaleNetwork ? cc.info( imaState.s2s_opts.secondsToReDiscoverSkaleNetwork.toString() ) : cc.error( "disabled" ) ) + "\n" );
             log.write( cc.info( "S<->S transfer mode is" ) + cc.debug( "..............................." ) + IMA.get_S2S_transfer_mode_description_colorized() + "\n" );

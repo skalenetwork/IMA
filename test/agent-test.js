@@ -56,6 +56,7 @@ global.imaState = {
     "nLogMaxSizeBeforeRotation": -1,
     "nLogMaxFilesCount": -1,
     "isPrintGathered": true,
+    "isPrintSecurityValues": true,
 
     "bIsNeededCommonInit": true,
     "bSignMessages": false, // use BLS message signing, turned on with --sign-messages
