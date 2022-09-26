@@ -37,7 +37,7 @@ import {
     ERC20OnChain,
     CommunityPool
 } from "../typechain";
-import { randomString, stringFromHex, stringValue, getPublicKey } from "./utils/helper";
+import { stringFromHex, stringValue, getPublicKey } from "./utils/helper";
 
 import chai = require("chai");
 import chaiAlmost = require("chai-almost");
