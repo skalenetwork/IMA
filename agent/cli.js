@@ -387,7 +387,7 @@ function parse( joExternalHandlers, argv ) {
             console.log( soi + cc.debug( "--" ) + cc.bright( "bls-verify" ) + cc.sunny( "=" ) + cc.note( "path" ) + cc.debug( "..............." ) + cc.debug( "Optional parameter, specifies path to " ) + cc.note( "verify_bls" ) + cc.debug( " application." ) );
             //
             console.log( cc.sunny( "MONITORING" ) + cc.info( " options:" ) );
-            console.log( soi + cc.debug( "--" ) + cc.bright( "monitoring-port" ) + cc.sunny( "=" ) + cc.note( "number" ) + cc.debug( "........" ) + cc.notice( "Run " ) + cc.note( "monitoring web socket RPC server" ) + cc.notice( " on specified port. " ) + cc.debug( "By default monitoring server is " ) + cc.error( "disabled" ) + cc.notice( "." ) );
+            console.log( soi + cc.debug( "--" ) + cc.bright( "monitoring-port" ) + cc.sunny( "=" ) + cc.note( "number" ) + cc.debug( "........" ) + cc.notice( "Run " ) + cc.note( "monitoring web socket RPC server" ) + cc.notice( " on specified port. " ) + cc.debug( "Specify " ) + cc.sunny( "0" ) + cc.debug( " to " ) + cc.error( "disable" ) + cc.notice( "." ) + cc.debug( " By default monitoring server is " ) + cc.error( "disabled" ) + cc.notice( "." ) );
             //
             console.log( cc.sunny( "GAS REIMBURSEMENT" ) + cc.info( " options:" ) );
             console.log( soi + cc.debug( "--" ) + cc.bright( "reimbursement-chain" ) + cc.sunny( "=" ) + cc.note( "name" ) + cc.debug( "......" ) + cc.notice( "Specifies chain name." ) );
@@ -405,6 +405,11 @@ function parse( joExternalHandlers, argv ) {
             console.log( cc.sunny( "ORACLE BASED GAS REIMBURSEMENT" ) + cc.info( " options:" ) );
             console.log( soi + cc.debug( "--" ) + cc.bright( "enable-oracle" ) + cc.debug( "................." ) + cc.success( "Enable" ) + cc.notice( " call to " ) + cc.note( "Oracle" ) + cc.notice( " to compute " ) + cc.note( "gas price" ) + cc.notice( " for " ) + cc.attention( "gas reimbursement" ) + cc.notice( ". " ) + cc.debug( "Default mode" ) + cc.notice( "." ) );
             console.log( soi + cc.debug( "--" ) + cc.bright( "disable-oracle" ) + cc.debug( "................" ) + cc.error( "Disable" ) + cc.notice( " call to " ) + cc.note( "Oracle" ) + cc.notice( " to compute " ) + cc.note( "gas price" ) + cc.notice( " for " ) + cc.attention( "gas reimbursement" ) + cc.notice( "." ) );
+            //
+            console.log( cc.sunny( "IMA JSON RPC SERVER" ) + cc.info( " options:" ) );
+            console.log( soi + cc.debug( "--" ) + cc.bright( "json-rpc-port" ) + cc.sunny( "=" ) + cc.note( "number" ) + cc.debug( ".........." ) + cc.notice( "Run " ) + cc.note( "IMA JSON RPC server" ) + cc.notice( " on specified " ) + cc.note( "port" ) + cc.notice( "." ) + cc.debug( " Specify " ) + cc.sunny( "0" ) + cc.debug( " to " ) + cc.error( "disable" ) + cc.notice( "." ) + cc.debug( " Defaut is " ) + cc.sunny( "14999" ) + cc.notice( "." ) );
+            console.log( soi + cc.debug( "--" ) + cc.bright( "cross-ima" ) + cc.debug( "....................." ) + cc.success( "Enable" ) + cc.notice( " calls to " ) + cc.note( "IMA JSON RPC servers" ) + cc.notice( " to compute " ) + cc.note( "BLS signature parts" ) + cc.notice( " and operation state inside time frames. " ) + cc.debug( "Default mode" ) + cc.notice( "." ) );
+            console.log( soi + cc.debug( "--" ) + cc.bright( "no-cross-ima" ) + cc.debug( ".................." ) + cc.error( "Disable" ) + cc.notice( " calls to " ) + cc.note( "IMA JSON RPC servers" ) + cc.notice( " to compute " ) + cc.note( "BLS signature parts" ) + cc.notice( " and operation state inside time frames. " ) + cc.debug( "Use calls to " ) + cc.attention( "skaled" ) + cc.debug( " instead" ) + cc.notice( "." ) );
             //
             console.log( cc.sunny( "TEST" ) + cc.info( " options:" ) );
             console.log( soi + cc.debug( "--" ) + cc.bright( "browse-s-chain" ) + cc.debug( "................" ) + cc.notice( "Download own " ) + cc.note( "S-Chain" ) + cc.notice( " network information." ) );
@@ -1128,7 +1133,7 @@ function parse( joExternalHandlers, argv ) {
             continue;
         }
         if( joArg.name == "monitoring-port" ) {
-            owaspUtils.verifyArgumentIsIntegerIpPortNumber( joArg );
+            owaspUtils.verifyArgumentIsIntegerIpPortNumber( joArg, true );
             imaState.nMonitoringPort = owaspUtils.toInteger( joArg.value );
             continue;
         }
@@ -1184,6 +1189,19 @@ function parse( joExternalHandlers, argv ) {
         }
         if( joArg.name == "disable-oracle" ) {
             IMA.setEnabledOracle( false );
+            continue;
+        }
+        if( joArg.name == "json-rpc-port" ) {
+            owaspUtils.verifyArgumentIsIntegerIpPortNumber( joArg, true );
+            imaState.nJsonRpcPort = owaspUtils.toInteger( joArg.value );
+            continue;
+        }
+        if( joArg.name == "cross-ima" ) {
+            imaState.isCrossImaBlsMode = true;
+            continue;
+        }
+        if( joArg.name == "no-cross-ima" ) {
+            imaState.isCrossImaBlsMode = false;
             continue;
         }
         if( joArg.name == "s2s-forward" ) {
@@ -2248,6 +2266,8 @@ function ima_common_init() {
             log.write( cc.info( "SKALE network re-discovery interval is" ) + cc.debug( "..............." ) + ( imaState.s2s_opts.secondsToReDiscoverSkaleNetwork ? cc.info( imaState.s2s_opts.secondsToReDiscoverSkaleNetwork.toString() ) : cc.error( "disabled" ) ) + "\n" );
             log.write( cc.info( "S<->S transfer mode is" ) + cc.debug( "..............................." ) + IMA.get_S2S_transfer_mode_description_colorized() + "\n" );
         } // if( isPrintGathered )
+        log.write( cc.info( "IMA JSON RPC server port is" ) + cc.debug( "...,,,,,,,,,,,............" ) + ( ( imaState.nJsonRpcPort > 0 ) ? cc.info( imaState.nJsonRpcPort ) : cc.error( "disabled" ) ) + "\n" );
+        log.write( cc.info( "Cross-IMA mode is" ) + cc.debug( "...................................." ) + ( imaState.isCrossImaBlsMode ? cc.success( "enabled" ) : cc.error( "disabled" ) ) + "\n" );
     }
     //
     //

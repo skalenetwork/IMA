@@ -101,6 +101,7 @@ function compose_endpoints( jo_schain, node_dict, endpoint_type ) {
     node_dict["ws_endpoint_" + endpoint_type] = "ws://" + node_dict[endpoint_type] + ":" + jo_schain.data.computed.ports.wsRpcPort;
     node_dict["wss_endpoint_" + endpoint_type] = "wss://" + node_dict[endpoint_type] + ":" + jo_schain.data.computed.ports.wssRpcPort;
     node_dict["info_http_endpoint_" + endpoint_type] = "http://" + node_dict[endpoint_type] + ":" + jo_schain.data.computed.ports.infoHttpRpcPort;
+    node_dict["ima_agent_endpoint_" + endpoint_type] = "http://" + node_dict[endpoint_type] + ":" + jo_schain.data.computed.ports.imaAgentRpcPort;
 }
 
 const SkaledPorts = {
@@ -113,7 +114,8 @@ const SkaledPorts = {
     IMA_MONITORING: 6,
     WSS_JSON: 7,
     HTTPS_JSON: 8,
-    INFO_HTTP_JSON: 9
+    INFO_HTTP_JSON: 9,
+    IMA_AGENT_JSON: 10
 };
 
 function calc_ports( jo_schain, schain_base_port ) {
@@ -123,7 +125,8 @@ function calc_ports( jo_schain, schain_base_port ) {
         httpsRpcPort: schain_base_port + SkaledPorts.HTTPS_JSON,
         wsRpcPort: schain_base_port + SkaledPorts.WS_JSON,
         wssRpcPort: schain_base_port + SkaledPorts.WSS_JSON,
-        infoHttpRpcPort: schain_base_port + SkaledPorts.INFO_HTTP_JSON
+        infoHttpRpcPort: schain_base_port + SkaledPorts.INFO_HTTP_JSON,
+        imaAgentRpcPort: schain_base_port + SkaledPorts.IMA_AGENT_JSON
     };
 }
 

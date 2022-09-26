@@ -226,6 +226,9 @@ global.imaState = {
         "secondsToReDiscoverSkaleNetwork": 10 * 60 // seconts to re-discover SKALE network, 0 to disable
     },
 
+    "nJsonRpcPort": 14999, // 0 to disable
+    "isCrossImaBlsMode": true,
+
     "arrActions": [] // array of actions to run
 };
 
@@ -746,6 +749,10 @@ describe( "Agent Utils Module", function() {
             assert.equal( imaUtils.compose_schain_node_url( { ip6: "::1", httpsRpcPort6: 3456 } ), "https://[::1]:3456" );
             assert.equal( imaUtils.compose_schain_node_url( { ip6: "::1", wsRpcPort6: 3456 } ), "ws://[::1]:3456" );
             assert.equal( imaUtils.compose_schain_node_url( { ip6: "::1", wssRpcPort6: 3456 } ), "wss://[::1]:3456" );
+        } );
+
+        it( "Compose IMA Agent URL", function() {
+            assert.equal( imaUtils.compose_ima_agent_node_url( { ip: "127.0.0.1", httpRpcPort: 14999 } ), "http://127.0.0.1:14999" );
         } );
 
     } );

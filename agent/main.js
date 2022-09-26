@@ -281,6 +281,9 @@ global.imaState = {
         "secondsToReDiscoverSkaleNetwork": 1 * 60 * 60 // seconts to re-discover SKALE network, 0 to disable
     },
 
+    "nJsonRpcPort": 14999, // 0 to disable
+    "isCrossImaBlsMode": true,
+
     "arrActions": [] // array of actions to run
 };
 
@@ -2213,6 +2216,77 @@ if( imaState.nMonitoringPort > 0 ) {
         // ws_peer.send( "something" );
     } );
 } // if( imaState.nMonitoringPort > 0 )
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+let g_ws_server_ima = null;
+
+if( imaState.nJsonRpcPort > 0 ) {
+    const strLogPrefix = cc.attention( "JSON RPC" ) + " " + cc.sunny( ">>" ) + " ";
+    if( IMA.verbose_get() >= IMA.RV_VERBOSE.trace )
+        log.write( strLogPrefix + cc.normal( "Will start JSON RPC WS server on port " ) + cc.info( imaState.nJsonRpcPort ) + "\n" );
+    g_ws_server_ima = new ws.Server( { port: 0 + imaState.nJsonRpcPort } );
+    g_ws_server_ima.on( "connection", function( ws_peer, req ) {
+        const ip = req.socket.remoteAddress;
+        if( IMA.verbose_get() >= IMA.RV_VERBOSE.trace )
+            log.write( strLogPrefix + cc.normal( "New connection from " ) + cc.info( ip ) + "\n" );
+        ws_peer.on( "message", function( message ) {
+            const joAnswer = {
+                method: null,
+                id: null,
+                error: null
+            };
+            try {
+                const joMessage = JSON.parse( message );
+                if( IMA.verbose_get() >= IMA.RV_VERBOSE.trace )
+                    log.write( strLogPrefix + cc.normal( "Message from " ) + cc.info( ip ) + cc.normal( ": " ) + cc.j( joMessage ) + "\n" );
+                if( ! ( "method" in joMessage ) )
+                    throw new Error( "\"method\" field was not specified" );
+                joAnswer.method = joMessage.method;
+                if( ! ( "id" in joMessage ) )
+                    throw new Error( "\"id\" field was not specified" );
+                joAnswer.id = joMessage.id;
+                switch ( joMessage.method ) {
+                case "echo":
+                case "ping":
+                    // call:   { "id": 1, "method": "echo" }
+                    // answer: { "id": 1, "method": "echo", "error": null }
+                    // call:   { "id": 1, "method": "ping" }
+                    // answer: { "id": 1, "method": "ping", "error": null }
+                    break;
+                case "get_schain_network_info":
+                    // call:   { "id": 1, "method": "get_schain_network_info" }
+                    // answer: { "id": 1, "method": "get_schain_network_info", "error": null, "schain_network_info": ... }
+                    joAnswer.schain_network_info = imaState.joSChainNetworkInfo;
+                    break;
+                default:
+                    throw new Error( "Unknown method name \"" + joMessage.method + "\" was specified" );
+                } // switch( joMessage.method )
+            } catch ( err ) {
+                if( IMA.verbose_get() >= IMA.RV_VERBOSE.error ) {
+                    log.write( strLogPrefix +
+                        cc.error( "Bad message from " ) + cc.info( ip ) + cc.error( ": " ) + cc.warning( message ) +
+                        cc.error( ", error is: " ) + cc.warning( err ) + "\n"
+                    );
+                }
+            }
+            try {
+                if( IMA.verbose_get() >= IMA.RV_VERBOSE.trace )
+                    log.write( strLogPrefix + cc.normal( "Answer to " ) + cc.info( ip ) + cc.normal( ": " ) + cc.j( joAnswer ) + "\n" );
+                ws_peer.send( JSON.stringify( joAnswer ) );
+            } catch ( err ) {
+                if( IMA.verbose_get() >= IMA.RV_VERBOSE.error ) {
+                    log.write( strLogPrefix +
+                        cc.error( "Failed to sent answer to " ) + cc.info( ip ) +
+                        cc.error( ", error is: " ) + cc.warning( err ) + "\n"
+                    );
+                }
+            }
+        } );
+        // ws_peer.send( "something" );
+    } );
+} // if( imaState.nJsonRpcPort > 0 )
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

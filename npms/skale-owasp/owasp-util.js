@@ -285,12 +285,12 @@ function verifyArgumentIsInteger( joArg ) {
     }
 }
 
-function verifyArgumentIsIntegerIpPortNumber( joArg ) {
+function verifyArgumentIsIntegerIpPortNumber( joArg, isEnableZero ) {
     try {
         verifyArgumentIsInteger( joArg );
         if( joArg.value < 0 )
             throw new Error( "Port number " + joArg.value + " cannot be negative" );
-        if( joArg.value < 1 )
+        if( ( !isEnableZero ) && joArg.value < 1 )
             throw new Error( "Port number " + joArg.value + " too small" );
         if( joArg.value > 65535 )
             throw new Error( "Port number " + joArg.value + " too big" );
