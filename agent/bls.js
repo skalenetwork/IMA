@@ -978,12 +978,7 @@ async function do_sign_messages_impl(
                     "\n" );
                 /*await*/ joCall.call( {
                     method: "skale_imaVerifyAndSign",
-                    params: joParams,
-                    qa: {
-                        skaled_no: 0 + i,
-                        sequence_id: "" + sequence_id,
-                        ts: "" + log.generate_timestamp_string( null, false )
-                    }
+                    params: joParams
                 }, async function( joIn, joOut, err ) {
                     ++joGatheringTracker.nCountReceived; // including errors
                     if( err ) {
