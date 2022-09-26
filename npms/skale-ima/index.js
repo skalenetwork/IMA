@@ -4810,7 +4810,6 @@ async function async_pending_tx_start( details, w3, w3_opposite, chain_id, chain
                     }
                 } );
             } );
-
         }
     } catch ( err ) {
         const s =
@@ -5594,7 +5593,7 @@ async function do_transfer(
                                 cc.debug( " using URL " ) + cc.info( jo_node.http_endpoint_ip ) +
                                 cc.debug( "..." ) + "\n" );
                             try {
-                                const w3_node = getWeb3FromURL( jo_node.http_endpoint_ip, details )
+                                const w3_node = getWeb3FromURL( jo_node.http_endpoint_ip, details );
                                 const jo_message_proxy_node = new w3_node.eth.Contract( imaState.joAbiPublishResult_s_chain.message_proxy_chain_abi, imaState.joAbiPublishResult_s_chain.message_proxy_chain_address );
                                 const node_r = await get_web3_pastEventsProgressive(
                                     details,
