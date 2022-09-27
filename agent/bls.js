@@ -30,6 +30,7 @@
 const child_process = require( "child_process" );
 const shell = require( "shelljs" );
 const { Keccak } = require( "sha3" );
+const { cc } = require( "./utils" );
 
 function init() {
     owaspUtils.owaspAddUsageRef();
@@ -811,7 +812,10 @@ async function do_sign_messages_impl(
     fn
 ) {
     let bHaveResultReportCalled = false;
-    const strLogPrefix = cc.bright( strDirection ) + " " + cc.info( "Sign msgs:" ) + " ";
+    const strLogPrefix =
+        cc.bright( strDirection ) + " " + cc.info( "Sign msgs via " ) +
+        cc.attention( imaState.isCrossImaBlsMode ? "IMA agent" : "skaled" ) +
+        cc.info( ":" ) + " ";
     const joGatheringTracker = {
         nCountReceived: 0, // including errors
         nCountErrors: 0,
@@ -913,7 +917,9 @@ async function do_sign_messages_impl(
                 break;
             }
             const joNode = jarrNodes[i];
-            const strNodeURL = imaUtils.compose_schain_node_url( joNode );
+            const strNodeURL = imaState.isCrossImaBlsMode
+                ? imaUtils.compose_ima_agent_node_url( joNode )
+                : imaUtils.compose_schain_node_url( joNode );
             const strNodeDescColorized = cc.u( strNodeURL ) + " " +
                 cc.normal( "(" ) + cc.bright( i ) + cc.normal( "/" ) + cc.bright( jarrNodes.length ) + cc.normal( ", ID " ) + cc.info( joNode.nodeID ) + cc.normal( ")" ) +
                 cc.normal( ", " ) + cc.notice( "sequence ID" ) + cc.normal( " is " ) + cc.attention( sequence_id );
@@ -925,7 +931,7 @@ async function do_sign_messages_impl(
                     const strErrorMessage =
                         strLogPrefix + cc.fatal( "CRITICAL ERROR:" ) +
                         cc.error( " JSON RPC call to S-Chain node " ) + strNodeDescColorized +
-                        cc.error( " failed, RPC call was not created, error: " ) + cc.warning( err ) +
+                        cc.error( " failed, RPC call was not created, error is: " ) + cc.warning( err.toString() ) +
                         cc.error( ", " ) + cc.notice( "sequence ID" ) + cc.error( " is " ) + cc.attention( sequence_id ) +
                         "\n";
                     log.write( strErrorMessage );
@@ -986,7 +992,7 @@ async function do_sign_messages_impl(
                         const strErrorMessage =
                             strLogPrefix + cc.fatal( "CRITICAL ERROR:" ) +
                             cc.error( " JSON RPC call to S-Chain node " ) + strNodeDescColorized +
-                            cc.error( " failed, RPC call reported error: " ) + cc.warning( err ) +
+                            cc.error( " failed, RPC call reported error: " ) + cc.warning( err.toString() ) +
                             cc.error( ", " ) + cc.notice( "sequence ID" ) + cc.error( " is " ) + cc.attention( sequence_id ) +
                             "\n";
                         log.write( strErrorMessage );
@@ -1229,7 +1235,7 @@ async function do_sign_messages_impl(
                 bHaveResultReportCalled = true;
                 await fn(
                     "Failed to gather BLS signatures in " + jarrNodes.length + " node(s), trakcer data is: " +
-                        JSON.stringify( joGatheringTracker ) + ", error: " + errGathering.toString(),
+                        JSON.stringify( joGatheringTracker ) + ", error is: " + errGathering.toString(),
                     jarrMessages,
                     null
                 ).catch( ( err ) => {
@@ -1255,7 +1261,7 @@ async function do_sign_messages_impl(
                 const strErrorMessage =
                     cc.error( "Problem(6) in BLS sign result handler, not enough successful BLS signature parts(" ) +
                     cc.info( cntSuccess ) + cc.error( ") and timeout reached, error details: " ) +
-                    cc.warning( err ) + "\n";
+                    cc.warning( err.toString() ) + "\n";
                 log.write( strErrorMessage );
                 details.write( strErrorMessage );
                 details.exposeDetailsTo( log, strGatheredDetailsName, false );
@@ -1397,7 +1403,7 @@ async function do_sign_u256( u256, details, fn ) {
                 const strErrorMessage =
                     strLogPrefix + cc.fatal( "CRITICAL ERROR:" ) +
                     cc.error( " JSON RPC call to S-Chain node " ) + strNodeDescColorized +
-                    cc.error( " failed, RPC call was not created, error: " ) + cc.warning( err ) + "\n";
+                    cc.error( " failed, RPC call was not created, error is: " ) + cc.warning( err.toString() ) + "\n";
                 log.write( strErrorMessage );
                 details.write( strErrorMessage );
                 return;
@@ -1418,7 +1424,7 @@ async function do_sign_u256( u256, details, fn ) {
                     const strErrorMessage =
                         strLogPrefix + cc.fatal( "CRITICAL ERROR:" ) +
                         cc.error( " JSON RPC call to S-Chain node " ) + strNodeDescColorized +
-                        cc.error( " failed, RPC call reported error: " ) + cc.warning( err ) + "\n";
+                        cc.error( " failed, RPC call reported error: " ) + cc.warning( err.toString() ) + "\n";
                     log.write( strErrorMessage );
                     details.write( strErrorMessage );
                     return;
@@ -1627,10 +1633,84 @@ async function do_sign_u256( u256, details, fn ) {
     details.write( strLogPrefix + cc.debug( "Completed signing u256 procedure " ) + "\n" );
 }
 
+async function handle_skale_call_via_redirect( joCallData ) {
+    const sequence_id = owaspUtils.remove_starting_0x( get_w3().utils.soliditySha3( log.generate_timestamp_string( null, false ) ) );
+    const strLogPrefix = "";
+    const strNodeURL = imaState.strURL_s_chain;
+    const rpcCallOpts = null;
+    let joRetVal = { };
+    const details = log.createMemoryStream( true );
+    let isSuccess = false;
+    try {
+        await rpcCall.create( strNodeURL, rpcCallOpts, async function( joCall, err ) {
+            if( err ) {
+                const strErrorMessage =
+                    strLogPrefix + cc.fatal( "CRITICAL ERROR:" ) +
+                    cc.error( " JSON RPC call to S-Chain failed, RPC call was not created, error is: " ) + cc.warning( err.toString() ) + "\n";
+                log.write( strErrorMessage );
+                details.write( strErrorMessage );
+                throw new Error( "JSON RPC call to S-Chain failed, RPC call was not created, error is: " + err.toString() );
+            }
+            details.write( strLogPrefix + cc.debug( "Will invoke " ) + cc.info( "S-Chain" ) + cc.debug( " with call data " ) + cc.j( joCallData ) + "\n" );
+            await joCall.call( joCallData, async function( joIn, joOut, err ) {
+                if( err ) {
+                    const strErrorMessage =
+                        strLogPrefix + cc.fatal( "CRITICAL ERROR:" ) +
+                        cc.error( " JSON RPC call to S-Chain failed, RPC call reported error: " ) + cc.warning( err.toString() ) + "\n";
+                    log.write( strErrorMessage );
+                    details.write( strErrorMessage );
+                    throw new Error( "JSON RPC call to S-Chain failed, RPC call reported error: " + err.toString() );
+                }
+                details.write( strLogPrefix + cc.debug( "Call to " ) + cc.info( "S-Chain" ) + cc.debug( " done, answer is: " ) + cc.j( joOut ) + "\n" );
+                if( joOut.result == null || joOut.result == undefined || ( !typeof joOut.result == "object" ) ) {
+                    let strThrowMessage = "";
+                    if( "error" in joOut && "message" in joOut.error ) {
+                        const strErrorMessage =
+                            strLogPrefix + cc.fatal( "Wallet CRITICAL ERROR:" ) + " " +
+                            cc.error( "S-Chain reported wallet error: " ) + cc.warning( joOut.error.message ) +
+                            cc.error( ", " ) + cc.notice( "sequence ID" ) + cc.error( " is " ) + cc.attention( sequence_id ) +
+                            "\n";
+                        log.write( strErrorMessage );
+                        details.write( strErrorMessage );
+                        strThrowMessage = "S-Chain reported wallet error: " + joOut.error.message + ", sequence ID is " + sequence_id;
+                    } else {
+                        const strErrorMessage =
+                            strLogPrefix + cc.fatal( "Wallet CRITICAL ERROR:" ) + " " +
+                            cc.error( "JSON RPC call to S-Chain failed with " ) + cc.warning( "unknown wallet error" ) +
+                            cc.error( ", " ) + cc.notice( "sequence ID" ) + cc.error( " is " ) + cc.attention( sequence_id ) +
+                            "\n";
+                        log.write( strErrorMessage );
+                        details.write( strErrorMessage );
+                        strThrowMessage = "JSON RPC call to S-Chain failed with \"unknown wallet error\", sequence ID is " + sequence_id;
+                    }
+                    throw new Error( strThrowMessage );
+                }
+                isSuccess = true;
+                joRetVal = joOut; // joOut.result
+            } ); // joCall.call ...
+        } ); // rpcCall.create ...
+    } catch ( err ) {
+        isSuccess = false;
+        const strError = err.toString();
+        joRetVal.error = strError;
+        const strErrorMessage =
+            strLogPrefix + cc.fatal( "CRITICAL ERROR:" ) + " " +
+            cc.error( "JSON RPC call finished with error: " ) + cc.warning( strError ) +
+            "\n";
+        log.write( strErrorMessage );
+        details.write( strErrorMessage );
+    }
+    details.exposeDetailsTo( log, "handle_skale_call_via_redirect()", isSuccess );
+    details.close();
+    return joRetVal;
+}
+
 module.exports = {
     init: init,
     do_sign_messages_m2s: do_sign_messages_m2s,
     do_sign_messages_s2m: do_sign_messages_s2m,
     do_sign_messages_s2s: do_sign_messages_s2s,
-    do_sign_u256: do_sign_u256
+    do_sign_u256: do_sign_u256,
+    handle_skale_imaVerifyAndSign: handle_skale_call_via_redirect,
+    handle_skale_imaBSU256: handle_skale_call_via_redirect
 }; // module.exports

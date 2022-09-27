@@ -281,8 +281,8 @@ global.imaState = {
         "secondsToReDiscoverSkaleNetwork": 1 * 60 * 60 // seconts to re-discover SKALE network, 0 to disable
     },
 
-    "nJsonRpcPort": 14999, // 0 to disable
-    "isCrossImaBlsMode": true,
+    "nJsonRpcPort": 0, // 0 to disable
+    "isCrossImaBlsMode": false,
 
     "arrActions": [] // array of actions to run
 };
@@ -2231,8 +2231,8 @@ if( imaState.nJsonRpcPort > 0 ) {
         const ip = req.socket.remoteAddress;
         if( IMA.verbose_get() >= IMA.RV_VERBOSE.trace )
             log.write( strLogPrefix + cc.normal( "New connection from " ) + cc.info( ip ) + "\n" );
-        ws_peer.on( "message", function( message ) {
-            const joAnswer = {
+        ws_peer.on( "message", async function( message ) {
+            let joAnswer = {
                 method: null,
                 id: null,
                 error: null
@@ -2255,10 +2255,16 @@ if( imaState.nJsonRpcPort > 0 ) {
                     // call:   { "id": 1, "method": "ping" }
                     // answer: { "id": 1, "method": "ping", "error": null }
                     break;
-                case "get_schain_network_info":
-                    // call:   { "id": 1, "method": "get_schain_network_info" }
-                    // answer: { "id": 1, "method": "get_schain_network_info", "error": null, "schain_network_info": ... }
-                    joAnswer.schain_network_info = imaState.joSChainNetworkInfo;
+                // case "get_schain_network_info":
+                //     // call:   { "id": 1, "method": "get_schain_network_info" }
+                //     // answer: { "id": 1, "method": "get_schain_network_info", "error": null, "schain_network_info": ... }
+                //     joAnswer.schain_network_info = imaState.joSChainNetworkInfo;
+                //     break;
+                case "skale_imaVerifyAndSign":
+                    joAnswer = await imaBLS.handle_skale_imaVerifyAndSign( joMessage );
+                    break;
+                case "skale_imaBSU256":
+                    joAnswer = await imaBLS.handle_skale_imaBSU256( joMessage );
                     break;
                 default:
                     throw new Error( "Unknown method name \"" + joMessage.method + "\" was specified" );
