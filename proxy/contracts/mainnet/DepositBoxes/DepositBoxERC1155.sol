@@ -61,14 +61,6 @@ contract DepositBoxERC1155 is DepositBox, ERC1155ReceiverUpgradeable, IDepositBo
      */
     event ERC1155TokenReady(address indexed contractOnMainnet, uint256[] ids, uint256[] amounts);
 
-    /**
-     * @dev Allows `msg.sender` to send ERC1155 token from mainnet to schain.
-     * 
-     * Requirements:
-     * 
-     * - Receiver contract should be defined.
-     * - `msg.sender` should approve their tokens for DepositBoxERC1155 address.
-     */
     function depositERC1155(
         string calldata schainName,
         address erc1155OnMainnet,
@@ -77,7 +69,28 @@ contract DepositBoxERC1155 is DepositBox, ERC1155ReceiverUpgradeable, IDepositBo
     )
         external
         override
-        rightTransaction(schainName, msg.sender)
+    {
+        depositERC1155Direct(schainName, erc1155OnMainnet, id, amount, msg.sender);
+    }
+
+    /**
+     * @dev Allows `msg.sender` to send ERC1155 token from mainnet to schain.
+     * 
+     * Requirements:
+     * 
+     * - Receiver contract should be defined.
+     * - `msg.sender` should approve their tokens for DepositBoxERC1155 address.
+     */
+    function depositERC1155Direct(
+        string calldata schainName,
+        address erc1155OnMainnet,
+        uint256 id,
+        uint256 amount,
+        address receiver
+    )
+        public
+        // override
+        rightTransaction(schainName, receiver)
         whenNotKilled(keccak256(abi.encodePacked(schainName)))
     {
         bytes32 schainHash = keccak256(abi.encodePacked(schainName));
@@ -90,7 +103,7 @@ contract DepositBoxERC1155 is DepositBox, ERC1155ReceiverUpgradeable, IDepositBo
         bytes memory data = _receiveERC1155(
             schainName,
             erc1155OnMainnet,
-            msg.sender,
+            receiver,
             id,
             amount
         );
@@ -103,14 +116,6 @@ contract DepositBoxERC1155 is DepositBox, ERC1155ReceiverUpgradeable, IDepositBo
         );
     }
 
-    /**
-     * @dev Allows `msg.sender` to send batch of ERC1155 tokens from mainnet to schain.
-     * 
-     * Requirements:
-     * 
-     * - Receiver contract should be defined.
-     * - `msg.sender` should approve their tokens for DepositBoxERC1155 address.
-     */
     function depositERC1155Batch(
         string calldata schainName,
         address erc1155OnMainnet,
@@ -119,7 +124,28 @@ contract DepositBoxERC1155 is DepositBox, ERC1155ReceiverUpgradeable, IDepositBo
     )
         external
         override
-        rightTransaction(schainName, msg.sender)
+    {
+        depositERC1155BatchDirect(schainName, erc1155OnMainnet, ids, amounts, msg.sender);
+    }
+
+    /**
+     * @dev Allows `msg.sender` to send batch of ERC1155 tokens from mainnet to schain.
+     * 
+     * Requirements:
+     * 
+     * - Receiver contract should be defined.
+     * - `msg.sender` should approve their tokens for DepositBoxERC1155 address.
+     */
+    function depositERC1155BatchDirect(
+        string calldata schainName,
+        address erc1155OnMainnet,
+        uint256[] calldata ids,
+        uint256[] calldata amounts,
+        address receiver
+    )
+        public
+        // override
+        rightTransaction(schainName, receiver)
         whenNotKilled(keccak256(abi.encodePacked(schainName)))
     {
         bytes32 schainHash = keccak256(abi.encodePacked(schainName));
@@ -132,7 +158,7 @@ contract DepositBoxERC1155 is DepositBox, ERC1155ReceiverUpgradeable, IDepositBo
         bytes memory data = _receiveERC1155Batch(
             schainName,
             erc1155OnMainnet,
-            msg.sender,
+            receiver,
             ids,
             amounts
         );

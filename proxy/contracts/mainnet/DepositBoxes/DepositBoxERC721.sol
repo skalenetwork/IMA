@@ -58,6 +58,17 @@ contract DepositBoxERC721 is DepositBox, IDepositBoxERC721 {
      */
     event ERC721TokenReady(address indexed contractOnMainnet, uint256 tokenId);
 
+    function depositERC721(
+        string calldata schainName,
+        address erc721OnMainnet,
+        uint256 tokenId
+    )
+        external
+        override
+    {
+        depositERC721Direct(schainName, erc721OnMainnet, tokenId, msg.sender);
+    }
+
     /**
      * @dev Allows `msg.sender` to send ERC721 token from mainnet to schain.
      * 
@@ -66,14 +77,15 @@ contract DepositBoxERC721 is DepositBox, IDepositBoxERC721 {
      * - Receiver contract should be defined.
      * - `msg.sender` should approve their token for DepositBoxERC721 address.
      */
-    function depositERC721(
+    function depositERC721Direct(
         string calldata schainName,
         address erc721OnMainnet,
-        uint256 tokenId
+        uint256 tokenId,
+        address receiver
     )
-        external
-        override
-        rightTransaction(schainName, msg.sender)
+        public
+        // override
+        rightTransaction(schainName, receiver)
         whenNotKilled(keccak256(abi.encodePacked(schainName)))
     {
         bytes32 schainHash = keccak256(abi.encodePacked(schainName));
@@ -86,7 +98,7 @@ contract DepositBoxERC721 is DepositBox, IDepositBoxERC721 {
         bytes memory data = _receiveERC721(
             schainName,
             erc721OnMainnet,
-            msg.sender,
+            receiver,
             tokenId
         );
         _saveTransferredAmount(schainHash, erc721OnMainnet, tokenId);

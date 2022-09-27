@@ -48,6 +48,14 @@ contract DepositBoxEth is DepositBox, IDepositBoxEth {
         revert("Use deposit function");
     }
 
+    function deposit(string memory schainName)
+        external
+        payable
+        override
+    {
+        depositDirect(schainName, msg.sender);
+    }
+
     /**
      * @dev Allows `msg.sender` to send ETH from mainnet to schain.
      * 
@@ -57,11 +65,11 @@ contract DepositBoxEth is DepositBox, IDepositBoxEth {
      * - Receiver contract should be added as twin contract on schain.
      * - Schain that receives tokens should not be killed.
      */
-    function deposit(string memory schainName)
-        external
+    function depositDirect(string memory schainName, address receiver)
+        public
         payable
-        override
-        rightTransaction(schainName, msg.sender)
+        // override
+        rightTransaction(schainName, receiver)
         whenNotKilled(keccak256(abi.encodePacked(schainName)))
     {
         bytes32 schainHash = keccak256(abi.encodePacked(schainName));
@@ -71,7 +79,7 @@ contract DepositBoxEth is DepositBox, IDepositBoxEth {
         messageProxy.postOutgoingMessage(
             schainHash,
             contractReceiver,
-            Messages.encodeTransferEthMessage(msg.sender, msg.value)
+            Messages.encodeTransferEthMessage(receiver, msg.value)
         );
     }
 
