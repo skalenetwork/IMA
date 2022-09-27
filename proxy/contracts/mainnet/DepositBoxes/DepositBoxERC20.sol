@@ -110,6 +110,17 @@ contract DepositBoxERC20 is DepositBox, IDepositBoxERC20 {
 
     event Escalated(uint256 id);
 
+    function depositERC20(
+        string calldata schainName,
+        address erc20OnMainnet,
+        uint256 amount
+    )
+        external
+        override
+    {
+        depositERC20Direct(schainName, erc20OnMainnet, amount, msg.sender);
+    }
+
     /**
      * @dev Emitted when token transfer is skipped due to internal token error
      */
@@ -154,14 +165,15 @@ contract DepositBoxERC20 is DepositBox, IDepositBoxERC20 {
      * - Receiver contract should be defined.
      * - `msg.sender` should approve their tokens for DepositBoxERC20 address.
      */
-    function depositERC20(
+    function depositERC20Direct(
         string calldata schainName,
         address erc20OnMainnet,
-        uint256 amount
+        uint256 amount,
+        address receiver
     )
-        external
-        override
-        rightTransaction(schainName, msg.sender)
+        public
+        // override
+        rightTransaction(schainName, receiver)
         whenNotKilled(_schainHash(schainName))
     {
         bytes32 schainHash = _schainHash(schainName);
@@ -174,7 +186,7 @@ contract DepositBoxERC20 is DepositBox, IDepositBoxERC20 {
         bytes memory data = _receiveERC20(
             schainName,
             erc20OnMainnet,
-            msg.sender,
+            receiver,
             amount
         );
         _saveTransferredAmount(schainHash, erc20OnMainnet, amount);
