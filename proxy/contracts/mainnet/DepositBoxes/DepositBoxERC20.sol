@@ -104,6 +104,10 @@ contract DepositBoxERC20 is DepositBox, IDepositBoxERC20 {
      */
     event ERC20TokenReady(address indexed contractOnMainnet, uint256 amount);
 
+    event TransferDelayed(uint256 id, address receiver, address token, uint256 amount);
+
+    event Escalated(uint256 id);
+
     /**
      * @dev Allows `msg.sender` to send ERC20 token from mainnet to schain
      * 
@@ -192,7 +196,7 @@ contract DepositBoxERC20 is DepositBox, IDepositBoxERC20 {
             && _delayConfig[schainHash].bigTransferThreshold[message.token] <= message.amount
             && !isReceiverTrusted(schainHash, message.receiver)
         ) {
-            _createDelayedTransfer(schainHash, message, delay);
+            _createDelayedTransfer(schainHash, message, delay);            
         } else {
             _transfer(message.token, message.receiver, message.amount);
         }
@@ -379,6 +383,7 @@ contract DepositBoxERC20 is DepositBox, IDepositBoxERC20 {
             delayedTransfers[transferId].untilTimestamp,
             block.timestamp + _delayConfig[schainHash].arbitrageDuration
         );
+        emit Escalated(transferId);
     }
 
     /**
@@ -803,6 +808,7 @@ contract DepositBoxERC20 is DepositBox, IDepositBoxERC20 {
             status: DelayedTransferStatus.DELAYED
         });
         _addToDelayedQueue(message.receiver, delayId, block.timestamp + delay);
+        emit TransferDelayed(delayId, message.receiver, message.token, message.amount);
     }
 
     /**

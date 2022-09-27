@@ -1767,7 +1767,7 @@ async function continue_schain_discovery_in_background_if_needed( isSilent ) {
             if( IMA.verbose_get() >= IMA.RV_VERBOSE.information ) {
                 log.write(
                     cc.info( "Will re-discover " ) + cc.notice( cntNodes ) + cc.info( "-node S-Chain network, " ) +
-                        cc.notice( cntDiscovered ) + cc.info( " node(s) already discovered..." ) + "\n" );
+                    cc.notice( cntDiscovered ) + cc.info( " node(s) already discovered..." ) + "\n" );
             }
             await discover_s_chain_network( function( err, joSChainNetworkInfo ) {
                 if( ! err ) {
@@ -1775,14 +1775,14 @@ async function continue_schain_discovery_in_background_if_needed( isSilent ) {
                     if( IMA.verbose_get() >= IMA.RV_VERBOSE.information ) {
                         const strDiscoveryStatus = cc.info( cntDiscoveredNew ) + cc.success( " nodes known" );
                         let strMessage =
-                                cc.success( "S-Chain network was re-discovered, " ) + cc.info( cntDiscoveredNew ) +
-                                cc.success( " of " ) + cc.info( cntNodes ) +
-                                cc.success( " node(s) (" ) + strDiscoveryStatus + cc.success( ")" );
+                            cc.success( "S-Chain network was re-discovered, " ) + cc.info( cntDiscoveredNew ) +
+                            cc.success( " of " ) + cc.info( cntNodes ) +
+                            cc.success( " node(s) (" ) + strDiscoveryStatus + cc.success( ")" );
                         const cntStillUnknown = cntNodes - cntDiscoveredNew;
                         if( cntStillUnknown > 0 ) {
                             strMessage += cc.success( ", " ) +
-                                    cc.info( cntStillUnknown ) + cc.success( " of " ) + cc.info( cntNodes ) +
-                                    cc.success( " still unknown (" );
+                                cc.info( cntStillUnknown ) + cc.success( " of " ) + cc.info( cntNodes ) +
+                                cc.success( " still unknown (" );
                             try {
                                 const jarrNodes = joSChainNetworkInfo.network;
                                 let cntBad = 0;
@@ -1790,13 +1790,13 @@ async function continue_schain_discovery_in_background_if_needed( isSilent ) {
                                     const joNode = jarrNodes[i];
                                     try {
                                         if( ! ( joNode && "imaInfo" in joNode && typeof joNode.imaInfo === "object" &&
-                                                "t" in joNode.imaInfo && typeof joNode.imaInfo.t === "number" ) ) {
+                                            "t" in joNode.imaInfo && typeof joNode.imaInfo.t === "number" ) ) {
                                             if( cntBad > 0 )
                                                 strMessage += cc.success( ", " );
                                             const strNodeURL = imaUtils.compose_schain_node_url( joNode );
                                             const strNodeDescColorized =
-                                                    cc.notice( "#" ) + cc.info( i ) +
-                                                    cc.attention( "(" ) + cc.u( strNodeURL ) + cc.attention( ")" );
+                                                cc.notice( "#" ) + cc.info( i ) +
+                                                cc.attention( "(" ) + cc.u( strNodeURL ) + cc.attention( ")" );
                                             strMessage += strNodeDescColorized;
                                             ++ cntBad;
                                         }
@@ -1807,8 +1807,8 @@ async function continue_schain_discovery_in_background_if_needed( isSilent ) {
                         }
                         if( ! isSilent ) {
                             strMessage +=
-                                    cc.success( ", complete re-discovered S-Chain network info: " ) +
-                                    cc.j( joSChainNetworkInfo );
+                                cc.success( ", complete re-discovered S-Chain network info: " ) +
+                                cc.j( joSChainNetworkInfo );
                         }
                         log.write( strMessage + "\n" );
                     }
@@ -1818,8 +1818,8 @@ async function continue_schain_discovery_in_background_if_needed( isSilent ) {
             }, isSilent, imaState.joSChainNetworkInfo, cntNodes ).catch( ( err ) => {
                 log.write(
                     cc.fatal( "CRITICAL ERROR:" ) +
-                        cc.error( " S-Chain network re-discovery failed: " ) +
-                        cc.warning( err ) + "\n"
+                    cc.error( " S-Chain network re-discovery failed: " ) +
+                    cc.warning( err ) + "\n"
                 );
             } );
         } catch ( err ) { }
@@ -2524,6 +2524,8 @@ async function single_transfer_loop() {
             return true;
         }
 
+        if( IMA.verbose_get() >= IMA.RV_VERBOSE.information )
+            log.write( strLogPrefix + cc.debug( "Will invoke Oracle gas price setup..." ) + "\n" );
         let b0 = true;
         if( IMA.getEnabledOracle() ) {
             if( IMA.verbose_get() >= IMA.RV_VERBOSE.information )

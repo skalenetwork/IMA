@@ -853,6 +853,8 @@ async function do_oracle_gas_price_setup(
                     "receipt": joReceipt
                 } );
                 print_gas_usage_report_from_array( "(intermediate result) ORACLE GAS PRICE SETUP ", jarrReceipts );
+                // if( optsPendingTxAnalysis && "isEnabled" in optsPendingTxAnalysis && optsPendingTxAnalysis.isEnabled )
+                //     await async_pending_tx_complete( details, w3_schain, w3_main_net, chain_id_schain, chain_id_mainnet, "" + joReceipt.transactionHash );
             }
             save_transfer_success( "oracle" );
         } );
@@ -6406,9 +6408,11 @@ async function mintERC20(
         strActionName = "mintERC20() sign transaction";
         const joSR = await safe_sign_transaction_with_account( details, w3, tx_mint, raw_tx_mint, joAccount );
         let joReceipt = null;
-        if( joSR.joACI.isAutoSend )
+        if( joSR.joACI.isAutoSend ) {
+            // if( optsPendingTxAnalysis && "isEnabled" in optsPendingTxAnalysis && optsPendingTxAnalysis.isEnabled )
+            //     await async_pending_tx_start( details, w3, w3, cid, cid, "" + joSR.txHashSent );
             joReceipt = await get_web3_transactionReceipt( details, 10, w3, joSR.txHashSent );
-        else {
+        } else {
             const serializedTx_mint = tx_mint.serialize();
             strActionName = "w3.eth.sendSignedTransaction()";
             // let joReceipt = await w3.eth.sendSignedTransaction( "0x" + serializedTx_mint.toString( "hex" ) );
@@ -6500,9 +6504,11 @@ async function mintERC721(
         strActionName = "mintERC721() sign transaction";
         const joSR = await safe_sign_transaction_with_account( details, w3, tx_mint, raw_tx_mint, joAccount );
         let joReceipt = null;
-        if( joSR.joACI.isAutoSend )
+        if( joSR.joACI.isAutoSend ) {
+            // if( optsPendingTxAnalysis && "isEnabled" in optsPendingTxAnalysis && optsPendingTxAnalysis.isEnabled )
+            //     await async_pending_tx_start( details, w3, w3, cid, cid, "" + joSR.txHashSent );
             joReceipt = await get_web3_transactionReceipt( details, 10, w3, joSR.txHashSent );
-        else {
+        } else {
             const serializedTx_mint = tx_mint.serialize();
             strActionName = "w3.eth.sendSignedTransaction()";
             // let joReceipt = await w3.eth.sendSignedTransaction( "0x" + serializedTx_mint.toString( "hex" ) );
@@ -6597,9 +6603,11 @@ async function mintERC1155(
         strActionName = "mintERC1155() sign transaction";
         const joSR = await safe_sign_transaction_with_account( details, w3, tx_mint, raw_tx_mint, joAccount );
         let joReceipt = null;
-        if( joSR.joACI.isAutoSend )
+        if( joSR.joACI.isAutoSend ) {
+            // if( optsPendingTxAnalysis && "isEnabled" in optsPendingTxAnalysis && optsPendingTxAnalysis.isEnabled )
+            //     await async_pending_tx_start( details, w3, w3, cid, cid, "" + joSR.txHashSent );
             joReceipt = await get_web3_transactionReceipt( details, 10, w3, joSR.txHashSent );
-        else {
+        } else {
             const serializedTx_mint = tx_mint.serialize();
             strActionName = "w3.eth.sendSignedTransaction()";
             // let joReceipt = await w3.eth.sendSignedTransaction( "0x" + serializedTx_mint.toString( "hex" ) );
@@ -6691,9 +6699,11 @@ async function burnERC20(
         strActionName = "burnERC20() sign transaction";
         const joSR = await safe_sign_transaction_with_account( details, w3, tx_burn, raw_tx_burn, joAccount );
         let joReceipt = null;
-        if( joSR.joACI.isAutoSend )
+        if( joSR.joACI.isAutoSend ) {
+            // if( optsPendingTxAnalysis && "isEnabled" in optsPendingTxAnalysis && optsPendingTxAnalysis.isEnabled )
+            //     await async_pending_tx_start( details, w3, w3, cid, cid, "" + joSR.txHashSent );
             joReceipt = await get_web3_transactionReceipt( details, 10, w3, joSR.txHashSent );
-        else {
+        } else {
             const serializedTx_burn = tx_burn.serialize();
             strActionName = "w3.eth.sendSignedTransaction()";
             // let joReceipt = await w3.eth.sendSignedTransaction( "0x" + serializedTx_burn.toString( "hex" ) );
@@ -6785,9 +6795,11 @@ async function burnERC721(
         strActionName = "burnERC721() sign transaction";
         const joSR = await safe_sign_transaction_with_account( details, w3, tx_burn, raw_tx_burn, joAccount );
         let joReceipt = null;
-        if( joSR.joACI.isAutoSend )
+        if( joSR.joACI.isAutoSend ) {
+            // if( optsPendingTxAnalysis && "isEnabled" in optsPendingTxAnalysis && optsPendingTxAnalysis.isEnabled )
+            //     await async_pending_tx_start( details, w3, w3, cid, cid, "" + joSR.txHashSent );
             joReceipt = await get_web3_transactionReceipt( details, 10, w3, joSR.txHashSent );
-        else {
+        } else {
             const serializedTx_burn = tx_burn.serialize();
             strActionName = "w3.eth.sendSignedTransaction()";
             // let joReceipt = await w3.eth.sendSignedTransaction( "0x" + serializedTx_burn.toString( "hex" ) );
@@ -6881,9 +6893,11 @@ async function burnERC1155(
         strActionName = "burnERC1155() sign transaction";
         const joSR = await safe_sign_transaction_with_account( details, w3, tx_burn, raw_tx_burn, joAccount );
         let joReceipt = null;
-        if( joSR.joACI.isAutoSend )
+        if( joSR.joACI.isAutoSend ) {
+            // if( optsPendingTxAnalysis && "isEnabled" in optsPendingTxAnalysis && optsPendingTxAnalysis.isEnabled )
+            //     await async_pending_tx_start( details, w3, w3, cid, cid, "" + joSR.txHashSent );
             joReceipt = await get_web3_transactionReceipt( details, 10, w3, joSR.txHashSent );
-        else {
+        } else {
             const serializedTx_burn = tx_burn.serialize();
             strActionName = "w3.eth.sendSignedTransaction()";
             // let joReceipt = await w3.eth.sendSignedTransaction( "0x" + serializedTx_burn.toString( "hex" ) );
