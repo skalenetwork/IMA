@@ -2094,7 +2094,7 @@ async function discover_s_chain_network( fnAfter, isSilent, joPrevSChainNetworkI
 let g_ws_server_monitoring = null;
 
 if( imaState.nMonitoringPort > 0 ) {
-    const strLogPrefix = cc.attention( "Monitoring" ) + " " + cc.sunny( ">>" ) + " ";
+    const strLogPrefix = cc.attention( "Monitoring:" ) + " ";
     if( IMA.verbose_get() >= IMA.RV_VERBOSE.trace )
         log.write( strLogPrefix + cc.normal( "Will start monitoring WS server on port " ) + cc.info( imaState.nMonitoringPort ) + "\n" );
     g_ws_server_monitoring = new ws.Server( { port: 0 + imaState.nMonitoringPort } );
@@ -2111,7 +2111,7 @@ if( imaState.nMonitoringPort > 0 ) {
             try {
                 const joMessage = JSON.parse( message );
                 if( IMA.verbose_get() >= IMA.RV_VERBOSE.trace )
-                    log.write( strLogPrefix + cc.normal( "Message from " ) + cc.info( ip ) + cc.normal( ": " ) + cc.j( joMessage ) + "\n" );
+                    log.write( strLogPrefix + cc.sunny( "<<<" ) + " " + cc.normal( "message from " ) + cc.info( ip ) + cc.normal( ": " ) + cc.j( joMessage ) + "\n" );
                 if( ! ( "method" in joMessage ) )
                     throw new Error( "\"method\" field was not specified" );
                 joAnswer.method = joMessage.method;
@@ -2202,7 +2202,7 @@ if( imaState.nMonitoringPort > 0 ) {
             }
             try {
                 if( IMA.verbose_get() >= IMA.RV_VERBOSE.trace )
-                    log.write( strLogPrefix + cc.normal( "Answer to " ) + cc.info( ip ) + cc.normal( ": " ) + cc.j( joAnswer ) + "\n" );
+                    log.write( strLogPrefix + cc.sunny( ">>>" ) + " " + cc.normal( "answer to " ) + cc.info( ip ) + cc.normal( ": " ) + cc.j( joAnswer ) + "\n" );
                 ws_peer.send( JSON.stringify( joAnswer ) );
             } catch ( err ) {
                 if( IMA.verbose_get() >= IMA.RV_VERBOSE.error ) {
@@ -2223,7 +2223,7 @@ if( imaState.nMonitoringPort > 0 ) {
 let g_ws_server_ima = null;
 
 if( imaState.nJsonRpcPort > 0 ) {
-    const strLogPrefix = cc.attention( "JSON RPC" ) + " " + cc.sunny( ">>" ) + " ";
+    const strLogPrefix = cc.attention( "JSON RPC:" ) + " ";
     if( IMA.verbose_get() >= IMA.RV_VERBOSE.trace )
         log.write( strLogPrefix + cc.normal( "Will start JSON RPC WS server on port " ) + cc.info( imaState.nJsonRpcPort ) + "\n" );
     g_ws_server_ima = new ws.Server( { port: 0 + imaState.nJsonRpcPort } );
@@ -2240,7 +2240,7 @@ if( imaState.nJsonRpcPort > 0 ) {
             try {
                 const joMessage = JSON.parse( message );
                 if( IMA.verbose_get() >= IMA.RV_VERBOSE.trace )
-                    log.write( strLogPrefix + cc.normal( "Message from " ) + cc.info( ip ) + cc.normal( ": " ) + cc.j( joMessage ) + "\n" );
+                    log.write( strLogPrefix + cc.sunny( "<<<" ) + " " + cc.normal( "message from " ) + cc.info( ip ) + cc.normal( ": " ) + cc.j( joMessage ) + "\n" );
                 if( ! ( "method" in joMessage ) )
                     throw new Error( "\"method\" field was not specified" );
                 joAnswer.method = joMessage.method;
@@ -2279,7 +2279,7 @@ if( imaState.nJsonRpcPort > 0 ) {
             }
             try {
                 if( IMA.verbose_get() >= IMA.RV_VERBOSE.trace )
-                    log.write( strLogPrefix + cc.normal( "Answer to " ) + cc.info( ip ) + cc.normal( ": " ) + cc.j( joAnswer ) + "\n" );
+                    log.write( strLogPrefix + cc.sunny( ">>>" ) + " " + cc.normal( "answer to " ) + cc.info( ip ) + cc.normal( ": " ) + cc.j( joAnswer ) + "\n" );
                 ws_peer.send( JSON.stringify( joAnswer ) );
             } catch ( err ) {
                 if( IMA.verbose_get() >= IMA.RV_VERBOSE.error ) {

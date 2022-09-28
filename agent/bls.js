@@ -1010,7 +1010,7 @@ async function do_sign_messages_impl(
                         "\n" );
                     if( joOut.result == null || joOut.result == undefined || ( !typeof joOut.result == "object" ) ) {
                         ++joGatheringTracker.nCountErrors;
-                        if( "error" in joOut && "message" in joOut.error ) {
+                        if( ( "error" in joOut ) && ( typeof joOut.error == "object" ) && ( "message" in joOut.error ) ) {
                             const strErrorMessage =
                                 strLogPrefix + cc.fatal( "Wallet CRITICAL ERROR:" ) + " " +
                                 cc.error( "S-Chain node " ) + strNodeDescColorized +
@@ -1436,7 +1436,7 @@ async function do_sign_u256( u256, details, fn ) {
                     "\n" );
                 if( joOut.result == null || joOut.result == undefined || ( !typeof joOut.result == "object" ) ) {
                     ++joGatheringTracker.nCountErrors;
-                    if( "error" in joOut && "message" in joOut.error ) {
+                    if( ( "error" in joOut ) && ( typeof joOut.error == "object" ) && ( "message" in joOut.error ) ) {
                         const strErrorMessage =
                             strLogPrefix + cc.fatal( "Wallet CRITICAL ERROR:" ) + " " +
                             cc.error( "S-Chain node " ) + strNodeDescColorized +
@@ -1664,7 +1664,7 @@ async function handle_skale_call_via_redirect( joCallData ) {
                 details.write( strLogPrefix + cc.debug( "Call to " ) + cc.info( "S-Chain" ) + cc.debug( " done, answer is: " ) + cc.j( joOut ) + "\n" );
                 if( joOut.result == null || joOut.result == undefined || ( !typeof joOut.result == "object" ) ) {
                     let strThrowMessage = "";
-                    if( "error" in joOut && "message" in joOut.error ) {
+                    if( ( "error" in joOut ) && ( typeof joOut.error == "object" ) && ( "message" in joOut.error ) ) {
                         const strErrorMessage =
                             strLogPrefix + cc.fatal( "Wallet CRITICAL ERROR:" ) + " " +
                             cc.error( "S-Chain reported wallet error: " ) + cc.warning( joOut.error.message ) +
@@ -1672,14 +1672,6 @@ async function handle_skale_call_via_redirect( joCallData ) {
                             "\n";
                         log.write( strErrorMessage );
                         details.write( strErrorMessage );
-                        strThrowMessage = "S-Chain reported wallet error: " + joOut.error.message + ", sequence ID is " + sequence_id;
-                    } else {
-                        const strErrorMessage =
-                            strLogPrefix + cc.fatal( "Wallet CRITICAL ERROR:" ) + " " +
-                            cc.error( "JSON RPC call to S-Chain failed with " ) + cc.warning( "unknown wallet error" ) +
-                            cc.error( ", " ) + cc.notice( "sequence ID" ) + cc.error( " is " ) + cc.attention( sequence_id ) +
-                            "\n";
-                        log.write( strErrorMessage );
                         details.write( strErrorMessage );
                         strThrowMessage = "JSON RPC call to S-Chain failed with \"unknown wallet error\", sequence ID is " + sequence_id;
                     }
@@ -1705,12 +1697,157 @@ async function handle_skale_call_via_redirect( joCallData ) {
     return joRetVal;
 }
 
+async function handle_skale_imaVerifyAndSign( joCallData ) {
+    const strLogPrefix = "";
+    const details = log.createMemoryStream( true );
+    let isSuccess = false;
+    try {
+        //
+        const nIdxCurrentMsgBlockStart = joCallData.params.startMessageIdx;
+        const strFromChainName = jojoRetVal.CallData.params.srcChainName;
+        const jarrMessages = joCallData.params.messages;
+        const nThreshold = discover_bls_threshold( imaState.joSChainNetworkInfo );
+        const nParticipants = discover_bls_participants( imaState.joSChainNetworkInfo );
+        details.write( strLogPrefix + cc.debug( "Discovered BLS threshold is " ) + cc.info( nThreshold ) + cc.debug( "." ) + "\n" );
+        details.write( strLogPrefix + cc.debug( "Discovered number of BLS participants is " ) + cc.info( nParticipants ) + cc.debug( "." ) + "\n" );
+        const strMessageHash = owaspUtils.remove_starting_0x( keccak256_message( jarrMessages, nIdxCurrentMsgBlockStart, strFromChainName ) );
+        details.write( strLogPrefix + cc.debug( "Message hash to sign is " ) + cc.info( strMessageHash ) + "\n" );
+        //
+        const strURL = imaState.joAccount_s_chain.strSgxURL; // TO-FIX: verify we have SGX connection parameters
+        const keyShareName = imaState.joAccount_s_chain.strSgxKeyName; // TO-FIX: verify we have SGX connection parameters
+        const signerIndex = imaState.joAccount_s_chain.nNodeNumber;
+        await rpcCall.create( strURL, rpcCallOpts, async function( joCall, err ) {
+            if( err ) {
+                const strErrorMessage =
+                    strLogPrefix + cc.fatal( "CRITICAL ERROR:" ) +
+                    cc.error( " JSON RPC call to SGX failed, RPC call was not created, error is: " ) + cc.warning( err.toString() ) + "\n";
+                log.write( strErrorMessage );
+                details.write( strErrorMessage );
+                throw new Error( "JSON RPC call to SGX failed, RPC call was not created, error is: " + err.toString() );
+            }
+            const joCallSGX = {
+                method: "blsSignMessageHash",
+                // type: "BLSSignReq",
+                params: {
+                    keyShareName: keyShareName,
+                    messageHash: strMessageHash,
+                    n: nParticipants,
+                    t: nThreshold,
+                    signerIndex: signerIndex + 1 // 1-based
+                }
+            };
+            details.write( strLogPrefix + cc.debug( "Will invoke " ) + cc.info( "SGX" ) + cc.debug( " with call data " ) + cc.j( joCallSGX ) + "\n" );
+            await joCall.call( joCallSGX, async function( joIn, joOut, err ) {
+                if( err ) {
+                    const strErrorMessage =
+                        strLogPrefix + cc.fatal( "CRITICAL ERROR:" ) +
+                        cc.error( " JSON RPC call to SGX failed, RPC call reported error: " ) + cc.warning( err.toString() ) + "\n";
+                    log.write( strErrorMessage );
+                    details.write( strErrorMessage );
+                    throw new Error( "JSON RPC call to SGX failed, RPC call reported error: " + err.toString() );
+                }
+                details.write( strLogPrefix + cc.debug( "Call to " ) + cc.info( "SGX" ) + cc.debug( " done, answer is: " ) + cc.j( joOut ) + "\n" );
+                if( joOut.result == null || joOut.result == undefined || ( !typeof joOut.result == "object" ) ) {
+                    let strThrowMessage = "";
+                    if( ( "error" in joOut ) && ( typeof joOut.error == "object" ) && ( "message" in joOut.error ) ) {
+                        const strErrorMessage =
+                            strLogPrefix + cc.fatal( "Wallet CRITICAL ERROR:" ) + " " +
+                            cc.error( "SGX reported wallet error: " ) + cc.warning( joOut.error.message ) +
+                            cc.error( ", " ) + cc.notice( "sequence ID" ) + cc.error( " is " ) + cc.attention( sequence_id ) +
+                            "\n";
+                        log.write( strErrorMessage );
+                        details.write( strErrorMessage );
+                        details.write( strErrorMessage );
+                        strThrowMessage = "JSON RPC call to SGX failed with \"unknown wallet error\", sequence ID is " + sequence_id;
+                    }
+                    throw new Error( strThrowMessage );
+                }
+                isSuccess = true;
+                const joSignResult = ( "result" in joOut ) ? joOut.result : joOut;
+                joRetVal.signResult = joSignResult;
+                if( "qa" in joCallData )
+                    joRetVal.qa = joCallData.qa;
+            } ); // joCall.call ...
+        } ); // rpcCall.create ...
+    } catch ( err ) {
+        isSuccess = false;
+        const strError = err.toString();
+        joRetVal.error = strError;
+        const strErrorMessage =
+            strLogPrefix + cc.fatal( "CRITICAL ERROR:" ) + " " +
+            cc.error( "IMA messages verifier/signer error: " ) + cc.warning( strError ) +
+            "\n";
+        log.write( strErrorMessage );
+        details.write( strErrorMessage );
+    }
+    details.exposeDetailsTo( log, "IMA messages verifier/signer", isSuccess );
+    details.close();
+    return joRetVal;
+}
+
+/*
+
+2022-09-28 12:46:22.936: JSON RPC: <<< message from ::ffff:127.0.0.1:
+{
+    "method":"skale_imaVerifyAndSign",
+    "params":{
+        "direction":"S2S",
+        "startMessageIdx":11,
+        "dstChainName":"Bob1000",
+        "srcChainName":"Bob1001",
+        "messages":[
+            {
+                "sender":"0xD2aaA00900000000000000000000000000000000",
+                "destinationContract":"0xD2aaA00900000000000000000000000000000000",
+                "data":"0x0000000000000000000000000000000000000000000000000000000000000009000000000000000000000000dedd5a997604ade31542e8a3d6aaa280e348aef10000000000000000000000007aa5e36aa15e93d10f4f26357c30f052dacdde5f000000000000000000000000000000000000000000000000000000000000000100000000000000000000000000000000000000000000000000000000000003e8",
+                "savedBlockNumberForOptimizations":448
+            }
+        ],
+        "qa":{
+            "skaled_no":0,
+            "sequence_id":"9cef78ef82228cce2e4ed4bee0c485acca0f368c1d7ae94aa235d26c0b778db3",
+            "ts":"2022-09-28 12:46:22.934"
+        }
+    },
+    "jsonrpc":"2.0",
+    "id":3937967578497932
+}
+
+--- --- --- --- --- GATHERED SUCCESS DETAILS FOR LATEST( (handle_skale_call_via_redirect()) action (BEGIN) --- --- ------ ---
+
+2022-09-28 12:46:22.938: Will invoke S-Chain with call data { method: "skale_imaVerifyAndSign", params: { direction: "S2S", startMessageIdx: 11, dstChainName: "Bob1000", srcChainName: "Bob1001", messages: [{ sender: "0xD2aaA00900000000000000000000000000000000", destinationContract: "0xD2aaA00900000000000000000000000000000000", data: "0x0000000000000000000000000000000000000000000000000000000000000009000000000000000000000000dedd5a997604ade31542e8a3d6aaa280e348aef10000000000000000000000007aa5e36aa15e93d10f4f26357c30f052dacdde5f000000000000000000000000000000000000000000000000000000000000000100000000000000000000000000000000000000000000000000000000000003e8", savedBlockNumberForOptimizations: 448}], qa: { skaled_no: 0, sequence_id: "9cef78ef82228cce2e4ed4bee0c485acca0f368c1d7ae94aa235d26c0b778db3", ts: "2022-09-28 12:46:22.934"}}, jsonrpc: "2.0", id: 3937967578497932}
+2022-09-28 12:46:23.052: Call to S-Chain done, answer is: { id: 3937967578497932, jsonrpc: "2.0", result: { qa: { sequence_id: "9cef78ef82228cce2e4ed4bee0c485acca0f368c1d7ae94aa235d26c0b778db3", skaled_no: 0, ts: "2022-09-28 12:46:22.934"}, signResult: { errorMessage: "", signatureShare: "17478565975047244907103895167228083798921988971796902124088684491074746004285:15031994568930252855707831149520060050211430984917981813828217031708710584295:16774908233857298972544743177670408960120003931859857609581436687829921077359:0", status: 0, type: "BLSSignRsp"}}}
+
+--- --- --- --- --- GATHERED SUCCESS DETAILS FOR LATEST( (handle_skale_call_via_redirect()) action (END) --- --- --- --- ---
+
+2022-09-28 12:46:23.053: JSON RPC: >>> answer to ::ffff:127.0.0.1:
+{
+    "id":3937967578497932,
+    "jsonrpc":"2.0",
+    "result":{
+        "qa":{
+            "sequence_id":"9cef78ef82228cce2e4ed4bee0c485acca0f368c1d7ae94aa235d26c0b778db3",
+            "skaled_no":0,
+            "ts":"2022-09-28 12:46:22.934"
+        },
+        "signResult":{
+            "errorMessage":"",
+            "signatureShare":"17478565975047244907103895167228083798921988971796902124088684491074746004285:15031994568930252855707831149520060050211430984917981813828217031708710584295:16774908233857298972544743177670408960120003931859857609581436687829921077359:0",
+            "status":0,
+            "type":"BLSSignRsp"
+        }
+    }
+}
+
+ */
+
 module.exports = {
     init: init,
     do_sign_messages_m2s: do_sign_messages_m2s,
     do_sign_messages_s2m: do_sign_messages_s2m,
     do_sign_messages_s2s: do_sign_messages_s2s,
     do_sign_u256: do_sign_u256,
-    handle_skale_imaVerifyAndSign: handle_skale_call_via_redirect,
+    // handle_skale_imaVerifyAndSign: handle_skale_call_via_redirect,
+    handle_skale_imaVerifyAndSign: handle_skale_imaVerifyAndSign,
     handle_skale_imaBSU256: handle_skale_call_via_redirect
 }; // module.exports
