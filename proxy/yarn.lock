@@ -757,10 +757,10 @@
   resolved "https://registry.yarnpkg.com/@skalenetwork/etherbase-interfaces/-/etherbase-interfaces-0.0.1-develop.20.tgz#33f61e18d695fd47063aa39dce4df335d26b9528"
   integrity sha512-j3xnuQtOtjvjAoUMJgSUFxRa9/Egkg1RyA8r6PjcEb33VksE4LWLBy0PNFUFehLZv48595JROTcViGeXXwg5HQ==
 
-"@skalenetwork/ima-interfaces@1.0.0-develop.24":
-  version "1.0.0-develop.24"
-  resolved "https://registry.yarnpkg.com/@skalenetwork/ima-interfaces/-/ima-interfaces-1.0.0-develop.24.tgz#20247612c602a90b6f5e4e0cce6e3eb8e64f2ed1"
-  integrity sha512-qVkcg4DBtH7lbVzTO6AcFILnvOTPesImyVvWqMlyzPOvfj4qUsXeqQqE6pDbhbWev68Ar7cvqWmfK+eEENp1pw==
+"@skalenetwork/ima-interfaces@1.0.0-add-receiver-field-mainnet-interfaces.1":
+  version "1.0.0-add-receiver-field-mainnet-interfaces.1"
+  resolved "https://registry.yarnpkg.com/@skalenetwork/ima-interfaces/-/ima-interfaces-1.0.0-add-receiver-field-mainnet-interfaces.1.tgz#02b3893ee9470258f570daf305f1e0a96d507d68"
+  integrity sha512-+oLcfSotXXdOvb3gFzN8MgePJjF7aK60ad9k2icgXubFDCePPypkCckxDDGDSYZpiQrIqmWkE5qjhsCYdU+a3A==
   dependencies:
     "@skalenetwork/skale-manager-interfaces" "^0.1.2"
 

@@ -108,19 +108,8 @@ contract DepositBoxERC20 is DepositBox, IDepositBoxERC20 {
 
     event Escalated(uint256 id);
 
-    function depositERC20(
-        string calldata schainName,
-        address erc20OnMainnet,
-        uint256 amount
-    )
-        external
-        override
-    {
-        depositERC20Direct(schainName, erc20OnMainnet, amount, msg.sender);
-    }
-
     /**
-     * @dev Allows `msg.sender` to send ERC20 token from mainnet to schain
+     * @dev Allows `msg.sender` to send ERC20 token from mainnet to schain.
      * 
      * Requirements:
      * 
@@ -130,51 +119,15 @@ contract DepositBoxERC20 is DepositBox, IDepositBoxERC20 {
      * - Receiver contract should be defined.
      * - `msg.sender` should approve their tokens for DepositBoxERC20 address.
      */
-    function depositERC20Direct(
+    function depositERC20(
         string calldata schainName,
         address erc20OnMainnet,
-        uint256 amount,
-        address receiver
+        uint256 amount
     )
-        public
-        // override
-        rightTransaction(schainName, receiver)
-        whenNotKilled(_schainHash(schainName))
+        external
+        override
     {
-        bytes32 schainHash = _schainHash(schainName);
-        address contractReceiver = schainLinks[schainHash];
-        require(contractReceiver != address(0), "Unconnected chain");
-        require(
-            ERC20Upgradeable(erc20OnMainnet).allowance(msg.sender, address(this)) >= amount,
-            "DepositBox was not approved for ERC20 token"
-        );
-        bytes memory data = _receiveERC20(
-            schainName,
-            erc20OnMainnet,
-            receiver,
-            amount
-        );
-        _saveTransferredAmount(schainHash, erc20OnMainnet, amount);
-        if (erc20OnMainnet == _USDT_ADDRESS) {
-            // solhint-disable-next-line no-empty-blocks
-            try IERC20TransferVoid(erc20OnMainnet).transferFrom(msg.sender, address(this), amount) {} catch {
-                revert("Transfer was failed");
-            }
-        } else {
-            require(
-                ERC20Upgradeable(erc20OnMainnet).transferFrom(
-                    msg.sender,
-                    address(this),
-                    amount
-                ),
-                "Transfer was failed"
-            );
-        }
-        messageProxy.postOutgoingMessage(
-            schainHash,
-            contractReceiver,
-            data
-        );
+        depositERC20Direct(schainName, erc20OnMainnet, amount, msg.sender);
     }
 
     /**
@@ -654,6 +607,64 @@ contract DepositBoxERC20 is DepositBox, IDepositBoxERC20 {
         initializer
     {
         DepositBox.initialize(contractManagerOfSkaleManagerValue, linkerValue, messageProxyValue);
+    }
+
+    /**
+     * @dev Allows `msg.sender` to send ERC20 token from mainnet to schain to specified receiver.
+     * 
+     * Requirements:
+     * 
+     * - Schain name must not be `Mainnet`.
+     * - Receiver account on schain cannot be null.
+     * - Schain that receives tokens should not be killed.
+     * - Receiver contract should be defined.
+     * - `msg.sender` should approve their tokens for DepositBoxERC20 address.
+     */
+    function depositERC20Direct(
+        string calldata schainName,
+        address erc20OnMainnet,
+        uint256 amount,
+        address receiver
+    )
+        public
+        override
+        rightTransaction(schainName, receiver)
+        whenNotKilled(_schainHash(schainName))
+    {
+        bytes32 schainHash = _schainHash(schainName);
+        address contractReceiver = schainLinks[schainHash];
+        require(contractReceiver != address(0), "Unconnected chain");
+        require(
+            ERC20Upgradeable(erc20OnMainnet).allowance(msg.sender, address(this)) >= amount,
+            "DepositBox was not approved for ERC20 token"
+        );
+        bytes memory data = _receiveERC20(
+            schainName,
+            erc20OnMainnet,
+            receiver,
+            amount
+        );
+        _saveTransferredAmount(schainHash, erc20OnMainnet, amount);
+        if (erc20OnMainnet == _USDT_ADDRESS) {
+            // solhint-disable-next-line no-empty-blocks
+            try IERC20TransferVoid(erc20OnMainnet).transferFrom(msg.sender, address(this), amount) {} catch {
+                revert("Transfer was failed");
+            }
+        } else {
+            require(
+                ERC20Upgradeable(erc20OnMainnet).transferFrom(
+                    msg.sender,
+                    address(this),
+                    amount
+                ),
+                "Transfer was failed"
+            );
+        }
+        messageProxy.postOutgoingMessage(
+            schainHash,
+            contractReceiver,
+            data
+        );
     }
 
     /**
