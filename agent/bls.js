@@ -1681,7 +1681,7 @@ async function handle_skale_call_via_redirect( joCallData ) {
 async function handle_skale_imaVerifyAndSign( joCallData ) {
     const strLogPrefix = "";
     const details = log.createMemoryStream( true );
-    let joRetVal = { };
+    const joRetVal = { };
     let isSuccess = false;
     try {
         //
@@ -1697,7 +1697,7 @@ async function handle_skale_imaVerifyAndSign( joCallData ) {
         details.write( strLogPrefix + cc.debug( "Message hash to sign is " ) + cc.info( strMessageHash ) + "\n" );
         //
         const strURL = imaState.joAccount_s_chain.strSgxURL
-            ? imaState.joAccount_s_chain.strSgxURL 
+            ? imaState.joAccount_s_chain.strSgxURL
             : imaState.joAccount_main_net.strSgxURL;
         if( ! strURL )
             throw new Error( "SGX URL is unknown, cannot verify IMA message(s)" );
