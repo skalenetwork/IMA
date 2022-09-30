@@ -70,7 +70,7 @@ function getWeb3FromURL( strURL, log ) {
     } catch ( err ) {
         log.write( cc.fatal( "CRITICAL ERROR:" ) + cc.error( " Failed to create " ) +
             cc.attention( "Web3" ) + cc.error( " connection to " ) + cc.info( strURL ) +
-            cc.error( ": " ) + cc.warning( err.toString() ) );
+            cc.error( ": " ) + cc.warning( owaspUtil.extract_error_message( err ) ) );
         w3 = null;
     }
     return w3;
@@ -310,7 +310,7 @@ async function load_schains_connected_only( w3_main_net, w3_s_chain, strChainNam
             arr_schains.push( jo_schain );
         } catch ( err ) {
             if( opts && opts.details ) {
-                opts.details.write( cc.error( "Got error: " ) + cc.warning( err.toString() ) + "\n" );
+                opts.details.write( cc.error( "Got error: " ) + cc.warning( owaspUtil.extract_error_message( err ) ) + "\n" );
                 opts.details.write( err.stack );
             }
         }
@@ -346,7 +346,7 @@ async function check_connected_schains( strChainNameConnectedTo, arr_schains, ad
             }
         } catch ( err ) {
             if( opts && opts.details ) {
-                opts.details.write( cc.error( "Got error: " ) + cc.warning( err.toString() ) + "\n" );
+                opts.details.write( cc.error( "Got error: " ) + cc.warning( owaspUtil.extract_error_message( err ) ) + "\n" );
                 opts.details.write( err.stack );
             }
         }
@@ -458,7 +458,7 @@ async function cache_schains( strChainNameConnectedTo, w3_main_net, w3_s_chain, 
         if( opts.fn_chache_changed )
             opts.fn_chache_changed( g_arr_schains_cached, null ); // null - no error
     } catch ( err ) {
-        strError = err.toString();
+        strError = owaspUtil.extract_error_message( err );
         if( ! strError )
             strError = "unknown exception during S-Chains download";
         if( opts.fn_chache_changed )
@@ -614,7 +614,7 @@ async function discover_chain_id( strURL ) {
     const rpcCallOpts = null;
     await rpcCall.create( strURL, rpcCallOpts, async function( joCall, err ) {
         if( err ) {
-            //ret = "Failed to create RPC (" + strURL + ") call: " + err.toString();
+            //ret = "Failed to create RPC (" + strURL + ") call: " + owaspUtil.extract_error_message( err );
             return;
         }
         await joCall.call( {
@@ -622,7 +622,7 @@ async function discover_chain_id( strURL ) {
             "params": []
         }, async function( joIn, joOut, err ) {
             if( err ) {
-                //ret = "Failed to query RPC (" + strURL + ") for chain ID: " + err.toString();
+                //ret = "Failed to query RPC (" + strURL + ") for chain ID: " + owaspUtil.extract_error_message( err );
                 return;
             }
             if( ! ( "result" in joOut && joOut.result ) ) {

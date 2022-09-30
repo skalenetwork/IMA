@@ -1281,7 +1281,7 @@ function getWeb3FromURL( strURL, log ) {
     } catch ( err ) {
         log.write( cc.fatal( "CRITICAL ERROR:" ) + cc.error( " Failed to create " ) +
             cc.attention( "Web3" ) + cc.error( " connection to " ) + cc.info( strURL ) +
-            cc.error( ": " ) + cc.warning( err.toString() ) + "\n" );
+            cc.error( ": " ) + cc.warning( owaspUtil.extract_error_message( err ) ) + "\n" );
         w3 = null;
     }
     return w3;
@@ -1302,7 +1302,7 @@ async function async_check_url_at_startup( u, name ) {
     } catch ( err ) {
         details.write(
             cc.fatal( "ERROR:" ) + cc.error( " Failed to check URL " ) +
-            cc.u( u ) + cc.error( " connectivity for " ) + cc.info( name ) + cc.error( " at start-up, error is: " ) + cc.warning( err.toString() ) +
+            cc.u( u ) + cc.error( " connectivity for " ) + cc.info( name ) + cc.error( " at start-up, error is: " ) + cc.warning( owaspUtil.extract_error_message( err ) ) +
             "\n" );
     }
     // details.exposeDetailsTo( log, "async_check_url_at_startup( \"" + u + "\", \"" + name + "\" )", true );

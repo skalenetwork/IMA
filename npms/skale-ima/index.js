@@ -192,7 +192,7 @@ async function get_web3_blockNumber( details, cntAttempts, w3, retValOnFail, thr
             cc.error( "Failed call attempt " ) + cc.info( idxAttempt ) +
             cc.error( " to " ) + cc.note( strFnName + "()" ) +
             cc.error( " via " ) + cc.u( u ) +
-            cc.error( ", error is: " ) + cc.warning( err.toString() ) +
+            cc.error( ", error is: " ) + cc.warning( owaspUtil.extract_error_message( err ) ) +
             "\n" );
     }
     ++ idxAttempt;
@@ -222,7 +222,7 @@ async function get_web3_blockNumber( details, cntAttempts, w3, retValOnFail, thr
                 cc.error( "Failed call attempt " ) + cc.info( idxAttempt ) +
                 cc.error( " to " ) + cc.note( strFnName + "()" ) +
                 cc.error( " via " ) + cc.u( u ) +
-                cc.error( ", error is: " ) + cc.warning( err.toString() ) +
+                cc.error( ", error is: " ) + cc.warning( owaspUtil.extract_error_message( err ) ) +
                 "\n" );
         }
         ++ idxAttempt;
@@ -257,7 +257,7 @@ async function get_web3_transactionCount( details, cntAttempts, w3, address, par
             cc.error( "Failed call attempt " ) + cc.info( idxAttempt ) +
             cc.error( " to " ) + cc.note( strFnName + "()" ) +
             cc.error( " via " ) + cc.u( u ) +
-            cc.error( ", error is: " ) + cc.warning( err.toString() ) +
+            cc.error( ", error is: " ) + cc.warning( owaspUtil.extract_error_message( err ) ) +
             "\n" );
     }
     ++ idxAttempt;
@@ -287,7 +287,7 @@ async function get_web3_transactionCount( details, cntAttempts, w3, address, par
                 cc.error( "Failed call attempt " ) + cc.info( idxAttempt ) +
                 cc.error( " to " ) + cc.note( strFnName + "()" ) +
                 cc.error( " via " ) + cc.u( u ) +
-                cc.error( ", error is: " ) + cc.warning( err.toString() ) +
+                cc.error( ", error is: " ) + cc.warning( owaspUtil.extract_error_message( err ) ) +
                 "\n" );
         }
         ++ idxAttempt;
@@ -322,7 +322,7 @@ async function get_web3_transactionReceipt( details, cntAttempts, w3, txHash, re
             cc.error( "Failed call attempt " ) + cc.info( idxAttempt ) +
             cc.error( " to " ) + cc.note( strFnName + "()" ) +
             cc.error( " via " ) + cc.u( u ) +
-            cc.error( ", error is: " ) + cc.warning( err.toString() ) +
+            cc.error( ", error is: " ) + cc.warning( owaspUtil.extract_error_message( err ) ) +
             "\n" );
     }
     ++ idxAttempt;
@@ -352,7 +352,7 @@ async function get_web3_transactionReceipt( details, cntAttempts, w3, txHash, re
                 cc.error( "Failed call attempt " ) + cc.info( idxAttempt ) +
                 cc.error( " to " ) + cc.note( strFnName + "()" ) +
                 cc.error( " via " ) + cc.u( u ) +
-                cc.error( ", error is: " ) + cc.warning( err.toString() ) +
+                cc.error( ", error is: " ) + cc.warning( owaspUtil.extract_error_message( err ) ) +
                 "\n" );
         }
         ++ idxAttempt;
@@ -393,9 +393,9 @@ async function get_web3_pastEvents( details, w3, cntAttempts, joContract, strEve
             cc.error( " to " ) + cc.note( strFnName + "()" ) +
             cc.error( " via " ) + cc.u( u ) +
             cc.error( ", from block " ) + cc.warning( nBlockFrom ) + cc.error( ", to block " ) + cc.warning( nBlockTo ) +
-            cc.error( ", error is: " ) + cc.warning( err.toString() ) +
+            cc.error( ", error is: " ) + cc.warning( owaspUtil.extract_error_message( err ) ) +
             "\n" );
-        if( err.toString().indexOf( strErrorTextAboutNotExistingEvent ) >= 0 ) {
+        if( owaspUtil.extract_error_message( err ).indexOf( strErrorTextAboutNotExistingEvent ) >= 0 ) {
             details.write(
                 cc.error( "Did stopped calls to " ) + cc.note( strFnName + "()" ) +
                 cc.error( " because event " ) + cc.notice( strEventName ) +
@@ -439,9 +439,9 @@ async function get_web3_pastEvents( details, w3, cntAttempts, joContract, strEve
                 cc.error( " to " ) + cc.note( strFnName + "()" ) +
                 cc.error( " via " ) + cc.u( u ) +
                 cc.error( ", from block " ) + cc.warning( nBlockFrom ) + cc.error( ", to block " ) + cc.warning( nBlockTo ) +
-                cc.error( ", error is: " ) + cc.warning( err.toString() ) +
+                cc.error( ", error is: " ) + cc.warning( owaspUtil.extract_error_message( err ) ) +
                 "\n" );
-            if( err.toString().indexOf( strErrorTextAboutNotExistingEvent ) >= 0 ) {
+            if( owaspUtil.extract_error_message( err ).indexOf( strErrorTextAboutNotExistingEvent ) >= 0 ) {
                 details.write(
                     cc.error( "Did stopped calls to " ) + cc.note( strFnName + "()" ) +
                     cc.error( " because event " ) + cc.notice( strEventName ) +
@@ -552,7 +552,7 @@ async function get_web3_pastEventsIterative( details, w3, attempts, joContract, 
                 cc.error( "Got scan error during interative scan of " ) +
                 cc.info( idxBlockSubRangeFrom ) + cc.error( "/" ) + cc.info( idxBlockSubRangeTo ) +
                 cc.error( " block sub-range in " ) + cc.info( nBlockFrom ) + cc.error( "/" ) + cc.info( nBlockTo ) +
-                cc.error( " block range, error is: " ) + cc.warning( err.toString() ) + "\n"
+                cc.error( " block range, error is: " ) + cc.warning( owaspUtil.extract_error_message( err ) ) + "\n"
             );
         }
         idxBlockSubRangeFrom = idxBlockSubRangeTo;
@@ -721,7 +721,7 @@ async function do_oracle_gas_price_setup(
                 details.write(
                     cc.error( "Failed to fetch " ) + cc.info( "Main Net gas price" ) +
                     cc.error( " via call to " ) + cc.info( "Oracle" ) +
-                    cc.error( ", error is: " ) + cc.warning( err.toString() ) + "\n" );
+                    cc.error( ", error is: " ) + cc.warning( owaspUtil.extract_error_message( err ) ) + "\n" );
             }
         }
         if( gasPriceOnMainNet === null ) {
@@ -1141,8 +1141,8 @@ async function dry_run_call( details, w3, methodWithArguments, joAccount, strDRC
             details.write(
                 strLogPrefix + cc.fatal( "CRITICAL DRY RUN FAIL" ) + " " +
                 cc.error( " invoking the " ) + cc.info( strMethodName ) + cc.error( " method: " ) +
-                cc.warning( err.toString() ) + "\n" );
-            return "CRITICAL DRY RUN FAIL invoking the \"" + strMethodName + "\" method: " + err.toString();
+                cc.warning( owaspUtil.extract_error_message( err ) ) + "\n" );
+            return "CRITICAL DRY RUN FAIL invoking the \"" + strMethodName + "\" method: " + owaspUtil.extract_error_message( err );
         }
     }
     return null;
@@ -1418,7 +1418,7 @@ async function safe_sign_transaction_with_account( details, w3, tx, rawTx, joAcc
             strMsg =
                 cc.fatal( "BAD ERROR:" ) + " " +
                 cc.error( "TM - transaction was not sent, underlying error is: " ) +
-                cc.warning( err.toString() );
+                cc.warning( owaspUtil.extract_error_message( err ) );
             details.write( strPrefixDetails + strMsg + "\n" );
             log.write( strPrefixLog + strMsg + "\n" );
             // throw err;
@@ -5673,7 +5673,7 @@ async function do_transfer(
                                 ++ cntFailedNodes;
                                 const strError = strLogPrefix + cc.fatal( strDirection + " message analysis error:" ) + " " +
                                     cc.error( "Failed to scan events on node " ) + cc.info( jo_node.name ) +
-                                    cc.error( ", error is: " ) + cc.warning( err.toString() ) +
+                                    cc.error( ", error is: " ) + cc.warning( owaspUtil.extract_error_message( err ) ) +
                                     cc.error( ", detailed node description is: " ) + cc.j( jo_node ) +
                                     "\n";
                                 details.write( strError );
@@ -5716,7 +5716,7 @@ async function do_transfer(
                             cc.error( "Failed to process events for " ) + cc.sunny( strDirection ) + cc.error( " message " ) +
                             cc.info( idxMessage + 1 ) + cc.error( " on node " ) + cc.info( jo_node.name ) +
                             cc.success( " using URL " ) + cc.info( jo_node.http_endpoint_ip ) +
-                            cc.debug( ", error is: " ) + cc.warning( err.toString() ) + "\n";
+                            cc.debug( ", error is: " ) + cc.warning( owaspUtil.extract_error_message( err ) ) + "\n";
                         details.write( strError );
                         if( verbose_get() >= RV_VERBOSE.fatal )
                             log.write( strError );
@@ -5970,7 +5970,7 @@ async function do_transfer(
                 } ); // fn_sign_messages
             } catch ( err ) {
                 const strError = strLogPrefix + cc.fatal( "CRITICAL ERROR:" ) +
-                    cc.error( " Exception from sigining messages function: " ) + cc.error( err.toString() );
+                    cc.error( " Exception from sigining messages function: " ) + cc.error( owaspUtil.extract_error_message( err ) );
                 log.write( strError + "\n" );
                 details.write( strError + "\n" );
                 if( detailsB )
