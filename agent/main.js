@@ -2662,7 +2662,7 @@ async function single_transfer_loop() {
             log.write( strLogPrefix + cc.debug( "Completed: " ) + cc.tf( bResult ) + "\n" );
         return bResult;
     } catch ( err ) {
-        log.write( strLogPrefix + cc.fatal( "Exception:" ) + + cc.error( owaspUtil.extract_error_message( err ) ) + "\n" );
+        log.write( strLogPrefix + cc.fatal( "Exception:" ) + + cc.error( owaspUtils.extract_error_message( err ) ) + "\n" );
     }
     g_is_single_transfer_loop = false;
     return false;
