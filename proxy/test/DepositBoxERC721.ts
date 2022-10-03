@@ -84,8 +84,10 @@ describe("DepositBoxERC721", () => {
     let messageProxy: MessageProxyForMainnet;
     let linker: Linker;
     let communityPool: CommunityPool;
+    let messages: MessagesTester;
     const contractManagerAddress = "0x0000000000000000000000000000000000000000";
     const schainName = "Schain";
+    const schainHash = stringValue(web3.utils.soliditySha3(schainName));
 
     before(async () => {
         [deployer, user, user2, richGuy] = await ethers.getSigners();
@@ -105,6 +107,7 @@ describe("DepositBoxERC721", () => {
         linker = await deployLinker(contractManager, messageProxy);
         depositBoxERC721 = await deployDepositBoxERC721(contractManager, linker, messageProxy);
         communityPool = await deployCommunityPool(contractManager, linker, messageProxy);
+        messages = await deployMessages();
         await messageProxy.grantRole(await messageProxy.CHAIN_CONNECTOR_ROLE(), linker.address);
         await messageProxy.grantRole(await messageProxy.EXTRA_CONTRACT_REGISTRAR_ROLE(), deployer.address);
         await initializeSchain(contractManager, schainName, user.address, 1, 1);
@@ -204,6 +207,44 @@ describe("DepositBoxERC721", () => {
                 expect(await erc721OnChain.ownerOf(tokenId2)).to.equal(depositBoxERC721.address);
             });
 
+            it("should invoke `depositERC721Direct` without mistakes", async () => {
+                // preparation
+                const contractHere = erc721OnChain.address;
+                const to = user.address;
+                const tokenId = 10;
+                const tokenId2 = 11;
+                // the wei should be MORE than (55000 * 1000000000)
+                // GAS_AMOUNT_POST_MESSAGE * AVERAGE_TX_PRICE constants in DepositBox.sol
+                // add schain to avoid the `Unconnected chain` error
+                await linker
+                    .connect(deployer)
+                    .connectSchain(schainName, [deployer.address, deployer.address, deployer.address]);
+                // transfer tokenId from `deployer` to `depositBoxERC721`
+                await erc721OnChain.connect(deployer).approve(depositBoxERC721.address, tokenId);
+                await erc721OnChain.connect(deployer).approve(depositBoxERC721.address, tokenId2);
+                // execution
+                await depositBoxERC721
+                    .connect(deployer)
+                    .depositERC721Direct(schainName, contractHere, tokenId, to).should.be.eventually.rejectedWith("Whitelist is enabled");
+                await depositBoxERC721.connect(user).disableWhitelist(schainName);
+                const data1 = await messages.encodeTransferErc721AndTokenInfoMessage(contractHere, to, tokenId, { name: "ERC721OnChain", symbol: "ERC721" });
+                const data2 = await messages.encodeTransferErc721Message(contractHere, to, tokenId2);
+                await depositBoxERC721
+                    .connect(deployer)
+                    .depositERC721Direct(schainName, contractHere, tokenId, to)
+                    .should.emit(messageProxy, "OutgoingMessage")
+                    .withArgs(schainHash, 0, depositBoxERC721.address, deployer.address, data1);
+                await depositBoxERC721
+                    .connect(deployer)
+                    .depositERC721Direct(schainName, contractHere, tokenId2, to)
+                    .should.emit(messageProxy, "OutgoingMessage")
+                    .withArgs(schainHash, 1, depositBoxERC721.address, deployer.address, data2);;
+                // console.log("Gas for depositERC721:", res.receipt.gasUsed);
+                // expectation
+                expect(await erc721OnChain.ownerOf(tokenId)).to.equal(depositBoxERC721.address);
+                expect(await erc721OnChain.ownerOf(tokenId2)).to.equal(depositBoxERC721.address);
+            });
+
         });
 
         it("should get funds after kill", async () => {
@@ -246,7 +287,6 @@ describe("DepositBoxERC721", () => {
     describe("tests for `postMessage` function", async () => {
         let erc721: ERC721OnChain;
         let erc721OnChain: ERC721OnChain;
-        let messages: MessagesTester;
         let weiAmount: string;
         let sign: {
             blsSignature: [BigNumber, BigNumber],
@@ -259,7 +299,6 @@ describe("DepositBoxERC721", () => {
             weiAmount = 1e18.toString();
             erc721 = await deployERC721OnChain("ERC721", "ERC721");
             erc721OnChain = await deployERC721OnChain("ERC721OnChain", "ERC721OnChain");
-            messages = await deployMessages();
 
             sign = {
                 blsSignature: BlsSignature,
@@ -356,7 +395,6 @@ describe("DepositBoxERC721", () => {
             //  preparation
             const tokenId = 10;
             const to = user.address;
-            const schainHash = stringValue(web3.utils.soliditySha3(schainName));
             const zeroHash = "0x0000000000000000000000000000000000000000000000000000000000000000";
             const senderFromSchain = deployer.address;
 
