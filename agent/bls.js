@@ -1097,7 +1097,7 @@ async function do_sign_messages_impl(
                                 ++joGatheringTracker.nCountErrors;
                         }
                     } catch ( err ) {
-                        ++nCountErrors;
+                        ++joGatheringTracker.nCountErrors;
                         const strErrorMessage =
                             strLogPrefix + cc.error( "S-Chain node " ) + strNodeDescColorized + " " + cc.fatal( "CRITICAL ERROR:" ) +
                             cc.error( " signature fail from node " ) + cc.info( joNode.nodeID ) +
@@ -1505,7 +1505,7 @@ async function do_sign_u256( u256, details, fn ) {
                             ++joGatheringTracker.nCountErrors;
                     }
                 } catch ( err ) {
-                    ++nCountErrors;
+                    ++joGatheringTracker.nCountErrors;
                     const strErrorMessage =
                         strLogPrefix + cc.error( "S-Chain node " ) + strNodeDescColorized + " " + cc.fatal( "CRITICAL ERROR:" ) +
                         cc.error( " signature fail from node " ) + cc.info( joNode.nodeID ) +
@@ -1748,21 +1748,13 @@ async function handle_skale_imaVerifyAndSign( joCallData ) {
                     throw new Error( "JSON RPC call to SGX failed, RPC call reported error: " + owaspUtil.extract_error_message( err ) );
                 }
                 details.write( strLogPrefix + cc.debug( "Call to " ) + cc.info( "SGX" ) + cc.debug( " done, answer is: " ) + cc.j( joOut ) + "\n" );
-                if( joOut.result == null || joOut.result == undefined || ( !typeof joOut.result == "object" ) ) {
-                    const strErrorMessage =
-                        strLogPrefix + cc.fatal( "Wallet CRITICAL ERROR:" ) + " " +
-                        cc.error( "SGX reported wallet error: " ) +
-                        cc.warning( owaspUtil.extract_error_message( joOut, "unknown wallet error(4)" ) ) +
-                        cc.error( ", " ) + cc.notice( "sequence ID" ) + cc.error( " is " ) + cc.attention( sequence_id ) +
-                        "\n";
-                    log.write( strErrorMessage );
-                    details.write( strErrorMessage );
-                    details.write( strErrorMessage );
-                    throw new Error( "JSON RPC call to SGX failed with \"unknown wallet error(4)\", sequence ID is " + sequence_id );
-                }
+                let joSignResult = joOut;
+                if( joOut.result != null && joOut.result != undefined && typeof joOut.result == "object" )
+                    joSignResult = joOut.result;
+                if( joOut.signResult != null && joOut.signResult != undefined && typeof joOut.signResult == "object" )
+                    joSignResult = joOut.signResult;
                 isSuccess = true;
-                const joSignResult = ( "result" in joOut ) ? joOut.result : joOut;
-                joRetVal.signResult = joSignResult;
+                joRetVal.result = { signResult: joSignResult };
                 if( "qa" in joCallData )
                     joRetVal.qa = joCallData.qa;
             } ); // joCall.call ...

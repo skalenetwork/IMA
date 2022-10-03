@@ -2251,6 +2251,22 @@ if( imaState.nJsonRpcPort > 0 ) {
                 if( ! ( "id" in joMessage ) )
                     throw new Error( "\"id\" field was not specified" );
                 joAnswer.id = joMessage.id;
+                const fn_send_answer = function( joAnswer ) {
+                    try {
+                        joAnswer.method = joMessage.method;
+                        joAnswer.id = joMessage.id;
+                        if( IMA.verbose_get() >= IMA.RV_VERBOSE.trace )
+                            log.write( strLogPrefix + cc.sunny( ">>>" ) + " " + cc.normal( "answer to " ) + cc.info( ip ) + cc.normal( ": " ) + cc.j( joAnswer ) + "\n" );
+                        ws_peer.send( JSON.stringify( joAnswer ) );
+                    } catch ( err ) {
+                        if( IMA.verbose_get() >= IMA.RV_VERBOSE.error ) {
+                            log.write( strLogPrefix +
+                                cc.error( "Failed to sent answer to " ) + cc.info( ip ) +
+                                cc.error( ", error is: " ) + cc.warning( err ) + "\n"
+                            );
+                        }
+                    }
+                };
                 switch ( joMessage.method ) {
                 case "echo":
                 case "ping":
@@ -2268,36 +2284,14 @@ if( imaState.nJsonRpcPort > 0 ) {
                     // joAnswer = await imaBLS.handle_skale_imaVerifyAndSign( joMessage );
                     isSkipMode = true;
                     imaBLS.handle_skale_imaVerifyAndSign( joMessage ).then( function( joAnswer ) {
-                        try {
-                            if( IMA.verbose_get() >= IMA.RV_VERBOSE.trace )
-                                log.write( strLogPrefix + cc.sunny( ">>>" ) + " " + cc.normal( "answer to " ) + cc.info( ip ) + cc.normal( ": " ) + cc.j( joAnswer ) + "\n" );
-                            ws_peer.send( JSON.stringify( joAnswer ) );
-                        } catch ( err ) {
-                            if( IMA.verbose_get() >= IMA.RV_VERBOSE.error ) {
-                                log.write( strLogPrefix +
-                                    cc.error( "Failed to sent answer to " ) + cc.info( ip ) +
-                                    cc.error( ", error is: " ) + cc.warning( err ) + "\n"
-                                );
-                            }
-                        }
+                        fn_send_answer( joAnswer );
                     } );
                     break;
                 case "skale_imaBSU256":
                     // joAnswer = await imaBLS.handle_skale_imaBSU256( joMessage );
                     isSkipMode = true;
                     imaBLS.handle_skale_imaBSU256( joMessage ).then( function( joAnswer ) {
-                        try {
-                            if( IMA.verbose_get() >= IMA.RV_VERBOSE.trace )
-                                log.write( strLogPrefix + cc.sunny( ">>>" ) + " " + cc.normal( "answer to " ) + cc.info( ip ) + cc.normal( ": " ) + cc.j( joAnswer ) + "\n" );
-                            ws_peer.send( JSON.stringify( joAnswer ) );
-                        } catch ( err ) {
-                            if( IMA.verbose_get() >= IMA.RV_VERBOSE.error ) {
-                                log.write( strLogPrefix +
-                                    cc.error( "Failed to sent answer to " ) + cc.info( ip ) +
-                                    cc.error( ", error is: " ) + cc.warning( err ) + "\n"
-                                );
-                            }
-                        }
+                        fn_send_answer( joAnswer );
                     } );
                     break;
                 default:
@@ -2311,20 +2305,9 @@ if( imaState.nJsonRpcPort > 0 ) {
                     );
                 }
             }
-            if( ! isSkipMode ) {
-                try {
-                    if( IMA.verbose_get() >= IMA.RV_VERBOSE.trace )
-                        log.write( strLogPrefix + cc.sunny( ">>>" ) + " " + cc.normal( "answer to " ) + cc.info( ip ) + cc.normal( ": " ) + cc.j( joAnswer ) + "\n" );
-                    ws_peer.send( JSON.stringify( joAnswer ) );
-                } catch ( err ) {
-                    if( IMA.verbose_get() >= IMA.RV_VERBOSE.error ) {
-                        log.write( strLogPrefix +
-                            cc.error( "Failed to sent answer to " ) + cc.info( ip ) +
-                            cc.error( ", error is: " ) + cc.warning( err ) + "\n"
-                        );
-                    }
-                }
-            } // if( ! isSkipMode )
+            if( ! isSkipMode )
+                fn_send_answer( joAnswer );
+            // if( ! isSkipMode )
         } );
         // ws_peer.send( "something" );
     } );
