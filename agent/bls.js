@@ -23,7 +23,7 @@
  * @copyright SKALE Labs 2019-Present
  */
 
-// const fs = require( "fs" );
+const fs = require( "fs" );
 // const path = require( "path" );
 // const url = require( "url" );
 // const os = require( "os" );
@@ -1261,7 +1261,9 @@ async function do_sign_messages_impl(
             } );
         }
     } catch ( err ) {
-        const strErrorMessage = cc.error( "Failed BLS sign due to generic flow exception: " ) + cc.warning( owaspUtil.extract_error_message( err ) ) + "\n";
+        const strErrorMessage =
+            cc.error( "Failed BLS sign due to generic flow exception: " ) + cc.warning( owaspUtil.extract_error_message( err ) ) +
+            cc.error( ", call stack is: " ) + "\n" + err.stack() + "\n";
         log.write( strErrorMessage );
         if( details )
             details.write( strErrorMessage );
@@ -1696,17 +1698,26 @@ async function handle_skale_imaVerifyAndSign( joCallData ) {
         const strMessageHash = owaspUtils.remove_starting_0x( keccak256_message( jarrMessages, nIdxCurrentMsgBlockStart, strFromChainName ) );
         details.write( strLogPrefix + cc.debug( "Message hash to sign is " ) + cc.info( strMessageHash ) + "\n" );
         //
-        const strURL = imaState.joAccount_s_chain.strSgxURL
-            ? imaState.joAccount_s_chain.strSgxURL
-            : imaState.joAccount_main_net.strSgxURL;
-        if( ! strURL )
-            throw new Error( "SGX URL is unknown, cannot verify IMA message(s)" );
-        const keyShareName = imaState.joAccount_s_chain.strSgxKeyName;
-        if( ! strURL )
-            throw new Error( "SGX keyshare name is unknown, cannot verify IMA message(s)" );
+        let joAccount = imaState.joAccount_s_chain;
+        if( ! joAccount.strURL ) {
+            joAccount = imaState.joAccount_main_net;
+            if( ! joAccount.strSgxURL )
+                throw new Error( "SGX URL is unknown, cannot verify IMA message(s)" );
+            if( ! joAccount.strBlsKeyName )
+                throw new Error( "BLS keys name is unknown, cannot sign IMA message(s)" );
+        }
+        let rpcCallOpts = null;
+        if( "strPathSslKey" in joAccount && typeof joAccount.strPathSslKey == "string" && joAccount.strPathSslKey.length > 0 &&
+            "strPathSslCert" in joAccount && typeof joAccount.strPathSslCert == "string" && joAccount.strPathSslCert.length > 0
+        ) {
+            rpcCallOpts = {
+                "cert": fs.readFileSync( joAccount.strPathSslCert, "utf8" ),
+                "key": fs.readFileSync( joAccount.strPathSslKey, "utf8" )
+            };
+            // details.write( cc.debug( "Will sign via SGX with SSL options " ) + cc.j( rpcCallOpts ) + "\n" );
+        }
         const signerIndex = imaState.joAccount_s_chain.nNodeNumber;
-        const rpcCallOpts = null;
-        await rpcCall.create( strURL, rpcCallOpts, async function( joCall, err ) {
+        await rpcCall.create( joAccount.strSgxURL, rpcCallOpts, async function( joCall, err ) {
             if( err ) {
                 const strErrorMessage =
                     strLogPrefix + cc.fatal( "CRITICAL ERROR:" ) +
@@ -1719,11 +1730,11 @@ async function handle_skale_imaVerifyAndSign( joCallData ) {
                 method: "blsSignMessageHash",
                 // type: "BLSSignReq",
                 params: {
-                    keyShareName: keyShareName,
+                    keyShareName: joAccount.strBlsKeyName,
                     messageHash: strMessageHash,
                     n: nParticipants,
                     t: nThreshold,
-                    signerIndex: signerIndex + 1 // 1-based
+                    signerIndex: signerIndex + 0 // 1-based
                 }
             };
             details.write( strLogPrefix + cc.debug( "Will invoke " ) + cc.info( "SGX" ) + cc.debug( " with call data " ) + cc.j( joCallSGX ) + "\n" );

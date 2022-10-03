@@ -241,6 +241,9 @@ function parse( joExternalHandlers, argv ) {
             console.log( soi + cc.debug( "--" ) + cc.bright( "sgx-ecdsa-key-main-net" ) + cc.sunny( "=" ) + cc.error( "name" ) + cc.debug( "..." ) + cc.attention( "SGX/ECDSA key name" ) + cc.notice( " for " ) + cc.note( "Main-net" ) + cc.notice( ". Value is automatically loaded from the " ) + cc.warning( "SGX_KEY_ETHEREUM" ) + cc.notice( " environment variable if not specified." ) );
             console.log( soi + cc.debug( "--" ) + cc.bright( "sgx-ecdsa-key-s-chain" ) + cc.sunny( "=" ) + cc.error( "name" ) + cc.debug( "...." ) + cc.attention( "SGX/ECDSA key name" ) + cc.notice( " for " ) + cc.note( "S-chain" ) + cc.notice( ". Value is automatically loaded from the " ) + cc.warning( "SGX_KEY_S_CHAIN" ) + cc.notice( " environment variable if not specified." ) );
             console.log( soi + cc.debug( "--" ) + cc.bright( "sgx-ecdsa-key-t-chain" ) + cc.sunny( "=" ) + cc.error( "name" ) + cc.debug( "...." ) + cc.attention( "SGX/ECDSA key name" ) + cc.notice( " for " ) + cc.note( "S<->S Target S-chain" ) + cc.notice( ". Value is automatically loaded from the " ) + cc.warning( "SGX_KEY_S_CHAIN_TARGET" ) + cc.notice( " environment variable if not specified." ) );
+            console.log( soi + cc.debug( "--" ) + cc.bright( "sgx-bls-key-main-net" ) + cc.sunny( "=" ) + cc.error( "name" ) + cc.debug( "....." ) + cc.attention( "SGX/BLS key name" ) + cc.notice( " for " ) + cc.note( "Main-net" ) + cc.notice( ". Value is automatically loaded from the " ) + cc.warning( "BLS_KEY_ETHEREUM" ) + cc.notice( " environment variable if not specified." ) );
+            console.log( soi + cc.debug( "--" ) + cc.bright( "sgx-bls-key-s-chain" ) + cc.sunny( "=" ) + cc.error( "name" ) + cc.debug( "......" ) + cc.attention( "SGX/BLS key name" ) + cc.notice( " for " ) + cc.note( "S-chain" ) + cc.notice( ". Value is automatically loaded from the " ) + cc.warning( "BLS_KEY_S_CHAIN" ) + cc.notice( " environment variable if not specified." ) );
+            console.log( soi + cc.debug( "--" ) + cc.bright( "sgx-bls-key-t-chain" ) + cc.sunny( "=" ) + cc.error( "name" ) + cc.debug( "......" ) + cc.attention( "SGX/BLS key name" ) + cc.notice( " for " ) + cc.note( "S<->S Target S-chain" ) + cc.notice( ". Value is automatically loaded from the " ) + cc.warning( "BLS_KEY_S_CHAIN_TARGET" ) + cc.notice( " environment variable if not specified." ) );
             //
             console.log( soi + cc.debug( "--" ) + cc.bright( "sgx-ssl-key-main-net" ) + cc.sunny( "=" ) + cc.attention( "path" ) + cc.debug( "....." ) + cc.notice( "Path to " ) + cc.note( "SSL key file" ) + cc.notice( " for " ) + cc.bright( "SGX wallet" ) + cc.notice( " of " ) + cc.note( "Main-net" ) + cc.notice( ". Value is automatically loaded from the " ) + cc.warning( "SGX_SSL_KEY_FILE_ETHEREUM" ) + cc.notice( " environment variable if not specified." ) );
             console.log( soi + cc.debug( "--" ) + cc.bright( "sgx-ssl-key-s-chain" ) + cc.sunny( "=" ) + cc.attention( "path" ) + cc.debug( "......" ) + cc.notice( "Path to " ) + cc.note( "SSL key file" ) + cc.notice( " for " ) + cc.bright( "SGX wallet" ) + cc.notice( " of " ) + cc.note( "S-chain" ) + cc.notice( ". Value is automatically loaded from the " ) + cc.warning( "SGX_SSL_KEY_FILE_S_CHAIN" ) + cc.notice( " environment variable if not specified." ) );
@@ -582,6 +585,21 @@ function parse( joExternalHandlers, argv ) {
         if( joArg.name == "sgx-ecdsa-key-t-chain" ) {
             owaspUtils.verifyArgumentWithNonEmptyValue( joArg );
             imaState.joAccount_t_chain.strSgxKeyName = joArg.value;
+            continue;
+        }
+        if( joArg.name == "sgx-bls-key-main-net" ) {
+            owaspUtils.verifyArgumentWithNonEmptyValue( joArg );
+            imaState.joAccount_main_net.strBlsKeyName = joArg.value;
+            continue;
+        }
+        if( joArg.name == "sgx-bls-key-s-chain" ) {
+            owaspUtils.verifyArgumentWithNonEmptyValue( joArg );
+            imaState.joAccount_s_chain.strBlsKeyName = joArg.value;
+            continue;
+        }
+        if( joArg.name == "sgx-bls-key-t-chain" ) {
+            owaspUtils.verifyArgumentWithNonEmptyValue( joArg );
+            imaState.joAccount_t_chain.strBlsKeyName = joArg.value;
             continue;
         }
         //
@@ -2100,6 +2118,23 @@ function ima_common_init() {
         try {
             ensure_have_chain_credentials( "S<->S Target S-Chain", imaState.joAccount_t_chain, false, isPrintGathered && isPrintSecurityValues );
         } catch ( err ) {}
+        if( isPrintGathered && isPrintSecurityValues ) {
+            if( imaState.joAccount_main_net.strBlsKeyName ) {
+                ensure_have_value( "BLS/Main Net key name", imaState.joAccount_main_net.strBlsKeyName, false, isPrintGathered, null, ( x ) => {
+                    return cc.attention( x );
+                } );
+            }
+            if( imaState.joAccount_s_chain.strBlsKeyName ) {
+                ensure_have_value( "BLS/S-Chain key name", imaState.joAccount_s_chain.strBlsKeyName, false, isPrintGathered, null, ( x ) => {
+                    return cc.attention( x );
+                } );
+            }
+            if( imaState.joAccount_t_chain.strBlsKeyName ) {
+                ensure_have_value( "BLS/Target S-Chain key name", imaState.joAccount_t_chain.strBlsKeyName, false, isPrintGathered, null, ( x ) => {
+                    return cc.attention( x );
+                } );
+            }
+        }
         //
         //
         ensure_have_value( "Amount of wei to transfer", imaState.nAmountOfWei, false, isPrintGathered, null, ( x ) => {

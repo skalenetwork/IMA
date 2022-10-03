@@ -224,7 +224,8 @@ global.imaState = {
         "strSgxURL": owaspUtils.toStringURL( process.env.SGX_URL_ETHEREUM ),
         "strSgxKeyName": owaspUtils.toStringURL( process.env.SGX_KEY_ETHEREUM ),
         "strPathSslKey": ( process.env.SGX_SSL_KEY_FILE_ETHEREUM || "" ).toString().trim(),
-        "strPathSslCert": ( process.env.SGX_SSL_CERT_FILE_ETHEREUM || "" ).toString().trim()
+        "strPathSslCert": ( process.env.SGX_SSL_CERT_FILE_ETHEREUM || "" ).toString().trim(),
+        "strBlsKeyName": owaspUtils.toStringURL( process.env.BLS_KEY_ETHEREUM )
     },
     "joAccount_s_chain": {
         "privateKey": owaspUtils.toEthPrivateKey( process.env.PRIVATE_KEY_FOR_SCHAIN ),
@@ -234,7 +235,8 @@ global.imaState = {
         "strSgxURL": owaspUtils.toStringURL( process.env.SGX_URL_S_CHAIN ),
         "strSgxKeyName": owaspUtils.toStringURL( process.env.SGX_KEY_S_CHAIN ),
         "strPathSslKey": ( process.env.SGX_SSL_KEY_FILE_S_CHAIN || "" ).toString().trim(),
-        "strPathSslCert": ( process.env.SGX_SSL_CERT_FILE_S_CHAIN || "" ).toString().trim()
+        "strPathSslCert": ( process.env.SGX_SSL_CERT_FILE_S_CHAIN || "" ).toString().trim(),
+        "strBlsKeyName": owaspUtils.toStringURL( process.env.BLS_KEY_S_CHAIN )
     },
     "joAccount_t_chain": {
         "privateKey": owaspUtils.toEthPrivateKey( process.env.PRIVATE_KEY_FOR_SCHAIN_TARGET ),
@@ -244,7 +246,8 @@ global.imaState = {
         "strSgxURL": owaspUtils.toStringURL( process.env.SGX_URL_S_CHAIN_TARGET ),
         "strSgxKeyName": owaspUtils.toStringURL( process.env.SGX_KEY_S_CHAIN_TARGET ),
         "strPathSslKey": ( process.env.SGX_SSL_KEY_FILE_S_CHAIN_TARGET || "" ).toString().trim(),
-        "strPathSslCert": ( process.env.SGX_SSL_CERT_FILE_S_CHAIN_TARGET || "" ).toString().trim()
+        "strPathSslCert": ( process.env.SGX_SSL_CERT_FILE_S_CHAIN_TARGET || "" ).toString().trim(),
+        "strBlsKeyName": owaspUtils.toStringURL( process.env.BLS_KEY_T_CHAIN )
     },
 
     //
@@ -2231,12 +2234,13 @@ if( imaState.nJsonRpcPort > 0 ) {
         const ip = req.socket.remoteAddress;
         if( IMA.verbose_get() >= IMA.RV_VERBOSE.trace )
             log.write( strLogPrefix + cc.normal( "New connection from " ) + cc.info( ip ) + "\n" );
-        ws_peer.on( "message", async function( message ) {
-            let joAnswer = {
+        ws_peer.on( "message", function( message ) {
+            const joAnswer = {
                 method: null,
                 id: null,
                 error: null
             };
+            let isSkipMode = false;
             try {
                 const joMessage = JSON.parse( message );
                 if( IMA.verbose_get() >= IMA.RV_VERBOSE.trace )
@@ -2261,10 +2265,40 @@ if( imaState.nJsonRpcPort > 0 ) {
                 //     joAnswer.schain_network_info = imaState.joSChainNetworkInfo;
                 //     break;
                 case "skale_imaVerifyAndSign":
-                    joAnswer = await imaBLS.handle_skale_imaVerifyAndSign( joMessage );
+                    // joAnswer = await imaBLS.handle_skale_imaVerifyAndSign( joMessage );
+                    isSkipMode = true;
+                    imaBLS.handle_skale_imaVerifyAndSign( joMessage ).then( function( joAnswer ) {
+                        try {
+                            if( IMA.verbose_get() >= IMA.RV_VERBOSE.trace )
+                                log.write( strLogPrefix + cc.sunny( ">>>" ) + " " + cc.normal( "answer to " ) + cc.info( ip ) + cc.normal( ": " ) + cc.j( joAnswer ) + "\n" );
+                            ws_peer.send( JSON.stringify( joAnswer ) );
+                        } catch ( err ) {
+                            if( IMA.verbose_get() >= IMA.RV_VERBOSE.error ) {
+                                log.write( strLogPrefix +
+                                    cc.error( "Failed to sent answer to " ) + cc.info( ip ) +
+                                    cc.error( ", error is: " ) + cc.warning( err ) + "\n"
+                                );
+                            }
+                        }
+                    } );
                     break;
                 case "skale_imaBSU256":
-                    joAnswer = await imaBLS.handle_skale_imaBSU256( joMessage );
+                    // joAnswer = await imaBLS.handle_skale_imaBSU256( joMessage );
+                    isSkipMode = true;
+                    imaBLS.handle_skale_imaBSU256( joMessage ).then( function( joAnswer ) {
+                        try {
+                            if( IMA.verbose_get() >= IMA.RV_VERBOSE.trace )
+                                log.write( strLogPrefix + cc.sunny( ">>>" ) + " " + cc.normal( "answer to " ) + cc.info( ip ) + cc.normal( ": " ) + cc.j( joAnswer ) + "\n" );
+                            ws_peer.send( JSON.stringify( joAnswer ) );
+                        } catch ( err ) {
+                            if( IMA.verbose_get() >= IMA.RV_VERBOSE.error ) {
+                                log.write( strLogPrefix +
+                                    cc.error( "Failed to sent answer to " ) + cc.info( ip ) +
+                                    cc.error( ", error is: " ) + cc.warning( err ) + "\n"
+                                );
+                            }
+                        }
+                    } );
                     break;
                 default:
                     throw new Error( "Unknown method name \"" + joMessage.method + "\" was specified" );
@@ -2277,18 +2311,20 @@ if( imaState.nJsonRpcPort > 0 ) {
                     );
                 }
             }
-            try {
-                if( IMA.verbose_get() >= IMA.RV_VERBOSE.trace )
-                    log.write( strLogPrefix + cc.sunny( ">>>" ) + " " + cc.normal( "answer to " ) + cc.info( ip ) + cc.normal( ": " ) + cc.j( joAnswer ) + "\n" );
-                ws_peer.send( JSON.stringify( joAnswer ) );
-            } catch ( err ) {
-                if( IMA.verbose_get() >= IMA.RV_VERBOSE.error ) {
-                    log.write( strLogPrefix +
-                        cc.error( "Failed to sent answer to " ) + cc.info( ip ) +
-                        cc.error( ", error is: " ) + cc.warning( err ) + "\n"
-                    );
+            if( ! isSkipMode ) {
+                try {
+                    if( IMA.verbose_get() >= IMA.RV_VERBOSE.trace )
+                        log.write( strLogPrefix + cc.sunny( ">>>" ) + " " + cc.normal( "answer to " ) + cc.info( ip ) + cc.normal( ": " ) + cc.j( joAnswer ) + "\n" );
+                    ws_peer.send( JSON.stringify( joAnswer ) );
+                } catch ( err ) {
+                    if( IMA.verbose_get() >= IMA.RV_VERBOSE.error ) {
+                        log.write( strLogPrefix +
+                            cc.error( "Failed to sent answer to " ) + cc.info( ip ) +
+                            cc.error( ", error is: " ) + cc.warning( err ) + "\n"
+                        );
+                    }
                 }
-            }
+            } // if( ! isSkipMode )
         } );
         // ws_peer.send( "something" );
     } );

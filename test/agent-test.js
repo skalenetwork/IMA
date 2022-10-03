@@ -187,7 +187,8 @@ global.imaState = {
         "strSgxURL": owaspUtils.toStringURL( process.env.SGX_URL_ETHEREUM ),
         "strSgxKeyName": owaspUtils.toStringURL( process.env.SGX_KEY_ETHEREUM ),
         "strPathSslKey": ( process.env.SGX_SSL_KEY_FILE_ETHEREUM || "" ).toString().trim(),
-        "strPathSslCert": ( process.env.SGX_SSL_CERT_FILE_ETHEREUM || "" ).toString().trim()
+        "strPathSslCert": ( process.env.SGX_SSL_CERT_FILE_ETHEREUM || "" ).toString().trim(),
+        "strBlsKeyName": owaspUtils.toStringURL( process.env.BLS_KEY_ETHEREUM )
     },
     "joAccount_s_chain": {
         "privateKey": owaspUtils.toEthPrivateKey( process.env.PRIVATE_KEY_FOR_SCHAIN ),
@@ -196,7 +197,8 @@ global.imaState = {
         "strSgxURL": owaspUtils.toStringURL( process.env.SGX_URL_S_CHAIN ),
         "strSgxKeyName": owaspUtils.toStringURL( process.env.SGX_KEY_S_CHAIN ),
         "strPathSslKey": ( process.env.SGX_SSL_KEY_FILE_S_CHAIN || "" ).toString().trim(),
-        "strPathSslCert": ( process.env.SGX_SSL_CERT_FILE_S_CHAIN || "" ).toString().trim()
+        "strPathSslCert": ( process.env.SGX_SSL_CERT_FILE_S_CHAIN || "" ).toString().trim(),
+        "strBlsKeyName": owaspUtils.toStringURL( process.env.BLS_KEY_S_CHAIN )
     },
     "joAccount_t_chain": {
         "privateKey": owaspUtils.toEthPrivateKey( process.env.PRIVATE_KEY_FOR_SCHAIN_TARGET ),
@@ -205,7 +207,8 @@ global.imaState = {
         "strSgxURL": owaspUtils.toStringURL( process.env.SGX_URL_S_CHAIN_TARGET ),
         "strSgxKeyName": owaspUtils.toStringURL( process.env.SGX_KEY_S_CHAIN_TARGET ),
         "strPathSslKey": ( process.env.SGX_SSL_KEY_FILE_S_CHAIN_TARGET || "" ).toString().trim(),
-        "strPathSslCert": ( process.env.SGX_SSL_CERT_FILE_S_CHAIN_TARGET || "" ).toString().trim()
+        "strPathSslCert": ( process.env.SGX_SSL_CERT_FILE_S_CHAIN_TARGET || "" ).toString().trim(),
+        "strBlsKeyName": owaspUtils.toStringURL( process.env.BLS_KEY_T_CHAIN )
     },
 
     //

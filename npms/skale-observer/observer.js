@@ -540,7 +540,8 @@ async function ensure_have_worker( opts ) {
                         "strSgxURL": opts.imaState.joAccount_main_net.strSgxURL,
                         "strSgxKeyName": opts.imaState.joAccount_main_net.strSgxKeyName,
                         "strPathSslKey": opts.imaState.joAccount_main_net.strPathSslKey,
-                        "strPathSslCert": opts.imaState.joAccount_main_net.strPathSslCert
+                        "strPathSslCert": opts.imaState.joAccount_main_net.strPathSslCert,
+                        "strBlsKeyName": opts.imaState.joAccount_main_net.strBlsKeyName
                     },
                     "joAccount_s_chain": {
                         "privateKey": opts.imaState.joAccount_s_chain.privateKey,
@@ -550,7 +551,8 @@ async function ensure_have_worker( opts ) {
                         "strSgxURL": opts.imaState.joAccount_s_chain.strSgxURL,
                         "strSgxKeyName": opts.imaState.joAccount_s_chain.strSgxKeyName,
                         "strPathSslKey": opts.imaState.joAccount_s_chain.strPathSslKey,
-                        "strPathSslCert": opts.imaState.joAccount_s_chain.strPathSslCert
+                        "strPathSslCert": opts.imaState.joAccount_s_chain.strPathSslCert,
+                        "strBlsKeyName": opts.imaState.joAccount_s_chain.strBlsKeyName
                     },
                     // "tc_main_net": IMA.tc_main_net,
                     // "tc_s_chain": IMA.tc_s_chain,
