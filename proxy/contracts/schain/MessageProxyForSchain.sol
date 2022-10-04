@@ -113,6 +113,11 @@ contract MessageProxyForSchain is MessageProxy, IMessageProxyForSchain {
      */
     TokenManagerLinker private _tokenManagerLinker;
 
+    event MinimumReceiverBalanceChanged (
+        uint256 oldValue,
+        uint256 newValue
+    );
+
     /**
      * @dev Reentrancy guard for postIncomingMessages.
      */
@@ -233,6 +238,7 @@ contract MessageProxyForSchain is MessageProxy, IMessageProxyForSchain {
     }
 
     function setMinimumReceiverBalance(uint256 balance) external override onlyConstantSetter {
+        emit MinimumReceiverBalanceChanged(minimumReceiverBalance, balance);
         minimumReceiverBalance = balance;
     }
 
@@ -240,9 +246,9 @@ contract MessageProxyForSchain is MessageProxy, IMessageProxyForSchain {
         // allow only TokenManager to call this function
         require(getTokenManagerLinker().hasTokenManager(msg.sender), "Sender is not TokenManager");
         uint256 balance = receiver.balance;
-        uint256 threashold = minimumReceiverBalance;
-        if (balance < threashold) {
-            _transferFromEtherbase(receiver, threashold - balance);
+        uint256 threshold = minimumReceiverBalance;
+        if (balance < threshold) {
+            _transferFromEtherbase(receiver, threshold - balance);
         }
     }
 

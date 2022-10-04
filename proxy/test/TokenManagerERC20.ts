@@ -1534,7 +1534,9 @@ describe("TokenManagerERC20", () => {
 
             (await receiver.getBalance()).should.be.equal(0);
 
-            await messageProxyForSchain.setMinimumReceiverBalance(ethers.utils.parseEther("2"));
+            await expect(messageProxyForSchain.setMinimumReceiverBalance(ethers.utils.parseEther("2")))
+                .to.emit(messageProxyForSchain, 'MinimumReceiverBalanceChanged')
+                .withArgs(0, ethers.utils.parseEther("2"));
 
             await messageProxyForSchain.postMessage(
                 tokenManagerErc20.address,
