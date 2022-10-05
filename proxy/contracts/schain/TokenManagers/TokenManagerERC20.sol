@@ -309,7 +309,7 @@ contract TokenManagerERC20 is TokenManager, ITokenManagerERC20 {
             data = _receiveERC20(
                 chainHash,
                 address(contractOnSchain),
-                msg.sender,
+                to,
                 amount
             );
             _saveTransferredAmount(chainHash, address(contractOnSchain), amount);

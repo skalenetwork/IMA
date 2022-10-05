@@ -353,7 +353,7 @@ contract TokenManagerERC721 is TokenManager, ITokenManagerERC721 {
             data = _receiveERC721(
                 chainHash,
                 address(contractOnSchain),
-                msg.sender,
+                to,
                 tokenId
             );
             _saveTransferredAmount(chainHash, address(contractOnSchain), tokenId);

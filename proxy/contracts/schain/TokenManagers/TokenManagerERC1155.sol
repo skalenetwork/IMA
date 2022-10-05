@@ -476,7 +476,7 @@ contract TokenManagerERC1155 is
             data = _receiveERC1155(
                 chainHash,
                 address(contractOnSchain),
-                msg.sender,
+                to,
                 id,
                 amount
             );
@@ -521,7 +521,7 @@ contract TokenManagerERC1155 is
             data = _receiveERC1155Batch(
                 chainHash,
                 address(contractOnSchain),
-                msg.sender,
+                to,
                 ids,
                 amounts
             );

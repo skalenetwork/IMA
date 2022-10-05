@@ -217,7 +217,7 @@ describe("TokenManagerERC721WithMetadata", () => {
         let tokenManagerERC721WithMetadata2: TokenManagerERC721WithMetadata;
         let communityLocker2: CommunityLocker;
         const newSchainName = "NewChain";
-        const newSchainId = stringValue(web3.utils.soliditySha3(newSchainName));
+        const newSchainHash = stringValue(web3.utils.soliditySha3(newSchainName));
 
         beforeEach(async () => {
             erc721OnOriginChain = await deployERC721OnChain("NewToken", "NTN");
@@ -259,6 +259,44 @@ describe("TokenManagerERC721WithMetadata", () => {
             await tokenManagerERC721WithMetadata
                 .connect(user)
                 .transferToSchainERC721(newSchainName, erc721OnOriginChain.address, tokenId);
+
+            // expectation:
+            const outgoingMessagesCounter = BigNumber.from(
+                await messageProxyForSchain.getOutgoingMessagesCounter(newSchainName));
+            outgoingMessagesCounter.should.be.deep.equal(BigNumber.from(1));
+        });
+
+        it("should invoke `transferToSchainERC721Direct` without mistakes", async () => {
+            await messageProxyForSchain.registerExtraContract(newSchainName, tokenManagerERC721WithMetadata.address);
+
+            // add connected chain:
+            await messageProxyForSchain.connect(deployer).grantRole(await messageProxyForSchain.CHAIN_CONNECTOR_ROLE(), deployer.address);
+            await messageProxyForSchain.connect(deployer).addConnectedChain(newSchainName);
+
+            await erc721OnOriginChain.connect(deployer).mint(user.address, tokenId);
+            await erc721OnOriginChain.connect(user).setTokenURI(tokenId, tokenURI);
+            await erc721OnOriginChain.connect(user).approve(tokenManagerERC721WithMetadata.address, tokenId);
+
+            await tokenManagerERC721WithMetadata
+                .connect(user)
+                .transferToSchainERC721Direct(newSchainName, erc721OnOriginChain.address, tokenId, deployer.address)
+                .should.be.eventually.rejectedWith("Incorrect Token Manager address");
+
+            await tokenManagerERC721WithMetadata
+                .connect(user)
+                .transferToSchainERC721Direct("Mainnet", erc721OnOriginChain.address, tokenId, deployer.address)
+                .should.be.eventually.rejectedWith("This function is not for transferring to Mainnet");
+
+            await tokenManagerERC721WithMetadata.addTokenManager(newSchainName, tokenManagerERC721WithMetadata2.address);
+
+            const data = await messages.encodeTransferErc721WithMetadataAndTokenInfoMessage(erc721OnOriginChain.address, deployer.address, tokenId, tokenURI, { name: "NewToken", symbol: "NTN" });
+
+            // execution:
+            await tokenManagerERC721WithMetadata
+                .connect(user)
+                .transferToSchainERC721Direct(newSchainName, erc721OnOriginChain.address, tokenId, deployer.address)
+                .should.emit(messageProxyForSchain, "OutgoingMessage")
+                .withArgs(newSchainHash, 0, tokenManagerERC721WithMetadata.address, tokenManagerERC721WithMetadata2.address, data);
 
             // expectation:
             const outgoingMessagesCounter = BigNumber.from(
@@ -700,7 +738,7 @@ describe("TokenManagerERC721WithMetadata", () => {
                 tokenURI
             );
 
-            await messageProxyForSchain.postMessage(tokenManagerERC721WithMetadata.address, newSchainId, tokenManagerERC721WithMetadata2.address, data);
+            await messageProxyForSchain.postMessage(tokenManagerERC721WithMetadata.address, newSchainHash, tokenManagerERC721WithMetadata2.address, data);
             expect((await erc721OnOriginChain.functions.ownerOf(tokenId)).toString()).to.be.equal(user.address);
             expect((await erc721OnOriginChain.functions.tokenURI(tokenId)).toString()).to.be.equal(tokenURI);
 
@@ -796,7 +834,7 @@ describe("TokenManagerERC721WithMetadata", () => {
                 tokenURI
             );
 
-            await messageProxyForSchain.postMessage(tokenManagerERC721WithMetadata.address, newSchainId, tokenManagerERC721WithMetadata2.address, data);
+            await messageProxyForSchain.postMessage(tokenManagerERC721WithMetadata.address, newSchainHash, tokenManagerERC721WithMetadata2.address, data);
             expect((await erc721OnOriginChain.functions.ownerOf(tokenId)).toString()).to.be.equal(user.address);
             expect((await erc721OnOriginChain.functions.tokenURI(tokenId)).toString()).to.be.equal(tokenURI);
 
@@ -899,7 +937,7 @@ describe("TokenManagerERC721WithMetadata", () => {
                 tokenURI
             );
 
-            await messageProxyForSchain.postMessage(tokenManagerERC721WithMetadata.address, newSchainId, tokenManagerERC721WithMetadata2.address, data);
+            await messageProxyForSchain.postMessage(tokenManagerERC721WithMetadata.address, newSchainHash, tokenManagerERC721WithMetadata2.address, data);
             expect((await erc721OnOriginChain.functions.ownerOf(tokenId)).toString()).to.be.equal(user.address);
             expect((await erc721OnOriginChain.functions.tokenURI(tokenId)).toString()).to.be.equal(tokenURI);
 
@@ -959,7 +997,7 @@ describe("TokenManagerERC721WithMetadata", () => {
                 tokenURI
             );
 
-            await messageProxyForSchain.postMessage(tokenManagerERC721WithMetadata.address, newSchainId, tokenManagerERC721WithMetadata2.address, data);
+            await messageProxyForSchain.postMessage(tokenManagerERC721WithMetadata.address, newSchainHash, tokenManagerERC721WithMetadata2.address, data);
             expect((await erc721OnOriginChain.functions.ownerOf(tokenId)).toString()).to.be.equal(user.address);
             expect((await erc721OnOriginChain.functions.tokenURI(tokenId)).toString()).to.be.equal(tokenURI);
 
@@ -976,7 +1014,7 @@ describe("TokenManagerERC721WithMetadata", () => {
                 tokenURI2
             );
 
-            await messageProxyForSchain.postMessage(tokenManagerERC721WithMetadata.address, newSchainId, tokenManagerERC721WithMetadata2.address, data);
+            await messageProxyForSchain.postMessage(tokenManagerERC721WithMetadata.address, newSchainHash, tokenManagerERC721WithMetadata2.address, data);
 
             expect((await erc721OnOriginChain.functions.ownerOf(tokenId)).toString()).to.be.equal(user.address);
             expect((await erc721OnOriginChain.functions.tokenURI(tokenId)).toString()).to.be.equal(tokenURI);
@@ -1075,7 +1113,7 @@ describe("TokenManagerERC721WithMetadata", () => {
                 tokenURI
             );
 
-            await messageProxyForSchain.postMessage(tokenManagerERC721WithMetadata.address, newSchainId, tokenManagerERC721WithMetadata2.address, data);
+            await messageProxyForSchain.postMessage(tokenManagerERC721WithMetadata.address, newSchainHash, tokenManagerERC721WithMetadata2.address, data);
             expect((await erc721OnOriginChain.functions.ownerOf(tokenId)).toString()).to.be.equal(user.address);
             expect((await erc721OnOriginChain.functions.tokenURI(tokenId)).toString()).to.be.equal(tokenURI);
 
@@ -1135,7 +1173,7 @@ describe("TokenManagerERC721WithMetadata", () => {
                 tokenURI
             );
 
-            await messageProxyForSchain.postMessage(tokenManagerERC721WithMetadata.address, newSchainId, tokenManagerERC721WithMetadata2.address, data);
+            await messageProxyForSchain.postMessage(tokenManagerERC721WithMetadata.address, newSchainHash, tokenManagerERC721WithMetadata2.address, data);
             expect((await erc721OnOriginChain.functions.ownerOf(tokenId)).toString()).to.be.equal(user.address);
             expect((await erc721OnOriginChain.functions.tokenURI(tokenId)).toString()).to.be.equal(tokenURI);
 
@@ -1152,7 +1190,7 @@ describe("TokenManagerERC721WithMetadata", () => {
                 tokenURI2
             );
 
-            await messageProxyForSchain.postMessage(tokenManagerERC721WithMetadata.address, newSchainId, tokenManagerERC721WithMetadata2.address, data);
+            await messageProxyForSchain.postMessage(tokenManagerERC721WithMetadata.address, newSchainHash, tokenManagerERC721WithMetadata2.address, data);
 
             expect((await erc721OnOriginChain.functions.ownerOf(tokenId)).toString()).to.be.equal(user.address);
             expect((await erc721OnOriginChain.functions.tokenURI(tokenId)).toString()).to.be.equal(tokenURI);
@@ -1319,7 +1357,7 @@ describe("TokenManagerERC721WithMetadata", () => {
                 tokenURI
             );
 
-            await messageProxyForSchain.postMessage(tokenManagerERC721WithMetadata.address, newSchainId, tokenManagerERC721WithMetadata2.address, data);
+            await messageProxyForSchain.postMessage(tokenManagerERC721WithMetadata.address, newSchainHash, tokenManagerERC721WithMetadata2.address, data);
             expect((await erc721OnOriginChain.functions.ownerOf(tokenId)).toString()).to.be.equal(user.address);
             expect((await erc721OnOriginChain.functions.tokenURI(tokenId)).toString()).to.be.equal(tokenURI);
 
