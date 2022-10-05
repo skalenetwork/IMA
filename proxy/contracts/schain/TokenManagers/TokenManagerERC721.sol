@@ -115,11 +115,8 @@ contract TokenManagerERC721 is TokenManager, ITokenManagerERC721 {
     ) 
         external
         override
-        rightTransaction(targetSchainName, msg.sender)
     {
-        bytes32 targetSchainHash = keccak256(abi.encodePacked(targetSchainName));
-        communityLocker.checkAllowedToSendMessage(targetSchainHash, msg.sender);
-        _exit(targetSchainHash, tokenManagers[targetSchainHash], contractOnMainnet, msg.sender, tokenId);
+        transferToSchainERC721Direct(targetSchainName, contractOnMainnet, tokenId, msg.sender);
     }
 
     /**
@@ -196,7 +193,28 @@ contract TokenManagerERC721 is TokenManager, ITokenManagerERC721 {
             newCommunityLocker,
             newDepositBox
         );
-    }    
+    }
+
+    /**
+     * @dev Move tokens from schain to schain to specified receiver.
+     * 
+     * {contractOnMainnet} tokens are burned on origin schain
+     * and are minted on {targetSchainName} schain for {receiver} address.
+     */
+    function transferToSchainERC721Direct(
+        string calldata targetSchainName,
+        address contractOnMainnet,
+        uint256 tokenId,
+        address receiver
+    )
+        public
+        override
+        rightTransaction(targetSchainName, receiver)
+    {
+        bytes32 targetSchainHash = keccak256(abi.encodePacked(targetSchainName));
+        communityLocker.checkAllowedToSendMessage(targetSchainHash, msg.sender);
+        _exit(targetSchainHash, tokenManagers[targetSchainHash], contractOnMainnet, receiver, tokenId);
+    }
 
     // private
 
@@ -335,7 +353,7 @@ contract TokenManagerERC721 is TokenManager, ITokenManagerERC721 {
             data = _receiveERC721(
                 chainHash,
                 address(contractOnSchain),
-                msg.sender,
+                to,
                 tokenId
             );
             _saveTransferredAmount(chainHash, address(contractOnSchain), tokenId);

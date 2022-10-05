@@ -156,7 +156,7 @@ contract TokenManagerERC721WithMetadata is TokenManagerERC721 {
             data = _receiveERC721(
                 chainHash,
                 address(contractOnSchain),
-                msg.sender,
+                to,
                 tokenId
             );
             _saveTransferredAmount(chainHash, address(contractOnSchain), tokenId);

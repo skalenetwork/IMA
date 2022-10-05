@@ -101,7 +101,7 @@ contract TokenManagerERC1155 is
     /**
      * @dev Move tokens from schain to mainnet.
      * 
-     * {contractOnMainnet} tokens are burned on schain and unlocked on mainnet for {to} address.
+     * {contractOnMainnet} tokens are burned on schain and unlocked on mainnet for {msg.sender} address.
      */
     function exitToMainERC1155(
         address contractOnMainnet,
@@ -118,7 +118,7 @@ contract TokenManagerERC1155 is
     /**
      * @dev Move batch of tokens from schain to mainnet.
      * 
-     * {contractOnMainnet} tokens are burned on schain and unlocked on mainnet for {to} address.
+     * {contractOnMainnet} tokens are burned on schain and unlocked on mainnet for {msg.sender} address.
      */
     function exitToMainERC1155Batch(
         address contractOnMainnet,
@@ -136,7 +136,7 @@ contract TokenManagerERC1155 is
      * @dev Move tokens from schain to schain.
      * 
      * {contractOnMainnet} tokens are burned on origin schain
-     * and are minted on {targetSchainName} schain for {to} address.
+     * and are minted on {targetSchainName} schain for {msg.sender} address.
      */
     function transferToSchainERC1155(
         string calldata targetSchainName,
@@ -146,18 +146,15 @@ contract TokenManagerERC1155 is
     ) 
         external
         override
-        rightTransaction(targetSchainName, msg.sender)
     {
-        bytes32 targetSchainHash = keccak256(abi.encodePacked(targetSchainName));
-        communityLocker.checkAllowedToSendMessage(targetSchainHash, msg.sender);
-        _exit(targetSchainHash, tokenManagers[targetSchainHash], contractOnMainnet, msg.sender, id, amount);
+        transferToSchainERC1155Direct(targetSchainName, contractOnMainnet, id, amount, msg.sender);
     }
 
     /**
      * @dev Move batch of tokens from schain to schain.
      * 
      * {contractOnMainnet} tokens are burned on origin schain
-     * and are minted on {targetSchainName} schain for {to} address.
+     * and are minted on {targetSchainName} schain for {msg.sender} address.
      */
     function transferToSchainERC1155Batch(
         string calldata targetSchainName,
@@ -167,11 +164,8 @@ contract TokenManagerERC1155 is
     ) 
         external
         override
-        rightTransaction(targetSchainName, msg.sender)
     {
-        bytes32 targetSchainHash = keccak256(abi.encodePacked(targetSchainName));
-        communityLocker.checkAllowedToSendMessage(targetSchainHash, msg.sender);
-        _exitBatch(targetSchainHash, tokenManagers[targetSchainHash], contractOnMainnet, msg.sender, ids, amounts);
+        transferToSchainERC1155BatchDirect(targetSchainName, contractOnMainnet, ids, amounts, msg.sender);
     }
 
     /**
@@ -285,6 +279,50 @@ contract TokenManagerERC1155 is
     {
         require(operator == address(this), "Revert ERC1155 batch transfer");
         return bytes4(keccak256("onERC1155BatchReceived(address,address,uint256[],uint256[],bytes)"));
+    }
+
+    /**
+     * @dev Move tokens from schain to schain to specified receiver.
+     * 
+     * {contractOnMainnet} tokens are burned on origin schain
+     * and are minted on {targetSchainName} schain for {receiver} address.
+     */
+    function transferToSchainERC1155Direct(
+        string calldata targetSchainName,
+        address contractOnMainnet,
+        uint256 id,
+        uint256 amount,
+        address receiver
+    )
+        public
+        override
+        rightTransaction(targetSchainName, receiver)
+    {
+        bytes32 targetSchainHash = keccak256(abi.encodePacked(targetSchainName));
+        communityLocker.checkAllowedToSendMessage(targetSchainHash, msg.sender);
+        _exit(targetSchainHash, tokenManagers[targetSchainHash], contractOnMainnet, receiver, id, amount);
+    }
+
+    /**
+     * @dev Move batch of tokens from schain to schain to specified receiver.
+     * 
+     * {contractOnMainnet} tokens are burned on origin schain
+     * and are minted on {targetSchainName} schain for {receiver} address.
+     */
+    function transferToSchainERC1155BatchDirect(
+        string calldata targetSchainName,
+        address contractOnMainnet,
+        uint256[] calldata ids,
+        uint256[] calldata amounts,
+        address receiver
+    )
+        public
+        override
+        rightTransaction(targetSchainName, receiver)
+    {
+        bytes32 targetSchainHash = keccak256(abi.encodePacked(targetSchainName));
+        communityLocker.checkAllowedToSendMessage(targetSchainHash, msg.sender);
+        _exitBatch(targetSchainHash, tokenManagers[targetSchainHash], contractOnMainnet, receiver, ids, amounts);
     }
 
     /**
@@ -438,7 +476,7 @@ contract TokenManagerERC1155 is
             data = _receiveERC1155(
                 chainHash,
                 address(contractOnSchain),
-                msg.sender,
+                to,
                 id,
                 amount
             );
@@ -483,7 +521,7 @@ contract TokenManagerERC1155 is
             data = _receiveERC1155Batch(
                 chainHash,
                 address(contractOnSchain),
-                msg.sender,
+                to,
                 ids,
                 amounts
             );
