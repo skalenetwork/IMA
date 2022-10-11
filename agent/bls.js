@@ -31,7 +31,7 @@ const child_process = require( "child_process" );
 const shell = require( "shelljs" );
 const { Keccak } = require( "sha3" );
 const { cc } = require( "./utils" );
-const owaspUtil = require( "../npms/skale-owasp/owasp-util" );
+const owaspUtils = require( "../npms/skale-owasp/owasp-util" );
 
 function init() {
     owaspUtils.owaspAddUsageRef();
@@ -1690,6 +1690,7 @@ async function handle_skale_imaVerifyAndSign( joCallData ) {
         details.write( strLogPrefix + cc.debug( "Will verify and sign " ) + cc.j( joCallData ) + "\n" );
         const nIdxCurrentMsgBlockStart = joCallData.params.startMessageIdx;
         const strFromChainName = joCallData.params.srcChainName;
+        const strDirection = joCallData.params.direction;
         const jarrMessages = joCallData.params.messages;
         const nThreshold = discover_bls_threshold( imaState.joSChainNetworkInfo );
         const nParticipants = discover_bls_participants( imaState.joSChainNetworkInfo );
@@ -1697,6 +1698,32 @@ async function handle_skale_imaVerifyAndSign( joCallData ) {
         details.write( strLogPrefix + cc.debug( "Discovered number of BLS participants is " ) + cc.info( nParticipants ) + cc.debug( "." ) + "\n" );
         const strMessageHash = owaspUtils.remove_starting_0x( keccak256_message( jarrMessages, nIdxCurrentMsgBlockStart, strFromChainName ) );
         details.write( strLogPrefix + cc.debug( "Message hash to sign is " ) + cc.info( strMessageHash ) + "\n" );
+        //
+        const joExtraSignOpts = null;
+        if( strDirection == "S2S" ) {
+            // joCallData.params.dstChainName
+            // joCallData.params.srcChainName
+            const strSChainNameSrc = joCallData.params.srcChainName;
+            const arr_schains_cached = skale_observer.get_last_cached_schains();
+            if( ( !arr_schains_cached ) || arr_schains_cached.length == 0 )
+                throw new Error( "Could not handle S2S skale_imaVerifyAndSign(1), no S-Chains in SKALE NETWORK observer cached yet, try again later" );
+            const jo_schain_src = null;
+            let strUrlSrcSChain = null;
+            for( let idxChain = 0; idxChain < arr_schains_cached.length; ++ idxChain ) {
+                const jo_schain = arr_schains_cached[idxSChain];
+                if( jo_schain.data.name.toString() == strSChainNameSrc.toString() ) {
+                    strUrlSrcSChain = skale_observer.pick_random_schain_w3_url( jo_schain );
+                    break;
+                }
+            } // for( let idxChain = 0; idxChain < arr_schains_cached.length; ++ idxChain )
+            if( jo_schain_src == null || strUrlSrcSChain == null || ( !strUrlSrcSChain.length ) )
+                throw new Error( "Could not handle S2S skale_imaVerifyAndSign(2), no S-Chains in SKALE NETWORK observer cached yet, try again later" );
+            joExtraSignOpts.skale_observer = skale_observer;
+            joExtraSignOpts.w3_src = skale_observer.getWeb3FromURL( strUrlSrcSChain, details ); // ????????????????????????????????????????????????????
+            joExtraSignOpts.chain_id_src = jo_schain_src.data.computed.schain_id;
+            joExtraSignOpts.cid_dst = jo_schain_src.data.computed.chainId;
+        }
+        await check_correctness_of_messages_to_sign( details, strLogPrefix, strDirection, jarrMessages, nIdxCurrentMsgBlockStart, joExtraSignOpts );
         //
         let joAccount = imaState.joAccount_s_chain;
         if( ! joAccount.strURL ) {
