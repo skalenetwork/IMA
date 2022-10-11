@@ -755,7 +755,11 @@ describe( "Agent Utils Module", function() {
         } );
 
         it( "Compose IMA Agent URL", function() {
-            assert.equal( imaUtils.compose_ima_agent_node_url( { ip: "127.0.0.1", httpRpcPort: 14999 } ), "http://127.0.0.1:14999" );
+            // HTTP_JSON = 3
+            // IMA_AGENT_JSON = 10
+            // so... distance is 10 - 3 = 7
+            // as result, 14999 + 7 = 15006
+            assert.equal( imaUtils.compose_ima_agent_node_url( { ip: "127.0.0.1", httpRpcPort: 14999 } ), "http://127.0.0.1:15006" );
         } );
 
     } );
