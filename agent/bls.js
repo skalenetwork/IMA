@@ -1716,7 +1716,7 @@ async function handle_skale_imaVerifyAndSign( joCallData ) {
                     break;
                 }
             } // for( let idxSChain = 0; idxSChain < arr_schains_cached.length; ++ idxSChain )
-            if( jo_schain_src == null || strUrlSrcSChain == null || ( !strUrlSrcSChain.length ) )
+            if( jo_schain_src == null || strUrlSrcSChain == null || strUrlSrcSChain.length == 0 )
                 throw new Error( "Could not handle S2S skale_imaVerifyAndSign(2), no S-Chains in SKALE NETWORK observer cached yet, try again later" );
             joExtraSignOpts.skale_observer = skale_observer;
             joExtraSignOpts.w3_src = skale_observer.getWeb3FromURL( strUrlSrcSChain, details ); // ????????????????????????????????????????????????????
