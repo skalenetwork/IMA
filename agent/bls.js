@@ -1699,7 +1699,7 @@ async function handle_skale_imaVerifyAndSign( joCallData ) {
         const strMessageHash = owaspUtils.remove_starting_0x( keccak256_message( jarrMessages, nIdxCurrentMsgBlockStart, strFromChainName ) );
         details.write( strLogPrefix + cc.debug( "Message hash to sign is " ) + cc.info( strMessageHash ) + "\n" );
         //
-        const joExtraSignOpts = null;
+        let joExtraSignOpts = null;
         if( strDirection == "S2S" ) {
             // joCallData.params.dstChainName
             // joCallData.params.srcChainName
@@ -1718,10 +1718,12 @@ async function handle_skale_imaVerifyAndSign( joCallData ) {
             } // for( let idxSChain = 0; idxSChain < arr_schains_cached.length; ++ idxSChain )
             if( jo_schain_src == null || strUrlSrcSChain == null || strUrlSrcSChain.length == 0 )
                 throw new Error( "Could not handle S2S skale_imaVerifyAndSign(2), no S-Chains in SKALE NETWORK observer cached yet, try again later" );
-            joExtraSignOpts.skale_observer = skale_observer;
-            joExtraSignOpts.w3_src = skale_observer.getWeb3FromURL( strUrlSrcSChain, details ); // ????????????????????????????????????????????????????
-            joExtraSignOpts.chain_id_src = jo_schain_src.data.computed.schain_id;
-            joExtraSignOpts.cid_dst = jo_schain_src.data.computed.chainId;
+            joExtraSignOpts = {
+                skale_observer: skale_observer,
+                w3_src: skale_observer.getWeb3FromURL( strUrlSrcSChain, details ),
+                chain_id_src: jo_schain_src.data.computed.schain_id,
+                cid_dst: jo_schain_src.data.computed.chainId
+            };
         }
         await check_correctness_of_messages_to_sign( details, strLogPrefix, strDirection, jarrMessages, nIdxCurrentMsgBlockStart, joExtraSignOpts );
         //
