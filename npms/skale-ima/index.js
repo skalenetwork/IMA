@@ -1550,7 +1550,7 @@ async function safe_send_signed_transaction( details, w3, serializedTx, strActio
     details.write( strPrefixDetails + strMsg + "\n" );
     log.write( strPrefixLog + strMsg + "\n" );
     const strTX = "0x" + serializedTx.toString( "hex" ); // strTX is string starting from "0x"
-    details.write( strLogPrefix + cc.debug( "....signed raw TX is " ) + cc.info( strTX ) + "\n" );
+    details.write( strLogPrefix + cc.debug( "....signed raw TX is " ) + cc.attention( strTX ) + "\n" );
     let joReceipt = null;
     let bHaveReceipt = false;
     try {

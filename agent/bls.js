@@ -1709,13 +1709,13 @@ async function handle_skale_imaVerifyAndSign( joCallData ) {
                 throw new Error( "Could not handle S2S skale_imaVerifyAndSign(1), no S-Chains in SKALE NETWORK observer cached yet, try again later" );
             const jo_schain_src = null;
             let strUrlSrcSChain = null;
-            for( let idxChain = 0; idxChain < arr_schains_cached.length; ++ idxChain ) {
+            for( let idxSChain = 0; idxSChain < arr_schains_cached.length; ++ idxSChain ) {
                 const jo_schain = arr_schains_cached[idxSChain];
                 if( jo_schain.data.name.toString() == strSChainNameSrc.toString() ) {
                     strUrlSrcSChain = skale_observer.pick_random_schain_w3_url( jo_schain );
                     break;
                 }
-            } // for( let idxChain = 0; idxChain < arr_schains_cached.length; ++ idxChain )
+            } // for( let idxSChain = 0; idxSChain < arr_schains_cached.length; ++ idxSChain )
             if( jo_schain_src == null || strUrlSrcSChain == null || ( !strUrlSrcSChain.length ) )
                 throw new Error( "Could not handle S2S skale_imaVerifyAndSign(2), no S-Chains in SKALE NETWORK observer cached yet, try again later" );
             joExtraSignOpts.skale_observer = skale_observer;
