@@ -155,7 +155,6 @@ describe("DepositBoxERC721", () => {
                 // preparation
                 const error = "DepositBox was not approved for ERC721 token";
                 const contractHere = erc721OnChain.address;
-                const to = user.address;
                 const tokenId = 10;
                 // the wei should be MORE than (55000 * 1000000000)
                 // GAS_AMOUNT_POST_MESSAGE * AVERAGE_TX_PRICE constants in DepositBox.sol
@@ -170,6 +169,32 @@ describe("DepositBoxERC721", () => {
                     .connect(deployer)
                     .depositERC721(schainName, contractHere, tokenId)
                     .should.be.eventually.rejectedWith(error);
+            });
+
+            it("should send token if DepositBox was approved for all transfers by user", async () => {
+                // preparation
+                const contractHere = erc721OnChain.address;
+                const tokenId = 10;
+                // the wei should be MORE than (55000 * 1000000000)
+                // GAS_AMOUNT_POST_MESSAGE * AVERAGE_TX_PRICE constants in DepositBox.sol
+                // add schain to avoid the `Unconnected chain` error
+                await linker
+                    .connect(deployer)
+                    .connectSchain(schainName, [deployer.address, deployer.address, deployer.address]);
+                await depositBoxERC721.connect(user).disableWhitelist(schainName);
+
+                await depositBoxERC721
+                    .connect(deployer)
+                    .depositERC721(schainName, contractHere, tokenId)
+                    .should.be.eventually.rejectedWith("DepositBox was not approved for ERC721 token");
+
+                await erc721OnChain.connect(deployer).setApprovalForAll(depositBoxERC721.address, true);
+                await depositBoxERC721
+                    .connect(deployer)
+                    .depositERC721(schainName, contractHere, tokenId);
+                // console.log("Gas for depositERC721:", res.receipt.gasUsed);
+                // expectation
+                expect(await erc721OnChain.ownerOf(tokenId)).to.equal(depositBoxERC721.address);
             });
 
             it("should invoke `depositERC721` without mistakes", async () => {
