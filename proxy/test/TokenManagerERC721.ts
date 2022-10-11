@@ -166,7 +166,7 @@ describe("TokenManagerERC721", () => {
         outgoingMessagesCounterMainnet.should.be.deep.equal(BigNumber.from(1));
     });
 
-    it("should send token if token manager was approved for all transfers by user", async () => {
+    it("should send token if TokenManager was approved for all transfers by user", async () => {
         await tokenManagerERC721.connect(schainOwner).addERC721TokenByOwner(mainnetName,  token.address, tokenClone.address);
         await tokenClone.connect(deployer).mint(user.address, tokenId);
         await messageProxyForSchain.registerExtraContract("Mainnet", tokenManagerERC721.address);
