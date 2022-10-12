@@ -150,9 +150,9 @@ abstract contract MessageProxy is AccessControlEnumerableUpgradeable, IMessagePr
 
     /**
      * @dev Sets gasLimit to a new value.
-     * 
+     *
      * Requirements:
-     * 
+     *
      * - `msg.sender` must be granted CONSTANT_SETTER_ROLE.
      */
     function setNewGasLimit(uint256 newGasLimit) external override onlyConstantSetter {
@@ -176,9 +176,9 @@ abstract contract MessageProxy is AccessControlEnumerableUpgradeable, IMessagePr
     /**
      * @dev Allows `msg.sender` to register extra contract for all schains
      * for being able to transfer messages from custom contracts.
-     * 
+     *
      * Requirements:
-     * 
+     *
      * - `msg.sender` must be granted as EXTRA_CONTRACT_REGISTRAR_ROLE.
      * - Passed address should be contract.
      * - Extra contract must not be registered.
@@ -193,9 +193,9 @@ abstract contract MessageProxy is AccessControlEnumerableUpgradeable, IMessagePr
     /**
      * @dev Allows `msg.sender` to remove extra contract for all schains.
      * Extra contract will no longer be able to send messages through MessageProxy.
-     * 
+     *
      * Requirements:
-     * 
+     *
      * - `msg.sender` must be granted as EXTRA_CONTRACT_REGISTRAR_ROLE.
      */
     function removeExtraContractForAll(address extraContract) external override onlyExtraContractRegistrar {
@@ -213,7 +213,7 @@ abstract contract MessageProxy is AccessControlEnumerableUpgradeable, IMessagePr
 
     /**
      * @dev Should return a range of contracts registered by schainHash.
-     * 
+     *
      * Requirements:
      * range should be less or equal 10 contracts
      */
@@ -239,9 +239,9 @@ abstract contract MessageProxy is AccessControlEnumerableUpgradeable, IMessagePr
 
     /**
      * @dev Returns number of outgoing messages.
-     * 
+     *
      * Requirements:
-     * 
+     *
      * - Target schain  must be initialized.
      */
     function getOutgoingMessagesCounter(string calldata targetSchainName)
@@ -267,9 +267,9 @@ abstract contract MessageProxy is AccessControlEnumerableUpgradeable, IMessagePr
 
     /**
      * @dev Returns number of incoming messages.
-     * 
+     *
      * Requirements:
-     * 
+     *
      * - Source schain must be initialized.
      */
     function getIncomingMessagesCounter(string calldata fromSchainName)
@@ -295,11 +295,11 @@ abstract contract MessageProxy is AccessControlEnumerableUpgradeable, IMessagePr
     /**
      * @dev Posts message from this contract to `targetChainHash` MessageProxy contract.
      * This is called by a smart contract to make a cross-chain call.
-     * 
+     *
      * Emits an {OutgoingMessage} event.
      *
      * Requirements:
-     * 
+     *
      * - Target chain must be initialized.
      * - Target chain must be registered as external contract.
      */
@@ -314,7 +314,7 @@ abstract contract MessageProxy is AccessControlEnumerableUpgradeable, IMessagePr
     {
         require(connectedChains[targetChainHash].inited, "Destination chain is not initialized");
         _authorizeOutgoingMessageSender(targetChainHash);
-        
+
         uint outgoingMessageCounter = connectedChains[targetChainHash].outgoingMessageCounter;
         emit OutgoingMessage(
             targetChainHash,
@@ -333,9 +333,9 @@ abstract contract MessageProxy is AccessControlEnumerableUpgradeable, IMessagePr
 
     /**
      * @dev Allows CHAIN_CONNECTOR_ROLE to remove connected chain from this contract.
-     * 
+     *
      * Requirements:
-     * 
+     *
      * - `msg.sender` must be granted CHAIN_CONNECTOR_ROLE.
      * - `schainName` must be initialized.
      */
@@ -343,7 +343,7 @@ abstract contract MessageProxy is AccessControlEnumerableUpgradeable, IMessagePr
         bytes32 schainHash = keccak256(abi.encodePacked(schainName));
         require(connectedChains[schainHash].inited, "Chain is not initialized");
         delete connectedChains[schainHash];
-    }    
+    }
 
     /**
      * @dev Checks whether chain is currently connected.
@@ -377,9 +377,9 @@ abstract contract MessageProxy is AccessControlEnumerableUpgradeable, IMessagePr
 
     /**
      * @dev Allows MessageProxy to register extra contract for being able to transfer messages from custom contracts.
-     * 
+     *
      * Requirements:
-     * 
+     *
      * - Extra contract address must be contract.
      * - Extra contract must not be registered.
      * - Extra contract must not be registered for all chains.
@@ -389,14 +389,14 @@ abstract contract MessageProxy is AccessControlEnumerableUpgradeable, IMessagePr
         address extraContract
     )
         internal
-    {      
+    {
         require(extraContract.isContract(), "Given address is not a contract");
         require(!_getRegistryContracts()[chainHash].contains(extraContract), "Extra contract is already registered");
         require(
             !_getRegistryContracts()[bytes32(0)].contains(extraContract),
             "Extra contract is already registered for all chains"
         );
-        
+
         _getRegistryContracts()[chainHash].add(extraContract);
         emit ExtraContractRegistered(chainHash, extraContract);
     }
@@ -404,9 +404,9 @@ abstract contract MessageProxy is AccessControlEnumerableUpgradeable, IMessagePr
     /**
      * @dev Allows MessageProxy to remove extra contract,
      * thus `extraContract` will no longer be available to transfer messages from mainnet to schain.
-     * 
+     *
      * Requirements:
-     * 
+     *
      * - Extra contract must be registered.
      */
     function _removeExtraContract(
@@ -422,9 +422,9 @@ abstract contract MessageProxy is AccessControlEnumerableUpgradeable, IMessagePr
 
     /**
      * @dev Allows MessageProxy to connect schain with MessageProxyOnMainnet for transferring messages.
-     * 
+     *
      * Requirements:
-     * 
+     *
      * - `msg.sender` must be granted CHAIN_CONNECTOR_ROLE.
      * - SKALE chain must not be connected.
      */
@@ -525,7 +525,7 @@ abstract contract MessageProxy is AccessControlEnumerableUpgradeable, IMessagePr
         require(
             isContractRegistered(bytes32(0), msg.sender) || isContractRegistered(targetChainHash, msg.sender),
             "Sender contract is not registered"
-        );        
+        );
     }
 
     /**
@@ -572,6 +572,6 @@ abstract contract MessageProxy is AccessControlEnumerableUpgradeable, IMessagePr
         for(uint i = 0; i < slicedEnd; i++){
             sliced[i] = text[i];
         }
-        return sliced;    
+        return sliced;
     }
 }

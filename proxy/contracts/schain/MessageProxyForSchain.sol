@@ -107,12 +107,6 @@ contract MessageProxyForSchain is MessageProxy, IMessageProxyForSchain {
      */
     uint256 public minimumReceiverBalance;
 
-    /**
-     * @dev Address of TokenManagerLinker
-     * May be set to 0 for old contracts
-     */
-    TokenManagerLinker private _tokenManagerLinker;
-
     event MinimumReceiverBalanceChanged (
         uint256 oldValue,
         uint256 newValue
@@ -243,17 +237,12 @@ contract MessageProxyForSchain is MessageProxy, IMessageProxyForSchain {
     }
 
     function topUpReceiverBalance(address payable receiver) external override {
-        // allow only TokenManager to call this function
-        require(getTokenManagerLinker().hasTokenManager(msg.sender), "Sender is not TokenManager");
+        require(_getRegistryContracts()[0].contains(msg.sender), "Sender is not registered");
         uint256 balance = receiver.balance;
         uint256 threshold = minimumReceiverBalance;
         if (balance < threshold) {
             _transferFromEtherbase(receiver, threshold - balance);
         }
-    }
-
-    function setTokenManagerLinker(ITokenManagerLinker tokenManagerLinker) external override onlyOwner {
-        _tokenManagerLinker = TokenManagerLinker(address(tokenManagerLinker));
     }
 
     /**
@@ -359,15 +348,6 @@ contract MessageProxyForSchain is MessageProxy, IMessageProxyForSchain {
         bytes32 dstChainHash = outgoingMessageData.dstChainHash;
         _outgoingMessageDataHash[dstChainHash][_idxTail[dstChainHash]] = _hashOfMessage(outgoingMessageData);
         _idxTail[dstChainHash] += 1;
-    }
-
-    function getTokenManagerLinker() public view override returns (ITokenManagerLinker) {
-        if (address(_tokenManagerLinker) == address(0)) {
-            require(DefaultAddresses.TOKEN_MANAGER_LINKER.isContract(), "Can't find TokenManagerLinker");
-            return ITokenManagerLinker(DefaultAddresses.TOKEN_MANAGER_LINKER);
-        } else {
-            return _tokenManagerLinker;
-        }
     }
 
     // private

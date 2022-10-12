@@ -1492,17 +1492,8 @@ describe("MessageProxy", () => {
         });
 
         it("should not allow anyone to top up balance with sFuel", async () => {
-            await messageProxyForSchain.getTokenManagerLinker()
-                .should.be.rejectedWith("Can't find TokenManagerLinker"); // because contract is not predeployed
-
-            const tokenManagerLinker = await deployTokenManagerLinker(messageProxyForSchain, deployer.address);
-
-            await messageProxyForSchain.setTokenManagerLinker(tokenManagerLinker.address);
-            await messageProxyForSchain.getTokenManagerLinker()
-                .should.eventually.be.equal(tokenManagerLinker.address);
-
             await messageProxyForSchain.connect(user).topUpReceiverBalance(user.address)
-                .should.be.rejectedWith("Sender is not TokenManager");
+                .should.be.rejectedWith("Sender is not registered");
         });
 
         describe("register and remove extra contracts", async () => {

@@ -186,7 +186,6 @@ async function main() {
     await tokenManagerLinker.deployTransaction.wait();
     deployed.set( "TokenManagerLinker", { address: tokenManagerLinker.address, interface: tokenManagerLinker.interface } );
     console.log("Contract TokenManagerLinker deployed to", tokenManagerLinker.address);
-    await messageProxy.setTokenManagerLinker(tokenManagerLinker.address);
 
     console.log("Deploy CommunityLocker");
     const communityLockerFactory = await ethers.getContractFactory("CommunityLocker");
