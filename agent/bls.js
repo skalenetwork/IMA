@@ -552,6 +552,7 @@ function perform_bls_verify_i_u256( details, nZeroBasedNodeIndex, joResultFromNo
     let strOutput = "";
     try {
         shell.cd( strActionDir );
+        //
         const joMsg = { message: keccak256_u256( u256, true ) };
         details.write( strLogPrefix + cc.debug( "BLS u256 node " ) + cc.notice( "#" ) + cc.info( nZeroBasedNodeIndex ) + cc.debug( " verify message " ) + cc.j( joMsg ) + cc.debug( " composed from " ) + cc.j( u256 ) + cc.debug( " using glue " ) + cc.j( joResultFromNode ) + cc.debug( " and public key " ) + cc.j( joPublicKey ) + "\n" );
         const strSignResultFileName = strActionDir + "/sign-result" + nZeroBasedNodeIndex + ".json";
@@ -1835,17 +1836,16 @@ async function handle_skale_imaBSU256( joCallData ) {
     let isSuccess = false;
     try {
         //
-        details.write( strLogPrefix + cc.debug( "Will BSU256-sign " ) + cc.j( joCallData ) + "\n" );
+        details.write( strLogPrefix + cc.debug( "Will U256-BLS-sign " ) + cc.j( joCallData ) + "\n" );
         const nThreshold = discover_bls_threshold( imaState.joSChainNetworkInfo );
         const nParticipants = discover_bls_participants( imaState.joSChainNetworkInfo );
         details.write( strLogPrefix + cc.debug( "Discovered BLS threshold is " ) + cc.info( nThreshold ) + cc.debug( "." ) + "\n" );
         details.write( strLogPrefix + cc.debug( "Discovered number of BLS participants is " ) + cc.info( nParticipants ) + cc.debug( "." ) + "\n" );
         //
-        details.write( strLogPrefix + cc.debug( "BSU256 value is " ) + cc.info( joCallData.params.valueToSign ) + "\n" );
-        let arrBytes = imaUtils.hexToBytes( joCallData.params.valueToSign, false );
-        arrBytes = a2ha( arrBytes );
-        const strMessageHash = owaspUtils.remove_starting_0x( imaUtils.bytesToHex( arrBytes, false ) );
-        details.write( strLogPrefix + cc.debug( "BSU256-hash to sign is " ) + cc.info( strMessageHash ) + "\n" );
+        const u256 = joCallData.params.valueToSign;
+        details.write( strLogPrefix + cc.debug( "U256 original value is " ) + cc.info( u256 ) + "\n" );
+        const strMessageHash = keccak256_u256( u256, true );
+        details.write( strLogPrefix + cc.debug( "haso of U256 value to sign is " ) + cc.info( strMessageHash ) + "\n" );
         //
         let joAccount = imaState.joAccount_s_chain;
         if( ! joAccount.strURL ) {
@@ -1918,12 +1918,12 @@ async function handle_skale_imaBSU256( joCallData ) {
         joRetVal.error = strError;
         const strErrorMessage =
             strLogPrefix + cc.fatal( "CRITICAL ERROR:" ) + " " +
-            cc.error( "BSU256-signer error: " ) + cc.warning( strError ) +
+            cc.error( "U256-BLS-signer error: " ) + cc.warning( strError ) +
             "\n";
         log.write( strErrorMessage );
         details.write( strErrorMessage );
     }
-    details.exposeDetailsTo( log, "BSU256-signer", isSuccess );
+    details.exposeDetailsTo( log, "U256-BLS-signer", isSuccess );
     details.close();
     return joRetVal;
 }
