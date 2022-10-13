@@ -1826,62 +1826,6 @@ async function handle_skale_imaVerifyAndSign( joCallData ) {
     return joRetVal;
 }
 
-/*
-
-2022-09-28 12:46:22.936: JSON RPC: <<< message from ::ffff:127.0.0.1:
-{
-    "method":"skale_imaVerifyAndSign",
-    "params":{
-        "direction":"S2S",
-        "startMessageIdx":11,
-        "dstChainName":"Bob1000",
-        "srcChainName":"Bob1001",
-        "messages":[
-            {
-                "sender":"0xD2aaA00900000000000000000000000000000000",
-                "destinationContract":"0xD2aaA00900000000000000000000000000000000",
-                "data":"0x0000000000000000000000000000000000000000000000000000000000000009000000000000000000000000dedd5a997604ade31542e8a3d6aaa280e348aef10000000000000000000000007aa5e36aa15e93d10f4f26357c30f052dacdde5f000000000000000000000000000000000000000000000000000000000000000100000000000000000000000000000000000000000000000000000000000003e8",
-                "savedBlockNumberForOptimizations":448
-            }
-        ],
-        "qa":{
-            "skaled_no":0,
-            "sequence_id":"9cef78ef82228cce2e4ed4bee0c485acca0f368c1d7ae94aa235d26c0b778db3",
-            "ts":"2022-09-28 12:46:22.934"
-        }
-    },
-    "jsonrpc":"2.0",
-    "id":3937967578497932
-}
-
---- --- --- --- --- GATHERED SUCCESS DETAILS FOR LATEST( (handle_skale_call_via_redirect()) action (BEGIN) --- --- ------ ---
-
-2022-09-28 12:46:22.938: Will invoke S-Chain with call data { method: "skale_imaVerifyAndSign", params: { direction: "S2S", startMessageIdx: 11, dstChainName: "Bob1000", srcChainName: "Bob1001", messages: [{ sender: "0xD2aaA00900000000000000000000000000000000", destinationContract: "0xD2aaA00900000000000000000000000000000000", data: "0x0000000000000000000000000000000000000000000000000000000000000009000000000000000000000000dedd5a997604ade31542e8a3d6aaa280e348aef10000000000000000000000007aa5e36aa15e93d10f4f26357c30f052dacdde5f000000000000000000000000000000000000000000000000000000000000000100000000000000000000000000000000000000000000000000000000000003e8", savedBlockNumberForOptimizations: 448}], qa: { skaled_no: 0, sequence_id: "9cef78ef82228cce2e4ed4bee0c485acca0f368c1d7ae94aa235d26c0b778db3", ts: "2022-09-28 12:46:22.934"}}, jsonrpc: "2.0", id: 3937967578497932}
-2022-09-28 12:46:23.052: Call to S-Chain done, answer is: { id: 3937967578497932, jsonrpc: "2.0", result: { qa: { sequence_id: "9cef78ef82228cce2e4ed4bee0c485acca0f368c1d7ae94aa235d26c0b778db3", skaled_no: 0, ts: "2022-09-28 12:46:22.934"}, signResult: { errorMessage: "", signatureShare: "17478565975047244907103895167228083798921988971796902124088684491074746004285:15031994568930252855707831149520060050211430984917981813828217031708710584295:16774908233857298972544743177670408960120003931859857609581436687829921077359:0", status: 0, type: "BLSSignRsp"}}}
-
---- --- --- --- --- GATHERED SUCCESS DETAILS FOR LATEST( (handle_skale_call_via_redirect()) action (END) --- --- --- --- ---
-
-2022-09-28 12:46:23.053: JSON RPC: >>> answer to ::ffff:127.0.0.1:
-{
-    "id":3937967578497932,
-    "jsonrpc":"2.0",
-    "result":{
-        "qa":{
-            "sequence_id":"9cef78ef82228cce2e4ed4bee0c485acca0f368c1d7ae94aa235d26c0b778db3",
-            "skaled_no":0,
-            "ts":"2022-09-28 12:46:22.934"
-        },
-        "signResult":{
-            "errorMessage":"",
-            "signatureShare":"17478565975047244907103895167228083798921988971796902124088684491074746004285:15031994568930252855707831149520060050211430984917981813828217031708710584295:16774908233857298972544743177670408960120003931859857609581436687829921077359:0",
-            "status":0,
-            "type":"BLSSignRsp"
-        }
-    }
-}
-
- */
-
 module.exports = {
     init: init,
     do_sign_messages_m2s: do_sign_messages_m2s,
