@@ -277,6 +277,7 @@ describe("TokenManagerEth", () => {
 
         it("should transfer eth", async () => {
             //  preparation
+            await messageProxyForSchain.registerExtraContractForAll(tokenManagerEth.address);
             const fromSchainName = randomString(10);
             const fromSchainId = stringValue(web3.utils.soliditySha3(fromSchainName));
             const amount = "10";
