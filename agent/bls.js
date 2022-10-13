@@ -937,7 +937,8 @@ async function do_sign_messages_impl(
                         "\n";
                     log.write( strErrorMessage );
                     details.write( strErrorMessage );
-                    await joCall.disconnect();
+                    if( joCall )
+                        await joCall.disconnect();
                     return;
                 }
                 let targetChainName = "";
@@ -1406,7 +1407,8 @@ async function do_sign_u256( u256, details, fn ) {
                     cc.error( " failed, RPC call was not created, error is: " ) + cc.warning( owaspUtils.extract_error_message( err ) ) + "\n";
                 log.write( strErrorMessage );
                 details.write( strErrorMessage );
-                await joCall.disconnect();
+                if( joCall )
+                    await joCall.disconnect();
                 return;
             }
             details.write(
@@ -1646,7 +1648,8 @@ async function handle_skale_call_via_redirect( joCallData ) {
                     cc.error( " JSON RPC call to S-Chain failed, RPC call was not created, error is: " ) + cc.warning( owaspUtils.extract_error_message( err ) ) + "\n";
                 log.write( strErrorMessage );
                 details.write( strErrorMessage );
-                await joCall.disconnect();
+                if( joCall )
+                    await joCall.disconnect();
                 throw new Error( "JSON RPC call to S-Chain failed, RPC call was not created, error is: " + owaspUtils.extract_error_message( err ) );
             }
             details.write( strLogPrefix + cc.debug( "Will invoke " ) + cc.info( "S-Chain" ) + cc.debug( " with call data " ) + cc.j( joCallData ) + "\n" );
@@ -1768,7 +1771,8 @@ async function handle_skale_imaVerifyAndSign( joCallData ) {
                     cc.error( " JSON RPC call to SGX failed, RPC call was not created, error is: " ) + cc.warning( owaspUtils.extract_error_message( err ) ) + "\n";
                 log.write( strErrorMessage );
                 details.write( strErrorMessage );
-                await joCall.disconnect();
+                if( joCall )
+                    await joCall.disconnect();
                 throw new Error( "JSON RPC call to SGX failed, RPC call was not created, error is: " + owaspUtils.extract_error_message( err ) );
             }
             const joCallSGX = {

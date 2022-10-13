@@ -617,7 +617,8 @@ async function discover_chain_id( strURL ) {
     await rpcCall.create( strURL, rpcCallOpts, async function( joCall, err ) {
         if( err ) {
             //ret = "Failed to create RPC (" + strURL + ") call: " + owaspUtils.extract_error_message( err );
-            await joCall.disconnect();
+            if( joCall )
+                await joCall.disconnect();
             return;
         }
         await joCall.call( {

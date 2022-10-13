@@ -1354,7 +1354,8 @@ async function safe_sign_transaction_with_account( details, w3, tx, rawTx, joAcc
                 if( verbose_get() >= RV_VERBOSE.error )
                     log.write( s );
                 details.write( s );
-                await joCall.disconnect();
+                if( joCall )
+                    await joCall.disconnect();
                 return;
             }
             const txAdjusted = JSON.parse( JSON.stringify( rawTx ) ); // tx // rawTx
@@ -1449,7 +1450,8 @@ async function safe_sign_transaction_with_account( details, w3, tx, rawTx, joAcc
                 if( verbose_get() >= RV_VERBOSE.error )
                     log.write( s );
                 details.write( s );
-                await joCall.disconnect();
+                if( joCall )
+                    await joCall.disconnect();
                 return;
             }
             const msgHash = tx.hash( false );
@@ -4781,7 +4783,8 @@ async function async_pending_tx_start( details, w3, w3_opposite, chain_id, chain
                     if( verbose_get() >= RV_VERBOSE.error )
                         log.write( s );
                     details.write( s );
-                    await joCall.disconnect();
+                    if( joCall )
+                        await joCall.disconnect();
                     return;
                 }
                 const joIn = {
@@ -4847,7 +4850,8 @@ async function async_pending_tx_complete( details, w3, w3_opposite, chain_id, ch
                     if( verbose_get() >= RV_VERBOSE.error )
                         log.write( s );
                     details.write( s );
-                    await joCall.disconnect();
+                    if( joCall )
+                        await joCall.disconnect();
                     return;
                 }
                 const joIn = {

@@ -320,7 +320,7 @@ async function rpc_call_create( strURL, opts, fn ) {
         "joRpcOptions": opts ? opts : null,
         "mapPendingByCallID": { },
         "wsConn": null,
-        "isAutoReconnect": opts.isAutoReconnect ? true : false,
+        "isAutoReconnect": ( opts && "isAutoReconnect" in opts && opts.isAutoReconnect ) ? true : false,
         "isDisconnectMode": false,
         "reconnect": async function( fnAfter ) {
             await do_connect( joCall, fnAfter );
