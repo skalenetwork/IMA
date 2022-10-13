@@ -1393,7 +1393,9 @@ async function do_sign_u256( u256, details, fn ) {
     details.write( strLogPrefix + cc.debug( "Will(u256) collect " ) + cc.info( nCountOfBlsPartsToCollect ) + cc.debug( " from " ) + cc.info( jarrNodes.length ) + cc.debug( " nodes" ) + "\n" );
     for( let i = 0; i < jarrNodes.length; ++i ) {
         const joNode = jarrNodes[i];
-        const strNodeURL = imaUtils.compose_schain_node_url( joNode );
+        const strNodeURL = imaState.isCrossImaBlsMode
+            ? imaUtils.compose_ima_agent_node_url( joNode )
+            : imaUtils.compose_schain_node_url( joNode );
         const strNodeDescColorized = cc.u( strNodeURL ) + " " +
             cc.normal( "(" ) + cc.bright( i ) + cc.normal( "/" ) + cc.bright( jarrNodes.length ) + cc.normal( ", ID " ) + cc.info( joNode.nodeID ) + cc.normal( ")" );
         const rpcCallOpts = null;
@@ -1418,7 +1420,7 @@ async function do_sign_u256( u256, details, fn ) {
             await joCall.call( {
                 method: "skale_imaBSU256",
                 params: {
-                    valueToSign: u256
+                    valueToSign: u256 // must be 0x string, came from outside 0x string
                 }
             }, async function( joIn, joOut, err ) {
                 ++joGatheringTracker.nCountReceived; // including errors
@@ -1632,71 +1634,71 @@ async function do_sign_u256( u256, details, fn ) {
     details.write( strLogPrefix + cc.debug( "Completed signing u256 procedure " ) + "\n" );
 }
 
-async function handle_skale_call_via_redirect( joCallData ) {
-    const sequence_id = owaspUtils.remove_starting_0x( get_w3().utils.soliditySha3( log.generate_timestamp_string( null, false ) ) );
-    const strLogPrefix = "";
-    const strNodeURL = imaState.strURL_s_chain;
-    const rpcCallOpts = null;
-    let joRetVal = { };
-    const details = log.createMemoryStream( true );
-    let isSuccess = false;
-    try {
-        await rpcCall.create( strNodeURL, rpcCallOpts, async function( joCall, err ) {
-            if( err ) {
-                const strErrorMessage =
-                    strLogPrefix + cc.fatal( "CRITICAL ERROR:" ) +
-                    cc.error( " JSON RPC call to S-Chain failed, RPC call was not created, error is: " ) + cc.warning( owaspUtils.extract_error_message( err ) ) + "\n";
-                log.write( strErrorMessage );
-                details.write( strErrorMessage );
-                if( joCall )
-                    await joCall.disconnect();
-                throw new Error( "JSON RPC call to S-Chain failed, RPC call was not created, error is: " + owaspUtils.extract_error_message( err ) );
-            }
-            details.write( strLogPrefix + cc.debug( "Will invoke " ) + cc.info( "S-Chain" ) + cc.debug( " with call data " ) + cc.j( joCallData ) + "\n" );
-            await joCall.call( joCallData, async function( joIn, joOut, err ) {
-                if( err ) {
-                    const strErrorMessage =
-                        strLogPrefix + cc.fatal( "CRITICAL ERROR:" ) +
-                        cc.error( " JSON RPC call to S-Chain failed, RPC call reported error: " ) + cc.warning( owaspUtils.extract_error_message( err ) ) + "\n";
-                    log.write( strErrorMessage );
-                    details.write( strErrorMessage );
-                    await joCall.disconnect();
-                    throw new Error( "JSON RPC call to S-Chain failed, RPC call reported error: " + owaspUtils.extract_error_message( err ) );
-                }
-                details.write( strLogPrefix + cc.debug( "Call to " ) + cc.info( "S-Chain" ) + cc.debug( " done, answer is: " ) + cc.j( joOut ) + "\n" );
-                if( joOut.result == null || joOut.result == undefined || ( !typeof joOut.result == "object" ) ) {
-                    const strErrorMessage =
-                        strLogPrefix + cc.fatal( "Wallet CRITICAL ERROR:" ) + " " +
-                        cc.error( "S-Chain reported wallet error: " ) +
-                        cc.warning( owaspUtils.extract_error_message( joOut, "unknown wallet error(3)" ) ) +
-                        cc.error( ", " ) + cc.notice( "sequence ID" ) + cc.error( " is " ) + cc.attention( sequence_id ) +
-                        "\n";
-                    log.write( strErrorMessage );
-                    details.write( strErrorMessage );
-                    details.write( strErrorMessage );
-                    await joCall.disconnect();
-                    throw new Error( "JSON RPC call to S-Chain failed with \"unknown wallet error(3)\", sequence ID is " + sequence_id );
-                }
-                isSuccess = true;
-                joRetVal = joOut; // joOut.result
-                await joCall.disconnect();
-            } ); // joCall.call ...
-        } ); // rpcCall.create ...
-    } catch ( err ) {
-        isSuccess = false;
-        const strError = owaspUtils.extract_error_message( err );
-        joRetVal.error = strError;
-        const strErrorMessage =
-            strLogPrefix + cc.fatal( "CRITICAL ERROR:" ) + " " +
-            cc.error( "JSON RPC call finished with error: " ) + cc.warning( strError ) +
-            "\n";
-        log.write( strErrorMessage );
-        details.write( strErrorMessage );
-    }
-    details.exposeDetailsTo( log, "handle_skale_call_via_redirect()", isSuccess );
-    details.close();
-    return joRetVal;
-}
+// async function handle_skale_call_via_redirect( joCallData ) {
+//     const sequence_id = owaspUtils.remove_starting_0x( get_w3().utils.soliditySha3( log.generate_timestamp_string( null, false ) ) );
+//     const strLogPrefix = "";
+//     const strNodeURL = imaState.strURL_s_chain;
+//     const rpcCallOpts = null;
+//     let joRetVal = { };
+//     const details = log.createMemoryStream( true );
+//     let isSuccess = false;
+//     try {
+//         await rpcCall.create( strNodeURL, rpcCallOpts, async function( joCall, err ) {
+//             if( err ) {
+//                 const strErrorMessage =
+//                     strLogPrefix + cc.fatal( "CRITICAL ERROR:" ) +
+//                     cc.error( " JSON RPC call to S-Chain failed, RPC call was not created, error is: " ) + cc.warning( owaspUtils.extract_error_message( err ) ) + "\n";
+//                 log.write( strErrorMessage );
+//                 details.write( strErrorMessage );
+//                 if( joCall )
+//                     await joCall.disconnect();
+//                 throw new Error( "JSON RPC call to S-Chain failed, RPC call was not created, error is: " + owaspUtils.extract_error_message( err ) );
+//             }
+//             details.write( strLogPrefix + cc.debug( "Will invoke " ) + cc.info( "S-Chain" ) + cc.debug( " with call data " ) + cc.j( joCallData ) + "\n" );
+//             await joCall.call( joCallData, async function( joIn, joOut, err ) {
+//                 if( err ) {
+//                     const strErrorMessage =
+//                         strLogPrefix + cc.fatal( "CRITICAL ERROR:" ) +
+//                         cc.error( " JSON RPC call to S-Chain failed, RPC call reported error: " ) + cc.warning( owaspUtils.extract_error_message( err ) ) + "\n";
+//                     log.write( strErrorMessage );
+//                     details.write( strErrorMessage );
+//                     await joCall.disconnect();
+//                     throw new Error( "JSON RPC call to S-Chain failed, RPC call reported error: " + owaspUtils.extract_error_message( err ) );
+//                 }
+//                 details.write( strLogPrefix + cc.debug( "Call to " ) + cc.info( "S-Chain" ) + cc.debug( " done, answer is: " ) + cc.j( joOut ) + "\n" );
+//                 if( joOut.result == null || joOut.result == undefined || ( !typeof joOut.result == "object" ) ) {
+//                     const strErrorMessage =
+//                         strLogPrefix + cc.fatal( "Wallet CRITICAL ERROR:" ) + " " +
+//                         cc.error( "S-Chain reported wallet error: " ) +
+//                         cc.warning( owaspUtils.extract_error_message( joOut, "unknown wallet error(3)" ) ) +
+//                         cc.error( ", " ) + cc.notice( "sequence ID" ) + cc.error( " is " ) + cc.attention( sequence_id ) +
+//                         "\n";
+//                     log.write( strErrorMessage );
+//                     details.write( strErrorMessage );
+//                     details.write( strErrorMessage );
+//                     await joCall.disconnect();
+//                     throw new Error( "JSON RPC call to S-Chain failed with \"unknown wallet error(3)\", sequence ID is " + sequence_id );
+//                 }
+//                 isSuccess = true;
+//                 joRetVal = joOut; // joOut.result
+//                 await joCall.disconnect();
+//             } ); // joCall.call ...
+//         } ); // rpcCall.create ...
+//     } catch ( err ) {
+//         isSuccess = false;
+//         const strError = owaspUtils.extract_error_message( err );
+//         joRetVal.error = strError;
+//         const strErrorMessage =
+//             strLogPrefix + cc.fatal( "CRITICAL ERROR:" ) + " " +
+//             cc.error( "JSON RPC call finished with error: " ) + cc.warning( strError ) +
+//             "\n";
+//         log.write( strErrorMessage );
+//         details.write( strErrorMessage );
+//     }
+//     details.exposeDetailsTo( log, "handle_skale_call_via_redirect()", isSuccess );
+//     details.close();
+//     return joRetVal;
+// }
 
 async function handle_skale_imaVerifyAndSign( joCallData ) {
     const strLogPrefix = "";
@@ -1749,7 +1751,7 @@ async function handle_skale_imaVerifyAndSign( joCallData ) {
         if( ! joAccount.strURL ) {
             joAccount = imaState.joAccount_main_net;
             if( ! joAccount.strSgxURL )
-                throw new Error( "SGX URL is unknown, cannot verify IMA message(s)" );
+                throw new Error( "SGX URL is unknown, cannot sign IMA message(s)" );
             if( ! joAccount.strBlsKeyName )
                 throw new Error( "BLS keys name is unknown, cannot sign IMA message(s)" );
         }
@@ -1826,6 +1828,106 @@ async function handle_skale_imaVerifyAndSign( joCallData ) {
     return joRetVal;
 }
 
+async function handle_skale_imaBSU256( joCallData ) {
+    const strLogPrefix = "";
+    const details = log.createMemoryStream( true );
+    const joRetVal = { };
+    let isSuccess = false;
+    try {
+        //
+        details.write( strLogPrefix + cc.debug( "Will BSU256-sign " ) + cc.j( joCallData ) + "\n" );
+        const nThreshold = discover_bls_threshold( imaState.joSChainNetworkInfo );
+        const nParticipants = discover_bls_participants( imaState.joSChainNetworkInfo );
+        details.write( strLogPrefix + cc.debug( "Discovered BLS threshold is " ) + cc.info( nThreshold ) + cc.debug( "." ) + "\n" );
+        details.write( strLogPrefix + cc.debug( "Discovered number of BLS participants is " ) + cc.info( nParticipants ) + cc.debug( "." ) + "\n" );
+        //
+        details.write( strLogPrefix + cc.debug( "BSU256 value is " ) + cc.info( joCallData.params.valueToSign ) + "\n" );
+        let arrBytes = imaUtils.hexToBytes( joCallData.params.valueToSign, false );
+        arrBytes = a2ha( arrBytes );
+        const strMessageHash = owaspUtils.remove_starting_0x( imaUtils.bytesToHex( arrBytes, false ) );
+        details.write( strLogPrefix + cc.debug( "BSU256-hash to sign is " ) + cc.info( strMessageHash ) + "\n" );
+        //
+        let joAccount = imaState.joAccount_s_chain;
+        if( ! joAccount.strURL ) {
+            joAccount = imaState.joAccount_main_net;
+            if( ! joAccount.strSgxURL )
+                throw new Error( "SGX URL is unknown, cannot sign U256" );
+            if( ! joAccount.strBlsKeyName )
+                throw new Error( "BLS keys name is unknown, cannot sign U256" );
+        }
+        let rpcCallOpts = null;
+        if( "strPathSslKey" in joAccount && typeof joAccount.strPathSslKey == "string" && joAccount.strPathSslKey.length > 0 &&
+            "strPathSslCert" in joAccount && typeof joAccount.strPathSslCert == "string" && joAccount.strPathSslCert.length > 0
+        ) {
+            rpcCallOpts = {
+                "cert": fs.readFileSync( joAccount.strPathSslCert, "utf8" ),
+                "key": fs.readFileSync( joAccount.strPathSslKey, "utf8" )
+            };
+            // details.write( cc.debug( "Will sign via SGX with SSL options " ) + cc.j( rpcCallOpts ) + "\n" );
+        }
+        const signerIndex = imaState.joAccount_s_chain.nNodeNumber;
+        await rpcCall.create( joAccount.strSgxURL, rpcCallOpts, async function( joCall, err ) {
+            if( err ) {
+                const strErrorMessage =
+                    strLogPrefix + cc.fatal( "CRITICAL ERROR:" ) +
+                    cc.error( " JSON RPC call to SGX failed, RPC call was not created, error is: " ) + cc.warning( owaspUtils.extract_error_message( err ) ) + "\n";
+                log.write( strErrorMessage );
+                details.write( strErrorMessage );
+                if( joCall )
+                    await joCall.disconnect();
+                throw new Error( "JSON RPC call to SGX failed, RPC call was not created, error is: " + owaspUtils.extract_error_message( err ) );
+            }
+            const joCallSGX = {
+                method: "blsSignMessageHash",
+                // type: "BLSSignReq",
+                params: {
+                    keyShareName: joAccount.strBlsKeyName,
+                    messageHash: strMessageHash,
+                    n: nParticipants,
+                    t: nThreshold,
+                    signerIndex: signerIndex + 0 // 1-based
+                }
+            };
+            details.write( strLogPrefix + cc.debug( "Will invoke " ) + cc.info( "SGX" ) + cc.debug( " with call data " ) + cc.j( joCallSGX ) + "\n" );
+            await joCall.call( joCallSGX, async function( joIn, joOut, err ) {
+                if( err ) {
+                    const strErrorMessage =
+                        strLogPrefix + cc.fatal( "CRITICAL ERROR:" ) +
+                        cc.error( " JSON RPC call to SGX failed, RPC call reported error: " ) + cc.warning( owaspUtils.extract_error_message( err ) ) + "\n";
+                    log.write( strErrorMessage );
+                    details.write( strErrorMessage );
+                    await joCall.disconnect();
+                    throw new Error( "JSON RPC call to SGX failed, RPC call reported error: " + owaspUtils.extract_error_message( err ) );
+                }
+                details.write( strLogPrefix + cc.debug( "Call to " ) + cc.info( "SGX" ) + cc.debug( " done, answer is: " ) + cc.j( joOut ) + "\n" );
+                let joSignResult = joOut;
+                if( joOut.result != null && joOut.result != undefined && typeof joOut.result == "object" )
+                    joSignResult = joOut.result;
+                if( joOut.signResult != null && joOut.signResult != undefined && typeof joOut.signResult == "object" )
+                    joSignResult = joOut.signResult;
+                isSuccess = true;
+                joRetVal.result = { signResult: joSignResult };
+                if( "qa" in joCallData )
+                    joRetVal.qa = joCallData.qa;
+                await joCall.disconnect();
+            } ); // joCall.call ...
+        } ); // rpcCall.create ...
+    } catch ( err ) {
+        isSuccess = false;
+        const strError = owaspUtils.extract_error_message( err );
+        joRetVal.error = strError;
+        const strErrorMessage =
+            strLogPrefix + cc.fatal( "CRITICAL ERROR:" ) + " " +
+            cc.error( "BSU256-signer error: " ) + cc.warning( strError ) +
+            "\n";
+        log.write( strErrorMessage );
+        details.write( strErrorMessage );
+    }
+    details.exposeDetailsTo( log, "BSU256-signer", isSuccess );
+    details.close();
+    return joRetVal;
+}
+
 module.exports = {
     init: init,
     do_sign_messages_m2s: do_sign_messages_m2s,
@@ -1834,5 +1936,6 @@ module.exports = {
     do_sign_u256: do_sign_u256,
     // handle_skale_imaVerifyAndSign: handle_skale_call_via_redirect,
     handle_skale_imaVerifyAndSign: handle_skale_imaVerifyAndSign,
-    handle_skale_imaBSU256: handle_skale_call_via_redirect
+    // handle_skale_imaBSU256: handle_skale_call_via_redirect
+    handle_skale_imaBSU256: handle_skale_imaBSU256
 }; // module.exports
