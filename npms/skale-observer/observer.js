@@ -617,6 +617,7 @@ async function discover_chain_id( strURL ) {
     await rpcCall.create( strURL, rpcCallOpts, async function( joCall, err ) {
         if( err ) {
             //ret = "Failed to create RPC (" + strURL + ") call: " + owaspUtils.extract_error_message( err );
+            await joCall.disconnect();
             return;
         }
         await joCall.call( {
@@ -625,13 +626,16 @@ async function discover_chain_id( strURL ) {
         }, async function( joIn, joOut, err ) {
             if( err ) {
                 //ret = "Failed to query RPC (" + strURL + ") for chain ID: " + owaspUtils.extract_error_message( err );
+                await joCall.disconnect();
                 return;
             }
             if( ! ( "result" in joOut && joOut.result ) ) {
                 //ret = "Failed to query RPC (" + strURL + ") for chain ID, got bad result: " + JSON.stringify( joOut );
+                await joCall.disconnect();
                 return;
             }
             ret = joOut.result;
+            await joCall.disconnect();
         } ); // joCall.call ...
     } ); // rpcCall.create ...
     return ret;

@@ -1389,6 +1389,7 @@ imaCLI.parse( {
                 await rpcCall.create( imaState.strURL_s_chain, rpcCallOpts, async function( joCall, err ) {
                     if( err ) {
                         console.log( cc.fatal( "CRITICAL ERROR:" ) + cc.error( " JSON RPC call to S-Chain failed" ) );
+                        await joCall.disconnect();
                         process.exit( 156 );
                     }
                     await joCall.call( {
@@ -1399,6 +1400,7 @@ imaCLI.parse( {
                     }, async function( joIn, joOut, err ) {
                         if( err ) {
                             console.log( cc.fatal( "CRITICAL ERROR:" ) + cc.error( " JSON RPC call to S-Chain failed, error: " ) + cc.warning( err ) );
+                            await joCall.disconnect();
                             process.exit( 157 );
                         }
                         log.write( strLogPrefix + cc.normal( "S-Chain network information: " ) + cc.j( joOut.result ) + "\n" );
@@ -1417,6 +1419,7 @@ imaCLI.parse( {
                             await rpcCall.create( strNodeURL, rpcCallOpts, async function( joCall, err ) {
                                 if( err ) {
                                     console.log( cc.fatal( "CRITICAL ERROR:" ) + cc.error( " JSON RPC call to S-Chain failed" ) );
+                                    await joCall.disconnect();
                                     process.exit( 158 );
                                 }
                                 await joCall.call( {
@@ -1432,7 +1435,9 @@ imaCLI.parse( {
                                     }
                                     log.write( strLogPrefix + cc.normal( "Node " ) + cc.info( joNode.nodeID ) + cc.normal( " IMA information: " ) + cc.j( joOut.result ) + "\n" );
                                     //process.exit( 0 );
+                                    await joCall.disconnect();
                                 } );
+                                await joCall.disconnect();
                             } );
                         }
                         //process.exit( 0 );
@@ -1442,6 +1447,7 @@ imaCLI.parse( {
                                 process.exit( 0 );
                             }
                         }, 100 );
+                        await joCall.disconnect();
                     } );
                 } );
                 return true;
@@ -1855,6 +1861,7 @@ async function discover_s_chain_network( fnAfter, isSilent, joPrevSChainNetworkI
                     );
                 }
                 fnAfter( err, null );
+                await joCall.disconnect();
                 return;
             }
             await joCall.call( {
@@ -1872,6 +1879,7 @@ async function discover_s_chain_network( fnAfter, isSilent, joPrevSChainNetworkI
                         );
                     }
                     fnAfter( err, null );
+                    await joCall.disconnect();
                     return;
                 }
                 if( ( !isSilent ) && IMA.verbose_get() >= IMA.RV_VERBOSE.trace )
@@ -1890,6 +1898,7 @@ async function discover_s_chain_network( fnAfter, isSilent, joPrevSChainNetworkI
                         );
                     }
                     fnAfter( err2, null );
+                    await joCall.disconnect();
                     return;
                 }
                 const jarrNodes = joSChainNetworkInfo.network;
@@ -1945,6 +1954,7 @@ async function discover_s_chain_network( fnAfter, isSilent, joPrevSChainNetworkI
                                 }
                                 // fnAfter( err, null );
                                 ++ cntFailed;
+                                await joCall.disconnect();
                                 return;
                             }
                             joCall.call( {
@@ -2075,6 +2085,7 @@ async function discover_s_chain_network( fnAfter, isSilent, joPrevSChainNetworkI
                         );
                     }
                 }, nWaitStepMilliseconds );
+                await joCall.disconnect();
             } );
         } );
     } catch ( err ) {

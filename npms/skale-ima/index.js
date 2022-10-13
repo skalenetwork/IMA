@@ -1354,6 +1354,7 @@ async function safe_sign_transaction_with_account( details, w3, tx, rawTx, joAcc
                 if( verbose_get() >= RV_VERBOSE.error )
                     log.write( s );
                 details.write( s );
+                await joCall.disconnect();
                 return;
             }
             const txAdjusted = JSON.parse( JSON.stringify( rawTx ) ); // tx // rawTx
@@ -1375,6 +1376,7 @@ async function safe_sign_transaction_with_account( details, w3, tx, rawTx, joAcc
                         if( verbose_get() >= RV_VERBOSE.error )
                             log.write( s );
                         details.write( s );
+                        await joCall.disconnect();
                         return;
                     }
                     details.write( cc.debug( "Transaction Manager sign-and-send result is: " ) + cc.j( joOut ) + "\n" );
@@ -1387,6 +1389,7 @@ async function safe_sign_transaction_with_account( details, w3, tx, rawTx, joAcc
                         details.write( s );
                         return;
                     }
+                    await joCall.disconnect();
                 } );
         } );
         await sleep( 5000 );
@@ -1446,6 +1449,7 @@ async function safe_sign_transaction_with_account( details, w3, tx, rawTx, joAcc
                 if( verbose_get() >= RV_VERBOSE.error )
                     log.write( s );
                 details.write( s );
+                await joCall.disconnect();
                 return;
             }
             const msgHash = tx.hash( false );
@@ -1466,6 +1470,7 @@ async function safe_sign_transaction_with_account( details, w3, tx, rawTx, joAcc
                     if( verbose_get() >= RV_VERBOSE.error )
                         log.write( s );
                     details.write( s );
+                    await joCall.disconnect();
                     return;
                 }
                 details.write( cc.debug( "SGX wallet ECDSA sign result is: " ) + cc.j( joOut ) + "\n" );
@@ -1504,6 +1509,7 @@ async function safe_sign_transaction_with_account( details, w3, tx, rawTx, joAcc
                 tx.r = joNeededResult.r;
                 tx.s = joNeededResult.s;
                 details.write( cc.debug( "Resulting adjusted transaction is: " ) + cc.j( tx ) + "\n" );
+                await joCall.disconnect();
             } );
         } );
         await sleep( 3000 );
@@ -4775,6 +4781,7 @@ async function async_pending_tx_start( details, w3, w3_opposite, chain_id, chain
                     if( verbose_get() >= RV_VERBOSE.error )
                         log.write( s );
                     details.write( s );
+                    await joCall.disconnect();
                     return;
                 }
                 const joIn = {
@@ -4790,15 +4797,18 @@ async function async_pending_tx_start( details, w3, w3_opposite, chain_id, chain
                         if( verbose_get() >= RV_VERBOSE.error )
                             log.write( s );
                         details.write( s );
+                        await joCall.disconnect();
                         return;
                     }
                     details.write( cc.debug( "Pending work start result is: " ) + cc.j( joOut ) + "\n" );
                     if( joOut && "result" in joOut && "success" in joOut.result ) {
                         if( joOut.result.success ) {
                             details.write( strLogPrefix + cc.success( "Success, pending work start reported" ) + "\n" );
+                            await joCall.disconnect();
                             return;
                         } else {
                             details.write( strLogPrefix + cc.warning( "Pending work start was not reported with success" ) + "\n" );
+                            await joCall.disconnect();
                             return;
                         }
                     } else {
@@ -4806,6 +4816,7 @@ async function async_pending_tx_start( details, w3, w3_opposite, chain_id, chain
                         if( verbose_get() >= RV_VERBOSE.error )
                             log.write( s );
                         details.write( s );
+                        await joCall.disconnect();
                         return;
                     }
                 } );
@@ -4836,6 +4847,7 @@ async function async_pending_tx_complete( details, w3, w3_opposite, chain_id, ch
                     if( verbose_get() >= RV_VERBOSE.error )
                         log.write( s );
                     details.write( s );
+                    await joCall.disconnect();
                     return;
                 }
                 const joIn = {
@@ -4851,14 +4863,17 @@ async function async_pending_tx_complete( details, w3, w3_opposite, chain_id, ch
                         if( verbose_get() >= RV_VERBOSE.error )
                             log.write( s );
                         details.write( s );
+                        await joCall.disconnect();
                         return;
                     }
                     details.write( cc.debug( "Pending work complete result is: " ) + cc.j( joOut ) + "\n" );
                     if( joOut && "result" in joOut && "success" in joOut.result ) {
                         if( joOut.result.success ) {
                             details.write( strLogPrefix + cc.success( "Success, pending work complete reported" ) + "\n" );
+                            await joCall.disconnect();
                             return;
                         } else {
+                            await joCall.disconnect();
                             details.write( strLogPrefix + cc.warning( "Pending work complete was not reported with success" ) + "\n" );
                             return;
                         }
@@ -4867,6 +4882,7 @@ async function async_pending_tx_complete( details, w3, w3_opposite, chain_id, ch
                         if( verbose_get() >= RV_VERBOSE.error )
                             log.write( s );
                         details.write( s );
+                        await joCall.disconnect();
                         return;
                     }
                 } );

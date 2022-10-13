@@ -937,7 +937,7 @@ async function do_sign_messages_impl(
                         "\n";
                     log.write( strErrorMessage );
                     details.write( strErrorMessage );
-                    await rpcCall.disconnect();
+                    await joCall.disconnect();
                     return;
                 }
                 let targetChainName = "";
@@ -960,7 +960,7 @@ async function do_sign_messages_impl(
                     // targetChainURL = owaspUtils.w3_2_url( joExtraSignOpts.w3_dst );
                     // fromChainURL = owaspUtils.w3_2_url( joExtraSignOpts.w3_src );
                 } else {
-                    await rpcCall.disconnect();
+                    await joCall.disconnect();
                     throw new Error( "CRITICAL ERROR: Failed do_sign_messages_impl() with unknown directon \"" + strDirection + "\"" );
                 }
 
@@ -1001,7 +1001,7 @@ async function do_sign_messages_impl(
                             "\n";
                         log.write( strErrorMessage );
                         details.write( strErrorMessage );
-                        await rpcCall.disconnect();
+                        await joCall.disconnect();
                         return;
                     }
                     details.write(
@@ -1024,7 +1024,7 @@ async function do_sign_messages_impl(
                             "\n";
                         log.write( strErrorMessage );
                         details.write( strErrorMessage );
-                        await rpcCall.disconnect();
+                        await joCall.disconnect();
                         return;
                     }
                     details.write( strLogPrefix + cc.normal( "Node " ) + cc.info( joNode.nodeID ) + cc.normal( " sign result: " ) + cc.j( joOut.result ? joOut.result : null ) + "\n" );
@@ -1045,7 +1045,7 @@ async function do_sign_messages_impl(
                                         cc.debug( " because " ) + cc.info( nThreshold ) + cc.debug( "/" ) + cc.info( nCountOfBlsPartsToCollect ) +
                                         cc.debug( " threshold number of BLS signature parts already gathered" ) +
                                         "\n" );
-                                    await rpcCall.disconnect();
+                                    await joCall.disconnect();
                                     return;
                                 }
                                 const arrTmp = joOut.result.signResult.signatureShare.split( ":" );
@@ -1113,9 +1113,8 @@ async function do_sign_messages_impl(
                         log.write( strErrorMessage );
                         details.write( strErrorMessage );
                     }
-                    await rpcCall.disconnect();
+                    await joCall.disconnect();
                 } ); // joCall.call ...
-                await rpcCall.disconnect();
             } ); // rpcCall.create ...
         } // for( let i = 0; i < jarrNodes.length; ++i )
 
@@ -1407,6 +1406,7 @@ async function do_sign_u256( u256, details, fn ) {
                     cc.error( " failed, RPC call was not created, error is: " ) + cc.warning( owaspUtils.extract_error_message( err ) ) + "\n";
                 log.write( strErrorMessage );
                 details.write( strErrorMessage );
+                await joCall.disconnect();
                 return;
             }
             details.write(
@@ -1428,6 +1428,7 @@ async function do_sign_u256( u256, details, fn ) {
                         cc.error( " failed, RPC call reported error: " ) + cc.warning( owaspUtils.extract_error_message( err ) ) + "\n";
                     log.write( strErrorMessage );
                     details.write( strErrorMessage );
+                    await joCall.disconnect();
                     return;
                 }
                 details.write(
@@ -1445,6 +1446,7 @@ async function do_sign_u256( u256, details, fn ) {
                         "\n";
                     log.write( strErrorMessage );
                     details.write( strErrorMessage );
+                    await joCall.disconnect();
                     return;
                 }
                 details.write( strLogPrefix + cc.normal( "Node " ) + cc.info( joNode.nodeID ) + cc.normal( " sign result: " ) + cc.j( joOut.result ? joOut.result : null ) + "\n" );
@@ -1521,6 +1523,7 @@ async function do_sign_u256( u256, details, fn ) {
                     log.write( strErrorMessage );
                     details.write( strErrorMessage );
                 }
+                await joCall.disconnect();
             } ); // joCall.call ...
         } ); // rpcCall.create ...
     }
@@ -1643,6 +1646,7 @@ async function handle_skale_call_via_redirect( joCallData ) {
                     cc.error( " JSON RPC call to S-Chain failed, RPC call was not created, error is: " ) + cc.warning( owaspUtils.extract_error_message( err ) ) + "\n";
                 log.write( strErrorMessage );
                 details.write( strErrorMessage );
+                await joCall.disconnect();
                 throw new Error( "JSON RPC call to S-Chain failed, RPC call was not created, error is: " + owaspUtils.extract_error_message( err ) );
             }
             details.write( strLogPrefix + cc.debug( "Will invoke " ) + cc.info( "S-Chain" ) + cc.debug( " with call data " ) + cc.j( joCallData ) + "\n" );
@@ -1653,6 +1657,7 @@ async function handle_skale_call_via_redirect( joCallData ) {
                         cc.error( " JSON RPC call to S-Chain failed, RPC call reported error: " ) + cc.warning( owaspUtils.extract_error_message( err ) ) + "\n";
                     log.write( strErrorMessage );
                     details.write( strErrorMessage );
+                    await joCall.disconnect();
                     throw new Error( "JSON RPC call to S-Chain failed, RPC call reported error: " + owaspUtils.extract_error_message( err ) );
                 }
                 details.write( strLogPrefix + cc.debug( "Call to " ) + cc.info( "S-Chain" ) + cc.debug( " done, answer is: " ) + cc.j( joOut ) + "\n" );
@@ -1666,10 +1671,12 @@ async function handle_skale_call_via_redirect( joCallData ) {
                     log.write( strErrorMessage );
                     details.write( strErrorMessage );
                     details.write( strErrorMessage );
+                    await joCall.disconnect();
                     throw new Error( "JSON RPC call to S-Chain failed with \"unknown wallet error(3)\", sequence ID is " + sequence_id );
                 }
                 isSuccess = true;
                 joRetVal = joOut; // joOut.result
+                await joCall.disconnect();
             } ); // joCall.call ...
         } ); // rpcCall.create ...
     } catch ( err ) {
@@ -1761,6 +1768,7 @@ async function handle_skale_imaVerifyAndSign( joCallData ) {
                     cc.error( " JSON RPC call to SGX failed, RPC call was not created, error is: " ) + cc.warning( owaspUtils.extract_error_message( err ) ) + "\n";
                 log.write( strErrorMessage );
                 details.write( strErrorMessage );
+                await joCall.disconnect();
                 throw new Error( "JSON RPC call to SGX failed, RPC call was not created, error is: " + owaspUtils.extract_error_message( err ) );
             }
             const joCallSGX = {
@@ -1782,6 +1790,7 @@ async function handle_skale_imaVerifyAndSign( joCallData ) {
                         cc.error( " JSON RPC call to SGX failed, RPC call reported error: " ) + cc.warning( owaspUtils.extract_error_message( err ) ) + "\n";
                     log.write( strErrorMessage );
                     details.write( strErrorMessage );
+                    await joCall.disconnect();
                     throw new Error( "JSON RPC call to SGX failed, RPC call reported error: " + owaspUtils.extract_error_message( err ) );
                 }
                 details.write( strLogPrefix + cc.debug( "Call to " ) + cc.info( "SGX" ) + cc.debug( " done, answer is: " ) + cc.j( joOut ) + "\n" );
@@ -1794,6 +1803,7 @@ async function handle_skale_imaVerifyAndSign( joCallData ) {
                 joRetVal.result = { signResult: joSignResult };
                 if( "qa" in joCallData )
                     joRetVal.qa = joCallData.qa;
+                await joCall.disconnect();
             } ); // joCall.call ...
         } ); // rpcCall.create ...
     } catch ( err ) {
