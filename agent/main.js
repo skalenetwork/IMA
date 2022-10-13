@@ -2283,16 +2283,7 @@ if( imaState.nJsonRpcPort > 0 ) {
                 switch ( joMessage.method ) {
                 case "echo":
                 case "ping":
-                    // call:   { "id": 1, "method": "echo" }
-                    // answer: { "id": 1, "method": "echo", "error": null }
-                    // call:   { "id": 1, "method": "ping" }
-                    // answer: { "id": 1, "method": "ping", "error": null }
                     break;
-                // case "get_schain_network_info":
-                //     // call:   { "id": 1, "method": "get_schain_network_info" }
-                //     // answer: { "id": 1, "method": "get_schain_network_info", "error": null, "schain_network_info": ... }
-                //     joAnswer.schain_network_info = imaState.joSChainNetworkInfo;
-                //     break;
                 case "skale_imaVerifyAndSign":
                     // joAnswer = await imaBLS.handle_skale_imaVerifyAndSign( joMessage );
                     isSkipMode = true;
