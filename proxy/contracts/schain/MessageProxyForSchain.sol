@@ -237,7 +237,7 @@ contract MessageProxyForSchain is MessageProxy, IMessageProxyForSchain {
     }
 
     function topUpReceiverBalance(address payable receiver) external override {
-        require(_getRegistryContracts()[0].contains(msg.sender), "Sender is not registered");
+        require(isContractRegistered(bytes32(0), msg.sender), "Sender is not registered");
         uint256 balance = receiver.balance;
         uint256 threshold = minimumReceiverBalance;
         if (balance < threshold) {
