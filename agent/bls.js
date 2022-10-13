@@ -937,6 +937,7 @@ async function do_sign_messages_impl(
                         "\n";
                     log.write( strErrorMessage );
                     details.write( strErrorMessage );
+                    await rpcCall.disconnect();
                     return;
                 }
                 let targetChainName = "";
@@ -958,8 +959,10 @@ async function do_sign_messages_impl(
                     fromChainName = "" + joExtraSignOpts.chain_id_src;
                     // targetChainURL = owaspUtils.w3_2_url( joExtraSignOpts.w3_dst );
                     // fromChainURL = owaspUtils.w3_2_url( joExtraSignOpts.w3_src );
-                } else
+                } else {
+                    await rpcCall.disconnect();
                     throw new Error( "CRITICAL ERROR: Failed do_sign_messages_impl() with unknown directon \"" + strDirection + "\"" );
+                }
 
                 const joParams = {
                     direction: "" + strDirection,
@@ -998,6 +1001,7 @@ async function do_sign_messages_impl(
                             "\n";
                         log.write( strErrorMessage );
                         details.write( strErrorMessage );
+                        await rpcCall.disconnect();
                         return;
                     }
                     details.write(
@@ -1020,6 +1024,7 @@ async function do_sign_messages_impl(
                             "\n";
                         log.write( strErrorMessage );
                         details.write( strErrorMessage );
+                        await rpcCall.disconnect();
                         return;
                     }
                     details.write( strLogPrefix + cc.normal( "Node " ) + cc.info( joNode.nodeID ) + cc.normal( " sign result: " ) + cc.j( joOut.result ? joOut.result : null ) + "\n" );
@@ -1040,6 +1045,7 @@ async function do_sign_messages_impl(
                                         cc.debug( " because " ) + cc.info( nThreshold ) + cc.debug( "/" ) + cc.info( nCountOfBlsPartsToCollect ) +
                                         cc.debug( " threshold number of BLS signature parts already gathered" ) +
                                         "\n" );
+                                    await rpcCall.disconnect();
                                     return;
                                 }
                                 const arrTmp = joOut.result.signResult.signatureShare.split( ":" );
@@ -1107,7 +1113,9 @@ async function do_sign_messages_impl(
                         log.write( strErrorMessage );
                         details.write( strErrorMessage );
                     }
+                    await rpcCall.disconnect();
                 } ); // joCall.call ...
+                await rpcCall.disconnect();
             } ); // rpcCall.create ...
         } // for( let i = 0; i < jarrNodes.length; ++i )
 

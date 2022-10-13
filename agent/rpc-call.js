@@ -187,7 +187,9 @@ async function do_connect_if_needed( joCall, opts, fn ) {
 }
 
 async function do_reconnect_ws_step( joCall, opts, fn ) {
-    if( ! opts.isAutoReconnect )
+    if( ! joCall.isAutoReconnect )
+        return;
+    if( joCall.isDisconnectMode )
         return;
     fn = fn || async function() {};
     do_connect( joCall, opts, async function( joCall, err ) {
@@ -199,7 +201,25 @@ async function do_reconnect_ws_step( joCall, opts, fn ) {
     } );
 }
 
-const impl_sleep = ( milliseconds ) => { return new Promise( resolve => setTimeout( resolve, milliseconds ) ); };
+async function do_disconnect( joCall, fn ) {
+    fn = fn || async function() {};
+    try {
+        joCall.isDisconnectMode = true;
+        const wsConn = joCall.wsConn ? joCall.wsConn : null;
+        joCall.wsConn = null;
+        if( wsConn )
+            wsConn.close();
+        joCall.isDisconnectMode = false;
+        try {
+            await fn( joCall, null );
+        } catch ( err ) {
+        }
+    } catch ( err ) {
+        await await fn( joCall, err );
+    }
+}
+
+const do_sleep = ( milliseconds ) => { return new Promise( resolve => setTimeout( resolve, milliseconds ) ); };
 
 async function do_call( joCall, joIn, fn ) {
     // console.log( "--- --- --- initial joIn is", joIn );
@@ -269,17 +289,17 @@ async function do_call( joCall, joIn, fn ) {
         } );
         for( let idxWait = 0; ! bCompleteFlag; ++ idxWait ) {
             if( idxWait < 50 )
-                await impl_sleep( 5 );
+                await do_sleep( 5 );
             else if( idxWait < 100 )
-                await impl_sleep( 10 );
+                await do_sleep( 10 );
             else if( idxWait < 1000 )
-                await impl_sleep( 100 );
+                await do_sleep( 100 );
             else {
                 const nLastWaitPeriod = 200;
                 if( ( idxWait - 1000 ) * nLastWaitPeriod > g_nConnectionTimeoutSeconds )
                     bCompleteFlag = true;
                 else
-                    await impl_sleep( nLastWaitPeriod );
+                    await do_sleep( nLastWaitPeriod );
             }
         } // for( let idxWait = 0; ! bCompleteFlag; ++ idxWait )
         try {
@@ -300,6 +320,8 @@ async function rpc_call_create( strURL, opts, fn ) {
         "joRpcOptions": opts ? opts : null,
         "mapPendingByCallID": { },
         "wsConn": null,
+        "isAutoReconnect": opts.isAutoReconnect ? true : false,
+        "isDisconnectMode": false,
         "reconnect": async function( fnAfter ) {
             await do_connect( joCall, fnAfter );
         },
@@ -315,6 +337,9 @@ async function rpc_call_create( strURL, opts, fn ) {
                 }
                 await do_call( joCall, joIn, fnAfter );
             } );
+        },
+        "disconnect": async function( fnAfter ) {
+            await do_disconnect( joCall, fnAfter );
         }
     };
     await do_connect( joCall, opts, fn );
@@ -473,5 +498,6 @@ module.exports = {
     get_valid_host_and_port: get_valid_host_and_port,
     check_tcp_promise: check_tcp_promise,
     check_tcp: check_tcp,
-    check_url: check_url
+    check_url: check_url,
+    sleep: do_sleep
 }; // module.exports
