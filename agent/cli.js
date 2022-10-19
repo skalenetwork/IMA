@@ -380,9 +380,6 @@ function parse( joExternalHandlers, argv ) {
             console.log( soi + cc.debug( "--" ) + cc.bright( "ptx-ignore2" ) + cc.debug( "..................." ) + cc.error( "Ignore" ) + cc.notice( " secondary result of " ) + cc.attention( "pending transaction analysis" ) + cc.notice( "." ) );
             console.log( soi + cc.debug( "--" ) + cc.bright( "no-ptx-ignore2" ) + cc.debug( "................" ) + cc.success( "Do not ignore" ) + cc.notice( " secondary result of " ) + cc.attention( "pending transaction analysis" ) + cc.notice( ". Transfer loop will be delayed until " ) + cc.attention( "pending transactions disappear" ) + cc.notice( "." ) );
             //
-            console.log( cc.sunny( "IMA STATE" ) + cc.info( " options:" ) );
-            console.log( soi + cc.debug( "--" ) + cc.bright( "state-file" ) + cc.sunny( "=" ) + cc.info( "path" ) + cc.debug( "..............." ) + cc.notice( "Specifies path to IMA state file for optimized logs searches." ) );
-            //
             console.log( cc.sunny( "MESSAGE SIGNING" ) + cc.info( " options:" ) );
             console.log( soi + cc.debug( "--" ) + cc.bright( "sign-messages" ) + cc.debug( "................." ) + cc.notice( "Sign transferred messages." ) );
             console.log( soi + cc.debug( "--" ) + cc.bright( "bls-glue" ) + cc.sunny( "=" ) + cc.note( "path" ) + cc.debug( "................." ) + cc.notice( "Specifies path to " ) + cc.note( "bls_glue" ) + cc.notice( " application." ) );
@@ -481,6 +478,11 @@ function parse( joExternalHandlers, argv ) {
         if( joArg.name == "id-s-chain" ) {
             owaspUtils.verifyArgumentWithNonEmptyValue( joArg );
             imaState.strChainName_s_chain = joArg.value;
+            continue;
+        }
+        if( joArg.name == "id-origin-chain" ) {
+            owaspUtils.verifyArgumentWithNonEmptyValue( joArg );
+            imaState.strChainName_origin_chain = joArg.value;
             continue;
         }
         if( joArg.name == "id-t-chain" ) {
@@ -1075,11 +1077,6 @@ function parse( joExternalHandlers, argv ) {
             imaState.optsPendingTxAnalysis.isIgnore2 = false;
             continue;
         }
-        if( joArg.name == "state-file" ) {
-            imaState.optsStateFile.isEnabled = true;
-            imaState.optsStateFile.path = joArg.value;
-            continue;
-        }
         if( joArg.name == "log-size" ) {
             owaspUtils.verifyArgumentIsInteger( joArg );
             imaState.nLogMaxSizeBeforeRotation = owaspUtils.toInteger( joArg.value );
@@ -1273,7 +1270,7 @@ function getWeb3FromURL( strURL, log ) {
 }
 
 async function async_check_url_at_startup( u, name ) {
-    const details = log.createMemoryStream();
+    const details = log.createMemoryStream( true );
     const nTimeoutMilliseconds = 10 * 1000;
     try {
         details.write( cc.debug( "Will check URL " ) + cc.u( u ) + cc.debug( " connectivity for " ) + cc.info( name ) + cc.debug( " at start-up..." ) + "\n" );

@@ -125,6 +125,7 @@ async function do_connect( joCall, opts, fn ) {
                         clearTimeout( entry.iv );
                         entry.iv = null;
                     }
+                    clearTimeout( entry.out );
                     await entry.fn( entry.joIn, joOut, null );
                 }
             } );

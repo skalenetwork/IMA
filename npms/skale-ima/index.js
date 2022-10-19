@@ -853,6 +853,8 @@ async function do_oracle_gas_price_setup(
                     "receipt": joReceipt
                 } );
                 print_gas_usage_report_from_array( "(intermediate result) ORACLE GAS PRICE SETUP ", jarrReceipts );
+                // if( optsPendingTxAnalysis && "isEnabled" in optsPendingTxAnalysis && optsPendingTxAnalysis.isEnabled )
+                //     await async_pending_tx_complete( details, w3_schain, w3_main_net, chain_id_schain, chain_id_mainnet, "" + joReceipt.transactionHash );
             }
             save_transfer_success( "oracle" );
         } );
@@ -2089,6 +2091,7 @@ async function reimbursement_set_range(
     strChainName_s_chain,
     cid_s_chain,
     tc_s_chain,
+    strChainName_origin_chain,
     nReimbursementRange
 ) {
     const details = log.createMemoryStream();
@@ -2108,6 +2111,7 @@ async function reimbursement_set_range(
         //
         const methodWithArguments = jo_community_locker.methods.setTimeLimitPerMessage(
             // call params, last is destination account on S-chain
+            strChainName_origin_chain,
             "0x" + w3_s_chain.utils.toBN( nReimbursementRange ).toString( 16 )
         );
         const dataTx = methodWithArguments.encodeABI(); // the encoded ABI of the method
@@ -5018,32 +5022,98 @@ async function async_pending_tx_scanner( details, w3, w3_opposite, chain_id, cha
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-async function init_ima_state_file( details, w3, strDirection, optsStateFile ) {
-    if( strDirection != "M2S" )
-        return;
-    if( ! ( optsStateFile && optsStateFile.isEnabled && "path" in optsStateFile && typeof optsStateFile.path == "string" && optsStateFile.path.length > 0 ) )
-        return;
-    let isFileExist = false;
-    try {
-        if( fs.existsSync( optsStateFile.path ) )
-            isFileExist = true;
-    } catch ( err ) { }
-    if( isFileExist )
-        return;
-    let nBlockFrom = 0;
-    try {
-        nBlockFrom = await w3.eth.getBlockNumber();
-    } catch ( err ) { }
-    const strKeyName = ( strDirection == "M2S" ) ? "lastSearchedStartBlockM2S" : "lastSearchedStartBlockS2M";
-    try {
-        const joStateForLogsSearch = {};
-        details.write( strLogPrefix + cc.normal( "(FIRST TIME) Saving next forecasted block number for logs search value " ) + cc.info( blockNumberNextForecast ) + "\n" );
-        joStateForLogsSearch[strKeyName] = nBlockFrom;
-        const s = JSON.stringify( joStateForLogsSearch, null, 4 );
-        fs.writeFileSync( optsStateFile.path, s );
-    } catch ( err ) {
+async function find_out_reference_log_record( details, w3, jo_message_proxy, nBlockId, nMessageNumberToFind, isVerbose ) {
+    const strLogPrefix = "";
+    const bnMessageNumberToFind = w3.utils.toBN( nMessageNumberToFind.toString() );
+    const strEventName = "PreviousMessageReference";
+    const arrLogRecords = await get_web3_pastEventsProgressive(
+        details,
+        w3,
+        10,
+        jo_message_proxy,
+        strEventName,
+        nBlockId, // nBlockFrom
+        nBlockId, // nBlockTo
+        { } // filter
+    );
+    const cntLogRecord = arrLogRecords.length;
+    if( isVerbose ) {
+        details.write( strLogPrefix +
+            cc.debug( "Got " ) + cc.info( cntLogRecord ) + cc.debug( " log record(s) (" ) + cc.info( strEventName ) +
+            cc.debug( ") with data: " ) + cc.j( arrLogRecords ) + "\n" );
     }
+    for( let idxLogRecord = 0; idxLogRecord < cntLogRecord; ++ idxLogRecord ) {
+        const joEvent = arrLogRecords[idxLogRecord];
+        const joReferenceLogRecord = { // joEvent.returnValues;
+            currentMessage: joEvent.returnValues.currentMessage,
+            previousOutgoingMessageBlockId: joEvent.returnValues.previousOutgoingMessageBlockId,
+            currentBlockId: owaspUtils.toInteger( nBlockId.toString() ) // added field
+        };
+        const bnCurrentMessage = w3.utils.toBN( joReferenceLogRecord.currentMessage.toString() );
+        if( bnCurrentMessage.eq( bnMessageNumberToFind ) ) {
+            if( isVerbose ) {
+                details.write( strLogPrefix +
+                    cc.success( "Found " ) + cc.info( strEventName ) + cc.success( " log record " ) +
+                    cc.j( joReferenceLogRecord ) + cc.success( " for message " ) + cc.info( nMessageNumberToFind ) + "\n" );
+            }
+            return joReferenceLogRecord;
+        }
+    } // for( let idxLogRecord = 0; idxLogRecord < cntLogRecord; ++ idxLogRecord )
+    if( isVerbose ) {
+        details.write( strLogPrefix +
+            cc.error( "Failed to find " ) + cc.info( strEventName ) + cc.error( " log record for message " ) +
+            cc.info( nMessageNumberToFind ) + "\n" );
+    }
+    return null;
 }
+
+async function find_out_all_reference_log_records( details, w3, jo_message_proxy, nBlockId, nIncMsgCnt, nOutMsgCnt, isVerbose ) {
+    const strLogPrefix = "";
+    if( isVerbose ) {
+        details.write( strLogPrefix +
+            cc.debug( "Optimized IMA message search algorithm will start at block " ) + cc.info( nBlockId.toString() ) +
+            cc.debug( ", will search for ougoing message counter " ) + cc.info( nOutMsgCnt.toString() ) +
+            cc.debug( " and approach down to incoming message counter " ) + cc.info( nIncMsgCnt.toString() ) +
+            "\n" );
+    }
+    const arrLogRecordReferences = [];
+    const cntExpected = nOutMsgCnt - nIncMsgCnt;
+    if( cntExpected <= 0 ) {
+        if( isVerbose ) {
+            details.write( strLogPrefix +
+                cc.success( "Optimized IMA message search algorithm success, nothing to search, result is empty" ) + "\n" );
+        }
+        return arrLogRecordReferences; // nothing to searcharrLogRecordReferences
+    }
+    let nWalkMsgNumber = nOutMsgCnt - 1;
+    let nWalkBlockId = nBlockId;
+    for( ; nWalkMsgNumber >= nIncMsgCnt; -- nWalkMsgNumber ) {
+        const joReferenceLogRecord = await find_out_reference_log_record( details, w3, jo_message_proxy, nWalkBlockId, nWalkMsgNumber, isVerbose );
+        if( joReferenceLogRecord == null )
+            break;
+        nWalkBlockId = owaspUtils.toInteger( joReferenceLogRecord.previousOutgoingMessageBlockId.toString() );
+        arrLogRecordReferences.unshift( joReferenceLogRecord );
+    } // for( ; nWalkMsgNumber >= nIncMsgCnt; -- nWalkMsgNumber )
+    const cntFound = arrLogRecordReferences.length;
+    if( cntFound != cntExpected ) {
+        if( isVerbose ) {
+            details.write( strLogPrefix +
+                cc.error( "Optimized IMA message search algorithm fail, found " ) + cc.info( cntFound ) +
+                cc.error( " log record(s), expected " ) + cc.info( cntExpected ) + cc.error( " log record(s), found records are: " ) +
+                cc.j( arrLogRecordReferences ) + "\n" );
+        }
+    } else {
+        if( isVerbose ) {
+            details.write( strLogPrefix +
+                cc.success( "Optimized IMA message search algorithm success, found all " ) +
+                cc.info( cntFound ) + cc.success( " log record(s): " ) + cc.j( arrLogRecordReferences ) + "\n" );
+        }
+    }
+    return arrLogRecordReferences;
+}
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 let g_nTransferLoopCounter = 0;
 
@@ -5092,8 +5162,7 @@ async function do_transfer(
     //
     tc_dst,
     //
-    optsPendingTxAnalysis,
-    optsStateFile
+    optsPendingTxAnalysis
 ) {
     const nTransferLoopCounter = g_nTransferLoopCounter;
     ++ g_nTransferLoopCounter;
@@ -5108,7 +5177,6 @@ async function do_transfer(
     const details = log.createMemoryStream( true );
     const jarrReceipts = [];
     let bErrorInSigningMessages = false;
-    await init_ima_state_file( details, w3_src, strDirection, optsStateFile );
     const strLogPrefix = cc.bright( strDirection ) + cc.info( " transfer from " ) + cc.notice( chain_id_src ) + cc.info( " to " ) + cc.notice( chain_id_dst ) + cc.info( ":" ) + " ";
     if( fn_sign_messages == null || fn_sign_messages == undefined ) {
         details.write( strLogPrefix + cc.debug( "Using internal signing stub function" ) + "\n" );
@@ -5133,14 +5201,12 @@ async function do_transfer(
     let nIdxCurrentMsg = 0;
     let nOutMsgCnt = 0;
     let nIncMsgCnt = 0;
-    let idxLastToPopNotIncluding = 0;
     try {
-        let nPossibleIntegerValue = 0;
         details.write( cc.info( "SRC " ) + cc.sunny( "MessageProxy" ) + cc.info( " address is....." ) + cc.bright( jo_message_proxy_src.options.address ) + "\n" );
         details.write( cc.info( "DST " ) + cc.sunny( "MessageProxy" ) + cc.info( " address is....." ) + cc.bright( jo_message_proxy_dst.options.address ) + "\n" );
         strActionName = "src-chain.MessageProxy.getOutgoingMessagesCounter()";
         details.write( strLogPrefix + cc.debug( "Will call " ) + cc.notice( strActionName ) + cc.debug( "..." ) + "\n" );
-        nPossibleIntegerValue = await jo_message_proxy_src.methods.getOutgoingMessagesCounter( chain_id_dst ).call( {
+        let nPossibleIntegerValue = await jo_message_proxy_src.methods.getOutgoingMessagesCounter( chain_id_dst ).call( {
             from: joAccountSrc.address( w3_src )
         } );
         if( !owaspUtils.validateInteger( nPossibleIntegerValue ) )
@@ -5164,9 +5230,31 @@ async function do_transfer(
         } );
         if( !owaspUtils.validateInteger( nPossibleIntegerValue ) )
             throw new Error( "DST chain " + chain_id_dst + " returned incoming message counter " + nPossibleIntegerValue + " which is not a valid integer" );
-        idxLastToPopNotIncluding = owaspUtils.toInteger( nPossibleIntegerValue );
+        const idxLastToPopNotIncluding = owaspUtils.toInteger( nPossibleIntegerValue );
         details.write( strLogPrefix + cc.debug( "Result of " ) + cc.notice( strActionName ) + cc.debug( " call: " ) + cc.info( idxLastToPopNotIncluding ) + "\n" );
+
         //
+        // optimized scanner
+        //
+        const nBlockId = await jo_message_proxy_src.methods.getLastOutgoingMessageBlockId( chain_id_dst ).call( {
+            from: joAccountSrc.address( w3_src )
+        } );
+        // const joReferenceLogRecord = await find_out_reference_log_record( details, w3_src, jo_message_proxy_src, nBlockId, nOutMsgCnt - 1, true );
+        let arrLogRecordReferences = [];
+        try {
+            arrLogRecordReferences = await find_out_all_reference_log_records( details, w3_src, jo_message_proxy_src, nBlockId, nIncMsgCnt, nOutMsgCnt, true );
+            if( arrLogRecordReferences.length <= 0 )
+                throw new Error( "Nothing was found by optimized IMA messages search algorithm" );
+        } catch ( err ) {
+            arrLogRecordReferences = [];
+            details.write(
+                strLogPrefix + cc.warning( "Optimized log search is " ) + cc.error( "off" ) +
+                cc.warning( ". Running old IMA smart contracts?" ) + cc.success( " Please upgrade, if possible." ) +
+                "\n" );
+        }
+
+        //
+        // classic scanner with optional usage of optimizamed IMA messages search algorithm
         // outer loop is block former/creator, then transfer
         //
         nIdxCurrentMsg = nIncMsgCnt;
@@ -5193,46 +5281,19 @@ async function do_transfer(
             //
             // inner loop wil create block of transactions
             //
-            let cntAccumulatedForBlock = 0, blockNumberNextForecast = 0;
-            let nBlockFrom = 0;
-            const nBlockTo = "latest";
-            let joStateForLogsSearch = {};
-            // const nLatestBlockNumber = await get_web3_blockNumber( details, 10, w3_src );
-            if( optsStateFile && optsStateFile.isEnabled && "path" in optsStateFile && typeof optsStateFile.path == "string" && optsStateFile.path.length > 0 ) {
-                const strKeyName = ( strDirection == "M2S" ) ? "lastSearchedStartBlockM2S" : "lastSearchedStartBlockS2M";
-                try {
-                    const s = fs.readFileSync( optsStateFile.path );
-                    joStateForLogsSearch = JSON.parse( s );
-                    if( strKeyName in joStateForLogsSearch && typeof joStateForLogsSearch[strKeyName] == "string" ) {
-                        nBlockFrom = "0x" + w3_src.utils.toBN( joStateForLogsSearch[strKeyName] ).toString( 16 );
-                        details.write( strLogPrefix +
-                            cc.normal( "Loaded nearest previously forecasted " ) +
-                            cc.bright( strDirection ) + cc.debug( "/" ) + cc.attention( strKeyName ) +
-                            cc.normal( " block number for logs search value " ) +
-                            cc.info( nBlockFrom ) + "\n" );
-                    } else {
-                        details.write( strLogPrefix +
-                            cc.normal( "Was not found nearest previously forecasted " ) +
-                            cc.bright( strDirection ) + cc.debug( "/" ) + cc.attention( strKeyName ) +
-                            cc.normal( " block number for logs search value " ) +
-                            cc.info( nBlockFrom ) + "\n" );
-                    }
-                } catch ( err ) {
-                    nBlockFrom = 0;
-                    details.write( strLogPrefix +
-                        cc.error( "Was reset nearest previously forecasted " ) +
-                        cc.bright( strDirection ) + cc.debug( "/" ) + cc.attention( strKeyName ) +
-                        cc.error( " block number for logs search value " ) +
-                        cc.error( nBlockFrom ) + cc.error( " due to error: " ) + cc.warning( err ) + "\n" );
-                }
-            }
-            // blockNumberNextForecast = nBlockFrom;
-
+            let cntAccumulatedForBlock = 0;
             for( let idxInBlock = 0; nIdxCurrentMsg < nOutMsgCnt && idxInBlock < nTransactionsCountInBlock; ++nIdxCurrentMsg, ++idxInBlock, ++cntAccumulatedForBlock ) {
                 const idxProcessing = cntProcessed + idxInBlock;
                 if( idxProcessing > nMaxTransactionsCount )
                     break;
                 //
+                let nBlockFrom = 0;
+                let nBlockTo = "latest";
+                if( arrLogRecordReferences.length > 0 ) {
+                    const joReferenceLogRecord = arrLogRecordReferences.shift();
+                    nBlockFrom = joReferenceLogRecord.currentBlockId;
+                    nBlockTo = joReferenceLogRecord.currentBlockId;
+                }
                 //
                 strActionName = "src-chain->MessageProxy->scan-past-events()";
                 details.write(
@@ -5274,16 +5335,6 @@ async function do_transfer(
                             cc.success( "accepted for processing, found event values are " ) + cc.j( joValues ) +
                             cc.success( ", found block number is " ) + cc.info( joValues.savedBlockNumberForOptimizations ) +
                             "\n" );
-                        if( blockNumberNextForecast === 0 )
-                            blockNumberNextForecast = w3mod.utils.toHex( r[i].blockNumber );
-                        else {
-                            const oldBN = w3_src.utils.toBN( blockNumberNextForecast );
-                            const newBN = w3_src.utils.toBN( r[i].blockNumber );
-                            if( newBN.lt( oldBN ) ) {
-                                blockNumberNextForecast = "0x" + newBN.toString( 16 );
-                                details.write( strLogPrefix + cc.normal( "Narrowing next forecasted block number for logs search is " ) + cc.info( blockNumberNextForecast ) + "\n" );
-                            }
-                        }
                         break;
                     } else {
                         details.write( strLogPrefix +
@@ -5292,7 +5343,6 @@ async function do_transfer(
                             "\n" );
                     }
                 }
-                details.write( strLogPrefix + cc.normal( "Next forecasted block number for logs search is " ) + cc.info( blockNumberNextForecast ) + "\n" );
                 if( joValues == "" ) {
                     const strError = strLogPrefix + cc.fatal( "CRITICAL ERROR:" ) + " " + cc.error( "Can't get events from MessageProxy" );
                     log.write( strError + "\n" );
@@ -5406,7 +5456,6 @@ async function do_transfer(
                     savedBlockNumberForOptimizations: joValues.savedBlockNumberForOptimizations
                 };
                 jarrMessages.push( joMessage );
-
             } // for( let idxInBlock = 0; nIdxCurrentMsg < nOutMsgCnt && idxInBlock < nTransactionsCountInBlock; ++ nIdxCurrentMsg, ++ idxInBlock, ++cntAccumulatedForBlock )
             if( cntAccumulatedForBlock == 0 )
                 break;
@@ -5591,12 +5640,13 @@ async function do_transfer(
                             try {
                                 const w3_node = getWeb3FromURL( jo_node.http_endpoint_ip, details );
                                 const jo_message_proxy_node = new w3_node.eth.Contract( imaState.joAbiPublishResult_s_chain.message_proxy_chain_abi, imaState.joAbiPublishResult_s_chain.message_proxy_chain_address );
+                                const strEventName = "OutgoingMessage";
                                 const node_r = await get_web3_pastEventsProgressive(
                                     details,
                                     w3_node,
                                     10,
                                     jo_message_proxy_node,
-                                    "OutgoingMessage",
+                                    strEventName,
                                     joMessage.savedBlockNumberForOptimizations, // 0, // nBlockFrom
                                     joMessage.savedBlockNumberForOptimizations, // "latest", // nBlockTo
                                     {
@@ -5606,7 +5656,7 @@ async function do_transfer(
                                 );
                                 const cntEvents = node_r.length;
                                 details.write( strLogPrefix +
-                                    cc.debug( "Got " ) + cc.info( cntEvents ) + cc.debug( " events on node " ) +
+                                    cc.debug( "Got " ) + cc.info( cntEvents ) + cc.debug( " event(s) (" ) + cc.info( strEventName ) + cc.debug( ") on node " ) +
                                     cc.info( jo_node.name ) + cc.debug( " with data: " ) + cc.j( node_r ) + "\n" );
                                 for( let idxEvent = 0; idxEvent < cntEvents; ++ idxEvent ) {
                                     const joEvent = node_r[idxEvent];
@@ -5901,22 +5951,6 @@ async function do_transfer(
                                 detailsB.write( strLogPrefix + cc.error( "WARNING:" ) + " " + cc.warn( "Cannot validate transfer to Main Net via MessageProxy error absence on Main Net, no MessageProxy provided" ) + "\n" );
                         } // if( chain_id_dst == "Mainnet" )
 
-                        if( optsStateFile && optsStateFile.isEnabled && "path" in optsStateFile && typeof optsStateFile.path == "string" && optsStateFile.path.length > 0 ) {
-                            if( blockNumberNextForecast !== nBlockFrom ) {
-                                const strKeyName = ( strDirection == "M2S" ) ? "lastSearchedStartBlockM2S" : "lastSearchedStartBlockS2M";
-                                try {
-                                    detailsB.write( strLogPrefix +
-                                    cc.normal( "Saving next forecasted " +
-                                    cc.bright( strDirection ) + cc.debug( "/" ) + cc.attention( strKeyName ) +
-                                    " block number for logs search value " ) +
-                                    cc.info( blockNumberNextForecast ) + "\n" );
-                                    joStateForLogsSearch[strKeyName] = blockNumberNextForecast;
-                                    const s = JSON.stringify( joStateForLogsSearch, null, 4 );
-                                    fs.writeFileSync( optsStateFile.path, s );
-                                } catch ( err ) {
-                                }
-                            }
-                        }
                     } ).catch( ( err ) => { // callback fn as argument of fn_sign_messages
                     bErrorInSigningMessages = true;
                     if( verbose_get() >= RV_VERBOSE.fatal ) {
@@ -5994,8 +6028,7 @@ async function do_s2s_all( // s-chain --> s-chain
     //
     tc_dst,
     //
-    optsPendingTxAnalysis,
-    optsStateFile
+    optsPendingTxAnalysis
 ) {
     let cntOK = 0, cntFail = 0;
     const strDirection = "S2S";
@@ -6053,8 +6086,7 @@ async function do_s2s_all( // s-chain --> s-chain
                     //
                     tc_dst,
                     //
-                    optsPendingTxAnalysis,
-                    optsStateFile
+                    optsPendingTxAnalysis
                 );
         } catch ( err ) {
             bOK = false;
@@ -6376,9 +6408,11 @@ async function mintERC20(
         strActionName = "mintERC20() sign transaction";
         const joSR = await safe_sign_transaction_with_account( details, w3, tx_mint, raw_tx_mint, joAccount );
         let joReceipt = null;
-        if( joSR.joACI.isAutoSend )
+        if( joSR.joACI.isAutoSend ) {
+            // if( optsPendingTxAnalysis && "isEnabled" in optsPendingTxAnalysis && optsPendingTxAnalysis.isEnabled )
+            //     await async_pending_tx_start( details, w3, w3, cid, cid, "" + joSR.txHashSent );
             joReceipt = await get_web3_transactionReceipt( details, 10, w3, joSR.txHashSent );
-        else {
+        } else {
             const serializedTx_mint = tx_mint.serialize();
             strActionName = "w3.eth.sendSignedTransaction()";
             // let joReceipt = await w3.eth.sendSignedTransaction( "0x" + serializedTx_mint.toString( "hex" ) );
@@ -6470,9 +6504,11 @@ async function mintERC721(
         strActionName = "mintERC721() sign transaction";
         const joSR = await safe_sign_transaction_with_account( details, w3, tx_mint, raw_tx_mint, joAccount );
         let joReceipt = null;
-        if( joSR.joACI.isAutoSend )
+        if( joSR.joACI.isAutoSend ) {
+            // if( optsPendingTxAnalysis && "isEnabled" in optsPendingTxAnalysis && optsPendingTxAnalysis.isEnabled )
+            //     await async_pending_tx_start( details, w3, w3, cid, cid, "" + joSR.txHashSent );
             joReceipt = await get_web3_transactionReceipt( details, 10, w3, joSR.txHashSent );
-        else {
+        } else {
             const serializedTx_mint = tx_mint.serialize();
             strActionName = "w3.eth.sendSignedTransaction()";
             // let joReceipt = await w3.eth.sendSignedTransaction( "0x" + serializedTx_mint.toString( "hex" ) );
@@ -6567,9 +6603,11 @@ async function mintERC1155(
         strActionName = "mintERC1155() sign transaction";
         const joSR = await safe_sign_transaction_with_account( details, w3, tx_mint, raw_tx_mint, joAccount );
         let joReceipt = null;
-        if( joSR.joACI.isAutoSend )
+        if( joSR.joACI.isAutoSend ) {
+            // if( optsPendingTxAnalysis && "isEnabled" in optsPendingTxAnalysis && optsPendingTxAnalysis.isEnabled )
+            //     await async_pending_tx_start( details, w3, w3, cid, cid, "" + joSR.txHashSent );
             joReceipt = await get_web3_transactionReceipt( details, 10, w3, joSR.txHashSent );
-        else {
+        } else {
             const serializedTx_mint = tx_mint.serialize();
             strActionName = "w3.eth.sendSignedTransaction()";
             // let joReceipt = await w3.eth.sendSignedTransaction( "0x" + serializedTx_mint.toString( "hex" ) );
@@ -6661,9 +6699,11 @@ async function burnERC20(
         strActionName = "burnERC20() sign transaction";
         const joSR = await safe_sign_transaction_with_account( details, w3, tx_burn, raw_tx_burn, joAccount );
         let joReceipt = null;
-        if( joSR.joACI.isAutoSend )
+        if( joSR.joACI.isAutoSend ) {
+            // if( optsPendingTxAnalysis && "isEnabled" in optsPendingTxAnalysis && optsPendingTxAnalysis.isEnabled )
+            //     await async_pending_tx_start( details, w3, w3, cid, cid, "" + joSR.txHashSent );
             joReceipt = await get_web3_transactionReceipt( details, 10, w3, joSR.txHashSent );
-        else {
+        } else {
             const serializedTx_burn = tx_burn.serialize();
             strActionName = "w3.eth.sendSignedTransaction()";
             // let joReceipt = await w3.eth.sendSignedTransaction( "0x" + serializedTx_burn.toString( "hex" ) );
@@ -6755,9 +6795,11 @@ async function burnERC721(
         strActionName = "burnERC721() sign transaction";
         const joSR = await safe_sign_transaction_with_account( details, w3, tx_burn, raw_tx_burn, joAccount );
         let joReceipt = null;
-        if( joSR.joACI.isAutoSend )
+        if( joSR.joACI.isAutoSend ) {
+            // if( optsPendingTxAnalysis && "isEnabled" in optsPendingTxAnalysis && optsPendingTxAnalysis.isEnabled )
+            //     await async_pending_tx_start( details, w3, w3, cid, cid, "" + joSR.txHashSent );
             joReceipt = await get_web3_transactionReceipt( details, 10, w3, joSR.txHashSent );
-        else {
+        } else {
             const serializedTx_burn = tx_burn.serialize();
             strActionName = "w3.eth.sendSignedTransaction()";
             // let joReceipt = await w3.eth.sendSignedTransaction( "0x" + serializedTx_burn.toString( "hex" ) );
@@ -6851,9 +6893,11 @@ async function burnERC1155(
         strActionName = "burnERC1155() sign transaction";
         const joSR = await safe_sign_transaction_with_account( details, w3, tx_burn, raw_tx_burn, joAccount );
         let joReceipt = null;
-        if( joSR.joACI.isAutoSend )
+        if( joSR.joACI.isAutoSend ) {
+            // if( optsPendingTxAnalysis && "isEnabled" in optsPendingTxAnalysis && optsPendingTxAnalysis.isEnabled )
+            //     await async_pending_tx_start( details, w3, w3, cid, cid, "" + joSR.txHashSent );
             joReceipt = await get_web3_transactionReceipt( details, 10, w3, joSR.txHashSent );
-        else {
+        } else {
             const serializedTx_burn = tx_burn.serialize();
             strActionName = "w3.eth.sendSignedTransaction()";
             // let joReceipt = await w3.eth.sendSignedTransaction( "0x" + serializedTx_burn.toString( "hex" ) );

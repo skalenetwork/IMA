@@ -120,6 +120,7 @@ global.imaState = {
 
     "strChainName_main_net": ( process.env.CHAIN_NAME_ETHEREUM || "Mainnet" ).toString().trim(),
     "strChainName_s_chain": ( process.env.CHAIN_NAME_SCHAIN || "id-S-chain" ).toString().trim(),
+    "strChainName_origin_chain": ( process.env.CHAIN_NAME_SCHAIN_ORIGIN || "Mainnet" ).toString().trim(),
     "strChainName_t_chain": ( process.env.CHAIN_NAME_SCHAIN_TARGET || "id-T-chain" ).toString().trim(),
     "cid_main_net": owaspUtils.toInteger( process.env.CID_ETHEREUM ) || -4,
     "cid_s_chain": owaspUtils.toInteger( process.env.CID_SCHAIN ) || -4,
@@ -262,11 +263,6 @@ global.imaState = {
         "isIgnore2": true // ignore secondary PTX result
     },
 
-    "optsStateFile": {
-        "isEnabled": false, // true
-        "path": "./ima.state.json"
-    },
-
     "nMonitoringPort": 0, // 0 - default, means monitoring server is disabled
 
     "strReimbursementChain": "",
@@ -325,6 +321,7 @@ const fnInitActionSkaleNetworkScanForS2S = function() {
             // const strError = await skale_observer.cache_schains(
             //     imaState.strChainName_s_chain, // strChainNameConnectedTo
             //     imaState.w3_main_net,
+            //     imaState.w3_s_chain,
             //     addressFrom,
             //     opts
             // );
@@ -338,6 +335,7 @@ const fnInitActionSkaleNetworkScanForS2S = function() {
             await skale_observer.periodic_caching_start(
                 imaState.strChainName_s_chain, // strChainNameConnectedTo
                 imaState.w3_main_net,
+                imaState.w3_s_chain,
                 addressFrom,
                 opts
             );
@@ -1268,8 +1266,7 @@ imaCLI.parse( {
                     imaBLS.do_sign_messages_m2s, // fn_sign_messages
                     null, // joExtraSignOpts
                     imaState.tc_s_chain,
-                    imaState.optsPendingTxAnalysis,
-                    imaState.optsStateFile
+                    imaState.optsPendingTxAnalysis
                 );
             }
         } );
@@ -1303,8 +1300,7 @@ imaCLI.parse( {
                     imaBLS.do_sign_messages_s2m, // fn_sign_messages
                     null, // joExtraSignOpts
                     imaState.tc_main_net,
-                    imaState.optsPendingTxAnalysis,
-                    imaState.optsStateFile
+                    imaState.optsPendingTxAnalysis
                 );
             }
         } );
@@ -1334,8 +1330,7 @@ imaCLI.parse( {
                     imaState.nBlockAgeM2S,
                     imaBLS.do_sign_messages_m2s, // fn_sign_messages
                     imaState.tc_s_chain,
-                    imaState.optsPendingTxAnalysis,
-                    null // imaState.optsStateFile
+                    imaState.optsPendingTxAnalysis
                 );
             }
         } );
@@ -1465,7 +1460,8 @@ imaCLI.parse( {
                 };
                 const addressFrom = imaState.joAccount_main_net.address( imaState.w3_main_net );
                 const arr_schains = await skale_observer.load_schains( imaState.w3_main_net, addressFrom, opts );
-                log.write( strLogPrefix + cc.normal( "Got " ) + cc.info( "SKALE NETWORK" ) + cc.normal( " information: " ) + cc.j( arr_schains ) + "\n" );
+                const cnt = arr_schains.length;
+                log.write( strLogPrefix + cc.normal( "Got " ) + cc.info( cnt ) + cc.normal( " S-Chains(s) in SKALE NETWORK information: " ) + cc.j( arr_schains ) + "\n" );
                 return true;
             }
         } );
@@ -1488,18 +1484,17 @@ imaCLI.parse( {
                     "bStopNeeded": false
                 };
                 const addressFrom = imaState.joAccount_main_net.address( imaState.w3_main_net );
-                const arr_schains = await skale_observer.load_schains( imaState.w3_main_net, addressFrom, opts );
-                await skale_observer.check_connected_schains(
+
+                const arr_schains_cached = await skale_observer.load_schains_connected_only(
+                    imaState.w3_main_net,
+                    imaState.w3_s_chain,
                     imaState.strChainName_s_chain, // strChainNameConnectedTo
-                    arr_schains,
                     addressFrom,
                     opts
                 );
-                const arr_schains_cached = await skale_observer.filter_schains_marked_as_connected(
-                    arr_schains,
-                    opts
-                );
-                log.write( strLogPrefix + cc.normal( "Got " ) + cc.info( "connected S-Chains" ) + cc.normal( " information: " ) + cc.j( arr_schains_cached ) + "\n" );
+
+                const cnt = arr_schains_cached.length;
+                log.write( strLogPrefix + cc.normal( "Got " ) + cc.info( cnt ) + cc.normal( " onnected S-Chain(s): " ) + cc.j( arr_schains_cached ) + "\n" );
                 return true;
             }
         } );
@@ -1652,7 +1647,7 @@ if( haveReimbursementCommands ) {
 }
 if( imaState.nReimbursementRange >= 0 ) {
     imaState.arrActions.push( {
-        "name": "Gas Reimbursement - Set Minimal time interval from S2M transfers",
+        "name": "Gas Reimbursement - Set Minimal time interval from S2M and S2S transfers",
         "fn": async function() {
             await IMA.reimbursement_set_range(
                 imaState.w3_s_chain,
@@ -1661,6 +1656,7 @@ if( imaState.nReimbursementRange >= 0 ) {
                 imaState.strChainName_s_chain,
                 imaState.cid_s_chain,
                 imaState.tc_s_chain,
+                imaState.strChainName_origin_chain,
                 imaState.nReimbursementRange
             );
             return true;
@@ -1768,7 +1764,7 @@ async function continue_schain_discovery_in_background_if_needed( isSilent ) {
             if( IMA.verbose_get() >= IMA.RV_VERBOSE.information ) {
                 log.write(
                     cc.info( "Will re-discover " ) + cc.notice( cntNodes ) + cc.info( "-node S-Chain network, " ) +
-                        cc.notice( cntDiscovered ) + cc.info( " node(s) already discovered..." ) + "\n" );
+                    cc.notice( cntDiscovered ) + cc.info( " node(s) already discovered..." ) + "\n" );
             }
             await discover_s_chain_network( function( err, joSChainNetworkInfo ) {
                 if( ! err ) {
@@ -1776,14 +1772,14 @@ async function continue_schain_discovery_in_background_if_needed( isSilent ) {
                     if( IMA.verbose_get() >= IMA.RV_VERBOSE.information ) {
                         const strDiscoveryStatus = cc.info( cntDiscoveredNew ) + cc.success( " nodes known" );
                         let strMessage =
-                                cc.success( "S-Chain network was re-discovered, " ) + cc.info( cntDiscoveredNew ) +
-                                cc.success( " of " ) + cc.info( cntNodes ) +
-                                cc.success( " node(s) (" ) + strDiscoveryStatus + cc.success( ")" );
+                            cc.success( "S-Chain network was re-discovered, " ) + cc.info( cntDiscoveredNew ) +
+                            cc.success( " of " ) + cc.info( cntNodes ) +
+                            cc.success( " node(s) (" ) + strDiscoveryStatus + cc.success( ")" );
                         const cntStillUnknown = cntNodes - cntDiscoveredNew;
                         if( cntStillUnknown > 0 ) {
                             strMessage += cc.success( ", " ) +
-                                    cc.info( cntStillUnknown ) + cc.success( " of " ) + cc.info( cntNodes ) +
-                                    cc.success( " still unknown (" );
+                                cc.info( cntStillUnknown ) + cc.success( " of " ) + cc.info( cntNodes ) +
+                                cc.success( " still unknown (" );
                             try {
                                 const jarrNodes = joSChainNetworkInfo.network;
                                 let cntBad = 0;
@@ -1791,13 +1787,13 @@ async function continue_schain_discovery_in_background_if_needed( isSilent ) {
                                     const joNode = jarrNodes[i];
                                     try {
                                         if( ! ( joNode && "imaInfo" in joNode && typeof joNode.imaInfo === "object" &&
-                                                "t" in joNode.imaInfo && typeof joNode.imaInfo.t === "number" ) ) {
+                                            "t" in joNode.imaInfo && typeof joNode.imaInfo.t === "number" ) ) {
                                             if( cntBad > 0 )
                                                 strMessage += cc.success( ", " );
                                             const strNodeURL = imaUtils.compose_schain_node_url( joNode );
                                             const strNodeDescColorized =
-                                                    cc.notice( "#" ) + cc.info( i ) +
-                                                    cc.attention( "(" ) + cc.u( strNodeURL ) + cc.attention( ")" );
+                                                cc.notice( "#" ) + cc.info( i ) +
+                                                cc.attention( "(" ) + cc.u( strNodeURL ) + cc.attention( ")" );
                                             strMessage += strNodeDescColorized;
                                             ++ cntBad;
                                         }
@@ -1808,8 +1804,8 @@ async function continue_schain_discovery_in_background_if_needed( isSilent ) {
                         }
                         if( ! isSilent ) {
                             strMessage +=
-                                    cc.success( ", complete re-discovered S-Chain network info: " ) +
-                                    cc.j( joSChainNetworkInfo );
+                                cc.success( ", complete re-discovered S-Chain network info: " ) +
+                                cc.j( joSChainNetworkInfo );
                         }
                         log.write( strMessage + "\n" );
                     }
@@ -1819,8 +1815,8 @@ async function continue_schain_discovery_in_background_if_needed( isSilent ) {
             }, isSilent, imaState.joSChainNetworkInfo, cntNodes ).catch( ( err ) => {
                 log.write(
                     cc.fatal( "CRITICAL ERROR:" ) +
-                        cc.error( " S-Chain network re-discovery failed: " ) +
-                        cc.warning( err ) + "\n"
+                    cc.error( " S-Chain network re-discovery failed: " ) +
+                    cc.warning( err ) + "\n"
                 );
             } );
         } catch ( err ) { }
@@ -2454,6 +2450,8 @@ async function single_transfer_loop() {
             return true;
         }
 
+        if( IMA.verbose_get() >= IMA.RV_VERBOSE.information )
+            log.write( strLogPrefix + cc.debug( "Will invoke Oracle gas price setup..." ) + "\n" );
         let b0 = true;
         if( IMA.getEnabledOracle() ) {
             if( IMA.verbose_get() >= IMA.RV_VERBOSE.information )
@@ -2498,8 +2496,7 @@ async function single_transfer_loop() {
             imaBLS.do_sign_messages_m2s, // fn_sign_messages
             null, // joExtraSignOpts
             imaState.tc_s_chain,
-            imaState.optsPendingTxAnalysis,
-            imaState.optsStateFile
+            imaState.optsPendingTxAnalysis
         );
         if( IMA.verbose_get() >= IMA.RV_VERBOSE.information )
             log.write( strLogPrefix + cc.debug( "M2S transfer done: " ) + cc.tf( b1 ) + "\n" );
@@ -2529,8 +2526,7 @@ async function single_transfer_loop() {
             imaBLS.do_sign_messages_s2m, // fn_sign_messages
             null, // joExtraSignOpts
             imaState.tc_main_net,
-            imaState.optsPendingTxAnalysis,
-            imaState.optsStateFile
+            imaState.optsPendingTxAnalysis
         );
         if( IMA.verbose_get() >= IMA.RV_VERBOSE.information )
             log.write( strLogPrefix + cc.debug( "S2M transfer done: " ) + cc.tf( b2 ) + "\n" );
@@ -2555,8 +2551,7 @@ async function single_transfer_loop() {
                 imaState.nBlockAgeM2S,
                 imaBLS.do_sign_messages_s2s, // fn_sign_messages
                 imaState.tc_s_chain,
-                imaState.optsPendingTxAnalysis,
-                null // imaState.optsStateFile
+                imaState.optsPendingTxAnalysis
             );
             if( IMA.verbose_get() >= IMA.RV_VERBOSE.information )
                 log.write( strLogPrefix + cc.debug( "All S2S transfers done: " ) + cc.tf( b3 ) + "\n" );
