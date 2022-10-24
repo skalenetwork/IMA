@@ -49,6 +49,7 @@ contract DepositBoxERC20 is DepositBox, IDepositBoxERC20 {
     using DoubleEndedQueueUpgradeable for DoubleEndedQueueUpgradeable.Bytes32Deque;
     using EnumerableSetUpgradeable for EnumerableSetUpgradeable.AddressSet;
     using SafeERC20Upgradeable for IERC20MetadataUpgradeable;
+    using SafeERC20Upgradeable for IERC20Upgradeable;
 
     enum DelayedTransferStatus {
         DELAYED,
@@ -108,6 +109,11 @@ contract DepositBoxERC20 is DepositBox, IDepositBoxERC20 {
     event TransferDelayed(uint256 id, address receiver, address token, uint256 amount);
 
     event Escalated(uint256 id);
+
+    /**
+     * @dev Emitted when token transfer is skipped due to internal token error
+     */
+    event TransferSkipped(uint256 id);
 
     /**
      * @dev Allows `msg.sender` to send ERC20 token from mainnet to schain
@@ -418,6 +424,11 @@ contract DepositBoxERC20 is DepositBox, IDepositBoxERC20 {
         IERC20MetadataUpgradeable(transfer.token).safeTransfer(msg.sender, transfer.amount);
     }
 
+    function doTransfer(address token, address receiver, uint256 amount) external override {
+        require(msg.sender == address(this), "Internal use only");
+        IERC20Upgradeable(token).safeTransfer(receiver, amount);
+    }
+
     /**
      * @dev Returns receiver of message.
      *
@@ -603,7 +614,13 @@ contract DepositBoxERC20 is DepositBox, IDepositBoxERC20 {
                         delayedTransfers[transferId].status = DelayedTransferStatus.COMPLETED;
                     }
                     retrieved = true;
-                    IERC20MetadataUpgradeable(transfer.token).safeTransfer(transfer.receiver, transfer.amount);
+                    try
+                        this.doTransfer(transfer.token, transfer.receiver, transfer.amount)
+                    // solhint-disable-next-line no-empty-blocks
+                    {}
+                    catch {
+                        emit TransferSkipped(transferId);
+                    }
                 }
             } else {
                 // status is COMPLETED
