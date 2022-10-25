@@ -62,6 +62,7 @@ import { BigNumber, Wallet } from "ethers";
 import { assert, expect, use } from "chai";
 import { createNode } from "./utils/skale-manager-utils/nodes";
 import { currentTime, skipTime } from "./utils/time";
+import { join } from "path";
 
 const BlsSignature: [BigNumber, BigNumber] = [
     BigNumber.from("178325537405109593276798394634841698946852714038246117383766698579865918287"),
@@ -610,6 +611,58 @@ describe("DepositBoxERC20", () => {
                 await depositBoxERC20.connect(user).retrieve();
                 (await token.balanceOf(user.address))
                     .should.be.equal(token1BalanceBefore.add(2 * amount + 3 * bigAmount));
+            });
+
+            it("should not stuck after big amount of competed transfers", async () => {
+                const bigTransfer = {
+                    data: await messages.encodeTransferErc20Message(token.address, user.address, bigAmount),
+                    destinationContract: depositBoxERC20.address,
+                    sender: deployer.address
+                };
+
+                const token1BalanceBefore = await token.balanceOf(user.address);
+                const amountOfCompetedTransfers = 15;
+
+                // send `amountOfCompetedTransfers` + 1 big transfer
+                const batch = (await messageProxy.MESSAGES_LENGTH()).toNumber();
+                const fullBatches = Math.floor((amountOfCompetedTransfers + 1) / batch);
+                const rest = amountOfCompetedTransfers + 1 - fullBatches * batch;
+                for (let i = 0; i < fullBatches; ++i) {
+                    await messageProxy.connect(nodeAddress).postIncomingMessages(
+                        schainName,
+                        i * batch,
+                        Array(batch).fill(bigTransfer),
+                        randomSignature
+                    );
+                }
+                if (rest > 0) {
+                    await messageProxy.connect(nodeAddress).postIncomingMessages(
+                        schainName,
+                        fullBatches * batch,
+                        Array(rest).fill(bigTransfer),
+                        randomSignature
+                    );
+                }
+
+                (await token.balanceOf(user.address)).should.be.equal(token1BalanceBefore);
+
+                for (const completedTransfer of [...Array(amountOfCompetedTransfers).keys()]) {
+                    await depositBoxERC20.escalate(completedTransfer);
+                    await depositBoxERC20.connect(schainOwner).validateTransfer(completedTransfer);
+                }
+
+                (await token.balanceOf(user.address)).should.be.equal(token1BalanceBefore.add(bigAmount * amountOfCompetedTransfers));
+
+                await skipTime(timeDelay);
+
+                // first retrieve removes already completed transfers after an arbitrage from the queue
+                await depositBoxERC20.retrieveFor(user.address);
+                (await token.balanceOf(user.address)).should.be.equal(token1BalanceBefore.add(bigAmount * amountOfCompetedTransfers));
+
+                // second retrieve withdraws the rest
+                await depositBoxERC20.retrieveFor(user.address);
+                (await token.balanceOf(user.address)).should.be.equal(token1BalanceBefore.add(bigAmount * (amountOfCompetedTransfers + 1)));
+
             });
 
             it("should not allow to set too big delays", async () => {
