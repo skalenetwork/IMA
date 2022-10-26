@@ -52,6 +52,8 @@ log.removeAll();
 // log.addMemory(); // console.log( log.getStreamWithFilePath( "memory" ).strAccumulatedLogText );
 
 global.imaState = {
+    "isImaSingleTransferLoopInProgress": false,
+
     "strLogFilePath": "",
     "nLogMaxSizeBeforeRotation": -1,
     "nLogMaxFilesCount": -1,

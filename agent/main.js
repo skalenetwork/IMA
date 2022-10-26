@@ -54,6 +54,8 @@ global.imaOracle.init();
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 global.imaState = {
+    "isImaSingleTransferLoopInProgress": false,
+
     "strLogFilePath": "",
     "nLogMaxSizeBeforeRotation": -1,
     "nLogMaxFilesCount": -1,
@@ -2282,7 +2284,15 @@ if( imaState.nJsonRpcPort > 0 ) {
                 };
                 switch ( joMessage.method ) {
                 case "echo":
+                    joAnswer.result = "echo";
+                    fn_send_answer( joAnswer );
+                    break;
                 case "ping":
+                    joAnswer.result = "pong";
+                    fn_send_answer( joAnswer );
+                    break;
+                case "skale_isImaSingleTransferLoopInProgress":
+                    joAnswer.result = imaState.isImaSingleTransferLoopInProgress ? true : false;
                     break;
                 case "skale_imaVerifyAndSign":
                     // joAnswer = await imaBLS.handle_skale_imaVerifyAndSign( joMessage );
@@ -2531,27 +2541,23 @@ global.check_time_framing = function( d ) {
     return true;
 };
 
-let g_is_single_transfer_loop = false;
-
 async function single_transfer_loop() {
     const strLogPrefix = cc.attention( "Single Loop:" ) + " ";
     try {
-        if( g_is_single_transfer_loop ) {
-            if( IMA.verbose_get() >= IMA.RV_VERBOSE.debug )
-                log.write( strLogPrefix + cc.warning( "Skipped due to other single transfer loop is in progress rignt now" ) + "\n" );
-            return true;
-        }
-        g_is_single_transfer_loop = true;
         if( IMA.verbose_get() >= IMA.RV_VERBOSE.debug )
             log.write( strLogPrefix + cc.debug( IMA.longSeparator ) + "\n" );
-
         if( ! global.check_time_framing() ) {
-            g_is_single_transfer_loop = false;
             if( IMA.verbose_get() >= IMA.RV_VERBOSE.debug )
                 log.write( strLogPrefix + cc.warning( "Skipped due to time framing" ) + "\n" );
             IMA.save_transfer_success_all();
             return true;
         }
+        if( imaState.isImaSingleTransferLoopInProgress ) {
+            if( IMA.verbose_get() >= IMA.RV_VERBOSE.debug )
+                log.write( strLogPrefix + cc.warning( "Skipped due to other single transfer loop is in progress rignt now" ) + "\n" );
+            return true;
+        }
+        imaState.isImaSingleTransferLoopInProgress = true;
 
         let b0 = true;
         if( IMA.getEnabledOracle() ) {
@@ -2658,7 +2664,7 @@ async function single_transfer_loop() {
                 log.write( strLogPrefix + cc.debug( "All S2S transfers done: " ) + cc.tf( b3 ) + "\n" );
         }
 
-        g_is_single_transfer_loop = false;
+        imaState.isImaSingleTransferLoopInProgress = false;
         const bResult = b0 && b1 && b2 && b3;
         if( IMA.verbose_get() >= IMA.RV_VERBOSE.information )
             log.write( strLogPrefix + cc.debug( "Completed: " ) + cc.tf( bResult ) + "\n" );
@@ -2666,7 +2672,7 @@ async function single_transfer_loop() {
     } catch ( err ) {
         log.write( strLogPrefix + cc.fatal( "Exception:" ) + + cc.error( owaspUtils.extract_error_message( err ) ) + "\n" );
     }
-    g_is_single_transfer_loop = false;
+    imaState.isImaSingleTransferLoopInProgress = false;
     return false;
 }
 async function single_transfer_loop_with_repeat() {
