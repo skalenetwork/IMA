@@ -4946,10 +4946,10 @@ async function do_transfer(
     ++ g_nTransferLoopCounter;
     //
     const strTransferErrorCategoryName = "loop-" + strDirection;
-    const strGatheredDetailsName = "" + strDirection + "-" +
+    const strGatheredDetailsName_a = "" + strDirection + "-" +
         "do_transfer-A-#" + nTransferLoopCounter +
         "-" + chain_id_src + "-->" + chain_id_dst;
-    const strGatheredDetailsNameColored = "" + cc.bright( strDirection ) + cc.debug( "-" ) +
+    const strGatheredDetailsName_a_colored = "" + cc.bright( strDirection ) + cc.debug( "-" ) +
         cc.info( "do_transfer-A-" ) + cc.debug( "-" ) + cc.notice( "#" ) + cc.note( nTransferLoopCounter ) +
         cc.debug( "-" ) + cc.notice( chain_id_src ) + cc.debug( "-->" ) + cc.notice( chain_id_dst );
     const details = log.createMemoryStream( true );
@@ -5125,7 +5125,7 @@ async function do_transfer(
                     const strError = strLogPrefix + cc.fatal( "CRITICAL ERROR:" ) + " " + cc.error( "Can't get events from MessageProxy" );
                     log.write( strError + "\n" );
                     details.write( strError + "\n" );
-                    details.exposeDetailsTo( log, strGatheredDetailsName, false );
+                    details.exposeDetailsTo( log, strGatheredDetailsName_a, false );
                     save_transfer_error( strTransferErrorCategoryName, details.toString() );
                     details.close();
                     return false;
@@ -5154,7 +5154,7 @@ async function do_transfer(
                         if( verbose_get() >= RV_VERBOSE.fatal )
                             log.write( s );
                         details.write( s );
-                        details.exposeDetailsTo( log, strGatheredDetailsName, false );
+                        details.exposeDetailsTo( log, strGatheredDetailsName_a, false );
                         save_transfer_error( strTransferErrorCategoryName, details.toString() );
                         details.close();
                         return false;
@@ -5198,7 +5198,7 @@ async function do_transfer(
                         if( verbose_get() >= RV_VERBOSE.fatal )
                             log.write( s );
                         details.write( s );
-                        details.exposeDetailsTo( log, strGatheredDetailsName, false );
+                        details.exposeDetailsTo( log, strGatheredDetailsName_a, false );
                         save_transfer_error( strTransferErrorCategoryName, details.toString() );
                         details.close();
                         return false;
@@ -5457,7 +5457,7 @@ async function do_transfer(
                                 details.write( strError );
                                 if( verbose_get() >= RV_VERBOSE.fatal )
                                     log.write( strError );
-                                // details.exposeDetailsTo( log, strGatheredDetailsName, false );
+                                // details.exposeDetailsTo( log, strGatheredDetailsName_a, false );
                                 // save_transfer_error( strTransferErrorCategoryName, details.toString() );
                                 // details.close();
                                 // return false;
@@ -5508,7 +5508,7 @@ async function do_transfer(
                         if( verbose_get() >= RV_VERBOSE.fatal )
                             log.write( s );
                         details.write( s );
-                        details.exposeDetailsTo( log, strGatheredDetailsName, false );
+                        details.exposeDetailsTo( log, strGatheredDetailsName_a, false );
                         save_transfer_error( strTransferErrorCategoryName, details.toString() );
                         details.close();
                         return false;
@@ -5522,7 +5522,7 @@ async function do_transfer(
                         if( verbose_get() >= RV_VERBOSE.fatal )
                             log.write( s );
                         details.write( s );
-                        details.exposeDetailsTo( log, strGatheredDetailsName, false );
+                        details.exposeDetailsTo( log, strGatheredDetailsName_a, false );
                         save_transfer_error( strTransferErrorCategoryName, details.toString() );
                         details.close();
                         return false;
@@ -5545,7 +5545,7 @@ async function do_transfer(
                 cc.debug( " message(s) to process: " ) + cc.j( jarrMessages ) +
                 "\n" );
             let detailsB = log.createMemoryStream( true );
-            const strGatheredDetailsName = "" + strDirection + "-" +
+            const strGatheredDetailsName_b = "" + strDirection + "-" +
                 "do_transfer-B-#" + nTransferLoopCounter +
                 "-" + chain_id_src + "-->" + chain_id_dst;
             try {
@@ -5566,7 +5566,7 @@ async function do_transfer(
                             if( verbose_get() >= RV_VERBOSE.fatal )
                                 log.write( s );
                             detailsB.write( s );
-                            detailsB.exposeDetailsTo( log, strGatheredDetailsName, false );
+                            detailsB.exposeDetailsTo( log, strGatheredDetailsName_b, false );
                             save_transfer_error( strTransferErrorCategoryName, detailsB.toString() );
                             detailsB.close();
                             return false;
@@ -5686,7 +5686,7 @@ async function do_transfer(
                         if( joReceipt && typeof joReceipt == "object" && "gasUsed" in joReceipt ) {
                             jarrReceipts.push( {
                                 "description": "do_transfer/postIncomingMessages()",
-                                "detailsString": "" + strGatheredDetailsName,
+                                "detailsString": "" + strGatheredDetailsName_b,
                                 "receipt": joReceipt
                             } );
                             print_gas_usage_report_from_array( "(intermediate result) TRANSFER " + chain_id_src + " -> " + chain_id_dst, jarrReceipts );
@@ -5735,14 +5735,14 @@ async function do_transfer(
                         const strErrorMessage = strLogPrefix + cc.error( "Problem in transfer handler: " ) + cc.warning( err );
                         log.write( strErrorMessage + "\n" );
                         detailsB.write( strErrorMessage + "\n" );
-                        detailsB.exposeDetailsTo( log, strGatheredDetailsName, false );
+                        detailsB.exposeDetailsTo( log, strGatheredDetailsName_b, false );
                         save_transfer_error( strTransferErrorCategoryName, detailsB.toString() );
                         detailsB.close();
                         detailsB = null;
                     }
                     if( detailsB ) {
                         if( expose_details_get() )
-                            detailsB.exposeDetailsTo( log, strGatheredDetailsName, true );
+                            detailsB.exposeDetailsTo( log, strGatheredDetailsName_b, true );
                         detailsB.close();
                     }
                 } ); // fn_sign_messages
@@ -5756,7 +5756,7 @@ async function do_transfer(
             }
             if( detailsB ) {
                 if( expose_details_get() )
-                    detailsB.exposeDetailsTo( log, strGatheredDetailsName, true );
+                    detailsB.exposeDetailsTo( log, strGatheredDetailsName_b, true );
                 detailsB.close();
             }
             if( bErrorInSigningMessages )
@@ -5764,12 +5764,12 @@ async function do_transfer(
         } // while( nIdxCurrentMsg < nOutMsgCnt )
     } catch ( err ) {
         const strError = strLogPrefix + cc.fatal( "CRITICAL ERROR:" ) +
-            cc.error( " Error in " ) + strGatheredDetailsNameColored +
+            cc.error( " Error in " ) + strGatheredDetailsName_a_colored +
             cc.error( " during " + strActionName + ": " ) + cc.error( err );
         if( verbose_get() >= RV_VERBOSE.fatal )
             log.write( strError + "\n" );
         details.write( strError + "\n" );
-        details.exposeDetailsTo( log, strGatheredDetailsName, false );
+        details.exposeDetailsTo( log, strGatheredDetailsName_a, false );
         save_transfer_error( strTransferErrorCategoryName, details.toString() );
         details.close();
         return false;
@@ -5777,7 +5777,7 @@ async function do_transfer(
     print_gas_usage_report_from_array( "TRANSFER " + chain_id_src + " -> " + chain_id_dst, jarrReceipts );
     if( details ) {
         if( expose_details_get() && details.exposeDetailsTo )
-            details.exposeDetailsTo( log, strGatheredDetailsName, true );
+            details.exposeDetailsTo( log, strGatheredDetailsName_a, true );
         details.close();
     }
     if( ! bErrorInSigningMessages )
