@@ -665,6 +665,42 @@ describe("DepositBoxERC20", () => {
 
             });
 
+            it("should not stuck if a token reverts transfer", async () => {
+                const bigTransfer = {
+                    data: await messages.encodeTransferErc20Message(token.address, user.address, bigAmount),
+                    destinationContract: depositBoxERC20.address,
+                    sender: deployer.address
+                };
+
+                const badToken = await (await ethers.getContractFactory("RevertableERC20")).deploy("Test", "TST");
+                await badToken.mint(user.address, bigAmount);
+                await badToken.connect(user).approve(depositBoxERC20.address, bigAmount);
+                await depositBoxERC20.connect(user).depositERC20(schainName, badToken.address, bigAmount);
+
+                const badTokenBigTransfer = {
+                    data: await messages.encodeTransferErc20Message(badToken.address, user.address, bigAmount),
+                    destinationContract: depositBoxERC20.address,
+                    sender: deployer.address
+                };
+
+                await messageProxy.connect(nodeAddress).postIncomingMessages(
+                    schainName,
+                    0,
+                    [ badTokenBigTransfer, bigTransfer ],
+                    randomSignature
+                );
+
+                await skipTime(timeDelay);
+
+                await badToken.disable();
+                const balanceBefore = await token.balanceOf(user.address);
+                await expect(
+                    depositBoxERC20.retrieveFor(user.address)
+                ).to.emit(depositBoxERC20, "TransferSkipped")
+                    .withArgs(0);
+                (await token.balanceOf(user.address)).should.be.equal(balanceBefore.add(bigAmount));
+            });
+
             it("should not allow to set too big delays", async () => {
                 const tenYears = Math.round(60 * 60 * 24 * 365.25 * 10)
 
