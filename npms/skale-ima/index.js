@@ -1325,7 +1325,7 @@ async function safe_sign_transaction_with_account( details, w3, tx, rawTx, joAcc
     const strPrefixLog = cc.debug( "(immediate log)" ) + " ";
     const sendingCnt = loopTmSendingCnt++;
     let strMsg =
-        cc.debug( "Sending transaction with account(" ) + cc.notice( "sending counter" ) + cc.debug( " is " ) +
+        cc.debug( "Signing(and later, sending) transaction with account(" ) + cc.notice( "sending counter" ) + cc.debug( " is " ) +
         cc.info( sendingCnt ) + cc.debug( "), raw TX object is " ) + cc.j( rawTx );
     details.write( strPrefixDetails + strMsg + "\n" );
     log.write( strPrefixLog + strMsg + "\n" );
@@ -1334,6 +1334,9 @@ async function safe_sign_transaction_with_account( details, w3, tx, rawTx, joAcc
         tx: null,
         txHashSent: null
     };
+    strMsg = cc.debug( "Signing(and later, sending) transaction with backend type: " ) + cc.bright( joSR.joACI.strType );
+    details.write( strPrefixDetails + strMsg + "\n" );
+    log.write( strPrefixLog + strMsg + "\n" );
     switch ( joSR.joACI.strType ) {
     case "tm": {
         /*

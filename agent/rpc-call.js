@@ -64,7 +64,7 @@ function is_ws_url( strURL ) {
 async function wait_web_socket_is_open( socket, fnDone, fnStep ) {
     fnDone = fnDone || async function( nStep ) {};
     fnDone = fnStep || async function( nStep ) { return true; };
-    const nStep = 0;
+    let nStep = 0;
     const promiseComplete = new Promise( function( resolve, reject ) {
         let isInsideAsyncHandler = false;
         const fn_async_handler = async function() {
@@ -87,6 +87,7 @@ async function wait_web_socket_is_open( socket, fnDone, fnStep ) {
         const iv = setInterval( function() {
             if( isInsideAsyncHandler )
                 return;
+            ++ nStep;
             fn_async_handler()
                 .then( () => {
                 } ).catch( () => {
@@ -152,6 +153,9 @@ async function do_connect( joCall, opts, fn ) {
                     if( nStep >= g_nConnectionTimeoutSeconds ) {
                         strWsError = "wait timeout, web socket is connecting too long";
                         log.write( cc.u( joCall.url ) + cc.error( " web socket wait timeout detected" ) + "\n" );
+                        joCall.wsConn = null;
+                        wsConn.close();
+                        do_reconnect_ws_step( joCall, opts );
                         return false; // stop waiting
                     }
                     return true; // continue waiting
