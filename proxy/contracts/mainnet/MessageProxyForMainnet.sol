@@ -104,14 +104,14 @@ contract MessageProxyForMainnet is SkaleManagerClient, MessageProxy, IMessagePro
      * @dev Emitted when the schain is paused
      */
     event SchainPaused(
-        bytes32 schainHash
+        bytes32 indexed schainHash
     );
 
     /**
      * @dev Emitted when the schain is resumed
      */
     event SchainResumed(
-        bytes32 schainHash
+        bytes32 indexed schainHash
     );
 
     /**
