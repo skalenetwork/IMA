@@ -2253,8 +2253,6 @@ if( imaState.nJsonRpcPort > 0 ) {
             };
             const fn_send_answer = function( joAnswer ) {
                 try {
-                    joAnswer.method = joMessage.method;
-                    joAnswer.id = joMessage.id;
                     if( IMA.verbose_get() >= IMA.RV_VERBOSE.trace )
                         log.write( strLogPrefix + cc.sunny( ">>>" ) + " " + cc.normal( "answer to " ) + cc.info( ip ) + cc.normal( ": " ) + cc.j( joAnswer ) + "\n" );
                     ws_peer.send( JSON.stringify( joAnswer ) );
@@ -2277,7 +2275,10 @@ if( imaState.nJsonRpcPort > 0 ) {
                 joAnswer.method = joMessage.method;
                 if( ! ( "id" in joMessage ) )
                     throw new Error( "\"id\" field was not specified" );
-                joAnswer.id = joMessage.id;
+                if( "id" in joMessage )
+                    joAnswer.id = joMessage.id;
+                if( "method" in joMessage )
+                    joAnswer.method = "" + joMessage.method;
                 switch ( joMessage.method ) {
                 case "echo":
                     joAnswer.result = "echo";
@@ -2294,7 +2295,7 @@ if( imaState.nJsonRpcPort > 0 ) {
                     // joAnswer = await imaBLS.handle_skale_imaVerifyAndSign( joMessage );
                     isSkipMode = true;
                     imaBLS.handle_skale_imaVerifyAndSign( joMessage ).then( function( joAnswer ) {
-                        fn_send_answer( joAnswer );
+                        fn_send_answer( joAnswer , joMessage );
                     } );
                     break;
                 case "skale_imaBSU256":
