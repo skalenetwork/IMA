@@ -43,8 +43,6 @@ cc.enable( false );
 log.addStdout();
 // log.add( strFilePath, nMaxSizeBeforeRotation, nMaxFilesCount ); // example: log output to file
 
-const ptx = require( "./ptx.js" );
-
 const owaspUtils = require( "../skale-owasp/owasp-util.js" );
 const { getWeb3FromURL } = require( "../../agent/cli.js" );
 
@@ -652,8 +650,7 @@ async function do_oracle_gas_price_setup(
     joAccountSC,
     chain_id_mainnet,
     chain_id_schain,
-    fn_sign_o_msg,
-    optsPendingTxAnalysis
+    fn_sign_o_msg
 ) {
     if( ! getEnabledOracle() )
         return;
@@ -855,8 +852,6 @@ async function do_oracle_gas_price_setup(
                     "receipt": joReceipt
                 } );
                 print_gas_usage_report_from_array( "(intermediate result) ORACLE GAS PRICE SETUP ", jarrReceipts );
-                // if( optsPendingTxAnalysis && "isEnabled" in optsPendingTxAnalysis && optsPendingTxAnalysis.isEnabled )
-                //     await ptx.complete( details, w3_schain, w3_main_net, chain_id_schain, chain_id_mainnet, "" + joReceipt.transactionHash );
             }
             save_transfer_success( "oracle" );
         } );
@@ -4938,9 +4933,7 @@ async function do_transfer(
     fn_sign_messages,
     joExtraSignOpts,
     //
-    tc_dst,
-    //
-    optsPendingTxAnalysis
+    tc_dst
 ) {
     const nTransferLoopCounter = g_nTransferLoopCounter;
     ++ g_nTransferLoopCounter;
@@ -5247,104 +5240,6 @@ async function do_transfer(
                 details.close();
                 save_transfer_success_all();
                 return false;
-            }
-            //
-            //
-            // Analyze pending transactions potentially awaited by previous IMA agent running in previous time frame
-            if( optsPendingTxAnalysis && "isEnabled" in optsPendingTxAnalysis && optsPendingTxAnalysis.isEnabled ) {
-                let joFoundPendingTX = null;
-                let wasIgnoredPTX = false;
-                try {
-                    const strShortMessageProxyAddressToCompareWith = owaspUtils.remove_starting_0x( jo_message_proxy_dst.options.address ).toLowerCase();
-                    await ptx.scanner( details, w3_dst, w3_src, chain_id_dst, chain_id_src, function( joTX ) {
-                        if( "to" in joTX ) {
-                            if( joTX.to == "holder.value.MessageProxy" ) {
-                                joFoundPendingTX = joTX;
-                                return false; // stop pending tx scanner
-                            }
-                            const strShortToAddress = owaspUtils.remove_starting_0x( joTX.to ).toLowerCase();
-                            if( strShortToAddress == strShortMessageProxyAddressToCompareWith ) {
-                                joFoundPendingTX = joTX;
-                                return false; // stop pending tx scanner
-                            }
-                        }
-                        return true; // continue pending tx scanner
-                    } );
-                    if( joFoundPendingTX ) {
-                        details.write(
-                            strLogPrefix + cc.warning( "PENDING TRANSACTION ANALYSIS(1) from " ) + cc.u( owaspUtils.w3_2_url( w3_dst ) ) +
-                            cc.warning( " found un-finished transaction(s) in pending queue to be processed by destination message proxy: " ) +
-                            cc.j( joFoundPendingTX ) +
-                            "\n" );
-                        if( optsPendingTxAnalysis && "isEnabled" in optsPendingTxAnalysis && optsPendingTxAnalysis.isEnabled &&
-                            "nTimeoutSecondsBeforeSecondAttempt" in optsPendingTxAnalysis && optsPendingTxAnalysis.nTimeoutSecondsBeforeSecondAttempt > 0
-                        ) {
-                            details.write( cc.debug( "Sleeping " ) + cc.info( optsPendingTxAnalysis.nTimeoutSecondsBeforeSecondAttempt ) + cc.debug( " seconds before secondary pending transactions analysis..." ) + "\n" );
-                            await sleep( optsPendingTxAnalysis.nTimeoutSecondsBeforeSecondAttempt * 1000 );
-                            //
-                            joFoundPendingTX = null;
-                            await ptx.scanner( w3_dst, w3_src, chain_id_dst, chain_id_src, function( joTX ) {
-                                if( "to" in joTX ) {
-                                    if( joTX.to == "holder.value.MessageProxy" ) {
-                                        joFoundPendingTX = joTX;
-                                        return false; // stop pending tx scanner
-                                    }
-                                    const strShortToAddress = owaspUtils.remove_starting_0x( joTX.to ).toLowerCase();
-                                    if( strShortToAddress == strShortMessageProxyAddressToCompareWith ) {
-                                        joFoundPendingTX = joTX;
-                                        return false; // stop pending tx scanner
-                                    }
-                                }
-                                return true; // continue pending tx scanner
-                            } );
-                            if( joFoundPendingTX ) {
-                                details.write(
-                                    strLogPrefix + cc.warning( "PENDING TRANSACTION ANALYSIS(2) from " ) + cc.u( owaspUtils.w3_2_url( w3_dst ) ) +
-                                    cc.warning( " found un-finished transaction(s) in pending queue to be processed by destination message proxy: " ) +
-                                    cc.j( joFoundPendingTX ) +
-                                    "\n" );
-                                if( "isIgnore2" in optsPendingTxAnalysis && ( !optsPendingTxAnalysis.isIgnore2 ) )
-                                    return false; // return after 2nd pending transactions analysis
-                                details.write(
-                                    strLogPrefix + cc.warning( "PENDING TRANSACTION ANALYSIS(2) from " ) + cc.u( owaspUtils.w3_2_url( w3_dst ) ) +
-                                    cc.warning( " result is " ) + cc.error( "ignored" ) +
-                                    "\n" );
-                                wasIgnoredPTX = true;
-                            }
-                        } else {
-                            if( "isIgnore" in optsPendingTxAnalysis && ( !optsPendingTxAnalysis.isIgnore ) )
-                                return false; // return after first 1st transactions analysis
-                            details.write(
-                                strLogPrefix + cc.warning( "PENDING TRANSACTION ANALYSIS(1) from " ) + cc.u( owaspUtils.w3_2_url( w3_dst ) ) +
-                                cc.warning( " result is " ) + cc.error( "ignored" ) +
-                                "\n" );
-                            wasIgnoredPTX = true;
-                        }
-                    }
-                } catch ( err ) {
-                    const s =
-                        strLogPrefix + cc.error( "PENDING TRANSACTION ANALYSIS ERROR: API call error from " ) +
-                        cc.u( owaspUtils.w3_2_url( w3_dst ) ) + cc.error( ": " ) + cc.error( err ) + "\n";
-                    if( verbose_get() >= RV_VERBOSE.error )
-                        log.write( s );
-                    details.write( s );
-                }
-                if( !wasIgnoredPTX ) {
-                    details.write(
-                        strLogPrefix + cc.success( "PENDING TRANSACTION ANALYSIS did not found transactions to wait for complete" ) +
-                        "\n" );
-                }
-                if( "check_time_framing" in global && ( ! global.check_time_framing() ) ) {
-                    if( verbose_get() >= RV_VERBOSE.information ) {
-                        log.write(
-                            strLogPrefix + cc.error( "WARNING:" ) + " " +
-                            cc.warning( "Time framing overflow (after pending transactions analysis)" ) +
-                            "\n" );
-                    }
-                    details.close();
-                    save_transfer_success_all();
-                    return false;
-                }
             }
             //
             //
@@ -5669,14 +5564,9 @@ async function do_transfer(
                         const tx_postIncomingMessages = compose_tx_instance( detailsB, strLogPrefix, raw_tx_postIncomingMessages );
                         const joPostIncomingMessagesSR = await safe_sign_transaction_with_account( detailsB, w3_dst, tx_postIncomingMessages, raw_tx_postIncomingMessages, joAccountDst );
                         let joReceipt = null;
-                        if( joPostIncomingMessagesSR.joACI.isAutoSend ) {
-                            //
-                            // NOTICE: ptx.start()/ ptx.complete() must be called only in do_transfer()
-                            //
-                            if( optsPendingTxAnalysis && "isEnabled" in optsPendingTxAnalysis && optsPendingTxAnalysis.isEnabled )
-                                await ptx.start( detailsB, w3_dst, w3_src, chain_id_dst, chain_id_src, "" + joPostIncomingMessagesSR.txHashSent );
+                        if( joPostIncomingMessagesSR.joACI.isAutoSend )
                             joReceipt = await get_web3_transactionReceipt( detailsB, 10, w3_dst, joPostIncomingMessagesSR.txHashSent );
-                        } else {
+                        else {
                             const serializedTx_postIncomingMessages = tx_postIncomingMessages.serialize();
                             strActionName = "w3_dst.eth.sendSignedTransaction()";
                             // let joReceipt = await w3_dst.eth.sendSignedTransaction( "0x" + serializedTx_postIncomingMessages.toString( "hex" ) );
@@ -5690,11 +5580,6 @@ async function do_transfer(
                                 "receipt": joReceipt
                             } );
                             print_gas_usage_report_from_array( "(intermediate result) TRANSFER " + chain_id_src + " -> " + chain_id_dst, jarrReceipts );
-                            //
-                            // NOTICE: ptx.start()/ ptx.complete() must be called only in do_transfer()
-                            //
-                            if( optsPendingTxAnalysis && "isEnabled" in optsPendingTxAnalysis && optsPendingTxAnalysis.isEnabled )
-                                await ptx.complete( detailsB, w3_dst, w3_src, chain_id_dst, chain_id_src, "" + joReceipt.transactionHash );
                         }
                         cntProcessed += cntAccumulatedForBlock;
                         //
@@ -5804,9 +5689,7 @@ async function do_s2s_all( // s-chain --> s-chain
     nBlockAge,
     fn_sign_messages,
     //
-    tc_dst,
-    //
-    optsPendingTxAnalysis
+    tc_dst
 ) {
     let cntOK = 0, cntFail = 0;
     const strDirection = "S2S";
@@ -5862,9 +5745,7 @@ async function do_s2s_all( // s-chain --> s-chain
                     fn_sign_messages,
                     joExtraSignOpts,
                     //
-                    tc_dst,
-                    //
-                    optsPendingTxAnalysis
+                    tc_dst
                 );
         } catch ( err ) {
             bOK = false;
@@ -6186,11 +6067,9 @@ async function mintERC20(
         strActionName = "mintERC20() sign transaction";
         const joSR = await safe_sign_transaction_with_account( details, w3, tx_mint, raw_tx_mint, joAccount );
         let joReceipt = null;
-        if( joSR.joACI.isAutoSend ) {
-            // if( optsPendingTxAnalysis && "isEnabled" in optsPendingTxAnalysis && optsPendingTxAnalysis.isEnabled )
-            //     await ptx.start( details, w3, w3, cid, cid, "" + joSR.txHashSent );
+        if( joSR.joACI.isAutoSend )
             joReceipt = await get_web3_transactionReceipt( details, 10, w3, joSR.txHashSent );
-        } else {
+        else {
             const serializedTx_mint = tx_mint.serialize();
             strActionName = "w3.eth.sendSignedTransaction()";
             // let joReceipt = await w3.eth.sendSignedTransaction( "0x" + serializedTx_mint.toString( "hex" ) );
@@ -6282,11 +6161,9 @@ async function mintERC721(
         strActionName = "mintERC721() sign transaction";
         const joSR = await safe_sign_transaction_with_account( details, w3, tx_mint, raw_tx_mint, joAccount );
         let joReceipt = null;
-        if( joSR.joACI.isAutoSend ) {
-            // if( optsPendingTxAnalysis && "isEnabled" in optsPendingTxAnalysis && optsPendingTxAnalysis.isEnabled )
-            //     await ptx.start( details, w3, w3, cid, cid, "" + joSR.txHashSent );
+        if( joSR.joACI.isAutoSend )
             joReceipt = await get_web3_transactionReceipt( details, 10, w3, joSR.txHashSent );
-        } else {
+        else {
             const serializedTx_mint = tx_mint.serialize();
             strActionName = "w3.eth.sendSignedTransaction()";
             // let joReceipt = await w3.eth.sendSignedTransaction( "0x" + serializedTx_mint.toString( "hex" ) );
@@ -6381,11 +6258,9 @@ async function mintERC1155(
         strActionName = "mintERC1155() sign transaction";
         const joSR = await safe_sign_transaction_with_account( details, w3, tx_mint, raw_tx_mint, joAccount );
         let joReceipt = null;
-        if( joSR.joACI.isAutoSend ) {
-            // if( optsPendingTxAnalysis && "isEnabled" in optsPendingTxAnalysis && optsPendingTxAnalysis.isEnabled )
-            //     await ptx.start( details, w3, w3, cid, cid, "" + joSR.txHashSent );
+        if( joSR.joACI.isAutoSend )
             joReceipt = await get_web3_transactionReceipt( details, 10, w3, joSR.txHashSent );
-        } else {
+        else {
             const serializedTx_mint = tx_mint.serialize();
             strActionName = "w3.eth.sendSignedTransaction()";
             // let joReceipt = await w3.eth.sendSignedTransaction( "0x" + serializedTx_mint.toString( "hex" ) );
@@ -6477,11 +6352,9 @@ async function burnERC20(
         strActionName = "burnERC20() sign transaction";
         const joSR = await safe_sign_transaction_with_account( details, w3, tx_burn, raw_tx_burn, joAccount );
         let joReceipt = null;
-        if( joSR.joACI.isAutoSend ) {
-            // if( optsPendingTxAnalysis && "isEnabled" in optsPendingTxAnalysis && optsPendingTxAnalysis.isEnabled )
-            //     await ptx.start( details, w3, w3, cid, cid, "" + joSR.txHashSent );
+        if( joSR.joACI.isAutoSend )
             joReceipt = await get_web3_transactionReceipt( details, 10, w3, joSR.txHashSent );
-        } else {
+        else {
             const serializedTx_burn = tx_burn.serialize();
             strActionName = "w3.eth.sendSignedTransaction()";
             // let joReceipt = await w3.eth.sendSignedTransaction( "0x" + serializedTx_burn.toString( "hex" ) );
@@ -6573,11 +6446,9 @@ async function burnERC721(
         strActionName = "burnERC721() sign transaction";
         const joSR = await safe_sign_transaction_with_account( details, w3, tx_burn, raw_tx_burn, joAccount );
         let joReceipt = null;
-        if( joSR.joACI.isAutoSend ) {
-            // if( optsPendingTxAnalysis && "isEnabled" in optsPendingTxAnalysis && optsPendingTxAnalysis.isEnabled )
-            //     await ptx.start( details, w3, w3, cid, cid, "" + joSR.txHashSent );
+        if( joSR.joACI.isAutoSend )
             joReceipt = await get_web3_transactionReceipt( details, 10, w3, joSR.txHashSent );
-        } else {
+        else {
             const serializedTx_burn = tx_burn.serialize();
             strActionName = "w3.eth.sendSignedTransaction()";
             // let joReceipt = await w3.eth.sendSignedTransaction( "0x" + serializedTx_burn.toString( "hex" ) );
@@ -6671,11 +6542,9 @@ async function burnERC1155(
         strActionName = "burnERC1155() sign transaction";
         const joSR = await safe_sign_transaction_with_account( details, w3, tx_burn, raw_tx_burn, joAccount );
         let joReceipt = null;
-        if( joSR.joACI.isAutoSend ) {
-            // if( optsPendingTxAnalysis && "isEnabled" in optsPendingTxAnalysis && optsPendingTxAnalysis.isEnabled )
-            //     await ptx.start( details, w3, w3, cid, cid, "" + joSR.txHashSent );
+        if( joSR.joACI.isAutoSend )
             joReceipt = await get_web3_transactionReceipt( details, 10, w3, joSR.txHashSent );
-        } else {
+        else {
             const serializedTx_burn = tx_burn.serialize();
             strActionName = "w3.eth.sendSignedTransaction()";
             // let joReceipt = await w3.eth.sendSignedTransaction( "0x" + serializedTx_burn.toString( "hex" ) );
@@ -6707,7 +6576,6 @@ module.exports.longSeparator = g_mtaStrLongSeparator;
 module.exports.noop = noop;
 module.exports.cc = cc;
 module.exports.log = log;
-module.exports.ptx = ptx;
 module.exports.sleep = sleep;
 module.exports.owaspUtils = owaspUtils;
 module.exports.w3mod = w3mod;

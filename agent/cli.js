@@ -384,14 +384,10 @@ function parse( joExternalHandlers, argv ) {
                 cc.attention( "tid" ) + cc.debug( " or " ) + cc.attention( "tids" ) + cc.debug( " command line arguments." )
             );
             //
-            console.log( cc.sunny( "PENDING TRANSACTIONS ANALYSIS" ) + cc.info( " options:" ) );
-            console.log( soi + cc.debug( "--" ) + cc.bright( "ptx" ) + cc.debug( "..........................." ) + cc.success( "Enable" ) + " " + cc.attention( "pending transaction analysis" ) + cc.notice( " to avoid transaction conflicts." ) );
-            console.log( soi + cc.debug( "--" ) + cc.bright( "no-ptx" ) + cc.debug( "........................" ) + cc.error( "Disable" ) + " " + cc.attention( "pending transaction analysis" ) + cc.notice( ". " ) + cc.warning( "Not recommended" ) + cc.notice( " for slow and overloaded blockchains." ) );
-            console.log( soi + cc.debug( "--" ) + cc.bright( "ptx-attempt" ) + cc.sunny( "=" ) + cc.info( "value" ) + cc.debug( "............." ) + cc.note( "Timeout " ) + cc.debug( "(in seconds)" ) + cc.notice( " to perform secondary " ) + cc.attention( "pending transaction analysis" ) + cc.notice( "." ) );
-            console.log( soi + cc.debug( "--" ) + cc.bright( "ptx-ignore" ) + cc.debug( "...................." ) + cc.error( "Ignore" ) + cc.notice( " result of " ) + cc.attention( "pending transaction analysis" ) + cc.notice( "." ) );
-            console.log( soi + cc.debug( "--" ) + cc.bright( "no-ptx-ignore" ) + cc.debug( "................." ) + cc.success( "Do not ignore" ) + cc.notice( " result of " ) + cc.attention( "pending transaction analysis" ) + cc.notice( ". Transfer loop will be delayed until " ) + cc.attention( "pending transactions disappear" ) + cc.notice( "." ) );
-            console.log( soi + cc.debug( "--" ) + cc.bright( "ptx-ignore2" ) + cc.debug( "..................." ) + cc.error( "Ignore" ) + cc.notice( " secondary result of " ) + cc.attention( "pending transaction analysis" ) + cc.notice( "." ) );
-            console.log( soi + cc.debug( "--" ) + cc.bright( "no-ptx-ignore2" ) + cc.debug( "................" ) + cc.success( "Do not ignore" ) + cc.notice( " secondary result of " ) + cc.attention( "pending transaction analysis" ) + cc.notice( ". Transfer loop will be delayed until " ) + cc.attention( "pending transactions disappear" ) + cc.notice( "." ) );
+            console.log( cc.sunny( "IMA WORK STATE ANAYSYS" ) + cc.info( " options:" ) );
+            console.log( soi + cc.debug( "--" ) + cc.bright( "pwa" ) + cc.debug( "..........................." ) + cc.success( "Enable" ) + " " + cc.attention( "pending work analysis" ) + cc.notice( " to avoid transaction conflicts." ) + " " + cc.debug( "Default mode" ) + cc.notice( "." ) );
+            console.log( soi + cc.debug( "--" ) + cc.bright( "no-pwa" ) + cc.debug( "........................" ) + cc.error( "Disable" ) + " " + cc.attention( "pending work analysis" ) + cc.notice( ". " ) + cc.warning( "Not recommended" ) + cc.notice( " for slow and overloaded blockchains." ) );
+            console.log( soi + cc.debug( "--" ) + cc.bright( "pwa-timeout" ) + cc.sunny( "=" ) + cc.note( "seconds" ) + cc.debug( "..........." ) + cc.notice( "Node state tiemout during " ) + cc.attention( "pending work analysis" ) + cc.notice( ". " ) + cc.debug( "Default is " ) + cc.sunny( "60" ) + cc.debug( " seconds" ) + cc.notice( "." ) );
             //
             console.log( cc.sunny( "MESSAGE SIGNING" ) + cc.info( " options:" ) );
             console.log( soi + cc.debug( "--" ) + cc.bright( "sign-messages" ) + cc.debug( "................." ) + cc.notice( "Sign transferred messages." ) );
@@ -442,6 +438,8 @@ function parse( joExternalHandlers, argv ) {
             console.log( soi + cc.debug( "--" ) + cc.bright( "no-gathered" ) + cc.debug( "..................." ) + cc.notice( "Do not print details of gathering data from command line arguments." ) );
             console.log( soi + cc.debug( "--" ) + cc.bright( "expose-security-info" ) + cc.debug( ".........." ) + cc.notice( "Expose security-related values in log output." ) + " " + cc.debug( "This mode is needed for debugging purposes only" ) + cc.notice( "." ) );
             console.log( soi + cc.debug( "--" ) + cc.bright( "no-expose-security-info" ) + cc.debug( "......." ) + cc.notice( "Do not expose security-related values in log output." ) + " " + cc.debug( "Default mode" ) + cc.notice( "." ) );
+            console.log( soi + cc.debug( "--" ) + cc.bright( "expose-pwa" ) + cc.debug( "...................." ) + cc.notice( "Expose IMA agent pending work ananlysis information" ) );
+            console.log( soi + cc.debug( "--" ) + cc.bright( "no-expose-pwa" ) + cc.debug( "................." ) + cc.notice( "Do not expose IMA agent pending work ananlysis information." ) + cc.notice( "." ) + " " + cc.debug( "Default mode" ) + cc.notice( "." ) );
             //
             process.exit( 0 );
         }
@@ -1081,33 +1079,17 @@ function parse( joExternalHandlers, argv ) {
             imaState.nAutoExitAfterSeconds = owaspUtils.toInteger( joArg.value );
             continue;
         }
-        if( joArg.name == "ptx" ) {
-            imaState.optsPendingTxAnalysis.isEnabled = true;
+        if( joArg.name == "pwa" ) {
+            imaState.isPWA = true;
             continue;
         }
-        if( joArg.name == "no-ptx" ) {
-            imaState.optsPendingTxAnalysis.isEnabled = false;
+        if( joArg.name == "no-pwa" ) {
+            imaState.isPWA = false;
             continue;
         }
-        if( joArg.name == "ptx-attempt" ) {
+        if( joArg.name == "pwa-timeout" ) {
             owaspUtils.verifyArgumentIsInteger( joArg );
-            imaState.optsPendingTxAnalysis.nTimeoutSecondsBeforeSecondAttempt = owaspUtils.toInteger( joArg.value );
-            continue;
-        }
-        if( joArg.name == "ptx-ignore" ) {
-            imaState.optsPendingTxAnalysis.isIgnore = true;
-            continue;
-        }
-        if( joArg.name == "no-ptx-ignore" ) {
-            imaState.optsPendingTxAnalysis.isIgnore = false;
-            continue;
-        }
-        if( joArg.name == "ptx-ignore2" ) {
-            imaState.optsPendingTxAnalysis.isIgnore2 = true;
-            continue;
-        }
-        if( joArg.name == "no-ptx-ignore2" ) {
-            imaState.optsPendingTxAnalysis.isIgnore2 = false;
+            imaState.nTimeoutSecondsPWA = owaspUtils.toInteger( joArg.value );
             continue;
         }
         if( joArg.name == "log-size" ) {
@@ -1134,6 +1116,14 @@ function parse( joExternalHandlers, argv ) {
         }
         if( joArg.name == "no-expose-security-info" ) {
             imaState.isPrintSecurityValues = false;
+            continue;
+        }
+        if( joArg.name == "expose-pwa" ) {
+            imaState.isPrintPWA = true;
+            continue;
+        }
+        if( joArg.name == "no-expose-pwa" ) {
+            imaState.isPrintPWA = false;
             continue;
         }
         if( joArg.name == "log" ) {
@@ -2302,10 +2292,8 @@ function ima_common_init() {
             log.write( cc.info( "Main Net Gas Value Multiplier is" ) + cc.debug( "....................." ) + ( imaState.tc_main_net.gasMultiplier ? cc.info( imaState.tc_main_net.gasMultiplier.toString() ) : cc.notice( "default" ) ) + "\n" );
             log.write( cc.info( "S-Chain Gas Value Multiplier is" ) + cc.debug( "......................" ) + ( imaState.tc_s_chain.gasMultiplier ? cc.info( imaState.tc_s_chain.gasMultiplier.toString() ) : cc.notice( "default" ) ) + "\n" );
             log.write( cc.info( "Target S-Chain Gas Value Multiplier is" ) + cc.debug( "..............." ) + ( imaState.tc_t_chain.gasMultiplier ? cc.info( imaState.tc_t_chain.gasMultiplier.toString() ) : cc.notice( "default" ) ) + "\n" );
-            log.write( cc.info( "Pending transaction analysis(PTX) is" ) + cc.debug( "................." ) + ( imaState.optsPendingTxAnalysis.isEnabled ? cc.success( "enabled" ) : cc.error( "disabled" ) ) + "\n" );
-            log.write( cc.info( "Pending transaction analysis 2nd attempt after" ) + cc.debug( "......." ) + cc.bright( imaState.optsPendingTxAnalysis.nTimeoutSecondsBeforeSecondAttempt ) + "\n" );
-            log.write( cc.info( "Ignore result of PTX is" ) + cc.debug( ".............................." ) + ( imaState.optsPendingTxAnalysis.isIgnore ? cc.success( "yes" ) : cc.error( "no" ) ) + "\n" );
-            log.write( cc.info( "Ignore secondary result of PTX is" ) + cc.debug( "...................." ) + ( imaState.optsPendingTxAnalysis.isIgnore2 ? cc.success( "yes" ) : cc.error( "no" ) ) + "\n" );
+            log.write( cc.info( "Pending work analysis(PWA) is" ) + cc.debug( "........................" ) + ( imaState.isPWA ? cc.success( "enabled" ) : cc.error( "disabled" ) ) + "\n" );
+            log.write( cc.info( "Expose PWA details to log is" ) + cc.debug( "........................." ) + ( imaState.isPrintPWA ? cc.success( "enabled" ) : cc.error( "disabled" ) ) + "\n" );
             log.write( cc.info( "Oracle based gas reimbursement is" ) + cc.debug( "...................." ) + ( IMA.getEnabledOracle() ? cc.success( "enabled" ) : cc.error( "disabled" ) ) + "\n" );
             log.write( cc.info( "S-Chain to S-Chain transferring is" ) + cc.debug( "..................." ) + ( imaState.s2s_opts.isEnabled ? cc.success( "enabled" ) : cc.error( "disabled" ) ) + "\n" );
             log.write( cc.info( "SKALE network re-discovery interval is" ) + cc.debug( "..............." ) + ( imaState.s2s_opts.secondsToReDiscoverSkaleNetwork ? cc.info( imaState.s2s_opts.secondsToReDiscoverSkaleNetwork.toString() ) : cc.error( "disabled" ) ) + "\n" );

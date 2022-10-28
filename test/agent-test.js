@@ -53,12 +53,14 @@ log.removeAll();
 
 global.imaState = {
     "isImaSingleTransferLoopInProgress": false,
+    "wasImaSingleTransferLoopInProgress": false,
 
     "strLogFilePath": "",
     "nLogMaxSizeBeforeRotation": -1,
     "nLogMaxFilesCount": -1,
     "isPrintGathered": true,
     "isPrintSecurityValues": true,
+    "isPrintPWA": false,
 
     "bIsNeededCommonInit": true,
     "bSignMessages": false, // use BLS message signing, turned on with --sign-messages
@@ -222,9 +224,8 @@ global.imaState = {
     "doEnableDryRun": function( isEnable ) { return IMA.dry_run_enable( isEnable ); },
     "doIgnoreDryRun": function( isIgnore ) { return IMA.dry_run_ignore( isIgnore ); },
 
-    optsPendingTxAnalysis: {
-        isEnabled: true
-    },
+    "isPWA": true,
+    "nTimeoutSecondsPWA": 60,
 
     "s2s_opts": { // S-Chain to S-Chain transfer options
         "isEnabled": false, // is S-Chain to S-Chain transfers enabled
@@ -712,7 +713,7 @@ describe( "CLI", function() {
                 "--nodes-count=1",
                 "--time-framing=0",
                 "--time-gap=10",
-                "--no-ptx"
+                "--no-pwa"
                 // --log-size --log-files --log
                 // --sign-messages --bls-glue --hash-g1 --bls-verify
             ];

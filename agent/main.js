@@ -49,18 +49,21 @@ global.skale_observer = require( "../npms/skale-observer/observer.js" );
 global.rpcCall.init();
 global.imaOracle = require( "./oracle.js" );
 global.imaOracle.init();
+global.pwa = require( "./pwa.js" );
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 global.imaState = {
     "isImaSingleTransferLoopInProgress": false,
+    "wasImaSingleTransferLoopInProgress": false,
 
     "strLogFilePath": "",
     "nLogMaxSizeBeforeRotation": -1,
     "nLogMaxFilesCount": -1,
     "isPrintGathered": true,
     "isPrintSecurityValues": false,
+    "isPrintPWA": false,
 
     "bIsNeededCommonInit": true,
     "bSignMessages": false, // use BLS message signing, turned on with --sign-messages
@@ -261,12 +264,8 @@ global.imaState = {
     "doEnableDryRun": function( isEnable ) { return IMA.dry_run_enable( isEnable ); },
     "doIgnoreDryRun": function( isIgnore ) { return IMA.dry_run_ignore( isIgnore ); },
 
-    "optsPendingTxAnalysis": {
-        "isEnabled": false, // disable bv default
-        "nTimeoutSecondsBeforeSecondAttempt": 3, // 0 - disable 2nd attempt
-        "isIgnore": false, // ignore PTX result
-        "isIgnore2": true // ignore secondary PTX result
-    },
+    "isPWA": true,
+    "nTimeoutSecondsPWA": 60,
 
     "nMonitoringPort": 0, // 0 - default, means monitoring server is disabled
 
@@ -1273,8 +1272,7 @@ imaCLI.parse( {
                     imaState.nBlockAgeM2S,
                     imaBLS.do_sign_messages_m2s, // fn_sign_messages
                     null, // joExtraSignOpts
-                    imaState.tc_s_chain,
-                    imaState.optsPendingTxAnalysis
+                    imaState.tc_s_chain
                 );
             }
         } );
@@ -1307,8 +1305,7 @@ imaCLI.parse( {
                     imaState.nBlockAgeS2M,
                     imaBLS.do_sign_messages_s2m, // fn_sign_messages
                     null, // joExtraSignOpts
-                    imaState.tc_main_net,
-                    imaState.optsPendingTxAnalysis
+                    imaState.tc_main_net
                 );
             }
         } );
@@ -1337,8 +1334,7 @@ imaCLI.parse( {
                     imaState.nBlockAwaitDepthM2S,
                     imaState.nBlockAgeM2S,
                     imaBLS.do_sign_messages_m2s, // fn_sign_messages
-                    imaState.tc_s_chain,
-                    imaState.optsPendingTxAnalysis
+                    imaState.tc_s_chain
                 );
             }
         } );
@@ -2191,7 +2187,7 @@ if( imaState.nMonitoringPort > 0 ) {
                             "nTimeFrameSeconds",
                             "nNextFrameGap",
 
-                            "optsPendingTxAnalysis",
+                            "isPWA",
 
                             "nMonitoringPort"
                         ];
@@ -2255,6 +2251,22 @@ if( imaState.nJsonRpcPort > 0 ) {
                 id: null,
                 error: null
             };
+            const fn_send_answer = function( joAnswer ) {
+                try {
+                    joAnswer.method = joMessage.method;
+                    joAnswer.id = joMessage.id;
+                    if( IMA.verbose_get() >= IMA.RV_VERBOSE.trace )
+                        log.write( strLogPrefix + cc.sunny( ">>>" ) + " " + cc.normal( "answer to " ) + cc.info( ip ) + cc.normal( ": " ) + cc.j( joAnswer ) + "\n" );
+                    ws_peer.send( JSON.stringify( joAnswer ) );
+                } catch ( err ) {
+                    if( IMA.verbose_get() >= IMA.RV_VERBOSE.error ) {
+                        log.write( strLogPrefix +
+                            cc.error( "Failed to sent answer to " ) + cc.info( ip ) +
+                            cc.error( ", error is: " ) + cc.warning( err ) + "\n"
+                        );
+                    }
+                }
+            };
             let isSkipMode = false;
             try {
                 const joMessage = JSON.parse( message );
@@ -2266,22 +2278,6 @@ if( imaState.nJsonRpcPort > 0 ) {
                 if( ! ( "id" in joMessage ) )
                     throw new Error( "\"id\" field was not specified" );
                 joAnswer.id = joMessage.id;
-                const fn_send_answer = function( joAnswer ) {
-                    try {
-                        joAnswer.method = joMessage.method;
-                        joAnswer.id = joMessage.id;
-                        if( IMA.verbose_get() >= IMA.RV_VERBOSE.trace )
-                            log.write( strLogPrefix + cc.sunny( ">>>" ) + " " + cc.normal( "answer to " ) + cc.info( ip ) + cc.normal( ": " ) + cc.j( joAnswer ) + "\n" );
-                        ws_peer.send( JSON.stringify( joAnswer ) );
-                    } catch ( err ) {
-                        if( IMA.verbose_get() >= IMA.RV_VERBOSE.error ) {
-                            log.write( strLogPrefix +
-                                cc.error( "Failed to sent answer to " ) + cc.info( ip ) +
-                                cc.error( ", error is: " ) + cc.warning( err ) + "\n"
-                            );
-                        }
-                    }
-                };
                 switch ( joMessage.method ) {
                 case "echo":
                     joAnswer.result = "echo";
@@ -2307,6 +2303,13 @@ if( imaState.nJsonRpcPort > 0 ) {
                     imaBLS.handle_skale_imaBSU256( joMessage ).then( function( joAnswer ) {
                         fn_send_answer( joAnswer );
                     } );
+                    break;
+                case "skale_imaNotifyLoopWork":
+                    pwa.handle_loop_state_arrived(
+                        owaspUtils.toInteger( joMessage.params.nNodeNumber ),
+                        joMessage.params.isStart ? true : false,
+                        owaspUtils.toInteger( joMessage.params.ts )
+                    );
                     break;
                 default:
                     throw new Error( "Unknown method name \"" + joMessage.method + "\" was specified" );
@@ -2543,21 +2546,32 @@ global.check_time_framing = function( d ) {
 
 async function single_transfer_loop() {
     const strLogPrefix = cc.attention( "Single Loop:" ) + " ";
+    let wasPassedStartCheckPWA = false;
     try {
         if( IMA.verbose_get() >= IMA.RV_VERBOSE.debug )
             log.write( strLogPrefix + cc.debug( IMA.longSeparator ) + "\n" );
         if( ! global.check_time_framing() ) {
+            imaState.wasImaSingleTransferLoopInProgress = false;
             if( IMA.verbose_get() >= IMA.RV_VERBOSE.debug )
                 log.write( strLogPrefix + cc.warning( "Skipped due to time framing" ) + "\n" );
             IMA.save_transfer_success_all();
             return true;
         }
         if( imaState.isImaSingleTransferLoopInProgress ) {
+            imaState.wasImaSingleTransferLoopInProgress = false;
             if( IMA.verbose_get() >= IMA.RV_VERBOSE.debug )
                 log.write( strLogPrefix + cc.warning( "Skipped due to other single transfer loop is in progress rignt now" ) + "\n" );
             return true;
         }
+        if( ! await pwa.check_on_loop_start() ) {
+            imaState.wasImaSingleTransferLoopInProgress = false;
+            if( IMA.verbose_get() >= IMA.RV_VERBOSE.debug )
+                log.write( strLogPrefix + cc.warning( "Skipped due to cancel mode reported from PWA" ) + "\n" );
+            return true;
+        }
+        wasPassedStartCheckPWA = true;
         imaState.isImaSingleTransferLoopInProgress = true;
+        await pwa.notify_on_loop_end();
 
         let b0 = true;
         if( IMA.getEnabledOracle() ) {
@@ -2571,8 +2585,7 @@ async function single_transfer_loop() {
                 imaState.joAccount_s_chain,
                 imaState.cid_main_net,
                 imaState.cid_s_chain,
-                imaBLS.do_sign_u256, // fn_sign
-                imaState.optsPendingTxAnalysis
+                imaBLS.do_sign_u256
             );
             if( IMA.verbose_get() >= IMA.RV_VERBOSE.information )
                 log.write( strLogPrefix + cc.debug( "Oracle gas price setup done: " ) + cc.tf( b0 ) + "\n" );
@@ -2602,8 +2615,7 @@ async function single_transfer_loop() {
             imaState.nBlockAgeM2S,
             imaBLS.do_sign_messages_m2s, // fn_sign_messages
             null, // joExtraSignOpts
-            imaState.tc_s_chain,
-            imaState.optsPendingTxAnalysis
+            imaState.tc_s_chain
         );
         if( IMA.verbose_get() >= IMA.RV_VERBOSE.information )
             log.write( strLogPrefix + cc.debug( "M2S transfer done: " ) + cc.tf( b1 ) + "\n" );
@@ -2632,8 +2644,7 @@ async function single_transfer_loop() {
             imaState.nBlockAgeS2M,
             imaBLS.do_sign_messages_s2m, // fn_sign_messages
             null, // joExtraSignOpts
-            imaState.tc_main_net,
-            imaState.optsPendingTxAnalysis
+            imaState.tc_main_net
         );
         if( IMA.verbose_get() >= IMA.RV_VERBOSE.information )
             log.write( strLogPrefix + cc.debug( "S2M transfer done: " ) + cc.tf( b2 ) + "\n" );
@@ -2657,8 +2668,7 @@ async function single_transfer_loop() {
                 imaState.nBlockAwaitDepthM2S,
                 imaState.nBlockAgeM2S,
                 imaBLS.do_sign_messages_s2s, // fn_sign_messages
-                imaState.tc_s_chain,
-                imaState.optsPendingTxAnalysis
+                imaState.tc_s_chain
             );
             if( IMA.verbose_get() >= IMA.RV_VERBOSE.information )
                 log.write( strLogPrefix + cc.debug( "All S2S transfers done: " ) + cc.tf( b3 ) + "\n" );
@@ -2670,9 +2680,13 @@ async function single_transfer_loop() {
             log.write( strLogPrefix + cc.debug( "Completed: " ) + cc.tf( bResult ) + "\n" );
         return bResult;
     } catch ( err ) {
-        log.write( strLogPrefix + cc.fatal( "Exception:" ) + + cc.error( owaspUtils.extract_error_message( err ) ) + "\n" );
+        log.write( strLogPrefix + cc.fatal( "Exception in single transfer loop: " ) + cc.error( owaspUtils.extract_error_message( err ) ) + "\n" );
     }
     imaState.isImaSingleTransferLoopInProgress = false;
+    imaState.wasImaSingleTransferLoopInProgress = true;
+    if( wasPassedStartCheckPWA )
+        await pwa.notify_on_loop_end();
+
     return false;
 }
 async function single_transfer_loop_with_repeat() {
