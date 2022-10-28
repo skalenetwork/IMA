@@ -177,7 +177,6 @@ async function notify_on_loop_impl( isStart ) {
                         ts: nUtcUnixTimeStamp
                     }
                 }, async function( joIn, joOut, err ) {
-                    ++joGatheringTracker.nCountReceived; // including errors
                     if( err ) {
                         log.write(
                             cc.error( "PWA failed to perform loop-" ) + cc.attention( se ) + cc.error( " notifiction RPC call to node #" ) + cc.info( i ) +
