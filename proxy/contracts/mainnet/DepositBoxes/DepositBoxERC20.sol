@@ -119,7 +119,7 @@ contract DepositBoxERC20 is DepositBox, IDepositBoxERC20 {
      * @dev Emitted when big transfer threshold is changed
      */
     event BigTransferThresholdIsChanged(
-        bytes32 schainHash,
+        bytes32 indexed schainHash,
         address token,
         uint256 oldValue,
         uint256 newValue
@@ -129,7 +129,7 @@ contract DepositBoxERC20 is DepositBox, IDepositBoxERC20 {
      * @dev Emitted when big transfer delay is changed
      */
     event BigTransferDelayIsChanged(
-        bytes32 schainHash,
+        bytes32 indexed schainHash,
         uint256 oldValue,
         uint256 newValue
     );
@@ -138,7 +138,7 @@ contract DepositBoxERC20 is DepositBox, IDepositBoxERC20 {
      * @dev Emitted when arbitrage duration is changed
      */
     event ArbitrageDurationIsChanged(
-        bytes32 schainHash,
+        bytes32 indexed schainHash,
         uint256 oldValue,
         uint256 newValue
     );
