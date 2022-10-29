@@ -63,6 +63,8 @@ async function with_timeout( strDescription, promise, seconds ) {
 
 function discover_bls_threshold( joSChainNetworkInfo ) {
     joSChainNetworkInfo = joSChainNetworkInfo || imaState.joSChainNetworkInfo;
+    if( ! joSChainNetworkInfo )
+        return -1;
     const jarrNodes = joSChainNetworkInfo.network;
     for( let i = 0; i < jarrNodes.length; ++i ) {
         const joNode = jarrNodes[i];
@@ -77,6 +79,8 @@ function discover_bls_threshold( joSChainNetworkInfo ) {
 
 function discover_bls_participants( joSChainNetworkInfo ) {
     joSChainNetworkInfo = joSChainNetworkInfo || imaState.joSChainNetworkInfo;
+    if( ! joSChainNetworkInfo )
+        return -1;
     const jarrNodes = joSChainNetworkInfo.network;
     for( let i = 0; i < jarrNodes.length; ++i ) {
         const joNode = jarrNodes[i];
@@ -988,7 +992,7 @@ async function do_sign_messages_impl(
                     cc.debug( " with params " ) + cc.j( joParams ) +
                     cc.debug( ", " ) + cc.notice( "sequence ID" ) + cc.debug( " is " ) + cc.attention( sequence_id ) +
                     "\n" );
-                /*await*/ joCall.call( {
+                await joCall.call( {
                     method: "skale_imaVerifyAndSign",
                     params: joParams
                 }, async function( joIn, joOut, err ) {
@@ -1253,7 +1257,9 @@ async function do_sign_messages_impl(
             return;
         }
         if( ! bHaveResultReportCalled ) {
-            const strErrorMessage = cc.error( "Failed BLS sign result awaiting(2): " ) + cc.warning( owaspUtils.extract_error_message( err ) ) + "\n";
+            const strErrorMessage = cc.error( "Failed BLS sign result awaiting(2): " ) +
+                cc.warning( "No reports were arrived" ) + // cc.warning( owaspUtils.extract_error_message( err ) )
+                + "\n";
             log.write( strErrorMessage );
             details.write( strErrorMessage );
             bHaveResultReportCalled = true;
@@ -1271,8 +1277,7 @@ async function do_sign_messages_impl(
         }
     } catch ( err ) {
         const strErrorMessage =
-            cc.error( "Failed BLS sign due to generic flow exception: " ) + cc.warning( owaspUtils.extract_error_message( err ) ) +
-            cc.error( ", call stack is: " ) + "\n" + err.stack() + "\n";
+            cc.error( "Failed BLS sign due to generic flow exception: " ) + cc.warning( owaspUtils.extract_error_message( err ) ) + "\n";
         log.write( strErrorMessage );
         if( details )
             details.write( strErrorMessage );

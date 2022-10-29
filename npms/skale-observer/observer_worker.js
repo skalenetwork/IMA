@@ -106,7 +106,7 @@ class ObserverServer extends Server {
             self.opts.imaState.jo_schains = new self.opts.imaState.w3_main_net.eth.Contract( self.opts.imaState.joAbiPublishResult_skale_manager.schains_abi, self.opts.imaState.joAbiPublishResult_skale_manager.schains_address );
             self.opts.imaState.jo_schains_internal = new self.opts.imaState.w3_main_net.eth.Contract( self.opts.imaState.joAbiPublishResult_skale_manager.schains_internal_abi, self.opts.imaState.joAbiPublishResult_skale_manager.schains_internal_address );
             //
-            self.opts.imaState.jo_message_proxy_s_chain = new imaState.w3_s_chain.eth.Contract( self.opts.imaState.joAbiPublishResult_s_chain.message_proxy_chain_abi, self.opts.imaState.joAbiPublishResult_s_chain.message_proxy_chain_address );
+            self.opts.imaState.jo_message_proxy_s_chain = new self.opts.imaState.w3_s_chain.eth.Contract( self.opts.imaState.joAbiPublishResult_s_chain.message_proxy_chain_abi, self.opts.imaState.joAbiPublishResult_s_chain.message_proxy_chain_address );
             //
             cc.enable( joMessage.message.cc.isEnabled );
             joAnswer.message = {

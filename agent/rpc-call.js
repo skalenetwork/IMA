@@ -71,6 +71,7 @@ async function wait_web_socket_is_open( socket, fnDone, fnStep ) {
             if( isInsideAsyncHandler )
                 return;
             isInsideAsyncHandler = true;
+            ++ nStep;
             if( socket.readyState === 1 ) {
                 // console.log( "Connection is made" )
                 clearInterval( iv );
@@ -87,7 +88,6 @@ async function wait_web_socket_is_open( socket, fnDone, fnStep ) {
         const iv = setInterval( function() {
             if( isInsideAsyncHandler )
                 return;
-            ++ nStep;
             fn_async_handler()
                 .then( () => {
                 } ).catch( () => {
@@ -98,37 +98,37 @@ async function wait_web_socket_is_open( socket, fnDone, fnStep ) {
 }
 
 async function do_connect( joCall, opts, fn ) {
-    let wsConn = joCall.wsConn ? joCall.wsConn : null;
     try {
         fn = fn || async function() {};
         if( !validateURL( joCall.url ) )
             throw new Error( "JSON RPC CALLER cannot connect web socket to invalid URL: " + joCall.url );
         if( is_ws_url( joCall.url ) ) {
             let strWsError = null;
-            wsConn = new ws( joCall.url );
-            joCall.wsConn = wsConn;
-            wsConn.on( "open", async function() {
+            joCall.wsConn = new ws( joCall.url );
+            joCall.wsConn.on( "open", async function() {
                 await fn( joCall, null );
             } );
-            wsConn.on( "close", async function() {
+            joCall.wsConn.on( "close", async function() {
                 strWsError = "web socket was closed, please check provided URL is valid and accessible";
                 joCall.wsConn = null;
             } );
-            wsConn.on( "error", async function( err ) {
+            joCall.wsConn.on( "error", async function( err ) {
                 strWsError = err.toString() || "internal web socket error";
                 log.write( cc.u( joCall.url ) + cc.error( " web socket error: " ) + cc.warning( err.toString() ) + "\n" );
+                const wsConn = joCall.wsConn;
                 joCall.wsConn = null;
                 wsConn.close();
                 do_reconnect_ws_step( joCall, opts );
             } );
-            wsConn.on( "fail", async function( err ) {
+            joCall.wsConn.on( "fail", async function( err ) {
                 strWsError = err.toString() || "internal web socket failure";
                 log.write( cc.u( joCall.url ) + cc.error( " web socket fail: " ) + cc.warning( err.toString() ) + "\n" );
+                const wsConn = joCall.wsConn;
                 joCall.wsConn = null;
                 wsConn.close();
                 do_reconnect_ws_step( joCall, opts );
             } );
-            wsConn.on( "message", async function incoming( data ) {
+            joCall.wsConn.on( "message", async function incoming( data ) {
                 // log.write( cc.info( "WS message " ) + cc.attention( data ) + "\n" );
                 const joOut = JSON.parse( data );
                 if( joOut.id in joCall.mapPendingByCallID ) {
@@ -142,7 +142,7 @@ async function do_connect( joCall, opts, fn ) {
                     await entry.fn( entry.joIn, joOut, null );
                 }
             } );
-            await wait_web_socket_is_open( wsConn,
+            await wait_web_socket_is_open( joCall.wsConn,
                 async function( nStep ) { // done
                 },
                 async function( nStep ) { // step
@@ -153,6 +153,7 @@ async function do_connect( joCall, opts, fn ) {
                     if( nStep >= g_nConnectionTimeoutSeconds ) {
                         strWsError = "wait timeout, web socket is connecting too long";
                         log.write( cc.u( joCall.url ) + cc.error( " web socket wait timeout detected" ) + "\n" );
+                        const wsConn = joCall.wsConn;
                         joCall.wsConn = null;
                         wsConn.close();
                         do_reconnect_ws_step( joCall, opts );
@@ -241,7 +242,7 @@ async function do_call( joCall, joIn, fn ) {
             clearTimeout( entry.iv );
             entry.iv = null;
             delete joCall.mapPendingByCallID[joIn.id];
-        }, 20 * 1000 );
+        }, 200 * 1000 );
         joCall.wsConn.send( JSON.stringify( joIn ) );
     } else {
         // console.log( "--- --- --- call URL is", joCall.url );

@@ -68,7 +68,7 @@ async function check_on_loop_start() {
         const arr_walk_node_idices = compute_walk_node_idices( imaState.nNodeNumber, imaState.nNodesCount );
         if( imaState.isPrintPWA ) {
             log.write(
-                cc.debug( "PWA will check loop start contition via node(s) sequence" ) +
+                cc.debug( "PWA will check loop start contition via node(s) sequence " ) +
                 cc.j( arr_busy_node_indices ) + cc.debug( "..." ) +
                 "\n" );
         }
@@ -83,10 +83,18 @@ async function check_on_loop_start() {
             ) {
                 const d = nUtcUnixTimeStamp - joNode.pwaState.ts;
                 if( d >= imaState.nTimeoutSecondsPWA ) {
+                    if( imaState.isPrintPWA ) {
+                        log.write(
+                            cc.warning( "PWA busy state timeout for node #" ) + cc.info( walk_node_index ) +
+                            cc.debug( ", old timestamp is " ) + cc.info( joNode.pwaState.ts ) +
+                            cc.debug( ", current system timestamp is " ) + cc.info( nUtcUnixTimeStamp ) +
+                            cc.debug( ", duration " ) + cc.info( d ) +
+                            cc.debug( " is greater than conditionally allowed " ) + cc.info( imaState.nTimeoutSecondsPWA ) +
+                            cc.debug( " and exceeeded by " ) + cc.info( d - imaState.nTimeoutSecondsPWA ) + cc.debug( " second(s)" ) +
+                            "\n" );
+                    }
                     joNode.pwaState.isImaSingleTransferLoopInProgress = false;
                     joNode.pwaState.ts = 0;
-                    if( imaState.isPrintPWA )
-                        log.write( cc.warning( "PWA busy state timeout for node #" ) + cc.info( walk_node_index ) + "\n" );
                     continue;
                 }
                 arr_busy_node_indices.push( walk_node_index );
@@ -127,8 +135,12 @@ async function handle_loop_state_arrived( nNodeNumber, isStart, ts ) {
             joNode.pwaState = { };
         joNode.pwaState.ts = 0 + ts;
         joNode.pwaState.isImaSingleTransferLoopInProgress = isStart ? true : false;
-        if( imaState.isPrintPWA )
-            log.write( cc.debug( "PWA loop-" ) + cc.attention( se ) + cc.debug( " state arrived for node " ) + cc.info( nNodeNumber ) + "\n" );
+        if( imaState.isPrintPWA ) {
+            log.write(
+                cc.debug( "PWA loop-" ) + cc.attention( se ) + cc.debug( " state arrived for node " ) + cc.info( nNodeNumber ) +
+                cc.debug( ", now have PWA state " ) + cc.j( joNode.pwaState ) +
+                "\n" );
+        }
     } catch ( err ) {
         log.write( cc.error( "Exception in PWA handler for loop-" ) + cc.attention( se ) + cc.error( ": " ) + cc.error( owaspUtils.extract_error_message( err ) ) + "\n" );
     }

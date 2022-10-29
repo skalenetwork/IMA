@@ -31,6 +31,63 @@ function replaceAll( str, find, replace ) {
     return str.replace( new RegExp( find, "g" ), replace );
 }
 
+function validateRadix( value, radix ) {
+    value = "" + ( value ? value.toString() : "10" );
+    value = value.trim();
+    radix = ( radix == null || radix == undefined )
+        ? ( ( value.length > 2 && value[0] == "0" && ( value[1] == "x" || value[1] == "X" ) ) ? 16 : 10 )
+        : parseInt( radix, 10 );
+    return radix;
+}
+
+function validateInteger( value, radix ) {
+    try {
+        value = "" + value;
+        value = value.trim();
+        if( value.length < 1 )
+            return false;
+        radix = validateRadix( value, radix );
+        if( ( !isNaN( value ) ) &&
+            ( parseInt( Number( value ), radix ) == value || radix !== 10 ) &&
+            ( !isNaN( parseInt( value, radix ) ) )
+        )
+            return true;
+    } catch ( err ) {
+    }
+    return false;
+}
+
+function toInteger( value, radix ) {
+    try {
+        radix = validateRadix( value, radix );
+        if( !validateInteger( value, radix ) )
+            return NaN;
+        return parseInt( value, radix );
+    } catch ( err ) {
+    }
+    return false;
+}
+
+function validateFloat( value ) {
+    try {
+        const f = parseFloat( value );
+        if( isNaN( f ) )
+            return false;
+        return true;
+    } catch ( err ) {
+    }
+    return false;
+}
+
+function toFloat( value ) {
+    try {
+        const f = parseFloat( value );
+        return f;
+    } catch ( err ) {
+    }
+    return false;
+}
+
 function toBoolean( value ) {
     let b = false;
     try {

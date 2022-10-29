@@ -309,10 +309,8 @@ async function load_schains_connected_only( w3_main_net, w3_s_chain, strChainNam
             jo_schain.isConnected = true;
             arr_schains.push( jo_schain );
         } catch ( err ) {
-            if( opts && opts.details ) {
+            if( opts && opts.details )
                 opts.details.write( cc.error( "Got error: " ) + cc.warning( owaspUtils.extract_error_message( err ) ) + "\n" );
-                opts.details.write( err.stack );
-            }
         }
     }
     return arr_schains;
@@ -345,10 +343,8 @@ async function check_connected_schains( strChainNameConnectedTo, arr_schains, ad
                     cc.debug( "Got " ) + cc.yn( jo_schain.isConnected ) + "\n" );
             }
         } catch ( err ) {
-            if( opts && opts.details ) {
+            if( opts && opts.details )
                 opts.details.write( cc.error( "Got error: " ) + cc.warning( owaspUtils.extract_error_message( err ) ) + "\n" );
-                opts.details.write( err.stack );
-            }
         }
     }
     return arr_schains;
@@ -463,10 +459,9 @@ async function cache_schains( strChainNameConnectedTo, w3_main_net, w3_s_chain, 
             strError = "unknown exception during S-Chains download";
         if( opts.fn_chache_changed )
             opts.fn_chache_changed( g_arr_schains_cached, strError );
-        if( opts && opts.details ) {
+        if( opts && opts.details )
             opts.details.write( cc.fatal( "ERROR:" ) + cc.error( " Failed to cache: " ) + cc.error( err ) + "\n" );
-            opts.details.write( err.stack );
-        }
+
     }
     return strError; // null on success
 }

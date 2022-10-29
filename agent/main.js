@@ -2245,17 +2245,14 @@ if( imaState.nJsonRpcPort > 0 ) {
         const ip = req.socket.remoteAddress;
         if( IMA.verbose_get() >= IMA.RV_VERBOSE.trace )
             log.write( strLogPrefix + cc.normal( "New connection from " ) + cc.info( ip ) + "\n" );
-        ws_peer.on( "message", function( message ) {
-            const joAnswer = {
-                method: null,
-                id: null,
-                error: null
-            };
+        ws_peer.on( "message", async function( message ) {
             const fn_send_answer = function( joAnswer ) {
                 try {
                     if( IMA.verbose_get() >= IMA.RV_VERBOSE.trace )
-                        log.write( strLogPrefix + cc.sunny( ">>>" ) + " " + cc.normal( "answer to " ) + cc.info( ip ) + cc.normal( ": " ) + cc.j( joAnswer ) + "\n" );
+                        log.write( strLogPrefix + cc.sunny( ">>>" ) + " " + cc.normal( "Peer will send answer to " ) + cc.info( ip ) + cc.normal( ": " ) + cc.j( joAnswer ) + "\n" );
                     ws_peer.send( JSON.stringify( joAnswer ) );
+                    if( IMA.verbose_get() >= IMA.RV_VERBOSE.trace )
+                        log.write( strLogPrefix + cc.sunny( ">>>" ) + " " + cc.normal( "Peer did sent answer to " ) + cc.info( ip ) + cc.normal( ": " ) + cc.j( joAnswer ) + "\n" );
                 } catch ( err ) {
                     if( IMA.verbose_get() >= IMA.RV_VERBOSE.error ) {
                         log.write( strLogPrefix +
@@ -2265,11 +2262,16 @@ if( imaState.nJsonRpcPort > 0 ) {
                     }
                 }
             };
-            let isSkipMode = false;
+            let joAnswer = {
+                method: null,
+                id: null,
+                error: null
+            };
+            const isSkipMode = false;
             try {
                 const joMessage = JSON.parse( message );
                 if( IMA.verbose_get() >= IMA.RV_VERBOSE.trace )
-                    log.write( strLogPrefix + cc.sunny( "<<<" ) + " " + cc.normal( "message from " ) + cc.info( ip ) + cc.normal( ": " ) + cc.j( joMessage ) + "\n" );
+                    log.write( strLogPrefix + cc.sunny( "<<<" ) + " " + cc.normal( "Peer message from " ) + cc.info( ip ) + cc.normal( ": " ) + cc.j( joMessage ) + "\n" );
                 if( ! ( "method" in joMessage ) )
                     throw new Error( "\"method\" field was not specified" );
                 joAnswer.method = joMessage.method;
@@ -2292,18 +2294,18 @@ if( imaState.nJsonRpcPort > 0 ) {
                     joAnswer.result = imaState.isImaSingleTransferLoopInProgress ? true : false;
                     break;
                 case "skale_imaVerifyAndSign":
-                    // joAnswer = await imaBLS.handle_skale_imaVerifyAndSign( joMessage );
-                    isSkipMode = true;
-                    imaBLS.handle_skale_imaVerifyAndSign( joMessage ).then( function( joAnswer ) {
-                        fn_send_answer( joAnswer , joMessage );
-                    } );
+                    joAnswer = await imaBLS.handle_skale_imaVerifyAndSign( joMessage );
+                    // isSkipMode = true;
+                    // imaBLS.handle_skale_imaVerifyAndSign( joMessage ).then( function( joAnswer ) {
+                    //     fn_send_answer( joAnswer , joMessage );
+                    // } );
                     break;
                 case "skale_imaBSU256":
-                    // joAnswer = await imaBLS.handle_skale_imaBSU256( joMessage );
-                    isSkipMode = true;
-                    imaBLS.handle_skale_imaBSU256( joMessage ).then( function( joAnswer ) {
-                        fn_send_answer( joAnswer );
-                    } );
+                    joAnswer = await imaBLS.handle_skale_imaBSU256( joMessage );
+                    // isSkipMode = true;
+                    // imaBLS.handle_skale_imaBSU256( joMessage ).then( function( joAnswer ) {
+                    //     fn_send_answer( joAnswer );
+                    // } );
                     break;
                 case "skale_imaNotifyLoopWork":
                     pwa.handle_loop_state_arrived(

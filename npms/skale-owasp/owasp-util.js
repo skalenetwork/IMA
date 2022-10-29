@@ -632,19 +632,25 @@ function extract_error_message( jo, strDefaultErrorText ) {
             return strDefaultErrorText;
         if( typeof jo != "object" )
             return strDefaultErrorText;
+        let strStack = "";
+        if( "stack" in jo && jo.stack && typeof jo.stack == "object" && "length" in jo.stack && jo.stack.length > 0 ) {
+            strStack += "\nCall stack from error object:";
+            for( let i = 0; i < jo.stack.length; ++ i )
+                strStack += "\n" + jo.stack[i].toString();
+        }
         if( "error" in jo ) {
             jo = jo.error;
             if( typeof jo == "string" )
                 return jo;
             if( typeof jo != "object" )
-                return strDefaultErrorText + "(" + jo.toString() + ")";
+                return strDefaultErrorText + "(" + jo.toString() + ")" + strStack;
         }
         if( "message" in jo ) {
             jo = jo.message;
             if( typeof jo == "string" )
-                return jo;
+                return jo + strStack;
         }
-        strDefaultErrorText += "(" + jo.toString() + ")";
+        strDefaultErrorText += "(" + jo.toString() + ")" + strStack;
     } catch ( err ) {
     }
     return strDefaultErrorText;
