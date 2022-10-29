@@ -2672,7 +2672,7 @@ async function single_transfer_loop() {
         }
         wasPassedStartCheckPWA = true;
         imaState.isImaSingleTransferLoopInProgress = true;
-        await pwa.notify_on_loop_end();
+        await pwa.notify_on_loop_start();
 
         let b0 = true;
         if( IMA.getEnabledOracle() ) {
