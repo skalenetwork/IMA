@@ -2779,6 +2779,10 @@ async function single_transfer_loop() {
         const bResult = b0 && b1 && b2 && b3;
         if( IMA.verbose_get() >= IMA.RV_VERBOSE.information )
             log.write( strLogPrefix + cc.debug( "Completed: " ) + cc.tf( bResult ) + "\n" );
+        if( wasPassedStartCheckPWA ) {
+            await pwa.notify_on_loop_end();
+            wasPassedStartCheckPWA = false;
+        }
         return bResult;
     } catch ( err ) {
         log.write( strLogPrefix + cc.fatal( "Exception in single transfer loop: " ) + cc.error( owaspUtils.extract_error_message( err ) ) + "\n" );
