@@ -421,7 +421,7 @@ function compose_ima_agent_node_url( joNode ) {
     if( nPort < 0 && "wssRpcPort" in joNode && typeof joNode.wssRpcPort === "number" && joNode.wssRpcPort > 0 )
         nPort = joNode.wssRpcPort - 7 + 10;
     if( nPort > 0 )
-        return "ws://" + joNode.ip + ":" + nPort;
+        return "http://" + joNode.ip + ":" + nPort;
     return "";
 }
 

@@ -50,6 +50,9 @@ global.rpcCall.init();
 global.imaOracle = require( "./oracle.js" );
 global.imaOracle.init();
 global.pwa = require( "./pwa.js" );
+global.express = require( "express" );
+global.bodyParser = require( "body-parser" );
+global.jayson = require( "jayson" );
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -2234,10 +2237,12 @@ if( imaState.nMonitoringPort > 0 ) {
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-let g_ws_server_ima = null;
+// let g_ws_server_ima = null;
+let g_json_rpc_app_ima = null;
 
 if( imaState.nJsonRpcPort > 0 ) {
     const strLogPrefix = cc.attention( "JSON RPC:" ) + " ";
+    /*
     if( IMA.verbose_get() >= IMA.RV_VERBOSE.trace )
         log.write( strLogPrefix + cc.normal( "Will start JSON RPC WS server on port " ) + cc.info( imaState.nJsonRpcPort ) + "\n" );
     g_ws_server_ima = new ws.Server( { port: 0 + imaState.nJsonRpcPort } );
@@ -2327,10 +2332,103 @@ if( imaState.nJsonRpcPort > 0 ) {
             }
             if( ! isSkipMode )
                 fn_send_answer( joAnswer );
-            // if( ! isSkipMode )
         } );
         // ws_peer.send( "something" );
     } );
+*/
+    g_json_rpc_app_ima = express();
+    g_json_rpc_app_ima.use( bodyParser.urlencoded( { extended: true } ) );
+    g_json_rpc_app_ima.use( bodyParser.json() );
+    // g_json_rpc_app_ima.post( "", jayson.server(dogs).middleware() );
+    g_json_rpc_app_ima.post( "/", async function( req, res ) {
+        //console.log( "---------------------", req );
+        const isSkipMode = false;
+        const message = JSON.stringify( req.body );
+        const ip = req.connection.remoteAddress.split( ":" ).pop();
+        log.write( strLogPrefix + cc.sunny( "<<<" ) + " " + cc.normal( "Peer raw message from " ) + cc.info( ip ) + cc.normal( ": " ) + cc.notice( message ) + "\n" );
+        const fn_send_answer = function( joAnswer ) {
+            try {
+                if( IMA.verbose_get() >= IMA.RV_VERBOSE.trace )
+                    log.write( strLogPrefix + cc.sunny( ">>>" ) + " " + cc.normal( "will send answer to " ) + cc.info( ip ) + cc.normal( ": " ) + cc.j( joAnswer ) + "\n" );
+                res.header( "Content-Type", "application/json" );
+                res.status( 200 ).send( JSON.stringify( joAnswer ) );
+                if( IMA.verbose_get() >= IMA.RV_VERBOSE.trace )
+                    log.write( strLogPrefix + cc.sunny( ">>>" ) + " " + cc.normal( "was sent answer to " ) + cc.info( ip ) + cc.normal( ": " ) + cc.j( joAnswer ) + "\n" );
+            } catch ( err ) {
+                if( IMA.verbose_get() >= IMA.RV_VERBOSE.error ) {
+                    log.write( strLogPrefix +
+                        cc.error( "Failed to sent answer to " ) + cc.info( ip ) +
+                        cc.error( ", error is: " ) + cc.warning( err ) + "\n"
+                    );
+                }
+            }
+        };
+        let joAnswer = {
+            method: null,
+            id: null,
+            error: null
+        };
+        try {
+            const joMessage = JSON.parse( message );
+            if( IMA.verbose_get() >= IMA.RV_VERBOSE.trace )
+                log.write( strLogPrefix + cc.sunny( "<<<" ) + " " + cc.normal( "Peer message from " ) + cc.info( ip ) + cc.normal( ": " ) + cc.j( joMessage ) + "\n" );
+            if( ! ( "method" in joMessage ) )
+                throw new Error( "\"method\" field was not specified" );
+            joAnswer.method = joMessage.method;
+            if( ! ( "id" in joMessage ) )
+                throw new Error( "\"id\" field was not specified" );
+            if( "id" in joMessage )
+                joAnswer.id = joMessage.id;
+            if( "method" in joMessage )
+                joAnswer.method = "" + joMessage.method;
+            switch ( joMessage.method ) {
+            case "echo":
+                joAnswer.result = "echo";
+                fn_send_answer( joAnswer );
+                break;
+            case "ping":
+                joAnswer.result = "pong";
+                fn_send_answer( joAnswer );
+                break;
+            case "skale_isImaSingleTransferLoopInProgress":
+                joAnswer.result = imaState.isImaSingleTransferLoopInProgress ? true : false;
+                break;
+            case "skale_imaVerifyAndSign":
+                joAnswer = await imaBLS.handle_skale_imaVerifyAndSign( joMessage );
+                // isSkipMode = true;
+                // imaBLS.handle_skale_imaVerifyAndSign( joMessage ).then( function( joAnswer ) {
+                //     fn_send_answer( joAnswer , joMessage );
+                // } );
+                break;
+            case "skale_imaBSU256":
+                joAnswer = await imaBLS.handle_skale_imaBSU256( joMessage );
+                // isSkipMode = true;
+                // imaBLS.handle_skale_imaBSU256( joMessage ).then( function( joAnswer ) {
+                //     fn_send_answer( joAnswer );
+                // } );
+                break;
+            case "skale_imaNotifyLoopWork":
+                pwa.handle_loop_state_arrived(
+                    owaspUtils.toInteger( joMessage.params.nNodeNumber ),
+                    joMessage.params.isStart ? true : false,
+                    owaspUtils.toInteger( joMessage.params.ts )
+                );
+                break;
+            default:
+                throw new Error( "Unknown method name \"" + joMessage.method + "\" was specified" );
+            } // switch( joMessage.method )
+        } catch ( err ) {
+            if( IMA.verbose_get() >= IMA.RV_VERBOSE.error ) {
+                log.write( strLogPrefix +
+                    cc.error( "Bad message from " ) + cc.info( ip ) + cc.error( ": " ) + cc.warning( message ) +
+                    cc.error( ", error is: " ) + cc.warning( err ) + "\n"
+                );
+            }
+        }
+        if( ! isSkipMode )
+            fn_send_answer( joAnswer );
+    } );
+    g_json_rpc_app_ima.listen( imaState.nJsonRpcPort );
 } // if( imaState.nJsonRpcPort > 0 )
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
