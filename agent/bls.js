@@ -254,6 +254,33 @@ function keccak256_u256( u256, isHash ) {
     return strMessageHash;
 }
 
+function keccak256_pwa( nNodeNumber, isStart, ts ) {
+    let arrBytes = new Uint8Array();
+    //
+    let bytes_u256 = imaUtils.hexToBytes( nNodeNumber );
+    bytes_u256 = imaUtils.invertArrayItemsLR( bytes_u256 );
+    bytes_u256 = imaUtils.bytesAlignLeftWithZeroes( bytes_u256, 32 );
+    bytes_u256 = imaUtils.invertArrayItemsLR( bytes_u256 );
+    arrBytes = imaUtils.bytesConcat( arrBytes, bytes_u256 );
+    //
+    bytes_u256 = imaUtils.hexToBytes( isStart ? 1 : 0 );
+    bytes_u256 = imaUtils.invertArrayItemsLR( bytes_u256 );
+    bytes_u256 = imaUtils.bytesAlignLeftWithZeroes( bytes_u256, 32 );
+    bytes_u256 = imaUtils.invertArrayItemsLR( bytes_u256 );
+    arrBytes = imaUtils.bytesConcat( arrBytes, bytes_u256 );
+    //
+    bytes_u256 = imaUtils.hexToBytes( ts );
+    bytes_u256 = imaUtils.invertArrayItemsLR( bytes_u256 );
+    bytes_u256 = imaUtils.bytesAlignLeftWithZeroes( bytes_u256, 32 );
+    bytes_u256 = imaUtils.invertArrayItemsLR( bytes_u256 );
+    arrBytes = imaUtils.bytesConcat( arrBytes, bytes_u256 );
+    //
+    const hash = new Keccak( 256 );
+    hash.update( imaUtils.toBuffer( arrBytes ) );
+    const strMessageHash = hash.digest( "hex" );
+    return strMessageHash;
+}
+
 function split_signature_share( signatureShare ) {
     const jarr = signatureShare.split( ":" );
     return {
@@ -1640,6 +1667,97 @@ async function do_sign_u256( u256, details, fn ) {
     details.write( strLogPrefix + cc.debug( "Completed signing u256 procedure " ) + "\n" );
 }
 
+async function do_sign_ready_hash( strMessageHash ) {
+    const strLogPrefix = "";
+    const details = log.createMemoryStream( true );
+    let joSignResult = null;
+    try {
+        const nThreshold = discover_bls_threshold( imaState.joSChainNetworkInfo );
+        const nParticipants = discover_bls_participants( imaState.joSChainNetworkInfo );
+        details.write( strLogPrefix + cc.debug( "Discovered BLS threshold is " ) + cc.info( nThreshold ) + cc.debug( "." ) + "\n" );
+        details.write( strLogPrefix + cc.debug( "Discovered number of BLS participants is " ) + cc.info( nParticipants ) + cc.debug( "." ) + "\n" );
+        //
+        details.write( strLogPrefix + cc.debug( "hash value to sign is " ) + cc.info( strMessageHash ) + "\n" );
+        //
+        let joAccount = imaState.joAccount_s_chain;
+        if( ! joAccount.strURL ) {
+            joAccount = imaState.joAccount_main_net;
+            if( ! joAccount.strSgxURL )
+                throw new Error( "SGX URL is unknown, cannot sign U256" );
+            if( ! joAccount.strBlsKeyName )
+                throw new Error( "BLS keys name is unknown, cannot sign U256" );
+        }
+        let rpcCallOpts = null;
+        if( "strPathSslKey" in joAccount && typeof joAccount.strPathSslKey == "string" && joAccount.strPathSslKey.length > 0 &&
+            "strPathSslCert" in joAccount && typeof joAccount.strPathSslCert == "string" && joAccount.strPathSslCert.length > 0
+        ) {
+            rpcCallOpts = {
+                "cert": fs.readFileSync( joAccount.strPathSslCert, "utf8" ),
+                "key": fs.readFileSync( joAccount.strPathSslKey, "utf8" )
+            };
+            // details.write( cc.debug( "Will sign via SGX with SSL options " ) + cc.j( rpcCallOpts ) + "\n" );
+        }
+        const signerIndex = imaState.joAccount_s_chain.nNodeNumber;
+        await rpcCall.create( joAccount.strSgxURL, rpcCallOpts, async function( joCall, err ) {
+            if( err ) {
+                const strErrorMessage =
+                    strLogPrefix + cc.fatal( "CRITICAL ERROR:" ) +
+                    cc.error( " JSON RPC call to SGX failed, RPC call was not created, error is: " ) + cc.warning( owaspUtils.extract_error_message( err ) ) + "\n";
+                log.write( strErrorMessage );
+                details.write( strErrorMessage );
+                if( joCall )
+                    await joCall.disconnect();
+                throw new Error( "JSON RPC call to SGX failed, RPC call was not created, error is: " + owaspUtils.extract_error_message( err ) );
+            }
+            const joCallSGX = {
+                method: "blsSignMessageHash",
+                // type: "BLSSignReq",
+                params: {
+                    keyShareName: joAccount.strBlsKeyName,
+                    messageHash: strMessageHash,
+                    n: nParticipants,
+                    t: nThreshold,
+                    signerIndex: signerIndex + 0 // 1-based
+                }
+            };
+            details.write( strLogPrefix + cc.debug( "Will invoke " ) + cc.info( "SGX" ) + cc.debug( " with call data " ) + cc.j( joCallSGX ) + "\n" );
+            await joCall.call( joCallSGX, async function( joIn, joOut, err ) {
+                if( err ) {
+                    const strErrorMessage =
+                        strLogPrefix + cc.fatal( "CRITICAL ERROR:" ) +
+                        cc.error( " JSON RPC call to SGX failed, RPC call reported error: " ) + cc.warning( owaspUtils.extract_error_message( err ) ) + "\n";
+                    log.write( strErrorMessage );
+                    details.write( strErrorMessage );
+                    await joCall.disconnect();
+                    throw new Error( "JSON RPC call to SGX failed, RPC call reported error: " + owaspUtils.extract_error_message( err ) );
+                }
+                details.write( strLogPrefix + cc.debug( "Call to " ) + cc.info( "SGX" ) + cc.debug( " done, answer is: " ) + cc.j( joOut ) + "\n" );
+                joSignResult = joOut;
+                if( joOut.result != null && joOut.result != undefined && typeof joOut.result == "object" )
+                    joSignResult = joOut.result;
+                if( joOut.signResult != null && joOut.signResult != undefined && typeof joOut.signResult == "object" )
+                    joSignResult = joOut.signResult;
+                joSignResult.error = null;
+                await joCall.disconnect();
+            } ); // joCall.call ...
+        } ); // rpcCall.create ...
+    } catch ( err ) {
+        const strError = owaspUtils.extract_error_message( err );
+        joSignResult = { };
+        joSignResult.error = strError;
+        const strErrorMessage =
+            strLogPrefix + cc.fatal( "CRITICAL ERROR:" ) + " " +
+            cc.error( "BLS-raw-signer error: " ) + cc.warning( strError ) +
+            "\n";
+        log.write( strErrorMessage );
+        details.write( strErrorMessage );
+    }
+    const isSuccess = ( joSignResult && typeof joSignResult == "object" && ( !joSignResult.error ) ) ? true : false;
+    details.exposeDetailsTo( log, "BLS-raw-signer", isSuccess );
+    details.close();
+    return joSignResult;
+}
+
 // async function handle_skale_call_via_redirect( joCallData ) {
 //     const sequence_id = owaspUtils.remove_starting_0x( get_w3().utils.soliditySha3( log.generate_timestamp_string( null, false ) ) );
 //     const strLogPrefix = "";
@@ -1850,7 +1968,7 @@ async function handle_skale_imaBSU256( joCallData ) {
         const u256 = joCallData.params.valueToSign;
         details.write( strLogPrefix + cc.debug( "U256 original value is " ) + cc.info( u256 ) + "\n" );
         const strMessageHash = keccak256_u256( u256, true );
-        details.write( strLogPrefix + cc.debug( "haso of U256 value to sign is " ) + cc.info( strMessageHash ) + "\n" );
+        details.write( strLogPrefix + cc.debug( "hash of U256 value to sign is " ) + cc.info( strMessageHash ) + "\n" );
         //
         let joAccount = imaState.joAccount_s_chain;
         if( ! joAccount.strURL ) {
@@ -1935,10 +2053,12 @@ async function handle_skale_imaBSU256( joCallData ) {
 
 module.exports = {
     init: init,
+    keccak256_pwa: keccak256_pwa,
     do_sign_messages_m2s: do_sign_messages_m2s,
     do_sign_messages_s2m: do_sign_messages_s2m,
     do_sign_messages_s2s: do_sign_messages_s2s,
     do_sign_u256: do_sign_u256,
+    do_sign_ready_hash: do_sign_ready_hash,
     // handle_skale_imaVerifyAndSign: handle_skale_call_via_redirect,
     handle_skale_imaVerifyAndSign: handle_skale_imaVerifyAndSign,
     // handle_skale_imaBSU256: handle_skale_call_via_redirect

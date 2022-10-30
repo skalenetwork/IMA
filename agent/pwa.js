@@ -116,7 +116,7 @@ async function check_on_loop_start() {
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-async function handle_loop_state_arrived( nNodeNumber, isStart, ts ) {
+async function handle_loop_state_arrived( nNodeNumber, isStart, ts, signature ) {
     const se = isStart ? "start" : "end";
     try {
         if( ! imaState.isPWA )
@@ -139,6 +139,7 @@ async function handle_loop_state_arrived( nNodeNumber, isStart, ts ) {
             log.write(
                 cc.debug( "PWA loop-" ) + cc.attention( se ) + cc.debug( " state arrived for node " ) + cc.info( nNodeNumber ) +
                 cc.debug( ", now have PWA state " ) + cc.j( joNode.pwaState ) +
+                cc.debug( ", arrived signature is " ) + cc.j( signature ) +
                 "\n" );
         }
     } catch ( err ) {
@@ -165,7 +166,11 @@ async function notify_on_loop_impl( isStart ) {
         if( ! jarrNodes )
             throw new Error( "S-Chain network info is not available yet to PWA" );
         const nUtcUnixTimeStamp = Math.floor( ( new Date() ).getTime() / 1000 );
-        await handle_loop_state_arrived( imaState.nNodeNumber, isStart, nUtcUnixTimeStamp ); // save own state
+        //
+        const strMessageHash = imaBLS.keccak256_pwa( 0 + imaState.nNodeNumber, isStart, nUtcUnixTimeStamp );
+        const signature = await imaBLS.do_sign_ready_hash( strMessageHash );
+        await handle_loop_state_arrived( imaState.nNodeNumber, isStart, nUtcUnixTimeStamp, signature ); // save own started
+        //
         for( let i = 0; i < jarrNodes.length; ++i ) {
             if( i == imaState.nNodeNumber )
                 continue; // skip this node
@@ -186,7 +191,8 @@ async function notify_on_loop_impl( isStart ) {
                     params: {
                         nNodeNumber: 0 + imaState.nNodeNumber,
                         isStart: isStart ? true : false,
-                        ts: nUtcUnixTimeStamp
+                        ts: nUtcUnixTimeStamp,
+                        signature: signature
                     }
                 }, async function( joIn, joOut, err ) {
                     if( err ) {

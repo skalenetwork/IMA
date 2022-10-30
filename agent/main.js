@@ -2316,7 +2316,8 @@ if( imaState.nJsonRpcPort > 0 ) {
                     pwa.handle_loop_state_arrived(
                         owaspUtils.toInteger( joMessage.params.nNodeNumber ),
                         joMessage.params.isStart ? true : false,
-                        owaspUtils.toInteger( joMessage.params.ts )
+                        owaspUtils.toInteger( joMessage.params.ts ),
+                        joMessage.params.signature
                     );
                     break;
                 default:
@@ -2408,10 +2409,11 @@ if( imaState.nJsonRpcPort > 0 ) {
                 // } );
                 break;
             case "skale_imaNotifyLoopWork":
-                pwa.handle_loop_state_arrived(
+                await pwa.handle_loop_state_arrived(
                     owaspUtils.toInteger( joMessage.params.nNodeNumber ),
                     joMessage.params.isStart ? true : false,
-                    owaspUtils.toInteger( joMessage.params.ts )
+                    owaspUtils.toInteger( joMessage.params.ts ),
+                    joMessage.params.signature
                 );
                 break;
             default:
