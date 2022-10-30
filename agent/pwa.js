@@ -118,6 +118,7 @@ async function check_on_loop_start() {
 
 async function handle_loop_state_arrived( nNodeNumber, isStart, ts, signature ) {
     const se = isStart ? "start" : "end";
+    let isSuccess = false;
     try {
         if( ! imaState.isPWA )
             return true;
@@ -133,19 +134,38 @@ async function handle_loop_state_arrived( nNodeNumber, isStart, ts, signature ) 
         const joNode = jarrNodes[nNodeNumber];
         if( ! ( "pwaState" in joNode ) )
             joNode.pwaState = { };
+        if( imaState.isPrintPWA ) {
+            log.write(
+                cc.debug( "PWA loop-" ) + cc.attention( se ) + cc.debug( " state arrived for node " ) + cc.info( nNodeNumber ) +
+                cc.debug( ", PWA state " ) + cc.j( joNode.pwaState ) +
+                cc.debug( ", arrived signature is " ) + cc.j( signature ) +
+                "\n" );
+        }
+        const strMessageHash = imaBLS.keccak256_pwa( nNodeNumber, isStart, 0 + ts );
+        const isSignatureOK = await imaBLS.do_verify_ready_hash( strMessageHash, nNodeNumber, signature );
+        if( ! isSignatureOK )
+            throw new Error( "BLS verification failed" );
         joNode.pwaState.ts = 0 + ts;
         joNode.pwaState.isImaSingleTransferLoopInProgress = isStart ? true : false;
         if( imaState.isPrintPWA ) {
             log.write(
-                cc.debug( "PWA loop-" ) + cc.attention( se ) + cc.debug( " state arrived for node " ) + cc.info( nNodeNumber ) +
-                cc.debug( ", now have PWA state " ) + cc.j( joNode.pwaState ) +
-                cc.debug( ", arrived signature is " ) + cc.j( signature ) +
+                cc.success( "PWA loop-" ) + cc.attention( se ) + cc.success( " state successfully verified for node " ) + cc.info( nNodeNumber ) +
+                cc.success( ", now have PWA state " ) + cc.j( joNode.pwaState ) +
+                cc.success( ", arrived signature is " ) + cc.j( signature ) +
                 "\n" );
         }
+        isSuccess = true;
     } catch ( err ) {
-        log.write( cc.error( "Exception in PWA handler for loop-" ) + cc.attention( se ) + cc.error( ": " ) + cc.error( owaspUtils.extract_error_message( err ) ) + "\n" );
+        isSuccess = false;
+        log.write(
+            cc.error( "Exception in PWA handler for loop-" ) + cc.attention( se ) +
+            cc.error( " for node " ) + cc.info( nNodeNumber ) +
+            cc.error( ", PWA state " ) + cc.j( joNode.pwaState ) +
+            cc.error( ", arrived signature is " ) + cc.j( signature ) +
+            cc.error( ", error is: " ) + cc.error( owaspUtils.extract_error_message( err ) ) +
+            "\n" );
     }
-    return true;
+    return isSuccess;
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

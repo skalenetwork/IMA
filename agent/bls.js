@@ -1101,10 +1101,8 @@ async function do_sign_messages_impl(
                                 ) ) {
                                     details.write( strLogPrefixA + cc.success( "Got successful BLS verification result for node " ) + cc.info( joNode.nodeID ) + cc.success( " with index " ) + cc.info( nZeroBasedNodeIndex ) + "\n" );
                                     bNodeSignatureOKay = true; // node verification passed
-                                } else {
-                                    const strError = "BLS verify failed";
-                                    details.write( strLogPrefixA + cc.fatal( "CRITICAL ERROR:" ) + " " + cc.error( strError ) + "\n" );
-                                }
+                                } else
+                                    details.write( strLogPrefixA + cc.fatal( "CRITICAL ERROR:" ) + " " + cc.error( "BLS verification failed" ) + "\n" );
                             } catch ( err ) {
                                 const strErrorMessage =
                                     strLogPrefixA + cc.error( "S-Chain node " ) + strNodeDescColorized + cc.error( " sign " ) +
@@ -1183,7 +1181,7 @@ async function do_sign_messages_impl(
                                 strSuccessfulResultDescription = "Got successful summary BLS verification result";
                                 details.write( strLogPrefixB + cc.success( strSuccessfulResultDescription ) + "\n" );
                             } else {
-                                strError = "BLS verify failed";
+                                strError = "BLS verification failed";
                                 log.write( strLogPrefixB + cc.fatal( "CRITICAL ERROR:" ) + cc.error( strError ) + "\n" );
                                 details.write( strLogPrefixB + cc.fatal( "CRITICAL ERROR:" ) + cc.error( strError ) + "\n" );
                             }
@@ -1586,7 +1584,7 @@ async function do_sign_u256( u256, details, fn ) {
                             strSuccessfulResultDescription = "Got successful summary BLS u256 verification result";
                             details.write( strLogPrefixB + cc.success( strSuccessfulResultDescription ) + "\n" );
                         } else {
-                            strError = "BLS verify failed";
+                            strError = "BLS verification failed";
                             log.write( strLogPrefixB + cc.fatal( "CRITICAL ERROR:" ) + cc.error( strError ) + "\n" );
                             details.write( strLogPrefixB + cc.fatal( "CRITICAL ERROR:" ) + cc.error( strError ) + "\n" );
                         }
@@ -1665,6 +1663,71 @@ async function do_sign_u256( u256, details, fn ) {
     }
     log.write( strLogPrefix + cc.debug( "Completed signing u256 procedure " ) + "\n" );
     details.write( strLogPrefix + cc.debug( "Completed signing u256 procedure " ) + "\n" );
+}
+
+async function do_verify_ready_hash( strMessageHash, nZeroBasedNodeIndex, signature ) {
+    const strDirection = "RAW";
+    const strLogPrefix = cc.bright( strDirection ) + cc.debug( "/" ) + cc.info( "BLS" ) + cc.debug( "/" ) + cc.notice( "#" ) + cc.bright( nZeroBasedNodeIndex ) + cc.debug( ":" ) + " ";
+    const details = log.createMemoryStream( true );
+    let isSuccess = false;
+    const joPublicKey = discover_public_key_by_index( nZeroBasedNodeIndex, imaState.joSChainNetworkInfo );
+    const arrTmp = signature.signatureShare.split( ":" );
+    const joResultFromNode = {
+        index: "" + nZeroBasedNodeIndex,
+        signature: {
+            X: arrTmp[0],
+            Y: arrTmp[1]
+        }
+    };
+    const nThreshold = discover_bls_threshold( imaState.joSChainNetworkInfo );
+    const nParticipants = discover_bls_participants( imaState.joSChainNetworkInfo );
+    const strPWD = shell.pwd();
+    const strActionDir = alloc_bls_tmp_action_dir();
+    const fnShellRestore = function() {
+        shell.cd( strPWD );
+        shell.rm( "-rf", strActionDir );
+    };
+    let strOutput = "";
+    try {
+        shell.cd( strActionDir );
+        details.write( strLogPrefix + cc.debug( "BLS node " ) + cc.notice( "#" ) + cc.info( nZeroBasedNodeIndex ) + cc.debug( " - hashed verify message is " ) + cc.info( strMessageHash ) + "\n" );
+        const joMsg = {
+            message: strMessageHash
+        };
+        details.write( strLogPrefix + cc.debug( "BLS node " ) + cc.notice( "#" ) + cc.info( nZeroBasedNodeIndex ) + cc.debug( " - composed  " ) + cc.j( joMsg ) + cc.debug( " using hash " ) + cc.j( strMessageHash ) + cc.debug( " and glue " ) + cc.j( joResultFromNode ) + cc.debug( " and public key " ) + cc.j( joPublicKey ) + "\n" );
+        const strSignResultFileName = strActionDir + "/sign-result" + nZeroBasedNodeIndex + ".json";
+        // console.log( "--- joResultFromNode ---", JSON.stringify( joResultFromNode ) );
+        // console.log( "--- joMsg ---", JSON.stringify( joMsg ) );
+        // console.log( "--- joPublicKey ---", JSON.stringify( joPublicKey ) );
+        imaUtils.jsonFileSave( strSignResultFileName, joResultFromNode );
+        imaUtils.jsonFileSave( strActionDir + "/hash.json", joMsg );
+        imaUtils.jsonFileSave( strActionDir + "/BLS_keys" + nZeroBasedNodeIndex + ".json", joPublicKey );
+        const strVerifyCommand = "" +
+            imaState.strPathBlsVerify +
+            " --t " + nThreshold +
+            " --n " + nParticipants +
+            " --j " + nZeroBasedNodeIndex +
+            " --input " + strSignResultFileName
+            ;
+        details.write( strLogPrefix + cc.normal( "Will execute node " ) + cc.notice( "#" ) + cc.info( nZeroBasedNodeIndex ) + cc.normal( " BLS verify command:\n" ) + cc.notice( strVerifyCommand ) + "\n" );
+        strOutput = child_process.execSync( strVerifyCommand );
+        details.write( strLogPrefix + cc.normal( "BLS node " ) + cc.notice( "#" ) + cc.info( nZeroBasedNodeIndex ) + cc.normal( " verify output is:\n" ) + cc.notice( strOutput ) + "\n" );
+        details.write( strLogPrefix + cc.success( "BLS node " ) + cc.notice( "#" ) + cc.info( nZeroBasedNodeIndex ) + cc.success( " verify success" ) + "\n" );
+        fnShellRestore();
+        isSuccess = true;
+    } catch ( err ) {
+        const s1 = strLogPrefix + cc.fatal( "CRITICAL ERROR:" ) + cc.error( " BLS node " ) + cc.notice( "#" ) + cc.info( nZeroBasedNodeIndex ) + cc.error( " verify error:" ) + cc.normal( " error description is: " ) + cc.warning( owaspUtils.extract_error_message( err ) ) + "\n";
+        const s2 = strLogPrefix + cc.error( "CRITICAL ERROR:" ) + cc.error( " BLS node " ) + cc.notice( "#" ) + cc.info( nZeroBasedNodeIndex ) + cc.error( " verify output is:\n" ) + cc.notice( strOutput ) + "\n";
+        log.write( s1 );
+        details.write( s1 );
+        log.write( s2 );
+        details.write( s2 );
+        fnShellRestore();
+        isSuccess = false;
+    }
+    details.exposeDetailsTo( log, "BLS-raw-verifier", isSuccess );
+    details.close();
+    return isSuccess;
 }
 
 async function do_sign_ready_hash( strMessageHash ) {
@@ -2059,6 +2122,7 @@ module.exports = {
     do_sign_messages_s2s: do_sign_messages_s2s,
     do_sign_u256: do_sign_u256,
     do_sign_ready_hash: do_sign_ready_hash,
+    do_verify_ready_hash: do_verify_ready_hash,
     // handle_skale_imaVerifyAndSign: handle_skale_call_via_redirect,
     handle_skale_imaVerifyAndSign: handle_skale_imaVerifyAndSign,
     // handle_skale_imaBSU256: handle_skale_call_via_redirect
