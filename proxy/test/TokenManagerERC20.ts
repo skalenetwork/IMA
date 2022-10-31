@@ -35,7 +35,6 @@ import {
     EtherbaseMock
 } from "../typechain";
 
-import { randomString } from "./utils/helper";
 
 chai.should();
 chai.use((chaiAsPromised as any));
@@ -1338,7 +1337,7 @@ describe("TokenManagerERC20", () => {
             const amount = 10;
             const to = user.address;
             const remoteTokenManagerAddress = fakeDepositBox;
-            const fromSchainName = randomString(10);
+            const fromSchainName = "fromSchainName";
             const fromSchainHash = ethers.utils.solidityKeccak256(["string"], [fromSchainName]);
             await tokenManagerErc20.addTokenManager(fromSchainName, remoteTokenManagerAddress);
             // await tokenManagerErc20.connect(schainOwner).addERC20TokenByOwner(mainnetName,  erc20OnMainnet.address, erc20OnChain.address);
@@ -1369,7 +1368,7 @@ describe("TokenManagerERC20", () => {
         it("should transfer ERC20 token to schain when token add by schain owner", async () => {
             //  preparation
             const remoteTokenManagerAddress = fakeDepositBox;
-            const fromSchainName = randomString(10);
+            const fromSchainName = "fromSchainName";
             const fromSchainHash = ethers.utils.solidityKeccak256(["string"], [fromSchainName]);
             await messageProxyForSchain.connect(deployer).addConnectedChain(fromSchainName);
             await tokenManagerErc20.addTokenManager(fromSchainName, remoteTokenManagerAddress);
@@ -1398,7 +1397,7 @@ describe("TokenManagerERC20", () => {
         it("should should transfer token to schain and automatically deploy", async () => {
             //  preparation
             const remoteTokenManagerAddress = fakeDepositBox;
-            const fromSchainName = randomString(10);
+            const fromSchainName = "fromSchainName";
             const fromSchainHash = ethers.utils.solidityKeccak256(["string"], [fromSchainName]);
             await tokenManagerErc20.addTokenManager(fromSchainName, remoteTokenManagerAddress);
 
@@ -1447,7 +1446,7 @@ describe("TokenManagerERC20", () => {
             const amount = 10;
             const to = user.address;
             const remoteTokenManagerAddress = fakeDepositBox;
-            const fromSchainName = randomString(10);
+            const fromSchainName = "fromSchainName";
             const fromSchainHash = ethers.utils.solidityKeccak256(["string"], [fromSchainName]);
             await tokenManagerErc20.addTokenManager(fromSchainName, remoteTokenManagerAddress);
             await tokenManagerErc20.connect(schainOwner).addERC20TokenByOwner(mainnetName,  erc20OnMainnet.address, erc20OnChain.address);
@@ -1484,7 +1483,7 @@ describe("TokenManagerERC20", () => {
             const amount = 10;
             const receiver = ethers.Wallet.createRandom().connect(ethers.provider);
             const remoteTokenManager = ethers.Wallet.createRandom();
-            const sourceSchainName = randomString(10);
+            const sourceSchainName = "sourceSchain";
             const sourceSchainHash = ethers.utils.solidityKeccak256(["string"], [sourceSchainName])
             await tokenManagerErc20.addTokenManager(sourceSchainName, remoteTokenManager.address);
             const etherbase = await (await ethers.getContractFactory("EtherbaseMock")).deploy() as EtherbaseMock;

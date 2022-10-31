@@ -34,7 +34,7 @@ import {
     CommunityLocker
 } from "../typechain";
 
-import { randomString, stringValue } from "./utils/helper";
+import { stringValue } from "./utils/helper";
 import { skipTime } from "./utils/time";
 
 chai.should();
