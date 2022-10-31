@@ -120,7 +120,7 @@ contract DepositBoxERC20 is DepositBox, IDepositBoxERC20 {
      */
     event BigTransferThresholdIsChanged(
         bytes32 indexed schainHash,
-        address token,
+        address indexed token,
         uint256 oldValue,
         uint256 newValue
     );
