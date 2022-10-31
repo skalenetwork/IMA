@@ -757,10 +757,10 @@
   resolved "https://registry.yarnpkg.com/@skalenetwork/etherbase-interfaces/-/etherbase-interfaces-0.0.1-develop.20.tgz#33f61e18d695fd47063aa39dce4df335d26b9528"
   integrity sha512-j3xnuQtOtjvjAoUMJgSUFxRa9/Egkg1RyA8r6PjcEb33VksE4LWLBy0PNFUFehLZv48595JROTcViGeXXwg5HQ==
 
-"@skalenetwork/ima-interfaces@^1.0.0-withdrawals-blocking.1":
-  version "1.0.0-withdrawals-blocking.1"
-  resolved "https://registry.yarnpkg.com/@skalenetwork/ima-interfaces/-/ima-interfaces-1.0.0-withdrawals-blocking.1.tgz#f973c63a74fa0bca3ee72a967d7e2aa80680fa4a"
-  integrity sha512-pETNThx9NDGdmbdUVXmrf58Fw883SglWak1cmo+FIhKzDrQm+cTxZhX9xdrBoWy2WDmNk37ZmseMx0v454ozCg==
+"@skalenetwork/ima-interfaces@^1.0.0-security-features.0":
+  version "1.0.0-security-features.0"
+  resolved "https://registry.yarnpkg.com/@skalenetwork/ima-interfaces/-/ima-interfaces-1.0.0-security-features.0.tgz#3c47c24dde357ff1a1caa1ded6ef2d6d984decd4"
+  integrity sha512-E+9CJ/uIH/ck6WQFigIXtFnHvHeniEQ5MPyP5jobj/8zBi86HKYZpG7inTqfDkgdb194Tm9uB+QlZp6uNizgbA==
   dependencies:
     "@skalenetwork/skale-manager-interfaces" "^0.1.2"
 
