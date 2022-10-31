@@ -285,12 +285,12 @@ function verifyArgumentIsInteger( joArg ) {
     }
 }
 
-function verifyArgumentIsIntegerIpPortNumber( joArg ) {
+function verifyArgumentIsIntegerIpPortNumber( joArg, isEnableZero ) {
     try {
         verifyArgumentIsInteger( joArg );
         if( joArg.value < 0 )
             throw new Error( "Port number " + joArg.value + " cannot be negative" );
-        if( joArg.value < 1 )
+        if( ( !isEnableZero ) && joArg.value < 1 )
             throw new Error( "Port number " + joArg.value + " too small" );
         if( joArg.value > 65535 )
             throw new Error( "Port number " + joArg.value + " too big" );
@@ -625,6 +625,39 @@ function w3_2_url( w3 ) {
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+function extract_error_message( jo, strDefaultErrorText ) {
+    strDefaultErrorText = strDefaultErrorText || "unknown error or error without a description";
+    try {
+        if( ! jo )
+            return strDefaultErrorText;
+        if( typeof jo != "object" )
+            return strDefaultErrorText;
+        let strStack = "";
+        if( "stack" in jo && jo.stack && typeof jo.stack == "object" && "length" in jo.stack && jo.stack.length > 0 ) {
+            strStack += "\nCall stack from error object:";
+            for( let i = 0; i < jo.stack.length; ++ i )
+                strStack += "\n" + jo.stack[i].toString();
+        }
+        if( "error" in jo ) {
+            jo = jo.error;
+            if( typeof jo == "string" )
+                return jo;
+            if( typeof jo != "object" )
+                return strDefaultErrorText + "(" + jo.toString() + ")" + strStack;
+        }
+        if( "message" in jo ) {
+            jo = jo.message;
+            if( typeof jo == "string" )
+                return jo + strStack;
+        }
+        strDefaultErrorText += "(" + jo.toString() + ")" + strStack;
+    } catch ( err ) {
+    }
+    return strDefaultErrorText;
+}
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 module.exports = {
     cc: cc,
     w3mod: w3mod,
@@ -667,5 +700,6 @@ module.exports = {
     fn_address_impl_: fn_address_impl_,
     compute_chain_id_from_schain_name: compute_chain_id_from_schain_name,
     w3provider_2_url: w3provider_2_url,
-    w3_2_url: w3_2_url
+    w3_2_url: w3_2_url,
+    extract_error_message: extract_error_message
 }; // module.exports
