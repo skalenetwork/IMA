@@ -471,10 +471,19 @@ describe("DepositBoxERC20", () => {
                 await token2.connect(user).approve(depositBoxERC20.address, depositedAmount);
                 await depositBoxERC20.connect(user).depositERC20(schainName, token2.address, depositedAmount);
 
-                await depositBoxERC20.connect(schainOwner).setBigTransferValue(schainName, token.address, bigAmount);
+                await expect(
+                    depositBoxERC20.connect(schainOwner).setBigTransferValue(schainName, token.address, bigAmount)
+                ).to.emit(depositBoxERC20, "BigTransferThresholdIsChanged")
+                    .withArgs(schainHash, token.address, 0, bigAmount);
                 await depositBoxERC20.connect(schainOwner).setBigTransferValue(schainName, token2.address, bigAmount);
-                await depositBoxERC20.connect(schainOwner).setBigTransferDelay(schainName, timeDelay);
-                await depositBoxERC20.connect(schainOwner).setArbitrageDuration(schainName, arbitrageDuration);
+                await expect(
+                    depositBoxERC20.connect(schainOwner).setBigTransferDelay(schainName, timeDelay)
+                ).to.emit(depositBoxERC20, "BigTransferDelayIsChanged")
+                    .withArgs(schainHash, 0, timeDelay);
+                await expect(
+                    depositBoxERC20.connect(schainOwner).setArbitrageDuration(schainName, arbitrageDuration)
+                ).to.emit(depositBoxERC20, "ArbitrageDurationIsChanged")
+                    .withArgs(schainHash, 0, arbitrageDuration);
 
                 await depositBoxERC20.grantRole(await depositBoxERC20.ARBITER_ROLE(), deployer.address);
             });
