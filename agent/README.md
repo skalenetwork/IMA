@@ -501,8 +501,6 @@ node ./main.js --verbose=9 --expose --colors \
 --nodes-count=value.............S-Chain nodes count.
 --time-framing=value............Specifies period(in seconds) for time framing. Zero means disable time framing.
 --time-gap=value................Specifies gap(in seconds) before next time frame.
---ptx...........................Enable pending transaction analysis to avoid transaction conflicts.
---no-ptx........................Disable pending transaction analysis. Not recommended for slow and overloaded blockchains.
 ```
 
 ### S-Chain specific configuration for more then one node S-Chains
