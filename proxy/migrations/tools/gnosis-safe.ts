@@ -66,10 +66,8 @@ export function getSafeTransactionUrl(chainId: number) {
 }
 
 export function getSafeRelayUrl(chainId: number) {
-    if (chainId === 1) {
-        return URLS.safe_relay[chainId];
-    } else if (chainId === 4) {
-        return URLS.safe_relay[chainId];
+    if (Object.keys(URLS.safe_relay).includes(chainId.toString())) {
+        return URLS.safe_relay[chainId as keyof typeof URLS.safe_relay];
     } else {
         throw Error("Can't get safe-relay url at network with chainId = " + chainId);
     }
