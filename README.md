@@ -64,6 +64,10 @@ ANSI colorizer for console and log output.
 
 Learn more about the SKALE community over on [Discord](https://discord.gg/vvUtWJB).
 
+## Security and Liability
+
+All contracts are WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+
 ## License
 
 [![License](https://img.shields.io/github/license/skalenetwork/IMA)](LICENSE)
