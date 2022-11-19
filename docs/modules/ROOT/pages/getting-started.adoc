@@ -81,7 +81,7 @@ Transfers usually resolve in seconds and are dependent on when the Ethereum netw
 
 .How are messages from Ethereum secured using BLS threshold signatures? 
 
-Incoming messages from Ethereum to SKALE are detected by the IMA agent and are sent to all 16 nodes of a SKALE Chain. Each node then verifies the messages and BLS signs it. Once 2/3rd of nodes sign the message, the signatures are glued into one BLS signature and the signed message is submitted to IMA pre-deployed contracts on the SKALE Chain.
+Incoming messages from Ethereum to SKALE are detected by the IMA agent and are sent to all 16 nodes of a SKALE Chain. Each node then verifies the messages and signs it using a BLS signature share. Once 2/3rd of nodes sign the message, the signatures are glued into one BLS signature and the signed message is submitted to IMA pre-deployed contracts on the SKALE Chain.
 
 == SKALE - SKALE (S2S)
 
