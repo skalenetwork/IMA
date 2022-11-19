@@ -368,6 +368,8 @@
 :xref-DepositBoxERC20-validateTransfer-uint256-: xref:mainnet/depositboxes/depositboxerc20.adoc#DepositBoxERC20-validateTransfer-uint256-
 :DepositBoxERC20-rejectTransfer: pass:normal[xref:mainnet/depositboxes/depositboxerc20.adoc#DepositBoxERC20-rejectTransfer-uint256-[`DepositBoxERC20.rejectTransfer`]]
 :xref-DepositBoxERC20-rejectTransfer-uint256-: xref:mainnet/depositboxes/depositboxerc20.adoc#DepositBoxERC20-rejectTransfer-uint256-
+:DepositBoxERC20-doTransfer: pass:normal[xref:mainnet/depositboxes/depositboxerc20.adoc#DepositBoxERC20-doTransfer-address-address-uint256-[`DepositBoxERC20.doTransfer`]]
+:xref-DepositBoxERC20-doTransfer-address-address-uint256-: xref:mainnet/depositboxes/depositboxerc20.adoc#DepositBoxERC20-doTransfer-address-address-uint256-
 :DepositBoxERC20-gasPayer: pass:normal[xref:mainnet/depositboxes/depositboxerc20.adoc#DepositBoxERC20-gasPayer-bytes32-address-bytes-[`DepositBoxERC20.gasPayer`]]
 :xref-DepositBoxERC20-gasPayer-bytes32-address-bytes-: xref:mainnet/depositboxes/depositboxerc20.adoc#DepositBoxERC20-gasPayer-bytes32-address-bytes-
 :DepositBoxERC20-getSchainToERC20: pass:normal[xref:mainnet/depositboxes/depositboxerc20.adoc#DepositBoxERC20-getSchainToERC20-string-address-[`DepositBoxERC20.getSchainToERC20`]]
@@ -404,6 +406,14 @@
 :xref-DepositBoxERC20-TransferDelayed-uint256-address-address-uint256-: xref:mainnet/depositboxes/depositboxerc20.adoc#DepositBoxERC20-TransferDelayed-uint256-address-address-uint256-
 :DepositBoxERC20-Escalated: pass:normal[xref:mainnet/depositboxes/depositboxerc20.adoc#DepositBoxERC20-Escalated-uint256-[`DepositBoxERC20.Escalated`]]
 :xref-DepositBoxERC20-Escalated-uint256-: xref:mainnet/depositboxes/depositboxerc20.adoc#DepositBoxERC20-Escalated-uint256-
+:DepositBoxERC20-TransferSkipped: pass:normal[xref:mainnet/depositboxes/depositboxerc20.adoc#DepositBoxERC20-TransferSkipped-uint256-[`DepositBoxERC20.TransferSkipped`]]
+:xref-DepositBoxERC20-TransferSkipped-uint256-: xref:mainnet/depositboxes/depositboxerc20.adoc#DepositBoxERC20-TransferSkipped-uint256-
+:DepositBoxERC20-BigTransferThresholdIsChanged: pass:normal[xref:mainnet/depositboxes/depositboxerc20.adoc#DepositBoxERC20-BigTransferThresholdIsChanged-bytes32-address-uint256-uint256-[`DepositBoxERC20.BigTransferThresholdIsChanged`]]
+:xref-DepositBoxERC20-BigTransferThresholdIsChanged-bytes32-address-uint256-uint256-: xref:mainnet/depositboxes/depositboxerc20.adoc#DepositBoxERC20-BigTransferThresholdIsChanged-bytes32-address-uint256-uint256-
+:DepositBoxERC20-BigTransferDelayIsChanged: pass:normal[xref:mainnet/depositboxes/depositboxerc20.adoc#DepositBoxERC20-BigTransferDelayIsChanged-bytes32-uint256-uint256-[`DepositBoxERC20.BigTransferDelayIsChanged`]]
+:xref-DepositBoxERC20-BigTransferDelayIsChanged-bytes32-uint256-uint256-: xref:mainnet/depositboxes/depositboxerc20.adoc#DepositBoxERC20-BigTransferDelayIsChanged-bytes32-uint256-uint256-
+:DepositBoxERC20-ArbitrageDurationIsChanged: pass:normal[xref:mainnet/depositboxes/depositboxerc20.adoc#DepositBoxERC20-ArbitrageDurationIsChanged-bytes32-uint256-uint256-[`DepositBoxERC20.ArbitrageDurationIsChanged`]]
+:xref-DepositBoxERC20-ArbitrageDurationIsChanged-bytes32-uint256-uint256-: xref:mainnet/depositboxes/depositboxerc20.adoc#DepositBoxERC20-ArbitrageDurationIsChanged-bytes32-uint256-uint256-
 :DepositBoxERC20-DelayedTransfer: pass:normal[xref:mainnet/depositboxes/depositboxerc20.adoc#DepositBoxERC20-DelayedTransfer[`DepositBoxERC20.DelayedTransfer`]]
 :xref-DepositBoxERC20-DelayedTransfer: xref:mainnet/depositboxes/depositboxerc20.adoc#DepositBoxERC20-DelayedTransfer
 :DepositBoxERC20-DelayConfig: pass:normal[xref:mainnet/depositboxes/depositboxerc20.adoc#DepositBoxERC20-DelayConfig[`DepositBoxERC20.DelayConfig`]]
@@ -566,6 +576,10 @@
 :xref-MessageProxyForMainnet-GasCostMessageHeaderWasChanged-uint256-uint256-: xref:mainnet/messageproxyformainnet.adoc#MessageProxyForMainnet-GasCostMessageHeaderWasChanged-uint256-uint256-
 :MessageProxyForMainnet-GasCostMessageWasChanged: pass:normal[xref:mainnet/messageproxyformainnet.adoc#MessageProxyForMainnet-GasCostMessageWasChanged-uint256-uint256-[`MessageProxyForMainnet.GasCostMessageWasChanged`]]
 :xref-MessageProxyForMainnet-GasCostMessageWasChanged-uint256-uint256-: xref:mainnet/messageproxyformainnet.adoc#MessageProxyForMainnet-GasCostMessageWasChanged-uint256-uint256-
+:MessageProxyForMainnet-SchainPaused: pass:normal[xref:mainnet/messageproxyformainnet.adoc#MessageProxyForMainnet-SchainPaused-bytes32-[`MessageProxyForMainnet.SchainPaused`]]
+:xref-MessageProxyForMainnet-SchainPaused-bytes32-: xref:mainnet/messageproxyformainnet.adoc#MessageProxyForMainnet-SchainPaused-bytes32-
+:MessageProxyForMainnet-SchainResumed: pass:normal[xref:mainnet/messageproxyformainnet.adoc#MessageProxyForMainnet-SchainResumed-bytes32-[`MessageProxyForMainnet.SchainResumed`]]
+:xref-MessageProxyForMainnet-SchainResumed-bytes32-: xref:mainnet/messageproxyformainnet.adoc#MessageProxyForMainnet-SchainResumed-bytes32-
 :MessageProxyForMainnet-Pause: pass:normal[xref:mainnet/messageproxyformainnet.adoc#MessageProxyForMainnet-Pause[`MessageProxyForMainnet.Pause`]]
 :xref-MessageProxyForMainnet-Pause: xref:mainnet/messageproxyformainnet.adoc#MessageProxyForMainnet-Pause
 :SkaleManagerClient: pass:normal[xref:mainnet/skalemanagerclient.adoc#SkaleManagerClient[`SkaleManagerClient`]]
@@ -1056,6 +1070,8 @@
 :_getRegistryContracts: pass:normal[xref:#MessageProxyForMainnet-_getRegistryContracts--[`++_getRegistryContracts++`]]
 :GasCostMessageHeaderWasChanged: pass:normal[xref:#MessageProxyForMainnet-GasCostMessageHeaderWasChanged-uint256-uint256-[`++GasCostMessageHeaderWasChanged++`]]
 :GasCostMessageWasChanged: pass:normal[xref:#MessageProxyForMainnet-GasCostMessageWasChanged-uint256-uint256-[`++GasCostMessageWasChanged++`]]
+:SchainPaused: pass:normal[xref:#MessageProxyForMainnet-SchainPaused-bytes32-[`++SchainPaused++`]]
+:SchainResumed: pass:normal[xref:#MessageProxyForMainnet-SchainResumed-bytes32-[`++SchainResumed++`]]
 :Pause: pass:normal[xref:#MessageProxyForMainnet-Pause[`++Pause++`]]
 
 [.contract]
@@ -1063,7 +1079,7 @@
 = MessageProxyForMainnet
 
 Runs on Mainnet, contains functions to manage the incoming messages from
-`targetSchainName` and outgoing messages to `fromSchainName`. Every SKALE chain with 
+`targetSchainName` and outgoing messages to `fromSchainName`. Every SKALE chain with
 IMA is therefore connected to MessageProxyForMainnet.
 
 Messages from SKALE chains are signed using BLS threshold signatures from the
@@ -1105,6 +1121,8 @@ messages do not need to be signed.
 --
 * {xref-MessageProxyForMainnet-GasCostMessageHeaderWasChanged-uint256-uint256-}[`++GasCostMessageHeaderWasChanged(oldValue, newValue)++`]
 * {xref-MessageProxyForMainnet-GasCostMessageWasChanged-uint256-uint256-}[`++GasCostMessageWasChanged(oldValue, newValue)++`]
+* {xref-MessageProxyForMainnet-SchainPaused-bytes32-}[`++SchainPaused(schainHash)++`]
+* {xref-MessageProxyForMainnet-SchainResumed-bytes32-}[`++SchainResumed(schainHash)++`]
 --
 
 [.contract-item]
@@ -1161,7 +1179,7 @@ Requirements:
 [.contract-item]
 == +++<a class="heading-anchor" area-hidden="true" name=MessageProxyForMainnet-postIncomingMessages-string-uint256-struct-IMessageProxy-Message---struct-IMessageProxy-Signature->postIncomingMessages</a>+++ `++postIncomingMessages(++[.var-type]#++string++#++ ++[.var-name]#++fromSchainName++#++, ++[.var-type]#++uint256++#++ ++[.var-name]#++startingCounter++#++, ++[.var-type]#++struct IMessageProxy.Message[]++#++ ++[.var-name]#++messages++#++, ++[.var-type]#++struct IMessageProxy.Signature++#++ ++[.var-name]#++sign++#++)++` [.item-kind]#external#
 
-Posts incoming message from `fromSchainName`. 
+Posts incoming message from `fromSchainName`.
 
 Requirements:
 
@@ -1200,17 +1218,19 @@ Requirements:
 [.contract-item]
 == +++<a class="heading-anchor" area-hidden="true" name=MessageProxyForMainnet-pause-string->pause</a>+++ `++pause(++[.var-type]#++string++#++ ++[.var-name]#++schainName++#++)++` [.item-kind]#external#
 
-Allows PAUSABLE_ROLE to pause IMA bridge
+Allows PAUSABLE_ROLE to pause IMA bridge unlimited
+or DEFAULT_ADMIN_ROLE to pause for 4 hours
+or schain owner to pause unlimited after DEFAULT_ADMIN_ROLE pause it
 
 Requirements:
 
 - IMA bridge to current schain was not paused
-- Sender should be PAUSABLE_ROLE
+- Sender should be PAUSABLE_ROLE, DEFAULT_ADMIN_ROLE or schain owner
 
 [.contract-item]
 == +++<a class="heading-anchor" area-hidden="true" name=MessageProxyForMainnet-resume-string->resume</a>+++ `++resume(++[.var-type]#++string++#++ ++[.var-name]#++schainName++#++)++` [.item-kind]#external#
 
-Allows DEFAULT_ADMIN_ROLE or schain owner to resume IMA bridge 
+Allows DEFAULT_ADMIN_ROLE or schain owner to resume IMA bridge
 
 Requirements:
 
@@ -1232,7 +1252,7 @@ PostOutgoingMessage function with whenNotPaused modifier
 
 Checks whether chain is currently connected.
 
-Note: Mainnet chain does not have a public key, and is implicitly 
+Note: Mainnet chain does not have a public key, and is implicitly
 connected to MessageProxy.
 
 Requirements:
@@ -1258,7 +1278,7 @@ whether message BLS signature is valid.
 [.contract-item]
 == +++<a class="heading-anchor" area-hidden="true" name=MessageProxyForMainnet-_checkSchainBalance-bytes32->_checkSchainBalance</a>+++ `++_checkSchainBalance(++[.var-type]#++bytes32++#++ ++[.var-name]#++schainHash++#++) → ++[.var-type]#++bool++#++++` [.item-kind]#internal#
 
-Checks whether balance of schain wallet is sufficient for 
+Checks whether balance of schain wallet is sufficient for
 for reimbursement custom message.
 
 [.contract-item]
@@ -1276,4 +1296,14 @@ Emitted when gas cost for message header was changed.
 == +++<a class="heading-anchor" area-hidden="true" name=MessageProxyForMainnet-GasCostMessageWasChanged-uint256-uint256->GasCostMessageWasChanged</a>+++ `++GasCostMessageWasChanged(++[.var-type]#++uint256++#++ ++[.var-name]#++oldValue++#++, ++[.var-type]#++uint256++#++ ++[.var-name]#++newValue++#++)++` [.item-kind]#event#
 
 Emitted when gas cost for message was changed.
+
+[.contract-item]
+== +++<a class="heading-anchor" area-hidden="true" name=MessageProxyForMainnet-SchainPaused-bytes32->SchainPaused</a>+++ `++SchainPaused(++[.var-type]#++bytes32++#++ ++[.var-name]#++schainHash++#++)++` [.item-kind]#event#
+
+Emitted when the schain is paused
+
+[.contract-item]
+== +++<a class="heading-anchor" area-hidden="true" name=MessageProxyForMainnet-SchainResumed-bytes32->SchainResumed</a>+++ `++SchainResumed(++[.var-type]#++bytes32++#++ ++[.var-name]#++schainHash++#++)++` [.item-kind]#event#
+
+Emitted when the schain is resumed
 

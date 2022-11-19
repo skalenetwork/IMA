@@ -368,6 +368,8 @@
 :xref-DepositBoxERC20-validateTransfer-uint256-: xref:mainnet/depositboxes/depositboxerc20.adoc#DepositBoxERC20-validateTransfer-uint256-
 :DepositBoxERC20-rejectTransfer: pass:normal[xref:mainnet/depositboxes/depositboxerc20.adoc#DepositBoxERC20-rejectTransfer-uint256-[`DepositBoxERC20.rejectTransfer`]]
 :xref-DepositBoxERC20-rejectTransfer-uint256-: xref:mainnet/depositboxes/depositboxerc20.adoc#DepositBoxERC20-rejectTransfer-uint256-
+:DepositBoxERC20-doTransfer: pass:normal[xref:mainnet/depositboxes/depositboxerc20.adoc#DepositBoxERC20-doTransfer-address-address-uint256-[`DepositBoxERC20.doTransfer`]]
+:xref-DepositBoxERC20-doTransfer-address-address-uint256-: xref:mainnet/depositboxes/depositboxerc20.adoc#DepositBoxERC20-doTransfer-address-address-uint256-
 :DepositBoxERC20-gasPayer: pass:normal[xref:mainnet/depositboxes/depositboxerc20.adoc#DepositBoxERC20-gasPayer-bytes32-address-bytes-[`DepositBoxERC20.gasPayer`]]
 :xref-DepositBoxERC20-gasPayer-bytes32-address-bytes-: xref:mainnet/depositboxes/depositboxerc20.adoc#DepositBoxERC20-gasPayer-bytes32-address-bytes-
 :DepositBoxERC20-getSchainToERC20: pass:normal[xref:mainnet/depositboxes/depositboxerc20.adoc#DepositBoxERC20-getSchainToERC20-string-address-[`DepositBoxERC20.getSchainToERC20`]]
@@ -404,6 +406,14 @@
 :xref-DepositBoxERC20-TransferDelayed-uint256-address-address-uint256-: xref:mainnet/depositboxes/depositboxerc20.adoc#DepositBoxERC20-TransferDelayed-uint256-address-address-uint256-
 :DepositBoxERC20-Escalated: pass:normal[xref:mainnet/depositboxes/depositboxerc20.adoc#DepositBoxERC20-Escalated-uint256-[`DepositBoxERC20.Escalated`]]
 :xref-DepositBoxERC20-Escalated-uint256-: xref:mainnet/depositboxes/depositboxerc20.adoc#DepositBoxERC20-Escalated-uint256-
+:DepositBoxERC20-TransferSkipped: pass:normal[xref:mainnet/depositboxes/depositboxerc20.adoc#DepositBoxERC20-TransferSkipped-uint256-[`DepositBoxERC20.TransferSkipped`]]
+:xref-DepositBoxERC20-TransferSkipped-uint256-: xref:mainnet/depositboxes/depositboxerc20.adoc#DepositBoxERC20-TransferSkipped-uint256-
+:DepositBoxERC20-BigTransferThresholdIsChanged: pass:normal[xref:mainnet/depositboxes/depositboxerc20.adoc#DepositBoxERC20-BigTransferThresholdIsChanged-bytes32-address-uint256-uint256-[`DepositBoxERC20.BigTransferThresholdIsChanged`]]
+:xref-DepositBoxERC20-BigTransferThresholdIsChanged-bytes32-address-uint256-uint256-: xref:mainnet/depositboxes/depositboxerc20.adoc#DepositBoxERC20-BigTransferThresholdIsChanged-bytes32-address-uint256-uint256-
+:DepositBoxERC20-BigTransferDelayIsChanged: pass:normal[xref:mainnet/depositboxes/depositboxerc20.adoc#DepositBoxERC20-BigTransferDelayIsChanged-bytes32-uint256-uint256-[`DepositBoxERC20.BigTransferDelayIsChanged`]]
+:xref-DepositBoxERC20-BigTransferDelayIsChanged-bytes32-uint256-uint256-: xref:mainnet/depositboxes/depositboxerc20.adoc#DepositBoxERC20-BigTransferDelayIsChanged-bytes32-uint256-uint256-
+:DepositBoxERC20-ArbitrageDurationIsChanged: pass:normal[xref:mainnet/depositboxes/depositboxerc20.adoc#DepositBoxERC20-ArbitrageDurationIsChanged-bytes32-uint256-uint256-[`DepositBoxERC20.ArbitrageDurationIsChanged`]]
+:xref-DepositBoxERC20-ArbitrageDurationIsChanged-bytes32-uint256-uint256-: xref:mainnet/depositboxes/depositboxerc20.adoc#DepositBoxERC20-ArbitrageDurationIsChanged-bytes32-uint256-uint256-
 :DepositBoxERC20-DelayedTransfer: pass:normal[xref:mainnet/depositboxes/depositboxerc20.adoc#DepositBoxERC20-DelayedTransfer[`DepositBoxERC20.DelayedTransfer`]]
 :xref-DepositBoxERC20-DelayedTransfer: xref:mainnet/depositboxes/depositboxerc20.adoc#DepositBoxERC20-DelayedTransfer
 :DepositBoxERC20-DelayConfig: pass:normal[xref:mainnet/depositboxes/depositboxerc20.adoc#DepositBoxERC20-DelayConfig[`DepositBoxERC20.DelayConfig`]]
@@ -566,6 +576,10 @@
 :xref-MessageProxyForMainnet-GasCostMessageHeaderWasChanged-uint256-uint256-: xref:mainnet/messageproxyformainnet.adoc#MessageProxyForMainnet-GasCostMessageHeaderWasChanged-uint256-uint256-
 :MessageProxyForMainnet-GasCostMessageWasChanged: pass:normal[xref:mainnet/messageproxyformainnet.adoc#MessageProxyForMainnet-GasCostMessageWasChanged-uint256-uint256-[`MessageProxyForMainnet.GasCostMessageWasChanged`]]
 :xref-MessageProxyForMainnet-GasCostMessageWasChanged-uint256-uint256-: xref:mainnet/messageproxyformainnet.adoc#MessageProxyForMainnet-GasCostMessageWasChanged-uint256-uint256-
+:MessageProxyForMainnet-SchainPaused: pass:normal[xref:mainnet/messageproxyformainnet.adoc#MessageProxyForMainnet-SchainPaused-bytes32-[`MessageProxyForMainnet.SchainPaused`]]
+:xref-MessageProxyForMainnet-SchainPaused-bytes32-: xref:mainnet/messageproxyformainnet.adoc#MessageProxyForMainnet-SchainPaused-bytes32-
+:MessageProxyForMainnet-SchainResumed: pass:normal[xref:mainnet/messageproxyformainnet.adoc#MessageProxyForMainnet-SchainResumed-bytes32-[`MessageProxyForMainnet.SchainResumed`]]
+:xref-MessageProxyForMainnet-SchainResumed-bytes32-: xref:mainnet/messageproxyformainnet.adoc#MessageProxyForMainnet-SchainResumed-bytes32-
 :MessageProxyForMainnet-Pause: pass:normal[xref:mainnet/messageproxyformainnet.adoc#MessageProxyForMainnet-Pause[`MessageProxyForMainnet.Pause`]]
 :xref-MessageProxyForMainnet-Pause: xref:mainnet/messageproxyformainnet.adoc#MessageProxyForMainnet-Pause
 :SkaleManagerClient: pass:normal[xref:mainnet/skalemanagerclient.adoc#SkaleManagerClient[`SkaleManagerClient`]]

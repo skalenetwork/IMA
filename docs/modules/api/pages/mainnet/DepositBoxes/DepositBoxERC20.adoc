@@ -368,6 +368,8 @@
 :xref-DepositBoxERC20-validateTransfer-uint256-: xref:mainnet/depositboxes/depositboxerc20.adoc#DepositBoxERC20-validateTransfer-uint256-
 :DepositBoxERC20-rejectTransfer: pass:normal[xref:mainnet/depositboxes/depositboxerc20.adoc#DepositBoxERC20-rejectTransfer-uint256-[`DepositBoxERC20.rejectTransfer`]]
 :xref-DepositBoxERC20-rejectTransfer-uint256-: xref:mainnet/depositboxes/depositboxerc20.adoc#DepositBoxERC20-rejectTransfer-uint256-
+:DepositBoxERC20-doTransfer: pass:normal[xref:mainnet/depositboxes/depositboxerc20.adoc#DepositBoxERC20-doTransfer-address-address-uint256-[`DepositBoxERC20.doTransfer`]]
+:xref-DepositBoxERC20-doTransfer-address-address-uint256-: xref:mainnet/depositboxes/depositboxerc20.adoc#DepositBoxERC20-doTransfer-address-address-uint256-
 :DepositBoxERC20-gasPayer: pass:normal[xref:mainnet/depositboxes/depositboxerc20.adoc#DepositBoxERC20-gasPayer-bytes32-address-bytes-[`DepositBoxERC20.gasPayer`]]
 :xref-DepositBoxERC20-gasPayer-bytes32-address-bytes-: xref:mainnet/depositboxes/depositboxerc20.adoc#DepositBoxERC20-gasPayer-bytes32-address-bytes-
 :DepositBoxERC20-getSchainToERC20: pass:normal[xref:mainnet/depositboxes/depositboxerc20.adoc#DepositBoxERC20-getSchainToERC20-string-address-[`DepositBoxERC20.getSchainToERC20`]]
@@ -404,6 +406,14 @@
 :xref-DepositBoxERC20-TransferDelayed-uint256-address-address-uint256-: xref:mainnet/depositboxes/depositboxerc20.adoc#DepositBoxERC20-TransferDelayed-uint256-address-address-uint256-
 :DepositBoxERC20-Escalated: pass:normal[xref:mainnet/depositboxes/depositboxerc20.adoc#DepositBoxERC20-Escalated-uint256-[`DepositBoxERC20.Escalated`]]
 :xref-DepositBoxERC20-Escalated-uint256-: xref:mainnet/depositboxes/depositboxerc20.adoc#DepositBoxERC20-Escalated-uint256-
+:DepositBoxERC20-TransferSkipped: pass:normal[xref:mainnet/depositboxes/depositboxerc20.adoc#DepositBoxERC20-TransferSkipped-uint256-[`DepositBoxERC20.TransferSkipped`]]
+:xref-DepositBoxERC20-TransferSkipped-uint256-: xref:mainnet/depositboxes/depositboxerc20.adoc#DepositBoxERC20-TransferSkipped-uint256-
+:DepositBoxERC20-BigTransferThresholdIsChanged: pass:normal[xref:mainnet/depositboxes/depositboxerc20.adoc#DepositBoxERC20-BigTransferThresholdIsChanged-bytes32-address-uint256-uint256-[`DepositBoxERC20.BigTransferThresholdIsChanged`]]
+:xref-DepositBoxERC20-BigTransferThresholdIsChanged-bytes32-address-uint256-uint256-: xref:mainnet/depositboxes/depositboxerc20.adoc#DepositBoxERC20-BigTransferThresholdIsChanged-bytes32-address-uint256-uint256-
+:DepositBoxERC20-BigTransferDelayIsChanged: pass:normal[xref:mainnet/depositboxes/depositboxerc20.adoc#DepositBoxERC20-BigTransferDelayIsChanged-bytes32-uint256-uint256-[`DepositBoxERC20.BigTransferDelayIsChanged`]]
+:xref-DepositBoxERC20-BigTransferDelayIsChanged-bytes32-uint256-uint256-: xref:mainnet/depositboxes/depositboxerc20.adoc#DepositBoxERC20-BigTransferDelayIsChanged-bytes32-uint256-uint256-
+:DepositBoxERC20-ArbitrageDurationIsChanged: pass:normal[xref:mainnet/depositboxes/depositboxerc20.adoc#DepositBoxERC20-ArbitrageDurationIsChanged-bytes32-uint256-uint256-[`DepositBoxERC20.ArbitrageDurationIsChanged`]]
+:xref-DepositBoxERC20-ArbitrageDurationIsChanged-bytes32-uint256-uint256-: xref:mainnet/depositboxes/depositboxerc20.adoc#DepositBoxERC20-ArbitrageDurationIsChanged-bytes32-uint256-uint256-
 :DepositBoxERC20-DelayedTransfer: pass:normal[xref:mainnet/depositboxes/depositboxerc20.adoc#DepositBoxERC20-DelayedTransfer[`DepositBoxERC20.DelayedTransfer`]]
 :xref-DepositBoxERC20-DelayedTransfer: xref:mainnet/depositboxes/depositboxerc20.adoc#DepositBoxERC20-DelayedTransfer
 :DepositBoxERC20-DelayConfig: pass:normal[xref:mainnet/depositboxes/depositboxerc20.adoc#DepositBoxERC20-DelayConfig[`DepositBoxERC20.DelayConfig`]]
@@ -566,6 +576,10 @@
 :xref-MessageProxyForMainnet-GasCostMessageHeaderWasChanged-uint256-uint256-: xref:mainnet/messageproxyformainnet.adoc#MessageProxyForMainnet-GasCostMessageHeaderWasChanged-uint256-uint256-
 :MessageProxyForMainnet-GasCostMessageWasChanged: pass:normal[xref:mainnet/messageproxyformainnet.adoc#MessageProxyForMainnet-GasCostMessageWasChanged-uint256-uint256-[`MessageProxyForMainnet.GasCostMessageWasChanged`]]
 :xref-MessageProxyForMainnet-GasCostMessageWasChanged-uint256-uint256-: xref:mainnet/messageproxyformainnet.adoc#MessageProxyForMainnet-GasCostMessageWasChanged-uint256-uint256-
+:MessageProxyForMainnet-SchainPaused: pass:normal[xref:mainnet/messageproxyformainnet.adoc#MessageProxyForMainnet-SchainPaused-bytes32-[`MessageProxyForMainnet.SchainPaused`]]
+:xref-MessageProxyForMainnet-SchainPaused-bytes32-: xref:mainnet/messageproxyformainnet.adoc#MessageProxyForMainnet-SchainPaused-bytes32-
+:MessageProxyForMainnet-SchainResumed: pass:normal[xref:mainnet/messageproxyformainnet.adoc#MessageProxyForMainnet-SchainResumed-bytes32-[`MessageProxyForMainnet.SchainResumed`]]
+:xref-MessageProxyForMainnet-SchainResumed-bytes32-: xref:mainnet/messageproxyformainnet.adoc#MessageProxyForMainnet-SchainResumed-bytes32-
 :MessageProxyForMainnet-Pause: pass:normal[xref:mainnet/messageproxyformainnet.adoc#MessageProxyForMainnet-Pause[`MessageProxyForMainnet.Pause`]]
 :xref-MessageProxyForMainnet-Pause: xref:mainnet/messageproxyformainnet.adoc#MessageProxyForMainnet-Pause
 :SkaleManagerClient: pass:normal[xref:mainnet/skalemanagerclient.adoc#SkaleManagerClient[`SkaleManagerClient`]]
@@ -1045,6 +1059,7 @@
 :escalate: pass:normal[xref:#DepositBoxERC20-escalate-uint256-[`++escalate++`]]
 :validateTransfer: pass:normal[xref:#DepositBoxERC20-validateTransfer-uint256-[`++validateTransfer++`]]
 :rejectTransfer: pass:normal[xref:#DepositBoxERC20-rejectTransfer-uint256-[`++rejectTransfer++`]]
+:doTransfer: pass:normal[xref:#DepositBoxERC20-doTransfer-address-address-uint256-[`++doTransfer++`]]
 :gasPayer: pass:normal[xref:#DepositBoxERC20-gasPayer-bytes32-address-bytes-[`++gasPayer++`]]
 :getSchainToERC20: pass:normal[xref:#DepositBoxERC20-getSchainToERC20-string-address-[`++getSchainToERC20++`]]
 :getSchainToAllERC20Length: pass:normal[xref:#DepositBoxERC20-getSchainToAllERC20Length-string-[`++getSchainToAllERC20Length++`]]
@@ -1063,6 +1078,10 @@
 :ERC20TokenReady: pass:normal[xref:#DepositBoxERC20-ERC20TokenReady-address-uint256-[`++ERC20TokenReady++`]]
 :TransferDelayed: pass:normal[xref:#DepositBoxERC20-TransferDelayed-uint256-address-address-uint256-[`++TransferDelayed++`]]
 :Escalated: pass:normal[xref:#DepositBoxERC20-Escalated-uint256-[`++Escalated++`]]
+:TransferSkipped: pass:normal[xref:#DepositBoxERC20-TransferSkipped-uint256-[`++TransferSkipped++`]]
+:BigTransferThresholdIsChanged: pass:normal[xref:#DepositBoxERC20-BigTransferThresholdIsChanged-bytes32-address-uint256-uint256-[`++BigTransferThresholdIsChanged++`]]
+:BigTransferDelayIsChanged: pass:normal[xref:#DepositBoxERC20-BigTransferDelayIsChanged-bytes32-uint256-uint256-[`++BigTransferDelayIsChanged++`]]
+:ArbitrageDurationIsChanged: pass:normal[xref:#DepositBoxERC20-ArbitrageDurationIsChanged-bytes32-uint256-uint256-[`++ArbitrageDurationIsChanged++`]]
 :DelayedTransfer: pass:normal[xref:#DepositBoxERC20-DelayedTransfer[`++DelayedTransfer++`]]
 :DelayConfig: pass:normal[xref:#DepositBoxERC20-DelayConfig[`++DelayConfig++`]]
 :DelayedTransferStatus: pass:normal[xref:#DepositBoxERC20-DelayedTransferStatus[`++DelayedTransferStatus++`]]
@@ -1096,6 +1115,7 @@ stores deposits of ERC20.
 * {xref-DepositBoxERC20-escalate-uint256-}[`++escalate(transferId)++`]
 * {xref-DepositBoxERC20-validateTransfer-uint256-}[`++validateTransfer(transferId)++`]
 * {xref-DepositBoxERC20-rejectTransfer-uint256-}[`++rejectTransfer(transferId)++`]
+* {xref-DepositBoxERC20-doTransfer-address-address-uint256-}[`++doTransfer(token, receiver, amount)++`]
 * {xref-DepositBoxERC20-gasPayer-bytes32-address-bytes-}[`++gasPayer(schainHash, sender, data)++`]
 * {xref-DepositBoxERC20-getSchainToERC20-string-address-}[`++getSchainToERC20(schainName, erc20OnMainnet)++`]
 * {xref-DepositBoxERC20-getSchainToAllERC20Length-string-}[`++getSchainToAllERC20Length(schainName)++`]
@@ -1119,6 +1139,10 @@ stores deposits of ERC20.
 * {xref-DepositBoxERC20-ERC20TokenReady-address-uint256-}[`++ERC20TokenReady(contractOnMainnet, amount)++`]
 * {xref-DepositBoxERC20-TransferDelayed-uint256-address-address-uint256-}[`++TransferDelayed(id, receiver, token, amount)++`]
 * {xref-DepositBoxERC20-Escalated-uint256-}[`++Escalated(id)++`]
+* {xref-DepositBoxERC20-TransferSkipped-uint256-}[`++TransferSkipped(id)++`]
+* {xref-DepositBoxERC20-BigTransferThresholdIsChanged-bytes32-address-uint256-uint256-}[`++BigTransferThresholdIsChanged(schainHash, token, oldValue, newValue)++`]
+* {xref-DepositBoxERC20-BigTransferDelayIsChanged-bytes32-uint256-uint256-}[`++BigTransferDelayIsChanged(schainHash, oldValue, newValue)++`]
+* {xref-DepositBoxERC20-ArbitrageDurationIsChanged-bytes32-uint256-uint256-}[`++ArbitrageDurationIsChanged(schainHash, oldValue, newValue)++`]
 --
 
 
@@ -1162,7 +1186,7 @@ Requirements:
 == +++<a class="heading-anchor" area-hidden="true" name=DepositBoxERC20-getFunds-string-address-address-uint256->getFunds</a>+++ `++getFunds(++[.var-type]#++string++#++ ++[.var-name]#++schainName++#++, ++[.var-type]#++address++#++ ++[.var-name]#++erc20OnMainnet++#++, ++[.var-type]#++address++#++ ++[.var-name]#++receiver++#++, ++[.var-type]#++uint256++#++ ++[.var-name]#++amount++#++)++` [.item-kind]#external#
 
 Allows Schain owner to return each user their tokens.
-The Schain owner decides which tokens to send to which address, 
+The Schain owner decides which tokens to send to which address,
 since the contract on mainnet does not store information about which tokens belong to whom.
 
 Requirements:
@@ -1260,6 +1284,11 @@ Requirements:
 - arbitrage of the transfer must be started
 
 [.contract-item]
+== +++<a class="heading-anchor" area-hidden="true" name=DepositBoxERC20-doTransfer-address-address-uint256->doTransfer</a>+++ `++doTransfer(++[.var-type]#++address++#++ ++[.var-name]#++token++#++, ++[.var-type]#++address++#++ ++[.var-name]#++receiver++#++, ++[.var-type]#++uint256++#++ ++[.var-name]#++amount++#++)++` [.item-kind]#external#
+
+
+
+[.contract-item]
 == +++<a class="heading-anchor" area-hidden="true" name=DepositBoxERC20-gasPayer-bytes32-address-bytes->gasPayer</a>+++ `++gasPayer(++[.var-type]#++bytes32++#++ ++[.var-name]#++schainHash++#++, ++[.var-type]#++address++#++ ++[.var-name]#++sender++#++, ++[.var-type]#++bytes++#++ ++[.var-name]#++data++#++) → ++[.var-type]#++address++#++++` [.item-kind]#external#
 
 Returns receiver of message.
@@ -1271,19 +1300,19 @@ Requirements:
 [.contract-item]
 == +++<a class="heading-anchor" area-hidden="true" name=DepositBoxERC20-getSchainToERC20-string-address->getSchainToERC20</a>+++ `++getSchainToERC20(++[.var-type]#++string++#++ ++[.var-name]#++schainName++#++, ++[.var-type]#++address++#++ ++[.var-name]#++erc20OnMainnet++#++) → ++[.var-type]#++bool++#++++` [.item-kind]#external#
 
-Should return true if token was added by Schain owner or 
+Should return true if token was added by Schain owner or
 added automatically after sending to schain if whitelist was turned off.
 
 [.contract-item]
 == +++<a class="heading-anchor" area-hidden="true" name=DepositBoxERC20-getSchainToAllERC20Length-string->getSchainToAllERC20Length</a>+++ `++getSchainToAllERC20Length(++[.var-type]#++string++#++ ++[.var-name]#++schainName++#++) → ++[.var-type]#++uint256++#++++` [.item-kind]#external#
 
-Should return length of a set of all mapped tokens which were added by Schain owner 
+Should return length of a set of all mapped tokens which were added by Schain owner
 or added automatically after sending to schain if whitelist was turned off.
 
 [.contract-item]
 == +++<a class="heading-anchor" area-hidden="true" name=DepositBoxERC20-getSchainToAllERC20-string-uint256-uint256->getSchainToAllERC20</a>+++ `++getSchainToAllERC20(++[.var-type]#++string++#++ ++[.var-name]#++schainName++#++, ++[.var-type]#++uint256++#++ ++[.var-name]#++from++#++, ++[.var-type]#++uint256++#++ ++[.var-name]#++to++#++) → ++[.var-type]#++address[]++#++ ++[.var-name]#++tokensInRange++#++++` [.item-kind]#external#
 
-Should return an array of range of tokens were added by Schain owner 
+Should return an array of range of tokens were added by Schain owner
 or added automatically after sending to schain if whitelist was turned off.
 
 [.contract-item]
@@ -1357,4 +1386,24 @@ or transferred on SKALE chain.
 == +++<a class="heading-anchor" area-hidden="true" name=DepositBoxERC20-Escalated-uint256->Escalated</a>+++ `++Escalated(++[.var-type]#++uint256++#++ ++[.var-name]#++id++#++)++` [.item-kind]#event#
 
 
+
+[.contract-item]
+== +++<a class="heading-anchor" area-hidden="true" name=DepositBoxERC20-TransferSkipped-uint256->TransferSkipped</a>+++ `++TransferSkipped(++[.var-type]#++uint256++#++ ++[.var-name]#++id++#++)++` [.item-kind]#event#
+
+Emitted when token transfer is skipped due to internal token error
+
+[.contract-item]
+== +++<a class="heading-anchor" area-hidden="true" name=DepositBoxERC20-BigTransferThresholdIsChanged-bytes32-address-uint256-uint256->BigTransferThresholdIsChanged</a>+++ `++BigTransferThresholdIsChanged(++[.var-type]#++bytes32++#++ ++[.var-name]#++schainHash++#++, ++[.var-type]#++address++#++ ++[.var-name]#++token++#++, ++[.var-type]#++uint256++#++ ++[.var-name]#++oldValue++#++, ++[.var-type]#++uint256++#++ ++[.var-name]#++newValue++#++)++` [.item-kind]#event#
+
+Emitted when big transfer threshold is changed
+
+[.contract-item]
+== +++<a class="heading-anchor" area-hidden="true" name=DepositBoxERC20-BigTransferDelayIsChanged-bytes32-uint256-uint256->BigTransferDelayIsChanged</a>+++ `++BigTransferDelayIsChanged(++[.var-type]#++bytes32++#++ ++[.var-name]#++schainHash++#++, ++[.var-type]#++uint256++#++ ++[.var-name]#++oldValue++#++, ++[.var-type]#++uint256++#++ ++[.var-name]#++newValue++#++)++` [.item-kind]#event#
+
+Emitted when big transfer delay is changed
+
+[.contract-item]
+== +++<a class="heading-anchor" area-hidden="true" name=DepositBoxERC20-ArbitrageDurationIsChanged-bytes32-uint256-uint256->ArbitrageDurationIsChanged</a>+++ `++ArbitrageDurationIsChanged(++[.var-type]#++bytes32++#++ ++[.var-name]#++schainHash++#++, ++[.var-type]#++uint256++#++ ++[.var-name]#++oldValue++#++, ++[.var-type]#++uint256++#++ ++[.var-name]#++newValue++#++)++` [.item-kind]#event#
+
+Emitted when arbitrage duration is changed
 
