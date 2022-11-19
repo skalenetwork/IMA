@@ -30,11 +30,20 @@ The SKALE Chain owner manages a list of trusted addresses that bypass the delay 
 
 - xref:api:mainnet/DepositBoxes/DepositBoxERC20.adoc#_transferdelayed_transferdelayeduint256_id_address_receiver_address_token_uint256_amount_event[TransferDelayed]
 - xref:api:mainnet/DepositBoxes/DepositBoxERC20.adoc#_escalated_escalateduint256_id_event[Escalated]
+- [SchainPaused]
+- [SchainResumed]
+- [BigTransferThresholdIsChanged]
+- [BigTransferDelayIsChanged]
+- [ArbitrageDurationIsChanged]
 
 === Methods
 
-- xref:api:mainnet/DepositBoxes/DepositBoxERC20.adoc#_setbigtransfervalue_setbigtransfervaluestring_schainname_address_token_uint256_value_external[setBigTransferValue]
-- xref:api:mainnet/DepositBoxes/DepositBoxERC20.adoc#_setbigtransferdelay_setbigtransferdelaystring_schainname_uint256_delayinseconds_external[setBigTransferDelay]
+- xref:api:mainnet/DepositBoxes/DepositBoxERC20.adoc#_setbigtransfervalue_setbigtransfervaluestring_schainname_address_token_uint256_value_external[setBigTransferValue] - sets the value threshold above which tokens will be delayed.
++
+[WARNING]
+Default value is `0` for all tokens: so if delay is set then all tokens will be delayed. To disable delay for specific tokens you must set their value to infinity. If the delay is set but no threshold is set, then all tokens will be delayed.
++
+- xref:api:mainnet/DepositBoxes/DepositBoxERC20.adoc#_setbigtransferdelay_setbigtransferdelaystring_schainname_uint256_delayinseconds_external[setBigTransferDelay] - sets the delay time applied to token amounts above the threshold.
 - xref:api:mainnet/DepositBoxes/DepositBoxERC20.adoc#_setarbitrageduration_setarbitragedurationstring_schainname_uint256_delayinseconds_external[setArbitrageDuration]
 - xref:api:mainnet/DepositBoxes/DepositBoxERC20.adoc#_trustreceiver_trustreceiverstring_schainname_address_receiver_external[trustReceiver]
 - xref:api:mainnet/DepositBoxes/DepositBoxERC20.adoc#_stoptrustingreceiver_stoptrustingreceiverstring_schainname_address_receiver_external[stopTrustingReceiver]
