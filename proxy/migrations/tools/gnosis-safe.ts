@@ -9,6 +9,7 @@ type Ethers = typeof ethers & HardhatEthersHelpers;
 enum Network {
     MAINNET = 1,
     RINKEBY = 4,
+    GOERLI = 5,
     GANACHE = 1337,
     HARDHAT = 31337,
 }
@@ -19,6 +20,7 @@ const ADDRESSES = {
     multiSend: {
         [Network.MAINNET]: "0x8D29bE29923b68abfDD21e541b9374737B49cdAD",
         [Network.RINKEBY]: "0x8D29bE29923b68abfDD21e541b9374737B49cdAD",
+        [Network.GOERLI]: "0x8D29bE29923b68abfDD21e541b9374737B49cdAD",
     },
 }
 
@@ -26,10 +28,12 @@ const URLS = {
     safe_transaction: {
         [Network.MAINNET]: "https://safe-transaction.mainnet.gnosis.io",
         [Network.RINKEBY]: "https://safe-transaction.rinkeby.gnosis.io",
+        [Network.GOERLI]: "https://safe-transaction.goerli.gnosis.io",
     },
     safe_relay: {
         [Network.MAINNET]: "https://safe-relay.mainnet.gnosis.io",
         [Network.RINKEBY]: "https://safe-relay.rinkeby.gnosis.io",
+        [Network.GOERLI]: "https://safe-relay.goerli.gnosis.io",
     }
 }
 
@@ -39,6 +43,8 @@ function getMultiSendAddress(chainId: number, isSafeMock: boolean = false) {
     } else if (chainId === Network.MAINNET) {
         return ADDRESSES.multiSend[chainId];
     } else if (chainId === Network.RINKEBY) {
+        return ADDRESSES.multiSend[chainId];
+    } else if (chainId === Network.GOERLI) {
         return ADDRESSES.multiSend[chainId];
     } else if ([Network.GANACHE, Network.HARDHAT].includes(chainId)) {
         return ethers.constants.AddressZero;
@@ -50,7 +56,9 @@ function getMultiSendAddress(chainId: number, isSafeMock: boolean = false) {
 export function getSafeTransactionUrl(chainId: number) {
     if (chainId === Network.MAINNET) {
         return URLS.safe_transaction[chainId];
-    } else if (chainId === 4) {
+    } else if (chainId === Network.RINKEBY) {
+        return URLS.safe_transaction[chainId];
+    } else if (chainId === Network.GOERLI) {
         return URLS.safe_transaction[chainId];
     } else {
         throw Error("Can't get safe-transaction url at network with chainId = " + chainId);
@@ -58,10 +66,8 @@ export function getSafeTransactionUrl(chainId: number) {
 }
 
 export function getSafeRelayUrl(chainId: number) {
-    if (chainId === 1) {
-        return URLS.safe_relay[chainId];
-    } else if (chainId === 4) {
-        return URLS.safe_relay[chainId];
+    if (Object.keys(URLS.safe_relay).includes(chainId.toString())) {
+        return URLS.safe_relay[chainId as keyof typeof URLS.safe_relay];
     } else {
         throw Error("Can't get safe-relay url at network with chainId = " + chainId);
     }
