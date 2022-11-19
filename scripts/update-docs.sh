@@ -9,11 +9,14 @@ if ! [[ "$CURRENT_BRANCH" =~ [/^\w+-v.*/gm] ]]; then
 fi
 
 git checkout beta proxy/
+cd proxy/
+yarn add solidity-docgen@0.5.16 lodash.startcase@^4.4.0
+cd ..
 if [ -n "$(git status --porcelain)" ]; then
-    git commit -m "Merge proxy/ from develop"
+    git commit -m "Merge proxy/ from beta"
     echo "Updated proxy"
 else
     echo "Aleady up to date"
 fi
 
-echo "Completed proxy folder update check from develop."
+echo "Completed proxy folder update check from beta."
