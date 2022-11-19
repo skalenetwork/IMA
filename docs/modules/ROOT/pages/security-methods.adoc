@@ -30,11 +30,11 @@ The SKALE Chain owner manages a list of trusted addresses that bypass the delay 
 
 - xref:api:mainnet/DepositBoxes/DepositBoxERC20.adoc#_transferdelayed_transferdelayeduint256_id_address_receiver_address_token_uint256_amount_event[TransferDelayed]
 - xref:api:mainnet/DepositBoxes/DepositBoxERC20.adoc#_escalated_escalateduint256_id_event[Escalated]
-- [SchainPaused]
-- [SchainResumed]
-- [BigTransferThresholdIsChanged]
-- [BigTransferDelayIsChanged]
-- [ArbitrageDurationIsChanged]
+- xref:api:mainnet/MessageProxyForMainnet.adoc#_schainpaused_schainpausedbytes32_schainhash_event[SchainPaused]
+- xref:api:mainnet/MessageProxyForMainnet.adoc#_schainresumed_schainresumedbytes32_schainhash_event[SchainResumed]
+- xref:api:mainnet/DepositBoxes/DepositBoxERC20.adoc#_bigtransferthresholdischanged_bigtransferthresholdischangedbytes32_schainhash_address_token_uint256_oldvalue_uint256_newvalue_event[BigTransferThresholdIsChanged]
+- xref:api:mainnet/DepositBoxes/DepositBoxERC20.adoc#_bigtransferdelayischanged_bigtransferdelayischangedbytes32_schainhash_uint256_oldvalue_uint256_newvalue_event[BigTransferDelayIsChanged]
+- xref:api:mainnet/DepositBoxes/DepositBoxERC20.adoc#_arbitragedurationischanged_arbitragedurationischangedbytes32_schainhash_uint256_oldvalue_uint256_newvalue_event[ArbitrageDurationIsChanged]
 
 === Methods
 
