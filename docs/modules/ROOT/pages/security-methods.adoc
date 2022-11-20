@@ -7,7 +7,7 @@ To improve the ability of SKALE Chain owners to manage and respond to security i
 
 == Time delay on excess amounts of ERC20 tokens
 
-SKALE Chain owners can set a time delay for token exits that exceed certain amounts. If an exit exceeds the limits, then those exited tokens will continue to be locked in the DepositBox contract until a configurable time elapses.  After the time has elapsed, the receive can then pull tokens from the DepositBox contract.
+SKALE Chain owners can set a time delay for token exits that exceed certain amounts. If an exit exceeds the limits, then those exited tokens will continue to be locked in the DepositBox contract until a configurable time elapses.  After the time has elapsed, the receiver can then pull tokens from the DepositBox contract.
 
 During a triggered time delay, there are two actions that can be executed:
 
