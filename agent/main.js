@@ -2346,7 +2346,11 @@ if( imaState.nJsonRpcPort > 0 ) {
         const isSkipMode = false;
         const message = JSON.stringify( req.body );
         const ip = req.connection.remoteAddress.split( ":" ).pop();
-        log.write( strLogPrefix + cc.sunny( "<<<" ) + " " + cc.normal( "Peer raw message from " ) + cc.info( ip ) + cc.normal( ": " ) + cc.notice( message ) + "\n" );
+        // if( IMA.verbose_get() >= IMA.RV_VERBOSE.trace )
+        //     log.write(
+        //         strLogPrefix + cc.sunny( "<<<" ) + " " + cc.normal( "Peer raw message from " ) +
+        //         cc.info( ip ) + cc.normal( ": " ) + cc.notice( message ) +
+        //         "\n" );
         const fn_send_answer = function( joAnswer ) {
             try {
                 if( IMA.verbose_get() >= IMA.RV_VERBOSE.trace )
