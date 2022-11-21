@@ -25,7 +25,7 @@
 
 // init very basics
 const fs = require( "fs" );
-// const path = require( "path" );
+const path = require( "path" );
 // const url = require( "url" );
 // const os = require( "os" );
 const w3mod = require( "web3" );
@@ -706,7 +706,7 @@ async function do_oracle_gas_price_setup(
                 nMillisecondsSleepPeriod: 3000,
                 cntAttempts: 40,
                 isVerbose: ( verbose_get() >= RV_VERBOSE.information ) ? true : false,
-                isVerboseTraceDetails: ( verbose_get() >= RV_VERBOSE.trace ) ? true : false
+                isVerboseTraceDetails: ( verbose_get() >= RV_VERBOSE.debug ) ? true : false
             };
             details.write(
                 cc.debug( "Will fetch " ) + cc.info( "Main Net gas price" ) +
@@ -794,7 +794,7 @@ async function do_oracle_gas_price_setup(
             );
             const dataTx_setGasPrice = methodWithArguments_setGasPrice.encodeABI(); // the encoded ABI of the method
             //
-            if( verbose_get() >= RV_VERBOSE.trace ) {
+            if( verbose_get() >= RV_VERBOSE.debug ) {
                 const joDebugArgs = [
                     [ signature.X, signature.Y ], // BLS glue of signatures
                     hashPoint.X, // G1.X from joGlueResult.hashSrc
@@ -5155,7 +5155,7 @@ async function do_transfer(
                     strActionName = "" + strActionName_old;
                     if( !bSecurityCheckPassed ) {
                         const s = strLogPrefix + cc.warning( "Block depth check was not passed, canceling search for transfer events" ) + "\n";
-                        if( verbose_get() >= RV_VERBOSE.trace )
+                        if( verbose_get() >= RV_VERBOSE.debug )
                             log.write( s );
                         details.write( s );
                         break;
@@ -5514,7 +5514,7 @@ async function do_transfer(
                         );
                         const dataTx_postIncomingMessages = methodWithArguments_postIncomingMessages.encodeABI(); // the encoded ABI of the method
                         //
-                        if( verbose_get() >= RV_VERBOSE.trace ) {
+                        if( verbose_get() >= RV_VERBOSE.debug ) {
                             const joDebugArgs = [
                                 chain_id_src,
                                 chain_id_dst,
@@ -5869,24 +5869,39 @@ async function checkTransactionToSchain( w3_s_chain, tx, details ) {
     const balance = await w3_s_chain.eth.getBalance( sender );
     if( balance < requiredBalance ) {
         details.write(
-            cc.normal( "Insufficient funds for " ) + cc.bright( tx.from ) +
-            cc.normal( "; Running PoW for mining " ) + cc.bright( tx.gas ) + " gas\n" );
-        const powNumber = await calculatePowNumber( sender, tx.nonce, tx.gas );
+            cc.warning( "Insufficient funds for " ) + cc.bright( tx.from ) +
+            cc.warning( "; Will run " ) + cc.sunny( "PoW" ) + cc.warning( " for mining " ) +
+            cc.bright( tx.gas ) + cc.warning( " gas" ) +
+            "\n" );
+        const powNumber = await calculatePowNumber( sender, tx.nonce, tx.gas, details );
+        details.write(
+            cc.warning( "Done, " ) + cc.sunny( "PoW" ) +
+            cc.warning( " number is " ) + cc.bright( powNumber ) +
+            "\n" );
         tx.gasPrice = ethereumjs_util.addHexPrefix( powNumber );
     }
     return tx;
 }
 
-async function calculatePowNumber( address, nonce, gas ) {
-    const path = require( "path" );
-    let _address = ethereumjs_util.addHexPrefix( address );
-    _address = ethereumjs_util.toChecksumAddress( _address );
-    _address = ethereumjs_util.stripHexPrefix( _address );
-    const _nonce = parseIntOrHex( nonce );
-    const _gas = parseIntOrHex( gas );
-    const powScriptPath = path.join( __dirname, "pow" );
-    const cmd = `${powScriptPath} ${_address} ${_nonce} ${_gas}`;
-    return await execShellCommand( cmd );
+async function calculatePowNumber( address, nonce, gas, details ) {
+    try {
+        let _address = ethereumjs_util.addHexPrefix( address );
+        _address = ethereumjs_util.toChecksumAddress( _address );
+        _address = ethereumjs_util.stripHexPrefix( _address );
+        const _nonce = parseIntOrHex( nonce );
+        const _gas = parseIntOrHex( gas );
+        const powScriptPath = path.join( __dirname, "pow" );
+        const cmd = `${powScriptPath} ${_address} ${_nonce} ${_gas}`;
+        return await execShellCommand( cmd );
+    } catch ( err ) {
+        if( verbose_get() >= RV_VERBOSE.fatal ) {
+            details.write(
+                cc.fatal( "CRITICAL POW ERROR:" ) + " " +
+                cc.error( "exception occur during PoW, error information is:" ) + " " + cc.error( err ) +
+                "\n" );
+        }
+        return 0;
+    }
 }
 
 function execShellCommand( cmd ) {
