@@ -766,13 +766,16 @@ async function check_correctness_of_messages_to_sign( details, strLogPrefix, str
         throw new Error( "CRITICAL ERROR: Failed check_correctness_of_messages_to_sign() with unknown directon \"" + strDirection + "\"" );
 
     const strCallerAccountAddress = joAccount.address( w3 );
-    details.write( strLogPrefix + cc.sunny( strDirection ) + cc.debug( " message correctness validation through call to " ) +
+    details.write(
+        strLogPrefix + cc.sunny( strDirection ) + cc.debug( " message correctness validation through call to " ) +
         cc.notice( "verifyOutgoingMessageData" ) + cc.debug( " method of " ) + cc.bright( "MessageProxy" ) +
         cc.debug( " contract with address " ) + cc.notice( joMessageProxy.options.address ) +
         cc.debug( ", caller account address is " ) + cc.info( joMessageProxy.options.address ) +
         cc.debug( ", message(s) count is " ) + cc.info( jarrMessages.length ) +
-        cc.debug( ", message(s) to process: " ) + cc.j( jarrMessages ) +
-        cc.debug( ", first real message index is: " ) + cc.info( nIdxCurrentMsgBlockStart ) +
+        cc.debug( ", message(s) to process are " ) + cc.j( jarrMessages ) +
+        cc.debug( ", first real message index is " ) + cc.info( nIdxCurrentMsgBlockStart ) +
+        cc.debug( ", messsages will be sent to chain name " ) + cc.info( joChainName ) +
+        cc.debug( ", caller address is " ) + cc.info( strCallerAccountAddress ) +
         "\n" );
     let cntBadMessages = 0, i = 0;
     const cnt = jarrMessages.length;
@@ -782,8 +785,12 @@ async function check_correctness_of_messages_to_sign( details, strLogPrefix, str
             const idxMessage = nIdxCurrentMsgBlockStart + i;
             try {
                 details.write(
-                    cc.debug( "Will validate message " ) + cc.info( i ) + cc.debug( " of " ) + cc.info( cnt ) +
-                    cc.debug( ", real message index is: " ) + cc.info( idxMessage ) +
+                    strLogPrefix + cc.sunny( strDirection ) +
+                    cc.debug( " Will validate message " ) + cc.info( i ) + cc.debug( " of " ) + cc.info( cnt ) +
+                    cc.debug( ", real message index is " ) + cc.info( idxMessage ) +
+                    cc.debug( ", source contract is " ) + cc.info( joMessage.sender ) +
+                    cc.debug( ", destination contract is " ) + cc.info( joMessage.destinationContract ) +
+                    cc.debug( ", message data is " ) + cc.j( joMessage.data ) +
                     "\n" );
                 // const strHexAmount = "0x" + w3.utils.toBN( joMessage.amount ).toString( 16 );
                 const outgoingMessageData = {
@@ -795,17 +802,18 @@ async function check_correctness_of_messages_to_sign( details, strLogPrefix, str
                     // amount: strHexAmount,
                     data: joMessage.data
                 };
-                details.write(
-                    cc.debug( "Outgoing message data is " ) + cc.j( outgoingMessageData ) +
-                    cc.debug( ", real message index is: " ) + cc.info( idxMessage ) +
-                    cc.debug( ", saved msgCounter is: " ) + cc.info( outgoingMessageData.msgCounter ) +
-                    "\n" );
+                // details.write(
+                //     cc.debug( "Outgoing message data is " ) + cc.j( outgoingMessageData ) +
+                //     cc.debug( ", real message index is: " ) + cc.info( idxMessage ) +
+                //     cc.debug( ", saved msgCounter is: " ) + cc.info( outgoingMessageData.msgCounter ) +
+                //     "\n" );
                 const m = joMessageProxy.methods.verifyOutgoingMessageData(
                     outgoingMessageData
                 );
                 const isValidMessage = await m.call( { from: strCallerAccountAddress } );
                 details.write(
-                    cc.debug( "Got verification call result " ) + cc.tf( isValidMessage ) +
+                    strLogPrefix + cc.sunny( strDirection ) +
+                    cc.debug( " Got verification call result " ) + cc.tf( isValidMessage ) +
                     cc.debug( ", real message index is: " ) + cc.info( idxMessage ) +
                     cc.debug( ", saved msgCounter is: " ) + cc.info( outgoingMessageData.msgCounter ) +
                     "\n" );
@@ -814,8 +822,8 @@ async function check_correctness_of_messages_to_sign( details, strLogPrefix, str
             } catch ( err ) {
                 ++cntBadMessages;
                 const s =
-                    strLogPrefix + cc.fatal( "BAD ERROR:" ) +
-                    cc.error( " Correctness validation failed for message " ) + cc.info( idxMessage ) +
+                    strLogPrefix + cc.fatal( "BAD ERROR:" ) + " " +
+                    cc.sunny( strDirection ) + cc.error( " Correctness validation failed for message " ) + cc.info( idxMessage ) +
                     cc.error( " sent to " ) + cc.info( joChainName ) +
                     cc.error( ", message is: " ) + cc.j( joMessage ) +
                     cc.error( ", error information: " ) + cc.warning( owaspUtils.extract_error_message( err ) ) +
@@ -975,6 +983,8 @@ async function do_sign_messages_impl(
                 }
                 let targetChainName = "";
                 let fromChainName = "";
+                let targetChainID = -4;
+                let fromChainID = -4;
                 // let targetChainURL = "";
                 // let fromChainURL = "";
                 if( strDirection == "M2S" ) {
@@ -982,16 +992,22 @@ async function do_sign_messages_impl(
                     fromChainName = "" + ( imaState.strChainName_main_net ? imaState.strChainName_main_net : "" );
                     // targetChainURL = strNodeURL;
                     // fromChainURL = owaspUtils.w3_2_url( imaState.w3_main_net );
+                    targetChainID = imaState.cid_s_chain;
+                    fromChainID = imaState.cid_main_net;
                 } else if( strDirection == "S2M" ) {
                     targetChainName = "" + ( imaState.strChainName_main_net ? imaState.strChainName_main_net : "" );
                     fromChainName = "" + ( imaState.strChainName_s_chain ? imaState.strChainName_s_chain : "" );
                     // targetChainURL = owaspUtils.w3_2_url( imaState.w3_main_net );
                     // fromChainURL = strNodeURL;
+                    targetChainID = imaState.cid_main_net;
+                    fromChainID = imaState.cid_s_chain;
                 } else if( strDirection == "S2S" ) {
                     targetChainName = "" + joExtraSignOpts.chain_id_dst;
                     fromChainName = "" + joExtraSignOpts.chain_id_src;
                     // targetChainURL = owaspUtils.w3_2_url( joExtraSignOpts.w3_dst );
                     // fromChainURL = owaspUtils.w3_2_url( joExtraSignOpts.w3_src );
+                    targetChainID = joExtraSignOpts.cid_dst;
+                    fromChainID = joExtraSignOpts.cid_src;
                 } else {
                     await joCall.disconnect();
                     throw new Error( "CRITICAL ERROR: Failed do_sign_messages_impl() with unknown directon \"" + strDirection + "\"" );
@@ -1002,6 +1018,8 @@ async function do_sign_messages_impl(
                     startMessageIdx: nIdxCurrentMsgBlockStart,
                     dstChainName: targetChainName,
                     srcChainName: fromChainName,
+                    dstChainID: targetChainID,
+                    srcChainID: fromChainID,
                     messages: jarrMessages,
                     // fromChainURL: fromChainURL,
                     // targetChainURL: targetChainURL,
@@ -1897,23 +1915,41 @@ async function handle_skale_imaVerifyAndSign( joCallData ) {
         details.write( strLogPrefix + cc.debug( "Will verify and sign " ) + cc.j( joCallData ) + "\n" );
         const nIdxCurrentMsgBlockStart = joCallData.params.startMessageIdx;
         const strFromChainName = joCallData.params.srcChainName;
+        const strToChainName = joCallData.params.dstChainName;
+        const strFromChainID = joCallData.params.srcChainID;
+        const strToChainID = joCallData.params.dstChainID;
         const strDirection = joCallData.params.direction;
         const jarrMessages = joCallData.params.messages;
+        details.write(
+            strLogPrefix + cc.sunny( strDirection ) +
+            cc.debug( " verification algorithm will work for transfer from chain " ) +
+            cc.info( strFromChainName ) + cc.debug( "/" ) + cc.notice( strFromChainID ) +
+            cc.debug( " to chain" ) +
+            cc.info( strToChainName ) + cc.debug( "/" ) + cc.notice( strToChainID ) +
+            cc.debug( " and work with array of message(s) " ) + cc.j( jarrMessages ) +
+            "\n" );
         const nThreshold = discover_bls_threshold( imaState.joSChainNetworkInfo );
         const nParticipants = discover_bls_participants( imaState.joSChainNetworkInfo );
-        details.write( strLogPrefix + cc.debug( "Discovered BLS threshold is " ) + cc.info( nThreshold ) + cc.debug( "." ) + "\n" );
-        details.write( strLogPrefix + cc.debug( "Discovered number of BLS participants is " ) + cc.info( nParticipants ) + cc.debug( "." ) + "\n" );
+        details.write( strLogPrefix + cc.sunny( strDirection ) + cc.debug( " verification algorithm discovered BLS threshold is " ) + cc.info( nThreshold ) + cc.debug( "." ) + "\n" );
+        details.write( strLogPrefix + cc.sunny( strDirection ) + cc.debug( " verification algorithm discovered number of BLS participants is " ) + cc.info( nParticipants ) + cc.debug( "." ) + "\n" );
         const strMessageHash = owaspUtils.remove_starting_0x( keccak256_message( jarrMessages, nIdxCurrentMsgBlockStart, strFromChainName ) );
-        details.write( strLogPrefix + cc.debug( "Message hash to sign is " ) + cc.info( strMessageHash ) + "\n" );
+        details.write( strLogPrefix + cc.sunny( strDirection ) + cc.debug( " verification algorithm message hash to sign is " ) + cc.info( strMessageHash ) + "\n" );
         //
         let joExtraSignOpts = null;
         if( strDirection == "S2S" ) {
             // joCallData.params.dstChainName
             // joCallData.params.srcChainName
             const strSChainNameSrc = joCallData.params.srcChainName;
+            const strSChainNameDst = joCallData.params.dstChainName;
+            details.write(
+                strLogPrefix + cc.sunny( strDirection ) +
+                cc.debug( " verification algorithm will use for source chain name " ) + cc.info( strSChainNameSrc ) +
+                cc.debug( " and destination chain name " ) + cc.info( strSChainNameDst ) +
+                "\n" );
             const arr_schains_cached = skale_observer.get_last_cached_schains();
             if( ( !arr_schains_cached ) || arr_schains_cached.length == 0 )
-                throw new Error( "Could not handle S2S skale_imaVerifyAndSign(1), no S-Chains in SKALE NETWORK observer cached yet, try again later" );
+                throw new Error( "Could not handle " + strDirection + " skale_imaVerifyAndSign(1), no S-Chains in SKALE NETWORK observer cached yet, try again later" );
+            //
             let jo_schain_src = null, strUrlSrcSChain = null;
             for( let idxSChain = 0; idxSChain < arr_schains_cached.length; ++ idxSChain ) {
                 const jo_schain = arr_schains_cached[idxSChain];
@@ -1924,12 +1960,21 @@ async function handle_skale_imaVerifyAndSign( joCallData ) {
                 }
             } // for( let idxSChain = 0; idxSChain < arr_schains_cached.length; ++ idxSChain )
             if( jo_schain_src == null || strUrlSrcSChain == null || strUrlSrcSChain.length == 0 )
-                throw new Error( "Could not handle S2S skale_imaVerifyAndSign(2), no S-Chains in SKALE NETWORK observer cached yet, try again later" );
+                throw new Error( "Could not handle " + strDirection + " skale_imaVerifyAndSign(2), failed to discover source chain access parameters, try again later" );
+            details.write(
+                strLogPrefix + cc.sunny( strDirection ) +
+                cc.debug( " verification algorithm discovered source chain URL is " ) + cc.u( strUrlSrcSChain ) +
+                cc.debug( ", chain name is " ) + cc.info( jo_schain_src.data.computed.schain_id ) +
+                cc.debug( ", chain id is " ) + cc.info( jo_schain_src.data.computed.chainId ) +
+                "\n" );
+            //
             joExtraSignOpts = {
                 skale_observer: skale_observer,
                 w3_src: skale_observer.getWeb3FromURL( strUrlSrcSChain, details ),
-                chain_id_src: jo_schain_src.data.computed.schain_id,
-                cid_dst: jo_schain_src.data.computed.chainId
+                chain_id_src: strFromChainName,
+                chain_id_dst: strToChainName,
+                cid_src: strFromChainID,
+                cid_dst: strToChainID
             };
         }
         await check_correctness_of_messages_to_sign( details, strLogPrefix, strDirection, jarrMessages, nIdxCurrentMsgBlockStart, joExtraSignOpts );
@@ -1956,7 +2001,7 @@ async function handle_skale_imaVerifyAndSign( joCallData ) {
         await rpcCall.create( joAccount.strSgxURL, rpcCallOpts, async function( joCall, err ) {
             if( err ) {
                 const strErrorMessage =
-                    strLogPrefix + cc.fatal( "CRITICAL ERROR:" ) +
+                    strLogPrefix + cc.sunny( strDirection ) + " " + cc.fatal( "CRITICAL ERROR:" ) +
                     cc.error( " JSON RPC call to SGX failed, RPC call was not created, error is: " ) + cc.warning( owaspUtils.extract_error_message( err ) ) + "\n";
                 log.write( strErrorMessage );
                 details.write( strErrorMessage );
@@ -1975,7 +2020,7 @@ async function handle_skale_imaVerifyAndSign( joCallData ) {
                     signerIndex: signerIndex + 0 // 1-based
                 }
             };
-            details.write( strLogPrefix + cc.debug( "Will invoke " ) + cc.info( "SGX" ) + cc.debug( " with call data " ) + cc.j( joCallSGX ) + "\n" );
+            details.write( strLogPrefix + cc.sunny( strDirection ) + cc.debug( " verification algorithm will invoke " ) + cc.info( "SGX" ) + cc.debug( " with call data " ) + cc.j( joCallSGX ) + "\n" );
             await joCall.call( joCallSGX, async function( joIn, joOut, err ) {
                 if( err ) {
                     const strErrorMessage =
@@ -1986,7 +2031,7 @@ async function handle_skale_imaVerifyAndSign( joCallData ) {
                     await joCall.disconnect();
                     throw new Error( "JSON RPC call to SGX failed, RPC call reported error: " + owaspUtils.extract_error_message( err ) );
                 }
-                details.write( strLogPrefix + cc.debug( "Call to " ) + cc.info( "SGX" ) + cc.debug( " done, answer is: " ) + cc.j( joOut ) + "\n" );
+                details.write( strLogPrefix + cc.sunny( strDirection ) + cc.debug( " Call to " ) + cc.info( "SGX" ) + cc.debug( " done, answer is: " ) + cc.j( joOut ) + "\n" );
                 let joSignResult = joOut;
                 if( joOut.result != null && joOut.result != undefined && typeof joOut.result == "object" )
                     joSignResult = joOut.result;

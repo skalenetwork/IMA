@@ -2353,16 +2353,17 @@ if( imaState.nJsonRpcPort > 0 ) {
         //         "\n" );
         const fn_send_answer = function( joAnswer ) {
             try {
-                if( IMA.verbose_get() >= IMA.RV_VERBOSE.trace )
-                    log.write( strLogPrefix + cc.sunny( ">>>" ) + " " + cc.normal( "will send answer to " ) + cc.info( ip ) + cc.normal( ": " ) + cc.j( joAnswer ) + "\n" );
+                // if( IMA.verbose_get() >= IMA.RV_VERBOSE.trace )
+                //     log.write( strLogPrefix + cc.sunny( ">>>" ) + " " + cc.normal( "will send answer to " ) + cc.info( ip ) + cc.normal( ": " ) + cc.j( joAnswer ) + "\n" );
                 res.header( "Content-Type", "application/json" );
                 res.status( 200 ).send( JSON.stringify( joAnswer ) );
                 if( IMA.verbose_get() >= IMA.RV_VERBOSE.trace )
-                    log.write( strLogPrefix + cc.sunny( ">>>" ) + " " + cc.normal( "was sent answer to " ) + cc.info( ip ) + cc.normal( ": " ) + cc.j( joAnswer ) + "\n" );
+                    log.write( strLogPrefix + cc.sunny( ">>>" ) + " " + cc.normal( "did sent answer to " ) + cc.info( ip ) + cc.normal( ": " ) + cc.j( joAnswer ) + "\n" );
             } catch ( err ) {
                 if( IMA.verbose_get() >= IMA.RV_VERBOSE.error ) {
                     log.write( strLogPrefix +
-                        cc.error( "Failed to sent answer to " ) + cc.info( ip ) +
+                        cc.error( "Failed to sent answer " ) + cc.j( joAnswer ) +
+                        cc.error( " to " ) + cc.info( ip ) +
                         cc.error( ", error is: " ) + cc.warning( err ) + "\n"
                     );
                 }
