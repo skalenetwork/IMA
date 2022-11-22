@@ -2023,13 +2023,15 @@ async function handle_skale_imaVerifyAndSign( joCallData ) {
             details.write( strLogPrefix + cc.sunny( strDirection ) + cc.debug( " verification algorithm will invoke " ) + cc.info( "SGX" ) + cc.debug( " with call data " ) + cc.j( joCallSGX ) + "\n" );
             await joCall.call( joCallSGX, async function( joIn, joOut, err ) {
                 if( err ) {
+                    const strError = "JSON RPC call to SGX failed, RPC call reported error: " + owaspUtils.extract_error_message( err );
+                    joRetVal.error = strError;
                     const strErrorMessage =
                         strLogPrefix + cc.fatal( "CRITICAL ERROR:" ) +
                         cc.error( " JSON RPC call to SGX failed, RPC call reported error: " ) + cc.warning( owaspUtils.extract_error_message( err ) ) + "\n";
                     log.write( strErrorMessage );
                     details.write( strErrorMessage );
                     await joCall.disconnect();
-                    throw new Error( "JSON RPC call to SGX failed, RPC call reported error: " + owaspUtils.extract_error_message( err ) );
+                    throw new Error( strError );
                 }
                 details.write( strLogPrefix + cc.sunny( strDirection ) + cc.debug( " Call to " ) + cc.info( "SGX" ) + cc.debug( " done, answer is: " ) + cc.j( joOut ) + "\n" );
                 let joSignResult = joOut;
@@ -2037,6 +2039,23 @@ async function handle_skale_imaVerifyAndSign( joCallData ) {
                     joSignResult = joOut.result;
                 if( joOut.signResult != null && joOut.signResult != undefined && typeof joOut.signResult == "object" )
                     joSignResult = joOut.signResult;
+                if( "qa" in joCallData )
+                    joRetVal.qa = joCallData.qa;
+                if( "errorMessage" in joSignResult &&
+                    typeof joSignResult.errorMessage == "string" &&
+                    joSignResult.errorMessage.length > 0
+                ) {
+                    isSuccess = false;
+                    const strError = "BLS signing finished with error: " + joSignResult.errorMessage;
+                    joRetVal.error = strError;
+                    const strErrorMessage =
+                        strLogPrefix + cc.fatal( "CRITICAL ERROR:" ) +
+                        cc.error( " BLS signing finished with error: " ) + cc.warning( joSignResult.errorMessage ) + "\n";
+                    log.write( strErrorMessage );
+                    details.write( strErrorMessage );
+                    await joCall.disconnect();
+                    throw new Error( strError );
+                }
                 isSuccess = true;
                 joRetVal.result = { signResult: joSignResult };
                 if( "qa" in joCallData )
