@@ -77,12 +77,13 @@ class ObserverServer extends Server {
             };
             // self.log( cc.debug( "Initialized in-worker options:" ) + " " + cc.j( self.opts ) + "\n" );
             //
-            self.opts.imaState.joAccount_main_net.address = owaspUtils.fn_address_impl_;
-            self.opts.imaState.joAccount_s_chain.address = owaspUtils.fn_address_impl_;
+            self.opts.imaState.chainProperties.mn.joAccount.address = owaspUtils.fn_address_impl_;
+            self.opts.imaState.chainProperties.sc.joAccount.address = owaspUtils.fn_address_impl_;
+            // self.opts.imaState.chainProperties.tc.joAccount.address = owaspUtils.fn_address_impl_;
             //
-            if( self.opts.imaState.strURL_main_net && typeof self.opts.imaState.strURL_main_net == "string" && self.opts.imaState.strURL_main_net.length > 0 ) {
-                const u = self.opts.imaState.strURL_main_net;
-                self.opts.imaState.w3_main_net = skale_observer.getWeb3FromURL( u, self.log );
+            if( self.opts.imaState.chainProperties.mn.strURL && typeof self.opts.imaState.chainProperties.mn.strURL == "string" && self.opts.imaState.chainProperties.mn.strURL.length > 0 ) {
+                const u = self.opts.imaState.chainProperties.mn.strURL;
+                self.opts.imaState.chainProperties.mn.w3 = skale_observer.getWeb3FromURL( u, self.log );
             } else {
                 self.log(
                     cc.error( "WARNING:" ) + cc.warning( " No " ) + cc.note( "Main-net" ) +
@@ -91,9 +92,9 @@ class ObserverServer extends Server {
                     "\n" );
             }
             //
-            if( self.opts.imaState.strURL_s_chain && typeof self.opts.imaState.strURL_s_chain == "string" && self.opts.imaState.strURL_s_chain.length > 0 ) {
-                const u = self.opts.imaState.strURL_s_chain;
-                self.opts.imaState.w3_s_chain = skale_observer.getWeb3FromURL( u, self.log );
+            if( self.opts.imaState.chainProperties.sc.strURL && typeof self.opts.imaState.chainProperties.sc.strURL == "string" && self.opts.imaState.chainProperties.sc.strURL.length > 0 ) {
+                const u = self.opts.imaState.chainProperties.sc.strURL;
+                self.opts.imaState.chainProperties.sc.w3 = skale_observer.getWeb3FromURL( u, self.log );
             } else {
                 self.log(
                     cc.error( "WARNING:" ) + cc.warning( " No " ) + cc.note( "Main-net" ) +
@@ -102,11 +103,11 @@ class ObserverServer extends Server {
                     "\n" );
             }
             //
-            self.opts.imaState.jo_nodes = new self.opts.imaState.w3_main_net.eth.Contract( self.opts.imaState.joAbiPublishResult_skale_manager.nodes_abi, self.opts.imaState.joAbiPublishResult_skale_manager.nodes_address );
-            self.opts.imaState.jo_schains = new self.opts.imaState.w3_main_net.eth.Contract( self.opts.imaState.joAbiPublishResult_skale_manager.schains_abi, self.opts.imaState.joAbiPublishResult_skale_manager.schains_address );
-            self.opts.imaState.jo_schains_internal = new self.opts.imaState.w3_main_net.eth.Contract( self.opts.imaState.joAbiPublishResult_skale_manager.schains_internal_abi, self.opts.imaState.joAbiPublishResult_skale_manager.schains_internal_address );
+            self.opts.imaState.jo_nodes = new self.opts.imaState.chainProperties.mn.w3.eth.Contract( self.opts.imaState.joAbiSkaleManager.nodes_abi, self.opts.imaState.joAbiSkaleManager.nodes_address );
+            self.opts.imaState.jo_schains = new self.opts.imaState.chainProperties.mn.w3.eth.Contract( self.opts.imaState.joAbiSkaleManager.schains_abi, self.opts.imaState.joAbiSkaleManager.schains_address );
+            self.opts.imaState.jo_schains_internal = new self.opts.imaState.chainProperties.mn.w3.eth.Contract( self.opts.imaState.joAbiSkaleManager.schains_internal_abi, self.opts.imaState.joAbiSkaleManager.schains_internal_address );
             //
-            self.opts.imaState.jo_message_proxy_s_chain = new self.opts.imaState.w3_s_chain.eth.Contract( self.opts.imaState.joAbiPublishResult_s_chain.message_proxy_chain_abi, self.opts.imaState.joAbiPublishResult_s_chain.message_proxy_chain_address );
+            self.opts.imaState.jo_message_proxy_s_chain = new self.opts.imaState.chainProperties.sc.w3.eth.Contract( self.opts.imaState.chainProperties.sc.joAbiIMA.message_proxy_chain_abi, self.opts.imaState.chainProperties.sc.joAbiIMA.message_proxy_chain_address );
             //
             cc.enable( joMessage.message.cc.isEnabled );
             joAnswer.message = {
@@ -156,8 +157,8 @@ class ObserverServer extends Server {
         // const strError =
         await skale_observer.cache_schains(
             strChainNameConnectedTo,
-            self.opts.imaState.w3_main_net,
-            self.opts.imaState.w3_s_chain,
+            self.opts.imaState.chainProperties.mn.w3,
+            self.opts.imaState.chainProperties.sc.w3,
             addressFrom,
             self.opts
         );

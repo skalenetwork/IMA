@@ -105,8 +105,8 @@ let joAccountSrc = { address: IMA.owaspUtils.fn_address_impl_,
 let joAccount = { address: IMA.owaspUtils.fn_address_impl_, 
     privateKey: "6270720ecca0185a979b6791bea433e9dbf23345e5b5b1b0258b1fbaf32b4390",
 };
-// mockup for `joAccount_main_net`
-let joAccount_main_net = { address: IMA.owaspUtils.fn_address_impl_,
+// mockup for `joMainNetAccount`
+let joMainNetAccount = { address: IMA.owaspUtils.fn_address_impl_,
     privateKey: "6270720ecca0185a979b6791bea433e9dbf23345e5b5b1b0258b1fbaf32b4390",
 };
 // mockup for `jo_deposit_box`
@@ -282,7 +282,7 @@ describe('tests for `npms/skale-ima`', function () {
             check_is_registered_s_chain_in_deposit_box(
                 w3_main_net,
                 jo_lock_and_data_main_net,
-                joAccount_main_net,
+                joMainNetAccount,
                 chain_id_s_chain
             )
         ).to.be.false;
@@ -294,7 +294,7 @@ describe('tests for `npms/skale-ima`', function () {
             check_is_registered_s_chain_in_deposit_box(
                 w3_main_net,
                 jo_lock_and_data_main_net,
-                joAccount_main_net,
+                joMainNetAccount,
                 chain_id_s_chain
             )
         ).to.be.true;
@@ -307,7 +307,7 @@ describe('tests for `npms/skale-ima`', function () {
             register_s_chain_in_deposit_box(
                 w3_main_net,
                 jo_lock_and_data_main_net,
-                joAccount_main_net,
+                joMainNetAccount,
                 jo_token_manager,
                 chain_id_s_chain,
                 tc_main_net //,
@@ -323,7 +323,7 @@ describe('tests for `npms/skale-ima`', function () {
             register_s_chain_in_deposit_box(
                 w3_main_net,
                 jo_lock_and_data_main_net,
-                joAccount_main_net,
+                joMainNetAccount,
                 jo_token_manager,
                 chain_id_s_chain,
                 tc_main_net //,
@@ -451,12 +451,12 @@ describe('tests for `npms/skale-ima`', function () {
     });
 
     it('should return `false` invoke `receive_eth_payment_from_s_chain_on_main_net`', async function () {
-        let joAccount_main_net; // for `false` output
+        let joMainNetAccount; // for `false` output
         // 
         expect(await IMA.
             receive_eth_payment_from_s_chain_on_main_net(
                 w3_main_net,
-                joAccount_main_net,
+                joMainNetAccount,
                 jo_lock_and_data_main_net,
                 tc_main_net
             )
@@ -468,7 +468,7 @@ describe('tests for `npms/skale-ima`', function () {
         expect(await IMA.
             receive_eth_payment_from_s_chain_on_main_net(
                 w3_main_net,
-                joAccount_main_net,
+                joMainNetAccount,
                 jo_lock_and_data_main_net,
                 tc_main_net
             )
@@ -476,12 +476,12 @@ describe('tests for `npms/skale-ima`', function () {
     });
 
     it('should return `null` invoke `view_eth_payment_from_s_chain_on_main_net`', async function () {
-        let joAccount_main_net; // for `false` output
+        let joMainNetAccount; // for `false` output
         // 
         expect(await IMA.
             view_eth_payment_from_s_chain_on_main_net(
                 w3_main_net,
-                joAccount_main_net,
+                joMainNetAccount,
                 jo_lock_and_data_main_net
             )
         ).to.be.null;
@@ -492,7 +492,7 @@ describe('tests for `npms/skale-ima`', function () {
         expect(await IMA.
             view_eth_payment_from_s_chain_on_main_net(
                 w3_main_net,
-                joAccount_main_net,
+                joMainNetAccount,
                 jo_lock_and_data_main_net
             )
         ).to.be.true;

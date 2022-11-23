@@ -748,19 +748,19 @@ function perform_bls_verify_u256( details, joGlueResult, u256, joCommonPublicKey
 async function check_correctness_of_messages_to_sign( details, strLogPrefix, strDirection, jarrMessages, nIdxCurrentMsgBlockStart, joExtraSignOpts ) {
     let w3 = null; let joMessageProxy = null; let joAccount = null; let joChainName = null;
     if( strDirection == "M2S" ) {
-        w3 = imaState.w3_main_net;
+        w3 = imaState.chainProperties.mn.w3;
         joMessageProxy = imaState.jo_message_proxy_main_net;
-        joAccount = imaState.joAccount_main_net;
-        joChainName = imaState.strChainName_s_chain;
+        joAccount = imaState.chainProperties.mn.joAccount;
+        joChainName = imaState.chainProperties.sc.strChainName;
     } else if( strDirection == "S2M" ) {
-        w3 = imaState.w3_s_chain;
+        w3 = imaState.chainProperties.sc.w3;
         joMessageProxy = imaState.jo_message_proxy_s_chain;
-        joAccount = imaState.joAccount_s_chain;
-        joChainName = imaState.strChainName_main_net;
+        joAccount = imaState.chainProperties.sc.joAccount;
+        joChainName = imaState.chainProperties.mn.strChainName;
     } else if( strDirection == "S2S" ) {
         w3 = joExtraSignOpts.w3_src;
-        joMessageProxy = new w3.eth.Contract( imaState.joAbiPublishResult_s_chain.message_proxy_chain_abi, imaState.joAbiPublishResult_s_chain.message_proxy_chain_address );
-        joAccount = imaState.joAccount_s_chain;
+        joMessageProxy = new w3.eth.Contract( imaState.chainProperties.sc.joAbiIMA.message_proxy_chain_abi, imaState.chainProperties.sc.joAbiIMA.message_proxy_chain_address );
+        joAccount = imaState.chainProperties.sc.joAccount;
         joChainName = joExtraSignOpts.chain_id_dst;
     } else
         throw new Error( "CRITICAL ERROR: Failed check_correctness_of_messages_to_sign() with unknown directon \"" + strDirection + "\"" );
@@ -988,19 +988,19 @@ async function do_sign_messages_impl(
                 // let targetChainURL = "";
                 // let fromChainURL = "";
                 if( strDirection == "M2S" ) {
-                    targetChainName = "" + ( imaState.strChainName_s_chain ? imaState.strChainName_s_chain : "" );
-                    fromChainName = "" + ( imaState.strChainName_main_net ? imaState.strChainName_main_net : "" );
+                    targetChainName = "" + ( imaState.chainProperties.sc.strChainName ? imaState.chainProperties.sc.strChainName : "" );
+                    fromChainName = "" + ( imaState.chainProperties.mn.strChainName ? imaState.chainProperties.mn.strChainName : "" );
                     // targetChainURL = strNodeURL;
-                    // fromChainURL = owaspUtils.w3_2_url( imaState.w3_main_net );
-                    targetChainID = imaState.cid_s_chain;
-                    fromChainID = imaState.cid_main_net;
+                    // fromChainURL = owaspUtils.w3_2_url( imaState.chainProperties.mn.w3 );
+                    targetChainID = imaState.chainProperties.sc.cid;
+                    fromChainID = imaState.chainProperties.mn.cid;
                 } else if( strDirection == "S2M" ) {
-                    targetChainName = "" + ( imaState.strChainName_main_net ? imaState.strChainName_main_net : "" );
-                    fromChainName = "" + ( imaState.strChainName_s_chain ? imaState.strChainName_s_chain : "" );
-                    // targetChainURL = owaspUtils.w3_2_url( imaState.w3_main_net );
+                    targetChainName = "" + ( imaState.chainProperties.mn.strChainName ? imaState.chainProperties.mn.strChainName : "" );
+                    fromChainName = "" + ( imaState.chainProperties.sc.strChainName ? imaState.chainProperties.sc.strChainName : "" );
+                    // targetChainURL = owaspUtils.w3_2_url( imaState.chainProperties.mn.w3 );
                     // fromChainURL = strNodeURL;
-                    targetChainID = imaState.cid_main_net;
-                    fromChainID = imaState.cid_s_chain;
+                    targetChainID = imaState.chainProperties.mn.cid;
+                    fromChainID = imaState.chainProperties.sc.cid;
                 } else if( strDirection == "S2S" ) {
                     targetChainName = "" + joExtraSignOpts.chain_id_dst;
                     fromChainName = "" + joExtraSignOpts.chain_id_src;
@@ -1760,9 +1760,9 @@ async function do_sign_ready_hash( strMessageHash ) {
         //
         details.write( strLogPrefix + cc.debug( "hash value to sign is " ) + cc.info( strMessageHash ) + "\n" );
         //
-        let joAccount = imaState.joAccount_s_chain;
+        let joAccount = imaState.chainProperties.sc.joAccount;
         if( ! joAccount.strURL ) {
-            joAccount = imaState.joAccount_main_net;
+            joAccount = imaState.chainProperties.mn.joAccount;
             if( ! joAccount.strSgxURL )
                 throw new Error( "SGX URL is unknown, cannot sign U256" );
             if( ! joAccount.strBlsKeyName )
@@ -1778,7 +1778,7 @@ async function do_sign_ready_hash( strMessageHash ) {
             };
             // details.write( cc.debug( "Will sign via SGX with SSL options " ) + cc.j( rpcCallOpts ) + "\n" );
         }
-        const signerIndex = imaState.joAccount_s_chain.nNodeNumber;
+        const signerIndex = imaState.chainProperties.sc.joAccount.nNodeNumber;
         await rpcCall.create( joAccount.strSgxURL, rpcCallOpts, async function( joCall, err ) {
             if( err ) {
                 const strErrorMessage =
@@ -1856,7 +1856,7 @@ async function do_sign_ready_hash( strMessageHash ) {
 // async function handle_skale_call_via_redirect( joCallData ) {
 //     const sequence_id = owaspUtils.remove_starting_0x( get_w3().utils.soliditySha3( log.generate_timestamp_string( null, false ) ) );
 //     const strLogPrefix = "";
-//     const strNodeURL = imaState.strURL_s_chain;
+//     const strNodeURL = imaState.chainProperties.sc.strURL;
 //     const rpcCallOpts = null;
 //     let joRetVal = { };
 //     const details = log.createMemoryStream( true );
@@ -1993,9 +1993,9 @@ async function handle_skale_imaVerifyAndSign( joCallData ) {
         }
         await check_correctness_of_messages_to_sign( details, strLogPrefix, strDirection, jarrMessages, nIdxCurrentMsgBlockStart, joExtraSignOpts );
         //
-        let joAccount = imaState.joAccount_s_chain;
+        let joAccount = imaState.chainProperties.sc.joAccount;
         if( ! joAccount.strURL ) {
-            joAccount = imaState.joAccount_main_net;
+            joAccount = imaState.chainProperties.mn.joAccount;
             if( ! joAccount.strSgxURL )
                 throw new Error( "SGX URL is unknown, cannot sign IMA message(s)" );
             if( ! joAccount.strBlsKeyName )
@@ -2011,7 +2011,7 @@ async function handle_skale_imaVerifyAndSign( joCallData ) {
             };
             // details.write( cc.debug( "Will sign via SGX with SSL options " ) + cc.j( rpcCallOpts ) + "\n" );
         }
-        const signerIndex = imaState.joAccount_s_chain.nNodeNumber;
+        const signerIndex = imaState.chainProperties.sc.joAccount.nNodeNumber;
         await rpcCall.create( joAccount.strSgxURL, rpcCallOpts, async function( joCall, err ) {
             if( err ) {
                 const strErrorMessage =
@@ -2111,9 +2111,9 @@ async function handle_skale_imaBSU256( joCallData ) {
         const strMessageHash = keccak256_u256( u256, true );
         details.write( strLogPrefix + cc.debug( "hash of U256 value to sign is " ) + cc.info( strMessageHash ) + "\n" );
         //
-        let joAccount = imaState.joAccount_s_chain;
+        let joAccount = imaState.chainProperties.sc.joAccount;
         if( ! joAccount.strURL ) {
-            joAccount = imaState.joAccount_main_net;
+            joAccount = imaState.chainProperties.mn.joAccount;
             if( ! joAccount.strSgxURL )
                 throw new Error( "SGX URL is unknown, cannot sign U256" );
             if( ! joAccount.strBlsKeyName )
@@ -2129,7 +2129,7 @@ async function handle_skale_imaBSU256( joCallData ) {
             };
             // details.write( cc.debug( "Will sign via SGX with SSL options " ) + cc.j( rpcCallOpts ) + "\n" );
         }
-        const signerIndex = imaState.joAccount_s_chain.nNodeNumber;
+        const signerIndex = imaState.chainProperties.sc.joAccount.nNodeNumber;
         await rpcCall.create( joAccount.strSgxURL, rpcCallOpts, async function( joCall, err ) {
             if( err ) {
                 const strErrorMessage =

@@ -473,27 +473,27 @@ function parse( joExternalHandlers, argv ) {
         }
         if( joArg.name == "url-main-net" ) {
             owaspUtils.verifyArgumentIsURL( joArg );
-            imaState.strURL_main_net = joArg.value;
+            imaState.chainProperties.mn.strURL = joArg.value;
             continue;
         }
         if( joArg.name == "url-s-chain" ) {
             owaspUtils.verifyArgumentIsURL( joArg );
-            imaState.strURL_s_chain = joArg.value;
+            imaState.chainProperties.sc.strURL = joArg.value;
             continue;
         }
         if( joArg.name == "url-t-chain" ) {
             owaspUtils.verifyArgumentIsURL( joArg );
-            imaState.strURL_t_chain = joArg.value;
+            imaState.chainProperties.tc.strURL = joArg.value;
             continue;
         }
         if( joArg.name == "id-main-net" ) {
             owaspUtils.verifyArgumentWithNonEmptyValue( joArg );
-            imaState.strChainName_main_net = joArg.value;
+            imaState.chainProperties.mn.strChainName = joArg.value;
             continue;
         }
         if( joArg.name == "id-s-chain" ) {
             owaspUtils.verifyArgumentWithNonEmptyValue( joArg );
-            imaState.strChainName_s_chain = joArg.value;
+            imaState.chainProperties.sc.strChainName = joArg.value;
             continue;
         }
         if( joArg.name == "id-origin-chain" ) {
@@ -503,22 +503,22 @@ function parse( joExternalHandlers, argv ) {
         }
         if( joArg.name == "id-t-chain" ) {
             owaspUtils.verifyArgumentWithNonEmptyValue( joArg );
-            imaState.strChainName_t_chain = joArg.value;
+            imaState.chainProperties.tc.strChainName = joArg.value;
             continue;
         }
         if( joArg.name == "cid-main-net" ) {
             owaspUtils.verifyArgumentIsInteger( joArg );
-            imaState.cid_main_net = owaspUtils.toInteger( joArg.value );
+            imaState.chainProperties.mn.cid = owaspUtils.toInteger( joArg.value );
             continue;
         }
         if( joArg.name == "cid-s-chain" ) {
             owaspUtils.verifyArgumentIsInteger( joArg );
-            imaState.cid_s_chain = owaspUtils.toInteger( joArg.value );
+            imaState.chainProperties.sc.cid = owaspUtils.toInteger( joArg.value );
             continue;
         }
         if( joArg.name == "cid-t-chain" ) {
             owaspUtils.verifyArgumentIsInteger( joArg );
-            imaState.cid_t_chain = owaspUtils.toInteger( joArg.value );
+            imaState.chainProperties.tc.cid = owaspUtils.toInteger( joArg.value );
             continue;
         }
         //
@@ -529,7 +529,7 @@ function parse( joExternalHandlers, argv ) {
             // if( strURL.indexOf( "/sign-and-send" ) < 0 )
             //    strURL += "/sign-and-send";
             // strURL += "/0";
-            imaState.joAccount_main_net.strTransactionManagerURL = strURL;
+            imaState.chainProperties.mn.joAccount.strTransactionManagerURL = strURL;
             continue;
         }
         if( joArg.name == "tm-url-s-chain" ) {
@@ -538,7 +538,7 @@ function parse( joExternalHandlers, argv ) {
             // if( strURL.indexOf( "/sign-and-send" ) < 0 )
             //    strURL += "/sign-and-send";
             // strURL += "/0";
-            imaState.joAccount_s_chain.strTransactionManagerURL = strURL;
+            imaState.chainProperties.sc.joAccount.strTransactionManagerURL = strURL;
             continue;
         }
         if( joArg.name == "tm-url-t-chain" ) {
@@ -547,115 +547,115 @@ function parse( joExternalHandlers, argv ) {
             // if( strURL.indexOf( "/sign-and-send" ) < 0 )
             //    strURL += "/sign-and-send";
             // strURL += "/0";
-            imaState.joAccount_t_chain.strTransactionManagerURL = strURL;
+            imaState.chainProperties.tc.joAccount.strTransactionManagerURL = strURL;
             continue;
         }
         if( joArg.name == "tm-priority-main-net" ) {
             owaspUtils.verifyArgumentIsInteger( joArg );
-            imaState.joAccount_main_net.tm_priority = owaspUtils.toInteger( joArg.value );
+            imaState.chainProperties.mn.joAccount.tm_priority = owaspUtils.toInteger( joArg.value );
             continue;
         }
         if( joArg.name == "tm-priority-s-chain" ) {
             owaspUtils.verifyArgumentIsInteger( joArg );
-            imaState.joAccount_s_chain.tm_priority = owaspUtils.toInteger( joArg.value );
+            imaState.chainProperties.sc.joAccount.tm_priority = owaspUtils.toInteger( joArg.value );
             continue;
         }
         if( joArg.name == "tm-priority-t-chain" ) {
             owaspUtils.verifyArgumentIsInteger( joArg );
-            imaState.joAccount_t_chain.tm_priority = owaspUtils.toInteger( joArg.value );
+            imaState.chainProperties.tc.joAccount.tm_priority = owaspUtils.toInteger( joArg.value );
             continue;
         }
         if( joArg.name == "sgx-url-main-net" ) {
             owaspUtils.verifyArgumentIsURL( joArg );
-            imaState.joAccount_main_net.strSgxURL = joArg.value;
+            imaState.chainProperties.mn.joAccount.strSgxURL = joArg.value;
             continue;
         }
         if( joArg.name == "sgx-url-s-chain" ) {
             owaspUtils.verifyArgumentIsURL( joArg );
-            imaState.joAccount_s_chain.strSgxURL = joArg.value;
+            imaState.chainProperties.sc.joAccount.strSgxURL = joArg.value;
             continue;
         }
         if( joArg.name == "sgx-url-t-chain" ) {
             owaspUtils.verifyArgumentIsURL( joArg );
-            imaState.joAccount_t_chain.strSgxURL = joArg.value;
+            imaState.chainProperties.tc.joAccount.strSgxURL = joArg.value;
             continue;
         }
         if( joArg.name == "sgx-ecdsa-key-main-net" ) {
             owaspUtils.verifyArgumentWithNonEmptyValue( joArg );
-            imaState.joAccount_main_net.strSgxKeyName = joArg.value;
+            imaState.chainProperties.mn.joAccount.strSgxKeyName = joArg.value;
             continue;
         }
         if( joArg.name == "sgx-ecdsa-key-s-chain" ) {
             owaspUtils.verifyArgumentWithNonEmptyValue( joArg );
-            imaState.joAccount_s_chain.strSgxKeyName = joArg.value;
+            imaState.chainProperties.sc.joAccount.strSgxKeyName = joArg.value;
             continue;
         }
         if( joArg.name == "sgx-ecdsa-key-t-chain" ) {
             owaspUtils.verifyArgumentWithNonEmptyValue( joArg );
-            imaState.joAccount_t_chain.strSgxKeyName = joArg.value;
+            imaState.chainProperties.tc.joAccount.strSgxKeyName = joArg.value;
             continue;
         }
         if( joArg.name == "sgx-bls-key-main-net" ) {
             owaspUtils.verifyArgumentWithNonEmptyValue( joArg );
-            imaState.joAccount_main_net.strBlsKeyName = joArg.value;
+            imaState.chainProperties.mn.joAccount.strBlsKeyName = joArg.value;
             continue;
         }
         if( joArg.name == "sgx-bls-key-s-chain" ) {
             owaspUtils.verifyArgumentWithNonEmptyValue( joArg );
-            imaState.joAccount_s_chain.strBlsKeyName = joArg.value;
+            imaState.chainProperties.sc.joAccount.strBlsKeyName = joArg.value;
             continue;
         }
         if( joArg.name == "sgx-bls-key-t-chain" ) {
             owaspUtils.verifyArgumentWithNonEmptyValue( joArg );
-            imaState.joAccount_t_chain.strBlsKeyName = joArg.value;
+            imaState.chainProperties.tc.joAccount.strBlsKeyName = joArg.value;
             continue;
         }
         //
         if( joArg.name == "sgx-ssl-key-main-net" ) {
             owaspUtils.verifyArgumentIsPathToExistingFile( joArg );
-            imaState.joAccount_main_net.strPathSslKey = imaUtils.normalizePath( joArg.value );
+            imaState.chainProperties.mn.joAccount.strPathSslKey = imaUtils.normalizePath( joArg.value );
             continue;
         }
         if( joArg.name == "sgx-ssl-key-s-chain" ) {
             owaspUtils.verifyArgumentIsPathToExistingFile( joArg );
-            imaState.joAccount_s_chain.strPathSslKey = imaUtils.normalizePath( joArg.value );
+            imaState.chainProperties.sc.joAccount.strPathSslKey = imaUtils.normalizePath( joArg.value );
             continue;
         }
         if( joArg.name == "sgx-ssl-key-t-chain" ) {
             owaspUtils.verifyArgumentIsPathToExistingFile( joArg );
-            imaState.joAccount_t_chain.strPathSslKey = imaUtils.normalizePath( joArg.value );
+            imaState.chainProperties.tc.joAccount.strPathSslKey = imaUtils.normalizePath( joArg.value );
             continue;
         }
         if( joArg.name == "sgx-ssl-cert-main-net" ) {
             owaspUtils.verifyArgumentIsPathToExistingFile( joArg );
-            imaState.joAccount_main_net.strPathSslCert = imaUtils.normalizePath( joArg.value );
+            imaState.chainProperties.mn.joAccount.strPathSslCert = imaUtils.normalizePath( joArg.value );
             continue;
         }
         if( joArg.name == "sgx-ssl-cert-s-chain" ) {
             owaspUtils.verifyArgumentIsPathToExistingFile( joArg );
-            imaState.joAccount_s_chain.strPathSslCert = imaUtils.normalizePath( joArg.value );
+            imaState.chainProperties.sc.joAccount.strPathSslCert = imaUtils.normalizePath( joArg.value );
             continue;
         }
         if( joArg.name == "sgx-ssl-cert-t-chain" ) {
             owaspUtils.verifyArgumentIsPathToExistingFile( joArg );
-            imaState.joAccount_t_chain.strPathSslCert = imaUtils.normalizePath( joArg.value );
+            imaState.chainProperties.tc.joAccount.strPathSslCert = imaUtils.normalizePath( joArg.value );
             continue;
         }
         //
         //
         if( joArg.name == "address-main-net" ) {
             owaspUtils.verifyArgumentWithNonEmptyValue( joArg );
-            imaState.joAccount_main_net.address_ = joArg.value;
+            imaState.chainProperties.mn.joAccount.address_ = joArg.value;
             continue;
         }
         if( joArg.name == "address-s-chain" ) {
             owaspUtils.verifyArgumentWithNonEmptyValue( joArg );
-            imaState.joAccount_s_chain.address_ = joArg.value;
+            imaState.chainProperties.sc.joAccount.address_ = joArg.value;
             continue;
         }
         if( joArg.name == "address-t-chain" ) {
             owaspUtils.verifyArgumentWithNonEmptyValue( joArg );
-            imaState.joAccount_t_chain.address_ = joArg.value;
+            imaState.chainProperties.tc.joAccount.address_ = joArg.value;
             continue;
         }
         if( joArg.name == "receiver" ) {
@@ -665,49 +665,49 @@ function parse( joExternalHandlers, argv ) {
         }
         if( joArg.name == "key-main-net" ) {
             owaspUtils.verifyArgumentWithNonEmptyValue( joArg );
-            imaState.joAccount_main_net.privateKey = joArg.value;
+            imaState.chainProperties.mn.joAccount.privateKey = joArg.value;
             continue;
         }
         if( joArg.name == "key-s-chain" ) {
             owaspUtils.verifyArgumentWithNonEmptyValue( joArg );
-            imaState.joAccount_s_chain.privateKey = joArg.value;
+            imaState.chainProperties.sc.joAccount.privateKey = joArg.value;
             continue;
         }
         if( joArg.name == "key-t-chain" ) {
             owaspUtils.verifyArgumentWithNonEmptyValue( joArg );
-            imaState.joAccount_t_chain.privateKey = joArg.value;
+            imaState.chainProperties.tc.joAccount.privateKey = joArg.value;
             continue;
         }
         if( joArg.name == "abi-skale-manager" ) {
             owaspUtils.verifyArgumentIsPathToExistingFile( joArg );
-            imaState.strPathAbiJson_skale_manager = imaUtils.normalizePath( joArg.value );
+            imaState.strPathAbiJsonSkaleManager = imaUtils.normalizePath( joArg.value );
             continue;
         }
         if( joArg.name == "abi-main-net" ) {
             owaspUtils.verifyArgumentIsPathToExistingFile( joArg );
-            imaState.strPathAbiJson_main_net = imaUtils.normalizePath( joArg.value );
+            imaState.chainProperties.mn.strPathAbiJson = imaUtils.normalizePath( joArg.value );
             continue;
         }
         if( joArg.name == "abi-s-chain" ) {
             owaspUtils.verifyArgumentIsPathToExistingFile( joArg );
-            imaState.strPathAbiJson_s_chain = imaUtils.normalizePath( joArg.value );
+            imaState.chainProperties.sc.strPathAbiJson = imaUtils.normalizePath( joArg.value );
             continue;
         }
         if( joArg.name == "abi-t-chain" ) {
             owaspUtils.verifyArgumentIsPathToExistingFile( joArg );
-            imaState.strPathAbiJson_t_chain = imaUtils.normalizePath( joArg.value );
+            imaState.chainProperties.tc.strPathAbiJson = imaUtils.normalizePath( joArg.value );
             continue;
         }
         //
         //
         if( joArg.name == "erc20-main-net" ) {
             owaspUtils.verifyArgumentIsPathToExistingFile( joArg );
-            imaState.strPathJsonErc20_main_net = imaUtils.normalizePath( joArg.value );
+            imaState.chainProperties.mn.strPathJsonErc20 = imaUtils.normalizePath( joArg.value );
             continue;
         }
         if( joArg.name == "erc20-s-chain" ) {
             owaspUtils.verifyArgumentIsPathToExistingFile( joArg );
-            imaState.strPathJsonErc20_s_chain = imaUtils.normalizePath( joArg.value );
+            imaState.chainProperties.sc.strPathJsonErc20 = imaUtils.normalizePath( joArg.value );
             continue;
         }
         if( joArg.name == "addr-erc20-s-chain" ) {
@@ -717,7 +717,7 @@ function parse( joExternalHandlers, argv ) {
         }
         if( joArg.name == "erc20-t-chain" ) {
             owaspUtils.verifyArgumentIsPathToExistingFile( joArg );
-            imaState.strPathJsonErc20_t_chain = imaUtils.normalizePath( joArg.value );
+            imaState.chainProperties.tc.strPathJsonErc20 = imaUtils.normalizePath( joArg.value );
             continue;
         }
         if( joArg.name == "addr-erc20-t-chain" ) {
@@ -729,12 +729,12 @@ function parse( joExternalHandlers, argv ) {
         //
         if( joArg.name == "erc721-main-net" ) {
             owaspUtils.verifyArgumentIsPathToExistingFile( joArg );
-            imaState.strPathJsonErc721_main_net = imaUtils.normalizePath( joArg.value );
+            imaState.chainProperties.mn.strPathJsonErc721 = imaUtils.normalizePath( joArg.value );
             continue;
         }
         if( joArg.name == "erc721-s-chain" ) {
             owaspUtils.verifyArgumentIsPathToExistingFile( joArg );
-            imaState.strPathJsonErc721_s_chain = imaUtils.normalizePath( joArg.value );
+            imaState.chainProperties.sc.strPathJsonErc721 = imaUtils.normalizePath( joArg.value );
             continue;
         }
         if( joArg.name == "addr-erc721-s-chain" ) {
@@ -744,7 +744,7 @@ function parse( joExternalHandlers, argv ) {
         }
         if( joArg.name == "erc721-t-chain" ) {
             owaspUtils.verifyArgumentIsPathToExistingFile( joArg );
-            imaState.strPathJsonErc721_t_chain = imaUtils.normalizePath( joArg.value );
+            imaState.chainProperties.tc.strPathJsonErc721 = imaUtils.normalizePath( joArg.value );
             continue;
         }
         if( joArg.name == "addr-erc721-t-chain" ) {
@@ -756,12 +756,12 @@ function parse( joExternalHandlers, argv ) {
         //
         if( joArg.name == "erc1155-main-net" ) {
             owaspUtils.verifyArgumentIsPathToExistingFile( joArg );
-            imaState.strPathJsonErc1155_main_net = imaUtils.normalizePath( joArg.value );
+            imaState.chainProperties.mn.strPathJsonErc1155 = imaUtils.normalizePath( joArg.value );
             continue;
         }
         if( joArg.name == "erc1155-s-chain" ) {
             owaspUtils.verifyArgumentIsPathToExistingFile( joArg );
-            imaState.strPathJsonErc1155_s_chain = imaUtils.normalizePath( joArg.value );
+            imaState.chainProperties.sc.strPathJsonErc1155 = imaUtils.normalizePath( joArg.value );
             continue;
         }
         if( joArg.name == "addr-erc1155-s-chain" ) {
@@ -771,7 +771,7 @@ function parse( joExternalHandlers, argv ) {
         }
         if( joArg.name == "erc1155-t-chain" ) {
             owaspUtils.verifyArgumentIsPathToExistingFile( joArg );
-            imaState.strPathJsonErc1155_t_chain = imaUtils.normalizePath( joArg.value );
+            imaState.chainProperties.tc.strPathJsonErc1155 = imaUtils.normalizePath( joArg.value );
             continue;
         }
         if( joArg.name == "addr-erc1155-t-chain" ) {
@@ -862,30 +862,30 @@ function parse( joExternalHandlers, argv ) {
             let gasPriceMultiplier = owaspUtils.toFloat( joArg.value );
             if( gasPriceMultiplier < 0.0 )
                 gasPriceMultiplier = 0.0;
-            imaState.tc_main_net.gasPriceMultiplier = gasPriceMultiplier;
+            imaState.chainProperties.mn.transactionCustomizer.gasPriceMultiplier = gasPriceMultiplier;
             continue;
         }
         if( joArg.name == "gas-price-multiplier-sc" ) {
             let gasPriceMultiplier = owaspUtils.toFloat( joArg.value );
             if( gasPriceMultiplier < 0.0 )
                 gasPriceMultiplier = 0.0;
-            imaState.tc_s_chain.gasPriceMultiplier = gasPriceMultiplier;
+            imaState.chainProperties.sc.transactionCustomizer.gasPriceMultiplier = gasPriceMultiplier;
             continue;
         }
         if( joArg.name == "gas-price-multiplier-tc" ) {
             let gasPriceMultiplier = owaspUtils.toFloat( joArg.value );
             if( gasPriceMultiplier < 0.0 )
                 gasPriceMultiplier = 0.0;
-            imaState.tc_t_chain.gasPriceMultiplier = gasPriceMultiplier;
+            imaState.chainProperties.tc.transactionCustomizer.gasPriceMultiplier = gasPriceMultiplier;
             continue;
         }
         if( joArg.name == "gas-price-multiplier" ) {
             let gasPriceMultiplier = owaspUtils.toFloat( joArg.value );
             if( gasPriceMultiplier < 0.0 )
                 gasPriceMultiplier = 0.0;
-            imaState.tc_main_net.gasPriceMultiplier =
-                imaState.tc_s_chain.gasPriceMultiplier =
-                imaState.tc_t_chain.gasPriceMultiplier =
+            imaState.chainProperties.mn.transactionCustomizer.gasPriceMultiplier =
+                imaState.chainProperties.sc.transactionCustomizer.gasPriceMultiplier =
+                imaState.chainProperties.tc.transactionCustomizer.gasPriceMultiplier =
                 gasPriceMultiplier;
             continue;
         }
@@ -894,30 +894,30 @@ function parse( joExternalHandlers, argv ) {
             let gasMultiplier = owaspUtils.toFloat( joArg.value );
             if( gasMultiplier < 0.0 )
                 gasMultiplier = 0.0;
-            imaState.tc_main_net.gasMultiplier = gasMultiplier;
+            imaState.chainProperties.mn.transactionCustomizer.gasMultiplier = gasMultiplier;
             continue;
         }
         if( joArg.name == "gas-multiplier-sc" ) {
             let gasMultiplier = owaspUtils.toFloat( joArg.value );
             if( gasMultiplier < 0.0 )
                 gasMultiplier = 0.0;
-            imaState.tc_s_chain.gasMultiplier = gasMultiplier;
+            imaState.chainProperties.sc.transactionCustomizer.gasMultiplier = gasMultiplier;
             continue;
         }
         if( joArg.name == "gas-multiplier-tc" ) {
             let gasMultiplier = owaspUtils.toFloat( joArg.value );
             if( gasMultiplier < 0.0 )
                 gasMultiplier = 0.0;
-            imaState.tc_t_chain.gasMultiplier = gasMultiplier;
+            imaState.chainProperties.tc.transactionCustomizer.gasMultiplier = gasMultiplier;
             continue;
         }
         if( joArg.name == "gas-multiplier" ) {
             let gasMultiplier = owaspUtils.toFloat( joArg.value );
             if( gasMultiplier < 0.0 )
                 gasMultiplier = 0.0;
-            imaState.tc_main_net.gasMultiplier =
-                imaState.tc_s_chain.gasMultiplier =
-                imaState.tc_t_chain.gasMultiplier =
+            imaState.chainProperties.mn.transactionCustomizer.gasMultiplier =
+                imaState.chainProperties.sc.transactionCustomizer.gasMultiplier =
+                imaState.chainProperties.tc.transactionCustomizer.gasMultiplier =
                 gasMultiplier;
             continue;
         }
@@ -1364,8 +1364,8 @@ function ima_common_init() {
 
     let n1 = 0;
     let n2 = 0;
-    if( imaState.strPathAbiJson_skale_manager && ( typeof imaState.strPathAbiJson_skale_manager == "string" ) && imaState.strPathAbiJson_skale_manager.length > 0 ) {
-        imaState.joAbiPublishResult_skale_manager = imaUtils.jsonFileLoad( imaState.strPathAbiJson_skale_manager, null );
+    if( imaState.strPathAbiJsonSkaleManager && ( typeof imaState.strPathAbiJsonSkaleManager == "string" ) && imaState.strPathAbiJsonSkaleManager.length > 0 ) {
+        imaState.joAbiSkaleManager = imaUtils.jsonFileLoad( imaState.strPathAbiJsonSkaleManager, null );
         imaState.bHaveSkaleManagerABI = true;
     } else {
         imaState.bHaveSkaleManagerABI = false;
@@ -1376,11 +1376,11 @@ function ima_common_init() {
             "\n" );
     }
     //
-    if( imaState.strPathAbiJson_main_net && typeof imaState.strPathAbiJson_main_net == "string" && imaState.strPathAbiJson_main_net.length > 0 ) {
-        imaState.joAbiPublishResult_main_net = imaUtils.jsonFileLoad( imaState.strPathAbiJson_main_net, null );
-        imaState.bHaveImaAbiMainNet = true;
+    if( imaState.chainProperties.mn.strPathAbiJson && typeof imaState.chainProperties.mn.strPathAbiJson == "string" && imaState.chainProperties.mn.strPathAbiJson.length > 0 ) {
+        imaState.chainProperties.mn.joAbiIMA = imaUtils.jsonFileLoad( imaState.chainProperties.mn.strPathAbiJson, null );
+        imaState.chainProperties.mn.bHaveAbiIMA = true;
     } else {
-        imaState.bHaveImaAbiMainNet = false;
+        imaState.chainProperties.mn.bHaveAbiIMA = false;
         log.write(
             cc.error( "WARNING:" ) + cc.warning( " No " ) + cc.note( "Main-net" ) +
             cc.warning( " IMA ABI file path is provided in command line arguments" ) +
@@ -1388,11 +1388,11 @@ function ima_common_init() {
             "\n" );
     }
     //
-    if( imaState.strPathAbiJson_s_chain && typeof imaState.strPathAbiJson_s_chain == "string" && imaState.strPathAbiJson_s_chain.length > 0 ) {
-        imaState.joAbiPublishResult_s_chain = imaUtils.jsonFileLoad( imaState.strPathAbiJson_s_chain, null );
-        imaState.bHaveImaAbiSchain = true;
+    if( imaState.chainProperties.sc.strPathAbiJson && typeof imaState.chainProperties.sc.strPathAbiJson == "string" && imaState.chainProperties.sc.strPathAbiJson.length > 0 ) {
+        imaState.chainProperties.sc.joAbiIMA = imaUtils.jsonFileLoad( imaState.chainProperties.sc.strPathAbiJson, null );
+        imaState.chainProperties.sc.bHaveAbiIMA = true;
     } else {
-        imaState.bHaveImaAbiSchain = false;
+        imaState.chainProperties.sc.bHaveAbiIMA = false;
         log.write(
             cc.error( "WARNING:" ) + cc.warning( " No " ) + cc.note( "S-Chain" ) +
             cc.warning( " IMA ABI file path is provided in command line arguments" ) +
@@ -1400,11 +1400,11 @@ function ima_common_init() {
             "\n" );
     }
     //
-    if( imaState.strPathAbiJson_t_chain && typeof imaState.strPathAbiJson_t_chain == "string" && imaState.strPathAbiJson_t_chain.length > 0 ) {
-        imaState.joAbiPublishResult_t_chain = imaUtils.jsonFileLoad( imaState.strPathAbiJson_t_chain, null );
-        imaState.bHaveImaAbiSchainTarget = true;
+    if( imaState.chainProperties.tc.strPathAbiJson && typeof imaState.chainProperties.tc.strPathAbiJson == "string" && imaState.chainProperties.tc.strPathAbiJson.length > 0 ) {
+        imaState.chainProperties.tc.joAbiIMA = imaUtils.jsonFileLoad( imaState.chainProperties.tc.strPathAbiJson, null );
+        imaState.chainProperties.tc.bHaveAbiIMA = true;
     } else {
-        imaState.bHaveImaAbiSchainTarget = false;
+        imaState.chainProperties.tc.bHaveAbiIMA = false;
         log.write(
             cc.error( "WARNING:" ) + cc.warning( " No " ) + cc.note( "S<->S Target S-Chain" ) +
             cc.warning( " IMA ABI file path is provided in command line arguments" ) +
@@ -1414,7 +1414,7 @@ function ima_common_init() {
     //
 
     if( imaState.bHaveSkaleManagerABI ) {
-        imaUtils.check_keys_exist_in_abi( "skale-manager", imaState.strPathAbiJson_skale_manager, imaState.joAbiPublishResult_skale_manager, [
+        imaUtils.check_keys_exist_in_abi( "skale-manager", imaState.strPathAbiJsonSkaleManager, imaState.joAbiSkaleManager, [
             // partial list of Skale Manager's contracts specified here:
             "constants_holder_abi",
             "constants_holder_address",
@@ -1441,8 +1441,8 @@ function ima_common_init() {
         log.write( cc.error( "WARNING:" ) + cc.warning( " Missing " ) + cc.note( "Skale Manager" ) + cc.warning( " ABI path for " ) + cc.note( "S-Chain" ) + cc.warning( " to " ) + cc.note( "S-Chain" ) + cc.warning( " transfers" ) + "\n" );
         // process.exit( 126 );
 
-    if( imaState.bHaveImaAbiMainNet ) {
-        imaUtils.check_keys_exist_in_abi( "main-net", imaState.strPathAbiJson_main_net, imaState.joAbiPublishResult_main_net, [
+    if( imaState.chainProperties.mn.bHaveAbiIMA ) {
+        imaUtils.check_keys_exist_in_abi( "main-net", imaState.chainProperties.mn.strPathAbiJson, imaState.chainProperties.mn.joAbiIMA, [
             "deposit_box_eth_abi",
             "deposit_box_eth_address",
             "message_proxy_mainnet_abi",
@@ -1461,8 +1461,8 @@ function ima_common_init() {
             "community_pool_address"
         ] );
     }
-    if( imaState.bHaveImaAbiSchain ) {
-        imaUtils.check_keys_exist_in_abi( "S-Chain", imaState.strPathAbiJson_s_chain, imaState.joAbiPublishResult_s_chain, [
+    if( imaState.chainProperties.sc.bHaveAbiIMA ) {
+        imaUtils.check_keys_exist_in_abi( "S-Chain", imaState.chainProperties.sc.strPathAbiJson, imaState.chainProperties.sc.joAbiIMA, [
             "token_manager_eth_abi",
             "token_manager_eth_address",
             "token_manager_erc20_abi",
@@ -1481,8 +1481,8 @@ function ima_common_init() {
             "community_locker_address"
         ] );
     }
-    if( imaState.bHaveImaAbiSchainTarget ) {
-        imaUtils.check_keys_exist_in_abi( "S<->S Target S-Chain", imaState.strPathAbiJson_t_chain, imaState.joAbiPublishResult_t_chain, [
+    if( imaState.chainProperties.tc.bHaveAbiIMA ) {
+        imaUtils.check_keys_exist_in_abi( "S<->S Target S-Chain", imaState.chainProperties.tc.strPathAbiJson, imaState.chainProperties.tc.joAbiIMA, [
             "token_manager_eth_abi",
             "token_manager_eth_address",
             "token_manager_erc20_abi",
@@ -1518,10 +1518,10 @@ function ima_common_init() {
     // message_proxy_chain_address                --> message_proxy_chain_abi
 
     //
-    if( imaState.strURL_main_net && typeof imaState.strURL_main_net == "string" && imaState.strURL_main_net.length > 0 ) {
-        const u = imaState.strURL_main_net;
+    if( imaState.chainProperties.mn.strURL && typeof imaState.chainProperties.mn.strURL == "string" && imaState.chainProperties.mn.strURL.length > 0 ) {
+        const u = imaState.chainProperties.mn.strURL;
         async_check_url_at_startup( u, "Main-net" );
-        imaState.w3_main_net = getWeb3FromURL( u, log );
+        imaState.chainProperties.mn.w3 = getWeb3FromURL( u, log );
     } else {
         log.write(
             cc.error( "WARNING:" ) + cc.warning( " No " ) + cc.note( "Main-net" ) +
@@ -1530,10 +1530,10 @@ function ima_common_init() {
             "\n" );
     }
     //
-    if( imaState.strURL_s_chain && typeof imaState.strURL_s_chain == "string" && imaState.strURL_s_chain.length > 0 ) {
-        const u = imaState.strURL_s_chain;
+    if( imaState.chainProperties.sc.strURL && typeof imaState.chainProperties.sc.strURL == "string" && imaState.chainProperties.sc.strURL.length > 0 ) {
+        const u = imaState.chainProperties.sc.strURL;
         async_check_url_at_startup( u, "S-Chain" );
-        imaState.w3_s_chain = getWeb3FromURL( u, log );
+        imaState.chainProperties.sc.w3 = getWeb3FromURL( u, log );
     } else {
         log.write(
             cc.error( "WARNING:" ) + cc.warning( " No " ) + cc.note( "S-Chain" ) +
@@ -1542,10 +1542,10 @@ function ima_common_init() {
             "\n" );
     }
     //
-    if( imaState.strURL_t_chain && typeof imaState.strURL_t_chain == "string" && imaState.strURL_t_chain.length > 0 ) {
-        const u = imaState.strURL_t_chain;
+    if( imaState.chainProperties.tc.strURL && typeof imaState.chainProperties.tc.strURL == "string" && imaState.chainProperties.tc.strURL.length > 0 ) {
+        const u = imaState.chainProperties.tc.strURL;
         async_check_url_at_startup( u, "S<->S Target S-Chain" );
-        imaState.w3_t_chain = getWeb3FromURL( u, log );
+        imaState.chainProperties.tc.w3 = getWeb3FromURL( u, log );
     } else {
         log.write(
             cc.error( "WARNING:" ) + cc.warning( " No " ) + cc.note( "S<->S Target S-Chain" ) +
@@ -1554,44 +1554,44 @@ function ima_common_init() {
             "\n" );
     }
     //
-    if( imaState.bHaveImaAbiMainNet ) {
-        imaState.jo_deposit_box_eth = new imaState.w3_main_net.eth.Contract( imaState.joAbiPublishResult_main_net.deposit_box_eth_abi, imaState.joAbiPublishResult_main_net.deposit_box_eth_address ); // only main net
-        imaState.jo_deposit_box_erc20 = new imaState.w3_main_net.eth.Contract( imaState.joAbiPublishResult_main_net.deposit_box_erc20_abi, imaState.joAbiPublishResult_main_net.deposit_box_erc20_address ); // only main net
-        imaState.jo_deposit_box_erc721 = new imaState.w3_main_net.eth.Contract( imaState.joAbiPublishResult_main_net.deposit_box_erc721_abi, imaState.joAbiPublishResult_main_net.deposit_box_erc721_address ); // only main net
-        imaState.jo_deposit_box_erc1155 = new imaState.w3_main_net.eth.Contract( imaState.joAbiPublishResult_main_net.deposit_box_erc1155_abi, imaState.joAbiPublishResult_main_net.deposit_box_erc1155_address ); // only main net
-        imaState.jo_deposit_box_erc721_with_metadata = new imaState.w3_main_net.eth.Contract( imaState.joAbiPublishResult_main_net.deposit_box_erc721_with_metadata_abi, imaState.joAbiPublishResult_main_net.deposit_box_erc721_with_metadata_address ); // only main net
-        imaState.jo_community_pool = new imaState.w3_main_net.eth.Contract( imaState.joAbiPublishResult_main_net.community_pool_abi, imaState.joAbiPublishResult_main_net.community_pool_address ); // only main net
-        imaState.jo_linker = new imaState.w3_main_net.eth.Contract( imaState.joAbiPublishResult_main_net.linker_abi, imaState.joAbiPublishResult_main_net.linker_address ); // only main net
-        imaState.jo_message_proxy_main_net = new imaState.w3_main_net.eth.Contract( imaState.joAbiPublishResult_main_net.message_proxy_mainnet_abi, imaState.joAbiPublishResult_main_net.message_proxy_mainnet_address );
+    if( imaState.chainProperties.mn.bHaveAbiIMA ) {
+        imaState.jo_deposit_box_eth = new imaState.chainProperties.mn.w3.eth.Contract( imaState.chainProperties.mn.joAbiIMA.deposit_box_eth_abi, imaState.chainProperties.mn.joAbiIMA.deposit_box_eth_address ); // only main net
+        imaState.jo_deposit_box_erc20 = new imaState.chainProperties.mn.w3.eth.Contract( imaState.chainProperties.mn.joAbiIMA.deposit_box_erc20_abi, imaState.chainProperties.mn.joAbiIMA.deposit_box_erc20_address ); // only main net
+        imaState.jo_deposit_box_erc721 = new imaState.chainProperties.mn.w3.eth.Contract( imaState.chainProperties.mn.joAbiIMA.deposit_box_erc721_abi, imaState.chainProperties.mn.joAbiIMA.deposit_box_erc721_address ); // only main net
+        imaState.jo_deposit_box_erc1155 = new imaState.chainProperties.mn.w3.eth.Contract( imaState.chainProperties.mn.joAbiIMA.deposit_box_erc1155_abi, imaState.chainProperties.mn.joAbiIMA.deposit_box_erc1155_address ); // only main net
+        imaState.jo_deposit_box_erc721_with_metadata = new imaState.chainProperties.mn.w3.eth.Contract( imaState.chainProperties.mn.joAbiIMA.deposit_box_erc721_with_metadata_abi, imaState.chainProperties.mn.joAbiIMA.deposit_box_erc721_with_metadata_address ); // only main net
+        imaState.jo_community_pool = new imaState.chainProperties.mn.w3.eth.Contract( imaState.chainProperties.mn.joAbiIMA.community_pool_abi, imaState.chainProperties.mn.joAbiIMA.community_pool_address ); // only main net
+        imaState.jo_linker = new imaState.chainProperties.mn.w3.eth.Contract( imaState.chainProperties.mn.joAbiIMA.linker_abi, imaState.chainProperties.mn.joAbiIMA.linker_address ); // only main net
+        imaState.jo_message_proxy_main_net = new imaState.chainProperties.mn.w3.eth.Contract( imaState.chainProperties.mn.joAbiIMA.message_proxy_mainnet_abi, imaState.chainProperties.mn.joAbiIMA.message_proxy_mainnet_address );
     }
-    if( imaState.bHaveImaAbiSchain ) {
-        imaState.jo_token_manager_eth = new imaState.w3_s_chain.eth.Contract( imaState.joAbiPublishResult_s_chain.token_manager_eth_abi, imaState.joAbiPublishResult_s_chain.token_manager_eth_address ); // only s-chain
-        imaState.jo_token_manager_erc20 = new imaState.w3_s_chain.eth.Contract( imaState.joAbiPublishResult_s_chain.token_manager_erc20_abi, imaState.joAbiPublishResult_s_chain.token_manager_erc20_address ); // only s-chain
-        imaState.jo_token_manager_erc721 = new imaState.w3_s_chain.eth.Contract( imaState.joAbiPublishResult_s_chain.token_manager_erc721_abi, imaState.joAbiPublishResult_s_chain.token_manager_erc721_address ); // only s-chain
-        imaState.jo_token_manager_erc1155 = new imaState.w3_s_chain.eth.Contract( imaState.joAbiPublishResult_s_chain.token_manager_erc1155_abi, imaState.joAbiPublishResult_s_chain.token_manager_erc1155_address ); // only s-chain
-        imaState.jo_token_manager_erc721_with_metadata = new imaState.w3_s_chain.eth.Contract( imaState.joAbiPublishResult_s_chain.token_manager_erc721_with_metadata_abi, imaState.joAbiPublishResult_s_chain.token_manager_erc721_with_metadata_address ); // only s-chain
-        imaState.jo_community_locker = new imaState.w3_s_chain.eth.Contract( imaState.joAbiPublishResult_s_chain.community_locker_abi, imaState.joAbiPublishResult_s_chain.community_locker_address ); // only s-chain
-        imaState.jo_message_proxy_s_chain = new imaState.w3_s_chain.eth.Contract( imaState.joAbiPublishResult_s_chain.message_proxy_chain_abi, imaState.joAbiPublishResult_s_chain.message_proxy_chain_address );
-        imaState.jo_token_manager_linker = new imaState.w3_s_chain.eth.Contract( imaState.joAbiPublishResult_s_chain.token_manager_linker_abi, imaState.joAbiPublishResult_s_chain.token_manager_linker_address );
-        imaState.eth_erc20 = new imaState.w3_s_chain.eth.Contract( imaState.joAbiPublishResult_s_chain.eth_erc20_abi, imaState.joAbiPublishResult_s_chain.eth_erc20_address ); // only s-chain
-        // imaState.eth_erc721 = new imaState.w3_s_chain.eth.Contract( imaState.joAbiPublishResult_s_chain.eth_erc721_abi, imaState.joAbiPublishResult_s_chain.eth_erc721_address ); // only s-chain
-        // imaState.eth_erc1155 = new imaState.w3_s_chain.eth.Contract( imaState.joAbiPublishResult_s_chain.eth_erc1155_abi, imaState.joAbiPublishResult_s_chain.eth_erc721_address ); // only s-chain
+    if( imaState.chainProperties.sc.bHaveAbiIMA ) {
+        imaState.jo_token_manager_eth = new imaState.chainProperties.sc.w3.eth.Contract( imaState.chainProperties.sc.joAbiIMA.token_manager_eth_abi, imaState.chainProperties.sc.joAbiIMA.token_manager_eth_address ); // only s-chain
+        imaState.jo_token_manager_erc20 = new imaState.chainProperties.sc.w3.eth.Contract( imaState.chainProperties.sc.joAbiIMA.token_manager_erc20_abi, imaState.chainProperties.sc.joAbiIMA.token_manager_erc20_address ); // only s-chain
+        imaState.jo_token_manager_erc721 = new imaState.chainProperties.sc.w3.eth.Contract( imaState.chainProperties.sc.joAbiIMA.token_manager_erc721_abi, imaState.chainProperties.sc.joAbiIMA.token_manager_erc721_address ); // only s-chain
+        imaState.jo_token_manager_erc1155 = new imaState.chainProperties.sc.w3.eth.Contract( imaState.chainProperties.sc.joAbiIMA.token_manager_erc1155_abi, imaState.chainProperties.sc.joAbiIMA.token_manager_erc1155_address ); // only s-chain
+        imaState.jo_token_manager_erc721_with_metadata = new imaState.chainProperties.sc.w3.eth.Contract( imaState.chainProperties.sc.joAbiIMA.token_manager_erc721_with_metadata_abi, imaState.chainProperties.sc.joAbiIMA.token_manager_erc721_with_metadata_address ); // only s-chain
+        imaState.jo_community_locker = new imaState.chainProperties.sc.w3.eth.Contract( imaState.chainProperties.sc.joAbiIMA.community_locker_abi, imaState.chainProperties.sc.joAbiIMA.community_locker_address ); // only s-chain
+        imaState.jo_message_proxy_s_chain = new imaState.chainProperties.sc.w3.eth.Contract( imaState.chainProperties.sc.joAbiIMA.message_proxy_chain_abi, imaState.chainProperties.sc.joAbiIMA.message_proxy_chain_address );
+        imaState.jo_token_manager_linker = new imaState.chainProperties.sc.w3.eth.Contract( imaState.chainProperties.sc.joAbiIMA.token_manager_linker_abi, imaState.chainProperties.sc.joAbiIMA.token_manager_linker_address );
+        imaState.eth_erc20 = new imaState.chainProperties.sc.w3.eth.Contract( imaState.chainProperties.sc.joAbiIMA.eth_erc20_abi, imaState.chainProperties.sc.joAbiIMA.eth_erc20_address ); // only s-chain
+        // imaState.eth_erc721 = new imaState.chainProperties.sc.w3.eth.Contract( imaState.chainProperties.sc.joAbiIMA.eth_erc721_abi, imaState.chainProperties.sc.joAbiIMA.eth_erc721_address ); // only s-chain
+        // imaState.eth_erc1155 = new imaState.chainProperties.sc.w3.eth.Contract( imaState.chainProperties.sc.joAbiIMA.eth_erc1155_abi, imaState.chainProperties.sc.joAbiIMA.eth_erc721_address ); // only s-chain
     }
-    if( imaState.bHaveImaAbiSchainTarget ) {
-        // imaState.jo_token_manager_eth_target = new imaState.w3_s_chain.eth.Contract( imaState.joAbiPublishResult_t_chain.token_manager_eth_abi, imaState.joAbiPublishResult_t_chain.token_manager_eth_address ); // only s-chain
-        imaState.jo_token_manager_erc20_target = new imaState.w3_s_chain.eth.Contract( imaState.joAbiPublishResult_t_chain.token_manager_erc20_abi, imaState.joAbiPublishResult_t_chain.token_manager_erc20_address ); // only s-chain
-        imaState.jo_token_manager_erc721_target = new imaState.w3_s_chain.eth.Contract( imaState.joAbiPublishResult_t_chain.token_manager_erc721_abi, imaState.joAbiPublishResult_t_chain.token_manager_erc721_address ); // only s-chain
-        imaState.jo_token_manager_erc1155_target = new imaState.w3_s_chain.eth.Contract( imaState.joAbiPublishResult_t_chain.token_manager_erc1155_abi, imaState.joAbiPublishResult_t_chain.token_manager_erc1155_address ); // only s-chain
-        imaState.jo_token_manager_erc721_with_metadata_target = new imaState.w3_s_chain.eth.Contract( imaState.joAbiPublishResult_t_chain.token_manager_erc721_with_metadata_abi, imaState.joAbiPublishResult_t_chain.token_manager_erc721_with_metadata_address ); // only s-chain
-        imaState.jo_community_locker_target = new imaState.w3_s_chain.eth.Contract( imaState.joAbiPublishResult_t_chain.community_locker_abi, imaState.joAbiPublishResult_t_chain.community_locker_address ); // only s-chain
-        imaState.jo_message_proxy_s_chain_target = new imaState.w3_s_chain.eth.Contract( imaState.joAbiPublishResult_t_chain.message_proxy_chain_abi, imaState.joAbiPublishResult_t_chain.message_proxy_chain_address );
-        imaState.jo_token_manager_linker_target = new imaState.w3_s_chain.eth.Contract( imaState.joAbiPublishResult_t_chain.token_manager_linker_abi, imaState.joAbiPublishResult_t_chain.token_manager_linker_address );
-        imaState.eth_erc20_target = new imaState.w3_s_chain.eth.Contract( imaState.joAbiPublishResult_t_chain.eth_erc20_abi, imaState.joAbiPublishResult_t_chain.eth_erc20_address ); // only s-chain
-        // imaState.eth_erc721_target = new imaState.w3_s_chain.eth.Contract( imaState.joAbiPublishResult_t_chain.eth_erc721_abi, imaState.joAbiPublishResult_t_chain.eth_erc721_address ); // only s-chain
-        // imaState.eth_erc1155_target = new imaState.w3_s_chain.eth.Contract( imaState.joAbiPublishResult_t_chain.eth_erc1155_abi, imaState.joAbiPublishResult_t_chain.eth_erc721_address ); // only s-chain
+    if( imaState.chainProperties.tc.bHaveAbiIMA ) {
+        // imaState.jo_token_manager_eth_target = new imaState.chainProperties.sc.w3.eth.Contract( imaState.chainProperties.tc.joAbiIMA.token_manager_eth_abi, imaState.chainProperties.tc.joAbiIMA.token_manager_eth_address ); // only s-chain
+        imaState.jo_token_manager_erc20_target = new imaState.chainProperties.sc.w3.eth.Contract( imaState.chainProperties.tc.joAbiIMA.token_manager_erc20_abi, imaState.chainProperties.tc.joAbiIMA.token_manager_erc20_address ); // only s-chain
+        imaState.jo_token_manager_erc721_target = new imaState.chainProperties.sc.w3.eth.Contract( imaState.chainProperties.tc.joAbiIMA.token_manager_erc721_abi, imaState.chainProperties.tc.joAbiIMA.token_manager_erc721_address ); // only s-chain
+        imaState.jo_token_manager_erc1155_target = new imaState.chainProperties.sc.w3.eth.Contract( imaState.chainProperties.tc.joAbiIMA.token_manager_erc1155_abi, imaState.chainProperties.tc.joAbiIMA.token_manager_erc1155_address ); // only s-chain
+        imaState.jo_token_manager_erc721_with_metadata_target = new imaState.chainProperties.sc.w3.eth.Contract( imaState.chainProperties.tc.joAbiIMA.token_manager_erc721_with_metadata_abi, imaState.chainProperties.tc.joAbiIMA.token_manager_erc721_with_metadata_address ); // only s-chain
+        imaState.jo_community_locker_target = new imaState.chainProperties.sc.w3.eth.Contract( imaState.chainProperties.tc.joAbiIMA.community_locker_abi, imaState.chainProperties.tc.joAbiIMA.community_locker_address ); // only s-chain
+        imaState.jo_message_proxy_s_chain_target = new imaState.chainProperties.sc.w3.eth.Contract( imaState.chainProperties.tc.joAbiIMA.message_proxy_chain_abi, imaState.chainProperties.tc.joAbiIMA.message_proxy_chain_address );
+        imaState.jo_token_manager_linker_target = new imaState.chainProperties.sc.w3.eth.Contract( imaState.chainProperties.tc.joAbiIMA.token_manager_linker_abi, imaState.chainProperties.tc.joAbiIMA.token_manager_linker_address );
+        imaState.eth_erc20_target = new imaState.chainProperties.sc.w3.eth.Contract( imaState.chainProperties.tc.joAbiIMA.eth_erc20_abi, imaState.chainProperties.tc.joAbiIMA.eth_erc20_address ); // only s-chain
+        // imaState.eth_erc721_target = new imaState.chainProperties.sc.w3.eth.Contract( imaState.chainProperties.tc.joAbiIMA.eth_erc721_abi, imaState.chainProperties.tc.joAbiIMA.eth_erc721_address ); // only s-chain
+        // imaState.eth_erc1155_target = new imaState.chainProperties.sc.w3.eth.Contract( imaState.chainProperties.tc.joAbiIMA.eth_erc1155_abi, imaState.chainProperties.tc.joAbiIMA.eth_erc721_address ); // only s-chain
     }
     if( imaState.bHaveSkaleManagerABI ) {
-        imaState.jo_constants_holder = new imaState.w3_main_net.eth.Contract( imaState.joAbiPublishResult_skale_manager.constants_holder_abi, imaState.joAbiPublishResult_skale_manager.constants_holder_address );
+        imaState.jo_constants_holder = new imaState.chainProperties.mn.w3.eth.Contract( imaState.joAbiSkaleManager.constants_holder_abi, imaState.joAbiSkaleManager.constants_holder_address );
         // jo_contract_manager
         // jo_decryption
         // jo_delegation_controller
@@ -1600,24 +1600,24 @@ function ima_common_init() {
         // jo_ecdh
         // jo_manager_data
         // jo_monitors_functionality
-        imaState.jo_nodes = new imaState.w3_main_net.eth.Contract( imaState.joAbiPublishResult_skale_manager.nodes_abi, imaState.joAbiPublishResult_skale_manager.nodes_address );
+        imaState.jo_nodes = new imaState.chainProperties.mn.w3.eth.Contract( imaState.joAbiSkaleManager.nodes_abi, imaState.joAbiSkaleManager.nodes_address );
         // jo_pricing
         // jo_punisher
-        imaState.jo_key_storage = new imaState.w3_main_net.eth.Contract( imaState.joAbiPublishResult_skale_manager.key_storage_abi, imaState.joAbiPublishResult_skale_manager.key_storage_address );
-        imaState.jo_schains = new imaState.w3_main_net.eth.Contract( imaState.joAbiPublishResult_skale_manager.schains_abi, imaState.joAbiPublishResult_skale_manager.schains_address );
-        imaState.jo_schains_internal = new imaState.w3_main_net.eth.Contract( imaState.joAbiPublishResult_skale_manager.schains_internal_abi, imaState.joAbiPublishResult_skale_manager.schains_internal_address );
+        imaState.jo_key_storage = new imaState.chainProperties.mn.w3.eth.Contract( imaState.joAbiSkaleManager.key_storage_abi, imaState.joAbiSkaleManager.key_storage_address );
+        imaState.jo_schains = new imaState.chainProperties.mn.w3.eth.Contract( imaState.joAbiSkaleManager.schains_abi, imaState.joAbiSkaleManager.schains_address );
+        imaState.jo_schains_internal = new imaState.chainProperties.mn.w3.eth.Contract( imaState.joAbiSkaleManager.schains_internal_abi, imaState.joAbiSkaleManager.schains_internal_address );
         // jo_schains_functionality
         // jo_schains_functionality_internal
-        imaState.jo_skale_dkg = new imaState.w3_main_net.eth.Contract( imaState.joAbiPublishResult_skale_manager.skale_d_k_g_abi, imaState.joAbiPublishResult_skale_manager.skale_d_k_g_address );
-        imaState.jo_skale_manager = new imaState.w3_main_net.eth.Contract( imaState.joAbiPublishResult_skale_manager.skale_manager_abi, imaState.joAbiPublishResult_skale_manager.skale_manager_address );
-        imaState.jo_skale_token = new imaState.w3_main_net.eth.Contract( imaState.joAbiPublishResult_skale_manager.skale_token_abi, imaState.joAbiPublishResult_skale_manager.skale_token_address );
+        imaState.jo_skale_dkg = new imaState.chainProperties.mn.w3.eth.Contract( imaState.joAbiSkaleManager.skale_d_k_g_abi, imaState.joAbiSkaleManager.skale_d_k_g_address );
+        imaState.jo_skale_manager = new imaState.chainProperties.mn.w3.eth.Contract( imaState.joAbiSkaleManager.skale_manager_abi, imaState.joAbiSkaleManager.skale_manager_address );
+        imaState.jo_skale_token = new imaState.chainProperties.mn.w3.eth.Contract( imaState.joAbiSkaleManager.skale_token_abi, imaState.joAbiSkaleManager.skale_token_address );
         // jo_skale_verifier
         // jo_slashing_table
         // jo_time_helpers
         // jo_time_helpers_with_debug
         // jo_token_state
-        imaState.jo_validator_service = new imaState.w3_main_net.eth.Contract( imaState.joAbiPublishResult_skale_manager.validator_service_abi, imaState.joAbiPublishResult_skale_manager.validator_service_address );
-        imaState.jo_wallets = new imaState.w3_main_net.eth.Contract( imaState.joAbiPublishResult_skale_manager.wallets_abi, imaState.joAbiPublishResult_skale_manager.wallets_address );
+        imaState.jo_validator_service = new imaState.chainProperties.mn.w3.eth.Contract( imaState.joAbiSkaleManager.validator_service_abi, imaState.joAbiSkaleManager.validator_service_address );
+        imaState.jo_wallets = new imaState.chainProperties.mn.w3.eth.Contract( imaState.joAbiSkaleManager.wallets_abi, imaState.joAbiSkaleManager.wallets_address );
     } // if( imaState.bHaveSkaleManagerABI )
 
     const oct = function( joContract ) { // optional contract address
@@ -1680,76 +1680,76 @@ function ima_common_init() {
     //
     //
     //
-    if( imaState.strPathJsonErc20_main_net.length > 0 /* && imaState.strPathJsonErc20_s_chain.length > 0 */ ) {
+    if( imaState.chainProperties.mn.strPathJsonErc20.length > 0 /* && imaState.chainProperties.sc.strPathJsonErc20.length > 0 */ ) {
         n1 = 0;
         n2 = 0;
         if( isPrintGathered && IMA.verbose_get() > IMA.RV_VERBOSE.information )
-            log.write( cc.info( "Loading Main-net ERC20 ABI from " ) + cc.info( imaState.strPathJsonErc20_main_net ) + "\n" );
-        imaState.joErc20_main_net = imaUtils.jsonFileLoad( imaState.strPathJsonErc20_main_net, null );
-        n1 = Object.keys( imaState.joErc20_main_net ).length;
-        if( imaState.strPathJsonErc20_s_chain.length > 0 ) {
+            log.write( cc.info( "Loading Main-net ERC20 ABI from " ) + cc.info( imaState.chainProperties.mn.strPathJsonErc20 ) + "\n" );
+        imaState.chainProperties.mn.joErc20 = imaUtils.jsonFileLoad( imaState.chainProperties.mn.strPathJsonErc20, null );
+        n1 = Object.keys( imaState.chainProperties.mn.joErc20 ).length;
+        if( imaState.chainProperties.sc.strPathJsonErc20.length > 0 ) {
             if( isPrintGathered && IMA.verbose_get() > IMA.RV_VERBOSE.information )
-                log.write( cc.info( "Loading S-Chain ERC20 ABI from " ) + cc.info( imaState.strPathJsonErc20_s_chain ) + "\n" );
-            imaState.joErc20_s_chain = imaUtils.jsonFileLoad( imaState.strPathJsonErc20_s_chain, null );
-            n2 = Object.keys( imaState.joErc20_s_chain ).length;
+                log.write( cc.info( "Loading S-Chain ERC20 ABI from " ) + cc.info( imaState.chainProperties.sc.strPathJsonErc20 ) + "\n" );
+            imaState.chainProperties.sc.joErc20 = imaUtils.jsonFileLoad( imaState.chainProperties.sc.strPathJsonErc20, null );
+            n2 = Object.keys( imaState.chainProperties.sc.joErc20 ).length;
         }
         if( n1 > 0 /* && n2 > 0 */ ) {
-            imaState.strCoinNameErc20_main_net = imaUtils.discover_in_json_coin_name( imaState.joErc20_main_net );
+            imaState.chainProperties.tc.strCoinNameErc20 = imaUtils.discover_in_json_coin_name( imaState.chainProperties.mn.joErc20 );
             if( n2 > 0 )
-                imaState.strCoinNameErc20_s_chain = imaUtils.discover_in_json_coin_name( imaState.joErc20_s_chain );
-            n1 = imaState.strCoinNameErc20_main_net.length;
+                imaState.chainProperties.sc.strCoinNameErc20 = imaUtils.discover_in_json_coin_name( imaState.chainProperties.sc.joErc20 );
+            n1 = imaState.chainProperties.tc.strCoinNameErc20.length;
             if( n2 > 0 )
-                n2 = imaState.strCoinNameErc20_s_chain.length;
+                n2 = imaState.chainProperties.sc.strCoinNameErc20.length;
             if( n1 > 0 /* && n2 > 0 */ ) {
                 if( isPrintGathered && IMA.verbose_get() >= IMA.RV_VERBOSE.information && ( !imaState.bShowConfigMode ) ) {
                     if( isPrintGathered )
-                        log.write( cc.info( "Loaded Main-net ERC20 ABI " ) + cc.attention( imaState.strCoinNameErc20_main_net ) + "\n" );
+                        log.write( cc.info( "Loaded Main-net ERC20 ABI " ) + cc.attention( imaState.chainProperties.tc.strCoinNameErc20 ) + "\n" );
                     if( isPrintGathered && n2 > 0 )
-                        log.write( cc.info( "Loaded S-Chain ERC20 ABI " ) + cc.attention( imaState.strCoinNameErc20_s_chain ) + "\n" );
+                        log.write( cc.info( "Loaded S-Chain ERC20 ABI " ) + cc.attention( imaState.chainProperties.sc.strCoinNameErc20 ) + "\n" );
                 }
             } else {
                 if( n1 === 0 )
                     log.write( cc.fatal( "FATAL, CRITICAL ERROR:" ) + cc.error( "Main-net ERC20 token name is not discovered (malformed JSON)" ) + "\n" );
-                if( n2 === 0 && imaState.strPathJsonErc20_s_chain.length > 0 )
+                if( n2 === 0 && imaState.chainProperties.sc.strPathJsonErc20.length > 0 )
                     log.write( cc.fatal( "FATAL, CRITICAL ERROR:" ) + cc.error( "S-Chain ERC20 token name is not discovered (malformed JSON)" ) + "\n" );
-                imaState.joErc20_main_net = null;
-                imaState.joErc20_s_chain = null;
-                imaState.strCoinNameErc20_main_net = "";
-                imaState.strCoinNameErc20_s_chain = "";
+                imaState.chainProperties.mn.joErc20 = null;
+                imaState.chainProperties.sc.joErc20 = null;
+                imaState.chainProperties.tc.strCoinNameErc20 = "";
+                imaState.chainProperties.sc.strCoinNameErc20 = "";
                 process.exit( 126 );
             }
         } else {
             if( n1 === 0 )
                 log.write( cc.fatal( "FATAL, CRITICAL ERROR:" ) + cc.error( "Main-net ERC20 JSON is invalid" ) + "\n" );
-            if( n2 === 0 && imaState.strPathJsonErc20_s_chain.length > 0 )
+            if( n2 === 0 && imaState.chainProperties.sc.strPathJsonErc20.length > 0 )
                 log.write( cc.fatal( "FATAL, CRITICAL ERROR:" ) + cc.error( "S-Chain ERC20 JSON is invalid" ) + "\n" );
-            imaState.joErc20_main_net = null;
-            imaState.joErc20_s_chain = null;
-            imaState.strCoinNameErc20_main_net = "";
-            imaState.strCoinNameErc20_s_chain = "";
+            imaState.chainProperties.mn.joErc20 = null;
+            imaState.chainProperties.sc.joErc20 = null;
+            imaState.chainProperties.tc.strCoinNameErc20 = "";
+            imaState.chainProperties.sc.strCoinNameErc20 = "";
             process.exit( 126 );
         }
-    } else { // if( imaState.strPathJsonErc20_main_net.length > 0 /*&& imaState.strPathJsonErc20_s_chain.length > 0*/ )
-        if( imaState.strPathJsonErc20_s_chain.length > 0 ) {
+    } else { // if( imaState.chainProperties.mn.strPathJsonErc20.length > 0 /*&& imaState.chainProperties.sc.strPathJsonErc20.length > 0*/ )
+        if( imaState.chainProperties.sc.strPathJsonErc20.length > 0 ) {
             n1 = 0;
             n2 = 0;
             if( isPrintGathered && IMA.verbose_get() > IMA.RV_VERBOSE.information )
-                log.write( cc.info( "Loading S-Chain ERC20 ABI from " ) + cc.info( imaState.strPathJsonErc20_s_chain ) + "\n" );
-            imaState.joErc20_s_chain = imaUtils.jsonFileLoad( imaState.strPathJsonErc20_s_chain, null );
-            n2 = Object.keys( imaState.joErc20_s_chain ).length;
+                log.write( cc.info( "Loading S-Chain ERC20 ABI from " ) + cc.info( imaState.chainProperties.sc.strPathJsonErc20 ) + "\n" );
+            imaState.chainProperties.sc.joErc20 = imaUtils.jsonFileLoad( imaState.chainProperties.sc.strPathJsonErc20, null );
+            n2 = Object.keys( imaState.chainProperties.sc.joErc20 ).length;
             if( n2 > 0 ) {
-                imaState.strCoinNameErc20_s_chain = imaUtils.discover_in_json_coin_name( imaState.joErc20_s_chain );
-                n2 = imaState.strCoinNameErc20_s_chain.length;
+                imaState.chainProperties.sc.strCoinNameErc20 = imaUtils.discover_in_json_coin_name( imaState.chainProperties.sc.joErc20 );
+                n2 = imaState.chainProperties.sc.strCoinNameErc20.length;
                 if( n2 > 0 ) {
                     if( isPrintGathered )
-                        log.write( cc.info( "Loaded S-Chain ERC20 ABI " ) + cc.attention( imaState.strCoinNameErc20_s_chain ) + "\n" );
+                        log.write( cc.info( "Loaded S-Chain ERC20 ABI " ) + cc.attention( imaState.chainProperties.sc.strCoinNameErc20 ) + "\n" );
                 } else {
-                    if( n2 === 0 && imaState.strPathJsonErc20_s_chain.length > 0 )
+                    if( n2 === 0 && imaState.chainProperties.sc.strPathJsonErc20.length > 0 )
                         log.write( cc.fatal( "FATAL, CRITICAL ERROR:" ) + cc.error( "S-Chain ERC20 token name is not discovered (malformed JSON)" ) + "\n" );
-                    imaState.joErc20_main_net = null;
-                    imaState.joErc20_s_chain = null;
-                    imaState.strCoinNameErc20_main_net = "";
-                    imaState.strCoinNameErc20_s_chain = "";
+                    imaState.chainProperties.mn.joErc20 = null;
+                    imaState.chainProperties.sc.joErc20 = null;
+                    imaState.chainProperties.tc.strCoinNameErc20 = "";
+                    imaState.chainProperties.sc.strCoinNameErc20 = "";
                     process.exit( 126 );
                 }
             }
@@ -1761,112 +1761,112 @@ function ima_common_init() {
         else {
             if( isPrintGathered )
                 log.write( cc.attention( "IMPORTANT NOTICE:" ) + " " + cc.note( "S-Chain ERC20 ABI will be auto-generated" ) + "\n" );
-            imaState.strCoinNameErc20_s_chain = "" + imaState.strCoinNameErc20_main_net; // assume same
-            imaState.joErc20_s_chain = JSON.parse( JSON.stringify( imaState.joErc20_main_net ) ); // clone
-            imaState.joErc20_s_chain[imaState.strCoinNameErc20_s_chain + "_address"] = "" + imaState.strAddrErc20_explicit; // set explicit address
+            imaState.chainProperties.sc.strCoinNameErc20 = "" + imaState.chainProperties.tc.strCoinNameErc20; // assume same
+            imaState.chainProperties.sc.joErc20 = JSON.parse( JSON.stringify( imaState.chainProperties.mn.joErc20 ) ); // clone
+            imaState.chainProperties.sc.joErc20[imaState.chainProperties.sc.strCoinNameErc20 + "_address"] = "" + imaState.strAddrErc20_explicit; // set explicit address
             // if( isPrintGathered && IMA.verbose_get() > IMA.RV_VERBOSE.information )
-            //     log.write( cc.info("Auto-generated S-Chain ERC20 JSON is ") + cc.j(imaState.joErc20_s_chain) + "\n" );
+            //     log.write( cc.info("Auto-generated S-Chain ERC20 JSON is ") + cc.j(imaState.chainProperties.sc.joErc20) + "\n" );
         }
     }
     //
-    if( imaState.strPathJsonErc20_t_chain.length > 0 ) {
+    if( imaState.chainProperties.tc.strPathJsonErc20.length > 0 ) {
         if( isPrintGathered && IMA.verbose_get() > IMA.RV_VERBOSE.information )
-            log.write( cc.info( "Loading S<->S Target S-Chain ERC20 ABI from " ) + cc.info( imaState.strPathJsonErc20_t_chain ) + "\n" );
-        imaState.joErc20_t_chain = imaUtils.jsonFileLoad( imaState.strPathJsonErc20_t_chain, null );
-        n2 = Object.keys( imaState.joErc20_t_chain ).length;
+            log.write( cc.info( "Loading S<->S Target S-Chain ERC20 ABI from " ) + cc.info( imaState.chainProperties.tc.strPathJsonErc20 ) + "\n" );
+        imaState.chainProperties.tc.joErc20 = imaUtils.jsonFileLoad( imaState.chainProperties.tc.strPathJsonErc20, null );
+        n2 = Object.keys( imaState.chainProperties.tc.joErc20 ).length;
         if( n2 > 0 ) {
-            imaState.strCoinNameErc20_t_chain = imaUtils.discover_in_json_coin_name( imaState.joErc20_t_chain );
-            n2 = imaState.strCoinNameErc20_t_chain.length;
+            imaState.chainProperties.tc.strCoinNameErc20 = imaUtils.discover_in_json_coin_name( imaState.chainProperties.tc.joErc20 );
+            n2 = imaState.chainProperties.tc.strCoinNameErc20.length;
             if( n2 > 0 ) {
                 if( isPrintGathered )
-                    log.write( cc.info( "Loaded S<->S Target S-Chain ERC20 ABI " ) + cc.attention( imaState.strCoinNameErc20_t_chain ) + "\n" );
+                    log.write( cc.info( "Loaded S<->S Target S-Chain ERC20 ABI " ) + cc.attention( imaState.chainProperties.tc.strCoinNameErc20 ) + "\n" );
             } else {
-                if( n2 === 0 && imaState.strPathJsonErc20_t_chain.length > 0 )
+                if( n2 === 0 && imaState.chainProperties.tc.strPathJsonErc20.length > 0 )
                     log.write( cc.fatal( "FATAL, CRITICAL ERROR:" ) + cc.error( "S<->S Target S-Chain ERC20 token name is not discovered (malformed JSON)" ) + "\n" );
-                imaState.joErc20_t_chain = null;
-                imaState.strCoinNameErc20_t_chain = "";
+                imaState.chainProperties.tc.joErc20 = null;
+                imaState.chainProperties.tc.strCoinNameErc20 = "";
                 process.exit( 126 );
             }
         }
-    } // if( imaState.strPathJsonErc20_t_chain.length > 0 )
+    } // if( imaState.chainProperties.tc.strPathJsonErc20.length > 0 )
     if( isPrintGathered &&
-        imaState.strAddrErc20_explicit_target.length === 0 && imaState.strCoinNameErc20_t_chain.length === 0 &&
-        imaState.strCoinNameErc20_s_chain.length > 0
+        imaState.strAddrErc20_explicit_target.length === 0 && imaState.chainProperties.tc.strCoinNameErc20.length === 0 &&
+        imaState.chainProperties.sc.strCoinNameErc20.length > 0
     )
         log.write( cc.error( "IMPORTANT NOTICE:" ) + " " + cc.warning( "Both S<->S Target S-Chain ERC20 JSON and explicit ERC20 address are not specified" ) + "\n" );
     //
     //
     //
-    if( imaState.strPathJsonErc721_main_net.length > 0 /* && imaState.strPathJsonErc721_s_chain.length > 0 */ ) {
+    if( imaState.chainProperties.mn.strPathJsonErc721.length > 0 /* && imaState.chainProperties.sc.strPathJsonErc721.length > 0 */ ) {
         n1 = 0;
         n2 = 0;
         if( isPrintGathered && IMA.verbose_get() > IMA.RV_VERBOSE.information )
-            log.write( cc.info( "Loading Main-net ERC721 ABI from " ) + cc.info( imaState.strPathJsonErc721_main_net ) + "\n" );
-        imaState.joErc721_main_net = imaUtils.jsonFileLoad( imaState.strPathJsonErc721_main_net, null );
-        n1 = Object.keys( imaState.joErc721_main_net ).length;
-        if( imaState.strPathJsonErc721_s_chain.length > 0 ) {
+            log.write( cc.info( "Loading Main-net ERC721 ABI from " ) + cc.info( imaState.chainProperties.mn.strPathJsonErc721 ) + "\n" );
+        imaState.chainProperties.mn.joErc721 = imaUtils.jsonFileLoad( imaState.chainProperties.mn.strPathJsonErc721, null );
+        n1 = Object.keys( imaState.chainProperties.mn.joErc721 ).length;
+        if( imaState.chainProperties.sc.strPathJsonErc721.length > 0 ) {
             if( isPrintGathered && IMA.verbose_get() > IMA.RV_VERBOSE.information )
-                log.write( cc.info( "Loading S-Chain ERC721 ABI from " ) + cc.info( imaState.strPathJsonErc721_s_chain ) + "\n" );
-            imaState.joErc721_s_chain = imaUtils.jsonFileLoad( imaState.strPathJsonErc721_s_chain, null );
-            n2 = Object.keys( imaState.joErc721_s_chain ).length;
+                log.write( cc.info( "Loading S-Chain ERC721 ABI from " ) + cc.info( imaState.chainProperties.sc.strPathJsonErc721 ) + "\n" );
+            imaState.chainProperties.sc.joErc721 = imaUtils.jsonFileLoad( imaState.chainProperties.sc.strPathJsonErc721, null );
+            n2 = Object.keys( imaState.chainProperties.sc.joErc721 ).length;
         }
         if( n1 > 0 /* && n2 > 0 */ ) {
-            imaState.strCoinNameErc721_main_net = imaUtils.discover_in_json_coin_name( imaState.joErc721_main_net );
+            imaState.chainProperties.mn.strCoinNameErc721 = imaUtils.discover_in_json_coin_name( imaState.chainProperties.mn.joErc721 );
             if( n2 > 0 )
-                imaState.strCoinNameErc721_s_chain = imaUtils.discover_in_json_coin_name( imaState.joErc721_s_chain );
-            n1 = imaState.strCoinNameErc721_main_net.length;
+                imaState.chainProperties.sc.strCoinNameErc721 = imaUtils.discover_in_json_coin_name( imaState.chainProperties.sc.joErc721 );
+            n1 = imaState.chainProperties.mn.strCoinNameErc721.length;
             if( n2 > 0 )
-                n2 = imaState.strCoinNameErc721_s_chain.length;
+                n2 = imaState.chainProperties.sc.strCoinNameErc721.length;
             if( n1 > 0 /* && n2 > 0 */ ) {
                 if( IMA.verbose_get() >= IMA.RV_VERBOSE.information && ( !imaState.bShowConfigMode ) ) {
                     if( isPrintGathered )
-                        log.write( cc.info( "Loaded Main-net ERC721 ABI " ) + cc.attention( imaState.strCoinNameErc721_main_net ) + "\n" );
+                        log.write( cc.info( "Loaded Main-net ERC721 ABI " ) + cc.attention( imaState.chainProperties.mn.strCoinNameErc721 ) + "\n" );
                     if( n2 > 0 && isPrintGathered )
-                        log.write( cc.info( "Loaded S-Chain ERC721 ABI " ) + cc.attention( imaState.strCoinNameErc721_s_chain ) + "\n" );
+                        log.write( cc.info( "Loaded S-Chain ERC721 ABI " ) + cc.attention( imaState.chainProperties.sc.strCoinNameErc721 ) + "\n" );
                 }
             } else {
                 if( n1 === 0 )
                     log.write( cc.fatal( "FATAL, CRITICAL ERROR:" ) + cc.error( "Main-net ERC721 token name is not discovered (malformed JSON)" ) + "\n" );
-                if( n2 === 0 && imaState.strPathJsonErc721_s_chain.length > 0 )
+                if( n2 === 0 && imaState.chainProperties.sc.strPathJsonErc721.length > 0 )
                     log.write( cc.fatal( "FATAL, CRITICAL ERROR:" ) + cc.error( "S-Chain ERC721 token name is not discovered (malformed JSON)" ) + "\n" );
-                imaState.joErc721_main_net = null;
-                imaState.joErc721_s_chain = null;
-                imaState.strCoinNameErc721_main_net = "";
-                imaState.strCoinNameErc721_s_chain = "";
+                imaState.chainProperties.mn.joErc721 = null;
+                imaState.chainProperties.sc.joErc721 = null;
+                imaState.chainProperties.mn.strCoinNameErc721 = "";
+                imaState.chainProperties.sc.strCoinNameErc721 = "";
                 process.exit( 126 );
             }
         } else {
             if( n1 === 0 )
                 log.write( cc.fatal( "FATAL, CRITICAL ERROR:" ) + cc.error( "Main-net ERC721 JSON is invalid" ) + "\n" );
-            if( n2 === 0 && imaState.strPathJsonErc721_s_chain.length > 0 )
+            if( n2 === 0 && imaState.chainProperties.sc.strPathJsonErc721.length > 0 )
                 log.write( cc.fatal( "FATAL, CRITICAL ERROR:" ) + cc.error( "S-Chain ERC721 JSON is invalid" ) + "\n" );
-            imaState.joErc721_main_net = null;
-            imaState.joErc721_s_chain = null;
-            imaState.strCoinNameErc721_main_net = "";
-            imaState.strCoinNameErc721_s_chain = "";
+            imaState.chainProperties.mn.joErc721 = null;
+            imaState.chainProperties.sc.joErc721 = null;
+            imaState.chainProperties.mn.strCoinNameErc721 = "";
+            imaState.chainProperties.sc.strCoinNameErc721 = "";
             process.exit( 126 );
         }
-    } else { // if( imaState.strPathJsonErc721_main_net.length > 0 /*&& imaState.strPathJsonErc721_s_chain.length > 0*/ )
-        if( imaState.strPathJsonErc721_s_chain.length > 0 ) {
+    } else { // if( imaState.chainProperties.mn.strPathJsonErc721.length > 0 /*&& imaState.chainProperties.sc.strPathJsonErc721.length > 0*/ )
+        if( imaState.chainProperties.sc.strPathJsonErc721.length > 0 ) {
             n1 = 0;
             n2 = 0;
             if( isPrintGathered && IMA.verbose_get() > IMA.RV_VERBOSE.information )
-                log.write( cc.info( "Loading S-Chain ERC721 ABI from " ) + cc.info( imaState.strPathJsonErc721_s_chain ) + "\n" );
-            imaState.joErc721_s_chain = imaUtils.jsonFileLoad( imaState.strPathJsonErc721_s_chain, null );
-            n2 = Object.keys( imaState.joErc721_s_chain ).length;
+                log.write( cc.info( "Loading S-Chain ERC721 ABI from " ) + cc.info( imaState.chainProperties.sc.strPathJsonErc721 ) + "\n" );
+            imaState.chainProperties.sc.joErc721 = imaUtils.jsonFileLoad( imaState.chainProperties.sc.strPathJsonErc721, null );
+            n2 = Object.keys( imaState.chainProperties.sc.joErc721 ).length;
 
             if( n2 > 0 ) {
-                imaState.strCoinNameErc721_s_chain = imaUtils.discover_in_json_coin_name( imaState.joErc721_s_chain );
-                n2 = imaState.strCoinNameErc721_s_chain.length;
+                imaState.chainProperties.sc.strCoinNameErc721 = imaUtils.discover_in_json_coin_name( imaState.chainProperties.sc.joErc721 );
+                n2 = imaState.chainProperties.sc.strCoinNameErc721.length;
                 if( n2 > 0 ) {
                     if( isPrintGathered )
-                        log.write( cc.info( "Loaded S-Chain ERC721 ABI " ) + cc.attention( imaState.strCoinNameErc721_s_chain ) + "\n" ); else {
-                        if( n2 === 0 && imaState.strPathJsonErc721_s_chain.length > 0 )
+                        log.write( cc.info( "Loaded S-Chain ERC721 ABI " ) + cc.attention( imaState.chainProperties.sc.strCoinNameErc721 ) + "\n" ); else {
+                        if( n2 === 0 && imaState.chainProperties.sc.strPathJsonErc721.length > 0 )
                             log.write( cc.fatal( "FATAL, CRITICAL ERROR:" ) + cc.error( "S-Chain ERC721 token name is not discovered (malformed JSON)" ) + "\n" );
-                        imaState.joErc721_main_net = null;
-                        imaState.joErc721_s_chain = null;
-                        imaState.strCoinNameErc721_main_net = "";
-                        imaState.strCoinNameErc721_s_chain = "";
+                        imaState.chainProperties.mn.joErc721 = null;
+                        imaState.chainProperties.sc.joErc721 = null;
+                        imaState.chainProperties.mn.strCoinNameErc721 = "";
+                        imaState.chainProperties.sc.strCoinNameErc721 = "";
                         process.exit( 126 );
                     }
                 }
@@ -1880,112 +1880,112 @@ function ima_common_init() {
         } else {
             if( isPrintGathered )
                 log.write( cc.attention( "IMPORTANT NOTICE:" ) + " " + cc.note( "S-Chain ERC721 ABI will be auto-generated" ) + "\n" );
-            imaState.strCoinNameErc721_s_chain = "" + imaState.strCoinNameErc721_main_net; // assume same
-            imaState.joErc721_s_chain = JSON.parse( JSON.stringify( imaState.joErc721_main_net ) ); // clone
-            imaState.joErc721_s_chain[imaState.strCoinNameErc721_s_chain + "_address"] = "" + imaState.strAddrErc721_explicit; // set explicit address
+            imaState.chainProperties.sc.strCoinNameErc721 = "" + imaState.chainProperties.mn.strCoinNameErc721; // assume same
+            imaState.chainProperties.sc.joErc721 = JSON.parse( JSON.stringify( imaState.chainProperties.mn.joErc721 ) ); // clone
+            imaState.chainProperties.sc.joErc721[imaState.chainProperties.sc.strCoinNameErc721 + "_address"] = "" + imaState.strAddrErc721_explicit; // set explicit address
             // if( IMA.verbose_get() > IMA.RV_VERBOSE.information )
-            //     log.write( cc.info("Auto-generated S-Chain ERC721 JSON is ") + cc.j(imaState.joErc721_s_chain) + "\n" );
+            //     log.write( cc.info("Auto-generated S-Chain ERC721 JSON is ") + cc.j(imaState.chainProperties.sc.joErc721) + "\n" );
         }
     }
     //
-    if( imaState.strPathJsonErc721_t_chain.length > 0 && isPrintGathered ) {
+    if( imaState.chainProperties.tc.strPathJsonErc721.length > 0 && isPrintGathered ) {
         if( IMA.verbose_get() > IMA.RV_VERBOSE.information )
-            log.write( cc.info( "Loading S<->S Target S-Chain ERC721 ABI from " ) + cc.info( imaState.strPathJsonErc721_t_chain ) + "\n" );
-        imaState.joErc721_t_chain = imaUtils.jsonFileLoad( imaState.strPathJsonErc721_t_chain, null );
-        n2 = Object.keys( imaState.joErc721_t_chain ).length;
+            log.write( cc.info( "Loading S<->S Target S-Chain ERC721 ABI from " ) + cc.info( imaState.chainProperties.tc.strPathJsonErc721 ) + "\n" );
+        imaState.chainProperties.tc.joErc721 = imaUtils.jsonFileLoad( imaState.chainProperties.tc.strPathJsonErc721, null );
+        n2 = Object.keys( imaState.chainProperties.tc.joErc721 ).length;
         if( n2 > 0 ) {
-            imaState.strCoinNameErc721_t_chain = imaUtils.discover_in_json_coin_name( imaState.joErc721_t_chain );
-            n2 = imaState.strCoinNameErc721_t_chain.length;
+            imaState.chainProperties.tc.strCoinNameErc721 = imaUtils.discover_in_json_coin_name( imaState.chainProperties.tc.joErc721 );
+            n2 = imaState.chainProperties.tc.strCoinNameErc721.length;
             if( n2 > 0 && isPrintGathered )
-                log.write( cc.info( "Loaded S<->S Target S-Chain ERC721 ABI " ) + cc.attention( imaState.strCoinNameErc721_t_chain ) + "\n" );
+                log.write( cc.info( "Loaded S<->S Target S-Chain ERC721 ABI " ) + cc.attention( imaState.chainProperties.tc.strCoinNameErc721 ) + "\n" );
             else {
-                if( n2 === 0 && imaState.strPathJsonErc721_t_chain.length > 0 && isPrintGathered )
+                if( n2 === 0 && imaState.chainProperties.tc.strPathJsonErc721.length > 0 && isPrintGathered )
                     log.write( cc.fatal( "FATAL, CRITICAL ERROR:" ) + cc.error( "S<->S Target S-Chain ERC721 token name is not discovered (malformed JSON)" ) + "\n" );
-                imaState.joErc721_t_chain = null;
-                imaState.strCoinNameErc721_t_chain = "";
+                imaState.chainProperties.tc.joErc721 = null;
+                imaState.chainProperties.tc.strCoinNameErc721 = "";
                 process.exit( 126 );
             }
         }
-    } // if( imaState.strPathJsonErc721_t_chain.length > 0 )
+    } // if( imaState.chainProperties.tc.strPathJsonErc721.length > 0 )
     if( isPrintGathered &&
-        imaState.strAddrErc721_explicit_target.length === 0 && imaState.strCoinNameErc721_t_chain.length === 0 &&
-        imaState.strCoinNameErc721_s_chain.length > 0
+        imaState.strAddrErc721_explicit_target.length === 0 && imaState.chainProperties.tc.strCoinNameErc721.length === 0 &&
+        imaState.chainProperties.sc.strCoinNameErc721.length > 0
     )
         log.write( cc.error( "IMPORTANT NOTICE:" ) + " " + cc.warning( "Both S<->S Target S-Chain ERC721 JSON and explicit ERC721 address are not specified" ) + "\n" );
     //
     //
     //
-    if( imaState.strPathJsonErc1155_main_net.length > 0 /* && imaState.strPathJsonErc1155_s_chain.length > 0 */ ) {
+    if( imaState.chainProperties.mn.strPathJsonErc1155.length > 0 /* && imaState.chainProperties.sc.strPathJsonErc1155.length > 0 */ ) {
         n1 = 0;
         n2 = 0;
         if( isPrintGathered && IMA.verbose_get() > IMA.RV_VERBOSE.information )
-            log.write( cc.info( "Loading Main-net ERC1155 ABI from " ) + cc.info( imaState.strPathJsonErc1155_main_net ) + "\n" );
-        imaState.joErc1155_main_net = imaUtils.jsonFileLoad( imaState.strPathJsonErc1155_main_net, null );
-        n1 = Object.keys( imaState.joErc1155_main_net ).length;
-        if( imaState.strPathJsonErc1155_s_chain.length > 0 ) {
+            log.write( cc.info( "Loading Main-net ERC1155 ABI from " ) + cc.info( imaState.chainProperties.mn.strPathJsonErc1155 ) + "\n" );
+        imaState.chainProperties.mn.joErc1155 = imaUtils.jsonFileLoad( imaState.chainProperties.mn.strPathJsonErc1155, null );
+        n1 = Object.keys( imaState.chainProperties.mn.joErc1155 ).length;
+        if( imaState.chainProperties.sc.strPathJsonErc1155.length > 0 ) {
             if( isPrintGathered && IMA.verbose_get() > IMA.RV_VERBOSE.information )
-                log.write( cc.info( "Loading S-Chain ERC1155 ABI from " ) + cc.info( imaState.strPathJsonErc1155_s_chain ) + "\n" );
-            imaState.joErc1155_s_chain = imaUtils.jsonFileLoad( imaState.strPathJsonErc1155_s_chain, null );
-            n2 = Object.keys( imaState.joErc1155_s_chain ).length;
+                log.write( cc.info( "Loading S-Chain ERC1155 ABI from " ) + cc.info( imaState.chainProperties.sc.strPathJsonErc1155 ) + "\n" );
+            imaState.chainProperties.sc.joErc1155 = imaUtils.jsonFileLoad( imaState.chainProperties.sc.strPathJsonErc1155, null );
+            n2 = Object.keys( imaState.chainProperties.sc.joErc1155 ).length;
         }
         if( n1 > 0 /* && n2 > 0 */ ) {
-            imaState.strCoinNameErc1155_main_net = imaUtils.discover_in_json_coin_name( imaState.joErc1155_main_net );
+            imaState.chainProperties.mn.strCoinNameErc1155 = imaUtils.discover_in_json_coin_name( imaState.chainProperties.mn.joErc1155 );
             if( n2 > 0 )
-                imaState.strCoinNameErc1155_s_chain = imaUtils.discover_in_json_coin_name( imaState.joErc1155_s_chain );
-            n1 = imaState.strCoinNameErc1155_main_net.length;
+                imaState.chainProperties.sc.strCoinNameErc1155 = imaUtils.discover_in_json_coin_name( imaState.chainProperties.sc.joErc1155 );
+            n1 = imaState.chainProperties.mn.strCoinNameErc1155.length;
             if( n2 > 0 )
-                n2 = imaState.strCoinNameErc1155_s_chain.length;
+                n2 = imaState.chainProperties.sc.strCoinNameErc1155.length;
             if( n1 > 0 /* && n2 > 0 */ ) {
                 if( IMA.verbose_get() >= IMA.RV_VERBOSE.information && ( !imaState.bShowConfigMode ) ) {
                     if( isPrintGathered )
-                        log.write( cc.info( "Loaded Main-net ERC1155 ABI " ) + cc.attention( imaState.strCoinNameErc1155_main_net ) + "\n" );
+                        log.write( cc.info( "Loaded Main-net ERC1155 ABI " ) + cc.attention( imaState.chainProperties.mn.strCoinNameErc1155 ) + "\n" );
                     if( n2 > 0 && isPrintGathered )
-                        log.write( cc.info( "Loaded S-Chain ERC1155 ABI " ) + cc.attention( imaState.strCoinNameErc1155_s_chain ) + "\n" );
+                        log.write( cc.info( "Loaded S-Chain ERC1155 ABI " ) + cc.attention( imaState.chainProperties.sc.strCoinNameErc1155 ) + "\n" );
                 }
             } else {
                 if( n1 === 0 )
                     log.write( cc.fatal( "FATAL, CRITICAL ERROR:" ) + cc.error( "Main-net ERC1155 token name is not discovered (malformed JSON)" ) + "\n" );
-                if( n2 === 0 && imaState.strPathJsonErc1155_s_chain.length > 0 )
+                if( n2 === 0 && imaState.chainProperties.sc.strPathJsonErc1155.length > 0 )
                     log.write( cc.fatal( "FATAL, CRITICAL ERROR:" ) + cc.error( "S-Chain ERC1155 token name is not discovered (malformed JSON)" ) + "\n" );
-                imaState.joErc1155_main_net = null;
-                imaState.joErc1155_s_chain = null;
-                imaState.strCoinNameErc1155_main_net = "";
-                imaState.strCoinNameErc1155_s_chain = "";
+                imaState.chainProperties.mn.joErc1155 = null;
+                imaState.chainProperties.sc.joErc1155 = null;
+                imaState.chainProperties.mn.strCoinNameErc1155 = "";
+                imaState.chainProperties.sc.strCoinNameErc1155 = "";
                 process.exit( 126 );
             }
         } else {
             if( n1 === 0 )
                 log.write( cc.fatal( "FATAL, CRITICAL ERROR:" ) + cc.error( "Main-net ERC1155 JSON is invalid" ) + "\n" );
-            if( n2 === 0 && imaState.strPathJsonErc1155_s_chain.length > 0 )
+            if( n2 === 0 && imaState.chainProperties.sc.strPathJsonErc1155.length > 0 )
                 log.write( cc.fatal( "FATAL, CRITICAL ERROR:" ) + cc.error( "S-Chain ERC1155 JSON is invalid" ) + "\n" );
-            imaState.joErc1155_main_net = null;
-            imaState.joErc1155_s_chain = null;
-            imaState.strCoinNameErc1155_main_net = "";
-            imaState.strCoinNameErc1155_s_chain = "";
+            imaState.chainProperties.mn.joErc1155 = null;
+            imaState.chainProperties.sc.joErc1155 = null;
+            imaState.chainProperties.mn.strCoinNameErc1155 = "";
+            imaState.chainProperties.sc.strCoinNameErc1155 = "";
             process.exit( 126 );
         }
-    } else { // if( imaState.strPathJsonErc1155_main_net.length > 0 /*&& imaState.strPathJsonErc1155_s_chain.length > 0*/ )
-        if( imaState.strPathJsonErc1155_s_chain.length > 0 ) {
+    } else { // if( imaState.chainProperties.mn.strPathJsonErc1155.length > 0 /*&& imaState.chainProperties.sc.strPathJsonErc1155.length > 0*/ )
+        if( imaState.chainProperties.sc.strPathJsonErc1155.length > 0 ) {
             n1 = 0;
             n2 = 0;
             if( isPrintGathered && IMA.verbose_get() > IMA.RV_VERBOSE.information )
-                log.write( cc.info( "Loading S-Chain ERC1155 ABI from " ) + cc.info( imaState.strPathJsonErc1155_s_chain ) + "\n" );
-            imaState.joErc1155_s_chain = imaUtils.jsonFileLoad( imaState.strPathJsonErc1155_s_chain, null );
-            n2 = Object.keys( imaState.joErc1155_s_chain ).length;
+                log.write( cc.info( "Loading S-Chain ERC1155 ABI from " ) + cc.info( imaState.chainProperties.sc.strPathJsonErc1155 ) + "\n" );
+            imaState.chainProperties.sc.joErc1155 = imaUtils.jsonFileLoad( imaState.chainProperties.sc.strPathJsonErc1155, null );
+            n2 = Object.keys( imaState.chainProperties.sc.joErc1155 ).length;
 
             if( n2 > 0 ) {
-                imaState.strCoinNameErc1155_s_chain = imaUtils.discover_in_json_coin_name( imaState.joErc1155_s_chain );
-                n2 = imaState.strCoinNameErc1155_s_chain.length;
+                imaState.chainProperties.sc.strCoinNameErc1155 = imaUtils.discover_in_json_coin_name( imaState.chainProperties.sc.joErc1155 );
+                n2 = imaState.chainProperties.sc.strCoinNameErc1155.length;
                 if( n2 > 0 ) {
                     if( isPrintGathered )
-                        log.write( cc.info( "Loaded S-Chain ERC1155 ABI " ) + cc.attention( imaState.strCoinNameErc1155_s_chain ) + "\n" );
+                        log.write( cc.info( "Loaded S-Chain ERC1155 ABI " ) + cc.attention( imaState.chainProperties.sc.strCoinNameErc1155 ) + "\n" );
                 } else {
-                    if( n2 === 0 && imaState.strPathJsonErc1155_s_chain.length > 0 )
+                    if( n2 === 0 && imaState.chainProperties.sc.strPathJsonErc1155.length > 0 )
                         log.write( cc.fatal( "FATAL, CRITICAL ERROR:" ) + cc.error( "S-Chain ERC1155 token name is not discovered (malformed JSON)" ) + "\n" );
-                    imaState.joErc1155_main_net = null;
-                    imaState.joErc1155_s_chain = null;
-                    imaState.strCoinNameErc1155_main_net = "";
-                    imaState.strCoinNameErc1155_s_chain = "";
+                    imaState.chainProperties.mn.joErc1155 = null;
+                    imaState.chainProperties.sc.joErc1155 = null;
+                    imaState.chainProperties.mn.strCoinNameErc1155 = "";
+                    imaState.chainProperties.sc.strCoinNameErc1155 = "";
                     process.exit( 126 );
                 }
             }
@@ -1998,37 +1998,37 @@ function ima_common_init() {
         } else {
             if( isPrintGathered )
                 log.write( cc.attention( "IMPORTANT NOTICE:" ) + " " + cc.note( "S-Chain ERC1155 ABI will be auto-generated" ) + "\n" );
-            imaState.strCoinNameErc1155_s_chain = "" + imaState.strCoinNameErc1155_main_net; // assume same
-            imaState.joErc1155_s_chain = JSON.parse( JSON.stringify( imaState.joErc1155_main_net ) ); // clone
-            imaState.joErc1155_s_chain[imaState.strCoinNameErc1155_s_chain + "_address"] = "" + imaState.strAddrErc1155_explicit; // set explicit address
+            imaState.chainProperties.sc.strCoinNameErc1155 = "" + imaState.chainProperties.mn.strCoinNameErc1155; // assume same
+            imaState.chainProperties.sc.joErc1155 = JSON.parse( JSON.stringify( imaState.chainProperties.mn.joErc1155 ) ); // clone
+            imaState.chainProperties.sc.joErc1155[imaState.chainProperties.sc.strCoinNameErc1155 + "_address"] = "" + imaState.strAddrErc1155_explicit; // set explicit address
             // if( IMA.verbose_get() > IMA.RV_VERBOSE.information )
-            //     log.write( cc.info("Auto-generated S-Chain ERC1155 JSON is ") + cc.j(imaState.joErc1155_s_chain) + "\n" );
+            //     log.write( cc.info("Auto-generated S-Chain ERC1155 JSON is ") + cc.j(imaState.chainProperties.sc.joErc1155) + "\n" );
         }
     }
     //
-    if( imaState.strPathJsonErc1155_t_chain.length > 0 ) {
+    if( imaState.chainProperties.tc.strPathJsonErc1155.length > 0 ) {
         if( isPrintGathered && IMA.verbose_get() > IMA.RV_VERBOSE.information )
-            log.write( cc.info( "Loading S<->S Target S-Chain ERC1155 ABI from " ) + cc.info( imaState.strPathJsonErc1155_t_chain ) + "\n" );
-        imaState.joErc1155_t_chain = imaUtils.jsonFileLoad( imaState.strPathJsonErc1155_t_chain, null );
-        n2 = Object.keys( imaState.joErc1155_t_chain ).length;
+            log.write( cc.info( "Loading S<->S Target S-Chain ERC1155 ABI from " ) + cc.info( imaState.chainProperties.tc.strPathJsonErc1155 ) + "\n" );
+        imaState.chainProperties.tc.joErc1155 = imaUtils.jsonFileLoad( imaState.chainProperties.tc.strPathJsonErc1155, null );
+        n2 = Object.keys( imaState.chainProperties.tc.joErc1155 ).length;
         if( n2 > 0 ) {
-            imaState.strCoinNameErc1155_t_chain = imaUtils.discover_in_json_coin_name( imaState.joErc1155_t_chain );
-            n2 = imaState.strCoinNameErc1155_t_chain.length;
+            imaState.chainProperties.tc.strCoinNameErc1155 = imaUtils.discover_in_json_coin_name( imaState.chainProperties.tc.joErc1155 );
+            n2 = imaState.chainProperties.tc.strCoinNameErc1155.length;
             if( n2 > 0 ) {
                 if( isPrintGathered )
-                    log.write( cc.info( "Loaded S<->S Target S-Chain ERC1155 ABI " ) + cc.attention( imaState.strCoinNameErc1155_t_chain ) + "\n" );
+                    log.write( cc.info( "Loaded S<->S Target S-Chain ERC1155 ABI " ) + cc.attention( imaState.chainProperties.tc.strCoinNameErc1155 ) + "\n" );
             } else {
-                if( n2 === 0 && imaState.strPathJsonErc1155_t_chain.length > 0 && isPrintGathered )
+                if( n2 === 0 && imaState.chainProperties.tc.strPathJsonErc1155.length > 0 && isPrintGathered )
                     log.write( cc.fatal( "FATAL, CRITICAL ERROR:" ) + cc.error( "S<->S Target S-Chain ERC1155 token name is not discovered (malformed JSON)" ) + "\n" );
-                imaState.joErc1155_t_chain = null;
-                imaState.strCoinNameErc1155_t_chain = "";
+                imaState.chainProperties.tc.joErc1155 = null;
+                imaState.chainProperties.tc.strCoinNameErc1155 = "";
                 process.exit( 126 );
             }
         }
-    } // if( imaState.strPathJsonErc1155_t_chain.length > 0 )
+    } // if( imaState.chainProperties.tc.strPathJsonErc1155.length > 0 )
     if( isPrintGathered &&
-        imaState.strAddrErc1155_explicit_target.length === 0 && imaState.strCoinNameErc1155_t_chain.length === 0 &&
-        imaState.strCoinNameErc1155_s_chain.length > 0
+        imaState.strAddrErc1155_explicit_target.length === 0 && imaState.chainProperties.tc.strCoinNameErc1155.length === 0 &&
+        imaState.chainProperties.sc.strCoinNameErc1155.length > 0
     )
         log.write( cc.error( "IMPORTANT NOTICE:" ) + " " + cc.warning( "Both S<->S Target S-Chain ERC1155 JSON and explicit ERC1155 address are not specified" ) + "\n" );
     //
@@ -2048,89 +2048,89 @@ function ima_common_init() {
         ensure_have_value( "Verbose level", IMA.VERBOSE[IMA.verbose_get()], false, isPrintGathered, null, ( x ) => {
             return cc.sunny( x );
         } );
-        ensure_have_value( "Main-net URL", imaState.strURL_main_net, false, isPrintGathered && isPrintSecurityValues, null, ( x ) => {
+        ensure_have_value( "Main-net URL", imaState.chainProperties.mn.strURL, false, isPrintGathered && isPrintSecurityValues, null, ( x ) => {
             return cc.u( x );
         } );
-        ensure_have_value( "S-chain URL", imaState.strURL_s_chain, false, isPrintGathered && isPrintSecurityValues, null, ( x ) => {
+        ensure_have_value( "S-chain URL", imaState.chainProperties.sc.strURL, false, isPrintGathered && isPrintSecurityValues, null, ( x ) => {
             return cc.u( x );
         } );
-        ensure_have_value( "S<->S Target S-chain URL", imaState.strURL_t_chain, false, isPrintGathered && isPrintSecurityValues, null, ( x ) => {
+        ensure_have_value( "S<->S Target S-chain URL", imaState.chainProperties.tc.strURL, false, isPrintGathered && isPrintSecurityValues, null, ( x ) => {
             return cc.u( x );
         } );
-        ensure_have_value( "Main-net Ethereum network name", imaState.strChainName_main_net, false, isPrintGathered && isPrintSecurityValues, null, ( x ) => {
+        ensure_have_value( "Main-net Ethereum network name", imaState.chainProperties.mn.strChainName, false, isPrintGathered && isPrintSecurityValues, null, ( x ) => {
             return cc.note( x );
         } );
-        ensure_have_value( "S-Chain Ethereum network name", imaState.strChainName_s_chain, false, isPrintGathered && isPrintSecurityValues, null, ( x ) => {
+        ensure_have_value( "S-Chain Ethereum network name", imaState.chainProperties.sc.strChainName, false, isPrintGathered && isPrintSecurityValues, null, ( x ) => {
             return cc.note( x );
         } );
-        ensure_have_value( "S<->S Target S-Chain Ethereum network name", imaState.strChainName_t_chain, false, isPrintGathered && isPrintSecurityValues, null, ( x ) => {
+        ensure_have_value( "S<->S Target S-Chain Ethereum network name", imaState.chainProperties.tc.strChainName, false, isPrintGathered && isPrintSecurityValues, null, ( x ) => {
             return cc.note( x );
         } );
-        ensure_have_value( "Main-net Ethereum chain ID", imaState.cid_main_net, false, isPrintGathered && isPrintSecurityValues, null, ( x ) => {
+        ensure_have_value( "Main-net Ethereum chain ID", imaState.chainProperties.mn.cid, false, isPrintGathered && isPrintSecurityValues, null, ( x ) => {
             return cc.note( x );
         } );
-        ensure_have_value( "S-Chain Ethereum chain ID", imaState.cid_s_chain, false, isPrintGathered && isPrintSecurityValues, null, ( x ) => {
+        ensure_have_value( "S-Chain Ethereum chain ID", imaState.chainProperties.sc.cid, false, isPrintGathered && isPrintSecurityValues, null, ( x ) => {
             return cc.note( x );
         } );
-        ensure_have_value( "S<->S Target S-Chain Ethereum chain ID", imaState.cid_t_chain, false, isPrintGathered && isPrintSecurityValues, null, ( x ) => {
+        ensure_have_value( "S<->S Target S-Chain Ethereum chain ID", imaState.chainProperties.tc.cid, false, isPrintGathered && isPrintSecurityValues, null, ( x ) => {
             return cc.note( x );
         } );
-        ensure_have_value( "Skale Manager ABI JSON file path", imaState.strPathAbiJson_skale_manager, false, isPrintGathered, null, ( x ) => {
+        ensure_have_value( "Skale Manager ABI JSON file path", imaState.strPathAbiJsonSkaleManager, false, isPrintGathered, null, ( x ) => {
             return cc.warning( x );
         } );
-        ensure_have_value( "Main-net ABI JSON file path", imaState.strPathAbiJson_main_net, false, isPrintGathered, null, ( x ) => {
+        ensure_have_value( "Main-net ABI JSON file path", imaState.chainProperties.mn.strPathAbiJson, false, isPrintGathered, null, ( x ) => {
             return cc.warning( x );
         } );
-        ensure_have_value( "S-Chain ABI JSON file path", imaState.strPathAbiJson_s_chain, false, isPrintGathered, null, ( x ) => {
+        ensure_have_value( "S-Chain ABI JSON file path", imaState.chainProperties.sc.strPathAbiJson, false, isPrintGathered, null, ( x ) => {
             return cc.warning( x );
         } );
-        ensure_have_value( "S<->S Target S-Chain ABI JSON file path", imaState.strPathAbiJson_t_chain, false, isPrintGathered, null, ( x ) => {
+        ensure_have_value( "S<->S Target S-Chain ABI JSON file path", imaState.chainProperties.tc.strPathAbiJson, false, isPrintGathered, null, ( x ) => {
             return cc.warning( x );
         } );
         //
         //
         try {
-            ensure_have_value( "Main-net user account address", imaState.joAccount_main_net.address( imaState.w3_main_net ), false, isPrintGathered && isPrintSecurityValues );
+            ensure_have_value( "Main-net user account address", imaState.chainProperties.mn.joAccount.address( imaState.chainProperties.mn.w3 ), false, isPrintGathered && isPrintSecurityValues );
         } catch ( err ) {}
         try {
-            ensure_have_value( "S-chain user account address", imaState.joAccount_s_chain.address( imaState.w3_s_chain ), false, isPrintGathered && isPrintSecurityValues );
+            ensure_have_value( "S-chain user account address", imaState.chainProperties.sc.joAccount.address( imaState.chainProperties.sc.w3 ), false, isPrintGathered && isPrintSecurityValues );
         } catch ( err ) {}
         try {
-            ensure_have_value( "S<->S Target S-chain user account address", imaState.joAccount_t_chain.address( imaState.w3_t_chain ), false, isPrintGathered );
+            ensure_have_value( "S<->S Target S-chain user account address", imaState.chainProperties.tc.joAccount.address( imaState.chainProperties.tc.w3 ), false, isPrintGathered );
         } catch ( err ) {}
         //
-        // ensure_have_value( "Private key for main-net user account address", imaState.joAccount_main_net.privateKey, false, isPrintGathered && isPrintSecurityValues, null, ( x ) => {
+        // ensure_have_value( "Private key for main-net user account address", imaState.chainProperties.mn.joAccount.privateKey, false, isPrintGathered && isPrintSecurityValues, null, ( x ) => {
         //     return cc.attention( x );
         // } );
-        // ensure_have_value( "Private key for S-Chain user account address", imaState.joAccount_s_chain.privateKey, false, isPrintGathered && isPrintSecurityValues, null, ( x ) => {
+        // ensure_have_value( "Private key for S-Chain user account address", imaState.chainProperties.sc.joAccount.privateKey, false, isPrintGathered && isPrintSecurityValues, null, ( x ) => {
         //     return cc.attention( x );
         // } );
-        // ensure_have_value( "Private key for S<->S Target S-Chain user account address", imaState.joAccount_t_chain.privateKey, false, isPrintGathered && isPrintSecurityValues, null, ( x ) => {
+        // ensure_have_value( "Private key for S<->S Target S-Chain user account address", imaState.chainProperties.tc.joAccount.privateKey, false, isPrintGathered && isPrintSecurityValues, null, ( x ) => {
         //     return cc.attention( x );
         // } );
         //
         try {
-            ensure_have_chain_credentials( "Main Net", imaState.joAccount_main_net, false, isPrintGathered && isPrintSecurityValues );
+            ensure_have_chain_credentials( "Main Net", imaState.chainProperties.mn.joAccount, false, isPrintGathered && isPrintSecurityValues );
         } catch ( err ) {}
         try {
-            ensure_have_chain_credentials( "S-Chain", imaState.joAccount_s_chain, false, isPrintGathered && isPrintSecurityValues );
+            ensure_have_chain_credentials( "S-Chain", imaState.chainProperties.sc.joAccount, false, isPrintGathered && isPrintSecurityValues );
         } catch ( err ) {}
         try {
-            ensure_have_chain_credentials( "S<->S Target S-Chain", imaState.joAccount_t_chain, false, isPrintGathered && isPrintSecurityValues );
+            ensure_have_chain_credentials( "S<->S Target S-Chain", imaState.chainProperties.tc.joAccount, false, isPrintGathered && isPrintSecurityValues );
         } catch ( err ) {}
         if( isPrintGathered && isPrintSecurityValues ) {
-            if( imaState.joAccount_main_net.strBlsKeyName ) {
-                ensure_have_value( "BLS/Main Net key name", imaState.joAccount_main_net.strBlsKeyName, false, isPrintGathered, null, ( x ) => {
+            if( imaState.chainProperties.mn.joAccount.strBlsKeyName ) {
+                ensure_have_value( "BLS/Main Net key name", imaState.chainProperties.mn.joAccount.strBlsKeyName, false, isPrintGathered, null, ( x ) => {
                     return cc.attention( x );
                 } );
             }
-            if( imaState.joAccount_s_chain.strBlsKeyName ) {
-                ensure_have_value( "BLS/S-Chain key name", imaState.joAccount_s_chain.strBlsKeyName, false, isPrintGathered, null, ( x ) => {
+            if( imaState.chainProperties.sc.joAccount.strBlsKeyName ) {
+                ensure_have_value( "BLS/S-Chain key name", imaState.chainProperties.sc.joAccount.strBlsKeyName, false, isPrintGathered, null, ( x ) => {
                     return cc.attention( x );
                 } );
             }
-            if( imaState.joAccount_t_chain.strBlsKeyName ) {
-                ensure_have_value( "BLS/Target S-Chain key name", imaState.joAccount_t_chain.strBlsKeyName, false, isPrintGathered, null, ( x ) => {
+            if( imaState.chainProperties.tc.joAccount.strBlsKeyName ) {
+                ensure_have_value( "BLS/Target S-Chain key name", imaState.chainProperties.tc.joAccount.strBlsKeyName, false, isPrintGathered, null, ( x ) => {
                     return cc.attention( x );
                 } );
             }
@@ -2212,11 +2212,11 @@ function ima_common_init() {
                 return ( x <= 1 ) ? cc.warning( "not set" ) : cc.note( x );
             } );
         }
-        if( imaState.strCoinNameErc20_main_net.length > 0 /* && imaState.strCoinNameErc20_s_chain.length > 0 */ ) {
-            ensure_have_value( "Loaded Main-net ERC20 ABI ", imaState.strCoinNameErc20_main_net, false, isPrintGathered, null, ( x ) => {
+        if( imaState.chainProperties.tc.strCoinNameErc20.length > 0 /* && imaState.chainProperties.sc.strCoinNameErc20.length > 0 */ ) {
+            ensure_have_value( "Loaded Main-net ERC20 ABI ", imaState.chainProperties.tc.strCoinNameErc20, false, isPrintGathered, null, ( x ) => {
                 return cc.attention( x );
             } );
-            ensure_have_value( "Loaded S-Chain ERC20 ABI ", imaState.strCoinNameErc20_s_chain, false, isPrintGathered, null, ( x ) => {
+            ensure_have_value( "Loaded S-Chain ERC20 ABI ", imaState.chainProperties.sc.strCoinNameErc20, false, isPrintGathered, null, ( x ) => {
                 return cc.attention( x );
             } );
             ensure_have_value( "Amount of tokens to transfer", imaState.nAmountOfToken, false, isPrintGathered, null, ( x ) => {
@@ -2225,16 +2225,16 @@ function ima_common_init() {
             if( isPrintGathered )
                 log.write( cc.info( "ERC20 explicit S-Chain address is " ) + cc.attention( imaState.strAddrErc20_explicit ) + "\n" );
         }
-        if( imaState.strCoinNameErc20_t_chain.length > 0 ) {
-            ensure_have_value( "Loaded S<->S Target S-Chain ERC20 ABI ", imaState.strCoinNameErc20_t_chain, false, isPrintGathered, null, ( x ) => {
+        if( imaState.chainProperties.tc.strCoinNameErc20.length > 0 ) {
+            ensure_have_value( "Loaded S<->S Target S-Chain ERC20 ABI ", imaState.chainProperties.tc.strCoinNameErc20, false, isPrintGathered, null, ( x ) => {
                 return cc.attention( x );
             } );
         }
-        if( imaState.strCoinNameErc721_main_net.length > 0 /* && imaState.strCoinNameErc721_s_chain.length > 0 */ ) {
-            ensure_have_value( "Loaded Main-net ERC721 ABI ", imaState.strCoinNameErc721_main_net, false, isPrintGathered, null, ( x ) => {
+        if( imaState.chainProperties.mn.strCoinNameErc721.length > 0 /* && imaState.chainProperties.sc.strCoinNameErc721.length > 0 */ ) {
+            ensure_have_value( "Loaded Main-net ERC721 ABI ", imaState.chainProperties.mn.strCoinNameErc721, false, isPrintGathered, null, ( x ) => {
                 return cc.attention( x );
             } );
-            ensure_have_value( "Loaded S-Chain ERC721 ABI ", imaState.strCoinNameErc721_s_chain, false, isPrintGathered, null, ( x ) => {
+            ensure_have_value( "Loaded S-Chain ERC721 ABI ", imaState.chainProperties.sc.strCoinNameErc721, false, isPrintGathered, null, ( x ) => {
                 return cc.attention( x );
             } );
             ensure_have_value( "ERC721 token id ", imaState.idToken, false, isPrintGathered, null, ( x ) => {
@@ -2243,16 +2243,16 @@ function ima_common_init() {
             if( isPrintGathered )
                 log.write( cc.info( "ERC721 explicit S-Chain address is " ) + cc.attention( imaState.strAddrErc721_explicit ) + "\n" );
         }
-        if( imaState.strCoinNameErc721_t_chain.length > 0 ) {
-            ensure_have_value( "Loaded S<->S Target S-Chain ERC721 ABI ", imaState.strCoinNameErc721_t_chain, false, isPrintGathered, null, ( x ) => {
+        if( imaState.chainProperties.tc.strCoinNameErc721.length > 0 ) {
+            ensure_have_value( "Loaded S<->S Target S-Chain ERC721 ABI ", imaState.chainProperties.tc.strCoinNameErc721, false, isPrintGathered, null, ( x ) => {
                 return cc.attention( x );
             } );
         }
-        if( imaState.strCoinNameErc1155_main_net.length > 0 /* && imaState.strCoinNameErc1155_s_chain.length > 0 */ ) {
-            ensure_have_value( "Loaded Main-net ERC1155 ABI ", imaState.strCoinNameErc1155_main_net, false, isPrintGathered, null, ( x ) => {
+        if( imaState.chainProperties.mn.strCoinNameErc1155.length > 0 /* && imaState.chainProperties.sc.strCoinNameErc1155.length > 0 */ ) {
+            ensure_have_value( "Loaded Main-net ERC1155 ABI ", imaState.chainProperties.mn.strCoinNameErc1155, false, isPrintGathered, null, ( x ) => {
                 return cc.attention( x );
             } );
-            ensure_have_value( "Loaded S-Chain ERC1155 ABI ", imaState.strCoinNameErc1155_s_chain, false, isPrintGathered, null, ( x ) => {
+            ensure_have_value( "Loaded S-Chain ERC1155 ABI ", imaState.chainProperties.sc.strCoinNameErc1155, false, isPrintGathered, null, ( x ) => {
                 return cc.attention( x );
             } );
             try {
@@ -2280,18 +2280,18 @@ function ima_common_init() {
             if( isPrintGathered )
                 log.write( cc.info( "ERC1155 explicit S-Chain address is " ) + cc.attention( imaState.strAddrErc1155_explicit ) + "\n" );
         }
-        if( imaState.strCoinNameErc1155_t_chain.length > 0 ) {
-            ensure_have_value( "Loaded S<->S Target S-Chain ERC1155 ABI ", imaState.strCoinNameErc1155_t_chain, false, isPrintGathered, null, ( x ) => {
+        if( imaState.chainProperties.tc.strCoinNameErc1155.length > 0 ) {
+            ensure_have_value( "Loaded S<->S Target S-Chain ERC1155 ABI ", imaState.chainProperties.tc.strCoinNameErc1155, false, isPrintGathered, null, ( x ) => {
                 return cc.attention( x );
             } );
         }
         if( isPrintGathered ) {
-            log.write( cc.info( "Main Net Gas Price Multiplier is" ) + cc.debug( "....................." ) + ( imaState.tc_main_net.gasPriceMultiplier ? cc.info( imaState.tc_main_net.gasPriceMultiplier.toString() ) : cc.error( "disabled" ) ) + "\n" );
-            log.write( cc.info( "S-Chain Gas Price Multiplier is" ) + cc.debug( "......................" ) + ( imaState.tc_s_chain.gasPriceMultiplier ? cc.info( imaState.tc_s_chain.gasPriceMultiplier.toString() ) : cc.error( "disabled" ) ) + "\n" );
-            log.write( cc.info( "Target S-Chain Gas Price Multiplier is" ) + cc.debug( "..............." ) + ( imaState.tc_t_chain.gasPriceMultiplier ? cc.info( imaState.tc_t_chain.gasPriceMultiplier.toString() ) : cc.error( "disabled" ) ) + "\n" );
-            log.write( cc.info( "Main Net Gas Value Multiplier is" ) + cc.debug( "....................." ) + ( imaState.tc_main_net.gasMultiplier ? cc.info( imaState.tc_main_net.gasMultiplier.toString() ) : cc.notice( "default" ) ) + "\n" );
-            log.write( cc.info( "S-Chain Gas Value Multiplier is" ) + cc.debug( "......................" ) + ( imaState.tc_s_chain.gasMultiplier ? cc.info( imaState.tc_s_chain.gasMultiplier.toString() ) : cc.notice( "default" ) ) + "\n" );
-            log.write( cc.info( "Target S-Chain Gas Value Multiplier is" ) + cc.debug( "..............." ) + ( imaState.tc_t_chain.gasMultiplier ? cc.info( imaState.tc_t_chain.gasMultiplier.toString() ) : cc.notice( "default" ) ) + "\n" );
+            log.write( cc.info( "Main Net Gas Price Multiplier is" ) + cc.debug( "....................." ) + ( imaState.chainProperties.mn.transactionCustomizer.gasPriceMultiplier ? cc.info( imaState.chainProperties.mn.transactionCustomizer.gasPriceMultiplier.toString() ) : cc.error( "disabled" ) ) + "\n" );
+            log.write( cc.info( "S-Chain Gas Price Multiplier is" ) + cc.debug( "......................" ) + ( imaState.chainProperties.sc.transactionCustomizer.gasPriceMultiplier ? cc.info( imaState.chainProperties.sc.transactionCustomizer.gasPriceMultiplier.toString() ) : cc.error( "disabled" ) ) + "\n" );
+            log.write( cc.info( "Target S-Chain Gas Price Multiplier is" ) + cc.debug( "..............." ) + ( imaState.chainProperties.tc.transactionCustomizer.gasPriceMultiplier ? cc.info( imaState.chainProperties.tc.transactionCustomizer.gasPriceMultiplier.toString() ) : cc.error( "disabled" ) ) + "\n" );
+            log.write( cc.info( "Main Net Gas Value Multiplier is" ) + cc.debug( "....................." ) + ( imaState.chainProperties.mn.transactionCustomizer.gasMultiplier ? cc.info( imaState.chainProperties.mn.transactionCustomizer.gasMultiplier.toString() ) : cc.notice( "default" ) ) + "\n" );
+            log.write( cc.info( "S-Chain Gas Value Multiplier is" ) + cc.debug( "......................" ) + ( imaState.chainProperties.sc.transactionCustomizer.gasMultiplier ? cc.info( imaState.chainProperties.sc.transactionCustomizer.gasMultiplier.toString() ) : cc.notice( "default" ) ) + "\n" );
+            log.write( cc.info( "Target S-Chain Gas Value Multiplier is" ) + cc.debug( "..............." ) + ( imaState.chainProperties.tc.transactionCustomizer.gasMultiplier ? cc.info( imaState.chainProperties.tc.transactionCustomizer.gasMultiplier.toString() ) : cc.notice( "default" ) ) + "\n" );
             log.write( cc.info( "Pending work analysis(PWA) is" ) + cc.debug( "........................" ) + ( imaState.isPWA ? cc.success( "enabled" ) : cc.error( "disabled" ) ) + "\n" );
             log.write( cc.info( "Expose PWA details to log is" ) + cc.debug( "........................." ) + ( imaState.isPrintPWA ? cc.success( "enabled" ) : cc.error( "disabled" ) ) + "\n" );
             log.write( cc.info( "Oracle based gas reimbursement is" ) + cc.debug( "...................." ) + ( IMA.getEnabledOracle() ? cc.success( "enabled" ) : cc.error( "disabled" ) ) + "\n" );

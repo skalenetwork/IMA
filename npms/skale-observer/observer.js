@@ -273,8 +273,8 @@ async function load_schains_connected_only( w3_main_net, w3_s_chain, strChainNam
         opts.details.write( cc.debug( "Have all " ) + cc.info( cntSChains ) + cc.debug( " S-Chain(s) hashes: " ) + cc.j( arrSChainHashes ) + "\n" );
     const jo_message_proxy_s_chain =
         new w3_s_chain.eth.Contract(
-            opts.imaState.joAbiPublishResult_s_chain.message_proxy_chain_abi,
-            opts.imaState.joAbiPublishResult_s_chain.message_proxy_chain_address
+            opts.imaState.chainProperties.sc.joAbiIMA.message_proxy_chain_abi,
+            opts.imaState.chainProperties.sc.joAbiIMA.message_proxy_chain_address
         );
     const arr_schains = [];
     for( let idxSChain = 0; idxSChain < cntSChains; ++ idxSChain ) {
@@ -336,7 +336,7 @@ async function check_connected_schains( strChainNameConnectedTo, arr_schains, ad
                     cc.info( strChainNameConnectedTo ) + cc.debug( "..." ) + "\n" );
             }
             const w3 = getWeb3FromURL( url, opts.details );
-            const jo_message_proxy_s_chain = new w3.eth.Contract( opts.imaState.joAbiPublishResult_s_chain.message_proxy_chain_abi, opts.imaState.joAbiPublishResult_s_chain.message_proxy_chain_address );
+            const jo_message_proxy_s_chain = new w3.eth.Contract( opts.imaState.chainProperties.sc.joAbiIMA.message_proxy_chain_abi, opts.imaState.chainProperties.sc.joAbiIMA.message_proxy_chain_address );
             jo_schain.isConnected = await jo_message_proxy_s_chain.methods.isConnectedChain( strChainNameConnectedTo ).call( { from: addressFrom } );
             if( opts && opts.details ) {
                 opts.details.write(
@@ -510,49 +510,58 @@ async function ensure_have_worker( opts ) {
         message: {
             opts: {
                 imaState: {
-                    "joAbiPublishResult_skale_manager": opts.imaState.joAbiPublishResult_skale_manager,
-                    "joAbiPublishResult_main_net": opts.imaState.joAbiPublishResult_main_net,
-                    "joAbiPublishResult_s_chain": opts.imaState.joAbiPublishResult_s_chain,
-                    "bHaveSkaleManagerABI": opts.imaState.bHaveSkaleManagerABI,
-                    "bHaveImaAbiMainNet": opts.imaState.bHaveImaAbiMainNet,
                     "bNoWaitSChainStarted": opts.imaState.bNoWaitSChainStarted,
                     "nMaxWaitSChainAttempts": opts.imaState.nMaxWaitSChainAttempts,
-                    "strURL_main_net": opts.imaState.strURL_main_net,
-                    "strChainName_main_net": opts.imaState.strChainName_main_net,
-                    "cid_main_net": opts.imaState.cid_main_net,
-                    "strURL_s_chain": opts.imaState.strURL_s_chain,
-                    "strChainName_s_chain": opts.imaState.strChainName_s_chain,
-                    "cid_s_chain": opts.imaState.cid_s_chain,
                     "nNodeNumber": opts.imaState.nNodeNumber, // S-Chain node number(zero based)
                     "nNodesCount": opts.imaState.nNodesCount,
                     "nTimeFrameSeconds": opts.imaState.nTimeFrameSeconds, // 0-disable, 60-recommended
                     "nNextFrameGap": opts.imaState.nNextFrameGap,
-                    "joAccount_main_net": {
-                        "privateKey": opts.imaState.joAccount_main_net.privateKey,
-                        // "address": IMA.owaspUtils.fn_address_impl_,
-                        "strTransactionManagerURL": opts.imaState.joAccount_main_net.strTransactionManagerURL,
-                        "tm_priority": opts.imaState.joAccount_main_net.tm_priority,
-                        "strSgxURL": opts.imaState.joAccount_main_net.strSgxURL,
-                        "strSgxKeyName": opts.imaState.joAccount_main_net.strSgxKeyName,
-                        "strPathSslKey": opts.imaState.joAccount_main_net.strPathSslKey,
-                        "strPathSslCert": opts.imaState.joAccount_main_net.strPathSslCert,
-                        "strBlsKeyName": opts.imaState.joAccount_main_net.strBlsKeyName
+                    "chainProperties": {
+                        "mn": {
+                            "joAccount": {
+                                "privateKey": opts.imaState.chainProperties.mn.joAccount.privateKey,
+                                // "address": IMA.owaspUtils.fn_address_impl_,
+                                "strTransactionManagerURL": opts.imaState.chainProperties.mn.joAccount.strTransactionManagerURL,
+                                "tm_priority": opts.imaState.chainProperties.mn.joAccount.tm_priority,
+                                "strSgxURL": opts.imaState.chainProperties.mn.joAccount.strSgxURL,
+                                "strSgxKeyName": opts.imaState.chainProperties.mn.joAccount.strSgxKeyName,
+                                "strPathSslKey": opts.imaState.chainProperties.mn.joAccount.strPathSslKey,
+                                "strPathSslCert": opts.imaState.chainProperties.mn.joAccount.strPathSslCert,
+                                "strBlsKeyName": opts.imaState.chainProperties.mn.joAccount.strBlsKeyName
+                            },
+                            "w3": null,
+                            "strURL": opts.imaState.chainProperties.mn.strURL,
+                            "strChainName": opts.imaState.chainProperties.mn.strChainName,
+                            "cid": opts.imaState.chainProperties.mn.cid,
+                            "joAbiIMA": opts.imaState.chainProperties.mn.joAbiIMA,
+                            "bHaveAbiIMA": opts.imaState.chainProperties.mn.bHaveAbiIMA
+                        },
+                        "sc": {
+                            "joAccount": {
+                                "privateKey": opts.imaState.chainProperties.sc.joAccount.privateKey,
+                                // "address": IMA.owaspUtils.fn_address_impl_,
+                                "strTransactionManagerURL": opts.imaState.chainProperties.sc.joAccount.strTransactionManagerURL,
+                                "tm_priority": opts.imaState.chainProperties.sc.joAccount.tm_priority,
+                                "strSgxURL": opts.imaState.chainProperties.sc.joAccount.strSgxURL,
+                                "strSgxKeyName": opts.imaState.chainProperties.sc.joAccount.strSgxKeyName,
+                                "strPathSslKey": opts.imaState.chainProperties.sc.joAccount.strPathSslKey,
+                                "strPathSslCert": opts.imaState.chainProperties.sc.joAccount.strPathSslCert,
+                                "strBlsKeyName": opts.imaState.chainProperties.sc.joAccount.strBlsKeyName
+                            },
+                            "w3": null,
+                            "strURL": opts.imaState.chainProperties.sc.strURL,
+                            "strChainName": opts.imaState.chainProperties.sc.strChainName,
+                            "cid": opts.imaState.chainProperties.sc.cid,
+                            "joAbiIMA": opts.imaState.chainProperties.sc.joAbiIMA,
+                            "bHaveAbiIMA": opts.imaState.chainProperties.sc.bHaveAbiIMA
+                        }
+                        // "tc": {
+                        //     "joAccount": {
+                        //     }
+                        // },
                     },
-                    "joAccount_s_chain": {
-                        "privateKey": opts.imaState.joAccount_s_chain.privateKey,
-                        // "address": IMA.owaspUtils.fn_address_impl_,
-                        "strTransactionManagerURL": opts.imaState.joAccount_s_chain.strTransactionManagerURL,
-                        "tm_priority": opts.imaState.joAccount_s_chain.tm_priority,
-                        "strSgxURL": opts.imaState.joAccount_s_chain.strSgxURL,
-                        "strSgxKeyName": opts.imaState.joAccount_s_chain.strSgxKeyName,
-                        "strPathSslKey": opts.imaState.joAccount_s_chain.strPathSslKey,
-                        "strPathSslCert": opts.imaState.joAccount_s_chain.strPathSslCert,
-                        "strBlsKeyName": opts.imaState.joAccount_s_chain.strBlsKeyName
-                    },
-                    // "tc_main_net": IMA.tc_main_net,
-                    // "tc_s_chain": IMA.tc_s_chain,
-                    // "doEnableDryRun": function( isEnable ) { return IMA.dry_run_enable( isEnable ); },
-                    // "doIgnoreDryRun": function( isIgnore ) { return IMA.dry_run_ignore( isIgnore ); },
+                    "joAbiSkaleManager": opts.imaState.joAbiSkaleManager,
+                    "bHaveSkaleManagerABI": opts.imaState.bHaveSkaleManagerABI,
                     "joSChainDiscovery": {
                         "isSilentReDiscovery": opts.imaState.joSChainDiscovery.isSilentReDiscovery,
                         "repeatIntervalMilliseconds": opts.imaState.joSChainDiscovery.repeatIntervalMilliseconds // zero to disable (for debugging only)

@@ -644,8 +644,8 @@ function setEnabledOracle( isEnabled ) {
 
 async function do_oracle_gas_price_setup(
     w3_main_net,
-    w3_schain,
-    tc_schain,
+    w3_s_chain,
+    tc_s_chain,
     jo_community_locker,
     joAccountSC,
     chain_id_mainnet,
@@ -700,7 +700,7 @@ async function do_oracle_gas_price_setup(
         let gasPriceOnMainNet = null;
         if( IMA.getEnabledOracle() ) {
             const oracleOpts = {
-                url: owaspUtils.w3_2_url( w3_schain ),
+                url: owaspUtils.w3_2_url( w3_s_chain ),
                 callOpts: { },
                 nMillisecondsSleepBefore: 1000,
                 nMillisecondsSleepPeriod: 3000,
@@ -737,15 +737,15 @@ async function do_oracle_gas_price_setup(
         //
         const joGasPriceOnMainNetOld =
             await jo_community_locker.methods.mainnetGasPrice().call( {
-                from: joAccountSC.address( w3_schain )
+                from: joAccountSC.address( w3_s_chain )
             } );
-        const bnGasPriceOnMainNetOld = w3_schain.utils.toBN( joGasPriceOnMainNetOld );
+        const bnGasPriceOnMainNetOld = w3_s_chain.utils.toBN( joGasPriceOnMainNetOld );
         details.write(
             cc.debug( "Previous " ) + cc.info( "Main Net gas price" ) + cc.debug( " saved and kept in " ) + cc.info( "CommunityLocker" ) +
             cc.debug( "=" ) + cc.bright( bnGasPriceOnMainNetOld.toString() ) +
             cc.debug( "=" ) + cc.bright( bnGasPriceOnMainNetOld.toString( 16 ) ) +
             "\n" );
-        if( bnGasPriceOnMainNetOld.eq( w3_schain.utils.toBN( gasPriceOnMainNet ) ) ) {
+        if( bnGasPriceOnMainNetOld.eq( w3_s_chain.utils.toBN( gasPriceOnMainNet ) ) ) {
             details.write(
                 cc.debug( "Previous " ) + cc.info( "Main Net gas price" ) +
                 cc.debug( " is equal to new one, will skip setting it in " ) + cc.info( "CommunityLocker" ) +
@@ -807,43 +807,43 @@ async function do_oracle_gas_price_setup(
                     cc.j( joDebugArgs ) + "\n" );
             }
             //
-            const gasPrice = await tc_schain.computeGasPrice( w3_schain, 200000000000 );
+            const gasPrice = await tc_s_chain.computeGasPrice( w3_s_chain, 200000000000 );
             details.write( strLogPrefix + cc.debug( "Using computed " ) + cc.info( "gasPrice" ) + cc.debug( "=" ) + cc.notice( gasPrice ) + "\n" );
-            const estimatedGas_setGasPrice = await tc_schain.computeGas( methodWithArguments_setGasPrice, w3_schain, 10000000, gasPrice, joAccountSC.address( w3_schain ), "0" );
+            const estimatedGas_setGasPrice = await tc_s_chain.computeGas( methodWithArguments_setGasPrice, w3_s_chain, 10000000, gasPrice, joAccountSC.address( w3_s_chain ), "0" );
             details.write( strLogPrefix + cc.debug( "Using estimated " ) + cc.info( "gas" ) + cc.debug( "=" ) + cc.notice( estimatedGas_setGasPrice ) + "\n" );
             //
             const isIgnore_setGasPrice = false;
             const strDRC_setGasPrice = "setGasPrice in message signer";
-            const strErrorOfDryRun = await dry_run_call( details, w3_schain, methodWithArguments_setGasPrice, joAccountSC, strDRC_setGasPrice,isIgnore_setGasPrice, gasPrice, estimatedGas_setGasPrice, "0" );
+            const strErrorOfDryRun = await dry_run_call( details, w3_s_chain, methodWithArguments_setGasPrice, joAccountSC, strDRC_setGasPrice,isIgnore_setGasPrice, gasPrice, estimatedGas_setGasPrice, "0" );
             if( strErrorOfDryRun )
                 throw new Error( strErrorOfDryRun );
             //
-            const tcnt = await get_web3_transactionCount( details, 10, w3_schain, joAccountSC.address( w3_main_net ), null );
+            const tcnt = await get_web3_transactionCount( details, 10, w3_s_chain, joAccountSC.address( w3_main_net ), null );
             details.write( strLogPrefix + cc.debug( "Got " ) + cc.info( tcnt ) + cc.debug( " from " ) + cc.notice( strActionName ) + "\n" );
             const raw_tx_setGasPrice = {
                 chainId: chain_id_schain,
-                from: joAccountSC.address( w3_schain ),
+                from: joAccountSC.address( w3_s_chain ),
                 nonce: tcnt,
                 gas: estimatedGas_setGasPrice,
                 gasPrice: gasPrice,
                 // "gasLimit": 3000000,
                 to: jo_community_locker.options.address, // contract address
                 data: dataTx_setGasPrice //,
-                // "value": wei_amount // 1000000000000000000 // w3_schain.utils.toWei( (1).toString(), "ether" ) // how much money to send
+                // "value": wei_amount // 1000000000000000000 // w3_s_chain.utils.toWei( (1).toString(), "ether" ) // how much money to send
             };
             if( chain_id_schain !== "Mainnet" )
-                await checkTransactionToSchain( w3_schain, raw_tx_setGasPrice, details );
+                await checkTransactionToSchain( w3_s_chain, raw_tx_setGasPrice, details );
 
             const tx_setGasPrice = compose_tx_instance( details, strLogPrefix, raw_tx_setGasPrice );
-            const joSetGasPriceSR = await safe_sign_transaction_with_account( details, w3_schain, tx_setGasPrice, raw_tx_setGasPrice, joAccountSC );
+            const joSetGasPriceSR = await safe_sign_transaction_with_account( details, w3_s_chain, tx_setGasPrice, raw_tx_setGasPrice, joAccountSC );
             let joReceipt = null;
             if( joSetGasPriceSR.joACI.isAutoSend )
-                joReceipt = await get_web3_transactionReceipt( details, 10, w3_schain, joSetGasPriceSR.txHashSent );
+                joReceipt = await get_web3_transactionReceipt( details, 10, w3_s_chain, joSetGasPriceSR.txHashSent );
             else {
                 const serializedTx_setGasPrice = tx_setGasPrice.serialize();
-                strActionName = "w3_schain.eth.sendSignedTransaction()";
-                // let joReceipt = await w3_schain.eth.sendSignedTransaction( "0x" + serializedTx_setGasPrice.toString( "hex" ) );
-                joReceipt = await safe_send_signed_transaction( details, w3_schain, serializedTx_setGasPrice, strActionName, strLogPrefix );
+                strActionName = "w3_s_chain.eth.sendSignedTransaction()";
+                // let joReceipt = await w3_s_chain.eth.sendSignedTransaction( "0x" + serializedTx_setGasPrice.toString( "hex" ) );
+                joReceipt = await safe_send_signed_transaction( details, w3_s_chain, serializedTx_setGasPrice, strActionName, strLogPrefix );
             }
             details.write( strLogPrefix + cc.success( "Result receipt: " ) + cc.j( joReceipt ) + "\n" );
             if( joReceipt && typeof joReceipt == "object" && "gasUsed" in joReceipt ) {
@@ -5312,7 +5312,7 @@ async function do_transfer(
                                 cc.debug( "..." ) + "\n" );
                             try {
                                 const w3_node = getWeb3FromURL( jo_node.http_endpoint_ip, details );
-                                const jo_message_proxy_node = new w3_node.eth.Contract( imaState.joAbiPublishResult_s_chain.message_proxy_chain_abi, imaState.joAbiPublishResult_s_chain.message_proxy_chain_address );
+                                const jo_message_proxy_node = new w3_node.eth.Contract( imaState.chainProperties.sc.joAbiIMA.message_proxy_chain_abi, imaState.chainProperties.sc.joAbiIMA.message_proxy_chain_address );
                                 const strEventName = "OutgoingMessage";
                                 const node_r = await get_web3_pastEventsProgressive(
                                     details,
@@ -5705,8 +5705,8 @@ async function do_s2s_all( // s-chain --> s-chain
         let bOK = false;
         try {
             // ??? assuming all S-Chains have same ABIs here
-            const jo_message_proxy_src = new w3_src.eth.Contract( imaState.joAbiPublishResult_s_chain.message_proxy_chain_abi, imaState.joAbiPublishResult_s_chain.message_proxy_chain_address );
-            const jo_deposit_box_src = new w3_src.eth.Contract( imaState.joAbiPublishResult_s_chain.message_proxy_chain_abi, imaState.joAbiPublishResult_s_chain.message_proxy_chain_address );
+            const jo_message_proxy_src = new w3_src.eth.Contract( imaState.chainProperties.sc.joAbiIMA.message_proxy_chain_abi, imaState.chainProperties.sc.joAbiIMA.message_proxy_chain_address );
+            const jo_deposit_box_src = new w3_src.eth.Contract( imaState.chainProperties.sc.joAbiIMA.message_proxy_chain_abi, imaState.chainProperties.sc.joAbiIMA.message_proxy_chain_address );
             const joExtraSignOpts = {
                 skale_observer: skale_observer,
                 chain_id_src: chain_id_src,
