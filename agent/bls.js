@@ -1818,6 +1818,20 @@ async function do_sign_ready_hash( strMessageHash ) {
                     joSignResult = joOut.result;
                 if( joOut.signResult != null && joOut.signResult != undefined && typeof joOut.signResult == "object" )
                     joSignResult = joOut.signResult;
+                if( "errorMessage" in joSignResult &&
+                    typeof joSignResult.errorMessage == "string" &&
+                    joSignResult.errorMessage.length > 0
+                ) {
+                    const strError = "BLS signing finished with error: " + joSignResult.errorMessage;
+                    joRetVal.error = strError;
+                    const strErrorMessage =
+                        strLogPrefix + cc.fatal( "CRITICAL ERROR:" ) +
+                        cc.error( " BLS signing(1) finished with error: " ) + cc.warning( joSignResult.errorMessage ) + "\n";
+                    log.write( strErrorMessage );
+                    details.write( strErrorMessage );
+                    await joCall.disconnect();
+                    throw new Error( strError );
+                }
                 joSignResult.error = null;
                 await joCall.disconnect();
             } ); // joCall.call ...
@@ -2050,7 +2064,7 @@ async function handle_skale_imaVerifyAndSign( joCallData ) {
                     joRetVal.error = strError;
                     const strErrorMessage =
                         strLogPrefix + cc.fatal( "CRITICAL ERROR:" ) +
-                        cc.error( " BLS signing finished with error: " ) + cc.warning( joSignResult.errorMessage ) + "\n";
+                        cc.error( " BLS signing(2) finished with error: " ) + cc.warning( joSignResult.errorMessage ) + "\n";
                     log.write( strErrorMessage );
                     details.write( strErrorMessage );
                     await joCall.disconnect();
@@ -2155,6 +2169,21 @@ async function handle_skale_imaBSU256( joCallData ) {
                     joSignResult = joOut.result;
                 if( joOut.signResult != null && joOut.signResult != undefined && typeof joOut.signResult == "object" )
                     joSignResult = joOut.signResult;
+                if( "errorMessage" in joSignResult &&
+                    typeof joSignResult.errorMessage == "string" &&
+                    joSignResult.errorMessage.length > 0
+                ) {
+                    isSuccess = false;
+                    const strError = "BLS signing finished with error: " + joSignResult.errorMessage;
+                    joRetVal.error = strError;
+                    const strErrorMessage =
+                        strLogPrefix + cc.fatal( "CRITICAL ERROR:" ) +
+                        cc.error( " BLS signing(3) finished with error: " ) + cc.warning( joSignResult.errorMessage ) + "\n";
+                    log.write( strErrorMessage );
+                    details.write( strErrorMessage );
+                    await joCall.disconnect();
+                    throw new Error( strError );
+                }
                 isSuccess = true;
                 joRetVal.result = { signResult: joSignResult };
                 if( "qa" in joCallData )
