@@ -242,6 +242,7 @@ global.imaState = {
 };
 
 imaCLI.ima_common_init();
+imaCLI.ima_contracts_init();
 
 describe( "OWASP", function() {
 

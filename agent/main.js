@@ -29,30 +29,8 @@ process.env.NODE_TLS_REJECT_UNAUTHORIZED = 0; // allow self-signed wss and https
 // const path = require( "path" );
 // const url = require( "url" );
 // const os = require( "os" );
-const ws = require( "ws" ); // https://www.npmjs.com/package/ws
-global.IMA = require( "../npms/skale-ima" );
-global.w3mod = IMA.w3mod;
-global.ethereumjs_tx = IMA.ethereumjs_tx;
-global.ethereumjs_wallet = IMA.ethereumjs_wallet;
-global.ethereumjs_util = IMA.ethereumjs_util;
-global.compose_tx_instance = IMA.compose_tx_instance;
-global.owaspUtils = IMA.owaspUtils;
-global.imaUtils = require( "./utils.js" );
-IMA.expose_details_set( false );
-IMA.verbose_set( IMA.verbose_parse( "info" ) );
-global.log = global.imaUtils.log;
-global.cc = global.imaUtils.cc;
-global.imaCLI = require( "./cli.js" );
-global.imaBLS = require( "./bls.js" );
-global.rpcCall = require( "./rpc-call.js" );
-global.skale_observer = require( "../npms/skale-observer/observer.js" );
-global.rpcCall.init();
-global.imaOracle = require( "./oracle.js" );
-global.imaOracle.init();
-global.pwa = require( "./pwa.js" );
-global.express = require( "express" );
-global.bodyParser = require( "body-parser" );
-global.jayson = require( "jayson" );
+
+global.loop = require( "./loop.js" );
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -1342,7 +1320,7 @@ imaCLI.parse( {
     "loop": function() {
         fnInitActionSkaleNetworkScanForS2S();
         imaState.arrActions.push( {
-            "name": "M<->S and S->S transfer loop",
+            "name": "M<->S and S->S transfer loop, startup in parallel mode",
             "fn": async function() {
                 IMA.isPreventExitAfterLastAction = true;
                 if( ! imaState.bNoWaitSChainStarted )
@@ -1355,7 +1333,27 @@ imaCLI.parse( {
                 }
                 if( isPrintSummaryRegistrationCosts )
                     print_summary_registration_costs();
-                return await run_transfer_loop( false );
+                return await loop.run_transfer_loop( false );
+            }
+        } );
+    },
+    "simple-loop": function() {
+        fnInitActionSkaleNetworkScanForS2S();
+        imaState.arrActions.push( {
+            "name": "M<->S and S->S transfer loop, simple mode",
+            "fn": async function() {
+                IMA.isPreventExitAfterLastAction = true;
+                if( ! imaState.bNoWaitSChainStarted )
+                    await wait_until_s_chain_started(); // M<->S transfer loop
+                let isPrintSummaryRegistrationCosts = false;
+                if( !await check_registration_step1() ) {
+                    if( !await register_step1( false ) )
+                        return false;
+                    isPrintSummaryRegistrationCosts = true;
+                }
+                if( isPrintSummaryRegistrationCosts )
+                    print_summary_registration_costs();
+                return await loop.run_transfer_loop( false );
             }
         } );
     },
@@ -1680,8 +1678,10 @@ if( imaState.strLogFilePath.length > 0 ) {
     log.add( imaState.strLogFilePath, imaState.nLogMaxSizeBeforeRotation, imaState.nLogMaxFilesCount );
 }
 
-if( imaState.bIsNeededCommonInit )
+if( imaState.bIsNeededCommonInit ) {
     imaCLI.ima_common_init();
+    imaCLI.ima_contracts_init();
+}
 
 if( imaState.bShowConfigMode ) {
     // just show configuration values and exit
@@ -2501,6 +2501,7 @@ const g_registrationCostInfo = {
 };
 
 async function register_step1( isPrintSummaryRegistrationCosts ) {
+    imaCLI.ima_contracts_init();
     const strLogPrefix = cc.info( "Reg 1:" ) + " ";
     let jarrReceipts = "true";
     const bRetVal = await IMA.check_is_registered_s_chain_in_deposit_boxes( // step 1
@@ -2556,6 +2557,7 @@ async function check_registration_all() {
     return b1;
 }
 async function check_registration_step1() {
+    imaCLI.ima_contracts_init();
     const bRetVal = await IMA.check_is_registered_s_chain_in_deposit_boxes( // step 1
         imaState.chainProperties.mn.w3,
         imaState.jo_linker,
@@ -2568,224 +2570,6 @@ async function check_registration_step1() {
 function print_summary_registration_costs() {
     IMA.print_gas_usage_report_from_array( "Main Net REGISTRATION", g_registrationCostInfo.mn );
     IMA.print_gas_usage_report_from_array( "S-Chain REGISTRATION", g_registrationCostInfo.sc );
-}
-
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-//
-// Run transfer loop
-//
-
-global.check_time_framing = function( d ) {
-    try {
-        if( imaState.nTimeFrameSeconds <= 0 || imaState.nNodesCount <= 1 )
-            return true; // time framing is disabled
-
-        if( d == null || d == undefined )
-            d = new Date(); // now
-
-        // const nUtcUnixTimeStamp = Math.floor( d.valueOf() / 1000 ); // Unix UTC timestamp, see https://stackoverflow.com/questions/9756120/how-do-i-get-a-utc-timestamp-in-javascript
-        const nUtcUnixTimeStamp = Math.floor( ( d ).getTime() / 1000 ); // https://stackoverflow.com/questions/9756120/how-do-i-get-a-utc-timestamp-in-javascript
-
-        const nSecondsRangeForAllSChains = imaState.nTimeFrameSeconds * imaState.nNodesCount;
-        const nMod = Math.floor( nUtcUnixTimeStamp % nSecondsRangeForAllSChains );
-        const nActiveNodeFrameIndex = Math.floor( nMod / imaState.nTimeFrameSeconds );
-        let bSkip = ( nActiveNodeFrameIndex != imaState.nNodeNumber ) ? true : false;
-        let bInsideGap = false;
-        //
-        const nRangeStart = nUtcUnixTimeStamp - Math.floor( nUtcUnixTimeStamp % nSecondsRangeForAllSChains );
-        const nFrameStart = nRangeStart + imaState.nNodeNumber * imaState.nTimeFrameSeconds;
-        const nGapStart = nFrameStart + imaState.nTimeFrameSeconds - imaState.nNextFrameGap;
-        if( !bSkip ) {
-            if( nUtcUnixTimeStamp >= nGapStart ) {
-                bSkip = true;
-                bInsideGap = true;
-            }
-        }
-        // if( IMA.verbose_get() >= IMA.RV_VERBOSE.trace ) {
-        log.write(
-            "\n" +
-            cc.info( "Unix UTC time stamp" ) + cc.debug( "........" ) + cc.notice( nUtcUnixTimeStamp ) + "\n" +
-            cc.info( "All Chains Range" ) + cc.debug( "..........." ) + cc.notice( nSecondsRangeForAllSChains ) + "\n" +
-            cc.info( "S-Chain Range Mod" ) + cc.debug( ".........." ) + cc.notice( nMod ) + "\n" +
-            cc.info( "Active Node Frame Index" ) + cc.debug( "...." ) + cc.notice( nActiveNodeFrameIndex ) + "\n" +
-            cc.info( "Testing Frame Index" ) + cc.debug( "........" ) + cc.notice( imaState.nNodeNumber ) + "\n" +
-            cc.info( "Is skip" ) + cc.debug( "...................." ) + cc.yn( bSkip ) + "\n" +
-            cc.info( "Is inside gap" ) + cc.debug( ".............." ) + cc.yn( bInsideGap ) + "\n" +
-            cc.info( "Range Start" ) + cc.debug( "................" ) + cc.notice( nRangeStart ) + "\n" +
-            cc.info( "Frame Start" ) + cc.debug( "................" ) + cc.notice( nFrameStart ) + "\n" +
-            cc.info( "Gap Start" ) + cc.debug( ".................." ) + cc.notice( nGapStart ) + "\n"
-        );
-        // }
-        if( bSkip )
-            return false;
-    } catch ( e ) {
-        if( IMA.verbose_get() >= IMA.RV_VERBOSE.fatal )
-            log.write( cc.fatal( "Exception in check_time_framing():" ) + cc.error( e ) + "\n" );
-    }
-    return true;
-};
-
-async function single_transfer_loop() {
-    const strLogPrefix = cc.attention( "Single Loop:" ) + " ";
-    let wasPassedStartCheckPWA = false;
-    try {
-        if( IMA.verbose_get() >= IMA.RV_VERBOSE.debug )
-            log.write( strLogPrefix + cc.debug( IMA.longSeparator ) + "\n" );
-        if( ! global.check_time_framing() ) {
-            imaState.wasImaSingleTransferLoopInProgress = false;
-            if( IMA.verbose_get() >= IMA.RV_VERBOSE.debug )
-                log.write( strLogPrefix + cc.warning( "Skipped due to time framing" ) + "\n" );
-            IMA.save_transfer_success_all();
-            return true;
-        }
-        if( imaState.isImaSingleTransferLoopInProgress ) {
-            imaState.wasImaSingleTransferLoopInProgress = false;
-            if( IMA.verbose_get() >= IMA.RV_VERBOSE.debug )
-                log.write( strLogPrefix + cc.warning( "Skipped due to other single transfer loop is in progress rignt now" ) + "\n" );
-            return true;
-        }
-        if( ! await pwa.check_on_loop_start() ) {
-            imaState.wasImaSingleTransferLoopInProgress = false;
-            if( IMA.verbose_get() >= IMA.RV_VERBOSE.debug )
-                log.write( strLogPrefix + cc.warning( "Skipped due to cancel mode reported from PWA" ) + "\n" );
-            return true;
-        }
-        wasPassedStartCheckPWA = true;
-        imaState.isImaSingleTransferLoopInProgress = true;
-        await pwa.notify_on_loop_start();
-
-        let b0 = true;
-        if( IMA.getEnabledOracle() ) {
-            if( IMA.verbose_get() >= IMA.RV_VERBOSE.information )
-                log.write( strLogPrefix + cc.debug( "Will invoke Oracle gas price setup..." ) + "\n" );
-            b0 = IMA.do_oracle_gas_price_setup(
-                imaState.chainProperties.mn.w3,
-                imaState.chainProperties.sc.w3,
-                imaState.chainProperties.sc.transactionCustomizer,
-                imaState.jo_community_locker,
-                imaState.chainProperties.sc.joAccount,
-                imaState.chainProperties.mn.cid,
-                imaState.chainProperties.sc.cid,
-                imaBLS.do_sign_u256
-            );
-            if( IMA.verbose_get() >= IMA.RV_VERBOSE.information )
-                log.write( strLogPrefix + cc.debug( "Oracle gas price setup done: " ) + cc.tf( b0 ) + "\n" );
-        }
-
-        if( IMA.verbose_get() >= IMA.RV_VERBOSE.information )
-            log.write( strLogPrefix + cc.debug( "Will invoke M2S transfer..." ) + "\n" );
-        const b1 = await IMA.do_transfer( // main-net --> s-chain
-            "M2S",
-            //
-            imaState.chainProperties.mn.w3,
-            imaState.jo_message_proxy_main_net,
-            imaState.chainProperties.mn.joAccount,
-            imaState.chainProperties.sc.w3,
-            imaState.jo_message_proxy_s_chain,
-            //
-            imaState.chainProperties.sc.joAccount,
-            imaState.chainProperties.mn.strChainName,
-            imaState.chainProperties.sc.strChainName,
-            imaState.chainProperties.mn.cid,
-            imaState.chainProperties.sc.cid,
-            null, // imaState.jo_deposit_box - for logs validation on mainnet
-            imaState.jo_token_manager_eth, // for logs validation on s-chain
-            imaState.nTransferBlockSizeM2S,
-            imaState.nMaxTransactionsM2S,
-            imaState.nBlockAwaitDepthM2S,
-            imaState.nBlockAgeM2S,
-            imaBLS.do_sign_messages_m2s, // fn_sign_messages
-            null, // joExtraSignOpts
-            imaState.chainProperties.sc.transactionCustomizer
-        );
-        if( IMA.verbose_get() >= IMA.RV_VERBOSE.information )
-            log.write( strLogPrefix + cc.debug( "M2S transfer done: " ) + cc.tf( b1 ) + "\n" );
-
-        if( IMA.verbose_get() >= IMA.RV_VERBOSE.information )
-            log.write( strLogPrefix + cc.debug( "Will invoke S2M transfer..." ) + "\n" );
-        const b2 = await IMA.do_transfer( // s-chain --> main-net
-            "S2M",
-            //
-            imaState.chainProperties.sc.w3,
-            imaState.jo_message_proxy_s_chain,
-            imaState.chainProperties.sc.joAccount,
-            imaState.chainProperties.mn.w3,
-            imaState.jo_message_proxy_main_net,
-            //
-            imaState.chainProperties.mn.joAccount,
-            imaState.chainProperties.sc.strChainName,
-            imaState.chainProperties.mn.strChainName,
-            imaState.chainProperties.sc.cid,
-            imaState.chainProperties.mn.cid,
-            imaState.jo_deposit_box_eth, // for logs validation on mainnet
-            null, // imaState.jo_token_manager, // for logs validation on s-chain
-            imaState.nTransferBlockSizeS2M,
-            imaState.nMaxTransactionsS2M,
-            imaState.nBlockAwaitDepthS2M,
-            imaState.nBlockAgeS2M,
-            imaBLS.do_sign_messages_s2m, // fn_sign_messages
-            null, // joExtraSignOpts
-            imaState.chainProperties.mn.transactionCustomizer
-        );
-        if( IMA.verbose_get() >= IMA.RV_VERBOSE.information )
-            log.write( strLogPrefix + cc.debug( "S2M transfer done: " ) + cc.tf( b2 ) + "\n" );
-
-        let b3 = true;
-        if( imaState.s2s_opts.isEnabled ) {
-            if( IMA.verbose_get() >= IMA.RV_VERBOSE.information )
-                log.write( strLogPrefix + cc.debug( "Will invoke all S2S transfers..." ) + "\n" );
-            b3 = await IMA.do_s2s_all( // s-chain --> s-chain
-                imaState,
-                skale_observer,
-                imaState.chainProperties.sc.w3,
-                imaState.jo_message_proxy_s_chain,
-                //
-                imaState.chainProperties.sc.joAccount,
-                imaState.chainProperties.sc.strChainName,
-                imaState.chainProperties.sc.cid,
-                imaState.jo_token_manager_eth, // for logs validation on s-chain
-                imaState.nTransferBlockSizeM2S,
-                imaState.nMaxTransactionsM2S,
-                imaState.nBlockAwaitDepthM2S,
-                imaState.nBlockAgeM2S,
-                imaBLS.do_sign_messages_s2s, // fn_sign_messages
-                imaState.chainProperties.sc.transactionCustomizer
-            );
-            if( IMA.verbose_get() >= IMA.RV_VERBOSE.information )
-                log.write( strLogPrefix + cc.debug( "All S2S transfers done: " ) + cc.tf( b3 ) + "\n" );
-        }
-
-        imaState.isImaSingleTransferLoopInProgress = false;
-        const bResult = b0 && b1 && b2 && b3;
-        if( IMA.verbose_get() >= IMA.RV_VERBOSE.information )
-            log.write( strLogPrefix + cc.debug( "Completed: " ) + cc.tf( bResult ) + "\n" );
-        if( wasPassedStartCheckPWA ) {
-            await pwa.notify_on_loop_end();
-            wasPassedStartCheckPWA = false;
-        }
-        return bResult;
-    } catch ( err ) {
-        log.write( strLogPrefix + cc.fatal( "Exception in single transfer loop: " ) + cc.error( owaspUtils.extract_error_message( err ) ) + "\n" );
-    }
-    imaState.isImaSingleTransferLoopInProgress = false;
-    imaState.wasImaSingleTransferLoopInProgress = true;
-    if( wasPassedStartCheckPWA )
-        await pwa.notify_on_loop_end();
-
-    return false;
-}
-async function single_transfer_loop_with_repeat() {
-    await single_transfer_loop();
-    setTimeout( single_transfer_loop_with_repeat, imaState.nLoopPeriodSeconds * 1000 );
-};
-async function run_transfer_loop( isDelayFirstRun ) {
-    isDelayFirstRun = owaspUtils.toBoolean( isDelayFirstRun );
-    if( isDelayFirstRun )
-        setTimeout( single_transfer_loop_with_repeat, imaState.nLoopPeriodSeconds * 1000 );
-    else
-        await single_transfer_loop_with_repeat();
-    return true;
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

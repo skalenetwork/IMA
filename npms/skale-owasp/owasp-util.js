@@ -578,8 +578,8 @@ function parseMoneySpecToWei( w3, s, isThrowException ) {
 }
 
 function fn_address_impl_( w3 ) {
-    if( this.address_ == undefined || this.address_ == null )
-        this.address_ = "" + owaspUtils.private_key_2_account_address( w3, this.privateKey );
+    if( ! this.address_ )
+        this.address_ = "" + private_key_2_account_address( w3, this.privateKey );
     return this.address_;
 }
 
