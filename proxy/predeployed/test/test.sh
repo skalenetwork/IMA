@@ -23,7 +23,8 @@ GETH_PID=$!
 sleep 3
 
 source venv/bin/activate
-pip install -r requirements.txt
+export PYTHONPATH=../src
+echo $PYTHONPATH
 python test.py
 
 kill $GETH_PID

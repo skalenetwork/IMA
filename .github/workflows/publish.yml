@@ -84,6 +84,10 @@ jobs:
       run: |
         npx hardhat run migrations/generateManifest.ts
 
+    - name: Install python testing staff
+      working-directory: ${{env.PROXY_DIR}}
+      run: pip3 install -r predeployed/test/requirements.txt
+
     - name: Build predeployed pip package
       working-directory: ${{env.PROXY_DIR}}
       env:
@@ -107,7 +111,7 @@ jobs:
         source scripts/venv/bin/activate
         pip install dist/ima_predeployed-*.whl
         mkdir data
-        scripts/generate_abi.py > data/ima-$VERSION-predeployed-abi.json
+        python scripts/generate_abi.py > data/ima-$VERSION-predeployed-abi.json
 
     - name: Create Release
       id: create_release

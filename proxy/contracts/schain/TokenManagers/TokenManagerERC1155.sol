@@ -19,7 +19,7 @@
  *   along with SKALE IMA.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-pragma solidity 0.8.6;
+pragma solidity 0.8.16;
 
 import "@openzeppelin/contracts-upgradeable/token/ERC1155/IERC1155Upgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/utils/AddressUpgradeable.sol";
@@ -29,13 +29,6 @@ import "../../Messages.sol";
 import "../tokens/ERC1155OnChain.sol";
 import "../TokenManager.sol";
 import "../../thirdparty/ERC1155ReceiverUpgradeableWithoutGap.sol";
-
-
-interface ITokenManagerERC1155InitializeFunction is ITokenManagerERC1155 {
-    function initializeAllClonesERC1155(
-        address[] calldata contracts
-    ) external;
-}
 
 
 /**
@@ -48,7 +41,7 @@ interface ITokenManagerERC1155InitializeFunction is ITokenManagerERC1155 {
 contract TokenManagerERC1155 is
     TokenManager,
     ERC1155ReceiverUpgradeableWithoutGap,
-    ITokenManagerERC1155InitializeFunction
+    ITokenManagerERC1155
 {
     using AddressUpgradeable for address;
     using EnumerableSetUpgradeable for EnumerableSetUpgradeable.AddressSet;
@@ -104,27 +97,6 @@ contract TokenManagerERC1155 is
         uint256[] ids,
         uint256[] amounts
     );
-
-    /**
-     * @dev Allows DEFAULT_ADMIN_ROLE to initialize clones ERC1155
-     * Notice - this function will be executed only once during upgrade
-     * 
-     * Requirements:
-     * 
-     * `msg.sender` should have DEFAULT_ADMIN_ROLE
-     */
-    function initializeAllClonesERC1155(address[] calldata contracts) external override {
-        require(hasRole(DEFAULT_ADMIN_ROLE, msg.sender), "Sender is not authorized");
-        for (uint256 i = 0; i < contracts.length; i++) {
-            if (
-                address(deprecatedClonesErc1155[contracts[i]]).isContract() &&
-                !address(clonesErc1155[MAINNET_HASH][contracts[i]]).isContract()
-            ) {
-                clonesErc1155[MAINNET_HASH][contracts[i]] = deprecatedClonesErc1155[contracts[i]];
-                delete deprecatedClonesErc1155[contracts[i]];
-            }
-        }
-    }
 
     /**
      * @dev Move tokens from schain to mainnet.

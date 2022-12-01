@@ -1,8 +1,15 @@
-from ..contract_generator import ContractGenerator
+from os.path import join, dirname
+from typing import Dict
+
+from predeployed_generator.openzeppelin.access_control_enumerable_generator import (
+    AccessControlEnumerableGenerator
+)
+from predeployed_generator.upgradeable_contract_generator import UpgradeableContractGenerator
 
 
-class KeyStorageGenerator(ContractGenerator):
+class KeyStorageGenerator(AccessControlEnumerableGenerator):
     ARTIFACT_FILENAME = "KeyStorage.json"
+    META_FILENAME = "KeyStorage.meta.json"
     DEFAULT_ADMIN_ROLE = (0).to_bytes(32, 'big')
 
     # ---------- storage ----------
@@ -32,12 +39,27 @@ class KeyStorageGenerator(ContractGenerator):
     ROLES_SLOT = 101
     ROLE_MEMBERS_SLOT = 151
 
-    def __init__(self, deployer_address: str):
-        super().__init__(self.ARTIFACT_FILENAME)
-        self._setup(deployer_address)
+    def __init__(self):
+        generator = KeyStorageGenerator.from_hardhat_artifact(
+            join(dirname(__file__), '..', 'artifacts', self.ARTIFACT_FILENAME),
+            join(dirname(__file__), '..', 'artifacts', self.META_FILENAME))
+        super().__init__(bytecode=generator.bytecode, abi=generator.abi, meta=generator.meta)
 
-    # private
+    @classmethod
+    def generate_storage(cls, **kwargs) -> Dict[str, str]:
+        deployer_address = kwargs['deployer_address']
+        storage: Dict[str, str] = {}
+        roles_slots = cls.RolesSlots(roles=cls.ROLES_SLOT, role_members=cls.ROLE_MEMBERS_SLOT)
 
-    def _setup(self, deployer_address: str) -> None:
-        self._write_uint256(self.INITIALIZED_SLOT, 1)
-        self._setup_role(self.ROLES_SLOT, self.ROLE_MEMBERS_SLOT, self.DEFAULT_ADMIN_ROLE, [deployer_address])
+        cls._write_uint256(storage, cls.INITIALIZED_SLOT, 1)
+        cls._setup_role(storage, roles_slots, cls.DEFAULT_ADMIN_ROLE, [deployer_address])
+
+        return storage
+
+
+class UpgradeableKeyStorageGenerator(UpgradeableContractGenerator):
+    """Generates upgradeable instance of KeyStorageUpgradeable
+    """
+
+    def __init__(self):
+        super().__init__(implementation_generator=KeyStorageGenerator())

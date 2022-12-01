@@ -5170,10 +5170,27 @@ async function do_transfer(
                     }
                 );
                 //details.write( strLogPrefix + cc.normal( "Logs search result(s): " ) + cc.j( r ) + "\n" );
+                const strChainHashWeAreLookingFor = w3_src.utils.soliditySha3( chain_id_dst );
                 let joValues = "";
+                details.write( strLogPrefix +
+                    cc.debug( "Will review " ) + cc.info( r.length ) +
+                    cc.debug( " found event records(in reverse order, newest to oldest)" ) +
+                    cc.debug( " while looking for hash " ) + cc.info( strChainHashWeAreLookingFor ) +
+                    cc.debug( " of destination chain " ) + cc.info( chain_id_dst ) +
+                    "\n" );
                 for( let i = r.length - 1; i >= 0; i-- ) {
-                    if( r[i].returnValues.dstChainHash == w3_src.utils.soliditySha3( chain_id_dst ) ) {
+                    details.write( strLogPrefix +
+                        cc.debug( "Will review found event record " ) + cc.info( i ) +
+                        cc.debug( " with data " ) + cc.j( r[i] ) +
+                        "\n" );
+                    if( r[i].returnValues.dstChainHash == strChainHashWeAreLookingFor ) {
                         joValues = r[i].returnValues;
+                        joValues.savedBlockNumberForOptimizations = r[i].blockNumber;
+                        details.write( strLogPrefix +
+                            cc.debug( "Found event record " ) + cc.info( i ) + cc.debug( " reviewed and " ) +
+                            cc.success( "accepted for processing, found event values are " ) + cc.j( joValues ) +
+                            cc.success( ", found block number is " ) + cc.info( joValues.savedBlockNumberForOptimizations ) +
+                            "\n" );
                         if( blockNumberNextForecast === 0 )
                             blockNumberNextForecast = w3mod.utils.toHex( r[i].blockNumber );
                         else {
@@ -5185,6 +5202,11 @@ async function do_transfer(
                             }
                         }
                         break;
+                    } else {
+                        details.write( strLogPrefix +
+                            cc.debug( "Found event record " ) + cc.info( i ) + cc.debug( " reviewed and " ) +
+                            cc.warning( "skipped" ) +
+                            "\n" );
                     }
                 }
                 details.write( strLogPrefix + cc.normal( "Next forecasted block number for logs search is " ) + cc.info( blockNumberNextForecast ) + "\n" );
@@ -5297,7 +5319,8 @@ async function do_transfer(
                     destinationContract: joValues.dstContract,
                     to: joValues.to,
                     amount: joValues.amount,
-                    data: joValues.data
+                    data: joValues.data,
+                    savedBlockNumberForOptimizations: joValues.savedBlockNumberForOptimizations
                 };
                 jarrMessages.push( joMessage );
 
@@ -5491,8 +5514,8 @@ async function do_transfer(
                                     10,
                                     jo_message_proxy_node,
                                     "OutgoingMessage",
-                                    0, // nBlockFrom
-                                    "latest", // nBlockTo
+                                    joMessage.savedBlockNumberForOptimizations, // 0, // nBlockFrom
+                                    joMessage.savedBlockNumberForOptimizations, // "latest", // nBlockTo
                                     {
                                         dstChainHash: [ w3_node.utils.soliditySha3( chain_id_dst ) ],
                                         msgCounter: [ idxImaMessage ]
