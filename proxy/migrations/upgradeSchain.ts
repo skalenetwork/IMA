@@ -14,7 +14,7 @@ async function main() {
     const pathToManifest: string = stringValue(process.env.MANIFEST);
     await manifestSetup( pathToManifest );
     await upgrade(
-        "1.3.2",
+        "1.3.4",
         contracts,
         async (safeTransactions, abi) => {
             // deploying of new contracts
