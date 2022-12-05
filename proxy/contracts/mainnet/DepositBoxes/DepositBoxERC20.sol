@@ -116,6 +116,34 @@ contract DepositBoxERC20 is DepositBox, IDepositBoxERC20 {
     event TransferSkipped(uint256 id);
 
     /**
+     * @dev Emitted when big transfer threshold is changed
+     */
+    event BigTransferThresholdIsChanged(
+        bytes32 indexed schainHash,
+        address indexed token,
+        uint256 oldValue,
+        uint256 newValue
+    );
+
+    /**
+     * @dev Emitted when big transfer delay is changed
+     */
+    event BigTransferDelayIsChanged(
+        bytes32 indexed schainHash,
+        uint256 oldValue,
+        uint256 newValue
+    );
+
+    /**
+     * @dev Emitted when arbitrage duration is changed
+     */
+    event ArbitrageDurationIsChanged(
+        bytes32 indexed schainHash,
+        uint256 oldValue,
+        uint256 newValue
+    );
+
+    /**
      * @dev Allows `msg.sender` to send ERC20 token from mainnet to schain
      *
      * Requirements:
@@ -260,6 +288,12 @@ contract DepositBoxERC20 is DepositBox, IDepositBoxERC20 {
         onlySchainOwner(schainName)
     {
         bytes32 schainHash = _schainHash(schainName);
+        emit BigTransferThresholdIsChanged(
+            schainHash,
+            token,
+            _delayConfig[schainHash].bigTransferThreshold[token],
+            value
+        );
         _delayConfig[schainHash].bigTransferThreshold[token] = value;
     }
 
@@ -284,6 +318,7 @@ contract DepositBoxERC20 is DepositBox, IDepositBoxERC20 {
         bytes32 schainHash = _schainHash(schainName);
         // need to restrict big delays to avoid overflow
         require(delayInSeconds < 1e8, "Delay is too big"); // no more then ~ 3 years
+        emit BigTransferDelayIsChanged(schainHash, _delayConfig[schainHash].transferDelay, delayInSeconds);
         _delayConfig[schainHash].transferDelay = delayInSeconds;
     }
 
@@ -306,6 +341,7 @@ contract DepositBoxERC20 is DepositBox, IDepositBoxERC20 {
         bytes32 schainHash = _schainHash(schainName);
         // need to restrict big delays to avoid overflow
         require(delayInSeconds < 1e8, "Delay is too big"); // no more then ~ 3 years
+        emit ArbitrageDurationIsChanged(schainHash, _delayConfig[schainHash].arbitrageDuration, delayInSeconds);
         _delayConfig[schainHash].arbitrageDuration = delayInSeconds;
     }
 
