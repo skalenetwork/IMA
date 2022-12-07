@@ -75,7 +75,12 @@ class ObserverServer extends Server {
             self.opts.details = {
                 write: self.log
             };
-            // self.log( cc.debug( "Initialized in-worker options:" ) + " " + cc.j( self.opts ) + "\n" );
+            cc.enable( joMessage.message.cc.isEnabled );
+            joAnswer.message = {
+                method: "" + joMessage.method,
+                error: null
+            };
+            // self.log( cc.debug( "Initialized in-worker(observer) options:" ) + " " + cc.j( self.opts ) + "\n" );
             //
             self.opts.imaState.chainProperties.mn.joAccount.address = owaspUtils.fn_address_impl_;
             self.opts.imaState.chainProperties.sc.joAccount.address = owaspUtils.fn_address_impl_;
@@ -109,11 +114,6 @@ class ObserverServer extends Server {
             //
             self.opts.imaState.jo_message_proxy_s_chain = new self.opts.imaState.chainProperties.sc.w3.eth.Contract( self.opts.imaState.chainProperties.sc.joAbiIMA.message_proxy_chain_abi, self.opts.imaState.chainProperties.sc.joAbiIMA.message_proxy_chain_address );
             //
-            cc.enable( joMessage.message.cc.isEnabled );
-            joAnswer.message = {
-                method: "" + joMessage.method,
-                error: null
-            };
             self.log( cc.debug( "Full init compete for in-worker SNB server" ) + " " + cc.notice( g_url ) + "\n" );
             return joAnswer;
         };

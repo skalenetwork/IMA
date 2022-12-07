@@ -30,7 +30,7 @@ const owaspUtils = require( "../npms/skale-owasp/owasp-util.js" );
 const cc = owaspUtils.cc;
 
 // const fs = require( "fs" );
-// const path = require( "path" );
+const path = require( "path" );
 // const url = require( "url" );
 // const os = require( "os" );
 
@@ -258,7 +258,6 @@ async function single_transfer_loop() {
         log.write( strLogPrefix + cc.fatal( "Exception in single transfer loop: " ) + cc.error( owaspUtils.extract_error_message( err ) ) + "\n" );
     }
     imaState.isImaSingleTransferLoopInProgress = false;
-    imaState.wasImmodule.exports.w3mod = w3mod;
 
     return false;
 }
@@ -281,109 +280,126 @@ async function run_transfer_loop( isDelayFirstRun ) {
 // Parallel thread based loop
 //
 
-let g_worker = null;
-let g_client = null;
+const impl_sleep = ( milliseconds ) => { return new Promise( resolve => setTimeout( resolve, milliseconds ) ); };
 
-async function ensure_have_worker( opts ) {
-    if( g_worker )
-        return g_worker;
-    const url = "ima_loop_server";
-    g_worker = new Worker( path.join( __dirname, "loop_worker.js" ) );
-    // console.log( "Will connect to " + url );
-    g_worker.on( "message", jo => {
-        if( network_layer.out_of_worker_apis.on_message( g_worker, jo ) )
-            return;
-    } );
-    g_client = new network_layer.OutOfWorkerSocketClientPipe( url, g_worker );
-    g_client.on( "message", function( eventData ) {
-        const joMessage = eventData.message;
-        // console.log( "CLIENT <<<", JSON.stringify( joMessage ) );
-        switch ( joMessage.method ) {
-        // case "periodic_caching_do_now":
-        //     g_arr_schains_cached = joMessage.message;
-        //     if( opts && opts.details ) {
-        //         opts.details.write(
-        //             cc.debug( "Connected " ) + cc.attention( "S-Chains" ) +
-        //             cc.debug( " cache was updated using data arrived from SNB worker: " ) +
-        //             cc.j( g_arr_schains_cached ) + "\n" );
-        //     }
-        //     break;
-        case "log":
-            log.write( cc.attention( "LOOP WORKER" ) + " " + joMessage.message );
-            break;
-        } // switch ( joMessage.method )
-    } );
-    await impl_sleep( 1000 );
-    const jo = {
-        method: "init",
-        message: {
-            opts: {
-                imaState: {
-                    "bNoWaitSChainStarted": opts.imaState.bNoWaitSChainStarted,
-                    "nMaxWaitSChainAttempts": opts.imaState.nMaxWaitSChainAttempts,
-                    "nNodeNumber": opts.imaState.nNodeNumber, // S-Chain node number(zero based)
-                    "nNodesCount": opts.imaState.nNodesCount,
-                    "nTimeFrameSeconds": opts.imaState.nTimeFrameSeconds, // 0-disable, 60-recommended
-                    "nNextFrameGap": opts.imaState.nNextFrameGap,
-                    "chainProperties": {
-                        "mn": {
-                            "joAccount": {
-                                "privateKey": opts.imaState.chainProperties.mn.joAccount.privateKey,
-                                // "address": IMA.owaspUtils.fn_address_impl_,
-                                "strTransactionManagerURL": opts.imaState.chainProperties.mn.joAccount.strTransactionManagerURL,
-                                "tm_priority": opts.imaState.chainProperties.mn.joAccount.tm_priority,
-                                "strSgxURL": opts.imaState.chainProperties.mn.joAccount.strSgxURL,
-                                "strSgxKeyName": opts.imaState.chainProperties.mn.joAccount.strSgxKeyName,
-                                "strPathSslKey": opts.imaState.chainProperties.mn.joAccount.strPathSslKey,
-                                "strPathSslCert": opts.imaState.chainProperties.mn.joAccount.strPathSslCert,
-                                "strBlsKeyName": opts.imaState.chainProperties.mn.joAccount.strBlsKeyName
-                            },
-                            "w3": null,
-                            "strURL": opts.imaState.chainProperties.mn.strURL,
-                            "strChainName": opts.imaState.chainProperties.mn.strChainName,
-                            "cid": opts.imaState.chainProperties.mn.cid,
-                            "joAbiIMA": opts.imaState.chainProperties.mn.joAbiIMA,
-                            "bHaveAbiIMA": opts.imaState.chainProperties.mn.bHaveAbiIMA
-                        },
-                        "sc": {
-                            "joAccount": {
-                                "privateKey": opts.imaState.chainProperties.sc.joAccount.privateKey,
-                                // "address": IMA.owaspUtils.fn_address_impl_,
-                                "strTransactionManagerURL": opts.imaState.chainProperties.sc.joAccount.strTransactionManagerURL,
-                                "tm_priority": opts.imaState.chainProperties.sc.joAccount.tm_priority,
-                                "strSgxURL": opts.imaState.chainProperties.sc.joAccount.strSgxURL,
-                                "strSgxKeyName": opts.imaState.chainProperties.sc.joAccount.strSgxKeyName,
-                                "strPathSslKey": opts.imaState.chainProperties.sc.joAccount.strPathSslKey,
-                                "strPathSslCert": opts.imaState.chainProperties.sc.joAccount.strPathSslCert,
-                                "strBlsKeyName": opts.imaState.chainProperties.sc.joAccount.strBlsKeyName
-                            },
-                            "w3": null,
-                            "strURL": opts.imaState.chainProperties.sc.strURL,
-                            "strChainName": opts.imaState.chainProperties.sc.strChainName,
-                            "cid": opts.imaState.chainProperties.sc.cid,
-                            "joAbiIMA": opts.imaState.chainProperties.sc.joAbiIMA,
-                            "bHaveAbiIMA": opts.imaState.chainProperties.sc.bHaveAbiIMA
-                        }
-                        // "tc": {
-                        //     "joAccount": {
-                        //     }
-                        // },
-                    },
-                    "joAbiSkaleManager": opts.imaState.joAbiSkaleManager,
-                    "bHaveSkaleManagerABI": opts.imaState.bHaveSkaleManagerABI,
-                    "joSChainDiscovery": {
-                        "isSilentReDiscovery": opts.imaState.joSChainDiscovery.isSilentReDiscovery,
-                        "repeatIntervalMilliseconds": opts.imaState.joSChainDiscovery.repeatIntervalMilliseconds // zero to disable (for debugging only)
-                    }
-                }
-            },
-            "cc": {
-                "isEnabled": cc.isEnabled()
+const g_workers = [];
+const g_clients = [];
+
+async function ensure_have_workers( opts ) {
+    if( g_workers.length > 0 )
+        return g_workers;
+    const cntWorkers = 2;
+    for( let idxWorker = 0; idxWorker < cntWorkers; ++ idxWorker ) {
+        const workerData = {
+            url: "ima_loop_server" + idxWorker,
+            cc: {
+                isEnabled: cc.isEnabled()
             }
-        }
-    };
-    g_client.send( jo );
+        };
+        g_workers.push( new Worker( path.join( __dirname, "loop_worker.js" ), { workerData: workerData } ) );
+        // console.log( "Will connect to " + workerData.url );
+        g_workers[idxWorker].on( "message", jo => {
+            if( network_layer.out_of_worker_apis.on_message( g_workers[idxWorker], jo ) )
+                return;
+        } );
+        g_clients.push( new network_layer.OutOfWorkerSocketClientPipe( workerData.url, g_workers[idxWorker] ) );
+        g_clients[idxWorker].on( "message", function( eventData ) {
+            const joMessage = eventData.message;
+            // console.log( "CLIENT <<<", JSON.stringify( joMessage ) );
+            switch ( joMessage.method ) {
+            // case "periodic_caching_do_now":
+            //     g_arr_schains_cached = joMessage.message;
+            //     if( opts && opts.details ) {
+            //         opts.details.write(
+            //             cc.debug( "Connected " ) + cc.attention( "S-Chains" ) +
+            //             cc.debug( " cache was updated using data arrived from SNB worker: " ) +
+            //             cc.j( g_arr_schains_cached ) + "\n" );
+            //     }
+            //     break;
+            case "log":
+                log.write( cc.attention( "LOOP WORKER" ) + " " + cc.notice( workerData.url ) + " " + joMessage.message );
+                break;
+            } // switch ( joMessage.method )
+        } );
+        await impl_sleep( 1000 );
+        const jo = {
+            method: "init",
+            message: {
+                opts: {
+                    imaState: {
+                        "bNoWaitSChainStarted": opts.imaState.bNoWaitSChainStarted,
+                        "nMaxWaitSChainAttempts": opts.imaState.nMaxWaitSChainAttempts,
+                        "nNodeNumber": opts.imaState.nNodeNumber, // S-Chain node number(zero based)
+                        "nNodesCount": opts.imaState.nNodesCount,
+                        "nTimeFrameSeconds": opts.imaState.nTimeFrameSeconds, // 0-disable, 60-recommended
+                        "nNextFrameGap": opts.imaState.nNextFrameGap,
+                        "chainProperties": {
+                            "mn": {
+                                "joAccount": {
+                                    "privateKey": opts.imaState.chainProperties.mn.joAccount.privateKey,
+                                    // "address": IMA.owaspUtils.fn_address_impl_,
+                                    "strTransactionManagerURL": opts.imaState.chainProperties.mn.joAccount.strTransactionManagerURL,
+                                    "tm_priority": opts.imaState.chainProperties.mn.joAccount.tm_priority,
+                                    "strSgxURL": opts.imaState.chainProperties.mn.joAccount.strSgxURL,
+                                    "strSgxKeyName": opts.imaState.chainProperties.mn.joAccount.strSgxKeyName,
+                                    "strPathSslKey": opts.imaState.chainProperties.mn.joAccount.strPathSslKey,
+                                    "strPathSslCert": opts.imaState.chainProperties.mn.joAccount.strPathSslCert,
+                                    "strBlsKeyName": opts.imaState.chainProperties.mn.joAccount.strBlsKeyName
+                                },
+                                "w3": null,
+                                "strURL": opts.imaState.chainProperties.mn.strURL,
+                                "strChainName": opts.imaState.chainProperties.mn.strChainName,
+                                "cid": opts.imaState.chainProperties.mn.cid,
+                                "joAbiIMA": opts.imaState.chainProperties.mn.joAbiIMA,
+                                "bHaveAbiIMA": opts.imaState.chainProperties.mn.bHaveAbiIMA
+                            },
+                            "sc": {
+                                "joAccount": {
+                                    "privateKey": opts.imaState.chainProperties.sc.joAccount.privateKey,
+                                    // "address": IMA.owaspUtils.fn_address_impl_,
+                                    "strTransactionManagerURL": opts.imaState.chainProperties.sc.joAccount.strTransactionManagerURL,
+                                    "tm_priority": opts.imaState.chainProperties.sc.joAccount.tm_priority,
+                                    "strSgxURL": opts.imaState.chainProperties.sc.joAccount.strSgxURL,
+                                    "strSgxKeyName": opts.imaState.chainProperties.sc.joAccount.strSgxKeyName,
+                                    "strPathSslKey": opts.imaState.chainProperties.sc.joAccount.strPathSslKey,
+                                    "strPathSslCert": opts.imaState.chainProperties.mn.joAccount.strPathSslCert,
+                                    "strBlsKeyName": opts.imaState.chainProperties.mn.joAccount.strBlsKeyName
+                                },
+                                "w3": null,
+                                "strURL": opts.imaState.chainProperties.sc.strURL,
+                                "strChainName": opts.imaState.chainProperties.sc.strChainName,
+                                "cid": opts.imaState.chainProperties.sc.cid,
+                                "joAbiIMA": opts.imaState.chainProperties.sc.joAbiIMA,
+                                "bHaveAbiIMA": opts.imaState.chainProperties.sc.bHaveAbiIMA
+                            }
+                            // "tc": {
+                            //     "joAccount": {
+                            //     }
+                            // },
+                        },
+                        "joAbiSkaleManager": opts.imaState.joAbiSkaleManager,
+                        "bHaveSkaleManagerABI": opts.imaState.bHaveSkaleManagerABI,
+                        "joSChainDiscovery": {
+                            "isSilentReDiscovery": opts.imaState.joSChainDiscovery.isSilentReDiscovery,
+                            "repeatIntervalMilliseconds": opts.imaState.joSChainDiscovery.repeatIntervalMilliseconds // zero to disable (for debugging only)
+                        }
+                    }
+                },
+                "cc": {
+                    "isEnabled": cc.isEnabled()
+                }
+            }
+        };
+        g_clients[idxWorker].send( jo );
+    } // for( let idxWorker = 0; idxWorker < cntWorkers; ++ idxWorker )
+}
+
+async function run_parallel_loops( opts ) {
+    log.write( cc.debug( "Will start parallel IMA transfer loops..." ) + "\n" );
+    await ensure_have_workers( opts );
+    log.write( cc.success( "Done, did parallel IMA transfer loops." ) + "\n" );
 }
 
 module.exports.single_transfer_loop_with_repeat = single_transfer_loop_with_repeat;
 module.exports.run_transfer_loop = run_transfer_loop;
+module.exports.run_parallel_loops = run_parallel_loops;
