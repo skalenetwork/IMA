@@ -1333,14 +1333,18 @@ imaCLI.parse( {
                 }
                 if( isPrintSummaryRegistrationCosts )
                     print_summary_registration_costs();
-                ////return await loop.run_transfer_loop( false );
-                const opts = {
-                    imaState: imaState,
-                    "details": log
-                };
-                await loop.run_parallel_loops(
-                    opts
-                );
+                //
+                //
+                return await loop.run_transfer_loop( false );
+                //
+                //
+                // const opts = {
+                //     imaState: imaState,
+                //     "details": log
+                // };
+                // await loop.run_parallel_loops(
+                //     opts
+                // );
             }
         } );
     },
