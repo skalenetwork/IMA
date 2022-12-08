@@ -288,7 +288,7 @@ const g_clients = [];
 async function ensure_have_workers( opts ) {
     if( g_workers.length > 0 )
         return g_workers;
-    const cntWorkers = 2;
+    const cntWorkers = 1;
     for( let idxWorker = 0; idxWorker < cntWorkers; ++ idxWorker ) {
         const workerData = {
             url: "ima_loop_server" + idxWorker,
@@ -307,15 +307,6 @@ async function ensure_have_workers( opts ) {
             const joMessage = eventData.message;
             // console.log( "CLIENT <<<", JSON.stringify( joMessage ) );
             switch ( joMessage.method ) {
-            // case "periodic_caching_do_now":
-            //     g_arr_schains_cached = joMessage.message;
-            //     if( opts && opts.details ) {
-            //         opts.details.write(
-            //             cc.debug( "Connected " ) + cc.attention( "S-Chains" ) +
-            //             cc.debug( " cache was updated using data arrived from SNB worker: " ) +
-            //             cc.j( g_arr_schains_cached ) + "\n" );
-            //     }
-            //     break;
             case "log":
                 log.write( cc.attention( "LOOP WORKER" ) + " " + cc.notice( workerData.url ) + " " + joMessage.message );
                 break;
@@ -327,16 +318,87 @@ async function ensure_have_workers( opts ) {
             message: {
                 opts: {
                     imaState: {
+                        verbose_: IMA.verbose_get(),
+                        expose_details_: IMA.expose_details_get(),
+                        //
+                        //
+                        //
+                        "isImaSingleTransferLoopInProgress": opts.imaState.isImaSingleTransferLoopInProgress,
+                        "wasImaSingleTransferLoopInProgress": opts.imaState.wasImaSingleTransferLoopInProgress,
+                        "isPrintGathered": opts.imaState.isPrintGathered,
+                        "isPrintSecurityValues": opts.imaState.isPrintSecurityValues,
+                        "isPrintPWA": opts.imaState.isPrintPWA,
+
+                        "bIsNeededCommonInit": false,
+                        "bSignMessages": opts.imaState.bSignMessages, // use BLS message signing, turned on with --sign-messages
+                        "joSChainNetworkInfo": opts.imaState.joSChainNetworkInfo, // scanned S-Chain network description
+                        "strPathBlsGlue": opts.imaState.strPathBlsGlue, // path to bls_glue app, must have if --sign-messages specified
+                        "strPathHashG1": opts.imaState.strPathHashG1, // path to hash_g1 app, must have if --sign-messages specified
+                        "strPathBlsVerify": opts.imaState.strPathBlsVerify, // path to verify_bls app, optional, if specified then we will verify gathered BLS signature
+
                         "bNoWaitSChainStarted": opts.imaState.bNoWaitSChainStarted,
                         "nMaxWaitSChainAttempts": opts.imaState.nMaxWaitSChainAttempts,
+
+                        "nTransferBlockSizeM2S": opts.imaState.nTransferBlockSizeM2S,
+                        "nTransferBlockSizeS2M": opts.imaState.nTransferBlockSizeS2M,
+                        "nTransferBlockSizeS2S": opts.imaState.nTransferBlockSizeS2S,
+                        "nMaxTransactionsM2S": opts.imaState.nMaxTransactionsM2S,
+                        "nMaxTransactionsS2M": opts.imaState.nMaxTransactionsS2M,
+                        "nMaxTransactionsS2S": opts.imaState.nMaxTransactionsS2S,
+
+                        "nBlockAwaitDepthM2S": opts.imaState.nBlockAwaitDepthM2S,
+                        "nBlockAwaitDepthS2M": opts.imaState.nBlockAwaitDepthS2M,
+                        "nBlockAwaitDepthS2S": opts.imaState.nBlockAwaitDepthS2S,
+                        "nBlockAgeM2S": opts.imaState.nBlockAgeM2S,
+                        "nBlockAgeS2M": opts.imaState.nBlockAgeS2M,
+                        "nBlockAgeS2S": opts.imaState.nBlockAgeS2S,
+
+                        "nLoopPeriodSeconds": opts.imaState.nLoopPeriodSeconds,
+
                         "nNodeNumber": opts.imaState.nNodeNumber, // S-Chain node number(zero based)
                         "nNodesCount": opts.imaState.nNodesCount,
                         "nTimeFrameSeconds": opts.imaState.nTimeFrameSeconds, // 0-disable, 60-recommended
                         "nNextFrameGap": opts.imaState.nNextFrameGap,
+
+                        "jo_community_pool": null, // only main net
+                        "jo_deposit_box_eth": null, // only main net
+                        "jo_deposit_box_erc20": null, // only main net
+                        "jo_deposit_box_erc721": null, // only main net
+                        "jo_deposit_box_erc1155": null, // only main net
+                        "jo_deposit_box_erc721_with_metadata": null, // only main net
+                        "jo_linker": null, // only main net
+
+                        "isWithMetadata721": false,
+
+                        "jo_token_manager_eth": null, // only s-chain
+                        // "jo_token_manager_eth_target": null, // only s-chain target
+                        "jo_token_manager_erc20": null, // only s-chain
+                        "jo_token_manager_erc20_target": null, // only s-chain
+                        "jo_token_manager_erc721": null, // only s-chain target
+                        "jo_token_manager_erc721_target": null, // only s-chain target
+                        "jo_token_manager_erc1155": null, // only s-chain
+                        "jo_token_manager_erc1155_target": null, // only s-chain target
+                        "jo_token_manager_erc721_with_metadata": null, // only s-chain target
+                        "jo_token_manager_erc721_with_metadata_target": null, // only s-chain target
+                        "jo_community_locker": null, // only s-chain
+                        "jo_community_locker_target": null, // only s-chain target
+                        "jo_message_proxy_main_net": null,
+                        "jo_message_proxy_s_chain": null,
+                        "jo_message_proxy_s_chain_target": null, // only s-chain target
+                        "jo_token_manager_linker": null,
+                        "jo_token_manager_linker_target": null, // only s-chain target
+                        "eth_erc20": null, // only s-chain
+                        // "eth_erc721": null, // only s-chain
+                        // "eth_erc1155": null, // only s-chain
+                        "eth_erc20_target": null, // only s-chain target
+                        // "eth_erc721_target": null, // only s-chain target
+                        // "eth_erc1155_target": null, // only s-chain target
+
                         "chainProperties": {
                             "mn": {
                                 "joAccount": {
                                     "privateKey": opts.imaState.chainProperties.mn.joAccount.privateKey,
+                                    "address_": opts.imaState.chainProperties.mn.joAccount.address_,
                                     // "address": IMA.owaspUtils.fn_address_impl_,
                                     "strTransactionManagerURL": opts.imaState.chainProperties.mn.joAccount.strTransactionManagerURL,
                                     "tm_priority": opts.imaState.chainProperties.mn.joAccount.tm_priority,
@@ -356,6 +418,7 @@ async function ensure_have_workers( opts ) {
                             "sc": {
                                 "joAccount": {
                                     "privateKey": opts.imaState.chainProperties.sc.joAccount.privateKey,
+                                    "address_": opts.imaState.chainProperties.sc.joAccount.address_,
                                     // "address": IMA.owaspUtils.fn_address_impl_,
                                     "strTransactionManagerURL": opts.imaState.chainProperties.sc.joAccount.strTransactionManagerURL,
                                     "tm_priority": opts.imaState.chainProperties.sc.joAccount.tm_priority,
@@ -371,18 +434,55 @@ async function ensure_have_workers( opts ) {
                                 "cid": opts.imaState.chainProperties.sc.cid,
                                 "joAbiIMA": opts.imaState.chainProperties.sc.joAbiIMA,
                                 "bHaveAbiIMA": opts.imaState.chainProperties.sc.bHaveAbiIMA
+                            },
+                            "tc": {
+                                "joAccount": {
+                                    "privateKey": opts.imaState.chainProperties.tc.joAccount.privateKey,
+                                    "address_": opts.imaState.chainProperties.tc.joAccount.address_,
+                                    // "address": IMA.owaspUtils.fn_address_impl_,
+                                    "strTransactionManagerURL": opts.imaState.chainProperties.tc.joAccount.strTransactionManagerURL,
+                                    "tm_priority": opts.imaState.chainProperties.tc.joAccount.tm_priority,
+                                    "strSgxURL": opts.imaState.chainProperties.tc.joAccount.strSgxURL,
+                                    "strSgxKeyName": opts.imaState.chainProperties.tc.joAccount.strSgxKeyName,
+                                    "strPathSslKey": opts.imaState.chainProperties.tc.joAccount.strPathSslKey,
+                                    "strPathSslCert": opts.imaState.chainProperties.tc.joAccount.strPathSslCert,
+                                    "strBlsKeyName": opts.imaState.chainProperties.tc.joAccount.strBlsKeyName
+                                },
+                                "w3": null,
+                                "strURL": opts.imaState.chainProperties.tc.strURL,
+                                "strChainName": opts.imaState.chainProperties.tc.strChainName,
+                                "cid": opts.imaState.chainProperties.tc.cid,
+                                "joAbiIMA": opts.imaState.chainProperties.tc.joAbiIMA,
+                                "bHaveAbiIMA": opts.imaState.chainProperties.tc.bHaveAbiIMA
                             }
-                            // "tc": {
-                            //     "joAccount": {
-                            //     }
-                            // },
                         },
                         "joAbiSkaleManager": opts.imaState.joAbiSkaleManager,
                         "bHaveSkaleManagerABI": opts.imaState.bHaveSkaleManagerABI,
+
+                        "strChainName_origin_chain": opts.imaState.strChainName_origin_chain,
+
+                        "isPWA": opts.imaState.isPWA,
+                        "nTimeoutSecondsPWA": opts.imaState.nTimeoutSecondsPWA,
+
+                        "strReimbursementChain": opts.imaState.strReimbursementChain,
+                        "isShowReimbursementBalance": opts.imaState.isShowReimbursementBalance,
+                        "nReimbursementRecharge": opts.imaState.nReimbursementRecharge,
+                        "nReimbursementWithdraw": opts.imaState.nReimbursementWithdraw,
+                        "nReimbursementRange": opts.imaState.nReimbursementRange,
+
                         "joSChainDiscovery": {
                             "isSilentReDiscovery": opts.imaState.joSChainDiscovery.isSilentReDiscovery,
                             "repeatIntervalMilliseconds": opts.imaState.joSChainDiscovery.repeatIntervalMilliseconds // zero to disable (for debugging only)
-                        }
+                        },
+
+                        "s2s_opts": { // S-Chain to S-Chain transfer options
+                            "isEnabled": true, // is S-Chain to S-Chain transfers enabled
+                            "secondsToReDiscoverSkaleNetwork": 1 * 60 * 60 // seconts to re-discover SKALE network, 0 to disable
+                        },
+
+                        "nJsonRpcPort": opts.imaState.nJsonRpcPort, // 0 to disable
+                        "isCrossImaBlsMode": opts.imaState.isCrossImaBlsMode
+
                     }
                 },
                 "cc": {
@@ -400,6 +500,7 @@ async function run_parallel_loops( opts ) {
     log.write( cc.success( "Done, did parallel IMA transfer loops." ) + "\n" );
 }
 
+module.exports.single_transfer_loop = single_transfer_loop;
 module.exports.single_transfer_loop_with_repeat = single_transfer_loop_with_repeat;
 module.exports.run_transfer_loop = run_transfer_loop;
 module.exports.run_parallel_loops = run_parallel_loops;

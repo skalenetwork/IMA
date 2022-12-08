@@ -72,6 +72,8 @@ class ObserverServer extends Server {
                 write: self.log
             };
             cc.enable( joMessage.message.cc.isEnabled );
+            IMA.verbose_set( self.opts.imaState.verbose_ );
+            IMA.expose_details_set( self.opts.imaState.expose_details_ );
             joAnswer.message = {
                 method: "" + joMessage.method,
                 error: null
@@ -104,38 +106,22 @@ class ObserverServer extends Server {
                     "\n" );
             }
             //
-            self.opts.imaState.jo_nodes = new self.opts.imaState.chainProperties.mn.w3.eth.Contract( self.opts.imaState.joAbiSkaleManager.nodes_abi, self.opts.imaState.joAbiSkaleManager.nodes_address );
-            self.opts.imaState.jo_schains = new self.opts.imaState.chainProperties.mn.w3.eth.Contract( self.opts.imaState.joAbiSkaleManager.schains_abi, self.opts.imaState.joAbiSkaleManager.schains_address );
-            self.opts.imaState.jo_schains_internal = new self.opts.imaState.chainProperties.mn.w3.eth.Contract( self.opts.imaState.joAbiSkaleManager.schains_internal_abi, self.opts.imaState.joAbiSkaleManager.schains_internal_address );
-            //
-            self.opts.imaState.jo_message_proxy_s_chain = new self.opts.imaState.chainProperties.sc.w3.eth.Contract( self.opts.imaState.chainProperties.sc.joAbiIMA.message_proxy_chain_abi, self.opts.imaState.chainProperties.sc.joAbiIMA.message_proxy_chain_address );
-            //
-            self.log( cc.debug( "Full init compete for in-worker IMA loop server" ) + " " + cc.notice( workerData.url ) + "\n" );
+            self.opts.imaState.doEnableDryRun = function( isEnable ) { return IMA.dry_run_enable( isEnable ); };
+            self.opts.imaState.doIgnoreDryRun = function( isIgnore ) { return IMA.dry_run_ignore( isIgnore ); };
+            global.imaState = self.opts.imaState;
+            global.imaState.chainProperties.mn.w3 = null;
+            global.imaState.chainProperties.sc.w3 = null;
+            global.imaState.chainProperties.tc.w3 = null;
+            global.imaState.chainProperties.mn.transactionCustomizer = IMA.tc_main_net;
+            global.imaState.chainProperties.sc.transactionCustomizer = IMA.tc_s_chain;
+            global.imaState.chainProperties.tc.transactionCustomizer = IMA.tc_t_chain;
+            imaCLI.ima_contracts_init();
             //
             /* await */
-            global.imaState = self.opts.imaState;
             loop.run_transfer_loop( false );
-            return joAnswer;
-        };
-        self.mapApiHandlers.periodic_caching_start = function( joMessage, joAnswer, eventData, socket ) {
-            self.periodic_caching_start(
-                socket,
-                joMessage.message.secondsToReDiscoverSkaleNetwork,
-                joMessage.message.strChainNameConnectedTo,
-                joMessage.message.addressFrom
-            );
-            joAnswer.message = {
-                method: "" + joMessage.method,
-                error: null
-            };
-            return joAnswer;
-        };
-        self.mapApiHandlers.periodic_caching_stop = function( joMessage, joAnswer, eventData, socket ) {
-            self.periodic_caching_stop();
-            joAnswer.message = {
-                method: "" + joMessage.method,
-                error: null
-            };
+            // loop.single_transfer_loop();
+            //
+            self.log( cc.debug( "Full init compete for in-worker IMA loop server" ) + " " + cc.notice( workerData.url ) + "\n" );
             return joAnswer;
         };
         self.log( cc.debug( "Initialized in-worker IMA loop " ) + cc.info( workerData.url ) + cc.debug( " server" ) + "\n" );
@@ -148,58 +134,6 @@ class ObserverServer extends Server {
             self.intervalPeriodicSchainsCaching = null;
         }
         super.dispose();
-    }
-    async periodic_caching_do_now( socket, secondsToReDiscoverSkaleNetwork, strChainNameConnectedTo, addressFrom ) {
-        const self = this;
-        if( self.bIsPeriodicCachingStepInProgress )
-            return;
-        self.bIsPeriodicCachingStepInProgress = true;
-        // const strError =
-        await skale_observer.cache_schains(
-            strChainNameConnectedTo,
-            self.opts.imaState.chainProperties.mn.w3,
-            self.opts.imaState.chainProperties.sc.w3,
-            addressFrom,
-            self.opts
-        );
-        self.bIsPeriodicCachingStepInProgress = false;
-        const arr_schains = skale_observer.get_last_cached_schains();
-        // self.log( cc.normal( "Got " ) + cc.info( "SKALE NETWORK" ) + cc.normal( " information in worker: " ) + cc.j( arr_schains ) + "\n" );
-        const jo = {
-            method: "periodic_caching_do_now",
-            error: null,
-            message: arr_schains
-        };
-        const isFlush = true;
-        socket.send( jo, isFlush );
-    }
-    async periodic_caching_start( socket, secondsToReDiscoverSkaleNetwork, strChainNameConnectedTo, addressFrom ) {
-        const self = this;
-        await self.periodic_caching_stop();
-        if( secondsToReDiscoverSkaleNetwork <= 0 )
-            return false;
-        const fn_async_handler = async function() {
-            await self.periodic_caching_do_now( socket, secondsToReDiscoverSkaleNetwork, strChainNameConnectedTo, addressFrom );
-        };
-        self.intervalPeriodicSchainsCaching = setInterval( function() {
-            if( self.bIsPeriodicCachingStepInProgress )
-                return;
-            fn_async_handler()
-                .then( () => {
-                } ).catch( () => {
-                } );
-        }, secondsToReDiscoverSkaleNetwork * 1000 );
-        fn_async_handler(); // initial async call
-        return true;
-    }
-    async periodic_caching_stop() {
-        const self = this;
-        if( ! self.intervalPeriodicSchainsCaching )
-            return false;
-        clearInterval( self.intervalPeriodicSchainsCaching );
-        self.intervalPeriodicSchainsCaching = null;
-        self.bIsPeriodicCachingStepInProgress = false;
-        return true;
     }
 };
 

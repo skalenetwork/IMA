@@ -299,7 +299,9 @@ function get_bls_glue_tmp_dir() {
 
 function alloc_bls_tmp_action_dir() {
     const strActionDir = get_bls_glue_tmp_dir() + "/" + imaUtils.replaceAll( imaUtils.uuid(), "-", "" );
-    shell.mkdir( "-p", strActionDir );
+    // shell.mkdir( "-p", strActionDir );
+    if( ! fs.existsSync( strActionDir ) )
+        fs.mkdirSync( strActionDir , { recursive: true } );
     return strActionDir;
 }
 
@@ -318,16 +320,16 @@ function perform_bls_glue(
     details.write( strLogPrefix + cc.debug( "Discovered number of BLS participants is " ) + cc.info( nParticipants ) + cc.debug( "." ) + "\n" );
     const strMessageHash = owaspUtils.remove_starting_0x( keccak256_message( jarrMessages, nIdxCurrentMsgBlockStart, strFromChainName ) );
     details.write( strLogPrefix + cc.debug( "Message hash to sign is " ) + cc.info( strMessageHash ) + "\n" );
-    const strPWD = shell.pwd();
+    // const strPWD = shell.pwd();
     const strActionDir = alloc_bls_tmp_action_dir();
     details.write( strLogPrefix + cc.debug( "perform_bls_glue will work in " ) + cc.info( strActionDir ) + cc.debug( " director with " ) + cc.info( arrSignResults.length ) + cc.debug( " sign results..." ) + "\n" );
     const fnShellRestore = function() {
-        shell.cd( strPWD );
+        // shell.cd( strPWD );
         shell.rm( "-rf", strActionDir );
     };
     let strOutput = "";
     try {
-        shell.cd( strActionDir );
+        // shell.cd( strActionDir );
         let strInput = "";
         let i = 0; const cnt = arrSignResults.length;
         for( i = 0; i < cnt; ++i ) {
@@ -344,7 +346,7 @@ function perform_bls_glue(
             strInput +
             " --output " + strActionDir + "/glue-result.json";
         details.write( strLogPrefix + cc.debug( "Will execute BLS glue command:\n" ) + cc.notice( strGlueCommand ) + "\n" );
-        strOutput = child_process.execSync( strGlueCommand );
+        strOutput = child_process.execSync( strGlueCommand, { cwd: strActionDir } );
         details.write( strLogPrefix + cc.debug( "BLS glue output is:\n" ) + cc.notice( strOutput ) + "\n" );
         joGlueResult = imaUtils.jsonFileLoad( strActionDir + "/glue-result.json" );
         details.write( strLogPrefix + cc.debug( "BLS glue result is: " ) + cc.j( joGlueResult ) + "\n" );
@@ -363,7 +365,7 @@ function perform_bls_glue(
                 " --t " + nThreshold +
                 " --n " + nParticipants;
             details.write( strLogPrefix + cc.normal( "Will execute HashG1 command:\n" ) + cc.notice( strHasG1Command ) + "\n" );
-            strOutput = child_process.execSync( strHasG1Command );
+            strOutput = child_process.execSync( strHasG1Command, { cwd: strActionDir } );
             details.write( strLogPrefix + cc.normal( "HashG1 output is:\n" ) + cc.notice( strOutput ) + "\n" );
             const joResultHashG1 = imaUtils.jsonFileLoad( strActionDir + "/g1.json" );
             details.write( strLogPrefix + cc.normal( "HashG1 result is: " ) + cc.j( joResultHashG1 ) + "\n" );
@@ -417,16 +419,16 @@ function perform_bls_glue_u256( details, u256, arrSignResults ) {
     details.write( strLogPrefix + cc.debug( "Original long message is " ) + cc.info( keccak256_u256( u256, false ) ) + "\n" );
     const strMessageHash = keccak256_u256( u256, true );
     details.write( strLogPrefix + cc.debug( "Message hash to sign is " ) + cc.info( strMessageHash ) + "\n" );
-    const strPWD = shell.pwd();
+    // const strPWD = shell.pwd();
     const strActionDir = alloc_bls_tmp_action_dir();
     details.write( strLogPrefix + cc.debug( "perform_bls_glue_u256 will work in " ) + cc.info( strActionDir ) + cc.debug( " director with " ) + cc.info( arrSignResults.length ) + cc.debug( " sign results..." ) + "\n" );
     const fnShellRestore = function() {
-        shell.cd( strPWD );
+        // shell.cd( strPWD );
         shell.rm( "-rf", strActionDir );
     };
     let strOutput = "";
     try {
-        shell.cd( strActionDir );
+        // shell.cd( strActionDir );
         let strInput = "";
         let i = 0; const cnt = arrSignResults.length;
         for( i = 0; i < cnt; ++i ) {
@@ -443,7 +445,7 @@ function perform_bls_glue_u256( details, u256, arrSignResults ) {
             strInput +
             " --output " + strActionDir + "/glue-result.json";
         details.write( strLogPrefix + cc.normal( "Will execute BLS glue command:\n" ) + cc.notice( strGlueCommand ) + "\n" );
-        strOutput = child_process.execSync( strGlueCommand );
+        strOutput = child_process.execSync( strGlueCommand, { cwd: strActionDir } );
         details.write( strLogPrefix + cc.normal( "BLS glue output is:\n" ) + cc.notice( strOutput ) + "\n" );
         joGlueResult = imaUtils.jsonFileLoad( strActionDir + "/glue-result.json" );
         details.write( strLogPrefix + cc.normal( "BLS glue result is: " ) + cc.j( joGlueResult ) + "\n" );
@@ -462,7 +464,7 @@ function perform_bls_glue_u256( details, u256, arrSignResults ) {
                 " --t " + nThreshold +
                 " --n " + nParticipants;
             details.write( strLogPrefix + cc.normal( "Will execute HashG1 command:\n" ) + cc.notice( strHasG1Command ) + "\n" );
-            strOutput = child_process.execSync( strHasG1Command );
+            strOutput = child_process.execSync( strHasG1Command, { cwd: strActionDir } );
             details.write( strLogPrefix + cc.normal( "HashG1 output is:\n" ) + cc.notice( strOutput ) + "\n" );
             const joResultHashG1 = imaUtils.jsonFileLoad( strActionDir + "/g1.json" );
             details.write( strLogPrefix + cc.normal( "HashG1 result is: " ) + cc.j( joResultHashG1 ) + "\n" );
@@ -518,15 +520,15 @@ function perform_bls_verify_i(
     const strLogPrefix = cc.bright( strDirection ) + cc.debug( "/" ) + cc.info( "BLS" ) + cc.debug( "/" ) + cc.notice( "#" ) + cc.bright( nZeroBasedNodeIndex ) + cc.debug( ":" ) + " ";
     const nThreshold = discover_bls_threshold( imaState.joSChainNetworkInfo );
     const nParticipants = discover_bls_participants( imaState.joSChainNetworkInfo );
-    const strPWD = shell.pwd();
+    // const strPWD = shell.pwd();
     const strActionDir = alloc_bls_tmp_action_dir();
     const fnShellRestore = function() {
-        shell.cd( strPWD );
+        // shell.cd( strPWD );
         shell.rm( "-rf", strActionDir );
     };
     let strOutput = "";
     try {
-        shell.cd( strActionDir );
+        // shell.cd( strActionDir );
         details.write( strLogPrefix + cc.debug( "BLS node " ) + cc.notice( "#" ) + cc.info( nZeroBasedNodeIndex ) + cc.debug( " - first message nonce is " ) + cc.info( nIdxCurrentMsgBlockStart ) + "\n" );
         details.write( strLogPrefix + cc.debug( "BLS node " ) + cc.notice( "#" ) + cc.info( nZeroBasedNodeIndex ) + cc.debug( " - first source chain name is " ) + cc.info( strFromChainName ) + "\n" );
         details.write( strLogPrefix + cc.debug( "BLS node " ) + cc.notice( "#" ) + cc.info( nZeroBasedNodeIndex ) + cc.debug( " - messages array " ) + cc.j( jarrMessages ) + "\n" );
@@ -551,13 +553,13 @@ function perform_bls_verify_i(
             " --input " + strSignResultFileName
             ;
         details.write( strLogPrefix + cc.normal( "Will execute node " ) + cc.notice( "#" ) + cc.info( nZeroBasedNodeIndex ) + cc.normal( " BLS verify command:\n" ) + cc.notice( strVerifyCommand ) + "\n" );
-        strOutput = child_process.execSync( strVerifyCommand );
+        strOutput = child_process.execSync( strVerifyCommand, { cwd: strActionDir } );
         details.write( strLogPrefix + cc.normal( "BLS node " ) + cc.notice( "#" ) + cc.info( nZeroBasedNodeIndex ) + cc.normal( " verify output is:\n" ) + cc.notice( strOutput ) + "\n" );
         details.write( strLogPrefix + cc.success( "BLS node " ) + cc.notice( "#" ) + cc.info( nZeroBasedNodeIndex ) + cc.success( " verify success" ) + "\n" );
         fnShellRestore();
         return true;
     } catch ( err ) {
-        const s1 = strLogPrefix + cc.fatal( "CRITICAL ERROR:" ) + cc.error( " BLS node " ) + cc.notice( "#" ) + cc.info( nZeroBasedNodeIndex ) + cc.error( " verify error:" ) + cc.normal( " error description is: " ) + cc.warning( owaspUtils.extract_error_message( err ) ) + "\n";
+        const s1 = strLogPrefix + cc.fatal( "CRITICAL ERROR:" ) + cc.error( " BLS node " ) + cc.notice( "#" ) + cc.info( nZeroBasedNodeIndex ) + cc.error( " verify error:" ) + cc.warning( " error description is: " ) + cc.warning( owaspUtils.extract_error_message( err ) ) + "\n";
         const s2 = strLogPrefix + cc.error( "CRITICAL ERROR:" ) + cc.error( " BLS node " ) + cc.notice( "#" ) + cc.info( nZeroBasedNodeIndex ) + cc.error( " verify output is:\n" ) + cc.notice( strOutput ) + "\n";
         log.write( s1 );
         details.write( s1 );
@@ -574,15 +576,15 @@ function perform_bls_verify_i_u256( details, nZeroBasedNodeIndex, joResultFromNo
     const strLogPrefix = cc.info( "BLS" ) + cc.debug( "/" ) + cc.notice( "#" ) + cc.bright( nZeroBasedNodeIndex ) + cc.debug( ":" ) + " ";
     const nThreshold = discover_bls_threshold( imaState.joSChainNetworkInfo );
     const nParticipants = discover_bls_participants( imaState.joSChainNetworkInfo );
-    const strPWD = shell.pwd();
+    // const strPWD = shell.pwd();
     const strActionDir = alloc_bls_tmp_action_dir();
     const fnShellRestore = function() {
-        shell.cd( strPWD );
+        // shell.cd( strPWD );
         shell.rm( "-rf", strActionDir );
     };
     let strOutput = "";
     try {
-        shell.cd( strActionDir );
+        // shell.cd( strActionDir );
         //
         const joMsg = { message: keccak256_u256( u256, true ) };
         details.write( strLogPrefix + cc.debug( "BLS u256 node " ) + cc.notice( "#" ) + cc.info( nZeroBasedNodeIndex ) + cc.debug( " verify message " ) + cc.j( joMsg ) + cc.debug( " composed from " ) + cc.j( u256 ) + cc.debug( " using glue " ) + cc.j( joResultFromNode ) + cc.debug( " and public key " ) + cc.j( joPublicKey ) + "\n" );
@@ -601,13 +603,13 @@ function perform_bls_verify_i_u256( details, nZeroBasedNodeIndex, joResultFromNo
             " --input " + strSignResultFileName
             ;
         details.write( strLogPrefix + cc.normal( "Will execute node " ) + cc.notice( "#" ) + cc.info( nZeroBasedNodeIndex ) + cc.normal( " BLS u256 verify command:\n" ) + cc.notice( strVerifyCommand ) + "\n" );
-        strOutput = child_process.execSync( strVerifyCommand );
+        strOutput = child_process.execSync( strVerifyCommand, { cwd: strActionDir } );
         details.write( strLogPrefix + cc.normal( "BLS u256 node " ) + cc.notice( "#" ) + cc.info( nZeroBasedNodeIndex ) + cc.normal( " verify output is:\n" ) + cc.notice( strOutput ) + "\n" );
         details.write( strLogPrefix + cc.success( "BLS u256 node " ) + cc.notice( "#" ) + cc.info( nZeroBasedNodeIndex ) + cc.success( " verify success" ) + "\n" );
         fnShellRestore();
         return true;
     } catch ( err ) {
-        const s1 = strLogPrefix + cc.fatal( "CRITICAL ERROR:" ) + cc.error( " BLS u256 node " ) + cc.notice( "#" ) + cc.info( nZeroBasedNodeIndex ) + cc.error( " verify error:" ) + cc.normal( " error description is: " ) + cc.warning( owaspUtils.extract_error_message( err ) ) + "\n";
+        const s1 = strLogPrefix + cc.fatal( "CRITICAL ERROR:" ) + cc.error( " BLS u256 node " ) + cc.notice( "#" ) + cc.info( nZeroBasedNodeIndex ) + cc.error( " verify error:" ) + cc.warning( " error description is: " ) + cc.warning( owaspUtils.extract_error_message( err ) ) + "\n";
         const s2 = strLogPrefix + cc.error( "CRITICAL ERROR:" ) + cc.error( " BLS u256 node " ) + cc.notice( "#" ) + cc.info( nZeroBasedNodeIndex ) + cc.error( " verify output is:\n" ) + cc.notice( strOutput ) + "\n";
         log.write( s1 );
         details.write( s1 );
@@ -629,16 +631,16 @@ function perform_bls_verify(
         return true;
     const nThreshold = discover_bls_threshold( imaState.joSChainNetworkInfo );
     const nParticipants = discover_bls_participants( imaState.joSChainNetworkInfo );
-    const strPWD = shell.pwd();
+    // const strPWD = shell.pwd();
     const strActionDir = alloc_bls_tmp_action_dir();
     const fnShellRestore = function() {
-        shell.cd( strPWD );
+        // shell.cd( strPWD );
         shell.rm( "-rf", strActionDir );
     };
     let strOutput = "";
     const strLogPrefix = cc.bright( strDirection ) + cc.debug( "/" ) + cc.info( "BLS" ) + cc.debug( "/" ) + cc.sunny( "Summary" ) + cc.debug( ":" ) + " ";
     try {
-        shell.cd( strActionDir );
+        // shell.cd( strActionDir );
         log.write( strLogPrefix + cc.debug( "BLS/summary verify message - first message nonce is " ) + cc.info( nIdxCurrentMsgBlockStart ) + "\n" );
         log.write( strLogPrefix + cc.debug( "BLS/summary verify message - first source chain name is " ) + cc.info( strFromChainName ) + "\n" );
         log.write( strLogPrefix + cc.debug( "BLS/summary verify message - messages array " ) + cc.j( jarrMessages ) + "\n" );
@@ -670,13 +672,13 @@ function perform_bls_verify(
             " --input " + "./glue-result.json"
             ;
         details.write( strLogPrefix + cc.normal( "Will execute BLS/summary verify command:\n" ) + cc.notice( strVerifyCommand ) + "\n" );
-        strOutput = child_process.execSync( strVerifyCommand );
+        strOutput = child_process.execSync( strVerifyCommand, { cwd: strActionDir } );
         details.write( strLogPrefix + cc.normal( "BLS/summary verify output is:\n" ) + cc.notice( strOutput ) + "\n" );
         details.write( strLogPrefix + cc.success( "BLS/summary verify success" ) + "\n" );
         fnShellRestore();
         return true;
     } catch ( err ) {
-        const s1 = strLogPrefix + cc.fatal( "BLS/summary verify CRITICAL ERROR:" ) + cc.normal( " error description is: " ) + cc.warning( owaspUtils.extract_error_message( err ) ) + "\n";
+        const s1 = strLogPrefix + cc.fatal( "BLS/summary verify CRITICAL ERROR:" ) + cc.error( " error description is: " ) + cc.warning( owaspUtils.extract_error_message( err ) ) + "\n";
         const s2 = strLogPrefix + cc.error( "BLS/summary verify output is:\n" ) + cc.notice( strOutput ) + "\n";
         log.write( s1 );
         details.write( s1 );
@@ -692,16 +694,16 @@ function perform_bls_verify_u256( details, joGlueResult, u256, joCommonPublicKey
         return true;
     const nThreshold = discover_bls_threshold( imaState.joSChainNetworkInfo );
     const nParticipants = discover_bls_participants( imaState.joSChainNetworkInfo );
-    const strPWD = shell.pwd();
+    // const strPWD = shell.pwd();
     const strActionDir = alloc_bls_tmp_action_dir();
     const fnShellRestore = function() {
-        shell.cd( strPWD );
+        // shell.cd( strPWD );
         shell.rm( "-rf", strActionDir );
     };
     let strOutput = "";
     const strLogPrefix = cc.info( "BLS u256" ) + cc.debug( "/" ) + cc.sunny( "Summary" ) + cc.debug( ":" ) + " ";
     try {
-        shell.cd( strActionDir );
+        // shell.cd( strActionDir );
         const joMsg = { message: keccak256_u256( u256, true ) };
         details.write( strLogPrefix + cc.debug( "BLS u256/summary verify message " ) + cc.j( joMsg ) + cc.debug( " composed from " ) + cc.j( u256 ) + cc.debug( " using glue " ) + cc.j( joGlueResult ) + cc.debug( " and common public key " ) + cc.j( joCommonPublicKey ) + "\n" );
         imaUtils.jsonFileSave( strActionDir + "/glue-result.json", joGlueResult );
@@ -728,13 +730,13 @@ function perform_bls_verify_u256( details, joGlueResult, u256, joCommonPublicKey
             " --input " + "./glue-result.json"
             ;
         details.write( strLogPrefix + cc.normal( "Will execute BLS u256/summary verify command:\n" ) + cc.notice( strVerifyCommand ) + "\n" );
-        strOutput = child_process.execSync( strVerifyCommand );
+        strOutput = child_process.execSync( strVerifyCommand, { cwd: strActionDir } );
         details.write( strLogPrefix + cc.normal( "BLS u256/summary verify output is:\n" ) + cc.notice( strOutput ) + "\n" );
         details.write( strLogPrefix + cc.success( "BLS u256/summary verify success" ) + "\n" );
         fnShellRestore();
         return true;
     } catch ( err ) {
-        const s1 = strLogPrefix + cc.fatal( "BLS u256/summary verify CRITICAL ERROR:" ) + cc.normal( " error description is: " ) + cc.warning( owaspUtils.extract_error_message( err ) ) + "\n";
+        const s1 = strLogPrefix + cc.fatal( "BLS u256/summary verify CRITICAL ERROR:" ) + cc.error( " error description is: " ) + cc.warning( owaspUtils.extract_error_message( err ) ) + "\n";
         const s2 = strLogPrefix + cc.error( "BLS u256/summary verify output is:\n" ) + cc.notice( strOutput ) + "\n";
         log.write( s1 );
         details.write( s1 );
@@ -1699,15 +1701,15 @@ async function do_verify_ready_hash( strMessageHash, nZeroBasedNodeIndex, signat
     };
     const nThreshold = discover_bls_threshold( imaState.joSChainNetworkInfo );
     const nParticipants = discover_bls_participants( imaState.joSChainNetworkInfo );
-    const strPWD = shell.pwd();
+    // const strPWD = shell.pwd();
     const strActionDir = alloc_bls_tmp_action_dir();
     const fnShellRestore = function() {
-        shell.cd( strPWD );
+        // shell.cd( strPWD );
         shell.rm( "-rf", strActionDir );
     };
     let strOutput = "";
     try {
-        shell.cd( strActionDir );
+        // shell.cd( strActionDir );
         details.write( strLogPrefix + cc.debug( "BLS node " ) + cc.notice( "#" ) + cc.info( nZeroBasedNodeIndex ) + cc.debug( " - hashed verify message is " ) + cc.info( strMessageHash ) + "\n" );
         const joMsg = {
             message: strMessageHash
@@ -1728,14 +1730,14 @@ async function do_verify_ready_hash( strMessageHash, nZeroBasedNodeIndex, signat
             " --input " + strSignResultFileName
             ;
         details.write( strLogPrefix + cc.normal( "Will execute node " ) + cc.notice( "#" ) + cc.info( nZeroBasedNodeIndex ) + cc.normal( " BLS verify command:\n" ) + cc.notice( strVerifyCommand ) + "\n" );
-        strOutput = child_process.execSync( strVerifyCommand );
+        strOutput = child_process.execSync( strVerifyCommand, { cwd: strActionDir } );
         details.write( strLogPrefix + cc.normal( "BLS node " ) + cc.notice( "#" ) + cc.info( nZeroBasedNodeIndex ) + cc.normal( " verify output is:\n" ) + cc.notice( strOutput ) + "\n" );
         details.write( strLogPrefix + cc.success( "BLS node " ) + cc.notice( "#" ) + cc.info( nZeroBasedNodeIndex ) + cc.success( " verify success" ) + "\n" );
         fnShellRestore();
         isSuccess = true;
     } catch ( err ) {
-        const s1 = strLogPrefix + cc.fatal( "CRITICAL ERROR:" ) + cc.error( " BLS node " ) + cc.notice( "#" ) + cc.info( nZeroBasedNodeIndex ) + cc.error( " verify error:" ) + cc.normal( " error description is: " ) + cc.warning( owaspUtils.extract_error_message( err ) ) + "\n";
-        const s2 = strLogPrefix + cc.error( "CRITICAL ERROR:" ) + cc.error( " BLS node " ) + cc.notice( "#" ) + cc.info( nZeroBasedNodeIndex ) + cc.error( " verify output is:\n" ) + cc.notice( strOutput ) + "\n";
+        const s1 = strLogPrefix + cc.fatal( "CRITICAL ERROR:" ) + cc.error( " BLS node " ) + cc.notice( "#" ) + cc.info( nZeroBasedNodeIndex ) + cc.error( " verify error:" ) + cc.warning( " error description is: " ) + cc.warning( owaspUtils.extract_error_message( err ) ) + "\n";
+        const s2 = strLogPrefix + cc.error( "CRITICAL ERROR:" ) + cc.error( " BLS node " ) + cc.notice( "#" ) + cc.info( nZeroBasedNodeIndex ) + cc.error( " verify output is:\n" ) + cc.warning( strOutput ) + "\n";
         log.write( s1 );
         details.write( s1 );
         log.write( s2 );

@@ -4976,14 +4976,23 @@ async function do_transfer(
         details.write( cc.info( "SRC " ) + cc.sunny( "MessageProxy" ) + cc.info( " address is....." ) + cc.bright( jo_message_proxy_src.options.address ) + "\n" );
         details.write( cc.info( "DST " ) + cc.sunny( "MessageProxy" ) + cc.info( " address is....." ) + cc.bright( jo_message_proxy_dst.options.address ) + "\n" );
         strActionName = "src-chain.MessageProxy.getOutgoingMessagesCounter()";
-        details.write( strLogPrefix + cc.debug( "Will call " ) + cc.notice( strActionName ) + cc.debug( "..." ) + "\n" );
-        let nPossibleIntegerValue = await jo_message_proxy_src.methods.getOutgoingMessagesCounter( chain_id_dst ).call( {
-            from: joAccountSrc.address( w3_src )
-        } );
-        if( !owaspUtils.validateInteger( nPossibleIntegerValue ) )
-            throw new Error( "DST chain " + chain_id_dst + " returned outgoing message counter " + nPossibleIntegerValue + " which is not a valid integer" );
-        nOutMsgCnt = owaspUtils.toInteger( nPossibleIntegerValue );
-        details.write( strLogPrefix + cc.debug( "Result of " ) + cc.notice( strActionName ) + cc.debug( " call: " ) + cc.info( nOutMsgCnt ) + "\n" );
+        try {
+            details.write( strLogPrefix + cc.debug( "Will call " ) + cc.notice( strActionName ) + cc.debug( "..." ) + "\n" );
+            const nPossibleIntegerValue = await jo_message_proxy_src.methods.getOutgoingMessagesCounter( chain_id_dst ).call( {
+                from: joAccountSrc.address( w3_src )
+            } );
+            if( !owaspUtils.validateInteger( nPossibleIntegerValue ) )
+                throw new Error( "DST chain " + chain_id_dst + " returned outgoing message counter " + nPossibleIntegerValue + " which is not a valid integer" );
+            nOutMsgCnt = owaspUtils.toInteger( nPossibleIntegerValue );
+            details.write( strLogPrefix + cc.debug( "Result of " ) + cc.notice( strActionName ) + cc.debug( " call: " ) + cc.info( nOutMsgCnt ) + "\n" );
+        } catch ( err ) {
+            log.write( cc.fatal( "IMMEDIATE ERROR LOG:" ) +
+                cc.error( " error cought during " ) + cc.attention( strActionName ) +
+                cc.error( ", error details: " ) + cc.warning( owaspUtils.extract_error_message( err ) ) +
+                cc.error( ", error stack: " ) + cc.attention( err.stack ) +
+                "\n"
+            );
+        }
         //
         strActionName = "dst-chain.MessageProxy.getIncomingMessagesCounter()";
         details.write( strLogPrefix + cc.debug( "Will call " ) + cc.notice( strActionName ) + cc.debug( "..." ) + "\n" );

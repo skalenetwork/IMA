@@ -92,7 +92,7 @@ class Server extends EventDispatcher {
                     }
                 } catch ( err ) {
                     if( self.isLogSocketErrors )
-                        self.log( "Server method", joMessage.method, "RPC exception:", err );
+                        self.log( "Server method", joMessage.method, "RPC exception:", err, ", stack is:", err.stack );
                     joAnswer = utils.prepareAnswerJSON( joMessage );
                     joAnswer.error = "" + err.toString();
                 }
