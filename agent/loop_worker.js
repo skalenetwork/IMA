@@ -135,6 +135,15 @@ class ObserverServer extends Server {
         self.mapApiHandlers.schains_cached = function( joMessage, joAnswer, eventData, socket ) {
             skale_observer.set_last_cached_schains( joMessage.message.arr_schains_cached );
         };
+        self.mapApiHandlers.skale_imaNotifyLoopWork = function( joMessage, joAnswer, eventData, socket ) {
+            /*await*/ pwa.handle_loop_state_arrived(
+                owaspUtils.toInteger( joMessage.params.nNodeNumber ),
+                joMessage.params.strLoopWorkType,
+                joMessage.params.isStart ? true : false,
+                owaspUtils.toInteger( joMessage.params.ts ),
+                joMessage.params.signature
+            );
+        };
         self.log( cc.debug( "Initialized in-worker IMA loop " ) + cc.info( workerData.url ) + cc.debug( " server" ) + "\n" );
     }
     dispose() {

@@ -48,11 +48,26 @@ function compute_walk_node_idices( nNodeNumber, nNodesCount ) {
     return arr_walk_node_idices;
 }
 
+function check_loop_work_type_string_is_correct( strLoopWorkType ) {
+    if( ! strLoopWorkType )
+        return false;
+    switch ( strLoopWorkType.toString().toLowerCase() ) {
+    case "oracle":
+    case "m2s":
+    case "s2m":
+    case "s2s":
+        return true;
+    }
+    return false;
+}
+
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-async function check_on_loop_start() {
+async function check_on_loop_start( strLoopWorkType ) {
     try {
+        if( ! check_loop_work_type_string_is_correct( strLoopWorkType ) )
+            throw new Error( "Specified value \"" + strLoopWorkType + "\" is not a correct loop work type" );
         if( ! imaState.isPWA )
             return true; // PWA is N/A
         if( imaState.nNodesCount <= 1 )
@@ -76,12 +91,33 @@ async function check_on_loop_start() {
         for( let i = 0; i < arr_walk_node_idices.length; ++i ) {
             const walk_node_index = arr_walk_node_idices[i];
             const joNode = jarrNodes[walk_node_index];
-            if( "pwaState" in joNode && "isImaSingleTransferLoopInProgress" in joNode.pwaState &&
-                joNode.pwaState.isImaSingleTransferLoopInProgress &&
-                joNode.pwaState.ts != 0 &&
-                nUtcUnixTimeStamp >= joNode.pwaState.ts
+            if( ! ( "pwaState" in joNode ) ) {
+                joNode.pwaState = {
+                    "oracle": {
+                        "isInProgress": false,
+                        "ts": 0
+                    },
+                    "m2s": {
+                        "isInProgress": false,
+                        "ts": 0
+                    },
+                    "s2m": {
+                        "isInProgress": false,
+                        "ts": 0
+                    },
+                    "s2s": {
+                        "isInProgress": false,
+                        "ts": 0
+                    }
+                };
+            }
+            if( strLoopWorkType in joNode.pwaState &&
+                "isInProgress" in joNode.pwaState[strLoopWorkType] &&
+                joNode.pwaState[strLoopWorkType].isInProgress &&
+                joNode.pwaState[strLoopWorkType].ts != 0 &&
+                nUtcUnixTimeStamp >= joNode.pwaState[strLoopWorkType].ts
             ) {
-                const d = nUtcUnixTimeStamp - joNode.pwaState.ts;
+                const d = nUtcUnixTimeStamp - joNode.pwaState[strLoopWorkType].ts;
                 if( d >= imaState.nTimeoutSecondsPWA ) {
                     if( imaState.isPrintPWA ) {
                         log.write(
@@ -93,8 +129,8 @@ async function check_on_loop_start() {
                             cc.debug( " and exceeeded by " ) + cc.info( d - imaState.nTimeoutSecondsPWA ) + cc.debug( " second(s)" ) +
                             "\n" );
                     }
-                    joNode.pwaState.isImaSingleTransferLoopInProgress = false;
-                    joNode.pwaState.ts = 0;
+                    joNode.pwaState[strLoopWorkType].isInProgress = false;
+                    joNode.pwaState[strLoopWorkType].ts = 0;
                     continue;
                 }
                 arr_busy_node_indices.push( walk_node_index );
@@ -116,10 +152,13 @@ async function check_on_loop_start() {
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-async function handle_loop_state_arrived( nNodeNumber, isStart, ts, signature ) {
+async function handle_loop_state_arrived( nNodeNumber, strLoopWorkType, isStart, ts, signature ) {
     const se = isStart ? "start" : "end";
     let isSuccess = false;
+    let joNode = null;
     try {
+        if( ! check_loop_work_type_string_is_correct( strLoopWorkType ) )
+            throw new Error( "Arrived value \"" + strLoopWorkType + "\" is not a correct loop work type" );
         if( ! imaState.isPWA )
             return true;
         if( imaState.nNodesCount <= 1 )
@@ -131,9 +170,27 @@ async function handle_loop_state_arrived( nNodeNumber, isStart, ts, signature ) 
         const jarrNodes = imaState.joSChainNetworkInfo.network;
         if( ! jarrNodes )
             throw new Error( "S-Chain network info is not available yet to PWA" );
-        const joNode = jarrNodes[nNodeNumber];
-        if( ! ( "pwaState" in joNode ) )
-            joNode.pwaState = { };
+        joNode = jarrNodes[nNodeNumber];
+        if( ! ( "pwaState" in joNode ) ) {
+            joNode.pwaState = {
+                "oracle": {
+                    "isInProgress": false,
+                    "ts": 0
+                },
+                "m2s": {
+                    "isInProgress": false,
+                    "ts": 0
+                },
+                "s2m": {
+                    "isInProgress": false,
+                    "ts": 0
+                },
+                "s2s": {
+                    "isInProgress": false,
+                    "ts": 0
+                }
+            };
+        }
         if( imaState.isPrintPWA ) {
             log.write(
                 cc.debug( "PWA loop-" ) + cc.attention( se ) + cc.debug( " state arrived for node " ) + cc.info( nNodeNumber ) +
@@ -141,12 +198,12 @@ async function handle_loop_state_arrived( nNodeNumber, isStart, ts, signature ) 
                 cc.debug( ", arrived signature is " ) + cc.j( signature ) +
                 "\n" );
         }
-        const strMessageHash = imaBLS.keccak256_pwa( nNodeNumber, isStart, 0 + ts );
+        const strMessageHash = imaBLS.keccak256_pwa( nNodeNumber, strLoopWorkType, isStart, 0 + ts );
         const isSignatureOK = await imaBLS.do_verify_ready_hash( strMessageHash, nNodeNumber, signature );
         if( ! isSignatureOK )
             throw new Error( "BLS verification failed" );
-        joNode.pwaState.ts = 0 + ts;
-        joNode.pwaState.isImaSingleTransferLoopInProgress = isStart ? true : false;
+        joNode.pwaState[strLoopWorkType].ts = 0 + ts;
+        joNode.pwaState[strLoopWorkType].isInProgress = isStart ? true : false;
         if( imaState.isPrintPWA ) {
             log.write(
                 cc.success( "PWA loop-" ) + cc.attention( se ) + cc.success( " state successfully verified for node " ) + cc.info( nNodeNumber ) +
@@ -160,7 +217,7 @@ async function handle_loop_state_arrived( nNodeNumber, isStart, ts, signature ) 
         log.write(
             cc.error( "Exception in PWA handler for loop-" ) + cc.attention( se ) +
             cc.error( " for node " ) + cc.info( nNodeNumber ) +
-            cc.error( ", PWA state " ) + cc.j( joNode.pwaState ) +
+            cc.error( ", PWA state " ) + cc.j( ( joNode && "pwaState" in joNode ) ? joNode.pwaState : "N/A" ) +
             cc.error( ", arrived signature is " ) + cc.j( signature ) +
             cc.error( ", error is: " ) + cc.error( owaspUtils.extract_error_message( err ) ) +
             "\n" );
@@ -171,9 +228,11 @@ async function handle_loop_state_arrived( nNodeNumber, isStart, ts, signature ) 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-async function notify_on_loop_impl( isStart ) {
+async function notify_on_loop_impl( strLoopWorkType, isStart ) {
     const se = isStart ? "start" : "end";
     try {
+        if( ! check_loop_work_type_string_is_correct( strLoopWorkType ) )
+            throw new Error( "Specified value \"" + strLoopWorkType + "\" is not a correct loop work type" );
         if( ! imaState.isPWA )
             return true;
         if( imaState.nNodesCount <= 1 )
@@ -187,9 +246,9 @@ async function notify_on_loop_impl( isStart ) {
             throw new Error( "S-Chain network info is not available yet to PWA" );
         const nUtcUnixTimeStamp = Math.floor( ( new Date() ).getTime() / 1000 );
         //
-        const strMessageHash = imaBLS.keccak256_pwa( 0 + imaState.nNodeNumber, isStart, nUtcUnixTimeStamp );
+        const strMessageHash = imaBLS.keccak256_pwa( 0 + imaState.nNodeNumber, strLoopWorkType, isStart, nUtcUnixTimeStamp );
         const signature = await imaBLS.do_sign_ready_hash( strMessageHash );
-        await handle_loop_state_arrived( imaState.nNodeNumber, isStart, nUtcUnixTimeStamp, signature ); // save own started
+        await handle_loop_state_arrived( imaState.nNodeNumber, strLoopWorkType, isStart, nUtcUnixTimeStamp, signature ); // save own started
         //
         for( let i = 0; i < jarrNodes.length; ++i ) {
             if( i == imaState.nNodeNumber )
@@ -210,6 +269,7 @@ async function notify_on_loop_impl( isStart ) {
                     method: "skale_imaNotifyLoopWork",
                     params: {
                         nNodeNumber: 0 + imaState.nNodeNumber,
+                        strLoopWorkType: "" + strLoopWorkType,
                         isStart: isStart ? true : false,
                         ts: nUtcUnixTimeStamp,
                         signature: signature
@@ -241,17 +301,18 @@ async function notify_on_loop_impl( isStart ) {
     return true;
 }
 
-async function notify_on_loop_start() {
-    return await notify_on_loop_impl( true );
+async function notify_on_loop_start( strLoopWorkType ) {
+    return await notify_on_loop_impl( strLoopWorkType, true );
 }
 
-async function notify_on_loop_end() {
-    return await notify_on_loop_impl( false );
+async function notify_on_loop_end( strLoopWorkType ) {
+    return await notify_on_loop_impl( strLoopWorkType, false );
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+module.exports.check_loop_work_type_string_is_correct = check_loop_work_type_string_is_correct;
 module.exports.check_on_loop_start = check_on_loop_start;
 module.exports.handle_loop_state_arrived = handle_loop_state_arrived;
 module.exports.notify_on_loop_start = notify_on_loop_start;

@@ -52,8 +52,24 @@ log.removeAll();
 // log.addMemory(); // console.log( log.getStreamWithFilePath( "memory" ).strAccumulatedLogText );
 
 global.imaState = {
-    "isImaSingleTransferLoopInProgress": false,
-    "wasImaSingleTransferLoopInProgress": false,
+    "loopState": {
+        "oracle": {
+            "isInProgress": false,
+            "wasInProgress": false
+        },
+        "m2s": {
+            "isInProgress": false,
+            "wasInProgress": false
+        },
+        "s2m": {
+            "isInProgress": false,
+            "wasInProgress": false
+        },
+        "s2s": {
+            "isInProgress": false,
+            "wasInProgress": false
+        }
+    },
 
     "strLogFilePath": "",
     "nLogMaxSizeBeforeRotation": -1,

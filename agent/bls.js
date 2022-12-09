@@ -254,7 +254,7 @@ function keccak256_u256( u256, isHash ) {
     return strMessageHash;
 }
 
-function keccak256_pwa( nNodeNumber, isStart, ts ) {
+function keccak256_pwa( nNodeNumber, strLoopWorkType, isStart, ts ) {
     let arrBytes = new Uint8Array();
     //
     let bytes_u256 = imaUtils.hexToBytes( nNodeNumber );
@@ -262,6 +262,8 @@ function keccak256_pwa( nNodeNumber, isStart, ts ) {
     bytes_u256 = imaUtils.bytesAlignLeftWithZeroes( bytes_u256, 32 );
     bytes_u256 = imaUtils.invertArrayItemsLR( bytes_u256 );
     arrBytes = imaUtils.bytesConcat( arrBytes, bytes_u256 );
+    //
+    arrBytes = imaUtils.bytesConcat( arrBytes, s2ha( strLoopWorkType ) );
     //
     bytes_u256 = imaUtils.hexToBytes( isStart ? 1 : 0 );
     bytes_u256 = imaUtils.invertArrayItemsLR( bytes_u256 );

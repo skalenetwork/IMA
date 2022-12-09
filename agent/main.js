@@ -36,8 +36,24 @@ global.loop = require( "./loop.js" );
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 global.imaState = {
-    "isImaSingleTransferLoopInProgress": false,
-    "wasImaSingleTransferLoopInProgress": false,
+    "loopState": {
+        "oracle": {
+            "isInProgress": false,
+            "wasInProgress": false
+        },
+        "m2s": {
+            "isInProgress": false,
+            "wasInProgress": false
+        },
+        "s2m": {
+            "isInProgress": false,
+            "wasInProgress": false
+        },
+        "s2s": {
+            "isInProgress": false,
+            "wasInProgress": false
+        }
+    },
 
     "strLogFilePath": "",
     "nLogMaxSizeBeforeRotation": -1,
@@ -2301,9 +2317,6 @@ if( imaState.nJsonRpcPort > 0 ) {
                     joAnswer.result = "pong";
                     fn_send_answer( joAnswer );
                     break;
-                case "skale_isImaSingleTransferLoopInProgress":
-                    joAnswer.result = imaState.isImaSingleTransferLoopInProgress ? true : false;
-                    break;
                 case "skale_imaVerifyAndSign":
                     joAnswer = await imaBLS.handle_skale_imaVerifyAndSign( joMessage );
                     // isSkipMode = true;
@@ -2319,12 +2332,15 @@ if( imaState.nJsonRpcPort > 0 ) {
                     // } );
                     break;
                 case "skale_imaNotifyLoopWork":
-                    pwa.handle_loop_state_arrived(
+                    if( pwa.handle_loop_state_arrived(
                         owaspUtils.toInteger( joMessage.params.nNodeNumber ),
+                        joMessage.params.strLoopWorkType,
                         joMessage.params.isStart ? true : false,
                         owaspUtils.toInteger( joMessage.params.ts ),
                         joMessage.params.signature
-                    );
+                    ) ) {
+                        await loop.spread_arrived_pwa_state( joMessage )
+                    }
                     break;
                 default:
                     throw new Error( "Unknown method name \"" + joMessage.method + "\" was specified" );
@@ -2402,9 +2418,6 @@ if( imaState.nJsonRpcPort > 0 ) {
                 joAnswer.result = "pong";
                 fn_send_answer( joAnswer );
                 break;
-            case "skale_isImaSingleTransferLoopInProgress":
-                joAnswer.result = imaState.isImaSingleTransferLoopInProgress ? true : false;
-                break;
             case "skale_imaVerifyAndSign":
                 joAnswer = await imaBLS.handle_skale_imaVerifyAndSign( joMessage );
                 // isSkipMode = true;
@@ -2420,12 +2433,15 @@ if( imaState.nJsonRpcPort > 0 ) {
                 // } );
                 break;
             case "skale_imaNotifyLoopWork":
-                await pwa.handle_loop_state_arrived(
+                if( await pwa.handle_loop_state_arrived(
                     owaspUtils.toInteger( joMessage.params.nNodeNumber ),
+                    joMessage.params.strLoopWorkType,
                     joMessage.params.isStart ? true : false,
                     owaspUtils.toInteger( joMessage.params.ts ),
                     joMessage.params.signature
-                );
+                ) )
+                    await loop.spread_arrived_pwa_state( joMessage );
+
                 break;
             default:
                 throw new Error( "Unknown method name \"" + joMessage.method + "\" was specified" );
