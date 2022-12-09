@@ -334,7 +334,7 @@ async function ensure_have_workers( opts ) {
         await impl_sleep( 1000 );
         const loop_opts = {
             isDelayFirstRun: false,
-            enable_step_oracle: true,
+            enable_step_oracle: ( idxWorker == 0 ) ? true : false,
             enable_step_m2s: ( idxWorker == 0 ) ? true : false,
             enable_step_s2m: ( idxWorker == 1 ) ? true : false,
             enable_step_s2s: ( idxWorker == 0 ) ? true : false

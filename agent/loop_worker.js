@@ -117,11 +117,18 @@ class ObserverServer extends Server {
             global.imaState.chainProperties.tc.transactionCustomizer = IMA.tc_t_chain;
             imaCLI.ima_contracts_init();
             //
+            self.log(
+                cc.debug( "IMA loop worker" ) + " " + cc.notice( workerData.url ) + cc.debug( " will do the following work:" ) + "\n" +
+                "    " + cc.info( "Oracle" ) + cc.debug( " operations....." ) + cc.yn( self.opts.imaState.loop_opts.enable_step_oracle ) + "\n" +
+                "    " + cc.info( "M2S" ) + cc.debug( " transfers........." ) + cc.yn( self.opts.imaState.loop_opts.enable_step_m2s ) + "\n" +
+                "    " + cc.info( "S2M" ) + cc.debug( " transfers........." ) + cc.yn( self.opts.imaState.loop_opts.enable_step_s2m ) + "\n" +
+                "    " + cc.info( "S2S" ) + cc.debug( " transfers........." ) + cc.yn( self.opts.imaState.loop_opts.enable_step_s2s ) + "\n"
+            );
             /* await */
             loop.run_transfer_loop( self.opts.imaState.loop_opts );
             // loop.single_transfer_loop( self.opts.imaState.loop_opts );
             //
-            self.log( cc.debug( "Full init compete for in-worker IMA loop server" ) + " " + cc.notice( workerData.url ) + "\n" );
+            self.log( cc.debug( "Full init compete for in-worker IMA loop" ) + " " + cc.notice( workerData.url ) + "\n" );
             return joAnswer;
         };
         self.log( cc.debug( "Initialized in-worker IMA loop " ) + cc.info( workerData.url ) + cc.debug( " server" ) + "\n" );
@@ -141,5 +148,5 @@ const acceptor = new network_layer.InWorkerSocketServerAcceptor( workerData.url,
 const server = new ObserverServer( acceptor );
 server.on( "dispose", function() {
     const self = server;
-    self.log( cc.debug( "Disposed in-worker IMA loop server" ) + " " + cc.notice( workerData.url ) + "\n" );
+    self.log( cc.debug( "Disposed in-worker IMA loop" ) + " " + cc.notice( workerData.url ) + "\n" );
 } );
