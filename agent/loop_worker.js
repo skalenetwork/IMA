@@ -137,6 +137,7 @@ class ObserverServer extends Server {
         };
         self.mapApiHandlers.skale_imaNotifyLoopWork = function( joMessage, joAnswer, eventData, socket ) {
             /*await*/ pwa.handle_loop_state_arrived(
+                global.imaState,
                 owaspUtils.toInteger( joMessage.params.nNodeNumber ),
                 joMessage.params.strLoopWorkType,
                 joMessage.params.isStart ? true : false,

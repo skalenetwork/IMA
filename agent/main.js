@@ -2333,6 +2333,7 @@ if( imaState.nJsonRpcPort > 0 ) {
                     break;
                 case "skale_imaNotifyLoopWork":
                     if( pwa.handle_loop_state_arrived(
+                        imaState,
                         owaspUtils.toInteger( joMessage.params.nNodeNumber ),
                         joMessage.params.strLoopWorkType,
                         joMessage.params.isStart ? true : false,
@@ -2434,6 +2435,7 @@ if( imaState.nJsonRpcPort > 0 ) {
                 break;
             case "skale_imaNotifyLoopWork":
                 if( await pwa.handle_loop_state_arrived(
+                    imaState,
                     owaspUtils.toInteger( joMessage.params.nNodeNumber ),
                     joMessage.params.strLoopWorkType,
                     joMessage.params.isStart ? true : false,

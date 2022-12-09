@@ -64,7 +64,7 @@ function check_loop_work_type_string_is_correct( strLoopWorkType ) {
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-async function check_on_loop_start( strLoopWorkType ) {
+async function check_on_loop_start( imaState, strLoopWorkType ) {
     try {
         if( ! check_loop_work_type_string_is_correct( strLoopWorkType ) )
             throw new Error( "Specified value \"" + strLoopWorkType + "\" is not a correct loop work type" );
@@ -152,7 +152,7 @@ async function check_on_loop_start( strLoopWorkType ) {
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-async function handle_loop_state_arrived( nNodeNumber, strLoopWorkType, isStart, ts, signature ) {
+async function handle_loop_state_arrived( imaState, nNodeNumber, strLoopWorkType, isStart, ts, signature ) {
     const se = isStart ? "start" : "end";
     let isSuccess = false;
     let joNode = null;
@@ -228,7 +228,7 @@ async function handle_loop_state_arrived( nNodeNumber, strLoopWorkType, isStart,
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-async function notify_on_loop_impl( strLoopWorkType, isStart ) {
+async function notify_on_loop_impl( imaState, strLoopWorkType, isStart ) {
     const se = isStart ? "start" : "end";
     try {
         if( ! check_loop_work_type_string_is_correct( strLoopWorkType ) )
@@ -248,7 +248,7 @@ async function notify_on_loop_impl( strLoopWorkType, isStart ) {
         //
         const strMessageHash = imaBLS.keccak256_pwa( 0 + imaState.nNodeNumber, strLoopWorkType, isStart, nUtcUnixTimeStamp );
         const signature = await imaBLS.do_sign_ready_hash( strMessageHash );
-        await handle_loop_state_arrived( imaState.nNodeNumber, strLoopWorkType, isStart, nUtcUnixTimeStamp, signature ); // save own started
+        await handle_loop_state_arrived( imaState, imaState.nNodeNumber, strLoopWorkType, isStart, nUtcUnixTimeStamp, signature ); // save own started
         //
         for( let i = 0; i < jarrNodes.length; ++i ) {
             if( i == imaState.nNodeNumber )
@@ -301,12 +301,12 @@ async function notify_on_loop_impl( strLoopWorkType, isStart ) {
     return true;
 }
 
-async function notify_on_loop_start( strLoopWorkType ) {
-    return await notify_on_loop_impl( strLoopWorkType, true );
+async function notify_on_loop_start( imaState, strLoopWorkType ) {
+    return await notify_on_loop_impl( imaState, strLoopWorkType, true );
 }
 
-async function notify_on_loop_end( strLoopWorkType ) {
-    return await notify_on_loop_impl( strLoopWorkType, false );
+async function notify_on_loop_end( imaState, strLoopWorkType ) {
+    return await notify_on_loop_impl( imaState, strLoopWorkType, false );
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

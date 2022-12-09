@@ -149,13 +149,13 @@ async function single_transfer_loop( loop_opts ) {
             if( IMA.verbose_get() >= IMA.RV_VERBOSE.information )
                 log.write( strLogPrefix + cc.debug( "Will invoke Oracle gas price setup..." ) + "\n" );
             try {
-                if( ! await pwa.check_on_loop_start( "oracle" ) ) {
+                if( ! await pwa.check_on_loop_start( imaState, "oracle" ) ) {
                     imaState.loopState.oracle.wasInProgress = false;
                     if( IMA.verbose_get() >= IMA.RV_VERBOSE.debug )
                         log.write( strLogPrefix + cc.warning( "Skipped due to cancel mode reported from PWA" ) + "\n" );
                 } else {
                     imaState.loopState.oracle.isInProgress = true;
-                    await pwa.notify_on_loop_start( "oracle" );
+                    await pwa.notify_on_loop_start( imaState, "oracle" );
                     b0 = IMA.do_oracle_gas_price_setup(
                         imaState.chainProperties.mn.w3,
                         imaState.chainProperties.sc.w3,
@@ -167,12 +167,12 @@ async function single_transfer_loop( loop_opts ) {
                         imaBLS.do_sign_u256
                     );
                     imaState.loopState.oracle.isInProgress = false;
-                    await pwa.notify_on_loop_end( "oracle" );
+                    await pwa.notify_on_loop_end( imaState, "oracle" );
                 }
             } catch ( err ) {
                 log.write( strLogPrefix + cc.error( "Oracle operation exception: " ) + cc.error( owaspUtils.extract_error_message( err ) ) + "\n" );
                 imaState.loopState.oracle.isInProgress = false;
-                await pwa.notify_on_loop_end( "oracle" );
+                await pwa.notify_on_loop_end( imaState, "oracle" );
                 throw err;
             }
             if( IMA.verbose_get() >= IMA.RV_VERBOSE.information )
@@ -184,13 +184,13 @@ async function single_transfer_loop( loop_opts ) {
             if( IMA.verbose_get() >= IMA.RV_VERBOSE.information )
                 log.write( strLogPrefix + cc.debug( "Will invoke M2S transfer..." ) + "\n" );
             try {
-                if( ! await pwa.check_on_loop_start( "m2s" ) ) {
+                if( ! await pwa.check_on_loop_start( imaState, "m2s" ) ) {
                     imaState.loopState.m2s.wasInProgress = false;
                     if( IMA.verbose_get() >= IMA.RV_VERBOSE.debug )
                         log.write( strLogPrefix + cc.warning( "Skipped due to cancel mode reported from PWA" ) + "\n" );
                 } else {
                     imaState.loopState.m2s.isInProgress = true;
-                    await pwa.notify_on_loop_start( "m2s" );
+                    await pwa.notify_on_loop_start( imaState, "m2s" );
                     b1 = await IMA.do_transfer( // main-net --> s-chain
                         "M2S",
                         //
@@ -216,12 +216,12 @@ async function single_transfer_loop( loop_opts ) {
                         imaState.chainProperties.sc.transactionCustomizer
                     );
                     imaState.loopState.m2s.isInProgress = false;
-                    await pwa.notify_on_loop_end( "m2s" );
+                    await pwa.notify_on_loop_end( imaState, "m2s" );
                 }
             } catch ( err ) {
                 log.write( strLogPrefix + cc.error( "M2S transfer exception: " ) + cc.error( owaspUtils.extract_error_message( err ) ) + "\n" );
                 imaState.loopState.m2s.isInProgress = false;
-                await pwa.notify_on_loop_end( "m2s" );
+                await pwa.notify_on_loop_end( imaState, "m2s" );
                 throw err;
             }
             if( IMA.verbose_get() >= IMA.RV_VERBOSE.information )
@@ -236,13 +236,13 @@ async function single_transfer_loop( loop_opts ) {
             if( IMA.verbose_get() >= IMA.RV_VERBOSE.information )
                 log.write( strLogPrefix + cc.debug( "Will invoke S2M transfer..." ) + "\n" );
             try {
-                if( ! await pwa.check_on_loop_start( "s2m" ) ) {
+                if( ! await pwa.check_on_loop_start( imaState, "s2m" ) ) {
                     imaState.loopState.s2m.wasInProgress = false;
                     if( IMA.verbose_get() >= IMA.RV_VERBOSE.debug )
                         log.write( strLogPrefix + cc.warning( "Skipped due to cancel mode reported from PWA" ) + "\n" );
                 } else {
                     imaState.loopState.s2m.isInProgress = true;
-                    await pwa.notify_on_loop_start( "s2m" );
+                    await pwa.notify_on_loop_start( imaState, "s2m" );
                     b2 = await IMA.do_transfer( // s-chain --> main-net
                         "S2M",
                         //
@@ -268,12 +268,12 @@ async function single_transfer_loop( loop_opts ) {
                         imaState.chainProperties.mn.transactionCustomizer
                     );
                     imaState.loopState.s2m.isInProgress = false;
-                    await pwa.notify_on_loop_end( "s2m" );
+                    await pwa.notify_on_loop_end( imaState, "s2m" );
                 }
             } catch ( err ) {
                 log.write( strLogPrefix + cc.error( "S2M transfer exception: " ) + cc.error( owaspUtils.extract_error_message( err ) ) + "\n" );
                 imaState.loopState.s2m.isInProgress = false;
-                await pwa.notify_on_loop_end( "s2m" );
+                await pwa.notify_on_loop_end( imaState, "s2m" );
                 throw err;
             }
             if( IMA.verbose_get() >= IMA.RV_VERBOSE.information )
@@ -290,13 +290,13 @@ async function single_transfer_loop( loop_opts ) {
             if( IMA.verbose_get() >= IMA.RV_VERBOSE.information )
                 log.write( strLogPrefix + cc.debug( "Will invoke S2M transfer..." ) + "\n" );
             try {
-                if( ! await pwa.check_on_loop_start( "s2s" ) ) {
+                if( ! await pwa.check_on_loop_start( imaState, "s2s" ) ) {
                     imaState.loopState.s2s.wasInProgress = false;
                     if( IMA.verbose_get() >= IMA.RV_VERBOSE.debug )
                         log.write( strLogPrefix + cc.warning( "Skipped due to cancel mode reported from PWA" ) + "\n" );
                 } else {
                     imaState.loopState.s2s.isInProgress = true;
-                    await pwa.notify_on_loop_start( "s2s" );
+                    await pwa.notify_on_loop_start( imaState, "s2s" );
                     b3 = await IMA.do_s2s_all( // s-chain --> s-chain
                         imaState,
                         skale_observer,
@@ -315,12 +315,12 @@ async function single_transfer_loop( loop_opts ) {
                         imaState.chainProperties.sc.transactionCustomizer
                     );
                     imaState.loopState.s2s.isInProgress = false;
-                    await pwa.notify_on_loop_end( "s2s" );
+                    await pwa.notify_on_loop_end( imaState, "s2s" );
                 }
             } catch ( err ) {
                 log.write( strLogPrefix + cc.error( "S2S transfer exception: " ) + cc.error( owaspUtils.extract_error_message( err ) ) + "\n" );
                 imaState.loopState.s2s.isInProgress = false;
-                await pwa.notify_on_loop_end( "s2s" );
+                await pwa.notify_on_loop_end( imaState, "s2s" );
                 throw err;
             }
             if( IMA.verbose_get() >= IMA.RV_VERBOSE.information )
