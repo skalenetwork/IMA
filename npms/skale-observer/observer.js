@@ -36,7 +36,11 @@ const w3mod = require( "web3" );
 // const ethereumjs_wallet = require( "ethereumjs-wallet" );
 // const ethereumjs_util = require( "ethereumjs-util" );
 
+const { UniversalDispatcherEvent, EventDispatcher } = require( "../skale-cool-socket/event_dispatcher.js" );
+
 const PORTS_PER_SCHAIN = 64;
+
+const g_events = new EventDispatcher();
 
 function getWeb3FromURL( strURL, log ) {
     let w3 = null;
@@ -448,20 +452,17 @@ async function cache_schains( strChainNameConnectedTo, w3_main_net, w3_s_chain, 
             arr_schains = await load_schains( w3_main_net, addressFrom, opts );
 
         g_arr_schains_cached = arr_schains;
+        g_events.dispatchEvent( new UniversalDispatcherEvent( "chainsCacheChanged", { detail: { arr_schains_cached: get_last_cached_schains() } } ) );
 
         if( opts && opts.details ) {
             opts.details.write(
                 cc.debug( "Connected " ) + cc.attention( "S-Chains" ) + cc.debug( " cache was updated in this thread: " ) +
                 cc.j( g_arr_schains_cached ) + "\n" );
         }
-        if( opts.fn_chache_changed )
-            opts.fn_chache_changed( g_arr_schains_cached, null ); // null - no error
     } catch ( err ) {
         strError = owaspUtils.extract_error_message( err );
         if( ! strError )
             strError = "unknown exception during S-Chains download";
-        if( opts.fn_chache_changed )
-            opts.fn_chache_changed( g_arr_schains_cached, strError );
         if( opts && opts.details )
             opts.details.write( cc.fatal( "ERROR:" ) + cc.error( " Failed to cache: " ) + cc.error( err ) + "\n" );
 
@@ -471,6 +472,13 @@ async function cache_schains( strChainNameConnectedTo, w3_main_net, w3_s_chain, 
 
 function get_last_cached_schains() {
     return JSON.parse( JSON.stringify( g_arr_schains_cached ) );
+}
+
+function set_last_cached_schains( arr_schains_cached ) {
+    if( arr_schains_cached && typeof arr_schains_cached == "object" ) {
+        g_arr_schains_cached = JSON.parse( JSON.stringify( arr_schains_cached ) );
+        g_events.dispatchEvent( new UniversalDispatcherEvent( "chainsCacheChanged", { detail: { arr_schains_cached: get_last_cached_schains() } } ) );
+    }
 }
 
 const impl_sleep = ( milliseconds ) => { return new Promise( resolve => setTimeout( resolve, milliseconds ) ); };
@@ -494,7 +502,7 @@ async function ensure_have_worker( opts ) {
         // console.log( "CLIENT <<<", JSON.stringify( joMessage ) );
         switch ( joMessage.method ) {
         case "periodic_caching_do_now":
-            g_arr_schains_cached = joMessage.message;
+            set_last_cached_schains( joMessage.message );
             if( opts && opts.details ) {
                 opts.details.write(
                     cc.debug( "Connected " ) + cc.attention( "S-Chains" ) +
@@ -653,6 +661,7 @@ module.exports.w3mod = w3mod;
 module.exports.getWeb3FromURL = getWeb3FromURL;
 module.exports.owaspUtils = owaspUtils;
 module.exports.cc = cc;
+module.exports.events = g_events;
 module.exports.get_schains_count = get_schains_count;
 module.exports.load_schain = load_schain;
 module.exports.load_schains = load_schains;
@@ -664,6 +673,7 @@ module.exports.find_schain_index_in_array_by_name = find_schain_index_in_array_b
 module.exports.merge_schains_array_from_to = merge_schains_array_from_to;
 module.exports.cache_schains = cache_schains;
 module.exports.get_last_cached_schains = get_last_cached_schains;
+module.exports.set_last_cached_schains = set_last_cached_schains;
 module.exports.periodic_caching_start = periodic_caching_start;
 module.exports.periodic_caching_stop = periodic_caching_stop;
 module.exports.pick_random_schain_node_index = pick_random_schain_node_index;

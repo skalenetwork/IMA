@@ -304,6 +304,23 @@ const impl_sleep = ( milliseconds ) => { return new Promise( resolve => setTimeo
 const g_workers = [];
 const g_clients = [];
 
+function notify_snb_chache_chained( arr_schains_cached ) {
+    const cntWorkers = g_workers.length;
+    for( let idxWorker = 0; idxWorker < cntWorkers; ++ idxWorker ) {
+        const jo = {
+            method: "schains_cached",
+            message: {
+                arr_schains_cached: arr_schains_cached
+            }
+        };
+        g_clients[idxWorker].send( jo );
+    }
+}
+
+skale_observer.events.on( "chainsCacheChanged", function( eventData ) {
+    notify_snb_chache_chained( eventData.detail.arr_schains_cached );
+} );
+
 async function ensure_have_workers( opts ) {
     if( g_workers.length > 0 )
         return g_workers;
@@ -347,6 +364,7 @@ async function ensure_have_workers( opts ) {
                         loop_opts: loop_opts,
                         verbose_: IMA.verbose_get(),
                         expose_details_: IMA.expose_details_get(),
+                        arr_schains_cached: skale_observer.get_last_cached_schains(),
                         //
                         //
                         //
@@ -518,6 +536,7 @@ async function ensure_have_workers( opts ) {
             }
         };
         g_clients[idxWorker].send( jo );
+        // notify_snb_chache_chained( skale_observer.get_last_cached_schains() );
     } // for( let idxWorker = 0; idxWorker < cntWorkers; ++ idxWorker )
 }
 

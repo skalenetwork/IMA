@@ -74,6 +74,7 @@ class ObserverServer extends Server {
             cc.enable( joMessage.message.cc.isEnabled );
             IMA.verbose_set( self.opts.imaState.verbose_ );
             IMA.expose_details_set( self.opts.imaState.expose_details_ );
+            skale_observer.set_last_cached_schains( self.opts.imaState.arr_schains_cached );
             joAnswer.message = {
                 method: "" + joMessage.method,
                 error: null
@@ -130,6 +131,9 @@ class ObserverServer extends Server {
             //
             self.log( cc.debug( "Full init compete for in-worker IMA loop" ) + " " + cc.notice( workerData.url ) + "\n" );
             return joAnswer;
+        };
+        self.mapApiHandlers.schains_cached = function( joMessage, joAnswer, eventData, socket ) {
+            skale_observer.set_last_cached_schains( joMessage.message.arr_schains_cached );
         };
         self.log( cc.debug( "Initialized in-worker IMA loop " ) + cc.info( workerData.url ) + cc.debug( " server" ) + "\n" );
     }
