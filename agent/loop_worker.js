@@ -118,8 +118,8 @@ class ObserverServer extends Server {
             imaCLI.ima_contracts_init();
             //
             /* await */
-            loop.run_transfer_loop( false );
-            // loop.single_transfer_loop();
+            loop.run_transfer_loop( self.opts.imaState.loop_opts );
+            // loop.single_transfer_loop( self.opts.imaState.loop_opts );
             //
             self.log( cc.debug( "Full init compete for in-worker IMA loop server" ) + " " + cc.notice( workerData.url ) + "\n" );
             return joAnswer;

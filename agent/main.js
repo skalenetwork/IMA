@@ -1312,8 +1312,15 @@ imaCLI.parse( {
             "fn": async function() {
                 fnInitActionSkaleNetworkScanForS2S();
                 if( ! imaState.bNoWaitSChainStarted )
-                    await wait_until_s_chain_started(); // single_transfer_loop
-                return await single_transfer_loop();
+                    await wait_until_s_chain_started();
+                const loop_opts = {
+                    isDelayFirstRun: false,
+                    enable_step_oracle: true,
+                    enable_step_m2s: true,
+                    enable_step_s2m: true,
+                    enable_step_s2s: true
+                };
+                return await single_transfer_loop( loop_opts );
             }
         } );
     },
@@ -1335,7 +1342,14 @@ imaCLI.parse( {
                     print_summary_registration_costs();
                 //
                 //
-                // return await loop.run_transfer_loop( false );
+                // const loop_opts = {
+                //     isDelayFirstRun: false,
+                //     enable_step_oracle: true,
+                //     enable_step_m2s: true,
+                //     enable_step_s2m: true,
+                //     enable_step_s2s: true
+                // };
+                // return await loop.run_transfer_loop( loop_opts );
                 //
                 //
                 const opts = {
@@ -1364,7 +1378,14 @@ imaCLI.parse( {
                 }
                 if( isPrintSummaryRegistrationCosts )
                     print_summary_registration_costs();
-                return await loop.run_transfer_loop( false );
+                const loop_opts = {
+                    isDelayFirstRun: false,
+                    enable_step_oracle: true,
+                    enable_step_m2s: true,
+                    enable_step_s2m: true,
+                    enable_step_s2s: true
+                };
+                return await loop.run_transfer_loop( loop_opts );
             }
         } );
     },

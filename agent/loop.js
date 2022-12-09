@@ -115,7 +115,7 @@ global.check_time_framing = function( d ) {
     return true;
 };
 
-async function single_transfer_loop() {
+async function single_transfer_loop( loop_opts ) {
     const strLogPrefix = cc.attention( "Single Loop:" ) + " ";
     let wasPassedStartCheckPWA = false;
     try {
@@ -145,7 +145,7 @@ async function single_transfer_loop() {
         await pwa.notify_on_loop_start();
 
         let b0 = true;
-        if( IMA.getEnabledOracle() ) {
+        if( loop_opts.enable_step_oracle && IMA.getEnabledOracle() ) {
             if( IMA.verbose_get() >= IMA.RV_VERBOSE.information )
                 log.write( strLogPrefix + cc.debug( "Will invoke Oracle gas price setup..." ) + "\n" );
             b0 = IMA.do_oracle_gas_price_setup(
@@ -162,66 +162,78 @@ async function single_transfer_loop() {
                 log.write( strLogPrefix + cc.debug( "Oracle gas price setup done: " ) + cc.tf( b0 ) + "\n" );
         }
 
-        if( IMA.verbose_get() >= IMA.RV_VERBOSE.information )
-            log.write( strLogPrefix + cc.debug( "Will invoke M2S transfer..." ) + "\n" );
-        const b1 = await IMA.do_transfer( // main-net --> s-chain
-            "M2S",
-            //
-            imaState.chainProperties.mn.w3,
-            imaState.jo_message_proxy_main_net,
-            imaState.chainProperties.mn.joAccount,
-            imaState.chainProperties.sc.w3,
-            imaState.jo_message_proxy_s_chain,
-            //
-            imaState.chainProperties.sc.joAccount,
-            imaState.chainProperties.mn.strChainName,
-            imaState.chainProperties.sc.strChainName,
-            imaState.chainProperties.mn.cid,
-            imaState.chainProperties.sc.cid,
-            null, // imaState.jo_deposit_box - for logs validation on mainnet
-            imaState.jo_token_manager_eth, // for logs validation on s-chain
-            imaState.nTransferBlockSizeM2S,
-            imaState.nMaxTransactionsM2S,
-            imaState.nBlockAwaitDepthM2S,
-            imaState.nBlockAgeM2S,
-            imaBLS.do_sign_messages_m2s, // fn_sign_messages
-            null, // joExtraSignOpts
-            imaState.chainProperties.sc.transactionCustomizer
-        );
-        if( IMA.verbose_get() >= IMA.RV_VERBOSE.information )
-            log.write( strLogPrefix + cc.debug( "M2S transfer done: " ) + cc.tf( b1 ) + "\n" );
+        let b1 = true;
+        if( loop_opts.enable_step_m2s ) {
+            if( IMA.verbose_get() >= IMA.RV_VERBOSE.information )
+                log.write( strLogPrefix + cc.debug( "Will invoke M2S transfer..." ) + "\n" );
+            b1 = await IMA.do_transfer( // main-net --> s-chain
+                "M2S",
+                //
+                imaState.chainProperties.mn.w3,
+                imaState.jo_message_proxy_main_net,
+                imaState.chainProperties.mn.joAccount,
+                imaState.chainProperties.sc.w3,
+                imaState.jo_message_proxy_s_chain,
+                //
+                imaState.chainProperties.sc.joAccount,
+                imaState.chainProperties.mn.strChainName,
+                imaState.chainProperties.sc.strChainName,
+                imaState.chainProperties.mn.cid,
+                imaState.chainProperties.sc.cid,
+                null, // imaState.jo_deposit_box - for logs validation on mainnet
+                imaState.jo_token_manager_eth, // for logs validation on s-chain
+                imaState.nTransferBlockSizeM2S,
+                imaState.nMaxTransactionsM2S,
+                imaState.nBlockAwaitDepthM2S,
+                imaState.nBlockAgeM2S,
+                imaBLS.do_sign_messages_m2s, // fn_sign_messages
+                null, // joExtraSignOpts
+                imaState.chainProperties.sc.transactionCustomizer
+            );
+            if( IMA.verbose_get() >= IMA.RV_VERBOSE.information )
+                log.write( strLogPrefix + cc.debug( "M2S transfer done: " ) + cc.tf( b1 ) + "\n" );
+        } else {
+            if( IMA.verbose_get() >= IMA.RV_VERBOSE.information )
+                log.write( strLogPrefix + cc.debug( "Skipped M2S transfer." ) + "\n" );
+        }
 
-        if( IMA.verbose_get() >= IMA.RV_VERBOSE.information )
-            log.write( strLogPrefix + cc.debug( "Will invoke S2M transfer..." ) + "\n" );
-        const b2 = await IMA.do_transfer( // s-chain --> main-net
-            "S2M",
-            //
-            imaState.chainProperties.sc.w3,
-            imaState.jo_message_proxy_s_chain,
-            imaState.chainProperties.sc.joAccount,
-            imaState.chainProperties.mn.w3,
-            imaState.jo_message_proxy_main_net,
-            //
-            imaState.chainProperties.mn.joAccount,
-            imaState.chainProperties.sc.strChainName,
-            imaState.chainProperties.mn.strChainName,
-            imaState.chainProperties.sc.cid,
-            imaState.chainProperties.mn.cid,
-            imaState.jo_deposit_box_eth, // for logs validation on mainnet
-            null, // imaState.jo_token_manager, // for logs validation on s-chain
-            imaState.nTransferBlockSizeS2M,
-            imaState.nMaxTransactionsS2M,
-            imaState.nBlockAwaitDepthS2M,
-            imaState.nBlockAgeS2M,
-            imaBLS.do_sign_messages_s2m, // fn_sign_messages
-            null, // joExtraSignOpts
-            imaState.chainProperties.mn.transactionCustomizer
-        );
-        if( IMA.verbose_get() >= IMA.RV_VERBOSE.information )
-            log.write( strLogPrefix + cc.debug( "S2M transfer done: " ) + cc.tf( b2 ) + "\n" );
+        let b2 = true;
+        if( loop_opts.enable_step_s2m ) {
+            if( IMA.verbose_get() >= IMA.RV_VERBOSE.information )
+                log.write( strLogPrefix + cc.debug( "Will invoke S2M transfer..." ) + "\n" );
+            b2 = await IMA.do_transfer( // s-chain --> main-net
+                "S2M",
+                //
+                imaState.chainProperties.sc.w3,
+                imaState.jo_message_proxy_s_chain,
+                imaState.chainProperties.sc.joAccount,
+                imaState.chainProperties.mn.w3,
+                imaState.jo_message_proxy_main_net,
+                //
+                imaState.chainProperties.mn.joAccount,
+                imaState.chainProperties.sc.strChainName,
+                imaState.chainProperties.mn.strChainName,
+                imaState.chainProperties.sc.cid,
+                imaState.chainProperties.mn.cid,
+                imaState.jo_deposit_box_eth, // for logs validation on mainnet
+                null, // imaState.jo_token_manager, // for logs validation on s-chain
+                imaState.nTransferBlockSizeS2M,
+                imaState.nMaxTransactionsS2M,
+                imaState.nBlockAwaitDepthS2M,
+                imaState.nBlockAgeS2M,
+                imaBLS.do_sign_messages_s2m, // fn_sign_messages
+                null, // joExtraSignOpts
+                imaState.chainProperties.mn.transactionCustomizer
+            );
+            if( IMA.verbose_get() >= IMA.RV_VERBOSE.information )
+                log.write( strLogPrefix + cc.debug( "S2M transfer done: " ) + cc.tf( b2 ) + "\n" );
+        } else {
+            if( IMA.verbose_get() >= IMA.RV_VERBOSE.information )
+                log.write( strLogPrefix + cc.debug( "Skipped S2M transfer." ) + "\n" );
+        }
 
         let b3 = true;
-        if( imaState.s2s_opts.isEnabled ) {
+        if( loop_opts.enable_step_s2s && imaState.s2s_opts.isEnabled ) {
             if( IMA.verbose_get() >= IMA.RV_VERBOSE.information )
                 log.write( strLogPrefix + cc.debug( "Will invoke all S2S transfers..." ) + "\n" );
             b3 = await IMA.do_s2s_all( // s-chain --> s-chain
@@ -243,6 +255,9 @@ async function single_transfer_loop() {
             );
             if( IMA.verbose_get() >= IMA.RV_VERBOSE.information )
                 log.write( strLogPrefix + cc.debug( "All S2S transfers done: " ) + cc.tf( b3 ) + "\n" );
+        } else {
+            if( IMA.verbose_get() >= IMA.RV_VERBOSE.information )
+                log.write( strLogPrefix + cc.debug( "Skipped S2S transfer." ) + "\n" );
         }
 
         imaState.isImaSingleTransferLoopInProgress = false;
@@ -261,16 +276,20 @@ async function single_transfer_loop() {
 
     return false;
 }
-async function single_transfer_loop_with_repeat() {
-    await single_transfer_loop();
-    setTimeout( single_transfer_loop_with_repeat, imaState.nLoopPeriodSeconds * 1000 );
+async function single_transfer_loop_with_repeat( loop_opts ) {
+    await single_transfer_loop( loop_opts );
+    setTimeout( async function() {
+        await single_transfer_loop_with_repeat( loop_opts );
+    }, imaState.nLoopPeriodSeconds * 1000 );
 };
-async function run_transfer_loop( isDelayFirstRun ) {
-    isDelayFirstRun = owaspUtils.toBoolean( isDelayFirstRun );
-    if( isDelayFirstRun )
-        setTimeout( single_transfer_loop_with_repeat, imaState.nLoopPeriodSeconds * 1000 );
-    else
-        await single_transfer_loop_with_repeat();
+async function run_transfer_loop( loop_opts ) {
+    isDelayFirstRun = owaspUtils.toBoolean( loop_opts.isDelayFirstRun );
+    if( isDelayFirstRun ) {
+        setTimeout( async function() {
+            await single_transfer_loop_with_repeat( loop_opts );
+        }, imaState.nLoopPeriodSeconds * 1000 );
+    } else
+        await single_transfer_loop_with_repeat( loop_opts );
     return true;
 }
 
@@ -288,7 +307,7 @@ const g_clients = [];
 async function ensure_have_workers( opts ) {
     if( g_workers.length > 0 )
         return g_workers;
-    const cntWorkers = 1;
+    const cntWorkers = 2;
     for( let idxWorker = 0; idxWorker < cntWorkers; ++ idxWorker ) {
         const workerData = {
             url: "ima_loop_server" + idxWorker,
@@ -313,11 +332,19 @@ async function ensure_have_workers( opts ) {
             } // switch ( joMessage.method )
         } );
         await impl_sleep( 1000 );
+        const loop_opts = {
+            isDelayFirstRun: false,
+            enable_step_oracle: true,
+            enable_step_m2s: ( idxWorker == 0 ) ? true : false,
+            enable_step_s2m: ( idxWorker == 1 ) ? true : false,
+            enable_step_s2s: ( idxWorker == 0 ) ? true : false
+        };
         const jo = {
             method: "init",
             message: {
                 opts: {
                     imaState: {
+                        loop_opts: loop_opts,
                         verbose_: IMA.verbose_get(),
                         expose_details_: IMA.expose_details_get(),
                         //
