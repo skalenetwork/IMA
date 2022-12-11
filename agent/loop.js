@@ -413,6 +413,12 @@ async function ensure_have_workers( opts ) {
             case "log":
                 log.write( cc.attention( "LOOP WORKER" ) + " " + cc.notice( workerData.url ) + " " + joMessage.message );
                 break;
+            case "save_transfer_error":
+                IMA.save_transfer_error( joMessage.message.category, joMessage.message.textLog, joMessage.message.ts );
+                break;
+            case "save_transfer_success":
+                IMA.save_transfer_success( joMessage.message.category );
+                break;
             } // switch ( joMessage.method )
         } );
         await impl_sleep( 1000 );

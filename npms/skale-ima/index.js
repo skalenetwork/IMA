@@ -33,6 +33,8 @@ const ethereumjs_tx = require( "ethereumjs-tx" );
 const ethereumjs_wallet = require( "ethereumjs-wallet" );
 const ethereumjs_util = require( "ethereumjs-util" );
 
+const { UniversalDispatcherEvent, EventDispatcher } = require( "../skale-cool-socket/event_dispatcher.js" );
+
 const Redis = require( "ioredis" );
 let redis = null;
 let loopTmSendingCnt = 0;
@@ -577,22 +579,27 @@ const g_nMaxLastTransferErrors = 20;
 const g_arrLastTransferErrors = [];
 let g_mapTransferErrorCategories = { };
 
-function save_transfer_error( strCategory, textLog ) {
-    const ts = Math.round( ( new Date() ).getTime() / 1000 );
+const g_saveTransferEvents = new EventDispatcher();
+
+function save_transfer_error( strCategory, textLog, ts ) {
+    ts = ts || Math.round( ( new Date() ).getTime() / 1000 );
     const c = verify_transfer_error_category_name( strCategory );
-    g_arrLastTransferErrors.push( {
+    const joTransferEventError = {
         ts: ts,
         category: "" + c,
         textLog: "" + textLog.toString()
-    } );
+    };
+    g_arrLastTransferErrors.push( joTransferEventError );
     while( g_arrLastTransferErrors.length > g_nMaxLastTransferErrors )
         g_arrLastTransferErrors.shift();
     g_mapTransferErrorCategories["" + c] = true;
+    g_saveTransferEvents.dispatchEvent( new UniversalDispatcherEvent( "error", { detail: joTransferEventError } ) );
 }
 
 function save_transfer_success( strCategory ) {
     const c = verify_transfer_error_category_name( strCategory );
     try { delete g_mapTransferErrorCategories["" + c]; } catch ( err ) { }
+    g_saveTransferEvents.dispatchEvent( new UniversalDispatcherEvent( "success", { detail: { category: strCategory } } ) );
 }
 
 function save_transfer_success_all() {
@@ -6661,6 +6668,7 @@ module.exports.do_transfer = do_transfer;
 
 module.exports.do_s2s_all = do_s2s_all;
 module.exports.verify_transfer_error_category_name = verify_transfer_error_category_name;
+module.exports.saveTransferEvents = g_saveTransferEvents;
 module.exports.save_transfer_error = save_transfer_error;
 module.exports.save_transfer_success = save_transfer_success;
 module.exports.save_transfer_success_all = save_transfer_success_all;

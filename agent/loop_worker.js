@@ -74,6 +74,22 @@ class ObserverServer extends Server {
             cc.enable( joMessage.message.cc.isEnabled );
             IMA.verbose_set( self.opts.imaState.verbose_ );
             IMA.expose_details_set( self.opts.imaState.expose_details_ );
+            IMA.saveTransferEvents.on( "error", function( eventData ) {
+                const jo = {
+                    method: "save_transfer_error",
+                    message: eventData.detail
+                };
+                const isFlush = true;
+                socket.send( jo, isFlush );
+            } );
+            IMA.saveTransferEvents.on( "success", function( eventData ) {
+                const jo = {
+                    method: "save_transfer_success",
+                    message: eventData.detail
+                };
+                const isFlush = true;
+                socket.send( jo, isFlush );
+            } );
             skale_observer.set_last_cached_schains( self.opts.imaState.arr_schains_cached );
             joAnswer.message = {
                 method: "" + joMessage.method,
