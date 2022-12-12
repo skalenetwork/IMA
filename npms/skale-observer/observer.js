@@ -157,10 +157,7 @@ async function load_schain_parts( w3, jo_schain, addressFrom, opts ) {
         };
         if( opts && opts.bStopNeeded )
             return;
-        const schain_ids =
-            ( "getSchainHashesForNode" in opts.imaState.jo_schains_internal.methods )
-                ? await opts.imaState.jo_schains_internal.methods.getSchainHashesForNode( node_id ).call( { from: addressFrom } )
-                : await opts.imaState.jo_schains_internal.methods.getSchainIdsForNode( node_id ).call( { from: addressFrom } );
+        const schain_ids = await opts.imaState.jo_schains_internal.methods.getSchainHashesForNode( node_id ).call( { from: addressFrom } );
         node_dict.schain_base_port = get_schain_base_port_on_node( schain_id, schain_ids, node_dict.base_port );
         calc_ports( jo_schain, node_dict.schain_base_port );
         compose_endpoints( jo_schain, node_dict, "ip" );
