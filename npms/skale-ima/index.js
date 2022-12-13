@@ -4737,7 +4737,7 @@ async function do_erc1155_batch_payment_s2s(
             // value: "0x" + w3_src.utils.toBN( wei_how_much ).toString( 16 )
         };
         const tx_transfer = compose_tx_instance( details, strLogPrefix, rawTx_transfer );
-        strActionName = "sign ERC1155/transfer transaction S->S " + ( isForward ? "forward" : "reverse" );
+        strActionName = "sign ERC1155-batch/transfer transaction S->S " + ( isForward ? "forward" : "reverse" );
         const joSR_transfer = await safe_sign_transaction_with_account( details, w3_src, tx_transfer, rawTx_transfer, joAccountSrc );
         let joReceipt_transfer = null;
         if( joSR_transfer.joACI.isAutoSend )
