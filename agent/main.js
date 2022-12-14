@@ -80,9 +80,12 @@ global.imaState = {
     "arrAmountsOfTokens": null,
     "idToken": 0,
 
-    "nTransferBlockSizeM2S": 4, // 10
-    "nTransferBlockSizeS2M": 4, // 10
-    "nTransferBlockSizeS2S": 4, // 10
+    "nTransferBlockSizeM2S": 4,
+    "nTransferBlockSizeS2M": 4,
+    "nTransferBlockSizeS2S": 4,
+    "nTransferStepsM2S": 8,
+    "nTransferStepsS2M": 8,
+    "nTransferStepsS2S": 8,
     "nMaxTransactionsM2S": 0,
     "nMaxTransactionsS2M": 0,
     "nMaxTransactionsS2S": 0,
@@ -1249,6 +1252,7 @@ imaCLI.parse( {
                     null, // imaState.jo_deposit_box, // for logs validation on mainnet
                     imaState.jo_token_manager_eth, // for logs validation on s-chain
                     imaState.nTransferBlockSizeM2S,
+                    imaState.nTransferStepsM2S,
                     imaState.nMaxTransactionsM2S,
                     imaState.nBlockAwaitDepthM2S,
                     imaState.nBlockAgeM2S,
@@ -1282,6 +1286,7 @@ imaCLI.parse( {
                     imaState.jo_deposit_box_eth, // for logs validation on mainnet
                     null, // imaState.jo_token_manager - for logs validation on s-chain
                     imaState.nTransferBlockSizeS2M,
+                    imaState.nTransferStepsS2M,
                     imaState.nMaxTransactionsS2M,
                     imaState.nBlockAwaitDepthS2M,
                     imaState.nBlockAgeS2M,
@@ -1312,6 +1317,7 @@ imaCLI.parse( {
                     imaState.chainProperties.sc.cid,
                     imaState.jo_token_manager_eth, // for logs validation on s-chain
                     imaState.nTransferBlockSizeM2S,
+                    imaState.nTransferStepsS2S,
                     imaState.nMaxTransactionsM2S,
                     imaState.nBlockAwaitDepthM2S,
                     imaState.nBlockAgeM2S,
@@ -2194,6 +2200,9 @@ if( imaState.nMonitoringPort > 0 ) {
                             "nTransferBlockSizeM2S",
                             "nTransferBlockSizeS2M",
                             "nTransferBlockSizeS2S",
+                            "nTransferStepsM2S",
+                            "nTransferStepsS2M",
+                            "nTransferStepsS2S",
                             "nMaxTransactionsM2S",
                             "nMaxTransactionsS2M",
                             "nMaxTransactionsS2S",

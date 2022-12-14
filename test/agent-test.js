@@ -99,9 +99,12 @@ global.imaState = {
     "have_idToken": false,
     "have_idTokens": false,
 
-    "nTransferBlockSizeM2S": 4, // 10
-    "nTransferBlockSizeS2M": 4, // 10
-    "nTransferBlockSizeS2S": 4, // 10
+    "nTransferBlockSizeM2S": 4,
+    "nTransferBlockSizeS2M": 4,
+    "nTransferBlockSizeS2S": 4,
+    "nTransferStepsM2S": 8,
+    "nTransferStepsS2M": 8,
+    "nTransferStepsS2S": 8,
     "nMaxTransactionsM2S": 0,
     "nMaxTransactionsS2M": 0,
     "nMaxTransactionsS2S": 0,

@@ -208,6 +208,7 @@ async function single_transfer_loop( loop_opts ) {
                         null, // imaState.jo_deposit_box - for logs validation on mainnet
                         imaState.jo_token_manager_eth, // for logs validation on s-chain
                         imaState.nTransferBlockSizeM2S,
+                        imaState.nTransferStepsM2S,
                         imaState.nMaxTransactionsM2S,
                         imaState.nBlockAwaitDepthM2S,
                         imaState.nBlockAgeM2S,
@@ -260,6 +261,7 @@ async function single_transfer_loop( loop_opts ) {
                         imaState.jo_deposit_box_eth, // for logs validation on mainnet
                         null, // imaState.jo_token_manager, // for logs validation on s-chain
                         imaState.nTransferBlockSizeS2M,
+                        imaState.nTransferStepsS2M,
                         imaState.nMaxTransactionsS2M,
                         imaState.nBlockAwaitDepthS2M,
                         imaState.nBlockAgeS2M,
@@ -307,10 +309,11 @@ async function single_transfer_loop( loop_opts ) {
                         imaState.chainProperties.sc.strChainName,
                         imaState.chainProperties.sc.cid,
                         imaState.jo_token_manager_eth, // for logs validation on s-chain
-                        imaState.nTransferBlockSizeM2S,
-                        imaState.nMaxTransactionsM2S,
-                        imaState.nBlockAwaitDepthM2S,
-                        imaState.nBlockAgeM2S,
+                        imaState.nTransferBlockSizeS2S,
+                        imaState.nTransferStepsS2S,
+                        imaState.nMaxTransactionsS2S,
+                        imaState.nBlockAwaitDepthMSS,
+                        imaState.nBlockAgeS2S,
                         imaBLS.do_sign_messages_s2s, // fn_sign_messages
                         imaState.chainProperties.sc.transactionCustomizer
                     );
@@ -477,6 +480,9 @@ async function ensure_have_workers( opts ) {
                         "nTransferBlockSizeM2S": opts.imaState.nTransferBlockSizeM2S,
                         "nTransferBlockSizeS2M": opts.imaState.nTransferBlockSizeS2M,
                         "nTransferBlockSizeS2S": opts.imaState.nTransferBlockSizeS2S,
+                        "nTransferStepsM2S": opts.imaState.nTransferStepsM2S,
+                        "nTransferStepsS2M": opts.imaState.nTransferStepsS2M,
+                        "nTransferStepsS2S": opts.imaState.nTransferStepsS2S,
                         "nMaxTransactionsM2S": opts.imaState.nMaxTransactionsM2S,
                         "nMaxTransactionsS2M": opts.imaState.nMaxTransactionsS2M,
                         "nMaxTransactionsS2S": opts.imaState.nMaxTransactionsS2S,

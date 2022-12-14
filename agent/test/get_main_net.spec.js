@@ -554,10 +554,11 @@ describe('tests for `npms/skale-ima`', function () {
         let jo_message_proxy_src; // for `false` output
         let chain_id_src = "test";
         let chain_id_dst = "test";
-        let nTransactionsCountInBlock;
-        let nMaxTransactionsCount;
-        let nBlockAwaitDepth;
-        let nBlockAge;
+        let nTransactionsCountInBlock = 4;
+        let nTransferSteps = 0;
+        let nMaxTransactionsCount = 0;
+        let nBlockAwaitDepth = 0;
+        let nBlockAge = 0;
         // 
         expect(await IMA.
             do_transfer(
@@ -577,6 +578,7 @@ describe('tests for `npms/skale-ima`', function () {
                 null, //jo_token_manager - for logs validation on s-chain
                 //
                 nTransactionsCountInBlock,
+                nTransferSteps,
                 nMaxTransactionsCount,
                 nBlockAwaitDepth,
                 nBlockAge,
@@ -590,10 +592,11 @@ describe('tests for `npms/skale-ima`', function () {
     it('should return `true` invoke `do_transfer`', async function () {
         let chain_id_src = "test";
         let chain_id_dst = "test";
-        let nTransactionsCountInBlock;
-        let nMaxTransactionsCount;
-        let nBlockAwaitDepth;
-        let nBlockAge;
+        let nTransactionsCountInBlock = 4;
+        let nTransferSteps = 0;
+        let nMaxTransactionsCount = 0;
+        let nBlockAwaitDepth = 0;
+        let nBlockAge = 0;
         // 
         expect(await IMA.
             do_transfer(
@@ -613,6 +616,7 @@ describe('tests for `npms/skale-ima`', function () {
                 null, //jo_token_manager - for logs validation on s-chain
                 //
                 nTransactionsCountInBlock,
+                nTransferSteps,
                 nMaxTransactionsCount,
                 nBlockAwaitDepth,
                 nBlockAge,

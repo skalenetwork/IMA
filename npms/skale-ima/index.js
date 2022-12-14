@@ -4934,6 +4934,7 @@ async function do_transfer(
     jo_token_manager_schain, // for logs validation on s-chain
     //
     nTransactionsCountInBlock,
+    nTransferSteps,
     nMaxTransactionsCount,
     nBlockAwaitDepth,
     nBlockAge,
@@ -4968,7 +4969,9 @@ async function do_transfer(
     } else
         details.write( strLogPrefix + cc.debug( "Using externally provided signing function" ) + "\n" );
     nTransactionsCountInBlock = nTransactionsCountInBlock || 5;
-    nMaxTransactionsCount = nMaxTransactionsCount || 100;
+    nTransferSteps = nTransferSteps || || Number.MAX_SAFE_INTEGER;
+    let nStepsDone = 0;
+    nMaxTransactionsCount = nMaxTransactionsCount || Number.MAX_SAFE_INTEGER;
     if( nTransactionsCountInBlock < 1 )
         nTransactionsCountInBlock = 1;
     if( nBlockAwaitDepth < 0 )
@@ -5047,9 +5050,23 @@ async function do_transfer(
         nIdxCurrentMsg = nIncMsgCnt;
         let cntProcessed = 0;
         while( nIdxCurrentMsg < nOutMsgCnt ) {
+            if( nStepsDone > nTransferSteps ) {
+                if( verbose_get() >= RV_VERBOSE.information ) {
+                    log.write(
+                        strLogPrefix + cc.error( "WARNING:" ) + " " +
+                        cc.warning( "Transfer step count overflow" ) +
+                        "\n" );
+                }
+                details.close();
+                save_transfer_success_all();
+                return false;
+            }
             details.write(
                 strLogPrefix + cc.debug( "Entering block former iteration with " ) + cc.notice( "message counter" ) +
                 cc.debug( " set to " ) + cc.info( nIdxCurrentMsg ) +
+                cc.debug( ", transfer step number is " ) + cc.info( nStepsDone ) +
+                cc.debug( ", can tranfer up to " ) + cc.info( nMaxTransactionsCount ) + cc.debug( " message(s) per step" ) +
+                cc.debug( ", can perform up to " ) + cc.info( nTransferSteps ) + cc.debug( " transfer step(s)" ) +
                 "\n" );
             if( "check_time_framing" in global && ( ! global.check_time_framing() ) ) {
                 if( verbose_get() >= RV_VERBOSE.information ) {
@@ -5662,6 +5679,7 @@ async function do_transfer(
             }
             if( bErrorInSigningMessages )
                 break;
+            ++ nStepsDone;
         } // while( nIdxCurrentMsg < nOutMsgCnt )
     } catch ( err ) {
         const strError = strLogPrefix + cc.fatal( "CRITICAL ERROR:" ) +
@@ -5700,6 +5718,7 @@ async function do_s2s_all( // s-chain --> s-chain
     jo_token_manager_schain, // for logs validation on s-chain
     //
     nTransactionsCountInBlock,
+    nTransferSteps,
     nMaxTransactionsCount,
     nBlockAwaitDepth,
     nBlockAge,
@@ -5755,6 +5774,7 @@ async function do_s2s_all( // s-chain --> s-chain
                     jo_token_manager_schain, // for logs validation on s-chain
                     //
                     nTransactionsCountInBlock,
+                    nTransferSteps,
                     nMaxTransactionsCount,
                     nBlockAwaitDepth,
                     nBlockAge,
