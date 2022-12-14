@@ -4969,7 +4969,7 @@ async function do_transfer(
     } else
         details.write( strLogPrefix + cc.debug( "Using externally provided signing function" ) + "\n" );
     nTransactionsCountInBlock = nTransactionsCountInBlock || 5;
-    nTransferSteps = nTransferSteps || || Number.MAX_SAFE_INTEGER;
+    nTransferSteps = nTransferSteps || Number.MAX_SAFE_INTEGER;
     let nStepsDone = 0;
     nMaxTransactionsCount = nMaxTransactionsCount || Number.MAX_SAFE_INTEGER;
     if( nTransactionsCountInBlock < 1 )
