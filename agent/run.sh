@@ -85,7 +85,9 @@ BASE_OPTIONS="--gas-price-multiplier=$GAS_PRICE_MULTIPLIER \
 --address-main-net=$NODE_ADDRESS \
 --address-s-chain=$NODE_ADDRESS \
 --sign-messages \
+--gathered \
 --expose \
+--no-expose-security-info \
 --skip-dry-run \
 --bls-glue=/ima/bls_binaries/bls_glue \
 --hash-g1=/ima/bls_binaries/hash_g1 \

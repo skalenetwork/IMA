@@ -37,7 +37,7 @@ import "./CommunityPool.sol";
 /**
  * @title Message Proxy for Mainnet
  * @dev Runs on Mainnet, contains functions to manage the incoming messages from
- * `targetSchainName` and outgoing messages to `fromSchainName`. Every SKALE chain with 
+ * `targetSchainName` and outgoing messages to `fromSchainName`. Every SKALE chain with
  * IMA is therefore connected to MessageProxyForMainnet.
  *
  * Messages from SKALE chains are signed using BLS threshold signatures from the
@@ -104,6 +104,20 @@ contract MessageProxyForMainnet is SkaleManagerClient, MessageProxy, IMessagePro
     );
 
     /**
+     * @dev Emitted when the schain is paused
+     */
+    event SchainPaused(
+        bytes32 indexed schainHash
+    );
+
+    /**
+     * @dev Emitted when the schain is resumed
+     */
+    event SchainResumed(
+        bytes32 indexed schainHash
+    );
+
+   /**
      * @dev Emitted when reimbursed contract was added
      */
     event ReimbursedContractAdded(
@@ -111,7 +125,7 @@ contract MessageProxyForMainnet is SkaleManagerClient, MessageProxy, IMessagePro
         address contractAddress
     );
 
-    /**
+   /**
      * @dev Emitted when reimbursed contract was removed
      */
     event ReimbursedContractRemoved(
@@ -139,9 +153,9 @@ contract MessageProxyForMainnet is SkaleManagerClient, MessageProxy, IMessagePro
 
     /**
      * @dev Allows `msg.sender` to connect schain with MessageProxyOnMainnet for transferring messages.
-     * 
+     *
      * Requirements:
-     * 
+     *
      * - Schain name must not be `Mainnet`.
      */
     function addConnectedChain(string calldata schainName) external override {
@@ -154,9 +168,9 @@ contract MessageProxyForMainnet is SkaleManagerClient, MessageProxy, IMessagePro
 
     /**
      * @dev Allows owner of the contract to set CommunityPool address for gas reimbursement.
-     * 
+     *
      * Requirements:
-     * 
+     *
      * - `msg.sender` must be granted as DEFAULT_ADMIN_ROLE.
      * - Address of CommunityPool contract must not be null.
      */
@@ -167,9 +181,9 @@ contract MessageProxyForMainnet is SkaleManagerClient, MessageProxy, IMessagePro
 
     /**
      * @dev Allows `msg.sender` to register extra contract for being able to transfer messages from custom contracts.
-     * 
+     *
      * Requirements:
-     * 
+     *
      * - `msg.sender` must be granted as EXTRA_CONTRACT_REGISTRAR_ROLE.
      * - Schain name must not be `Mainnet`.
      */
@@ -180,16 +194,16 @@ contract MessageProxyForMainnet is SkaleManagerClient, MessageProxy, IMessagePro
             isSchainOwner(msg.sender, schainHash),
             "Not enough permissions to register extra contract"
         );
-        require(schainHash != MAINNET_HASH, "Schain hash can not be equal Mainnet");        
+        require(schainHash != MAINNET_HASH, "Schain hash can not be equal Mainnet");
         _registerExtraContract(schainHash, extraContract);
     }
 
     /**
      * @dev Allows `msg.sender` to remove extra contract,
      * thus `extraContract` will no longer be available to transfer messages from mainnet to schain.
-     * 
+     *
      * Requirements:
-     * 
+     *
      * - `msg.sender` must be granted as EXTRA_CONTRACT_REGISTRAR_ROLE.
      * - Schain name must not be `Mainnet`.
      */
@@ -255,10 +269,10 @@ contract MessageProxyForMainnet is SkaleManagerClient, MessageProxy, IMessagePro
     }
 
     /**
-     * @dev Posts incoming message from `fromSchainName`. 
-     * 
+     * @dev Posts incoming message from `fromSchainName`.
+     *
      * Requirements:
-     * 
+     *
      * - `msg.sender` must be authorized caller.
      * - `fromSchainName` must be initialized.
      * - `startingCounter` must be equal to the chain's incoming message counter.
@@ -289,7 +303,7 @@ contract MessageProxyForMainnet is SkaleManagerClient, MessageProxy, IMessagePro
             fromSchainName,
             _hashedArray(messages, startingCounter, fromSchainName), sign),
             "Signature is not verified");
-        uint additionalGasPerMessage = 
+        uint additionalGasPerMessage =
             (gasTotal - gasleft() + headerMessageGasCost + messages.length * messageGasCost) / messages.length;
         uint notReimbursedGas = 0;
         connectedChains[fromSchainHash].incomingMessageCounter += messages.length;
@@ -314,9 +328,9 @@ contract MessageProxyForMainnet is SkaleManagerClient, MessageProxy, IMessagePro
 
     /**
      * @dev Sets headerMessageGasCost to a new value.
-     * 
+     *
      * Requirements:
-     * 
+     *
      * - `msg.sender` must be granted as CONSTANT_SETTER_ROLE.
      */
     function setNewHeaderMessageGasCost(uint256 newHeaderMessageGasCost) external override onlyConstantSetter {
@@ -326,9 +340,9 @@ contract MessageProxyForMainnet is SkaleManagerClient, MessageProxy, IMessagePro
 
     /**
      * @dev Sets messageGasCost to a new value.
-     * 
+     *
      * Requirements:
-     * 
+     *
      * - `msg.sender` must be granted as CONSTANT_SETTER_ROLE.
      */
     function setNewMessageGasCost(uint256 newMessageGasCost) external override onlyConstantSetter {
@@ -338,9 +352,9 @@ contract MessageProxyForMainnet is SkaleManagerClient, MessageProxy, IMessagePro
 
     /**
      * @dev Sets new version of contracts on mainnet
-     * 
+     *
      * Requirements:
-     * 
+     *
      * - `msg.sender` must be granted DEFAULT_ADMIN_ROLE.
      */
     function setVersion(string calldata newVersion) external override onlyOwner {
@@ -350,9 +364,9 @@ contract MessageProxyForMainnet is SkaleManagerClient, MessageProxy, IMessagePro
 
     /**
      * @dev Allows PAUSABLE_ROLE to pause IMA bridge unlimited
-     * 
+     *
      * Requirements:
-     * 
+     *
      * - IMA bridge to current schain was not paused
      * - Sender should be PAUSABLE_ROLE
      */
@@ -361,13 +375,14 @@ contract MessageProxyForMainnet is SkaleManagerClient, MessageProxy, IMessagePro
         require(hasRole(PAUSABLE_ROLE, msg.sender), "Incorrect sender");
         require(!pauseInfo[schainHash].paused, "Already paused");
         pauseInfo[schainHash].paused = true;
+        emit SchainPaused(schainHash);
     }
 
 /**
-     * @dev Allows DEFAULT_ADMIN_ROLE or schain owner to resume IMA bridge 
-     * 
+     * @dev Allows DEFAULT_ADMIN_ROLE or schain owner to resume IMA bridge
+     *
      * Requirements:
-     * 
+     *
      * - IMA bridge to current schain was paused
      * - Sender should be DEFAULT_ADMIN_ROLE or schain owner
      */
@@ -376,6 +391,7 @@ contract MessageProxyForMainnet is SkaleManagerClient, MessageProxy, IMessagePro
         require(hasRole(DEFAULT_ADMIN_ROLE, msg.sender) || isSchainOwner(msg.sender, schainHash), "Incorrect sender");
         require(pauseInfo[schainHash].paused, "Already unpaused");
         pauseInfo[schainHash].paused = false;
+        emit SchainResumed(schainHash);
     }
 
     /**
@@ -438,12 +454,12 @@ contract MessageProxyForMainnet is SkaleManagerClient, MessageProxy, IMessagePro
 
     /**
      * @dev Checks whether chain is currently connected.
-     * 
-     * Note: Mainnet chain does not have a public key, and is implicitly 
+     *
+     * Note: Mainnet chain does not have a public key, and is implicitly
      * connected to MessageProxy.
-     * 
+     *
      * Requirements:
-     * 
+     *
      * - `schainName` must not be Mainnet.
      */
     function isConnectedChain(
@@ -482,7 +498,7 @@ contract MessageProxyForMainnet is SkaleManagerClient, MessageProxy, IMessagePro
                 || isContractRegistered(targetChainHash, msg.sender)
                 || isSchainOwner(msg.sender, targetChainHash),
             "Sender contract is not registered"
-        );        
+        );
     }
 
     /**
@@ -512,7 +528,7 @@ contract MessageProxyForMainnet is SkaleManagerClient, MessageProxy, IMessagePro
     }
 
     /**
-     * @dev Checks whether balance of schain wallet is sufficient for 
+     * @dev Checks whether balance of schain wallet is sufficient for
      * for reimbursement custom message.
      */
     function _checkSchainBalance(bytes32 schainHash) internal view returns (bool) {

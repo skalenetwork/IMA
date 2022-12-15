@@ -70,7 +70,7 @@ function getWeb3FromURL( strURL, log ) {
     } catch ( err ) {
         log.write( cc.fatal( "CRITICAL ERROR:" ) + cc.error( " Failed to create " ) +
             cc.attention( "Web3" ) + cc.error( " connection to " ) + cc.info( strURL ) +
-            cc.error( ": " ) + cc.warning( err.toString() ) );
+            cc.error( ": " ) + cc.warning( owaspUtils.extract_error_message( err ) ) );
         w3 = null;
     }
     return w3;
@@ -101,6 +101,7 @@ function compose_endpoints( jo_schain, node_dict, endpoint_type ) {
     node_dict["ws_endpoint_" + endpoint_type] = "ws://" + node_dict[endpoint_type] + ":" + jo_schain.data.computed.ports.wsRpcPort;
     node_dict["wss_endpoint_" + endpoint_type] = "wss://" + node_dict[endpoint_type] + ":" + jo_schain.data.computed.ports.wssRpcPort;
     node_dict["info_http_endpoint_" + endpoint_type] = "http://" + node_dict[endpoint_type] + ":" + jo_schain.data.computed.ports.infoHttpRpcPort;
+    node_dict["ima_agent_endpoint_" + endpoint_type] = "http://" + node_dict[endpoint_type] + ":" + jo_schain.data.computed.ports.imaAgentRpcPort;
 }
 
 const SkaledPorts = {
@@ -113,7 +114,8 @@ const SkaledPorts = {
     IMA_MONITORING: 6,
     WSS_JSON: 7,
     HTTPS_JSON: 8,
-    INFO_HTTP_JSON: 9
+    INFO_HTTP_JSON: 9,
+    IMA_AGENT_JSON: 10
 };
 
 function calc_ports( jo_schain, schain_base_port ) {
@@ -123,7 +125,8 @@ function calc_ports( jo_schain, schain_base_port ) {
         httpsRpcPort: schain_base_port + SkaledPorts.HTTPS_JSON,
         wsRpcPort: schain_base_port + SkaledPorts.WS_JSON,
         wssRpcPort: schain_base_port + SkaledPorts.WSS_JSON,
-        infoHttpRpcPort: schain_base_port + SkaledPorts.INFO_HTTP_JSON
+        infoHttpRpcPort: schain_base_port + SkaledPorts.INFO_HTTP_JSON,
+        imaAgentRpcPort: schain_base_port + SkaledPorts.IMA_AGENT_JSON
     };
 }
 
@@ -306,10 +309,8 @@ async function load_schains_connected_only( w3_main_net, w3_s_chain, strChainNam
             jo_schain.isConnected = true;
             arr_schains.push( jo_schain );
         } catch ( err ) {
-            if( opts && opts.details ) {
-                opts.details.write( cc.error( "Got error: " ) + cc.warning( err.toString() ) + "\n" );
-                opts.details.write( err.stack );
-            }
+            if( opts && opts.details )
+                opts.details.write( cc.error( "Got error: " ) + cc.warning( owaspUtils.extract_error_message( err ) ) + "\n" );
         }
     }
     return arr_schains;
@@ -342,10 +343,8 @@ async function check_connected_schains( strChainNameConnectedTo, arr_schains, ad
                     cc.debug( "Got " ) + cc.yn( jo_schain.isConnected ) + "\n" );
             }
         } catch ( err ) {
-            if( opts && opts.details ) {
-                opts.details.write( cc.error( "Got error: " ) + cc.warning( err.toString() ) + "\n" );
-                opts.details.write( err.stack );
-            }
+            if( opts && opts.details )
+                opts.details.write( cc.error( "Got error: " ) + cc.warning( owaspUtils.extract_error_message( err ) ) + "\n" );
         }
     }
     return arr_schains;
@@ -455,15 +454,14 @@ async function cache_schains( strChainNameConnectedTo, w3_main_net, w3_s_chain, 
         if( opts.fn_chache_changed )
             opts.fn_chache_changed( g_arr_schains_cached, null ); // null - no error
     } catch ( err ) {
-        strError = err.toString();
+        strError = owaspUtils.extract_error_message( err );
         if( ! strError )
             strError = "unknown exception during S-Chains download";
         if( opts.fn_chache_changed )
             opts.fn_chache_changed( g_arr_schains_cached, strError );
-        if( opts && opts.details ) {
+        if( opts && opts.details )
             opts.details.write( cc.fatal( "ERROR:" ) + cc.error( " Failed to cache: " ) + cc.error( err ) + "\n" );
-            opts.details.write( err.stack );
-        }
+
     }
     return strError; // null on success
 }
@@ -537,7 +535,8 @@ async function ensure_have_worker( opts ) {
                         "strSgxURL": opts.imaState.joAccount_main_net.strSgxURL,
                         "strSgxKeyName": opts.imaState.joAccount_main_net.strSgxKeyName,
                         "strPathSslKey": opts.imaState.joAccount_main_net.strPathSslKey,
-                        "strPathSslCert": opts.imaState.joAccount_main_net.strPathSslCert
+                        "strPathSslCert": opts.imaState.joAccount_main_net.strPathSslCert,
+                        "strBlsKeyName": opts.imaState.joAccount_main_net.strBlsKeyName
                     },
                     "joAccount_s_chain": {
                         "privateKey": opts.imaState.joAccount_s_chain.privateKey,
@@ -547,7 +546,8 @@ async function ensure_have_worker( opts ) {
                         "strSgxURL": opts.imaState.joAccount_s_chain.strSgxURL,
                         "strSgxKeyName": opts.imaState.joAccount_s_chain.strSgxKeyName,
                         "strPathSslKey": opts.imaState.joAccount_s_chain.strPathSslKey,
-                        "strPathSslCert": opts.imaState.joAccount_s_chain.strPathSslCert
+                        "strPathSslCert": opts.imaState.joAccount_s_chain.strPathSslCert,
+                        "strBlsKeyName": opts.imaState.joAccount_s_chain.strBlsKeyName
                     },
                     // "tc_main_net": IMA.tc_main_net,
                     // "tc_s_chain": IMA.tc_s_chain,
@@ -611,7 +611,9 @@ async function discover_chain_id( strURL ) {
     const rpcCallOpts = null;
     await rpcCall.create( strURL, rpcCallOpts, async function( joCall, err ) {
         if( err ) {
-            //ret = "Failed to create RPC (" + strURL + ") call: " + err.toString();
+            //ret = "Failed to create RPC (" + strURL + ") call: " + owaspUtils.extract_error_message( err );
+            if( joCall )
+                await joCall.disconnect();
             return;
         }
         await joCall.call( {
@@ -619,14 +621,17 @@ async function discover_chain_id( strURL ) {
             "params": []
         }, async function( joIn, joOut, err ) {
             if( err ) {
-                //ret = "Failed to query RPC (" + strURL + ") for chain ID: " + err.toString();
+                //ret = "Failed to query RPC (" + strURL + ") for chain ID: " + owaspUtils.extract_error_message( err );
+                await joCall.disconnect();
                 return;
             }
             if( ! ( "result" in joOut && joOut.result ) ) {
                 //ret = "Failed to query RPC (" + strURL + ") for chain ID, got bad result: " + JSON.stringify( joOut );
+                await joCall.disconnect();
                 return;
             }
             ret = joOut.result;
+            await joCall.disconnect();
         } ); // joCall.call ...
     } ); // rpcCall.create ...
     return ret;

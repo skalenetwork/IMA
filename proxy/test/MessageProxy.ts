@@ -284,7 +284,10 @@ describe("MessageProxy", () => {
             const pauseableRole = await messageProxyForMainnet.PAUSABLE_ROLE();
 
             await messageProxyForMainnet.connect(deployer).grantRole(pauseableRole, client.address);
-            await messageProxyForMainnet.connect(client).pause(schainName);
+            await expect(
+                messageProxyForMainnet.connect(client).pause(schainName)
+            ).to.emit(messageProxyForMainnet, "SchainPaused")
+                .withArgs(schainHash);
             await messageProxyForMainnet.connect(client).pause(schainName).should.be.rejectedWith("Already paused");
 
             (await messageProxyForMainnet.isPaused(schainHash)).should.be.deep.equal(true);
@@ -297,7 +300,10 @@ describe("MessageProxy", () => {
                 .should.be.rejectedWith("IMA is paused");
 
             await messageProxyForMainnet.connect(client).resume(schainName).should.be.rejectedWith("Incorrect sender");
-            await messageProxyForMainnet.connect(schainOwner).resume(schainName);
+            await expect(
+                messageProxyForMainnet.connect(schainOwner).resume(schainName)
+            ).to.emit(messageProxyForMainnet, "SchainResumed")
+                .withArgs(schainHash);
             await messageProxyForMainnet.connect(deployer).resume(schainName).should.be.rejectedWith("Already unpaused");
 
             (await messageProxyForMainnet.isPaused(schainHash)).should.be.deep.equal(false);

@@ -192,7 +192,7 @@ async function get_web3_blockNumber( details, cntAttempts, w3, retValOnFail, thr
             cc.error( "Failed call attempt " ) + cc.info( idxAttempt ) +
             cc.error( " to " ) + cc.note( strFnName + "()" ) +
             cc.error( " via " ) + cc.u( u ) +
-            cc.error( ", error is: " ) + cc.warning( err.toString() ) +
+            cc.error( ", error is: " ) + cc.warning( owaspUtils.extract_error_message( err ) ) +
             "\n" );
     }
     ++ idxAttempt;
@@ -222,7 +222,7 @@ async function get_web3_blockNumber( details, cntAttempts, w3, retValOnFail, thr
                 cc.error( "Failed call attempt " ) + cc.info( idxAttempt ) +
                 cc.error( " to " ) + cc.note( strFnName + "()" ) +
                 cc.error( " via " ) + cc.u( u ) +
-                cc.error( ", error is: " ) + cc.warning( err.toString() ) +
+                cc.error( ", error is: " ) + cc.warning( owaspUtils.extract_error_message( err ) ) +
                 "\n" );
         }
         ++ idxAttempt;
@@ -257,7 +257,7 @@ async function get_web3_transactionCount( details, cntAttempts, w3, address, par
             cc.error( "Failed call attempt " ) + cc.info( idxAttempt ) +
             cc.error( " to " ) + cc.note( strFnName + "()" ) +
             cc.error( " via " ) + cc.u( u ) +
-            cc.error( ", error is: " ) + cc.warning( err.toString() ) +
+            cc.error( ", error is: " ) + cc.warning( owaspUtils.extract_error_message( err ) ) +
             "\n" );
     }
     ++ idxAttempt;
@@ -287,7 +287,7 @@ async function get_web3_transactionCount( details, cntAttempts, w3, address, par
                 cc.error( "Failed call attempt " ) + cc.info( idxAttempt ) +
                 cc.error( " to " ) + cc.note( strFnName + "()" ) +
                 cc.error( " via " ) + cc.u( u ) +
-                cc.error( ", error is: " ) + cc.warning( err.toString() ) +
+                cc.error( ", error is: " ) + cc.warning( owaspUtils.extract_error_message( err ) ) +
                 "\n" );
         }
         ++ idxAttempt;
@@ -322,7 +322,7 @@ async function get_web3_transactionReceipt( details, cntAttempts, w3, txHash, re
             cc.error( "Failed call attempt " ) + cc.info( idxAttempt ) +
             cc.error( " to " ) + cc.note( strFnName + "()" ) +
             cc.error( " via " ) + cc.u( u ) +
-            cc.error( ", error is: " ) + cc.warning( err.toString() ) +
+            cc.error( ", error is: " ) + cc.warning( owaspUtils.extract_error_message( err ) ) +
             "\n" );
     }
     ++ idxAttempt;
@@ -352,7 +352,7 @@ async function get_web3_transactionReceipt( details, cntAttempts, w3, txHash, re
                 cc.error( "Failed call attempt " ) + cc.info( idxAttempt ) +
                 cc.error( " to " ) + cc.note( strFnName + "()" ) +
                 cc.error( " via " ) + cc.u( u ) +
-                cc.error( ", error is: " ) + cc.warning( err.toString() ) +
+                cc.error( ", error is: " ) + cc.warning( owaspUtils.extract_error_message( err ) ) +
                 "\n" );
         }
         ++ idxAttempt;
@@ -393,9 +393,9 @@ async function get_web3_pastEvents( details, w3, cntAttempts, joContract, strEve
             cc.error( " to " ) + cc.note( strFnName + "()" ) +
             cc.error( " via " ) + cc.u( u ) +
             cc.error( ", from block " ) + cc.warning( nBlockFrom ) + cc.error( ", to block " ) + cc.warning( nBlockTo ) +
-            cc.error( ", error is: " ) + cc.warning( err.toString() ) +
+            cc.error( ", error is: " ) + cc.warning( owaspUtils.extract_error_message( err ) ) +
             "\n" );
-        if( err.toString().indexOf( strErrorTextAboutNotExistingEvent ) >= 0 ) {
+        if( owaspUtils.extract_error_message( err ).indexOf( strErrorTextAboutNotExistingEvent ) >= 0 ) {
             details.write(
                 cc.error( "Did stopped calls to " ) + cc.note( strFnName + "()" ) +
                 cc.error( " because event " ) + cc.notice( strEventName ) +
@@ -439,9 +439,9 @@ async function get_web3_pastEvents( details, w3, cntAttempts, joContract, strEve
                 cc.error( " to " ) + cc.note( strFnName + "()" ) +
                 cc.error( " via " ) + cc.u( u ) +
                 cc.error( ", from block " ) + cc.warning( nBlockFrom ) + cc.error( ", to block " ) + cc.warning( nBlockTo ) +
-                cc.error( ", error is: " ) + cc.warning( err.toString() ) +
+                cc.error( ", error is: " ) + cc.warning( owaspUtils.extract_error_message( err ) ) +
                 "\n" );
-            if( err.toString().indexOf( strErrorTextAboutNotExistingEvent ) >= 0 ) {
+            if( owaspUtils.extract_error_message( err ).indexOf( strErrorTextAboutNotExistingEvent ) >= 0 ) {
                 details.write(
                     cc.error( "Did stopped calls to " ) + cc.note( strFnName + "()" ) +
                     cc.error( " because event " ) + cc.notice( strEventName ) +
@@ -552,7 +552,7 @@ async function get_web3_pastEventsIterative( details, w3, attempts, joContract, 
                 cc.error( "Got scan error during interative scan of " ) +
                 cc.info( idxBlockSubRangeFrom ) + cc.error( "/" ) + cc.info( idxBlockSubRangeTo ) +
                 cc.error( " block sub-range in " ) + cc.info( nBlockFrom ) + cc.error( "/" ) + cc.info( nBlockTo ) +
-                cc.error( " block range, error is: " ) + cc.warning( err.toString() ) + "\n"
+                cc.error( " block range, error is: " ) + cc.warning( owaspUtils.extract_error_message( err ) ) + "\n"
             );
         }
         idxBlockSubRangeFrom = idxBlockSubRangeTo;
@@ -1141,8 +1141,8 @@ async function dry_run_call( details, w3, methodWithArguments, joAccount, strDRC
             details.write(
                 strLogPrefix + cc.fatal( "CRITICAL DRY RUN FAIL" ) + " " +
                 cc.error( " invoking the " ) + cc.info( strMethodName ) + cc.error( " method: " ) +
-                cc.warning( err.toString() ) + "\n" );
-            return "CRITICAL DRY RUN FAIL invoking the \"" + strMethodName + "\" method: " + err.toString();
+                cc.warning( owaspUtils.extract_error_message( err ) ) + "\n" );
+            return "CRITICAL DRY RUN FAIL invoking the \"" + strMethodName + "\" method: " + owaspUtils.extract_error_message( err );
         }
     }
     return null;
@@ -1323,7 +1323,7 @@ async function safe_sign_transaction_with_account( details, w3, tx, rawTx, joAcc
     const strPrefixLog = cc.debug( "(immediate log)" ) + " ";
     const sendingCnt = loopTmSendingCnt++;
     let strMsg =
-        cc.debug( "Sending transaction with account(" ) + cc.notice( "sending counter" ) + cc.debug( " is " ) +
+        cc.debug( "Signing(and later, sending) transaction with account(" ) + cc.notice( "sending counter" ) + cc.debug( " is " ) +
         cc.info( sendingCnt ) + cc.debug( "), raw TX object is " ) + cc.j( rawTx );
     details.write( strPrefixDetails + strMsg + "\n" );
     log.write( strPrefixLog + strMsg + "\n" );
@@ -1332,6 +1332,9 @@ async function safe_sign_transaction_with_account( details, w3, tx, rawTx, joAcc
         tx: null,
         txHashSent: null
     };
+    strMsg = cc.debug( "Signing(and later, sending) transaction with backend type: " ) + cc.bright( joSR.joACI.strType );
+    details.write( strPrefixDetails + strMsg + "\n" );
+    log.write( strPrefixLog + strMsg + "\n" );
     switch ( joSR.joACI.strType ) {
     case "tm": {
         /*
@@ -1354,6 +1357,8 @@ async function safe_sign_transaction_with_account( details, w3, tx, rawTx, joAcc
                 if( verbose_get() >= RV_VERBOSE.error )
                     log.write( s );
                 details.write( s );
+                if( joCall )
+                    await joCall.disconnect();
                 return;
             }
             const txAdjusted = JSON.parse( JSON.stringify( rawTx ) ); // tx // rawTx
@@ -1375,6 +1380,7 @@ async function safe_sign_transaction_with_account( details, w3, tx, rawTx, joAcc
                         if( verbose_get() >= RV_VERBOSE.error )
                             log.write( s );
                         details.write( s );
+                        await joCall.disconnect();
                         return;
                     }
                     details.write( cc.debug( "Transaction Manager sign-and-send result is: " ) + cc.j( joOut ) + "\n" );
@@ -1387,6 +1393,7 @@ async function safe_sign_transaction_with_account( details, w3, tx, rawTx, joAcc
                         details.write( s );
                         return;
                     }
+                    await joCall.disconnect();
                 } );
         } );
         await sleep( 5000 );
@@ -1410,26 +1417,37 @@ async function safe_sign_transaction_with_account( details, w3, tx, rawTx, joAcc
             redis = new Redis( joAccount.strTransactionManagerURL );
         const priority = joAccount.tm_priority || 5;
         try {
+            strMsg = cc.debug( "Will TM-ensure transaction " ) + cc.j( txAdjusted ) + cc.debug( "..." );
+            details.write( strPrefixDetails + strMsg + "\n" );
+            log.write( strPrefixLog + strMsg + "\n" );
             const [ tx_id, joReceipt ] = await tm_ensure_transaction( details, w3, priority, txAdjusted );
+            strMsg = cc.success( "Done TM-ensure transaction, got ID " ) + cc.notice( tx_id ) + cc.success( " and receipt " ) + cc.j( joReceipt );
+            details.write( strPrefixDetails + strMsg + "\n" );
+            log.write( strPrefixLog + strMsg + "\n" );
             joSR.txHashSent = "" + joReceipt.transactionHash;
             joSR.joReceipt = joReceipt;
             joSR.tm_tx_id = tx_id;
+            strMsg = cc.success( "Done, TX was signed with Transaction Manager" );
+            details.write( strPrefixDetails + strMsg + "\n" );
+            log.write( strPrefixLog + strMsg + "\n" );
         } catch ( err ) {
             strMsg =
                 cc.fatal( "BAD ERROR:" ) + " " +
                 cc.error( "TM - transaction was not sent, underlying error is: " ) +
-                cc.warning( err.toString() );
+                cc.warning( owaspUtils.extract_error_message( err ) );
             details.write( strPrefixDetails + strMsg + "\n" );
             log.write( strPrefixLog + strMsg + "\n" );
             // throw err;
         }
     } break;
     case "sgx": {
-        details.write(
-            cc.debug( "Will sign with SGX wallet, transaction is " ) + cc.j( tx ) +
-            cc.debug( ", raw transaction is " ) + cc.j( rawTx ) + "\n"
-            // + cc.debug( " using account " ) + cc.j( joAccount ) + "\n"
-        );
+        strMsg =
+            cc.debug( "Will sign with SGX Wallet, transaction is " ) + cc.j( tx ) +
+            cc.debug( ", raw transaction is " ) + cc.j( rawTx )
+            // + cc.debug( " using account " ) + cc.j( joAccount )
+        ;
+        details.write( strPrefixDetails + strMsg + "\n" );
+        log.write( strPrefixLog + strMsg + "\n" );
         let rpcCallOpts = null;
         if( "strPathSslKey" in joAccount && typeof joAccount.strPathSslKey == "string" && joAccount.strPathSslKey.length > 0 &&
             "strPathSslCert" in joAccount && typeof joAccount.strPathSslCert == "string" && joAccount.strPathSslCert.length > 0
@@ -1446,6 +1464,8 @@ async function safe_sign_transaction_with_account( details, w3, tx, rawTx, joAcc
                 if( verbose_get() >= RV_VERBOSE.error )
                     log.write( s );
                 details.write( s );
+                if( joCall )
+                    await joCall.disconnect();
                 return;
             }
             const msgHash = tx.hash( false );
@@ -1459,16 +1479,20 @@ async function safe_sign_transaction_with_account( details, w3, tx, rawTx, joAcc
                     "base": 16 // 10
                 }
             };
-            details.write( cc.debug( "Calling SGX to sign using ECDSA key with " ) + cc.info( joIn.method ) + cc.debug( "..." ) + "\n" );
+            strMsg = cc.debug( "Calling SGX to sign using ECDSA key with " ) + cc.info( joIn.method ) + cc.debug( "..." );
+            details.write( strPrefixDetails + strMsg + "\n" );
+            log.write( strPrefixLog + strMsg + "\n" );
             await joCall.call( joIn, async function( joIn, joOut, err ) {
                 if( err ) {
-                    const s = cc.fatal( "CRITICAL TRANSACTION SIGNING ERROR:" ) + cc.error( " JSON RPC call to SGX wallet failed, error: " ) + cc.warning( err ) + "\n";
-                    if( verbose_get() >= RV_VERBOSE.error )
-                        log.write( s );
-                    details.write( s );
+                    strMsg = cc.fatal( "CRITICAL TRANSACTION SIGNING ERROR:" ) + cc.error( " JSON RPC call to SGX wallet failed, error: " ) + cc.warning( err );
+                    details.write( strPrefixDetails + strMsg + "\n" );
+                    log.write( strPrefixLog + strMsg + "\n" );
+                    await joCall.disconnect();
                     return;
                 }
-                details.write( cc.debug( "SGX wallet ECDSA sign result is: " ) + cc.j( joOut ) + "\n" );
+                strMsg = cc.debug( "SGX wallet ECDSA sign result is: " ) + cc.j( joOut );
+                details.write( strPrefixDetails + strMsg + "\n" );
+                log.write( strPrefixLog + strMsg + "\n" );
                 const joNeededResult = {
                     // "v": Buffer.from( parseIntOrHex( joOut.result.signature_v ).toString( "hex" ), "utf8" ),
                     // "r": Buffer.from( "" + joOut.result.signature_r, "utf8" ),
@@ -1477,7 +1501,9 @@ async function safe_sign_transaction_with_account( details, w3, tx, rawTx, joAcc
                     "r": "" + joOut.result.signature_r,
                     "s": "" + joOut.result.signature_s
                 };
-                details.write( cc.debug( "Sign result to assign into transaction is: " ) + cc.j( joNeededResult ) + "\n" );
+                strMsg = cc.debug( "SGX Wallet sign result to assign into transaction is: " ) + cc.j( joNeededResult );
+                details.write( strPrefixDetails + strMsg + "\n" );
+                log.write( strPrefixLog + strMsg + "\n" );
                 //
                 // if( "_chainId" in tx && tx._chainId != null && tx._chainId != undefined )
                 //     tx.v += tx._chainId * 2 + 8;
@@ -1503,27 +1529,38 @@ async function safe_sign_transaction_with_account( details, w3, tx, rawTx, joAcc
                 tx.v = joNeededResult.v;
                 tx.r = joNeededResult.r;
                 tx.s = joNeededResult.s;
-                details.write( cc.debug( "Resulting adjusted transaction is: " ) + cc.j( tx ) + "\n" );
+                strMsg = cc.debug( "Resulting adjusted transaction is: " ) + cc.j( tx );
+                details.write( strPrefixDetails + strMsg + "\n" );
+                log.write( strPrefixLog + strMsg + "\n" );
+                await joCall.disconnect();
+                strMsg = cc.success( "Done, TX was signed with SGX Wallet" );
+                details.write( strPrefixDetails + strMsg + "\n" );
+                log.write( strPrefixLog + strMsg + "\n" );
             } );
         } );
         await sleep( 3000 );
     } break;
     case "direct": {
-        details.write(
+        strMsg =
             cc.debug( "Will sign with private key, transaction is " ) + cc.notice( JSON.stringify( tx ) ) +
-            cc.debug( ", raw transaction is " ) + cc.notice( JSON.stringify( rawTx ) ) + "\n"
-            // + cc.debug( " using account " ) + cc.j( joAccount ) + "\n"
-        );
+            cc.debug( ", raw transaction is " ) + cc.notice( JSON.stringify( rawTx ) )
+            // + cc.debug( " using account " ) + cc.j( joAccount )
+        ;
+        details.write( strPrefixDetails + strMsg + "\n" );
+        log.write( strPrefixLog + strMsg + "\n" );
         const key = Buffer.from( joAccount.privateKey, "hex" ); // convert private key to buffer
         tx.sign( key ); // arg is privateKey as buffer
+        strMsg = cc.success( "Done, TX was signed with private key" );
+        details.write( strPrefixDetails + strMsg + "\n" );
+        log.write( strPrefixLog + strMsg + "\n" );
     } break;
     default: {
-        const s = cc.fatal( "CRITICAL TRANSACTION SIGNING ERROR:" ) +
-            cc.error( " bad credentials information specified, no explicit SGX and no explicit private key found" ) +
+        strMsg = cc.fatal( "CRITICAL TRANSACTION SIGNING ERROR:" ) +
+            cc.error( " bad credentials information specified, no explicit SGX and no explicit private key found" )
             // + cc.error( ", account is: " ) + cc.j( joAccount )
-            "\n";
-        details.write( s );
-        log.write( s );
+        ;
+        details.write( strPrefixDetails + strMsg + "\n" );
+        log.write( strPrefixLog + strMsg + "\n" );
         if( isExitIfEmpty ) {
             details.exposeDetailsTo( log, "safe_sign_transaction_with_account", false );
             details.close();
@@ -1550,7 +1587,7 @@ async function safe_send_signed_transaction( details, w3, serializedTx, strActio
     details.write( strPrefixDetails + strMsg + "\n" );
     log.write( strPrefixLog + strMsg + "\n" );
     const strTX = "0x" + serializedTx.toString( "hex" ); // strTX is string starting from "0x"
-    details.write( strLogPrefix + cc.debug( "....signed raw TX is " ) + cc.j( strTX ) + "\n" );
+    details.write( strLogPrefix + cc.debug( "....signed raw TX is " ) + cc.attention( strTX ) + "\n" );
     let joReceipt = null;
     let bHaveReceipt = false;
     try {
@@ -5673,7 +5710,7 @@ async function do_transfer(
                                 ++ cntFailedNodes;
                                 const strError = strLogPrefix + cc.fatal( strDirection + " message analysis error:" ) + " " +
                                     cc.error( "Failed to scan events on node " ) + cc.info( jo_node.name ) +
-                                    cc.error( ", error is: " ) + cc.warning( err.toString() ) +
+                                    cc.error( ", error is: " ) + cc.warning( owaspUtils.extract_error_message( err ) ) +
                                     cc.error( ", detailed node description is: " ) + cc.j( jo_node ) +
                                     "\n";
                                 details.write( strError );
@@ -5716,7 +5753,7 @@ async function do_transfer(
                             cc.error( "Failed to process events for " ) + cc.sunny( strDirection ) + cc.error( " message " ) +
                             cc.info( idxMessage + 1 ) + cc.error( " on node " ) + cc.info( jo_node.name ) +
                             cc.success( " using URL " ) + cc.info( jo_node.http_endpoint_ip ) +
-                            cc.debug( ", error is: " ) + cc.warning( err.toString() ) + "\n";
+                            cc.debug( ", error is: " ) + cc.warning( owaspUtils.extract_error_message( err ) ) + "\n";
                         details.write( strError );
                         if( verbose_get() >= RV_VERBOSE.fatal )
                             log.write( strError );
