@@ -107,6 +107,9 @@ contract MessageProxyForSchain is MessageProxy, IMessageProxyForSchain {
      */
     uint256 public minimumReceiverBalance;
 
+    /**
+     * @dev the event is emitted when value of receiver's minimum balance is changed
+     */
     event MinimumReceiverBalanceChanged (
         uint256 oldValue,
         uint256 newValue
@@ -231,11 +234,18 @@ contract MessageProxyForSchain is MessageProxy, IMessageProxyForSchain {
         version = newVersion;
     }
 
+    /**
+     * @dev Sets a minimum balance of a receiver.
+     * If the balance is lower IMA tries to send sFuel to top up it.
+     */
     function setMinimumReceiverBalance(uint256 balance) external override onlyConstantSetter {
         emit MinimumReceiverBalanceChanged(minimumReceiverBalance, balance);
         minimumReceiverBalance = balance;
     }
 
+    /**
+     * @dev Sends sFuel to the `receiver` address to satisfy a minimum balance
+     */
     function topUpReceiverBalance(address payable receiver) external override {
         require(isContractRegistered(bytes32(0), msg.sender), "Sender is not registered");
         uint256 balance = receiver.balance;
@@ -399,7 +409,7 @@ contract MessageProxyForSchain is MessageProxy, IMessageProxyForSchain {
     }
 
     /**
-     * @dev Move skETH from Etherbase if the sender balance is too low
+     * @dev Move SFuel from Etherbase if the sender balance is too low
      */
     function _topUpSenderBalance() private {
         uint balance = msg.sender.balance + gasleft() * tx.gasprice;

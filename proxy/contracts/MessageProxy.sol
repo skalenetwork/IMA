@@ -143,6 +143,9 @@ abstract contract MessageProxy is AccessControlEnumerableUpgradeable, IMessagePr
         _;
     }
 
+    /**
+     * @dev Modifier to make a function callable only if caller is granted with {DEFAULT_ADMIN_ROLE}.
+     */
     modifier onlyOwner() {
         require(hasRole(DEFAULT_ADMIN_ROLE, msg.sender), "DEFAULT_ADMIN_ROLE is required");
         _;
