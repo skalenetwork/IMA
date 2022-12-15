@@ -562,6 +562,7 @@ describe('tests for `npms/skale-ima`', function () {
         // 
         expect(await IMA.
             do_transfer(
+                false, // isInWorker
                 w3_src,
                 jo_message_proxy_src,
                 joAccountSrc,
@@ -600,6 +601,7 @@ describe('tests for `npms/skale-ima`', function () {
         // 
         expect(await IMA.
             do_transfer(
+                false, // isInWorker
                 w3_src,
                 jo_message_proxy_src,
                 joAccountSrc,

@@ -123,6 +123,7 @@ class ObserverServer extends Server {
                     "\n" );
             }
             //
+            self.opts.imaState.loop_opts.isInWorker = true;
             self.opts.imaState.doEnableDryRun = function( isEnable ) { return IMA.dry_run_enable( isEnable ); };
             self.opts.imaState.doIgnoreDryRun = function( isIgnore ) { return IMA.dry_run_ignore( isIgnore ); };
             global.imaState = self.opts.imaState;

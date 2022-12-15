@@ -4916,6 +4916,7 @@ let g_nTransferLoopCounter = 0;
 //
 async function do_transfer(
     strDirection,
+    isInWorker,
     //
     w3_src,
     jo_message_proxy_src,
@@ -5068,7 +5069,7 @@ async function do_transfer(
                 cc.debug( ", can tranfer up to " ) + cc.info( nMaxTransactionsCount ) + cc.debug( " message(s) per step" ) +
                 cc.debug( ", can perform up to " ) + cc.info( nTransferSteps ) + cc.debug( " transfer step(s)" ) +
                 "\n" );
-            if( "check_time_framing" in global && ( ! global.check_time_framing( null, strDirection ) ) ) {
+            if( "check_time_framing" in global && ( ! global.check_time_framing( null, strDirection, isInWorker ) ) ) {
                 if( verbose_get() >= RV_VERBOSE.information ) {
                     log.write(
                         strLogPrefix + cc.error( "WARNING:" ) + " " +
@@ -5263,7 +5264,7 @@ async function do_transfer(
             } // for( let idxInBlock = 0; nIdxCurrentMsg < nOutMsgCnt && idxInBlock < nTransactionsCountInBlock; ++ nIdxCurrentMsg, ++ idxInBlock, ++cntAccumulatedForBlock )
             if( cntAccumulatedForBlock == 0 )
                 break;
-            if( "check_time_framing" in global && ( ! global.check_time_framing( null, strDirection ) ) ) {
+            if( "check_time_framing" in global && ( ! global.check_time_framing( null, strDirection, isInWorker ) ) ) {
                 if( verbose_get() >= RV_VERBOSE.information ) {
                     log.write(
                         strLogPrefix + cc.error( "WARNING:" ) + " " +
@@ -5499,7 +5500,7 @@ async function do_transfer(
                             detailsB.close();
                             return false;
                         }
-                        if( "check_time_framing" in global && ( ! global.check_time_framing( null, strDirection ) ) ) {
+                        if( "check_time_framing" in global && ( ! global.check_time_framing( null, strDirection, isInWorker ) ) ) {
                             if( verbose_get() >= RV_VERBOSE.information )
                                 log.write( strLogPrefix + cc.error( "WARNING:" ) + " " + cc.warning( "Time framing overflow (after signing messages)" ) + "\n" );
                             detailsB.close();
@@ -5708,6 +5709,7 @@ async function do_transfer(
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 async function do_s2s_all( // s-chain --> s-chain
+    isInWorker,
     imaState,
     skale_observer,
     w3_dst,

@@ -1237,6 +1237,7 @@ imaCLI.parse( {
                     await wait_until_s_chain_started(); // main-net --> s-chain transfer
                 return await IMA.do_transfer( // main-net --> s-chain
                     "M2S",
+                    false, // isInWorker
                     //
                     imaState.chainProperties.mn.w3,
                     imaState.jo_message_proxy_main_net,
@@ -1271,6 +1272,7 @@ imaCLI.parse( {
                     await wait_until_s_chain_started(); // s-chain --> main-net transfer
                 return await IMA.do_transfer( // s-chain --> main-net
                     "S2M",
+                    false, // isInWorker
                     //
                     imaState.chainProperties.sc.w3,
                     imaState.jo_message_proxy_s_chain,
@@ -1307,6 +1309,7 @@ imaCLI.parse( {
                 if( ! imaState.bNoWaitSChainStarted )
                     await wait_until_s_chain_started(); // s-chain --> main-net transfer
                 return await IMA.do_s2s_all( // s-chain --> s-chain
+                    false, // isInWorker
                     imaState,
                     skale_observer,
                     imaState.chainProperties.sc.w3,
@@ -1336,6 +1339,7 @@ imaCLI.parse( {
                 if( ! imaState.bNoWaitSChainStarted )
                     await wait_until_s_chain_started();
                 const loop_opts = {
+                    isInWorker: false,
                     isDelayFirstRun: false,
                     enable_step_oracle: true,
                     enable_step_m2s: true,
@@ -1365,6 +1369,7 @@ imaCLI.parse( {
                 //
                 //
                 // const loop_opts = {
+                //     isInWorker: false,
                 //     isDelayFirstRun: false,
                 //     enable_step_oracle: true,
                 //     enable_step_m2s: true,
@@ -1401,6 +1406,7 @@ imaCLI.parse( {
                 if( isPrintSummaryRegistrationCosts )
                     print_summary_registration_costs();
                 const loop_opts = {
+                    isInWorker: false,
                     isDelayFirstRun: false,
                     enable_step_oracle: true,
                     enable_step_m2s: true,

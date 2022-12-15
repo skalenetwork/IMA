@@ -65,7 +65,7 @@ global.jayson = require( "jayson" );
 // Run transfer loop
 //
 
-global.check_time_framing = function( d, strDirection ) {
+global.check_time_framing = function( d, strDirection, isInWorker ) {
     try {
         if( imaState.nTimeFrameSeconds <= 0 || imaState.nNodesCount <= 1 )
             return true; // time framing is disabled
@@ -74,7 +74,7 @@ global.check_time_framing = function( d, strDirection ) {
             d = new Date(); // now
 
         let nFrameShift = 0;
-        if( strDirection && typeof strDirection == "string" && strDirection.toLowerCase() == "s2s" )
+        if( isInWorker && strDirection && typeof strDirection == "string" && strDirection.toLowerCase() == "s2s" )
             nFrameShift = Math.round( ( imaState.nNodesCount - 1 ) / 2 ) + 1; // 1st frame index 0 is reserved for m2s and s2m
 
         // const nUtcUnixTimeStamp = Math.floor( d.valueOf() / 1000 ); // Unix UTC timestamp, see https://stackoverflow.com/questions/9756120/how-do-i-get-a-utc-timestamp-in-javascript
@@ -154,7 +154,7 @@ async function single_transfer_loop( loop_opts ) {
                     if( IMA.verbose_get() >= IMA.RV_VERBOSE.debug )
                         log.write( strLogPrefix + cc.warning( "Skipped due to cancel mode reported from PWA" ) + "\n" );
                 } else {
-                    if( global.check_time_framing( null, "m2s" ) ) {
+                    if( global.check_time_framing( null, "m2s", loop_opts.isInWorker ) ) {
                         imaState.loopState.oracle.isInProgress = true;
                         await pwa.notify_on_loop_start( imaState, "oracle" );
                         b0 = IMA.do_oracle_gas_price_setup(
@@ -198,6 +198,7 @@ async function single_transfer_loop( loop_opts ) {
                     await pwa.notify_on_loop_start( imaState, "m2s" );
                     b1 = await IMA.do_transfer( // main-net --> s-chain
                         "M2S",
+                        loop_opts.isInWorker,
                         //
                         imaState.chainProperties.mn.w3,
                         imaState.jo_message_proxy_main_net,
@@ -251,6 +252,7 @@ async function single_transfer_loop( loop_opts ) {
                     await pwa.notify_on_loop_start( imaState, "s2m" );
                     b2 = await IMA.do_transfer( // s-chain --> main-net
                         "S2M",
+                        loop_opts.isInWorker,
                         //
                         imaState.chainProperties.sc.w3,
                         imaState.jo_message_proxy_s_chain,
@@ -305,6 +307,7 @@ async function single_transfer_loop( loop_opts ) {
                     imaState.loopState.s2s.isInProgress = true;
                     await pwa.notify_on_loop_start( imaState, "s2s" );
                     b3 = await IMA.do_s2s_all( // s-chain --> s-chain
+                        loop_opts.isInWorker,
                         imaState,
                         skale_observer,
                         imaState.chainProperties.sc.w3,
@@ -431,6 +434,7 @@ async function ensure_have_workers( opts ) {
         } );
         await impl_sleep( 1000 );
         const loop_opts = {
+            isInWorker: true,
             isDelayFirstRun: false,
             enable_step_oracle: ( idxWorker == 0 ) ? true : false,
             enable_step_m2s: ( idxWorker == 0 ) ? true : false,
