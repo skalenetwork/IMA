@@ -65,7 +65,7 @@ global.jayson = require( "jayson" );
 // Run transfer loop
 //
 
-global.check_time_framing = function( d, strDirection, isInWorker ) {
+global.check_time_framing = function( d, strDirection, joRuntimeOpts ) {
     try {
         if( imaState.nTimeFrameSeconds <= 0 || imaState.nNodesCount <= 1 )
             return true; // time framing is disabled
@@ -74,8 +74,20 @@ global.check_time_framing = function( d, strDirection, isInWorker ) {
             d = new Date(); // now
 
         let nFrameShift = 0;
-        if( isInWorker && strDirection && typeof strDirection == "string" && strDirection.toLowerCase() == "s2s" )
-            nFrameShift = Math.round( ( imaState.nNodesCount - 1 ) / 2 ) + 1; // 1st frame index 0 is reserved for m2s and s2m
+        if( joRuntimeOpts && typeof joRuntimeOpts == "object" && joRuntimeOpts.isInsideWorker &&
+            strDirection && typeof strDirection == "string" && strDirection.toLowerCase() == "s2s" &&
+            joRuntimeOpts.cntChainsKnownForS2S > 0 &&
+            joRuntimeOpts.idxChainKnownForS2S >= 0 && joRuntimeOpts.idxChainKnownForS2S < joRuntimeOpts.cntChainsKnownForS2S
+        ) {
+            const nReservedFrames = 1; // 1st frame index 0 is reserved for m2s and s2m
+            const nRestRangeOfFrames = imaState.nNodesCount - nReservedFrames; // rest range of frames avalable for S2S
+            nFrameShift = nReservedFrames + // 1st frame index 0 is reserved for m2s and s2m
+                joRuntimeOpts.idxChainKnownForS2S % nRestRangeOfFrames
+            ;
+        }
+        // log.write( "---------- strDirection......." + cc.j( strDirection ) + "\n" );
+        // log.write( "---------- joRuntimeOpts......" + cc.j( joRuntimeOpts ) + "\n" );
+        // log.write( "---------- nFrameShift........" + cc.j( nFrameShift ) + "\n" );
 
         // const nUtcUnixTimeStamp = Math.floor( d.valueOf() / 1000 ); // Unix UTC timestamp, see https://stackoverflow.com/questions/9756120/how-do-i-get-a-utc-timestamp-in-javascript
         const nUtcUnixTimeStamp = Math.floor( ( d ).getTime() / 1000 ); // https://stackoverflow.com/questions/9756120/how-do-i-get-a-utc-timestamp-in-javascript
@@ -85,7 +97,7 @@ global.check_time_framing = function( d, strDirection, isInWorker ) {
         let nActiveNodeFrameIndex = Math.floor( nMod / imaState.nTimeFrameSeconds );
         if( nFrameShift > 0 ) {
             nActiveNodeFrameIndex += nFrameShift;
-            nActiveNodeFrameIndex %= imaState.nNodesCount;
+            nActiveNodeFrameIndex %= imaState.nNodesCount; // for safety only
         }
         let bSkip = ( nActiveNodeFrameIndex != imaState.nNodeNumber ) ? true : false;
         let bInsideGap = false;
@@ -108,7 +120,16 @@ global.check_time_framing = function( d, strDirection, isInWorker ) {
             cc.info( "Active Node Frame Index" ) + cc.debug( "...." ) + cc.notice( nActiveNodeFrameIndex ) + "\n" +
             cc.info( "Testing Frame Index" ) + cc.debug( "........" ) + cc.notice( imaState.nNodeNumber ) + "\n" +
             cc.info( "Transfer Direction" ) + cc.debug( "........." ) + cc.sunny( strDirection || "NA" ) + "\n" +
-            cc.info( "Frame Shift" ) + cc.debug( "................" ) + cc.note( nFrameShift ) + "\n" +
+            ( ( nFrameShift > 0 )
+                ? ( cc.info( "Frame Shift" ) + cc.debug( "................" ) + cc.note( nFrameShift ) + "\n" +
+                    cc.info( "S2S known chain index" ) + cc.debug( "......" ) + cc.note( joRuntimeOpts.idxChainKnownForS2S ) + "\n" +
+                    cc.info( "S2S known chains count" ) + cc.debug( "....." ) + cc.note( joRuntimeOpts.cntChainsKnownForS2S ) + "\n" +
+                    ( ( "joExtraSignOpts" in joRuntimeOpts && typeof joRuntimeOpts.joExtraSignOpts == "object" )
+                        ? cc.info( "S-Chain source" ) + cc.debug( "............." ) + cc.info( joRuntimeOpts.joExtraSignOpts.chain_id_src ) + cc.debug( "/" ) + cc.attention( joRuntimeOpts.joExtraSignOpts.cid_src ) + "\n" +
+                          cc.info( "S-Chain destination" ) + cc.debug( "........" ) + cc.info( joRuntimeOpts.joExtraSignOpts.chain_id_dst ) + cc.debug( "/" ) + cc.attention( joRuntimeOpts.joExtraSignOpts.cid_dst ) + "\n"
+                        : "" )
+                )
+                : "" ) +
             cc.info( "Is skip" ) + cc.debug( "...................." ) + cc.yn( bSkip ) + "\n" +
             cc.info( "Is inside gap" ) + cc.debug( ".............." ) + cc.yn( bInsideGap ) + "\n" +
             cc.info( "Range Start" ) + cc.debug( "................" ) + cc.notice( nRangeStart ) + "\n" +
@@ -154,7 +175,7 @@ async function single_transfer_loop( loop_opts ) {
                     if( IMA.verbose_get() >= IMA.RV_VERBOSE.debug )
                         log.write( strLogPrefix + cc.warning( "Skipped due to cancel mode reported from PWA" ) + "\n" );
                 } else {
-                    if( global.check_time_framing( null, "m2s", loop_opts.isInWorker ) ) {
+                    if( global.check_time_framing( null, "m2s", loop_opts.joRuntimeOpts ) ) {
                         imaState.loopState.oracle.isInProgress = true;
                         await pwa.notify_on_loop_start( imaState, "oracle" );
                         b0 = IMA.do_oracle_gas_price_setup(
@@ -198,7 +219,7 @@ async function single_transfer_loop( loop_opts ) {
                     await pwa.notify_on_loop_start( imaState, "m2s" );
                     b1 = await IMA.do_transfer( // main-net --> s-chain
                         "M2S",
-                        loop_opts.isInWorker,
+                        loop_opts.joRuntimeOpts,
                         //
                         imaState.chainProperties.mn.w3,
                         imaState.jo_message_proxy_main_net,
@@ -252,7 +273,7 @@ async function single_transfer_loop( loop_opts ) {
                     await pwa.notify_on_loop_start( imaState, "s2m" );
                     b2 = await IMA.do_transfer( // s-chain --> main-net
                         "S2M",
-                        loop_opts.isInWorker,
+                        loop_opts.joRuntimeOpts,
                         //
                         imaState.chainProperties.sc.w3,
                         imaState.jo_message_proxy_s_chain,
@@ -307,7 +328,7 @@ async function single_transfer_loop( loop_opts ) {
                     imaState.loopState.s2s.isInProgress = true;
                     await pwa.notify_on_loop_start( imaState, "s2s" );
                     b3 = await IMA.do_s2s_all( // s-chain --> s-chain
-                        loop_opts.isInWorker,
+                        loop_opts.joRuntimeOpts,
                         imaState,
                         skale_observer,
                         imaState.chainProperties.sc.w3,
@@ -417,7 +438,7 @@ async function ensure_have_workers( opts ) {
                 return;
         } );
         g_clients.push( new network_layer.OutOfWorkerSocketClientPipe( workerData.url, g_workers[idxWorker] ) );
-        g_clients[idxWorker].on( "message", function( eventData ) {
+        g_clients[idxWorker].on( "message", async function( eventData ) {
             const joMessage = eventData.message;
             // console.log( "CLIENT <<<", JSON.stringify( joMessage ) );
             switch ( joMessage.method ) {
@@ -432,9 +453,13 @@ async function ensure_have_workers( opts ) {
                 break;
             } // switch ( joMessage.method )
         } );
-        await impl_sleep( 1000 );
+        await impl_sleep( 3 * 1000 );
         const loop_opts = {
-            isInWorker: true,
+            joRuntimeOpts: {
+                isInsideWorker: true,
+                idxChainKnownForS2S: 0,
+                cntChainsKnownForS2S: 0
+            },
             isDelayFirstRun: false,
             enable_step_oracle: ( idxWorker == 0 ) ? true : false,
             enable_step_m2s: ( idxWorker == 0 ) ? true : false,

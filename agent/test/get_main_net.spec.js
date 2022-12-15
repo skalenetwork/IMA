@@ -560,9 +560,15 @@ describe('tests for `npms/skale-ima`', function () {
         let nBlockAwaitDepth = 0;
         let nBlockAge = 0;
         // 
+        const joRuntimeOpts = {
+            isInsideWorker: false,
+            idxChainKnownForS2S: 0,
+            cntChainsKnownForS2S: 0
+        };
         expect(await IMA.
             do_transfer(
-                false, // isInWorker
+                "M2S",
+                joRuntimeOpts,
                 w3_src,
                 jo_message_proxy_src,
                 joAccountSrc,
@@ -599,9 +605,15 @@ describe('tests for `npms/skale-ima`', function () {
         let nBlockAwaitDepth = 0;
         let nBlockAge = 0;
         // 
+        const joRuntimeOpts = {
+            isInsideWorker: false,
+            idxChainKnownForS2S: 0,
+            cntChainsKnownForS2S: 0
+        };
         expect(await IMA.
             do_transfer(
-                false, // isInWorker
+                "M2S",
+                joRuntimeOpts,
                 w3_src,
                 jo_message_proxy_src,
                 joAccountSrc,

@@ -1235,9 +1235,14 @@ imaCLI.parse( {
             "fn": async function() {
                 if( ! imaState.bNoWaitSChainStarted )
                     await wait_until_s_chain_started(); // main-net --> s-chain transfer
+                const joRuntimeOpts = {
+                    isInsideWorker: false,
+                    idxChainKnownForS2S: 0,
+                    cntChainsKnownForS2S: 0
+                };
                 return await IMA.do_transfer( // main-net --> s-chain
                     "M2S",
-                    false, // isInWorker
+                    joRuntimeOpts,
                     //
                     imaState.chainProperties.mn.w3,
                     imaState.jo_message_proxy_main_net,
@@ -1270,9 +1275,14 @@ imaCLI.parse( {
             "fn": async function() {
                 if( ! imaState.bNoWaitSChainStarted )
                     await wait_until_s_chain_started(); // s-chain --> main-net transfer
+                const joRuntimeOpts = {
+                    isInsideWorker: false,
+                    idxChainKnownForS2S: 0,
+                    cntChainsKnownForS2S: 0
+                };
                 return await IMA.do_transfer( // s-chain --> main-net
                     "S2M",
-                    false, // isInWorker
+                    joRuntimeOpts,
                     //
                     imaState.chainProperties.sc.w3,
                     imaState.jo_message_proxy_s_chain,
@@ -1308,8 +1318,13 @@ imaCLI.parse( {
                 fnInitActionSkaleNetworkScanForS2S();
                 if( ! imaState.bNoWaitSChainStarted )
                     await wait_until_s_chain_started(); // s-chain --> main-net transfer
+                const joRuntimeOpts = {
+                    isInsideWorker: false,
+                    idxChainKnownForS2S: 0,
+                    cntChainsKnownForS2S: 0
+                };
                 return await IMA.do_s2s_all( // s-chain --> s-chain
-                    false, // isInWorker
+                    joRuntimeOpts,
                     imaState,
                     skale_observer,
                     imaState.chainProperties.sc.w3,
@@ -1338,8 +1353,13 @@ imaCLI.parse( {
                 fnInitActionSkaleNetworkScanForS2S();
                 if( ! imaState.bNoWaitSChainStarted )
                     await wait_until_s_chain_started();
+                const joRuntimeOpts = {
+                    isInsideWorker: false,
+                    idxChainKnownForS2S: 0,
+                    cntChainsKnownForS2S: 0
+                };
                 const loop_opts = {
-                    isInWorker: false,
+                    joRuntimeOpts: joRuntimeOpts,
                     isDelayFirstRun: false,
                     enable_step_oracle: true,
                     enable_step_m2s: true,
@@ -1368,8 +1388,13 @@ imaCLI.parse( {
                     print_summary_registration_costs();
                 //
                 //
+                // const joRuntimeOpts = {
+                //     isInsideWorker: false,
+                //     idxChainKnownForS2S: 0,
+                //     cntChainsKnownForS2S: 0
+                // };
                 // const loop_opts = {
-                //     isInWorker: false,
+                //     joRuntimeOpts: joRuntimeOpts,
                 //     isDelayFirstRun: false,
                 //     enable_step_oracle: true,
                 //     enable_step_m2s: true,
@@ -1405,8 +1430,13 @@ imaCLI.parse( {
                 }
                 if( isPrintSummaryRegistrationCosts )
                     print_summary_registration_costs();
+                const joRuntimeOpts = {
+                    isInsideWorker: false,
+                    idxChainKnownForS2S: 0,
+                    cntChainsKnownForS2S: 0
+                };
                 const loop_opts = {
-                    isInWorker: false,
+                    joRuntimeOpts: joRuntimeOpts,
                     isDelayFirstRun: false,
                     enable_step_oracle: true,
                     enable_step_m2s: true,
@@ -1444,7 +1474,8 @@ imaCLI.parse( {
                         }
                     }, async function( joIn, joOut, err ) {
                         if( err ) {
-                            console.log( cc.fatal( "CRITICAL ERROR:" ) + cc.error( " JSON RPC call to S-Chain failed, error: " ) + cc.warning( err ) );
+                            const strError = owaspUtils.extract_error_message( err );
+                            console.log( cc.fatal( "CRITICAL ERROR:" ) + cc.error( " JSON RPC call to S-Chain failed, error: " ) + cc.warning( strError ) );
                             await joCall.disconnect();
                             process.exit( 157 );
                         }
@@ -1475,7 +1506,8 @@ imaCLI.parse( {
                                 }, async function( joIn, joOut, err ) {
                                     ++ nCountReceivedImaDescriptions;
                                     if( err ) {
-                                        console.log( cc.fatal( "CRITICAL ERROR:" ) + cc.error( " JSON RPC call to S-Chain failed, error: " ) + cc.warning( err ) );
+                                        const strError = owaspUtils.extract_error_message( err );
+                                        console.log( cc.fatal( "CRITICAL ERROR:" ) + cc.error( " JSON RPC call to S-Chain failed, error: " ) + cc.warning( strError ) );
                                         process.exit( 159 );
                                     }
                                     log.write( strLogPrefix + cc.normal( "Node " ) + cc.info( joNode.nodeID ) + cc.normal( " IMA information: " ) + cc.j( joOut.result ) + "\n" );
@@ -1871,10 +1903,11 @@ async function continue_schain_discovery_in_background_if_needed( isSilent ) {
                 }
                 continue_schain_discovery_in_background_if_needed( isSilent );
             }, isSilent, imaState.joSChainNetworkInfo, cntNodes ).catch( ( err ) => {
+                const strError = owaspUtils.extract_error_message( err );
                 log.write(
                     cc.fatal( "CRITICAL ERROR:" ) +
                     cc.error( " S-Chain network re-discovery failed: " ) +
-                    cc.warning( err ) + "\n"
+                    cc.warning( strError ) + "\n"
                 );
             } );
         } catch ( err ) { }
@@ -1899,11 +1932,12 @@ async function discover_s_chain_network( fnAfter, isSilent, joPrevSChainNetworkI
     try {
         await rpcCall.create( imaState.chainProperties.sc.strURL, rpcCallOpts, async function( joCall, err ) {
             if( err ) {
+                const strError = owaspUtils.extract_error_message( err );
                 if( ! isSilent ) {
                     log.write(
                         strLogPrefix + cc.fatal( "CRITICAL ERROR:" ) +
                         cc.error( " JSON RPC call to (own) S-Chain " ) + cc.u( imaState.chainProperties.sc.strURL ) + cc.error( " failed: " ) +
-                        cc.warning( err ) + "\n"
+                        cc.warning( strError ) + "\n"
                     );
                 }
                 fnAfter( err, null );
@@ -1918,11 +1952,12 @@ async function discover_s_chain_network( fnAfter, isSilent, joPrevSChainNetworkI
                 }
             }, async function( joIn, joOut, err ) {
                 if( err ) {
+                    const strError = owaspUtils.extract_error_message( err );
                     if( ! isSilent ) {
                         log.write(
                             strLogPrefix + cc.fatal( "CRITICAL ERROR:" ) +
                             cc.error( " JSON RPC call to (own) S-Chain " ) + cc.u( imaState.chainProperties.sc.strURL ) + cc.error( " failed, error: " ) +
-                            cc.warning( err ) + "\n"
+                            cc.warning( strError ) + "\n"
                         );
                     }
                     fnAfter( err, null );
@@ -2013,11 +2048,12 @@ async function discover_s_chain_network( fnAfter, isSilent, joPrevSChainNetworkI
                             }, function( joIn, joOut, err ) {
                                 ++ nCountReceivedImaDescriptions;
                                 if( err ) {
+                                    const strError = owaspUtils.extract_error_message( err );
                                     if( ! isSilent ) {
                                         log.write(
                                             strLogPrefix + cc.fatal( "CRITICAL ERROR:" ) +
                                             cc.error( " JSON RPC call to S-Chain node " ) + strNodeDescColorized + cc.error( " failed, error: " ) +
-                                            cc.warning( err ) + "\n"
+                                            cc.warning( strError ) + "\n"
                                         );
                                     }
                                     // fnAfter( err, null );
@@ -2039,11 +2075,12 @@ async function discover_s_chain_network( fnAfter, isSilent, joPrevSChainNetworkI
                             } );
                         } );
                     } catch ( err ) {
+                        const strError = owaspUtils.extract_error_message( err );
                         if( ! isSilent ) {
                             log.write(
                                 strLogPrefix + cc.fatal( "CRITICAL ERROR:" ) +
                                 cc.error( " JSON RPC call to S-Chain node " ) + strNodeDescColorized + cc.error( " was not created: " ) +
-                                cc.warning( err ) + "\n"
+                                cc.warning( strError ) + "\n"
                             );
                         }
                         // fnAfter( err, null );
@@ -2137,11 +2174,12 @@ async function discover_s_chain_network( fnAfter, isSilent, joPrevSChainNetworkI
             } );
         } );
     } catch ( err ) {
+        const strError = owaspUtils.extract_error_message( err );
         if( ! isSilent ) {
             log.write(
                 strLogPrefix + cc.fatal( "CRITICAL ERROR:" ) +
                 cc.error( " JSON RPC call to S-Chain was not created: " ) +
-                cc.warning( err ) + "\n"
+                cc.warning( strError ) + "\n"
             );
         }
         joSChainNetworkInfo = null;
@@ -2247,10 +2285,11 @@ if( imaState.nMonitoringPort > 0 ) {
                     throw new Error( "Unknown method name \"" + joMessage.method + "\" was specified" );
                 } // switch( joMessage.method )
             } catch ( err ) {
+                const strError = owaspUtils.extract_error_message( err );
                 if( IMA.verbose_get() >= IMA.RV_VERBOSE.error ) {
                     log.write( strLogPrefix +
                         cc.error( "Bad message from " ) + cc.info( ip ) + cc.error( ": " ) + cc.warning( message ) +
-                        cc.error( ", error is: " ) + cc.warning( err ) + "\n"
+                        cc.error( ", error is: " ) + cc.warning( strError ) + "\n"
                     );
                 }
             }
@@ -2259,10 +2298,11 @@ if( imaState.nMonitoringPort > 0 ) {
                     log.write( strLogPrefix + cc.sunny( ">>>" ) + " " + cc.normal( "answer to " ) + cc.info( ip ) + cc.normal( ": " ) + cc.j( joAnswer ) + "\n" );
                 ws_peer.send( JSON.stringify( joAnswer ) );
             } catch ( err ) {
+                const strError = owaspUtils.extract_error_message( err );
                 if( IMA.verbose_get() >= IMA.RV_VERBOSE.error ) {
                     log.write( strLogPrefix +
                         cc.error( "Failed to sent answer to " ) + cc.info( ip ) +
-                        cc.error( ", error is: " ) + cc.warning( err ) + "\n"
+                        cc.error( ", error is: " ) + cc.warning( strError ) + "\n"
                     );
                 }
             }
@@ -2296,10 +2336,11 @@ if( imaState.nJsonRpcPort > 0 ) {
                     if( IMA.verbose_get() >= IMA.RV_VERBOSE.trace )
                         log.write( strLogPrefix + cc.sunny( ">>>" ) + " " + cc.normal( "Peer did sent answer to " ) + cc.info( ip ) + cc.normal( ": " ) + cc.j( joAnswer ) + "\n" );
                 } catch ( err ) {
+                    const strError = owaspUtils.extract_error_message( err );
                     if( IMA.verbose_get() >= IMA.RV_VERBOSE.error ) {
                         log.write( strLogPrefix +
                             cc.error( "Failed to sent answer to " ) + cc.info( ip ) +
-                            cc.error( ", error is: " ) + cc.warning( err ) + "\n"
+                            cc.error( ", error is: " ) + cc.warning( strError ) + "\n"
                         );
                     }
                 }
@@ -2362,10 +2403,11 @@ if( imaState.nJsonRpcPort > 0 ) {
                     throw new Error( "Unknown method name \"" + joMessage.method + "\" was specified" );
                 } // switch( joMessage.method )
             } catch ( err ) {
+                const strError = owaspUtils.extract_error_message( err );
                 if( IMA.verbose_get() >= IMA.RV_VERBOSE.error ) {
                     log.write( strLogPrefix +
                         cc.error( "Bad message from " ) + cc.info( ip ) + cc.error( ": " ) + cc.warning( message ) +
-                        cc.error( ", error is: " ) + cc.warning( err ) + "\n"
+                        cc.error( ", error is: " ) + cc.warning( strError ) + "\n"
                     );
                 }
             }
@@ -2398,11 +2440,12 @@ if( imaState.nJsonRpcPort > 0 ) {
                 if( IMA.verbose_get() >= IMA.RV_VERBOSE.trace )
                     log.write( strLogPrefix + cc.sunny( ">>>" ) + " " + cc.normal( "did sent answer to " ) + cc.info( ip ) + cc.normal( ": " ) + cc.j( joAnswer ) + "\n" );
             } catch ( err ) {
+                const strError = owaspUtils.extract_error_message( err );
                 if( IMA.verbose_get() >= IMA.RV_VERBOSE.error ) {
                     log.write( strLogPrefix +
                         cc.error( "Failed to sent answer " ) + cc.j( joAnswer ) +
                         cc.error( " to " ) + cc.info( ip ) +
-                        cc.error( ", error is: " ) + cc.warning( err ) + "\n"
+                        cc.error( ", error is: " ) + cc.warning( strError ) + "\n"
                     );
                 }
             }
@@ -2464,10 +2507,11 @@ if( imaState.nJsonRpcPort > 0 ) {
                 throw new Error( "Unknown method name \"" + joMessage.method + "\" was specified" );
             } // switch( joMessage.method )
         } catch ( err ) {
+            const strError = owaspUtils.extract_error_message( err );
             if( IMA.verbose_get() >= IMA.RV_VERBOSE.error ) {
                 log.write( strLogPrefix +
                     cc.error( "Bad message from " ) + cc.info( ip ) + cc.error( ": " ) + cc.warning( message ) +
-                    cc.error( ", error is: " ) + cc.warning( err ) + "\n"
+                    cc.error( ", error is: " ) + cc.warning( strError ) + "\n"
                 );
             }
         }
@@ -2545,10 +2589,11 @@ if( imaState.bSignMessages ) {
                 do_the_job();
                 return 0; // FINISH
             }, isSilent, imaState.joSChainNetworkInfo, -1 ).catch( ( err ) => {
+                const strError = owaspUtils.extract_error_message( err );
                 log.write(
                     cc.fatal( "CRITICAL ERROR:" ) +
                     cc.error( " S-Chain network discovery failed: " ) +
-                    cc.warning( err ) + "\n"
+                    cc.warning( strError ) + "\n"
                 );
             } );
         } );
@@ -2654,10 +2699,11 @@ async function wait_until_s_chain_started() {
                 if( ! err )
                     bSuccess = true;
             }, true, null, -1 ).catch( ( err ) => {
+                const strError = owaspUtils.extract_error_message( err );
                 log.write(
                     cc.fatal( "CRITICAL ERROR:" ) +
                     cc.error( " S-Chain network discovery failed: " ) +
-                    cc.warning( err ) + "\n"
+                    cc.warning( strError ) + "\n"
                 );
             } );
             if( ! joSChainNetworkInfo )

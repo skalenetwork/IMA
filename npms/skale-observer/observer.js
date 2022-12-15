@@ -461,7 +461,7 @@ async function cache_schains( strChainNameConnectedTo, w3_main_net, w3_s_chain, 
         if( ! strError )
             strError = "unknown exception during S-Chains download";
         if( opts && opts.details )
-            opts.details.write( cc.fatal( "ERROR:" ) + cc.error( " Failed to cache: " ) + cc.error( err ) + "\n" );
+            opts.details.write( cc.fatal( "ERROR:" ) + cc.error( " Failed to cache: " ) + cc.error( strError ) + "\n" );
 
     }
     return strError; // null on success
