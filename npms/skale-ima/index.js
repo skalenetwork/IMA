@@ -5758,6 +5758,7 @@ async function do_s2s_all( // s-chain --> s-chain
             bOK =
                 await do_transfer(
                     strDirection,
+                    isInWorker,
                     //
                     w3_src,
                     jo_message_proxy_src,
