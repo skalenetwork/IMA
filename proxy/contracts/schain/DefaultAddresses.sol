@@ -2,7 +2,7 @@
 
 /**
  *   DefaultAddresses.sol - SKALE Interchain Messaging Agent
- *   Copyright (C) 2021-Present SKALE Labs
+ *   Copyright (C) 2022-Present SKALE Labs
  *   @author Dmytro Stebaiev
  *
  *   SKALE IMA is free software: you can redistribute it and/or modify

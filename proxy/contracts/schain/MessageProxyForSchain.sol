@@ -418,6 +418,9 @@ contract MessageProxyForSchain is MessageProxy, IMessageProxyForSchain {
         }
     }
 
+    /**
+     * @dev Move SFuel from Etherbase to `target` address
+     */
     function _transferFromEtherbase(address payable target, uint256 value) private {
         IEtherbaseUpgradeable etherbase = _getEtherbase();
         if (address(etherbase).isContract()

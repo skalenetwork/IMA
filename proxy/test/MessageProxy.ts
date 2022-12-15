@@ -41,7 +41,6 @@ import {
     SchainsInternal
 } from "../typechain/";
 import { stringToHex, getPublicKey } from "./utils/helper";
-import ABIReceiverMock = require("../artifacts/contracts/test/ReceiverMock.sol/ReceiverMock.json");
 import { deployLinker } from "./utils/deploy/mainnet/linker";
 import { deployMessageProxyForMainnet } from "./utils/deploy/mainnet/messageProxyForMainnet";
 import { deployDepositBoxEth } from "./utils/deploy/mainnet/depositBoxEth";
@@ -52,16 +51,14 @@ import { setCommonPublicKey } from "./utils/skale-manager-utils/keyStorage";
 import { deployMessageProxyCaller } from "./utils/deploy/test/messageProxyCaller";
 import { deployMessages } from "./utils/deploy/messages";
 import { deployKeyStorageMock } from "./utils/deploy/test/keyStorageMock";
-import { ethers, web3 } from "hardhat";
+import { ethers } from "hardhat";
 import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/dist/src/signer-with-address";
 import { BigNumber, Wallet } from "ethers";
-import { assert, expect } from "chai";
+import { expect } from "chai";
 import { MessageProxyForSchainTester } from "../typechain/MessageProxyForSchainTester";
 import { deployMessageProxyForSchainTester } from "./utils/deploy/test/messageProxyForSchainTester";
 import { deployCommunityPool } from "./utils/deploy/mainnet/communityPool";
 import { createNode } from "./utils/skale-manager-utils/nodes";
-import { skipTime } from "./utils/time";
-import { deployTokenManagerLinker } from "./utils/deploy/schain/tokenManagerLinker";
 
 chai.should();
 chai.use((chaiAsPromised));
