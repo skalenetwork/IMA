@@ -65,7 +65,7 @@ global.jayson = require( "jayson" );
 // Run transfer loop
 //
 
-global.check_time_framing = function( d ) {
+global.check_time_framing = function( d, strDirection ) {
     try {
         if( imaState.nTimeFrameSeconds <= 0 || imaState.nNodesCount <= 1 )
             return true; // time framing is disabled
@@ -73,12 +73,20 @@ global.check_time_framing = function( d ) {
         if( d == null || d == undefined )
             d = new Date(); // now
 
+        let nFrameShift = 0;
+        if( strDirection && typeof strDirection == "string" && strDirection.toLowerCase() == "s2s" )
+            nFrameShift = Math.round( ( imaState.nNodesCount - 1 ) / 2 ) + 1; // 1st frame index 0 is reserved for m2s and s2m
+
         // const nUtcUnixTimeStamp = Math.floor( d.valueOf() / 1000 ); // Unix UTC timestamp, see https://stackoverflow.com/questions/9756120/how-do-i-get-a-utc-timestamp-in-javascript
         const nUtcUnixTimeStamp = Math.floor( ( d ).getTime() / 1000 ); // https://stackoverflow.com/questions/9756120/how-do-i-get-a-utc-timestamp-in-javascript
 
         const nSecondsRangeForAllSChains = imaState.nTimeFrameSeconds * imaState.nNodesCount;
         const nMod = Math.floor( nUtcUnixTimeStamp % nSecondsRangeForAllSChains );
-        const nActiveNodeFrameIndex = Math.floor( nMod / imaState.nTimeFrameSeconds );
+        let nActiveNodeFrameIndex = Math.floor( nMod / imaState.nTimeFrameSeconds );
+        if( nFrameShift > 0 ) {
+            nActiveNodeFrameIndex += nFrameShift;
+            nActiveNodeFrameIndex %= imaState.nNodesCount;
+        }
         let bSkip = ( nActiveNodeFrameIndex != imaState.nNodeNumber ) ? true : false;
         let bInsideGap = false;
         //
@@ -94,11 +102,13 @@ global.check_time_framing = function( d ) {
         // if( IMA.verbose_get() >= IMA.RV_VERBOSE.trace ) {
         log.write(
             "\n" +
-            cc.info( "Unix UTC time stamp" ) + cc.debug( "........" ) + cc.notice( nUtcUnixTimeStamp ) + "\n" +
+            cc.info( "Unix UTC time stamp" ) + cc.debug( "........" ) + cc.attention( nUtcUnixTimeStamp ) + "\n" +
             cc.info( "All Chains Range" ) + cc.debug( "..........." ) + cc.notice( nSecondsRangeForAllSChains ) + "\n" +
             cc.info( "S-Chain Range Mod" ) + cc.debug( ".........." ) + cc.notice( nMod ) + "\n" +
             cc.info( "Active Node Frame Index" ) + cc.debug( "...." ) + cc.notice( nActiveNodeFrameIndex ) + "\n" +
             cc.info( "Testing Frame Index" ) + cc.debug( "........" ) + cc.notice( imaState.nNodeNumber ) + "\n" +
+            cc.info( "Transfer Direction" ) + cc.debug( "........." ) + cc.sunny( strDirection || "NA" ) + "\n" +
+            cc.info( "Frame Shift" ) + cc.debug( "................" ) + cc.note( nFrameShift ) + "\n" +
             cc.info( "Is skip" ) + cc.debug( "...................." ) + cc.yn( bSkip ) + "\n" +
             cc.info( "Is inside gap" ) + cc.debug( ".............." ) + cc.yn( bInsideGap ) + "\n" +
             cc.info( "Range Start" ) + cc.debug( "................" ) + cc.notice( nRangeStart ) + "\n" +
@@ -110,7 +120,7 @@ global.check_time_framing = function( d ) {
             return false;
     } catch ( e ) {
         if( IMA.verbose_get() >= IMA.RV_VERBOSE.fatal )
-            log.write( cc.fatal( "Exception in check_time_framing():" ) + cc.error( e ) + "\n" );
+            log.write( cc.fatal( "Exception in time framing check:" ) + cc.error( e ) + "\n" );
     }
     return true;
 };
@@ -120,16 +130,6 @@ async function single_transfer_loop( loop_opts ) {
     try {
         if( IMA.verbose_get() >= IMA.RV_VERBOSE.debug )
             log.write( strLogPrefix + cc.debug( IMA.longSeparator ) + "\n" );
-        if( ! global.check_time_framing() ) {
-            imaState.loopState.oracle.wasInProgress = false;
-            imaState.loopState.m2s.wasInProgress = false;
-            imaState.loopState.s2m.wasInProgress = false;
-            imaState.loopState.s2s.wasInProgress = false;
-            if( IMA.verbose_get() >= IMA.RV_VERBOSE.debug )
-                log.write( strLogPrefix + cc.warning( "Skipped due to time framing" ) + "\n" );
-            IMA.save_transfer_success_all();
-            return true;
-        }
         if( ( loop_opts.enable_step_oracle && imaState.loopState.oracle.isInProgress ) ||
             ( loop_opts.enable_step_m2s && imaState.loopState.m2s.isInProgress ) ||
             ( loop_opts.enable_step_s2m && imaState.loopState.s2m.isInProgress ) ||
@@ -154,20 +154,25 @@ async function single_transfer_loop( loop_opts ) {
                     if( IMA.verbose_get() >= IMA.RV_VERBOSE.debug )
                         log.write( strLogPrefix + cc.warning( "Skipped due to cancel mode reported from PWA" ) + "\n" );
                 } else {
-                    imaState.loopState.oracle.isInProgress = true;
-                    await pwa.notify_on_loop_start( imaState, "oracle" );
-                    b0 = IMA.do_oracle_gas_price_setup(
-                        imaState.chainProperties.mn.w3,
-                        imaState.chainProperties.sc.w3,
-                        imaState.chainProperties.sc.transactionCustomizer,
-                        imaState.jo_community_locker,
-                        imaState.chainProperties.sc.joAccount,
-                        imaState.chainProperties.mn.cid,
-                        imaState.chainProperties.sc.cid,
-                        imaBLS.do_sign_u256
-                    );
-                    imaState.loopState.oracle.isInProgress = false;
-                    await pwa.notify_on_loop_end( imaState, "oracle" );
+                    if( global.check_time_framing( null, "m2s" ) ) {
+                        imaState.loopState.oracle.isInProgress = true;
+                        await pwa.notify_on_loop_start( imaState, "oracle" );
+                        b0 = IMA.do_oracle_gas_price_setup(
+                            imaState.chainProperties.mn.w3,
+                            imaState.chainProperties.sc.w3,
+                            imaState.chainProperties.sc.transactionCustomizer,
+                            imaState.jo_community_locker,
+                            imaState.chainProperties.sc.joAccount,
+                            imaState.chainProperties.mn.cid,
+                            imaState.chainProperties.sc.cid,
+                            imaBLS.do_sign_u256
+                        );
+                        imaState.loopState.oracle.isInProgress = false;
+                        await pwa.notify_on_loop_end( imaState, "oracle" );
+                    } else {
+                        if( IMA.verbose_get() >= IMA.RV_VERBOSE.debug )
+                            log.write( strLogPrefix + cc.warning( "Skipped due to time framing check" ) + "\n" );
+                    }
                 }
             } catch ( err ) {
                 log.write( strLogPrefix + cc.error( "Oracle operation exception: " ) + cc.error( owaspUtils.extract_error_message( err ) ) + "\n" );
