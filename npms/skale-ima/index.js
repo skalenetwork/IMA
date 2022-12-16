@@ -5762,7 +5762,7 @@ async function do_s2s_all( // s-chain --> s-chain
     //
     tc_dst
 ) {
-    let cntOK = 0, cntFail = 0;
+    let cntOK = 0, cntFail = 0, nIndexS2S = 0;
     const strDirection = "S2S";
     const arr_schains_cached = skale_observer.get_last_cached_schains();
     const cntSChains = arr_schains_cached.length;
@@ -5775,24 +5775,34 @@ async function do_s2s_all( // s-chain --> s-chain
         const cid_src = "" + jo_schain.data.computed.chainId;
         let bOK = false;
         try {
+            nIndexS2S = idxSChain;
+            if( ! await pwa.check_on_loop_start( imaState, "s2s", nIndexS2S ) ) {
+                imaState.loopState.s2s.wasInProgress = false;
+                if( IMA.verbose_get() >= IMA.RV_VERBOSE.debug )
+                    log.write( strLogPrefix + cc.warning( "Skipped due to cancel mode reported from PWA" ) + "\n" );
+            } else {
             // ??? assuming all S-Chains have same ABIs here
-            const jo_message_proxy_src = new w3_src.eth.Contract( imaState.chainProperties.sc.joAbiIMA.message_proxy_chain_abi, imaState.chainProperties.sc.joAbiIMA.message_proxy_chain_address );
-            const jo_deposit_box_src = new w3_src.eth.Contract( imaState.chainProperties.sc.joAbiIMA.message_proxy_chain_abi, imaState.chainProperties.sc.joAbiIMA.message_proxy_chain_address );
-            const joExtraSignOpts = {
-                skale_observer: skale_observer,
-                chain_id_src: chain_id_src,
-                cid_src: cid_src,
-                chain_id_dst: chain_id_dst,
-                cid_dst: cid_dst,
-                joAccountSrc: joAccountSrc,
-                joAccountDst: joAccountDst,
-                w3_src: w3_src,
-                w3_dst: w3_dst
-            };
-            joRuntimeOpts.idxChainKnownForS2S = idxSChain;
-            joRuntimeOpts.cntChainsKnownForS2S = cntSChains;
-            joRuntimeOpts.joExtraSignOpts = joExtraSignOpts;
-            bOK =
+                const jo_message_proxy_src = new w3_src.eth.Contract( imaState.chainProperties.sc.joAbiIMA.message_proxy_chain_abi, imaState.chainProperties.sc.joAbiIMA.message_proxy_chain_address );
+                const jo_deposit_box_src = new w3_src.eth.Contract( imaState.chainProperties.sc.joAbiIMA.message_proxy_chain_abi, imaState.chainProperties.sc.joAbiIMA.message_proxy_chain_address );
+                const joExtraSignOpts = {
+                    skale_observer: skale_observer,
+                    chain_id_src: chain_id_src,
+                    cid_src: cid_src,
+                    chain_id_dst: chain_id_dst,
+                    cid_dst: cid_dst,
+                    joAccountSrc: joAccountSrc,
+                    joAccountDst: joAccountDst,
+                    w3_src: w3_src,
+                    w3_dst: w3_dst
+                };
+                joRuntimeOpts.idxChainKnownForS2S = idxSChain;
+                joRuntimeOpts.cntChainsKnownForS2S = cntSChains;
+                joRuntimeOpts.joExtraSignOpts = joExtraSignOpts;
+                //
+                imaState.loopState.s2s.isInProgress = true;
+                await pwa.notify_on_loop_start( imaState, "s2s", nIndexS2S );
+                //
+                bOK =
                 await do_transfer(
                     strDirection,
                     joRuntimeOpts,
@@ -5823,6 +5833,10 @@ async function do_s2s_all( // s-chain --> s-chain
                     //
                     tc_dst
                 );
+                //
+                imaState.loopState.s2s.isInProgress = false;
+                await pwa.notify_on_loop_end( imaState, "s2s", nIndexS2S );
+            }
         } catch ( err ) {
             bOK = false;
             const strError = owaspUtils.extract_error_message( err );
@@ -5832,6 +5846,10 @@ async function do_s2s_all( // s-chain --> s-chain
                     cc.error( ", error is: " ) + cc.warning( strError ) +
                     "\n" );
             }
+            //
+            imaState.loopState.s2s.isInProgress = false;
+            await pwa.notify_on_loop_end( imaState, "s2s", nIndexS2S );
+            //
         }
         if( bOK )
             ++ cntOK;

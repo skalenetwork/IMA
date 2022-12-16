@@ -73,18 +73,19 @@ global.check_time_framing = function( d, strDirection, joRuntimeOpts ) {
         if( d == null || d == undefined )
             d = new Date(); // now
 
-        let nFrameShift = 0;
-        if( joRuntimeOpts && typeof joRuntimeOpts == "object" && joRuntimeOpts.isInsideWorker &&
-            strDirection && typeof strDirection == "string" && strDirection.toLowerCase() == "s2s" &&
-            joRuntimeOpts.cntChainsKnownForS2S > 0 &&
-            joRuntimeOpts.idxChainKnownForS2S >= 0 && joRuntimeOpts.idxChainKnownForS2S < joRuntimeOpts.cntChainsKnownForS2S
-        ) {
-            const nReservedFrames = 1; // 1st frame index 0 is reserved for m2s and s2m
-            const nRestRangeOfFrames = imaState.nNodesCount - nReservedFrames; // rest range of frames avalable for S2S
-            nFrameShift = nReservedFrames + // 1st frame index 0 is reserved for m2s and s2m
-                joRuntimeOpts.idxChainKnownForS2S % nRestRangeOfFrames
-            ;
-        }
+        const nFrameShift = 0;
+        // if( joRuntimeOpts && typeof joRuntimeOpts == "object" && joRuntimeOpts.isInsideWorker &&
+        //     strDirection && typeof strDirection == "string" && strDirection.toLowerCase() == "s2s" &&
+        //     joRuntimeOpts.cntChainsKnownForS2S > 0 &&
+        //     joRuntimeOpts.idxChainKnownForS2S >= 0 && joRuntimeOpts.idxChainKnownForS2S < joRuntimeOpts.cntChainsKnownForS2S
+        // ) {
+        //     const nReservedFrames = 1; // 1st frame index 0 is reserved for m2s and s2m
+        //     const nRestRangeOfFrames = imaState.nNodesCount - nReservedFrames; // rest range of frames avalable for S2S
+        //     nFrameShift = nReservedFrames + // 1st frame index 0 is reserved for m2s and s2m
+        //         joRuntimeOpts.idxChainKnownForS2S % nRestRangeOfFrames
+        //     ;
+        // }
+
         // log.write( "---------- strDirection......." + cc.j( strDirection ) + "\n" );
         // log.write( "---------- joRuntimeOpts......" + cc.j( joRuntimeOpts ) + "\n" );
         // log.write( "---------- nFrameShift........" + cc.j( nFrameShift ) + "\n" );
@@ -320,39 +321,27 @@ async function single_transfer_loop( loop_opts ) {
             if( IMA.verbose_get() >= IMA.RV_VERBOSE.information )
                 log.write( strLogPrefix + cc.debug( "Will invoke S2M transfer..." ) + "\n" );
             try {
-                if( ! await pwa.check_on_loop_start( imaState, "s2s" ) ) {
-                    imaState.loopState.s2s.wasInProgress = false;
-                    if( IMA.verbose_get() >= IMA.RV_VERBOSE.debug )
-                        log.write( strLogPrefix + cc.warning( "Skipped due to cancel mode reported from PWA" ) + "\n" );
-                } else {
-                    imaState.loopState.s2s.isInProgress = true;
-                    await pwa.notify_on_loop_start( imaState, "s2s" );
-                    b3 = await IMA.do_s2s_all( // s-chain --> s-chain
-                        loop_opts.joRuntimeOpts,
-                        imaState,
-                        skale_observer,
-                        imaState.chainProperties.sc.w3,
-                        imaState.jo_message_proxy_s_chain,
-                        //
-                        imaState.chainProperties.sc.joAccount,
-                        imaState.chainProperties.sc.strChainName,
-                        imaState.chainProperties.sc.cid,
-                        imaState.jo_token_manager_eth, // for logs validation on s-chain
-                        imaState.nTransferBlockSizeS2S,
-                        imaState.nTransferStepsS2S,
-                        imaState.nMaxTransactionsS2S,
-                        imaState.nBlockAwaitDepthMSS,
-                        imaState.nBlockAgeS2S,
-                        imaBLS.do_sign_messages_s2s, // fn_sign_messages
-                        imaState.chainProperties.sc.transactionCustomizer
-                    );
-                    imaState.loopState.s2s.isInProgress = false;
-                    await pwa.notify_on_loop_end( imaState, "s2s" );
-                }
+                b3 = await IMA.do_s2s_all( // s-chain --> s-chain
+                    loop_opts.joRuntimeOpts,
+                    imaState,
+                    skale_observer,
+                    imaState.chainProperties.sc.w3,
+                    imaState.jo_message_proxy_s_chain,
+                    //
+                    imaState.chainProperties.sc.joAccount,
+                    imaState.chainProperties.sc.strChainName,
+                    imaState.chainProperties.sc.cid,
+                    imaState.jo_token_manager_eth, // for logs validation on s-chain
+                    imaState.nTransferBlockSizeS2S,
+                    imaState.nTransferStepsS2S,
+                    imaState.nMaxTransactionsS2S,
+                    imaState.nBlockAwaitDepthMSS,
+                    imaState.nBlockAgeS2S,
+                    imaBLS.do_sign_messages_s2s, // fn_sign_messages
+                    imaState.chainProperties.sc.transactionCustomizer
+                );
             } catch ( err ) {
                 log.write( strLogPrefix + cc.error( "S2S transfer exception: " ) + cc.error( owaspUtils.extract_error_message( err ) ) + "\n" );
-                imaState.loopState.s2s.isInProgress = false;
-                await pwa.notify_on_loop_end( imaState, "s2s" );
                 throw err;
             }
             if( IMA.verbose_get() >= IMA.RV_VERBOSE.information )
