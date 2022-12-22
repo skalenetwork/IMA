@@ -47,8 +47,6 @@ global.imaBLS = require( "./bls.js" );
 global.rpcCall = require( "./rpc-call.js" );
 global.skale_observer = require( "../npms/skale-observer/observer.js" );
 global.rpcCall.init();
-global.imaOracle = require( "./oracle.js" );
-global.imaOracle.init();
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -120,7 +118,6 @@ global.imaState = {
 
     "strChainName_main_net": ( process.env.CHAIN_NAME_ETHEREUM || "Mainnet" ).toString().trim(),
     "strChainName_s_chain": ( process.env.CHAIN_NAME_SCHAIN || "id-S-chain" ).toString().trim(),
-    "strChainName_origin_chain": ( process.env.CHAIN_NAME_SCHAIN_ORIGIN || "Mainnet" ).toString().trim(),
     "strChainName_t_chain": ( process.env.CHAIN_NAME_SCHAIN_TARGET || "id-T-chain" ).toString().trim(),
     "cid_main_net": owaspUtils.toInteger( process.env.CID_ETHEREUM ) || -4,
     "cid_s_chain": owaspUtils.toInteger( process.env.CID_SCHAIN ) || -4,
@@ -258,9 +255,14 @@ global.imaState = {
 
     "optsPendingTxAnalysis": {
         "isEnabled": false, // disable bv default
-        "nTimeoutSecondsBeforeSecondAttempt": 3, // 0 - disable 2nd attempt
+        "nTimeoutSecondsBeforeSecondAttempt": 30, // 0 - disable 2nd attempt
         "isIgnore": false, // ignore PTX result
         "isIgnore2": true // ignore secondary PTX result
+    },
+
+    "optsStateFile": {
+        "isEnabled": false, // true
+        "path": "./ima.state.json"
     },
 
     "nMonitoringPort": 0, // 0 - default, means monitoring server is disabled
@@ -1266,7 +1268,8 @@ imaCLI.parse( {
                     imaBLS.do_sign_messages_m2s, // fn_sign_messages
                     null, // joExtraSignOpts
                     imaState.tc_s_chain,
-                    imaState.optsPendingTxAnalysis
+                    imaState.optsPendingTxAnalysis,
+                    imaState.optsStateFile
                 );
             }
         } );
@@ -1300,7 +1303,8 @@ imaCLI.parse( {
                     imaBLS.do_sign_messages_s2m, // fn_sign_messages
                     null, // joExtraSignOpts
                     imaState.tc_main_net,
-                    imaState.optsPendingTxAnalysis
+                    imaState.optsPendingTxAnalysis,
+                    imaState.optsStateFile
                 );
             }
         } );
@@ -1330,7 +1334,8 @@ imaCLI.parse( {
                     imaState.nBlockAgeM2S,
                     imaBLS.do_sign_messages_m2s, // fn_sign_messages
                     imaState.tc_s_chain,
-                    imaState.optsPendingTxAnalysis
+                    imaState.optsPendingTxAnalysis,
+                    null // imaState.optsStateFile
                 );
             }
         } );
@@ -1653,7 +1658,7 @@ if( haveReimbursementCommands ) {
 }
 if( imaState.nReimbursementRange >= 0 ) {
     imaState.arrActions.push( {
-        "name": "Gas Reimbursement - Set Minimal time interval from S2M and S2S transfers",
+        "name": "Gas Reimbursement - Set Minimal time interval from S2M transfers",
         "fn": async function() {
             await IMA.reimbursement_set_range(
                 imaState.w3_s_chain,
@@ -1662,7 +1667,6 @@ if( imaState.nReimbursementRange >= 0 ) {
                 imaState.strChainName_s_chain,
                 imaState.cid_s_chain,
                 imaState.tc_s_chain,
-                imaState.strChainName_origin_chain,
                 imaState.nReimbursementRange
             );
             return true;
@@ -2466,9 +2470,7 @@ async function single_transfer_loop() {
         if( IMA.verbose_get() >= IMA.RV_VERBOSE.information )
             log.write( strLogPrefix + cc.debug( "Will invoke Oracle gas price setup..." ) + "\n" );
         let b0 = true;
-        if( IMA.getEnabledOracle() ) {
-            if( IMA.verbose_get() >= IMA.RV_VERBOSE.information )
-                log.write( strLogPrefix + cc.debug( "Will invoke Oracle gas price setup..." ) + "\n" );
+        if( IMA.getOracleGasPriceMode() == 1 ) {
             b0 = IMA.do_oracle_gas_price_setup(
                 imaState.w3_main_net,
                 imaState.w3_s_chain,
@@ -2509,7 +2511,8 @@ async function single_transfer_loop() {
             imaBLS.do_sign_messages_m2s, // fn_sign_messages
             null, // joExtraSignOpts
             imaState.tc_s_chain,
-            imaState.optsPendingTxAnalysis
+            imaState.optsPendingTxAnalysis,
+            imaState.optsStateFile
         );
         if( IMA.verbose_get() >= IMA.RV_VERBOSE.information )
             log.write( strLogPrefix + cc.debug( "M2S transfer done: " ) + cc.tf( b1 ) + "\n" );
@@ -2539,7 +2542,8 @@ async function single_transfer_loop() {
             imaBLS.do_sign_messages_s2m, // fn_sign_messages
             null, // joExtraSignOpts
             imaState.tc_main_net,
-            imaState.optsPendingTxAnalysis
+            imaState.optsPendingTxAnalysis,
+            imaState.optsStateFile
         );
         if( IMA.verbose_get() >= IMA.RV_VERBOSE.information )
             log.write( strLogPrefix + cc.debug( "S2M transfer done: " ) + cc.tf( b2 ) + "\n" );
@@ -2564,7 +2568,8 @@ async function single_transfer_loop() {
                 imaState.nBlockAgeM2S,
                 imaBLS.do_sign_messages_s2s, // fn_sign_messages
                 imaState.tc_s_chain,
-                imaState.optsPendingTxAnalysis
+                imaState.optsPendingTxAnalysis,
+                null // imaState.optsStateFile
             );
             if( IMA.verbose_get() >= IMA.RV_VERBOSE.information )
                 log.write( strLogPrefix + cc.debug( "All S2S transfers done: " ) + cc.tf( b3 ) + "\n" );

@@ -632,14 +632,13 @@ function setEnabledProgressiveEventsScan( isEnabled ) {
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-let g_bIsEnabledOracle = false;
+let g_nOracleGasPriceMode = 0;
 
-function getEnabledOracle( isEnabled ) {
-    return g_bIsEnabledOracle ? true : false;
+function getOracleGasPriceMode() {
+    return 0 + g_nOracleGasPriceMode;
 }
-
-function setEnabledOracle( isEnabled ) {
-    g_bIsEnabledOracle = isEnabled ? true : false;
+function setOracleGasPriceMode( mode ) {
+    g_nOracleGasPriceMode = 0 + parseInt( mode ? mode.toString() : "0" );
 }
 
 async function do_oracle_gas_price_setup(
@@ -653,7 +652,7 @@ async function do_oracle_gas_price_setup(
     fn_sign_o_msg,
     optsPendingTxAnalysis
 ) {
-    if( ! getEnabledOracle() )
+    if( getOracleGasPriceMode() == 0 )
         return;
     const details = log.createMemoryStream();
     const jarrReceipts = [];
@@ -671,91 +670,15 @@ async function do_oracle_gas_price_setup(
         strActionName = "do_oracle_gas_price_setup.latestBlockNumber()";
         const latestBlockNumber = await w3_main_net.eth.getBlockNumber();
         details.write( cc.debug( "Latest block on Main Net is " ) + cc.info( latestBlockNumber ) + "\n" );
-        strActionName = "do_oracle_gas_price_setup.bnTimestampOfBlock()";
+        strActionName = "do_oracle_gas_price_setup.timestampOfBlock()";
         const latestBlock = await w3_main_net.eth.getBlock( latestBlockNumber );
-        let bnTimestampOfBlock = w3_main_net.utils.toBN( latestBlock.timestamp );
-        details.write(
-            cc.debug( "Local timestamp on Main Net is " ) + cc.info( bnTimestampOfBlock.toString() ) + cc.debug( "=" ) +
-            cc.info( "0x" + bnTimestampOfBlock.toString( 16 ) ) + cc.debug( " (original)" ) +
-            "\n" );
-        const bnTimeZoneOffset = w3_main_net.utils.toBN( parseInt( new Date( parseInt( bnTimestampOfBlock.toString(), 10 ) ).getTimezoneOffset(), 10 ) );
-        details.write(
-            cc.debug( "Local time zone offset is " ) + cc.info( bnTimeZoneOffset.toString() ) + cc.debug( "=" ) +
-            cc.info( "0x" + bnTimeZoneOffset.toString( 16 ) ) + cc.debug( " (original)" ) +
-            "\n" );
-        bnTimestampOfBlock = bnTimestampOfBlock.add( bnTimeZoneOffset );
-        details.write(
-            cc.debug( "UTC timestamp on Main Net is " ) + cc.info( bnTimestampOfBlock.toString() ) + cc.debug( "=" ) +
-            cc.info( "0x" + bnTimestampOfBlock.toString( 16 ) ) + cc.debug( " (original)" ) +
-            "\n" );
-        const bnValueToSubtractFromTimestamp = w3_main_net.utils.toBN( 60 );
-        details.write(
-            cc.debug( "Value to subtract from timestamp is " ) + cc.info( bnValueToSubtractFromTimestamp ) + cc.debug( "=" ) +
-            cc.info( "0x" + bnValueToSubtractFromTimestamp.toString( 16 ) ) + cc.debug( " (to adjust it to past a bit)" ) + "\n" );
-        bnTimestampOfBlock = bnTimestampOfBlock.sub( bnValueToSubtractFromTimestamp );
-        details.write(
-            cc.debug( "Timestamp on Main Net is " ) + cc.info( bnTimestampOfBlock.toString() ) + cc.debug( "=" ) +
-            cc.info( "0x" + bnTimestampOfBlock.toString( 16 ) ) + cc.debug( " (adjusted to past a bit)" ) +
-            "\n" );
+        let timestampOfBlock = "0x" + w3_main_net.utils.toBN( latestBlock.timestamp ).toString( 16 );
+        details.write( cc.debug( "Timestamp on Main Net is " ) + cc.info( timestampOfBlock ) + cc.debug( " (original)" ) + "\n" );
+        timestampOfBlock -= 10;
+        details.write( cc.debug( "Timestamp on Main Net is " ) + cc.info( timestampOfBlock ) + cc.debug( " (adjusted to past a bit)" ) + "\n" );
         strActionName = "do_oracle_gas_price_setup.getGasPrice()";
-        let gasPriceOnMainNet = null;
-        if( IMA.getEnabledOracle() ) {
-            const oracleOpts = {
-                url: owaspUtils.w3_2_url( w3_schain ),
-                callOpts: { },
-                nMillisecondsSleepBefore: 1000,
-                nMillisecondsSleepPeriod: 3000,
-                cntAttempts: 40,
-                isVerbose: ( verbose_get() >= RV_VERBOSE.information ) ? true : false,
-                isVerboseTraceDetails: ( verbose_get() >= RV_VERBOSE.trace ) ? true : false
-            };
-            details.write(
-                cc.debug( "Will fetch " ) + cc.info( "Main Net gas price" ) +
-                cc.debug( " via call to " ) + cc.info( "Oracle" ) +
-                cc.debug( " with options " ) + cc.j( oracleOpts ) +
-                cc.debug( "..." ) + "\n" );
-            try {
-                gasPriceOnMainNet = owaspUtils.ensure_starts_with_0x( ( await imaOracle.get_gas_price( oracleOpts, details ) ).toString( 16 ) );
-            } catch ( err ) {
-                gasPriceOnMainNet = null;
-                details.write(
-                    cc.error( "Failed to fetch " ) + cc.info( "Main Net gas price" ) +
-                    cc.error( " via call to " ) + cc.info( "Oracle" ) +
-                    cc.error( ", error is: " ) + cc.warning( err.toString() ) + "\n" );
-            }
-        }
-        if( gasPriceOnMainNet === null ) {
-            details.write(
-                cc.debug( "Will fetch " ) + cc.info( "Main Net gas price" ) +
-                cc.debug( " directly..." ) + "\n" );
-            gasPriceOnMainNet = "0x" + w3_main_net.utils.toBN( await w3_main_net.eth.getGasPrice() ).toString( 16 );
-        }
-        details.write(
-            cc.success( "Done, " ) + cc.info( "Oracle" ) + cc.success( " did computed new " ) + cc.info( "Main Net gas price" ) +
-            cc.success( "=" ) + cc.bright( w3_main_net.utils.toBN( gasPriceOnMainNet ).toString() ) +
-            cc.success( "=" ) + cc.bright( gasPriceOnMainNet ) +
-            "\n" );
-        //
-        const joGasPriceOnMainNetOld =
-            await jo_community_locker.methods.mainnetGasPrice().call( {
-                from: joAccountSC.address( w3_schain )
-            } );
-        const bnGasPriceOnMainNetOld = w3_schain.utils.toBN( joGasPriceOnMainNetOld );
-        details.write(
-            cc.debug( "Previous " ) + cc.info( "Main Net gas price" ) + cc.debug( " saved and kept in " ) + cc.info( "CommunityLocker" ) +
-            cc.debug( "=" ) + cc.bright( bnGasPriceOnMainNetOld.toString() ) +
-            cc.debug( "=" ) + cc.bright( bnGasPriceOnMainNetOld.toString( 16 ) ) +
-            "\n" );
-        if( bnGasPriceOnMainNetOld.eq( w3_schain.utils.toBN( gasPriceOnMainNet ) ) ) {
-            details.write(
-                cc.debug( "Previous " ) + cc.info( "Main Net gas price" ) +
-                cc.debug( " is equal to new one, will skip setting it in " ) + cc.info( "CommunityLocker" ) +
-                "\n" );
-            if( expose_details_get() )
-                details.exposeDetailsTo( log, "do_oracle_gas_price_setup", true );
-            details.close();
-            return;
-        }
+        const gasPriceOnMainNet = "0x" + w3_main_net.utils.toBN( await w3_main_net.eth.getGasPrice() ).toString( 16 );
+        details.write( cc.info( "Main Net gas price" ) + cc.debug( " is " ) + cc.bright( gasPriceOnMainNet ) + "\n" );
         //
         strActionName = "do_oracle_gas_price_setup.fn_sign_o_msg()";
         await fn_sign_o_msg( gasPriceOnMainNet, details, async function( strError, u256, joGlueResult ) {
@@ -790,7 +713,7 @@ async function do_oracle_gas_price_setup(
             const methodWithArguments_setGasPrice = jo_community_locker.methods.setGasPrice(
                 // call params
                 u256,
-                "0x" + bnTimestampOfBlock.toString( 16 ),
+                timestampOfBlock,
                 sign // bls signature components
             );
             const dataTx_setGasPrice = methodWithArguments_setGasPrice.encodeABI(); // the encoded ABI of the method
@@ -838,9 +761,11 @@ async function do_oracle_gas_price_setup(
             const tx_setGasPrice = compose_tx_instance( details, strLogPrefix, raw_tx_setGasPrice );
             const joSetGasPriceSR = await safe_sign_transaction_with_account( details, w3_schain, tx_setGasPrice, raw_tx_setGasPrice, joAccountSC );
             let joReceipt = null;
-            if( joSetGasPriceSR.joACI.isAutoSend )
+            if( joSetGasPriceSR.joACI.isAutoSend ) {
+                if( optsPendingTxAnalysis && "isEnabled" in optsPendingTxAnalysis && optsPendingTxAnalysis.isEnabled )
+                    await async_pending_tx_start( details, w3_schain, w3_main_net, chain_id_schain, chain_id_mainnet, "" + joSetGasPriceSR.txHashSent );
                 joReceipt = await get_web3_transactionReceipt( details, 10, w3_schain, joSetGasPriceSR.txHashSent );
-            else {
+            } else {
                 const serializedTx_setGasPrice = tx_setGasPrice.serialize();
                 strActionName = "w3_schain.eth.sendSignedTransaction()";
                 // let joReceipt = await w3_schain.eth.sendSignedTransaction( "0x" + serializedTx_setGasPrice.toString( "hex" ) );
@@ -853,8 +778,8 @@ async function do_oracle_gas_price_setup(
                     "receipt": joReceipt
                 } );
                 print_gas_usage_report_from_array( "(intermediate result) ORACLE GAS PRICE SETUP ", jarrReceipts );
-                // if( optsPendingTxAnalysis && "isEnabled" in optsPendingTxAnalysis && optsPendingTxAnalysis.isEnabled )
-                //     await async_pending_tx_complete( details, w3_schain, w3_main_net, chain_id_schain, chain_id_mainnet, "" + joReceipt.transactionHash );
+                if( optsPendingTxAnalysis && "isEnabled" in optsPendingTxAnalysis && optsPendingTxAnalysis.isEnabled )
+                    await async_pending_tx_complete( details, w3_schain, w3_main_net, chain_id_schain, chain_id_mainnet, "" + joReceipt.transactionHash );
             }
             save_transfer_success( "oracle" );
         } );
@@ -2128,7 +2053,6 @@ async function reimbursement_set_range(
     strChainName_s_chain,
     cid_s_chain,
     tc_s_chain,
-    strChainName_origin_chain,
     nReimbursementRange
 ) {
     const details = log.createMemoryStream();
@@ -2148,7 +2072,6 @@ async function reimbursement_set_range(
         //
         const methodWithArguments = jo_community_locker.methods.setTimeLimitPerMessage(
             // call params, last is destination account on S-chain
-            strChainName_origin_chain,
             "0x" + w3_s_chain.utils.toBN( nReimbursementRange ).toString( 16 )
         );
         const dataTx = methodWithArguments.encodeABI(); // the encoded ABI of the method
@@ -5059,98 +4982,32 @@ async function async_pending_tx_scanner( details, w3, w3_opposite, chain_id, cha
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-async function find_out_reference_log_record( details, w3, jo_message_proxy, nBlockId, nMessageNumberToFind, isVerbose ) {
-    const strLogPrefix = "";
-    const bnMessageNumberToFind = w3.utils.toBN( nMessageNumberToFind.toString() );
-    const strEventName = "PreviousMessageReference";
-    const arrLogRecords = await get_web3_pastEventsProgressive(
-        details,
-        w3,
-        10,
-        jo_message_proxy,
-        strEventName,
-        nBlockId, // nBlockFrom
-        nBlockId, // nBlockTo
-        { } // filter
-    );
-    const cntLogRecord = arrLogRecords.length;
-    if( isVerbose ) {
-        details.write( strLogPrefix +
-            cc.debug( "Got " ) + cc.info( cntLogRecord ) + cc.debug( " log record(s) (" ) + cc.info( strEventName ) +
-            cc.debug( ") with data: " ) + cc.j( arrLogRecords ) + "\n" );
+async function init_ima_state_file( details, w3, strDirection, optsStateFile ) {
+    if( strDirection != "M2S" )
+        return;
+    if( ! ( optsStateFile && optsStateFile.isEnabled && "path" in optsStateFile && typeof optsStateFile.path == "string" && optsStateFile.path.length > 0 ) )
+        return;
+    let isFileExist = false;
+    try {
+        if( fs.existsSync( optsStateFile.path ) )
+            isFileExist = true;
+    } catch ( err ) { }
+    if( isFileExist )
+        return;
+    let nBlockFrom = 0;
+    try {
+        nBlockFrom = await w3.eth.getBlockNumber();
+    } catch ( err ) { }
+    const strKeyName = ( strDirection == "M2S" ) ? "lastSearchedStartBlockM2S" : "lastSearchedStartBlockS2M";
+    try {
+        const joStateForLogsSearch = {};
+        details.write( strLogPrefix + cc.normal( "(FIRST TIME) Saving next forecasted block number for logs search value " ) + cc.info( blockNumberNextForecast ) + "\n" );
+        joStateForLogsSearch[strKeyName] = nBlockFrom;
+        const s = JSON.stringify( joStateForLogsSearch, null, 4 );
+        fs.writeFileSync( optsStateFile.path, s );
+    } catch ( err ) {
     }
-    for( let idxLogRecord = 0; idxLogRecord < cntLogRecord; ++ idxLogRecord ) {
-        const joEvent = arrLogRecords[idxLogRecord];
-        const joReferenceLogRecord = { // joEvent.returnValues;
-            currentMessage: joEvent.returnValues.currentMessage,
-            previousOutgoingMessageBlockId: joEvent.returnValues.previousOutgoingMessageBlockId,
-            currentBlockId: owaspUtils.toInteger( nBlockId.toString() ) // added field
-        };
-        const bnCurrentMessage = w3.utils.toBN( joReferenceLogRecord.currentMessage.toString() );
-        if( bnCurrentMessage.eq( bnMessageNumberToFind ) ) {
-            if( isVerbose ) {
-                details.write( strLogPrefix +
-                    cc.success( "Found " ) + cc.info( strEventName ) + cc.success( " log record " ) +
-                    cc.j( joReferenceLogRecord ) + cc.success( " for message " ) + cc.info( nMessageNumberToFind ) + "\n" );
-            }
-            return joReferenceLogRecord;
-        }
-    } // for( let idxLogRecord = 0; idxLogRecord < cntLogRecord; ++ idxLogRecord )
-    if( isVerbose ) {
-        details.write( strLogPrefix +
-            cc.error( "Failed to find " ) + cc.info( strEventName ) + cc.error( " log record for message " ) +
-            cc.info( nMessageNumberToFind ) + "\n" );
-    }
-    return null;
 }
-
-async function find_out_all_reference_log_records( details, w3, jo_message_proxy, nBlockId, nIncMsgCnt, nOutMsgCnt, isVerbose ) {
-    const strLogPrefix = "";
-    if( isVerbose ) {
-        details.write( strLogPrefix +
-            cc.debug( "Optimized IMA message search algorithm will start at block " ) + cc.info( nBlockId.toString() ) +
-            cc.debug( ", will search for ougoing message counter " ) + cc.info( nOutMsgCnt.toString() ) +
-            cc.debug( " and approach down to incoming message counter " ) + cc.info( nIncMsgCnt.toString() ) +
-            "\n" );
-    }
-    const arrLogRecordReferences = [];
-    const cntExpected = nOutMsgCnt - nIncMsgCnt;
-    if( cntExpected <= 0 ) {
-        if( isVerbose ) {
-            details.write( strLogPrefix +
-                cc.success( "Optimized IMA message search algorithm success, nothing to search, result is empty" ) + "\n" );
-        }
-        return arrLogRecordReferences; // nothing to searcharrLogRecordReferences
-    }
-    let nWalkMsgNumber = nOutMsgCnt - 1;
-    let nWalkBlockId = nBlockId;
-    for( ; nWalkMsgNumber >= nIncMsgCnt; -- nWalkMsgNumber ) {
-        const joReferenceLogRecord = await find_out_reference_log_record( details, w3, jo_message_proxy, nWalkBlockId, nWalkMsgNumber, isVerbose );
-        if( joReferenceLogRecord == null )
-            break;
-        nWalkBlockId = owaspUtils.toInteger( joReferenceLogRecord.previousOutgoingMessageBlockId.toString() );
-        arrLogRecordReferences.unshift( joReferenceLogRecord );
-    } // for( ; nWalkMsgNumber >= nIncMsgCnt; -- nWalkMsgNumber )
-    const cntFound = arrLogRecordReferences.length;
-    if( cntFound != cntExpected ) {
-        if( isVerbose ) {
-            details.write( strLogPrefix +
-                cc.error( "Optimized IMA message search algorithm fail, found " ) + cc.info( cntFound ) +
-                cc.error( " log record(s), expected " ) + cc.info( cntExpected ) + cc.error( " log record(s), found records are: " ) +
-                cc.j( arrLogRecordReferences ) + "\n" );
-        }
-    } else {
-        if( isVerbose ) {
-            details.write( strLogPrefix +
-                cc.success( "Optimized IMA message search algorithm success, found all " ) +
-                cc.info( cntFound ) + cc.success( " log record(s): " ) + cc.j( arrLogRecordReferences ) + "\n" );
-        }
-    }
-    return arrLogRecordReferences;
-}
-
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 let g_nTransferLoopCounter = 0;
 
@@ -5199,7 +5056,8 @@ async function do_transfer(
     //
     tc_dst,
     //
-    optsPendingTxAnalysis
+    optsPendingTxAnalysis,
+    optsStateFile
 ) {
     const nTransferLoopCounter = g_nTransferLoopCounter;
     ++ g_nTransferLoopCounter;
@@ -5214,6 +5072,7 @@ async function do_transfer(
     const details = log.createMemoryStream( true );
     const jarrReceipts = [];
     let bErrorInSigningMessages = false;
+    await init_ima_state_file( details, w3_src, strDirection, optsStateFile );
     const strLogPrefix = cc.bright( strDirection ) + cc.info( " transfer from " ) + cc.notice( chain_id_src ) + cc.info( " to " ) + cc.notice( chain_id_dst ) + cc.info( ":" ) + " ";
     if( fn_sign_messages == null || fn_sign_messages == undefined ) {
         details.write( strLogPrefix + cc.debug( "Using internal signing stub function" ) + "\n" );
@@ -5238,12 +5097,14 @@ async function do_transfer(
     let nIdxCurrentMsg = 0;
     let nOutMsgCnt = 0;
     let nIncMsgCnt = 0;
+    let idxLastToPopNotIncluding = 0;
     try {
+        let nPossibleIntegerValue = 0;
         details.write( cc.info( "SRC " ) + cc.sunny( "MessageProxy" ) + cc.info( " address is....." ) + cc.bright( jo_message_proxy_src.options.address ) + "\n" );
         details.write( cc.info( "DST " ) + cc.sunny( "MessageProxy" ) + cc.info( " address is....." ) + cc.bright( jo_message_proxy_dst.options.address ) + "\n" );
         strActionName = "src-chain.MessageProxy.getOutgoingMessagesCounter()";
         details.write( strLogPrefix + cc.debug( "Will call " ) + cc.notice( strActionName ) + cc.debug( "..." ) + "\n" );
-        let nPossibleIntegerValue = await jo_message_proxy_src.methods.getOutgoingMessagesCounter( chain_id_dst ).call( {
+        nPossibleIntegerValue = await jo_message_proxy_src.methods.getOutgoingMessagesCounter( chain_id_dst ).call( {
             from: joAccountSrc.address( w3_src )
         } );
         if( !owaspUtils.validateInteger( nPossibleIntegerValue ) )
@@ -5267,31 +5128,9 @@ async function do_transfer(
         } );
         if( !owaspUtils.validateInteger( nPossibleIntegerValue ) )
             throw new Error( "DST chain " + chain_id_dst + " returned incoming message counter " + nPossibleIntegerValue + " which is not a valid integer" );
-        const idxLastToPopNotIncluding = owaspUtils.toInteger( nPossibleIntegerValue );
+        idxLastToPopNotIncluding = owaspUtils.toInteger( nPossibleIntegerValue );
         details.write( strLogPrefix + cc.debug( "Result of " ) + cc.notice( strActionName ) + cc.debug( " call: " ) + cc.info( idxLastToPopNotIncluding ) + "\n" );
-
         //
-        // optimized scanner
-        //
-        const nBlockId = await jo_message_proxy_src.methods.getLastOutgoingMessageBlockId( chain_id_dst ).call( {
-            from: joAccountSrc.address( w3_src )
-        } );
-        // const joReferenceLogRecord = await find_out_reference_log_record( details, w3_src, jo_message_proxy_src, nBlockId, nOutMsgCnt - 1, true );
-        let arrLogRecordReferences = [];
-        try {
-            arrLogRecordReferences = await find_out_all_reference_log_records( details, w3_src, jo_message_proxy_src, nBlockId, nIncMsgCnt, nOutMsgCnt, true );
-            if( arrLogRecordReferences.length <= 0 )
-                throw new Error( "Nothing was found by optimized IMA messages search algorithm" );
-        } catch ( err ) {
-            arrLogRecordReferences = [];
-            details.write(
-                strLogPrefix + cc.warning( "Optimized log search is " ) + cc.error( "off" ) +
-                cc.warning( ". Running old IMA smart contracts?" ) + cc.success( " Please upgrade, if possible." ) +
-                "\n" );
-        }
-
-        //
-        // classic scanner with optional usage of optimizamed IMA messages search algorithm
         // outer loop is block former/creator, then transfer
         //
         nIdxCurrentMsg = nIncMsgCnt;
@@ -5318,19 +5157,46 @@ async function do_transfer(
             //
             // inner loop wil create block of transactions
             //
-            let cntAccumulatedForBlock = 0;
+            let cntAccumulatedForBlock = 0, blockNumberNextForecast = 0;
+            let nBlockFrom = 0;
+            const nBlockTo = "latest";
+            let joStateForLogsSearch = {};
+            // const nLatestBlockNumber = await get_web3_blockNumber( details, 10, w3_src );
+            if( optsStateFile && optsStateFile.isEnabled && "path" in optsStateFile && typeof optsStateFile.path == "string" && optsStateFile.path.length > 0 ) {
+                const strKeyName = ( strDirection == "M2S" ) ? "lastSearchedStartBlockM2S" : "lastSearchedStartBlockS2M";
+                try {
+                    const s = fs.readFileSync( optsStateFile.path );
+                    joStateForLogsSearch = JSON.parse( s );
+                    if( strKeyName in joStateForLogsSearch && typeof joStateForLogsSearch[strKeyName] == "string" ) {
+                        nBlockFrom = "0x" + w3_src.utils.toBN( joStateForLogsSearch[strKeyName] ).toString( 16 );
+                        details.write( strLogPrefix +
+                            cc.normal( "Loaded nearest previously forecasted " ) +
+                            cc.bright( strDirection ) + cc.debug( "/" ) + cc.attention( strKeyName ) +
+                            cc.normal( " block number for logs search value " ) +
+                            cc.info( nBlockFrom ) + "\n" );
+                    } else {
+                        details.write( strLogPrefix +
+                            cc.normal( "Was not found nearest previously forecasted " ) +
+                            cc.bright( strDirection ) + cc.debug( "/" ) + cc.attention( strKeyName ) +
+                            cc.normal( " block number for logs search value " ) +
+                            cc.info( nBlockFrom ) + "\n" );
+                    }
+                } catch ( err ) {
+                    nBlockFrom = 0;
+                    details.write( strLogPrefix +
+                        cc.error( "Was reset nearest previously forecasted " ) +
+                        cc.bright( strDirection ) + cc.debug( "/" ) + cc.attention( strKeyName ) +
+                        cc.error( " block number for logs search value " ) +
+                        cc.error( nBlockFrom ) + cc.error( " due to error: " ) + cc.warning( err ) + "\n" );
+                }
+            }
+            // blockNumberNextForecast = nBlockFrom;
+
             for( let idxInBlock = 0; nIdxCurrentMsg < nOutMsgCnt && idxInBlock < nTransactionsCountInBlock; ++nIdxCurrentMsg, ++idxInBlock, ++cntAccumulatedForBlock ) {
                 const idxProcessing = cntProcessed + idxInBlock;
                 if( idxProcessing > nMaxTransactionsCount )
                     break;
                 //
-                let nBlockFrom = 0;
-                let nBlockTo = "latest";
-                if( arrLogRecordReferences.length > 0 ) {
-                    const joReferenceLogRecord = arrLogRecordReferences.shift();
-                    nBlockFrom = joReferenceLogRecord.currentBlockId;
-                    nBlockTo = joReferenceLogRecord.currentBlockId;
-                }
                 //
                 strActionName = "src-chain->MessageProxy->scan-past-events()";
                 details.write(
@@ -5372,6 +5238,16 @@ async function do_transfer(
                             cc.success( "accepted for processing, found event values are " ) + cc.j( joValues ) +
                             cc.success( ", found block number is " ) + cc.info( joValues.savedBlockNumberForOptimizations ) +
                             "\n" );
+                        if( blockNumberNextForecast === 0 )
+                            blockNumberNextForecast = w3mod.utils.toHex( r[i].blockNumber );
+                        else {
+                            const oldBN = w3_src.utils.toBN( blockNumberNextForecast );
+                            const newBN = w3_src.utils.toBN( r[i].blockNumber );
+                            if( newBN.lt( oldBN ) ) {
+                                blockNumberNextForecast = "0x" + newBN.toString( 16 );
+                                details.write( strLogPrefix + cc.normal( "Narrowing next forecasted block number for logs search is " ) + cc.info( blockNumberNextForecast ) + "\n" );
+                            }
+                        }
                         break;
                     } else {
                         details.write( strLogPrefix +
@@ -5380,6 +5256,7 @@ async function do_transfer(
                             "\n" );
                     }
                 }
+                details.write( strLogPrefix + cc.normal( "Next forecasted block number for logs search is " ) + cc.info( blockNumberNextForecast ) + "\n" );
                 if( joValues == "" ) {
                     const strError = strLogPrefix + cc.fatal( "CRITICAL ERROR:" ) + " " + cc.error( "Can't get events from MessageProxy" );
                     log.write( strError + "\n" );
@@ -5929,9 +5806,6 @@ async function do_transfer(
                         const joPostIncomingMessagesSR = await safe_sign_transaction_with_account( detailsB, w3_dst, tx_postIncomingMessages, raw_tx_postIncomingMessages, joAccountDst );
                         let joReceipt = null;
                         if( joPostIncomingMessagesSR.joACI.isAutoSend ) {
-                            //
-                            // NOTICE: async_pending_tx_start()/ async_pending_tx_complete() must be called only in do_transfer()
-                            //
                             if( optsPendingTxAnalysis && "isEnabled" in optsPendingTxAnalysis && optsPendingTxAnalysis.isEnabled )
                                 await async_pending_tx_start( detailsB, w3_dst, w3_src, chain_id_dst, chain_id_src, "" + joPostIncomingMessagesSR.txHashSent );
                             joReceipt = await get_web3_transactionReceipt( detailsB, 10, w3_dst, joPostIncomingMessagesSR.txHashSent );
@@ -5949,9 +5823,6 @@ async function do_transfer(
                                 "receipt": joReceipt
                             } );
                             print_gas_usage_report_from_array( "(intermediate result) TRANSFER " + chain_id_src + " -> " + chain_id_dst, jarrReceipts );
-                            //
-                            // NOTICE: async_pending_tx_start()/ async_pending_tx_complete() must be called only in do_transfer()
-                            //
                             if( optsPendingTxAnalysis && "isEnabled" in optsPendingTxAnalysis && optsPendingTxAnalysis.isEnabled )
                                 await async_pending_tx_complete( detailsB, w3_dst, w3_src, chain_id_dst, chain_id_src, "" + joReceipt.transactionHash );
                         }
@@ -5988,6 +5859,22 @@ async function do_transfer(
                                 detailsB.write( strLogPrefix + cc.error( "WARNING:" ) + " " + cc.warn( "Cannot validate transfer to Main Net via MessageProxy error absence on Main Net, no MessageProxy provided" ) + "\n" );
                         } // if( chain_id_dst == "Mainnet" )
 
+                        if( optsStateFile && optsStateFile.isEnabled && "path" in optsStateFile && typeof optsStateFile.path == "string" && optsStateFile.path.length > 0 ) {
+                            if( blockNumberNextForecast !== nBlockFrom ) {
+                                const strKeyName = ( strDirection == "M2S" ) ? "lastSearchedStartBlockM2S" : "lastSearchedStartBlockS2M";
+                                try {
+                                    detailsB.write( strLogPrefix +
+                                    cc.normal( "Saving next forecasted " +
+                                    cc.bright( strDirection ) + cc.debug( "/" ) + cc.attention( strKeyName ) +
+                                    " block number for logs search value " ) +
+                                    cc.info( blockNumberNextForecast ) + "\n" );
+                                    joStateForLogsSearch[strKeyName] = blockNumberNextForecast;
+                                    const s = JSON.stringify( joStateForLogsSearch, null, 4 );
+                                    fs.writeFileSync( optsStateFile.path, s );
+                                } catch ( err ) {
+                                }
+                            }
+                        }
                     } ).catch( ( err ) => { // callback fn as argument of fn_sign_messages
                     bErrorInSigningMessages = true;
                     if( verbose_get() >= RV_VERBOSE.fatal ) {
@@ -6065,7 +5952,8 @@ async function do_s2s_all( // s-chain --> s-chain
     //
     tc_dst,
     //
-    optsPendingTxAnalysis
+    optsPendingTxAnalysis,
+    optsStateFile
 ) {
     let cntOK = 0, cntFail = 0;
     const strDirection = "S2S";
@@ -6123,7 +6011,8 @@ async function do_s2s_all( // s-chain --> s-chain
                     //
                     tc_dst,
                     //
-                    optsPendingTxAnalysis
+                    optsPendingTxAnalysis,
+                    optsStateFile
                 );
         } catch ( err ) {
             bOK = false;
@@ -6446,8 +6335,8 @@ async function mintERC20(
         const joSR = await safe_sign_transaction_with_account( details, w3, tx_mint, raw_tx_mint, joAccount );
         let joReceipt = null;
         if( joSR.joACI.isAutoSend ) {
-            // if( optsPendingTxAnalysis && "isEnabled" in optsPendingTxAnalysis && optsPendingTxAnalysis.isEnabled )
-            //     await async_pending_tx_start( details, w3, w3, cid, cid, "" + joSR.txHashSent );
+            if( optsPendingTxAnalysis && "isEnabled" in optsPendingTxAnalysis && optsPendingTxAnalysis.isEnabled )
+                await async_pending_tx_start( details, w3, w3, cid, cid, "" + joSR.txHashSent );
             joReceipt = await get_web3_transactionReceipt( details, 10, w3, joSR.txHashSent );
         } else {
             const serializedTx_mint = tx_mint.serialize();
@@ -6542,8 +6431,8 @@ async function mintERC721(
         const joSR = await safe_sign_transaction_with_account( details, w3, tx_mint, raw_tx_mint, joAccount );
         let joReceipt = null;
         if( joSR.joACI.isAutoSend ) {
-            // if( optsPendingTxAnalysis && "isEnabled" in optsPendingTxAnalysis && optsPendingTxAnalysis.isEnabled )
-            //     await async_pending_tx_start( details, w3, w3, cid, cid, "" + joSR.txHashSent );
+            if( optsPendingTxAnalysis && "isEnabled" in optsPendingTxAnalysis && optsPendingTxAnalysis.isEnabled )
+                await async_pending_tx_start( details, w3, w3, cid, cid, "" + joSR.txHashSent );
             joReceipt = await get_web3_transactionReceipt( details, 10, w3, joSR.txHashSent );
         } else {
             const serializedTx_mint = tx_mint.serialize();
@@ -6641,8 +6530,8 @@ async function mintERC1155(
         const joSR = await safe_sign_transaction_with_account( details, w3, tx_mint, raw_tx_mint, joAccount );
         let joReceipt = null;
         if( joSR.joACI.isAutoSend ) {
-            // if( optsPendingTxAnalysis && "isEnabled" in optsPendingTxAnalysis && optsPendingTxAnalysis.isEnabled )
-            //     await async_pending_tx_start( details, w3, w3, cid, cid, "" + joSR.txHashSent );
+            if( optsPendingTxAnalysis && "isEnabled" in optsPendingTxAnalysis && optsPendingTxAnalysis.isEnabled )
+                await async_pending_tx_start( details, w3, w3, cid, cid, "" + joSR.txHashSent );
             joReceipt = await get_web3_transactionReceipt( details, 10, w3, joSR.txHashSent );
         } else {
             const serializedTx_mint = tx_mint.serialize();
@@ -6737,8 +6626,8 @@ async function burnERC20(
         const joSR = await safe_sign_transaction_with_account( details, w3, tx_burn, raw_tx_burn, joAccount );
         let joReceipt = null;
         if( joSR.joACI.isAutoSend ) {
-            // if( optsPendingTxAnalysis && "isEnabled" in optsPendingTxAnalysis && optsPendingTxAnalysis.isEnabled )
-            //     await async_pending_tx_start( details, w3, w3, cid, cid, "" + joSR.txHashSent );
+            if( optsPendingTxAnalysis && "isEnabled" in optsPendingTxAnalysis && optsPendingTxAnalysis.isEnabled )
+                await async_pending_tx_start( details, w3, w3, cid, cid, "" + joSR.txHashSent );
             joReceipt = await get_web3_transactionReceipt( details, 10, w3, joSR.txHashSent );
         } else {
             const serializedTx_burn = tx_burn.serialize();
@@ -6833,8 +6722,8 @@ async function burnERC721(
         const joSR = await safe_sign_transaction_with_account( details, w3, tx_burn, raw_tx_burn, joAccount );
         let joReceipt = null;
         if( joSR.joACI.isAutoSend ) {
-            // if( optsPendingTxAnalysis && "isEnabled" in optsPendingTxAnalysis && optsPendingTxAnalysis.isEnabled )
-            //     await async_pending_tx_start( details, w3, w3, cid, cid, "" + joSR.txHashSent );
+            if( optsPendingTxAnalysis && "isEnabled" in optsPendingTxAnalysis && optsPendingTxAnalysis.isEnabled )
+                await async_pending_tx_start( details, w3, w3, cid, cid, "" + joSR.txHashSent );
             joReceipt = await get_web3_transactionReceipt( details, 10, w3, joSR.txHashSent );
         } else {
             const serializedTx_burn = tx_burn.serialize();
@@ -6931,8 +6820,8 @@ async function burnERC1155(
         const joSR = await safe_sign_transaction_with_account( details, w3, tx_burn, raw_tx_burn, joAccount );
         let joReceipt = null;
         if( joSR.joACI.isAutoSend ) {
-            // if( optsPendingTxAnalysis && "isEnabled" in optsPendingTxAnalysis && optsPendingTxAnalysis.isEnabled )
-            //     await async_pending_tx_start( details, w3, w3, cid, cid, "" + joSR.txHashSent );
+            if( optsPendingTxAnalysis && "isEnabled" in optsPendingTxAnalysis && optsPendingTxAnalysis.isEnabled )
+                await async_pending_tx_start( details, w3, w3, cid, cid, "" + joSR.txHashSent );
             joReceipt = await get_web3_transactionReceipt( details, 10, w3, joSR.txHashSent );
         } else {
             const serializedTx_burn = tx_burn.serialize();
@@ -7057,8 +6946,8 @@ module.exports.getMaxIterationsInAllRangeEventsScan = getMaxIterationsInAllRange
 module.exports.setMaxIterationsInAllRangeEventsScan = setMaxIterationsInAllRangeEventsScan;
 module.exports.getEnabledProgressiveEventsScan = getEnabledProgressiveEventsScan;
 module.exports.setEnabledProgressiveEventsScan = setEnabledProgressiveEventsScan;
-module.exports.getEnabledOracle = getEnabledOracle;
-module.exports.setEnabledOracle = setEnabledOracle;
+module.exports.getOracleGasPriceMode = getOracleGasPriceMode;
+module.exports.setOracleGasPriceMode = setOracleGasPriceMode;
 module.exports.do_oracle_gas_price_setup = do_oracle_gas_price_setup;
 
 module.exports.get_S2S_transfer_mode_description = get_S2S_transfer_mode_description;

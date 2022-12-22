@@ -56,7 +56,6 @@ global.imaState = {
     "nLogMaxSizeBeforeRotation": -1,
     "nLogMaxFilesCount": -1,
     "isPrintGathered": true,
-    "isPrintSecurityValues": true,
 
     "bIsNeededCommonInit": true,
     "bSignMessages": false, // use BLS message signing, turned on with --sign-messages
@@ -117,7 +116,6 @@ global.imaState = {
 
     "strChainName_main_net": ( process.env.CHAIN_NAME_ETHEREUM || "Mainnet" ).toString().trim(),
     "strChainName_s_chain": ( process.env.CHAIN_NAME_SCHAIN || "Bob" ).toString().trim(),
-    "strChainName_origin_chain": ( process.env.CHAIN_NAME_ETHEREUM || "Mainnet" ).toString().trim(),
     "strChainName_t_chain": ( process.env.CHAIN_NAME_SCHAIN_TARGET || "Alice" ).toString().trim(),
     "cid_main_net": owaspUtils.toInteger( process.env.CID_ETHEREUM ) || -4,
     "cid_s_chain": owaspUtils.toInteger( process.env.CID_SCHAIN ) || -4,
@@ -662,7 +660,6 @@ describe( "CLI", function() {
                 "--url-s-chain=" + imaState.strURL_s_chain,
                 "--id-main-net=" + imaState.strChainName_main_net,
                 "--id-s-chain=" + imaState.strChainName_s_chain,
-                "--id-origin-chain=" + imaState.strChainName_origin_chain,
                 "--cid-main-net=" + imaState.cid_main_net,
                 "--cid-s-chain=" + imaState.cid_s_chain,
                 "--address-main-net=" + imaState.joAccount_main_net.address(),

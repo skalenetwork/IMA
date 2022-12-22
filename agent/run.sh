@@ -110,9 +110,7 @@ BASE_OPTIONS="--gas-price-multiplier=$GAS_PRICE_MULTIPLIER \
 --time-framing=$TIME_FRAMING \
 --tm-url-main-net=$TM_URL_MAIN_NET \
 --time-gap=$TIME_GAP \
---monitoring-port=$MONITORING_PORT \
---ptx \
---ptx-attempt=3 "
+--monitoring-port=$MONITORING_PORT"
 
 #echo "Base options:"
 #echo "$BASE_OPTIONS"
