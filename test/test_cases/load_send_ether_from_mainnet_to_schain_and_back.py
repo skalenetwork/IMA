@@ -52,7 +52,7 @@ class SendEtherFromSchainToMainnetAndBack(TestCase):
         # 60 finney back because when we send on mainnet we should be able to cover gas fee on gasPrice 200 Gwei
         amount_from_schain = 7 * 10 ** 16
         #
-        self.blockchain.set_time_limit_per_message(self.config.schain_key, self.config.schain_name, 0)
+        self.blockchain.set_time_limit_per_message(self.config.schain_key, 0)
         for x in range(range_int):
             #  transfer to schain
             self.agent.transfer_eth_from_mainnet_to_schain(self.config.mainnet_key,

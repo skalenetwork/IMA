@@ -247,10 +247,10 @@ class BlockChain:
             from_key)
         self.web3_mainnet.eth.sendRawTransaction(signed_txn.rawTransaction)
 
-    def set_time_limit_per_message(self, from_key, schainName, time_limit):
+    def set_time_limit_per_message(self, from_key, time_limit):
         sender_address = self.key_to_address(from_key)
         community_locker = self._get_contract_on_schain('community_locker')
-        time_limit_abi = community_locker.encodeABI(fn_name="setTimeLimitPerMessage", args=[schainName, time_limit])
+        time_limit_abi = community_locker.encodeABI(fn_name="setTimeLimitPerMessage", args=["Mainnet", time_limit])
         signed_txn = self.web3_schain.eth.account.signTransaction(dict(
                 nonce=self.web3_schain.eth.getTransactionCount(sender_address),
                 gasPrice=self.web3_schain.eth.gasPrice,
