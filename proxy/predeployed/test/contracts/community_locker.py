@@ -14,4 +14,4 @@ def check_community_locker(deployer_address: str, schain_name: str, community_po
     if not community_locker.functions.tokenManagerLinker().call() == TOKEN_MANAGER_LINKER_ADDRESS: raise AssertionError
     if not community_locker.functions.communityPool().call() == community_pool_address: raise AssertionError
     if not community_locker.functions.schainHash().call() == w3.solidityKeccak(['string'], [schain_name]): raise AssertionError
-    if not community_locker.functions.timeLimitPerMessage().call() == CommunityLockerGenerator.DEFAULT_TIME_LIMIT_SEC: raise AssertionError
+    if not community_locker.functions.timeLimitPerMessage(CommunityLockerGenerator.MAINNET_HASH).call() == CommunityLockerGenerator.DEFAULT_TIME_LIMIT_SEC: raise AssertionError

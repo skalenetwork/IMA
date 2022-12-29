@@ -34,7 +34,8 @@ import {
     CommunityLocker
 } from "../typechain";
 
-import { randomString, stringValue } from "./utils/helper";
+import { stringValue } from "./utils/helper";
+import { skipTime } from "./utils/time";
 
 chai.should();
 chai.use((chaiAsPromised as any));
@@ -215,6 +216,7 @@ describe("TokenManagerERC1155", () => {
             tokenManagerERC11552 = await deployTokenManagerERC1155(newSchainName, messageProxyForSchain2.address, tokenManagerLinker2, communityLocker2, fakeDepositBox);
             await erc1155OnTargetChain.connect(deployer).grantRole(await erc1155OnTargetChain.MINTER_ROLE(), tokenManagerERC11552.address);
             await tokenManagerLinker2.registerTokenManager(tokenManagerERC11552.address);
+            await messageProxyForSchain2.registerExtraContractForAll(tokenManagerERC11552.address);
         });
 
         it("should invoke `transferToSchainERC1155` without mistakes", async () => {
@@ -246,6 +248,93 @@ describe("TokenManagerERC1155", () => {
             const outgoingMessagesCounter = BigNumber.from(
                 await messageProxyForSchain.getOutgoingMessagesCounter(newSchainName));
             outgoingMessagesCounter.should.be.deep.equal(BigNumber.from(1));
+        });
+
+        it("should reject `transferToSchainERC1155` when executing earlier then allowed", async () => {
+            // add connected chain:
+            await messageProxyForSchain.connect(deployer).grantRole(await messageProxyForSchain.CHAIN_CONNECTOR_ROLE(), deployer.address);
+            await messageProxyForSchain.connect(deployer).addConnectedChain(newSchainName);
+
+            await erc1155OnOriginChain.connect(deployer).mint(user.address, id, 5, "0x");
+            await erc1155OnOriginChain.connect(user).setApprovalForAll(tokenManagerERC1155.address, true);
+
+            await tokenManagerERC1155
+                .connect(user)
+                .transferToSchainERC1155(newSchainName, erc1155OnOriginChain.address, id, 1)
+                .should.be.eventually.rejectedWith("Incorrect Token Manager address");
+
+            await tokenManagerERC1155
+                .connect(user)
+                .transferToSchainERC1155("Mainnet", erc1155OnOriginChain.address, id, 1)
+                .should.be.eventually.rejectedWith("This function is not for transferring to Mainnet");
+
+            await tokenManagerERC1155.addTokenManager(newSchainName, tokenManagerERC11552.address);
+
+            await tokenManagerERC1155
+                .connect(user)
+                .transferToSchainERC1155(newSchainName, erc1155OnOriginChain.address, id, 1);
+
+            BigNumber.from(await messageProxyForSchain.getOutgoingMessagesCounter(newSchainName)).should.be.deep.equal(BigNumber.from(1));
+
+
+            await tokenManagerERC1155
+                .connect(user)
+                .transferToSchainERC1155(newSchainName, erc1155OnOriginChain.address, id, 1);
+
+            BigNumber.from(await messageProxyForSchain.getOutgoingMessagesCounter(newSchainName)).should.be.deep.equal(BigNumber.from(2));
+
+            await communityLocker.grantRole(await communityLocker.CONSTANT_SETTER_ROLE(), deployer.address);
+
+            await communityLocker.setTimeLimitPerMessage(newSchainName, 100);
+
+            await tokenManagerERC1155
+                .connect(user)
+                .transferToSchainERC1155(newSchainName, erc1155OnOriginChain.address, id, 1)
+                .should.be.eventually.rejectedWith("Exceeded message rate limit");
+
+            BigNumber.from(await messageProxyForSchain.getOutgoingMessagesCounter(newSchainName)).should.be.deep.equal(BigNumber.from(2));
+
+            await skipTime(90);
+
+            await tokenManagerERC1155
+                .connect(user)
+                .transferToSchainERC1155(newSchainName, erc1155OnOriginChain.address, id, 1)
+                .should.be.eventually.rejectedWith("Exceeded message rate limit");
+
+            BigNumber.from(await messageProxyForSchain.getOutgoingMessagesCounter(newSchainName)).should.be.deep.equal(BigNumber.from(2));
+
+            await skipTime(20);
+
+            await tokenManagerERC1155
+                .connect(user)
+                .transferToSchainERC1155(newSchainName, erc1155OnOriginChain.address, id, 1);
+
+            BigNumber.from(await messageProxyForSchain.getOutgoingMessagesCounter(newSchainName)).should.be.deep.equal(BigNumber.from(3));
+
+            await communityLocker.setTimeLimitPerMessage(newSchainName, 0);
+
+            await tokenManagerERC1155
+                .connect(user)
+                .transferToSchainERC1155(newSchainName, erc1155OnOriginChain.address, id, 1);
+
+            BigNumber.from(await messageProxyForSchain.getOutgoingMessagesCounter(newSchainName)).should.be.deep.equal(BigNumber.from(4));
+
+            await communityLocker.setTimeLimitPerMessage(newSchainName, 100);
+
+            await tokenManagerERC1155
+                .connect(user)
+                .transferToSchainERC1155(newSchainName, erc1155OnOriginChain.address, id, 1)
+                .should.be.eventually.rejectedWith("Exceeded message rate limit");
+
+            BigNumber.from(await messageProxyForSchain.getOutgoingMessagesCounter(newSchainName)).should.be.deep.equal(BigNumber.from(4));
+
+            await skipTime(110);
+
+            await tokenManagerERC1155
+                .connect(user)
+                .transferToSchainERC1155(newSchainName, erc1155OnOriginChain.address, id, 1);
+
+            BigNumber.from(await messageProxyForSchain.getOutgoingMessagesCounter(newSchainName)).should.be.deep.equal(BigNumber.from(5));
         });
 
         it("should invoke `transferToSchainERC1155` and receive tokens without mistakes", async () => {
@@ -538,13 +627,6 @@ describe("TokenManagerERC1155", () => {
 
             await tokenManagerERC11552
                 .connect(user)
-                .transferToSchainERC1155(schainName, erc1155OnOriginChain.address, id, amount)
-                .should.be.eventually.rejectedWith("Sender contract is not registered");
-
-            await messageProxyForSchain2.registerExtraContract(schainName, tokenManagerERC11552.address);
-
-            await tokenManagerERC11552
-                .connect(user)
                 .transferToSchainERC1155(schainName, erc1155OnOriginChain.address, id, amount);
 
             data = await messages.encodeTransferErc1155Message(
@@ -627,13 +709,6 @@ describe("TokenManagerERC1155", () => {
                 .should.be.eventually.rejectedWith("Not allowed ERC1155 Token");
 
             await erc1155OnTargetChain.connect(user).setApprovalForAll(tokenManagerERC11552.address, true);
-
-            await tokenManagerERC11552
-                .connect(user)
-                .transferToSchainERC1155(schainName, erc1155OnOriginChain.address, id, amount)
-                .should.be.eventually.rejectedWith("Sender contract is not registered");
-
-            await messageProxyForSchain2.registerExtraContract(schainName, tokenManagerERC11552.address);
 
             await tokenManagerERC11552
                 .connect(user)
@@ -724,13 +799,6 @@ describe("TokenManagerERC1155", () => {
                 .should.be.eventually.rejectedWith("Not allowed ERC1155 Token");
 
             await targetErc1155OnChain.connect(user).setApprovalForAll(tokenManagerERC11552.address, true);
-
-            await tokenManagerERC11552
-                .connect(user)
-                .transferToSchainERC1155(schainName, erc1155OnOriginChain.address, id, amount)
-                .should.be.eventually.rejectedWith("Sender contract is not registered");
-
-            await messageProxyForSchain2.registerExtraContract(schainName, tokenManagerERC11552.address);
 
             await tokenManagerERC11552
                 .connect(user)
@@ -887,13 +955,6 @@ describe("TokenManagerERC1155", () => {
 
             await tokenManagerERC11552
                 .connect(user)
-                .transferToSchainERC1155(schainName, erc1155OnOriginChain.address, id, amount)
-                .should.be.eventually.rejectedWith("Sender contract is not registered");
-
-            await messageProxyForSchain2.registerExtraContract(schainName, tokenManagerERC11552.address);
-
-            await tokenManagerERC11552
-                .connect(user)
                 .transferToSchainERC1155(schainName, erc1155OnOriginChain.address, id, amount);
 
             data = await messages.encodeTransferErc1155Message(
@@ -978,8 +1039,6 @@ describe("TokenManagerERC1155", () => {
         });
 
         it("should not be able to transfer X->Y->Z", async () => {
-            // await messageProxyForSchain.registerExtraContract(newSchainName, tokenManagerERC1155.address);
-
             // add connected chain:
             await messageProxyForSchain.connect(deployer).grantRole(await messageProxyForSchain.CHAIN_CONNECTOR_ROLE(), deployer.address);
             await messageProxyForSchain.connect(deployer).addConnectedChain(newSchainName);
@@ -1041,7 +1100,6 @@ describe("TokenManagerERC1155", () => {
             await messageProxyForSchain2.connect(deployer).grantRole(await messageProxyForSchain2.CHAIN_CONNECTOR_ROLE(), deployer.address);
             await messageProxyForSchain2.connect(deployer).addConnectedChain(newSchainNameZ);
 
-            await messageProxyForSchain2.registerExtraContract(newSchainNameZ, tokenManagerERC11552.address);
             await tokenManagerERC11552.addTokenManager(newSchainNameZ, tokenManagerERC1155Z.address);
 
             await erc1155OnTargetChain.connect(user).setApprovalForAll(tokenManagerERC11552.address, true);
@@ -1058,8 +1116,6 @@ describe("TokenManagerERC1155", () => {
         });
 
         it("should not be able to transfer main chain token or clone to mainnet", async () => {
-            // await messageProxyForSchain.registerExtraContract(newSchainName, tokenManagerERC1155.address);
-
             // add connected chain:
             await messageProxyForSchain.connect(deployer).grantRole(await messageProxyForSchain.CHAIN_CONNECTOR_ROLE(), deployer.address);
             await messageProxyForSchain.connect(deployer).addConnectedChain(newSchainName);
@@ -1117,8 +1173,6 @@ describe("TokenManagerERC1155", () => {
                 .exitToMainERC1155(erc1155OnTargetChain.address, id, amount)
                 .should.be.eventually.rejectedWith("Incorrect main chain token");
 
-            await messageProxyForSchain2.registerExtraContract(schainName, tokenManagerERC11552.address);
-
             await tokenManagerERC11552
                 .connect(user)
                 .transferToSchainERC1155(schainName, erc1155OnOriginChain.address, id, amount);
@@ -1170,6 +1224,7 @@ describe("TokenManagerERC1155", () => {
             tokenManagerERC11552 = await deployTokenManagerERC1155(newSchainName, messageProxyForSchain2.address, tokenManagerLinker2, communityLocker2, fakeDepositBox);
             await erc1155OnTargetChain.connect(deployer).grantRole(await erc1155OnTargetChain.MINTER_ROLE(), tokenManagerERC11552.address);
             await tokenManagerLinker2.registerTokenManager(tokenManagerERC11552.address);
+            await messageProxyForSchain2.registerExtraContractForAll(tokenManagerERC11552.address);
         });
 
         it("should invoke `transferToSchainERC1155` without mistakes", async () => {
@@ -1201,6 +1256,93 @@ describe("TokenManagerERC1155", () => {
             const outgoingMessagesCounter = BigNumber.from(
                 await messageProxyForSchain.getOutgoingMessagesCounter(newSchainName));
             outgoingMessagesCounter.should.be.deep.equal(BigNumber.from(1));
+        });
+
+        it("should reject `transferToSchainERC1155` when executing earlier then allowed", async () => {
+            // add connected chain:
+            await messageProxyForSchain.connect(deployer).grantRole(await messageProxyForSchain.CHAIN_CONNECTOR_ROLE(), deployer.address);
+            await messageProxyForSchain.connect(deployer).addConnectedChain(newSchainName);
+
+            await erc1155OnOriginChain.connect(deployer).mintBatch(user.address, ids, [5, 5, 5, 5], "0x");
+            await erc1155OnOriginChain.connect(user).setApprovalForAll(tokenManagerERC1155.address, true);
+
+            await tokenManagerERC1155
+                .connect(user)
+                .transferToSchainERC1155Batch(newSchainName, erc1155OnOriginChain.address, ids, [1, 1, 1, 1])
+                .should.be.eventually.rejectedWith("Incorrect Token Manager address");
+
+            await tokenManagerERC1155
+                .connect(user)
+                .transferToSchainERC1155Batch("Mainnet", erc1155OnOriginChain.address, ids, [1, 1, 1, 1])
+                .should.be.eventually.rejectedWith("This function is not for transferring to Mainnet");
+
+            await tokenManagerERC1155.addTokenManager(newSchainName, tokenManagerERC11552.address);
+
+            await tokenManagerERC1155
+                .connect(user)
+                .transferToSchainERC1155Batch(newSchainName, erc1155OnOriginChain.address, ids, [1, 1, 1, 1]);
+
+            BigNumber.from(await messageProxyForSchain.getOutgoingMessagesCounter(newSchainName)).should.be.deep.equal(BigNumber.from(1));
+
+
+            await tokenManagerERC1155
+                .connect(user)
+                .transferToSchainERC1155Batch(newSchainName, erc1155OnOriginChain.address, ids, [1, 1, 1, 1]);
+
+            BigNumber.from(await messageProxyForSchain.getOutgoingMessagesCounter(newSchainName)).should.be.deep.equal(BigNumber.from(2));
+
+            await communityLocker.grantRole(await communityLocker.CONSTANT_SETTER_ROLE(), deployer.address);
+
+            await communityLocker.setTimeLimitPerMessage(newSchainName, 100);
+
+            await tokenManagerERC1155
+                .connect(user)
+                .transferToSchainERC1155Batch(newSchainName, erc1155OnOriginChain.address, ids, [1, 1, 1, 1])
+                .should.be.eventually.rejectedWith("Exceeded message rate limit");
+
+            BigNumber.from(await messageProxyForSchain.getOutgoingMessagesCounter(newSchainName)).should.be.deep.equal(BigNumber.from(2));
+
+            await skipTime(90);
+
+            await tokenManagerERC1155
+                .connect(user)
+                .transferToSchainERC1155Batch(newSchainName, erc1155OnOriginChain.address, ids, [1, 1, 1, 1])
+                .should.be.eventually.rejectedWith("Exceeded message rate limit");
+
+            BigNumber.from(await messageProxyForSchain.getOutgoingMessagesCounter(newSchainName)).should.be.deep.equal(BigNumber.from(2));
+
+            await skipTime(20);
+
+            await tokenManagerERC1155
+                .connect(user)
+                .transferToSchainERC1155Batch(newSchainName, erc1155OnOriginChain.address, ids, [1, 1, 1, 1]);
+
+            BigNumber.from(await messageProxyForSchain.getOutgoingMessagesCounter(newSchainName)).should.be.deep.equal(BigNumber.from(3));
+
+            await communityLocker.setTimeLimitPerMessage(newSchainName, 0);
+
+            await tokenManagerERC1155
+                .connect(user)
+                .transferToSchainERC1155Batch(newSchainName, erc1155OnOriginChain.address, ids, [1, 1, 1, 1]);
+
+            BigNumber.from(await messageProxyForSchain.getOutgoingMessagesCounter(newSchainName)).should.be.deep.equal(BigNumber.from(4));
+
+            await communityLocker.setTimeLimitPerMessage(newSchainName, 100);
+
+            await tokenManagerERC1155
+                .connect(user)
+                .transferToSchainERC1155Batch(newSchainName, erc1155OnOriginChain.address, ids, [1, 1, 1, 1])
+                .should.be.eventually.rejectedWith("Exceeded message rate limit");
+
+            BigNumber.from(await messageProxyForSchain.getOutgoingMessagesCounter(newSchainName)).should.be.deep.equal(BigNumber.from(4));
+
+            await skipTime(110);
+
+            await tokenManagerERC1155
+                .connect(user)
+                .transferToSchainERC1155Batch(newSchainName, erc1155OnOriginChain.address, ids, [1, 1, 1, 1]);
+
+            BigNumber.from(await messageProxyForSchain.getOutgoingMessagesCounter(newSchainName)).should.be.deep.equal(BigNumber.from(5));
         });
 
         it("should invoke `transferToSchainERC1155` and receive tokens without mistakes", async () => {
@@ -1526,13 +1668,6 @@ describe("TokenManagerERC1155", () => {
 
             await tokenManagerERC11552
                 .connect(user)
-                .transferToSchainERC1155Batch(schainName, erc1155OnOriginChain.address, ids, amounts)
-                .should.be.eventually.rejectedWith("Sender contract is not registered");
-
-            await messageProxyForSchain2.registerExtraContract(schainName, tokenManagerERC11552.address);
-
-            await tokenManagerERC11552
-                .connect(user)
                 .transferToSchainERC1155Batch(schainName, erc1155OnOriginChain.address, ids, amounts);
 
             data = await messages.encodeTransferErc1155BatchMessage(
@@ -1620,13 +1755,6 @@ describe("TokenManagerERC1155", () => {
                 .should.be.eventually.rejectedWith("Not allowed ERC1155 Token");
 
             await erc1155OnTargetChain.connect(user).setApprovalForAll(tokenManagerERC11552.address, true);
-
-            await tokenManagerERC11552
-                .connect(user)
-                .transferToSchainERC1155Batch(schainName, erc1155OnOriginChain.address, ids, amounts)
-                .should.be.eventually.rejectedWith("Sender contract is not registered");
-
-            await messageProxyForSchain2.registerExtraContract(schainName, tokenManagerERC11552.address);
 
             await tokenManagerERC11552
                 .connect(user)
@@ -1729,13 +1857,6 @@ describe("TokenManagerERC1155", () => {
                 .should.be.eventually.rejectedWith("Not allowed ERC1155 Token");
 
             await targetErc1155OnChain.connect(user).setApprovalForAll(tokenManagerERC11552.address, true);
-
-            await tokenManagerERC11552
-                .connect(user)
-                .transferToSchainERC1155Batch(schainName, erc1155OnOriginChain.address, ids, amounts)
-                .should.be.eventually.rejectedWith("Sender contract is not registered");
-
-            await messageProxyForSchain2.registerExtraContract(schainName, tokenManagerERC11552.address);
 
             await tokenManagerERC11552
                 .connect(user)
@@ -1919,13 +2040,6 @@ describe("TokenManagerERC1155", () => {
 
             await tokenManagerERC11552
                 .connect(user)
-                .transferToSchainERC1155Batch(schainName, erc1155OnOriginChain.address, ids, amounts)
-                .should.be.eventually.rejectedWith("Sender contract is not registered");
-
-            await messageProxyForSchain2.registerExtraContract(schainName, tokenManagerERC11552.address);
-
-            await tokenManagerERC11552
-                .connect(user)
                 .transferToSchainERC1155Batch(schainName, erc1155OnOriginChain.address, ids, amounts);
 
             data = await messages.encodeTransferErc1155BatchMessage(
@@ -2037,8 +2151,6 @@ describe("TokenManagerERC1155", () => {
         });
 
         it("should not be able to transfer X->Y->Z", async () => {
-            // await messageProxyForSchain.registerExtraContract(newSchainName, tokenManagerERC1155.address);
-
             // add connected chain:
             await messageProxyForSchain.connect(deployer).grantRole(await messageProxyForSchain.CHAIN_CONNECTOR_ROLE(), deployer.address);
             await messageProxyForSchain.connect(deployer).addConnectedChain(newSchainName);
@@ -2105,7 +2217,6 @@ describe("TokenManagerERC1155", () => {
             await messageProxyForSchain2.connect(deployer).grantRole(await messageProxyForSchain2.CHAIN_CONNECTOR_ROLE(), deployer.address);
             await messageProxyForSchain2.connect(deployer).addConnectedChain(newSchainNameZ);
 
-            await messageProxyForSchain2.registerExtraContract(newSchainNameZ, tokenManagerERC11552.address);
             await tokenManagerERC11552.addTokenManager(newSchainNameZ, tokenManagerERC1155Z.address);
 
             await erc1155OnTargetChain.connect(user).setApprovalForAll(tokenManagerERC11552.address, true);
@@ -2122,8 +2233,6 @@ describe("TokenManagerERC1155", () => {
         });
 
         it("should not be able to transfer main chain token or clone to mainnet", async () => {
-            // await messageProxyForSchain.registerExtraContract(newSchainName, tokenManagerERC1155.address);
-
             // add connected chain:
             await messageProxyForSchain.connect(deployer).grantRole(await messageProxyForSchain.CHAIN_CONNECTOR_ROLE(), deployer.address);
             await messageProxyForSchain.connect(deployer).addConnectedChain(newSchainName);
@@ -2185,8 +2294,6 @@ describe("TokenManagerERC1155", () => {
                 .connect(user)
                 .exitToMainERC1155Batch(erc1155OnTargetChain.address, ids, amounts)
                 .should.be.eventually.rejectedWith("Incorrect main chain token");
-
-            await messageProxyForSchain2.registerExtraContract(schainName, tokenManagerERC11552.address);
 
             await tokenManagerERC11552
                 .connect(user)

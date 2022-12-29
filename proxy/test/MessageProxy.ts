@@ -40,8 +40,7 @@ import {
     EtherbaseMock,
     SchainsInternal
 } from "../typechain/";
-import { randomString, stringToHex, getPublicKey } from "./utils/helper";
-import ABIReceiverMock = require("../artifacts/contracts/test/ReceiverMock.sol/ReceiverMock.json");
+import { stringToHex, getPublicKey } from "./utils/helper";
 import { deployLinker } from "./utils/deploy/mainnet/linker";
 import { deployMessageProxyForMainnet } from "./utils/deploy/mainnet/messageProxyForMainnet";
 import { deployDepositBoxEth } from "./utils/deploy/mainnet/depositBoxEth";
@@ -52,15 +51,14 @@ import { setCommonPublicKey } from "./utils/skale-manager-utils/keyStorage";
 import { deployMessageProxyCaller } from "./utils/deploy/test/messageProxyCaller";
 import { deployMessages } from "./utils/deploy/messages";
 import { deployKeyStorageMock } from "./utils/deploy/test/keyStorageMock";
-import { ethers, web3 } from "hardhat";
+import { ethers } from "hardhat";
 import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/dist/src/signer-with-address";
 import { BigNumber, Wallet } from "ethers";
-import { assert, expect } from "chai";
+import { expect } from "chai";
 import { MessageProxyForSchainTester } from "../typechain/MessageProxyForSchainTester";
 import { deployMessageProxyForSchainTester } from "./utils/deploy/test/messageProxyForSchainTester";
 import { deployCommunityPool } from "./utils/deploy/mainnet/communityPool";
 import { createNode } from "./utils/skale-manager-utils/nodes";
-import { skipTime } from "./utils/time";
 
 chai.should();
 chai.use((chaiAsPromised));
@@ -173,7 +171,7 @@ describe("MessageProxy", () => {
         });
 
         it("should detect registration state by `isConnectedChain` function", async () => {
-            const newSchainName = randomString(10);
+            const newSchainName = "NewSchainName";
             const isConnectedChain = await messageProxyForMainnet.isConnectedChain(newSchainName);
             isConnectedChain.should.be.deep.equal(Boolean(false));
             await messageProxyForMainnet.connect(deployer).addConnectedChain(newSchainName);
@@ -214,7 +212,7 @@ describe("MessageProxy", () => {
             notConnectedChain.should.be.deep.equal(Boolean(false));
         });
 
-        it("should post outgoing message", async () => {
+        it("should post outgoing message twice", async () => {
             const contractAddress = messageProxyForMainnet.address;
             const amount = 4;
             const bytesData = await messages.encodeTransferEthMessage(user.address, amount);
@@ -224,11 +222,29 @@ describe("MessageProxy", () => {
                 .should.be.rejectedWith("Destination chain is not initialized");
 
             await messageProxyForMainnet.connect(deployer).addConnectedChain(schainName);
-            await caller
-                .postOutgoingMessageTester(messageProxyForMainnet.address, schainHash, contractAddress, bytesData);
-            const outgoingMessagesCounter = BigNumber.from(
-                await messageProxyForMainnet.getOutgoingMessagesCounter(schainName));
+            const message1 = caller.postOutgoingMessageTester(messageProxyForMainnet.address, schainHash, contractAddress, bytesData);
+
+            await expect(message1)
+                .to.emit(messageProxyForMainnet, 'PreviousMessageReference')
+                .withArgs(0, 0);
+
+            let outgoingMessagesCounter = BigNumber.from(
+                await messageProxyForMainnet.getOutgoingMessagesCounter(schainName)
+            );
             outgoingMessagesCounter.should.be.deep.equal(BigNumber.from(1));
+            const lastOutgoingMessageBlockId = BigNumber.from(
+                await messageProxyForMainnet.getLastOutgoingMessageBlockId(schainName)
+            );
+
+            const message2 = caller.postOutgoingMessageTester(messageProxyForMainnet.address, schainHash, contractAddress, bytesData);
+            await expect(message2)
+                .to.emit(messageProxyForMainnet, 'PreviousMessageReference')
+                .withArgs(1, lastOutgoingMessageBlockId);
+
+            outgoingMessagesCounter = BigNumber.from(
+                await messageProxyForMainnet.getOutgoingMessagesCounter(schainName)
+            );
+            outgoingMessagesCounter.should.be.deep.equal(BigNumber.from(2));
         });
 
         it("should pause with a role and unpause", async () => {
@@ -363,6 +379,7 @@ describe("MessageProxy", () => {
             await setCommonPublicKey(contractManager, schainName);
             await messageProxyForMainnet.registerExtraContract(schainName, communityPool.address);
             await depositBox.addSchainContract(schainName, deployer.address);
+            await communityPool.addSchainContract(schainName, deployer.address);
             const minTransactionGas = await communityPool.minTransactionGas();
             const amountWei = minTransactionGas.mul(gasPrice);
 
@@ -433,7 +450,7 @@ describe("MessageProxy", () => {
             incomingMessagesCounter.should.be.deep.equal(BigNumber.from(4));
         });
 
-        it("should not post incoming messages when IMA bridge is paused", async () => {
+        it("should post incoming message and reimburse from CommunityPool", async () => {
             const startingCounter = 0;
             await initializeSchain(contractManager, schainName, deployer.address, 1, 1);
             const nodeCreationParams = {
@@ -451,6 +468,97 @@ describe("MessageProxy", () => {
             await setCommonPublicKey(contractManager, schainName);
             await messageProxyForMainnet.registerExtraContract(schainName, communityPool.address);
             await depositBox.addSchainContract(schainName, deployer.address);
+            const minTransactionGas = await communityPool.minTransactionGas();
+            const amountWei = minTransactionGas.mul(gasPrice).mul(2);
+
+            await messageProxyForMainnet.registerExtraContract(schainName, depositBox.address);
+
+            const message1 = {
+                destinationContract: depositBox.address,
+                sender: deployer.address,
+                data: await messages.encodeTransferEthMessage(client.address, 1),
+            };
+
+            const outgoingMessages = [message1];
+            const sign = {
+                blsSignature: BlsSignature,
+                counter: Counter,
+                hashA: HashA,
+                hashB: HashB,
+            };
+
+            await messageProxyForMainnet.connect(deployer).addConnectedChain(schainName);
+            await communityPool.connect(deployer).addSchainContract(schainName, communityPool.address);
+
+            await communityPool.connect(client).rechargeUserWallet(schainName, client.address, {value: amountWei.toString()});
+
+            const testWalletsFactory = await ethers.getContractFactory("Wallets");
+            const testWallets = testWalletsFactory.attach(await contractManager.getContract("Wallets"));
+
+            let balance = await testWallets.getSchainBalance(schainHash);
+            let userBalance = await communityPool.getBalance(client.address, schainName);
+
+            const overrides = {
+                gasPrice
+            }
+
+            await messageProxyForMainnet
+                .connect(nodeAddress)
+                .postIncomingMessages(
+                    schainName,
+                    startingCounter,
+                    outgoingMessages,
+                    sign,
+                    overrides
+                );
+
+            let newBalance = await testWallets.getSchainBalance(schainHash);
+            let newUserBalance = await communityPool.getBalance(client.address, schainName);
+
+            newBalance.should.be.lt(balance);
+            newUserBalance.should.be.deep.equal(userBalance);
+
+            await messageProxyForMainnet.addReimbursedContract(schainName, depositBox.address);
+
+            balance = newBalance;
+            userBalance = newUserBalance;
+
+            await messageProxyForMainnet
+                .connect(nodeAddress)
+                .postIncomingMessages(
+                    schainName,
+                    startingCounter + 1,
+                    outgoingMessages,
+                    sign,
+                    overrides
+                );
+
+            newBalance = await testWallets.getSchainBalance(schainHash);
+            newUserBalance = await communityPool.getBalance(client.address, schainName);
+
+            newBalance.should.be.deep.equal(balance);
+            newUserBalance.toNumber().should.be.lessThan(userBalance.toNumber());
+        });
+
+        it("should not post incoming messages when IMA bridge is paused", async () => {
+            const startingCounter = 0;
+            await initializeSchain(contractManager, schainName, deployer.address, 1, 1);
+            const nodeCreationParams = {
+                port: 1337,
+                nonce: 1337,
+                ip: "0x12345678",
+                publicIp: "0x12345678",
+                publicKey: getPublicKey(nodeAddress),
+                name: "GasCalculationNode",
+                domainName: "gascalculationnode.com"
+            };
+            await createNode(contractManager, nodeAddress.address, nodeCreationParams);
+            await addNodesToSchain(contractManager, schainName, [0]);
+            await setCommonPublicKey(contractManager, schainName);
+            await messageProxyForMainnet.registerExtraContract(schainName, communityPool.address);
+            await depositBox.addSchainContract(schainName, deployer.address);
+            await communityPool.addSchainContract(schainName, deployer.address);
+            await rechargeSchainWallet(contractManager, schainName, deployer.address, "1000000000000000000");
             const minTransactionGas = await communityPool.minTransactionGas();
             const amountWei = minTransactionGas.mul(gasPrice);
 
@@ -569,6 +677,7 @@ describe("MessageProxy", () => {
             await setCommonPublicKey(contractManager, schainName);
             await messageProxyForMainnet.registerExtraContract(schainName, communityPool.address);
             await depositBox.addSchainContract(schainName, deployer.address);
+            await communityPool.addSchainContract(schainName, deployer.address);
             const minTransactionGas = await communityPool.minTransactionGas();
             const amountWei = minTransactionGas.mul(gasPrice);
 
@@ -1032,6 +1141,30 @@ describe("MessageProxy", () => {
                     .should.be.eventually.rejectedWith("Extra contract is already registered");
             });
 
+            it("should register reimbursed contract", async () => {
+                const fakeContractOnSchain = deployer.address;
+                await messageProxyForMainnet.connect(user).addReimbursedContract(schainName,  depositBox.address)
+                    .should.be.eventually.rejectedWith("Not enough permissions to add reimbursed contract");
+                await messageProxyForMainnet.addReimbursedContract(schainName, fakeContractOnSchain)
+                    .should.be.eventually.rejectedWith("Given address is not a contract");
+                await messageProxyForMainnet.addReimbursedContract(schainName, depositBox.address)
+                    .should.be.eventually.rejectedWith("Contract is not registered");
+
+                expect((await messageProxyForMainnet.getReimbursedContractsLength(schainHash)).toString()).to.be.equal("0");
+                expect(await messageProxyForMainnet.isReimbursedContract(schainHash, depositBox.address)).to.be.equal(false);
+                await messageProxyForMainnet.registerExtraContract(schainName, depositBox.address);
+                await messageProxyForMainnet.addReimbursedContract(schainName, depositBox.address);
+                expect(await messageProxyForMainnet.isReimbursedContract(schainHash, depositBox.address)).to.be.equal(true);
+                expect((await messageProxyForMainnet.getReimbursedContractsLength(schainHash)).toString()).to.be.equal("1");
+                expect((await messageProxyForMainnet.getReimbursedContractsRange(schainHash, 0, 1)).length).to.be.equal(1);
+                expect((await messageProxyForMainnet.getReimbursedContractsRange(schainHash, 0, 1))[0]).to.be.equal(depositBox.address);
+                await messageProxyForMainnet.getReimbursedContractsRange(schainHash, 0, 11).should.be.eventually.rejectedWith("Range is incorrect");
+                await messageProxyForMainnet.getReimbursedContractsRange(schainHash, 1, 0).should.be.eventually.rejectedWith("Range is incorrect");;
+
+                await messageProxyForMainnet.addReimbursedContract(schainName, depositBox.address)
+                    .should.be.eventually.rejectedWith("Reimbursed contract is already added");
+            });
+
             it("should remove extra contract", async () => {
                 const fakeContractOnSchain = deployer.address;
                 await messageProxyForMainnet.connect(user).removeExtraContract(schainName,  depositBox.address)
@@ -1085,6 +1218,64 @@ describe("MessageProxy", () => {
 
                 await messageProxyForMainnet.removeExtraContractForAll(depositBox.address)
                     .should.be.eventually.rejectedWith("Extra contract is not registered");
+            });
+
+            it("should remove reimbursed contract", async () => {
+                const fakeContractOnSchain = deployer.address;
+                await messageProxyForMainnet.connect(user).removeReimbursedContract(schainName,  depositBox.address)
+                    .should.be.eventually.rejectedWith("Not enough permissions to remove reimbursed contract");
+                await messageProxyForMainnet.removeReimbursedContract(schainName, fakeContractOnSchain)
+                    .should.be.eventually.rejectedWith("Reimbursed contract is not added");
+
+                expect((await messageProxyForMainnet.getReimbursedContractsLength(schainHash)).toString()).to.be.equal("0");
+                await messageProxyForMainnet.registerExtraContract(schainName, depositBox.address);
+                await expect(
+                    messageProxyForMainnet.addReimbursedContract(schainName, depositBox.address)
+                ).to.emit(
+                    messageProxyForMainnet,
+                    "ReimbursedContractAdded"
+                ).withArgs(schainHash, depositBox.address);
+                expect((await messageProxyForMainnet.getReimbursedContractsLength(schainHash)).toString()).to.be.equal("1");
+                await expect(
+                    messageProxyForMainnet.removeReimbursedContract(schainName, depositBox.address)
+                ).to.emit(
+                    messageProxyForMainnet,
+                    "ReimbursedContractRemoved"
+                ).withArgs(schainHash, depositBox.address);
+                expect((await messageProxyForMainnet.getReimbursedContractsLength(schainHash)).toString()).to.be.equal("0");
+
+                await messageProxyForMainnet.removeReimbursedContract(schainName, depositBox.address)
+                    .should.be.eventually.rejectedWith("Reimbursed contract is not added");
+                expect(await messageProxyForMainnet.isReimbursedContract(schainHash, depositBox.address)).to.be.equal(false);
+            });
+
+            it("should remove reimbursed contract when remove extra contract", async () => {
+                const fakeContractOnSchain = deployer.address;
+                await messageProxyForMainnet.connect(user).removeReimbursedContract(schainName,  depositBox.address)
+                    .should.be.eventually.rejectedWith("Not enough permissions to remove reimbursed contract");
+                await messageProxyForMainnet.removeReimbursedContract(schainName, fakeContractOnSchain)
+                    .should.be.eventually.rejectedWith("Reimbursed contract is not added");
+
+                expect((await messageProxyForMainnet.getReimbursedContractsLength(schainHash)).toString()).to.be.equal("0");
+                await messageProxyForMainnet.registerExtraContract(schainName, depositBox.address);
+                await expect(
+                    messageProxyForMainnet.addReimbursedContract(schainName, depositBox.address)
+                ).to.emit(
+                    messageProxyForMainnet,
+                    "ReimbursedContractAdded"
+                ).withArgs(schainHash, depositBox.address);
+                expect((await messageProxyForMainnet.getReimbursedContractsLength(schainHash)).toString()).to.be.equal("1");
+                await expect(
+                    messageProxyForMainnet.removeExtraContract(schainName, depositBox.address)
+                ).to.emit(
+                    messageProxyForMainnet,
+                    "ReimbursedContractRemoved"
+                ).withArgs(schainHash, depositBox.address);
+                expect((await messageProxyForMainnet.getReimbursedContractsLength(schainHash)).toString()).to.be.equal("0");
+
+                await messageProxyForMainnet.removeReimbursedContract(schainName, depositBox.address)
+                    .should.be.eventually.rejectedWith("Reimbursed contract is not added");
+                expect(await messageProxyForMainnet.isReimbursedContract(schainHash, depositBox.address)).to.be.equal(false);
             });
         });
 
@@ -1473,6 +1664,11 @@ describe("MessageProxy", () => {
 
                 await deployer.sendTransaction({to: agent.address, value: rest});
             });
+        });
+
+        it("should not allow anyone to top up balance with sFuel", async () => {
+            await messageProxyForSchain.connect(user).topUpReceiverBalance(user.address)
+                .should.be.rejectedWith("Sender is not registered");
         });
 
         describe("register and remove extra contracts", async () => {

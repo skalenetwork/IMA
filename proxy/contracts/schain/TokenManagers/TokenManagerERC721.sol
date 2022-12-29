@@ -98,7 +98,7 @@ contract TokenManagerERC721 is TokenManager, ITokenManagerERC721 {
         external
         override
     {
-        communityLocker.checkAllowedToSendMessage(msg.sender);
+        communityLocker.checkAllowedToSendMessage(MAINNET_HASH, msg.sender);
         _exit(MAINNET_HASH, depositBox, contractOnMainnet, msg.sender, tokenId);
     }
 
@@ -118,6 +118,7 @@ contract TokenManagerERC721 is TokenManager, ITokenManagerERC721 {
         rightTransaction(targetSchainName, msg.sender)
     {
         bytes32 targetSchainHash = keccak256(abi.encodePacked(targetSchainName));
+        communityLocker.checkAllowedToSendMessage(targetSchainHash, msg.sender);
         _exit(targetSchainHash, tokenManagers[targetSchainHash], contractOnMainnet, msg.sender, tokenId);
     }
 
@@ -245,6 +246,7 @@ contract TokenManagerERC721 is TokenManager, ITokenManagerERC721 {
             contractOnSchain.mint(receiver, tokenId);
         }
         emit ERC721TokenReceived(fromChainHash, token, address(contractOnSchain), tokenId);
+        messageProxy.topUpReceiverBalance(payable(receiver));
         return receiver;
     }
 

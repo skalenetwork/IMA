@@ -78,7 +78,6 @@ BASE_OPTIONS="--gas-price-multiplier=$GAS_PRICE_MULTIPLIER \
 --cid-s-chain=$CID_SCHAIN \
 --abi-main-net=$MAINNET_PROXY_PATH \
 --abi-s-chain=$SCHAIN_PROXY_PATH \
---state-file=$STATE_FILE \
 --sgx-url-s-chain=$SGX_URL \
 --sgx-ecdsa-key-s-chain=$ECDSA_KEY_NAME \
 --sgx-ssl-key-s-chain=$SGX_SSL_KEY_PATH \
@@ -86,7 +85,9 @@ BASE_OPTIONS="--gas-price-multiplier=$GAS_PRICE_MULTIPLIER \
 --address-main-net=$NODE_ADDRESS \
 --address-s-chain=$NODE_ADDRESS \
 --sign-messages \
+--gathered \
 --expose \
+--no-expose-security-info \
 --skip-dry-run \
 --bls-glue=/ima/bls_binaries/bls_glue \
 --hash-g1=/ima/bls_binaries/hash_g1 \
