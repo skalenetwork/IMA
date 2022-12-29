@@ -40,7 +40,8 @@ import {
     TokenManagerERC721,
     TokenManagerEth,
     TokenManagerLinker,
-    TokenManagerERC721WithMetadata
+    TokenManagerERC721WithMetadata,
+    MessageProxyForSchainWithoutSignature
 } from '../typechain';
 import { TokenManagerERC1155 } from '../typechain/TokenManagerERC1155';
 import { getVersion } from './tools/version';
@@ -154,17 +155,19 @@ async function main() {
     deployed.set( "KeyStorage", { address: keyStorage.address, interface: keyStorage.interface } );
     console.log("Contract KeyStorage deployed to", keyStorage.address);
 
-    let messageProxy: Contract;
+    let messageProxy: MessageProxyForSchain | MessageProxyForSchainWithoutSignature;
     if( process.env.NO_SIGNATURES === "true" ) {
         console.log( "Deploy IMA without signature verification" );
         console.log("Deploy MessageProxyForSchainWithoutSignature");
-        messageProxy = await (await ethers.getContractFactory("MessageProxyForSchainWithoutSignature")).deploy(schainName);
+        messageProxy = await
+            (await ethers.getContractFactory("MessageProxyForSchainWithoutSignature"))
+            .deploy(schainName) as MessageProxyForSchainWithoutSignature;
     } else {
         console.log("Deploy MessageProxyForSchain");
         messageProxy = await upgrades.deployProxy(
             await ethers.getContractFactory("MessageProxyForSchain"),
             [keyStorage.address, schainName]
-        );
+        ) as MessageProxyForSchain;
     }
     await messageProxy.deployTransaction.wait();
     deployed.set( "MessageProxyForSchain", { address: messageProxy.address, interface: messageProxy.interface } );
@@ -172,7 +175,7 @@ async function main() {
 
     try {
         console.log(`Set version ${version}`)
-        await (await (messageProxy as MessageProxyForSchain).setVersion(version)).wait();
+        await (await messageProxy.setVersion(version)).wait();
     } catch {
         console.log("Failed to set ima version on schain");
     }

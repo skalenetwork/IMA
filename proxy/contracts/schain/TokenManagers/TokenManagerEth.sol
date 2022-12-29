@@ -54,7 +54,7 @@ contract TokenManagerEth is TokenManager, ITokenManagerEth {
      * EthErc20 tokens are burned on schain and ETH are unlocked on mainnet for {to} address.
      */
     function exitToMain(uint256 amount) external override {
-        communityLocker.checkAllowedToSendMessage(msg.sender);
+        communityLocker.checkAllowedToSendMessage(MAINNET_HASH, msg.sender);
         _exit(MAINNET_HASH, depositBox, msg.sender, amount);
     }
 
@@ -81,6 +81,7 @@ contract TokenManagerEth is TokenManager, ITokenManagerEth {
         address receiver = decodedMessage.receiver;
         require(receiver != address(0), "Incorrect receiver");
         ethErc20.mint(receiver, decodedMessage.amount);
+        messageProxy.topUpReceiverBalance(payable(receiver));
     }
 
     /**

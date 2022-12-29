@@ -37,7 +37,7 @@ import {
     ERC20OnChain,
     CommunityPool
 } from "../typechain";
-import { randomString, stringFromHex, stringValue, getPublicKey } from "./utils/helper";
+import { stringFromHex, stringValue, getPublicKey } from "./utils/helper";
 
 import chai = require("chai");
 import chaiAlmost = require("chai-almost");
@@ -277,6 +277,7 @@ describe("DepositBoxEth", () => {
             await messageProxy.addConnectedChain(schainName);
             await initializeSchain(contractManager, schainName, deployer.address, 1, 1);
             await setCommonPublicKey(contractManager, schainName);
+            await communityPool.addSchainContract(schainName, deployer.address);
             await communityPool
                 .connect(user)
                 .rechargeUserWallet(schainName, user.address, { value: wei });

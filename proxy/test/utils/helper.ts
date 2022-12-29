@@ -29,16 +29,6 @@ const secp256k1EC = new ec("secp256k1");
  * @copyright SKALE Labs 2019-Present
  */
 
-export function randomString(length: number) {
-    const random13chars = () => {
-        return Math.random().toString(16).substring(2, 15);
-    };
-    const loops = Math.ceil(length / 13);
-    return new Array(loops).fill(random13chars).reduce((stringg, func) => {
-        return stringg + func();
-    }, "").substring(0, length);
-}
-
 export function createBytes32(str: string) {
     const numberOfSymbolsInBytes32: number = 64;
     const length: number = str.length;
