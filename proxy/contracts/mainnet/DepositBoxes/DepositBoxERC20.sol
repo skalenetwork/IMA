@@ -25,7 +25,8 @@ import "@openzeppelin/contracts-upgradeable/utils/AddressUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/utils/math/MathUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/utils/structs/DoubleEndedQueueUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/utils/structs/EnumerableSetUpgradeable.sol";
-import "@openzeppelin/contracts-upgradeable/token/ERC20/ERC20Upgradeable.sol";
+import "@openzeppelin/contracts-upgradeable/token/ERC20/extensions/IERC20MetadataUpgradeable.sol";
+import "@openzeppelin/contracts-upgradeable/token/ERC20/utils/SafeERC20Upgradeable.sol";
 import "@skalenetwork/ima-interfaces/mainnet/DepositBoxes/IDepositBoxERC20.sol";
 
 import "../../Messages.sol";
@@ -47,6 +48,8 @@ contract DepositBoxERC20 is DepositBox, IDepositBoxERC20 {
     using AddressUpgradeable for address;
     using DoubleEndedQueueUpgradeable for DoubleEndedQueueUpgradeable.Bytes32Deque;
     using EnumerableSetUpgradeable for EnumerableSetUpgradeable.AddressSet;
+    using SafeERC20Upgradeable for IERC20MetadataUpgradeable;
+    using SafeERC20Upgradeable for IERC20Upgradeable;
 
     enum DelayedTransferStatus {
         DELAYED,
@@ -68,10 +71,9 @@ contract DepositBoxERC20 is DepositBox, IDepositBoxERC20 {
         mapping(address => uint256) bigTransferThreshold;
         EnumerableSetUpgradeable.AddressSet trustedReceivers;
         uint256 transferDelay;
-        uint256 arbitrageDuration;    
+        uint256 arbitrageDuration;
     }
 
-    address private constant _USDT_ADDRESS = 0xdAC17F958D2ee523a2206206994597C13D831ec7;
     uint256 private constant _QUEUE_PROCESSING_LIMIT = 10;
 
     bytes32 public constant ARBITER_ROLE = keccak256("ARBITER_ROLE");
@@ -85,19 +87,19 @@ contract DepositBoxERC20 is DepositBox, IDepositBoxERC20 {
 
     // exits delay configuration
     //   schainHash => delay config
-    mapping(bytes32 => DelayConfig) private _delayConfig;    
+    mapping(bytes32 => DelayConfig) private _delayConfig;
 
     uint256 public delayedTransfersSize;
     // delayed transfer id => delayed transfer
     mapping(uint256 => DelayedTransfer) public delayedTransfers;
     // receiver address => delayed transfers ids queue
-    mapping(address => DoubleEndedQueueUpgradeable.Bytes32Deque) public delayedTransfersByReceiver;    
+    mapping(address => DoubleEndedQueueUpgradeable.Bytes32Deque) public delayedTransfersByReceiver;
 
     /**
      * @dev Emitted when token is mapped in DepositBoxERC20.
      */
     event ERC20TokenAdded(string schainName, address indexed contractOnMainnet);
-    
+
     /**
      * @dev Emitted when token is received by DepositBox and is ready to be cloned
      * or transferred on SKALE chain.
@@ -109,10 +111,43 @@ contract DepositBoxERC20 is DepositBox, IDepositBoxERC20 {
     event Escalated(uint256 id);
 
     /**
-     * @dev Allows `msg.sender` to send ERC20 token from mainnet to schain.
-     * 
+     * @dev Emitted when token transfer is skipped due to internal token error
+     */
+    event TransferSkipped(uint256 id);
+
+    /**
+     * @dev Emitted when big transfer threshold is changed
+     */
+    event BigTransferThresholdIsChanged(
+        bytes32 indexed schainHash,
+        address indexed token,
+        uint256 oldValue,
+        uint256 newValue
+    );
+
+    /**
+     * @dev Emitted when big transfer delay is changed
+     */
+    event BigTransferDelayIsChanged(
+        bytes32 indexed schainHash,
+        uint256 oldValue,
+        uint256 newValue
+    );
+
+    /**
+     * @dev Emitted when arbitrage duration is changed
+     */
+    event ArbitrageDurationIsChanged(
+        bytes32 indexed schainHash,
+        uint256 oldValue,
+        uint256 newValue
+    );
+
+    /**
+     * @dev Allows `msg.sender` to send ERC20 token from mainnet to schain
+     *
      * Requirements:
-     * 
+     *
      * - Schain name must not be `Mainnet`.
      * - Receiver account on schain cannot be null.
      * - Schain that receives tokens should not be killed.
@@ -132,9 +167,9 @@ contract DepositBoxERC20 is DepositBox, IDepositBoxERC20 {
 
     /**
      * @dev Allows MessageProxyForMainnet contract to execute transferring ERC20 token from schain to mainnet.
-     * 
+     *
      * Requirements:
-     * 
+     *
      * - Schain from which the tokens came should not be killed.
      * - Sender contract should be defined and schain name cannot be `Mainnet`.
      * - Amount of tokens on DepositBoxERC20 should be equal or more than transferred amount.
@@ -152,7 +187,10 @@ contract DepositBoxERC20 is DepositBox, IDepositBoxERC20 {
     {
         Messages.TransferErc20Message memory message = Messages.decodeTransferErc20Message(data);
         require(message.token.isContract(), "Given address is not a contract");
-        require(ERC20Upgradeable(message.token).balanceOf(address(this)) >= message.amount, "Not enough money");
+        require(
+            IERC20MetadataUpgradeable(message.token).balanceOf(address(this)) >= message.amount,
+            "Not enough money"
+        );
         _removeTransferredAmount(schainHash, message.token, message.amount);
 
         uint256 delay = _delayConfig[schainHash].transferDelay;
@@ -161,19 +199,19 @@ contract DepositBoxERC20 is DepositBox, IDepositBoxERC20 {
             && _delayConfig[schainHash].bigTransferThreshold[message.token] <= message.amount
             && !isReceiverTrusted(schainHash, message.receiver)
         ) {
-            _createDelayedTransfer(schainHash, message, delay);            
+            _createDelayedTransfer(schainHash, message, delay);
         } else {
-            _transfer(message.token, message.receiver, message.amount);
+            IERC20MetadataUpgradeable(message.token).safeTransfer(message.receiver, message.amount);
         }
     }
 
     /**
      * @dev Allows Schain owner to add an ERC20 token to DepositBoxERC20.
-     * 
+     *
      * Emits an {ERC20TokenAdded} event.
-     * 
+     *
      * Requirements:
-     * 
+     *
      * - Schain should not be killed.
      * - Only owner of the schain able to run function.
      */
@@ -188,11 +226,11 @@ contract DepositBoxERC20 is DepositBox, IDepositBoxERC20 {
 
     /**
      * @dev Allows Schain owner to return each user their tokens.
-     * The Schain owner decides which tokens to send to which address, 
+     * The Schain owner decides which tokens to send to which address,
      * since the contract on mainnet does not store information about which tokens belong to whom.
      *
      * Requirements:
-     * 
+     *
      * - Amount of tokens on schain should be equal or more than transferred amount.
      * - msg.sender should be an owner of schain
      * - IMA transfers Mainnet <-> schain should be killed
@@ -206,10 +244,7 @@ contract DepositBoxERC20 is DepositBox, IDepositBoxERC20 {
         bytes32 schainHash = _schainHash(schainName);
         require(transferredAmount[schainHash][erc20OnMainnet] >= amount, "Incorrect amount");
         _removeTransferredAmount(schainHash, erc20OnMainnet, amount);
-        require(
-            ERC20Upgradeable(erc20OnMainnet).transfer(receiver, amount),
-            "Transfer was failed"
-        );
+        IERC20MetadataUpgradeable(erc20OnMainnet).safeTransfer(receiver, amount);
     }
 
     /**
@@ -219,7 +254,7 @@ contract DepositBoxERC20 is DepositBox, IDepositBoxERC20 {
      * and can be canceled by a voting
      *
      * Requirements:
-     * 
+     *
      * - msg.sender should be an owner of schain
      */
     function setBigTransferValue(
@@ -232,7 +267,13 @@ contract DepositBoxERC20 is DepositBox, IDepositBoxERC20 {
         onlySchainOwner(schainName)
     {
         bytes32 schainHash = _schainHash(schainName);
-        _delayConfig[schainHash].bigTransferThreshold[token] = value;   
+        emit BigTransferThresholdIsChanged(
+            schainHash,
+            token,
+            _delayConfig[schainHash].bigTransferThreshold[token],
+            value
+        );
+        _delayConfig[schainHash].bigTransferThreshold[token] = value;
     }
 
     /**
@@ -242,7 +283,7 @@ contract DepositBoxERC20 is DepositBox, IDepositBoxERC20 {
      * and can be canceled by a voting
      *
      * Requirements:
-     * 
+     *
      * - msg.sender should be an owner of schain
      */
     function setBigTransferDelay(
@@ -256,7 +297,8 @@ contract DepositBoxERC20 is DepositBox, IDepositBoxERC20 {
         bytes32 schainHash = _schainHash(schainName);
         // need to restrict big delays to avoid overflow
         require(delayInSeconds < 1e8, "Delay is too big"); // no more then ~ 3 years
-        _delayConfig[schainHash].transferDelay = delayInSeconds;   
+        emit BigTransferDelayIsChanged(schainHash, _delayConfig[schainHash].transferDelay, delayInSeconds);
+        _delayConfig[schainHash].transferDelay = delayInSeconds;
     }
 
     /**
@@ -264,7 +306,7 @@ contract DepositBoxERC20 is DepositBox, IDepositBoxERC20 {
      * After escalation the transfer is locked for provided period of time.
      *
      * Requirements:
-     * 
+     *
      * - msg.sender should be an owner of schain
      */
     function setArbitrageDuration(
@@ -278,13 +320,14 @@ contract DepositBoxERC20 is DepositBox, IDepositBoxERC20 {
         bytes32 schainHash = _schainHash(schainName);
         // need to restrict big delays to avoid overflow
         require(delayInSeconds < 1e8, "Delay is too big"); // no more then ~ 3 years
-        _delayConfig[schainHash].arbitrageDuration = delayInSeconds;   
+        emit ArbitrageDurationIsChanged(schainHash, _delayConfig[schainHash].arbitrageDuration, delayInSeconds);
+        _delayConfig[schainHash].arbitrageDuration = delayInSeconds;
     }
 
     /**
      * @dev Add the address to a whitelist of addresses that can do big transfers without delaying
      * Requirements:
-     * 
+     *
      * - msg.sender should be an owner of schain
      * - the address must not be in the whitelist
      */
@@ -299,13 +342,13 @@ contract DepositBoxERC20 is DepositBox, IDepositBoxERC20 {
         require(
             _delayConfig[_schainHash(schainName)].trustedReceivers.add(receiver),
             "Receiver already is trusted"
-        );        
+        );
     }
 
     /**
      * @dev Remove the address from a whitelist of addresses that can do big transfers without delaying
      * Requirements:
-     * 
+     *
      * - msg.sender should be an owner of schain
      * - the address must be in the whitelist
      */
@@ -332,7 +375,7 @@ contract DepositBoxERC20 is DepositBox, IDepositBoxERC20 {
      * @dev Initialize arbitrage of a suspicious big transfer
      *
      * Requirements:
-     * 
+     *
      * - msg.sender should be an owner of schain or have ARBITER_ROLE role
      * - transfer must be delayed and arbitrage must not be started
      */
@@ -355,7 +398,7 @@ contract DepositBoxERC20 is DepositBox, IDepositBoxERC20 {
      * @dev Approve a big transfer and immidiately transfer tokens during arbitrage
      *
      * Requirements:
-     * 
+     *
      * - msg.sender should be an owner of schain
      * - arbitrage of the transfer must be started
      */
@@ -370,14 +413,14 @@ contract DepositBoxERC20 is DepositBox, IDepositBoxERC20 {
         require(transfer.status == DelayedTransferStatus.ARBITRAGE, "Arbitrage has to be active");
         transfer.status = DelayedTransferStatus.COMPLETED;
         delete transfer.untilTimestamp;
-        _transfer(transfer.token, transfer.receiver, transfer.amount);
+        IERC20MetadataUpgradeable(transfer.token).safeTransfer(transfer.receiver, transfer.amount);
     }
 
     /**
      * @dev Reject a big transfer and transfer tokens to SKALE chain owner during arbitrage
      *
      * Requirements:
-     * 
+     *
      * - msg.sender should be an owner of schain
      * - arbitrage of the transfer must be started
      */
@@ -393,7 +436,12 @@ contract DepositBoxERC20 is DepositBox, IDepositBoxERC20 {
         transfer.status = DelayedTransferStatus.COMPLETED;
         delete transfer.untilTimestamp;
         // msg.sender is schain owner
-        _transfer(transfer.token, msg.sender, transfer.amount);
+        IERC20MetadataUpgradeable(transfer.token).safeTransfer(msg.sender, transfer.amount);
+    }
+
+    function doTransfer(address token, address receiver, uint256 amount) external override {
+        require(msg.sender == address(this), "Internal use only");
+        IERC20Upgradeable(token).safeTransfer(receiver, amount);
     }
 
     /**
@@ -419,7 +467,7 @@ contract DepositBoxERC20 is DepositBox, IDepositBoxERC20 {
     }
 
     /**
-     * @dev Should return true if token was added by Schain owner or 
+     * @dev Should return true if token was added by Schain owner or
      * added automatically after sending to schain if whitelist was turned off.
      */
     function getSchainToERC20(
@@ -435,7 +483,7 @@ contract DepositBoxERC20 is DepositBox, IDepositBoxERC20 {
     }
 
     /**
-     * @dev Should return length of a set of all mapped tokens which were added by Schain owner 
+     * @dev Should return length of a set of all mapped tokens which were added by Schain owner
      * or added automatically after sending to schain if whitelist was turned off.
      */
     function getSchainToAllERC20Length(string calldata schainName) external view override returns (uint256) {
@@ -443,7 +491,7 @@ contract DepositBoxERC20 is DepositBox, IDepositBoxERC20 {
     }
 
     /**
-     * @dev Should return an array of range of tokens were added by Schain owner 
+     * @dev Should return an array of range of tokens were added by Schain owner
      * or added automatically after sending to schain if whitelist was turned off.
      */
     function getSchainToAllERC20(
@@ -558,7 +606,7 @@ contract DepositBoxERC20 is DepositBox, IDepositBoxERC20 {
         bool retrieved = false;
         for (uint256 i = 0; i < transfersAmount; ++i) {
             uint256 transferId = uint256(delayedTransfersByReceiver[receiver].at(currentIndex));
-            DelayedTransfer memory transfer = delayedTransfers[transferId];            
+            DelayedTransfer memory transfer = delayedTransfers[transferId];
             ++currentIndex;
 
             if (transfer.status != DelayedTransferStatus.COMPLETED) {
@@ -581,12 +629,19 @@ contract DepositBoxERC20 is DepositBox, IDepositBoxERC20 {
                         delayedTransfers[transferId].status = DelayedTransferStatus.COMPLETED;
                     }
                     retrieved = true;
-                    _transfer(transfer.token, transfer.receiver, transfer.amount);
+                    try
+                        this.doTransfer(transfer.token, transfer.receiver, transfer.amount)
+                    // solhint-disable-next-line no-empty-blocks
+                    {}
+                    catch {
+                        emit TransferSkipped(transferId);
+                    }
                 }
             } else {
                 // status is COMPLETED
                 if (currentIndex == 1) {
                     --currentIndex;
+                    retrieved = true;
                     _removeOldestDelayedTransfer(receiver);
                 }
             }
@@ -692,11 +747,11 @@ contract DepositBoxERC20 is DepositBox, IDepositBoxERC20 {
 
     /**
      * @dev Allows DepositBoxERC20 to receive ERC20 tokens.
-     * 
+     *
      * Emits an {ERC20TokenReady} event.
-     * 
+     *
      * Requirements:
-     * 
+     *
      * - Amount must be less than or equal to the total supply of the ERC20 contract.
      * - Whitelist should be turned off for auto adding tokens to DepositBoxERC20.
      */
@@ -710,7 +765,7 @@ contract DepositBoxERC20 is DepositBox, IDepositBoxERC20 {
         returns (bytes memory data)
     {
         bytes32 schainHash = _schainHash(schainName);
-        ERC20Upgradeable erc20 = ERC20Upgradeable(erc20OnMainnet);
+        IERC20MetadataUpgradeable erc20 = IERC20MetadataUpgradeable(erc20OnMainnet);
         uint256 totalSupply = erc20.totalSupply();
         require(amount <= totalSupply, "Amount is incorrect");
         bool isERC20AddedToSchain = _schainToERC20[schainHash].contains(erc20OnMainnet);
@@ -737,11 +792,11 @@ contract DepositBoxERC20 is DepositBox, IDepositBoxERC20 {
 
     /**
      * @dev Adds an ERC20 token to DepositBoxERC20.
-     * 
+     *
      * Emits an {ERC20TokenAdded} event.
-     * 
+     *
      * Requirements:
-     * 
+     *
      * - Given address should be contract.
      */
     function _addERC20ForSchain(string calldata schainName, address erc20OnMainnet) private {
@@ -772,9 +827,9 @@ contract DepositBoxERC20 is DepositBox, IDepositBoxERC20 {
      * the element is added at back - depthLimit index
      */
     function _addToDelayedQueueWithPriority(
-        DoubleEndedQueueUpgradeable.Bytes32Deque storage queue, 
-        uint256 id, 
-        uint256 until, 
+        DoubleEndedQueueUpgradeable.Bytes32Deque storage queue,
+        uint256 id,
+        uint256 until,
         uint256 depthLimit
     )
         private
@@ -789,25 +844,6 @@ contract DepositBoxERC20 is DepositBox, IDepositBoxERC20 {
                 _addToDelayedQueueWithPriority(queue, id, until, depthLimit - 1);
                 queue.pushBack(lowPriorityValue);
             }
-        }
-    }
-
-    /**
-     * @dev Transfer ERC20 token or USDT
-     */
-    function _transfer(address token, address receiver, uint256 amount) private {
-        // there is no other reliable way to determine USDT
-        // slither-disable-next-line incorrect-equality
-        if (token == _USDT_ADDRESS) {
-            // solhint-disable-next-line no-empty-blocks
-            try IERC20TransferVoid(token).transfer(receiver, amount) {} catch {
-                revert("Transfer was failed");
-            }
-        } else {
-            require(
-                ERC20Upgradeable(token).transfer(receiver, amount),
-                "Transfer was failed"
-            );
         }
     }
 
@@ -840,7 +876,7 @@ contract DepositBoxERC20 is DepositBox, IDepositBoxERC20 {
     function _removeOldestDelayedTransfer(address receiver) private {
         uint256 transferId = uint256(delayedTransfersByReceiver[receiver].popFront());
         // For most cases the loop will have only 1 iteration.
-        // In worst case the amount of iterations is limited by _QUEUE_PROCESSING_LIMIT         
+        // In worst case the amount of iterations is limited by _QUEUE_PROCESSING_LIMIT
         // slither-disable-next-line costly-loop
         delete delayedTransfers[transferId];
     }
@@ -848,14 +884,18 @@ contract DepositBoxERC20 is DepositBox, IDepositBoxERC20 {
     /**
      * @dev Returns total supply of ERC20 token.
      */
-    function _getErc20TotalSupply(ERC20Upgradeable erc20Token) private view returns (uint256) {
+    function _getErc20TotalSupply(IERC20MetadataUpgradeable erc20Token) private view returns (uint256) {
         return erc20Token.totalSupply();
     }
 
     /**
      * @dev Returns info about ERC20 token such as token name, decimals, symbol.
      */
-    function _getErc20TokenInfo(ERC20Upgradeable erc20Token) private view returns (Messages.Erc20TokenInfo memory) {
+    function _getErc20TokenInfo(IERC20MetadataUpgradeable erc20Token)
+        private
+        view
+        returns (Messages.Erc20TokenInfo memory)
+    {
         return Messages.Erc20TokenInfo({
             name: erc20Token.name(),
             decimals: erc20Token.decimals(),
