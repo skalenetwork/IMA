@@ -690,7 +690,7 @@ contract DepositBoxERC20 is DepositBox, IDepositBoxERC20 {
         address contractReceiver = schainLinks[schainHash];
         require(contractReceiver != address(0), "Unconnected chain");
         require(
-            ERC20Upgradeable(erc20OnMainnet).allowance(msg.sender, address(this)) >= amount,
+            IERC20Upgradeable(erc20OnMainnet).allowance(msg.sender, address(this)) >= amount,
             "DepositBox was not approved for ERC20 token"
         );
         bytes memory data = _receiveERC20(
