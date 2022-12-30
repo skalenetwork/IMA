@@ -8,6 +8,9 @@ on:
       - develop
       - beta
       - stable
+  push:
+    tags:
+      - 'custom-release-*'
 
 jobs:
   build:
@@ -49,7 +52,7 @@ jobs:
       with:
         python-version: 3.8
 
-    
+
     - name: Build and publish container
       run: |
         export BRANCH=${GITHUB_REF##*/}
@@ -92,21 +95,21 @@ jobs:
       working-directory: ${{env.PROXY_DIR}}
       env:
         VERSION: ${{ env.VERSION }}
-      run: |        
+      run: |
         ./predeployed/scripts/build_package.sh
 
     - name: Publish predeployed pip package
       working-directory: ${{env.PROXY_DIR}}
       env:
         PYPI_TOKEN: ${{ secrets.PYPI_TOKEN }}
-      run: |        
+      run: |
         ./predeployed/scripts/publish_package.sh
 
     - name: Generate ABIs
       working-directory: ${{env.PROXY_DIR}}/predeployed
       env:
         VERSION: ${{ env.VERSION }}
-      run: |        
+      run: |
         python3 -m venv scripts/venv
         source scripts/venv/bin/activate
         pip install dist/ima_predeployed-*.whl
@@ -123,7 +126,7 @@ jobs:
         release_name: ${{ env.VERSION }}
         draft: false
         prerelease: ${{ env.PRERELEASE }}
-    
+
     - name: Upload Release Assets
       id: upload-release-assets
       uses: dwenegar/upload-release-assets@v1
