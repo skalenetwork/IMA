@@ -15,7 +15,6 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
-    if: github.event.pull_request.merged
     env:
       DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
       DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
@@ -51,7 +50,6 @@ jobs:
       uses: actions/setup-python@v2
       with:
         python-version: 3.8
-
 
     - name: Build and publish container
       run: |
