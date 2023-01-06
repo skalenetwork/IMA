@@ -1408,7 +1408,7 @@ imaCLI.parse( {
                     imaState: imaState,
                     "details": log
                 };
-                await loop.run_parallel_loops(
+                return await loop.run_parallel_loops(
                     opts
                 );
             }

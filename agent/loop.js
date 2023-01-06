@@ -663,6 +663,7 @@ async function run_parallel_loops( opts ) {
     log.write( cc.debug( "Will start parallel IMA transfer loops..." ) + "\n" );
     await ensure_have_workers( opts );
     log.write( cc.success( "Done, did parallel IMA transfer loops." ) + "\n" );
+    return true;
 }
 
 async function spread_arrived_pwa_state( joMessage ) {
