@@ -2,6 +2,16 @@
 
 set -e
 
+if [ -z $GITHUB_WORKSPACE ]
+then
+    GITHUB_WORKSPACE="$(dirname "$(dirname "$(dirname "$(realpath "$0")")")")"
+fi
+
+if [ -z $GITHUB_REPOSITORY ]
+then
+    GITHUB_REPOSITORY="skalenetwork/IMA"
+fi
+
 DEPLOYED_TAG="$(cat "$GITHUB_WORKSPACE"/proxy/DEPLOYED)"
 VERSION_TAG="$(cat "$GITHUB_WORKSPACE"/VERSION)"
 DEPLOYED_VERSION="$(echo "$DEPLOYED_TAG" | cut -d '-' -f 1)"
@@ -37,16 +47,16 @@ cd "$GITHUB_WORKSPACE"
 rm -r --interactive=never "$DEPLOYED_DIR"
 cd proxy
 
-# TODO: remove updateManifest script after upgrade from 1.3.0-stable.0
-./scripts/updateManifest.py ".openzeppelin/unknown-1337.json"
-./scripts/updateManifest.py "data/ima-schain-$DEPLOYED_VERSION-manifest.json"
-
 ABI="data/$ABI_FILENAME_MAINNET" TEST_UPGRADE=true npx hardhat run migrations/upgradeMainnet.ts --network localhost
 
 VERSION="$(git describe --tags | echo "$VERSION_TAG")"
 echo "$VERSION"
 mv "data/proxyMainnet-$VERSION-localhost-abi.json" "data/proxyMainnet.json"
 
-ABI="data/$ABI_FILENAME_SCHAIN" MANIFEST="data/ima-schain-$DEPLOYED_VERSION-manifest.json" CHAIN_NAME_SCHAIN="Test" npx hardhat run migrations/upgradeSchain.ts --network localhost
+ABI="data/$ABI_FILENAME_SCHAIN" \
+MANIFEST="data/ima-schain-$DEPLOYED_VERSION-manifest.json" \
+CHAIN_NAME_SCHAIN="Test" \
+ALLOW_NOT_ATOMIC_UPGRADE="OK" \
+npx hardhat run migrations/upgradeSchain.ts --network localhost
 
 npx kill-port 8545
