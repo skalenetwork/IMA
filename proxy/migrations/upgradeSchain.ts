@@ -11,7 +11,7 @@ import { MessageProxyForSchain } from "../typechain";
 class ImaSchainUpgrader extends Upgrader {
 
     async getMessageProxyForSchain() {
-        return await ethers.getContractAt("MessageProxyForSchain", this.abi["message_proxy_chain_address"] as string) as MessageProxyForSchain;
+        return await ethers.getContractAt("MessageProxyForSchain", this.abi.message_proxy_chain_address as string) as MessageProxyForSchain;
     }
 
     getDeployedVersion = async () => {
@@ -30,7 +30,7 @@ class ImaSchainUpgrader extends Upgrader {
             data: messageProxyForSchain.interface.encodeFunctionData("setVersion", [newVersion])
         });
     }
-    
+
     initialize = async () => {
         const communityLockerName = "CommunityLocker";
         const communityLockerFactory = await ethers.getContractFactory(communityLockerName);
@@ -65,7 +65,6 @@ async function getImaSchainAbiAndAddress(): Promise<SkaleABIFile> {
     }
     const abiFilename = process.env.ABI;
     return JSON.parse(await fs.readFile(abiFilename, "utf-8"));
-        
 }
 
 async function main() {

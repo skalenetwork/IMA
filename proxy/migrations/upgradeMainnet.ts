@@ -10,7 +10,7 @@ import { MessageProxyForMainnet } from "../typechain";
 class ImaMainnetUpgrader extends Upgrader {
 
     async getMessageProxyForMainnet() {
-        return await ethers.getContractAt("MessageProxyForMainnet", this.abi["message_proxy_mainnet_address"] as string) as MessageProxyForMainnet;
+        return await ethers.getContractAt("MessageProxyForMainnet", this.abi.message_proxy_mainnet_address as string) as MessageProxyForMainnet;
     }
 
     getDeployedVersion = async () => {
@@ -45,7 +45,6 @@ async function getImaMainnetAbiAndAddress(): Promise<SkaleABIFile> {
     }
     const abiFilename = process.env.ABI;
     return JSON.parse(await fs.readFile(abiFilename, "utf-8"));
-        
 }
 
 async function main() {
