@@ -1,21 +1,12 @@
-import { promises as fs } from "fs";
-import { CommunityLocker } from "../typechain/CommunityLocker";
-import { contracts, getContractKeyInAbiFile } from "./deploySchain";
-import { manifestSetup } from "./generateManifest";
 import chalk from "chalk";
 import { ethers } from "hardhat";
+import { promises as fs } from "fs";
 import { Upgrader } from "@skalenetwork/upgrade-tools";
-import { MessageProxyForSchain } from "../typechain";
 import { SkaleABIFile } from "@skalenetwork/upgrade-tools/dist/src/types/SkaleABIFile";
-
-
-function stringValue(value: string | undefined) {
-    if (value) {
-        return value;
-    } else {
-        return "";
-    }
-}
+import { contracts, getContractKeyInAbiFile } from "./deploySchain";
+import { manifestSetup } from "./generateManifest";
+import { CommunityLocker } from "../typechain/CommunityLocker";
+import { MessageProxyForSchain } from "../typechain";
 
 class ImaSchainUpgrader extends Upgrader {
 
@@ -60,9 +51,7 @@ class ImaSchainUpgrader extends Upgrader {
     }
 
     _getContractKeyInAbiFile(contract: string) {
-        if (contract === "MessageProxyForMainnet") {
-            return "message_proxy_mainnet";
-        } else if (contract === "MessageProxyForSchain") {
+        if (contract === "MessageProxyForSchain") {
             return "message_proxy_chain";
         }
         return contract.replace(/([a-z0-9])(?=[A-Z])/g, '$1_').toLowerCase();
@@ -80,10 +69,10 @@ async function getImaSchainAbiAndAddress(): Promise<SkaleABIFile> {
 }
 
 async function main() {
-    const pathToManifest: string = stringValue(process.env.MANIFEST);
+    const pathToManifest: string = process.env.MANIFEST || "";
     await manifestSetup(pathToManifest);
     const upgrader = new ImaSchainUpgrader(
-        "ima-schain",
+        "proxySchain",
         "1.3.4",
         await getImaSchainAbiAndAddress(),
         contracts
