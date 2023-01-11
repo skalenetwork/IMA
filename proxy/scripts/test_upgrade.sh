@@ -15,7 +15,7 @@ fi
 DEPLOYED_TAG="$(cat "$GITHUB_WORKSPACE"/proxy/DEPLOYED)"
 VERSION_TAG="$(cat "$GITHUB_WORKSPACE"/VERSION)"
 DEPLOYED_VERSION="$(echo "$DEPLOYED_TAG" | cut -d '-' -f 1)"
-DEPLOYED_DIR=$GITHUB_WORKSPACE/deployed-proxy/
+DEPLOYED_DIR=$GITHUB_WORKSPACE/deployed-IMA/
 
 
 git clone --branch "$DEPLOYED_TAG" "https://github.com/$GITHUB_REPOSITORY.git" "$DEPLOYED_DIR"
@@ -34,8 +34,12 @@ CHAIN_NAME_SCHAIN="Test" VERSION="$DEPLOYED_VERSION" npx hardhat run migrations/
 cp "$GITHUB_WORKSPACE/proxy/migrations/generateManifest.ts" ./migrations/generateManifest.ts
 cp "$GITHUB_WORKSPACE/proxy/migrations/changeManifest.ts" ./migrations/changeManifest.ts
 cp "$GITHUB_WORKSPACE/proxy/migrations/tools/version.ts" ./migrations/tools/version.ts
+
 ABI_FILENAME_SCHAIN="proxySchain_Test.json"
-ABI="data/$ABI_FILENAME_SCHAIN" MANIFEST=".openzeppelin/unknown-1337.json" VERSION="$DEPLOYED_VERSION" npx hardhat run migrations/changeManifest.ts --network localhost
+ABI="data/$ABI_FILENAME_SCHAIN" \
+MANIFEST=".openzeppelin/unknown-1337.json" \
+VERSION="$DEPLOYED_VERSION" \
+npx hardhat run migrations/changeManifest.ts --network localhost
 
 cp .openzeppelin/unknown-*.json "$GITHUB_WORKSPACE/proxy/.openzeppelin"
 cp ./data/skaleManagerComponents.json "$GITHUB_WORKSPACE/proxy/data/"
@@ -47,7 +51,10 @@ cd "$GITHUB_WORKSPACE"
 rm -r --interactive=never "$DEPLOYED_DIR"
 cd proxy
 
-ABI="data/$ABI_FILENAME_MAINNET" TEST_UPGRADE=true npx hardhat run migrations/upgradeMainnet.ts --network localhost
+ABI="data/$ABI_FILENAME_MAINNET" \
+TEST_UPGRADE=true \
+ALLOW_NOT_ATOMIC_UPGRADE="OK" \
+npx hardhat run migrations/upgradeMainnet.ts --network localhost
 
 VERSION="$(git describe --tags | echo "$VERSION_TAG")"
 echo "$VERSION"
