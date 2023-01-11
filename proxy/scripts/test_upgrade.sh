@@ -2,15 +2,15 @@
 
 set -e
 
-if [ -z $GITHUB_WORKSPACE ]
-then
-    GITHUB_WORKSPACE="$(dirname "$(dirname "$(dirname "$(realpath "$0")")")")"
-fi
+# if [ -z $GITHUB_WORKSPACE ]
+# then
+#     GITHUB_WORKSPACE="$(dirname "$(dirname "$(dirname "$(realpath "$0")")")")"
+# fi
 
-if [ -z $GITHUB_REPOSITORY ]
-then
-    GITHUB_REPOSITORY="skalenetwork/IMA"
-fi
+# if [ -z $GITHUB_REPOSITORY ]
+# then
+#     GITHUB_REPOSITORY="skalenetwork/IMA"
+# fi
 
 DEPLOYED_TAG="$(cat "$GITHUB_WORKSPACE"/proxy/DEPLOYED)"
 VERSION_TAG="$(cat "$GITHUB_WORKSPACE"/VERSION)"
