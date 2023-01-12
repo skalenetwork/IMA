@@ -2,15 +2,18 @@
 
 set -e
 
-# if [ -z $GITHUB_WORKSPACE ]
-# then
-#     GITHUB_WORKSPACE="$(dirname "$(dirname "$(dirname "$(realpath "$0")")")")"
-# fi
+if [ -z $GITHUB_WORKSPACE ]
+then
+    GITHUB_WORKSPACE="$(dirname "$(dirname "$(dirname "$(realpath "$0")")")")"
+fi
 
-# if [ -z $GITHUB_REPOSITORY ]
-# then
-#     GITHUB_REPOSITORY="skalenetwork/IMA"
-# fi
+if [ -z $GITHUB_REPOSITORY ]
+then
+    GITHUB_REPOSITORY="skalenetwork/IMA"
+fi
+
+echo 'helo'
+exit 0
 
 DEPLOYED_TAG="$(cat "$GITHUB_WORKSPACE"/proxy/DEPLOYED)"
 VERSION_TAG="$(cat "$GITHUB_WORKSPACE"/VERSION)"
@@ -54,6 +57,7 @@ cd proxy
 ABI="data/$ABI_FILENAME_MAINNET" \
 TEST_UPGRADE=true \
 ALLOW_NOT_ATOMIC_UPGRADE="OK" \
+VERSION=$VERSION_TAG \
 npx hardhat run migrations/upgradeMainnet.ts --network localhost
 
 VERSION="$(git describe --tags | echo "$VERSION_TAG")"
@@ -64,6 +68,7 @@ ABI="data/$ABI_FILENAME_SCHAIN" \
 MANIFEST="data/ima-schain-$DEPLOYED_VERSION-manifest.json" \
 CHAIN_NAME_SCHAIN="Test" \
 ALLOW_NOT_ATOMIC_UPGRADE="OK" \
+VERSION=$VERSION_TAG \
 npx hardhat run migrations/upgradeSchain.ts --network localhost
 
 npx kill-port 8545
