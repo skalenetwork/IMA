@@ -1190,11 +1190,13 @@ function tm_make_id( details ) {
     return id;
 }
 
-function tm_make_record( tx = {}, score ) {
+function tm_make_record( tx = {}, score, method ) {
     const status = "PROPOSED";
     return JSON.stringify( {
         "score": score,
         "status": status,
+        "meta": { "chain": imaState.strChainName_s_chain },
+        "method": method,
         ...tx
     } );
 }
@@ -1204,12 +1206,12 @@ function tm_make_score( priority ) {
     return priority * Math.pow( 10, ts.toString().length ) + ts;
 }
 
-async function tm_send( details, tx, priority = 5 ) {
+async function tm_send( details, tx, method, priority = 5 ) {
     details.write( cc.debug( "TM - sending tx " ) + cc.j( tx ) +
         cc.debug( " ts: " ) + cc.info( current_timestamp() ) + "\n" );
     const id = tm_make_id( details );
     const score = tm_make_score( priority );
-    const record = tm_make_record( tx, score );
+    const record = tm_make_record( tx, score, method );
     details.write( cc.debug( "TM - Sending score: " ) + cc.info( score ) + cc.debug( ", record: " ) + cc.info( record ) + "\n" );
     expiration = 24 * 60 * 60; // 1 day;
 
@@ -1278,7 +1280,7 @@ async function tm_wait( details, txId, w3, nWaitSeconds = 36000 ) {
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-async function tm_ensure_transaction( details, w3, priority, txAdjusted, cntAttempts, sleepMilliseconds ) {
+async function tm_ensure_transaction( details, w3, method, priority, txAdjusted, cntAttempts, sleepMilliseconds ) {
     cntAttempts = cntAttempts || 1;
     sleepMilliseconds = sleepMilliseconds || ( 30 * 1000 );
     let txId = "";
@@ -1288,7 +1290,7 @@ async function tm_ensure_transaction( details, w3, priority, txAdjusted, cntAtte
     const strPrefixLog = cc.debug( "(immediate log)" ) + " ";
     let strMsg;
     for( ; idxAttempt < cntAttempts; ++idxAttempt ) {
-        txId = await tm_send( details, txAdjusted, priority );
+        txId = await tm_send( details, txAdjusted, method, priority );
         strMsg = cc.debug( "TM - next TX " ) + cc.info( txId );
         details.write( strPrefixDetails + strMsg + "\n" );
         log.write( strPrefixLog + strMsg + "\n" );
@@ -1410,7 +1412,7 @@ async function safe_sign_transaction_with_account( details, w3, tx, rawTx, joAcc
             redis = new Redis( joAccount.strTransactionManagerURL );
         const priority = joAccount.tm_priority || 5;
         try {
-            const [ tx_id, joReceipt ] = await tm_ensure_transaction( details, w3, priority, txAdjusted );
+            const [ tx_id, joReceipt ] = await tm_ensure_transaction( details, w3, tx.abi.name, priority, txAdjusted );
             joSR.txHashSent = "" + joReceipt.transactionHash;
             joSR.joReceipt = joReceipt;
             joSR.tm_tx_id = tx_id;
