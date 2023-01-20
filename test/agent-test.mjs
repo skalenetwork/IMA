@@ -26,19 +26,19 @@
 import * as assert from "assert";
 import * as fs from "fs";
 import * as os from "os";
-import * as path from "path";
-
-process.env.NODE_TLS_REJECT_UNAUTHORIZED = 0; // allow self-signed wss and https
+import * as path from "path"; // allow self-signed wss and https
 
 import * as IMA from "../npms/skale-ima";
+import * as imaUtils from "../agent/utils.mjs";
+// const cc = imaUtils.cc;
+import * as imaCLI from "../agent/cli.mjs";
+
+process.env.NODE_TLS_REJECT_UNAUTHORIZED = 0;
 // const compose_tx_instance = IMA.compose_tx_instance;
 const owaspUtils = IMA.owaspUtils;
-import * as imaUtils from "../agent/utils.mjs";
 IMA.expose_details_set( false );
 IMA.verbose_set( IMA.verbose_parse( "info" ) );
 const log = imaUtils.log;
-// const cc = imaUtils.cc;
-import * as imaCLI from "../agent/cli.mjs";
 // import * as imaBLS from "../agent/bls.mjs";
 // import * as rpcCall from "../agent/rpc-call.mjs";
 

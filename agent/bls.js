@@ -27,13 +27,13 @@ import * as fs from "fs";
 //import * as core from "./ima_core.mjs";
 import * as owaspUtils from "../npms/skale-owasp/owasp-utils.mjs";
 import * as child_process from "child_process";
-import * as rpc from "./rpc-call.mjs";
+import * as rpcCall from "./rpc-call.mjs";
 import * as shell from "shelljs";
 import * as imaUtils from "./utils.mjs";
-const { cc } = utils;
 
 // import { Keccak } from "sha3";
 import * as hashing from "js-sha3";
+const { cc } = utils;
 const keccak256 = hashing.default.keccak256;
 
 const sleep = ( milliseconds ) => { return new Promise( resolve => setTimeout( resolve, milliseconds ) ); };
@@ -225,9 +225,9 @@ export function keccak256_u256( u256, isHash ) {
     arrBytes = imaUtils.bytesConcat( arrBytes, bytes_u256 );
     //
     let strMessageHash = "";
-    if( isHash ) {
+    if( isHash )
         strMessageHash = owaspUtils.ensure_starts_with_0x( keccak256( arrBytes ) );
-    } else
+    else
         strMessageHash = "0x" + imaUtils.bytesToHex( arrBytes );
     return strMessageHash;
 }
@@ -2184,5 +2184,3 @@ export async function handle_skale_imaBSU256( joCallData ) {
     details.close();
     return joRetVal;
 }
-
-

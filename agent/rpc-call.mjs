@@ -459,4 +459,3 @@ export async function check_url( u, nTimeoutMilliseconds, isLog ) {
     }
     return await check_tcp( jo.strHost, jo.nPort, nTimeoutMilliseconds, isLog );
 }
-

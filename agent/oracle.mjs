@@ -24,6 +24,7 @@
  */
 
 import numberToBN from "number-to-bn";
+
 import { keccak256 } from "js-sha3";
 import { cc } from "./utils.mjs";
 
@@ -209,4 +210,3 @@ export function oracle_get_gas_price( oracleOpts, details ) {
     } );
     return promise_complete;
 }
-

@@ -33,18 +33,17 @@ import * as path from "path";
 // import * as ws from "ws";
 import * as IMA from "../npms/skale-ima";
 // const compose_tx_instance = IMA.compose_tx_instance;
-const owaspUtils = IMA.owaspUtils;
 import * as imaUtils from "./utils.mjs";
+// import * as imaCLI from "./cli.mjs";
+import * as imaBLS from "./bls.mjs";
+// import * as rpcCall from "./rpc-call.mjs";
+import * as skale_observer from "../npms/skale-observer/observer.mjs";
+// import * as imaOracle from "./oracle.mjs";
+import * as pwa from "./pwa.mjs";
 IMA.expose_details_set( false );
 IMA.verbose_set( IMA.verbose_parse( "info" ) );
 const log = imaUtils.log;
 const cc = imaUtils.cc;
-// import * as imaCLI from "./cli.mjs";
-import * as imaBLS from "./bls.mjs";
-import * as rpcCall from "./rpc-call.mjs";
-import * as skale_observer from "../npms/skale-observer/observer.mjs";
-// import * as imaOracle from "./oracle.mjs";
-import * as pwa from "./pwa.mjs";
 // import * as express from "express";
 // import * as bodyParser from "body-parser";
 // import * as jayson from "jayson";
@@ -649,7 +648,7 @@ export async function ensure_have_workers( opts ) {
     } // for( let idxWorker = 0; idxWorker < cntWorkers; ++ idxWorker )
 }
 
-export export async function run_parallel_loops( opts ) {
+export async function run_parallel_loops( opts ) {
     log.write( cc.debug( "Will start parallel IMA transfer loops..." ) + "\n" );
     await ensure_have_workers( opts );
     log.write( cc.success( "Done, did parallel IMA transfer loops." ) + "\n" );

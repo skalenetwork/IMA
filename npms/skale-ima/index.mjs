@@ -31,16 +31,16 @@ import * as child_process from "child_process";
 import { UniversalDispatcherEvent, EventDispatcher } from "../skale-cool-socket/event_dispatcher.mjs";
 
 import * as Redis from "ioredis";
-let redis = null;
-let loopTmSendingCnt = 0;
 
 import * as log from "../skale-log/log.mjs";
 import * as cc from "../skale-log/cc.mjs";
-cc.enable( false );
-log.addStdout();
 // log.add( strFilePath, nMaxSizeBeforeRotation, nMaxFilesCount ); // example: log output to file
 
 import * as owaspUtils from "../skale-owasp/owasp-util.mjs";
+let redis = null;
+let loopTmSendingCnt = 0;
+cc.enable( false );
+log.addStdout();
 
 export const longSeparator = "=======================================================================================================================";
 
@@ -6000,7 +6000,7 @@ export async function calculatePowNumber( address, nonce, gas, details ) {
 }
 
 export function execShellCommand( cmd ) {
-    const exec = "child_process".exec;
+    const exec = child_process.exec;
     return new Promise( ( resolve, reject ) => {
         exec( cmd, ( error, stdout, stderr ) => {
             if( error )
@@ -6040,7 +6040,7 @@ export async function balanceETH(
     return "<no-data-or-error>";
 }
 
-async function balanceERC20(
+export async function balanceERC20(
     isMainNet,
     w3,
     cid,
@@ -6691,5 +6691,3 @@ export async function burnERC1155(
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-

@@ -23,7 +23,7 @@
  * @copyright SKALE Labs 2019-Present
  */
 
-import * as fs from "fs";
+// import * as fs from "fs";
 import * as path from "path";
 import * as os from "os";
 import * as cc from "./cc.mjs";
@@ -31,7 +31,6 @@ import * as log from "./ima_log.mjs";
 //import * as options from "./ima_options.mjs";
 import * as owaspUtils from "../npms/skale-owasp/owasp-utils.mjs";
 import * as imaUtils from "./utils.mjs";
-const { cc } = imaUtils;
 import * as rpcCall from "./rpc-call.mjs";
 //import * as core from "./ima_core.mjs";
 const __dirname = path.resolve();
@@ -147,7 +146,7 @@ function ensure_have_chain_credentials( strFriendlyChainName, joAccount, isExitI
     return true;
 }
 
-function find_node_index( joSChainNodeConfiguration ) {
+export function find_node_index( joSChainNodeConfiguration ) {
     try {
         const searchID = joSChainNodeConfiguration.skaleConfig.nodeInfo.nodeID;
         const cnt = joSChainNodeConfiguration.skaleConfig.sChain.nodes.length;
@@ -2170,7 +2169,7 @@ export function ima_common_init() {
     }
 } // ima_common_init
 
-function ima_w3_init() {
+export function ima_w3_init() {
 /*
     if( ( !imaState.chainProperties.mn.ethersProvider ) &&
         imaState.chainProperties.mn.strURL &&
@@ -2222,9 +2221,9 @@ function ima_w3_init() {
 */
 } // ima_w3_init
 
-function ima_contracts_init() {
+export function ima_contracts_init() {
     ima_w3_init();
-/*
+    /*
     if( imaState.chainProperties.mn.bHaveAbiIMA && ( !imaState.jo_deposit_box_eth ) ) {
         imaState.jo_deposit_box_eth = new imaState.chainProperties.mn.ethersProvider.eth.Contract( imaState.chainProperties.mn.joAbiIMA.deposit_box_eth_abi, imaState.chainProperties.mn.joAbiIMA.deposit_box_eth_address ); // only main net
         imaState.jo_deposit_box_erc20 = new imaState.chainProperties.mn.ethersProvider.eth.Contract( imaState.chainProperties.mn.joAbiIMA.deposit_box_erc20_abi, imaState.chainProperties.mn.joAbiIMA.deposit_box_erc20_address ); // only main net
@@ -2438,5 +2437,3 @@ function ima_contracts_init() {
     } // if( imaState.bHaveSkaleManagerABI )
 
 } // ima_contracts_init
-
-

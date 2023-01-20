@@ -28,13 +28,13 @@ import * as path from "path";
 import * as network_layer from "../skale-cool-socket/socket.mjs";
 import { Worker } from "worker_threads";
 import * as owaspUtils from "../skale-owasp/owasp-util.mjs";
-const cc = owaspUtils.cc;
-import * as core from "./ima_core.mjs";
-import * as rpc from "./rpc.mjs";
+// import * as core from "./ima_core.mjs";
+// import * as rpcCall from "./rpc.mjs";
 import * as log from "../log/log.mjs";
-const __dirname = path.resolve();
 
 import { UniversalDispatcherEvent, EventDispatcher } from "../skale-cool-socket/event_dispatcher.mjs";
+const cc = owaspUtils.cc;
+const __dirname = path.resolve();
 
 const PORTS_PER_SCHAIN = 64;
 
@@ -230,7 +230,7 @@ export async function load_cached_schains_simplified( addressFrom, opts ) {
     return arr_schains;
 }
 
-async function load_schains_connected_only( strChainNameConnectedTo, addressFrom, opts ) {
+export async function load_schains_connected_only( strChainNameConnectedTo, addressFrom, opts ) {
     if( ! opts.imaState )
         throw new Error( "Cannot load S-Chains in observer, no imaState is provided" );
     if( opts && opts.details )
@@ -631,4 +631,3 @@ export async function discover_chain_id( strURL ) {
     } ); // rpcCall.create ...
     return ret;
 }
-

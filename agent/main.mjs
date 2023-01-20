@@ -23,21 +23,18 @@
  * @copyright SKALE Labs 2019-Present
  */
 
-process.env.NODE_TLS_REJECT_UNAUTHORIZED = 0; // allow self-signed wss and https
+// allow self-signed wss and https
 
 import * as ws from "ws";
 //import * as core from "./ima_core.mjs";
 import * as owaspUtils from "../npms/skale-owasp/owasp-utils.mjs";
 import * as log from "./npms/skale-log/log.mjs";
 import * as cc from "./npms/skale-cc/cc.mjs";
-import * as cli from "./cli.mjs";
+import * as imaCLI from "./cli.mjs";
 import * as rpcCall from "./rpc-call.mjs";
 import * as skale_observer from "./nps/skale-observer/observer.mjs";
 
-import * as numberToBN_module from "number-to-bn"; process.env.NODE_TLS_REJECT_UNAUTHORIZED = 0;
-const numberToBN = numberToBN_module.default;
-
-import * as loop from "./loop.mjs";
+import * as loop from "./loop.mjs"; process.env.NODE_TLS_REJECT_UNAUTHORIZED = 0; process.env.NODE_TLS_REJECT_UNAUTHORIZED = 0;
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

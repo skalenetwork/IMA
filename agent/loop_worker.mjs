@@ -28,9 +28,9 @@ import { parentPort, workerData } from "worker_threads";
 import * as network_layer from "../npms/skale-cool-socket/socket.mjs";
 // import { SocketServer } from "../npms/skale-cool-socket/server.mjs";
 import * as owaspUtils from "../npms/skale-owasp/owasp-util.mjs";
-const cc = owaspUtils.cc;
 
 import * as loop from "./loop.mjs";
+const cc = owaspUtils.cc;
 
 parentPort.on( "message", jo => {
     if( network_layer.in_worker_apis.on_message( jo ) )
