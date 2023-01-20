@@ -19,14 +19,14 @@
  */
 
 /**
- * @file server.js
+ * @file socket_server.mjs
  * @copyright SKALE Labs 2019-Present
  */
 
-const { EventDispatcher, UniversalDispatcherEvent } = require( "./event_dispatcher.js" );
-const utils = require( "./utils.js" );
+import { EventDispatcher, UniversalDispatcherEvent } from "./event_dispatcher.mjs";
+import * as utils from "./socket_utils.mjs";
 
-class Server extends EventDispatcher {
+export class SocketServer extends EventDispatcher {
     constructor( acceptor ) {
         super();
         if( acceptor == null || acceptor == undefined || typeof acceptor != "object" )
@@ -134,8 +134,4 @@ class Server extends EventDispatcher {
         this.isDisposing = true;
         super.dispose();
     }
-};
-
-module.exports = {
-    Server: Server
 };

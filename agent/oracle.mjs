@@ -19,16 +19,16 @@
  */
 
 /**
- * @file oracle.js
+ * @file oracle.mjs
  * @copyright SKALE Labs 2019-Present
  */
 
-const numberToBN = require( "number-to-bn" );
-const { keccak256 } = require( "js-sha3" );
-const { cc } = require( "./utils" );
+import numberToBN from "number-to-bn";
+import { keccak256 } from "js-sha3";
+import { cc } from "./utils.mjs";
 
-const MIN_POW_RESULT = 10000;
-const MAX_POW_NUMBER = 100000;
+export const MIN_POW_RESULT = 10000;
+export const MAX_POW_NUMBER = 100000;
 
 const g_bnMIN_POW_RESULT = numberToBN( MIN_POW_RESULT );
 const g_bn1 = numberToBN( 1 );
@@ -39,7 +39,7 @@ const g_bnUpperPart = g_bn2.pow( g_bn256 ).sub( g_bn1 );
 
 const sleep = ( milliseconds ) => { return new Promise( resolve => setTimeout( resolve, milliseconds ) ); };
 
-function oracle_init() {
+export function oracle_init() {
 }
 
 function get_utc_timestamp_string( d ) {
@@ -50,7 +50,7 @@ function get_utc_timestamp_string( d ) {
     return t;
 }
 
-function find_pow_number( strRequestPart, details, isVerbose ) {
+export function find_pow_number( strRequestPart, details, isVerbose ) {
     details = details || log;
     if( isVerbose )
         details.write( cc.debug( "source part of request to find " ) + cc.sunny( "PoW number" ) + cc.debug( " is " ) + cc.notice( strRequestPart ) + "\n" );
@@ -76,7 +76,7 @@ function find_pow_number( strRequestPart, details, isVerbose ) {
     return s;
 }
 
-function oracle_get_gas_price( oracleOpts, details ) {
+export function oracle_get_gas_price( oracleOpts, details ) {
     details = details || log;
     const promise_complete = new Promise( ( resolve, reject ) => {
         try {
@@ -210,7 +210,3 @@ function oracle_get_gas_price( oracleOpts, details ) {
     return promise_complete;
 }
 
-module.exports = {
-    init: oracle_init,
-    get_gas_price: oracle_get_gas_price
-}; // module.exports

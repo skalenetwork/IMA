@@ -20,17 +20,17 @@
  */
 
 /**
- * @file loop_worker.js
+ * @file loop_worker.mjs
  * @copyright SKALE Labs 2019-Present
  */
 
-const { parentPort, workerData } = require( "worker_threads" );
-const network_layer = require( "../npms/skale-cool-socket/socket.js" );
-const { Server } = require( "../npms/skale-cool-socket/server.js" );
-const owaspUtils = require( "../npms/skale-owasp/owasp-util.js" );
+import { parentPort, workerData } from "worker_threads";
+import * as network_layer from "../npms/skale-cool-socket/socket.mjs";
+// import { SocketServer } from "../npms/skale-cool-socket/server.mjs";
+import * as owaspUtils from "../npms/skale-owasp/owasp-util.mjs";
 const cc = owaspUtils.cc;
 
-const loop = require( "./loop.js" );
+import * as loop from "./loop.mjs";
 
 parentPort.on( "message", jo => {
     if( network_layer.in_worker_apis.on_message( jo ) )
@@ -103,7 +103,7 @@ class ObserverServer extends Server {
             //
             if( self.opts.imaState.chainProperties.mn.strURL && typeof self.opts.imaState.chainProperties.mn.strURL == "string" && self.opts.imaState.chainProperties.mn.strURL.length > 0 ) {
                 const u = self.opts.imaState.chainProperties.mn.strURL;
-                self.opts.imaState.chainProperties.mn.w3 = skale_observer.getWeb3FromURL( u, self.log );
+                self.opts.imaState.chainProperties.mn.ethersProvider = skale_observer.getWeb3FromURL( u, self.log );
             } else {
                 self.log(
                     cc.error( "WARNING:" ) + cc.warning( " No " ) + cc.note( "Main-net" ) +
@@ -114,7 +114,7 @@ class ObserverServer extends Server {
             //
             if( self.opts.imaState.chainProperties.sc.strURL && typeof self.opts.imaState.chainProperties.sc.strURL == "string" && self.opts.imaState.chainProperties.sc.strURL.length > 0 ) {
                 const u = self.opts.imaState.chainProperties.sc.strURL;
-                self.opts.imaState.chainProperties.sc.w3 = skale_observer.getWeb3FromURL( u, self.log );
+                self.opts.imaState.chainProperties.sc.ethersProvider = skale_observer.getWeb3FromURL( u, self.log );
             } else {
                 self.log(
                     cc.error( "WARNING:" ) + cc.warning( " No " ) + cc.note( "Main-net" ) +
@@ -127,9 +127,9 @@ class ObserverServer extends Server {
             self.opts.imaState.doEnableDryRun = function( isEnable ) { return IMA.dry_run_enable( isEnable ); };
             self.opts.imaState.doIgnoreDryRun = function( isIgnore ) { return IMA.dry_run_ignore( isIgnore ); };
             global.imaState = self.opts.imaState;
-            global.imaState.chainProperties.mn.w3 = null;
-            global.imaState.chainProperties.sc.w3 = null;
-            global.imaState.chainProperties.tc.w3 = null;
+            global.imaState.chainProperties.mn.ethersProvider = null;
+            global.imaState.chainProperties.sc.ethersProvider = null;
+            global.imaState.chainProperties.tc.ethersProvider = null;
             global.imaState.chainProperties.mn.transactionCustomizer = IMA.tc_main_net;
             global.imaState.chainProperties.sc.transactionCustomizer = IMA.tc_s_chain;
             global.imaState.chainProperties.tc.transactionCustomizer = IMA.tc_t_chain;

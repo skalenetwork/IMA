@@ -19,44 +19,50 @@
  */
 
 /**
- * @file utils.js
+ * @file utils.mjs
  * @copyright SKALE Labs 2019-Present
  */
 
-const fs = require( "fs" );
-const path = require( "path" );
-// const url = require( "url" );
-const os = require( "os" );
-const { v4: uuid } = require( "uuid" );
+import * as owaspUtils from "../npms/skale-owasp/owasp-utils.mjs";
+import * as fs from "fs";
+import * as path from "path";
+import * as os from "os";
+import * as log from "../npms/skale-log/log.mjs";
+import * as cc from "../npms/skale-cc/cc.mjs";
+import * as fmt from "./ima_fmt.mjs";
+import * as core from "./ima_core.mjs";
 
-const log = require( "../npms/skale-log/log.js" );
-const cc = log.cc;
+// import { v4 as uuid } from 'uuid';
 
-////////////////////////////////////////////////////////////////////////////////////
-////////////////////////////////////////////////////////////////////////////////////
 
-function replaceAll( str, find, replace ) {
+const ethersMod = owaspUtils.ethersMod;
+export { ethersMod };
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+export function replaceAll( str, find, replace ) {
     return str.replace( new RegExp( find, "g" ), replace );
 }
 
-////////////////////////////////////////////////////////////////////////////////////
-////////////////////////////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-function normalizePath( strPath ) {
+export function normalizePath( strPath ) {
     strPath = strPath.replace( /^~/, os.homedir() );
     strPath = path.normalize( strPath );
     strPath = path.resolve( strPath );
     return strPath;
 }
 
-function getRandomFileName() {
+export function getRandomFileName() {
     const timestamp = new Date().toISOString().replace( /[-:.]/g,"" );
     const random = ( "" + Math.random() ).substring( 2, 8 );
     const random_number = timestamp + random;
     return random_number;
 }
 
-function fileExists( strPath ) {
+export function fileExists( strPath ) {
     try {
         if( fs.existsSync( strPath ) ) {
             const stats = fs.statSync( strPath );
@@ -67,7 +73,7 @@ function fileExists( strPath ) {
     return false;
 }
 
-function fileLoad( strPath, strDefault ) {
+export function fileLoad( strPath, strDefault ) {
     strDefault = strDefault || "";
     if( !fileExists( strPath ) )
         return strDefault;
@@ -78,7 +84,7 @@ function fileLoad( strPath, strDefault ) {
     return strDefault;
 }
 
-function fileSave( strPath, s ) {
+export function fileSave( strPath, s ) {
     try {
         fs.writeFileSync( strPath, s );
         return true;
@@ -86,7 +92,7 @@ function fileSave( strPath, s ) {
     return false;
 }
 
-function jsonFileLoad( strPath, joDefault, bLogOutput ) {
+export function jsonFileLoad( strPath, joDefault, bLogOutput ) {
     if( bLogOutput == undefined || bLogOutput == null )
         bLogOutput = false;
     joDefault = joDefault || {};
@@ -112,7 +118,7 @@ function jsonFileLoad( strPath, joDefault, bLogOutput ) {
     return joDefault;
 }
 
-function jsonFileSave( strPath, jo, bLogOutput ) {
+export function jsonFileSave( strPath, jo, bLogOutput ) {
     if( bLogOutput == undefined || bLogOutput == null )
         bLogOutput = false;
     if( bLogOutput )
@@ -130,10 +136,125 @@ function jsonFileSave( strPath, jo, bLogOutput ) {
     return false;
 }
 
-////////////////////////////////////////////////////////////////////////////////////
-////////////////////////////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-function encodeUTF8( s ) { // marshals a string to an Uint8Array, see https://gist.github.com/pascaldekloe/62546103a1576803dade9269ccf76330
+const g_nTimeToSleepStepWaitForClonedTokenToAppearMilliseconds = 1000;
+
+export async function wait_for_cloned_token_to_appear(
+    sc,
+    strTokenSuffix, // example "erc20"
+    addressCallFrom,
+    cntAttempts,
+    tokensMN,
+    strMainnetName
+) {
+    const strTokenSuffixLC = strTokenSuffix.toLowerCase();
+    const strTokenSuffixUC = owaspUtils.replaceAll( strTokenSuffix.toUpperCase(), "_WITH_METADATA", "_with_metadata" );
+    const strTokenSuffixLCshort = owaspUtils.replaceAll( strTokenSuffixLC, "_with_metadata", "" );
+    const ts0 = fmt.ts_hr();
+    let ts1;
+    log.write( fmt.debug( "Waiting for " ) + fmt.contract_name( strTokenSuffixUC ) + fmt.debug( " token to appear automatically deployed on S-Chain " ) + fmt.chain_name( sc.chainName ) + fmt.debug( "..." ) );
+    log.write( log.llp() + fmt.debug( "... source chain name is " ) + fmt.chain_name( strMainnetName ) );
+    log.write( log.llp() + fmt.debug( "... destination " ) + fmt.contract_name( "TokenManager" + strTokenSuffixUC ) + fmt.debug( " address is " ) + fmt.address( sc.joABI["token_manager_" + strTokenSuffixLC + "_address"] ) );
+    const contractTokenManager = new sc.ethersMod.ethers.Contract(
+        sc.joABI["token_manager_" + strTokenSuffixLC + "_address"],
+        sc.joABI["token_manager_" + strTokenSuffixLC + "_abi"],
+        sc.ethersProvider
+    );
+    for( let idxAttempt = 0; idxAttempt < cntAttempts; ++ idxAttempt ) {
+        log.write( log.llp() + fmt.debug( "Discovering " ) + fmt.contract_name( strTokenSuffixUC ) + fmt.debug( " step " ) + fmt.number( idxAttempt ) + fmt.debug( "..." ) );
+        if( g_nTimeToSleepStepWaitForClonedTokenToAppearMilliseconds > 0 )
+            await core.sleep( g_nTimeToSleepStepWaitForClonedTokenToAppearMilliseconds );
+        const address_on_s_chain = await contractTokenManager.callStatic["clones" + fmt.capitalize_first_letter( strTokenSuffixLCshort )](
+            sc.ethersMod.ethers.utils.id( strMainnetName ),
+            tokensMN.joABI[strTokenSuffixUC + "_address"],
+            { from: addressCallFrom }
+        );
+        if( address_on_s_chain != "0x0000000000000000000000000000000000000000" ) {
+            ts1 = fmt.ts_hr();
+            log.write( log.llp() + fmt.success( "Done, duration is " ) + fmt.number( fmt.get_duration_string( ts0, ts1 ) ) );
+            log.write( log.llp() + fmt.success( "Discovered " ) + fmt.contract_name( strTokenSuffixUC ) + fmt.success( " instantiated on S-Chain " ) + fmt.chain_name( sc.chainName ) + fmt.success( " at address " ) + fmt.address( address_on_s_chain ) );
+            return address_on_s_chain;
+        }
+    }
+    ts1 = fmt.ts_hr();
+    const strError = fmt.error( "Failed to discover " ) + fmt.contract_name( strTokenSuffixUC ) + fmt.error( " instantiated on S-Chain " ) + fmt.chain_name( sc.chainName );
+    log.write( strError );
+    throw new Error( strError );
+}
+
+export async function wait_for_cloned_token_erc20_appear( sc, tokenERC20SC, joAccountSC, tokensMN, strMainnetName ) {
+    if( "abi" in tokenERC20SC && typeof tokenERC20SC.abi == "object" &&
+        "address" in tokenERC20SC && typeof tokenERC20SC.address == "string"
+    ) {
+        log.write( fmt.warning( "Skipping automatic" ), fmt.contract_name( "ERC20" ), fmt.warning( "instantiation discovery, already done before" ) );
+        return;
+    }
+    const addressCallFrom = owaspUtils.get_account_wallet_address( sc.ethersMod, joAccountSC );
+    const address_on_s_chain = await wait_for_cloned_token_to_appear( sc, "erc20", addressCallFrom, 40, tokensMN, strMainnetName );
+    // if( ! tokenERC20SC.joABI )
+    //     tokenERC20SC.joABI = { };
+    // tokenERC20SC.joABI.ERC20_abi = JSON.parse( JSON.stringify( tokensMN.joABI.ERC20_abi ) );
+    tokenERC20SC.abi = JSON.parse( JSON.stringify( tokensMN.joABI.ERC20_abi ) );
+    tokenERC20SC.address = "" + address_on_s_chain;
+}
+
+export async function wait_for_cloned_token_erc721_appear( sc, tokenERC721SC, joAccountSC, tokensMN, strMainnetName ) {
+    if( "abi" in tokenERC721SC && typeof tokenERC721SC.abi == "object" &&
+        "address" in tokenERC721SC && typeof tokenERC721SC.address == "string"
+    ) {
+        log.write( fmt.warning( "Skipping automatic" ), fmt.contract_name( "ERC721" ), fmt.warning( "instantiation discovery, already done before" ) );
+        return;
+    }
+    const addressCallFrom = owaspUtils.get_account_wallet_address( sc.ethersMod, joAccountSC );
+    const address_on_s_chain = await wait_for_cloned_token_to_appear( sc, "erc721", addressCallFrom, 40, tokensMN, strMainnetName );
+    // if( ! tokenERC721SC.joABI )
+    //     tokenERC721SC.joABI = { };
+    // tokenERC721SC.joABI.ERC721_abi = JSON.parse( JSON.stringify( tokensMN.joABI.ERC721_abi ) );
+    // tokenERC721SC.joABI.ERC721_address = "" + address_on_s_chain;
+    tokenERC721SC.abi = JSON.parse( JSON.stringify( tokensMN.joABI.ERC721_abi ) );
+    tokenERC721SC.address = "" + address_on_s_chain;
+}
+
+export async function wait_for_cloned_token_erc721_with_metadata_appear( sc, tokenERC721SC, joAccountSC, tokensMN, strMainnetName ) {
+    if( "abi" in tokenERC721SC && typeof tokenERC721SC.abi == "object" &&
+        "address" in tokenERC721SC && typeof tokenERC721SC.address == "string"
+    ) {
+        log.write( fmt.warning( "Skipping automatic" ), fmt.contract_name( "ERC721_with_metadata" ), fmt.warning( "instantiation discovery, already done before" ) );
+        return;
+    }
+    const addressCallFrom = owaspUtils.get_account_wallet_address( sc.ethersMod, joAccountSC );
+    const address_on_s_chain = await wait_for_cloned_token_to_appear( sc, "erc721_with_metadata", addressCallFrom, 40, tokensMN, strMainnetName );
+    // if( ! tokenERC721SC.joABI )
+    //     tokenERC721SC.joABI = { };
+    // tokenERC721SC.joABI.ERC721_with_metadata_abi = JSON.parse( JSON.stringify( tokensMN.joABI.ERC721_with_metadata_abi ) );
+    // tokenERC721SC.joABI.ERC72_with_metadata1_address = "" + address_on_s_chain;
+    tokenERC721SC.abi = JSON.parse( JSON.stringify( tokensMN.joABI.ERC721_with_metadata_abi ) );
+    tokenERC721SC.address = "" + address_on_s_chain;
+}
+
+export async function wait_for_cloned_token_erc1155_appear( sc, tokenERC1155SC, joAccountSC, tokensMN, strMainnetName ) {
+    if( "abi" in tokenERC1155SC && typeof tokenERC1155SC.abi == "object" &&
+        "address" in tokenERC1155SC && typeof tokenERC1155SC.address == "string"
+    ) {
+        log.write( fmt.warning( "Skipping automatic" ), fmt.contract_name( "ERC1155" ), fmt.warning( "instantiation discovery, already done before" ) );
+        return;
+    }
+    const addressCallFrom = owaspUtils.get_account_wallet_address( sc.ethersMod, joAccountSC );
+    const address_on_s_chain = await wait_for_cloned_token_to_appear( sc, "erc1155", addressCallFrom, 40, tokensMN, strMainnetName );
+    // if( ! tokenERC1155SC.joABI )
+    //     tokenERC1155SC.joABI = { };
+    // tokenERC1155SC.joABI.ERC1155_abi = JSON.parse( JSON.stringify( tokensMN.joABI.ERC1155_abi ) );
+    // tokenERC1155SC.joABI.ERC1155_address = "" + address_on_s_chain;
+    tokenERC1155SC.abi = JSON.parse( JSON.stringify( tokensMN.joABI.ERC1155_abi ) );
+    tokenERC1155SC.address = "" + address_on_s_chain;
+}
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+export function encodeUTF8( s ) { // marshals a string to an Uint8Array, see https://gist.github.com/pascaldekloe/62546103a1576803dade9269ccf76330
     let i = 0; const arrBytes = new Uint8Array( s.length * 4 );
     for( let ci = 0; ci != s.length; ci++ ) {
         let c = s.charCodeAt( ci );
@@ -161,7 +282,7 @@ function encodeUTF8( s ) { // marshals a string to an Uint8Array, see https://gi
     return arrBytes.subarray( 0, i );
 }
 
-function decodeUTF8( arrBytes ) { // un-marshals a string from an Uint8Array, see https://gist.github.com/pascaldekloe/62546103a1576803dade9269ccf76330
+export function decodeUTF8( arrBytes ) { // un-marshals a string from an Uint8Array, see https://gist.github.com/pascaldekloe/62546103a1576803dade9269ccf76330
     let i = 0; let s = "";
     while( i < arrBytes.length ) {
         let c = arrBytes[i++];
@@ -192,10 +313,10 @@ function decodeUTF8( arrBytes ) { // un-marshals a string from an Uint8Array, se
     return s;
 }
 
-////////////////////////////////////////////////////////////////////////////////////
-////////////////////////////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-function hexToBytes( strHex, isInversiveOrder ) { // convert a hex string to a byte array
+export function hexToBytes( strHex, isInversiveOrder ) { // convert a hex string to a byte array
     isInversiveOrder = !!( ( isInversiveOrder != null && isInversiveOrder != undefined && isInversiveOrder ) );
     strHex = strHex || "";
     strHex = "" + strHex;
@@ -214,7 +335,7 @@ function hexToBytes( strHex, isInversiveOrder ) { // convert a hex string to a b
     return arrBytes;
 }
 
-function bytesToHex( arrBytes, isInversiveOrder ) { // convert a byte array to a hex string
+export function bytesToHex( arrBytes, isInversiveOrder ) { // convert a byte array to a hex string
     isInversiveOrder = !!( ( isInversiveOrder != null && isInversiveOrder != undefined && isInversiveOrder ) );
     const hex = [];
     for( let i = 0; i < arrBytes.length; i++ ) {
@@ -232,7 +353,7 @@ function bytesToHex( arrBytes, isInversiveOrder ) { // convert a byte array to a
     return hex.join( "" );
 }
 
-function bytesAlignLeftWithZeroes( arrBytes, cntMin ) {
+export function bytesAlignLeftWithZeroes( arrBytes, cntMin ) {
     const arrOneZeroByte = new Uint8Array( 1 );
     arrOneZeroByte[0] = 0;
     while( arrBytes.length < cntMin )
@@ -240,7 +361,7 @@ function bytesAlignLeftWithZeroes( arrBytes, cntMin ) {
     return arrBytes;
 }
 
-function bytesAlignRightWithZeroes( arrBytes, cntMin ) {
+export function bytesAlignRightWithZeroes( arrBytes, cntMin ) {
     const arrOneZeroByte = new Uint8Array( 1 );
     arrOneZeroByte[0] = 0;
     while( arrBytes.length < cntMin )
@@ -248,26 +369,26 @@ function bytesAlignRightWithZeroes( arrBytes, cntMin ) {
     return arrBytes;
 }
 
-function concatTypedArrays( a, b ) { // a, b TypedArray of same type
+export function concatTypedArrays( a, b ) { // a, b TypedArray of same type
     const c = new ( a.constructor )( a.length + b.length );
     c.set( a, 0 );
     c.set( b, a.length );
     return c;
 }
 
-function concatByte( ui8a, byte ) {
+export function concatByte( ui8a, byte ) {
     const b = new Uint8Array( 1 );
     b[0] = byte;
     return concatTypedArrays( ui8a, b );
 }
 
-function bytesConcat( a1, a2 ) {
+export function bytesConcat( a1, a2 ) {
     a1 = a1 || new Uint8Array();
     a2 = a2 || new Uint8Array();
     return concatTypedArrays( a1, a2 );
 }
 
-function toArrayBuffer( buf ) { // see https://stackoverflow.com/questions/8609289/convert-a-binary-nodejs-buffer-to-javascript-arraybuffer
+export function toArrayBuffer( buf ) { // see https://stackoverflow.com/questions/8609289/convert-a-binary-nodejs-buffer-to-javascript-arraybuffer
     const ab = new ArrayBuffer( buf.length );
     const view = new Uint8Array( ab );
     for( let i = 0; i < buf.length; ++i )
@@ -275,7 +396,7 @@ function toArrayBuffer( buf ) { // see https://stackoverflow.com/questions/86092
     return ab;
 }
 
-function toBuffer( ab ) {
+export function toBuffer( ab ) {
     const buf = Buffer.alloc( ab.byteLength );
     const view = new Uint8Array( ab );
     for( let i = 0; i < buf.length; ++i )
@@ -283,7 +404,7 @@ function toBuffer( ab ) {
     return buf;
 }
 
-function invertArrayItemsLR( arr ) {
+export function invertArrayItemsLR( arr ) {
     let i; const cnt = arr.length / 2;
     for( i = 0; i < cnt; ++i ) {
         const e1 = arr[i];
@@ -295,11 +416,11 @@ function invertArrayItemsLR( arr ) {
 }
 
 // see: https://developer.chrome.com/blog/how-to-convert-arraybuffer-to-and-from-string/
-function ab2str( buf ) {
+export function ab2str( buf ) {
     return String.fromCharCode.apply( null, new Uint16Array( buf ) );
 }
 
-function str2ab( str ) {
+export function str2ab( str ) {
     const buf = new ArrayBuffer( str.length * 2 ); // 2 bytes for each char
     const bufView = new Uint16Array( buf );
     for( let i = 0, strLen = str.length; i < strLen; i ++ )
@@ -308,10 +429,10 @@ function str2ab( str ) {
     return buf;
 }
 
-////////////////////////////////////////////////////////////////////////////////////
-////////////////////////////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-function discover_in_json_coin_name( jo ) {
+export function discover_in_json_coin_name( jo ) {
     if( typeof jo !== "object" )
         return "";
     const arrKeys = Object.keys( jo );
@@ -341,7 +462,7 @@ function discover_in_json_coin_name( jo ) {
     return s1;
 }
 
-function check_key_exist_in_abi( strName, strFile, joABI, strKey, isExitOnError ) {
+export function check_key_exist_in_abi( strName, strFile, joABI, strKey, isExitOnError ) {
     if( isExitOnError == null || isExitOnError == undefined )
         isExitOnError = true;
     try {
@@ -356,7 +477,7 @@ function check_key_exist_in_abi( strName, strFile, joABI, strKey, isExitOnError 
     return false;
 }
 
-function check_keys_exist_in_abi( strName, strFile, joABI, arrKeys, isExitOnError ) {
+export function check_keys_exist_in_abi( strName, strFile, joABI, arrKeys, isExitOnError ) {
     const cnt = arrKeys.length;
     for( let i = 0; i < cnt; ++i ) {
         const strKey = arrKeys[i];
@@ -366,10 +487,10 @@ function check_keys_exist_in_abi( strName, strFile, joABI, arrKeys, isExitOnErro
     return true;
 }
 
-////////////////////////////////////////////////////////////////////////////////////
-////////////////////////////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-function compose_schain_node_url( joNode ) {
+export function compose_schain_node_url( joNode ) {
     // if( "ip" in joNode && typeof joNode.ip === "string" && joNode.ip.length > 0 ) {
     //     if( "wssRpcPort" in joNode && typeof joNode.wssRpcPort === "number" && joNode.wssRpcPort > 0 )
     //         return "wss://" + joNode.ip + ":" + joNode.wssRpcPort;
@@ -413,7 +534,7 @@ function compose_schain_node_url( joNode ) {
     return "";
 }
 
-function compose_ima_agent_node_url( joNode ) {
+export function compose_ima_agent_node_url( joNode ) {
     let nPort = -1;
     if( "imaAgentRpcPort" in joNode && typeof joNode.imaAgentRpcPort === "number" && joNode.imaAgentRpcPort > 0 )
         nPort = joNode.imaAgentRpcPort;
@@ -441,44 +562,6 @@ function compose_ima_agent_node_url( joNode ) {
     return "";
 }
 
-////////////////////////////////////////////////////////////////////////////////////
-////////////////////////////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-module.exports = {
-    uuid: uuid,
-    log: log,
-    cc: cc,
-    //
-    replaceAll: replaceAll,
-    //
-    normalizePath: normalizePath,
-    getRandomFileName: getRandomFileName,
-    fileExists: fileExists,
-    fileLoad: fileLoad,
-    fileSave: fileSave,
-    jsonFileLoad: jsonFileLoad,
-    jsonFileSave: jsonFileSave,
-    //
-    encodeUTF8: encodeUTF8,
-    decodeUTF8: decodeUTF8,
-    //
-    hexToBytes: hexToBytes,
-    bytesToHex: bytesToHex,
-    bytesAlignLeftWithZeroes: bytesAlignLeftWithZeroes,
-    bytesAlignRightWithZeroes: bytesAlignRightWithZeroes,
-    concatTypedArrays: concatTypedArrays,
-    concatByte: concatByte,
-    bytesConcat: bytesConcat,
-    toArrayBuffer: toArrayBuffer,
-    toBuffer: toBuffer,
-    invertArrayItemsLR: invertArrayItemsLR,
-    ab2str: ab2str,
-    str2ab: str2ab,
-    //
-    discover_in_json_coin_name: discover_in_json_coin_name,
-    check_key_exist_in_abi: check_key_exist_in_abi,
-    check_keys_exist_in_abi: check_keys_exist_in_abi,
-    //
-    compose_schain_node_url: compose_schain_node_url,
-    compose_ima_agent_node_url: compose_ima_agent_node_url
-}; // module.exports

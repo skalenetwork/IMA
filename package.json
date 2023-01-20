@@ -4,18 +4,21 @@
     "license": "AGPL-3.0",
     "author": "SKALE Labs and contributors",
     "scripts": {
-        "lint-check": "eslint ./agent/*.js ./npms/skale-*/*.js ./test/*.js",
-        "lint-fix": "eslint ./agent/*.js ./npms/skale-*/*.js ./test/*.js --fix",
+        "lint-check": "eslint ./agent/*.*js ./npms/skale-*/*.*js ./test/*.*js",
+        "lint-fix": "eslint ./agent/*.*js ./npms/skale-*/*.*js ./test/*.*js --fix",
         "preinstall": "./npms/scrypt/get_scrypt_npm.sh",
-        "postinstall": "echo \"----- installing in agent\n\" && cd ./agent && yarn install && cd .. && echo \"----- installing in test\n\" && cd ./test && yarn install && cd .. && echo \"----- installing in proxy\n\" && cd ./proxy && yarn install && cd .. && echo \"----- installing in test-tokens\n\" && cd ./test-tokens && yarn install && cd .."
+        "postinstall": "echo \"----- installing in agent\n\" && cd ./agent && yarn install && cd .. && echo \"----- installing in test\n\" && cd ./test && yarn install && cd .. && echo \"----- installing in proxy\n\" && cd ./proxy && yarn install && cd .. && echo \"----- installing in test-tokens\n\" && cd ./test-tokens && yarn install && cd ..",
+        "check-outdated": "yarn outdated",
+        "upgrade-to-latest": "yarn upgrade --latest"
     },
     "dependencies": {},
     "devDependencies": {
-        "eslint": "^6.8.0",
-        "eslint-config-standard": "^14.1.1",
-        "eslint-plugin-import": "^2.20.2",
+        "eslint": "^8.32.0",
+        "eslint-config-standard": "^17.0.0",
+        "eslint-plugin-import": "^2.27.5",
+        "eslint-plugin-markdown": "^3.0.0",
         "eslint-plugin-node": "^11.1.0",
-        "eslint-plugin-promise": "^4.2.1",
-        "eslint-plugin-standard": "^4.0.1"
+        "eslint-plugin-promise": "^6.1.1",
+        "eslint-standard": "^1.0.2"
     }
 }

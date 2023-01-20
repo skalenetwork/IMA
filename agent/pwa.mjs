@@ -1,7 +1,5 @@
 // SPDX-License-Identifier: AGPL-3.0-only
 
-const { cc } = require( "./utils" );
-
 /**
  * @license
  * SKALE IMA
@@ -21,10 +19,11 @@ const { cc } = require( "./utils" );
  */
 
 /**
- * @file pwa.js
+ * @file pwa.mjs
  * @copyright SKALE Labs 2019-Present
  */
 
+import { cc } from "./utils";
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -48,7 +47,7 @@ function compute_walk_node_idices( nNodeNumber, nNodesCount ) {
     return arr_walk_node_idices;
 }
 
-function check_loop_work_type_string_is_correct( strLoopWorkType ) {
+export function check_loop_work_type_string_is_correct( strLoopWorkType ) {
     if( ! strLoopWorkType )
         return false;
     switch ( strLoopWorkType.toString().toLowerCase() ) {
@@ -109,7 +108,7 @@ function get_node_progress_and_ts( joNode, strLoopWorkType, nIndexS2S ) {
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-async function check_on_loop_start( imaState, strLoopWorkType, nIndexS2S ) {
+export async function check_on_loop_start( imaState, strLoopWorkType, nIndexS2S ) {
     try {
         nIndexS2S = nIndexS2S || 0; // convert to number if undefined
         if( ! check_loop_work_type_string_is_correct( strLoopWorkType ) )
@@ -177,7 +176,7 @@ async function check_on_loop_start( imaState, strLoopWorkType, nIndexS2S ) {
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-async function handle_loop_state_arrived( imaState, nNodeNumber, strLoopWorkType, nIndexS2S, isStart, ts, signature ) {
+export async function handle_loop_state_arrived( imaState, nNodeNumber, strLoopWorkType, nIndexS2S, isStart, ts, signature ) {
     const se = isStart ? "start" : "end";
     let isSuccess = false;
     let joNode = null;
@@ -309,19 +308,13 @@ async function notify_on_loop_impl( imaState, strLoopWorkType, nIndexS2S, isStar
     return true;
 }
 
-async function notify_on_loop_start( imaState, strLoopWorkType, nIndexS2S ) {
+export async function notify_on_loop_start( imaState, strLoopWorkType, nIndexS2S ) {
     return await notify_on_loop_impl( imaState, strLoopWorkType, nIndexS2S, true );
 }
 
-async function notify_on_loop_end( imaState, strLoopWorkType, nIndexS2S ) {
+export async function notify_on_loop_end( imaState, strLoopWorkType, nIndexS2S ) {
     return await notify_on_loop_impl( imaState, strLoopWorkType, nIndexS2S, false );
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-module.exports.check_loop_work_type_string_is_correct = check_loop_work_type_string_is_correct;
-module.exports.check_on_loop_start = check_on_loop_start;
-module.exports.handle_loop_state_arrived = handle_loop_state_arrived;
-module.exports.notify_on_loop_start = notify_on_loop_start;
-module.exports.notify_on_loop_end = notify_on_loop_end;

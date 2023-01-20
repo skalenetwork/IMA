@@ -19,7 +19,7 @@
  */
 
 /**
- * @file settings.js
+ * @file socket_settings.mjs
  * @copyright SKALE Labs 2019-Present
  */
 
@@ -192,6 +192,4 @@ const settings = {
     }
 };
 
-module.exports = {
-    settings: settings
-};
+export { settings };

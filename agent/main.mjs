@@ -19,18 +19,25 @@
  */
 
 /**
- * @file main.js
+ * @file main.mjs
  * @copyright SKALE Labs 2019-Present
  */
 
 process.env.NODE_TLS_REJECT_UNAUTHORIZED = 0; // allow self-signed wss and https
 
-// const fs = require( "fs" );
-// const path = require( "path" );
-// const url = require( "url" );
-// const os = require( "os" );
+import * as ws from "ws";
+//import * as core from "./ima_core.mjs";
+import * as owaspUtils from "../npms/skale-owasp/owasp-utils.mjs";
+import * as log from "./npms/skale-log/log.mjs";
+import * as cc from "./npms/skale-cc/cc.mjs";
+import * as cli from "./cli.mjs";
+import * as rpcCall from "./rpc-call.mjs";
+import * as skale_observer from "./nps/skale-observer/observer.mjs";
 
-global.loop = require( "./loop.js" );
+import * as numberToBN_module from "number-to-bn"; process.env.NODE_TLS_REJECT_UNAUTHORIZED = 0;
+const numberToBN = numberToBN_module.default;
+
+import * as loop from "./loop.mjs";
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -154,7 +161,7 @@ global.imaState = {
                 "strBlsKeyName": owaspUtils.toStringURL( process.env.BLS_KEY_ETHEREUM )
             },
             "transactionCustomizer": IMA.tc_main_net,
-            "w3": null,
+            "ethersProvider": null,
             "strURL": owaspUtils.toStringURL( process.env.URL_W3_ETHEREUM ),
             "strChainName": ( process.env.CHAIN_NAME_ETHEREUM || "Mainnet" ).toString().trim(),
             "cid": owaspUtils.toInteger( process.env.CID_ETHEREUM ) || -4,
@@ -184,7 +191,7 @@ global.imaState = {
                 "strBlsKeyName": owaspUtils.toStringURL( process.env.BLS_KEY_S_CHAIN )
             },
             "transactionCustomizer": IMA.tc_s_chain,
-            "w3": null,
+            "ethersProvider": null,
             "strURL": owaspUtils.toStringURL( process.env.URL_W3_S_CHAIN ),
             "strChainName": ( process.env.CHAIN_NAME_SCHAIN || "id-S-chain" ).toString().trim(),
             "cid": owaspUtils.toInteger( process.env.CID_SCHAIN ) || -4,
@@ -214,7 +221,7 @@ global.imaState = {
                 "strBlsKeyName": owaspUtils.toStringURL( process.env.BLS_KEY_T_CHAIN )
             },
             "transactionCustomizer": IMA.tc_t_chain,
-            "w3": null,
+            "ethersProvider": null,
             "strURL": owaspUtils.toStringURL( process.env.URL_W3_S_CHAIN_TARGET ),
             "strChainName": ( process.env.CHAIN_NAME_SCHAIN_TARGET || "id-T-chain" ).toString().trim(),
             "cid": owaspUtils.toInteger( process.env.CID_SCHAIN_TARGET ) || -4,
@@ -286,8 +293,6 @@ if( tmp_address_SC_from_env && typeof tmp_address_SC_from_env == "string" && tmp
 if( tmp_address_TC_from_env && typeof tmp_address_TC_from_env == "string" && tmp_address_TC_from_env.length > 0 )
     imaState.chainProperties.tc.joAccount.address_ = "" + tmp_address_TC_from_env;
 
-imaBLS.init();
-
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -309,11 +314,11 @@ const fnInitActionSkaleNetworkScanForS2S = function() {
                 "bStopNeeded": false,
                 "secondsToReDiscoverSkaleNetwork": imaState.s2s_opts.secondsToReDiscoverSkaleNetwork
             };
-            const addressFrom = imaState.chainProperties.mn.joAccount.address( imaState.chainProperties.mn.w3 );
+            const addressFrom = imaState.chainProperties.mn.joAccount.address( imaState.chainProperties.mn.ethersProvider );
             // const strError = await skale_observer.cache_schains(
             //     imaState.chainProperties.sc.strChainName, // strChainNameConnectedTo
-            //     imaState.chainProperties.mn.w3,
-            //     imaState.chainProperties.sc.w3,
+            //     imaState.chainProperties.mn.ethersProvider,
+            //     imaState.chainProperties.sc.ethersProvider,
             //     addressFrom,
             //     opts
             // );
@@ -326,8 +331,8 @@ const fnInitActionSkaleNetworkScanForS2S = function() {
             log.write( strLogPrefix + cc.debug( "Will start periodic S-Chains caching..." ) + "\n" );
             await skale_observer.periodic_caching_start(
                 imaState.chainProperties.sc.strChainName, // strChainNameConnectedTo
-                imaState.chainProperties.mn.w3,
-                imaState.chainProperties.sc.w3,
+                imaState.chainProperties.mn.ethersProvider,
+                imaState.chainProperties.sc.ethersProvider,
                 addressFrom,
                 opts
             );
@@ -337,7 +342,6 @@ const fnInitActionSkaleNetworkScanForS2S = function() {
     } );
 };
 
-imaCLI.init();
 imaCLI.parse( {
     "register": function() {
         imaState.arrActions.push( {
@@ -392,9 +396,9 @@ imaCLI.parse( {
                 let bMintIsOK = false;
                 if( imaState.chainProperties.tc.strCoinNameErc20.length > 0 ) {
                     try {
-                        const strAddressMintTo = imaState.chainProperties.tc.joAccount.address( imaState.chainProperties.tc.w3 ); // same as caller/transaction signer
+                        const strAddressMintTo = imaState.chainProperties.tc.joAccount.address( imaState.chainProperties.tc.ethersProvider ); // same as caller/transaction signer
                         bMintIsOK = await IMA.mintERC20(
-                            imaState.chainProperties.tc.w3,
+                            imaState.chainProperties.tc.ethersProvider,
                             imaState.chainProperties.tc.cid,
                             imaState.chainProperties.tc.strChainName,
                             imaState.chainProperties.tc.joAccount,
@@ -419,7 +423,7 @@ imaCLI.parse( {
                 let bMintIsOK = false;
                 if( imaState.chainProperties.tc.strCoinNameErc721.length > 0 ) {
                     try {
-                        const strAddressMintTo = imaState.chainProperties.tc.joAccount.address( imaState.chainProperties.tc.w3 ); // same as caller/transaction signer
+                        const strAddressMintTo = imaState.chainProperties.tc.joAccount.address( imaState.chainProperties.tc.ethersProvider ); // same as caller/transaction signer
                         const idTokens = imaState.have_idTokens ? imaState.idTokens : [];
                         if( imaState.have_idToken )
                             idTokens.push( imaState.idToken );
@@ -427,7 +431,7 @@ imaCLI.parse( {
                             for( let i = 0; i < idTokens.length; ++ i ) {
                                 const idToken = idTokens[i];
                                 bMintIsOK = await IMA.mintERC721(
-                                    imaState.chainProperties.tc.w3,
+                                    imaState.chainProperties.tc.ethersProvider,
                                     imaState.chainProperties.tc.cid,
                                     imaState.chainProperties.tc.strChainName,
                                     imaState.chainProperties.tc.joAccount,
@@ -455,7 +459,7 @@ imaCLI.parse( {
                 let bMintIsOK = false;
                 if( imaState.chainProperties.tc.strCoinNameErc1155.length > 0 ) {
                     try {
-                        const strAddressMintTo = imaState.chainProperties.tc.joAccount.address( imaState.chainProperties.tc.w3 ); // same as caller/transaction signer
+                        const strAddressMintTo = imaState.chainProperties.tc.joAccount.address( imaState.chainProperties.tc.ethersProvider ); // same as caller/transaction signer
                         const idTokens = imaState.have_idTokens ? imaState.idTokens : [];
                         if( imaState.have_idToken )
                             idTokens.push( imaState.idToken );
@@ -463,7 +467,7 @@ imaCLI.parse( {
                             for( let i = 0; i < idTokens.length; ++ i ) {
                                 const idToken = idTokens[i];
                                 bMintIsOK = await IMA.mintERC1155(
-                                    imaState.chainProperties.tc.w3,
+                                    imaState.chainProperties.tc.ethersProvider,
                                     imaState.chainProperties.tc.cid,
                                     imaState.chainProperties.tc.strChainName,
                                     imaState.chainProperties.tc.joAccount,
@@ -492,9 +496,9 @@ imaCLI.parse( {
                 let bBurnIsOK = false;
                 if( imaState.chainProperties.tc.strCoinNameErc20.length > 0 ) {
                     try {
-                        const strAddressBurnFrom = imaState.chainProperties.tc.joAccount.address( imaState.chainProperties.tc.w3 ); // same as caller/transaction signer
+                        const strAddressBurnFrom = imaState.chainProperties.tc.joAccount.address( imaState.chainProperties.tc.ethersProvider ); // same as caller/transaction signer
                         bBurnIsOK = await IMA.burnERC20(
-                            imaState.chainProperties.tc.w3,
+                            imaState.chainProperties.tc.ethersProvider,
                             imaState.chainProperties.tc.cid,
                             imaState.chainProperties.tc.strChainName,
                             imaState.chainProperties.tc.joAccount,
@@ -519,7 +523,7 @@ imaCLI.parse( {
                 let bBurnIsOK = false;
                 if( imaState.chainProperties.tc.strCoinNameErc721.length > 0 ) {
                     try {
-                        // const strAddressBurnFrom = imaState.chainProperties.tc.joAccount.address( imaState.chainProperties.tc.w3 ); // same as caller/transaction signer
+                        // const strAddressBurnFrom = imaState.chainProperties.tc.joAccount.address( imaState.chainProperties.tc.ethersProvider ); // same as caller/transaction signer
                         const idTokens = imaState.have_idTokens ? imaState.idTokens : [];
                         if( imaState.have_idToken )
                             idTokens.push( imaState.idToken );
@@ -527,7 +531,7 @@ imaCLI.parse( {
                             for( let i = 0; i < idTokens.length; ++ i ) {
                                 const idToken = idTokens[i];
                                 bBurnIsOK = await IMA.burnERC721(
-                                    imaState.chainProperties.tc.w3,
+                                    imaState.chainProperties.tc.ethersProvider,
                                     imaState.chainProperties.tc.cid,
                                     imaState.chainProperties.tc.strChainName,
                                     imaState.chainProperties.tc.joAccount,
@@ -555,7 +559,7 @@ imaCLI.parse( {
                 let bBurnIsOK = false;
                 if( imaState.chainProperties.tc.strCoinNameErc1155.length > 0 ) {
                     try {
-                        const strAddressBurnFrom = imaState.chainProperties.tc.joAccount.address( imaState.chainProperties.tc.w3 ); // same as caller/transaction signer
+                        const strAddressBurnFrom = imaState.chainProperties.tc.joAccount.address( imaState.chainProperties.tc.ethersProvider ); // same as caller/transaction signer
                         const idTokens = imaState.have_idTokens ? imaState.idTokens : [];
                         if( imaState.have_idToken )
                             idTokens.push( imaState.idToken );
@@ -563,7 +567,7 @@ imaCLI.parse( {
                             for( let i = 0; i < idTokens.length; ++ i ) {
                                 const idToken = idTokens[i];
                                 bBurnIsOK = await IMA.burnERC1155(
-                                    imaState.chainProperties.tc.w3,
+                                    imaState.chainProperties.tc.ethersProvider,
                                     imaState.chainProperties.tc.cid,
                                     imaState.chainProperties.tc.strChainName,
                                     imaState.chainProperties.tc.joAccount,
@@ -595,7 +599,7 @@ imaCLI.parse( {
                     assetName: "RealETH",
                     balance: await IMA.balanceETH(
                         true, // isMainNet
-                        imaState.chainProperties.mn.w3,
+                        imaState.chainProperties.mn.ethersProvider,
                         imaState.chainProperties.mn.cid,
                         imaState.chainProperties.mn.joAccount
                     )
@@ -603,7 +607,7 @@ imaCLI.parse( {
                 arrBalancesMN.push( {
                     assetName: "CanReceiveETH",
                     balance: await IMA.view_eth_payment_from_s_chain_on_main_net(
-                        imaState.chainProperties.mn.w3,
+                        imaState.chainProperties.mn.ethersProvider,
                         imaState.chainProperties.mn.joAccount,
                         imaState.jo_deposit_box_eth
                     )
@@ -614,7 +618,7 @@ imaCLI.parse( {
                     assetAddress: assetAddress,
                     balance: await IMA.balanceETH(
                         false, // isMainNet
-                        imaState.chainProperties.sc.w3,
+                        imaState.chainProperties.sc.ethersProvider,
                         imaState.chainProperties.sc.cid,
                         imaState.chainProperties.sc.joAccount,
                         imaState.eth_erc20
@@ -624,7 +628,7 @@ imaCLI.parse( {
                     assetName: "FakeETH",
                     balance: await IMA.balanceETH(
                         true, // isMainNet here is true, but we do call S-Chain
-                        imaState.chainProperties.sc.w3,
+                        imaState.chainProperties.sc.ethersProvider,
                         imaState.chainProperties.sc.cid,
                         imaState.chainProperties.sc.joAccount
                     )
@@ -636,7 +640,7 @@ imaCLI.parse( {
                         assetAddress: assetAddress,
                         balance: await IMA.balanceERC20(
                             true, // isMainNet
-                            imaState.chainProperties.mn.w3,
+                            imaState.chainProperties.mn.ethersProvider,
                             imaState.chainProperties.mn.cid,
                             imaState.chainProperties.mn.joAccount,
                             imaState.chainProperties.tc.strCoinNameErc20,
@@ -651,7 +655,7 @@ imaCLI.parse( {
                         assetAddress: assetAddress,
                         balance: await IMA.balanceERC20(
                             false, // isMainNet
-                            imaState.chainProperties.sc.w3,
+                            imaState.chainProperties.sc.ethersProvider,
                             imaState.chainProperties.sc.cid,
                             imaState.chainProperties.sc.joAccount,
                             imaState.chainProperties.sc.strCoinNameErc20,
@@ -673,7 +677,7 @@ imaCLI.parse( {
                                 idToken: idToken,
                                 owner: await IMA.ownerOfERC721(
                                     true, // isMainNet
-                                    imaState.chainProperties.mn.w3,
+                                    imaState.chainProperties.mn.ethersProvider,
                                     imaState.chainProperties.mn.cid,
                                     imaState.chainProperties.mn.joAccount,
                                     imaState.chainProperties.mn.strCoinNameErc721,
@@ -693,7 +697,7 @@ imaCLI.parse( {
                                 idToken: idToken,
                                 owner: await IMA.ownerOfERC721(
                                     false, // isMainNet
-                                    imaState.chainProperties.sc.w3,
+                                    imaState.chainProperties.sc.ethersProvider,
                                     imaState.chainProperties.sc.cid,
                                     imaState.chainProperties.sc.joAccount,
                                     imaState.chainProperties.sc.strCoinNameErc721,
@@ -713,7 +717,7 @@ imaCLI.parse( {
                                 idToken: idToken,
                                 balance: await IMA.balanceERC1155(
                                     true, // isMainNet
-                                    imaState.chainProperties.mn.w3,
+                                    imaState.chainProperties.mn.ethersProvider,
                                     imaState.chainProperties.mn.cid,
                                     imaState.chainProperties.mn.joAccount,
                                     imaState.chainProperties.mn.strCoinNameErc1155,
@@ -733,7 +737,7 @@ imaCLI.parse( {
                                 idToken: idToken,
                                 balance: await IMA.balanceERC1155(
                                     false, // isMainNet
-                                    imaState.chainProperties.sc.w3,
+                                    imaState.chainProperties.sc.ethersProvider,
                                     imaState.chainProperties.sc.cid,
                                     imaState.chainProperties.sc.joAccount,
                                     imaState.chainProperties.sc.strCoinNameErc1155,
@@ -763,7 +767,7 @@ imaCLI.parse( {
                 };
                 if( arrBalancesMN.length > 0 || arrBalancesSC.length > 0 ) {
                     if( arrBalancesMN.length > 0 ) {
-                        const strAddress = imaState.chainProperties.mn.joAccount.address( imaState.chainProperties.mn.w3 );
+                        const strAddress = imaState.chainProperties.mn.joAccount.address( imaState.chainProperties.mn.ethersProvider );
                         log.write( cc.sunny( "Main Net" ) + " " +
                             cc.bright( arrBalancesMN.length > 1 ? "balances" : "balance" ) +
                             cc.bright( " of " ) + cc.notice( strAddress ) +
@@ -774,7 +778,7 @@ imaCLI.parse( {
                         }
                     }
                     if( arrBalancesSC.length > 0 ) {
-                        const strAddress = imaState.chainProperties.sc.joAccount.address( imaState.chainProperties.sc.w3 );
+                        const strAddress = imaState.chainProperties.sc.joAccount.address( imaState.chainProperties.sc.ethersProvider );
                         log.write( cc.sunny( "S-Chain" ) + " " +
                             cc.bright( arrBalancesMN.length > 1 ? "balances" : "balance" ) +
                             cc.bright( " of " ) + cc.notice( strAddress ) +
@@ -800,8 +804,8 @@ imaCLI.parse( {
                     // ERC721 payment
                     log.write( cc.info( "one M->S single ERC721 payment: " ) + cc.sunny( imaState.idToken ) + "\n" ); // just print value
                     return await IMA.do_erc721_payment_from_main_net(
-                        imaState.chainProperties.mn.w3,
-                        imaState.chainProperties.sc.w3,
+                        imaState.chainProperties.mn.ethersProvider,
+                        imaState.chainProperties.sc.ethersProvider,
                         imaState.chainProperties.mn.cid,
                         imaState.chainProperties.sc.cid,
                         imaState.chainProperties.mn.joAccount,
@@ -825,8 +829,8 @@ imaCLI.parse( {
                     // ERC20 payment
                     log.write( cc.info( "one M->S single ERC20 payment: " ) + cc.sunny( imaState.nAmountOfToken ) + "\n" ); // just print value
                     return await IMA.do_erc20_payment_from_main_net(
-                        imaState.chainProperties.mn.w3,
-                        imaState.chainProperties.sc.w3,
+                        imaState.chainProperties.mn.ethersProvider,
+                        imaState.chainProperties.sc.ethersProvider,
                         imaState.chainProperties.mn.cid,
                         imaState.chainProperties.sc.cid,
                         imaState.chainProperties.mn.joAccount,
@@ -854,8 +858,8 @@ imaCLI.parse( {
                     // ERC1155 payment
                     log.write( cc.info( "one M->S single ERC1155 payment: " ) + cc.sunny( imaState.idToken ) + " " + cc.sunny( imaState.nAmountOfToken ) + "\n" ); // just print value
                     return await IMA.do_erc1155_payment_from_main_net(
-                        imaState.chainProperties.mn.w3,
-                        imaState.chainProperties.sc.w3,
+                        imaState.chainProperties.mn.ethersProvider,
+                        imaState.chainProperties.sc.ethersProvider,
                         imaState.chainProperties.mn.cid,
                         imaState.chainProperties.sc.cid,
                         imaState.chainProperties.mn.joAccount,
@@ -884,8 +888,8 @@ imaCLI.parse( {
                     // ERC1155 Batch payment
                     log.write( cc.info( "one M->S single ERC1155 Batch payment: " ) + cc.sunny( imaState.idTokens ) + " " + cc.sunny( imaState.arrAmountsOfTokens ) + "\n" ); // just print value
                     return await IMA.do_erc1155_batch_payment_from_main_net(
-                        imaState.chainProperties.mn.w3,
-                        imaState.chainProperties.sc.w3,
+                        imaState.chainProperties.mn.ethersProvider,
+                        imaState.chainProperties.sc.ethersProvider,
                         imaState.chainProperties.mn.cid,
                         imaState.chainProperties.sc.cid,
                         imaState.chainProperties.mn.joAccount,
@@ -907,7 +911,7 @@ imaCLI.parse( {
                 // ETH payment
                 log.write( cc.info( "one M->S single ETH payment: " ) + cc.sunny( imaState.nAmountOfWei ) + "\n" ); // just print value
                 return await IMA.do_eth_payment_from_main_net(
-                    imaState.chainProperties.mn.w3,
+                    imaState.chainProperties.mn.ethersProvider,
                     imaState.chainProperties.mn.cid,
                     imaState.chainProperties.mn.joAccount,
                     imaState.chainProperties.sc.joAccount,
@@ -928,8 +932,8 @@ imaCLI.parse( {
                     // ERC721 payment
                     log.write( cc.info( "one S->M single ERC721 payment: " ) + cc.sunny( imaState.idToken ) + "\n" ); // just print value
                     return await IMA.do_erc721_payment_from_s_chain(
-                        imaState.chainProperties.mn.w3,
-                        imaState.chainProperties.sc.w3,
+                        imaState.chainProperties.mn.ethersProvider,
+                        imaState.chainProperties.sc.ethersProvider,
                         imaState.chainProperties.mn.cid,
                         imaState.chainProperties.sc.cid,
                         imaState.chainProperties.sc.joAccount,
@@ -950,8 +954,8 @@ imaCLI.parse( {
                     // ERC20 payment
                     log.write( cc.info( "one S->M single ERC20 payment: " ) + cc.sunny( imaState.nAmountOfToken ) + "\n" ); // just print value
                     return await IMA.do_erc20_payment_from_s_chain(
-                        imaState.chainProperties.mn.w3,
-                        imaState.chainProperties.sc.w3,
+                        imaState.chainProperties.mn.ethersProvider,
+                        imaState.chainProperties.sc.ethersProvider,
                         imaState.chainProperties.mn.cid,
                         imaState.chainProperties.sc.cid,
                         imaState.chainProperties.sc.joAccount,
@@ -978,8 +982,8 @@ imaCLI.parse( {
                     // ERC1155 payment
                     log.write( cc.info( "one S->M single ERC1155 payment: " ) + cc.sunny( imaState.idToken ) + " " + cc.sunny( imaState.nAmountOfToken ) + "\n" ); // just print value
                     return await IMA.do_erc1155_payment_from_s_chain(
-                        imaState.chainProperties.mn.w3,
-                        imaState.chainProperties.sc.w3,
+                        imaState.chainProperties.mn.ethersProvider,
+                        imaState.chainProperties.sc.ethersProvider,
                         imaState.chainProperties.mn.cid,
                         imaState.chainProperties.sc.cid,
                         imaState.chainProperties.sc.joAccount,
@@ -1007,8 +1011,8 @@ imaCLI.parse( {
                     // ERC1155 payment
                     log.write( cc.info( "one S->M single ERC1155 payment: " ) + cc.sunny( imaState.idTokens ) + " " + cc.sunny( imaState.arrAmountsOfTokens ) + "\n" ); // just print value
                     return await IMA.do_erc1155_batch_payment_from_s_chain(
-                        imaState.chainProperties.mn.w3,
-                        imaState.chainProperties.sc.w3,
+                        imaState.chainProperties.mn.ethersProvider,
+                        imaState.chainProperties.sc.ethersProvider,
                         imaState.chainProperties.mn.cid,
                         imaState.chainProperties.sc.cid,
                         imaState.chainProperties.sc.joAccount,
@@ -1029,7 +1033,7 @@ imaCLI.parse( {
                 // ETH payment
                 log.write( cc.info( "one S->M single ETH payment: " ) + cc.sunny( imaState.nAmountOfWei ) + "\n" ); // just print value
                 return await IMA.do_eth_payment_from_s_chain(
-                    imaState.chainProperties.sc.w3,
+                    imaState.chainProperties.sc.ethersProvider,
                     imaState.chainProperties.sc.cid,
                     imaState.chainProperties.sc.joAccount,
                     imaState.chainProperties.mn.joAccount,
@@ -1046,8 +1050,8 @@ imaCLI.parse( {
             "name": "one S->S single payment",
             "fn": async function() {
                 const isForward = IMA.isForwardS2S();
-                const w3_src = isForward ? imaState.chainProperties.sc.w3 : imaState.chainProperties.tc.w3;
-                // const w3_dst = isForward ? imaState.chainProperties.tc.w3 : imaState.chainProperties.sc.w3;
+                const w3_src = isForward ? imaState.chainProperties.sc.ethersProvider : imaState.chainProperties.tc.ethersProvider;
+                // const w3_dst = isForward ? imaState.chainProperties.tc.ethersProvider : imaState.chainProperties.sc.ethersProvider;
                 const cid_src = isForward ? imaState.chainProperties.sc.cid : imaState.chainProperties.tc.cid;
                 // const cid_dst = isForward ? imaState.chainProperties.tc.cid : imaState.chainProperties.sc.cid;
                 const joAccountSrc = isForward ? imaState.chainProperties.sc.joAccount : imaState.chainProperties.tc.joAccount;
@@ -1201,7 +1205,7 @@ imaCLI.parse( {
             "fn": async function() {
                 log.write( cc.info( "receive one S->M single ETH payment: " ) + "\n" ); // just print value
                 return await IMA.receive_eth_payment_from_s_chain_on_main_net(
-                    imaState.chainProperties.mn.w3,
+                    imaState.chainProperties.mn.ethersProvider,
                     imaState.chainProperties.mn.cid,
                     imaState.chainProperties.mn.joAccount,
                     imaState.jo_deposit_box_eth,
@@ -1216,14 +1220,14 @@ imaCLI.parse( {
             "fn": async function() {
                 log.write( cc.info( "view one S->M single ETH payment: " ) + "\n" ); // just print value
                 const xWei = await IMA.view_eth_payment_from_s_chain_on_main_net(
-                    imaState.chainProperties.mn.w3,
+                    imaState.chainProperties.mn.ethersProvider,
                     imaState.chainProperties.mn.joAccount,
                     imaState.jo_deposit_box_eth
                 );
                 if( xWei === null || xWei === undefined )
                     return false;
 
-                const xEth = imaState.chainProperties.mn.w3.utils.fromWei( xWei, "ether" );
+                const xEth = imaState.chainProperties.mn.ethersProvider.utils.fromWei( xWei, "ether" );
                 log.write( cc.success( "Main-net user can receive: " ) + cc.attention( xWei ) + cc.success( " wei = " ) + cc.attention( xEth ) + cc.success( " eth" ) + "\n" );
                 return true;
             }
@@ -1244,10 +1248,10 @@ imaCLI.parse( {
                     "M2S",
                     joRuntimeOpts,
                     //
-                    imaState.chainProperties.mn.w3,
+                    imaState.chainProperties.mn.ethersProvider,
                     imaState.jo_message_proxy_main_net,
                     imaState.chainProperties.mn.joAccount,
-                    imaState.chainProperties.sc.w3,
+                    imaState.chainProperties.sc.ethersProvider,
                     imaState.jo_message_proxy_s_chain,
                     //
                     imaState.chainProperties.sc.joAccount,
@@ -1284,10 +1288,10 @@ imaCLI.parse( {
                     "S2M",
                     joRuntimeOpts,
                     //
-                    imaState.chainProperties.sc.w3,
+                    imaState.chainProperties.sc.ethersProvider,
                     imaState.jo_message_proxy_s_chain,
                     imaState.chainProperties.sc.joAccount,
-                    imaState.chainProperties.mn.w3,
+                    imaState.chainProperties.mn.ethersProvider,
                     imaState.jo_message_proxy_main_net,
                     //
                     imaState.chainProperties.mn.joAccount,
@@ -1327,7 +1331,7 @@ imaCLI.parse( {
                     joRuntimeOpts,
                     imaState,
                     skale_observer,
-                    imaState.chainProperties.sc.w3,
+                    imaState.chainProperties.sc.ethersProvider,
                     imaState.jo_message_proxy_s_chain,
                     //
                     imaState.chainProperties.sc.joAccount,
@@ -1546,8 +1550,8 @@ imaCLI.parse( {
                     "details": log,
                     "bStopNeeded": false
                 };
-                const addressFrom = imaState.chainProperties.mn.joAccount.address( imaState.chainProperties.mn.w3 );
-                const arr_schains = await skale_observer.load_schains( imaState.chainProperties.mn.w3, addressFrom, opts );
+                const addressFrom = imaState.chainProperties.mn.joAccount.address( imaState.chainProperties.mn.ethersProvider );
+                const arr_schains = await skale_observer.load_schains( imaState.chainProperties.mn.ethersProvider, addressFrom, opts );
                 const cnt = arr_schains.length;
                 log.write( strLogPrefix + cc.normal( "Got " ) + cc.info( cnt ) + cc.normal( " S-Chains(s) in SKALE NETWORK information: " ) + cc.j( arr_schains ) + "\n" );
                 return true;
@@ -1571,11 +1575,11 @@ imaCLI.parse( {
                     "details": log,
                     "bStopNeeded": false
                 };
-                const addressFrom = imaState.chainProperties.mn.joAccount.address( imaState.chainProperties.mn.w3 );
+                const addressFrom = imaState.chainProperties.mn.joAccount.address( imaState.chainProperties.mn.ethersProvider );
 
                 const arr_schains_cached = await skale_observer.load_schains_connected_only(
-                    imaState.chainProperties.mn.w3,
-                    imaState.chainProperties.sc.w3,
+                    imaState.chainProperties.mn.ethersProvider,
+                    imaState.chainProperties.sc.ethersProvider,
                     imaState.chainProperties.sc.strChainName, // strChainNameConnectedTo
                     addressFrom,
                     opts
@@ -1657,9 +1661,9 @@ if( imaState.isShowReimbursementBalance ) {
         "name": "Gas Reimbursement - Show Balance",
         "fn": async function() {
             await IMA.reimbursement_show_balance(
-                imaState.chainProperties.mn.w3,
+                imaState.chainProperties.mn.ethersProvider,
                 imaState.jo_community_pool,
-                imaState.chainProperties.mn.joAccount.address( imaState.chainProperties.mn.w3 ),
+                imaState.chainProperties.mn.joAccount.address( imaState.chainProperties.mn.ethersProvider ),
                 imaState.chainProperties.mn.strChainName,
                 imaState.chainProperties.mn.cid,
                 imaState.chainProperties.mn.transactionCustomizer,
@@ -1676,9 +1680,9 @@ if( imaState.nReimbursementEstimate ) {
         "name": "Gas Reimbursement - Estimate Amount",
         "fn": async function() {
             await IMA.reimbursement_estimate_amount(
-                imaState.chainProperties.mn.w3,
+                imaState.chainProperties.mn.ethersProvider,
                 imaState.jo_community_pool,
-                imaState.chainProperties.mn.joAccount.address( imaState.chainProperties.mn.w3 ),
+                imaState.chainProperties.mn.joAccount.address( imaState.chainProperties.mn.ethersProvider ),
                 imaState.chainProperties.mn.strChainName,
                 imaState.chainProperties.mn.cid,
                 imaState.chainProperties.mn.transactionCustomizer,
@@ -1695,7 +1699,7 @@ if( imaState.nReimbursementRecharge ) {
         "name": "Gas Reimbursement - Recharge User Wallet",
         "fn": async function() {
             await IMA.reimbursement_wallet_recharge(
-                imaState.chainProperties.mn.w3,
+                imaState.chainProperties.mn.ethersProvider,
                 imaState.jo_community_pool,
                 imaState.chainProperties.mn.joAccount,
                 imaState.chainProperties.mn.strChainName,
@@ -1714,7 +1718,7 @@ if( imaState.nReimbursementWithdraw ) {
         "name": "Gas Reimbursement - Withdraw User Wallet",
         "fn": async function() {
             await IMA.reimbursement_wallet_withdraw(
-                imaState.chainProperties.mn.w3,
+                imaState.chainProperties.mn.ethersProvider,
                 imaState.jo_community_pool,
                 imaState.chainProperties.mn.joAccount,
                 imaState.chainProperties.mn.strChainName,
@@ -1738,7 +1742,7 @@ if( imaState.nReimbursementRange >= 0 ) {
         "name": "Gas Reimbursement - Set Minimal time interval from S2M and S2S transfers",
         "fn": async function() {
             await IMA.reimbursement_set_range(
-                imaState.chainProperties.sc.w3,
+                imaState.chainProperties.sc.ethersProvider,
                 imaState.jo_community_locker,
                 imaState.chainProperties.sc.joAccount,
                 imaState.chainProperties.sc.strChainName,
@@ -2617,14 +2621,14 @@ async function register_step1( isPrintSummaryRegistrationCosts ) {
     const strLogPrefix = cc.info( "Reg 1:" ) + " ";
     let jarrReceipts = "true";
     const bRetVal = await IMA.check_is_registered_s_chain_in_deposit_boxes( // step 1
-        imaState.chainProperties.mn.w3,
+        imaState.chainProperties.mn.ethersProvider,
         imaState.jo_linker,
         imaState.chainProperties.mn.joAccount,
         imaState.chainProperties.sc.strChainName
     );
     if( !bRetVal ) {
         jarrReceipts = await IMA.register_s_chain_in_deposit_boxes( // step 1
-            imaState.chainProperties.mn.w3,
+            imaState.chainProperties.mn.ethersProvider,
             // imaState.jo_deposit_box_eth, // only main net
             // imaState.jo_deposit_box_erc20, // only main net
             // imaState.isWithMetadata721 ? imaState.jo_deposit_box_erc721_with_metadata : imaState.jo_deposit_box_erc721, // only main net
@@ -2671,7 +2675,7 @@ async function check_registration_all() {
 async function check_registration_step1() {
     imaCLI.ima_contracts_init();
     const bRetVal = await IMA.check_is_registered_s_chain_in_deposit_boxes( // step 1
-        imaState.chainProperties.mn.w3,
+        imaState.chainProperties.mn.ethersProvider,
         imaState.jo_linker,
         imaState.chainProperties.mn.joAccount,
         imaState.chainProperties.sc.strChainName

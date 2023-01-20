@@ -19,49 +19,18 @@
  */
 
 /**
- * @file rpc-call.js
+ * @file rpc-call.mjs
  * @copyright SKALE Labs 2019-Present
  */
 
-const ws = require( "ws" ); // https://www.npmjs.com/package/ws
-const urllib = require( "urllib" ); // https://www.npmjs.com/package/urllib
-const net = require( "net" );
+import * as ws from "ws";
+import * as urllib from "urllib";
+import * as net from "net";
+import * as owaspUtils from "../npms/skale-owasp/owasp-utils.mjs";
 
 const g_nConnectionTimeoutSeconds = 60;
 
-function rpc_call_init() {
-    owaspUtils.owaspAddUsageRef();
-}
-
-function validateURL( x ) {
-    return owaspUtils.validateURL( x );
-}
-
-function is_http_url( strURL ) {
-    try {
-        if( !validateURL( strURL ) )
-            return false;
-        const u = new URL( strURL );
-        if( u.protocol == "http:" || u.protocol == "https:" )
-            return true;
-    } catch ( err ) {
-    }
-    return false;
-}
-
-function is_ws_url( strURL ) {
-    try {
-        if( !validateURL( strURL ) )
-            return false;
-        const u = new URL( strURL );
-        if( u.protocol == "ws:" || u.protocol == "wss:" )
-            return true;
-    } catch ( err ) {
-    }
-    return false;
-}
-
-async function wait_web_socket_is_open( socket, fnDone, fnStep ) {
+export async function wait_web_socket_is_open( socket, fnDone, fnStep ) {
     fnDone = fnDone || async function( nStep ) {};
     fnDone = fnStep || async function( nStep ) { return true; };
     let nStep = 0;
@@ -97,14 +66,14 @@ async function wait_web_socket_is_open( socket, fnDone, fnStep ) {
     await Promise.all( [ promiseComplete ] );
 }
 
-async function do_connect( joCall, opts, fn ) {
+export async function do_connect( joCall, opts, fn ) {
     try {
         fn = fn || async function() {};
-        if( !validateURL( joCall.url ) )
+        if( !owaspUtils.validateURL( joCall.url ) )
             throw new Error( "JSON RPC CALLER cannot connect web socket to invalid URL: " + joCall.url );
-        if( is_ws_url( joCall.url ) ) {
+        if( owaspUtils.is_ws_url( joCall.url ) ) {
             let strWsError = null;
-            joCall.wsConn = new ws( joCall.url );
+            joCall.wsConn = new ws.WebSocket( joCall.url );
             joCall.wsConn.on( "open", async function() {
                 await fn( joCall, null );
             } );
@@ -175,12 +144,12 @@ async function do_connect( joCall, opts, fn ) {
     return joCall;
 }
 
-async function do_connect_if_needed( joCall, opts, fn ) {
+export async function do_connect_if_needed( joCall, opts, fn ) {
     try {
         fn = fn || async function() {};
-        if( !validateURL( joCall.url ) )
+        if( !owaspUtils.validateURL( joCall.url ) )
             throw new Error( "JSON RPC CALLER cannot connect web socket to invalid URL: " + joCall.url );
-        if( is_ws_url( joCall.url ) && ( !joCall.wsConn ) ) {
+        if( owaspUtils.is_ws_url( joCall.url ) && ( !joCall.wsConn ) ) {
             await joCall.reconnect( fn );
             return;
         }
@@ -226,7 +195,7 @@ async function do_disconnect( joCall, fn ) {
 
 const do_sleep = ( milliseconds ) => { return new Promise( resolve => setTimeout( resolve, milliseconds ) ); };
 
-async function do_call( joCall, joIn, fn ) {
+export async function do_call( joCall, joIn, fn ) {
     // console.log( "--- --- --- initial joIn is", joIn );
     joIn = enrich_top_level_json_fields( joIn );
     // console.log( "--- --- --- enriched joIn is", joIn );
@@ -246,7 +215,7 @@ async function do_call( joCall, joIn, fn ) {
         joCall.wsConn.send( JSON.stringify( joIn ) );
     } else {
         // console.log( "--- --- --- call URL is", joCall.url );
-        if( !validateURL( joCall.url ) ) {
+        if( !owaspUtils.validateURL( joCall.url ) ) {
             // throw new Error( "JSON RPC CALLER cannot do query post to invalid URL: " + joCall.url );
             await fn( joIn, null, "JSON RPC CALLER cannot do query post to invalid URL: " + joCall.url );
             return;
@@ -314,8 +283,8 @@ async function do_call( joCall, joIn, fn ) {
     }
 }
 
-async function rpc_call_create( strURL, opts, fn ) {
-    if( !validateURL( strURL ) )
+export async function rpc_call_create( strURL, opts, fn ) {
+    if( !owaspUtils.validateURL( strURL ) )
         throw new Error( "JSON RPC CALLER cannot create a call object invalid URL: " + strURL );
     fn = fn || async function() {};
     if( !( strURL && typeof strURL == "string" && strURL.length > 0 ) )
@@ -351,17 +320,19 @@ async function rpc_call_create( strURL, opts, fn ) {
     return joCall;
 }
 
-function generate_random_integer_in_range( min, max ) {
+export { rpc_call_create as create };
+
+export function generate_random_integer_in_range( min, max ) {
     min = Math.ceil( min );
     max = Math.floor( max );
     return Math.floor( Math.random() * ( max - min + 1 ) ) + min;
 }
 
-function generate_random_rpc_call_id() {
+export function generate_random_rpc_call_id() {
     return generate_random_integer_in_range( 1, Number.MAX_SAFE_INTEGER );
 }
 
-function enrich_top_level_json_fields( jo ) {
+export function enrich_top_level_json_fields( jo ) {
     if( ( !( "jsonrpc" in jo ) ) || ( typeof jo.jsonrpc !== "string" ) || jo.jsonrpc.length === 0 )
         jo.jsonrpc = "2.0";
     if( ( !( "id" in jo ) ) || ( typeof jo.id !== "number" ) || jo.id <= 0 )
@@ -369,7 +340,7 @@ function enrich_top_level_json_fields( jo ) {
     return jo;
 }
 
-function is_valid_url( s ) {
+export function is_valid_url( s ) {
     if( ! s )
         return false;
     try {
@@ -381,7 +352,7 @@ function is_valid_url( s ) {
     return false;
 }
 
-function get_valid_url( s ) {
+export function get_valid_url( s ) {
     if( ! s )
         return null;
     try {
@@ -391,7 +362,7 @@ function get_valid_url( s ) {
     return null;
 }
 
-function get_default_port( strProtocol ) {
+export function get_default_port( strProtocol ) {
     if( ! strProtocol )
         return 80;
     switch ( strProtocol.toString().toLowerCase() ) {
@@ -405,7 +376,7 @@ function get_default_port( strProtocol ) {
     return 80;
 }
 
-function get_valid_host_and_port( s ) {
+export function get_valid_host_and_port( s ) {
     const u = get_valid_url( s );
     if( ! u )
         return null;
@@ -418,7 +389,7 @@ function get_valid_host_and_port( s ) {
 
 const g_strTcpConnectionHeader = "TCP connection checker: ";
 
-function check_tcp_promise( strHost, nPort, nTimeoutMilliseconds, isLog ) {
+export function check_tcp_promise( strHost, nPort, nTimeoutMilliseconds, isLog ) {
     return new Promise( ( resolve, reject ) => {
         if( isLog )
             console.log( `${g_strTcpConnectionHeader}Will establish TCP connection to ${strHost}:${nPort}...` );
@@ -456,7 +427,7 @@ function check_tcp_promise( strHost, nPort, nTimeoutMilliseconds, isLog ) {
     } );
 }
 
-async function check_tcp( strHost, nPort, nTimeoutMilliseconds, isLog ) {
+export async function check_tcp( strHost, nPort, nTimeoutMilliseconds, isLog ) {
     let isOnline = false;
     try {
         const promise_tcp = check_tcp_promise( strHost, nPort, nTimeoutMilliseconds, isLog )
@@ -476,7 +447,7 @@ async function check_tcp( strHost, nPort, nTimeoutMilliseconds, isLog ) {
     return isOnline;
 }
 
-async function check_url( u, nTimeoutMilliseconds, isLog ) {
+export async function check_url( u, nTimeoutMilliseconds, isLog ) {
     if( ! u )
         return false;
     const jo = get_valid_host_and_port( u );
@@ -489,20 +460,3 @@ async function check_url( u, nTimeoutMilliseconds, isLog ) {
     return await check_tcp( jo.strHost, jo.nPort, nTimeoutMilliseconds, isLog );
 }
 
-module.exports = {
-    rpcCallAddUsageRef: function() { },
-    is_http_url: is_http_url,
-    is_ws_url: is_ws_url,
-    init: rpc_call_init,
-    create: rpc_call_create,
-    generate_random_integer_in_range: generate_random_integer_in_range,
-    generate_random_rpc_call_id: generate_random_rpc_call_id,
-    enrich_top_level_json_fields: enrich_top_level_json_fields,
-    is_valid_url: is_valid_url,
-    get_valid_url: get_valid_url,
-    get_valid_host_and_port: get_valid_host_and_port,
-    check_tcp_promise: check_tcp_promise,
-    check_tcp: check_tcp,
-    check_url: check_url,
-    sleep: do_sleep
-}; // module.exports

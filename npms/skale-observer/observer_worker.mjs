@@ -20,20 +20,21 @@
  */
 
 /**
- * @file observer_worker.js
+ * @file observer_worker.mjs
  * @copyright SKALE Labs 2019-Present
  */
 
-const {
+import {
     parentPort
     //, workerData
-} = require( "worker_threads" );
-const network_layer = require( "../skale-cool-socket/socket.js" );
-const { Server } = require( "../skale-cool-socket/server.js" );
-const owaspUtils = require( "../skale-owasp/owasp-util.js" );
+} from "worker_threads";
+import * as network_layer from "../skale-cool-socket/socket.mjs";
+import { SocketServer } from "../skale-cool-socket/server.mjs";
+import * as owaspUtils from "../skale-owasp/owasp-util.mjs";
 const cc = owaspUtils.cc;
+// import * as core from "./ima_core.mjs";
 
-const skale_observer = require( "./observer.js" );
+import * as skale_observer from "./observer.mjs";
 
 const g_url = "skale_observer_worker_server";
 
@@ -53,7 +54,7 @@ function doSendMessage( type, endpoint, worker_uuid, data ) {
     parentPort.postMessage( network_layer.socket_sent_data_marshall( joSend ) );
 }
 
-class ObserverServer extends Server {
+class ObserverServer extends SocketServer {
     constructor( acceptor ) {
         super( acceptor );
         const self = this;
@@ -88,7 +89,7 @@ class ObserverServer extends Server {
             //
             if( self.opts.imaState.chainProperties.mn.strURL && typeof self.opts.imaState.chainProperties.mn.strURL == "string" && self.opts.imaState.chainProperties.mn.strURL.length > 0 ) {
                 const u = self.opts.imaState.chainProperties.mn.strURL;
-                self.opts.imaState.chainProperties.mn.w3 = skale_observer.getWeb3FromURL( u, self.log );
+                self.opts.imaState.chainProperties.mn.ethersProvider = skale_observer.getWeb3FromURL( u, self.log );
             } else {
                 self.log(
                     cc.error( "WARNING:" ) + cc.warning( " No " ) + cc.note( "Main-net" ) +
@@ -99,7 +100,7 @@ class ObserverServer extends Server {
             //
             if( self.opts.imaState.chainProperties.sc.strURL && typeof self.opts.imaState.chainProperties.sc.strURL == "string" && self.opts.imaState.chainProperties.sc.strURL.length > 0 ) {
                 const u = self.opts.imaState.chainProperties.sc.strURL;
-                self.opts.imaState.chainProperties.sc.w3 = skale_observer.getWeb3FromURL( u, self.log );
+                self.opts.imaState.chainProperties.sc.ethersProvider = skale_observer.getWeb3FromURL( u, self.log );
             } else {
                 self.log(
                     cc.error( "WARNING:" ) + cc.warning( " No " ) + cc.note( "Main-net" ) +
@@ -108,11 +109,11 @@ class ObserverServer extends Server {
                     "\n" );
             }
             //
-            self.opts.imaState.jo_nodes = new self.opts.imaState.chainProperties.mn.w3.eth.Contract( self.opts.imaState.joAbiSkaleManager.nodes_abi, self.opts.imaState.joAbiSkaleManager.nodes_address );
-            self.opts.imaState.jo_schains = new self.opts.imaState.chainProperties.mn.w3.eth.Contract( self.opts.imaState.joAbiSkaleManager.schains_abi, self.opts.imaState.joAbiSkaleManager.schains_address );
-            self.opts.imaState.jo_schains_internal = new self.opts.imaState.chainProperties.mn.w3.eth.Contract( self.opts.imaState.joAbiSkaleManager.schains_internal_abi, self.opts.imaState.joAbiSkaleManager.schains_internal_address );
+            self.opts.imaState.jo_nodes = new self.opts.imaState.chainProperties.mn.ethersProvider.eth.Contract( self.opts.imaState.joAbiSkaleManager.nodes_abi, self.opts.imaState.joAbiSkaleManager.nodes_address );
+            self.opts.imaState.jo_schains = new self.opts.imaState.chainProperties.mn.ethersProvider.eth.Contract( self.opts.imaState.joAbiSkaleManager.schains_abi, self.opts.imaState.joAbiSkaleManager.schains_address );
+            self.opts.imaState.jo_schains_internal = new self.opts.imaState.chainProperties.mn.ethersProvider.eth.Contract( self.opts.imaState.joAbiSkaleManager.schains_internal_abi, self.opts.imaState.joAbiSkaleManager.schains_internal_address );
             //
-            self.opts.imaState.jo_message_proxy_s_chain = new self.opts.imaState.chainProperties.sc.w3.eth.Contract( self.opts.imaState.chainProperties.sc.joAbiIMA.message_proxy_chain_abi, self.opts.imaState.chainProperties.sc.joAbiIMA.message_proxy_chain_address );
+            self.opts.imaState.jo_message_proxy_s_chain = new self.opts.imaState.chainProperties.sc.ethersProvider.eth.Contract( self.opts.imaState.chainProperties.sc.joAbiIMA.message_proxy_chain_abi, self.opts.imaState.chainProperties.sc.joAbiIMA.message_proxy_chain_address );
             //
             self.log( cc.debug( "Full init compete for in-worker SNB server" ) + " " + cc.notice( g_url ) + "\n" );
             return joAnswer;
@@ -157,8 +158,8 @@ class ObserverServer extends Server {
         // const strError =
         await skale_observer.cache_schains(
             strChainNameConnectedTo,
-            self.opts.imaState.chainProperties.mn.w3,
-            self.opts.imaState.chainProperties.sc.w3,
+            self.opts.imaState.chainProperties.mn.ethersProvider,
+            self.opts.imaState.chainProperties.sc.ethersProvider,
             addressFrom,
             self.opts
         );

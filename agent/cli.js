@@ -19,24 +19,25 @@
  */
 
 /**
- * @file cli.js
+ * @file cli.mjs
  * @copyright SKALE Labs 2019-Present
  */
 
-const fs = require( "fs" );
-const { cc } = require( "./utils" );
-// const path = require( "path" );
-// const url = require( "url" );
-const os = require( "os" );
-// const shell = require( "shelljs" );
-
-function init() {
-    rpcCall.rpcCallAddUsageRef();
-    owaspUtils.owaspAddUsageRef();
-}
+import * as fs from "fs";
+import * as path from "path";
+import * as os from "os";
+import * as cc from "./cc.mjs";
+import * as log from "./ima_log.mjs";
+//import * as options from "./ima_options.mjs";
+import * as owaspUtils from "../npms/skale-owasp/owasp-utils.mjs";
+import * as imaUtils from "./utils.mjs";
+const { cc } = imaUtils;
+import * as rpcCall from "./rpc-call.mjs";
+//import * as core from "./ima_core.mjs";
+const __dirname = path.resolve();
 
 const g_strAppName = "IMA AGENT";
-const g_strVersion = "1.0";
+const g_strVersion = utils.jsonFileLoad( path.join( __dirname, "package.json" ), null ).version;
 
 function print_about( isLog ) {
     isLog = isLog || false;
@@ -159,34 +160,7 @@ function find_node_index( joSChainNodeConfiguration ) {
     return 0; // ???
 }
 
-function load_node_config( strPath ) {
-    const strLogPrefix = cc.info( "Node config:" ) + " ";
-    try {
-        strPath = imaUtils.normalizePath( strPath );
-        //
-        if( IMA.verbose_get() >= IMA.RV_VERBOSE.information )
-            log.write( strLogPrefix + cc.debug( "Loading values from S-Chain configuration JSON file " ) + cc.note( strPath ) + cc.debug( "..." ) + "\n" );
-        const strJsonSChainNodeConfiguration = fs.readFileSync( strPath, "utf8" );
-        const joSChainNodeConfiguration = JSON.parse( strJsonSChainNodeConfiguration );
-        if( IMA.verbose_get() >= IMA.RV_VERBOSE.trace )
-            log.write( strLogPrefix + cc.debug( "S-Chain configuration JSON: " ) + cc.j( joSChainNodeConfiguration ) + "\n" );
-        //
-        imaState.nNodeNumber = find_node_index( joSChainNodeConfiguration );
-        if( IMA.verbose_get() >= IMA.RV_VERBOSE.debug )
-            log.write( strLogPrefix + cc.debug( "....from S-Chain configuration JSON file...." ) + cc.notice( "this node index" ) + cc.debug( " is " ) + cc.info( imaState.nNodeNumber ) + "\n" );
-        imaState.nNodesCount = joSChainNodeConfiguration.skaleConfig.sChain.nodes.length;
-        if( IMA.verbose_get() >= IMA.RV_VERBOSE.debug )
-            log.write( strLogPrefix + cc.debug( "....from S-Chain configuration JSON file...." ) + cc.notice( "nodes count" ) + cc.debug( " is " ) + cc.info( imaState.nNodesCount ) + "\n" );
-        //
-        if( IMA.verbose_get() >= IMA.RV_VERBOSE.information )
-            log.write( strLogPrefix + cc.success( "Done" ) + cc.debug( " loading values from S-Chain configuration JSON file " ) + cc.note( strPath ) + cc.debug( "." ) + "\n" );
-    } catch ( e ) {
-        if( IMA.verbose_get() >= IMA.RV_VERBOSE.fatal )
-            log.write( strLogPrefix + cc.fatal( "CRITICAL ERROR: Exception in load_node_config():" ) + cc.error( e ) + "\n" );
-    }
-}
-
-function parse( joExternalHandlers, argv ) {
+export function parse( joExternalHandlers, argv ) {
     let idxArg; const cntArgs = argv || process.argv.length;
     for( idxArg = 2; idxArg < cntArgs; ++idxArg ) {
         const joArg = parse_command_line_argument( process.argv[idxArg] );
@@ -338,7 +312,6 @@ function parse( joExternalHandlers, argv ) {
             console.log( soi + cc.debug( "--" ) + cc.bright( "transfer" ) + cc.debug( ".............................." ) + cc.notice( "Run single " ) + cc.note( "M<->S" ) + cc.notice( " and, optionally, " ) + cc.note( "S->S" ) + cc.notice( " transfer loop iteration" ) + cc.notice( "." ) );
             console.log( soi + cc.debug( "--" ) + cc.bright( "loop" ) + cc.debug( ".................................." ) + cc.notice( "Run " ) + cc.note( "M<->S" ) + cc.notice( " and, optionally, " ) + cc.note( "S->S" ) + cc.notice( " transfer loops in parallel threads." ) );
             console.log( soi + cc.debug( "--" ) + cc.bright( "simple-loop" ) + cc.debug( "..........................." ) + cc.notice( "Run " ) + cc.note( "M<->S" ) + cc.notice( " and, optionally, " ) + cc.note( "S->S" ) + cc.notice( " transfer loops in main thread only." ) );
-            console.log( soi + cc.debug( "--" ) + cc.bright( "load-node-config" ) + cc.sunny( "=" ) + cc.success( "path" ) + cc.debug( "................." ) + cc.notice( "Use specified " ) + cc.note( "S-Chain" ) + cc.notice( " node JSON configuration file to load parameters" ) + cc.debug( "(like " ) + cc.attention( "node index" ) + cc.debug( ", " ) + cc.attention( "nodes count" ) + cc.debug( ")" ) + cc.notice( "." ) );
             //
             console.log( cc.sunny( "ADDITIONAL ACTION" ) + cc.info( " options:" ) );
             console.log( soi + cc.debug( "--" ) + cc.bright( "no-wait-s-chain" ) + cc.debug( "......................." ) + cc.notice( "Do not wait until " ) + cc.note( "S-Chain" ) + cc.notice( " is started." ) );
@@ -949,11 +922,6 @@ function parse( joExternalHandlers, argv ) {
             imaState.bShowConfigMode = true;
             continue;
         }
-        if( joArg.name == "load-node-config" ) {
-            owaspUtils.verifyArgumentWithNonEmptyValue( joArg );
-            load_node_config( joArg.value );
-            continue;
-        }
         if( joArg.name == "no-wait-s-chain" ) {
             imaState.bNoWaitSChainStarted = true;
             continue;
@@ -1295,44 +1263,6 @@ function parse( joExternalHandlers, argv ) {
     return 0;
 }
 
-function getWeb3FromURL( strURL, log ) {
-    let w3 = null;
-    log = log || { write: console.log };
-    try {
-        const u = cc.safeURL( strURL );
-        const strProtocol = u.protocol.trim().toLowerCase().replace( ":", "" ).replace( "/", "" );
-        if( strProtocol == "ws" || strProtocol == "wss" ) {
-            const w3ws = new w3mod.providers.WebsocketProvider( strURL, {
-                // see: https://github.com/ChainSafe/web3.js/tree/1.x/packages/web3-providers-ws#usage
-                clientConfig: {
-                    // // if requests are large:
-                    // maxReceivedFrameSize: 100000000,   // bytes - default: 1MiB
-                    // maxReceivedMessageSize: 100000000, // bytes - default: 8MiB
-                    // keep a connection alive
-                    keepalive: true,
-                    keepaliveInterval: 200000 // ms
-                },
-                reconnect: { // enable auto reconnection
-                    auto: true,
-                    delay: 5000, // ms
-                    maxAttempts: 10000000, // 10 million times
-                    onTimeout: false
-                }
-            } );
-            w3 = new w3mod( w3ws );
-        } else {
-            const w3http = new w3mod.providers.HttpProvider( strURL );
-            w3 = new w3mod( w3http );
-        }
-    } catch ( err ) {
-        log.write( cc.fatal( "CRITICAL ERROR:" ) + cc.error( " Failed to create " ) +
-            cc.attention( "Web3" ) + cc.error( " connection to " ) + cc.info( strURL ) +
-            cc.error( ": " ) + cc.warning( owaspUtils.extract_error_message( err ) ) + "\n" );
-        w3 = null;
-    }
-    return w3;
-}
-
 async function async_check_url_at_startup( u, name ) {
     const details = log.createMemoryStream( true );
     const nTimeoutMilliseconds = 10 * 1000;
@@ -1356,7 +1286,7 @@ async function async_check_url_at_startup( u, name ) {
     return false;
 }
 
-function ima_common_init() {
+export function ima_common_init() {
     const isPrintGathered = imaState.isPrintGathered ? true : false;
     if( isPrintGathered ) {
         log.write( cc.debug( "This process " ) + cc.sunny( "PID" ) + cc.debug( " is " ) + cc.bright( process.pid ) + "\n" );
@@ -1965,7 +1895,7 @@ function ima_common_init() {
         const isPrintSecurityValues = imaState.isPrintSecurityValues ? true : false;
         if( isPrintGathered ) {
             print_about( true );
-            log.write( cc.attention( "IMA AGENT" ) + cc.normal( " is using " ) + cc.bright( "Web3" ) + cc.normal( " version " ) + cc.sunny( IMA.w3mod.version ) + "\n" );
+            log.write( cc.attention( "IMA AGENT" ) + cc.normal( " is using " ) + cc.bright( "Ethers JS" ) + cc.normal( " version " ) + cc.sunny( owaspUtils.ethersMod.ethers.version.toString().replace( "ethers/", "" ) ) + "\n" );
         }
         ensure_have_value( "App path", __filename, false, isPrintGathered, null, ( x ) => {
             return cc.normal( x );
@@ -2015,13 +1945,13 @@ function ima_common_init() {
         //
         //
         try {
-            ensure_have_value( "Main-net user account address", imaState.chainProperties.mn.joAccount.address( imaState.chainProperties.mn.w3 ), false, isPrintGathered && isPrintSecurityValues );
+            ensure_have_value( "Main-net user account address", imaState.chainProperties.mn.joAccount.address( imaState.chainProperties.mn.ethersProvider ), false, isPrintGathered && isPrintSecurityValues );
         } catch ( err ) {}
         try {
-            ensure_have_value( "S-chain user account address", imaState.chainProperties.sc.joAccount.address( imaState.chainProperties.sc.w3 ), false, isPrintGathered && isPrintSecurityValues );
+            ensure_have_value( "S-chain user account address", imaState.chainProperties.sc.joAccount.address( imaState.chainProperties.sc.ethersProvider ), false, isPrintGathered && isPrintSecurityValues );
         } catch ( err ) {}
         try {
-            ensure_have_value( "S<->S Target S-chain user account address", imaState.chainProperties.tc.joAccount.address( imaState.chainProperties.tc.w3 ), false, isPrintGathered );
+            ensure_have_value( "S<->S Target S-chain user account address", imaState.chainProperties.tc.joAccount.address( imaState.chainProperties.tc.ethersProvider ), false, isPrintGathered );
         } catch ( err ) {}
         //
         // ensure_have_value( "Private key for main-net user account address", imaState.chainProperties.mn.joAccount.privateKey, false, isPrintGathered && isPrintSecurityValues, null, ( x ) => {
@@ -2241,14 +2171,15 @@ function ima_common_init() {
 } // ima_common_init
 
 function ima_w3_init() {
-    if( ( !imaState.chainProperties.mn.w3 ) &&
+/*
+    if( ( !imaState.chainProperties.mn.ethersProvider ) &&
         imaState.chainProperties.mn.strURL &&
         typeof imaState.chainProperties.mn.strURL == "string" &&
         imaState.chainProperties.mn.strURL.length > 0
     ) {
         const u = imaState.chainProperties.mn.strURL;
         async_check_url_at_startup( u, "Main-net" );
-        imaState.chainProperties.mn.w3 = getWeb3FromURL( u, log );
+        imaState.chainProperties.mn.ethersProvider = getWeb3FromURL( u, log );
     } else {
         log.write(
             cc.error( "WARNING:" ) + cc.warning( " No " ) + cc.note( "Main-net" ) +
@@ -2257,14 +2188,14 @@ function ima_w3_init() {
             "\n" );
     }
     //
-    if( ( !imaState.chainProperties.sc.w3 ) &&
+    if( ( !imaState.chainProperties.sc.ethersProvider ) &&
         imaState.chainProperties.sc.strURL &&
         typeof imaState.chainProperties.sc.strURL == "string" &&
         imaState.chainProperties.sc.strURL.length > 0
     ) {
         const u = imaState.chainProperties.sc.strURL;
         async_check_url_at_startup( u, "S-Chain" );
-        imaState.chainProperties.sc.w3 = getWeb3FromURL( u, log );
+        imaState.chainProperties.sc.ethersProvider = getWeb3FromURL( u, log );
     } else {
         log.write(
             cc.error( "WARNING:" ) + cc.warning( " No " ) + cc.note( "S-Chain" ) +
@@ -2273,14 +2204,14 @@ function ima_w3_init() {
             "\n" );
     }
     //
-    if( ( !imaState.chainProperties.tc.w3 ) &&
+    if( ( !imaState.chainProperties.tc.ethersProvider ) &&
         imaState.chainProperties.tc.strURL &&
         typeof imaState.chainProperties.tc.strURL == "string" &&
         imaState.chainProperties.tc.strURL.length > 0
     ) {
         const u = imaState.chainProperties.tc.strURL;
         async_check_url_at_startup( u, "S<->S Target S-Chain" );
-        imaState.chainProperties.tc.w3 = getWeb3FromURL( u, log );
+        imaState.chainProperties.tc.ethersProvider = getWeb3FromURL( u, log );
     } else {
         log.write(
             cc.error( "WARNING:" ) + cc.warning( " No " ) + cc.note( "S<->S Target S-Chain" ) +
@@ -2288,48 +2219,50 @@ function ima_w3_init() {
             cc.debug( "(needed for particular operations only)" ) +
             "\n" );
     }
+*/
 } // ima_w3_init
 
 function ima_contracts_init() {
     ima_w3_init();
+/*
     if( imaState.chainProperties.mn.bHaveAbiIMA && ( !imaState.jo_deposit_box_eth ) ) {
-        imaState.jo_deposit_box_eth = new imaState.chainProperties.mn.w3.eth.Contract( imaState.chainProperties.mn.joAbiIMA.deposit_box_eth_abi, imaState.chainProperties.mn.joAbiIMA.deposit_box_eth_address ); // only main net
-        imaState.jo_deposit_box_erc20 = new imaState.chainProperties.mn.w3.eth.Contract( imaState.chainProperties.mn.joAbiIMA.deposit_box_erc20_abi, imaState.chainProperties.mn.joAbiIMA.deposit_box_erc20_address ); // only main net
-        imaState.jo_deposit_box_erc721 = new imaState.chainProperties.mn.w3.eth.Contract( imaState.chainProperties.mn.joAbiIMA.deposit_box_erc721_abi, imaState.chainProperties.mn.joAbiIMA.deposit_box_erc721_address ); // only main net
-        imaState.jo_deposit_box_erc1155 = new imaState.chainProperties.mn.w3.eth.Contract( imaState.chainProperties.mn.joAbiIMA.deposit_box_erc1155_abi, imaState.chainProperties.mn.joAbiIMA.deposit_box_erc1155_address ); // only main net
-        imaState.jo_deposit_box_erc721_with_metadata = new imaState.chainProperties.mn.w3.eth.Contract( imaState.chainProperties.mn.joAbiIMA.deposit_box_erc721_with_metadata_abi, imaState.chainProperties.mn.joAbiIMA.deposit_box_erc721_with_metadata_address ); // only main net
-        imaState.jo_community_pool = new imaState.chainProperties.mn.w3.eth.Contract( imaState.chainProperties.mn.joAbiIMA.community_pool_abi, imaState.chainProperties.mn.joAbiIMA.community_pool_address ); // only main net
-        imaState.jo_linker = new imaState.chainProperties.mn.w3.eth.Contract( imaState.chainProperties.mn.joAbiIMA.linker_abi, imaState.chainProperties.mn.joAbiIMA.linker_address ); // only main net
-        imaState.jo_message_proxy_main_net = new imaState.chainProperties.mn.w3.eth.Contract( imaState.chainProperties.mn.joAbiIMA.message_proxy_mainnet_abi, imaState.chainProperties.mn.joAbiIMA.message_proxy_mainnet_address );
+        imaState.jo_deposit_box_eth = new imaState.chainProperties.mn.ethersProvider.eth.Contract( imaState.chainProperties.mn.joAbiIMA.deposit_box_eth_abi, imaState.chainProperties.mn.joAbiIMA.deposit_box_eth_address ); // only main net
+        imaState.jo_deposit_box_erc20 = new imaState.chainProperties.mn.ethersProvider.eth.Contract( imaState.chainProperties.mn.joAbiIMA.deposit_box_erc20_abi, imaState.chainProperties.mn.joAbiIMA.deposit_box_erc20_address ); // only main net
+        imaState.jo_deposit_box_erc721 = new imaState.chainProperties.mn.ethersProvider.eth.Contract( imaState.chainProperties.mn.joAbiIMA.deposit_box_erc721_abi, imaState.chainProperties.mn.joAbiIMA.deposit_box_erc721_address ); // only main net
+        imaState.jo_deposit_box_erc1155 = new imaState.chainProperties.mn.ethersProvider.eth.Contract( imaState.chainProperties.mn.joAbiIMA.deposit_box_erc1155_abi, imaState.chainProperties.mn.joAbiIMA.deposit_box_erc1155_address ); // only main net
+        imaState.jo_deposit_box_erc721_with_metadata = new imaState.chainProperties.mn.ethersProvider.eth.Contract( imaState.chainProperties.mn.joAbiIMA.deposit_box_erc721_with_metadata_abi, imaState.chainProperties.mn.joAbiIMA.deposit_box_erc721_with_metadata_address ); // only main net
+        imaState.jo_community_pool = new imaState.chainProperties.mn.ethersProvider.eth.Contract( imaState.chainProperties.mn.joAbiIMA.community_pool_abi, imaState.chainProperties.mn.joAbiIMA.community_pool_address ); // only main net
+        imaState.jo_linker = new imaState.chainProperties.mn.ethersProvider.eth.Contract( imaState.chainProperties.mn.joAbiIMA.linker_abi, imaState.chainProperties.mn.joAbiIMA.linker_address ); // only main net
+        imaState.jo_message_proxy_main_net = new imaState.chainProperties.mn.ethersProvider.eth.Contract( imaState.chainProperties.mn.joAbiIMA.message_proxy_mainnet_abi, imaState.chainProperties.mn.joAbiIMA.message_proxy_mainnet_address );
     }
     if( imaState.chainProperties.sc.bHaveAbiIMA && ( !imaState.jo_token_manager_eth ) ) {
-        imaState.jo_token_manager_eth = new imaState.chainProperties.sc.w3.eth.Contract( imaState.chainProperties.sc.joAbiIMA.token_manager_eth_abi, imaState.chainProperties.sc.joAbiIMA.token_manager_eth_address ); // only s-chain
-        imaState.jo_token_manager_erc20 = new imaState.chainProperties.sc.w3.eth.Contract( imaState.chainProperties.sc.joAbiIMA.token_manager_erc20_abi, imaState.chainProperties.sc.joAbiIMA.token_manager_erc20_address ); // only s-chain
-        imaState.jo_token_manager_erc721 = new imaState.chainProperties.sc.w3.eth.Contract( imaState.chainProperties.sc.joAbiIMA.token_manager_erc721_abi, imaState.chainProperties.sc.joAbiIMA.token_manager_erc721_address ); // only s-chain
-        imaState.jo_token_manager_erc1155 = new imaState.chainProperties.sc.w3.eth.Contract( imaState.chainProperties.sc.joAbiIMA.token_manager_erc1155_abi, imaState.chainProperties.sc.joAbiIMA.token_manager_erc1155_address ); // only s-chain
-        imaState.jo_token_manager_erc721_with_metadata = new imaState.chainProperties.sc.w3.eth.Contract( imaState.chainProperties.sc.joAbiIMA.token_manager_erc721_with_metadata_abi, imaState.chainProperties.sc.joAbiIMA.token_manager_erc721_with_metadata_address ); // only s-chain
-        imaState.jo_community_locker = new imaState.chainProperties.sc.w3.eth.Contract( imaState.chainProperties.sc.joAbiIMA.community_locker_abi, imaState.chainProperties.sc.joAbiIMA.community_locker_address ); // only s-chain
-        imaState.jo_message_proxy_s_chain = new imaState.chainProperties.sc.w3.eth.Contract( imaState.chainProperties.sc.joAbiIMA.message_proxy_chain_abi, imaState.chainProperties.sc.joAbiIMA.message_proxy_chain_address );
-        imaState.jo_token_manager_linker = new imaState.chainProperties.sc.w3.eth.Contract( imaState.chainProperties.sc.joAbiIMA.token_manager_linker_abi, imaState.chainProperties.sc.joAbiIMA.token_manager_linker_address );
-        imaState.eth_erc20 = new imaState.chainProperties.sc.w3.eth.Contract( imaState.chainProperties.sc.joAbiIMA.eth_erc20_abi, imaState.chainProperties.sc.joAbiIMA.eth_erc20_address ); // only s-chain
-        // imaState.eth_erc721 = new imaState.chainProperties.sc.w3.eth.Contract( imaState.chainProperties.sc.joAbiIMA.eth_erc721_abi, imaState.chainProperties.sc.joAbiIMA.eth_erc721_address ); // only s-chain
-        // imaState.eth_erc1155 = new imaState.chainProperties.sc.w3.eth.Contract( imaState.chainProperties.sc.joAbiIMA.eth_erc1155_abi, imaState.chainProperties.sc.joAbiIMA.eth_erc721_address ); // only s-chain
+        imaState.jo_token_manager_eth = new imaState.chainProperties.sc.ethersProvider.eth.Contract( imaState.chainProperties.sc.joAbiIMA.token_manager_eth_abi, imaState.chainProperties.sc.joAbiIMA.token_manager_eth_address ); // only s-chain
+        imaState.jo_token_manager_erc20 = new imaState.chainProperties.sc.ethersProvider.eth.Contract( imaState.chainProperties.sc.joAbiIMA.token_manager_erc20_abi, imaState.chainProperties.sc.joAbiIMA.token_manager_erc20_address ); // only s-chain
+        imaState.jo_token_manager_erc721 = new imaState.chainProperties.sc.ethersProvider.eth.Contract( imaState.chainProperties.sc.joAbiIMA.token_manager_erc721_abi, imaState.chainProperties.sc.joAbiIMA.token_manager_erc721_address ); // only s-chain
+        imaState.jo_token_manager_erc1155 = new imaState.chainProperties.sc.ethersProvider.eth.Contract( imaState.chainProperties.sc.joAbiIMA.token_manager_erc1155_abi, imaState.chainProperties.sc.joAbiIMA.token_manager_erc1155_address ); // only s-chain
+        imaState.jo_token_manager_erc721_with_metadata = new imaState.chainProperties.sc.ethersProvider.eth.Contract( imaState.chainProperties.sc.joAbiIMA.token_manager_erc721_with_metadata_abi, imaState.chainProperties.sc.joAbiIMA.token_manager_erc721_with_metadata_address ); // only s-chain
+        imaState.jo_community_locker = new imaState.chainProperties.sc.ethersProvider.eth.Contract( imaState.chainProperties.sc.joAbiIMA.community_locker_abi, imaState.chainProperties.sc.joAbiIMA.community_locker_address ); // only s-chain
+        imaState.jo_message_proxy_s_chain = new imaState.chainProperties.sc.ethersProvider.eth.Contract( imaState.chainProperties.sc.joAbiIMA.message_proxy_chain_abi, imaState.chainProperties.sc.joAbiIMA.message_proxy_chain_address );
+        imaState.jo_token_manager_linker = new imaState.chainProperties.sc.ethersProvider.eth.Contract( imaState.chainProperties.sc.joAbiIMA.token_manager_linker_abi, imaState.chainProperties.sc.joAbiIMA.token_manager_linker_address );
+        imaState.eth_erc20 = new imaState.chainProperties.sc.ethersProvider.eth.Contract( imaState.chainProperties.sc.joAbiIMA.eth_erc20_abi, imaState.chainProperties.sc.joAbiIMA.eth_erc20_address ); // only s-chain
+        // imaState.eth_erc721 = new imaState.chainProperties.sc.ethersProvider.eth.Contract( imaState.chainProperties.sc.joAbiIMA.eth_erc721_abi, imaState.chainProperties.sc.joAbiIMA.eth_erc721_address ); // only s-chain
+        // imaState.eth_erc1155 = new imaState.chainProperties.sc.ethersProvider.eth.Contract( imaState.chainProperties.sc.joAbiIMA.eth_erc1155_abi, imaState.chainProperties.sc.joAbiIMA.eth_erc721_address ); // only s-chain
     }
     if( imaState.chainProperties.tc.bHaveAbiIMA && ( !imaState.jo_token_manager_erc20_target ) ) {
-        // imaState.jo_token_manager_eth_target = new imaState.chainProperties.sc.w3.eth.Contract( imaState.chainProperties.tc.joAbiIMA.token_manager_eth_abi, imaState.chainProperties.tc.joAbiIMA.token_manager_eth_address ); // only s-chain
-        imaState.jo_token_manager_erc20_target = new imaState.chainProperties.sc.w3.eth.Contract( imaState.chainProperties.tc.joAbiIMA.token_manager_erc20_abi, imaState.chainProperties.tc.joAbiIMA.token_manager_erc20_address ); // only s-chain
-        imaState.jo_token_manager_erc721_target = new imaState.chainProperties.sc.w3.eth.Contract( imaState.chainProperties.tc.joAbiIMA.token_manager_erc721_abi, imaState.chainProperties.tc.joAbiIMA.token_manager_erc721_address ); // only s-chain
-        imaState.jo_token_manager_erc1155_target = new imaState.chainProperties.sc.w3.eth.Contract( imaState.chainProperties.tc.joAbiIMA.token_manager_erc1155_abi, imaState.chainProperties.tc.joAbiIMA.token_manager_erc1155_address ); // only s-chain
-        imaState.jo_token_manager_erc721_with_metadata_target = new imaState.chainProperties.sc.w3.eth.Contract( imaState.chainProperties.tc.joAbiIMA.token_manager_erc721_with_metadata_abi, imaState.chainProperties.tc.joAbiIMA.token_manager_erc721_with_metadata_address ); // only s-chain
-        imaState.jo_community_locker_target = new imaState.chainProperties.sc.w3.eth.Contract( imaState.chainProperties.tc.joAbiIMA.community_locker_abi, imaState.chainProperties.tc.joAbiIMA.community_locker_address ); // only s-chain
-        imaState.jo_message_proxy_s_chain_target = new imaState.chainProperties.sc.w3.eth.Contract( imaState.chainProperties.tc.joAbiIMA.message_proxy_chain_abi, imaState.chainProperties.tc.joAbiIMA.message_proxy_chain_address );
-        imaState.jo_token_manager_linker_target = new imaState.chainProperties.sc.w3.eth.Contract( imaState.chainProperties.tc.joAbiIMA.token_manager_linker_abi, imaState.chainProperties.tc.joAbiIMA.token_manager_linker_address );
-        imaState.eth_erc20_target = new imaState.chainProperties.sc.w3.eth.Contract( imaState.chainProperties.tc.joAbiIMA.eth_erc20_abi, imaState.chainProperties.tc.joAbiIMA.eth_erc20_address ); // only s-chain
-        // imaState.eth_erc721_target = new imaState.chainProperties.sc.w3.eth.Contract( imaState.chainProperties.tc.joAbiIMA.eth_erc721_abi, imaState.chainProperties.tc.joAbiIMA.eth_erc721_address ); // only s-chain
-        // imaState.eth_erc1155_target = new imaState.chainProperties.sc.w3.eth.Contract( imaState.chainProperties.tc.joAbiIMA.eth_erc1155_abi, imaState.chainProperties.tc.joAbiIMA.eth_erc721_address ); // only s-chain
+        // imaState.jo_token_manager_eth_target = new imaState.chainProperties.sc.ethersProvider.eth.Contract( imaState.chainProperties.tc.joAbiIMA.token_manager_eth_abi, imaState.chainProperties.tc.joAbiIMA.token_manager_eth_address ); // only s-chain
+        imaState.jo_token_manager_erc20_target = new imaState.chainProperties.sc.ethersProvider.eth.Contract( imaState.chainProperties.tc.joAbiIMA.token_manager_erc20_abi, imaState.chainProperties.tc.joAbiIMA.token_manager_erc20_address ); // only s-chain
+        imaState.jo_token_manager_erc721_target = new imaState.chainProperties.sc.ethersProvider.eth.Contract( imaState.chainProperties.tc.joAbiIMA.token_manager_erc721_abi, imaState.chainProperties.tc.joAbiIMA.token_manager_erc721_address ); // only s-chain
+        imaState.jo_token_manager_erc1155_target = new imaState.chainProperties.sc.ethersProvider.eth.Contract( imaState.chainProperties.tc.joAbiIMA.token_manager_erc1155_abi, imaState.chainProperties.tc.joAbiIMA.token_manager_erc1155_address ); // only s-chain
+        imaState.jo_token_manager_erc721_with_metadata_target = new imaState.chainProperties.sc.ethersProvider.eth.Contract( imaState.chainProperties.tc.joAbiIMA.token_manager_erc721_with_metadata_abi, imaState.chainProperties.tc.joAbiIMA.token_manager_erc721_with_metadata_address ); // only s-chain
+        imaState.jo_community_locker_target = new imaState.chainProperties.sc.ethersProvider.eth.Contract( imaState.chainProperties.tc.joAbiIMA.community_locker_abi, imaState.chainProperties.tc.joAbiIMA.community_locker_address ); // only s-chain
+        imaState.jo_message_proxy_s_chain_target = new imaState.chainProperties.sc.ethersProvider.eth.Contract( imaState.chainProperties.tc.joAbiIMA.message_proxy_chain_abi, imaState.chainProperties.tc.joAbiIMA.message_proxy_chain_address );
+        imaState.jo_token_manager_linker_target = new imaState.chainProperties.sc.ethersProvider.eth.Contract( imaState.chainProperties.tc.joAbiIMA.token_manager_linker_abi, imaState.chainProperties.tc.joAbiIMA.token_manager_linker_address );
+        imaState.eth_erc20_target = new imaState.chainProperties.sc.ethersProvider.eth.Contract( imaState.chainProperties.tc.joAbiIMA.eth_erc20_abi, imaState.chainProperties.tc.joAbiIMA.eth_erc20_address ); // only s-chain
+        // imaState.eth_erc721_target = new imaState.chainProperties.sc.ethersProvider.eth.Contract( imaState.chainProperties.tc.joAbiIMA.eth_erc721_abi, imaState.chainProperties.tc.joAbiIMA.eth_erc721_address ); // only s-chain
+        // imaState.eth_erc1155_target = new imaState.chainProperties.sc.ethersProvider.eth.Contract( imaState.chainProperties.tc.joAbiIMA.eth_erc1155_abi, imaState.chainProperties.tc.joAbiIMA.eth_erc721_address ); // only s-chain
     }
     if( imaState.bHaveSkaleManagerABI && ( !imaState.jo_constants_holder ) ) {
-        imaState.jo_constants_holder = new imaState.chainProperties.mn.w3.eth.Contract( imaState.joAbiSkaleManager.constants_holder_abi, imaState.joAbiSkaleManager.constants_holder_address );
+        imaState.jo_constants_holder = new imaState.chainProperties.mn.ethersProvider.eth.Contract( imaState.joAbiSkaleManager.constants_holder_abi, imaState.joAbiSkaleManager.constants_holder_address );
         // jo_contract_manager
         // jo_decryption
         // jo_delegation_controller
@@ -2338,38 +2271,172 @@ function ima_contracts_init() {
         // jo_ecdh
         // jo_manager_data
         // jo_monitors_functionality
-        imaState.jo_nodes = new imaState.chainProperties.mn.w3.eth.Contract( imaState.joAbiSkaleManager.nodes_abi, imaState.joAbiSkaleManager.nodes_address );
+        imaState.jo_nodes = new imaState.chainProperties.mn.ethersProvider.eth.Contract( imaState.joAbiSkaleManager.nodes_abi, imaState.joAbiSkaleManager.nodes_address );
         // jo_pricing
         // jo_punisher
-        imaState.jo_key_storage = new imaState.chainProperties.mn.w3.eth.Contract( imaState.joAbiSkaleManager.key_storage_abi, imaState.joAbiSkaleManager.key_storage_address );
-        imaState.jo_schains = new imaState.chainProperties.mn.w3.eth.Contract( imaState.joAbiSkaleManager.schains_abi, imaState.joAbiSkaleManager.schains_address );
-        imaState.jo_schains_internal = new imaState.chainProperties.mn.w3.eth.Contract( imaState.joAbiSkaleManager.schains_internal_abi, imaState.joAbiSkaleManager.schains_internal_address );
+        imaState.jo_key_storage = new imaState.chainProperties.mn.ethersProvider.eth.Contract( imaState.joAbiSkaleManager.key_storage_abi, imaState.joAbiSkaleManager.key_storage_address );
+        imaState.jo_schains = new imaState.chainProperties.mn.ethersProvider.eth.Contract( imaState.joAbiSkaleManager.schains_abi, imaState.joAbiSkaleManager.schains_address );
+        imaState.jo_schains_internal = new imaState.chainProperties.mn.ethersProvider.eth.Contract( imaState.joAbiSkaleManager.schains_internal_abi, imaState.joAbiSkaleManager.schains_internal_address );
         // jo_schains_functionality
         // jo_schains_functionality_internal
-        imaState.jo_skale_dkg = new imaState.chainProperties.mn.w3.eth.Contract( imaState.joAbiSkaleManager.skale_d_k_g_abi, imaState.joAbiSkaleManager.skale_d_k_g_address );
-        imaState.jo_skale_manager = new imaState.chainProperties.mn.w3.eth.Contract( imaState.joAbiSkaleManager.skale_manager_abi, imaState.joAbiSkaleManager.skale_manager_address );
-        imaState.jo_skale_token = new imaState.chainProperties.mn.w3.eth.Contract( imaState.joAbiSkaleManager.skale_token_abi, imaState.joAbiSkaleManager.skale_token_address );
+        imaState.jo_skale_dkg = new imaState.chainProperties.mn.ethersProvider.eth.Contract( imaState.joAbiSkaleManager.skale_d_k_g_abi, imaState.joAbiSkaleManager.skale_d_k_g_address );
+        imaState.jo_skale_manager = new imaState.chainProperties.mn.ethersProvider.eth.Contract( imaState.joAbiSkaleManager.skale_manager_abi, imaState.joAbiSkaleManager.skale_manager_address );
+        imaState.jo_skale_token = new imaState.chainProperties.mn.ethersProvider.eth.Contract( imaState.joAbiSkaleManager.skale_token_abi, imaState.joAbiSkaleManager.skale_token_address );
         // jo_skale_verifier
         // jo_slashing_table
         // jo_time_helpers
         // jo_time_helpers_with_debug
         // jo_token_state
-        imaState.jo_validator_service = new imaState.chainProperties.mn.w3.eth.Contract( imaState.joAbiSkaleManager.validator_service_abi, imaState.joAbiSkaleManager.validator_service_address );
-        imaState.jo_wallets = new imaState.chainProperties.mn.w3.eth.Contract( imaState.joAbiSkaleManager.wallets_abi, imaState.joAbiSkaleManager.wallets_address );
+        imaState.jo_validator_service = new imaState.chainProperties.mn.ethersProvider.eth.Contract( imaState.joAbiSkaleManager.validator_service_abi, imaState.joAbiSkaleManager.validator_service_address );
+        imaState.jo_wallets = new imaState.chainProperties.mn.ethersProvider.eth.Contract( imaState.joAbiSkaleManager.wallets_abi, imaState.joAbiSkaleManager.wallets_address );
     } // if( imaState.bHaveSkaleManagerABI )
+*/
+
+    //
+    if( imaState.strURL_main_net && typeof imaState.strURL_main_net == "string" && imaState.strURL_main_net.length > 0 ) {
+        const u = imaState.strURL_main_net;
+        async_check_url_at_startup( u, "Main-net" );
+        imaState.ethersProviderMN = owaspUtils.getEthersProviderFromURL( u );
+        if( imaState.strPathAbiJson_main_net && imaState.strChainName_main_net ) {
+            imaState.chainMN = new core.Chain(
+                owaspUtils.ethersMod,
+                imaState.ethersProviderMN,
+                utils.jsonFileLoad( imaState.strPathAbiJson_main_net ),
+                imaState.strChainName_main_net
+            );
+        } else {
+            log.write(
+                cc.error( "WARNING:" ) + cc.warning( " Chain " ) + cc.note( "Main-net" ) +
+                cc.warning( " is inaccessible" ) +
+                cc.debug( "(both ABI JSON path and chain name are needed)" )
+            );
+        }
+    } else {
+        log.write(
+            cc.error( "WARNING:" ) + cc.warning( " No " ) + cc.note( "Main-net" ) +
+            cc.warning( " URL specified in command line arguments" ) +
+            cc.debug( "(needed for particular operations only)" )
+        );
+    }
+    //
+    if( imaState.strURL_s_chain && typeof imaState.strURL_s_chain == "string" && imaState.strURL_s_chain.length > 0 ) {
+        const u = imaState.strURL_s_chain;
+        async_check_url_at_startup( u, "S-Chain" );
+        imaState.ethersProviderSC = owaspUtils.getEthersProviderFromURL( u );
+        if( imaState.strPathAbiJson_s_chain && imaState.strChainName_s_chain ) {
+            imaState.chainSC = new core.Chain(
+                owaspUtils.ethersMod,
+                imaState.ethersProviderSC,
+                utils.jsonFileLoad( imaState.strPathAbiJson_s_chain ),
+                imaState.strChainName_s_chain
+            );
+        } else {
+            log.write(
+                cc.error( "WARNING:" ) + cc.warning( " Chain " ) + cc.note( "S-Chain" ) +
+                cc.warning( " is inaccessible" ) +
+                cc.debug( "(both ABI JSON path and chain name are needed)" )
+            );
+        }
+    } else {
+        log.write(
+            cc.error( "WARNING:" ) + cc.warning( " No " ) + cc.note( "S-Chain" ) +
+            cc.warning( " URL specified in command line arguments" ) +
+            cc.debug( "(needed for particular operations only)" )
+        );
+    }
+    //
+    if( imaState.strURL_t_chain && typeof imaState.strURL_t_chain == "string" && imaState.strURL_t_chain.length > 0 ) {
+        const u = imaState.strURL_t_chain;
+        async_check_url_at_startup( u, "S<->S Target S-Chain" );
+        imaState.ethersProviderTC = owaspUtils.getEthersProviderFromURL( u );
+        if( imaState.strPathAbiJson_t_chain && imaState.strChainName_t_chain ) {
+            imaState.chainTC = new core.Chain(
+                owaspUtils.ethersMod,
+                imaState.ethersProviderTC,
+                utils.jsonFileLoad( imaState.strPathAbiJson_t_chain ),
+                imaState.strChainName_t_chain
+            );
+        } else {
+            log.write(
+                cc.error( "WARNING:" ) + cc.warning( " Chain " ) + cc.note( "T-Chain" ) +
+                cc.warning( " is inaccessible" ) +
+                cc.debug( "(both ABI JSON path and chain name are needed)" )
+            );
+        }
+    } else {
+        log.write(
+            cc.error( "WARNING:" ) + cc.warning( " No " ) + cc.note( "S<->S Target S-Chain" ) +
+            cc.warning( " URL specified in command line arguments" ) +
+            cc.debug( "(needed for particular operations only)" )
+        );
+    }
+    //
+    if( imaState.bHaveImaAbiMainNet ) {
+        imaState.jo_deposit_box_eth = new imaState.w3_main_net.eth.Contract( imaState.joAbiPublishResult_main_net.deposit_box_eth_abi, imaState.joAbiPublishResult_main_net.deposit_box_eth_address ); // only main net
+        imaState.jo_deposit_box_erc20 = new imaState.w3_main_net.eth.Contract( imaState.joAbiPublishResult_main_net.deposit_box_erc20_abi, imaState.joAbiPublishResult_main_net.deposit_box_erc20_address ); // only main net
+        imaState.jo_deposit_box_erc721 = new imaState.w3_main_net.eth.Contract( imaState.joAbiPublishResult_main_net.deposit_box_erc721_abi, imaState.joAbiPublishResult_main_net.deposit_box_erc721_address ); // only main net
+        imaState.jo_deposit_box_erc1155 = new imaState.w3_main_net.eth.Contract( imaState.joAbiPublishResult_main_net.deposit_box_erc1155_abi, imaState.joAbiPublishResult_main_net.deposit_box_erc1155_address ); // only main net
+        imaState.jo_deposit_box_erc721_with_metadata = new imaState.w3_main_net.eth.Contract( imaState.joAbiPublishResult_main_net.deposit_box_erc721_with_metadata_abi, imaState.joAbiPublishResult_main_net.deposit_box_erc721_with_metadata_address ); // only main net
+        imaState.jo_community_pool = new imaState.w3_main_net.eth.Contract( imaState.joAbiPublishResult_main_net.community_pool_abi, imaState.joAbiPublishResult_main_net.community_pool_address ); // only main net
+        imaState.jo_linker = new imaState.w3_main_net.eth.Contract( imaState.joAbiPublishResult_main_net.linker_abi, imaState.joAbiPublishResult_main_net.linker_address ); // only main net
+        imaState.jo_message_proxy_main_net = new imaState.w3_main_net.eth.Contract( imaState.joAbiPublishResult_main_net.message_proxy_mainnet_abi, imaState.joAbiPublishResult_main_net.message_proxy_mainnet_address );
+    }
+    if( imaState.bHaveImaAbiSchain ) {
+        imaState.jo_token_manager_eth = new imaState.w3_s_chain.eth.Contract( imaState.joAbiPublishResult_s_chain.token_manager_eth_abi, imaState.joAbiPublishResult_s_chain.token_manager_eth_address ); // only s-chain
+        imaState.jo_token_manager_erc20 = new imaState.w3_s_chain.eth.Contract( imaState.joAbiPublishResult_s_chain.token_manager_erc20_abi, imaState.joAbiPublishResult_s_chain.token_manager_erc20_address ); // only s-chain
+        imaState.jo_token_manager_erc721 = new imaState.w3_s_chain.eth.Contract( imaState.joAbiPublishResult_s_chain.token_manager_erc721_abi, imaState.joAbiPublishResult_s_chain.token_manager_erc721_address ); // only s-chain
+        imaState.jo_token_manager_erc1155 = new imaState.w3_s_chain.eth.Contract( imaState.joAbiPublishResult_s_chain.token_manager_erc1155_abi, imaState.joAbiPublishResult_s_chain.token_manager_erc1155_address ); // only s-chain
+        imaState.jo_token_manager_erc721_with_metadata = new imaState.w3_s_chain.eth.Contract( imaState.joAbiPublishResult_s_chain.token_manager_erc721_with_metadata_abi, imaState.joAbiPublishResult_s_chain.token_manager_erc721_with_metadata_address ); // only s-chain
+        imaState.jo_community_locker = new imaState.w3_s_chain.eth.Contract( imaState.joAbiPublishResult_s_chain.community_locker_abi, imaState.joAbiPublishResult_s_chain.community_locker_address ); // only s-chain
+        imaState.jo_message_proxy_s_chain = new imaState.w3_s_chain.eth.Contract( imaState.joAbiPublishResult_s_chain.message_proxy_chain_abi, imaState.joAbiPublishResult_s_chain.message_proxy_chain_address );
+        imaState.jo_token_manager_linker = new imaState.w3_s_chain.eth.Contract( imaState.joAbiPublishResult_s_chain.token_manager_linker_abi, imaState.joAbiPublishResult_s_chain.token_manager_linker_address );
+        imaState.eth_erc20 = new imaState.w3_s_chain.eth.Contract( imaState.joAbiPublishResult_s_chain.eth_erc20_abi, imaState.joAbiPublishResult_s_chain.eth_erc20_address ); // only s-chain
+        // imaState.eth_erc721 = new imaState.w3_s_chain.eth.Contract( imaState.joAbiPublishResult_s_chain.eth_erc721_abi, imaState.joAbiPublishResult_s_chain.eth_erc721_address ); // only s-chain
+        // imaState.eth_erc1155 = new imaState.w3_s_chain.eth.Contract( imaState.joAbiPublishResult_s_chain.eth_erc1155_abi, imaState.joAbiPublishResult_s_chain.eth_erc721_address ); // only s-chain
+    }
+    if( imaState.bHaveImaAbiSchainTarget ) {
+        // imaState.jo_token_manager_eth_target = new imaState.w3_s_chain.eth.Contract( imaState.joAbiPublishResult_t_chain.token_manager_eth_abi, imaState.joAbiPublishResult_t_chain.token_manager_eth_address ); // only s-chain
+        imaState.jo_token_manager_erc20_target = new imaState.w3_s_chain.eth.Contract( imaState.joAbiPublishResult_t_chain.token_manager_erc20_abi, imaState.joAbiPublishResult_t_chain.token_manager_erc20_address ); // only s-chain
+        imaState.jo_token_manager_erc721_target = new imaState.w3_s_chain.eth.Contract( imaState.joAbiPublishResult_t_chain.token_manager_erc721_abi, imaState.joAbiPublishResult_t_chain.token_manager_erc721_address ); // only s-chain
+        imaState.jo_token_manager_erc1155_target = new imaState.w3_s_chain.eth.Contract( imaState.joAbiPublishResult_t_chain.token_manager_erc1155_abi, imaState.joAbiPublishResult_t_chain.token_manager_erc1155_address ); // only s-chain
+        imaState.jo_token_manager_erc721_with_metadata_target = new imaState.w3_s_chain.eth.Contract( imaState.joAbiPublishResult_t_chain.token_manager_erc721_with_metadata_abi, imaState.joAbiPublishResult_t_chain.token_manager_erc721_with_metadata_address ); // only s-chain
+        imaState.jo_community_locker_target = new imaState.w3_s_chain.eth.Contract( imaState.joAbiPublishResult_t_chain.community_locker_abi, imaState.joAbiPublishResult_t_chain.community_locker_address ); // only s-chain
+        imaState.jo_message_proxy_s_chain_target = new imaState.w3_s_chain.eth.Contract( imaState.joAbiPublishResult_t_chain.message_proxy_chain_abi, imaState.joAbiPublishResult_t_chain.message_proxy_chain_address );
+        imaState.jo_token_manager_linker_target = new imaState.w3_s_chain.eth.Contract( imaState.joAbiPublishResult_t_chain.token_manager_linker_abi, imaState.joAbiPublishResult_t_chain.token_manager_linker_address );
+        imaState.eth_erc20_target = new imaState.w3_s_chain.eth.Contract( imaState.joAbiPublishResult_t_chain.eth_erc20_abi, imaState.joAbiPublishResult_t_chain.eth_erc20_address ); // only s-chain
+        // imaState.eth_erc721_target = new imaState.w3_s_chain.eth.Contract( imaState.joAbiPublishResult_t_chain.eth_erc721_abi, imaState.joAbiPublishResult_t_chain.eth_erc721_address ); // only s-chain
+        // imaState.eth_erc1155_target = new imaState.w3_s_chain.eth.Contract( imaState.joAbiPublishResult_t_chain.eth_erc1155_abi, imaState.joAbiPublishResult_t_chain.eth_erc721_address ); // only s-chain
+    }
+    if( imaState.bHaveSkaleManagerABI ) {
+        imaState.jo_constants_holder = new imaState.w3_main_net.eth.Contract( imaState.joAbiPublishResult_skale_manager.constants_holder_abi, imaState.joAbiPublishResult_skale_manager.constants_holder_address );
+        // jo_contract_manager
+        // jo_decryption
+        // jo_delegation_controller
+        // jo_delegation_period_manager
+        // jo_distributor
+        // jo_ecdh
+        // jo_manager_data
+        // jo_monitors_functionality
+        imaState.jo_nodes = new imaState.w3_main_net.eth.Contract( imaState.joAbiPublishResult_skale_manager.nodes_abi, imaState.joAbiPublishResult_skale_manager.nodes_address );
+        // jo_pricing
+        // jo_punisher
+        imaState.jo_key_storage = new imaState.w3_main_net.eth.Contract( imaState.joAbiPublishResult_skale_manager.key_storage_abi, imaState.joAbiPublishResult_skale_manager.key_storage_address );
+        imaState.jo_schains = new imaState.w3_main_net.eth.Contract( imaState.joAbiPublishResult_skale_manager.schains_abi, imaState.joAbiPublishResult_skale_manager.schains_address );
+        imaState.jo_schains_internal = new imaState.w3_main_net.eth.Contract( imaState.joAbiPublishResult_skale_manager.schains_internal_abi, imaState.joAbiPublishResult_skale_manager.schains_internal_address );
+        // jo_schains_functionality
+        // jo_schains_functionality_internal
+        imaState.jo_skale_dkg = new imaState.w3_main_net.eth.Contract( imaState.joAbiPublishResult_skale_manager.skale_d_k_g_abi, imaState.joAbiPublishResult_skale_manager.skale_d_k_g_address );
+        imaState.jo_skale_manager = new imaState.w3_main_net.eth.Contract( imaState.joAbiPublishResult_skale_manager.skale_manager_abi, imaState.joAbiPublishResult_skale_manager.skale_manager_address );
+        imaState.jo_skale_token = new imaState.w3_main_net.eth.Contract( imaState.joAbiPublishResult_skale_manager.skale_token_abi, imaState.joAbiPublishResult_skale_manager.skale_token_address );
+        // jo_skale_verifier
+        // jo_slashing_table
+        // jo_time_helpers
+        // jo_time_helpers_with_debug
+        // jo_token_state
+        imaState.jo_validator_service = new imaState.w3_main_net.eth.Contract( imaState.joAbiPublishResult_skale_manager.validator_service_abi, imaState.joAbiPublishResult_skale_manager.validator_service_address );
+        imaState.jo_wallets = new imaState.w3_main_net.eth.Contract( imaState.joAbiPublishResult_skale_manager.wallets_abi, imaState.joAbiPublishResult_skale_manager.wallets_address );
+    } // if( imaState.bHaveSkaleManagerABI )
+
 } // ima_contracts_init
 
-module.exports = {
-    init: init,
-    print_about: print_about,
-    parse_command_line_argument: parse_command_line_argument,
-    ensure_have_value: ensure_have_value,
-    ensure_have_chain_credentials: ensure_have_chain_credentials,
-    find_node_index: find_node_index,
-    load_node_config: load_node_config,
-    parse: parse,
-    ima_common_init: ima_common_init,
-    ima_w3_init: ima_w3_init,
-    ima_contracts_init: ima_contracts_init,
-    getWeb3FromURL: getWeb3FromURL
-}; // module.exports
+

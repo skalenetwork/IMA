@@ -19,20 +19,20 @@
  */
 
 /**
- * @file test_signaling_server.js
+ * @file test_socket_signaling_server.mjs
  * @copyright SKALE Labs 2019-Present
  */
 
-const fs = require( "fs" );
+import * as fs from "fs";
 
-const https_loaded_mod = require( "https" );
-const ws_loaded_mod = require( "ws" );
-const wrtc_loaded_mod = require( "wrtc" );
+import * as https_loaded_mod from "https";
+import * as ws_loaded_mod from "ws";
+import * as wrtc_loaded_mod from "wrtc";
 
-const network_layer = require( "./socket.js" );
-const { settings } = require( "./settings.js" );
-const { UniversalDispatcherEvent, EventDispatcher } = require( "./event_dispatcher.js" );
-const utils = require( "./utils.js" );
+import * as network_layer from "./socket.mjs";
+import { settings } from "./socket_settings.mjs";
+import { UniversalDispatcherEvent, EventDispatcher } from "./event_dispatcher.mjs";
+import * as utils from "./socket_utils.mjs";
 
 // const connect = connect_loaded_mod; // .default;
 // const serveStatic = serveStatic_loaded_mod; // .default;

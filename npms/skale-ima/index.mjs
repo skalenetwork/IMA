@@ -19,36 +19,30 @@
  */
 
 /**
- * @file index.js
+ * @file index.mjs
  * @copyright SKALE Labs 2019-Present
  */
 
 // init very basics
-const fs = require( "fs" );
-const path = require( "path" );
-// const url = require( "url" );
-// const os = require( "os" );
-const w3mod = require( "web3" );
-const ethereumjs_tx = require( "ethereumjs-tx" );
-const ethereumjs_wallet = require( "ethereumjs-wallet" );
-const ethereumjs_util = require( "ethereumjs-util" );
+import * as fs from "fs";
+import * as path from "path";
+import * as child_process from "child_process";
 
-const { UniversalDispatcherEvent, EventDispatcher } = require( "../skale-cool-socket/event_dispatcher.js" );
+import { UniversalDispatcherEvent, EventDispatcher } from "../skale-cool-socket/event_dispatcher.mjs";
 
-const Redis = require( "ioredis" );
+import * as Redis from "ioredis";
 let redis = null;
 let loopTmSendingCnt = 0;
 
-const log = require( "../skale-log/log.js" );
-const cc = log.cc;
+import * as log from "../skale-log/log.mjs";
+import * as cc from "../skale-log/cc.mjs";
 cc.enable( false );
 log.addStdout();
 // log.add( strFilePath, nMaxSizeBeforeRotation, nMaxFilesCount ); // example: log output to file
 
-const owaspUtils = require( "../skale-owasp/owasp-util.js" );
-const { getWeb3FromURL } = require( "../../agent/cli.js" );
+import * as owaspUtils from "../skale-owasp/owasp-util.mjs";
 
-const g_mtaStrLongSeparator = "=======================================================================================================================";
+export const longSeparator = "=======================================================================================================================";
 
 const perMessageGasForTransfer = 1000000;
 const additionalS2MTransferOverhead = 200000;
@@ -58,7 +52,7 @@ const additionalS2MTransferOverhead = 200000;
 //
 // logging helpers
 //
-const VERBOSE = {
+export const VERBOSE = {
     0: "silent",
     2: "fatal",
     3: "error",
@@ -69,7 +63,7 @@ const VERBOSE = {
     8: "debug",
     9: "trace"
 };
-const RV_VERBOSE = ( function() {
+export const RV_VERBOSE = ( function() {
     const m = {};
     for( const key in VERBOSE ) {
         if( !VERBOSE.hasOwnProperty( key ) )
@@ -85,21 +79,21 @@ const RV_VERBOSE = ( function() {
 let g_isExposeDetails = false;
 let g_verboseLevel = RV_VERBOSE.error;
 
-function expose_details_get() {
+export function expose_details_get() {
     return g_isExposeDetails;
 }
-function expose_details_set( x ) {
+export function expose_details_set( x ) {
     g_isExposeDetails = x ? true : false;
 }
 
-function verbose_get() {
+export function verbose_get() {
     return g_verboseLevel;
 }
-function verbose_set( x ) {
+export function verbose_set( x ) {
     g_verboseLevel = x;
 }
 
-function verbose_parse( s ) {
+export function verbose_parse( s ) {
     let n = 5;
     try {
         const isNumbersOnly = /^\d+$/.test( s );
@@ -122,7 +116,7 @@ function verbose_parse( s ) {
     return n;
 }
 
-function verbose_list() {
+export function verbose_list() {
     for( const key in VERBOSE ) {
         if( !VERBOSE.hasOwnProperty( key ) )
             continue; // skip loop if the property is from prototype
@@ -138,30 +132,30 @@ const g_nSleepBeforeFetchOutgoingMessageEvent = 5000;
 let g_nSleepBetweenTransactionsOnSChainMilliseconds = 0; // example - 5000
 let g_bWaitForNextBlockOnSChain = false;
 
-function getSleepBetweenTransactionsOnSChainMilliseconds() {
+export function getSleepBetweenTransactionsOnSChainMilliseconds() {
     return g_nSleepBetweenTransactionsOnSChainMilliseconds;
 }
-function setSleepBetweenTransactionsOnSChainMilliseconds( val ) {
+export function setSleepBetweenTransactionsOnSChainMilliseconds( val ) {
     g_nSleepBetweenTransactionsOnSChainMilliseconds = val ? val : 0;
 }
 
-function getWaitForNextBlockOnSChain() {
+export function getWaitForNextBlockOnSChain() {
     return g_bWaitForNextBlockOnSChain ? true : false;
 }
-function setWaitForNextBlockOnSChain( val ) {
+export function setWaitForNextBlockOnSChain( val ) {
     g_bWaitForNextBlockOnSChain = val ? true : false;
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-const sleep = ( milliseconds ) => { return new Promise( resolve => setTimeout( resolve, milliseconds ) ); };
-const current_timestamp = () => { return parseInt( parseInt( Date.now().valueOf() ) / 1000 ); };
+export const sleep = ( milliseconds ) => { return new Promise( resolve => setTimeout( resolve, milliseconds ) ); };
+export const current_timestamp = () => { return parseInt( parseInt( Date.now().valueOf() ) / 1000 ); };
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-async function wait_for_next_block_to_appear( details, w3 ) {
+export async function wait_for_next_block_to_appear( details, w3 ) {
     const nBlockNumber = await get_web3_blockNumber( details, 10, w3 );
     details.write( cc.debug( "Waiting for next block to appear..." ) + "\n" );
     details.write( cc.debug( "    ...have block " ) + cc.info( parseIntOrHex( nBlockNumber ) ) + "\n" );
@@ -174,7 +168,7 @@ async function wait_for_next_block_to_appear( details, w3 ) {
     }
 }
 
-async function get_web3_blockNumber( details, cntAttempts, w3, retValOnFail, throwIfServerOffline ) {
+export async function get_web3_blockNumber( details, cntAttempts, w3, retValOnFail, throwIfServerOffline ) {
     const strFnName = "getBlockNumber";
     const u = owaspUtils.w3_2_url( w3 );
     const nWaitStepMilliseconds = 10 * 1000;
@@ -239,7 +233,7 @@ async function get_web3_blockNumber( details, cntAttempts, w3, retValOnFail, thr
     return ret;
 }
 
-async function get_web3_transactionCount( details, cntAttempts, w3, address, param, retValOnFail, throwIfServerOffline ) {
+export async function get_web3_transactionCount( details, cntAttempts, w3, address, param, retValOnFail, throwIfServerOffline ) {
     const strFnName = "getTransactionCount";
     const u = owaspUtils.w3_2_url( w3 );
     const nWaitStepMilliseconds = 10 * 1000;
@@ -304,7 +298,7 @@ async function get_web3_transactionCount( details, cntAttempts, w3, address, par
     return ret;
 }
 
-async function get_web3_transactionReceipt( details, cntAttempts, w3, txHash, retValOnFail, throwIfServerOffline ) {
+export async function get_web3_transactionReceipt( details, cntAttempts, w3, txHash, retValOnFail, throwIfServerOffline ) {
     const strFnName = "getTransactionReceipt";
     const u = owaspUtils.w3_2_url( w3 );
     const nWaitStepMilliseconds = 10 * 1000;
@@ -369,7 +363,7 @@ async function get_web3_transactionReceipt( details, cntAttempts, w3, txHash, re
     return ret;
 }
 
-async function get_web3_pastEvents( details, w3, cntAttempts, joContract, strEventName, nBlockFrom, nBlockTo, joFilter, retValOnFail, throwIfServerOffline ) {
+export async function get_web3_pastEvents( details, w3, cntAttempts, joContract, strEventName, nBlockFrom, nBlockTo, joFilter, retValOnFail, throwIfServerOffline ) {
     const strFnName = "getPastEvents";
     const u = owaspUtils.w3_2_url( w3 );
     const nWaitStepMilliseconds = 10 * 1000;
@@ -472,10 +466,10 @@ async function get_web3_pastEvents( details, w3, cntAttempts, joContract, strEve
 let g_nCountOfBlocksInIterativeStep = 1000;
 let g_nMaxBlockScanIterationsInAllRange = 5000;
 
-function getBlocksCountInInIterativeStepOfEventsScan() {
+export function getBlocksCountInInIterativeStepOfEventsScan() {
     return g_nCountOfBlocksInIterativeStep;
 }
-function setBlocksCountInInIterativeStepOfEventsScan( n ) {
+export function setBlocksCountInInIterativeStepOfEventsScan( n ) {
     if( ! n )
         g_nCountOfBlocksInIterativeStep = 0;
     else {
@@ -485,10 +479,10 @@ function setBlocksCountInInIterativeStepOfEventsScan( n ) {
     }
 }
 
-function getMaxIterationsInAllRangeEventsScan() {
+export function getMaxIterationsInAllRangeEventsScan() {
     return g_nCountOfBlocksInIterativeStep;
 }
-function setMaxIterationsInAllRangeEventsScan( n ) {
+export function setMaxIterationsInAllRangeEventsScan( n ) {
     if( ! n )
         g_nMaxBlockScanIterationsInAllRange = 0;
     else {
@@ -498,7 +492,7 @@ function setMaxIterationsInAllRangeEventsScan( n ) {
     }
 }
 
-async function get_web3_pastEventsIterative( details, w3, attempts, joContract, strEventName, nBlockFrom, nBlockTo, joFilter ) {
+export async function get_web3_pastEventsIterative( details, w3, attempts, joContract, strEventName, nBlockFrom, nBlockTo, joFilter ) {
     if( g_nCountOfBlocksInIterativeStep <= 0 || g_nMaxBlockScanIterationsInAllRange <= 0 ) {
         details.write(
             cc.fatal( "IMPORTANT NOTICE:" ) + " " +
@@ -571,7 +565,7 @@ async function get_web3_pastEventsIterative( details, w3, attempts, joContract, 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-function verify_transfer_error_category_name( strCategory ) {
+export function verify_transfer_error_category_name( strCategory ) {
     return "" + ( strCategory ? strCategory : "default" );
 }
 
@@ -579,9 +573,9 @@ const g_nMaxLastTransferErrors = 20;
 const g_arrLastTransferErrors = [];
 let g_mapTransferErrorCategories = { };
 
-const g_saveTransferEvents = new EventDispatcher();
+export const saveTransferEvents = new EventDispatcher();
 
-function save_transfer_error( strCategory, textLog, ts ) {
+export function save_transfer_error( strCategory, textLog, ts ) {
     ts = ts || Math.round( ( new Date() ).getTime() / 1000 );
     const c = verify_transfer_error_category_name( strCategory );
     const joTransferEventError = {
@@ -593,20 +587,20 @@ function save_transfer_error( strCategory, textLog, ts ) {
     while( g_arrLastTransferErrors.length > g_nMaxLastTransferErrors )
         g_arrLastTransferErrors.shift();
     g_mapTransferErrorCategories["" + c] = true;
-    g_saveTransferEvents.dispatchEvent( new UniversalDispatcherEvent( "error", { detail: joTransferEventError } ) );
+    saveTransferEvents.dispatchEvent( new UniversalDispatcherEvent( "error", { detail: joTransferEventError } ) );
 }
 
-function save_transfer_success( strCategory ) {
+export function save_transfer_success( strCategory ) {
     const c = verify_transfer_error_category_name( strCategory );
     try { delete g_mapTransferErrorCategories["" + c]; } catch ( err ) { }
-    g_saveTransferEvents.dispatchEvent( new UniversalDispatcherEvent( "success", { detail: { category: strCategory } } ) );
+    saveTransferEvents.dispatchEvent( new UniversalDispatcherEvent( "success", { detail: { category: strCategory } } ) );
 }
 
-function save_transfer_success_all() {
+export function save_transfer_success_all() {
     g_mapTransferErrorCategories = { }; // clear all transfer error categories, out of time frame
 }
 
-function get_last_transfer_errors( isIncludeTextLog ) {
+export function get_last_transfer_errors( isIncludeTextLog ) {
     if( typeof isIncludeTextLog == "undefined" )
         isIncludeTextLog = true;
     const jarr = JSON.parse( JSON.stringify( g_arrLastTransferErrors ) );
@@ -620,7 +614,7 @@ function get_last_transfer_errors( isIncludeTextLog ) {
     return jarr;
 }
 
-function get_last_error_categories() {
+export function get_last_error_categories() {
     return Object.keys( g_mapTransferErrorCategories );
 }
 
@@ -629,10 +623,10 @@ function get_last_error_categories() {
 
 let g_bIsEnabledProgressiveEventsScan = true;
 
-function getEnabledProgressiveEventsScan() {
+export function getEnabledProgressiveEventsScan() {
     return g_bIsEnabledProgressiveEventsScan ? true : false;
 }
-function setEnabledProgressiveEventsScan( isEnabled ) {
+export function setEnabledProgressiveEventsScan( isEnabled ) {
     g_bIsEnabledProgressiveEventsScan = isEnabled ? true : false;
 }
 
@@ -641,15 +635,15 @@ function setEnabledProgressiveEventsScan( isEnabled ) {
 
 let g_bIsEnabledOracle = false;
 
-function getEnabledOracle( isEnabled ) {
+export function getEnabledOracle( isEnabled ) {
     return g_bIsEnabledOracle ? true : false;
 }
 
-function setEnabledOracle( isEnabled ) {
+export function setEnabledOracle( isEnabled ) {
     g_bIsEnabledOracle = isEnabled ? true : false;
 }
 
-async function do_oracle_gas_price_setup(
+export async function do_oracle_gas_price_setup(
     w3_main_net,
     w3_s_chain,
     tc_s_chain,
@@ -881,35 +875,35 @@ async function do_oracle_gas_price_setup(
 
 let g_isForwardS2S = true; // default S<->S transfer mode for "--s2s-transfer" is "forward"
 
-function get_S2S_transfer_mode_description() {
+export function get_S2S_transfer_mode_description() {
     return g_isForwardS2S ? "forward" : "reverse";
 }
 
-function get_S2S_transfer_mode_description_colorized() {
+export function get_S2S_transfer_mode_description_colorized() {
     return g_isForwardS2S ? cc.success( "forward" ) : cc.error( "reverse" );
 }
 
-function isForwardS2S() {
+export function isForwardS2S() {
     return g_isForwardS2S ? true : false;
 }
 
-function isReverseS2S() {
+export function isReverseS2S() {
     return g_isForwardS2S ? false : true;
 }
 
-function setForwardS2S( b ) {
+export function setForwardS2S( b ) {
     if( b == null || b == undefined )
         b = true;
     g_isForwardS2S = b ? true : false;
 }
 
-function setReverseS2S( b ) {
+export function setReverseS2S( b ) {
     if( b == null || b == undefined )
         b = true;
     g_isForwardS2S = b ? false : true;
 }
 
-function create_progressive_events_scan_plan( details, nLatestBlockNumber ) {
+export function create_progressive_events_scan_plan( details, nLatestBlockNumber ) {
     // assume Main Net mines 6 blocks per minute
     const blks_in_1_minute = 6;
     const blks_in_1_hour = blks_in_1_minute * 60;
@@ -940,7 +934,7 @@ function create_progressive_events_scan_plan( details, nLatestBlockNumber ) {
     return arr_progressive_events_scan_plan;
 }
 
-async function get_web3_pastEventsProgressive( details, w3, attempts, joContract, strEventName, nBlockFrom, nBlockTo, joFilter ) {
+export async function get_web3_pastEventsProgressive( details, w3, attempts, joContract, strEventName, nBlockFrom, nBlockTo, joFilter ) {
     if( ! g_bIsEnabledProgressiveEventsScan ) {
         details.write(
             cc.fatal( "IMPORTANT NOTICE:" ) + " " +
@@ -1003,7 +997,7 @@ async function get_web3_pastEventsProgressive( details, w3, attempts, joContract
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-async function get_contract_call_events( details, w3, joContract, strEventName, nBlockNumber, strTxHash, joFilter ) {
+export async function get_contract_call_events( details, w3, joContract, strEventName, nBlockNumber, strTxHash, joFilter ) {
     joFilter = joFilter || {};
     let nBlockFrom = nBlockNumber - 10, nBlockTo = nBlockNumber + 10;
     const nLatestBlockNumber = await get_web3_blockNumber( details, 10, w3 );
@@ -1024,7 +1018,7 @@ async function get_contract_call_events( details, w3, joContract, strEventName, 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-function compose_tx_instance( details, strLogPrefix, rawTx ) {
+export function compose_tx_instance( details, strLogPrefix, rawTx ) {
     details.write( cc.attention( "TRANSACTION COMPOSER" ) + cc.normal( " is using " ) + cc.bright( "Web3" ) + cc.normal( " version " ) + cc.sunny( w3mod.version ) + "\n" );
     strLogPrefix = strLogPrefix || "";
     rawTx = JSON.parse( JSON.stringify( rawTx ) ); // clone
@@ -1078,27 +1072,27 @@ function compose_tx_instance( details, strLogPrefix, rawTx ) {
 
 let g_bDryRunIsEnabled = true;
 
-function dry_run_is_enabled() {
+export function dry_run_is_enabled() {
     return g_bDryRunIsEnabled ? true : false;
 }
 
-function dry_run_enable( isEnable ) {
+export function dry_run_enable( isEnable ) {
     g_bDryRunIsEnabled = ( isEnable != null && isEnable != undefined ) ? ( isEnable ? true : false ) : true;
     return g_bDryRunIsEnabled ? true : false;
 }
 
 let g_bDryRunIsIgnored = false;
 
-function dry_run_is_ignored() {
+export function dry_run_is_ignored() {
     return g_bDryRunIsIgnored ? true : false;
 }
 
-function dry_run_ignore( isIgnored ) {
+export function dry_run_ignore( isIgnored ) {
     g_bDryRunIsIgnored = ( isIgnored != null && isIgnored != undefined ) ? ( isIgnored ? true : false ) : true;
     return g_bDryRunIsIgnored ? true : false;
 }
 
-function extract_dry_run_method_name( methodWithArguments ) {
+export function extract_dry_run_method_name( methodWithArguments ) {
     try {
         const s = "" + methodWithArguments._method.name;
         return s;
@@ -1107,7 +1101,7 @@ function extract_dry_run_method_name( methodWithArguments ) {
     return "N/A-method-name";
 }
 
-async function dry_run_call( details, w3, methodWithArguments, joAccount, strDRC, isIgnore, gasPrice, gasValue, ethValue ) {
+export async function dry_run_call( details, w3, methodWithArguments, joAccount, strDRC, isIgnore, gasPrice, gasValue, ethValue ) {
     details.write( cc.attention( "DRY RUN" ) + cc.normal( " is using " ) + cc.bright( "Web3" ) + cc.normal( " version " ) + cc.sunny( w3.version ) + "\n" );
     isIgnore = ( isIgnore != null && isIgnore != undefined ) ? ( isIgnore ? true : false ) : false;
     const strMethodName = extract_dry_run_method_name( methodWithArguments );
@@ -1157,7 +1151,7 @@ async function dry_run_call( details, w3, methodWithArguments, joAccount, strDRC
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-function get_account_connectivity_info( joAccount ) {
+export function get_account_connectivity_info( joAccount ) {
     const joACI = {
         isBad: true,
         strType: "bad",
@@ -1324,7 +1318,7 @@ async function tm_ensure_transaction( details, w3, priority, txAdjusted, cntAtte
     return [ txId, joReceipt ];
 }
 
-async function safe_sign_transaction_with_account( details, w3, tx, rawTx, joAccount ) {
+export async function safe_sign_transaction_with_account( details, w3, tx, rawTx, joAccount ) {
     const strPrefixDetails = cc.debug( "(gathered details)" ) + " ";
     const strPrefixLog = cc.debug( "(immediate log)" ) + " ";
     const sendingCnt = loopTmSendingCnt++;
@@ -1586,7 +1580,7 @@ async function safe_sign_transaction_with_account( details, w3, tx, rawTx, joAcc
     return joSR;
 }
 
-async function safe_send_signed_transaction( details, w3, serializedTx, strActionName, strLogPrefix ) {
+export async function safe_send_signed_transaction( details, w3, serializedTx, strActionName, strLogPrefix ) {
     const strPrefixDetails = cc.debug( "(gathered details)" ) + " ";
     const strPrefixLog = cc.debug( "(immediate log)" ) + " ";
     const strMsg =
@@ -1626,7 +1620,7 @@ async function safe_send_signed_transaction( details, w3, serializedTx, strActio
 // register direction for money transfer
 // main-net.DepositBox call: function addSchain(string schainName, address tokenManagerAddress)
 //
-async function check_is_registered_s_chain_in_deposit_boxes( // step 1
+export async function check_is_registered_s_chain_in_deposit_boxes( // step 1
     w3_main_net,
     jo_linker,
     joAccountMN,
@@ -1636,9 +1630,9 @@ async function check_is_registered_s_chain_in_deposit_boxes( // step 1
     details.write( cc.info( "Main-net " ) + cc.sunny( "Linker" ) + cc.info( "  address is....." ) + cc.bright( jo_linker.options.address ) + "\n" );
     details.write( cc.info( "S-Chain  " ) + cc.sunny( "ID" ) + cc.info( " is......................." ) + cc.bright( chain_id_s_chain ) + "\n" );
     const strLogPrefix = cc.note( "RegChk S in depositBox:" ) + " ";
-    details.write( strLogPrefix + cc.debug( g_mtaStrLongSeparator ) + "\n" );
+    details.write( strLogPrefix + cc.debug( longSeparator ) + "\n" );
     details.write( strLogPrefix + cc.bright( "check_is_registered_s_chain_in_deposit_boxes(reg-step1)" ) + "\n" );
-    details.write( strLogPrefix + cc.debug( g_mtaStrLongSeparator ) + "\n" );
+    details.write( strLogPrefix + cc.debug( longSeparator ) + "\n" );
     let strActionName = "";
     try {
         strActionName = "check_is_registered_s_chain_in_deposit_boxes(reg-step1)";
@@ -1663,7 +1657,7 @@ async function check_is_registered_s_chain_in_deposit_boxes( // step 1
     return false;
 }
 
-async function invoke_has_chain(
+export async function invoke_has_chain(
     details,
     w3, // Main-Net or S-Chin
     jo_linker, // Main-Net or S-Chin
@@ -1693,7 +1687,7 @@ async function invoke_has_chain(
     return false;
 }
 
-async function wait_for_has_chain(
+export async function wait_for_has_chain(
     details,
     w3, // Main-Net or S-Chin
     jo_linker, // Main-Net or S-Chin
@@ -1715,7 +1709,7 @@ async function wait_for_has_chain(
     return false;
 }
 
-async function register_s_chain_in_deposit_boxes( // step 1
+export async function register_s_chain_in_deposit_boxes( // step 1
     w3_main_net,
     // jo_deposit_box_eth, // only main net
     // jo_deposit_box_erc20, // only main net
@@ -1740,9 +1734,9 @@ async function register_s_chain_in_deposit_boxes( // step 1
     details.write( cc.info( "Main-net " ) + cc.sunny( "Linker" ) + cc.info( "  address is......." ) + cc.bright( jo_linker.options.address ) + "\n" );
     details.write( cc.info( "S-Chain  " ) + cc.sunny( "ID" ) + cc.info( " is......................." ) + cc.bright( chain_id_s_chain ) + "\n" );
     const strLogPrefix = cc.sunny( "Reg S in depositBoxes:" ) + " ";
-    details.write( strLogPrefix + cc.debug( g_mtaStrLongSeparator ) + "\n" );
+    details.write( strLogPrefix + cc.debug( longSeparator ) + "\n" );
     details.write( strLogPrefix + cc.bright( "reg-step1:register_s_chain_in_deposit_boxes" ) + "\n" );
-    details.write( strLogPrefix + cc.debug( g_mtaStrLongSeparator ) + "\n" );
+    details.write( strLogPrefix + cc.debug( longSeparator ) + "\n" );
     let strActionName = "";
     try {
         strActionName = "reg-step1:w3_main_net.eth.getTransactionCount()";
@@ -1835,7 +1829,7 @@ async function register_s_chain_in_deposit_boxes( // step 1
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-async function reimbursement_show_balance(
+export async function reimbursement_show_balance(
     w3_main_net,
     jo_community_pool,
     joReceiver_main_net,
@@ -1883,7 +1877,7 @@ async function reimbursement_show_balance(
     }
 }
 
-async function reimbursement_estimate_amount(
+export async function reimbursement_estimate_amount(
     w3_main_net,
     jo_community_pool,
     joReceiver_main_net,
@@ -1963,7 +1957,7 @@ async function reimbursement_estimate_amount(
     }
 }
 
-async function reimbursement_wallet_recharge(
+export async function reimbursement_wallet_recharge(
     w3_main_net,
     jo_community_pool,
     joAccountMN,
@@ -2050,7 +2044,7 @@ async function reimbursement_wallet_recharge(
     return true;
 }
 
-async function reimbursement_wallet_withdraw(
+export async function reimbursement_wallet_withdraw(
     w3_main_net,
     jo_community_pool,
     joAccountMN,
@@ -2137,7 +2131,7 @@ async function reimbursement_wallet_withdraw(
     return true;
 }
 
-async function reimbursement_set_range(
+export async function reimbursement_set_range(
     w3_s_chain,
     jo_community_locker,
     joAccountSC,
@@ -2240,7 +2234,7 @@ async function reimbursement_set_range(
 //   money is sent from caller
 //   "value" JSON arg is used to specify amount of money to sent
 //
-async function do_eth_payment_from_main_net(
+export async function do_eth_payment_from_main_net(
     w3_main_net,
     cid_main_net,
     joAccountSrc,
@@ -2358,7 +2352,7 @@ async function do_eth_payment_from_main_net(
 //   money is sent from caller
 //   "value" JSON arg is used to specify amount of money to sent
 //
-async function do_eth_payment_from_s_chain(
+export async function do_eth_payment_from_s_chain(
     w3_s_chain,
     cid_s_chain,
     joAccountSrc,
@@ -2465,7 +2459,7 @@ async function do_eth_payment_from_s_chain(
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 //
-async function receive_eth_payment_from_s_chain_on_main_net(
+export async function receive_eth_payment_from_s_chain_on_main_net(
     w3_main_net,
     cid_main_net,
     joAccountMN,
@@ -2547,7 +2541,7 @@ async function receive_eth_payment_from_s_chain_on_main_net(
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-async function view_eth_payment_from_s_chain_on_main_net(
+export async function view_eth_payment_from_s_chain_on_main_net(
     w3_main_net,
     joAccountMN,
     jo_deposit_box_eth
@@ -2593,7 +2587,7 @@ async function view_eth_payment_from_s_chain_on_main_net(
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-async function do_erc721_payment_from_main_net(
+export async function do_erc721_payment_from_main_net(
     w3_main_net,
     w3_s_chain,
     cid_main_net,
@@ -2773,7 +2767,7 @@ async function do_erc721_payment_from_main_net(
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 //
-async function do_erc20_payment_from_main_net(
+export async function do_erc20_payment_from_main_net(
     w3_main_net,
     w3_s_chain,
     cid_main_net,
@@ -2949,7 +2943,7 @@ async function do_erc20_payment_from_main_net(
     return true;
 } // async function do_erc20_payment_from_main_net(...
 
-async function do_erc1155_payment_from_main_net(
+export async function do_erc1155_payment_from_main_net(
     w3_main_net,
     w3_s_chain,
     cid_main_net,
@@ -3127,7 +3121,7 @@ async function do_erc1155_payment_from_main_net(
     return true;
 } // async function do_erc1155_payment_from_main_net(...
 
-async function do_erc1155_batch_payment_from_main_net(
+export async function do_erc1155_batch_payment_from_main_net(
     w3_main_net,
     w3_s_chain,
     cid_main_net,
@@ -3308,7 +3302,7 @@ async function do_erc1155_batch_payment_from_main_net(
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-async function do_erc20_payment_from_s_chain(
+export async function do_erc20_payment_from_s_chain(
     w3_main_net,
     w3_s_chain,
     cid_main_net,
@@ -3491,7 +3485,7 @@ async function do_erc20_payment_from_s_chain(
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-async function do_erc721_payment_from_s_chain(
+export async function do_erc721_payment_from_s_chain(
     w3_main_net,
     w3_s_chain,
     cid_main_net,
@@ -3674,7 +3668,7 @@ async function do_erc721_payment_from_s_chain(
     return true;
 } // async function do_erc721_payment_from_s_chain(...
 
-async function do_erc1155_payment_from_s_chain(
+export async function do_erc1155_payment_from_s_chain(
     w3_main_net,
     w3_s_chain,
     cid_main_net,
@@ -3859,7 +3853,7 @@ async function do_erc1155_payment_from_s_chain(
     return true;
 } // async function do_erc1155_payment_from_s_chain(...
 
-async function do_erc1155_batch_payment_from_s_chain(
+export async function do_erc1155_batch_payment_from_s_chain(
     w3_main_net,
     w3_s_chain,
     cid_main_net,
@@ -4047,7 +4041,7 @@ async function do_erc1155_batch_payment_from_s_chain(
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 //
-async function do_erc20_payment_s2s(
+export async function do_erc20_payment_s2s(
     isForward,
     w3_src,
     cid_src,
@@ -4238,7 +4232,8 @@ async function do_erc20_payment_s2s(
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 //
-async function do_erc721_payment_s2s(
+
+export async function do_erc721_payment_s2s(
     isForward,
     w3_src,
     cid_src,
@@ -4430,7 +4425,7 @@ async function do_erc721_payment_s2s(
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 //
-async function do_erc1155_payment_s2s(
+export async function do_erc1155_payment_s2s(
     isForward,
     w3_src,
     cid_src,
@@ -4625,7 +4620,7 @@ async function do_erc1155_payment_s2s(
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 //
-async function do_erc1155_batch_payment_s2s(
+export async function do_erc1155_batch_payment_s2s(
     isForward,
     w3_src,
     cid_src,
@@ -4819,7 +4814,7 @@ async function do_erc1155_batch_payment_s2s(
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-function parseIntOrHex( s ) {
+export function parseIntOrHex( s ) {
     if( typeof s != "string" )
         return parseInt( s );
     s = s.trim();
@@ -4943,7 +4938,7 @@ let g_nTransferLoopCounter = 0;
 //            [amount]       // uint256[] memory amount / *uint256[2] memory blsSignature* /
 //            )
 //
-async function do_transfer(
+export async function do_transfer(
     strDirection,
     joRuntimeOpts,
     //
@@ -5742,7 +5737,7 @@ async function do_transfer(
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-async function do_s2s_all( // s-chain --> s-chain
+export async function do_s2s_all( // s-chain --> s-chain
     joRuntimeOpts,
     imaState,
     skale_observer,
@@ -5874,7 +5869,7 @@ async function do_s2s_all( // s-chain --> s-chain
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-function compose_gas_usage_report_from_array( strName, jarrReceipts ) {
+export function compose_gas_usage_report_from_array( strName, jarrReceipts ) {
     if( ! ( strName && typeof strName == "string" && jarrReceipts ) )
         return "";
     let i, sumGasUsed = 0, s = "\n\n" + cc.info( "GAS USAGE REPORT FOR " ) + cc.attention( strName ) + "\n";
@@ -5888,7 +5883,7 @@ function compose_gas_usage_report_from_array( strName, jarrReceipts ) {
     return s;
 }
 
-function print_gas_usage_report_from_array( strName, jarrReceipts ) {
+export function print_gas_usage_report_from_array( strName, jarrReceipts ) {
     const s = compose_gas_usage_report_from_array( strName, jarrReceipts );
     if( s && s.length > 0 )
         log.write( s );
@@ -5900,14 +5895,14 @@ function print_gas_usage_report_from_array( strName, jarrReceipts ) {
 // init helpers
 //
 
-function noop() {
+export function noop() {
     return null;
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-class TransactionCustomizer {
+export class TransactionCustomizer {
     constructor( gasPriceMultiplier, gasMultiplier ) {
         this.gasPriceMultiplier = gasPriceMultiplier ? ( 0.0 + gasPriceMultiplier ) : null; // null means use current gasPrice or recommendedGasPrice
         this.gasMultiplier = gasMultiplier ? ( 0.0 + gasMultiplier ) : 1.25;
@@ -5955,14 +5950,14 @@ class TransactionCustomizer {
     }
 };
 
-const tc_main_net = new TransactionCustomizer( 1.25, 1.25 );
-const tc_s_chain = new TransactionCustomizer( null, 1.25 );
-const tc_t_chain = new TransactionCustomizer( null, 1.25 );
+export const tc_main_net = new TransactionCustomizer( 1.25, 1.25 );
+export const tc_s_chain = new TransactionCustomizer( null, 1.25 );
+export const tc_t_chain = new TransactionCustomizer( null, 1.25 );
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-async function checkTransactionToSchain( w3_s_chain, tx, details ) {
+export async function checkTransactionToSchain( w3_s_chain, tx, details ) {
     const sender = tx.from;
     const requiredBalance = tx.gasPrice * tx.gas;
     const balance = await w3_s_chain.eth.getBalance( sender );
@@ -5982,7 +5977,7 @@ async function checkTransactionToSchain( w3_s_chain, tx, details ) {
     return tx;
 }
 
-async function calculatePowNumber( address, nonce, gas, details ) {
+export async function calculatePowNumber( address, nonce, gas, details ) {
     try {
         let _address = ethereumjs_util.addHexPrefix( address );
         _address = ethereumjs_util.toChecksumAddress( _address );
@@ -6004,8 +5999,8 @@ async function calculatePowNumber( address, nonce, gas, details ) {
     }
 }
 
-function execShellCommand( cmd ) {
-    const exec = require( "child_process" ).exec;
+export function execShellCommand( cmd ) {
+    const exec = "child_process".exec;
     return new Promise( ( resolve, reject ) => {
         exec( cmd, ( error, stdout, stderr ) => {
             if( error )
@@ -6019,7 +6014,7 @@ function execShellCommand( cmd ) {
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-async function balanceETH(
+export async function balanceETH(
     isMainNet,
     w3,
     cid,
@@ -6069,7 +6064,7 @@ async function balanceERC20(
     return "<no-data-or-error>";
 }
 
-async function ownerOfERC721(
+export async function ownerOfERC721(
     isMainNet,
     w3,
     cid,
@@ -6094,7 +6089,7 @@ async function ownerOfERC721(
     return "<no-data-or-error>";
 }
 
-async function balanceERC1155(
+export async function balanceERC1155(
     isMainNet,
     w3,
     cid,
@@ -6119,7 +6114,7 @@ async function balanceERC1155(
     return "<no-data-or-error>";
 }
 
-async function mintERC20(
+export async function mintERC20(
     w3,
     cid,
     chainName,
@@ -6214,7 +6209,7 @@ async function mintERC20(
     }
 }
 
-async function mintERC721(
+export async function mintERC721(
     w3,
     cid,
     chainName,
@@ -6309,7 +6304,7 @@ async function mintERC721(
     }
 }
 
-async function mintERC1155(
+export async function mintERC1155(
     w3,
     cid,
     chainName,
@@ -6407,7 +6402,7 @@ async function mintERC1155(
     }
 }
 
-async function burnERC20(
+export async function burnERC20(
     w3,
     cid,
     chainName,
@@ -6502,7 +6497,7 @@ async function burnERC20(
     }
 }
 
-async function burnERC721(
+export async function burnERC721(
     w3,
     cid,
     chainName,
@@ -6597,7 +6592,7 @@ async function burnERC721(
     }
 }
 
-async function burnERC1155(
+export async function burnERC1155(
     w3,
     cid,
     chainName,
@@ -6697,125 +6692,4 @@ async function burnERC1155(
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-module.exports.longSeparator = g_mtaStrLongSeparator;
-module.exports.noop = noop;
-module.exports.cc = cc;
-module.exports.log = log;
-module.exports.sleep = sleep;
-module.exports.owaspUtils = owaspUtils;
-module.exports.w3mod = w3mod;
-module.exports.ethereumjs_tx = ethereumjs_tx;
-module.exports.ethereumjs_wallet = ethereumjs_wallet;
-module.exports.ethereumjs_util = ethereumjs_util;
 
-module.exports.VERBOSE = VERBOSE;
-module.exports.RV_VERBOSE = RV_VERBOSE;
-module.exports.expose_details_get = expose_details_get;
-module.exports.expose_details_set = expose_details_set;
-module.exports.verbose_get = verbose_get;
-module.exports.verbose_set = verbose_set;
-module.exports.verbose_parse = verbose_parse;
-module.exports.verbose_list = verbose_list;
-
-module.exports.dry_run_is_enabled = dry_run_is_enabled;
-module.exports.dry_run_enable = dry_run_enable;
-module.exports.dry_run_is_ignored = dry_run_is_ignored;
-module.exports.dry_run_ignore = dry_run_ignore;
-module.exports.dry_run_call = dry_run_call;
-module.exports.get_account_connectivity_info = get_account_connectivity_info;
-module.exports.safe_sign_transaction_with_account = safe_sign_transaction_with_account;
-module.exports.safe_send_signed_transaction = safe_send_signed_transaction;
-
-module.exports.invoke_has_chain = invoke_has_chain;
-module.exports.wait_for_has_chain = wait_for_has_chain;
-module.exports.register_s_chain_in_deposit_boxes = register_s_chain_in_deposit_boxes; // step 1
-// module.exports.register_main_net_depositBox_on_s_chain = register_main_net_depositBox_on_s_chain; // step 2A
-// module.exports.register_main_net_on_s_chain = register_main_net_on_s_chain; // step 2B
-
-module.exports.check_is_registered_s_chain_in_deposit_boxes = check_is_registered_s_chain_in_deposit_boxes; // step 1
-// module.exports.check_is_registered_main_net_depositBox_on_s_chain = check_is_registered_main_net_depositBox_on_s_chain; // step 2A
-// module.exports.check_is_registered_main_net_on_s_chain = check_is_registered_main_net_on_s_chain; // step 2B
-
-module.exports.reimbursement_show_balance = reimbursement_show_balance;
-module.exports.reimbursement_estimate_amount = reimbursement_estimate_amount;
-module.exports.reimbursement_wallet_recharge = reimbursement_wallet_recharge;
-module.exports.reimbursement_wallet_withdraw = reimbursement_wallet_withdraw;
-module.exports.reimbursement_set_range = reimbursement_set_range;
-
-module.exports.do_eth_payment_from_main_net = do_eth_payment_from_main_net;
-module.exports.do_eth_payment_from_s_chain = do_eth_payment_from_s_chain;
-module.exports.receive_eth_payment_from_s_chain_on_main_net = receive_eth_payment_from_s_chain_on_main_net;
-module.exports.view_eth_payment_from_s_chain_on_main_net = view_eth_payment_from_s_chain_on_main_net;
-module.exports.do_erc20_payment_from_main_net = do_erc20_payment_from_main_net;
-module.exports.do_erc20_payment_from_s_chain = do_erc20_payment_from_s_chain;
-module.exports.do_erc20_payment_s2s = do_erc20_payment_s2s;
-module.exports.do_erc721_payment_from_main_net = do_erc721_payment_from_main_net;
-module.exports.do_erc721_payment_from_s_chain = do_erc721_payment_from_s_chain;
-module.exports.do_erc721_payment_s2s = do_erc721_payment_s2s;
-module.exports.do_erc1155_payment_from_main_net = do_erc1155_payment_from_main_net;
-module.exports.do_erc1155_payment_from_s_chain = do_erc1155_payment_from_s_chain;
-module.exports.do_erc1155_payment_s2s = do_erc1155_payment_s2s;
-module.exports.do_erc1155_batch_payment_from_main_net = do_erc1155_batch_payment_from_main_net;
-module.exports.do_erc1155_batch_payment_from_s_chain = do_erc1155_batch_payment_from_s_chain;
-module.exports.do_erc1155_batch_payment_s2s = do_erc1155_batch_payment_s2s;
-module.exports.do_transfer = do_transfer;
-
-module.exports.do_s2s_all = do_s2s_all;
-module.exports.verify_transfer_error_category_name = verify_transfer_error_category_name;
-module.exports.saveTransferEvents = g_saveTransferEvents;
-module.exports.save_transfer_error = save_transfer_error;
-module.exports.save_transfer_success = save_transfer_success;
-module.exports.save_transfer_success_all = save_transfer_success_all;
-module.exports.get_last_transfer_errors = get_last_transfer_errors;
-module.exports.get_last_error_categories = get_last_error_categories;
-
-module.exports.compose_gas_usage_report_from_array = compose_gas_usage_report_from_array;
-module.exports.print_gas_usage_report_from_array = print_gas_usage_report_from_array;
-
-module.exports.TransactionCustomizer = TransactionCustomizer;
-module.exports.tc_main_net = tc_main_net;
-module.exports.tc_s_chain = tc_s_chain;
-module.exports.tc_t_chain = tc_t_chain;
-
-module.exports.compose_tx_instance = compose_tx_instance;
-
-module.exports.getSleepBetweenTransactionsOnSChainMilliseconds = getSleepBetweenTransactionsOnSChainMilliseconds;
-module.exports.setSleepBetweenTransactionsOnSChainMilliseconds = setSleepBetweenTransactionsOnSChainMilliseconds;
-module.exports.getWaitForNextBlockOnSChain = getWaitForNextBlockOnSChain;
-module.exports.setWaitForNextBlockOnSChain = setWaitForNextBlockOnSChain;
-module.exports.get_web3_blockNumber = get_web3_blockNumber;
-module.exports.get_web3_pastEvents = get_web3_pastEvents;
-module.exports.get_web3_pastEventsIterative = get_web3_pastEventsIterative;
-module.exports.get_web3_pastEventsProgressive = get_web3_pastEventsProgressive;
-module.exports.getBlocksCountInInIterativeStepOfEventsScan = getBlocksCountInInIterativeStepOfEventsScan;
-module.exports.setBlocksCountInInIterativeStepOfEventsScan = setBlocksCountInInIterativeStepOfEventsScan;
-module.exports.getMaxIterationsInAllRangeEventsScan = getMaxIterationsInAllRangeEventsScan;
-module.exports.setMaxIterationsInAllRangeEventsScan = setMaxIterationsInAllRangeEventsScan;
-module.exports.getEnabledProgressiveEventsScan = getEnabledProgressiveEventsScan;
-module.exports.setEnabledProgressiveEventsScan = setEnabledProgressiveEventsScan;
-module.exports.getEnabledOracle = getEnabledOracle;
-module.exports.setEnabledOracle = setEnabledOracle;
-module.exports.do_oracle_gas_price_setup = do_oracle_gas_price_setup;
-
-module.exports.get_S2S_transfer_mode_description = get_S2S_transfer_mode_description;
-module.exports.get_S2S_transfer_mode_description_colorized = get_S2S_transfer_mode_description_colorized;
-module.exports.isForwardS2S = isForwardS2S;
-module.exports.isReverseS2S = isReverseS2S;
-module.exports.setForwardS2S = setForwardS2S;
-module.exports.setReverseS2S = setReverseS2S;
-
-module.exports.parseIntOrHex = parseIntOrHex;
-
-module.exports.balanceETH = balanceETH;
-module.exports.balanceERC20 = balanceERC20;
-module.exports.ownerOfERC721 = ownerOfERC721;
-module.exports.balanceERC1155 = balanceERC1155;
-module.exports.mintERC20 = mintERC20;
-module.exports.mintERC721 = mintERC721;
-module.exports.mintERC1155 = mintERC1155;
-module.exports.burnERC20 = burnERC20;
-module.exports.burnERC721 = burnERC721;
-module.exports.burnERC1155 = burnERC1155;
-
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

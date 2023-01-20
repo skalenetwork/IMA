@@ -19,23 +19,22 @@
  */
 
 /**
- * @file bls.js
+ * @file bls.mjs
  * @copyright SKALE Labs 2019-Present
  */
 
-const fs = require( "fs" );
-// const path = require( "path" );
-// const url = require( "url" );
-// const os = require( "os" );
-const child_process = require( "child_process" );
-const shell = require( "shelljs" );
-const { Keccak } = require( "sha3" );
-const { cc } = require( "./utils" );
-const owaspUtils = require( "../npms/skale-owasp/owasp-util" );
+import * as fs from "fs";
+//import * as core from "./ima_core.mjs";
+import * as owaspUtils from "../npms/skale-owasp/owasp-utils.mjs";
+import * as child_process from "child_process";
+import * as rpc from "./rpc-call.mjs";
+import * as shell from "shelljs";
+import * as imaUtils from "./utils.mjs";
+const { cc } = utils;
 
-function init() {
-    owaspUtils.owaspAddUsageRef();
-}
+// import { Keccak } from "sha3";
+import * as hashing from "js-sha3";
+const keccak256 = hashing.default.keccak256;
 
 const sleep = ( milliseconds ) => { return new Promise( resolve => setTimeout( resolve, milliseconds ) ); };
 
@@ -135,14 +134,6 @@ function discover_common_public_key( joSChainNetworkInfo ) {
     return null;
 }
 
-let g_w3 = null;
-
-function get_w3() {
-    if( ! g_w3 )
-        g_w3 = global.g_w3mod || require( "web3" );
-    return g_w3;
-}
-
 function hexPrepare( strHex, isInvertBefore, isInvertAfter ) {
     if( isInvertBefore == undefined )
         isInvertBefore = true;
@@ -158,29 +149,18 @@ function hexPrepare( strHex, isInvertBefore, isInvertAfter ) {
 }
 
 function s2ha( s ) {
-    const str_u256 = get_w3().utils.soliditySha3( s );
+    const str_u256 = owaspUtils.ethersMod.ethers.utils.id( s );
     return hexPrepare( str_u256, true, true );
 }
 
-// function n2ha( n ) {
-//     const str_u256 = "0x" + get_w3().utils.toBN( n ).toString( 16 );
-//     return hexPrepare( str_u256, true, false );
-// }
-
 function a2ha( arrBytes ) {
-    const k = new Keccak( 256 );
-    k.update( imaUtils.toBuffer( arrBytes ) );
-    const h = k.digest( "hex" );
-    return imaUtils.hexToBytes( "0x" + h );
+    return owaspUtils.ensure_starts_with_0x( keccak256( arrBytes ) );
 }
 
 function keccak256_message( jarrMessages, nIdxCurrentMsgBlockStart, strFromChainName ) {
     let arrBytes = s2ha( strFromChainName );
-    // arrBytes = imaUtils.bytesConcat( arrBytes, n2ha( nIdxCurrentMsgBlockStart ) );
     arrBytes = imaUtils.bytesConcat( arrBytes, hexPrepare( "0x" + nIdxCurrentMsgBlockStart.toString( 16 ), false, false ) );
-    // console.log( "1 ---------------", "0x" + imaUtils.bytesToHex( arrBytes, false ) );
     arrBytes = a2ha( arrBytes );
-    // console.log( "2 ---------------", "0x" + imaUtils.bytesToHex( arrBytes, false ) );
     let i = 0; const cnt = jarrMessages.length;
     for( i = 0; i < cnt; ++i ) {
         const joMessage = jarrMessages[i];
@@ -235,7 +215,7 @@ function keccak256_message( jarrMessages, nIdxCurrentMsgBlockStart, strFromChain
 // console.log( "----------------- computed.....", strHashComputed );
 // process.exit( 0 );
 
-function keccak256_u256( u256, isHash ) {
+export function keccak256_u256( u256, isHash ) {
     let arrBytes = new Uint8Array();
     //
     let bytes_u256 = imaUtils.hexToBytes( u256 );
@@ -246,15 +226,13 @@ function keccak256_u256( u256, isHash ) {
     //
     let strMessageHash = "";
     if( isHash ) {
-        const hash = new Keccak( 256 );
-        hash.update( imaUtils.toBuffer( arrBytes ) );
-        strMessageHash = hash.digest( "hex" );
+        strMessageHash = owaspUtils.ensure_starts_with_0x( keccak256( arrBytes ) );
     } else
         strMessageHash = "0x" + imaUtils.bytesToHex( arrBytes );
     return strMessageHash;
 }
 
-function keccak256_pwa( nNodeNumber, strLoopWorkType, isStart, ts ) {
+export function keccak256_pwa( nNodeNumber, strLoopWorkType, isStart, ts ) {
     let arrBytes = new Uint8Array();
     //
     let bytes_u256 = imaUtils.hexToBytes( nNodeNumber );
@@ -277,9 +255,7 @@ function keccak256_pwa( nNodeNumber, strLoopWorkType, isStart, ts ) {
     bytes_u256 = imaUtils.invertArrayItemsLR( bytes_u256 );
     arrBytes = imaUtils.bytesConcat( arrBytes, bytes_u256 );
     //
-    const hash = new Keccak( 256 );
-    hash.update( imaUtils.toBuffer( arrBytes ) );
-    const strMessageHash = hash.digest( "hex" );
+    strMessageHash = owaspUtils.ensure_starts_with_0x( keccak256( arrBytes ) );
     return strMessageHash;
 }
 
@@ -292,8 +268,6 @@ function split_signature_share( signatureShare ) {
 }
 
 function get_bls_glue_tmp_dir() {
-    // NOTE: uncomment require( "path" ); at top of this file when using local tmp folder
-    // const strTmpDir = path.resolve( __dirname ) + "/tmp";
     const strTmpDir = "/tmp/ima-bls-glue";
     shell.mkdir( "-p", strTmpDir );
     return strTmpDir;
@@ -750,26 +724,33 @@ function perform_bls_verify_u256( details, joGlueResult, u256, joCommonPublicKey
 }
 
 async function check_correctness_of_messages_to_sign( details, strLogPrefix, strDirection, jarrMessages, nIdxCurrentMsgBlockStart, joExtraSignOpts ) {
-    let w3 = null; let joMessageProxy = null; let joAccount = null; let joChainName = null;
+    let joMessageProxy = null, joAccount = null, joChainName = null;
     if( strDirection == "M2S" ) {
-        w3 = imaState.chainProperties.mn.w3;
         joMessageProxy = imaState.jo_message_proxy_main_net;
         joAccount = imaState.chainProperties.mn.joAccount;
         joChainName = imaState.chainProperties.sc.strChainName;
     } else if( strDirection == "S2M" ) {
-        w3 = imaState.chainProperties.sc.w3;
         joMessageProxy = imaState.jo_message_proxy_s_chain;
         joAccount = imaState.chainProperties.sc.joAccount;
         joChainName = imaState.chainProperties.mn.strChainName;
     } else if( strDirection == "S2S" ) {
-        w3 = joExtraSignOpts.w3_src;
-        joMessageProxy = new w3.eth.Contract( imaState.chainProperties.sc.joAbiIMA.message_proxy_chain_abi, imaState.chainProperties.sc.joAbiIMA.message_proxy_chain_address );
-        joAccount = imaState.chainProperties.sc.joAccount;
+        //joMessageProxy = new w3.eth.Contract( imaState.chainProperties.sc.joAbiIMA.message_proxy_chain_abi, imaState.chainProperties.sc.joAbiIMA.message_proxy_chain_address );
+        //joAccount = imaState.chainProperties.sc.joAccount;
+        //joChainName = joExtraSignOpts.chain_id_dst;
+        if( ! ( "ethersProvider" in joExtraSignOpts && joExtraSignOpts.ethersProvider ) )
+            throw new Error( "CRITICAL ERROR: No provider specified in extra signing options for checking messages of directon \"" + strDirection + "\"" );
+        joMessageProxy =
+            new owaspUtils.ethersMod.ethers.Contract(
+                imaState.joAbiPublishResult_s_chain.message_proxy_chain_address,
+                imaState.joAbiPublishResult_s_chain.message_proxy_chain_abi,
+                joExtraSignOpts.ethersProvider
+            );
+        joAccount = imaState.joAccount_s_chain;
         joChainName = joExtraSignOpts.chain_id_dst;
     } else
         throw new Error( "CRITICAL ERROR: Failed check_correctness_of_messages_to_sign() with unknown directon \"" + strDirection + "\"" );
 
-    const strCallerAccountAddress = joAccount.address( w3 );
+    const strCallerAccountAddress = joAccount.address( owaspUtils.ethersMod );
     details.write(
         strLogPrefix + cc.sunny( strDirection ) + cc.debug( " message correctness validation through call to " ) +
         cc.notice( "verifyOutgoingMessageData" ) + cc.debug( " method of " ) + cc.bright( "MessageProxy" ) +
@@ -796,9 +777,8 @@ async function check_correctness_of_messages_to_sign( details, strLogPrefix, str
                     cc.debug( ", destination contract is " ) + cc.info( joMessage.destinationContract ) +
                     cc.debug( ", message data is " ) + cc.j( joMessage.data ) +
                     "\n" );
-                // const strHexAmount = "0x" + w3.utils.toBN( joMessage.amount ).toString( 16 );
                 const outgoingMessageData = {
-                    dstChainHash: w3.utils.soliditySha3( joChainName ), // dstChainHash
+                    dstChainHash: owaspUtils.ethersMod.ethers.utils.id( joChainName ), // dstChainHash
                     msgCounter: 0 + idxMessage,
                     srcContract: joMessage.sender,
                     dstContract: joMessage.destinationContract,
@@ -811,10 +791,10 @@ async function check_correctness_of_messages_to_sign( details, strLogPrefix, str
                 //     cc.debug( ", real message index is: " ) + cc.info( idxMessage ) +
                 //     cc.debug( ", saved msgCounter is: " ) + cc.info( outgoingMessageData.msgCounter ) +
                 //     "\n" );
-                const m = joMessageProxy.methods.verifyOutgoingMessageData(
-                    outgoingMessageData
+                const isValidMessage = await joMessageProxy.callStatic.verifyOutgoingMessageData(
+                    outgoingMessageData,
+                    { from: strCallerAccountAddress }
                 );
-                const isValidMessage = await m.call( { from: strCallerAccountAddress } );
                 details.write(
                     strLogPrefix + cc.sunny( strDirection ) +
                     cc.debug( " Got verification call result " ) + cc.tf( isValidMessage ) +
@@ -913,7 +893,7 @@ async function do_sign_messages_impl(
         //     }
         // }
         //
-        const sequence_id = owaspUtils.remove_starting_0x( get_w3().utils.soliditySha3( log.generate_timestamp_string( null, false ) ) );
+        const sequence_id = owaspUtils.remove_starting_0x( owaspUtils.ethersMod.ethers.utils.id( log.generate_timestamp_string( null, false ) ) );
         details.write( strLogPrefix +
             cc.debug( "Will sign " ) + cc.info( jarrMessages.length ) + cc.debug( " message(s)" ) +
             cc.debug( ", " ) + cc.notice( "sequence ID" ) + cc.debug( " is " ) + cc.attention( sequence_id ) +
@@ -994,22 +974,16 @@ async function do_sign_messages_impl(
                 if( strDirection == "M2S" ) {
                     targetChainName = "" + ( imaState.chainProperties.sc.strChainName ? imaState.chainProperties.sc.strChainName : "" );
                     fromChainName = "" + ( imaState.chainProperties.mn.strChainName ? imaState.chainProperties.mn.strChainName : "" );
-                    // targetChainURL = strNodeURL;
-                    // fromChainURL = owaspUtils.w3_2_url( imaState.chainProperties.mn.w3 );
                     targetChainID = imaState.chainProperties.sc.cid;
                     fromChainID = imaState.chainProperties.mn.cid;
                 } else if( strDirection == "S2M" ) {
                     targetChainName = "" + ( imaState.chainProperties.mn.strChainName ? imaState.chainProperties.mn.strChainName : "" );
                     fromChainName = "" + ( imaState.chainProperties.sc.strChainName ? imaState.chainProperties.sc.strChainName : "" );
-                    // targetChainURL = owaspUtils.w3_2_url( imaState.chainProperties.mn.w3 );
-                    // fromChainURL = strNodeURL;
                     targetChainID = imaState.chainProperties.mn.cid;
                     fromChainID = imaState.chainProperties.sc.cid;
                 } else if( strDirection == "S2S" ) {
                     targetChainName = "" + joExtraSignOpts.chain_id_dst;
                     fromChainName = "" + joExtraSignOpts.chain_id_src;
-                    // targetChainURL = owaspUtils.w3_2_url( joExtraSignOpts.w3_dst );
-                    // fromChainURL = owaspUtils.w3_2_url( joExtraSignOpts.w3_src );
                     targetChainID = joExtraSignOpts.cid_dst;
                     fromChainID = joExtraSignOpts.cid_src;
                 } else {
@@ -1349,7 +1323,7 @@ async function do_sign_messages_impl(
     }
 }
 
-async function do_sign_messages_m2s(
+export async function do_sign_messages_m2s(
     nTransferLoopCounter,
     jarrMessages, nIdxCurrentMsgBlockStart, strFromChainName,
     joExtraSignOpts,
@@ -1364,7 +1338,7 @@ async function do_sign_messages_m2s(
     );
 }
 
-async function do_sign_messages_s2m(
+export async function do_sign_messages_s2m(
     nTransferLoopCounter,
     jarrMessages, nIdxCurrentMsgBlockStart, strFromChainName,
     joExtraSignOpts,
@@ -1379,7 +1353,7 @@ async function do_sign_messages_s2m(
     );
 }
 
-async function do_sign_messages_s2s(
+export async function do_sign_messages_s2s(
     nTransferLoopCounter,
     jarrMessages, nIdxCurrentMsgBlockStart, strFromChainName,
     joExtraSignOpts,
@@ -1394,7 +1368,7 @@ async function do_sign_messages_s2s(
     );
 }
 
-async function do_sign_u256( u256, details, fn ) {
+export async function do_sign_u256( u256, details, fn ) {
     const strLogPrefix = cc.info( "Sign u256:" ) + " ";
     log.write( strLogPrefix + cc.debug( "Invoking signing u256 procedure " ) + "\n" );
     details.write( strLogPrefix + cc.debug( "Invoking signing u256 procedure " ) + "\n" );
@@ -1687,7 +1661,7 @@ async function do_sign_u256( u256, details, fn ) {
     details.write( strLogPrefix + cc.debug( "Completed signing u256 procedure " ) + "\n" );
 }
 
-async function do_verify_ready_hash( strMessageHash, nZeroBasedNodeIndex, signature ) {
+export async function do_verify_ready_hash( strMessageHash, nZeroBasedNodeIndex, signature ) {
     const strDirection = "RAW";
     const strLogPrefix = cc.bright( strDirection ) + cc.debug( "/" ) + cc.info( "BLS" ) + cc.debug( "/" ) + cc.notice( "#" ) + cc.bright( nZeroBasedNodeIndex ) + cc.debug( ":" ) + " ";
     const details = log.createMemoryStream( true );
@@ -1752,7 +1726,7 @@ async function do_verify_ready_hash( strMessageHash, nZeroBasedNodeIndex, signat
     return isSuccess;
 }
 
-async function do_sign_ready_hash( strMessageHash ) {
+export async function do_sign_ready_hash( strMessageHash ) {
     const strLogPrefix = "";
     const details = log.createMemoryStream( true );
     let joSignResult = null;
@@ -1857,7 +1831,7 @@ async function do_sign_ready_hash( strMessageHash ) {
     return joSignResult;
 }
 
-// async function handle_skale_call_via_redirect( joCallData ) {
+// export async function handle_skale_call_via_redirect( joCallData ) {
 //     const sequence_id = owaspUtils.remove_starting_0x( get_w3().utils.soliditySha3( log.generate_timestamp_string( null, false ) ) );
 //     const strLogPrefix = "";
 //     const strNodeURL = imaState.chainProperties.sc.strURL;
@@ -1923,7 +1897,7 @@ async function do_sign_ready_hash( strMessageHash ) {
 //     return joRetVal;
 // }
 
-async function handle_skale_imaVerifyAndSign( joCallData ) {
+export async function handle_skale_imaVerifyAndSign( joCallData ) {
     const strLogPrefix = "";
     const details = log.createMemoryStream( true );
     const joRetVal = { };
@@ -2097,7 +2071,7 @@ async function handle_skale_imaVerifyAndSign( joCallData ) {
     return joRetVal;
 }
 
-async function handle_skale_imaBSU256( joCallData ) {
+export async function handle_skale_imaBSU256( joCallData ) {
     const strLogPrefix = "";
     const details = log.createMemoryStream( true );
     const joRetVal = { };
@@ -2211,17 +2185,4 @@ async function handle_skale_imaBSU256( joCallData ) {
     return joRetVal;
 }
 
-module.exports = {
-    init: init,
-    keccak256_pwa: keccak256_pwa,
-    do_sign_messages_m2s: do_sign_messages_m2s,
-    do_sign_messages_s2m: do_sign_messages_s2m,
-    do_sign_messages_s2s: do_sign_messages_s2s,
-    do_sign_u256: do_sign_u256,
-    do_sign_ready_hash: do_sign_ready_hash,
-    do_verify_ready_hash: do_verify_ready_hash,
-    // handle_skale_imaVerifyAndSign: handle_skale_call_via_redirect,
-    handle_skale_imaVerifyAndSign: handle_skale_imaVerifyAndSign,
-    // handle_skale_imaBSU256: handle_skale_call_via_redirect
-    handle_skale_imaBSU256: handle_skale_imaBSU256
-}; // module.exports
+

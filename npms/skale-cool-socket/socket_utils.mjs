@@ -19,28 +19,28 @@
  */
 
 /**
- * @file utils.js
+ * @file socket_utils.mjs
  * @copyright SKALE Labs 2019-Present
  */
 
-const { settings } = require( "./settings.js" );
+import { settings } from "./socket_settings.mjs";
 
-const uuid_v4 = function() {
+export const uuid_v4 = function() {
     return "xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx".replace( /[xy]/g, function( c ) {
         const r = Math.random() * 16 | 0, v = c == "x" ? r : ( r & 0x3 | 0x8 );
         return v.toString( 16 );
     } );
 };
 
-const getRandomInt = function( nMax ) {
+export const getRandomInt = function( nMax ) {
     return parseInt( Math.floor( Math.random() * Math.floor( nMax ) ), 10 );
 };
 
-const randomFixedInteger = function( length ) {
+export const randomFixedInteger = function( length ) {
     return Math.floor( Math.pow( 10, length - 1 ) + Math.random() * ( Math.pow( 10, length ) - Math.pow( 10, length - 1 ) - 1 ) );
 };
 
-const randomStringABC = function( length, arrCharacters ) {
+export const randomStringABC = function( length, arrCharacters ) {
     length = parseInt( length, 10 );
     if( length <= 0 || arrCharacters.length == 0 )
         return "";
@@ -50,7 +50,7 @@ const randomStringABC = function( length, arrCharacters ) {
     return s;
 };
 
-const randomString = function( length, isABC, isDigits, isSpecChr, isPunctuation ) { // by default only isABC=true
+export const randomString = function( length, isABC, isDigits, isSpecChr, isPunctuation ) { // by default only isABC=true
     length = parseInt( length, 10 );
     if( length <= 0 )
         return "";
@@ -72,16 +72,16 @@ const randomString = function( length, isABC, isDigits, isSpecChr, isPunctuation
     return randomStringABC( length, arrCharacters );
 };
 
-const randomHexString = function( length ) { // length in characters, not bytes, each byte is 2 characters
+export const randomHexString = function( length ) { // length in characters, not bytes, each byte is 2 characters
     const arrCharacters = "0123456789abcdef";
     return randomStringABC( length, arrCharacters );
 };
 
-const replaceAll = function( str, find, replace ) {
+export const replaceAll = function( str, find, replace ) {
     return str.replace( new RegExp( find, "g" ), replace );
 };
 
-const simpleEscapeString = function( s ) {
+export const simpleEscapeString = function( s ) {
     if( s == null || s == undefined || typeof s != "string" )
         return s;
     s = replaceAll( s, "&", "&amp;" );
@@ -91,37 +91,37 @@ const simpleEscapeString = function( s ) {
     return s;
 };
 
-const abstractUniqueID = function() {
+export const abstractUniqueID = function() {
     const id = replaceAll( uuid_v4(), "-", "" ).toLowerCase();
     return id;
 };
 
-const isEven = function( n ) {
+export const isEven = function( n ) {
     return n % 2 == 0;
 };
-const isOdd = function( n ) {
+export const isOdd = function( n ) {
     return Math.abs( n % 2 ) == 1;
 };
 
 const g_nCallIdDigits = 10;
-const randomCallID = function() {
+export const randomCallID = function() {
     const id = randomHexString( g_nCallIdDigits );
     return id;
 };
 
 const g_nDirectPipeIdDigits = 10;
-const randomDirectPipeID = function() {
+export const randomDirectPipeID = function() {
     const id = randomHexString( g_nDirectPipeIdDigits );
     return id;
 };
 
-const bind_scope_to_function = function( scope, fn ) {
+export const bind_scope_to_function = function( scope, fn ) {
     return function() {
         fn.apply( scope, arguments );
     };
 };
 
-const prepareAnswerJSON = function( joMessage ) {
+export const prepareAnswerJSON = function( joMessage ) {
     const joAnswer = {
         id: "" + ( ( joMessage != null && joMessage != undefined && typeof joMessage.id == "string" ) ? joMessage.id : randomCallID() ),
         method: "" + ( ( joMessage != null && joMessage != undefined && typeof joMessage.method == "string" ) ? joMessage.method : "" ),
@@ -130,7 +130,7 @@ const prepareAnswerJSON = function( joMessage ) {
     return joAnswer;
 };
 
-const makeValidSignalingServerURL = function( strSignalingServerURL ) {
+export const makeValidSignalingServerURL = function( strSignalingServerURL ) {
     const proto = settings.net.secure ? "wss" : "ws";
     return "" + ( ( strSignalingServerURL != null && strSignalingServerURL != undefined && typeof strSignalingServerURL == "string" && strSignalingServerURL.length > 0 )
         ? "" + strSignalingServerURL
@@ -138,7 +138,7 @@ const makeValidSignalingServerURL = function( strSignalingServerURL ) {
     );
 };
 
-const zero_padding_left = function( val, cntCharsNeeded ) {
+export const zero_padding_left = function( val, cntCharsNeeded ) {
     if( val == null || val == undefined )
         return val;
     let s = "" + val;
@@ -146,7 +146,7 @@ const zero_padding_left = function( val, cntCharsNeeded ) {
         s = "0" + s;
     return s;
 };
-const zero_padding_right = function( val, cntCharsNeeded ) {
+export const zero_padding_right = function( val, cntCharsNeeded ) {
     if( val == null || val == undefined )
         return val;
     let s = "" + val;
@@ -155,7 +155,7 @@ const zero_padding_right = function( val, cntCharsNeeded ) {
     return s;
 };
 
-const parse_date_time = function( ts ) {
+export const parse_date_time = function( ts ) {
     if( ts === null || ts === undefined )
         return ts;
     if( typeof ts != "string" )
@@ -183,7 +183,7 @@ const parse_date_time = function( ts ) {
     d.setMilliseconds( millisecond );
     return d;
 };
-const format_date_time = function( dt, isDate, isTime, isMilliseconds, sepDate, sepTime, sepBetween, sepMilliseconds ) {
+export const format_date_time = function( dt, isDate, isTime, isMilliseconds, sepDate, sepTime, sepBetween, sepMilliseconds ) {
     if( dt === null )
         return "null-date-time";
     if( dt === undefined )
@@ -225,29 +225,4 @@ const format_date_time = function( dt, isDate, isTime, isMilliseconds, sepDate, 
         s += strTime;
     }
     return s;
-};
-
-module.exports = {
-    uuid_v4: uuid_v4,
-    getRandomInt: getRandomInt,
-    randomFixedInteger: randomFixedInteger,
-    randomStringABC: randomStringABC,
-    randomString: randomString,
-    randomHexString: randomHexString,
-    replaceAll: replaceAll,
-    simpleEscapeString: simpleEscapeString,
-    abstractUniqueID: abstractUniqueID,
-    isEven: isEven,
-    isOdd: isOdd,
-    g_nCallIdDigits: g_nCallIdDigits,
-    randomCallID: randomCallID,
-    g_nDirectPipeIdDigits: g_nDirectPipeIdDigits,
-    randomDirectPipeID: randomDirectPipeID,
-    bind_scope_to_function: bind_scope_to_function,
-    prepareAnswerJSON: prepareAnswerJSON,
-    makeValidSignalingServerURL: makeValidSignalingServerURL,
-    zero_padding_left: zero_padding_left,
-    zero_padding_right: zero_padding_right,
-    parse_date_time: parse_date_time,
-    format_date_time: format_date_time
 };

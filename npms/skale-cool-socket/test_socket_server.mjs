@@ -19,13 +19,13 @@
  */
 
 /**
- * @file test_server.js
+ * @file test_socket_server.mjs
  * @copyright SKALE Labs 2019-Present
  */
 
-const { Server } = require( "./server.js" );
+import { SocketServer } from "./socket_server.mjs";
 
-class TestServer extends Server {
+export class TestSocketServer extends SocketServer {
     constructor( acceptor ) {
         super( acceptor );
         const self = this;
@@ -40,8 +40,4 @@ class TestServer extends Server {
         this.isDisposing = true;
         super.dispose();
     }
-};
-
-module.exports = {
-    TestServer: TestServer
 };

@@ -19,16 +19,18 @@
  */
 
 /**
- * @file test.js
+ * @file test_socket_types.mjs
  * @copyright SKALE Labs 2019-Present
  */
 
-const network_layer = require( "./socket.js" );
-const { TestServer } = require( "./test_server.js" );
-const { Worker } = require( "worker_threads" );
-const { settings } = require( "./settings.js" );
-const ws = require( "ws" );
-// const wrtc = require( "wrtc" );
+import * as path from "path";
+import * as network_layer from "./socket.mjs";
+import { TestSocketServer } from "./test_socket_server.mjs";
+import { Worker } from "worker_threads";
+import { settings } from "./socket_settings.mjs";
+import * as ws from "ws";
+const __dirname = path.resolve();
+// import * as wrtc from "wrtc";
 
 const joTestMessage = { "method": "echo", "message": "Please echo this message!" };
 
@@ -38,7 +40,7 @@ async function test_local() {
     console.log( "Local test" );
     const strEndPoint = "local_endpoint";
     const acceptor = new network_layer.LocalSocketServerAcceptor( strEndPoint );
-    const server = new TestServer( acceptor );
+    const server = new TestSocketServer( acceptor );
     const client = new network_layer.LocalSocketClientPipe( strEndPoint );
     client.on( "message", function( eventData ) {
         const joMessage = eventData.message;
@@ -60,7 +62,7 @@ async function test_local() {
 async function test_worker() {
     console.log( "Worker test" );
     const url = "local_worker_server";
-    const worker = new Worker( "./test_worker.js" );
+    const worker = new Worker( path.join( __dirname, "test_socket_worker.mjs" ), { type: "module" } );
     console.log( "Will connect to " + url );
     worker.on( "message", jo => {
         if( network_layer.out_of_worker_apis.on_message( worker, jo ) )
@@ -93,7 +95,7 @@ async function test_web_socket() {
     const key = settings.net.secure ? fs.readFileSync( "./self-signed/self-signed-key.pem", "utf8" ) : null;
     const cert = settings.net.secure ? fs.readFileSync( "./self-signed/self-signed-cert.pem", "utf8" ) : null;
     const acceptor = new network_layer.WebSocketServerAcceptor( nPort, key, cert );
-    const server = new TestServer( acceptor );
+    const server = new TestSocketServer( acceptor );
     const client = new network_layer.WebSocketClientPipe( url );
     client.on( "message", function( eventData ) {
         const joMessage = eventData.message;
@@ -133,7 +135,7 @@ async function test_web_socket() {
 //     network_layer.set_wrtc_mod( wrtc );
 //     const url = null; // null here means url will be got from settings
 //     const acceptor = new network_layer.WebRTCServerAcceptor( url );
-//     const server = new TestServer( acceptor );
+//     const server = new TestSocketServer( acceptor );
 //     server.on( "dispose", function() { console.log( "disposed", url ); } );
 //     console.log( "Will connect to " + url );
 //     const client = new network_layer.WebRTCClientPipe( url );

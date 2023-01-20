@@ -20,7 +20,7 @@
  */
 
 /**
- * @file owasp-util.js
+ * @file owasp-util.mjs
  * @copyright SKALE Labs 2019-Present
  */
 
@@ -28,21 +28,19 @@
 // main PDF with rules to follow: https://www.gitbook.com/download/pdf/book/checkmarx/JS-SCP
 // top 10 hit parade: https://owasp.org/www-project-top-ten/
 
-const fs = require( "fs" );
-// const path = require( "path" );
-// const url = require( "url" );
-// const os = require( "os" );
+import * as ethersMod from "ethers";
+import * as fs from "fs";
+import * as cc from "../skale-cc/cc.mjs";
 
-const cc = require( "../skale-cc/cc.js" );
-const w3mod = require( "web3" );
-const ethereumjs_tx = require( "ethereumjs-tx" );
-const ethereumjs_wallet = require( "ethereumjs-wallet" );
-const ethereumjs_util = require( "ethereumjs-util" );
+const safeURL = cc.safeURL;
+const replaceAll = cc.replaceAll;
+
+export { ethersMod, safeURL, replaceAll };
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-function rxIsInt( val ) {
+export function rxIsInt( val ) {
     try {
         const intRegex = /^-?\d+$/;
         if( !intRegex.test( val ) )
@@ -55,7 +53,7 @@ function rxIsInt( val ) {
     return false;
 }
 
-function rxIsFloat( val ) {
+export function rxIsFloat( val ) {
     try {
         const floatRegex = /^-?\d+(?:[.,]\d*?)?$/;
         if( !floatRegex.test( val ) )
@@ -69,7 +67,16 @@ function rxIsFloat( val ) {
     return false;
 }
 
-function validateRadix( value, radix ) {
+export function parseIntOrHex( s ) {
+    if( typeof s != "string" )
+        return parseInt( s );
+    s = s.trim();
+    if( s.length > 2 && s[0] == "0" && ( s[1] == "x" || s[1] == "X" ) )
+        return parseInt( s, 16 );
+    return parseInt( s, 10 );
+}
+
+export function validateRadix( value, radix ) {
     value = "" + ( value ? value.toString() : "10" );
     value = value.trim();
     radix = ( radix == null || radix == undefined )
@@ -78,7 +85,7 @@ function validateRadix( value, radix ) {
     return radix;
 }
 
-function validateInteger( value, radix ) {
+export function validateInteger( value, radix ) {
     try {
         value = "" + value;
         value = value.trim();
@@ -95,7 +102,7 @@ function validateInteger( value, radix ) {
     return false;
 }
 
-function toInteger( value, radix ) {
+export function toInteger( value, radix ) {
     try {
         radix = validateRadix( value, radix );
         if( !validateInteger( value, radix ) )
@@ -106,7 +113,7 @@ function toInteger( value, radix ) {
     return false;
 }
 
-function validateFloat( value ) {
+export function validateFloat( value ) {
     try {
         const f = parseFloat( value );
         if( isNaN( f ) )
@@ -117,7 +124,7 @@ function validateFloat( value ) {
     return false;
 }
 
-function toFloat( value ) {
+export function toFloat( value ) {
     try {
         const f = parseFloat( value );
         return f;
@@ -126,14 +133,14 @@ function toFloat( value ) {
     return false;
 }
 
-function validateURL( s ) {
+export function validateURL( s ) {
     const u = toURL( s );
     if( u == null )
         return false;
     return true;
 }
 
-function toURL( s ) {
+export function toURL( s ) {
     try {
         if( s == null || s == undefined )
             return null;
@@ -166,7 +173,7 @@ function toURL( s ) {
     }
 }
 
-function toStringURL( s, defValue ) {
+export function toStringURL( s, defValue ) {
     defValue = defValue || "";
     try {
         const u = toURL( s );
@@ -178,7 +185,31 @@ function toStringURL( s, defValue ) {
     }
 }
 
-function toBoolean( value ) {
+export function is_http_url( strURL ) {
+    try {
+        if( !validateURL( strURL ) )
+            return false;
+        const u = new URL( strURL );
+        if( u.protocol == "http:" || u.protocol == "https:" )
+            return true;
+    } catch ( err ) {
+    }
+    return false;
+}
+
+export function is_ws_url( strURL ) {
+    try {
+        if( !validateURL( strURL ) )
+            return false;
+        const u = new URL( strURL );
+        if( u.protocol == "ws:" || u.protocol == "wss:" )
+            return true;
+    } catch ( err ) {
+    }
+    return false;
+}
+
+export function toBoolean( value ) {
     let b = false;
     try {
         if( typeof value === "boolean" )
@@ -199,29 +230,26 @@ function toBoolean( value ) {
     return b;
 }
 
-// see https://ethereum.stackexchange.com/questions/1374/how-can-i-check-if-an-ethereum-address-is-valid
-function validateEthAddress( value ) {
+export function validateEthAddress( ethersMod, value ) {
     try {
-        if( ethereumjs_util.isValidAddress( ensure_starts_with_0x( value ) ) )
+        if( ethersMod.ethers.util.isAddress( ensure_starts_with_0x( value ) ) )
             return true;
     } catch ( err ) {
     }
     return false;
 }
 
-// see https://gist.github.com/miguelmota/20fcd7c5c2604907dcbba749ea3f1e8c
-function validateEthPrivateKey( value ) {
+export function validateEthPrivateKey( ethersMod, value ) {
     try {
-        value = "" + ( value ? value.toString() : "" );
-        const buffer = Buffer.from( remove_starting_0x( value ), "hex" );
-        if( ethereumjs_util.isValidPrivate( buffer ) )
+        const ethersWallet = new ethersMod.ethers.Wallet( ensure_starts_with_0x( value ) );
+        if( ethersWallet.address )
             return true;
     } catch ( err ) {
     }
     return false;
 }
 
-function toEthAddress( value, defValue ) {
+export function toEthAddress( value, defValue ) {
     try {
         value = "" + ( value ? ensure_starts_with_0x( value.toString() ) : "" );
         defValue = defValue || "";
@@ -232,7 +260,7 @@ function toEthAddress( value, defValue ) {
     return value;
 }
 
-function toEthPrivateKey( value, defValue ) {
+export function toEthPrivateKey( value, defValue ) {
     try {
         value = "" + ( value ? value.toString() : "" );
         defValue = defValue || "";
@@ -243,7 +271,7 @@ function toEthPrivateKey( value, defValue ) {
     return value;
 }
 
-function verifyArgumentWithNonEmptyValue( joArg ) {
+export function verifyArgumentWithNonEmptyValue( joArg ) {
     if( ( !joArg.value ) || ( typeof joArg.value === "string" && joArg.value.length === 0 ) ) {
         console.log( cc.fatal( "(OWASP) CRITICAL ERROR:" ) + cc.error( " value " ) + cc.warning( joArg.value ) + cc.error( " of argument " ) + cc.info( joArg.name ) + cc.error( " must not be empty" ) );
         process.exit( 126 );
@@ -251,7 +279,7 @@ function verifyArgumentWithNonEmptyValue( joArg ) {
     return joArg;
 }
 
-function verifyArgumentIsURL( joArg ) {
+export function verifyArgumentIsURL( joArg ) {
     try {
         verifyArgumentWithNonEmptyValue( joArg );
         const u = toURL( joArg.value );
@@ -270,7 +298,7 @@ function verifyArgumentIsURL( joArg ) {
     }
 }
 
-function verifyArgumentIsInteger( joArg ) {
+export function verifyArgumentIsInteger( joArg ) {
     try {
         verifyArgumentWithNonEmptyValue( joArg );
         if( !validateInteger( joArg.value ) ) {
@@ -285,12 +313,12 @@ function verifyArgumentIsInteger( joArg ) {
     }
 }
 
-function verifyArgumentIsIntegerIpPortNumber( joArg, isEnableZero ) {
+export function verifyArgumentIsIntegerIpPortNumber( joArg ) {
     try {
         verifyArgumentIsInteger( joArg );
         if( joArg.value < 0 )
             throw new Error( "Port number " + joArg.value + " cannot be negative" );
-        if( ( !isEnableZero ) && joArg.value < 1 )
+        if( joArg.value < 1 )
             throw new Error( "Port number " + joArg.value + " too small" );
         if( joArg.value > 65535 )
             throw new Error( "Port number " + joArg.value + " too big" );
@@ -300,7 +328,7 @@ function verifyArgumentIsIntegerIpPortNumber( joArg, isEnableZero ) {
     }
 }
 
-function verifyArgumentIsPathToExistingFile( joArg ) {
+export function verifyArgumentIsPathToExistingFile( joArg ) {
     try {
         verifyArgumentWithNonEmptyValue( joArg );
         const stats = fs.lstatSync( joArg.value );
@@ -319,7 +347,7 @@ function verifyArgumentIsPathToExistingFile( joArg ) {
     }
 }
 
-function verifyArgumentIsPathToExistingFolder( joArg ) {
+export function verifyArgumentIsPathToExistingFolder( joArg ) {
     try {
         verifyArgumentWithNonEmptyValue( joArg );
         const stats = fs.lstatSync( joArg.value );
@@ -338,7 +366,7 @@ function verifyArgumentIsPathToExistingFolder( joArg ) {
     }
 }
 
-function verifyArgumentIsArrayOfIntegers( joArg ) {
+export function verifyArgumentIsArrayOfIntegers( joArg ) {
     try {
         verifyArgumentWithNonEmptyValue( joArg );
         if( joArg.value.length < 3 ) {
@@ -371,7 +399,7 @@ function verifyArgumentIsArrayOfIntegers( joArg ) {
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-function ensure_starts_with_0x( s ) {
+export function ensure_starts_with_0x( s ) {
     if( s == null || s == undefined || typeof s !== "string" )
         return s;
     if( s.length < 2 )
@@ -381,7 +409,7 @@ function ensure_starts_with_0x( s ) {
     return "0x" + s;
 }
 
-function remove_starting_0x( s ) {
+export function remove_starting_0x( s ) {
     if( s == null || s == undefined || typeof s !== "string" )
         return s;
     if( s.length < 2 )
@@ -394,7 +422,7 @@ function remove_starting_0x( s ) {
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-function inet_ntoa( n ) {
+export function inet_ntoa( n ) {
     const a = ( ( n >> 24 ) & 0xFF ) >>> 0;
     const b = ( ( n >> 16 ) & 0xFF ) >>> 0;
     const c = ( ( n >> 8 ) & 0xFF ) >>> 0;
@@ -402,36 +430,21 @@ function inet_ntoa( n ) {
     return ( a + "." + b + "." + c + "." + d );
 }
 
-function ip_from_hex( hex ) {
+export function ip_from_hex( hex ) {
     return inet_ntoa( parseInt( remove_starting_0x( hex ), 16 ) );
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-function private_key_2_public_key( w3, keyPrivate ) {
-    if( w3 == null || w3 == undefined || keyPrivate == null || keyPrivate == undefined )
-        return "";
-    // get a wallet instance from a private key
-    const privateKeyBuffer = ethereumjs_util.toBuffer( ensure_starts_with_0x( keyPrivate ) );
-    const wallet = ethereumjs_wallet.fromPrivateKey( privateKeyBuffer );
-    // get a public key
-    const keyPublic = wallet.getPublicKeyString();
-    return remove_starting_0x( keyPublic );
-}
-
-function public_key_2_account_address( w3, keyPublic ) {
-    if( w3 == null || w3 == undefined || keyPublic == null || keyPublic == undefined )
-        return "";
-    const hash = w3.utils.sha3( ensure_starts_with_0x( keyPublic ) );
-    const strAddress = ensure_starts_with_0x( hash.substr( hash.length - 40 ) );
-    return strAddress;
-}
-
-function private_key_2_account_address( w3, keyPrivate ) {
-    const keyPublic = private_key_2_public_key( w3, keyPrivate );
-    const strAddress = public_key_2_account_address( w3, keyPublic );
-    return strAddress;
+export function clone_object_by_root_keys( joIn ) {
+    const joOut = { }, arrKeys = Object.keys( joIn );
+    for( let i = 0; i < arrKeys.length; ++ i ) {
+        const key = arrKeys[i];
+        const value = joIn[key];
+        joOut[key] = value;
+    }
+    return joOut;
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -522,7 +535,7 @@ const g_mapMoneyNameSuffixAliases = {
     "tether": "tether"
 };
 
-function parseMoneyUnitName( s ) {
+export function parseMoneyUnitName( s ) {
     s = s.trim().toLowerCase();
     if( s == "" )
         return "wei";
@@ -536,13 +549,46 @@ function parseMoneyUnitName( s ) {
     return s;
 }
 
-function is_numeric( s ) {
-    return /^\d+$/.test( s );
+function moneyUnitNameToEthersParseSpec( s ) {
+    switch ( s.toString().trim().toLowerCase() ) {
+    case "shannon": return 9;
+    case "lovelace": return 6;
+    case "babbage": return 3;
+    case "femtoether": return "ether";
+    case "picoether": return "ether";
+    case "nanoether": return "ether";
+    case "microether": return "ether";
+    case "milliether": return "ether";
+    case "kether": return "ether";
+    case "mether": return "ether";
+    case "gether": return "ether";
+    case "tether": return "ether";
+    }
+    return s;
 }
 
-function parseMoneySpecToWei( w3, s, isThrowException ) {
+function moneyUnitNameToPostDivider( s ) {
+    switch ( s.toString().trim().toLowerCase() ) {
+    case "femtoether": return "1000000000000000";
+    case "picoether": return "1000000000000";
+    case "nanoether": return "1000000000";
+    case "microether": return "1000000";
+    case "milliether": return "1000";
+    }
+    return null;
+}
+function moneyUnitNameToPostMultipler( s ) {
+    switch ( s.toString().trim().toLowerCase() ) {
+    case "kether": return "1000";
+    case "mether": return "1000000";
+    case "gether": return "1000000000";
+    case "tether": return "1000000000000";
+    }
+    return null;
+}
+
+export function parseMoneySpecToWei( ethersMod, s, isThrowException ) {
     try {
-        w3 = w3 || global.w3mod;
         isThrowException = isThrowException ? true : false;
         if( s == null || s == undefined ) {
             if( isThrowException )
@@ -553,7 +599,9 @@ function parseMoneySpecToWei( w3, s, isThrowException ) {
         let strNumber = "";
         while( s.length > 0 ) {
             const chr = s[0];
-            if( is_numeric( chr ) || chr == "." ) {
+            if( /^\d+$/.test( chr ) || // is numeric
+                chr == "."
+            ) {
                 strNumber += chr;
                 s = s.substr( 1 ); // remove first character
                 continue;
@@ -567,7 +615,13 @@ function parseMoneySpecToWei( w3, s, isThrowException ) {
         if( strNumber == "" )
             throw new Error( "no number or float value found" );
         s = parseMoneyUnitName( s );
-        s = w3.utils.toWei( strNumber, s );
+        const ddr = moneyUnitNameToPostDivider( s ), mlr = moneyUnitNameToPostMultipler( s );
+        s = moneyUnitNameToEthersParseSpec( s );
+        s = ethersMod.ethers.utils.parseUnits( strNumber, s );
+        if( ddr != null )
+            s = s.div( ethersMod.ethers.BigNumber.from( ddr ) );
+        if( mlr != null )
+            s = s.mul( ethersMod.ethers.BigNumber.from( mlr ) );
         s = s.toString( 10 );
         return s;
     } catch ( err ) {
@@ -577,17 +631,11 @@ function parseMoneySpecToWei( w3, s, isThrowException ) {
     return "0";
 }
 
-function fn_address_impl_( w3 ) {
-    if( ! this.address_ )
-        this.address_ = "" + private_key_2_account_address( w3, this.privateKey );
-    return this.address_;
-}
-
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-function compute_chain_id_from_schain_name( w3, strName ) {
-    let h = w3.utils.soliditySha3( strName );
+export function compute_chain_id_from_schain_name( ethersMod, strName ) {
+    let h = ethersMod.ethers.utils.id( strName );
     h = remove_starting_0x( h ).toLowerCase();
     while( h.length < 64 )
         h = "0" + h;
@@ -595,31 +643,52 @@ function compute_chain_id_from_schain_name( w3, strName ) {
     return "0x" + h;
 }
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-function w3provider_2_url( provider ) {
-    if( ! provider )
-        return null;
-    if( "host" in provider ) {
-        const u = provider.host.toString();
-        if( u && cc.safeURL( u ) )
-            return u;
-    }
-    if( "url" in provider ) {
-        const u = provider.url.toString();
-        if( u && cc.safeURL( u ) )
-            return u;
-    }
-    return null;
+export function private_key_2_account_address( ethersMod, keyPrivate ) {
+    return ethersMod.ethers.utils.computeAddress( ensure_starts_with_0x( keyPrivate ) );
 }
 
-function w3_2_url( w3 ) {
-    if( ! w3 )
-        return null;
-    if( !( "currentProvider" in w3 ) )
-        return null;
-    return w3provider_2_url( w3.currentProvider );
+export function fn_address_impl_( ethersMod ) {
+    if( this.address_ == undefined || this.address_ == null )
+        this.address_ = "" + private_key_2_account_address( ethersMod, this.privateKey );
+    return this.address_;
+}
+
+export function get_account_wallet_address( ethersMod, joAccount ) {
+    if( ! ( "address" in joAccount ) )
+        joAccount.address = fn_address_impl_;
+    return joAccount.address( ethersMod );
+}
+
+export function getEthersProviderFromURL( strURL ) {
+    const joConnectionInfo = { // see https://docs.ethers.io/v5/api/utils/web/#ConnectionInfo
+        url: strURL,
+        allowInsecureAuthentication: true
+        // timeout: 60
+        // skipFetchSetup: true
+    };
+    const ethersProvider = new ethersMod.ethers.providers.JsonRpcProvider( joConnectionInfo );
+    return ethersProvider;
+}
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+export function ensure_observer_opts_initialized( opts ) {
+    if( ! opts )
+        throw new Error( "IMA observer options is not valid JS object" );
+    if( ! ( "chain" in opts && opts.chain && typeof opts.chain == "object" ) )
+        throw new Error( "IMA observer options does not contain \"chain\" instance" );
+    if( ! ( "joAbiPublishResult_skale_manager" in opts && opts.joAbiPublishResult_skale_manager && typeof opts.joAbiPublishResult_skale_manager == "object" ) )
+        throw new Error( "IMA observer options does not contain \"joAbiPublishResult_skale_manager\" instance" );
+    const arrContractNames = [ "schains", "schains_internal", "nodes" ];
+    for( let i = 0; i < arrContractNames.length; ++ i ) {
+        const strContractName = arrContractNames[i];
+        const strKeyName = "jo_" + strContractName;
+        const contractAddress = opts.joAbiPublishResult_skale_manager[strContractName + "_address"];
+        const joContractABI = opts.joAbiPublishResult_skale_manager[strContractName + "_abi"];
+        opts[strKeyName] =
+            new opts.chain.ethersMod.ethers.Contract( contractAddress, joContractABI, opts.chain.ethersProvider );
+    }
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -658,48 +727,4 @@ function extract_error_message( jo, strDefaultErrorText ) {
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-module.exports = {
-    cc: cc,
-    w3mod: w3mod,
-    ethereumjs_tx: ethereumjs_tx,
-    ethereumjs_wallet: ethereumjs_wallet,
-    ethereumjs_util: ethereumjs_util,
-    owaspAddUsageRef: function() { },
-    rxIsInt: rxIsInt,
-    rxIsFloat: rxIsFloat,
-    validateRadix: validateRadix,
-    validateInteger: validateInteger,
-    toInteger: toInteger,
-    validateFloat: validateFloat,
-    toFloat: toFloat,
-    validateURL: validateURL,
-    toURL: toURL,
-    toStringURL: toStringURL,
-    toBoolean: toBoolean,
-    validateEthAddress: validateEthAddress,
-    validateEthPrivateKey: validateEthPrivateKey,
-    toEthAddress: toEthAddress,
-    toEthPrivateKey: toEthPrivateKey,
-    verifyArgumentWithNonEmptyValue: verifyArgumentWithNonEmptyValue,
-    verifyArgumentIsURL: verifyArgumentIsURL,
-    verifyArgumentIsInteger: verifyArgumentIsInteger,
-    verifyArgumentIsIntegerIpPortNumber: verifyArgumentIsIntegerIpPortNumber,
-    verifyArgumentIsPathToExistingFile: verifyArgumentIsPathToExistingFile,
-    verifyArgumentIsPathToExistingFolder: verifyArgumentIsPathToExistingFolder,
-    verifyArgumentIsArrayOfIntegers: verifyArgumentIsArrayOfIntegers,
-    ensure_starts_with_0x: ensure_starts_with_0x,
-    remove_starting_0x: remove_starting_0x,
-    inet_ntoa: inet_ntoa,
-    ip_from_hex: ip_from_hex,
-    private_key_2_public_key: private_key_2_public_key,
-    public_key_2_account_address: public_key_2_account_address,
-    private_key_2_account_address: private_key_2_account_address,
-    is_numeric: is_numeric,
-    parseMoneyUnitName: parseMoneyUnitName,
-    parseMoneySpecToWei: parseMoneySpecToWei,
-    fn_address_impl_: fn_address_impl_,
-    compute_chain_id_from_schain_name: compute_chain_id_from_schain_name,
-    w3provider_2_url: w3provider_2_url,
-    w3_2_url: w3_2_url,
-    extract_error_message: extract_error_message
-}; // module.exports
+

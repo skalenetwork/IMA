@@ -19,33 +19,33 @@
  */
 
 /**
- * @file socket.js
+ * @file socket.mjs
  * @copyright SKALE Labs 2019-Present
  */
 
-const { UniversalDispatcherEvent, EventDispatcher } = require( "./event_dispatcher.js" );
-const { settings } = require( "./settings.js" );
-const utils = require( "./utils.js" );
+import { UniversalDispatcherEvent, EventDispatcher } from "./event_dispatcher.mjs";
+import { settings } from "./socket_settings.mjs";
+import * as utils from "./socket_utils.mjs";
 
-let https_mod = null; // server side only
-let ws_mod = null; // server side only
-let wrtc_mod = null; // server side only
+export let https_mod = null; // server side only
+export let ws_mod = null; // server side only
+export let wrtc_mod = null; // server side only
 
 // if( typeof window == "undefined" ) {
 //     try {
-//         https_mod = require( "https" );
-//         console.log( "Using pre-loaded HTTPS API in socket.js" );
+//         import * as https_mod from "https";
+//         console.log( "Using pre-loaded HTTPS API in socket.mjs" );
 //     } catch ( err ) {
 //     }
 //     try {
 //         ws_mod = WebSocket;
-//         console.log( "Using pre-loaded WebSocket API in socket.js" );
+//         console.log( "Using pre-loaded WebSocket API in socket.mjs" );
 //     } catch ( err ) {
 //     }
 // } else {
 //     try {
 //         wrtc_mod = window;
-//         console.log( "Using pre-loaded WebSocket API in socket.js" );
+//         console.log( "Using pre-loaded WebSocket API in socket.mjs" );
 //     } catch ( err ) {
 //     }
 // }
@@ -55,22 +55,22 @@ let wrtc_mod = null; // server side only
 // needed to init from outside: import * as ws_loaded_mod from "ws";
 // const ws_mod = ws_loaded_mod.default;
 
-function set_https_mod( mod ) {
+export function set_https_mod( mod ) {
     https_mod = mod ? mod : null;
 }
-function set_ws_mod( mod ) {
+export function set_ws_mod( mod ) {
     ws_mod = mod ? mod : null;
 }
-function set_wrtc_mod( mod ) {
+export function set_wrtc_mod( mod ) {
     wrtc_mod = mod ? mod : null;
 }
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-const g_mapLocalServers = { }; // used both for local and in-worker servers
+export const g_mapLocalServers = { }; // used both for local and in-worker servers
 
-const socket_sent_data_marshall = function( data ) {
+export const socket_sent_data_marshall = function( data ) {
     const s = data
         ? ( ( typeof data == "string" )
             ? data
@@ -79,7 +79,7 @@ const socket_sent_data_marshall = function( data ) {
         : "";
     return s;
 };
-const socket_received_data_reverse_marshall = function( data ) {
+export const socket_received_data_reverse_marshall = function( data ) {
     try {
         const jo = data
             ? ( ( typeof data == "object" )
@@ -97,7 +97,7 @@ const socket_received_data_reverse_marshall = function( data ) {
     }
 };
 
-const update_socket_data_stats_for_message = function( joMessage, joStats ) {
+export const update_socket_data_stats_for_message = function( joMessage, joStats ) {
     let strMethod = "_N/A_";
     if( "method" in joMessage &&
         joMessage.method &&
@@ -109,7 +109,7 @@ const update_socket_data_stats_for_message = function( joMessage, joStats ) {
     else
         joStats[strMethod] = 1;
 };
-const generate_socket_data_stats_JSON = function( jo ) {
+export const generate_socket_data_stats_JSON = function( jo ) {
     const joStats = {};
     //let cnt = 1;
     if( "arr_packed_messages" in jo &&
@@ -129,7 +129,7 @@ const generate_socket_data_stats_JSON = function( jo ) {
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-class BasicServerAcceptor extends EventDispatcher {
+export class BasicServerAcceptor extends EventDispatcher {
     constructor() {
         super();
         this.socketType = "BasicAcceptor";
@@ -212,7 +212,7 @@ class BasicServerAcceptor extends EventDispatcher {
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-class BasicSocketPipe extends EventDispatcher {
+export class BasicSocketPipe extends EventDispatcher {
     constructor() {
         super();
         this.socketType = "N/A";
@@ -355,7 +355,7 @@ class BasicSocketPipe extends EventDispatcher {
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-class NullSocketPipe extends BasicSocketPipe {
+export class NullSocketPipe extends BasicSocketPipe {
     constructor() {
         super();
         this.socketType = "NULL";
@@ -382,16 +382,16 @@ class NullSocketPipe extends BasicSocketPipe {
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-const is_running_in_worker = function() {
+export const is_running_in_worker = function() {
     if( self.document === undefined )
         return true;
     return false;
 };
 
-const g_map_awaiting_in_worker_clients = { }; // in-worker clients in connecting state
-const g_map_connected_in_worker_clients = { }; // in-worker clients in connecting state
+export const g_map_awaiting_in_worker_clients = { }; // in-worker clients in connecting state
+export const g_map_connected_in_worker_clients = { }; // in-worker clients in connecting state
 
-const out_of_worker_apis = {
+export const out_of_worker_apis = {
     on_message: function( worker, data ) {
         const jo = socket_received_data_reverse_marshall( data );
         if( ! ( "worker_message_type" in jo ) || typeof jo.worker_message_type != "string" || jo.worker_message_type.length == 0 )
@@ -435,7 +435,7 @@ const out_of_worker_apis = {
         worker.postMessage( socket_sent_data_marshall( joSend ) );
     }
 };
-const in_worker_apis = {
+export const in_worker_apis = {
     on_message: function( data ) {
         const jo = socket_received_data_reverse_marshall( data );
         if( ! ( "worker_message_type" in jo ) || typeof jo.worker_message_type != "string" || jo.worker_message_type.length == 0 )
@@ -471,7 +471,7 @@ const in_worker_apis = {
     }
 };
 
-class InWorkerServerPipe extends BasicSocketPipe {
+export class InWorkerServerPipe extends BasicSocketPipe {
     constructor( acceptor, clientPort, fnSend ) {
         super();
         this.socketType = "InWorker";
@@ -530,7 +530,7 @@ class InWorkerServerPipe extends BasicSocketPipe {
     }
 };
 
-class InWorkerSocketServerAcceptor extends BasicServerAcceptor {
+export class InWorkerSocketServerAcceptor extends BasicServerAcceptor {
     constructor( strEndPoint, fnSend ) {
         super();
         this.socketType = "InWorker";
@@ -583,7 +583,7 @@ class InWorkerSocketServerAcceptor extends BasicServerAcceptor {
     }
 };
 
-class OutOfWorkerSocketClientPipe extends BasicSocketPipe {
+export class OutOfWorkerSocketClientPipe extends BasicSocketPipe {
     constructor( strEndPoint, worker, fnSend ) {
         super();
         this.socketType = "InWorker";
@@ -642,7 +642,7 @@ class OutOfWorkerSocketClientPipe extends BasicSocketPipe {
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-class OutOfWorkerRelay extends EventDispatcher {
+export class OutOfWorkerRelay extends EventDispatcher {
     constructor( strRelayName, acceptor, fnCreateClient, isAutoFlushIncoming, isAutoFlushOutgoing ) {
         super();
         const self = this;
@@ -796,7 +796,7 @@ class OutOfWorkerRelay extends EventDispatcher {
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-class OneToOneRelay extends EventDispatcher {
+export class OneToOneRelay extends EventDispatcher {
     constructor( strRelayName, pipeIncoming, pipeOutgoing, isAutoFlushIncoming, isAutoFlushOutgoing ) {
         super();
         const self = this;
@@ -932,7 +932,7 @@ class OneToOneRelay extends EventDispatcher {
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-class DirectPipe extends BasicSocketPipe {
+export class DirectPipe extends BasicSocketPipe {
     constructor( counterPipe, isBroadcastOpenEvents ) {
         super();
         isBroadcastOpenEvents = isBroadcastOpenEvents ? true : false;
@@ -1006,7 +1006,7 @@ class DirectPipe extends BasicSocketPipe {
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-class LocalSocketServerPipe extends DirectPipe {
+export class LocalSocketServerPipe extends DirectPipe {
     constructor( counterPipe, acceptor, clientPort ) {
         super( counterPipe, false );
         this.socketType = "Local";
@@ -1027,7 +1027,7 @@ class LocalSocketServerPipe extends DirectPipe {
     }
 };
 
-class LocalSocketServerAcceptor extends BasicServerAcceptor {
+export class LocalSocketServerAcceptor extends BasicServerAcceptor {
     constructor( strEndPoint ) {
         super();
         this.socketType = "Local";
@@ -1059,7 +1059,7 @@ class LocalSocketServerAcceptor extends BasicServerAcceptor {
     }
 };
 
-class LocalSocketClientPipe extends DirectPipe {
+export class LocalSocketClientPipe extends DirectPipe {
     constructor( strEndPoint ) {
         super( null, false );
         this.socketType = "Local";
@@ -1101,7 +1101,7 @@ class LocalSocketClientPipe extends DirectPipe {
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-class WebSocketServerPipe extends BasicSocketPipe {
+export class WebSocketServerPipe extends BasicSocketPipe {
     constructor( acceptor, ws_conn, remoteAddress ) {
         super();
         this.socketType = "WS";
@@ -1203,7 +1203,7 @@ class WebSocketServerPipe extends BasicSocketPipe {
     }
 };
 
-class WebSocketServerAcceptor extends BasicServerAcceptor {
+export class WebSocketServerAcceptor extends BasicServerAcceptor {
     constructor( nTcpPort, key, cert ) {
         super();
         this.socketType = "WS";
@@ -1217,9 +1217,9 @@ class WebSocketServerAcceptor extends BasicServerAcceptor {
                 // , ca: ...
             } );
             server.listen( nTcpPort );
-            this.ws_srv = new ws_mod.Server( { server } );
+            this.ws_srv = new ws_mod.WebSocketServer( { server } );
         } else
-            this.ws_srv = new ws_mod.Server( { port: nTcpPort } );
+            this.ws_srv = new ws_mod.WebSocketServer( { port: nTcpPort } );
 
         const self = this;
         self.ws_srv.on( "connection", function( ws_conn, req ) {
@@ -1241,7 +1241,7 @@ class WebSocketServerAcceptor extends BasicServerAcceptor {
     }
 };
 
-class WebSocketClientPipe extends BasicSocketPipe {
+export class WebSocketClientPipe extends BasicSocketPipe {
     constructor( url ) {
         super();
         this.socketType = "WS";
@@ -1292,7 +1292,7 @@ class WebSocketClientPipe extends BasicSocketPipe {
             if( this.isConnected || this.ws_conn )
                 this.ws_disconnect();
             this.ws_conn = ws_mod
-                ? new ws_mod( url, { tlsOptions: { rejectUnauthorized: false } } ) // server side
+                ? new ws_mod.WebSocket( url, { tlsOptions: { rejectUnauthorized: false } } ) // server side
                 : new WebSocket( url ); // client side
             this.url = "" + url;
             this._onWsOpen = function() {
@@ -1400,7 +1400,7 @@ class WebSocketClientPipe extends BasicSocketPipe {
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-class RTCConnection extends EventDispatcher {
+export class RTCConnection extends EventDispatcher {
     constructor( strSignalingServerURL, idRtcParticipant ) {
         super();
         this.strSignalingServerURL = utils.makeValidSignalingServerURL( strSignalingServerURL );
@@ -1573,7 +1573,7 @@ class RTCConnection extends EventDispatcher {
     }
 };
 
-class RTCActor extends RTCConnection {
+export class RTCActor extends RTCConnection {
     constructor( strSignalingServerURL, idRtcParticipant, offerOptions, signalingOptions ) {
         super( strSignalingServerURL, idRtcParticipant );
         this.isDisposed = false;
@@ -1738,7 +1738,7 @@ class RTCActor extends RTCConnection {
     onOtherSideIdentified( idSomebodyOtherSide, idOffer ) { } // generic implementation should never be called
 };
 
-class RTCServerPeer extends RTCConnection {
+export class RTCServerPeer extends RTCConnection {
     constructor( rtcCreator, timeToPublishMilliseconds, timeToSignalingNegotiationMilliseconds, peerConfiguration, peerAdditionalOptions, localMediaStream ) {
         super();
         this.rtcCreator = rtcCreator;
@@ -1980,7 +1980,7 @@ class RTCServerPeer extends RTCConnection {
     }
 };
 
-class RTCCreator extends RTCActor {
+export class RTCCreator extends RTCActor {
     constructor( strSignalingServerURL, idRtcParticipant, offerOptions, signalingOptions ) {
         super( strSignalingServerURL, idRtcParticipant, offerOptions, signalingOptions );
         const self = this;
@@ -2124,7 +2124,7 @@ class RTCCreator extends RTCActor {
     }
 };
 
-class RTCJoiner extends RTCActor {
+export class RTCJoiner extends RTCActor {
     constructor( strSignalingServerURL, idRtcParticipant, offerOptions, signalingOptions, peerConfiguration, peerAdditionalOptions ) {
         super( strSignalingServerURL, idRtcParticipant, offerOptions, signalingOptions );
         this.idSomebodyOtherSide = null;
@@ -2321,7 +2321,7 @@ class RTCJoiner extends RTCActor {
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-class WebRTCServerPipe extends BasicSocketPipe {
+export class WebRTCServerPipe extends BasicSocketPipe {
     constructor( acceptor, rtcPeer, strSignalingServerURL ) {
         super();
         const self = this;
@@ -2414,7 +2414,7 @@ class WebRTCServerPipe extends BasicSocketPipe {
     }
 };
 
-class WebRTCServerAcceptor extends BasicServerAcceptor {
+export class WebRTCServerAcceptor extends BasicServerAcceptor {
     constructor( strSignalingServerURL, idRtcParticipant, offerOptions, signalingOptions, maxActiveOfferCount, timeToPublishMilliseconds, timeToSignalingNegotiationMilliseconds, peerConfiguration, peerAdditionalOptions ) {
         super();
         this.strSignalingServerURL = utils.makeValidSignalingServerURL( strSignalingServerURL );
@@ -2543,7 +2543,7 @@ class WebRTCServerAcceptor extends BasicServerAcceptor {
     }
 };
 
-class WebRTCClientPipe extends BasicSocketPipe {
+export class WebRTCClientPipe extends BasicSocketPipe {
     constructor( strSignalingServerURL, idRtcParticipant, offerOptions, signalingOptions, peerConfiguration, peerAdditionalOptions ) {
         super();
         this.strSignalingServerURL = utils.makeValidSignalingServerURL( strSignalingServerURL );
@@ -2660,44 +2660,3 @@ class WebRTCClientPipe extends BasicSocketPipe {
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-module.exports = {
-    https_mod: https_mod,
-    ws_mod: ws_mod,
-    wrtc_mod: wrtc_mod,
-    set_https_mod: set_https_mod,
-    set_ws_mod: set_ws_mod,
-    set_wrtc_mod: set_wrtc_mod,
-    g_mapLocalServers: g_mapLocalServers,
-    socket_sent_data_marshall: socket_sent_data_marshall,
-    socket_received_data_reverse_marshall: socket_received_data_reverse_marshall,
-    update_socket_data_stats_for_message: update_socket_data_stats_for_message,
-    generate_socket_data_stats_JSON: generate_socket_data_stats_JSON,
-    BasicServerAcceptor: BasicServerAcceptor,
-    BasicSocketPipe: BasicSocketPipe,
-    NullSocketPipe: NullSocketPipe,
-    is_running_in_worker: is_running_in_worker,
-    g_map_awaiting_in_worker_clients: g_map_awaiting_in_worker_clients,
-    g_map_connected_in_worker_clients: g_map_connected_in_worker_clients,
-    out_of_worker_apis: out_of_worker_apis,
-    in_worker_apis: in_worker_apis,
-    InWorkerServerPipe: InWorkerServerPipe,
-    InWorkerSocketServerAcceptor: InWorkerSocketServerAcceptor,
-    OutOfWorkerSocketClientPipe: OutOfWorkerSocketClientPipe,
-    OutOfWorkerRelay: OutOfWorkerRelay,
-    OneToOneRelay: OneToOneRelay,
-    DirectPipe: DirectPipe,
-    LocalSocketServerPipe: LocalSocketServerPipe,
-    LocalSocketServerAcceptor: LocalSocketServerAcceptor,
-    LocalSocketClientPipe: LocalSocketClientPipe,
-    WebSocketServerPipe: WebSocketServerPipe,
-    WebSocketServerAcceptor: WebSocketServerAcceptor,
-    WebSocketClientPipe: WebSocketClientPipe,
-    RTCConnection: RTCConnection,
-    RTCActor: RTCActor,
-    RTCServerPeer: RTCServerPeer,
-    RTCCreator: RTCCreator,
-    RTCJoiner: RTCJoiner,
-    WebRTCServerPipe: WebRTCServerPipe,
-    WebRTCServerAcceptor: WebRTCServerAcceptor,
-    WebRTCClientPipe: WebRTCClientPipe
-};

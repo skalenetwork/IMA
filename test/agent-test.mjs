@@ -19,33 +19,28 @@
  */
 
 /**
- * @file agent-test.js
+ * @file agent-test.mjs
  * @copyright SKALE Labs 2019-Present
  */
 
-const assert = require( "assert" );
-const fs = require( "fs" );
-const os = require( "os" );
-const path = require( "path" );
+import * as assert from "assert";
+import * as fs from "fs";
+import * as os from "os";
+import * as path from "path";
 
 process.env.NODE_TLS_REJECT_UNAUTHORIZED = 0; // allow self-signed wss and https
 
-global.IMA = require( "../npms/skale-ima" );
-global.w3mod = IMA.w3mod;
-global.ethereumjs_tx = IMA.ethereumjs_tx;
-global.ethereumjs_wallet = IMA.ethereumjs_wallet;
-global.ethereumjs_util = IMA.ethereumjs_util;
-global.compose_tx_instance = IMA.compose_tx_instance;
-global.owaspUtils = IMA.owaspUtils;
-global.imaUtils = require( "../agent/utils.js" );
+import * as IMA from "../npms/skale-ima";
+// const compose_tx_instance = IMA.compose_tx_instance;
+const owaspUtils = IMA.owaspUtils;
+import * as imaUtils from "../agent/utils.mjs";
 IMA.expose_details_set( false );
 IMA.verbose_set( IMA.verbose_parse( "info" ) );
-global.log = global.imaUtils.log;
-global.cc = global.imaUtils.cc;
-global.imaCLI = require( "../agent/cli.js" );
-global.imaBLS = require( "../agent/bls.js" );
-global.rpcCall = require( "../agent/rpc-call.js" );
-global.rpcCall.init();
+const log = imaUtils.log;
+// const cc = imaUtils.cc;
+import * as imaCLI from "../agent/cli.mjs";
+// import * as imaBLS from "../agent/bls.mjs";
+// import * as rpcCall from "../agent/rpc-call.mjs";
 
 log.removeAll();
 // log.addStdout();
@@ -465,27 +460,27 @@ describe( "OWASP", function() {
         };
 
         it( "Extract address from private key", function() {
-            const address = joTestAccount.address( imaState.chainProperties.mn.w3 );
-            const address2 = owaspUtils.private_key_2_account_address( imaState.chainProperties.mn.w3, joTestAccount.privateKey );
+            const address = joTestAccount.address( imaState.chainProperties.mn.ethersProvider );
+            const address2 = owaspUtils.private_key_2_account_address( imaState.chainProperties.mn.ethersProvider, joTestAccount.privateKey );
             // console.log( "private key is", joTestAccount.privateKey );
-            // console.log( "computed address is", joTestAccount.address( imaState.chainProperties.mn.w3 ) );
+            // console.log( "computed address is", joTestAccount.address( imaState.chainProperties.mn.ethersProvider ) );
             assert.equal( address.toLowerCase(), "0x7aa5E36AA15E93D10F4F26357C30F052DacDde5F".toLowerCase() );
             assert.equal( address2.toLowerCase(), "0x7aa5E36AA15E93D10F4F26357C30F052DacDde5F".toLowerCase() );
         } );
 
         it( "Extract public key from private key", function() {
-            // const address = joTestAccount.address( imaState.chainProperties.mn.w3 );
-            const publicKey = owaspUtils.private_key_2_public_key( imaState.chainProperties.mn.w3, joTestAccount.privateKey );
+            // const address = joTestAccount.address( imaState.chainProperties.mn.ethersProvider );
+            const publicKey = owaspUtils.private_key_2_public_key( imaState.chainProperties.mn.ethersProvider, joTestAccount.privateKey );
             // console.log( "private key is", joTestAccount.privateKey );
             // console.log( "extracted public is", publicKey );
             assert.equal( publicKey.toLowerCase(), "5dd431d36ce6b88f27d351051b31a26848c4a886f0dd0bc87a7d5a9d821417c9e807e8589f680ab0f2ab29831231ad7b3d6659990ee830582fede785fc3c33c4".toLowerCase() );
         } );
 
         it( "Extract address from public key", function() {
-            const address = joTestAccount.address( imaState.chainProperties.mn.w3 );
-            const publicKey = owaspUtils.private_key_2_public_key( imaState.chainProperties.mn.w3, joTestAccount.privateKey );
-            const address2 = owaspUtils.public_key_2_account_address( imaState.chainProperties.mn.w3, publicKey );
-            // console.log( "computed address is", joTestAccount.address( imaState.chainProperties.mn.w3 ) );
+            const address = joTestAccount.address( imaState.chainProperties.mn.ethersProvider );
+            const publicKey = owaspUtils.private_key_2_public_key( imaState.chainProperties.mn.ethersProvider, joTestAccount.privateKey );
+            const address2 = owaspUtils.public_key_2_account_address( imaState.chainProperties.mn.ethersProvider, publicKey );
+            // console.log( "computed address is", joTestAccount.address( imaState.chainProperties.mn.ethersProvider ) );
             // console.log( "private key is", joTestAccount.privateKey );
             // console.log( "extracted address is", publicKey );
             assert.equal( address.toLowerCase(), address2.toLowerCase() );

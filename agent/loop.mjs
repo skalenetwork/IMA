@@ -20,44 +20,34 @@
  */
 
 /**
- * @file loop.js
+ * @file loop.mjs
  * @copyright SKALE Labs 2019-Present
  */
 
-const network_layer = require( "../npms/skale-cool-socket/socket.js" );
-const { Worker } = require( "worker_threads" );
-const owaspUtils = require( "../npms/skale-owasp/owasp-util.js" );
-const cc = owaspUtils.cc;
+import * as network_layer from "../npms/skale-cool-socket/socket.mjs";
+import { Worker } from "worker_threads";
+import * as owaspUtils from "../npms/skale-owasp/owasp-util.mjs";
 
-// const fs = require( "fs" );
-const path = require( "path" );
-// const url = require( "url" );
-// const os = require( "os" );
+import * as path from "path";
 
-global.ws = require( "ws" ); // https://www.npmjs.com/package/ws
-global.IMA = require( "../npms/skale-ima" );
-global.w3mod = IMA.w3mod;
-global.ethereumjs_tx = IMA.ethereumjs_tx;
-global.ethereumjs_wallet = IMA.ethereumjs_wallet;
-global.ethereumjs_util = IMA.ethereumjs_util;
-global.compose_tx_instance = IMA.compose_tx_instance;
-global.owaspUtils = IMA.owaspUtils;
-global.imaUtils = require( "./utils.js" );
+// import * as ws from "ws";
+import * as IMA from "../npms/skale-ima";
+// const compose_tx_instance = IMA.compose_tx_instance;
+const owaspUtils = IMA.owaspUtils;
+import * as imaUtils from "./utils.mjs";
 IMA.expose_details_set( false );
 IMA.verbose_set( IMA.verbose_parse( "info" ) );
-global.log = global.imaUtils.log;
-global.cc = global.imaUtils.cc;
-global.imaCLI = require( "./cli.js" );
-global.imaBLS = require( "./bls.js" );
-global.rpcCall = require( "./rpc-call.js" );
-global.skale_observer = require( "../npms/skale-observer/observer.js" );
-global.rpcCall.init();
-global.imaOracle = require( "./oracle.js" );
-global.imaOracle.init();
-global.pwa = require( "./pwa.js" );
-global.express = require( "express" );
-global.bodyParser = require( "body-parser" );
-global.jayson = require( "jayson" );
+const log = imaUtils.log;
+const cc = imaUtils.cc;
+// import * as imaCLI from "./cli.mjs";
+import * as imaBLS from "./bls.mjs";
+import * as rpcCall from "./rpc-call.mjs";
+import * as skale_observer from "../npms/skale-observer/observer.mjs";
+// import * as imaOracle from "./oracle.mjs";
+import * as pwa from "./pwa.mjs";
+// import * as express from "express";
+// import * as bodyParser from "body-parser";
+// import * as jayson from "jayson";
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -65,7 +55,7 @@ global.jayson = require( "jayson" );
 // Run transfer loop
 //
 
-global.check_time_framing = function( d, strDirection, joRuntimeOpts ) {
+export function check_time_framing( d, strDirection, joRuntimeOpts ) {
     try {
         if( imaState.nTimeFrameSeconds <= 0 || imaState.nNodesCount <= 1 )
             return true; // time framing is disabled
@@ -147,7 +137,7 @@ global.check_time_framing = function( d, strDirection, joRuntimeOpts ) {
     return true;
 };
 
-async function single_transfer_loop( loop_opts ) {
+export async function single_transfer_loop( loop_opts ) {
     const strLogPrefix = cc.attention( "Single Loop:" ) + " ";
     try {
         if( IMA.verbose_get() >= IMA.RV_VERBOSE.debug )
@@ -180,8 +170,8 @@ async function single_transfer_loop( loop_opts ) {
                         imaState.loopState.oracle.isInProgress = true;
                         await pwa.notify_on_loop_start( imaState, "oracle" );
                         b0 = IMA.do_oracle_gas_price_setup(
-                            imaState.chainProperties.mn.w3,
-                            imaState.chainProperties.sc.w3,
+                            imaState.chainProperties.mn.ethersProvider,
+                            imaState.chainProperties.sc.ethersProvider,
                             imaState.chainProperties.sc.transactionCustomizer,
                             imaState.jo_community_locker,
                             imaState.chainProperties.sc.joAccount,
@@ -222,10 +212,10 @@ async function single_transfer_loop( loop_opts ) {
                         "M2S",
                         loop_opts.joRuntimeOpts,
                         //
-                        imaState.chainProperties.mn.w3,
+                        imaState.chainProperties.mn.ethersProvider,
                         imaState.jo_message_proxy_main_net,
                         imaState.chainProperties.mn.joAccount,
-                        imaState.chainProperties.sc.w3,
+                        imaState.chainProperties.sc.ethersProvider,
                         imaState.jo_message_proxy_s_chain,
                         //
                         imaState.chainProperties.sc.joAccount,
@@ -276,10 +266,10 @@ async function single_transfer_loop( loop_opts ) {
                         "S2M",
                         loop_opts.joRuntimeOpts,
                         //
-                        imaState.chainProperties.sc.w3,
+                        imaState.chainProperties.sc.ethersProvider,
                         imaState.jo_message_proxy_s_chain,
                         imaState.chainProperties.sc.joAccount,
-                        imaState.chainProperties.mn.w3,
+                        imaState.chainProperties.mn.ethersProvider,
                         imaState.jo_message_proxy_main_net,
                         //
                         imaState.chainProperties.mn.joAccount,
@@ -325,7 +315,7 @@ async function single_transfer_loop( loop_opts ) {
                     loop_opts.joRuntimeOpts,
                     imaState,
                     skale_observer,
-                    imaState.chainProperties.sc.w3,
+                    imaState.chainProperties.sc.ethersProvider,
                     imaState.jo_message_proxy_s_chain,
                     //
                     imaState.chainProperties.sc.joAccount,
@@ -364,13 +354,13 @@ async function single_transfer_loop( loop_opts ) {
     imaState.loopState.s2s.isInProgress = false;
     return false;
 }
-async function single_transfer_loop_with_repeat( loop_opts ) {
+export async function single_transfer_loop_with_repeat( loop_opts ) {
     await single_transfer_loop( loop_opts );
     setTimeout( async function() {
         await single_transfer_loop_with_repeat( loop_opts );
     }, imaState.nLoopPeriodSeconds * 1000 );
 };
-async function run_transfer_loop( loop_opts ) {
+export async function run_transfer_loop( loop_opts ) {
     isDelayFirstRun = owaspUtils.toBoolean( loop_opts.isDelayFirstRun );
     if( isDelayFirstRun ) {
         setTimeout( async function() {
@@ -392,7 +382,7 @@ const impl_sleep = ( milliseconds ) => { return new Promise( resolve => setTimeo
 const g_workers = [];
 const g_clients = [];
 
-function notify_snb_chache_changed( arr_schains_cached ) {
+export function notify_snb_chache_changed( arr_schains_cached ) {
     const cntWorkers = g_workers.length;
     for( let idxWorker = 0; idxWorker < cntWorkers; ++ idxWorker ) {
         const jo = {
@@ -409,7 +399,7 @@ skale_observer.events.on( "chainsCacheChanged", function( eventData ) {
     notify_snb_chache_changed( eventData.detail.arr_schains_cached );
 } );
 
-async function ensure_have_workers( opts ) {
+export async function ensure_have_workers( opts ) {
     if( g_workers.length > 0 )
         return g_workers;
     const cntWorkers = 2;
@@ -420,7 +410,7 @@ async function ensure_have_workers( opts ) {
                 isEnabled: cc.isEnabled()
             }
         };
-        g_workers.push( new Worker( path.join( __dirname, "loop_worker.js" ), { workerData: workerData } ) );
+        g_workers.push( new Worker( path.join( __dirname, "loop_worker.mjs" ), { type: "module", workerData: workerData } ) );
         // console.log( "Will connect to " + workerData.url );
         g_workers[idxWorker].on( "message", jo => {
             if( network_layer.out_of_worker_apis.on_message( g_workers[idxWorker], jo ) )
@@ -659,14 +649,14 @@ async function ensure_have_workers( opts ) {
     } // for( let idxWorker = 0; idxWorker < cntWorkers; ++ idxWorker )
 }
 
-async function run_parallel_loops( opts ) {
+export export async function run_parallel_loops( opts ) {
     log.write( cc.debug( "Will start parallel IMA transfer loops..." ) + "\n" );
     await ensure_have_workers( opts );
     log.write( cc.success( "Done, did parallel IMA transfer loops." ) + "\n" );
     return true;
 }
 
-async function spread_arrived_pwa_state( joMessage ) {
+export async function spread_arrived_pwa_state( joMessage ) {
     if( ! ( joMessage && typeof joMessage == "object" && "method" in joMessage && joMessage.method == "skale_imaNotifyLoopWork" ) )
         return;
     const cntWorkers = g_workers.length;
@@ -674,9 +664,3 @@ async function spread_arrived_pwa_state( joMessage ) {
         g_clients[idxWorker].send( joMessage );
 
 }
-
-module.exports.single_transfer_loop = single_transfer_loop;
-module.exports.single_transfer_loop_with_repeat = single_transfer_loop_with_repeat;
-module.exports.run_transfer_loop = run_transfer_loop;
-module.exports.run_parallel_loops = run_parallel_loops;
-module.exports.spread_arrived_pwa_state = spread_arrived_pwa_state;
