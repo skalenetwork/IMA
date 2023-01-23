@@ -30,8 +30,7 @@ import {
 } from "worker_threads";
 import * as network_layer from "../skale-cool-socket/socket.mjs";
 import { SocketServer } from "../skale-cool-socket/server.mjs";
-import * as owaspUtils from "../skale-owasp/owasp-util.mjs";
-// import * as core from "./ima_core.mjs";
+import * as owaspUtils from "../skale-owasp/owasp-utils.mjs";
 
 import * as skale_observer from "./observer.mjs";
 const cc = owaspUtils.cc;

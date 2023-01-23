@@ -33,10 +33,10 @@ import { UniversalDispatcherEvent, EventDispatcher } from "../skale-cool-socket/
 import * as Redis from "ioredis";
 
 import * as log from "../skale-log/log.mjs";
-import * as cc from "../skale-log/cc.mjs";
+import * as cc from "../skale-cc/cc.mjs";
 // log.add( strFilePath, nMaxSizeBeforeRotation, nMaxFilesCount ); // example: log output to file
 
-import * as owaspUtils from "../skale-owasp/owasp-util.mjs";
+import * as owaspUtils from "../skale-owasp/owasp-utils.mjs";
 let redis = null;
 let loopTmSendingCnt = 0;
 cc.enable( false );

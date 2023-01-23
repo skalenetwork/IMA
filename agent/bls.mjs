@@ -24,16 +24,14 @@
  */
 
 import * as fs from "fs";
-//import * as core from "./ima_core.mjs";
+import * as cc from "../npms/skale-cc/cc.mjs";
+import * as log from "../npms/skale-log/log.mjs";
 import * as owaspUtils from "../npms/skale-owasp/owasp-utils.mjs";
 import * as child_process from "child_process";
 import * as rpcCall from "./rpc-call.mjs";
 import * as shell from "shelljs";
 import * as imaUtils from "./utils.mjs";
-
-// import { Keccak } from "sha3";
 import * as hashing from "js-sha3";
-const { cc } = utils;
 const keccak256 = hashing.default.keccak256;
 
 const sleep = ( milliseconds ) => { return new Promise( resolve => setTimeout( resolve, milliseconds ) ); };

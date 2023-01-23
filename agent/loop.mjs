@@ -26,24 +26,20 @@
 
 import * as network_layer from "../npms/skale-cool-socket/socket.mjs";
 import { Worker } from "worker_threads";
-import * as owaspUtils from "../npms/skale-owasp/owasp-util.mjs";
-
 import * as path from "path";
-
-// import * as ws from "ws";
-import * as IMA from "../npms/skale-ima";
-// const compose_tx_instance = IMA.compose_tx_instance;
+import * as cc from "../npms/skale-cc/cc.mjs";
+import * as log from "../npms/skale-log/log.mjs";
+import * as IMA from "../npms/skale-ima/index.mjs";
+import * as owaspUtils from "../npms/skale-owasp/owasp-utils.mjs";
 import * as imaUtils from "./utils.mjs";
-// import * as imaCLI from "./cli.mjs";
 import * as imaBLS from "./bls.mjs";
-// import * as rpcCall from "./rpc-call.mjs";
 import * as skale_observer from "../npms/skale-observer/observer.mjs";
 // import * as imaOracle from "./oracle.mjs";
 import * as pwa from "./pwa.mjs";
+
 IMA.expose_details_set( false );
 IMA.verbose_set( IMA.verbose_parse( "info" ) );
-const log = imaUtils.log;
-const cc = imaUtils.cc;
+
 // import * as express from "express";
 // import * as bodyParser from "body-parser";
 // import * as jayson from "jayson";
@@ -552,7 +548,7 @@ export async function ensure_have_workers( opts ) {
                                 "joAccount": {
                                     "privateKey": opts.imaState.chainProperties.mn.joAccount.privateKey,
                                     "address_": opts.imaState.chainProperties.mn.joAccount.address_,
-                                    // "address": IMA.owaspUtils.fn_address_impl_,
+                                    // "address": owaspUtils.fn_address_impl_,
                                     "strTransactionManagerURL": opts.imaState.chainProperties.mn.joAccount.strTransactionManagerURL,
                                     "tm_priority": opts.imaState.chainProperties.mn.joAccount.tm_priority,
                                     "strSgxURL": opts.imaState.chainProperties.mn.joAccount.strSgxURL,
@@ -572,7 +568,7 @@ export async function ensure_have_workers( opts ) {
                                 "joAccount": {
                                     "privateKey": opts.imaState.chainProperties.sc.joAccount.privateKey,
                                     "address_": opts.imaState.chainProperties.sc.joAccount.address_,
-                                    // "address": IMA.owaspUtils.fn_address_impl_,
+                                    // "address": owaspUtils.fn_address_impl_,
                                     "strTransactionManagerURL": opts.imaState.chainProperties.sc.joAccount.strTransactionManagerURL,
                                     "tm_priority": opts.imaState.chainProperties.sc.joAccount.tm_priority,
                                     "strSgxURL": opts.imaState.chainProperties.sc.joAccount.strSgxURL,
@@ -592,7 +588,7 @@ export async function ensure_have_workers( opts ) {
                                 "joAccount": {
                                     "privateKey": opts.imaState.chainProperties.tc.joAccount.privateKey,
                                     "address_": opts.imaState.chainProperties.tc.joAccount.address_,
-                                    // "address": IMA.owaspUtils.fn_address_impl_,
+                                    // "address": owaspUtils.fn_address_impl_,
                                     "strTransactionManagerURL": opts.imaState.chainProperties.tc.joAccount.strTransactionManagerURL,
                                     "tm_priority": opts.imaState.chainProperties.tc.joAccount.tm_priority,
                                     "strSgxURL": opts.imaState.chainProperties.tc.joAccount.strSgxURL,

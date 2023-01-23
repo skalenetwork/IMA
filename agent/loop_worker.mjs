@@ -27,7 +27,7 @@
 import { parentPort, workerData } from "worker_threads";
 import * as network_layer from "../npms/skale-cool-socket/socket.mjs";
 // import { SocketServer } from "../npms/skale-cool-socket/server.mjs";
-import * as owaspUtils from "../npms/skale-owasp/owasp-util.mjs";
+import * as owaspUtils from "../npms/skale-owasp/owasp-utils.mjs";
 
 import * as loop from "./loop.mjs";
 const cc = owaspUtils.cc;

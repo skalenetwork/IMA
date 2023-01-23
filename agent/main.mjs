@@ -26,15 +26,16 @@
 // allow self-signed wss and https
 
 import * as ws from "ws";
-//import * as core from "./ima_core.mjs";
 import * as owaspUtils from "../npms/skale-owasp/owasp-utils.mjs";
-import * as log from "./npms/skale-log/log.mjs";
-import * as cc from "./npms/skale-cc/cc.mjs";
+import * as log from "../npms/skale-log/log.mjs";
+import * as cc from "../npms/skale-cc/cc.mjs";
 import * as imaCLI from "./cli.mjs";
 import * as rpcCall from "./rpc-call.mjs";
-import * as skale_observer from "./nps/skale-observer/observer.mjs";
+import * as skale_observer from "../npms/skale-observer/observer.mjs";
+import * as loop from "./loop.mjs";
+import * as IMA from "../npms/skale-ima/index.mjs";
 
-import * as loop from "./loop.mjs"; process.env.NODE_TLS_REJECT_UNAUTHORIZED = 0; process.env.NODE_TLS_REJECT_UNAUTHORIZED = 0;
+process.env.NODE_TLS_REJECT_UNAUTHORIZED = 0;
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -148,7 +149,7 @@ global.imaState = {
         "mn": {
             "joAccount": {
                 "privateKey": owaspUtils.toEthPrivateKey( process.env.PRIVATE_KEY_FOR_ETHEREUM ),
-                "address": IMA.owaspUtils.fn_address_impl_,
+                "address": owaspUtils.fn_address_impl_,
                 "strTransactionManagerURL": owaspUtils.toStringURL( process.env.TRANSACTION_MANAGER_URL_ETHEREUM ),
                 "tm_priority": owaspUtils.toStringURL( process.env.TRANSACTION_MANAGER_PRIORITY_ETHEREUM ) || 5,
                 "strSgxURL": owaspUtils.toStringURL( process.env.SGX_URL_ETHEREUM ),
@@ -178,7 +179,7 @@ global.imaState = {
         "sc": {
             "joAccount": {
                 "privateKey": owaspUtils.toEthPrivateKey( process.env.PRIVATE_KEY_FOR_SCHAIN ),
-                "address": IMA.owaspUtils.fn_address_impl_,
+                "address": owaspUtils.fn_address_impl_,
                 "strTransactionManagerURL": owaspUtils.toStringURL( process.env.TRANSACTION_MANAGER_URL_S_CHAIN ),
                 "tm_priority": owaspUtils.toStringURL( process.env.TRANSACTION_MANAGER_PRIORITY_S_CHAIN ) || 5,
                 "strSgxURL": owaspUtils.toStringURL( process.env.SGX_URL_S_CHAIN ),
@@ -208,7 +209,7 @@ global.imaState = {
         "tc": {
             "joAccount": {
                 "privateKey": owaspUtils.toEthPrivateKey( process.env.PRIVATE_KEY_FOR_SCHAIN_TARGET ),
-                "address": IMA.owaspUtils.fn_address_impl_,
+                "address": owaspUtils.fn_address_impl_,
                 "strTransactionManagerURL": owaspUtils.toStringURL( process.env.TRANSACTION_MANAGER_URL_S_CHAIN_TARGET ),
                 "tm_priority": owaspUtils.toStringURL( process.env.TRANSACTION_MANAGER_PRIORITY_S_CHAIN_TARGET ) || 5,
                 "strSgxURL": owaspUtils.toStringURL( process.env.SGX_URL_S_CHAIN_TARGET ),

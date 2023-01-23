@@ -30,12 +30,11 @@ import * as path from "path"; // allow self-signed wss and https
 
 import * as IMA from "../npms/skale-ima";
 import * as imaUtils from "../agent/utils.mjs";
-// const cc = imaUtils.cc;
 import * as imaCLI from "../agent/cli.mjs";
 
 process.env.NODE_TLS_REJECT_UNAUTHORIZED = 0;
+
 // const compose_tx_instance = IMA.compose_tx_instance;
-const owaspUtils = IMA.owaspUtils;
 IMA.expose_details_set( false );
 IMA.verbose_set( IMA.verbose_parse( "info" ) );
 const log = imaUtils.log;
@@ -136,7 +135,7 @@ global.imaState = {
         "mn": {
             "joAccount": {
                 "privateKey": owaspUtils.toEthPrivateKey( process.env.PRIVATE_KEY_FOR_ETHEREUM ),
-                "address": IMA.owaspUtils.fn_address_impl_,
+                "address": owaspUtils.fn_address_impl_,
                 "strTransactionManagerURL": owaspUtils.toStringURL( process.env.TRANSACTION_MANAGER_URL_ETHEREUM ),
                 "tm_priority": owaspUtils.toStringURL( process.env.TRANSACTION_MANAGER_PRIORITY_ETHEREUM ) || 5,
                 "strSgxURL": owaspUtils.toStringURL( process.env.SGX_URL_ETHEREUM ),
@@ -166,7 +165,7 @@ global.imaState = {
         "sc": {
             "joAccount": {
                 "privateKey": owaspUtils.toEthPrivateKey( process.env.PRIVATE_KEY_FOR_SCHAIN ),
-                "address": IMA.owaspUtils.fn_address_impl_,
+                "address": owaspUtils.fn_address_impl_,
                 "strTransactionManagerURL": owaspUtils.toStringURL( process.env.TRANSACTION_MANAGER_URL_S_CHAIN ),
                 "tm_priority": owaspUtils.toStringURL( process.env.TRANSACTION_MANAGER_PRIORITY_S_CHAIN ) || 5,
                 "strSgxURL": owaspUtils.toStringURL( process.env.SGX_URL_S_CHAIN ),
@@ -196,7 +195,7 @@ global.imaState = {
         "tc": {
             "joAccount": {
                 "privateKey": owaspUtils.toEthPrivateKey( process.env.PRIVATE_KEY_FOR_SCHAIN_TARGET ),
-                "address": IMA.owaspUtils.fn_address_impl_,
+                "address": owaspUtils.fn_address_impl_,
                 "strTransactionManagerURL": owaspUtils.toStringURL( process.env.TRANSACTION_MANAGER_URL_S_CHAIN_TARGET ),
                 "tm_priority": owaspUtils.toStringURL( process.env.TRANSACTION_MANAGER_PRIORITY_S_CHAIN_TARGET ) || 5,
                 "strSgxURL": owaspUtils.toStringURL( process.env.SGX_URL_S_CHAIN_TARGET ),
@@ -456,7 +455,7 @@ describe( "OWASP", function() {
     describe( "Key/address utilities", function() {
         const joTestAccount = {
             "privateKey": owaspUtils.toEthPrivateKey( "23ABDBD3C61B5330AF61EBE8BEF582F4E5CC08E554053A718BDCE7813B9DC1FC" ),
-            "address": IMA.owaspUtils.fn_address_impl_
+            "address": owaspUtils.fn_address_impl_
         };
 
         it( "Extract address from private key", function() {
@@ -662,7 +661,7 @@ describe( "CLI", function() {
             assert.equal( imaCLI.ensure_have_value( "test-url", "http://127.0.0.1:3456", isExitIfEmpty, isPrintValue, fnNameColorizer, fnValueColorizer ), true );
             const joTestAccount = {
                 "privateKey": owaspUtils.toEthPrivateKey( "23ABDBD3C61B5330AF61EBE8BEF582F4E5CC08E554053A718BDCE7813B9DC1FC" ),
-                "address": IMA.owaspUtils.fn_address_impl_
+                "address": owaspUtils.fn_address_impl_
             };
             assert.equal( imaCLI.ensure_have_chain_credentials( imaState.chainProperties.sc.strChainName, joTestAccount, isExitIfEmpty, isPrintValue ), true );
         } );

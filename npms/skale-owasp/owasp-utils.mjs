@@ -20,7 +20,7 @@
  */
 
 /**
- * @file owasp-util.mjs
+ * @file owasp-utils.mjs
  * @copyright SKALE Labs 2019-Present
  */
 

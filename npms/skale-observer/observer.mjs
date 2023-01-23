@@ -27,13 +27,13 @@
 import * as path from "path";
 import * as network_layer from "../skale-cool-socket/socket.mjs";
 import { Worker } from "worker_threads";
-import * as owaspUtils from "../skale-owasp/owasp-util.mjs";
-// import * as core from "./ima_core.mjs";
-// import * as rpcCall from "./rpc.mjs";
-import * as log from "../log/log.mjs";
+import * as owaspUtils from "../skale-owasp/owasp-utils.mjs";
+import * as cc from "../skale-cc/cc.mjs";
+import * as log from "../skale-log/log.mjs";
+// import * as IMA from "../npms/skale-ima/index.mjs";
 
 import { UniversalDispatcherEvent, EventDispatcher } from "../skale-cool-socket/event_dispatcher.mjs";
-const cc = owaspUtils.cc;
+
 const __dirname = path.resolve();
 
 const PORTS_PER_SCHAIN = 64;
@@ -507,7 +507,7 @@ export async function ensure_have_worker( opts ) {
                         "mn": {
                             "joAccount": {
                                 "privateKey": opts.imaState.chainProperties.mn.joAccount.privateKey,
-                                // "address": IMA.owaspUtils.fn_address_impl_,
+                                // "address": owaspUtils.fn_address_impl_,
                                 "strTransactionManagerURL": opts.imaState.chainProperties.mn.joAccount.strTransactionManagerURL,
                                 "tm_priority": opts.imaState.chainProperties.mn.joAccount.tm_priority,
                                 "strSgxURL": opts.imaState.chainProperties.mn.joAccount.strSgxURL,
@@ -525,7 +525,7 @@ export async function ensure_have_worker( opts ) {
                         "sc": {
                             "joAccount": {
                                 "privateKey": opts.imaState.chainProperties.sc.joAccount.privateKey,
-                                // "address": IMA.owaspUtils.fn_address_impl_,
+                                // "address": owaspUtils.fn_address_impl_,
                                 "strTransactionManagerURL": opts.imaState.chainProperties.sc.joAccount.strTransactionManagerURL,
                                 "tm_priority": opts.imaState.chainProperties.sc.joAccount.tm_priority,
                                 "strSgxURL": opts.imaState.chainProperties.sc.joAccount.strSgxURL,

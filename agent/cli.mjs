@@ -26,17 +26,15 @@
 // import * as fs from "fs";
 import * as path from "path";
 import * as os from "os";
-import * as cc from "./cc.mjs";
-import * as log from "./ima_log.mjs";
-//import * as options from "./ima_options.mjs";
+import * as cc from "../npms/skale-cc/cc.mjs";
+import * as log from "../npms/skale-log/log.mjs";
 import * as owaspUtils from "../npms/skale-owasp/owasp-utils.mjs";
 import * as imaUtils from "./utils.mjs";
 import * as rpcCall from "./rpc-call.mjs";
-//import * as core from "./ima_core.mjs";
 const __dirname = path.resolve();
 
 const g_strAppName = "IMA AGENT";
-const g_strVersion = utils.jsonFileLoad( path.join( __dirname, "package.json" ), null ).version;
+const g_strVersion = imaUtils.jsonFileLoad( path.join( __dirname, "package.json" ), null ).version;
 
 function print_about( isLog ) {
     isLog = isLog || false;
@@ -2300,7 +2298,7 @@ export function ima_contracts_init() {
             imaState.chainMN = new core.Chain(
                 owaspUtils.ethersMod,
                 imaState.ethersProviderMN,
-                utils.jsonFileLoad( imaState.strPathAbiJson_main_net ),
+                imaUtils.jsonFileLoad( imaState.strPathAbiJson_main_net ),
                 imaState.strChainName_main_net
             );
         } else {
@@ -2326,7 +2324,7 @@ export function ima_contracts_init() {
             imaState.chainSC = new core.Chain(
                 owaspUtils.ethersMod,
                 imaState.ethersProviderSC,
-                utils.jsonFileLoad( imaState.strPathAbiJson_s_chain ),
+                imaUtils.jsonFileLoad( imaState.strPathAbiJson_s_chain ),
                 imaState.strChainName_s_chain
             );
         } else {
@@ -2352,7 +2350,7 @@ export function ima_contracts_init() {
             imaState.chainTC = new core.Chain(
                 owaspUtils.ethersMod,
                 imaState.ethersProviderTC,
-                utils.jsonFileLoad( imaState.strPathAbiJson_t_chain ),
+                imaUtils.jsonFileLoad( imaState.strPathAbiJson_t_chain ),
                 imaState.strChainName_t_chain
             );
         } else {
