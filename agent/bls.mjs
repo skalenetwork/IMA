@@ -1899,7 +1899,7 @@ export async function handle_skale_imaVerifyAndSign( joCallData ) {
             //
             joExtraSignOpts = {
                 skale_observer: skale_observer,
-                w3_src: skale_observer.getWeb3FromURL( strUrlSrcSChain, details ),
+                ethersProvider_src: skale_observer.getWeb3FromURL( strUrlSrcSChain, details ),
                 chain_id_src: strFromChainName,
                 chain_id_dst: strToChainName,
                 cid_src: strFromChainID,
