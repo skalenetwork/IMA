@@ -30,7 +30,6 @@ import { Worker } from "worker_threads";
 import * as owaspUtils from "../skale-owasp/owasp-utils.mjs";
 import * as cc from "../skale-cc/cc.mjs";
 import * as log from "../skale-log/log.mjs";
-// import * as IMA from "../npms/skale-ima/index.mjs";
 
 import { UniversalDispatcherEvent, EventDispatcher } from "../skale-cool-socket/event_dispatcher.mjs";
 
@@ -240,7 +239,7 @@ export async function load_schains_connected_only( strChainNameConnectedTo, addr
     if( opts && opts.details )
         opts.details.write( cc.debug( "Have all " ) + cc.info( cntSChains ) + cc.debug( " S-Chain(s) hashes: " ) + cc.j( arrSChainHashes ) + "\n" );
     const jo_message_proxy_s_chain =
-        opts.chain.ethersMod.ethers.Contract(
+        owaspUtils.ethersMod.ethers.Contract(
             opts.imaState.chainProperties.sc.joAbiIMA.message_proxy_chain_address,
             opts.imaState.chainProperties.sc.joAbiIMA.message_proxy_chain_abi
         );
@@ -306,7 +305,7 @@ export async function check_connected_schains( strChainNameConnectedTo, arr_scha
             }
             const ethersProvider = owaspUtils.getEthersProviderFromURL( url );
             const jo_message_proxy_s_chain =
-                new opts.chain.ethersMod.ethers.Contract(
+                new owaspUtils.ethersMod.ethers.Contract(
                     opts.joAbiPublishResult_s_chain.message_proxy_chain_address,
                     opts.joAbiPublishResult_s_chain.message_proxy_chain_abi,
                     ethersProvider

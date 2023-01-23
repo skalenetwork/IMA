@@ -1048,8 +1048,8 @@ imaCLI.parse( {
             "name": "one S->S single payment",
             "fn": async function() {
                 const isForward = IMA.isForwardS2S();
-                const w3_src = isForward ? imaState.chainProperties.sc.ethersProvider : imaState.chainProperties.tc.ethersProvider;
-                // const w3_dst = isForward ? imaState.chainProperties.tc.ethersProvider : imaState.chainProperties.sc.ethersProvider;
+                const ethersProvider_src = isForward ? imaState.chainProperties.sc.ethersProvider : imaState.chainProperties.tc.ethersProvider;
+                // const ethersProvider_dst = isForward ? imaState.chainProperties.tc.ethersProvider : imaState.chainProperties.sc.ethersProvider;
                 const cid_src = isForward ? imaState.chainProperties.sc.cid : imaState.chainProperties.tc.cid;
                 // const cid_dst = isForward ? imaState.chainProperties.tc.cid : imaState.chainProperties.sc.cid;
                 const joAccountSrc = isForward ? imaState.chainProperties.sc.joAccount : imaState.chainProperties.tc.joAccount;
@@ -1109,7 +1109,7 @@ imaCLI.parse( {
                     log.write( cc.info( "one S->S single ERC721 payment: " ) + cc.sunny( imaState.idToken ) + "\n" ); // just print value
                     return await IMA.do_erc721_payment_s2s(
                         isForward,
-                        w3_src,
+                        ethersProvider_src,
                         cid_src,
                         strChainName_dst,
                         joAccountSrc,
@@ -1127,7 +1127,7 @@ imaCLI.parse( {
                     log.write( cc.info( "one S->S single ERC20 payment: " ) + cc.sunny( imaState.nAmountOfToken ) + "\n" ); // just print value
                     return await IMA.do_erc20_payment_s2s(
                         isForward,
-                        w3_src,
+                        ethersProvider_src,
                         cid_src,
                         strChainName_dst,
                         joAccountSrc,
@@ -1151,7 +1151,7 @@ imaCLI.parse( {
                     log.write( cc.info( "one S->S single ERC1155 payment: " ) + cc.sunny( imaState.idToken ) + " " + cc.sunny( imaState.nAmountOfToken ) + "\n" ); // just print value
                     return await IMA.do_erc1155_payment_s2s(
                         isForward,
-                        w3_src,
+                        ethersProvider_src,
                         cid_src,
                         strChainName_dst,
                         joAccountSrc,
@@ -1176,7 +1176,7 @@ imaCLI.parse( {
                     log.write( cc.info( "one S->S single ERC1155 Batch payment: " ) + cc.sunny( imaState.idTokens ) + " " + cc.sunny( imaState.arrAmountsOfTokens ) + "\n" ); // just print value
                     return await IMA.do_erc1155_batch_payment_s2s(
                         isForward,
-                        w3_src,
+                        ethersProvider_src,
                         cid_src,
                         strChainName_dst,
                         joAccountSrc,

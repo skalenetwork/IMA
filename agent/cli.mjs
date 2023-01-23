@@ -2167,245 +2167,98 @@ export function ima_common_init() {
     }
 } // ima_common_init
 
-export function ima_w3_init() {
-/*
-    if( ( !imaState.chainProperties.mn.ethersProvider ) &&
-        imaState.chainProperties.mn.strURL &&
-        typeof imaState.chainProperties.mn.strURL == "string" &&
-        imaState.chainProperties.mn.strURL.length > 0
-    ) {
-        const u = imaState.chainProperties.mn.strURL;
+export function ima_init_ethers_providers() {
+    if( imaState.mn.strURL && typeof imaState.mn.strURL == "string" && imaState.mn.strURL.length > 0 ) {
+        const u = imaState.mn.strURL;
         async_check_url_at_startup( u, "Main-net" );
-        imaState.chainProperties.mn.ethersProvider = getWeb3FromURL( u, log );
+        imaState.mn.ethersProvider = owaspUtils.getEthersProviderFromURL( u );
     } else {
         log.write(
             cc.error( "WARNING:" ) + cc.warning( " No " ) + cc.note( "Main-net" ) +
             cc.warning( " URL specified in command line arguments" ) +
-            cc.debug( "(needed for particular operations only)" ) +
-            "\n" );
+            cc.debug( "(needed for particular operations only)" )
+        );
     }
     //
-    if( ( !imaState.chainProperties.sc.ethersProvider ) &&
-        imaState.chainProperties.sc.strURL &&
-        typeof imaState.chainProperties.sc.strURL == "string" &&
-        imaState.chainProperties.sc.strURL.length > 0
-    ) {
-        const u = imaState.chainProperties.sc.strURL;
+    if( imaState.sc.strURL && typeof imaState.sc.strURL == "string" && imaState.sc.strURL.length > 0 ) {
+        const u = imaState.sc.strURL;
         async_check_url_at_startup( u, "S-Chain" );
-        imaState.chainProperties.sc.ethersProvider = getWeb3FromURL( u, log );
+        imaState.sc.ethersProvider = owaspUtils.getEthersProviderFromURL( u );
     } else {
         log.write(
             cc.error( "WARNING:" ) + cc.warning( " No " ) + cc.note( "S-Chain" ) +
             cc.warning( " URL specified in command line arguments" ) +
-            cc.debug( "(needed for particular operations only)" ) +
-            "\n" );
+            cc.debug( "(needed for particular operations only)" )
+        );
     }
     //
-    if( ( !imaState.chainProperties.tc.ethersProvider ) &&
-        imaState.chainProperties.tc.strURL &&
-        typeof imaState.chainProperties.tc.strURL == "string" &&
-        imaState.chainProperties.tc.strURL.length > 0
-    ) {
-        const u = imaState.chainProperties.tc.strURL;
+    if( imaState.tc.strURL && typeof imaState.tc.strURL == "string" && imaState.tc.strURL.length > 0 ) {
+        const u = imaState.tc.strURL;
         async_check_url_at_startup( u, "S<->S Target S-Chain" );
-        imaState.chainProperties.tc.ethersProvider = getWeb3FromURL( u, log );
+        imaState.tc.ethersProvider = owaspUtils.getEthersProviderFromURL( u );
     } else {
         log.write(
             cc.error( "WARNING:" ) + cc.warning( " No " ) + cc.note( "S<->S Target S-Chain" ) +
             cc.warning( " URL specified in command line arguments" ) +
-            cc.debug( "(needed for particular operations only)" ) +
-            "\n" );
+            cc.debug( "(needed for particular operations only)" )
+        );
     }
-*/
-} // ima_w3_init
+
+} // ima_init_ethers_providers
 
 export function ima_contracts_init() {
-    ima_w3_init();
-    /*
-    if( imaState.chainProperties.mn.bHaveAbiIMA && ( !imaState.jo_deposit_box_eth ) ) {
-        imaState.jo_deposit_box_eth = new imaState.chainProperties.mn.ethersProvider.eth.Contract( imaState.chainProperties.mn.joAbiIMA.deposit_box_eth_abi, imaState.chainProperties.mn.joAbiIMA.deposit_box_eth_address ); // only main net
-        imaState.jo_deposit_box_erc20 = new imaState.chainProperties.mn.ethersProvider.eth.Contract( imaState.chainProperties.mn.joAbiIMA.deposit_box_erc20_abi, imaState.chainProperties.mn.joAbiIMA.deposit_box_erc20_address ); // only main net
-        imaState.jo_deposit_box_erc721 = new imaState.chainProperties.mn.ethersProvider.eth.Contract( imaState.chainProperties.mn.joAbiIMA.deposit_box_erc721_abi, imaState.chainProperties.mn.joAbiIMA.deposit_box_erc721_address ); // only main net
-        imaState.jo_deposit_box_erc1155 = new imaState.chainProperties.mn.ethersProvider.eth.Contract( imaState.chainProperties.mn.joAbiIMA.deposit_box_erc1155_abi, imaState.chainProperties.mn.joAbiIMA.deposit_box_erc1155_address ); // only main net
-        imaState.jo_deposit_box_erc721_with_metadata = new imaState.chainProperties.mn.ethersProvider.eth.Contract( imaState.chainProperties.mn.joAbiIMA.deposit_box_erc721_with_metadata_abi, imaState.chainProperties.mn.joAbiIMA.deposit_box_erc721_with_metadata_address ); // only main net
-        imaState.jo_community_pool = new imaState.chainProperties.mn.ethersProvider.eth.Contract( imaState.chainProperties.mn.joAbiIMA.community_pool_abi, imaState.chainProperties.mn.joAbiIMA.community_pool_address ); // only main net
-        imaState.jo_linker = new imaState.chainProperties.mn.ethersProvider.eth.Contract( imaState.chainProperties.mn.joAbiIMA.linker_abi, imaState.chainProperties.mn.joAbiIMA.linker_address ); // only main net
-        imaState.jo_message_proxy_main_net = new imaState.chainProperties.mn.ethersProvider.eth.Contract( imaState.chainProperties.mn.joAbiIMA.message_proxy_mainnet_abi, imaState.chainProperties.mn.joAbiIMA.message_proxy_mainnet_address );
-    }
-    if( imaState.chainProperties.sc.bHaveAbiIMA && ( !imaState.jo_token_manager_eth ) ) {
-        imaState.jo_token_manager_eth = new imaState.chainProperties.sc.ethersProvider.eth.Contract( imaState.chainProperties.sc.joAbiIMA.token_manager_eth_abi, imaState.chainProperties.sc.joAbiIMA.token_manager_eth_address ); // only s-chain
-        imaState.jo_token_manager_erc20 = new imaState.chainProperties.sc.ethersProvider.eth.Contract( imaState.chainProperties.sc.joAbiIMA.token_manager_erc20_abi, imaState.chainProperties.sc.joAbiIMA.token_manager_erc20_address ); // only s-chain
-        imaState.jo_token_manager_erc721 = new imaState.chainProperties.sc.ethersProvider.eth.Contract( imaState.chainProperties.sc.joAbiIMA.token_manager_erc721_abi, imaState.chainProperties.sc.joAbiIMA.token_manager_erc721_address ); // only s-chain
-        imaState.jo_token_manager_erc1155 = new imaState.chainProperties.sc.ethersProvider.eth.Contract( imaState.chainProperties.sc.joAbiIMA.token_manager_erc1155_abi, imaState.chainProperties.sc.joAbiIMA.token_manager_erc1155_address ); // only s-chain
-        imaState.jo_token_manager_erc721_with_metadata = new imaState.chainProperties.sc.ethersProvider.eth.Contract( imaState.chainProperties.sc.joAbiIMA.token_manager_erc721_with_metadata_abi, imaState.chainProperties.sc.joAbiIMA.token_manager_erc721_with_metadata_address ); // only s-chain
-        imaState.jo_community_locker = new imaState.chainProperties.sc.ethersProvider.eth.Contract( imaState.chainProperties.sc.joAbiIMA.community_locker_abi, imaState.chainProperties.sc.joAbiIMA.community_locker_address ); // only s-chain
-        imaState.jo_message_proxy_s_chain = new imaState.chainProperties.sc.ethersProvider.eth.Contract( imaState.chainProperties.sc.joAbiIMA.message_proxy_chain_abi, imaState.chainProperties.sc.joAbiIMA.message_proxy_chain_address );
-        imaState.jo_token_manager_linker = new imaState.chainProperties.sc.ethersProvider.eth.Contract( imaState.chainProperties.sc.joAbiIMA.token_manager_linker_abi, imaState.chainProperties.sc.joAbiIMA.token_manager_linker_address );
-        imaState.eth_erc20 = new imaState.chainProperties.sc.ethersProvider.eth.Contract( imaState.chainProperties.sc.joAbiIMA.eth_erc20_abi, imaState.chainProperties.sc.joAbiIMA.eth_erc20_address ); // only s-chain
-        // imaState.eth_erc721 = new imaState.chainProperties.sc.ethersProvider.eth.Contract( imaState.chainProperties.sc.joAbiIMA.eth_erc721_abi, imaState.chainProperties.sc.joAbiIMA.eth_erc721_address ); // only s-chain
-        // imaState.eth_erc1155 = new imaState.chainProperties.sc.ethersProvider.eth.Contract( imaState.chainProperties.sc.joAbiIMA.eth_erc1155_abi, imaState.chainProperties.sc.joAbiIMA.eth_erc721_address ); // only s-chain
-    }
-    if( imaState.chainProperties.tc.bHaveAbiIMA && ( !imaState.jo_token_manager_erc20_target ) ) {
-        // imaState.jo_token_manager_eth_target = new imaState.chainProperties.sc.ethersProvider.eth.Contract( imaState.chainProperties.tc.joAbiIMA.token_manager_eth_abi, imaState.chainProperties.tc.joAbiIMA.token_manager_eth_address ); // only s-chain
-        imaState.jo_token_manager_erc20_target = new imaState.chainProperties.sc.ethersProvider.eth.Contract( imaState.chainProperties.tc.joAbiIMA.token_manager_erc20_abi, imaState.chainProperties.tc.joAbiIMA.token_manager_erc20_address ); // only s-chain
-        imaState.jo_token_manager_erc721_target = new imaState.chainProperties.sc.ethersProvider.eth.Contract( imaState.chainProperties.tc.joAbiIMA.token_manager_erc721_abi, imaState.chainProperties.tc.joAbiIMA.token_manager_erc721_address ); // only s-chain
-        imaState.jo_token_manager_erc1155_target = new imaState.chainProperties.sc.ethersProvider.eth.Contract( imaState.chainProperties.tc.joAbiIMA.token_manager_erc1155_abi, imaState.chainProperties.tc.joAbiIMA.token_manager_erc1155_address ); // only s-chain
-        imaState.jo_token_manager_erc721_with_metadata_target = new imaState.chainProperties.sc.ethersProvider.eth.Contract( imaState.chainProperties.tc.joAbiIMA.token_manager_erc721_with_metadata_abi, imaState.chainProperties.tc.joAbiIMA.token_manager_erc721_with_metadata_address ); // only s-chain
-        imaState.jo_community_locker_target = new imaState.chainProperties.sc.ethersProvider.eth.Contract( imaState.chainProperties.tc.joAbiIMA.community_locker_abi, imaState.chainProperties.tc.joAbiIMA.community_locker_address ); // only s-chain
-        imaState.jo_message_proxy_s_chain_target = new imaState.chainProperties.sc.ethersProvider.eth.Contract( imaState.chainProperties.tc.joAbiIMA.message_proxy_chain_abi, imaState.chainProperties.tc.joAbiIMA.message_proxy_chain_address );
-        imaState.jo_token_manager_linker_target = new imaState.chainProperties.sc.ethersProvider.eth.Contract( imaState.chainProperties.tc.joAbiIMA.token_manager_linker_abi, imaState.chainProperties.tc.joAbiIMA.token_manager_linker_address );
-        imaState.eth_erc20_target = new imaState.chainProperties.sc.ethersProvider.eth.Contract( imaState.chainProperties.tc.joAbiIMA.eth_erc20_abi, imaState.chainProperties.tc.joAbiIMA.eth_erc20_address ); // only s-chain
-        // imaState.eth_erc721_target = new imaState.chainProperties.sc.ethersProvider.eth.Contract( imaState.chainProperties.tc.joAbiIMA.eth_erc721_abi, imaState.chainProperties.tc.joAbiIMA.eth_erc721_address ); // only s-chain
-        // imaState.eth_erc1155_target = new imaState.chainProperties.sc.ethersProvider.eth.Contract( imaState.chainProperties.tc.joAbiIMA.eth_erc1155_abi, imaState.chainProperties.tc.joAbiIMA.eth_erc721_address ); // only s-chain
-    }
-    if( imaState.bHaveSkaleManagerABI && ( !imaState.jo_constants_holder ) ) {
-        imaState.jo_constants_holder = new imaState.chainProperties.mn.ethersProvider.eth.Contract( imaState.joAbiSkaleManager.constants_holder_abi, imaState.joAbiSkaleManager.constants_holder_address );
-        // jo_contract_manager
-        // jo_decryption
-        // jo_delegation_controller
-        // jo_delegation_period_manager
-        // jo_distributor
-        // jo_ecdh
-        // jo_manager_data
-        // jo_monitors_functionality
-        imaState.jo_nodes = new imaState.chainProperties.mn.ethersProvider.eth.Contract( imaState.joAbiSkaleManager.nodes_abi, imaState.joAbiSkaleManager.nodes_address );
-        // jo_pricing
-        // jo_punisher
-        imaState.jo_key_storage = new imaState.chainProperties.mn.ethersProvider.eth.Contract( imaState.joAbiSkaleManager.key_storage_abi, imaState.joAbiSkaleManager.key_storage_address );
-        imaState.jo_schains = new imaState.chainProperties.mn.ethersProvider.eth.Contract( imaState.joAbiSkaleManager.schains_abi, imaState.joAbiSkaleManager.schains_address );
-        imaState.jo_schains_internal = new imaState.chainProperties.mn.ethersProvider.eth.Contract( imaState.joAbiSkaleManager.schains_internal_abi, imaState.joAbiSkaleManager.schains_internal_address );
-        // jo_schains_functionality
-        // jo_schains_functionality_internal
-        imaState.jo_skale_dkg = new imaState.chainProperties.mn.ethersProvider.eth.Contract( imaState.joAbiSkaleManager.skale_d_k_g_abi, imaState.joAbiSkaleManager.skale_d_k_g_address );
-        imaState.jo_skale_manager = new imaState.chainProperties.mn.ethersProvider.eth.Contract( imaState.joAbiSkaleManager.skale_manager_abi, imaState.joAbiSkaleManager.skale_manager_address );
-        imaState.jo_skale_token = new imaState.chainProperties.mn.ethersProvider.eth.Contract( imaState.joAbiSkaleManager.skale_token_abi, imaState.joAbiSkaleManager.skale_token_address );
-        // jo_skale_verifier
-        // jo_slashing_table
-        // jo_time_helpers
-        // jo_time_helpers_with_debug
-        // jo_token_state
-        imaState.jo_validator_service = new imaState.chainProperties.mn.ethersProvider.eth.Contract( imaState.joAbiSkaleManager.validator_service_abi, imaState.joAbiSkaleManager.validator_service_address );
-        imaState.jo_wallets = new imaState.chainProperties.mn.ethersProvider.eth.Contract( imaState.joAbiSkaleManager.wallets_abi, imaState.joAbiSkaleManager.wallets_address );
-    } // if( imaState.bHaveSkaleManagerABI )
-*/
-
-    //
-    if( imaState.strURL_main_net && typeof imaState.strURL_main_net == "string" && imaState.strURL_main_net.length > 0 ) {
-        const u = imaState.strURL_main_net;
-        async_check_url_at_startup( u, "Main-net" );
-        imaState.ethersProviderMN = owaspUtils.getEthersProviderFromURL( u );
-        if( imaState.strPathAbiJson_main_net && imaState.strChainName_main_net ) {
-            imaState.chainMN = new core.Chain(
-                owaspUtils.ethersMod,
-                imaState.ethersProviderMN,
-                imaUtils.jsonFileLoad( imaState.strPathAbiJson_main_net ),
-                imaState.strChainName_main_net
-            );
-        } else {
-            log.write(
-                cc.error( "WARNING:" ) + cc.warning( " Chain " ) + cc.note( "Main-net" ) +
-                cc.warning( " is inaccessible" ) +
-                cc.debug( "(both ABI JSON path and chain name are needed)" )
-            );
-        }
-    } else {
-        log.write(
-            cc.error( "WARNING:" ) + cc.warning( " No " ) + cc.note( "Main-net" ) +
-            cc.warning( " URL specified in command line arguments" ) +
-            cc.debug( "(needed for particular operations only)" )
-        );
-    }
-    //
-    if( imaState.strURL_s_chain && typeof imaState.strURL_s_chain == "string" && imaState.strURL_s_chain.length > 0 ) {
-        const u = imaState.strURL_s_chain;
-        async_check_url_at_startup( u, "S-Chain" );
-        imaState.ethersProviderSC = owaspUtils.getEthersProviderFromURL( u );
-        if( imaState.strPathAbiJson_s_chain && imaState.strChainName_s_chain ) {
-            imaState.chainSC = new core.Chain(
-                owaspUtils.ethersMod,
-                imaState.ethersProviderSC,
-                imaUtils.jsonFileLoad( imaState.strPathAbiJson_s_chain ),
-                imaState.strChainName_s_chain
-            );
-        } else {
-            log.write(
-                cc.error( "WARNING:" ) + cc.warning( " Chain " ) + cc.note( "S-Chain" ) +
-                cc.warning( " is inaccessible" ) +
-                cc.debug( "(both ABI JSON path and chain name are needed)" )
-            );
-        }
-    } else {
-        log.write(
-            cc.error( "WARNING:" ) + cc.warning( " No " ) + cc.note( "S-Chain" ) +
-            cc.warning( " URL specified in command line arguments" ) +
-            cc.debug( "(needed for particular operations only)" )
-        );
-    }
-    //
-    if( imaState.strURL_t_chain && typeof imaState.strURL_t_chain == "string" && imaState.strURL_t_chain.length > 0 ) {
-        const u = imaState.strURL_t_chain;
-        async_check_url_at_startup( u, "S<->S Target S-Chain" );
-        imaState.ethersProviderTC = owaspUtils.getEthersProviderFromURL( u );
-        if( imaState.strPathAbiJson_t_chain && imaState.strChainName_t_chain ) {
-            imaState.chainTC = new core.Chain(
-                owaspUtils.ethersMod,
-                imaState.ethersProviderTC,
-                imaUtils.jsonFileLoad( imaState.strPathAbiJson_t_chain ),
-                imaState.strChainName_t_chain
-            );
-        } else {
-            log.write(
-                cc.error( "WARNING:" ) + cc.warning( " Chain " ) + cc.note( "T-Chain" ) +
-                cc.warning( " is inaccessible" ) +
-                cc.debug( "(both ABI JSON path and chain name are needed)" )
-            );
-        }
-    } else {
-        log.write(
-            cc.error( "WARNING:" ) + cc.warning( " No " ) + cc.note( "S<->S Target S-Chain" ) +
-            cc.warning( " URL specified in command line arguments" ) +
-            cc.debug( "(needed for particular operations only)" )
-        );
-    }
-    //
+    ima_init_ethers_providers();
     if( imaState.bHaveImaAbiMainNet ) {
-        imaState.jo_deposit_box_eth = new imaState.w3_main_net.eth.Contract( imaState.joAbiPublishResult_main_net.deposit_box_eth_abi, imaState.joAbiPublishResult_main_net.deposit_box_eth_address ); // only main net
-        imaState.jo_deposit_box_erc20 = new imaState.w3_main_net.eth.Contract( imaState.joAbiPublishResult_main_net.deposit_box_erc20_abi, imaState.joAbiPublishResult_main_net.deposit_box_erc20_address ); // only main net
-        imaState.jo_deposit_box_erc721 = new imaState.w3_main_net.eth.Contract( imaState.joAbiPublishResult_main_net.deposit_box_erc721_abi, imaState.joAbiPublishResult_main_net.deposit_box_erc721_address ); // only main net
-        imaState.jo_deposit_box_erc1155 = new imaState.w3_main_net.eth.Contract( imaState.joAbiPublishResult_main_net.deposit_box_erc1155_abi, imaState.joAbiPublishResult_main_net.deposit_box_erc1155_address ); // only main net
-        imaState.jo_deposit_box_erc721_with_metadata = new imaState.w3_main_net.eth.Contract( imaState.joAbiPublishResult_main_net.deposit_box_erc721_with_metadata_abi, imaState.joAbiPublishResult_main_net.deposit_box_erc721_with_metadata_address ); // only main net
-        imaState.jo_community_pool = new imaState.w3_main_net.eth.Contract( imaState.joAbiPublishResult_main_net.community_pool_abi, imaState.joAbiPublishResult_main_net.community_pool_address ); // only main net
-        imaState.jo_linker = new imaState.w3_main_net.eth.Contract( imaState.joAbiPublishResult_main_net.linker_abi, imaState.joAbiPublishResult_main_net.linker_address ); // only main net
-        imaState.jo_message_proxy_main_net = new imaState.w3_main_net.eth.Contract( imaState.joAbiPublishResult_main_net.message_proxy_mainnet_abi, imaState.joAbiPublishResult_main_net.message_proxy_mainnet_address );
+        const cp = imaState.chainProperties.mn;
+        const ep = cp.ethersProvider;
+        const joABI = cp.joAbiIMA;
+        imaState.jo_deposit_box_eth = new owaspUtils.ethersMod.ethers.Contract( joABI.deposit_box_eth_address, joABI.deposit_box_eth_abi, ep ); // only main net
+        imaState.jo_deposit_box_erc20 = new owaspUtils.ethersMod.ethers.Contract( joABI.deposit_box_erc20_address, joABI.deposit_box_erc20_abi, ep ); // only main net
+        imaState.jo_deposit_box_erc721 = new owaspUtils.ethersMod.ethers.Contract( joABI.deposit_box_erc721_address, joABI.deposit_box_erc721_abi, ep ); // only main net
+        imaState.jo_deposit_box_erc1155 = new owaspUtils.ethersMod.ethers.Contract( joABI.deposit_box_erc1155_address, joABI.deposit_box_erc1155_abi, ep ); // only main net
+        imaState.jo_deposit_box_erc721_with_metadata = new owaspUtils.ethersMod.ethers.Contract( joABI.deposit_box_erc721_with_metadata_address, joABI.deposit_box_erc721_with_metadata_abi, ep ); // only main net
+        imaState.jo_community_pool = new owaspUtils.ethersMod.ethers.Contract( joABI.community_pool_address, joABI.community_pool_abi, ep ); // only main net
+        imaState.jo_linker = new owaspUtils.ethersMod.ethers.Contract( joABI.linker_address, joABI.linker_abi, ep ); // only main net
+        imaState.jo_message_proxy_main_net = new owaspUtils.ethersMod.ethers.Contract( joABI.message_proxy_mainnet_address, joABI.message_proxy_mainnet_abi, ep );
     }
     if( imaState.bHaveImaAbiSchain ) {
-        imaState.jo_token_manager_eth = new imaState.w3_s_chain.eth.Contract( imaState.joAbiPublishResult_s_chain.token_manager_eth_abi, imaState.joAbiPublishResult_s_chain.token_manager_eth_address ); // only s-chain
-        imaState.jo_token_manager_erc20 = new imaState.w3_s_chain.eth.Contract( imaState.joAbiPublishResult_s_chain.token_manager_erc20_abi, imaState.joAbiPublishResult_s_chain.token_manager_erc20_address ); // only s-chain
-        imaState.jo_token_manager_erc721 = new imaState.w3_s_chain.eth.Contract( imaState.joAbiPublishResult_s_chain.token_manager_erc721_abi, imaState.joAbiPublishResult_s_chain.token_manager_erc721_address ); // only s-chain
-        imaState.jo_token_manager_erc1155 = new imaState.w3_s_chain.eth.Contract( imaState.joAbiPublishResult_s_chain.token_manager_erc1155_abi, imaState.joAbiPublishResult_s_chain.token_manager_erc1155_address ); // only s-chain
-        imaState.jo_token_manager_erc721_with_metadata = new imaState.w3_s_chain.eth.Contract( imaState.joAbiPublishResult_s_chain.token_manager_erc721_with_metadata_abi, imaState.joAbiPublishResult_s_chain.token_manager_erc721_with_metadata_address ); // only s-chain
-        imaState.jo_community_locker = new imaState.w3_s_chain.eth.Contract( imaState.joAbiPublishResult_s_chain.community_locker_abi, imaState.joAbiPublishResult_s_chain.community_locker_address ); // only s-chain
-        imaState.jo_message_proxy_s_chain = new imaState.w3_s_chain.eth.Contract( imaState.joAbiPublishResult_s_chain.message_proxy_chain_abi, imaState.joAbiPublishResult_s_chain.message_proxy_chain_address );
-        imaState.jo_token_manager_linker = new imaState.w3_s_chain.eth.Contract( imaState.joAbiPublishResult_s_chain.token_manager_linker_abi, imaState.joAbiPublishResult_s_chain.token_manager_linker_address );
-        imaState.eth_erc20 = new imaState.w3_s_chain.eth.Contract( imaState.joAbiPublishResult_s_chain.eth_erc20_abi, imaState.joAbiPublishResult_s_chain.eth_erc20_address ); // only s-chain
-        // imaState.eth_erc721 = new imaState.w3_s_chain.eth.Contract( imaState.joAbiPublishResult_s_chain.eth_erc721_abi, imaState.joAbiPublishResult_s_chain.eth_erc721_address ); // only s-chain
-        // imaState.eth_erc1155 = new imaState.w3_s_chain.eth.Contract( imaState.joAbiPublishResult_s_chain.eth_erc1155_abi, imaState.joAbiPublishResult_s_chain.eth_erc721_address ); // only s-chain
+        const cp = imaState.chainProperties.sc;
+        const ep = cp.ethersProvider;
+        const joABI = cp.joAbiIMA;
+
+        // imaState.jo_token_manager_eth = new ep.Contract( joABI.token_manager_eth_address, joABI.token_manager_eth_abi, ep ); // only s-chain
+        imaState.jo_token_manager_erc20 = new ep.Contract( joABI.token_manager_erc20_address, joABI.token_manager_erc20_abi, ep ); // only s-chain
+        imaState.jo_token_manager_erc721 = new ep.Contract( joABI.token_manager_erc721_address, joABI.token_manager_erc721_abi, ep ); // only s-chain
+        imaState.jo_token_manager_erc1155 = new ep.Contract( joABI.token_manager_erc1155_address, joABI.token_manager_erc1155_abi, ep ); // only s-chain
+        imaState.jo_token_manager_erc721_with_metadata = new ep.Contract( joABI.token_manager_erc721_with_metadata_address, joABI.token_manager_erc721_with_metadata_abi, ep ); // only s-chain
+        imaState.jo_community_locker = new ep.Contract( joABI.community_locker_address, joABI.community_locker_abi, ep ); // only s-chain
+        imaState.jo_message_proxy_s_chain = new ep.Contract( joABI.message_proxy_chain_address, joABI.message_proxy_chain_abi, ep );
+        imaState.jo_token_manager_linker = new ep.Contract( joABI.token_manager_linker_address, joABI.token_manager_linker_abi, ep );
+        imaState.eth_erc20 = new ep.Contract( joABI.eth_erc20_address, joABI.eth_erc20_abi, ep ); // only s-chain
+        // imaState.eth_erc721 = new owaspUtils.ethersMod.ethers.Contract( joABI.eth_erc721_address, joABI.eth_erc721_abi, ep ); // only s-chain
+        // imaState.eth_erc1155 = new owaspUtils.ethersMod.ethers.Contract( joABI.eth_erc1155_address, joABI.eth_erc721_abi, ep ); // only s-chain
     }
     if( imaState.bHaveImaAbiSchainTarget ) {
-        // imaState.jo_token_manager_eth_target = new imaState.w3_s_chain.eth.Contract( imaState.joAbiPublishResult_t_chain.token_manager_eth_abi, imaState.joAbiPublishResult_t_chain.token_manager_eth_address ); // only s-chain
-        imaState.jo_token_manager_erc20_target = new imaState.w3_s_chain.eth.Contract( imaState.joAbiPublishResult_t_chain.token_manager_erc20_abi, imaState.joAbiPublishResult_t_chain.token_manager_erc20_address ); // only s-chain
-        imaState.jo_token_manager_erc721_target = new imaState.w3_s_chain.eth.Contract( imaState.joAbiPublishResult_t_chain.token_manager_erc721_abi, imaState.joAbiPublishResult_t_chain.token_manager_erc721_address ); // only s-chain
-        imaState.jo_token_manager_erc1155_target = new imaState.w3_s_chain.eth.Contract( imaState.joAbiPublishResult_t_chain.token_manager_erc1155_abi, imaState.joAbiPublishResult_t_chain.token_manager_erc1155_address ); // only s-chain
-        imaState.jo_token_manager_erc721_with_metadata_target = new imaState.w3_s_chain.eth.Contract( imaState.joAbiPublishResult_t_chain.token_manager_erc721_with_metadata_abi, imaState.joAbiPublishResult_t_chain.token_manager_erc721_with_metadata_address ); // only s-chain
-        imaState.jo_community_locker_target = new imaState.w3_s_chain.eth.Contract( imaState.joAbiPublishResult_t_chain.community_locker_abi, imaState.joAbiPublishResult_t_chain.community_locker_address ); // only s-chain
-        imaState.jo_message_proxy_s_chain_target = new imaState.w3_s_chain.eth.Contract( imaState.joAbiPublishResult_t_chain.message_proxy_chain_abi, imaState.joAbiPublishResult_t_chain.message_proxy_chain_address );
-        imaState.jo_token_manager_linker_target = new imaState.w3_s_chain.eth.Contract( imaState.joAbiPublishResult_t_chain.token_manager_linker_abi, imaState.joAbiPublishResult_t_chain.token_manager_linker_address );
-        imaState.eth_erc20_target = new imaState.w3_s_chain.eth.Contract( imaState.joAbiPublishResult_t_chain.eth_erc20_abi, imaState.joAbiPublishResult_t_chain.eth_erc20_address ); // only s-chain
-        // imaState.eth_erc721_target = new imaState.w3_s_chain.eth.Contract( imaState.joAbiPublishResult_t_chain.eth_erc721_abi, imaState.joAbiPublishResult_t_chain.eth_erc721_address ); // only s-chain
-        // imaState.eth_erc1155_target = new imaState.w3_s_chain.eth.Contract( imaState.joAbiPublishResult_t_chain.eth_erc1155_abi, imaState.joAbiPublishResult_t_chain.eth_erc721_address ); // only s-chain
+        const cp = imaState.chainProperties.tc;
+        const ep = cp.ethersProvider;
+        const joABI = cp.joAbiIMA;
+        // imaState.jo_token_manager_eth_target = new owaspUtils.ethersMod.ethers.Contract( joABI.token_manager_eth_abi, joABI.token_manager_eth_address, ep ); // only s-chain
+        imaState.jo_token_manager_erc20_target = new owaspUtils.ethersMod.ethers.Contract( joABI.token_manager_erc20_address, joABI.token_manager_erc20_abi, ep ); // only s-chain
+        imaState.jo_token_manager_erc721_target = new owaspUtils.ethersMod.ethers.Contract( joABI.token_manager_erc721_address, joABI.token_manager_erc721_abi, ep ); // only s-chain
+        imaState.jo_token_manager_erc1155_target = new owaspUtils.ethersMod.ethers.Contract( joABI.token_manager_erc1155_address, joABI.token_manager_erc1155_abi, ep ); // only s-chain
+        imaState.jo_token_manager_erc721_with_metadata_target = new owaspUtils.ethersMod.ethers.Contract( joABI.token_manager_erc721_with_metadata_address, joABI.token_manager_erc721_with_metadata_abi, ep ); // only s-chain
+        imaState.jo_community_locker_target = new owaspUtils.ethersMod.ethers.Contract( joABI.community_locker_address, joABI.community_locker_abi, ep ); // only s-chain
+        imaState.jo_message_proxy_s_chain_target = new owaspUtils.ethersMod.ethers.Contract( joABI.message_proxy_chain_address, joABI.message_proxy_chain_abi, ep );
+        imaState.jo_token_manager_linker_target = new owaspUtils.ethersMod.ethers.Contract( joABI.token_manager_linker_address, joABI.token_manager_linker_abi, ep );
+        imaState.eth_erc20_target = new owaspUtils.ethersMod.ethers.Contract( joABI.eth_erc20_address, joABI.eth_erc20_abi, ep ); // only s-chain
+        // imaState.eth_erc721_target = new owaspUtils.ethersMod.ethers.Contract( joABI.eth_erc721_address, joABI.eth_erc721_aabi, ep ); // only s-chain
+        // imaState.eth_erc1155_target = new owaspUtils.ethersMod.ethers.Contract( joABI.eth_erc1155_address, joABI.eth_erc721_abi, ep ); // only s-chain
     }
     if( imaState.bHaveSkaleManagerABI ) {
-        imaState.jo_constants_holder = new imaState.w3_main_net.eth.Contract( imaState.joAbiPublishResult_skale_manager.constants_holder_abi, imaState.joAbiPublishResult_skale_manager.constants_holder_address );
+        const cp = imaState.chainProperties.mn;
+        const ep = cp.ethersProvider;
+        const joABI = imaState.joAbiSkaleManager;
+        imaState.jo_constants_holder = new owaspUtils.ethersMod.ethers.Contract( joABI.constants_holder_address, joABI.constants_holder_abi, ep );
         // jo_contract_manager
         // jo_decryption
         // jo_delegation_controller
@@ -2414,24 +2267,24 @@ export function ima_contracts_init() {
         // jo_ecdh
         // jo_manager_data
         // jo_monitors_functionality
-        imaState.jo_nodes = new imaState.w3_main_net.eth.Contract( imaState.joAbiPublishResult_skale_manager.nodes_abi, imaState.joAbiPublishResult_skale_manager.nodes_address );
+        imaState.jo_nodes = new owaspUtils.ethersMod.ethers.Contract( joABI.nodes_address, joABI.nodes_abi, ep );
         // jo_pricing
         // jo_punisher
-        imaState.jo_key_storage = new imaState.w3_main_net.eth.Contract( imaState.joAbiPublishResult_skale_manager.key_storage_abi, imaState.joAbiPublishResult_skale_manager.key_storage_address );
-        imaState.jo_schains = new imaState.w3_main_net.eth.Contract( imaState.joAbiPublishResult_skale_manager.schains_abi, imaState.joAbiPublishResult_skale_manager.schains_address );
-        imaState.jo_schains_internal = new imaState.w3_main_net.eth.Contract( imaState.joAbiPublishResult_skale_manager.schains_internal_abi, imaState.joAbiPublishResult_skale_manager.schains_internal_address );
+        imaState.jo_key_storage = new owaspUtils.ethersMod.ethers.Contract( joABI.key_storage_address, joABI.key_storage_abi, ep );
+        imaState.jo_schains = new owaspUtils.ethersMod.ethers.Contract( joABI.schains_address, joABI.schains_abi, ep );
+        imaState.jo_schains_internal = new owaspUtils.ethersMod.ethers.Contract( joABI.schains_internal_address, joABI.schains_internal_abi, ep );
         // jo_schains_functionality
         // jo_schains_functionality_internal
-        imaState.jo_skale_dkg = new imaState.w3_main_net.eth.Contract( imaState.joAbiPublishResult_skale_manager.skale_d_k_g_abi, imaState.joAbiPublishResult_skale_manager.skale_d_k_g_address );
-        imaState.jo_skale_manager = new imaState.w3_main_net.eth.Contract( imaState.joAbiPublishResult_skale_manager.skale_manager_abi, imaState.joAbiPublishResult_skale_manager.skale_manager_address );
-        imaState.jo_skale_token = new imaState.w3_main_net.eth.Contract( imaState.joAbiPublishResult_skale_manager.skale_token_abi, imaState.joAbiPublishResult_skale_manager.skale_token_address );
+        imaState.jo_skale_dkg = new owaspUtils.ethersMod.ethers.Contract( joABI.skale_d_k_g_address, joABI.skale_d_k_g_abi, ep );
+        imaState.jo_skale_manager = new owaspUtils.ethersMod.ethers.Contract( joABI.skale_manager_address, joABI.skale_manager_abi, ep );
+        imaState.jo_skale_token = new owaspUtils.ethersMod.ethers.Contract( joABI.skale_token_address, joABI.skale_token_abi, ep );
         // jo_skale_verifier
         // jo_slashing_table
         // jo_time_helpers
         // jo_time_helpers_with_debug
         // jo_token_state
-        imaState.jo_validator_service = new imaState.w3_main_net.eth.Contract( imaState.joAbiPublishResult_skale_manager.validator_service_abi, imaState.joAbiPublishResult_skale_manager.validator_service_address );
-        imaState.jo_wallets = new imaState.w3_main_net.eth.Contract( imaState.joAbiPublishResult_skale_manager.wallets_abi, imaState.joAbiPublishResult_skale_manager.wallets_address );
+        imaState.jo_validator_service = new owaspUtils.ethersMod.ethers.Contract( joABI.validator_service_address, joABI.validator_service_abi, ep );
+        imaState.jo_wallets = new owaspUtils.ethersMod.ethers.Contract( joABI.wallets_address, joABI.wallets_abi, ep );
     } // if( imaState.bHaveSkaleManagerABI )
 
 } // ima_contracts_init

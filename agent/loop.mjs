@@ -31,7 +31,7 @@ import * as cc from "../npms/skale-cc/cc.mjs";
 import * as log from "../npms/skale-log/log.mjs";
 import * as IMA from "../npms/skale-ima/index.mjs";
 import * as owaspUtils from "../npms/skale-owasp/owasp-utils.mjs";
-import * as imaUtils from "./utils.mjs";
+// import * as imaUtils from "./utils.mjs";
 import * as imaBLS from "./bls.mjs";
 import * as skale_observer from "../npms/skale-observer/observer.mjs";
 // import * as imaOracle from "./oracle.mjs";
@@ -557,7 +557,7 @@ export async function ensure_have_workers( opts ) {
                                     "strPathSslCert": opts.imaState.chainProperties.mn.joAccount.strPathSslCert,
                                     "strBlsKeyName": opts.imaState.chainProperties.mn.joAccount.strBlsKeyName
                                 },
-                                "w3": null,
+                                "ethersProvider": null,
                                 "strURL": opts.imaState.chainProperties.mn.strURL,
                                 "strChainName": opts.imaState.chainProperties.mn.strChainName,
                                 "cid": opts.imaState.chainProperties.mn.cid,
@@ -577,7 +577,7 @@ export async function ensure_have_workers( opts ) {
                                     "strPathSslCert": opts.imaState.chainProperties.mn.joAccount.strPathSslCert,
                                     "strBlsKeyName": opts.imaState.chainProperties.mn.joAccount.strBlsKeyName
                                 },
-                                "w3": null,
+                                "ethersProvider": null,
                                 "strURL": opts.imaState.chainProperties.sc.strURL,
                                 "strChainName": opts.imaState.chainProperties.sc.strChainName,
                                 "cid": opts.imaState.chainProperties.sc.cid,
@@ -597,7 +597,7 @@ export async function ensure_have_workers( opts ) {
                                     "strPathSslCert": opts.imaState.chainProperties.tc.joAccount.strPathSslCert,
                                     "strBlsKeyName": opts.imaState.chainProperties.tc.joAccount.strBlsKeyName
                                 },
-                                "w3": null,
+                                "ethersProvider": null,
                                 "strURL": opts.imaState.chainProperties.tc.strURL,
                                 "strChainName": opts.imaState.chainProperties.tc.strChainName,
                                 "cid": opts.imaState.chainProperties.tc.cid,

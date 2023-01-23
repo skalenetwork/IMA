@@ -732,9 +732,14 @@ async function check_correctness_of_messages_to_sign( details, strLogPrefix, str
         joAccount = imaState.chainProperties.sc.joAccount;
         joChainName = imaState.chainProperties.mn.strChainName;
     } else if( strDirection == "S2S" ) {
-        //joMessageProxy = new w3.eth.Contract( imaState.chainProperties.sc.joAbiIMA.message_proxy_chain_abi, imaState.chainProperties.sc.joAbiIMA.message_proxy_chain_address );
-        //joAccount = imaState.chainProperties.sc.joAccount;
-        //joChainName = joExtraSignOpts.chain_id_dst;
+        // joMessageProxy =
+        //     new owaspUtils.ethersMod.ethers.Contract(
+        //         imaState.chainProperties.sc.joAbiIMA.message_proxy_chain_address,
+        //         imaState.chainProperties.sc.joAbiIMA.message_proxy_chain_abi,
+        //         joExtraSignOpts.ethersProvider
+        //         );
+        // joAccount = imaState.chainProperties.sc.joAccount;
+        // joChainName = joExtraSignOpts.chain_id_dst;
         if( ! ( "ethersProvider" in joExtraSignOpts && joExtraSignOpts.ethersProvider ) )
             throw new Error( "CRITICAL ERROR: No provider specified in extra signing options for checking messages of directon \"" + strDirection + "\"" );
         joMessageProxy =
@@ -1829,72 +1834,6 @@ export async function do_sign_ready_hash( strMessageHash ) {
     return joSignResult;
 }
 
-// export async function handle_skale_call_via_redirect( joCallData ) {
-//     const sequence_id = owaspUtils.remove_starting_0x( get_w3().utils.soliditySha3( log.generate_timestamp_string( null, false ) ) );
-//     const strLogPrefix = "";
-//     const strNodeURL = imaState.chainProperties.sc.strURL;
-//     const rpcCallOpts = null;
-//     let joRetVal = { };
-//     const details = log.createMemoryStream( true );
-//     let isSuccess = false;
-//     try {
-//         await rpcCall.create( strNodeURL, rpcCallOpts, async function( joCall, err ) {
-//             if( err ) {
-//                 const strErrorMessage =
-//                     strLogPrefix + cc.fatal( "CRITICAL ERROR:" ) +
-//                     cc.error( " JSON RPC call to S-Chain failed, RPC call was not created, error is: " ) + cc.warning( owaspUtils.extract_error_message( err ) ) + "\n";
-//                 log.write( strErrorMessage );
-//                 details.write( strErrorMessage );
-//                 if( joCall )
-//                     await joCall.disconnect();
-//                 throw new Error( "JSON RPC call to S-Chain failed, RPC call was not created, error is: " + owaspUtils.extract_error_message( err ) );
-//             }
-//             details.write( strLogPrefix + cc.debug( "Will invoke " ) + cc.info( "S-Chain" ) + cc.debug( " with call data " ) + cc.j( joCallData ) + "\n" );
-//             await joCall.call( joCallData, async function( joIn, joOut, err ) {
-//                 if( err ) {
-//                     const strErrorMessage =
-//                         strLogPrefix + cc.fatal( "CRITICAL ERROR:" ) +
-//                         cc.error( " JSON RPC call to S-Chain failed, RPC call reported error: " ) + cc.warning( owaspUtils.extract_error_message( err ) ) + "\n";
-//                     log.write( strErrorMessage );
-//                     details.write( strErrorMessage );
-//                     await joCall.disconnect();
-//                     throw new Error( "JSON RPC call to S-Chain failed, RPC call reported error: " + owaspUtils.extract_error_message( err ) );
-//                 }
-//                 details.write( strLogPrefix + cc.debug( "Call to " ) + cc.info( "S-Chain" ) + cc.debug( " done, answer is: " ) + cc.j( joOut ) + "\n" );
-//                 if( joOut.result == null || joOut.result == undefined || ( !typeof joOut.result == "object" ) ) {
-//                     const strErrorMessage =
-//                         strLogPrefix + cc.fatal( "Wallet CRITICAL ERROR:" ) + " " +
-//                         cc.error( "S-Chain reported wallet error: " ) +
-//                         cc.warning( owaspUtils.extract_error_message( joOut, "unknown wallet error(3)" ) ) +
-//                         cc.error( ", " ) + cc.notice( "sequence ID" ) + cc.error( " is " ) + cc.attention( sequence_id ) +
-//                         "\n";
-//                     log.write( strErrorMessage );
-//                     details.write( strErrorMessage );
-//                     details.write( strErrorMessage );
-//                     await joCall.disconnect();
-//                     throw new Error( "JSON RPC call to S-Chain failed with \"unknown wallet error(3)\", sequence ID is " + sequence_id );
-//                 }
-//                 isSuccess = true;
-//                 joRetVal = joOut; // joOut.result
-//                 await joCall.disconnect();
-//             } ); // joCall.call ...
-//         } ); // rpcCall.create ...
-//     } catch ( err ) {
-//         isSuccess = false;
-//         const strError = owaspUtils.extract_error_message( err );
-//         joRetVal.error = strError;
-//         const strErrorMessage =
-//             strLogPrefix + cc.fatal( "CRITICAL ERROR:" ) + " " +
-//             cc.error( "JSON RPC call finished with error: " ) + cc.warning( strError ) +
-//             "\n";
-//         log.write( strErrorMessage );
-//         details.write( strErrorMessage );
-//     }
-//     details.exposeDetailsTo( log, "handle_skale_call_via_redirect()", isSuccess );
-//     details.close();
-//     return joRetVal;
-// }
-
 export async function handle_skale_imaVerifyAndSign( joCallData ) {
     const strLogPrefix = "";
     const details = log.createMemoryStream( true );
@@ -1945,7 +1884,7 @@ export async function handle_skale_imaVerifyAndSign( joCallData ) {
                 const jo_schain = arr_schains_cached[idxSChain];
                 if( jo_schain.data.name.toString() == strSChainNameSrc.toString() ) {
                     jo_schain_src = jo_schain;
-                    strUrlSrcSChain = skale_observer.pick_random_schain_w3_url( jo_schain );
+                    strUrlSrcSChain = skale_observer.pick_random_schain_url( jo_schain );
                     break;
                 }
             } // for( let idxSChain = 0; idxSChain < arr_schains_cached.length; ++ idxSChain )

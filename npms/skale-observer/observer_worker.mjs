@@ -108,11 +108,31 @@ class ObserverServer extends SocketServer {
                     "\n" );
             }
             //
-            self.opts.imaState.jo_nodes = new self.opts.imaState.chainProperties.mn.ethersProvider.eth.Contract( self.opts.imaState.joAbiSkaleManager.nodes_abi, self.opts.imaState.joAbiSkaleManager.nodes_address );
-            self.opts.imaState.jo_schains = new self.opts.imaState.chainProperties.mn.ethersProvider.eth.Contract( self.opts.imaState.joAbiSkaleManager.schains_abi, self.opts.imaState.joAbiSkaleManager.schains_address );
-            self.opts.imaState.jo_schains_internal = new self.opts.imaState.chainProperties.mn.ethersProvider.eth.Contract( self.opts.imaState.joAbiSkaleManager.schains_internal_abi, self.opts.imaState.joAbiSkaleManager.schains_internal_address );
+            self.opts.imaState.jo_nodes =
+                new owaspUtils.ethersMod.ethers.Contract(
+                    self.opts.imaState.joAbiSkaleManager.nodes_address,
+                    self.opts.imaState.joAbiSkaleManager.nodes_abi,
+                    self.opts.imaState.chainProperties.mn.ethersProvider
+                );
+            self.opts.imaState.jo_schains =
+                new owaspUtils.ethersMod.ethers.Contract(
+                    self.opts.imaState.joAbiSkaleManager.schains_address,
+                    self.opts.imaState.joAbiSkaleManager.schains_abi,
+                    self.opts.imaState.chainProperties.mn.ethersProvider
+                );
+            self.opts.imaState.jo_schains_internal =
+                new owaspUtils.ethersMod.ethers.Contract(
+                    self.opts.imaState.joAbiSkaleManager.schains_internal_address,
+                    self.opts.imaState.joAbiSkaleManager.schains_internal_abi,
+                    self.opts.imaState.chainProperties.mn.ethersProvider
+                );
             //
-            self.opts.imaState.jo_message_proxy_s_chain = new self.opts.imaState.chainProperties.sc.ethersProvider.eth.Contract( self.opts.imaState.chainProperties.sc.joAbiIMA.message_proxy_chain_abi, self.opts.imaState.chainProperties.sc.joAbiIMA.message_proxy_chain_address );
+            self.opts.imaState.jo_message_proxy_s_chain =
+                new owaspUtils.ethersMod.ethers.Contract(
+                    self.opts.imaState.chainProperties.sc.joAbiIMA.message_proxy_chain_address,
+                    self.opts.imaState.chainProperties.sc.joAbiIMA.message_proxy_chain_abi,
+                    self.opts.imaState.chainProperties.sc.ethersProvider
+                );
             //
             self.log( cc.debug( "Full init compete for in-worker SNB server" ) + " " + cc.notice( g_url ) + "\n" );
             return joAnswer;

@@ -154,7 +154,7 @@ export async function wait_for_cloned_token_to_appear(
     log.write( fmt.debug( "Waiting for " ) + fmt.contract_name( strTokenSuffixUC ) + fmt.debug( " token to appear automatically deployed on S-Chain " ) + fmt.chain_name( sc.chainName ) + fmt.debug( "..." ) );
     log.write( log.llp() + fmt.debug( "... source chain name is " ) + fmt.chain_name( strMainnetName ) );
     log.write( log.llp() + fmt.debug( "... destination " ) + fmt.contract_name( "TokenManager" + strTokenSuffixUC ) + fmt.debug( " address is " ) + fmt.address( sc.joABI["token_manager_" + strTokenSuffixLC + "_address"] ) );
-    const contractTokenManager = new sc.ethersMod.ethers.Contract(
+    const contractTokenManager = new owaspUtils.ethersMod.ethers.Contract(
         sc.joABI["token_manager_" + strTokenSuffixLC + "_address"],
         sc.joABI["token_manager_" + strTokenSuffixLC + "_abi"],
         sc.ethersProvider

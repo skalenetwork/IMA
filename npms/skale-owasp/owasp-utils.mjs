@@ -687,7 +687,7 @@ export function ensure_observer_opts_initialized( opts ) {
         const contractAddress = opts.joAbiPublishResult_skale_manager[strContractName + "_address"];
         const joContractABI = opts.joAbiPublishResult_skale_manager[strContractName + "_abi"];
         opts[strKeyName] =
-            new opts.chain.ethersMod.ethers.Contract( contractAddress, joContractABI, opts.chain.ethersProvider );
+            new ethersMod.ethers.Contract( contractAddress, joContractABI, opts.chain.ethersProvider );
     }
 }
 
