@@ -8,8 +8,8 @@ let rinkeby = "[RINKEBY_ENDPOINT]";
 let schainName = "[YOUR_SKALE_CHAIN_NAME]";
 let chainID = "[ETHEREUM_CHAIN_ID]";
 
-const depositBoxAddress = rinkebyABIs.deposit_box_address;
-const depositBoxABI = rinkebyABIs.deposit_box_abi;
+const depositBoxAddress = rinkebyABIs.deposit_box_eth_address;
+const depositBoxABI = rinkebyABIs.deposit_box_eth_abi;
 
 const web3 = new Web3(rinkeby);
 
