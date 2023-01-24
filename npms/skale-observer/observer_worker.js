@@ -152,19 +152,25 @@ class ObserverServer extends Server {
         const self = this;
         if( self.bIsPeriodicCachingStepInProgress )
             return null;
-        self.bIsPeriodicCachingStepInProgress = true;
         let strError = null;
+        self.bIsPeriodicCachingStepInProgress = true;
         for( let idxAttempt = 0; idxAttempt < 10; ++ idxAttempt ) {
-            strError =
-                await skale_observer.cache_schains(
-                    strChainNameConnectedTo,
-                    self.opts.imaState.w3_main_net,
-                    self.opts.imaState.w3_s_chain,
-                    addressFrom,
-                    self.opts
+            try {
+                strError =
+                    await skale_observer.cache_schains(
+                        strChainNameConnectedTo,
+                        self.opts.imaState.w3_main_net,
+                        self.opts.imaState.w3_s_chain,
+                        addressFrom,
+                        self.opts
                     );
-            if( ! strError )
-                break;
+                if( ! strError )
+                    break;
+            } catch ( err ) {
+                strError = owaspUtils.extract_error_message( err );
+                if( ! strError )
+                    strError = "runtime error without description";
+            }
             await sleep( 5 * 1000 );
         }
         self.bIsPeriodicCachingStepInProgress = false;
