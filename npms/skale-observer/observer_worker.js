@@ -151,16 +151,24 @@ class ObserverServer extends Server {
     async periodic_caching_do_now( socket, secondsToReDiscoverSkaleNetwork, strChainNameConnectedTo, addressFrom ) {
         const self = this;
         if( self.bIsPeriodicCachingStepInProgress )
-            return;
+            return null;
         self.bIsPeriodicCachingStepInProgress = true;
-        // const strError =
-        await skale_observer.cache_schains(
-            strChainNameConnectedTo,
-            self.opts.imaState.w3_main_net,
-            self.opts.imaState.w3_s_chain,
-            addressFrom,
-            self.opts
-        );
+        let strError = null;
+        for( let idxAttempt = 0; idxAttempt < 10; ++ idxAttempt ) {
+            strError =
+                await skale_observer.cache_schains(
+                    strChainNameConnectedTo,
+                    self.opts.imaState.w3_main_net,
+                    self.opts.imaState.w3_s_chain,
+                    addressFrom,
+                    self.opts
+                    );
+            if( ! strError )
+                break;
+            await sleep( 5 * 1000 );
+        }
+        if( strError )
+            return strError;
         self.bIsPeriodicCachingStepInProgress = false;
         const arr_schains = skale_observer.get_last_cached_schains();
         // self.log( cc.normal( "Got " ) + cc.info( "SKALE NETWORK" ) + cc.normal( " information in worker: " ) + cc.j( arr_schains ) + "\n" );
@@ -171,6 +179,7 @@ class ObserverServer extends Server {
         };
         const isFlush = true;
         socket.send( jo, isFlush );
+        return null;
     }
     async periodic_caching_start( socket, secondsToReDiscoverSkaleNetwork, strChainNameConnectedTo, addressFrom ) {
         const self = this;
