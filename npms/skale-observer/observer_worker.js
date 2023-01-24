@@ -167,9 +167,9 @@ class ObserverServer extends Server {
                 break;
             await sleep( 5 * 1000 );
         }
+        self.bIsPeriodicCachingStepInProgress = false;
         if( strError )
             return strError;
-        self.bIsPeriodicCachingStepInProgress = false;
         const arr_schains = skale_observer.get_last_cached_schains();
         // self.log( cc.normal( "Got " ) + cc.info( "SKALE NETWORK" ) + cc.normal( " information in worker: " ) + cc.j( arr_schains ) + "\n" );
         const jo = {
