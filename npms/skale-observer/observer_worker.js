@@ -42,6 +42,8 @@ parentPort.on( "message", jo => {
         return;
 } );
 
+const sleep = ( milliseconds ) => { return new Promise( resolve => setTimeout( resolve, milliseconds ) ); };
+
 function doSendMessage( type, endpoint, worker_uuid, data ) {
     const jo = network_layer.socket_received_data_reverse_marshall( data );
     const joSend = {
