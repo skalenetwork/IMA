@@ -836,7 +836,7 @@ async function do_oracle_gas_price_setup(
                 await checkTransactionToSchain( w3_schain, raw_tx_setGasPrice, details );
 
             const tx_setGasPrice = compose_tx_instance( details, strLogPrefix, raw_tx_setGasPrice );
-            const joSetGasPriceSR = await safe_sign_transaction_with_account( details, w3_schain, tx_setGasPrice, raw_tx_setGasPrice, joAccountSC );
+            const joSetGasPriceSR = await safe_sign_transaction_with_account( details, w3_schain, tx_setGasPrice, raw_tx_setGasPrice, joAccountSC, methodWithArguments_setGasPrice );
             let joReceipt = null;
             if( joSetGasPriceSR.joACI.isAutoSend )
                 joReceipt = await get_web3_transactionReceipt( details, 10, w3_schain, joSetGasPriceSR.txHashSent );
@@ -1320,8 +1320,10 @@ async function tm_ensure_transaction( details, w3, method, priority, txAdjusted,
     return [ txId, joReceipt ];
 }
 
-async function safe_sign_transaction_with_account( details, w3, tx, rawTx, joAccount ) {
+async function safe_sign_transaction_with_account( details, w3, tx, rawTx, joAccount, method ) {
+
     const strPrefixDetails = cc.debug( "(gathered details)" ) + " ";
+    const strMethodName = extract_dry_run_method_name( method );
     const strPrefixLog = cc.debug( "(immediate log)" ) + " ";
     const sendingCnt = loopTmSendingCnt++;
     let strMsg =
@@ -1412,7 +1414,7 @@ async function safe_sign_transaction_with_account( details, w3, tx, rawTx, joAcc
             redis = new Redis( joAccount.strTransactionManagerURL );
         const priority = joAccount.tm_priority || 5;
         try {
-            const [ tx_id, joReceipt ] = await tm_ensure_transaction( details, w3, tx.abi.name, priority, txAdjusted );
+            const [ tx_id, joReceipt ] = await tm_ensure_transaction( details, w3, strMethodName, priority, txAdjusted );
             joSR.txHashSent = "" + joReceipt.transactionHash;
             joSR.joReceipt = joReceipt;
             joSR.tm_tx_id = tx_id;
@@ -1739,7 +1741,7 @@ async function register_s_chain_in_deposit_boxes( // step 1
             data: dataTx
         };
         const tx = compose_tx_instance( details, strLogPrefix, rawTx );
-        const joSR = await safe_sign_transaction_with_account( details, w3_main_net, tx, rawTx, joAccountMN );
+        const joSR = await safe_sign_transaction_with_account( details, w3_main_net, tx, rawTx, joAccountMN, methodWithArguments );
         let joReceipt = null;
         if( joSR.joACI.isAutoSend )
             joReceipt = await get_web3_transactionReceipt( details, 10, w3_main_net, joSR.txHashSent );
@@ -1967,7 +1969,7 @@ async function reimbursement_wallet_recharge(
             value: "0x" + w3_main_net.utils.toBN( nReimbursementRecharge ).toString( 16 ) // wei_how_much // how much money to send
         };
         const tx = compose_tx_instance( details, strLogPrefix, rawTx );
-        const joSR = await safe_sign_transaction_with_account( details, w3_main_net, tx, rawTx, joAccountMN );
+        const joSR = await safe_sign_transaction_with_account( details, w3_main_net, tx, rawTx, joAccountMN, methodWithArguments );
         let joReceipt = null;
         if( joSR.joACI.isAutoSend )
             joReceipt = await get_web3_transactionReceipt( details, 10, w3_main_net, joSR.txHashSent );
@@ -2053,7 +2055,7 @@ async function reimbursement_wallet_withdraw(
             value: "0x" + w3_main_net.utils.toBN( wei_how_much ).toString( 16 ) // wei_how_much // how much money to send
         };
         const tx = compose_tx_instance( details, strLogPrefix, rawTx );
-        const joSR = await safe_sign_transaction_with_account( details, w3_main_net, tx, rawTx, joAccountMN );
+        const joSR = await safe_sign_transaction_with_account( details, w3_main_net, tx, rawTx, joAccountMN, methodWithArguments );
         let joReceipt = null;
         if( joSR.joACI.isAutoSend )
             joReceipt = await get_web3_transactionReceipt( details, 10, w3_main_net, joSR.txHashSent );
@@ -2142,7 +2144,7 @@ async function reimbursement_set_range(
         };
         await checkTransactionToSchain( w3_s_chain, rawTx, details );
         const tx = compose_tx_instance( details, strLogPrefix, rawTx );
-        const joSR = await safe_sign_transaction_with_account( details, w3_s_chain, tx, rawTx, joAccountSC );
+        const joSR = await safe_sign_transaction_with_account( details, w3_s_chain, tx, rawTx, joAccountSC, methodWithArguments );
         let joReceipt = null;
         if( joSR.joACI.isAutoSend )
             joReceipt = await get_web3_transactionReceipt( details, 10, w3_s_chain, joSR.txHashSent );
@@ -2240,7 +2242,7 @@ async function do_eth_payment_from_main_net(
             value: "0x" + w3_main_net.utils.toBN( wei_how_much ).toString( 16 ) // wei_how_much // how much money to send
         };
         const tx = compose_tx_instance( details, strLogPrefix, rawTx );
-        const joSR = await safe_sign_transaction_with_account( details, w3_main_net, tx, rawTx, joAccountSrc );
+        const joSR = await safe_sign_transaction_with_account( details, w3_main_net, tx, rawTx, joAccountSrc, methodWithArguments );
         let joReceipt = null;
         if( joSR.joACI.isAutoSend )
             joReceipt = await get_web3_transactionReceipt( details, 10, w3_main_net, joSR.txHashSent );
@@ -2363,7 +2365,7 @@ async function do_eth_payment_from_s_chain(
         };
         await checkTransactionToSchain( w3_s_chain, rawTx, details );
         const tx = compose_tx_instance( details, strLogPrefix, rawTx );
-        const joSR = await safe_sign_transaction_with_account( details, w3_s_chain, tx, rawTx, joAccountSrc );
+        const joSR = await safe_sign_transaction_with_account( details, w3_s_chain, tx, rawTx, joAccountSrc, methodWithArguments );
         let joReceipt = null;
         if( joSR.joACI.isAutoSend )
             joReceipt = await get_web3_transactionReceipt( details, 10, w3_s_chain, joSR.txHashSent );
@@ -2456,7 +2458,7 @@ async function receive_eth_payment_from_s_chain_on_main_net(
             value: 0 // how much money to send
         };
         const tx = compose_tx_instance( details, strLogPrefix, rawTx );
-        const joSR = await safe_sign_transaction_with_account( details, w3_main_net, tx, rawTx, joAccountMN );
+        const joSR = await safe_sign_transaction_with_account( details, w3_main_net, tx, rawTx, joAccountMN, methodWithArguments );
         let joReceipt = null;
         if( joSR.joACI.isAutoSend )
             joReceipt = await get_web3_transactionReceipt( details, 10, w3_main_net, joSR.txHashSent );
@@ -2614,7 +2616,7 @@ async function do_erc721_payment_from_main_net(
         };
         const txApprove = compose_tx_instance( details, strLogPrefix, rawTxApprove );
         strActionName = "sign ERC721/approve transaction M->S";
-        const joApproveSR = await safe_sign_transaction_with_account( details, w3_main_net, txApprove, rawTxApprove, joAccountSrc );
+        const joApproveSR = await safe_sign_transaction_with_account( details, w3_main_net, txApprove, rawTxApprove, joAccountSrc, methodWithArguments_approve );
         let joReceiptApprove = null;
         if( joApproveSR.joACI.isAutoSend )
             joReceiptApprove = await get_web3_transactionReceipt( details, 10, w3_main_net, joApproveSR.txHashSent );
@@ -2662,7 +2664,7 @@ async function do_erc721_payment_from_main_net(
         };
         const txDeposit = compose_tx_instance( details, strLogPrefix, rawTxDeposit );
         strActionName = "sign ERC721/deposit transaction M->S";
-        const joDepositSR = await safe_sign_transaction_with_account( details, w3_main_net, txDeposit, rawTxDeposit, joAccountSrc );
+        const joDepositSR = await safe_sign_transaction_with_account( details, w3_main_net, txDeposit, rawTxDeposit, joAccountSrc, methodWithArguments_rawDepositERC721 );
         let joReceiptDeposit = null;
         if( joDepositSR.joACI.isAutoSend )
             joReceiptDeposit = await get_web3_transactionReceipt( details, 10, w3_main_net, joDepositSR.txHashSent );
@@ -2794,7 +2796,7 @@ async function do_erc20_payment_from_main_net(
         };
         const txApprove = compose_tx_instance( details, strLogPrefix, rawTxApprove );
         strActionName = "sign ERC20/approve transaction M->S";
-        const joApproveSR = await safe_sign_transaction_with_account( details, w3_main_net, txApprove, rawTxApprove, joAccountSrc );
+        const joApproveSR = await safe_sign_transaction_with_account( details, w3_main_net, txApprove, rawTxApprove, joAccountSrc, methodWithArguments_approve );
         let joReceiptApprove = null;
         if( joApproveSR.joACI.isAutoSend )
             joReceiptApprove = await get_web3_transactionReceipt( details, 10, w3_main_net, joApproveSR.txHashSent );
@@ -2841,7 +2843,7 @@ async function do_erc20_payment_from_main_net(
         };
         const txDeposit = compose_tx_instance( details, strLogPrefix, rawTxDeposit );
         strActionName = "sign ERC20/deposit transaction M->S";
-        const joDepositSR = await safe_sign_transaction_with_account( details, w3_main_net, txDeposit, rawTxDeposit, joAccountSrc );
+        const joDepositSR = await safe_sign_transaction_with_account( details, w3_main_net, txDeposit, rawTxDeposit, joAccountSrc, methodWithArguments_rawDepositERC20 );
         let joReceiptDeposit = null;
         if( joDepositSR.joACI.isAutoSend )
             joReceiptDeposit = await get_web3_transactionReceipt( details, 10, w3_main_net, joDepositSR.txHashSent );
@@ -2970,7 +2972,7 @@ async function do_erc1155_payment_from_main_net(
         };
         const txApprove = compose_tx_instance( details, strLogPrefix, rawTxApprove );
         strActionName = "sign ERC1155/approve transaction M->S";
-        const joApproveSR = await safe_sign_transaction_with_account( details, w3_main_net, txApprove, rawTxApprove, joAccountSrc );
+        const joApproveSR = await safe_sign_transaction_with_account( details, w3_main_net, txApprove, rawTxApprove, joAccountSrc, methodWithArguments_approve );
         let joReceiptApprove = null;
         if( joApproveSR.joACI.isAutoSend )
             joReceiptApprove = await get_web3_transactionReceipt( details, 10, w3_main_net, joApproveSR.txHashSent );
@@ -3018,7 +3020,7 @@ async function do_erc1155_payment_from_main_net(
         };
         const txDeposit = compose_tx_instance( details, strLogPrefix, rawTxDeposit );
         strActionName = "sign ERC1155/deposit transaction M->S";
-        const joDepositSR = await safe_sign_transaction_with_account( details, w3_main_net, txDeposit, rawTxDeposit, joAccountSrc );
+        const joDepositSR = await safe_sign_transaction_with_account( details, w3_main_net, txDeposit, rawTxDeposit, joAccountSrc, methodWithArguments_rawDepositERC1155 );
         let joReceiptDeposit = null;
         if( joDepositSR.joACI.isAutoSend )
             joReceiptDeposit = await get_web3_transactionReceipt( details, 10, w3_main_net, joDepositSR.txHashSent );
@@ -3147,7 +3149,7 @@ async function do_erc1155_batch_payment_from_main_net(
         };
         const txApprove = compose_tx_instance( details, strLogPrefix, rawTxApprove );
         strActionName = "sign ERC1155 Batch/approve transaction M->S";
-        const joApproveSR = await safe_sign_transaction_with_account( details, w3_main_net, txApprove, rawTxApprove, joAccountSrc );
+        const joApproveSR = await safe_sign_transaction_with_account( details, w3_main_net, txApprove, rawTxApprove, joAccountSrc, methodWithArguments_approve );
         let joReceiptApprove = null;
         if( joApproveSR.joACI.isAutoSend )
             joReceiptApprove = await get_web3_transactionReceipt( details, 10, w3_main_net, joApproveSR.txHashSent );
@@ -3195,7 +3197,7 @@ async function do_erc1155_batch_payment_from_main_net(
         };
         const txDeposit = compose_tx_instance( details, strLogPrefix, rawTxDeposit );
         strActionName = "sign ERC1155 Batch/deposit transaction M->S";
-        const joDepositSR = await safe_sign_transaction_with_account( details, w3_main_net, txDeposit, rawTxDeposit, joAccountSrc );
+        const joDepositSR = await safe_sign_transaction_with_account( details, w3_main_net, txDeposit, rawTxDeposit, joAccountSrc, methodWithArguments_rawDepositERC1155Batch );
         let joReceiptDeposit = null;
         if( joDepositSR.joACI.isAutoSend )
             joReceiptDeposit = await get_web3_transactionReceipt( details, 10, w3_main_net, joDepositSR.txHashSent );
@@ -3328,7 +3330,7 @@ async function do_erc20_payment_from_s_chain(
         await checkTransactionToSchain( w3_s_chain, rawTxApprove, details );
         const txApprove = compose_tx_instance( details, strLogPrefix, rawTxApprove );
         strActionName = "sign ERC20/approve transaction S->M";
-        const joApproveSR = await safe_sign_transaction_with_account( details, w3_s_chain, txApprove, rawTxApprove, joAccountSrc );
+        const joApproveSR = await safe_sign_transaction_with_account( details, w3_s_chain, txApprove, rawTxApprove, joAccountSrc, methodWithArguments_approve );
         let joReceiptApprove = null;
         if( joApproveSR.joACI.isAutoSend && joDepositSR.joACI.isAutoSend )
             joReceiptApprove = await get_web3_transactionReceipt( details, 10, w3_s_chain, joApproveSR.txHashSent );
@@ -3382,7 +3384,7 @@ async function do_erc20_payment_from_s_chain(
         await checkTransactionToSchain( w3_s_chain, rawTxExitToMainERC20, details );
         const txExitToMainERC20 = compose_tx_instance( details, strLogPrefix, rawTxExitToMainERC20 );
         strActionName = "sign ERC20/exitToMain transaction S->M";
-        const joExitToMainERC20SR = await safe_sign_transaction_with_account( details, w3_s_chain, txExitToMainERC20, rawTxExitToMainERC20, joAccountSrc );
+        const joExitToMainERC20SR = await safe_sign_transaction_with_account( details, w3_s_chain, txExitToMainERC20, rawTxExitToMainERC20, joAccountSrc, methodWithArguments_rawExitToMainERC20 );
         let joReceiptExitToMainERC20 = null;
         if( joExitToMainERC20SR.joACI.isAutoSend )
             joReceiptExitToMainERC20 = await get_web3_transactionReceipt( details, 10, w3_s_chain, joExitToMainERC20SR.txHashSent );
@@ -3511,7 +3513,7 @@ async function do_erc721_payment_from_s_chain(
         await checkTransactionToSchain( w3_s_chain, rawTxApprove, details );
         const txApprove = compose_tx_instance( details, strLogPrefix, rawTxApprove );
         strActionName = "sign ERC721/approve transaction S->M";
-        const joApproveSR = await safe_sign_transaction_with_account( details, w3_s_chain, txApprove, rawTxApprove, joAccountSrc );
+        const joApproveSR = await safe_sign_transaction_with_account( details, w3_s_chain, txApprove, rawTxApprove, joAccountSrc, methodWithArguments_approve );
         let joReceiptApprove = null;
         if( joApproveSR.joACI.isAutoSend )
             joReceiptApprove = await get_web3_transactionReceipt( details, 10, w3_s_chain, joApproveSR.txHashSent );
@@ -3566,7 +3568,7 @@ async function do_erc721_payment_from_s_chain(
         await checkTransactionToSchain( w3_s_chain, rawTxExitToMainERC721, details );
         const txExitToMainERC721 = compose_tx_instance( details, strLogPrefix, rawTxExitToMainERC721 );
         strActionName = "sign ERC721/rawExitToMain transaction S->M";
-        const joExitToMainErc721SR = await safe_sign_transaction_with_account( details, w3_s_chain, txExitToMainERC721, rawTxExitToMainERC721, joAccountSrc );
+        const joExitToMainErc721SR = await safe_sign_transaction_with_account( details, w3_s_chain, txExitToMainERC721, rawTxExitToMainERC721, joAccountSrc, methodWithArguments_rawExitToMainERC721 );
         let joReceiptExitToMainERC721 = null;
         if( joExitToMainErc721SR.joACI.isAutoSend )
             joReceiptExitToMainERC721 = await get_web3_transactionReceipt( details, 10, w3_s_chain, joExitToMainErc721SR.txHashSent );
@@ -3695,7 +3697,7 @@ async function do_erc1155_payment_from_s_chain(
         await checkTransactionToSchain( w3_s_chain, rawTxApprove, details );
         const txApprove = compose_tx_instance( details, strLogPrefix, rawTxApprove );
         strActionName = "sign ERC1155/approve transaction S->M";
-        const joApproveSR = await safe_sign_transaction_with_account( details, w3_s_chain, txApprove, rawTxApprove, joAccountSrc );
+        const joApproveSR = await safe_sign_transaction_with_account( details, w3_s_chain, txApprove, rawTxApprove, joAccountSrc, methodWithArguments_approve );
         let joReceiptApprove = null;
         if( joApproveSR.joACI.isAutoSend )
             joReceiptApprove = await get_web3_transactionReceipt( details, 10, w3_s_chain, joApproveSR.txHashSent );
@@ -3750,7 +3752,7 @@ async function do_erc1155_payment_from_s_chain(
         await checkTransactionToSchain( w3_s_chain, rawTxExitToMainERC1155, details );
         const txExitToMainERC1155 = compose_tx_instance( details, strLogPrefix, rawTxExitToMainERC1155 );
         strActionName = "sign ERC1155/rawExitToMain transaction S->M";
-        const joExitToMainErc1155SR = await safe_sign_transaction_with_account( details, w3_s_chain, txExitToMainERC1155, rawTxExitToMainERC1155, joAccountSrc );
+        const joExitToMainErc1155SR = await safe_sign_transaction_with_account( details, w3_s_chain, txExitToMainERC1155, rawTxExitToMainERC1155, joAccountSrc, methodWithArguments_rawExitToMainERC1155 );
         let joReceiptExitToMainERC1155 = null;
         if( joExitToMainErc1155SR.joACI.isAutoSend )
             joReceiptExitToMainERC1155 = await get_web3_transactionReceipt( details, 10, w3_s_chain, joExitToMainErc1155SR.txHashSent );
@@ -3878,7 +3880,7 @@ async function do_erc1155_batch_payment_from_s_chain(
         await checkTransactionToSchain( w3_s_chain, rawTxApprove, details );
         const txApprove = compose_tx_instance( details, strLogPrefix, rawTxApprove );
         strActionName = "sign ERC1155 Batch/approve transaction S->M";
-        const joApproveSR = await safe_sign_transaction_with_account( details, w3_s_chain, txApprove, rawTxApprove, joAccountSrc );
+        const joApproveSR = await safe_sign_transaction_with_account( details, w3_s_chain, txApprove, rawTxApprove, joAccountSrc, methodWithArguments_approve );
         let joReceiptApprove = null;
         if( joApproveSR.joACI.isAutoSend )
             joReceiptApprove = await get_web3_transactionReceipt( details, 10, w3_s_chain, joApproveSR.txHashSent );
@@ -3933,7 +3935,7 @@ async function do_erc1155_batch_payment_from_s_chain(
         await checkTransactionToSchain( w3_s_chain, rawTxExitToMainERC1155Batch, details );
         const txExitToMainERC1155Batch = compose_tx_instance( details, strLogPrefix, rawTxExitToMainERC1155Batch );
         strActionName = "sign ERC1155 Batch/rawExitToMain transaction S->M";
-        const joExitToMainErc1155BatchSR = await safe_sign_transaction_with_account( details, w3_s_chain, txExitToMainERC1155Batch, rawTxExitToMainERC1155Batch, joAccountSrc );
+        const joExitToMainErc1155BatchSR = await safe_sign_transaction_with_account( details, w3_s_chain, txExitToMainERC1155Batch, rawTxExitToMainERC1155Batch, joAccountSrc, methodWithArguments_rawExitToMainERC1155Batch );
         let joReceiptExitToMainERC1155Batch = null;
         if( joExitToMainErc1155BatchSR.joACI.isAutoSend )
             joReceiptExitToMainERC1155Batch = await get_web3_transactionReceipt( details, 10, w3_s_chain, joExitToMainErc1155BatchSR.txHashSent );
@@ -4077,7 +4079,7 @@ async function do_erc20_payment_s2s(
         };
         const tx_approve = compose_tx_instance( details, strLogPrefix, rawTx_approve );
         strActionName = "sign ERC20/approve transaction S->S " + ( isForward ? "forward" : "reverse" );
-        const joSR_approve = await safe_sign_transaction_with_account( details, w3_src, tx_approve, rawTx_approve, joAccountSrc );
+        const joSR_approve = await safe_sign_transaction_with_account( details, w3_src, tx_approve, rawTx_approve, joAccountSrc, methodWithArguments_approve );
         let joReceipt_approve = null;
         if( joSR_approve.joACI.isAutoSend )
             joReceipt_approve = await get_web3_transactionReceipt( details, 10, w3_src, joSR_approve.txHashSent );
@@ -4120,7 +4122,7 @@ async function do_erc20_payment_s2s(
         };
         const tx_transfer = compose_tx_instance( details, strLogPrefix, rawTx_transfer );
         strActionName = "sign ERC20/transfer transaction S->S " + ( isForward ? "forward" : "reverse" );
-        const joSR_transfer = await safe_sign_transaction_with_account( details, w3_src, tx_transfer, rawTx_transfer, joAccountSrc );
+        const joSR_transfer = await safe_sign_transaction_with_account( details, w3_src, tx_transfer, rawTx_transfer, joAccountSrc, methodWithArguments_transfer );
         let joReceipt_transfer = null;
         if( joSR_transfer.joACI.isAutoSend )
             joReceipt_transfer = await get_web3_transactionReceipt( details, 10, w3_src, joSR_transfer.txHashSent );
@@ -4268,7 +4270,7 @@ async function do_erc721_payment_s2s(
         };
         const tx_approve = compose_tx_instance( details, strLogPrefix, rawTx_approve );
         strActionName = "sign ERC721/approve transaction S->S " + ( isForward ? "forward" : "reverse" );
-        const joSR_approve = await safe_sign_transaction_with_account( details, w3_src, tx_approve, rawTx_approve, joAccountSrc );
+        const joSR_approve = await safe_sign_transaction_with_account( details, w3_src, tx_approve, rawTx_approve, joAccountSrc, methodWithArguments_approve );
         let joReceipt_approve = null;
         if( joSR_approve.joACI.isAutoSend )
             joReceipt_approve = await get_web3_transactionReceipt( details, 10, w3_src, joSR_approve.txHashSent );
@@ -4311,7 +4313,7 @@ async function do_erc721_payment_s2s(
         };
         const tx_transfer = compose_tx_instance( details, strLogPrefix, rawTx_transfer );
         strActionName = "sign ERC721/transfer transaction S->S " + ( isForward ? "forward" : "reverse" );
-        const joSR_transfer = await safe_sign_transaction_with_account( details, w3_src, tx_transfer, rawTx_transfer, joAccountSrc );
+        const joSR_transfer = await safe_sign_transaction_with_account( details, w3_src, tx_transfer, rawTx_transfer, joAccountSrc, methodWithArguments_transfer );
         let joReceipt_transfer = null;
         if( joSR_transfer.joACI.isAutoSend )
             joReceipt_transfer = await get_web3_transactionReceipt( details, 10, w3_src, joSR_transfer.txHashSent );
@@ -4462,7 +4464,7 @@ async function do_erc1155_payment_s2s(
         };
         const tx_approve = compose_tx_instance( details, strLogPrefix, rawTx_approve );
         strActionName = "sign ERC1155/approve transaction S->S " + ( isForward ? "forward" : "reverse" );
-        const joSR_approve = await safe_sign_transaction_with_account( details, w3_src, tx_approve, rawTx_approve, joAccountSrc );
+        const joSR_approve = await safe_sign_transaction_with_account( details, w3_src, tx_approve, rawTx_approve, joAccountSrc, methodWithArguments_approve );
         let joReceipt_approve = null;
         if( joSR_approve.joACI.isAutoSend )
             joReceipt_approve = await get_web3_transactionReceipt( details, 10, w3_src, joSR_approve.txHashSent );
@@ -4505,7 +4507,7 @@ async function do_erc1155_payment_s2s(
         };
         const tx_transfer = compose_tx_instance( details, strLogPrefix, rawTx_transfer );
         strActionName = "sign ERC1155/transfer transaction S->S " + ( isForward ? "forward" : "reverse" );
-        const joSR_transfer = await safe_sign_transaction_with_account( details, w3_src, tx_transfer, rawTx_transfer, joAccountSrc );
+        const joSR_transfer = await safe_sign_transaction_with_account( details, w3_src, tx_transfer, rawTx_transfer, joAccountSrc, methodWithArguments_transfer );
         let joReceipt_transfer = null;
         if( joSR_transfer.joACI.isAutoSend )
             joReceipt_transfer = await get_web3_transactionReceipt( details, 10, w3_src, joSR_transfer.txHashSent );
@@ -4656,7 +4658,7 @@ async function do_erc1155_batch_payment_s2s(
         };
         const tx_approve = compose_tx_instance( details, strLogPrefix, rawTx_approve );
         strActionName = "sign ERC1155-batch/approve transaction S->S " + ( isForward ? "forward" : "reverse" );
-        const joSR_approve = await safe_sign_transaction_with_account( details, w3_src, tx_approve, rawTx_approve, joAccountSrc );
+        const joSR_approve = await safe_sign_transaction_with_account( details, w3_src, tx_approve, rawTx_approve, joAccountSrc, methodWithArguments_approve );
         let joReceipt_approve = null;
         if( joSR_approve.joACI.isAutoSend )
             joReceipt_approve = await get_web3_transactionReceipt( details, 10, w3_src, joSR_approve.txHashSent );
@@ -4699,7 +4701,7 @@ async function do_erc1155_batch_payment_s2s(
         };
         const tx_transfer = compose_tx_instance( details, strLogPrefix, rawTx_transfer );
         strActionName = "sign ERC1155/transfer transaction S->S " + ( isForward ? "forward" : "reverse" );
-        const joSR_transfer = await safe_sign_transaction_with_account( details, w3_src, tx_transfer, rawTx_transfer, joAccountSrc );
+        const joSR_transfer = await safe_sign_transaction_with_account( details, w3_src, tx_transfer, rawTx_transfer, joAccountSrc, methodWithArguments_transfer );
         let joReceipt_transfer = null;
         if( joSR_transfer.joACI.isAutoSend )
             joReceipt_transfer = await get_web3_transactionReceipt( details, 10, w3_src, joSR_transfer.txHashSent );
@@ -5891,7 +5893,7 @@ async function do_transfer(
                             await checkTransactionToSchain( w3_dst, raw_tx_postIncomingMessages, detailsB );
 
                         const tx_postIncomingMessages = compose_tx_instance( detailsB, strLogPrefix, raw_tx_postIncomingMessages );
-                        const joPostIncomingMessagesSR = await safe_sign_transaction_with_account( detailsB, w3_dst, tx_postIncomingMessages, raw_tx_postIncomingMessages, joAccountDst );
+                        const joPostIncomingMessagesSR = await safe_sign_transaction_with_account( detailsB, w3_dst, tx_postIncomingMessages, raw_tx_postIncomingMessages, joAccountDst, methodWithArguments_postIncomingMessages );
                         let joReceipt = null;
                         if( joPostIncomingMessagesSR.joACI.isAutoSend ) {
                             //
@@ -6408,7 +6410,7 @@ async function mintERC20(
         strActionName = "mintERC20() prepare composed transaction";
         const tx_mint = compose_tx_instance( details, strLogPrefix, raw_tx_mint );
         strActionName = "mintERC20() sign transaction";
-        const joSR = await safe_sign_transaction_with_account( details, w3, tx_mint, raw_tx_mint, joAccount );
+        const joSR = await safe_sign_transaction_with_account( details, w3, tx_mint, raw_tx_mint, joAccount, methodWithArguments_mint );
         let joReceipt = null;
         if( joSR.joACI.isAutoSend ) {
             // if( optsPendingTxAnalysis && "isEnabled" in optsPendingTxAnalysis && optsPendingTxAnalysis.isEnabled )
@@ -6504,7 +6506,7 @@ async function mintERC721(
         strActionName = "mintERC721() prepare composed transaction";
         const tx_mint = compose_tx_instance( details, strLogPrefix, raw_tx_mint );
         strActionName = "mintERC721() sign transaction";
-        const joSR = await safe_sign_transaction_with_account( details, w3, tx_mint, raw_tx_mint, joAccount );
+        const joSR = await safe_sign_transaction_with_account( details, w3, tx_mint, raw_tx_mint, joAccount, methodWithArguments_mint );
         let joReceipt = null;
         if( joSR.joACI.isAutoSend ) {
             // if( optsPendingTxAnalysis && "isEnabled" in optsPendingTxAnalysis && optsPendingTxAnalysis.isEnabled )
@@ -6603,7 +6605,7 @@ async function mintERC1155(
         strActionName = "mintERC1155() prepare composed transaction";
         const tx_mint = compose_tx_instance( details, strLogPrefix, raw_tx_mint );
         strActionName = "mintERC1155() sign transaction";
-        const joSR = await safe_sign_transaction_with_account( details, w3, tx_mint, raw_tx_mint, joAccount );
+        const joSR = await safe_sign_transaction_with_account( details, w3, tx_mint, raw_tx_mint, joAccount, methodWithArguments_mint );
         let joReceipt = null;
         if( joSR.joACI.isAutoSend ) {
             // if( optsPendingTxAnalysis && "isEnabled" in optsPendingTxAnalysis && optsPendingTxAnalysis.isEnabled )
@@ -6699,7 +6701,7 @@ async function burnERC20(
         strActionName = "burnERC20() prepare composed transaction";
         const tx_burn = compose_tx_instance( details, strLogPrefix, raw_tx_burn );
         strActionName = "burnERC20() sign transaction";
-        const joSR = await safe_sign_transaction_with_account( details, w3, tx_burn, raw_tx_burn, joAccount );
+        const joSR = await safe_sign_transaction_with_account( details, w3, tx_burn, raw_tx_burn, joAccount, methodWithArguments_burn );
         let joReceipt = null;
         if( joSR.joACI.isAutoSend ) {
             // if( optsPendingTxAnalysis && "isEnabled" in optsPendingTxAnalysis && optsPendingTxAnalysis.isEnabled )
@@ -6795,7 +6797,7 @@ async function burnERC721(
         strActionName = "burnERC721() prepare composed transaction";
         const tx_burn = compose_tx_instance( details, strLogPrefix, raw_tx_burn );
         strActionName = "burnERC721() sign transaction";
-        const joSR = await safe_sign_transaction_with_account( details, w3, tx_burn, raw_tx_burn, joAccount );
+        const joSR = await safe_sign_transaction_with_account( details, w3, tx_burn, raw_tx_burn, joAccount, methodWithArguments_burn );
         let joReceipt = null;
         if( joSR.joACI.isAutoSend ) {
             // if( optsPendingTxAnalysis && "isEnabled" in optsPendingTxAnalysis && optsPendingTxAnalysis.isEnabled )
@@ -6893,7 +6895,7 @@ async function burnERC1155(
         strActionName = "burnERC1155() prepare composed transaction";
         const tx_burn = compose_tx_instance( details, strLogPrefix, raw_tx_burn );
         strActionName = "burnERC1155() sign transaction";
-        const joSR = await safe_sign_transaction_with_account( details, w3, tx_burn, raw_tx_burn, joAccount );
+        const joSR = await safe_sign_transaction_with_account( details, w3, tx_burn, raw_tx_burn, joAccount, methodWithArguments_burn );
         let joReceipt = null;
         if( joSR.joACI.isAutoSend ) {
             // if( optsPendingTxAnalysis && "isEnabled" in optsPendingTxAnalysis && optsPendingTxAnalysis.isEnabled )
