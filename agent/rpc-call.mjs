@@ -49,7 +49,7 @@ export async function wait_web_socket_is_open( socket, fnDone, fnStep ) {
             } else {
                 if( ! await fnStep( nStep ) ) {
                     clearInterval( iv );
-                    reject( new Error( "web socket wait timout by callback on step " + nStep ) );
+                    reject( new Error( "web socket wait timeout by callback on step " + nStep ) );
                 }
             }
             isInsideAsyncHandler = false;
@@ -256,7 +256,7 @@ export async function do_call( joCall, joIn, fn ) {
             } catch ( err ) {
                 bCompleteFlag = true;
                 joOut = null;
-                errCall = "Responce body parse error: " + err.toString();
+                errCall = "Response body parse error: " + err.toString();
                 return;
             }
             bCompleteFlag = true;

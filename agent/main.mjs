@@ -272,7 +272,7 @@ global.imaState = {
 
     "s2s_opts": { // S-Chain to S-Chain transfer options
         "isEnabled": true, // is S-Chain to S-Chain transfers enabled
-        "secondsToReDiscoverSkaleNetwork": 1 * 60 * 60 // seconts to re-discover SKALE network, 0 to disable
+        "secondsToReDiscoverSkaleNetwork": 1 * 60 * 60 // seconds to re-discover SKALE network, 0 to disable
     },
 
     "nJsonRpcPort": 0, // 0 to disable
@@ -1584,7 +1584,7 @@ imaCLI.parse( {
                 );
 
                 const cnt = arr_schains_cached.length;
-                log.write( strLogPrefix + cc.normal( "Got " ) + cc.info( cnt ) + cc.normal( " onnected S-Chain(s): " ) + cc.j( arr_schains_cached ) + "\n" );
+                log.write( strLogPrefix + cc.normal( "Got " ) + cc.info( cnt ) + cc.normal( " connected S-Chain(s): " ) + cc.j( arr_schains_cached ) + "\n" );
                 return true;
             }
         } );
@@ -1619,7 +1619,7 @@ imaCLI.parse( {
                 }
                 if( arr_urls_to_discover.length === 0 ) {
                     console.log( cc.fatal( "CRITICAL ERROR:" ) +
-                        cc.error( " no URLs privided to discover chain IDs, please specify " ) +
+                        cc.error( " no URLs provided to discover chain IDs, please specify " ) +
                         cc.warning( "--url-main-net" ) + cc.error( " and/or " ) +
                         cc.warning( "--url-s-chain" ) + cc.error( " and/or " ) +
                         cc.warning( "--url-t-chain" ) + cc.error( "." ) +

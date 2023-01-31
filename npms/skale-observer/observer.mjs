@@ -427,14 +427,14 @@ export async function cache_schains( strChainNameConnectedTo, addressFrom, opts 
                 cc.debug( "Connected " ) + cc.attention( "S-Chains" ) + cc.debug( " cache was updated in this thread: " ) +
                 cc.j( g_arr_schains_cached ) + "\n" );
         }
-        if( opts.fn_chache_changed )
-            opts.fn_chache_changed( g_arr_schains_cached, null ); // null - no error
+        if( opts.fn_cache_changed )
+            opts.fn_cache_changed( g_arr_schains_cached, null ); // null - no error
     } catch ( err ) {
         strError = owaspUtils.extract_error_message( err );
         if( ! strError )
             strError = "unknown exception during S-Chains download";
-        if( opts.fn_chache_changed )
-            opts.fn_chache_changed( g_arr_schains_cached, strError );
+        if( opts.fn_cache_changed )
+            opts.fn_cache_changed( g_arr_schains_cached, strError );
         if( opts && opts.details ) {
             opts.details.write( cc.fatal( "ERROR:" ) + cc.error( " Failed to cache: " ) + cc.error( err ) );
             opts.details.write( err.stack );

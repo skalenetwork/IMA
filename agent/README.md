@@ -523,8 +523,8 @@ node ./main.js --verbose=9 --expose --colors \
     --cid-s-chain=-4 \
     --abi-main-net=../proxy/data/proxyMainnet.json \
     --abi-s-chain=../proxy/data/proxySchain_Bob.json \
-    --erc20-main-net=../../SkaleExperimental/skaled-tests/saved-Artem-scripts/Zhelcoin/data-mn.json \
-    --erc20-s-chain=../../SkaleExperimental/skaled-tests/saved-Artem-scripts/Zhelcoin/data-sc.json \
+    --erc20-main-net=...path.../data-mn.json \
+    --erc20-s-chain=...path.../data-sc.json \
     --key-main-net=$PRIVATE_KEY_FOR_ETHEREUM \
     --address-s-chain=0x66c5a87f4a49dd75e970055a265e8dd5c3f8f852
 ```
@@ -560,8 +560,8 @@ node ./main.js --verbose=9 --expose --colors \
     --cid-s-chain=-4 \
     --abi-main-net=../proxy/data/proxyMainnet.json \
     --abi-s-chain=../proxy/data/proxySchain_Bob.json \
-    --erc20-main-net=../../SkaleExperimental/skaled-tests/saved-Artem-scripts/Zhelcoin/data-mn.json \
-    --erc20-s-chain=../../SkaleExperimental/skaled-tests/saved-Artem-scripts/Zhelcoin/data-sc.json \
+    --erc20-main-net=...path.../data-mn.json \
+    --erc20-s-chain=...path.../data-sc.json \
     --address-main-net=$ACCOUNT_FOR_ETHEREUM \
     --key-s-chain=$PRIVATE_KEY_FOR_SCHAIN
 ```
@@ -710,9 +710,9 @@ reset; node ./main.js --verbose=9 --expose --colors \
     --key-main-net=$PRIVATE_KEY_FOR_ETHEREUM \
     --key-s-chain=$PRIVATE_KEY_FOR_SCHAIN \
     --sign-messages \
-    --bls-glue=/Users/l_sergiy/Work/skaled/build/libconsensus/libBLS/bls_glue \
-    --hash-g1=/Users/l_sergiy/Work/skaled/build/libconsensus/libBLS/hash_g1 \
-    --bls-verify=/Users/l_sergiy/Work/skaled/build/libconsensus/libBLS/verify_bls
+    --bls-glue=...path.../bls_glue \
+    --hash-g1=...path.../hash_g1 \
+    --bls-verify=...path.../verify_bls
 
 reset; node ./main.js --verbose=9 --expose --colors \
     --loop \

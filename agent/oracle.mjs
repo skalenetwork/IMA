@@ -122,12 +122,12 @@ export function oracle_get_gas_price( oracleOpts, details ) {
                             details.write( cc.debug( "RPC call" ) + cc.normal( "(" ) + cc.attention( "oracle_submitRequest" ) + cc.normal( ")" ) + cc.debug( " result is: " ) + cc.j( joOut ) + "\n" );
                         if( !( "result" in joOut && typeof joOut.result == "string" && joOut.result.length > 0 ) ) {
                             details.write(
-                                cc.fatal( "CRITICAL ORACLE CALL ERROR:" ) + cc.error( " bad unexpecected result" ) +
+                                cc.fatal( "CRITICAL ORACLE CALL ERROR:" ) + cc.error( " bad unexpected result" ) +
                                 cc.normal( "(" ) + cc.attention( "oracle_submitRequest" ) + cc.normal( ")" ) +
                                 + cc.error( ", error description is" ) + waspUtils.extract_error_message( err ) +
                                 "\n" );
                             await joCall.disconnect();
-                            reject( new Error( "CRITICAL ORACLE CALL ERROR: bad unexpecected result(oracle_submitRequest)" ) );
+                            reject( new Error( "CRITICAL ORACLE CALL ERROR: bad unexpected result(oracle_submitRequest)" ) );
                             return;
                         }
                         for( let idxAttempt = 0; idxAttempt < cntAttempts; ++idxAttempt ) {
@@ -160,11 +160,11 @@ export function oracle_get_gas_price( oracleOpts, details ) {
                                     if( !( "result" in joOut && typeof joOut.result == "string" && joOut.result.length > 0 ) ) {
                                         if( isVerboseTraceDetails ) {
                                             details.write(
-                                                cc.fatal( "CRITICAL ORACLE CALL ERROR:" ) + cc.error( " bad unexpecected result" ) +
+                                                cc.fatal( "CRITICAL ORACLE CALL ERROR:" ) + cc.error( " bad unexpected result" ) +
                                                 cc.normal( "(" ) + cc.attention( "oracle_checkResult" ) + cc.normal( ")" ) + "\n" );
                                         }
                                         await joCall.disconnect();
-                                        // reject( new Error( "CRITICAL ORACLE CALL ERROR: bad unexpecected result(oracle_checkResult)" ) );
+                                        // reject( new Error( "CRITICAL ORACLE CALL ERROR: bad unexpected result(oracle_checkResult)" ) );
                                         return;
                                     }
                                     const joResult = JSON.parse( joOut.result );

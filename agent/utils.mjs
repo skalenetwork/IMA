@@ -149,34 +149,34 @@ export async function wait_for_cloned_token_to_appear(
     const strTokenSuffixLC = strTokenSuffix.toLowerCase();
     const strTokenSuffixUC = owaspUtils.replaceAll( strTokenSuffix.toUpperCase(), "_WITH_METADATA", "_with_metadata" );
     const strTokenSuffixLCshort = owaspUtils.replaceAll( strTokenSuffixLC, "_with_metadata", "" );
-    const ts0 = fmt.ts_hr();
+    const ts0 = cc.ts_hr();
     let ts1;
-    log.write( fmt.debug( "Waiting for " ) + fmt.contract_name( strTokenSuffixUC ) + fmt.debug( " token to appear automatically deployed on S-Chain " ) + fmt.chain_name( sc.chainName ) + fmt.debug( "..." ) );
-    log.write( log.llp() + fmt.debug( "... source chain name is " ) + fmt.chain_name( strMainnetName ) );
-    log.write( log.llp() + fmt.debug( "... destination " ) + fmt.contract_name( "TokenManager" + strTokenSuffixUC ) + fmt.debug( " address is " ) + fmt.address( sc.joABI["token_manager_" + strTokenSuffixLC + "_address"] ) );
+    log.write( cc.debug( "Waiting for " ) + cc.notice( strTokenSuffixUC ) + cc.debug( " token to appear automatically deployed on S-Chain " ) + cc.attention( sc.chainName ) + cc.debug( "..." ) );
+    log.write( log.llp() + cc.debug( "... source chain name is " ) + cc.attention( strMainnetName ) );
+    log.write( log.llp() + cc.debug( "... destination " ) + cc.notice( "TokenManager" + strTokenSuffixUC ) + cc.debug( " address is " ) + cc.notice( sc.joABI["token_manager_" + strTokenSuffixLC + "_address"] ) );
     const contractTokenManager = new owaspUtils.ethersMod.ethers.Contract(
         sc.joABI["token_manager_" + strTokenSuffixLC + "_address"],
         sc.joABI["token_manager_" + strTokenSuffixLC + "_abi"],
         sc.ethersProvider
     );
     for( let idxAttempt = 0; idxAttempt < cntAttempts; ++ idxAttempt ) {
-        log.write( log.llp() + fmt.debug( "Discovering " ) + fmt.contract_name( strTokenSuffixUC ) + fmt.debug( " step " ) + fmt.number( idxAttempt ) + fmt.debug( "..." ) );
+        log.write( log.llp() + cc.debug( "Discovering " ) + cc.notice( strTokenSuffixUC ) + cc.debug( " step " ) + cc.info( idxAttempt ) + cc.debug( "..." ) );
         if( g_nTimeToSleepStepWaitForClonedTokenToAppearMilliseconds > 0 )
             await core.sleep( g_nTimeToSleepStepWaitForClonedTokenToAppearMilliseconds );
-        const address_on_s_chain = await contractTokenManager.callStatic["clones" + fmt.capitalize_first_letter( strTokenSuffixLCshort )](
+        const address_on_s_chain = await contractTokenManager.callStatic["clones" + cc.capitalize_first_letter( strTokenSuffixLCshort )](
             sc.ethersMod.ethers.utils.id( strMainnetName ),
             tokensMN.joABI[strTokenSuffixUC + "_address"],
             { from: addressCallFrom }
         );
         if( address_on_s_chain != "0x0000000000000000000000000000000000000000" ) {
-            ts1 = fmt.ts_hr();
-            log.write( log.llp() + fmt.success( "Done, duration is " ) + fmt.number( fmt.get_duration_string( ts0, ts1 ) ) );
-            log.write( log.llp() + fmt.success( "Discovered " ) + fmt.contract_name( strTokenSuffixUC ) + fmt.success( " instantiated on S-Chain " ) + fmt.chain_name( sc.chainName ) + fmt.success( " at address " ) + fmt.address( address_on_s_chain ) );
+            ts1 = cc.ts_hr();
+            log.write( log.llp() + cc.success( "Done, duration is " ) + cc.info( cc.get_duration_string( ts0, ts1 ) ) );
+            log.write( log.llp() + cc.success( "Discovered " ) + cc.notice( strTokenSuffixUC ) + cc.success( " instantiated on S-Chain " ) + cc.attention( sc.chainName ) + cc.success( " at address " ) + cc.notice( address_on_s_chain ) );
             return address_on_s_chain;
         }
     }
-    ts1 = fmt.ts_hr();
-    const strError = fmt.error( "Failed to discover " ) + fmt.contract_name( strTokenSuffixUC ) + fmt.error( " instantiated on S-Chain " ) + fmt.chain_name( sc.chainName );
+    ts1 = cc.ts_hr();
+    const strError = cc.error( "Failed to discover " ) + cc.notice( strTokenSuffixUC ) + cc.error( " instantiated on S-Chain " ) + cc.attention( sc.chainName );
     log.write( strError );
     throw new Error( strError );
 }
@@ -185,7 +185,7 @@ export async function wait_for_cloned_token_erc20_appear( sc, tokenERC20SC, joAc
     if( "abi" in tokenERC20SC && typeof tokenERC20SC.abi == "object" &&
         "address" in tokenERC20SC && typeof tokenERC20SC.address == "string"
     ) {
-        log.write( fmt.warning( "Skipping automatic" ), fmt.contract_name( "ERC20" ), fmt.warning( "instantiation discovery, already done before" ) );
+        log.write( cc.warning( "Skipping automatic" ), cc.notice( "ERC20" ), cc.warning( "instantiation discovery, already done before" ) );
         return;
     }
     const addressCallFrom = owaspUtils.get_account_wallet_address( sc.ethersMod, joAccountSC );
@@ -201,7 +201,7 @@ export async function wait_for_cloned_token_erc721_appear( sc, tokenERC721SC, jo
     if( "abi" in tokenERC721SC && typeof tokenERC721SC.abi == "object" &&
         "address" in tokenERC721SC && typeof tokenERC721SC.address == "string"
     ) {
-        log.write( fmt.warning( "Skipping automatic" ), fmt.contract_name( "ERC721" ), fmt.warning( "instantiation discovery, already done before" ) );
+        log.write( cc.warning( "Skipping automatic" ), cc.notice( "ERC721" ), cc.warning( "instantiation discovery, already done before" ) );
         return;
     }
     const addressCallFrom = owaspUtils.get_account_wallet_address( sc.ethersMod, joAccountSC );
@@ -218,7 +218,7 @@ export async function wait_for_cloned_token_erc721_with_metadata_appear( sc, tok
     if( "abi" in tokenERC721SC && typeof tokenERC721SC.abi == "object" &&
         "address" in tokenERC721SC && typeof tokenERC721SC.address == "string"
     ) {
-        log.write( fmt.warning( "Skipping automatic" ), fmt.contract_name( "ERC721_with_metadata" ), fmt.warning( "instantiation discovery, already done before" ) );
+        log.write( cc.warning( "Skipping automatic" ), cc.notice( "ERC721_with_metadata" ), cc.warning( "instantiation discovery, already done before" ) );
         return;
     }
     const addressCallFrom = owaspUtils.get_account_wallet_address( sc.ethersMod, joAccountSC );
@@ -235,7 +235,7 @@ export async function wait_for_cloned_token_erc1155_appear( sc, tokenERC1155SC, 
     if( "abi" in tokenERC1155SC && typeof tokenERC1155SC.abi == "object" &&
         "address" in tokenERC1155SC && typeof tokenERC1155SC.address == "string"
     ) {
-        log.write( fmt.warning( "Skipping automatic" ), fmt.contract_name( "ERC1155" ), fmt.warning( "instantiation discovery, already done before" ) );
+        log.write( cc.warning( "Skipping automatic" ), cc.notice( "ERC1155" ), cc.warning( "instantiation discovery, already done before" ) );
         return;
     }
     const addressCallFrom = owaspUtils.get_account_wallet_address( sc.ethersMod, joAccountSC );

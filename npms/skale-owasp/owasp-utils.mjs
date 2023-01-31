@@ -577,7 +577,7 @@ function moneyUnitNameToPostDivider( s ) {
     }
     return null;
 }
-function moneyUnitNameToPostMultipler( s ) {
+function moneyUnitNameToPostMultiplier( s ) {
     switch ( s.toString().trim().toLowerCase() ) {
     case "kether": return "1000";
     case "mether": return "1000000";
@@ -615,7 +615,7 @@ export function parseMoneySpecToWei( ethersMod, s, isThrowException ) {
         if( strNumber == "" )
             throw new Error( "no number or float value found" );
         s = parseMoneyUnitName( s );
-        const ddr = moneyUnitNameToPostDivider( s ), mlr = moneyUnitNameToPostMultipler( s );
+        const ddr = moneyUnitNameToPostDivider( s ), mlr = moneyUnitNameToPostMultiplier( s );
         s = moneyUnitNameToEthersParseSpec( s );
         s = ethersMod.ethers.utils.parseUnits( strNumber, s );
         if( ddr != null )

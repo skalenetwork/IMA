@@ -177,7 +177,7 @@ const g_arrRainbowParts = [
     g_map_color_definitions.fgMagenta
 ];
 
-export function raibow_part( s, i ) {
+export function rainbow_part( s, i ) {
     if( !g_bEnabled )
         return s;
     const j = i % g_arrRainbowParts.length;
@@ -190,7 +190,7 @@ export function rainbow( s ) {
     let res = "";
     const cnt = s.length;
     for( let i = 0; i < cnt; ++ i )
-        res = res + raibow_part( s[i], i );
+        res = res + rainbow_part( s[i], i );
     return res;
 }
 
@@ -912,3 +912,80 @@ export function strval( s ) {
         return s;
     return "" + fgYellow + s + reset;
 }
+
+
+
+
+export function n2s( n, sz ) {
+    let s = "" + n;
+    while( s.length < sz )
+        s = "0" + s;
+    return s;
+}
+
+export function ts_hr() {
+    const d = new Date();
+    const ts = Math.floor( ( d ).getTime() );
+    return ts;
+}
+
+export function ts_unix() {
+    const d = new Date();
+    const ts = Math.floor( ( d ).getTime() / 1000 );
+    return ts;
+}
+
+function trim_left_unneeded_timestamp_zeros( s ) {
+    while( s.length >= 2 ) {
+        if( s[0] == "0" && s[1] >= "0" && s[1] <= "9" )
+            s = s.substring( 1 );
+        else
+            break;
+    }
+    return s;
+}
+
+export function get_duration_string( tsFrom, tsTo ) {
+    let s = "";
+    let n = tsTo - tsFrom;
+    //
+    const ms = n % 1000;
+    n = Math.floor( n / 1000 );
+    s += "." + n2s( ms, 3 );
+    if( n == 0 )
+        return "0" + s;
+    //
+    const secs = n % 60;
+    n = Math.floor( n / 60 );
+    s = "" + n2s( secs, 2 ) + s;
+    if( n == 0 )
+        return trim_left_unneeded_timestamp_zeros( s );
+    s = ":" + s;
+    //
+    const mins = n % 60;
+    n = Math.floor( n / 60 );
+    s = "" + n2s( mins, 2 ) + s;
+    if( n == 0 )
+        return trim_left_unneeded_timestamp_zeros( s );
+    s = ":" + s;
+    //
+    const hours = n % 24;
+    n = Math.floor( n / 24 );
+    s = "" + n2s( hours, 2 ) + s;
+    if( n == 0 )
+        return trim_left_unneeded_timestamp_zeros( s );
+    //
+    return "" + n + " " + ( ( n > 1 ) ? "days" : "day" ) + "," + s;
+}
+
+export function capitalize_first_letter( s ) {
+    if( ! s )
+        return s;
+    let s2 = s.toString();
+    if( ! s2 )
+        return s;
+    s2 = s2.charAt( 0 ).toUpperCase() + s2.slice( 1 );
+    return s2;
+}
+
+

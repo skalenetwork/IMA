@@ -65,7 +65,7 @@ export function check_time_framing( d, strDirection, joRuntimeOpts ) {
         //     joRuntimeOpts.idxChainKnownForS2S >= 0 && joRuntimeOpts.idxChainKnownForS2S < joRuntimeOpts.cntChainsKnownForS2S
         // ) {
         //     const nReservedFrames = 1; // 1st frame index 0 is reserved for m2s and s2m
-        //     const nRestRangeOfFrames = imaState.nNodesCount - nReservedFrames; // rest range of frames avalable for S2S
+        //     const nRestRangeOfFrames = imaState.nNodesCount - nReservedFrames; // rest range of frames available for S2S
         //     nFrameShift = nReservedFrames + // 1st frame index 0 is reserved for m2s and s2m
         //         joRuntimeOpts.idxChainKnownForS2S % nRestRangeOfFrames
         //     ;
@@ -147,7 +147,7 @@ export async function single_transfer_loop( loop_opts ) {
             imaState.loopState.s2m.wasInProgress = false;
             imaState.loopState.s2s.wasInProgress = false;
             if( IMA.verbose_get() >= IMA.RV_VERBOSE.debug )
-                log.write( strLogPrefix + cc.warning( "Skipped due to other single transfer loop is in progress rignt now" ) + "\n" );
+                log.write( strLogPrefix + cc.warning( "Skipped due to other single transfer loop is in progress right now" ) + "\n" );
             return true;
         }
 
@@ -377,7 +377,7 @@ const impl_sleep = ( milliseconds ) => { return new Promise( resolve => setTimeo
 const g_workers = [];
 const g_clients = [];
 
-export function notify_snb_chache_changed( arr_schains_cached ) {
+export function notify_snb_cache_changed( arr_schains_cached ) {
     const cntWorkers = g_workers.length;
     for( let idxWorker = 0; idxWorker < cntWorkers; ++ idxWorker ) {
         const jo = {
@@ -391,7 +391,7 @@ export function notify_snb_chache_changed( arr_schains_cached ) {
 }
 
 skale_observer.events.on( "chainsCacheChanged", function( eventData ) {
-    notify_snb_chache_changed( eventData.detail.arr_schains_cached );
+    notify_snb_cache_changed( eventData.detail.arr_schains_cached );
 } );
 
 export async function ensure_have_workers( opts ) {
@@ -626,7 +626,7 @@ export async function ensure_have_workers( opts ) {
 
                         "s2s_opts": { // S-Chain to S-Chain transfer options
                             "isEnabled": true, // is S-Chain to S-Chain transfers enabled
-                            "secondsToReDiscoverSkaleNetwork": 1 * 60 * 60 // seconts to re-discover SKALE network, 0 to disable
+                            "secondsToReDiscoverSkaleNetwork": 1 * 60 * 60 // seconds to re-discover SKALE network, 0 to disable
                         },
 
                         "nJsonRpcPort": opts.imaState.nJsonRpcPort, // 0 to disable
@@ -640,7 +640,7 @@ export async function ensure_have_workers( opts ) {
             }
         };
         g_clients[idxWorker].send( jo );
-        // notify_snb_chache_changed( skale_observer.get_last_cached_schains() );
+        // notify_snb_cache_changed( skale_observer.get_last_cached_schains() );
     } // for( let idxWorker = 0; idxWorker < cntWorkers; ++ idxWorker )
 }
 

@@ -177,7 +177,7 @@ export function parse( joExternalHandlers, argv ) {
             console.log( soi + cc.debug( "--" ) + cc.bright( "url-t-chain" ) + cc.sunny( "=" ) + cc.attention( "URL" ) + cc.debug( "......................." ) + cc.note( "S<->S Target S-chain" ) + cc.notice( " URL. Value is automatically loaded from the " ) + cc.warning( "URL_W3_S_CHAIN_TARGET" ) + cc.notice( " environment variable if not specified." ) );
             console.log( soi + cc.debug( "--" ) + cc.bright( "id-main-net" ) + cc.sunny( "=" ) + cc.success( "number" ) + cc.debug( "...................." ) + cc.note( "Main-net" ) + cc.notice( " Ethereum " ) + cc.note( "network name." ) + cc.notice( ". Value is automatically loaded from the " ) + cc.warning( "CHAIN_NAME_ETHEREUM" ) + cc.notice( " environment variable if not specified. " ) + cc.debug( "Default value is " ) + cc.sunny( "\"Mainnet\"" ) + cc.notice( "." ) );
             console.log( soi + cc.debug( "--" ) + cc.bright( "id-s-chain" ) + cc.sunny( "=" ) + cc.success( "number" ) + cc.debug( "....................." ) + cc.note( "S-chain" ) + cc.notice( " Ethereum " ) + cc.note( "network name." ) + cc.notice( ". Value is automatically loaded from the " ) + cc.warning( "CHAIN_NAME_SCHAIN" ) + cc.notice( " environment variable if not specified. " ) + cc.debug( "Default value is " ) + cc.sunny( "\"id-S-chain\"" ) + cc.notice( "." ) );
-            console.log( soi + cc.debug( "--" ) + cc.bright( "id-t-chain" ) + cc.sunny( "=" ) + cc.success( "number" ) + cc.debug( "....................." ) + cc.note( "S<->S Target S-chain" ) + cc.notice( " Ethereum " ) + cc.note( "network name." ) + cc.notice( ". Value is automatically loaded from the " ) + cc.warning( "CHAIN_NAME_SCHAIN_TARET" ) + cc.notice( " environment variable if not specified. " ) + cc.debug( "Default value is " ) + cc.sunny( "\"id-T-chain\"" ) + cc.notice( "." ) );
+            console.log( soi + cc.debug( "--" ) + cc.bright( "id-t-chain" ) + cc.sunny( "=" ) + cc.success( "number" ) + cc.debug( "....................." ) + cc.note( "S<->S Target S-chain" ) + cc.notice( " Ethereum " ) + cc.note( "network name." ) + cc.notice( ". Value is automatically loaded from the " ) + cc.warning( "CHAIN_NAME_SCHAIN_TARGET" ) + cc.notice( " environment variable if not specified. " ) + cc.debug( "Default value is " ) + cc.sunny( "\"id-T-chain\"" ) + cc.notice( "." ) );
             console.log( soi + cc.debug( "--" ) + cc.bright( "cid-main-net" ) + cc.sunny( "=" ) + cc.success( "number" ) + cc.debug( "..................." ) + cc.note( "Main-net" ) + cc.notice( " Ethereum " ) + cc.attention( "chain ID" ) + cc.notice( ". Value is automatically loaded from the " ) + cc.warning( "CID_ETHEREUM" ) + cc.notice( " environment variable if not specified. " ) + cc.debug( "Default value is " ) + cc.sunny( -4 ) + cc.notice( "." ) );
             console.log( soi + cc.debug( "--" ) + cc.bright( "cid-s-chain" ) + cc.sunny( "=" ) + cc.success( "number" ) + cc.debug( "...................." ) + cc.note( "S-chain" ) + cc.notice( " Ethereum " ) + cc.attention( "chain ID" ) + cc.notice( ". Value is automatically loaded from the " ) + cc.warning( "CID_SCHAIN" ) + cc.notice( " environment variable if not specified. " ) + cc.debug( "Default value is " ) + cc.sunny( -4 ) + cc.notice( "." ) );
             console.log( soi + cc.debug( "--" ) + cc.bright( "cid-t-chain" ) + cc.sunny( "=" ) + cc.success( "number" ) + cc.debug( "...................." ) + cc.note( "S<->S Target S-chain" ) + cc.notice( " Ethereum " ) + cc.attention( "chain ID" ) + cc.notice( ". Value is automatically loaded from the " ) + cc.warning( "CID_SCHAIN_TARGET" ) + cc.notice( " environment variable if not specified. " ) + cc.debug( "Default value is " ) + cc.sunny( -4 ) + cc.notice( "." ) );
@@ -359,10 +359,10 @@ export function parse( joExternalHandlers, argv ) {
                 cc.attention( "tid" ) + cc.debug( " or " ) + cc.attention( "tids" ) + cc.debug( " command line arguments." )
             );
             //
-            console.log( cc.sunny( "IMA WORK STATE ANAYSYS" ) + cc.info( " options:" ) );
+            console.log( cc.sunny( "IMA WORK STATE ANALYSIS" ) + cc.info( " options:" ) );
             console.log( soi + cc.debug( "--" ) + cc.bright( "pwa" ) + cc.debug( "..................................." ) + cc.success( "Enable" ) + " " + cc.attention( "pending work analysis" ) + cc.notice( " to avoid transaction conflicts." ) + " " + cc.debug( "Default mode" ) + cc.notice( "." ) );
             console.log( soi + cc.debug( "--" ) + cc.bright( "no-pwa" ) + cc.debug( "................................" ) + cc.error( "Disable" ) + " " + cc.attention( "pending work analysis" ) + cc.notice( ". " ) + cc.warning( "Not recommended" ) + cc.notice( " for slow and overloaded blockchains." ) );
-            console.log( soi + cc.debug( "--" ) + cc.bright( "pwa-timeout" ) + cc.sunny( "=" ) + cc.note( "seconds" ) + cc.debug( "..................." ) + cc.notice( "Node state tiemout during " ) + cc.attention( "pending work analysis" ) + cc.notice( ". " ) + cc.debug( "Default is " ) + cc.sunny( "60" ) + cc.debug( " seconds" ) + cc.notice( "." ) );
+            console.log( soi + cc.debug( "--" ) + cc.bright( "pwa-timeout" ) + cc.sunny( "=" ) + cc.note( "seconds" ) + cc.debug( "..................." ) + cc.notice( "Node state timeout during " ) + cc.attention( "pending work analysis" ) + cc.notice( ". " ) + cc.debug( "Default is " ) + cc.sunny( "60" ) + cc.debug( " seconds" ) + cc.notice( "." ) );
             //
             console.log( cc.sunny( "MESSAGE SIGNING" ) + cc.info( " options:" ) );
             console.log( soi + cc.debug( "--" ) + cc.bright( "sign-messages" ) + cc.debug( "........................." ) + cc.notice( "Sign transferred messages." ) );
@@ -391,14 +391,14 @@ export function parse( joExternalHandlers, argv ) {
             console.log( soi + cc.debug( "--" ) + cc.bright( "disable-oracle" ) + cc.debug( "........................" ) + cc.error( "Disable" ) + cc.notice( " call to " ) + cc.note( "Oracle" ) + cc.notice( " to compute " ) + cc.note( "gas price" ) + cc.notice( " for " ) + cc.attention( "gas reimbursement" ) + cc.notice( "." ) );
             //
             console.log( cc.sunny( "IMA JSON RPC SERVER" ) + cc.info( " options:" ) );
-            console.log( soi + cc.debug( "--" ) + cc.bright( "json-rpc-port" ) + cc.sunny( "=" ) + cc.note( "number" ) + cc.debug( ".................." ) + cc.notice( "Run " ) + cc.note( "IMA JSON RPC server" ) + cc.notice( " on specified " ) + cc.note( "port" ) + cc.notice( "." ) + cc.debug( " Specify " ) + cc.sunny( "0" ) + cc.debug( " to " ) + cc.error( "disable" ) + cc.notice( "." ) + cc.debug( " Defaut is " ) + cc.sunny( "0" ) + cc.notice( "." ) );
+            console.log( soi + cc.debug( "--" ) + cc.bright( "json-rpc-port" ) + cc.sunny( "=" ) + cc.note( "number" ) + cc.debug( ".................." ) + cc.notice( "Run " ) + cc.note( "IMA JSON RPC server" ) + cc.notice( " on specified " ) + cc.note( "port" ) + cc.notice( "." ) + cc.debug( " Specify " ) + cc.sunny( "0" ) + cc.debug( " to " ) + cc.error( "disable" ) + cc.notice( "." ) + cc.debug( " Default is " ) + cc.sunny( "0" ) + cc.notice( "." ) );
             console.log( soi + cc.debug( "--" ) + cc.bright( "cross-ima" ) + cc.debug( "............................." ) + cc.success( "Enable" ) + cc.notice( " calls to " ) + cc.note( "IMA JSON RPC servers" ) + cc.notice( " to compute " ) + cc.note( "BLS signature parts" ) + cc.notice( " and operation state inside time frames." ) + cc.debug( "Use calls to " ) + cc.attention( "IMA Agent" ) + cc.notice( "." ) );
             console.log( soi + cc.debug( "--" ) + cc.bright( "no-cross-ima" ) + cc.debug( ".........................." ) + cc.error( "Disable" ) + cc.notice( " calls to " ) + cc.note( "IMA JSON RPC servers" ) + cc.notice( " to compute " ) + cc.note( "BLS signature parts" ) + cc.notice( " and operation state inside time frames. " ) + cc.debug( "Use calls to " ) + cc.attention( "skaled" ) + cc.notice( "." ) + cc.debug( " Default mode" ) + cc.notice( "." ) );
             //
             console.log( cc.sunny( "TEST" ) + cc.info( " options:" ) );
             console.log( soi + cc.debug( "--" ) + cc.bright( "browse-s-chain" ) + cc.debug( "........................" ) + cc.notice( "Download own " ) + cc.note( "S-Chain" ) + cc.notice( " network information." ) );
             console.log( soi + cc.debug( "--" ) + cc.bright( "browse-skale-network" ) + cc.debug( ".................." ) + cc.notice( "Download entire " ) + cc.note( "SKALE network" ) + cc.notice( " description." ) );
-            console.log( soi + cc.debug( "--" ) + cc.bright( "browse-connected-schains" ) + cc.debug( ".............." ) + cc.notice( "Download " ) + cc.note( "S-Chains" ) + cc.notice( " conected to " ) + cc.note( "S-Chain" ) + cc.notice( " with name specified in " ) + cc.bright( "id-s-chain" ) + cc.notice( " command line parameter." ) );
+            console.log( soi + cc.debug( "--" ) + cc.bright( "browse-connected-schains" ) + cc.debug( ".............." ) + cc.notice( "Download " ) + cc.note( "S-Chains" ) + cc.notice( " connected to " ) + cc.note( "S-Chain" ) + cc.notice( " with name specified in " ) + cc.bright( "id-s-chain" ) + cc.notice( " command line parameter." ) );
             console.log( soi + cc.debug( "--" ) + cc.bright( "discover-cid" ) + cc.debug( ".........................." ) + cc.notice( "Discover " ) + cc.attention( "chains ID(s)" ) + cc.notice( " from provided " ) + cc.note( "URL(s)" ) + cc.notice( "." ) + cc.debug( " This command is not executed automatically at startup" ) + cc.notice( "." ) );
             //
             console.log( cc.sunny( "LOGGING" ) + cc.info( " options:" ) );
@@ -413,8 +413,8 @@ export function parse( joExternalHandlers, argv ) {
             console.log( soi + cc.debug( "--" ) + cc.bright( "no-gathered" ) + cc.debug( "..........................." ) + cc.notice( "Do not print details of gathering data from command line arguments." ) );
             console.log( soi + cc.debug( "--" ) + cc.bright( "expose-security-info" ) + cc.debug( ".................." ) + cc.notice( "Expose security-related values in log output." ) + " " + cc.debug( "This mode is needed for debugging purposes only" ) + cc.notice( "." ) );
             console.log( soi + cc.debug( "--" ) + cc.bright( "no-expose-security-info" ) + cc.debug( "..............." ) + cc.notice( "Do not expose security-related values in log output." ) + " " + cc.debug( "Default mode" ) + cc.notice( "." ) );
-            console.log( soi + cc.debug( "--" ) + cc.bright( "expose-pwa" ) + cc.debug( "............................" ) + cc.notice( "Expose IMA agent pending work ananlysis information" ) );
-            console.log( soi + cc.debug( "--" ) + cc.bright( "no-expose-pwa" ) + cc.debug( "........................." ) + cc.notice( "Do not expose IMA agent pending work ananlysis information." ) + cc.notice( "." ) + " " + cc.debug( "Default mode" ) + cc.notice( "." ) );
+            console.log( soi + cc.debug( "--" ) + cc.bright( "expose-pwa" ) + cc.debug( "............................" ) + cc.notice( "Expose IMA agent pending work analysis information" ) );
+            console.log( soi + cc.debug( "--" ) + cc.bright( "no-expose-pwa" ) + cc.debug( "........................." ) + cc.notice( "Do not expose IMA agent pending work analysis information." ) + cc.notice( "." ) + " " + cc.debug( "Default mode" ) + cc.notice( "." ) );
             //
             process.exit( 0 );
         }
@@ -967,7 +967,7 @@ export function parse( joExternalHandlers, argv ) {
         }
         if( joArg.name == "s2m-transfer-steps" ) {
             owaspUtils.verifyArgumentIsInteger( joArg );
-            imaState.nTransferStepseS2M = owaspUtils.toInteger( joArg.value );
+            imaState.nTransferStepsS2M = owaspUtils.toInteger( joArg.value );
             continue;
         }
         if( joArg.name == "s2s-transfer-steps" ) {
@@ -1467,7 +1467,7 @@ export function ima_common_init() {
     // token_manager_erc20_address                --> token_manager_erc20_abi
     // token_manager_erc721_address               --> token_manager_erc721_abi
     // token_manager_erc1155_address              --> token_manager_erc1155_abi
-    // token_manager_erc721_with_metadata_address --> token_manager_erc721_with_metdata_abi
+    // token_manager_erc721_with_metadata_address --> token_manager_erc721_with_metadata_abi
     // token_manager_linker_address               --> token_manager_linker_abi
     // message_proxy_mainnet_address              --> message_proxy_mainnet_abi
     // message_proxy_chain_address                --> message_proxy_chain_abi
@@ -2251,7 +2251,7 @@ export function ima_contracts_init() {
         imaState.jo_message_proxy_s_chain_target = new owaspUtils.ethersMod.ethers.Contract( joABI.message_proxy_chain_address, joABI.message_proxy_chain_abi, ep );
         imaState.jo_token_manager_linker_target = new owaspUtils.ethersMod.ethers.Contract( joABI.token_manager_linker_address, joABI.token_manager_linker_abi, ep );
         imaState.eth_erc20_target = new owaspUtils.ethersMod.ethers.Contract( joABI.eth_erc20_address, joABI.eth_erc20_abi, ep ); // only s-chain
-        // imaState.eth_erc721_target = new owaspUtils.ethersMod.ethers.Contract( joABI.eth_erc721_address, joABI.eth_erc721_aabi, ep ); // only s-chain
+        // imaState.eth_erc721_target = new owaspUtils.ethersMod.ethers.Contract( joABI.eth_erc721_address, joABI.eth_erc721_abi, ep ); // only s-chain
         // imaState.eth_erc1155_target = new owaspUtils.ethersMod.ethers.Contract( joABI.eth_erc1155_address, joABI.eth_erc721_abi, ep ); // only s-chain
     }
     if( imaState.bHaveSkaleManagerABI ) {
