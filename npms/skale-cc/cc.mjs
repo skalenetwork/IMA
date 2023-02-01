@@ -913,9 +913,6 @@ export function strval( s ) {
     return "" + fgYellow + s + reset;
 }
 
-
-
-
 export function n2s( n, sz ) {
     let s = "" + n;
     while( s.length < sz )
@@ -987,5 +984,3 @@ export function capitalize_first_letter( s ) {
     s2 = s2.charAt( 0 ).toUpperCase() + s2.slice( 1 );
     return s2;
 }
-
-
