@@ -819,7 +819,7 @@ export async function do_oracle_gas_price_setup(
                 await dry_run_call(
                     details,
                     owaspUtils.ethersMod, ethersProvider_s_chain,
-                    "CommunityLocker", jo_community_locker, "setGasPrice", arrArguments_setGasPrice, // methodWithArguments_setGasPrice,
+                    "CommunityLocker", jo_community_locker, "setGasPrice", arrArguments_setGasPrice,
                     joAccountSC, strActionName, isIgnore_setGasPrice,
                     gasPrice, estimatedGas_setGasPrice, weiHowMuch,
                     null
@@ -861,14 +861,15 @@ export async function do_oracle_gas_price_setup(
             // }
             // details.write( strLogPrefix + cc.success( "Result receipt: " ) + cc.j( joReceipt ) + "\n" );
 
-            const joReceipt = await payed_call(
-                details,
-                owaspUtils.ethersMod, ethersProvider_s_chain,
-                "CommunityLocker", jo_community_locker, "setGasPrice", arrArguments_setGasPrice, // methodWithArguments_setGasPrice,
-                joAccountSC, strActionName,
-                gasPrice, estimatedGas_setGasPrice, weiHowMuch,
-                null
-            );
+            const joReceipt =
+                await payed_call(
+                    details,
+                    owaspUtils.ethersMod, ethersProvider_s_chain,
+                    "CommunityLocker", jo_community_locker, "setGasPrice", arrArguments_setGasPrice, // methodWithArguments_setGasPrice,
+                    joAccountSC, strActionName,
+                    gasPrice, estimatedGas_setGasPrice, weiHowMuch,
+                    null
+                );
             if( joReceipt && typeof joReceipt == "object" && "gasUsed" in joReceipt ) {
                 jarrReceipts.push( {
                     "description": "do_oracle_gas_price_setup/setGasPrice",
@@ -1741,7 +1742,7 @@ export async function check_is_registered_s_chain_in_deposit_boxes( // step 1
 
 export async function invoke_has_chain(
     details,
-    w3, // Main-Net or S-Chin
+    ethersProvider, // Main-Net or S-Chin
     jo_linker, // Main-Net or S-Chin
     joAccount, // Main-Net or S-Chin
     chain_id_s_chain
@@ -1751,7 +1752,7 @@ export async function invoke_has_chain(
     try {
         strActionName = "invoke_has_chain(hasSchain): jo_linker.hasSchain";
         details.write( strLogPrefix + cc.debug( "Will call " ) + cc.notice( strActionName ) + cc.debug( "..." ) + "\n" );
-        const addressFrom = joAccount.address( w3 );
+        const addressFrom = joAccount.address( ethersProvider );
         const bHasSchain = await jo_linker.methods.hasSchain(
             chain_id_s_chain
         ).call( {
@@ -1829,7 +1830,7 @@ export async function register_s_chain_in_deposit_boxes( // step 1
         // details.write( strLogPrefix + cc.debug( "Got " ) + cc.info( nTransactionsCount ) + cc.debug( " from " ) + cc.notice( strActionName ) + "\n" );
 
         details.write( strLogPrefix + cc.debug( "Will register S-Chain in lock_and_data on Main-net" ) + "\n" );
-        const methodWithArguments = jo_linker.methods.connectSchain(
+        const arrArguments = [
             chain_id_s_chain,
             [
                 jo_token_manager_linker.options.address, // call params
@@ -1840,58 +1841,69 @@ export async function register_s_chain_in_deposit_boxes( // step 1
                 jo_token_manager_erc1155.options.address, // call params
                 jo_token_manager_erc721_with_metadata.options.address // call params
             ]
-        );
+        ];
+
+        // TO-REMOVE:
         // const dataTx = methodWithArguments.encodeABI(); // the encoded ABI of the method
-        //
+
         const gasPrice = await tc_main_net.computeGasPrice( ethersProvider_main_net, 200000000000 );
         details.write( strLogPrefix + cc.debug( "Using computed " ) + cc.info( "gasPrice" ) + cc.debug( "=" ) + cc.notice( gasPrice ) + "\n" );
         const estimatedGas = await tc_main_net.computeGas( methodWithArguments, ethersProvider_main_net, 3000000, gasPrice, joAccountMN.address( ethersProvider_main_net ), "0" );
         details.write( strLogPrefix + cc.debug( "Using estimated " ) + cc.info( "gas" ) + cc.debug( "=" ) + cc.notice( estimatedGas ) + "\n" );
-        //
+
         const weiHowMuch = undefined;
         const isIgnore = false;
         const strErrorOfDryRun =
             await dry_run_call(
                 details,
                 owaspUtils.ethersMod, ethersProvider_main_net,
-                methodWithArguments,
+                "Linker", jo_linker, "connectSchain", arrArguments,
                 joAccountMN, strActionName, isIgnore,
                 gasPrice, estimatedGas, weiHowMuch,
                 null
             );
         if( strErrorOfDryRun )
             throw new Error( strErrorOfDryRun );
-        //
-        const rawTx = {
-            chainId: cid_main_net,
-            nonce: nTransactionsCount,
-            gasPrice: gasPrice,
-            // gasLimit: estimatedGas,
-            gas: estimatedGas, // gas is optional here
-            to: jo_linker.options.address, // contract address
-            data: dataTx
-        };
-        const tx = compose_tx_instance( details, strLogPrefix, rawTx );
-        const joSR = await safe_sign_transaction_with_account( details, ethersProvider_main_net, tx, rawTx, joAccountMN );
-        let joReceipt = null;
-        if( joSR.joACI.isAutoSend )
-            joReceipt = await get_web3_transactionReceipt( details, 10, ethersProvider_main_net, joSR.txHashSent );
-        else {
-            const serializedTx = tx.serialize();
-            strActionName = "reg-step1:ethersProvider_main_net.eth.sendSignedTransaction()";
-            // let joReceipt = await ethersProvider_main_net.eth.sendSignedTransaction( "0x" + serializedTx.toString( "hex" ) );
-            joReceipt = await safe_send_signed_transaction( details, ethersProvider_main_net, serializedTx, strActionName, strLogPrefix );
-        }
-        details.write( strLogPrefix + cc.success( "Result receipt: " ) + cc.j( joReceipt ) + "\n" );
 
+        // TO-REMOVE:
+        // const rawTx = {
+        //     chainId: cid_main_net,
+        //     nonce: nTransactionsCount,
+        //     gasPrice: gasPrice,
+        //     // gasLimit: estimatedGas,
+        //     gas: estimatedGas, // gas is optional here
+        //     to: jo_linker.options.address, // contract address
+        //     data: dataTx
+        // };
+        // const tx = compose_tx_instance( details, strLogPrefix, rawTx );
+        // const joSR = await safe_sign_transaction_with_account( details, ethersProvider_main_net, tx, rawTx, joAccountMN );
+        // let joReceipt = null;
+        // if( joSR.joACI.isAutoSend )
+        //     joReceipt = await get_web3_transactionReceipt( details, 10, ethersProvider_main_net, joSR.txHashSent );
+        // else {
+        //     const serializedTx = tx.serialize();
+        //     strActionName = "reg-step1:ethersProvider_main_net.eth.sendSignedTransaction()";
+        //     // let joReceipt = await ethersProvider_main_net.eth.sendSignedTransaction( "0x" + serializedTx.toString( "hex" ) );
+        //     joReceipt = await safe_send_signed_transaction( details, ethersProvider_main_net, serializedTx, strActionName, strLogPrefix );
+        // }
+        // details.write( strLogPrefix + cc.success( "Result receipt: " ) + cc.j( joReceipt ) + "\n" );
+
+        const joReceipt =
+            await payed_call(
+                details,
+                owaspUtils.ethersMod, ethersProvider_main_net,
+                "Linker", jo_linker, "connectSchain", arrArguments,
+                joAccountMN, strActionName,
+                gasPrice, estimatedGas, weiHowMuch,
+                null
+            );
         if( joReceipt && typeof joReceipt == "object" && "gasUsed" in joReceipt ) {
             jarrReceipts.push( {
                 "description": "register_s_chain_in_deposit_boxes",
                 "receipt": joReceipt
             } );
         }
-        // } else
-        // details.write( strLogPrefix + cc.debug( "Will wait until S-Chain owner will register S-Chain in ima-linker on Main-net" ) + "\n" );
+
         const isSChainStatusOKay = await wait_for_has_chain(
             details,
             ethersProvider_main_net,
@@ -2075,53 +2087,65 @@ export async function reimbursement_wallet_recharge(
         // details.write( strLogPrefix + cc.debug( "Got " ) + cc.info( nTransactionsCount ) + cc.debug( " from " ) + cc.notice( strActionName ) + "\n" );
 
         const addressReceiver = joAccountMN.address( ethersProvider_main_net );
-        const methodWithArguments = jo_community_pool.methods.rechargeUserWallet(
-            // call params, last is destination account on S-chain
+        const arrArguments = [
             strReimbursementChain,
             addressReceiver
-        );
-        const dataTx = methodWithArguments.encodeABI(); // the encoded ABI of the method
-        //
+        ];
+
+        // TO-REMOVE:
+        // const dataTx = methodWithArguments.encodeABI(); // the encoded ABI of the method
+
         const gasPrice = await tc_main_net.computeGasPrice( ethersProvider_main_net, 200000000000 );
         details.write( strLogPrefix + cc.debug( "Using computed " ) + cc.info( "gasPrice" ) + cc.debug( "=" ) + cc.notice( gasPrice ) + "\n" );
         const estimatedGas = await tc_main_net.computeGas( methodWithArguments, ethersProvider_main_net, 3000000, gasPrice, joAccountMN.address( ethersProvider_main_net ), nReimbursementRecharge );
         details.write( strLogPrefix + cc.debug( "Using estimated " ) + cc.info( "gas" ) + cc.debug( "=" ) + cc.notice( estimatedGas ) + "\n" );
-        //
+
         const isIgnore = false;
         const strErrorOfDryRun =
             await dry_run_call(
                 details,
                 owaspUtils.ethersMod, ethersProvider_main_net,
-                methodWithArguments,
+                "CommunityPool", jo_community_pool, "rechargeUserWallet", arrArguments,
                 joAccountMN, strActionName, isIgnore,
                 gasPrice, estimatedGas, nReimbursementRecharge,
                 null
             );
         if( strErrorOfDryRun )
             throw new Error( strErrorOfDryRun );
-        //
-        const rawTx = {
-            chainId: cid_main_net,
-            nonce: nTransactionsCount,
-            gasPrice: gasPrice,
-            // gasLimit: estimatedGas,
-            gas: estimatedGas,
-            to: jo_community_pool.options.address, // contract address
-            data: dataTx,
-            value: "0x" + ethersProvider_main_net.utils.toBN( nReimbursementRecharge ).toString( 16 ) // weiHowMuch // how much money to send
-        };
-        const tx = compose_tx_instance( details, strLogPrefix, rawTx );
-        const joSR = await safe_sign_transaction_with_account( details, ethersProvider_main_net, tx, rawTx, joAccountMN );
-        let joReceipt = null;
-        if( joSR.joACI.isAutoSend )
-            joReceipt = await get_web3_transactionReceipt( details, 10, ethersProvider_main_net, joSR.txHashSent );
-        else {
-            const serializedTx = tx.serialize();
-            strActionName = "ethersProvider_main_net.eth.sendSignedTransaction()";
-            // let joReceipt = await ethersProvider_main_net.eth.sendSignedTransaction( "0x" + serializedTx.toString( "hex" ) );
-            joReceipt = await safe_send_signed_transaction( details, ethersProvider_main_net, serializedTx, strActionName, strLogPrefix );
-        }
-        details.write( strLogPrefix + cc.success( "Result receipt: " ) + cc.j( joReceipt ) + "\n" );
+
+        // TO-REMOVE:
+        // const rawTx = {
+        //     chainId: cid_main_net,
+        //     nonce: nTransactionsCount,
+        //     gasPrice: gasPrice,
+        //     // gasLimit: estimatedGas,
+        //     gas: estimatedGas,
+        //     to: jo_community_pool.options.address, // contract address
+        //     data: dataTx,
+        //     value: "0x" + ethersProvider_main_net.utils.toBN( nReimbursementRecharge ).toString( 16 ) // weiHowMuch // how much money to send
+        // };
+        // const tx = compose_tx_instance( details, strLogPrefix, rawTx );
+        // const joSR = await safe_sign_transaction_with_account( details, ethersProvider_main_net, tx, rawTx, joAccountMN );
+        // let joReceipt = null;
+        // if( joSR.joACI.isAutoSend )
+        //     joReceipt = await get_web3_transactionReceipt( details, 10, ethersProvider_main_net, joSR.txHashSent );
+        // else {
+        //     const serializedTx = tx.serialize();
+        //     strActionName = "ethersProvider_main_net.eth.sendSignedTransaction()";
+        //     // let joReceipt = await ethersProvider_main_net.eth.sendSignedTransaction( "0x" + serializedTx.toString( "hex" ) );
+        //     joReceipt = await safe_send_signed_transaction( details, ethersProvider_main_net, serializedTx, strActionName, strLogPrefix );
+        // }
+        // details.write( strLogPrefix + cc.success( "Result receipt: " ) + cc.j( joReceipt ) + "\n" );
+
+        const joReceipt =
+            await payed_call(
+                details,
+                owaspUtils.ethersMod, ethersProvider_main_net,
+                "CommunityPool", jo_community_pool, "rechargeUserWallet", arrArguments,
+                joAccountMN, strActionName,
+                gasPrice, estimatedGas, nReimbursementRecharge,
+                null
+            );
         if( joReceipt && typeof joReceipt == "object" && "gasUsed" in joReceipt ) {
             jarrReceipts.push( {
                 "description": "reimbursement_wallet_recharge",
@@ -2170,54 +2194,66 @@ export async function reimbursement_wallet_withdraw(
         // details.write( strLogPrefix + cc.debug( "Got " ) + cc.info( nTransactionsCount ) + cc.debug( " from " ) + cc.notice( strActionName ) + "\n" );
         //
 
-        const methodWithArguments = jo_community_pool.methods.withdrawFunds(
-            // call params, last is destination account on S-chain
+        const arrArguments = [
             strReimbursementChain,
             "0x" + ethersProvider_main_net.utils.toBN( nReimbursementWithdraw ).toString( 16 )
-        );
-        const dataTx = methodWithArguments.encodeABI(); // the encoded ABI of the method
-        //
+        ];
+
+        // TO-REMOVE:
+        // const dataTx = methodWithArguments.encodeABI(); // the encoded ABI of the method
+
         const gasPrice = await tc_main_net.computeGasPrice( ethersProvider_main_net, 200000000000 );
         details.write( strLogPrefix + cc.debug( "Using computed " ) + cc.info( "gasPrice" ) + cc.debug( "=" ) + cc.notice( gasPrice ) + "\n" );
         const estimatedGas = await tc_main_net.computeGas( methodWithArguments, ethersProvider_main_net, 3000000, gasPrice, joAccountMN.address( ethersProvider_main_net ), weiHowMuch );
         details.write( strLogPrefix + cc.debug( "Using estimated " ) + cc.info( "gas" ) + cc.debug( "=" ) + cc.notice( estimatedGas ) + "\n" );
-        //
+
         const weiHowMuch = undefined;
         const isIgnore = false;
         const strErrorOfDryRun =
             await dry_run_call(
                 details,
                 owaspUtils.ethersMod, ethersProvider_main_net,
-                methodWithArguments,
+                "CommunityPool", jo_community_pool, "withdrawFunds", arrArguments,
                 joAccountMN, strActionName, isIgnore,
                 gasPrice, estimatedGas, weiHowMuch,
                 null
             );
         if( strErrorOfDryRun )
             throw new Error( strErrorOfDryRun );
-        //
-        const rawTx = {
-            chainId: cid_main_net,
-            nonce: nTransactionsCount,
-            gasPrice: gasPrice,
-            // gasLimit: estimatedGas,
-            gas: estimatedGas,
-            to: jo_community_pool.options.address, // contract address
-            data: dataTx,
-            value: "0x" + ethersProvider_main_net.utils.toBN( weiHowMuch ).toString( 16 ) // weiHowMuch // how much money to send
-        };
-        const tx = compose_tx_instance( details, strLogPrefix, rawTx );
-        const joSR = await safe_sign_transaction_with_account( details, ethersProvider_main_net, tx, rawTx, joAccountMN );
-        let joReceipt = null;
-        if( joSR.joACI.isAutoSend )
-            joReceipt = await get_web3_transactionReceipt( details, 10, ethersProvider_main_net, joSR.txHashSent );
-        else {
-            const serializedTx = tx.serialize();
-            strActionName = "ethersProvider_main_net.eth.sendSignedTransaction()";
-            // let joReceipt = await ethersProvider_main_net.eth.sendSignedTransaction( "0x" + serializedTx.toString( "hex" ) );
-            joReceipt = await safe_send_signed_transaction( details, ethersProvider_main_net, serializedTx, strActionName, strLogPrefix );
-        }
-        details.write( strLogPrefix + cc.success( "Result receipt: " ) + cc.j( joReceipt ) + "\n" );
+
+        // TO-REMOVE:
+        // const rawTx = {
+        //     chainId: cid_main_net,
+        //     nonce: nTransactionsCount,
+        //     gasPrice: gasPrice,
+        //     // gasLimit: estimatedGas,
+        //     gas: estimatedGas,
+        //     to: jo_community_pool.options.address, // contract address
+        //     data: dataTx,
+        //     value: "0x" + ethersProvider_main_net.utils.toBN( weiHowMuch ).toString( 16 ) // weiHowMuch // how much money to send
+        // };
+        // const tx = compose_tx_instance( details, strLogPrefix, rawTx );
+        // const joSR = await safe_sign_transaction_with_account( details, ethersProvider_main_net, tx, rawTx, joAccountMN );
+        // let joReceipt = null;
+        // if( joSR.joACI.isAutoSend )
+        //     joReceipt = await get_web3_transactionReceipt( details, 10, ethersProvider_main_net, joSR.txHashSent );
+        // else {
+        //     const serializedTx = tx.serialize();
+        //     strActionName = "ethersProvider_main_net.eth.sendSignedTransaction()";
+        //     // let joReceipt = await ethersProvider_main_net.eth.sendSignedTransaction( "0x" + serializedTx.toString( "hex" ) );
+        //     joReceipt = await safe_send_signed_transaction( details, ethersProvider_main_net, serializedTx, strActionName, strLogPrefix );
+        // }
+        // details.write( strLogPrefix + cc.success( "Result receipt: " ) + cc.j( joReceipt ) + "\n" );
+
+        const joReceipt =
+            await payed_call(
+                details,
+                owaspUtils.ethersMod, ethersProvider_main_net,
+                "CommunityPool", jo_community_pool, "withdrawFunds", arrArguments,
+                joAccountMN, strActionName,
+                gasPrice, estimatedGas, weiHowMuch,
+                null
+            );
         if( joReceipt && typeof joReceipt == "object" && "gasUsed" in joReceipt ) {
             jarrReceipts.push( {
                 "description": "reimbursement_wallet_withdraw",
@@ -2259,63 +2295,79 @@ export async function reimbursement_set_range(
         details.write( strLogPrefix + cc.debug( "Setting minimal S2M interval to " ) + cc.notice( nReimbursementRange ) + cc.debug( "..." ) + "\n" );
         //
         strActionName = "Set reimbursement range";
-        const accountForSchain = joAccountSC.address( ethersProvider_s_chain );
+        // const accountForSchain = joAccountSC.address( ethersProvider_s_chain );
 
         // TO-REMOVE:
         // details.write( strLogPrefix + cc.debug( "Will call " ) + cc.notice( strActionName ) + cc.debug( "..." ) + "\n" );
         // const nTransactionsCount = await get_web3_transactionCount( details, 10, ethersProvider_s_chain, joAccountSC.address( ethersProvider_s_chain ), null );
         // details.write( strLogPrefix + cc.debug( "Got " ) + cc.info( nTransactionsCount ) + cc.debug( " from " ) + cc.notice( strActionName ) + "\n" );
 
-        const methodWithArguments = jo_community_locker.methods.setTimeLimitPerMessage(
-            // call params, last is destination account on S-chain
+        const arrArguments = [
             strChainName_origin_chain,
             "0x" + ethersProvider_s_chain.utils.toBN( nReimbursementRange ).toString( 16 )
-        );
-        const dataTx = methodWithArguments.encodeABI(); // the encoded ABI of the method
-        //
+        ];
+
+        // TO-REMOVE:
+        // const dataTx = methodWithArguments.encodeABI(); // the encoded ABI of the method
+
         const gasPrice = await tc_s_chain.computeGasPrice( ethersProvider_s_chain, 200000000000 );
         details.write( strLogPrefix + cc.debug( "Using computed " ) + cc.info( "gasPrice" ) + cc.debug( "=" ) + cc.notice( gasPrice ) + "\n" );
         const estimatedGas = await tc_s_chain.computeGas( methodWithArguments, ethersProvider_s_chain, 3000000, gasPrice, joAccountSC.address( ethersProvider_s_chain ), weiHowMuch );
         details.write( strLogPrefix + cc.debug( "Using estimated " ) + cc.info( "gas" ) + cc.debug( "=" ) + cc.notice( estimatedGas ) + "\n" );
-        //
+
         const weiHowMuch = undefined;
         const isIgnore = false;
         const strErrorOfDryRun =
             await dry_run_call(
                 details,
                 owaspUtils.ethersMod, ethersProvider_s_chain,
-                methodWithArguments,
+                "CommunityLocker", jo_community_locker, "setTimeLimitPerMessage", arrArguments,
                 joAccountSC, strActionName, isIgnore,
                 gasPrice, estimatedGas, weiHowMuch,
                 null
             );
         if( strErrorOfDryRun )
             throw new Error( strErrorOfDryRun );
-        //
-        const rawTx = {
-            chainId: cid_s_chain,
-            from: accountForSchain,
-            nonce: nTransactionsCount,
-            gasPrice: gasPrice,
-            // gasLimit: estimatedGas,
-            gas: estimatedGas,
-            to: jo_community_locker.options.address, // contract address
-            data: dataTx,
-            value: 0 // how much money to send
-        };
+
+        // TO-REMOVE:
+        // const rawTx = {
+        //     chainId: cid_s_chain,
+        //     from: accountForSchain,
+        //     nonce: nTransactionsCount,
+        //     gasPrice: gasPrice,
+        //     // gasLimit: estimatedGas,
+        //     gas: estimatedGas,
+        //     to: jo_community_locker.options.address, // contract address
+        //     data: dataTx,
+        //     value: 0 // how much money to send
+        // };
+
+        // TO-IMPROVE:
         await checkTransactionToSchain( ethersProvider_s_chain, rawTx, details );
-        const tx = compose_tx_instance( details, strLogPrefix, rawTx );
-        const joSR = await safe_sign_transaction_with_account( details, ethersProvider_s_chain, tx, rawTx, joAccountSC );
-        let joReceipt = null;
-        if( joSR.joACI.isAutoSend )
-            joReceipt = await get_web3_transactionReceipt( details, 10, ethersProvider_s_chain, joSR.txHashSent );
-        else {
-            const serializedTx = tx.serialize();
-            strActionName = "ethersProvider_s_chain.eth.sendSignedTransaction()";
-            // let joReceipt = await ethersProvider_s_chain.eth.sendSignedTransaction( "0x" + serializedTx.toString( "hex" ) );
-            joReceipt = await safe_send_signed_transaction( details, ethersProvider_s_chain, serializedTx, strActionName, strLogPrefix );
-        }
-        details.write( strLogPrefix + cc.success( "Result receipt: " ) + cc.j( joReceipt ) + "\n" );
+
+        // TO-REMOVE:
+        // const tx = compose_tx_instance( details, strLogPrefix, rawTx );
+        // const joSR = await safe_sign_transaction_with_account( details, ethersProvider_s_chain, tx, rawTx, joAccountSC );
+        // let joReceipt = null;
+        // if( joSR.joACI.isAutoSend )
+        //     joReceipt = await get_web3_transactionReceipt( details, 10, ethersProvider_s_chain, joSR.txHashSent );
+        // else {
+        //     const serializedTx = tx.serialize();
+        //     strActionName = "ethersProvider_s_chain.eth.sendSignedTransaction()";
+        //     // let joReceipt = await ethersProvider_s_chain.eth.sendSignedTransaction( "0x" + serializedTx.toString( "hex" ) );
+        //     joReceipt = await safe_send_signed_transaction( details, ethersProvider_s_chain, serializedTx, strActionName, strLogPrefix );
+        // }
+        // details.write( strLogPrefix + cc.success( "Result receipt: " ) + cc.j( joReceipt ) + "\n" );
+
+        const joReceipt =
+            await payed_call(
+                details,
+                owaspUtils.ethersMod, ethersProvider_s_chain,
+                "CommunityLocker", jo_community_locker, "setTimeLimitPerMessage", arrArguments,
+                joAccountSC, strActionName,
+                gasPrice, estimatedGas, weiHowMuch,
+                null
+            );
         if( joReceipt && typeof joReceipt == "object" && "gasUsed" in joReceipt ) {
             jarrReceipts.push( {
                 "description": "reimbursement_set_range",
@@ -2377,58 +2429,71 @@ export async function do_eth_payment_from_main_net(
         // const nTransactionsCount = await get_web3_transactionCount( details, 10, ethersProvider_main_net, joAccountSrc.address( ethersProvider_main_net ), null );
         // details.write( strLogPrefix + cc.debug( "Got " ) + cc.info( nTransactionsCount ) + cc.debug( " from " ) + cc.notice( strActionName ) + "\n" );
 
-        const methodWithArguments = jo_deposit_box.methods.deposit(
-            // call params, last is destination account on S-chain
+        const arrArguments = [
             chain_id_s_chain
-        );
-        const dataTx = methodWithArguments.encodeABI(); // the encoded ABI of the method
-        //
+        ];
+
+        // TO-REMOVE:
+        // const dataTx = methodWithArguments.encodeABI(); // the encoded ABI of the method
+
         const gasPrice = await tc_main_net.computeGasPrice( ethersProvider_main_net, 200000000000 );
         details.write( strLogPrefix + cc.debug( "Using computed " ) + cc.info( "gasPrice" ) + cc.debug( "=" ) + cc.notice( gasPrice ) + "\n" );
         const estimatedGas = await tc_main_net.computeGas( methodWithArguments, ethersProvider_main_net, 3000000, gasPrice, joAccountSrc.address( ethersProvider_main_net ), weiHowMuch );
         details.write( strLogPrefix + cc.debug( "Using estimated " ) + cc.info( "gas" ) + cc.debug( "=" ) + cc.notice( estimatedGas ) + "\n" );
-        //
+
         const isIgnore = false;
         const strErrorOfDryRun =
             await dry_run_call(
                 details,
                 owaspUtils.ethersMod, ethersProvider_main_net,
-                methodWithArguments,
+                "DepositBox", jo_deposit_box, "deposit", arrArguments,
                 joAccountSrc, strActionName, isIgnore,
                 gasPrice, estimatedGas, weiHowMuch,
                 null
             );
         if( strErrorOfDryRun )
             throw new Error( strErrorOfDryRun );
-        //
-        const rawTx = {
-            chainId: cid_main_net,
-            nonce: nTransactionsCount,
-            gasPrice: gasPrice,
-            // gasLimit: estimatedGas,
-            gas: estimatedGas,
-            to: jo_deposit_box.options.address, // contract address
-            data: dataTx,
-            value: "0x" + ethersProvider_main_net.utils.toBN( weiHowMuch ).toString( 16 ) // weiHowMuch // how much money to send
-        };
-        const tx = compose_tx_instance( details, strLogPrefix, rawTx );
-        const joSR = await safe_sign_transaction_with_account( details, ethersProvider_main_net, tx, rawTx, joAccountSrc );
-        let joReceipt = null;
-        if( joSR.joACI.isAutoSend )
-            joReceipt = await get_web3_transactionReceipt( details, 10, ethersProvider_main_net, joSR.txHashSent );
-        else {
-            const serializedTx = tx.serialize();
-            strActionName = "ethersProvider_main_net.eth.sendSignedTransaction()";
-            // let joReceipt = await ethersProvider_main_net.eth.sendSignedTransaction( "0x" + serializedTx.toString( "hex" ) );
-            joReceipt = await safe_send_signed_transaction( details, ethersProvider_main_net, serializedTx, strActionName, strLogPrefix );
-        }
-        details.write( strLogPrefix + cc.success( "Result receipt: " ) + cc.j( joReceipt ) + "\n" );
+
+        // TO-REMOVE:
+        // const rawTx = {
+        //     chainId: cid_main_net,
+        //     nonce: nTransactionsCount,
+        //     gasPrice: gasPrice,
+        //     // gasLimit: estimatedGas,
+        //     gas: estimatedGas,
+        //     to: jo_deposit_box.options.address, // contract address
+        //     data: dataTx,
+        //     value: "0x" + ethersProvider_main_net.utils.toBN( weiHowMuch ).toString( 16 ) // weiHowMuch // how much money to send
+        // };
+        // const tx = compose_tx_instance( details, strLogPrefix, rawTx );
+        // const joSR = await safe_sign_transaction_with_account( details, ethersProvider_main_net, tx, rawTx, joAccountSrc );
+        // let joReceipt = null;
+        // if( joSR.joACI.isAutoSend )
+        //     joReceipt = await get_web3_transactionReceipt( details, 10, ethersProvider_main_net, joSR.txHashSent );
+        // else {
+        //     const serializedTx = tx.serialize();
+        //     strActionName = "ethersProvider_main_net.eth.sendSignedTransaction()";
+        //     // let joReceipt = await ethersProvider_main_net.eth.sendSignedTransaction( "0x" + serializedTx.toString( "hex" ) );
+        //     joReceipt = await safe_send_signed_transaction( details, ethersProvider_main_net, serializedTx, strActionName, strLogPrefix );
+        // }
+        // details.write( strLogPrefix + cc.success( "Result receipt: " ) + cc.j( joReceipt ) + "\n" );
+
+        const joReceipt =
+            await payed_call(
+                details,
+                owaspUtils.ethersMod, ethersProvider_main_net,
+                "DepositBox", jo_deposit_box, "deposit", arrArguments,
+                joAccountSrc, strActionName,
+                gasPrice, estimatedGas, weiHowMuch,
+                null
+            );
         if( joReceipt && typeof joReceipt == "object" && "gasUsed" in joReceipt ) {
             jarrReceipts.push( {
                 "description": "do_eth_payment_from_main_net",
                 "receipt": joReceipt
             } );
         }
+
         //
         // Must-have event(s) analysis as indicator(s) of success
         //
@@ -2494,74 +2559,88 @@ export async function do_eth_payment_from_s_chain(
     const strLogPrefix = cc.info( "S2M ETH Payment:" ) + " ";
     try {
         strActionName = "ETH payment from S-Chain, exitToMain";
-        //
+
         let gasPrice = await tc_s_chain.computeGasPrice( ethersProvider_s_chain, 200000000000 );
         details.write( strLogPrefix + cc.debug( "Using computed " ) + cc.info( "gasPrice" ) + cc.debug( "=" ) + cc.notice( gasPrice ) + "\n" ); //
-        //
-        const accountForSchain = joAccountSrc.address( ethersProvider_s_chain );
+
+        // const accountForSchain = joAccountSrc.address( ethersProvider_s_chain );
 
         // TO-REMOVE:
         // details.write( strLogPrefix + cc.debug( "Will call " ) + cc.notice( strActionName ) + cc.debug( "..." ) + "\n" );
         // const nTransactionsCount = await get_web3_transactionCount( details, 10, ethersProvider_s_chain, joAccountSrc.address( ethersProvider_s_chain ), null );
         // details.write( strLogPrefix + cc.debug( "Got " ) + cc.info( nTransactionsCount ) + cc.debug( " from " ) + cc.notice( strActionName ) + "\n" );
-        //
-        //
 
-        const methodWithArguments = jo_token_manager_eth.methods.exitToMain(
-            // call params, last is destination account on S-chain
+        const arrArguments = [
             "0x" + ethersProvider_s_chain.utils.toBN( weiHowMuch ).toString( 16 )
-        );
-        const dataTx = methodWithArguments.encodeABI(); // the encoded ABI of the method
-        //
+        ];
+
+        // TO-REMOVE:
+        // const dataTx = methodWithArguments.encodeABI(); // the encoded ABI of the method
+
         gasPrice = await tc_s_chain.computeGasPrice( ethersProvider_s_chain, 200000000000 );
         details.write( strLogPrefix + cc.debug( "Using computed " ) + cc.info( "gasPrice" ) + cc.debug( "=" ) + cc.notice( gasPrice ) + "\n" ); //
-        //
         const estimatedGas = await tc_s_chain.computeGas( methodWithArguments, ethersProvider_s_chain, 6000000, gasPrice, joAccountSrc.address( ethersProvider_s_chain ), "0" );
         details.write( strLogPrefix + cc.debug( "Using estimated " ) + cc.info( "gas" ) + cc.debug( "=" ) + cc.notice( estimatedGas ) + "\n" );
-        //
+
         const isIgnore = true;
         const strErrorOfDryRun =
             await dry_run_call(
                 details,
                 owaspUtils.ethersMod, ethersProvider_s_chain,
-                methodWithArguments,
+                "TokenManagerETH", jo_token_manager_eth, "exitToMain", arrArguments,
                 joAccountSrc, strActionName, isIgnore,
                 gasPrice, estimatedGas, weiHowMuch,
                 null
             );
         if( strErrorOfDryRun )
             throw new Error( strErrorOfDryRun );
-        //
-        const rawTx = {
-            chainId: cid_s_chain,
-            from: accountForSchain,
-            nonce: nTransactionsCount,
-            gasPrice: gasPrice,
-            // "gasLimit": 3000000,
-            gas: estimatedGas,
-            to: jo_token_manager_eth.options.address, // contract address
-            data: dataTx,
-            value: 0 // how much money to send
-        };
+
+        // TO-REMOVE:
+        // const rawTx = {
+        //     chainId: cid_s_chain,
+        //     from: accountForSchain,
+        //     nonce: nTransactionsCount,
+        //     gasPrice: gasPrice,
+        //     // "gasLimit": 3000000,
+        //     gas: estimatedGas,
+        //     to: jo_token_manager_eth.options.address, // contract address
+        //     data: dataTx,
+        //     value: 0 // how much money to send
+        // };
+
+        // TO-IMPROVE:
         await checkTransactionToSchain( ethersProvider_s_chain, rawTx, details );
-        const tx = compose_tx_instance( details, strLogPrefix, rawTx );
-        const joSR = await safe_sign_transaction_with_account( details, ethersProvider_s_chain, tx, rawTx, joAccountSrc );
-        let joReceipt = null;
-        if( joSR.joACI.isAutoSend )
-            joReceipt = await get_web3_transactionReceipt( details, 10, ethersProvider_s_chain, joSR.txHashSent );
-        else {
-            const serializedTx = tx.serialize();
-            strActionName = "ethersProvider_s_chain.eth.sendSignedTransaction()";
-            // let joReceipt = await ethersProvider_s_chain.eth.sendSignedTransaction( "0x" + serializedTx.toString( "hex" ) );
-            joReceipt = await safe_send_signed_transaction( details, ethersProvider_s_chain, serializedTx, strActionName, strLogPrefix );
-        }
-        details.write( strLogPrefix + cc.success( "Result receipt: " ) + cc.j( joReceipt ) + "\n" );
+
+        // TO-REMOVE:
+        // const tx = compose_tx_instance( details, strLogPrefix, rawTx );
+        // const joSR = await safe_sign_transaction_with_account( details, ethersProvider_s_chain, tx, rawTx, joAccountSrc );
+        // let joReceipt = null;
+        // if( joSR.joACI.isAutoSend )
+        //     joReceipt = await get_web3_transactionReceipt( details, 10, ethersProvider_s_chain, joSR.txHashSent );
+        // else {
+        //     const serializedTx = tx.serialize();
+        //     strActionName = "ethersProvider_s_chain.eth.sendSignedTransaction()";
+        //     // let joReceipt = await ethersProvider_s_chain.eth.sendSignedTransaction( "0x" + serializedTx.toString( "hex" ) );
+        //     joReceipt = await safe_send_signed_transaction( details, ethersProvider_s_chain, serializedTx, strActionName, strLogPrefix );
+        // }
+        // details.write( strLogPrefix + cc.success( "Result receipt: " ) + cc.j( joReceipt ) + "\n" );
+
+        const joReceipt =
+            await payed_call(
+                details,
+                owaspUtils.ethersMod, ethersProvider_s_chain,
+                "TokenManagerETH", jo_token_manager_eth, "exitToMain", arrArguments,
+                joAccountSrc, strActionName,
+                gasPrice, estimatedGas, weiHowMuch,
+                null
+            );
         if( joReceipt && typeof joReceipt == "object" && "gasUsed" in joReceipt ) {
             jarrReceipts.push( {
                 "description": "do_eth_payment_from_s_chain",
                 "receipt": joReceipt
             } );
         }
+
         //
         // Must-have event(s) analysis as indicator(s) of success
         //
@@ -2613,52 +2692,63 @@ export async function receive_eth_payment_from_s_chain_on_main_net(
         // const nTransactionsCount = await get_web3_transactionCount( details, 10, ethersProvider_main_net, joAccountMN.address( ethersProvider_main_net ), null );
         // details.write( strLogPrefix + cc.debug( "Got " ) + cc.info( nTransactionsCount ) + cc.debug( " from " ) + cc.notice( strActionName ) + "\n" );
 
-        const methodWithArguments = jo_deposit_box_eth.methods.getMyEth(
-            // call params(empty)
-        );
-        const dataTx = methodWithArguments.encodeABI(); // the encoded ABI of the method
-        //
+        const arrArguments = [];
+
+        // TO-REMOVE:
+        // const dataTx = methodWithArguments.encodeABI(); // the encoded ABI of the method
+
         const gasPrice = await tc_main_net.computeGasPrice( ethersProvider_main_net, 200000000000 );
         details.write( strLogPrefix + cc.debug( "Using computed " ) + cc.info( "gasPrice" ) + cc.debug( "=" ) + cc.notice( gasPrice ) + "\n" );
         const estimatedGas = await tc_main_net.computeGas( methodWithArguments, ethersProvider_main_net, 3000000, gasPrice, joAccountMN.address( ethersProvider_main_net ), "0" );
         details.write( strLogPrefix + cc.debug( "Using estimated " ) + cc.info( "gas" ) + cc.debug( "=" ) + cc.notice( estimatedGas ) + "\n" );
-        //
+
         const weiHowMuch = undefined;
         const isIgnore = false;
         const strErrorOfDryRun =
             await dry_run_call(
                 details,
                 owaspUtils.ethersMod, ethersProvider_main_net,
-                methodWithArguments,
+                "DepositBoxETH", jo_deposit_box_eth, "getMyEth", arrArguments,
                 joAccountMN, strActionName, isIgnore,
                 gasPrice, estimatedGas, weiHowMuch,
                 null
             );
         if( strErrorOfDryRun )
             throw new Error( strErrorOfDryRun );
-        //
-        const rawTx = {
-            chainId: cid_main_net,
-            nonce: nTransactionsCount,
-            gas: estimatedGas, // 2100000
-            gasPrice: gasPrice,
-            // gasLimit: estimatedGas, // 3000000
-            to: jo_deposit_box_eth.options.address, // contract address
-            data: dataTx,
-            value: 0 // how much money to send
-        };
-        const tx = compose_tx_instance( details, strLogPrefix, rawTx );
-        const joSR = await safe_sign_transaction_with_account( details, ethersProvider_main_net, tx, rawTx, joAccountMN );
-        let joReceipt = null;
-        if( joSR.joACI.isAutoSend )
-            joReceipt = await get_web3_transactionReceipt( details, 10, ethersProvider_main_net, joSR.txHashSent );
-        else {
-            const serializedTx = tx.serialize();
-            strActionName = "ethersProvider_main_net.eth.sendSignedTransaction()";
-            // let joReceipt = await ethersProvider_main_net.eth.sendSignedTransaction( "0x" + serializedTx.toString( "hex" ) );
-            joReceipt = await safe_send_signed_transaction( details, ethersProvider_main_net, serializedTx, strActionName, strLogPrefix );
-        }
-        details.write( strLogPrefix + cc.success( "Result receipt: " ) + cc.j( joReceipt ) + "\n" );
+
+        // TO-REMOVE:
+        // const rawTx = {
+        //     chainId: cid_main_net,
+        //     nonce: nTransactionsCount,
+        //     gas: estimatedGas, // 2100000
+        //     gasPrice: gasPrice,
+        //     // gasLimit: estimatedGas, // 3000000
+        //     to: jo_deposit_box_eth.options.address, // contract address
+        //     data: dataTx,
+        //     value: 0 // how much money to send
+        // };
+        // const tx = compose_tx_instance( details, strLogPrefix, rawTx );
+        // const joSR = await safe_sign_transaction_with_account( details, ethersProvider_main_net, tx, rawTx, joAccountMN );
+        // let joReceipt = null;
+        // if( joSR.joACI.isAutoSend )
+        //     joReceipt = await get_web3_transactionReceipt( details, 10, ethersProvider_main_net, joSR.txHashSent );
+        // else {
+        //     const serializedTx = tx.serialize();
+        //     strActionName = "ethersProvider_main_net.eth.sendSignedTransaction()";
+        //     // let joReceipt = await ethersProvider_main_net.eth.sendSignedTransaction( "0x" + serializedTx.toString( "hex" ) );
+        //     joReceipt = await safe_send_signed_transaction( details, ethersProvider_main_net, serializedTx, strActionName, strLogPrefix );
+        // }
+        // details.write( strLogPrefix + cc.success( "Result receipt: " ) + cc.j( joReceipt ) + "\n" );
+
+        const joReceipt =
+            await payed_call(
+                details,
+                owaspUtils.ethersMod, ethersProvider_main_net,
+                "DepositBoxETH", jo_deposit_box_eth, "getMyEth", arrArguments,
+                joAccountMN, strActionName,
+                gasPrice, estimatedGas, weiHowMuch,
+                null
+            );
         if( joReceipt && typeof joReceipt == "object" && "gasUsed" in joReceipt ) {
             jarrReceipts.push( {
                 "description": "receive_eth_payment_from_s_chain_on_main_net",
@@ -2768,70 +2858,84 @@ export async function do_erc721_payment_from_main_net(
             erc721Address_main_net, erc721ABI, ethersProvider_main_net );
         // prepare the smart contract function deposit(string schainName, address to)
         const depositBoxAddress = jo_deposit_box_erc721.options.address;
-        const methodWithArguments_approve = contractERC721.methods.approve( // same as approve in 20
-            // joAccountSrc.address( ethersProvider_main_net ),
+        const arrArguments_approve = [
             depositBoxAddress,
             "0x" + ethersProvider_main_net.utils.toBN( token_id ).toString( 16 )
-        );
-        const dataTxApprove = methodWithArguments_approve.encodeABI();
-        let dataTxDeposit = null;
-        const methodWithArguments_depositERC721 = jo_deposit_box_erc721.methods.depositERC721(
+        ];
+
+        // TO-REMOVE:
+        // const dataTxApprove = methodWithArguments_approve.encodeABI();
+        // let dataTxDeposit = null;
+
+        const arrArguments_depositERC721 = [
             chain_id_s_chain,
             erc721Address_main_net,
             "0x" + ethersProvider_main_net.utils.toBN( token_id ).toString( 16 )
-        );
-        dataTxDeposit = methodWithArguments_depositERC721.encodeABI();
+        ];
+
+        // TO-REMOVE:
+        // dataTxDeposit = methodWithArguments_depositERC721.encodeABI();
 
         let gasPrice = await tc_main_net.computeGasPrice( ethersProvider_main_net, 200000000000 );
         details.write( strLogPrefix + cc.debug( "Using computed " ) + cc.info( "gasPrice" ) + cc.debug( "=" ) + cc.notice( gasPrice ) + "\n" );
         const estimatedGas_approve = await tc_main_net.computeGas( methodWithArguments_approve, ethersProvider_main_net, 8000000, gasPrice, joAccountSrc.address( ethersProvider_main_net ), "0" );
         details.write( strLogPrefix + cc.debug( "Using estimated(approve) " ) + cc.info( "gas" ) + cc.debug( "=" ) + cc.notice( estimatedGas_approve ) + "\n" );
-        //
+
         const weiHowMuch_approve = undefined;
         const isIgnore_approve = false;
         const strErrorOfDryRun_approve =
             await dry_run_call(
                 details,
                 owaspUtils.ethersMod,ethersProvider_main_net,
-                methodWithArguments_approve,
+                "ERC721", contractERC721, approve, arrArguments_approve,
                 joAccountSrc, strActionName, isIgnore_approve,
                 gasPrice, estimatedGas_approve, weiHowMuch_approve,
                 null
             );
         if( strErrorOfDryRun_approve )
             throw new Error( strErrorOfDryRun_approve );
-        //
-        const rawTxApprove = {
-            chainId: cid_main_net,
-            from: joAccountSrc.address( ethersProvider_main_net ),
-            nonce: "0x" + nTransactionsCount.toString( 16 ),
-            data: dataTxApprove,
-            to: erc721Address_main_net,
-            gasPrice: gasPrice,
-            gas: estimatedGas_approve
-        };
-        const txApprove = compose_tx_instance( details, strLogPrefix, rawTxApprove );
-        strActionName = "sign ERC721/approve transaction M->S";
-        const joApproveSR = await safe_sign_transaction_with_account( details, ethersProvider_main_net, txApprove, rawTxApprove, joAccountSrc );
-        let joReceiptApprove = null;
-        if( joApproveSR.joACI.isAutoSend )
-            joReceiptApprove = await get_web3_transactionReceipt( details, 10, ethersProvider_main_net, joApproveSR.txHashSent );
-        else {
-            const serializedTxApprove = txApprove.serialize();
-            details.write( cc.normal( "Will send ERC721/approve signed transaction from " ) + cc.warning( joAccountSrc.address( ethersProvider_main_net ) ) + "\n" );
-            strActionName = "ethersProvider_main_net.eth.sendSignedTransaction()/Approve";
-            // let joReceiptApprove = await ethersProvider_main_net.eth.sendSignedTransaction( "0x" + serializedTxApprove.toString( "hex" ) );
-            joReceiptApprove = await safe_send_signed_transaction( details, ethersProvider_main_net, serializedTxApprove, strActionName, strLogPrefix );
-        }
-        details.write( strLogPrefix + cc.success( "Result receipt for Approve: " ) + cc.j( joReceiptApprove ) + "\n" );
+
+        // TO-REMOVE:
+        // const rawTxApprove = {
+        //     chainId: cid_main_net,
+        //     from: joAccountSrc.address( ethersProvider_main_net ),
+        //     nonce: "0x" + nTransactionsCount.toString( 16 ),
+        //     data: dataTxApprove,
+        //     to: erc721Address_main_net,
+        //     gasPrice: gasPrice,
+        //     gas: estimatedGas_approve
+        // };
+        // const txApprove = compose_tx_instance( details, strLogPrefix, rawTxApprove );
+        // strActionName = "sign ERC721/approve transaction M->S";
+        // const joApproveSR = await safe_sign_transaction_with_account( details, ethersProvider_main_net, txApprove, rawTxApprove, joAccountSrc );
+        // let joReceiptApprove = null;
+        // if( joApproveSR.joACI.isAutoSend )
+        //     joReceiptApprove = await get_web3_transactionReceipt( details, 10, ethersProvider_main_net, joApproveSR.txHashSent );
+        // else {
+        //     const serializedTxApprove = txApprove.serialize();
+        //     details.write( cc.normal( "Will send ERC721/approve signed transaction from " ) + cc.warning( joAccountSrc.address( ethersProvider_main_net ) ) + "\n" );
+        //     strActionName = "ethersProvider_main_net.eth.sendSignedTransaction()/Approve";
+        //     // let joReceiptApprove = await ethersProvider_main_net.eth.sendSignedTransaction( "0x" + serializedTxApprove.toString( "hex" ) );
+        //     joReceiptApprove = await safe_send_signed_transaction( details, ethersProvider_main_net, serializedTxApprove, strActionName, strLogPrefix );
+        // }
+        // details.write( strLogPrefix + cc.success( "Result receipt for Approve: " ) + cc.j( joReceiptApprove ) + "\n" );
+
+        const joReceiptApprove =
+            await payed_call(
+                details,
+                owaspUtils.ethersMod,ethersProvider_main_net,
+                "ERC721", contractERC721, approve, arrArguments_approve,
+                joAccountSrc, strActionName,
+                gasPrice, estimatedGas_approve, weiHowMuch_approve,
+                null
+            );
         if( joReceiptApprove && typeof joReceiptApprove == "object" && "gasUsed" in joReceiptApprove ) {
             jarrReceipts.push( {
                 "description": "do_erc721_payment_from_main_net/approve",
                 "receipt": joReceiptApprove
             } );
         }
-        //
-        //
+
         strActionName = "ERC721 payment from Main Net, depositERC721";
 
         // TO-REMOVE:
@@ -2848,7 +2952,7 @@ export async function do_erc721_payment_from_main_net(
             await dry_run_call(
                 details,
                 owaspUtils.ethersMod, ethersProvider_main_net,
-                methodWithArguments_depositERC721,
+                "DepositBoxERC721", jo_deposit_box_erc721, "depositERC721", arrArguments_depositERC721,
                 joAccountSrc, strActionName, isIgnore_depositERC721,
                 gasPrice, estimatedGas_deposit, weiHowMuch_depositERC721,
                 null
@@ -2856,31 +2960,41 @@ export async function do_erc721_payment_from_main_net(
         if( strErrorOfDryRun_depositERC721 )
             throw new Error( strErrorOfDryRun_depositERC721 );
 
-        //
-        const rawTxDeposit = {
-            chainId: cid_main_net,
-            from: joAccountSrc.address( ethersProvider_main_net ),
-            nonce: "0x" + nTransactionsCount.toString( 16 ),
-            data: dataTxDeposit,
-            to: depositBoxAddress,
-            gasPrice: gasPrice,
-            gas: estimatedGas_deposit
-        };
-        const txDeposit = compose_tx_instance( details, strLogPrefix, rawTxDeposit );
-        strActionName = "sign ERC721/deposit transaction M->S";
-        const joDepositSR = await safe_sign_transaction_with_account( details, ethersProvider_main_net, txDeposit, rawTxDeposit, joAccountSrc );
-        let joReceiptDeposit = null;
-        if( joDepositSR.joACI.isAutoSend )
-            joReceiptDeposit = await get_web3_transactionReceipt( details, 10, ethersProvider_main_net, joDepositSR.txHashSent );
-        else {
-            const serializedTxDeposit = txDeposit.serialize();
-            // send transactions
-            details.write( cc.normal( "Will send ERC721/deposit signed transaction from " ) + cc.warning( joAccountSrc.address( ethersProvider_main_net ) ) + "\n" );
-            strActionName = "ethersProvider_main_net.eth.sendSignedTransaction()/Deposit";
-            // let joReceiptDeposit = await ethersProvider_main_net.eth.sendSignedTransaction( "0x" + serializedTxDeposit.toString( "hex" ) );
-            joReceiptDeposit = await safe_send_signed_transaction( details, ethersProvider_main_net, serializedTxDeposit, strActionName, strLogPrefix );
-        }
-        details.write( strLogPrefix + cc.success( "Result receipt for Deposit: " ) + cc.j( joReceiptDeposit ) + "\n" );
+        // TO-REMOVE:
+        // const rawTxDeposit = {
+        //     chainId: cid_main_net,
+        //     from: joAccountSrc.address( ethersProvider_main_net ),
+        //     nonce: "0x" + nTransactionsCount.toString( 16 ),
+        //     data: dataTxDeposit,
+        //     to: depositBoxAddress,
+        //     gasPrice: gasPrice,
+        //     gas: estimatedGas_deposit
+        // };
+        // const txDeposit = compose_tx_instance( details, strLogPrefix, rawTxDeposit );
+        // strActionName = "sign ERC721/deposit transaction M->S";
+        // const joDepositSR = await safe_sign_transaction_with_account( details, ethersProvider_main_net, txDeposit, rawTxDeposit, joAccountSrc );
+        // let joReceiptDeposit = null;
+        // if( joDepositSR.joACI.isAutoSend )
+        //     joReceiptDeposit = await get_web3_transactionReceipt( details, 10, ethersProvider_main_net, joDepositSR.txHashSent );
+        // else {
+        //     const serializedTxDeposit = txDeposit.serialize();
+        //     // send transactions
+        //     details.write( cc.normal( "Will send ERC721/deposit signed transaction from " ) + cc.warning( joAccountSrc.address( ethersProvider_main_net ) ) + "\n" );
+        //     strActionName = "ethersProvider_main_net.eth.sendSignedTransaction()/Deposit";
+        //     // let joReceiptDeposit = await ethersProvider_main_net.eth.sendSignedTransaction( "0x" + serializedTxDeposit.toString( "hex" ) );
+        //     joReceiptDeposit = await safe_send_signed_transaction( details, ethersProvider_main_net, serializedTxDeposit, strActionName, strLogPrefix );
+        // }
+        // details.write( strLogPrefix + cc.success( "Result receipt for Deposit: " ) + cc.j( joReceiptDeposit ) + "\n" );
+
+        const joReceiptDeposit =
+            await payed_call(
+                details,
+                owaspUtils.ethersMod, ethersProvider_main_net,
+                "DepositBoxERC721", jo_deposit_box_erc721, "depositERC721", arrArguments_depositERC721,
+                joAccountSrc, strActionName,
+                gasPrice, estimatedGas_deposit, weiHowMuch_depositERC721,
+                null
+            );
         if( joReceiptDeposit && typeof joReceiptDeposit == "object" && "gasUsed" in joReceiptDeposit ) {
             jarrReceipts.push( {
                 "description": "do_erc721_payment_from_main_net/deposit",
@@ -2962,17 +3076,22 @@ export async function do_erc20_payment_from_main_net(
         const contractERC20 = new owaspUtils.ethersMod.ethers.Contract(
             erc20Address_main_net, erc20ABI, ethersProvider_main_net );
         const depositBoxAddress = jo_deposit_box_erc20.options.address;
-        const methodWithArguments_approve = contractERC20.methods.approve(
+        const arrArguments_approve = [
             depositBoxAddress, "0x" + ethersProvider_main_net.utils.toBN( token_amount ).toString( 16 )
-        );
-        const dataTxApprove = methodWithArguments_approve.encodeABI();
-        let dataTxDeposit = null;
-        const methodWithArguments_depositERC20 = jo_deposit_box_erc20.methods.depositERC20(
+        ];
+
+        // TO-REMOVE:
+        // const dataTxApprove = methodWithArguments_approve.encodeABI();
+        // let dataTxDeposit = null;
+
+        const arrArguments_depositERC20 = [
             chain_id_s_chain,
             erc20Address_main_net,
             "0x" + ethersProvider_main_net.utils.toBN( token_amount ).toString( 16 )
-        );
-        dataTxDeposit = methodWithArguments_depositERC20.encodeABI();
+        ];
+
+        // TO-REMOVE:
+        // dataTxDeposit = methodWithArguments_depositERC20.encodeABI();
 
         let gasPrice = await tc_main_net.computeGasPrice( ethersProvider_main_net, 200000000000 );
         details.write( strLogPrefix + cc.debug( "Using computed " ) + cc.info( "gasPrice" ) + cc.debug( "=" ) + cc.notice( gasPrice ) + "\n" );
@@ -2985,45 +3104,55 @@ export async function do_erc20_payment_from_main_net(
             await dry_run_call(
                 details,
                 owaspUtils.ethersMod, ethersProvider_main_net,
-                methodWithArguments_approve,
+                "ERC20", contractERC20, "approve", arrArguments_approve,
                 joAccountSrc, strActionName, isIgnore_approve,
                 gasPrice, estimatedGas_approve, weiHowMuch_approve,
                 null
             );
         if( strErrorOfDryRun_approve )
             throw new Error( strErrorOfDryRun_approve );
-        //
-        const rawTxApprove = {
-            chainId: cid_main_net,
-            from: joAccountSrc.address( ethersProvider_main_net ), // accountForMainnet
-            nonce: "0x" + nTransactionsCount.toString( 16 ),
-            data: dataTxApprove,
-            to: erc20Address_main_net,
-            gasPrice: gasPrice, // 0
-            gas: estimatedGas_approve
-        };
-        const txApprove = compose_tx_instance( details, strLogPrefix, rawTxApprove );
-        strActionName = "sign ERC20/approve transaction M->S";
-        const joApproveSR = await safe_sign_transaction_with_account( details, ethersProvider_main_net, txApprove, rawTxApprove, joAccountSrc );
-        let joReceiptApprove = null;
-        if( joApproveSR.joACI.isAutoSend )
-            joReceiptApprove = await get_web3_transactionReceipt( details, 10, ethersProvider_main_net, joApproveSR.txHashSent );
-        else {
-            const serializedTxApprove = txApprove.serialize();
-            strActionName = "ethersProvider_main_net.eth.sendSignedTransaction()/Approve";
-            details.write( cc.normal( "Will send ERC20/approve signed transaction from " ) + cc.warning( joAccountSrc.address( ethersProvider_main_net ) ) + "\n" );
-            // let joReceiptApprove = await ethersProvider_main_net.eth.sendSignedTransaction( "0x" + serializedTxApprove.toString( "hex" ) );
-            joReceiptApprove = await safe_send_signed_transaction( details, ethersProvider_main_net, serializedTxApprove, strActionName, strLogPrefix );
-        }
-        details.write( strLogPrefix + cc.success( "Result receipt for Approve: " ) + cc.j( joReceiptApprove ) + "\n" );
+
+        // TO-REMOVE:
+        // const rawTxApprove = {
+        //     chainId: cid_main_net,
+        //     from: joAccountSrc.address( ethersProvider_main_net ), // accountForMainnet
+        //     nonce: "0x" + nTransactionsCount.toString( 16 ),
+        //     data: dataTxApprove,
+        //     to: erc20Address_main_net,
+        //     gasPrice: gasPrice, // 0
+        //     gas: estimatedGas_approve
+        // };
+        // const txApprove = compose_tx_instance( details, strLogPrefix, rawTxApprove );
+        // strActionName = "sign ERC20/approve transaction M->S";
+        // const joApproveSR = await safe_sign_transaction_with_account( details, ethersProvider_main_net, txApprove, rawTxApprove, joAccountSrc );
+        // let joReceiptApprove = null;
+        // if( joApproveSR.joACI.isAutoSend )
+        //     joReceiptApprove = await get_web3_transactionReceipt( details, 10, ethersProvider_main_net, joApproveSR.txHashSent );
+        // else {
+        //     const serializedTxApprove = txApprove.serialize();
+        //     strActionName = "ethersProvider_main_net.eth.sendSignedTransaction()/Approve";
+        //     details.write( cc.normal( "Will send ERC20/approve signed transaction from " ) + cc.warning( joAccountSrc.address( ethersProvider_main_net ) ) + "\n" );
+        //     // let joReceiptApprove = await ethersProvider_main_net.eth.sendSignedTransaction( "0x" + serializedTxApprove.toString( "hex" ) );
+        //     joReceiptApprove = await safe_send_signed_transaction( details, ethersProvider_main_net, serializedTxApprove, strActionName, strLogPrefix );
+        // }
+        // details.write( strLogPrefix + cc.success( "Result receipt for Approve: " ) + cc.j( joReceiptApprove ) + "\n" );
+
+        const joReceiptApprove =
+            await payed_call(
+                details,
+                owaspUtils.ethersMod, ethersProvider_main_net,
+                "ERC20", contractERC20, "approve", arrArguments_approve,
+                joAccountSrc, strActionName,
+                gasPrice, estimatedGas_approve, weiHowMuch_approve,
+                null
+            );
         if( joReceiptApprove && typeof joReceiptApprove == "object" && "gasUsed" in joReceiptApprove ) {
             jarrReceipts.push( {
                 "description": "do_erc20_payment_from_main_net/approve",
                 "receipt": joReceiptApprove
             } );
         }
-        //
-        //
+
         strActionName = "ERC20 payment from Main Net, depositERC20";
 
         gasPrice = await tc_main_net.computeGasPrice( ethersProvider_main_net, 200000000000 );
@@ -3037,7 +3166,7 @@ export async function do_erc20_payment_from_main_net(
             await dry_run_call(
                 details,
                 owaspUtils.ethersMod, ethersProvider_main_net,
-                methodWithArguments_depositERC20,
+                "DepositBoxERC20", jo_deposit_box_erc20, "depositERC20", arrArguments_depositERC20,
                 joAccountSrc, strActionName, isIgnore_depositERC20,
                 gasPrice, estimatedGas_deposit, weiHowMuch_depositERC20,
                 null
@@ -3045,33 +3174,43 @@ export async function do_erc20_payment_from_main_net(
         if( strErrorOfDryRun_depositERC20 )
             throw new Error( strErrorOfDryRun_depositERC20 );
 
-        //
-        nTransactionsCount += 1;
-        const rawTxDeposit = {
-            chainId: cid_main_net,
-            from: joAccountSrc.address( ethersProvider_main_net ), // accountForMainnet
-            nonce: "0x" + nTransactionsCount.toString( 16 ),
-            data: dataTxDeposit,
-            to: depositBoxAddress,
-            gasPrice: gasPrice, // 0
-            gas: estimatedGas_deposit
-            // value: "0x" + ethersProvider_main_net.utils.toBN( weiHowMuch ).toString( 16 )
-        };
-        const txDeposit = compose_tx_instance( details, strLogPrefix, rawTxDeposit );
-        strActionName = "sign ERC20/deposit transaction M->S";
-        const joDepositSR = await safe_sign_transaction_with_account( details, ethersProvider_main_net, txDeposit, rawTxDeposit, joAccountSrc );
-        let joReceiptDeposit = null;
-        if( joDepositSR.joACI.isAutoSend )
-            joReceiptDeposit = await get_web3_transactionReceipt( details, 10, ethersProvider_main_net, joDepositSR.txHashSent );
-        else {
-            const serializedTxDeposit = txDeposit.serialize();
-            // send transactions
-            strActionName = "ethersProvider_main_net.eth.sendSignedTransaction()/Deposit";
-            details.write( cc.normal( "Will send ERC20/deposit signed transaction from " ) + cc.warning( joAccountSrc.address( ethersProvider_main_net ) ) + "\n" );
-            // let joReceiptDeposit = await ethersProvider_main_net.eth.sendSignedTransaction( "0x" + serializedTxDeposit.toString( "hex" ) );
-            joReceiptDeposit = await safe_send_signed_transaction( details, ethersProvider_main_net, serializedTxDeposit, strActionName, strLogPrefix );
-        }
-        details.write( strLogPrefix + cc.success( "Result receipt for Deposit: " ) + cc.j( joReceiptDeposit ) + "\n" );
+        // TO-REMOVE:
+        // nTransactionsCount += 1;
+        // const rawTxDeposit = {
+        //     chainId: cid_main_net,
+        //     from: joAccountSrc.address( ethersProvider_main_net ), // accountForMainnet
+        //     nonce: "0x" + nTransactionsCount.toString( 16 ),
+        //     data: dataTxDeposit,
+        //     to: depositBoxAddress,
+        //     gasPrice: gasPrice, // 0
+        //     gas: estimatedGas_deposit
+        //     // value: "0x" + ethersProvider_main_net.utils.toBN( weiHowMuch ).toString( 16 )
+        // };
+        // const txDeposit = compose_tx_instance( details, strLogPrefix, rawTxDeposit );
+        // strActionName = "sign ERC20/deposit transaction M->S";
+        // const joDepositSR = await safe_sign_transaction_with_account( details, ethersProvider_main_net, txDeposit, rawTxDeposit, joAccountSrc );
+        // let joReceiptDeposit = null;
+        // if( joDepositSR.joACI.isAutoSend )
+        //     joReceiptDeposit = await get_web3_transactionReceipt( details, 10, ethersProvider_main_net, joDepositSR.txHashSent );
+        // else {
+        //     const serializedTxDeposit = txDeposit.serialize();
+        //     // send transactions
+        //     strActionName = "ethersProvider_main_net.eth.sendSignedTransaction()/Deposit";
+        //     details.write( cc.normal( "Will send ERC20/deposit signed transaction from " ) + cc.warning( joAccountSrc.address( ethersProvider_main_net ) ) + "\n" );
+        //     // let joReceiptDeposit = await ethersProvider_main_net.eth.sendSignedTransaction( "0x" + serializedTxDeposit.toString( "hex" ) );
+        //     joReceiptDeposit = await safe_send_signed_transaction( details, ethersProvider_main_net, serializedTxDeposit, strActionName, strLogPrefix );
+        // }
+        // details.write( strLogPrefix + cc.success( "Result receipt for Deposit: " ) + cc.j( joReceiptDeposit ) + "\n" );
+
+        const joReceiptDeposit =
+            await payed_call(
+                details,
+                owaspUtils.ethersMod, ethersProvider_main_net,
+                "DepositBoxERC20", jo_deposit_box_erc20, "depositERC20", arrArguments_depositERC20,
+                joAccountSrc, strActionName,
+                gasPrice, estimatedGas_deposit, weiHowMuch_depositERC20,
+                null
+            );
         if( joReceiptDeposit && typeof joReceiptDeposit == "object" && "gasUsed" in joReceiptDeposit ) {
             jarrReceipts.push( {
                 "description": "do_erc20_payment_from_main_net/deposit",
@@ -3148,71 +3287,86 @@ export async function do_erc1155_payment_from_main_net(
             erc1155Address_main_net, erc1155ABI, ethersProvider_main_net );
         // prepare the smart contract function deposit(string schainName, address to)
         const depositBoxAddress = jo_deposit_box_erc1155.options.address;
-        const methodWithArguments_approve = contractERC1155.methods.setApprovalForAll( // same as approve in 20
+        const arrArguments_approve = [
             // joAccountSrc.address( ethersProvider_main_net ),
             depositBoxAddress,
             true
-        );
-        const dataTxApprove = methodWithArguments_approve.encodeABI();
-        let dataTxDeposit = null;
-        const methodWithArguments_depositERC1155 = jo_deposit_box_erc1155.methods.depositERC1155(
+        ];
+
+        // TO-REMOVE:
+        // const dataTxApprove = methodWithArguments_approve.encodeABI();
+        // let dataTxDeposit = null;
+
+        const arrArguments_depositERC1155 = [
             chain_id_s_chain,
             erc1155Address_main_net,
             "0x" + ethersProvider_main_net.utils.toBN( token_id ).toString( 16 ),
             "0x" + ethersProvider_main_net.utils.toBN( token_amount ).toString( 16 )
-        );
-        dataTxDeposit = methodWithArguments_depositERC1155.encodeABI();
+        ];
+
+        // TO-REMOVE:
+        // dataTxDeposit = methodWithArguments_depositERC1155.encodeABI();
 
         let gasPrice = await tc_main_net.computeGasPrice( ethersProvider_main_net, 200000000000 );
         details.write( strLogPrefix + cc.debug( "Using computed " ) + cc.info( "gasPrice" ) + cc.debug( "=" ) + cc.notice( gasPrice ) + "\n" );
         const estimatedGas_approve = await tc_main_net.computeGas( methodWithArguments_approve, ethersProvider_main_net, 8000000, gasPrice, joAccountSrc.address( ethersProvider_main_net ), "0" );
         details.write( strLogPrefix + cc.debug( "Using estimated(approve) " ) + cc.info( "gas" ) + cc.debug( "=" ) + cc.notice( estimatedGas_approve ) + "\n" );
-        //
+
         const weiHowMuch_approve = undefined;
         const isIgnore_approve = false;
         const strErrorOfDryRun_approve =
             await dry_run_call(
                 details,
                 owaspUtils.ethersMod, ethersProvider_main_net,
-                methodWithArguments_approve,
+                "ERC1155", contractERC1155, "setApprovalForAll", arrArguments_approve,
                 joAccountSrc, strActionName, isIgnore_approve,
                 gasPrice, estimatedGas_approve, weiHowMuch_approve,
                 null
             );
         if( strErrorOfDryRun_approve )
             throw new Error( strErrorOfDryRun_approve );
-        //
-        const rawTxApprove = {
-            chainId: cid_main_net,
-            from: joAccountSrc.address( ethersProvider_main_net ),
-            nonce: "0x" + nTransactionsCount.toString( 16 ),
-            data: dataTxApprove,
-            to: erc1155Address_main_net,
-            gasPrice: gasPrice,
-            gas: estimatedGas_approve
-        };
-        const txApprove = compose_tx_instance( details, strLogPrefix, rawTxApprove );
-        strActionName = "sign ERC1155/approve transaction M->S";
-        const joApproveSR = await safe_sign_transaction_with_account( details, ethersProvider_main_net, txApprove, rawTxApprove, joAccountSrc );
-        let joReceiptApprove = null;
-        if( joApproveSR.joACI.isAutoSend )
-            joReceiptApprove = await get_web3_transactionReceipt( details, 10, ethersProvider_main_net, joApproveSR.txHashSent );
-        else {
-            const serializedTxApprove = txApprove.serialize();
-            details.write( cc.normal( "Will send ERC1155/approve signed transaction from " ) + cc.warning( joAccountSrc.address( ethersProvider_main_net ) ) + "\n" );
-            strActionName = "ethersProvider_main_net.eth.sendSignedTransaction()/Approve";
-            // let joReceiptApprove = await ethersProvider_main_net.eth.sendSignedTransaction( "0x" + serializedTxApprove.toString( "hex" ) );
-            joReceiptApprove = await safe_send_signed_transaction( details, ethersProvider_main_net, serializedTxApprove, strActionName, strLogPrefix );
-        }
-        details.write( strLogPrefix + cc.success( "Result receipt for Approve: " ) + cc.j( joReceiptApprove ) + "\n" );
+
+        // TO-REMOVE:
+        // const rawTxApprove = {
+        //     chainId: cid_main_net,
+        //     from: joAccountSrc.address( ethersProvider_main_net ),
+        //     nonce: "0x" + nTransactionsCount.toString( 16 ),
+        //     data: dataTxApprove,
+        //     to: erc1155Address_main_net,
+        //     gasPrice: gasPrice,
+        //     gas: estimatedGas_approve
+        // };
+        // const txApprove = compose_tx_instance( details, strLogPrefix, rawTxApprove );
+        // strActionName = "sign ERC1155/approve transaction M->S";
+        // const joApproveSR = await safe_sign_transaction_with_account( details, ethersProvider_main_net, txApprove, rawTxApprove, joAccountSrc );
+        // let joReceiptApprove = null;
+        // if( joApproveSR.joACI.isAutoSend )
+        //     joReceiptApprove = await get_web3_transactionReceipt( details, 10, ethersProvider_main_net, joApproveSR.txHashSent );
+        // else {
+        //     const serializedTxApprove = txApprove.serialize();
+        //     details.write( cc.normal( "Will send ERC1155/approve signed transaction from " ) + cc.warning( joAccountSrc.address( ethersProvider_main_net ) ) + "\n" );
+        //     strActionName = "ethersProvider_main_net.eth.sendSignedTransaction()/Approve";
+        //     // let joReceiptApprove = await ethersProvider_main_net.eth.sendSignedTransaction( "0x" + serializedTxApprove.toString( "hex" ) );
+        //     joReceiptApprove = await safe_send_signed_transaction( details, ethersProvider_main_net, serializedTxApprove, strActionName, strLogPrefix );
+        // }
+        // details.write( strLogPrefix + cc.success( "Result receipt for Approve: " ) + cc.j( joReceiptApprove ) + "\n" );
+
+        const joReceiptApprove =
+            await payed_call(
+                details,
+                owaspUtils.ethersMod, ethersProvider_main_net,
+                "ERC1155", contractERC1155, "setApprovalForAll", arrArguments_approve,
+                joAccountSrc, strActionName,
+                gasPrice, estimatedGas_approve, weiHowMuch_approve,
+                null
+            );
         if( joReceiptApprove && typeof joReceiptApprove == "object" && "gasUsed" in joReceiptApprove ) {
             jarrReceipts.push( {
                 "description": "do_erc1155_payment_from_main_net/approve",
                 "receipt": joReceiptApprove
             } );
         }
-        //
-        //
+
         strActionName = "ERC1155 payment from Main Net, depositERC1155";
 
         // TO-REMOVE:
@@ -3229,46 +3383,56 @@ export async function do_erc1155_payment_from_main_net(
             await dry_run_call(
                 details,
                 owaspUtils.ethersMod, ethersProvider_main_net,
-                methodWithArguments_depositERC1155,
+                "DepositBoxERC1155", jo_deposit_box_erc1155, "depositERC1155", arrArguments_depositERC1155,
                 joAccountSrc, strActionName, isIgnore_depositERC1155,
                 gasPrice, estimatedGas_deposit, weiHowMuch_depositERC1155,
                 null
             );
         if( strErrorOfDryRun_depositERC1155 )
             throw new Error( strErrorOfDryRun_depositERC1155 );
-        //
-        const rawTxDeposit = {
-            chainId: cid_main_net,
-            from: joAccountSrc.address( ethersProvider_main_net ),
-            nonce: "0x" + nTransactionsCount.toString( 16 ),
-            data: dataTxDeposit,
-            to: depositBoxAddress,
-            gasPrice: gasPrice,
-            gas: estimatedGas_deposit
-        };
-        const txDeposit = compose_tx_instance( details, strLogPrefix, rawTxDeposit );
-        strActionName = "sign ERC1155/deposit transaction M->S";
-        const joDepositSR = await safe_sign_transaction_with_account( details, ethersProvider_main_net, txDeposit, rawTxDeposit, joAccountSrc );
-        let joReceiptDeposit = null;
-        if( joDepositSR.joACI.isAutoSend )
-            joReceiptDeposit = await get_web3_transactionReceipt( details, 10, ethersProvider_main_net, joDepositSR.txHashSent );
-        else {
-            const serializedTxDeposit = txDeposit.serialize();
-            // send transactions
-            details.write( cc.normal( "Will send ERC1155/deposit signed transaction from " ) + cc.warning( joAccountSrc.address( ethersProvider_main_net ) ) + "\n" );
-            strActionName = "ethersProvider_main_net.eth.sendSignedTransaction()/Deposit";
-            // let joReceiptDeposit = await ethersProvider_main_net.eth.sendSignedTransaction( "0x" + serializedTxDeposit.toString( "hex" ) );
-            joReceiptDeposit = await safe_send_signed_transaction( details, ethersProvider_main_net, serializedTxDeposit, strActionName, strLogPrefix );
-        }
-        details.write( strLogPrefix + cc.success( "Result receipt for Deposit: " ) + cc.j( joReceiptDeposit ) + "\n" );
+
+        // TO-REMOVE:
+        // const rawTxDeposit = {
+        //     chainId: cid_main_net,
+        //     from: joAccountSrc.address( ethersProvider_main_net ),
+        //     nonce: "0x" + nTransactionsCount.toString( 16 ),
+        //     data: dataTxDeposit,
+        //     to: depositBoxAddress,
+        //     gasPrice: gasPrice,
+        //     gas: estimatedGas_deposit
+        // };
+        // const txDeposit = compose_tx_instance( details, strLogPrefix, rawTxDeposit );
+        // strActionName = "sign ERC1155/deposit transaction M->S";
+        // const joDepositSR = await safe_sign_transaction_with_account( details, ethersProvider_main_net, txDeposit, rawTxDeposit, joAccountSrc );
+        // let joReceiptDeposit = null;
+        // if( joDepositSR.joACI.isAutoSend )
+        //     joReceiptDeposit = await get_web3_transactionReceipt( details, 10, ethersProvider_main_net, joDepositSR.txHashSent );
+        // else {
+        //     const serializedTxDeposit = txDeposit.serialize();
+        //     // send transactions
+        //     details.write( cc.normal( "Will send ERC1155/deposit signed transaction from " ) + cc.warning( joAccountSrc.address( ethersProvider_main_net ) ) + "\n" );
+        //     strActionName = "ethersProvider_main_net.eth.sendSignedTransaction()/Deposit";
+        //     // let joReceiptDeposit = await ethersProvider_main_net.eth.sendSignedTransaction( "0x" + serializedTxDeposit.toString( "hex" ) );
+        //     joReceiptDeposit = await safe_send_signed_transaction( details, ethersProvider_main_net, serializedTxDeposit, strActionName, strLogPrefix );
+        // }
+        // details.write( strLogPrefix + cc.success( "Result receipt for Deposit: " ) + cc.j( joReceiptDeposit ) + "\n" );
+
+        const joReceiptDeposit =
+            await payed_call(
+                details,
+                owaspUtils.ethersMod, ethersProvider_main_net,
+                "DepositBoxERC1155", jo_deposit_box_erc1155, "depositERC1155", arrArguments_depositERC1155,
+                joAccountSrc, strActionName,
+                gasPrice, estimatedGas_deposit, weiHowMuch_depositERC1155,
+                null
+            );
         if( joReceiptDeposit && typeof joReceiptDeposit == "object" && "gasUsed" in joReceiptDeposit ) {
             jarrReceipts.push( {
                 "description": "do_erc1155_payment_from_main_net/deposit",
                 "receipt": joReceiptDeposit
             } );
         }
-        //
-        //
+
         const joReceipt = joReceiptDeposit;
         //
         // Must-have event(s) analysis as indicator(s) of success
@@ -3337,20 +3501,25 @@ export async function do_erc1155_batch_payment_from_main_net(
             erc1155Address_main_net, erc1155ABI, ethersProvider_main_net );
         // prepare the smart contract function deposit(string schainName, address to)
         const depositBoxAddress = jo_deposit_box_erc1155.options.address;
-        const methodWithArguments_approve = contractERC1155.methods.setApprovalForAll( // same as approve in 20
+        const arrArguments_approve = [
             // joAccountSrc.address( ethersProvider_main_net ),
             depositBoxAddress,
             true
-        );
-        const dataTxApprove = methodWithArguments_approve.encodeABI();
-        let dataTxDeposit = null;
-        const methodWithArguments_depositERC1155Batch = jo_deposit_box_erc1155.methods.depositERC1155Batch(
+        ];
+
+        // TO-REMOVE:
+        // const dataTxApprove = methodWithArguments_approve.encodeABI();
+        // let dataTxDeposit = null;
+
+        const arrArguments_depositERC1155Batch = [
             chain_id_s_chain,
             erc1155Address_main_net,
             token_ids, //"0x" + ethersProvider_main_net.utils.toBN( token_id ).toString( 16 ),
             token_amounts //"0x" + ethersProvider_main_net.utils.toBN( token_amount ).toString( 16 )
-        );
-        dataTxDeposit = methodWithArguments_depositERC1155Batch.encodeABI();
+        ];
+
+        // TO-REMOVE:
+        // dataTxDeposit = methodWithArguments_depositERC1155Batch.encodeABI();
 
         let gasPrice = await tc_main_net.computeGasPrice( ethersProvider_main_net, 200000000000 );
         details.write( strLogPrefix + cc.debug( "Using computed " ) + cc.info( "gasPrice" ) + cc.debug( "=" ) + cc.notice( gasPrice ) + "\n" );
@@ -3363,45 +3532,55 @@ export async function do_erc1155_batch_payment_from_main_net(
             await dry_run_call(
                 details,
                 owaspUtils.ethersMod, ethersProvider_main_net,
-                methodWithArguments_approve,
+                "ERC1155", contractERC1155, "setApprovalForAll", arrArguments_approve,
                 joAccountSrc, strActionName, isIgnore_approve,
                 gasPrice, estimatedGas_approve, weiHowMuch_approve,
                 null
             );
         if( strErrorOfDryRun_approve )
             throw new Error( strErrorOfDryRun_approve );
-        //
-        const rawTxApprove = {
-            chainId: cid_main_net,
-            from: joAccountSrc.address( ethersProvider_main_net ),
-            nonce: "0x" + nTransactionsCount.toString( 16 ),
-            data: dataTxApprove,
-            to: erc1155Address_main_net,
-            gasPrice: gasPrice,
-            gas: estimatedGas_approve
-        };
-        const txApprove = compose_tx_instance( details, strLogPrefix, rawTxApprove );
-        strActionName = "sign ERC1155 Batch/approve transaction M->S";
-        const joApproveSR = await safe_sign_transaction_with_account( details, ethersProvider_main_net, txApprove, rawTxApprove, joAccountSrc );
-        let joReceiptApprove = null;
-        if( joApproveSR.joACI.isAutoSend )
-            joReceiptApprove = await get_web3_transactionReceipt( details, 10, ethersProvider_main_net, joApproveSR.txHashSent );
-        else {
-            const serializedTxApprove = txApprove.serialize();
-            details.write( cc.normal( "Will send ERC1155 Batch/approve signed transaction from " ) + cc.warning( joAccountSrc.address( ethersProvider_main_net ) ) + "\n" );
-            strActionName = "ethersProvider_main_net.eth.sendSignedTransaction()/Approve";
-            // let joReceiptApprove = await ethersProvider_main_net.eth.sendSignedTransaction( "0x" + serializedTxApprove.toString( "hex" ) );
-            joReceiptApprove = await safe_send_signed_transaction( details, ethersProvider_main_net, serializedTxApprove, strActionName, strLogPrefix );
-        }
-        details.write( strLogPrefix + cc.success( "Result receipt for Approve: " ) + cc.j( joReceiptApprove ) + "\n" );
+
+        // TO-REMOVE:
+        // const rawTxApprove = {
+        //     chainId: cid_main_net,
+        //     from: joAccountSrc.address( ethersProvider_main_net ),
+        //     nonce: "0x" + nTransactionsCount.toString( 16 ),
+        //     data: dataTxApprove,
+        //     to: erc1155Address_main_net,
+        //     gasPrice: gasPrice,
+        //     gas: estimatedGas_approve
+        // };
+        // const txApprove = compose_tx_instance( details, strLogPrefix, rawTxApprove );
+        // strActionName = "sign ERC1155 Batch/approve transaction M->S";
+        // const joApproveSR = await safe_sign_transaction_with_account( details, ethersProvider_main_net, txApprove, rawTxApprove, joAccountSrc );
+        // let joReceiptApprove = null;
+        // if( joApproveSR.joACI.isAutoSend )
+        //     joReceiptApprove = await get_web3_transactionReceipt( details, 10, ethersProvider_main_net, joApproveSR.txHashSent );
+        // else {
+        //     const serializedTxApprove = txApprove.serialize();
+        //     details.write( cc.normal( "Will send ERC1155 Batch/approve signed transaction from " ) + cc.warning( joAccountSrc.address( ethersProvider_main_net ) ) + "\n" );
+        //     strActionName = "ethersProvider_main_net.eth.sendSignedTransaction()/Approve";
+        //     // let joReceiptApprove = await ethersProvider_main_net.eth.sendSignedTransaction( "0x" + serializedTxApprove.toString( "hex" ) );
+        //     joReceiptApprove = await safe_send_signed_transaction( details, ethersProvider_main_net, serializedTxApprove, strActionName, strLogPrefix );
+        // }
+        // details.write( strLogPrefix + cc.success( "Result receipt for Approve: " ) + cc.j( joReceiptApprove ) + "\n" );
+
+        const joReceiptApprove =
+            await payed_call(
+                details,
+                owaspUtils.ethersMod, ethersProvider_main_net,
+                "ERC1155", contractERC1155, "setApprovalForAll", arrArguments_approve,
+                joAccountSrc, strActionName,
+                gasPrice, estimatedGas_approve, weiHowMuch_approve,
+                null
+            );
         if( joReceiptApprove && typeof joReceiptApprove == "object" && "gasUsed" in joReceiptApprove ) {
             jarrReceipts.push( {
                 "description": "do_erc1155_batch_payment_from_main_net/approve",
                 "receipt": joReceiptApprove
             } );
         }
-        //
-        //
+
         strActionName = "ERC1155 batch-payment from Main Net, depositERC1155Batch";
 
         // TO-REMOVE:
@@ -3418,46 +3597,56 @@ export async function do_erc1155_batch_payment_from_main_net(
             await dry_run_call(
                 details,
                 owaspUtils.ethersMod, ethersProvider_main_net,
-                methodWithArguments_depositERC1155Batch,
+                "DepositBoxERC1155", jo_deposit_box_erc1155, "depositERC1155Batch", arrArguments_depositERC1155Batch,
                 joAccountSrc, strActionName, isIgnore_depositERC1155Batch,
                 gasPrice, estimatedGas_deposit, weiHowMuch_depositERC1155Batch,
                 null
             );
         if( strErrorOfDryRun_depositERC1155Batch )
             throw new Error( strErrorOfDryRun_depositERC1155Batch );
-        //
-        const rawTxDeposit = {
-            chainId: cid_main_net,
-            from: joAccountSrc.address( ethersProvider_main_net ),
-            nonce: "0x" + nTransactionsCount.toString( 16 ),
-            data: dataTxDeposit,
-            to: depositBoxAddress,
-            gasPrice: gasPrice,
-            gas: estimatedGas_deposit
-        };
-        const txDeposit = compose_tx_instance( details, strLogPrefix, rawTxDeposit );
-        strActionName = "sign ERC1155 Batch/deposit transaction M->S";
-        const joDepositSR = await safe_sign_transaction_with_account( details, ethersProvider_main_net, txDeposit, rawTxDeposit, joAccountSrc );
-        let joReceiptDeposit = null;
-        if( joDepositSR.joACI.isAutoSend )
-            joReceiptDeposit = await get_web3_transactionReceipt( details, 10, ethersProvider_main_net, joDepositSR.txHashSent );
-        else {
-            const serializedTxDeposit = txDeposit.serialize();
-            // send transactions
-            details.write( cc.normal( "Will send ERC1155 Batch/deposit signed transaction from " ) + cc.warning( joAccountSrc.address( ethersProvider_main_net ) ) + "\n" );
-            strActionName = "ethersProvider_main_net.eth.sendSignedTransaction()/Deposit";
-            // let joReceiptDeposit = await ethersProvider_main_net.eth.sendSignedTransaction( "0x" + serializedTxDeposit.toString( "hex" ) );
-            joReceiptDeposit = await safe_send_signed_transaction( details, ethersProvider_main_net, serializedTxDeposit, strActionName, strLogPrefix );
-        }
-        details.write( strLogPrefix + cc.success( "Result receipt for Deposit: " ) + cc.j( joReceiptDeposit ) + "\n" );
+
+        // TO-REMOVE:
+        // const rawTxDeposit = {
+        //     chainId: cid_main_net,
+        //     from: joAccountSrc.address( ethersProvider_main_net ),
+        //     nonce: "0x" + nTransactionsCount.toString( 16 ),
+        //     data: dataTxDeposit,
+        //     to: depositBoxAddress,
+        //     gasPrice: gasPrice,
+        //     gas: estimatedGas_deposit
+        // };
+        // const txDeposit = compose_tx_instance( details, strLogPrefix, rawTxDeposit );
+        // strActionName = "sign ERC1155 Batch/deposit transaction M->S";
+        // const joDepositSR = await safe_sign_transaction_with_account( details, ethersProvider_main_net, txDeposit, rawTxDeposit, joAccountSrc );
+        // let joReceiptDeposit = null;
+        // if( joDepositSR.joACI.isAutoSend )
+        //     joReceiptDeposit = await get_web3_transactionReceipt( details, 10, ethersProvider_main_net, joDepositSR.txHashSent );
+        // else {
+        //     const serializedTxDeposit = txDeposit.serialize();
+        //     // send transactions
+        //     details.write( cc.normal( "Will send ERC1155 Batch/deposit signed transaction from " ) + cc.warning( joAccountSrc.address( ethersProvider_main_net ) ) + "\n" );
+        //     strActionName = "ethersProvider_main_net.eth.sendSignedTransaction()/Deposit";
+        //     // let joReceiptDeposit = await ethersProvider_main_net.eth.sendSignedTransaction( "0x" + serializedTxDeposit.toString( "hex" ) );
+        //     joReceiptDeposit = await safe_send_signed_transaction( details, ethersProvider_main_net, serializedTxDeposit, strActionName, strLogPrefix );
+        // }
+        // details.write( strLogPrefix + cc.success( "Result receipt for Deposit: " ) + cc.j( joReceiptDeposit ) + "\n" );
+
+        const joReceiptDeposit =
+            await payed_call(
+                details,
+                owaspUtils.ethersMod, ethersProvider_main_net,
+                "DepositBoxERC1155", jo_deposit_box_erc1155, "depositERC1155Batch", arrArguments_depositERC1155Batch,
+                joAccountSrc, strActionName,
+                gasPrice, estimatedGas_deposit, weiHowMuch_depositERC1155Batch,
+                null
+            );
         if( joReceiptDeposit && typeof joReceiptDeposit == "object" && "gasUsed" in joReceiptDeposit ) {
             jarrReceipts.push( {
                 "description": "do_erc1155_batch_payment_from_main_net/deposit",
                 "receipt": joReceiptDeposit
             } );
         }
-        //
-        //
+
         const joReceipt = joReceiptDeposit;
         //
         // Must-have event(s) analysis as indicator(s) of success
@@ -3516,68 +3705,88 @@ export async function do_erc20_payment_from_s_chain(
     try {
         strActionName = "ERC20 payment from S-Chain, approve";
 
-        const accountForSchain = joAccountSrc.address( ethersProvider_s_chain );
+        // const accountForSchain = joAccountSrc.address( ethersProvider_s_chain );
         const erc20ABI = joErc20_s_chain[strCoinNameErc20_s_chain + "_abi"];
         const erc20Address_s_chain = joErc20_s_chain[strCoinNameErc20_s_chain + "_address"];
         const tokenManagerAddress = jo_token_manager_erc20.options.address;
         const contractERC20 = new owaspUtils.ethersMod.ethers.Contract(
             erc20Address_s_chain, erc20ABI, ethersProvider_s_chain );
         // const depositBoxAddress = jo_deposit_box.options.address;
-        const methodWithArguments_approve = contractERC20.methods.approve(
+        const arrArguments_approve = [
             tokenManagerAddress, "0x" + ethersProvider_main_net.utils.toBN( token_amount ).toString( 16 )
-        );
-        const dataTxApprove = methodWithArguments_approve.encodeABI();
+        ];
+
+        // TO-REMOVE:
+        // const dataTxApprove = methodWithArguments_approve.encodeABI();
+
         const erc20Address_main_net = joErc20_main_net[strCoinNameErc20_main_net + "_address"];
-        const methodWithArguments_exitToMainERC20 = jo_token_manager_erc20.methods.exitToMainERC20(
+        const arrArguments_exitToMainERC20 = [
             erc20Address_main_net,
             "0x" + ethersProvider_main_net.utils.toBN( token_amount ).toString( 16 )
             // "0x" + ethersProvider_main_net.utils.toBN( weiHowMuch ).toString( 16 )
-        );
-        const dataExitToMainERC20 = methodWithArguments_exitToMainERC20.encodeABI();
+        ];
+
+        // TO-REMOVE:
+        // const dataExitToMainERC20 = methodWithArguments_exitToMainERC20.encodeABI();
 
         let gasPrice = await tc_s_chain.computeGasPrice( ethersProvider_s_chain, 200000000000 );
         details.write( strLogPrefix + cc.debug( "Using computed " ) + cc.info( "gasPrice" ) + cc.debug( "=" ) + cc.notice( gasPrice ) + "\n" );
         const estimatedGas_approve = await tc_s_chain.computeGas( methodWithArguments_approve, ethersProvider_s_chain, 8000000, gasPrice, joAccountSrc.address( ethersProvider_s_chain ), "0" );
         details.write( strLogPrefix + cc.debug( "Using estimated(approve) " ) + cc.info( "gas" ) + cc.debug( "=" ) + cc.notice( estimatedGas_approve ) + "\n" );
-        //
+
         const weiHowMuch_approve = undefined;
         const isIgnore_approve = false;
         const strErrorOfDryRun_approve =
             await dry_run_call(
                 details,
                 owaspUtils.ethersMod, ethersProvider_s_chain,
-                methodWithArguments_approve,
+                "ERC20", contractERC20, "approve", arrArguments_approve,
                 joAccountSrc, strActionName, isIgnore_approve,
                 gasPrice, estimatedGas_approve, weiHowMuch_approve,
                 null
             );
         if( strErrorOfDryRun_approve )
             throw new Error( strErrorOfDryRun_approve );
-        //
-        const nTransactionsCount = parseIntOrHex( await get_web3_transactionCount( details, 10, ethersProvider_s_chain, joAccountSrc.address( ethersProvider_s_chain ), null ) );
-        details.write( strLogPrefix + cc.debug( "Got " ) + cc.info( nTransactionsCount ) + cc.debug( " from " ) + cc.notice( strActionName ) + "\n" );
-        const rawTxApprove = {
-            chainId: cid_s_chain,
-            from: accountForSchain,
-            nonce: "0x" + nTransactionsCount.toString( 16 ),
-            data: dataTxApprove,
-            to: erc20Address_s_chain,
-            gasPrice: gasPrice,
-            gas: estimatedGas_approve
-        };
+
+        // TO-REMOVE:
+        // const nTransactionsCount = parseIntOrHex( await get_web3_transactionCount( details, 10, ethersProvider_s_chain, joAccountSrc.address( ethersProvider_s_chain ), null ) );
+        // details.write( strLogPrefix + cc.debug( "Got " ) + cc.info( nTransactionsCount ) + cc.debug( " from " ) + cc.notice( strActionName ) + "\n" );
+        // const rawTxApprove = {
+        //     chainId: cid_s_chain,
+        //     from: accountForSchain,
+        //     nonce: "0x" + nTransactionsCount.toString( 16 ),
+        //     data: dataTxApprove,
+        //     to: erc20Address_s_chain,
+        //     gasPrice: gasPrice,
+        //     gas: estimatedGas_approve
+        // };
+
+        // TO-IMPROVE:
         await checkTransactionToSchain( ethersProvider_s_chain, rawTxApprove, details );
-        const txApprove = compose_tx_instance( details, strLogPrefix, rawTxApprove );
-        strActionName = "sign ERC20/approve transaction S->M";
-        const joApproveSR = await safe_sign_transaction_with_account( details, ethersProvider_s_chain, txApprove, rawTxApprove, joAccountSrc );
-        let joReceiptApprove = null;
-        if( joApproveSR.joACI.isAutoSend && joDepositSR.joACI.isAutoSend )
-            joReceiptApprove = await get_web3_transactionReceipt( details, 10, ethersProvider_s_chain, joApproveSR.txHashSent );
-        else {
-            const serializedTxApprove = txApprove.serialize();
-            // let joReceiptApprove = await ethersProvider_s_chain.eth.sendSignedTransaction( "0x" + serializedTxApprove.toString( "hex" ) );
-            joReceiptApprove = await safe_send_signed_transaction( details, ethersProvider_s_chain, serializedTxApprove, strActionName, strLogPrefix );
-        }
-        details.write( strLogPrefix + cc.success( "Result receipt for Approve: " ) + cc.j( joReceiptApprove ) + "\n" );
+
+        // TO-REMOVE:
+        // const txApprove = compose_tx_instance( details, strLogPrefix, rawTxApprove );
+        // strActionName = "sign ERC20/approve transaction S->M";
+        // const joApproveSR = await safe_sign_transaction_with_account( details, ethersProvider_s_chain, txApprove, rawTxApprove, joAccountSrc );
+        // let joReceiptApprove = null;
+        // if( joApproveSR.joACI.isAutoSend && joDepositSR.joACI.isAutoSend )
+        //     joReceiptApprove = await get_web3_transactionReceipt( details, 10, ethersProvider_s_chain, joApproveSR.txHashSent );
+        // else {
+        //     const serializedTxApprove = txApprove.serialize();
+        //     // let joReceiptApprove = await ethersProvider_s_chain.eth.sendSignedTransaction( "0x" + serializedTxApprove.toString( "hex" ) );
+        //     joReceiptApprove = await safe_send_signed_transaction( details, ethersProvider_s_chain, serializedTxApprove, strActionName, strLogPrefix );
+        // }
+        // details.write( strLogPrefix + cc.success( "Result receipt for Approve: " ) + cc.j( joReceiptApprove ) + "\n" );
+
+        const joReceiptApprove =
+            await payed_call(
+                details,
+                owaspUtils.ethersMod, ethersProvider_s_chain,
+                "ERC20", contractERC20, "approve", arrArguments_approve,
+                joAccountSrc, strActionName,
+                gasPrice, estimatedGas_approve, weiHowMuch_approve,
+                null
+            );
         if( joReceiptApprove && typeof joReceiptApprove == "object" && "gasUsed" in joReceiptApprove ) {
             jarrReceipts.push( {
                 "description": "do_erc20_payment_from_s_chain/approve",
@@ -3605,50 +3814,67 @@ export async function do_erc20_payment_from_s_chain(
 
         gasPrice = await tc_s_chain.computeGasPrice( ethersProvider_s_chain, 200000000000 );
         details.write( strLogPrefix + cc.debug( "Using computed " ) + cc.info( "gasPrice" ) + cc.debug( "=" ) + cc.notice( gasPrice ) + "\n" );
-        //
+
         const weiHowMuch_exitToMainERC20 = undefined;
         const isIgnore_exitToMainERC20 = true;
         const strErrorOfDryRun_exitToMainERC20 =
             await dry_run_call(
                 details,
                 owaspUtils.ethersMod, ethersProvider_s_chain,
-                methodWithArguments_exitToMainERC20,
+                "TokenManagerERC20", jo_token_manager_erc20, "exitToMainERC20", arrArguments_exitToMainERC20,
                 joAccountSrc, strActionName, isIgnore_exitToMainERC20,
                 gasPrice, estimatedGas_exitToMainERC20, weiHowMuch_exitToMainERC20,
                 null
             );
         if( strErrorOfDryRun_exitToMainERC20 )
             throw new Error( strErrorOfDryRun_exitToMainERC20 );
-        //
-        const rawTxExitToMainERC20 = {
-            chainId: cid_s_chain,
-            from: accountForSchain,
-            nonce: "0x" + nTransactionsCount.toString( 16 ),
-            data: dataExitToMainERC20,
-            to: tokenManagerAddress,
-            gasPrice: gasPrice,
-            gas: estimatedGas_exitToMainERC20
-        };
+
+        // TO-REMOVE:
+        // const rawTxExitToMainERC20 = {
+        //     chainId: cid_s_chain,
+        //     from: accountForSchain,
+        //     nonce: "0x" + nTransactionsCount.toString( 16 ),
+        //     data: dataExitToMainERC20,
+        //     to: tokenManagerAddress,
+        //     gasPrice: gasPrice,
+        //     gas: estimatedGas_exitToMainERC20
+        // };
+
+        // TO-IMPROVE:
         await checkTransactionToSchain( ethersProvider_s_chain, rawTxExitToMainERC20, details );
-        const txExitToMainERC20 = compose_tx_instance( details, strLogPrefix, rawTxExitToMainERC20 );
-        strActionName = "sign ERC20/exitToMain transaction S->M";
-        const joExitToMainERC20SR = await safe_sign_transaction_with_account( details, ethersProvider_s_chain, txExitToMainERC20, rawTxExitToMainERC20, joAccountSrc );
-        let joReceiptExitToMainERC20 = null;
-        if( joExitToMainERC20SR.joACI.isAutoSend )
-            joReceiptExitToMainERC20 = await get_web3_transactionReceipt( details, 10, ethersProvider_s_chain, joExitToMainERC20SR.txHashSent );
-        else {
-            const serializedTxExitToMainERC20 = txExitToMainERC20.serialize();
-            // let joReceiptExitToMainERC20 = await ethersProvider_s_chain.eth.sendSignedTransaction( "0x" + serializedTxExitToMainERC20.toString( "hex" ) );
-            joReceiptExitToMainERC20 = await safe_send_signed_transaction( details, ethersProvider_s_chain, serializedTxExitToMainERC20, strActionName, strLogPrefix );
-        }
+
+        // TO-REMOVE:
+        // const txExitToMainERC20 = compose_tx_instance( details, strLogPrefix, rawTxExitToMainERC20 );
+        // strActionName = "sign ERC20/exitToMain transaction S->M";
+        // const joExitToMainERC20SR = await safe_sign_transaction_with_account( details, ethersProvider_s_chain, txExitToMainERC20, rawTxExitToMainERC20, joAccountSrc );
+        // let joReceiptExitToMainERC20 = null;
+        // if( joExitToMainERC20SR.joACI.isAutoSend )
+        //     joReceiptExitToMainERC20 = await get_web3_transactionReceipt( details, 10, ethersProvider_s_chain, joExitToMainERC20SR.txHashSent );
+        // else {
+        //     const serializedTxExitToMainERC20 = txExitToMainERC20.serialize();
+        //     // let joReceiptExitToMainERC20 = await ethersProvider_s_chain.eth.sendSignedTransaction( "0x" + serializedTxExitToMainERC20.toString( "hex" ) );
+        //     joReceiptExitToMainERC20 = await safe_send_signed_transaction( details, ethersProvider_s_chain, serializedTxExitToMainERC20, strActionName, strLogPrefix );
+        // }
+
+        const joReceiptExitToMainERC20 =
+            await payed_call(
+                details,
+                owaspUtils.ethersMod, ethersProvider_s_chain,
+                "TokenManagerERC20", jo_token_manager_erc20, "exitToMainERC20", arrArguments_exitToMainERC20,
+                joAccountSrc, strActionName,
+                gasPrice, estimatedGas_exitToMainERC20, weiHowMuch_exitToMainERC20,
+                null
+            );
         if( joReceiptExitToMainERC20 && typeof joReceiptExitToMainERC20 == "object" && "gasUsed" in joReceiptExitToMainERC20 ) {
             jarrReceipts.push( {
                 "description": "do_erc20_payment_from_s_chain/exit-to-main",
                 "receipt": joReceiptExitToMainERC20
             } );
         }
+
         const joReceipt = joReceiptExitToMainERC20;
         details.write( strLogPrefix + cc.success( "Result receipt for ExitToMainERC20: " ) + cc.j( joReceiptExitToMainERC20 ) + "\n" );
+
         //
         // Must-have event(s) analysis as indicator(s) of success
         //
@@ -3706,27 +3932,32 @@ export async function do_erc721_payment_from_s_chain(
     try {
         strActionName = "ERC721 payment from S-Chain, approve";
 
-        const accountForSchain = joAccountSrc.address( ethersProvider_s_chain );
+        // const accountForSchain = joAccountSrc.address( ethersProvider_s_chain );
         const erc721ABI = joErc721_s_chain[strCoinNameErc721_s_chain + "_abi"];
         const erc721Address_s_chain = joErc721_s_chain[strCoinNameErc721_s_chain + "_address"];
         const tokenManagerAddress = jo_token_manager_erc721.options.address;
         const contractERC721 = new owaspUtils.ethersMod.ethers.Contract(
             erc721Address_s_chain, erc721ABI, ethersProvider_s_chain );
         // const depositBoxAddress = jo_deposit_box.options.address;
-        const methodWithArguments_approve = contractERC721.methods.approve(
+        const arrArguments_approve = [
             // accountForSchain,
             tokenManagerAddress,
             "0x" + ethersProvider_main_net.utils.toBN( token_id ).toString( 16 )
-        );
-        const dataTxApprove = methodWithArguments_approve.encodeABI();
-        let dataTxExitToMainERC721 = null;
+        ];
+
+        // TO-REMOVE:
+        // const dataTxApprove = methodWithArguments_approve.encodeABI();
+        // let dataTxExitToMainERC721 = null;
+
         const erc721Address_main_net = joErc721_main_net[strCoinNameErc721_main_net + "_address"];
-        const methodWithArguments_exitToMainERC721 = jo_token_manager_erc721.methods.exitToMainERC721(
+        const arrArguments_exitToMainERC721 = [
             erc721Address_main_net,
             "0x" + ethersProvider_main_net.utils.toBN( token_id ).toString( 16 )
             // "0x" + ethersProvider_main_net.utils.toBN( weiHowMuch ).toString( 16 )
-        );
-        dataTxExitToMainERC721 = methodWithArguments_exitToMainERC721.encodeABI();
+        ];
+
+        // TO-REMOVE:
+        // dataTxExitToMainERC721 = methodWithArguments_exitToMainERC721.encodeABI();
 
         let gasPrice = await tc_s_chain.computeGasPrice( ethersProvider_s_chain, 200000000000 );
         details.write( strLogPrefix + cc.debug( "Using computed " ) + cc.info( "gasPrice" ) + cc.debug( "=" ) + cc.notice( gasPrice ) + "\n" );
@@ -3737,50 +3968,64 @@ export async function do_erc721_payment_from_s_chain(
 
         const estimatedGas_approve = await tc_s_chain.computeGas( methodWithArguments_approve, ethersProvider_s_chain, 8000000, gasPrice, joAccountSrc.address( ethersProvider_s_chain ), "0" );
         details.write( strLogPrefix + cc.debug( "Using estimated(transfer from) " ) + cc.info( "gas" ) + cc.debug( "=" ) + cc.notice( estimatedGas_approve ) + "\n" );
-        //
+
         const weiHowMuch_approve = undefined;
         const isIgnore_approve = false;
         const strErrorOfDryRun_approve =
             await dry_run_call(
                 details,
                 owaspUtils.ethersMod, ethersProvider_s_chain,
-                methodWithArguments_approve,
+                "ERC721", contractERC721, "approve", arrArguments_approve,
                 joAccountSrc, strActionName, isIgnore_approve,
                 gasPrice, estimatedGas_approve, weiHowMuch_approve,
                 null
             );
         if( strErrorOfDryRun_approve )
             throw new Error( strErrorOfDryRun_approve );
-        //
-        const rawTxApprove = {
-            chainId: cid_s_chain,
-            from: accountForSchain,
-            nonce: "0x" + nTransactionsCount.toString( 16 ),
-            data: dataTxApprove,
-            to: erc721Address_s_chain,
-            gasPrice: gasPrice,
-            gas: estimatedGas_approve
-        };
+
+        // TO-REMOVE:
+        // const rawTxApprove = {
+        //     chainId: cid_s_chain,
+        //     from: accountForSchain,
+        //     nonce: "0x" + nTransactionsCount.toString( 16 ),
+        //     data: dataTxApprove,
+        //     to: erc721Address_s_chain,
+        //     gasPrice: gasPrice,
+        //     gas: estimatedGas_approve
+        // };
+
+        // TO-IMPROVE:
         await checkTransactionToSchain( ethersProvider_s_chain, rawTxApprove, details );
-        const txApprove = compose_tx_instance( details, strLogPrefix, rawTxApprove );
-        strActionName = "sign ERC721/approve transaction S->M";
-        const joApproveSR = await safe_sign_transaction_with_account( details, ethersProvider_s_chain, txApprove, rawTxApprove, joAccountSrc );
-        let joReceiptApprove = null;
-        if( joApproveSR.joACI.isAutoSend )
-            joReceiptApprove = await get_web3_transactionReceipt( details, 10, ethersProvider_s_chain, joApproveSR.txHashSent );
-        else {
-            const serializedTxApprove = txApprove.serialize();
-            // let joReceiptApprove = await ethersProvider_s_chain.eth.sendSignedTransaction( "0x" + serializedTxApprove.toString( "hex" ) );
-            joReceiptApprove = await safe_send_signed_transaction( details, ethersProvider_s_chain, serializedTxApprove, strActionName, strLogPrefix );
-        }
-        details.write( strLogPrefix + cc.success( "Result receipt for Approve: " ) + cc.j( joReceiptApprove ) + "\n" );
+
+        // const txApprove = compose_tx_instance( details, strLogPrefix, rawTxApprove );
+        // strActionName = "sign ERC721/approve transaction S->M";
+        // const joApproveSR = await safe_sign_transaction_with_account( details, ethersProvider_s_chain, txApprove, rawTxApprove, joAccountSrc );
+        // let joReceiptApprove = null;
+        // if( joApproveSR.joACI.isAutoSend )
+        //     joReceiptApprove = await get_web3_transactionReceipt( details, 10, ethersProvider_s_chain, joApproveSR.txHashSent );
+        // else {
+        //     const serializedTxApprove = txApprove.serialize();
+        //     // let joReceiptApprove = await ethersProvider_s_chain.eth.sendSignedTransaction( "0x" + serializedTxApprove.toString( "hex" ) );
+        //     joReceiptApprove = await safe_send_signed_transaction( details, ethersProvider_s_chain, serializedTxApprove, strActionName, strLogPrefix );
+        // }
+        // details.write( strLogPrefix + cc.success( "Result receipt for Approve: " ) + cc.j( joReceiptApprove ) + "\n" );
+
+        const joReceiptApprove =
+            await payed_call(
+                details,
+                owaspUtils.ethersMod, ethersProvider_s_chain,
+                "ERC721", contractERC721, "approve", arrArguments_approve,
+                joAccountSrc, strActionName,
+                gasPrice, estimatedGas_approve, weiHowMuch_approve,
+                null
+            );
         if( joReceiptApprove && typeof joReceiptApprove == "object" && "gasUsed" in joReceiptApprove ) {
             jarrReceipts.push( {
                 "description": "do_erc721_payment_from_s_chain/transfer-from",
                 "receipt": joReceiptApprove
             } );
         }
-        //
+
         if( g_nSleepBetweenTransactionsOnSChainMilliseconds ) {
             details.write( cc.normal( "Sleeping " ) + cc.info( g_nSleepBetweenTransactionsOnSChainMilliseconds ) + cc.normal( " milliseconds between transactions..." ) + "\n" );
             await sleep( g_nSleepBetweenTransactionsOnSChainMilliseconds );
@@ -3808,44 +4053,59 @@ export async function do_erc721_payment_from_s_chain(
             await dry_run_call(
                 details,
                 owaspUtils.ethersMod, ethersProvider_s_chain,
-                methodWithArguments_exitToMainERC721,
+                "TokenManagerERC721", jo_token_manager_erc721, "exitToMainERC721", arrArguments_exitToMainERC721,
                 joAccountSrc, strActionName, isIgnore_exitToMainERC721,
                 gasPrice, estimatedGas_exitToMainERC721, weiHowMuch_exitToMainERC721,
                 null
             );
         if( strErrorOfDryRun_exitToMainERC721 )
             throw new Error( strErrorOfDryRun_exitToMainERC721 );
-        //
-        const rawTxExitToMainERC721 = {
-            chainId: cid_s_chain,
-            from: accountForSchain,
-            nonce: "0x" + nTransactionsCount.toString( 16 ),
-            data: dataTxExitToMainERC721,
-            to: tokenManagerAddress,
-            gasPrice: gasPrice,
-            gas: estimatedGas_exitToMainERC721
-        };
+
+        // TO-REMOVE:
+        // const rawTxExitToMainERC721 = {
+        //     chainId: cid_s_chain,
+        //     from: accountForSchain,
+        //     nonce: "0x" + nTransactionsCount.toString( 16 ),
+        //     data: dataTxExitToMainERC721,
+        //     to: tokenManagerAddress,
+        //     gasPrice: gasPrice,
+        //     gas: estimatedGas_exitToMainERC721
+        // };
+
+        // TO-IMPROVE:
         await checkTransactionToSchain( ethersProvider_s_chain, rawTxExitToMainERC721, details );
-        const txExitToMainERC721 = compose_tx_instance( details, strLogPrefix, rawTxExitToMainERC721 );
-        strActionName = "sign ERC721/rawExitToMain transaction S->M";
-        const joExitToMainErc721SR = await safe_sign_transaction_with_account( details, ethersProvider_s_chain, txExitToMainERC721, rawTxExitToMainERC721, joAccountSrc );
-        let joReceiptExitToMainERC721 = null;
-        if( joExitToMainErc721SR.joACI.isAutoSend )
-            joReceiptExitToMainERC721 = await get_web3_transactionReceipt( details, 10, ethersProvider_s_chain, joExitToMainErc721SR.txHashSent );
-        else {
-            const serializedTxExitToMainERC721 = txExitToMainERC721.serialize();
-            // let joReceiptExitToMainERC721 = await ethersProvider_s_chain.eth.sendSignedTransaction( "0x" + serializedTxExitToMainERC721.toString( "hex" ) );
-            joReceiptExitToMainERC721 = await safe_send_signed_transaction( details, ethersProvider_s_chain, serializedTxExitToMainERC721, strActionName, strLogPrefix );
-        }
-        details.write( strLogPrefix + cc.success( "Result receipt for ExitToMainERC721: " ) + cc.j( joReceiptExitToMainERC721 ) + "\n" );
-        const joReceipt = joReceiptExitToMainERC721;
-        details.write( strLogPrefix + cc.success( "Result receipt for ExitToMainERC721: " ) + cc.j( joReceiptExitToMainERC721 ) + "\n" );
+
+        // TO-REMOVE:
+        // const txExitToMainERC721 = compose_tx_instance( details, strLogPrefix, rawTxExitToMainERC721 );
+        // strActionName = "sign ERC721/rawExitToMain transaction S->M";
+        // const joExitToMainErc721SR = await safe_sign_transaction_with_account( details, ethersProvider_s_chain, txExitToMainERC721, rawTxExitToMainERC721, joAccountSrc );
+        // let joReceiptExitToMainERC721 = null;
+        // if( joExitToMainErc721SR.joACI.isAutoSend )
+        //     joReceiptExitToMainERC721 = await get_web3_transactionReceipt( details, 10, ethersProvider_s_chain, joExitToMainErc721SR.txHashSent );
+        // else {
+        //     const serializedTxExitToMainERC721 = txExitToMainERC721.serialize();
+        //     // let joReceiptExitToMainERC721 = await ethersProvider_s_chain.eth.sendSignedTransaction( "0x" + serializedTxExitToMainERC721.toString( "hex" ) );
+        //     joReceiptExitToMainERC721 = await safe_send_signed_transaction( details, ethersProvider_s_chain, serializedTxExitToMainERC721, strActionName, strLogPrefix );
+        // }
+        // details.write( strLogPrefix + cc.success( "Result receipt for ExitToMainERC721: " ) + cc.j( joReceiptExitToMainERC721 ) + "\n" );
+
+        const joReceiptExitToMainERC721 =
+            await payed_call(
+                details,
+                owaspUtils.ethersMod, ethersProvider_s_chain,
+                "TokenManagerERC721", jo_token_manager_erc721, "exitToMainERC721", arrArguments_exitToMainERC721,
+                joAccountSrc, strActionName,
+                gasPrice, estimatedGas_exitToMainERC721, weiHowMuch_exitToMainERC721,
+                null
+            );
         if( joReceiptExitToMainERC721 && typeof joReceiptExitToMainERC721 == "object" && "gasUsed" in joReceiptExitToMainERC721 ) {
             jarrReceipts.push( {
                 "description": "do_erc721_payment_from_s_chain/exit-to-main",
                 "receipt": joReceiptExitToMainERC721
             } );
         }
+        const joReceipt = joReceiptExitToMainERC721;
+
         //
         // Must-have event(s) analysis as indicator(s) of success
         //
@@ -3901,28 +4161,33 @@ export async function do_erc1155_payment_from_s_chain(
     try {
         strActionName = "ERC1155 payment from S-Chain, approve";
 
-        const accountForSchain = joAccountSrc.address( ethersProvider_s_chain );
+        // const accountForSchain = joAccountSrc.address( ethersProvider_s_chain );
         const erc1155ABI = joErc1155_s_chain[strCoinNameErc1155_s_chain + "_abi"];
         const erc1155Address_s_chain = joErc1155_s_chain[strCoinNameErc1155_s_chain + "_address"];
         const tokenManagerAddress = jo_token_manager_erc1155.options.address;
         const contractERC1155 = new owaspUtils.ethersMod.ethers.Contract(
             erc1155Address_s_chain, erc1155ABI, ethersProvider_s_chain );
         // const depositBoxAddress = jo_deposit_box.options.address;
-        const methodWithArguments_approve = contractERC1155.methods.setApprovalForAll(
+        const arrArguments_approve = [
             // accountForSchain,
             tokenManagerAddress,
             true
-        );
-        const dataTxApprove = methodWithArguments_approve.encodeABI();
-        let dataTxExitToMainERC1155 = null;
+        ];
+
+        // TO-REMOVE:
+        // const dataTxApprove = methodWithArguments_approve.encodeABI();
+        // let dataTxExitToMainERC1155 = null;
+
         const erc1155Address_main_net = joErc1155_main_net[strCoinNameErc1155_main_net + "_address"];
-        const methodWithArguments_exitToMainERC1155 = jo_token_manager_erc1155.methods.exitToMainERC1155(
+        const arrArguments_exitToMainERC1155 = [
             erc1155Address_main_net,
             "0x" + ethersProvider_main_net.utils.toBN( token_id ).toString( 16 ),
             "0x" + ethersProvider_main_net.utils.toBN( token_amount ).toString( 16 )
             // "0x" + ethersProvider_main_net.utils.toBN( weiHowMuch ).toString( 16 )
-        );
-        dataTxExitToMainERC1155 = methodWithArguments_exitToMainERC1155.encodeABI();
+        ];
+
+        // TO-REMOVE:
+        // dataTxExitToMainERC1155 = methodWithArguments_exitToMainERC1155.encodeABI();
 
         let gasPrice = await tc_s_chain.computeGasPrice( ethersProvider_s_chain, 200000000000 );
         details.write( strLogPrefix + cc.debug( "Using computed " ) + cc.info( "gasPrice" ) + cc.debug( "=" ) + cc.notice( gasPrice ) + "\n" );
@@ -3940,43 +4205,58 @@ export async function do_erc1155_payment_from_s_chain(
             await dry_run_call(
                 details,
                 owaspUtils.ethersMod, ethersProvider_s_chain,
-                methodWithArguments_approve,
+                "ERC1155", contractERC1155, "setApprovalForAll", arrArguments_approve,
                 joAccountSrc, strActionName, isIgnore_approve,
                 gasPrice, estimatedGas_approve, weiHowMuch_approve,
                 null
             );
         if( strErrorOfDryRun_approve )
             throw new Error( strErrorOfDryRun_approve );
-        //
-        const rawTxApprove = {
-            chainId: cid_s_chain,
-            from: accountForSchain,
-            nonce: "0x" + nTransactionsCount.toString( 16 ),
-            data: dataTxApprove,
-            to: erc1155Address_s_chain,
-            gasPrice: gasPrice,
-            gas: estimatedGas_approve
-        };
+
+        // TO-REMOVE:
+        // const rawTxApprove = {
+        //     chainId: cid_s_chain,
+        //     from: accountForSchain,
+        //     nonce: "0x" + nTransactionsCount.toString( 16 ),
+        //     data: dataTxApprove,
+        //     to: erc1155Address_s_chain,
+        //     gasPrice: gasPrice,
+        //     gas: estimatedGas_approve
+        // };
+
+        // TO-IMPROVE:
         await checkTransactionToSchain( ethersProvider_s_chain, rawTxApprove, details );
-        const txApprove = compose_tx_instance( details, strLogPrefix, rawTxApprove );
-        strActionName = "sign ERC1155/approve transaction S->M";
-        const joApproveSR = await safe_sign_transaction_with_account( details, ethersProvider_s_chain, txApprove, rawTxApprove, joAccountSrc );
-        let joReceiptApprove = null;
-        if( joApproveSR.joACI.isAutoSend )
-            joReceiptApprove = await get_web3_transactionReceipt( details, 10, ethersProvider_s_chain, joApproveSR.txHashSent );
-        else {
-            const serializedTxApprove = txApprove.serialize();
-            // let joReceiptApprove = await ethersProvider_s_chain.eth.sendSignedTransaction( "0x" + serializedTxApprove.toString( "hex" ) );
-            joReceiptApprove = await safe_send_signed_transaction( details, ethersProvider_s_chain, serializedTxApprove, strActionName, strLogPrefix );
-        }
-        details.write( strLogPrefix + cc.success( "Result receipt for Approve: " ) + cc.j( joReceiptApprove ) + "\n" );
+
+        // TO-REMOVE:
+        // const txApprove = compose_tx_instance( details, strLogPrefix, rawTxApprove );
+        // strActionName = "sign ERC1155/approve transaction S->M";
+        // const joApproveSR = await safe_sign_transaction_with_account( details, ethersProvider_s_chain, txApprove, rawTxApprove, joAccountSrc );
+        // let joReceiptApprove = null;
+        // if( joApproveSR.joACI.isAutoSend )
+        //     joReceiptApprove = await get_web3_transactionReceipt( details, 10, ethersProvider_s_chain, joApproveSR.txHashSent );
+        // else {
+        //     const serializedTxApprove = txApprove.serialize();
+        //     // let joReceiptApprove = await ethersProvider_s_chain.eth.sendSignedTransaction( "0x" + serializedTxApprove.toString( "hex" ) );
+        //     joReceiptApprove = await safe_send_signed_transaction( details, ethersProvider_s_chain, serializedTxApprove, strActionName, strLogPrefix );
+        // }
+        // details.write( strLogPrefix + cc.success( "Result receipt for Approve: " ) + cc.j( joReceiptApprove ) + "\n" );
+
+        const joReceiptApprove =
+            await payed_call(
+                details,
+                owaspUtils.ethersMod, ethersProvider_s_chain,
+                "ERC1155", contractERC1155, "setApprovalForAll", arrArguments_approve,
+                joAccountSrc, strActionName,
+                gasPrice, estimatedGas_approve, weiHowMuch_approve,
+                null
+            );
         if( joReceiptApprove && typeof joReceiptApprove == "object" && "gasUsed" in joReceiptApprove ) {
             jarrReceipts.push( {
                 "description": "do_erc1155_payment_from_s_chain/transfer-from",
                 "receipt": joReceiptApprove
             } );
         }
-        //
+
         if( g_nSleepBetweenTransactionsOnSChainMilliseconds ) {
             details.write( cc.normal( "Sleeping " ) + cc.info( g_nSleepBetweenTransactionsOnSChainMilliseconds ) + cc.normal( " milliseconds between transactions..." ) + "\n" );
             await sleep( g_nSleepBetweenTransactionsOnSChainMilliseconds );
@@ -4004,44 +4284,60 @@ export async function do_erc1155_payment_from_s_chain(
             await dry_run_call(
                 details,
                 owaspUtils.ethersMod, ethersProvider_s_chain,
-                methodWithArguments_exitToMainERC1155,
+                "TokenManagerERC1155", jo_token_manager_erc1155, "exitToMainERC1155", arrArguments_exitToMainERC1155,
                 joAccountSrc, strActionName, isIgnore_exitToMainERC1155,
                 gasPrice, estimatedGas_exitToMainERC1155, weiHowMuch_exitToMainERC1155,
                 null
             );
         if( strErrorOfDryRun_exitToMainERC1155 )
             throw new Error( strErrorOfDryRun_exitToMainERC1155 );
-        //
-        const rawTxExitToMainERC1155 = {
-            chainId: cid_s_chain,
-            from: accountForSchain,
-            nonce: "0x" + nTransactionsCount.toString( 16 ),
-            data: dataTxExitToMainERC1155,
-            to: tokenManagerAddress,
-            gasPrice: gasPrice,
-            gas: estimatedGas_exitToMainERC1155
-        };
+
+        // TO-REMOVE:
+        // const rawTxExitToMainERC1155 = {
+        //     chainId: cid_s_chain,
+        //     from: accountForSchain,
+        //     nonce: "0x" + nTransactionsCount.toString( 16 ),
+        //     data: dataTxExitToMainERC1155,
+        //     to: tokenManagerAddress,
+        //     gasPrice: gasPrice,
+        //     gas: estimatedGas_exitToMainERC1155
+        // };
+
+        // TO-IMPROVE:
         await checkTransactionToSchain( ethersProvider_s_chain, rawTxExitToMainERC1155, details );
-        const txExitToMainERC1155 = compose_tx_instance( details, strLogPrefix, rawTxExitToMainERC1155 );
-        strActionName = "sign ERC1155/rawExitToMain transaction S->M";
-        const joExitToMainErc1155SR = await safe_sign_transaction_with_account( details, ethersProvider_s_chain, txExitToMainERC1155, rawTxExitToMainERC1155, joAccountSrc );
-        let joReceiptExitToMainERC1155 = null;
-        if( joExitToMainErc1155SR.joACI.isAutoSend )
-            joReceiptExitToMainERC1155 = await get_web3_transactionReceipt( details, 10, ethersProvider_s_chain, joExitToMainErc1155SR.txHashSent );
-        else {
-            const serializedTxExitToMainERC1155 = txExitToMainERC1155.serialize();
-            // let joReceiptExitToMainERC1155 = await ethersProvider_s_chain.eth.sendSignedTransaction( "0x" + serializedTxExitToMainERC1155.toString( "hex" ) );
-            joReceiptExitToMainERC1155 = await safe_send_signed_transaction( details, ethersProvider_s_chain, serializedTxExitToMainERC1155, strActionName, strLogPrefix );
-        }
-        details.write( strLogPrefix + cc.success( "Result receipt for ExitToMainERC1155: " ) + cc.j( joReceiptExitToMainERC1155 ) + "\n" );
-        const joReceipt = joReceiptExitToMainERC1155;
-        details.write( strLogPrefix + cc.success( "Result receipt for ExitToMainERC1155: " ) + cc.j( joReceiptExitToMainERC1155 ) + "\n" );
+
+        // TO-REMOVE:
+        // const txExitToMainERC1155 = compose_tx_instance( details, strLogPrefix, rawTxExitToMainERC1155 );
+        // strActionName = "sign ERC1155/rawExitToMain transaction S->M";
+        // const joExitToMainErc1155SR = await safe_sign_transaction_with_account( details, ethersProvider_s_chain, txExitToMainERC1155, rawTxExitToMainERC1155, joAccountSrc );
+        // let joReceiptExitToMainERC1155 = null;
+        // if( joExitToMainErc1155SR.joACI.isAutoSend )
+        //     joReceiptExitToMainERC1155 = await get_web3_transactionReceipt( details, 10, ethersProvider_s_chain, joExitToMainErc1155SR.txHashSent );
+        // else {
+        //     const serializedTxExitToMainERC1155 = txExitToMainERC1155.serialize();
+        //     // let joReceiptExitToMainERC1155 = await ethersProvider_s_chain.eth.sendSignedTransaction( "0x" + serializedTxExitToMainERC1155.toString( "hex" ) );
+        //     joReceiptExitToMainERC1155 = await safe_send_signed_transaction( details, ethersProvider_s_chain, serializedTxExitToMainERC1155, strActionName, strLogPrefix );
+        // }
+        // details.write( strLogPrefix + cc.success( "Result receipt for ExitToMainERC1155: " ) + cc.j( joReceiptExitToMainERC1155 ) + "\n" );
+        // details.write( strLogPrefix + cc.success( "Result receipt for ExitToMainERC1155: " ) + cc.j( joReceiptExitToMainERC1155 ) + "\n" );
+
+        const joReceiptExitToMainERC1155 =
+            await payed_call(
+                details,
+                owaspUtils.ethersMod, ethersProvider_s_chain,
+                "TokenManagerERC1155", jo_token_manager_erc1155, "exitToMainERC1155", arrArguments_exitToMainERC1155,
+                joAccountSrc, strActionName,
+                gasPrice, estimatedGas_exitToMainERC1155, weiHowMuch_exitToMainERC1155,
+                null
+            );
         if( joReceiptExitToMainERC1155 && typeof joReceiptExitToMainERC1155 == "object" && "gasUsed" in joReceiptExitToMainERC1155 ) {
             jarrReceipts.push( {
                 "description": "do_erc1155_payment_from_s_chain/exit-to-main",
                 "receipt": joReceiptExitToMainERC1155
             } );
         }
+
+        const joReceipt = joReceiptExitToMainERC1155;
         //
         // Must-have event(s) analysis as indicator(s) of success
         //
@@ -4097,27 +4393,32 @@ export async function do_erc1155_batch_payment_from_s_chain(
     try {
         strActionName = "ERC1155 payment from S-Chain, approve";
 
-        const accountForSchain = joAccountSrc.address( ethersProvider_s_chain );
+        // const accountForSchain = joAccountSrc.address( ethersProvider_s_chain );
         const erc1155ABI = joErc1155_s_chain[strCoinNameErc1155_s_chain + "_abi"];
         const erc1155Address_s_chain = joErc1155_s_chain[strCoinNameErc1155_s_chain + "_address"];
         const tokenManagerAddress = jo_token_manager_erc1155.options.address;
         const contractERC1155 = new owaspUtils.ethersMod.ethers.Contract(
             erc1155Address_s_chain, erc1155ABI, ethersProvider_s_chain );
-        const methodWithArguments_approve = contractERC1155.methods.setApprovalForAll(
+        const arrArguments_approve = [
             // accountForSchain,
             tokenManagerAddress,
             true
-        );
-        const dataTxApprove = methodWithArguments_approve.encodeABI();
-        let dataTxExitToMainERC1155Batch = null;
+        ];
+
+        // TO-REMOVE:
+        // const dataTxApprove = methodWithArguments_approve.encodeABI();
+        // let dataTxExitToMainERC1155Batch = null;
+
         const erc1155Address_main_net = joErc1155_main_net[strCoinNameErc1155_main_net + "_address"];
-        const methodWithArguments_exitToMainERC1155Batch = jo_token_manager_erc1155.methods.exitToMainERC1155Batch(
+        const arrArguments_exitToMainERC1155Batch = [
             erc1155Address_main_net,
             token_ids, //"0x" + ethersProvider_main_net.utils.toBN( token_id ).toString( 16 ),
             token_amounts //"0x" + ethersProvider_main_net.utils.toBN( token_amount ).toString( 16 )
             // "0x" + ethersProvider_main_net.utils.toBN( weiHowMuch ).toString( 16 )
-        );
-        dataTxExitToMainERC1155Batch = methodWithArguments_exitToMainERC1155Batch.encodeABI();
+        ];
+
+        // TO-REMOVE:
+        // dataTxExitToMainERC1155Batch = methodWithArguments_exitToMainERC1155Batch.encodeABI();
 
         let gasPrice = await tc_s_chain.computeGasPrice( ethersProvider_s_chain, 200000000000 );
         details.write( strLogPrefix + cc.debug( "Using computed " ) + cc.info( "gasPrice" ) + cc.debug( "=" ) + cc.notice( gasPrice ) + "\n" );
@@ -4135,43 +4436,58 @@ export async function do_erc1155_batch_payment_from_s_chain(
             await dry_run_call(
                 details,
                 owaspUtils.ethersMod, ethersProvider_s_chain,
-                methodWithArguments_approve,
+                "ERC1155", contractERC1155, "setApprovalForAll", arrArguments_approve,
                 joAccountSrc, strActionName, isIgnore_approve,
                 gasPrice, estimatedGas_approve, weiHowMuch_approve,
                 null
             );
         if( strErrorOfDryRun_approve )
             throw new Error( strErrorOfDryRun_approve );
-        //
-        const rawTxApprove = {
-            chainId: cid_s_chain,
-            from: accountForSchain,
-            nonce: "0x" + nTransactionsCount.toString( 16 ),
-            data: dataTxApprove,
-            to: erc1155Address_s_chain,
-            gasPrice: gasPrice,
-            gas: estimatedGas_approve
-        };
+
+        // TO-REMOVE:
+        // const rawTxApprove = {
+        //     chainId: cid_s_chain,
+        //     from: accountForSchain,
+        //     nonce: "0x" + nTransactionsCount.toString( 16 ),
+        //     data: dataTxApprove,
+        //     to: erc1155Address_s_chain,
+        //     gasPrice: gasPrice,
+        //     gas: estimatedGas_approve
+        // };
+
+        // TO-IMPROVE:
         await checkTransactionToSchain( ethersProvider_s_chain, rawTxApprove, details );
-        const txApprove = compose_tx_instance( details, strLogPrefix, rawTxApprove );
-        strActionName = "sign ERC1155 Batch/approve transaction S->M";
-        const joApproveSR = await safe_sign_transaction_with_account( details, ethersProvider_s_chain, txApprove, rawTxApprove, joAccountSrc );
-        let joReceiptApprove = null;
-        if( joApproveSR.joACI.isAutoSend )
-            joReceiptApprove = await get_web3_transactionReceipt( details, 10, ethersProvider_s_chain, joApproveSR.txHashSent );
-        else {
-            const serializedTxApprove = txApprove.serialize();
-            // let joReceiptApprove = await ethersProvider_s_chain.eth.sendSignedTransaction( "0x" + serializedTxApprove.toString( "hex" ) );
-            joReceiptApprove = await safe_send_signed_transaction( details, ethersProvider_s_chain, serializedTxApprove, strActionName, strLogPrefix );
-        }
-        details.write( strLogPrefix + cc.success( "Result receipt for Approve: " ) + cc.j( joReceiptApprove ) + "\n" );
+
+        // TO-REMOVE:
+        // const txApprove = compose_tx_instance( details, strLogPrefix, rawTxApprove );
+        // strActionName = "sign ERC1155 Batch/approve transaction S->M";
+        // const joApproveSR = await safe_sign_transaction_with_account( details, ethersProvider_s_chain, txApprove, rawTxApprove, joAccountSrc );
+        // let joReceiptApprove = null;
+        // if( joApproveSR.joACI.isAutoSend )
+        //     joReceiptApprove = await get_web3_transactionReceipt( details, 10, ethersProvider_s_chain, joApproveSR.txHashSent );
+        // else {
+        //     const serializedTxApprove = txApprove.serialize();
+        //     // let joReceiptApprove = await ethersProvider_s_chain.eth.sendSignedTransaction( "0x" + serializedTxApprove.toString( "hex" ) );
+        //     joReceiptApprove = await safe_send_signed_transaction( details, ethersProvider_s_chain, serializedTxApprove, strActionName, strLogPrefix );
+        // }
+        // details.write( strLogPrefix + cc.success( "Result receipt for Approve: " ) + cc.j( joReceiptApprove ) + "\n" );
+
+        const joReceiptApprove =
+            await payed_call(
+                details,
+                owaspUtils.ethersMod, ethersProvider_s_chain,
+                "ERC1155", contractERC1155, "setApprovalForAll", arrArguments_approve,
+                joAccountSrc, strActionName,
+                gasPrice, estimatedGas_approve, weiHowMuch_approve,
+                null
+            );
         if( joReceiptApprove && typeof joReceiptApprove == "object" && "gasUsed" in joReceiptApprove ) {
             jarrReceipts.push( {
                 "description": "do_erc1155_batch_payment_from_s_chain/transfer-from",
                 "receipt": joReceiptApprove
             } );
         }
-        //
+
         if( g_nSleepBetweenTransactionsOnSChainMilliseconds ) {
             details.write( cc.normal( "Sleeping " ) + cc.info( g_nSleepBetweenTransactionsOnSChainMilliseconds ) + cc.normal( " milliseconds between transactions..." ) + "\n" );
             await sleep( g_nSleepBetweenTransactionsOnSChainMilliseconds );
@@ -4199,38 +4515,53 @@ export async function do_erc1155_batch_payment_from_s_chain(
             await dry_run_call(
                 details,
                 owaspUtils.ethersMod, ethersProvider_s_chain,
-                methodWithArguments_exitToMainERC1155Batch,
+                "TokenManagerERC1155", jo_token_manager_erc1155, "exitToMainERC1155Batch", arrArguments_exitToMainERC1155Batch,
                 joAccountSrc, strActionName, isIgnore_exitToMainERC1155Batch,
                 gasPrice, estimatedGas_exitToMainERC1155Batch, weiHowMuch_exitToMainERC1155Batch,
                 null
             );
         if( strErrorOfDryRun_exitToMainERC1155Batch )
             throw new Error( strErrorOfDryRun_exitToMainERC1155Batch );
-        //
-        const rawTxExitToMainERC1155Batch = {
-            chainId: cid_s_chain,
-            from: accountForSchain,
-            nonce: "0x" + nTransactionsCount.toString( 16 ),
-            data: dataTxExitToMainERC1155Batch,
-            to: tokenManagerAddress,
-            gasPrice: gasPrice,
-            gas: estimatedGas_exitToMainERC1155Batch
-        };
+
+        // TO-REMOVE:
+        // const rawTxExitToMainERC1155Batch = {
+        //     chainId: cid_s_chain,
+        //     from: accountForSchain,
+        //     nonce: "0x" + nTransactionsCount.toString( 16 ),
+        //     data: dataTxExitToMainERC1155Batch,
+        //     to: tokenManagerAddress,
+        //     gasPrice: gasPrice,
+        //     gas: estimatedGas_exitToMainERC1155Batch
+        // };
+
+        // TO-IMPROVE:
         await checkTransactionToSchain( ethersProvider_s_chain, rawTxExitToMainERC1155Batch, details );
-        const txExitToMainERC1155Batch = compose_tx_instance( details, strLogPrefix, rawTxExitToMainERC1155Batch );
-        strActionName = "sign ERC1155 Batch/rawExitToMain transaction S->M";
-        const joExitToMainErc1155BatchSR = await safe_sign_transaction_with_account( details, ethersProvider_s_chain, txExitToMainERC1155Batch, rawTxExitToMainERC1155Batch, joAccountSrc );
-        let joReceiptExitToMainERC1155Batch = null;
-        if( joExitToMainErc1155BatchSR.joACI.isAutoSend )
-            joReceiptExitToMainERC1155Batch = await get_web3_transactionReceipt( details, 10, ethersProvider_s_chain, joExitToMainErc1155BatchSR.txHashSent );
-        else {
-            const serializedTxExitToMainERC1155Batch = txExitToMainERC1155Batch.serialize();
-            // let joReceiptExitToMainERC1155Batch = await ethersProvider_s_chain.eth.sendSignedTransaction( "0x" + serializedTxExitToMainERC1155Batch.toString( "hex" ) );
-            joReceiptExitToMainERC1155Batch = await safe_send_signed_transaction( details, ethersProvider_s_chain, serializedTxExitToMainERC1155Batch, strActionName, strLogPrefix );
-        }
-        details.write( strLogPrefix + cc.success( "Result receipt for ExitToMainERC1155Batch: " ) + cc.j( joReceiptExitToMainERC1155Batch ) + "\n" );
-        const joReceipt = joReceiptExitToMainERC1155Batch;
-        details.write( strLogPrefix + cc.success( "Result receipt for ExitToMainERC1155Batch: " ) + cc.j( joReceiptExitToMainERC1155Batch ) + "\n" );
+
+        // TO-REMOVE:
+        // const txExitToMainERC1155Batch = compose_tx_instance( details, strLogPrefix, rawTxExitToMainERC1155Batch );
+        // strActionName = "sign ERC1155 Batch/rawExitToMain transaction S->M";
+        // const joExitToMainErc1155BatchSR = await safe_sign_transaction_with_account( details, ethersProvider_s_chain, txExitToMainERC1155Batch, rawTxExitToMainERC1155Batch, joAccountSrc );
+        // let joReceiptExitToMainERC1155Batch = null;
+        // if( joExitToMainErc1155BatchSR.joACI.isAutoSend )
+        //     joReceiptExitToMainERC1155Batch = await get_web3_transactionReceipt( details, 10, ethersProvider_s_chain, joExitToMainErc1155BatchSR.txHashSent );
+        // else {
+        //     const serializedTxExitToMainERC1155Batch = txExitToMainERC1155Batch.serialize();
+        //     // let joReceiptExitToMainERC1155Batch = await ethersProvider_s_chain.eth.sendSignedTransaction( "0x" + serializedTxExitToMainERC1155Batch.toString( "hex" ) );
+        //     joReceiptExitToMainERC1155Batch = await safe_send_signed_transaction( details, ethersProvider_s_chain, serializedTxExitToMainERC1155Batch, strActionName, strLogPrefix );
+        // }
+        // details.write( strLogPrefix + cc.success( "Result receipt for ExitToMainERC1155Batch: " ) + cc.j( joReceiptExitToMainERC1155Batch ) + "\n" );
+        // const joReceipt = joReceiptExitToMainERC1155Batch;
+        // details.write( strLogPrefix + cc.success( "Result receipt for ExitToMainERC1155Batch: " ) + cc.j( joReceiptExitToMainERC1155Batch ) + "\n" );
+
+        const joReceiptExitToMainERC1155Batch =
+            await payed_call(
+                details,
+                owaspUtils.ethersMod, ethersProvider_s_chain,
+                "TokenManagerERC1155", jo_token_manager_erc1155, "exitToMainERC1155Batch", arrArguments_exitToMainERC1155Batch,
+                joAccountSrc, strActionName,
+                gasPrice, estimatedGas_exitToMainERC1155Batch, weiHowMuch_exitToMainERC1155Batch,
+                null
+            );
         if( joReceiptExitToMainERC1155Batch && typeof joReceiptExitToMainERC1155Batch == "object" && "gasUsed" in joReceiptExitToMainERC1155Batch ) {
             jarrReceipts.push( {
                 "description": "do_erc1155_batch_payment_from_s_chain/exit-to-main",
@@ -4326,17 +4657,21 @@ export async function do_erc20_payment_s2s(
 
         const contractERC20 = new owaspUtils.ethersMod.ethers.Contract(
             erc20_address_src, erc20_abi_src, ethersProvider_src );
-        const methodWithArguments_approve = contractERC20.methods.approve(
+        const arrArguments_approve = [
             jo_token_manager_erc20_src.options.address, "0x" + ethersProvider_src.utils.toBN( nAmountOfToken ).toString( 16 )
-        );
-        const dataTx_approve = methodWithArguments_approve.encodeABI();
+        ];
 
-        const methodWithArguments_transfer = jo_token_manager_erc20_src.methods.transferToSchainERC20(
+        // TO-REMOVE:
+        // const dataTx_approve = methodWithArguments_approve.encodeABI();
+
+        const arrArguments_transfer = [
             strChainName_dst,
             isReverse ? erc20_address_dst : erc20_address_src,
             "0x" + ethersProvider_src.utils.toBN( nAmountOfToken ).toString( 16 )
-        );
-        const dataTx_transfer = methodWithArguments_transfer.encodeABI();
+        ];
+
+        // TO-REMOVE:
+        // const dataTx_transfer = methodWithArguments_transfer.encodeABI();
 
         let gasPrice = await tc.computeGasPrice( ethersProvider_src, 200000000000 );
         details.write( strLogPrefix + cc.debug( "Using computed " ) + cc.info( "gasPrice" ) + cc.debug( "=" ) + cc.notice( gasPrice ) + "\n" );
@@ -4349,43 +4684,54 @@ export async function do_erc20_payment_s2s(
             await dry_run_call(
                 details,
                 owaspUtils.ethersMod, ethersProvider_src,
-                methodWithArguments_approve,
+                "ERC20", contractERC20, "approve", arrArguments_approve,
                 joAccountSrc, strActionName, isIgnore_approve,
                 gasPrice, estimatedGas_approve, weiHowMuch_approve,
                 null
             );
         if( strErrorOfDryRun_approve )
             throw new Error( strErrorOfDryRun_approve );
-        const rawTx_approve = {
-            chainId: cid_src,
-            from: joAccountSrc.address( ethersProvider_src ), // accountForMainnet
-            nonce: "0x" + nTransactionsCount.toString( 16 ),
-            data: dataTx_approve,
-            to: erc20_address_src,
-            gasPrice: gasPrice, // 0
-            gas: estimatedGas_approve
-        };
-        const tx_approve = compose_tx_instance( details, strLogPrefix, rawTx_approve );
-        strActionName = "sign ERC20/approve transaction S->S " + ( isForward ? "forward" : "reverse" );
-        const joSR_approve = await safe_sign_transaction_with_account( details, ethersProvider_src, tx_approve, rawTx_approve, joAccountSrc );
-        let joReceipt_approve = null;
-        if( joSR_approve.joACI.isAutoSend )
-            joReceipt_approve = await get_web3_transactionReceipt( details, 10, ethersProvider_src, joSR_approve.txHashSent );
-        else {
-            const serializedTx_approve = tx_approve.serialize();
-            strActionName = "ethersProvider_src.eth.sendSignedTransaction()/Approve/" + ( isForward ? "forward" : "reverse" );
-            details.write( cc.normal( "Will send ERC20/approve signed transaction from " ) + cc.warning( joAccountSrc.address( ethersProvider_src ) ) + "\n" );
-            joReceipt_approve = await safe_send_signed_transaction( details, ethersProvider_src, serializedTx_approve, strActionName, strLogPrefix );
-        }
-        details.write( strLogPrefix + cc.success( "Result receipt for Approve: " ) + cc.j( joReceipt_approve ) + "\n" );
+
+        // // TO-REMOVE:
+        // const rawTx_approve = {
+        //     chainId: cid_src,
+        //     from: joAccountSrc.address( ethersProvider_src ), // accountForMainnet
+        //     nonce: "0x" + nTransactionsCount.toString( 16 ),
+        //     data: dataTx_approve,
+        //     to: erc20_address_src,
+        //     gasPrice: gasPrice, // 0
+        //     gas: estimatedGas_approve
+        // };
+        // const tx_approve = compose_tx_instance( details, strLogPrefix, rawTx_approve );
+        // strActionName = "sign ERC20/approve transaction S->S " + ( isForward ? "forward" : "reverse" );
+        // const joSR_approve = await safe_sign_transaction_with_account( details, ethersProvider_src, tx_approve, rawTx_approve, joAccountSrc );
+        // let joReceipt_approve = null;
+        // if( joSR_approve.joACI.isAutoSend )
+        //     joReceipt_approve = await get_web3_transactionReceipt( details, 10, ethersProvider_src, joSR_approve.txHashSent );
+        // else {
+        //     const serializedTx_approve = tx_approve.serialize();
+        //     strActionName = "ethersProvider_src.eth.sendSignedTransaction()/Approve/" + ( isForward ? "forward" : "reverse" );
+        //     details.write( cc.normal( "Will send ERC20/approve signed transaction from " ) + cc.warning( joAccountSrc.address( ethersProvider_src ) ) + "\n" );
+        //     joReceipt_approve = await safe_send_signed_transaction( details, ethersProvider_src, serializedTx_approve, strActionName, strLogPrefix );
+        // }
+        // details.write( strLogPrefix + cc.success( "Result receipt for Approve: " ) + cc.j( joReceipt_approve ) + "\n" );
+
+        const joReceipt_approve =
+            await payed_call(
+                details,
+                owaspUtils.ethersMod, ethersProvider_src,
+                "ERC20", contractERC20, "approve", arrArguments_approve,
+                joAccountSrc, strActionName,
+                gasPrice, estimatedGas_approve, weiHowMuch_approve,
+                null
+            );
         if( joReceipt_approve && typeof joReceipt_approve == "object" && "gasUsed" in joReceipt_approve ) {
             jarrReceipts.push( {
                 "description": "do_erc20_payment_s2s/approve/" + ( isForward ? "forward" : "reverse" ),
                 "receipt": joReceipt_approve
             } );
         }
-        //
-        //
+
         strActionName = "ERC20 payment S2S, transferERC20 " + ( isForward ? "forward" : "reverse" );
 
         gasPrice = await tc.computeGasPrice( ethersProvider_src, 200000000000 );
@@ -4399,45 +4745,57 @@ export async function do_erc20_payment_s2s(
             await dry_run_call(
                 details,
                 owaspUtils.ethersMod, ethersProvider_src,
-                methodWithArguments_transfer,
+                "TokenManagerERC20", jo_token_manager_erc20_src, "transferToSchainERC20", arrArguments_transfer,
                 joAccountSrc, strActionName, isIgnore_transferERC20,
                 gasPrice, estimatedGas_transfer, weiHowMuch_transferERC20,
                 null
             );
         if( strErrorOfDryRun_transferERC20 )
             throw new Error( strErrorOfDryRun_transferERC20 );
-        //
-        nTransactionsCount += 1;
-        const rawTx_transfer = {
-            chainId: cid_src,
-            from: joAccountSrc.address( ethersProvider_src ),
-            nonce: "0x" + nTransactionsCount.toString( 16 ),
-            data: dataTx_transfer,
-            to: jo_token_manager_erc20_src.options.address,
-            gasPrice: gasPrice, // 0
-            gas: estimatedGas_transfer
-            // value: "0x" + ethersProvider_src.utils.toBN( weiHowMuch ).toString( 16 )
-        };
-        const tx_transfer = compose_tx_instance( details, strLogPrefix, rawTx_transfer );
-        strActionName = "sign ERC20/transfer transaction S->S " + ( isForward ? "forward" : "reverse" );
-        const joSR_transfer = await safe_sign_transaction_with_account( details, ethersProvider_src, tx_transfer, rawTx_transfer, joAccountSrc );
-        let joReceipt_transfer = null;
-        if( joSR_transfer.joACI.isAutoSend )
-            joReceipt_transfer = await get_web3_transactionReceipt( details, 10, ethersProvider_src, joSR_transfer.txHashSent );
-        else {
-            const serializedTx_transfer = tx_transfer.serialize();
-            // send transactions
-            strActionName = "ethersProvider_src.eth.sendSignedTransaction()/Transfer/" + ( isForward ? "forward" : "reverse" );
-            details.write( cc.normal( "Will send ERC20/transfer signed transaction from " ) + cc.warning( joAccountSrc.address( ethersProvider_src ) ) + "\n" );
-            joReceipt_transfer = await safe_send_signed_transaction( details, ethersProvider_src, serializedTx_transfer, strActionName, strLogPrefix );
-        }
-        details.write( strLogPrefix + cc.success( "Result receipt for Transfer: " ) + cc.j( joReceipt_transfer ) + "\n" );
+
+        // TO-REMOVE:
+        // nTransactionsCount += 1;
+        // const rawTx_transfer = {
+        //     chainId: cid_src,
+        //     from: joAccountSrc.address( ethersProvider_src ),
+        //     nonce: "0x" + nTransactionsCount.toString( 16 ),
+        //     data: dataTx_transfer,
+        //     to: jo_token_manager_erc20_src.options.address,
+        //     gasPrice: gasPrice, // 0
+        //     gas: estimatedGas_transfer
+        //     // value: "0x" + ethersProvider_src.utils.toBN( weiHowMuch ).toString( 16 )
+        // };
+        // const tx_transfer = compose_tx_instance( details, strLogPrefix, rawTx_transfer );
+        // strActionName = "sign ERC20/transfer transaction S->S " + ( isForward ? "forward" : "reverse" );
+        // const joSR_transfer = await safe_sign_transaction_with_account( details, ethersProvider_src, tx_transfer, rawTx_transfer, joAccountSrc );
+        // let joReceipt_transfer = null;
+        // if( joSR_transfer.joACI.isAutoSend )
+        //     joReceipt_transfer = await get_web3_transactionReceipt( details, 10, ethersProvider_src, joSR_transfer.txHashSent );
+        // else {
+        //     const serializedTx_transfer = tx_transfer.serialize();
+        //     // send transactions
+        //     strActionName = "ethersProvider_src.eth.sendSignedTransaction()/Transfer/" + ( isForward ? "forward" : "reverse" );
+        //     details.write( cc.normal( "Will send ERC20/transfer signed transaction from " ) + cc.warning( joAccountSrc.address( ethersProvider_src ) ) + "\n" );
+        //     joReceipt_transfer = await safe_send_signed_transaction( details, ethersProvider_src, serializedTx_transfer, strActionName, strLogPrefix );
+        // }
+        // details.write( strLogPrefix + cc.success( "Result receipt for Transfer: " ) + cc.j( joReceipt_transfer ) + "\n" );
+
+        const joReceipt_transfer =
+            await payed_call(
+                details,
+                owaspUtils.ethersMod, ethersProvider_src,
+                "TokenManagerERC20", jo_token_manager_erc20_src, "transferToSchainERC20", arrArguments_transfer,
+                joAccountSrc, strActionName,
+                gasPrice, estimatedGas_transfer, weiHowMuch_transferERC20,
+                null
+            );
         if( joReceipt_transfer && typeof joReceipt_transfer == "object" && "gasUsed" in joReceipt_transfer ) {
             jarrReceipts.push( {
                 "description": "do_erc20_payment_from_src/transfer",
                 "receipt": joReceipt_transfer
             } );
         }
+
         //
         //
         // const joReceipt = joReceipt_transfer;
@@ -4521,7 +4879,7 @@ export async function do_erc721_payment_s2s(
             details.write( strLogPrefix + cc.attention( "Destination ERC721" ) + cc.debug( " token address................" ) + cc.note( erc721_address_dst ) + "\n" );
         details.write( strLogPrefix + cc.attention( "Destination chain name" ) + cc.debug( "........................." ) + cc.note( strChainName_dst ) + "\n" );
         details.write( strLogPrefix + cc.attention( "Token ID" ) + cc.debug( " to transfer..........................." ) + cc.note( token_id ) + "\n" );
-        //
+
         strActionName = "ERC721 payment S2S, approve, " + ( isForward ? "forward" : "reverse" );
 
         // TO-REMOVE:
@@ -4531,18 +4889,22 @@ export async function do_erc721_payment_s2s(
 
         const contractERC721 = new owaspUtils.ethersMod.ethers.Contract(
             erc721_address_src, erc721_abi_src, ethersProvider_src );
-        const methodWithArguments_approve = contractERC721.methods.approve(
+        const arrArguments_approve = [
             jo_token_manager_erc721_src.options.address,
             "0x" + ethersProvider_src.utils.toBN( token_id ).toString( 16 )
-        );
-        const dataTx_approve = methodWithArguments_approve.encodeABI();
+        ];
 
-        const methodWithArguments_transfer = jo_token_manager_erc721_src.methods.transferToSchainERC721(
+        // TO-REMOVE:
+        // const dataTx_approve = methodWithArguments_approve.encodeABI();
+
+        const arrArguments_transfer = [
             strChainName_dst,
             isReverse ? erc721_address_dst : erc721_address_src,
             "0x" + ethersProvider_src.utils.toBN( token_id ).toString( 16 )
-        );
-        const dataTx_transfer = methodWithArguments_transfer.encodeABI();
+        ];
+
+        // TO-REMOVE:
+        // const dataTx_transfer = methodWithArguments_transfer.encodeABI();
 
         let gasPrice = await tc.computeGasPrice( ethersProvider_src, 7210000000000 );
         details.write( strLogPrefix + cc.debug( "Using computed " ) + cc.info( "gasPrice" ) + cc.debug( "=" ) + cc.notice( gasPrice ) + "\n" );
@@ -4555,43 +4917,54 @@ export async function do_erc721_payment_s2s(
             await dry_run_call(
                 details,
                 owaspUtils.ethersMod, ethersProvider_src,
-                methodWithArguments_approve,
+                "ERC721", contractERC721, "approve", arrArguments_approve,
                 joAccountSrc, strActionName, isIgnore_approve,
                 gasPrice, estimatedGas_approve, weiHowMuch_approve,
                 null
             );
         if( strErrorOfDryRun_approve )
             throw new Error( strErrorOfDryRun_approve );
-        const rawTx_approve = {
-            chainId: cid_src,
-            from: joAccountSrc.address( ethersProvider_src ), // accountForMainnet
-            nonce: "0x" + nTransactionsCount.toString( 16 ),
-            data: dataTx_approve,
-            to: erc721_address_src,
-            gasPrice: gasPrice, // 0
-            gas: estimatedGas_approve
-        };
-        const tx_approve = compose_tx_instance( details, strLogPrefix, rawTx_approve );
-        strActionName = "sign ERC721/approve transaction S->S " + ( isForward ? "forward" : "reverse" );
-        const joSR_approve = await safe_sign_transaction_with_account( details, ethersProvider_src, tx_approve, rawTx_approve, joAccountSrc );
-        let joReceipt_approve = null;
-        if( joSR_approve.joACI.isAutoSend )
-            joReceipt_approve = await get_web3_transactionReceipt( details, 10, ethersProvider_src, joSR_approve.txHashSent );
-        else {
-            const serializedTx_approve = tx_approve.serialize();
-            strActionName = "ethersProvider_src.eth.sendSignedTransaction()/Approve/" + ( isForward ? "forward" : "reverse" );
-            details.write( cc.normal( "Will send ERC721/approve signed transaction from " ) + cc.warning( joAccountSrc.address( ethersProvider_src ) ) + "\n" );
-            joReceipt_approve = await safe_send_signed_transaction( details, ethersProvider_src, serializedTx_approve, strActionName, strLogPrefix );
-        }
-        details.write( strLogPrefix + cc.success( "Result receipt for Approve: " ) + cc.j( joReceipt_approve ) + "\n" );
+
+        // TO-REMOVE:
+        // const rawTx_approve = {
+        //     chainId: cid_src,
+        //     from: joAccountSrc.address( ethersProvider_src ), // accountForMainnet
+        //     nonce: "0x" + nTransactionsCount.toString( 16 ),
+        //     data: dataTx_approve,
+        //     to: erc721_address_src,
+        //     gasPrice: gasPrice, // 0
+        //     gas: estimatedGas_approve
+        // };
+        // const tx_approve = compose_tx_instance( details, strLogPrefix, rawTx_approve );
+        // strActionName = "sign ERC721/approve transaction S->S " + ( isForward ? "forward" : "reverse" );
+        // const joSR_approve = await safe_sign_transaction_with_account( details, ethersProvider_src, tx_approve, rawTx_approve, joAccountSrc );
+        // let joReceipt_approve = null;
+        // if( joSR_approve.joACI.isAutoSend )
+        //     joReceipt_approve = await get_web3_transactionReceipt( details, 10, ethersProvider_src, joSR_approve.txHashSent );
+        // else {
+        //     const serializedTx_approve = tx_approve.serialize();
+        //     strActionName = "ethersProvider_src.eth.sendSignedTransaction()/Approve/" + ( isForward ? "forward" : "reverse" );
+        //     details.write( cc.normal( "Will send ERC721/approve signed transaction from " ) + cc.warning( joAccountSrc.address( ethersProvider_src ) ) + "\n" );
+        //     joReceipt_approve = await safe_send_signed_transaction( details, ethersProvider_src, serializedTx_approve, strActionName, strLogPrefix );
+        // }
+        // details.write( strLogPrefix + cc.success( "Result receipt for Approve: " ) + cc.j( joReceipt_approve ) + "\n" );
+
+        const joReceipt_approve =
+            await payed_call(
+                details,
+                owaspUtils.ethersMod, ethersProvider_src,
+                "ERC721", contractERC721, "approve", arrArguments_approve,
+                joAccountSrc, strActionName,
+                gasPrice, estimatedGas_approve, weiHowMuch_approve,
+                null
+            );
         if( joReceipt_approve && typeof joReceipt_approve == "object" && "gasUsed" in joReceipt_approve ) {
             jarrReceipts.push( {
                 "description": "do_erc721_payment_s2s/approve/" + ( isForward ? "forward" : "reverse" ),
                 "receipt": joReceipt_approve
             } );
         }
-        //
-        //
+
         strActionName = "ERC721 payment S2S, transferERC721 " + ( isForward ? "forward" : "reverse" );
 
         gasPrice = await tc.computeGasPrice( ethersProvider_src, 7210000000000 );
@@ -4605,45 +4978,57 @@ export async function do_erc721_payment_s2s(
             await dry_run_call(
                 details,
                 owaspUtils.ethersMod, ethersProvider_src,
-                methodWithArguments_transfer,
+                "TokenManagerERC721", jo_token_manager_erc721_src, "transferToSchainERC721", arrArguments_transfer,
                 joAccountSrc, strActionName, isIgnore_transferERC721,
                 gasPrice, estimatedGas_transfer, weiHowMuch_transferERC721,
                 null
             );
         if( strErrorOfDryRun_transferERC721 )
             throw new Error( strErrorOfDryRun_transferERC721 );
-        //
-        nTransactionsCount += 1;
-        const rawTx_transfer = {
-            chainId: cid_src,
-            from: joAccountSrc.address( ethersProvider_src ),
-            nonce: "0x" + nTransactionsCount.toString( 16 ),
-            data: dataTx_transfer,
-            to: jo_token_manager_erc721_src.options.address,
-            gasPrice: gasPrice, // 0
-            gas: estimatedGas_transfer
-            // value: "0x" + ethersProvider_src.utils.toBN( weiHowMuch ).toString( 16 )
-        };
-        const tx_transfer = compose_tx_instance( details, strLogPrefix, rawTx_transfer );
-        strActionName = "sign ERC721/transfer transaction S->S " + ( isForward ? "forward" : "reverse" );
-        const joSR_transfer = await safe_sign_transaction_with_account( details, ethersProvider_src, tx_transfer, rawTx_transfer, joAccountSrc );
-        let joReceipt_transfer = null;
-        if( joSR_transfer.joACI.isAutoSend )
-            joReceipt_transfer = await get_web3_transactionReceipt( details, 10, ethersProvider_src, joSR_transfer.txHashSent );
-        else {
-            const serializedTx_transfer = tx_transfer.serialize();
-            // send transactions
-            strActionName = "ethersProvider_src.eth.sendSignedTransaction()/Transfer/" + ( isForward ? "forward" : "reverse" );
-            details.write( cc.normal( "Will send ERC721/transfer signed transaction from " ) + cc.warning( joAccountSrc.address( ethersProvider_src ) ) + "\n" );
-            joReceipt_transfer = await safe_send_signed_transaction( details, ethersProvider_src, serializedTx_transfer, strActionName, strLogPrefix );
-        }
-        details.write( strLogPrefix + cc.success( "Result receipt for Transfer: " ) + cc.j( joReceipt_transfer ) + "\n" );
+
+        // TO-REMOVE:
+        // nTransactionsCount += 1;
+        // const rawTx_transfer = {
+        //     chainId: cid_src,
+        //     from: joAccountSrc.address( ethersProvider_src ),
+        //     nonce: "0x" + nTransactionsCount.toString( 16 ),
+        //     data: dataTx_transfer,
+        //     to: jo_token_manager_erc721_src.options.address,
+        //     gasPrice: gasPrice, // 0
+        //     gas: estimatedGas_transfer
+        //     // value: "0x" + ethersProvider_src.utils.toBN( weiHowMuch ).toString( 16 )
+        // };
+        // const tx_transfer = compose_tx_instance( details, strLogPrefix, rawTx_transfer );
+        // strActionName = "sign ERC721/transfer transaction S->S " + ( isForward ? "forward" : "reverse" );
+        // const joSR_transfer = await safe_sign_transaction_with_account( details, ethersProvider_src, tx_transfer, rawTx_transfer, joAccountSrc );
+        // let joReceipt_transfer = null;
+        // if( joSR_transfer.joACI.isAutoSend )
+        //     joReceipt_transfer = await get_web3_transactionReceipt( details, 10, ethersProvider_src, joSR_transfer.txHashSent );
+        // else {
+        //     const serializedTx_transfer = tx_transfer.serialize();
+        //     // send transactions
+        //     strActionName = "ethersProvider_src.eth.sendSignedTransaction()/Transfer/" + ( isForward ? "forward" : "reverse" );
+        //     details.write( cc.normal( "Will send ERC721/transfer signed transaction from " ) + cc.warning( joAccountSrc.address( ethersProvider_src ) ) + "\n" );
+        //     joReceipt_transfer = await safe_send_signed_transaction( details, ethersProvider_src, serializedTx_transfer, strActionName, strLogPrefix );
+        // }
+        // details.write( strLogPrefix + cc.success( "Result receipt for Transfer: " ) + cc.j( joReceipt_transfer ) + "\n" );
+
+        const joReceipt_transfer =
+            await payed_call(
+                details,
+                owaspUtils.ethersMod, ethersProvider_src,
+                "TokenManagerERC721", jo_token_manager_erc721_src, "transferToSchainERC721", arrArguments_transfer,
+                joAccountSrc, strActionName,
+                gasPrice, estimatedGas_transfer, weiHowMuch_transferERC721,
+                null
+            );
         if( joReceipt_transfer && typeof joReceipt_transfer == "object" && "gasUsed" in joReceipt_transfer ) {
             jarrReceipts.push( {
                 "description": "do_erc721_payment_from_src/transfer",
                 "receipt": joReceipt_transfer
             } );
         }
+
         //
         //
         // const joReceipt = joReceipt_transfer;
@@ -4728,7 +5113,7 @@ export async function do_erc1155_payment_s2s(
         details.write( strLogPrefix + cc.attention( "Destination chain name" ) + cc.debug( "........................." ) + cc.note( strChainName_dst ) + "\n" );
         details.write( strLogPrefix + cc.attention( "Token ID" ) + cc.debug( " to transfer..........................." ) + cc.note( token_id ) + "\n" );
         details.write( strLogPrefix + cc.attention( "Amount of tokens" ) + cc.debug( " to transfer..................." ) + cc.note( nAmountOfToken ) + "\n" );
-        //
+
         strActionName = "ERC1155 payment S2S, approve, " + ( isForward ? "forward" : "reverse" );
 
         // TO-REMOVE:
@@ -4738,19 +5123,23 @@ export async function do_erc1155_payment_s2s(
 
         const contractERC1155 = new owaspUtils.ethersMod.ethers.Contract(
             erc1155_address_src, erc1155_abi_src, ethersProvider_src );
-        const methodWithArguments_approve = contractERC1155.methods.setApprovalForAll(
+        const arrArguments_approve = [
             jo_token_manager_erc1155_src.options.address,
             true
-        );
-        const dataTx_approve = methodWithArguments_approve.encodeABI();
+        ];
 
-        const methodWithArguments_transfer = jo_token_manager_erc1155_src.methods.transferToSchainERC1155(
+        // TO-REMOVE:
+        // const dataTx_approve = methodWithArguments_approve.encodeABI();
+
+        const arrArguments_transfer = [
             strChainName_dst,
             isReverse ? erc1155_address_dst : erc1155_address_src,
             "0x" + ethersProvider_src.utils.toBN( token_id ).toString( 16 ),
             "0x" + ethersProvider_src.utils.toBN( nAmountOfToken ).toString( 16 )
-        );
-        const dataTx_transfer = methodWithArguments_transfer.encodeABI();
+        ];
+
+        // TO-REMOVE:
+        // const dataTx_transfer = methodWithArguments_transfer.encodeABI();
 
         let gasPrice = await tc.computeGasPrice( ethersProvider_src, 11550000000000 );
         details.write( strLogPrefix + cc.debug( "Using computed " ) + cc.info( "gasPrice" ) + cc.debug( "=" ) + cc.notice( gasPrice ) + "\n" );
@@ -4763,35 +5152,47 @@ export async function do_erc1155_payment_s2s(
             await dry_run_call(
                 details,
                 owaspUtils.ethersMod, ethersProvider_src,
-                methodWithArguments_approve,
+                "ERC1155", contractERC1155, "setApprovalForAll", arrArguments_approve,
                 joAccountSrc, strActionName, isIgnore_approve,
                 gasPrice, estimatedGas_approve, weiHowMuch_approve,
                 null
             );
         if( strErrorOfDryRun_approve )
             throw new Error( strErrorOfDryRun_approve );
-        const rawTx_approve = {
-            chainId: cid_src,
-            from: joAccountSrc.address( ethersProvider_src ), // accountForMainnet
-            nonce: "0x" + nTransactionsCount.toString( 16 ),
-            data: dataTx_approve,
-            to: erc1155_address_src,
-            gasPrice: gasPrice, // 0
-            gas: estimatedGas_approve
-        };
-        const tx_approve = compose_tx_instance( details, strLogPrefix, rawTx_approve );
-        strActionName = "sign ERC1155/approve transaction S->S " + ( isForward ? "forward" : "reverse" );
-        const joSR_approve = await safe_sign_transaction_with_account( details, ethersProvider_src, tx_approve, rawTx_approve, joAccountSrc );
-        let joReceipt_approve = null;
-        if( joSR_approve.joACI.isAutoSend )
-            joReceipt_approve = await get_web3_transactionReceipt( details, 10, ethersProvider_src, joSR_approve.txHashSent );
-        else {
-            const serializedTx_approve = tx_approve.serialize();
-            strActionName = "ethersProvider_src.eth.sendSignedTransaction()/Approve/" + ( isForward ? "forward" : "reverse" );
-            details.write( cc.normal( "Will send ERC1155/approve signed transaction from " ) + cc.warning( joAccountSrc.address( ethersProvider_src ) ) + "\n" );
-            joReceipt_approve = await safe_send_signed_transaction( details, ethersProvider_src, serializedTx_approve, strActionName, strLogPrefix );
-        }
-        details.write( strLogPrefix + cc.success( "Result receipt for Approve: " ) + cc.j( joReceipt_approve ) + "\n" );
+
+        // TO-REMOVE:
+        // const rawTx_approve = {
+        //     chainId: cid_src,
+        //     from: joAccountSrc.address( ethersProvider_src ), // accountForMainnet
+        //     nonce: "0x" + nTransactionsCount.toString( 16 ),
+        //     data: dataTx_approve,
+        //     to: erc1155_address_src,
+        //     gasPrice: gasPrice, // 0
+        //     gas: estimatedGas_approve
+        // };
+        // const tx_approve = compose_tx_instance( details, strLogPrefix, rawTx_approve );
+        // strActionName = "sign ERC1155/approve transaction S->S " + ( isForward ? "forward" : "reverse" );
+        // const joSR_approve = await safe_sign_transaction_with_account( details, ethersProvider_src, tx_approve, rawTx_approve, joAccountSrc );
+        // let joReceipt_approve = null;
+        // if( joSR_approve.joACI.isAutoSend )
+        //     joReceipt_approve = await get_web3_transactionReceipt( details, 10, ethersProvider_src, joSR_approve.txHashSent );
+        // else {
+        //     const serializedTx_approve = tx_approve.serialize();
+        //     strActionName = "ethersProvider_src.eth.sendSignedTransaction()/Approve/" + ( isForward ? "forward" : "reverse" );
+        //     details.write( cc.normal( "Will send ERC1155/approve signed transaction from " ) + cc.warning( joAccountSrc.address( ethersProvider_src ) ) + "\n" );
+        //     joReceipt_approve = await safe_send_signed_transaction( details, ethersProvider_src, serializedTx_approve, strActionName, strLogPrefix );
+        // }
+        // details.write( strLogPrefix + cc.success( "Result receipt for Approve: " ) + cc.j( joReceipt_approve ) + "\n" );
+
+        const joReceipt_approve =
+            await payed_call(
+                details,
+                owaspUtils.ethersMod, ethersProvider_src,
+                "ERC1155", contractERC1155, "setApprovalForAll", arrArguments_approve,
+                joAccountSrc, strActionName,
+                gasPrice, estimatedGas_approve, weiHowMuch_approve,
+                null
+            );
         if( joReceipt_approve && typeof joReceipt_approve == "object" && "gasUsed" in joReceipt_approve ) {
             jarrReceipts.push( {
                 "description": "do_erc1155_payment_s2s/approve/" + ( isForward ? "forward" : "reverse" ),
@@ -4812,45 +5213,58 @@ export async function do_erc1155_payment_s2s(
         const strErrorOfDryRun_transferERC1155 =
             await dry_run_call(
                 details,
-                owaspUtils.ethersMod, ethersProvider_src, methodWithArguments_transfer,
+                owaspUtils.ethersMod, ethersProvider_src,
+                "TokenManagerERC1155", jo_token_manager_erc1155_src, "transferToSchainERC1155", arrArguments_transfer,
                 joAccountSrc, strActionName, isIgnore_transferERC1155,
                 gasPrice, estimatedGas_transfer, weiHowMuch_transferERC1155,
                 null
             );
         if( strErrorOfDryRun_transferERC1155 )
             throw new Error( strErrorOfDryRun_transferERC1155 );
-        //
-        nTransactionsCount += 1;
-        const rawTx_transfer = {
-            chainId: cid_src,
-            from: joAccountSrc.address( ethersProvider_src ),
-            nonce: "0x" + nTransactionsCount.toString( 16 ),
-            data: dataTx_transfer,
-            to: jo_token_manager_erc1155_src.options.address,
-            gasPrice: gasPrice, // 0
-            gas: estimatedGas_transfer
-            // value: "0x" + ethersProvider_src.utils.toBN( weiHowMuch ).toString( 16 )
-        };
-        const tx_transfer = compose_tx_instance( details, strLogPrefix, rawTx_transfer );
-        strActionName = "sign ERC1155/transfer transaction S->S " + ( isForward ? "forward" : "reverse" );
-        const joSR_transfer = await safe_sign_transaction_with_account( details, ethersProvider_src, tx_transfer, rawTx_transfer, joAccountSrc );
-        let joReceipt_transfer = null;
-        if( joSR_transfer.joACI.isAutoSend )
-            joReceipt_transfer = await get_web3_transactionReceipt( details, 10, ethersProvider_src, joSR_transfer.txHashSent );
-        else {
-            const serializedTx_transfer = tx_transfer.serialize();
-            // send transactions
-            strActionName = "ethersProvider_src.eth.sendSignedTransaction()/Transfer/" + ( isForward ? "forward" : "reverse" );
-            details.write( cc.normal( "Will send ERC1155/transfer signed transaction from " ) + cc.warning( joAccountSrc.address( ethersProvider_src ) ) + "\n" );
-            joReceipt_transfer = await safe_send_signed_transaction( details, ethersProvider_src, serializedTx_transfer, strActionName, strLogPrefix );
-        }
-        details.write( strLogPrefix + cc.success( "Result receipt for Transfer: " ) + cc.j( joReceipt_transfer ) + "\n" );
+
+        // TO-REMOVE:
+        // nTransactionsCount += 1;
+        // const rawTx_transfer = {
+        //     chainId: cid_src,
+        //     from: joAccountSrc.address( ethersProvider_src ),
+        //     nonce: "0x" + nTransactionsCount.toString( 16 ),
+        //     data: dataTx_transfer,
+        //     to: jo_token_manager_erc1155_src.options.address,
+        //     gasPrice: gasPrice, // 0
+        //     gas: estimatedGas_transfer
+        //     // value: "0x" + ethersProvider_src.utils.toBN( weiHowMuch ).toString( 16 )
+        // };
+        // const tx_transfer = compose_tx_instance( details, strLogPrefix, rawTx_transfer );
+        // strActionName = "sign ERC1155/transfer transaction S->S " + ( isForward ? "forward" : "reverse" );
+        // const joSR_transfer = await safe_sign_transaction_with_account( details, ethersProvider_src, tx_transfer, rawTx_transfer, joAccountSrc );
+        // let joReceipt_transfer = null;
+        // if( joSR_transfer.joACI.isAutoSend )
+        //     joReceipt_transfer = await get_web3_transactionReceipt( details, 10, ethersProvider_src, joSR_transfer.txHashSent );
+        // else {
+        //     const serializedTx_transfer = tx_transfer.serialize();
+        //     // send transactions
+        //     strActionName = "ethersProvider_src.eth.sendSignedTransaction()/Transfer/" + ( isForward ? "forward" : "reverse" );
+        //     details.write( cc.normal( "Will send ERC1155/transfer signed transaction from " ) + cc.warning( joAccountSrc.address( ethersProvider_src ) ) + "\n" );
+        //     joReceipt_transfer = await safe_send_signed_transaction( details, ethersProvider_src, serializedTx_transfer, strActionName, strLogPrefix );
+        // }
+        // details.write( strLogPrefix + cc.success( "Result receipt for Transfer: " ) + cc.j( joReceipt_transfer ) + "\n" );
+
+        const joReceipt_transfer =
+            await payed_call(
+                details,
+                owaspUtils.ethersMod, ethersProvider_src,
+                "TokenManagerERC1155", jo_token_manager_erc1155_src, "transferToSchainERC1155", arrArguments_transfer,
+                joAccountSrc, strActionName,
+                gasPrice, estimatedGas_transfer, weiHowMuch_transferERC1155,
+                null
+            );
         if( joReceipt_transfer && typeof joReceipt_transfer == "object" && "gasUsed" in joReceipt_transfer ) {
             jarrReceipts.push( {
                 "description": "do_erc1155_payment_from_src/transfer",
                 "receipt": joReceipt_transfer
             } );
         }
+
         //
         //
         // const joReceipt = joReceipt_transfer;
@@ -4935,7 +5349,7 @@ export async function do_erc1155_batch_payment_s2s(
         details.write( strLogPrefix + cc.attention( "Destination chain name" ) + cc.debug( "........................." ) + cc.note( strChainName_dst ) + "\n" );
         details.write( strLogPrefix + cc.attention( "Token IDs" ) + cc.debug( " to transfer.........................." ) + cc.j( token_ids ) + "\n" );
         details.write( strLogPrefix + cc.attention( "Amounts of tokens" ) + cc.debug( " to transfer.................." ) + cc.j( token_amounts ) + "\n" );
-        //
+
         strActionName = "ERC1155 batch-payment S2S, approve, " + ( isForward ? "forward" : "reverse" );
 
         // TO-REMOVE:
@@ -4945,19 +5359,23 @@ export async function do_erc1155_batch_payment_s2s(
 
         const contractERC1155 = new owaspUtils.ethersMod.ethers.Contract(
             erc1155_address_src, erc1155_abi_src, ethersProvider_src );
-        const methodWithArguments_approve = contractERC1155.methods.setApprovalForAll(
+        const arrArguments_approve = [
             jo_token_manager_erc1155_src.options.address,
             true
-        );
-        const dataTx_approve = methodWithArguments_approve.encodeABI();
+        ];
 
-        const methodWithArguments_transfer = jo_token_manager_erc1155_src.methods.transferToSchainERC1155Batch(
+        // TO-REMOVE:
+        // const dataTx_approve = methodWithArguments_approve.encodeABI();
+
+        const arrArguments_transfer = [
             strChainName_dst,
             isReverse ? erc1155_address_dst : erc1155_address_src,
             token_ids,
             token_amounts
-        );
-        const dataTx_transfer = methodWithArguments_transfer.encodeABI();
+        ];
+
+        // TO-REMOVE:
+        // const dataTx_transfer = methodWithArguments_transfer.encodeABI();
 
         let gasPrice = await tc.computeGasPrice( ethersProvider_src, 11550000000000 );
         details.write( strLogPrefix + cc.debug( "Using computed " ) + cc.info( "gasPrice" ) + cc.debug( "=" ) + cc.notice( gasPrice ) + "\n" );
@@ -4970,35 +5388,47 @@ export async function do_erc1155_batch_payment_s2s(
             await dry_run_call(
                 details,
                 owaspUtils.ethersMod, ethersProvider_src,
-                methodWithArguments_approve,
+                "ERC1155", contractERC1155, "setApprovalForAll", arrArguments_approve,
                 joAccountSrc, strActionName, isIgnore_approve,
                 gasPrice, estimatedGas_approve, weiHowMuch_approve,
                 null
             );
         if( strErrorOfDryRun_approve )
             throw new Error( strErrorOfDryRun_approve );
-        const rawTx_approve = {
-            chainId: cid_src,
-            from: joAccountSrc.address( ethersProvider_src ), // accountForMainnet
-            nonce: "0x" + nTransactionsCount.toString( 16 ),
-            data: dataTx_approve,
-            to: erc1155_address_src,
-            gasPrice: gasPrice, // 0
-            gas: estimatedGas_approve
-        };
-        const tx_approve = compose_tx_instance( details, strLogPrefix, rawTx_approve );
-        strActionName = "sign ERC1155-batch/approve transaction S->S " + ( isForward ? "forward" : "reverse" );
-        const joSR_approve = await safe_sign_transaction_with_account( details, ethersProvider_src, tx_approve, rawTx_approve, joAccountSrc );
-        let joReceipt_approve = null;
-        if( joSR_approve.joACI.isAutoSend )
-            joReceipt_approve = await get_web3_transactionReceipt( details, 10, ethersProvider_src, joSR_approve.txHashSent );
-        else {
-            const serializedTx_approve = tx_approve.serialize();
-            strActionName = "ethersProvider_src.eth.sendSignedTransaction()/Approve/" + ( isForward ? "forward" : "reverse" );
-            details.write( cc.normal( "Will send ERC1155/approve signed transaction from " ) + cc.warning( joAccountSrc.address( ethersProvider_src ) ) + "\n" );
-            joReceipt_approve = await safe_send_signed_transaction( details, ethersProvider_src, serializedTx_approve, strActionName, strLogPrefix );
-        }
-        details.write( strLogPrefix + cc.success( "Result receipt for Approve: " ) + cc.j( joReceipt_approve ) + "\n" );
+
+        // TO-REMOVE:
+        // const rawTx_approve = {
+        //     chainId: cid_src,
+        //     from: joAccountSrc.address( ethersProvider_src ), // accountForMainnet
+        //     nonce: "0x" + nTransactionsCount.toString( 16 ),
+        //     data: dataTx_approve,
+        //     to: erc1155_address_src,
+        //     gasPrice: gasPrice, // 0
+        //     gas: estimatedGas_approve
+        // };
+        // const tx_approve = compose_tx_instance( details, strLogPrefix, rawTx_approve );
+        // strActionName = "sign ERC1155-batch/approve transaction S->S " + ( isForward ? "forward" : "reverse" );
+        // const joSR_approve = await safe_sign_transaction_with_account( details, ethersProvider_src, tx_approve, rawTx_approve, joAccountSrc );
+        // let joReceipt_approve = null;
+        // if( joSR_approve.joACI.isAutoSend )
+        //     joReceipt_approve = await get_web3_transactionReceipt( details, 10, ethersProvider_src, joSR_approve.txHashSent );
+        // else {
+        //     const serializedTx_approve = tx_approve.serialize();
+        //     strActionName = "ethersProvider_src.eth.sendSignedTransaction()/Approve/" + ( isForward ? "forward" : "reverse" );
+        //     details.write( cc.normal( "Will send ERC1155/approve signed transaction from " ) + cc.warning( joAccountSrc.address( ethersProvider_src ) ) + "\n" );
+        //     joReceipt_approve = await safe_send_signed_transaction( details, ethersProvider_src, serializedTx_approve, strActionName, strLogPrefix );
+        // }
+        // details.write( strLogPrefix + cc.success( "Result receipt for Approve: " ) + cc.j( joReceipt_approve ) + "\n" );
+
+        const joReceipt_approve =
+            await payed_call(
+                details,
+                owaspUtils.ethersMod, ethersProvider_src,
+                "ERC1155", contractERC1155, "setApprovalForAll", arrArguments_approve,
+                joAccountSrc, strActionName,
+                gasPrice, estimatedGas_approve, weiHowMuch_approve,
+                null
+            );
         if( joReceipt_approve && typeof joReceipt_approve == "object" && "gasUsed" in joReceipt_approve ) {
             jarrReceipts.push( {
                 "description": "do_erc1155_batch_payment_s2s/approve/" + ( isForward ? "forward" : "reverse" ),
@@ -5020,39 +5450,50 @@ export async function do_erc1155_batch_payment_s2s(
             await dry_run_call(
                 details,
                 owaspUtils.ethersMod, ethersProvider_src,
-                methodWithArguments_transfer,
+                "TokenManagerERC1155", jo_token_manager_erc1155_src, "transferToSchainERC1155Batch", arrArguments_transfer,
                 joAccountSrc, strActionName, isIgnore_transferERC1155,
                 gasPrice, estimatedGas_transfer, weiHowMuch_transferERC1155,
                 null
             );
         if( strErrorOfDryRun_transferERC1155 )
             throw new Error( strErrorOfDryRun_transferERC1155 );
-        //
-        nTransactionsCount += 1;
-        const rawTx_transfer = {
-            chainId: cid_src,
-            from: joAccountSrc.address( ethersProvider_src ),
-            nonce: "0x" + nTransactionsCount.toString( 16 ),
-            data: dataTx_transfer,
-            to: jo_token_manager_erc1155_src.options.address,
-            gasPrice: gasPrice, // 0
-            gas: estimatedGas_transfer
-            // value: "0x" + ethersProvider_src.utils.toBN( weiHowMuch ).toString( 16 )
-        };
-        const tx_transfer = compose_tx_instance( details, strLogPrefix, rawTx_transfer );
-        strActionName = "sign ERC1155-batch/transfer transaction S->S " + ( isForward ? "forward" : "reverse" );
-        const joSR_transfer = await safe_sign_transaction_with_account( details, ethersProvider_src, tx_transfer, rawTx_transfer, joAccountSrc );
-        let joReceipt_transfer = null;
-        if( joSR_transfer.joACI.isAutoSend )
-            joReceipt_transfer = await get_web3_transactionReceipt( details, 10, ethersProvider_src, joSR_transfer.txHashSent );
-        else {
-            const serializedTx_transfer = tx_transfer.serialize();
-            // send transactions
-            strActionName = "ethersProvider_src.eth.sendSignedTransaction()/Transfer/" + ( isForward ? "forward" : "reverse" );
-            details.write( cc.normal( "Will send ERC1155/transfer signed transaction from " ) + cc.warning( joAccountSrc.address( ethersProvider_src ) ) + "\n" );
-            joReceipt_transfer = await safe_send_signed_transaction( details, ethersProvider_src, serializedTx_transfer, strActionName, strLogPrefix );
-        }
-        details.write( strLogPrefix + cc.success( "Result receipt for Transfer: " ) + cc.j( joReceipt_transfer ) + "\n" );
+
+        // TO-REMOVE:
+        // nTransactionsCount += 1;
+        // const rawTx_transfer = {
+        //     chainId: cid_src,
+        //     from: joAccountSrc.address( ethersProvider_src ),
+        //     nonce: "0x" + nTransactionsCount.toString( 16 ),
+        //     data: dataTx_transfer,
+        //     to: jo_token_manager_erc1155_src.options.address,
+        //     gasPrice: gasPrice, // 0
+        //     gas: estimatedGas_transfer
+        //     // value: "0x" + ethersProvider_src.utils.toBN( weiHowMuch ).toString( 16 )
+        // };
+        // const tx_transfer = compose_tx_instance( details, strLogPrefix, rawTx_transfer );
+        // strActionName = "sign ERC1155-batch/transfer transaction S->S " + ( isForward ? "forward" : "reverse" );
+        // const joSR_transfer = await safe_sign_transaction_with_account( details, ethersProvider_src, tx_transfer, rawTx_transfer, joAccountSrc );
+        // let joReceipt_transfer = null;
+        // if( joSR_transfer.joACI.isAutoSend )
+        //     joReceipt_transfer = await get_web3_transactionReceipt( details, 10, ethersProvider_src, joSR_transfer.txHashSent );
+        // else {
+        //     const serializedTx_transfer = tx_transfer.serialize();
+        //     // send transactions
+        //     strActionName = "ethersProvider_src.eth.sendSignedTransaction()/Transfer/" + ( isForward ? "forward" : "reverse" );
+        //     details.write( cc.normal( "Will send ERC1155/transfer signed transaction from " ) + cc.warning( joAccountSrc.address( ethersProvider_src ) ) + "\n" );
+        //     joReceipt_transfer = await safe_send_signed_transaction( details, ethersProvider_src, serializedTx_transfer, strActionName, strLogPrefix );
+        // }
+        // details.write( strLogPrefix + cc.success( "Result receipt for Transfer: " ) + cc.j( joReceipt_transfer ) + "\n" );
+
+        const joReceipt_transfer =
+            await payed_call(
+                details,
+                owaspUtils.ethersMod, ethersProvider_src,
+                "TokenManagerERC1155", jo_token_manager_erc1155_src, "transferToSchainERC1155Batch", arrArguments_transfer,
+                joAccountSrc, strActionName,
+                gasPrice, estimatedGas_transfer, weiHowMuch_transferERC1155,
+                null
+            );
         if( joReceipt_transfer && typeof joReceipt_transfer == "object" && "gasUsed" in joReceipt_transfer ) {
             jarrReceipts.push( {
                 "description": "do_erc1155_payment_from_src/transfer",
@@ -5851,16 +6292,18 @@ export async function do_transfer(
                             hashB: hashPoint.Y, // G1.Y from joGlueResult.hashSrc
                             counter: hint
                         };
-                        const methodWithArguments_postIncomingMessages = jo_message_proxy_dst.methods.postIncomingMessages(
-                        // call params
+
+                        const arrArguments_postIncomingMessages = [
                             chain_id_src,
                             nIdxCurrentMsgBlockStart,
                             jarrMessages,
                             sign //, // bls signature components
-                        // idxLastToPopNotIncluding
-                        );
-                        const dataTx_postIncomingMessages = methodWithArguments_postIncomingMessages.encodeABI(); // the encoded ABI of the method
-                        //
+                            // idxLastToPopNotIncluding
+                        ];
+
+                        // TO-REMOVE:
+                        // const dataTx_postIncomingMessages = methodWithArguments_postIncomingMessages.encodeABI(); // the encoded ABI of the method
+
                         if( verbose_get() >= RV_VERBOSE.debug ) {
                             const joDebugArgs = [
                                 chain_id_src,
@@ -5882,12 +6325,11 @@ export async function do_transfer(
 
                         const gasPrice = await tc_dst.computeGasPrice( ethersProvider_dst, 200000000000 );
                         detailsB.write( strLogPrefix + cc.debug( "Using computed " ) + cc.info( "gasPrice" ) + cc.debug( "=" ) + cc.notice( gasPrice ) + "\n" );
-                        const estimatedGas_postIncomingMessages = await tc_dst.computeGas( methodWithArguments_postIncomingMessages, ethersProvider_dst, 10000000, gasPrice, joAccountDst.address( ethersProvider_dst ), "0" );
+                        let estimatedGas_postIncomingMessages = await tc_dst.computeGas( methodWithArguments_postIncomingMessages, ethersProvider_dst, 10000000, gasPrice, joAccountDst.address( ethersProvider_dst ), "0" );
                         detailsB.write( strLogPrefix + cc.debug( "Using estimated " ) + cc.info( "gas" ) + cc.debug( "=" ) + cc.notice( estimatedGas_postIncomingMessages ) + "\n" );
-                        let postIncomingMessagesGasLimit = estimatedGas_postIncomingMessages;
                         if( strDirection == "S2M" ) {
                             const expectedGasLimit = perMessageGasForTransfer * jarrMessages.length + additionalS2MTransferOverhead;
-                            postIncomingMessagesGasLimit = Math.max( postIncomingMessagesGasLimit, expectedGasLimit );
+                            estimatedGas_postIncomingMessages = Math.max( estimatedGas_postIncomingMessages, expectedGasLimit );
                         }
 
                         const weiHowMuch_postIncomingMessages = undefined;
@@ -5896,39 +6338,53 @@ export async function do_transfer(
                             await dry_run_call(
                                 detailsB,
                                 owaspUtils.ethersMod, ethersProvider_dst,
-                                methodWithArguments_postIncomingMessages,
+                                "MessageProxy", jo_message_proxy_dst, "postIncomingMessages", arrArguments_postIncomingMessages,
                                 joAccountDst, strActionName, isIgnore_postIncomingMessages,
                                 gasPrice, estimatedGas_postIncomingMessages, weiHowMuch_postIncomingMessages,
                                 null
                             );
                         if( strErrorOfDryRun )
                             throw new Error( strErrorOfDryRun );
-                        //
-                        const raw_tx_postIncomingMessages = {
-                            chainId: cid_dst,
-                            from: joAccountDst.address( ethersProvider_dst ),
-                            nonce: nTransactionsCount,
-                            gas: postIncomingMessagesGasLimit,
-                            gasPrice: gasPrice,
-                            // "gasLimit": 3000000,
-                            to: jo_message_proxy_dst.options.address, // contract address
-                            data: dataTx_postIncomingMessages
-                        };
-                        if( chain_id_dst !== "Mainnet" )
-                            await checkTransactionToSchain( ethersProvider_dst, raw_tx_postIncomingMessages, detailsB );
 
-                        const tx_postIncomingMessages = compose_tx_instance( detailsB, strLogPrefix, raw_tx_postIncomingMessages );
-                        const joPostIncomingMessagesSR = await safe_sign_transaction_with_account( detailsB, ethersProvider_dst, tx_postIncomingMessages, raw_tx_postIncomingMessages, joAccountDst );
-                        let joReceipt = null;
-                        if( joPostIncomingMessagesSR.joACI.isAutoSend )
-                            joReceipt = await get_web3_transactionReceipt( detailsB, 10, ethersProvider_dst, joPostIncomingMessagesSR.txHashSent );
-                        else {
-                            const serializedTx_postIncomingMessages = tx_postIncomingMessages.serialize();
-                            strActionName = "ethersProvider_dst.eth.sendSignedTransaction()";
-                            // let joReceipt = await ethersProvider_dst.eth.sendSignedTransaction( "0x" + serializedTx_postIncomingMessages.toString( "hex" ) );
-                            joReceipt = await safe_send_signed_transaction( detailsB, ethersProvider_dst, serializedTx_postIncomingMessages, strActionName, strLogPrefix );
+                        // TO-REMOVE:
+                        // const raw_tx_postIncomingMessages = {
+                        //     chainId: cid_dst,
+                        //     from: joAccountDst.address( ethersProvider_dst ),
+                        //     nonce: nTransactionsCount,
+                        //     gas: postIncomingMessagesGasLimit,
+                        //     gasPrice: gasPrice,
+                        //     // "gasLimit": 3000000,
+                        //     to: jo_message_proxy_dst.options.address, // contract address
+                        //     data: dataTx_postIncomingMessages
+                        // };
+
+                        if( chain_id_dst !== "Mainnet" ) {
+                            // TO-IMPROVE:
+                            await checkTransactionToSchain( ethersProvider_dst, raw_tx_postIncomingMessages, detailsB );
                         }
-                        detailsB.write( strLogPrefix + cc.success( "Result receipt: " ) + cc.j( joReceipt ) + "\n" );
+
+                        // const tx_postIncomingMessages = compose_tx_instance( detailsB, strLogPrefix, raw_tx_postIncomingMessages );
+                        // const joPostIncomingMessagesSR = await safe_sign_transaction_with_account( detailsB, ethersProvider_dst, tx_postIncomingMessages, raw_tx_postIncomingMessages, joAccountDst );
+                        // let joReceipt = null;
+                        // if( joPostIncomingMessagesSR.joACI.isAutoSend )
+                        //     joReceipt = await get_web3_transactionReceipt( detailsB, 10, ethersProvider_dst, joPostIncomingMessagesSR.txHashSent );
+                        // else {
+                        //     const serializedTx_postIncomingMessages = tx_postIncomingMessages.serialize();
+                        //     strActionName = "ethersProvider_dst.eth.sendSignedTransaction()";
+                        //     // let joReceipt = await ethersProvider_dst.eth.sendSignedTransaction( "0x" + serializedTx_postIncomingMessages.toString( "hex" ) );
+                        //     joReceipt = await safe_send_signed_transaction( detailsB, ethersProvider_dst, serializedTx_postIncomingMessages, strActionName, strLogPrefix );
+                        // }
+                        // detailsB.write( strLogPrefix + cc.success( "Result receipt: " ) + cc.j( joReceipt ) + "\n" );
+
+                        const joReceipt =
+                            await payed_call(
+                                detailsB,
+                                owaspUtils.ethersMod, ethersProvider_dst,
+                                "MessageProxy", jo_message_proxy_dst, "postIncomingMessages", arrArguments_postIncomingMessages,
+                                joAccountDst, strActionName,
+                                gasPrice, estimatedGas_postIncomingMessages, weiHowMuch_postIncomingMessages,
+                                null
+                            );
                         if( joReceipt && typeof joReceipt == "object" && "gasUsed" in joReceipt ) {
                             jarrReceipts.push( {
                                 "description": "do_transfer/postIncomingMessages()",
@@ -6456,17 +6912,19 @@ export async function mintERC20(
         strActionName = "mintERC20() instantiate token contract";
         const contract = new owaspUtils.ethersMod.ethers.Contract(
             strTokenContractAddress, joTokenContractABI, w3 );
-        const methodWithArguments_mint = contract.methods.mint(
-            // call params
+        const arrArguments_mint = [
             strAddressMintTo,
             "0x" + w3.utils.toBN( nAmount ).toString( 16 )
-        );
-        const dataTx_mint = methodWithArguments_mint.encodeABI(); // the encoded ABI of the method
+        ];
+
+        // TO-REMOVE:
+        // const dataTx_mint = methodWithArguments_mint.encodeABI(); // the encoded ABI of the method
+
         const gasPrice = await tc.computeGasPrice( w3, 200000000000 );
         details.write( strLogPrefix + cc.debug( "Using computed " ) + cc.info( "gasPrice" ) + cc.debug( "=" ) + cc.notice( gasPrice ) + "\n" );
         const estimatedGas_mint = await tc.computeGas( methodWithArguments_mint, w3, 10000000, gasPrice, joAccount.address( w3 ), "0" );
         details.write( strLogPrefix + cc.debug( "Using estimated " ) + cc.info( "gas" ) + cc.debug( "=" ) + cc.notice( estimatedGas_mint ) + "\n" );
-        //
+
         strActionName = "Mint ERC20";
         const weiHowMuch_mint = undefined;
         const isIgnore_mint = false;
@@ -6474,47 +6932,61 @@ export async function mintERC20(
             await dry_run_call(
                 details,
                 owaspUtils.ethersMod, w3,
-                methodWithArguments_mint,
+                "ERC20", contract, "mint", arrArguments_mint,
                 joAccount, strActionName, isIgnore_mint,
                 gasPrice, estimatedGas_mint, weiHowMuch_mint,
                 null
             );
         if( strErrorOfDryRun )
             throw new Error( strErrorOfDryRun );
-        //
-        strActionName = "mintERC20() fetch transaction count";
-        const nTransactionsCount = await get_web3_transactionCount( details, 10, w3, joAccount.address( w3 ), null );
-        details.write( strLogPrefix + cc.debug( "Got " ) + cc.info( nTransactionsCount ) + cc.debug( " from " ) + cc.notice( strActionName ) + "\n" );
-        strActionName = "mintERC20() compose transaction";
-        const raw_tx_mint = {
-            chainId: cid,
-            from: joAccount.address( w3 ),
-            nonce: nTransactionsCount,
-            gas: estimatedGas_mint,
-            gasPrice: gasPrice,
-            // "gasLimit": 3000000,
-            to: contract.options.address, // contract address
-            data: dataTx_mint //,
-            // "value": wei_amount // 1000000000000000000 // w3.utils.toWei( (1).toString(), "ether" ) // how much money to send
-        };
-        strActionName = "mintERC20() check transaction on S-Chain";
-        if( chainName !== "Mainnet" )
+
+        // TO-REMOVE:
+        // strActionName = "mintERC20() fetch transaction count";
+        // const nTransactionsCount = await get_web3_transactionCount( details, 10, w3, joAccount.address( w3 ), null );
+        // details.write( strLogPrefix + cc.debug( "Got " ) + cc.info( nTransactionsCount ) + cc.debug( " from " ) + cc.notice( strActionName ) + "\n" );
+        // strActionName = "mintERC20() compose transaction";
+        // const raw_tx_mint = {
+        //     chainId: cid,
+        //     from: joAccount.address( w3 ),
+        //     nonce: nTransactionsCount,
+        //     gas: estimatedGas_mint,
+        //     gasPrice: gasPrice,
+        //     // "gasLimit": 3000000,
+        //     to: contract.options.address, // contract address
+        //     data: dataTx_mint //,
+        //     // "value": wei_amount // 1000000000000000000 // w3.utils.toWei( (1).toString(), "ether" ) // how much money to send
+        // };
+        // strActionName = "mintERC20() check transaction on S-Chain";
+
+        if( chainName !== "Mainnet" ) {
+            // TO-IMPROVE:
             await checkTransactionToSchain( w3, raw_tx_mint, details );
-        //
-        strActionName = "mintERC20() prepare composed transaction";
-        const tx_mint = compose_tx_instance( details, strLogPrefix, raw_tx_mint );
-        strActionName = "mintERC20() sign transaction";
-        const joSR = await safe_sign_transaction_with_account( details, w3, tx_mint, raw_tx_mint, joAccount );
-        let joReceipt = null;
-        if( joSR.joACI.isAutoSend )
-            joReceipt = await get_web3_transactionReceipt( details, 10, w3, joSR.txHashSent );
-        else {
-            const serializedTx_mint = tx_mint.serialize();
-            strActionName = "w3.eth.sendSignedTransaction()";
-            // let joReceipt = await w3.eth.sendSignedTransaction( "0x" + serializedTx_mint.toString( "hex" ) );
-            joReceipt = await safe_send_signed_transaction( details, w3, serializedTx_mint, strActionName, strLogPrefix );
         }
-        details.write( strLogPrefix + cc.success( "Result receipt: " ) + cc.j( joReceipt ) + "\n" );
+
+        // strActionName = "mintERC20() prepare composed transaction";
+        // const tx_mint = compose_tx_instance( details, strLogPrefix, raw_tx_mint );
+        // strActionName = "mintERC20() sign transaction";
+        // const joSR = await safe_sign_transaction_with_account( details, w3, tx_mint, raw_tx_mint, joAccount );
+        // let joReceipt = null;
+        // if( joSR.joACI.isAutoSend )
+        //     joReceipt = await get_web3_transactionReceipt( details, 10, w3, joSR.txHashSent );
+        // else {
+        //     const serializedTx_mint = tx_mint.serialize();
+        //     strActionName = "w3.eth.sendSignedTransaction()";
+        //     // let joReceipt = await w3.eth.sendSignedTransaction( "0x" + serializedTx_mint.toString( "hex" ) );
+        //     joReceipt = await safe_send_signed_transaction( details, w3, serializedTx_mint, strActionName, strLogPrefix );
+        // }
+        // details.write( strLogPrefix + cc.success( "Result receipt: " ) + cc.j( joReceipt ) + "\n" );
+
+        const joReceipt =
+            await payed_call(
+                details,
+                owaspUtils.ethersMod, w3,
+                "ERC20", contract, "mint", arrArguments_mint,
+                joAccount, strActionName,
+                gasPrice, estimatedGas_mint, weiHowMuch_mint,
+                null
+            );
         print_gas_usage_report_from_array( "MINT ERC20 ", [ {
             "description": "mintERC20()/mint",
             "receipt": joReceipt
@@ -6560,17 +7032,19 @@ export async function mintERC721(
         strActionName = "mintERC721() instantiate token contract";
         const contract = new owaspUtils.ethersMod.ethers.Contract(
             strTokenContractAddress, joTokenContractABI, w3 );
-        const methodWithArguments_mint = contract.methods.mint(
-            // call params
+        const arrArguments_mint = [
             strAddressMintTo,
             "0x" + w3.utils.toBN( idToken ).toString( 16 )
-        );
-        const dataTx_mint = methodWithArguments_mint.encodeABI(); // the encoded ABI of the method
+        ];
+
+        // TO-REMOVE:
+        // const dataTx_mint = methodWithArguments_mint.encodeABI(); // the encoded ABI of the method
+
         const gasPrice = await tc.computeGasPrice( w3, 200000000000 );
         details.write( strLogPrefix + cc.debug( "Using computed " ) + cc.info( "gasPrice" ) + cc.debug( "=" ) + cc.notice( gasPrice ) + "\n" );
         const estimatedGas_mint = await tc.computeGas( methodWithArguments_mint, w3, 10000000, gasPrice, joAccount.address( w3 ), "0" );
         details.write( strLogPrefix + cc.debug( "Using estimated " ) + cc.info( "gas" ) + cc.debug( "=" ) + cc.notice( estimatedGas_mint ) + "\n" );
-        //
+
         strActionName = "Mint ERC721";
         const weiHowMuch_mint = undefined;
         const isIgnore_mint = false;
@@ -6578,47 +7052,62 @@ export async function mintERC721(
             await dry_run_call(
                 details,
                 owaspUtils.ethersMod, w3,
-                methodWithArguments_mint,
+                "ERC721", contract, "mint", arrArguments_mint,
                 joAccount, strActionName, isIgnore_mint,
                 gasPrice, estimatedGas_mint, weiHowMuch_mint,
                 null
             );
         if( strErrorOfDryRun )
             throw new Error( strErrorOfDryRun );
-        //
-        strActionName = "mintERC721() fetch transaction count";
-        const nTransactionsCount = await get_web3_transactionCount( details, 10, w3, joAccount.address( w3 ), null );
-        details.write( strLogPrefix + cc.debug( "Got " ) + cc.info( nTransactionsCount ) + cc.debug( " from " ) + cc.notice( strActionName ) + "\n" );
-        strActionName = "mintERC721() compose transaction";
-        const raw_tx_mint = {
-            chainId: cid,
-            from: joAccount.address( w3 ),
-            nonce: nTransactionsCount,
-            gas: estimatedGas_mint,
-            gasPrice: gasPrice,
-            // "gasLimit": 3000000,
-            to: contract.options.address, // contract address
-            data: dataTx_mint //,
-            // "value": wei_amount // 1000000000000000000 // w3.utils.toWei( (1).toString(), "ether" ) // how much money to send
-        };
-        strActionName = "mintERC721() check transaction on S-Chain";
-        if( chainName !== "Mainnet" )
+
+        // TO-REMOVE:
+        // strActionName = "mintERC721() fetch transaction count";
+        // const nTransactionsCount = await get_web3_transactionCount( details, 10, w3, joAccount.address( w3 ), null );
+        // details.write( strLogPrefix + cc.debug( "Got " ) + cc.info( nTransactionsCount ) + cc.debug( " from " ) + cc.notice( strActionName ) + "\n" );
+        // strActionName = "mintERC721() compose transaction";
+        // const raw_tx_mint = {
+        //     chainId: cid,
+        //     from: joAccount.address( w3 ),
+        //     nonce: nTransactionsCount,
+        //     gas: estimatedGas_mint,
+        //     gasPrice: gasPrice,
+        //     // "gasLimit": 3000000,
+        //     to: contract.options.address, // contract address
+        //     data: dataTx_mint //,
+        //     // "value": wei_amount // 1000000000000000000 // w3.utils.toWei( (1).toString(), "ether" ) // how much money to send
+        // };
+        // strActionName = "mintERC721() check transaction on S-Chain";
+
+        if( chainName !== "Mainnet" ) {
+            // TO-IMPROVE:
             await checkTransactionToSchain( w3, raw_tx_mint, details );
-        //
-        strActionName = "mintERC721() prepare composed transaction";
-        const tx_mint = compose_tx_instance( details, strLogPrefix, raw_tx_mint );
-        strActionName = "mintERC721() sign transaction";
-        const joSR = await safe_sign_transaction_with_account( details, w3, tx_mint, raw_tx_mint, joAccount );
-        let joReceipt = null;
-        if( joSR.joACI.isAutoSend )
-            joReceipt = await get_web3_transactionReceipt( details, 10, w3, joSR.txHashSent );
-        else {
-            const serializedTx_mint = tx_mint.serialize();
-            strActionName = "w3.eth.sendSignedTransaction()";
-            // let joReceipt = await w3.eth.sendSignedTransaction( "0x" + serializedTx_mint.toString( "hex" ) );
-            joReceipt = await safe_send_signed_transaction( details, w3, serializedTx_mint, strActionName, strLogPrefix );
         }
-        details.write( strLogPrefix + cc.success( "Result receipt: " ) + cc.j( joReceipt ) + "\n" );
+
+        // TO-REMOVE:
+        // strActionName = "mintERC721() prepare composed transaction";
+        // const tx_mint = compose_tx_instance( details, strLogPrefix, raw_tx_mint );
+        // strActionName = "mintERC721() sign transaction";
+        // const joSR = await safe_sign_transaction_with_account( details, w3, tx_mint, raw_tx_mint, joAccount );
+        // let joReceipt = null;
+        // if( joSR.joACI.isAutoSend )
+        //     joReceipt = await get_web3_transactionReceipt( details, 10, w3, joSR.txHashSent );
+        // else {
+        //     const serializedTx_mint = tx_mint.serialize();
+        //     strActionName = "w3.eth.sendSignedTransaction()";
+        //     // let joReceipt = await w3.eth.sendSignedTransaction( "0x" + serializedTx_mint.toString( "hex" ) );
+        //     joReceipt = await safe_send_signed_transaction( details, w3, serializedTx_mint, strActionName, strLogPrefix );
+        // }
+        // details.write( strLogPrefix + cc.success( "Result receipt: " ) + cc.j( joReceipt ) + "\n" );
+
+        const joReceipt =
+            await payed_call(
+                details,
+                owaspUtils.ethersMod, w3,
+                "ERC721", contract, "mint", arrArguments_mint,
+                joAccount, strActionName,
+                gasPrice, estimatedGas_mint, weiHowMuch_mint,
+                null
+            );
         print_gas_usage_report_from_array( "MINT ERC721 ", [ {
             "description": "mintERC721()/mint",
             "receipt": joReceipt
@@ -6665,19 +7154,21 @@ export async function mintERC1155(
         strActionName = "mintERC1155() instantiate token contract";
         const contract = new owaspUtils.ethersMod.ethers.Contract(
             strTokenContractAddress, joTokenContractABI, w3 );
-        const methodWithArguments_mint = contract.methods.mint(
-            // call params
+        const arrArguments_mint = [
             strAddressMintTo,
             "0x" + w3.utils.toBN( idToken ).toString( 16 ),
             "0x" + w3.utils.toBN( nAmount ).toString( 16 ),
             [] // data
-        );
-        const dataTx_mint = methodWithArguments_mint.encodeABI(); // the encoded ABI of the method
+        ];
+
+        // TO-REMOVE:
+        // const dataTx_mint = methodWithArguments_mint.encodeABI(); // the encoded ABI of the method
+
         const gasPrice = await tc.computeGasPrice( w3, 200000000000 );
         details.write( strLogPrefix + cc.debug( "Using computed " ) + cc.info( "gasPrice" ) + cc.debug( "=" ) + cc.notice( gasPrice ) + "\n" );
         const estimatedGas_mint = await tc.computeGas( methodWithArguments_mint, w3, 10000000, gasPrice, joAccount.address( w3 ), "0" );
         details.write( strLogPrefix + cc.debug( "Using estimated " ) + cc.info( "gas" ) + cc.debug( "=" ) + cc.notice( estimatedGas_mint ) + "\n" );
-        //
+
         strActionName = "Mint ERC1155";
         const weiHowMuch_mint = undefined;
         const isIgnore_mint = false;
@@ -6685,47 +7176,62 @@ export async function mintERC1155(
             await dry_run_call(
                 details,
                 owaspUtils.ethersMod, w3,
-                methodWithArguments_mint,
+                "ERC1155", contract, "mint", arrArguments_mint,
                 joAccount, strActionName, isIgnore_mint,
                 gasPrice, estimatedGas_mint, weiHowMuch_mint,
                 null
             );
         if( strErrorOfDryRun )
             throw new Error( strErrorOfDryRun );
-        //
-        strActionName = "mintERC1155() fetch transaction count";
-        const nTransactionsCount = await get_web3_transactionCount( details, 10, w3, joAccount.address( w3 ), null );
-        details.write( strLogPrefix + cc.debug( "Got " ) + cc.info( nTransactionsCount ) + cc.debug( " from " ) + cc.notice( strActionName ) + "\n" );
-        strActionName = "mintERC1155() compose transaction";
-        const raw_tx_mint = {
-            chainId: cid,
-            from: joAccount.address( w3 ),
-            nonce: nTransactionsCount,
-            gas: estimatedGas_mint,
-            gasPrice: gasPrice,
-            // "gasLimit": 3000000,
-            to: contract.options.address, // contract address
-            data: dataTx_mint //,
-            // "value": wei_amount // 1000000000000000000 // w3.utils.toWei( (1).toString(), "ether" ) // how much money to send
-        };
-        strActionName = "mintERC1155() check transaction on S-Chain";
-        if( chainName !== "Mainnet" )
+
+        // TO-REMOVE:
+        // strActionName = "mintERC1155() fetch transaction count";
+        // const nTransactionsCount = await get_web3_transactionCount( details, 10, w3, joAccount.address( w3 ), null );
+        // details.write( strLogPrefix + cc.debug( "Got " ) + cc.info( nTransactionsCount ) + cc.debug( " from " ) + cc.notice( strActionName ) + "\n" );
+        // strActionName = "mintERC1155() compose transaction";
+        // const raw_tx_mint = {
+        //     chainId: cid,
+        //     from: joAccount.address( w3 ),
+        //     nonce: nTransactionsCount,
+        //     gas: estimatedGas_mint,
+        //     gasPrice: gasPrice,
+        //     // "gasLimit": 3000000,
+        //     to: contract.options.address, // contract address
+        //     data: dataTx_mint //,
+        //     // "value": wei_amount // 1000000000000000000 // w3.utils.toWei( (1).toString(), "ether" ) // how much money to send
+        // };
+        // strActionName = "mintERC1155() check transaction on S-Chain";
+
+        if( chainName !== "Mainnet" ) {
+            // TO-IMPROVE:
             await checkTransactionToSchain( w3, raw_tx_mint, details );
-        //
-        strActionName = "mintERC1155() prepare composed transaction";
-        const tx_mint = compose_tx_instance( details, strLogPrefix, raw_tx_mint );
-        strActionName = "mintERC1155() sign transaction";
-        const joSR = await safe_sign_transaction_with_account( details, w3, tx_mint, raw_tx_mint, joAccount );
-        let joReceipt = null;
-        if( joSR.joACI.isAutoSend )
-            joReceipt = await get_web3_transactionReceipt( details, 10, w3, joSR.txHashSent );
-        else {
-            const serializedTx_mint = tx_mint.serialize();
-            strActionName = "w3.eth.sendSignedTransaction()";
-            // let joReceipt = await w3.eth.sendSignedTransaction( "0x" + serializedTx_mint.toString( "hex" ) );
-            joReceipt = await safe_send_signed_transaction( details, w3, serializedTx_mint, strActionName, strLogPrefix );
         }
-        details.write( strLogPrefix + cc.success( "Result receipt: " ) + cc.j( joReceipt ) + "\n" );
+
+        // TO-REMOVE:
+        // strActionName = "mintERC1155() prepare composed transaction";
+        // const tx_mint = compose_tx_instance( details, strLogPrefix, raw_tx_mint );
+        // strActionName = "mintERC1155() sign transaction";
+        // const joSR = await safe_sign_transaction_with_account( details, w3, tx_mint, raw_tx_mint, joAccount );
+        // let joReceipt = null;
+        // if( joSR.joACI.isAutoSend )
+        //     joReceipt = await get_web3_transactionReceipt( details, 10, w3, joSR.txHashSent );
+        // else {
+        //     const serializedTx_mint = tx_mint.serialize();
+        //     strActionName = "w3.eth.sendSignedTransaction()";
+        //     // let joReceipt = await w3.eth.sendSignedTransaction( "0x" + serializedTx_mint.toString( "hex" ) );
+        //     joReceipt = await safe_send_signed_transaction( details, w3, serializedTx_mint, strActionName, strLogPrefix );
+        // }
+        // details.write( strLogPrefix + cc.success( "Result receipt: " ) + cc.j( joReceipt ) + "\n" );
+
+        const joReceipt =
+            await payed_call(
+                details,
+                owaspUtils.ethersMod, w3,
+                "ERC1155", contract, "mint", arrArguments_mint,
+                joAccount, strActionName,
+                gasPrice, estimatedGas_mint, weiHowMuch_mint,
+                null
+            );
         print_gas_usage_report_from_array( "MINT ERC1155 ", [ {
             "description": "mintERC1155()/mint",
             "receipt": joReceipt
@@ -6771,17 +7277,19 @@ export async function burnERC20(
         strActionName = "burnERC20() instantiate token contract";
         const contract = new owaspUtils.ethersMod.ethers.Contract(
             strTokenContractAddress, joTokenContractABI, w3 );
-        const methodWithArguments_burn = contract.methods.burnFrom(
-            // call params
+        const arrArguments_burn = [
             strAddressBurnFrom,
             "0x" + w3.utils.toBN( nAmount ).toString( 16 )
-        );
-        const dataTx_burn = methodWithArguments_burn.encodeABI(); // the encoded ABI of the method
+        ];
+
+        // TO-REMOVE:
+        // const dataTx_burn = methodWithArguments_burn.encodeABI(); // the encoded ABI of the method
+
         const gasPrice = await tc.computeGasPrice( w3, 200000000000 );
         details.write( strLogPrefix + cc.debug( "Using computed " ) + cc.info( "gasPrice" ) + cc.debug( "=" ) + cc.notice( gasPrice ) + "\n" );
         const estimatedGas_burn = await tc.computeGas( methodWithArguments_burn, w3, 10000000, gasPrice, joAccount.address( w3 ), "0" );
         details.write( strLogPrefix + cc.debug( "Using estimated " ) + cc.info( "gas" ) + cc.debug( "=" ) + cc.notice( estimatedGas_burn ) + "\n" );
-        //
+
         strActionName = "Burn ERC20";
         const weiHowMuch_burn = undefined;
         const isIgnore_burn = false;
@@ -6789,47 +7297,62 @@ export async function burnERC20(
             await dry_run_call(
                 details,
                 owaspUtils.ethersMod, w3,
-                methodWithArguments_burn,
+                "ERC20", contract, "burnFrom", arrArguments_burn,
                 joAccount, strActionName, isIgnore_burn,
                 gasPrice, estimatedGas_burn, weiHowMuch_burn,
                 null
             );
         if( strErrorOfDryRun )
             throw new Error( strErrorOfDryRun );
-        //
-        strActionName = "burnERC20() fetch transaction count";
-        const nTransactionsCount = await get_web3_transactionCount( details, 10, w3, joAccount.address( w3 ), null );
-        details.write( strLogPrefix + cc.debug( "Got " ) + cc.info( nTransactionsCount ) + cc.debug( " from " ) + cc.notice( strActionName ) + "\n" );
-        strActionName = "burnERC20() compose transaction";
-        const raw_tx_burn = {
-            chainId: cid,
-            from: joAccount.address( w3 ),
-            nonce: nTransactionsCount,
-            gas: estimatedGas_burn,
-            gasPrice: gasPrice,
-            // "gasLimit": 3000000,
-            to: contract.options.address, // contract address
-            data: dataTx_burn //,
-            // "value": wei_amount // 1000000000000000000 // w3.utils.toWei( (1).toString(), "ether" ) // how much money to send
-        };
-        strActionName = "burnERC20() check transaction on S-Chain";
-        if( chainName !== "Mainnet" )
+
+        // TO-REMOVE:
+        // strActionName = "burnERC20() fetch transaction count";
+        // const nTransactionsCount = await get_web3_transactionCount( details, 10, w3, joAccount.address( w3 ), null );
+        // details.write( strLogPrefix + cc.debug( "Got " ) + cc.info( nTransactionsCount ) + cc.debug( " from " ) + cc.notice( strActionName ) + "\n" );
+        // strActionName = "burnERC20() compose transaction";
+        // const raw_tx_burn = {
+        //     chainId: cid,
+        //     from: joAccount.address( w3 ),
+        //     nonce: nTransactionsCount,
+        //     gas: estimatedGas_burn,
+        //     gasPrice: gasPrice,
+        //     // "gasLimit": 3000000,
+        //     to: contract.options.address, // contract address
+        //     data: dataTx_burn //,
+        //     // "value": wei_amount // 1000000000000000000 // w3.utils.toWei( (1).toString(), "ether" ) // how much money to send
+        // };
+        // strActionName = "burnERC20() check transaction on S-Chain";
+
+        if( chainName !== "Mainnet" ) {
+            // TO-IMPROVE:
             await checkTransactionToSchain( w3, raw_tx_burn, details );
-        //
-        strActionName = "burnERC20() prepare composed transaction";
-        const tx_burn = compose_tx_instance( details, strLogPrefix, raw_tx_burn );
-        strActionName = "burnERC20() sign transaction";
-        const joSR = await safe_sign_transaction_with_account( details, w3, tx_burn, raw_tx_burn, joAccount );
-        let joReceipt = null;
-        if( joSR.joACI.isAutoSend )
-            joReceipt = await get_web3_transactionReceipt( details, 10, w3, joSR.txHashSent );
-        else {
-            const serializedTx_burn = tx_burn.serialize();
-            strActionName = "w3.eth.sendSignedTransaction()";
-            // let joReceipt = await w3.eth.sendSignedTransaction( "0x" + serializedTx_burn.toString( "hex" ) );
-            joReceipt = await safe_send_signed_transaction( details, w3, serializedTx_burn, strActionName, strLogPrefix );
         }
-        details.write( strLogPrefix + cc.success( "Result receipt: " ) + cc.j( joReceipt ) + "\n" );
+
+        // TO-REMOVE:
+        // strActionName = "burnERC20() prepare composed transaction";
+        // const tx_burn = compose_tx_instance( details, strLogPrefix, raw_tx_burn );
+        // strActionName = "burnERC20() sign transaction";
+        // const joSR = await safe_sign_transaction_with_account( details, w3, tx_burn, raw_tx_burn, joAccount );
+        // let joReceipt = null;
+        // if( joSR.joACI.isAutoSend )
+        //     joReceipt = await get_web3_transactionReceipt( details, 10, w3, joSR.txHashSent );
+        // else {
+        //     const serializedTx_burn = tx_burn.serialize();
+        //     strActionName = "w3.eth.sendSignedTransaction()";
+        //     // let joReceipt = await w3.eth.sendSignedTransaction( "0x" + serializedTx_burn.toString( "hex" ) );
+        //     joReceipt = await safe_send_signed_transaction( details, w3, serializedTx_burn, strActionName, strLogPrefix );
+        // }
+        // details.write( strLogPrefix + cc.success( "Result receipt: " ) + cc.j( joReceipt ) + "\n" );
+
+        const joReceipt =
+            await payed_call(
+                details,
+                owaspUtils.ethersMod, w3,
+                "ERC20", contract, "burnFrom", arrArguments_burn,
+                joAccount, strActionName,
+                gasPrice, estimatedGas_burn, weiHowMuch_burn,
+                null
+            );
         print_gas_usage_report_from_array( "BURN ERC20 ", [ {
             "description": "burnERC20()/burn",
             "receipt": joReceipt
@@ -6875,17 +7398,19 @@ export async function burnERC721(
         strActionName = "burnERC721() instantiate token contract";
         const contract = new owaspUtils.ethersMod.ethers.Contract(
             strTokenContractAddress, joTokenContractABI, w3 );
-        const methodWithArguments_burn = contract.methods.burn(
-            // call params
+        const arrArguments_burn = [
             //strAddressBurnFrom,
             "0x" + w3.utils.toBN( idToken ).toString( 16 )
-        );
-        const dataTx_burn = methodWithArguments_burn.encodeABI(); // the encoded ABI of the method
+        ];
+
+        // TO-REMOVE:
+        // const dataTx_burn = methodWithArguments_burn.encodeABI(); // the encoded ABI of the method
+
         const gasPrice = await tc.computeGasPrice( w3, 200000000000 );
         details.write( strLogPrefix + cc.debug( "Using computed " ) + cc.info( "gasPrice" ) + cc.debug( "=" ) + cc.notice( gasPrice ) + "\n" );
         const estimatedGas_burn = await tc.computeGas( methodWithArguments_burn, w3, 10000000, gasPrice, joAccount.address( w3 ), "0" );
         details.write( strLogPrefix + cc.debug( "Using estimated " ) + cc.info( "gas" ) + cc.debug( "=" ) + cc.notice( estimatedGas_burn ) + "\n" );
-        //
+
         strActionName = "Burn ERC721";
         const weiHowMuch_burn = undefined;
         const isIgnore_burn = false;
@@ -6893,47 +7418,62 @@ export async function burnERC721(
             await dry_run_call(
                 details,
                 owaspUtils.ethersMod, w3,
-                methodWithArguments_burn,
+                "ERC721", contract, "burn", arrArguments_burn,
                 joAccount, strActionName, isIgnore_burn,
                 gasPrice, estimatedGas_burn, weiHowMuch_burn,
                 null
             );
         if( strErrorOfDryRun )
             throw new Error( strErrorOfDryRun );
-        //
-        strActionName = "burnERC721() fetch transaction count";
-        const nTransactionsCount = await get_web3_transactionCount( details, 10, w3, joAccount.address( w3 ), null );
-        details.write( strLogPrefix + cc.debug( "Got " ) + cc.info( nTransactionsCount ) + cc.debug( " from " ) + cc.notice( strActionName ) + "\n" );
-        strActionName = "burnERC721() compose transaction";
-        const raw_tx_burn = {
-            chainId: cid,
-            from: joAccount.address( w3 ),
-            nonce: nTransactionsCount,
-            gas: estimatedGas_burn,
-            gasPrice: gasPrice,
-            // "gasLimit": 3000000,
-            to: contract.options.address, // contract address
-            data: dataTx_burn //,
-            // "value": wei_amount // 1000000000000000000 // w3.utils.toWei( (1).toString(), "ether" ) // how much money to send
-        };
-        strActionName = "burnERC721() check transaction on S-Chain";
-        if( chainName !== "Mainnet" )
+
+        // TO-REMOVE:
+        // strActionName = "burnERC721() fetch transaction count";
+        // const nTransactionsCount = await get_web3_transactionCount( details, 10, w3, joAccount.address( w3 ), null );
+        // details.write( strLogPrefix + cc.debug( "Got " ) + cc.info( nTransactionsCount ) + cc.debug( " from " ) + cc.notice( strActionName ) + "\n" );
+        // strActionName = "burnERC721() compose transaction";
+        // const raw_tx_burn = {
+        //     chainId: cid,
+        //     from: joAccount.address( w3 ),
+        //     nonce: nTransactionsCount,
+        //     gas: estimatedGas_burn,
+        //     gasPrice: gasPrice,
+        //     // "gasLimit": 3000000,
+        //     to: contract.options.address, // contract address
+        //     data: dataTx_burn //,
+        //     // "value": wei_amount // 1000000000000000000 // w3.utils.toWei( (1).toString(), "ether" ) // how much money to send
+        // };
+        // strActionName = "burnERC721() check transaction on S-Chain";
+
+        if( chainName !== "Mainnet" ) {
+            // TO-IMPROVE:
             await checkTransactionToSchain( w3, raw_tx_burn, details );
-        //
-        strActionName = "burnERC721() prepare composed transaction";
-        const tx_burn = compose_tx_instance( details, strLogPrefix, raw_tx_burn );
-        strActionName = "burnERC721() sign transaction";
-        const joSR = await safe_sign_transaction_with_account( details, w3, tx_burn, raw_tx_burn, joAccount );
-        let joReceipt = null;
-        if( joSR.joACI.isAutoSend )
-            joReceipt = await get_web3_transactionReceipt( details, 10, w3, joSR.txHashSent );
-        else {
-            const serializedTx_burn = tx_burn.serialize();
-            strActionName = "w3.eth.sendSignedTransaction()";
-            // let joReceipt = await w3.eth.sendSignedTransaction( "0x" + serializedTx_burn.toString( "hex" ) );
-            joReceipt = await safe_send_signed_transaction( details, w3, serializedTx_burn, strActionName, strLogPrefix );
         }
-        details.write( strLogPrefix + cc.success( "Result receipt: " ) + cc.j( joReceipt ) + "\n" );
+
+        // TO-REMOVE:
+        // strActionName = "burnERC721() prepare composed transaction";
+        // const tx_burn = compose_tx_instance( details, strLogPrefix, raw_tx_burn );
+        // strActionName = "burnERC721() sign transaction";
+        // const joSR = await safe_sign_transaction_with_account( details, w3, tx_burn, raw_tx_burn, joAccount );
+        // let joReceipt = null;
+        // if( joSR.joACI.isAutoSend )
+        //     joReceipt = await get_web3_transactionReceipt( details, 10, w3, joSR.txHashSent );
+        // else {
+        //     const serializedTx_burn = tx_burn.serialize();
+        //     strActionName = "w3.eth.sendSignedTransaction()";
+        //     // let joReceipt = await w3.eth.sendSignedTransaction( "0x" + serializedTx_burn.toString( "hex" ) );
+        //     joReceipt = await safe_send_signed_transaction( details, w3, serializedTx_burn, strActionName, strLogPrefix );
+        // }
+        // details.write( strLogPrefix + cc.success( "Result receipt: " ) + cc.j( joReceipt ) + "\n" );
+
+        const joReceipt =
+            await payed_call(
+                details,
+                owaspUtils.ethersMod, w3,
+                "ERC721", contract, "burn", arrArguments_burn,
+                joAccount, strActionName,
+                gasPrice, estimatedGas_burn, weiHowMuch_burn,
+                null
+            );
         print_gas_usage_report_from_array( "BURN ERC721 ", [ {
             "description": "burnERC721()/burn",
             "receipt": joReceipt
@@ -6980,18 +7520,20 @@ export async function burnERC1155(
         strActionName = "burnERC1155() instantiate token contract";
         const contract = new owaspUtils.ethersMod.ethers.Contract(
             strTokenContractAddress, joTokenContractABI, w3 );
-        const methodWithArguments_burn = contract.methods.burn(
-            // call params
+        const arrArguments_burn = [
             strAddressBurnFrom,
             "0x" + w3.utils.toBN( idToken ).toString( 16 ),
             "0x" + w3.utils.toBN( nAmount ).toString( 16 )
-        );
-        const dataTx_burn = methodWithArguments_burn.encodeABI(); // the encoded ABI of the method
+        ];
+
+        // TO-REMOVE:
+        // const dataTx_burn = methodWithArguments_burn.encodeABI(); // the encoded ABI of the method
+
         const gasPrice = await tc.computeGasPrice( w3, 200000000000 );
         details.write( strLogPrefix + cc.debug( "Using computed " ) + cc.info( "gasPrice" ) + cc.debug( "=" ) + cc.notice( gasPrice ) + "\n" );
         const estimatedGas_burn = await tc.computeGas( methodWithArguments_burn, w3, 10000000, gasPrice, joAccount.address( w3 ), "0" );
         details.write( strLogPrefix + cc.debug( "Using estimated " ) + cc.info( "gas" ) + cc.debug( "=" ) + cc.notice( estimatedGas_burn ) + "\n" );
-        //
+
         strActionName = "Burn ERC1155";
         const weiHowMuch_burn = undefined;
         const isIgnore_burn = false;
@@ -6999,47 +7541,62 @@ export async function burnERC1155(
             await dry_run_call(
                 details,
                 owaspUtils.ethersMod, w3,
-                methodWithArguments_burn,
+                "ERC1155", contract, "burn", arrArguments_burn,
                 joAccount, strActionName, isIgnore_burn,
                 gasPrice, estimatedGas_burn, weiHowMuch_burn,
                 null
             );
         if( strErrorOfDryRun )
             throw new Error( strErrorOfDryRun );
-        //
-        strActionName = "burnERC1155() fetch transaction count";
-        const nTransactionsCount = await get_web3_transactionCount( details, 10, w3, joAccount.address( w3 ), null );
-        details.write( strLogPrefix + cc.debug( "Got " ) + cc.info( nTransactionsCount ) + cc.debug( " from " ) + cc.notice( strActionName ) + "\n" );
-        strActionName = "burnERC1155() compose transaction";
-        const raw_tx_burn = {
-            chainId: cid,
-            from: joAccount.address( w3 ),
-            nonce: nTransactionsCount,
-            gas: estimatedGas_burn,
-            gasPrice: gasPrice,
-            // "gasLimit": 3000000,
-            to: contract.options.address, // contract address
-            data: dataTx_burn //,
-            // "value": wei_amount // 1000000000000000000 // w3.utils.toWei( (1).toString(), "ether" ) // how much money to send
-        };
-        strActionName = "burnERC1155() check transaction on S-Chain";
-        if( chainName !== "Mainnet" )
+
+        // TO-REMOVE:
+        // strActionName = "burnERC1155() fetch transaction count";
+        // const nTransactionsCount = await get_web3_transactionCount( details, 10, w3, joAccount.address( w3 ), null );
+        // details.write( strLogPrefix + cc.debug( "Got " ) + cc.info( nTransactionsCount ) + cc.debug( " from " ) + cc.notice( strActionName ) + "\n" );
+        // strActionName = "burnERC1155() compose transaction";
+        // const raw_tx_burn = {
+        //     chainId: cid,
+        //     from: joAccount.address( w3 ),
+        //     nonce: nTransactionsCount,
+        //     gas: estimatedGas_burn,
+        //     gasPrice: gasPrice,
+        //     // "gasLimit": 3000000,
+        //     to: contract.options.address, // contract address
+        //     data: dataTx_burn //,
+        //     // "value": wei_amount // 1000000000000000000 // w3.utils.toWei( (1).toString(), "ether" ) // how much money to send
+        // };
+        // strActionName = "burnERC1155() check transaction on S-Chain";
+
+        if( chainName !== "Mainnet" ) {
+            // TO-IMPROVE:
             await checkTransactionToSchain( w3, raw_tx_burn, details );
-        //
-        strActionName = "burnERC1155() prepare composed transaction";
-        const tx_burn = compose_tx_instance( details, strLogPrefix, raw_tx_burn );
-        strActionName = "burnERC1155() sign transaction";
-        const joSR = await safe_sign_transaction_with_account( details, w3, tx_burn, raw_tx_burn, joAccount );
-        let joReceipt = null;
-        if( joSR.joACI.isAutoSend )
-            joReceipt = await get_web3_transactionReceipt( details, 10, w3, joSR.txHashSent );
-        else {
-            const serializedTx_burn = tx_burn.serialize();
-            strActionName = "w3.eth.sendSignedTransaction()";
-            // let joReceipt = await w3.eth.sendSignedTransaction( "0x" + serializedTx_burn.toString( "hex" ) );
-            joReceipt = await safe_send_signed_transaction( details, w3, serializedTx_burn, strActionName, strLogPrefix );
         }
-        details.write( strLogPrefix + cc.success( "Result receipt: " ) + cc.j( joReceipt ) + "\n" );
+
+        // TO-REMOVE:
+        // strActionName = "burnERC1155() prepare composed transaction";
+        // const tx_burn = compose_tx_instance( details, strLogPrefix, raw_tx_burn );
+        // strActionName = "burnERC1155() sign transaction";
+        // const joSR = await safe_sign_transaction_with_account( details, w3, tx_burn, raw_tx_burn, joAccount );
+        // let joReceipt = null;
+        // if( joSR.joACI.isAutoSend )
+        //     joReceipt = await get_web3_transactionReceipt( details, 10, w3, joSR.txHashSent );
+        // else {
+        //     const serializedTx_burn = tx_burn.serialize();
+        //     strActionName = "w3.eth.sendSignedTransaction()";
+        //     // let joReceipt = await w3.eth.sendSignedTransaction( "0x" + serializedTx_burn.toString( "hex" ) );
+        //     joReceipt = await safe_send_signed_transaction( details, w3, serializedTx_burn, strActionName, strLogPrefix );
+        // }
+        // details.write( strLogPrefix + cc.success( "Result receipt: " ) + cc.j( joReceipt ) + "\n" );
+
+        const joReceipt =
+            await payed_call(
+                details,
+                owaspUtils.ethersMod, w3,
+                "ERC1155", contract, "burn", arrArguments_burn,
+                joAccount, strActionName,
+                gasPrice, estimatedGas_burn, weiHowMuch_burn,
+                null
+            );
         print_gas_usage_report_from_array( "BURN ERC1155 ", [ {
             "description": "burnERC1155()/burn",
             "receipt": joReceipt
