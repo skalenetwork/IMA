@@ -242,6 +242,7 @@ export async function load_schains_connected_only( strChainNameConnectedTo, addr
         owaspUtils.ethersMod.ethers.Contract(
             opts.imaState.chainProperties.sc.joAbiIMA.message_proxy_chain_address,
             opts.imaState.chainProperties.sc.joAbiIMA.message_proxy_chain_abi
+            // TO-FIX: we need ethersProvider here
         );
     const arr_schains = [];
     for( let idxSChain = 0; idxSChain < cntSChains; ++ idxSChain ) {

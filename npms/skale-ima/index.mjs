@@ -2812,8 +2812,12 @@ export async function do_erc721_payment_from_main_net(
         strActionName = "ERC721 payment from Main Net, approve";
         const erc721ABI = erc721PrivateTestnetJson_main_net[strCoinNameErc721_main_net + "_abi"];
         const erc721Address_main_net = erc721PrivateTestnetJson_main_net[strCoinNameErc721_main_net + "_address"];
-        const contractERC721 = new owaspUtils.ethersMod.ethers.Contract(
-            erc721Address_main_net, erc721ABI, ethersProvider_main_net );
+        const contractERC721 =
+            new owaspUtils.ethersMod.ethers.Contract(
+                erc721Address_main_net,
+                erc721ABI,
+                ethersProvider_main_net
+            );
         const depositBoxAddress = jo_deposit_box_erc721.options.address;
         const arrArguments_approve = [
             depositBoxAddress,
@@ -3022,8 +3026,12 @@ export async function do_erc20_payment_from_main_net(
         strActionName = "ERC20 payment from Main Net, approve";
         const erc20ABI = erc20_main_net[strCoinNameErc20_main_net + "_abi"];
         const erc20Address_main_net = erc20_main_net[strCoinNameErc20_main_net + "_address"];
-        const contractERC20 = new owaspUtils.ethersMod.ethers.Contract(
-            erc20Address_main_net, erc20ABI, ethersProvider_main_net );
+        const contractERC20 =
+            new owaspUtils.ethersMod.ethers.Contract(
+                erc20Address_main_net,
+                erc20ABI,
+                ethersProvider_main_net
+            );
         const depositBoxAddress = jo_deposit_box_erc20.options.address;
         const arrArguments_approve = [
             depositBoxAddress, "0x" + owaspUtils.ethersMod.ethers.BigNumber.from( token_amount ).toHexString()
@@ -3230,8 +3238,12 @@ export async function do_erc1155_payment_from_main_net(
         strActionName = "ERC1155 payment from Main Net, approve";
         const erc1155ABI = erc1155PrivateTestnetJson_main_net[strCoinNameErc1155_main_net + "_abi"];
         const erc1155Address_main_net = erc1155PrivateTestnetJson_main_net[strCoinNameErc1155_main_net + "_address"];
-        const contractERC1155 = new owaspUtils.ethersMod.ethers.Contract(
-            erc1155Address_main_net, erc1155ABI, ethersProvider_main_net );
+        const contractERC1155 =
+            new owaspUtils.ethersMod.ethers.Contract(
+                erc1155Address_main_net,
+                erc1155ABI,
+                ethersProvider_main_net
+            );
         const depositBoxAddress = jo_deposit_box_erc1155.options.address;
         const arrArguments_approve = [
             // joAccountSrc.address(),
@@ -3438,8 +3450,12 @@ export async function do_erc1155_batch_payment_from_main_net(
         strActionName = "ERC1155 batch-payment from Main Net, approve";
         const erc1155ABI = erc1155PrivateTestnetJson_main_net[strCoinNameErc1155_main_net + "_abi"];
         const erc1155Address_main_net = erc1155PrivateTestnetJson_main_net[strCoinNameErc1155_main_net + "_address"];
-        const contractERC1155 = new owaspUtils.ethersMod.ethers.Contract(
-            erc1155Address_main_net, erc1155ABI, ethersProvider_main_net );
+        const contractERC1155 =
+            new owaspUtils.ethersMod.ethers.Contract(
+                erc1155Address_main_net,
+                erc1155ABI,
+                ethersProvider_main_net
+            );
         const depositBoxAddress = jo_deposit_box_erc1155.options.address;
         const arrArguments_approve = [
             // joAccountSrc.address(),
@@ -3648,8 +3664,12 @@ export async function do_erc20_payment_from_s_chain(
         const erc20ABI = joErc20_s_chain[strCoinNameErc20_s_chain + "_abi"];
         const erc20Address_s_chain = joErc20_s_chain[strCoinNameErc20_s_chain + "_address"];
         const tokenManagerAddress = jo_token_manager_erc20.options.address;
-        const contractERC20 = new owaspUtils.ethersMod.ethers.Contract(
-            erc20Address_s_chain, erc20ABI, ethersProvider_s_chain );
+        const contractERC20 =
+            new owaspUtils.ethersMod.ethers.Contract(
+                erc20Address_s_chain,
+                erc20ABI,
+                ethersProvider_s_chain
+            );
         const arrArguments_approve = [
             tokenManagerAddress, "0x" + owaspUtils.ethersMod.ethers.BigNumber.from( token_amount ).toHexString()
         ];
@@ -3873,8 +3893,12 @@ export async function do_erc721_payment_from_s_chain(
         const erc721ABI = joErc721_s_chain[strCoinNameErc721_s_chain + "_abi"];
         const erc721Address_s_chain = joErc721_s_chain[strCoinNameErc721_s_chain + "_address"];
         const tokenManagerAddress = jo_token_manager_erc721.options.address;
-        const contractERC721 = new owaspUtils.ethersMod.ethers.Contract(
-            erc721Address_s_chain, erc721ABI, ethersProvider_s_chain );
+        const contractERC721 =
+            new owaspUtils.ethersMod.ethers.Contract(
+                erc721Address_s_chain,
+                erc721ABI,
+                ethersProvider_s_chain
+            );
         const arrArguments_approve = [
             // accountForSchain,
             tokenManagerAddress,
@@ -4094,8 +4118,12 @@ export async function do_erc1155_payment_from_s_chain(
         const erc1155ABI = joErc1155_s_chain[strCoinNameErc1155_s_chain + "_abi"];
         const erc1155Address_s_chain = joErc1155_s_chain[strCoinNameErc1155_s_chain + "_address"];
         const tokenManagerAddress = jo_token_manager_erc1155.options.address;
-        const contractERC1155 = new owaspUtils.ethersMod.ethers.Contract(
-            erc1155Address_s_chain, erc1155ABI, ethersProvider_s_chain );
+        const contractERC1155 =
+            new owaspUtils.ethersMod.ethers.Contract(
+                erc1155Address_s_chain,
+                erc1155ABI,
+                ethersProvider_s_chain
+            );
         const arrArguments_approve = [
             // accountForSchain,
             tokenManagerAddress,
@@ -4318,8 +4346,12 @@ export async function do_erc1155_batch_payment_from_s_chain(
         const erc1155ABI = joErc1155_s_chain[strCoinNameErc1155_s_chain + "_abi"];
         const erc1155Address_s_chain = joErc1155_s_chain[strCoinNameErc1155_s_chain + "_address"];
         const tokenManagerAddress = jo_token_manager_erc1155.options.address;
-        const contractERC1155 = new owaspUtils.ethersMod.ethers.Contract(
-            erc1155Address_s_chain, erc1155ABI, ethersProvider_s_chain );
+        const contractERC1155 =
+            new owaspUtils.ethersMod.ethers.Contract(
+                erc1155Address_s_chain,
+                erc1155ABI,
+                ethersProvider_s_chain
+            );
         const arrArguments_approve = [
             // accountForSchain,
             tokenManagerAddress,
@@ -4565,8 +4597,12 @@ export async function do_erc20_payment_s2s(
         details.write( strLogPrefix + cc.attention( "Amount of tokens" ) + cc.debug( " to transfer..................." ) + cc.note( nAmountOfToken ) + "\n" );
         //
         strActionName = "ERC20 payment S2S, approve, " + ( isForward ? "forward" : "reverse" );
-        const contractERC20 = new owaspUtils.ethersMod.ethers.Contract(
-            erc20_address_src, erc20_abi_src, ethersProvider_src );
+        const contractERC20 =
+            new owaspUtils.ethersMod.ethers.Contract(
+                erc20_address_src,
+                erc20_abi_src,
+                ethersProvider_src
+            );
         const arrArguments_approve = [
             jo_token_manager_erc20_src.options.address, "0x" + owaspUtils.ethersMod.ethers.BigNumber.from( nAmountOfToken ).toHexString()
         ];
@@ -4796,8 +4832,12 @@ export async function do_erc721_payment_s2s(
         details.write( strLogPrefix + cc.attention( "Token ID" ) + cc.debug( " to transfer..........................." ) + cc.note( token_id ) + "\n" );
 
         strActionName = "ERC721 payment S2S, approve, " + ( isForward ? "forward" : "reverse" );
-        const contractERC721 = new owaspUtils.ethersMod.ethers.Contract(
-            erc721_address_src, erc721_abi_src, ethersProvider_src );
+        const contractERC721 =
+            new owaspUtils.ethersMod.ethers.Contract(
+                erc721_address_src,
+                erc721_abi_src,
+                ethersProvider_src
+            );
         const arrArguments_approve = [
             jo_token_manager_erc721_src.options.address,
             "0x" + owaspUtils.ethersMod.ethers.BigNumber.from( token_id ).toHexString()
@@ -5029,8 +5069,12 @@ export async function do_erc1155_payment_s2s(
         details.write( strLogPrefix + cc.attention( "Amount of tokens" ) + cc.debug( " to transfer..................." ) + cc.note( nAmountOfToken ) + "\n" );
 
         strActionName = "ERC1155 payment S2S, approve, " + ( isForward ? "forward" : "reverse" );
-        const contractERC1155 = new owaspUtils.ethersMod.ethers.Contract(
-            erc1155_address_src, erc1155_abi_src, ethersProvider_src );
+        const contractERC1155 =
+            new owaspUtils.ethersMod.ethers.Contract(
+                erc1155_address_src,
+                erc1155_abi_src,
+                ethersProvider_src
+            );
         const arrArguments_approve = [
             jo_token_manager_erc1155_src.options.address,
             true
@@ -5263,8 +5307,12 @@ export async function do_erc1155_batch_payment_s2s(
         details.write( strLogPrefix + cc.attention( "Amounts of tokens" ) + cc.debug( " to transfer.................." ) + cc.j( token_amounts ) + "\n" );
 
         strActionName = "ERC1155 batch-payment S2S, approve, " + ( isForward ? "forward" : "reverse" );
-        const contractERC1155 = new owaspUtils.ethersMod.ethers.Contract(
-            erc1155_address_src, erc1155_abi_src, ethersProvider_src );
+        const contractERC1155 =
+            new owaspUtils.ethersMod.ethers.Contract(
+                erc1155_address_src,
+                erc1155_abi_src,
+                ethersProvider_src
+            );
         const arrArguments_approve = [
             jo_token_manager_erc1155_src.options.address,
             true
@@ -6849,7 +6897,10 @@ export async function mintERC20(
             throw new Error( "Missing valid arguments" );
         strActionName = "mintERC20() instantiate token contract";
         const contract = new owaspUtils.ethersMod.ethers.Contract(
-            strTokenContractAddress, joTokenContractABI, w3 );
+            strTokenContractAddress,
+            joTokenContractABI,
+            w3
+        );
         const arrArguments_mint = [
             strAddressMintTo,
             "0x" + owaspUtils.ethersMod.ethers.BigNumber.from( nAmount ).toHexString()
@@ -6971,8 +7022,12 @@ export async function mintERC721(
         ) )
             throw new Error( "Missing valid arguments" );
         strActionName = "mintERC721() instantiate token contract";
-        const contract = new owaspUtils.ethersMod.ethers.Contract(
-            strTokenContractAddress, joTokenContractABI, w3 );
+        const contract =
+            new owaspUtils.ethersMod.ethers.Contract(
+                strTokenContractAddress,
+                joTokenContractABI,
+                w3
+            );
         const arrArguments_mint = [
             strAddressMintTo,
             "0x" + owaspUtils.ethersMod.ethers.BigNumber.from( idToken ).toHexString()
@@ -7096,8 +7151,12 @@ export async function mintERC1155(
         ) )
             throw new Error( "Missing valid arguments" );
         strActionName = "mintERC1155() instantiate token contract";
-        const contract = new owaspUtils.ethersMod.ethers.Contract(
-            strTokenContractAddress, joTokenContractABI, w3 );
+        const contract =
+            new owaspUtils.ethersMod.ethers.Contract(
+                strTokenContractAddress,
+                joTokenContractABI,
+                w3
+            );
         const arrArguments_mint = [
             strAddressMintTo,
             "0x" + owaspUtils.ethersMod.ethers.BigNumber.from( idToken ).toHexString(),
@@ -7222,8 +7281,12 @@ export async function burnERC20(
         ) )
             throw new Error( "Missing valid arguments" );
         strActionName = "burnERC20() instantiate token contract";
-        const contract = new owaspUtils.ethersMod.ethers.Contract(
-            strTokenContractAddress, joTokenContractABI, w3 );
+        const contract =
+            new owaspUtils.ethersMod.ethers.Contract(
+                strTokenContractAddress,
+                joTokenContractABI,
+                w3
+            );
         const arrArguments_burn = [
             strAddressBurnFrom,
             "0x" + owaspUtils.ethersMod.ethers.BigNumber.from( nAmount ).toHexString()
@@ -7346,8 +7409,12 @@ export async function burnERC721(
         ) )
             throw new Error( "Missing valid arguments" );
         strActionName = "burnERC721() instantiate token contract";
-        const contract = new owaspUtils.ethersMod.ethers.Contract(
-            strTokenContractAddress, joTokenContractABI, w3 );
+        const contract =
+            new owaspUtils.ethersMod.ethers.Contract(
+                strTokenContractAddress,
+                joTokenContractABI,
+                w3
+            );
         const arrArguments_burn = [
             //strAddressBurnFrom,
             "0x" + owaspUtils.ethersMod.ethers.BigNumber.from( idToken ).toHexString()
@@ -7471,8 +7538,12 @@ export async function burnERC1155(
         ) )
             throw new Error( "Missing valid arguments" );
         strActionName = "burnERC1155() instantiate token contract";
-        const contract = new owaspUtils.ethersMod.ethers.Contract(
-            strTokenContractAddress, joTokenContractABI, w3 );
+        const contract =
+            new owaspUtils.ethersMod.ethers.Contract(
+                strTokenContractAddress,
+                joTokenContractABI,
+                w3
+            );
         const arrArguments_burn = [
             strAddressBurnFrom,
             "0x" + owaspUtils.ethersMod.ethers.BigNumber.from( idToken ).toHexString(),

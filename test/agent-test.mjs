@@ -561,7 +561,6 @@ describe( "OWASP", function() {
         } );
 
         it( "Parse money value specification", function() {
-            const w3 = null;
             assert.equal( owaspUtils.parseMoneySpecToWei( "1ether" ), "1000000000000000000" );
             assert.equal( owaspUtils.parseMoneySpecToWei( "1ethe" ), "1000000000000000000" );
             assert.equal( owaspUtils.parseMoneySpecToWei( "1ethr" ), "1000000000000000000" );
