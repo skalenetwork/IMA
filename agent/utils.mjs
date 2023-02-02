@@ -188,7 +188,7 @@ export async function wait_for_cloned_token_erc20_appear( sc, tokenERC20SC, joAc
         log.write( cc.warning( "Skipping automatic" ), cc.notice( "ERC20" ), cc.warning( "instantiation discovery, already done before" ) );
         return;
     }
-    const addressCallFrom = owaspUtils.get_account_wallet_address( sc.ethersMod, joAccountSC );
+    const addressCallFrom = joAccountSC.address();
     const address_on_s_chain = await wait_for_cloned_token_to_appear( sc, "erc20", addressCallFrom, 40, tokensMN, strMainnetName );
     // if( ! tokenERC20SC.joABI )
     //     tokenERC20SC.joABI = { };
@@ -204,7 +204,7 @@ export async function wait_for_cloned_token_erc721_appear( sc, tokenERC721SC, jo
         log.write( cc.warning( "Skipping automatic" ), cc.notice( "ERC721" ), cc.warning( "instantiation discovery, already done before" ) );
         return;
     }
-    const addressCallFrom = owaspUtils.get_account_wallet_address( sc.ethersMod, joAccountSC );
+    const addressCallFrom = joAccountSC.address();
     const address_on_s_chain = await wait_for_cloned_token_to_appear( sc, "erc721", addressCallFrom, 40, tokensMN, strMainnetName );
     // if( ! tokenERC721SC.joABI )
     //     tokenERC721SC.joABI = { };
@@ -221,7 +221,7 @@ export async function wait_for_cloned_token_erc721_with_metadata_appear( sc, tok
         log.write( cc.warning( "Skipping automatic" ), cc.notice( "ERC721_with_metadata" ), cc.warning( "instantiation discovery, already done before" ) );
         return;
     }
-    const addressCallFrom = owaspUtils.get_account_wallet_address( sc.ethersMod, joAccountSC );
+    const addressCallFrom = joAccountSC.address();
     const address_on_s_chain = await wait_for_cloned_token_to_appear( sc, "erc721_with_metadata", addressCallFrom, 40, tokensMN, strMainnetName );
     // if( ! tokenERC721SC.joABI )
     //     tokenERC721SC.joABI = { };
@@ -238,7 +238,7 @@ export async function wait_for_cloned_token_erc1155_appear( sc, tokenERC1155SC, 
         log.write( cc.warning( "Skipping automatic" ), cc.notice( "ERC1155" ), cc.warning( "instantiation discovery, already done before" ) );
         return;
     }
-    const addressCallFrom = owaspUtils.get_account_wallet_address( sc.ethersMod, joAccountSC );
+    const addressCallFrom = joAccountSC.address();
     const address_on_s_chain = await wait_for_cloned_token_to_appear( sc, "erc1155", addressCallFrom, 40, tokensMN, strMainnetName );
     // if( ! tokenERC1155SC.joABI )
     //     tokenERC1155SC.joABI = { };

@@ -753,7 +753,7 @@ async function check_correctness_of_messages_to_sign( details, strLogPrefix, str
     } else
         throw new Error( "CRITICAL ERROR: Failed check_correctness_of_messages_to_sign() with unknown direction \"" + strDirection + "\"" );
 
-    const strCallerAccountAddress = joAccount.address( owaspUtils.ethersMod );
+    const strCallerAccountAddress = joAccount.address();
     details.write(
         strLogPrefix + cc.sunny( strDirection ) + cc.debug( " message correctness validation through call to " ) +
         cc.notice( "verifyOutgoingMessageData" ) + cc.debug( " method of " ) + cc.bright( "MessageProxy" ) +

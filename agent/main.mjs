@@ -312,7 +312,7 @@ const fnInitActionSkaleNetworkScanForS2S = function() {
                 "bStopNeeded": false,
                 "secondsToReDiscoverSkaleNetwork": imaState.s2s_opts.secondsToReDiscoverSkaleNetwork
             };
-            const addressFrom = imaState.chainProperties.mn.joAccount.address( imaState.chainProperties.mn.ethersProvider );
+            const addressFrom = imaState.chainProperties.mn.joAccount.address();
             // const strError = await skale_observer.cache_schains(
             //     imaState.chainProperties.sc.strChainName, // strChainNameConnectedTo
             //     imaState.chainProperties.mn.ethersProvider,
@@ -394,7 +394,7 @@ imaCLI.parse( {
                 let bMintIsOK = false;
                 if( imaState.chainProperties.tc.strCoinNameErc20.length > 0 ) {
                     try {
-                        const strAddressMintTo = imaState.chainProperties.tc.joAccount.address( imaState.chainProperties.tc.ethersProvider ); // same as caller/transaction signer
+                        const strAddressMintTo = imaState.chainProperties.tc.joAccount.address(); // same as caller/transaction signer
                         bMintIsOK = await IMA.mintERC20(
                             imaState.chainProperties.tc.ethersProvider,
                             imaState.chainProperties.tc.cid,
@@ -421,7 +421,7 @@ imaCLI.parse( {
                 let bMintIsOK = false;
                 if( imaState.chainProperties.tc.strCoinNameErc721.length > 0 ) {
                     try {
-                        const strAddressMintTo = imaState.chainProperties.tc.joAccount.address( imaState.chainProperties.tc.ethersProvider ); // same as caller/transaction signer
+                        const strAddressMintTo = imaState.chainProperties.tc.joAccount.address(); // same as caller/transaction signer
                         const idTokens = imaState.have_idTokens ? imaState.idTokens : [];
                         if( imaState.have_idToken )
                             idTokens.push( imaState.idToken );
@@ -457,7 +457,7 @@ imaCLI.parse( {
                 let bMintIsOK = false;
                 if( imaState.chainProperties.tc.strCoinNameErc1155.length > 0 ) {
                     try {
-                        const strAddressMintTo = imaState.chainProperties.tc.joAccount.address( imaState.chainProperties.tc.ethersProvider ); // same as caller/transaction signer
+                        const strAddressMintTo = imaState.chainProperties.tc.joAccount.address(); // same as caller/transaction signer
                         const idTokens = imaState.have_idTokens ? imaState.idTokens : [];
                         if( imaState.have_idToken )
                             idTokens.push( imaState.idToken );
@@ -494,7 +494,7 @@ imaCLI.parse( {
                 let bBurnIsOK = false;
                 if( imaState.chainProperties.tc.strCoinNameErc20.length > 0 ) {
                     try {
-                        const strAddressBurnFrom = imaState.chainProperties.tc.joAccount.address( imaState.chainProperties.tc.ethersProvider ); // same as caller/transaction signer
+                        const strAddressBurnFrom = imaState.chainProperties.tc.joAccount.address(); // same as caller/transaction signer
                         bBurnIsOK = await IMA.burnERC20(
                             imaState.chainProperties.tc.ethersProvider,
                             imaState.chainProperties.tc.cid,
@@ -521,7 +521,7 @@ imaCLI.parse( {
                 let bBurnIsOK = false;
                 if( imaState.chainProperties.tc.strCoinNameErc721.length > 0 ) {
                     try {
-                        // const strAddressBurnFrom = imaState.chainProperties.tc.joAccount.address( imaState.chainProperties.tc.ethersProvider ); // same as caller/transaction signer
+                        // const strAddressBurnFrom = imaState.chainProperties.tc.joAccount.address(); // same as caller/transaction signer
                         const idTokens = imaState.have_idTokens ? imaState.idTokens : [];
                         if( imaState.have_idToken )
                             idTokens.push( imaState.idToken );
@@ -557,7 +557,7 @@ imaCLI.parse( {
                 let bBurnIsOK = false;
                 if( imaState.chainProperties.tc.strCoinNameErc1155.length > 0 ) {
                     try {
-                        const strAddressBurnFrom = imaState.chainProperties.tc.joAccount.address( imaState.chainProperties.tc.ethersProvider ); // same as caller/transaction signer
+                        const strAddressBurnFrom = imaState.chainProperties.tc.joAccount.address(); // same as caller/transaction signer
                         const idTokens = imaState.have_idTokens ? imaState.idTokens : [];
                         if( imaState.have_idToken )
                             idTokens.push( imaState.idToken );
@@ -765,7 +765,7 @@ imaCLI.parse( {
                 };
                 if( arrBalancesMN.length > 0 || arrBalancesSC.length > 0 ) {
                     if( arrBalancesMN.length > 0 ) {
-                        const strAddress = imaState.chainProperties.mn.joAccount.address( imaState.chainProperties.mn.ethersProvider );
+                        const strAddress = imaState.chainProperties.mn.joAccount.address();
                         log.write( cc.sunny( "Main Net" ) + " " +
                             cc.bright( arrBalancesMN.length > 1 ? "balances" : "balance" ) +
                             cc.bright( " of " ) + cc.notice( strAddress ) +
@@ -776,7 +776,7 @@ imaCLI.parse( {
                         }
                     }
                     if( arrBalancesSC.length > 0 ) {
-                        const strAddress = imaState.chainProperties.sc.joAccount.address( imaState.chainProperties.sc.ethersProvider );
+                        const strAddress = imaState.chainProperties.sc.joAccount.address();
                         log.write( cc.sunny( "S-Chain" ) + " " +
                             cc.bright( arrBalancesMN.length > 1 ? "balances" : "balance" ) +
                             cc.bright( " of " ) + cc.notice( strAddress ) +
@@ -1548,7 +1548,7 @@ imaCLI.parse( {
                     "details": log,
                     "bStopNeeded": false
                 };
-                const addressFrom = imaState.chainProperties.mn.joAccount.address( imaState.chainProperties.mn.ethersProvider );
+                const addressFrom = imaState.chainProperties.mn.joAccount.address();
                 const arr_schains = await skale_observer.load_schains( imaState.chainProperties.mn.ethersProvider, addressFrom, opts );
                 const cnt = arr_schains.length;
                 log.write( strLogPrefix + cc.normal( "Got " ) + cc.info( cnt ) + cc.normal( " S-Chains(s) in SKALE NETWORK information: " ) + cc.j( arr_schains ) + "\n" );
@@ -1573,7 +1573,7 @@ imaCLI.parse( {
                     "details": log,
                     "bStopNeeded": false
                 };
-                const addressFrom = imaState.chainProperties.mn.joAccount.address( imaState.chainProperties.mn.ethersProvider );
+                const addressFrom = imaState.chainProperties.mn.joAccount.address();
 
                 const arr_schains_cached = await skale_observer.load_schains_connected_only(
                     imaState.chainProperties.mn.ethersProvider,
@@ -1661,7 +1661,7 @@ if( imaState.isShowReimbursementBalance ) {
             await IMA.reimbursement_show_balance(
                 imaState.chainProperties.mn.ethersProvider,
                 imaState.jo_community_pool,
-                imaState.chainProperties.mn.joAccount.address( imaState.chainProperties.mn.ethersProvider ),
+                imaState.chainProperties.mn.joAccount.address(),
                 imaState.chainProperties.mn.strChainName,
                 imaState.chainProperties.mn.cid,
                 imaState.chainProperties.mn.transactionCustomizer,
@@ -1680,7 +1680,7 @@ if( imaState.nReimbursementEstimate ) {
             await IMA.reimbursement_estimate_amount(
                 imaState.chainProperties.mn.ethersProvider,
                 imaState.jo_community_pool,
-                imaState.chainProperties.mn.joAccount.address( imaState.chainProperties.mn.ethersProvider ),
+                imaState.chainProperties.mn.joAccount.address(),
                 imaState.chainProperties.mn.strChainName,
                 imaState.chainProperties.mn.cid,
                 imaState.chainProperties.mn.transactionCustomizer,

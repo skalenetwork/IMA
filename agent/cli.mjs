@@ -767,49 +767,49 @@ export function parse( joExternalHandlers, argv ) {
         }
         if( joArg.name == "value" ) {
             owaspUtils.verifyArgumentWithNonEmptyValue( joArg );
-            imaState.nAmountOfWei = owaspUtils.parseMoneySpecToWei( null, "" + joArg.value, true );
+            imaState.nAmountOfWei = owaspUtils.parseMoneySpecToWei( "" + joArg.value, true );
             continue;
         }
         if( joArg.name == "wei" ) {
             owaspUtils.verifyArgumentWithNonEmptyValue( joArg );
             // imaState.nAmountOfWei = joArg.value * 1;
-            imaState.nAmountOfWei = owaspUtils.parseMoneySpecToWei( null, "" + joArg.value + "wei", true );
+            imaState.nAmountOfWei = owaspUtils.parseMoneySpecToWei( "" + joArg.value + "wei", true );
             continue;
         }
         if( joArg.name == "babbage" ) {
             owaspUtils.verifyArgumentWithNonEmptyValue( joArg );
             // imaState.nAmountOfWei = joArg.value * 1000;
-            imaState.nAmountOfWei = owaspUtils.parseMoneySpecToWei( null, "" + joArg.value + "babbage", true );
+            imaState.nAmountOfWei = owaspUtils.parseMoneySpecToWei( "" + joArg.value + "babbage", true );
             continue;
         }
         if( joArg.name == "lovelace" ) {
             owaspUtils.verifyArgumentWithNonEmptyValue( joArg );
             // imaState.nAmountOfWei = joArg.value * 1000 * 1000;
-            imaState.nAmountOfWei = owaspUtils.parseMoneySpecToWei( null, "" + joArg.value + "lovelace", true );
+            imaState.nAmountOfWei = owaspUtils.parseMoneySpecToWei( "" + joArg.value + "lovelace", true );
             continue;
         }
         if( joArg.name == "shannon" ) {
             owaspUtils.verifyArgumentWithNonEmptyValue( joArg );
             // imaState.nAmountOfWei = joArg.value * 1000 * 1000 * 1000;
-            imaState.nAmountOfWei = owaspUtils.parseMoneySpecToWei( null, "" + joArg.value + "shannon", true );
+            imaState.nAmountOfWei = owaspUtils.parseMoneySpecToWei( "" + joArg.value + "shannon", true );
             continue;
         }
         if( joArg.name == "szabo" ) {
             owaspUtils.verifyArgumentWithNonEmptyValue( joArg );
             // imaState.nAmountOfWei = joArg.value * 1000 * 1000 * 1000 * 1000;
-            imaState.nAmountOfWei = owaspUtils.parseMoneySpecToWei( null, "" + joArg.value + "szabo", true );
+            imaState.nAmountOfWei = owaspUtils.parseMoneySpecToWei( "" + joArg.value + "szabo", true );
             continue;
         }
         if( joArg.name == "finney" ) {
             owaspUtils.verifyArgumentWithNonEmptyValue( joArg );
             // imaState.nAmountOfWei = joArg.value * 1000 * 1000 * 1000 * 1000 * 1000;
-            imaState.nAmountOfWei = owaspUtils.parseMoneySpecToWei( null, "" + joArg.value + "finney", true );
+            imaState.nAmountOfWei = owaspUtils.parseMoneySpecToWei( "" + joArg.value + "finney", true );
             continue;
         }
         if( joArg.name == "ether" ) {
             owaspUtils.verifyArgumentWithNonEmptyValue( joArg );
             // imaState.nAmountOfWei = joArg.value * 1000 * 1000 * 1000 * 1000 * 1000 * 1000;
-            imaState.nAmountOfWei = owaspUtils.parseMoneySpecToWei( null, "" + joArg.value + "ether", true );
+            imaState.nAmountOfWei = owaspUtils.parseMoneySpecToWei( "" + joArg.value + "ether", true );
             continue;
         }
         if( joArg.name == "amount" ) {
@@ -1154,12 +1154,12 @@ export function parse( joExternalHandlers, argv ) {
         }
         if( joArg.name == "reimbursement-recharge" ) {
             owaspUtils.verifyArgumentWithNonEmptyValue( joArg );
-            imaState.nReimbursementRecharge = owaspUtils.parseMoneySpecToWei( null, "" + joArg.value, true );
+            imaState.nReimbursementRecharge = owaspUtils.parseMoneySpecToWei( "" + joArg.value, true );
             continue;
         }
         if( joArg.name == "reimbursement-withdraw" ) {
             owaspUtils.verifyArgumentWithNonEmptyValue( joArg );
-            imaState.nReimbursementWithdraw = owaspUtils.parseMoneySpecToWei( null, "" + joArg.value, true );
+            imaState.nReimbursementWithdraw = owaspUtils.parseMoneySpecToWei( "" + joArg.value, true );
             continue;
         }
         if( joArg.name == "reimbursement-balance" ) {
@@ -1942,13 +1942,13 @@ export function ima_common_init() {
         //
         //
         try {
-            ensure_have_value( "Main-net user account address", imaState.chainProperties.mn.joAccount.address( imaState.chainProperties.mn.ethersProvider ), false, isPrintGathered && isPrintSecurityValues );
+            ensure_have_value( "Main-net user account address", imaState.chainProperties.mn.joAccount.address(), false, isPrintGathered && isPrintSecurityValues );
         } catch ( err ) {}
         try {
-            ensure_have_value( "S-chain user account address", imaState.chainProperties.sc.joAccount.address( imaState.chainProperties.sc.ethersProvider ), false, isPrintGathered && isPrintSecurityValues );
+            ensure_have_value( "S-chain user account address", imaState.chainProperties.sc.joAccount.address(), false, isPrintGathered && isPrintSecurityValues );
         } catch ( err ) {}
         try {
-            ensure_have_value( "S<->S Target S-chain user account address", imaState.chainProperties.tc.joAccount.address( imaState.chainProperties.tc.ethersProvider ), false, isPrintGathered );
+            ensure_have_value( "S<->S Target S-chain user account address", imaState.chainProperties.tc.joAccount.address(), false, isPrintGathered );
         } catch ( err ) {}
         //
         // ensure_have_value( "Private key for main-net user account address", imaState.chainProperties.mn.joAccount.privateKey, false, isPrintGathered && isPrintSecurityValues, null, ( x ) => {

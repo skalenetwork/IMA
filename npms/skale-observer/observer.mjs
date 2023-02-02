@@ -100,7 +100,7 @@ export async function load_schain_parts( jo_schain, addressFrom, opts ) {
         throw new Error( "Cannot load S-Chain parts in observer, no imaState is provided" );
     jo_schain.data.computed = {};
     const schain_id = opts.chain.ethersMod.ethers.utils.id( jo_schain.data.name );
-    const chainId = owaspUtils.compute_chain_id_from_schain_name( opts.chain.ethersMod, jo_schain.data.name );
+    const chainId = owaspUtils.compute_chain_id_from_schain_name( jo_schain.data.name );
     const node_ids = await opts.jo_schains_internal.callStatic.getNodesInGroup( schain_id, { from: addressFrom } );
     const nodes = [];
     for( const node_id of node_ids ) {

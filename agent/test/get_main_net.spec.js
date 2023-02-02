@@ -272,7 +272,7 @@ describe('tests for `npms/skale-ima`', function () {
     it('should invoke `private_key_2_account_address`', async function () {
         let keyPrivate = "23abdbd3c61b5330af61ebe8bef582f4e5cc08e554053a718bdce7813b9dc1fc";
         //
-        expect(IMA.owaspUtils.private_key_2_account_address(w3mod, keyPrivate)).to.include("0x");
+        expect( IMA.owaspUtils.private_key_2_account_address( keyPrivate ) ).to.include("0x");
     });
 
     it('should return `false` invoke `check_is_registered_s_chain_in_deposit_box`', async function () {

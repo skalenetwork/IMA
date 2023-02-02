@@ -230,7 +230,7 @@ export function toBoolean( value ) {
     return b;
 }
 
-export function validateEthAddress( ethersMod, value ) {
+export function validateEthAddress( value ) {
     try {
         if( ethersMod.ethers.util.isAddress( ensure_starts_with_0x( value ) ) )
             return true;
@@ -239,7 +239,7 @@ export function validateEthAddress( ethersMod, value ) {
     return false;
 }
 
-export function validateEthPrivateKey( ethersMod, value ) {
+export function validateEthPrivateKey( value ) {
     try {
         const ethersWallet = new ethersMod.ethers.Wallet( ensure_starts_with_0x( value ) );
         if( ethersWallet.address )
@@ -587,7 +587,7 @@ function moneyUnitNameToPostMultiplier( s ) {
     return null;
 }
 
-export function parseMoneySpecToWei( ethersMod, s, isThrowException ) {
+export function parseMoneySpecToWei( s, isThrowException ) {
     try {
         isThrowException = isThrowException ? true : false;
         if( s == null || s == undefined ) {
@@ -634,7 +634,7 @@ export function parseMoneySpecToWei( ethersMod, s, isThrowException ) {
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-export function compute_chain_id_from_schain_name( ethersMod, strName ) {
+export function compute_chain_id_from_schain_name( strName ) {
     let h = ethersMod.ethers.utils.id( strName );
     h = remove_starting_0x( h ).toLowerCase();
     while( h.length < 64 )
@@ -643,20 +643,14 @@ export function compute_chain_id_from_schain_name( ethersMod, strName ) {
     return "0x" + h;
 }
 
-export function private_key_2_account_address( ethersMod, keyPrivate ) {
+export function private_key_2_account_address( keyPrivate ) {
     return ethersMod.ethers.utils.computeAddress( ensure_starts_with_0x( keyPrivate ) );
 }
 
-export function fn_address_impl_( ethersMod ) {
+export function fn_address_impl_() {
     if( this.address_ == undefined || this.address_ == null )
-        this.address_ = "" + private_key_2_account_address( ethersMod, this.privateKey );
+        this.address_ = "" + private_key_2_account_address( this.privateKey );
     return this.address_;
-}
-
-export function get_account_wallet_address( ethersMod, joAccount ) {
-    if( ! ( "address" in joAccount ) )
-        joAccount.address = fn_address_impl_;
-    return joAccount.address( ethersMod );
 }
 
 export function getEthersProviderFromURL( strURL ) {
