@@ -172,7 +172,7 @@ export async function safe_waitForNextBlockToAppear( details, ethersProvider ) {
 
 export async function safe_getBlockNumber( details, cntAttempts, ethersProvider, retValOnFail, throwIfServerOffline ) {
     const strFnName = "getBlockNumber";
-    const u = owaspUtils.w3_2_url( w3 );
+    const u = owaspUtils.ep_2_url( ethersProvider );
     const nWaitStepMilliseconds = 10 * 1000;
     if( throwIfServerOffline == null || throwIfServerOffline == undefined )
         throwIfServerOffline = true;
@@ -235,9 +235,9 @@ export async function safe_getBlockNumber( details, cntAttempts, ethersProvider,
     return ret;
 }
 
-export async function safe_getTransactionCount( details, cntAttempts, w3, address, param, retValOnFail, throwIfServerOffline ) {
+export async function safe_getTransactionCount( details, cntAttempts, ethersProvider, address, param, retValOnFail, throwIfServerOffline ) {
     const strFnName = "getTransactionCount";
-    const u = owaspUtils.w3_2_url( w3 );
+    const u = owaspUtils.ep_2_url( ethersProvider );
     const nWaitStepMilliseconds = 10 * 1000;
     if( throwIfServerOffline == null || throwIfServerOffline == undefined )
         throwIfServerOffline = true;
@@ -300,9 +300,9 @@ export async function safe_getTransactionCount( details, cntAttempts, w3, addres
     return ret;
 }
 
-export async function safe_getTransactionReceipt( details, cntAttempts, w3, txHash, retValOnFail, throwIfServerOffline ) {
+export async function safe_getTransactionReceipt( details, cntAttempts, ethersProvider, txHash, retValOnFail, throwIfServerOffline ) {
     const strFnName = "getTransactionReceipt";
-    const u = owaspUtils.w3_2_url( w3 );
+    const u = owaspUtils.ep_2_url( ethersProvider );
     const nWaitStepMilliseconds = 10 * 1000;
     if( throwIfServerOffline == null || throwIfServerOffline == undefined )
         throwIfServerOffline = true;
@@ -365,9 +365,8 @@ export async function safe_getTransactionReceipt( details, cntAttempts, w3, txHa
     return ret;
 }
 
-export async function get_web3_pastEvents( details, w3, cntAttempts, joContract, strEventName, nBlockFrom, nBlockTo, joFilter, retValOnFail, throwIfServerOffline ) {
-    const strFnName = "getPastEvents";
-    const u = owaspUtils.w3_2_url( w3 );
+export async function safe_getPastEvents( details, ethersProvider, cntAttempts, joContract, strEventName, nBlockFrom, nBlockTo, joFilter, retValOnFail, throwIfServerOffline ) {
+    const u = owaspUtils.ep_2_url( ethersProvider );
     const nWaitStepMilliseconds = 10 * 1000;
     if( throwIfServerOffline == null || throwIfServerOffline == undefined )
         throwIfServerOffline = true;
@@ -378,26 +377,48 @@ export async function get_web3_pastEvents( details, w3, cntAttempts, joContract,
     let idxAttempt = 1;
     const strErrorTextAboutNotExistingEvent = "Event \"" + strEventName + "\" doesn't exist in this contract";
     try {
-        ret = await joContract[strFnName]( "" + strEventName, {
-            filter: joFilter,
-            fromBlock: nBlockFrom,
-            toBlock: nBlockTo
-        } );
+
+        // TO-REMOVE:
+        // const strFnName = "getPastEvents";
+        // ret = await joContract[strFnName]( "" + strEventName, {
+        //     filter: joFilter,
+        //     fromBlock: nBlockFrom,
+        //     toBlock: nBlockTo
+        // } );
+        // return ret;
+
+        // TO-IMPROVE: this must be re-checked
+        ret = await joContract.queryFilter( joFilter, nBlockFrom, nBlockTo );
         return ret;
+
+        // let event = joContract.interface.events[ strEventName ];
+        // // if( extraTopics !== null ) {
+        // //     event.topics[1] = keccak256( wallet.address );
+        // //     for( let i = 0; i < extraTopics.length; ++i )
+        // //         event.topics[i+1] = keccak256( extraTopics[i] );
+        // // }
+        // ret =
+        //     await ethersProvider.getLogs( {
+        //         fromBlock,
+        //         toBlock,
+        //         address: joContract.address,
+        //         topics: event.topics
+        //     } );
+        // return ret;
+
     } catch ( err ) {
         ret = retValOnFail;
         details.write(
-            cc.error( "Failed call attempt " ) + cc.info( idxAttempt ) +
-            cc.error( " to " ) + cc.note( strFnName + "()" ) +
+            cc.error( "Failed filtering attempt " ) + cc.info( idxAttempt ) +
+            cc.error( " for event " ) + cc.note( strEventName ) +
             cc.error( " via " ) + cc.u( u ) +
             cc.error( ", from block " ) + cc.warning( nBlockFrom ) + cc.error( ", to block " ) + cc.warning( nBlockTo ) +
             cc.error( ", error is: " ) + cc.warning( owaspUtils.extract_error_message( err ) ) +
             "\n" );
         if( owaspUtils.extract_error_message( err ).indexOf( strErrorTextAboutNotExistingEvent ) >= 0 ) {
             details.write(
-                cc.error( "Did stopped calls to " ) + cc.note( strFnName + "()" ) +
-                cc.error( " because event " ) + cc.notice( strEventName ) +
-                cc.error( " does not exist in smart contract " ) +
+                cc.error( "Did stopped filtering of " ) + cc.note( strEventName ) +
+                cc.error( " event because no such event exist in smart contract " ) +
                 "\n" );
             return ret;
         }
@@ -410,40 +431,47 @@ export async function get_web3_pastEvents( details, w3, cntAttempts, joContract,
             if( ! throwIfServerOffline )
                 return ret;
             details.write(
-                cc.error( "Cannot call " ) + cc.note( strFnName + "()" ) + cc.error( " via " ) + cc.u( u ) +
+                cc.error( "Cannot do " ) + cc.note( strEventName ) + cc.error( " event filtering via " ) + cc.u( u ) +
                 cc.warning( " because server is off-line" ) + "\n" );
             throw new Error(
-                "Cannot " + strFnName + "(), from block " + nBlockFrom + ", to block " + nBlockTo +
+                "Cannot do " + strEventName + " event filtering, from block " + nBlockFrom + ", to block " + nBlockTo +
                 " via " + u.toString() + " because server is off-line"
             );
         }
         details.write(
-            cc.warning( "Repeat call to " ) + cc.note( strFnName + "()" ) +
-            cc.error( " via " ) + cc.u( u ) +
+            cc.warning( "Repeat " ) + cc.note( strEventName ) +
+            cc.error( " event filtering via " ) + cc.u( u ) +
             cc.warning( ", attempt " ) + cc.info( idxAttempt ) +
             "\n" );
         // await sleep( nWaitStepMilliseconds );
         try {
-            ret = await joContract[strFnName]( "" + strEventName, {
-                filter: joFilter,
-                fromBlock: nBlockFrom,
-                toBlock: nBlockTo
-            } );
+
+            // TO-REMOVE:
+            // const strFnName = "getPastEvents";
+            // ret = await joContract[strFnName]( "" + strEventName, {
+            //     filter: joFilter,
+            //     fromBlock: nBlockFrom,
+            //     toBlock: nBlockTo
+            // } );
+            // return ret;
+
+            // TO-IMPROVE: this must be re-checked
+            ret = await joContract.queryFilter( joFilter, nBlockFrom, nBlockTo );
             return ret;
+
         } catch ( err ) {
             ret = retValOnFail;
             details.write(
-                cc.error( "Failed call attempt " ) + cc.info( idxAttempt ) +
-                cc.error( " to " ) + cc.note( strFnName + "()" ) +
+                cc.error( "Failed filtering attempt " ) + cc.info( idxAttempt ) +
+                cc.error( " for event " ) + cc.note( strEventName ) +
                 cc.error( " via " ) + cc.u( u ) +
                 cc.error( ", from block " ) + cc.warning( nBlockFrom ) + cc.error( ", to block " ) + cc.warning( nBlockTo ) +
                 cc.error( ", error is: " ) + cc.warning( owaspUtils.extract_error_message( err ) ) +
                 "\n" );
             if( owaspUtils.extract_error_message( err ).indexOf( strErrorTextAboutNotExistingEvent ) >= 0 ) {
                 details.write(
-                    cc.error( "Did stopped calls to " ) + cc.note( strFnName + "()" ) +
-                    cc.error( " because event " ) + cc.notice( strEventName ) +
-                    cc.error( " does not exist in smart contract " ) +
+                    cc.error( "Did stopped " ) + cc.note( strEventName ) +
+                    cc.error( " event filtering because no such event exist in smart contract " ) +
                     "\n" );
                 return ret;
             }
@@ -452,13 +480,13 @@ export async function get_web3_pastEvents( details, w3, cntAttempts, joContract,
     }
     if( ( idxAttempt + 1 ) === cntAttempts && ret === "" ) {
         details.write( cc.fatal( "ERROR:" ) +
-            cc.error( " Failed call to " ) + cc.note( strFnName + "()" ) +
-            + cc.error( " via " ) + cc.u( u ) +
+            cc.error( " Failed filtering attempt for " ) + cc.note( strEventName ) +
+            + cc.error( " event via " ) + cc.u( u ) +
             cc.error( ", from block " ) + cc.warning( nBlockFrom ) + cc.error( ", to block " ) + cc.warning( nBlockTo ) +
             cc.error( " after " ) + cc.info( cntAttempts ) + cc.error( " attempts " ) +
             "\n" );
         throw new Error(
-            "Failed call to " + strFnName + "(), from block " + nBlockFrom + ", to block " + nBlockTo +
+            "Failed filtering attempt for " + strEventName + " event, from block " + nBlockFrom + ", to block " + nBlockTo +
             " via " + u.toString() + " after " + cntAttempts + " attempts"
         );
     }
@@ -494,23 +522,23 @@ export function setMaxIterationsInAllRangeEventsScan( n ) {
     }
 }
 
-export async function get_web3_pastEventsIterative( details, w3, attempts, joContract, strEventName, nBlockFrom, nBlockTo, joFilter ) {
+export async function safe_getPastEventsIterative( details, ethersProvider, attempts, joContract, strEventName, nBlockFrom, nBlockTo, joFilter ) {
     if( g_nCountOfBlocksInIterativeStep <= 0 || g_nMaxBlockScanIterationsInAllRange <= 0 ) {
         details.write(
             cc.fatal( "IMPORTANT NOTICE:" ) + " " +
             cc.warning( "Will skip " ) + cc.attention( "iterative" ) + cc.warning( " events scan in block range from " ) +
             cc.info( nBlockFrom ) + cc.warning( " to " ) + cc.info( nBlockTo ) +
             cc.warning( " because it's " ) + cc.error( "DISABLED" ) + "\n" );
-        return await get_web3_pastEvents( details, w3, attempts, joContract, strEventName, nBlockFrom, nBlockTo, joFilter );
+        return await safe_getPastEvents( details, ethersProvider, attempts, joContract, strEventName, nBlockFrom, nBlockTo, joFilter );
     }
     if( nBlockFrom == 0 && nBlockTo == "latest" ) {
-        const nLatestBlockNumber = await safe_getBlockNumber( details, 10, w3 );
+        const nLatestBlockNumber = await safe_getBlockNumber( details, 10, ethersProvider );
         if( ( nLatestBlockNumber / g_nCountOfBlocksInIterativeStep ) > g_nMaxBlockScanIterationsInAllRange ) {
             details.write(
                 cc.fatal( "IMPORTANT NOTICE:" ) + " " +
                 cc.warning( "Will skip " ) + cc.attention( "iterative" ) + cc.warning( " scan and use scan in block range from " ) +
                 cc.info( nBlockFrom ) + cc.warning( " to " ) + cc.info( nBlockTo ) + "\n" );
-            return await get_web3_pastEvents( details, w3, attempts, joContract, strEventName, nBlockFrom, nBlockTo, joFilter );
+            return await safe_getPastEvents( details, ethersProvider, attempts, joContract, strEventName, nBlockFrom, nBlockTo, joFilter );
         }
     }
     details.write(
@@ -518,7 +546,7 @@ export async function get_web3_pastEventsIterative( details, w3, attempts, joCon
         cc.info( nBlockFrom ) + cc.debug( "/" ) + cc.info( nBlockTo ) +
         cc.debug( " block range..." ) + "\n" );
     if( nBlockTo == "latest" ) {
-        const nLatestBlockNumber = await safe_getBlockNumber( details, 10, w3 );
+        const nLatestBlockNumber = await safe_getBlockNumber( details, 10, ethersProvider );
         nBlockTo = nLatestBlockNumber;
         details.write(
             cc.debug( "Iterative scan up to latest block " ) +
@@ -537,7 +565,7 @@ export async function get_web3_pastEventsIterative( details, w3, attempts, joCon
                 cc.debug( " block sub-range in " ) +
                 cc.info( nBlockFrom ) + cc.debug( "/" ) + cc.info( nBlockTo ) +
                 cc.debug( " block range..." ) + "\n" );
-            const joAllEventsInBlock = await get_web3_pastEvents( details, w3, attempts, joContract, strEventName, idxBlockSubRangeFrom, idxBlockSubRangeTo, joFilter );
+            const joAllEventsInBlock = await safe_getPastEvents( details, ethersProvider, attempts, joContract, strEventName, idxBlockSubRangeFrom, idxBlockSubRangeTo, joFilter );
             if( joAllEventsInBlock && joAllEventsInBlock != "" && joAllEventsInBlock.length > 0 ) {
                 details.write(
                     cc.success( "Result of " ) + cc.attention( "iterative" ) + cc.success( " scan in " ) +
@@ -703,7 +731,7 @@ export async function do_oracle_gas_price_setup(
         let gasPriceOnMainNet = null;
         if( IMA.getEnabledOracle() ) {
             const oracleOpts = {
-                url: owaspUtils.w3_2_url( ethersProvider_s_chain ),
+                url: owaspUtils.ep_2_url( ethersProvider_s_chain ),
                 callOpts: { },
                 nMillisecondsSleepBefore: 1000,
                 nMillisecondsSleepPeriod: 3000,
@@ -962,23 +990,23 @@ export function create_progressive_events_scan_plan( details, nLatestBlockNumber
     return arr_progressive_events_scan_plan;
 }
 
-export async function get_web3_pastEventsProgressive( details, w3, attempts, joContract, strEventName, nBlockFrom, nBlockTo, joFilter ) {
+export async function get_web3_pastEventsProgressive( details, ethersProvider, attempts, joContract, strEventName, nBlockFrom, nBlockTo, joFilter ) {
     if( ! g_bIsEnabledProgressiveEventsScan ) {
         details.write(
             cc.fatal( "IMPORTANT NOTICE:" ) + " " +
             cc.warning( "Will skip " ) + cc.attention( "progressive" ) + cc.warning( " events scan in block range from " ) +
             cc.info( nBlockFrom ) + cc.warning( " to " ) + cc.info( nBlockTo ) +
             cc.warning( " because it's " ) + cc.error( "DISABLED" ) + "\n" );
-        return await get_web3_pastEvents( details, w3, attempts, joContract, strEventName, nBlockFrom, nBlockTo, joFilter );
+        return await safe_getPastEvents( details, ethersProvider, attempts, joContract, strEventName, nBlockFrom, nBlockTo, joFilter );
     }
     if( ! ( nBlockFrom == 0 && nBlockTo == "latest" ) ) {
         details.write(
             cc.debug( "Will skip " ) + cc.attention( "progressive" ) + cc.debug( " scan and use scan in block range from " ) +
             cc.info( nBlockFrom ) + cc.debug( " to " ) + cc.info( nBlockTo ) + "\n" );
-        return await get_web3_pastEvents( details, w3, attempts, joContract, strEventName, nBlockFrom, nBlockTo, joFilter );
+        return await safe_getPastEvents( details, ethersProvider, attempts, joContract, strEventName, nBlockFrom, nBlockTo, joFilter );
     }
     details.write( cc.debug( "Will run " ) + cc.attention( "progressive" ) + cc.debug( " scan..." ) + "\n" );
-    const nLatestBlockNumber = await safe_getBlockNumber( details, 10, w3 );
+    const nLatestBlockNumber = await safe_getBlockNumber( details, 10, ethersProvider );
     details.write( cc.debug( "Current latest block number is " ) + cc.info( nLatestBlockNumber ) + "\n" );
     const arr_progressive_events_scan_plan = create_progressive_events_scan_plan( details, nLatestBlockNumber );
     details.write( cc.debug( "Composed " ) + cc.attention( "progressive" ) + cc.debug( " scan plan is: " ) + cc.j( arr_progressive_events_scan_plan ) + "\n" );
@@ -995,7 +1023,7 @@ export async function get_web3_pastEventsProgressive( details, w3, attempts, joC
             cc.debug( ", block range is " ) + cc.info( joPlan.type ) +
             cc.debug( "..." ) + "\n" );
         try {
-            const joAllEventsInBlock = await get_web3_pastEventsIterative( details, w3, attempts, joContract, strEventName, joPlan.nBlockFrom, joPlan.nBlockTo, joFilter );
+            const joAllEventsInBlock = await safe_getPastEventsIterative( details, ethersProvider, attempts, joContract, strEventName, joPlan.nBlockFrom, joPlan.nBlockTo, joFilter );
             if( joAllEventsInBlock && joAllEventsInBlock.length > 0 ) {
                 details.write(
                     cc.success( "Progressive scan of " ) + cc.attention( "getPastEvents" ) + cc.debug( "/" ) + cc.info( strEventName ) +
@@ -1025,15 +1053,15 @@ export async function get_web3_pastEventsProgressive( details, w3, attempts, joC
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-export async function get_contract_call_events( details, w3, joContract, strEventName, nBlockNumber, strTxHash, joFilter ) {
+export async function get_contract_call_events( details, ethersProvider, joContract, strEventName, nBlockNumber, strTxHash, joFilter ) {
     joFilter = joFilter || {};
     let nBlockFrom = nBlockNumber - 10, nBlockTo = nBlockNumber + 10;
-    const nLatestBlockNumber = await safe_getBlockNumber( details, 10, w3 );
+    const nLatestBlockNumber = await safe_getBlockNumber( details, 10, ethersProvider );
     if( nBlockFrom < 0 )
         nBlockFrom = 0;
     if( nBlockTo > nLatestBlockNumber )
         nBlockTo = nLatestBlockNumber;
-    const joAllEventsInBlock = await get_web3_pastEventsIterative( details, w3, 10, joContract, strEventName, nBlockFrom, nBlockTo, joFilter );
+    const joAllEventsInBlock = await safe_getPastEventsIterative( details, ethersProvider, 10, joContract, strEventName, nBlockFrom, nBlockTo, joFilter );
     const joAllTransactionEvents = []; let i;
     for( i = 0; i < joAllEventsInBlock.length; ++i ) {
         const joEvent = joAllEventsInBlock[i];
@@ -6038,24 +6066,24 @@ export async function do_transfer(
                                 cc.debug( " using URL " ) + cc.info( jo_node.http_endpoint_ip ) +
                                 cc.debug( "..." ) + "\n" );
                             try {
-                                const w3_node = owaspUtils.getEthersProviderFromURL( jo_node.http_endpoint_ip );
+                                const ethersProvider_node = owaspUtils.getEthersProviderFromURL( jo_node.http_endpoint_ip );
                                 const jo_message_proxy_node =
                                     new owaspUtils.ethersMod.ethers.Contract(
                                         imaState.chainProperties.sc.joAbiIMA.message_proxy_chain_address,
                                         imaState.chainProperties.sc.joAbiIMA.message_proxy_chain_abi,
-                                        w3_node
+                                        ethersProvider_node
                                     );
                                 const strEventName = "OutgoingMessage";
                                 const node_r = await get_web3_pastEventsProgressive(
                                     details,
-                                    w3_node,
+                                    ethersProvider_node,
                                     10,
                                     jo_message_proxy_node,
                                     strEventName,
                                     joMessage.savedBlockNumberForOptimizations, // 0, // nBlockFrom
                                     joMessage.savedBlockNumberForOptimizations, // "latest", // nBlockTo
                                     {
-                                        dstChainHash: [ w3_node.utils.soliditySha3( chain_id_dst ) ],
+                                        dstChainHash: [ ethersProvider_node.utils.soliditySha3( chain_id_dst ) ],
                                         msgCounter: [ idxImaMessage ]
                                     }
                                 );

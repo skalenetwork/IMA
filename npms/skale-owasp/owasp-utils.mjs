@@ -664,6 +664,16 @@ export function getEthersProviderFromURL( strURL ) {
     return ethersProvider;
 }
 
+export function ep_2_url( ethersProvider ) {
+    let strURL = null;
+    if( ethersProvider &&
+        "connection" in ethersProvider && typeof ethersProvider.connection == "object" &&
+        "url" in ethersProvider.connection && typeof ethersProvider.connection.url == "string"
+    )
+        strURL = "" + ethersProvider.connection.url;
+    return strURL;
+}
+
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
