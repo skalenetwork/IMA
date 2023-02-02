@@ -809,9 +809,12 @@ export async function do_oracle_gas_price_setup(
             details.write( strLogPrefix + cc.debug( "Using computed " ) + cc.info( "gasPrice" ) + cc.debug( "=" ) + cc.notice( gasPrice ) + "\n" );
             const estimatedGas_setGasPrice =
                 await tc_s_chain.computeGas(
-                    methodWithArguments_setGasPrice,
-                    ethersProvider_s_chain, 10000000, gasPrice,
-                    joAccountSC.address( ethersProvider_s_chain ), "0"
+                    details,
+                    owaspUtils.ethersMod, ethersProvider_s_chain,
+                    "CommunityLocker", jo_community_locker, "setGasPrice", arrArguments_setGasPrice,
+                    joAccountSC, strActionName,
+                    gasPrice, 10000000, weiHowMuch,
+                    null
                 );
             details.write( strLogPrefix + cc.debug( "Using estimated " ) + cc.info( "gas" ) + cc.debug( "=" ) + cc.notice( estimatedGas_setGasPrice ) + "\n" );
             const isIgnore_setGasPrice = false;
@@ -1832,9 +1835,12 @@ export async function register_s_chain_in_deposit_boxes( // step 1
         details.write( strLogPrefix + cc.debug( "Using computed " ) + cc.info( "gasPrice" ) + cc.debug( "=" ) + cc.notice( gasPrice ) + "\n" );
         const estimatedGas =
             await tc_main_net.computeGas(
-                methodWithArguments,
-                ethersProvider_main_net, 3000000, gasPrice,
-                joAccountMN.address( ethersProvider_main_net ), "0"
+                details,
+                owaspUtils.ethersMod, ethersProvider_main_net,
+                "Linker", jo_linker, "connectSchain", arrArguments,
+                joAccountMN, strActionName,
+                gasPrice, 3000000, weiHowMuch,
+                null
             );
         details.write( strLogPrefix + cc.debug( "Using estimated " ) + cc.info( "gas" ) + cc.debug( "=" ) + cc.notice( estimatedGas ) + "\n" );
         const isIgnore = false;
@@ -2073,9 +2079,12 @@ export async function reimbursement_wallet_recharge(
         details.write( strLogPrefix + cc.debug( "Using computed " ) + cc.info( "gasPrice" ) + cc.debug( "=" ) + cc.notice( gasPrice ) + "\n" );
         const estimatedGas =
             await tc_main_net.computeGas(
-                methodWithArguments,
-                ethersProvider_main_net, 3000000, gasPrice,
-                joAccountMN.address( ethersProvider_main_net ), nReimbursementRecharge
+                details,
+                owaspUtils.ethersMod, ethersProvider_main_net,
+                "CommunityPool", jo_community_pool, "rechargeUserWallet", arrArguments,
+                joAccountMN, strActionName,
+                gasPrice, 3000000, nReimbursementRecharge,
+                null
             );
         details.write( strLogPrefix + cc.debug( "Using estimated " ) + cc.info( "gas" ) + cc.debug( "=" ) + cc.notice( estimatedGas ) + "\n" );
         const isIgnore = false;
@@ -2173,9 +2182,12 @@ export async function reimbursement_wallet_withdraw(
         details.write( strLogPrefix + cc.debug( "Using computed " ) + cc.info( "gasPrice" ) + cc.debug( "=" ) + cc.notice( gasPrice ) + "\n" );
         const estimatedGas =
             await tc_main_net.computeGas(
-                methodWithArguments,
-                ethersProvider_main_net, 3000000, gasPrice,
-                joAccountMN.address( ethersProvider_main_net ), weiHowMuch
+                details,
+                owaspUtils.ethersMod, ethersProvider_main_net,
+                "CommunityPool", jo_community_pool, "withdrawFunds", arrArguments,
+                joAccountMN, strActionName,
+                gasPrice, 3000000, weiHowMuch,
+                null
             );
         details.write( strLogPrefix + cc.debug( "Using estimated " ) + cc.info( "gas" ) + cc.debug( "=" ) + cc.notice( estimatedGas ) + "\n" );
         const isIgnore = false;
@@ -2273,9 +2285,12 @@ export async function reimbursement_set_range(
         details.write( strLogPrefix + cc.debug( "Using computed " ) + cc.info( "gasPrice" ) + cc.debug( "=" ) + cc.notice( gasPrice ) + "\n" );
         const estimatedGas =
             await tc_s_chain.computeGas(
-                methodWithArguments,
-                ethersProvider_s_chain, 3000000, gasPrice,
-                joAccountSC.address( ethersProvider_s_chain ), weiHowMuch
+                details,
+                owaspUtils.ethersMod, ethersProvider_s_chain,
+                "CommunityLocker", jo_community_locker, "setTimeLimitPerMessage", arrArguments,
+                joAccountSC, strActionName,
+                gasPrice, 3000000, weiHowMuch,
+                null
             );
         details.write( strLogPrefix + cc.debug( "Using estimated " ) + cc.info( "gas" ) + cc.debug( "=" ) + cc.notice( estimatedGas ) + "\n" );
         const isIgnore = false;
@@ -2391,9 +2406,12 @@ export async function do_eth_payment_from_main_net(
         details.write( strLogPrefix + cc.debug( "Using computed " ) + cc.info( "gasPrice" ) + cc.debug( "=" ) + cc.notice( gasPrice ) + "\n" );
         const estimatedGas =
             await tc_main_net.computeGas(
-                methodWithArguments,
-                ethersProvider_main_net, 3000000, gasPrice,
-                joAccountSrc.address( ethersProvider_main_net ), weiHowMuch
+                details,
+                owaspUtils.ethersMod, ethersProvider_main_net,
+                "DepositBox", jo_deposit_box, "deposit", arrArguments,
+                joAccountSrc, strActionName,
+                gasPrice, 3000000, weiHowMuch,
+                null
             );
         details.write( strLogPrefix + cc.debug( "Using estimated " ) + cc.info( "gas" ) + cc.debug( "=" ) + cc.notice( estimatedGas ) + "\n" );
         const isIgnore = false;
@@ -2521,9 +2539,12 @@ export async function do_eth_payment_from_s_chain(
         details.write( strLogPrefix + cc.debug( "Using computed " ) + cc.info( "gasPrice" ) + cc.debug( "=" ) + cc.notice( gasPrice ) + "\n" ); //
         const estimatedGas =
             await tc_s_chain.computeGas(
-                methodWithArguments,
-                ethersProvider_s_chain, 6000000, gasPrice,
-                joAccountSrc.address( ethersProvider_s_chain ), weiHowMuch
+                details,
+                owaspUtils.ethersMod, ethersProvider_s_chain,
+                "TokenManagerETH", jo_token_manager_eth, "exitToMain", arrArguments,
+                joAccountSrc, strActionName,
+                gasPrice, 6000000, weiHowMuch,
+                null
             );
         details.write( strLogPrefix + cc.debug( "Using estimated " ) + cc.info( "gas" ) + cc.debug( "=" ) + cc.notice( estimatedGas ) + "\n" );
         const isIgnore = true;
@@ -2636,9 +2657,12 @@ export async function receive_eth_payment_from_s_chain_on_main_net(
         details.write( strLogPrefix + cc.debug( "Using computed " ) + cc.info( "gasPrice" ) + cc.debug( "=" ) + cc.notice( gasPrice ) + "\n" );
         const estimatedGas =
             await tc_main_net.computeGas(
-                methodWithArguments,
-                ethersProvider_main_net, 3000000, gasPrice,
-                joAccountMN.address( ethersProvider_main_net ), "0"
+                details,
+                owaspUtils.ethersMod, ethersProvider_main_net,
+                "DepositBoxETH", jo_deposit_box_eth, "getMyEth", arrArguments,
+                joAccountMN, strActionName,
+                gasPrice, 3000000, weiHowMuch,
+                null
             );
         details.write( strLogPrefix + cc.debug( "Using estimated " ) + cc.info( "gas" ) + cc.debug( "=" ) + cc.notice( estimatedGas ) + "\n" );
         const isIgnore = false;
@@ -2803,9 +2827,12 @@ export async function do_erc721_payment_from_main_net(
         details.write( strLogPrefix + cc.debug( "Using computed " ) + cc.info( "gasPrice" ) + cc.debug( "=" ) + cc.notice( gasPrice ) + "\n" );
         const estimatedGas_approve =
             await tc_main_net.computeGas(
-                methodWithArguments_approve,
-                ethersProvider_main_net, 8000000, gasPrice,
-                joAccountSrc.address( ethersProvider_main_net ), "0"
+                details,
+                owaspUtils.ethersMod,ethersProvider_main_net,
+                "ERC721", contractERC721, approve, arrArguments_approve,
+                joAccountSrc, strActionName,
+                gasPrice, 8000000, weiHowMuch_approve,
+                null
             );
         details.write( strLogPrefix + cc.debug( "Using estimated(approve) " ) + cc.info( "gas" ) + cc.debug( "=" ) + cc.notice( estimatedGas_approve ) + "\n" );
         const isIgnore_approve = false;
@@ -2868,9 +2895,12 @@ export async function do_erc721_payment_from_main_net(
         details.write( strLogPrefix + cc.debug( "Using computed " ) + cc.info( "gasPrice" ) + cc.debug( "=" ) + cc.notice( gasPrice ) + "\n" );
         const estimatedGas_deposit =
             await tc_main_net.computeGas(
-                methodWithArguments_depositERC721,
-                ethersProvider_main_net, 8000000, gasPrice,
-                joAccountSrc.address( ethersProvider_main_net ), "0"
+                details,
+                owaspUtils.ethersMod, ethersProvider_main_net,
+                "DepositBoxERC721", jo_deposit_box_erc721, "depositERC721", arrArguments_depositERC721,
+                joAccountSrc, strActionName,
+                gasPrice, 8000000, weiHowMuch_depositERC721,
+                null
             );
         details.write( strLogPrefix + cc.debug( "Using estimated(deposit) " ) + cc.info( "gas" ) + cc.debug( "=" ) + cc.notice( estimatedGas_deposit ) + "\n" );
         const isIgnore_depositERC721 = true;
@@ -3006,9 +3036,12 @@ export async function do_erc20_payment_from_main_net(
         details.write( strLogPrefix + cc.debug( "Using computed " ) + cc.info( "gasPrice" ) + cc.debug( "=" ) + cc.notice( gasPrice ) + "\n" );
         const estimatedGas_approve =
             await tc_main_net.computeGas(
-                methodWithArguments_approve,
-                ethersProvider_main_net, 8000000, gasPrice,
-                joAccountSrc.address( ethersProvider_main_net ), "0"
+                details,
+                owaspUtils.ethersMod, ethersProvider_main_net,
+                "ERC20", contractERC20, "approve", arrArguments_approve,
+                joAccountSrc, strActionName,
+                gasPrice, 8000000, weiHowMuch_approve,
+                null
             );
         details.write( strLogPrefix + cc.debug( "Using estimated(approve) " ) + cc.info( "gas" ) + cc.debug( "=" ) + cc.notice( estimatedGas_approve ) + "\n" );
         const isIgnore_approve = false;
@@ -3071,9 +3104,12 @@ export async function do_erc20_payment_from_main_net(
         details.write( strLogPrefix + cc.debug( "Using computed " ) + cc.info( "gasPrice" ) + cc.debug( "=" ) + cc.notice( gasPrice ) + "\n" );
         const estimatedGas_deposit =
             await tc_main_net.computeGas(
-                methodWithArguments_depositERC20,
-                ethersProvider_main_net, 8000000, gasPrice,
-                joAccountSrc.address( ethersProvider_main_net ), "0"
+                details,
+                owaspUtils.ethersMod, ethersProvider_main_net,
+                "DepositBoxERC20", jo_deposit_box_erc20, "depositERC20", arrArguments_depositERC20,
+                joAccountSrc, strActionName,
+                gasPrice, 8000000, weiHowMuch_depositERC20,
+                null
             );
         details.write( strLogPrefix + cc.debug( "Using estimated(deposit) " ) + cc.info( "gas" ) + cc.debug( "=" ) + cc.notice( estimatedGas_deposit ) + "\n" );
         const isIgnore_depositERC20 = true;
@@ -3211,9 +3247,12 @@ export async function do_erc1155_payment_from_main_net(
         details.write( strLogPrefix + cc.debug( "Using computed " ) + cc.info( "gasPrice" ) + cc.debug( "=" ) + cc.notice( gasPrice ) + "\n" );
         const estimatedGas_approve =
             await tc_main_net.computeGas(
-                methodWithArguments_approve,
-                ethersProvider_main_net, 8000000, gasPrice,
-                joAccountSrc.address( ethersProvider_main_net ), "0"
+                details,
+                owaspUtils.ethersMod, ethersProvider_main_net,
+                "ERC1155", contractERC1155, "setApprovalForAll", arrArguments_approve,
+                joAccountSrc, strActionName,
+                gasPrice, 8000000, weiHowMuch_approve,
+                null
             );
         details.write( strLogPrefix + cc.debug( "Using estimated(approve) " ) + cc.info( "gas" ) + cc.debug( "=" ) + cc.notice( estimatedGas_approve ) + "\n" );
         const isIgnore_approve = false;
@@ -3276,9 +3315,12 @@ export async function do_erc1155_payment_from_main_net(
         details.write( strLogPrefix + cc.debug( "Using computed " ) + cc.info( "gasPrice" ) + cc.debug( "=" ) + cc.notice( gasPrice ) + "\n" );
         const estimatedGas_deposit =
             await tc_main_net.computeGas(
-                methodWithArguments_depositERC1155,
-                ethersProvider_main_net, 8000000, gasPrice,
-                joAccountSrc.address( ethersProvider_main_net ), "0"
+                details,
+                owaspUtils.ethersMod, ethersProvider_main_net,
+                "DepositBoxERC1155", jo_deposit_box_erc1155, "depositERC1155", arrArguments_depositERC1155,
+                joAccountSrc, strActionName,
+                gasPrice, 8000000, weiHowMuch_depositERC1155,
+                null
             );
         details.write( strLogPrefix + cc.debug( "Using estimated(deposit) " ) + cc.info( "gas" ) + cc.debug( "=" ) + cc.notice( estimatedGas_deposit ) + "\n" );
         const isIgnore_depositERC1155 = true;
@@ -3413,9 +3455,12 @@ export async function do_erc1155_batch_payment_from_main_net(
         details.write( strLogPrefix + cc.debug( "Using computed " ) + cc.info( "gasPrice" ) + cc.debug( "=" ) + cc.notice( gasPrice ) + "\n" );
         const estimatedGas_approve =
             await tc_main_net.computeGas(
-                methodWithArguments_approve,
-                ethersProvider_main_net, 8000000, gasPrice,
-                joAccountSrc.address( ethersProvider_main_net ), "0"
+                details,
+                owaspUtils.ethersMod, ethersProvider_main_net,
+                "ERC1155", contractERC1155, "setApprovalForAll", arrArguments_approve,
+                joAccountSrc, strActionName,
+                gasPrice, 8000000, weiHowMuch_approve,
+                null
             );
         details.write( strLogPrefix + cc.debug( "Using estimated(approve) " ) + cc.info( "gas" ) + cc.debug( "=" ) + cc.notice( estimatedGas_approve ) + "\n" );
         const isIgnore_approve = false;
@@ -3478,9 +3523,12 @@ export async function do_erc1155_batch_payment_from_main_net(
         details.write( strLogPrefix + cc.debug( "Using computed " ) + cc.info( "gasPrice" ) + cc.debug( "=" ) + cc.notice( gasPrice ) + "\n" );
         const estimatedGas_deposit =
             await tc_main_net.computeGas(
-                methodWithArguments_depositERC1155Batch,
-                ethersProvider_main_net, 8000000, gasPrice,
-                joAccountSrc.address( ethersProvider_main_net ), "0"
+                details,
+                owaspUtils.ethersMod, ethersProvider_main_net,
+                "DepositBoxERC1155", jo_deposit_box_erc1155, "depositERC1155Batch", arrArguments_depositERC1155Batch,
+                joAccountSrc, strActionName,
+                gasPrice, 8000000, weiHowMuch_depositERC1155Batch,
+                null
             );
         details.write( strLogPrefix + cc.debug( "Using estimated(deposit) " ) + cc.info( "gas" ) + cc.debug( "=" ) + cc.notice( estimatedGas_deposit ) + "\n" );
         const isIgnore_depositERC1155Batch = true;
@@ -3614,9 +3662,12 @@ export async function do_erc20_payment_from_s_chain(
         details.write( strLogPrefix + cc.debug( "Using computed " ) + cc.info( "gasPrice" ) + cc.debug( "=" ) + cc.notice( gasPrice ) + "\n" );
         const estimatedGas_approve =
             await tc_s_chain.computeGas(
-                methodWithArguments_approve,
-                ethersProvider_s_chain, 8000000, gasPrice,
-                joAccountSrc.address( ethersProvider_s_chain ), "0"
+                details,
+                owaspUtils.ethersMod, ethersProvider_s_chain,
+                "ERC20", contractERC20, "approve", arrArguments_approve,
+                joAccountSrc, strActionName,
+                gasPrice, 8000000, weiHowMuch_approve,
+                null
             );
         details.write( strLogPrefix + cc.debug( "Using estimated(approve) " ) + cc.info( "gas" ) + cc.debug( "=" ) + cc.notice( estimatedGas_approve ) + "\n" );
         const isIgnore_approve = false;
@@ -3692,9 +3743,12 @@ export async function do_erc20_payment_from_s_chain(
         const weiHowMuch_exitToMainERC20 = undefined;
         const estimatedGas_exitToMainERC20 =
             await tc_s_chain.computeGas(
-                methodWithArguments_exitToMainERC20,
-                ethersProvider_s_chain, 8000000, gasPrice,
-                joAccountSrc.address( ethersProvider_s_chain ), "0"
+                details,
+                owaspUtils.ethersMod, ethersProvider_s_chain,
+                "TokenManagerERC20", jo_token_manager_erc20, "exitToMainERC20", arrArguments_exitToMainERC20,
+                joAccountSrc, strActionName,
+                gasPrice, 8000000, weiHowMuch_exitToMainERC20,
+                null
             );
         details.write( strLogPrefix + cc.debug( "Using estimated(approve) " ) + cc.info( "gas" ) + cc.debug( "=" ) + cc.notice( estimatedGas_exitToMainERC20 ) + "\n" );
         gasPrice = await tc_s_chain.computeGasPrice( ethersProvider_s_chain, 200000000000 );
@@ -3835,9 +3889,12 @@ export async function do_erc721_payment_from_s_chain(
         details.write( strLogPrefix + cc.debug( "Using computed " ) + cc.info( "gasPrice" ) + cc.debug( "=" ) + cc.notice( gasPrice ) + "\n" );
         const estimatedGas_approve =
             await tc_s_chain.computeGas(
-                methodWithArguments_approve,
-                ethersProvider_s_chain, 8000000, gasPrice,
-                joAccountSrc.address( ethersProvider_s_chain ), "0"
+                details,
+                owaspUtils.ethersMod, ethersProvider_s_chain,
+                "ERC721", contractERC721, "approve", arrArguments_approve,
+                joAccountSrc, strActionName,
+                gasPrice, 8000000, weiHowMuch_approve,
+                null
             );
         details.write( strLogPrefix + cc.debug( "Using estimated(transfer from) " ) + cc.info( "gas" ) + cc.debug( "=" ) + cc.notice( estimatedGas_approve ) + "\n" );
         const isIgnore_approve = false;
@@ -3912,9 +3969,12 @@ export async function do_erc721_payment_from_s_chain(
         details.write( strLogPrefix + cc.debug( "Using computed " ) + cc.info( "gasPrice" ) + cc.debug( "=" ) + cc.notice( gasPrice ) + "\n" );
         const estimatedGas_exitToMainERC721 =
             await tc_s_chain.computeGas(
-                methodWithArguments_exitToMainERC721,
-                ethersProvider_s_chain, 8000000, gasPrice,
-                joAccountSrc.address( ethersProvider_s_chain ), "0"
+                details,
+                owaspUtils.ethersMod, ethersProvider_s_chain,
+                "TokenManagerERC721", jo_token_manager_erc721, "exitToMainERC721", arrArguments_exitToMainERC721,
+                joAccountSrc, strActionName,
+                gasPrice, 8000000, weiHowMuch_exitToMainERC721,
+                null
             );
         details.write( strLogPrefix + cc.debug( "Using estimated(exit to main) " ) + cc.info( "gas" ) + cc.debug( "=" ) + cc.notice( estimatedGas_exitToMainERC721 ) + "\n" );
         const isIgnore_exitToMainERC721 = true;
@@ -4051,9 +4111,12 @@ export async function do_erc1155_payment_from_s_chain(
         details.write( strLogPrefix + cc.debug( "Using computed " ) + cc.info( "gasPrice" ) + cc.debug( "=" ) + cc.notice( gasPrice ) + "\n" );
         const estimatedGas_approve =
             await tc_s_chain.computeGas(
-                methodWithArguments_approve,
-                ethersProvider_s_chain, 8000000, gasPrice,
-                joAccountSrc.address( ethersProvider_s_chain ), "0"
+                details,
+                owaspUtils.ethersMod, ethersProvider_s_chain,
+                "ERC1155", contractERC1155, "setApprovalForAll", arrArguments_approve,
+                joAccountSrc, strActionName,
+                gasPrice, 8000000, weiHowMuch_approve,
+                null
             );
         details.write( strLogPrefix + cc.debug( "Using estimated(transfer from) " ) + cc.info( "gas" ) + cc.debug( "=" ) + cc.notice( estimatedGas_approve ) + "\n" );
         const isIgnore_approve = false;
@@ -4129,9 +4192,12 @@ export async function do_erc1155_payment_from_s_chain(
         details.write( strLogPrefix + cc.debug( "Using computed " ) + cc.info( "gasPrice" ) + cc.debug( "=" ) + cc.notice( gasPrice ) + "\n" );
         const estimatedGas_exitToMainERC1155 =
             await tc_s_chain.computeGas(
-                methodWithArguments_exitToMainERC1155,
-                ethersProvider_s_chain, 8000000, gasPrice,
-                joAccountSrc.address( ethersProvider_s_chain ), "0"
+                details,
+                owaspUtils.ethersMod, ethersProvider_s_chain,
+                "TokenManagerERC1155", jo_token_manager_erc1155, "exitToMainERC1155", arrArguments_exitToMainERC1155,
+                joAccountSrc, strActionName,
+                gasPrice, 8000000, weiHowMuch_exitToMainERC1155,
+                null
             );
         details.write( strLogPrefix + cc.debug( "Using estimated(exit to main) " ) + cc.info( "gas" ) + cc.debug( "=" ) + cc.notice( estimatedGas_exitToMainERC1155 ) + "\n" );
         const isIgnore_exitToMainERC1155 = true;
@@ -4269,9 +4335,12 @@ export async function do_erc1155_batch_payment_from_s_chain(
         details.write( strLogPrefix + cc.debug( "Using computed " ) + cc.info( "gasPrice" ) + cc.debug( "=" ) + cc.notice( gasPrice ) + "\n" );
         const estimatedGas_approve =
             await tc_s_chain.computeGas(
-                methodWithArguments_approve,
-                ethersProvider_s_chain, 8000000, gasPrice,
-                joAccountSrc.address( ethersProvider_s_chain ), "0"
+                details,
+                owaspUtils.ethersMod, ethersProvider_s_chain,
+                "ERC1155", contractERC1155, "setApprovalForAll", arrArguments_approve,
+                joAccountSrc, strActionName,
+                gasPrice, 8000000, weiHowMuch_approve,
+                null
             );
         details.write( strLogPrefix + cc.debug( "Using estimated(transfer from) " ) + cc.info( "gas" ) + cc.debug( "=" ) + cc.notice( estimatedGas_approve ) + "\n" );
         const isIgnore_approve = false;
@@ -4347,9 +4416,12 @@ export async function do_erc1155_batch_payment_from_s_chain(
         details.write( strLogPrefix + cc.debug( "Using computed " ) + cc.info( "gasPrice" ) + cc.debug( "=" ) + cc.notice( gasPrice ) + "\n" );
         const estimatedGas_exitToMainERC1155Batch =
             await tc_s_chain.computeGas(
-                methodWithArguments_exitToMainERC1155Batch,
-                ethersProvider_s_chain, 8000000, gasPrice,
-                joAccountSrc.address( ethersProvider_s_chain ), "0"
+                details,
+                owaspUtils.ethersMod, ethersProvider_s_chain,
+                "TokenManagerERC1155", jo_token_manager_erc1155, "exitToMainERC1155Batch", arrArguments_exitToMainERC1155Batch,
+                joAccountSrc, strActionName,
+                gasPrice, 8000000, weiHowMuch_exitToMainERC1155Batch,
+                null
             );
         details.write( strLogPrefix + cc.debug( "Using estimated(exit to main) " ) + cc.info( "gas" ) + cc.debug( "=" ) + cc.notice( estimatedGas_exitToMainERC1155Batch ) + "\n" );
         const isIgnore_exitToMainERC1155Batch = true;
@@ -4506,9 +4578,12 @@ export async function do_erc20_payment_s2s(
         details.write( strLogPrefix + cc.debug( "Using computed " ) + cc.info( "gasPrice" ) + cc.debug( "=" ) + cc.notice( gasPrice ) + "\n" );
         const estimatedGas_approve =
             await tc.computeGas(
-                methodWithArguments_approve,
-                ethersProvider_src, 8000000, gasPrice,
-                joAccountSrc.address( ethersProvider_src ), "0"
+                details,
+                owaspUtils.ethersMod, ethersProvider_src,
+                "ERC20", contractERC20, "approve", arrArguments_approve,
+                joAccountSrc, strActionName,
+                gasPrice, 8000000, weiHowMuch_approve,
+                null
             );
         details.write( strLogPrefix + cc.debug( "Using estimated(approve) " ) + cc.info( "gas" ) + cc.debug( "=" ) + cc.notice( estimatedGas_approve ) + "\n" );
         const isIgnore_approve = false;
@@ -4570,9 +4645,12 @@ export async function do_erc20_payment_s2s(
         details.write( strLogPrefix + cc.debug( "Using computed " ) + cc.info( "gasPrice" ) + cc.debug( "=" ) + cc.notice( gasPrice ) + "\n" );
         const estimatedGas_transfer =
             await tc.computeGas(
-                methodWithArguments_transfer,
-                ethersProvider_src, 8000000, gasPrice,
-                joAccountSrc.address( ethersProvider_src ), "0"
+                details,
+                owaspUtils.ethersMod, ethersProvider_src,
+                "TokenManagerERC20", jo_token_manager_erc20_src, "transferToSchainERC20", arrArguments_transfer,
+                joAccountSrc, strActionName,
+                gasPrice, 8000000, weiHowMuch_transferERC20,
+                null
             );
         details.write( strLogPrefix + cc.debug( "Using estimated(transfer) " ) + cc.info( "gas" ) + cc.debug( "=" ) + cc.notice( estimatedGas_transfer ) + "\n" );
         const isIgnore_transferERC20 = true;
@@ -4732,9 +4810,12 @@ export async function do_erc721_payment_s2s(
         details.write( strLogPrefix + cc.debug( "Using computed " ) + cc.info( "gasPrice" ) + cc.debug( "=" ) + cc.notice( gasPrice ) + "\n" );
         const estimatedGas_approve =
             await tc.computeGas(
-                methodWithArguments_approve,
-                ethersProvider_src, 8000000, gasPrice,
-                joAccountSrc.address( ethersProvider_src ), "0"
+                details,
+                owaspUtils.ethersMod, ethersProvider_src,
+                "ERC721", contractERC721, "approve", arrArguments_approve,
+                joAccountSrc, strActionName,
+                gasPrice, 8000000, weiHowMuch_approve,
+                null
             );
         details.write( strLogPrefix + cc.debug( "Using estimated(approve) " ) + cc.info( "gas" ) + cc.debug( "=" ) + cc.notice( estimatedGas_approve ) + "\n" );
         const isIgnore_approve = false;
@@ -4796,9 +4877,12 @@ export async function do_erc721_payment_s2s(
         details.write( strLogPrefix + cc.debug( "Using computed " ) + cc.info( "gasPrice" ) + cc.debug( "=" ) + cc.notice( gasPrice ) + "\n" );
         const estimatedGas_transfer =
             await tc.computeGas(
-                methodWithArguments_transfer,
-                ethersProvider_src, 8000000, gasPrice,
-                joAccountSrc.address( ethersProvider_src ), "0"
+                details,
+                owaspUtils.ethersMod, ethersProvider_src,
+                "TokenManagerERC721", jo_token_manager_erc721_src, "transferToSchainERC721", arrArguments_transfer,
+                joAccountSrc, strActionName, isIgnore_transferERC721,
+                gasPrice, 8000000, weiHowMuch_transferERC721,
+                null
             );
         details.write( strLogPrefix + cc.debug( "Using estimated(transfer) " ) + cc.info( "gas" ) + cc.debug( "=" ) + cc.notice( estimatedGas_transfer ) + "\n" );
         const isIgnore_transferERC721 = true;
@@ -4960,9 +5044,12 @@ export async function do_erc1155_payment_s2s(
         details.write( strLogPrefix + cc.debug( "Using computed " ) + cc.info( "gasPrice" ) + cc.debug( "=" ) + cc.notice( gasPrice ) + "\n" );
         const estimatedGas_approve =
             await tc.computeGas(
-                methodWithArguments_approve,
-                ethersProvider_src, 8000000, gasPrice,
-                joAccountSrc.address( ethersProvider_src ), "0"
+                details,
+                owaspUtils.ethersMod, ethersProvider_src,
+                "ERC1155", contractERC1155, "setApprovalForAll", arrArguments_approve,
+                joAccountSrc, strActionName,
+                gasPrice, 8000000, weiHowMuch_approve,
+                null
             );
         details.write( strLogPrefix + cc.debug( "Using estimated(approve) " ) + cc.info( "gas" ) + cc.debug( "=" ) + cc.notice( estimatedGas_approve ) + "\n" );
         const isIgnore_approve = false;
@@ -5024,9 +5111,12 @@ export async function do_erc1155_payment_s2s(
         details.write( strLogPrefix + cc.debug( "Using computed " ) + cc.info( "gasPrice" ) + cc.debug( "=" ) + cc.notice( gasPrice ) + "\n" );
         const estimatedGas_transfer =
             await tc.computeGas(
-                methodWithArguments_transfer,
-                ethersProvider_src, 8000000, gasPrice,
-                joAccountSrc.address( ethersProvider_src ), "0"
+                details,
+                owaspUtils.ethersMod, ethersProvider_src,
+                "TokenManagerERC1155", jo_token_manager_erc1155_src, "transferToSchainERC1155", arrArguments_transfer,
+                joAccountSrc, strActionName,
+                gasPrice, 8000000, weiHowMuch_transferERC1155,
+                null
             );
         details.write( strLogPrefix + cc.debug( "Using estimated(transfer) " ) + cc.info( "gas" ) + cc.debug( "=" ) + cc.notice( estimatedGas_transfer ) + "\n" );
         const isIgnore_transferERC1155 = true;
@@ -5188,9 +5278,12 @@ export async function do_erc1155_batch_payment_s2s(
         details.write( strLogPrefix + cc.debug( "Using computed " ) + cc.info( "gasPrice" ) + cc.debug( "=" ) + cc.notice( gasPrice ) + "\n" );
         const estimatedGas_approve =
             await tc.computeGas(
-                methodWithArguments_approve,
-                ethersProvider_src, 8000000, gasPrice,
-                joAccountSrc.address( ethersProvider_src ), "0"
+                details,
+                owaspUtils.ethersMod, ethersProvider_src,
+                "ERC1155", contractERC1155, "setApprovalForAll", arrArguments_approve,
+                joAccountSrc, strActionName,
+                gasPrice, 8000000, weiHowMuch_approve,
+                null
             );
         details.write( strLogPrefix + cc.debug( "Using estimated(approve) " ) + cc.info( "gas" ) + cc.debug( "=" ) + cc.notice( estimatedGas_approve ) + "\n" );
         const isIgnore_approve = false;
@@ -5252,9 +5345,12 @@ export async function do_erc1155_batch_payment_s2s(
         details.write( strLogPrefix + cc.debug( "Using computed " ) + cc.info( "gasPrice" ) + cc.debug( "=" ) + cc.notice( gasPrice ) + "\n" );
         const estimatedGas_transfer =
             await tc.computeGas(
-                methodWithArguments_transfer,
-                ethersProvider_src, 8000000, gasPrice,
-                joAccountSrc.address( ethersProvider_src ), "0"
+                details,
+                owaspUtils.ethersMod, ethersProvider_src,
+                "TokenManagerERC1155", jo_token_manager_erc1155_src, "transferToSchainERC1155Batch", arrArguments_transfer,
+                joAccountSrc, strActionName,
+                gasPrice, 8000000, weiHowMuch_transferERC1155,
+                null
             );
         details.write( strLogPrefix + cc.debug( "Using estimated(transfer) " ) + cc.info( "gas" ) + cc.debug( "=" ) + cc.notice( estimatedGas_transfer ) + "\n" );
         const isIgnore_transferERC1155 = true;
@@ -6134,9 +6230,12 @@ export async function do_transfer(
                         detailsB.write( strLogPrefix + cc.debug( "Using computed " ) + cc.info( "gasPrice" ) + cc.debug( "=" ) + cc.notice( gasPrice ) + "\n" );
                         let estimatedGas_postIncomingMessages =
                             await tc_dst.computeGas(
-                                methodWithArguments_postIncomingMessages,
-                                ethersProvider_dst, 10000000, gasPrice,
-                                joAccountDst.address( ethersProvider_dst ), "0"
+                                detailsB,
+                                owaspUtils.ethersMod, ethersProvider_dst,
+                                "MessageProxy", jo_message_proxy_dst, "postIncomingMessages", arrArguments_postIncomingMessages,
+                                joAccountDst, strActionName,
+                                gasPrice, 10000000, weiHowMuch_postIncomingMessages,
+                                null
                             );
                         detailsB.write( strLogPrefix + cc.debug( "Using estimated " ) + cc.info( "gas" ) + cc.debug( "=" ) + cc.notice( estimatedGas_postIncomingMessages ) + "\n" );
                         if( strDirection == "S2M" ) {
@@ -6496,31 +6595,51 @@ export class TransactionCustomizer {
             return gasPrice;
     }
     async computeGas(
-        methodWithArguments,
-        w3,
-        recommendedGas, gasPrice,
-        addressFrom, ethValue
+        details,
+        ethersMod, ethersProvider,
+        strContractName, joContract, strMethodName, arrArguments,
+        joAccount, strActionName,
+        gasPrice, gasValueRecommended, weiHowMuch,
+        opts
     ) {
         let estimatedGas = 0;
+        const strContractMethodDescription = cc.notice( strContractName ) + cc.debug( "(" ) + cc.info( joContract.address ) + cc.debug( ")." ) + cc.notice( strMethodName );
+        let strArgumentsDescription = "";
+        if( arrArguments.length > 0 ) {
+            strArgumentsDescription += cc.debug( "( " );
+            for( let i = 0; i < arrArguments.length; ++ i ) {
+                if( i > 0 )
+                    strArgumentsDescription += cc.debug( ", " );
+                strArgumentsDescription += cc.info( arrArguments[i] );
+            }
+            strArgumentsDescription += cc.debug( " )" );
+        } else
+            strArgumentsDescription += cc.debug( "()" );
+        const strContractCallDescription = strContractMethodDescription + strArgumentsDescription;
+        const strLogPrefix = strContractMethodDescription + " ";
         try {
-            await methodWithArguments.estimateGas( {
-                from: addressFrom,
-                gasPrice: gasPrice,
-                value: "0x" + w3.utils.toBN( ethValue ).toString( 16 )
-            }, function( err, estimatedGasValue ) {
-                if( err ) {
-                    estimatedGas = 0;
-                    return;
-                }
-                estimatedGas = estimatedGasValue;
-            } );
+            details.write( cc.debug( "Estimate-gas of action " ) + cc.info( strActionName ) + cc.debug( "..." ) + "\n" );
+            details.write( cc.debug( "Will estimate-gas " ) + strContractCallDescription + cc.debug( "..." ) + "\n" );
+            const strAccountWalletAddress = owasp.get_account_wallet_address( ethersMod, joAccount );
+            const callOpts = {
+                from: strAccountWalletAddress
+            };
+            if( gasPrice )
+                callOpts.gasPrice = ethersMod.ethers.BigNumber.from( gasPrice ).toHexString();
+            if( gasValue )
+                callOpts.gasLimit = ethersMod.ethers.BigNumber.from( gasValue ).toHexString();
+            if( weiHowMuch )
+                callOpts.value = ethersMod.ethers.BigNumber.from( weiHowMuch ).toHexString();
+            estimatedGas = await joContract.estimateGas[strMethodName]( ...arrArguments, callOpts );
+            details.write( strLogPrefix + cc.success( "estimate-gas success: " ) + cc.j( estimatedGas ) + "\n" );
         } catch ( err ) {
-            estimatedGas = 0;
+            const strError = owaspUtils.extract_error_message( err );
+            details.write( strLogPrefix + cc.error( "estimate-gas error: " ) + cc.warning( strError ) + "\n" );
         }
-        estimatedGas *= this.gasMultiplier;
-        estimatedGas = parseIntOrHex( "" + estimatedGas ); // avoid using floating point
-        if( estimatedGas == 0 )
-            estimatedGas = recommendedGas;
+        if( estimatedGas == 0 ) {
+            estimatedGas = gasValueRecommended;
+            details.write( strLogPrefix + cc.warning( "Will use recommended gas " ) + cc.j( estimatedGas ) + cc.warning( " instead of estimated" ) + "\n" );
+        }
         return estimatedGas;
     }
 };
@@ -6736,9 +6855,12 @@ export async function mintERC20(
         details.write( strLogPrefix + cc.debug( "Using computed " ) + cc.info( "gasPrice" ) + cc.debug( "=" ) + cc.notice( gasPrice ) + "\n" );
         const estimatedGas_mint =
             await tc.computeGas(
-                methodWithArguments_mint,
-                w3, 10000000, gasPrice,
-                joAccount.address( w3 ), "0"
+                details,
+                owaspUtils.ethersMod, w3,
+                "ERC20", contract, "mint", arrArguments_mint,
+                joAccount, strActionName,
+                gasPrice, 10000000, weiHowMuch_mint,
+                null
             );
         details.write( strLogPrefix + cc.debug( "Using estimated " ) + cc.info( "gas" ) + cc.debug( "=" ) + cc.notice( estimatedGas_mint ) + "\n" );
         strActionName = "Mint ERC20";
@@ -6856,9 +6978,12 @@ export async function mintERC721(
         details.write( strLogPrefix + cc.debug( "Using computed " ) + cc.info( "gasPrice" ) + cc.debug( "=" ) + cc.notice( gasPrice ) + "\n" );
         const estimatedGas_mint =
             await tc.computeGas(
-                methodWithArguments_mint,
-                w3, 10000000, gasPrice,
-                joAccount.address( w3 ), "0"
+                details,
+                owaspUtils.ethersMod, w3,
+                "ERC721", contract, "mint", arrArguments_mint,
+                joAccount, strActionName,
+                gasPrice, 10000000, weiHowMuch_mint,
+                null
             );
         details.write( strLogPrefix + cc.debug( "Using estimated " ) + cc.info( "gas" ) + cc.debug( "=" ) + cc.notice( estimatedGas_mint ) + "\n" );
         strActionName = "Mint ERC721";
@@ -6980,9 +7105,12 @@ export async function mintERC1155(
         details.write( strLogPrefix + cc.debug( "Using computed " ) + cc.info( "gasPrice" ) + cc.debug( "=" ) + cc.notice( gasPrice ) + "\n" );
         const estimatedGas_mint =
             await tc.computeGas(
-                methodWithArguments_mint,
-                w3, 10000000, gasPrice,
-                joAccount.address( w3 ), "0"
+                details,
+                owaspUtils.ethersMod, w3,
+                "ERC1155", contract, "mint", arrArguments_mint,
+                joAccount, strActionName,
+                gasPrice, 10000000, weiHowMuch_mint,
+                null
             );
         details.write( strLogPrefix + cc.debug( "Using estimated " ) + cc.info( "gas" ) + cc.debug( "=" ) + cc.notice( estimatedGas_mint ) + "\n" );
         strActionName = "Mint ERC1155";
@@ -7101,9 +7229,12 @@ export async function burnERC20(
         details.write( strLogPrefix + cc.debug( "Using computed " ) + cc.info( "gasPrice" ) + cc.debug( "=" ) + cc.notice( gasPrice ) + "\n" );
         const estimatedGas_burn =
             await tc.computeGas(
-                methodWithArguments_burn,
-                w3, 10000000, gasPrice,
-                joAccount.address( w3 ), "0"
+                details,
+                owaspUtils.ethersMod, w3,
+                "ERC20", contract, "burnFrom", arrArguments_burn,
+                joAccount, strActionName,
+                gasPrice, 10000000, weiHowMuch_burn,
+                null
             );
         details.write( strLogPrefix + cc.debug( "Using estimated " ) + cc.info( "gas" ) + cc.debug( "=" ) + cc.notice( estimatedGas_burn ) + "\n" );
         strActionName = "Burn ERC20";
@@ -7222,9 +7353,12 @@ export async function burnERC721(
         details.write( strLogPrefix + cc.debug( "Using computed " ) + cc.info( "gasPrice" ) + cc.debug( "=" ) + cc.notice( gasPrice ) + "\n" );
         const estimatedGas_burn =
             await tc.computeGas(
-                methodWithArguments_burn,
-                w3, 10000000, gasPrice,
-                joAccount.address( w3 ), "0"
+                details,
+                owaspUtils.ethersMod, w3,
+                "ERC721", contract, "burn", arrArguments_burn,
+                joAccount, strActionName,
+                gasPrice, 10000000, weiHowMuch_burn,
+                null
             );
         details.write( strLogPrefix + cc.debug( "Using estimated " ) + cc.info( "gas" ) + cc.debug( "=" ) + cc.notice( estimatedGas_burn ) + "\n" );
         strActionName = "Burn ERC721";
@@ -7345,9 +7479,12 @@ export async function burnERC1155(
         details.write( strLogPrefix + cc.debug( "Using computed " ) + cc.info( "gasPrice" ) + cc.debug( "=" ) + cc.notice( gasPrice ) + "\n" );
         const estimatedGas_burn =
             await tc.computeGas(
-                methodWithArguments_burn,
-                w3, 10000000, gasPrice,
-                joAccount.address( w3 ), "0"
+                details,
+                owaspUtils.ethersMod, w3,
+                "ERC1155", contract, "burn", arrArguments_burn,
+                joAccount, strActionName,
+                gasPrice, 10000000, weiHowMuch_burn,
+                null
             );
         details.write( strLogPrefix + cc.debug( "Using estimated " ) + cc.info( "gas" ) + cc.debug( "=" ) + cc.notice( estimatedGas_burn ) + "\n" );
         strActionName = "Burn ERC1155";
