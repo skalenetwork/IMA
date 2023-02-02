@@ -90,7 +90,7 @@ class ObserverServer extends SocketServer {
             //
             if( self.opts.imaState.chainProperties.mn.strURL && typeof self.opts.imaState.chainProperties.mn.strURL == "string" && self.opts.imaState.chainProperties.mn.strURL.length > 0 ) {
                 const u = self.opts.imaState.chainProperties.mn.strURL;
-                self.opts.imaState.chainProperties.mn.ethersProvider = skale_observer.getWeb3FromURL( u, self.log );
+                self.opts.imaState.chainProperties.mn.ethersProvider = owaspUtils.getEthersProviderFromURL( u );
             } else {
                 self.log(
                     cc.error( "WARNING:" ) + cc.warning( " No " ) + cc.note( "Main-net" ) +
@@ -101,7 +101,7 @@ class ObserverServer extends SocketServer {
             //
             if( self.opts.imaState.chainProperties.sc.strURL && typeof self.opts.imaState.chainProperties.sc.strURL == "string" && self.opts.imaState.chainProperties.sc.strURL.length > 0 ) {
                 const u = self.opts.imaState.chainProperties.sc.strURL;
-                self.opts.imaState.chainProperties.sc.ethersProvider = skale_observer.getWeb3FromURL( u, self.log );
+                self.opts.imaState.chainProperties.sc.ethersProvider = owaspUtils.getEthersProviderFromURL( u );
             } else {
                 self.log(
                     cc.error( "WARNING:" ) + cc.warning( " No " ) + cc.note( "Main-net" ) +

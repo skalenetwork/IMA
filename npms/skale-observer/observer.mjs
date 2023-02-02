@@ -207,7 +207,7 @@ export async function load_cached_schains_simplified( addressFrom, opts ) {
         throw new Error( "Cannot load S-Chains in observer, no imaState is provided" );
     if( opts && opts.details )
         opts.details.write( cc.debug( "Will request all S-Chain(s) hashes..." ) + "\n" );
-    const arrSChainHashes = await opts.imaState.jo_schains_internal.methods.getSchains().call( { from: addressFrom } );
+    const arrSChainHashes = await opts.imaState.jo_schains_internal.callStatic.getSchains( { from: addressFrom } );
     const cntSChains = arrSChainHashes.length;
     if( opts && opts.details )
         opts.details.write( cc.debug( "Have all " ) + cc.info( cntSChains ) + cc.debug( " S-Chain(s) hashes: " ) + cc.j( arrSChainHashes ) + "\n" );
@@ -216,7 +216,7 @@ export async function load_cached_schains_simplified( addressFrom, opts ) {
         if( opts && opts.bStopNeeded )
             break;
         const strSChainHash = arrSChainHashes[idxSChain];
-        const strSChainName = await opts.imaState.jo_schains_internal.methods.getSchainName( strSChainHash ).call( { from: addressFrom } );
+        const strSChainName = await opts.imaState.jo_schains_internal.callStatic.getSchainName( strSChainHash, { from: addressFrom } );
         if( opts && opts.details )
             opts.details.write( cc.debug( "S-Chain " ) + cc.notice( idxSChain ) + cc.debug( " hash " ) + cc.notice( strSChainHash ) + cc.debug( " corresponds to S-Chain name " ) + cc.notice( strSChainName ) + "\n" );
         if( opts && opts.bStopNeeded )
@@ -234,7 +234,7 @@ export async function load_schains_connected_only( strChainNameConnectedTo, addr
         throw new Error( "Cannot load S-Chains in observer, no imaState is provided" );
     if( opts && opts.details )
         opts.details.write( cc.debug( "Will request all S-Chain(s) hashes..." ) + "\n" );
-    const arrSChainHashes = await opts.imaState.jo_schains_internal.methods.getSchains().call( { from: addressFrom } );
+    const arrSChainHashes = await opts.imaState.jo_schains_internal.callStatic.getSchains( { from: addressFrom } );
     const cntSChains = arrSChainHashes.length;
     if( opts && opts.details )
         opts.details.write( cc.debug( "Have all " ) + cc.info( cntSChains ) + cc.debug( " S-Chain(s) hashes: " ) + cc.j( arrSChainHashes ) + "\n" );
@@ -250,7 +250,7 @@ export async function load_schains_connected_only( strChainNameConnectedTo, addr
             if( opts && opts.bStopNeeded )
                 break;
             const strSChainHash = arrSChainHashes[idxSChain];
-            const strSChainName = await opts.imaState.jo_schains_internal.methods.getSchainName( strSChainHash ).call( { from: addressFrom } );
+            const strSChainName = await opts.imaState.jo_schains_internal.callStatic.getSchainName( strSChainHash, { from: addressFrom } );
             if( opts && opts.details )
                 opts.details.write( cc.debug( "S-Chain " ) + cc.notice( idxSChain ) + cc.debug( " hash " ) + cc.notice( strSChainHash ) + cc.debug( " corresponds to S-Chain name " ) + cc.notice( strSChainName ) + "\n" );
             if( opts && opts.bStopNeeded )
@@ -266,7 +266,7 @@ export async function load_schains_connected_only( strChainNameConnectedTo, addr
                     cc.debug( "Querying connected status between S-Chain " ) + cc.info( strSChainName ) + cc.debug( " and S-Chain " ) +
                     cc.info( strChainNameConnectedTo ) + cc.debug( "..." ) + "\n" );
             }
-            const isConnected = await jo_message_proxy_s_chain.methods.isConnectedChain( strSChainName ).call( { from: addressFrom } );
+            const isConnected = await jo_message_proxy_s_chain.callStatic.isConnectedChain( strSChainName, { from: addressFrom } );
             if( opts && opts.details )
                 opts.details.write( cc.debug( "Got S-Chain " ) + cc.info( strSChainName ) + cc.debug( " connected status: " ) + cc.yn( isConnected ) + "\n" );
             if( ! isConnected )

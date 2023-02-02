@@ -640,7 +640,7 @@ export function compute_chain_id_from_schain_name( strName ) {
     while( h.length < 64 )
         h = "0" + h;
     h = h.substr( 0, 14 );
-    return "0x" + h;
+    return ensure_starts_with_0x( h );
 }
 
 export function private_key_2_account_address( keyPrivate ) {

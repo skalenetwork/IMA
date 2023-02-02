@@ -31,6 +31,7 @@ import * as child_process from "child_process";
 import { UniversalDispatcherEvent, EventDispatcher } from "../skale-cool-socket/event_dispatcher.mjs";
 
 import * as Redis from "ioredis";
+import * as ethereumjs_util from "ethereumjs_util";
 
 import * as log from "../skale-log/log.mjs";
 import * as cc from "../skale-cc/cc.mjs";
@@ -156,20 +157,20 @@ export const current_timestamp = () => { return parseInt( parseInt( Date.now().v
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-export async function wait_for_next_block_to_appear( details, w3 ) {
-    const nBlockNumber = await get_web3_blockNumber( details, 10, w3 );
+export async function safe_waitForNextBlockToAppear( details, ethersProvider ) {
+    const nBlockNumber = await safe_getBlockNumber( details, 10, ethersProvider );
     details.write( cc.debug( "Waiting for next block to appear..." ) + "\n" );
     details.write( cc.debug( "    ...have block " ) + cc.info( parseIntOrHex( nBlockNumber ) ) + "\n" );
     for( ; true; ) {
         await sleep( 1000 );
-        const nBlockNumber2 = await get_web3_blockNumber( details, 10, w3 );
+        const nBlockNumber2 = await safe_getBlockNumber( details, 10, ethersProvider );
         details.write( cc.debug( "    ...have block " ) + cc.info( parseIntOrHex( nBlockNumber2 ) ) + "\n" );
         if( nBlockNumber2 > nBlockNumber )
             break;
     }
 }
 
-export async function get_web3_blockNumber( details, cntAttempts, w3, retValOnFail, throwIfServerOffline ) {
+export async function safe_getBlockNumber( details, cntAttempts, ethersProvider, retValOnFail, throwIfServerOffline ) {
     const strFnName = "getBlockNumber";
     const u = owaspUtils.w3_2_url( w3 );
     const nWaitStepMilliseconds = 10 * 1000;
@@ -181,7 +182,7 @@ export async function get_web3_blockNumber( details, cntAttempts, w3, retValOnFa
     let idxAttempt = 1;
     let ret = retValOnFail;
     try {
-        ret = await w3.eth[strFnName]();
+        ret = await ethersProvider[strFnName]();
         return ret;
     } catch ( err ) {
         ret = retValOnFail;
@@ -211,7 +212,7 @@ export async function get_web3_blockNumber( details, cntAttempts, w3, retValOnFa
             "\n" );
         // await sleep( nWaitStepMilliseconds );
         try {
-            ret = await w3.eth[strFnName]();
+            ret = await ethersProvider[strFnName]();
             return ret;
         } catch ( err ) {
             ret = retValOnFail;
@@ -234,7 +235,7 @@ export async function get_web3_blockNumber( details, cntAttempts, w3, retValOnFa
     return ret;
 }
 
-export async function get_web3_transactionCount( details, cntAttempts, w3, address, param, retValOnFail, throwIfServerOffline ) {
+export async function safe_getTransactionCount( details, cntAttempts, w3, address, param, retValOnFail, throwIfServerOffline ) {
     const strFnName = "getTransactionCount";
     const u = owaspUtils.w3_2_url( w3 );
     const nWaitStepMilliseconds = 10 * 1000;
@@ -246,7 +247,7 @@ export async function get_web3_transactionCount( details, cntAttempts, w3, addre
     let ret = retValOnFail;
     let idxAttempt = 1;
     try {
-        ret = await w3.eth[strFnName]( address, param );
+        ret = await ethersProvider[strFnName]( address, param );
         return ret;
     } catch ( err ) {
         ret = retValOnFail;
@@ -276,7 +277,7 @@ export async function get_web3_transactionCount( details, cntAttempts, w3, addre
             "\n" );
         // await sleep( nWaitStepMilliseconds );
         try {
-            ret = await w3.eth[strFnName]( address, param );
+            ret = await ethersProvider[strFnName]( address, param );
             return ret;
         } catch ( err ) {
             ret = retValOnFail;
@@ -299,7 +300,7 @@ export async function get_web3_transactionCount( details, cntAttempts, w3, addre
     return ret;
 }
 
-export async function get_web3_transactionReceipt( details, cntAttempts, w3, txHash, retValOnFail, throwIfServerOffline ) {
+export async function safe_getTransactionReceipt( details, cntAttempts, w3, txHash, retValOnFail, throwIfServerOffline ) {
     const strFnName = "getTransactionReceipt";
     const u = owaspUtils.w3_2_url( w3 );
     const nWaitStepMilliseconds = 10 * 1000;
@@ -311,7 +312,7 @@ export async function get_web3_transactionReceipt( details, cntAttempts, w3, txH
     let ret = retValOnFail;
     let idxAttempt = 1;
     try {
-        ret = await w3.eth[strFnName]( txHash );
+        ret = await ethersProvider[strFnName]( txHash );
         return ret;
     } catch ( err ) {
         ret = retValOnFail;
@@ -341,7 +342,7 @@ export async function get_web3_transactionReceipt( details, cntAttempts, w3, txH
             "\n" );
         // await sleep( nWaitStepMilliseconds );
         try {
-            ret = await w3.eth[strFnName]( txHash );
+            ret = await ethersProvider[strFnName]( txHash );
             return ret;
         } catch ( err ) {
             ret = retValOnFail;
@@ -503,7 +504,7 @@ export async function get_web3_pastEventsIterative( details, w3, attempts, joCon
         return await get_web3_pastEvents( details, w3, attempts, joContract, strEventName, nBlockFrom, nBlockTo, joFilter );
     }
     if( nBlockFrom == 0 && nBlockTo == "latest" ) {
-        const nLatestBlockNumber = await get_web3_blockNumber( details, 10, w3 );
+        const nLatestBlockNumber = await safe_getBlockNumber( details, 10, w3 );
         if( ( nLatestBlockNumber / g_nCountOfBlocksInIterativeStep ) > g_nMaxBlockScanIterationsInAllRange ) {
             details.write(
                 cc.fatal( "IMPORTANT NOTICE:" ) + " " +
@@ -517,7 +518,7 @@ export async function get_web3_pastEventsIterative( details, w3, attempts, joCon
         cc.info( nBlockFrom ) + cc.debug( "/" ) + cc.info( nBlockTo ) +
         cc.debug( " block range..." ) + "\n" );
     if( nBlockTo == "latest" ) {
-        const nLatestBlockNumber = await get_web3_blockNumber( details, 10, w3 );
+        const nLatestBlockNumber = await safe_getBlockNumber( details, 10, w3 );
         nBlockTo = nLatestBlockNumber;
         details.write(
             cc.debug( "Iterative scan up to latest block " ) +
@@ -670,33 +671,33 @@ export async function do_oracle_gas_price_setup(
     let strActionName = "";
     try {
         strActionName = "do_oracle_gas_price_setup.latestBlockNumber()";
-        const latestBlockNumber = await ethersProvider_main_net.eth.getBlockNumber();
+        const latestBlockNumber = await ethersProvider_main_net.getBlockNumber();
         details.write( cc.debug( "Latest block on Main Net is " ) + cc.info( latestBlockNumber ) + "\n" );
         strActionName = "do_oracle_gas_price_setup.bnTimestampOfBlock()";
-        const latestBlock = await ethersProvider_main_net.eth.getBlock( latestBlockNumber );
+        const latestBlock = await ethersProvider_main_net.getBlock( latestBlockNumber );
         let bnTimestampOfBlock = owaspUtils.ethersMod.ethers.BigNumber.from( latestBlock.timestamp );
         details.write(
             cc.debug( "Local timestamp on Main Net is " ) + cc.info( bnTimestampOfBlock.toString() ) + cc.debug( "=" ) +
-            cc.info( "0x" + bnTimestampOfBlock.toString( 16 ) ) + cc.debug( " (original)" ) +
+            cc.info( owaspUtils.ensure_starts_with_0x( bnTimestampOfBlock.toString( 16 ) ) ) + cc.debug( " (original)" ) +
             "\n" );
         const bnTimeZoneOffset = owaspUtils.ethersMod.ethers.BigNumber.from( parseInt( new Date( parseInt( bnTimestampOfBlock.toString(), 10 ) ).getTimezoneOffset(), 10 ) );
         details.write(
             cc.debug( "Local time zone offset is " ) + cc.info( bnTimeZoneOffset.toString() ) + cc.debug( "=" ) +
-            cc.info( "0x" + bnTimeZoneOffset.toString( 16 ) ) + cc.debug( " (original)" ) +
+            cc.info( owaspUtils.ensure_starts_with_0x( bnTimeZoneOffset.toString( 16 ) ) ) + cc.debug( " (original)" ) +
             "\n" );
         bnTimestampOfBlock = bnTimestampOfBlock.add( bnTimeZoneOffset );
         details.write(
             cc.debug( "UTC timestamp on Main Net is " ) + cc.info( bnTimestampOfBlock.toString() ) + cc.debug( "=" ) +
-            cc.info( "0x" + bnTimestampOfBlock.toString( 16 ) ) + cc.debug( " (original)" ) +
+            cc.info( owaspUtils.ensure_starts_with_0x( bnTimestampOfBlock.toString( 16 ) ) ) + cc.debug( " (original)" ) +
             "\n" );
         const bnValueToSubtractFromTimestamp = owaspUtils.ethersMod.ethers.BigNumber.from( 60 );
         details.write(
             cc.debug( "Value to subtract from timestamp is " ) + cc.info( bnValueToSubtractFromTimestamp ) + cc.debug( "=" ) +
-            cc.info( "0x" + bnValueToSubtractFromTimestamp.toString( 16 ) ) + cc.debug( " (to adjust it to past a bit)" ) + "\n" );
+            cc.info( owaspUtils.ensure_starts_with_0x( bnValueToSubtractFromTimestamp.toString( 16 ) ) ) + cc.debug( " (to adjust it to past a bit)" ) + "\n" );
         bnTimestampOfBlock = bnTimestampOfBlock.sub( bnValueToSubtractFromTimestamp );
         details.write(
             cc.debug( "Timestamp on Main Net is " ) + cc.info( bnTimestampOfBlock.toString() ) + cc.debug( "=" ) +
-            cc.info( "0x" + bnTimestampOfBlock.toString( 16 ) ) + cc.debug( " (adjusted to past a bit)" ) +
+            cc.info( owaspUtils.ensure_starts_with_0x( bnTimestampOfBlock.toString( 16 ) ) ) + cc.debug( " (adjusted to past a bit)" ) +
             "\n" );
         strActionName = "do_oracle_gas_price_setup.getGasPrice()";
         let gasPriceOnMainNet = null;
@@ -729,7 +730,7 @@ export async function do_oracle_gas_price_setup(
             details.write(
                 cc.debug( "Will fetch " ) + cc.info( "Main Net gas price" ) +
                 cc.debug( " directly..." ) + "\n" );
-            gasPriceOnMainNet = "0x" + owaspUtils.ethersMod.ethers.BigNumber.from( await ethersProvider_main_net.eth.getGasPrice() ).toHexString();
+            gasPriceOnMainNet = owaspUtils.ensure_starts_with_0x( owaspUtils.ethersMod.ethers.BigNumber.from( await ethersProvider_main_net.getGasPrice() ).toHexString() );
         }
         details.write(
             cc.success( "Done, " ) + cc.info( "Oracle" ) + cc.success( " did computed new " ) + cc.info( "Main Net gas price" ) +
@@ -789,7 +790,7 @@ export async function do_oracle_gas_price_setup(
             strActionName = "Oracle gas price setup via CommunityLocker.setGasPrice()";
             const arrArguments_setGasPrice = [
                 u256,
-                "0x" + bnTimestampOfBlock.toString( 16 ),
+                owaspUtils.ensure_starts_with_0x( bnTimestampOfBlock.toString( 16 ) ),
                 sign // bls signature components
             ];
             if( verbose_get() >= RV_VERBOSE.debug ) {
@@ -831,7 +832,7 @@ export async function do_oracle_gas_price_setup(
                 throw new Error( strErrorOfDryRun );
 
             // TO-REMOVE:
-            // const nTransactionsCount = await get_web3_transactionCount( details, 10, ethersProvider_s_chain, joAccountS.address(), null );
+            // const nTransactionsCount = await safe_getTransactionCount( details, 10, ethersProvider_s_chain, joAccountS.address(), null );
             // details.write( strLogPrefix + cc.debug( "Got " ) + cc.info( nTransactionsCount ) + cc.debug( " from " ) + cc.notice( strActionName ) + "\n" );
             // const raw_tx_setGasPrice = {
             //     chainId: chain_id_schain,
@@ -855,7 +856,7 @@ export async function do_oracle_gas_price_setup(
             // const joSetGasPriceSR = await safe_sign_transaction_with_account( details, ethersProvider_s_chain, tx_setGasPrice, raw_tx_setGasPrice, joAccountSC );
             // let joReceipt = null;
             // if( joSetGasPriceSR.joACI.isAutoSend )
-            //     joReceipt = await get_web3_transactionReceipt( details, 10, ethersProvider_s_chain, joSetGasPriceSR.txHashSent );
+            //     joReceipt = await safe_getTransactionReceipt( details, 10, ethersProvider_s_chain, joSetGasPriceSR.txHashSent );
             // else {
             //     const serializedTx_setGasPrice = tx_setGasPrice.serialize();
             //     strActionName = "ethersProvider_s_chain.eth.sendSignedTransaction()";
@@ -977,7 +978,7 @@ export async function get_web3_pastEventsProgressive( details, w3, attempts, joC
         return await get_web3_pastEvents( details, w3, attempts, joContract, strEventName, nBlockFrom, nBlockTo, joFilter );
     }
     details.write( cc.debug( "Will run " ) + cc.attention( "progressive" ) + cc.debug( " scan..." ) + "\n" );
-    const nLatestBlockNumber = await get_web3_blockNumber( details, 10, w3 );
+    const nLatestBlockNumber = await safe_getBlockNumber( details, 10, w3 );
     details.write( cc.debug( "Current latest block number is " ) + cc.info( nLatestBlockNumber ) + "\n" );
     const arr_progressive_events_scan_plan = create_progressive_events_scan_plan( details, nLatestBlockNumber );
     details.write( cc.debug( "Composed " ) + cc.attention( "progressive" ) + cc.debug( " scan plan is: " ) + cc.j( arr_progressive_events_scan_plan ) + "\n" );
@@ -1027,7 +1028,7 @@ export async function get_web3_pastEventsProgressive( details, w3, attempts, joC
 export async function get_contract_call_events( details, w3, joContract, strEventName, nBlockNumber, strTxHash, joFilter ) {
     joFilter = joFilter || {};
     let nBlockFrom = nBlockNumber - 10, nBlockTo = nBlockNumber + 10;
-    const nLatestBlockNumber = await get_web3_blockNumber( details, 10, w3 );
+    const nLatestBlockNumber = await safe_getBlockNumber( details, 10, w3 );
     if( nBlockFrom < 0 )
         nBlockFrom = 0;
     if( nBlockTo > nLatestBlockNumber )
@@ -1342,7 +1343,7 @@ async function tm_wait( details, txId, w3, nWaitSeconds = 36000 ) {
         log.write( cc.error( "TM - TX " ) + cc.info( txId ) + cc.error( " was unsuccessful, wait failed" ) + "\n" );
         return null;
     }
-    const joReceipt = await get_web3_transactionReceipt( details, 10, w3, r.tx_hash );
+    const joReceipt = await safe_getTransactionReceipt( details, 10, w3, r.tx_hash );
     if( !joReceipt ) {
         strMsg = cc.error( "TM - TX " ) + cc.info( txId ) + cc.error( " was unsuccessful, failed to fetch transaction receipt" );
         details.write( strPrefixDetails + strMsg + "\n" );
@@ -1665,7 +1666,7 @@ export async function safe_send_signed_transaction( details, w3, serializedTx, s
         cc.bright( "Web3" ) + cc.normal( " version " ) + cc.sunny( w3.version );
     details.write( strPrefixDetails + strMsg + "\n" );
     log.write( strPrefixLog + strMsg + "\n" );
-    const strTX = "0x" + serializedTx.toString( "hex" ); // strTX is string starting from "0x"
+    const strTX = owaspUtils.ensure_starts_with_0x( serializedTx.toString( "hex" ) ); // strTX is string starting from "0x"
     details.write( strLogPrefix + cc.debug( "....signed raw TX is " ) + cc.attention( strTX ) + "\n" );
     let joReceipt = null;
     let bHaveReceipt = false;
@@ -1714,9 +1715,7 @@ export async function check_is_registered_s_chain_in_deposit_boxes( // step 1
     try {
         strActionName = "check_is_registered_s_chain_in_deposit_boxes(reg-step1)";
         const addressFrom = joAccountMN.address();
-        const bIsRegistered = await jo_linker.methods.hasSchain( chain_id_s_chain ).call( {
-            from: addressFrom
-        } );
+        const bIsRegistered = await jo_linker.callStatic.hasSchain( chain_id_s_chain, { from: addressFrom } );
         details.write( strLogPrefix + cc.success( "check_is_registered_s_chain_in_deposit_boxes(reg-step1) status is: " ) + cc.attention( bIsRegistered ) + "\n" );
         if( expose_details_get() )
             details.exposeDetailsTo( log, "check_is_registered_s_chain_in_deposit_boxes", true );
@@ -1747,11 +1746,7 @@ export async function invoke_has_chain(
         strActionName = "invoke_has_chain(hasSchain): jo_linker.hasSchain";
         details.write( strLogPrefix + cc.debug( "Will call " ) + cc.notice( strActionName ) + cc.debug( "..." ) + "\n" );
         const addressFrom = joAccount.address();
-        const bHasSchain = await jo_linker.methods.hasSchain(
-            chain_id_s_chain
-        ).call( {
-            from: addressFrom
-        } );
+        const bHasSchain = await jo_linker.callStatic.hasSchain( chain_id_s_chain, { from: addressFrom } );
         details.write( strLogPrefix + cc.success( "Got jo_linker.hasSchain() status is: " ) + cc.attention( bHasSchain ) + "\n" );
         return bHasSchain;
     } catch ( err ) {
@@ -1870,7 +1865,7 @@ export async function register_s_chain_in_deposit_boxes( // step 1
         // const joSR = await safe_sign_transaction_with_account( details, ethersProvider_main_net, tx, rawTx, joAccountMN );
         // let joReceipt = null;
         // if( joSR.joACI.isAutoSend )
-        //     joReceipt = await get_web3_transactionReceipt( details, 10, ethersProvider_main_net, joSR.txHashSent );
+        //     joReceipt = await safe_getTransactionReceipt( details, 10, ethersProvider_main_net, joSR.txHashSent );
         // else {
         //     const serializedTx = tx.serialize();
         //     strActionName = "reg-step1:ethersProvider_main_net.eth.sendSignedTransaction()";
@@ -1944,7 +1939,7 @@ export async function reimbursement_show_balance(
             cc.debug( "Querying wallet " ) + cc.notice( strReimbursementChain ) +
             cc.debug( "/" ) + cc.info( addressFrom ) +
             cc.debug( " balance..." ) + "\n" );
-        const xWei = await jo_community_pool.methods.getBalance( addressFrom, strReimbursementChain ).call();
+        const xWei = await jo_community_pool.callStatic.getBalance( addressFrom, strReimbursementChain, { from: addressFrom } );
         //
         s = strLogPrefix + cc.success( "Balance(wei): " ) + cc.attention( xWei ) + "\n";
         if( isForcePrintOut || verbose_get() >= RV_VERBOSE.information )
@@ -1989,7 +1984,7 @@ export async function reimbursement_estimate_amount(
     try {
         details.write( strLogPrefix + cc.debug( "Querying wallet " ) + cc.notice( strReimbursementChain ) + cc.debug( " balance..." ) + "\n" );
         const addressReceiver = joReceiver_main_net;
-        const xWei = await jo_community_pool.methods.getBalance( addressReceiver, strReimbursementChain ).call();
+        const xWei = await jo_community_pool.callStatic.getBalance( addressReceiver, strReimbursementChain, { from: addressReceiver } );
         //
         s = strLogPrefix + cc.success( "Balance(wei): " ) + cc.attention( xWei ) + "\n";
         if( isForcePrintOut || verbose_get() >= RV_VERBOSE.information )
@@ -2002,7 +1997,7 @@ export async function reimbursement_estimate_amount(
             log.write( s );
         details.write( s );
         //
-        const minTransactionGas = parseIntOrHex( await jo_community_pool.methods.minTransactionGas().call() );
+        const minTransactionGas = parseIntOrHex( await jo_community_pool.callStatic.minTransactionGas( { from: addressReceiver } ) );
         s = strLogPrefix + cc.success( "MinTransactionGas: " ) + cc.attention( minTransactionGas ) + "\n";
         if( isForcePrintOut || verbose_get() >= RV_VERBOSE.information )
             log.write( s );
@@ -2115,7 +2110,7 @@ export async function reimbursement_wallet_recharge(
         // const joSR = await safe_sign_transaction_with_account( details, ethersProvider_main_net, tx, rawTx, joAccountMN );
         // let joReceipt = null;
         // if( joSR.joACI.isAutoSend )
-        //     joReceipt = await get_web3_transactionReceipt( details, 10, ethersProvider_main_net, joSR.txHashSent );
+        //     joReceipt = await safe_getTransactionReceipt( details, 10, ethersProvider_main_net, joSR.txHashSent );
         // else {
         //     const serializedTx = tx.serialize();
         //     strActionName = "ethersProvider_main_net.eth.sendSignedTransaction()";
@@ -2175,7 +2170,7 @@ export async function reimbursement_wallet_withdraw(
         strActionName = "Withdraw reimbursement wallet";
         const arrArguments = [
             strReimbursementChain,
-            "0x" + owaspUtils.ethersMod.ethers.BigNumber.from( nReimbursementWithdraw ).toHexString()
+            owaspUtils.ensure_starts_with_0x( owaspUtils.ethersMod.ethers.BigNumber.from( nReimbursementWithdraw ).toHexString() )
         ];
         const weiHowMuch = undefined;
         const gasPrice = await tc_main_net.computeGasPrice( ethersProvider_main_net, 200000000000 );
@@ -2212,13 +2207,13 @@ export async function reimbursement_wallet_withdraw(
         //     gas: estimatedGas,
         //     to: jo_community_pool.options.address, // contract address
         //     data: dataTx,
-        //     value: "0x" + owaspUtils.ethersMod.ethers.BigNumber.from( weiHowMuch ).toHexString() // weiHowMuch // how much money to send
+        //     value: owaspUtils.ensure_starts_with_0x( owaspUtils.ethersMod.ethers.BigNumber.from( weiHowMuch ).toHexString() ) // weiHowMuch // how much money to send
         // };
         // const tx = compose_tx_instance( details, strLogPrefix, rawTx );
         // const joSR = await safe_sign_transaction_with_account( details, ethersProvider_main_net, tx, rawTx, joAccountMN );
         // let joReceipt = null;
         // if( joSR.joACI.isAutoSend )
-        //     joReceipt = await get_web3_transactionReceipt( details, 10, ethersProvider_main_net, joSR.txHashSent );
+        //     joReceipt = await safe_getTransactionReceipt( details, 10, ethersProvider_main_net, joSR.txHashSent );
         // else {
         //     const serializedTx = tx.serialize();
         //     strActionName = "ethersProvider_main_net.eth.sendSignedTransaction()";
@@ -2278,7 +2273,7 @@ export async function reimbursement_set_range(
         strActionName = "Set reimbursement range";
         const arrArguments = [
             strChainName_origin_chain,
-            "0x" + owaspUtils.ethersMod.ethers.BigNumber.from( nReimbursementRange ).toHexString()
+            owaspUtils.ensure_starts_with_0x( owaspUtils.ethersMod.ethers.BigNumber.from( nReimbursementRange ).toHexString() )
         ];
         const weiHowMuch = undefined;
         const gasPrice = await tc_s_chain.computeGasPrice( ethersProvider_s_chain, 200000000000 );
@@ -2327,7 +2322,7 @@ export async function reimbursement_set_range(
         // const joSR = await safe_sign_transaction_with_account( details, ethersProvider_s_chain, tx, rawTx, joAccountSC );
         // let joReceipt = null;
         // if( joSR.joACI.isAutoSend )
-        //     joReceipt = await get_web3_transactionReceipt( details, 10, ethersProvider_s_chain, joSR.txHashSent );
+        //     joReceipt = await safe_getTransactionReceipt( details, 10, ethersProvider_s_chain, joSR.txHashSent );
         // else {
         //     const serializedTx = tx.serialize();
         //     strActionName = "ethersProvider_s_chain.eth.sendSignedTransaction()";
@@ -2436,13 +2431,13 @@ export async function do_eth_payment_from_main_net(
         //     gas: estimatedGas,
         //     to: jo_deposit_box.options.address, // contract address
         //     data: dataTx,
-        //     value: "0x" + owaspUtils.ethersMod.ethers.BigNumber.from( weiHowMuch ).toHexString() // weiHowMuch // how much money to send
+        //     value: owaspUtils.ensure_starts_with_0x( owaspUtils.ethersMod.ethers.BigNumber.from( weiHowMuch ).toHexString() ) // weiHowMuch // how much money to send
         // };
         // const tx = compose_tx_instance( details, strLogPrefix, rawTx );
         // const joSR = await safe_sign_transaction_with_account( details, ethersProvider_main_net, tx, rawTx, joAccountSrc );
         // let joReceipt = null;
         // if( joSR.joACI.isAutoSend )
-        //     joReceipt = await get_web3_transactionReceipt( details, 10, ethersProvider_main_net, joSR.txHashSent );
+        //     joReceipt = await safe_getTransactionReceipt( details, 10, ethersProvider_main_net, joSR.txHashSent );
         // else {
         //     const serializedTx = tx.serialize();
         //     strActionName = "ethersProvider_main_net.eth.sendSignedTransaction()";
@@ -2533,7 +2528,7 @@ export async function do_eth_payment_from_s_chain(
     try {
         strActionName = "ETH payment from S-Chain, exitToMain";
         const arrArguments = [
-            "0x" + owaspUtils.ethersMod.ethers.BigNumber.from( weiHowMuch ).toHexString()
+            owaspUtils.ensure_starts_with_0x( owaspUtils.ethersMod.ethers.BigNumber.from( weiHowMuch ).toHexString() )
         ];
         const gasPrice = await tc_s_chain.computeGasPrice( ethersProvider_s_chain, 200000000000 );
         details.write( strLogPrefix + cc.debug( "Using computed " ) + cc.info( "gasPrice" ) + cc.debug( "=" ) + cc.notice( gasPrice ) + "\n" ); //
@@ -2581,7 +2576,7 @@ export async function do_eth_payment_from_s_chain(
         // const joSR = await safe_sign_transaction_with_account( details, ethersProvider_s_chain, tx, rawTx, joAccountSrc );
         // let joReceipt = null;
         // if( joSR.joACI.isAutoSend )
-        //     joReceipt = await get_web3_transactionReceipt( details, 10, ethersProvider_s_chain, joSR.txHashSent );
+        //     joReceipt = await safe_getTransactionReceipt( details, 10, ethersProvider_s_chain, joSR.txHashSent );
         // else {
         //     const serializedTx = tx.serialize();
         //     strActionName = "ethersProvider_s_chain.eth.sendSignedTransaction()";
@@ -2693,7 +2688,7 @@ export async function receive_eth_payment_from_s_chain_on_main_net(
         // const joSR = await safe_sign_transaction_with_account( details, ethersProvider_main_net, tx, rawTx, joAccountMN );
         // let joReceipt = null;
         // if( joSR.joACI.isAutoSend )
-        //     joReceipt = await get_web3_transactionReceipt( details, 10, ethersProvider_main_net, joSR.txHashSent );
+        //     joReceipt = await safe_getTransactionReceipt( details, 10, ethersProvider_main_net, joSR.txHashSent );
         // else {
         //     const serializedTx = tx.serialize();
         //     strActionName = "ethersProvider_main_net.eth.sendSignedTransaction()";
@@ -2750,16 +2745,14 @@ export async function view_eth_payment_from_s_chain_on_main_net(
             return null;
 
         // TO-REMOVE:
-        // strActionName = "ethersProvider_main_net.eth.getTransactionCount()/view_eth_payment_from_s_chain_on_main_net";
+        // strActionName = "ethersProvider_main_net.getTransactionCount()/view_eth_payment_from_s_chain_on_main_net";
         // details.write( strLogPrefix + cc.debug( "Will call " ) + cc.notice( strActionName ) + cc.debug( "..." ) + "\n" );
-        // const nTransactionsCount = await get_web3_transactionCount( details, 10, ethersProvider_main_net, joAccountMN.address(), null );
+        // const nTransactionsCount = await safe_getTransactionCount( details, 10, ethersProvider_main_net, joAccountMN.address(), null );
         // details.write( strLogPrefix + cc.debug( "Got " ) + cc.info( nTransactionsCount ) + cc.debug( " from " ) + cc.notice( strActionName ) + "\n" );
 
         //
         const addressFrom = joAccountMN.address();
-        const xWei = await jo_deposit_box_eth.methods.approveTransfers( addressFrom ).call( {
-            from: addressFrom
-        } );
+        const xWei = await jo_deposit_box_eth.callStatic.approveTransfers( addressFrom, { from: addressFrom } );
         details.write( strLogPrefix + cc.success( "You can receive(wei): " ) + cc.attention( xWei ) + "\n" );
         const xEth = ethersProvider_main_net.utils.fromWei( xWei, "ether" );
         const s = strLogPrefix + cc.success( "You can receive(eth): " ) + cc.attention( xEth ) + "\n";
@@ -2821,12 +2814,12 @@ export async function do_erc721_payment_from_main_net(
         const depositBoxAddress = jo_deposit_box_erc721.options.address;
         const arrArguments_approve = [
             depositBoxAddress,
-            "0x" + owaspUtils.ethersMod.ethers.BigNumber.from( token_id ).toHexString()
+            owaspUtils.ensure_starts_with_0x( owaspUtils.ethersMod.ethers.BigNumber.from( token_id ).toHexString() )
         ];
         const arrArguments_depositERC721 = [
             chain_id_s_chain,
             erc721Address_main_net,
-            "0x" + owaspUtils.ethersMod.ethers.BigNumber.from( token_id ).toHexString()
+            owaspUtils.ensure_starts_with_0x( owaspUtils.ethersMod.ethers.BigNumber.from( token_id ).toHexString() )
         ];
         const weiHowMuch_approve = undefined;
         let gasPrice = await tc_main_net.computeGasPrice( ethersProvider_main_net, 200000000000 );
@@ -2869,7 +2862,7 @@ export async function do_erc721_payment_from_main_net(
         // const joApproveSR = await safe_sign_transaction_with_account( details, ethersProvider_main_net, txApprove, rawTxApprove, joAccountSrc );
         // let joReceiptApprove = null;
         // if( joApproveSR.joACI.isAutoSend )
-        //     joReceiptApprove = await get_web3_transactionReceipt( details, 10, ethersProvider_main_net, joApproveSR.txHashSent );
+        //     joReceiptApprove = await safe_getTransactionReceipt( details, 10, ethersProvider_main_net, joApproveSR.txHashSent );
         // else {
         //     const serializedTxApprove = txApprove.serialize();
         //     details.write( cc.normal( "Will send ERC721/approve signed transaction from " ) + cc.warning( joAccountSrc.address() ) + "\n" );
@@ -2937,7 +2930,7 @@ export async function do_erc721_payment_from_main_net(
         // const joDepositSR = await safe_sign_transaction_with_account( details, ethersProvider_main_net, txDeposit, rawTxDeposit, joAccountSrc );
         // let joReceiptDeposit = null;
         // if( joDepositSR.joACI.isAutoSend )
-        //     joReceiptDeposit = await get_web3_transactionReceipt( details, 10, ethersProvider_main_net, joDepositSR.txHashSent );
+        //     joReceiptDeposit = await safe_getTransactionReceipt( details, 10, ethersProvider_main_net, joDepositSR.txHashSent );
         // else {
         //     const serializedTxDeposit = txDeposit.serialize();
         //     // send transactions
@@ -3034,12 +3027,13 @@ export async function do_erc20_payment_from_main_net(
             );
         const depositBoxAddress = jo_deposit_box_erc20.options.address;
         const arrArguments_approve = [
-            depositBoxAddress, "0x" + owaspUtils.ethersMod.ethers.BigNumber.from( token_amount ).toHexString()
+            depositBoxAddress,
+            owaspUtils.ensure_starts_with_0x( owaspUtils.ethersMod.ethers.BigNumber.from( token_amount ).toHexString() )
         ];
         const arrArguments_depositERC20 = [
             chain_id_s_chain,
             erc20Address_main_net,
-            "0x" + owaspUtils.ethersMod.ethers.BigNumber.from( token_amount ).toHexString()
+            owaspUtils.ensure_starts_with_0x( owaspUtils.ethersMod.ethers.BigNumber.from( token_amount ).toHexString() )
         ];
         const weiHowMuch_approve = undefined;
         let gasPrice = await tc_main_net.computeGasPrice( ethersProvider_main_net, 200000000000 );
@@ -3082,7 +3076,7 @@ export async function do_erc20_payment_from_main_net(
         // const joApproveSR = await safe_sign_transaction_with_account( details, ethersProvider_main_net, txApprove, rawTxApprove, joAccountSrc );
         // let joReceiptApprove = null;
         // if( joApproveSR.joACI.isAutoSend )
-        //     joReceiptApprove = await get_web3_transactionReceipt( details, 10, ethersProvider_main_net, joApproveSR.txHashSent );
+        //     joReceiptApprove = await safe_getTransactionReceipt( details, 10, ethersProvider_main_net, joApproveSR.txHashSent );
         // else {
         //     const serializedTxApprove = txApprove.serialize();
         //     strActionName = "ethersProvider_main_net.eth.sendSignedTransaction()/Approve";
@@ -3145,14 +3139,14 @@ export async function do_erc20_payment_from_main_net(
         //     to: depositBoxAddress,
         //     gasPrice: gasPrice, // 0
         //     gas: estimatedGas_deposit
-        //     // value: "0x" + owaspUtils.ethersMod.ethers.BigNumber.from( weiHowMuch ).toHexString()
+        //     // value: owaspUtils.ensure_starts_with_0x( owaspUtils.ethersMod.ethers.BigNumber.from( weiHowMuch ).toHexString() )
         // };
         // const txDeposit = compose_tx_instance( details, strLogPrefix, rawTxDeposit );
         // strActionName = "sign ERC20/deposit transaction M->S";
         // const joDepositSR = await safe_sign_transaction_with_account( details, ethersProvider_main_net, txDeposit, rawTxDeposit, joAccountSrc );
         // let joReceiptDeposit = null;
         // if( joDepositSR.joACI.isAutoSend )
-        //     joReceiptDeposit = await get_web3_transactionReceipt( details, 10, ethersProvider_main_net, joDepositSR.txHashSent );
+        //     joReceiptDeposit = await safe_getTransactionReceipt( details, 10, ethersProvider_main_net, joDepositSR.txHashSent );
         // else {
         //     const serializedTxDeposit = txDeposit.serialize();
         //     // send transactions
@@ -3253,8 +3247,8 @@ export async function do_erc1155_payment_from_main_net(
         const arrArguments_depositERC1155 = [
             chain_id_s_chain,
             erc1155Address_main_net,
-            "0x" + owaspUtils.ethersMod.ethers.BigNumber.from( token_id ).toHexString(),
-            "0x" + owaspUtils.ethersMod.ethers.BigNumber.from( token_amount ).toHexString()
+            owaspUtils.ensure_starts_with_0x( owaspUtils.ethersMod.ethers.BigNumber.from( token_id ).toHexString() ),
+            owaspUtils.ensure_starts_with_0x( owaspUtils.ethersMod.ethers.BigNumber.from( token_amount ).toHexString() )
         ];
         const weiHowMuch_approve = undefined;
         let gasPrice = await tc_main_net.computeGasPrice( ethersProvider_main_net, 200000000000 );
@@ -3297,7 +3291,7 @@ export async function do_erc1155_payment_from_main_net(
         // const joApproveSR = await safe_sign_transaction_with_account( details, ethersProvider_main_net, txApprove, rawTxApprove, joAccountSrc );
         // let joReceiptApprove = null;
         // if( joApproveSR.joACI.isAutoSend )
-        //     joReceiptApprove = await get_web3_transactionReceipt( details, 10, ethersProvider_main_net, joApproveSR.txHashSent );
+        //     joReceiptApprove = await safe_getTransactionReceipt( details, 10, ethersProvider_main_net, joApproveSR.txHashSent );
         // else {
         //     const serializedTxApprove = txApprove.serialize();
         //     details.write( cc.normal( "Will send ERC1155/approve signed transaction from " ) + cc.warning( joAccountSrc.address() ) + "\n" );
@@ -3365,7 +3359,7 @@ export async function do_erc1155_payment_from_main_net(
         // const joDepositSR = await safe_sign_transaction_with_account( details, ethersProvider_main_net, txDeposit, rawTxDeposit, joAccountSrc );
         // let joReceiptDeposit = null;
         // if( joDepositSR.joACI.isAutoSend )
-        //     joReceiptDeposit = await get_web3_transactionReceipt( details, 10, ethersProvider_main_net, joDepositSR.txHashSent );
+        //     joReceiptDeposit = await safe_getTransactionReceipt( details, 10, ethersProvider_main_net, joDepositSR.txHashSent );
         // else {
         //     const serializedTxDeposit = txDeposit.serialize();
         //     // send transactions
@@ -3465,8 +3459,8 @@ export async function do_erc1155_batch_payment_from_main_net(
         const arrArguments_depositERC1155Batch = [
             chain_id_s_chain,
             erc1155Address_main_net,
-            token_ids, //"0x" + owaspUtils.ethersMod.ethers.BigNumber.from( token_id ).toHexString(),
-            token_amounts //"0x" + owaspUtils.ethersMod.ethers.BigNumber.from( token_amount ).toHexString()
+            token_ids, //owaspUtils.ensure_starts_with_0x( owaspUtils.ethersMod.ethers.BigNumber.from( token_id ).toHexString() ),
+            token_amounts //owaspUtils.ensure_starts_with_0x( owaspUtils.ethersMod.ethers.BigNumber.from( token_amount ).toHexString() )
         ];
         const weiHowMuch_approve = undefined;
         let gasPrice = await tc_main_net.computeGasPrice( ethersProvider_main_net, 200000000000 );
@@ -3509,7 +3503,7 @@ export async function do_erc1155_batch_payment_from_main_net(
         // const joApproveSR = await safe_sign_transaction_with_account( details, ethersProvider_main_net, txApprove, rawTxApprove, joAccountSrc );
         // let joReceiptApprove = null;
         // if( joApproveSR.joACI.isAutoSend )
-        //     joReceiptApprove = await get_web3_transactionReceipt( details, 10, ethersProvider_main_net, joApproveSR.txHashSent );
+        //     joReceiptApprove = await safe_getTransactionReceipt( details, 10, ethersProvider_main_net, joApproveSR.txHashSent );
         // else {
         //     const serializedTxApprove = txApprove.serialize();
         //     details.write( cc.normal( "Will send ERC1155 Batch/approve signed transaction from " ) + cc.warning( joAccountSrc.address() ) + "\n" );
@@ -3577,7 +3571,7 @@ export async function do_erc1155_batch_payment_from_main_net(
         // const joDepositSR = await safe_sign_transaction_with_account( details, ethersProvider_main_net, txDeposit, rawTxDeposit, joAccountSrc );
         // let joReceiptDeposit = null;
         // if( joDepositSR.joACI.isAutoSend )
-        //     joReceiptDeposit = await get_web3_transactionReceipt( details, 10, ethersProvider_main_net, joDepositSR.txHashSent );
+        //     joReceiptDeposit = await safe_getTransactionReceipt( details, 10, ethersProvider_main_net, joDepositSR.txHashSent );
         // else {
         //     const serializedTxDeposit = txDeposit.serialize();
         //     // send transactions
@@ -3671,13 +3665,13 @@ export async function do_erc20_payment_from_s_chain(
                 ethersProvider_s_chain
             );
         const arrArguments_approve = [
-            tokenManagerAddress, "0x" + owaspUtils.ethersMod.ethers.BigNumber.from( token_amount ).toHexString()
+            tokenManagerAddress, owaspUtils.ensure_starts_with_0x( owaspUtils.ethersMod.ethers.BigNumber.from( token_amount ).toHexString() )
         ];
         const erc20Address_main_net = joErc20_main_net[strCoinNameErc20_main_net + "_address"];
         const arrArguments_exitToMainERC20 = [
             erc20Address_main_net,
-            "0x" + owaspUtils.ethersMod.ethers.BigNumber.from( token_amount ).toHexString()
-            // "0x" + owaspUtils.ethersMod.ethers.BigNumber.from( weiHowMuch ).toHexString()
+            owaspUtils.ensure_starts_with_0x( owaspUtils.ethersMod.ethers.BigNumber.from( token_amount ).toHexString() )
+            // owaspUtils.ensure_starts_with_0x( owaspUtils.ethersMod.ethers.BigNumber.from( weiHowMuch ).toHexString() )
         ];
         const weiHowMuch_approve = undefined;
         let gasPrice = await tc_s_chain.computeGasPrice( ethersProvider_s_chain, 200000000000 );
@@ -3706,7 +3700,7 @@ export async function do_erc20_payment_from_s_chain(
             throw new Error( strErrorOfDryRun_approve );
 
         // TO-REMOVE:
-        // const nTransactionsCount = parseIntOrHex( await get_web3_transactionCount( details, 10, ethersProvider_s_chain, joAccountSrc.address(), null ) );
+        // const nTransactionsCount = parseIntOrHex( await safe_getTransactionCount( details, 10, ethersProvider_s_chain, joAccountSrc.address(), null ) );
         // details.write( strLogPrefix + cc.debug( "Got " ) + cc.info( nTransactionsCount ) + cc.debug( " from " ) + cc.notice( strActionName ) + "\n" );
         // const rawTxApprove = {
         //     chainId: cid_s_chain,
@@ -3727,7 +3721,7 @@ export async function do_erc20_payment_from_s_chain(
         // const joApproveSR = await safe_sign_transaction_with_account( details, ethersProvider_s_chain, txApprove, rawTxApprove, joAccountSrc );
         // let joReceiptApprove = null;
         // if( joApproveSR.joACI.isAutoSend && joDepositSR.joACI.isAutoSend )
-        //     joReceiptApprove = await get_web3_transactionReceipt( details, 10, ethersProvider_s_chain, joApproveSR.txHashSent );
+        //     joReceiptApprove = await safe_getTransactionReceipt( details, 10, ethersProvider_s_chain, joApproveSR.txHashSent );
         // else {
         //     const serializedTxApprove = txApprove.serialize();
         //     // let joReceiptApprove = await ethersProvider_s_chain.eth.sendSignedTransaction( "0x" + serializedTxApprove.toString( "hex" ) );
@@ -3756,7 +3750,7 @@ export async function do_erc20_payment_from_s_chain(
             await sleep( g_nSleepBetweenTransactionsOnSChainMilliseconds );
         }
         if( g_bWaitForNextBlockOnSChain )
-            await wait_for_next_block_to_appear( details, ethersProvider_s_chain );
+            await safe_waitForNextBlockToAppear( details, ethersProvider_s_chain );
         //
         //
         //
@@ -3808,7 +3802,7 @@ export async function do_erc20_payment_from_s_chain(
         // const joExitToMainERC20SR = await safe_sign_transaction_with_account( details, ethersProvider_s_chain, txExitToMainERC20, rawTxExitToMainERC20, joAccountSrc );
         // let joReceiptExitToMainERC20 = null;
         // if( joExitToMainERC20SR.joACI.isAutoSend )
-        //     joReceiptExitToMainERC20 = await get_web3_transactionReceipt( details, 10, ethersProvider_s_chain, joExitToMainERC20SR.txHashSent );
+        //     joReceiptExitToMainERC20 = await safe_getTransactionReceipt( details, 10, ethersProvider_s_chain, joExitToMainERC20SR.txHashSent );
         // else {
         //     const serializedTxExitToMainERC20 = txExitToMainERC20.serialize();
         //     // let joReceiptExitToMainERC20 = await ethersProvider_s_chain.eth.sendSignedTransaction( "0x" + serializedTxExitToMainERC20.toString( "hex" ) );
@@ -3902,13 +3896,13 @@ export async function do_erc721_payment_from_s_chain(
         const arrArguments_approve = [
             // accountForSchain,
             tokenManagerAddress,
-            "0x" + owaspUtils.ethersMod.ethers.BigNumber.from( token_id ).toHexString()
+            owaspUtils.ensure_starts_with_0x( owaspUtils.ethersMod.ethers.BigNumber.from( token_id ).toHexString() )
         ];
         const erc721Address_main_net = joErc721_main_net[strCoinNameErc721_main_net + "_address"];
         const arrArguments_exitToMainERC721 = [
             erc721Address_main_net,
-            "0x" + owaspUtils.ethersMod.ethers.BigNumber.from( token_id ).toHexString()
-            // "0x" + owaspUtils.ethersMod.ethers.BigNumber.from( weiHowMuch ).toHexString()
+            owaspUtils.ensure_starts_with_0x( owaspUtils.ethersMod.ethers.BigNumber.from( token_id ).toHexString() )
+            // owaspUtils.ensure_starts_with_0x( owaspUtils.ethersMod.ethers.BigNumber.from( weiHowMuch ).toHexString() )
         ];
         const weiHowMuch_approve = undefined;
         let gasPrice = await tc_s_chain.computeGasPrice( ethersProvider_s_chain, 200000000000 );
@@ -3955,7 +3949,7 @@ export async function do_erc721_payment_from_s_chain(
         // const joApproveSR = await safe_sign_transaction_with_account( details, ethersProvider_s_chain, txApprove, rawTxApprove, joAccountSrc );
         // let joReceiptApprove = null;
         // if( joApproveSR.joACI.isAutoSend )
-        //     joReceiptApprove = await get_web3_transactionReceipt( details, 10, ethersProvider_s_chain, joApproveSR.txHashSent );
+        //     joReceiptApprove = await safe_getTransactionReceipt( details, 10, ethersProvider_s_chain, joApproveSR.txHashSent );
         // else {
         //     const serializedTxApprove = txApprove.serialize();
         //     // let joReceiptApprove = await ethersProvider_s_chain.eth.sendSignedTransaction( "0x" + serializedTxApprove.toString( "hex" ) );
@@ -3984,7 +3978,7 @@ export async function do_erc721_payment_from_s_chain(
             await sleep( g_nSleepBetweenTransactionsOnSChainMilliseconds );
         }
         if( g_bWaitForNextBlockOnSChain )
-            await wait_for_next_block_to_appear( details, ethersProvider_s_chain );
+            await safe_waitForNextBlockToAppear( details, ethersProvider_s_chain );
         //
         //
         //
@@ -4036,7 +4030,7 @@ export async function do_erc721_payment_from_s_chain(
         // const joExitToMainErc721SR = await safe_sign_transaction_with_account( details, ethersProvider_s_chain, txExitToMainERC721, rawTxExitToMainERC721, joAccountSrc );
         // let joReceiptExitToMainERC721 = null;
         // if( joExitToMainErc721SR.joACI.isAutoSend )
-        //     joReceiptExitToMainERC721 = await get_web3_transactionReceipt( details, 10, ethersProvider_s_chain, joExitToMainErc721SR.txHashSent );
+        //     joReceiptExitToMainERC721 = await safe_getTransactionReceipt( details, 10, ethersProvider_s_chain, joExitToMainErc721SR.txHashSent );
         // else {
         //     const serializedTxExitToMainERC721 = txExitToMainERC721.serialize();
         //     // let joReceiptExitToMainERC721 = await ethersProvider_s_chain.eth.sendSignedTransaction( "0x" + serializedTxExitToMainERC721.toString( "hex" ) );
@@ -4132,9 +4126,9 @@ export async function do_erc1155_payment_from_s_chain(
         const erc1155Address_main_net = joErc1155_main_net[strCoinNameErc1155_main_net + "_address"];
         const arrArguments_exitToMainERC1155 = [
             erc1155Address_main_net,
-            "0x" + owaspUtils.ethersMod.ethers.BigNumber.from( token_id ).toHexString(),
-            "0x" + owaspUtils.ethersMod.ethers.BigNumber.from( token_amount ).toHexString()
-            // "0x" + owaspUtils.ethersMod.ethers.BigNumber.from( weiHowMuch ).toHexString()
+            owaspUtils.ensure_starts_with_0x( owaspUtils.ethersMod.ethers.BigNumber.from( token_id ).toHexString() ),
+            owaspUtils.ensure_starts_with_0x( owaspUtils.ethersMod.ethers.BigNumber.from( token_amount ).toHexString() )
+            // owaspUtils.ensure_starts_with_0x( owaspUtils.ethersMod.ethers.BigNumber.from( weiHowMuch ).toHexString() )
         ];
         const weiHowMuch_approve = undefined;
         let gasPrice = await tc_s_chain.computeGasPrice( ethersProvider_s_chain, 200000000000 );
@@ -4182,7 +4176,7 @@ export async function do_erc1155_payment_from_s_chain(
         // const joApproveSR = await safe_sign_transaction_with_account( details, ethersProvider_s_chain, txApprove, rawTxApprove, joAccountSrc );
         // let joReceiptApprove = null;
         // if( joApproveSR.joACI.isAutoSend )
-        //     joReceiptApprove = await get_web3_transactionReceipt( details, 10, ethersProvider_s_chain, joApproveSR.txHashSent );
+        //     joReceiptApprove = await safe_getTransactionReceipt( details, 10, ethersProvider_s_chain, joApproveSR.txHashSent );
         // else {
         //     const serializedTxApprove = txApprove.serialize();
         //     // let joReceiptApprove = await ethersProvider_s_chain.eth.sendSignedTransaction( "0x" + serializedTxApprove.toString( "hex" ) );
@@ -4211,7 +4205,7 @@ export async function do_erc1155_payment_from_s_chain(
             await sleep( g_nSleepBetweenTransactionsOnSChainMilliseconds );
         }
         if( g_bWaitForNextBlockOnSChain )
-            await wait_for_next_block_to_appear( details, ethersProvider_s_chain );
+            await safe_waitForNextBlockToAppear( details, ethersProvider_s_chain );
         //
         //
         //
@@ -4263,7 +4257,7 @@ export async function do_erc1155_payment_from_s_chain(
         // const joExitToMainErc1155SR = await safe_sign_transaction_with_account( details, ethersProvider_s_chain, txExitToMainERC1155, rawTxExitToMainERC1155, joAccountSrc );
         // let joReceiptExitToMainERC1155 = null;
         // if( joExitToMainErc1155SR.joACI.isAutoSend )
-        //     joReceiptExitToMainERC1155 = await get_web3_transactionReceipt( details, 10, ethersProvider_s_chain, joExitToMainErc1155SR.txHashSent );
+        //     joReceiptExitToMainERC1155 = await safe_getTransactionReceipt( details, 10, ethersProvider_s_chain, joExitToMainErc1155SR.txHashSent );
         // else {
         //     const serializedTxExitToMainERC1155 = txExitToMainERC1155.serialize();
         //     // let joReceiptExitToMainERC1155 = await ethersProvider_s_chain.eth.sendSignedTransaction( "0x" + serializedTxExitToMainERC1155.toString( "hex" ) );
@@ -4360,9 +4354,9 @@ export async function do_erc1155_batch_payment_from_s_chain(
         const erc1155Address_main_net = joErc1155_main_net[strCoinNameErc1155_main_net + "_address"];
         const arrArguments_exitToMainERC1155Batch = [
             erc1155Address_main_net,
-            token_ids, //"0x" + owaspUtils.ethersMod.ethers.BigNumber.from( token_id ).toHexString(),
-            token_amounts //"0x" + owaspUtils.ethersMod.ethers.BigNumber.from( token_amount ).toHexString()
-            // "0x" + owaspUtils.ethersMod.ethers.BigNumber.from( weiHowMuch ).toHexString()
+            token_ids, //owaspUtils.ensure_starts_with_0x( owaspUtils.ethersMod.ethers.BigNumber.from( token_id ).toHexString() ),
+            token_amounts //owaspUtils.ensure_starts_with_0x( owaspUtils.ethersMod.ethers.BigNumber.from( token_amount ).toHexString() )
+            // owaspUtils.ensure_starts_with_0x( owaspUtils.ethersMod.ethers.BigNumber.from( weiHowMuch ).toHexString() )
         ];
         const weiHowMuch_approve = undefined;
         let gasPrice = await tc_s_chain.computeGasPrice( ethersProvider_s_chain, 200000000000 );
@@ -4410,7 +4404,7 @@ export async function do_erc1155_batch_payment_from_s_chain(
         // const joApproveSR = await safe_sign_transaction_with_account( details, ethersProvider_s_chain, txApprove, rawTxApprove, joAccountSrc );
         // let joReceiptApprove = null;
         // if( joApproveSR.joACI.isAutoSend )
-        //     joReceiptApprove = await get_web3_transactionReceipt( details, 10, ethersProvider_s_chain, joApproveSR.txHashSent );
+        //     joReceiptApprove = await safe_getTransactionReceipt( details, 10, ethersProvider_s_chain, joApproveSR.txHashSent );
         // else {
         //     const serializedTxApprove = txApprove.serialize();
         //     // let joReceiptApprove = await ethersProvider_s_chain.eth.sendSignedTransaction( "0x" + serializedTxApprove.toString( "hex" ) );
@@ -4439,7 +4433,7 @@ export async function do_erc1155_batch_payment_from_s_chain(
             await sleep( g_nSleepBetweenTransactionsOnSChainMilliseconds );
         }
         if( g_bWaitForNextBlockOnSChain )
-            await wait_for_next_block_to_appear( details, ethersProvider_s_chain );
+            await safe_waitForNextBlockToAppear( details, ethersProvider_s_chain );
         //
         //
         //
@@ -4491,7 +4485,7 @@ export async function do_erc1155_batch_payment_from_s_chain(
         // const joExitToMainErc1155BatchSR = await safe_sign_transaction_with_account( details, ethersProvider_s_chain, txExitToMainERC1155Batch, rawTxExitToMainERC1155Batch, joAccountSrc );
         // let joReceiptExitToMainERC1155Batch = null;
         // if( joExitToMainErc1155BatchSR.joACI.isAutoSend )
-        //     joReceiptExitToMainERC1155Batch = await get_web3_transactionReceipt( details, 10, ethersProvider_s_chain, joExitToMainErc1155BatchSR.txHashSent );
+        //     joReceiptExitToMainERC1155Batch = await safe_getTransactionReceipt( details, 10, ethersProvider_s_chain, joExitToMainErc1155BatchSR.txHashSent );
         // else {
         //     const serializedTxExitToMainERC1155Batch = txExitToMainERC1155Batch.serialize();
         //     // let joReceiptExitToMainERC1155Batch = await ethersProvider_s_chain.eth.sendSignedTransaction( "0x" + serializedTxExitToMainERC1155Batch.toString( "hex" ) );
@@ -4604,12 +4598,13 @@ export async function do_erc20_payment_s2s(
                 ethersProvider_src
             );
         const arrArguments_approve = [
-            jo_token_manager_erc20_src.options.address, "0x" + owaspUtils.ethersMod.ethers.BigNumber.from( nAmountOfToken ).toHexString()
+            jo_token_manager_erc20_src.options.address,
+            owaspUtils.ensure_starts_with_0x( owaspUtils.ethersMod.ethers.BigNumber.from( nAmountOfToken ).toHexString() )
         ];
         const arrArguments_transfer = [
             strChainName_dst,
             isReverse ? erc20_address_dst : erc20_address_src,
-            "0x" + owaspUtils.ethersMod.ethers.BigNumber.from( nAmountOfToken ).toHexString()
+            owaspUtils.ensure_starts_with_0x( owaspUtils.ethersMod.ethers.BigNumber.from( nAmountOfToken ).toHexString() )
         ];
         const weiHowMuch_approve = undefined;
         let gasPrice = await tc.computeGasPrice( ethersProvider_src, 200000000000 );
@@ -4652,7 +4647,7 @@ export async function do_erc20_payment_s2s(
         // const joSR_approve = await safe_sign_transaction_with_account( details, ethersProvider_src, tx_approve, rawTx_approve, joAccountSrc );
         // let joReceipt_approve = null;
         // if( joSR_approve.joACI.isAutoSend )
-        //     joReceipt_approve = await get_web3_transactionReceipt( details, 10, ethersProvider_src, joSR_approve.txHashSent );
+        //     joReceipt_approve = await safe_getTransactionReceipt( details, 10, ethersProvider_src, joSR_approve.txHashSent );
         // else {
         //     const serializedTx_approve = tx_approve.serialize();
         //     strActionName = "ethersProvider_src.eth.sendSignedTransaction()/Approve/" + ( isForward ? "forward" : "reverse" );
@@ -4714,14 +4709,14 @@ export async function do_erc20_payment_s2s(
         //     to: jo_token_manager_erc20_src.options.address,
         //     gasPrice: gasPrice, // 0
         //     gas: estimatedGas_transfer
-        //     // value: "0x" + owaspUtils.ethersMod.ethers.BigNumber.from( weiHowMuch ).toHexString()
+        //     // value: owaspUtils.ensure_starts_with_0x( owaspUtils.ethersMod.ethers.BigNumber.from( weiHowMuch ).toHexString() )
         // };
         // const tx_transfer = compose_tx_instance( details, strLogPrefix, rawTx_transfer );
         // strActionName = "sign ERC20/transfer transaction S->S " + ( isForward ? "forward" : "reverse" );
         // const joSR_transfer = await safe_sign_transaction_with_account( details, ethersProvider_src, tx_transfer, rawTx_transfer, joAccountSrc );
         // let joReceipt_transfer = null;
         // if( joSR_transfer.joACI.isAutoSend )
-        //     joReceipt_transfer = await get_web3_transactionReceipt( details, 10, ethersProvider_src, joSR_transfer.txHashSent );
+        //     joReceipt_transfer = await safe_getTransactionReceipt( details, 10, ethersProvider_src, joSR_transfer.txHashSent );
         // else {
         //     const serializedTx_transfer = tx_transfer.serialize();
         //     // send transactions
@@ -4840,12 +4835,12 @@ export async function do_erc721_payment_s2s(
             );
         const arrArguments_approve = [
             jo_token_manager_erc721_src.options.address,
-            "0x" + owaspUtils.ethersMod.ethers.BigNumber.from( token_id ).toHexString()
+            owaspUtils.ensure_starts_with_0x( owaspUtils.ethersMod.ethers.BigNumber.from( token_id ).toHexString() )
         ];
         const arrArguments_transfer = [
             strChainName_dst,
             isReverse ? erc721_address_dst : erc721_address_src,
-            "0x" + owaspUtils.ethersMod.ethers.BigNumber.from( token_id ).toHexString()
+            owaspUtils.ensure_starts_with_0x( owaspUtils.ethersMod.ethers.BigNumber.from( token_id ).toHexString() )
         ];
         const weiHowMuch_approve = undefined;
         let gasPrice = await tc.computeGasPrice( ethersProvider_src, 7210000000000 );
@@ -4888,7 +4883,7 @@ export async function do_erc721_payment_s2s(
         // const joSR_approve = await safe_sign_transaction_with_account( details, ethersProvider_src, tx_approve, rawTx_approve, joAccountSrc );
         // let joReceipt_approve = null;
         // if( joSR_approve.joACI.isAutoSend )
-        //     joReceipt_approve = await get_web3_transactionReceipt( details, 10, ethersProvider_src, joSR_approve.txHashSent );
+        //     joReceipt_approve = await safe_getTransactionReceipt( details, 10, ethersProvider_src, joSR_approve.txHashSent );
         // else {
         //     const serializedTx_approve = tx_approve.serialize();
         //     strActionName = "ethersProvider_src.eth.sendSignedTransaction()/Approve/" + ( isForward ? "forward" : "reverse" );
@@ -4950,14 +4945,14 @@ export async function do_erc721_payment_s2s(
         //     to: jo_token_manager_erc721_src.options.address,
         //     gasPrice: gasPrice, // 0
         //     gas: estimatedGas_transfer
-        //     // value: "0x" + owaspUtils.ethersMod.ethers.BigNumber.from( weiHowMuch ).toHexString()
+        //     // value: owaspUtils.ensure_starts_with_0x( owaspUtils.ethersMod.ethers.BigNumber.from( weiHowMuch ).toHexString() )
         // };
         // const tx_transfer = compose_tx_instance( details, strLogPrefix, rawTx_transfer );
         // strActionName = "sign ERC721/transfer transaction S->S " + ( isForward ? "forward" : "reverse" );
         // const joSR_transfer = await safe_sign_transaction_with_account( details, ethersProvider_src, tx_transfer, rawTx_transfer, joAccountSrc );
         // let joReceipt_transfer = null;
         // if( joSR_transfer.joACI.isAutoSend )
-        //     joReceipt_transfer = await get_web3_transactionReceipt( details, 10, ethersProvider_src, joSR_transfer.txHashSent );
+        //     joReceipt_transfer = await safe_getTransactionReceipt( details, 10, ethersProvider_src, joSR_transfer.txHashSent );
         // else {
         //     const serializedTx_transfer = tx_transfer.serialize();
         //     // send transactions
@@ -5082,8 +5077,8 @@ export async function do_erc1155_payment_s2s(
         const arrArguments_transfer = [
             strChainName_dst,
             isReverse ? erc1155_address_dst : erc1155_address_src,
-            "0x" + owaspUtils.ethersMod.ethers.BigNumber.from( token_id ).toHexString(),
-            "0x" + owaspUtils.ethersMod.ethers.BigNumber.from( nAmountOfToken ).toHexString()
+            owaspUtils.ensure_starts_with_0x( owaspUtils.ethersMod.ethers.BigNumber.from( token_id ).toHexString() ),
+            owaspUtils.ensure_starts_with_0x( owaspUtils.ethersMod.ethers.BigNumber.from( nAmountOfToken ).toHexString() )
         ];
         const weiHowMuch_approve = undefined;
         let gasPrice = await tc.computeGasPrice( ethersProvider_src, 11550000000000 );
@@ -5126,7 +5121,7 @@ export async function do_erc1155_payment_s2s(
         // const joSR_approve = await safe_sign_transaction_with_account( details, ethersProvider_src, tx_approve, rawTx_approve, joAccountSrc );
         // let joReceipt_approve = null;
         // if( joSR_approve.joACI.isAutoSend )
-        //     joReceipt_approve = await get_web3_transactionReceipt( details, 10, ethersProvider_src, joSR_approve.txHashSent );
+        //     joReceipt_approve = await safe_getTransactionReceipt( details, 10, ethersProvider_src, joSR_approve.txHashSent );
         // else {
         //     const serializedTx_approve = tx_approve.serialize();
         //     strActionName = "ethersProvider_src.eth.sendSignedTransaction()/Approve/" + ( isForward ? "forward" : "reverse" );
@@ -5188,14 +5183,14 @@ export async function do_erc1155_payment_s2s(
         //     to: jo_token_manager_erc1155_src.options.address,
         //     gasPrice: gasPrice, // 0
         //     gas: estimatedGas_transfer
-        //     // value: "0x" + owaspUtils.ethersMod.ethers.BigNumber.from( weiHowMuch ).toHexString()
+        //     // value: owaspUtils.ensure_starts_with_0x( owaspUtils.ethersMod.ethers.BigNumber.from( weiHowMuch ).toHexString() )
         // };
         // const tx_transfer = compose_tx_instance( details, strLogPrefix, rawTx_transfer );
         // strActionName = "sign ERC1155/transfer transaction S->S " + ( isForward ? "forward" : "reverse" );
         // const joSR_transfer = await safe_sign_transaction_with_account( details, ethersProvider_src, tx_transfer, rawTx_transfer, joAccountSrc );
         // let joReceipt_transfer = null;
         // if( joSR_transfer.joACI.isAutoSend )
-        //     joReceipt_transfer = await get_web3_transactionReceipt( details, 10, ethersProvider_src, joSR_transfer.txHashSent );
+        //     joReceipt_transfer = await safe_getTransactionReceipt( details, 10, ethersProvider_src, joSR_transfer.txHashSent );
         // else {
         //     const serializedTx_transfer = tx_transfer.serialize();
         //     // send transactions
@@ -5364,7 +5359,7 @@ export async function do_erc1155_batch_payment_s2s(
         // const joSR_approve = await safe_sign_transaction_with_account( details, ethersProvider_src, tx_approve, rawTx_approve, joAccountSrc );
         // let joReceipt_approve = null;
         // if( joSR_approve.joACI.isAutoSend )
-        //     joReceipt_approve = await get_web3_transactionReceipt( details, 10, ethersProvider_src, joSR_approve.txHashSent );
+        //     joReceipt_approve = await safe_getTransactionReceipt( details, 10, ethersProvider_src, joSR_approve.txHashSent );
         // else {
         //     const serializedTx_approve = tx_approve.serialize();
         //     strActionName = "ethersProvider_src.eth.sendSignedTransaction()/Approve/" + ( isForward ? "forward" : "reverse" );
@@ -5426,14 +5421,14 @@ export async function do_erc1155_batch_payment_s2s(
         //     to: jo_token_manager_erc1155_src.options.address,
         //     gasPrice: gasPrice, // 0
         //     gas: estimatedGas_transfer
-        //     // value: "0x" + owaspUtils.ethersMod.ethers.BigNumber.from( weiHowMuch ).toHexString()
+        //     // value: owaspUtils.ensure_starts_with_0x( owaspUtils.ethersMod.ethers.BigNumber.from( weiHowMuch ).toHexString() )
         // };
         // const tx_transfer = compose_tx_instance( details, strLogPrefix, rawTx_transfer );
         // strActionName = "sign ERC1155-batch/transfer transaction S->S " + ( isForward ? "forward" : "reverse" );
         // const joSR_transfer = await safe_sign_transaction_with_account( details, ethersProvider_src, tx_transfer, rawTx_transfer, joAccountSrc );
         // let joReceipt_transfer = null;
         // if( joSR_transfer.joACI.isAutoSend )
-        //     joReceipt_transfer = await get_web3_transactionReceipt( details, 10, ethersProvider_src, joSR_transfer.txHashSent );
+        //     joReceipt_transfer = await safe_getTransactionReceipt( details, 10, ethersProvider_src, joSR_transfer.txHashSent );
         // else {
         //     const serializedTx_transfer = tx_transfer.serialize();
         //     // send transactions
@@ -5692,9 +5687,7 @@ export async function do_transfer(
         strActionName = "src-chain.MessageProxy.getOutgoingMessagesCounter()";
         try {
             details.write( strLogPrefix + cc.debug( "Will call " ) + cc.notice( strActionName ) + cc.debug( "..." ) + "\n" );
-            const nPossibleIntegerValue = await jo_message_proxy_src.methods.getOutgoingMessagesCounter( chain_id_dst ).call( {
-                from: joAccountSrc.address()
-            } );
+            const nPossibleIntegerValue = await jo_message_proxy_src.callStatic.getOutgoingMessagesCounter( chain_id_dst, { from: joAccountSrc.address() } );
             if( !owaspUtils.validateInteger( nPossibleIntegerValue ) )
                 throw new Error( "DST chain " + chain_id_dst + " returned outgoing message counter " + nPossibleIntegerValue + " which is not a valid integer" );
             nOutMsgCnt = owaspUtils.toInteger( nPossibleIntegerValue );
@@ -5710,18 +5703,14 @@ export async function do_transfer(
         //
         strActionName = "dst-chain.MessageProxy.getIncomingMessagesCounter()";
         details.write( strLogPrefix + cc.debug( "Will call " ) + cc.notice( strActionName ) + cc.debug( "..." ) + "\n" );
-        nPossibleIntegerValue = await jo_message_proxy_dst.methods.getIncomingMessagesCounter( chain_id_src ).call( {
-            from: joAccountDst.address()
-        } );
+        nPossibleIntegerValue = await jo_message_proxy_dst.callStatic.getIncomingMessagesCounter( chain_id_src, { from: joAccountDst.address() } );
         if( !owaspUtils.validateInteger( nPossibleIntegerValue ) )
             throw new Error( "SRC chain " + chain_id_src + " returned incoming message counter " + nPossibleIntegerValue + " which is not a valid integer" );
         nIncMsgCnt = owaspUtils.toInteger( nPossibleIntegerValue );
         details.write( strLogPrefix + cc.debug( "Result of " ) + cc.notice( strActionName ) + cc.debug( " call: " ) + cc.info( nIncMsgCnt ) + "\n" );
         //
         strActionName = "src-chain.MessageProxy.getIncomingMessagesCounter()";
-        nPossibleIntegerValue = await jo_message_proxy_src.methods.getIncomingMessagesCounter( chain_id_dst ).call( {
-            from: joAccountSrc.address()
-        } );
+        nPossibleIntegerValue = await jo_message_proxy_src.callStatic.getIncomingMessagesCounter( chain_id_dst, { from: joAccountSrc.address() } );
         if( !owaspUtils.validateInteger( nPossibleIntegerValue ) )
             throw new Error( "DST chain " + chain_id_dst + " returned incoming message counter " + nPossibleIntegerValue + " which is not a valid integer" );
         const idxLastToPopNotIncluding = owaspUtils.toInteger( nPossibleIntegerValue );
@@ -5730,9 +5719,7 @@ export async function do_transfer(
         //
         // optimized scanner
         //
-        const nBlockId = await jo_message_proxy_src.methods.getLastOutgoingMessageBlockId( chain_id_dst ).call( {
-            from: joAccountSrc.address()
-        } );
+        const nBlockId = await jo_message_proxy_src.callStatic.getLastOutgoingMessageBlockId( chain_id_dst, { from: joAccountSrc.address() } );
         // const joReferenceLogRecord = await find_out_reference_log_record( details, ethersProvider_src, jo_message_proxy_src, nBlockId, nOutMsgCnt - 1, true );
         let arrLogRecordReferences = [];
         try {
@@ -5873,7 +5860,7 @@ export async function do_transfer(
                         details.write( strLogPrefix + cc.debug( "Event transactionHash is " ) + cc.info( transactionHash ) + "\n" );
                         const blockNumber = r[0].blockNumber;
                         details.write( strLogPrefix + cc.debug( "Event blockNumber is " ) + cc.info( blockNumber ) + "\n" );
-                        const nLatestBlockNumber = await get_web3_blockNumber( details, 10, ethersProvider_src );
+                        const nLatestBlockNumber = await safe_getBlockNumber( details, 10, ethersProvider_src );
                         details.write( strLogPrefix + cc.debug( "Latest blockNumber is " ) + cc.info( nLatestBlockNumber ) + "\n" );
                         const nDist = nLatestBlockNumber - blockNumber;
                         if( nDist < nBlockAwaitDepth )
@@ -5911,7 +5898,7 @@ export async function do_transfer(
                         details.write( strLogPrefix + cc.debug( "Event blockNumber is " ) + cc.info( blockNumber ) + "\n" );
                         //
                         //
-                        const joBlock = await ethersProvider_src.eth.getBlock( blockNumber );
+                        const joBlock = await ethersProvider_src.getBlock( blockNumber );
                         if( !owaspUtils.validateInteger( joBlock.timestamp ) )
                             throw new Error( "Block \"timestamp\" is not a valid integer value: " + joBlock.timestamp );
                         const timestampBlock = owaspUtils.toInteger( joBlock.timestamp );
@@ -6051,7 +6038,7 @@ export async function do_transfer(
                                 cc.debug( " using URL " ) + cc.info( jo_node.http_endpoint_ip ) +
                                 cc.debug( "..." ) + "\n" );
                             try {
-                                const w3_node = getWeb3FromURL( jo_node.http_endpoint_ip, details );
+                                const w3_node = owaspUtils.getEthersProviderFromURL( jo_node.http_endpoint_ip );
                                 const jo_message_proxy_node =
                                     new owaspUtils.ethersMod.ethers.Contract(
                                         imaState.chainProperties.sc.joAbiIMA.message_proxy_chain_address,
@@ -6222,7 +6209,7 @@ export async function do_transfer(
 
                         // TO-REMOVE:
                         // strActionName = "dst-chain.getTransactionCount()";
-                        // const nTransactionsCount = await get_web3_transactionCount( detailsB, 10, ethersProvider_dst, joAccountDst.address(), null );
+                        // const nTransactionsCount = await safe_getTransactionCount( detailsB, 10, ethersProvider_dst, joAccountDst.address(), null );
                         // detailsB.write( strLogPrefix + cc.debug( "Got " ) + cc.info( nTransactionsCount ) + cc.debug( " from " ) + cc.notice( strActionName ) + "\n" );
 
                         //
@@ -6328,7 +6315,7 @@ export async function do_transfer(
                         // const joPostIncomingMessagesSR = await safe_sign_transaction_with_account( detailsB, ethersProvider_dst, tx_postIncomingMessages, raw_tx_postIncomingMessages, joAccountDst );
                         // let joReceipt = null;
                         // if( joPostIncomingMessagesSR.joACI.isAutoSend )
-                        //     joReceipt = await get_web3_transactionReceipt( detailsB, 10, ethersProvider_dst, joPostIncomingMessagesSR.txHashSent );
+                        //     joReceipt = await safe_getTransactionReceipt( detailsB, 10, ethersProvider_dst, joPostIncomingMessagesSR.txHashSent );
                         // else {
                         //     const serializedTx_postIncomingMessages = tx_postIncomingMessages.serialize();
                         //     strActionName = "ethersProvider_dst.eth.sendSignedTransaction()";
@@ -6475,7 +6462,7 @@ export async function do_s2s_all( // s-chain --> s-chain
     for( let idxSChain = 0; idxSChain < cntSChains; ++ idxSChain ) {
         const jo_schain = arr_schains_cached[idxSChain];
         const url_src = skale_observer.pick_random_schain_url( jo_schain );
-        const ethersProvider_src = getWeb3FromURL( url_src, log );
+        const ethersProvider_src = owaspUtils.getEthersProviderFromURL( url_src );
         const joAccountSrc = joAccountDst; // ???
         const chain_id_src = "" + jo_schain.data.name;
         const cid_src = "" + jo_schain.data.computed.chainId;
@@ -6706,7 +6693,7 @@ export const tc_t_chain = new TransactionCustomizer( null, 1.25 );
 export async function checkTransactionToSchain( ethersProvider_s_chain, tx, details ) {
     const sender = tx.from;
     const requiredBalance = tx.gasPrice * tx.gas;
-    const balance = await ethersProvider_s_chain.eth.getBalance( sender );
+    const balance = await ethersProvider_s_chain.getBalance( sender );
     if( balance < requiredBalance ) {
         details.write(
             cc.warning( "Insufficient funds for " ) + cc.bright( tx.from ) +
@@ -6718,16 +6705,16 @@ export async function checkTransactionToSchain( ethersProvider_s_chain, tx, deta
             cc.warning( "Done, " ) + cc.sunny( "PoW" ) +
             cc.warning( " number is " ) + cc.bright( powNumber ) +
             "\n" );
-        tx.gasPrice = ethereumjs_util.addHexPrefix( powNumber );
+        tx.gasPrice = owaspUtils.ensure_starts_with_0x( powNumber );
     }
     return tx;
 }
 
 export async function calculatePowNumber( address, nonce, gas, details ) {
     try {
-        let _address = ethereumjs_util.addHexPrefix( address );
+        let _address = owaspUtils.ensure_starts_with_0x( address );
         _address = ethereumjs_util.toChecksumAddress( _address );
-        _address = ethereumjs_util.stripHexPrefix( _address );
+        _address = owaspUtils.remove_starting_0x( _address );
         const _nonce = parseIntOrHex( nonce );
         const _gas = parseIntOrHex( gas );
         const powScriptPath = path.join( __dirname, "pow" );
@@ -6762,21 +6749,21 @@ export function execShellCommand( cmd ) {
 
 export async function balanceETH(
     isMainNet,
-    w3,
+    ethersProvider,
     cid,
     joAccount,
     contractERC20
 ) {
     strLogPrefix = cc.info( "balanceETH() call" ) + " ";
     try {
-        if( ! ( w3 && joAccount ) )
+        if( ! ( ethersProvider && joAccount ) )
             return "<no-data>";
         const strAddress = joAccount.address();
         if( ( !isMainNet ) && contractERC20 ) {
-            const balance = await contractERC20.methods.balanceOf( strAddress ).call( { from: strAddress } );
+            const balance = await contractERC20.callStatic.balanceOf( strAddress, { from: strAddress } );
             return balance;
         }
-        const balance = await w3.eth.getBalance( strAddress );
+        const balance = await ethersProvider.getBalance( strAddress );
         return balance;
     } catch ( err ) {
         const strError = owaspUtils.extract_error_message( err );
@@ -6804,7 +6791,7 @@ export async function balanceERC20(
             joABI[strCoinName + "_abi"],
             w3
         );
-        const balance = await contractERC20.methods.balanceOf( strAddress ).call( { from: strAddress } );
+        const balance = await contractERC20.callStatic.balanceOf( strAddress, { from: strAddress } );
         return balance;
     } catch ( err ) {
         const strError = owaspUtils.extract_error_message( err );
@@ -6833,7 +6820,7 @@ export async function ownerOfERC721(
             joABI[strCoinName + "_abi"],
             w3
         );
-        const owner = await contractERC721.methods.ownerOf( idToken ).call( { from: strAddress } );
+        const owner = await contractERC721.callStatic.ownerOf( idToken, { from: strAddress } );
         return owner;
     } catch ( err ) {
         const strError = owaspUtils.extract_error_message( err );
@@ -6862,7 +6849,7 @@ export async function balanceERC1155(
             joABI[strCoinName + "_abi"],
             w3
         );
-        const balance = await contractERC1155.methods.balanceOf( strAddress, idToken ).call( { from: strAddress } );
+        const balance = await contractERC1155.callStatic.balanceOf( strAddress, idToken, { from: strAddress } );
         return balance;
     } catch ( err ) {
         const strError = owaspUtils.extract_error_message( err );
@@ -6903,7 +6890,7 @@ export async function mintERC20(
         );
         const arrArguments_mint = [
             strAddressMintTo,
-            "0x" + owaspUtils.ethersMod.ethers.BigNumber.from( nAmount ).toHexString()
+            owaspUtils.ensure_starts_with_0x( owaspUtils.ethersMod.ethers.BigNumber.from( nAmount ).toHexString() )
         ];
         const weiHowMuch_mint = undefined;
         const gasPrice = await tc.computeGasPrice( ethersProvider, 200000000000 );
@@ -6934,7 +6921,7 @@ export async function mintERC20(
 
         // TO-REMOVE:
         // strActionName = "mintERC20() fetch transaction count";
-        // const nTransactionsCount = await get_web3_transactionCount( details, 10, w3, joAccount.address(), null );
+        // const nTransactionsCount = await safe_getTransactionCount( details, 10, w3, joAccount.address(), null );
         // details.write( strLogPrefix + cc.debug( "Got " ) + cc.info( nTransactionsCount ) + cc.debug( " from " ) + cc.notice( strActionName ) + "\n" );
         // strActionName = "mintERC20() compose transaction";
         // const raw_tx_mint = {
@@ -6961,7 +6948,7 @@ export async function mintERC20(
         // const joSR = await safe_sign_transaction_with_account( details, w3, tx_mint, raw_tx_mint, joAccount );
         // let joReceipt = null;
         // if( joSR.joACI.isAutoSend )
-        //     joReceipt = await get_web3_transactionReceipt( details, 10, w3, joSR.txHashSent );
+        //     joReceipt = await safe_getTransactionReceipt( details, 10, w3, joSR.txHashSent );
         // else {
         //     const serializedTx_mint = tx_mint.serialize();
         //     strActionName = "w3.eth.sendSignedTransaction()";
@@ -7030,7 +7017,7 @@ export async function mintERC721(
             );
         const arrArguments_mint = [
             strAddressMintTo,
-            "0x" + owaspUtils.ethersMod.ethers.BigNumber.from( idToken ).toHexString()
+            owaspUtils.ensure_starts_with_0x( owaspUtils.ethersMod.ethers.BigNumber.from( idToken ).toHexString() )
         ];
         const weiHowMuch_mint = undefined;
         const gasPrice = await tc.computeGasPrice( w3, 200000000000 );
@@ -7061,7 +7048,7 @@ export async function mintERC721(
 
         // TO-REMOVE:
         // strActionName = "mintERC721() fetch transaction count";
-        // const nTransactionsCount = await get_web3_transactionCount( details, 10, w3, joAccount.address(), null );
+        // const nTransactionsCount = await safe_getTransactionCount( details, 10, w3, joAccount.address(), null );
         // details.write( strLogPrefix + cc.debug( "Got " ) + cc.info( nTransactionsCount ) + cc.debug( " from " ) + cc.notice( strActionName ) + "\n" );
         // strActionName = "mintERC721() compose transaction";
         // const raw_tx_mint = {
@@ -7089,7 +7076,7 @@ export async function mintERC721(
         // const joSR = await safe_sign_transaction_with_account( details, w3, tx_mint, raw_tx_mint, joAccount );
         // let joReceipt = null;
         // if( joSR.joACI.isAutoSend )
-        //     joReceipt = await get_web3_transactionReceipt( details, 10, w3, joSR.txHashSent );
+        //     joReceipt = await safe_getTransactionReceipt( details, 10, w3, joSR.txHashSent );
         // else {
         //     const serializedTx_mint = tx_mint.serialize();
         //     strActionName = "w3.eth.sendSignedTransaction()";
@@ -7159,8 +7146,8 @@ export async function mintERC1155(
             );
         const arrArguments_mint = [
             strAddressMintTo,
-            "0x" + owaspUtils.ethersMod.ethers.BigNumber.from( idToken ).toHexString(),
-            "0x" + owaspUtils.ethersMod.ethers.BigNumber.from( nAmount ).toHexString(),
+            owaspUtils.ensure_starts_with_0x( owaspUtils.ethersMod.ethers.BigNumber.from( idToken ).toHexString() ),
+            owaspUtils.ensure_starts_with_0x( owaspUtils.ethersMod.ethers.BigNumber.from( nAmount ).toHexString() ),
             [] // data
         ];
         const weiHowMuch_mint = undefined;
@@ -7192,7 +7179,7 @@ export async function mintERC1155(
 
         // TO-REMOVE:
         // strActionName = "mintERC1155() fetch transaction count";
-        // const nTransactionsCount = await get_web3_transactionCount( details, 10, w3, joAccount.address(), null );
+        // const nTransactionsCount = await safe_getTransactionCount( details, 10, w3, joAccount.address(), null );
         // details.write( strLogPrefix + cc.debug( "Got " ) + cc.info( nTransactionsCount ) + cc.debug( " from " ) + cc.notice( strActionName ) + "\n" );
         // strActionName = "mintERC1155() compose transaction";
         // const raw_tx_mint = {
@@ -7220,7 +7207,7 @@ export async function mintERC1155(
         // const joSR = await safe_sign_transaction_with_account( details, w3, tx_mint, raw_tx_mint, joAccount );
         // let joReceipt = null;
         // if( joSR.joACI.isAutoSend )
-        //     joReceipt = await get_web3_transactionReceipt( details, 10, w3, joSR.txHashSent );
+        //     joReceipt = await safe_getTransactionReceipt( details, 10, w3, joSR.txHashSent );
         // else {
         //     const serializedTx_mint = tx_mint.serialize();
         //     strActionName = "w3.eth.sendSignedTransaction()";
@@ -7289,7 +7276,7 @@ export async function burnERC20(
             );
         const arrArguments_burn = [
             strAddressBurnFrom,
-            "0x" + owaspUtils.ethersMod.ethers.BigNumber.from( nAmount ).toHexString()
+            owaspUtils.ensure_starts_with_0x( owaspUtils.ethersMod.ethers.BigNumber.from( nAmount ).toHexString() )
         ];
         const weiHowMuch_burn = undefined;
         const gasPrice = await tc.computeGasPrice( ethersProvider, 200000000000 );
@@ -7320,7 +7307,7 @@ export async function burnERC20(
 
         // TO-REMOVE:
         // strActionName = "burnERC20() fetch transaction count";
-        // const nTransactionsCount = await get_web3_transactionCount( details, 10, w3, joAccount.address(), null );
+        // const nTransactionsCount = await safe_getTransactionCount( details, 10, w3, joAccount.address(), null );
         // details.write( strLogPrefix + cc.debug( "Got " ) + cc.info( nTransactionsCount ) + cc.debug( " from " ) + cc.notice( strActionName ) + "\n" );
         // strActionName = "burnERC20() compose transaction";
         // const raw_tx_burn = {
@@ -7348,7 +7335,7 @@ export async function burnERC20(
         // const joSR = await safe_sign_transaction_with_account( details, w3, tx_burn, raw_tx_burn, joAccount );
         // let joReceipt = null;
         // if( joSR.joACI.isAutoSend )
-        //     joReceipt = await get_web3_transactionReceipt( details, 10, w3, joSR.txHashSent );
+        //     joReceipt = await safe_getTransactionReceipt( details, 10, w3, joSR.txHashSent );
         // else {
         //     const serializedTx_burn = tx_burn.serialize();
         //     strActionName = "w3.eth.sendSignedTransaction()";
@@ -7417,7 +7404,7 @@ export async function burnERC721(
             );
         const arrArguments_burn = [
             //strAddressBurnFrom,
-            "0x" + owaspUtils.ethersMod.ethers.BigNumber.from( idToken ).toHexString()
+            owaspUtils.ensure_starts_with_0x( owaspUtils.ethersMod.ethers.BigNumber.from( idToken ).toHexString() )
         ];
         const weiHowMuch_burn = undefined;
         const gasPrice = await tc.computeGasPrice( ethersProvider, 200000000000 );
@@ -7448,7 +7435,7 @@ export async function burnERC721(
 
         // TO-REMOVE:
         // strActionName = "burnERC721() fetch transaction count";
-        // const nTransactionsCount = await get_web3_transactionCount( details, 10, w3, joAccount.address(), null );
+        // const nTransactionsCount = await safe_getTransactionCount( details, 10, w3, joAccount.address(), null );
         // details.write( strLogPrefix + cc.debug( "Got " ) + cc.info( nTransactionsCount ) + cc.debug( " from " ) + cc.notice( strActionName ) + "\n" );
         // strActionName = "burnERC721() compose transaction";
         // const raw_tx_burn = {
@@ -7476,7 +7463,7 @@ export async function burnERC721(
         // const joSR = await safe_sign_transaction_with_account( details, w3, tx_burn, raw_tx_burn, joAccount );
         // let joReceipt = null;
         // if( joSR.joACI.isAutoSend )
-        //     joReceipt = await get_web3_transactionReceipt( details, 10, w3, joSR.txHashSent );
+        //     joReceipt = await safe_getTransactionReceipt( details, 10, w3, joSR.txHashSent );
         // else {
         //     const serializedTx_burn = tx_burn.serialize();
         //     strActionName = "w3.eth.sendSignedTransaction()";
@@ -7546,8 +7533,8 @@ export async function burnERC1155(
             );
         const arrArguments_burn = [
             strAddressBurnFrom,
-            "0x" + owaspUtils.ethersMod.ethers.BigNumber.from( idToken ).toHexString(),
-            "0x" + owaspUtils.ethersMod.ethers.BigNumber.from( nAmount ).toHexString()
+            owaspUtils.ensure_starts_with_0x( owaspUtils.ethersMod.ethers.BigNumber.from( idToken ).toHexString() ),
+            owaspUtils.ensure_starts_with_0x( owaspUtils.ethersMod.ethers.BigNumber.from( nAmount ).toHexString() )
         ];
         const weiHowMuch_burn = undefined;
         const gasPrice = await tc.computeGasPrice( ethersProvider, 200000000000 );
@@ -7578,7 +7565,7 @@ export async function burnERC1155(
 
         // TO-REMOVE:
         // strActionName = "burnERC1155() fetch transaction count";
-        // const nTransactionsCount = await get_web3_transactionCount( details, 10, w3, joAccount.address(), null );
+        // const nTransactionsCount = await safe_getTransactionCount( details, 10, w3, joAccount.address(), null );
         // details.write( strLogPrefix + cc.debug( "Got " ) + cc.info( nTransactionsCount ) + cc.debug( " from " ) + cc.notice( strActionName ) + "\n" );
         // strActionName = "burnERC1155() compose transaction";
         // const raw_tx_burn = {
@@ -7606,7 +7593,7 @@ export async function burnERC1155(
         // const joSR = await safe_sign_transaction_with_account( details, w3, tx_burn, raw_tx_burn, joAccount );
         // let joReceipt = null;
         // if( joSR.joACI.isAutoSend )
-        //     joReceipt = await get_web3_transactionReceipt( details, 10, w3, joSR.txHashSent );
+        //     joReceipt = await safe_getTransactionReceipt( details, 10, w3, joSR.txHashSent );
         // else {
         //     const serializedTx_burn = tx_burn.serialize();
         //     strActionName = "w3.eth.sendSignedTransaction()";

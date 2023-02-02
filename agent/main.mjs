@@ -1635,7 +1635,7 @@ imaCLI.parse( {
                             cc.attention( "chain ID" ) +
                             "\n" );
                     } else {
-                        const cid16 = "0x" + owaspUtils.ethersMod.ethers.BigNumber.from( chainID ).toHexString();
+                        const cid16 = owaspUtils.ensure_starts_with_0x( owaspUtils.ethersMod.ethers.BigNumber.from( chainID ).toHexString() );
                         const cid10 = "" + owaspUtils.ethersMod.ethers.BigNumber.from( chainID ).toString();
                         log.write( strLogPrefix +
                             cc.normal( "Got " ) + cc.note( joDiscoverEntry.name ) + " " +

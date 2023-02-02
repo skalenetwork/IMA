@@ -232,7 +232,7 @@ describe('tests for `npms/skale-ima`', function () {
 
     it('should invoke `ensure_starts_with_0x`', async function () {
         let string = "123456789"
-        expect(IMA.owaspUtils.ensure_starts_with_0x(string)).to.be.equal("0x" + string);
+        expect(IMA.owaspUtils.ensure_starts_with_0x(string)).to.be.equal( "0" + "x" + string );
     });
 
     it('should invoke `remove_starting_0x`', async function () {

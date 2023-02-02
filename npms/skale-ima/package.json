@@ -31,7 +31,8 @@
         "ethers": "^5.7.2",
         "@ethersproject/experimental": "^5.7.0",
         "solc": "0.8.6",        
-        "ioredis": "^4.28.2"
+        "ioredis": "^4.28.2",
+        "ethereumjs_util": "^7.1.5"
     },
     "devDependencies": {},
     "resolutions": {

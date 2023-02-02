@@ -36,7 +36,7 @@ const g_bn1 = numberToBN( 1 );
 const g_bn2 = numberToBN( 2 );
 const g_bn256 = numberToBN( 256 );
 const g_bnUpperPart = g_bn2.pow( g_bn256 ).sub( g_bn1 );
-// log.write( cc.debug( "using " ) + cc.info( "2**256-1" ) + cc.debug( "=" ) + cc.info( "0x" + g_bnUpperPart.toString( 16 ) ) + cc.debug( "=" ) + cc.info( g_bnUpperPart.toString() ) + "\n" );
+// log.write( cc.debug( "using " ) + cc.info( "2**256-1" ) + cc.debug( "=" ) + cc.info( owaspUtils.ensure_starts_with_0x( g_bnUpperPart.toString( 16 ) ) ) + cc.debug( "=" ) + cc.info( g_bnUpperPart.toString() ) + "\n" );
 
 const sleep = ( milliseconds ) => { return new Promise( resolve => setTimeout( resolve, milliseconds ) ); };
 
@@ -62,13 +62,13 @@ export function find_pow_number( strRequestPart, details, isVerbose ) {
     for( ; i < MAX_POW_NUMBER; ++ i ) {
         n = "" + i;
         s = "{" + strRequestPart + ",\"time\":" + t + ",\"pow\":" + n + "}";
-        const f = numberToBN( "0x" + keccak256( s ) );
+        const f = numberToBN( owaspUtils.ensure_starts_with_0x( keccak256( s ) ) );
         const r = g_bnUpperPart.div( f ); // r = ( 2 ** 256 - 1 ) / f;
         if( r.gt( g_bnMIN_POW_RESULT ) ) { // if( r > MIN_POW_RESULT )
             if( isVerbose ) {
                 details.write( cc.debug( "computed " ) + cc.sunny( "n" ) + cc.debug( "=" ) + cc.info( i ) + cc.debug( ", this is resulting " ) + cc.sunny( "PoW number" ) + "\n" );
-                details.write( cc.debug( "computed " ) + cc.sunny( "f" ) + cc.debug( "=" ) + cc.info( f.toString() ) + cc.debug( "=" ) + cc.info( "0x" + f.toString( 16 ) ) + "\n" );
-                details.write( cc.debug( "computed " ) + cc.sunny( "r" ) + cc.debug( "=" ) + cc.info( "(2**256-1)/f" ) + cc.debug( "=" ) + cc.info( r.toString() ) + cc.debug( "=" ) + cc.info( "0x" + r.toString( 16 ) ) + "\n" );
+                details.write( cc.debug( "computed " ) + cc.sunny( "f" ) + cc.debug( "=" ) + cc.info( f.toString() ) + cc.debug( "=" ) + cc.info( owaspUtils.ensure_starts_with_0x( f.toString( 16 ) ) ) + "\n" );
+                details.write( cc.debug( "computed " ) + cc.sunny( "r" ) + cc.debug( "=" ) + cc.info( "(2**256-1)/f" ) + cc.debug( "=" ) + cc.info( r.toString() ) + cc.debug( "=" ) + cc.info( owaspUtils.ensure_starts_with_0x( r.toString( 16 ) ) ) + "\n" );
                 details.write( cc.debug( "computed " ) + cc.sunny( "s" ) + cc.debug( "=" ) + cc.info( s ) + "\n" );
             }
             break;
@@ -172,7 +172,7 @@ export function oracle_get_gas_price( oracleOpts, details ) {
                                         details.write( cc.debug( "RPC call" ) + cc.normal( "(" ) + cc.attention( "oracle_checkResult" ) + cc.normal( ")" ) + cc.debug( " parsed " ) + cc.sunny( "result" ) + cc.debug( " field is: " ) + cc.j( joResult ) + "\n" );
                                     const gp = numberToBN( joResult.rslts[0] );
                                     if( isVerbose )
-                                        details.write( cc.success( "success, computed " ) + cc.sunny( "Gas Price" ) + cc.success( "=" ) + cc.info( gp.toString() ) + cc.success( "=" ) + cc.info( "0x" + gp.toString( 16 ) ) + "\n" );
+                                        details.write( cc.success( "success, computed " ) + cc.sunny( "Gas Price" ) + cc.success( "=" ) + cc.info( gp.toString() ) + cc.success( "=" ) + cc.info( owaspUtils.ensure_starts_with_0x( gp.toString( 16 ) ) ) + "\n" );
                                     resolve( gp );
                                     await joCall.disconnect();
                                     return;

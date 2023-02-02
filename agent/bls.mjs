@@ -157,7 +157,14 @@ function a2ha( arrBytes ) {
 
 function keccak256_message( jarrMessages, nIdxCurrentMsgBlockStart, strFromChainName ) {
     let arrBytes = s2ha( strFromChainName );
-    arrBytes = imaUtils.bytesConcat( arrBytes, hexPrepare( "0x" + nIdxCurrentMsgBlockStart.toString( 16 ), false, false ) );
+    arrBytes = imaUtils.bytesConcat(
+        arrBytes,
+        hexPrepare(
+            owaspUtils.ensure_starts_with_0x( nIdxCurrentMsgBlockStart.toString( 16 ) ),
+            false,
+            false
+        )
+    );
     arrBytes = a2ha( arrBytes );
     let i = 0; const cnt = jarrMessages.length;
     for( i = 0; i < cnt; ++i ) {
@@ -179,13 +186,13 @@ function keccak256_message( jarrMessages, nIdxCurrentMsgBlockStart, strFromChain
         // bytesData = imaUtils.bytesAlignLeftWithZeroes( bytesData, 32 );
         // bytesData = imaUtils.invertArrayItemsLR( bytesData ); // do not invert byte order data field (see SKALE-3554 for details)
         arrBytes = imaUtils.bytesConcat( arrBytes, bytesData );
-        // console.log( "3 ---------------", "0x" + imaUtils.bytesToHex( arrBytes, false ) );
+        // console.log( "3 ---------------", owaspUtils.ensure_starts_with_0x( imaUtils.bytesToHex( arrBytes, false ) ) );
         //
         // arrBytes = imaUtils.invertArrayItemsLR( arrBytes );
         arrBytes = a2ha( arrBytes );
-        // console.log( "4 ---------------", "0x" + imaUtils.bytesToHex( arrBytes, false ) );
+        // console.log( "4 ---------------", owaspUtils.ensure_starts_with_0x( imaUtils.bytesToHex( arrBytes, false ) ) );
     }
-    return "0x" + imaUtils.bytesToHex( arrBytes, false );
+    return owaspUtils.ensure_starts_with_0x( imaUtils.bytesToHex( arrBytes, false ) );
 }
 
 // const strHashExpected = "0x3094d655630537e78650506931ca36191bc2d4a85ab3216632f5bf107265c8ea".toLowerCase(), strHashComputed =
@@ -226,7 +233,7 @@ export function keccak256_u256( u256, isHash ) {
     if( isHash )
         strMessageHash = owaspUtils.ensure_starts_with_0x( keccak256( arrBytes ) );
     else
-        strMessageHash = "0x" + imaUtils.bytesToHex( arrBytes );
+        strMessageHash = owaspUtils.ensure_starts_with_0x( imaUtils.bytesToHex( arrBytes ) );
     return strMessageHash;
 }
 
@@ -1899,7 +1906,7 @@ export async function handle_skale_imaVerifyAndSign( joCallData ) {
             //
             joExtraSignOpts = {
                 skale_observer: skale_observer,
-                ethersProvider_src: skale_observer.getWeb3FromURL( strUrlSrcSChain, details ),
+                ethersProvider_src: owaspUtils.getEthersProviderFromURL( strUrlSrcSChain ),
                 chain_id_src: strFromChainName,
                 chain_id_dst: strToChainName,
                 cid_src: strFromChainID,
