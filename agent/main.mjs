@@ -35,251 +35,13 @@ import * as skale_observer from "../npms/skale-observer/observer.mjs";
 import * as loop from "./loop.mjs";
 import * as IMA from "../npms/skale-ima/index.mjs";
 
+import * as state from "./state.mjs";
+const imaState = state.get();
+
 process.env.NODE_TLS_REJECT_UNAUTHORIZED = 0;
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-global.imaState = {
-    "loopState": {
-        "oracle": {
-            "isInProgress": false,
-            "wasInProgress": false
-        },
-        "m2s": {
-            "isInProgress": false,
-            "wasInProgress": false
-        },
-        "s2m": {
-            "isInProgress": false,
-            "wasInProgress": false
-        },
-        "s2s": {
-            "isInProgress": false,
-            "wasInProgress": false
-        }
-    },
-
-    "strLogFilePath": "",
-    "nLogMaxSizeBeforeRotation": -1,
-    "nLogMaxFilesCount": -1,
-    "isPrintGathered": true,
-    "isPrintSecurityValues": false,
-    "isPrintPWA": false,
-
-    "bIsNeededCommonInit": true,
-    "bSignMessages": false, // use BLS message signing, turned on with --sign-messages
-    "joSChainNetworkInfo": null, // scanned S-Chain network description
-    "strPathBlsGlue": "", // path to bls_glue app, must have if --sign-messages specified
-    "strPathHashG1": "", // path to hash_g1 app, must have if --sign-messages specified
-    "strPathBlsVerify": "", // path to verify_bls app, optional, if specified then we will verify gathered BLS signature
-
-    "bShowConfigMode": false, // true - just show configuration values and exit
-
-    "bNoWaitSChainStarted": false,
-    "nMaxWaitSChainAttempts": 0 + Number.MAX_SAFE_INTEGER, // 20
-    "isPreventExitAfterLastAction": false,
-
-    "nAmountOfWei": 0,
-    "nAmountOfToken": 0,
-    "arrAmountsOfTokens": null,
-    "idToken": 0,
-
-    "nTransferBlockSizeM2S": 4,
-    "nTransferBlockSizeS2M": 4,
-    "nTransferBlockSizeS2S": 4,
-    "nTransferStepsM2S": 8,
-    "nTransferStepsS2M": 8,
-    "nTransferStepsS2S": 8,
-    "nMaxTransactionsM2S": 0,
-    "nMaxTransactionsS2M": 0,
-    "nMaxTransactionsS2S": 0,
-
-    "nBlockAwaitDepthM2S": 0,
-    "nBlockAwaitDepthS2M": 0,
-    "nBlockAwaitDepthS2S": 0,
-    "nBlockAgeM2S": 0,
-    "nBlockAgeS2M": 0,
-    "nBlockAgeS2S": 0,
-
-    "nLoopPeriodSeconds": 10,
-
-    "nNodeNumber": 0, // S-Chain node number(zero based)
-    "nNodesCount": 1,
-    "nTimeFrameSeconds": 0, // 0-disable, 60-recommended
-    "nNextFrameGap": 10,
-
-    "nAutoExitAfterSeconds": 3600, // 0-disable
-
-    "jo_community_pool": null, // only main net
-    "jo_deposit_box_eth": null, // only main net
-    "jo_deposit_box_erc20": null, // only main net
-    "jo_deposit_box_erc721": null, // only main net
-    "jo_deposit_box_erc1155": null, // only main net
-    "jo_deposit_box_erc721_with_metadata": null, // only main net
-    "jo_linker": null, // only main net
-
-    "isWithMetadata721": false,
-
-    "jo_token_manager_eth": null, // only s-chain
-    // "jo_token_manager_eth_target": null, // only s-chain target
-    "jo_token_manager_erc20": null, // only s-chain
-    "jo_token_manager_erc20_target": null, // only s-chain
-    "jo_token_manager_erc721": null, // only s-chain target
-    "jo_token_manager_erc721_target": null, // only s-chain target
-    "jo_token_manager_erc1155": null, // only s-chain
-    "jo_token_manager_erc1155_target": null, // only s-chain target
-    "jo_token_manager_erc721_with_metadata": null, // only s-chain target
-    "jo_token_manager_erc721_with_metadata_target": null, // only s-chain target
-    "jo_community_locker": null, // only s-chain
-    "jo_community_locker_target": null, // only s-chain target
-    "jo_message_proxy_main_net": null,
-    "jo_message_proxy_s_chain": null,
-    "jo_message_proxy_s_chain_target": null, // only s-chain target
-    "jo_token_manager_linker": null,
-    "jo_token_manager_linker_target": null, // only s-chain target
-    "eth_erc20": null, // only s-chain
-    // "eth_erc721": null, // only s-chain
-    // "eth_erc1155": null, // only s-chain
-    "eth_erc20_target": null, // only s-chain target
-    // "eth_erc721_target": null, // only s-chain target
-    // "eth_erc1155_target": null, // only s-chain target
-
-    "chainProperties": {
-        "mn": {
-            "joAccount": {
-                "privateKey": owaspUtils.toEthPrivateKey( process.env.PRIVATE_KEY_FOR_ETHEREUM ),
-                "address": owaspUtils.fn_address_impl_,
-                "strTransactionManagerURL": owaspUtils.toStringURL( process.env.TRANSACTION_MANAGER_URL_ETHEREUM ),
-                "tm_priority": owaspUtils.toStringURL( process.env.TRANSACTION_MANAGER_PRIORITY_ETHEREUM ) || 5,
-                "strSgxURL": owaspUtils.toStringURL( process.env.SGX_URL_ETHEREUM ),
-                "strSgxKeyName": owaspUtils.toStringURL( process.env.SGX_KEY_ETHEREUM ),
-                "strPathSslKey": ( process.env.SGX_SSL_KEY_FILE_ETHEREUM || "" ).toString().trim(),
-                "strPathSslCert": ( process.env.SGX_SSL_CERT_FILE_ETHEREUM || "" ).toString().trim(),
-                "strBlsKeyName": owaspUtils.toStringURL( process.env.BLS_KEY_ETHEREUM )
-            },
-            "transactionCustomizer": IMA.tc_main_net,
-            "ethersProvider": null,
-            "strURL": owaspUtils.toStringURL( process.env.URL_W3_ETHEREUM ),
-            "strChainName": ( process.env.CHAIN_NAME_ETHEREUM || "Mainnet" ).toString().trim(),
-            "cid": owaspUtils.toInteger( process.env.CID_ETHEREUM ) || -4,
-            "strPathAbiJson": null,
-            "joAbiIMA": { },
-            "bHaveAbiIMA": false,
-            "joErc20": null,
-            "joErc721": null,
-            "joErc1155": null,
-            "strCoinNameErc20": "", // in-JSON coin name
-            "strCoinNameErc721": "", // in-JSON coin name
-            "strCoinNameErc1155": "", // in-JSON coin name
-            "strPathJsonErc20": "",
-            "strPathJsonErc721": "",
-            "strPathJsonErc1155": ""
-        },
-        "sc": {
-            "joAccount": {
-                "privateKey": owaspUtils.toEthPrivateKey( process.env.PRIVATE_KEY_FOR_SCHAIN ),
-                "address": owaspUtils.fn_address_impl_,
-                "strTransactionManagerURL": owaspUtils.toStringURL( process.env.TRANSACTION_MANAGER_URL_S_CHAIN ),
-                "tm_priority": owaspUtils.toStringURL( process.env.TRANSACTION_MANAGER_PRIORITY_S_CHAIN ) || 5,
-                "strSgxURL": owaspUtils.toStringURL( process.env.SGX_URL_S_CHAIN ),
-                "strSgxKeyName": owaspUtils.toStringURL( process.env.SGX_KEY_S_CHAIN ),
-                "strPathSslKey": ( process.env.SGX_SSL_KEY_FILE_S_CHAIN || "" ).toString().trim(),
-                "strPathSslCert": ( process.env.SGX_SSL_CERT_FILE_S_CHAIN || "" ).toString().trim(),
-                "strBlsKeyName": owaspUtils.toStringURL( process.env.BLS_KEY_S_CHAIN )
-            },
-            "transactionCustomizer": IMA.tc_s_chain,
-            "ethersProvider": null,
-            "strURL": owaspUtils.toStringURL( process.env.URL_W3_S_CHAIN ),
-            "strChainName": ( process.env.CHAIN_NAME_SCHAIN || "id-S-chain" ).toString().trim(),
-            "cid": owaspUtils.toInteger( process.env.CID_SCHAIN ) || -4,
-            "strPathAbiJson": null,
-            "joAbiIMA": { },
-            "bHaveAbiIMA": false,
-            "joErc20": null,
-            "joErc721": null,
-            "joErc1155": null,
-            "strCoinNameErc20": "", // in-JSON coin name
-            "strCoinNameErc721": "", // in-JSON coin name
-            "strCoinNameErc1155": "", // in-JSON coin name
-            "strPathJsonErc20": "",
-            "strPathJsonErc721": "",
-            "strPathJsonErc1155": ""
-        },
-        "tc": {
-            "joAccount": {
-                "privateKey": owaspUtils.toEthPrivateKey( process.env.PRIVATE_KEY_FOR_SCHAIN_TARGET ),
-                "address": owaspUtils.fn_address_impl_,
-                "strTransactionManagerURL": owaspUtils.toStringURL( process.env.TRANSACTION_MANAGER_URL_S_CHAIN_TARGET ),
-                "tm_priority": owaspUtils.toStringURL( process.env.TRANSACTION_MANAGER_PRIORITY_S_CHAIN_TARGET ) || 5,
-                "strSgxURL": owaspUtils.toStringURL( process.env.SGX_URL_S_CHAIN_TARGET ),
-                "strSgxKeyName": owaspUtils.toStringURL( process.env.SGX_KEY_S_CHAIN_TARGET ),
-                "strPathSslKey": ( process.env.SGX_SSL_KEY_FILE_S_CHAIN_TARGET || "" ).toString().trim(),
-                "strPathSslCert": ( process.env.SGX_SSL_CERT_FILE_S_CHAIN_TARGET || "" ).toString().trim(),
-                "strBlsKeyName": owaspUtils.toStringURL( process.env.BLS_KEY_T_CHAIN )
-            },
-            "transactionCustomizer": IMA.tc_t_chain,
-            "ethersProvider": null,
-            "strURL": owaspUtils.toStringURL( process.env.URL_W3_S_CHAIN_TARGET ),
-            "strChainName": ( process.env.CHAIN_NAME_SCHAIN_TARGET || "id-T-chain" ).toString().trim(),
-            "cid": owaspUtils.toInteger( process.env.CID_SCHAIN_TARGET ) || -4,
-            "strPathAbiJson": null,
-            "joAbiIMA": { },
-            "bHaveAbiIMA": false,
-            "joErc20": null,
-            "joErc721": null,
-            "joErc1155": null,
-            "strCoinNameErc20": "", // in-JSON coin name
-            "strCoinNameErc721": "", // in-JSON coin name
-            "strCoinNameErc1155": "", // in-JSON coin name
-            "strPathJsonErc20": "",
-            "strPathJsonErc721": "",
-            "strPathJsonErc1155": ""
-        }
-    },
-
-    "strPathAbiJsonSkaleManager": "", // imaUtils.normalizePath( "../proxy/data/skaleManager.json" ),
-    "joAbiSkaleManager": { },
-    "bHaveSkaleManagerABI": false,
-
-    "strChainName_origin_chain": ( process.env.CHAIN_NAME_SCHAIN_ORIGIN || "Mainnet" ).toString().trim(),
-
-    "strAddrErc20_explicit": "",
-    "strAddrErc20_explicit_target": "", // S<->S target
-    "strAddrErc721_explicit": "",
-    "strAddrErc721_explicit_target": "", // S<->S target
-    "strAddrErc1155_explicit": "",
-    "strAddrErc1155_explicit_target": "", // S<->S target
-
-    "doEnableDryRun": function( isEnable ) { return IMA.dry_run_enable( isEnable ); },
-    "doIgnoreDryRun": function( isIgnore ) { return IMA.dry_run_ignore( isIgnore ); },
-
-    "isPWA": true,
-    "nTimeoutSecondsPWA": 60,
-
-    "nMonitoringPort": 0, // 0 - default, means monitoring server is disabled
-
-    "strReimbursementChain": "",
-    "isShowReimbursementBalance": false,
-    "nReimbursementRecharge": 0,
-    "nReimbursementWithdraw": 0,
-    "nReimbursementRange": -1, // < 0 - do not change anything
-
-    "joSChainDiscovery": {
-        "isSilentReDiscovery": true,
-        "repeatIntervalMilliseconds": 10 * 1000 // zero to disable (for debugging only)
-    },
-
-    "s2s_opts": { // S-Chain to S-Chain transfer options
-        "isEnabled": true, // is S-Chain to S-Chain transfers enabled
-        "secondsToReDiscoverSkaleNetwork": 1 * 60 * 60 // seconds to re-discover SKALE network, 0 to disable
-    },
-
-    "nJsonRpcPort": 0, // 0 to disable
-    "isCrossImaBlsMode": false,
-
-    "arrActions": [] // array of actions to run
-};
 
 const tmp_address_MN_from_env = owaspUtils.toEthPrivateKey( process.env.ACCOUNT_FOR_ETHEREUM );
 const tmp_address_SC_from_env = owaspUtils.toEthPrivateKey( process.env.ACCOUNT_FOR_SCHAIN );
@@ -1847,13 +1609,13 @@ async function continue_schain_discovery_in_background_if_needed( isSilent ) {
             return;
         if( g_b_in_s_chain_discovery ) {
             isInsideAsyncHandler = false;
-            if( IMA.verbose_get() >= IMA.RV_VERBOSE.information )
+            if( IMA.verbose_get() >= IMA.RV_VERBOSE().information )
                 log.write( cc.warning( "Notice: long S-Chain discovery is in progress" ) + "\n" );
             return;
         }
         g_b_in_s_chain_discovery = true;
         try {
-            if( IMA.verbose_get() >= IMA.RV_VERBOSE.information ) {
+            if( IMA.verbose_get() >= IMA.RV_VERBOSE().information ) {
                 log.write(
                     cc.info( "Will re-discover " ) + cc.notice( cntNodes ) + cc.info( "-node S-Chain network, " ) +
                     cc.notice( cntDiscovered ) + cc.info( " node(s) already discovered..." ) + "\n" );
@@ -1861,7 +1623,7 @@ async function continue_schain_discovery_in_background_if_needed( isSilent ) {
             await discover_s_chain_network( function( err, joSChainNetworkInfo ) {
                 if( ! err ) {
                     const cntDiscoveredNew = get_s_chain_discovered_nodes_count( joSChainNetworkInfo );
-                    if( IMA.verbose_get() >= IMA.RV_VERBOSE.information ) {
+                    if( IMA.verbose_get() >= IMA.RV_VERBOSE().information ) {
                         const strDiscoveryStatus = cc.info( cntDiscoveredNew ) + cc.success( " nodes known" );
                         let strMessage =
                             cc.success( "S-Chain network was re-discovered, " ) + cc.info( cntDiscoveredNew ) +
@@ -1966,9 +1728,9 @@ async function discover_s_chain_network( fnAfter, isSilent, joPrevSChainNetworkI
                     await joCall.disconnect();
                     return;
                 }
-                if( ( !isSilent ) && IMA.verbose_get() >= IMA.RV_VERBOSE.trace )
+                if( ( !isSilent ) && IMA.verbose_get() >= IMA.RV_VERBOSE().trace )
                     log.write( strLogPrefix + cc.debug( "OK, got (own) S-Chain network information: " ) + cc.j( joOut.result ) + "\n" );
-                else if( ( !isSilent ) && IMA.verbose_get() >= IMA.RV_VERBOSE.information )
+                else if( ( !isSilent ) && IMA.verbose_get() >= IMA.RV_VERBOSE().information )
                     log.write( strLogPrefix + cc.success( "OK, got S-Chain " ) + cc.u( imaState.chainProperties.sc.strURL ) + cc.success( " network information." ) + "\n" );
                 //
                 let nCountReceivedImaDescriptions = 0;
@@ -2013,7 +1775,7 @@ async function discover_s_chain_network( fnAfter, isSilent, joPrevSChainNetworkI
                                 "t" in joPrevNode.imaInfo && typeof joPrevNode.imaInfo.t === "number"
                             ) {
                                 joNode.imaInfo = JSON.parse( JSON.stringify( joPrevNode.imaInfo ) );
-                                if( ( !isSilent ) && IMA.verbose_get() >= IMA.RV_VERBOSE.information ) {
+                                if( ( !isSilent ) && IMA.verbose_get() >= IMA.RV_VERBOSE().information ) {
                                     log.write(
                                         strLogPrefix + cc.info( "OK, in case of " ) + strNodeDescColorized +
                                         cc.info( " node " ) + cc.info( joNode.nodeID ) +
@@ -2062,11 +1824,11 @@ async function discover_s_chain_network( fnAfter, isSilent, joPrevSChainNetworkI
                                     ++ cntFailed;
                                     return;
                                 }
-                                //if( (!isSilent) && IMA.verbose_get() >= IMA.RV_VERBOSE.information )
+                                //if( (!isSilent) && IMA.verbose_get() >= IMA.RV_VERBOSE().information )
                                 //    log.write( strLogPrefix + cc.normal( "Node ") + cc.info(joNode.nodeID) + cc.normal(" IMA information: " ) + cc.j( joOut.result ) + "\n" );
                                 joNode.imaInfo = joOut.result;
                                 //joNode.joCall = joCall;
-                                if( ( !isSilent ) && IMA.verbose_get() >= IMA.RV_VERBOSE.information ) {
+                                if( ( !isSilent ) && IMA.verbose_get() >= IMA.RV_VERBOSE().information ) {
                                     log.write(
                                         strLogPrefix + cc.success( "OK, got " ) + strNodeDescColorized +
                                         cc.success( " node " ) + cc.info( joNode.nodeID ) +
@@ -2116,7 +1878,7 @@ async function discover_s_chain_network( fnAfter, isSilent, joPrevSChainNetworkI
                     fnAfter( err, null );
                     return;
                 }
-                if( ( !isSilent ) && IMA.verbose_get() >= IMA.RV_VERBOSE.information ) {
+                if( ( !isSilent ) && IMA.verbose_get() >= IMA.RV_VERBOSE().information ) {
                     log.write(
                         strLogPrefix + cc.debug( "Waiting for response from at least " ) + cc.info( nCountToWait ) +
                         cc.debug( " node(s)..." ) + "\n"
@@ -2139,7 +1901,7 @@ async function discover_s_chain_network( fnAfter, isSilent, joPrevSChainNetworkI
                             "\n"
                         );
                     }
-                    if( ( !isSilent ) && IMA.verbose_get() >= IMA.RV_VERBOSE.information ) {
+                    if( ( !isSilent ) && IMA.verbose_get() >= IMA.RV_VERBOSE().information ) {
                         log.write(
                             strLogPrefix + cc.debug( "Have S-Chain description response about " ) +
                             cc.info( nCountReceivedImaDescriptions ) + cc.debug( " node(s)." ) + "\n"
@@ -2197,12 +1959,12 @@ let g_ws_server_monitoring = null;
 
 if( imaState.nMonitoringPort > 0 ) {
     const strLogPrefix = cc.attention( "Monitoring:" ) + " ";
-    if( IMA.verbose_get() >= IMA.RV_VERBOSE.trace )
+    if( IMA.verbose_get() >= IMA.RV_VERBOSE().trace )
         log.write( strLogPrefix + cc.normal( "Will start monitoring WS server on port " ) + cc.info( imaState.nMonitoringPort ) + "\n" );
     g_ws_server_monitoring = new ws.Server( { port: 0 + imaState.nMonitoringPort } );
     g_ws_server_monitoring.on( "connection", function( ws_peer, req ) {
         const ip = req.socket.remoteAddress;
-        if( IMA.verbose_get() >= IMA.RV_VERBOSE.trace )
+        if( IMA.verbose_get() >= IMA.RV_VERBOSE().trace )
             log.write( strLogPrefix + cc.normal( "New connection from " ) + cc.info( ip ) + "\n" );
         ws_peer.on( "message", function( message ) {
             const joAnswer = {
@@ -2212,7 +1974,7 @@ if( imaState.nMonitoringPort > 0 ) {
             };
             try {
                 const joMessage = JSON.parse( message );
-                if( IMA.verbose_get() >= IMA.RV_VERBOSE.trace )
+                if( IMA.verbose_get() >= IMA.RV_VERBOSE().trace )
                     log.write( strLogPrefix + cc.sunny( "<<<" ) + " " + cc.normal( "message from " ) + cc.info( ip ) + cc.normal( ": " ) + cc.j( joMessage ) + "\n" );
                 if( ! ( "method" in joMessage ) )
                     throw new Error( "\"method\" field was not specified" );
@@ -2288,7 +2050,7 @@ if( imaState.nMonitoringPort > 0 ) {
                 } // switch( joMessage.method )
             } catch ( err ) {
                 const strError = owaspUtils.extract_error_message( err );
-                if( IMA.verbose_get() >= IMA.RV_VERBOSE.error ) {
+                if( IMA.verbose_get() >= IMA.RV_VERBOSE().error ) {
                     log.write( strLogPrefix +
                         cc.error( "Bad message from " ) + cc.info( ip ) + cc.error( ": " ) + cc.warning( message ) +
                         cc.error( ", error is: " ) + cc.warning( strError ) + "\n"
@@ -2296,12 +2058,12 @@ if( imaState.nMonitoringPort > 0 ) {
                 }
             }
             try {
-                if( IMA.verbose_get() >= IMA.RV_VERBOSE.trace )
+                if( IMA.verbose_get() >= IMA.RV_VERBOSE().trace )
                     log.write( strLogPrefix + cc.sunny( ">>>" ) + " " + cc.normal( "answer to " ) + cc.info( ip ) + cc.normal( ": " ) + cc.j( joAnswer ) + "\n" );
                 ws_peer.send( JSON.stringify( joAnswer ) );
             } catch ( err ) {
                 const strError = owaspUtils.extract_error_message( err );
-                if( IMA.verbose_get() >= IMA.RV_VERBOSE.error ) {
+                if( IMA.verbose_get() >= IMA.RV_VERBOSE().error ) {
                     log.write( strLogPrefix +
                         cc.error( "Failed to sent answer to " ) + cc.info( ip ) +
                         cc.error( ", error is: " ) + cc.warning( strError ) + "\n"
@@ -2322,24 +2084,24 @@ let g_json_rpc_app_ima = null;
 if( imaState.nJsonRpcPort > 0 ) {
     const strLogPrefix = cc.attention( "JSON RPC:" ) + " ";
     /*
-    if( IMA.verbose_get() >= IMA.RV_VERBOSE.trace )
+    if( IMA.verbose_get() >= IMA.RV_VERBOSE().trace )
         log.write( strLogPrefix + cc.normal( "Will start JSON RPC WS server on port " ) + cc.info( imaState.nJsonRpcPort ) + "\n" );
     g_ws_server_ima = new ws.Server( { port: 0 + imaState.nJsonRpcPort } );
     g_ws_server_ima.on( "connection", function( ws_peer, req ) {
         const ip = req.socket.remoteAddress;
-        if( IMA.verbose_get() >= IMA.RV_VERBOSE.trace )
+        if( IMA.verbose_get() >= IMA.RV_VERBOSE().trace )
             log.write( strLogPrefix + cc.normal( "New connection from " ) + cc.info( ip ) + "\n" );
         ws_peer.on( "message", async function( message ) {
             const fn_send_answer = function( joAnswer ) {
                 try {
-                    if( IMA.verbose_get() >= IMA.RV_VERBOSE.trace )
+                    if( IMA.verbose_get() >= IMA.RV_VERBOSE().trace )
                         log.write( strLogPrefix + cc.sunny( ">>>" ) + " " + cc.normal( "Peer will send answer to " ) + cc.info( ip ) + cc.normal( ": " ) + cc.j( joAnswer ) + "\n" );
                     ws_peer.send( JSON.stringify( joAnswer ) );
-                    if( IMA.verbose_get() >= IMA.RV_VERBOSE.trace )
+                    if( IMA.verbose_get() >= IMA.RV_VERBOSE().trace )
                         log.write( strLogPrefix + cc.sunny( ">>>" ) + " " + cc.normal( "Peer did sent answer to " ) + cc.info( ip ) + cc.normal( ": " ) + cc.j( joAnswer ) + "\n" );
                 } catch ( err ) {
                     const strError = owaspUtils.extract_error_message( err );
-                    if( IMA.verbose_get() >= IMA.RV_VERBOSE.error ) {
+                    if( IMA.verbose_get() >= IMA.RV_VERBOSE().error ) {
                         log.write( strLogPrefix +
                             cc.error( "Failed to sent answer to " ) + cc.info( ip ) +
                             cc.error( ", error is: " ) + cc.warning( strError ) + "\n"
@@ -2355,7 +2117,7 @@ if( imaState.nJsonRpcPort > 0 ) {
             const isSkipMode = false;
             try {
                 const joMessage = JSON.parse( message );
-                if( IMA.verbose_get() >= IMA.RV_VERBOSE.trace )
+                if( IMA.verbose_get() >= IMA.RV_VERBOSE().trace )
                     log.write( strLogPrefix + cc.sunny( "<<<" ) + " " + cc.normal( "Peer message from " ) + cc.info( ip ) + cc.normal( ": " ) + cc.j( joMessage ) + "\n" );
                 if( ! ( "method" in joMessage ) )
                     throw new Error( "\"method\" field was not specified" );
@@ -2407,7 +2169,7 @@ if( imaState.nJsonRpcPort > 0 ) {
                 } // switch( joMessage.method )
             } catch ( err ) {
                 const strError = owaspUtils.extract_error_message( err );
-                if( IMA.verbose_get() >= IMA.RV_VERBOSE.error ) {
+                if( IMA.verbose_get() >= IMA.RV_VERBOSE().error ) {
                     log.write( strLogPrefix +
                         cc.error( "Bad message from " ) + cc.info( ip ) + cc.error( ": " ) + cc.warning( message ) +
                         cc.error( ", error is: " ) + cc.warning( strError ) + "\n"
@@ -2429,22 +2191,22 @@ if( imaState.nJsonRpcPort > 0 ) {
         const isSkipMode = false;
         const message = JSON.stringify( req.body );
         const ip = req.connection.remoteAddress.split( ":" ).pop();
-        // if( IMA.verbose_get() >= IMA.RV_VERBOSE.trace )
+        // if( IMA.verbose_get() >= IMA.RV_VERBOSE().trace )
         //     log.write(
         //         strLogPrefix + cc.sunny( "<<<" ) + " " + cc.normal( "Peer raw message from " ) +
         //         cc.info( ip ) + cc.normal( ": " ) + cc.notice( message ) +
         //         "\n" );
         const fn_send_answer = function( joAnswer ) {
             try {
-                // if( IMA.verbose_get() >= IMA.RV_VERBOSE.trace )
+                // if( IMA.verbose_get() >= IMA.RV_VERBOSE().trace )
                 //     log.write( strLogPrefix + cc.sunny( ">>>" ) + " " + cc.normal( "will send answer to " ) + cc.info( ip ) + cc.normal( ": " ) + cc.j( joAnswer ) + "\n" );
                 res.header( "Content-Type", "application/json" );
                 res.status( 200 ).send( JSON.stringify( joAnswer ) );
-                if( IMA.verbose_get() >= IMA.RV_VERBOSE.trace )
+                if( IMA.verbose_get() >= IMA.RV_VERBOSE().trace )
                     log.write( strLogPrefix + cc.sunny( ">>>" ) + " " + cc.normal( "did sent answer to " ) + cc.info( ip ) + cc.normal( ": " ) + cc.j( joAnswer ) + "\n" );
             } catch ( err ) {
                 const strError = owaspUtils.extract_error_message( err );
-                if( IMA.verbose_get() >= IMA.RV_VERBOSE.error ) {
+                if( IMA.verbose_get() >= IMA.RV_VERBOSE().error ) {
                     log.write( strLogPrefix +
                         cc.error( "Failed to sent answer " ) + cc.j( joAnswer ) +
                         cc.error( " to " ) + cc.info( ip ) +
@@ -2460,7 +2222,7 @@ if( imaState.nJsonRpcPort > 0 ) {
         };
         try {
             const joMessage = JSON.parse( message );
-            if( IMA.verbose_get() >= IMA.RV_VERBOSE.trace )
+            if( IMA.verbose_get() >= IMA.RV_VERBOSE().trace )
                 log.write( strLogPrefix + cc.sunny( "<<<" ) + " " + cc.normal( "Peer message from " ) + cc.info( ip ) + cc.normal( ": " ) + cc.j( joMessage ) + "\n" );
             if( ! ( "method" in joMessage ) )
                 throw new Error( "\"method\" field was not specified" );
@@ -2512,7 +2274,7 @@ if( imaState.nJsonRpcPort > 0 ) {
             } // switch( joMessage.method )
         } catch ( err ) {
             const strError = owaspUtils.extract_error_message( err );
-            if( IMA.verbose_get() >= IMA.RV_VERBOSE.error ) {
+            if( IMA.verbose_get() >= IMA.RV_VERBOSE().error ) {
                 log.write( strLogPrefix +
                     cc.error( "Bad message from " ) + cc.info( ip ) + cc.error( ": " ) + cc.warning( message ) +
                     cc.error( ", error is: " ) + cc.warning( strError ) + "\n"
@@ -2535,30 +2297,30 @@ async function do_the_job() {
     let cntFalse = 0;
     let cntTrue = 0;
     for( idxAction = 0; idxAction < cntActions; ++idxAction ) {
-        if( IMA.verbose_get() >= IMA.RV_VERBOSE.information )
+        if( IMA.verbose_get() >= IMA.RV_VERBOSE().information )
             log.write( strLogPrefix + cc.debug( IMA.longSeparator ) + "\n" );
 
         const joAction = imaState.arrActions[idxAction];
-        if( IMA.verbose_get() >= IMA.RV_VERBOSE.debug )
+        if( IMA.verbose_get() >= IMA.RV_VERBOSE().debug )
             log.write( strLogPrefix + cc.notice( "Will execute action:" ) + " " + cc.info( joAction.name ) + cc.debug( " (" ) + cc.info( idxAction + 1 ) + cc.debug( " of " ) + cc.info( cntActions ) + cc.debug( ")" ) + "\n" );
 
         try {
             if( await joAction.fn() ) {
                 ++cntTrue;
-                if( IMA.verbose_get() >= IMA.RV_VERBOSE.information )
+                if( IMA.verbose_get() >= IMA.RV_VERBOSE().information )
                     log.write( strLogPrefix + cc.success( "Succeeded action:" ) + " " + cc.info( joAction.name ) + "\n" );
             } else {
                 ++cntFalse;
-                if( IMA.verbose_get() >= IMA.RV_VERBOSE.error )
+                if( IMA.verbose_get() >= IMA.RV_VERBOSE().error )
                     log.write( strLogPrefix + cc.warning( "Failed action:" ) + " " + cc.info( joAction.name ) + "\n" );
             }
         } catch ( e ) {
             ++cntFalse;
-            if( IMA.verbose_get() >= IMA.RV_VERBOSE.fatal )
+            if( IMA.verbose_get() >= IMA.RV_VERBOSE().fatal )
                 log.write( strLogPrefix + cc.fatal( "CRITICAL ERROR: Exception occurred while executing action:" ) + " " + cc.info( joAction.name ) + cc.error( ", error description: " ) + cc.warning( e ) + "\n" );
         }
     } // for( idxAction = 0; idxAction < cntActions; ++ idxAction )
-    if( IMA.verbose_get() >= IMA.RV_VERBOSE.information ) {
+    if( IMA.verbose_get() >= IMA.RV_VERBOSE().information ) {
         log.write( strLogPrefix + cc.debug( IMA.longSeparator ) + "\n" );
         log.write( strLogPrefix + cc.info( "FINISH:" ) + "\n" );
         log.write( strLogPrefix + cc.info( cntActions ) + cc.notice( " task(s) executed" ) + "\n" );
@@ -2586,7 +2348,7 @@ if( imaState.bSignMessages ) {
             discover_s_chain_network( function( err, joSChainNetworkInfo ) {
                 if( err )
                     process.exit( 166 ); // error information is printed by discover_s_chain_network()
-                if( IMA.verbose_get() >= IMA.RV_VERBOSE.information )
+                if( IMA.verbose_get() >= IMA.RV_VERBOSE().information )
                     log.write( cc.success( "S-Chain network was discovered: " ) + cc.j( joSChainNetworkInfo ) + "\n" );
                 imaState.joSChainNetworkInfo = joSChainNetworkInfo;
                 continue_schain_discovery_in_background_if_needed( isSilent );

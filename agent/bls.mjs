@@ -32,6 +32,8 @@ import * as rpcCall from "./rpc-call.mjs";
 import * as shell from "shelljs";
 import * as imaUtils from "./utils.mjs";
 import * as hashing from "js-sha3";
+
+import * as state from "./state.mjs";
 const keccak256 = hashing.default.keccak256;
 
 const sleep = ( milliseconds ) => { return new Promise( resolve => setTimeout( resolve, milliseconds ) ); };
@@ -59,6 +61,7 @@ async function with_timeout( strDescription, promise, seconds ) {
 };
 
 function discover_bls_threshold( joSChainNetworkInfo ) {
+    const imaState = state.get();
     joSChainNetworkInfo = joSChainNetworkInfo || imaState.joSChainNetworkInfo;
     if( ! joSChainNetworkInfo )
         return -1;
@@ -75,6 +78,7 @@ function discover_bls_threshold( joSChainNetworkInfo ) {
 }
 
 function discover_bls_participants( joSChainNetworkInfo ) {
+    const imaState = state.get();
     joSChainNetworkInfo = joSChainNetworkInfo || imaState.joSChainNetworkInfo;
     if( ! joSChainNetworkInfo )
         return -1;
@@ -91,6 +95,7 @@ function discover_bls_participants( joSChainNetworkInfo ) {
 }
 
 function discover_public_key_by_index( nNodeIndex, joSChainNetworkInfo ) {
+    const imaState = state.get();
     joSChainNetworkInfo = joSChainNetworkInfo || imaState.joSChainNetworkInfo;
     const jarrNodes = joSChainNetworkInfo.network;
     const joNode = jarrNodes[nNodeIndex];
@@ -111,6 +116,7 @@ function discover_public_key_by_index( nNodeIndex, joSChainNetworkInfo ) {
 }
 
 function discover_common_public_key( joSChainNetworkInfo ) {
+    const imaState = state.get();
     joSChainNetworkInfo = joSChainNetworkInfo || imaState.joSChainNetworkInfo;
     const jarrNodes = joSChainNetworkInfo.network;
     for( let i = 0; i < jarrNodes.length; ++i ) {
@@ -292,6 +298,7 @@ function perform_bls_glue(
     jarrMessages, nIdxCurrentMsgBlockStart, strFromChainName,
     arrSignResults
 ) {
+    const imaState = state.get();
     const strLogPrefix = cc.bright( strDirection ) + cc.debug( "/" ) + cc.info( "BLS" ) + cc.debug( "/" ) + cc.attention( "Glue" ) + cc.debug( ":" ) + " ";
     let joGlueResult = null;
     // const jarrNodes = imaState.joSChainNetworkInfo.network;
@@ -390,6 +397,7 @@ function perform_bls_glue(
 }
 
 function perform_bls_glue_u256( details, u256, arrSignResults ) {
+    const imaState = state.get();
     const strLogPrefix = cc.info( "BLS" ) + cc.debug( "/" ) + cc.attention( "Glue" ) + cc.debug( ":" ) + " ";
     let joGlueResult = null;
     // const jarrNodes = imaState.joSChainNetworkInfo.network;
@@ -498,6 +506,7 @@ function perform_bls_verify_i(
 ) {
     if( !joResultFromNode )
         return true;
+    const imaState = state.get();
     const strLogPrefix = cc.bright( strDirection ) + cc.debug( "/" ) + cc.info( "BLS" ) + cc.debug( "/" ) + cc.notice( "#" ) + cc.bright( nZeroBasedNodeIndex ) + cc.debug( ":" ) + " ";
     const nThreshold = discover_bls_threshold( imaState.joSChainNetworkInfo );
     const nParticipants = discover_bls_participants( imaState.joSChainNetworkInfo );
@@ -554,6 +563,7 @@ function perform_bls_verify_i(
 function perform_bls_verify_i_u256( details, nZeroBasedNodeIndex, joResultFromNode, u256, joPublicKey ) {
     if( !joResultFromNode )
         return true;
+    const imaState = state.get();
     const strLogPrefix = cc.info( "BLS" ) + cc.debug( "/" ) + cc.notice( "#" ) + cc.bright( nZeroBasedNodeIndex ) + cc.debug( ":" ) + " ";
     const nThreshold = discover_bls_threshold( imaState.joSChainNetworkInfo );
     const nParticipants = discover_bls_participants( imaState.joSChainNetworkInfo );
@@ -610,6 +620,7 @@ function perform_bls_verify(
 ) {
     if( !joGlueResult )
         return true;
+    const imaState = state.get();
     const nThreshold = discover_bls_threshold( imaState.joSChainNetworkInfo );
     const nParticipants = discover_bls_participants( imaState.joSChainNetworkInfo );
     // const strPWD = shell.pwd();
@@ -673,6 +684,7 @@ function perform_bls_verify(
 function perform_bls_verify_u256( details, joGlueResult, u256, joCommonPublicKey ) {
     if( !joGlueResult )
         return true;
+    const imaState = state.get();
     const nThreshold = discover_bls_threshold( imaState.joSChainNetworkInfo );
     const nParticipants = discover_bls_participants( imaState.joSChainNetworkInfo );
     // const strPWD = shell.pwd();
@@ -729,6 +741,7 @@ function perform_bls_verify_u256( details, joGlueResult, u256, joCommonPublicKey
 }
 
 async function check_correctness_of_messages_to_sign( details, strLogPrefix, strDirection, jarrMessages, nIdxCurrentMsgBlockStart, joExtraSignOpts ) {
+    const imaState = state.get();
     let joMessageProxy = null, joAccount = null, joChainName = null;
     if( strDirection == "M2S" ) {
         joMessageProxy = imaState.jo_message_proxy_main_net;
@@ -846,6 +859,7 @@ async function do_sign_messages_impl(
     joExtraSignOpts,
     fn
 ) {
+    const imaState = state.get();
     let bHaveResultReportCalled = false;
     const strLogPrefix =
         cc.bright( strDirection ) + " " + cc.info( "Sign msgs via " ) +
@@ -1379,6 +1393,7 @@ export async function do_sign_messages_s2s(
 }
 
 export async function do_sign_u256( u256, details, fn ) {
+    const imaState = state.get();
     const strLogPrefix = cc.info( "Sign u256:" ) + " ";
     log.write( strLogPrefix + cc.debug( "Invoking signing u256 procedure " ) + "\n" );
     details.write( strLogPrefix + cc.debug( "Invoking signing u256 procedure " ) + "\n" );
@@ -1672,6 +1687,7 @@ export async function do_sign_u256( u256, details, fn ) {
 }
 
 export async function do_verify_ready_hash( strMessageHash, nZeroBasedNodeIndex, signature ) {
+    const imaState = state.get();
     const strDirection = "RAW";
     const strLogPrefix = cc.bright( strDirection ) + cc.debug( "/" ) + cc.info( "BLS" ) + cc.debug( "/" ) + cc.notice( "#" ) + cc.bright( nZeroBasedNodeIndex ) + cc.debug( ":" ) + " ";
     const details = log.createMemoryStream( true );
@@ -1737,6 +1753,7 @@ export async function do_verify_ready_hash( strMessageHash, nZeroBasedNodeIndex,
 }
 
 export async function do_sign_ready_hash( strMessageHash ) {
+    const imaState = state.get();
     const strLogPrefix = "";
     const details = log.createMemoryStream( true );
     let joSignResult = null;
@@ -1842,6 +1859,7 @@ export async function do_sign_ready_hash( strMessageHash ) {
 }
 
 export async function handle_skale_imaVerifyAndSign( joCallData ) {
+    const imaState = state.get();
     const strLogPrefix = "";
     const details = log.createMemoryStream( true );
     const joRetVal = { };
@@ -2016,6 +2034,7 @@ export async function handle_skale_imaVerifyAndSign( joCallData ) {
 }
 
 export async function handle_skale_imaBSU256( joCallData ) {
+    const imaState = state.get();
     const strLogPrefix = "";
     const details = log.createMemoryStream( true );
     const joRetVal = { };

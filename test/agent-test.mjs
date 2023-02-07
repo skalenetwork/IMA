@@ -31,6 +31,10 @@ import * as path from "path"; // allow self-signed wss and https
 import * as IMA from "../npms/skale-ima";
 import * as imaUtils from "../agent/utils.mjs";
 import * as imaCLI from "../agent/cli.mjs";
+// log.addStdout();
+// log.addMemory(); // console.log( log.getStreamWithFilePath( "memory" ).strAccumulatedLogText );
+
+import * as state from "../../agent/state.mjs";
 
 process.env.NODE_TLS_REJECT_UNAUTHORIZED = 0;
 
@@ -42,10 +46,7 @@ const log = imaUtils.log;
 // import * as rpcCall from "../agent/rpc-call.mjs";
 
 log.removeAll();
-// log.addStdout();
-// log.addMemory(); // console.log( log.getStreamWithFilePath( "memory" ).strAccumulatedLogText );
-
-global.imaState = {
+const imaState = {
     "loopState": {
         "oracle": {
             "isInProgress": false,
@@ -144,7 +145,7 @@ global.imaState = {
                 "strPathSslCert": ( process.env.SGX_SSL_CERT_FILE_ETHEREUM || "" ).toString().trim(),
                 "strBlsKeyName": owaspUtils.toStringURL( process.env.BLS_KEY_ETHEREUM )
             },
-            "transactionCustomizer": IMA.tc_main_net,
+            "transactionCustomizer": IMA.get_tc_main_net(),
             "w3": null,
             "strURL": owaspUtils.toStringURL( process.env.URL_W3_ETHEREUM || "http://127.0.0.1:8545" ),
             "strChainName": ( process.env.CHAIN_NAME_ETHEREUM || "Mainnet" ).toString().trim(),
@@ -174,7 +175,7 @@ global.imaState = {
                 "strPathSslCert": ( process.env.SGX_SSL_CERT_FILE_S_CHAIN || "" ).toString().trim(),
                 "strBlsKeyName": owaspUtils.toStringURL( process.env.BLS_KEY_S_CHAIN )
             },
-            "transactionCustomizer": IMA.tc_s_chain,
+            "transactionCustomizer": IMA.get_tc_s_chain(),
             "w3": null,
             "strURL": owaspUtils.toStringURL( process.env.URL_W3_S_CHAIN || "http://127.0.0.1:15000" ),
             "strChainName": ( process.env.CHAIN_NAME_SCHAIN || "Bob" ).toString().trim(),
@@ -204,7 +205,7 @@ global.imaState = {
                 "strPathSslCert": ( process.env.SGX_SSL_CERT_FILE_S_CHAIN_TARGET || "" ).toString().trim(),
                 "strBlsKeyName": owaspUtils.toStringURL( process.env.BLS_KEY_T_CHAIN )
             },
-            "transactionCustomizer": IMA.tc_t_chain,
+            "transactionCustomizer": IMA.get_tc_t_chain(),
             "w3": null,
             "strURL": owaspUtils.toStringURL( process.env.URL_W3_S_CHAIN_TARGET ),
             "strChainName": ( process.env.CHAIN_NAME_SCHAIN_TARGET || "Alice" ).toString().trim(),
@@ -253,6 +254,7 @@ global.imaState = {
 
     "arrActions": [] // array of actions to run
 };
+state.set( imaState );
 
 imaCLI.ima_common_init();
 imaCLI.ima_contracts_init();

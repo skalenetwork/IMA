@@ -31,6 +31,9 @@ import * as log from "../npms/skale-log/log.mjs";
 import * as owaspUtils from "../npms/skale-owasp/owasp-utils.mjs";
 import * as imaUtils from "./utils.mjs";
 import * as rpcCall from "./rpc-call.mjs";
+import * as IMA from "../npms/skale-ima/index.mjs";
+import * as state from "./state.mjs";
+
 const __dirname = path.resolve();
 
 const g_strAppName = "IMA AGENT";
@@ -158,6 +161,7 @@ export function find_node_index( joSChainNodeConfiguration ) {
 }
 
 export function parse( joExternalHandlers, argv ) {
+    const imaState = state.get();
     let idxArg; const cntArgs = argv || process.argv.length;
     for( idxArg = 2; idxArg < cntArgs; ++idxArg ) {
         const joArg = parse_command_line_argument( process.argv[idxArg] );
@@ -1284,6 +1288,7 @@ async function async_check_url_at_startup( u, name ) {
 }
 
 export function ima_common_init() {
+    const imaState = state.get();
     const isPrintGathered = imaState.isPrintGathered ? true : false;
     if( isPrintGathered ) {
         log.write( cc.debug( "This process " ) + cc.sunny( "PID" ) + cc.debug( " is " ) + cc.bright( process.pid ) + "\n" );
@@ -1535,12 +1540,12 @@ export function ima_common_init() {
     if( imaState.chainProperties.mn.strPathJsonErc20.length > 0 /* && imaState.chainProperties.sc.strPathJsonErc20.length > 0 */ ) {
         n1 = 0;
         n2 = 0;
-        if( isPrintGathered && IMA.verbose_get() > IMA.RV_VERBOSE.information )
+        if( isPrintGathered && IMA.verbose_get() > IMA.RV_VERBOSE().information )
             log.write( cc.info( "Loading Main-net ERC20 ABI from " ) + cc.info( imaState.chainProperties.mn.strPathJsonErc20 ) + "\n" );
         imaState.chainProperties.mn.joErc20 = imaUtils.jsonFileLoad( imaState.chainProperties.mn.strPathJsonErc20, null );
         n1 = Object.keys( imaState.chainProperties.mn.joErc20 ).length;
         if( imaState.chainProperties.sc.strPathJsonErc20.length > 0 ) {
-            if( isPrintGathered && IMA.verbose_get() > IMA.RV_VERBOSE.information )
+            if( isPrintGathered && IMA.verbose_get() > IMA.RV_VERBOSE().information )
                 log.write( cc.info( "Loading S-Chain ERC20 ABI from " ) + cc.info( imaState.chainProperties.sc.strPathJsonErc20 ) + "\n" );
             imaState.chainProperties.sc.joErc20 = imaUtils.jsonFileLoad( imaState.chainProperties.sc.strPathJsonErc20, null );
             n2 = Object.keys( imaState.chainProperties.sc.joErc20 ).length;
@@ -1553,7 +1558,7 @@ export function ima_common_init() {
             if( n2 > 0 )
                 n2 = imaState.chainProperties.sc.strCoinNameErc20.length;
             if( n1 > 0 /* && n2 > 0 */ ) {
-                if( isPrintGathered && IMA.verbose_get() >= IMA.RV_VERBOSE.information && ( !imaState.bShowConfigMode ) ) {
+                if( isPrintGathered && IMA.verbose_get() >= IMA.RV_VERBOSE().information && ( !imaState.bShowConfigMode ) ) {
                     if( isPrintGathered )
                         log.write( cc.info( "Loaded Main-net ERC20 ABI " ) + cc.attention( imaState.chainProperties.tc.strCoinNameErc20 ) + "\n" );
                     if( isPrintGathered && n2 > 0 )
@@ -1585,7 +1590,7 @@ export function ima_common_init() {
         if( imaState.chainProperties.sc.strPathJsonErc20.length > 0 ) {
             n1 = 0;
             n2 = 0;
-            if( isPrintGathered && IMA.verbose_get() > IMA.RV_VERBOSE.information )
+            if( isPrintGathered && IMA.verbose_get() > IMA.RV_VERBOSE().information )
                 log.write( cc.info( "Loading S-Chain ERC20 ABI from " ) + cc.info( imaState.chainProperties.sc.strPathJsonErc20 ) + "\n" );
             imaState.chainProperties.sc.joErc20 = imaUtils.jsonFileLoad( imaState.chainProperties.sc.strPathJsonErc20, null );
             n2 = Object.keys( imaState.chainProperties.sc.joErc20 ).length;
@@ -1616,13 +1621,13 @@ export function ima_common_init() {
             imaState.chainProperties.sc.strCoinNameErc20 = "" + imaState.chainProperties.tc.strCoinNameErc20; // assume same
             imaState.chainProperties.sc.joErc20 = JSON.parse( JSON.stringify( imaState.chainProperties.mn.joErc20 ) ); // clone
             imaState.chainProperties.sc.joErc20[imaState.chainProperties.sc.strCoinNameErc20 + "_address"] = "" + imaState.strAddrErc20_explicit; // set explicit address
-            // if( isPrintGathered && IMA.verbose_get() > IMA.RV_VERBOSE.information )
+            // if( isPrintGathered && IMA.verbose_get() > IMA.RV_VERBOSE().information )
             //     log.write( cc.info("Auto-generated S-Chain ERC20 JSON is ") + cc.j(imaState.chainProperties.sc.joErc20) + "\n" );
         }
     }
     //
     if( imaState.chainProperties.tc.strPathJsonErc20.length > 0 ) {
-        if( isPrintGathered && IMA.verbose_get() > IMA.RV_VERBOSE.information )
+        if( isPrintGathered && IMA.verbose_get() > IMA.RV_VERBOSE().information )
             log.write( cc.info( "Loading S<->S Target S-Chain ERC20 ABI from " ) + cc.info( imaState.chainProperties.tc.strPathJsonErc20 ) + "\n" );
         imaState.chainProperties.tc.joErc20 = imaUtils.jsonFileLoad( imaState.chainProperties.tc.strPathJsonErc20, null );
         n2 = Object.keys( imaState.chainProperties.tc.joErc20 ).length;
@@ -1652,12 +1657,12 @@ export function ima_common_init() {
     if( imaState.chainProperties.mn.strPathJsonErc721.length > 0 /* && imaState.chainProperties.sc.strPathJsonErc721.length > 0 */ ) {
         n1 = 0;
         n2 = 0;
-        if( isPrintGathered && IMA.verbose_get() > IMA.RV_VERBOSE.information )
+        if( isPrintGathered && IMA.verbose_get() > IMA.RV_VERBOSE().information )
             log.write( cc.info( "Loading Main-net ERC721 ABI from " ) + cc.info( imaState.chainProperties.mn.strPathJsonErc721 ) + "\n" );
         imaState.chainProperties.mn.joErc721 = imaUtils.jsonFileLoad( imaState.chainProperties.mn.strPathJsonErc721, null );
         n1 = Object.keys( imaState.chainProperties.mn.joErc721 ).length;
         if( imaState.chainProperties.sc.strPathJsonErc721.length > 0 ) {
-            if( isPrintGathered && IMA.verbose_get() > IMA.RV_VERBOSE.information )
+            if( isPrintGathered && IMA.verbose_get() > IMA.RV_VERBOSE().information )
                 log.write( cc.info( "Loading S-Chain ERC721 ABI from " ) + cc.info( imaState.chainProperties.sc.strPathJsonErc721 ) + "\n" );
             imaState.chainProperties.sc.joErc721 = imaUtils.jsonFileLoad( imaState.chainProperties.sc.strPathJsonErc721, null );
             n2 = Object.keys( imaState.chainProperties.sc.joErc721 ).length;
@@ -1670,7 +1675,7 @@ export function ima_common_init() {
             if( n2 > 0 )
                 n2 = imaState.chainProperties.sc.strCoinNameErc721.length;
             if( n1 > 0 /* && n2 > 0 */ ) {
-                if( IMA.verbose_get() >= IMA.RV_VERBOSE.information && ( !imaState.bShowConfigMode ) ) {
+                if( IMA.verbose_get() >= IMA.RV_VERBOSE().information && ( !imaState.bShowConfigMode ) ) {
                     if( isPrintGathered )
                         log.write( cc.info( "Loaded Main-net ERC721 ABI " ) + cc.attention( imaState.chainProperties.mn.strCoinNameErc721 ) + "\n" );
                     if( n2 > 0 && isPrintGathered )
@@ -1702,7 +1707,7 @@ export function ima_common_init() {
         if( imaState.chainProperties.sc.strPathJsonErc721.length > 0 ) {
             n1 = 0;
             n2 = 0;
-            if( isPrintGathered && IMA.verbose_get() > IMA.RV_VERBOSE.information )
+            if( isPrintGathered && IMA.verbose_get() > IMA.RV_VERBOSE().information )
                 log.write( cc.info( "Loading S-Chain ERC721 ABI from " ) + cc.info( imaState.chainProperties.sc.strPathJsonErc721 ) + "\n" );
             imaState.chainProperties.sc.joErc721 = imaUtils.jsonFileLoad( imaState.chainProperties.sc.strPathJsonErc721, null );
             n2 = Object.keys( imaState.chainProperties.sc.joErc721 ).length;
@@ -1735,13 +1740,13 @@ export function ima_common_init() {
             imaState.chainProperties.sc.strCoinNameErc721 = "" + imaState.chainProperties.mn.strCoinNameErc721; // assume same
             imaState.chainProperties.sc.joErc721 = JSON.parse( JSON.stringify( imaState.chainProperties.mn.joErc721 ) ); // clone
             imaState.chainProperties.sc.joErc721[imaState.chainProperties.sc.strCoinNameErc721 + "_address"] = "" + imaState.strAddrErc721_explicit; // set explicit address
-            // if( IMA.verbose_get() > IMA.RV_VERBOSE.information )
+            // if( IMA.verbose_get() > IMA.RV_VERBOSE().information )
             //     log.write( cc.info("Auto-generated S-Chain ERC721 JSON is ") + cc.j(imaState.chainProperties.sc.joErc721) + "\n" );
         }
     }
     //
     if( imaState.chainProperties.tc.strPathJsonErc721.length > 0 && isPrintGathered ) {
-        if( IMA.verbose_get() > IMA.RV_VERBOSE.information )
+        if( IMA.verbose_get() > IMA.RV_VERBOSE().information )
             log.write( cc.info( "Loading S<->S Target S-Chain ERC721 ABI from " ) + cc.info( imaState.chainProperties.tc.strPathJsonErc721 ) + "\n" );
         imaState.chainProperties.tc.joErc721 = imaUtils.jsonFileLoad( imaState.chainProperties.tc.strPathJsonErc721, null );
         n2 = Object.keys( imaState.chainProperties.tc.joErc721 ).length;
@@ -1770,12 +1775,12 @@ export function ima_common_init() {
     if( imaState.chainProperties.mn.strPathJsonErc1155.length > 0 /* && imaState.chainProperties.sc.strPathJsonErc1155.length > 0 */ ) {
         n1 = 0;
         n2 = 0;
-        if( isPrintGathered && IMA.verbose_get() > IMA.RV_VERBOSE.information )
+        if( isPrintGathered && IMA.verbose_get() > IMA.RV_VERBOSE().information )
             log.write( cc.info( "Loading Main-net ERC1155 ABI from " ) + cc.info( imaState.chainProperties.mn.strPathJsonErc1155 ) + "\n" );
         imaState.chainProperties.mn.joErc1155 = imaUtils.jsonFileLoad( imaState.chainProperties.mn.strPathJsonErc1155, null );
         n1 = Object.keys( imaState.chainProperties.mn.joErc1155 ).length;
         if( imaState.chainProperties.sc.strPathJsonErc1155.length > 0 ) {
-            if( isPrintGathered && IMA.verbose_get() > IMA.RV_VERBOSE.information )
+            if( isPrintGathered && IMA.verbose_get() > IMA.RV_VERBOSE().information )
                 log.write( cc.info( "Loading S-Chain ERC1155 ABI from " ) + cc.info( imaState.chainProperties.sc.strPathJsonErc1155 ) + "\n" );
             imaState.chainProperties.sc.joErc1155 = imaUtils.jsonFileLoad( imaState.chainProperties.sc.strPathJsonErc1155, null );
             n2 = Object.keys( imaState.chainProperties.sc.joErc1155 ).length;
@@ -1788,7 +1793,7 @@ export function ima_common_init() {
             if( n2 > 0 )
                 n2 = imaState.chainProperties.sc.strCoinNameErc1155.length;
             if( n1 > 0 /* && n2 > 0 */ ) {
-                if( IMA.verbose_get() >= IMA.RV_VERBOSE.information && ( !imaState.bShowConfigMode ) ) {
+                if( IMA.verbose_get() >= IMA.RV_VERBOSE().information && ( !imaState.bShowConfigMode ) ) {
                     if( isPrintGathered )
                         log.write( cc.info( "Loaded Main-net ERC1155 ABI " ) + cc.attention( imaState.chainProperties.mn.strCoinNameErc1155 ) + "\n" );
                     if( n2 > 0 && isPrintGathered )
@@ -1820,7 +1825,7 @@ export function ima_common_init() {
         if( imaState.chainProperties.sc.strPathJsonErc1155.length > 0 ) {
             n1 = 0;
             n2 = 0;
-            if( isPrintGathered && IMA.verbose_get() > IMA.RV_VERBOSE.information )
+            if( isPrintGathered && IMA.verbose_get() > IMA.RV_VERBOSE().information )
                 log.write( cc.info( "Loading S-Chain ERC1155 ABI from " ) + cc.info( imaState.chainProperties.sc.strPathJsonErc1155 ) + "\n" );
             imaState.chainProperties.sc.joErc1155 = imaUtils.jsonFileLoad( imaState.chainProperties.sc.strPathJsonErc1155, null );
             n2 = Object.keys( imaState.chainProperties.sc.joErc1155 ).length;
@@ -1853,13 +1858,13 @@ export function ima_common_init() {
             imaState.chainProperties.sc.strCoinNameErc1155 = "" + imaState.chainProperties.mn.strCoinNameErc1155; // assume same
             imaState.chainProperties.sc.joErc1155 = JSON.parse( JSON.stringify( imaState.chainProperties.mn.joErc1155 ) ); // clone
             imaState.chainProperties.sc.joErc1155[imaState.chainProperties.sc.strCoinNameErc1155 + "_address"] = "" + imaState.strAddrErc1155_explicit; // set explicit address
-            // if( IMA.verbose_get() > IMA.RV_VERBOSE.information )
+            // if( IMA.verbose_get() > IMA.RV_VERBOSE().information )
             //     log.write( cc.info("Auto-generated S-Chain ERC1155 JSON is ") + cc.j(imaState.chainProperties.sc.joErc1155) + "\n" );
         }
     }
     //
     if( imaState.chainProperties.tc.strPathJsonErc1155.length > 0 ) {
-        if( isPrintGathered && IMA.verbose_get() > IMA.RV_VERBOSE.information )
+        if( isPrintGathered && IMA.verbose_get() > IMA.RV_VERBOSE().information )
             log.write( cc.info( "Loading S<->S Target S-Chain ERC1155 ABI from " ) + cc.info( imaState.chainProperties.tc.strPathJsonErc1155 ) + "\n" );
         imaState.chainProperties.tc.joErc1155 = imaUtils.jsonFileLoad( imaState.chainProperties.tc.strPathJsonErc1155, null );
         n2 = Object.keys( imaState.chainProperties.tc.joErc1155 ).length;
@@ -1887,17 +1892,17 @@ export function ima_common_init() {
     //
     //
 
-    if( IMA.verbose_get() > IMA.RV_VERBOSE.information || imaState.bShowConfigMode ) {
+    if( IMA.verbose_get() > IMA.RV_VERBOSE().information || imaState.bShowConfigMode ) {
         const isPrintGathered = imaState.isPrintGathered ? true : false;
         const isPrintSecurityValues = imaState.isPrintSecurityValues ? true : false;
         if( isPrintGathered ) {
             print_about( true );
             log.write( cc.attention( "IMA AGENT" ) + cc.normal( " is using " ) + cc.bright( "Ethers JS" ) + cc.normal( " version " ) + cc.sunny( owaspUtils.ethersMod.ethers.version.toString().replace( "ethers/", "" ) ) + "\n" );
         }
-        ensure_have_value( "App path", __filename, false, isPrintGathered, null, ( x ) => {
+        ensure_have_value( "App path", path.join( __dirname, "main.mjs" ), false, isPrintGathered, null, ( x ) => {
             return cc.normal( x );
         } );
-        ensure_have_value( "Verbose level", IMA.VERBOSE[IMA.verbose_get()], false, isPrintGathered, null, ( x ) => {
+        ensure_have_value( "Verbose level", IMA.VERBOSE( IMA.verbose_get() ), false, isPrintGathered, null, ( x ) => {
             return cc.sunny( x );
         } );
         ensure_have_value( "Main-net URL", imaState.chainProperties.mn.strURL, false, isPrintGathered && isPrintSecurityValues, null, ( x ) => {
@@ -2168,6 +2173,7 @@ export function ima_common_init() {
 } // ima_common_init
 
 export function ima_init_ethers_providers() {
+    const imaState = state.get();
     if( imaState.mn.strURL && typeof imaState.mn.strURL == "string" && imaState.mn.strURL.length > 0 ) {
         const u = imaState.mn.strURL;
         async_check_url_at_startup( u, "Main-net" );
@@ -2207,6 +2213,7 @@ export function ima_init_ethers_providers() {
 } // ima_init_ethers_providers
 
 export function ima_contracts_init() {
+    const imaState = state.get();
     ima_init_ethers_providers();
     if( imaState.bHaveImaAbiMainNet ) {
         const cp = imaState.chainProperties.mn;

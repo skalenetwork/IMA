@@ -28,9 +28,12 @@ import { parentPort, workerData } from "worker_threads";
 import * as network_layer from "../npms/skale-cool-socket/socket.mjs";
 // import { SocketServer } from "../npms/skale-cool-socket/server.mjs";
 import * as owaspUtils from "../npms/skale-owasp/owasp-utils.mjs";
-
 import * as loop from "./loop.mjs";
+import * as IMA from "../npms/skale-ima/index.mjs";
+import * as state from "./state.mjs";
+
 const cc = owaspUtils.cc;
+let imaState = state.get();
 
 parentPort.on( "message", jo => {
     if( network_layer.in_worker_apis.on_message( jo ) )
@@ -126,13 +129,14 @@ class ObserverServer extends Server {
             self.opts.imaState.loop_opts.joRuntimeOpts.isInsideWorker = true;
             self.opts.imaState.doEnableDryRun = function( isEnable ) { return IMA.dry_run_enable( isEnable ); };
             self.opts.imaState.doIgnoreDryRun = function( isIgnore ) { return IMA.dry_run_ignore( isIgnore ); };
-            global.imaState = self.opts.imaState;
-            global.imaState.chainProperties.mn.ethersProvider = null;
-            global.imaState.chainProperties.sc.ethersProvider = null;
-            global.imaState.chainProperties.tc.ethersProvider = null;
-            global.imaState.chainProperties.mn.transactionCustomizer = IMA.tc_main_net;
-            global.imaState.chainProperties.sc.transactionCustomizer = IMA.tc_s_chain;
-            global.imaState.chainProperties.tc.transactionCustomizer = IMA.tc_t_chain;
+            imaState = self.opts.imaState;
+            imaState.chainProperties.mn.ethersProvider = null;
+            imaState.chainProperties.sc.ethersProvider = null;
+            imaState.chainProperties.tc.ethersProvider = null;
+            imaState.chainProperties.mn.transactionCustomizer = IMA.get_tc_main_net();
+            imaState.chainProperties.sc.transactionCustomizer = IMA.get_tc_s_chain();
+            imaState.chainProperties.tc.transactionCustomizer = IMA.get_tc_t_chain();
+            state.set( imaState );
             imaCLI.ima_contracts_init();
             //
             self.log(
@@ -154,7 +158,7 @@ class ObserverServer extends Server {
         };
         self.mapApiHandlers.skale_imaNotifyLoopWork = function( joMessage, joAnswer, eventData, socket ) {
             /*await*/ pwa.handle_loop_state_arrived(
-                global.imaState,
+                imaState,
                 owaspUtils.toInteger( joMessage.params.nNodeNumber ),
                 joMessage.params.strLoopWorkType,
                 joMessage.params.nIndexS2S,

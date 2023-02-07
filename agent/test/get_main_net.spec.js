@@ -26,10 +26,9 @@
 const assert = require('chai').assert;
 const expect = require('chai').expect;
 const IMA = require( "../../npms/skale-ima" );
-// const w3 = require("web3")
 const w3mod = IMA.w3mod
-const tc_main_net = IMA.tc_main_net;
-const tc_s_chain = IMA.tc_s_chain;
+const tc_main_net = IMA.get_tc_main_net();
+const tc_s_chain = IMA.get_tc_s_chain();
 
 // 
 let chain_id_s_chain = "blah_blah_blah_schain_name"; // 1;
