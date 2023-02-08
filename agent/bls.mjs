@@ -32,6 +32,7 @@ import * as rpcCall from "./rpc-call.mjs";
 import * as shell from "shelljs";
 import * as imaUtils from "./utils.mjs";
 import * as hashing from "js-sha3";
+import * as skale_observer from "../npms/skale-observer/observer.mjs";
 
 import * as state from "./state.mjs";
 const keccak256 = hashing.default.keccak256;
@@ -266,7 +267,7 @@ export function keccak256_pwa( nNodeNumber, strLoopWorkType, isStart, ts ) {
     bytes_u256 = imaUtils.invertArrayItemsLR( bytes_u256 );
     arrBytes = imaUtils.bytesConcat( arrBytes, bytes_u256 );
     //
-    strMessageHash = owaspUtils.ensure_starts_with_0x( keccak256( arrBytes ) );
+    const strMessageHash = owaspUtils.ensure_starts_with_0x( keccak256( arrBytes ) );
     return strMessageHash;
 }
 
@@ -764,8 +765,8 @@ async function check_correctness_of_messages_to_sign( details, strLogPrefix, str
             throw new Error( "CRITICAL ERROR: No provider specified in extra signing options for checking messages of direction \"" + strDirection + "\"" );
         joMessageProxy =
             new owaspUtils.ethersMod.ethers.Contract(
-                imaState.joAbiPublishResult_s_chain.message_proxy_chain_address,
-                imaState.joAbiPublishResult_s_chain.message_proxy_chain_abi,
+                imaState.chainProperties.sc.joAbiIMA.message_proxy_chain_address,
+                imaState.chainProperties.sc.joAbiIMA.message_proxy_chain_abi,
                 joExtraSignOpts.ethersProvider
             );
         joAccount = imaState.joAccount_s_chain;

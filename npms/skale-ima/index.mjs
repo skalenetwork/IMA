@@ -26,6 +26,7 @@
 // init very basics
 import * as fs from "fs";
 import * as path from "path";
+import * as url from "url";
 import * as child_process from "child_process";
 
 import { UniversalDispatcherEvent, EventDispatcher } from "../skale-cool-socket/event_dispatcher.mjs";
@@ -41,6 +42,8 @@ import * as owaspUtils from "../skale-owasp/owasp-utils.mjs";
 import * as loop from "../../agent/loop.mjs";
 
 import * as state from "../../agent/state.mjs";
+
+const __dirname = path.dirname( url.fileURLToPath( import.meta.url ) );
 
 let redis = null;
 let loopTmSendingCnt = 0;
@@ -878,7 +881,7 @@ export async function do_oracle_gas_price_setup(
             //     // "gasLimit": 3000000,
             //     to: jo_community_locker.address, // contract address
             //     data: dataTx_setGasPrice //,
-            //     // "value": wei_amount // 1000000000000000000 // ethersProvider_s_chain.utils.toWei( (1).toString(), "ether" ) // how much money to send
+            //     // "value": wei_amount
             // };
 
             if( chain_id_schain !== "Mainnet" ) {
@@ -909,7 +912,7 @@ export async function do_oracle_gas_price_setup(
                     gasPrice, estimatedGas_setGasPrice, weiHowMuch,
                     null
                 );
-            if( joReceipt && typeof joReceipt == "object" && "gasUsed" in joReceipt ) {
+            if( joReceipt && typeof joReceipt == "object" ) {
                 jarrReceipts.push( {
                     "description": "do_oracle_gas_price_setup/setGasPrice",
                     "receipt": joReceipt
@@ -1086,41 +1089,6 @@ export function compose_tx_instance( details, strLogPrefix, rawTx ) {
     strLogPrefix = strLogPrefix || "";
     rawTx = JSON.parse( JSON.stringify( rawTx ) ); // clone
     const joOpts = null;
-    /*
-    if( "chainId" in rawTx && typeof rawTx.chainId == "number" ) {
-        switch ( rawTx.chainId ) {
-        case 1:
-            delete rawTx.chainId;
-            joOpts = joOpts || { };
-            joOpts.chain = "mainnet";
-            break;
-        case 3:
-            delete rawTx.chainId;
-            joOpts = joOpts || { };
-            joOpts.chain = "ropsten";
-            break;
-        case 4:
-            delete rawTx.chainId;
-            joOpts = joOpts || { };
-            joOpts.chain = "rinkeby";
-            break;
-        case 5:
-            delete rawTx.chainId;
-            joOpts = joOpts || { };
-            joOpts.chain = "goerli";
-            break;
-        case 2018:
-            delete rawTx.chainId;
-            joOpts = joOpts || { };
-            joOpts.chain = "dev";
-            break;
-        } // switch( rawTx.chainId )
-    }
-*/
-    // if( rawTx.chainId && Number(rawTx.chainId) > 1 ) {
-    //     rawTx.nonce += 1048576; // see https://ethereum.stackexchange.com/questions/12810/need-help-signing-a-raw-transaction-with-ethereumjs-tx
-    //     rawTx.nonce = w3mod.utils.toHex( rawTx.nonce );
-    // }
     details.write( strLogPrefix + cc.debug( "....composed " ) + cc.notice( JSON.stringify( rawTx ) ) + cc.debug( " with opts " ) + cc.j( joOpts ) + "\n" );
     let tx = null;
     if( joOpts )
@@ -1236,7 +1204,7 @@ export async function payed_call(
         details.write( cc.debug( "Payed-call of action " ) + cc.info( strActionName ) + cc.debug( "..." ) + "\n" );
         details.write( strLogPrefix + cc.debug( "Will do payed-call " ) + strContractCallDescription + cc.debug( "..." ) + "\n" );
         const txx = await joContract.populateTransaction[strMethodName]( ...arrArguments, callOpts );
-        details.write( strLogPrefix + c.debug( "raw transaction: " ) + cc.j( txx ) + "\n" );
+        details.write( strLogPrefix + cc.debug( "raw transaction: " ) + cc.j( txx ) + "\n" );
         const joReceipt = await ethersWallet.sendTransaction( txx );
         details.write( strLogPrefix + cc.debug( "transaction hash: " ) + cc.j( joReceipt.hash ) + "\n" );
         const rcpt = await joReceipt.wait();
@@ -1776,9 +1744,8 @@ export async function invoke_has_chain(
     chain_id_s_chain
 ) {
     const strLogPrefix = cc.sunny( "Wait for added chain status:" ) + " ";
-    let strActionName = "";
+    const strActionName = "invoke_has_chain(hasSchain): jo_linker.hasSchain";
     try {
-        strActionName = "invoke_has_chain(hasSchain): jo_linker.hasSchain";
         details.write( strLogPrefix + cc.debug( "Will call " ) + cc.notice( strActionName ) + cc.debug( "..." ) + "\n" );
         const addressFrom = joAccount.address();
         const bHasSchain = await jo_linker.callStatic.hasSchain( chain_id_s_chain, { from: addressFrom } );
@@ -1786,7 +1753,7 @@ export async function invoke_has_chain(
         return bHasSchain;
     } catch ( err ) {
         const strError = owaspUtils.extract_error_message( err );
-        const s = strLogPrefix + cc.fatal( "CRITICAL ERROR:" ) + cc.error( "Error in register_s_chain_in_deposit_boxes(reg-step1)() during " + strActionName + ": " ) + cc.error( strError ) + "\n";
+        const s = strLogPrefix + cc.fatal( "CRITICAL ERROR:" ) + cc.error( "Error in invoke_has_chain() during " + strActionName + ": " ) + cc.error( strError ) + "\n";
         if( verbose_get() >= RV_VERBOSE().fatal )
             log.write( s );
         details.write( s );
@@ -1918,7 +1885,7 @@ export async function register_s_chain_in_deposit_boxes( // step 1
                 gasPrice, estimatedGas, weiHowMuch,
                 null
             );
-        if( joReceipt && typeof joReceipt == "object" && "gasUsed" in joReceipt ) {
+        if( joReceipt && typeof joReceipt == "object" ) {
             jarrReceipts.push( {
                 "description": "register_s_chain_in_deposit_boxes",
                 "receipt": joReceipt
@@ -1981,7 +1948,7 @@ export async function reimbursement_show_balance(
             log.write( s );
         details.write( s );
         //
-        const xEth = ethersProvider_main_net.utils.fromWei( xWei, "ether" );
+        const xEth = owaspUtils.ethersMod.ethers.utils.formatEther( owaspUtils.ethersMod.ethers.BigNumber.from( xWei ) );
         s = strLogPrefix + cc.success( "Balance(eth): " ) + cc.attention( xEth ) + "\n";
         if( isForcePrintOut || verbose_get() >= RV_VERBOSE().information )
             log.write( s );
@@ -2026,7 +1993,7 @@ export async function reimbursement_estimate_amount(
             log.write( s );
         details.write( s );
         //
-        const xEth = ethersProvider_main_net.utils.fromWei( xWei, "ether" );
+        const xEth = owaspUtils.ethersMod.ethers.utils.formatEther( owaspUtils.ethersMod.ethers.BigNumber.from( xWei ) );
         s = strLogPrefix + cc.success( "Balance(eth): " ) + cc.attention( xEth ) + "\n";
         if( isForcePrintOut || verbose_get() >= RV_VERBOSE().information )
             log.write( s );
@@ -2050,7 +2017,7 @@ export async function reimbursement_estimate_amount(
             log.write( s );
         details.write( s );
         //
-        let amountToRecharge;
+        let amountToRecharge = 0;
         if( xWei >= minAmount )
             amountToRecharge = 1;
         else
@@ -2061,7 +2028,7 @@ export async function reimbursement_estimate_amount(
             log.write( s );
         details.write( s );
         //
-        const amountToRechargeEth = ethersProvider_main_net.utils.fromWei( amountToRecharge.toString(), "ether" );
+        const amountToRechargeEth = owaspUtils.ethersMod.ethers.utils.formatEther( owaspUtils.ethersMod.ethers.BigNumber.from( amountToRecharge.toString() ) );
         s = strLogPrefix + cc.success( "Estimated amount to recharge(eth): " ) + cc.attention( amountToRechargeEth ) + "\n";
         if( isForcePrintOut || verbose_get() >= RV_VERBOSE().information )
             log.write( s );
@@ -2163,7 +2130,7 @@ export async function reimbursement_wallet_recharge(
                 gasPrice, estimatedGas, nReimbursementRecharge,
                 null
             );
-        if( joReceipt && typeof joReceipt == "object" && "gasUsed" in joReceipt ) {
+        if( joReceipt && typeof joReceipt == "object" ) {
             jarrReceipts.push( {
                 "description": "reimbursement_wallet_recharge",
                 "receipt": joReceipt
@@ -2266,7 +2233,7 @@ export async function reimbursement_wallet_withdraw(
                 gasPrice, estimatedGas, weiHowMuch,
                 null
             );
-        if( joReceipt && typeof joReceipt == "object" && "gasUsed" in joReceipt ) {
+        if( joReceipt && typeof joReceipt == "object" ) {
             jarrReceipts.push( {
                 "description": "reimbursement_wallet_withdraw",
                 "receipt": joReceipt
@@ -2375,7 +2342,7 @@ export async function reimbursement_set_range(
                 gasPrice, estimatedGas, weiHowMuch,
                 null
             );
-        if( joReceipt && typeof joReceipt == "object" && "gasUsed" in joReceipt ) {
+        if( joReceipt && typeof joReceipt == "object" ) {
             jarrReceipts.push( {
                 "description": "reimbursement_set_range",
                 "receipt": joReceipt
@@ -2490,7 +2457,7 @@ export async function do_eth_payment_from_main_net(
                 gasPrice, estimatedGas, weiHowMuch,
                 null
             );
-        if( joReceipt && typeof joReceipt == "object" && "gasUsed" in joReceipt ) {
+        if( joReceipt && typeof joReceipt == "object" ) {
             jarrReceipts.push( {
                 "description": "do_eth_payment_from_main_net",
                 "receipt": joReceipt
@@ -2629,7 +2596,7 @@ export async function do_eth_payment_from_s_chain(
                 gasPrice, estimatedGas, weiHowMuch,
                 null
             );
-        if( joReceipt && typeof joReceipt == "object" && "gasUsed" in joReceipt ) {
+        if( joReceipt && typeof joReceipt == "object" ) {
             jarrReceipts.push( {
                 "description": "do_eth_payment_from_s_chain",
                 "receipt": joReceipt
@@ -2741,7 +2708,7 @@ export async function receive_eth_payment_from_s_chain_on_main_net(
                 gasPrice, estimatedGas, weiHowMuch,
                 null
             );
-        if( joReceipt && typeof joReceipt == "object" && "gasUsed" in joReceipt ) {
+        if( joReceipt && typeof joReceipt == "object" ) {
             jarrReceipts.push( {
                 "description": "receive_eth_payment_from_s_chain_on_main_net",
                 "receipt": joReceipt
@@ -2789,7 +2756,7 @@ export async function view_eth_payment_from_s_chain_on_main_net(
         const addressFrom = joAccountMN.address();
         const xWei = await jo_deposit_box_eth.callStatic.approveTransfers( addressFrom, { from: addressFrom } );
         details.write( strLogPrefix + cc.success( "You can receive(wei): " ) + cc.attention( xWei ) + "\n" );
-        const xEth = ethersProvider_main_net.utils.fromWei( xWei, "ether" );
+        const xEth = owaspUtils.ethersMod.ethers.utils.formatEther( owaspUtils.ethersMod.ethers.BigNumber.from( xWei ) );
         const s = strLogPrefix + cc.success( "You can receive(eth): " ) + cc.attention( xEth ) + "\n";
         if( verbose_get() >= RV_VERBOSE().information )
             log.write( s );
@@ -2916,7 +2883,7 @@ export async function do_erc721_payment_from_main_net(
                 gasPrice, estimatedGas_approve, weiHowMuch_approve,
                 null
             );
-        if( joReceiptApprove && typeof joReceiptApprove == "object" && "gasUsed" in joReceiptApprove ) {
+        if( joReceiptApprove && typeof joReceiptApprove == "object" ) {
             jarrReceipts.push( {
                 "description": "do_erc721_payment_from_main_net/approve",
                 "receipt": joReceiptApprove
@@ -2985,7 +2952,7 @@ export async function do_erc721_payment_from_main_net(
                 gasPrice, estimatedGas_deposit, weiHowMuch_depositERC721,
                 null
             );
-        if( joReceiptDeposit && typeof joReceiptDeposit == "object" && "gasUsed" in joReceiptDeposit ) {
+        if( joReceiptDeposit && typeof joReceiptDeposit == "object" ) {
             jarrReceipts.push( {
                 "description": "do_erc721_payment_from_main_net/deposit",
                 "receipt": joReceiptDeposit
@@ -3130,7 +3097,7 @@ export async function do_erc20_payment_from_main_net(
                 gasPrice, estimatedGas_approve, weiHowMuch_approve,
                 null
             );
-        if( joReceiptApprove && typeof joReceiptApprove == "object" && "gasUsed" in joReceiptApprove ) {
+        if( joReceiptApprove && typeof joReceiptApprove == "object" ) {
             jarrReceipts.push( {
                 "description": "do_erc20_payment_from_main_net/approve",
                 "receipt": joReceiptApprove
@@ -3201,7 +3168,7 @@ export async function do_erc20_payment_from_main_net(
                 gasPrice, estimatedGas_deposit, weiHowMuch_depositERC20,
                 null
             );
-        if( joReceiptDeposit && typeof joReceiptDeposit == "object" && "gasUsed" in joReceiptDeposit ) {
+        if( joReceiptDeposit && typeof joReceiptDeposit == "object" ) {
             jarrReceipts.push( {
                 "description": "do_erc20_payment_from_main_net/deposit",
                 "receipt": joReceiptDeposit
@@ -3345,7 +3312,7 @@ export async function do_erc1155_payment_from_main_net(
                 gasPrice, estimatedGas_approve, weiHowMuch_approve,
                 null
             );
-        if( joReceiptApprove && typeof joReceiptApprove == "object" && "gasUsed" in joReceiptApprove ) {
+        if( joReceiptApprove && typeof joReceiptApprove == "object" ) {
             jarrReceipts.push( {
                 "description": "do_erc1155_payment_from_main_net/approve",
                 "receipt": joReceiptApprove
@@ -3414,7 +3381,7 @@ export async function do_erc1155_payment_from_main_net(
                 gasPrice, estimatedGas_deposit, weiHowMuch_depositERC1155,
                 null
             );
-        if( joReceiptDeposit && typeof joReceiptDeposit == "object" && "gasUsed" in joReceiptDeposit ) {
+        if( joReceiptDeposit && typeof joReceiptDeposit == "object" ) {
             jarrReceipts.push( {
                 "description": "do_erc1155_payment_from_main_net/deposit",
                 "receipt": joReceiptDeposit
@@ -3557,7 +3524,7 @@ export async function do_erc1155_batch_payment_from_main_net(
                 gasPrice, estimatedGas_approve, weiHowMuch_approve,
                 null
             );
-        if( joReceiptApprove && typeof joReceiptApprove == "object" && "gasUsed" in joReceiptApprove ) {
+        if( joReceiptApprove && typeof joReceiptApprove == "object" ) {
             jarrReceipts.push( {
                 "description": "do_erc1155_batch_payment_from_main_net/approve",
                 "receipt": joReceiptApprove
@@ -3626,7 +3593,7 @@ export async function do_erc1155_batch_payment_from_main_net(
                 gasPrice, estimatedGas_deposit, weiHowMuch_depositERC1155Batch,
                 null
             );
-        if( joReceiptDeposit && typeof joReceiptDeposit == "object" && "gasUsed" in joReceiptDeposit ) {
+        if( joReceiptDeposit && typeof joReceiptDeposit == "object" ) {
             jarrReceipts.push( {
                 "description": "do_erc1155_batch_payment_from_main_net/deposit",
                 "receipt": joReceiptDeposit
@@ -3773,7 +3740,7 @@ export async function do_erc20_payment_from_s_chain(
                 gasPrice, estimatedGas_approve, weiHowMuch_approve,
                 null
             );
-        if( joReceiptApprove && typeof joReceiptApprove == "object" && "gasUsed" in joReceiptApprove ) {
+        if( joReceiptApprove && typeof joReceiptApprove == "object" ) {
             jarrReceipts.push( {
                 "description": "do_erc20_payment_from_s_chain/approve",
                 "receipt": joReceiptApprove
@@ -3853,7 +3820,7 @@ export async function do_erc20_payment_from_s_chain(
                 gasPrice, estimatedGas_exitToMainERC20, weiHowMuch_exitToMainERC20,
                 null
             );
-        if( joReceiptExitToMainERC20 && typeof joReceiptExitToMainERC20 == "object" && "gasUsed" in joReceiptExitToMainERC20 ) {
+        if( joReceiptExitToMainERC20 && typeof joReceiptExitToMainERC20 == "object" ) {
             jarrReceipts.push( {
                 "description": "do_erc20_payment_from_s_chain/exit-to-main",
                 "receipt": joReceiptExitToMainERC20
@@ -4001,7 +3968,7 @@ export async function do_erc721_payment_from_s_chain(
                 gasPrice, estimatedGas_approve, weiHowMuch_approve,
                 null
             );
-        if( joReceiptApprove && typeof joReceiptApprove == "object" && "gasUsed" in joReceiptApprove ) {
+        if( joReceiptApprove && typeof joReceiptApprove == "object" ) {
             jarrReceipts.push( {
                 "description": "do_erc721_payment_from_s_chain/transfer-from",
                 "receipt": joReceiptApprove
@@ -4082,7 +4049,7 @@ export async function do_erc721_payment_from_s_chain(
                 gasPrice, estimatedGas_exitToMainERC721, weiHowMuch_exitToMainERC721,
                 null
             );
-        if( joReceiptExitToMainERC721 && typeof joReceiptExitToMainERC721 == "object" && "gasUsed" in joReceiptExitToMainERC721 ) {
+        if( joReceiptExitToMainERC721 && typeof joReceiptExitToMainERC721 == "object" ) {
             jarrReceipts.push( {
                 "description": "do_erc721_payment_from_s_chain/exit-to-main",
                 "receipt": joReceiptExitToMainERC721
@@ -4228,7 +4195,7 @@ export async function do_erc1155_payment_from_s_chain(
                 gasPrice, estimatedGas_approve, weiHowMuch_approve,
                 null
             );
-        if( joReceiptApprove && typeof joReceiptApprove == "object" && "gasUsed" in joReceiptApprove ) {
+        if( joReceiptApprove && typeof joReceiptApprove == "object" ) {
             jarrReceipts.push( {
                 "description": "do_erc1155_payment_from_s_chain/transfer-from",
                 "receipt": joReceiptApprove
@@ -4310,7 +4277,7 @@ export async function do_erc1155_payment_from_s_chain(
                 gasPrice, estimatedGas_exitToMainERC1155, weiHowMuch_exitToMainERC1155,
                 null
             );
-        if( joReceiptExitToMainERC1155 && typeof joReceiptExitToMainERC1155 == "object" && "gasUsed" in joReceiptExitToMainERC1155 ) {
+        if( joReceiptExitToMainERC1155 && typeof joReceiptExitToMainERC1155 == "object" ) {
             jarrReceipts.push( {
                 "description": "do_erc1155_payment_from_s_chain/exit-to-main",
                 "receipt": joReceiptExitToMainERC1155
@@ -4456,7 +4423,7 @@ export async function do_erc1155_batch_payment_from_s_chain(
                 gasPrice, estimatedGas_approve, weiHowMuch_approve,
                 null
             );
-        if( joReceiptApprove && typeof joReceiptApprove == "object" && "gasUsed" in joReceiptApprove ) {
+        if( joReceiptApprove && typeof joReceiptApprove == "object" ) {
             jarrReceipts.push( {
                 "description": "do_erc1155_batch_payment_from_s_chain/transfer-from",
                 "receipt": joReceiptApprove
@@ -4539,7 +4506,7 @@ export async function do_erc1155_batch_payment_from_s_chain(
                 gasPrice, estimatedGas_exitToMainERC1155Batch, weiHowMuch_exitToMainERC1155Batch,
                 null
             );
-        if( joReceiptExitToMainERC1155Batch && typeof joReceiptExitToMainERC1155Batch == "object" && "gasUsed" in joReceiptExitToMainERC1155Batch ) {
+        if( joReceiptExitToMainERC1155Batch && typeof joReceiptExitToMainERC1155Batch == "object" ) {
             jarrReceipts.push( {
                 "description": "do_erc1155_batch_payment_from_s_chain/exit-to-main",
                 "receipt": joReceiptExitToMainERC1155Batch
@@ -4700,7 +4667,7 @@ export async function do_erc20_payment_s2s(
                 gasPrice, estimatedGas_approve, weiHowMuch_approve,
                 null
             );
-        if( joReceipt_approve && typeof joReceipt_approve == "object" && "gasUsed" in joReceipt_approve ) {
+        if( joReceipt_approve && typeof joReceipt_approve == "object" ) {
             jarrReceipts.push( {
                 "description": "do_erc20_payment_s2s/approve/" + ( isForward ? "forward" : "reverse" ),
                 "receipt": joReceipt_approve
@@ -4770,7 +4737,7 @@ export async function do_erc20_payment_s2s(
                 gasPrice, estimatedGas_transfer, weiHowMuch_transferERC20,
                 null
             );
-        if( joReceipt_transfer && typeof joReceipt_transfer == "object" && "gasUsed" in joReceipt_transfer ) {
+        if( joReceipt_transfer && typeof joReceipt_transfer == "object" ) {
             jarrReceipts.push( {
                 "description": "do_erc20_payment_from_src/transfer",
                 "receipt": joReceipt_transfer
@@ -4936,7 +4903,7 @@ export async function do_erc721_payment_s2s(
                 gasPrice, estimatedGas_approve, weiHowMuch_approve,
                 null
             );
-        if( joReceipt_approve && typeof joReceipt_approve == "object" && "gasUsed" in joReceipt_approve ) {
+        if( joReceipt_approve && typeof joReceipt_approve == "object" ) {
             jarrReceipts.push( {
                 "description": "do_erc721_payment_s2s/approve/" + ( isForward ? "forward" : "reverse" ),
                 "receipt": joReceipt_approve
@@ -5006,7 +4973,7 @@ export async function do_erc721_payment_s2s(
                 gasPrice, estimatedGas_transfer, weiHowMuch_transferERC721,
                 null
             );
-        if( joReceipt_transfer && typeof joReceipt_transfer == "object" && "gasUsed" in joReceipt_transfer ) {
+        if( joReceipt_transfer && typeof joReceipt_transfer == "object" ) {
             jarrReceipts.push( {
                 "description": "do_erc721_payment_from_src/transfer",
                 "receipt": joReceipt_transfer
@@ -5174,7 +5141,7 @@ export async function do_erc1155_payment_s2s(
                 gasPrice, estimatedGas_approve, weiHowMuch_approve,
                 null
             );
-        if( joReceipt_approve && typeof joReceipt_approve == "object" && "gasUsed" in joReceipt_approve ) {
+        if( joReceipt_approve && typeof joReceipt_approve == "object" ) {
             jarrReceipts.push( {
                 "description": "do_erc1155_payment_s2s/approve/" + ( isForward ? "forward" : "reverse" ),
                 "receipt": joReceipt_approve
@@ -5244,7 +5211,7 @@ export async function do_erc1155_payment_s2s(
                 gasPrice, estimatedGas_transfer, weiHowMuch_transferERC1155,
                 null
             );
-        if( joReceipt_transfer && typeof joReceipt_transfer == "object" && "gasUsed" in joReceipt_transfer ) {
+        if( joReceipt_transfer && typeof joReceipt_transfer == "object" ) {
             jarrReceipts.push( {
                 "description": "do_erc1155_payment_from_src/transfer",
                 "receipt": joReceipt_transfer
@@ -5412,7 +5379,7 @@ export async function do_erc1155_batch_payment_s2s(
                 gasPrice, estimatedGas_approve, weiHowMuch_approve,
                 null
             );
-        if( joReceipt_approve && typeof joReceipt_approve == "object" && "gasUsed" in joReceipt_approve ) {
+        if( joReceipt_approve && typeof joReceipt_approve == "object" ) {
             jarrReceipts.push( {
                 "description": "do_erc1155_batch_payment_s2s/approve/" + ( isForward ? "forward" : "reverse" ),
                 "receipt": joReceipt_approve
@@ -5482,7 +5449,7 @@ export async function do_erc1155_batch_payment_s2s(
                 gasPrice, estimatedGas_transfer, weiHowMuch_transferERC1155,
                 null
             );
-        if( joReceipt_transfer && typeof joReceipt_transfer == "object" && "gasUsed" in joReceipt_transfer ) {
+        if( joReceipt_transfer && typeof joReceipt_transfer == "object" ) {
             jarrReceipts.push( {
                 "description": "do_erc1155_payment_from_src/transfer",
                 "receipt": joReceipt_transfer
@@ -5718,12 +5685,13 @@ export async function do_transfer(
     let nOutMsgCnt = 0;
     let nIncMsgCnt = 0;
     try {
+        let nPossibleIntegerValue = 0;
         details.write( cc.info( "SRC " ) + cc.sunny( "MessageProxy" ) + cc.info( " address is....." ) + cc.bright( jo_message_proxy_src.address ) + "\n" );
         details.write( cc.info( "DST " ) + cc.sunny( "MessageProxy" ) + cc.info( " address is....." ) + cc.bright( jo_message_proxy_dst.address ) + "\n" );
         strActionName = "src-chain.MessageProxy.getOutgoingMessagesCounter()";
         try {
             details.write( strLogPrefix + cc.debug( "Will call " ) + cc.notice( strActionName ) + cc.debug( "..." ) + "\n" );
-            const nPossibleIntegerValue = await jo_message_proxy_src.callStatic.getOutgoingMessagesCounter( chain_id_dst, { from: joAccountSrc.address() } );
+            nPossibleIntegerValue = await jo_message_proxy_src.callStatic.getOutgoingMessagesCounter( chain_id_dst, { from: joAccountSrc.address() } );
             if( !owaspUtils.validateInteger( nPossibleIntegerValue ) )
                 throw new Error( "DST chain " + chain_id_dst + " returned outgoing message counter " + nPossibleIntegerValue + " which is not a valid integer" );
             nOutMsgCnt = owaspUtils.toInteger( nPossibleIntegerValue );
@@ -5841,12 +5809,12 @@ export async function do_transfer(
                     nBlockFrom,
                     nBlockTo,
                     {
-                        dstChainHash: [ ethersProvider_src.utils.soliditySha3( chain_id_dst ) ],
+                        dstChainHash: [ owaspUtils.ethersMod.ethers.utils.id( chain_id_dst ) ],
                         msgCounter: [ nIdxCurrentMsg ]
                     }
                 );
                 //details.write( strLogPrefix + cc.normal( "Logs search result(s): " ) + cc.j( r ) + "\n" );
-                const strChainHashWeAreLookingFor = ethersProvider_src.utils.soliditySha3( chain_id_dst );
+                const strChainHashWeAreLookingFor = owaspUtils.ethersMod.ethers.utils.id( chain_id_dst );
                 let joValues = "";
                 details.write( strLogPrefix +
                     cc.debug( "Will review " ) + cc.info( r.length ) +
@@ -6091,7 +6059,7 @@ export async function do_transfer(
                                     joMessage.savedBlockNumberForOptimizations, // 0, // nBlockFrom
                                     joMessage.savedBlockNumberForOptimizations, // "latest", // nBlockTo
                                     {
-                                        dstChainHash: [ ethersProvider_node.utils.soliditySha3( chain_id_dst ) ],
+                                        dstChainHash: [ owaspUtils.ethersMod.ethers.utils.id( chain_id_dst ) ],
                                         msgCounter: [ idxImaMessage ]
                                     }
                                 );
@@ -6369,7 +6337,7 @@ export async function do_transfer(
                                 gasPrice, estimatedGas_postIncomingMessages, weiHowMuch_postIncomingMessages,
                                 null
                             );
-                        if( joReceipt && typeof joReceipt == "object" && "gasUsed" in joReceipt ) {
+                        if( joReceipt && typeof joReceipt == "object" ) {
                             jarrReceipts.push( {
                                 "description": "do_transfer/postIncomingMessages()",
                                 "detailsString": "" + strGatheredDetailsName_b,
@@ -6701,8 +6669,8 @@ export class TransactionCustomizer {
             };
             if( gasPrice )
                 callOpts.gasPrice = owaspUtils.ethersMod.ethers.BigNumber.from( gasPrice ).toHexString();
-            if( gasValue )
-                callOpts.gasLimit = owaspUtils.ethersMod.ethers.BigNumber.from( gasValue ).toHexString();
+            if( gasValueRecommended )
+                callOpts.gasLimit = owaspUtils.ethersMod.ethers.BigNumber.from( gasValueRecommended ).toHexString();
             if( weiHowMuch )
                 callOpts.value = owaspUtils.ethersMod.ethers.BigNumber.from( weiHowMuch ).toHexString();
             estimatedGas = await joContract.estimateGas[strMethodName]( ...arrArguments, callOpts );
@@ -6990,7 +6958,7 @@ export async function mintERC20(
         //     // "gasLimit": 3000000,
         //     to: contract.address, // contract address
         //     data: dataTx_mint //,
-        //     // "value": wei_amount // 1000000000000000000 // w3.utils.toWei( (1).toString(), "ether" ) // how much money to send
+        //     // "value": wei_amount
         // };
         // strActionName = "mintERC20() check transaction on S-Chain";
 
@@ -7117,7 +7085,7 @@ export async function mintERC721(
         //     // "gasLimit": 3000000,
         //     to: contract.address, // contract address
         //     data: dataTx_mint //,
-        //     // "value": wei_amount // 1000000000000000000 // w3.utils.toWei( (1).toString(), "ether" ) // how much money to send
+        //     // "value": wei_amount
         // };
         // strActionName = "mintERC721() check transaction on S-Chain";
 
@@ -7248,7 +7216,7 @@ export async function mintERC1155(
         //     // "gasLimit": 3000000,
         //     to: contract.address, // contract address
         //     data: dataTx_mint //,
-        //     // "value": wei_amount // 1000000000000000000 // w3.utils.toWei( (1).toString(), "ether" ) // how much money to send
+        //     // "value": wei_amount
         // };
         // strActionName = "mintERC1155() check transaction on S-Chain";
 
@@ -7376,7 +7344,7 @@ export async function burnERC20(
         //     // "gasLimit": 3000000,
         //     to: contract.address, // contract address
         //     data: dataTx_burn //,
-        //     // "value": wei_amount // 1000000000000000000 // w3.utils.toWei( (1).toString(), "ether" ) // how much money to send
+        //     // "value": wei_amount
         // };
         // strActionName = "burnERC20() check transaction on S-Chain";
 
@@ -7504,7 +7472,7 @@ export async function burnERC721(
         //     // "gasLimit": 3000000,
         //     to: contract.address, // contract address
         //     data: dataTx_burn //,
-        //     // "value": wei_amount // 1000000000000000000 // w3.utils.toWei( (1).toString(), "ether" ) // how much money to send
+        //     // "value": wei_amount
         // };
         // strActionName = "burnERC721() check transaction on S-Chain";
 
@@ -7634,7 +7602,7 @@ export async function burnERC1155(
         //     // "gasLimit": 3000000,
         //     to: contract.address, // contract address
         //     data: dataTx_burn //,
-        //     // "value": wei_amount // 1000000000000000000 // w3.utils.toWei( (1).toString(), "ether" ) // how much money to send
+        //     // "value": wei_amount
         // };
         // strActionName = "burnERC1155() check transaction on S-Chain";
 

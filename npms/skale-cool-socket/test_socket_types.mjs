@@ -24,12 +24,15 @@
  */
 
 import * as path from "path";
+import * as url from "url";
 import * as network_layer from "./socket.mjs";
 import { TestSocketServer } from "./test_socket_server.mjs";
 import { Worker } from "worker_threads";
 import { settings } from "./socket_settings.mjs";
 import * as ws from "ws";
-const __dirname = path.resolve();
+
+const __dirname = path.dirname( url.fileURLToPath( import.meta.url ) );
+
 // import * as wrtc from "wrtc";
 
 const joTestMessage = { "method": "echo", "message": "Please echo this message!" };

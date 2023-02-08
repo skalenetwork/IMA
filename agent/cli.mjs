@@ -25,6 +25,7 @@
 
 // import * as fs from "fs";
 import * as path from "path";
+import * as url from "url";
 import * as os from "os";
 import * as cc from "../npms/skale-cc/cc.mjs";
 import * as log from "../npms/skale-log/log.mjs";
@@ -34,7 +35,7 @@ import * as rpcCall from "./rpc-call.mjs";
 import * as IMA from "../npms/skale-ima/index.mjs";
 import * as state from "./state.mjs";
 
-const __dirname = path.resolve();
+const __dirname = path.dirname( url.fileURLToPath( import.meta.url ) );
 
 const g_strAppName = "IMA AGENT";
 const g_strVersion = imaUtils.jsonFileLoad( path.join( __dirname, "package.json" ), null ).version;

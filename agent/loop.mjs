@@ -25,6 +25,7 @@
  */
 
 import * as network_layer from "../npms/skale-cool-socket/socket.mjs";
+import * as url from "url";
 import { Worker } from "worker_threads";
 import * as path from "path";
 import * as cc from "../npms/skale-cc/cc.mjs";
@@ -36,12 +37,9 @@ import * as imaBLS from "./bls.mjs";
 import * as skale_observer from "../npms/skale-observer/observer.mjs";
 // import * as imaOracle from "./oracle.mjs";
 import * as pwa from "./pwa.mjs";
-
 import * as state from "./state.mjs";
 
-// import * as express from "express";
-// import * as bodyParser from "body-parser";
-// import * as jayson from "jayson";
+const __dirname = path.dirname( url.fileURLToPath( import.meta.url ) );
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -359,7 +357,7 @@ export async function single_transfer_loop_with_repeat( loop_opts ) {
 };
 export async function run_transfer_loop( loop_opts ) {
     const imaState = state.get();
-    isDelayFirstRun = owaspUtils.toBoolean( loop_opts.isDelayFirstRun );
+    let isDelayFirstRun = owaspUtils.toBoolean( loop_opts.isDelayFirstRun );
     if( isDelayFirstRun ) {
         setTimeout( async function() {
             await single_transfer_loop_with_repeat( loop_opts );

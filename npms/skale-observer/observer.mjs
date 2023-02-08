@@ -25,6 +25,7 @@
  */
 
 import * as path from "path";
+import * as url from "url";
 import * as network_layer from "../skale-cool-socket/socket.mjs";
 import { Worker } from "worker_threads";
 import * as owaspUtils from "../skale-owasp/owasp-utils.mjs";
@@ -33,7 +34,7 @@ import * as log from "../skale-log/log.mjs";
 
 import { UniversalDispatcherEvent, EventDispatcher } from "../skale-cool-socket/event_dispatcher.mjs";
 
-const __dirname = path.resolve();
+const __dirname = path.dirname( url.fileURLToPath( import.meta.url ) );
 
 const PORTS_PER_SCHAIN = 64;
 
@@ -307,8 +308,8 @@ export async function check_connected_schains( strChainNameConnectedTo, arr_scha
             const ethersProvider = owaspUtils.getEthersProviderFromURL( url );
             const jo_message_proxy_s_chain =
                 new owaspUtils.ethersMod.ethers.Contract(
-                    opts.joAbiPublishResult_s_chain.message_proxy_chain_address,
-                    opts.joAbiPublishResult_s_chain.message_proxy_chain_abi,
+                    opts.imaState.chainProperties.sc.joAbiIMA.message_proxy_chain_address,
+                    opts.imaState.chainProperties.sc.joAbiIMA.message_proxy_chain_abi,
                     ethersProvider
                 );
             jo_schain.isConnected = await jo_message_proxy_s_chain.callStatic.isConnectedChain( strChainNameConnectedTo, { from: addressFrom } );
@@ -448,7 +449,7 @@ export function get_last_cached_schains() {
     return JSON.parse( JSON.stringify( g_arr_schains_cached ) );
 }
 
-function set_last_cached_schains( arr_schains_cached ) {
+export function set_last_cached_schains( arr_schains_cached ) {
     if( arr_schains_cached && typeof arr_schains_cached == "object" ) {
         g_arr_schains_cached = JSON.parse( JSON.stringify( arr_schains_cached ) );
         events.dispatchEvent( new UniversalDispatcherEvent( "chainsCacheChanged", { detail: { arr_schains_cached: get_last_cached_schains() } } ) );

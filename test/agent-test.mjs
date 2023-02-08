@@ -26,7 +26,8 @@
 import * as assert from "assert";
 import * as fs from "fs";
 import * as os from "os";
-import * as path from "path"; // allow self-signed wss and https
+import * as path from "path";
+import * as url from "url";
 
 import * as IMA from "../npms/skale-ima";
 import * as imaUtils from "../agent/utils.mjs";
@@ -35,6 +36,8 @@ import * as imaCLI from "../agent/cli.mjs";
 // log.addMemory(); // console.log( log.getStreamWithFilePath( "memory" ).strAccumulatedLogText );
 
 import * as state from "../../agent/state.mjs";
+
+const __dirname = path.dirname( url.fileURLToPath( import.meta.url ) );
 
 process.env.NODE_TLS_REJECT_UNAUTHORIZED = 0;
 
@@ -84,7 +87,6 @@ const imaState = {
 
     "bNoWaitSChainStarted": false,
     "nMaxWaitSChainAttempts": 0 + Number.MAX_SAFE_INTEGER, // 20
-    "isPreventExitAfterLastAction": false,
 
     "nAmountOfWei": 0,
     "nAmountOfToken": 0,

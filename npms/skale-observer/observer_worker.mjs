@@ -29,11 +29,10 @@ import {
     //, workerData
 } from "worker_threads";
 import * as network_layer from "../skale-cool-socket/socket.mjs";
-import { SocketServer } from "../skale-cool-socket/server.mjs";
+import { SocketServer } from "../skale-cool-socket/socket_server.mjs";
+import * as cc from "../skale-cc/cc.mjs";
 import * as owaspUtils from "../skale-owasp/owasp-utils.mjs";
-
 import * as skale_observer from "./observer.mjs";
-const cc = owaspUtils.cc;
 
 const g_url = "skale_observer_worker_server";
 

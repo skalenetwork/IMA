@@ -512,7 +512,7 @@ const g_mapMoneyNameSuffixAliases = {
     "wi": "wei",
     // "w": "wei",
     //
-    // next going as is because supported by wev3.utils.toWei() API
+    // next are advanced kind of
     //
     "noether": "noether",
     "noeth": "noether",
@@ -682,14 +682,16 @@ export function ensure_observer_opts_initialized( opts ) {
         throw new Error( "IMA observer options is not valid JS object" );
     if( ! ( "chain" in opts && opts.chain && typeof opts.chain == "object" ) )
         throw new Error( "IMA observer options does not contain \"chain\" instance" );
-    if( ! ( "joAbiPublishResult_skale_manager" in opts && opts.joAbiPublishResult_skale_manager && typeof opts.joAbiPublishResult_skale_manager == "object" ) )
-        throw new Error( "IMA observer options does not contain \"joAbiPublishResult_skale_manager\" instance" );
+    if( ! ( "imaState" in opts && opts.imaState && typeof opts.imaState == "object" ) )
+        throw new Error( "IMA observer options does not contain \"imaState\" instance" );
+    if( ! ( "joAbiSkaleManager" in opts.imaState && opts.imaState.joAbiSkaleManager && typeof opts.imaState.joAbiSkaleManager == "object" ) )
+        throw new Error( "IMA observer options does not contain \"joAbiSkaleManager\" instance" );
     const arrContractNames = [ "schains", "schains_internal", "nodes" ];
     for( let i = 0; i < arrContractNames.length; ++ i ) {
         const strContractName = arrContractNames[i];
         const strKeyName = "jo_" + strContractName;
-        const contractAddress = opts.joAbiPublishResult_skale_manager[strContractName + "_address"];
-        const joContractABI = opts.joAbiPublishResult_skale_manager[strContractName + "_abi"];
+        const contractAddress = opts.imaState.joAbiSkaleManager[strContractName + "_address"];
+        const joContractABI = opts.imaState.joAbiSkaleManager[strContractName + "_abi"];
         opts[strKeyName] =
             new ethersMod.ethers.Contract(
                 contractAddress,

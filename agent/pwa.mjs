@@ -26,6 +26,9 @@
 import * as cc from "../npms/skale-cc/cc.mjs";
 import * as log from "../npms/skale-log/log.mjs";
 import * as owaspUtils from "../npms/skale-owasp/owasp-utils.mjs";
+import * as rpcCall from "./rpc-call.mjs";
+import * as imaBLS from "./bls.mjs";
+import * as imaUtils from "./utils.mjs";
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -306,7 +309,7 @@ async function notify_on_loop_impl( imaState, strLoopWorkType, nIndexS2S, isStar
             } ); // rpcCall.create ...
         } // for( let i = 0; i < jarrNodes.length; ++i )
     } catch ( err ) {
-        log.write( cc.error( "Exception in PWA notify on loop " ) + cc.attention( se ) + cc.error( ": " ) + cc.error( owaspUtils.extract_error_message( err ) ) + "\n" );
+        log.write( cc.error( "Exception in PWA notify on loop " ) + cc.attention( se ) + cc.error( ": " ) + cc.error( owaspUtils.extract_error_message( err ) ) + "\n" + cc.debug( err.stack ) + "\n" );
     }
     return true;
 }

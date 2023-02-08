@@ -26,13 +26,15 @@
 
 import { parentPort, workerData } from "worker_threads";
 import * as network_layer from "../npms/skale-cool-socket/socket.mjs";
-// import { SocketServer } from "../npms/skale-cool-socket/server.mjs";
+import { SocketServer } from "../npms/skale-cool-socket/socket_server.mjs";
+import * as cc from "../npms/skale-cc/cc.mjs";
 import * as owaspUtils from "../npms/skale-owasp/owasp-utils.mjs";
 import * as loop from "./loop.mjs";
 import * as IMA from "../npms/skale-ima/index.mjs";
+import * as skale_observer from "../npms/skale-observer/observer.mjs";
+import * as imaCLI from "./cli.mjs";
 import * as state from "./state.mjs";
 
-const cc = owaspUtils.cc;
 let imaState = state.get();
 
 parentPort.on( "message", jo => {
@@ -51,7 +53,7 @@ function doSendMessage( type, endpoint, worker_uuid, data ) {
     parentPort.postMessage( network_layer.socket_sent_data_marshall( joSend ) );
 }
 
-class ObserverServer extends Server {
+class ObserverServer extends SocketServer {
     constructor( acceptor ) {
         super( acceptor );
         const self = this;

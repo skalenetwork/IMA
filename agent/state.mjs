@@ -44,7 +44,6 @@ export function get() {
 
         "bNoWaitSChainStarted": false,
         "nMaxWaitSChainAttempts": 0 + Number.MAX_SAFE_INTEGER, // 20
-        "isPreventExitAfterLastAction": false,
 
         "nAmountOfWei": 0,
         "nAmountOfToken": 0,
@@ -252,4 +251,14 @@ export function get() {
 export function set( imaState_new ) {
     imaState = imaState_new;
     return imaState;
+}
+
+let g_isPreventExitAfterLastAction = false;
+
+export function isPreventExitAfterLastAction() {
+    return g_isPreventExitAfterLastAction;
+}
+
+export function setPreventExitAfterLastAction( isPrevent ) {
+    g_isPreventExitAfterLastAction = isPrevent;
 }

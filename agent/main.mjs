@@ -23,9 +23,12 @@
  * @copyright SKALE Labs 2019-Present
  */
 
-// allow self-signed wss and https
+import express from "express";
+import bodyParser from "body-parser";
+// import jayson from "jayson";
 
 import * as ws from "ws";
+
 import * as owaspUtils from "../npms/skale-owasp/owasp-utils.mjs";
 import * as log from "../npms/skale-log/log.mjs";
 import * as cc from "../npms/skale-cc/cc.mjs";
@@ -38,6 +41,7 @@ import * as IMA from "../npms/skale-ima/index.mjs";
 
 import * as state from "./state.mjs";
 
+// allow self-signed wss and https
 process.env.NODE_TLS_REJECT_UNAUTHORIZED = 0;
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -60,7 +64,8 @@ function initial_skale_network_scan_for_S2S() {
                 imaState: imaState,
                 "details": log,
                 "bStopNeeded": false,
-                "secondsToReDiscoverSkaleNetwork": imaState.s2s_opts.secondsToReDiscoverSkaleNetwork
+                "secondsToReDiscoverSkaleNetwork": imaState.s2s_opts.secondsToReDiscoverSkaleNetwork,
+                chain: imaState.chainProperties.sc
             };
             const addressFrom = imaState.chainProperties.mn.joAccount.address();
             // const strError = await skale_observer.cache_schains(
@@ -79,8 +84,8 @@ function initial_skale_network_scan_for_S2S() {
             log.write( strLogPrefix + cc.debug( "Will start periodic S-Chains caching..." ) + "\n" );
             await skale_observer.periodic_caching_start(
                 imaState.chainProperties.sc.strChainName, // strChainNameConnectedTo
-                imaState.chainProperties.mn.ethersProvider,
-                imaState.chainProperties.sc.ethersProvider,
+                // imaState.chainProperties.mn.ethersProvider,
+                // imaState.chainProperties.sc.ethersProvider,
                 addressFrom,
                 opts
             );
@@ -979,8 +984,7 @@ function parse_command_line() {
                     );
                     if( xWei === null || xWei === undefined )
                         return false;
-
-                    const xEth = imaState.chainProperties.mn.ethersProvider.utils.fromWei( xWei, "ether" );
+                    const xEth = owaspUtils.ethersMod.ethers.utils.formatEther( owaspUtils.ethersMod.ethers.BigNumber.from( xWei ) );
                     log.write( cc.success( "Main-net user can receive: " ) + cc.attention( xWei ) + cc.success( " wei = " ) + cc.attention( xEth ) + cc.success( " eth" ) + "\n" );
                     return true;
                 }
@@ -1132,7 +1136,7 @@ function parse_command_line() {
             imaState.arrActions.push( {
                 "name": "M<->S and S->S transfer loop, startup in parallel mode",
                 "fn": async function() {
-                    IMA.isPreventExitAfterLastAction = true;
+                    state.setPreventExitAfterLastAction( true );
                     if( ! imaState.bNoWaitSChainStarted )
                         await wait_until_s_chain_started(); // M<->S transfer loop
                     let isPrintSummaryRegistrationCosts = false;
@@ -1176,7 +1180,7 @@ function parse_command_line() {
             imaState.arrActions.push( {
                 "name": "M<->S and S->S transfer loop, simple mode",
                 "fn": async function() {
-                    IMA.isPreventExitAfterLastAction = true;
+                    state.setPreventExitAfterLastAction( true );
                     if( ! imaState.bNoWaitSChainStarted )
                         await wait_until_s_chain_started(); // M<->S transfer loop
                     let isPrintSummaryRegistrationCosts = false;
@@ -1958,7 +1962,7 @@ function init_monitoring_server() {
     const strLogPrefix = cc.attention( "Monitoring:" ) + " ";
     if( IMA.verbose_get() >= IMA.RV_VERBOSE().trace )
         log.write( strLogPrefix + cc.normal( "Will start monitoring WS server on port " ) + cc.info( imaState.nMonitoringPort ) + "\n" );
-    g_ws_server_monitoring = new ws.Server( { port: 0 + imaState.nMonitoringPort } );
+    g_ws_server_monitoring = new ws.WebSocketServer( { port: 0 + imaState.nMonitoringPort } );
     g_ws_server_monitoring.on( "connection", function( ws_peer, req ) {
         const ip = req.socket.remoteAddress;
         if( IMA.verbose_get() >= IMA.RV_VERBOSE().trace )
@@ -2000,7 +2004,6 @@ function init_monitoring_server() {
                         const arr_runtime_param_names = [
                             "bNoWaitSChainStarted",
                             "nMaxWaitSChainAttempts",
-                            "isPreventExitAfterLastAction",
 
                             "nTransferBlockSizeM2S",
                             "nTransferBlockSizeS2M",
@@ -2086,7 +2089,7 @@ function init_json_rpc_server() {
     /*
     if( IMA.verbose_get() >= IMA.RV_VERBOSE().trace )
         log.write( strLogPrefix + cc.normal( "Will start JSON RPC WS server on port " ) + cc.info( imaState.nJsonRpcPort ) + "\n" );
-    g_ws_server_ima = new ws.Server( { port: 0 + imaState.nJsonRpcPort } );
+    g_ws_server_ima = new ws.WebSocketServer( { port: 0 + imaState.nJsonRpcPort } );
     g_ws_server_ima.on( "connection", function( ws_peer, req ) {
         const ip = req.socket.remoteAddress;
         if( IMA.verbose_get() >= IMA.RV_VERBOSE().trace )
@@ -2330,7 +2333,7 @@ async function do_the_job() {
         log.write( strLogPrefix + cc.debug( IMA.longSeparator ) + "\n" );
     }
     process.exitCode = ( cntFalse > 0 ) ? cntFalse : 0;
-    if( ! IMA.isPreventExitAfterLastAction )
+    if( ! state.isPreventExitAfterLastAction() )
         process.exit( process.exitCode );
 }
 
@@ -2346,16 +2349,18 @@ async function register_step1( isPrintSummaryRegistrationCosts ) {
     const imaState = state.get();
     imaCLI.ima_contracts_init();
     const strLogPrefix = cc.info( "Reg 1:" ) + " ";
-    let jarrReceipts = "true";
-    const bRetVal = await IMA.check_is_registered_s_chain_in_deposit_boxes( // step 1
+    log.write( strLogPrefix + cc.debug( "Will check chain registration now..." ) + "\n" );
+    let bSuccess = await IMA.check_is_registered_s_chain_in_deposit_boxes( // step 1
         imaState.chainProperties.mn.ethersProvider,
         imaState.jo_linker,
         imaState.chainProperties.mn.joAccount,
         imaState.chainProperties.sc.strChainName
     );
-    // console.log( "------------------------", bRetVal );
-    if( !bRetVal ) {
-        jarrReceipts = await IMA.register_s_chain_in_deposit_boxes( // step 1
+    log.write( strLogPrefix + cc.debug( "Chain is " ) + ( bSuccess ? cc.success( "already registered" ) : cc.warning( "not registered yet" ) ) + "\n" );
+    if( bSuccess )
+        return true;
+    const jarrReceipts =
+        await IMA.register_s_chain_in_deposit_boxes( // step 1
             imaState.chainProperties.mn.ethersProvider,
             // imaState.jo_deposit_box_eth, // only main net
             // imaState.jo_deposit_box_erc20, // only main net
@@ -2375,9 +2380,9 @@ async function register_step1( isPrintSummaryRegistrationCosts ) {
             // cntWaitAttempts,
             // nSleepMilliseconds
         );
-    }
-    const bSuccess = ( jarrReceipts != null && jarrReceipts.length > 0 ) ? true : false;
-    if( bSuccess && ( !bRetVal ) )
+    bSuccess = ( jarrReceipts != null && jarrReceipts.length > 0 ) ? true : false;
+    log.write( strLogPrefix + cc.debug( "Chain was " ) + ( bSuccess ? cc.success( "registered successfully" ) : cc.error( "not registered" ) ) + "\n" );
+    if( bSuccess )
         g_registrationCostInfo.mn = g_registrationCostInfo.mn.concat( g_registrationCostInfo.mn, jarrReceipts );
     if( isPrintSummaryRegistrationCosts )
         print_summary_registration_costs();
