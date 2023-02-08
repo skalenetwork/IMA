@@ -777,8 +777,8 @@ async function check_correctness_of_messages_to_sign( details, strLogPrefix, str
     details.write(
         strLogPrefix + cc.sunny( strDirection ) + cc.debug( " message correctness validation through call to " ) +
         cc.notice( "verifyOutgoingMessageData" ) + cc.debug( " method of " ) + cc.bright( "MessageProxy" ) +
-        cc.debug( " contract with address " ) + cc.notice( joMessageProxy.options.address ) +
-        cc.debug( ", caller account address is " ) + cc.info( joMessageProxy.options.address ) +
+        cc.debug( " contract with address " ) + cc.notice( joMessageProxy.address ) +
+        cc.debug( ", caller account address is " ) + cc.info( joMessageProxy.address ) +
         cc.debug( ", message(s) count is " ) + cc.info( jarrMessages.length ) +
         cc.debug( ", message(s) to process are " ) + cc.j( jarrMessages ) +
         cc.debug( ", first real message index is " ) + cc.info( nIdxCurrentMsgBlockStart ) +

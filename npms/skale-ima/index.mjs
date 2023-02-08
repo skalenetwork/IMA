@@ -876,7 +876,7 @@ export async function do_oracle_gas_price_setup(
             //     gas: estimatedGas_setGasPrice,
             //     gasPrice: gasPrice,
             //     // "gasLimit": 3000000,
-            //     to: jo_community_locker.options.address, // contract address
+            //     to: jo_community_locker.address, // contract address
             //     data: dataTx_setGasPrice //,
             //     // "value": wei_amount // 1000000000000000000 // ethersProvider_s_chain.utils.toWei( (1).toString(), "ether" ) // how much money to send
             // };
@@ -1222,9 +1222,9 @@ export async function payed_call(
     } else
         strArgumentsDescription += cc.debug( "()" );
     const strContractCallDescription = strContractMethodDescription + strArgumentsDescription;
-    const strLogPrefix = log.llp() + strContractMethodDescription + " ";
+    const strLogPrefix = strContractMethodDescription + " ";
     try {
-        const ethersWallet = new owaspUtils.ethersMod.ethers.Wallet( owasp.ensure_starts_with_0x( joAccount.privateKey ), ethersProvider );
+        const ethersWallet = new owaspUtils.ethersMod.ethers.Wallet( owaspUtils.ensure_starts_with_0x( joAccount.privateKey ), ethersProvider );
         const callOpts = {
         };
         if( gasPrice )
@@ -1740,7 +1740,7 @@ export async function check_is_registered_s_chain_in_deposit_boxes( // step 1
     chain_id_s_chain
 ) {
     const details = log.createMemoryStream();
-    details.write( cc.info( "Main-net " ) + cc.sunny( "Linker" ) + cc.info( "  address is....." ) + cc.bright( jo_linker.options.address ) + "\n" );
+    details.write( cc.info( "Main-net " ) + cc.sunny( "Linker" ) + cc.info( "  address is....." ) + cc.bright( jo_linker.address ) + "\n" );
     details.write( cc.info( "S-Chain  " ) + cc.sunny( "ID" ) + cc.info( " is......................." ) + cc.bright( chain_id_s_chain ) + "\n" );
     const strLogPrefix = cc.note( "RegChk S in depositBox:" ) + " ";
     details.write( strLogPrefix + cc.debug( longSeparator ) + "\n" );
@@ -1838,7 +1838,7 @@ export async function register_s_chain_in_deposit_boxes( // step 1
 ) {
     const details = log.createMemoryStream();
     const jarrReceipts = []; // register_s_chain_in_deposit_boxes
-    details.write( cc.info( "Main-net " ) + cc.sunny( "Linker" ) + cc.info( "  address is......." ) + cc.bright( jo_linker.options.address ) + "\n" );
+    details.write( cc.info( "Main-net " ) + cc.sunny( "Linker" ) + cc.info( "  address is......." ) + cc.bright( jo_linker.address ) + "\n" );
     details.write( cc.info( "S-Chain  " ) + cc.sunny( "ID" ) + cc.info( " is......................." ) + cc.bright( chain_id_s_chain ) + "\n" );
     const strLogPrefix = cc.sunny( "Reg S in depositBoxes:" ) + " ";
     details.write( strLogPrefix + cc.debug( longSeparator ) + "\n" );
@@ -1851,13 +1851,13 @@ export async function register_s_chain_in_deposit_boxes( // step 1
         const arrArguments = [
             chain_id_s_chain,
             [
-                jo_token_manager_linker.options.address, // call params
-                jo_community_locker.options.address, // call params
-                jo_token_manager_eth.options.address, // call params
-                jo_token_manager_erc20.options.address, // call params
-                jo_token_manager_erc721.options.address, // call params
-                jo_token_manager_erc1155.options.address, // call params
-                jo_token_manager_erc721_with_metadata.options.address // call params
+                jo_token_manager_linker.address, // call params
+                jo_community_locker.address, // call params
+                jo_token_manager_eth.address, // call params
+                jo_token_manager_erc20.address, // call params
+                jo_token_manager_erc721.address, // call params
+                jo_token_manager_erc1155.address, // call params
+                jo_token_manager_erc721_with_metadata.address // call params
             ]
         ];
         const weiHowMuch = undefined;
@@ -1893,7 +1893,7 @@ export async function register_s_chain_in_deposit_boxes( // step 1
         //     gasPrice: gasPrice,
         //     // gasLimit: estimatedGas,
         //     gas: estimatedGas, // gas is optional here
-        //     to: jo_linker.options.address, // contract address
+        //     to: jo_linker.address, // contract address
         //     data: dataTx
         // };
         // const tx = compose_tx_instance( details, strLogPrefix, rawTx );
@@ -2137,7 +2137,7 @@ export async function reimbursement_wallet_recharge(
         //     gasPrice: gasPrice,
         //     // gasLimit: estimatedGas,
         //     gas: estimatedGas,
-        //     to: jo_community_pool.options.address, // contract address
+        //     to: jo_community_pool.address, // contract address
         //     data: dataTx,
         //     value: "0x" + owaspUtils.ethersMod.ethers.BigNumber.from( nReimbursementRecharge ).toHexString() // weiHowMuch // how much money to send
         // };
@@ -2240,7 +2240,7 @@ export async function reimbursement_wallet_withdraw(
         //     gasPrice: gasPrice,
         //     // gasLimit: estimatedGas,
         //     gas: estimatedGas,
-        //     to: jo_community_pool.options.address, // contract address
+        //     to: jo_community_pool.address, // contract address
         //     data: dataTx,
         //     value: owaspUtils.ensure_starts_with_0x( owaspUtils.ethersMod.ethers.BigNumber.from( weiHowMuch ).toHexString() ) // weiHowMuch // how much money to send
         // };
@@ -2344,7 +2344,7 @@ export async function reimbursement_set_range(
         //     gasPrice: gasPrice,
         //     // gasLimit: estimatedGas,
         //     gas: estimatedGas,
-        //     to: jo_community_locker.options.address, // contract address
+        //     to: jo_community_locker.address, // contract address
         //     data: dataTx,
         //     value: 0 // how much money to send
         // };
@@ -2464,7 +2464,7 @@ export async function do_eth_payment_from_main_net(
         //     gasPrice: gasPrice,
         //     // gasLimit: estimatedGas,
         //     gas: estimatedGas,
-        //     to: jo_deposit_box.options.address, // contract address
+        //     to: jo_deposit_box.address, // contract address
         //     data: dataTx,
         //     value: owaspUtils.ensure_starts_with_0x( owaspUtils.ethersMod.ethers.BigNumber.from( weiHowMuch ).toHexString() ) // weiHowMuch // how much money to send
         // };
@@ -2501,21 +2501,21 @@ export async function do_eth_payment_from_main_net(
         // Must-have event(s) analysis as indicator(s) of success
         //
         if( jo_message_proxy_main_net ) {
-            details.write( strLogPrefix + cc.debug( "Verifying the " ) + cc.info( "OutgoingMessage" ) + cc.debug( " event of the " ) + cc.info( "MessageProxy" ) + cc.debug( "/" ) + cc.notice( jo_message_proxy_main_net.options.address ) + cc.debug( " contract ..." ) + "\n" );
+            details.write( strLogPrefix + cc.debug( "Verifying the " ) + cc.info( "OutgoingMessage" ) + cc.debug( " event of the " ) + cc.info( "MessageProxy" ) + cc.debug( "/" ) + cc.notice( jo_message_proxy_main_net.address ) + cc.debug( " contract ..." ) + "\n" );
             await sleep( g_nSleepBeforeFetchOutgoingMessageEvent );
             const joEvents = await get_contract_call_events( details, ethersProvider_main_net, jo_message_proxy_main_net, "OutgoingMessage", joReceipt.blockNumber, joReceipt.transactionHash, {} );
             if( joEvents.length > 0 )
-                details.write( strLogPrefix + cc.success( "Success, verified the " ) + cc.info( "OutgoingMessage" ) + cc.success( " event of the " ) + cc.info( "MessageProxy" ) + cc.success( "/" ) + cc.notice( jo_message_proxy_main_net.options.address ) + cc.success( " contract, found event(s): " ) + cc.j( joEvents ) + "\n" );
+                details.write( strLogPrefix + cc.success( "Success, verified the " ) + cc.info( "OutgoingMessage" ) + cc.success( " event of the " ) + cc.info( "MessageProxy" ) + cc.success( "/" ) + cc.notice( jo_message_proxy_main_net.address ) + cc.success( " contract, found event(s): " ) + cc.j( joEvents ) + "\n" );
             else
-                throw new Error( "Verification failed for the \"OutgoingMessage\" event of the \"MessageProxy\"/" + jo_message_proxy_main_net.options.address + " contract, no events found" );
+                throw new Error( "Verification failed for the \"OutgoingMessage\" event of the \"MessageProxy\"/" + jo_message_proxy_main_net.address + " contract, no events found" );
         } // if( jo_message_proxy_main_net )
         // if( jo_deposit_box ) {
-        //     details.write( strLogPrefix + cc.debug( "Verifying the " ) + cc.info( "Error" ) + cc.debug( " event of the " ) + cc.info( "DepositBox" ) + cc.debug( "/" ) + cc.notice( jo_deposit_box.options.address ) + cc.debug( " contract..." ) + "\n" );
+        //     details.write( strLogPrefix + cc.debug( "Verifying the " ) + cc.info( "Error" ) + cc.debug( " event of the " ) + cc.info( "DepositBox" ) + cc.debug( "/" ) + cc.notice( jo_deposit_box.address ) + cc.debug( " contract..." ) + "\n" );
         //     const joEvents = await get_contract_call_events( details, ethersProvider_main_net, jo_deposit_box, "Error", joReceipt.blockNumber, joReceipt.transactionHash, {} );
         //     if( joEvents.length == 0 )
-        //         details.write( strLogPrefix + cc.success( "Success, verified the " ) + cc.info( "Error" ) + cc.success( " event of the " ) + cc.info( "DepositBox" ) + cc.success( "/" ) + cc.notice( jo_deposit_box.options.address ) + cc.success( " contract, no event found" ) + "\n" );
+        //         details.write( strLogPrefix + cc.success( "Success, verified the " ) + cc.info( "Error" ) + cc.success( " event of the " ) + cc.info( "DepositBox" ) + cc.success( "/" ) + cc.notice( jo_deposit_box.address ) + cc.success( " contract, no event found" ) + "\n" );
         //     else
-        //         throw new Error( "Verification failed for the \"Error\" event of the \"DepositBox\"/" + jo_deposit_box.options.address + " contract, no events found" );
+        //         throw new Error( "Verification failed for the \"Error\" event of the \"DepositBox\"/" + jo_deposit_box.address + " contract, no events found" );
         // } // if( jo_deposit_box )
     } catch ( err ) {
         const strError = owaspUtils.extract_error_message( err );
@@ -2598,7 +2598,7 @@ export async function do_eth_payment_from_s_chain(
         //     gasPrice: gasPrice,
         //     // "gasLimit": 3000000,
         //     gas: estimatedGas,
-        //     to: jo_token_manager_eth.options.address, // contract address
+        //     to: jo_token_manager_eth.address, // contract address
         //     data: dataTx,
         //     value: 0 // how much money to send
         // };
@@ -2640,13 +2640,13 @@ export async function do_eth_payment_from_s_chain(
         // Must-have event(s) analysis as indicator(s) of success
         //
         if( jo_message_proxy_s_chain ) {
-            details.write( strLogPrefix + cc.debug( "Verifying the " ) + cc.info( "OutgoingMessage" ) + cc.debug( " event of the " ) + cc.info( "MessageProxy" ) + cc.debug( "/" ) + cc.notice( jo_message_proxy_s_chain.options.address ) + cc.debug( " contract ..." ) + "\n" );
+            details.write( strLogPrefix + cc.debug( "Verifying the " ) + cc.info( "OutgoingMessage" ) + cc.debug( " event of the " ) + cc.info( "MessageProxy" ) + cc.debug( "/" ) + cc.notice( jo_message_proxy_s_chain.address ) + cc.debug( " contract ..." ) + "\n" );
             await sleep( g_nSleepBeforeFetchOutgoingMessageEvent );
             const joEvents = await get_contract_call_events( details, ethersProvider_s_chain, jo_message_proxy_s_chain, "OutgoingMessage", joReceipt.blockNumber, joReceipt.transactionHash, {} );
             if( joEvents.length > 0 )
-                details.write( strLogPrefix + cc.success( "Success, verified the " ) + cc.info( "OutgoingMessage" ) + cc.success( " event of the " ) + cc.info( "MessageProxy" ) + cc.success( "/" ) + cc.notice( jo_message_proxy_s_chain.options.address ) + cc.success( " contract, found event(s): " ) + cc.j( joEvents ) + "\n" );
+                details.write( strLogPrefix + cc.success( "Success, verified the " ) + cc.info( "OutgoingMessage" ) + cc.success( " event of the " ) + cc.info( "MessageProxy" ) + cc.success( "/" ) + cc.notice( jo_message_proxy_s_chain.address ) + cc.success( " contract, found event(s): " ) + cc.j( joEvents ) + "\n" );
             else
-                throw new Error( "Verification failed for the \"OutgoingMessage\" event of the \"MessageProxy\"/" + jo_message_proxy_s_chain.options.address + " contract, no events found" );
+                throw new Error( "Verification failed for the \"OutgoingMessage\" event of the \"MessageProxy\"/" + jo_message_proxy_s_chain.address + " contract, no events found" );
         } // if( jo_message_proxy_s_chain )
     } catch ( err ) {
         const strError = owaspUtils.extract_error_message( err );
@@ -2715,7 +2715,7 @@ export async function receive_eth_payment_from_s_chain_on_main_net(
         //     gas: estimatedGas, // 2100000
         //     gasPrice: gasPrice,
         //     // gasLimit: estimatedGas, // 3000000
-        //     to: jo_deposit_box_eth.options.address, // contract address
+        //     to: jo_deposit_box_eth.address, // contract address
         //     data: dataTx,
         //     value: 0 // how much money to send
         // };
@@ -2846,7 +2846,7 @@ export async function do_erc721_payment_from_main_net(
                 erc721ABI,
                 ethersProvider_main_net
             );
-        const depositBoxAddress = jo_deposit_box_erc721.options.address;
+        const depositBoxAddress = jo_deposit_box_erc721.address;
         const arrArguments_approve = [
             depositBoxAddress,
             owaspUtils.ensure_starts_with_0x( owaspUtils.ethersMod.ethers.BigNumber.from( token_id ).toHexString() )
@@ -2998,13 +2998,13 @@ export async function do_erc721_payment_from_main_net(
         // Must-have event(s) analysis as indicator(s) of success
         //
         if( jo_message_proxy_main_net ) {
-            details.write( strLogPrefix + cc.debug( "Verifying the " ) + cc.info( "OutgoingMessage" ) + cc.debug( " event of the " ) + cc.info( "MessageProxy" ) + cc.debug( "/" ) + cc.notice( jo_message_proxy_main_net.options.address ) + cc.debug( " contract ..." ) + "\n" );
+            details.write( strLogPrefix + cc.debug( "Verifying the " ) + cc.info( "OutgoingMessage" ) + cc.debug( " event of the " ) + cc.info( "MessageProxy" ) + cc.debug( "/" ) + cc.notice( jo_message_proxy_main_net.address ) + cc.debug( " contract ..." ) + "\n" );
             await sleep( g_nSleepBeforeFetchOutgoingMessageEvent );
             const joEvents = await get_contract_call_events( details, ethersProvider_main_net, jo_message_proxy_main_net, "OutgoingMessage", joReceipt.blockNumber, joReceipt.transactionHash, {} );
             if( joEvents.length > 0 )
-                details.write( strLogPrefix + cc.success( "Success, verified the " ) + cc.info( "OutgoingMessage" ) + cc.success( " event of the " ) + cc.info( "MessageProxy" ) + cc.success( "/" ) + cc.notice( jo_message_proxy_main_net.options.address ) + cc.success( " contract, found event(s): " ) + cc.j( joEvents ) + "\n" );
+                details.write( strLogPrefix + cc.success( "Success, verified the " ) + cc.info( "OutgoingMessage" ) + cc.success( " event of the " ) + cc.info( "MessageProxy" ) + cc.success( "/" ) + cc.notice( jo_message_proxy_main_net.address ) + cc.success( " contract, found event(s): " ) + cc.j( joEvents ) + "\n" );
             else
-                throw new Error( "Verification failed for the \"OutgoingMessage\" event of the \"MessageProxy\"/" + jo_message_proxy_main_net.options.address + " contract, no events found" );
+                throw new Error( "Verification failed for the \"OutgoingMessage\" event of the \"MessageProxy\"/" + jo_message_proxy_main_net.address + " contract, no events found" );
         } // if( jo_message_proxy_main_net )
     } catch ( err ) {
         const strError = owaspUtils.extract_error_message( err );
@@ -3060,7 +3060,7 @@ export async function do_erc20_payment_from_main_net(
                 erc20ABI,
                 ethersProvider_main_net
             );
-        const depositBoxAddress = jo_deposit_box_erc20.options.address;
+        const depositBoxAddress = jo_deposit_box_erc20.address;
         const arrArguments_approve = [
             depositBoxAddress,
             owaspUtils.ensure_starts_with_0x( owaspUtils.ethersMod.ethers.BigNumber.from( token_amount ).toHexString() )
@@ -3214,13 +3214,13 @@ export async function do_erc20_payment_from_main_net(
         // Must-have event(s) analysis as indicator(s) of success
         //
         if( jo_message_proxy_main_net ) {
-            details.write( strLogPrefix + cc.debug( "Verifying the " ) + cc.info( "OutgoingMessage" ) + cc.debug( " event of the " ) + cc.info( "MessageProxy" ) + cc.debug( "/" ) + cc.notice( jo_message_proxy_main_net.options.address ) + cc.debug( " contract ..." ) + "\n" );
+            details.write( strLogPrefix + cc.debug( "Verifying the " ) + cc.info( "OutgoingMessage" ) + cc.debug( " event of the " ) + cc.info( "MessageProxy" ) + cc.debug( "/" ) + cc.notice( jo_message_proxy_main_net.address ) + cc.debug( " contract ..." ) + "\n" );
             await sleep( g_nSleepBeforeFetchOutgoingMessageEvent );
             const joEvents = await get_contract_call_events( details, ethersProvider_main_net, jo_message_proxy_main_net, "OutgoingMessage", joReceipt.blockNumber, joReceipt.transactionHash, {} );
             if( joEvents.length > 0 )
-                details.write( strLogPrefix + cc.success( "Success, verified the " ) + cc.info( "OutgoingMessage" ) + cc.success( " event of the " ) + cc.info( "MessageProxy" ) + cc.success( "/" ) + cc.notice( jo_message_proxy_main_net.options.address ) + cc.success( " contract, found event(s): " ) + cc.j( joEvents ) + "\n" );
+                details.write( strLogPrefix + cc.success( "Success, verified the " ) + cc.info( "OutgoingMessage" ) + cc.success( " event of the " ) + cc.info( "MessageProxy" ) + cc.success( "/" ) + cc.notice( jo_message_proxy_main_net.address ) + cc.success( " contract, found event(s): " ) + cc.j( joEvents ) + "\n" );
             else
-                throw new Error( "Verification failed for th\"OutgoingMessage\" event of the \"MessageProxy\"/" + jo_message_proxy_main_net.options.address + " contract, no events found" );
+                throw new Error( "Verification failed for th\"OutgoingMessage\" event of the \"MessageProxy\"/" + jo_message_proxy_main_net.address + " contract, no events found" );
         } // if( jo_message_proxy_main_net )
     } catch ( err ) {
         const strError = owaspUtils.extract_error_message( err );
@@ -3273,7 +3273,7 @@ export async function do_erc1155_payment_from_main_net(
                 erc1155ABI,
                 ethersProvider_main_net
             );
-        const depositBoxAddress = jo_deposit_box_erc1155.options.address;
+        const depositBoxAddress = jo_deposit_box_erc1155.address;
         const arrArguments_approve = [
             // joAccountSrc.address(),
             depositBoxAddress,
@@ -3426,13 +3426,13 @@ export async function do_erc1155_payment_from_main_net(
         // Must-have event(s) analysis as indicator(s) of success
         //
         if( jo_message_proxy_main_net ) {
-            details.write( strLogPrefix + cc.debug( "Verifying the " ) + cc.info( "OutgoingMessage" ) + cc.debug( " event of the " ) + cc.info( "MessageProxy" ) + cc.debug( "/" ) + cc.notice( jo_message_proxy_main_net.options.address ) + cc.debug( " contract ..." ) + "\n" );
+            details.write( strLogPrefix + cc.debug( "Verifying the " ) + cc.info( "OutgoingMessage" ) + cc.debug( " event of the " ) + cc.info( "MessageProxy" ) + cc.debug( "/" ) + cc.notice( jo_message_proxy_main_net.address ) + cc.debug( " contract ..." ) + "\n" );
             await sleep( g_nSleepBeforeFetchOutgoingMessageEvent );
             const joEvents = await get_contract_call_events( details, ethersProvider_main_net, jo_message_proxy_main_net, "OutgoingMessage", joReceipt.blockNumber, joReceipt.transactionHash, {} );
             if( joEvents.length > 0 )
-                details.write( strLogPrefix + cc.success( "Success, verified the " ) + cc.info( "OutgoingMessage" ) + cc.success( " event of the " ) + cc.info( "MessageProxy" ) + cc.success( "/" ) + cc.notice( jo_message_proxy_main_net.options.address ) + cc.success( " contract, found event(s): " ) + cc.j( joEvents ) + "\n" );
+                details.write( strLogPrefix + cc.success( "Success, verified the " ) + cc.info( "OutgoingMessage" ) + cc.success( " event of the " ) + cc.info( "MessageProxy" ) + cc.success( "/" ) + cc.notice( jo_message_proxy_main_net.address ) + cc.success( " contract, found event(s): " ) + cc.j( joEvents ) + "\n" );
             else
-                throw new Error( "Verification failed for the \"OutgoingMessage\" event of the \"MessageProxy\"/" + jo_message_proxy_main_net.options.address + " contract, no events found" );
+                throw new Error( "Verification failed for the \"OutgoingMessage\" event of the \"MessageProxy\"/" + jo_message_proxy_main_net.address + " contract, no events found" );
         } // if( jo_message_proxy_main_net )
     } catch ( err ) {
         const strError = owaspUtils.extract_error_message( err );
@@ -3485,7 +3485,7 @@ export async function do_erc1155_batch_payment_from_main_net(
                 erc1155ABI,
                 ethersProvider_main_net
             );
-        const depositBoxAddress = jo_deposit_box_erc1155.options.address;
+        const depositBoxAddress = jo_deposit_box_erc1155.address;
         const arrArguments_approve = [
             // joAccountSrc.address(),
             depositBoxAddress,
@@ -3638,13 +3638,13 @@ export async function do_erc1155_batch_payment_from_main_net(
         // Must-have event(s) analysis as indicator(s) of success
         //
         if( jo_message_proxy_main_net ) {
-            details.write( strLogPrefix + cc.debug( "Verifying the " ) + cc.info( "OutgoingMessage" ) + cc.debug( " event of the " ) + cc.info( "MessageProxy" ) + cc.debug( "/" ) + cc.notice( jo_message_proxy_main_net.options.address ) + cc.debug( " contract ..." ) + "\n" );
+            details.write( strLogPrefix + cc.debug( "Verifying the " ) + cc.info( "OutgoingMessage" ) + cc.debug( " event of the " ) + cc.info( "MessageProxy" ) + cc.debug( "/" ) + cc.notice( jo_message_proxy_main_net.address ) + cc.debug( " contract ..." ) + "\n" );
             await sleep( g_nSleepBeforeFetchOutgoingMessageEvent );
             const joEvents = await get_contract_call_events( details, ethersProvider_main_net, jo_message_proxy_main_net, "OutgoingMessage", joReceipt.blockNumber, joReceipt.transactionHash, {} );
             if( joEvents.length > 0 )
-                details.write( strLogPrefix + cc.success( "Success, verified the " ) + cc.info( "OutgoingMessage" ) + cc.success( " event of the " ) + cc.info( "MessageProxy" ) + cc.success( "/" ) + cc.notice( jo_message_proxy_main_net.options.address ) + cc.success( " contract, found event(s): " ) + cc.j( joEvents ) + "\n" );
+                details.write( strLogPrefix + cc.success( "Success, verified the " ) + cc.info( "OutgoingMessage" ) + cc.success( " event of the " ) + cc.info( "MessageProxy" ) + cc.success( "/" ) + cc.notice( jo_message_proxy_main_net.address ) + cc.success( " contract, found event(s): " ) + cc.j( joEvents ) + "\n" );
             else
-                throw new Error( "Verification failed for the \"OutgoingMessage\" event of the \"MessageProxy\"/" + jo_message_proxy_main_net.options.address + " contract, no events found" );
+                throw new Error( "Verification failed for the \"OutgoingMessage\" event of the \"MessageProxy\"/" + jo_message_proxy_main_net.address + " contract, no events found" );
         } // if( jo_message_proxy_main_net )
     } catch ( err ) {
         const strError = owaspUtils.extract_error_message( err );
@@ -3692,7 +3692,7 @@ export async function do_erc20_payment_from_s_chain(
         strActionName = "ERC20 payment from S-Chain, approve";
         const erc20ABI = joErc20_s_chain[strCoinNameErc20_s_chain + "_abi"];
         const erc20Address_s_chain = joErc20_s_chain[strCoinNameErc20_s_chain + "_address"];
-        const tokenManagerAddress = jo_token_manager_erc20.options.address;
+        const tokenManagerAddress = jo_token_manager_erc20.address;
         const contractERC20 =
             new owaspUtils.ethersMod.ethers.Contract(
                 erc20Address_s_chain,
@@ -3867,13 +3867,13 @@ export async function do_erc20_payment_from_s_chain(
         // Must-have event(s) analysis as indicator(s) of success
         //
         if( jo_message_proxy_s_chain ) {
-            details.write( strLogPrefix + cc.debug( "Verifying the " ) + cc.info( "OutgoingMessage" ) + cc.debug( " event of the " ) + cc.info( "MessageProxy" ) + cc.debug( "/" ) + cc.notice( jo_message_proxy_s_chain.options.address ) + cc.debug( " contract ..." ) + "\n" );
+            details.write( strLogPrefix + cc.debug( "Verifying the " ) + cc.info( "OutgoingMessage" ) + cc.debug( " event of the " ) + cc.info( "MessageProxy" ) + cc.debug( "/" ) + cc.notice( jo_message_proxy_s_chain.address ) + cc.debug( " contract ..." ) + "\n" );
             await sleep( g_nSleepBeforeFetchOutgoingMessageEvent );
             const joEvents = await get_contract_call_events( details, ethersProvider_s_chain, jo_message_proxy_s_chain, "OutgoingMessage", joReceipt.blockNumber, joReceipt.transactionHash, {} );
             if( joEvents.length > 0 )
-                details.write( strLogPrefix + cc.success( "Success, verified the " ) + cc.info( "OutgoingMessage" ) + cc.success( " event of the " ) + cc.info( "MessageProxy" ) + cc.success( "/" ) + cc.notice( jo_message_proxy_s_chain.options.address ) + cc.success( " contract, found event(s): " ) + cc.j( joEvents ) + "\n" );
+                details.write( strLogPrefix + cc.success( "Success, verified the " ) + cc.info( "OutgoingMessage" ) + cc.success( " event of the " ) + cc.info( "MessageProxy" ) + cc.success( "/" ) + cc.notice( jo_message_proxy_s_chain.address ) + cc.success( " contract, found event(s): " ) + cc.j( joEvents ) + "\n" );
             else
-                throw new Error( "Verification failed for the \"OutgoingMessage\" event of the \"MessageProxy\"/" + jo_message_proxy_s_chain.options.address + " contract, no events found" );
+                throw new Error( "Verification failed for the \"OutgoingMessage\" event of the \"MessageProxy\"/" + jo_message_proxy_s_chain.address + " contract, no events found" );
         } // if( jo_message_proxy_s_chain )
     } catch ( err ) {
         const strError = owaspUtils.extract_error_message( err );
@@ -3921,7 +3921,7 @@ export async function do_erc721_payment_from_s_chain(
         strActionName = "ERC721 payment from S-Chain, approve";
         const erc721ABI = joErc721_s_chain[strCoinNameErc721_s_chain + "_abi"];
         const erc721Address_s_chain = joErc721_s_chain[strCoinNameErc721_s_chain + "_address"];
-        const tokenManagerAddress = jo_token_manager_erc721.options.address;
+        const tokenManagerAddress = jo_token_manager_erc721.address;
         const contractERC721 =
             new owaspUtils.ethersMod.ethers.Contract(
                 erc721Address_s_chain,
@@ -4094,13 +4094,13 @@ export async function do_erc721_payment_from_s_chain(
         // Must-have event(s) analysis as indicator(s) of success
         //
         if( jo_message_proxy_s_chain ) {
-            details.write( strLogPrefix + cc.debug( "Verifying the " ) + cc.info( "OutgoingMessage" ) + cc.debug( " event of the " ) + cc.info( "MessageProxy" ) + cc.debug( "/" ) + cc.notice( jo_message_proxy_s_chain.options.address ) + cc.debug( " contract ..." ) + "\n" );
+            details.write( strLogPrefix + cc.debug( "Verifying the " ) + cc.info( "OutgoingMessage" ) + cc.debug( " event of the " ) + cc.info( "MessageProxy" ) + cc.debug( "/" ) + cc.notice( jo_message_proxy_s_chain.address ) + cc.debug( " contract ..." ) + "\n" );
             await sleep( g_nSleepBeforeFetchOutgoingMessageEvent );
             const joEvents = await get_contract_call_events( details, ethersProvider_s_chain, jo_message_proxy_s_chain, "OutgoingMessage", joReceipt.blockNumber, joReceipt.transactionHash, {} );
             if( joEvents.length > 0 )
-                details.write( strLogPrefix + cc.success( "Success, verified the " ) + cc.info( "OutgoingMessage" ) + cc.success( " event of the " ) + cc.info( "MessageProxy" ) + cc.success( "/" ) + cc.notice( jo_message_proxy_s_chain.options.address ) + cc.success( " contract, found event(s): " ) + cc.j( joEvents ) + "\n" );
+                details.write( strLogPrefix + cc.success( "Success, verified the " ) + cc.info( "OutgoingMessage" ) + cc.success( " event of the " ) + cc.info( "MessageProxy" ) + cc.success( "/" ) + cc.notice( jo_message_proxy_s_chain.address ) + cc.success( " contract, found event(s): " ) + cc.j( joEvents ) + "\n" );
             else
-                throw new Error( "Verification failed for the \"OutgoingMessage\" event of the \"MessageProxy\"/" + jo_message_proxy_s_chain.options.address + " contract, no events found" );
+                throw new Error( "Verification failed for the \"OutgoingMessage\" event of the \"MessageProxy\"/" + jo_message_proxy_s_chain.address + " contract, no events found" );
         } // if( jo_message_proxy_s_chain )
     } catch ( err ) {
         const strError = owaspUtils.extract_error_message( err );
@@ -4146,7 +4146,7 @@ export async function do_erc1155_payment_from_s_chain(
         strActionName = "ERC1155 payment from S-Chain, approve";
         const erc1155ABI = joErc1155_s_chain[strCoinNameErc1155_s_chain + "_abi"];
         const erc1155Address_s_chain = joErc1155_s_chain[strCoinNameErc1155_s_chain + "_address"];
-        const tokenManagerAddress = jo_token_manager_erc1155.options.address;
+        const tokenManagerAddress = jo_token_manager_erc1155.address;
         const contractERC1155 =
             new owaspUtils.ethersMod.ethers.Contract(
                 erc1155Address_s_chain,
@@ -4322,13 +4322,13 @@ export async function do_erc1155_payment_from_s_chain(
         // Must-have event(s) analysis as indicator(s) of success
         //
         if( jo_message_proxy_s_chain ) {
-            details.write( strLogPrefix + cc.debug( "Verifying the " ) + cc.info( "OutgoingMessage" ) + cc.debug( " event of the " ) + cc.info( "MessageProxy" ) + cc.debug( "/" ) + cc.notice( jo_message_proxy_s_chain.options.address ) + cc.debug( " contract ..." ) + "\n" );
+            details.write( strLogPrefix + cc.debug( "Verifying the " ) + cc.info( "OutgoingMessage" ) + cc.debug( " event of the " ) + cc.info( "MessageProxy" ) + cc.debug( "/" ) + cc.notice( jo_message_proxy_s_chain.address ) + cc.debug( " contract ..." ) + "\n" );
             await sleep( g_nSleepBeforeFetchOutgoingMessageEvent );
             const joEvents = await get_contract_call_events( details, ethersProvider_s_chain, jo_message_proxy_s_chain, "OutgoingMessage", joReceipt.blockNumber, joReceipt.transactionHash, {} );
             if( joEvents.length > 0 )
-                details.write( strLogPrefix + cc.success( "Success, verified the " ) + cc.info( "OutgoingMessage" ) + cc.success( " event of the " ) + cc.info( "MessageProxy" ) + cc.success( "/" ) + cc.notice( jo_message_proxy_s_chain.options.address ) + cc.success( " contract, found event(s): " ) + cc.j( joEvents ) + "\n" );
+                details.write( strLogPrefix + cc.success( "Success, verified the " ) + cc.info( "OutgoingMessage" ) + cc.success( " event of the " ) + cc.info( "MessageProxy" ) + cc.success( "/" ) + cc.notice( jo_message_proxy_s_chain.address ) + cc.success( " contract, found event(s): " ) + cc.j( joEvents ) + "\n" );
             else
-                throw new Error( "Verification failed for the \"OutgoingMessage\" event of the \"MessageProxy\"/" + jo_message_proxy_s_chain.options.address + " contract, no events found" );
+                throw new Error( "Verification failed for the \"OutgoingMessage\" event of the \"MessageProxy\"/" + jo_message_proxy_s_chain.address + " contract, no events found" );
         } // if( jo_message_proxy_s_chain )
     } catch ( err ) {
         const strError = owaspUtils.extract_error_message( err );
@@ -4374,7 +4374,7 @@ export async function do_erc1155_batch_payment_from_s_chain(
         strActionName = "ERC1155 payment from S-Chain, approve";
         const erc1155ABI = joErc1155_s_chain[strCoinNameErc1155_s_chain + "_abi"];
         const erc1155Address_s_chain = joErc1155_s_chain[strCoinNameErc1155_s_chain + "_address"];
-        const tokenManagerAddress = jo_token_manager_erc1155.options.address;
+        const tokenManagerAddress = jo_token_manager_erc1155.address;
         const contractERC1155 =
             new owaspUtils.ethersMod.ethers.Contract(
                 erc1155Address_s_chain,
@@ -4549,13 +4549,13 @@ export async function do_erc1155_batch_payment_from_s_chain(
         // Must-have event(s) analysis as indicator(s) of success
         //
         if( jo_message_proxy_s_chain ) {
-            details.write( strLogPrefix + cc.debug( "Verifying the " ) + cc.info( "OutgoingMessage" ) + cc.debug( " event of the " ) + cc.info( "MessageProxy" ) + cc.debug( "/" ) + cc.notice( jo_message_proxy_s_chain.options.address ) + cc.debug( " contract ..." ) + "\n" );
+            details.write( strLogPrefix + cc.debug( "Verifying the " ) + cc.info( "OutgoingMessage" ) + cc.debug( " event of the " ) + cc.info( "MessageProxy" ) + cc.debug( "/" ) + cc.notice( jo_message_proxy_s_chain.address ) + cc.debug( " contract ..." ) + "\n" );
             await sleep( g_nSleepBeforeFetchOutgoingMessageEvent );
             const joEvents = await get_contract_call_events( details, ethersProvider_s_chain, jo_message_proxy_s_chain, "OutgoingMessage", joReceipt.blockNumber, joReceipt.transactionHash, {} );
             if( joEvents.length > 0 )
-                details.write( strLogPrefix + cc.success( "Success, verified the " ) + cc.info( "OutgoingMessage" ) + cc.success( " event of the " ) + cc.info( "MessageProxy" ) + cc.success( "/" ) + cc.notice( jo_message_proxy_s_chain.options.address ) + cc.success( " contract, found event(s): " ) + cc.j( joEvents ) + "\n" );
+                details.write( strLogPrefix + cc.success( "Success, verified the " ) + cc.info( "OutgoingMessage" ) + cc.success( " event of the " ) + cc.info( "MessageProxy" ) + cc.success( "/" ) + cc.notice( jo_message_proxy_s_chain.address ) + cc.success( " contract, found event(s): " ) + cc.j( joEvents ) + "\n" );
             else
-                throw new Error( "Verification failed for the \"OutgoingMessage\" event of the \"MessageProxy\"/" + jo_message_proxy_s_chain.options.address + " contract, no events found" );
+                throw new Error( "Verification failed for the \"OutgoingMessage\" event of the \"MessageProxy\"/" + jo_message_proxy_s_chain.address + " contract, no events found" );
         } // if( jo_message_proxy_s_chain )
     } catch ( err ) {
         const strError = owaspUtils.extract_error_message( err );
@@ -4617,7 +4617,7 @@ export async function do_erc20_payment_s2s(
             throw new Error( "No transaction customizer provided" );
         const erc20_abi_src = joErc20_src[strCoinNameErc20_src + "_abi"];
         const erc20_address_src = joErc20_src[strCoinNameErc20_src + "_address"];
-        details.write( strLogPrefix + cc.attention( "Token Manager ERC20" ) + cc.debug( " address on source chain...." ) + cc.note( jo_token_manager_erc20_src.options.address ) + "\n" );
+        details.write( strLogPrefix + cc.attention( "Token Manager ERC20" ) + cc.debug( " address on source chain...." ) + cc.note( jo_token_manager_erc20_src.address ) + "\n" );
         details.write( strLogPrefix + cc.attention( "Source ERC20" ) + cc.debug( " coin name........................." ) + cc.note( strCoinNameErc20_src ) + "\n" );
         details.write( strLogPrefix + cc.attention( "Source ERC20" ) + cc.debug( " token address....................." ) + cc.note( erc20_address_src ) + "\n" );
         if( isReverse || erc20_address_dst )
@@ -4633,7 +4633,7 @@ export async function do_erc20_payment_s2s(
                 ethersProvider_src
             );
         const arrArguments_approve = [
-            jo_token_manager_erc20_src.options.address,
+            jo_token_manager_erc20_src.address,
             owaspUtils.ensure_starts_with_0x( owaspUtils.ethersMod.ethers.BigNumber.from( nAmountOfToken ).toHexString() )
         ];
         const arrArguments_transfer = [
@@ -4741,7 +4741,7 @@ export async function do_erc20_payment_s2s(
         //     from: joAccountSrc.address(),
         //     nonce: "0x" + nTransactionsCount.toString( 16 ),
         //     data: dataTx_transfer,
-        //     to: jo_token_manager_erc20_src.options.address,
+        //     to: jo_token_manager_erc20_src.address,
         //     gasPrice: gasPrice, // 0
         //     gas: estimatedGas_transfer
         //     // value: owaspUtils.ensure_starts_with_0x( owaspUtils.ethersMod.ethers.BigNumber.from( weiHowMuch ).toHexString() )
@@ -4784,13 +4784,13 @@ export async function do_erc20_payment_s2s(
         // Must-have event(s) analysis as indicator(s) of success
         //
         // if( jo_token_manager_erc20_src ) {
-        //     details.write( strLogPrefix + cc.debug( "Verifying the " ) + cc.info( "OutgoingMessage" ) + cc.debug( " event of the " ) + cc.info( "MessageProxy" ) + cc.debug( "/" ) + cc.notice( jo_token_manager_erc20_src.options.address ) + cc.debug( " contract ..." ) + "\n" );
+        //     details.write( strLogPrefix + cc.debug( "Verifying the " ) + cc.info( "OutgoingMessage" ) + cc.debug( " event of the " ) + cc.info( "MessageProxy" ) + cc.debug( "/" ) + cc.notice( jo_token_manager_erc20_src.address ) + cc.debug( " contract ..." ) + "\n" );
         //     await sleep( g_nSleepBeforeFetchOutgoingMessageEvent );
         //     const joEvents = await get_contract_call_events( details, ethersProvider_src, jo_token_manager_erc20_src, "OutgoingMessage", joReceipt.blockNumber, joReceipt.transactionHash, {} );
         //     if( joEvents.length > 0 )
-        //         details.write( strLogPrefix + cc.success( "Success, verified the " ) + cc.info( "OutgoingMessage" ) + cc.success( " event of the " ) + cc.info( "MessageProxy" ) + cc.success( "/" ) + cc.notice( jo_token_manager_erc20_src.options.address ) + cc.success( " contract, found event(s): " ) + cc.j( joEvents ) + "\n" );
+        //         details.write( strLogPrefix + cc.success( "Success, verified the " ) + cc.info( "OutgoingMessage" ) + cc.success( " event of the " ) + cc.info( "MessageProxy" ) + cc.success( "/" ) + cc.notice( jo_token_manager_erc20_src.address ) + cc.success( " contract, found event(s): " ) + cc.j( joEvents ) + "\n" );
         //     else
-        //         throw new Error( "Verification failed for th\"OutgoingMessage\" event of the \"MessageProxy\"/" + jo_token_manager_erc20_src.options.address + " contract, no events found" );
+        //         throw new Error( "Verification failed for th\"OutgoingMessage\" event of the \"MessageProxy\"/" + jo_token_manager_erc20_src.address + " contract, no events found" );
         // } // if( jo_token_manager_erc20_src )
     } catch ( err ) {
         const strError = owaspUtils.extract_error_message( err );
@@ -4853,7 +4853,7 @@ export async function do_erc721_payment_s2s(
             throw new Error( "No transaction customizer provided" );
         const erc721_abi_src = joErc721_src[strCoinNameErc721_src + "_abi"];
         const erc721_address_src = joErc721_src[strCoinNameErc721_src + "_address"];
-        details.write( strLogPrefix + cc.attention( "Token Manager ERC721" ) + cc.debug( " address on source chain...." ) + cc.note( jo_token_manager_erc721_src.options.address ) + "\n" );
+        details.write( strLogPrefix + cc.attention( "Token Manager ERC721" ) + cc.debug( " address on source chain...." ) + cc.note( jo_token_manager_erc721_src.address ) + "\n" );
         details.write( strLogPrefix + cc.attention( "Source ERC721" ) + cc.debug( " coin name........................." ) + cc.note( strCoinNameErc721_src ) + "\n" );
         details.write( strLogPrefix + cc.attention( "Source ERC721" ) + cc.debug( " token address....................." ) + cc.note( erc721_address_src ) + "\n" );
         if( isReverse || erc721_address_dst )
@@ -4869,7 +4869,7 @@ export async function do_erc721_payment_s2s(
                 ethersProvider_src
             );
         const arrArguments_approve = [
-            jo_token_manager_erc721_src.options.address,
+            jo_token_manager_erc721_src.address,
             owaspUtils.ensure_starts_with_0x( owaspUtils.ethersMod.ethers.BigNumber.from( token_id ).toHexString() )
         ];
         const arrArguments_transfer = [
@@ -4977,7 +4977,7 @@ export async function do_erc721_payment_s2s(
         //     from: joAccountSrc.address(),
         //     nonce: "0x" + nTransactionsCount.toString( 16 ),
         //     data: dataTx_transfer,
-        //     to: jo_token_manager_erc721_src.options.address,
+        //     to: jo_token_manager_erc721_src.address,
         //     gasPrice: gasPrice, // 0
         //     gas: estimatedGas_transfer
         //     // value: owaspUtils.ensure_starts_with_0x( owaspUtils.ethersMod.ethers.BigNumber.from( weiHowMuch ).toHexString() )
@@ -5020,13 +5020,13 @@ export async function do_erc721_payment_s2s(
         // Must-have event(s) analysis as indicator(s) of success
         //
         // if( jo_token_manager_erc721_src ) {
-        //     details.write( strLogPrefix + cc.debug( "Verifying the " ) + cc.info( "OutgoingMessage" ) + cc.debug( " event of the " ) + cc.info( "MessageProxy" ) + cc.debug( "/" ) + cc.notice( jo_token_manager_erc721_src.options.address ) + cc.debug( " contract ..." ) + "\n" );
+        //     details.write( strLogPrefix + cc.debug( "Verifying the " ) + cc.info( "OutgoingMessage" ) + cc.debug( " event of the " ) + cc.info( "MessageProxy" ) + cc.debug( "/" ) + cc.notice( jo_token_manager_erc721_src.address ) + cc.debug( " contract ..." ) + "\n" );
         //     await sleep( g_nSleepBeforeFetchOutgoingMessageEvent );
         //     const joEvents = await get_contract_call_events( details, ethersProvider_src, jo_token_manager_erc721_src, "OutgoingMessage", joReceipt.blockNumber, joReceipt.transactionHash, {} );
         //     if( joEvents.length > 0 )
-        //         details.write( strLogPrefix + cc.success( "Success, verified the " ) + cc.info( "OutgoingMessage" ) + cc.success( " event of the " ) + cc.info( "MessageProxy" ) + cc.success( "/" ) + cc.notice( jo_token_manager_erc721_src.options.address ) + cc.success( " contract, found event(s): " ) + cc.j( joEvents ) + "\n" );
+        //         details.write( strLogPrefix + cc.success( "Success, verified the " ) + cc.info( "OutgoingMessage" ) + cc.success( " event of the " ) + cc.info( "MessageProxy" ) + cc.success( "/" ) + cc.notice( jo_token_manager_erc721_src.address ) + cc.success( " contract, found event(s): " ) + cc.j( joEvents ) + "\n" );
         //     else
-        //         throw new Error( "Verification failed for th\"OutgoingMessage\" event of the \"MessageProxy\"/" + jo_token_manager_erc721_src.options.address + " contract, no events found" );
+        //         throw new Error( "Verification failed for th\"OutgoingMessage\" event of the \"MessageProxy\"/" + jo_token_manager_erc721_src.address + " contract, no events found" );
         // } // if( jo_token_manager_erc721_src )
     } catch ( err ) {
         const strError = owaspUtils.extract_error_message( err );
@@ -5089,7 +5089,7 @@ export async function do_erc1155_payment_s2s(
             throw new Error( "No transaction customizer provided" );
         const erc1155_abi_src = joErc1155_src[strCoinNameErc1155_src + "_abi"];
         const erc1155_address_src = joErc1155_src[strCoinNameErc1155_src + "_address"];
-        details.write( strLogPrefix + cc.attention( "Token Manager ERC1155" ) + cc.debug( " address on source chain...." ) + cc.note( jo_token_manager_erc1155_src.options.address ) + "\n" );
+        details.write( strLogPrefix + cc.attention( "Token Manager ERC1155" ) + cc.debug( " address on source chain...." ) + cc.note( jo_token_manager_erc1155_src.address ) + "\n" );
         details.write( strLogPrefix + cc.attention( "Source ERC1155" ) + cc.debug( " coin name........................." ) + cc.note( strCoinNameErc1155_src ) + "\n" );
         details.write( strLogPrefix + cc.attention( "Source ERC1155" ) + cc.debug( " token address....................." ) + cc.note( erc1155_address_src ) + "\n" );
         if( isReverse || erc1155_address_dst )
@@ -5106,7 +5106,7 @@ export async function do_erc1155_payment_s2s(
                 ethersProvider_src
             );
         const arrArguments_approve = [
-            jo_token_manager_erc1155_src.options.address,
+            jo_token_manager_erc1155_src.address,
             true
         ];
         const arrArguments_transfer = [
@@ -5215,7 +5215,7 @@ export async function do_erc1155_payment_s2s(
         //     from: joAccountSrc.address(),
         //     nonce: "0x" + nTransactionsCount.toString( 16 ),
         //     data: dataTx_transfer,
-        //     to: jo_token_manager_erc1155_src.options.address,
+        //     to: jo_token_manager_erc1155_src.address,
         //     gasPrice: gasPrice, // 0
         //     gas: estimatedGas_transfer
         //     // value: owaspUtils.ensure_starts_with_0x( owaspUtils.ethersMod.ethers.BigNumber.from( weiHowMuch ).toHexString() )
@@ -5258,13 +5258,13 @@ export async function do_erc1155_payment_s2s(
         // Must-have event(s) analysis as indicator(s) of success
         //
         // if( jo_token_manager_erc1155_src ) {
-        //     details.write( strLogPrefix + cc.debug( "Verifying the " ) + cc.info( "OutgoingMessage" ) + cc.debug( " event of the " ) + cc.info( "MessageProxy" ) + cc.debug( "/" ) + cc.notice( jo_token_manager_erc1155_src.options.address ) + cc.debug( " contract ..." ) + "\n" );
+        //     details.write( strLogPrefix + cc.debug( "Verifying the " ) + cc.info( "OutgoingMessage" ) + cc.debug( " event of the " ) + cc.info( "MessageProxy" ) + cc.debug( "/" ) + cc.notice( jo_token_manager_erc1155_src.address ) + cc.debug( " contract ..." ) + "\n" );
         //     await sleep( g_nSleepBeforeFetchOutgoingMessageEvent );
         //     const joEvents = await get_contract_call_events( details, ethersProvider_src, jo_token_manager_erc1155_src, "OutgoingMessage", joReceipt.blockNumber, joReceipt.transactionHash, {} );
         //     if( joEvents.length > 0 )
-        //         details.write( strLogPrefix + cc.success( "Success, verified the " ) + cc.info( "OutgoingMessage" ) + cc.success( " event of the " ) + cc.info( "MessageProxy" ) + cc.success( "/" ) + cc.notice( jo_token_manager_erc1155_src.options.address ) + cc.success( " contract, found event(s): " ) + cc.j( joEvents ) + "\n" );
+        //         details.write( strLogPrefix + cc.success( "Success, verified the " ) + cc.info( "OutgoingMessage" ) + cc.success( " event of the " ) + cc.info( "MessageProxy" ) + cc.success( "/" ) + cc.notice( jo_token_manager_erc1155_src.address ) + cc.success( " contract, found event(s): " ) + cc.j( joEvents ) + "\n" );
         //     else
-        //         throw new Error( "Verification failed for th\"OutgoingMessage\" event of the \"MessageProxy\"/" + jo_token_manager_erc1155_src.options.address + " contract, no events found" );
+        //         throw new Error( "Verification failed for th\"OutgoingMessage\" event of the \"MessageProxy\"/" + jo_token_manager_erc1155_src.address + " contract, no events found" );
         // } // if( jo_token_manager_erc1155_src )
     } catch ( err ) {
         const strError = owaspUtils.extract_error_message( err );
@@ -5327,7 +5327,7 @@ export async function do_erc1155_batch_payment_s2s(
             throw new Error( "No transaction customizer provided" );
         const erc1155_abi_src = joErc1155_src[strCoinNameErc1155_src + "_abi"];
         const erc1155_address_src = joErc1155_src[strCoinNameErc1155_src + "_address"];
-        details.write( strLogPrefix + cc.attention( "Token Manager ERC1155" ) + cc.debug( " address on source chain...." ) + cc.note( jo_token_manager_erc1155_src.options.address ) + "\n" );
+        details.write( strLogPrefix + cc.attention( "Token Manager ERC1155" ) + cc.debug( " address on source chain...." ) + cc.note( jo_token_manager_erc1155_src.address ) + "\n" );
         details.write( strLogPrefix + cc.attention( "Source ERC1155" ) + cc.debug( " coin name........................." ) + cc.note( strCoinNameErc1155_src ) + "\n" );
         details.write( strLogPrefix + cc.attention( "Source ERC1155" ) + cc.debug( " token address....................." ) + cc.note( erc1155_address_src ) + "\n" );
         if( isReverse || erc1155_address_dst )
@@ -5344,7 +5344,7 @@ export async function do_erc1155_batch_payment_s2s(
                 ethersProvider_src
             );
         const arrArguments_approve = [
-            jo_token_manager_erc1155_src.options.address,
+            jo_token_manager_erc1155_src.address,
             true
         ];
         const arrArguments_transfer = [
@@ -5453,7 +5453,7 @@ export async function do_erc1155_batch_payment_s2s(
         //     from: joAccountSrc.address(),
         //     nonce: "0x" + nTransactionsCount.toString( 16 ),
         //     data: dataTx_transfer,
-        //     to: jo_token_manager_erc1155_src.options.address,
+        //     to: jo_token_manager_erc1155_src.address,
         //     gasPrice: gasPrice, // 0
         //     gas: estimatedGas_transfer
         //     // value: owaspUtils.ensure_starts_with_0x( owaspUtils.ethersMod.ethers.BigNumber.from( weiHowMuch ).toHexString() )
@@ -5495,13 +5495,13 @@ export async function do_erc1155_batch_payment_s2s(
         // Must-have event(s) analysis as indicator(s) of success
         //
         // if( jo_token_manager_erc1155_src ) {
-        //     details.write( strLogPrefix + cc.debug( "Verifying the " ) + cc.info( "OutgoingMessage" ) + cc.debug( " event of the " ) + cc.info( "MessageProxy" ) + cc.debug( "/" ) + cc.notice( jo_token_manager_erc1155_src.options.address ) + cc.debug( " contract ..." ) + "\n" );
+        //     details.write( strLogPrefix + cc.debug( "Verifying the " ) + cc.info( "OutgoingMessage" ) + cc.debug( " event of the " ) + cc.info( "MessageProxy" ) + cc.debug( "/" ) + cc.notice( jo_token_manager_erc1155_src.address ) + cc.debug( " contract ..." ) + "\n" );
         //     await sleep( g_nSleepBeforeFetchOutgoingMessageEvent );
         //     const joEvents = await get_contract_call_events( details, ethersProvider_src, jo_token_manager_erc1155_src, "OutgoingMessage", joReceipt.blockNumber, joReceipt.transactionHash, {} );
         //     if( joEvents.length > 0 )
-        //         details.write( strLogPrefix + cc.success( "Success, verified the " ) + cc.info( "OutgoingMessage" ) + cc.success( " event of the " ) + cc.info( "MessageProxy" ) + cc.success( "/" ) + cc.notice( jo_token_manager_erc1155_src.options.address ) + cc.success( " contract, found event(s): " ) + cc.j( joEvents ) + "\n" );
+        //         details.write( strLogPrefix + cc.success( "Success, verified the " ) + cc.info( "OutgoingMessage" ) + cc.success( " event of the " ) + cc.info( "MessageProxy" ) + cc.success( "/" ) + cc.notice( jo_token_manager_erc1155_src.address ) + cc.success( " contract, found event(s): " ) + cc.j( joEvents ) + "\n" );
         //     else
-        //         throw new Error( "Verification failed for th\"OutgoingMessage\" event of the \"MessageProxy\"/" + jo_token_manager_erc1155_src.options.address + " contract, no events found" );
+        //         throw new Error( "Verification failed for th\"OutgoingMessage\" event of the \"MessageProxy\"/" + jo_token_manager_erc1155_src.address + " contract, no events found" );
         // } // if( jo_token_manager_erc1155_src )
     } catch ( err ) {
         const strError = owaspUtils.extract_error_message( err );
@@ -5718,8 +5718,8 @@ export async function do_transfer(
     let nOutMsgCnt = 0;
     let nIncMsgCnt = 0;
     try {
-        details.write( cc.info( "SRC " ) + cc.sunny( "MessageProxy" ) + cc.info( " address is....." ) + cc.bright( jo_message_proxy_src.options.address ) + "\n" );
-        details.write( cc.info( "DST " ) + cc.sunny( "MessageProxy" ) + cc.info( " address is....." ) + cc.bright( jo_message_proxy_dst.options.address ) + "\n" );
+        details.write( cc.info( "SRC " ) + cc.sunny( "MessageProxy" ) + cc.info( " address is....." ) + cc.bright( jo_message_proxy_src.address ) + "\n" );
+        details.write( cc.info( "DST " ) + cc.sunny( "MessageProxy" ) + cc.info( " address is....." ) + cc.bright( jo_message_proxy_dst.address ) + "\n" );
         strActionName = "src-chain.MessageProxy.getOutgoingMessagesCounter()";
         try {
             details.write( strLogPrefix + cc.debug( "Will call " ) + cc.notice( strActionName ) + cc.debug( "..." ) + "\n" );
@@ -6338,7 +6338,7 @@ export async function do_transfer(
                         //     gas: postIncomingMessagesGasLimit,
                         //     gasPrice: gasPrice,
                         //     // "gasLimit": 3000000,
-                        //     to: jo_message_proxy_dst.options.address, // contract address
+                        //     to: jo_message_proxy_dst.address, // contract address
                         //     data: dataTx_postIncomingMessages
                         // };
 
@@ -6393,15 +6393,15 @@ export async function do_transfer(
                             detailsB.write( strLogPrefix + cc.debug( "Validating transfer to Main Net via MessageProxy error absence on Main Net..." ) + "\n" );
                             if( jo_deposit_box_main_net ) {
                                 if( joReceipt && "blockNumber" in joReceipt && "transactionHash" in joReceipt ) {
-                                    detailsB.write( strLogPrefix + cc.debug( "Verifying the " ) + cc.info( "PostMessageError" ) + cc.debug( " event of the " ) + cc.info( "MessageProxy" ) + cc.debug( "/" ) + cc.notice( jo_message_proxy_dst.options.address ) + cc.debug( " contract..." ) + "\n" );
+                                    detailsB.write( strLogPrefix + cc.debug( "Verifying the " ) + cc.info( "PostMessageError" ) + cc.debug( " event of the " ) + cc.info( "MessageProxy" ) + cc.debug( "/" ) + cc.notice( jo_message_proxy_dst.address ) + cc.debug( " contract..." ) + "\n" );
                                     const joEvents = await get_contract_call_events( detailsB, ethersProvider_dst, jo_message_proxy_dst, "PostMessageError", joReceipt.blockNumber, joReceipt.transactionHash, {} );
                                     if( joEvents.length == 0 )
-                                        detailsB.write( strLogPrefix + cc.success( "Success, verified the " ) + cc.info( "PostMessageError" ) + cc.success( " event of the " ) + cc.info( "MessageProxy" ) + cc.success( "/" ) + cc.notice( jo_message_proxy_dst.options.address ) + cc.success( " contract, no events found" ) + "\n" );
+                                        detailsB.write( strLogPrefix + cc.success( "Success, verified the " ) + cc.info( "PostMessageError" ) + cc.success( " event of the " ) + cc.info( "MessageProxy" ) + cc.success( "/" ) + cc.notice( jo_message_proxy_dst.address ) + cc.success( " contract, no events found" ) + "\n" );
                                     else {
-                                        log.write( strLogPrefix + cc.fatal( "CRITICAL ERROR:" ) + cc.warning( " Failed" ) + cc.error( " verification of the " ) + cc.warning( "PostMessageError" ) + cc.error( " event of the " ) + cc.warning( "MessageProxy" ) + cc.error( "/" ) + cc.notice( jo_message_proxy_dst.options.address ) + cc.error( " contract, found event(s): " ) + cc.j( joEvents ) + "\n" );
-                                        detailsB.write( strLogPrefix + cc.fatal( "CRITICAL ERROR:" ) + cc.warning( " Failed" ) + cc.error( " verification of the " ) + cc.warning( "PostMessageError" ) + cc.error( " event of the " ) + cc.warning( "MessageProxy" ) + cc.error( "/" ) + cc.notice( jo_message_proxy_dst.options.address ) + cc.error( " contract, found event(s): " ) + cc.j( joEvents ) + "\n" );
+                                        log.write( strLogPrefix + cc.fatal( "CRITICAL ERROR:" ) + cc.warning( " Failed" ) + cc.error( " verification of the " ) + cc.warning( "PostMessageError" ) + cc.error( " event of the " ) + cc.warning( "MessageProxy" ) + cc.error( "/" ) + cc.notice( jo_message_proxy_dst.address ) + cc.error( " contract, found event(s): " ) + cc.j( joEvents ) + "\n" );
+                                        detailsB.write( strLogPrefix + cc.fatal( "CRITICAL ERROR:" ) + cc.warning( " Failed" ) + cc.error( " verification of the " ) + cc.warning( "PostMessageError" ) + cc.error( " event of the " ) + cc.warning( "MessageProxy" ) + cc.error( "/" ) + cc.notice( jo_message_proxy_dst.address ) + cc.error( " contract, found event(s): " ) + cc.j( joEvents ) + "\n" );
                                         save_transfer_error( strTransferErrorCategoryName, detailsB.toString() );
-                                        throw new Error( "Verification failed for the \"PostMessageError\" event of the \"MessageProxy\"/" + jo_message_proxy_dst.options.address + " contract, error events found" );
+                                        throw new Error( "Verification failed for the \"PostMessageError\" event of the \"MessageProxy\"/" + jo_message_proxy_dst.address + " contract, error events found" );
                                     }
                                     detailsB.write( strLogPrefix + cc.success( "Done, validated transfer to Main Net via MessageProxy error absence on Main Net" ) + "\n" );
                                 } else
@@ -6665,7 +6665,7 @@ export class TransactionCustomizer {
             if( gasPrice * this.gasPriceMultiplier > maxGasPrice )
                 return owaspUtils.ethersMod.ethers.BigNumber.from( maxGasPrice ).toHexString();
             else
-                return gasPrice.mul( this.gasPriceMultiplier );
+                return owaspUtils.ethersMod.ethers.BigNumber.from( gasPrice ).mul( this.gasPriceMultiplier );
         } else
             return gasPrice;
     }
@@ -6988,7 +6988,7 @@ export async function mintERC20(
         //     gas: estimatedGas_mint,
         //     gasPrice: gasPrice,
         //     // "gasLimit": 3000000,
-        //     to: contract.options.address, // contract address
+        //     to: contract.address, // contract address
         //     data: dataTx_mint //,
         //     // "value": wei_amount // 1000000000000000000 // w3.utils.toWei( (1).toString(), "ether" ) // how much money to send
         // };
@@ -7115,7 +7115,7 @@ export async function mintERC721(
         //     gas: estimatedGas_mint,
         //     gasPrice: gasPrice,
         //     // "gasLimit": 3000000,
-        //     to: contract.options.address, // contract address
+        //     to: contract.address, // contract address
         //     data: dataTx_mint //,
         //     // "value": wei_amount // 1000000000000000000 // w3.utils.toWei( (1).toString(), "ether" ) // how much money to send
         // };
@@ -7246,7 +7246,7 @@ export async function mintERC1155(
         //     gas: estimatedGas_mint,
         //     gasPrice: gasPrice,
         //     // "gasLimit": 3000000,
-        //     to: contract.options.address, // contract address
+        //     to: contract.address, // contract address
         //     data: dataTx_mint //,
         //     // "value": wei_amount // 1000000000000000000 // w3.utils.toWei( (1).toString(), "ether" ) // how much money to send
         // };
@@ -7374,7 +7374,7 @@ export async function burnERC20(
         //     gas: estimatedGas_burn,
         //     gasPrice: gasPrice,
         //     // "gasLimit": 3000000,
-        //     to: contract.options.address, // contract address
+        //     to: contract.address, // contract address
         //     data: dataTx_burn //,
         //     // "value": wei_amount // 1000000000000000000 // w3.utils.toWei( (1).toString(), "ether" ) // how much money to send
         // };
@@ -7502,7 +7502,7 @@ export async function burnERC721(
         //     gas: estimatedGas_burn,
         //     gasPrice: gasPrice,
         //     // "gasLimit": 3000000,
-        //     to: contract.options.address, // contract address
+        //     to: contract.address, // contract address
         //     data: dataTx_burn //,
         //     // "value": wei_amount // 1000000000000000000 // w3.utils.toWei( (1).toString(), "ether" ) // how much money to send
         // };
@@ -7632,7 +7632,7 @@ export async function burnERC1155(
         //     gas: estimatedGas_burn,
         //     gasPrice: gasPrice,
         //     // "gasLimit": 3000000,
-        //     to: contract.options.address, // contract address
+        //     to: contract.address, // contract address
         //     data: dataTx_burn //,
         //     // "value": wei_amount // 1000000000000000000 // w3.utils.toWei( (1).toString(), "ether" ) // how much money to send
         // };

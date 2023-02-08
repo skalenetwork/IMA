@@ -1479,7 +1479,7 @@ export function ima_common_init() {
 
     const oct = function( joContract ) { // optional contract address
         if( joContract && "options" in joContract && "address" in joContract.options )
-            return cc.bright( joContract.options.address );
+            return cc.bright( joContract.address );
         return cc.error( "contract is not available" );
     };
 
@@ -2174,39 +2174,42 @@ export function ima_common_init() {
 
 export function ima_init_ethers_providers() {
     const imaState = state.get();
-    if( imaState.mn.strURL && typeof imaState.mn.strURL == "string" && imaState.mn.strURL.length > 0 ) {
-        const u = imaState.mn.strURL;
+    if( imaState.chainProperties.mn.strURL && typeof imaState.chainProperties.mn.strURL == "string" && imaState.chainProperties.mn.strURL.length > 0 ) {
+        const u = imaState.chainProperties.mn.strURL;
         async_check_url_at_startup( u, "Main-net" );
-        imaState.mn.ethersProvider = owaspUtils.getEthersProviderFromURL( u );
+        imaState.chainProperties.mn.ethersProvider = owaspUtils.getEthersProviderFromURL( u );
     } else {
         log.write(
             cc.error( "WARNING:" ) + cc.warning( " No " ) + cc.note( "Main-net" ) +
             cc.warning( " URL specified in command line arguments" ) +
-            cc.debug( "(needed for particular operations only)" )
+            cc.debug( "(needed for particular operations only)" ) +
+            "\n"
         );
     }
     //
-    if( imaState.sc.strURL && typeof imaState.sc.strURL == "string" && imaState.sc.strURL.length > 0 ) {
-        const u = imaState.sc.strURL;
+    if( imaState.chainProperties.sc.strURL && typeof imaState.chainProperties.sc.strURL == "string" && imaState.chainProperties.sc.strURL.length > 0 ) {
+        const u = imaState.chainProperties.sc.strURL;
         async_check_url_at_startup( u, "S-Chain" );
-        imaState.sc.ethersProvider = owaspUtils.getEthersProviderFromURL( u );
+        imaState.chainProperties.sc.ethersProvider = owaspUtils.getEthersProviderFromURL( u );
     } else {
         log.write(
             cc.error( "WARNING:" ) + cc.warning( " No " ) + cc.note( "S-Chain" ) +
             cc.warning( " URL specified in command line arguments" ) +
-            cc.debug( "(needed for particular operations only)" )
+            cc.debug( "(needed for particular operations only)" ) +
+            "\n"
         );
     }
     //
-    if( imaState.tc.strURL && typeof imaState.tc.strURL == "string" && imaState.tc.strURL.length > 0 ) {
-        const u = imaState.tc.strURL;
+    if( imaState.chainProperties.tc.strURL && typeof imaState.chainProperties.tc.strURL == "string" && imaState.chainProperties.tc.strURL.length > 0 ) {
+        const u = imaState.chainProperties.tc.strURL;
         async_check_url_at_startup( u, "S<->S Target S-Chain" );
-        imaState.tc.ethersProvider = owaspUtils.getEthersProviderFromURL( u );
+        imaState.chainProperties.tc.ethersProvider = owaspUtils.getEthersProviderFromURL( u );
     } else {
         log.write(
             cc.error( "WARNING:" ) + cc.warning( " No " ) + cc.note( "S<->S Target S-Chain" ) +
             cc.warning( " URL specified in command line arguments" ) +
-            cc.debug( "(needed for particular operations only)" )
+            cc.debug( "(needed for particular operations only)" ) +
+            "\n"
         );
     }
 
@@ -2215,7 +2218,7 @@ export function ima_init_ethers_providers() {
 export function ima_contracts_init() {
     const imaState = state.get();
     ima_init_ethers_providers();
-    if( imaState.bHaveImaAbiMainNet ) {
+    if( imaState.chainProperties.mn.bHaveAbiIMA ) {
         const cp = imaState.chainProperties.mn;
         const ep = cp.ethersProvider;
         const joABI = cp.joAbiIMA;
@@ -2228,28 +2231,27 @@ export function ima_contracts_init() {
         imaState.jo_linker = new owaspUtils.ethersMod.ethers.Contract( joABI.linker_address, joABI.linker_abi, ep ); // only main net
         imaState.jo_message_proxy_main_net = new owaspUtils.ethersMod.ethers.Contract( joABI.message_proxy_mainnet_address, joABI.message_proxy_mainnet_abi, ep );
     }
-    if( imaState.bHaveImaAbiSchain ) {
+    if( imaState.chainProperties.sc.bHaveAbiIMA ) {
         const cp = imaState.chainProperties.sc;
         const ep = cp.ethersProvider;
         const joABI = cp.joAbiIMA;
-
-        // imaState.jo_token_manager_eth = new ep.Contract( joABI.token_manager_eth_address, joABI.token_manager_eth_abi, ep ); // only s-chain
-        imaState.jo_token_manager_erc20 = new ep.Contract( joABI.token_manager_erc20_address, joABI.token_manager_erc20_abi, ep ); // only s-chain
-        imaState.jo_token_manager_erc721 = new ep.Contract( joABI.token_manager_erc721_address, joABI.token_manager_erc721_abi, ep ); // only s-chain
-        imaState.jo_token_manager_erc1155 = new ep.Contract( joABI.token_manager_erc1155_address, joABI.token_manager_erc1155_abi, ep ); // only s-chain
-        imaState.jo_token_manager_erc721_with_metadata = new ep.Contract( joABI.token_manager_erc721_with_metadata_address, joABI.token_manager_erc721_with_metadata_abi, ep ); // only s-chain
-        imaState.jo_community_locker = new ep.Contract( joABI.community_locker_address, joABI.community_locker_abi, ep ); // only s-chain
-        imaState.jo_message_proxy_s_chain = new ep.Contract( joABI.message_proxy_chain_address, joABI.message_proxy_chain_abi, ep );
-        imaState.jo_token_manager_linker = new ep.Contract( joABI.token_manager_linker_address, joABI.token_manager_linker_abi, ep );
-        imaState.eth_erc20 = new ep.Contract( joABI.eth_erc20_address, joABI.eth_erc20_abi, ep ); // only s-chain
+        imaState.jo_token_manager_eth = new owaspUtils.ethersMod.ethers.Contract( joABI.token_manager_eth_address, joABI.token_manager_eth_abi, ep ); // only s-chain
+        imaState.jo_token_manager_erc20 = new owaspUtils.ethersMod.ethers.Contract( joABI.token_manager_erc20_address, joABI.token_manager_erc20_abi, ep ); // only s-chain
+        imaState.jo_token_manager_erc721 = new owaspUtils.ethersMod.ethers.Contract( joABI.token_manager_erc721_address, joABI.token_manager_erc721_abi, ep ); // only s-chain
+        imaState.jo_token_manager_erc1155 = new owaspUtils.ethersMod.ethers.Contract( joABI.token_manager_erc1155_address, joABI.token_manager_erc1155_abi, ep ); // only s-chain
+        imaState.jo_token_manager_erc721_with_metadata = new owaspUtils.ethersMod.ethers.Contract( joABI.token_manager_erc721_with_metadata_address, joABI.token_manager_erc721_with_metadata_abi, ep ); // only s-chain
+        imaState.jo_community_locker = new owaspUtils.ethersMod.ethers.Contract( joABI.community_locker_address, joABI.community_locker_abi, ep ); // only s-chain
+        imaState.jo_message_proxy_s_chain = new owaspUtils.ethersMod.ethers.Contract( joABI.message_proxy_chain_address, joABI.message_proxy_chain_abi, ep );
+        imaState.jo_token_manager_linker = new owaspUtils.ethersMod.ethers.Contract( joABI.token_manager_linker_address, joABI.token_manager_linker_abi, ep );
+        imaState.eth_erc20 = new owaspUtils.ethersMod.ethers.Contract( joABI.eth_erc20_address, joABI.eth_erc20_abi, ep ); // only s-chain
         // imaState.eth_erc721 = new owaspUtils.ethersMod.ethers.Contract( joABI.eth_erc721_address, joABI.eth_erc721_abi, ep ); // only s-chain
         // imaState.eth_erc1155 = new owaspUtils.ethersMod.ethers.Contract( joABI.eth_erc1155_address, joABI.eth_erc721_abi, ep ); // only s-chain
     }
-    if( imaState.bHaveImaAbiSchainTarget ) {
+    if( imaState.chainProperties.tc.bHaveAbiIMA ) {
         const cp = imaState.chainProperties.tc;
         const ep = cp.ethersProvider;
         const joABI = cp.joAbiIMA;
-        // imaState.jo_token_manager_eth_target = new owaspUtils.ethersMod.ethers.Contract( joABI.token_manager_eth_abi, joABI.token_manager_eth_address, ep ); // only s-chain
+        imaState.jo_token_manager_eth_target = new owaspUtils.ethersMod.ethers.Contract( joABI.token_manager_eth_abi, joABI.token_manager_eth_address, ep ); // only s-chain
         imaState.jo_token_manager_erc20_target = new owaspUtils.ethersMod.ethers.Contract( joABI.token_manager_erc20_address, joABI.token_manager_erc20_abi, ep ); // only s-chain
         imaState.jo_token_manager_erc721_target = new owaspUtils.ethersMod.ethers.Contract( joABI.token_manager_erc721_address, joABI.token_manager_erc721_abi, ep ); // only s-chain
         imaState.jo_token_manager_erc1155_target = new owaspUtils.ethersMod.ethers.Contract( joABI.token_manager_erc1155_address, joABI.token_manager_erc1155_abi, ep ); // only s-chain

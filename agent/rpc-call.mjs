@@ -27,6 +27,8 @@ import * as ws from "ws";
 import * as urllib from "urllib";
 import * as net from "net";
 import * as owaspUtils from "../npms/skale-owasp/owasp-utils.mjs";
+import * as log from "../npms/skale-log/log.mjs";
+import * as cc from "../npms/skale-cc/cc.mjs";
 
 const g_nConnectionTimeoutSeconds = 60;
 
@@ -193,8 +195,6 @@ async function do_disconnect( joCall, fn ) {
     }
 }
 
-const do_sleep = ( milliseconds ) => { return new Promise( resolve => setTimeout( resolve, milliseconds ) ); };
-
 export async function do_call( joCall, joIn, fn ) {
     // console.log( "--- --- --- initial joIn is", joIn );
     joIn = enrich_top_level_json_fields( joIn );
@@ -221,61 +221,36 @@ export async function do_call( joCall, joIn, fn ) {
             return;
         }
         const strBody = JSON.stringify( joIn );
-        // console.log( "--- --- --- agentOptions is", agentOptions );
         // console.log( "--- --- --- joIn is", strBody );
-        let bCompleteFlag = false;
+        // console.log( "--- --- --- joCall is", joCall );
         let errCall = null, joOut = null;
-        urllib.request( joCall.url, {
-            "method": "POST",
-            "timeout": g_nConnectionTimeoutSeconds * 1000, // in milliseconds
-            "headers": {
-                "content-type": "application/json"
-                // "Accept": "*/*",
-                // "Content-Length": strBody.length,
-            },
-            "content": strBody,
-            "ca": ( joCall.joRpcOptions && joCall.joRpcOptions.ca && typeof joCall.joRpcOptions.ca == "string" ) ? joCall.joRpcOptions.ca : null,
-            "cert": ( joCall.joRpcOptions && joCall.joRpcOptions.cert && typeof joCall.joRpcOptions.cert == "string" ) ? joCall.joRpcOptions.cert : null,
-            "key": ( joCall.joRpcOptions && joCall.joRpcOptions.key && typeof joCall.joRpcOptions.key == "string" ) ? joCall.joRpcOptions.key : null
-        }, function( err, body, response ) {
-            // console.log( "--- --- --- err is", err );
-            // console.log( "--- --- --- response is", response );
-            // console.log( "--- --- --- body is", body );
+        try {
+            const response = await urllib.request( joCall.url, {
+                "method": "POST",
+                "timeout": g_nConnectionTimeoutSeconds * 1000, // in milliseconds
+                "headers": {
+                    "content-type": "application/json"
+                    // "Accept": "*/*",
+                    // "Content-Length": strBody.length,
+                },
+                "content": strBody,
+                "ca": ( joCall.joRpcOptions && joCall.joRpcOptions.ca && typeof joCall.joRpcOptions.ca == "string" ) ? joCall.joRpcOptions.ca : null,
+                "cert": ( joCall.joRpcOptions && joCall.joRpcOptions.cert && typeof joCall.joRpcOptions.cert == "string" ) ? joCall.joRpcOptions.cert : null,
+                "key": ( joCall.joRpcOptions && joCall.joRpcOptions.key && typeof joCall.joRpcOptions.key == "string" ) ? joCall.joRpcOptions.key : null
+            } );
+            // console.log( "--- --- --- response.data is", response.data );
+            const body = response.data.toString( "utf8" );
+            // console.log( "--- --- --- response body is", body );
             if( response && response.statusCode && response.statusCode !== 200 )
                 log.write( cc.error( "WARNING:" ) + cc.warning( " REST call status code is " ) + cc.info( response.statusCode ) + "\n" );
-            if( err ) {
-                log.write( cc.u( joCall.url ) + cc.error( " REST error " ) + cc.warning( err.toString() ) + "\n" );
-                bCompleteFlag = true;
-                joOut = null;
-                errCall = "RPC call error: " + err.toString();
-                return;
-            }
-            try {
-                joOut = JSON.parse( body );
-                errCall = null;
-            } catch ( err ) {
-                bCompleteFlag = true;
-                joOut = null;
-                errCall = "Response body parse error: " + err.toString();
-                return;
-            }
-            bCompleteFlag = true;
-        } );
-        for( let idxWait = 0; ! bCompleteFlag; ++ idxWait ) {
-            if( idxWait < 50 )
-                await do_sleep( 5 );
-            else if( idxWait < 100 )
-                await do_sleep( 10 );
-            else if( idxWait < 1000 )
-                await do_sleep( 100 );
-            else {
-                const nLastWaitPeriod = 200;
-                if( ( idxWait - 1000 ) * nLastWaitPeriod > g_nConnectionTimeoutSeconds )
-                    bCompleteFlag = true;
-                else
-                    await do_sleep( nLastWaitPeriod );
-            }
-        } // for( let idxWait = 0; ! bCompleteFlag; ++ idxWait )
+            joOut = JSON.parse( body );
+            errCall = null;
+        } catch ( err ) {
+            // console.log( "--- --- --- request caught err is", err );
+            log.write( cc.u( joCall.url ) + cc.error( " request error " ) + cc.warning( err.toString() ) + "\n" );
+            joOut = null;
+            errCall = "request error: " + err.toString();
+        }
         try {
             await fn( joIn, joOut, errCall );
         } catch ( err ) {

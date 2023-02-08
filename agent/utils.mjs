@@ -152,15 +152,15 @@ export async function wait_for_cloned_token_to_appear(
     const ts0 = cc.ts_hr();
     let ts1;
     log.write( cc.debug( "Waiting for " ) + cc.notice( strTokenSuffixUC ) + cc.debug( " token to appear automatically deployed on S-Chain " ) + cc.attention( sc.chainName ) + cc.debug( "..." ) );
-    log.write( log.llp() + cc.debug( "... source chain name is " ) + cc.attention( strMainnetName ) );
-    log.write( log.llp() + cc.debug( "... destination " ) + cc.notice( "TokenManager" + strTokenSuffixUC ) + cc.debug( " address is " ) + cc.notice( sc.joABI["token_manager_" + strTokenSuffixLC + "_address"] ) );
+    log.write( cc.debug( "... source chain name is " ) + cc.attention( strMainnetName ) );
+    log.write( cc.debug( "... destination " ) + cc.notice( "TokenManager" + strTokenSuffixUC ) + cc.debug( " address is " ) + cc.notice( sc.joABI["token_manager_" + strTokenSuffixLC + "_address"] ) );
     const contractTokenManager = new owaspUtils.ethersMod.ethers.Contract(
         sc.joABI["token_manager_" + strTokenSuffixLC + "_address"],
         sc.joABI["token_manager_" + strTokenSuffixLC + "_abi"],
         sc.ethersProvider
     );
     for( let idxAttempt = 0; idxAttempt < cntAttempts; ++ idxAttempt ) {
-        log.write( log.llp() + cc.debug( "Discovering " ) + cc.notice( strTokenSuffixUC ) + cc.debug( " step " ) + cc.info( idxAttempt ) + cc.debug( "..." ) );
+        log.write( cc.debug( "Discovering " ) + cc.notice( strTokenSuffixUC ) + cc.debug( " step " ) + cc.info( idxAttempt ) + cc.debug( "..." ) );
         if( g_nTimeToSleepStepWaitForClonedTokenToAppearMilliseconds > 0 )
             await core.sleep( g_nTimeToSleepStepWaitForClonedTokenToAppearMilliseconds );
         const address_on_s_chain = await contractTokenManager.callStatic["clones" + cc.capitalize_first_letter( strTokenSuffixLCshort )](
@@ -170,8 +170,8 @@ export async function wait_for_cloned_token_to_appear(
         );
         if( address_on_s_chain != "0x0000000000000000000000000000000000000000" ) {
             ts1 = cc.ts_hr();
-            log.write( log.llp() + cc.success( "Done, duration is " ) + cc.info( cc.get_duration_string( ts0, ts1 ) ) );
-            log.write( log.llp() + cc.success( "Discovered " ) + cc.notice( strTokenSuffixUC ) + cc.success( " instantiated on S-Chain " ) + cc.attention( sc.chainName ) + cc.success( " at address " ) + cc.notice( address_on_s_chain ) );
+            log.write( cc.success( "Done, duration is " ) + cc.info( cc.get_duration_string( ts0, ts1 ) ) );
+            log.write( cc.success( "Discovered " ) + cc.notice( strTokenSuffixUC ) + cc.success( " instantiated on S-Chain " ) + cc.attention( sc.chainName ) + cc.success( " at address " ) + cc.notice( address_on_s_chain ) );
             return address_on_s_chain;
         }
     }
