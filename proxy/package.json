@@ -34,7 +34,7 @@
         "ethereumjs-util": "^7.1.4",
         "ethers": "^5.4.7",
         "ethers-eip712": "^0.2.0",
-        "hardhat": "^2.5.0",
+        "hardhat": "^2.12.7",
         "path": "^0.12.7",
         "web3": "^1.6.1"
     },
