@@ -38,6 +38,7 @@ import * as skale_observer from "../npms/skale-observer/observer.mjs";
 import * as loop from "./loop.mjs";
 import * as imaUtils from "./utils.mjs";
 import * as IMA from "../npms/skale-ima/index.mjs";
+import * as pwa from "./pwa.mjs";
 
 import * as state from "./state.mjs";
 

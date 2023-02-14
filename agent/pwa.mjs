@@ -33,7 +33,7 @@ import * as imaUtils from "./utils.mjs";
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-function compute_walk_node_idices( nNodeNumber, nNodesCount ) {
+function compute_walk_node_indices( nNodeNumber, nNodesCount ) {
     if( nNodesCount <= 1 )
         return []; // PWA is N/A
     if( !( nNodeNumber >= 0 && nNodeNumber < nNodesCount ) )
@@ -41,16 +41,16 @@ function compute_walk_node_idices( nNodeNumber, nNodesCount ) {
     let i = nNodeNumber - 1;
     if( i < 0 )
         i = nNodesCount - 1;
-    const arr_walk_node_idices = [];
+    const arr_walk_node_indices = [];
     for( ; true; ) {
         if( i == nNodeNumber )
             break;
-        arr_walk_node_idices.push( i );
+        arr_walk_node_indices.push( i );
         -- i;
         if( i < 0 )
             i = nNodesCount - 1;
     }
-    return arr_walk_node_idices;
+    return arr_walk_node_indices;
 }
 
 export function check_loop_work_type_string_is_correct( strLoopWorkType ) {
@@ -131,16 +131,16 @@ export async function check_on_loop_start( imaState, strLoopWorkType, nIndexS2S 
         if( ! jarrNodes )
             throw new Error( "S-Chain network info is not available yet to PWA" );
         const arr_busy_node_indices = [];
-        const arr_walk_node_idices = compute_walk_node_idices( imaState.nNodeNumber, imaState.nNodesCount );
+        const arr_walk_node_indices = compute_walk_node_indices( imaState.nNodeNumber, imaState.nNodesCount );
         if( imaState.isPrintPWA ) {
             log.write(
-                cc.debug( "PWA will check loop start contition via node(s) sequence " ) +
+                cc.debug( "PWA will check loop start condition via node(s) sequence " ) +
                 cc.j( arr_busy_node_indices ) + cc.debug( "..." ) +
                 "\n" );
         }
         const nUtcUnixTimeStamp = Math.floor( ( new Date() ).getTime() / 1000 );
-        for( let i = 0; i < arr_walk_node_idices.length; ++i ) {
-            const walk_node_index = arr_walk_node_idices[i];
+        for( let i = 0; i < arr_walk_node_indices.length; ++i ) {
+            const walk_node_index = arr_walk_node_indices[i];
             const joNode = jarrNodes[walk_node_index];
             const joProps = get_node_progress_and_ts( joNode, strLoopWorkType, nIndexS2S );
             if( joProps && typeof joProps == "object" &&
@@ -156,7 +156,7 @@ export async function check_on_loop_start( imaState, strLoopWorkType, nIndexS2S 
                             cc.debug( ", current system timestamp is " ) + cc.info( nUtcUnixTimeStamp ) +
                             cc.debug( ", duration " ) + cc.info( d ) +
                             cc.debug( " is greater than conditionally allowed " ) + cc.info( imaState.nTimeoutSecondsPWA ) +
-                            cc.debug( " and exceeeded by " ) + cc.info( d - imaState.nTimeoutSecondsPWA ) + cc.debug( " second(s)" ) +
+                            cc.debug( " and exceeded by " ) + cc.info( d - imaState.nTimeoutSecondsPWA ) + cc.debug( " second(s)" ) +
                             "\n" );
                     }
                     joProps.isInProgress = false;
@@ -165,7 +165,7 @@ export async function check_on_loop_start( imaState, strLoopWorkType, nIndexS2S 
                 }
                 arr_busy_node_indices.push( walk_node_index );
             }
-        } // for( let i = 0; i < arr_walk_node_idices.length; ++i )
+        } // for( let i = 0; i < arr_walk_node_indices.length; ++i )
         if( arr_busy_node_indices.length > 0 ) {
             if( imaState.isPrintPWA )
                 log.write( cc.warning( "PWA loop start condition check failed, busy node(s): " ) + cc.j( arr_busy_node_indices ) + "\n" );
@@ -231,6 +231,7 @@ export async function handle_loop_state_arrived( imaState, nNodeNumber, strLoopW
             cc.error( ", PWA state " ) + cc.j( ( joNode && "pwaState" in joNode ) ? joNode.pwaState : "N/A" ) +
             cc.error( ", arrived signature is " ) + cc.j( signature ) +
             cc.error( ", error is: " ) + cc.error( owaspUtils.extract_error_message( err ) ) +
+            cc.error( ", stack is: " ) + "\n" + cc.warning( err.stack ) +
             "\n" );
     }
     return isSuccess;
@@ -271,7 +272,7 @@ async function notify_on_loop_impl( imaState, strLoopWorkType, nIndexS2S, isStar
             /*await*/ rpcCall.create( strNodeURL, rpcCallOpts, async function( joCall, err ) {
                 if( err ) {
                     log.write(
-                        cc.error( "PWA failed to create loop-" ) + cc.attention( se ) + cc.error( " notifiction RPC call to node #" ) + cc.info( i ) +
+                        cc.error( "PWA failed to create loop-" ) + cc.attention( se ) + cc.error( " notification RPC call to node #" ) + cc.info( i ) +
                         cc.error( " with URL " ) + cc.u( strNodeURL ) +
                         cc.error( ", error is: " ) + cc.error( owaspUtils.extract_error_message( err ) ) + "\n"
                     );
@@ -290,7 +291,7 @@ async function notify_on_loop_impl( imaState, strLoopWorkType, nIndexS2S, isStar
                 }, async function( joIn, joOut, err ) {
                     if( err ) {
                         log.write(
-                            cc.error( "PWA failed to perform loop-" ) + cc.attention( se ) + cc.error( " notifiction RPC call to node #" ) + cc.info( i ) +
+                            cc.error( "PWA failed to perform loop-" ) + cc.attention( se ) + cc.error( " notification RPC call to node #" ) + cc.info( i ) +
                             cc.error( " with URL " ) + cc.u( strNodeURL ) +
                             cc.error( ", error is: " ) + cc.error( owaspUtils.extract_error_message( err ) ) + "\n"
                         );
@@ -300,7 +301,7 @@ async function notify_on_loop_impl( imaState, strLoopWorkType, nIndexS2S, isStar
                     // if( joOut.result...
                     if( imaState.isPrintPWA ) {
                         log.write(
-                            cc.success( "Was successfully sent PWA loop-" ) + cc.attention( se ) + cc.success( " notifiction to node #" ) + cc.info( i ) +
+                            cc.success( "Was successfully sent PWA loop-" ) + cc.attention( se ) + cc.success( " notification to node #" ) + cc.info( i ) +
                             cc.success( " with URL " ) + cc.u( strNodeURL ) + "\n"
                         );
                     }

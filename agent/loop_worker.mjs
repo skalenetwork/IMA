@@ -34,6 +34,7 @@ import * as IMA from "../npms/skale-ima/index.mjs";
 import * as skale_observer from "../npms/skale-observer/observer.mjs";
 import * as imaCLI from "./cli.mjs";
 import * as state from "./state.mjs";
+import * as pwa from "./pwa.mjs";
 
 let imaState = state.get();
 

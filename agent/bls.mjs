@@ -835,6 +835,7 @@ async function check_correctness_of_messages_to_sign( details, strLogPrefix, str
                     cc.error( " sent to " ) + cc.info( joChainName ) +
                     cc.error( ", message is: " ) + cc.j( joMessage ) +
                     cc.error( ", error information: " ) + cc.warning( owaspUtils.extract_error_message( err ) ) +
+                    cc.error( ", stack is:" ) + "\n" + cc.warning( err.stack ) +
                     "\n";
                 log.write( s );
                 details.write( s );
@@ -1130,6 +1131,7 @@ async function do_sign_messages_impl(
                                     cc.error( " CRITICAL ERROR:" ) + cc.error( " partial signature fail from with index " ) + cc.info( nZeroBasedNodeIndex ) +
                                     cc.error( ", error is " ) + cc.warning( owaspUtils.extract_error_message( err ) ) +
                                     cc.error( ", " ) + cc.notice( "sequence ID" ) + cc.error( " is " ) + cc.attention( sequence_id ) +
+                                    cc.error( ", stack is:" ) + "\n" + cc.warning( err.stack ) +
                                     "\n";
                                 log.write( strErrorMessage );
                                 details.write( strErrorMessage );
@@ -1161,6 +1163,7 @@ async function do_sign_messages_impl(
                             cc.error( " signature fail from node " ) + cc.info( joNode.nodeID ) +
                             cc.error( ", error is " ) + cc.warning( owaspUtils.extract_error_message( err ) ) +
                             cc.error( ", " ) + cc.notice( "sequence ID" ) + cc.error( " is " ) + cc.attention( sequence_id ) +
+                            cc.error( ", stack is:" ) + "\n" + cc.warning( err.stack ) +
                             "\n";
                         log.write( strErrorMessage );
                         details.write( strErrorMessage );
@@ -1547,7 +1550,9 @@ export async function do_sign_u256( u256, details, fn ) {
                             const strErrorMessage =
                                 strLogPrefixA + cc.error( "S-Chain node " ) + strNodeDescColorized + cc.error( " sign " ) +
                                 cc.error( " CRITICAL ERROR:" ) + cc.error( " partial signature fail from with index " ) + cc.info( nZeroBasedNodeIndex ) +
-                                cc.error( ", error is " ) + cc.warning( owaspUtils.extract_error_message( err ) ) + "\n";
+                                cc.error( ", error is " ) + cc.warning( owaspUtils.extract_error_message( err ) ) +
+                                cc.error( ", stack is:" ) + "\n" + cc.warning( err.stack ) +
+                                "\n";
                             log.write( strErrorMessage );
                             details.write( strErrorMessage );
                         }
@@ -1576,7 +1581,9 @@ export async function do_sign_u256( u256, details, fn ) {
                     const strErrorMessage =
                         strLogPrefix + cc.error( "S-Chain node " ) + strNodeDescColorized + " " + cc.fatal( "CRITICAL ERROR:" ) +
                         cc.error( " signature fail from node " ) + cc.info( joNode.nodeID ) +
-                        cc.error( ", error is " ) + cc.warning( owaspUtils.extract_error_message( err ) ) + "\n";
+                        cc.error( ", error is " ) + cc.warning( owaspUtils.extract_error_message( err ) ) +
+                        cc.error( ", stack is:" ) + "\n" + cc.warning( err.stack ) +
+                        "\n";
                     log.write( strErrorMessage );
                     details.write( strErrorMessage );
                 }
@@ -1849,6 +1856,7 @@ export async function do_sign_ready_hash( strMessageHash ) {
         const strErrorMessage =
             strLogPrefix + cc.fatal( "CRITICAL ERROR:" ) + " " +
             cc.error( "BLS-raw-signer error: " ) + cc.warning( strError ) +
+            cc.error( ", stack is:" ) + "\n" + cc.warning( err.stack ) +
             "\n";
         log.write( strErrorMessage );
         details.write( strErrorMessage );
@@ -2025,6 +2033,7 @@ export async function handle_skale_imaVerifyAndSign( joCallData ) {
         const strErrorMessage =
             strLogPrefix + cc.fatal( "CRITICAL ERROR:" ) + " " +
             cc.error( "IMA messages verifier/signer error: " ) + cc.warning( strError ) +
+            cc.error( ", stack is:" ) + "\n" + cc.warning( err.stack ) +
             "\n";
         log.write( strErrorMessage );
         details.write( strErrorMessage );
@@ -2140,6 +2149,7 @@ export async function handle_skale_imaBSU256( joCallData ) {
         const strErrorMessage =
             strLogPrefix + cc.fatal( "CRITICAL ERROR:" ) + " " +
             cc.error( "U256-BLS-signer error: " ) + cc.warning( strError ) +
+            cc.error( ", stack is:" ) + "\n" + cc.warning( err.stack ) +
             "\n";
         log.write( strErrorMessage );
         details.write( strErrorMessage );
