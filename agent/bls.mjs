@@ -1792,7 +1792,8 @@ export async function do_sign_ready_hash( strMessageHash ) {
                 "key": fs.readFileSync( joAccount.strPathSslKey, "utf8" )
             };
             // details.write( cc.debug( "Will sign via SGX with SSL options " ) + cc.j( rpcCallOpts ) + "\n" );
-        }
+        } else
+            details.write( cc.warning( "Will sign via SGX" ) + " " + cc.error( "without SSL options" ) + "\n" );
         const signerIndex = imaState.chainProperties.sc.joAccount.nNodeNumber;
         await rpcCall.create( joAccount.strSgxURL, rpcCallOpts, async function( joCall, err ) {
             if( err ) {
@@ -1961,7 +1962,8 @@ export async function handle_skale_imaVerifyAndSign( joCallData ) {
                 "key": fs.readFileSync( joAccount.strPathSslKey, "utf8" )
             };
             // details.write( cc.debug( "Will sign via SGX with SSL options " ) + cc.j( rpcCallOpts ) + "\n" );
-        }
+        } else
+            details.write( cc.warning( "Will sign via SGX" ) + " " + cc.error( "without SSL options" ) + "\n" );
         const signerIndex = imaState.chainProperties.sc.joAccount.nNodeNumber;
         await rpcCall.create( joAccount.strSgxURL, rpcCallOpts, async function( joCall, err ) {
             if( err ) {
@@ -2081,7 +2083,8 @@ export async function handle_skale_imaBSU256( joCallData ) {
                 "key": fs.readFileSync( joAccount.strPathSslKey, "utf8" )
             };
             // details.write( cc.debug( "Will sign via SGX with SSL options " ) + cc.j( rpcCallOpts ) + "\n" );
-        }
+        } else
+            details.write( cc.warning( "Will sign via SGX" ) + " " + cc.error( "without SSL options" ) + "\n" );
         const signerIndex = imaState.chainProperties.sc.joAccount.nNodeNumber;
         await rpcCall.create( joAccount.strSgxURL, rpcCallOpts, async function( joCall, err ) {
             if( err ) {

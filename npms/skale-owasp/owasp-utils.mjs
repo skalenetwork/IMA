@@ -705,30 +705,25 @@ export function ensure_observer_opts_initialized( opts ) {
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 export function extract_error_message( jo, strDefaultErrorText ) {
+    // console.log( "------------------", cc.j( jo ) );
     strDefaultErrorText = strDefaultErrorText || "unknown error or error without a description";
     try {
-        if( ! jo )
-            return strDefaultErrorText;
-        if( typeof jo != "object" )
-            return strDefaultErrorText;
-        let strStack = "";
-        if( "stack" in jo && jo.stack && typeof jo.stack == "object" && "length" in jo.stack && jo.stack.length > 0 ) {
-            strStack += "\nCall stack from error object:";
-            for( let i = 0; i < jo.stack.length; ++ i )
-                strStack += "\n" + jo.stack[i].toString();
-        }
-        if( "error" in jo ) {
-            jo = jo.error;
-            if( typeof jo == "string" )
-                return jo;
-            if( typeof jo != "object" )
+        const isError = function( err ) {
+            return err && err.stack && err.message;
+        };
+        if( ! isError( jo ) ) {
+            if( "error" in jo ) {
+                jo = jo.error;
+                if( typeof jo == "string" )
+                    return jo;
+                if( typeof jo != "object" )
+                    return strDefaultErrorText + "(" + jo.toString() + ")" + strStack;
+            }
+            if( typeof jo == "string" && jo )
                 return strDefaultErrorText + "(" + jo.toString() + ")" + strStack;
+            return strDefaultErrorText;
         }
-        if( "message" in jo ) {
-            jo = jo.message;
-            if( typeof jo == "string" )
-                return jo + strStack;
-        }
+        jo = jo.message;
         strDefaultErrorText += "(" + jo.toString() + ")" + strStack;
     } catch ( err ) {
     }

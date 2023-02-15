@@ -1588,8 +1588,9 @@ export async function safe_sign_transaction_with_account( details, w3, tx, rawTx
                 "cert": fs.readFileSync( joAccount.strPathSslCert, "utf8" ),
                 "key": fs.readFileSync( joAccount.strPathSslKey, "utf8" )
             };
-            // details.write( cc.debug( "Will sign via SGX with SSL options " ) + cc.j( rpcCallOpts ) + "\n" );
-        }
+            details.write( cc.debug( "Will sign via SGX with SSL options " ) + cc.j( rpcCallOpts ) + "\n" );
+        } else
+            details.write( cc.warning( "Will sign via SGX" ) + " " + cc.error( "without SSL options" ) + "\n" );
         await rpcCall.create( joAccount.strSgxURL, rpcCallOpts, async function( joCall, err ) {
             if( err ) {
                 const s = cc.fatal( "CRITICAL TRANSACTION SIGNING ERROR:" ) + cc.error( " JSON RPC call to SGX wallet failed" ) + "\n";
