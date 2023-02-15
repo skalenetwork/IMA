@@ -174,7 +174,10 @@ export async function check_on_loop_start( imaState, strLoopWorkType, nIndexS2S 
         if( imaState.isPrintPWA )
             log.write( cc.success( "PWA loop start condition check passed" ) + "\n" );
     } catch ( err ) {
-        log.write( cc.error( "Exception in PWA check on loop start: " ) + cc.error( owaspUtils.extract_error_message( err ) ) + "\n" );
+        log.write(
+            cc.error( "Exception in PWA check on loop start: " ) + cc.error( owaspUtils.extract_error_message( err ) ) +
+            cc.error( ", stack is: " ) + "\n" + cc.stack( err.stack ) +
+            "\n" );
     }
     return true;
 }
@@ -231,7 +234,7 @@ export async function handle_loop_state_arrived( imaState, nNodeNumber, strLoopW
             cc.error( ", PWA state " ) + cc.j( ( joNode && "pwaState" in joNode ) ? joNode.pwaState : "N/A" ) +
             cc.error( ", arrived signature is " ) + cc.j( signature ) +
             cc.error( ", error is: " ) + cc.error( owaspUtils.extract_error_message( err ) ) +
-            cc.error( ", stack is: " ) + "\n" + cc.warning( err.stack ) +
+            cc.error( ", stack is: " ) + "\n" + cc.stack( err.stack ) +
             "\n" );
     }
     return isSuccess;
@@ -310,7 +313,11 @@ async function notify_on_loop_impl( imaState, strLoopWorkType, nIndexS2S, isStar
             } ); // rpcCall.create ...
         } // for( let i = 0; i < jarrNodes.length; ++i )
     } catch ( err ) {
-        log.write( cc.error( "Exception in PWA notify on loop " ) + cc.attention( se ) + cc.error( ": " ) + cc.error( owaspUtils.extract_error_message( err ) ) + "\n" + cc.debug( err.stack ) + "\n" );
+        log.write(
+            cc.error( "Exception in PWA notify on loop " ) + cc.attention( se ) +
+            cc.error( ": " ) + cc.error( owaspUtils.extract_error_message( err ) ) +
+            cc.error( ", stack is: " ) + "\n" + cc.stack( err.stack ) +
+            "\n" );
     }
     return true;
 }

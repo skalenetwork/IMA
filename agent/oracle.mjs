@@ -26,7 +26,7 @@
 import numberToBN from "number-to-bn";
 
 import { keccak256 } from "js-sha3";
-import { cc } from "./utils.mjs";
+import * as cc from "../npms/skale-cc/cc.mjs";
 
 export const MIN_POW_RESULT = 10000;
 export const MAX_POW_NUMBER = 100000;
@@ -181,7 +181,9 @@ export function oracle_get_gas_price( oracleOpts, details ) {
                                 details.write(
                                     cc.fatal( "CRITICAL ORACLE CALL ERROR:" ) + cc.error( " RPC call" ) +
                                     cc.normal( "(" ) + cc.attention( "oracle_checkResult" ) + cc.normal( ")" ) +
-                                    cc.error( " exception is: " ) + cc.warning( owaspUtils.extract_error_message( err ) ) + "\n" );
+                                    cc.error( " exception is: " ) + cc.warning( owaspUtils.extract_error_message( err ) ) +
+                                    cc.error( ", stack is: " ) + "\n" + cc.stack( err.stack ) +
+                                    "\n" );
                                 reject( err );
                                 await joCall.disconnect();
                                 return;
@@ -195,7 +197,9 @@ export function oracle_get_gas_price( oracleOpts, details ) {
                 } catch ( err ) {
                     details.write(
                         cc.fatal( "CRITICAL ORACLE CALL ERROR:" ) + cc.error( " RPC call" ) + cc.normal( "(" ) + cc.attention( "oracle_submitRequest" ) + cc.normal( ")" ) +
-                        cc.error( " exception is: " ) + cc.warning( owaspUtils.extract_error_message( err ) ) + "\n" );
+                        cc.error( " exception is: " ) + cc.warning( owaspUtils.extract_error_message( err ) ) +
+                        cc.error( ", stack is: " ) + "\n" + cc.stack( err.stack ) +
+                        "\n" );
                     reject( err );
                 }
                 await joCall.disconnect();
@@ -203,7 +207,7 @@ export function oracle_get_gas_price( oracleOpts, details ) {
         } catch ( err ) {
             details.write(
                 cc.fatal( "CRITICAL ORACLE CALL ERROR:" ) + cc.error( " RPC call object creation failed, error is: " ) +
-                cc.warning( owaspUtils.extract_error_message( err ) ) + "\n" );
+                cc.warning( owaspUtils.extract_error_message( err ) ) + cc.error( ", stack is: " ) + "\n" + cc.stack( err.stack ) + "\n" );
             reject( err );
             return;
         }

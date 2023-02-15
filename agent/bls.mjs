@@ -177,7 +177,7 @@ function keccak256_message( jarrMessages, nIdxCurrentMsgBlockStart, strFromChain
     for( i = 0; i < cnt; ++i ) {
         const joMessage = jarrMessages[i];
         //
-        let bytesSender = imaUtils.hexToBytes( joMessage.sender );
+        let bytesSender = imaUtils.hexToBytes( joMessage.sender.toString() );
         // bytesSender = imaUtils.invertArrayItemsLR( bytesSender );
         bytesSender = imaUtils.bytesAlignLeftWithZeroes( bytesSender, 32 );
         // bytesSender = imaUtils.invertArrayItemsLR( bytesSender );
@@ -385,7 +385,7 @@ function perform_bls_glue(
         //
         fnShellRestore();
     } catch ( err ) {
-        const s1 = strLogPrefix + cc.fatal( "BLS glue CRITICAL ERROR:" ) + cc.error( " error description is: " ) + cc.warning( owaspUtils.extract_error_message( err ) ) + "\n";
+        const s1 = strLogPrefix + cc.fatal( "BLS glue CRITICAL ERROR:" ) + cc.error( " error description is: " ) + cc.warning( owaspUtils.extract_error_message( err ) ) + cc.error( ", stack is: " ) + "\n" + cc.stack( err.stack ) + "\n";
         const s2 = strLogPrefix + cc.error( "BLS glue output is:\n" ) + cc.notice( strOutput ) + "\n";
         log.write( s1 );
         details.write( s1 );
@@ -485,7 +485,7 @@ function perform_bls_glue_u256( details, u256, arrSignResults ) {
         //
         fnShellRestore();
     } catch ( err ) {
-        const s1 = strLogPrefix + cc.fatal( "BLS glue CRITICAL ERROR:" ) + cc.error( " error description is: " ) + cc.warning( owaspUtils.extract_error_message( err ) ) + "\n";
+        const s1 = strLogPrefix + cc.fatal( "BLS glue CRITICAL ERROR:" ) + cc.error( " error description is: " ) + cc.warning( owaspUtils.extract_error_message( err ) ) + "\n" + cc.error( ", stack is: " ) + cc.stack( err.stack ) + "\n";
         const s2 = strLogPrefix + cc.error( "BLS glue output is:\n" ) + cc.notice( strOutput ) + "\n";
         log.write( s1 );
         details.write( s1 );
@@ -550,7 +550,7 @@ function perform_bls_verify_i(
         fnShellRestore();
         return true;
     } catch ( err ) {
-        const s1 = strLogPrefix + cc.fatal( "CRITICAL ERROR:" ) + cc.error( " BLS node " ) + cc.notice( "#" ) + cc.info( nZeroBasedNodeIndex ) + cc.error( " verify error:" ) + cc.warning( " error description is: " ) + cc.warning( owaspUtils.extract_error_message( err ) ) + "\n";
+        const s1 = strLogPrefix + cc.fatal( "CRITICAL ERROR:" ) + cc.error( " BLS node " ) + cc.notice( "#" ) + cc.info( nZeroBasedNodeIndex ) + cc.error( " verify error:" ) + cc.warning( " error description is: " ) + cc.warning( owaspUtils.extract_error_message( err ) ) + cc.error( ", stack is: " ) + "\n" + cc.stack( err.stack ) + "\n";
         const s2 = strLogPrefix + cc.error( "CRITICAL ERROR:" ) + cc.error( " BLS node " ) + cc.notice( "#" ) + cc.info( nZeroBasedNodeIndex ) + cc.error( " verify output is:\n" ) + cc.notice( strOutput ) + "\n";
         log.write( s1 );
         details.write( s1 );
@@ -601,7 +601,7 @@ function perform_bls_verify_i_u256( details, nZeroBasedNodeIndex, joResultFromNo
         fnShellRestore();
         return true;
     } catch ( err ) {
-        const s1 = strLogPrefix + cc.fatal( "CRITICAL ERROR:" ) + cc.error( " BLS u256 node " ) + cc.notice( "#" ) + cc.info( nZeroBasedNodeIndex ) + cc.error( " verify error:" ) + cc.warning( " error description is: " ) + cc.warning( owaspUtils.extract_error_message( err ) ) + "\n";
+        const s1 = strLogPrefix + cc.fatal( "CRITICAL ERROR:" ) + cc.error( " BLS u256 node " ) + cc.notice( "#" ) + cc.info( nZeroBasedNodeIndex ) + cc.error( " verify error:" ) + cc.warning( " error description is: " ) + cc.warning( owaspUtils.extract_error_message( err ) ) + cc.error( ", stack is: " ) + "\n" + cc.stack( err.stack ) + "\n";
         const s2 = strLogPrefix + cc.error( "CRITICAL ERROR:" ) + cc.error( " BLS u256 node " ) + cc.notice( "#" ) + cc.info( nZeroBasedNodeIndex ) + cc.error( " verify output is:\n" ) + cc.notice( strOutput ) + "\n";
         log.write( s1 );
         details.write( s1 );
@@ -671,7 +671,7 @@ function perform_bls_verify(
         fnShellRestore();
         return true;
     } catch ( err ) {
-        const s1 = strLogPrefix + cc.fatal( "BLS/summary verify CRITICAL ERROR:" ) + cc.error( " error description is: " ) + cc.warning( owaspUtils.extract_error_message( err ) ) + "\n";
+        const s1 = strLogPrefix + cc.fatal( "BLS/summary verify CRITICAL ERROR:" ) + cc.error( " error description is: " ) + cc.warning( owaspUtils.extract_error_message( err ) ) + cc.error( ", stack is: " ) + "\n" + cc.stack( err.stack ) + "\n";
         const s2 = strLogPrefix + cc.error( "BLS/summary verify output is:\n" ) + cc.notice( strOutput ) + "\n";
         log.write( s1 );
         details.write( s1 );
@@ -730,7 +730,7 @@ function perform_bls_verify_u256( details, joGlueResult, u256, joCommonPublicKey
         fnShellRestore();
         return true;
     } catch ( err ) {
-        const s1 = strLogPrefix + cc.fatal( "BLS u256/summary verify CRITICAL ERROR:" ) + cc.error( " error description is: " ) + cc.warning( owaspUtils.extract_error_message( err ) ) + "\n";
+        const s1 = strLogPrefix + cc.fatal( "BLS u256/summary verify CRITICAL ERROR:" ) + cc.error( " error description is: " ) + cc.warning( owaspUtils.extract_error_message( err ) ) + cc.error( ", stack is: " ) + "\n" + cc.stack( err.stack ) + "\n";
         const s2 = strLogPrefix + cc.error( "BLS u256/summary verify output is:\n" ) + cc.notice( strOutput ) + "\n";
         log.write( s1 );
         details.write( s1 );
@@ -835,7 +835,7 @@ async function check_correctness_of_messages_to_sign( details, strLogPrefix, str
                     cc.error( " sent to " ) + cc.info( joChainName ) +
                     cc.error( ", message is: " ) + cc.j( joMessage ) +
                     cc.error( ", error information: " ) + cc.warning( owaspUtils.extract_error_message( err ) ) +
-                    cc.error( ", stack is:" ) + "\n" + cc.warning( err.stack ) +
+                    cc.error( ", stack is:" ) + "\n" + cc.stack( err.stack ) +
                     "\n";
                 log.write( s );
                 details.write( s );
@@ -1131,7 +1131,7 @@ async function do_sign_messages_impl(
                                     cc.error( " CRITICAL ERROR:" ) + cc.error( " partial signature fail from with index " ) + cc.info( nZeroBasedNodeIndex ) +
                                     cc.error( ", error is " ) + cc.warning( owaspUtils.extract_error_message( err ) ) +
                                     cc.error( ", " ) + cc.notice( "sequence ID" ) + cc.error( " is " ) + cc.attention( sequence_id ) +
-                                    cc.error( ", stack is:" ) + "\n" + cc.warning( err.stack ) +
+                                    cc.error( ", stack is:" ) + "\n" + cc.stack( err.stack ) +
                                     "\n";
                                 log.write( strErrorMessage );
                                 details.write( strErrorMessage );
@@ -1163,7 +1163,7 @@ async function do_sign_messages_impl(
                             cc.error( " signature fail from node " ) + cc.info( joNode.nodeID ) +
                             cc.error( ", error is " ) + cc.warning( owaspUtils.extract_error_message( err ) ) +
                             cc.error( ", " ) + cc.notice( "sequence ID" ) + cc.error( " is " ) + cc.attention( sequence_id ) +
-                            cc.error( ", stack is:" ) + "\n" + cc.warning( err.stack ) +
+                            cc.error( ", stack is:" ) + "\n" + cc.stack( err.stack ) +
                             "\n";
                         log.write( strErrorMessage );
                         details.write( strErrorMessage );
@@ -1326,7 +1326,9 @@ async function do_sign_messages_impl(
         }
     } catch ( err ) {
         const strErrorMessage =
-            cc.error( "Failed BLS sign due to generic flow exception: " ) + cc.warning( owaspUtils.extract_error_message( err ) ) + "\n";
+            cc.error( "Failed BLS sign due to generic flow exception: " ) +
+            cc.warning( owaspUtils.extract_error_message( err ) ) +
+            cc.error( ", stack is: " ) + "\n" + cc.stack( err.stack ) + "\n";
         log.write( strErrorMessage );
         if( details )
             details.write( strErrorMessage );
@@ -1551,7 +1553,7 @@ export async function do_sign_u256( u256, details, fn ) {
                                 strLogPrefixA + cc.error( "S-Chain node " ) + strNodeDescColorized + cc.error( " sign " ) +
                                 cc.error( " CRITICAL ERROR:" ) + cc.error( " partial signature fail from with index " ) + cc.info( nZeroBasedNodeIndex ) +
                                 cc.error( ", error is " ) + cc.warning( owaspUtils.extract_error_message( err ) ) +
-                                cc.error( ", stack is:" ) + "\n" + cc.warning( err.stack ) +
+                                cc.error( ", stack is:" ) + "\n" + cc.stack( err.stack ) +
                                 "\n";
                             log.write( strErrorMessage );
                             details.write( strErrorMessage );
@@ -1582,7 +1584,7 @@ export async function do_sign_u256( u256, details, fn ) {
                         strLogPrefix + cc.error( "S-Chain node " ) + strNodeDescColorized + " " + cc.fatal( "CRITICAL ERROR:" ) +
                         cc.error( " signature fail from node " ) + cc.info( joNode.nodeID ) +
                         cc.error( ", error is " ) + cc.warning( owaspUtils.extract_error_message( err ) ) +
-                        cc.error( ", stack is:" ) + "\n" + cc.warning( err.stack ) +
+                        cc.error( ", stack is:" ) + "\n" + cc.stack( err.stack ) +
                         "\n";
                     log.write( strErrorMessage );
                     details.write( strErrorMessage );
@@ -1746,7 +1748,7 @@ export async function do_verify_ready_hash( strMessageHash, nZeroBasedNodeIndex,
         fnShellRestore();
         isSuccess = true;
     } catch ( err ) {
-        const s1 = strLogPrefix + cc.fatal( "CRITICAL ERROR:" ) + cc.error( " BLS node " ) + cc.notice( "#" ) + cc.info( nZeroBasedNodeIndex ) + cc.error( " verify error:" ) + cc.warning( " error description is: " ) + cc.warning( owaspUtils.extract_error_message( err ) ) + "\n";
+        const s1 = strLogPrefix + cc.fatal( "CRITICAL ERROR:" ) + cc.error( " BLS node " ) + cc.notice( "#" ) + cc.info( nZeroBasedNodeIndex ) + cc.error( " verify error:" ) + cc.warning( " error description is: " ) + cc.warning( owaspUtils.extract_error_message( err ) ) + cc.error( ", stack is: " ) + "\n" + cc.stack( err.stack ) + "\n";
         const s2 = strLogPrefix + cc.error( "CRITICAL ERROR:" ) + cc.error( " BLS node " ) + cc.notice( "#" ) + cc.info( nZeroBasedNodeIndex ) + cc.error( " verify output is:\n" ) + cc.warning( strOutput ) + "\n";
         log.write( s1 );
         details.write( s1 );
@@ -1856,7 +1858,7 @@ export async function do_sign_ready_hash( strMessageHash ) {
         const strErrorMessage =
             strLogPrefix + cc.fatal( "CRITICAL ERROR:" ) + " " +
             cc.error( "BLS-raw-signer error: " ) + cc.warning( strError ) +
-            cc.error( ", stack is:" ) + "\n" + cc.warning( err.stack ) +
+            cc.error( ", stack is:" ) + "\n" + cc.stack( err.stack ) +
             "\n";
         log.write( strErrorMessage );
         details.write( strErrorMessage );
@@ -2033,7 +2035,7 @@ export async function handle_skale_imaVerifyAndSign( joCallData ) {
         const strErrorMessage =
             strLogPrefix + cc.fatal( "CRITICAL ERROR:" ) + " " +
             cc.error( "IMA messages verifier/signer error: " ) + cc.warning( strError ) +
-            cc.error( ", stack is:" ) + "\n" + cc.warning( err.stack ) +
+            cc.error( ", stack is:" ) + "\n" + cc.stack( err.stack ) +
             "\n";
         log.write( strErrorMessage );
         details.write( strErrorMessage );
@@ -2149,7 +2151,7 @@ export async function handle_skale_imaBSU256( joCallData ) {
         const strErrorMessage =
             strLogPrefix + cc.fatal( "CRITICAL ERROR:" ) + " " +
             cc.error( "U256-BLS-signer error: " ) + cc.warning( strError ) +
-            cc.error( ", stack is:" ) + "\n" + cc.warning( err.stack ) +
+            cc.error( ", stack is:" ) + "\n" + cc.stack( err.stack ) +
             "\n";
         log.write( strErrorMessage );
         details.write( strErrorMessage );

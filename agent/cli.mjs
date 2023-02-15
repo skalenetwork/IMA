@@ -1280,7 +1280,8 @@ async function async_check_url_at_startup( u, name ) {
     } catch ( err ) {
         details.write(
             cc.fatal( "ERROR:" ) + cc.error( " Failed to check URL " ) +
-            cc.u( u ) + cc.error( " connectivity for " ) + cc.info( name ) + cc.error( " at start-up, error is: " ) + cc.warning( owaspUtils.extract_error_message( err ) ) +
+            cc.u( u ) + cc.error( " connectivity for " ) + cc.info( name ) + cc.error( " at start-up, error is: " ) +
+            cc.warning( owaspUtils.extract_error_message( err ) ) + cc.error( ", stack is: " ) + "\n" + cc.stack( err.stack ) + 
             "\n" );
     }
     // details.exposeDetailsTo( log, "async_check_url_at_startup( \"" + u + "\", \"" + name + "\" )", true );

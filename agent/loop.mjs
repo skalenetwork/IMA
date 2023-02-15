@@ -181,7 +181,7 @@ export async function single_transfer_loop( loop_opts ) {
                     }
                 }
             } catch ( err ) {
-                log.write( strLogPrefix + cc.error( "Oracle operation exception: " ) + cc.error( owaspUtils.extract_error_message( err ) ) + "\n" );
+                log.write( strLogPrefix + cc.error( "Oracle operation exception: " ) + cc.error( owaspUtils.extract_error_message( err ) ) + cc.error( ", stack is: " ) + "\n" + cc.stack( err.stack ) + "\n" );
                 imaState.loopState.oracle.isInProgress = false;
                 await pwa.notify_on_loop_end( imaState, "oracle" );
                 throw err;
@@ -232,7 +232,7 @@ export async function single_transfer_loop( loop_opts ) {
                     await pwa.notify_on_loop_end( imaState, "m2s" );
                 }
             } catch ( err ) {
-                log.write( strLogPrefix + cc.error( "M2S transfer exception: " ) + cc.error( owaspUtils.extract_error_message( err ) ) + "\n" );
+                log.write( strLogPrefix + cc.error( "M2S transfer exception: " ) + cc.error( owaspUtils.extract_error_message( err ) ) + cc.error( ", stack is: " ) + "\n" + cc.stack( err.stack ) + "\n" );
                 imaState.loopState.m2s.isInProgress = false;
                 await pwa.notify_on_loop_end( imaState, "m2s" );
                 throw err;
@@ -286,7 +286,7 @@ export async function single_transfer_loop( loop_opts ) {
                     await pwa.notify_on_loop_end( imaState, "s2m" );
                 }
             } catch ( err ) {
-                log.write( strLogPrefix + cc.error( "S2M transfer exception: " ) + cc.error( owaspUtils.extract_error_message( err ) ) + "\n" );
+                log.write( strLogPrefix + cc.error( "S2M transfer exception: " ) + cc.error( owaspUtils.extract_error_message( err ) ) + cc.error( ", stack is: " ) + "\n" + cc.stack( err.stack ) + "\n" );
                 imaState.loopState.s2m.isInProgress = false;
                 await pwa.notify_on_loop_end( imaState, "s2m" );
                 throw err;
@@ -325,7 +325,7 @@ export async function single_transfer_loop( loop_opts ) {
                     imaState.chainProperties.sc.transactionCustomizer
                 );
             } catch ( err ) {
-                log.write( strLogPrefix + cc.error( "S2S transfer exception: " ) + cc.error( owaspUtils.extract_error_message( err ) ) + "\n" );
+                log.write( strLogPrefix + cc.error( "S2S transfer exception: " ) + cc.error( owaspUtils.extract_error_message( err ) ) + cc.error( ", stack is: " ) + "\n" + cc.stack( err.stack ) + "\n" );
                 throw err;
             }
             if( IMA.verbose_get() >= IMA.RV_VERBOSE().information )
@@ -340,7 +340,7 @@ export async function single_transfer_loop( loop_opts ) {
             log.write( strLogPrefix + cc.debug( "Completed: " ) + cc.tf( bResult ) + "\n" );
         return bResult;
     } catch ( err ) {
-        log.write( strLogPrefix + cc.fatal( "Exception in single transfer loop: " ) + cc.error( owaspUtils.extract_error_message( err ) ) + "\n" );
+        log.write( strLogPrefix + cc.fatal( "Exception in single transfer loop: " ) + cc.error( owaspUtils.extract_error_message( err ) ) + cc.error( ", stack is: " ) + "\n" + cc.stack( err.stack ) + "\n" );
     }
     imaState.loopState.oracle.isInProgress = false;
     imaState.loopState.m2s.isInProgress = false;

@@ -984,3 +984,79 @@ export function capitalize_first_letter( s ) {
     s2 = s2.charAt( 0 ).toUpperCase() + s2.slice( 1 );
     return s2;
 }
+
+function err_fn_dotted_name( s ) {
+    const arr = s.split( "." );
+    const cnt = arr.length;
+    let i, s2 = "";
+    for( i = 0; i < cnt; ++ i ) {
+        if( i > 0 )
+            s2 += bright( "." );
+        s2 += sunny( arr[i] );
+    }
+    return s2;
+}
+
+function err_fn_name( s ) {
+    if( s.indexOf( "async " ) == 0 )
+        return bright( "async" ) + " " + err_fn_dotted_name( s.substring( 6 ) );
+    return err_fn_dotted_name( s );
+}
+
+function err_loc_ln( s, isWithBraces ) {
+    let s2 = "";
+    s = s.replace( "file://", "" );
+    s = s.replace( "node:", "" );
+    if( isWithBraces )
+        s2 += " " + debug( "(" );
+    const arrCodePoint = s.split( ":" );
+    if( arrCodePoint.length > 0 ) {
+        s2 += trace( arrCodePoint[0] );
+        for( let j = 1; j < arrCodePoint.length; ++j ) {
+            s2 += debug( ":" );
+            if( j == 1 )
+                s2 += info( arrCodePoint[j] );
+            else
+                s2 += notice( arrCodePoint[j] );
+        }
+    } else
+        s2 += trace( s );
+    if( isWithBraces )
+        s2 += debug( ")" );
+    return s2;
+}
+
+export function stack( strIn ) {
+    if( ! strIn )
+        return strIn;
+    const arr = ( typeof strIn == "string" ) ? strIn.split( "\n" ) : strIn;
+    const cnt = arr.length;
+    let i;
+    for( i = 0; i < cnt; ++ i ) {
+        let s = arr[i].replace( /\s+/g, " " ).trim();
+        if( s.indexOf( "at " ) == 0 ) {
+            // stack entry
+            s = s.substring( 3 );
+            let s2 = "    " + debug( "-->" ) + " ";
+            const n = s.indexOf( " (" );
+            if( n > 0 ) {
+                s2 += err_fn_name( s.substring( 0, n ) );
+                s = s.substring( n + 2 );
+                if( s[s.length - 1] == ")" )
+                    s = s.substring( 0, s.length - 1 );
+                s2 += err_loc_ln( s, true );
+            } else
+                s2 += err_loc_ln( s, false );
+            s = s2;
+        } else {
+            // probably error description line
+            const n = s.indexOf( ":" );
+            if( n >= 0 )
+                s = error( s.substring( 0, n ) ) + normal( ":" ) + warning( s.substring( n + 1 ) );
+            else
+                s = error( s );
+        }
+        arr[i] = s;
+    }
+    return arr.join( "\n" );
+}

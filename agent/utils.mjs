@@ -110,7 +110,10 @@ export function jsonFileLoad( strPath, joDefault, bLogOutput ) {
         return jo;
     } catch ( err ) {
         const strError = owaspUtils.extract_error_message( err );
-        log.write( cc.fatal( "CRITICAL ERROR:" ) + cc.error( " failed to load JSON file " ) + cc.info( strPath ) + cc.error( ": " ) + cc.warning( strError ) + "\n" );
+        log.write(
+            cc.fatal( "CRITICAL ERROR:" ) + cc.error( " failed to load JSON file " ) + cc.info( strPath ) + cc.error( ": " ) +
+            cc.warning( strError ) + cc.error( ", stack is: " ) + "\n" + cc.stack( err.stack ) +
+            "\n" );
     }
     return joDefault;
 }
@@ -128,7 +131,10 @@ export function jsonFileSave( strPath, jo, bLogOutput ) {
         return true;
     } catch ( err ) {
         const strError = owaspUtils.extract_error_message( err );
-        log.write( cc.fatal( "CRITICAL ERROR:" ) + cc.error( " failed to save JSON file " ) + cc.info( strPath ) + cc.error( ": " ) + cc.warning( strError ) + "\n" );
+        log.write(
+            cc.fatal( "CRITICAL ERROR:" ) + cc.error( " failed to save JSON file " ) + cc.info( strPath ) + cc.error( ": " ) +
+            cc.warning( strError ) + cc.error( ", stack is: " ) + "\n" + cc.stack( err.stack ) +
+            "\n" );
     }
     return false;
 }
@@ -367,6 +373,10 @@ export function bytesAlignRightWithZeroes( arrBytes, cntMin ) {
 }
 
 export function concatTypedArrays( a, b ) { // a, b TypedArray of same type
+    if( typeof a == "string" )
+        a = hexToBytes( a );
+    if( typeof b == "string" )
+        b = hexToBytes( b );
     const c = new ( a.constructor )( a.length + b.length );
     c.set( a, 0 );
     c.set( b, a.length );
@@ -468,7 +478,9 @@ export function check_key_exist_in_abi( strName, strFile, joABI, strKey, isExitO
     } catch ( err ) {
     }
     if( isExitOnError ) {
-        log.write( cc.fatal( "FATAL, CRITICAL ERROR:" ) + cc.error( "Loaded " ) + cc.warning( strName ) + cc.error( " ABI JSON file " ) + cc.info( strFile ) + cc.error( " does not contain needed key " ) + cc.warning( strKey ) + "\n" );
+        log.write(
+            cc.fatal( "FATAL, CRITICAL ERROR:" ) + cc.error( "Loaded " ) + cc.warning( strName ) + cc.error( " ABI JSON file " ) + cc.info( strFile ) +
+            cc.error( " does not contain needed key " ) + cc.warning( strKey ) + cc.error( ", stack is: " ) + "\n" + cc.stack( err.stack ) + "\n" );
         process.exit( 126 );
     }
     return false;

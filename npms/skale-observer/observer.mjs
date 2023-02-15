@@ -279,7 +279,7 @@ export async function load_schains_connected_only( strChainNameConnectedTo, addr
             arr_schains.push( jo_schain );
         } catch ( err ) {
             if( opts && opts.details )
-                opts.details.write( cc.error( "Got error: " ) + cc.warning( owaspUtils.extract_error_message( err ) ) + "\n" );
+                opts.details.write( cc.error( "Got error: " ) + cc.warning( owaspUtils.extract_error_message( err ) ) + cc.error( ", stack is: " ) + "\n" + cc.stack( err.stack ) + "\n" );
         }
     }
     return arr_schains;
@@ -319,7 +319,7 @@ export async function check_connected_schains( strChainNameConnectedTo, arr_scha
             }
         } catch ( err ) {
             if( opts && opts.details )
-                opts.details.write( cc.error( "Got error: " ) + cc.warning( owaspUtils.extract_error_message( err ) ) + "\n" );
+                opts.details.write( cc.error( "Got error: " ) + cc.warning( owaspUtils.extract_error_message( err ) ) + cc.error( ", stack is: " ) + "\n" + cc.stack( err.stack ) + "\n" );
         }
     }
     return arr_schains;
@@ -439,7 +439,7 @@ export async function cache_schains( strChainNameConnectedTo, addressFrom, opts 
             opts.fn_cache_changed( g_arr_schains_cached, strError );
         if( opts && opts.details ) {
             opts.details.write( cc.fatal( "ERROR:" ) + cc.error( " Failed to cache: " ) + cc.error( err ) );
-            opts.details.write( err.stack );
+            opts.details.write( cc.stack( err.stack ) );
         }
     }
     return strError; // null on success

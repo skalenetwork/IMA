@@ -202,6 +202,7 @@ export async function safe_getBlockNumber( details, cntAttempts, ethersProvider,
             cc.error( " to " ) + cc.note( strFnName + "()" ) +
             cc.error( " via " ) + cc.u( u ) +
             cc.error( ", error is: " ) + cc.warning( owaspUtils.extract_error_message( err ) ) +
+            cc.error( ", stack is: " ) + "\n" + cc.stack( err.stack ) +
             "\n" );
     }
     ++ idxAttempt;
@@ -232,6 +233,7 @@ export async function safe_getBlockNumber( details, cntAttempts, ethersProvider,
                 cc.error( " to " ) + cc.note( strFnName + "()" ) +
                 cc.error( " via " ) + cc.u( u ) +
                 cc.error( ", error is: " ) + cc.warning( owaspUtils.extract_error_message( err ) ) +
+                cc.error( ", stack is: " ) + "\n" + cc.stack( err.stack ) +
                 "\n" );
         }
         ++ idxAttempt;
@@ -267,6 +269,7 @@ export async function safe_getTransactionCount( details, cntAttempts, ethersProv
             cc.error( " to " ) + cc.note( strFnName + "()" ) +
             cc.error( " via " ) + cc.u( u ) +
             cc.error( ", error is: " ) + cc.warning( owaspUtils.extract_error_message( err ) ) +
+            cc.error( ", stack is: " ) + "\n" + cc.stack( err.stack ) +
             "\n" );
     }
     ++ idxAttempt;
@@ -297,6 +300,7 @@ export async function safe_getTransactionCount( details, cntAttempts, ethersProv
                 cc.error( " to " ) + cc.note( strFnName + "()" ) +
                 cc.error( " via " ) + cc.u( u ) +
                 cc.error( ", error is: " ) + cc.warning( owaspUtils.extract_error_message( err ) ) +
+                cc.error( ", stack is: " ) + "\n" + cc.stack( err.stack ) +
                 "\n" );
         }
         ++ idxAttempt;
@@ -332,6 +336,7 @@ export async function safe_getTransactionReceipt( details, cntAttempts, ethersPr
             cc.error( " to " ) + cc.note( strFnName + "()" ) +
             cc.error( " via " ) + cc.u( u ) +
             cc.error( ", error is: " ) + cc.warning( owaspUtils.extract_error_message( err ) ) +
+            cc.error( ", stack is: " ) + "\n" + cc.stack( err.stack ) +
             "\n" );
     }
     ++ idxAttempt;
@@ -362,6 +367,7 @@ export async function safe_getTransactionReceipt( details, cntAttempts, ethersPr
                 cc.error( " to " ) + cc.note( strFnName + "()" ) +
                 cc.error( " via " ) + cc.u( u ) +
                 cc.error( ", error is: " ) + cc.warning( owaspUtils.extract_error_message( err ) ) +
+                cc.error( ", stack is: " ) + "\n" + cc.stack( err.stack ) +
                 "\n" );
         }
         ++ idxAttempt;
@@ -425,6 +431,7 @@ export async function safe_getPastEvents( details, ethersProvider, cntAttempts, 
             cc.error( " via " ) + cc.u( u ) +
             cc.error( ", from block " ) + cc.warning( nBlockFrom ) + cc.error( ", to block " ) + cc.warning( nBlockTo ) +
             cc.error( ", error is: " ) + cc.warning( owaspUtils.extract_error_message( err ) ) +
+            cc.error( ", stack is: " ) + "\n" + cc.stack( err.stack ) +
             "\n" );
         if( owaspUtils.extract_error_message( err ).indexOf( strErrorTextAboutNotExistingEvent ) >= 0 ) {
             details.write(
@@ -478,6 +485,7 @@ export async function safe_getPastEvents( details, ethersProvider, cntAttempts, 
                 cc.error( " via " ) + cc.u( u ) +
                 cc.error( ", from block " ) + cc.warning( nBlockFrom ) + cc.error( ", to block " ) + cc.warning( nBlockTo ) +
                 cc.error( ", error is: " ) + cc.warning( owaspUtils.extract_error_message( err ) ) +
+                cc.error( ", stack is: " ) + "\n" + cc.stack( err.stack ) +
                 "\n" );
             if( owaspUtils.extract_error_message( err ).indexOf( strErrorTextAboutNotExistingEvent ) >= 0 ) {
                 details.write(
@@ -589,7 +597,9 @@ export async function safe_getPastEventsIterative( details, ethersProvider, atte
                 cc.error( "Got scan error during interactive scan of " ) +
                 cc.info( idxBlockSubRangeFrom ) + cc.error( "/" ) + cc.info( idxBlockSubRangeTo ) +
                 cc.error( " block sub-range in " ) + cc.info( nBlockFrom ) + cc.error( "/" ) + cc.info( nBlockTo ) +
-                cc.error( " block range, error is: " ) + cc.warning( owaspUtils.extract_error_message( err ) ) + "\n"
+                cc.error( " block range, error is: " ) + cc.warning( owaspUtils.extract_error_message( err ) ) +
+                cc.error( ", stack is: " ) + "\n" + cc.stack( err.stack ) +
+                "\n"
             );
         }
         idxBlockSubRangeFrom = idxBlockSubRangeTo;
@@ -762,7 +772,9 @@ export async function do_oracle_gas_price_setup(
                 details.write(
                     cc.error( "Failed to fetch " ) + cc.info( "Main Net gas price" ) +
                     cc.error( " via call to " ) + cc.info( "Oracle" ) +
-                    cc.error( ", error is: " ) + cc.warning( owaspUtils.extract_error_message( err ) ) + "\n" );
+                    cc.error( ", error is: " ) + cc.warning( owaspUtils.extract_error_message( err ) ) +
+                    cc.error( ", stack is: " ) + "\n" + cc.stack( err.stack ) +
+                    "\n" );
             }
         }
         if( gasPriceOnMainNet === null ) {
@@ -895,8 +907,8 @@ export async function do_oracle_gas_price_setup(
     } catch ( err ) {
         const strError = owaspUtils.extract_error_message( err );
         if( verbose_get() >= RV_VERBOSE().fatal )
-            log.write( strLogPrefix + cc.fatal( "CRITICAL ERROR:" ) + cc.error( " Error in do_oracle_gas_price_setup() during " + strActionName + ": " ) + cc.error( strError ) + "\n" );
-        details.write( strLogPrefix + cc.fatal( "CRITICAL ERROR:" ) + cc.error( " Error in do_oracle_gas_price_setup() during " + strActionName + ": " ) + cc.error( strError ) + "\n" );
+            log.write( strLogPrefix + cc.fatal( "CRITICAL ERROR:" ) + cc.error( " Error in do_oracle_gas_price_setup() during " + strActionName + ": " ) + cc.error( strError ) + cc.error( ", stack is: " ) + "\n" + cc.stack( err.stack ) +"\n" );
+        details.write( strLogPrefix + cc.fatal( "CRITICAL ERROR:" ) + cc.error( " Error in do_oracle_gas_price_setup() during " + strActionName + ": " ) + cc.error( strError ) + cc.error( ", stack is: " ) + "\n" + cc.stack( err.stack ) +"\n" );
         details.exposeDetailsTo( log, "do_oracle_gas_price_setup", false );
         save_transfer_error( "oracle", details.toString() );
         details.close();
@@ -1003,7 +1015,13 @@ export async function safe_getPastEventsProgressive( details, ethersProvider, at
             cc.debug( ", block range is " ) + cc.info( joPlan.type ) +
             cc.debug( "..." ) + "\n" );
         try {
-            const joAllEventsInBlock = await safe_getPastEventsIterative( details, ethersProvider, attempts, joContract, strEventName, joPlan.nBlockFrom, joPlan.nBlockTo, joFilter );
+            const joAllEventsInBlock =
+                await safe_getPastEventsIterative(
+                    details, ethersProvider, attempts, joContract,
+                    strEventName,
+                    joPlan.nBlockFrom, joPlan.nBlockTo,
+                    joFilter
+                    );
             if( joAllEventsInBlock && joAllEventsInBlock.length > 0 ) {
                 details.write(
                     cc.success( "Progressive scan of " ) + cc.attention( "getPastEvents" ) + cc.debug( "/" ) + cc.info( strEventName ) +
@@ -1041,7 +1059,13 @@ export async function get_contract_call_events( details, ethersProvider, joContr
         nBlockFrom = 0;
     if( nBlockTo > nLatestBlockNumber )
         nBlockTo = nLatestBlockNumber;
-    const joAllEventsInBlock = await safe_getPastEventsIterative( details, ethersProvider, 10, joContract, strEventName, nBlockFrom, nBlockTo, joFilter );
+    const joAllEventsInBlock =
+        await safe_getPastEventsIterative(
+            details, ethersProvider, 10, joContract,
+            strEventName,
+            nBlockFrom, nBlockTo,
+            joFilter
+            );
     const joAllTransactionEvents = []; let i;
     for( i = 0; i < joAllEventsInBlock.length; ++i ) {
         const joEvent = joAllEventsInBlock[i];
@@ -1195,7 +1219,10 @@ export async function payed_call(
         details.write( strLogPrefix + cc.debug( "ETH spent: " ) + cc.info( ethSpent ) + "\n" );
         return joReceipt;
     } catch ( err ) {
-        details.write( strLogPrefix + cc.error( "payed call error: " ) + cc.warning( owaspUtils.extract_error_message( err ) ) + "\n" );
+        details.write(
+            strLogPrefix + cc.error( "payed call error: " ) + cc.warning( owaspUtils.extract_error_message( err ) ) +
+            cc.error( ", stack is: " ) + "\n" + cc.stack( err.stack ) +
+            "\n" );
         return new Error(
             "CRITICAL CONTRACT METHOD CALL FAIL: Invoking the " + strContractCallDescription +
             " method: " + owaspUtils.extract_error_message( err )
@@ -1246,6 +1273,7 @@ export async function calculatePowNumber( address, nonce, gas, details ) {
             details.write(
                 cc.fatal( "CRITICAL POW ERROR:" ) + " " +
                 cc.error( "exception occur during PoW, error information is:" ) + " " + cc.error( strError ) +
+                cc.error( ", stack is: " ) + "\n" + cc.stack( err.stack ) +
                 "\n" );
         }
         return 0;
@@ -1537,9 +1565,8 @@ export async function safe_sign_transaction_with_account( details, w3, tx, rawTx
             log.write( strPrefixLog + strMsg + "\n" );
         } catch ( err ) {
             strMsg =
-                cc.fatal( "BAD ERROR:" ) + " " +
-                cc.error( "TM - transaction was not sent, underlying error is: " ) +
-                cc.warning( owaspUtils.extract_error_message( err ) );
+                cc.fatal( "BAD ERROR:" ) + " " + cc.error( "TM - transaction was not sent, underlying error is: " ) +
+                cc.warning( owaspUtils.extract_error_message( err ) ) + cc.error( ", stack is: " ) + "\n" + cc.stack( err.stack );
             details.write( strPrefixDetails + strMsg + "\n" );
             log.write( strPrefixLog + strMsg + "\n" );
             // throw err;
@@ -1710,7 +1737,8 @@ export async function safe_send_signed_transaction( details, w3, serializedTx, s
             joReceipt = await w3.eth.sendSignedTransaction( strTX );
         } catch ( err ) {
             const strError = owaspUtils.extract_error_message( err );
-            const s = strLogPrefix + cc.fatal( "CRITICAL ERROR:" ) + cc.error( " second attempt to send signed transaction failure during " + strActionName + ": " ) + cc.error( strError ) + "\n";
+            const s = strLogPrefix + cc.fatal( "CRITICAL ERROR:" ) + cc.error( " second attempt to send signed transaction failure during " +
+                strActionName + ": " ) + cc.error( strError ) + cc.error( ", stack is: " ) + "\n" + cc.stack( err.stack ) + "\n";
             if( verbose_get() >= RV_VERBOSE().fatal )
                 log.write( s );
             details.write( s );
@@ -1749,7 +1777,8 @@ export async function check_is_registered_s_chain_in_deposit_boxes( // step 1
         return bIsRegistered;
     } catch ( err ) {
         const strError = owaspUtils.extract_error_message( err );
-        const s = strLogPrefix + cc.fatal( "CRITICAL ERROR:" ) + cc.error( " Error in check_is_registered_s_chain_in_deposit_boxes(reg-step1)() during " + strActionName + ": " ) + cc.error( strError ) + "\n";
+        const s = strLogPrefix + cc.fatal( "CRITICAL ERROR:" ) + cc.error( " Error in check_is_registered_s_chain_in_deposit_boxes(reg-step1)() during " +
+            strActionName + ": " ) + cc.error( strError ) + cc.error( ", stack is: " ) + "\n" + cc.stack( err.stack ) + "\n";
         if( verbose_get() >= RV_VERBOSE().fatal )
             log.write( s );
         details.write( s );
@@ -1776,7 +1805,8 @@ export async function invoke_has_chain(
         return bHasSchain;
     } catch ( err ) {
         const strError = owaspUtils.extract_error_message( err );
-        const s = strLogPrefix + cc.fatal( "CRITICAL ERROR:" ) + cc.error( "Error in invoke_has_chain() during " + strActionName + ": " ) + cc.error( strError ) + "\n";
+        const s = strLogPrefix + cc.fatal( "CRITICAL ERROR:" ) + cc.error( "Error in invoke_has_chain() during " + strActionName + ": " ) +
+            cc.error( strError ) + cc.error( ", stack is: " ) + "\n" + cc.stack( err.stack ) + "\n";
         if( verbose_get() >= RV_VERBOSE().fatal )
             log.write( s );
         details.write( s );
@@ -1905,7 +1935,8 @@ export async function register_s_chain_in_deposit_boxes( // step 1
             throw new Error( "S-Chain ownership status check timeout" );
     } catch ( err ) {
         const strError = owaspUtils.extract_error_message( err );
-        const s = strLogPrefix + cc.fatal( "CRITICAL ERROR:" ) + cc.error( " Error in register_s_chain_in_deposit_boxes() during " + strActionName + ": " ) + cc.error( strError ) + "\n";
+        const s = strLogPrefix + cc.fatal( "CRITICAL ERROR:" ) + cc.error( " Error in register_s_chain_in_deposit_boxes() during " + strActionName + ": " ) +
+            cc.error( strError ) + cc.error( ", stack is: " ) + "\n" + cc.stack( err.stack ) + "\n";
         if( verbose_get() >= RV_VERBOSE().fatal )
             log.write( s );
         details.write( s );
@@ -1960,7 +1991,8 @@ export async function reimbursement_show_balance(
         return xWei;
     } catch ( err ) {
         const strError = owaspUtils.extract_error_message( err );
-        const s = strLogPrefix + cc.fatal( "CRITICAL ERROR:" ) + cc.error( " Payment error in reimbursement_show_balance(): " ) + cc.error( strError ) + "\n";
+        const s = strLogPrefix + cc.fatal( "CRITICAL ERROR:" ) + cc.error( " Payment error in reimbursement_show_balance(): " ) + cc.error( strError ) +
+            cc.error( ", stack is: " ) + "\n" + cc.stack( err.stack ) + "\n";
         if( verbose_get() >= RV_VERBOSE().fatal )
             log.write( s );
         details.write( s );
@@ -2040,7 +2072,8 @@ export async function reimbursement_estimate_amount(
         return amountToRecharge;
     } catch ( err ) {
         const strError = owaspUtils.extract_error_message( err );
-        const s = strLogPrefix + cc.fatal( "CRITICAL ERROR:" ) + cc.error( " Payment error in reimbursement_estimate_amount(): " ) + cc.error( strError ) + "\n";
+        const s = strLogPrefix + cc.fatal( "CRITICAL ERROR:" ) + cc.error( " Payment error in reimbursement_estimate_amount(): " ) + cc.error( strError ) +
+            cc.error( ", stack is: " ) + "\n" + cc.stack( err.stack ) + "\n";
         if( verbose_get() >= RV_VERBOSE().fatal )
             log.write( s );
         details.write( s );
@@ -2114,7 +2147,8 @@ export async function reimbursement_wallet_recharge(
         }
     } catch ( err ) {
         const strError = owaspUtils.extract_error_message( err );
-        const s = strLogPrefix + cc.fatal( "CRITICAL ERROR:" ) + cc.error( " Payment error in " + strActionName + ": " ) + cc.error( strError ) + "\n";
+        const s = strLogPrefix + cc.fatal( "CRITICAL ERROR:" ) + cc.error( " Payment error in " + strActionName + ": " ) + cc.error( strError ) +
+            cc.error( ", stack is: " ) + "\n" + cc.stack( err.stack ) + "\n";
         if( verbose_get() >= RV_VERBOSE().fatal )
             log.write( s );
         details.write( s );
@@ -2193,7 +2227,8 @@ export async function reimbursement_wallet_withdraw(
         }
     } catch ( err ) {
         const strError = owaspUtils.extract_error_message( err );
-        const s = strLogPrefix + cc.fatal( "CRITICAL ERROR:" ) + cc.error( " Payment error in " + strActionName + ": " ) + cc.error( strError ) + "\n";
+        const s = strLogPrefix + cc.fatal( "CRITICAL ERROR:" ) + cc.error( " Payment error in " + strActionName + ": " ) + cc.error( strError ) +
+            cc.error( ", stack is: " ) + "\n" + cc.stack( err.stack ) + "\n";
         if( verbose_get() >= RV_VERBOSE().fatal )
             log.write( s );
         details.write( s );
@@ -2275,7 +2310,8 @@ export async function reimbursement_set_range(
         }
     } catch ( err ) {
         const strError = owaspUtils.extract_error_message( err );
-        const s = strLogPrefix + cc.fatal( "CRITICAL ERROR:" ) + cc.error( " Payment error in " + strActionName + ": " ) + cc.error( strError ) + "\n";
+        const s = strLogPrefix + cc.fatal( "CRITICAL ERROR:" ) + cc.error( " Payment error in " + strActionName + ": " ) + cc.error( strError ) +
+            cc.error( ", stack is: " ) + "\n" + cc.stack( err.stack ) + "\n";
         if( verbose_get() >= RV_VERBOSE().fatal )
             log.write( s );
         details.write( s );
@@ -2368,26 +2404,25 @@ export async function do_eth_payment_from_main_net(
         //
         // Must-have event(s) analysis as indicator(s) of success
         //
+        const strEventName = "OutgoingMessage";
         if( jo_message_proxy_main_net ) {
-            details.write( strLogPrefix + cc.debug( "Verifying the " ) + cc.info( "OutgoingMessage" ) + cc.debug( " event of the " ) + cc.info( "MessageProxy" ) + cc.debug( "/" ) + cc.notice( jo_message_proxy_main_net.address ) + cc.debug( " contract ..." ) + "\n" );
+            details.write( strLogPrefix + cc.debug( "Verifying the " ) + cc.info( strEventName ) + cc.debug( " event of the " ) + cc.info( "MessageProxy" ) + cc.debug( "/" ) + cc.notice( jo_message_proxy_main_net.address ) + cc.debug( " contract ..." ) + "\n" );
             await sleep( g_nSleepBeforeFetchOutgoingMessageEvent );
-            const joEvents = await get_contract_call_events( details, ethersProvider_main_net, jo_message_proxy_main_net, "OutgoingMessage", joReceipt.blockNumber, joReceipt.transactionHash, {} );
+            const joEvents =
+                await get_contract_call_events(
+                    details, ethersProvider_main_net, jo_message_proxy_main_net,
+                    strEventName, joReceipt.blockNumber, joReceipt.transactionHash,
+                    jo_message_proxy_main_net.filters[ strEventName ]()
+                    );
             if( joEvents.length > 0 )
-                details.write( strLogPrefix + cc.success( "Success, verified the " ) + cc.info( "OutgoingMessage" ) + cc.success( " event of the " ) + cc.info( "MessageProxy" ) + cc.success( "/" ) + cc.notice( jo_message_proxy_main_net.address ) + cc.success( " contract, found event(s): " ) + cc.j( joEvents ) + "\n" );
+                details.write( strLogPrefix + cc.success( "Success, verified the " ) + cc.info( strEventName ) + cc.success( " event of the " ) + cc.info( "MessageProxy" ) + cc.success( "/" ) + cc.notice( jo_message_proxy_main_net.address ) + cc.success( " contract, found event(s): " ) + cc.j( joEvents ) + "\n" );
             else
                 throw new Error( "Verification failed for the \"OutgoingMessage\" event of the \"MessageProxy\"/" + jo_message_proxy_main_net.address + " contract, no events found" );
         } // if( jo_message_proxy_main_net )
-        // if( jo_deposit_box ) {
-        //     details.write( strLogPrefix + cc.debug( "Verifying the " ) + cc.info( "Error" ) + cc.debug( " event of the " ) + cc.info( "DepositBox" ) + cc.debug( "/" ) + cc.notice( jo_deposit_box.address ) + cc.debug( " contract..." ) + "\n" );
-        //     const joEvents = await get_contract_call_events( details, ethersProvider_main_net, jo_deposit_box, "Error", joReceipt.blockNumber, joReceipt.transactionHash, {} );
-        //     if( joEvents.length == 0 )
-        //         details.write( strLogPrefix + cc.success( "Success, verified the " ) + cc.info( "Error" ) + cc.success( " event of the " ) + cc.info( "DepositBox" ) + cc.success( "/" ) + cc.notice( jo_deposit_box.address ) + cc.success( " contract, no event found" ) + "\n" );
-        //     else
-        //         throw new Error( "Verification failed for the \"Error\" event of the \"DepositBox\"/" + jo_deposit_box.address + " contract, no events found" );
-        // } // if( jo_deposit_box )
     } catch ( err ) {
         const strError = owaspUtils.extract_error_message( err );
-        const s = strLogPrefix + cc.fatal( "CRITICAL ERROR:" ) + cc.error( " Payment error in " + strActionName + ": " ) + cc.error( strError ) + "\n";
+        const s = strLogPrefix + cc.fatal( "CRITICAL ERROR:" ) + cc.error( " Payment error in " + strActionName + ": " ) + cc.error( strError ) +
+            cc.error( ", stack is: " ) + "\n" + cc.stack( err.stack ) + "\n";
         if( verbose_get() >= RV_VERBOSE().fatal )
             log.write( s );
         details.write( s );
@@ -2480,18 +2515,25 @@ export async function do_eth_payment_from_s_chain(
         //
         // Must-have event(s) analysis as indicator(s) of success
         //
+        const strEventName = "OutgoingMessage";
         if( jo_message_proxy_s_chain ) {
-            details.write( strLogPrefix + cc.debug( "Verifying the " ) + cc.info( "OutgoingMessage" ) + cc.debug( " event of the " ) + cc.info( "MessageProxy" ) + cc.debug( "/" ) + cc.notice( jo_message_proxy_s_chain.address ) + cc.debug( " contract ..." ) + "\n" );
+            details.write( strLogPrefix + cc.debug( "Verifying the " ) + cc.info( strEventName ) + cc.debug( " event of the " ) + cc.info( "MessageProxy" ) + cc.debug( "/" ) + cc.notice( jo_message_proxy_s_chain.address ) + cc.debug( " contract ..." ) + "\n" );
             await sleep( g_nSleepBeforeFetchOutgoingMessageEvent );
-            const joEvents = await get_contract_call_events( details, ethersProvider_s_chain, jo_message_proxy_s_chain, "OutgoingMessage", joReceipt.blockNumber, joReceipt.transactionHash, {} );
+            const joEvents =
+                await get_contract_call_events(
+                    details, ethersProvider_s_chain, jo_message_proxy_s_chain,
+                    strEventName, joReceipt.blockNumber, joReceipt.transactionHash,
+                    jo_message_proxy_s_chain.filters[ strEventName ]()
+                    );
             if( joEvents.length > 0 )
-                details.write( strLogPrefix + cc.success( "Success, verified the " ) + cc.info( "OutgoingMessage" ) + cc.success( " event of the " ) + cc.info( "MessageProxy" ) + cc.success( "/" ) + cc.notice( jo_message_proxy_s_chain.address ) + cc.success( " contract, found event(s): " ) + cc.j( joEvents ) + "\n" );
+                details.write( strLogPrefix + cc.success( "Success, verified the " ) + cc.info( strEventName ) + cc.success( " event of the " ) + cc.info( "MessageProxy" ) + cc.success( "/" ) + cc.notice( jo_message_proxy_s_chain.address ) + cc.success( " contract, found event(s): " ) + cc.j( joEvents ) + "\n" );
             else
                 throw new Error( "Verification failed for the \"OutgoingMessage\" event of the \"MessageProxy\"/" + jo_message_proxy_s_chain.address + " contract, no events found" );
         } // if( jo_message_proxy_s_chain )
     } catch ( err ) {
         const strError = owaspUtils.extract_error_message( err );
-        const s = strLogPrefix + cc.fatal( "CRITICAL ERROR:" ) + cc.error( " Payment error in " + strActionName + ": " ) + cc.error( strError ) + "\n";
+        const s = strLogPrefix + cc.fatal( "CRITICAL ERROR:" ) + cc.error( " Payment error in " + strActionName + ": " ) + cc.error( strError ) +
+            cc.error( ", stack is: " ) + "\n" + cc.stack( err.stack ) + "\n";
         if( verbose_get() >= RV_VERBOSE().fatal )
             log.write( s );
         details.write( s );
@@ -2566,7 +2608,8 @@ export async function receive_eth_payment_from_s_chain_on_main_net(
         }
     } catch ( err ) {
         const strError = owaspUtils.extract_error_message( err );
-        const s = strLogPrefix + cc.fatal( "CRITICAL ERROR:" ) + cc.error( " Receive payment error in " + strActionName + ": " ) + cc.error( strError ) + "\n";
+        const s = strLogPrefix + cc.fatal( "CRITICAL ERROR:" ) + cc.error( " Receive payment error in " + strActionName + ": " ) + cc.error( strError ) +
+            cc.error( ", stack is: " ) + "\n" + cc.stack( err.stack ) + "\n";
         if( verbose_get() >= RV_VERBOSE().fatal )
             log.write( s );
         details.write( s );
@@ -2609,7 +2652,8 @@ export async function view_eth_payment_from_s_chain_on_main_net(
         return xWei;
     } catch ( err ) {
         const strError = owaspUtils.extract_error_message( err );
-        const s = strLogPrefix + cc.fatal( "CRITICAL ERROR:" ) + cc.error( " View payment error in " + strActionName + ": " ) + cc.error( strError ) + "\n";
+        const s = strLogPrefix + cc.fatal( "CRITICAL ERROR:" ) + cc.error( " View payment error in " + strActionName + ": " ) + cc.error( strError ) +
+            cc.error( ", stack is: " ) + "\n" + cc.stack( err.stack ) + "\n";
         if( verbose_get() >= RV_VERBOSE().fatal )
             log.write( s );
         details.write( s );
@@ -2755,18 +2799,25 @@ export async function do_erc721_payment_from_main_net(
         //
         // Must-have event(s) analysis as indicator(s) of success
         //
+        const strEventName = "OutgoingMessage";
         if( jo_message_proxy_main_net ) {
-            details.write( strLogPrefix + cc.debug( "Verifying the " ) + cc.info( "OutgoingMessage" ) + cc.debug( " event of the " ) + cc.info( "MessageProxy" ) + cc.debug( "/" ) + cc.notice( jo_message_proxy_main_net.address ) + cc.debug( " contract ..." ) + "\n" );
+            details.write( strLogPrefix + cc.debug( "Verifying the " ) + cc.info( strEventName ) + cc.debug( " event of the " ) + cc.info( "MessageProxy" ) + cc.debug( "/" ) + cc.notice( jo_message_proxy_main_net.address ) + cc.debug( " contract ..." ) + "\n" );
             await sleep( g_nSleepBeforeFetchOutgoingMessageEvent );
-            const joEvents = await get_contract_call_events( details, ethersProvider_main_net, jo_message_proxy_main_net, "OutgoingMessage", joReceipt.blockNumber, joReceipt.transactionHash, {} );
+            const joEvents =
+                await get_contract_call_events(
+                    details, ethersProvider_main_net, jo_message_proxy_main_net,
+                    strEventName, joReceipt.blockNumber, joReceipt.transactionHash,
+                    jo_message_proxy_main_net.filters[ strEventName ]()
+                    );
             if( joEvents.length > 0 )
-                details.write( strLogPrefix + cc.success( "Success, verified the " ) + cc.info( "OutgoingMessage" ) + cc.success( " event of the " ) + cc.info( "MessageProxy" ) + cc.success( "/" ) + cc.notice( jo_message_proxy_main_net.address ) + cc.success( " contract, found event(s): " ) + cc.j( joEvents ) + "\n" );
+                details.write( strLogPrefix + cc.success( "Success, verified the " ) + cc.info( strEventName ) + cc.success( " event of the " ) + cc.info( "MessageProxy" ) + cc.success( "/" ) + cc.notice( jo_message_proxy_main_net.address ) + cc.success( " contract, found event(s): " ) + cc.j( joEvents ) + "\n" );
             else
                 throw new Error( "Verification failed for the \"OutgoingMessage\" event of the \"MessageProxy\"/" + jo_message_proxy_main_net.address + " contract, no events found" );
         } // if( jo_message_proxy_main_net )
     } catch ( err ) {
         const strError = owaspUtils.extract_error_message( err );
-        const s = strLogPrefix + cc.fatal( "CRITICAL ERROR:" ) + cc.error( " Payment error in " + strActionName + ": " ) + cc.error( strError ) + "\n";
+        const s = strLogPrefix + cc.fatal( "CRITICAL ERROR:" ) + cc.error( " Payment error in " + strActionName + ": " ) + cc.error( strError ) +
+            cc.error( ", stack is: " ) + "\n" + cc.stack( err.stack ) + "\n";
         if( verbose_get() >= RV_VERBOSE().fatal )
             log.write( s );
         details.write( s );
@@ -2918,18 +2969,25 @@ export async function do_erc20_payment_from_main_net(
         //
         // Must-have event(s) analysis as indicator(s) of success
         //
+        const strEventName = "OutgoingMessage";
         if( jo_message_proxy_main_net ) {
-            details.write( strLogPrefix + cc.debug( "Verifying the " ) + cc.info( "OutgoingMessage" ) + cc.debug( " event of the " ) + cc.info( "MessageProxy" ) + cc.debug( "/" ) + cc.notice( jo_message_proxy_main_net.address ) + cc.debug( " contract ..." ) + "\n" );
+            details.write( strLogPrefix + cc.debug( "Verifying the " ) + cc.info( strEventName ) + cc.debug( " event of the " ) + cc.info( "MessageProxy" ) + cc.debug( "/" ) + cc.notice( jo_message_proxy_main_net.address ) + cc.debug( " contract ..." ) + "\n" );
             await sleep( g_nSleepBeforeFetchOutgoingMessageEvent );
-            const joEvents = await get_contract_call_events( details, ethersProvider_main_net, jo_message_proxy_main_net, "OutgoingMessage", joReceipt.blockNumber, joReceipt.transactionHash, {} );
+            const joEvents =
+                await get_contract_call_events(
+                    details, ethersProvider_main_net, jo_message_proxy_main_net,
+                    strEventName, joReceipt.blockNumber, joReceipt.transactionHash,
+                    jo_message_proxy_main_net.filters[ strEventName ]()
+                    );
             if( joEvents.length > 0 )
-                details.write( strLogPrefix + cc.success( "Success, verified the " ) + cc.info( "OutgoingMessage" ) + cc.success( " event of the " ) + cc.info( "MessageProxy" ) + cc.success( "/" ) + cc.notice( jo_message_proxy_main_net.address ) + cc.success( " contract, found event(s): " ) + cc.j( joEvents ) + "\n" );
+                details.write( strLogPrefix + cc.success( "Success, verified the " ) + cc.info( strEventName ) + cc.success( " event of the " ) + cc.info( "MessageProxy" ) + cc.success( "/" ) + cc.notice( jo_message_proxy_main_net.address ) + cc.success( " contract, found event(s): " ) + cc.j( joEvents ) + "\n" );
             else
                 throw new Error( "Verification failed for th\"OutgoingMessage\" event of the \"MessageProxy\"/" + jo_message_proxy_main_net.address + " contract, no events found" );
         } // if( jo_message_proxy_main_net )
     } catch ( err ) {
         const strError = owaspUtils.extract_error_message( err );
-        const s = strLogPrefix + cc.fatal( "CRITICAL ERROR:" ) + cc.error( " Payment error in " + strActionName + ": " ) + cc.error( strError ) + "\n";
+        const s = strLogPrefix + cc.fatal( "CRITICAL ERROR:" ) + cc.error( " Payment error in " + strActionName + ": " ) + cc.error( strError ) +
+            cc.error( ", stack is: " ) + "\n" + cc.stack( err.stack ) + "\n";
         if( verbose_get() >= RV_VERBOSE().fatal )
             log.write( s );
         details.write( s );
@@ -3079,18 +3137,25 @@ export async function do_erc1155_payment_from_main_net(
         //
         // Must-have event(s) analysis as indicator(s) of success
         //
+        const strEventName = "OutgoingMessage";
         if( jo_message_proxy_main_net ) {
-            details.write( strLogPrefix + cc.debug( "Verifying the " ) + cc.info( "OutgoingMessage" ) + cc.debug( " event of the " ) + cc.info( "MessageProxy" ) + cc.debug( "/" ) + cc.notice( jo_message_proxy_main_net.address ) + cc.debug( " contract ..." ) + "\n" );
+            details.write( strLogPrefix + cc.debug( "Verifying the " ) + cc.info( strEventName ) + cc.debug( " event of the " ) + cc.info( "MessageProxy" ) + cc.debug( "/" ) + cc.notice( jo_message_proxy_main_net.address ) + cc.debug( " contract ..." ) + "\n" );
             await sleep( g_nSleepBeforeFetchOutgoingMessageEvent );
-            const joEvents = await get_contract_call_events( details, ethersProvider_main_net, jo_message_proxy_main_net, "OutgoingMessage", joReceipt.blockNumber, joReceipt.transactionHash, {} );
+            const joEvents =
+                await get_contract_call_events(
+                    details, ethersProvider_main_net, jo_message_proxy_main_net,
+                    strEventName, joReceipt.blockNumber, joReceipt.transactionHash,
+                    jo_message_proxy_main_net.filters[ strEventName ]()
+                    );
             if( joEvents.length > 0 )
-                details.write( strLogPrefix + cc.success( "Success, verified the " ) + cc.info( "OutgoingMessage" ) + cc.success( " event of the " ) + cc.info( "MessageProxy" ) + cc.success( "/" ) + cc.notice( jo_message_proxy_main_net.address ) + cc.success( " contract, found event(s): " ) + cc.j( joEvents ) + "\n" );
+                details.write( strLogPrefix + cc.success( "Success, verified the " ) + cc.info( strEventName ) + cc.success( " event of the " ) + cc.info( "MessageProxy" ) + cc.success( "/" ) + cc.notice( jo_message_proxy_main_net.address ) + cc.success( " contract, found event(s): " ) + cc.j( joEvents ) + "\n" );
             else
                 throw new Error( "Verification failed for the \"OutgoingMessage\" event of the \"MessageProxy\"/" + jo_message_proxy_main_net.address + " contract, no events found" );
         } // if( jo_message_proxy_main_net )
     } catch ( err ) {
         const strError = owaspUtils.extract_error_message( err );
-        const s = strLogPrefix + cc.fatal( "CRITICAL ERROR:" ) + cc.error( " Payment error in " + strActionName + ": " ) + cc.error( strError ) + "\n";
+        const s = strLogPrefix + cc.fatal( "CRITICAL ERROR:" ) + cc.error( " Payment error in " + strActionName + ": " ) + cc.error( strError ) +
+            cc.error( ", stack is: " ) + "\n" + cc.stack( err.stack ) + "\n";
         if( verbose_get() >= RV_VERBOSE().fatal )
             log.write( s );
         details.write( s );
@@ -3240,18 +3305,25 @@ export async function do_erc1155_batch_payment_from_main_net(
         //
         // Must-have event(s) analysis as indicator(s) of success
         //
+        const strEventName = "OutgoingMessage";
         if( jo_message_proxy_main_net ) {
-            details.write( strLogPrefix + cc.debug( "Verifying the " ) + cc.info( "OutgoingMessage" ) + cc.debug( " event of the " ) + cc.info( "MessageProxy" ) + cc.debug( "/" ) + cc.notice( jo_message_proxy_main_net.address ) + cc.debug( " contract ..." ) + "\n" );
+            details.write( strLogPrefix + cc.debug( "Verifying the " ) + cc.info( strEventName ) + cc.debug( " event of the " ) + cc.info( "MessageProxy" ) + cc.debug( "/" ) + cc.notice( jo_message_proxy_main_net.address ) + cc.debug( " contract ..." ) + "\n" );
             await sleep( g_nSleepBeforeFetchOutgoingMessageEvent );
-            const joEvents = await get_contract_call_events( details, ethersProvider_main_net, jo_message_proxy_main_net, "OutgoingMessage", joReceipt.blockNumber, joReceipt.transactionHash, {} );
+            const joEvents =
+                await get_contract_call_events(
+                    details, ethersProvider_main_net, jo_message_proxy_main_net,
+                    strEventName, joReceipt.blockNumber, joReceipt.transactionHash,
+                    jo_message_proxy_main_net.filters[ strEventName ]()
+                    );
             if( joEvents.length > 0 )
-                details.write( strLogPrefix + cc.success( "Success, verified the " ) + cc.info( "OutgoingMessage" ) + cc.success( " event of the " ) + cc.info( "MessageProxy" ) + cc.success( "/" ) + cc.notice( jo_message_proxy_main_net.address ) + cc.success( " contract, found event(s): " ) + cc.j( joEvents ) + "\n" );
+                details.write( strLogPrefix + cc.success( "Success, verified the " ) + cc.info( strEventName ) + cc.success( " event of the " ) + cc.info( "MessageProxy" ) + cc.success( "/" ) + cc.notice( jo_message_proxy_main_net.address ) + cc.success( " contract, found event(s): " ) + cc.j( joEvents ) + "\n" );
             else
                 throw new Error( "Verification failed for the \"OutgoingMessage\" event of the \"MessageProxy\"/" + jo_message_proxy_main_net.address + " contract, no events found" );
         } // if( jo_message_proxy_main_net )
     } catch ( err ) {
         const strError = owaspUtils.extract_error_message( err );
-        const s = strLogPrefix + cc.fatal( "CRITICAL ERROR:" ) + cc.error( " Payment error in " + strActionName + ": " ) + cc.error( strError ) + "\n";
+        const s = strLogPrefix + cc.fatal( "CRITICAL ERROR:" ) + cc.error( " Payment error in " + strActionName + ": " ) + cc.error( strError ) +
+            cc.error( ", stack is: " ) + "\n" + cc.stack( err.stack ) + "\n";
         if( verbose_get() >= RV_VERBOSE().fatal )
             log.write( s );
         details.write( s );
@@ -3416,18 +3488,25 @@ export async function do_erc20_payment_from_s_chain(
         //
         // Must-have event(s) analysis as indicator(s) of success
         //
+        const strEventName = "OutgoingMessage";
         if( jo_message_proxy_s_chain ) {
-            details.write( strLogPrefix + cc.debug( "Verifying the " ) + cc.info( "OutgoingMessage" ) + cc.debug( " event of the " ) + cc.info( "MessageProxy" ) + cc.debug( "/" ) + cc.notice( jo_message_proxy_s_chain.address ) + cc.debug( " contract ..." ) + "\n" );
+            details.write( strLogPrefix + cc.debug( "Verifying the " ) + cc.info( strEventName ) + cc.debug( " event of the " ) + cc.info( "MessageProxy" ) + cc.debug( "/" ) + cc.notice( jo_message_proxy_s_chain.address ) + cc.debug( " contract ..." ) + "\n" );
             await sleep( g_nSleepBeforeFetchOutgoingMessageEvent );
-            const joEvents = await get_contract_call_events( details, ethersProvider_s_chain, jo_message_proxy_s_chain, "OutgoingMessage", joReceipt.blockNumber, joReceipt.transactionHash, {} );
+            const joEvents =
+                await get_contract_call_events(
+                    details, ethersProvider_s_chain, jo_message_proxy_s_chain,
+                    strEventName, joReceipt.blockNumber, joReceipt.transactionHash,
+                    jo_message_proxy_s_chain.filters[ strEventName ]()
+                    );
             if( joEvents.length > 0 )
-                details.write( strLogPrefix + cc.success( "Success, verified the " ) + cc.info( "OutgoingMessage" ) + cc.success( " event of the " ) + cc.info( "MessageProxy" ) + cc.success( "/" ) + cc.notice( jo_message_proxy_s_chain.address ) + cc.success( " contract, found event(s): " ) + cc.j( joEvents ) + "\n" );
+                details.write( strLogPrefix + cc.success( "Success, verified the " ) + cc.info( strEventName ) + cc.success( " event of the " ) + cc.info( "MessageProxy" ) + cc.success( "/" ) + cc.notice( jo_message_proxy_s_chain.address ) + cc.success( " contract, found event(s): " ) + cc.j( joEvents ) + "\n" );
             else
                 throw new Error( "Verification failed for the \"OutgoingMessage\" event of the \"MessageProxy\"/" + jo_message_proxy_s_chain.address + " contract, no events found" );
         } // if( jo_message_proxy_s_chain )
     } catch ( err ) {
         const strError = owaspUtils.extract_error_message( err );
-        const s = strLogPrefix + cc.fatal( "CRITICAL ERROR:" ) + cc.error( " Payment error in " + strActionName + ": " ) + cc.error( strError ) + "\n";
+        const s = strLogPrefix + cc.fatal( "CRITICAL ERROR:" ) + cc.error( " Payment error in " + strActionName + ": " ) + cc.error( strError ) +
+            cc.error( ", stack is: " ) + "\n" + cc.stack( err.stack ) + "\n";
         if( verbose_get() >= RV_VERBOSE().fatal )
             log.write( s );
         details.write( s );
@@ -3592,18 +3671,25 @@ export async function do_erc721_payment_from_s_chain(
         //
         // Must-have event(s) analysis as indicator(s) of success
         //
+        const strEventName = "OutgoingMessage";
         if( jo_message_proxy_s_chain ) {
-            details.write( strLogPrefix + cc.debug( "Verifying the " ) + cc.info( "OutgoingMessage" ) + cc.debug( " event of the " ) + cc.info( "MessageProxy" ) + cc.debug( "/" ) + cc.notice( jo_message_proxy_s_chain.address ) + cc.debug( " contract ..." ) + "\n" );
+            details.write( strLogPrefix + cc.debug( "Verifying the " ) + cc.info( strEventName ) + cc.debug( " event of the " ) + cc.info( "MessageProxy" ) + cc.debug( "/" ) + cc.notice( jo_message_proxy_s_chain.address ) + cc.debug( " contract ..." ) + "\n" );
             await sleep( g_nSleepBeforeFetchOutgoingMessageEvent );
-            const joEvents = await get_contract_call_events( details, ethersProvider_s_chain, jo_message_proxy_s_chain, "OutgoingMessage", joReceipt.blockNumber, joReceipt.transactionHash, {} );
+            const joEvents =
+                await get_contract_call_events(
+                    details, ethersProvider_s_chain, jo_message_proxy_s_chain,
+                    strEventName, joReceipt.blockNumber, joReceipt.transactionHash,
+                    jo_message_proxy_s_chain.filters[ strEventName ]()
+                    );
             if( joEvents.length > 0 )
-                details.write( strLogPrefix + cc.success( "Success, verified the " ) + cc.info( "OutgoingMessage" ) + cc.success( " event of the " ) + cc.info( "MessageProxy" ) + cc.success( "/" ) + cc.notice( jo_message_proxy_s_chain.address ) + cc.success( " contract, found event(s): " ) + cc.j( joEvents ) + "\n" );
+                details.write( strLogPrefix + cc.success( "Success, verified the " ) + cc.info( strEventName ) + cc.success( " event of the " ) + cc.info( "MessageProxy" ) + cc.success( "/" ) + cc.notice( jo_message_proxy_s_chain.address ) + cc.success( " contract, found event(s): " ) + cc.j( joEvents ) + "\n" );
             else
                 throw new Error( "Verification failed for the \"OutgoingMessage\" event of the \"MessageProxy\"/" + jo_message_proxy_s_chain.address + " contract, no events found" );
         } // if( jo_message_proxy_s_chain )
     } catch ( err ) {
         const strError = owaspUtils.extract_error_message( err );
-        const s = strLogPrefix + cc.fatal( "CRITICAL ERROR:" ) + cc.error( " Payment error in " + strActionName + ": " ) + cc.error( strError ) + "\n";
+        const s = strLogPrefix + cc.fatal( "CRITICAL ERROR:" ) + cc.error( " Payment error in " + strActionName + ": " ) + cc.error( strError ) +
+            cc.error( ", stack is: " ) + "\n" + cc.stack( err.stack ) + "\n";
         if( verbose_get() >= RV_VERBOSE().fatal )
             log.write( s );
         details.write( s );
@@ -3767,18 +3853,25 @@ export async function do_erc1155_payment_from_s_chain(
         //
         // Must-have event(s) analysis as indicator(s) of success
         //
+        const strEventName = "OutgoingMessage";
         if( jo_message_proxy_s_chain ) {
-            details.write( strLogPrefix + cc.debug( "Verifying the " ) + cc.info( "OutgoingMessage" ) + cc.debug( " event of the " ) + cc.info( "MessageProxy" ) + cc.debug( "/" ) + cc.notice( jo_message_proxy_s_chain.address ) + cc.debug( " contract ..." ) + "\n" );
+            details.write( strLogPrefix + cc.debug( "Verifying the " ) + cc.info( strEventName ) + cc.debug( " event of the " ) + cc.info( "MessageProxy" ) + cc.debug( "/" ) + cc.notice( jo_message_proxy_s_chain.address ) + cc.debug( " contract ..." ) + "\n" );
             await sleep( g_nSleepBeforeFetchOutgoingMessageEvent );
-            const joEvents = await get_contract_call_events( details, ethersProvider_s_chain, jo_message_proxy_s_chain, "OutgoingMessage", joReceipt.blockNumber, joReceipt.transactionHash, {} );
+            const joEvents =
+                await get_contract_call_events(
+                    details, ethersProvider_s_chain, jo_message_proxy_s_chain,
+                    strEventName, joReceipt.blockNumber, joReceipt.transactionHash,
+                    jo_message_proxy_s_chain.filters[ strEventName ]()
+                    );
             if( joEvents.length > 0 )
-                details.write( strLogPrefix + cc.success( "Success, verified the " ) + cc.info( "OutgoingMessage" ) + cc.success( " event of the " ) + cc.info( "MessageProxy" ) + cc.success( "/" ) + cc.notice( jo_message_proxy_s_chain.address ) + cc.success( " contract, found event(s): " ) + cc.j( joEvents ) + "\n" );
+                details.write( strLogPrefix + cc.success( "Success, verified the " ) + cc.info( strEventName ) + cc.success( " event of the " ) + cc.info( "MessageProxy" ) + cc.success( "/" ) + cc.notice( jo_message_proxy_s_chain.address ) + cc.success( " contract, found event(s): " ) + cc.j( joEvents ) + "\n" );
             else
                 throw new Error( "Verification failed for the \"OutgoingMessage\" event of the \"MessageProxy\"/" + jo_message_proxy_s_chain.address + " contract, no events found" );
         } // if( jo_message_proxy_s_chain )
     } catch ( err ) {
         const strError = owaspUtils.extract_error_message( err );
-        const s = strLogPrefix + cc.fatal( "CRITICAL ERROR:" ) + cc.error( " Payment error in " + strActionName + ": " ) + cc.error( strError ) + "\n";
+        const s = strLogPrefix + cc.fatal( "CRITICAL ERROR:" ) + cc.error( " Payment error in " + strActionName + ": " ) + cc.error( strError ) +
+            cc.error( ", stack is: " ) + "\n" + cc.stack( err.stack ) + "\n";
         if( verbose_get() >= RV_VERBOSE().fatal )
             log.write( s );
         details.write( s );
@@ -3940,18 +4033,25 @@ export async function do_erc1155_batch_payment_from_s_chain(
         //
         // Must-have event(s) analysis as indicator(s) of success
         //
+        const strEventName = "OutgoingMessage";
         if( jo_message_proxy_s_chain ) {
-            details.write( strLogPrefix + cc.debug( "Verifying the " ) + cc.info( "OutgoingMessage" ) + cc.debug( " event of the " ) + cc.info( "MessageProxy" ) + cc.debug( "/" ) + cc.notice( jo_message_proxy_s_chain.address ) + cc.debug( " contract ..." ) + "\n" );
+            details.write( strLogPrefix + cc.debug( "Verifying the " ) + cc.info( strEventName ) + cc.debug( " event of the " ) + cc.info( "MessageProxy" ) + cc.debug( "/" ) + cc.notice( jo_message_proxy_s_chain.address ) + cc.debug( " contract ..." ) + "\n" );
             await sleep( g_nSleepBeforeFetchOutgoingMessageEvent );
-            const joEvents = await get_contract_call_events( details, ethersProvider_s_chain, jo_message_proxy_s_chain, "OutgoingMessage", joReceipt.blockNumber, joReceipt.transactionHash, {} );
+            const joEvents =
+                await get_contract_call_events(
+                    details, ethersProvider_s_chain, jo_message_proxy_s_chain,
+                    strEventName, joReceipt.blockNumber, joReceipt.transactionHash,
+                    jo_message_proxy_s_chain.filters[ strEventName ]()
+                    );
             if( joEvents.length > 0 )
-                details.write( strLogPrefix + cc.success( "Success, verified the " ) + cc.info( "OutgoingMessage" ) + cc.success( " event of the " ) + cc.info( "MessageProxy" ) + cc.success( "/" ) + cc.notice( jo_message_proxy_s_chain.address ) + cc.success( " contract, found event(s): " ) + cc.j( joEvents ) + "\n" );
+                details.write( strLogPrefix + cc.success( "Success, verified the " ) + cc.info( strEventName ) + cc.success( " event of the " ) + cc.info( "MessageProxy" ) + cc.success( "/" ) + cc.notice( jo_message_proxy_s_chain.address ) + cc.success( " contract, found event(s): " ) + cc.j( joEvents ) + "\n" );
             else
                 throw new Error( "Verification failed for the \"OutgoingMessage\" event of the \"MessageProxy\"/" + jo_message_proxy_s_chain.address + " contract, no events found" );
         } // if( jo_message_proxy_s_chain )
     } catch ( err ) {
         const strError = owaspUtils.extract_error_message( err );
-        const s = strLogPrefix + cc.fatal( "CRITICAL ERROR:" ) + cc.error( " Payment error in " + strActionName + ": " ) + cc.error( strError ) + "\n";
+        const s = strLogPrefix + cc.fatal( "CRITICAL ERROR:" ) + cc.error( " Payment error in " + strActionName + ": " ) + cc.error( strError ) +
+        cc.error( ", stack is: " ) + "\n" + cc.stack( err.stack ) + "\n";
         if( verbose_get() >= RV_VERBOSE().fatal )
             log.write( s );
         details.write( s );
@@ -4117,25 +4217,10 @@ export async function do_erc20_payment_s2s(
                 "receipt": joReceipt_transfer
             } );
         }
-
-        //
-        //
-        // const joReceipt = joReceipt_transfer;
-        //
-        // Must-have event(s) analysis as indicator(s) of success
-        //
-        // if( jo_token_manager_erc20_src ) {
-        //     details.write( strLogPrefix + cc.debug( "Verifying the " ) + cc.info( "OutgoingMessage" ) + cc.debug( " event of the " ) + cc.info( "MessageProxy" ) + cc.debug( "/" ) + cc.notice( jo_token_manager_erc20_src.address ) + cc.debug( " contract ..." ) + "\n" );
-        //     await sleep( g_nSleepBeforeFetchOutgoingMessageEvent );
-        //     const joEvents = await get_contract_call_events( details, ethersProvider_src, jo_token_manager_erc20_src, "OutgoingMessage", joReceipt.blockNumber, joReceipt.transactionHash, {} );
-        //     if( joEvents.length > 0 )
-        //         details.write( strLogPrefix + cc.success( "Success, verified the " ) + cc.info( "OutgoingMessage" ) + cc.success( " event of the " ) + cc.info( "MessageProxy" ) + cc.success( "/" ) + cc.notice( jo_token_manager_erc20_src.address ) + cc.success( " contract, found event(s): " ) + cc.j( joEvents ) + "\n" );
-        //     else
-        //         throw new Error( "Verification failed for th\"OutgoingMessage\" event of the \"MessageProxy\"/" + jo_token_manager_erc20_src.address + " contract, no events found" );
-        // } // if( jo_token_manager_erc20_src )
     } catch ( err ) {
         const strError = owaspUtils.extract_error_message( err );
-        const s = strLogPrefix + cc.fatal( "CRITICAL ERROR:" ) + cc.error( " Payment error in " + strActionName + ": " ) + cc.error( strError ) + "\n";
+        const s = strLogPrefix + cc.fatal( "CRITICAL ERROR:" ) + cc.error( " Payment error in " + strActionName + ": " ) + cc.error( strError ) +
+            cc.error( ", stack is: " ) + "\n" + cc.stack( err.stack ) + "\n";
         if( verbose_get() >= RV_VERBOSE().fatal )
             log.write( s );
         details.write( s );
@@ -4302,25 +4387,10 @@ export async function do_erc721_payment_s2s(
                 "receipt": joReceipt_transfer
             } );
         }
-
-        //
-        //
-        // const joReceipt = joReceipt_transfer;
-        //
-        // Must-have event(s) analysis as indicator(s) of success
-        //
-        // if( jo_token_manager_erc721_src ) {
-        //     details.write( strLogPrefix + cc.debug( "Verifying the " ) + cc.info( "OutgoingMessage" ) + cc.debug( " event of the " ) + cc.info( "MessageProxy" ) + cc.debug( "/" ) + cc.notice( jo_token_manager_erc721_src.address ) + cc.debug( " contract ..." ) + "\n" );
-        //     await sleep( g_nSleepBeforeFetchOutgoingMessageEvent );
-        //     const joEvents = await get_contract_call_events( details, ethersProvider_src, jo_token_manager_erc721_src, "OutgoingMessage", joReceipt.blockNumber, joReceipt.transactionHash, {} );
-        //     if( joEvents.length > 0 )
-        //         details.write( strLogPrefix + cc.success( "Success, verified the " ) + cc.info( "OutgoingMessage" ) + cc.success( " event of the " ) + cc.info( "MessageProxy" ) + cc.success( "/" ) + cc.notice( jo_token_manager_erc721_src.address ) + cc.success( " contract, found event(s): " ) + cc.j( joEvents ) + "\n" );
-        //     else
-        //         throw new Error( "Verification failed for th\"OutgoingMessage\" event of the \"MessageProxy\"/" + jo_token_manager_erc721_src.address + " contract, no events found" );
-        // } // if( jo_token_manager_erc721_src )
     } catch ( err ) {
         const strError = owaspUtils.extract_error_message( err );
-        const s = strLogPrefix + cc.fatal( "CRITICAL ERROR:" ) + cc.error( " Payment error in " + strActionName + ": " ) + cc.error( strError ) + "\n";
+        const s = strLogPrefix + cc.fatal( "CRITICAL ERROR:" ) + cc.error( " Payment error in " + strActionName + ": " ) + cc.error( strError ) +
+            cc.error( ", stack is: " ) + "\n" + cc.stack( err.stack ) + "\n";
         if( verbose_get() >= RV_VERBOSE().fatal )
             log.write( s );
         details.write( s );
@@ -4489,25 +4559,10 @@ export async function do_erc1155_payment_s2s(
                 "receipt": joReceipt_transfer
             } );
         }
-
-        //
-        //
-        // const joReceipt = joReceipt_transfer;
-        //
-        // Must-have event(s) analysis as indicator(s) of success
-        //
-        // if( jo_token_manager_erc1155_src ) {
-        //     details.write( strLogPrefix + cc.debug( "Verifying the " ) + cc.info( "OutgoingMessage" ) + cc.debug( " event of the " ) + cc.info( "MessageProxy" ) + cc.debug( "/" ) + cc.notice( jo_token_manager_erc1155_src.address ) + cc.debug( " contract ..." ) + "\n" );
-        //     await sleep( g_nSleepBeforeFetchOutgoingMessageEvent );
-        //     const joEvents = await get_contract_call_events( details, ethersProvider_src, jo_token_manager_erc1155_src, "OutgoingMessage", joReceipt.blockNumber, joReceipt.transactionHash, {} );
-        //     if( joEvents.length > 0 )
-        //         details.write( strLogPrefix + cc.success( "Success, verified the " ) + cc.info( "OutgoingMessage" ) + cc.success( " event of the " ) + cc.info( "MessageProxy" ) + cc.success( "/" ) + cc.notice( jo_token_manager_erc1155_src.address ) + cc.success( " contract, found event(s): " ) + cc.j( joEvents ) + "\n" );
-        //     else
-        //         throw new Error( "Verification failed for th\"OutgoingMessage\" event of the \"MessageProxy\"/" + jo_token_manager_erc1155_src.address + " contract, no events found" );
-        // } // if( jo_token_manager_erc1155_src )
     } catch ( err ) {
         const strError = owaspUtils.extract_error_message( err );
-        const s = strLogPrefix + cc.fatal( "CRITICAL ERROR:" ) + cc.error( " Payment error in " + strActionName + ": " ) + cc.error( strError ) + "\n";
+        const s = strLogPrefix + cc.fatal( "CRITICAL ERROR:" ) + cc.error( " Payment error in " + strActionName + ": " ) + cc.error( strError ) +
+            cc.error( ", stack is: " ) + "\n" + cc.stack( err.stack ) + "\n";
         if( verbose_get() >= RV_VERBOSE().fatal )
             log.write( s );
         details.write( s );
@@ -4676,24 +4731,10 @@ export async function do_erc1155_batch_payment_s2s(
                 "receipt": joReceipt_transfer
             } );
         }
-        //
-        //
-        // const joReceipt = joReceipt_transfer;
-        //
-        // Must-have event(s) analysis as indicator(s) of success
-        //
-        // if( jo_token_manager_erc1155_src ) {
-        //     details.write( strLogPrefix + cc.debug( "Verifying the " ) + cc.info( "OutgoingMessage" ) + cc.debug( " event of the " ) + cc.info( "MessageProxy" ) + cc.debug( "/" ) + cc.notice( jo_token_manager_erc1155_src.address ) + cc.debug( " contract ..." ) + "\n" );
-        //     await sleep( g_nSleepBeforeFetchOutgoingMessageEvent );
-        //     const joEvents = await get_contract_call_events( details, ethersProvider_src, jo_token_manager_erc1155_src, "OutgoingMessage", joReceipt.blockNumber, joReceipt.transactionHash, {} );
-        //     if( joEvents.length > 0 )
-        //         details.write( strLogPrefix + cc.success( "Success, verified the " ) + cc.info( "OutgoingMessage" ) + cc.success( " event of the " ) + cc.info( "MessageProxy" ) + cc.success( "/" ) + cc.notice( jo_token_manager_erc1155_src.address ) + cc.success( " contract, found event(s): " ) + cc.j( joEvents ) + "\n" );
-        //     else
-        //         throw new Error( "Verification failed for th\"OutgoingMessage\" event of the \"MessageProxy\"/" + jo_token_manager_erc1155_src.address + " contract, no events found" );
-        // } // if( jo_token_manager_erc1155_src )
     } catch ( err ) {
         const strError = owaspUtils.extract_error_message( err );
-        const s = strLogPrefix + cc.fatal( "CRITICAL ERROR:" ) + cc.error( " Payment error in " + strActionName + ": " ) + cc.error( strError ) + "\n";
+        const s = strLogPrefix + cc.fatal( "CRITICAL ERROR:" ) + cc.error( " Payment error in " + strActionName + ": " ) + cc.error( strError ) +
+            cc.error( ", stack is: " ) + "\n" + cc.stack( err.stack ) + "\n";
         if( verbose_get() >= RV_VERBOSE().fatal )
             log.write( s );
         details.write( s );
@@ -4727,16 +4768,17 @@ async function find_out_reference_log_record( details, ethersProvider, jo_messag
     const strLogPrefix = "";
     const bnMessageNumberToFind = owaspUtils.ethersMod.ethers.BigNumber.from( nMessageNumberToFind.toString() );
     const strEventName = "PreviousMessageReference";
-    const arrLogRecords = await safe_getPastEventsProgressive(
-        details,
-        ethersProvider,
-        10,
-        jo_message_proxy,
-        strEventName,
-        nBlockId, // nBlockFrom
-        nBlockId, // nBlockTo
-        { } // filter
-    );
+    const arrLogRecords =
+        await safe_getPastEventsProgressive(
+            details,
+            ethersProvider,
+            10,
+            jo_message_proxy,
+            strEventName,
+            nBlockId, // nBlockFrom
+            nBlockId, // nBlockTo
+            jo_message_proxy.filters[ strEventName ]()
+            );
     const cntLogRecord = arrLogRecords.length;
     if( isVerbose ) {
         details.write( strLogPrefix +
@@ -4745,9 +4787,13 @@ async function find_out_reference_log_record( details, ethersProvider, jo_messag
     }
     for( let idxLogRecord = 0; idxLogRecord < cntLogRecord; ++ idxLogRecord ) {
         const joEvent = arrLogRecords[idxLogRecord];
-        const joReferenceLogRecord = { // joEvent.returnValues;
-            currentMessage: joEvent.returnValues.currentMessage,
-            previousOutgoingMessageBlockId: joEvent.returnValues.previousOutgoingMessageBlockId,
+        const eventValuesByName = {
+            currentMessage: joEvent.args[0],
+            previousOutgoingMessageBlockId: joEvent.args[1]
+        };
+        const joReferenceLogRecord = {
+            currentMessage: eventValuesByName.currentMessage,
+            previousOutgoingMessageBlockId: eventValuesByName.previousOutgoingMessageBlockId,
             currentBlockId: owaspUtils.toInteger( nBlockId.toString() ) // added field
         };
         const bnCurrentMessage = owaspUtils.ethersMod.ethers.BigNumber.from( joReferenceLogRecord.currentMessage.toString() );
@@ -4789,7 +4835,12 @@ async function find_out_all_reference_log_records( details, ethersProvider, jo_m
     let nWalkMsgNumber = nOutMsgCnt - 1;
     let nWalkBlockId = nBlockId;
     for( ; nWalkMsgNumber >= nIncMsgCnt; -- nWalkMsgNumber ) {
-        const joReferenceLogRecord = await find_out_reference_log_record( details, ethersProvider, jo_message_proxy, nWalkBlockId, nWalkMsgNumber, isVerbose );
+        const joReferenceLogRecord =
+            await find_out_reference_log_record(
+                details, ethersProvider, jo_message_proxy,
+                nWalkBlockId, nWalkMsgNumber,
+                isVerbose
+                );
         if( joReferenceLogRecord == null )
             break;
         nWalkBlockId = owaspUtils.toInteger( joReferenceLogRecord.previousOutgoingMessageBlockId.toString() );
@@ -4921,7 +4972,7 @@ export async function do_transfer(
             log.write( cc.fatal( "IMMEDIATE ERROR LOG:" ) +
                 cc.error( " error caught during " ) + cc.attention( strActionName ) +
                 cc.error( ", error details: " ) + cc.warning( owaspUtils.extract_error_message( err ) ) +
-                cc.error( ", error stack: " ) + cc.attention( err.stack ) +
+                cc.error( ", stack is: " ) + "\n" + cc.stack( err.stack ) +
                 "\n"
             );
         }
@@ -5017,22 +5068,23 @@ export async function do_transfer(
                 }
                 //
                 strActionName = "src-chain->MessageProxy->scan-past-events()";
+                const strEventName = "OutgoingMessage";
                 details.write(
                     strLogPrefix + cc.debug( "Will call " ) + cc.notice( strActionName ) +
-                    cc.debug( " for " ) + cc.info( "OutgoingMessage" ) + cc.debug( " event..." ) +
+                    cc.debug( " for " ) + cc.info( strEventName ) + cc.debug( " event..." ) +
                     "\n" );
                 r = await safe_getPastEventsProgressive(
                     details,
                     ethersProvider_src,
                     10,
                     jo_message_proxy_src,
-                    "OutgoingMessage",
+                    strEventName,
                     nBlockFrom,
                     nBlockTo,
-                    {
-                        dstChainHash: [ owaspUtils.ethersMod.ethers.utils.id( chain_id_dst ) ],
-                        msgCounter: [ nIdxCurrentMsg ]
-                    }
+                    jo_message_proxy_src.filters[ strEventName ](
+                        owaspUtils.ethersMod.ethers.utils.id( chain_id_dst ), // dstChainHash
+                        nIdxCurrentMsg // msgCounter
+                    )
                 );
                 //details.write( strLogPrefix + cc.normal( "Logs search result(s): " ) + cc.j( r ) + "\n" );
                 const strChainHashWeAreLookingFor = owaspUtils.ethersMod.ethers.utils.id( chain_id_dst );
@@ -5044,12 +5096,20 @@ export async function do_transfer(
                     cc.debug( " of destination chain " ) + cc.info( chain_id_dst ) +
                     "\n" );
                 for( let i = r.length - 1; i >= 0; i-- ) {
+                    const joEvent = r[i];
                     details.write( strLogPrefix +
                         cc.debug( "Will review found event record " ) + cc.info( i ) +
-                        cc.debug( " with data " ) + cc.j( r[i] ) +
+                        cc.debug( " with data " ) + cc.j( joEvent ) +
                         "\n" );
-                    if( r[i].returnValues.dstChainHash == strChainHashWeAreLookingFor ) {
-                        joValues = r[i].returnValues;
+                    const eventValuesByName = {
+                        dstChainHash: joEvent.args[0],
+                        msgCounter: joEvent.args[1],
+                        srcContract: joEvent.args[2],
+                        dstContract: joEvent.args[3],
+                        data: joEvent.args[4]
+                    };
+                    if( eventValuesByName.dstChainHash == strChainHashWeAreLookingFor ) {
+                        joValues = eventValuesByName;
                         joValues.savedBlockNumberForOptimizations = r[i].blockNumber;
                         details.write( strLogPrefix +
                             cc.debug( "Found event record " ) + cc.info( i ) + cc.debug( " reviewed and " ) +
@@ -5094,7 +5154,9 @@ export async function do_transfer(
                     } catch ( err ) {
                         bSecurityCheckPassed = false;
                         const strError = owaspUtils.extract_error_message( err );
-                        const s = strLogPrefix + cc.fatal( "CRITICAL ERROR:" ) + cc.error( " Exception(evaluate block depth) while getting transaction hash and block number during " + strActionName + ": " ) + cc.error( strError ) + "\n";
+                        const s = strLogPrefix + cc.fatal( "CRITICAL ERROR:" ) +
+                             cc.error( " Exception(evaluate block depth) while getting transaction hash and block number during " +
+                            strActionName + ": " ) + cc.error( strError ) + cc.error( ", stack is: " ) + "\n" + cc.stack( err.stack ) + "\n";
                         if( verbose_get() >= RV_VERBOSE().fatal )
                             log.write( s );
                         details.write( s );
@@ -5139,7 +5201,9 @@ export async function do_transfer(
                     } catch ( err ) {
                         bSecurityCheckPassed = false;
                         const strError = owaspUtils.extract_error_message( err );
-                        const s = strLogPrefix + cc.fatal( "CRITICAL ERROR:" ) + cc.error( " Exception(evaluate block age) while getting block number and timestamp during " + strActionName + ": " ) + cc.error( strError ) + "\n";
+                        const s = strLogPrefix + cc.fatal( "CRITICAL ERROR:" ) +
+                            cc.error( " Exception(evaluate block age) while getting block number and timestamp during " +
+                            strActionName + ": " ) + cc.error( strError ) + cc.error( ", stack is: " ) + "\n" + cc.stack( err.stack ) + "\n";
                         if( verbose_get() >= RV_VERBOSE().fatal )
                             log.write( s );
                         details.write( s );
@@ -5279,10 +5343,10 @@ export async function do_transfer(
                                     strEventName,
                                     joMessage.savedBlockNumberForOptimizations, // 0, // nBlockFrom
                                     joMessage.savedBlockNumberForOptimizations, // "latest", // nBlockTo
-                                    {
-                                        dstChainHash: [ owaspUtils.ethersMod.ethers.utils.id( chain_id_dst ) ],
-                                        msgCounter: [ idxImaMessage ]
-                                    }
+                                    jo_message_proxy_node.filters[strEventName](
+                                        owaspUtils.ethersMod.ethers.utils.id( chain_id_dst ), // dstChainHash
+                                        idxImaMessage // msgCounter
+                                    )
                                 );
                                 const cntEvents = node_r.length;
                                 details.write( strLogPrefix +
@@ -5290,10 +5354,17 @@ export async function do_transfer(
                                     cc.info( jo_node.name ) + cc.debug( " with data: " ) + cc.j( node_r ) + "\n" );
                                 for( let idxEvent = 0; idxEvent < cntEvents; ++ idxEvent ) {
                                     const joEvent = node_r[idxEvent];
-                                    if( owaspUtils.ensure_starts_with_0x( joMessage.sender ).toLowerCase() ==
-                                        owaspUtils.ensure_starts_with_0x( joEvent.returnValues.srcContract ).toLowerCase() &&
+                                    const eventValuesByName = {
+                                        dstChainHash: joEvent.args[0],
+                                        msgCounter: joEvent.args[1],
+                                        srcContract: joEvent.args[2],
+                                        dstContract: joEvent.args[3],
+                                        data: joEvent.args[4]
+                                    };
+                                        if( owaspUtils.ensure_starts_with_0x( joMessage.sender ).toLowerCase() ==
+                                        owaspUtils.ensure_starts_with_0x( eventValuesByName.srcContract ).toLowerCase() &&
                                         owaspUtils.ensure_starts_with_0x( joMessage.destinationContract ).toLowerCase() ==
-                                        owaspUtils.ensure_starts_with_0x( joEvent.returnValues.dstContract ).toLowerCase()
+                                        owaspUtils.ensure_starts_with_0x( eventValuesByName.dstContract ).toLowerCase()
                                     )
                                         bEventIsFound = true;
                                     if( bEventIsFound )
@@ -5305,6 +5376,7 @@ export async function do_transfer(
                                     cc.error( "Failed to scan events on node " ) + cc.info( jo_node.name ) +
                                     cc.error( ", error is: " ) + cc.warning( owaspUtils.extract_error_message( err ) ) +
                                     cc.error( ", detailed node description is: " ) + cc.j( jo_node ) +
+                                    cc.error( ", stack is: " ) + "\n" + cc.stack( err.stack ) +
                                     "\n";
                                 details.write( strError );
                                 if( verbose_get() >= RV_VERBOSE().fatal )
@@ -5345,8 +5417,10 @@ export async function do_transfer(
                         const strError = strLogPrefix + cc.fatal( strDirection + " message analysis error:" ) + " " +
                             cc.error( "Failed to process events for " ) + cc.sunny( strDirection ) + cc.error( " message " ) +
                             cc.info( idxMessage + 1 ) + cc.error( " on node " ) + cc.info( jo_node.name ) +
-                            cc.success( " using URL " ) + cc.info( jo_node.http_endpoint_ip ) +
-                            cc.debug( ", error is: " ) + cc.warning( owaspUtils.extract_error_message( err ) ) + "\n";
+                            cc.error( " using URL " ) + cc.info( jo_node.http_endpoint_ip ) +
+                            cc.error( ", error is: " ) + cc.warning( owaspUtils.extract_error_message( err ) ) +
+                            cc.error( ", stack is: " ) + "\n" + cc.stack( err.stack ) +
+                            "\n";
                         details.write( strError );
                         if( verbose_get() >= RV_VERBOSE().fatal )
                             log.write( strError );
@@ -5550,10 +5624,16 @@ export async function do_transfer(
                             detailsB.write( strLogPrefix + cc.debug( "Validating transfer to Main Net via MessageProxy error absence on Main Net..." ) + "\n" );
                             if( jo_deposit_box_main_net ) {
                                 if( joReceipt && "blockNumber" in joReceipt && "transactionHash" in joReceipt ) {
-                                    detailsB.write( strLogPrefix + cc.debug( "Verifying the " ) + cc.info( "PostMessageError" ) + cc.debug( " event of the " ) + cc.info( "MessageProxy" ) + cc.debug( "/" ) + cc.notice( jo_message_proxy_dst.address ) + cc.debug( " contract..." ) + "\n" );
-                                    const joEvents = await get_contract_call_events( detailsB, ethersProvider_dst, jo_message_proxy_dst, "PostMessageError", joReceipt.blockNumber, joReceipt.transactionHash, {} );
+                                    const strEventName = "PostMessageError";
+                                    detailsB.write( strLogPrefix + cc.debug( "Verifying the " ) + cc.info( strEventName ) + cc.debug( " event of the " ) + cc.info( "MessageProxy" ) + cc.debug( "/" ) + cc.notice( jo_message_proxy_dst.address ) + cc.debug( " contract..." ) + "\n" );
+                                    const joEvents =
+                                        await get_contract_call_events(
+                                            detailsB, ethersProvider_dst, jo_message_proxy_dst,
+                                            strEventName, joReceipt.blockNumber, joReceipt.transactionHash,
+                                            jo_message_proxy_dst.filters[ strEventName ]()
+                                            );
                                     if( joEvents.length == 0 )
-                                        detailsB.write( strLogPrefix + cc.success( "Success, verified the " ) + cc.info( "PostMessageError" ) + cc.success( " event of the " ) + cc.info( "MessageProxy" ) + cc.success( "/" ) + cc.notice( jo_message_proxy_dst.address ) + cc.success( " contract, no events found" ) + "\n" );
+                                        detailsB.write( strLogPrefix + cc.success( "Success, verified the " ) + cc.info( strEventName ) + cc.success( " event of the " ) + cc.info( "MessageProxy" ) + cc.success( "/" ) + cc.notice( jo_message_proxy_dst.address ) + cc.success( " contract, no events found" ) + "\n" );
                                     else {
                                         log.write( strLogPrefix + cc.fatal( "CRITICAL ERROR:" ) + cc.warning( " Failed" ) + cc.error( " verification of the " ) + cc.warning( "PostMessageError" ) + cc.error( " event of the " ) + cc.warning( "MessageProxy" ) + cc.error( "/" ) + cc.notice( jo_message_proxy_dst.address ) + cc.error( " contract, found event(s): " ) + cc.j( joEvents ) + "\n" );
                                         detailsB.write( strLogPrefix + cc.fatal( "CRITICAL ERROR:" ) + cc.warning( " Failed" ) + cc.error( " verification of the " ) + cc.warning( "PostMessageError" ) + cc.error( " event of the " ) + cc.warning( "MessageProxy" ) + cc.error( "/" ) + cc.notice( jo_message_proxy_dst.address ) + cc.error( " contract, found event(s): " ) + cc.j( joEvents ) + "\n" );
@@ -5586,12 +5666,15 @@ export async function do_transfer(
                     }
                 } ); // fn_sign_messages
             } catch ( err ) {
-                const strError = strLogPrefix + cc.fatal( "CRITICAL ERROR:" ) +
-                    cc.error( " Exception from signing messages function: " ) + cc.error( owaspUtils.extract_error_message( err ) );
-                log.write( strError + "\n" );
-                details.write( strError + "\n" );
+                const strError =
+                    strLogPrefix + cc.fatal( "CRITICAL ERROR:" ) +
+                    cc.error( " Exception from signing messages function: " ) + cc.error( owaspUtils.extract_error_message( err ) +
+                    cc.error( ", stack is: " ) + "\n" + cc.stack( err.stack ) +
+                    "\n" );
+                log.write( strError );
+                details.write( strError );
                 if( detailsB )
-                    detailsB.write( strError + "\n" );
+                    detailsB.write( strError );
             }
             if( detailsB ) {
                 if( expose_details_get() )
@@ -5605,10 +5688,12 @@ export async function do_transfer(
     } catch ( err ) {
         const strError = strLogPrefix + cc.fatal( "CRITICAL ERROR:" ) +
             cc.error( " Error in " ) + strGatheredDetailsName_a_colored +
-            cc.error( " during " + strActionName + ": " ) + cc.error( owaspUtils.extract_error_message( err ) );
+            cc.error( " during " + strActionName + ": " ) + cc.error( owaspUtils.extract_error_message( err ) ) +
+            cc.error( ", stack is: " ) + "\n" + cc.stack( err.stack ) +
+            "\n";
         if( verbose_get() >= RV_VERBOSE().fatal )
-            log.write( strError + "\n" );
-        details.write( strError + "\n" );
+            log.write( strError );
+        details.write( strError );
         details.exposeDetailsTo( log, strGatheredDetailsName_a, false );
         save_transfer_error( strTransferErrorCategoryName, details.toString() );
         details.close();
@@ -5740,6 +5825,7 @@ export async function do_s2s_all( // s-chain --> s-chain
                 log.write( cc.fatal( "S2S STEP ERROR:" ) +
                     cc.error( " From S-Chain " ) + cc.info( chain_id_src ) +
                     cc.error( ", error is: " ) + cc.warning( strError ) +
+                    cc.error( ", stack is: " ) + "\n" + cc.stack( err.stack ) +
                     "\n" );
             }
             //
@@ -5866,7 +5952,10 @@ export class TransactionCustomizer {
             details.write( strLogPrefix + cc.success( "estimate-gas success: " ) + cc.j( estimatedGas ) + "\n" );
         } catch ( err ) {
             const strError = owaspUtils.extract_error_message( err );
-            details.write( strLogPrefix + cc.error( "estimate-gas error: " ) + cc.warning( strError ) + "\n" );
+            details.write(
+                strLogPrefix + cc.error( "estimate-gas error: " ) + cc.warning( strError ) +
+                cc.error( ", stack is: " ) + "\n" + cc.stack( err.stack ) +
+                "\n" );
         }
         if( estimatedGas == 0 ) {
             estimatedGas = gasValueRecommended;
@@ -5940,7 +6029,7 @@ export async function balanceETH(
     } catch ( err ) {
         const strError = owaspUtils.extract_error_message( err );
         if( verbose_get() >= RV_VERBOSE().fatal )
-            log.write( strLogPrefix + cc.fatal( "ERROR:" ) + " " + cc.error( strError ) + "\n" );
+            log.write( strLogPrefix + cc.fatal( "ERROR:" ) + " " + cc.error( strError ) + cc.error( ", stack is: " ) + "\n" + cc.stack( err.stack ) + "\n" );
     }
     return "<no-data-or-error>";
 }
@@ -5968,7 +6057,7 @@ export async function balanceERC20(
     } catch ( err ) {
         const strError = owaspUtils.extract_error_message( err );
         if( verbose_get() >= RV_VERBOSE().fatal )
-            log.write( strLogPrefix + cc.fatal( "ERROR:" ) + " " + cc.error( strError ) + "\n" );
+            log.write( strLogPrefix + cc.fatal( "ERROR:" ) + " " + cc.error( strError ) + cc.error( ", stack is: " ) + "\n" + cc.stack( err.stack ) + "\n" );
     }
     return "<no-data-or-error>";
 }
@@ -5997,7 +6086,7 @@ export async function ownerOfERC721(
     } catch ( err ) {
         const strError = owaspUtils.extract_error_message( err );
         if( verbose_get() >= RV_VERBOSE().fatal )
-            log.write( strLogPrefix + cc.fatal( "ERROR:" ) + " " + cc.error( strError ) + "\n" );
+            log.write( strLogPrefix + cc.fatal( "ERROR:" ) + " " + cc.error( strError ) + cc.error( ", stack is: " ) + "\n" + cc.stack( err.stack ) + "\n" );
     }
     return "<no-data-or-error>";
 }
@@ -6026,7 +6115,7 @@ export async function balanceERC1155(
     } catch ( err ) {
         const strError = owaspUtils.extract_error_message( err );
         if( verbose_get() >= RV_VERBOSE().fatal )
-            log.write( strLogPrefix + cc.fatal( "ERROR:" ) + " " + cc.error( strError ) + "\n" );
+            log.write( strLogPrefix + cc.fatal( "ERROR:" ) + " " + cc.error( strError ) + cc.error( ", stack is: " ) + "\n" + cc.stack( err.stack ) + "\n" );
     }
     return "<no-data-or-error>";
 }
@@ -6114,8 +6203,8 @@ export async function mintERC20(
     } catch ( err ) {
         const strError = owaspUtils.extract_error_message( err );
         if( verbose_get() >= RV_VERBOSE().fatal )
-            log.write( strLogPrefix + cc.fatal( "CRITICAL ERROR:" ) + cc.error( " Error in mintERC20() during " + strActionName + ": " ) + cc.error( strError ) + "\n" );
-        details.write( strLogPrefix + cc.fatal( "CRITICAL ERROR:" ) + cc.error( " Error in mintERC20() during " + strActionName + ": " ) + cc.error( strError ) + "\n" );
+            log.write( strLogPrefix + cc.fatal( "CRITICAL ERROR:" ) + cc.error( " Error in mintERC20() during " + strActionName + ": " ) + cc.error( strError ) + cc.error( ", stack is: " ) + "\n" + cc.stack( err.stack ) + "\n" );
+        details.write( strLogPrefix + cc.fatal( "CRITICAL ERROR:" ) + cc.error( " Error in mintERC20() during " + strActionName + ": " ) + cc.error( strError ) + cc.error( ", stack is: " ) + "\n" + cc.stack( err.stack ) + "\n" );
         details.exposeDetailsTo( log, "mintERC20()", false );
         details.close();
         return false;
@@ -6206,8 +6295,8 @@ export async function mintERC721(
     } catch ( err ) {
         const strError = owaspUtils.extract_error_message( err );
         if( verbose_get() >= RV_VERBOSE().fatal )
-            log.write( strLogPrefix + cc.fatal( "CRITICAL ERROR:" ) + cc.error( " Error in mintERC721() during " + strActionName + ": " ) + cc.error( strError ) + "\n" );
-        details.write( strLogPrefix + cc.fatal( "CRITICAL ERROR:" ) + cc.error( " Error in mintERC721() during " + strActionName + ": " ) + cc.error( strError ) + "\n" );
+            log.write( strLogPrefix + cc.fatal( "CRITICAL ERROR:" ) + cc.error( " Error in mintERC721() during " + strActionName + ": " ) + cc.error( strError ) + cc.error( ", stack is: " ) + "\n" + cc.stack( err.stack ) + "\n" );
+        details.write( strLogPrefix + cc.fatal( "CRITICAL ERROR:" ) + cc.error( " Error in mintERC721() during " + strActionName + ": " ) + cc.error( strError ) + cc.error( ", stack is: " ) + "\n" + cc.stack( err.stack ) + "\n" );
         details.exposeDetailsTo( log, "mintERC721()", false );
         details.close();
         return false;
@@ -6301,8 +6390,8 @@ export async function mintERC1155(
     } catch ( err ) {
         const strError = owaspUtils.extract_error_message( err );
         if( verbose_get() >= RV_VERBOSE().fatal )
-            log.write( strLogPrefix + cc.fatal( "CRITICAL ERROR:" ) + cc.error( " Error in mintERC1155() during " + strActionName + ": " ) + cc.error( strError ) + "\n" );
-        details.write( strLogPrefix + cc.fatal( "CRITICAL ERROR:" ) + cc.error( " Error in mintERC1155() during " + strActionName + ": " ) + cc.error( strError ) + "\n" );
+            log.write( strLogPrefix + cc.fatal( "CRITICAL ERROR:" ) + cc.error( " Error in mintERC1155() during " + strActionName + ": " ) + cc.error( strError ) + cc.error( ", stack is: " ) + "\n" + cc.stack( err.stack ) + "\n" );
+        details.write( strLogPrefix + cc.fatal( "CRITICAL ERROR:" ) + cc.error( " Error in mintERC1155() during " + strActionName + ": " ) + cc.error( strError ) + cc.error( ", stack is: " ) + "\n" + cc.stack( err.stack ) + "\n" );
         details.exposeDetailsTo( log, "mintERC1155()", false );
         details.close();
         return false;
@@ -6393,8 +6482,8 @@ export async function burnERC20(
     } catch ( err ) {
         const strError = owaspUtils.extract_error_message( err );
         if( verbose_get() >= RV_VERBOSE().fatal )
-            log.write( strLogPrefix + cc.fatal( "CRITICAL ERROR:" ) + cc.error( " Error in burnERC20() during " + strActionName + ": " ) + cc.error( strError ) + "\n" );
-        details.write( strLogPrefix + cc.fatal( "CRITICAL ERROR:" ) + cc.error( " Error in burnERC20() during " + strActionName + ": " ) + cc.error( strError ) + "\n" );
+            log.write( strLogPrefix + cc.fatal( "CRITICAL ERROR:" ) + cc.error( " Error in burnERC20() during " + strActionName + ": " ) + cc.error( strError ) + cc.error( ", stack is: " ) + "\n" + cc.stack( err.stack ) + "\n" );
+        details.write( strLogPrefix + cc.fatal( "CRITICAL ERROR:" ) + cc.error( " Error in burnERC20() during " + strActionName + ": " ) + cc.error( strError ) + cc.error( ", stack is: " ) + "\n" + cc.stack( err.stack ) + "\n" );
         details.exposeDetailsTo( log, "burnERC20()", false );
         details.close();
         return false;
@@ -6485,8 +6574,8 @@ export async function burnERC721(
     } catch ( err ) {
         const strError = owaspUtils.extract_error_message( err );
         if( verbose_get() >= RV_VERBOSE().fatal )
-            log.write( strLogPrefix + cc.fatal( "CRITICAL ERROR:" ) + cc.error( " Error in burnERC721() during " + strActionName + ": " ) + cc.error( strError ) + "\n" );
-        details.write( strLogPrefix + cc.fatal( "CRITICAL ERROR:" ) + cc.error( " Error in burnERC721() during " + strActionName + ": " ) + cc.error( strError ) + "\n" );
+            log.write( strLogPrefix + cc.fatal( "CRITICAL ERROR:" ) + cc.error( " Error in burnERC721() during " + strActionName + ": " ) + cc.error( strError ) + cc.error( ", stack is: " ) + "\n" + cc.stack( err.stack ) + "\n" );
+        details.write( strLogPrefix + cc.fatal( "CRITICAL ERROR:" ) + cc.error( " Error in burnERC721() during " + strActionName + ": " ) + cc.error( strError ) + cc.error( ", stack is: " ) + "\n" + cc.stack( err.stack ) + "\n" );
         details.exposeDetailsTo( log, "burnERC721()", false );
         details.close();
         return false;
@@ -6580,8 +6669,8 @@ export async function burnERC1155(
     } catch ( err ) {
         const strError = owaspUtils.extract_error_message( err );
         if( verbose_get() >= RV_VERBOSE().fatal )
-            log.write( strLogPrefix + cc.fatal( "CRITICAL ERROR:" ) + cc.error( " Error in burnERC1155() during " + strActionName + ": " ) + cc.error( strError ) + "\n" );
-        details.write( strLogPrefix + cc.fatal( "CRITICAL ERROR:" ) + cc.error( " Error in burnERC1155() during " + strActionName + ": " ) + cc.error( strError ) + "\n" );
+            log.write( strLogPrefix + cc.fatal( "CRITICAL ERROR:" ) + cc.error( " Error in burnERC1155() during " + strActionName + ": " ) + cc.error( strError ) + cc.error( ", stack is: " ) + "\n" + cc.stack( err.stack ) + "\n" );
+        details.write( strLogPrefix + cc.fatal( "CRITICAL ERROR:" ) + cc.error( " Error in burnERC1155() during " + strActionName + ": " ) + cc.error( strError ) + cc.error( ", stack is: " ) + "\n" + cc.stack( err.stack ) + "\n" );
         details.exposeDetailsTo( log, "burnERC1155()", false );
         details.close();
         return false;

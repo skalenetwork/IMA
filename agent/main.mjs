@@ -38,6 +38,7 @@ import * as skale_observer from "../npms/skale-observer/observer.mjs";
 import * as loop from "./loop.mjs";
 import * as imaUtils from "./utils.mjs";
 import * as IMA from "../npms/skale-ima/index.mjs";
+import * as imaBLS from "./bls.mjs";
 import * as pwa from "./pwa.mjs";
 
 import * as state from "./state.mjs";
@@ -202,7 +203,6 @@ function parse_command_line() {
                                     ) ? true : false;
                                 }
                             }
-
                         } catch ( err ) {
                             bMintIsOK = false;
                         }
@@ -239,7 +239,6 @@ function parse_command_line() {
                                     ) ? true : false;
                                 }
                             }
-
                         } catch ( err ) {
                             bMintIsOK = false;
                         }
@@ -302,7 +301,6 @@ function parse_command_line() {
                                     ) ? true : false;
                                 }
                             }
-
                         } catch ( err ) {
                             bBurnIsOK = false;
                         }
@@ -339,7 +337,6 @@ function parse_command_line() {
                                     ) ? true : false;
                                 }
                             }
-
                         } catch ( err ) {
                             bBurnIsOK = false;
                         }
@@ -1842,8 +1839,10 @@ async function discover_s_chain_network( fnAfter, isSilent, joPrevSChainNetworkI
                         if( ! isSilent ) {
                             log.write(
                                 strLogPrefix + cc.fatal( "CRITICAL ERROR:" ) +
-                                cc.error( " JSON RPC call to S-Chain node " ) + strNodeDescColorized + cc.error( " was not created: " ) +
-                                cc.warning( strError ) + "\n"
+                                cc.error( " JSON RPC call to S-Chain node " ) + strNodeDescColorized +
+                                cc.error( " was not created: " ) + cc.warning( strError ) +
+                                cc.error( ", stack is: " ) + "\n" + cc.stack( err.stack ) +
+                                "\n"
                             );
                         }
                         // fnAfter( err, null );
@@ -1941,8 +1940,9 @@ async function discover_s_chain_network( fnAfter, isSilent, joPrevSChainNetworkI
         if( ! isSilent ) {
             log.write(
                 strLogPrefix + cc.fatal( "CRITICAL ERROR:" ) +
-                cc.error( " JSON RPC call to S-Chain was not created: " ) +
-                cc.warning( strError ) + "\n"
+                cc.error( " JSON RPC call to S-Chain was not created: " ) + cc.warning( strError ) +
+                cc.error( ", stack is: " ) + "\n" + cc.stack( err.stack ) +
+                "\n"
             );
         }
         joSChainNetworkInfo = null;
@@ -2054,7 +2054,9 @@ function init_monitoring_server() {
                 if( IMA.verbose_get() >= IMA.RV_VERBOSE().error ) {
                     log.write( strLogPrefix +
                         cc.error( "Bad message from " ) + cc.info( ip ) + cc.error( ": " ) + cc.warning( message ) +
-                        cc.error( ", error is: " ) + cc.warning( strError ) + "\n"
+                        cc.error( ", error is: " ) + cc.warning( strError ) +
+                        cc.error( ", stack is: " ) + "\n" + cc.stack( err.stack ) +
+                        "\n"
                     );
                 }
             }
@@ -2067,7 +2069,9 @@ function init_monitoring_server() {
                 if( IMA.verbose_get() >= IMA.RV_VERBOSE().error ) {
                     log.write( strLogPrefix +
                         cc.error( "Failed to sent answer to " ) + cc.info( ip ) +
-                        cc.error( ", error is: " ) + cc.warning( strError ) + "\n"
+                        cc.error( ", error is: " ) + cc.warning( strError ) +
+                        cc.error( ", stack is: " ) + "\n" + cc.stack( err.stack ) +
+                        "\n"
                     );
                 }
             }
@@ -2108,7 +2112,9 @@ function init_json_rpc_server() {
                     if( IMA.verbose_get() >= IMA.RV_VERBOSE().error ) {
                         log.write( strLogPrefix +
                             cc.error( "Failed to sent answer to " ) + cc.info( ip ) +
-                            cc.error( ", error is: " ) + cc.warning( strError ) + "\n"
+                            cc.error( ", error is: " ) + cc.warning( strError ) +
+                            cc.error( ", stack is: " ) + "\n" + cc.stack( err.stack ) +
+                            "\n"
                         );
                     }
                 }
@@ -2176,7 +2182,9 @@ function init_json_rpc_server() {
                 if( IMA.verbose_get() >= IMA.RV_VERBOSE().error ) {
                     log.write( strLogPrefix +
                         cc.error( "Bad message from " ) + cc.info( ip ) + cc.error( ": " ) + cc.warning( message ) +
-                        cc.error( ", error is: " ) + cc.warning( strError ) + "\n"
+                        cc.error( ", error is: " ) + cc.warning( strError ) +
+                        cc.error( ", stack is: " ) + "\n" + cc.stack( err.stack ) +
+                        "\n"
                     );
                 }
             }
@@ -2214,7 +2222,9 @@ function init_json_rpc_server() {
                     log.write( strLogPrefix +
                         cc.error( "Failed to sent answer " ) + cc.j( joAnswer ) +
                         cc.error( " to " ) + cc.info( ip ) +
-                        cc.error( ", error is: " ) + cc.warning( strError ) + "\n"
+                        cc.error( ", error is: " ) + cc.warning( strError ) +
+                        cc.error( ", stack is: " ) + "\n" + cc.stack( err.stack ) +
+                        "\n"
                     );
                 }
             }
@@ -2281,7 +2291,9 @@ function init_json_rpc_server() {
             if( IMA.verbose_get() >= IMA.RV_VERBOSE().error ) {
                 log.write( strLogPrefix +
                     cc.error( "Bad message from " ) + cc.info( ip ) + cc.error( ": " ) + cc.warning( message ) +
-                    cc.error( ", error is: " ) + cc.warning( strError ) + "\n"
+                    cc.error( ", error is: " ) + cc.warning( strError ) +
+                    cc.error( ", stack is: " ) + "\n" + cc.stack( err.stack ) +
+                    "\n"
                 );
             }
         }
