@@ -1,0 +1,71 @@
+= IMA Security Methods
+
+To improve the ability of SKALE Chain owners to manage and respond to security incidents, a few features have been added to the IMA bridge:
+
+* Configurable time delay on exits exceeding certain amounts
+* Pauseable processing of IMA messages
+
+== Time delay on excess amounts of ERC20 tokens
+
+SKALE Chain owners can set a time delay for token exits that exceed certain amounts. If an exit exceeds the limits, then those exited tokens will continue to be locked in the DepositBox contract until a configurable time elapses.  After the time has elapsed, the receiver can then pull tokens from the DepositBox contract.
+
+During a triggered time delay, there are two actions that can be executed:
+
+* an account granted with an `ARBITER_ROLE` or the SKALE Chain owner may initialize an arbitrage of the transfer (xref:api:mainnet/DepositBoxes/DepositBoxERC20.adoc#_escalate_escalateuint256_transferid_external[escalate]). This action increases the time delay/token lock period by a value configurable by the SKALE Chain owner (xref:api:mainnet/DepositBoxes/DepositBoxERC20.adoc#_setarbitrageduration_setarbitragedurationstring_schainname_uint256_delayinseconds_external[setArbitrageDuration]). 
+* the SKALE Chain owner can cancel the transfer (xref:api:mainnet/DepositBoxes/DepositBoxERC20.adoc#_rejecttransfer_rejecttransferuint256_transferid_external[rejectTransfer]).  In this case, the tokens go to the SKALE Chain owner address.  
+
+Once in arbitrage, the SKALE Chain owner can cancel the arbitrage and immediately transfer the tokens to the receiver (xref:api:mainnet/DepositBoxes/DepositBoxERC20.adoc#_validatetransfer_validatetransferuint256_transferid_external[validateTransfer]).  In this case, the receiver does not need to explicitly pull the tokens.
+
+If transfer was delayed or arbitraged and time delay passed without any action during this period, receiver can complete the transfer (xref:api:mainnet/DepositBoxes/DepositBoxERC20.adoc#_retrieve_retrieve_external[retrieve])
+
+=== Default Values
+
+By default, a time delay for large amounts of ERC20 tokens is disabled. Each SKALE Chain owner must explicitly enable this feature (xref:api:mainnet/DepositBoxes/DepositBoxERC20.adoc#_setbigtransferdelay_setbigtransferdelaystring_schainname_uint256_delayinseconds_external[setBigTransferDelay]) and set a threshold amount for each ERC20 token in IMA (xref:api:mainnet/DepositBoxes/DepositBoxERC20.adoc#_setbigtransfervalue_setbigtransfervaluestring_schainname_address_token_uint256_value_external[setBigTransferValue]).
+
+=== Whitelist
+
+The SKALE Chain owner manages a list of trusted addresses that bypass the delay regardless of exit amount (xref:api:mainnet/DepositBoxes/DepositBoxERC20.adoc#_trustreceiver_trustreceiverstring_schainname_address_receiver_external[trustReceiver] and xref:api:mainnet/DepositBoxes/DepositBoxERC20.adoc#_stoptrustingreceiver_stoptrustingreceiverstring_schainname_address_receiver_external[stopTrustingReceiver])
+
+=== Events
+
+- xref:api:mainnet/DepositBoxes/DepositBoxERC20.adoc#_transferdelayed_transferdelayeduint256_id_address_receiver_address_token_uint256_amount_event[TransferDelayed]
+- xref:api:mainnet/DepositBoxes/DepositBoxERC20.adoc#_escalated_escalateduint256_id_event[Escalated]
+- xref:api:mainnet/MessageProxyForMainnet.adoc#_schainpaused_schainpausedbytes32_schainhash_event[SchainPaused]
+- xref:api:mainnet/MessageProxyForMainnet.adoc#_schainresumed_schainresumedbytes32_schainhash_event[SchainResumed]
+- xref:api:mainnet/DepositBoxes/DepositBoxERC20.adoc#_bigtransferthresholdischanged_bigtransferthresholdischangedbytes32_schainhash_address_token_uint256_oldvalue_uint256_newvalue_event[BigTransferThresholdIsChanged]
+- xref:api:mainnet/DepositBoxes/DepositBoxERC20.adoc#_bigtransferdelayischanged_bigtransferdelayischangedbytes32_schainhash_uint256_oldvalue_uint256_newvalue_event[BigTransferDelayIsChanged]
+- xref:api:mainnet/DepositBoxes/DepositBoxERC20.adoc#_arbitragedurationischanged_arbitragedurationischangedbytes32_schainhash_uint256_oldvalue_uint256_newvalue_event[ArbitrageDurationIsChanged]
+
+=== Methods
+
+- xref:api:mainnet/DepositBoxes/DepositBoxERC20.adoc#_setbigtransfervalue_setbigtransfervaluestring_schainname_address_token_uint256_value_external[setBigTransferValue] - sets the value threshold above which tokens will be delayed.
++
+[WARNING]
+Default value is `0` for all tokens: so if delay is set then all tokens will be delayed. To disable delay for specific tokens you must set their value to infinity. If the delay is set but no threshold is set, then all tokens will be delayed.
++
+- xref:api:mainnet/DepositBoxes/DepositBoxERC20.adoc#_setbigtransferdelay_setbigtransferdelaystring_schainname_uint256_delayinseconds_external[setBigTransferDelay] - sets the delay time applied to token amounts above the threshold.
+- xref:api:mainnet/DepositBoxes/DepositBoxERC20.adoc#_setarbitrageduration_setarbitragedurationstring_schainname_uint256_delayinseconds_external[setArbitrageDuration]
+- xref:api:mainnet/DepositBoxes/DepositBoxERC20.adoc#_trustreceiver_trustreceiverstring_schainname_address_receiver_external[trustReceiver]
+- xref:api:mainnet/DepositBoxes/DepositBoxERC20.adoc#_stoptrustingreceiver_stoptrustingreceiverstring_schainname_address_receiver_external[stopTrustingReceiver]
+- xref:api:mainnet/DepositBoxes/DepositBoxERC20.adoc#_retrieve_retrieve_external[retrieve]
+- xref:api:mainnet/DepositBoxes/DepositBoxERC20.adoc#_escalate_escalateuint256_transferid_external[escalate]
+- xref:api:mainnet/DepositBoxes/DepositBoxERC20.adoc#_validatetransfer_validatetransferuint256_transferid_external[validateTransfer]
+- xref:api:mainnet/DepositBoxes/DepositBoxERC20.adoc#_rejecttransfer_rejecttransferuint256_transferid_external[rejectTransfer]
+
+== Pauseable processing of messages
+
+Specific SKALE Chain IMA bridges may be xref:api:mainnet/MessageProxyForMainnet.adoc#_pause_pausestring_schainname_external[paused] by the designated `PAUSABLE_ROLE`.
+
+=== Pausing
+
+The `PAUSABLE_ROLE` may xref:api:mainnet/MessageProxyForMainnet.adoc#_pause_pausestring_schainname_external[pause] a specific SKALE Chain IMA bridge for an unlimited time.
+The `DEFAULT_ADMIN_ROLE` only can grant `PAUSABLE_ROLE`.
+
+=== Unpausing
+
+Once paused, the SKALE Chain owner or the `DEFAULT_ADMIN_ROLE` may xref:api:mainnet/MessageProxyForMainnet.adoc#_resume_resumestring_schainname_external[resume] processing IMA messages for a specific SKALE Chain. 
+
+=== Methods
+
+- xref:api:mainnet/MessageProxyForMainnet.adoc#_pause_pausestring_schainname_external[pause]
+- xref:api:mainnet/MessageProxyForMainnet.adoc#_resume_resumestring_schainname_external[resume]
