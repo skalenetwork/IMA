@@ -4,7 +4,7 @@
     "license": "AGPL-3.0",
     "author": "SKALE Labs and contributors",
     "scripts": {
-        "docs:prepare": "cd proxy/ && ./scripts/prepare-docs.sh",
+        "docs:prepare": "cd proxy/ && yarn && ./scripts/prepare-docs.sh",
         "docs:update": "./scripts/update-docs.sh",
         "docs": "yarn docs:update && yarn docs:prepare",
         "lint-check": "eslint ./agent/*.js ./npms/skale-*/*.js ./test/*.js",
