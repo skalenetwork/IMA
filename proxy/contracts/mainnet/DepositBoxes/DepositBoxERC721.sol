@@ -73,29 +73,8 @@ contract DepositBoxERC721 is DepositBox, IDepositBoxERC721 {
     )
         external
         override
-        rightTransaction(schainName, msg.sender)
-        whenNotKilled(keccak256(abi.encodePacked(schainName)))
     {
-        bytes32 schainHash = keccak256(abi.encodePacked(schainName));
-        address contractReceiver = schainLinks[schainHash];
-        require(contractReceiver != address(0), "Unconnected chain");
-        require(
-            IERC721Upgradeable(erc721OnMainnet).getApproved(tokenId) == address(this),
-            "DepositBox was not approved for ERC721 token"
-        );
-        bytes memory data = _receiveERC721(
-            schainName,
-            erc721OnMainnet,
-            msg.sender,
-            tokenId
-        );
-        _saveTransferredAmount(schainHash, erc721OnMainnet, tokenId);
-        IERC721Upgradeable(erc721OnMainnet).transferFrom(msg.sender, address(this), tokenId);
-        messageProxy.postOutgoingMessage(
-            schainHash,
-            contractReceiver,
-            data
-        );
+        depositERC721Direct(schainName, erc721OnMainnet, tokenId, msg.sender);
     }
 
     /**
@@ -236,6 +215,47 @@ contract DepositBoxERC721 is DepositBox, IDepositBoxERC721 {
         initializer
     {
         DepositBox.initialize(contractManagerOfSkaleManagerValue, linkerValue, messageProxyValue);
+    }
+
+    /**
+     * @dev Allows `msg.sender` to send ERC721 token from mainnet to schain to specified receiver.
+     * 
+     * Requirements:
+     * 
+     * - Receiver contract should be defined.
+     * - `msg.sender` should approve their token for DepositBoxERC721 address.
+     */
+    function depositERC721Direct(
+        string calldata schainName,
+        address erc721OnMainnet,
+        uint256 tokenId,
+        address receiver
+    )
+        public
+        override
+        rightTransaction(schainName, receiver)
+        whenNotKilled(keccak256(abi.encodePacked(schainName)))
+    {
+        bytes32 schainHash = keccak256(abi.encodePacked(schainName));
+        address contractReceiver = schainLinks[schainHash];
+        require(contractReceiver != address(0), "Unconnected chain");
+        require(
+            IERC721Upgradeable(erc721OnMainnet).getApproved(tokenId) == address(this),
+            "DepositBox was not approved for ERC721 token"
+        );
+        bytes memory data = _receiveERC721(
+            schainName,
+            erc721OnMainnet,
+            receiver,
+            tokenId
+        );
+        _saveTransferredAmount(schainHash, erc721OnMainnet, tokenId);
+        IERC721Upgradeable(erc721OnMainnet).transferFrom(msg.sender, address(this), tokenId);
+        messageProxy.postOutgoingMessage(
+            schainHash,
+            contractReceiver,
+            data
+        );
     }
 
     /**
