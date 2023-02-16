@@ -29,13 +29,17 @@ import * as log from "../npms/skale-log/log.mjs";
 import * as owaspUtils from "../npms/skale-owasp/owasp-utils.mjs";
 import * as child_process from "child_process";
 import * as rpcCall from "./rpc-call.mjs";
-import * as shell from "shelljs";
+import * as shell_mod from "shelljs";
 import * as imaUtils from "./utils.mjs";
-import * as hashing from "js-sha3";
+import * as sha3_mod from "sha3";
 import * as skale_observer from "../npms/skale-observer/observer.mjs";
 
 import * as state from "./state.mjs";
-const keccak256 = hashing.default.keccak256;
+import { randomCallID } from "../npms/skale-cool-socket/socket_utils.mjs";
+
+const shell = shell_mod.default;
+
+const Keccak = sha3_mod.Keccak;
 
 const sleep = ( milliseconds ) => { return new Promise( resolve => setTimeout( resolve, milliseconds ) ); };
 
@@ -159,7 +163,10 @@ function s2ha( s ) {
 }
 
 function a2ha( arrBytes ) {
-    return owaspUtils.ensure_starts_with_0x( keccak256( arrBytes ) );
+    const k = new Keccak( 256 );
+    k.update( imaUtils.toBuffer( arrBytes ) );
+    const h = k.digest( "hex" );
+    return imaUtils.hexToBytes( "0x" + h );
 }
 
 function keccak256_message( jarrMessages, nIdxCurrentMsgBlockStart, strFromChainName ) {
@@ -237,10 +244,12 @@ export function keccak256_u256( u256, isHash ) {
     arrBytes = imaUtils.bytesConcat( arrBytes, bytes_u256 );
     //
     let strMessageHash = "";
-    if( isHash )
-        strMessageHash = owaspUtils.ensure_starts_with_0x( keccak256( arrBytes ) );
-    else
-        strMessageHash = owaspUtils.ensure_starts_with_0x( imaUtils.bytesToHex( arrBytes ) );
+    if( isHash ) {
+        const hash = new Keccak( 256 );
+        hash.update( imaUtils.toBuffer( arrBytes ) );
+        strMessageHash = hash.digest( "hex" );
+    } else
+        strMessageHash = "0x" + imaUtils.bytesToHex( arrBytes );
     return strMessageHash;
 }
 
@@ -267,7 +276,9 @@ export function keccak256_pwa( nNodeNumber, strLoopWorkType, isStart, ts ) {
     bytes_u256 = imaUtils.invertArrayItemsLR( bytes_u256 );
     arrBytes = imaUtils.bytesConcat( arrBytes, bytes_u256 );
     //
-    const strMessageHash = owaspUtils.ensure_starts_with_0x( keccak256( arrBytes ) );
+    const hash = new Keccak( 256 );
+    hash.update( arrBytes );
+    const strMessageHash = hash.digest( "hex" );
     return strMessageHash;
 }
 
@@ -1770,6 +1781,7 @@ export async function do_sign_ready_hash( strMessageHash ) {
     try {
         const nThreshold = discover_bls_threshold( imaState.joSChainNetworkInfo );
         const nParticipants = discover_bls_participants( imaState.joSChainNetworkInfo );
+        details.write( strLogPrefix + cc.debug( "Will BLS-sign ready hash." ) + "\n" );
         details.write( strLogPrefix + cc.debug( "Discovered BLS threshold is " ) + cc.info( nThreshold ) + cc.debug( "." ) + "\n" );
         details.write( strLogPrefix + cc.debug( "Discovered number of BLS participants is " ) + cc.info( nParticipants ) + cc.debug( "." ) + "\n" );
         //
@@ -1794,7 +1806,7 @@ export async function do_sign_ready_hash( strMessageHash ) {
             // details.write( cc.debug( "Will sign via SGX with SSL options " ) + cc.j( rpcCallOpts ) + "\n" );
         } else
             details.write( cc.warning( "Will sign via SGX" ) + " " + cc.error( "without SSL options" ) + "\n" );
-        const signerIndex = imaState.chainProperties.sc.joAccount.nNodeNumber;
+        const signerIndex = imaState.nNodeNumber;
         await rpcCall.create( joAccount.strSgxURL, rpcCallOpts, async function( joCall, err ) {
             if( err ) {
                 const strErrorMessage =
@@ -1807,6 +1819,8 @@ export async function do_sign_ready_hash( strMessageHash ) {
                 throw new Error( "JSON RPC call to SGX failed, RPC call was not created, error is: " + owaspUtils.extract_error_message( err ) );
             }
             const joCallSGX = {
+                "jsonrpc": "2.0",
+                "id": randomCallID(),
                 method: "blsSignMessageHash",
                 // type: "BLSSignReq",
                 params: {
@@ -1820,13 +1834,16 @@ export async function do_sign_ready_hash( strMessageHash ) {
             details.write( strLogPrefix + cc.debug( "Will invoke " ) + cc.info( "SGX" ) + cc.debug( " with call data " ) + cc.j( joCallSGX ) + "\n" );
             await joCall.call( joCallSGX, async function( joIn, joOut, err ) {
                 if( err ) {
+                    const err_js = new Error( "JSON RPC call to SGX failed, RPC call reported error: " + owaspUtils.extract_error_message( err ) );
                     const strErrorMessage =
                         strLogPrefix + cc.fatal( "CRITICAL ERROR:" ) +
-                        cc.error( " JSON RPC call to SGX failed, RPC call reported error: " ) + cc.warning( owaspUtils.extract_error_message( err ) ) + "\n";
+                        cc.error( " JSON RPC call to SGX failed, RPC call reported error: " ) + cc.warning( owaspUtils.extract_error_message( err ) ) +
+                        cc.error( ", stack is:" ) + "\n" + cc.stack( err_js.stack ) +
+                        "\n";
                     log.write( strErrorMessage );
                     details.write( strErrorMessage );
                     await joCall.disconnect();
-                    throw new Error( "JSON RPC call to SGX failed, RPC call reported error: " + owaspUtils.extract_error_message( err ) );
+                    throw err_js;
                 }
                 details.write( strLogPrefix + cc.debug( "Call to " ) + cc.info( "SGX" ) + cc.debug( " done, answer is: " ) + cc.j( joOut ) + "\n" );
                 joSignResult = joOut;
@@ -1945,6 +1962,7 @@ export async function handle_skale_imaVerifyAndSign( joCallData ) {
         }
         await check_correctness_of_messages_to_sign( details, strLogPrefix, strDirection, jarrMessages, nIdxCurrentMsgBlockStart, joExtraSignOpts );
         //
+        details.write( strLogPrefix + cc.debug( "Will BLS-sign verified messages." ) + "\n" );
         let joAccount = imaState.chainProperties.sc.joAccount;
         if( ! joAccount.strURL ) {
             joAccount = imaState.chainProperties.mn.joAccount;
@@ -1964,7 +1982,7 @@ export async function handle_skale_imaVerifyAndSign( joCallData ) {
             // details.write( cc.debug( "Will sign via SGX with SSL options " ) + cc.j( rpcCallOpts ) + "\n" );
         } else
             details.write( cc.warning( "Will sign via SGX" ) + " " + cc.error( "without SSL options" ) + "\n" );
-        const signerIndex = imaState.chainProperties.sc.joAccount.nNodeNumber;
+        const signerIndex = imaState.nNodeNumber;
         await rpcCall.create( joAccount.strSgxURL, rpcCallOpts, async function( joCall, err ) {
             if( err ) {
                 const strErrorMessage =
@@ -1977,6 +1995,8 @@ export async function handle_skale_imaVerifyAndSign( joCallData ) {
                 throw new Error( "JSON RPC call to SGX failed, RPC call was not created, error is: " + owaspUtils.extract_error_message( err ) );
             }
             const joCallSGX = {
+                "jsonrpc": "2.0",
+                "id": randomCallID(),
                 method: "blsSignMessageHash",
                 // type: "BLSSignReq",
                 params: {
@@ -1987,18 +2007,26 @@ export async function handle_skale_imaVerifyAndSign( joCallData ) {
                     signerIndex: signerIndex + 0 // 1-based
                 }
             };
-            details.write( strLogPrefix + cc.sunny( strDirection ) + cc.debug( " verification algorithm will invoke " ) + cc.info( "SGX" ) + cc.debug( " with call data " ) + cc.j( joCallSGX ) + "\n" );
+            details.write(
+                strLogPrefix + cc.sunny( strDirection ) +
+                cc.debug( " verification algorithm will invoke " ) + cc.info( "SGX" ) + " " +
+                // cc.u( joAccount.strSgxURL ) + " " +
+                cc.debug( "with call data" ) + " " + cc.j( joCallSGX ) +
+                "\n" );
             await joCall.call( joCallSGX, async function( joIn, joOut, err ) {
                 if( err ) {
                     const strError = "JSON RPC call to SGX failed, RPC call reported error: " + owaspUtils.extract_error_message( err );
                     joRetVal.error = strError;
+                    const err_js = new Error( strError );
                     const strErrorMessage =
                         strLogPrefix + cc.fatal( "CRITICAL ERROR:" ) +
-                        cc.error( " JSON RPC call to SGX failed, RPC call reported error: " ) + cc.warning( owaspUtils.extract_error_message( err ) ) + "\n";
+                        cc.error( " JSON RPC call to SGX failed, RPC call reported error: " ) + cc.warning( owaspUtils.extract_error_message( err ) ) +
+                        cc.error( ", stack is:" ) + "\n" + cc.stack( err_js.stack ) +
+                        "\n";
                     log.write( strErrorMessage );
                     details.write( strErrorMessage );
                     await joCall.disconnect();
-                    throw new Error( strError );
+                    throw err_js;
                 }
                 details.write( strLogPrefix + cc.sunny( strDirection ) + cc.debug( " Call to " ) + cc.info( "SGX" ) + cc.debug( " done, answer is: " ) + cc.j( joOut ) + "\n" );
                 let joSignResult = joOut;
@@ -2066,6 +2094,7 @@ export async function handle_skale_imaBSU256( joCallData ) {
         const strMessageHash = keccak256_u256( u256, true );
         details.write( strLogPrefix + cc.debug( "hash of U256 value to sign is " ) + cc.info( strMessageHash ) + "\n" );
         //
+        details.write( strLogPrefix + cc.debug( "Will BLS-sign U256." ) + "\n" );
         let joAccount = imaState.chainProperties.sc.joAccount;
         if( ! joAccount.strURL ) {
             joAccount = imaState.chainProperties.mn.joAccount;
@@ -2085,7 +2114,7 @@ export async function handle_skale_imaBSU256( joCallData ) {
             // details.write( cc.debug( "Will sign via SGX with SSL options " ) + cc.j( rpcCallOpts ) + "\n" );
         } else
             details.write( cc.warning( "Will sign via SGX" ) + " " + cc.error( "without SSL options" ) + "\n" );
-        const signerIndex = imaState.chainProperties.sc.joAccount.nNodeNumber;
+        const signerIndex = imaState.nNodeNumber;
         await rpcCall.create( joAccount.strSgxURL, rpcCallOpts, async function( joCall, err ) {
             if( err ) {
                 const strErrorMessage =
@@ -2098,6 +2127,8 @@ export async function handle_skale_imaBSU256( joCallData ) {
                 throw new Error( "JSON RPC call to SGX failed, RPC call was not created, error is: " + owaspUtils.extract_error_message( err ) );
             }
             const joCallSGX = {
+                "jsonrpc": "2.0",
+                "id": randomCallID(),
                 method: "blsSignMessageHash",
                 // type: "BLSSignReq",
                 params: {
@@ -2111,13 +2142,16 @@ export async function handle_skale_imaBSU256( joCallData ) {
             details.write( strLogPrefix + cc.debug( "Will invoke " ) + cc.info( "SGX" ) + cc.debug( " with call data " ) + cc.j( joCallSGX ) + "\n" );
             await joCall.call( joCallSGX, async function( joIn, joOut, err ) {
                 if( err ) {
+                    const err_js = new Error( "JSON RPC call to SGX failed, RPC call reported error: " + owaspUtils.extract_error_message( err ) );
                     const strErrorMessage =
                         strLogPrefix + cc.fatal( "CRITICAL ERROR:" ) +
-                        cc.error( " JSON RPC call to SGX failed, RPC call reported error: " ) + cc.warning( owaspUtils.extract_error_message( err ) ) + "\n";
+                        cc.error( " JSON RPC call to SGX failed, RPC call reported error: " ) + cc.warning( owaspUtils.extract_error_message( err ) ) +
+                        cc.error( ", stack is:" ) + "\n" + cc.stack( err_js.stack ) +
+                        "\n";
                     log.write( strErrorMessage );
                     details.write( strErrorMessage );
                     await joCall.disconnect();
-                    throw new Error( "JSON RPC call to SGX failed, RPC call reported error: " + owaspUtils.extract_error_message( err ) );
+                    throw err_js;
                 }
                 details.write( strLogPrefix + cc.debug( "Call to " ) + cc.info( "SGX" ) + cc.debug( " done, answer is: " ) + cc.j( joOut ) + "\n" );
                 let joSignResult = joOut;

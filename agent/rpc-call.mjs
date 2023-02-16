@@ -25,6 +25,7 @@
 
 import * as ws from "ws";
 import * as urllib from "urllib";
+import * as https from "https";
 import * as net from "net";
 import * as owaspUtils from "../npms/skale-owasp/owasp-utils.mjs";
 import * as log from "../npms/skale-log/log.mjs";
@@ -220,37 +221,103 @@ export async function do_call( joCall, joIn, fn ) {
             await fn( joIn, null, "JSON RPC CALLER cannot do query post to invalid URL: " + joCall.url );
             return;
         }
+        // console.log( "--- --- --- joIn is", joIn );
         const strBody = JSON.stringify( joIn );
-        // console.log( "--- --- --- joIn is", strBody );
+        // console.log( "--- --- --- strBody is", strBody );
         // console.log( "--- --- --- joCall is", joCall );
         let errCall = null, joOut = null;
-        try {
-            const response = await urllib.request( joCall.url, {
-                "method": "POST",
-                "timeout": g_nConnectionTimeoutSeconds * 1000, // in milliseconds
-                "headers": {
-                    "content-type": "application/json"
+        if( joCall.joRpcOptions &&
+            joCall.joRpcOptions.cert && typeof joCall.joRpcOptions.cert == "string" &&
+            joCall.joRpcOptions.key && typeof joCall.joRpcOptions.key == "string"
+        ) {
+            const u = new URL( joCall.url );
+            const options = {
+                hostname: u.hostname,
+                port: u.port,
+                path: "/",
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json"
                     // "Accept": "*/*",
                     // "Content-Length": strBody.length,
                 },
-                "content": strBody,
-                "rejectUnauthorized": false,
                 "ca": ( joCall.joRpcOptions && joCall.joRpcOptions.ca && typeof joCall.joRpcOptions.ca == "string" ) ? joCall.joRpcOptions.ca : null,
                 "cert": ( joCall.joRpcOptions && joCall.joRpcOptions.cert && typeof joCall.joRpcOptions.cert == "string" ) ? joCall.joRpcOptions.cert : null,
                 "key": ( joCall.joRpcOptions && joCall.joRpcOptions.key && typeof joCall.joRpcOptions.key == "string" ) ? joCall.joRpcOptions.key : null
+            };
+            // console.log( "--- request options ---", options );
+            let accumulatedBody = "";
+            const promise_complete = new Promise( ( resolve, reject ) => {
+                const req = https.request( options, res => {
+                    res.setEncoding( "utf8" );
+                    // console.log( "--- response status code ---", res.statusCode );
+                    // console.log( "--- response headers ---", res.headers );
+                    res.on( "data", body => {
+                        accumulatedBody += body;
+                    } );
+                    res.on( "end", function() {
+                        if( res.statusCode !== 200 ) {
+                            joOut = null;
+                            errCall = "Response ends with bad status code: " + res.statusCode.toString();
+                            reject( errCall );
+                        }
+                        try {
+                            // console.log( "--- response accumulated body ---", accumulatedBody );
+                            joOut = JSON.parse( accumulatedBody );
+                            // console.log( "--- response accumulated JSON ---", cc.j( joOut ) );
+                            errCall = null;
+                            resolve( joOut );
+                        } catch ( err ) {
+                            joOut = null;
+                            errCall = "Response body parse error: " + err.toString();
+                            reject( errCall );
+                        }
+                    } );
+                } );
+                req.on( "error", err => {
+                    log.write( cc.u( joCall.url ) + cc.error( " REST error " ) + cc.warning( err.toString() ) + "\n" );
+                    joOut = null;
+                    errCall = "RPC call error: " + err.toString();
+                    reject( errCall );
+                } );
+                req.write( strBody );
+                req.end();
             } );
-            // console.log( "--- --- --- response.data is", response.data );
-            const body = response.data.toString( "utf8" );
-            // console.log( "--- --- --- response body is", body );
-            if( response && response.statusCode && response.statusCode !== 200 )
-                log.write( cc.error( "WARNING:" ) + cc.warning( " REST call status code is " ) + cc.info( response.statusCode ) + "\n" );
-            joOut = JSON.parse( body );
-            errCall = null;
-        } catch ( err ) {
-            // console.log( "--- --- --- request caught err is", err );
-            log.write( cc.u( joCall.url ) + cc.error( " request error " ) + cc.warning( err.toString() ) + "\n" );
-            joOut = null;
-            errCall = "request error: " + err.toString();
+            await promise_complete;
+            console.log( "--- response received JSON ---", cc.j( joOut ) );
+        } else {
+            try {
+                const response = await urllib.request( joCall.url, {
+                    "method": "POST",
+                    "timeout": g_nConnectionTimeoutSeconds * 1000, // in milliseconds
+                    "headers": {
+                        "Content-Type": "application/json"
+                        // "Accept": "*/*",
+                        // "Content-Length": strBody.length,
+                    },
+                    "content": strBody,
+                    "rejectUnauthorized": false,
+                    // "requestCert": true,
+                    "agent": false,
+                    "httpsAgent": false,
+                    "ca": ( joCall.joRpcOptions && joCall.joRpcOptions.ca && typeof joCall.joRpcOptions.ca == "string" ) ? joCall.joRpcOptions.ca : null,
+                    "cert": ( joCall.joRpcOptions && joCall.joRpcOptions.cert && typeof joCall.joRpcOptions.cert == "string" ) ? joCall.joRpcOptions.cert : null,
+                    "key": ( joCall.joRpcOptions && joCall.joRpcOptions.key && typeof joCall.joRpcOptions.key == "string" ) ? joCall.joRpcOptions.key : null
+                } );
+                // console.log( "--- --- --- response is", response );
+                // console.log( "--- --- --- response.data is", response.data );
+                const body = response.data.toString( "utf8" );
+                // console.log( "--- --- --- response body is", body );
+                if( response && response.statusCode && response.statusCode !== 200 )
+                    log.write( cc.error( "WARNING:" ) + cc.warning( " REST call status code is " ) + cc.info( response.statusCode ) + "\n" );
+                joOut = JSON.parse( body );
+                errCall = null;
+            } catch ( err ) {
+                // console.log( "--- --- --- request caught err is", err );
+                log.write( cc.u( joCall.url ) + cc.error( " request error " ) + cc.warning( err.toString() ) + "\n" );
+                joOut = null;
+                errCall = "request error: " + err.toString();
+            }
         }
         try {
             await fn( joIn, joOut, errCall );

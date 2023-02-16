@@ -1133,7 +1133,7 @@ export async function dry_run_call(
         for( let i = 0; i < arrArguments.length; ++ i ) {
             if( i > 0 )
                 strArgumentsDescription += cc.debug( ", " );
-            strArgumentsDescription += cc.info( arrArguments[i] );
+            strArgumentsDescription += cc.j( arrArguments[i] );
         }
         strArgumentsDescription += cc.debug( " )" );
     } else
@@ -1178,7 +1178,7 @@ export async function payed_call(
         for( let i = 0; i < arrArguments.length; ++ i ) {
             if( i > 0 )
                 strArgumentsDescription += cc.debug( ", " );
-            strArgumentsDescription += cc.info( arrArguments[i] );
+            strArgumentsDescription += cc.j( arrArguments[i] );
         }
         strArgumentsDescription += cc.debug( " )" );
     } else
@@ -1588,7 +1588,7 @@ export async function safe_sign_transaction_with_account( details, w3, tx, rawTx
                 "cert": fs.readFileSync( joAccount.strPathSslCert, "utf8" ),
                 "key": fs.readFileSync( joAccount.strPathSslKey, "utf8" )
             };
-            details.write( cc.debug( "Will sign via SGX with SSL options " ) + cc.j( rpcCallOpts ) + "\n" );
+            // details.write( cc.debug( "Will sign via SGX with SSL options " ) + cc.j( rpcCallOpts ) + "\n" );
         } else
             details.write( cc.warning( "Will sign via SGX" ) + " " + cc.error( "without SSL options" ) + "\n" );
         await rpcCall.create( joAccount.strSgxURL, rpcCallOpts, async function( joCall, err ) {
@@ -5929,7 +5929,7 @@ export class TransactionCustomizer {
             for( let i = 0; i < arrArguments.length; ++ i ) {
                 if( i > 0 )
                     strArgumentsDescription += cc.debug( ", " );
-                strArgumentsDescription += cc.info( arrArguments[i] );
+                strArgumentsDescription += cc.j( arrArguments[i] );
             }
             strArgumentsDescription += cc.debug( " )" );
         } else

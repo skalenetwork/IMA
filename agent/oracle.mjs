@@ -25,8 +25,9 @@
 
 import numberToBN from "number-to-bn";
 
-import { keccak256 } from "js-sha3";
-import * as cc from "../npms/skale-cc/cc.mjs";
+import * as sha3_mod from "sha3";
+
+const Keccak = sha3_mod.Keccak;
 
 export const MIN_POW_RESULT = 10000;
 export const MAX_POW_NUMBER = 100000;
@@ -62,7 +63,13 @@ export function find_pow_number( strRequestPart, details, isVerbose ) {
     for( ; i < MAX_POW_NUMBER; ++ i ) {
         n = "" + i;
         s = "{" + strRequestPart + ",\"time\":" + t + ",\"pow\":" + n + "}";
-        const f = numberToBN( owaspUtils.ensure_starts_with_0x( keccak256( s ) ) );
+        //
+        const hash = new Keccak( 256 );
+        hash.update( s );
+        let strHash = hash.digest( "hex" );
+        strHash = owaspUtils.ensure_starts_with_0x( strHash );
+        //
+        const f = numberToBN( strHash );
         const r = g_bnUpperPart.div( f ); // r = ( 2 ** 256 - 1 ) / f;
         if( r.gt( g_bnMIN_POW_RESULT ) ) { // if( r > MIN_POW_RESULT )
             if( isVerbose ) {

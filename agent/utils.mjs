@@ -30,7 +30,8 @@ import * as os from "os";
 import * as log from "../npms/skale-log/log.mjs";
 import * as cc from "../npms/skale-cc/cc.mjs";
 
-// import { v4 as uuid } from 'uuid';
+import { v4 as uuid } from "uuid";
+export { uuid };
 
 const ethersMod = owaspUtils.ethersMod;
 export { ethersMod };
