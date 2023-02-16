@@ -757,10 +757,10 @@
   resolved "https://registry.yarnpkg.com/@skalenetwork/etherbase-interfaces/-/etherbase-interfaces-0.0.1-develop.20.tgz#33f61e18d695fd47063aa39dce4df335d26b9528"
   integrity sha512-j3xnuQtOtjvjAoUMJgSUFxRa9/Egkg1RyA8r6PjcEb33VksE4LWLBy0PNFUFehLZv48595JROTcViGeXXwg5HQ==
 
-"@skalenetwork/ima-interfaces@^1.1.0-onboarding.0":
-  version "1.1.0-onboarding.0"
-  resolved "https://registry.yarnpkg.com/@skalenetwork/ima-interfaces/-/ima-interfaces-1.1.0-onboarding.0.tgz#1885bf4f32e8b3d476ed65a9a1e4504116bdef4e"
-  integrity sha512-vlucoXUlVZoISB3aXsn+yVxkfTncqqfxhVeG5g74C5jhl0pU8Ys5zaIE/YuiTmj4Noq57MfGeh+PQ+yzjxNihA==
+"@skalenetwork/ima-interfaces@^2.0.0-beta.0":
+  version "2.0.0-develop.0"
+  resolved "https://registry.yarnpkg.com/@skalenetwork/ima-interfaces/-/ima-interfaces-2.0.0-develop.0.tgz#2db130e63278f7a00bd848a4f2e10dda61e353fb"
+  integrity sha512-vSDY3vcuuUUBDMM3fifU++HPl2W9c2VSjkFK68r5Hc1Sc0VMYWcdfpx9yRwvp5NKY/B78+k80661GJHn+vuCCQ==
   dependencies:
     "@skalenetwork/skale-manager-interfaces" "^0.1.2"
 

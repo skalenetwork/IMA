@@ -9,7 +9,7 @@ import hre from "hardhat";
 
 async function main() {
     await upgrade(
-        "1.3.4",
+        "1.4.0",
         contracts,
         async (safeTransactions, abi) => undefined,
         async (safeTransactions, abi) => undefined,
