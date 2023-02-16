@@ -1,9 +1,0 @@
-[IMPORTANT]
-====
-There is a bug in the current IMA version where the `CHAIN_CONNECTOR_ROLE` is unassigned at deployment. In order to connect other chains to support S2S transfers, you must first assign this role to TokenManagerLinker.
-
-```javascript
-await MessageProxyForSchain.grantRole(CHAIN_CONNECTOR_ROLE, TokenManagerLinker.address)
-```
-
-====

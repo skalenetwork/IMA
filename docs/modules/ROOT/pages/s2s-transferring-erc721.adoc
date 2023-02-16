@@ -12,10 +12,6 @@ Once you have completed step 1 to setup ERC721 tokens with another chain, end-us
 
 The following one-time setup is required for SKALE Chains with a default access control policy (default settings are: whitelisting enabled, automatic deployment disabled). For more information on IMA access control, xref:access-control.adoc[see here].
 
-=== 0. Assign role
-
-include::partial$missing-chain-connector-role.adoc[]
-
 === 1. Connect each SKALE Chain
 
 You must connect each chain in both directions by executing two connectSchain() transaction on each respective chain.
