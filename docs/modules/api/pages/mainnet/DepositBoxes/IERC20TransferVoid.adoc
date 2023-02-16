@@ -1050,193 +1050,34 @@
 :xref-ERC1155ReceiverUpgradeableWithoutGap-__ERC1155Receiver_init--: xref:thirdparty/erc1155receiverupgradeablewithoutgap.adoc#ERC1155ReceiverUpgradeableWithoutGap-__ERC1155Receiver_init--
 :ERC1155ReceiverUpgradeableWithoutGap-__ERC1155Receiver_init_unchained: pass:normal[xref:thirdparty/erc1155receiverupgradeablewithoutgap.adoc#ERC1155ReceiverUpgradeableWithoutGap-__ERC1155Receiver_init_unchained--[`ERC1155ReceiverUpgradeableWithoutGap.__ERC1155Receiver_init_unchained`]]
 :xref-ERC1155ReceiverUpgradeableWithoutGap-__ERC1155Receiver_init_unchained--: xref:thirdparty/erc1155receiverupgradeablewithoutgap.adoc#ERC1155ReceiverUpgradeableWithoutGap-__ERC1155Receiver_init_unchained--
-:MessageProxyForSchain: pass:normal[xref:#MessageProxyForSchain[`++MessageProxyForSchain++`]]
-:messageInProgressLocker: pass:normal[xref:#MessageProxyForSchain-messageInProgressLocker--[`++messageInProgressLocker++`]]
-:ETHERBASE: pass:normal[xref:#MessageProxyForSchain-ETHERBASE-contract-IEtherbaseUpgradeable[`++ETHERBASE++`]]
-:MINIMUM_BALANCE: pass:normal[xref:#MessageProxyForSchain-MINIMUM_BALANCE-uint256[`++MINIMUM_BALANCE++`]]
-:keyStorage: pass:normal[xref:#MessageProxyForSchain-keyStorage-contract-IKeyStorage[`++keyStorage++`]]
-:schainHash: pass:normal[xref:#MessageProxyForSchain-schainHash-bytes32[`++schainHash++`]]
-:version: pass:normal[xref:#MessageProxyForSchain-version-string[`++version++`]]
-:messageInProgress: pass:normal[xref:#MessageProxyForSchain-messageInProgress-bool[`++messageInProgress++`]]
-:registerExtraContract: pass:normal[xref:#MessageProxyForSchain-registerExtraContract-string-address-[`++registerExtraContract++`]]
-:removeExtraContract: pass:normal[xref:#MessageProxyForSchain-removeExtraContract-string-address-[`++removeExtraContract++`]]
-:addConnectedChain: pass:normal[xref:#MessageProxyForSchain-addConnectedChain-string-[`++addConnectedChain++`]]
-:postIncomingMessages: pass:normal[xref:#MessageProxyForSchain-postIncomingMessages-string-uint256-struct-IMessageProxy-Message---struct-IMessageProxy-Signature-[`++postIncomingMessages++`]]
-:setVersion: pass:normal[xref:#MessageProxyForSchain-setVersion-string-[`++setVersion++`]]
-:verifyOutgoingMessageData: pass:normal[xref:#MessageProxyForSchain-verifyOutgoingMessageData-struct-IMessageProxyForSchain-OutgoingMessageData-[`++verifyOutgoingMessageData++`]]
-:verifySignature: pass:normal[xref:#MessageProxyForSchain-verifySignature-bytes32-struct-IMessageProxy-Signature-[`++verifySignature++`]]
-:initialize: pass:normal[xref:#MessageProxyForSchain-initialize-contract-IKeyStorage-string-[`++initialize++`]]
-:removeConnectedChain: pass:normal[xref:#MessageProxyForSchain-removeConnectedChain-string-[`++removeConnectedChain++`]]
-:postOutgoingMessage: pass:normal[xref:#MessageProxyForSchain-postOutgoingMessage-bytes32-address-bytes-[`++postOutgoingMessage++`]]
-:_verifyMessages: pass:normal[xref:#MessageProxyForSchain-_verifyMessages-bytes32-struct-IMessageProxy-Signature-[`++_verifyMessages++`]]
-:_getRegistryContracts: pass:normal[xref:#MessageProxyForSchain-_getRegistryContracts--[`++_getRegistryContracts++`]]
-:_getEtherbase: pass:normal[xref:#MessageProxyForSchain-_getEtherbase--[`++_getEtherbase++`]]
+:IERC20TransferVoid: pass:normal[xref:#IERC20TransferVoid[`++IERC20TransferVoid++`]]
+:transferFrom: pass:normal[xref:#IERC20TransferVoid-transferFrom-address-address-uint256-[`++transferFrom++`]]
+:transfer: pass:normal[xref:#IERC20TransferVoid-transfer-address-uint256-[`++transfer++`]]
 
 [.contract]
-[[MessageProxyForSchain]]
-= MessageProxyForSchain
+[[IERC20TransferVoid]]
+= IERC20TransferVoid
 
-Entry point for messages that come from mainnet or other SKALE chains
-and contract that emits messages for mainnet or other SKALE chains.
 
-Messages are submitted by IMA-agent and secured with threshold signature.
 
-IMA-agent monitors events of {MessageProxyForSchain} and sends messages to other chains.
-
-NOTE: 16 Agents
-Synchronize time with time.nist.gov
-Every agent checks if it is their time slot
-Time slots are in increments of 5 minutes
-At the start of their slot each agent:
-For each connected schain:
-Read incoming counter on the dst chain
-Read outgoing counter on the src chain
-Calculate the difference outgoing - incoming
-Call postIncomingMessages function passing (un)signed message array
-ID of this schain, Chain 0 represents ETH mainnet,
-
-[.contract-index]
-.Modifiers
---
-* {xref-MessageProxyForSchain-messageInProgressLocker--}[`++messageInProgressLocker()++`]
---
 
 [.contract-index]
 .Functions
 --
-* {xref-MessageProxyForSchain-registerExtraContract-string-address-}[`++registerExtraContract(chainName, extraContract)++`]
-* {xref-MessageProxyForSchain-removeExtraContract-string-address-}[`++removeExtraContract(chainName, extraContract)++`]
-* {xref-MessageProxyForSchain-addConnectedChain-string-}[`++addConnectedChain(chainName)++`]
-* {xref-MessageProxyForSchain-postIncomingMessages-string-uint256-struct-IMessageProxy-Message---struct-IMessageProxy-Signature-}[`++postIncomingMessages(fromChainName, startingCounter, messages, signature)++`]
-* {xref-MessageProxyForSchain-setVersion-string-}[`++setVersion(newVersion)++`]
-* {xref-MessageProxyForSchain-verifyOutgoingMessageData-struct-IMessageProxyForSchain-OutgoingMessageData-}[`++verifyOutgoingMessageData(message)++`]
-* {xref-MessageProxyForSchain-verifySignature-bytes32-struct-IMessageProxy-Signature-}[`++verifySignature(hashedMessage, signature)++`]
-* {xref-MessageProxyForSchain-initialize-contract-IKeyStorage-string-}[`++initialize(blsKeyStorage, schainName)++`]
-* {xref-MessageProxyForSchain-removeConnectedChain-string-}[`++removeConnectedChain(chainName)++`]
-* {xref-MessageProxyForSchain-postOutgoingMessage-bytes32-address-bytes-}[`++postOutgoingMessage(targetChainHash, targetContract, data)++`]
-* {xref-MessageProxyForSchain-_verifyMessages-bytes32-struct-IMessageProxy-Signature-}[`++_verifyMessages(hashedMessages, signature)++`]
-* {xref-MessageProxyForSchain-_getRegistryContracts--}[`++_getRegistryContracts()++`]
-* {xref-MessageProxyForSchain-_getEtherbase--}[`++_getEtherbase()++`]
+* {xref-IERC20TransferVoid-transferFrom-address-address-uint256-}[`++transferFrom(_from, _to, _amount)++`]
+* {xref-IERC20TransferVoid-transfer-address-uint256-}[`++transfer(_to, _amount)++`]
 --
 
-[.contract-index]
-.Events
---
---
-
-[.contract-item]
-== +++<a class="heading-anchor" area-hidden="true" name=MessageProxyForSchain-messageInProgressLocker-->messageInProgressLocker</a>+++ `++messageInProgressLocker()++` [.item-kind]#modifier#
-
-Reentrancy guard for postIncomingMessages.
 
 
 [.contract-item]
-== +++<a class="heading-anchor" area-hidden="true" name=MessageProxyForSchain-registerExtraContract-string-address->registerExtraContract</a>+++ `++registerExtraContract(++[.var-type]#++string++#++ ++[.var-name]#++chainName++#++, ++[.var-type]#++address++#++ ++[.var-name]#++extraContract++#++)++` [.item-kind]#external#
+== +++<a class="heading-anchor" area-hidden="true" name=IERC20TransferVoid-transferFrom-address-address-uint256->transferFrom</a>+++ `++transferFrom(++[.var-type]#++address++#++ ++[.var-name]#++_from++#++, ++[.var-type]#++address++#++ ++[.var-name]#++_to++#++, ++[.var-type]#++uint256++#++ ++[.var-name]#++_amount++#++)++` [.item-kind]#external#
 
-Allows MessageProxy to register extra contract for being able to transfer messages from custom contracts.
 
-Requirements:
-
-- Function caller has to be granted with {EXTRA_CONTRACT_REGISTRAR_ROLE}.
-- Destination chain hash cannot be equal to itself
 
 [.contract-item]
-== +++<a class="heading-anchor" area-hidden="true" name=MessageProxyForSchain-removeExtraContract-string-address->removeExtraContract</a>+++ `++removeExtraContract(++[.var-type]#++string++#++ ++[.var-name]#++chainName++#++, ++[.var-type]#++address++#++ ++[.var-name]#++extraContract++#++)++` [.item-kind]#external#
+== +++<a class="heading-anchor" area-hidden="true" name=IERC20TransferVoid-transfer-address-uint256->transfer</a>+++ `++transfer(++[.var-type]#++address++#++ ++[.var-name]#++_to++#++, ++[.var-type]#++uint256++#++ ++[.var-name]#++_amount++#++)++` [.item-kind]#external#
 
-Allows MessageProxy to remove extra contract,
-thus `extraContract` will no longer be available to transfer messages from chain to chain.
 
-Requirements:
-
-- Function caller has to be granted with {EXTRA_CONTRACT_REGISTRAR_ROLE}.
-- Destination chain hash cannot be equal to itself
-
-[.contract-item]
-== +++<a class="heading-anchor" area-hidden="true" name=MessageProxyForSchain-addConnectedChain-string->addConnectedChain</a>+++ `++addConnectedChain(++[.var-type]#++string++#++ ++[.var-name]#++chainName++#++)++` [.item-kind]#external#
-
-Link external chain.
-
-NOTE: Mainnet is linked automatically.
-
-Requirements:
-
-- Function caller has to be granted with {CHAIN_CONNECTOR_ROLE}.
-- Target chain must be different from the current.
-
-[.contract-item]
-== +++<a class="heading-anchor" area-hidden="true" name=MessageProxyForSchain-postIncomingMessages-string-uint256-struct-IMessageProxy-Message---struct-IMessageProxy-Signature->postIncomingMessages</a>+++ `++postIncomingMessages(++[.var-type]#++string++#++ ++[.var-name]#++fromChainName++#++, ++[.var-type]#++uint256++#++ ++[.var-name]#++startingCounter++#++, ++[.var-type]#++struct IMessageProxy.Message[]++#++ ++[.var-name]#++messages++#++, ++[.var-type]#++struct IMessageProxy.Signature++#++ ++[.var-name]#++signature++#++)++` [.item-kind]#external#
-
-Entry point for incoming messages.
-This function is called by IMA-agent to deliver incoming messages from external chains.
-
-Requirements:
-
-- Origin chain has to be registered.
-- Amount of messages must be no more than {MESSAGES_LENGTH}.
-- Messages batch has to be signed with threshold signature.
-by super majority of current SKALE chain nodes.
-- All previous messages must be already delivered.
-
-[.contract-item]
-== +++<a class="heading-anchor" area-hidden="true" name=MessageProxyForSchain-setVersion-string->setVersion</a>+++ `++setVersion(++[.var-type]#++string++#++ ++[.var-name]#++newVersion++#++)++` [.item-kind]#external#
-
-Sets new version of contracts on schain
-
-Requirements:
-
-- `msg.sender` must be granted DEFAULT_ADMIN_ROLE.
-
-[.contract-item]
-== +++<a class="heading-anchor" area-hidden="true" name=MessageProxyForSchain-verifyOutgoingMessageData-struct-IMessageProxyForSchain-OutgoingMessageData->verifyOutgoingMessageData</a>+++ `++verifyOutgoingMessageData(++[.var-type]#++struct IMessageProxyForSchain.OutgoingMessageData++#++ ++[.var-name]#++message++#++) → ++[.var-type]#++bool++#++ ++[.var-name]#++isValidMessage++#++++` [.item-kind]#external#
-
-Verify if the message metadata is valid.
-
-[.contract-item]
-== +++<a class="heading-anchor" area-hidden="true" name=MessageProxyForSchain-verifySignature-bytes32-struct-IMessageProxy-Signature->verifySignature</a>+++ `++verifySignature(++[.var-type]#++bytes32++#++ ++[.var-name]#++hashedMessage++#++, ++[.var-type]#++struct IMessageProxy.Signature++#++ ++[.var-name]#++signature++#++) → ++[.var-type]#++bool++#++++` [.item-kind]#external#
-
-Verify signature of hashed message
-
-[.contract-item]
-== +++<a class="heading-anchor" area-hidden="true" name=MessageProxyForSchain-initialize-contract-IKeyStorage-string->initialize</a>+++ `++initialize(++[.var-type]#++contract IKeyStorage++#++ ++[.var-name]#++blsKeyStorage++#++, ++[.var-type]#++string++#++ ++[.var-name]#++schainName++#++)++` [.item-kind]#public#
-
-Is called once during contract deployment.
-
-[.contract-item]
-== +++<a class="heading-anchor" area-hidden="true" name=MessageProxyForSchain-removeConnectedChain-string->removeConnectedChain</a>+++ `++removeConnectedChain(++[.var-type]#++string++#++ ++[.var-name]#++chainName++#++)++` [.item-kind]#public#
-
-Unlink external SKALE chain.
-
-Requirements:
-
-- Function caller has to be granted with {CHAIN_CONNECTOR_ROLE}.
-- Target chain must be different from Mainnet.
-
-[.contract-item]
-== +++<a class="heading-anchor" area-hidden="true" name=MessageProxyForSchain-postOutgoingMessage-bytes32-address-bytes->postOutgoingMessage</a>+++ `++postOutgoingMessage(++[.var-type]#++bytes32++#++ ++[.var-name]#++targetChainHash++#++, ++[.var-type]#++address++#++ ++[.var-name]#++targetContract++#++, ++[.var-type]#++bytes++#++ ++[.var-name]#++data++#++)++` [.item-kind]#public#
-
-This function is called by a smart contract
-that wants to make a cross-chain call.
-
-Requirements:
-
-- Destination chain has to be registered.
-- Sender contract has to be registered.
-
-[.contract-item]
-== +++<a class="heading-anchor" area-hidden="true" name=MessageProxyForSchain-_verifyMessages-bytes32-struct-IMessageProxy-Signature->_verifyMessages</a>+++ `++_verifyMessages(++[.var-type]#++bytes32++#++ ++[.var-name]#++hashedMessages++#++, ++[.var-type]#++struct IMessageProxy.Signature++#++ ++[.var-name]#++signature++#++) → ++[.var-type]#++bool++#++++` [.item-kind]#internal#
-
-Converts calldata structure to memory structure and checks
-whether message BLS signature is valid.
-Returns true if signature is valid.
-
-[.contract-item]
-== +++<a class="heading-anchor" area-hidden="true" name=MessageProxyForSchain-_getRegistryContracts-->_getRegistryContracts</a>+++ `++_getRegistryContracts() → ++[.var-type]#++mapping(bytes32 => struct EnumerableSetUpgradeable.AddressSet)++#++++` [.item-kind]#internal#
-
-Returns list of registered custom extra contracts.
-
-[.contract-item]
-== +++<a class="heading-anchor" area-hidden="true" name=MessageProxyForSchain-_getEtherbase-->_getEtherbase</a>+++ `++_getEtherbase() → ++[.var-type]#++contract IEtherbaseUpgradeable++#++++` [.item-kind]#internal#
-
-Returns Etherbase contract
 
 

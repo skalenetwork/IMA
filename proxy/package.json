@@ -35,7 +35,9 @@
         "ethers": "^5.4.7",
         "ethers-eip712": "^0.2.0",
         "hardhat": "^2.5.0",
+        "lodash.startcase": "4.4.0",
         "path": "^0.12.7",
+        "solidity-docgen": "0.5.16",
         "web3": "^1.6.1"
     },
     "devDependencies": {

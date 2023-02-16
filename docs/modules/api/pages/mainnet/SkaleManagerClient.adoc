@@ -16,6 +16,8 @@
 :xref-MessageProxy-CONSTANT_SETTER_ROLE-bytes32: xref:./messageproxy.adoc#MessageProxy-CONSTANT_SETTER_ROLE-bytes32
 :MessageProxy-MESSAGES_LENGTH: pass:normal[xref:./messageproxy.adoc#MessageProxy-MESSAGES_LENGTH-uint256[`MessageProxy.MESSAGES_LENGTH`]]
 :xref-MessageProxy-MESSAGES_LENGTH-uint256: xref:./messageproxy.adoc#MessageProxy-MESSAGES_LENGTH-uint256
+:MessageProxy-REVERT_REASON_LENGTH: pass:normal[xref:./messageproxy.adoc#MessageProxy-REVERT_REASON_LENGTH-uint256[`MessageProxy.REVERT_REASON_LENGTH`]]
+:xref-MessageProxy-REVERT_REASON_LENGTH-uint256: xref:./messageproxy.adoc#MessageProxy-REVERT_REASON_LENGTH-uint256
 :MessageProxy-connectedChains: pass:normal[xref:./messageproxy.adoc#MessageProxy-connectedChains-mapping-bytes32----struct-MessageProxy-ConnectedChainInfo-[`MessageProxy.connectedChains`]]
 :xref-MessageProxy-connectedChains-mapping-bytes32----struct-MessageProxy-ConnectedChainInfo-: xref:./messageproxy.adoc#MessageProxy-connectedChains-mapping-bytes32----struct-MessageProxy-ConnectedChainInfo-
 :MessageProxy-deprecatedRegistryContracts: pass:normal[xref:./messageproxy.adoc#MessageProxy-deprecatedRegistryContracts-mapping-bytes32----mapping-address----bool--[`MessageProxy.deprecatedRegistryContracts`]]
@@ -62,8 +64,8 @@
 :xref-MessageProxy-_authorizeOutgoingMessageSender-bytes32-: xref:./messageproxy.adoc#MessageProxy-_authorizeOutgoingMessageSender-bytes32-
 :MessageProxy-_getRegistryContracts: pass:normal[xref:./messageproxy.adoc#MessageProxy-_getRegistryContracts--[`MessageProxy._getRegistryContracts`]]
 :xref-MessageProxy-_getRegistryContracts--: xref:./messageproxy.adoc#MessageProxy-_getRegistryContracts--
-:MessageProxy-_hashedArray: pass:normal[xref:./messageproxy.adoc#MessageProxy-_hashedArray-struct-IMessageProxy-Message---[`MessageProxy._hashedArray`]]
-:xref-MessageProxy-_hashedArray-struct-IMessageProxy-Message---: xref:./messageproxy.adoc#MessageProxy-_hashedArray-struct-IMessageProxy-Message---
+:MessageProxy-_hashedArray: pass:normal[xref:./messageproxy.adoc#MessageProxy-_hashedArray-struct-IMessageProxy-Message---uint256-string-[`MessageProxy._hashedArray`]]
+:xref-MessageProxy-_hashedArray-struct-IMessageProxy-Message---uint256-string-: xref:./messageproxy.adoc#MessageProxy-_hashedArray-struct-IMessageProxy-Message---uint256-string-
 :MessageProxy-OutgoingMessage: pass:normal[xref:./messageproxy.adoc#MessageProxy-OutgoingMessage-bytes32-uint256-address-address-bytes-[`MessageProxy.OutgoingMessage`]]
 :xref-MessageProxy-OutgoingMessage-bytes32-uint256-address-address-bytes-: xref:./messageproxy.adoc#MessageProxy-OutgoingMessage-bytes32-uint256-address-address-bytes-
 :MessageProxy-PostMessageError: pass:normal[xref:./messageproxy.adoc#MessageProxy-PostMessageError-uint256-bytes-[`MessageProxy.PostMessageError`]]
@@ -76,6 +78,8 @@
 :xref-MessageProxy-ExtraContractRegistered-bytes32-address-: xref:./messageproxy.adoc#MessageProxy-ExtraContractRegistered-bytes32-address-
 :MessageProxy-ExtraContractRemoved: pass:normal[xref:./messageproxy.adoc#MessageProxy-ExtraContractRemoved-bytes32-address-[`MessageProxy.ExtraContractRemoved`]]
 :xref-MessageProxy-ExtraContractRemoved-bytes32-address-: xref:./messageproxy.adoc#MessageProxy-ExtraContractRemoved-bytes32-address-
+:MessageProxy-ConnectedChainInfo: pass:normal[xref:./messageproxy.adoc#MessageProxy-ConnectedChainInfo[`MessageProxy.ConnectedChainInfo`]]
+:xref-MessageProxy-ConnectedChainInfo: xref:./messageproxy.adoc#MessageProxy-ConnectedChainInfo
 :Messages: pass:normal[xref:./messages.adoc#Messages[`Messages`]]
 :xref-Messages: xref:./messages.adoc#Messages
 :Messages-getMessageType: pass:normal[xref:./messages.adoc#Messages-getMessageType-bytes-[`Messages.getMessageType`]]
@@ -104,6 +108,14 @@
 :xref-Messages-encodeTransferErc721AndTokenInfoMessage-address-address-uint256-struct-Messages-Erc721TokenInfo-: xref:./messages.adoc#Messages-encodeTransferErc721AndTokenInfoMessage-address-address-uint256-struct-Messages-Erc721TokenInfo-
 :Messages-decodeTransferErc721AndTokenInfoMessage: pass:normal[xref:./messages.adoc#Messages-decodeTransferErc721AndTokenInfoMessage-bytes-[`Messages.decodeTransferErc721AndTokenInfoMessage`]]
 :xref-Messages-decodeTransferErc721AndTokenInfoMessage-bytes-: xref:./messages.adoc#Messages-decodeTransferErc721AndTokenInfoMessage-bytes-
+:Messages-encodeTransferErc721MessageWithMetadata: pass:normal[xref:./messages.adoc#Messages-encodeTransferErc721MessageWithMetadata-address-address-uint256-string-[`Messages.encodeTransferErc721MessageWithMetadata`]]
+:xref-Messages-encodeTransferErc721MessageWithMetadata-address-address-uint256-string-: xref:./messages.adoc#Messages-encodeTransferErc721MessageWithMetadata-address-address-uint256-string-
+:Messages-decodeTransferErc721MessageWithMetadata: pass:normal[xref:./messages.adoc#Messages-decodeTransferErc721MessageWithMetadata-bytes-[`Messages.decodeTransferErc721MessageWithMetadata`]]
+:xref-Messages-decodeTransferErc721MessageWithMetadata-bytes-: xref:./messages.adoc#Messages-decodeTransferErc721MessageWithMetadata-bytes-
+:Messages-encodeTransferErc721WithMetadataAndTokenInfoMessage: pass:normal[xref:./messages.adoc#Messages-encodeTransferErc721WithMetadataAndTokenInfoMessage-address-address-uint256-string-struct-Messages-Erc721TokenInfo-[`Messages.encodeTransferErc721WithMetadataAndTokenInfoMessage`]]
+:xref-Messages-encodeTransferErc721WithMetadataAndTokenInfoMessage-address-address-uint256-string-struct-Messages-Erc721TokenInfo-: xref:./messages.adoc#Messages-encodeTransferErc721WithMetadataAndTokenInfoMessage-address-address-uint256-string-struct-Messages-Erc721TokenInfo-
+:Messages-decodeTransferErc721WithMetadataAndTokenInfoMessage: pass:normal[xref:./messages.adoc#Messages-decodeTransferErc721WithMetadataAndTokenInfoMessage-bytes-[`Messages.decodeTransferErc721WithMetadataAndTokenInfoMessage`]]
+:xref-Messages-decodeTransferErc721WithMetadataAndTokenInfoMessage-bytes-: xref:./messages.adoc#Messages-decodeTransferErc721WithMetadataAndTokenInfoMessage-bytes-
 :Messages-encodeActivateUserMessage: pass:normal[xref:./messages.adoc#Messages-encodeActivateUserMessage-address-[`Messages.encodeActivateUserMessage`]]
 :xref-Messages-encodeActivateUserMessage-address-: xref:./messages.adoc#Messages-encodeActivateUserMessage-address-
 :Messages-encodeLockUserMessage: pass:normal[xref:./messages.adoc#Messages-encodeLockUserMessage-address-[`Messages.encodeLockUserMessage`]]
@@ -130,6 +142,44 @@
 :xref-Messages-encodeTransferErc1155BatchAndTokenInfoMessage-address-address-uint256---uint256---struct-Messages-Erc1155TokenInfo-: xref:./messages.adoc#Messages-encodeTransferErc1155BatchAndTokenInfoMessage-address-address-uint256---uint256---struct-Messages-Erc1155TokenInfo-
 :Messages-decodeTransferErc1155BatchAndTokenInfoMessage: pass:normal[xref:./messages.adoc#Messages-decodeTransferErc1155BatchAndTokenInfoMessage-bytes-[`Messages.decodeTransferErc1155BatchAndTokenInfoMessage`]]
 :xref-Messages-decodeTransferErc1155BatchAndTokenInfoMessage-bytes-: xref:./messages.adoc#Messages-decodeTransferErc1155BatchAndTokenInfoMessage-bytes-
+:Messages-BaseMessage: pass:normal[xref:./messages.adoc#Messages-BaseMessage[`Messages.BaseMessage`]]
+:xref-Messages-BaseMessage: xref:./messages.adoc#Messages-BaseMessage
+:Messages-TransferEthMessage: pass:normal[xref:./messages.adoc#Messages-TransferEthMessage[`Messages.TransferEthMessage`]]
+:xref-Messages-TransferEthMessage: xref:./messages.adoc#Messages-TransferEthMessage
+:Messages-UserStatusMessage: pass:normal[xref:./messages.adoc#Messages-UserStatusMessage[`Messages.UserStatusMessage`]]
+:xref-Messages-UserStatusMessage: xref:./messages.adoc#Messages-UserStatusMessage
+:Messages-TransferErc20Message: pass:normal[xref:./messages.adoc#Messages-TransferErc20Message[`Messages.TransferErc20Message`]]
+:xref-Messages-TransferErc20Message: xref:./messages.adoc#Messages-TransferErc20Message
+:Messages-Erc20TokenInfo: pass:normal[xref:./messages.adoc#Messages-Erc20TokenInfo[`Messages.Erc20TokenInfo`]]
+:xref-Messages-Erc20TokenInfo: xref:./messages.adoc#Messages-Erc20TokenInfo
+:Messages-TransferErc20AndTotalSupplyMessage: pass:normal[xref:./messages.adoc#Messages-TransferErc20AndTotalSupplyMessage[`Messages.TransferErc20AndTotalSupplyMessage`]]
+:xref-Messages-TransferErc20AndTotalSupplyMessage: xref:./messages.adoc#Messages-TransferErc20AndTotalSupplyMessage
+:Messages-TransferErc20AndTokenInfoMessage: pass:normal[xref:./messages.adoc#Messages-TransferErc20AndTokenInfoMessage[`Messages.TransferErc20AndTokenInfoMessage`]]
+:xref-Messages-TransferErc20AndTokenInfoMessage: xref:./messages.adoc#Messages-TransferErc20AndTokenInfoMessage
+:Messages-TransferErc721Message: pass:normal[xref:./messages.adoc#Messages-TransferErc721Message[`Messages.TransferErc721Message`]]
+:xref-Messages-TransferErc721Message: xref:./messages.adoc#Messages-TransferErc721Message
+:Messages-TransferErc721MessageWithMetadata: pass:normal[xref:./messages.adoc#Messages-TransferErc721MessageWithMetadata[`Messages.TransferErc721MessageWithMetadata`]]
+:xref-Messages-TransferErc721MessageWithMetadata: xref:./messages.adoc#Messages-TransferErc721MessageWithMetadata
+:Messages-Erc721TokenInfo: pass:normal[xref:./messages.adoc#Messages-Erc721TokenInfo[`Messages.Erc721TokenInfo`]]
+:xref-Messages-Erc721TokenInfo: xref:./messages.adoc#Messages-Erc721TokenInfo
+:Messages-TransferErc721AndTokenInfoMessage: pass:normal[xref:./messages.adoc#Messages-TransferErc721AndTokenInfoMessage[`Messages.TransferErc721AndTokenInfoMessage`]]
+:xref-Messages-TransferErc721AndTokenInfoMessage: xref:./messages.adoc#Messages-TransferErc721AndTokenInfoMessage
+:Messages-TransferErc721WithMetadataAndTokenInfoMessage: pass:normal[xref:./messages.adoc#Messages-TransferErc721WithMetadataAndTokenInfoMessage[`Messages.TransferErc721WithMetadataAndTokenInfoMessage`]]
+:xref-Messages-TransferErc721WithMetadataAndTokenInfoMessage: xref:./messages.adoc#Messages-TransferErc721WithMetadataAndTokenInfoMessage
+:Messages-InterchainConnectionMessage: pass:normal[xref:./messages.adoc#Messages-InterchainConnectionMessage[`Messages.InterchainConnectionMessage`]]
+:xref-Messages-InterchainConnectionMessage: xref:./messages.adoc#Messages-InterchainConnectionMessage
+:Messages-TransferErc1155Message: pass:normal[xref:./messages.adoc#Messages-TransferErc1155Message[`Messages.TransferErc1155Message`]]
+:xref-Messages-TransferErc1155Message: xref:./messages.adoc#Messages-TransferErc1155Message
+:Messages-TransferErc1155BatchMessage: pass:normal[xref:./messages.adoc#Messages-TransferErc1155BatchMessage[`Messages.TransferErc1155BatchMessage`]]
+:xref-Messages-TransferErc1155BatchMessage: xref:./messages.adoc#Messages-TransferErc1155BatchMessage
+:Messages-Erc1155TokenInfo: pass:normal[xref:./messages.adoc#Messages-Erc1155TokenInfo[`Messages.Erc1155TokenInfo`]]
+:xref-Messages-Erc1155TokenInfo: xref:./messages.adoc#Messages-Erc1155TokenInfo
+:Messages-TransferErc1155AndTokenInfoMessage: pass:normal[xref:./messages.adoc#Messages-TransferErc1155AndTokenInfoMessage[`Messages.TransferErc1155AndTokenInfoMessage`]]
+:xref-Messages-TransferErc1155AndTokenInfoMessage: xref:./messages.adoc#Messages-TransferErc1155AndTokenInfoMessage
+:Messages-TransferErc1155BatchAndTokenInfoMessage: pass:normal[xref:./messages.adoc#Messages-TransferErc1155BatchAndTokenInfoMessage[`Messages.TransferErc1155BatchAndTokenInfoMessage`]]
+:xref-Messages-TransferErc1155BatchAndTokenInfoMessage: xref:./messages.adoc#Messages-TransferErc1155BatchAndTokenInfoMessage
+:Messages-MessageType: pass:normal[xref:./messages.adoc#Messages-MessageType[`Messages.MessageType`]]
+:xref-Messages-MessageType: xref:./messages.adoc#Messages-MessageType
 :ERC721ReferenceMintAndMetadataMainnet: pass:normal[xref:extensions/erc721referencemintandmetadatamainnet.adoc#ERC721ReferenceMintAndMetadataMainnet[`ERC721ReferenceMintAndMetadataMainnet`]]
 :xref-ERC721ReferenceMintAndMetadataMainnet: xref:extensions/erc721referencemintandmetadatamainnet.adoc#ERC721ReferenceMintAndMetadataMainnet
 :ERC721ReferenceMintAndMetadataMainnet-onlyOwner: pass:normal[xref:extensions/erc721referencemintandmetadatamainnet.adoc#ERC721ReferenceMintAndMetadataMainnet-onlyOwner--[`ERC721ReferenceMintAndMetadataMainnet.onlyOwner`]]
@@ -190,6 +240,10 @@
 :xref-CommunityPool-activeUsers-mapping-address----mapping-bytes32----bool--: xref:mainnet/communitypool.adoc#CommunityPool-activeUsers-mapping-address----mapping-bytes32----bool--
 :CommunityPool-minTransactionGas: pass:normal[xref:mainnet/communitypool.adoc#CommunityPool-minTransactionGas-uint256[`CommunityPool.minTransactionGas`]]
 :xref-CommunityPool-minTransactionGas-uint256: xref:mainnet/communitypool.adoc#CommunityPool-minTransactionGas-uint256
+:CommunityPool-multiplierNumerator: pass:normal[xref:mainnet/communitypool.adoc#CommunityPool-multiplierNumerator-uint256[`CommunityPool.multiplierNumerator`]]
+:xref-CommunityPool-multiplierNumerator-uint256: xref:mainnet/communitypool.adoc#CommunityPool-multiplierNumerator-uint256
+:CommunityPool-multiplierDivider: pass:normal[xref:mainnet/communitypool.adoc#CommunityPool-multiplierDivider-uint256[`CommunityPool.multiplierDivider`]]
+:xref-CommunityPool-multiplierDivider-uint256: xref:mainnet/communitypool.adoc#CommunityPool-multiplierDivider-uint256
 :CommunityPool-initialize: pass:normal[xref:mainnet/communitypool.adoc#CommunityPool-initialize-contract-IContractManager-contract-ILinker-contract-IMessageProxyForMainnet-[`CommunityPool.initialize`]]
 :xref-CommunityPool-initialize-contract-IContractManager-contract-ILinker-contract-IMessageProxyForMainnet-: xref:mainnet/communitypool.adoc#CommunityPool-initialize-contract-IContractManager-contract-ILinker-contract-IMessageProxyForMainnet-
 :CommunityPool-refundGasByUser: pass:normal[xref:mainnet/communitypool.adoc#CommunityPool-refundGasByUser-bytes32-address-payable-address-uint256-[`CommunityPool.refundGasByUser`]]
@@ -202,12 +256,18 @@
 :xref-CommunityPool-withdrawFunds-string-uint256-: xref:mainnet/communitypool.adoc#CommunityPool-withdrawFunds-string-uint256-
 :CommunityPool-setMinTransactionGas: pass:normal[xref:mainnet/communitypool.adoc#CommunityPool-setMinTransactionGas-uint256-[`CommunityPool.setMinTransactionGas`]]
 :xref-CommunityPool-setMinTransactionGas-uint256-: xref:mainnet/communitypool.adoc#CommunityPool-setMinTransactionGas-uint256-
+:CommunityPool-setMultiplier: pass:normal[xref:mainnet/communitypool.adoc#CommunityPool-setMultiplier-uint256-uint256-[`CommunityPool.setMultiplier`]]
+:xref-CommunityPool-setMultiplier-uint256-uint256-: xref:mainnet/communitypool.adoc#CommunityPool-setMultiplier-uint256-uint256-
 :CommunityPool-getBalance: pass:normal[xref:mainnet/communitypool.adoc#CommunityPool-getBalance-address-string-[`CommunityPool.getBalance`]]
 :xref-CommunityPool-getBalance-address-string-: xref:mainnet/communitypool.adoc#CommunityPool-getBalance-address-string-
 :CommunityPool-checkUserBalance: pass:normal[xref:mainnet/communitypool.adoc#CommunityPool-checkUserBalance-bytes32-address-[`CommunityPool.checkUserBalance`]]
 :xref-CommunityPool-checkUserBalance-bytes32-address-: xref:mainnet/communitypool.adoc#CommunityPool-checkUserBalance-bytes32-address-
+:CommunityPool-getRecommendedRechargeAmount: pass:normal[xref:mainnet/communitypool.adoc#CommunityPool-getRecommendedRechargeAmount-bytes32-address-[`CommunityPool.getRecommendedRechargeAmount`]]
+:xref-CommunityPool-getRecommendedRechargeAmount-bytes32-address-: xref:mainnet/communitypool.adoc#CommunityPool-getRecommendedRechargeAmount-bytes32-address-
 :CommunityPool-MinTransactionGasWasChanged: pass:normal[xref:mainnet/communitypool.adoc#CommunityPool-MinTransactionGasWasChanged-uint256-uint256-[`CommunityPool.MinTransactionGasWasChanged`]]
 :xref-CommunityPool-MinTransactionGasWasChanged-uint256-uint256-: xref:mainnet/communitypool.adoc#CommunityPool-MinTransactionGasWasChanged-uint256-uint256-
+:CommunityPool-MultiplierWasChanged: pass:normal[xref:mainnet/communitypool.adoc#CommunityPool-MultiplierWasChanged-uint256-uint256-uint256-uint256-[`CommunityPool.MultiplierWasChanged`]]
+:xref-CommunityPool-MultiplierWasChanged-uint256-uint256-uint256-uint256-: xref:mainnet/communitypool.adoc#CommunityPool-MultiplierWasChanged-uint256-uint256-uint256-uint256-
 :DepositBox: pass:normal[xref:mainnet/depositbox.adoc#DepositBox[`DepositBox`]]
 :xref-DepositBox: xref:mainnet/depositbox.adoc#DepositBox
 :DepositBox-whenNotKilled: pass:normal[xref:mainnet/depositbox.adoc#DepositBox-whenNotKilled-bytes32-[`DepositBox.whenNotKilled`]]
@@ -234,8 +294,6 @@
 :xref-DepositBoxERC1155: xref:mainnet/depositboxes/depositboxerc1155.adoc#DepositBoxERC1155
 :DepositBoxERC1155-transferredAmount: pass:normal[xref:mainnet/depositboxes/depositboxerc1155.adoc#DepositBoxERC1155-transferredAmount-mapping-bytes32----mapping-address----mapping-uint256----uint256---[`DepositBoxERC1155.transferredAmount`]]
 :xref-DepositBoxERC1155-transferredAmount-mapping-bytes32----mapping-address----mapping-uint256----uint256---: xref:mainnet/depositboxes/depositboxerc1155.adoc#DepositBoxERC1155-transferredAmount-mapping-bytes32----mapping-address----mapping-uint256----uint256---
-:DepositBoxERC1155-initializeAllTokensForSchain: pass:normal[xref:mainnet/depositboxes/depositboxerc1155.adoc#DepositBoxERC1155-initializeAllTokensForSchain-string-address---[`DepositBoxERC1155.initializeAllTokensForSchain`]]
-:xref-DepositBoxERC1155-initializeAllTokensForSchain-string-address---: xref:mainnet/depositboxes/depositboxerc1155.adoc#DepositBoxERC1155-initializeAllTokensForSchain-string-address---
 :DepositBoxERC1155-depositERC1155: pass:normal[xref:mainnet/depositboxes/depositboxerc1155.adoc#DepositBoxERC1155-depositERC1155-string-address-uint256-uint256-[`DepositBoxERC1155.depositERC1155`]]
 :xref-DepositBoxERC1155-depositERC1155-string-address-uint256-uint256-: xref:mainnet/depositboxes/depositboxerc1155.adoc#DepositBoxERC1155-depositERC1155-string-address-uint256-uint256-
 :DepositBoxERC1155-depositERC1155Batch: pass:normal[xref:mainnet/depositboxes/depositboxerc1155.adoc#DepositBoxERC1155-depositERC1155Batch-string-address-uint256---uint256---[`DepositBoxERC1155.depositERC1155Batch`]]
@@ -260,18 +318,34 @@
 :xref-DepositBoxERC1155-getSchainToAllERC1155-string-uint256-uint256-: xref:mainnet/depositboxes/depositboxerc1155.adoc#DepositBoxERC1155-getSchainToAllERC1155-string-uint256-uint256-
 :DepositBoxERC1155-initialize: pass:normal[xref:mainnet/depositboxes/depositboxerc1155.adoc#DepositBoxERC1155-initialize-contract-IContractManager-contract-ILinker-contract-IMessageProxyForMainnet-[`DepositBoxERC1155.initialize`]]
 :xref-DepositBoxERC1155-initialize-contract-IContractManager-contract-ILinker-contract-IMessageProxyForMainnet-: xref:mainnet/depositboxes/depositboxerc1155.adoc#DepositBoxERC1155-initialize-contract-IContractManager-contract-ILinker-contract-IMessageProxyForMainnet-
+:DepositBoxERC1155-depositERC1155Direct: pass:normal[xref:mainnet/depositboxes/depositboxerc1155.adoc#DepositBoxERC1155-depositERC1155Direct-string-address-uint256-uint256-address-[`DepositBoxERC1155.depositERC1155Direct`]]
+:xref-DepositBoxERC1155-depositERC1155Direct-string-address-uint256-uint256-address-: xref:mainnet/depositboxes/depositboxerc1155.adoc#DepositBoxERC1155-depositERC1155Direct-string-address-uint256-uint256-address-
+:DepositBoxERC1155-depositERC1155BatchDirect: pass:normal[xref:mainnet/depositboxes/depositboxerc1155.adoc#DepositBoxERC1155-depositERC1155BatchDirect-string-address-uint256---uint256---address-[`DepositBoxERC1155.depositERC1155BatchDirect`]]
+:xref-DepositBoxERC1155-depositERC1155BatchDirect-string-address-uint256---uint256---address-: xref:mainnet/depositboxes/depositboxerc1155.adoc#DepositBoxERC1155-depositERC1155BatchDirect-string-address-uint256---uint256---address-
 :DepositBoxERC1155-supportsInterface: pass:normal[xref:mainnet/depositboxes/depositboxerc1155.adoc#DepositBoxERC1155-supportsInterface-bytes4-[`DepositBoxERC1155.supportsInterface`]]
 :xref-DepositBoxERC1155-supportsInterface-bytes4-: xref:mainnet/depositboxes/depositboxerc1155.adoc#DepositBoxERC1155-supportsInterface-bytes4-
 :DepositBoxERC1155-ERC1155TokenAdded: pass:normal[xref:mainnet/depositboxes/depositboxerc1155.adoc#DepositBoxERC1155-ERC1155TokenAdded-string-address-[`DepositBoxERC1155.ERC1155TokenAdded`]]
 :xref-DepositBoxERC1155-ERC1155TokenAdded-string-address-: xref:mainnet/depositboxes/depositboxerc1155.adoc#DepositBoxERC1155-ERC1155TokenAdded-string-address-
 :DepositBoxERC1155-ERC1155TokenReady: pass:normal[xref:mainnet/depositboxes/depositboxerc1155.adoc#DepositBoxERC1155-ERC1155TokenReady-address-uint256---uint256---[`DepositBoxERC1155.ERC1155TokenReady`]]
 :xref-DepositBoxERC1155-ERC1155TokenReady-address-uint256---uint256---: xref:mainnet/depositboxes/depositboxerc1155.adoc#DepositBoxERC1155-ERC1155TokenReady-address-uint256---uint256---
+:IERC20TransferVoid: pass:normal[xref:mainnet/depositboxes/ierc20transfervoid.adoc#IERC20TransferVoid[`IERC20TransferVoid`]]
+:xref-IERC20TransferVoid: xref:mainnet/depositboxes/ierc20transfervoid.adoc#IERC20TransferVoid
+:IERC20TransferVoid-transferFrom: pass:normal[xref:mainnet/depositboxes/ierc20transfervoid.adoc#IERC20TransferVoid-transferFrom-address-address-uint256-[`IERC20TransferVoid.transferFrom`]]
+:xref-IERC20TransferVoid-transferFrom-address-address-uint256-: xref:mainnet/depositboxes/ierc20transfervoid.adoc#IERC20TransferVoid-transferFrom-address-address-uint256-
+:IERC20TransferVoid-transfer: pass:normal[xref:mainnet/depositboxes/ierc20transfervoid.adoc#IERC20TransferVoid-transfer-address-uint256-[`IERC20TransferVoid.transfer`]]
+:xref-IERC20TransferVoid-transfer-address-uint256-: xref:mainnet/depositboxes/ierc20transfervoid.adoc#IERC20TransferVoid-transfer-address-uint256-
 :DepositBoxERC20: pass:normal[xref:mainnet/depositboxes/depositboxerc20.adoc#DepositBoxERC20[`DepositBoxERC20`]]
 :xref-DepositBoxERC20: xref:mainnet/depositboxes/depositboxerc20.adoc#DepositBoxERC20
+:DepositBoxERC20-ARBITER_ROLE: pass:normal[xref:mainnet/depositboxes/depositboxerc20.adoc#DepositBoxERC20-ARBITER_ROLE-bytes32[`DepositBoxERC20.ARBITER_ROLE`]]
+:xref-DepositBoxERC20-ARBITER_ROLE-bytes32: xref:mainnet/depositboxes/depositboxerc20.adoc#DepositBoxERC20-ARBITER_ROLE-bytes32
 :DepositBoxERC20-transferredAmount: pass:normal[xref:mainnet/depositboxes/depositboxerc20.adoc#DepositBoxERC20-transferredAmount-mapping-bytes32----mapping-address----uint256--[`DepositBoxERC20.transferredAmount`]]
 :xref-DepositBoxERC20-transferredAmount-mapping-bytes32----mapping-address----uint256--: xref:mainnet/depositboxes/depositboxerc20.adoc#DepositBoxERC20-transferredAmount-mapping-bytes32----mapping-address----uint256--
-:DepositBoxERC20-initializeAllTokensForSchain: pass:normal[xref:mainnet/depositboxes/depositboxerc20.adoc#DepositBoxERC20-initializeAllTokensForSchain-string-address---[`DepositBoxERC20.initializeAllTokensForSchain`]]
-:xref-DepositBoxERC20-initializeAllTokensForSchain-string-address---: xref:mainnet/depositboxes/depositboxerc20.adoc#DepositBoxERC20-initializeAllTokensForSchain-string-address---
+:DepositBoxERC20-delayedTransfersSize: pass:normal[xref:mainnet/depositboxes/depositboxerc20.adoc#DepositBoxERC20-delayedTransfersSize-uint256[`DepositBoxERC20.delayedTransfersSize`]]
+:xref-DepositBoxERC20-delayedTransfersSize-uint256: xref:mainnet/depositboxes/depositboxerc20.adoc#DepositBoxERC20-delayedTransfersSize-uint256
+:DepositBoxERC20-delayedTransfers: pass:normal[xref:mainnet/depositboxes/depositboxerc20.adoc#DepositBoxERC20-delayedTransfers-mapping-uint256----struct-DepositBoxERC20-DelayedTransfer-[`DepositBoxERC20.delayedTransfers`]]
+:xref-DepositBoxERC20-delayedTransfers-mapping-uint256----struct-DepositBoxERC20-DelayedTransfer-: xref:mainnet/depositboxes/depositboxerc20.adoc#DepositBoxERC20-delayedTransfers-mapping-uint256----struct-DepositBoxERC20-DelayedTransfer-
+:DepositBoxERC20-delayedTransfersByReceiver: pass:normal[xref:mainnet/depositboxes/depositboxerc20.adoc#DepositBoxERC20-delayedTransfersByReceiver-mapping-address----struct-DoubleEndedQueueUpgradeable-Bytes32Deque-[`DepositBoxERC20.delayedTransfersByReceiver`]]
+:xref-DepositBoxERC20-delayedTransfersByReceiver-mapping-address----struct-DoubleEndedQueueUpgradeable-Bytes32Deque-: xref:mainnet/depositboxes/depositboxerc20.adoc#DepositBoxERC20-delayedTransfersByReceiver-mapping-address----struct-DoubleEndedQueueUpgradeable-Bytes32Deque-
 :DepositBoxERC20-depositERC20: pass:normal[xref:mainnet/depositboxes/depositboxerc20.adoc#DepositBoxERC20-depositERC20-string-address-uint256-[`DepositBoxERC20.depositERC20`]]
 :xref-DepositBoxERC20-depositERC20-string-address-uint256-: xref:mainnet/depositboxes/depositboxerc20.adoc#DepositBoxERC20-depositERC20-string-address-uint256-
 :DepositBoxERC20-postMessage: pass:normal[xref:mainnet/depositboxes/depositboxerc20.adoc#DepositBoxERC20-postMessage-bytes32-address-bytes-[`DepositBoxERC20.postMessage`]]
@@ -280,6 +354,26 @@
 :xref-DepositBoxERC20-addERC20TokenByOwner-string-address-: xref:mainnet/depositboxes/depositboxerc20.adoc#DepositBoxERC20-addERC20TokenByOwner-string-address-
 :DepositBoxERC20-getFunds: pass:normal[xref:mainnet/depositboxes/depositboxerc20.adoc#DepositBoxERC20-getFunds-string-address-address-uint256-[`DepositBoxERC20.getFunds`]]
 :xref-DepositBoxERC20-getFunds-string-address-address-uint256-: xref:mainnet/depositboxes/depositboxerc20.adoc#DepositBoxERC20-getFunds-string-address-address-uint256-
+:DepositBoxERC20-setBigTransferValue: pass:normal[xref:mainnet/depositboxes/depositboxerc20.adoc#DepositBoxERC20-setBigTransferValue-string-address-uint256-[`DepositBoxERC20.setBigTransferValue`]]
+:xref-DepositBoxERC20-setBigTransferValue-string-address-uint256-: xref:mainnet/depositboxes/depositboxerc20.adoc#DepositBoxERC20-setBigTransferValue-string-address-uint256-
+:DepositBoxERC20-setBigTransferDelay: pass:normal[xref:mainnet/depositboxes/depositboxerc20.adoc#DepositBoxERC20-setBigTransferDelay-string-uint256-[`DepositBoxERC20.setBigTransferDelay`]]
+:xref-DepositBoxERC20-setBigTransferDelay-string-uint256-: xref:mainnet/depositboxes/depositboxerc20.adoc#DepositBoxERC20-setBigTransferDelay-string-uint256-
+:DepositBoxERC20-setArbitrageDuration: pass:normal[xref:mainnet/depositboxes/depositboxerc20.adoc#DepositBoxERC20-setArbitrageDuration-string-uint256-[`DepositBoxERC20.setArbitrageDuration`]]
+:xref-DepositBoxERC20-setArbitrageDuration-string-uint256-: xref:mainnet/depositboxes/depositboxerc20.adoc#DepositBoxERC20-setArbitrageDuration-string-uint256-
+:DepositBoxERC20-trustReceiver: pass:normal[xref:mainnet/depositboxes/depositboxerc20.adoc#DepositBoxERC20-trustReceiver-string-address-[`DepositBoxERC20.trustReceiver`]]
+:xref-DepositBoxERC20-trustReceiver-string-address-: xref:mainnet/depositboxes/depositboxerc20.adoc#DepositBoxERC20-trustReceiver-string-address-
+:DepositBoxERC20-stopTrustingReceiver: pass:normal[xref:mainnet/depositboxes/depositboxerc20.adoc#DepositBoxERC20-stopTrustingReceiver-string-address-[`DepositBoxERC20.stopTrustingReceiver`]]
+:xref-DepositBoxERC20-stopTrustingReceiver-string-address-: xref:mainnet/depositboxes/depositboxerc20.adoc#DepositBoxERC20-stopTrustingReceiver-string-address-
+:DepositBoxERC20-retrieve: pass:normal[xref:mainnet/depositboxes/depositboxerc20.adoc#DepositBoxERC20-retrieve--[`DepositBoxERC20.retrieve`]]
+:xref-DepositBoxERC20-retrieve--: xref:mainnet/depositboxes/depositboxerc20.adoc#DepositBoxERC20-retrieve--
+:DepositBoxERC20-escalate: pass:normal[xref:mainnet/depositboxes/depositboxerc20.adoc#DepositBoxERC20-escalate-uint256-[`DepositBoxERC20.escalate`]]
+:xref-DepositBoxERC20-escalate-uint256-: xref:mainnet/depositboxes/depositboxerc20.adoc#DepositBoxERC20-escalate-uint256-
+:DepositBoxERC20-validateTransfer: pass:normal[xref:mainnet/depositboxes/depositboxerc20.adoc#DepositBoxERC20-validateTransfer-uint256-[`DepositBoxERC20.validateTransfer`]]
+:xref-DepositBoxERC20-validateTransfer-uint256-: xref:mainnet/depositboxes/depositboxerc20.adoc#DepositBoxERC20-validateTransfer-uint256-
+:DepositBoxERC20-rejectTransfer: pass:normal[xref:mainnet/depositboxes/depositboxerc20.adoc#DepositBoxERC20-rejectTransfer-uint256-[`DepositBoxERC20.rejectTransfer`]]
+:xref-DepositBoxERC20-rejectTransfer-uint256-: xref:mainnet/depositboxes/depositboxerc20.adoc#DepositBoxERC20-rejectTransfer-uint256-
+:DepositBoxERC20-doTransfer: pass:normal[xref:mainnet/depositboxes/depositboxerc20.adoc#DepositBoxERC20-doTransfer-address-address-uint256-[`DepositBoxERC20.doTransfer`]]
+:xref-DepositBoxERC20-doTransfer-address-address-uint256-: xref:mainnet/depositboxes/depositboxerc20.adoc#DepositBoxERC20-doTransfer-address-address-uint256-
 :DepositBoxERC20-gasPayer: pass:normal[xref:mainnet/depositboxes/depositboxerc20.adoc#DepositBoxERC20-gasPayer-bytes32-address-bytes-[`DepositBoxERC20.gasPayer`]]
 :xref-DepositBoxERC20-gasPayer-bytes32-address-bytes-: xref:mainnet/depositboxes/depositboxerc20.adoc#DepositBoxERC20-gasPayer-bytes32-address-bytes-
 :DepositBoxERC20-getSchainToERC20: pass:normal[xref:mainnet/depositboxes/depositboxerc20.adoc#DepositBoxERC20-getSchainToERC20-string-address-[`DepositBoxERC20.getSchainToERC20`]]
@@ -288,18 +382,54 @@
 :xref-DepositBoxERC20-getSchainToAllERC20Length-string-: xref:mainnet/depositboxes/depositboxerc20.adoc#DepositBoxERC20-getSchainToAllERC20Length-string-
 :DepositBoxERC20-getSchainToAllERC20: pass:normal[xref:mainnet/depositboxes/depositboxerc20.adoc#DepositBoxERC20-getSchainToAllERC20-string-uint256-uint256-[`DepositBoxERC20.getSchainToAllERC20`]]
 :xref-DepositBoxERC20-getSchainToAllERC20-string-uint256-uint256-: xref:mainnet/depositboxes/depositboxerc20.adoc#DepositBoxERC20-getSchainToAllERC20-string-uint256-uint256-
+:DepositBoxERC20-getDelayedAmount: pass:normal[xref:mainnet/depositboxes/depositboxerc20.adoc#DepositBoxERC20-getDelayedAmount-address-address-[`DepositBoxERC20.getDelayedAmount`]]
+:xref-DepositBoxERC20-getDelayedAmount-address-address-: xref:mainnet/depositboxes/depositboxerc20.adoc#DepositBoxERC20-getDelayedAmount-address-address-
+:DepositBoxERC20-getNextUnlockTimestamp: pass:normal[xref:mainnet/depositboxes/depositboxerc20.adoc#DepositBoxERC20-getNextUnlockTimestamp-address-address-[`DepositBoxERC20.getNextUnlockTimestamp`]]
+:xref-DepositBoxERC20-getNextUnlockTimestamp-address-address-: xref:mainnet/depositboxes/depositboxerc20.adoc#DepositBoxERC20-getNextUnlockTimestamp-address-address-
+:DepositBoxERC20-getTrustedReceiversAmount: pass:normal[xref:mainnet/depositboxes/depositboxerc20.adoc#DepositBoxERC20-getTrustedReceiversAmount-bytes32-[`DepositBoxERC20.getTrustedReceiversAmount`]]
+:xref-DepositBoxERC20-getTrustedReceiversAmount-bytes32-: xref:mainnet/depositboxes/depositboxerc20.adoc#DepositBoxERC20-getTrustedReceiversAmount-bytes32-
+:DepositBoxERC20-getTrustedReceiver: pass:normal[xref:mainnet/depositboxes/depositboxerc20.adoc#DepositBoxERC20-getTrustedReceiver-string-uint256-[`DepositBoxERC20.getTrustedReceiver`]]
+:xref-DepositBoxERC20-getTrustedReceiver-string-uint256-: xref:mainnet/depositboxes/depositboxerc20.adoc#DepositBoxERC20-getTrustedReceiver-string-uint256-
+:DepositBoxERC20-getBigTransferThreshold: pass:normal[xref:mainnet/depositboxes/depositboxerc20.adoc#DepositBoxERC20-getBigTransferThreshold-bytes32-address-[`DepositBoxERC20.getBigTransferThreshold`]]
+:xref-DepositBoxERC20-getBigTransferThreshold-bytes32-address-: xref:mainnet/depositboxes/depositboxerc20.adoc#DepositBoxERC20-getBigTransferThreshold-bytes32-address-
+:DepositBoxERC20-getTimeDelay: pass:normal[xref:mainnet/depositboxes/depositboxerc20.adoc#DepositBoxERC20-getTimeDelay-bytes32-[`DepositBoxERC20.getTimeDelay`]]
+:xref-DepositBoxERC20-getTimeDelay-bytes32-: xref:mainnet/depositboxes/depositboxerc20.adoc#DepositBoxERC20-getTimeDelay-bytes32-
+:DepositBoxERC20-getArbitrageDuration: pass:normal[xref:mainnet/depositboxes/depositboxerc20.adoc#DepositBoxERC20-getArbitrageDuration-bytes32-[`DepositBoxERC20.getArbitrageDuration`]]
+:xref-DepositBoxERC20-getArbitrageDuration-bytes32-: xref:mainnet/depositboxes/depositboxerc20.adoc#DepositBoxERC20-getArbitrageDuration-bytes32-
+:DepositBoxERC20-retrieveFor: pass:normal[xref:mainnet/depositboxes/depositboxerc20.adoc#DepositBoxERC20-retrieveFor-address-[`DepositBoxERC20.retrieveFor`]]
+:xref-DepositBoxERC20-retrieveFor-address-: xref:mainnet/depositboxes/depositboxerc20.adoc#DepositBoxERC20-retrieveFor-address-
 :DepositBoxERC20-initialize: pass:normal[xref:mainnet/depositboxes/depositboxerc20.adoc#DepositBoxERC20-initialize-contract-IContractManager-contract-ILinker-contract-IMessageProxyForMainnet-[`DepositBoxERC20.initialize`]]
 :xref-DepositBoxERC20-initialize-contract-IContractManager-contract-ILinker-contract-IMessageProxyForMainnet-: xref:mainnet/depositboxes/depositboxerc20.adoc#DepositBoxERC20-initialize-contract-IContractManager-contract-ILinker-contract-IMessageProxyForMainnet-
+:DepositBoxERC20-depositERC20Direct: pass:normal[xref:mainnet/depositboxes/depositboxerc20.adoc#DepositBoxERC20-depositERC20Direct-string-address-uint256-address-[`DepositBoxERC20.depositERC20Direct`]]
+:xref-DepositBoxERC20-depositERC20Direct-string-address-uint256-address-: xref:mainnet/depositboxes/depositboxerc20.adoc#DepositBoxERC20-depositERC20Direct-string-address-uint256-address-
+:DepositBoxERC20-isReceiverTrusted: pass:normal[xref:mainnet/depositboxes/depositboxerc20.adoc#DepositBoxERC20-isReceiverTrusted-bytes32-address-[`DepositBoxERC20.isReceiverTrusted`]]
+:xref-DepositBoxERC20-isReceiverTrusted-bytes32-address-: xref:mainnet/depositboxes/depositboxerc20.adoc#DepositBoxERC20-isReceiverTrusted-bytes32-address-
 :DepositBoxERC20-ERC20TokenAdded: pass:normal[xref:mainnet/depositboxes/depositboxerc20.adoc#DepositBoxERC20-ERC20TokenAdded-string-address-[`DepositBoxERC20.ERC20TokenAdded`]]
 :xref-DepositBoxERC20-ERC20TokenAdded-string-address-: xref:mainnet/depositboxes/depositboxerc20.adoc#DepositBoxERC20-ERC20TokenAdded-string-address-
 :DepositBoxERC20-ERC20TokenReady: pass:normal[xref:mainnet/depositboxes/depositboxerc20.adoc#DepositBoxERC20-ERC20TokenReady-address-uint256-[`DepositBoxERC20.ERC20TokenReady`]]
 :xref-DepositBoxERC20-ERC20TokenReady-address-uint256-: xref:mainnet/depositboxes/depositboxerc20.adoc#DepositBoxERC20-ERC20TokenReady-address-uint256-
+:DepositBoxERC20-TransferDelayed: pass:normal[xref:mainnet/depositboxes/depositboxerc20.adoc#DepositBoxERC20-TransferDelayed-uint256-address-address-uint256-[`DepositBoxERC20.TransferDelayed`]]
+:xref-DepositBoxERC20-TransferDelayed-uint256-address-address-uint256-: xref:mainnet/depositboxes/depositboxerc20.adoc#DepositBoxERC20-TransferDelayed-uint256-address-address-uint256-
+:DepositBoxERC20-Escalated: pass:normal[xref:mainnet/depositboxes/depositboxerc20.adoc#DepositBoxERC20-Escalated-uint256-[`DepositBoxERC20.Escalated`]]
+:xref-DepositBoxERC20-Escalated-uint256-: xref:mainnet/depositboxes/depositboxerc20.adoc#DepositBoxERC20-Escalated-uint256-
+:DepositBoxERC20-TransferSkipped: pass:normal[xref:mainnet/depositboxes/depositboxerc20.adoc#DepositBoxERC20-TransferSkipped-uint256-[`DepositBoxERC20.TransferSkipped`]]
+:xref-DepositBoxERC20-TransferSkipped-uint256-: xref:mainnet/depositboxes/depositboxerc20.adoc#DepositBoxERC20-TransferSkipped-uint256-
+:DepositBoxERC20-BigTransferThresholdIsChanged: pass:normal[xref:mainnet/depositboxes/depositboxerc20.adoc#DepositBoxERC20-BigTransferThresholdIsChanged-bytes32-address-uint256-uint256-[`DepositBoxERC20.BigTransferThresholdIsChanged`]]
+:xref-DepositBoxERC20-BigTransferThresholdIsChanged-bytes32-address-uint256-uint256-: xref:mainnet/depositboxes/depositboxerc20.adoc#DepositBoxERC20-BigTransferThresholdIsChanged-bytes32-address-uint256-uint256-
+:DepositBoxERC20-BigTransferDelayIsChanged: pass:normal[xref:mainnet/depositboxes/depositboxerc20.adoc#DepositBoxERC20-BigTransferDelayIsChanged-bytes32-uint256-uint256-[`DepositBoxERC20.BigTransferDelayIsChanged`]]
+:xref-DepositBoxERC20-BigTransferDelayIsChanged-bytes32-uint256-uint256-: xref:mainnet/depositboxes/depositboxerc20.adoc#DepositBoxERC20-BigTransferDelayIsChanged-bytes32-uint256-uint256-
+:DepositBoxERC20-ArbitrageDurationIsChanged: pass:normal[xref:mainnet/depositboxes/depositboxerc20.adoc#DepositBoxERC20-ArbitrageDurationIsChanged-bytes32-uint256-uint256-[`DepositBoxERC20.ArbitrageDurationIsChanged`]]
+:xref-DepositBoxERC20-ArbitrageDurationIsChanged-bytes32-uint256-uint256-: xref:mainnet/depositboxes/depositboxerc20.adoc#DepositBoxERC20-ArbitrageDurationIsChanged-bytes32-uint256-uint256-
+:DepositBoxERC20-DelayedTransfer: pass:normal[xref:mainnet/depositboxes/depositboxerc20.adoc#DepositBoxERC20-DelayedTransfer[`DepositBoxERC20.DelayedTransfer`]]
+:xref-DepositBoxERC20-DelayedTransfer: xref:mainnet/depositboxes/depositboxerc20.adoc#DepositBoxERC20-DelayedTransfer
+:DepositBoxERC20-DelayConfig: pass:normal[xref:mainnet/depositboxes/depositboxerc20.adoc#DepositBoxERC20-DelayConfig[`DepositBoxERC20.DelayConfig`]]
+:xref-DepositBoxERC20-DelayConfig: xref:mainnet/depositboxes/depositboxerc20.adoc#DepositBoxERC20-DelayConfig
+:DepositBoxERC20-DelayedTransferStatus: pass:normal[xref:mainnet/depositboxes/depositboxerc20.adoc#DepositBoxERC20-DelayedTransferStatus[`DepositBoxERC20.DelayedTransferStatus`]]
+:xref-DepositBoxERC20-DelayedTransferStatus: xref:mainnet/depositboxes/depositboxerc20.adoc#DepositBoxERC20-DelayedTransferStatus
 :DepositBoxERC721: pass:normal[xref:mainnet/depositboxes/depositboxerc721.adoc#DepositBoxERC721[`DepositBoxERC721`]]
 :xref-DepositBoxERC721: xref:mainnet/depositboxes/depositboxerc721.adoc#DepositBoxERC721
 :DepositBoxERC721-transferredAmount: pass:normal[xref:mainnet/depositboxes/depositboxerc721.adoc#DepositBoxERC721-transferredAmount-mapping-address----mapping-uint256----bytes32--[`DepositBoxERC721.transferredAmount`]]
 :xref-DepositBoxERC721-transferredAmount-mapping-address----mapping-uint256----bytes32--: xref:mainnet/depositboxes/depositboxerc721.adoc#DepositBoxERC721-transferredAmount-mapping-address----mapping-uint256----bytes32--
-:DepositBoxERC721-initializeAllTokensForSchain: pass:normal[xref:mainnet/depositboxes/depositboxerc721.adoc#DepositBoxERC721-initializeAllTokensForSchain-string-address---[`DepositBoxERC721.initializeAllTokensForSchain`]]
-:xref-DepositBoxERC721-initializeAllTokensForSchain-string-address---: xref:mainnet/depositboxes/depositboxerc721.adoc#DepositBoxERC721-initializeAllTokensForSchain-string-address---
 :DepositBoxERC721-depositERC721: pass:normal[xref:mainnet/depositboxes/depositboxerc721.adoc#DepositBoxERC721-depositERC721-string-address-uint256-[`DepositBoxERC721.depositERC721`]]
 :xref-DepositBoxERC721-depositERC721-string-address-uint256-: xref:mainnet/depositboxes/depositboxerc721.adoc#DepositBoxERC721-depositERC721-string-address-uint256-
 :DepositBoxERC721-postMessage: pass:normal[xref:mainnet/depositboxes/depositboxerc721.adoc#DepositBoxERC721-postMessage-bytes32-address-bytes-[`DepositBoxERC721.postMessage`]]
@@ -310,18 +440,36 @@
 :xref-DepositBoxERC721-getFunds-string-address-address-uint256-: xref:mainnet/depositboxes/depositboxerc721.adoc#DepositBoxERC721-getFunds-string-address-address-uint256-
 :DepositBoxERC721-gasPayer: pass:normal[xref:mainnet/depositboxes/depositboxerc721.adoc#DepositBoxERC721-gasPayer-bytes32-address-bytes-[`DepositBoxERC721.gasPayer`]]
 :xref-DepositBoxERC721-gasPayer-bytes32-address-bytes-: xref:mainnet/depositboxes/depositboxerc721.adoc#DepositBoxERC721-gasPayer-bytes32-address-bytes-
-:DepositBoxERC721-getSchainToERC721: pass:normal[xref:mainnet/depositboxes/depositboxerc721.adoc#DepositBoxERC721-getSchainToERC721-string-address-[`DepositBoxERC721.getSchainToERC721`]]
-:xref-DepositBoxERC721-getSchainToERC721-string-address-: xref:mainnet/depositboxes/depositboxerc721.adoc#DepositBoxERC721-getSchainToERC721-string-address-
 :DepositBoxERC721-getSchainToAllERC721Length: pass:normal[xref:mainnet/depositboxes/depositboxerc721.adoc#DepositBoxERC721-getSchainToAllERC721Length-string-[`DepositBoxERC721.getSchainToAllERC721Length`]]
 :xref-DepositBoxERC721-getSchainToAllERC721Length-string-: xref:mainnet/depositboxes/depositboxerc721.adoc#DepositBoxERC721-getSchainToAllERC721Length-string-
 :DepositBoxERC721-getSchainToAllERC721: pass:normal[xref:mainnet/depositboxes/depositboxerc721.adoc#DepositBoxERC721-getSchainToAllERC721-string-uint256-uint256-[`DepositBoxERC721.getSchainToAllERC721`]]
 :xref-DepositBoxERC721-getSchainToAllERC721-string-uint256-uint256-: xref:mainnet/depositboxes/depositboxerc721.adoc#DepositBoxERC721-getSchainToAllERC721-string-uint256-uint256-
 :DepositBoxERC721-initialize: pass:normal[xref:mainnet/depositboxes/depositboxerc721.adoc#DepositBoxERC721-initialize-contract-IContractManager-contract-ILinker-contract-IMessageProxyForMainnet-[`DepositBoxERC721.initialize`]]
 :xref-DepositBoxERC721-initialize-contract-IContractManager-contract-ILinker-contract-IMessageProxyForMainnet-: xref:mainnet/depositboxes/depositboxerc721.adoc#DepositBoxERC721-initialize-contract-IContractManager-contract-ILinker-contract-IMessageProxyForMainnet-
+:DepositBoxERC721-depositERC721Direct: pass:normal[xref:mainnet/depositboxes/depositboxerc721.adoc#DepositBoxERC721-depositERC721Direct-string-address-uint256-address-[`DepositBoxERC721.depositERC721Direct`]]
+:xref-DepositBoxERC721-depositERC721Direct-string-address-uint256-address-: xref:mainnet/depositboxes/depositboxerc721.adoc#DepositBoxERC721-depositERC721Direct-string-address-uint256-address-
+:DepositBoxERC721-getSchainToERC721: pass:normal[xref:mainnet/depositboxes/depositboxerc721.adoc#DepositBoxERC721-getSchainToERC721-string-address-[`DepositBoxERC721.getSchainToERC721`]]
+:xref-DepositBoxERC721-getSchainToERC721-string-address-: xref:mainnet/depositboxes/depositboxerc721.adoc#DepositBoxERC721-getSchainToERC721-string-address-
+:DepositBoxERC721-_removeTransferredAmount: pass:normal[xref:mainnet/depositboxes/depositboxerc721.adoc#DepositBoxERC721-_removeTransferredAmount-address-uint256-[`DepositBoxERC721._removeTransferredAmount`]]
+:xref-DepositBoxERC721-_removeTransferredAmount-address-uint256-: xref:mainnet/depositboxes/depositboxerc721.adoc#DepositBoxERC721-_removeTransferredAmount-address-uint256-
+:DepositBoxERC721-_receiveERC721: pass:normal[xref:mainnet/depositboxes/depositboxerc721.adoc#DepositBoxERC721-_receiveERC721-string-address-address-uint256-[`DepositBoxERC721._receiveERC721`]]
+:xref-DepositBoxERC721-_receiveERC721-string-address-address-uint256-: xref:mainnet/depositboxes/depositboxerc721.adoc#DepositBoxERC721-_receiveERC721-string-address-address-uint256-
+:DepositBoxERC721-_addERC721ForSchain: pass:normal[xref:mainnet/depositboxes/depositboxerc721.adoc#DepositBoxERC721-_addERC721ForSchain-string-address-[`DepositBoxERC721._addERC721ForSchain`]]
+:xref-DepositBoxERC721-_addERC721ForSchain-string-address-: xref:mainnet/depositboxes/depositboxerc721.adoc#DepositBoxERC721-_addERC721ForSchain-string-address-
+:DepositBoxERC721-_getTokenInfo: pass:normal[xref:mainnet/depositboxes/depositboxerc721.adoc#DepositBoxERC721-_getTokenInfo-contract-IERC721MetadataUpgradeable-[`DepositBoxERC721._getTokenInfo`]]
+:xref-DepositBoxERC721-_getTokenInfo-contract-IERC721MetadataUpgradeable-: xref:mainnet/depositboxes/depositboxerc721.adoc#DepositBoxERC721-_getTokenInfo-contract-IERC721MetadataUpgradeable-
 :DepositBoxERC721-ERC721TokenAdded: pass:normal[xref:mainnet/depositboxes/depositboxerc721.adoc#DepositBoxERC721-ERC721TokenAdded-string-address-[`DepositBoxERC721.ERC721TokenAdded`]]
 :xref-DepositBoxERC721-ERC721TokenAdded-string-address-: xref:mainnet/depositboxes/depositboxerc721.adoc#DepositBoxERC721-ERC721TokenAdded-string-address-
 :DepositBoxERC721-ERC721TokenReady: pass:normal[xref:mainnet/depositboxes/depositboxerc721.adoc#DepositBoxERC721-ERC721TokenReady-address-uint256-[`DepositBoxERC721.ERC721TokenReady`]]
 :xref-DepositBoxERC721-ERC721TokenReady-address-uint256-: xref:mainnet/depositboxes/depositboxerc721.adoc#DepositBoxERC721-ERC721TokenReady-address-uint256-
+:DepositBoxERC721WithMetadata: pass:normal[xref:mainnet/depositboxes/depositboxerc721withmetadata.adoc#DepositBoxERC721WithMetadata[`DepositBoxERC721WithMetadata`]]
+:xref-DepositBoxERC721WithMetadata: xref:mainnet/depositboxes/depositboxerc721withmetadata.adoc#DepositBoxERC721WithMetadata
+:DepositBoxERC721WithMetadata-postMessage: pass:normal[xref:mainnet/depositboxes/depositboxerc721withmetadata.adoc#DepositBoxERC721WithMetadata-postMessage-bytes32-address-bytes-[`DepositBoxERC721WithMetadata.postMessage`]]
+:xref-DepositBoxERC721WithMetadata-postMessage-bytes32-address-bytes-: xref:mainnet/depositboxes/depositboxerc721withmetadata.adoc#DepositBoxERC721WithMetadata-postMessage-bytes32-address-bytes-
+:DepositBoxERC721WithMetadata-gasPayer: pass:normal[xref:mainnet/depositboxes/depositboxerc721withmetadata.adoc#DepositBoxERC721WithMetadata-gasPayer-bytes32-address-bytes-[`DepositBoxERC721WithMetadata.gasPayer`]]
+:xref-DepositBoxERC721WithMetadata-gasPayer-bytes32-address-bytes-: xref:mainnet/depositboxes/depositboxerc721withmetadata.adoc#DepositBoxERC721WithMetadata-gasPayer-bytes32-address-bytes-
+:DepositBoxERC721WithMetadata-_receiveERC721: pass:normal[xref:mainnet/depositboxes/depositboxerc721withmetadata.adoc#DepositBoxERC721WithMetadata-_receiveERC721-string-address-address-uint256-[`DepositBoxERC721WithMetadata._receiveERC721`]]
+:xref-DepositBoxERC721WithMetadata-_receiveERC721-string-address-address-uint256-: xref:mainnet/depositboxes/depositboxerc721withmetadata.adoc#DepositBoxERC721WithMetadata-_receiveERC721-string-address-address-uint256-
 :DepositBoxEth: pass:normal[xref:mainnet/depositboxes/depositboxeth.adoc#DepositBoxEth[`DepositBoxEth`]]
 :xref-DepositBoxEth: xref:mainnet/depositboxes/depositboxeth.adoc#DepositBoxEth
 :DepositBoxEth-approveTransfers: pass:normal[xref:mainnet/depositboxes/depositboxeth.adoc#DepositBoxEth-approveTransfers-mapping-address----uint256-[`DepositBoxEth.approveTransfers`]]
@@ -348,6 +496,8 @@
 :xref-DepositBoxEth-gasPayer-bytes32-address-bytes-: xref:mainnet/depositboxes/depositboxeth.adoc#DepositBoxEth-gasPayer-bytes32-address-bytes-
 :DepositBoxEth-initialize: pass:normal[xref:mainnet/depositboxes/depositboxeth.adoc#DepositBoxEth-initialize-contract-IContractManager-contract-ILinker-contract-IMessageProxyForMainnet-[`DepositBoxEth.initialize`]]
 :xref-DepositBoxEth-initialize-contract-IContractManager-contract-ILinker-contract-IMessageProxyForMainnet-: xref:mainnet/depositboxes/depositboxeth.adoc#DepositBoxEth-initialize-contract-IContractManager-contract-ILinker-contract-IMessageProxyForMainnet-
+:DepositBoxEth-depositDirect: pass:normal[xref:mainnet/depositboxes/depositboxeth.adoc#DepositBoxEth-depositDirect-string-address-[`DepositBoxEth.depositDirect`]]
+:xref-DepositBoxEth-depositDirect-string-address-: xref:mainnet/depositboxes/depositboxeth.adoc#DepositBoxEth-depositDirect-string-address-
 :DepositBoxEth-ActiveEthTransfers: pass:normal[xref:mainnet/depositboxes/depositboxeth.adoc#DepositBoxEth-ActiveEthTransfers-bytes32-bool-[`DepositBoxEth.ActiveEthTransfers`]]
 :xref-DepositBoxEth-ActiveEthTransfers-bytes32-bool-: xref:mainnet/depositboxes/depositboxeth.adoc#DepositBoxEth-ActiveEthTransfers-bytes32-bool-
 :Linker: pass:normal[xref:mainnet/linker.adoc#Linker[`Linker`]]
@@ -374,14 +524,16 @@
 :xref-Linker-hasSchain-string-: xref:mainnet/linker.adoc#Linker-hasSchain-string-
 :Linker-initialize: pass:normal[xref:mainnet/linker.adoc#Linker-initialize-contract-IContractManager-contract-IMessageProxyForMainnet-[`Linker.initialize`]]
 :xref-Linker-initialize-contract-IContractManager-contract-IMessageProxyForMainnet-: xref:mainnet/linker.adoc#Linker-initialize-contract-IContractManager-contract-IMessageProxyForMainnet-
-:IMessageProxyForMainnetInitializeFunction: pass:normal[xref:mainnet/imessageproxyformainnetinitializefunction.adoc#IMessageProxyForMainnetInitializeFunction[`IMessageProxyForMainnetInitializeFunction`]]
-:xref-IMessageProxyForMainnetInitializeFunction: xref:mainnet/imessageproxyformainnetinitializefunction.adoc#IMessageProxyForMainnetInitializeFunction
-:IMessageProxyForMainnetInitializeFunction-initializeAllRegisteredContracts: pass:normal[xref:mainnet/imessageproxyformainnetinitializefunction.adoc#IMessageProxyForMainnetInitializeFunction-initializeAllRegisteredContracts-bytes32-address---[`IMessageProxyForMainnetInitializeFunction.initializeAllRegisteredContracts`]]
-:xref-IMessageProxyForMainnetInitializeFunction-initializeAllRegisteredContracts-bytes32-address---: xref:mainnet/imessageproxyformainnetinitializefunction.adoc#IMessageProxyForMainnetInitializeFunction-initializeAllRegisteredContracts-bytes32-address---
+:Linker-KillProcess: pass:normal[xref:mainnet/linker.adoc#Linker-KillProcess[`Linker.KillProcess`]]
+:xref-Linker-KillProcess: xref:mainnet/linker.adoc#Linker-KillProcess
 :MessageProxyForMainnet: pass:normal[xref:mainnet/messageproxyformainnet.adoc#MessageProxyForMainnet[`MessageProxyForMainnet`]]
 :xref-MessageProxyForMainnet: xref:mainnet/messageproxyformainnet.adoc#MessageProxyForMainnet
 :MessageProxyForMainnet-messageInProgressLocker: pass:normal[xref:mainnet/messageproxyformainnet.adoc#MessageProxyForMainnet-messageInProgressLocker--[`MessageProxyForMainnet.messageInProgressLocker`]]
 :xref-MessageProxyForMainnet-messageInProgressLocker--: xref:mainnet/messageproxyformainnet.adoc#MessageProxyForMainnet-messageInProgressLocker--
+:MessageProxyForMainnet-whenNotPaused: pass:normal[xref:mainnet/messageproxyformainnet.adoc#MessageProxyForMainnet-whenNotPaused-bytes32-[`MessageProxyForMainnet.whenNotPaused`]]
+:xref-MessageProxyForMainnet-whenNotPaused-bytes32-: xref:mainnet/messageproxyformainnet.adoc#MessageProxyForMainnet-whenNotPaused-bytes32-
+:MessageProxyForMainnet-PAUSABLE_ROLE: pass:normal[xref:mainnet/messageproxyformainnet.adoc#MessageProxyForMainnet-PAUSABLE_ROLE-bytes32[`MessageProxyForMainnet.PAUSABLE_ROLE`]]
+:xref-MessageProxyForMainnet-PAUSABLE_ROLE-bytes32: xref:mainnet/messageproxyformainnet.adoc#MessageProxyForMainnet-PAUSABLE_ROLE-bytes32
 :MessageProxyForMainnet-communityPool: pass:normal[xref:mainnet/messageproxyformainnet.adoc#MessageProxyForMainnet-communityPool-contract-ICommunityPool[`MessageProxyForMainnet.communityPool`]]
 :xref-MessageProxyForMainnet-communityPool-contract-ICommunityPool: xref:mainnet/messageproxyformainnet.adoc#MessageProxyForMainnet-communityPool-contract-ICommunityPool
 :MessageProxyForMainnet-headerMessageGasCost: pass:normal[xref:mainnet/messageproxyformainnet.adoc#MessageProxyForMainnet-headerMessageGasCost-uint256[`MessageProxyForMainnet.headerMessageGasCost`]]
@@ -392,8 +544,8 @@
 :xref-MessageProxyForMainnet-version-string: xref:mainnet/messageproxyformainnet.adoc#MessageProxyForMainnet-version-string
 :MessageProxyForMainnet-messageInProgress: pass:normal[xref:mainnet/messageproxyformainnet.adoc#MessageProxyForMainnet-messageInProgress-bool[`MessageProxyForMainnet.messageInProgress`]]
 :xref-MessageProxyForMainnet-messageInProgress-bool: xref:mainnet/messageproxyformainnet.adoc#MessageProxyForMainnet-messageInProgress-bool
-:MessageProxyForMainnet-initializeAllRegisteredContracts: pass:normal[xref:mainnet/messageproxyformainnet.adoc#MessageProxyForMainnet-initializeAllRegisteredContracts-bytes32-address---[`MessageProxyForMainnet.initializeAllRegisteredContracts`]]
-:xref-MessageProxyForMainnet-initializeAllRegisteredContracts-bytes32-address---: xref:mainnet/messageproxyformainnet.adoc#MessageProxyForMainnet-initializeAllRegisteredContracts-bytes32-address---
+:MessageProxyForMainnet-pauseInfo: pass:normal[xref:mainnet/messageproxyformainnet.adoc#MessageProxyForMainnet-pauseInfo-mapping-bytes32----struct-MessageProxyForMainnet-Pause-[`MessageProxyForMainnet.pauseInfo`]]
+:xref-MessageProxyForMainnet-pauseInfo-mapping-bytes32----struct-MessageProxyForMainnet-Pause-: xref:mainnet/messageproxyformainnet.adoc#MessageProxyForMainnet-pauseInfo-mapping-bytes32----struct-MessageProxyForMainnet-Pause-
 :MessageProxyForMainnet-addConnectedChain: pass:normal[xref:mainnet/messageproxyformainnet.adoc#MessageProxyForMainnet-addConnectedChain-string-[`MessageProxyForMainnet.addConnectedChain`]]
 :xref-MessageProxyForMainnet-addConnectedChain-string-: xref:mainnet/messageproxyformainnet.adoc#MessageProxyForMainnet-addConnectedChain-string-
 :MessageProxyForMainnet-setCommunityPool: pass:normal[xref:mainnet/messageproxyformainnet.adoc#MessageProxyForMainnet-setCommunityPool-contract-ICommunityPool-[`MessageProxyForMainnet.setCommunityPool`]]
@@ -410,10 +562,18 @@
 :xref-MessageProxyForMainnet-setNewMessageGasCost-uint256-: xref:mainnet/messageproxyformainnet.adoc#MessageProxyForMainnet-setNewMessageGasCost-uint256-
 :MessageProxyForMainnet-setVersion: pass:normal[xref:mainnet/messageproxyformainnet.adoc#MessageProxyForMainnet-setVersion-string-[`MessageProxyForMainnet.setVersion`]]
 :xref-MessageProxyForMainnet-setVersion-string-: xref:mainnet/messageproxyformainnet.adoc#MessageProxyForMainnet-setVersion-string-
+:MessageProxyForMainnet-pause: pass:normal[xref:mainnet/messageproxyformainnet.adoc#MessageProxyForMainnet-pause-string-[`MessageProxyForMainnet.pause`]]
+:xref-MessageProxyForMainnet-pause-string-: xref:mainnet/messageproxyformainnet.adoc#MessageProxyForMainnet-pause-string-
+:MessageProxyForMainnet-resume: pass:normal[xref:mainnet/messageproxyformainnet.adoc#MessageProxyForMainnet-resume-string-[`MessageProxyForMainnet.resume`]]
+:xref-MessageProxyForMainnet-resume-string-: xref:mainnet/messageproxyformainnet.adoc#MessageProxyForMainnet-resume-string-
 :MessageProxyForMainnet-initialize: pass:normal[xref:mainnet/messageproxyformainnet.adoc#MessageProxyForMainnet-initialize-contract-IContractManager-[`MessageProxyForMainnet.initialize`]]
 :xref-MessageProxyForMainnet-initialize-contract-IContractManager-: xref:mainnet/messageproxyformainnet.adoc#MessageProxyForMainnet-initialize-contract-IContractManager-
+:MessageProxyForMainnet-postOutgoingMessage: pass:normal[xref:mainnet/messageproxyformainnet.adoc#MessageProxyForMainnet-postOutgoingMessage-bytes32-address-bytes-[`MessageProxyForMainnet.postOutgoingMessage`]]
+:xref-MessageProxyForMainnet-postOutgoingMessage-bytes32-address-bytes-: xref:mainnet/messageproxyformainnet.adoc#MessageProxyForMainnet-postOutgoingMessage-bytes32-address-bytes-
 :MessageProxyForMainnet-isConnectedChain: pass:normal[xref:mainnet/messageproxyformainnet.adoc#MessageProxyForMainnet-isConnectedChain-string-[`MessageProxyForMainnet.isConnectedChain`]]
 :xref-MessageProxyForMainnet-isConnectedChain-string-: xref:mainnet/messageproxyformainnet.adoc#MessageProxyForMainnet-isConnectedChain-string-
+:MessageProxyForMainnet-isPaused: pass:normal[xref:mainnet/messageproxyformainnet.adoc#MessageProxyForMainnet-isPaused-bytes32-[`MessageProxyForMainnet.isPaused`]]
+:xref-MessageProxyForMainnet-isPaused-bytes32-: xref:mainnet/messageproxyformainnet.adoc#MessageProxyForMainnet-isPaused-bytes32-
 :MessageProxyForMainnet-_authorizeOutgoingMessageSender: pass:normal[xref:mainnet/messageproxyformainnet.adoc#MessageProxyForMainnet-_authorizeOutgoingMessageSender-bytes32-[`MessageProxyForMainnet._authorizeOutgoingMessageSender`]]
 :xref-MessageProxyForMainnet-_authorizeOutgoingMessageSender-bytes32-: xref:mainnet/messageproxyformainnet.adoc#MessageProxyForMainnet-_authorizeOutgoingMessageSender-bytes32-
 :MessageProxyForMainnet-_verifyMessages: pass:normal[xref:mainnet/messageproxyformainnet.adoc#MessageProxyForMainnet-_verifyMessages-string-bytes32-struct-IMessageProxy-Signature-[`MessageProxyForMainnet._verifyMessages`]]
@@ -426,16 +586,28 @@
 :xref-MessageProxyForMainnet-GasCostMessageHeaderWasChanged-uint256-uint256-: xref:mainnet/messageproxyformainnet.adoc#MessageProxyForMainnet-GasCostMessageHeaderWasChanged-uint256-uint256-
 :MessageProxyForMainnet-GasCostMessageWasChanged: pass:normal[xref:mainnet/messageproxyformainnet.adoc#MessageProxyForMainnet-GasCostMessageWasChanged-uint256-uint256-[`MessageProxyForMainnet.GasCostMessageWasChanged`]]
 :xref-MessageProxyForMainnet-GasCostMessageWasChanged-uint256-uint256-: xref:mainnet/messageproxyformainnet.adoc#MessageProxyForMainnet-GasCostMessageWasChanged-uint256-uint256-
+:MessageProxyForMainnet-SchainPaused: pass:normal[xref:mainnet/messageproxyformainnet.adoc#MessageProxyForMainnet-SchainPaused-bytes32-[`MessageProxyForMainnet.SchainPaused`]]
+:xref-MessageProxyForMainnet-SchainPaused-bytes32-: xref:mainnet/messageproxyformainnet.adoc#MessageProxyForMainnet-SchainPaused-bytes32-
+:MessageProxyForMainnet-SchainResumed: pass:normal[xref:mainnet/messageproxyformainnet.adoc#MessageProxyForMainnet-SchainResumed-bytes32-[`MessageProxyForMainnet.SchainResumed`]]
+:xref-MessageProxyForMainnet-SchainResumed-bytes32-: xref:mainnet/messageproxyformainnet.adoc#MessageProxyForMainnet-SchainResumed-bytes32-
+:MessageProxyForMainnet-Pause: pass:normal[xref:mainnet/messageproxyformainnet.adoc#MessageProxyForMainnet-Pause[`MessageProxyForMainnet.Pause`]]
+:xref-MessageProxyForMainnet-Pause: xref:mainnet/messageproxyformainnet.adoc#MessageProxyForMainnet-Pause
 :SkaleManagerClient: pass:normal[xref:mainnet/skalemanagerclient.adoc#SkaleManagerClient[`SkaleManagerClient`]]
 :xref-SkaleManagerClient: xref:mainnet/skalemanagerclient.adoc#SkaleManagerClient
 :SkaleManagerClient-onlySchainOwner: pass:normal[xref:mainnet/skalemanagerclient.adoc#SkaleManagerClient-onlySchainOwner-string-[`SkaleManagerClient.onlySchainOwner`]]
 :xref-SkaleManagerClient-onlySchainOwner-string-: xref:mainnet/skalemanagerclient.adoc#SkaleManagerClient-onlySchainOwner-string-
+:SkaleManagerClient-onlySchainOwnerByHash: pass:normal[xref:mainnet/skalemanagerclient.adoc#SkaleManagerClient-onlySchainOwnerByHash-bytes32-[`SkaleManagerClient.onlySchainOwnerByHash`]]
+:xref-SkaleManagerClient-onlySchainOwnerByHash-bytes32-: xref:mainnet/skalemanagerclient.adoc#SkaleManagerClient-onlySchainOwnerByHash-bytes32-
 :SkaleManagerClient-contractManagerOfSkaleManager: pass:normal[xref:mainnet/skalemanagerclient.adoc#SkaleManagerClient-contractManagerOfSkaleManager-contract-IContractManager[`SkaleManagerClient.contractManagerOfSkaleManager`]]
 :xref-SkaleManagerClient-contractManagerOfSkaleManager-contract-IContractManager: xref:mainnet/skalemanagerclient.adoc#SkaleManagerClient-contractManagerOfSkaleManager-contract-IContractManager
 :SkaleManagerClient-initialize: pass:normal[xref:mainnet/skalemanagerclient.adoc#SkaleManagerClient-initialize-contract-IContractManager-[`SkaleManagerClient.initialize`]]
 :xref-SkaleManagerClient-initialize-contract-IContractManager-: xref:mainnet/skalemanagerclient.adoc#SkaleManagerClient-initialize-contract-IContractManager-
 :SkaleManagerClient-isSchainOwner: pass:normal[xref:mainnet/skalemanagerclient.adoc#SkaleManagerClient-isSchainOwner-address-bytes32-[`SkaleManagerClient.isSchainOwner`]]
 :xref-SkaleManagerClient-isSchainOwner-address-bytes32-: xref:mainnet/skalemanagerclient.adoc#SkaleManagerClient-isSchainOwner-address-bytes32-
+:SkaleManagerClient-isAgentAuthorized: pass:normal[xref:mainnet/skalemanagerclient.adoc#SkaleManagerClient-isAgentAuthorized-bytes32-address-[`SkaleManagerClient.isAgentAuthorized`]]
+:xref-SkaleManagerClient-isAgentAuthorized-bytes32-address-: xref:mainnet/skalemanagerclient.adoc#SkaleManagerClient-isAgentAuthorized-bytes32-address-
+:SkaleManagerClient-_schainHash: pass:normal[xref:mainnet/skalemanagerclient.adoc#SkaleManagerClient-_schainHash-string-[`SkaleManagerClient._schainHash`]]
+:xref-SkaleManagerClient-_schainHash-string-: xref:mainnet/skalemanagerclient.adoc#SkaleManagerClient-_schainHash-string-
 :Twin: pass:normal[xref:mainnet/twin.adoc#Twin[`Twin`]]
 :xref-Twin: xref:mainnet/twin.adoc#Twin
 :Twin-onlyMessageProxy: pass:normal[xref:mainnet/twin.adoc#Twin-onlyMessageProxy--[`Twin.onlyMessageProxy`]]
@@ -508,12 +680,10 @@
 :xref-KeyStorage-initialize--: xref:schain/keystorage.adoc#KeyStorage-initialize--
 :KeyStorage-getBlsCommonPublicKey: pass:normal[xref:schain/keystorage.adoc#KeyStorage-getBlsCommonPublicKey--[`KeyStorage.getBlsCommonPublicKey`]]
 :xref-KeyStorage-getBlsCommonPublicKey--: xref:schain/keystorage.adoc#KeyStorage-getBlsCommonPublicKey--
-:IMessageProxyForSchainInitializeFunction: pass:normal[xref:schain/imessageproxyforschaininitializefunction.adoc#IMessageProxyForSchainInitializeFunction[`IMessageProxyForSchainInitializeFunction`]]
-:xref-IMessageProxyForSchainInitializeFunction: xref:schain/imessageproxyforschaininitializefunction.adoc#IMessageProxyForSchainInitializeFunction
-:IMessageProxyForSchainInitializeFunction-initializeAllRegisteredContracts: pass:normal[xref:schain/imessageproxyforschaininitializefunction.adoc#IMessageProxyForSchainInitializeFunction-initializeAllRegisteredContracts-bytes32-address---[`IMessageProxyForSchainInitializeFunction.initializeAllRegisteredContracts`]]
-:xref-IMessageProxyForSchainInitializeFunction-initializeAllRegisteredContracts-bytes32-address---: xref:schain/imessageproxyforschaininitializefunction.adoc#IMessageProxyForSchainInitializeFunction-initializeAllRegisteredContracts-bytes32-address---
 :MessageProxyForSchain: pass:normal[xref:schain/messageproxyforschain.adoc#MessageProxyForSchain[`MessageProxyForSchain`]]
 :xref-MessageProxyForSchain: xref:schain/messageproxyforschain.adoc#MessageProxyForSchain
+:MessageProxyForSchain-messageInProgressLocker: pass:normal[xref:schain/messageproxyforschain.adoc#MessageProxyForSchain-messageInProgressLocker--[`MessageProxyForSchain.messageInProgressLocker`]]
+:xref-MessageProxyForSchain-messageInProgressLocker--: xref:schain/messageproxyforschain.adoc#MessageProxyForSchain-messageInProgressLocker--
 :MessageProxyForSchain-ETHERBASE: pass:normal[xref:schain/messageproxyforschain.adoc#MessageProxyForSchain-ETHERBASE-contract-IEtherbaseUpgradeable[`MessageProxyForSchain.ETHERBASE`]]
 :xref-MessageProxyForSchain-ETHERBASE-contract-IEtherbaseUpgradeable: xref:schain/messageproxyforschain.adoc#MessageProxyForSchain-ETHERBASE-contract-IEtherbaseUpgradeable
 :MessageProxyForSchain-MINIMUM_BALANCE: pass:normal[xref:schain/messageproxyforschain.adoc#MessageProxyForSchain-MINIMUM_BALANCE-uint256[`MessageProxyForSchain.MINIMUM_BALANCE`]]
@@ -524,8 +694,8 @@
 :xref-MessageProxyForSchain-schainHash-bytes32: xref:schain/messageproxyforschain.adoc#MessageProxyForSchain-schainHash-bytes32
 :MessageProxyForSchain-version: pass:normal[xref:schain/messageproxyforschain.adoc#MessageProxyForSchain-version-string[`MessageProxyForSchain.version`]]
 :xref-MessageProxyForSchain-version-string: xref:schain/messageproxyforschain.adoc#MessageProxyForSchain-version-string
-:MessageProxyForSchain-initializeAllRegisteredContracts: pass:normal[xref:schain/messageproxyforschain.adoc#MessageProxyForSchain-initializeAllRegisteredContracts-bytes32-address---[`MessageProxyForSchain.initializeAllRegisteredContracts`]]
-:xref-MessageProxyForSchain-initializeAllRegisteredContracts-bytes32-address---: xref:schain/messageproxyforschain.adoc#MessageProxyForSchain-initializeAllRegisteredContracts-bytes32-address---
+:MessageProxyForSchain-messageInProgress: pass:normal[xref:schain/messageproxyforschain.adoc#MessageProxyForSchain-messageInProgress-bool[`MessageProxyForSchain.messageInProgress`]]
+:xref-MessageProxyForSchain-messageInProgress-bool: xref:schain/messageproxyforschain.adoc#MessageProxyForSchain-messageInProgress-bool
 :MessageProxyForSchain-registerExtraContract: pass:normal[xref:schain/messageproxyforschain.adoc#MessageProxyForSchain-registerExtraContract-string-address-[`MessageProxyForSchain.registerExtraContract`]]
 :xref-MessageProxyForSchain-registerExtraContract-string-address-: xref:schain/messageproxyforschain.adoc#MessageProxyForSchain-registerExtraContract-string-address-
 :MessageProxyForSchain-removeExtraContract: pass:normal[xref:schain/messageproxyforschain.adoc#MessageProxyForSchain-removeExtraContract-string-address-[`MessageProxyForSchain.removeExtraContract`]]
@@ -722,6 +892,22 @@
 :xref-TokenManagerERC721-addERC721TokenByOwner-string-address-address-: xref:schain/tokenmanagers/tokenmanagererc721.adoc#TokenManagerERC721-addERC721TokenByOwner-string-address-address-
 :TokenManagerERC721-initialize: pass:normal[xref:schain/tokenmanagers/tokenmanagererc721.adoc#TokenManagerERC721-initialize-string-contract-IMessageProxyForSchain-contract-ITokenManagerLinker-contract-ICommunityLocker-address-[`TokenManagerERC721.initialize`]]
 :xref-TokenManagerERC721-initialize-string-contract-IMessageProxyForSchain-contract-ITokenManagerLinker-contract-ICommunityLocker-address-: xref:schain/tokenmanagers/tokenmanagererc721.adoc#TokenManagerERC721-initialize-string-contract-IMessageProxyForSchain-contract-ITokenManagerLinker-contract-ICommunityLocker-address-
+:TokenManagerERC721-_sendERC721: pass:normal[xref:schain/tokenmanagers/tokenmanagererc721.adoc#TokenManagerERC721-_sendERC721-bytes32-bytes-[`TokenManagerERC721._sendERC721`]]
+:xref-TokenManagerERC721-_sendERC721-bytes32-bytes-: xref:schain/tokenmanagers/tokenmanagererc721.adoc#TokenManagerERC721-_sendERC721-bytes32-bytes-
+:TokenManagerERC721-_removeTransferredAmount: pass:normal[xref:schain/tokenmanagers/tokenmanagererc721.adoc#TokenManagerERC721-_removeTransferredAmount-bytes32-address-uint256-[`TokenManagerERC721._removeTransferredAmount`]]
+:xref-TokenManagerERC721-_removeTransferredAmount-bytes32-address-uint256-: xref:schain/tokenmanagers/tokenmanagererc721.adoc#TokenManagerERC721-_removeTransferredAmount-bytes32-address-uint256-
+:TokenManagerERC721-_receiveERC721: pass:normal[xref:schain/tokenmanagers/tokenmanagererc721.adoc#TokenManagerERC721-_receiveERC721-bytes32-address-address-uint256-[`TokenManagerERC721._receiveERC721`]]
+:xref-TokenManagerERC721-_receiveERC721-bytes32-address-address-uint256-: xref:schain/tokenmanagers/tokenmanagererc721.adoc#TokenManagerERC721-_receiveERC721-bytes32-address-address-uint256-
+:TokenManagerERC721-_addERC721ForSchain: pass:normal[xref:schain/tokenmanagers/tokenmanagererc721.adoc#TokenManagerERC721-_addERC721ForSchain-bytes32-address-[`TokenManagerERC721._addERC721ForSchain`]]
+:xref-TokenManagerERC721-_addERC721ForSchain-bytes32-address-: xref:schain/tokenmanagers/tokenmanagererc721.adoc#TokenManagerERC721-_addERC721ForSchain-bytes32-address-
+:TokenManagerERC721-_exit: pass:normal[xref:schain/tokenmanagers/tokenmanagererc721.adoc#TokenManagerERC721-_exit-bytes32-address-address-address-uint256-[`TokenManagerERC721._exit`]]
+:xref-TokenManagerERC721-_exit-bytes32-address-address-address-uint256-: xref:schain/tokenmanagers/tokenmanagererc721.adoc#TokenManagerERC721-_exit-bytes32-address-address-address-uint256-
+:TokenManagerERC721-_saveTransferredAmount: pass:normal[xref:schain/tokenmanagers/tokenmanagererc721.adoc#TokenManagerERC721-_saveTransferredAmount-bytes32-address-uint256-[`TokenManagerERC721._saveTransferredAmount`]]
+:xref-TokenManagerERC721-_saveTransferredAmount-bytes32-address-uint256-: xref:schain/tokenmanagers/tokenmanagererc721.adoc#TokenManagerERC721-_saveTransferredAmount-bytes32-address-uint256-
+:TokenManagerERC721-_getTokenInfo: pass:normal[xref:schain/tokenmanagers/tokenmanagererc721.adoc#TokenManagerERC721-_getTokenInfo-contract-IERC721MetadataUpgradeable-[`TokenManagerERC721._getTokenInfo`]]
+:xref-TokenManagerERC721-_getTokenInfo-contract-IERC721MetadataUpgradeable-: xref:schain/tokenmanagers/tokenmanagererc721.adoc#TokenManagerERC721-_getTokenInfo-contract-IERC721MetadataUpgradeable-
+:TokenManagerERC721-_isERC721AddedToSchain: pass:normal[xref:schain/tokenmanagers/tokenmanagererc721.adoc#TokenManagerERC721-_isERC721AddedToSchain-bytes32-address-[`TokenManagerERC721._isERC721AddedToSchain`]]
+:xref-TokenManagerERC721-_isERC721AddedToSchain-bytes32-address-: xref:schain/tokenmanagers/tokenmanagererc721.adoc#TokenManagerERC721-_isERC721AddedToSchain-bytes32-address-
 :TokenManagerERC721-ERC721TokenAdded: pass:normal[xref:schain/tokenmanagers/tokenmanagererc721.adoc#TokenManagerERC721-ERC721TokenAdded-bytes32-address-address-[`TokenManagerERC721.ERC721TokenAdded`]]
 :xref-TokenManagerERC721-ERC721TokenAdded-bytes32-address-address-: xref:schain/tokenmanagers/tokenmanagererc721.adoc#TokenManagerERC721-ERC721TokenAdded-bytes32-address-address-
 :TokenManagerERC721-ERC721TokenCreated: pass:normal[xref:schain/tokenmanagers/tokenmanagererc721.adoc#TokenManagerERC721-ERC721TokenCreated-bytes32-address-address-[`TokenManagerERC721.ERC721TokenCreated`]]
@@ -730,6 +916,16 @@
 :xref-TokenManagerERC721-ERC721TokenReceived-bytes32-address-address-uint256-: xref:schain/tokenmanagers/tokenmanagererc721.adoc#TokenManagerERC721-ERC721TokenReceived-bytes32-address-address-uint256-
 :TokenManagerERC721-ERC721TokenReady: pass:normal[xref:schain/tokenmanagers/tokenmanagererc721.adoc#TokenManagerERC721-ERC721TokenReady-bytes32-address-uint256-[`TokenManagerERC721.ERC721TokenReady`]]
 :xref-TokenManagerERC721-ERC721TokenReady-bytes32-address-uint256-: xref:schain/tokenmanagers/tokenmanagererc721.adoc#TokenManagerERC721-ERC721TokenReady-bytes32-address-uint256-
+:TokenManagerERC721WithMetadata: pass:normal[xref:schain/tokenmanagers/tokenmanagererc721withmetadata.adoc#TokenManagerERC721WithMetadata[`TokenManagerERC721WithMetadata`]]
+:xref-TokenManagerERC721WithMetadata: xref:schain/tokenmanagers/tokenmanagererc721withmetadata.adoc#TokenManagerERC721WithMetadata
+:TokenManagerERC721WithMetadata-postMessage: pass:normal[xref:schain/tokenmanagers/tokenmanagererc721withmetadata.adoc#TokenManagerERC721WithMetadata-postMessage-bytes32-address-bytes-[`TokenManagerERC721WithMetadata.postMessage`]]
+:xref-TokenManagerERC721WithMetadata-postMessage-bytes32-address-bytes-: xref:schain/tokenmanagers/tokenmanagererc721withmetadata.adoc#TokenManagerERC721WithMetadata-postMessage-bytes32-address-bytes-
+:TokenManagerERC721WithMetadata-_sendERC721: pass:normal[xref:schain/tokenmanagers/tokenmanagererc721withmetadata.adoc#TokenManagerERC721WithMetadata-_sendERC721-bytes32-bytes-[`TokenManagerERC721WithMetadata._sendERC721`]]
+:xref-TokenManagerERC721WithMetadata-_sendERC721-bytes32-bytes-: xref:schain/tokenmanagers/tokenmanagererc721withmetadata.adoc#TokenManagerERC721WithMetadata-_sendERC721-bytes32-bytes-
+:TokenManagerERC721WithMetadata-_exit: pass:normal[xref:schain/tokenmanagers/tokenmanagererc721withmetadata.adoc#TokenManagerERC721WithMetadata-_exit-bytes32-address-address-address-uint256-[`TokenManagerERC721WithMetadata._exit`]]
+:xref-TokenManagerERC721WithMetadata-_exit-bytes32-address-address-address-uint256-: xref:schain/tokenmanagers/tokenmanagererc721withmetadata.adoc#TokenManagerERC721WithMetadata-_exit-bytes32-address-address-address-uint256-
+:TokenManagerERC721WithMetadata-_receiveERC721: pass:normal[xref:schain/tokenmanagers/tokenmanagererc721withmetadata.adoc#TokenManagerERC721WithMetadata-_receiveERC721-bytes32-address-address-uint256-[`TokenManagerERC721WithMetadata._receiveERC721`]]
+:xref-TokenManagerERC721WithMetadata-_receiveERC721-bytes32-address-address-uint256-: xref:schain/tokenmanagers/tokenmanagererc721withmetadata.adoc#TokenManagerERC721WithMetadata-_receiveERC721-bytes32-address-address-uint256-
 :TokenManagerEth: pass:normal[xref:schain/tokenmanagers/tokenmanagereth.adoc#TokenManagerEth[`TokenManagerEth`]]
 :xref-TokenManagerEth: xref:schain/tokenmanagers/tokenmanagereth.adoc#TokenManagerEth
 :TokenManagerEth-ethErc20: pass:normal[xref:schain/tokenmanagers/tokenmanagereth.adoc#TokenManagerEth-ethErc20-contract-IEthErc20[`TokenManagerEth.ethErc20`]]
@@ -856,9 +1052,12 @@
 :xref-ERC1155ReceiverUpgradeableWithoutGap-__ERC1155Receiver_init_unchained--: xref:thirdparty/erc1155receiverupgradeablewithoutgap.adoc#ERC1155ReceiverUpgradeableWithoutGap-__ERC1155Receiver_init_unchained--
 :SkaleManagerClient: pass:normal[xref:#SkaleManagerClient[`++SkaleManagerClient++`]]
 :onlySchainOwner: pass:normal[xref:#SkaleManagerClient-onlySchainOwner-string-[`++onlySchainOwner++`]]
+:onlySchainOwnerByHash: pass:normal[xref:#SkaleManagerClient-onlySchainOwnerByHash-bytes32-[`++onlySchainOwnerByHash++`]]
 :contractManagerOfSkaleManager: pass:normal[xref:#SkaleManagerClient-contractManagerOfSkaleManager-contract-IContractManager[`++contractManagerOfSkaleManager++`]]
 :initialize: pass:normal[xref:#SkaleManagerClient-initialize-contract-IContractManager-[`++initialize++`]]
 :isSchainOwner: pass:normal[xref:#SkaleManagerClient-isSchainOwner-address-bytes32-[`++isSchainOwner++`]]
+:isAgentAuthorized: pass:normal[xref:#SkaleManagerClient-isAgentAuthorized-bytes32-address-[`++isAgentAuthorized++`]]
+:_schainHash: pass:normal[xref:#SkaleManagerClient-_schainHash-string-[`++_schainHash++`]]
 
 [.contract]
 [[SkaleManagerClient]]
@@ -870,6 +1069,7 @@
 .Modifiers
 --
 * {xref-SkaleManagerClient-onlySchainOwner-string-}[`++onlySchainOwner(schainName)++`]
+* {xref-SkaleManagerClient-onlySchainOwnerByHash-bytes32-}[`++onlySchainOwnerByHash(schainHash)++`]
 --
 
 [.contract-index]
@@ -877,6 +1077,8 @@
 --
 * {xref-SkaleManagerClient-initialize-contract-IContractManager-}[`++initialize(newContractManagerOfSkaleManager)++`]
 * {xref-SkaleManagerClient-isSchainOwner-address-bytes32-}[`++isSchainOwner(sender, schainHash)++`]
+* {xref-SkaleManagerClient-isAgentAuthorized-bytes32-address-}[`++isAgentAuthorized(schainHash, sender)++`]
+* {xref-SkaleManagerClient-_schainHash-string-}[`++_schainHash(schainName)++`]
 --
 
 [.contract-index]
@@ -886,6 +1088,11 @@
 
 [.contract-item]
 == +++<a class="heading-anchor" area-hidden="true" name=SkaleManagerClient-onlySchainOwner-string->onlySchainOwner</a>+++ `++onlySchainOwner(++[.var-type]#++string++#++ ++[.var-name]#++schainName++#++)++` [.item-kind]#modifier#
+
+Modifier for checking whether caller is owner of SKALE chain.
+
+[.contract-item]
+== +++<a class="heading-anchor" area-hidden="true" name=SkaleManagerClient-onlySchainOwnerByHash-bytes32->onlySchainOwnerByHash</a>+++ `++onlySchainOwnerByHash(++[.var-type]#++bytes32++#++ ++[.var-name]#++schainHash++#++)++` [.item-kind]#modifier#
 
 Modifier for checking whether caller is owner of SKALE chain.
 
@@ -900,5 +1107,15 @@ initialize - sets current address of ContractManager of SkaleManager.
 == +++<a class="heading-anchor" area-hidden="true" name=SkaleManagerClient-isSchainOwner-address-bytes32->isSchainOwner</a>+++ `++isSchainOwner(++[.var-type]#++address++#++ ++[.var-name]#++sender++#++, ++[.var-type]#++bytes32++#++ ++[.var-name]#++schainHash++#++) → ++[.var-type]#++bool++#++++` [.item-kind]#public#
 
 Checks whether sender is owner of SKALE chain
+
+[.contract-item]
+== +++<a class="heading-anchor" area-hidden="true" name=SkaleManagerClient-isAgentAuthorized-bytes32-address->isAgentAuthorized</a>+++ `++isAgentAuthorized(++[.var-type]#++bytes32++#++ ++[.var-name]#++schainHash++#++, ++[.var-type]#++address++#++ ++[.var-name]#++sender++#++) → ++[.var-type]#++bool++#++++` [.item-kind]#public#
+
+
+
+[.contract-item]
+== +++<a class="heading-anchor" area-hidden="true" name=SkaleManagerClient-_schainHash-string->_schainHash</a>+++ `++_schainHash(++[.var-type]#++string++#++ ++[.var-name]#++schainName++#++) → ++[.var-type]#++bytes32++#++++` [.item-kind]#internal#
+
+
 
 
