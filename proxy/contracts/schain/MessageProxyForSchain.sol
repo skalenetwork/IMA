@@ -263,8 +263,7 @@ contract MessageProxyForSchain is MessageProxy, IMessageProxyForSchain {
         ] = ConnectedChainInfo(
             0,
             0,
-            true,
-            0
+            true
         );
 	    schainHash = keccak256(abi.encodePacked(schainName));
 

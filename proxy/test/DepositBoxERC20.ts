@@ -62,6 +62,7 @@ import { BigNumber, Wallet } from "ethers";
 import { assert, expect, use } from "chai";
 import { createNode } from "./utils/skale-manager-utils/nodes";
 import { currentTime, skipTime } from "./utils/time";
+import { join } from "path";
 
 const BlsSignature: [BigNumber, BigNumber] = [
     BigNumber.from("178325537405109593276798394634841698946852714038246117383766698579865918287"),
@@ -84,6 +85,7 @@ describe("DepositBoxERC20", () => {
     let messageProxy: MessageProxyForMainnet;
     let linker: Linker;
     let communityPool: CommunityPool;
+    let messages: MessagesTester;
     const contractManagerAddress = "0x0000000000000000000000000000000000000000";
     const schainName = "Schain";
     const schainHash = ethers.utils.solidityKeccak256(["string"], [schainName]);
@@ -124,6 +126,7 @@ describe("DepositBoxERC20", () => {
         await messageProxy.registerExtraContractForAll(depositBoxERC20.address);
         await messageProxy.registerExtraContract(schainName, communityPool.address);
         await messageProxy.registerExtraContract(schainName, linker.address);
+        messages = await deployMessages();
     });
 
     describe("tests with `ERC20`", async () => {
@@ -183,6 +186,32 @@ describe("DepositBoxERC20", () => {
                     .depositERC20(schainName, erc20.address, 1);
             });
 
+            it("should invoke `depositERC20Direct` without mistakes", async () => {
+                // preparation
+                // mint some quantity of ERC20 tokens for `deployer` address
+                const amount = 10;
+                await erc20.connect(deployer).mint(deployer.address, amount);
+                await erc20.connect(deployer).approve(depositBoxERC20.address, amount);
+                // execution
+                await depositBoxERC20
+                    .connect(deployer)
+                    .depositERC20Direct(schainName, erc20.address, 1, user.address).should.be.eventually.rejectedWith("Whitelist is enabled");
+                await depositBoxERC20.connect(schainOwner).disableWhitelist(schainName);
+                const data1 = await messages.encodeTransferErc20AndTokenInfoMessage(erc20.address, user.address, 1, amount, { name: "D2-token", symbol: "D2", decimals: 18 });
+                const data2 = await messages.encodeTransferErc20AndTotalSupplyMessage(erc20.address, user.address, 1, amount);
+                await depositBoxERC20
+                    .connect(deployer)
+                    .depositERC20Direct(schainName, erc20.address, 1, user.address)
+                    .should.emit(messageProxy, "OutgoingMessage")
+                    .withArgs(schainHash, 0, depositBoxERC20.address, deployer.address, data1);
+
+                await depositBoxERC20
+                    .connect(deployer)
+                    .depositERC20Direct(schainName, erc20.address, 1, user.address)
+                    .should.emit(messageProxy, "OutgoingMessage")
+                    .withArgs(schainHash, 1, depositBoxERC20.address, deployer.address, data2);
+            });
+
             it("should rejected with `Amount is incorrect`", async () => {
                 // preparation
                 // mint some quantity of ERC20 tokens for `deployer` address
@@ -233,6 +262,39 @@ describe("DepositBoxERC20", () => {
             await depositBoxERC20.connect(schainOwner).addERC20TokenByOwner(schainName, erc20.address)
                 .should.be.eventually.rejectedWith("Schain is killed");
         });
+
+        it("should invoke `depositERC20` for non standard ERC20", async () => {
+            // preparation
+            // mint some quantity of ERC20 tokens for `deployer` address
+            const erc20TWR = await (await ethers.getContractFactory("ERC20TransferWithoutReturn")).deploy("Test", "TST");
+            const erc20TWFR = await (await ethers.getContractFactory("ERC20TransferWithFalseReturn")).deploy("Test", "TST");
+            const erc20IT = await (await ethers.getContractFactory("ERC20IncorrectTransfer")).deploy("Test", "TST");
+            const amount = 10;
+            await erc20TWR.connect(deployer).mint(deployer.address, amount);
+            await erc20TWFR.connect(deployer).mint(deployer.address, amount);
+            await erc20IT.connect(deployer).mint(deployer.address, amount);
+            await erc20.connect(deployer).mint(deployer.address, amount);
+            await erc20TWR.connect(deployer).approve(depositBoxERC20.address, amount);
+            await erc20TWFR.connect(deployer).approve(depositBoxERC20.address, amount);
+            await erc20IT.connect(deployer).approve(depositBoxERC20.address, amount);
+            await erc20.connect(deployer).approve(depositBoxERC20.address, amount);
+            // execution
+            await depositBoxERC20.connect(schainOwner).disableWhitelist(schainName);
+            await depositBoxERC20
+                .connect(deployer)
+                .depositERC20(schainName, erc20.address, 1);
+            await depositBoxERC20
+                .connect(deployer)
+                .depositERC20(schainName, erc20TWR.address, 1);
+            await depositBoxERC20
+                .connect(deployer)
+                .depositERC20(schainName, erc20IT.address, 1)
+                .should.be.eventually.rejectedWith("SafeERC20: low-level call failed");
+            await depositBoxERC20
+                .connect(deployer)
+                .depositERC20(schainName, erc20TWFR.address, 1)
+                .should.be.eventually.rejectedWith("SafeERC20: ERC20 operation did not succeed");
+        });
     });
 
     describe("tests for `postMessage` function", async () => {
@@ -240,14 +302,12 @@ describe("DepositBoxERC20", () => {
         let erc20Clone: ERC20OnChain;
         let eRC721OnChain: ERC721OnChain;
         let eRC1155OnChain: ERC1155OnChain;
-        let messages: MessagesTester;
 
         beforeEach(async () => {
             erc20 = await deployERC20OnChain("D2-token", "D2",);
             erc20Clone = await deployERC20OnChain("Token", "T",);
             eRC721OnChain = await deployERC721OnChain("ERC721OnChain", "ERC721");
             eRC1155OnChain = await deployERC1155OnChain("New ERC1155 Token");
-            messages = await deployMessages();
         });
 
         it("should transfer ERC20 token", async () => {
@@ -330,6 +390,73 @@ describe("DepositBoxERC20", () => {
 
         });
 
+        it("should transfer non standard ERC20 token", async () => {
+            //  preparation
+            const erc20TWR = await (await ethers.getContractFactory("ERC20TransferWithoutReturn")).deploy("Test", "TST");
+            const amount = 10;
+            const to = user.address;
+            const senderFromSchain = deployer.address;
+            const wei = 1e18.toString();
+
+            const sign = {
+                blsSignature: BlsSignature,
+                counter: Counter,
+                hashA: HashA,
+                hashB: HashB,
+            };
+
+            const message = {
+                data: await messages.encodeTransferErc20Message(erc20.address, to, amount),
+                destinationContract: depositBoxERC20.address,
+                sender: senderFromSchain
+            };
+            const messageTWR = {
+                data: await messages.encodeTransferErc20Message(erc20TWR.address, to, amount),
+                destinationContract: depositBoxERC20.address,
+                sender: senderFromSchain
+            };
+
+            await initializeSchain(contractManager, schainName, schainOwner.address, 1, 1);
+            await setCommonPublicKey(contractManager, schainName);
+
+            await depositBoxERC20.connect(user).depositERC20(schainName, erc20.address, amount)
+                .should.be.eventually.rejectedWith("Unconnected chain");
+
+            await linker
+                .connect(deployer)
+                .connectSchain(schainName, [deployer.address, deployer.address, deployer.address]);
+
+            await communityPool
+                .connect(user)
+                .rechargeUserWallet(schainName, user.address, { value: wei });
+
+            await depositBoxERC20.connect(schainOwner).disableWhitelist(schainName);
+            await erc20.connect(deployer).mint(user.address, amount * 2);
+            await erc20TWR.connect(deployer).mint(user.address, amount * 2);
+
+            await erc20.connect(user).approve(depositBoxERC20.address, amount * 2);
+            await erc20TWR.connect(user).approve(depositBoxERC20.address, amount * 2);
+
+            await depositBoxERC20.connect(user).depositERC20(schainName, erc20.address, amount);
+            await depositBoxERC20.connect(user).depositERC20(schainName, erc20TWR.address, amount);
+
+            const balanceBefore = await deployer.getBalance();
+            await messageProxy.connect(nodeAddress).postIncomingMessages(schainName, 0, [message, messageTWR], sign);
+            const balance = await deployer.getBalance();
+            balance.should.be.least(balanceBefore);
+            balance.should.be.closeTo(balanceBefore, 10);
+
+            await depositBoxERC20.connect(user).depositERC20(schainName, erc20.address, amount);
+            await depositBoxERC20.connect(user).depositERC20(schainName, erc20TWR.address, amount);
+            await messageProxy.connect(nodeAddress).postIncomingMessages(schainName, 2, [message, messageTWR], sign);
+            expect(BigNumber.from(await depositBoxERC20.transferredAmount(schainHash, erc20.address)).toString()).to.be.equal(BigNumber.from(0).toString());
+            expect(BigNumber.from(await depositBoxERC20.transferredAmount(schainHash, erc20TWR.address)).toString()).to.be.equal(BigNumber.from(0).toString());
+
+            (await erc20.balanceOf(user.address)).toString().should.be.equal((amount * 2).toString());
+            (await erc20TWR.balanceOf(user.address)).toString().should.be.equal((amount * 2).toString());
+
+        });
+
         describe("When user deposited tokens", async () => {
             let token: ERC20OnChain;
             let token2: ERC20OnChain;
@@ -370,10 +497,19 @@ describe("DepositBoxERC20", () => {
                 await token2.connect(user).approve(depositBoxERC20.address, depositedAmount);
                 await depositBoxERC20.connect(user).depositERC20(schainName, token2.address, depositedAmount);
 
-                await depositBoxERC20.connect(schainOwner).setBigTransferValue(schainName, token.address, bigAmount);
+                await expect(
+                    depositBoxERC20.connect(schainOwner).setBigTransferValue(schainName, token.address, bigAmount)
+                ).to.emit(depositBoxERC20, "BigTransferThresholdIsChanged")
+                    .withArgs(schainHash, token.address, 0, bigAmount);
                 await depositBoxERC20.connect(schainOwner).setBigTransferValue(schainName, token2.address, bigAmount);
-                await depositBoxERC20.connect(schainOwner).setBigTransferDelay(schainName, timeDelay);
-                await depositBoxERC20.connect(schainOwner).setArbitrageDuration(schainName, arbitrageDuration);
+                await expect(
+                    depositBoxERC20.connect(schainOwner).setBigTransferDelay(schainName, timeDelay)
+                ).to.emit(depositBoxERC20, "BigTransferDelayIsChanged")
+                    .withArgs(schainHash, 0, timeDelay);
+                await expect(
+                    depositBoxERC20.connect(schainOwner).setArbitrageDuration(schainName, arbitrageDuration)
+                ).to.emit(depositBoxERC20, "ArbitrageDurationIsChanged")
+                    .withArgs(schainHash, 0, arbitrageDuration);
 
                 await depositBoxERC20.grantRole(await depositBoxERC20.ARBITER_ROLE(), deployer.address);
             });
@@ -387,7 +523,10 @@ describe("DepositBoxERC20", () => {
                     sender: deployer.address
                 };
 
-                await messageProxy.connect(nodeAddress).postIncomingMessages(schainName, 0, [message], randomSignature);
+                await expect(
+                    messageProxy.connect(nodeAddress).postIncomingMessages(schainName, 0, [message], randomSignature)
+                ).to.emit(depositBoxERC20, "TransferDelayed")
+                    .withArgs(0, user.address, token.address, bigAmount);
 
                 (await token.balanceOf(user.address)).should.be.equal(balanceBefore);
 
@@ -472,7 +611,9 @@ describe("DepositBoxERC20", () => {
                 for (const suspicionsTransfer of suspicionsTransfers) {
                     await depositBoxERC20.connect(richGuy).escalate(suspicionsTransfer)
                         .should.be.rejectedWith("Not enough permissions to request escalation");
-                    await depositBoxERC20.escalate(suspicionsTransfer);
+                    await expect(depositBoxERC20.escalate(suspicionsTransfer))
+                        .to.emit(depositBoxERC20, "Escalated")
+                        .withArgs(suspicionsTransfer);
                     await depositBoxERC20.escalate(suspicionsTransfer)
                         .should.be.rejectedWith("The transfer has to be delayed");
                 }
@@ -505,6 +646,94 @@ describe("DepositBoxERC20", () => {
                 await depositBoxERC20.connect(user).retrieve();
                 (await token.balanceOf(user.address))
                     .should.be.equal(token1BalanceBefore.add(2 * amount + 3 * bigAmount));
+            });
+
+            it("should not stuck after big amount of competed transfers", async () => {
+                const bigTransfer = {
+                    data: await messages.encodeTransferErc20Message(token.address, user.address, bigAmount),
+                    destinationContract: depositBoxERC20.address,
+                    sender: deployer.address
+                };
+
+                const token1BalanceBefore = await token.balanceOf(user.address);
+                const amountOfCompetedTransfers = 15;
+
+                // send `amountOfCompetedTransfers` + 1 big transfer
+                const batch = (await messageProxy.MESSAGES_LENGTH()).toNumber();
+                const fullBatches = Math.floor((amountOfCompetedTransfers + 1) / batch);
+                const rest = amountOfCompetedTransfers + 1 - fullBatches * batch;
+                for (let i = 0; i < fullBatches; ++i) {
+                    await messageProxy.connect(nodeAddress).postIncomingMessages(
+                        schainName,
+                        i * batch,
+                        Array(batch).fill(bigTransfer),
+                        randomSignature
+                    );
+                }
+                if (rest > 0) {
+                    await messageProxy.connect(nodeAddress).postIncomingMessages(
+                        schainName,
+                        fullBatches * batch,
+                        Array(rest).fill(bigTransfer),
+                        randomSignature
+                    );
+                }
+
+                (await token.balanceOf(user.address)).should.be.equal(token1BalanceBefore);
+
+                for (const completedTransfer of [...Array(amountOfCompetedTransfers).keys()]) {
+                    await depositBoxERC20.escalate(completedTransfer);
+                    await depositBoxERC20.connect(schainOwner).validateTransfer(completedTransfer);
+                }
+
+                (await token.balanceOf(user.address)).should.be.equal(token1BalanceBefore.add(bigAmount * amountOfCompetedTransfers));
+
+                await skipTime(timeDelay);
+
+                // first retrieve removes already completed transfers after an arbitrage from the queue
+                await depositBoxERC20.retrieveFor(user.address);
+                (await token.balanceOf(user.address)).should.be.equal(token1BalanceBefore.add(bigAmount * amountOfCompetedTransfers));
+
+                // second retrieve withdraws the rest
+                await depositBoxERC20.retrieveFor(user.address);
+                (await token.balanceOf(user.address)).should.be.equal(token1BalanceBefore.add(bigAmount * (amountOfCompetedTransfers + 1)));
+
+            });
+
+            it("should not stuck if a token reverts transfer", async () => {
+                const bigTransfer = {
+                    data: await messages.encodeTransferErc20Message(token.address, user.address, bigAmount),
+                    destinationContract: depositBoxERC20.address,
+                    sender: deployer.address
+                };
+
+                const badToken = await (await ethers.getContractFactory("RevertableERC20")).deploy("Test", "TST");
+                await badToken.mint(user.address, bigAmount);
+                await badToken.connect(user).approve(depositBoxERC20.address, bigAmount);
+                await depositBoxERC20.connect(user).depositERC20(schainName, badToken.address, bigAmount);
+
+                const badTokenBigTransfer = {
+                    data: await messages.encodeTransferErc20Message(badToken.address, user.address, bigAmount),
+                    destinationContract: depositBoxERC20.address,
+                    sender: deployer.address
+                };
+
+                await messageProxy.connect(nodeAddress).postIncomingMessages(
+                    schainName,
+                    0,
+                    [ badTokenBigTransfer, bigTransfer ],
+                    randomSignature
+                );
+
+                await skipTime(timeDelay);
+
+                await badToken.disable();
+                const balanceBefore = await token.balanceOf(user.address);
+                await expect(
+                    depositBoxERC20.retrieveFor(user.address)
+                ).to.emit(depositBoxERC20, "TransferSkipped")
+                    .withArgs(0);
+                (await token.balanceOf(user.address)).should.be.equal(balanceBefore.add(bigAmount));
             });
 
             it("should not allow to set too big delays", async () => {

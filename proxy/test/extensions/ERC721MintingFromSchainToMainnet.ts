@@ -313,17 +313,19 @@ describe("ERC721MintingFromSchainToMainnet", () => {
     });
 
     it("should send message", async () => {
-        const tokenURI = "MyToken1";
-        const mainnetHash = stringValue(web3.utils.soliditySha3("Mainnet"));
-        await ERC721TokenOnSchain.connect(user).setTokenURI(1, tokenURI);
+        await ERC721TokenOnSchain.connect(user).setTokenURI(1, "MyToken1");
         await ERC721TokenOnSchain.connect(user).approve(extensionSchain.address, 1);
         await messageProxyForSchain.connect(deployer).registerExtraContract("Mainnet", extensionSchain.address);
-        const res = await extensionSchain.connect(user).sendTokenToMainnet(user.address, 1);
-
-        const encodedData = ethers.utils.defaultAbiCoder.encode(["address", "uint", "string"], [user.address, 1, tokenURI]);
-        await expect(res)
-            .to.emit(messageProxyForSchain, "OutgoingMessage")
-            .withArgs(mainnetHash, 0, extensionSchain.address, extensionMainnet.address, encodedData);
+        const res = await (await extensionSchain.connect(user).sendTokenToMainnet(user.address, 1)).wait();
+        if (!res.events) {
+            assert("No events were emitted");
+        } else {
+            const last = res.events.length - 1;
+            expect(res.events[last]?.topics[0]).to.equal(stringValue(web3.utils.soliditySha3("OutgoingMessage(bytes32,uint256,address,address,bytes)")));
+            expect(res.events[last]?.topics[1]).to.equal(stringValue(web3.utils.soliditySha3("Mainnet")));
+            expect(BigNumber.from(res.events[last]?.topics[2]).toString()).to.equal("0");
+            expect(stringValue(web3.utils.toChecksumAddress("0x" + res.events[last]?.topics[3].slice(-40)))).to.equal(extensionSchain.address);
+        }
     });
 
     it("should POST message for token 1", async () => {

@@ -114,8 +114,10 @@ describe("DepositBoxEth", () => {
     let messageProxy: MessageProxyForMainnet;
     let linker: Linker;
     let communityPool: CommunityPool;
+    let messages: MessagesTester;
     const contractManagerAddress = "0x0000000000000000000000000000000000000000";
     const schainName = "Schain";
+    const schainHash = stringValue(web3.utils.soliditySha3(schainName));
 
     before(async () => {
         [deployer, user, user2, richGuy] = await ethers.getSigners();
@@ -135,6 +137,7 @@ describe("DepositBoxEth", () => {
         linker = await deployLinker(contractManager, messageProxy);
         depositBoxEth = await deployDepositBoxEth(contractManager, linker, messageProxy);
         communityPool = await deployCommunityPool(contractManager, linker, messageProxy);
+        messages = await deployMessages();
         await messageProxy.grantRole(await messageProxy.CHAIN_CONNECTOR_ROLE(), linker.address);
         await messageProxy.grantRole(await messageProxy.EXTRA_CONTRACT_REGISTRAR_ROLE(), deployer.address);
         await initializeSchain(contractManager, schainName, user.address, 1, 1);
@@ -198,6 +201,30 @@ describe("DepositBoxEth", () => {
             expect(lockAndDataBalance).to.equal(wei);
         });
 
+        it("should invoke `depositDirect` without mistakes", async () => {
+            // preparation
+            // the wei should be MORE than (55000 * 1000000000)
+            // GAS_AMOUNT_POST_MESSAGE * AVERAGE_TX_PRICE constants in DepositBox.sol
+            // to avoid the `Not enough money` error
+            const wei = "20000000000000000";
+            // add schain to avoid the `Unconnected chain` error
+            await linker
+                .connect(deployer)
+                .connectSchain(schainName, [deployer.address, deployer.address, deployer.address]);
+
+            const data = await messages.encodeTransferEthMessage(user.address, wei);
+            // execution
+            await depositBoxEth
+                .connect(deployer)
+                .depositDirect(schainName, user.address, { value: wei })
+                .should.emit(messageProxy, "OutgoingMessage")
+                .withArgs(schainHash, 0, depositBoxEth.address, deployer.address, data);
+
+            const lockAndDataBalance = await web3.eth.getBalance(depositBoxEth.address);
+            // expectation
+            expect(lockAndDataBalance).to.equal(wei);
+        });
+
         it("should revert `Not allowed. in DepositBox`", async () => {
             // preparation
             const error = "Use deposit function";
@@ -230,12 +257,10 @@ describe("DepositBoxEth", () => {
     describe("tests for `postMessage` function", async () => {
         let erc20: ERC20OnChain;
         let erc20Clone: ERC20OnChain;
-        let messages: MessagesTester;
 
         beforeEach(async () => {
             erc20 = await deployERC20OnChain("D2-token", "D2",);
             erc20Clone = await deployERC20OnChain("Token", "T",);
-            messages = await deployMessages();
         });
 
         it("should rejected with `Sender is not a MessageProxy`", async () => {
@@ -277,7 +302,6 @@ describe("DepositBoxEth", () => {
             await messageProxy.addConnectedChain(schainName);
             await initializeSchain(contractManager, schainName, deployer.address, 1, 1);
             await setCommonPublicKey(contractManager, schainName);
-            await communityPool.addSchainContract(schainName, deployer.address);
             await communityPool
                 .connect(user)
                 .rechargeUserWallet(schainName, user.address, { value: wei });
@@ -296,7 +320,7 @@ describe("DepositBoxEth", () => {
         });
 
         it("should rejected with message `Not enough money to finish this transaction` when "
-            + "`sender != ILockAndDataDB(lockAndDataAddress).tokenManagerAddresses(schainHash)`", async () => {
+            + "`sender != DepositBoxEth.tokenManagerAddresses(schainHash)`", async () => {
                 //  preparation
                 const error = "Not enough money to finish this transaction";
                 const wei = 1e18.toString();
@@ -437,7 +461,6 @@ describe("DepositBoxEth", () => {
             const senderFromSchain = deployer.address;
             const wei = "30000000000000000";
             const bytesData = await messages.encodeTransferEthMessage(user.address, wei);
-            const schainHash = stringValue(web3.utils.soliditySha3(schainName));
 
             await setCommonPublicKey(contractManager, schainName);
 
@@ -487,7 +510,6 @@ describe("DepositBoxEth", () => {
             const senderFromSchain = deployer.address;
             const wei = "30000000000000000";
             const bytesData = await messages.encodeTransferEthMessage(user.address, wei);
-            const schainHash = stringValue(web3.utils.soliditySha3(schainName));
 
             await setCommonPublicKey(contractManager, schainName);
 
@@ -561,7 +583,6 @@ describe("DepositBoxEth", () => {
 
             const senderFromSchain = deployer.address;
             const wei = "30000000000000000";
-            const schainHash = stringValue(web3.utils.soliditySha3(schainName));
 
             const fallbackEthTester = await deployFallbackEthTester(depositBoxEth, communityPool, schainName);
             const bytesData = await messages.encodeTransferEthMessage(fallbackEthTester.address, wei);
