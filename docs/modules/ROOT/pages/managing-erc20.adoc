@@ -168,6 +168,9 @@ link:{erc20-sandbox}[Live ERC20 IMA Demo]
 
 To send ERC20 tokens from a user's wallet to the IMA Deposit Box on Ethereum, you will need to use the https://github.com/skalenetwork/IMA/blob/develop/proxy/contracts/mainnet/DepositBoxes/DepositBoxERC20.sol#L48[depositERC20] function within the **DepositBoxERC20** IMA contract on Ethereum.  
 
+[NOTE]
+The depositERC20() requires that the `msg.sender` is the receiver address. For specifying the receiver, use depositERC20Direct().
+
 This method is called from Ethereum to move ERC20 tokens into a Deposit Box.  
 
 The **DepositBoxERC20** contract is on Rinkeby testnet. To get the ABIs to interact with IMA on Rinkeby, check out the https://github.com/skalenetwork/skale-network/tree/master/releases/rinkeby/IMA[current release page].  
