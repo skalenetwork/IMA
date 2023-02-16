@@ -36,9 +36,10 @@ let approve = contractERC20.methods
   .encodeABI();
 
 let deposit = depositBox.methods
-  .depositERC20(
+  .depositERC20(   // replace with depositERC20Direct() for specifying receiver
     schainName,
     erc20Address,
+    // receiverAddress           required for depositERC20Direct()
     web3ForMainnet.utils.toHex(web3ForMainnet.utils.toWei("1", "ether"))
   )
   .encodeABI();
