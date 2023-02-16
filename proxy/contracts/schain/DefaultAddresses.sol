@@ -1,8 +1,8 @@
 // SPDX-License-Identifier: AGPL-3.0-only
 
 /**
- *   MessageProxyForSchainWithoutSignature.sol - SKALE Interchain Messaging Agent
- *   Copyright (C) 2021-Present SKALE Labs
+ *   DefaultAddresses.sol - SKALE Interchain Messaging Agent
+ *   Copyright (C) 2022-Present SKALE Labs
  *   @author Dmytro Stebaiev
  *
  *   SKALE IMA is free software: you can redistribute it and/or modify
@@ -19,26 +19,11 @@
  *   along with SKALE IMA.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-pragma solidity 0.8.16;
+ pragma solidity 0.8.16;
 
-import "./MessageProxyForSchainTester.sol";
-
-contract MessageProxyForSchainWithoutSignature is MessageProxyForSchainTester {
-
-    constructor(string memory schainName)
-        MessageProxyForSchainTester(IKeyStorage(address(0)), schainName)
-    // solhint-disable-next-line no-empty-blocks
-    {}
-
-    function _verifyMessages(
-        bytes32,
-        Signature calldata
-    )
-        internal
-        pure
-        override
-        returns (bool)
-    {
-        return true;
-    }
+library DefaultAddresses {
+                                                          // 17 0x00 bytes
+    address public constant ETHERBASE = address(0xd2bA3e << (17 * 8));
+                                                                       // 16 0x00 bytes
+    address public constant TOKEN_MANAGER_LINKER = address(0xD2aAA008 << (16 * 8));
 }

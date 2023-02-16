@@ -81,6 +81,7 @@ contract TokenManagerEth is TokenManager, ITokenManagerEth {
         address receiver = decodedMessage.receiver;
         require(receiver != address(0), "Incorrect receiver");
         ethErc20.mint(receiver, decodedMessage.amount);
+        messageProxy.topUpReceiverBalance(payable(receiver));
     }
 
     /**

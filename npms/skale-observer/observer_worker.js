@@ -42,6 +42,8 @@ parentPort.on( "message", jo => {
         return;
 } );
 
+const sleep = ( milliseconds ) => { return new Promise( resolve => setTimeout( resolve, milliseconds ) ); };
+
 function doSendMessage( type, endpoint, worker_uuid, data ) {
     const jo = network_layer.socket_received_data_reverse_marshall( data );
     const joSend = {
@@ -106,7 +108,7 @@ class ObserverServer extends Server {
             self.opts.imaState.jo_schains = new self.opts.imaState.w3_main_net.eth.Contract( self.opts.imaState.joAbiPublishResult_skale_manager.schains_abi, self.opts.imaState.joAbiPublishResult_skale_manager.schains_address );
             self.opts.imaState.jo_schains_internal = new self.opts.imaState.w3_main_net.eth.Contract( self.opts.imaState.joAbiPublishResult_skale_manager.schains_internal_abi, self.opts.imaState.joAbiPublishResult_skale_manager.schains_internal_address );
             //
-            self.opts.imaState.jo_message_proxy_s_chain = new imaState.w3_s_chain.eth.Contract( self.opts.imaState.joAbiPublishResult_s_chain.message_proxy_chain_abi, self.opts.imaState.joAbiPublishResult_s_chain.message_proxy_chain_address );
+            self.opts.imaState.jo_message_proxy_s_chain = new self.opts.imaState.w3_s_chain.eth.Contract( self.opts.imaState.joAbiPublishResult_s_chain.message_proxy_chain_abi, self.opts.imaState.joAbiPublishResult_s_chain.message_proxy_chain_address );
             //
             cc.enable( joMessage.message.cc.isEnabled );
             joAnswer.message = {
@@ -151,17 +153,31 @@ class ObserverServer extends Server {
     async periodic_caching_do_now( socket, secondsToReDiscoverSkaleNetwork, strChainNameConnectedTo, addressFrom ) {
         const self = this;
         if( self.bIsPeriodicCachingStepInProgress )
-            return;
+            return null;
+        let strError = null;
         self.bIsPeriodicCachingStepInProgress = true;
-        // const strError =
-        await skale_observer.cache_schains(
-            strChainNameConnectedTo,
-            self.opts.imaState.w3_main_net,
-            self.opts.imaState.w3_s_chain,
-            addressFrom,
-            self.opts
-        );
+        for( let idxAttempt = 0; idxAttempt < 10; ++ idxAttempt ) {
+            try {
+                strError =
+                    await skale_observer.cache_schains(
+                        strChainNameConnectedTo,
+                        self.opts.imaState.w3_main_net,
+                        self.opts.imaState.w3_s_chain,
+                        addressFrom,
+                        self.opts
+                    );
+                if( ! strError )
+                    break;
+            } catch ( err ) {
+                strError = owaspUtils.extract_error_message( err );
+                if( ! strError )
+                    strError = "runtime error without description";
+            }
+            await sleep( 5 * 1000 );
+        }
         self.bIsPeriodicCachingStepInProgress = false;
+        if( strError )
+            return strError;
         const arr_schains = skale_observer.get_last_cached_schains();
         // self.log( cc.normal( "Got " ) + cc.info( "SKALE NETWORK" ) + cc.normal( " information in worker: " ) + cc.j( arr_schains ) + "\n" );
         const jo = {
@@ -171,6 +187,7 @@ class ObserverServer extends Server {
         };
         const isFlush = true;
         socket.send( jo, isFlush );
+        return null;
     }
     async periodic_caching_start( socket, secondsToReDiscoverSkaleNetwork, strChainNameConnectedTo, addressFrom ) {
         const self = this;

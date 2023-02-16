@@ -206,7 +206,7 @@ contract CommunityLocker is ICommunityLockerInitializer, AccessControlEnumerable
         override
     {
         require(
-            tokenManagerLinker.hasTokenManager(ITokenManager(msg.sender)),
+            tokenManagerLinker.hasTokenManager(msg.sender),
             "Sender is not registered token manager"
         );
         if (chainHash == MAINNET_HASH) {

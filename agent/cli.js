@@ -110,22 +110,32 @@ function ensure_have_chain_credentials( strFriendlyChainName, joAccount, isExitI
         if( isExitIfEmpty )
             process.exit( 126 );
     }
-    if( "strTransactionManagerURL" in joAccount && typeof joAccount.strTransactionManagerURL == "string" && joAccount.strTransactionManagerURL.length > 0 )
+    let cntAccountVariantsSpecified = 0;
+    if( "strTransactionManagerURL" in joAccount && typeof joAccount.strTransactionManagerURL == "string" && joAccount.strTransactionManagerURL.length > 0 ) {
+        ++ cntAccountVariantsSpecified;
         ensure_have_value( "" + strFriendlyChainName + "/TM/URL", joAccount.strTransactionManagerURL, isExitIfEmpty, isPrintValue );
-    else if( "strSgxURL" in joAccount && typeof joAccount.strSgxURL == "string" && joAccount.strSgxURL.length > 0 &&
-        "strSgxKeyName" in joAccount && typeof joAccount.strSgxKeyName == "string" && joAccount.strSgxKeyName.length > 0
-    ) {
+    }
+    if( "strSgxURL" in joAccount && typeof joAccount.strSgxURL == "string" && joAccount.strSgxURL.length > 0 ) {
+        ++ cntAccountVariantsSpecified;
         ensure_have_value( "" + strFriendlyChainName + "/SGX/URL", joAccount.strSgxURL, isExitIfEmpty, isPrintValue );
-        ensure_have_value( "" + strFriendlyChainName + "/SGX/keyName", joAccount.strSgxKeyName, isExitIfEmpty, isPrintValue );
         if( "strPathSslKey" in joAccount && typeof joAccount.strPathSslKey == "string" && joAccount.strPathSslKey.length > 0 )
             ensure_have_value( "" + strFriendlyChainName + "/SGX/SSL/keyPath", joAccount.strPathSslKey, isExitIfEmpty, isPrintValue );
         if( "strPathSslCert" in joAccount && typeof joAccount.strPathSslCert == "string" && joAccount.strPathSslCert.length > 0 )
             ensure_have_value( "" + strFriendlyChainName + "/SGX/SSL/certPath", joAccount.strPathSslCert, isExitIfEmpty, isPrintValue );
-    } else if( "privateKey" in joAccount && typeof joAccount.privateKey == "string" && joAccount.privateKey.length > 0 )
+    }
+    if( "strSgxKeyName" in joAccount && typeof joAccount.strSgxKeyName == "string" && joAccount.strSgxKeyName.length > 0 ) {
+        ++ cntAccountVariantsSpecified;
+        ensure_have_value( "" + strFriendlyChainName + "/SGX/keyName", joAccount.strSgxKeyName, isExitIfEmpty, isPrintValue );
+    }
+    if( "privateKey" in joAccount && typeof joAccount.privateKey == "string" && joAccount.privateKey.length > 0 ) {
+        ++ cntAccountVariantsSpecified;
         ensure_have_value( "" + strFriendlyChainName + "/privateKey", joAccount.privateKey, isExitIfEmpty, isPrintValue );
-    else if( "address_" in joAccount && typeof joAccount.address_ == "string" && joAccount.address_.length > 0 )
+    }
+    if( "address_" in joAccount && typeof joAccount.address_ == "string" && joAccount.address_.length > 0 ) {
+        ++ cntAccountVariantsSpecified;
         ensure_have_value( "" + strFriendlyChainName + "/walletAddress", joAccount.address_, isExitIfEmpty, isPrintValue );
-    else {
+    }
+    if( cntAccountVariantsSpecified == 0 ) {
         log.write( cc.error( "ARGUMENTS VALIDATION WARNING:" ) +
             cc.warning( " bad credentials information specified for " ) + cc.info( strFriendlyChainName ) +
             cc.warning( " chain, no explicit SGX, no explicit private key, no wallet address found" ) + "\n"
@@ -380,6 +390,9 @@ function parse( joExternalHandlers, argv ) {
             console.log( soi + cc.debug( "--" ) + cc.bright( "ptx-ignore2" ) + cc.debug( "..................." ) + cc.error( "Ignore" ) + cc.notice( " secondary result of " ) + cc.attention( "pending transaction analysis" ) + cc.notice( "." ) );
             console.log( soi + cc.debug( "--" ) + cc.bright( "no-ptx-ignore2" ) + cc.debug( "................" ) + cc.success( "Do not ignore" ) + cc.notice( " secondary result of " ) + cc.attention( "pending transaction analysis" ) + cc.notice( ". Transfer loop will be delayed until " ) + cc.attention( "pending transactions disappear" ) + cc.notice( "." ) );
             //
+            console.log( cc.sunny( "IMA STATE" ) + cc.info( " options:" ) );
+            console.log( soi + cc.debug( "--" ) + cc.bright( "state-file" ) + cc.sunny( "=" ) + cc.info( "path" ) + cc.debug( "..............." ) + cc.notice( "Specifies path to IMA state file for optimized logs searches." ) );
+            //
             console.log( cc.sunny( "MESSAGE SIGNING" ) + cc.info( " options:" ) );
             console.log( soi + cc.debug( "--" ) + cc.bright( "sign-messages" ) + cc.debug( "................." ) + cc.notice( "Sign transferred messages." ) );
             console.log( soi + cc.debug( "--" ) + cc.bright( "bls-glue" ) + cc.sunny( "=" ) + cc.note( "path" ) + cc.debug( "................." ) + cc.notice( "Specifies path to " ) + cc.note( "bls_glue" ) + cc.notice( " application." ) );
@@ -387,7 +400,7 @@ function parse( joExternalHandlers, argv ) {
             console.log( soi + cc.debug( "--" ) + cc.bright( "bls-verify" ) + cc.sunny( "=" ) + cc.note( "path" ) + cc.debug( "..............." ) + cc.debug( "Optional parameter, specifies path to " ) + cc.note( "verify_bls" ) + cc.debug( " application." ) );
             //
             console.log( cc.sunny( "MONITORING" ) + cc.info( " options:" ) );
-            console.log( soi + cc.debug( "--" ) + cc.bright( "monitoring-port" ) + cc.sunny( "=" ) + cc.note( "number" ) + cc.debug( "........" ) + cc.notice( "Run " ) + cc.note( "monitoring web socket RPC server" ) + cc.notice( " on specified port. " ) + cc.debug( "By default monitoring server is " ) + cc.error( "disabled" ) + cc.notice( "." ) );
+            console.log( soi + cc.debug( "--" ) + cc.bright( "monitoring-port" ) + cc.sunny( "=" ) + cc.note( "number" ) + cc.debug( "........" ) + cc.notice( "Run " ) + cc.note( "monitoring web socket RPC server" ) + cc.notice( " on specified port. " ) + cc.debug( "Specify " ) + cc.sunny( "0" ) + cc.debug( " to " ) + cc.error( "disable" ) + cc.notice( "." ) + cc.debug( " By default monitoring server is " ) + cc.error( "disabled" ) + cc.notice( "." ) );
             //
             console.log( cc.sunny( "GAS REIMBURSEMENT" ) + cc.info( " options:" ) );
             console.log( soi + cc.debug( "--" ) + cc.bright( "reimbursement-chain" ) + cc.sunny( "=" ) + cc.note( "name" ) + cc.debug( "......" ) + cc.notice( "Specifies chain name." ) );
@@ -402,9 +415,8 @@ function parse( joExternalHandlers, argv ) {
             console.log( soi + cc.debug( "--" ) + cc.bright( "bs-progressive-enable" ) + cc.debug( "........." ) + cc.success( "Enables" ) + " " + cc.attention( "progressive block scan" ) + cc.notice( " to search past events." ) );
             console.log( soi + cc.debug( "--" ) + cc.bright( "bs-progressive-disable" ) + cc.debug( "........" ) + cc.error( "Disables" ) + " " + cc.attention( "progressive block scan" ) + cc.notice( " to search past events." ) );
             //
-            console.log( cc.sunny( "ORACLE BASED GAS REIMBURSEMENT" ) + cc.info( " options:" ) );
-            console.log( soi + cc.debug( "--" ) + cc.bright( "enable-oracle" ) + cc.debug( "................." ) + cc.success( "Enable" ) + cc.notice( " call to " ) + cc.note( "Oracle" ) + cc.notice( " to compute " ) + cc.note( "gas price" ) + cc.notice( " for " ) + cc.attention( "gas reimbursement" ) + cc.notice( ". " ) + cc.debug( "Default mode" ) + cc.notice( "." ) );
-            console.log( soi + cc.debug( "--" ) + cc.bright( "disable-oracle" ) + cc.debug( "................" ) + cc.error( "Disable" ) + cc.notice( " call to " ) + cc.note( "Oracle" ) + cc.notice( " to compute " ) + cc.note( "gas price" ) + cc.notice( " for " ) + cc.attention( "gas reimbursement" ) + cc.notice( "." ) );
+            console.log( cc.sunny( "ORACLE GAS PRICE MANAGEMENT" ) + cc.info( " options:" ) );
+            console.log( soi + cc.debug( "--" ) + cc.bright( "ogp-mode" ) + cc.sunny( "=" ) + cc.note( "number" ) + cc.debug( "..............." ) + cc.notice( "Oracle gas price mode: " ) + cc.sunny( "0" ) + cc.notice( " - " ) + cc.error( "disable" ) + cc.debug( "(default)" ) + cc.notice( ", " ) + cc.sunny( "1" ) + cc.notice( " - " ) + cc.success( "enable" ) + cc.notice( " and invoke before message transfer loop." ) );
             //
             console.log( cc.sunny( "TEST" ) + cc.info( " options:" ) );
             console.log( soi + cc.debug( "--" ) + cc.bright( "browse-s-chain" ) + cc.debug( "................" ) + cc.notice( "Download own " ) + cc.note( "S-Chain" ) + cc.notice( " network information." ) );
@@ -1077,6 +1089,11 @@ function parse( joExternalHandlers, argv ) {
             imaState.optsPendingTxAnalysis.isIgnore2 = false;
             continue;
         }
+        if( joArg.name == "state-file" ) {
+            imaState.optsStateFile.isEnabled = true;
+            imaState.optsStateFile.path = joArg.value;
+            continue;
+        }
         if( joArg.name == "log-size" ) {
             owaspUtils.verifyArgumentIsInteger( joArg );
             imaState.nLogMaxSizeBeforeRotation = owaspUtils.toInteger( joArg.value );
@@ -1128,7 +1145,7 @@ function parse( joExternalHandlers, argv ) {
             continue;
         }
         if( joArg.name == "monitoring-port" ) {
-            owaspUtils.verifyArgumentIsIntegerIpPortNumber( joArg );
+            owaspUtils.verifyArgumentIsIntegerIpPortNumber( joArg, true );
             imaState.nMonitoringPort = owaspUtils.toInteger( joArg.value );
             continue;
         }
@@ -1178,12 +1195,9 @@ function parse( joExternalHandlers, argv ) {
             IMA.setEnabledProgressiveEventsScan( false );
             continue;
         }
-        if( joArg.name == "enable-oracle" ) {
-            IMA.setEnabledOracle( true );
-            continue;
-        }
-        if( joArg.name == "disable-oracle" ) {
-            IMA.setEnabledOracle( false );
+        if( joArg.name == "ogp-mode" ) {
+            owaspUtils.verifyArgumentIsInteger( joArg );
+            IMA.setOracleGasPriceMode( owaspUtils.toInteger( joArg.value ) );
             continue;
         }
         if( joArg.name == "s2s-forward" ) {
@@ -1263,7 +1277,7 @@ function getWeb3FromURL( strURL, log ) {
     } catch ( err ) {
         log.write( cc.fatal( "CRITICAL ERROR:" ) + cc.error( " Failed to create " ) +
             cc.attention( "Web3" ) + cc.error( " connection to " ) + cc.info( strURL ) +
-            cc.error( ": " ) + cc.warning( err.toString() ) + "\n" );
+            cc.error( ": " ) + cc.warning( owaspUtils.extract_error_message( err ) ) + "\n" );
         w3 = null;
     }
     return w3;
@@ -1284,7 +1298,7 @@ async function async_check_url_at_startup( u, name ) {
     } catch ( err ) {
         details.write(
             cc.fatal( "ERROR:" ) + cc.error( " Failed to check URL " ) +
-            cc.u( u ) + cc.error( " connectivity for " ) + cc.info( name ) + cc.error( " at start-up, error is: " ) + cc.warning( err.toString() ) +
+            cc.u( u ) + cc.error( " connectivity for " ) + cc.info( name ) + cc.error( " at start-up, error is: " ) + cc.warning( owaspUtils.extract_error_message( err ) ) +
             "\n" );
     }
     // details.exposeDetailsTo( log, "async_check_url_at_startup( \"" + u + "\", \"" + name + "\" )", true );
@@ -2243,7 +2257,7 @@ function ima_common_init() {
             log.write( cc.info( "Pending transaction analysis 2nd attempt after" ) + cc.debug( "......." ) + cc.bright( imaState.optsPendingTxAnalysis.nTimeoutSecondsBeforeSecondAttempt ) + "\n" );
             log.write( cc.info( "Ignore result of PTX is" ) + cc.debug( ".............................." ) + ( imaState.optsPendingTxAnalysis.isIgnore ? cc.success( "yes" ) : cc.error( "no" ) ) + "\n" );
             log.write( cc.info( "Ignore secondary result of PTX is" ) + cc.debug( "...................." ) + ( imaState.optsPendingTxAnalysis.isIgnore2 ? cc.success( "yes" ) : cc.error( "no" ) ) + "\n" );
-            log.write( cc.info( "Oracle based gas reimbursement is" ) + cc.debug( "...................." ) + ( IMA.getEnabledOracle() ? cc.success( "enabled" ) : cc.error( "disabled" ) ) + "\n" );
+            log.write( cc.info( "Oracle gas price mode is" ) + cc.debug( "............................." ) + cc.info( IMA.getOracleGasPriceMode() ) + "\n" );
             log.write( cc.info( "S-Chain to S-Chain transferring is" ) + cc.debug( "..................." ) + ( imaState.s2s_opts.isEnabled ? cc.success( "enabled" ) : cc.error( "disabled" ) ) + "\n" );
             log.write( cc.info( "SKALE network re-discovery interval is" ) + cc.debug( "..............." ) + ( imaState.s2s_opts.secondsToReDiscoverSkaleNetwork ? cc.info( imaState.s2s_opts.secondsToReDiscoverSkaleNetwork.toString() ) : cc.error( "disabled" ) ) + "\n" );
             log.write( cc.info( "S<->S transfer mode is" ) + cc.debug( "..............................." ) + IMA.get_S2S_transfer_mode_description_colorized() + "\n" );

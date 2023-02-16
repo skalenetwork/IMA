@@ -4,7 +4,7 @@
     "license": "AGPL-3.0",
     "author": "SKALE Labs and contributors",
     "scripts": {
-        "postinstall": "echo \"----- installing in OWASP\n\" && cd ../npms/skale-owasp && yarn install && cd ../../agent && echo \"----- installing in IMA CORE\n\" && cd ../npms/skale-ima && yarn install && cd ../../agent && echo \"----- installing in IMA OBSERVER\n\" && cd ../npms/skale-observer && yarn install && cd ../../agent && echo \"----- installing in SKALE COOL SOCKET\n\" && cd ../npms/skale-cool-socket && yarn install && cd ../../agent"
+        "postinstall": "echo \"----- installing in OWASP\n\" && cd ../npms/skale-owasp && yarn install && cd ../../agent && echo \"----- installing in IMA CORE\n\" && cd ../npms/skale-ima && yarn install && cd ../../agent && echo \"----- installing in IMA OBSERVER\n\" && cd ../npms/skale-observer && yarn install && cd ../../agent"
     },
     "dependencies": {
         "js-sha3": "^0.8.0",

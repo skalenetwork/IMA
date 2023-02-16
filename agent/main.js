@@ -47,8 +47,6 @@ global.imaBLS = require( "./bls.js" );
 global.rpcCall = require( "./rpc-call.js" );
 global.skale_observer = require( "../npms/skale-observer/observer.js" );
 global.rpcCall.init();
-global.imaOracle = require( "./oracle.js" );
-global.imaOracle.init();
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -120,7 +118,6 @@ global.imaState = {
 
     "strChainName_main_net": ( process.env.CHAIN_NAME_ETHEREUM || "Mainnet" ).toString().trim(),
     "strChainName_s_chain": ( process.env.CHAIN_NAME_SCHAIN || "id-S-chain" ).toString().trim(),
-    "strChainName_origin_chain": ( process.env.CHAIN_NAME_SCHAIN_ORIGIN || "Mainnet" ).toString().trim(),
     "strChainName_t_chain": ( process.env.CHAIN_NAME_SCHAIN_TARGET || "id-T-chain" ).toString().trim(),
     "cid_main_net": owaspUtils.toInteger( process.env.CID_ETHEREUM ) || -4,
     "cid_s_chain": owaspUtils.toInteger( process.env.CID_SCHAIN ) || -4,
@@ -258,9 +255,14 @@ global.imaState = {
 
     "optsPendingTxAnalysis": {
         "isEnabled": false, // disable bv default
-        "nTimeoutSecondsBeforeSecondAttempt": 3, // 0 - disable 2nd attempt
+        "nTimeoutSecondsBeforeSecondAttempt": 30, // 0 - disable 2nd attempt
         "isIgnore": false, // ignore PTX result
         "isIgnore2": true // ignore secondary PTX result
+    },
+
+    "optsStateFile": {
+        "isEnabled": false, // true
+        "path": "./ima.state.json"
     },
 
     "nMonitoringPort": 0, // 0 - default, means monitoring server is disabled
@@ -1266,7 +1268,8 @@ imaCLI.parse( {
                     imaBLS.do_sign_messages_m2s, // fn_sign_messages
                     null, // joExtraSignOpts
                     imaState.tc_s_chain,
-                    imaState.optsPendingTxAnalysis
+                    imaState.optsPendingTxAnalysis,
+                    imaState.optsStateFile
                 );
             }
         } );
@@ -1300,7 +1303,8 @@ imaCLI.parse( {
                     imaBLS.do_sign_messages_s2m, // fn_sign_messages
                     null, // joExtraSignOpts
                     imaState.tc_main_net,
-                    imaState.optsPendingTxAnalysis
+                    imaState.optsPendingTxAnalysis,
+                    imaState.optsStateFile
                 );
             }
         } );
@@ -1330,7 +1334,8 @@ imaCLI.parse( {
                     imaState.nBlockAgeM2S,
                     imaBLS.do_sign_messages_m2s, // fn_sign_messages
                     imaState.tc_s_chain,
-                    imaState.optsPendingTxAnalysis
+                    imaState.optsPendingTxAnalysis,
+                    null // imaState.optsStateFile
                 );
             }
         } );
@@ -1383,6 +1388,8 @@ imaCLI.parse( {
                 await rpcCall.create( imaState.strURL_s_chain, rpcCallOpts, async function( joCall, err ) {
                     if( err ) {
                         console.log( cc.fatal( "CRITICAL ERROR:" ) + cc.error( " JSON RPC call to S-Chain failed" ) );
+                        if( joCall )
+                            await joCall.disconnect();
                         process.exit( 156 );
                     }
                     await joCall.call( {
@@ -1393,6 +1400,7 @@ imaCLI.parse( {
                     }, async function( joIn, joOut, err ) {
                         if( err ) {
                             console.log( cc.fatal( "CRITICAL ERROR:" ) + cc.error( " JSON RPC call to S-Chain failed, error: " ) + cc.warning( err ) );
+                            await joCall.disconnect();
                             process.exit( 157 );
                         }
                         log.write( strLogPrefix + cc.normal( "S-Chain network information: " ) + cc.j( joOut.result ) + "\n" );
@@ -1411,6 +1419,7 @@ imaCLI.parse( {
                             await rpcCall.create( strNodeURL, rpcCallOpts, async function( joCall, err ) {
                                 if( err ) {
                                     console.log( cc.fatal( "CRITICAL ERROR:" ) + cc.error( " JSON RPC call to S-Chain failed" ) );
+                                    await joCall.disconnect();
                                     process.exit( 158 );
                                 }
                                 await joCall.call( {
@@ -1426,6 +1435,7 @@ imaCLI.parse( {
                                     }
                                     log.write( strLogPrefix + cc.normal( "Node " ) + cc.info( joNode.nodeID ) + cc.normal( " IMA information: " ) + cc.j( joOut.result ) + "\n" );
                                     //process.exit( 0 );
+                                    await joCall.disconnect();
                                 } );
                             } );
                         }
@@ -1436,6 +1446,7 @@ imaCLI.parse( {
                                 process.exit( 0 );
                             }
                         }, 100 );
+                        await joCall.disconnect();
                     } );
                 } );
                 return true;
@@ -1647,7 +1658,7 @@ if( haveReimbursementCommands ) {
 }
 if( imaState.nReimbursementRange >= 0 ) {
     imaState.arrActions.push( {
-        "name": "Gas Reimbursement - Set Minimal time interval from S2M and S2S transfers",
+        "name": "Gas Reimbursement - Set Minimal time interval from S2M transfers",
         "fn": async function() {
             await IMA.reimbursement_set_range(
                 imaState.w3_s_chain,
@@ -1656,7 +1667,6 @@ if( imaState.nReimbursementRange >= 0 ) {
                 imaState.strChainName_s_chain,
                 imaState.cid_s_chain,
                 imaState.tc_s_chain,
-                imaState.strChainName_origin_chain,
                 imaState.nReimbursementRange
             );
             return true;
@@ -1849,6 +1859,8 @@ async function discover_s_chain_network( fnAfter, isSilent, joPrevSChainNetworkI
                     );
                 }
                 fnAfter( err, null );
+                if( joCall )
+                    await joCall.disconnect();
                 return;
             }
             await joCall.call( {
@@ -1866,6 +1878,7 @@ async function discover_s_chain_network( fnAfter, isSilent, joPrevSChainNetworkI
                         );
                     }
                     fnAfter( err, null );
+                    await joCall.disconnect();
                     return;
                 }
                 if( ( !isSilent ) && IMA.verbose_get() >= IMA.RV_VERBOSE.trace )
@@ -1884,6 +1897,7 @@ async function discover_s_chain_network( fnAfter, isSilent, joPrevSChainNetworkI
                         );
                     }
                     fnAfter( err2, null );
+                    await joCall.disconnect();
                     return;
                 }
                 const jarrNodes = joSChainNetworkInfo.network;
@@ -1939,6 +1953,8 @@ async function discover_s_chain_network( fnAfter, isSilent, joPrevSChainNetworkI
                                 }
                                 // fnAfter( err, null );
                                 ++ cntFailed;
+                                if( joCall )
+                                    await joCall.disconnect();
                                 return;
                             }
                             joCall.call( {
@@ -2069,6 +2085,7 @@ async function discover_s_chain_network( fnAfter, isSilent, joPrevSChainNetworkI
                         );
                     }
                 }, nWaitStepMilliseconds );
+                await joCall.disconnect();
             } );
         } );
     } catch ( err ) {
@@ -2091,7 +2108,7 @@ async function discover_s_chain_network( fnAfter, isSilent, joPrevSChainNetworkI
 let g_ws_server_monitoring = null;
 
 if( imaState.nMonitoringPort > 0 ) {
-    const strLogPrefix = cc.attention( "Monitoring" ) + " " + cc.sunny( ">>" ) + " ";
+    const strLogPrefix = cc.attention( "Monitoring:" ) + " ";
     if( IMA.verbose_get() >= IMA.RV_VERBOSE.trace )
         log.write( strLogPrefix + cc.normal( "Will start monitoring WS server on port " ) + cc.info( imaState.nMonitoringPort ) + "\n" );
     g_ws_server_monitoring = new ws.Server( { port: 0 + imaState.nMonitoringPort } );
@@ -2108,7 +2125,7 @@ if( imaState.nMonitoringPort > 0 ) {
             try {
                 const joMessage = JSON.parse( message );
                 if( IMA.verbose_get() >= IMA.RV_VERBOSE.trace )
-                    log.write( strLogPrefix + cc.normal( "Message from " ) + cc.info( ip ) + cc.normal( ": " ) + cc.j( joMessage ) + "\n" );
+                    log.write( strLogPrefix + cc.sunny( "<<<" ) + " " + cc.normal( "message from " ) + cc.info( ip ) + cc.normal( ": " ) + cc.j( joMessage ) + "\n" );
                 if( ! ( "method" in joMessage ) )
                     throw new Error( "\"method\" field was not specified" );
                 joAnswer.method = joMessage.method;
@@ -2199,7 +2216,7 @@ if( imaState.nMonitoringPort > 0 ) {
             }
             try {
                 if( IMA.verbose_get() >= IMA.RV_VERBOSE.trace )
-                    log.write( strLogPrefix + cc.normal( "Answer to " ) + cc.info( ip ) + cc.normal( ": " ) + cc.j( joAnswer ) + "\n" );
+                    log.write( strLogPrefix + cc.sunny( ">>>" ) + " " + cc.normal( "answer to " ) + cc.info( ip ) + cc.normal( ": " ) + cc.j( joAnswer ) + "\n" );
                 ws_peer.send( JSON.stringify( joAnswer ) );
             } catch ( err ) {
                 if( IMA.verbose_get() >= IMA.RV_VERBOSE.error ) {
@@ -2453,9 +2470,7 @@ async function single_transfer_loop() {
         if( IMA.verbose_get() >= IMA.RV_VERBOSE.information )
             log.write( strLogPrefix + cc.debug( "Will invoke Oracle gas price setup..." ) + "\n" );
         let b0 = true;
-        if( IMA.getEnabledOracle() ) {
-            if( IMA.verbose_get() >= IMA.RV_VERBOSE.information )
-                log.write( strLogPrefix + cc.debug( "Will invoke Oracle gas price setup..." ) + "\n" );
+        if( IMA.getOracleGasPriceMode() == 1 ) {
             b0 = IMA.do_oracle_gas_price_setup(
                 imaState.w3_main_net,
                 imaState.w3_s_chain,
@@ -2496,7 +2511,8 @@ async function single_transfer_loop() {
             imaBLS.do_sign_messages_m2s, // fn_sign_messages
             null, // joExtraSignOpts
             imaState.tc_s_chain,
-            imaState.optsPendingTxAnalysis
+            imaState.optsPendingTxAnalysis,
+            imaState.optsStateFile
         );
         if( IMA.verbose_get() >= IMA.RV_VERBOSE.information )
             log.write( strLogPrefix + cc.debug( "M2S transfer done: " ) + cc.tf( b1 ) + "\n" );
@@ -2526,7 +2542,8 @@ async function single_transfer_loop() {
             imaBLS.do_sign_messages_s2m, // fn_sign_messages
             null, // joExtraSignOpts
             imaState.tc_main_net,
-            imaState.optsPendingTxAnalysis
+            imaState.optsPendingTxAnalysis,
+            imaState.optsStateFile
         );
         if( IMA.verbose_get() >= IMA.RV_VERBOSE.information )
             log.write( strLogPrefix + cc.debug( "S2M transfer done: " ) + cc.tf( b2 ) + "\n" );
@@ -2551,7 +2568,8 @@ async function single_transfer_loop() {
                 imaState.nBlockAgeM2S,
                 imaBLS.do_sign_messages_s2s, // fn_sign_messages
                 imaState.tc_s_chain,
-                imaState.optsPendingTxAnalysis
+                imaState.optsPendingTxAnalysis,
+                null // imaState.optsStateFile
             );
             if( IMA.verbose_get() >= IMA.RV_VERBOSE.information )
                 log.write( strLogPrefix + cc.debug( "All S2S transfers done: " ) + cc.tf( b3 ) + "\n" );
