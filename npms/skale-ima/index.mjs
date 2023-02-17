@@ -169,14 +169,14 @@ export const current_timestamp = () => { return parseInt( parseInt( Date.now().v
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 export async function safe_waitForNextBlockToAppear( details, ethersProvider ) {
-    const nBlockNumber = await safe_getBlockNumber( details, 10, ethersProvider );
+    const nBlockNumber = owaspUtils.toBN( await safe_getBlockNumber( details, 10, ethersProvider ) );
     details.write( cc.debug( "Waiting for next block to appear..." ) + "\n" );
-    details.write( cc.debug( "    ...have block " ) + cc.info( parseIntOrHex( nBlockNumber ) ) + "\n" );
+    details.write( cc.debug( "    ...have block " ) + cc.info( nBlockNumber.toHexString() ) + "\n" );
     for( ; true; ) {
         await sleep( 1000 );
-        const nBlockNumber2 = await safe_getBlockNumber( details, 10, ethersProvider );
-        details.write( cc.debug( "    ...have block " ) + cc.info( parseIntOrHex( nBlockNumber2 ) ) + "\n" );
-        if( nBlockNumber2 > nBlockNumber )
+        const nBlockNumber2 = owaspUtils.toBN( await safe_getBlockNumber( details, 10, ethersProvider ) );
+        details.write( cc.debug( "    ...have block " ) + cc.info( nBlockNumber2.toHexString() ) + "\n" );
+        if( nBlockNumber2.gt( nBlockNumber ) )
             break;
     }
 }
@@ -187,7 +187,7 @@ export async function safe_getBlockNumber( details, cntAttempts, ethersProvider,
     const nWaitStepMilliseconds = 10 * 1000;
     if( throwIfServerOffline == null || throwIfServerOffline == undefined )
         throwIfServerOffline = true;
-    cntAttempts = parseIntOrHex( cntAttempts ) < 1 ? 1 : parseIntOrHex( cntAttempts );
+    cntAttempts = owaspUtils.parseIntOrHex( cntAttempts ) < 1 ? 1 : owaspUtils.parseIntOrHex( cntAttempts );
     if( retValOnFail == null || retValOnFail == undefined )
         retValOnFail = "";
     let idxAttempt = 1;
@@ -254,7 +254,7 @@ export async function safe_getTransactionCount( details, cntAttempts, ethersProv
     const nWaitStepMilliseconds = 10 * 1000;
     if( throwIfServerOffline == null || throwIfServerOffline == undefined )
         throwIfServerOffline = true;
-    cntAttempts = parseIntOrHex( cntAttempts ) < 1 ? 1 : parseIntOrHex( cntAttempts );
+    cntAttempts = owaspUtils.parseIntOrHex( cntAttempts ) < 1 ? 1 : owaspUtils.parseIntOrHex( cntAttempts );
     if( retValOnFail == null || retValOnFail == undefined )
         retValOnFail = "";
     let ret = retValOnFail;
@@ -321,7 +321,7 @@ export async function safe_getTransactionReceipt( details, cntAttempts, ethersPr
     const nWaitStepMilliseconds = 10 * 1000;
     if( throwIfServerOffline == null || throwIfServerOffline == undefined )
         throwIfServerOffline = true;
-    cntAttempts = parseIntOrHex( cntAttempts ) < 1 ? 1 : parseIntOrHex( cntAttempts );
+    cntAttempts = owaspUtils.parseIntOrHex( cntAttempts ) < 1 ? 1 : owaspUtils.parseIntOrHex( cntAttempts );
     if( retValOnFail == null || retValOnFail == undefined )
         retValOnFail = "";
     let ret = retValOnFail;
@@ -387,49 +387,40 @@ export async function safe_getPastEvents( details, ethersProvider, cntAttempts, 
     const nWaitStepMilliseconds = 10 * 1000;
     if( throwIfServerOffline == null || throwIfServerOffline == undefined )
         throwIfServerOffline = true;
-    cntAttempts = parseIntOrHex( cntAttempts ) < 1 ? 1 : parseIntOrHex( cntAttempts );
+    cntAttempts = owaspUtils.parseIntOrHex( cntAttempts ) < 1 ? 1 : owaspUtils.parseIntOrHex( cntAttempts );
     if( retValOnFail == null || retValOnFail == undefined )
         retValOnFail = "";
     let ret = retValOnFail;
     let idxAttempt = 1;
     const strErrorTextAboutNotExistingEvent = "Event \"" + strEventName + "\" doesn't exist in this contract";
+    if( nBlockTo == "latest" ) {
+        const nLatestBlockNumber = owaspUtils.toBN( await safe_getBlockNumber( details, 10, ethersProvider ) );
+        nBlockTo = nLatestBlockNumber;
+    } else
+        nBlockTo = owaspUtils.toBN( nBlockTo );
+    nBlockFrom = owaspUtils.toBN( nBlockFrom );
     try {
-
-        // TO-REMOVE:
-        // const strFnName = "getPastEvents";
-        // ret = await joContract[strFnName]( "" + strEventName, {
-        //     filter: joFilter,
-        //     fromBlock: nBlockFrom,
-        //     toBlock: nBlockTo
-        // } );
-        // return ret;
-
         // TO-IMPROVE: this must be re-checked
-        ret = await joContract.queryFilter( joFilter, nBlockFrom, nBlockTo );
+        details.write(
+            cc.debug( "First time, will query filter " ) + cc.j( joFilter ) +
+            cc.debug( " on contract " ) + cc.info( joContract.address ) +
+            cc.debug( " from block " ) + cc.info( nBlockFrom.toHexString() ) +
+            cc.debug( " to block " ) + cc.info( nBlockTo.toHexString() ) +
+            "\n" );
+        ret =
+            await joContract.queryFilter(
+                joFilter,
+                nBlockFrom.toHexString(),
+                nBlockTo.toHexString()
+                );
         return ret;
-
-        // let event = joContract.interface.events[ strEventName ];
-        // // if( extraTopics !== null ) {
-        // //     event.topics[1] = keccak256( wallet.address );
-        // //     for( let i = 0; i < extraTopics.length; ++i )
-        // //         event.topics[i+1] = keccak256( extraTopics[i] );
-        // // }
-        // ret =
-        //     await ethersProvider.getLogs( {
-        //         fromBlock,
-        //         toBlock,
-        //         address: joContract.address,
-        //         topics: event.topics
-        //     } );
-        // return ret;
-
     } catch ( err ) {
         ret = retValOnFail;
         details.write(
             cc.error( "Failed filtering attempt " ) + cc.info( idxAttempt ) +
             cc.error( " for event " ) + cc.note( strEventName ) +
             cc.error( " via " ) + cc.u( u ) +
-            cc.error( ", from block " ) + cc.warning( nBlockFrom ) + cc.error( ", to block " ) + cc.warning( nBlockTo ) +
+            cc.error( ", from block " ) + cc.warning( nBlockFrom.toHexString() ) + cc.error( ", to block " ) + cc.warning( nBlockTo.toHexString() ) +
             cc.error( ", error is: " ) + cc.warning( owaspUtils.extract_error_message( err ) ) +
             cc.error( ", stack is: " ) + "\n" + cc.stack( err.stack ) +
             "\n" );
@@ -452,7 +443,8 @@ export async function safe_getPastEvents( details, ethersProvider, cntAttempts, 
                 cc.error( "Cannot do " ) + cc.note( strEventName ) + cc.error( " event filtering via " ) + cc.u( u ) +
                 cc.warning( " because server is off-line" ) + "\n" );
             throw new Error(
-                "Cannot do " + strEventName + " event filtering, from block " + nBlockFrom + ", to block " + nBlockTo +
+                "Cannot do " + strEventName + " event filtering, from block " +
+                nBlockFrom.toHexString() + ", to block " + nBlockTo.toHexString() +
                 " via " + u.toString() + " because server is off-line"
             );
         }
@@ -463,18 +455,19 @@ export async function safe_getPastEvents( details, ethersProvider, cntAttempts, 
             "\n" );
         // await sleep( nWaitStepMilliseconds );
         try {
-
-            // TO-REMOVE:
-            // const strFnName = "getPastEvents";
-            // ret = await joContract[strFnName]( "" + strEventName, {
-            //     filter: joFilter,
-            //     fromBlock: nBlockFrom,
-            //     toBlock: nBlockTo
-            // } );
-            // return ret;
-
             // TO-IMPROVE: this must be re-checked
-            ret = await joContract.queryFilter( joFilter, nBlockFrom, nBlockTo );
+            details.write(
+                cc.debug( "Attempt ") + cc.info( idxAttempt ) + cc.debug(", will query filter " ) + cc.j( joFilter ) +
+                cc.debug( " on contract " ) + cc.info( joContract.address ) +
+                cc.debug( " from block " ) + cc.info( nBlockFrom.toHexString() ) +
+                cc.debug( " to block " ) + cc.info( nBlockTo.toHexString() ) +
+                "\n" );
+            ret =
+                await joContract.queryFilter(
+                    joFilter,
+                    nBlockFrom.toHexString(),
+                    nBlockTo.toHexString()
+                    );
             return ret;
 
         } catch ( err ) {
@@ -483,7 +476,7 @@ export async function safe_getPastEvents( details, ethersProvider, cntAttempts, 
                 cc.error( "Failed filtering attempt " ) + cc.info( idxAttempt ) +
                 cc.error( " for event " ) + cc.note( strEventName ) +
                 cc.error( " via " ) + cc.u( u ) +
-                cc.error( ", from block " ) + cc.warning( nBlockFrom ) + cc.error( ", to block " ) + cc.warning( nBlockTo ) +
+                cc.error( ", from block " ) + cc.info( nBlockFrom.toHexString() ) + cc.error( ", to block " ) + cc.info( nBlockTo.toHexString() ) +
                 cc.error( ", error is: " ) + cc.warning( owaspUtils.extract_error_message( err ) ) +
                 cc.error( ", stack is: " ) + "\n" + cc.stack( err.stack ) +
                 "\n" );
@@ -501,11 +494,11 @@ export async function safe_getPastEvents( details, ethersProvider, cntAttempts, 
         details.write( cc.fatal( "ERROR:" ) +
             cc.error( " Failed filtering attempt for " ) + cc.note( strEventName ) +
             + cc.error( " event via " ) + cc.u( u ) +
-            cc.error( ", from block " ) + cc.warning( nBlockFrom ) + cc.error( ", to block " ) + cc.warning( nBlockTo ) +
+            cc.error( ", from block " ) + cc.info( nBlockFrom.toHexString() ) + cc.error( ", to block " ) + cc.info( nBlockTo.toHexString() ) +
             cc.error( " after " ) + cc.info( cntAttempts ) + cc.error( " attempts " ) +
             "\n" );
         throw new Error(
-            "Failed filtering attempt for " + strEventName + " event, from block " + nBlockFrom + ", to block " + nBlockTo +
+            "Failed filtering attempt for " + strEventName + " event, from block " + nBlockFrom.toHexString() + ", to block " + nBlockTo.toHexString() +
             " via " + u.toString() + " after " + cntAttempts + " attempts"
         );
     }
@@ -522,7 +515,7 @@ export function setBlocksCountInInIterativeStepOfEventsScan( n ) {
     if( ! n )
         g_nCountOfBlocksInIterativeStep = 0;
     else {
-        g_nCountOfBlocksInIterativeStep = parseIntOrHex( n );
+        g_nCountOfBlocksInIterativeStep = owaspUtils.parseIntOrHex( n );
         if( g_nCountOfBlocksInIterativeStep < 0 )
             g_nCountOfBlocksInIterativeStep = 0;
     }
@@ -535,7 +528,7 @@ export function setMaxIterationsInAllRangeEventsScan( n ) {
     if( ! n )
         g_nMaxBlockScanIterationsInAllRange = 0;
     else {
-        g_nMaxBlockScanIterationsInAllRange = parseIntOrHex( n );
+        g_nMaxBlockScanIterationsInAllRange = owaspUtils.parseIntOrHex( n );
         if( g_nMaxBlockScanIterationsInAllRange < 0 )
             g_nMaxBlockScanIterationsInAllRange = 0;
     }
@@ -546,69 +539,80 @@ export async function safe_getPastEventsIterative( details, ethersProvider, atte
         details.write(
             cc.fatal( "IMPORTANT NOTICE:" ) + " " +
             cc.warning( "Will skip " ) + cc.attention( "iterative" ) + cc.warning( " events scan in block range from " ) +
-            cc.info( nBlockFrom ) + cc.warning( " to " ) + cc.info( nBlockTo ) +
+            cc.j( nBlockFrom ) + cc.warning( " to " ) + cc.j( nBlockTo ) +
             cc.warning( " because it's " ) + cc.error( "DISABLED" ) + "\n" );
         return await safe_getPastEvents( details, ethersProvider, attempts, joContract, strEventName, nBlockFrom, nBlockTo, joFilter );
     }
-    if( nBlockFrom == 0 && nBlockTo == "latest" ) {
-        const nLatestBlockNumber = await safe_getBlockNumber( details, 10, ethersProvider );
-        if( ( nLatestBlockNumber / g_nCountOfBlocksInIterativeStep ) > g_nMaxBlockScanIterationsInAllRange ) {
+    const nLatestBlockNumber = owaspUtils.toBN( await safe_getBlockNumber( details, 10, ethersProvider ) );
+    let isLastLatest = false;
+    if( nBlockTo == "latest" ) {
+        isLastLatest = true;
+        nBlockTo = nLatestBlockNumber;
+        details.write(
+            cc.debug( "Iterative scan up to latest block " ) +
+            cc.attention( "#" ) + cc.info( nBlockTo.toHexString() ) +
+            cc.debug( " assumed instead of " ) + cc.attention( "latest" ) + "\n" );
+    } else {
+        nBlockTo = owaspUtils.toBN( nBlockTo );
+        if( nBlockTo.eq( nLatestBlockNumber ) )
+            isLastLatest = true;
+    }
+    nBlockFrom = owaspUtils.toBN( nBlockFrom );
+    const nBlockZero = owaspUtils.toBN( 0 );
+    const isFirstZero = ( nBlockFrom.eq( nBlockZero ) ) ? true : false;
+    if( isFirstZero && isLastLatest ) {
+        if( nLatestBlockNumber.div(
+                owaspUtils.toBN( g_nCountOfBlocksInIterativeStep )
+                ).gt( owaspUtils.toBN( g_nMaxBlockScanIterationsInAllRange ) )
+        ) {
             details.write(
                 cc.fatal( "IMPORTANT NOTICE:" ) + " " +
                 cc.warning( "Will skip " ) + cc.attention( "iterative" ) + cc.warning( " scan and use scan in block range from " ) +
-                cc.info( nBlockFrom ) + cc.warning( " to " ) + cc.info( nBlockTo ) + "\n" );
+                cc.info( nBlockFrom.toHexString() ) + cc.warning( " to " ) + cc.info( nBlockTo.toHexString() ) + "\n" );
             return await safe_getPastEvents( details, ethersProvider, attempts, joContract, strEventName, nBlockFrom, nBlockTo, joFilter );
         }
     }
     details.write(
         cc.debug( "Iterative scan in " ) +
-        cc.info( nBlockFrom ) + cc.debug( "/" ) + cc.info( nBlockTo ) +
+        cc.info( nBlockFrom.toHexString() ) + cc.debug( "/" ) + cc.info( nBlockTo.toHexString() ) +
         cc.debug( " block range..." ) + "\n" );
-    if( nBlockTo == "latest" ) {
-        const nLatestBlockNumber = await safe_getBlockNumber( details, 10, ethersProvider );
-        nBlockTo = nLatestBlockNumber;
-        details.write(
-            cc.debug( "Iterative scan up to latest block " ) +
-            cc.attention( "#" ) + cc.info( nBlockTo ) +
-            cc.debug( " assumed instead of " ) + cc.attention( "latest" ) + "\n" );
-    }
-    let idxBlockSubRangeFrom = parseIntOrHex( nBlockFrom );
+    let idxBlockSubRangeFrom = nBlockFrom;
     for( ; true; ) {
-        let idxBlockSubRangeTo = idxBlockSubRangeFrom + g_nCountOfBlocksInIterativeStep;
-        if( idxBlockSubRangeTo > nBlockTo )
+        let idxBlockSubRangeTo = idxBlockSubRangeFrom.add( owaspUtils.toBN( g_nCountOfBlocksInIterativeStep ) );
+        if( idxBlockSubRangeTo.gt( nBlockTo ) )
             idxBlockSubRangeTo = nBlockTo;
         try {
             details.write(
                 cc.debug( "Iterative scan of " ) +
-                cc.info( idxBlockSubRangeFrom ) + cc.debug( "/" ) + cc.info( idxBlockSubRangeTo ) +
+                cc.info( idxBlockSubRangeFrom.toHexString() ) + cc.debug( "/" ) + cc.info( idxBlockSubRangeTo.toHexString() ) +
                 cc.debug( " block sub-range in " ) +
-                cc.info( nBlockFrom ) + cc.debug( "/" ) + cc.info( nBlockTo ) +
+                cc.info( nBlockFrom.toHexString() ) + cc.debug( "/" ) + cc.info( nBlockTo.toHexString() ) +
                 cc.debug( " block range..." ) + "\n" );
             const joAllEventsInBlock = await safe_getPastEvents( details, ethersProvider, attempts, joContract, strEventName, idxBlockSubRangeFrom, idxBlockSubRangeTo, joFilter );
             if( joAllEventsInBlock && joAllEventsInBlock != "" && joAllEventsInBlock.length > 0 ) {
                 details.write(
                     cc.success( "Result of " ) + cc.attention( "iterative" ) + cc.success( " scan in " ) +
-                    cc.info( nBlockFrom ) + cc.success( "/" ) + cc.info( nBlockTo ) +
+                    cc.info( nBlockFrom.toHexString() ) + cc.success( "/" ) + cc.info( nBlockTo.toHexString() ) +
                     cc.success( " block range is " ) + cc.j( joAllEventsInBlock ) + "\n" );
                 return joAllEventsInBlock;
             }
         } catch ( err ) {
             details.write(
                 cc.error( "Got scan error during interactive scan of " ) +
-                cc.info( idxBlockSubRangeFrom ) + cc.error( "/" ) + cc.info( idxBlockSubRangeTo ) +
-                cc.error( " block sub-range in " ) + cc.info( nBlockFrom ) + cc.error( "/" ) + cc.info( nBlockTo ) +
+                cc.info( idxBlockSubRangeFrom.toHexString() ) + cc.error( "/" ) + cc.info( idxBlockSubRangeTo.toHexString() ) +
+                cc.error( " block sub-range in " ) + cc.info( nBlockFrom.toHexString() ) + cc.error( "/" ) + cc.info( nBlockTo.toHexString() ) +
                 cc.error( " block range, error is: " ) + cc.warning( owaspUtils.extract_error_message( err ) ) +
                 cc.error( ", stack is: " ) + "\n" + cc.stack( err.stack ) +
                 "\n"
             );
         }
         idxBlockSubRangeFrom = idxBlockSubRangeTo;
-        if( idxBlockSubRangeFrom == nBlockTo )
+        if( idxBlockSubRangeFrom.eq( nBlockTo ) )
             break;
     }
     details.write(
         cc.debug( "Result of " ) + cc.attention( "iterative" ) + cc.debug( " scan in " ) +
-        cc.info( nBlockFrom ) + cc.debug( "/" ) + cc.info( nBlockTo ) +
+        cc.info( nBlockFrom.toHexString() ) + cc.debug( "/" ) + cc.info( nBlockTo.toHexString() ) +
         cc.debug( " block range is " ) + cc.warning( "empty" ) + "\n" );
     return "";
 }
@@ -724,12 +728,12 @@ export async function do_oracle_gas_price_setup(
         details.write( cc.debug( "Latest block on Main Net is " ) + cc.info( latestBlockNumber ) + "\n" );
         strActionName = "do_oracle_gas_price_setup.bnTimestampOfBlock()";
         const latestBlock = await ethersProvider_main_net.getBlock( latestBlockNumber );
-        let bnTimestampOfBlock = owaspUtils.ethersMod.ethers.BigNumber.from( latestBlock.timestamp );
+        let bnTimestampOfBlock = owaspUtils.toBN( latestBlock.timestamp );
         details.write(
             cc.debug( "Local timestamp on Main Net is " ) + cc.info( bnTimestampOfBlock.toString() ) + cc.debug( "=" ) +
             cc.info( owaspUtils.ensure_starts_with_0x( bnTimestampOfBlock.toString( 16 ) ) ) + cc.debug( " (original)" ) +
             "\n" );
-        const bnTimeZoneOffset = owaspUtils.ethersMod.ethers.BigNumber.from( parseInt( new Date( parseInt( bnTimestampOfBlock.toString(), 10 ) ).getTimezoneOffset(), 10 ) );
+        const bnTimeZoneOffset = owaspUtils.toBN( parseInt( new Date( parseInt( bnTimestampOfBlock.toString(), 10 ) ).getTimezoneOffset(), 10 ) );
         details.write(
             cc.debug( "Local time zone offset is " ) + cc.info( bnTimeZoneOffset.toString() ) + cc.debug( "=" ) +
             cc.info( owaspUtils.ensure_starts_with_0x( bnTimeZoneOffset.toString( 16 ) ) ) + cc.debug( " (original)" ) +
@@ -739,7 +743,7 @@ export async function do_oracle_gas_price_setup(
             cc.debug( "UTC timestamp on Main Net is " ) + cc.info( bnTimestampOfBlock.toString() ) + cc.debug( "=" ) +
             cc.info( owaspUtils.ensure_starts_with_0x( bnTimestampOfBlock.toString( 16 ) ) ) + cc.debug( " (original)" ) +
             "\n" );
-        const bnValueToSubtractFromTimestamp = owaspUtils.ethersMod.ethers.BigNumber.from( 60 );
+        const bnValueToSubtractFromTimestamp = owaspUtils.toBN( 60 );
         details.write(
             cc.debug( "Value to subtract from timestamp is " ) + cc.info( bnValueToSubtractFromTimestamp ) + cc.debug( "=" ) +
             cc.info( owaspUtils.ensure_starts_with_0x( bnValueToSubtractFromTimestamp.toString( 16 ) ) ) + cc.debug( " (to adjust it to past a bit)" ) + "\n" );
@@ -781,11 +785,11 @@ export async function do_oracle_gas_price_setup(
             details.write(
                 cc.debug( "Will fetch " ) + cc.info( "Main Net gas price" ) +
                 cc.debug( " directly..." ) + "\n" );
-            gasPriceOnMainNet = owaspUtils.ensure_starts_with_0x( owaspUtils.ethersMod.ethers.BigNumber.from( await ethersProvider_main_net.getGasPrice() ).toHexString() );
+            gasPriceOnMainNet = owaspUtils.ensure_starts_with_0x( owaspUtils.toBN( await ethersProvider_main_net.getGasPrice() ).toHexString() );
         }
         details.write(
             cc.success( "Done, " ) + cc.info( "Oracle" ) + cc.success( " did computed new " ) + cc.info( "Main Net gas price" ) +
-            cc.success( "=" ) + cc.bright( owaspUtils.ethersMod.ethers.BigNumber.from( gasPriceOnMainNet ).toString() ) +
+            cc.success( "=" ) + cc.bright( owaspUtils.toBN( gasPriceOnMainNet ).toString() ) +
             cc.success( "=" ) + cc.bright( gasPriceOnMainNet ) +
             "\n" );
 
@@ -793,13 +797,13 @@ export async function do_oracle_gas_price_setup(
             await jo_community_locker.callStatic.mainnetGasPrice( {
                 from: joAccountSC.address()
             } );
-        const bnGasPriceOnMainNetOld = owaspUtils.ethersMod.ethers.BigNumber.from( joGasPriceOnMainNetOld );
+        const bnGasPriceOnMainNetOld = owaspUtils.toBN( joGasPriceOnMainNetOld );
         details.write(
             cc.debug( "Previous " ) + cc.info( "Main Net gas price" ) + cc.debug( " saved and kept in " ) + cc.info( "CommunityLocker" ) +
             cc.debug( "=" ) + cc.bright( bnGasPriceOnMainNetOld.toString() ) +
             cc.debug( "=" ) + cc.bright( bnGasPriceOnMainNetOld.toString( 16 ) ) +
             "\n" );
-        if( bnGasPriceOnMainNetOld.eq( owaspUtils.ethersMod.ethers.BigNumber.from( gasPriceOnMainNet ) ) ) {
+        if( bnGasPriceOnMainNetOld.eq( owaspUtils.toBN( gasPriceOnMainNet ) ) ) {
             details.write(
                 cc.debug( "Previous " ) + cc.info( "Main Net gas price" ) +
                 cc.debug( " is equal to new one, will skip setting it in " ) + cc.info( "CommunityLocker" ) +
@@ -987,19 +991,35 @@ export async function safe_getPastEventsProgressive( details, ethersProvider, at
         details.write(
             cc.fatal( "IMPORTANT NOTICE:" ) + " " +
             cc.warning( "Will skip " ) + cc.attention( "progressive" ) + cc.warning( " events scan in block range from " ) +
-            cc.info( nBlockFrom ) + cc.warning( " to " ) + cc.info( nBlockTo ) +
+            cc.j( nBlockFrom ) + cc.warning( " to " ) + cc.j( nBlockTo ) +
             cc.warning( " because it's " ) + cc.error( "DISABLED" ) + "\n" );
         return await safe_getPastEvents( details, ethersProvider, attempts, joContract, strEventName, nBlockFrom, nBlockTo, joFilter );
     }
-    if( ! ( nBlockFrom == 0 && nBlockTo == "latest" ) ) {
+    const nLatestBlockNumber = owaspUtils.toBN( await safe_getBlockNumber( details, 10, ethersProvider ) );
+    let isLastLatest = false;
+    if( nBlockTo == "latest" ) {
+        isLastLatest = true;
+        nBlockTo = nLatestBlockNumber;
+        details.write(
+            cc.debug( "Iterative scan up to latest block " ) +
+            cc.attention( "#" ) + cc.info( nBlockTo.toHexString() ) +
+            cc.debug( " assumed instead of " ) + cc.attention( "latest" ) + "\n" );
+    } else {
+        nBlockTo = owaspUtils.toBN( nBlockTo );
+        if( nBlockTo.eq( nLatestBlockNumber ) )
+            isLastLatest = true;
+    }
+    nBlockFrom = owaspUtils.toBN( nBlockFrom );
+    const nBlockZero = owaspUtils.toBN( 0 );
+    const isFirstZero = ( nBlockFrom.eq( nBlockZero ) ) ? true : false;
+    if( ! ( isFirstZero && isLastLatest ) ) {
         details.write(
             cc.debug( "Will skip " ) + cc.attention( "progressive" ) + cc.debug( " scan and use scan in block range from " ) +
-            cc.info( nBlockFrom ) + cc.debug( " to " ) + cc.info( nBlockTo ) + "\n" );
+            cc.info( nBlockFrom.toHexString() ) + cc.debug( " to " ) + cc.info( nBlockTo.toHexString() ) + "\n" );
         return await safe_getPastEvents( details, ethersProvider, attempts, joContract, strEventName, nBlockFrom, nBlockTo, joFilter );
     }
     details.write( cc.debug( "Will run " ) + cc.attention( "progressive" ) + cc.debug( " scan..." ) + "\n" );
-    const nLatestBlockNumber = await safe_getBlockNumber( details, 10, ethersProvider );
-    details.write( cc.debug( "Current latest block number is " ) + cc.info( nLatestBlockNumber ) + "\n" );
+    details.write( cc.debug( "Current latest block number is " ) + cc.info( nLatestBlockNumber.toHexString() ) + "\n" );
     const arr_progressive_events_scan_plan = create_progressive_events_scan_plan( details, nLatestBlockNumber );
     details.write( cc.debug( "Composed " ) + cc.attention( "progressive" ) + cc.debug( " scan plan is: " ) + cc.j( arr_progressive_events_scan_plan ) + "\n" );
     let joLastPlan = { nBlockFrom: 0, nBlockTo: "latest", type: "entire block range" };
@@ -1053,11 +1073,14 @@ export async function safe_getPastEventsProgressive( details, ethersProvider, at
 
 export async function get_contract_call_events( details, ethersProvider, joContract, strEventName, nBlockNumber, strTxHash, joFilter ) {
     joFilter = joFilter || {};
-    let nBlockFrom = nBlockNumber - 10, nBlockTo = nBlockNumber + 10;
-    const nLatestBlockNumber = await safe_getBlockNumber( details, 10, ethersProvider );
-    if( nBlockFrom < 0 )
-        nBlockFrom = 0;
-    if( nBlockTo > nLatestBlockNumber )
+    nBlockNumber = owaspUtils.toBN( nBlockNumber );
+    let n10 = owaspUtils.toBN( 10 );
+    let nBlockFrom = nBlockNumber.sub( n10 ), nBlockTo = nBlockNumber.add( n10 );
+    const nBlockZero = owaspUtils.toBN( 0 );
+    const nLatestBlockNumber = owaspUtils.toBN( await safe_getBlockNumber( details, 10, ethersProvider ) );
+    if( nBlockFrom.lt( nBlockZero ) )
+        nBlockFrom = nBlockZero;
+    if( nBlockTo.gt( nLatestBlockNumber ) )
         nBlockTo = nLatestBlockNumber;
     const joAllEventsInBlock =
         await safe_getPastEventsIterative(
@@ -1148,11 +1171,11 @@ export async function dry_run_call(
             from: strAccountWalletAddress
         };
         if( gasPrice )
-            callOpts.gasPrice = owaspUtils.ethersMod.ethers.BigNumber.from( gasPrice ).toHexString();
+            callOpts.gasPrice = owaspUtils.toBN( gasPrice ).toHexString();
         if( gasValue )
-            callOpts.gasLimit = owaspUtils.ethersMod.ethers.BigNumber.from( gasValue ).toHexString();
+            callOpts.gasLimit = owaspUtils.toBN( gasValue ).toHexString();
         if( weiHowMuch )
-            callOpts.value = owaspUtils.ethersMod.ethers.BigNumber.from( weiHowMuch ).toHexString();
+            callOpts.value = owaspUtils.toBN( weiHowMuch ).toHexString();
         const joDryRunResult = await joContract.callStatic[strMethodName]( ...arrArguments, callOpts );
         details.write( strLogPrefix + cc.success( "dry-run success: " ) + cc.j( joDryRunResult ) + "\n" );
         return null; // success
@@ -1190,11 +1213,11 @@ export async function payed_call(
         const callOpts = {
         };
         if( gasPrice )
-            callOpts.gasPrice = owaspUtils.ethersMod.ethers.BigNumber.from( gasPrice ).toHexString();
+            callOpts.gasPrice = owaspUtils.toBN( gasPrice ).toHexString();
         if( estimatedGas )
-            callOpts.gasLimit = owaspUtils.ethersMod.ethers.BigNumber.from( estimatedGas ).toHexString();
+            callOpts.gasLimit = owaspUtils.toBN( estimatedGas ).toHexString();
         if( weiHowMuch )
-            callOpts.value = owaspUtils.ethersMod.ethers.BigNumber.from( weiHowMuch ).toHexString();
+            callOpts.value = owaspUtils.toBN( weiHowMuch ).toHexString();
         details.write( cc.debug( "Payed-call of action " ) + cc.info( strActionName ) + cc.debug( "..." ) + "\n" );
         details.write( strLogPrefix + cc.debug( "Will do payed-call " ) + strContractCallDescription + cc.debug( "..." ) + "\n" );
         const txx = await joContract.populateTransaction[strMethodName]( ...arrArguments, callOpts );
@@ -1203,15 +1226,13 @@ export async function payed_call(
         //     txx = await checkTransactionToSchain( txx, details, ethersProvider );
         //     details.write( strLogPrefix + cc.debug( "raw transaction, checked for S-chain: " ) + cc.j( txx ) + "\n" );
         // }
-        let joReceipt = await ethersWallet.sendTransaction( txx );
-        details.write( strLogPrefix + cc.debug( "transaction hash: " ) + cc.j( joReceipt.hash ) + "\n" );
-        const rcpt = await joReceipt.wait();
-        // details.write( strLogPrefix + cc.debug( "rcpt:" ) + cc.j( rcpt ) + "\n" );
-        joReceipt = rcpt;
-        details.write( strLogPrefix + cc.debug( "receipt:" ) + cc.j( joReceipt ) + "\n" );
-        const bnGasSpent = owaspUtils.ethersMod.ethers.BigNumber.from( rcpt.cumulativeGasUsed );
+        let joSent = await ethersWallet.sendTransaction( txx );
+        details.write( strLogPrefix + cc.debug( "transaction sent: " ) + cc.j( joSent ) + "\n" );
+        let joReceipt = await joSent.wait();
+        details.write( strLogPrefix + cc.debug( "transaction receipt:" ) + cc.j( joReceipt ) + "\n" );
+        const bnGasSpent = owaspUtils.toBN( joReceipt.cumulativeGasUsed );
         const gasSpent = bnGasSpent.toString();
-        const ethSpent = owaspUtils.ethersMod.ethers.utils.formatEther( rcpt.cumulativeGasUsed.mul( txx.gasPrice ) );
+        const ethSpent = owaspUtils.ethersMod.ethers.utils.formatEther( joReceipt.cumulativeGasUsed.mul( txx.gasPrice ) );
         joReceipt.summary = {
             bnGasSpent: bnGasSpent,
             gasSpent: gasSpent,
@@ -1242,7 +1263,7 @@ export async function checkTransactionToSchain(
     ) {
     const sender = txx.from;
     const requiredBalance = txx.gasPrice.mul( txx.gasLimit );
-    const balance = owaspUtils.ethersMod.ethers.BigNumber.from( await ethersProvider.getBalance( sender ) );
+    const balance = owaspUtils.toBN( await ethersProvider.getBalance( sender ) );
     if( balance.lt( requiredBalance ) ) {
         details.write(
             cc.warning( "Insufficient funds for " ) + cc.bright( sender ) +
@@ -1254,7 +1275,7 @@ export async function checkTransactionToSchain(
             cc.warning( "Done, " ) + cc.sunny( "PoW" ) +
             cc.warning( " number is " ) + cc.bright( powNumber ) +
             "\n" );
-        txx.gasPrice = owaspUtils.ethersMod.ethers.BigNumber.from( owaspUtils.ensure_starts_with_0x( powNumber ) );
+        txx.gasPrice = owaspUtils.toBN( owaspUtils.ensure_starts_with_0x( powNumber ) );
     }
     return txx;
 }
@@ -1264,8 +1285,8 @@ export async function calculatePowNumber( address, nonce, gas, details ) {
         let _address = owaspUtils.ensure_starts_with_0x( address );
         _address = ethereumjs_util.toChecksumAddress( _address );
         _address = owaspUtils.remove_starting_0x( _address );
-        const _nonce = parseIntOrHex( nonce );
-        const _gas = parseIntOrHex( gas );
+        const _nonce = owaspUtils.parseIntOrHex( nonce );
+        const _gas = owaspUtils.parseIntOrHex( gas );
         const powScriptPath = path.join( __dirname, "pow" );
         const cmd = `${powScriptPath} ${_address} ${_nonce} ${_gas}`;
         return await execShellCommand( cmd );
@@ -1630,10 +1651,10 @@ export async function safe_sign_transaction_with_account( details, w3, tx, rawTx
                 details.write( strPrefixDetails + strMsg + "\n" );
                 log.write( strPrefixLog + strMsg + "\n" );
                 const joNeededResult = {
-                    // "v": Buffer.from( parseIntOrHex( joOut.result.signature_v ).toString( "hex" ), "utf8" ),
+                    // "v": Buffer.from( owaspUtils.parseIntOrHex( joOut.result.signature_v ).toString( "hex" ), "utf8" ),
                     // "r": Buffer.from( "" + joOut.result.signature_r, "utf8" ),
                     // "s": Buffer.from( "" + joOut.result.signature_s, "utf8" )
-                    "v": parseIntOrHex( joOut.result.signature_v, 10 ),
+                    "v": owaspUtils.parseIntOrHex( joOut.result.signature_v, 10 ),
                     "r": "" + joOut.result.signature_r,
                     "s": "" + joOut.result.signature_s
                 };
@@ -1982,7 +2003,7 @@ export async function reimbursement_show_balance(
             log.write( s );
         details.write( s );
         //
-        const xEth = owaspUtils.ethersMod.ethers.utils.formatEther( owaspUtils.ethersMod.ethers.BigNumber.from( xWei ) );
+        const xEth = owaspUtils.ethersMod.ethers.utils.formatEther( owaspUtils.toBN( xWei ) );
         s = strLogPrefix + cc.success( "Balance(eth): " ) + cc.attention( xEth ) + "\n";
         if( isForcePrintOut || verbose_get() >= RV_VERBOSE().information )
             log.write( s );
@@ -2028,13 +2049,13 @@ export async function reimbursement_estimate_amount(
             log.write( s );
         details.write( s );
         //
-        const xEth = owaspUtils.ethersMod.ethers.utils.formatEther( owaspUtils.ethersMod.ethers.BigNumber.from( xWei ) );
+        const xEth = owaspUtils.ethersMod.ethers.utils.formatEther( owaspUtils.toBN( xWei ) );
         s = strLogPrefix + cc.success( "Balance(eth): " ) + cc.attention( xEth ) + "\n";
         if( isForcePrintOut || verbose_get() >= RV_VERBOSE().information )
             log.write( s );
         details.write( s );
         //
-        const minTransactionGas = parseIntOrHex( await jo_community_pool.callStatic.minTransactionGas( { from: addressReceiver } ) );
+        const minTransactionGas = owaspUtils.parseIntOrHex( await jo_community_pool.callStatic.minTransactionGas( { from: addressReceiver } ) );
         s = strLogPrefix + cc.success( "MinTransactionGas: " ) + cc.attention( minTransactionGas ) + "\n";
         if( isForcePrintOut || verbose_get() >= RV_VERBOSE().information )
             log.write( s );
@@ -2063,7 +2084,7 @@ export async function reimbursement_estimate_amount(
             log.write( s );
         details.write( s );
         //
-        const amountToRechargeEth = owaspUtils.ethersMod.ethers.utils.formatEther( owaspUtils.ethersMod.ethers.BigNumber.from( amountToRecharge.toString() ) );
+        const amountToRechargeEth = owaspUtils.ethersMod.ethers.utils.formatEther( owaspUtils.toBN( amountToRecharge.toString() ) );
         s = strLogPrefix + cc.success( "Estimated amount to recharge(eth): " ) + cc.attention( amountToRechargeEth ) + "\n";
         if( isForcePrintOut || verbose_get() >= RV_VERBOSE().information )
             log.write( s );
@@ -2185,7 +2206,7 @@ export async function reimbursement_wallet_withdraw(
         strActionName = "Withdraw reimbursement wallet";
         const arrArguments = [
             strReimbursementChain,
-            owaspUtils.ensure_starts_with_0x( owaspUtils.ethersMod.ethers.BigNumber.from( nReimbursementWithdraw ).toHexString() )
+            owaspUtils.ensure_starts_with_0x( owaspUtils.toBN( nReimbursementWithdraw ).toHexString() )
         ];
         const weiHowMuch = undefined;
         const gasPrice = await tc_main_net.computeGasPrice( ethersProvider_main_net, 200000000000 );
@@ -2265,7 +2286,7 @@ export async function reimbursement_set_range(
         strActionName = "Set reimbursement range";
         const arrArguments = [
             strChainName_origin_chain,
-            owaspUtils.ensure_starts_with_0x( owaspUtils.ethersMod.ethers.BigNumber.from( nReimbursementRange ).toHexString() )
+            owaspUtils.ensure_starts_with_0x( owaspUtils.toBN( nReimbursementRange ).toHexString() )
         ];
         const weiHowMuch = undefined;
         const gasPrice = await tc_s_chain.computeGasPrice( ethersProvider_s_chain, 200000000000 );
@@ -2462,14 +2483,14 @@ export async function do_eth_payment_from_s_chain(
     weiHowMuch, // how much WEI money to send
     tc_s_chain
 ) {
-    const details = log.createMemoryStream(); // TO-FIX: it
+    const details = log.createMemoryStream();
     const jarrReceipts = []; // do_eth_payment_from_s_chain
     let strActionName = "";
     const strLogPrefix = cc.info( "S2M ETH Payment:" ) + " ";
     try {
         strActionName = "ETH payment from S-Chain, exitToMain";
         const arrArguments = [
-            owaspUtils.ethersMod.ethers.BigNumber.from( weiHowMuch )
+            owaspUtils.toBN( weiHowMuch )
         ];
         const gasPrice = await tc_s_chain.computeGasPrice( ethersProvider_s_chain, 200000000000 );
         details.write( strLogPrefix + cc.debug( "Using computed " ) + cc.info( "gasPrice" ) + cc.debug( "=" ) + cc.notice( gasPrice ) + "\n" ); //
@@ -2644,7 +2665,7 @@ export async function view_eth_payment_from_s_chain_on_main_net(
         const addressFrom = joAccountMN.address();
         const xWei = await jo_deposit_box_eth.callStatic.approveTransfers( addressFrom, { from: addressFrom } );
         details.write( strLogPrefix + cc.success( "You can receive(wei): " ) + cc.attention( xWei ) + "\n" );
-        const xEth = owaspUtils.ethersMod.ethers.utils.formatEther( owaspUtils.ethersMod.ethers.BigNumber.from( xWei ) );
+        const xEth = owaspUtils.ethersMod.ethers.utils.formatEther( owaspUtils.toBN( xWei ) );
         const s = strLogPrefix + cc.success( "You can receive(eth): " ) + cc.attention( xEth ) + "\n";
         if( verbose_get() >= RV_VERBOSE().information )
             log.write( s );
@@ -2705,12 +2726,12 @@ export async function do_erc721_payment_from_main_net(
         const depositBoxAddress = jo_deposit_box_erc721.address;
         const arrArguments_approve = [
             depositBoxAddress,
-            owaspUtils.ensure_starts_with_0x( owaspUtils.ethersMod.ethers.BigNumber.from( token_id ).toHexString() )
+            owaspUtils.ensure_starts_with_0x( owaspUtils.toBN( token_id ).toHexString() )
         ];
         const arrArguments_depositERC721 = [
             chain_id_s_chain,
             erc721Address_main_net,
-            owaspUtils.ensure_starts_with_0x( owaspUtils.ethersMod.ethers.BigNumber.from( token_id ).toHexString() )
+            owaspUtils.ensure_starts_with_0x( owaspUtils.toBN( token_id ).toHexString() )
         ];
         const weiHowMuch_approve = undefined;
         let gasPrice = await tc_main_net.computeGasPrice( ethersProvider_main_net, 200000000000 );
@@ -2719,7 +2740,7 @@ export async function do_erc721_payment_from_main_net(
             await tc_main_net.computeGas(
                 details,
                 ethersProvider_main_net,
-                "ERC721", contractERC721, approve, arrArguments_approve,
+                "ERC721", contractERC721, "approve", arrArguments_approve,
                 joAccountSrc, strActionName,
                 gasPrice, 8000000, weiHowMuch_approve,
                 null
@@ -2730,7 +2751,7 @@ export async function do_erc721_payment_from_main_net(
             await dry_run_call(
                 details,
                 ethersProvider_main_net,
-                "ERC721", contractERC721, approve, arrArguments_approve,
+                "ERC721", contractERC721, "approve", arrArguments_approve,
                 joAccountSrc, strActionName, isIgnore_approve,
                 gasPrice, estimatedGas_approve, weiHowMuch_approve,
                 null
@@ -2742,7 +2763,7 @@ export async function do_erc721_payment_from_main_net(
             await payed_call(
                 details,
                 ethersProvider_main_net,
-                "ERC721", contractERC721, approve, arrArguments_approve,
+                "ERC721", contractERC721, "approve", arrArguments_approve,
                 joAccountSrc, strActionName,
                 gasPrice, estimatedGas_approve, weiHowMuch_approve,
                 null
@@ -2796,9 +2817,7 @@ export async function do_erc721_payment_from_main_net(
                 "receipt": joReceiptDeposit
             } );
         }
-        //
-        //
-        const joReceipt = joReceiptDeposit;
+
         //
         // Must-have event(s) analysis as indicator(s) of success
         //
@@ -2809,7 +2828,7 @@ export async function do_erc721_payment_from_main_net(
             const joEvents =
                 await get_contract_call_events(
                     details, ethersProvider_main_net, jo_message_proxy_main_net,
-                    strEventName, joReceipt.blockNumber, joReceipt.transactionHash,
+                    strEventName, joReceiptDeposit.blockNumber, joReceiptDeposit.transactionHash,
                     jo_message_proxy_main_net.filters[ strEventName ]()
                     );
             if( joEvents.length > 0 )
@@ -2875,12 +2894,12 @@ export async function do_erc20_payment_from_main_net(
         const depositBoxAddress = jo_deposit_box_erc20.address;
         const arrArguments_approve = [
             depositBoxAddress,
-            owaspUtils.ensure_starts_with_0x( owaspUtils.ethersMod.ethers.BigNumber.from( token_amount ).toHexString() )
+            owaspUtils.ensure_starts_with_0x( owaspUtils.toBN( token_amount ).toHexString() )
         ];
         const arrArguments_depositERC20 = [
             chain_id_s_chain,
             erc20Address_main_net,
-            owaspUtils.ensure_starts_with_0x( owaspUtils.ethersMod.ethers.BigNumber.from( token_amount ).toHexString() )
+            owaspUtils.ensure_starts_with_0x( owaspUtils.toBN( token_amount ).toHexString() )
         ];
         const weiHowMuch_approve = undefined;
         let gasPrice = await tc_main_net.computeGasPrice( ethersProvider_main_net, 200000000000 );
@@ -2966,9 +2985,7 @@ export async function do_erc20_payment_from_main_net(
                 "receipt": joReceiptDeposit
             } );
         }
-        //
-        //
-        const joReceipt = joReceiptDeposit;
+
         //
         // Must-have event(s) analysis as indicator(s) of success
         //
@@ -2979,7 +2996,7 @@ export async function do_erc20_payment_from_main_net(
             const joEvents =
                 await get_contract_call_events(
                     details, ethersProvider_main_net, jo_message_proxy_main_net,
-                    strEventName, joReceipt.blockNumber, joReceipt.transactionHash,
+                    strEventName, joReceiptDeposit.blockNumber, joReceiptDeposit.transactionHash,
                     jo_message_proxy_main_net.filters[ strEventName ]()
                     );
             if( joEvents.length > 0 )
@@ -3048,8 +3065,8 @@ export async function do_erc1155_payment_from_main_net(
         const arrArguments_depositERC1155 = [
             chain_id_s_chain,
             erc1155Address_main_net,
-            owaspUtils.ensure_starts_with_0x( owaspUtils.ethersMod.ethers.BigNumber.from( token_id ).toHexString() ),
-            owaspUtils.ensure_starts_with_0x( owaspUtils.ethersMod.ethers.BigNumber.from( token_amount ).toHexString() )
+            owaspUtils.ensure_starts_with_0x( owaspUtils.toBN( token_id ).toHexString() ),
+            owaspUtils.ensure_starts_with_0x( owaspUtils.toBN( token_amount ).toHexString() )
         ];
         const weiHowMuch_approve = undefined;
         let gasPrice = await tc_main_net.computeGasPrice( ethersProvider_main_net, 200000000000 );
@@ -3136,7 +3153,6 @@ export async function do_erc1155_payment_from_main_net(
             } );
         }
 
-        const joReceipt = joReceiptDeposit;
         //
         // Must-have event(s) analysis as indicator(s) of success
         //
@@ -3147,7 +3163,7 @@ export async function do_erc1155_payment_from_main_net(
             const joEvents =
                 await get_contract_call_events(
                     details, ethersProvider_main_net, jo_message_proxy_main_net,
-                    strEventName, joReceipt.blockNumber, joReceipt.transactionHash,
+                    strEventName, joReceiptDeposit.blockNumber, joReceiptDeposit.transactionHash,
                     jo_message_proxy_main_net.filters[ strEventName ]()
                     );
             if( joEvents.length > 0 )
@@ -3216,8 +3232,8 @@ export async function do_erc1155_batch_payment_from_main_net(
         const arrArguments_depositERC1155Batch = [
             chain_id_s_chain,
             erc1155Address_main_net,
-            token_ids, //owaspUtils.ensure_starts_with_0x( owaspUtils.ethersMod.ethers.BigNumber.from( token_id ).toHexString() ),
-            token_amounts //owaspUtils.ensure_starts_with_0x( owaspUtils.ethersMod.ethers.BigNumber.from( token_amount ).toHexString() )
+            token_ids, //owaspUtils.ensure_starts_with_0x( owaspUtils.toBN( token_id ).toHexString() ),
+            token_amounts //owaspUtils.ensure_starts_with_0x( owaspUtils.toBN( token_amount ).toHexString() )
         ];
         const weiHowMuch_approve = undefined;
         let gasPrice = await tc_main_net.computeGasPrice( ethersProvider_main_net, 200000000000 );
@@ -3304,7 +3320,6 @@ export async function do_erc1155_batch_payment_from_main_net(
             } );
         }
 
-        const joReceipt = joReceiptDeposit;
         //
         // Must-have event(s) analysis as indicator(s) of success
         //
@@ -3315,7 +3330,7 @@ export async function do_erc1155_batch_payment_from_main_net(
             const joEvents =
                 await get_contract_call_events(
                     details, ethersProvider_main_net, jo_message_proxy_main_net,
-                    strEventName, joReceipt.blockNumber, joReceipt.transactionHash,
+                    strEventName, joReceiptDeposit.blockNumber, joReceiptDeposit.transactionHash,
                     jo_message_proxy_main_net.filters[ strEventName ]()
                     );
             if( joEvents.length > 0 )
@@ -3378,13 +3393,13 @@ export async function do_erc20_payment_from_s_chain(
                 ethersProvider_s_chain
             );
         const arrArguments_approve = [
-            tokenManagerAddress, owaspUtils.ensure_starts_with_0x( owaspUtils.ethersMod.ethers.BigNumber.from( token_amount ).toHexString() )
+            tokenManagerAddress, owaspUtils.ensure_starts_with_0x( owaspUtils.toBN( token_amount ).toHexString() )
         ];
         const erc20Address_main_net = joErc20_main_net[strCoinNameErc20_main_net + "_address"];
         const arrArguments_exitToMainERC20 = [
             erc20Address_main_net,
-            owaspUtils.ensure_starts_with_0x( owaspUtils.ethersMod.ethers.BigNumber.from( token_amount ).toHexString() )
-            // owaspUtils.ensure_starts_with_0x( owaspUtils.ethersMod.ethers.BigNumber.from( weiHowMuch ).toHexString() )
+            owaspUtils.ensure_starts_with_0x( owaspUtils.toBN( token_amount ).toHexString() )
+            // owaspUtils.ensure_starts_with_0x( owaspUtils.toBN( weiHowMuch ).toHexString() )
         ];
         const weiHowMuch_approve = undefined;
         let gasPrice = await tc_s_chain.computeGasPrice( ethersProvider_s_chain, 200000000000 );
@@ -3485,9 +3500,6 @@ export async function do_erc20_payment_from_s_chain(
             } );
         }
 
-        const joReceipt = joReceiptExitToMainERC20;
-        details.write( strLogPrefix + cc.success( "Result receipt for ExitToMainERC20: " ) + cc.j( joReceiptExitToMainERC20 ) + "\n" );
-
         //
         // Must-have event(s) analysis as indicator(s) of success
         //
@@ -3498,7 +3510,7 @@ export async function do_erc20_payment_from_s_chain(
             const joEvents =
                 await get_contract_call_events(
                     details, ethersProvider_s_chain, jo_message_proxy_s_chain,
-                    strEventName, joReceipt.blockNumber, joReceipt.transactionHash,
+                    strEventName, joReceiptExitToMainERC20.blockNumber, joReceiptExitToMainERC20.transactionHash,
                     jo_message_proxy_s_chain.filters[ strEventName ]()
                     );
             if( joEvents.length > 0 )
@@ -3563,13 +3575,13 @@ export async function do_erc721_payment_from_s_chain(
         const arrArguments_approve = [
             // accountForSchain,
             tokenManagerAddress,
-            owaspUtils.ensure_starts_with_0x( owaspUtils.ethersMod.ethers.BigNumber.from( token_id ).toHexString() )
+            owaspUtils.ensure_starts_with_0x( owaspUtils.toBN( token_id ).toHexString() )
         ];
         const erc721Address_main_net = joErc721_main_net[strCoinNameErc721_main_net + "_address"];
         const arrArguments_exitToMainERC721 = [
             erc721Address_main_net,
-            owaspUtils.ensure_starts_with_0x( owaspUtils.ethersMod.ethers.BigNumber.from( token_id ).toHexString() )
-            // owaspUtils.ensure_starts_with_0x( owaspUtils.ethersMod.ethers.BigNumber.from( weiHowMuch ).toHexString() )
+            owaspUtils.ensure_starts_with_0x( owaspUtils.toBN( token_id ).toHexString() )
+            // owaspUtils.ensure_starts_with_0x( owaspUtils.toBN( weiHowMuch ).toHexString() )
         ];
         const weiHowMuch_approve = undefined;
         let gasPrice = await tc_s_chain.computeGasPrice( ethersProvider_s_chain, 200000000000 );
@@ -3669,7 +3681,6 @@ export async function do_erc721_payment_from_s_chain(
                 "receipt": joReceiptExitToMainERC721
             } );
         }
-        const joReceipt = joReceiptExitToMainERC721;
 
         //
         // Must-have event(s) analysis as indicator(s) of success
@@ -3681,7 +3692,7 @@ export async function do_erc721_payment_from_s_chain(
             const joEvents =
                 await get_contract_call_events(
                     details, ethersProvider_s_chain, jo_message_proxy_s_chain,
-                    strEventName, joReceipt.blockNumber, joReceipt.transactionHash,
+                    strEventName, joReceiptExitToMainERC721.blockNumber, joReceiptExitToMainERC721.transactionHash,
                     jo_message_proxy_s_chain.filters[ strEventName ]()
                     );
             if( joEvents.length > 0 )
@@ -3749,9 +3760,9 @@ export async function do_erc1155_payment_from_s_chain(
         const erc1155Address_main_net = joErc1155_main_net[strCoinNameErc1155_main_net + "_address"];
         const arrArguments_exitToMainERC1155 = [
             erc1155Address_main_net,
-            owaspUtils.ensure_starts_with_0x( owaspUtils.ethersMod.ethers.BigNumber.from( token_id ).toHexString() ),
-            owaspUtils.ensure_starts_with_0x( owaspUtils.ethersMod.ethers.BigNumber.from( token_amount ).toHexString() )
-            // owaspUtils.ensure_starts_with_0x( owaspUtils.ethersMod.ethers.BigNumber.from( weiHowMuch ).toHexString() )
+            owaspUtils.ensure_starts_with_0x( owaspUtils.toBN( token_id ).toHexString() ),
+            owaspUtils.ensure_starts_with_0x( owaspUtils.toBN( token_amount ).toHexString() )
+            // owaspUtils.ensure_starts_with_0x( owaspUtils.toBN( weiHowMuch ).toHexString() )
         ];
         const weiHowMuch_approve = undefined;
         let gasPrice = await tc_s_chain.computeGasPrice( ethersProvider_s_chain, 200000000000 );
@@ -3852,7 +3863,6 @@ export async function do_erc1155_payment_from_s_chain(
             } );
         }
 
-        const joReceipt = joReceiptExitToMainERC1155;
         //
         // Must-have event(s) analysis as indicator(s) of success
         //
@@ -3863,7 +3873,7 @@ export async function do_erc1155_payment_from_s_chain(
             const joEvents =
                 await get_contract_call_events(
                     details, ethersProvider_s_chain, jo_message_proxy_s_chain,
-                    strEventName, joReceipt.blockNumber, joReceipt.transactionHash,
+                    strEventName, joReceiptExitToMainERC1155.blockNumber, joReceiptExitToMainERC1155.transactionHash,
                     jo_message_proxy_s_chain.filters[ strEventName ]()
                     );
             if( joEvents.length > 0 )
@@ -3931,9 +3941,9 @@ export async function do_erc1155_batch_payment_from_s_chain(
         const erc1155Address_main_net = joErc1155_main_net[strCoinNameErc1155_main_net + "_address"];
         const arrArguments_exitToMainERC1155Batch = [
             erc1155Address_main_net,
-            token_ids, //owaspUtils.ensure_starts_with_0x( owaspUtils.ethersMod.ethers.BigNumber.from( token_id ).toHexString() ),
-            token_amounts //owaspUtils.ensure_starts_with_0x( owaspUtils.ethersMod.ethers.BigNumber.from( token_amount ).toHexString() )
-            // owaspUtils.ensure_starts_with_0x( owaspUtils.ethersMod.ethers.BigNumber.from( weiHowMuch ).toHexString() )
+            token_ids, //owaspUtils.ensure_starts_with_0x( owaspUtils.toBN( token_id ).toHexString() ),
+            token_amounts //owaspUtils.ensure_starts_with_0x( owaspUtils.toBN( token_amount ).toHexString() )
+            // owaspUtils.ensure_starts_with_0x( owaspUtils.toBN( weiHowMuch ).toHexString() )
         ];
         const weiHowMuch_approve = undefined;
         let gasPrice = await tc_s_chain.computeGasPrice( ethersProvider_s_chain, 200000000000 );
@@ -4043,7 +4053,7 @@ export async function do_erc1155_batch_payment_from_s_chain(
             const joEvents =
                 await get_contract_call_events(
                     details, ethersProvider_s_chain, jo_message_proxy_s_chain,
-                    strEventName, joReceipt.blockNumber, joReceipt.transactionHash,
+                    strEventName, joReceiptExitToMainERC1155Batch.blockNumber, joReceiptExitToMainERC1155Batch.transactionHash,
                     jo_message_proxy_s_chain.filters[ strEventName ]()
                     );
             if( joEvents.length > 0 )
@@ -4129,12 +4139,12 @@ export async function do_erc20_payment_s2s(
             );
         const arrArguments_approve = [
             jo_token_manager_erc20_src.address,
-            owaspUtils.ensure_starts_with_0x( owaspUtils.ethersMod.ethers.BigNumber.from( nAmountOfToken ).toHexString() )
+            owaspUtils.ensure_starts_with_0x( owaspUtils.toBN( nAmountOfToken ).toHexString() )
         ];
         const arrArguments_transfer = [
             strChainName_dst,
             isReverse ? erc20_address_dst : erc20_address_src,
-            owaspUtils.ensure_starts_with_0x( owaspUtils.ethersMod.ethers.BigNumber.from( nAmountOfToken ).toHexString() )
+            owaspUtils.ensure_starts_with_0x( owaspUtils.toBN( nAmountOfToken ).toHexString() )
         ];
         const weiHowMuch_approve = undefined;
         let gasPrice = await tc.computeGasPrice( ethersProvider_src, 200000000000 );
@@ -4299,12 +4309,12 @@ export async function do_erc721_payment_s2s(
             );
         const arrArguments_approve = [
             jo_token_manager_erc721_src.address,
-            owaspUtils.ensure_starts_with_0x( owaspUtils.ethersMod.ethers.BigNumber.from( token_id ).toHexString() )
+            owaspUtils.ensure_starts_with_0x( owaspUtils.toBN( token_id ).toHexString() )
         ];
         const arrArguments_transfer = [
             strChainName_dst,
             isReverse ? erc721_address_dst : erc721_address_src,
-            owaspUtils.ensure_starts_with_0x( owaspUtils.ethersMod.ethers.BigNumber.from( token_id ).toHexString() )
+            owaspUtils.ensure_starts_with_0x( owaspUtils.toBN( token_id ).toHexString() )
         ];
         const weiHowMuch_approve = undefined;
         let gasPrice = await tc.computeGasPrice( ethersProvider_src, 200000000000 );
@@ -4475,8 +4485,8 @@ export async function do_erc1155_payment_s2s(
         const arrArguments_transfer = [
             strChainName_dst,
             isReverse ? erc1155_address_dst : erc1155_address_src,
-            owaspUtils.ensure_starts_with_0x( owaspUtils.ethersMod.ethers.BigNumber.from( token_id ).toHexString() ),
-            owaspUtils.ensure_starts_with_0x( owaspUtils.ethersMod.ethers.BigNumber.from( nAmountOfToken ).toHexString() )
+            owaspUtils.ensure_starts_with_0x( owaspUtils.toBN( token_id ).toHexString() ),
+            owaspUtils.ensure_starts_with_0x( owaspUtils.toBN( nAmountOfToken ).toHexString() )
         ];
         const weiHowMuch_approve = undefined;
         let gasPrice = await tc.computeGasPrice( ethersProvider_src, 200000000000 );
@@ -4755,21 +4765,9 @@ export async function do_erc1155_batch_payment_s2s(
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-export function parseIntOrHex( s ) {
-    if( typeof s != "string" )
-        return parseInt( s );
-    s = s.trim();
-    if( s.length > 2 && s[0] == "0" && ( s[1] == "x" || s[1] == "X" ) )
-        return parseInt( s, 16 );
-    return parseInt( s, 10 );
-}
-
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
 async function find_out_reference_log_record( details, ethersProvider, jo_message_proxy, nBlockId, nMessageNumberToFind, isVerbose ) {
     const strLogPrefix = "";
-    const bnMessageNumberToFind = owaspUtils.ethersMod.ethers.BigNumber.from( nMessageNumberToFind.toString() );
+    const bnMessageNumberToFind = owaspUtils.toBN( nMessageNumberToFind.toString() );
     const strEventName = "PreviousMessageReference";
     const arrLogRecords =
         await safe_getPastEventsProgressive(
@@ -4799,7 +4797,7 @@ async function find_out_reference_log_record( details, ethersProvider, jo_messag
             previousOutgoingMessageBlockId: eventValuesByName.previousOutgoingMessageBlockId,
             currentBlockId: owaspUtils.toInteger( nBlockId.toString() ) // added field
         };
-        const bnCurrentMessage = owaspUtils.ethersMod.ethers.BigNumber.from( joReferenceLogRecord.currentMessage.toString() );
+        const bnCurrentMessage = owaspUtils.toBN( joReferenceLogRecord.currentMessage.toString() );
         if( bnCurrentMessage.eq( bnMessageNumberToFind ) ) {
             if( isVerbose ) {
                 details.write( strLogPrefix +
@@ -5242,8 +5240,8 @@ export async function do_transfer(
                     destinationContract: joValues.dstContract,
                     to: joValues.to,
                     amount: joValues.amount,
-                    data: joValues.data //,
-                    // savedBlockNumberForOptimizations: joValues.savedBlockNumberForOptimizations
+                    data: joValues.data,
+                    savedBlockNumberForOptimizations: joValues.savedBlockNumberForOptimizations
                 };
                 jarrMessages.push( joMessage );
             } // for( let idxInBlock = 0; nIdxCurrentMsg < nOutMsgCnt && idxInBlock < nTransactionsCountInBlock; ++ nIdxCurrentMsg, ++ idxInBlock, ++cntAccumulatedForBlock )
@@ -5898,9 +5896,9 @@ export class TransactionCustomizer {
         this.gasMultiplier = gasMultiplier ? ( 0.0 + gasMultiplier ) : 1.25;
     }
     async computeGasPrice( ethersProvider, maxGasPrice ) {
-        const gasPrice = parseIntOrHex( await ethersProvider.getGasPrice() );
+        const gasPrice = owaspUtils.parseIntOrHex( owaspUtils.toBN( await ethersProvider.getGasPrice() ).toHexString() );
         if( gasPrice == 0 || gasPrice == null || gasPrice == undefined || gasPrice <= 1000000000 )
-            return owaspUtils.ethersMod.ethers.BigNumber.from( "1000000000" ).toHexString();
+            return owaspUtils.toBN( "1000000000" ).toHexString();
         else if(
             this.gasPriceMultiplier != null &&
             this.gasPriceMultiplier != undefined &&
@@ -5909,9 +5907,9 @@ export class TransactionCustomizer {
             maxGasPrice != undefined
         ) {
             if( gasPrice * this.gasPriceMultiplier > maxGasPrice )
-                return owaspUtils.ethersMod.ethers.BigNumber.from( maxGasPrice ).toHexString();
+                return owaspUtils.toBN( maxGasPrice ).toHexString();
             else
-                return owaspUtils.ethersMod.ethers.BigNumber.from( gasPrice ).mul( this.gasPriceMultiplier );
+                return owaspUtils.toBN( gasPrice ).mul( this.gasPriceMultiplier );
         } else
             return gasPrice;
     }
@@ -5946,13 +5944,13 @@ export class TransactionCustomizer {
                 from: strAccountWalletAddress
             };
             if( gasPrice )
-                callOpts.gasPrice = owaspUtils.ethersMod.ethers.BigNumber.from( gasPrice ).toHexString();
+                callOpts.gasPrice = owaspUtils.toBN( gasPrice ).toHexString();
             if( gasValueRecommended )
-                callOpts.gasLimit = owaspUtils.ethersMod.ethers.BigNumber.from( gasValueRecommended ).toHexString();
+                callOpts.gasLimit = owaspUtils.toBN( gasValueRecommended ).toHexString();
             if( weiHowMuch )
-                callOpts.value = owaspUtils.ethersMod.ethers.BigNumber.from( weiHowMuch ).toHexString();
-            estimatedGas = await joContract.estimateGas[strMethodName]( ...arrArguments, callOpts );
-            details.write( strLogPrefix + cc.success( "estimate-gas success: " ) + cc.j( estimatedGas ) + "\n" );
+                callOpts.value = owaspUtils.toBN( weiHowMuch ).toHexString();
+            // estimatedGas = await joContract.estimateGas[strMethodName]( ...arrArguments, callOpts );
+            // details.write( strLogPrefix + cc.success( "estimate-gas success: " ) + cc.j( estimatedGas ) + "\n" );
         } catch ( err ) {
             const strError = owaspUtils.extract_error_message( err );
             details.write(
@@ -6154,7 +6152,7 @@ export async function mintERC20(
         );
         const arrArguments_mint = [
             strAddressMintTo,
-            owaspUtils.ensure_starts_with_0x( owaspUtils.ethersMod.ethers.BigNumber.from( nAmount ).toHexString() )
+            owaspUtils.ensure_starts_with_0x( owaspUtils.toBN( nAmount ).toHexString() )
         ];
         const weiHowMuch_mint = undefined;
         const gasPrice = await tc.computeGasPrice( ethersProvider, 200000000000 );
@@ -6246,7 +6244,7 @@ export async function mintERC721(
             );
         const arrArguments_mint = [
             strAddressMintTo,
-            owaspUtils.ensure_starts_with_0x( owaspUtils.ethersMod.ethers.BigNumber.from( idToken ).toHexString() )
+            owaspUtils.ensure_starts_with_0x( owaspUtils.toBN( idToken ).toHexString() )
         ];
         const weiHowMuch_mint = undefined;
         const gasPrice = await tc.computeGasPrice( w3, 200000000000 );
@@ -6339,8 +6337,8 @@ export async function mintERC1155(
             );
         const arrArguments_mint = [
             strAddressMintTo,
-            owaspUtils.ensure_starts_with_0x( owaspUtils.ethersMod.ethers.BigNumber.from( idToken ).toHexString() ),
-            owaspUtils.ensure_starts_with_0x( owaspUtils.ethersMod.ethers.BigNumber.from( nAmount ).toHexString() ),
+            owaspUtils.ensure_starts_with_0x( owaspUtils.toBN( idToken ).toHexString() ),
+            owaspUtils.ensure_starts_with_0x( owaspUtils.toBN( nAmount ).toHexString() ),
             [] // data
         ];
         const weiHowMuch_mint = undefined;
@@ -6433,7 +6431,7 @@ export async function burnERC20(
             );
         const arrArguments_burn = [
             strAddressBurnFrom,
-            owaspUtils.ensure_starts_with_0x( owaspUtils.ethersMod.ethers.BigNumber.from( nAmount ).toHexString() )
+            owaspUtils.ensure_starts_with_0x( owaspUtils.toBN( nAmount ).toHexString() )
         ];
         const weiHowMuch_burn = undefined;
         const gasPrice = await tc.computeGasPrice( ethersProvider, 200000000000 );
@@ -6525,7 +6523,7 @@ export async function burnERC721(
             );
         const arrArguments_burn = [
             //strAddressBurnFrom,
-            owaspUtils.ensure_starts_with_0x( owaspUtils.ethersMod.ethers.BigNumber.from( idToken ).toHexString() )
+            owaspUtils.ensure_starts_with_0x( owaspUtils.toBN( idToken ).toHexString() )
         ];
         const weiHowMuch_burn = undefined;
         const gasPrice = await tc.computeGasPrice( ethersProvider, 200000000000 );
@@ -6618,8 +6616,8 @@ export async function burnERC1155(
             );
         const arrArguments_burn = [
             strAddressBurnFrom,
-            owaspUtils.ensure_starts_with_0x( owaspUtils.ethersMod.ethers.BigNumber.from( idToken ).toHexString() ),
-            owaspUtils.ensure_starts_with_0x( owaspUtils.ethersMod.ethers.BigNumber.from( nAmount ).toHexString() )
+            owaspUtils.ensure_starts_with_0x( owaspUtils.toBN( idToken ).toHexString() ),
+            owaspUtils.ensure_starts_with_0x( owaspUtils.toBN( nAmount ).toHexString() )
         ];
         const weiHowMuch_burn = undefined;
         const gasPrice = await tc.computeGasPrice( ethersProvider, 200000000000 );

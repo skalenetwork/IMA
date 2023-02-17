@@ -335,7 +335,7 @@ function perform_bls_glue(
         for( i = 0; i < cnt; ++i ) {
             const jo = arrSignResults[i];
             const strPath = strActionDir + "/sign-result" + jo.index + ".json";
-            details.write( strLogPrefix + cc.normal( "Saving " ) + cc.notice( strPath ) + cc.debug( " file containing " ) + cc.j( jo ) + "\n" );
+            details.write( strLogPrefix + cc.debug( "Saving " ) + cc.notice( strPath ) + cc.debug( " file containing " ) + cc.j( jo ) + "\n" );
             imaUtils.jsonFileSave( strPath, jo );
             strInput += " --input " + strPath;
         }
@@ -358,17 +358,17 @@ function perform_bls_glue(
             //
             details.write( strLogPrefix + cc.debug( "Computing " ) + cc.info( "G1" ) + cc.debug( " hash point..." ) + "\n" );
             const strPath = strActionDir + "/hash.json";
-            details.write( strLogPrefix + cc.normal( "Saving " ) + cc.notice( strPath ) + cc.debug( " file..." ) + "\n" );
+            details.write( strLogPrefix + cc.debug( "Saving " ) + cc.notice( strPath ) + cc.debug( " file..." ) + "\n" );
             imaUtils.jsonFileSave( strPath, { message: strMessageHash } );
             const strHasG1Command =
                 imaState.strPathHashG1 +
                 " --t " + nThreshold +
                 " --n " + nParticipants;
-            details.write( strLogPrefix + cc.normal( "Will execute HashG1 command:\n" ) + cc.notice( strHasG1Command ) + "\n" );
+            details.write( strLogPrefix + cc.debug( "Will execute HashG1 command:\n" ) + cc.notice( strHasG1Command ) + "\n" );
             strOutput = child_process.execSync( strHasG1Command, { cwd: strActionDir } );
-            details.write( strLogPrefix + cc.normal( "HashG1 output is:\n" ) + cc.notice( strOutput ) + "\n" );
+            details.write( strLogPrefix + cc.debug( "HashG1 output is:\n" ) + cc.notice( strOutput ) + "\n" );
             const joResultHashG1 = imaUtils.jsonFileLoad( strActionDir + "/g1.json" );
-            details.write( strLogPrefix + cc.normal( "HashG1 result is: " ) + cc.j( joResultHashG1 ) + "\n" );
+            details.write( strLogPrefix + cc.debug( "HashG1 result is: " ) + cc.j( joResultHashG1 ) + "\n" );
             //
             //
             //
@@ -435,7 +435,7 @@ function perform_bls_glue_u256( details, u256, arrSignResults ) {
         for( i = 0; i < cnt; ++i ) {
             const jo = arrSignResults[i];
             const strPath = strActionDir + "/sign-result" + jo.index + ".json";
-            details.write( strLogPrefix + cc.normal( "Saving " ) + cc.notice( strPath ) + cc.debug( " file..." ) + "\n" );
+            details.write( strLogPrefix + cc.debug( "Saving " ) + cc.notice( strPath ) + cc.debug( " file..." ) + "\n" );
             imaUtils.jsonFileSave( strPath, jo );
             strInput += " --input " + strPath;
         }
@@ -445,11 +445,11 @@ function perform_bls_glue_u256( details, u256, arrSignResults ) {
             " --n " + nParticipants +
             strInput +
             " --output " + strActionDir + "/glue-result.json";
-        details.write( strLogPrefix + cc.normal( "Will execute BLS glue command:\n" ) + cc.notice( strGlueCommand ) + "\n" );
+        details.write( strLogPrefix + cc.debug( "Will execute BLS glue command:\n" ) + cc.notice( strGlueCommand ) + "\n" );
         strOutput = child_process.execSync( strGlueCommand, { cwd: strActionDir } );
-        details.write( strLogPrefix + cc.normal( "BLS glue output is:\n" ) + cc.notice( strOutput ) + "\n" );
+        details.write( strLogPrefix + cc.debug( "BLS glue output is:\n" ) + cc.notice( strOutput ) + "\n" );
         joGlueResult = imaUtils.jsonFileLoad( strActionDir + "/glue-result.json" );
-        details.write( strLogPrefix + cc.normal( "BLS glue result is: " ) + cc.j( joGlueResult ) + "\n" );
+        details.write( strLogPrefix + cc.debug( "BLS glue result is: " ) + cc.j( joGlueResult ) + "\n" );
         if( "X" in joGlueResult.signature && "Y" in joGlueResult.signature ) {
             details.write( strLogPrefix + cc.success( "BLS glue success" ) + "\n" );
             joGlueResult.hashSrc = strMessageHash;
@@ -458,17 +458,17 @@ function perform_bls_glue_u256( details, u256, arrSignResults ) {
             //
             details.write( strLogPrefix + cc.debug( "Computing " ) + cc.info( "G1" ) + cc.debug( " hash point..." ) + "\n" );
             const strPath = strActionDir + "/hash.json";
-            details.write( strLogPrefix + cc.normal( "Saving " ) + cc.notice( strPath ) + cc.debug( " file..." ) + "\n" );
+            details.write( strLogPrefix + cc.debug( "Saving " ) + cc.notice( strPath ) + cc.debug( " file..." ) + "\n" );
             imaUtils.jsonFileSave( strPath, { message: strMessageHash } );
             const strHasG1Command =
                 imaState.strPathHashG1 +
                 " --t " + nThreshold +
                 " --n " + nParticipants;
-            details.write( strLogPrefix + cc.normal( "Will execute HashG1 command:\n" ) + cc.notice( strHasG1Command ) + "\n" );
+            details.write( strLogPrefix + cc.debug( "Will execute HashG1 command:\n" ) + cc.notice( strHasG1Command ) + "\n" );
             strOutput = child_process.execSync( strHasG1Command, { cwd: strActionDir } );
-            details.write( strLogPrefix + cc.normal( "HashG1 output is:\n" ) + cc.notice( strOutput ) + "\n" );
+            details.write( strLogPrefix + cc.debug( "HashG1 output is:\n" ) + cc.notice( strOutput ) + "\n" );
             const joResultHashG1 = imaUtils.jsonFileLoad( strActionDir + "/g1.json" );
-            details.write( strLogPrefix + cc.normal( "HashG1 result is: " ) + cc.j( joResultHashG1 ) + "\n" );
+            details.write( strLogPrefix + cc.debug( "HashG1 result is: " ) + cc.j( joResultHashG1 ) + "\n" );
             //
             //
             //
@@ -554,9 +554,9 @@ function perform_bls_verify_i(
             " --j " + nZeroBasedNodeIndex +
             " --input " + strSignResultFileName
             ;
-        details.write( strLogPrefix + cc.normal( "Will execute node " ) + cc.notice( "#" ) + cc.info( nZeroBasedNodeIndex ) + cc.normal( " BLS verify command:\n" ) + cc.notice( strVerifyCommand ) + "\n" );
+        details.write( strLogPrefix + cc.debug( "Will execute node " ) + cc.notice( "#" ) + cc.info( nZeroBasedNodeIndex ) + cc.debug( " BLS verify command:\n" ) + cc.notice( strVerifyCommand ) + "\n" );
         strOutput = child_process.execSync( strVerifyCommand, { cwd: strActionDir } );
-        details.write( strLogPrefix + cc.normal( "BLS node " ) + cc.notice( "#" ) + cc.info( nZeroBasedNodeIndex ) + cc.normal( " verify output is:\n" ) + cc.notice( strOutput ) + "\n" );
+        details.write( strLogPrefix + cc.debug( "BLS node " ) + cc.notice( "#" ) + cc.info( nZeroBasedNodeIndex ) + cc.debug( " verify output is:\n" ) + cc.notice( strOutput ) + "\n" );
         details.write( strLogPrefix + cc.success( "BLS node " ) + cc.notice( "#" ) + cc.info( nZeroBasedNodeIndex ) + cc.success( " verify success" ) + "\n" );
         fnShellRestore();
         return true;
@@ -605,9 +605,9 @@ function perform_bls_verify_i_u256( details, nZeroBasedNodeIndex, joResultFromNo
             " --j " + nZeroBasedNodeIndex +
             " --input " + strSignResultFileName
             ;
-        details.write( strLogPrefix + cc.normal( "Will execute node " ) + cc.notice( "#" ) + cc.info( nZeroBasedNodeIndex ) + cc.normal( " BLS u256 verify command:\n" ) + cc.notice( strVerifyCommand ) + "\n" );
+        details.write( strLogPrefix + cc.debug( "Will execute node " ) + cc.notice( "#" ) + cc.info( nZeroBasedNodeIndex ) + cc.debug( " BLS u256 verify command:\n" ) + cc.notice( strVerifyCommand ) + "\n" );
         strOutput = child_process.execSync( strVerifyCommand, { cwd: strActionDir } );
-        details.write( strLogPrefix + cc.normal( "BLS u256 node " ) + cc.notice( "#" ) + cc.info( nZeroBasedNodeIndex ) + cc.normal( " verify output is:\n" ) + cc.notice( strOutput ) + "\n" );
+        details.write( strLogPrefix + cc.debug( "BLS u256 node " ) + cc.notice( "#" ) + cc.info( nZeroBasedNodeIndex ) + cc.debug( " verify output is:\n" ) + cc.notice( strOutput ) + "\n" );
         details.write( strLogPrefix + cc.success( "BLS u256 node " ) + cc.notice( "#" ) + cc.info( nZeroBasedNodeIndex ) + cc.success( " verify success" ) + "\n" );
         fnShellRestore();
         return true;
@@ -668,16 +668,16 @@ function perform_bls_verify(
             commonBLSPublicKey3: joCommonPublicKey.commonBLSPublicKey3
         };
         imaUtils.jsonFileSave( strActionDir + "/common_public_key.json", joCommonPublicKey_for_O );
-        details.write( strLogPrefix + cc.normal( "BLS common public key for verification is:\n" ) + cc.j( joCommonPublicKey ) + "\n" );
+        details.write( strLogPrefix + cc.debug( "BLS common public key for verification is:\n" ) + cc.j( joCommonPublicKey ) + "\n" );
         const strVerifyCommand = "" +
             imaState.strPathBlsVerify +
             " --t " + nThreshold +
             " --n " + nParticipants +
             " --input " + "./glue-result.json"
             ;
-        details.write( strLogPrefix + cc.normal( "Will execute BLS/summary verify command:\n" ) + cc.notice( strVerifyCommand ) + "\n" );
+        details.write( strLogPrefix + cc.debug( "Will execute BLS/summary verify command:\n" ) + cc.notice( strVerifyCommand ) + "\n" );
         strOutput = child_process.execSync( strVerifyCommand, { cwd: strActionDir } );
-        details.write( strLogPrefix + cc.normal( "BLS/summary verify output is:\n" ) + cc.notice( strOutput ) + "\n" );
+        details.write( strLogPrefix + cc.debug( "BLS/summary verify output is:\n" ) + cc.notice( strOutput ) + "\n" );
         details.write( strLogPrefix + cc.success( "BLS/summary verify success" ) + "\n" );
         fnShellRestore();
         return true;
@@ -727,16 +727,16 @@ function perform_bls_verify_u256( details, joGlueResult, u256, joCommonPublicKey
             commonBLSPublicKey3: joCommonPublicKey.commonBLSPublicKey3
         };
         imaUtils.jsonFileSave( strActionDir + "/common_public_key.json", joCommonPublicKey_for_O );
-        details.write( strLogPrefix + cc.normal( "BLS u256 common public key for verification is:\n" ) + cc.j( joCommonPublicKey ) + "\n" );
+        details.write( strLogPrefix + cc.debug( "BLS u256 common public key for verification is:\n" ) + cc.j( joCommonPublicKey ) + "\n" );
         const strVerifyCommand = "" +
             imaState.strPathBlsVerify +
             " --t " + nThreshold +
             " --n " + nParticipants +
             " --input " + "./glue-result.json"
             ;
-        details.write( strLogPrefix + cc.normal( "Will execute BLS u256/summary verify command:\n" ) + cc.notice( strVerifyCommand ) + "\n" );
+        details.write( strLogPrefix + cc.debug( "Will execute BLS u256/summary verify command:\n" ) + cc.notice( strVerifyCommand ) + "\n" );
         strOutput = child_process.execSync( strVerifyCommand, { cwd: strActionDir } );
-        details.write( strLogPrefix + cc.normal( "BLS u256/summary verify output is:\n" ) + cc.notice( strOutput ) + "\n" );
+        details.write( strLogPrefix + cc.debug( "BLS u256/summary verify output is:\n" ) + cc.notice( strOutput ) + "\n" );
         details.write( strLogPrefix + cc.success( "BLS u256/summary verify success" ) + "\n" );
         fnShellRestore();
         return true;
@@ -983,8 +983,8 @@ async function do_sign_messages_impl(
                 ? imaUtils.compose_ima_agent_node_url( joNode )
                 : imaUtils.compose_schain_node_url( joNode );
             const strNodeDescColorized = cc.u( strNodeURL ) + " " +
-                cc.normal( "(" ) + cc.bright( i ) + cc.normal( "/" ) + cc.bright( jarrNodes.length ) + cc.normal( ", ID " ) + cc.info( joNode.nodeID ) + cc.normal( ")" ) +
-                cc.normal( ", " ) + cc.notice( "sequence ID" ) + cc.normal( " is " ) + cc.attention( sequence_id );
+                cc.debug( "(" ) + cc.bright( i ) + cc.debug( "/" ) + cc.bright( jarrNodes.length ) + cc.debug( ", ID " ) + cc.info( joNode.nodeID ) + cc.debug( ")" ) +
+                cc.debug( ", " ) + cc.notice( "sequence ID" ) + cc.debug( " is " ) + cc.attention( sequence_id );
             const rpcCallOpts = null;
             /*await*/ rpcCall.create( strNodeURL, rpcCallOpts, async function( joCall, err ) {
                 if( err ) {
@@ -1093,7 +1093,7 @@ async function do_sign_messages_impl(
                         await joCall.disconnect();
                         return;
                     }
-                    details.write( strLogPrefix + cc.normal( "Node " ) + cc.info( joNode.nodeID ) + cc.normal( " sign result: " ) + cc.j( joOut.result ? joOut.result : null ) + "\n" );
+                    details.write( strLogPrefix + cc.debug( "Node " ) + cc.info( joNode.nodeID ) + cc.debug( " sign result: " ) + cc.j( joOut.result ? joOut.result : null ) + "\n" );
                     try {
                         if( joOut.result.signResult.signatureShare.length > 0 && joOut.result.signResult.status === 0 ) {
                             const nZeroBasedNodeIndex = joNode.imaInfo.thisNodeIndex - 1;
@@ -1356,8 +1356,8 @@ async function do_sign_messages_impl(
             } );
         }
     }
-    log.write( strGatheredDetailsName + " completed" );
-    details.write( strGatheredDetailsName + " completed" );
+    log.write( cc.info( strGatheredDetailsName ) + cc.success( " completed" ) );
+    details.write( cc.info( strGatheredDetailsName ) + cc.success( " completed" ) );
     if( details ) {
         details.exposeDetailsTo( log, strGatheredDetailsName, true );
         details.close();
@@ -1466,7 +1466,7 @@ export async function do_sign_u256( u256, details, fn ) {
             ? imaUtils.compose_ima_agent_node_url( joNode )
             : imaUtils.compose_schain_node_url( joNode );
         const strNodeDescColorized = cc.u( strNodeURL ) + " " +
-            cc.normal( "(" ) + cc.bright( i ) + cc.normal( "/" ) + cc.bright( jarrNodes.length ) + cc.normal( ", ID " ) + cc.info( joNode.nodeID ) + cc.normal( ")" );
+            cc.debug( "(" ) + cc.bright( i ) + cc.debug( "/" ) + cc.bright( jarrNodes.length ) + cc.debug( ", ID " ) + cc.info( joNode.nodeID ) + cc.debug( ")" );
         const rpcCallOpts = null;
         await rpcCall.create( strNodeURL, rpcCallOpts, async function( joCall, err ) {
             if( err ) {
@@ -1522,7 +1522,7 @@ export async function do_sign_u256( u256, details, fn ) {
                     await joCall.disconnect();
                     return;
                 }
-                details.write( strLogPrefix + cc.normal( "Node " ) + cc.info( joNode.nodeID ) + cc.normal( " sign result: " ) + cc.j( joOut.result ? joOut.result : null ) + "\n" );
+                details.write( strLogPrefix + cc.debug( "Node " ) + cc.info( joNode.nodeID ) + cc.debug( " sign result: " ) + cc.j( joOut.result ? joOut.result : null ) + "\n" );
                 try {
                     if( joOut.result.signResult.signatureShare.length > 0 && joOut.result.signResult.status === 0 ) {
                         const nZeroBasedNodeIndex = joNode.imaInfo.thisNodeIndex - 1;
@@ -1752,9 +1752,9 @@ export async function do_verify_ready_hash( strMessageHash, nZeroBasedNodeIndex,
             " --j " + nZeroBasedNodeIndex +
             " --input " + strSignResultFileName
             ;
-        details.write( strLogPrefix + cc.normal( "Will execute node " ) + cc.notice( "#" ) + cc.info( nZeroBasedNodeIndex ) + cc.normal( " BLS verify command:\n" ) + cc.notice( strVerifyCommand ) + "\n" );
+        details.write( strLogPrefix + cc.debug( "Will execute node " ) + cc.notice( "#" ) + cc.info( nZeroBasedNodeIndex ) + cc.debug( " BLS verify command:\n" ) + cc.notice( strVerifyCommand ) + "\n" );
         strOutput = child_process.execSync( strVerifyCommand, { cwd: strActionDir } );
-        details.write( strLogPrefix + cc.normal( "BLS node " ) + cc.notice( "#" ) + cc.info( nZeroBasedNodeIndex ) + cc.normal( " verify output is:\n" ) + cc.notice( strOutput ) + "\n" );
+        details.write( strLogPrefix + cc.debug( "BLS node " ) + cc.notice( "#" ) + cc.info( nZeroBasedNodeIndex ) + cc.debug( " verify output is:\n" ) + cc.notice( strOutput ) + "\n" );
         details.write( strLogPrefix + cc.success( "BLS node " ) + cc.notice( "#" ) + cc.info( nZeroBasedNodeIndex ) + cc.success( " verify success" ) + "\n" );
         fnShellRestore();
         isSuccess = true;

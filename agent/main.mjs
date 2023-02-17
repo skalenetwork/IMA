@@ -982,7 +982,7 @@ function parse_command_line() {
                     );
                     if( xWei === null || xWei === undefined )
                         return false;
-                    const xEth = owaspUtils.ethersMod.ethers.utils.formatEther( owaspUtils.ethersMod.ethers.BigNumber.from( xWei ) );
+                    const xEth = owaspUtils.ethersMod.ethers.utils.formatEther( owaspUtils.toBN( xWei ) );
                     log.write( cc.success( "Main-net user can receive: " ) + cc.attention( xWei ) + cc.success( " wei = " ) + cc.attention( xEth ) + cc.success( " eth" ) + "\n" );
                     return true;
                 }
@@ -1392,8 +1392,8 @@ function parse_command_line() {
                             cc.attention( "chain ID" ) +
                             "\n" );
                         } else {
-                            const cid16 = owaspUtils.ensure_starts_with_0x( owaspUtils.ethersMod.ethers.BigNumber.from( chainID ).toHexString() );
-                            const cid10 = "" + owaspUtils.ethersMod.ethers.BigNumber.from( chainID ).toString();
+                            const cid16 = owaspUtils.ensure_starts_with_0x( owaspUtils.toBN( chainID ).toHexString() );
+                            const cid10 = "" + owaspUtils.toBN( chainID ).toString();
                             log.write( strLogPrefix +
                             cc.normal( "Got " ) + cc.note( joDiscoverEntry.name ) + " " +
                             cc.attention( "chain ID" ) + cc.normal( "=" ) + cc.note( cid16 ) + cc.normal( "=" ) +

@@ -619,9 +619,9 @@ export function parseMoneySpecToWei( s, isThrowException ) {
         s = moneyUnitNameToEthersParseSpec( s );
         s = ethersMod.ethers.utils.parseUnits( strNumber, s );
         if( ddr != null )
-            s = s.div( ethersMod.ethers.BigNumber.from( ddr ) );
+            s = s.div( toBN( ddr ) );
         if( mlr != null )
-            s = s.mul( ethersMod.ethers.BigNumber.from( mlr ) );
+            s = s.mul( toBN( mlr ) );
         s = s.toString( 10 );
         return s;
     } catch ( err ) {
@@ -728,6 +728,14 @@ export function extract_error_message( jo, strDefaultErrorText ) {
     } catch ( err ) {
     }
     return strDefaultErrorText;
+}
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+export function toBN( x ) {
+    const bn = ethersMod.ethers.BigNumber.from( x );
+    return bn;
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
