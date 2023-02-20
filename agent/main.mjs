@@ -67,7 +67,7 @@ function initial_skale_network_scan_for_S2S() {
                 "details": log,
                 "bStopNeeded": false,
                 "secondsToReDiscoverSkaleNetwork": imaState.s2s_opts.secondsToReDiscoverSkaleNetwork,
-                chain: imaState.chainProperties.sc
+                "chain": imaState.chainProperties.sc
             };
             const addressFrom = imaState.chainProperties.mn.joAccount.address();
             // const strError = await skale_observer.cache_schains(
@@ -1306,7 +1306,7 @@ function parse_command_line() {
                         "bStopNeeded": false
                     };
                     const addressFrom = imaState.chainProperties.mn.joAccount.address();
-                    const arr_schains = await skale_observer.load_schains( imaState.chainProperties.mn.ethersProvider, addressFrom, opts );
+                    const arr_schains = await skale_observer.load_schains( addressFrom, opts );
                     const cnt = arr_schains.length;
                     log.write( strLogPrefix + cc.normal( "Got " ) + cc.info( cnt ) + cc.normal( " S-Chains(s) in SKALE NETWORK information: " ) + cc.j( arr_schains ) + "\n" );
                     return true;
@@ -1331,11 +1331,8 @@ function parse_command_line() {
                         "bStopNeeded": false
                     };
                     const addressFrom = imaState.chainProperties.mn.joAccount.address();
-
                     const arr_schains_cached = await skale_observer.load_schains_connected_only(
-                        imaState.chainProperties.mn.ethersProvider,
-                        imaState.chainProperties.sc.ethersProvider,
-                        imaState.chainProperties.sc.strChainName, // strChainNameConnectedTo
+                        imaState.chainProperties.sc.strChainName,
                         addressFrom,
                         opts
                     );
@@ -2331,10 +2328,10 @@ async function do_the_job() {
                 if( IMA.verbose_get() >= IMA.RV_VERBOSE().error )
                     log.write( strLogPrefix + cc.warning( "Failed action:" ) + " " + cc.info( joAction.name ) + "\n" );
             }
-        } catch ( e ) {
+        } catch ( err ) {
             ++cntFalse;
             if( IMA.verbose_get() >= IMA.RV_VERBOSE().fatal )
-                log.write( strLogPrefix + cc.fatal( "CRITICAL ERROR: Exception occurred while executing action:" ) + " " + cc.info( joAction.name ) + cc.error( ", error description: " ) + cc.warning( e ) + "\n" );
+                log.write( strLogPrefix + cc.fatal( "CRITICAL ERROR:" ) + cc.error( " Exception occurred while executing action: " ) + cc.error( owaspUtils.extract_error_message( err ) ) + cc.error( ", stack is: " ) + "\n" + cc.stack( err.stack ) + "\n" );
         }
     } // for( idxAction = 0; idxAction < cntActions; ++ idxAction )
     if( IMA.verbose_get() >= IMA.RV_VERBOSE().information ) {

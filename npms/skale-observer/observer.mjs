@@ -100,25 +100,26 @@ export async function load_schain_parts( jo_schain, addressFrom, opts ) {
     if( ! opts.imaState )
         throw new Error( "Cannot load S-Chain parts in observer, no imaState is provided" );
     jo_schain.data.computed = {};
-    const schain_id = opts.chain.ethersMod.ethers.utils.id( jo_schain.data.name );
+    const schain_id = owaspUtils.ethersMod.ethers.utils.id( jo_schain.data.name );
     const chainId = owaspUtils.compute_chain_id_from_schain_name( jo_schain.data.name );
-    const node_ids = await opts.jo_schains_internal.callStatic.getNodesInGroup( schain_id, { from: addressFrom } );
+    const node_ids = await opts.imaState.jo_schains_internal.callStatic.getNodesInGroup( schain_id, { from: addressFrom } );
     const nodes = [];
     for( const node_id of node_ids ) {
         if( opts && opts.bStopNeeded )
             return;
-        const node = await opts.jo_nodes.callStatic.nodes( node_id, { from: addressFrom } );
+        const node = await opts.imaState.jo_nodes.callStatic.nodes( node_id, { from: addressFrom } );
         const node_dict = {
             id: node_id,
             name: node[0],
             ip: owaspUtils.ip_from_hex( node[1] ),
             base_port: node[3],
-            domain: await opts.jo_nodes.callStatic.getNodeDomainName( node_id, { from: addressFrom } ),
-            isMaintenance: await opts.jo_nodes.callStatic.isNodeInMaintenance( node_id, { from: addressFrom } )
+            domain: await opts.imaState.jo_nodes.callStatic.getNodeDomainName( node_id, { from: addressFrom } ),
+            isMaintenance: await opts.imaState.jo_nodes.callStatic.isNodeInMaintenance( node_id, { from: addressFrom } )
         };
         if( opts && opts.bStopNeeded )
             return;
-        const schain_ids = await opts.jo_schains_internal.callStatic.getSchainIdsForNode( node_id, { from: addressFrom } );
+        // const schain_ids = await opts.imaState.jo_schains_internal.callStatic.getSchainIdsForNode( node_id, { from: addressFrom } );
+        const schain_ids = await opts.imaState.jo_schains_internal.callStatic.getSchainHashesForNode( node_id, { from: addressFrom } );
         node_dict.schain_base_port = get_schain_base_port_on_node( schain_id, schain_ids, node_dict.base_port );
         calc_ports( jo_schain, node_dict.schain_base_port );
         compose_endpoints( jo_schain, node_dict, "ip" );
@@ -127,7 +128,7 @@ export async function load_schain_parts( jo_schain, addressFrom, opts ) {
         if( opts && opts.bStopNeeded )
             return;
     }
-    // const schain = await opts.jo_schains_internal.callStatic.schains( schain_id, { from: addressFrom } );
+    // const schain = await opts.imaState.jo_schains_internal.callStatic.schains( schain_id, { from: addressFrom } );
     // jo_schain.data.computed.schain = schain;
     jo_schain.data.computed.schain_id = schain_id;
     jo_schain.data.computed.chainId = chainId;
@@ -138,7 +139,7 @@ export async function get_schains_count( addressFrom, opts ) {
     owaspUtils.ensure_observer_opts_initialized( opts );
     if( ! opts.imaState )
         throw new Error( "Cannot get S-Chains count, no imaState is provided" );
-    const cntSChains = await opts.jo_schains_internal.callStatic.numberOfSchains( { from: addressFrom } );
+    const cntSChains = await opts.imaState.jo_schains_internal.callStatic.numberOfSchains( { from: addressFrom } );
     return cntSChains;
 }
 
@@ -158,12 +159,12 @@ export async function load_schain( addressFrom, idxSChain, hash, cntSChains, opt
         throw new Error( "Cannot load S-Chain description in observer, no imaState is provided" );
     if( opts && opts.details )
         opts.details.write( cc.debug( "Loading S-Chain " ) + cc.notice( "#" ) + cc.info( idxSChain + 1 ) + cc.debug( " of " ) + cc.info( cntSChains ) + cc.debug( "..." ) + "\n" );
-    hash = hash || await opts.jo_schains_internal.callStatic.schainsAtSystem( idxSChain, { from: addressFrom } );
+    hash = hash || await opts.imaState.jo_schains_internal.callStatic.schainsAtSystem( idxSChain, { from: addressFrom } );
     if( opts && opts.details )
         opts.details.write( cc.debug( "    Hash " ) + cc.attention( hash ) + "\n" );
     if( opts && opts.bStopNeeded )
         return null;
-    let jo_data = await opts.jo_schains_internal.callStatic.schains( hash, { from: addressFrom } );
+    let jo_data = await opts.imaState.jo_schains_internal.callStatic.schains( hash, { from: addressFrom } );
     jo_data = owaspUtils.clone_object_by_root_keys( jo_data ); // jo_data = JSON.parse( JSON.stringify( jo_data ) );
     const jo_schain = { data: jo_data };
     remove_schain_desc_data_num_keys( jo_schain.data, addressFrom );
@@ -230,7 +231,11 @@ export async function load_cached_schains_simplified( addressFrom, opts ) {
     return arr_schains;
 }
 
-export async function load_schains_connected_only( strChainNameConnectedTo, addressFrom, opts ) {
+export async function load_schains_connected_only(
+    strChainNameConnectedTo,
+    addressFrom,
+    opts
+) {
     if( ! opts.imaState )
         throw new Error( "Cannot load S-Chains in observer, no imaState is provided" );
     if( opts && opts.details )
@@ -240,10 +245,10 @@ export async function load_schains_connected_only( strChainNameConnectedTo, addr
     if( opts && opts.details )
         opts.details.write( cc.debug( "Have all " ) + cc.info( cntSChains ) + cc.debug( " S-Chain(s) hashes: " ) + cc.j( arrSChainHashes ) + "\n" );
     const jo_message_proxy_s_chain =
-        owaspUtils.ethersMod.ethers.Contract(
+        new owaspUtils.ethersMod.ethers.Contract(
             opts.imaState.chainProperties.sc.joAbiIMA.message_proxy_chain_address,
-            opts.imaState.chainProperties.sc.joAbiIMA.message_proxy_chain_abi
-            // TO-FIX: we need ethersProvider here
+            opts.imaState.chainProperties.sc.joAbiIMA.message_proxy_chain_abi,
+            opts.imaState.chainProperties.sc.ethersProvider
         );
     const arr_schains = [];
     for( let idxSChain = 0; idxSChain < cntSChains; ++ idxSChain ) {

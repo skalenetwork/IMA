@@ -680,8 +680,6 @@ export function ep_2_url( ethersProvider ) {
 export function ensure_observer_opts_initialized( opts ) {
     if( ! opts )
         throw new Error( "IMA observer options is not valid JS object" );
-    if( ! ( "chain" in opts && opts.chain && typeof opts.chain == "object" ) )
-        throw new Error( "IMA observer options does not contain \"chain\" instance" );
     if( ! ( "imaState" in opts && opts.imaState && typeof opts.imaState == "object" ) )
         throw new Error( "IMA observer options does not contain \"imaState\" instance" );
     if( ! ( "joAbiSkaleManager" in opts.imaState && opts.imaState.joAbiSkaleManager && typeof opts.imaState.joAbiSkaleManager == "object" ) )
@@ -696,7 +694,7 @@ export function ensure_observer_opts_initialized( opts ) {
             new ethersMod.ethers.Contract(
                 contractAddress,
                 joContractABI,
-                opts.chain.ethersProvider
+                opts.imaState.chainProperties.mn.ethersProvider
             );
     }
 }

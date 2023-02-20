@@ -5738,6 +5738,8 @@ export async function do_s2s_all( // s-chain --> s-chain
     const strDirection = "S2S";
     const arr_schains_cached = skale_observer.get_last_cached_schains();
     const cntSChains = arr_schains_cached.length;
+    if( verbose_get() >= RV_VERBOSE().information )
+        log.write( cc.debug( "Have " ) + cc.info( cntSChains ) + cc.debug( " S-Chain(s) connected to this S-Chain for performing S2S transfers." ) + "\n" );
     for( let idxSChain = 0; idxSChain < cntSChains; ++ idxSChain ) {
         const jo_schain = arr_schains_cached[idxSChain];
         const url_src = skale_observer.pick_random_schain_url( jo_schain );
@@ -5745,13 +5747,15 @@ export async function do_s2s_all( // s-chain --> s-chain
         const joAccountSrc = joAccountDst; // ???
         const chain_id_src = "" + jo_schain.data.name;
         const cid_src = "" + jo_schain.data.computed.chainId;
+        if( verbose_get() >= RV_VERBOSE().information )
+            log.write( cc.debug( "S2S transfer walk trough " ) + cc.info( chain_id_src ) + cc.debug( "/" ) + cc.info( cid_src ) + cc.debug( " S-Chain..." ) + "\n" );
         let bOK = false;
         try {
             nIndexS2S = idxSChain;
             if( ! await pwa.check_on_loop_start( imaState, "s2s", nIndexS2S ) ) {
                 imaState.loopState.s2s.wasInProgress = false;
-                if( IMA.verbose_get() >= IMA.RV_VERBOSE().debug )
-                    log.write( strLogPrefix + cc.warning( "Skipped due to cancel mode reported from PWA" ) + "\n" );
+                if( verbose_get() >= RV_VERBOSE().debug )
+                    log.write( cc.warning( "Skipped due to cancel mode reported from PWA" ) + "\n" );
             } else {
             // ??? assuming all S-Chains have same ABIs here
                 const jo_message_proxy_src =

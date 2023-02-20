@@ -68,7 +68,7 @@ function parse_command_line_argument( s ) {
         }
         joArg.name = s.substring( 0, n );
         joArg.value = s.substring( n + 1 );
-    } catch ( e ) {}
+    } catch ( err ) {}
     return joArg;
 }
 
@@ -157,7 +157,7 @@ export function find_node_index( joSChainNodeConfiguration ) {
             if( joNodeDescription.nodeID == searchID )
                 return i;
         }
-    } catch ( e ) {}
+    } catch ( err ) {}
     return 0; // ???
 }
 

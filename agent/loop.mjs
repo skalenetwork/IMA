@@ -123,9 +123,9 @@ export function check_time_framing( d, strDirection, joRuntimeOpts ) {
         // }
         if( bSkip )
             return false;
-    } catch ( e ) {
+    } catch ( err ) {
         if( IMA.verbose_get() >= IMA.RV_VERBOSE().fatal )
-            log.write( cc.fatal( "Exception in time framing check:" ) + cc.error( e ) + "\n" );
+            log.write( cc.error( "Exception in time framing check: " ) + cc.error( owaspUtils.extract_error_message( err ) ) + cc.error( ", stack is: " ) + "\n" + cc.stack( err.stack ) + "\n" );
     }
     return true;
 };
@@ -302,8 +302,6 @@ export async function single_transfer_loop( loop_opts ) {
         if( loop_opts.enable_step_s2s && imaState.s2s_opts.isEnabled ) {
             if( IMA.verbose_get() >= IMA.RV_VERBOSE().information )
                 log.write( strLogPrefix + cc.debug( "Will invoke all S2S transfers..." ) + "\n" );
-            if( IMA.verbose_get() >= IMA.RV_VERBOSE().information )
-                log.write( strLogPrefix + cc.debug( "Will invoke S2M transfer..." ) + "\n" );
             try {
                 b3 = await IMA.do_s2s_all( // s-chain --> s-chain
                     loop_opts.joRuntimeOpts,
