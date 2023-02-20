@@ -2253,7 +2253,7 @@ export function ima_contracts_init() {
         const cp = imaState.chainProperties.tc;
         const ep = cp.ethersProvider;
         const joABI = cp.joAbiIMA;
-        imaState.jo_token_manager_eth_target = new owaspUtils.ethersMod.ethers.Contract( joABI.token_manager_eth_abi, joABI.token_manager_eth_address, ep ); // only s-chain
+        imaState.jo_token_manager_eth_target = new owaspUtils.ethersMod.ethers.Contract( joABI.token_manager_eth_address, joABI.token_manager_eth_abi, ep ); // only s-chain
         imaState.jo_token_manager_erc20_target = new owaspUtils.ethersMod.ethers.Contract( joABI.token_manager_erc20_address, joABI.token_manager_erc20_abi, ep ); // only s-chain
         imaState.jo_token_manager_erc721_target = new owaspUtils.ethersMod.ethers.Contract( joABI.token_manager_erc721_address, joABI.token_manager_erc721_abi, ep ); // only s-chain
         imaState.jo_token_manager_erc1155_target = new owaspUtils.ethersMod.ethers.Contract( joABI.token_manager_erc1155_address, joABI.token_manager_erc1155_abi, ep ); // only s-chain

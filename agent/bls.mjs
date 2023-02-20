@@ -764,24 +764,21 @@ async function check_correctness_of_messages_to_sign( details, strLogPrefix, str
         joAccount = imaState.chainProperties.sc.joAccount;
         joChainName = imaState.chainProperties.mn.strChainName;
     } else if( strDirection == "S2S" ) {
-        // joMessageProxy =
-        //     new owaspUtils.ethersMod.ethers.Contract(
-        //         imaState.chainProperties.sc.joAbiIMA.message_proxy_chain_address,
-        //         imaState.chainProperties.sc.joAbiIMA.message_proxy_chain_abi,
-        //         joExtraSignOpts.ethersProvider
-        //         );
-        // joAccount = imaState.chainProperties.sc.joAccount;
-        // joChainName = joExtraSignOpts.chain_id_dst;
-        if( ! ( "ethersProvider" in joExtraSignOpts && joExtraSignOpts.ethersProvider ) )
+        joAccount = imaState.chainProperties.sc.joAccount;
+        joChainName = joExtraSignOpts.chain_id_dst;
+        const ethersProvider =
+            ( "ethersProvider_src" in joExtraSignOpts && joExtraSignOpts.ethersProvider_src )
+                ? joExtraSignOpts.ethersProvider_src
+                : null
+                ;
+        if( ! ethersProvider )
             throw new Error( "CRITICAL ERROR: No provider specified in extra signing options for checking messages of direction \"" + strDirection + "\"" );
         joMessageProxy =
             new owaspUtils.ethersMod.ethers.Contract(
                 imaState.chainProperties.sc.joAbiIMA.message_proxy_chain_address,
                 imaState.chainProperties.sc.joAbiIMA.message_proxy_chain_abi,
-                joExtraSignOpts.ethersProvider
+                ethersProvider
             );
-        joAccount = imaState.joAccount_s_chain;
-        joChainName = joExtraSignOpts.chain_id_dst;
     } else
         throw new Error( "CRITICAL ERROR: Failed check_correctness_of_messages_to_sign() with unknown direction \"" + strDirection + "\"" );
 

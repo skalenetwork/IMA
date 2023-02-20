@@ -731,26 +731,26 @@ export async function do_oracle_gas_price_setup(
         let bnTimestampOfBlock = owaspUtils.toBN( latestBlock.timestamp );
         details.write(
             cc.debug( "Local timestamp on Main Net is " ) + cc.info( bnTimestampOfBlock.toString() ) + cc.debug( "=" ) +
-            cc.info( owaspUtils.ensure_starts_with_0x( bnTimestampOfBlock.toString( 16 ) ) ) + cc.debug( " (original)" ) +
+            cc.info( owaspUtils.ensure_starts_with_0x( bnTimestampOfBlock.toHexString() ) ) + cc.debug( " (original)" ) +
             "\n" );
         const bnTimeZoneOffset = owaspUtils.toBN( parseInt( new Date( parseInt( bnTimestampOfBlock.toString(), 10 ) ).getTimezoneOffset(), 10 ) );
         details.write(
             cc.debug( "Local time zone offset is " ) + cc.info( bnTimeZoneOffset.toString() ) + cc.debug( "=" ) +
-            cc.info( owaspUtils.ensure_starts_with_0x( bnTimeZoneOffset.toString( 16 ) ) ) + cc.debug( " (original)" ) +
+            cc.info( owaspUtils.ensure_starts_with_0x( bnTimeZoneOffset.toHexString() ) ) + cc.debug( " (original)" ) +
             "\n" );
         bnTimestampOfBlock = bnTimestampOfBlock.add( bnTimeZoneOffset );
         details.write(
             cc.debug( "UTC timestamp on Main Net is " ) + cc.info( bnTimestampOfBlock.toString() ) + cc.debug( "=" ) +
-            cc.info( owaspUtils.ensure_starts_with_0x( bnTimestampOfBlock.toString( 16 ) ) ) + cc.debug( " (original)" ) +
+            cc.info( owaspUtils.ensure_starts_with_0x( bnTimestampOfBlock.toHexString() ) ) + cc.debug( " (original)" ) +
             "\n" );
         const bnValueToSubtractFromTimestamp = owaspUtils.toBN( 60 );
         details.write(
             cc.debug( "Value to subtract from timestamp is " ) + cc.info( bnValueToSubtractFromTimestamp ) + cc.debug( "=" ) +
-            cc.info( owaspUtils.ensure_starts_with_0x( bnValueToSubtractFromTimestamp.toString( 16 ) ) ) + cc.debug( " (to adjust it to past a bit)" ) + "\n" );
+            cc.info( owaspUtils.ensure_starts_with_0x( bnValueToSubtractFromTimestamp.toHexString() ) ) + cc.debug( " (to adjust it to past a bit)" ) + "\n" );
         bnTimestampOfBlock = bnTimestampOfBlock.sub( bnValueToSubtractFromTimestamp );
         details.write(
-            cc.debug( "Timestamp on Main Net is " ) + cc.info( bnTimestampOfBlock.toString() ) + cc.debug( "=" ) +
-            cc.info( owaspUtils.ensure_starts_with_0x( bnTimestampOfBlock.toString( 16 ) ) ) + cc.debug( " (adjusted to past a bit)" ) +
+            cc.debug( "Timestamp on Main Net is " ) + cc.info( bnTimestampOfBlock.toHexString() ) + cc.debug( "=" ) +
+            cc.info( owaspUtils.ensure_starts_with_0x( bnTimestampOfBlock.toHexString() ) ) + cc.debug( " (adjusted to past a bit)" ) +
             "\n" );
         strActionName = "do_oracle_gas_price_setup.getGasPrice()";
         let gasPriceOnMainNet = null;
@@ -801,7 +801,7 @@ export async function do_oracle_gas_price_setup(
         details.write(
             cc.debug( "Previous " ) + cc.info( "Main Net gas price" ) + cc.debug( " saved and kept in " ) + cc.info( "CommunityLocker" ) +
             cc.debug( "=" ) + cc.bright( bnGasPriceOnMainNetOld.toString() ) +
-            cc.debug( "=" ) + cc.bright( bnGasPriceOnMainNetOld.toString( 16 ) ) +
+            cc.debug( "=" ) + cc.bright( bnGasPriceOnMainNetOld.toHexString() ) +
             "\n" );
         if( bnGasPriceOnMainNetOld.eq( owaspUtils.toBN( gasPriceOnMainNet ) ) ) {
             details.write(
@@ -845,7 +845,7 @@ export async function do_oracle_gas_price_setup(
             strActionName = "Oracle gas price setup via CommunityLocker.setGasPrice()";
             const arrArguments_setGasPrice = [
                 u256,
-                owaspUtils.ensure_starts_with_0x( bnTimestampOfBlock.toString( 16 ) ),
+                owaspUtils.ensure_starts_with_0x( bnTimestampOfBlock.toHexString() ),
                 sign // bls signature components
             ];
             if( verbose_get() >= RV_VERBOSE().debug ) {
@@ -5327,6 +5327,7 @@ export async function do_transfer(
                                 cc.debug( " on node " ) + cc.info( jo_node.name ) +
                                 cc.debug( " using URL " ) + cc.info( jo_node.http_endpoint_ip ) +
                                 cc.debug( "..." ) + "\n" );
+                            let bEventIsFound = false;
                             try {
                                 const ethersProvider_node = owaspUtils.getEthersProviderFromURL( jo_node.http_endpoint_ip );
                                 const jo_message_proxy_node =
@@ -5362,14 +5363,14 @@ export async function do_transfer(
                                         dstContract: joEvent.args[3],
                                         data: joEvent.args[4]
                                     };
-                                        if( owaspUtils.ensure_starts_with_0x( joMessage.sender ).toLowerCase() ==
+                                    if( owaspUtils.ensure_starts_with_0x( joMessage.sender ).toLowerCase() ==
                                         owaspUtils.ensure_starts_with_0x( eventValuesByName.srcContract ).toLowerCase() &&
                                         owaspUtils.ensure_starts_with_0x( joMessage.destinationContract ).toLowerCase() ==
                                         owaspUtils.ensure_starts_with_0x( eventValuesByName.dstContract ).toLowerCase()
-                                    )
+                                    ) {
                                         bEventIsFound = true;
-                                    if( bEventIsFound )
                                         break;
+                                    }
                                 } // for( let idxEvent = 0; idxEvent < cntEvents; ++ idxEvent )
                             } catch ( err ) {
                                 ++ cntFailedNodes;

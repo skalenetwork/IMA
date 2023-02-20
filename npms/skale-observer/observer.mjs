@@ -344,7 +344,7 @@ export async function filter_schains_marked_as_connected( arr_schains, opts ) {
     return arr_connected_schains;
 }
 
-function find_schain_index_in_array_by_name( arr_schains, strSChainName ) {
+export function find_schain_index_in_array_by_name( arr_schains, strSChainName ) {
     for( let idxSChain = 0; idxSChain < arr_schains.length; ++ idxSChain ) {
         const jo_schain = arr_schains[idxSChain];
         if( jo_schain.data.name.toString() == strSChainName.toString() )

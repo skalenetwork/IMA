@@ -181,8 +181,6 @@ class ObserverServer extends SocketServer {
                 strError =
                     await skale_observer.cache_schains(
                         strChainNameConnectedTo,
-                        self.opts.imaState.chainProperties.mn.ethersProvider,
-                        self.opts.imaState.chainProperties.sc.ethersProvider,
                         addressFrom,
                         self.opts
                     );
