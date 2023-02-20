@@ -4358,6 +4358,7 @@ export async function do_erc721_payment_s2s(
             } );
         }
 
+        const isIgnore_transferERC721 = true;
         strActionName = "ERC721 payment S2S, transferERC721 " + ( isForward ? "forward" : "reverse" );
         const weiHowMuch_transferERC721 = undefined;
         gasPrice = await tc.computeGasPrice( ethersProvider_src, 200000000000 );
@@ -4372,7 +4373,6 @@ export async function do_erc721_payment_s2s(
                 null
             );
         details.write( strLogPrefix + cc.debug( "Using estimated(transfer) " ) + cc.info( "gas" ) + cc.debug( "=" ) + cc.notice( estimatedGas_transfer ) + "\n" );
-        const isIgnore_transferERC721 = true;
         const strErrorOfDryRun_transferERC721 =
             await dry_run_call(
                 details,
