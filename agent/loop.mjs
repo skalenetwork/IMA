@@ -355,7 +355,7 @@ export async function single_transfer_loop_with_repeat( loop_opts ) {
 };
 export async function run_transfer_loop( loop_opts ) {
     const imaState = state.get();
-    let isDelayFirstRun = owaspUtils.toBoolean( loop_opts.isDelayFirstRun );
+    const isDelayFirstRun = owaspUtils.toBoolean( loop_opts.isDelayFirstRun );
     if( isDelayFirstRun ) {
         setTimeout( async function() {
             await single_transfer_loop_with_repeat( loop_opts );

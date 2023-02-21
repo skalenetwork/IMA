@@ -1281,7 +1281,7 @@ async function async_check_url_at_startup( u, name ) {
         details.write(
             cc.fatal( "ERROR:" ) + cc.error( " Failed to check URL " ) +
             cc.u( u ) + cc.error( " connectivity for " ) + cc.info( name ) + cc.error( " at start-up, error is: " ) +
-            cc.warning( owaspUtils.extract_error_message( err ) ) + cc.error( ", stack is: " ) + "\n" + cc.stack( err.stack ) + 
+            cc.warning( owaspUtils.extract_error_message( err ) ) + cc.error( ", stack is: " ) + "\n" + cc.stack( err.stack ) +
             "\n" );
     }
     // details.exposeDetailsTo( log, "async_check_url_at_startup( \"" + u + "\", \"" + name + "\" )", true );
@@ -1332,7 +1332,7 @@ export function ima_common_init() {
     } else {
         imaState.bHaveSkaleManagerABI = false;
         log.write(
-            cc.error( "WARNING:" ) + cc.warning( " No " ) + cc.note( "Skale Manager" ) +
+            cc.warning( "WARNING:" ) + cc.warning( " No " ) + cc.note( "Skale Manager" ) +
             cc.warning( " ABI file path is provided in command line arguments" ) +
             cc.debug( "(needed for particular operations only)" ) +
             "\n" );
@@ -1344,7 +1344,7 @@ export function ima_common_init() {
     } else {
         imaState.chainProperties.mn.bHaveAbiIMA = false;
         log.write(
-            cc.error( "WARNING:" ) + cc.warning( " No " ) + cc.note( "Main-net" ) +
+            cc.warning( "WARNING:" ) + cc.warning( " No " ) + cc.note( "Main-net" ) +
             cc.warning( " IMA ABI file path is provided in command line arguments" ) +
             cc.debug( "(needed for particular operations only)" ) +
             "\n" );
@@ -1356,7 +1356,7 @@ export function ima_common_init() {
     } else {
         imaState.chainProperties.sc.bHaveAbiIMA = false;
         log.write(
-            cc.error( "WARNING:" ) + cc.warning( " No " ) + cc.note( "S-Chain" ) +
+            cc.warning( "WARNING:" ) + cc.warning( " No " ) + cc.note( "S-Chain" ) +
             cc.warning( " IMA ABI file path is provided in command line arguments" ) +
             cc.debug( "(needed for particular operations only)" ) +
             "\n" );
@@ -1368,7 +1368,7 @@ export function ima_common_init() {
     } else {
         imaState.chainProperties.tc.bHaveAbiIMA = false;
         log.write(
-            cc.error( "WARNING:" ) + cc.warning( " No " ) + cc.note( "S<->S Target S-Chain" ) +
+            cc.warning( "WARNING:" ) + cc.warning( " No " ) + cc.note( "S<->S Target S-Chain" ) +
             cc.warning( " IMA ABI file path is provided in command line arguments" ) +
             cc.debug( "(needed for particular operations only)" ) +
             "\n" );
@@ -1400,7 +1400,7 @@ export function ima_common_init() {
             "wallets_address"
         ] );
     } else if( imaState.s2s_opts.isEnabled )
-        log.write( cc.error( "WARNING:" ) + cc.warning( " Missing " ) + cc.note( "Skale Manager" ) + cc.warning( " ABI path for " ) + cc.note( "S-Chain" ) + cc.warning( " to " ) + cc.note( "S-Chain" ) + cc.warning( " transfers" ) + "\n" );
+        log.write( cc.warning( "WARNING:" ) + cc.warning( " Missing " ) + cc.note( "Skale Manager" ) + cc.warning( " ABI path for " ) + cc.note( "S-Chain" ) + cc.warning( " to " ) + cc.note( "S-Chain" ) + cc.warning( " transfers" ) + "\n" );
         // process.exit( 126 );
 
     if( imaState.chainProperties.mn.bHaveAbiIMA ) {
@@ -1533,7 +1533,7 @@ export function ima_common_init() {
         log.write( cc.sunny( "ValidatorService" ) + cc.debug( "................address is....." ) + oct( imaState.jo_validator_service ) + "\n" );
         log.write( cc.sunny( "Wallets" ) + cc.debug( ".........................address is....." ) + oct( imaState.jo_wallets ) + "\n" );
         // } else
-        //     log.write( cc.error( "WARNING:" ) + " " + cc.warning( "no Skale Manager contracts to list, Skale Manager ABI was not provided" ) + "\n" );
+        //     log.write( cc.warning( "WARNING:" ) + " " + cc.warning( "no Skale Manager contracts to list, Skale Manager ABI was not provided" ) + "\n" );
     } // if( isPrintGathered )
 
     //
@@ -2182,7 +2182,7 @@ export function ima_init_ethers_providers() {
         imaState.chainProperties.mn.ethersProvider = owaspUtils.getEthersProviderFromURL( u );
     } else {
         log.write(
-            cc.error( "WARNING:" ) + cc.warning( " No " ) + cc.note( "Main-net" ) +
+            cc.warning( "WARNING:" ) + cc.warning( " No " ) + cc.note( "Main-net" ) +
             cc.warning( " URL specified in command line arguments" ) +
             cc.debug( "(needed for particular operations only)" ) +
             "\n"
@@ -2195,7 +2195,7 @@ export function ima_init_ethers_providers() {
         imaState.chainProperties.sc.ethersProvider = owaspUtils.getEthersProviderFromURL( u );
     } else {
         log.write(
-            cc.error( "WARNING:" ) + cc.warning( " No " ) + cc.note( "S-Chain" ) +
+            cc.warning( "WARNING:" ) + cc.warning( " No " ) + cc.note( "S-Chain" ) +
             cc.warning( " URL specified in command line arguments" ) +
             cc.debug( "(needed for particular operations only)" ) +
             "\n"
@@ -2208,7 +2208,7 @@ export function ima_init_ethers_providers() {
         imaState.chainProperties.tc.ethersProvider = owaspUtils.getEthersProviderFromURL( u );
     } else {
         log.write(
-            cc.error( "WARNING:" ) + cc.warning( " No " ) + cc.note( "S<->S Target S-Chain" ) +
+            cc.warning( "WARNING:" ) + cc.warning( " No " ) + cc.note( "S<->S Target S-Chain" ) +
             cc.warning( " URL specified in command line arguments" ) +
             cc.debug( "(needed for particular operations only)" ) +
             "\n"

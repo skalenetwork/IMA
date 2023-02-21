@@ -31,7 +31,7 @@ import * as child_process from "child_process";
 
 import { UniversalDispatcherEvent, EventDispatcher } from "../skale-cool-socket/event_dispatcher.mjs";
 
-import * as Redis from "ioredis";
+import Redis from "ioredis";
 import * as ethereumjs_util from "ethereumjs-util";
 
 import * as log from "../skale-log/log.mjs";
@@ -41,13 +41,12 @@ import * as cc from "../skale-cc/cc.mjs";
 import * as owaspUtils from "../skale-owasp/owasp-utils.mjs";
 import * as loop from "../../agent/loop.mjs";
 import * as pwa from "../../agent/pwa.mjs";
-
+import * as rpcCall from "../../agent/rpc-call.mjs";
 import * as state from "../../agent/state.mjs";
 
 const __dirname = path.dirname( url.fileURLToPath( import.meta.url ) );
 
 let redis = null;
-let loopTmSendingCnt = 0;
 cc.enable( false );
 log.addStdout();
 
@@ -412,7 +411,7 @@ export async function safe_getPastEvents( details, ethersProvider, cntAttempts, 
                 joFilter,
                 nBlockFrom.toHexString(),
                 nBlockTo.toHexString()
-                );
+            );
         return ret;
     } catch ( err ) {
         ret = retValOnFail;
@@ -457,7 +456,7 @@ export async function safe_getPastEvents( details, ethersProvider, cntAttempts, 
         try {
             // TO-IMPROVE: this must be re-checked
             details.write(
-                cc.debug( "Attempt ") + cc.info( idxAttempt ) + cc.debug(", will query filter " ) + cc.j( joFilter ) +
+                cc.debug( "Attempt " ) + cc.info( idxAttempt ) + cc.debug( ", will query filter " ) + cc.j( joFilter ) +
                 cc.debug( " on contract " ) + cc.info( joContract.address ) +
                 cc.debug( " from block " ) + cc.info( nBlockFrom.toHexString() ) +
                 cc.debug( " to block " ) + cc.info( nBlockTo.toHexString() ) +
@@ -467,7 +466,7 @@ export async function safe_getPastEvents( details, ethersProvider, cntAttempts, 
                     joFilter,
                     nBlockFrom.toHexString(),
                     nBlockTo.toHexString()
-                    );
+                );
             return ret;
 
         } catch ( err ) {
@@ -562,8 +561,8 @@ export async function safe_getPastEventsIterative( details, ethersProvider, atte
     const isFirstZero = ( nBlockFrom.eq( nBlockZero ) ) ? true : false;
     if( isFirstZero && isLastLatest ) {
         if( nLatestBlockNumber.div(
-                owaspUtils.toBN( g_nCountOfBlocksInIterativeStep )
-                ).gt( owaspUtils.toBN( g_nMaxBlockScanIterationsInAllRange ) )
+            owaspUtils.toBN( g_nCountOfBlocksInIterativeStep )
+        ).gt( owaspUtils.toBN( g_nMaxBlockScanIterationsInAllRange ) )
         ) {
             details.write(
                 cc.fatal( "IMPORTANT NOTICE:" ) + " " +
@@ -886,7 +885,7 @@ export async function do_oracle_gas_price_setup(
             if( strErrorOfDryRun )
                 throw new Error( strErrorOfDryRun );
 
-            let opts = {
+            const opts = {
                 isCheckTransactionToSchain: ( chain_id_schain !== "Mainnet" ) ? true : false
             };
             const joReceipt =
@@ -911,8 +910,8 @@ export async function do_oracle_gas_price_setup(
     } catch ( err ) {
         const strError = owaspUtils.extract_error_message( err );
         if( verbose_get() >= RV_VERBOSE().fatal )
-            log.write( strLogPrefix + cc.fatal( "CRITICAL ERROR:" ) + cc.error( " Error in do_oracle_gas_price_setup() during " + strActionName + ": " ) + cc.error( strError ) + cc.error( ", stack is: " ) + "\n" + cc.stack( err.stack ) +"\n" );
-        details.write( strLogPrefix + cc.fatal( "CRITICAL ERROR:" ) + cc.error( " Error in do_oracle_gas_price_setup() during " + strActionName + ": " ) + cc.error( strError ) + cc.error( ", stack is: " ) + "\n" + cc.stack( err.stack ) +"\n" );
+            log.write( strLogPrefix + cc.fatal( "CRITICAL ERROR:" ) + cc.error( " Error in do_oracle_gas_price_setup() during " + strActionName + ": " ) + cc.error( strError ) + cc.error( ", stack is: " ) + "\n" + cc.stack( err.stack ) + "\n" );
+        details.write( strLogPrefix + cc.fatal( "CRITICAL ERROR:" ) + cc.error( " Error in do_oracle_gas_price_setup() during " + strActionName + ": " ) + cc.error( strError ) + cc.error( ", stack is: " ) + "\n" + cc.stack( err.stack ) + "\n" );
         details.exposeDetailsTo( log, "do_oracle_gas_price_setup", false );
         save_transfer_error( "oracle", details.toString() );
         details.close();
@@ -1041,7 +1040,7 @@ export async function safe_getPastEventsProgressive( details, ethersProvider, at
                     strEventName,
                     joPlan.nBlockFrom, joPlan.nBlockTo,
                     joFilter
-                    );
+                );
             if( joAllEventsInBlock && joAllEventsInBlock.length > 0 ) {
                 details.write(
                     cc.success( "Progressive scan of " ) + cc.attention( "getPastEvents" ) + cc.debug( "/" ) + cc.info( strEventName ) +
@@ -1074,7 +1073,7 @@ export async function safe_getPastEventsProgressive( details, ethersProvider, at
 export async function get_contract_call_events( details, ethersProvider, joContract, strEventName, nBlockNumber, strTxHash, joFilter ) {
     joFilter = joFilter || {};
     nBlockNumber = owaspUtils.toBN( nBlockNumber );
-    let n10 = owaspUtils.toBN( 10 );
+    const n10 = owaspUtils.toBN( 10 );
     let nBlockFrom = nBlockNumber.sub( n10 ), nBlockTo = nBlockNumber.add( n10 );
     const nBlockZero = owaspUtils.toBN( 0 );
     const nLatestBlockNumber = owaspUtils.toBN( await safe_getBlockNumber( details, 10, ethersProvider ) );
@@ -1088,7 +1087,7 @@ export async function get_contract_call_events( details, ethersProvider, joContr
             strEventName,
             nBlockFrom, nBlockTo,
             joFilter
-            );
+        );
     const joAllTransactionEvents = []; let i;
     for( i = 0; i < joAllEventsInBlock.length; ++i ) {
         const joEvent = joAllEventsInBlock[i];
@@ -1096,23 +1095,6 @@ export async function get_contract_call_events( details, ethersProvider, joContr
             joAllTransactionEvents.push( joEvent );
     }
     return joAllTransactionEvents;
-}
-
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-export function compose_tx_instance( details, strLogPrefix, rawTx ) {
-    details.write( cc.attention( "TRANSACTION COMPOSER" ) + cc.normal( " is using " ) + cc.bright( "Web3" ) + cc.normal( " version " ) + cc.sunny( w3mod.version ) + "\n" );
-    strLogPrefix = strLogPrefix || "";
-    rawTx = JSON.parse( JSON.stringify( rawTx ) ); // clone
-    const joOpts = null;
-    details.write( strLogPrefix + cc.debug( "....composed " ) + cc.notice( JSON.stringify( rawTx ) ) + cc.debug( " with opts " ) + cc.j( joOpts ) + "\n" );
-    let tx = null;
-    if( joOpts )
-        tx = new ethereumjs_tx( rawTx, joOpts );
-    else
-        tx = new ethereumjs_tx( rawTx );
-    return tx;
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -1148,6 +1130,8 @@ export async function dry_run_call(
     gasPrice, gasValue, weiHowMuch,
     opts
 ) {
+    if( ! dry_run_is_enabled() )
+        return null; // success
     isDryRunResultIgnore = ( isDryRunResultIgnore != null && isDryRunResultIgnore != undefined ) ? ( isDryRunResultIgnore ? true : false ) : false;
     const strContractMethodDescription = cc.notice( strContractName ) + cc.debug( "(" ) + cc.info( joContract.address ) + cc.debug( ")." ) + cc.notice( strMethodName );
     let strArgumentsDescription = "";
@@ -1208,31 +1192,200 @@ export async function payed_call(
         strArgumentsDescription += cc.debug( "()" );
     const strContractCallDescription = strContractMethodDescription + strArgumentsDescription;
     const strLogPrefix = strContractMethodDescription + " ";
+    let joACI = null, unsignedTx = null, rawTx = null, txHash = null, joReceipt = null;
+    const callOpts = {
+    };
     try {
-        const ethersWallet = new owaspUtils.ethersMod.ethers.Wallet( owaspUtils.ensure_starts_with_0x( joAccount.privateKey ), ethersProvider );
-        const callOpts = {
-        };
+        joACI = get_account_connectivity_info( joAccount );
         if( gasPrice )
             callOpts.gasPrice = owaspUtils.toBN( gasPrice ).toHexString();
         if( estimatedGas )
             callOpts.gasLimit = owaspUtils.toBN( estimatedGas ).toHexString();
         if( weiHowMuch )
             callOpts.value = owaspUtils.toBN( weiHowMuch ).toHexString();
-        details.write( cc.debug( "Payed-call of action " ) + cc.info( strActionName ) + cc.debug( "..." ) + "\n" );
-        details.write( strLogPrefix + cc.debug( "Will do payed-call " ) + strContractCallDescription + cc.debug( "..." ) + "\n" );
-        const txx = await joContract.populateTransaction[strMethodName]( ...arrArguments, callOpts );
-        details.write( strLogPrefix + cc.debug( "raw transaction: " ) + cc.j( txx ) + "\n" );
+        details.write( strLogPrefix +
+            cc.debug( "Payed-call of action " ) + cc.info( strActionName ) +
+            cc.debug( " will do payed-call " ) + strContractCallDescription +
+            cc.debug( " with call options " ) + cc.j( callOpts ) +
+            cc.debug( " via " ) + cc.attention( joACI.strType ) + cc.debug( "-sign-and-send..." ) +
+            "\n" );
+        unsignedTx = await joContract.populateTransaction[strMethodName]( ...arrArguments, callOpts );
+        details.write( strLogPrefix + cc.debug( "populated transaction: " ) + cc.j( unsignedTx ) + "\n" );
+        unsignedTx.nonce = await ethersProvider.getTransactionCount( joAccount.address() );
         // if( opts && opts.isCheckTransactionToSchain ) {
-        //     txx = await checkTransactionToSchain( txx, details, ethersProvider );
-        //     details.write( strLogPrefix + cc.debug( "raw transaction, checked for S-chain: " ) + cc.j( txx ) + "\n" );
+        //     unsignedTx = await checkTransactionToSchain( unsignedTx, details, ethersProvider );
+        //     details.write( strLogPrefix + cc.debug( "Checked/mined transaction: " ) + cc.j( unsignedTx ) + "\n" );
+        //     details.write( strLogPrefix + cc.debug( "Raw transaction, checked for S-chain: " ) + cc.j( unsignedTx ) + "\n" );
         // }
-        let joSent = await ethersWallet.sendTransaction( txx );
-        details.write( strLogPrefix + cc.debug( "transaction sent: " ) + cc.j( joSent ) + "\n" );
-        let joReceipt = await joSent.wait();
-        details.write( strLogPrefix + cc.debug( "transaction receipt:" ) + cc.j( joReceipt ) + "\n" );
+        rawTx = owaspUtils.ethersMod.ethers.utils.serializeTransaction( unsignedTx );
+        details.write( strLogPrefix + cc.debug( "Raw transaction: " ) + cc.j( rawTx ) + "\n" );
+        txHash = owaspUtils.ethersMod.ethers.utils.keccak256( rawTx );
+        details.write( strLogPrefix + cc.debug( "Transaction hash: " ) + cc.j( rawTx ) + "\n" );
+        switch ( joACI.strType ) {
+        case "tm": {
+            const txAdjusted = JSON.parse( JSON.stringify( rawTx ) );
+            if( "chainId" in txAdjusted )
+                delete txAdjusted.chainId;
+            if( "gasLimit" in txAdjusted && ( ! ( "gas" in txAdjusted ) ) ) {
+                txAdjusted.gas = txAdjusted.gasLimit;
+                delete txAdjusted.gasLimit;
+            }
+            details.write( strLogPrefix + cc.debug( "Adjusted transaction: " ) + cc.j( txAdjusted ) + "\n" );
+            if( redis == null )
+                redis = new Redis( joAccount.strTransactionManagerURL );
+            const priority = joAccount.tm_priority || 5;
+            details.write( strLogPrefix + cc.debug( "TM priority: " ) + cc.j( priority ) + "\n" );
+            try {
+                const [ tx_id, joReceiptFromTM ] = await tm_ensure_transaction( details, w3, priority, txAdjusted );
+                joReceipt = joReceiptFromTM;
+                details.write( strLogPrefix + cc.debug( "TM transaction ID: " ) + cc.j( tx_id ) + "\n" );
+                const txHashSent = "" + joReceipt.transactionHash;
+                details.write( strLogPrefix + cc.debug( "TM transaction hash sent: " ) + cc.j( txHashSent ) + "\n" );
+            } catch ( err ) {
+                const strError =
+                    cc.fatal( "BAD ERROR:" ) + " " +
+                    cc.error( "TM - transaction was not sent, underlying error is: " ) +
+                    cc.warning( err.toString() );
+                details.write( strLogPrefix + strError + "\n" );
+                log.write( strLogPrefix + strError + "\n" );
+                throw err;
+            }
+        } break;
+        case "sgx": {
+            let rpcCallOpts = null;
+            if( "strPathSslKey" in joAccount && typeof joAccount.strPathSslKey == "string" && joAccount.strPathSslKey.length > 0 &&
+                "strPathSslCert" in joAccount && typeof joAccount.strPathSslCert == "string" && joAccount.strPathSslCert.length > 0
+            ) {
+                rpcCallOpts = {
+                    "cert": fs.readFileSync( joAccount.strPathSslCert, "utf8" ),
+                    "key": fs.readFileSync( joAccount.strPathSslKey, "utf8" )
+                };
+                // details.write( cc.debug( "Will sign via SGX with SSL options " ) + cc.j( rpcCallOpts ) + "\n" );
+            }
+            await rpcCall.create( joAccount.strSgxURL, rpcCallOpts, async function( joCall, err ) {
+                if( err ) {
+                    const strError =
+                        cc.fatal( "CRITICAL TRANSACTION SIGNING ERROR:" ) +
+                        cc.error( " JSON RPC call creation to SGX wallet failed with error " ) +
+                        cc.warning( owaspUtils.extract_error_message( err ) ) +
+                        cc.error( ", stack is: " ) + "\n" + cc.stack( err.stack ) +
+                        "\n";
+                    if( verbose_get() >= RV_VERBOSE.error )
+                        log.write( strLogPrefix + strError );
+                    details.write( strLogPrefix + strError );
+                    throw new Error( "CRITICAL TRANSACTION SIGNING ERROR: " + owaspUtils.extract_error_message( err ) );
+                }
+                const joIn = {
+                    "method": "ecdsaSignMessageHash",
+                    "params": {
+                        "keyName": "" + joAccount.strSgxKeyName,
+                        "messageHash": owaspUtils.ensure_starts_with_0x( txHash ),
+                        "base": 16
+                    }
+                };
+                details.write( strLogPrefix + cc.debug( "Calling SGX to sign using ECDSA key with " ) + cc.info( joIn.method ) + cc.debug( "..." ) + "\n" );
+                await joCall.call( joIn, async function( joIn, joOut, err ) {
+                    if( err ) {
+                        const strError =
+                            cc.fatal( "CRITICAL TRANSACTION SIGNING ERROR:" ) +
+                            cc.error( " JSON RPC call sending to SGX wallet failed with error " ) +
+                            cc.warning( owaspUtils.extract_error_message( err ) ) +
+                            cc.error( ", stack is: " ) + "\n" + cc.stack( err.stack ) +
+                            "\n";
+                        if( verbose_get() >= RV_VERBOSE.error )
+                            log.write( strLogPrefix + strError );
+                        details.write( strLogPrefix + strError );
+                        throw new Error( "CRITICAL TRANSACTION SIGNING ERROR: " + owaspUtils.extract_error_message( err ) );
+                    }
+                    try {
+                        details.write( strLogPrefix + cc.debug( "SGX wallet ECDSA sign result is: " ) + cc.j( joOut ) + "\n" );
+                        const v = owaspUtils.parseIntOrHex( owaspUtils.toBN( joOut.result.signature_v ).toString() );
+                        // const recoveryParam = 1 - ( v % 2 );
+                        const joExpanded = {
+                            // "v": Buffer.from( parseIntOrHex( joOut.result.signature_v ).toString( "hex" ), "utf8" ),
+                            // "r": Buffer.from( "" + joOut.result.signature_r, "utf8" ),
+                            // "s": Buffer.from( "" + joOut.result.signature_s, "utf8" )
+                            "v": v,
+                            "r": joOut.result.signature_r,
+                            "s": joOut.result.signature_s //,
+                            //"recoveryParam": recoveryParam
+                        };
+                        details.write( strLogPrefix + cc.debug( "Preliminary expanded signature: " ) + cc.j( joExpanded ) + "\n" );
+                        //
+                        let { chainId } = await ethersProvider.getNetwork();
+                        if( chainId == "string" )
+                            chainId = owaspUtils.parseIntOrHex( chainId );
+                        details.write( strLogPrefix + cc.debug( "Chain ID is: " ) + cc.info( chainId ) + "\n" );
+                        joExpanded.v += chainId * 2 + 8 + 27;
+                        //
+                        details.write( strLogPrefix + cc.debug( "Final expanded signature: " ) + cc.j( joExpanded ) + "\n" );
+                        const joSignature = owaspUtils.ethersMod.ethers.utils.joinSignature( joExpanded );
+                        details.write( strLogPrefix + cc.debug( "Final signature: " ) + cc.j( joSignature ) + "\n" );
+                        rawTx = owaspUtils.ethersMod.ethers.utils.serializeTransaction( unsignedTx, joSignature );
+                        details.write( strLogPrefix + cc.debug( "Raw transaction with signature: " ) + cc.j( rawTx ) + "\n" );
+                        //
+                        const { hash } = await ethersProvider.sendTransaction(
+                            owaspUtils.ensure_starts_with_0x( rawTx )
+                        );
+                        details.write( strLogPrefix + cc.debug( "Raw-sent transaction hash: " ) + cc.j( hash ) + "\n" );
+                        joReceipt = await ethersProvider.waitForTransaction( hash );
+                    } catch ( err ) {
+                        const strErrorPrefix = "CRITICAL TRANSACTION SIGN AND SEND ERROR(PROCESSING SGX RESULT):";
+                        const s =
+                            strLogPrefix + cc.error( strErrorPrefix ) + " " + cc.warning( owaspUtils.extract_error_message( err ) ) +
+                            cc.error( ", stack is: " ) + "\n" + cc.stack( err.stack ) +
+                            "\n";
+                        details.write( s );
+                        log.write( s );
+                        throw new Error(
+                            strErrorPrefix +
+                            " Invoking the " + strContractCallDescription +
+                            " method: " + owaspUtils.extract_error_message( err )
+                        );
+                    }
+                } );
+            } );
+        } break;
+        case "direct": {
+            const ethersWallet = new owaspUtils.ethersMod.ethers.Wallet( owaspUtils.ensure_starts_with_0x( joAccount.privateKey ), ethersProvider );
+            const joSent = await ethersWallet.sendTransaction( unsignedTx );
+            details.write( strLogPrefix + cc.debug( "Sent transaction result: " ) + cc.j( joSent ) + "\n" );
+            joReceipt = await joSent.wait();
+            details.write( strLogPrefix + cc.debug( "Transaction receipt:" ) + cc.j( joReceipt ) + "\n" );
+        } break;
+        default: {
+            const strErrorPrefix = "CRITICAL TRANSACTION SIGN AND SEND ERROR(INNER FLOW):";
+            const s = cc.fatal( strErrorPrefix ) + " " +
+                cc.error( "bad credentials information specified, no explicit SGX and no explicit private key found" ) +
+                // + cc.error( ", account is: " ) + cc.j( joAccount )
+                "\n";
+            details.write( s );
+            log.write( s );
+            throw new Error(
+                strErrorPrefix +
+                " bad credentials information specified, no explicit SGX and no explicit private key found"
+            );
+        } // break;
+        } // switch( joACI.strType )
+    } catch ( err ) {
+        const strErrorPrefix = "CRITICAL TRANSACTION SIGN AND SEND ERROR(OUTER FLOW):";
+        const s =
+            strLogPrefix + cc.error( strErrorPrefix ) + " " + cc.warning( owaspUtils.extract_error_message( err ) ) +
+            cc.error( ", stack is: " ) + "\n" + cc.stack( err.stack ) +
+            "\n";
+        details.write( s );
+        log.write( s );
+        throw new Error(
+            strErrorPrefix +
+            " invoking the " + strContractCallDescription +
+            " method: " + owaspUtils.extract_error_message( err )
+        );
+    }
+    details.write( strLogPrefix + cc.success( "Done, TX was " ) + cc.attention( joACI ? joACI.strType : "N/A" ) + cc.success( "-signed-and-sent." ) + "\n" );
+    try {
         const bnGasSpent = owaspUtils.toBN( joReceipt.cumulativeGasUsed );
         const gasSpent = bnGasSpent.toString();
-        const ethSpent = owaspUtils.ethersMod.ethers.utils.formatEther( joReceipt.cumulativeGasUsed.mul( txx.gasPrice ) );
+        const ethSpent = owaspUtils.ethersMod.ethers.utils.formatEther( joReceipt.cumulativeGasUsed.mul( unsignedTx.gasPrice ) );
         joReceipt.summary = {
             bnGasSpent: bnGasSpent,
             gasSpent: gasSpent,
@@ -1240,44 +1393,43 @@ export async function payed_call(
         };
         details.write( strLogPrefix + cc.debug( "gas spent: " ) + cc.info( gasSpent ) + "\n" );
         details.write( strLogPrefix + cc.debug( "ETH spent: " ) + cc.info( ethSpent ) + "\n" );
-        return joReceipt;
     } catch ( err ) {
         details.write(
-            strLogPrefix + cc.error( "payed call error: " ) + cc.warning( owaspUtils.extract_error_message( err ) ) +
-            cc.error( ", stack is: " ) + "\n" + cc.stack( err.stack ) +
-            "\n" );
-        return new Error(
-            "CRITICAL CONTRACT METHOD CALL FAIL: Invoking the " + strContractCallDescription +
-            " method: " + owaspUtils.extract_error_message( err )
+            strLogPrefix + cc.warning( "WARNING: " ) + " " +
+            cc.warning( "TX stats computation error " ) +
+            cc.warning( owaspUtils.extract_error_message( err ) ) +
+            cc.warning( ", stack is: " ) + "\n" + cc.stack( err.stack ) +
+            "\n"
         );
     }
+    return joReceipt;
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 export async function checkTransactionToSchain(
-    txx,
+    unsignedTx,
     details,
     ethersProvider
-    ) {
-    const sender = txx.from;
-    const requiredBalance = txx.gasPrice.mul( txx.gasLimit );
+) {
+    const sender = unsignedTx.from;
+    const requiredBalance = unsignedTx.gasPrice.mul( unsignedTx.gasLimit );
     const balance = owaspUtils.toBN( await ethersProvider.getBalance( sender ) );
     if( balance.lt( requiredBalance ) ) {
         details.write(
             cc.warning( "Insufficient funds for " ) + cc.bright( sender ) +
             cc.warning( "; Will run " ) + cc.sunny( "PoW" ) + cc.warning( " for mining " ) +
-            cc.bright( txx.gasLimit.toHexString() ) + cc.warning( " gas" ) +
+            cc.bright( unsignedTx.gasLimit.toHexString() ) + cc.warning( " gas" ) +
             "\n" );
-        const powNumber = await calculatePowNumber( sender, txx.nonce.toString(), txx.gasLimit.toString(), details );
+        const powNumber = await calculatePowNumber( sender, unsignedTx.nonce.toString(), unsignedTx.gasLimit.toString(), details );
         details.write(
             cc.warning( "Done, " ) + cc.sunny( "PoW" ) +
             cc.warning( " number is " ) + cc.bright( powNumber ) +
             "\n" );
-        txx.gasPrice = owaspUtils.toBN( owaspUtils.ensure_starts_with_0x( powNumber ) );
+        unsignedTx.gasPrice = owaspUtils.toBN( owaspUtils.ensure_starts_with_0x( powNumber ) );
     }
-    return txx;
+    return unsignedTx;
 }
 
 export async function calculatePowNumber( address, nonce, gas, details ) {
@@ -1471,305 +1623,6 @@ async function tm_ensure_transaction( details, w3, priority, txAdjusted, cntAtte
     details.write( strPrefixDetails + strMsg + "\n" );
     log.write( strPrefixLog + strMsg + "\n" );
     return [ txId, joReceipt ];
-}
-
-export async function safe_sign_transaction_with_account( details, w3, tx, rawTx, joAccount ) {
-    const strPrefixDetails = cc.debug( "(gathered details)" ) + " ";
-    const strPrefixLog = cc.debug( "(immediate log)" ) + " ";
-    const sendingCnt = loopTmSendingCnt++;
-    let strMsg =
-        cc.debug( "Signing(and later, sending) transaction with account(" ) + cc.notice( "sending counter" ) + cc.debug( " is " ) +
-        cc.info( sendingCnt ) + cc.debug( "), raw TX object is " ) + cc.j( rawTx );
-    details.write( strPrefixDetails + strMsg + "\n" );
-    log.write( strPrefixLog + strMsg + "\n" );
-    const joSR = {
-        joACI: get_account_connectivity_info( joAccount ),
-        tx: null,
-        txHashSent: null
-    };
-    strMsg = cc.debug( "Signing(and later, sending) transaction with backend type: " ) + cc.bright( joSR.joACI.strType );
-    details.write( strPrefixDetails + strMsg + "\n" );
-    log.write( strPrefixLog + strMsg + "\n" );
-    switch ( joSR.joACI.strType ) {
-    case "tm": {
-        /*
-        details.write(
-            cc.debug( "Will sign with Transaction Manager wallet, transaction is " ) + cc.j( tx ) +
-            cc.debug( ", raw transaction is " ) + cc.j( rawTx ) + "\n"
-            // + cc.debug( " using account " ) + cc.j( joAccount ) + "\n"
-        );
-        let rpcCallOpts = null;
-        if( "strPathSslKey" in joAccount && typeof joAccount.strPathSslKey == "string" && joAccount.strPathSslKey.length > 0 &&
-            "strPathSslCert" in joAccount && typeof joAccount.strPathSslCert == "string" && joAccount.strPathSslCert.length > 0
-        ) {
-            rpcCallOpts = {
-            };
-            // details.write( cc.debug( "Will sign via Transaction Manager with SSL options " ) + cc.j( rpcCallOpts ) + "\n" );
-        }
-        await rpcCall.create( joAccount.strTransactionManagerURL, rpcCallOpts, async function( joCall, err ) {
-            if( err ) {
-                const s = cc.fatal( "CRITICAL TRANSACTION SIGNING ERROR:" ) + cc.error( " JSON RPC call to Transaction Manager wallet failed" ) + "\n";
-                if( verbose_get() >= RV_VERBOSE().error )
-                    log.write( s );
-                details.write( s );
-                if( joCall )
-                    await joCall.disconnect();
-                return;
-            }
-            const txAdjusted = JSON.parse( JSON.stringify( rawTx ) ); // tx // rawTx
-            if( "chainId" in txAdjusted )
-                delete txAdjusted.chainId;
-            if( "gasLimit" in txAdjusted && ( ! ( "gas" in txAdjusted ) ) ) {
-                txAdjusted.gas = txAdjusted.gasLimit;
-                delete txAdjusted.gasLimit;
-            }
-            const joIn = {
-                "transaction_dict": JSON.stringify( txAdjusted )
-            };
-            details.write( cc.debug( "Calling Transaction Manager to sign-and-send with " ) + cc.j( txAdjusted ) + "\n" );
-            await joCall.call(
-                joIn,
-                async function( joIn, joOut, err ) {
-                    const strError = owaspUtils.extract_error_message( err );
-                    if( err ) {
-                        const s = cc.fatal( "CRITICAL TRANSACTION SIGNING ERROR:" ) + cc.error( " JSON RPC call to Transaction Manager failed, error: " ) + cc.warning( strError ) + "\n";
-                        if( verbose_get() >= RV_VERBOSE().error )
-                            log.write( s );
-                        details.write( s );
-                        await joCall.disconnect();
-                        return;
-                    }
-                    details.write( cc.debug( "Transaction Manager sign-and-send result is: " ) + cc.j( joOut ) + "\n" );
-                    if( joOut && "data" in joOut && joOut.data && "transaction_hash" in joOut.data )
-                        joSR.txHashSent = "" + joOut.data.transaction_hash;
-                    else {
-                        const s = cc.fatal( "CRITICAL TRANSACTION SIGNING ERROR:" ) + cc.error( " JSON RPC call to Transaction Manager returned bad answer: " ) + cc.j( joOut ) + "\n";
-                        if( verbose_get() >= RV_VERBOSE().error )
-                            log.write( s );
-                        details.write( s );
-                        return;
-                    }
-                    await joCall.disconnect();
-                } );
-        } );
-        await sleep( 5000 );
-        await wait_for_transaction_receipt( details, w3, joSR.txHashSent );
-        */
-        strMsg =
-            cc.debug( "Will sign with Transaction Manager wallet, transaction is " ) + cc.j( tx ) +
-            cc.debug( ", raw transaction is " ) + cc.j( rawTx )
-            // + "\n" + cc.debug( " using account " ) + cc.j( joAccount )
-        ;
-        details.write( strPrefixDetails + strMsg + "\n" );
-        log.write( strPrefixLog + strMsg + "\n" );
-        const txAdjusted = JSON.parse( JSON.stringify( rawTx ) ); // tx // rawTx
-        if( "chainId" in txAdjusted )
-            delete txAdjusted.chainId;
-        if( "gasLimit" in txAdjusted && ( ! ( "gas" in txAdjusted ) ) ) {
-            txAdjusted.gas = txAdjusted.gasLimit;
-            delete txAdjusted.gasLimit;
-        }
-        if( redis == null )
-            redis = new Redis( joAccount.strTransactionManagerURL );
-        const priority = joAccount.tm_priority || 5;
-        try {
-            strMsg = cc.debug( "Will TM-ensure transaction " ) + cc.j( txAdjusted ) + cc.debug( "..." );
-            details.write( strPrefixDetails + strMsg + "\n" );
-            log.write( strPrefixLog + strMsg + "\n" );
-            const [ tx_id, joReceipt ] = await tm_ensure_transaction( details, w3, priority, txAdjusted );
-            strMsg = cc.success( "Done TM-ensure transaction, got ID " ) + cc.notice( tx_id ) + cc.success( " and receipt " ) + cc.j( joReceipt );
-            details.write( strPrefixDetails + strMsg + "\n" );
-            log.write( strPrefixLog + strMsg + "\n" );
-            joSR.txHashSent = "" + joReceipt.transactionHash;
-            joSR.joReceipt = joReceipt;
-            joSR.tm_tx_id = tx_id;
-            strMsg = cc.success( "Done, TX was signed with Transaction Manager" );
-            details.write( strPrefixDetails + strMsg + "\n" );
-            log.write( strPrefixLog + strMsg + "\n" );
-        } catch ( err ) {
-            strMsg =
-                cc.fatal( "BAD ERROR:" ) + " " + cc.error( "TM - transaction was not sent, underlying error is: " ) +
-                cc.warning( owaspUtils.extract_error_message( err ) ) + cc.error( ", stack is: " ) + "\n" + cc.stack( err.stack );
-            details.write( strPrefixDetails + strMsg + "\n" );
-            log.write( strPrefixLog + strMsg + "\n" );
-            // throw err;
-        }
-    } break;
-    case "sgx": {
-        strMsg =
-            cc.debug( "Will sign with SGX Wallet, transaction is " ) + cc.j( tx ) +
-            cc.debug( ", raw transaction is " ) + cc.j( rawTx )
-            // + cc.debug( " using account " ) + cc.j( joAccount )
-        ;
-        details.write( strPrefixDetails + strMsg + "\n" );
-        log.write( strPrefixLog + strMsg + "\n" );
-        let rpcCallOpts = null;
-        if( "strPathSslKey" in joAccount && typeof joAccount.strPathSslKey == "string" && joAccount.strPathSslKey.length > 0 &&
-            "strPathSslCert" in joAccount && typeof joAccount.strPathSslCert == "string" && joAccount.strPathSslCert.length > 0
-        ) {
-            rpcCallOpts = {
-                "cert": fs.readFileSync( joAccount.strPathSslCert, "utf8" ),
-                "key": fs.readFileSync( joAccount.strPathSslKey, "utf8" )
-            };
-            // details.write( cc.debug( "Will sign via SGX with SSL options " ) + cc.j( rpcCallOpts ) + "\n" );
-        } else
-            details.write( cc.warning( "Will sign via SGX" ) + " " + cc.error( "without SSL options" ) + "\n" );
-        await rpcCall.create( joAccount.strSgxURL, rpcCallOpts, async function( joCall, err ) {
-            if( err ) {
-                const s = cc.fatal( "CRITICAL TRANSACTION SIGNING ERROR:" ) + cc.error( " JSON RPC call to SGX wallet failed" ) + "\n";
-                if( verbose_get() >= RV_VERBOSE().error )
-                    log.write( s );
-                details.write( s );
-                if( joCall )
-                    await joCall.disconnect();
-                return;
-            }
-            const msgHash = tx.hash( false );
-            const strHash = msgHash.toString( "hex" );
-            // details.write( cc.debug( "Transaction message hash is " ) + cc.j( msgHash ) + "\n" );
-            const joIn = {
-                "method": "ecdsaSignMessageHash",
-                "params": {
-                    "keyName": "" + joAccount.strSgxKeyName,
-                    "messageHash": strHash, // "1122334455"
-                    "base": 16 // 10
-                }
-            };
-            strMsg = cc.debug( "Calling SGX to sign using ECDSA key with " ) + cc.info( joIn.method ) + cc.debug( "..." );
-            details.write( strPrefixDetails + strMsg + "\n" );
-            log.write( strPrefixLog + strMsg + "\n" );
-            await joCall.call( joIn, async function( joIn, joOut, err ) {
-                const strError = owaspUtils.extract_error_message( err );
-                if( err ) {
-                    strMsg = cc.fatal( "CRITICAL TRANSACTION SIGNING ERROR:" ) + cc.error( " JSON RPC call to SGX wallet failed, error: " ) + cc.warning( strError );
-                    details.write( strPrefixDetails + strMsg + "\n" );
-                    log.write( strPrefixLog + strMsg + "\n" );
-                    await joCall.disconnect();
-                    return;
-                }
-                strMsg = cc.debug( "SGX wallet ECDSA sign result is: " ) + cc.j( joOut );
-                details.write( strPrefixDetails + strMsg + "\n" );
-                log.write( strPrefixLog + strMsg + "\n" );
-                const joNeededResult = {
-                    // "v": Buffer.from( owaspUtils.parseIntOrHex( joOut.result.signature_v ).toString( "hex" ), "utf8" ),
-                    // "r": Buffer.from( "" + joOut.result.signature_r, "utf8" ),
-                    // "s": Buffer.from( "" + joOut.result.signature_s, "utf8" )
-                    "v": owaspUtils.parseIntOrHex( joOut.result.signature_v, 10 ),
-                    "r": "" + joOut.result.signature_r,
-                    "s": "" + joOut.result.signature_s
-                };
-                strMsg = cc.debug( "SGX Wallet sign result to assign into transaction is: " ) + cc.j( joNeededResult );
-                details.write( strPrefixDetails + strMsg + "\n" );
-                log.write( strPrefixLog + strMsg + "\n" );
-                //
-                // if( "_chainId" in tx && tx._chainId != null && tx._chainId != undefined )
-                //     tx.v += tx._chainId * 2 + 8;
-                // if( "_chainId" in tx && tx._chainId != null && tx._chainId != undefined )
-                //     joNeededResult.v += tx._chainId * 2 + 8;
-                // if( "_chainId" in tx && tx._chainId != null && tx._chainId != undefined )
-                //     joNeededResult.v += tx._chainId * 2 + 8 + 27;
-                let chainId = -4;
-                // details.write( cc.debug( "...trying tx._chainId = " ) + cc.info( tx._chainId ) + "\n" );
-                if( "_chainId" in tx && tx._chainId != null && tx._chainId != undefined ) {
-                    chainId = tx._chainId;
-                    if( chainId == 0 )
-                        chainId = -4;
-                }
-                // details.write( cc.debug( "...applying chainId = " ) + cc.info( chainId ) + cc.debug( "to v = " ) + cc.info( joNeededResult.v )  + "\n" );
-                // joNeededResult.v += chainId * 2 + 8 + 27;
-                joNeededResult.v += chainId * 2 + 8 + 27;
-                // details.write( cc.debug( "...result v =" ) + cc.info( joNeededResult.v ) + "\n" );
-                //
-                // joNeededResult.v = to_eth_v( joNeededResult.v, tx._chainId );
-                //
-                // Object.assign( tx, joNeededResult );
-                tx.v = joNeededResult.v;
-                tx.r = joNeededResult.r;
-                tx.s = joNeededResult.s;
-                strMsg = cc.debug( "Resulting adjusted transaction is: " ) + cc.j( tx );
-                details.write( strPrefixDetails + strMsg + "\n" );
-                log.write( strPrefixLog + strMsg + "\n" );
-                await joCall.disconnect();
-                strMsg = cc.success( "Done, TX was signed with SGX Wallet" );
-                details.write( strPrefixDetails + strMsg + "\n" );
-                log.write( strPrefixLog + strMsg + "\n" );
-            } );
-        } );
-        await sleep( 3000 );
-    } break;
-    case "direct": {
-        strMsg =
-            cc.debug( "Will sign with private key, transaction is " ) + cc.notice( JSON.stringify( tx ) ) +
-            cc.debug( ", raw transaction is " ) + cc.notice( JSON.stringify( rawTx ) )
-            // + cc.debug( " using account " ) + cc.j( joAccount )
-        ;
-        details.write( strPrefixDetails + strMsg + "\n" );
-        log.write( strPrefixLog + strMsg + "\n" );
-        const key = Buffer.from( joAccount.privateKey, "hex" ); // convert private key to buffer
-        tx.sign( key ); // arg is privateKey as buffer
-        strMsg = cc.success( "Done, TX was signed with private key" );
-        details.write( strPrefixDetails + strMsg + "\n" );
-        log.write( strPrefixLog + strMsg + "\n" );
-    } break;
-    default: {
-        strMsg = cc.fatal( "CRITICAL TRANSACTION SIGNING ERROR:" ) +
-            cc.error( " bad credentials information specified, no explicit SGX and no explicit private key found" )
-            // + cc.error( ", account is: " ) + cc.j( joAccount )
-        ;
-        details.write( strPrefixDetails + strMsg + "\n" );
-        log.write( strPrefixLog + strMsg + "\n" );
-        if( isExitIfEmpty ) {
-            details.exposeDetailsTo( log, "safe_sign_transaction_with_account", false );
-            details.close();
-            process.exit( 126 );
-        }
-    } break;
-    } // switch( joSR.joACI.strType )
-    details.write( cc.debug( "Signed transaction is " ) + cc.notice( JSON.stringify( tx ) ) + "\n" );
-    joSR.tx = tx;
-    strMsg =
-        cc.debug( "Transaction with account completed " ) + cc.notice( "sending counter" ) +
-        cc.debug( " is " ) + cc.info( sendingCnt );
-    details.write( strPrefixDetails + strMsg + "\n" );
-    log.write( strPrefixLog + strMsg + "\n" );
-    return joSR;
-}
-
-export async function safe_send_signed_transaction( details, w3, serializedTx, strActionName, strLogPrefix ) {
-    const strPrefixDetails = cc.debug( "(gathered details)" ) + " ";
-    const strPrefixLog = cc.debug( "(immediate log)" ) + " ";
-    const strMsg =
-        cc.attention( "SEND TRANSACTION" ) + cc.normal( " is using " ) +
-        cc.bright( "Web3" ) + cc.normal( " version " ) + cc.sunny( w3.version );
-    details.write( strPrefixDetails + strMsg + "\n" );
-    log.write( strPrefixLog + strMsg + "\n" );
-    const strTX = owaspUtils.ensure_starts_with_0x( serializedTx.toString( "hex" ) ); // strTX is string starting from "0x"
-    details.write( strLogPrefix + cc.debug( "....signed raw TX is " ) + cc.attention( strTX ) + "\n" );
-    let joReceipt = null;
-    let bHaveReceipt = false;
-    try {
-        joReceipt = await w3.eth.sendSignedTransaction( strTX );
-        bHaveReceipt = ( joReceipt != null );
-    } catch ( err ) {
-        const s = strLogPrefix + cc.fatal( "WARNING:" ) + cc.warning( " first attempt to send signed transaction failure during " + strActionName + ": " ) + cc.sunny( err ) + "\n";
-        if( verbose_get() >= RV_VERBOSE().fatal )
-            log.write( s );
-        details.write( s );
-    }
-    if( !bHaveReceipt ) {
-        try {
-            joReceipt = await w3.eth.sendSignedTransaction( strTX );
-        } catch ( err ) {
-            const strError = owaspUtils.extract_error_message( err );
-            const s = strLogPrefix + cc.fatal( "CRITICAL ERROR:" ) + cc.error( " second attempt to send signed transaction failure during " +
-                strActionName + ": " ) + cc.error( strError ) + cc.error( ", stack is: " ) + "\n" + cc.stack( err.stack ) + "\n";
-            if( verbose_get() >= RV_VERBOSE().fatal )
-                log.write( s );
-            details.write( s );
-            throw err;
-        }
-    }
-    return joReceipt;
 }
 
 //
@@ -2314,7 +2167,7 @@ export async function reimbursement_set_range(
         if( strErrorOfDryRun )
             throw new Error( strErrorOfDryRun );
 
-        let opts = {
+        const opts = {
             isCheckTransactionToSchain: true
         };
         const joReceipt =
@@ -2436,8 +2289,8 @@ export async function do_eth_payment_from_main_net(
                 await get_contract_call_events(
                     details, ethersProvider_main_net, jo_message_proxy_main_net,
                     strEventName, joReceipt.blockNumber, joReceipt.transactionHash,
-                    jo_message_proxy_main_net.filters[ strEventName ]()
-                    );
+                    jo_message_proxy_main_net.filters[strEventName]()
+                );
             if( joEvents.length > 0 )
                 details.write( strLogPrefix + cc.success( "Success, verified the " ) + cc.info( strEventName ) + cc.success( " event of the " ) + cc.info( "MessageProxy" ) + cc.success( "/" ) + cc.notice( jo_message_proxy_main_net.address ) + cc.success( " contract, found event(s): " ) + cc.j( joEvents ) + "\n" );
             else
@@ -2517,7 +2370,7 @@ export async function do_eth_payment_from_s_chain(
         if( strErrorOfDryRun )
             throw new Error( strErrorOfDryRun );
 
-        let opts = {
+        const opts = {
             isCheckTransactionToSchain: true
         };
         const joReceipt =
@@ -2547,8 +2400,8 @@ export async function do_eth_payment_from_s_chain(
                 await get_contract_call_events(
                     details, ethersProvider_s_chain, jo_message_proxy_s_chain,
                     strEventName, joReceipt.blockNumber, joReceipt.transactionHash,
-                    jo_message_proxy_s_chain.filters[ strEventName ]()
-                    );
+                    jo_message_proxy_s_chain.filters[strEventName]()
+                );
             if( joEvents.length > 0 )
                 details.write( strLogPrefix + cc.success( "Success, verified the " ) + cc.info( strEventName ) + cc.success( " event of the " ) + cc.info( "MessageProxy" ) + cc.success( "/" ) + cc.notice( jo_message_proxy_s_chain.address ) + cc.success( " contract, found event(s): " ) + cc.j( joEvents ) + "\n" );
             else
@@ -2829,8 +2682,8 @@ export async function do_erc721_payment_from_main_net(
                 await get_contract_call_events(
                     details, ethersProvider_main_net, jo_message_proxy_main_net,
                     strEventName, joReceiptDeposit.blockNumber, joReceiptDeposit.transactionHash,
-                    jo_message_proxy_main_net.filters[ strEventName ]()
-                    );
+                    jo_message_proxy_main_net.filters[strEventName]()
+                );
             if( joEvents.length > 0 )
                 details.write( strLogPrefix + cc.success( "Success, verified the " ) + cc.info( strEventName ) + cc.success( " event of the " ) + cc.info( "MessageProxy" ) + cc.success( "/" ) + cc.notice( jo_message_proxy_main_net.address ) + cc.success( " contract, found event(s): " ) + cc.j( joEvents ) + "\n" );
             else
@@ -2997,8 +2850,8 @@ export async function do_erc20_payment_from_main_net(
                 await get_contract_call_events(
                     details, ethersProvider_main_net, jo_message_proxy_main_net,
                     strEventName, joReceiptDeposit.blockNumber, joReceiptDeposit.transactionHash,
-                    jo_message_proxy_main_net.filters[ strEventName ]()
-                    );
+                    jo_message_proxy_main_net.filters[strEventName]()
+                );
             if( joEvents.length > 0 )
                 details.write( strLogPrefix + cc.success( "Success, verified the " ) + cc.info( strEventName ) + cc.success( " event of the " ) + cc.info( "MessageProxy" ) + cc.success( "/" ) + cc.notice( jo_message_proxy_main_net.address ) + cc.success( " contract, found event(s): " ) + cc.j( joEvents ) + "\n" );
             else
@@ -3164,8 +3017,8 @@ export async function do_erc1155_payment_from_main_net(
                 await get_contract_call_events(
                     details, ethersProvider_main_net, jo_message_proxy_main_net,
                     strEventName, joReceiptDeposit.blockNumber, joReceiptDeposit.transactionHash,
-                    jo_message_proxy_main_net.filters[ strEventName ]()
-                    );
+                    jo_message_proxy_main_net.filters[strEventName]()
+                );
             if( joEvents.length > 0 )
                 details.write( strLogPrefix + cc.success( "Success, verified the " ) + cc.info( strEventName ) + cc.success( " event of the " ) + cc.info( "MessageProxy" ) + cc.success( "/" ) + cc.notice( jo_message_proxy_main_net.address ) + cc.success( " contract, found event(s): " ) + cc.j( joEvents ) + "\n" );
             else
@@ -3331,8 +3184,8 @@ export async function do_erc1155_batch_payment_from_main_net(
                 await get_contract_call_events(
                     details, ethersProvider_main_net, jo_message_proxy_main_net,
                     strEventName, joReceiptDeposit.blockNumber, joReceiptDeposit.transactionHash,
-                    jo_message_proxy_main_net.filters[ strEventName ]()
-                    );
+                    jo_message_proxy_main_net.filters[strEventName]()
+                );
             if( joEvents.length > 0 )
                 details.write( strLogPrefix + cc.success( "Success, verified the " ) + cc.info( strEventName ) + cc.success( " event of the " ) + cc.info( "MessageProxy" ) + cc.success( "/" ) + cc.notice( jo_message_proxy_main_net.address ) + cc.success( " contract, found event(s): " ) + cc.j( joEvents ) + "\n" );
             else
@@ -3427,7 +3280,7 @@ export async function do_erc20_payment_from_s_chain(
         if( strErrorOfDryRun_approve )
             throw new Error( strErrorOfDryRun_approve );
 
-        let opts = {
+        const opts = {
             isCheckTransactionToSchain: true
         };
         const joReceiptApprove =
@@ -3511,8 +3364,8 @@ export async function do_erc20_payment_from_s_chain(
                 await get_contract_call_events(
                     details, ethersProvider_s_chain, jo_message_proxy_s_chain,
                     strEventName, joReceiptExitToMainERC20.blockNumber, joReceiptExitToMainERC20.transactionHash,
-                    jo_message_proxy_s_chain.filters[ strEventName ]()
-                    );
+                    jo_message_proxy_s_chain.filters[strEventName]()
+                );
             if( joEvents.length > 0 )
                 details.write( strLogPrefix + cc.success( "Success, verified the " ) + cc.info( strEventName ) + cc.success( " event of the " ) + cc.info( "MessageProxy" ) + cc.success( "/" ) + cc.notice( jo_message_proxy_s_chain.address ) + cc.success( " contract, found event(s): " ) + cc.j( joEvents ) + "\n" );
             else
@@ -3609,7 +3462,7 @@ export async function do_erc721_payment_from_s_chain(
         if( strErrorOfDryRun_approve )
             throw new Error( strErrorOfDryRun_approve );
 
-        let opts = {
+        const opts = {
             isCheckTransactionToSchain: true
         };
         const joReceiptApprove =
@@ -3693,8 +3546,8 @@ export async function do_erc721_payment_from_s_chain(
                 await get_contract_call_events(
                     details, ethersProvider_s_chain, jo_message_proxy_s_chain,
                     strEventName, joReceiptExitToMainERC721.blockNumber, joReceiptExitToMainERC721.transactionHash,
-                    jo_message_proxy_s_chain.filters[ strEventName ]()
-                    );
+                    jo_message_proxy_s_chain.filters[strEventName]()
+                );
             if( joEvents.length > 0 )
                 details.write( strLogPrefix + cc.success( "Success, verified the " ) + cc.info( strEventName ) + cc.success( " event of the " ) + cc.info( "MessageProxy" ) + cc.success( "/" ) + cc.notice( jo_message_proxy_s_chain.address ) + cc.success( " contract, found event(s): " ) + cc.j( joEvents ) + "\n" );
             else
@@ -3790,7 +3643,7 @@ export async function do_erc1155_payment_from_s_chain(
         if( strErrorOfDryRun_approve )
             throw new Error( strErrorOfDryRun_approve );
 
-        let opts = {
+        const opts = {
             isCheckTransactionToSchain: true
         };
         const joReceiptApprove =
@@ -3874,8 +3727,8 @@ export async function do_erc1155_payment_from_s_chain(
                 await get_contract_call_events(
                     details, ethersProvider_s_chain, jo_message_proxy_s_chain,
                     strEventName, joReceiptExitToMainERC1155.blockNumber, joReceiptExitToMainERC1155.transactionHash,
-                    jo_message_proxy_s_chain.filters[ strEventName ]()
-                    );
+                    jo_message_proxy_s_chain.filters[strEventName]()
+                );
             if( joEvents.length > 0 )
                 details.write( strLogPrefix + cc.success( "Success, verified the " ) + cc.info( strEventName ) + cc.success( " event of the " ) + cc.info( "MessageProxy" ) + cc.success( "/" ) + cc.notice( jo_message_proxy_s_chain.address ) + cc.success( " contract, found event(s): " ) + cc.j( joEvents ) + "\n" );
             else
@@ -3971,7 +3824,7 @@ export async function do_erc1155_batch_payment_from_s_chain(
         if( strErrorOfDryRun_approve )
             throw new Error( strErrorOfDryRun_approve );
 
-        let opts = {
+        const opts = {
             isCheckTransactionToSchain: true
         };
         const joReceiptApprove =
@@ -4054,8 +3907,8 @@ export async function do_erc1155_batch_payment_from_s_chain(
                 await get_contract_call_events(
                     details, ethersProvider_s_chain, jo_message_proxy_s_chain,
                     strEventName, joReceiptExitToMainERC1155Batch.blockNumber, joReceiptExitToMainERC1155Batch.transactionHash,
-                    jo_message_proxy_s_chain.filters[ strEventName ]()
-                    );
+                    jo_message_proxy_s_chain.filters[strEventName]()
+                );
             if( joEvents.length > 0 )
                 details.write( strLogPrefix + cc.success( "Success, verified the " ) + cc.info( strEventName ) + cc.success( " event of the " ) + cc.info( "MessageProxy" ) + cc.success( "/" ) + cc.notice( jo_message_proxy_s_chain.address ) + cc.success( " contract, found event(s): " ) + cc.j( joEvents ) + "\n" );
             else
@@ -4778,8 +4631,8 @@ async function find_out_reference_log_record( details, ethersProvider, jo_messag
             strEventName,
             nBlockId, // nBlockFrom
             nBlockId, // nBlockTo
-            jo_message_proxy.filters[ strEventName ]()
-            );
+            jo_message_proxy.filters[strEventName]()
+        );
     const cntLogRecord = arrLogRecords.length;
     if( isVerbose ) {
         details.write( strLogPrefix +
@@ -4841,7 +4694,7 @@ async function find_out_all_reference_log_records( details, ethersProvider, jo_m
                 details, ethersProvider, jo_message_proxy,
                 nWalkBlockId, nWalkMsgNumber,
                 isVerbose
-                );
+            );
         if( joReferenceLogRecord == null )
             break;
         nWalkBlockId = owaspUtils.toInteger( joReferenceLogRecord.previousOutgoingMessageBlockId.toString() );
@@ -5022,7 +4875,7 @@ export async function do_transfer(
             if( nStepsDone > nTransferSteps ) {
                 if( verbose_get() >= RV_VERBOSE().information ) {
                     log.write(
-                        strLogPrefix + cc.error( "WARNING:" ) + " " +
+                        strLogPrefix + cc.warning( "WARNING:" ) + " " +
                         cc.warning( "Transfer step count overflow" ) +
                         "\n" );
                 }
@@ -5040,7 +4893,7 @@ export async function do_transfer(
             if( ! loop.check_time_framing( null, strDirection, joRuntimeOpts ) ) {
                 if( verbose_get() >= RV_VERBOSE().information ) {
                     log.write(
-                        strLogPrefix + cc.error( "WARNING:" ) + " " +
+                        strLogPrefix + cc.warning( "WARNING:" ) + " " +
                         cc.warning( "Time framing overflow (after entering block former iteration loop)" ) +
                         "\n" );
                 }
@@ -5082,7 +4935,7 @@ export async function do_transfer(
                     strEventName,
                     nBlockFrom,
                     nBlockTo,
-                    jo_message_proxy_src.filters[ strEventName ](
+                    jo_message_proxy_src.filters[strEventName](
                         owaspUtils.ethersMod.ethers.utils.id( chain_id_dst ), // dstChainHash
                         nIdxCurrentMsg // msgCounter
                     )
@@ -5250,7 +5103,7 @@ export async function do_transfer(
             if( ! loop.check_time_framing( null, strDirection, joRuntimeOpts ) ) {
                 if( verbose_get() >= RV_VERBOSE().information ) {
                     log.write(
-                        strLogPrefix + cc.error( "WARNING:" ) + " " +
+                        strLogPrefix + cc.warning( "WARNING:" ) + " " +
                         cc.warning( "Time framing overflow (after forming block of messages)" ) +
                         "\n" );
                 }
@@ -5502,7 +5355,7 @@ export async function do_transfer(
                         }
                         if( ! loop.check_time_framing( null, strDirection, joRuntimeOpts ) ) {
                             if( verbose_get() >= RV_VERBOSE().information )
-                                log.write( strLogPrefix + cc.error( "WARNING:" ) + " " + cc.warning( "Time framing overflow (after signing messages)" ) + "\n" );
+                                log.write( strLogPrefix + cc.warning( "WARNING:" ) + " " + cc.warning( "Time framing overflow (after signing messages)" ) + "\n" );
                             detailsB.close();
                             save_transfer_success_all();
                             return false;
@@ -5590,7 +5443,7 @@ export async function do_transfer(
                         if( strErrorOfDryRun )
                             throw new Error( strErrorOfDryRun );
 
-                        let opts = {
+                        const opts = {
                             isCheckTransactionToSchain: ( chain_id_dst !== "Mainnet" ) ? true : false
                         };
                         const joReceipt =
@@ -5632,8 +5485,8 @@ export async function do_transfer(
                                         await get_contract_call_events(
                                             detailsB, ethersProvider_dst, jo_message_proxy_dst,
                                             strEventName, joReceipt.blockNumber, joReceipt.transactionHash,
-                                            jo_message_proxy_dst.filters[ strEventName ]()
-                                            );
+                                            jo_message_proxy_dst.filters[strEventName]()
+                                        );
                                     if( joEvents.length == 0 )
                                         detailsB.write( strLogPrefix + cc.success( "Success, verified the " ) + cc.info( strEventName ) + cc.success( " event of the " ) + cc.info( "MessageProxy" ) + cc.success( "/" ) + cc.notice( jo_message_proxy_dst.address ) + cc.success( " contract, no events found" ) + "\n" );
                                     else {
@@ -5644,9 +5497,9 @@ export async function do_transfer(
                                     }
                                     detailsB.write( strLogPrefix + cc.success( "Done, validated transfer to Main Net via MessageProxy error absence on Main Net" ) + "\n" );
                                 } else
-                                    detailsB.write( strLogPrefix + cc.error( "WARNING:" ) + " " + cc.warn( "Cannot validate transfer to Main Net via MessageProxy error absence on Main Net, no valid transaction receipt provided" ) + "\n" );
+                                    detailsB.write( strLogPrefix + cc.warning( "WARNING:" ) + " " + cc.warn( "Cannot validate transfer to Main Net via MessageProxy error absence on Main Net, no valid transaction receipt provided" ) + "\n" );
                             } else
-                                detailsB.write( strLogPrefix + cc.error( "WARNING:" ) + " " + cc.warn( "Cannot validate transfer to Main Net via MessageProxy error absence on Main Net, no MessageProxy provided" ) + "\n" );
+                                detailsB.write( strLogPrefix + cc.warning( "WARNING:" ) + " " + cc.warn( "Cannot validate transfer to Main Net via MessageProxy error absence on Main Net, no MessageProxy provided" ) + "\n" );
                         } // if( chain_id_dst == "Mainnet" )
 
                     } ).catch( ( err ) => { // callback fn as argument of fn_sign_messages
@@ -6186,7 +6039,7 @@ export async function mintERC20(
         if( strErrorOfDryRun )
             throw new Error( strErrorOfDryRun );
 
-        let opts = {
+        const opts = {
             isCheckTransactionToSchain: ( chain_id_dst !== "Mainnet" ) ? true : false
         };
         const joReceipt =
@@ -6278,7 +6131,7 @@ export async function mintERC721(
         if( strErrorOfDryRun )
             throw new Error( strErrorOfDryRun );
 
-        let opts = {
+        const opts = {
             isCheckTransactionToSchain: ( chain_id_dst !== "Mainnet" ) ? true : false
         };
         const joReceipt =
@@ -6373,7 +6226,7 @@ export async function mintERC1155(
         if( strErrorOfDryRun )
             throw new Error( strErrorOfDryRun );
 
-        let opts = {
+        const opts = {
             isCheckTransactionToSchain: ( chain_id_dst !== "Mainnet" ) ? true : false
         };
         const joReceipt =
@@ -6465,7 +6318,7 @@ export async function burnERC20(
         if( strErrorOfDryRun )
             throw new Error( strErrorOfDryRun );
 
-        let opts = {
+        const opts = {
             isCheckTransactionToSchain: ( chain_id_dst !== "Mainnet" ) ? true : false
         };
         const joReceipt =
@@ -6557,7 +6410,7 @@ export async function burnERC721(
         if( strErrorOfDryRun )
             throw new Error( strErrorOfDryRun );
 
-        let opts = {
+        const opts = {
             isCheckTransactionToSchain: ( chain_id_dst !== "Mainnet" ) ? true : false
         };
         const joReceipt =
@@ -6651,8 +6504,8 @@ export async function burnERC1155(
         if( strErrorOfDryRun )
             throw new Error( strErrorOfDryRun );
 
-        let opts = {
-            
+        const opts = {
+
             ToSchain: ( chain_id_dst !== "Mainnet" ) ? true : false
         };
         const joReceipt =

@@ -92,7 +92,7 @@ class ObserverServer extends SocketServer {
                 self.opts.imaState.chainProperties.mn.ethersProvider = owaspUtils.getEthersProviderFromURL( u );
             } else {
                 self.log(
-                    cc.error( "WARNING:" ) + cc.warning( " No " ) + cc.note( "Main-net" ) +
+                    cc.warning( "WARNING:" ) + cc.warning( " No " ) + cc.note( "Main-net" ) +
                     cc.warning( " URL specified in command line arguments" ) +
                     cc.debug( "(needed for particular operations only)" ) +
                     "\n" );
@@ -103,7 +103,7 @@ class ObserverServer extends SocketServer {
                 self.opts.imaState.chainProperties.sc.ethersProvider = owaspUtils.getEthersProviderFromURL( u );
             } else {
                 self.log(
-                    cc.error( "WARNING:" ) + cc.warning( " No " ) + cc.note( "Main-net" ) +
+                    cc.warning( "WARNING:" ) + cc.warning( " No " ) + cc.note( "Main-net" ) +
                     cc.warning( " URL specified in command line arguments" ) +
                     cc.debug( "(needed for particular operations only)" ) +
                     "\n" );

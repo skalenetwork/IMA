@@ -23,6 +23,7 @@
  * @copyright SKALE Labs 2019-Present
  */
 
+import * as rpcCall from "./rpc-call.mjs";
 import numberToBN from "number-to-bn";
 
 import * as sha3_mod from "sha3";

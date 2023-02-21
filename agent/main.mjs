@@ -1912,7 +1912,7 @@ async function discover_s_chain_network( fnAfter, isSilent, joPrevSChainNetworkI
                         clearInterval( iv );
                         const strErrorDescription = "S-Chain network discovery wait timeout, network will be re-discovered";
                         if( ! isSilent )
-                            log.write( strLogPrefix + cc.error( "WARNING:" ) + " " + cc.warning( strErrorDescription ) + "\n" );
+                            log.write( strLogPrefix + cc.warning( "WARNING:" ) + " " + cc.warning( strErrorDescription ) + "\n" );
                         if( get_s_chain_discovered_nodes_count( joSChainNetworkInfo ) > 0 )
                             fnAfter( null, joSChainNetworkInfo );
                         else

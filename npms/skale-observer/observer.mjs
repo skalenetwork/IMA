@@ -31,6 +31,7 @@ import { Worker } from "worker_threads";
 import * as owaspUtils from "../skale-owasp/owasp-utils.mjs";
 import * as cc from "../skale-cc/cc.mjs";
 import * as log from "../skale-log/log.mjs";
+import * as rpcCall from "../../agent/rpc-call.mjs";
 
 import { UniversalDispatcherEvent, EventDispatcher } from "../skale-cool-socket/event_dispatcher.mjs";
 
@@ -610,7 +611,7 @@ export function pick_random_schain_url( jo_schain ) {
 export async function discover_chain_id( strURL ) {
     let ret = null;
     const rpcCallOpts = null;
-    await rpc.create( strURL, rpcCallOpts, async function( joCall, err ) {
+    await rpcCall.create( strURL, rpcCallOpts, async function( joCall, err ) {
         if( err ) {
             //ret = "Failed to create RPC (" + strURL + ") call: " + owaspUtils.extract_error_message( err );
             if( joCall )

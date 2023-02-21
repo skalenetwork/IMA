@@ -309,7 +309,7 @@ export async function do_call( joCall, joIn, fn ) {
                 const body = response.data.toString( "utf8" );
                 // console.log( "--- --- --- response body is", body );
                 if( response && response.statusCode && response.statusCode !== 200 )
-                    log.write( cc.error( "WARNING:" ) + cc.warning( " REST call status code is " ) + cc.info( response.statusCode ) + "\n" );
+                    log.write( cc.warning( "WARNING:" ) + cc.warning( " REST call status code is " ) + cc.info( response.statusCode ) + "\n" );
                 joOut = JSON.parse( body );
                 errCall = null;
             } catch ( err ) {

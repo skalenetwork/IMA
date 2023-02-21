@@ -41,7 +41,6 @@ const __dirname = path.dirname( url.fileURLToPath( import.meta.url ) );
 
 process.env.NODE_TLS_REJECT_UNAUTHORIZED = 0;
 
-// const compose_tx_instance = IMA.compose_tx_instance;
 IMA.expose_details_set( false );
 IMA.verbose_set( IMA.verbose_parse( "info" ) );
 const log = imaUtils.log;
