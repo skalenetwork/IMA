@@ -224,7 +224,8 @@ global.imaState = {
         "strSgxURL": owaspUtils.toStringURL( process.env.SGX_URL_ETHEREUM ),
         "strSgxKeyName": owaspUtils.toStringURL( process.env.SGX_KEY_ETHEREUM ),
         "strPathSslKey": ( process.env.SGX_SSL_KEY_FILE_ETHEREUM || "" ).toString().trim(),
-        "strPathSslCert": ( process.env.SGX_SSL_CERT_FILE_ETHEREUM || "" ).toString().trim()
+        "strPathSslCert": ( process.env.SGX_SSL_CERT_FILE_ETHEREUM || "" ).toString().trim(),
+        "strBlsKeyName": owaspUtils.toStringURL( process.env.BLS_KEY_ETHEREUM )
     },
     "joAccount_s_chain": {
         "privateKey": owaspUtils.toEthPrivateKey( process.env.PRIVATE_KEY_FOR_SCHAIN ),
@@ -234,7 +235,8 @@ global.imaState = {
         "strSgxURL": owaspUtils.toStringURL( process.env.SGX_URL_S_CHAIN ),
         "strSgxKeyName": owaspUtils.toStringURL( process.env.SGX_KEY_S_CHAIN ),
         "strPathSslKey": ( process.env.SGX_SSL_KEY_FILE_S_CHAIN || "" ).toString().trim(),
-        "strPathSslCert": ( process.env.SGX_SSL_CERT_FILE_S_CHAIN || "" ).toString().trim()
+        "strPathSslCert": ( process.env.SGX_SSL_CERT_FILE_S_CHAIN || "" ).toString().trim(),
+        "strBlsKeyName": owaspUtils.toStringURL( process.env.BLS_KEY_S_CHAIN )
     },
     "joAccount_t_chain": {
         "privateKey": owaspUtils.toEthPrivateKey( process.env.PRIVATE_KEY_FOR_SCHAIN_TARGET ),
@@ -244,7 +246,8 @@ global.imaState = {
         "strSgxURL": owaspUtils.toStringURL( process.env.SGX_URL_S_CHAIN_TARGET ),
         "strSgxKeyName": owaspUtils.toStringURL( process.env.SGX_KEY_S_CHAIN_TARGET ),
         "strPathSslKey": ( process.env.SGX_SSL_KEY_FILE_S_CHAIN_TARGET || "" ).toString().trim(),
-        "strPathSslCert": ( process.env.SGX_SSL_CERT_FILE_S_CHAIN_TARGET || "" ).toString().trim()
+        "strPathSslCert": ( process.env.SGX_SSL_CERT_FILE_S_CHAIN_TARGET || "" ).toString().trim(),
+        "strBlsKeyName": owaspUtils.toStringURL( process.env.BLS_KEY_T_CHAIN )
     },
 
     //
@@ -280,6 +283,9 @@ global.imaState = {
         "isEnabled": true, // is S-Chain to S-Chain transfers enabled
         "secondsToReDiscoverSkaleNetwork": 1 * 60 * 60 // seconts to re-discover SKALE network, 0 to disable
     },
+
+    "nJsonRpcPort": 0, // 0 to disable
+    "isCrossImaBlsMode": false,
 
     "arrActions": [] // array of actions to run
 };
@@ -1383,6 +1389,8 @@ imaCLI.parse( {
                 await rpcCall.create( imaState.strURL_s_chain, rpcCallOpts, async function( joCall, err ) {
                     if( err ) {
                         console.log( cc.fatal( "CRITICAL ERROR:" ) + cc.error( " JSON RPC call to S-Chain failed" ) );
+                        if( joCall )
+                            await joCall.disconnect();
                         process.exit( 156 );
                     }
                     await joCall.call( {
@@ -1393,6 +1401,7 @@ imaCLI.parse( {
                     }, async function( joIn, joOut, err ) {
                         if( err ) {
                             console.log( cc.fatal( "CRITICAL ERROR:" ) + cc.error( " JSON RPC call to S-Chain failed, error: " ) + cc.warning( err ) );
+                            await joCall.disconnect();
                             process.exit( 157 );
                         }
                         log.write( strLogPrefix + cc.normal( "S-Chain network information: " ) + cc.j( joOut.result ) + "\n" );
@@ -1411,6 +1420,7 @@ imaCLI.parse( {
                             await rpcCall.create( strNodeURL, rpcCallOpts, async function( joCall, err ) {
                                 if( err ) {
                                     console.log( cc.fatal( "CRITICAL ERROR:" ) + cc.error( " JSON RPC call to S-Chain failed" ) );
+                                    await joCall.disconnect();
                                     process.exit( 158 );
                                 }
                                 await joCall.call( {
@@ -1426,6 +1436,7 @@ imaCLI.parse( {
                                     }
                                     log.write( strLogPrefix + cc.normal( "Node " ) + cc.info( joNode.nodeID ) + cc.normal( " IMA information: " ) + cc.j( joOut.result ) + "\n" );
                                     //process.exit( 0 );
+                                    await joCall.disconnect();
                                 } );
                             } );
                         }
@@ -1436,6 +1447,7 @@ imaCLI.parse( {
                                 process.exit( 0 );
                             }
                         }, 100 );
+                        await joCall.disconnect();
                     } );
                 } );
                 return true;
@@ -1849,6 +1861,8 @@ async function discover_s_chain_network( fnAfter, isSilent, joPrevSChainNetworkI
                     );
                 }
                 fnAfter( err, null );
+                if( joCall )
+                    await joCall.disconnect();
                 return;
             }
             await joCall.call( {
@@ -1866,6 +1880,7 @@ async function discover_s_chain_network( fnAfter, isSilent, joPrevSChainNetworkI
                         );
                     }
                     fnAfter( err, null );
+                    await joCall.disconnect();
                     return;
                 }
                 if( ( !isSilent ) && IMA.verbose_get() >= IMA.RV_VERBOSE.trace )
@@ -1884,6 +1899,7 @@ async function discover_s_chain_network( fnAfter, isSilent, joPrevSChainNetworkI
                         );
                     }
                     fnAfter( err2, null );
+                    await joCall.disconnect();
                     return;
                 }
                 const jarrNodes = joSChainNetworkInfo.network;
@@ -1939,6 +1955,8 @@ async function discover_s_chain_network( fnAfter, isSilent, joPrevSChainNetworkI
                                 }
                                 // fnAfter( err, null );
                                 ++ cntFailed;
+                                if( joCall )
+                                    await joCall.disconnect();
                                 return;
                             }
                             joCall.call( {
@@ -2069,6 +2087,7 @@ async function discover_s_chain_network( fnAfter, isSilent, joPrevSChainNetworkI
                         );
                     }
                 }, nWaitStepMilliseconds );
+                await joCall.disconnect();
             } );
         } );
     } catch ( err ) {
@@ -2091,7 +2110,7 @@ async function discover_s_chain_network( fnAfter, isSilent, joPrevSChainNetworkI
 let g_ws_server_monitoring = null;
 
 if( imaState.nMonitoringPort > 0 ) {
-    const strLogPrefix = cc.attention( "Monitoring" ) + " " + cc.sunny( ">>" ) + " ";
+    const strLogPrefix = cc.attention( "Monitoring:" ) + " ";
     if( IMA.verbose_get() >= IMA.RV_VERBOSE.trace )
         log.write( strLogPrefix + cc.normal( "Will start monitoring WS server on port " ) + cc.info( imaState.nMonitoringPort ) + "\n" );
     g_ws_server_monitoring = new ws.Server( { port: 0 + imaState.nMonitoringPort } );
@@ -2108,7 +2127,7 @@ if( imaState.nMonitoringPort > 0 ) {
             try {
                 const joMessage = JSON.parse( message );
                 if( IMA.verbose_get() >= IMA.RV_VERBOSE.trace )
-                    log.write( strLogPrefix + cc.normal( "Message from " ) + cc.info( ip ) + cc.normal( ": " ) + cc.j( joMessage ) + "\n" );
+                    log.write( strLogPrefix + cc.sunny( "<<<" ) + " " + cc.normal( "message from " ) + cc.info( ip ) + cc.normal( ": " ) + cc.j( joMessage ) + "\n" );
                 if( ! ( "method" in joMessage ) )
                     throw new Error( "\"method\" field was not specified" );
                 joAnswer.method = joMessage.method;
@@ -2199,7 +2218,7 @@ if( imaState.nMonitoringPort > 0 ) {
             }
             try {
                 if( IMA.verbose_get() >= IMA.RV_VERBOSE.trace )
-                    log.write( strLogPrefix + cc.normal( "Answer to " ) + cc.info( ip ) + cc.normal( ": " ) + cc.j( joAnswer ) + "\n" );
+                    log.write( strLogPrefix + cc.sunny( ">>>" ) + " " + cc.normal( "answer to " ) + cc.info( ip ) + cc.normal( ": " ) + cc.j( joAnswer ) + "\n" );
                 ws_peer.send( JSON.stringify( joAnswer ) );
             } catch ( err ) {
                 if( IMA.verbose_get() >= IMA.RV_VERBOSE.error ) {
@@ -2213,6 +2232,90 @@ if( imaState.nMonitoringPort > 0 ) {
         // ws_peer.send( "something" );
     } );
 } // if( imaState.nMonitoringPort > 0 )
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+let g_ws_server_ima = null;
+
+if( imaState.nJsonRpcPort > 0 ) {
+    const strLogPrefix = cc.attention( "JSON RPC:" ) + " ";
+    if( IMA.verbose_get() >= IMA.RV_VERBOSE.trace )
+        log.write( strLogPrefix + cc.normal( "Will start JSON RPC WS server on port " ) + cc.info( imaState.nJsonRpcPort ) + "\n" );
+    g_ws_server_ima = new ws.Server( { port: 0 + imaState.nJsonRpcPort } );
+    g_ws_server_ima.on( "connection", function( ws_peer, req ) {
+        const ip = req.socket.remoteAddress;
+        if( IMA.verbose_get() >= IMA.RV_VERBOSE.trace )
+            log.write( strLogPrefix + cc.normal( "New connection from " ) + cc.info( ip ) + "\n" );
+        ws_peer.on( "message", function( message ) {
+            const joAnswer = {
+                method: null,
+                id: null,
+                error: null
+            };
+            let isSkipMode = false;
+            try {
+                const joMessage = JSON.parse( message );
+                if( IMA.verbose_get() >= IMA.RV_VERBOSE.trace )
+                    log.write( strLogPrefix + cc.sunny( "<<<" ) + " " + cc.normal( "message from " ) + cc.info( ip ) + cc.normal( ": " ) + cc.j( joMessage ) + "\n" );
+                if( ! ( "method" in joMessage ) )
+                    throw new Error( "\"method\" field was not specified" );
+                joAnswer.method = joMessage.method;
+                if( ! ( "id" in joMessage ) )
+                    throw new Error( "\"id\" field was not specified" );
+                joAnswer.id = joMessage.id;
+                const fn_send_answer = function( joAnswer ) {
+                    try {
+                        joAnswer.method = joMessage.method;
+                        joAnswer.id = joMessage.id;
+                        if( IMA.verbose_get() >= IMA.RV_VERBOSE.trace )
+                            log.write( strLogPrefix + cc.sunny( ">>>" ) + " " + cc.normal( "answer to " ) + cc.info( ip ) + cc.normal( ": " ) + cc.j( joAnswer ) + "\n" );
+                        ws_peer.send( JSON.stringify( joAnswer ) );
+                    } catch ( err ) {
+                        if( IMA.verbose_get() >= IMA.RV_VERBOSE.error ) {
+                            log.write( strLogPrefix +
+                                cc.error( "Failed to sent answer to " ) + cc.info( ip ) +
+                                cc.error( ", error is: " ) + cc.warning( err ) + "\n"
+                            );
+                        }
+                    }
+                };
+                switch ( joMessage.method ) {
+                case "echo":
+                case "ping":
+                    break;
+                case "skale_imaVerifyAndSign":
+                    // joAnswer = await imaBLS.handle_skale_imaVerifyAndSign( joMessage );
+                    isSkipMode = true;
+                    imaBLS.handle_skale_imaVerifyAndSign( joMessage ).then( function( joAnswer ) {
+                        fn_send_answer( joAnswer );
+                    } );
+                    break;
+                case "skale_imaBSU256":
+                    // joAnswer = await imaBLS.handle_skale_imaBSU256( joMessage );
+                    isSkipMode = true;
+                    imaBLS.handle_skale_imaBSU256( joMessage ).then( function( joAnswer ) {
+                        fn_send_answer( joAnswer );
+                    } );
+                    break;
+                default:
+                    throw new Error( "Unknown method name \"" + joMessage.method + "\" was specified" );
+                } // switch( joMessage.method )
+            } catch ( err ) {
+                if( IMA.verbose_get() >= IMA.RV_VERBOSE.error ) {
+                    log.write( strLogPrefix +
+                        cc.error( "Bad message from " ) + cc.info( ip ) + cc.error( ": " ) + cc.warning( message ) +
+                        cc.error( ", error is: " ) + cc.warning( err ) + "\n"
+                    );
+                }
+            }
+            if( ! isSkipMode )
+                fn_send_answer( joAnswer );
+            // if( ! isSkipMode )
+        } );
+        // ws_peer.send( "something" );
+    } );
+} // if( imaState.nJsonRpcPort > 0 )
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -2450,8 +2553,6 @@ async function single_transfer_loop() {
             return true;
         }
 
-        if( IMA.verbose_get() >= IMA.RV_VERBOSE.information )
-            log.write( strLogPrefix + cc.debug( "Will invoke Oracle gas price setup..." ) + "\n" );
         let b0 = true;
         if( IMA.getEnabledOracle() ) {
             if( IMA.verbose_get() >= IMA.RV_VERBOSE.information )
@@ -2563,7 +2664,7 @@ async function single_transfer_loop() {
             log.write( strLogPrefix + cc.debug( "Completed: " ) + cc.tf( bResult ) + "\n" );
         return bResult;
     } catch ( err ) {
-        log.write( strLogPrefix + cc.fatal( "Exception:" ) + + cc.error( err.toString() ) + "\n" );
+        log.write( strLogPrefix + cc.fatal( "Exception:" ) + + cc.error( owaspUtils.extract_error_message( err ) ) + "\n" );
     }
     g_is_single_transfer_loop = false;
     return false;

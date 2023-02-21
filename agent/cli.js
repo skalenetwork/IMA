@@ -241,6 +241,9 @@ function parse( joExternalHandlers, argv ) {
             console.log( soi + cc.debug( "--" ) + cc.bright( "sgx-ecdsa-key-main-net" ) + cc.sunny( "=" ) + cc.error( "name" ) + cc.debug( "..." ) + cc.attention( "SGX/ECDSA key name" ) + cc.notice( " for " ) + cc.note( "Main-net" ) + cc.notice( ". Value is automatically loaded from the " ) + cc.warning( "SGX_KEY_ETHEREUM" ) + cc.notice( " environment variable if not specified." ) );
             console.log( soi + cc.debug( "--" ) + cc.bright( "sgx-ecdsa-key-s-chain" ) + cc.sunny( "=" ) + cc.error( "name" ) + cc.debug( "...." ) + cc.attention( "SGX/ECDSA key name" ) + cc.notice( " for " ) + cc.note( "S-chain" ) + cc.notice( ". Value is automatically loaded from the " ) + cc.warning( "SGX_KEY_S_CHAIN" ) + cc.notice( " environment variable if not specified." ) );
             console.log( soi + cc.debug( "--" ) + cc.bright( "sgx-ecdsa-key-t-chain" ) + cc.sunny( "=" ) + cc.error( "name" ) + cc.debug( "...." ) + cc.attention( "SGX/ECDSA key name" ) + cc.notice( " for " ) + cc.note( "S<->S Target S-chain" ) + cc.notice( ". Value is automatically loaded from the " ) + cc.warning( "SGX_KEY_S_CHAIN_TARGET" ) + cc.notice( " environment variable if not specified." ) );
+            console.log( soi + cc.debug( "--" ) + cc.bright( "sgx-bls-key-main-net" ) + cc.sunny( "=" ) + cc.error( "name" ) + cc.debug( "....." ) + cc.attention( "SGX/BLS key name" ) + cc.notice( " for " ) + cc.note( "Main-net" ) + cc.notice( ". Value is automatically loaded from the " ) + cc.warning( "BLS_KEY_ETHEREUM" ) + cc.notice( " environment variable if not specified." ) );
+            console.log( soi + cc.debug( "--" ) + cc.bright( "sgx-bls-key-s-chain" ) + cc.sunny( "=" ) + cc.error( "name" ) + cc.debug( "......" ) + cc.attention( "SGX/BLS key name" ) + cc.notice( " for " ) + cc.note( "S-chain" ) + cc.notice( ". Value is automatically loaded from the " ) + cc.warning( "BLS_KEY_S_CHAIN" ) + cc.notice( " environment variable if not specified." ) );
+            console.log( soi + cc.debug( "--" ) + cc.bright( "sgx-bls-key-t-chain" ) + cc.sunny( "=" ) + cc.error( "name" ) + cc.debug( "......" ) + cc.attention( "SGX/BLS key name" ) + cc.notice( " for " ) + cc.note( "S<->S Target S-chain" ) + cc.notice( ". Value is automatically loaded from the " ) + cc.warning( "BLS_KEY_S_CHAIN_TARGET" ) + cc.notice( " environment variable if not specified." ) );
             //
             console.log( soi + cc.debug( "--" ) + cc.bright( "sgx-ssl-key-main-net" ) + cc.sunny( "=" ) + cc.attention( "path" ) + cc.debug( "....." ) + cc.notice( "Path to " ) + cc.note( "SSL key file" ) + cc.notice( " for " ) + cc.bright( "SGX wallet" ) + cc.notice( " of " ) + cc.note( "Main-net" ) + cc.notice( ". Value is automatically loaded from the " ) + cc.warning( "SGX_SSL_KEY_FILE_ETHEREUM" ) + cc.notice( " environment variable if not specified." ) );
             console.log( soi + cc.debug( "--" ) + cc.bright( "sgx-ssl-key-s-chain" ) + cc.sunny( "=" ) + cc.attention( "path" ) + cc.debug( "......" ) + cc.notice( "Path to " ) + cc.note( "SSL key file" ) + cc.notice( " for " ) + cc.bright( "SGX wallet" ) + cc.notice( " of " ) + cc.note( "S-chain" ) + cc.notice( ". Value is automatically loaded from the " ) + cc.warning( "SGX_SSL_KEY_FILE_S_CHAIN" ) + cc.notice( " environment variable if not specified." ) );
@@ -387,7 +390,7 @@ function parse( joExternalHandlers, argv ) {
             console.log( soi + cc.debug( "--" ) + cc.bright( "bls-verify" ) + cc.sunny( "=" ) + cc.note( "path" ) + cc.debug( "..............." ) + cc.debug( "Optional parameter, specifies path to " ) + cc.note( "verify_bls" ) + cc.debug( " application." ) );
             //
             console.log( cc.sunny( "MONITORING" ) + cc.info( " options:" ) );
-            console.log( soi + cc.debug( "--" ) + cc.bright( "monitoring-port" ) + cc.sunny( "=" ) + cc.note( "number" ) + cc.debug( "........" ) + cc.notice( "Run " ) + cc.note( "monitoring web socket RPC server" ) + cc.notice( " on specified port. " ) + cc.debug( "By default monitoring server is " ) + cc.error( "disabled" ) + cc.notice( "." ) );
+            console.log( soi + cc.debug( "--" ) + cc.bright( "monitoring-port" ) + cc.sunny( "=" ) + cc.note( "number" ) + cc.debug( "........" ) + cc.notice( "Run " ) + cc.note( "monitoring web socket RPC server" ) + cc.notice( " on specified port. " ) + cc.debug( "Specify " ) + cc.sunny( "0" ) + cc.debug( " to " ) + cc.error( "disable" ) + cc.notice( "." ) + cc.debug( " By default monitoring server is " ) + cc.error( "disabled" ) + cc.notice( "." ) );
             //
             console.log( cc.sunny( "GAS REIMBURSEMENT" ) + cc.info( " options:" ) );
             console.log( soi + cc.debug( "--" ) + cc.bright( "reimbursement-chain" ) + cc.sunny( "=" ) + cc.note( "name" ) + cc.debug( "......" ) + cc.notice( "Specifies chain name." ) );
@@ -405,6 +408,11 @@ function parse( joExternalHandlers, argv ) {
             console.log( cc.sunny( "ORACLE BASED GAS REIMBURSEMENT" ) + cc.info( " options:" ) );
             console.log( soi + cc.debug( "--" ) + cc.bright( "enable-oracle" ) + cc.debug( "................." ) + cc.success( "Enable" ) + cc.notice( " call to " ) + cc.note( "Oracle" ) + cc.notice( " to compute " ) + cc.note( "gas price" ) + cc.notice( " for " ) + cc.attention( "gas reimbursement" ) + cc.notice( ". " ) + cc.debug( "Default mode" ) + cc.notice( "." ) );
             console.log( soi + cc.debug( "--" ) + cc.bright( "disable-oracle" ) + cc.debug( "................" ) + cc.error( "Disable" ) + cc.notice( " call to " ) + cc.note( "Oracle" ) + cc.notice( " to compute " ) + cc.note( "gas price" ) + cc.notice( " for " ) + cc.attention( "gas reimbursement" ) + cc.notice( "." ) );
+            //
+            console.log( cc.sunny( "IMA JSON RPC SERVER" ) + cc.info( " options:" ) );
+            console.log( soi + cc.debug( "--" ) + cc.bright( "json-rpc-port" ) + cc.sunny( "=" ) + cc.note( "number" ) + cc.debug( ".........." ) + cc.notice( "Run " ) + cc.note( "IMA JSON RPC server" ) + cc.notice( " on specified " ) + cc.note( "port" ) + cc.notice( "." ) + cc.debug( " Specify " ) + cc.sunny( "0" ) + cc.debug( " to " ) + cc.error( "disable" ) + cc.notice( "." ) + cc.debug( " Defaut is " ) + cc.sunny( "0" ) + cc.notice( "." ) );
+            console.log( soi + cc.debug( "--" ) + cc.bright( "cross-ima" ) + cc.debug( "....................." ) + cc.success( "Enable" ) + cc.notice( " calls to " ) + cc.note( "IMA JSON RPC servers" ) + cc.notice( " to compute " ) + cc.note( "BLS signature parts" ) + cc.notice( " and operation state inside time frames." ) + cc.debug( "Use calls to " ) + cc.attention( "IMA Agent" ) + cc.notice( "." ) );
+            console.log( soi + cc.debug( "--" ) + cc.bright( "no-cross-ima" ) + cc.debug( ".................." ) + cc.error( "Disable" ) + cc.notice( " calls to " ) + cc.note( "IMA JSON RPC servers" ) + cc.notice( " to compute " ) + cc.note( "BLS signature parts" ) + cc.notice( " and operation state inside time frames. " ) + cc.debug( "Use calls to " ) + cc.attention( "skaled" ) + cc.notice( "." ) + cc.debug( " Default mode" ) + cc.notice( "." ) );
             //
             console.log( cc.sunny( "TEST" ) + cc.info( " options:" ) );
             console.log( soi + cc.debug( "--" ) + cc.bright( "browse-s-chain" ) + cc.debug( "................" ) + cc.notice( "Download own " ) + cc.note( "S-Chain" ) + cc.notice( " network information." ) );
@@ -577,6 +585,21 @@ function parse( joExternalHandlers, argv ) {
         if( joArg.name == "sgx-ecdsa-key-t-chain" ) {
             owaspUtils.verifyArgumentWithNonEmptyValue( joArg );
             imaState.joAccount_t_chain.strSgxKeyName = joArg.value;
+            continue;
+        }
+        if( joArg.name == "sgx-bls-key-main-net" ) {
+            owaspUtils.verifyArgumentWithNonEmptyValue( joArg );
+            imaState.joAccount_main_net.strBlsKeyName = joArg.value;
+            continue;
+        }
+        if( joArg.name == "sgx-bls-key-s-chain" ) {
+            owaspUtils.verifyArgumentWithNonEmptyValue( joArg );
+            imaState.joAccount_s_chain.strBlsKeyName = joArg.value;
+            continue;
+        }
+        if( joArg.name == "sgx-bls-key-t-chain" ) {
+            owaspUtils.verifyArgumentWithNonEmptyValue( joArg );
+            imaState.joAccount_t_chain.strBlsKeyName = joArg.value;
             continue;
         }
         //
@@ -1128,7 +1151,7 @@ function parse( joExternalHandlers, argv ) {
             continue;
         }
         if( joArg.name == "monitoring-port" ) {
-            owaspUtils.verifyArgumentIsIntegerIpPortNumber( joArg );
+            owaspUtils.verifyArgumentIsIntegerIpPortNumber( joArg, true );
             imaState.nMonitoringPort = owaspUtils.toInteger( joArg.value );
             continue;
         }
@@ -1184,6 +1207,19 @@ function parse( joExternalHandlers, argv ) {
         }
         if( joArg.name == "disable-oracle" ) {
             IMA.setEnabledOracle( false );
+            continue;
+        }
+        if( joArg.name == "json-rpc-port" ) {
+            owaspUtils.verifyArgumentIsIntegerIpPortNumber( joArg, true );
+            imaState.nJsonRpcPort = owaspUtils.toInteger( joArg.value );
+            continue;
+        }
+        if( joArg.name == "cross-ima" ) {
+            imaState.isCrossImaBlsMode = true;
+            continue;
+        }
+        if( joArg.name == "no-cross-ima" ) {
+            imaState.isCrossImaBlsMode = false;
             continue;
         }
         if( joArg.name == "s2s-forward" ) {
@@ -1263,7 +1299,7 @@ function getWeb3FromURL( strURL, log ) {
     } catch ( err ) {
         log.write( cc.fatal( "CRITICAL ERROR:" ) + cc.error( " Failed to create " ) +
             cc.attention( "Web3" ) + cc.error( " connection to " ) + cc.info( strURL ) +
-            cc.error( ": " ) + cc.warning( err.toString() ) + "\n" );
+            cc.error( ": " ) + cc.warning( owaspUtils.extract_error_message( err ) ) + "\n" );
         w3 = null;
     }
     return w3;
@@ -1284,7 +1320,7 @@ async function async_check_url_at_startup( u, name ) {
     } catch ( err ) {
         details.write(
             cc.fatal( "ERROR:" ) + cc.error( " Failed to check URL " ) +
-            cc.u( u ) + cc.error( " connectivity for " ) + cc.info( name ) + cc.error( " at start-up, error is: " ) + cc.warning( err.toString() ) +
+            cc.u( u ) + cc.error( " connectivity for " ) + cc.info( name ) + cc.error( " at start-up, error is: " ) + cc.warning( owaspUtils.extract_error_message( err ) ) +
             "\n" );
     }
     // details.exposeDetailsTo( log, "async_check_url_at_startup( \"" + u + "\", \"" + name + "\" )", true );
@@ -2082,6 +2118,23 @@ function ima_common_init() {
         try {
             ensure_have_chain_credentials( "S<->S Target S-Chain", imaState.joAccount_t_chain, false, isPrintGathered && isPrintSecurityValues );
         } catch ( err ) {}
+        if( isPrintGathered && isPrintSecurityValues ) {
+            if( imaState.joAccount_main_net.strBlsKeyName ) {
+                ensure_have_value( "BLS/Main Net key name", imaState.joAccount_main_net.strBlsKeyName, false, isPrintGathered, null, ( x ) => {
+                    return cc.attention( x );
+                } );
+            }
+            if( imaState.joAccount_s_chain.strBlsKeyName ) {
+                ensure_have_value( "BLS/S-Chain key name", imaState.joAccount_s_chain.strBlsKeyName, false, isPrintGathered, null, ( x ) => {
+                    return cc.attention( x );
+                } );
+            }
+            if( imaState.joAccount_t_chain.strBlsKeyName ) {
+                ensure_have_value( "BLS/Target S-Chain key name", imaState.joAccount_t_chain.strBlsKeyName, false, isPrintGathered, null, ( x ) => {
+                    return cc.attention( x );
+                } );
+            }
+        }
         //
         //
         ensure_have_value( "Amount of wei to transfer", imaState.nAmountOfWei, false, isPrintGathered, null, ( x ) => {
@@ -2248,6 +2301,8 @@ function ima_common_init() {
             log.write( cc.info( "SKALE network re-discovery interval is" ) + cc.debug( "..............." ) + ( imaState.s2s_opts.secondsToReDiscoverSkaleNetwork ? cc.info( imaState.s2s_opts.secondsToReDiscoverSkaleNetwork.toString() ) : cc.error( "disabled" ) ) + "\n" );
             log.write( cc.info( "S<->S transfer mode is" ) + cc.debug( "..............................." ) + IMA.get_S2S_transfer_mode_description_colorized() + "\n" );
         } // if( isPrintGathered )
+        log.write( cc.info( "IMA JSON RPC server port is" ) + cc.debug( "...,,,,,,,,,,,............" ) + ( ( imaState.nJsonRpcPort > 0 ) ? cc.info( imaState.nJsonRpcPort ) : cc.error( "disabled" ) ) + "\n" );
+        log.write( cc.info( "Cross-IMA mode is" ) + cc.debug( "...................................." ) + ( imaState.isCrossImaBlsMode ? cc.success( "enabled" ) : cc.error( "disabled" ) ) + "\n" );
     }
     //
     //

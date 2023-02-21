@@ -192,7 +192,7 @@ async function get_web3_blockNumber( details, cntAttempts, w3, retValOnFail, thr
             cc.error( "Failed call attempt " ) + cc.info( idxAttempt ) +
             cc.error( " to " ) + cc.note( strFnName + "()" ) +
             cc.error( " via " ) + cc.u( u ) +
-            cc.error( ", error is: " ) + cc.warning( err.toString() ) +
+            cc.error( ", error is: " ) + cc.warning( owaspUtils.extract_error_message( err ) ) +
             "\n" );
     }
     ++ idxAttempt;
@@ -222,7 +222,7 @@ async function get_web3_blockNumber( details, cntAttempts, w3, retValOnFail, thr
                 cc.error( "Failed call attempt " ) + cc.info( idxAttempt ) +
                 cc.error( " to " ) + cc.note( strFnName + "()" ) +
                 cc.error( " via " ) + cc.u( u ) +
-                cc.error( ", error is: " ) + cc.warning( err.toString() ) +
+                cc.error( ", error is: " ) + cc.warning( owaspUtils.extract_error_message( err ) ) +
                 "\n" );
         }
         ++ idxAttempt;
@@ -257,7 +257,7 @@ async function get_web3_transactionCount( details, cntAttempts, w3, address, par
             cc.error( "Failed call attempt " ) + cc.info( idxAttempt ) +
             cc.error( " to " ) + cc.note( strFnName + "()" ) +
             cc.error( " via " ) + cc.u( u ) +
-            cc.error( ", error is: " ) + cc.warning( err.toString() ) +
+            cc.error( ", error is: " ) + cc.warning( owaspUtils.extract_error_message( err ) ) +
             "\n" );
     }
     ++ idxAttempt;
@@ -287,7 +287,7 @@ async function get_web3_transactionCount( details, cntAttempts, w3, address, par
                 cc.error( "Failed call attempt " ) + cc.info( idxAttempt ) +
                 cc.error( " to " ) + cc.note( strFnName + "()" ) +
                 cc.error( " via " ) + cc.u( u ) +
-                cc.error( ", error is: " ) + cc.warning( err.toString() ) +
+                cc.error( ", error is: " ) + cc.warning( owaspUtils.extract_error_message( err ) ) +
                 "\n" );
         }
         ++ idxAttempt;
@@ -322,7 +322,7 @@ async function get_web3_transactionReceipt( details, cntAttempts, w3, txHash, re
             cc.error( "Failed call attempt " ) + cc.info( idxAttempt ) +
             cc.error( " to " ) + cc.note( strFnName + "()" ) +
             cc.error( " via " ) + cc.u( u ) +
-            cc.error( ", error is: " ) + cc.warning( err.toString() ) +
+            cc.error( ", error is: " ) + cc.warning( owaspUtils.extract_error_message( err ) ) +
             "\n" );
     }
     ++ idxAttempt;
@@ -352,7 +352,7 @@ async function get_web3_transactionReceipt( details, cntAttempts, w3, txHash, re
                 cc.error( "Failed call attempt " ) + cc.info( idxAttempt ) +
                 cc.error( " to " ) + cc.note( strFnName + "()" ) +
                 cc.error( " via " ) + cc.u( u ) +
-                cc.error( ", error is: " ) + cc.warning( err.toString() ) +
+                cc.error( ", error is: " ) + cc.warning( owaspUtils.extract_error_message( err ) ) +
                 "\n" );
         }
         ++ idxAttempt;
@@ -393,9 +393,9 @@ async function get_web3_pastEvents( details, w3, cntAttempts, joContract, strEve
             cc.error( " to " ) + cc.note( strFnName + "()" ) +
             cc.error( " via " ) + cc.u( u ) +
             cc.error( ", from block " ) + cc.warning( nBlockFrom ) + cc.error( ", to block " ) + cc.warning( nBlockTo ) +
-            cc.error( ", error is: " ) + cc.warning( err.toString() ) +
+            cc.error( ", error is: " ) + cc.warning( owaspUtils.extract_error_message( err ) ) +
             "\n" );
-        if( err.toString().indexOf( strErrorTextAboutNotExistingEvent ) >= 0 ) {
+        if( owaspUtils.extract_error_message( err ).indexOf( strErrorTextAboutNotExistingEvent ) >= 0 ) {
             details.write(
                 cc.error( "Did stopped calls to " ) + cc.note( strFnName + "()" ) +
                 cc.error( " because event " ) + cc.notice( strEventName ) +
@@ -439,9 +439,9 @@ async function get_web3_pastEvents( details, w3, cntAttempts, joContract, strEve
                 cc.error( " to " ) + cc.note( strFnName + "()" ) +
                 cc.error( " via " ) + cc.u( u ) +
                 cc.error( ", from block " ) + cc.warning( nBlockFrom ) + cc.error( ", to block " ) + cc.warning( nBlockTo ) +
-                cc.error( ", error is: " ) + cc.warning( err.toString() ) +
+                cc.error( ", error is: " ) + cc.warning( owaspUtils.extract_error_message( err ) ) +
                 "\n" );
-            if( err.toString().indexOf( strErrorTextAboutNotExistingEvent ) >= 0 ) {
+            if( owaspUtils.extract_error_message( err ).indexOf( strErrorTextAboutNotExistingEvent ) >= 0 ) {
                 details.write(
                     cc.error( "Did stopped calls to " ) + cc.note( strFnName + "()" ) +
                     cc.error( " because event " ) + cc.notice( strEventName ) +
@@ -552,7 +552,7 @@ async function get_web3_pastEventsIterative( details, w3, attempts, joContract, 
                 cc.error( "Got scan error during interative scan of " ) +
                 cc.info( idxBlockSubRangeFrom ) + cc.error( "/" ) + cc.info( idxBlockSubRangeTo ) +
                 cc.error( " block sub-range in " ) + cc.info( nBlockFrom ) + cc.error( "/" ) + cc.info( nBlockTo ) +
-                cc.error( " block range, error is: " ) + cc.warning( err.toString() ) + "\n"
+                cc.error( " block range, error is: " ) + cc.warning( owaspUtils.extract_error_message( err ) ) + "\n"
             );
         }
         idxBlockSubRangeFrom = idxBlockSubRangeTo;
@@ -721,7 +721,7 @@ async function do_oracle_gas_price_setup(
                 details.write(
                     cc.error( "Failed to fetch " ) + cc.info( "Main Net gas price" ) +
                     cc.error( " via call to " ) + cc.info( "Oracle" ) +
-                    cc.error( ", error is: " ) + cc.warning( err.toString() ) + "\n" );
+                    cc.error( ", error is: " ) + cc.warning( owaspUtils.extract_error_message( err ) ) + "\n" );
             }
         }
         if( gasPriceOnMainNet === null ) {
@@ -1141,8 +1141,8 @@ async function dry_run_call( details, w3, methodWithArguments, joAccount, strDRC
             details.write(
                 strLogPrefix + cc.fatal( "CRITICAL DRY RUN FAIL" ) + " " +
                 cc.error( " invoking the " ) + cc.info( strMethodName ) + cc.error( " method: " ) +
-                cc.warning( err.toString() ) + "\n" );
-            return "CRITICAL DRY RUN FAIL invoking the \"" + strMethodName + "\" method: " + err.toString();
+                cc.warning( owaspUtils.extract_error_message( err ) ) + "\n" );
+            return "CRITICAL DRY RUN FAIL invoking the \"" + strMethodName + "\" method: " + owaspUtils.extract_error_message( err );
         }
     }
     return null;
@@ -1354,6 +1354,8 @@ async function safe_sign_transaction_with_account( details, w3, tx, rawTx, joAcc
                 if( verbose_get() >= RV_VERBOSE.error )
                     log.write( s );
                 details.write( s );
+                if( joCall )
+                    await joCall.disconnect();
                 return;
             }
             const txAdjusted = JSON.parse( JSON.stringify( rawTx ) ); // tx // rawTx
@@ -1375,6 +1377,7 @@ async function safe_sign_transaction_with_account( details, w3, tx, rawTx, joAcc
                         if( verbose_get() >= RV_VERBOSE.error )
                             log.write( s );
                         details.write( s );
+                        await joCall.disconnect();
                         return;
                     }
                     details.write( cc.debug( "Transaction Manager sign-and-send result is: " ) + cc.j( joOut ) + "\n" );
@@ -1387,6 +1390,7 @@ async function safe_sign_transaction_with_account( details, w3, tx, rawTx, joAcc
                         details.write( s );
                         return;
                     }
+                    await joCall.disconnect();
                 } );
         } );
         await sleep( 5000 );
@@ -1418,7 +1422,7 @@ async function safe_sign_transaction_with_account( details, w3, tx, rawTx, joAcc
             strMsg =
                 cc.fatal( "BAD ERROR:" ) + " " +
                 cc.error( "TM - transaction was not sent, underlying error is: " ) +
-                cc.warning( err.toString() );
+                cc.warning( owaspUtils.extract_error_message( err ) );
             details.write( strPrefixDetails + strMsg + "\n" );
             log.write( strPrefixLog + strMsg + "\n" );
             // throw err;
@@ -1446,6 +1450,8 @@ async function safe_sign_transaction_with_account( details, w3, tx, rawTx, joAcc
                 if( verbose_get() >= RV_VERBOSE.error )
                     log.write( s );
                 details.write( s );
+                if( joCall )
+                    await joCall.disconnect();
                 return;
             }
             const msgHash = tx.hash( false );
@@ -1466,6 +1472,7 @@ async function safe_sign_transaction_with_account( details, w3, tx, rawTx, joAcc
                     if( verbose_get() >= RV_VERBOSE.error )
                         log.write( s );
                     details.write( s );
+                    await joCall.disconnect();
                     return;
                 }
                 details.write( cc.debug( "SGX wallet ECDSA sign result is: " ) + cc.j( joOut ) + "\n" );
@@ -1504,6 +1511,7 @@ async function safe_sign_transaction_with_account( details, w3, tx, rawTx, joAcc
                 tx.r = joNeededResult.r;
                 tx.s = joNeededResult.s;
                 details.write( cc.debug( "Resulting adjusted transaction is: " ) + cc.j( tx ) + "\n" );
+                await joCall.disconnect();
             } );
         } );
         await sleep( 3000 );
@@ -1550,7 +1558,7 @@ async function safe_send_signed_transaction( details, w3, serializedTx, strActio
     details.write( strPrefixDetails + strMsg + "\n" );
     log.write( strPrefixLog + strMsg + "\n" );
     const strTX = "0x" + serializedTx.toString( "hex" ); // strTX is string starting from "0x"
-    details.write( strLogPrefix + cc.debug( "....signed raw TX is " ) + cc.j( strTX ) + "\n" );
+    details.write( strLogPrefix + cc.debug( "....signed raw TX is " ) + cc.attention( strTX ) + "\n" );
     let joReceipt = null;
     let bHaveReceipt = false;
     try {
@@ -4775,6 +4783,8 @@ async function async_pending_tx_start( details, w3, w3_opposite, chain_id, chain
                     if( verbose_get() >= RV_VERBOSE.error )
                         log.write( s );
                     details.write( s );
+                    if( joCall )
+                        await joCall.disconnect();
                     return;
                 }
                 const joIn = {
@@ -4790,15 +4800,18 @@ async function async_pending_tx_start( details, w3, w3_opposite, chain_id, chain
                         if( verbose_get() >= RV_VERBOSE.error )
                             log.write( s );
                         details.write( s );
+                        await joCall.disconnect();
                         return;
                     }
                     details.write( cc.debug( "Pending work start result is: " ) + cc.j( joOut ) + "\n" );
                     if( joOut && "result" in joOut && "success" in joOut.result ) {
                         if( joOut.result.success ) {
                             details.write( strLogPrefix + cc.success( "Success, pending work start reported" ) + "\n" );
+                            await joCall.disconnect();
                             return;
                         } else {
                             details.write( strLogPrefix + cc.warning( "Pending work start was not reported with success" ) + "\n" );
+                            await joCall.disconnect();
                             return;
                         }
                     } else {
@@ -4806,6 +4819,7 @@ async function async_pending_tx_start( details, w3, w3_opposite, chain_id, chain
                         if( verbose_get() >= RV_VERBOSE.error )
                             log.write( s );
                         details.write( s );
+                        await joCall.disconnect();
                         return;
                     }
                 } );
@@ -4836,6 +4850,8 @@ async function async_pending_tx_complete( details, w3, w3_opposite, chain_id, ch
                     if( verbose_get() >= RV_VERBOSE.error )
                         log.write( s );
                     details.write( s );
+                    if( joCall )
+                        await joCall.disconnect();
                     return;
                 }
                 const joIn = {
@@ -4851,14 +4867,17 @@ async function async_pending_tx_complete( details, w3, w3_opposite, chain_id, ch
                         if( verbose_get() >= RV_VERBOSE.error )
                             log.write( s );
                         details.write( s );
+                        await joCall.disconnect();
                         return;
                     }
                     details.write( cc.debug( "Pending work complete result is: " ) + cc.j( joOut ) + "\n" );
                     if( joOut && "result" in joOut && "success" in joOut.result ) {
                         if( joOut.result.success ) {
                             details.write( strLogPrefix + cc.success( "Success, pending work complete reported" ) + "\n" );
+                            await joCall.disconnect();
                             return;
                         } else {
+                            await joCall.disconnect();
                             details.write( strLogPrefix + cc.warning( "Pending work complete was not reported with success" ) + "\n" );
                             return;
                         }
@@ -4867,6 +4886,7 @@ async function async_pending_tx_complete( details, w3, w3_opposite, chain_id, ch
                         if( verbose_get() >= RV_VERBOSE.error )
                             log.write( s );
                         details.write( s );
+                        await joCall.disconnect();
                         return;
                     }
                 } );
@@ -5673,7 +5693,7 @@ async function do_transfer(
                                 ++ cntFailedNodes;
                                 const strError = strLogPrefix + cc.fatal( strDirection + " message analysis error:" ) + " " +
                                     cc.error( "Failed to scan events on node " ) + cc.info( jo_node.name ) +
-                                    cc.error( ", error is: " ) + cc.warning( err.toString() ) +
+                                    cc.error( ", error is: " ) + cc.warning( owaspUtils.extract_error_message( err ) ) +
                                     cc.error( ", detailed node description is: " ) + cc.j( jo_node ) +
                                     "\n";
                                 details.write( strError );
@@ -5716,7 +5736,7 @@ async function do_transfer(
                             cc.error( "Failed to process events for " ) + cc.sunny( strDirection ) + cc.error( " message " ) +
                             cc.info( idxMessage + 1 ) + cc.error( " on node " ) + cc.info( jo_node.name ) +
                             cc.success( " using URL " ) + cc.info( jo_node.http_endpoint_ip ) +
-                            cc.debug( ", error is: " ) + cc.warning( err.toString() ) + "\n";
+                            cc.debug( ", error is: " ) + cc.warning( owaspUtils.extract_error_message( err ) ) + "\n";
                         details.write( strError );
                         if( verbose_get() >= RV_VERBOSE.fatal )
                             log.write( strError );
@@ -5970,7 +5990,7 @@ async function do_transfer(
                 } ); // fn_sign_messages
             } catch ( err ) {
                 const strError = strLogPrefix + cc.fatal( "CRITICAL ERROR:" ) +
-                    cc.error( " Exception from sigining messages function: " ) + cc.error( err.toString() );
+                    cc.error( " Exception from sigining messages function: " ) + cc.error( owaspUtils.extract_error_message( err ) );
                 log.write( strError + "\n" );
                 details.write( strError + "\n" );
                 if( detailsB )

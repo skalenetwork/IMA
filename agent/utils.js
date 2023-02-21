@@ -397,6 +397,34 @@ function compose_schain_node_url( joNode ) {
     return "";
 }
 
+function compose_ima_agent_node_url( joNode ) {
+    let nPort = -1;
+    if( "imaAgentRpcPort" in joNode && typeof joNode.imaAgentRpcPort === "number" && joNode.imaAgentRpcPort > 0 )
+        nPort = joNode.imaAgentRpcPort;
+    // PROPOSAL = 0
+    // CATCHUP = 1
+    // WS_JSON = 2
+    // HTTP_JSON = 3
+    // BINARY_CONSENSUS = 4
+    // ZMQ_BROADCAST = 5
+    // IMA_MONITORING = 6
+    // WSS_JSON = 7
+    // HTTPS_JSON = 8
+    // INFO_HTTP_JSON = 9
+    // IMA_AGENT_JSON = 10
+    if( nPort < 0 && "httpRpcPort" in joNode && typeof joNode.httpRpcPort === "number" && joNode.httpRpcPort > 0 )
+        nPort = joNode.httpRpcPort - 3 + 10;
+    if( nPort < 0 && "wsRpcPort" in joNode && typeof joNode.wsRpcPort === "number" && joNode.wsRpcPort > 0 )
+        nPort = joNode.wsRpcPort - 2 + 10;
+    if( nPort < 0 && "httpsRpcPort" in joNode && typeof joNode.httpsRpcPort === "number" && joNode.httpsRpcPort > 0 )
+        nPort = joNode.httpsRpcPort - 8 + 10;
+    if( nPort < 0 && "wssRpcPort" in joNode && typeof joNode.wssRpcPort === "number" && joNode.wssRpcPort > 0 )
+        nPort = joNode.wssRpcPort - 7 + 10;
+    if( nPort > 0 )
+        return "ws://" + joNode.ip + ":" + nPort;
+    return "";
+}
+
 ////////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////////
 
@@ -433,5 +461,6 @@ module.exports = {
     check_key_exist_in_abi: check_key_exist_in_abi,
     check_keys_exist_in_abi: check_keys_exist_in_abi,
     //
-    compose_schain_node_url: compose_schain_node_url
+    compose_schain_node_url: compose_schain_node_url,
+    compose_ima_agent_node_url: compose_ima_agent_node_url
 }; // module.exports

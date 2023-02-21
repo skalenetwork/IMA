@@ -187,7 +187,8 @@ global.imaState = {
         "strSgxURL": owaspUtils.toStringURL( process.env.SGX_URL_ETHEREUM ),
         "strSgxKeyName": owaspUtils.toStringURL( process.env.SGX_KEY_ETHEREUM ),
         "strPathSslKey": ( process.env.SGX_SSL_KEY_FILE_ETHEREUM || "" ).toString().trim(),
-        "strPathSslCert": ( process.env.SGX_SSL_CERT_FILE_ETHEREUM || "" ).toString().trim()
+        "strPathSslCert": ( process.env.SGX_SSL_CERT_FILE_ETHEREUM || "" ).toString().trim(),
+        "strBlsKeyName": owaspUtils.toStringURL( process.env.BLS_KEY_ETHEREUM )
     },
     "joAccount_s_chain": {
         "privateKey": owaspUtils.toEthPrivateKey( process.env.PRIVATE_KEY_FOR_SCHAIN ),
@@ -196,7 +197,8 @@ global.imaState = {
         "strSgxURL": owaspUtils.toStringURL( process.env.SGX_URL_S_CHAIN ),
         "strSgxKeyName": owaspUtils.toStringURL( process.env.SGX_KEY_S_CHAIN ),
         "strPathSslKey": ( process.env.SGX_SSL_KEY_FILE_S_CHAIN || "" ).toString().trim(),
-        "strPathSslCert": ( process.env.SGX_SSL_CERT_FILE_S_CHAIN || "" ).toString().trim()
+        "strPathSslCert": ( process.env.SGX_SSL_CERT_FILE_S_CHAIN || "" ).toString().trim(),
+        "strBlsKeyName": owaspUtils.toStringURL( process.env.BLS_KEY_S_CHAIN )
     },
     "joAccount_t_chain": {
         "privateKey": owaspUtils.toEthPrivateKey( process.env.PRIVATE_KEY_FOR_SCHAIN_TARGET ),
@@ -205,7 +207,8 @@ global.imaState = {
         "strSgxURL": owaspUtils.toStringURL( process.env.SGX_URL_S_CHAIN_TARGET ),
         "strSgxKeyName": owaspUtils.toStringURL( process.env.SGX_KEY_S_CHAIN_TARGET ),
         "strPathSslKey": ( process.env.SGX_SSL_KEY_FILE_S_CHAIN_TARGET || "" ).toString().trim(),
-        "strPathSslCert": ( process.env.SGX_SSL_CERT_FILE_S_CHAIN_TARGET || "" ).toString().trim()
+        "strPathSslCert": ( process.env.SGX_SSL_CERT_FILE_S_CHAIN_TARGET || "" ).toString().trim(),
+        "strBlsKeyName": owaspUtils.toStringURL( process.env.BLS_KEY_T_CHAIN )
     },
 
     //
@@ -225,6 +228,9 @@ global.imaState = {
         "isEnabled": false, // is S-Chain to S-Chain transfers enabled
         "secondsToReDiscoverSkaleNetwork": 10 * 60 // seconts to re-discover SKALE network, 0 to disable
     },
+
+    "nJsonRpcPort": 14999, // 0 to disable
+    "isCrossImaBlsMode": true,
 
     "arrActions": [] // array of actions to run
 };
@@ -746,6 +752,14 @@ describe( "Agent Utils Module", function() {
             assert.equal( imaUtils.compose_schain_node_url( { ip6: "::1", httpsRpcPort6: 3456 } ), "https://[::1]:3456" );
             assert.equal( imaUtils.compose_schain_node_url( { ip6: "::1", wsRpcPort6: 3456 } ), "ws://[::1]:3456" );
             assert.equal( imaUtils.compose_schain_node_url( { ip6: "::1", wssRpcPort6: 3456 } ), "wss://[::1]:3456" );
+        } );
+
+        it( "Compose IMA Agent URL", function() {
+            // HTTP_JSON = 3
+            // IMA_AGENT_JSON = 10
+            // so... distance is 10 - 3 = 7
+            // as result, 14999 + 7 = 15006
+            assert.equal( imaUtils.compose_ima_agent_node_url( { ip: "127.0.0.1", httpRpcPort: 14999 } ), "ws://127.0.0.1:15006" );
         } );
 
     } );
