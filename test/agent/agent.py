@@ -414,7 +414,7 @@ class Agent:
         flags = {**self._get_default_flags(), command: None, **flags}
 
         return ['node',
-                f'{self.config.agent_root}/main.js'] + \
+                f'{self.config.agent_root}/main.mjs'] + \
                [f'--{key}' + (f'={str(value)}' if value is not None else '') for key, value in flags.items() ]
 
     def _format_command(self, command, flags=None):
