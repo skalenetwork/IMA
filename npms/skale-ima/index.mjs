@@ -862,7 +862,7 @@ export async function do_oracle_gas_price_setup(
             }
             const weiHowMuch = undefined;
             const gasPrice = await tc_s_chain.computeGasPrice( ethersProvider_s_chain, 200000000000 );
-            details.write( strLogPrefix + cc.debug( "Using computed " ) + cc.info( "gasPrice" ) + cc.debug( "=" ) + cc.notice( gasPrice ) + "\n" );
+            details.write( strLogPrefix + cc.debug( "Using computed " ) + cc.info( "gasPrice" ) + cc.debug( "=" ) + cc.j( gasPrice ) + "\n" );
             const estimatedGas_setGasPrice =
                 await tc_s_chain.computeGas(
                     details,
@@ -1810,7 +1810,7 @@ export async function register_s_chain_in_deposit_boxes( // step 1
         ];
         const weiHowMuch = undefined;
         const gasPrice = await tc_main_net.computeGasPrice( ethersProvider_main_net, 200000000000 );
-        details.write( strLogPrefix + cc.debug( "Using computed " ) + cc.info( "gasPrice" ) + cc.debug( "=" ) + cc.notice( gasPrice ) + "\n" );
+        details.write( strLogPrefix + cc.debug( "Using computed " ) + cc.info( "gasPrice" ) + cc.debug( "=" ) + cc.j( gasPrice ) + "\n" );
         const estimatedGas =
             await tc_main_net.computeGas(
                 details,
@@ -2034,7 +2034,7 @@ export async function reimbursement_wallet_recharge(
             addressReceiver
         ];
         const gasPrice = await tc_main_net.computeGasPrice( ethersProvider_main_net, 200000000000 );
-        details.write( strLogPrefix + cc.debug( "Using computed " ) + cc.info( "gasPrice" ) + cc.debug( "=" ) + cc.notice( gasPrice ) + "\n" );
+        details.write( strLogPrefix + cc.debug( "Using computed " ) + cc.info( "gasPrice" ) + cc.debug( "=" ) + cc.j( gasPrice ) + "\n" );
         const estimatedGas =
             await tc_main_net.computeGas(
                 details,
@@ -2114,7 +2114,7 @@ export async function reimbursement_wallet_withdraw(
         ];
         const weiHowMuch = undefined;
         const gasPrice = await tc_main_net.computeGasPrice( ethersProvider_main_net, 200000000000 );
-        details.write( strLogPrefix + cc.debug( "Using computed " ) + cc.info( "gasPrice" ) + cc.debug( "=" ) + cc.notice( gasPrice ) + "\n" );
+        details.write( strLogPrefix + cc.debug( "Using computed " ) + cc.info( "gasPrice" ) + cc.debug( "=" ) + cc.j( gasPrice ) + "\n" );
         const estimatedGas =
             await tc_main_net.computeGas(
                 details,
@@ -2194,7 +2194,7 @@ export async function reimbursement_set_range(
         ];
         const weiHowMuch = undefined;
         const gasPrice = await tc_s_chain.computeGasPrice( ethersProvider_s_chain, 200000000000 );
-        details.write( strLogPrefix + cc.debug( "Using computed " ) + cc.info( "gasPrice" ) + cc.debug( "=" ) + cc.notice( gasPrice ) + "\n" );
+        details.write( strLogPrefix + cc.debug( "Using computed " ) + cc.info( "gasPrice" ) + cc.debug( "=" ) + cc.j( gasPrice ) + "\n" );
         const estimatedGas =
             await tc_s_chain.computeGas(
                 details,
@@ -2289,7 +2289,7 @@ export async function do_eth_payment_from_main_net(
             chain_id_s_chain
         ];
         const gasPrice = await tc_main_net.computeGasPrice( ethersProvider_main_net, 200000000000 );
-        details.write( strLogPrefix + cc.debug( "Using computed " ) + cc.info( "gasPrice" ) + cc.debug( "=" ) + cc.notice( gasPrice ) + "\n" );
+        details.write( strLogPrefix + cc.debug( "Using computed " ) + cc.info( "gasPrice" ) + cc.debug( "=" ) + cc.j( gasPrice ) + "\n" );
         const estimatedGas =
             await tc_main_net.computeGas(
                 details,
@@ -2397,7 +2397,7 @@ export async function do_eth_payment_from_s_chain(
             owaspUtils.toBN( weiHowMuch )
         ];
         const gasPrice = await tc_s_chain.computeGasPrice( ethersProvider_s_chain, 200000000000 );
-        details.write( strLogPrefix + cc.debug( "Using computed " ) + cc.info( "gasPrice" ) + cc.debug( "=" ) + cc.notice( gasPrice ) + "\n" ); //
+        details.write( strLogPrefix + cc.debug( "Using computed " ) + cc.info( "gasPrice" ) + cc.debug( "=" ) + cc.j( gasPrice ) + "\n" ); //
         const estimatedGas =
             await tc_s_chain.computeGas(
                 details,
@@ -2495,7 +2495,7 @@ export async function receive_eth_payment_from_s_chain_on_main_net(
         const arrArguments = [];
         const weiHowMuch = undefined;
         const gasPrice = await tc_main_net.computeGasPrice( ethersProvider_main_net, 200000000000 );
-        details.write( strLogPrefix + cc.debug( "Using computed " ) + cc.info( "gasPrice" ) + cc.debug( "=" ) + cc.notice( gasPrice ) + "\n" );
+        details.write( strLogPrefix + cc.debug( "Using computed " ) + cc.info( "gasPrice" ) + cc.debug( "=" ) + cc.j( gasPrice ) + "\n" );
         const estimatedGas =
             await tc_main_net.computeGas(
                 details,
@@ -2639,7 +2639,7 @@ export async function do_erc721_payment_from_main_net(
         ];
         const weiHowMuch_approve = undefined;
         let gasPrice = await tc_main_net.computeGasPrice( ethersProvider_main_net, 200000000000 );
-        details.write( strLogPrefix + cc.debug( "Using computed " ) + cc.info( "gasPrice" ) + cc.debug( "=" ) + cc.notice( gasPrice ) + "\n" );
+        details.write( strLogPrefix + cc.debug( "Using computed " ) + cc.info( "gasPrice" ) + cc.debug( "=" ) + cc.j( gasPrice ) + "\n" );
         const estimatedGas_approve =
             await tc_main_net.computeGas(
                 details,
@@ -2682,7 +2682,7 @@ export async function do_erc721_payment_from_main_net(
         strActionName = "ERC721 payment from Main Net, depositERC721";
         const weiHowMuch_depositERC721 = undefined;
         gasPrice = await tc_main_net.computeGasPrice( ethersProvider_main_net, 200000000000 );
-        details.write( strLogPrefix + cc.debug( "Using computed " ) + cc.info( "gasPrice" ) + cc.debug( "=" ) + cc.notice( gasPrice ) + "\n" );
+        details.write( strLogPrefix + cc.debug( "Using computed " ) + cc.info( "gasPrice" ) + cc.debug( "=" ) + cc.j( gasPrice ) + "\n" );
         const estimatedGas_deposit =
             await tc_main_net.computeGas(
                 details,
@@ -2807,7 +2807,7 @@ export async function do_erc20_payment_from_main_net(
         ];
         const weiHowMuch_approve = undefined;
         let gasPrice = await tc_main_net.computeGasPrice( ethersProvider_main_net, 200000000000 );
-        details.write( strLogPrefix + cc.debug( "Using computed " ) + cc.info( "gasPrice" ) + cc.debug( "=" ) + cc.notice( gasPrice ) + "\n" );
+        details.write( strLogPrefix + cc.debug( "Using computed " ) + cc.info( "gasPrice" ) + cc.debug( "=" ) + cc.j( gasPrice ) + "\n" );
         const estimatedGas_approve =
             await tc_main_net.computeGas(
                 details,
@@ -2850,7 +2850,7 @@ export async function do_erc20_payment_from_main_net(
         strActionName = "ERC20 payment from Main Net, depositERC20";
         const weiHowMuch_depositERC20 = undefined;
         gasPrice = await tc_main_net.computeGasPrice( ethersProvider_main_net, 200000000000 );
-        details.write( strLogPrefix + cc.debug( "Using computed " ) + cc.info( "gasPrice" ) + cc.debug( "=" ) + cc.notice( gasPrice ) + "\n" );
+        details.write( strLogPrefix + cc.debug( "Using computed " ) + cc.info( "gasPrice" ) + cc.debug( "=" ) + cc.j( gasPrice ) + "\n" );
         const estimatedGas_deposit =
             await tc_main_net.computeGas(
                 details,
@@ -2974,7 +2974,7 @@ export async function do_erc1155_payment_from_main_net(
         ];
         const weiHowMuch_approve = undefined;
         let gasPrice = await tc_main_net.computeGasPrice( ethersProvider_main_net, 200000000000 );
-        details.write( strLogPrefix + cc.debug( "Using computed " ) + cc.info( "gasPrice" ) + cc.debug( "=" ) + cc.notice( gasPrice ) + "\n" );
+        details.write( strLogPrefix + cc.debug( "Using computed " ) + cc.info( "gasPrice" ) + cc.debug( "=" ) + cc.j( gasPrice ) + "\n" );
         const estimatedGas_approve =
             await tc_main_net.computeGas(
                 details,
@@ -3017,7 +3017,7 @@ export async function do_erc1155_payment_from_main_net(
         strActionName = "ERC1155 payment from Main Net, depositERC1155";
         const weiHowMuch_depositERC1155 = undefined;
         gasPrice = await tc_main_net.computeGasPrice( ethersProvider_main_net, 200000000000 );
-        details.write( strLogPrefix + cc.debug( "Using computed " ) + cc.info( "gasPrice" ) + cc.debug( "=" ) + cc.notice( gasPrice ) + "\n" );
+        details.write( strLogPrefix + cc.debug( "Using computed " ) + cc.info( "gasPrice" ) + cc.debug( "=" ) + cc.j( gasPrice ) + "\n" );
         const estimatedGas_deposit =
             await tc_main_net.computeGas(
                 details,
@@ -3141,7 +3141,7 @@ export async function do_erc1155_batch_payment_from_main_net(
         ];
         const weiHowMuch_approve = undefined;
         let gasPrice = await tc_main_net.computeGasPrice( ethersProvider_main_net, 200000000000 );
-        details.write( strLogPrefix + cc.debug( "Using computed " ) + cc.info( "gasPrice" ) + cc.debug( "=" ) + cc.notice( gasPrice ) + "\n" );
+        details.write( strLogPrefix + cc.debug( "Using computed " ) + cc.info( "gasPrice" ) + cc.debug( "=" ) + cc.j( gasPrice ) + "\n" );
         const estimatedGas_approve =
             await tc_main_net.computeGas(
                 details,
@@ -3184,7 +3184,7 @@ export async function do_erc1155_batch_payment_from_main_net(
         strActionName = "ERC1155 batch-payment from Main Net, depositERC1155Batch";
         const weiHowMuch_depositERC1155Batch = undefined;
         gasPrice = await tc_main_net.computeGasPrice( ethersProvider_main_net, 200000000000 );
-        details.write( strLogPrefix + cc.debug( "Using computed " ) + cc.info( "gasPrice" ) + cc.debug( "=" ) + cc.notice( gasPrice ) + "\n" );
+        details.write( strLogPrefix + cc.debug( "Using computed " ) + cc.info( "gasPrice" ) + cc.debug( "=" ) + cc.j( gasPrice ) + "\n" );
         const estimatedGas_deposit =
             await tc_main_net.computeGas(
                 details,
@@ -3307,7 +3307,7 @@ export async function do_erc20_payment_from_s_chain(
         ];
         const weiHowMuch_approve = undefined;
         let gasPrice = await tc_s_chain.computeGasPrice( ethersProvider_s_chain, 200000000000 );
-        details.write( strLogPrefix + cc.debug( "Using computed " ) + cc.info( "gasPrice" ) + cc.debug( "=" ) + cc.notice( gasPrice ) + "\n" );
+        details.write( strLogPrefix + cc.debug( "Using computed " ) + cc.info( "gasPrice" ) + cc.debug( "=" ) + cc.j( gasPrice ) + "\n" );
         const estimatedGas_approve =
             await tc_s_chain.computeGas(
                 details,
@@ -3373,7 +3373,7 @@ export async function do_erc20_payment_from_s_chain(
             );
         details.write( strLogPrefix + cc.debug( "Using estimated(approve) " ) + cc.info( "gas" ) + cc.debug( "=" ) + cc.notice( estimatedGas_exitToMainERC20 ) + "\n" );
         gasPrice = await tc_s_chain.computeGasPrice( ethersProvider_s_chain, 200000000000 );
-        details.write( strLogPrefix + cc.debug( "Using computed " ) + cc.info( "gasPrice" ) + cc.debug( "=" ) + cc.notice( gasPrice ) + "\n" );
+        details.write( strLogPrefix + cc.debug( "Using computed " ) + cc.info( "gasPrice" ) + cc.debug( "=" ) + cc.j( gasPrice ) + "\n" );
         const isIgnore_exitToMainERC20 = true;
         const strErrorOfDryRun_exitToMainERC20 =
             await dry_run_call(
@@ -3489,7 +3489,7 @@ export async function do_erc721_payment_from_s_chain(
         ];
         const weiHowMuch_approve = undefined;
         let gasPrice = await tc_s_chain.computeGasPrice( ethersProvider_s_chain, 200000000000 );
-        details.write( strLogPrefix + cc.debug( "Using computed " ) + cc.info( "gasPrice" ) + cc.debug( "=" ) + cc.notice( gasPrice ) + "\n" );
+        details.write( strLogPrefix + cc.debug( "Using computed " ) + cc.info( "gasPrice" ) + cc.debug( "=" ) + cc.j( gasPrice ) + "\n" );
         const estimatedGas_approve =
             await tc_s_chain.computeGas(
                 details,
@@ -3545,7 +3545,7 @@ export async function do_erc721_payment_from_s_chain(
         strActionName = "ERC721 payment from S-Chain, exitToMainERC721";
         const weiHowMuch_exitToMainERC721 = undefined;
         gasPrice = await tc_s_chain.computeGasPrice( ethersProvider_s_chain, 200000000000 );
-        details.write( strLogPrefix + cc.debug( "Using computed " ) + cc.info( "gasPrice" ) + cc.debug( "=" ) + cc.notice( gasPrice ) + "\n" );
+        details.write( strLogPrefix + cc.debug( "Using computed " ) + cc.info( "gasPrice" ) + cc.debug( "=" ) + cc.j( gasPrice ) + "\n" );
         const estimatedGas_exitToMainERC721 =
             await tc_s_chain.computeGas(
                 details,
@@ -3670,7 +3670,7 @@ export async function do_erc1155_payment_from_s_chain(
         ];
         const weiHowMuch_approve = undefined;
         let gasPrice = await tc_s_chain.computeGasPrice( ethersProvider_s_chain, 200000000000 );
-        details.write( strLogPrefix + cc.debug( "Using computed " ) + cc.info( "gasPrice" ) + cc.debug( "=" ) + cc.notice( gasPrice ) + "\n" );
+        details.write( strLogPrefix + cc.debug( "Using computed " ) + cc.info( "gasPrice" ) + cc.debug( "=" ) + cc.j( gasPrice ) + "\n" );
         const estimatedGas_approve =
             await tc_s_chain.computeGas(
                 details,
@@ -3726,7 +3726,7 @@ export async function do_erc1155_payment_from_s_chain(
         strActionName = "ERC1155 payment from S-Chain, exitToMainERC1155";
         const weiHowMuch_exitToMainERC1155 = undefined;
         gasPrice = await tc_s_chain.computeGasPrice( ethersProvider_s_chain, 200000000000 );
-        details.write( strLogPrefix + cc.debug( "Using computed " ) + cc.info( "gasPrice" ) + cc.debug( "=" ) + cc.notice( gasPrice ) + "\n" );
+        details.write( strLogPrefix + cc.debug( "Using computed " ) + cc.info( "gasPrice" ) + cc.debug( "=" ) + cc.j( gasPrice ) + "\n" );
         const estimatedGas_exitToMainERC1155 =
             await tc_s_chain.computeGas(
                 details,
@@ -3851,7 +3851,7 @@ export async function do_erc1155_batch_payment_from_s_chain(
         ];
         const weiHowMuch_approve = undefined;
         let gasPrice = await tc_s_chain.computeGasPrice( ethersProvider_s_chain, 200000000000 );
-        details.write( strLogPrefix + cc.debug( "Using computed " ) + cc.info( "gasPrice" ) + cc.debug( "=" ) + cc.notice( gasPrice ) + "\n" );
+        details.write( strLogPrefix + cc.debug( "Using computed " ) + cc.info( "gasPrice" ) + cc.debug( "=" ) + cc.j( gasPrice ) + "\n" );
         const estimatedGas_approve =
             await tc_s_chain.computeGas(
                 details,
@@ -3907,7 +3907,7 @@ export async function do_erc1155_batch_payment_from_s_chain(
         strActionName = "ERC1155 batch-payment from S-Chain, exitToMainERC1155Batch";
         const weiHowMuch_exitToMainERC1155Batch = undefined;
         gasPrice = await tc_s_chain.computeGasPrice( ethersProvider_s_chain, 200000000000 );
-        details.write( strLogPrefix + cc.debug( "Using computed " ) + cc.info( "gasPrice" ) + cc.debug( "=" ) + cc.notice( gasPrice ) + "\n" );
+        details.write( strLogPrefix + cc.debug( "Using computed " ) + cc.info( "gasPrice" ) + cc.debug( "=" ) + cc.j( gasPrice ) + "\n" );
         const estimatedGas_exitToMainERC1155Batch =
             await tc_s_chain.computeGas(
                 details,
@@ -4052,7 +4052,7 @@ export async function do_erc20_payment_s2s(
         ];
         const weiHowMuch_approve = undefined;
         let gasPrice = await tc.computeGasPrice( ethersProvider_src, 200000000000 );
-        details.write( strLogPrefix + cc.debug( "Using computed " ) + cc.info( "gasPrice" ) + cc.debug( "=" ) + cc.notice( gasPrice ) + "\n" );
+        details.write( strLogPrefix + cc.debug( "Using computed " ) + cc.info( "gasPrice" ) + cc.debug( "=" ) + cc.j( gasPrice ) + "\n" );
         const estimatedGas_approve =
             await tc.computeGas(
                 details,
@@ -4095,7 +4095,7 @@ export async function do_erc20_payment_s2s(
         strActionName = "ERC20 payment S2S, transferERC20 " + ( isForward ? "forward" : "reverse" );
         const weiHowMuch_transferERC20 = undefined;
         gasPrice = await tc.computeGasPrice( ethersProvider_src, 200000000000 );
-        details.write( strLogPrefix + cc.debug( "Using computed " ) + cc.info( "gasPrice" ) + cc.debug( "=" ) + cc.notice( gasPrice ) + "\n" );
+        details.write( strLogPrefix + cc.debug( "Using computed " ) + cc.info( "gasPrice" ) + cc.debug( "=" ) + cc.j( gasPrice ) + "\n" );
         const estimatedGas_transfer =
             await tc.computeGas(
                 details,
@@ -4222,7 +4222,7 @@ export async function do_erc721_payment_s2s(
         ];
         const weiHowMuch_approve = undefined;
         let gasPrice = await tc.computeGasPrice( ethersProvider_src, 200000000000 );
-        details.write( strLogPrefix + cc.debug( "Using computed " ) + cc.info( "gasPrice" ) + cc.debug( "=" ) + cc.notice( gasPrice ) + "\n" );
+        details.write( strLogPrefix + cc.debug( "Using computed " ) + cc.info( "gasPrice" ) + cc.debug( "=" ) + cc.j( gasPrice ) + "\n" );
         const estimatedGas_approve =
             await tc.computeGas(
                 details,
@@ -4266,7 +4266,7 @@ export async function do_erc721_payment_s2s(
         strActionName = "ERC721 payment S2S, transferERC721 " + ( isForward ? "forward" : "reverse" );
         const weiHowMuch_transferERC721 = undefined;
         gasPrice = await tc.computeGasPrice( ethersProvider_src, 200000000000 );
-        details.write( strLogPrefix + cc.debug( "Using computed " ) + cc.info( "gasPrice" ) + cc.debug( "=" ) + cc.notice( gasPrice ) + "\n" );
+        details.write( strLogPrefix + cc.debug( "Using computed " ) + cc.info( "gasPrice" ) + cc.debug( "=" ) + cc.j( gasPrice ) + "\n" );
         const estimatedGas_transfer =
             await tc.computeGas(
                 details,
@@ -4394,7 +4394,7 @@ export async function do_erc1155_payment_s2s(
         ];
         const weiHowMuch_approve = undefined;
         let gasPrice = await tc.computeGasPrice( ethersProvider_src, 200000000000 );
-        details.write( strLogPrefix + cc.debug( "Using computed " ) + cc.info( "gasPrice" ) + cc.debug( "=" ) + cc.notice( gasPrice ) + "\n" );
+        details.write( strLogPrefix + cc.debug( "Using computed " ) + cc.info( "gasPrice" ) + cc.debug( "=" ) + cc.j( gasPrice ) + "\n" );
         const estimatedGas_approve =
             await tc.computeGas(
                 details,
@@ -4437,7 +4437,7 @@ export async function do_erc1155_payment_s2s(
         strActionName = "ERC1155 payment S2S, transferERC1155 " + ( isForward ? "forward" : "reverse" );
         const weiHowMuch_transferERC1155 = undefined;
         gasPrice = await tc.computeGasPrice( ethersProvider_src, 200000000000 );
-        details.write( strLogPrefix + cc.debug( "Using computed " ) + cc.info( "gasPrice" ) + cc.debug( "=" ) + cc.notice( gasPrice ) + "\n" );
+        details.write( strLogPrefix + cc.debug( "Using computed " ) + cc.info( "gasPrice" ) + cc.debug( "=" ) + cc.j( gasPrice ) + "\n" );
         const estimatedGas_transfer =
             await tc.computeGas(
                 details,
@@ -4566,7 +4566,7 @@ export async function do_erc1155_batch_payment_s2s(
         ];
         const weiHowMuch_approve = undefined;
         let gasPrice = await tc.computeGasPrice( ethersProvider_src, 200000000000 );
-        details.write( strLogPrefix + cc.debug( "Using computed " ) + cc.info( "gasPrice" ) + cc.debug( "=" ) + cc.notice( gasPrice ) + "\n" );
+        details.write( strLogPrefix + cc.debug( "Using computed " ) + cc.info( "gasPrice" ) + cc.debug( "=" ) + cc.j( gasPrice ) + "\n" );
         const estimatedGas_approve =
             await tc.computeGas(
                 details,
@@ -4609,7 +4609,7 @@ export async function do_erc1155_batch_payment_s2s(
         strActionName = "ERC1155 batch-payment S2S, transferERC1155 " + ( isForward ? "forward" : "reverse" );
         const weiHowMuch_transferERC1155 = undefined;
         gasPrice = await tc.computeGasPrice( ethersProvider_src, 200000000000 );
-        details.write( strLogPrefix + cc.debug( "Using computed " ) + cc.info( "gasPrice" ) + cc.debug( "=" ) + cc.notice( gasPrice ) + "\n" );
+        details.write( strLogPrefix + cc.debug( "Using computed " ) + cc.info( "gasPrice" ) + cc.debug( "=" ) + cc.j( gasPrice ) + "\n" );
         const estimatedGas_transfer =
             await tc.computeGas(
                 details,
@@ -5466,7 +5466,7 @@ export async function do_transfer(
                         strActionName = strDirection + " - Post incoming messages";
                         const weiHowMuch_postIncomingMessages = undefined;
                         const gasPrice = await tc_dst.computeGasPrice( ethersProvider_dst, 200000000000 );
-                        detailsB.write( strLogPrefix + cc.debug( "Using computed " ) + cc.info( "gasPrice" ) + cc.debug( "=" ) + cc.notice( gasPrice ) + "\n" );
+                        detailsB.write( strLogPrefix + cc.debug( "Using computed " ) + cc.info( "gasPrice" ) + cc.debug( "=" ) + cc.j( gasPrice ) + "\n" );
                         let estimatedGas_postIncomingMessages =
                             await tc_dst.computeGas(
                                 detailsB,
@@ -5815,10 +5815,10 @@ export class TransactionCustomizer {
             maxGasPrice != null &&
             maxGasPrice != undefined
         ) {
-            if( gasPrice * this.gasPriceMultiplier > maxGasPrice )
-                return owaspUtils.toBN( maxGasPrice ).toHexString();
-            else
-                return owaspUtils.toBN( gasPrice ).mul( this.gasPriceMultiplier );
+            let gasPriceMultiplied = gasPrice * this.gasPriceMultiplier;
+            if( gasPriceMultiplied > maxGasPrice )
+                gasPriceMultiplied = maxGasPrice;
+            return owaspUtils.toBN( maxGasPrice );
         } else
             return gasPrice;
     }
@@ -6051,7 +6051,7 @@ export async function mintERC20(
         ];
         const weiHowMuch_mint = undefined;
         const gasPrice = await tc.computeGasPrice( ethersProvider, 200000000000 );
-        details.write( strLogPrefix + cc.debug( "Using computed " ) + cc.info( "gasPrice" ) + cc.debug( "=" ) + cc.notice( gasPrice ) + "\n" );
+        details.write( strLogPrefix + cc.debug( "Using computed " ) + cc.info( "gasPrice" ) + cc.debug( "=" ) + cc.j( gasPrice ) + "\n" );
         const estimatedGas_mint =
             await tc.computeGas(
                 details,
@@ -6143,7 +6143,7 @@ export async function mintERC721(
         ];
         const weiHowMuch_mint = undefined;
         const gasPrice = await tc.computeGasPrice( ethersProvider, 200000000000 );
-        details.write( strLogPrefix + cc.debug( "Using computed " ) + cc.info( "gasPrice" ) + cc.debug( "=" ) + cc.notice( gasPrice ) + "\n" );
+        details.write( strLogPrefix + cc.debug( "Using computed " ) + cc.info( "gasPrice" ) + cc.debug( "=" ) + cc.j( gasPrice ) + "\n" );
         const estimatedGas_mint =
             await tc.computeGas(
                 details,
@@ -6238,7 +6238,7 @@ export async function mintERC1155(
         ];
         const weiHowMuch_mint = undefined;
         const gasPrice = await tc.computeGasPrice( ethersProvider, 200000000000 );
-        details.write( strLogPrefix + cc.debug( "Using computed " ) + cc.info( "gasPrice" ) + cc.debug( "=" ) + cc.notice( gasPrice ) + "\n" );
+        details.write( strLogPrefix + cc.debug( "Using computed " ) + cc.info( "gasPrice" ) + cc.debug( "=" ) + cc.j( gasPrice ) + "\n" );
         const estimatedGas_mint =
             await tc.computeGas(
                 details,
@@ -6330,7 +6330,7 @@ export async function burnERC20(
         ];
         const weiHowMuch_burn = undefined;
         const gasPrice = await tc.computeGasPrice( ethersProvider, 200000000000 );
-        details.write( strLogPrefix + cc.debug( "Using computed " ) + cc.info( "gasPrice" ) + cc.debug( "=" ) + cc.notice( gasPrice ) + "\n" );
+        details.write( strLogPrefix + cc.debug( "Using computed " ) + cc.info( "gasPrice" ) + cc.debug( "=" ) + cc.j( gasPrice ) + "\n" );
         const estimatedGas_burn =
             await tc.computeGas(
                 details,
@@ -6422,7 +6422,7 @@ export async function burnERC721(
         ];
         const weiHowMuch_burn = undefined;
         const gasPrice = await tc.computeGasPrice( ethersProvider, 200000000000 );
-        details.write( strLogPrefix + cc.debug( "Using computed " ) + cc.info( "gasPrice" ) + cc.debug( "=" ) + cc.notice( gasPrice ) + "\n" );
+        details.write( strLogPrefix + cc.debug( "Using computed " ) + cc.info( "gasPrice" ) + cc.debug( "=" ) + cc.j( gasPrice ) + "\n" );
         const estimatedGas_burn =
             await tc.computeGas(
                 details,
@@ -6516,7 +6516,7 @@ export async function burnERC1155(
         ];
         const weiHowMuch_burn = undefined;
         const gasPrice = await tc.computeGasPrice( ethersProvider, 200000000000 );
-        details.write( strLogPrefix + cc.debug( "Using computed " ) + cc.info( "gasPrice" ) + cc.debug( "=" ) + cc.notice( gasPrice ) + "\n" );
+        details.write( strLogPrefix + cc.debug( "Using computed " ) + cc.info( "gasPrice" ) + cc.debug( "=" ) + cc.j( gasPrice ) + "\n" );
         const estimatedGas_burn =
             await tc.computeGas(
                 details,
