@@ -1212,11 +1212,11 @@ export async function payed_call(
         unsignedTx = await joContract.populateTransaction[strMethodName]( ...arrArguments, callOpts );
         details.write( strLogPrefix + cc.debug( "populated transaction: " ) + cc.j( unsignedTx ) + "\n" );
         unsignedTx.nonce = await ethersProvider.getTransactionCount( joAccount.address() );
-        // if( opts && opts.isCheckTransactionToSchain ) {
-        //     unsignedTx = await checkTransactionToSchain( unsignedTx, details, ethersProvider );
-        //     details.write( strLogPrefix + cc.debug( "Checked/mined transaction: " ) + cc.j( unsignedTx ) + "\n" );
-        //     details.write( strLogPrefix + cc.debug( "Raw transaction, checked for S-chain: " ) + cc.j( unsignedTx ) + "\n" );
-        // }
+        if( opts && opts.isCheckTransactionToSchain ) {
+            unsignedTx = await checkTransactionToSchain( unsignedTx, details, ethersProvider, joAccount );
+            details.write( strLogPrefix + cc.debug( "Checked/mined transaction: " ) + cc.j( unsignedTx ) + "\n" );
+            details.write( strLogPrefix + cc.debug( "Raw transaction, checked for S-chain: " ) + cc.j( unsignedTx ) + "\n" );
+        }
         rawTx = owaspUtils.ethersMod.ethers.utils.serializeTransaction( unsignedTx );
         details.write( strLogPrefix + cc.debug( "Raw transaction: " ) + cc.j( rawTx ) + "\n" );
         txHash = owaspUtils.ethersMod.ethers.utils.keccak256( rawTx );
@@ -1419,28 +1419,60 @@ export async function payed_call(
 export async function checkTransactionToSchain(
     unsignedTx,
     details,
-    ethersProvider
+    ethersProvider,
+    joAccount
 ) {
-    const sender = unsignedTx.from;
-    const requiredBalance = unsignedTx.gasPrice.mul( unsignedTx.gasLimit );
-    const balance = owaspUtils.toBN( await ethersProvider.getBalance( sender ) );
-    if( balance.lt( requiredBalance ) ) {
+    const strLogPrefix = cc.attention( "PoW-mining:" ) + " ";
+    try {
+        const strFromAddress = joAccount.address(); // unsignedTx.from;
+        const requiredBalance = unsignedTx.gasPrice.mul( unsignedTx.gasLimit );
+        const balance = owaspUtils.toBN( await ethersProvider.getBalance( strFromAddress ) );
         details.write(
-            cc.warning( "Insufficient funds for " ) + cc.bright( sender ) +
-            cc.warning( "; Will run " ) + cc.sunny( "PoW" ) + cc.warning( " for mining " ) +
-            cc.bright( unsignedTx.gasLimit.toHexString() ) + cc.warning( " gas" ) +
+            strLogPrefix +
+            cc.debug( "Will check whether PoW-mining is needed for sender " ) + cc.notice( strFromAddress ) +
+            cc.debug( " with balance " ) + cc.info( balance.toHexString() ) +
+            cc.debug( " using required balance " ) + cc.info( requiredBalance.toHexString() ) +
+            cc.debug( ", gas limit is " ) + cc.info( unsignedTx.gasLimit.toHexString() ) +
+            cc.debug( " gas, checked unsigned transaction is " ) + cc.j( unsignedTx ) +
             "\n" );
-        const powNumber = await calculatePowNumber( sender, unsignedTx.nonce.toString(), unsignedTx.gasLimit.toString(), details );
+        // if( balance.lt( requiredBalance ) ) {
         details.write(
-            cc.warning( "Done, " ) + cc.sunny( "PoW" ) +
-            cc.warning( " number is " ) + cc.bright( powNumber ) +
+            strLogPrefix +
+                cc.warning( "Insufficient funds for " ) + cc.notice( strFromAddress ) + cc.warning( ", will run PoW-mining to get " ) +
+                cc.info( unsignedTx.gasLimit.toHexString() ) + cc.warning( " of gas" ) +
+                "\n" );
+        const powNumber =
+                await calculatePowNumber(
+                    strFromAddress,
+                    owaspUtils.toBN( unsignedTx.nonce ).toHexString(),
+                    unsignedTx.gasLimit.toHexString(),
+                    details,
+                    strLogPrefix
+                );
+        unsignedTx.gasPrice = owaspUtils.toBN( powNumber );
+        if( unsignedTx.gasPrice.eq( owaspUtils.toBN( "0" ) ) )
+            throw new Error( "Failed to compute gas price with PoW-mining" );
+        details.write( strLogPrefix + cc.success( "Done, PoW-mining returned number is " ) + cc.sunny( powNumber ) + "\n" );
+        details.write( strLogPrefix + cc.success( "Finally (after PoW-mining) modified unsigned transaction is " ) + cc.j( unsignedTx ) + "\n" );
+        // } else {
+        //     details.write(
+        //         strLogPrefix +
+        //         cc.success( "Have sufficient funds for " ) + cc.notice( strFromAddress ) +
+        //         cc.success( ", PoW-mining is not needed and will be skipped" ) +
+        //         "\n" );
+        // }
+    } catch ( err ) {
+        details.write(
+            strLogPrefix +
+            cc.fatal( "CRITICAL PoW-mining ERROR(checkTransactionToSchain):" ) + " " +
+            cc.error( "exception occur before PoW-mining, error is:" ) + " " + cc.error( owaspUtils.extract_error_message( err ) ) +
+            cc.error( ", stack is: " ) + "\n" + cc.stack( err.stack ) +
             "\n" );
-        unsignedTx.gasPrice = owaspUtils.toBN( owaspUtils.ensure_starts_with_0x( powNumber ) );
     }
     return unsignedTx;
 }
 
-export async function calculatePowNumber( address, nonce, gas, details ) {
+export async function calculatePowNumber( address, nonce, gas, details, strLogPrefix ) {
     try {
         let _address = owaspUtils.ensure_starts_with_0x( address );
         _address = ethereumjs_util.toChecksumAddress( _address );
@@ -1449,17 +1481,18 @@ export async function calculatePowNumber( address, nonce, gas, details ) {
         const _gas = owaspUtils.parseIntOrHex( gas );
         const powScriptPath = path.join( __dirname, "pow" );
         const cmd = `${powScriptPath} ${_address} ${_nonce} ${_gas}`;
-        return await execShellCommand( cmd );
+        details.write( strLogPrefix + cc.debug( "Will run PoW-mining command: " ) + cc.notice( cmd ) + "\n" );
+        const res = await execShellCommand( cmd );
+        details.write( strLogPrefix + cc.debug( "Got PoW-mining execution result: " ) + cc.notice( res ) + "\n" );
+        return res;
     } catch ( err ) {
-        const strError = owaspUtils.extract_error_message( err );
-        if( verbose_get() >= RV_VERBOSE().fatal ) {
-            details.write(
-                cc.fatal( "CRITICAL POW ERROR:" ) + " " +
-                cc.error( "exception occur during PoW, error information is:" ) + " " + cc.error( strError ) +
-                cc.error( ", stack is: " ) + "\n" + cc.stack( err.stack ) +
-                "\n" );
-        }
-        return 0;
+        details.write(
+            strLogPrefix +
+            cc.fatal( "CRITICAL PoW-mining ERROR(calculatePowNumber):" ) + " " +
+            cc.error( "exception occur during PoW-mining, error is:" ) + " " + cc.error( owaspUtils.extract_error_message( err ) ) +
+            cc.error( ", stack is: " ) + "\n" + cc.stack( err.stack ) +
+            "\n" );
+        throw err;
     }
 }
 
@@ -5814,12 +5847,13 @@ export class TransactionCustomizer {
                 callOpts.gasLimit = owaspUtils.toBN( gasValueRecommended ).toHexString();
             if( weiHowMuch )
                 callOpts.value = owaspUtils.toBN( weiHowMuch ).toHexString();
-            // estimatedGas = await joContract.estimateGas[strMethodName]( ...arrArguments, callOpts );
-            // details.write( strLogPrefix + cc.success( "estimate-gas success: " ) + cc.j( estimatedGas ) + "\n" );
+            estimatedGas = await joContract.estimateGas[strMethodName]( ...arrArguments, callOpts );
+            details.write( strLogPrefix + cc.success( "estimate-gas success: " ) + cc.j( estimatedGas ) + "\n" );
         } catch ( err ) {
             const strError = owaspUtils.extract_error_message( err );
             details.write(
-                strLogPrefix + cc.error( "estimate-gas error: " ) + cc.warning( strError ) +
+                strLogPrefix + cc.error( "Estimate-gas error: " ) + cc.warning( strError ) +
+                cc.error( ", default recommended gas value will be used instead of estimated" ) +
                 cc.error( ", stack is: " ) + "\n" + cc.stack( err.stack ) +
                 "\n" );
         }
