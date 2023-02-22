@@ -147,7 +147,7 @@ const imaState = {
                 "strBlsKeyName": owaspUtils.toStringURL( process.env.BLS_KEY_ETHEREUM )
             },
             "transactionCustomizer": IMA.get_tc_main_net(),
-            "w3": null,
+            "ethersProvider": null,
             "strURL": owaspUtils.toStringURL( process.env.URL_W3_ETHEREUM || "http://127.0.0.1:8545" ),
             "strChainName": ( process.env.CHAIN_NAME_ETHEREUM || "Mainnet" ).toString().trim(),
             "cid": owaspUtils.toInteger( process.env.CID_ETHEREUM ) || -4,
@@ -177,7 +177,7 @@ const imaState = {
                 "strBlsKeyName": owaspUtils.toStringURL( process.env.BLS_KEY_S_CHAIN )
             },
             "transactionCustomizer": IMA.get_tc_s_chain(),
-            "w3": null,
+            "ethersProvider": null,
             "strURL": owaspUtils.toStringURL( process.env.URL_W3_S_CHAIN || "http://127.0.0.1:15000" ),
             "strChainName": ( process.env.CHAIN_NAME_SCHAIN || "Bob" ).toString().trim(),
             "cid": owaspUtils.toInteger( process.env.CID_SCHAIN ) || -4,
@@ -207,7 +207,7 @@ const imaState = {
                 "strBlsKeyName": owaspUtils.toStringURL( process.env.BLS_KEY_T_CHAIN )
             },
             "transactionCustomizer": IMA.get_tc_t_chain(),
-            "w3": null,
+            "ethersProvider": null,
             "strURL": owaspUtils.toStringURL( process.env.URL_W3_S_CHAIN_TARGET ),
             "strChainName": ( process.env.CHAIN_NAME_SCHAIN_TARGET || "Alice" ).toString().trim(),
             "cid": owaspUtils.toInteger( process.env.CID_SCHAIN_TARGET ) || -4,

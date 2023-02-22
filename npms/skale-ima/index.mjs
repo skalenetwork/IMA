@@ -1223,28 +1223,35 @@ export async function payed_call(
         details.write( strLogPrefix + cc.debug( "Transaction hash: " ) + cc.j( rawTx ) + "\n" );
         switch ( joACI.strType ) {
         case "tm": {
-            const txAdjusted = JSON.parse( JSON.stringify( rawTx ) );
+            const txAdjusted = unsignedTx; // JSON.parse( JSON.stringify( rawTx ) );
+            const arrNamesConvertToHex = [ "gas", "gasLimit", "gasPrice", "value" ];
+            for( let idxName = 0; idxName < arrNamesConvertToHex.length; ++ idxName ) {
+                const strName = arrNamesConvertToHex[idxName];
+                if( strName in txAdjusted &&
+                    typeof txAdjusted[strName] == "object" &&
+                    typeof txAdjusted[strName].toHexString == "function"
+                )
+                    txAdjusted[strName] = txAdjusted[strName].toHexString();
+            }
             if( "chainId" in txAdjusted )
                 delete txAdjusted.chainId;
-            if( "gasLimit" in txAdjusted && ( ! ( "gas" in txAdjusted ) ) ) {
-                txAdjusted.gas = txAdjusted.gasLimit;
+            if( "gasLimit" in txAdjusted )
                 delete txAdjusted.gasLimit;
-            }
             details.write( strLogPrefix + cc.debug( "Adjusted transaction: " ) + cc.j( txAdjusted ) + "\n" );
             if( redis == null )
                 redis = new Redis( joAccount.strTransactionManagerURL );
             const priority = joAccount.tm_priority || 5;
             details.write( strLogPrefix + cc.debug( "TM priority: " ) + cc.j( priority ) + "\n" );
             try {
-                const [ tx_id, joReceiptFromTM ] = await tm_ensure_transaction( details, w3, priority, txAdjusted );
+                const [ tx_id, joReceiptFromTM ] = await tm_ensure_transaction( details, ethersProvider, priority, txAdjusted );
                 joReceipt = joReceiptFromTM;
-                details.write( strLogPrefix + cc.debug( "TM transaction ID: " ) + cc.j( tx_id ) + "\n" );
+                details.write( strLogPrefix + cc.debug( "ID of TM-transaction : " ) + cc.j( tx_id ) + "\n" );
                 const txHashSent = "" + joReceipt.transactionHash;
-                details.write( strLogPrefix + cc.debug( "TM transaction hash sent: " ) + cc.j( txHashSent ) + "\n" );
+                details.write( strLogPrefix + cc.debug( "Hash of sent TM-transaction: " ) + cc.j( txHashSent ) + "\n" );
             } catch ( err ) {
                 const strError =
                     cc.fatal( "BAD ERROR:" ) + " " +
-                    cc.error( "TM - transaction was not sent, underlying error is: " ) +
+                    cc.error( "TM-transaction was not sent, underlying error is: " ) +
                     cc.warning( err.toString() );
                 details.write( strLogPrefix + strError + "\n" );
                 log.write( strLogPrefix + strError + "\n" );
@@ -1302,13 +1309,10 @@ export async function payed_call(
                         const v = owaspUtils.parseIntOrHex( owaspUtils.toBN( joOut.result.signature_v ).toString() );
                         // const recoveryParam = 1 - ( v % 2 );
                         const joExpanded = {
-                            // "v": Buffer.from( parseIntOrHex( joOut.result.signature_v ).toString( "hex" ), "utf8" ),
-                            // "r": Buffer.from( "" + joOut.result.signature_r, "utf8" ),
-                            // "s": Buffer.from( "" + joOut.result.signature_s, "utf8" )
                             "v": v,
                             "r": joOut.result.signature_r,
-                            "s": joOut.result.signature_s //,
-                            //"recoveryParam": recoveryParam
+                            "s": joOut.result.signature_s
+                            //, "recoveryParam": recoveryParam
                         };
                         details.write( strLogPrefix + cc.debug( "Preliminary expanded signature: " ) + cc.j( joExpanded ) + "\n" );
                         //
@@ -1381,7 +1385,7 @@ export async function payed_call(
             " method: " + owaspUtils.extract_error_message( err )
         );
     }
-    details.write( strLogPrefix + cc.success( "Done, TX was " ) + cc.attention( joACI ? joACI.strType : "N/A" ) + cc.success( "-signed-and-sent." ) + "\n" );
+    details.write( strLogPrefix + cc.success( "Done, TX was " ) + cc.attention( joACI ? joACI.strType : "N/A" ) + cc.success( "-signed-and-sent, receipt is " ) + cc.j( joReceipt ) + "\n" );
     try {
         const bnGasSpent = owaspUtils.toBN( joReceipt.cumulativeGasUsed );
         const gasSpent = bnGasSpent.toString();
@@ -1518,8 +1522,7 @@ async function tm_send( details, tx, priority = 5 ) {
     const score = tm_make_score( priority );
     const record = tm_make_record( tx, score );
     details.write( cc.debug( "TM - Sending score: " ) + cc.info( score ) + cc.debug( ", record: " ) + cc.info( record ) + "\n" );
-    expiration = 24 * 60 * 60; // 1 day;
-
+    const expiration = 24 * 60 * 60; // 1 day;
     await redis.multi()
         .set( id, record, "EX", expiration )
         .zadd( g_tm_pool, score, id )
@@ -1540,7 +1543,7 @@ async function tm_get_record( txId ) {
     return null;
 }
 
-async function tm_wait( details, txId, w3, nWaitSeconds = 36000 ) {
+async function tm_wait( details, txId, ethersProvider, nWaitSeconds = 36000 ) {
     const strPrefixDetails = cc.debug( "(gathered details)" ) + " ";
     const strPrefixLog = cc.debug( "(immediate log)" ) + " ";
     let strMsg =
@@ -1572,7 +1575,7 @@ async function tm_wait( details, txId, w3, nWaitSeconds = 36000 ) {
         log.write( cc.error( "TM - TX " ) + cc.info( txId ) + cc.error( " was unsuccessful, wait failed" ) + "\n" );
         return null;
     }
-    const joReceipt = await safe_getTransactionReceipt( details, 10, w3, r.tx_hash );
+    const joReceipt = await safe_getTransactionReceipt( details, 10, ethersProvider, r.tx_hash );
     if( !joReceipt ) {
         strMsg = cc.error( "TM - TX " ) + cc.info( txId ) + cc.error( " was unsuccessful, failed to fetch transaction receipt" );
         details.write( strPrefixDetails + strMsg + "\n" );
@@ -1585,7 +1588,7 @@ async function tm_wait( details, txId, w3, nWaitSeconds = 36000 ) {
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-async function tm_ensure_transaction( details, w3, priority, txAdjusted, cntAttempts, sleepMilliseconds ) {
+async function tm_ensure_transaction( details, ethersProvider, priority, txAdjusted, cntAttempts, sleepMilliseconds ) {
     cntAttempts = cntAttempts || 1;
     sleepMilliseconds = sleepMilliseconds || ( 30 * 1000 );
     let txId = "";
@@ -1599,7 +1602,7 @@ async function tm_ensure_transaction( details, w3, priority, txAdjusted, cntAtte
         strMsg = cc.debug( "TM - next TX " ) + cc.info( txId );
         details.write( strPrefixDetails + strMsg + "\n" );
         log.write( strPrefixLog + strMsg + "\n" );
-        joReceipt = await tm_wait( details, txId, w3 );
+        joReceipt = await tm_wait( details, txId, ethersProvider );
         if( joReceipt )
             break;
         strMsg =
@@ -1693,7 +1696,7 @@ export async function invoke_has_chain(
 
 export async function wait_for_has_chain(
     details,
-    w3, // Main-Net or S-Chin
+    ethersProvider, // Main-Net or S-Chin
     jo_linker, // Main-Net or S-Chin
     joAccount, // Main-Net or S-Chin
     chain_id_s_chain,
@@ -1705,7 +1708,7 @@ export async function wait_for_has_chain(
     if( nSleepMilliseconds == null || nSleepMilliseconds == undefined )
         nSleepMilliseconds = 5;
     for( let idxWaitAttempts = 0; idxWaitAttempts < cntWaitAttempts; ++ idxWaitAttempts ) {
-        if( await invoke_has_chain( details, w3, jo_linker, joAccount, chain_id_s_chain ) )
+        if( await invoke_has_chain( details, ethersProvider, jo_linker, joAccount, chain_id_s_chain ) )
             return true;
         details.write( cc.normal( "Sleeping " ) + cc.info( nSleepMilliseconds ) + cc.normal( " milliseconds..." ) + "\n" );
         await sleep( nSleepMilliseconds );
@@ -5895,7 +5898,7 @@ export async function balanceETH(
 
 export async function balanceERC20(
     isMainNet,
-    w3,
+    ethersProvider,
     cid,
     joAccount,
     strCoinName,
@@ -5903,13 +5906,13 @@ export async function balanceERC20(
 ) {
     strLogPrefix = cc.info( "balanceERC20() call" ) + " ";
     try {
-        if( ! ( w3 && joAccount && strCoinName && joABI && ( strCoinName + "_abi" ) in joABI && ( strCoinName + "_address" ) in joABI ) )
+        if( ! ( ethersProvider && joAccount && strCoinName && joABI && ( strCoinName + "_abi" ) in joABI && ( strCoinName + "_address" ) in joABI ) )
             return "<no-data>";
         const strAddress = joAccount.address();
         const contractERC20 = new owaspUtils.ethersMod.ethers.Contract(
             joABI[strCoinName + "_address"],
             joABI[strCoinName + "_abi"],
-            w3
+            ethersProvider
         );
         const balance = await contractERC20.callStatic.balanceOf( strAddress, { from: strAddress } );
         return balance;
@@ -5923,7 +5926,7 @@ export async function balanceERC20(
 
 export async function ownerOfERC721(
     isMainNet,
-    w3,
+    ethersProvider,
     cid,
     joAccount,
     strCoinName,
@@ -5932,13 +5935,13 @@ export async function ownerOfERC721(
 ) {
     strLogPrefix = cc.info( "ownerOfERC721() call" ) + " ";
     try {
-        if( ! ( w3 && joAccount && strCoinName && joABI && ( strCoinName + "_abi" ) in joABI && ( strCoinName + "_address" ) in joABI ) )
+        if( ! ( ethersProvider && joAccount && strCoinName && joABI && ( strCoinName + "_abi" ) in joABI && ( strCoinName + "_address" ) in joABI ) )
             return "<no-data>";
         const strAddress = joAccount.address();
         const contractERC721 = owaspUtils.ethersMod.ethers.Contract(
             joABI[strCoinName + "_address"],
             joABI[strCoinName + "_abi"],
-            w3
+            ethersProvider
         );
         const owner = await contractERC721.callStatic.ownerOf( idToken, { from: strAddress } );
         return owner;
@@ -5952,7 +5955,7 @@ export async function ownerOfERC721(
 
 export async function balanceERC1155(
     isMainNet,
-    w3,
+    ethersProvider,
     cid,
     joAccount,
     strCoinName,
@@ -5961,13 +5964,13 @@ export async function balanceERC1155(
 ) {
     strLogPrefix = cc.info( "balanceERC1155() call" ) + " ";
     try {
-        if( ! ( w3 && joAccount && strCoinName && joABI && ( strCoinName + "_abi" ) in joABI && ( strCoinName + "_address" ) in joABI ) )
+        if( ! ( ethersProvider && joAccount && strCoinName && joABI && ( strCoinName + "_abi" ) in joABI && ( strCoinName + "_address" ) in joABI ) )
             return "<no-data>";
         const strAddress = joAccount.address();
         const contractERC1155 = new owaspUtils.ethersMod.ethers.Contract(
             joABI[strCoinName + "_address"],
             joABI[strCoinName + "_abi"],
-            w3
+            ethersProvider
         );
         const balance = await contractERC1155.callStatic.balanceOf( strAddress, idToken, { from: strAddress } );
         return balance;
@@ -5980,7 +5983,7 @@ export async function balanceERC1155(
 }
 
 export async function mintERC20(
-    w3,
+    ethersProvider,
     cid,
     chainName,
     joAccount,
@@ -5995,7 +5998,7 @@ export async function mintERC20(
     const details = log.createMemoryStream();
     try {
         details.write( strLogPrefix + cc.debug( "Mint " ) + cc.info( "ERC20" ) + cc.debug( " token amount " ) + cc.notice( nAmount ) + "\n" );
-        if( ! ( w3 &&
+        if( ! ( ethersProvider &&
             joAccount &&
             strAddressMintTo && typeof strAddressMintTo == "string" && strAddressMintTo.length > 0 &&
             strTokenContractAddress && typeof strTokenContractAddress == "string" && strTokenContractAddress.length > 0 &&
@@ -6006,7 +6009,7 @@ export async function mintERC20(
         const contract = new owaspUtils.ethersMod.ethers.Contract(
             strTokenContractAddress,
             joTokenContractABI,
-            w3
+            ethersProvider
         );
         const arrArguments_mint = [
             strAddressMintTo,
@@ -6071,7 +6074,7 @@ export async function mintERC20(
 }
 
 export async function mintERC721(
-    w3,
+    ethersProvider,
     cid,
     chainName,
     joAccount,
@@ -6086,7 +6089,7 @@ export async function mintERC721(
     const details = log.createMemoryStream();
     try {
         details.write( strLogPrefix + cc.debug( "Mint " ) + cc.info( "ERC721" ) + cc.debug( " token ID " ) + cc.notice( idToken ) + "\n" );
-        if( ! ( w3 &&
+        if( ! ( ethersProvider &&
             joAccount &&
             strAddressMintTo && typeof strAddressMintTo == "string" && strAddressMintTo.length > 0 &&
             strTokenContractAddress && typeof strTokenContractAddress == "string" && strTokenContractAddress.length > 0 &&
@@ -6098,19 +6101,19 @@ export async function mintERC721(
             new owaspUtils.ethersMod.ethers.Contract(
                 strTokenContractAddress,
                 joTokenContractABI,
-                w3
+                ethersProvider
             );
         const arrArguments_mint = [
             strAddressMintTo,
             owaspUtils.ensure_starts_with_0x( owaspUtils.toBN( idToken ).toHexString() )
         ];
         const weiHowMuch_mint = undefined;
-        const gasPrice = await tc.computeGasPrice( w3, 200000000000 );
+        const gasPrice = await tc.computeGasPrice( ethersProvider, 200000000000 );
         details.write( strLogPrefix + cc.debug( "Using computed " ) + cc.info( "gasPrice" ) + cc.debug( "=" ) + cc.notice( gasPrice ) + "\n" );
         const estimatedGas_mint =
             await tc.computeGas(
                 details,
-                w3,
+                ethersProvider,
                 "ERC721", contract, "mint", arrArguments_mint,
                 joAccount, strActionName,
                 gasPrice, 10000000, weiHowMuch_mint,
@@ -6122,7 +6125,7 @@ export async function mintERC721(
         const strErrorOfDryRun =
             await dry_run_call(
                 details,
-                w3,
+                ethersProvider,
                 "ERC721", contract, "mint", arrArguments_mint,
                 joAccount, strActionName, isIgnore_mint,
                 gasPrice, estimatedGas_mint, weiHowMuch_mint,
@@ -6137,7 +6140,7 @@ export async function mintERC721(
         const joReceipt =
             await payed_call(
                 details,
-                w3,
+                ethersProvider,
                 "ERC721", contract, "mint", arrArguments_mint,
                 joAccount, strActionName,
                 gasPrice, estimatedGas_mint, weiHowMuch_mint,
@@ -6163,7 +6166,7 @@ export async function mintERC721(
 }
 
 export async function mintERC1155(
-    w3,
+    ethersProvider,
     cid,
     chainName,
     joAccount,
@@ -6179,7 +6182,7 @@ export async function mintERC1155(
     const details = log.createMemoryStream();
     try {
         details.write( strLogPrefix + cc.debug( "Mint " ) + cc.info( "ERC1155" ) + cc.debug( " token ID " ) + cc.notice( idToken ) + cc.debug( " token amount " ) + cc.notice( nAmount ) + "\n" );
-        if( ! ( w3 &&
+        if( ! ( ethersProvider &&
             joAccount &&
             strAddressMintTo && typeof strAddressMintTo == "string" && strAddressMintTo.length > 0 &&
             strTokenContractAddress && typeof strTokenContractAddress == "string" && strTokenContractAddress.length > 0 &&
@@ -6191,7 +6194,7 @@ export async function mintERC1155(
             new owaspUtils.ethersMod.ethers.Contract(
                 strTokenContractAddress,
                 joTokenContractABI,
-                w3
+                ethersProvider
             );
         const arrArguments_mint = [
             strAddressMintTo,
@@ -6200,12 +6203,12 @@ export async function mintERC1155(
             [] // data
         ];
         const weiHowMuch_mint = undefined;
-        const gasPrice = await tc.computeGasPrice( w3, 200000000000 );
+        const gasPrice = await tc.computeGasPrice( ethersProvider, 200000000000 );
         details.write( strLogPrefix + cc.debug( "Using computed " ) + cc.info( "gasPrice" ) + cc.debug( "=" ) + cc.notice( gasPrice ) + "\n" );
         const estimatedGas_mint =
             await tc.computeGas(
                 details,
-                w3,
+                ethersProvider,
                 "ERC1155", contract, "mint", arrArguments_mint,
                 joAccount, strActionName,
                 gasPrice, 10000000, weiHowMuch_mint,
@@ -6217,7 +6220,7 @@ export async function mintERC1155(
         const strErrorOfDryRun =
             await dry_run_call(
                 details,
-                w3,
+                ethersProvider,
                 "ERC1155", contract, "mint", arrArguments_mint,
                 joAccount, strActionName, isIgnore_mint,
                 gasPrice, estimatedGas_mint, weiHowMuch_mint,
@@ -6232,7 +6235,7 @@ export async function mintERC1155(
         const joReceipt =
             await payed_call(
                 details,
-                w3,
+                ethersProvider,
                 "ERC1155", contract, "mint", arrArguments_mint,
                 joAccount, strActionName,
                 gasPrice, estimatedGas_mint, weiHowMuch_mint,
@@ -6258,7 +6261,7 @@ export async function mintERC1155(
 }
 
 export async function burnERC20(
-    w3,
+    ethersProvider,
     cid,
     chainName,
     joAccount,
@@ -6273,7 +6276,7 @@ export async function burnERC20(
     const details = log.createMemoryStream();
     try {
         details.write( strLogPrefix + cc.debug( "Burn " ) + cc.info( "ERC20" ) + cc.debug( " token amount " ) + cc.notice( nAmount ) + "\n" );
-        if( ! ( w3 &&
+        if( ! ( ethersProvider &&
             joAccount &&
             strAddressBurnFrom && typeof strAddressBurnFrom == "string" && strAddressBurnFrom.length > 0 &&
             strTokenContractAddress && typeof strTokenContractAddress == "string" && strTokenContractAddress.length > 0 &&
@@ -6285,7 +6288,7 @@ export async function burnERC20(
             new owaspUtils.ethersMod.ethers.Contract(
                 strTokenContractAddress,
                 joTokenContractABI,
-                w3
+                ethersProvider
             );
         const arrArguments_burn = [
             strAddressBurnFrom,
@@ -6350,7 +6353,7 @@ export async function burnERC20(
 }
 
 export async function burnERC721(
-    w3,
+    ethersProvider,
     cid,
     chainName,
     joAccount,
@@ -6365,7 +6368,7 @@ export async function burnERC721(
     const details = log.createMemoryStream();
     try {
         details.write( strLogPrefix + cc.debug( "Burn " ) + cc.info( "ERC721" ) + cc.debug( " token ID " ) + cc.notice( idToken ) + "\n" );
-        if( ! ( w3 &&
+        if( ! ( ethersProvider &&
             joAccount &&
             //strAddressBurnFrom && typeof strAddressBurnFrom == "string" && strAddressBurnFrom.length > 0 &&
             strTokenContractAddress && typeof strTokenContractAddress == "string" && strTokenContractAddress.length > 0 &&
@@ -6377,7 +6380,7 @@ export async function burnERC721(
             new owaspUtils.ethersMod.ethers.Contract(
                 strTokenContractAddress,
                 joTokenContractABI,
-                w3
+                ethersProvider
             );
         const arrArguments_burn = [
             //strAddressBurnFrom,
@@ -6442,7 +6445,7 @@ export async function burnERC721(
 }
 
 export async function burnERC1155(
-    w3,
+    ethersProvider,
     cid,
     chainName,
     joAccount,
@@ -6458,7 +6461,7 @@ export async function burnERC1155(
     const details = log.createMemoryStream();
     try {
         details.write( strLogPrefix + cc.debug( "Burn " ) + cc.info( "ERC1155" ) + cc.debug( " token ID " ) + cc.notice( idToken ) + cc.debug( " token amount " ) + cc.notice( nAmount ) + "\n" );
-        if( ! ( w3 &&
+        if( ! ( ethersProvider &&
             joAccount &&
             strAddressBurnFrom && typeof strAddressBurnFrom == "string" && strAddressBurnFrom.length > 0 &&
             strTokenContractAddress && typeof strTokenContractAddress == "string" && strTokenContractAddress.length > 0 &&
@@ -6470,7 +6473,7 @@ export async function burnERC1155(
             new owaspUtils.ethersMod.ethers.Contract(
                 strTokenContractAddress,
                 joTokenContractABI,
-                w3
+                ethersProvider
             );
         const arrArguments_burn = [
             strAddressBurnFrom,
