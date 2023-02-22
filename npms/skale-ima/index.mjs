@@ -1233,10 +1233,14 @@ export async function payed_call(
                 )
                     txAdjusted[strName] = txAdjusted[strName].toHexString();
             }
-            if( "chainId" in txAdjusted )
-                delete txAdjusted.chainId;
             if( "gasLimit" in txAdjusted )
                 delete txAdjusted.gasLimit;
+            if( "chainId" in txAdjusted )
+                delete txAdjusted.chainId;
+            const { chainId } = await ethersProvider.getNetwork();
+            // if( chainId == "string" )
+            //     chainId = owaspUtils.parseIntOrHex( chainId );
+            txAdjusted.chainId = chainId;
             details.write( strLogPrefix + cc.debug( "Adjusted transaction: " ) + cc.j( txAdjusted ) + "\n" );
             if( redis == null )
                 redis = new Redis( joAccount.strTransactionManagerURL );
@@ -5096,8 +5100,8 @@ export async function do_transfer(
                     destinationContract: joValues.dstContract,
                     to: joValues.to,
                     amount: joValues.amount,
-                    data: joValues.data,
-                    savedBlockNumberForOptimizations: joValues.savedBlockNumberForOptimizations
+                    data: joValues.data //,
+                    // savedBlockNumberForOptimizations: joValues.savedBlockNumberForOptimizations
                 };
                 jarrMessages.push( joMessage );
             } // for( let idxInBlock = 0; nIdxCurrentMsg < nOutMsgCnt && idxInBlock < nTransactionsCountInBlock; ++ nIdxCurrentMsg, ++ idxInBlock, ++cntAccumulatedForBlock )
