@@ -43,6 +43,7 @@ import * as loop from "../../agent/loop.mjs";
 import * as pwa from "../../agent/pwa.mjs";
 import * as rpcCall from "../../agent/rpc-call.mjs";
 import * as state from "../../agent/state.mjs";
+import * as imaUtils from "../../agent/utils.mjs";
 
 const __dirname = path.dirname( url.fileURLToPath( import.meta.url ) );
 
@@ -1435,13 +1436,13 @@ export async function checkTransactionToSchain(
             cc.debug( ", gas limit is " ) + cc.info( unsignedTx.gasLimit.toHexString() ) +
             cc.debug( " gas, checked unsigned transaction is " ) + cc.j( unsignedTx ) +
             "\n" );
-        // if( balance.lt( requiredBalance ) ) {
-        details.write(
-            strLogPrefix +
+        if( balance.lt( requiredBalance ) ) {
+            details.write(
+                strLogPrefix +
                 cc.warning( "Insufficient funds for " ) + cc.notice( strFromAddress ) + cc.warning( ", will run PoW-mining to get " ) +
                 cc.info( unsignedTx.gasLimit.toHexString() ) + cc.warning( " of gas" ) +
                 "\n" );
-        const powNumber =
+            let powNumber =
                 await calculatePowNumber(
                     strFromAddress,
                     owaspUtils.toBN( unsignedTx.nonce ).toHexString(),
@@ -1449,18 +1450,28 @@ export async function checkTransactionToSchain(
                     details,
                     strLogPrefix
                 );
-        unsignedTx.gasPrice = owaspUtils.toBN( powNumber );
-        if( unsignedTx.gasPrice.eq( owaspUtils.toBN( "0" ) ) )
-            throw new Error( "Failed to compute gas price with PoW-mining" );
-        details.write( strLogPrefix + cc.success( "Done, PoW-mining returned number is " ) + cc.sunny( powNumber ) + "\n" );
-        details.write( strLogPrefix + cc.success( "Finally (after PoW-mining) modified unsigned transaction is " ) + cc.j( unsignedTx ) + "\n" );
-        // } else {
-        //     details.write(
-        //         strLogPrefix +
-        //         cc.success( "Have sufficient funds for " ) + cc.notice( strFromAddress ) +
-        //         cc.success( ", PoW-mining is not needed and will be skipped" ) +
-        //         "\n" );
-        // }
+            details.write( strLogPrefix + cc.debug( "Returned PoW-mining number " ) + cc.sunny( powNumber ) + "\n" );
+            powNumber = powNumber.toString().trim();
+            powNumber = imaUtils.replaceAll( powNumber, "\r", "" );
+            powNumber = imaUtils.replaceAll( powNumber, "\n", "" );
+            powNumber = imaUtils.replaceAll( powNumber, "\t", "" );
+            powNumber = powNumber.trim();
+            details.write( strLogPrefix + cc.debug( "Trimmed PoW-mining number is " ) + cc.sunny( powNumber ) + "\n" );
+            if( ! powNumber )
+                throw new Error( "Failed to compute gas price with PoW-mining (1), got empty text" );
+            powNumber = owaspUtils.toBN( owaspUtils.ensure_starts_with_0x( powNumber ) );
+            details.write( strLogPrefix + cc.debug( "BN PoW-mining number is " ) + cc.j( powNumber ) + "\n" );
+            if( powNumber.eq( owaspUtils.toBN( "0" ) ) )
+                throw new Error( "Failed to compute gas price with PoW-mining (2), got zero value" );
+            unsignedTx.gasPrice = powNumber;
+            details.write( strLogPrefix + cc.success( "Success, finally (after PoW-mining) modified unsigned transaction is " ) + cc.j( unsignedTx ) + "\n" );
+        } else {
+            details.write(
+                strLogPrefix +
+                cc.success( "Have sufficient funds for " ) + cc.notice( strFromAddress ) +
+                cc.success( ", PoW-mining is not needed and will be skipped" ) +
+                "\n" );
+        }
     } catch ( err ) {
         details.write(
             strLogPrefix +
@@ -1482,7 +1493,7 @@ export async function calculatePowNumber( address, nonce, gas, details, strLogPr
         const powScriptPath = path.join( __dirname, "pow" );
         const cmd = `${powScriptPath} ${_address} ${_nonce} ${_gas}`;
         details.write( strLogPrefix + cc.debug( "Will run PoW-mining command: " ) + cc.notice( cmd ) + "\n" );
-        const res = await execShellCommand( cmd );
+        const res = child_process.execSync( cmd );
         details.write( strLogPrefix + cc.debug( "Got PoW-mining execution result: " ) + cc.notice( res ) + "\n" );
         return res;
     } catch ( err ) {
@@ -5888,21 +5899,6 @@ export function get_tc_t_chain() {
         return g_tc_t_chain;
     g_tc_t_chain = new TransactionCustomizer( null, 1.25 );
     return g_tc_t_chain;
-}
-
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-export function execShellCommand( cmd ) {
-    const exec = child_process.exec;
-    return new Promise( ( resolve, reject ) => {
-        exec( cmd, ( error, stdout, stderr ) => {
-            if( error )
-                reject( new Error( stderr ) );
-            else
-                resolve( stdout ? stdout : stderr );
-        } );
-    } );
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
