@@ -885,7 +885,7 @@ async function do_sign_messages_impl(
     };
     const arrSignResults = [];
     let cntSuccess = 0;
-    let details = log.createMemoryStream( true );
+    let details = log.createMemoryStream();
     const strGatheredDetailsName = strDirection + "-" + "do_sign_messages_impl-#" + nTransferLoopCounter +
         "-" + strFromChainName + "-msg#" + nIdxCurrentMsgBlockStart;
     try {
@@ -1722,7 +1722,7 @@ export async function do_verify_ready_hash( strMessageHash, nZeroBasedNodeIndex,
     const imaState = state.get();
     const strDirection = "RAW";
     const strLogPrefix = cc.bright( strDirection ) + cc.debug( "/" ) + cc.info( "BLS" ) + cc.debug( "/" ) + cc.notice( "#" ) + cc.bright( nZeroBasedNodeIndex ) + cc.debug( ":" ) + " ";
-    const details = log.createMemoryStream( true );
+    const details = log.createMemoryStream();
     let isSuccess = false;
     const joPublicKey = discover_public_key_by_index( nZeroBasedNodeIndex, imaState.joSChainNetworkInfo );
     const arrTmp = signature.signatureShare.split( ":" );
@@ -1787,7 +1787,7 @@ export async function do_verify_ready_hash( strMessageHash, nZeroBasedNodeIndex,
 export async function do_sign_ready_hash( strMessageHash ) {
     const imaState = state.get();
     const strLogPrefix = "";
-    const details = log.createMemoryStream( true );
+    const details = log.createMemoryStream();
     let joSignResult = null;
     try {
         const nThreshold = discover_bls_threshold( imaState.joSChainNetworkInfo );
@@ -1901,7 +1901,7 @@ export async function do_sign_ready_hash( strMessageHash ) {
 export async function handle_skale_imaVerifyAndSign( joCallData ) {
     const imaState = state.get();
     const strLogPrefix = "";
-    const details = log.createMemoryStream( true );
+    const details = log.createMemoryStream();
     const joRetVal = { };
     let isSuccess = false;
     try {
@@ -2089,7 +2089,7 @@ export async function handle_skale_imaVerifyAndSign( joCallData ) {
 export async function handle_skale_imaBSU256( joCallData ) {
     const imaState = state.get();
     const strLogPrefix = "";
-    const details = log.createMemoryStream( true );
+    const details = log.createMemoryStream();
     const joRetVal = { };
     let isSuccess = false;
     try {

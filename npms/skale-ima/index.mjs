@@ -4832,7 +4832,7 @@ export async function do_transfer(
     const strGatheredDetailsName_a_colored = "" + cc.bright( strDirection ) + cc.debug( "-" ) +
         cc.info( "do_transfer-A-" ) + cc.debug( "-" ) + cc.notice( "#" ) + cc.note( nTransferLoopCounter ) +
         cc.debug( "-" ) + cc.notice( chain_id_src ) + cc.debug( "-->" ) + cc.notice( chain_id_dst );
-    const details = log.createMemoryStream( true );
+    const details = imaState.isDynamicLogInDoTransfer ? log : log.createMemoryStream( true );
     const jarrReceipts = [];
     let bErrorInSigningMessages = false;
     const strLogPrefix = cc.bright( strDirection ) + cc.info( " transfer from " ) + cc.notice( chain_id_src ) + cc.info( " to " ) + cc.notice( chain_id_dst ) + cc.info( ":" ) + " ";
@@ -4874,12 +4874,14 @@ export async function do_transfer(
             nOutMsgCnt = owaspUtils.toInteger( nPossibleIntegerValue );
             details.write( strLogPrefix + cc.debug( "Result of " ) + cc.notice( strActionName ) + cc.debug( " call: " ) + cc.info( nOutMsgCnt ) + "\n" );
         } catch ( err ) {
-            log.write( cc.fatal( "IMMEDIATE ERROR LOG:" ) +
+            const strError = cc.fatal( "IMMEDIATE ERROR LOG:" ) +
                 cc.error( " error caught during " ) + cc.attention( strActionName ) +
                 cc.error( ", error details: " ) + cc.warning( owaspUtils.extract_error_message( err ) ) +
                 cc.error( ", stack is: " ) + "\n" + cc.stack( err.stack ) +
-                "\n"
-            );
+                "\n";
+            details.write( strError );
+            if( log.id != details.id )
+                log.write( strError );
         }
         //
         strActionName = "dst-chain.MessageProxy.getIncomingMessagesCounter()";
@@ -4925,10 +4927,13 @@ export async function do_transfer(
         while( nIdxCurrentMsg < nOutMsgCnt ) {
             if( nStepsDone > nTransferSteps ) {
                 if( verbose_get() >= RV_VERBOSE().information ) {
-                    log.write(
+                    const strWarning =
                         strLogPrefix + cc.warning( "WARNING:" ) + " " +
                         cc.warning( "Transfer step count overflow" ) +
-                        "\n" );
+                        "\n";
+                    details.write( strWarning );
+                    if( log.id != details.id )
+                        log.write( strWarning );
                 }
                 details.close();
                 save_transfer_success_all();
@@ -4943,10 +4948,13 @@ export async function do_transfer(
                 "\n" );
             if( ! loop.check_time_framing( null, strDirection, joRuntimeOpts ) ) {
                 if( verbose_get() >= RV_VERBOSE().information ) {
-                    log.write(
+                    const strWarning =
                         strLogPrefix + cc.warning( "WARNING:" ) + " " +
                         cc.warning( "Time framing overflow (after entering block former iteration loop)" ) +
-                        "\n" );
+                        "\n";
+                    details.write( strWarning );
+                    if( log.id != details.id )
+                        log.write( strWarning );
                 }
                 details.close();
                 save_transfer_success_all();
@@ -5030,9 +5038,10 @@ export async function do_transfer(
                     }
                 }
                 if( joValues == "" ) {
-                    const strError = strLogPrefix + cc.fatal( "CRITICAL ERROR:" ) + " " + cc.error( "Can't get events from MessageProxy" );
-                    log.write( strError + "\n" );
-                    details.write( strError + "\n" );
+                    const strError = strLogPrefix + cc.fatal( "CRITICAL ERROR:" ) + " " + cc.error( "Can't get events from MessageProxy" ) + "\n";
+                    details.write( strError );
+                    if( log.id != details.id )
+                        log.write( strError );
                     details.exposeDetailsTo( log, strGatheredDetailsName_a, false );
                     save_transfer_error( strTransferErrorCategoryName, details.toString() );
                     details.close();
@@ -5059,12 +5068,13 @@ export async function do_transfer(
                     } catch ( err ) {
                         bSecurityCheckPassed = false;
                         const strError = owaspUtils.extract_error_message( err );
-                        const s = strLogPrefix + cc.fatal( "CRITICAL ERROR:" ) +
-                             cc.error( " Exception(evaluate block depth) while getting transaction hash and block number during " +
+                        const s =
+                            strLogPrefix + cc.fatal( "CRITICAL ERROR:" ) +
+                            cc.error( " Exception(evaluate block depth) while getting transaction hash and block number during " +
                             strActionName + ": " ) + cc.error( strError ) + cc.error( ", stack is: " ) + "\n" + cc.stack( err.stack ) + "\n";
-                        if( verbose_get() >= RV_VERBOSE().fatal )
-                            log.write( s );
                         details.write( s );
+                        if( log.id != details.id )
+                            log.write( s );
                         details.exposeDetailsTo( log, strGatheredDetailsName_a, false );
                         save_transfer_error( strTransferErrorCategoryName, details.toString() );
                         details.close();
@@ -5073,9 +5083,9 @@ export async function do_transfer(
                     strActionName = "" + strActionName_old;
                     if( !bSecurityCheckPassed ) {
                         const s = strLogPrefix + cc.warning( "Block depth check was not passed, canceling search for transfer events" ) + "\n";
-                        if( verbose_get() >= RV_VERBOSE().debug )
-                            log.write( s );
                         details.write( s );
+                        if( log.id != details.id )
+                            log.write( s );
                         break;
                     }
                 } // if( nBlockAwaitDepth > 0 )
@@ -5109,9 +5119,9 @@ export async function do_transfer(
                         const s = strLogPrefix + cc.fatal( "CRITICAL ERROR:" ) +
                             cc.error( " Exception(evaluate block age) while getting block number and timestamp during " +
                             strActionName + ": " ) + cc.error( strError ) + cc.error( ", stack is: " ) + "\n" + cc.stack( err.stack ) + "\n";
-                        if( verbose_get() >= RV_VERBOSE().fatal )
-                            log.write( s );
                         details.write( s );
+                        if( log.id != details.id )
+                            log.write( s );
                         details.exposeDetailsTo( log, strGatheredDetailsName_a, false );
                         save_transfer_error( strTransferErrorCategoryName, details.toString() );
                         details.close();
@@ -5152,12 +5162,13 @@ export async function do_transfer(
             if( cntAccumulatedForBlock == 0 )
                 break;
             if( ! loop.check_time_framing( null, strDirection, joRuntimeOpts ) ) {
-                if( verbose_get() >= RV_VERBOSE().information ) {
-                    log.write(
-                        strLogPrefix + cc.warning( "WARNING:" ) + " " +
-                        cc.warning( "Time framing overflow (after forming block of messages)" ) +
-                        "\n" );
-                }
+                const strWarning =
+                    strLogPrefix + cc.warning( "WARNING:" ) + " " +
+                    cc.warning( "Time framing overflow (after forming block of messages)" ) +
+                    "\n";
+                details.write( strWarning );
+                if( log.id != details.id )
+                    log.write( strWarning );
                 details.close();
                 save_transfer_success_all();
                 return false;
@@ -5285,7 +5296,7 @@ export async function do_transfer(
                                     cc.error( ", stack is: " ) + "\n" + cc.stack( err.stack ) +
                                     "\n";
                                 details.write( strError );
-                                if( verbose_get() >= RV_VERBOSE().fatal )
+                                if( log.id != details.id )
                                     log.write( strError );
                                 // details.exposeDetailsTo( log, strGatheredDetailsName_a, false );
                                 // save_transfer_error( strTransferErrorCategoryName, details.toString() );
@@ -5306,7 +5317,7 @@ export async function do_transfer(
                                     cc.info( jo_node.name ) + cc.success( " using URL " ) + cc.info( jo_node.http_endpoint_ip ) +
                                     cc.error( " is failed" ) + "\n"; ;
                                 details.write( strError );
-                                if( verbose_get() >= RV_VERBOSE().fatal )
+                                if( log.id != details.id )
                                     log.write( strError );
                             }
                             if( cntFailedNodes > cntNodesMayFail )
@@ -5328,7 +5339,7 @@ export async function do_transfer(
                             cc.error( ", stack is: " ) + "\n" + cc.stack( err.stack ) +
                             "\n";
                         details.write( strError );
-                        if( verbose_get() >= RV_VERBOSE().fatal )
+                        if( log.id != details.id )
                             log.write( strError );
                     }
                     if( cntFailedNodes > cntNodesMayFail ) {
@@ -5337,9 +5348,9 @@ export async function do_transfer(
                             cc.error( " messages, failed node count " ) + cc.info( cntFailedNodes ) +
                             cc.error( " is greater then allowed to fail " ) + cc.info( cntNodesMayFail ) +
                             "\n";
-                        if( verbose_get() >= RV_VERBOSE().fatal )
-                            log.write( s );
                         details.write( s );
+                        if( log.id != details.id )
+                            log.write( s );
                         details.exposeDetailsTo( log, strGatheredDetailsName_a, false );
                         save_transfer_error( strTransferErrorCategoryName, details.toString() );
                         details.close();
@@ -5351,9 +5362,9 @@ export async function do_transfer(
                             cc.error( " messages, passed node count " ) + cc.info( cntFailedNodes ) +
                             cc.error( " is less then needed count " ) + cc.info( cntNodesShouldPass ) +
                             "\n";
-                        if( verbose_get() >= RV_VERBOSE().fatal )
-                            log.write( s );
                         details.write( s );
+                        if( log.id != details.id )
+                            log.write( s );
                         details.exposeDetailsTo( log, strGatheredDetailsName_a, false );
                         save_transfer_error( strTransferErrorCategoryName, details.toString() );
                         details.close();
@@ -5366,17 +5377,15 @@ export async function do_transfer(
             //
             //
             strActionName = "sign messages";
-            details.write( strLogPrefix +
+            const strWillInvokeSigningCallbackMessage =
+                strLogPrefix +
                 cc.debug( "Will invoke message signing callback, first real message index is: " ) +
                 cc.info( nIdxCurrentMsgBlockStart ) + cc.info( jarrMessages.length ) +
                 cc.debug( " message(s) to process: " ) + cc.j( jarrMessages ) +
-                "\n" );
-            log.write( strLogPrefix +
-                cc.debug( "Will invoke message signing callback, first real message index is: " ) +
-                cc.info( nIdxCurrentMsgBlockStart ) + cc.info( jarrMessages.length ) +
-                cc.debug( " message(s) to process: " ) + cc.j( jarrMessages ) +
-                "\n" );
-            let detailsB = log.createMemoryStream( true );
+                "\n";
+            details.write( strWillInvokeSigningCallbackMessage );
+            if( log.id != details.id )
+                log.write( strWillInvokeSigningCallbackMessage );
             const strGatheredDetailsName_b = "" + strDirection + "-" +
                 "do_transfer-B-#" + nTransferLoopCounter +
                 "-" + chain_id_src + "-->" + chain_id_dst;
@@ -5386,28 +5395,30 @@ export async function do_transfer(
                     jarrMessages, nIdxCurrentMsgBlockStart, chain_id_src,
                     joExtraSignOpts,
                     async function( err, jarrMessages, joGlueResult ) {
-                        detailsB.write( strLogPrefix +
+                        const strDidInvokedSigningCallbackMessage =
+                            strLogPrefix +
                             cc.debug( "Did invoked message signing callback, first real message index is: " ) +
                             cc.info( nIdxCurrentMsgBlockStart ) + cc.info( jarrMessages.length ) +
                             cc.debug( " message(s) to process: " ) + cc.j( jarrMessages ) +
-                            "\n" );
-                        log.write( strLogPrefix + cc.debug( "Did invoked message signing callback, " ) + cc.info( jarrMessages.length ) + cc.debug( " message(s) to process" ) + "\n" );
+                            "\n";
+                        details.write( strDidInvokedSigningCallbackMessage );
+                        if( log.id != details.id )
+                            log.write( strDidInvokedSigningCallbackMessage );
                         if( err ) {
                             bErrorInSigningMessages = true;
                             const strError = owaspUtils.extract_error_message( err );
                             const s = strLogPrefix + cc.fatal( "CRITICAL ERROR:" ) + cc.error( " Error signing messages: " ) + cc.error( strError ) + "\n";
-                            if( verbose_get() >= RV_VERBOSE().fatal )
+                            details.write( s );
+                            if( log.id != details.id )
                                 log.write( s );
-                            detailsB.write( s );
-                            detailsB.exposeDetailsTo( log, strGatheredDetailsName_b, false );
-                            save_transfer_error( strTransferErrorCategoryName, detailsB.toString() );
-                            detailsB.close();
+                            save_transfer_error( strTransferErrorCategoryName, details.toString() );
                             return false;
                         }
                         if( ! loop.check_time_framing( null, strDirection, joRuntimeOpts ) ) {
-                            if( verbose_get() >= RV_VERBOSE().information )
-                                log.write( strLogPrefix + cc.warning( "WARNING:" ) + " " + cc.warning( "Time framing overflow (after signing messages)" ) + "\n" );
-                            detailsB.close();
+                            const strWarning = strLogPrefix + cc.warning( "WARNING:" ) + " " + cc.warning( "Time framing overflow (after signing messages)" ) + "\n";
+                            details.write( strWarning );
+                            if( log.id != details.id )
+                                log.write( strWarning );
                             save_transfer_success_all();
                             return false;
                         }
@@ -5415,13 +5426,15 @@ export async function do_transfer(
                         //
                         const nBlockSize = arrMessageCounters.length;
                         strActionName = "dst-chain.MessageProxy.postIncomingMessages()";
-                        detailsB.write( strLogPrefix +
+                        const strWillCallPostIncomingMessagesAction =
+                            strLogPrefix +
                             cc.debug( "Will call " ) + cc.notice( strActionName ) + cc.debug( " for " ) +
                             cc.notice( "block size" ) + cc.debug( " set to " ) + cc.info( nBlockSize ) +
                             cc.debug( ", " ) + cc.notice( "message counters =" ) + cc.debug( " are " ) + cc.info( JSON.stringify( arrMessageCounters ) ) +
-                            cc.debug( "..." ) + "\n"
-                        );
-                        log.write( strLogPrefix + cc.debug( "Will call " ) + cc.notice( strActionName ) + cc.debug( " for " ) + "\n" );
+                            cc.debug( "..." ) + "\n";
+                        details.write( strWillCallPostIncomingMessagesAction );
+                        if( log.id != details.id )
+                            log.write( strWillCallPostIncomingMessagesAction );
                         //
                         //
                         let signature = joGlueResult ? joGlueResult.signature : null;
@@ -5458,7 +5471,7 @@ export async function do_transfer(
                                 hashPoint.Y, // G1.Y from joGlueResult.hashSrc
                                 hint
                             ];
-                            detailsB.write( strLogPrefix +
+                            details.write( strLogPrefix +
                                 cc.debug( "....debug args for " ) +
                                 cc.notice( "msgCounter" ) + cc.debug( " set to " ) + cc.info( nIdxCurrentMsgBlockStart ) + cc.debug( ": " ) +
                                 cc.j( joDebugArgs ) + "\n" );
@@ -5466,17 +5479,17 @@ export async function do_transfer(
                         strActionName = strDirection + " - Post incoming messages";
                         const weiHowMuch_postIncomingMessages = undefined;
                         const gasPrice = await tc_dst.computeGasPrice( ethersProvider_dst, 200000000000 );
-                        detailsB.write( strLogPrefix + cc.debug( "Using computed " ) + cc.info( "gasPrice" ) + cc.debug( "=" ) + cc.j( gasPrice ) + "\n" );
+                        details.write( strLogPrefix + cc.debug( "Using computed " ) + cc.info( "gasPrice" ) + cc.debug( "=" ) + cc.j( gasPrice ) + "\n" );
                         let estimatedGas_postIncomingMessages =
                             await tc_dst.computeGas(
-                                detailsB,
+                                details,
                                 ethersProvider_dst,
                                 "MessageProxy", jo_message_proxy_dst, "postIncomingMessages", arrArguments_postIncomingMessages,
                                 joAccountDst, strActionName,
                                 gasPrice, 10000000, weiHowMuch_postIncomingMessages,
                                 null
                             );
-                        detailsB.write( strLogPrefix + cc.debug( "Using estimated " ) + cc.info( "gas" ) + cc.debug( "=" ) + cc.notice( estimatedGas_postIncomingMessages ) + "\n" );
+                        details.write( strLogPrefix + cc.debug( "Using estimated " ) + cc.info( "gas" ) + cc.debug( "=" ) + cc.notice( estimatedGas_postIncomingMessages ) + "\n" );
                         if( strDirection == "S2M" ) {
                             const expectedGasLimit = perMessageGasForTransfer * jarrMessages.length + additionalS2MTransferOverhead;
                             estimatedGas_postIncomingMessages = Math.max( estimatedGas_postIncomingMessages, expectedGasLimit );
@@ -5484,7 +5497,7 @@ export async function do_transfer(
                         const isIgnore_postIncomingMessages = false;
                         const strErrorOfDryRun =
                             await dry_run_call(
-                                detailsB,
+                                details,
                                 ethersProvider_dst,
                                 "MessageProxy", jo_message_proxy_dst, "postIncomingMessages", arrArguments_postIncomingMessages,
                                 joAccountDst, strActionName, isIgnore_postIncomingMessages,
@@ -5499,7 +5512,7 @@ export async function do_transfer(
                         };
                         const joReceipt =
                             await payed_call(
-                                detailsB,
+                                details,
                                 ethersProvider_dst,
                                 "MessageProxy", jo_message_proxy_dst, "postIncomingMessages", arrArguments_postIncomingMessages,
                                 joAccountDst, strActionName,
@@ -5522,35 +5535,42 @@ export async function do_transfer(
                         //
                         //
                         //
-                        detailsB.write( strLogPrefix + cc.debug( "Validating transfer from " ) + cc.info( chain_id_src ) + cc.debug( " to " ) + cc.info( chain_id_dst ) + cc.debug( "..." ) + "\n" );
+                        details.write( strLogPrefix + cc.debug( "Validating transfer from " ) + cc.info( chain_id_src ) + cc.debug( " to " ) + cc.info( chain_id_dst ) + cc.debug( "..." ) + "\n" );
                         //
                         // check DepositBox -> Error on Mainnet only
                         //
                         if( chain_id_dst == "Mainnet" ) {
-                            detailsB.write( strLogPrefix + cc.debug( "Validating transfer to Main Net via MessageProxy error absence on Main Net..." ) + "\n" );
+                            details.write( strLogPrefix + cc.debug( "Validating transfer to Main Net via MessageProxy error absence on Main Net..." ) + "\n" );
                             if( jo_deposit_box_main_net ) {
                                 if( joReceipt && "blockNumber" in joReceipt && "transactionHash" in joReceipt ) {
                                     const strEventName = "PostMessageError";
-                                    detailsB.write( strLogPrefix + cc.debug( "Verifying the " ) + cc.info( strEventName ) + cc.debug( " event of the " ) + cc.info( "MessageProxy" ) + cc.debug( "/" ) + cc.notice( jo_message_proxy_dst.address ) + cc.debug( " contract..." ) + "\n" );
+                                    details.write( strLogPrefix + cc.debug( "Verifying the " ) + cc.info( strEventName ) + cc.debug( " event of the " ) + cc.info( "MessageProxy" ) + cc.debug( "/" ) + cc.notice( jo_message_proxy_dst.address ) + cc.debug( " contract..." ) + "\n" );
                                     const joEvents =
                                         await get_contract_call_events(
-                                            detailsB, ethersProvider_dst, jo_message_proxy_dst,
+                                            details, ethersProvider_dst, jo_message_proxy_dst,
                                             strEventName, joReceipt.blockNumber, joReceipt.transactionHash,
                                             jo_message_proxy_dst.filters[strEventName]()
                                         );
                                     if( joEvents.length == 0 )
-                                        detailsB.write( strLogPrefix + cc.success( "Success, verified the " ) + cc.info( strEventName ) + cc.success( " event of the " ) + cc.info( "MessageProxy" ) + cc.success( "/" ) + cc.notice( jo_message_proxy_dst.address ) + cc.success( " contract, no events found" ) + "\n" );
+                                        details.write( strLogPrefix + cc.success( "Success, verified the " ) + cc.info( strEventName ) + cc.success( " event of the " ) + cc.info( "MessageProxy" ) + cc.success( "/" ) + cc.notice( jo_message_proxy_dst.address ) + cc.success( " contract, no events found" ) + "\n" );
                                     else {
-                                        log.write( strLogPrefix + cc.fatal( "CRITICAL ERROR:" ) + cc.warning( " Failed" ) + cc.error( " verification of the " ) + cc.warning( "PostMessageError" ) + cc.error( " event of the " ) + cc.warning( "MessageProxy" ) + cc.error( "/" ) + cc.notice( jo_message_proxy_dst.address ) + cc.error( " contract, found event(s): " ) + cc.j( joEvents ) + "\n" );
-                                        detailsB.write( strLogPrefix + cc.fatal( "CRITICAL ERROR:" ) + cc.warning( " Failed" ) + cc.error( " verification of the " ) + cc.warning( "PostMessageError" ) + cc.error( " event of the " ) + cc.warning( "MessageProxy" ) + cc.error( "/" ) + cc.notice( jo_message_proxy_dst.address ) + cc.error( " contract, found event(s): " ) + cc.j( joEvents ) + "\n" );
-                                        save_transfer_error( strTransferErrorCategoryName, detailsB.toString() );
+                                        const strError =
+                                            strLogPrefix + cc.fatal( "CRITICAL ERROR:" ) +
+                                            cc.warning( " Failed" ) + cc.error( " verification of the " ) + cc.warning( "PostMessageError" ) +
+                                            cc.error( " event of the " ) + cc.warning( "MessageProxy" ) +
+                                            cc.error( "/" ) + cc.notice( jo_message_proxy_dst.address ) + cc.error( " contract, found event(s): " ) +
+                                            cc.j( joEvents ) + "\n";
+                                        details.write( strError );
+                                        if( log.id != details.id )
+                                            log.write( strError );
+                                        save_transfer_error( strTransferErrorCategoryName, details.toString() );
                                         throw new Error( "Verification failed for the \"PostMessageError\" event of the \"MessageProxy\"/" + jo_message_proxy_dst.address + " contract, error events found" );
                                     }
-                                    detailsB.write( strLogPrefix + cc.success( "Done, validated transfer to Main Net via MessageProxy error absence on Main Net" ) + "\n" );
+                                    details.write( strLogPrefix + cc.success( "Done, validated transfer to Main Net via MessageProxy error absence on Main Net" ) + "\n" );
                                 } else
-                                    detailsB.write( strLogPrefix + cc.warning( "WARNING:" ) + " " + cc.warn( "Cannot validate transfer to Main Net via MessageProxy error absence on Main Net, no valid transaction receipt provided" ) + "\n" );
+                                    details.write( strLogPrefix + cc.warning( "WARNING:" ) + " " + cc.warn( "Cannot validate transfer to Main Net via MessageProxy error absence on Main Net, no valid transaction receipt provided" ) + "\n" );
                             } else
-                                detailsB.write( strLogPrefix + cc.warning( "WARNING:" ) + " " + cc.warn( "Cannot validate transfer to Main Net via MessageProxy error absence on Main Net, no MessageProxy provided" ) + "\n" );
+                                details.write( strLogPrefix + cc.warning( "WARNING:" ) + " " + cc.warn( "Cannot validate transfer to Main Net via MessageProxy error absence on Main Net, no MessageProxy provided" ) + "\n" );
                         } // if( chain_id_dst == "Mainnet" )
 
                     } ).catch( ( err ) => { // callback fn as argument of fn_sign_messages
@@ -5558,17 +5578,10 @@ export async function do_transfer(
                     if( verbose_get() >= RV_VERBOSE().fatal ) {
                         const strError = owaspUtils.extract_error_message( err );
                         const strErrorMessage = strLogPrefix + cc.error( "Problem in transfer handler: " ) + cc.warning( strError );
-                        log.write( strErrorMessage + "\n" );
-                        detailsB.write( strErrorMessage + "\n" );
-                        detailsB.exposeDetailsTo( log, strGatheredDetailsName_b, false );
-                        save_transfer_error( strTransferErrorCategoryName, detailsB.toString() );
-                        detailsB.close();
-                        detailsB = null;
-                    }
-                    if( detailsB ) {
-                        if( expose_details_get() )
-                            detailsB.exposeDetailsTo( log, strGatheredDetailsName_b, true );
-                        detailsB.close();
+                        details.write( strErrorMessage + "\n" );
+                        if( log.id != details.id )
+                            log.write( strErrorMessage + "\n" );
+                        save_transfer_error( strTransferErrorCategoryName, details.toString() );
                     }
                 } ); // fn_sign_messages
             } catch ( err ) {
@@ -5577,15 +5590,9 @@ export async function do_transfer(
                     cc.error( " Exception from signing messages function: " ) + cc.error( owaspUtils.extract_error_message( err ) +
                     cc.error( ", stack is: " ) + "\n" + cc.stack( err.stack ) +
                     "\n" );
-                log.write( strError );
                 details.write( strError );
-                if( detailsB )
-                    detailsB.write( strError );
-            }
-            if( detailsB ) {
-                if( expose_details_get() )
-                    detailsB.exposeDetailsTo( log, strGatheredDetailsName_b, true );
-                detailsB.close();
+                if( log.id != details.id )
+                    log.write( strError );
             }
             if( bErrorInSigningMessages )
                 break;
@@ -5597,9 +5604,9 @@ export async function do_transfer(
             cc.error( " during " + strActionName + ": " ) + cc.error( owaspUtils.extract_error_message( err ) ) +
             cc.error( ", stack is: " ) + "\n" + cc.stack( err.stack ) +
             "\n";
-        if( verbose_get() >= RV_VERBOSE().fatal )
-            log.write( strError );
         details.write( strError );
+        if( log.id != details.id )
+            log.write( strError );
         details.exposeDetailsTo( log, strGatheredDetailsName_a, false );
         save_transfer_error( strTransferErrorCategoryName, details.toString() );
         details.close();
@@ -5769,14 +5776,14 @@ export async function do_s2s_all( // s-chain --> s-chain
 export function compose_gas_usage_report_from_array( strName, jarrReceipts ) {
     if( ! ( strName && typeof strName == "string" && jarrReceipts ) )
         return "";
-    let i, sumGasUsed = 0, s = "\n\n" + cc.info( "GAS USAGE REPORT FOR " ) + cc.attention( strName ) + "\n";
+    let i, sumGasUsed = 0, s = "\n" + cc.info( "Gas usage report for " ) + cc.attention( strName ) + "\n";
     for( i = 0; i < jarrReceipts.length; ++ i ) {
         try {
             sumGasUsed += parseInt( jarrReceipts[i].receipt.gasUsed, 10 );
-            s += cc.notice( jarrReceipts[i].description ) + cc.debug( "....." ) + cc.info( jarrReceipts[i].receipt.gasUsed ) + "\n";
+            s += "    " + cc.notice( jarrReceipts[i].description ) + cc.debug( "....." ) + cc.info( jarrReceipts[i].receipt.gasUsed ) + "\n";
         } catch ( err ) { }
     }
-    s += cc.attention( "SUM" ) + cc.debug( "....." ) + cc.info( sumGasUsed ) + "\n\n";
+    s += "    " + cc.attention( "SUM" ) + cc.debug( "....." ) + cc.info( sumGasUsed ) + "\n";
     return s;
 }
 

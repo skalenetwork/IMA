@@ -32,6 +32,7 @@ export function get() {
         "isPrintGathered": true,
         "isPrintSecurityValues": false,
         "isPrintPWA": false,
+        "isDynamicLogInDoTransfer": false,
 
         "bIsNeededCommonInit": true,
         "bSignMessages": false, // use BLS message signing, turned on with --sign-messages
