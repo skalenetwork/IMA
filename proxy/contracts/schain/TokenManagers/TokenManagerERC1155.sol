@@ -214,22 +214,22 @@ contract TokenManagerERC1155 is
      * @dev Allows Schain owner to register an ERC1155 token clone in the token manager.
      */
     function addERC1155TokenByOwner(
-        string calldata targetChainName,
-        address erc1155OnMainnet,
-        address erc1155OnSchain
+        string calldata originChainName,
+        address erc1155OnOriginChain,
+        address newErc1155OnSchain
     )
         external
         override
         onlyTokenRegistrar
     {
-        require(messageProxy.isConnectedChain(targetChainName), "Chain is not connected");
-        require(erc1155OnSchain.isContract(), "Given address is not a contract");
-        bytes32 targetChainHash = keccak256(abi.encodePacked(targetChainName));
-        require(address(clonesErc1155[targetChainHash][erc1155OnMainnet]) == address(0), "Could not relink clone");
-        require(!addedClones[ERC1155OnChain(erc1155OnSchain)], "Clone was already added");
-        clonesErc1155[targetChainHash][erc1155OnMainnet] = ERC1155OnChain(erc1155OnSchain);
-        addedClones[ERC1155OnChain(erc1155OnSchain)] = true;
-        emit ERC1155TokenAdded(targetChainHash, erc1155OnMainnet, erc1155OnSchain);
+        bytes32 originChainHash = keccak256(abi.encodePacked(originChainName));
+        require(messageProxy.isConnectedChain(originChainName), "Chain is not connected");
+        require(newErc1155OnSchain.isContract(), "Given address is not a contract");
+        require(address(clonesErc1155[originChainHash][erc1155OnOriginChain]) == address(0), "Could not relink clone");
+        require(!addedClones[ERC1155OnChain(newErc1155OnSchain)], "Clone was already added");
+        clonesErc1155[originChainHash][erc1155OnOriginChain] = ERC1155OnChain(newErc1155OnSchain);
+        addedClones[ERC1155OnChain(newErc1155OnSchain)] = true;
+        emit ERC1155TokenAdded(originChainHash, erc1155OnOriginChain, newErc1155OnSchain);
     }
 
     /**
