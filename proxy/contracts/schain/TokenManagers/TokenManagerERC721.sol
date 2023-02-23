@@ -167,7 +167,6 @@ contract TokenManagerERC721 is TokenManager, ITokenManagerERC721 {
         onlyTokenRegistrar
     {
         bytes32 originChainHash = keccak256(abi.encodePacked(originChainName));
-        ERC721OnChain erc721OnSchain =  clonesErc721[originChainHash][erc721OnOriginChain];
         require(messageProxy.isConnectedChain(originChainName), "Chain is not connected");
         require(newErc721OnSchain.isContract(), "Given address is not a contract");
         require(address(clonesErc721[originChainHash][erc721OnOriginChain]) == address(0), "Could not relink clone");
