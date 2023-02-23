@@ -213,7 +213,7 @@ export async function handle_loop_state_arrived( imaState, nNodeNumber, strLoopW
                 "\n" );
         }
         const strMessageHash = imaBLS.keccak256_pwa( nNodeNumber, strLoopWorkType, isStart, 0 + ts );
-        const isSignatureOK = await imaBLS.do_verify_ready_hash( strMessageHash, nNodeNumber, signature );
+        const isSignatureOK = await imaBLS.do_verify_ready_hash( strMessageHash, nNodeNumber, signature, imaState.isPrintPWA );
         if( ! isSignatureOK )
             throw new Error( "BLS verification failed" );
         joProps.isInProgress = isStart ? true : false;
@@ -263,7 +263,7 @@ async function notify_on_loop_impl( imaState, strLoopWorkType, nIndexS2S, isStar
         const nUtcUnixTimeStamp = Math.floor( ( new Date() ).getTime() / 1000 );
         //
         const strMessageHash = imaBLS.keccak256_pwa( 0 + imaState.nNodeNumber, strLoopWorkType, isStart, nUtcUnixTimeStamp );
-        const signature = await imaBLS.do_sign_ready_hash( strMessageHash );
+        const signature = await imaBLS.do_sign_ready_hash( strMessageHash, imaState.isPrintPWA );
         await handle_loop_state_arrived( imaState, imaState.nNodeNumber, strLoopWorkType, nIndexS2S, isStart, nUtcUnixTimeStamp, signature ); // save own started
         //
         for( let i = 0; i < jarrNodes.length; ++i ) {

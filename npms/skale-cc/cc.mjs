@@ -1029,34 +1029,38 @@ function err_loc_ln( s, isWithBraces ) {
 export function stack( strIn ) {
     if( ! strIn )
         return strIn;
-    const arr = ( typeof strIn == "string" ) ? strIn.split( "\n" ) : strIn;
-    const cnt = arr.length;
-    let i;
-    for( i = 0; i < cnt; ++ i ) {
-        let s = arr[i].replace( /\s+/g, " " ).trim();
-        if( s.indexOf( "at " ) == 0 ) {
-            // stack entry
-            s = s.substring( 3 );
-            let s2 = "    " + debug( "-->" ) + " ";
-            const n = s.indexOf( " (" );
-            if( n > 0 ) {
-                s2 += err_fn_name( s.substring( 0, n ) );
-                s = s.substring( n + 2 );
-                if( s[s.length - 1] == ")" )
-                    s = s.substring( 0, s.length - 1 );
-                s2 += err_loc_ln( s, true );
-            } else
-                s2 += err_loc_ln( s, false );
-            s = s2;
-        } else {
-            // probably error description line
-            const n = s.indexOf( ":" );
-            if( n >= 0 )
-                s = error( s.substring( 0, n ) ) + normal( ":" ) + warning( s.substring( n + 1 ) );
-            else
-                s = error( s );
+    try {
+        const arr = ( typeof strIn == "string" ) ? strIn.split( "\n" ) : strIn;
+        const cnt = arr.length;
+        let i;
+        for( i = 0; i < cnt; ++ i ) {
+            let s = arr[i].replace( /\s+/g, " " ).trim();
+            if( s.indexOf( "at " ) == 0 ) {
+                // stack entry
+                s = s.substring( 3 );
+                let s2 = "    " + debug( "-->" ) + " ";
+                const n = s.indexOf( " (" );
+                if( n > 0 ) {
+                    s2 += err_fn_name( s.substring( 0, n ) );
+                    s = s.substring( n + 2 );
+                    if( s[s.length - 1] == ")" )
+                        s = s.substring( 0, s.length - 1 );
+                    s2 += err_loc_ln( s, true );
+                } else
+                    s2 += err_loc_ln( s, false );
+                s = s2;
+            } else {
+                // probably error description line
+                const n = s.indexOf( ":" );
+                if( n >= 0 )
+                    s = error( s.substring( 0, n ) ) + normal( ":" ) + warning( s.substring( n + 1 ) );
+                else
+                    s = error( s );
+            }
+            arr[i] = s;
         }
-        arr[i] = s;
+        return arr.join( "\n" );
+    } catch ( err ) {
+        return strIn;
     }
-    return arr.join( "\n" );
 }

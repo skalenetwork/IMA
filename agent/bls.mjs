@@ -277,7 +277,7 @@ export function keccak256_pwa( nNodeNumber, strLoopWorkType, isStart, ts ) {
     arrBytes = imaUtils.bytesConcat( arrBytes, bytes_u256 );
     //
     const hash = new Keccak( 256 );
-    hash.update( arrBytes );
+    hash.update( imaUtils.toBuffer( arrBytes ) );
     const strMessageHash = hash.digest( "hex" );
     return strMessageHash;
 }
@@ -1691,7 +1691,7 @@ export async function do_sign_u256( u256, details, fn ) {
     details.write( strLogPrefix + cc.debug( "Completed signing u256 procedure " ) + "\n" );
 }
 
-export async function do_verify_ready_hash( strMessageHash, nZeroBasedNodeIndex, signature ) {
+export async function do_verify_ready_hash( strMessageHash, nZeroBasedNodeIndex, signature, isExposeOutput ) {
     const imaState = state.get();
     const strDirection = "RAW";
     const strLogPrefix = cc.bright( strDirection ) + cc.debug( "/" ) + cc.info( "BLS" ) + cc.debug( "/" ) + cc.notice( "#" ) + cc.bright( nZeroBasedNodeIndex ) + cc.debug( ":" ) + " ";
@@ -1752,12 +1752,13 @@ export async function do_verify_ready_hash( strMessageHash, nZeroBasedNodeIndex,
         fnShellRestore();
         isSuccess = false;
     }
-    details.exposeDetailsTo( log, "BLS-raw-verifier", isSuccess );
+    if( isExposeOutput || ( !isSuccess ) )
+        details.exposeDetailsTo( log, "BLS-raw-verifier", isSuccess );
     details.close();
     return isSuccess;
 }
 
-export async function do_sign_ready_hash( strMessageHash ) {
+export async function do_sign_ready_hash( strMessageHash, isExposeOutput ) {
     const imaState = state.get();
     const strLogPrefix = "";
     const details = log.createMemoryStream();
@@ -1866,7 +1867,8 @@ export async function do_sign_ready_hash( strMessageHash ) {
         details.write( strErrorMessage );
     }
     const isSuccess = ( joSignResult && typeof joSignResult == "object" && ( !joSignResult.error ) ) ? true : false;
-    details.exposeDetailsTo( log, "BLS-raw-signer", isSuccess );
+    if( isExposeOutput || ( !isSuccess ) )
+        details.exposeDetailsTo( log, "BLS-raw-signer", isSuccess );
     details.close();
     return joSignResult;
 }
