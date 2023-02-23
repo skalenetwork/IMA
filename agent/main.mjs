@@ -2045,7 +2045,7 @@ function init_monitoring_server() {
                     } break;
                 case "get_last_transfer_errors":
                     // call:   { "id": 1, "method": "get_last_transfer_errors" }
-                    // answer: { "id": 1, "method": "get_last_transfer_errors", "isIncludeTextLog": true, "error": null, "last_transfer_errors": [ { ts: ..., textLog: ... }, ... ] }
+                    // answer: { "id": 1, "method": "get_last_transfer_errors", "isIncludeTextLog": true, "error": null, "last_transfer_errors": [ { "ts": ..., "textLog": ... }, ... ] }
                     joAnswer.last_transfer_errors = IMA.get_last_transfer_errors( ( ( "isIncludeTextLog" in joMessage ) && joMessage.isIncludeTextLog ) ? true : false );
                     joAnswer.last_error_categories = IMA.get_last_error_categories();
                     break;
@@ -2433,9 +2433,9 @@ async function check_registration_step1() {
     return bRetVal;
 }
 
-function print_summary_registration_costs() {
-    IMA.print_gas_usage_report_from_array( "Main Net REGISTRATION", g_registrationCostInfo.mn );
-    IMA.print_gas_usage_report_from_array( "S-Chain REGISTRATION", g_registrationCostInfo.sc );
+function print_summary_registration_costs( details ) {
+    IMA.print_gas_usage_report_from_array( "Main Net REGISTRATION", g_registrationCostInfo.mn, details );
+    IMA.print_gas_usage_report_from_array( "S-Chain REGISTRATION", g_registrationCostInfo.sc, details );
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

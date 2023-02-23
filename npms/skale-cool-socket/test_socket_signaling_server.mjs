@@ -70,7 +70,7 @@ class SignalingClient extends EventDispatcher {
         this.fetchingOfferStepNumber = 0;
         if( settings.logging.net.signaling.objectLifetime )
             console.log( "New signaling client \"" + this.idRtcParticipant + "\" in signaling space \"" + this.idSpace + "\" in signaling category \"" + this.idCategory + "\" using socket " + this.socket.strSavedRemoteAddress );
-        this.signalingSpace.dispatchEvent( new UniversalDispatcherEvent( "clientAdded", { detail: { signalingClient: this } } ) );
+        this.signalingSpace.dispatchEvent( new UniversalDispatcherEvent( "clientAdded", { "detail": { "signalingClient": this } } ) );
     }
     dispose() {
         if( this.isDisposed )
@@ -81,7 +81,7 @@ class SignalingClient extends EventDispatcher {
         this.disconnect();
         if( this.idRtcParticipant ) {
             if( this.signalingSpace ) {
-                this.signalingSpace.dispatchEvent( new UniversalDispatcherEvent( "clientRemoved", { detail: { signalingClient: this } } ) );
+                this.signalingSpace.dispatchEvent( new UniversalDispatcherEvent( "clientRemoved", { "detail": { "signalingClient": this } } ) );
                 delete this.signalingSpace.map_clients[this.idRtcParticipant];
             }
             this.idRtcParticipant = null;
@@ -217,7 +217,7 @@ class SignalingSpace extends EventDispatcher {
         this.idCategory = "" + this.signalingCategory.idCategory;
         if( settings.logging.net.signaling.objectLifetime )
             console.log( "New signaling space \"" + this.idSpace + "\" in signaling category \"" + this.idCategory + "\"" );
-        this.signalingCategory.dispatchEvent( new UniversalDispatcherEvent( "spaceAdded", { detail: { signalingSpace: this } } ) );
+        this.signalingCategory.dispatchEvent( new UniversalDispatcherEvent( "spaceAdded", { "detail": { "signalingSpace": this } } ) );
     }
     dispose() {
         if( this.isDisposed )
@@ -229,7 +229,7 @@ class SignalingSpace extends EventDispatcher {
             signalingClient.dispose();
         if( this.idSpace ) {
             if( this.signalingCategory ) {
-                this.signalingCategory.dispatchEvent( new UniversalDispatcherEvent( "spaceRemoved", { detail: { signalingSpace: this } } ) );
+                this.signalingCategory.dispatchEvent( new UniversalDispatcherEvent( "spaceRemoved", { "detail": { "signalingSpace": this } } ) );
                 delete this.signalingCategory.map_spaces[this.idSpace];
             }
             this.idSpace = null;
@@ -308,7 +308,7 @@ class SignalingCategory extends EventDispatcher {
         this.signalingManager.map_categories[this.idCategory] = this;
         if( settings.logging.net.signaling.objectLifetime )
             console.log( "New signaling category \"" + this.idCategory + "\"" );
-        this.signalingManager.dispatchEvent( new UniversalDispatcherEvent( "categoryAdded", { detail: { signalingCategory: this } } ) );
+        this.signalingManager.dispatchEvent( new UniversalDispatcherEvent( "categoryAdded", { "detail": { "signalingCategory": this } } ) );
     }
     dispose() {
         if( this.isDisposed )
@@ -320,7 +320,7 @@ class SignalingCategory extends EventDispatcher {
             signalingSpace.dispose();
         if( this.signalingManager ) {
             delete this.signalingManager.map_categories[this.idCategory];
-            this.signalingManager.dispatchEvent( new UniversalDispatcherEvent( "categoryRemoved", { detail: { signalingCategory: this } } ) );
+            this.signalingManager.dispatchEvent( new UniversalDispatcherEvent( "categoryRemoved", { "detail": { "signalingCategory": this } } ) );
             this.signalingManager = null;
         }
         this.map_spaces = {};
@@ -580,9 +580,9 @@ class SignalingServer extends EventDispatcher {
                         if( ! ( signalingClient.isCreator ) )
                             throw new Error( "only creator can publish offers" );
                         const joOfferInfo = {
-                            // ts: some time stamp
-                            offer: joMessage.offer,
-                            idOffer: 0 + joMessage.idOffer
+                            // "ts": some time stamp
+                            "offer": joMessage.offer,
+                            "idOffer": 0 + joMessage.idOffer
                         };
                         signalingSpace.arr_published_offers.push( joOfferInfo );
                         if( settings.logging.net.signaling.publishOffer ) {
@@ -666,7 +666,7 @@ class SignalingServer extends EventDispatcher {
             socket.on( "error", _onPipeError );
             socket.on( "message", _onPipeMessage );
         } );
-        this.dispatchEvent( new UniversalDispatcherEvent( "initialized", { detail: { ref: this } } ) );
+        this.dispatchEvent( new UniversalDispatcherEvent( "initialized", { "detail": { "ref": this } } ) );
     }
     dispose() {
         this.isDisposing = true;

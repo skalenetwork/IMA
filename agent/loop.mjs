@@ -474,6 +474,7 @@ export async function ensure_have_workers( opts ) {
                         "isPrintSecurityValues": opts.imaState.isPrintSecurityValues,
                         "isPrintPWA": opts.imaState.isPrintPWA,
                         "isDynamicLogInDoTransfer": opts.imaState.isDynamicLogInDoTransfer,
+                        "isDynamicLogInBlsSigner": opts.imaState.isDynamicLogInBlsSigner,
 
                         "bIsNeededCommonInit": false,
                         "bSignMessages": opts.imaState.bSignMessages, // use BLS message signing, turned on with --sign-messages

@@ -458,7 +458,7 @@ export function get_last_cached_schains() {
 export function set_last_cached_schains( arr_schains_cached ) {
     if( arr_schains_cached && typeof arr_schains_cached == "object" ) {
         g_arr_schains_cached = JSON.parse( JSON.stringify( arr_schains_cached ) );
-        events.dispatchEvent( new UniversalDispatcherEvent( "chainsCacheChanged", { detail: { arr_schains_cached: get_last_cached_schains() } } ) );
+        events.dispatchEvent( new UniversalDispatcherEvent( "chainsCacheChanged", { "detail": { "arr_schains_cached": get_last_cached_schains() } } ) );
     }
 }
 

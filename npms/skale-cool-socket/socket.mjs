@@ -1457,7 +1457,7 @@ export class RTCConnection extends EventDispatcher {
                     console.warn( this.describe() + " error closing RTC data channel:", err );
             }
             this.dc = null;
-            this.dispatchEvent( new UniversalDispatcherEvent( "dataChannelClose", { detail: { actor: this } } ) );
+            this.dispatchEvent( new UniversalDispatcherEvent( "dataChannelClose", { "detail": { "actor": this } } ) );
         }
     }
     closePeer() {
@@ -1472,12 +1472,12 @@ export class RTCConnection extends EventDispatcher {
                 if( settings.logging.net.rtc.error )
                     console.warn( this.describe() + " error closing RTC peer:", err );
             }
-            this.dispatchEvent( new UniversalDispatcherEvent( "peerClose", { detail: { actor: this } } ) );
+            this.dispatchEvent( new UniversalDispatcherEvent( "peerClose", { "detail": { "actor": this } } ) );
             this.pc = null;
         }
     }
     onError( err ) {
-        this.dispatchEvent( new UniversalDispatcherEvent( "rtcParticipantError", { detail: { actor: this, error: err } } ) );
+        this.dispatchEvent( new UniversalDispatcherEvent( "rtcParticipantError", { "detail": { "actor": this, "error": err } } ) );
         if( settings.logging.net.rtc.error )
             console.warn( " !!! " + this.describe() + " error:", err );
         this.closeDataChannel();
@@ -1496,14 +1496,14 @@ export class RTCConnection extends EventDispatcher {
         }
     }
     onDataChannelOpen( event ) {
-        this.dispatchEvent( new UniversalDispatcherEvent( "dataChannelOpen", { detail: { actor: this } } ) );
+        this.dispatchEvent( new UniversalDispatcherEvent( "dataChannelOpen", { "detail": { "actor": this } } ) );
     }
     onDataChannelClose( event ) {
-        this.dispatchEvent( new UniversalDispatcherEvent( "dataChannelClose", { detail: { actor: this } } ) );
+        this.dispatchEvent( new UniversalDispatcherEvent( "dataChannelClose", { "detail": { "actor": this } } ) );
         // this.onError( "Data channel closed" );
     }
     onDataChannelError( event ) {
-        this.dispatchEvent( new UniversalDispatcherEvent( "dataChannelError", { detail: { actor: this } } ) );
+        this.dispatchEvent( new UniversalDispatcherEvent( "dataChannelError", { "detail": { "actor": this } } ) );
         this.onError( "Data channel error " + event.toString() );
     }
     onDataChannelMessage( event ) {
@@ -1631,13 +1631,13 @@ export class RTCActor extends RTCConnection {
         try {
             const self = this;
             self.signalingPipeClose();
-            self.dispatchEvent( new UniversalDispatcherEvent( "signalingWillStart", { detail: { actor: this } } ) );
+            self.dispatchEvent( new UniversalDispatcherEvent( "signalingWillStart", { "detail": { "actor": this } } ) );
             self.signalingPipe = new WebSocketClientPipe( self.strSignalingServerURL );
             self.signalingPipe.on( "open", function( eventData ) { self.signalingPipeOnOpen( eventData ); } );
             self.signalingPipe.on( "close", function( eventData ) { self.signalingPipeOnClose( eventData ); } );
             self.signalingPipe.on( "error", function( eventData ) { self.signalingPipeOnError( eventData ); } );
             self.signalingPipe.on( "message", function( eventData ) { self.signalingPipeOnRawMessage( eventData ); } );
-            self.dispatchEvent( new UniversalDispatcherEvent( "signalingDidStarted", { detail: { actor: this } } ) );
+            self.dispatchEvent( new UniversalDispatcherEvent( "signalingDidStarted", { "detail": { "actor": this } } ) );
         } catch ( err ) {
             if( settings.logging.net.signaling.error )
                 console.warn( this.describe() + " error starting signaling pipe:", err );
@@ -1658,12 +1658,12 @@ export class RTCActor extends RTCConnection {
                     console.warn( this.describe() + " error closing signaling pipe:", err );
             }
             this.signalingPipe = null;
-            this.dispatchEvent( new UniversalDispatcherEvent( "signalingClosed", { detail: { actor: this } } ) );
+            this.dispatchEvent( new UniversalDispatcherEvent( "signalingClosed", { "detail": { "actor": this } } ) );
         }
     }
     signalingPipeOnOpen( eventData ) {
         try {
-            this.dispatchEvent( new UniversalDispatcherEvent( "signalingOpened", { detail: { actor: this } } ) );
+            this.dispatchEvent( new UniversalDispatcherEvent( "signalingOpened", { "detail": { "actor": this } } ) );
             if( settings.logging.net.signaling.connect )
                 console.log( "+++ " + this.describe() + " did connected to " + this.strSignalingServerURL );
             const joImpersonateMessage = {
@@ -1684,14 +1684,14 @@ export class RTCActor extends RTCConnection {
         }
     }
     signalingPipeOnClose( eventData ) {
-        this.dispatchEvent( new UniversalDispatcherEvent( "signalingPipeClose", { detail: { actor: this } } ) );
+        this.dispatchEvent( new UniversalDispatcherEvent( "signalingPipeClose", { "detail": { "actor": this } } ) );
         if( settings.logging.net.signaling.disconnect )
             console.warn( " !!! " + this.describe() + " signaling pipe closed for " + this.strSignalingServerURL );
         this.signalingPipeClose();
     }
     signalingPipeOnError( eventData ) {
         // alert( JSON.stringify( eventData ) );
-        this.dispatchEvent( new UniversalDispatcherEvent( "signalingPipeError", { detail: { actor: this, error: eventData } } ) );
+        this.dispatchEvent( new UniversalDispatcherEvent( "signalingPipeError", { "detail": { "actor": this, "error": eventData } } ) );
         if( settings.logging.net.signaling.error )
             console.warn( " !!! " + this.describe() + " signaling pipe error for " + this.strSignalingServerURL + ", error is:", eventData );
         this.onError( eventData );
@@ -1719,12 +1719,12 @@ export class RTCActor extends RTCConnection {
                 this.bWasImpersonated = true;
                 if( settings.logging.net.signaling.generic )
                     console.log( "Success, " + this.describe() + " impersonated on signaling server" );
-                this.dispatchEvent( new UniversalDispatcherEvent( "signalingPassedImpersonation", { detail: { actor: this } } ) );
+                this.dispatchEvent( new UniversalDispatcherEvent( "signalingPassedImpersonation", { "detail": { "actor": this } } ) );
                 this.onImpersonationComplete();
             } else {
                 if( settings.logging.net.signaling.error )
                     console.warn( " >>> " + this.describe() + " signaling impersonation error", joMessage.error );
-                this.dispatchEvent( new UniversalDispatcherEvent( "signalingFailedImpersonation", { detail: { actor: this, error: joMessage.error } } ) );
+                this.dispatchEvent( new UniversalDispatcherEvent( "signalingFailedImpersonation", { "detail": { "actor": this, "error": joMessage.error } } ) );
                 this.onError( joMessage.error );
             }
         } break;
@@ -1851,12 +1851,12 @@ export class RTCServerPeer extends RTCConnection {
                 self.isPublishTimeout = true;
                 if( settings.logging.net.signaling.publishTimeout )
                     console.warn( " !!! " + self.describe() + " offer publish timeout " + self.timeToPublishMilliseconds + " milliseconds reached" );
-                self.dispatchEvent( new UniversalDispatcherEvent( "publishTimeout", { detail: { participant: self } } ) );
+                self.dispatchEvent( new UniversalDispatcherEvent( "publishTimeout", { "detail": { "participant": self } } ) );
                 if( self.rtcCreator )
-                    self.rtcCreator.dispatchEvent( new UniversalDispatcherEvent( "publishTimeout", { detail: { participant: self } } ) );
+                    self.rtcCreator.dispatchEvent( new UniversalDispatcherEvent( "publishTimeout", { "detail": { "participant": self } } ) );
             }, self.timeToPublishMilliseconds );
         } // if( self.timeToPublishMilliseconds > 0 )
-        self.dispatchEvent( new UniversalDispatcherEvent( "publishStart", { detail: { participant: self } } ) );
+        self.dispatchEvent( new UniversalDispatcherEvent( "publishStart", { "detail": { "participant": self } } ) );
         self.pc.oniceconnectionstatechange = function( event ) { self.onIceConnectionStateChange( event ); };
         self.pc.onicegatheringstatechange = function( event ) { self.onIceGatheringStateChange( event ); };
         self.pc.onidentityresult = function( event ) { self.onIceIdentifyResult( event ); };
@@ -1868,13 +1868,13 @@ export class RTCServerPeer extends RTCConnection {
                 self.tsOfferCreated = new Date();
                 if( settings.logging.net.signaling.offer )
                     console.log( " <<< " + self.describe() + " offer created at " + utils.format_date_time( self.tsOfferCreated ) + " with description:", offerDescription );
-                self.dispatchEvent( new UniversalDispatcherEvent( "offerCreated", { detail: { participant: self } } ) );
+                self.dispatchEvent( new UniversalDispatcherEvent( "offerCreated", { "detail": { "participant": self } } ) );
                 self.pc.setLocalDescription( offerDescription ).then(
                     function() {
                         // success
                         if( settings.logging.net.signaling.localDescription )
                             console.log( " <<< " + self.describe() + " local description set:", offerDescription );
-                        self.dispatchEvent( new UniversalDispatcherEvent( "localDescriptionSet", { detail: { participant: self } } ) );
+                        self.dispatchEvent( new UniversalDispatcherEvent( "localDescriptionSet", { "detail": { "participant": self } } ) );
                         self.pc.onicecandidate = function( event ) {
                             self.iceComplete = true;
                             self.onIceComplete( event );
@@ -1897,7 +1897,7 @@ export class RTCServerPeer extends RTCConnection {
         this.signalingNegotiationCancel();
         this.idSomebodyOtherSide = "" + idSomebodyOtherSide;
         this.wasIdentified = true;
-        this.dispatchEvent( new UniversalDispatcherEvent( "identified", { detail: { participant: this, idSomebodyOtherSide: "" + idSomebodyOtherSide } } ) );
+        this.dispatchEvent( new UniversalDispatcherEvent( "identified", { "detail": { "participant": this, "idSomebodyOtherSide": "" + idSomebodyOtherSide } } ) );
     }
     onError( err ) {
         if( this.rtcCreator ) {
@@ -1940,7 +1940,7 @@ export class RTCServerPeer extends RTCConnection {
                 console.log( " <<< " + self.describe() + " signaling message out", joPublishOfferMessage );
             self.rtcCreator.signalingPipe.send( joPublishOfferMessage );
             self.publishCancel();
-            self.dispatchEvent( new UniversalDispatcherEvent( "signalingNegotiationStart", { detail: { participant: self } } ) );
+            self.dispatchEvent( new UniversalDispatcherEvent( "signalingNegotiationStart", { "detail": { "participant": self } } ) );
             if( self.timeToSignalingNegotiationMilliseconds > 0 ) {
                 self.isSignalingNegotiation = true;
                 self.timerSignalingNegotiation = setTimeout( function() {
@@ -1949,9 +1949,9 @@ export class RTCServerPeer extends RTCConnection {
                     self.isSignalingNegotiationTimeout = true;
                     if( settings.logging.net.signaling.signalingNegotiationTimeout )
                         console.warn( " !!! " + self.describe() + " signaling negotiation timeout " + self.timeToSignalingNegotiationMilliseconds + " milliseconds reached" );
-                    self.dispatchEvent( new UniversalDispatcherEvent( "signalingNegotiationTimeout", { detail: { participant: self } } ) );
+                    self.dispatchEvent( new UniversalDispatcherEvent( "signalingNegotiationTimeout", { "detail": { "participant": self } } ) );
                     if( self.rtcCreator )
-                        self.rtcCreator.dispatchEvent( new UniversalDispatcherEvent( "signalingNegotiationTimeout", { detail: { participant: self } } ) );
+                        self.rtcCreator.dispatchEvent( new UniversalDispatcherEvent( "signalingNegotiationTimeout", { "detail": { "participant": self } } ) );
                 }, self.timeToSignalingNegotiationMilliseconds );
             } // if( self.timeToSignalingNegotiationMilliseconds > 0 )
         } catch ( err ) {
@@ -2032,7 +2032,7 @@ export class RTCCreator extends RTCActor {
     onRtcPeerError( rtcPeer, err ) {
         if( settings.logging.net.rtc.error )
             console.warn( " !!! " + this.describe() + " rtc peer error", err );
-        this.dispatchEvent( new UniversalDispatcherEvent( "rtcPeerError", { detail: { actor: this, peer: rtcPeer, error: err } } ) );
+        this.dispatchEvent( new UniversalDispatcherEvent( "rtcPeerError", { "detail": { "actor": this, "peer": rtcPeer, "error": err } } ) );
     }
     signalingPipeOnMessage( joMessage ) {
         const self = this;
@@ -2042,11 +2042,11 @@ export class RTCCreator extends RTCActor {
                 // OKay, creator offer published
                 if( settings.logging.net.signaling.offer )
                     console.log( "Success, " + this.describe() + " offer published (step 1)" );
-                this.dispatchEvent( new UniversalDispatcherEvent( "signalingPassedOfferPublish", { detail: { actor: this } } ) );
+                this.dispatchEvent( new UniversalDispatcherEvent( "signalingPassedOfferPublish", { "detail": { "actor": this } } ) );
             } else {
                 if( settings.logging.net.signaling.error )
                     console.warn( " !!! " + this.describe() + " signaling offer publishing (step 1) error", joMessage.error );
-                this.dispatchEvent( new UniversalDispatcherEvent( "signalingFailedOfferPublish", { detail: { actor: this, error: joMessage.error } } ) );
+                this.dispatchEvent( new UniversalDispatcherEvent( "signalingFailedOfferPublish", { "detail": { "actor": this, "error": joMessage.error } } ) );
                 this.onError( joMessage.error );
             }
         } break;
@@ -2065,7 +2065,7 @@ export class RTCCreator extends RTCActor {
                 // OKay, finally got answer from candida
                 if( settings.logging.net.signaling.generic )
                     console.log( "Success, " + this.describe() + " got answer from candidate (step 3)" );
-                this.dispatchEvent( new UniversalDispatcherEvent( "signalingPassedPublishAnswer", { detail: { actor: this, idSomebodyOtherSide: "" + idSomebodyOtherSide, idOffer: 0 + idOffer } } ) );
+                this.dispatchEvent( new UniversalDispatcherEvent( "signalingPassedPublishAnswer", { "detail": { "actor": this, "idSomebodyOtherSide": "" + idSomebodyOtherSide, idOffer: 0 + idOffer } } ) );
                 const answer = joMessage.answer;
                 if( settings.logging.net.signaling.offer )
                     console.log( " >>> " + self.describe() + " got answer:", answer );
@@ -2083,7 +2083,7 @@ export class RTCCreator extends RTCActor {
                         // success
                         if( settings.logging.net.signaling.remoteDescription )
                             console.log( " >>> " + self.describe() + "did set remote description:", answerDescription );
-                        self.dispatchEvent( new UniversalDispatcherEvent( "remoteDescriptionSet", { detail: { participant: self } } ) );
+                        self.dispatchEvent( new UniversalDispatcherEvent( "remoteDescriptionSet", { "detail": { "participant": self } } ) );
                         self.onOtherSideIdentified( idSomebodyOtherSide, idOffer ); // server peer got result
                     }, function( err ) {
                         // error
@@ -2092,7 +2092,7 @@ export class RTCCreator extends RTCActor {
             } else {
                 if( settings.logging.net.signaling.error )
                     console.warn( " !!! " + this.describe() + " error getting candidate answer (step 1) error", joMessage.error );
-                this.dispatchEvent( new UniversalDispatcherEvent( "signalingFailedPublishAnswer", { detail: { actor: this, error: joMessage.error } } ) );
+                this.dispatchEvent( new UniversalDispatcherEvent( "signalingFailedPublishAnswer", { "detail": { "actor": this, "error": joMessage.error } } ) );
                 this.onError( joMessage.error );
             }
         } break;
@@ -2162,7 +2162,7 @@ export class RTCJoiner extends RTCActor {
             return;
         self.pc = new wrtc_mod.RTCPeerConnection( self.peerConfiguration, self.peerAdditionalOptions );
         self.pc.addEventListener( "track", function( event ) {
-            self.dispatchEvent( new UniversalDispatcherEvent( "trackAvailable", { detail: { participant: self, event: event } } ) );
+            self.dispatchEvent( new UniversalDispatcherEvent( "trackAvailable", { "detail": { "participant": self, "event": event } } ) );
         } );
         self.pc.oniceconnectionstatechange = function( event ) { self.onIceConnectionStateChange( event ); };
         self.pc.onicegatheringstatechange = function( event ) { self.onIceGatheringStateChange( event ); };
@@ -2170,7 +2170,7 @@ export class RTCJoiner extends RTCActor {
         self.pc.onsignalingstatechange = function( event ) { self.onIceSignalingStateChange( event ); };
         self.pc.onnegotiationneeded = function( event ) { self.onIceNegotiationNeeded( event ); };
         self.pc.ondatachannel = function( event ) {
-            self.dispatchEvent( new UniversalDispatcherEvent( "dataChannelAvailable", { detail: { participant: self, event: event } } ) );
+            self.dispatchEvent( new UniversalDispatcherEvent( "dataChannelAvailable", { "detail": { "participant": self, "event": event } } ) );
             const dataChannel = event.channel || event;
             self.dc = dataChannel;
             self.dc.addEventListener( "open", function( event ) { self.onDataChannelOpen( event ); } );
@@ -2251,7 +2251,7 @@ export class RTCJoiner extends RTCActor {
         this.idSomebodyOtherSide = "" + idSomebodyOtherSide;
         this.idOffer = 0 + idOffer;
         this.wasIdentified = true;
-        this.dispatchEvent( new UniversalDispatcherEvent( "identified", { detail: { participant: this, idSomebodyOtherSide: "" + idSomebodyOtherSide } } ) );
+        this.dispatchEvent( new UniversalDispatcherEvent( "identified", { "detail": { "participant": this, "idSomebodyOtherSide": "" + idSomebodyOtherSide } } ) );
     }
     signalingPipeOnMessage( joMessage ) {
         const self = this;
@@ -2265,7 +2265,7 @@ export class RTCJoiner extends RTCActor {
                 const idOffer = 0 + joMessage.idOffer;
                 if( settings.logging.net.signaling.generic )
                     console.log( "Success, " + this.describe() + " fetched offer from creator (step 2)" );
-                this.dispatchEvent( new UniversalDispatcherEvent( "signalingPassedFetchOffer", { detail: { actor: this, idSomebodyOtherSide: "" + idSomebodyOtherSide, idOffer: 0 + idOffer } } ) );
+                this.dispatchEvent( new UniversalDispatcherEvent( "signalingPassedFetchOffer", { "detail": { "actor": this, "idSomebodyOtherSide": "" + idSomebodyOtherSide, idOffer: 0 + idOffer } } ) );
                 const offer = joMessage.offer;
                 if( settings.logging.net.signaling.offer )
                     console.log( " <<< " + self.describe() + " got offer:", offer );
@@ -2277,20 +2277,20 @@ export class RTCJoiner extends RTCActor {
                         // success
                         if( settings.logging.net.signaling.remoteDescription )
                             console.log( " <<< " + self.describe() + "did set remote description:", offerDescription );
-                        self.dispatchEvent( new UniversalDispatcherEvent( "remoteDescriptionSet", { detail: { participant: self } } ) );
+                        self.dispatchEvent( new UniversalDispatcherEvent( "remoteDescriptionSet", { "detail": { "participant": self } } ) );
                         self.pc.createAnswer( self.offerOptions ).then(
                             function( answerDescription ) {
                                 // success
                                 self.tsAnswerCreated = new Date();
                                 if( settings.logging.net.signaling.answer )
                                     console.log( " <<< " + self.describe() + "did created answer at " + utils.format_date_time( self.tsAnswerCreated ) + " with description:", answerDescription );
-                                self.dispatchEvent( new UniversalDispatcherEvent( "answerCreated", { detail: { participant: self } } ) );
+                                self.dispatchEvent( new UniversalDispatcherEvent( "answerCreated", { "detail": { "participant": self } } ) );
                                 self.pc.setLocalDescription( answerDescription ).then(
                                     function() {
                                         // success
                                         if( settings.logging.net.signaling.localDescription )
                                             console.log( " <<< " + self.describe() + " local description set:", answerDescription );
-                                        self.dispatchEvent( new UniversalDispatcherEvent( "localDescriptionSet", { detail: { participant: self } } ) );
+                                        self.dispatchEvent( new UniversalDispatcherEvent( "localDescriptionSet", { "detail": { "participant": self } } ) );
                                         self.onOtherSideIdentified( idSomebodyOtherSide, idOffer ); // client peer got result
                                     }, function( err ) {
                                         // error of setLocalDescription
@@ -2307,7 +2307,7 @@ export class RTCJoiner extends RTCActor {
             } else {
                 if( settings.logging.net.signaling.error )
                     console.warn( " !!! " + this.describe() + " signaling offer publishing (step 1) error", joMessage.error );
-                this.dispatchEvent( new UniversalDispatcherEvent( "signalingFailedFetchOffer", { detail: { actor: this, error: joMessage.error } } ) );
+                this.dispatchEvent( new UniversalDispatcherEvent( "signalingFailedFetchOffer", { "detail": { "actor": this, "error": joMessage.error } } ) );
                 this.onError( joMessage.error );
             }
         } break;
@@ -2489,7 +2489,7 @@ export class WebRTCServerAcceptor extends BasicServerAcceptor {
                 console.log( self.rtcCreator.describe() + " is now identified peer", event.detail.idSomebodyOtherSide );
             rtcPeer.serverPipe = new WebRTCServerPipe( self, rtcPeer, self.strSignalingServerURL );
             self.detachPendingOffer( rtcPeer.idOffer );
-            self.dispatchEvent( new UniversalDispatcherEvent( "identified", { detail: { peer: rtcPeer } } ) );
+            self.dispatchEvent( new UniversalDispatcherEvent( "identified", { "detail": { "peer": rtcPeer } } ) );
             self.updateAllPendingOffers();
         } );
         rtcPeer.on( "localDescriptionSet", function( event ) {

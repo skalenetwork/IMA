@@ -128,7 +128,7 @@ export class SocketServer extends EventDispatcher {
             socket.on( "error", _onPipeError );
             socket.on( "message", _onPipeMessage );
         } );
-        this.dispatchEvent( new UniversalDispatcherEvent( "initialized", { detail: { ref: this } } ) );
+        this.dispatchEvent( new UniversalDispatcherEvent( "initialized", { "detail": { "ref": this } } ) );
     }
     dispose() {
         this.isDisposing = true;

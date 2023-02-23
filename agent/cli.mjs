@@ -420,6 +420,10 @@ export function parse( joExternalHandlers, argv ) {
             console.log( soi + cc.debug( "--" ) + cc.bright( "no-expose-security-info" ) + cc.debug( "..............." ) + cc.notice( "Do not expose security-related values in log output." ) + " " + cc.debug( "Default mode" ) + cc.notice( "." ) );
             console.log( soi + cc.debug( "--" ) + cc.bright( "expose-pwa" ) + cc.debug( "............................" ) + cc.notice( "Expose IMA agent pending work analysis information" ) );
             console.log( soi + cc.debug( "--" ) + cc.bright( "no-expose-pwa" ) + cc.debug( "........................." ) + cc.notice( "Do not expose IMA agent pending work analysis information." ) + cc.notice( "." ) + " " + cc.debug( "Default mode" ) + cc.notice( "." ) );
+            console.log( soi + cc.debug( "--" ) + cc.bright( "accumulated-log-in-transfer" ) + cc.debug( "..........." ) + cc.notice( "Use accumulated log in message transfer loop." ) );
+            console.log( soi + cc.debug( "--" ) + cc.bright( "accumulated-log-in-bls-signer" ) + cc.debug( "........." ) + cc.notice( "Use accumulated log in BLS signer." ) );
+            console.log( soi + cc.debug( "--" ) + cc.bright( "dynamic-log-in-transfer" ) + cc.debug( "..............." ) + cc.notice( "Use realtime log in message transfer loop." ) );
+            console.log( soi + cc.debug( "--" ) + cc.bright( "dynamic-log-in-bls-signer" ) + cc.debug( "............." ) + cc.notice( "Use realtime log in BLS signer." ) );
             //
             process.exit( 0 );
         }
@@ -1121,6 +1125,22 @@ export function parse( joExternalHandlers, argv ) {
         }
         if( joArg.name == "no-expose-pwa" ) {
             imaState.isPrintPWA = false;
+            continue;
+        }
+        if( joArg.name == "accumulated-log-in-transfer" ) {
+            imaState.isDynamicLogInDoTransfer = false;
+            continue;
+        }
+        if( joArg.name == "accumulated-log-in-bls-signer" ) {
+            imaState.isDynamicLogInBlsSigner = false;
+            continue;
+        }
+        if( joArg.name == "dynamic-log-in-transfer" ) {
+            imaState.isDynamicLogInDoTransfer = true;
+            continue;
+        }
+        if( joArg.name == "dynamic-log-in-bls-signer" ) {
+            imaState.isDynamicLogInBlsSigner = true;
             continue;
         }
         if( joArg.name == "log" ) {

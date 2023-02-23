@@ -634,21 +634,21 @@ export function save_transfer_error( strCategory, textLog, ts ) {
     ts = ts || Math.round( ( new Date() ).getTime() / 1000 );
     const c = verify_transfer_error_category_name( strCategory );
     const joTransferEventError = {
-        ts: ts,
-        category: "" + c,
-        textLog: "" + textLog.toString()
+        "ts": ts,
+        "category": "" + c,
+        "textLog": "" + textLog.toString()
     };
     g_arrLastTransferErrors.push( joTransferEventError );
     while( g_arrLastTransferErrors.length > g_nMaxLastTransferErrors )
         g_arrLastTransferErrors.shift();
     g_mapTransferErrorCategories["" + c] = true;
-    saveTransferEvents.dispatchEvent( new UniversalDispatcherEvent( "error", { detail: joTransferEventError } ) );
+    saveTransferEvents.dispatchEvent( new UniversalDispatcherEvent( "error", { "detail": joTransferEventError } ) );
 }
 
 export function save_transfer_success( strCategory ) {
     const c = verify_transfer_error_category_name( strCategory );
     try { delete g_mapTransferErrorCategories["" + c]; } catch ( err ) { }
-    saveTransferEvents.dispatchEvent( new UniversalDispatcherEvent( "success", { detail: { category: strCategory } } ) );
+    saveTransferEvents.dispatchEvent( new UniversalDispatcherEvent( "success", { "detail": { "category": strCategory } } ) );
 }
 
 export function save_transfer_success_all() {
@@ -903,7 +903,7 @@ export async function do_oracle_gas_price_setup(
                     "description": "do_oracle_gas_price_setup/setGasPrice",
                     "receipt": joReceipt
                 } );
-                print_gas_usage_report_from_array( "(intermediate result) ORACLE GAS PRICE SETUP ", jarrReceipts );
+                print_gas_usage_report_from_array( "(intermediate result) ORACLE GAS PRICE SETUP ", jarrReceipts, details );
             }
 
             save_transfer_success( "oracle" );
@@ -918,7 +918,7 @@ export async function do_oracle_gas_price_setup(
         details.close();
         return false;
     }
-    print_gas_usage_report_from_array( "ORACLE GAS PRICE SETUP ", jarrReceipts );
+    print_gas_usage_report_from_array( "ORACLE GAS PRICE SETUP ", jarrReceipts, details );
     if( expose_details_get() )
         details.exposeDetailsTo( log, "do_oracle_gas_price_setup", true );
     details.close();
@@ -1213,55 +1213,61 @@ export async function payed_call(
         unsignedTx = await joContract.populateTransaction[strMethodName]( ...arrArguments, callOpts );
         details.write( strLogPrefix + cc.debug( "populated transaction: " ) + cc.j( unsignedTx ) + "\n" );
         unsignedTx.nonce = await ethersProvider.getTransactionCount( joAccount.address() );
-        if( opts && opts.isCheckTransactionToSchain ) {
+        if( opts && opts.isCheckTransactionToSchain )
             unsignedTx = await checkTransactionToSchain( unsignedTx, details, ethersProvider, joAccount );
-            details.write( strLogPrefix + cc.debug( "Checked/mined transaction: " ) + cc.j( unsignedTx ) + "\n" );
-            details.write( strLogPrefix + cc.debug( "Raw transaction, checked for S-chain: " ) + cc.j( unsignedTx ) + "\n" );
-        }
+            // details.write( strLogPrefix + cc.debug( "Raw transaction, checked for S-chain: " ) + cc.j( unsignedTx ) + "\n" );
+
         rawTx = owaspUtils.ethersMod.ethers.utils.serializeTransaction( unsignedTx );
         details.write( strLogPrefix + cc.debug( "Raw transaction: " ) + cc.j( rawTx ) + "\n" );
         txHash = owaspUtils.ethersMod.ethers.utils.keccak256( rawTx );
-        details.write( strLogPrefix + cc.debug( "Transaction hash: " ) + cc.j( rawTx ) + "\n" );
+        details.write( strLogPrefix + cc.debug( "Transaction hash: " ) + cc.j( txHash ) + "\n" );
         switch ( joACI.strType ) {
         case "tm": {
-            const txAdjusted = unsignedTx; // JSON.parse( JSON.stringify( rawTx ) );
-            const arrNamesConvertToHex = [ "gas", "gasLimit", "gasPrice", "value" ];
-            for( let idxName = 0; idxName < arrNamesConvertToHex.length; ++ idxName ) {
-                const strName = arrNamesConvertToHex[idxName];
-                if( strName in txAdjusted &&
-                    typeof txAdjusted[strName] == "object" &&
-                    typeof txAdjusted[strName].toHexString == "function"
-                )
-                    txAdjusted[strName] = txAdjusted[strName].toHexString();
-            }
-            if( "gasLimit" in txAdjusted )
-                delete txAdjusted.gasLimit;
-            if( "chainId" in txAdjusted )
-                delete txAdjusted.chainId;
-            const { chainId } = await ethersProvider.getNetwork();
-            // if( chainId == "string" )
-            //     chainId = owaspUtils.parseIntOrHex( chainId );
-            txAdjusted.chainId = chainId;
-            details.write( strLogPrefix + cc.debug( "Adjusted transaction: " ) + cc.j( txAdjusted ) + "\n" );
-            if( redis == null )
-                redis = new Redis( joAccount.strTransactionManagerURL );
-            const priority = joAccount.tm_priority || 5;
-            details.write( strLogPrefix + cc.debug( "TM priority: " ) + cc.j( priority ) + "\n" );
-            try {
-                const [ tx_id, joReceiptFromTM ] = await tm_ensure_transaction( details, ethersProvider, priority, txAdjusted );
-                joReceipt = joReceiptFromTM;
-                details.write( strLogPrefix + cc.debug( "ID of TM-transaction : " ) + cc.j( tx_id ) + "\n" );
-                const txHashSent = "" + joReceipt.transactionHash;
-                details.write( strLogPrefix + cc.debug( "Hash of sent TM-transaction: " ) + cc.j( txHashSent ) + "\n" );
-            } catch ( err ) {
-                const strError =
-                    cc.fatal( "BAD ERROR:" ) + " " +
-                    cc.error( "TM-transaction was not sent, underlying error is: " ) +
-                    cc.warning( err.toString() );
-                details.write( strLogPrefix + strError + "\n" );
-                log.write( strLogPrefix + strError + "\n" );
-                throw err;
-            }
+            const promiseComplete = new Promise( function( resolve, reject ) {
+                const do_tm = async function() {
+                    const txAdjusted = unsignedTx; // JSON.parse( JSON.stringify( rawTx ) );
+                    const arrNamesConvertToHex = [ "gas", "gasLimit", "gasPrice", "value" ];
+                    for( let idxName = 0; idxName < arrNamesConvertToHex.length; ++ idxName ) {
+                        const strName = arrNamesConvertToHex[idxName];
+                        if( strName in txAdjusted &&
+                            typeof txAdjusted[strName] == "object" &&
+                            typeof txAdjusted[strName].toHexString == "function"
+                        )
+                            txAdjusted[strName] = txAdjusted[strName].toHexString();
+                    }
+                    if( "gasLimit" in txAdjusted )
+                        delete txAdjusted.gasLimit;
+                    if( "chainId" in txAdjusted )
+                        delete txAdjusted.chainId;
+                    const { chainId } = await ethersProvider.getNetwork();
+                    // if( chainId == "string" )
+                    //     chainId = owaspUtils.parseIntOrHex( chainId );
+                    txAdjusted.chainId = chainId;
+                    details.write( strLogPrefix + cc.debug( "Adjusted transaction: " ) + cc.j( txAdjusted ) + "\n" );
+                    if( redis == null )
+                        redis = new Redis( joAccount.strTransactionManagerURL );
+                    const priority = joAccount.tm_priority || 5;
+                    details.write( strLogPrefix + cc.debug( "TM priority: " ) + cc.j( priority ) + "\n" );
+                    try {
+                        const [ tx_id, joReceiptFromTM ] = await tm_ensure_transaction( details, ethersProvider, priority, txAdjusted );
+                        joReceipt = joReceiptFromTM;
+                        details.write( strLogPrefix + cc.debug( "ID of TM-transaction : " ) + cc.j( tx_id ) + "\n" );
+                        const txHashSent = "" + joReceipt.transactionHash;
+                        details.write( strLogPrefix + cc.debug( "Hash of sent TM-transaction: " ) + cc.j( txHashSent ) + "\n" );
+                        resolve( joReceipt );
+                    } catch ( err ) {
+                        const strError =
+                            cc.fatal( "BAD ERROR:" ) + " " +
+                            cc.error( "TM-transaction was not sent, underlying error is: " ) +
+                            cc.warning( err.toString() );
+                        details.write( strLogPrefix + strError + "\n" );
+                        log.write( strLogPrefix + strError + "\n" );
+                        reject( err );
+                    }
+                };
+                do_tm();
+            } );
+            await Promise.all( [ promiseComplete ] );
         } break;
         case "sgx": {
             let rpcCallOpts = null;
@@ -1274,91 +1280,95 @@ export async function payed_call(
                 };
                 // details.write( cc.debug( "Will sign via SGX with SSL options " ) + cc.j( rpcCallOpts ) + "\n" );
             }
-            await rpcCall.create( joAccount.strSgxURL, rpcCallOpts, async function( joCall, err ) {
-                if( err ) {
-                    const strError =
-                        cc.fatal( "CRITICAL TRANSACTION SIGNING ERROR:" ) +
-                        cc.error( " JSON RPC call creation to SGX wallet failed with error " ) +
-                        cc.warning( owaspUtils.extract_error_message( err ) ) +
-                        cc.error( ", stack is: " ) + "\n" + cc.stack( err.stack ) +
-                        "\n";
-                    if( verbose_get() >= RV_VERBOSE.error )
-                        log.write( strLogPrefix + strError );
-                    details.write( strLogPrefix + strError );
-                    throw new Error( "CRITICAL TRANSACTION SIGNING ERROR: " + owaspUtils.extract_error_message( err ) );
-                }
-                const joIn = {
-                    "method": "ecdsaSignMessageHash",
-                    "params": {
-                        "keyName": "" + joAccount.strSgxKeyName,
-                        "messageHash": owaspUtils.ensure_starts_with_0x( txHash ),
-                        "base": 16
-                    }
-                };
-                details.write( strLogPrefix + cc.debug( "Calling SGX to sign using ECDSA key with " ) + cc.info( joIn.method ) + cc.debug( "..." ) + "\n" );
-                await joCall.call( joIn, async function( joIn, joOut, err ) {
+            const promiseComplete = new Promise( function( resolve, reject ) {
+                rpcCall.create( joAccount.strSgxURL, rpcCallOpts, async function( joCall, err ) {
                     if( err ) {
                         const strError =
                             cc.fatal( "CRITICAL TRANSACTION SIGNING ERROR:" ) +
-                            cc.error( " JSON RPC call sending to SGX wallet failed with error " ) +
+                            cc.error( " JSON RPC call creation to SGX wallet failed with error " ) +
                             cc.warning( owaspUtils.extract_error_message( err ) ) +
                             cc.error( ", stack is: " ) + "\n" + cc.stack( err.stack ) +
                             "\n";
                         if( verbose_get() >= RV_VERBOSE.error )
                             log.write( strLogPrefix + strError );
                         details.write( strLogPrefix + strError );
-                        throw new Error( "CRITICAL TRANSACTION SIGNING ERROR: " + owaspUtils.extract_error_message( err ) );
+                        reject( new Error( "CRITICAL TRANSACTION SIGNING ERROR: " + owaspUtils.extract_error_message( err ) ) );
                     }
-                    try {
-                        details.write( strLogPrefix + cc.debug( "SGX wallet ECDSA sign result is: " ) + cc.j( joOut ) + "\n" );
-                        const v = owaspUtils.parseIntOrHex( owaspUtils.toBN( joOut.result.signature_v ).toString() );
-                        // const recoveryParam = 1 - ( v % 2 );
-                        const joExpanded = {
-                            "v": v,
-                            "r": joOut.result.signature_r,
-                            "s": joOut.result.signature_s
-                            //, "recoveryParam": recoveryParam
-                        };
-                        details.write( strLogPrefix + cc.debug( "Preliminary expanded signature: " ) + cc.j( joExpanded ) + "\n" );
-                        //
-                        let { chainId } = await ethersProvider.getNetwork();
-                        if( chainId == "string" )
-                            chainId = owaspUtils.parseIntOrHex( chainId );
-                        details.write( strLogPrefix + cc.debug( "Chain ID is: " ) + cc.info( chainId ) + "\n" );
-                        joExpanded.v += chainId * 2 + 8 + 27;
-                        //
-                        details.write( strLogPrefix + cc.debug( "Final expanded signature: " ) + cc.j( joExpanded ) + "\n" );
-                        const joSignature = owaspUtils.ethersMod.ethers.utils.joinSignature( joExpanded );
-                        details.write( strLogPrefix + cc.debug( "Final signature: " ) + cc.j( joSignature ) + "\n" );
-                        rawTx = owaspUtils.ethersMod.ethers.utils.serializeTransaction( unsignedTx, joSignature );
-                        details.write( strLogPrefix + cc.debug( "Raw transaction with signature: " ) + cc.j( rawTx ) + "\n" );
-                        //
-                        const { hash } = await ethersProvider.sendTransaction(
-                            owaspUtils.ensure_starts_with_0x( rawTx )
-                        );
-                        details.write( strLogPrefix + cc.debug( "Raw-sent transaction hash: " ) + cc.j( hash ) + "\n" );
-                        joReceipt = await ethersProvider.waitForTransaction( hash );
-                    } catch ( err ) {
-                        const strErrorPrefix = "CRITICAL TRANSACTION SIGN AND SEND ERROR(PROCESSING SGX RESULT):";
-                        const s =
-                            strLogPrefix + cc.error( strErrorPrefix ) + " " + cc.warning( owaspUtils.extract_error_message( err ) ) +
-                            cc.error( ", stack is: " ) + "\n" + cc.stack( err.stack ) +
-                            "\n";
-                        details.write( s );
-                        log.write( s );
-                        throw new Error(
-                            strErrorPrefix +
-                            " Invoking the " + strContractCallDescription +
-                            ", error is: " + owaspUtils.extract_error_message( err )
-                        );
-                    }
+                    const joIn = {
+                        "method": "ecdsaSignMessageHash",
+                        "params": {
+                            "keyName": "" + joAccount.strSgxKeyName,
+                            "messageHash": owaspUtils.ensure_starts_with_0x( txHash ),
+                            "base": 16
+                        }
+                    };
+                    details.write( strLogPrefix + cc.debug( "Calling SGX to sign using ECDSA key with " ) + cc.info( joIn.method ) + cc.debug( "..." ) + "\n" );
+                    joCall.call( joIn, async function( joIn, joOut, err ) {
+                        if( err ) {
+                            const strError =
+                                cc.fatal( "CRITICAL TRANSACTION SIGNING ERROR:" ) +
+                                cc.error( " JSON RPC call sending to SGX wallet failed with error " ) +
+                                cc.warning( owaspUtils.extract_error_message( err ) ) +
+                                cc.error( ", stack is: " ) + "\n" + cc.stack( err.stack ) +
+                                "\n";
+                            if( verbose_get() >= RV_VERBOSE.error )
+                                log.write( strLogPrefix + strError );
+                            details.write( strLogPrefix + strError );
+                            reject( new Error( "CRITICAL TRANSACTION SIGNING ERROR: " + owaspUtils.extract_error_message( err ) ) );
+                        }
+                        try {
+                            details.write( strLogPrefix + cc.debug( "SGX wallet ECDSA sign result is: " ) + cc.j( joOut ) + "\n" );
+                            const v = owaspUtils.parseIntOrHex( owaspUtils.toBN( joOut.result.signature_v ).toString() );
+                            // const recoveryParam = 1 - ( v % 2 );
+                            const joExpanded = {
+                                "v": v,
+                                "r": joOut.result.signature_r,
+                                "s": joOut.result.signature_s
+                                //, "recoveryParam": recoveryParam
+                            };
+                            details.write( strLogPrefix + cc.debug( "Preliminary expanded signature: " ) + cc.j( joExpanded ) + "\n" );
+                            //
+                            let { chainId } = await ethersProvider.getNetwork();
+                            if( chainId == "string" )
+                                chainId = owaspUtils.parseIntOrHex( chainId );
+                            details.write( strLogPrefix + cc.debug( "Chain ID is: " ) + cc.info( chainId ) + "\n" );
+                            joExpanded.v += chainId * 2 + 8 + 27;
+                            //
+                            details.write( strLogPrefix + cc.debug( "Final expanded signature: " ) + cc.j( joExpanded ) + "\n" );
+                            const joSignature = owaspUtils.ethersMod.ethers.utils.joinSignature( joExpanded );
+                            details.write( strLogPrefix + cc.debug( "Final signature: " ) + cc.j( joSignature ) + "\n" );
+                            rawTx = owaspUtils.ethersMod.ethers.utils.serializeTransaction( unsignedTx, joSignature );
+                            details.write( strLogPrefix + cc.debug( "Raw transaction with signature: " ) + cc.j( rawTx ) + "\n" );
+                            //
+                            const { hash } = await ethersProvider.sendTransaction(
+                                owaspUtils.ensure_starts_with_0x( rawTx )
+                            );
+                            details.write( strLogPrefix + cc.debug( "Raw-sent transaction hash: " ) + cc.j( hash ) + "\n" );
+                            joReceipt = await ethersProvider.waitForTransaction( hash );
+                            resolve( joReceipt );
+                        } catch ( err ) {
+                            const strErrorPrefix = "CRITICAL TRANSACTION SIGN AND SEND ERROR(PROCESSING SGX RESULT):";
+                            const s =
+                                strLogPrefix + cc.error( strErrorPrefix ) + " " + cc.warning( owaspUtils.extract_error_message( err ) ) +
+                                cc.error( ", stack is: " ) + "\n" + cc.stack( err.stack ) +
+                                "\n";
+                            details.write( s );
+                            log.write( s );
+                            reject( new Error(
+                                strErrorPrefix +
+                                " Invoking the " + strContractCallDescription +
+                                ", error is: " + owaspUtils.extract_error_message( err )
+                            ) );
+                        }
+                    } );
                 } );
             } );
+            await Promise.all( [ promiseComplete ] );
         } break;
         case "direct": {
             const ethersWallet = new owaspUtils.ethersMod.ethers.Wallet( owaspUtils.ensure_starts_with_0x( joAccount.privateKey ), ethersProvider );
             const joSent = await ethersWallet.sendTransaction( unsignedTx );
-            details.write( strLogPrefix + cc.debug( "Sent transaction result: " ) + cc.j( joSent ) + "\n" );
+            details.write( strLogPrefix + cc.debug( "Sent transaction: " ) + cc.j( joSent ) + "\n" );
             joReceipt = await joSent.wait();
             details.write( strLogPrefix + cc.debug( "Transaction receipt:" ) + cc.j( joReceipt ) + "\n" );
         } break;
@@ -2084,7 +2094,7 @@ export async function reimbursement_wallet_recharge(
         details.close();
         return false;
     }
-    print_gas_usage_report_from_array( "REIMBURSEMENT_WALLET_RECHARGE", jarrReceipts );
+    print_gas_usage_report_from_array( "REIMBURSEMENT_WALLET_RECHARGE", jarrReceipts, details );
     if( expose_details_get() )
         details.exposeDetailsTo( log, "reimbursement_wallet_recharge", true );
     details.close();
@@ -2164,7 +2174,7 @@ export async function reimbursement_wallet_withdraw(
         details.close();
         return false;
     }
-    print_gas_usage_report_from_array( "REIMBURSEMENT_WALLET_WITHDRAW", jarrReceipts );
+    print_gas_usage_report_from_array( "REIMBURSEMENT_WALLET_WITHDRAW", jarrReceipts, details );
     if( expose_details_get() )
         details.exposeDetailsTo( log, "reimbursement_wallet_withdraw", true );
     details.close();
@@ -2247,7 +2257,7 @@ export async function reimbursement_set_range(
         details.close();
         return false;
     }
-    print_gas_usage_report_from_array( "REIMBURSEMENT_SET_RANGE", jarrReceipts );
+    print_gas_usage_report_from_array( "REIMBURSEMENT_SET_RANGE", jarrReceipts, details );
     if( expose_details_get() )
         details.exposeDetailsTo( log, "reimbursement_set_range", true );
     details.close();
@@ -2358,7 +2368,7 @@ export async function do_eth_payment_from_main_net(
         details.close();
         return false;
     }
-    print_gas_usage_report_from_array( "ETH PAYMENT FROM MAIN NET", jarrReceipts );
+    print_gas_usage_report_from_array( "ETH PAYMENT FROM MAIN NET", jarrReceipts, details );
     if( expose_details_get() )
         details.exposeDetailsTo( log, "do_eth_payment_from_main_net", true );
     details.close();
@@ -2469,7 +2479,7 @@ export async function do_eth_payment_from_s_chain(
         details.close();
         return false;
     }
-    print_gas_usage_report_from_array( "ETH PAYMENT FROM S-CHAIN", jarrReceipts );
+    print_gas_usage_report_from_array( "ETH PAYMENT FROM S-CHAIN", jarrReceipts, details );
     if( expose_details_get() )
         details.exposeDetailsTo( log, "do_eth_payment_from_s_chain", true );
     details.close();
@@ -2545,7 +2555,7 @@ export async function receive_eth_payment_from_s_chain_on_main_net(
         details.close();
         return false;
     }
-    print_gas_usage_report_from_array( "RECEIVE ETH ON MAIN NET", jarrReceipts );
+    print_gas_usage_report_from_array( "RECEIVE ETH ON MAIN NET", jarrReceipts, details );
     if( expose_details_get() )
         details.exposeDetailsTo( log, "receive_eth_payment_from_s_chain_on_main_net", true );
     details.close();
@@ -2751,7 +2761,7 @@ export async function do_erc721_payment_from_main_net(
         details.close();
         return false;
     }
-    print_gas_usage_report_from_array( "ERC-721 PAYMENT FROM MAIN NET", jarrReceipts );
+    print_gas_usage_report_from_array( "ERC-721 PAYMENT FROM MAIN NET", jarrReceipts, details );
     if( expose_details_get() )
         details.exposeDetailsTo( log, "do_erc721_payment_from_main_net", true );
     details.close();
@@ -2919,7 +2929,7 @@ export async function do_erc20_payment_from_main_net(
         details.close();
         return false;
     }
-    print_gas_usage_report_from_array( "ERC-20 PAYMENT FROM MAIN NET", jarrReceipts );
+    print_gas_usage_report_from_array( "ERC-20 PAYMENT FROM MAIN NET", jarrReceipts, details );
     if( expose_details_get() )
         details.exposeDetailsTo( log, "do_erc20_payment_from_main_net", true );
     details.close();
@@ -3086,7 +3096,7 @@ export async function do_erc1155_payment_from_main_net(
         details.close();
         return false;
     }
-    print_gas_usage_report_from_array( "ERC-1155 PAYMENT FROM MAIN NET", jarrReceipts );
+    print_gas_usage_report_from_array( "ERC-1155 PAYMENT FROM MAIN NET", jarrReceipts, details );
     if( expose_details_get() )
         details.exposeDetailsTo( log, "do_erc1155_payment_from_main_net", true );
     details.close();
@@ -3253,7 +3263,7 @@ export async function do_erc1155_batch_payment_from_main_net(
         details.close();
         return false;
     }
-    print_gas_usage_report_from_array( "ERC-1155 PAYMENT FROM MAIN NET", jarrReceipts );
+    print_gas_usage_report_from_array( "ERC-1155 PAYMENT FROM MAIN NET", jarrReceipts, details );
     if( expose_details_get() )
         details.exposeDetailsTo( log, "do_erc1155_batch_payment_from_main_net", true );
     details.close();
@@ -3433,7 +3443,7 @@ export async function do_erc20_payment_from_s_chain(
         details.close();
         return false;
     }
-    print_gas_usage_report_from_array( "ERC-20 PAYMENT FROM S-CHAIN", jarrReceipts );
+    print_gas_usage_report_from_array( "ERC-20 PAYMENT FROM S-CHAIN", jarrReceipts, details );
     if( expose_details_get() )
         details.exposeDetailsTo( log, "do_erc20_payment_from_s_chain", true );
     details.close();
@@ -3615,7 +3625,7 @@ export async function do_erc721_payment_from_s_chain(
         details.close();
         return false;
     }
-    print_gas_usage_report_from_array( "ERC-721 PAYMENT FROM S-CHAIN", jarrReceipts );
+    print_gas_usage_report_from_array( "ERC-721 PAYMENT FROM S-CHAIN", jarrReceipts, details );
     if( expose_details_get() )
         details.exposeDetailsTo( log, "do_erc721_payment_from_s_chain", true );
     details.close();
@@ -3796,7 +3806,7 @@ export async function do_erc1155_payment_from_s_chain(
         details.close();
         return false;
     }
-    print_gas_usage_report_from_array( "ERC-1155 PAYMENT FROM S-CHAIN", jarrReceipts );
+    print_gas_usage_report_from_array( "ERC-1155 PAYMENT FROM S-CHAIN", jarrReceipts, details );
     if( expose_details_get() )
         details.exposeDetailsTo( log, "do_erc1155_payment_from_s_chain", true );
     details.close();
@@ -3976,7 +3986,7 @@ export async function do_erc1155_batch_payment_from_s_chain(
         details.close();
         return false;
     }
-    print_gas_usage_report_from_array( "ERC-1155 PAYMENT FROM S-CHAIN", jarrReceipts );
+    print_gas_usage_report_from_array( "ERC-1155 PAYMENT FROM S-CHAIN", jarrReceipts, details );
     if( expose_details_get() )
         details.exposeDetailsTo( log, "do_erc1155_batch_payment_from_s_chain", true );
     details.close();
@@ -4145,7 +4155,7 @@ export async function do_erc20_payment_s2s(
         details.close();
         return false;
     }
-    print_gas_usage_report_from_array( "ERC-20 PAYMENT FROM S2S/" + ( isForward ? "forward" : "reverse" ), jarrReceipts );
+    print_gas_usage_report_from_array( "ERC-20 PAYMENT FROM S2S/" + ( isForward ? "forward" : "reverse" ), jarrReceipts, details );
     if( expose_details_get() )
         details.exposeDetailsTo( log, "do_erc20_payment_s2s/" + ( isForward ? "forward" : "reverse" ), true );
     details.close();
@@ -4315,7 +4325,7 @@ export async function do_erc721_payment_s2s(
         details.close();
         return false;
     }
-    print_gas_usage_report_from_array( "ERC-721 PAYMENT FROM S2S/" + ( isForward ? "forward" : "reverse" ), jarrReceipts );
+    print_gas_usage_report_from_array( "ERC-721 PAYMENT FROM S2S/" + ( isForward ? "forward" : "reverse" ), jarrReceipts, details );
     if( expose_details_get() )
         details.exposeDetailsTo( log, "do_erc721_payment_s2s/" + ( isForward ? "forward" : "reverse" ), true );
     details.close();
@@ -4487,7 +4497,7 @@ export async function do_erc1155_payment_s2s(
         details.close();
         return false;
     }
-    print_gas_usage_report_from_array( "ERC-1155 PAYMENT FROM S2S/" + ( isForward ? "forward" : "reverse" ), jarrReceipts );
+    print_gas_usage_report_from_array( "ERC-1155 PAYMENT FROM S2S/" + ( isForward ? "forward" : "reverse" ), jarrReceipts, details );
     if( expose_details_get() )
         details.exposeDetailsTo( log, "do_erc1155_payment_s2s/" + ( isForward ? "forward" : "reverse" ), true );
     details.close();
@@ -4659,7 +4669,7 @@ export async function do_erc1155_batch_payment_s2s(
         details.close();
         return false;
     }
-    print_gas_usage_report_from_array( "ERC-1155-batch PAYMENT FROM S2S/" + ( isForward ? "forward" : "reverse" ), jarrReceipts );
+    print_gas_usage_report_from_array( "ERC-1155-batch PAYMENT FROM S2S/" + ( isForward ? "forward" : "reverse" ), jarrReceipts, details );
     if( expose_details_get() )
         details.exposeDetailsTo( log, "do_erc1155_batch_payment_s2s/" + ( isForward ? "forward" : "reverse" ), true );
     details.close();
@@ -4669,7 +4679,14 @@ export async function do_erc1155_batch_payment_s2s(
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-async function find_out_reference_log_record( details, ethersProvider, jo_message_proxy, nBlockId, nMessageNumberToFind, isVerbose ) {
+async function find_out_reference_log_record(
+    details,
+    ethersProvider,
+    jo_message_proxy,
+    bnBlockId,
+    nMessageNumberToFind,
+    isVerbose
+) {
     const strLogPrefix = "";
     const bnMessageNumberToFind = owaspUtils.toBN( nMessageNumberToFind.toString() );
     const strEventName = "PreviousMessageReference";
@@ -4680,8 +4697,8 @@ async function find_out_reference_log_record( details, ethersProvider, jo_messag
             10,
             jo_message_proxy,
             strEventName,
-            nBlockId, // nBlockFrom
-            nBlockId, // nBlockTo
+            bnBlockId, // nBlockFrom
+            bnBlockId, // nBlockTo
             jo_message_proxy.filters[strEventName]()
         );
     const cntLogRecord = arrLogRecords.length;
@@ -4699,7 +4716,7 @@ async function find_out_reference_log_record( details, ethersProvider, jo_messag
         const joReferenceLogRecord = {
             "currentMessage": eventValuesByName.currentMessage,
             "previousOutgoingMessageBlockId": eventValuesByName.previousOutgoingMessageBlockId,
-            "currentBlockId": owaspUtils.toInteger( nBlockId.toString() ) // added field
+            "currentBlockId": bnBlockId
         };
         const bnCurrentMessage = owaspUtils.toBN( joReferenceLogRecord.currentMessage.toString() );
         if( bnCurrentMessage.eq( bnMessageNumberToFind ) ) {
@@ -4719,11 +4736,19 @@ async function find_out_reference_log_record( details, ethersProvider, jo_messag
     return null;
 }
 
-async function find_out_all_reference_log_records( details, ethersProvider, jo_message_proxy, nBlockId, nIncMsgCnt, nOutMsgCnt, isVerbose ) {
+async function find_out_all_reference_log_records(
+    details,
+    ethersProvider,
+    jo_message_proxy,
+    bnBlockId,
+    nIncMsgCnt,
+    nOutMsgCnt,
+    isVerbose
+) {
     const strLogPrefix = "";
     if( isVerbose ) {
         details.write( strLogPrefix +
-            cc.debug( "Optimized IMA message search algorithm will start at block " ) + cc.info( nBlockId.toString() ) +
+            cc.debug( "Optimized IMA message search algorithm will start at block " ) + cc.info( bnBlockId.toString() ) +
             cc.debug( ", will search for outgoing message counter " ) + cc.info( nOutMsgCnt.toString() ) +
             cc.debug( " and approach down to incoming message counter " ) + cc.info( nIncMsgCnt.toString() ) +
             "\n" );
@@ -4738,17 +4763,20 @@ async function find_out_all_reference_log_records( details, ethersProvider, jo_m
         return arrLogRecordReferences; // nothing to search
     }
     let nWalkMsgNumber = nOutMsgCnt - 1;
-    let nWalkBlockId = nBlockId;
+    let nWalkBlockId = bnBlockId;
     for( ; nWalkMsgNumber >= nIncMsgCnt; -- nWalkMsgNumber ) {
         const joReferenceLogRecord =
             await find_out_reference_log_record(
-                details, ethersProvider, jo_message_proxy,
-                nWalkBlockId, nWalkMsgNumber,
+                details,
+                ethersProvider,
+                jo_message_proxy,
+                nWalkBlockId,
+                nWalkMsgNumber,
                 isVerbose
             );
         if( joReferenceLogRecord == null )
             break;
-        nWalkBlockId = owaspUtils.toInteger( joReferenceLogRecord.previousOutgoingMessageBlockId.toString() );
+        nWalkBlockId = owaspUtils.toBN( joReferenceLogRecord.previousOutgoingMessageBlockId );
         arrLogRecordReferences.unshift( joReferenceLogRecord );
     } // for( ; nWalkMsgNumber >= nIncMsgCnt; -- nWalkMsgNumber )
     const cntFound = arrLogRecordReferences.length;
@@ -4826,13 +4854,13 @@ export async function do_transfer(
     ++ g_nTransferLoopCounter;
     //
     const strTransferErrorCategoryName = "loop-" + strDirection;
-    const strGatheredDetailsName_a = "" + strDirection + "-" +
+    let strGatheredDetailsName = "" + strDirection + "-" +
         "do_transfer-A-#" + nTransferLoopCounter +
         "-" + chain_id_src + "-->" + chain_id_dst;
-    const strGatheredDetailsName_a_colored = "" + cc.bright( strDirection ) + cc.debug( "-" ) +
+    let strGatheredDetailsName_colored = "" + cc.bright( strDirection ) + cc.debug( "-" ) +
         cc.info( "do_transfer-A-" ) + cc.debug( "-" ) + cc.notice( "#" ) + cc.note( nTransferLoopCounter ) +
         cc.debug( "-" ) + cc.notice( chain_id_src ) + cc.debug( "-->" ) + cc.notice( chain_id_dst );
-    const details = imaState.isDynamicLogInDoTransfer ? log : log.createMemoryStream( true );
+    let details = imaState.isDynamicLogInDoTransfer ? log : log.createMemoryStream( true );
     const jarrReceipts = [];
     let bErrorInSigningMessages = false;
     const strLogPrefix = cc.bright( strDirection ) + cc.info( " transfer from " ) + cc.notice( chain_id_src ) + cc.info( " to " ) + cc.notice( chain_id_dst ) + cc.info( ":" ) + " ";
@@ -4902,19 +4930,38 @@ export async function do_transfer(
         //
         // optimized scanner
         //
-        const nBlockId = await jo_message_proxy_src.callStatic.getLastOutgoingMessageBlockId( chain_id_dst, { from: joAccountSrc.address() } );
-        // const joReferenceLogRecord = await find_out_reference_log_record( details, ethersProvider_src, jo_message_proxy_src, nBlockId, nOutMsgCnt - 1, true );
+        const bnBlockId = owaspUtils.toBN( await jo_message_proxy_src.callStatic.getLastOutgoingMessageBlockId( chain_id_dst, { from: joAccountSrc.address() } ) );
+        // const joReferenceLogRecord =
+        //     await find_out_reference_log_record(
+        //         details,
+        //         ethersProvider_src,
+        //         jo_message_proxy_src,
+        //         bnBlockId,
+        //         nOutMsgCnt - 1,
+        //         true
+        //         );
         let arrLogRecordReferences = [];
         try {
-            arrLogRecordReferences = await find_out_all_reference_log_records( details, ethersProvider_src, jo_message_proxy_src, nBlockId, nIncMsgCnt, nOutMsgCnt, true );
-            if( arrLogRecordReferences.length <= 0 )
-                throw new Error( "Nothing was found by optimized IMA messages search algorithm" );
+            arrLogRecordReferences =
+                await find_out_all_reference_log_records(
+                    details,
+                    ethersProvider_src,
+                    jo_message_proxy_src,
+                    bnBlockId,
+                    nIncMsgCnt,
+                    nOutMsgCnt,
+                    true
+                );
+            //if( arrLogRecordReferences.length <= 0 )
+            //    details.success( cc.warning( "Nothing was found by optimized IMA messages search algorithm" ) + "\n" );
         } catch ( err ) {
             arrLogRecordReferences = [];
             details.write(
                 strLogPrefix + cc.warning( "Optimized log search is " ) + cc.error( "off" ) +
                 cc.warning( ". Running old IMA smart contracts?" ) + cc.success( " Please upgrade, if possible." ) +
                 cc.warning( " This message is based on error: " ) + cc.success( " Please upgrade, if possible." ) +
+                cc.warning( " Error is: " ) + cc.error( owaspUtils.extract_error_message( err ) ) +
+                cc.warning( ", stack is: " ) + "\n" + cc.stack( err.stack ) +
                 "\n" );
         }
 
@@ -5042,7 +5089,7 @@ export async function do_transfer(
                     details.write( strError );
                     if( log.id != details.id )
                         log.write( strError );
-                    details.exposeDetailsTo( log, strGatheredDetailsName_a, false );
+                    details.exposeDetailsTo( log, strGatheredDetailsName, false );
                     save_transfer_error( strTransferErrorCategoryName, details.toString() );
                     details.close();
                     return false;
@@ -5075,7 +5122,7 @@ export async function do_transfer(
                         details.write( s );
                         if( log.id != details.id )
                             log.write( s );
-                        details.exposeDetailsTo( log, strGatheredDetailsName_a, false );
+                        details.exposeDetailsTo( log, strGatheredDetailsName, false );
                         save_transfer_error( strTransferErrorCategoryName, details.toString() );
                         details.close();
                         return false;
@@ -5122,7 +5169,7 @@ export async function do_transfer(
                         details.write( s );
                         if( log.id != details.id )
                             log.write( s );
-                        details.exposeDetailsTo( log, strGatheredDetailsName_a, false );
+                        details.exposeDetailsTo( log, strGatheredDetailsName, false );
                         save_transfer_error( strTransferErrorCategoryName, details.toString() );
                         details.close();
                         return false;
@@ -5154,8 +5201,8 @@ export async function do_transfer(
                     "destinationContract": joValues.dstContract,
                     "to": joValues.to,
                     "amount": joValues.amount,
-                    "data": joValues.data //,
-                    // "savedBlockNumberForOptimizations": joValues.savedBlockNumberForOptimizations
+                    "data": joValues.data,
+                    "savedBlockNumberForOptimizations": joValues.savedBlockNumberForOptimizations
                 };
                 jarrMessages.push( joMessage );
             } // for( let idxInBlock = 0; nIdxCurrentMsg < nOutMsgCnt && idxInBlock < nTransactionsCountInBlock; ++ nIdxCurrentMsg, ++ idxInBlock, ++cntAccumulatedForBlock )
@@ -5298,7 +5345,7 @@ export async function do_transfer(
                                 details.write( strError );
                                 if( log.id != details.id )
                                     log.write( strError );
-                                // details.exposeDetailsTo( log, strGatheredDetailsName_a, false );
+                                // details.exposeDetailsTo( log, strGatheredDetailsName, false );
                                 // save_transfer_error( strTransferErrorCategoryName, details.toString() );
                                 // details.close();
                                 // return false;
@@ -5351,7 +5398,7 @@ export async function do_transfer(
                         details.write( s );
                         if( log.id != details.id )
                             log.write( s );
-                        details.exposeDetailsTo( log, strGatheredDetailsName_a, false );
+                        details.exposeDetailsTo( log, strGatheredDetailsName, false );
                         save_transfer_error( strTransferErrorCategoryName, details.toString() );
                         details.close();
                         return false;
@@ -5365,7 +5412,7 @@ export async function do_transfer(
                         details.write( s );
                         if( log.id != details.id )
                             log.write( s );
-                        details.exposeDetailsTo( log, strGatheredDetailsName_a, false );
+                        details.exposeDetailsTo( log, strGatheredDetailsName, false );
                         save_transfer_error( strTransferErrorCategoryName, details.toString() );
                         details.close();
                         return false;
@@ -5386,9 +5433,19 @@ export async function do_transfer(
             details.write( strWillInvokeSigningCallbackMessage );
             if( log.id != details.id )
                 log.write( strWillInvokeSigningCallbackMessage );
-            const strGatheredDetailsName_b = "" + strDirection + "-" +
+            //
+            // will re-open details B log here for next step, it can be delayed so we will flush accumulated details A now
+            if( expose_details_get() && details.exposeDetailsTo )
+                details.exposeDetailsTo( log, strGatheredDetailsName, true );
+            details.close();
+            details = imaState.isDynamicLogInDoTransfer ? log : log.createMemoryStream( true );
+            strGatheredDetailsName = "" + strDirection + "-" +
                 "do_transfer-B-#" + nTransferLoopCounter +
                 "-" + chain_id_src + "-->" + chain_id_dst;
+            strGatheredDetailsName_colored = "" + cc.bright( strDirection ) + cc.debug( "-" ) +
+                cc.info( "do_transfer-B-" ) + cc.debug( "-" ) + cc.notice( "#" ) + cc.note( nTransferLoopCounter ) +
+                cc.debug( "-" ) + cc.notice( chain_id_src ) + cc.debug( "-->" ) + cc.notice( chain_id_dst );
+            //
             try {
                 await fn_sign_messages(
                     nTransferLoopCounter,
@@ -5522,10 +5579,10 @@ export async function do_transfer(
                         if( joReceipt && typeof joReceipt == "object" ) {
                             jarrReceipts.push( {
                                 "description": "do_transfer/postIncomingMessages()",
-                                "detailsString": "" + strGatheredDetailsName_b,
+                                "detailsString": "" + strGatheredDetailsName,
                                 "receipt": joReceipt
                             } );
-                            print_gas_usage_report_from_array( "(intermediate result) TRANSFER " + chain_id_src + " -> " + chain_id_dst, jarrReceipts );
+                            print_gas_usage_report_from_array( "(intermediate result) TRANSFER " + chain_id_src + " -> " + chain_id_dst, jarrReceipts, details );
                         }
                         cntProcessed += cntAccumulatedForBlock;
                         //
@@ -5600,22 +5657,22 @@ export async function do_transfer(
         } // while( nIdxCurrentMsg < nOutMsgCnt )
     } catch ( err ) {
         const strError = strLogPrefix + cc.fatal( "CRITICAL ERROR:" ) +
-            cc.error( " Error in " ) + strGatheredDetailsName_a_colored +
+            cc.error( " Error in " ) + strGatheredDetailsName_colored +
             cc.error( " during " + strActionName + ": " ) + cc.error( owaspUtils.extract_error_message( err ) ) +
             cc.error( ", stack is: " ) + "\n" + cc.stack( err.stack ) +
             "\n";
         details.write( strError );
         if( log.id != details.id )
             log.write( strError );
-        details.exposeDetailsTo( log, strGatheredDetailsName_a, false );
+        details.exposeDetailsTo( log, strGatheredDetailsName, false );
         save_transfer_error( strTransferErrorCategoryName, details.toString() );
         details.close();
         return false;
     }
-    print_gas_usage_report_from_array( "TRANSFER " + chain_id_src + " -> " + chain_id_dst, jarrReceipts );
+    print_gas_usage_report_from_array( "TRANSFER " + chain_id_src + " -> " + chain_id_dst, jarrReceipts, details );
     if( details ) {
         if( expose_details_get() && details.exposeDetailsTo )
-            details.exposeDetailsTo( log, strGatheredDetailsName_a, true );
+            details.exposeDetailsTo( log, strGatheredDetailsName, true );
         details.close();
     }
     if( ! bErrorInSigningMessages )
@@ -5776,21 +5833,22 @@ export async function do_s2s_all( // s-chain --> s-chain
 export function compose_gas_usage_report_from_array( strName, jarrReceipts ) {
     if( ! ( strName && typeof strName == "string" && jarrReceipts ) )
         return "";
-    let i, sumGasUsed = 0, s = "\n" + cc.info( "Gas usage report for " ) + cc.attention( strName ) + "\n";
+    let i, sumGasUsed = owaspUtils.toBN( "0" ), s = "\n" + cc.info( "Gas usage report for " ) + cc.attention( strName ) + "\n";
     for( i = 0; i < jarrReceipts.length; ++ i ) {
         try {
-            sumGasUsed += parseInt( jarrReceipts[i].receipt.gasUsed, 10 );
-            s += "    " + cc.notice( jarrReceipts[i].description ) + cc.debug( "....." ) + cc.info( jarrReceipts[i].receipt.gasUsed ) + "\n";
+            sumGasUsed = sumGasUsed.add( owaspUtils.toBN( jarrReceipts[i].receipt.gasUsed ) );
+            s += "    " + cc.notice( jarrReceipts[i].description ) + cc.debug( "....." ) + cc.info( jarrReceipts[i].receipt.gasUsed.toString() ) + "\n";
         } catch ( err ) { }
     }
-    s += "    " + cc.attention( "SUM" ) + cc.debug( "....." ) + cc.info( sumGasUsed ) + "\n";
-    return s;
+    s += "    " + cc.attention( "SUM" ) + cc.debug( "....." ) + cc.info( sumGasUsed.toString() ) + "\n";
+    return { "sumGasUsed": sumGasUsed, "strReport": s };
 }
 
-export function print_gas_usage_report_from_array( strName, jarrReceipts ) {
-    const s = compose_gas_usage_report_from_array( strName, jarrReceipts );
-    if( s && s.length > 0 )
-        log.write( s );
+export function print_gas_usage_report_from_array( strName, jarrReceipts, details ) {
+    details = details || log;
+    const jo = compose_gas_usage_report_from_array( strName, jarrReceipts );
+    if( jo.strReport && typeof jo.strReport == "string" && jo.strReport.length > 0 && jo.sumGasUsed && jo.sumGasUsed.gt( owaspUtils.toBN( "0" ) ) )
+        log.write( jo.strReport );
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -5853,20 +5911,32 @@ export class TransactionCustomizer {
         const strContractCallDescription = strContractMethodDescription + strArgumentsDescription;
         const strLogPrefix = strContractMethodDescription + " ";
         try {
-            details.write( cc.debug( "Estimate-gas of action " ) + cc.info( strActionName ) + cc.debug( "..." ) + "\n" );
-            details.write( cc.debug( "Will estimate-gas " ) + strContractCallDescription + cc.debug( "..." ) + "\n" );
-            const strAccountWalletAddress = joAccount.address();
-            const callOpts = {
-                from: strAccountWalletAddress
-            };
-            if( gasPrice )
-                callOpts.gasPrice = owaspUtils.toBN( gasPrice ).toHexString();
-            if( gasValueRecommended )
-                callOpts.gasLimit = owaspUtils.toBN( gasValueRecommended ).toHexString();
-            if( weiHowMuch )
-                callOpts.value = owaspUtils.toBN( weiHowMuch ).toHexString();
-            estimatedGas = await joContract.estimateGas[strMethodName]( ...arrArguments, callOpts );
-            details.write( strLogPrefix + cc.success( "estimate-gas success: " ) + cc.j( estimatedGas ) + "\n" );
+            const promiseComplete = new Promise( function( resolve, reject ) {
+                const do_estimation = async function() {
+                    try {
+                        details.write( cc.debug( "Estimate-gas of action " ) + cc.info( strActionName ) + cc.debug( "..." ) + "\n" );
+                        details.write( cc.debug( "Will estimate-gas " ) + strContractCallDescription + cc.debug( "..." ) + "\n" );
+                        const strAccountWalletAddress = joAccount.address();
+                        const callOpts = {
+                            from: strAccountWalletAddress
+                        };
+                        if( gasPrice )
+                            callOpts.gasPrice = owaspUtils.toBN( gasPrice ).toHexString();
+                        if( gasValueRecommended )
+                            callOpts.gasLimit = owaspUtils.toBN( gasValueRecommended ).toHexString();
+                        if( weiHowMuch )
+                            callOpts.value = owaspUtils.toBN( weiHowMuch ).toHexString();
+                        details.write( cc.debug( "Call options for estimate-gas " ) + cc.j( callOpts ) + "\n" );
+                        estimatedGas = await joContract.estimateGas[strMethodName]( ...arrArguments, callOpts );
+                        details.write( strLogPrefix + cc.success( "estimate-gas success: " ) + cc.j( estimatedGas ) + "\n" );
+                        resolve( estimatedGas );
+                    } catch ( err ) {
+                        reject( err );
+                    }
+                };
+                do_estimation();
+            } );
+            await Promise.all( [ promiseComplete ] );
         } catch ( err ) {
             const strError = owaspUtils.extract_error_message( err );
             details.write(
@@ -6098,7 +6168,7 @@ export async function mintERC20(
         print_gas_usage_report_from_array( "MINT ERC20 ", [ {
             "description": "mintERC20()/mint",
             "receipt": joReceipt
-        } ] );
+        } ], details );
         if( expose_details_get() )
             details.exposeDetailsTo( log, "mintERC20", true );
         details.close();
@@ -6190,7 +6260,7 @@ export async function mintERC721(
         print_gas_usage_report_from_array( "MINT ERC721 ", [ {
             "description": "mintERC721()/mint",
             "receipt": joReceipt
-        } ] );
+        } ], details );
         if( expose_details_get() )
             details.exposeDetailsTo( log, "mintERC721", true );
         details.close();
@@ -6285,7 +6355,7 @@ export async function mintERC1155(
         print_gas_usage_report_from_array( "MINT ERC1155 ", [ {
             "description": "mintERC1155()/mint",
             "receipt": joReceipt
-        } ] );
+        } ], details );
         if( expose_details_get() )
             details.exposeDetailsTo( log, "mintERC1155", true );
         details.close();
@@ -6377,7 +6447,7 @@ export async function burnERC20(
         print_gas_usage_report_from_array( "BURN ERC20 ", [ {
             "description": "burnERC20()/burn",
             "receipt": joReceipt
-        } ] );
+        } ], details );
         if( expose_details_get() )
             details.exposeDetailsTo( log, "burnERC20", true );
         details.close();
@@ -6469,7 +6539,7 @@ export async function burnERC721(
         print_gas_usage_report_from_array( "BURN ERC721 ", [ {
             "description": "burnERC721()/burn",
             "receipt": joReceipt
-        } ] );
+        } ], details );
         if( expose_details_get() )
             details.exposeDetailsTo( log, "burnERC721", true );
         details.close();
@@ -6564,7 +6634,7 @@ export async function burnERC1155(
         print_gas_usage_report_from_array( "BURN ERC1155 ", [ {
             "description": "burnERC1155()/burn",
             "receipt": joReceipt
-        } ] );
+        } ], details );
         if( expose_details_get() )
             details.exposeDetailsTo( log, "burnERC1155", true );
         details.close();
