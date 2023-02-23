@@ -98,6 +98,7 @@ module.exports = {
         "lines-between-class-members": [ "error", "never" ],
         "no-var": "error",
         "no-unused-vars": "error",
-        "object-shorthand": 0
+        "object-shorthand": 0,
+        "multiline-ternary": "off"
     }
 };

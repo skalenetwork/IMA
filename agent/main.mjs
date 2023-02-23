@@ -157,17 +157,18 @@ function parse_command_line() {
                     if( imaState.chainProperties.tc.strCoinNameErc20.length > 0 ) {
                         try {
                             const strAddressMintTo = imaState.chainProperties.tc.joAccount.address(); // same as caller/transaction signer
-                            bMintIsOK = await IMA.mintERC20(
-                                imaState.chainProperties.tc.ethersProvider,
-                                imaState.chainProperties.tc.cid,
-                                imaState.chainProperties.tc.strChainName,
-                                imaState.chainProperties.tc.joAccount,
-                                strAddressMintTo,
-                                imaState.nAmountOfToken,
-                                imaState.chainProperties.tc.joErc20[imaState.chainProperties.tc.strCoinNameErc20 + "_address"],
-                                imaState.chainProperties.tc.joErc20[imaState.chainProperties.tc.strCoinNameErc20 + "_abi"],
-                                imaState.chainProperties.tc.transactionCustomizer
-                            ) ? true : false;
+                            bMintIsOK =
+                                await IMA.mintERC20(
+                                    imaState.chainProperties.tc.ethersProvider,
+                                    imaState.chainProperties.tc.cid,
+                                    imaState.chainProperties.tc.strChainName,
+                                    imaState.chainProperties.tc.joAccount,
+                                    strAddressMintTo,
+                                    imaState.nAmountOfToken,
+                                    imaState.chainProperties.tc.joErc20[imaState.chainProperties.tc.strCoinNameErc20 + "_address"],
+                                    imaState.chainProperties.tc.joErc20[imaState.chainProperties.tc.strCoinNameErc20 + "_abi"],
+                                    imaState.chainProperties.tc.transactionCustomizer
+                                ) ? true : false;
                         } catch ( err ) {
                             bMintIsOK = false;
                         }
@@ -190,17 +191,18 @@ function parse_command_line() {
                             if( idTokens.length > 0 ) {
                                 for( let i = 0; i < idTokens.length; ++ i ) {
                                     const idToken = idTokens[i];
-                                    bMintIsOK = await IMA.mintERC721(
-                                        imaState.chainProperties.tc.ethersProvider,
-                                        imaState.chainProperties.tc.cid,
-                                        imaState.chainProperties.tc.strChainName,
-                                        imaState.chainProperties.tc.joAccount,
-                                        strAddressMintTo,
-                                        idToken,
-                                        imaState.chainProperties.tc.joErc721[imaState.chainProperties.tc.strCoinNameErc721 + "_address"],
-                                        imaState.chainProperties.tc.joErc721[imaState.chainProperties.tc.strCoinNameErc721 + "_abi"],
-                                        imaState.chainProperties.tc.transactionCustomizer
-                                    ) ? true : false;
+                                    bMintIsOK =
+                                        await IMA.mintERC721(
+                                            imaState.chainProperties.tc.ethersProvider,
+                                            imaState.chainProperties.tc.cid,
+                                            imaState.chainProperties.tc.strChainName,
+                                            imaState.chainProperties.tc.joAccount,
+                                            strAddressMintTo,
+                                            idToken,
+                                            imaState.chainProperties.tc.joErc721[imaState.chainProperties.tc.strCoinNameErc721 + "_address"],
+                                            imaState.chainProperties.tc.joErc721[imaState.chainProperties.tc.strCoinNameErc721 + "_abi"],
+                                            imaState.chainProperties.tc.transactionCustomizer
+                                        ) ? true : false;
                                 }
                             }
                         } catch ( err ) {
@@ -225,18 +227,19 @@ function parse_command_line() {
                             if( idTokens.length > 0 ) {
                                 for( let i = 0; i < idTokens.length; ++ i ) {
                                     const idToken = idTokens[i];
-                                    bMintIsOK = await IMA.mintERC1155(
-                                        imaState.chainProperties.tc.ethersProvider,
-                                        imaState.chainProperties.tc.cid,
-                                        imaState.chainProperties.tc.strChainName,
-                                        imaState.chainProperties.tc.joAccount,
-                                        strAddressMintTo,
-                                        idToken,
-                                        imaState.nAmountOfToken,
-                                        imaState.chainProperties.tc.joErc1155[imaState.chainProperties.tc.strCoinNameErc1155 + "_address"],
-                                        imaState.chainProperties.tc.joErc1155[imaState.chainProperties.tc.strCoinNameErc1155 + "_abi"],
-                                        imaState.chainProperties.tc.transactionCustomizer
-                                    ) ? true : false;
+                                    bMintIsOK =
+                                        await IMA.mintERC1155(
+                                            imaState.chainProperties.tc.ethersProvider,
+                                            imaState.chainProperties.tc.cid,
+                                            imaState.chainProperties.tc.strChainName,
+                                            imaState.chainProperties.tc.joAccount,
+                                            strAddressMintTo,
+                                            idToken,
+                                            imaState.nAmountOfToken,
+                                            imaState.chainProperties.tc.joErc1155[imaState.chainProperties.tc.strCoinNameErc1155 + "_address"],
+                                            imaState.chainProperties.tc.joErc1155[imaState.chainProperties.tc.strCoinNameErc1155 + "_abi"],
+                                            imaState.chainProperties.tc.transactionCustomizer
+                                        ) ? true : false;
                                 }
                             }
                         } catch ( err ) {
@@ -255,17 +258,18 @@ function parse_command_line() {
                     if( imaState.chainProperties.tc.strCoinNameErc20.length > 0 ) {
                         try {
                             const strAddressBurnFrom = imaState.chainProperties.tc.joAccount.address(); // same as caller/transaction signer
-                            bBurnIsOK = await IMA.burnERC20(
-                                imaState.chainProperties.tc.ethersProvider,
-                                imaState.chainProperties.tc.cid,
-                                imaState.chainProperties.tc.strChainName,
-                                imaState.chainProperties.tc.joAccount,
-                                strAddressBurnFrom,
-                                imaState.nAmountOfToken,
-                                imaState.chainProperties.tc.joErc20[imaState.chainProperties.tc.strCoinNameErc20 + "_address"],
-                                imaState.chainProperties.tc.joErc20[imaState.chainProperties.tc.strCoinNameErc20 + "_abi"],
-                                imaState.chainProperties.tc.transactionCustomizer
-                            ) ? true : false;
+                            bBurnIsOK =
+                                await IMA.burnERC20(
+                                    imaState.chainProperties.tc.ethersProvider,
+                                    imaState.chainProperties.tc.cid,
+                                    imaState.chainProperties.tc.strChainName,
+                                    imaState.chainProperties.tc.joAccount,
+                                    strAddressBurnFrom,
+                                    imaState.nAmountOfToken,
+                                    imaState.chainProperties.tc.joErc20[imaState.chainProperties.tc.strCoinNameErc20 + "_address"],
+                                    imaState.chainProperties.tc.joErc20[imaState.chainProperties.tc.strCoinNameErc20 + "_abi"],
+                                    imaState.chainProperties.tc.transactionCustomizer
+                                ) ? true : false;
                         } catch ( err ) {
                             bBurnIsOK = false;
                         }
@@ -288,17 +292,18 @@ function parse_command_line() {
                             if( idTokens.length > 0 ) {
                                 for( let i = 0; i < idTokens.length; ++ i ) {
                                     const idToken = idTokens[i];
-                                    bBurnIsOK = await IMA.burnERC721(
-                                        imaState.chainProperties.tc.ethersProvider,
-                                        imaState.chainProperties.tc.cid,
-                                        imaState.chainProperties.tc.strChainName,
-                                        imaState.chainProperties.tc.joAccount,
-                                        // strAddressBurnFrom,
-                                        idToken,
-                                        imaState.chainProperties.tc.joErc721[imaState.chainProperties.tc.strCoinNameErc721 + "_address"],
-                                        imaState.chainProperties.tc.joErc721[imaState.chainProperties.tc.strCoinNameErc721 + "_abi"],
-                                        imaState.chainProperties.tc.transactionCustomizer
-                                    ) ? true : false;
+                                    bBurnIsOK =
+                                        await IMA.burnERC721(
+                                            imaState.chainProperties.tc.ethersProvider,
+                                            imaState.chainProperties.tc.cid,
+                                            imaState.chainProperties.tc.strChainName,
+                                            imaState.chainProperties.tc.joAccount,
+                                            // strAddressBurnFrom,
+                                            idToken,
+                                            imaState.chainProperties.tc.joErc721[imaState.chainProperties.tc.strCoinNameErc721 + "_address"],
+                                            imaState.chainProperties.tc.joErc721[imaState.chainProperties.tc.strCoinNameErc721 + "_abi"],
+                                            imaState.chainProperties.tc.transactionCustomizer
+                                        ) ? true : false;
                                 }
                             }
                         } catch ( err ) {

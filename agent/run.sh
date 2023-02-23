@@ -114,10 +114,6 @@ BASE_OPTIONS="--gas-price-multiplier=$GAS_PRICE_MULTIPLIER \
 --pwa \
 --no-expose-pwa"
 
-#echo "Base options:"
-#echo "$BASE_OPTIONS"
-
 echo "Running loop cmd..."
-#echo "Going to run: node $DIR/main.mjs --loop $BASE_OPTIONS"
-echo "Going to run: node $DIR/main.mjs --loop ... ... ..."
-node $DIR/main.mjs --loop $BASE_OPTIONS
+echo "Going to run: node $DIR/main.mjs --loop $BASE_OPTIONS"
+node "$DIR/main.mjs" --loop $BASE_OPTIONS
