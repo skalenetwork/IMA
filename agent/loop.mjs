@@ -158,9 +158,9 @@ export async function single_transfer_loop( loop_opts ) {
                 if( ! await pwa.check_on_loop_start( imaState, "oracle" ) ) {
                     imaState.loopState.oracle.wasInProgress = false;
                     if( IMA.verbose_get() >= IMA.RV_VERBOSE().debug )
-                        log.write( strLogPrefix + cc.warning( "Skipped due to cancel mode reported from PWA" ) + "\n" );
+                        log.write( strLogPrefix + cc.warning( "Skipped(oracle) due to cancel mode reported from PWA" ) + "\n" );
                 } else {
-                    if( check_time_framing( null, "m2s", loop_opts.joRuntimeOpts ) ) {
+                    if( check_time_framing( null, "oracle", loop_opts.joRuntimeOpts ) ) {
                         imaState.loopState.oracle.isInProgress = true;
                         await pwa.notify_on_loop_start( imaState, "oracle" );
                         b0 = IMA.do_oracle_gas_price_setup(
@@ -177,7 +177,7 @@ export async function single_transfer_loop( loop_opts ) {
                         await pwa.notify_on_loop_end( imaState, "oracle" );
                     } else {
                         if( IMA.verbose_get() >= IMA.RV_VERBOSE().debug )
-                            log.write( strLogPrefix + cc.warning( "Skipped due to time framing check" ) + "\n" );
+                            log.write( strLogPrefix + cc.warning( "Skipped(oracle) due to time framing check" ) + "\n" );
                     }
                 }
             } catch ( err ) {
@@ -198,38 +198,43 @@ export async function single_transfer_loop( loop_opts ) {
                 if( ! await pwa.check_on_loop_start( imaState, "m2s" ) ) {
                     imaState.loopState.m2s.wasInProgress = false;
                     if( IMA.verbose_get() >= IMA.RV_VERBOSE().debug )
-                        log.write( strLogPrefix + cc.warning( "Skipped due to cancel mode reported from PWA" ) + "\n" );
+                        log.write( strLogPrefix + cc.warning( "Skipped(m2s) due to cancel mode reported from PWA" ) + "\n" );
                 } else {
-                    imaState.loopState.m2s.isInProgress = true;
-                    await pwa.notify_on_loop_start( imaState, "m2s" );
-                    b1 = await IMA.do_transfer( // main-net --> s-chain
-                        "M2S",
-                        loop_opts.joRuntimeOpts,
-                        //
-                        imaState.chainProperties.mn.ethersProvider,
-                        imaState.jo_message_proxy_main_net,
-                        imaState.chainProperties.mn.joAccount,
-                        imaState.chainProperties.sc.ethersProvider,
-                        imaState.jo_message_proxy_s_chain,
-                        //
-                        imaState.chainProperties.sc.joAccount,
-                        imaState.chainProperties.mn.strChainName,
-                        imaState.chainProperties.sc.strChainName,
-                        imaState.chainProperties.mn.cid,
-                        imaState.chainProperties.sc.cid,
-                        null, // imaState.jo_deposit_box - for logs validation on mainnet
-                        imaState.jo_token_manager_eth, // for logs validation on s-chain
-                        imaState.nTransferBlockSizeM2S,
-                        imaState.nTransferStepsM2S,
-                        imaState.nMaxTransactionsM2S,
-                        imaState.nBlockAwaitDepthM2S,
-                        imaState.nBlockAgeM2S,
-                        imaBLS.do_sign_messages_m2s, // fn_sign_messages
-                        null, // joExtraSignOpts
-                        imaState.chainProperties.sc.transactionCustomizer
-                    );
-                    imaState.loopState.m2s.isInProgress = false;
-                    await pwa.notify_on_loop_end( imaState, "m2s" );
+                    if( check_time_framing( null, "m2s", loop_opts.joRuntimeOpts ) ) {
+                        imaState.loopState.m2s.isInProgress = true;
+                        await pwa.notify_on_loop_start( imaState, "m2s" );
+                        b1 = await IMA.do_transfer( // main-net --> s-chain
+                            "M2S",
+                            loop_opts.joRuntimeOpts,
+                            //
+                            imaState.chainProperties.mn.ethersProvider,
+                            imaState.jo_message_proxy_main_net,
+                            imaState.chainProperties.mn.joAccount,
+                            imaState.chainProperties.sc.ethersProvider,
+                            imaState.jo_message_proxy_s_chain,
+                            //
+                            imaState.chainProperties.sc.joAccount,
+                            imaState.chainProperties.mn.strChainName,
+                            imaState.chainProperties.sc.strChainName,
+                            imaState.chainProperties.mn.cid,
+                            imaState.chainProperties.sc.cid,
+                            null, // imaState.jo_deposit_box - for logs validation on mainnet
+                            imaState.jo_token_manager_eth, // for logs validation on s-chain
+                            imaState.nTransferBlockSizeM2S,
+                            imaState.nTransferStepsM2S,
+                            imaState.nMaxTransactionsM2S,
+                            imaState.nBlockAwaitDepthM2S,
+                            imaState.nBlockAgeM2S,
+                            imaBLS.do_sign_messages_m2s, // fn_sign_messages
+                            null, // joExtraSignOpts
+                            imaState.chainProperties.sc.transactionCustomizer
+                        );
+                        imaState.loopState.m2s.isInProgress = false;
+                        await pwa.notify_on_loop_end( imaState, "m2s" );
+                    } else {
+                        if( IMA.verbose_get() >= IMA.RV_VERBOSE().debug )
+                            log.write( strLogPrefix + cc.warning( "Skipped(m2s) due to time framing check" ) + "\n" );
+                    }
                 }
             } catch ( err ) {
                 log.write( strLogPrefix + cc.error( "M2S transfer exception: " ) + cc.error( owaspUtils.extract_error_message( err ) ) + cc.error( ", stack is: " ) + "\n" + cc.stack( err.stack ) + "\n" );
@@ -252,38 +257,43 @@ export async function single_transfer_loop( loop_opts ) {
                 if( ! await pwa.check_on_loop_start( imaState, "s2m" ) ) {
                     imaState.loopState.s2m.wasInProgress = false;
                     if( IMA.verbose_get() >= IMA.RV_VERBOSE().debug )
-                        log.write( strLogPrefix + cc.warning( "Skipped due to cancel mode reported from PWA" ) + "\n" );
+                        log.write( strLogPrefix + cc.warning( "Skipped(s2m) due to cancel mode reported from PWA" ) + "\n" );
                 } else {
-                    imaState.loopState.s2m.isInProgress = true;
-                    await pwa.notify_on_loop_start( imaState, "s2m" );
-                    b2 = await IMA.do_transfer( // s-chain --> main-net
-                        "S2M",
-                        loop_opts.joRuntimeOpts,
-                        //
-                        imaState.chainProperties.sc.ethersProvider,
-                        imaState.jo_message_proxy_s_chain,
-                        imaState.chainProperties.sc.joAccount,
-                        imaState.chainProperties.mn.ethersProvider,
-                        imaState.jo_message_proxy_main_net,
-                        //
-                        imaState.chainProperties.mn.joAccount,
-                        imaState.chainProperties.sc.strChainName,
-                        imaState.chainProperties.mn.strChainName,
-                        imaState.chainProperties.sc.cid,
-                        imaState.chainProperties.mn.cid,
-                        imaState.jo_deposit_box_eth, // for logs validation on mainnet
-                        null, // imaState.jo_token_manager, // for logs validation on s-chain
-                        imaState.nTransferBlockSizeS2M,
-                        imaState.nTransferStepsS2M,
-                        imaState.nMaxTransactionsS2M,
-                        imaState.nBlockAwaitDepthS2M,
-                        imaState.nBlockAgeS2M,
-                        imaBLS.do_sign_messages_s2m, // fn_sign_messages
-                        null, // joExtraSignOpts
-                        imaState.chainProperties.mn.transactionCustomizer
-                    );
-                    imaState.loopState.s2m.isInProgress = false;
-                    await pwa.notify_on_loop_end( imaState, "s2m" );
+                    if( check_time_framing( null, "s2m", loop_opts.joRuntimeOpts ) ) {
+                        imaState.loopState.s2m.isInProgress = true;
+                        await pwa.notify_on_loop_start( imaState, "s2m" );
+                        b2 = await IMA.do_transfer( // s-chain --> main-net
+                            "S2M",
+                            loop_opts.joRuntimeOpts,
+                            //
+                            imaState.chainProperties.sc.ethersProvider,
+                            imaState.jo_message_proxy_s_chain,
+                            imaState.chainProperties.sc.joAccount,
+                            imaState.chainProperties.mn.ethersProvider,
+                            imaState.jo_message_proxy_main_net,
+                            //
+                            imaState.chainProperties.mn.joAccount,
+                            imaState.chainProperties.sc.strChainName,
+                            imaState.chainProperties.mn.strChainName,
+                            imaState.chainProperties.sc.cid,
+                            imaState.chainProperties.mn.cid,
+                            imaState.jo_deposit_box_eth, // for logs validation on mainnet
+                            null, // imaState.jo_token_manager, // for logs validation on s-chain
+                            imaState.nTransferBlockSizeS2M,
+                            imaState.nTransferStepsS2M,
+                            imaState.nMaxTransactionsS2M,
+                            imaState.nBlockAwaitDepthS2M,
+                            imaState.nBlockAgeS2M,
+                            imaBLS.do_sign_messages_s2m, // fn_sign_messages
+                            null, // joExtraSignOpts
+                            imaState.chainProperties.mn.transactionCustomizer
+                        );
+                        imaState.loopState.s2m.isInProgress = false;
+                        await pwa.notify_on_loop_end( imaState, "s2m" );
+                    } else {
+                        if( IMA.verbose_get() >= IMA.RV_VERBOSE().debug )
+                            log.write( strLogPrefix + cc.warning( "Skipped(s2m) due to time framing check" ) + "\n" );
+                    }
                 }
             } catch ( err ) {
                 log.write( strLogPrefix + cc.error( "S2M transfer exception: " ) + cc.error( owaspUtils.extract_error_message( err ) ) + cc.error( ", stack is: " ) + "\n" + cc.stack( err.stack ) + "\n" );

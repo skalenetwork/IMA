@@ -4863,7 +4863,7 @@ export async function do_transfer(
     let details = imaState.isDynamicLogInDoTransfer ? log : log.createMemoryStream( true );
     const jarrReceipts = [];
     let bErrorInSigningMessages = false;
-    const strLogPrefix = cc.bright( strDirection ) + cc.info( " transfer from " ) + cc.notice( chain_id_src ) + cc.info( " to " ) + cc.notice( chain_id_dst ) + cc.info( ":" ) + " ";
+    const strLogPrefix = cc.bright( strDirection ) + cc.info( " transfer loop from " ) + cc.notice( chain_id_src ) + cc.info( " to " ) + cc.notice( chain_id_dst ) + cc.info( ":" ) + " ";
     if( fn_sign_messages == null || fn_sign_messages == undefined ) {
         details.write( strLogPrefix + cc.debug( "Using internal signing stub function" ) + "\n" );
         fn_sign_messages = async function( jarrMessages, nIdxCurrentMsgBlockStart, details, joExtraSignOpts, fnAfter ) {
@@ -5724,73 +5724,81 @@ export async function do_s2s_all( // s-chain --> s-chain
             if( ! await pwa.check_on_loop_start( imaState, "s2s", nIndexS2S ) ) {
                 imaState.loopState.s2s.wasInProgress = false;
                 if( verbose_get() >= RV_VERBOSE().debug )
-                    log.write( cc.warning( "Skipped due to cancel mode reported from PWA" ) + "\n" );
+                    log.write( cc.warning( "Skipped(s2s) due to cancel mode reported from PWA" ) + "\n" );
             } else {
-            // ??? assuming all S-Chains have same ABIs here
-                const jo_message_proxy_src =
-                    new owaspUtils.ethersMod.ethers.Contract(
-                        imaState.chainProperties.sc.joAbiIMA.message_proxy_chain_address,
-                        imaState.chainProperties.sc.joAbiIMA.message_proxy_chain_abi,
-                        ethersProvider_src
+                if( loop.check_time_framing( null, "s2s", joRuntimeOpts ) ) {
+                    // ??? assuming all S-Chains have same ABIs here
+                    const jo_message_proxy_src =
+                        new owaspUtils.ethersMod.ethers.Contract(
+                            imaState.chainProperties.sc.joAbiIMA.message_proxy_chain_address,
+                            imaState.chainProperties.sc.joAbiIMA.message_proxy_chain_abi,
+                            ethersProvider_src
+                        );
+                    const jo_deposit_box_src =
+                        new owaspUtils.ethersMod.ethers.Contract(
+                            imaState.chainProperties.sc.joAbiIMA.message_proxy_chain_address,
+                            imaState.chainProperties.sc.joAbiIMA.message_proxy_chain_abi,
+                            ethersProvider_src
+                        );
+                    const joExtraSignOpts = {
+                        skale_observer: skale_observer,
+                        chain_id_src: chain_id_src,
+                        cid_src: cid_src,
+                        chain_id_dst: chain_id_dst,
+                        cid_dst: cid_dst,
+                        joAccountSrc: joAccountSrc,
+                        joAccountDst: joAccountDst,
+                        ethersProvider_src: ethersProvider_src,
+                        ethersProvider_dst: ethersProvider_dst
+                    };
+                    joRuntimeOpts.idxChainKnownForS2S = idxSChain;
+                    joRuntimeOpts.cntChainsKnownForS2S = cntSChains;
+                    joRuntimeOpts.joExtraSignOpts = joExtraSignOpts;
+                    //
+                    imaState.loopState.s2s.isInProgress = true;
+                    await pwa.notify_on_loop_start( imaState, "s2s", nIndexS2S );
+                    //
+                    bOK =
+                    await do_transfer(
+                        strDirection,
+                        joRuntimeOpts,
+                        //
+                        ethersProvider_src,
+                        jo_message_proxy_src,
+                        joAccountSrc,
+                        ethersProvider_dst,
+                        jo_message_proxy_dst,
+                        //
+                        joAccountDst,
+                        //
+                        chain_id_src,
+                        chain_id_dst,
+                        cid_src,
+                        cid_dst,
+                        //
+                        jo_deposit_box_src, // for logs validation on mainnet or source S-Chain
+                        jo_token_manager_schain, // for logs validation on s-chain
+                        //
+                        nTransactionsCountInBlock,
+                        nTransferSteps,
+                        nMaxTransactionsCount,
+                        nBlockAwaitDepth,
+                        nBlockAge,
+                        fn_sign_messages,
+                        joExtraSignOpts,
+                        //
+                        tc_dst
                     );
-                const jo_deposit_box_src =
-                    new owaspUtils.ethersMod.ethers.Contract(
-                        imaState.chainProperties.sc.joAbiIMA.message_proxy_chain_address,
-                        imaState.chainProperties.sc.joAbiIMA.message_proxy_chain_abi,
-                        ethersProvider_src
-                    );
-                const joExtraSignOpts = {
-                    skale_observer: skale_observer,
-                    chain_id_src: chain_id_src,
-                    cid_src: cid_src,
-                    chain_id_dst: chain_id_dst,
-                    cid_dst: cid_dst,
-                    joAccountSrc: joAccountSrc,
-                    joAccountDst: joAccountDst,
-                    ethersProvider_src: ethersProvider_src,
-                    ethersProvider_dst: ethersProvider_dst
-                };
-                joRuntimeOpts.idxChainKnownForS2S = idxSChain;
-                joRuntimeOpts.cntChainsKnownForS2S = cntSChains;
-                joRuntimeOpts.joExtraSignOpts = joExtraSignOpts;
-                //
-                imaState.loopState.s2s.isInProgress = true;
-                await pwa.notify_on_loop_start( imaState, "s2s", nIndexS2S );
-                //
-                bOK =
-                await do_transfer(
-                    strDirection,
-                    joRuntimeOpts,
                     //
-                    ethersProvider_src,
-                    jo_message_proxy_src,
-                    joAccountSrc,
-                    ethersProvider_dst,
-                    jo_message_proxy_dst,
-                    //
-                    joAccountDst,
-                    //
-                    chain_id_src,
-                    chain_id_dst,
-                    cid_src,
-                    cid_dst,
-                    //
-                    jo_deposit_box_src, // for logs validation on mainnet or source S-Chain
-                    jo_token_manager_schain, // for logs validation on s-chain
-                    //
-                    nTransactionsCountInBlock,
-                    nTransferSteps,
-                    nMaxTransactionsCount,
-                    nBlockAwaitDepth,
-                    nBlockAge,
-                    fn_sign_messages,
-                    joExtraSignOpts,
-                    //
-                    tc_dst
-                );
-                //
-                imaState.loopState.s2s.isInProgress = false;
-                await pwa.notify_on_loop_end( imaState, "s2s", nIndexS2S );
+                    imaState.loopState.s2s.isInProgress = false;
+                    await pwa.notify_on_loop_end( imaState, "s2s", nIndexS2S );
+                } else {
+                    bOK = true;
+                    if( verbose_get() >= RV_VERBOSE().debug ) {
+                        const strLogPrefix = cc.attention( "S2S Loop:" ) + " ";
+                        log.write( strLogPrefix + cc.warning( "Skipped(s2s) due to time framing check" ) + "\n" );
+                    }
+                }
             }
         } catch ( err ) {
             bOK = false;
