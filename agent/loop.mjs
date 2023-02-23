@@ -380,9 +380,9 @@ export function notify_snb_cache_changed( arr_schains_cached ) {
     const cntWorkers = g_workers.length;
     for( let idxWorker = 0; idxWorker < cntWorkers; ++ idxWorker ) {
         const jo = {
-            method: "schains_cached",
-            message: {
-                arr_schains_cached: arr_schains_cached
+            "method": "schains_cached",
+            "message": {
+                "arr_schains_cached": arr_schains_cached
             }
         };
         g_clients[idxWorker].send( jo );
@@ -404,7 +404,7 @@ export async function ensure_have_workers( opts ) {
                 isEnabled: cc.isEnabled()
             }
         };
-        g_workers.push( new Worker( path.join( __dirname, "loop_worker.mjs" ), { type: "module", workerData: workerData } ) );
+        g_workers.push( new Worker( path.join( __dirname, "loop_worker.mjs" ), { "type": "module", "workerData": workerData } ) );
         // console.log( "Will connect to " + workerData.url );
         g_workers[idxWorker].on( "message", jo => {
             if( network_layer.out_of_worker_apis.on_message( g_workers[idxWorker], jo ) )
@@ -440,14 +440,14 @@ export async function ensure_have_workers( opts ) {
             enable_step_s2s: ( idxWorker == 0 ) ? true : false
         };
         const jo = {
-            method: "init",
-            message: {
-                opts: {
-                    imaState: {
-                        loop_opts: loop_opts,
-                        verbose_: IMA.verbose_get(),
-                        expose_details_: IMA.expose_details_get(),
-                        arr_schains_cached: skale_observer.get_last_cached_schains(),
+            "method": "init",
+            "message": {
+                "opts": {
+                    "imaState": {
+                        "loop_opts": loop_opts,
+                        "verbose_": IMA.verbose_get(),
+                        "expose_details_": IMA.expose_details_get(),
+                        "arr_schains_cached": skale_observer.get_last_cached_schains(),
                         //
                         //
                         //

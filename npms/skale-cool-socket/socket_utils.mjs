@@ -123,9 +123,9 @@ export const bind_scope_to_function = function( scope, fn ) {
 
 export const prepareAnswerJSON = function( joMessage ) {
     const joAnswer = {
-        id: "" + ( ( joMessage != null && joMessage != undefined && typeof joMessage.id == "string" ) ? joMessage.id : randomCallID() ),
-        method: "" + ( ( joMessage != null && joMessage != undefined && typeof joMessage.method == "string" ) ? joMessage.method : "" ),
-        error: null
+        "id": "" + ( ( joMessage != null && joMessage != undefined && typeof joMessage.id == "string" ) ? joMessage.id : randomCallID() ),
+        "method": "" + ( ( joMessage != null && joMessage != undefined && typeof joMessage.method == "string" ) ? joMessage.method : "" ),
+        "error": null
     };
     return joAnswer;
 };

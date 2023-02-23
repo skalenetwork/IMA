@@ -65,7 +65,7 @@ async function test_local() {
 async function test_worker() {
     console.log( "Worker test" );
     const url = "local_worker_server";
-    const worker = new Worker( path.join( __dirname, "test_socket_worker.mjs" ), { type: "module" } );
+    const worker = new Worker( path.join( __dirname, "test_socket_worker.mjs" ), { "type": "module" } );
     console.log( "Will connect to " + url );
     worker.on( "message", jo => {
         if( network_layer.out_of_worker_apis.on_message( worker, jo ) )

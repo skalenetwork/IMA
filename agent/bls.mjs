@@ -226,9 +226,9 @@ function keccak256_message( jarrMessages, nIdxCurrentMsgBlockStart, strFromChain
 
 // const strHashComputed = keccak256_message( [
 //     {
-//         sender: "0xAe79233541427BC70Bd3Bfe452ca4B1c69d5a82e",
-//         destinationContract: "0xd2AaA00400000000000000000000000000000000",
-//         data: "0x00000000000000000000000000000000000000000000000000000000000000010000000000000000000000007aa5e36aa15e93d10f4f26357c30f052dacdde5f00000000000000000000000000000000000000000000006c6b935b8bbd400000"
+//         "sender": "0xAe79233541427BC70Bd3Bfe452ca4B1c69d5a82e",
+//         "destinationContract": "0xd2AaA00400000000000000000000000000000000",
+//         "data": "0x00000000000000000000000000000000000000000000000000000000000000010000000000000000000000007aa5e36aa15e93d10f4f26357c30f052dacdde5f00000000000000000000000000000000000000000000006c6b935b8bbd400000"
 //     }
 // ], 1, "Mainnet" ).toLowerCase();
 // console.log( "----------------- computed.....", strHashComputed );
@@ -359,7 +359,7 @@ function perform_bls_glue(
             details.write( strLogPrefix + cc.debug( "Computing " ) + cc.info( "G1" ) + cc.debug( " hash point..." ) + "\n" );
             const strPath = strActionDir + "/hash.json";
             details.write( strLogPrefix + cc.debug( "Saving " ) + cc.notice( strPath ) + cc.debug( " file..." ) + "\n" );
-            imaUtils.jsonFileSave( strPath, { message: strMessageHash } );
+            imaUtils.jsonFileSave( strPath, { "message": strMessageHash } );
             const strHasG1Command =
                 imaState.strPathHashG1 +
                 " --t " + nThreshold +
@@ -459,7 +459,7 @@ function perform_bls_glue_u256( details, u256, arrSignResults ) {
             details.write( strLogPrefix + cc.debug( "Computing " ) + cc.info( "G1" ) + cc.debug( " hash point..." ) + "\n" );
             const strPath = strActionDir + "/hash.json";
             details.write( strLogPrefix + cc.debug( "Saving " ) + cc.notice( strPath ) + cc.debug( " file..." ) + "\n" );
-            imaUtils.jsonFileSave( strPath, { message: strMessageHash } );
+            imaUtils.jsonFileSave( strPath, { "message": strMessageHash } );
             const strHasG1Command =
                 imaState.strPathHashG1 +
                 " --t " + nThreshold +
@@ -537,7 +537,7 @@ function perform_bls_verify_i(
         const strMessageHash = owaspUtils.remove_starting_0x( keccak256_message( jarrMessages, nIdxCurrentMsgBlockStart, strFromChainName ) );
         details.write( strLogPrefix + cc.debug( "BLS node " ) + cc.notice( "#" ) + cc.info( nZeroBasedNodeIndex ) + cc.debug( " - hashed verify message is " ) + cc.info( strMessageHash ) + "\n" );
         const joMsg = {
-            message: strMessageHash
+            "message": strMessageHash
         };
         details.write( strLogPrefix + cc.debug( "BLS node " ) + cc.notice( "#" ) + cc.info( nZeroBasedNodeIndex ) + cc.debug( " - composed  " ) + cc.j( joMsg ) + cc.debug( " composed from " ) + cc.j( jarrMessages ) + cc.debug( " using glue " ) + cc.j( joResultFromNode ) + cc.debug( " and public key " ) + cc.j( joPublicKey ) + "\n" );
         const strSignResultFileName = strActionDir + "/sign-result" + nZeroBasedNodeIndex + ".json";
@@ -589,7 +589,7 @@ function perform_bls_verify_i_u256( details, nZeroBasedNodeIndex, joResultFromNo
     try {
         // shell.cd( strActionDir );
         //
-        const joMsg = { message: keccak256_u256( u256, true ) };
+        const joMsg = { "message": keccak256_u256( u256, true ) };
         details.write( strLogPrefix + cc.debug( "BLS u256 node " ) + cc.notice( "#" ) + cc.info( nZeroBasedNodeIndex ) + cc.debug( " verify message " ) + cc.j( joMsg ) + cc.debug( " composed from " ) + cc.j( u256 ) + cc.debug( " using glue " ) + cc.j( joResultFromNode ) + cc.debug( " and public key " ) + cc.j( joPublicKey ) + "\n" );
         const strSignResultFileName = strActionDir + "/sign-result" + nZeroBasedNodeIndex + ".json";
         // console.log( "--- joResultFromNode ---", JSON.stringify( joResultFromNode ) );
@@ -650,7 +650,7 @@ function perform_bls_verify(
         log.write( strLogPrefix + cc.debug( "BLS/summary verify message - messages array " ) + cc.j( jarrMessages ) + "\n" );
         const strMessageHash = owaspUtils.remove_starting_0x( keccak256_message( jarrMessages, nIdxCurrentMsgBlockStart, strFromChainName ) );
         details.write( strLogPrefix + cc.debug( "BLS/summary verify message - hashed verify message is " ) + cc.info( strMessageHash ) + "\n" );
-        const joMsg = { message: strMessageHash };
+        const joMsg = { "message": strMessageHash };
         details.write( strLogPrefix + cc.debug( "BLS/summary verify message - composed JSON " ) + cc.j( joMsg ) + cc.debug( " from messages array " ) + cc.j( jarrMessages ) + cc.debug( " using glue " ) + cc.j( joGlueResult ) + cc.debug( " and common public key " ) + cc.j( joCommonPublicKey ) + "\n" );
         imaUtils.jsonFileSave( strActionDir + "/glue-result.json", joGlueResult );
         imaUtils.jsonFileSave( strActionDir + "/hash.json", joMsg );
@@ -709,7 +709,7 @@ function perform_bls_verify_u256( details, joGlueResult, u256, joCommonPublicKey
     const strLogPrefix = cc.info( "BLS u256" ) + cc.debug( "/" ) + cc.sunny( "Summary" ) + cc.debug( ":" ) + " ";
     try {
         // shell.cd( strActionDir );
-        const joMsg = { message: keccak256_u256( u256, true ) };
+        const joMsg = { "message": keccak256_u256( u256, true ) };
         details.write( strLogPrefix + cc.debug( "BLS u256/summary verify message " ) + cc.j( joMsg ) + cc.debug( " composed from " ) + cc.j( u256 ) + cc.debug( " using glue " ) + cc.j( joGlueResult ) + cc.debug( " and common public key " ) + cc.j( joCommonPublicKey ) + "\n" );
         imaUtils.jsonFileSave( strActionDir + "/glue-result.json", joGlueResult );
         imaUtils.jsonFileSave( strActionDir + "/hash.json", joMsg );
@@ -810,13 +810,13 @@ async function check_correctness_of_messages_to_sign( details, strLogPrefix, str
                     cc.debug( ", message data is " ) + cc.j( joMessage.data ) +
                     "\n" );
                 const outgoingMessageData = {
-                    dstChainHash: owaspUtils.ethersMod.ethers.utils.id( joChainName ), // dstChainHash
-                    msgCounter: 0 + idxMessage,
-                    srcContract: joMessage.sender,
-                    dstContract: joMessage.destinationContract,
-                    // to: joMessage.to,
-                    // amount: strHexAmount,
-                    data: joMessage.data
+                    "dstChainHash": owaspUtils.ethersMod.ethers.utils.id( joChainName ), // dstChainHash
+                    "msgCounter": 0 + idxMessage,
+                    "srcContract": joMessage.sender,
+                    "dstContract": joMessage.destinationContract,
+                    // "to": joMessage.to,
+                    // "amount": strHexAmount,
+                    "data": joMessage.data
                 };
                 // details.write(
                 //     cc.debug( "Outgoing message data is " ) + cc.j( outgoingMessageData ) +
@@ -1026,19 +1026,19 @@ async function do_sign_messages_impl(
                 }
 
                 const joParams = {
-                    direction: "" + strDirection,
-                    startMessageIdx: nIdxCurrentMsgBlockStart,
-                    dstChainName: targetChainName,
-                    srcChainName: fromChainName,
-                    dstChainID: targetChainID,
-                    srcChainID: fromChainID,
-                    messages: jarrMessages,
-                    // fromChainURL: fromChainURL,
-                    // targetChainURL: targetChainURL,
-                    qa: {
-                        skaled_no: 0 + i,
-                        sequence_id: "" + sequence_id,
-                        ts: "" + log.generate_timestamp_string( null, false )
+                    "direction": "" + strDirection,
+                    "startMessageIdx": nIdxCurrentMsgBlockStart,
+                    "dstChainName": targetChainName,
+                    "srcChainName": fromChainName,
+                    "dstChainID": targetChainID,
+                    "srcChainID": fromChainID,
+                    "messages": jarrMessages,
+                    // "fromChainURL": fromChainURL,
+                    // "targetChainURL": targetChainURL,
+                    "qa": {
+                        "skaled_no": 0 + i,
+                        "sequence_id": "" + sequence_id,
+                        "ts": "" + log.generate_timestamp_string( null, false )
                     }
                 };
                 details.write(
@@ -1050,8 +1050,8 @@ async function do_sign_messages_impl(
                     cc.debug( ", " ) + cc.notice( "sequence ID" ) + cc.debug( " is " ) + cc.attention( sequence_id ) +
                     "\n" );
                 await joCall.call( {
-                    method: "skale_imaVerifyAndSign",
-                    params: joParams
+                    "method": "skale_imaVerifyAndSign",
+                    "params": joParams
                 }, async function( joIn, joOut, err ) {
                     ++joGatheringTracker.nCountReceived; // including errors
                     if( err ) {
@@ -1493,9 +1493,9 @@ export async function do_sign_u256( u256, details, fn ) {
                 cc.debug( " for to sign value " ) + cc.info( u256.toString() ) +
                 "\n" );
             await joCall.call( {
-                method: "skale_imaBSU256",
-                params: {
-                    valueToSign: u256 // must be 0x string, came from outside 0x string
+                "method": "skale_imaBSU256",
+                "params": {
+                    "valueToSign": u256 // must be 0x string, came from outside 0x string
                 }
             }, async function( joIn, joOut, err ) {
                 ++joGatheringTracker.nCountReceived; // including errors
@@ -1746,7 +1746,7 @@ export async function do_verify_ready_hash( strMessageHash, nZeroBasedNodeIndex,
         // shell.cd( strActionDir );
         details.write( strLogPrefix + cc.debug( "BLS node " ) + cc.notice( "#" ) + cc.info( nZeroBasedNodeIndex ) + cc.debug( " - hashed verify message is " ) + cc.info( strMessageHash ) + "\n" );
         const joMsg = {
-            message: strMessageHash
+            "message": strMessageHash
         };
         details.write( strLogPrefix + cc.debug( "BLS node " ) + cc.notice( "#" ) + cc.info( nZeroBasedNodeIndex ) + cc.debug( " - composed  " ) + cc.j( joMsg ) + cc.debug( " using hash " ) + cc.j( strMessageHash ) + cc.debug( " and glue " ) + cc.j( joResultFromNode ) + cc.debug( " and public key " ) + cc.j( joPublicKey ) + "\n" );
         const strSignResultFileName = strActionDir + "/sign-result" + nZeroBasedNodeIndex + ".json";
@@ -1832,14 +1832,14 @@ export async function do_sign_ready_hash( strMessageHash ) {
             const joCallSGX = {
                 "jsonrpc": "2.0",
                 "id": randomCallID(),
-                method: "blsSignMessageHash",
-                // type: "BLSSignReq",
-                params: {
-                    keyShareName: joAccount.strBlsKeyName,
-                    messageHash: strMessageHash,
-                    n: nParticipants,
-                    t: nThreshold,
-                    signerIndex: signerIndex + 0 // 1-based
+                "method": "blsSignMessageHash",
+                // "type": "BLSSignReq",
+                "params": {
+                    "keyShareName": joAccount.strBlsKeyName,
+                    "messageHash": strMessageHash,
+                    "n": nParticipants,
+                    "t": nThreshold,
+                    "signerIndex": signerIndex + 0 // 1-based
                 }
             };
             details.write( strLogPrefix + cc.debug( "Will invoke " ) + cc.info( "SGX" ) + cc.debug( " with call data " ) + cc.j( joCallSGX ) + "\n" );
@@ -2008,14 +2008,14 @@ export async function handle_skale_imaVerifyAndSign( joCallData ) {
             const joCallSGX = {
                 "jsonrpc": "2.0",
                 "id": randomCallID(),
-                method: "blsSignMessageHash",
-                // type: "BLSSignReq",
-                params: {
-                    keyShareName: joAccount.strBlsKeyName,
-                    messageHash: strMessageHash,
-                    n: nParticipants,
-                    t: nThreshold,
-                    signerIndex: signerIndex + 0 // 1-based
+                "method": "blsSignMessageHash",
+                // "type": "BLSSignReq",
+                "params": {
+                    "keyShareName": joAccount.strBlsKeyName,
+                    "messageHash": strMessageHash,
+                    "n": nParticipants,
+                    "t": nThreshold,
+                    "signerIndex": signerIndex + 0 // 1-based
                 }
             };
             details.write(
@@ -2140,14 +2140,14 @@ export async function handle_skale_imaBSU256( joCallData ) {
             const joCallSGX = {
                 "jsonrpc": "2.0",
                 "id": randomCallID(),
-                method: "blsSignMessageHash",
-                // type: "BLSSignReq",
-                params: {
-                    keyShareName: joAccount.strBlsKeyName,
-                    messageHash: strMessageHash,
-                    n: nParticipants,
-                    t: nThreshold,
-                    signerIndex: signerIndex + 0 // 1-based
+                "method": "blsSignMessageHash",
+                // "type": "BLSSignReq",
+                "params": {
+                    "keyShareName": joAccount.strBlsKeyName,
+                    "messageHash": strMessageHash,
+                    "n": nParticipants,
+                    "t": nThreshold,
+                    "signerIndex": signerIndex + 0 // 1-based
                 }
             };
             details.write( strLogPrefix + cc.debug( "Will invoke " ) + cc.info( "SGX" ) + cc.debug( " with call data " ) + cc.j( joCallSGX ) + "\n" );

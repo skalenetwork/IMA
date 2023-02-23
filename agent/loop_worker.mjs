@@ -46,10 +46,10 @@ parentPort.on( "message", jo => {
 function doSendMessage( type, endpoint, worker_uuid, data ) {
     const jo = network_layer.socket_received_data_reverse_marshall( data );
     const joSend = {
-        worker_message_type: ( type && typeof type == "string" && type.length > 0 ) ? type : "in_worker_message",
-        worker_endpoint: endpoint,
-        worker_uuid: worker_uuid,
-        data: jo
+        "worker_message_type": ( type && typeof type == "string" && type.length > 0 ) ? type : "in_worker_message",
+        "worker_endpoint": endpoint,
+        "worker_uuid": worker_uuid,
+        "data": jo
     };
     parentPort.postMessage( network_layer.socket_sent_data_marshall( joSend ) );
 }
@@ -66,9 +66,9 @@ class ObserverServer extends SocketServer {
             self.log = function() {
                 const args = Array.prototype.slice.call( arguments );
                 const jo = {
-                    method: "log",
-                    error: null,
-                    message: args.join( " " )
+                    "method": "log",
+                    "error": null,
+                    "message": args.join( " " )
                 };
                 const isFlush = true;
                 socket.send( jo, isFlush );
@@ -82,24 +82,24 @@ class ObserverServer extends SocketServer {
             IMA.expose_details_set( self.opts.imaState.expose_details_ );
             IMA.saveTransferEvents.on( "error", function( eventData ) {
                 const jo = {
-                    method: "save_transfer_error",
-                    message: eventData.detail
+                    "method": "save_transfer_error",
+                    "message": eventData.detail
                 };
                 const isFlush = true;
                 socket.send( jo, isFlush );
             } );
             IMA.saveTransferEvents.on( "success", function( eventData ) {
                 const jo = {
-                    method: "save_transfer_success",
-                    message: eventData.detail
+                    "method": "save_transfer_success",
+                    "message": eventData.detail
                 };
                 const isFlush = true;
                 socket.send( jo, isFlush );
             } );
             skale_observer.set_last_cached_schains( self.opts.imaState.arr_schains_cached );
             joAnswer.message = {
-                method: "" + joMessage.method,
-                error: null
+                "method": "" + joMessage.method,
+                "error": null
             };
             // self.log( cc.debug( "Initialized in-worker IMA loop ") + cc.info( workerData.url ) + cc.debug( " options:" ) + " " + cc.j( self.opts ) + "\n" );
             //

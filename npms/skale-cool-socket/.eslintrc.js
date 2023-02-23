@@ -97,6 +97,7 @@ module.exports = {
         "no-use-before-define": "off", // [ "error", { "variables": false,  "functions": false } ],
         "lines-between-class-members": [ "error", "never" ],
         "no-var": "error",
-        "no-unused-vars": "error"
+        "no-unused-vars": "error",
+        "object-shorthand": 0
     }
 };

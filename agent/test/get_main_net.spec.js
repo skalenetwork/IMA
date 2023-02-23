@@ -80,10 +80,10 @@ function toBN(string) {
     return "0"
 }
 function Contract(string, string) {
-    return {methods: {approve: approve}}
+    return { "methods": { "approve": approve}}
 }
 function approve(string, string) {
-    return {encodeABI: encodeABI}
+    return { "encodeABI": encodeABI}
 }
 function toHex(string) {
     return "0x9a"
@@ -93,122 +93,122 @@ function toWei(string, string) {
 }
 
 // mockup for `joAccountDst`
-let joAccountDst = { address: IMA.owaspUtils.fn_address_impl_, 
+let joAccountDst = { "address": IMA.owaspUtils.fn_address_impl_, 
     privateKey: "6270720ecca0185a979b6791bea433e9dbf23345e5b5b1b0258b1fbaf32b4390",
 };
 // mockup for `joAccountSrc`
-let joAccountSrc = { address: IMA.owaspUtils.fn_address_impl_, 
+let joAccountSrc = { "address": IMA.owaspUtils.fn_address_impl_, 
     privateKey: "6270720ecca0185a979b6791bea433e9dbf23345e5b5b1b0258b1fbaf32b4390",
 };
 // mockup for `joAccount`
-let joAccount = { address: IMA.owaspUtils.fn_address_impl_, 
+let joAccount = { "address": IMA.owaspUtils.fn_address_impl_, 
     privateKey: "6270720ecca0185a979b6791bea433e9dbf23345e5b5b1b0258b1fbaf32b4390",
 };
 // mockup for `joMainNetAccount`
-let joMainNetAccount = { address: IMA.owaspUtils.fn_address_impl_,
+let joMainNetAccount = { "address": IMA.owaspUtils.fn_address_impl_,
     privateKey: "6270720ecca0185a979b6791bea433e9dbf23345e5b5b1b0258b1fbaf32b4390",
 };
 // mockup for `jo_deposit_box`
-let jo_deposit_box = {methods: {deposit: deposit, depositERC20: depositERC20,
+let jo_deposit_box = { "methods": {deposit: deposit, depositERC20: depositERC20,
     rawDepositERC20: rawDepositERC20}, 
-    options: {address: "0xd34e38f830736DB41CC6E10aA37A3C851A7a2B82"}
+    options: { "address": "0xd34e38f830736DB41CC6E10aA37A3C851A7a2B82"}
 };
 function deposit(string, string, string) {
-    return {encodeABI: encodeABI}
+    return { "encodeABI": encodeABI}
 }
 function depositERC20(string, string, string, string) {
-    return {encodeABI: encodeABI}
+    return { "encodeABI": encodeABI}
 }
 function rawDepositERC20(string, string, string, string, string) {
-    return {encodeABI: encodeABI}
+    return { "encodeABI": encodeABI}
 }
 
 // mockup for `jo_message_proxy_main_net`
-let jo_message_proxy_main_net = {methods: {isConnectedChain: isConnectedChain, addConnectedChain: addConnectedChain}, 
-    options: {address: "0xd34e38f830736DB41CC6E10aA37A3C851A7a2B82"}
+let jo_message_proxy_main_net = { "methods": {isConnectedChain: isConnectedChain, addConnectedChain: addConnectedChain}, 
+    options: { "address": "0xd34e38f830736DB41CC6E10aA37A3C851A7a2B82"}
 };
 function isConnectedChain(string) {
-    return {call: call}
+    return { "call": call}
 }
 function call({}) {
     return true
 }
 function addConnectedChain(string) {
-    return {encodeABI: encodeABI}
+    return { "encodeABI": encodeABI}
 }
 
 // mockup for `jo_lock_and_data_main_net`
-let jo_lock_and_data_main_net = {methods: {hasSchain: hasSchain, addSchain: addSchain, getMyEth: getMyEth,
+let jo_lock_and_data_main_net = { "methods": {hasSchain: hasSchain, addSchain: addSchain, getMyEth: getMyEth,
     approveTransfers: approveTransfers}, 
-    options: {address: "0xd34e38f830736DB41CC6E10aA37A3C851A7a2B82"}
+    options: { "address": "0xd34e38f830736DB41CC6E10aA37A3C851A7a2B82"}
 };
 function hasSchain(string) {
-    return {call: call}
+    return { "call": call}
 }
 function approveTransfers(string) {
-    return {call: call}
+    return { "call": call}
 }
 function addSchain(string, []) {
-    return {encodeABI: encodeABI}
+    return { "encodeABI": encodeABI}
 }
 function getMyEth() {
-    return {encodeABI: encodeABI}
+    return { "encodeABI": encodeABI}
 }
 
 // mockup for `jo_lock_and_data_s_chain`
-let jo_lock_and_data_s_chain = {methods: {hasDepositBox: hasDepositBox, addDepositBox: addDepositBox}, 
-    options: {address: "0xd34e38f830736DB41CC6E10aA37A3C851A7a2B82"}
+let jo_lock_and_data_s_chain = { "methods": {hasDepositBox: hasDepositBox, addDepositBox: addDepositBox}, 
+    options: { "address": "0xd34e38f830736DB41CC6E10aA37A3C851A7a2B82"}
 };
 function hasDepositBox() {
-    return {call: call}
+    return { "call": call}
 }
 function addDepositBox(string) {
-    return {encodeABI: encodeABI}
+    return { "encodeABI": encodeABI}
 }
 function encodeABI() {
     return "0x0"
 }
 
 // mockup for `jo_message_proxy_dst`
-let jo_message_proxy_dst = {methods: {getIncomingMessagesCounter: getIncomingMessagesCounter,
+let jo_message_proxy_dst = { "methods": {getIncomingMessagesCounter: getIncomingMessagesCounter,
     postIncomingMessages: postIncomingMessages},
-    options: {address: "0xd34e38f830736DB41CC6E10aA37A3C851A7a2B82"}
+    options: { "address": "0xd34e38f830736DB41CC6E10aA37A3C851A7a2B82"}
 };
 function getIncomingMessagesCounter(string) {
-    return {call: callNum}
+    return { "call": callNum}
 }
 function postIncomingMessages(string, {}) {
-    return {encodeABI: encodeABI}
+    return { "encodeABI": encodeABI}
 }
 
 // mockup for `jo_message_proxy_src`
-let jo_message_proxy_src = {methods: {getOutgoingMessagesCounter: getOutgoingMessagesCounter},
+let jo_message_proxy_src = { "methods": {getOutgoingMessagesCounter: getOutgoingMessagesCounter},
     getPastEvents: getPastEvents
 };
 function getOutgoingMessagesCounter(string) {
-    return {call: callNum}
+    return { "call": callNum}
 }
 function callNum() {
     return 3
 }
 
 // mockup for `jo_token_manager`
-let jo_token_manager = {methods: {exitToMain: exitToMain, exitToMainERC20: exitToMainERC20,
+let jo_token_manager = { "methods": {exitToMain: exitToMain, exitToMainERC20: exitToMainERC20,
     rawExitToMainERC20: rawExitToMainERC20}, 
-    options: {address: "0xd34e38f830736DB41CC6E10aA37A3C851A7a2B82"},
+    options: { "address": "0xd34e38f830736DB41CC6E10aA37A3C851A7a2B82"},
     getPastEvents: getPastEvents
 };
 function exitToMain(string) {
-    return {encodeABI: encodeABI}
+    return { "encodeABI": encodeABI}
 }
 function getPastEvents(string, {}) {
     return "events stub"
 }
 function rawExitToMainERC20(string, {}) {
-    return {encodeABI: encodeABI}
+    return { "encodeABI": encodeABI}
 }
 function exitToMainERC20(string, {}) {
-    return {encodeABI: encodeABI}
+    return { "encodeABI": encodeABI}
 }
 
 describe('tests for `npms/skale-ima`', function () {
@@ -371,7 +371,7 @@ describe('tests for `npms/skale-ima`', function () {
     });
 
     it('should return `true` invoke `register_main_net_depositBox_on_s_chain`', async function () {
-        let jo_deposit_box_main_net = {options: {address: "0xd34e38f830736DB41CC6E10aA37A3C851A7a2B82"}};
+        let jo_deposit_box_main_net = { "options": { "address": "0xd34e38f830736DB41CC6E10aA37A3C851A7a2B82"}};
         // 
         expect(await IMA.
             register_main_net_depositBox_on_s_chain(

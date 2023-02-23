@@ -232,11 +232,11 @@ export async function do_call( joCall, joIn, fn ) {
         ) {
             const u = new URL( joCall.url );
             const options = {
-                hostname: u.hostname,
-                port: u.port,
-                path: "/",
-                method: "POST",
-                headers: {
+                "hostname": u.hostname,
+                "port": u.port,
+                "path": "/",
+                "method": "POST",
+                "headers": {
                     "Content-Type": "application/json"
                     // "Accept": "*/*",
                     // "Content-Length": strBody.length,

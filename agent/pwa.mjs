@@ -282,14 +282,14 @@ async function notify_on_loop_impl( imaState, strLoopWorkType, nIndexS2S, isStar
                     return;
                 }
                 /*await*/ joCall.call( {
-                    method: "skale_imaNotifyLoopWork",
-                    params: {
-                        nNodeNumber: 0 + imaState.nNodeNumber,
-                        strLoopWorkType: "" + strLoopWorkType,
-                        nIndexS2S: 0 + nIndexS2S,
-                        isStart: isStart ? true : false,
-                        ts: nUtcUnixTimeStamp,
-                        signature: signature
+                    "method": "skale_imaNotifyLoopWork",
+                    "params": {
+                        "nNodeNumber": 0 + imaState.nNodeNumber,
+                        "strLoopWorkType": "" + strLoopWorkType,
+                        "nIndexS2S": 0 + nIndexS2S,
+                        "isStart": isStart ? true : false,
+                        "ts": nUtcUnixTimeStamp,
+                        "signature": signature
                     }
                 }, async function( joIn, joOut, err ) {
                     if( err ) {

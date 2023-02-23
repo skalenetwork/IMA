@@ -46,10 +46,10 @@ const sleep = ( milliseconds ) => { return new Promise( resolve => setTimeout( r
 function doSendMessage( type, endpoint, worker_uuid, data ) {
     const jo = network_layer.socket_received_data_reverse_marshall( data );
     const joSend = {
-        worker_message_type: ( type && typeof type == "string" && type.length > 0 ) ? type : "in_worker_message",
-        worker_endpoint: endpoint,
-        worker_uuid: worker_uuid,
-        data: jo
+        "worker_message_type": ( type && typeof type == "string" && type.length > 0 ) ? type : "in_worker_message",
+        "worker_endpoint": endpoint,
+        "worker_uuid": worker_uuid,
+        "data": jo
     };
     parentPort.postMessage( network_layer.socket_sent_data_marshall( joSend ) );
 }
@@ -65,9 +65,9 @@ class ObserverServer extends SocketServer {
             self.log = function() {
                 const args = Array.prototype.slice.call( arguments );
                 const jo = {
-                    method: "log",
-                    error: null,
-                    message: args.join( " " )
+                    "method": "log",
+                    "error": null,
+                    "message": args.join( " " )
                 };
                 const isFlush = true;
                 socket.send( jo, isFlush );
@@ -78,8 +78,8 @@ class ObserverServer extends SocketServer {
             };
             cc.enable( joMessage.message.cc.isEnabled );
             joAnswer.message = {
-                method: "" + joMessage.method,
-                error: null
+                "method": "" + joMessage.method,
+                "error": null
             };
             // self.log( cc.debug( "Initialized in-worker(observer) options:" ) + " " + cc.j( self.opts ) + "\n" );
             //
@@ -146,16 +146,16 @@ class ObserverServer extends SocketServer {
                 joMessage.message.addressFrom
             );
             joAnswer.message = {
-                method: "" + joMessage.method,
-                error: null
+                "method": "" + joMessage.method,
+                "error": null
             };
             return joAnswer;
         };
         self.mapApiHandlers.periodic_caching_stop = function( joMessage, joAnswer, eventData, socket ) {
             self.periodic_caching_stop();
             joAnswer.message = {
-                method: "" + joMessage.method,
-                error: null
+                "method": "" + joMessage.method,
+                "error": null
             };
             return joAnswer;
         };
@@ -199,9 +199,9 @@ class ObserverServer extends SocketServer {
         const arr_schains = skale_observer.get_last_cached_schains();
         // self.log( cc.normal( "Got " ) + cc.info( "SKALE NETWORK" ) + cc.normal( " information in worker: " ) + cc.j( arr_schains ) + "\n" );
         const jo = {
-            method: "periodic_caching_do_now",
-            error: null,
-            message: arr_schains
+            "method": "periodic_caching_do_now",
+            "error": null,
+            "message": arr_schains
         };
         const isFlush = true;
         socket.send( jo, isFlush );

@@ -323,18 +323,19 @@ function parse_command_line() {
                             if( idTokens.length > 0 ) {
                                 for( let i = 0; i < idTokens.length; ++ i ) {
                                     const idToken = idTokens[i];
-                                    bBurnIsOK = await IMA.burnERC1155(
-                                        imaState.chainProperties.tc.ethersProvider,
-                                        imaState.chainProperties.tc.cid,
-                                        imaState.chainProperties.tc.strChainName,
-                                        imaState.chainProperties.tc.joAccount,
-                                        strAddressBurnFrom,
-                                        idToken,
-                                        imaState.nAmountOfToken,
-                                        imaState.chainProperties.tc.joErc1155[imaState.chainProperties.tc.strCoinNameErc1155 + "_address"],
-                                        imaState.chainProperties.tc.joErc1155[imaState.chainProperties.tc.strCoinNameErc1155 + "_abi"],
-                                        imaState.chainProperties.tc.transactionCustomizer
-                                    ) ? true : false;
+                                    bBurnIsOK =
+                                        await IMA.burnERC1155(
+                                            imaState.chainProperties.tc.ethersProvider,
+                                            imaState.chainProperties.tc.cid,
+                                            imaState.chainProperties.tc.strChainName,
+                                            imaState.chainProperties.tc.joAccount,
+                                            strAddressBurnFrom,
+                                            idToken,
+                                            imaState.nAmountOfToken,
+                                            imaState.chainProperties.tc.joErc1155[imaState.chainProperties.tc.strCoinNameErc1155 + "_address"],
+                                            imaState.chainProperties.tc.joErc1155[imaState.chainProperties.tc.strCoinNameErc1155 + "_abi"],
+                                            imaState.chainProperties.tc.transactionCustomizer
+                                        ) ? true : false;
                                 }
                             }
                         } catch ( err ) {
@@ -352,8 +353,8 @@ function parse_command_line() {
                     let assetAddress = null;
                     const arrBalancesMN = [], arrBalancesSC = [];
                     arrBalancesMN.push( {
-                        assetName: "RealETH",
-                        balance: await IMA.balanceETH(
+                        "assetName": "RealETH",
+                        "balance": await IMA.balanceETH(
                             true, // isMainNet
                             imaState.chainProperties.mn.ethersProvider,
                             imaState.chainProperties.mn.cid,
@@ -361,8 +362,8 @@ function parse_command_line() {
                         )
                     } );
                     arrBalancesMN.push( {
-                        assetName: "CanReceiveETH",
-                        balance: await IMA.view_eth_payment_from_s_chain_on_main_net(
+                        "assetName": "CanReceiveETH",
+                        "balance": await IMA.view_eth_payment_from_s_chain_on_main_net(
                             imaState.chainProperties.mn.ethersProvider,
                             imaState.chainProperties.mn.joAccount,
                             imaState.jo_deposit_box_eth
@@ -370,9 +371,9 @@ function parse_command_line() {
                     } );
                     try { assetAddress = imaState.eth_erc20.address; } catch ( err ) { assetAddress = null; }
                     arrBalancesSC.push( {
-                        assetName: "RealETH",
-                        assetAddress: assetAddress,
-                        balance: await IMA.balanceETH(
+                        "assetName": "RealETH",
+                        "assetAddress": assetAddress,
+                        "balance": await IMA.balanceETH(
                             false, // isMainNet
                             imaState.chainProperties.sc.ethersProvider,
                             imaState.chainProperties.sc.cid,
@@ -381,8 +382,8 @@ function parse_command_line() {
                         )
                     } );
                     arrBalancesSC.push( {
-                        assetName: "FakeETH",
-                        balance: await IMA.balanceETH(
+                        "assetName": "FakeETH",
+                        "balance": await IMA.balanceETH(
                             true, // isMainNet here is true, but we do call S-Chain
                             imaState.chainProperties.sc.ethersProvider,
                             imaState.chainProperties.sc.cid,
@@ -392,9 +393,9 @@ function parse_command_line() {
                     if( imaState.chainProperties.tc.strCoinNameErc20.length > 0 ) {
                         try { assetAddress = imaState.chainProperties.mn.joErc20[imaState.chainProperties.tc.strCoinNameErc20 + "_address"]; } catch ( err ) { assetAddress = null; }
                         arrBalancesMN.push( {
-                            assetName: "ERC20",
-                            assetAddress: assetAddress,
-                            balance: await IMA.balanceERC20(
+                            "assetName": "ERC20",
+                            "assetAddress": assetAddress,
+                            "balance": await IMA.balanceERC20(
                                 true, // isMainNet
                                 imaState.chainProperties.mn.ethersProvider,
                                 imaState.chainProperties.mn.cid,
@@ -407,9 +408,9 @@ function parse_command_line() {
                     if( imaState.chainProperties.sc.strCoinNameErc20.length > 0 ) {
                         try { assetAddress = imaState.chainProperties.sc.joErc20[imaState.chainProperties.sc.strCoinNameErc20 + "_address"]; } catch ( err ) { assetAddress = null; }
                         arrBalancesSC.push( {
-                            assetName: "ERC20",
-                            assetAddress: assetAddress,
-                            balance: await IMA.balanceERC20(
+                            "assetName": "ERC20",
+                            "assetAddress": assetAddress,
+                            "balance": await IMA.balanceERC20(
                                 false, // isMainNet
                                 imaState.chainProperties.sc.ethersProvider,
                                 imaState.chainProperties.sc.cid,
@@ -428,10 +429,10 @@ function parse_command_line() {
                                 const idToken = idTokens[i];
                                 try { assetAddress = imaState.chainProperties.mn.joErc721[imaState.chainProperties.mn.strCoinNameErc721 + "_address"]; } catch ( err ) { assetAddress = null; }
                                 arrBalancesMN.push( {
-                                    assetName: "ERC721",
-                                    assetAddress: assetAddress,
-                                    idToken: idToken,
-                                    owner: await IMA.ownerOfERC721(
+                                    "assetName": "ERC721",
+                                    "assetAddress": assetAddress,
+                                    "idToken": idToken,
+                                    "owner": await IMA.ownerOfERC721(
                                         true, // isMainNet
                                         imaState.chainProperties.mn.ethersProvider,
                                         imaState.chainProperties.mn.cid,
@@ -448,10 +449,10 @@ function parse_command_line() {
                                 const idToken = idTokens[i];
                                 try { assetAddress = imaState.chainProperties.sc.joErc721[imaState.chainProperties.sc.strCoinNameErc721 + "_address"]; } catch ( err ) { assetAddress = null; }
                                 arrBalancesSC.push( {
-                                    assetName: "ERC721",
-                                    assetAddress: assetAddress,
-                                    idToken: idToken,
-                                    owner: await IMA.ownerOfERC721(
+                                    "assetName": "ERC721",
+                                    "assetAddress": assetAddress,
+                                    "idToken": idToken,
+                                    "owner": await IMA.ownerOfERC721(
                                         false, // isMainNet
                                         imaState.chainProperties.sc.ethersProvider,
                                         imaState.chainProperties.sc.cid,
@@ -468,10 +469,10 @@ function parse_command_line() {
                                 const idToken = idTokens[i];
                                 try { assetAddress = imaState.chainProperties.mn.joErc1155[imaState.chainProperties.mn.strCoinNameErc1155 + "_address"]; } catch ( err ) { assetAddress = null; }
                                 arrBalancesMN.push( {
-                                    assetName: "ERC1155",
-                                    assetAddress: assetAddress,
-                                    idToken: idToken,
-                                    balance: await IMA.balanceERC1155(
+                                    "assetName": "ERC1155",
+                                    "assetAddress": assetAddress,
+                                    "idToken": idToken,
+                                    "balance": await IMA.balanceERC1155(
                                         true, // isMainNet
                                         imaState.chainProperties.mn.ethersProvider,
                                         imaState.chainProperties.mn.cid,
@@ -488,10 +489,10 @@ function parse_command_line() {
                                 const idToken = idTokens[i];
                                 try { assetAddress = imaState.chainProperties.sc.joErc1155[imaState.chainProperties.sc.strCoinNameErc1155 + "_address"]; } catch ( err ) { assetAddress = null; }
                                 arrBalancesSC.push( {
-                                    assetName: "ERC1155",
-                                    assetAddress: assetAddress,
-                                    idToken: idToken,
-                                    balance: await IMA.balanceERC1155(
+                                    "assetName": "ERC1155",
+                                    "assetAddress": assetAddress,
+                                    "idToken": idToken,
+                                    "balance": await IMA.balanceERC1155(
                                         false, // isMainNet
                                         imaState.chainProperties.sc.ethersProvider,
                                         imaState.chainProperties.sc.cid,
@@ -1967,9 +1968,9 @@ function init_monitoring_server() {
             log.write( strLogPrefix + cc.normal( "New connection from " ) + cc.info( ip ) + "\n" );
         ws_peer.on( "message", function( message ) {
             const joAnswer = {
-                method: null,
-                id: null,
-                error: null
+                "method": null,
+                "id": null,
+                "error": null
             };
             try {
                 const joMessage = JSON.parse( message );
@@ -2117,9 +2118,9 @@ function init_json_rpc_server() {
                 }
             };
             let joAnswer = {
-                method: null,
-                id: null,
-                error: null
+                "method": null,
+                "id": null,
+                "error": null
             };
             const isSkipMode = false;
             try {
@@ -2227,9 +2228,9 @@ function init_json_rpc_server() {
             }
         };
         let joAnswer = {
-            method: null,
-            id: null,
-            error: null
+            "method": null,
+            "id": null,
+            "error": null
         };
         try {
             const joMessage = JSON.parse( message );

@@ -965,11 +965,11 @@ export function create_progressive_events_scan_plan( details, nLatestBlockNumber
     const blocks_in_1_year = blocks_in_1_day * 366;
     const blocks_in_3_years = blocks_in_1_year * 3;
     const arr_progressive_events_scan_plan_A = [
-        { nBlockFrom: nLatestBlockNumber - blocks_in_1_day, nBlockTo: "latest", type: "1 day" },
-        { nBlockFrom: nLatestBlockNumber - blocks_in_1_week, nBlockTo: "latest", type: "1 week" },
-        { nBlockFrom: nLatestBlockNumber - blocks_in_1_month, nBlockTo: "latest", type: "1 month" },
-        { nBlockFrom: nLatestBlockNumber - blocks_in_1_year, nBlockTo: "latest", type: "1 year" },
-        { nBlockFrom: nLatestBlockNumber - blocks_in_3_years, nBlockTo: "latest", type: "3 years" }
+        { "nBlockFrom": nLatestBlockNumber - blocks_in_1_day, "nBlockTo": "latest", "type": "1 day" },
+        { "nBlockFrom": nLatestBlockNumber - blocks_in_1_week, "nBlockTo": "latest", "type": "1 week" },
+        { "nBlockFrom": nLatestBlockNumber - blocks_in_1_month, "nBlockTo": "latest", "type": "1 month" },
+        { "nBlockFrom": nLatestBlockNumber - blocks_in_1_year, "nBlockTo": "latest", "type": "1 year" },
+        { "nBlockFrom": nLatestBlockNumber - blocks_in_3_years, "nBlockTo": "latest", "type": "3 years" }
     ];
     const arr_progressive_events_scan_plan = [];
     for( let idxPlan = 0; idxPlan < arr_progressive_events_scan_plan_A.length; ++idxPlan ) {
@@ -980,9 +980,9 @@ export function create_progressive_events_scan_plan( details, nLatestBlockNumber
     if( arr_progressive_events_scan_plan.length > 0 ) {
         const joLastPlan = arr_progressive_events_scan_plan[arr_progressive_events_scan_plan.length - 1];
         if( ! ( joLastPlan.nBlockFrom == 0 && joLastPlan.nBlockTo == "latest" ) )
-            arr_progressive_events_scan_plan.push( { nBlockFrom: 0, nBlockTo: "latest", type: "entire block range" } );
+            arr_progressive_events_scan_plan.push( { "nBlockFrom": 0, "nBlockTo": "latest", "type": "entire block range" } );
     } else
-        arr_progressive_events_scan_plan.push( { nBlockFrom: 0, nBlockTo: "latest", type: "entire block range" } );
+        arr_progressive_events_scan_plan.push( { "nBlockFrom": 0, "nBlockTo": "latest", "type": "entire block range" } );
     return arr_progressive_events_scan_plan;
 }
 
@@ -1022,7 +1022,7 @@ export async function safe_getPastEventsProgressive( details, ethersProvider, at
     details.write( cc.debug( "Current latest block number is " ) + cc.info( nLatestBlockNumber.toHexString() ) + "\n" );
     const arr_progressive_events_scan_plan = create_progressive_events_scan_plan( details, nLatestBlockNumber );
     details.write( cc.debug( "Composed " ) + cc.attention( "progressive" ) + cc.debug( " scan plan is: " ) + cc.j( arr_progressive_events_scan_plan ) + "\n" );
-    let joLastPlan = { nBlockFrom: 0, nBlockTo: "latest", type: "entire block range" };
+    let joLastPlan = { "nBlockFrom": 0, "nBlockTo": "latest", "type": "entire block range" };
     for( let idxPlan = 0; idxPlan < arr_progressive_events_scan_plan.length; ++idxPlan ) {
         const joPlan = arr_progressive_events_scan_plan[idxPlan];
         if( joPlan.nBlockFrom < 0 )
@@ -1349,7 +1349,7 @@ export async function payed_call(
                         throw new Error(
                             strErrorPrefix +
                             " Invoking the " + strContractCallDescription +
-                            " method: " + owaspUtils.extract_error_message( err )
+                            ", error is: " + owaspUtils.extract_error_message( err )
                         );
                     }
                 } );
@@ -1387,7 +1387,7 @@ export async function payed_call(
         throw new Error(
             strErrorPrefix +
             " invoking the " + strContractCallDescription +
-            " method: " + owaspUtils.extract_error_message( err )
+            ", error is: " + owaspUtils.extract_error_message( err )
         );
     }
     details.write( strLogPrefix + cc.success( "Done, TX was " ) + cc.attention( joACI ? joACI.strType : "N/A" ) + cc.success( "-signed-and-sent, receipt is " ) + cc.j( joReceipt ) + "\n" );
@@ -1512,9 +1512,9 @@ export async function calculatePowNumber( address, nonce, gas, details, strLogPr
 
 export function get_account_connectivity_info( joAccount ) {
     const joACI = {
-        isBad: true,
-        strType: "bad",
-        isAutoSend: false
+        "isBad": true,
+        "strType": "bad",
+        "isAutoSend": false
     };
     if( "strTransactionManagerURL" in joAccount && typeof joAccount.strTransactionManagerURL == "string" && joAccount.strTransactionManagerURL.length > 0 ) {
         joACI.isBad = false;
@@ -4693,13 +4693,13 @@ async function find_out_reference_log_record( details, ethersProvider, jo_messag
     for( let idxLogRecord = 0; idxLogRecord < cntLogRecord; ++ idxLogRecord ) {
         const joEvent = arrLogRecords[idxLogRecord];
         const eventValuesByName = {
-            currentMessage: joEvent.args[0],
-            previousOutgoingMessageBlockId: joEvent.args[1]
+            "currentMessage": joEvent.args[0],
+            "previousOutgoingMessageBlockId": joEvent.args[1]
         };
         const joReferenceLogRecord = {
-            currentMessage: eventValuesByName.currentMessage,
-            previousOutgoingMessageBlockId: eventValuesByName.previousOutgoingMessageBlockId,
-            currentBlockId: owaspUtils.toInteger( nBlockId.toString() ) // added field
+            "currentMessage": eventValuesByName.currentMessage,
+            "previousOutgoingMessageBlockId": eventValuesByName.previousOutgoingMessageBlockId,
+            "currentBlockId": owaspUtils.toInteger( nBlockId.toString() ) // added field
         };
         const bnCurrentMessage = owaspUtils.toBN( joReferenceLogRecord.currentMessage.toString() );
         if( bnCurrentMessage.eq( bnMessageNumberToFind ) ) {
@@ -5007,11 +5007,11 @@ export async function do_transfer(
                         cc.debug( " with data " ) + cc.j( joEvent ) +
                         "\n" );
                     const eventValuesByName = {
-                        dstChainHash: joEvent.args[0],
-                        msgCounter: joEvent.args[1],
-                        srcContract: joEvent.args[2],
-                        dstContract: joEvent.args[3],
-                        data: joEvent.args[4]
+                        "dstChainHash": joEvent.args[0],
+                        "msgCounter": joEvent.args[1],
+                        "srcContract": joEvent.args[2],
+                        "dstContract": joEvent.args[3],
+                        "data": joEvent.args[4]
                     };
                     if( eventValuesByName.dstChainHash == strChainHashWeAreLookingFor ) {
                         joValues = eventValuesByName;
@@ -5140,12 +5140,12 @@ export async function do_transfer(
                 arrMessageCounters.push( nIdxCurrentMsg );
 
                 const joMessage = {
-                    sender: joValues.srcContract,
-                    destinationContract: joValues.dstContract,
-                    to: joValues.to,
-                    amount: joValues.amount,
-                    data: joValues.data //,
-                    // savedBlockNumberForOptimizations: joValues.savedBlockNumberForOptimizations
+                    "sender": joValues.srcContract,
+                    "destinationContract": joValues.dstContract,
+                    "to": joValues.to,
+                    "amount": joValues.amount,
+                    "data": joValues.data //,
+                    // "savedBlockNumberForOptimizations": joValues.savedBlockNumberForOptimizations
                 };
                 jarrMessages.push( joMessage );
             } // for( let idxInBlock = 0; nIdxCurrentMsg < nOutMsgCnt && idxInBlock < nTransactionsCountInBlock; ++ nIdxCurrentMsg, ++ idxInBlock, ++cntAccumulatedForBlock )
@@ -5207,11 +5207,11 @@ export async function do_transfer(
                     "\n" );
 
                 // jarrMessages.push( {
-                //     sender: joValues.srcContract,
-                //     destinationContract: joValues.dstContract,
-                //     to: joValues.to,
-                //     amount: joValues.amount,
-                //     data: joValues.data
+                //     "sender": joValues.srcContract,
+                //     "destinationContract": joValues.dstContract,
+                //     "to": joValues.to,
+                //     "amount": joValues.amount,
+                //     "data": joValues.data
                 // } );
                 for( let idxMessage = 0; idxMessage < cntMessages; ++ idxMessage ) {
                     const idxImaMessage = arrMessageCounters[idxMessage];
@@ -5261,11 +5261,11 @@ export async function do_transfer(
                                 for( let idxEvent = 0; idxEvent < cntEvents; ++ idxEvent ) {
                                     const joEvent = node_r[idxEvent];
                                     const eventValuesByName = {
-                                        dstChainHash: joEvent.args[0],
-                                        msgCounter: joEvent.args[1],
-                                        srcContract: joEvent.args[2],
-                                        dstContract: joEvent.args[3],
-                                        data: joEvent.args[4]
+                                        "dstChainHash": joEvent.args[0],
+                                        "msgCounter": joEvent.args[1],
+                                        "srcContract": joEvent.args[2],
+                                        "dstContract": joEvent.args[3],
+                                        "data": joEvent.args[4]
                                     };
                                     if( owaspUtils.ensure_starts_with_0x( joMessage.sender ).toLowerCase() ==
                                         owaspUtils.ensure_starts_with_0x( eventValuesByName.srcContract ).toLowerCase() &&

@@ -113,8 +113,8 @@ export function oracle_get_gas_price( oracleOpts, details ) {
                         isVerbose
                     );
                     const joIn = {
-                        method: "oracle_submitRequest",
-                        params: [ s ]
+                        "method": "oracle_submitRequest",
+                        "params": [ s ]
                     };
                     if( isVerboseTraceDetails )
                         details.write( cc.debug( "RPC call" ) + cc.normal( "(" ) + cc.attention( "oracle_submitRequest" ) + cc.normal( ")" ) + cc.debug( " is " ) + cc.j( joIn ) + "\n" );
@@ -144,8 +144,8 @@ export function oracle_get_gas_price( oracleOpts, details ) {
                                 await sleep( nMillisecondsToSleep );
                             try {
                                 joIn = {
-                                    method: "oracle_checkResult",
-                                    params: [ joOut.result ]
+                                    "method": "oracle_checkResult",
+                                    "params": [ joOut.result ]
                                 };
                                 if( isVerboseTraceDetails ) {
                                     details.write( cc.debug( "RPC call" ) + cc.normal( "(" ) + cc.attention( "oracle_checkResult" ) + cc.normal( ")" ) + cc.debug( " attempt " ) + cc.info( idxAttempt ) + cc.debug( " of " ) + cc.info( cntAttempts ) + cc.debug( "..." ) + "\n" );

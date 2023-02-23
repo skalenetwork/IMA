@@ -110,12 +110,12 @@ export async function load_schain_parts( jo_schain, addressFrom, opts ) {
             return;
         const node = await opts.imaState.jo_nodes.callStatic.nodes( node_id, { from: addressFrom } );
         const node_dict = {
-            id: node_id,
-            name: node[0],
-            ip: owaspUtils.ip_from_hex( node[1] ),
-            base_port: node[3],
-            domain: await opts.imaState.jo_nodes.callStatic.getNodeDomainName( node_id, { from: addressFrom } ),
-            isMaintenance: await opts.imaState.jo_nodes.callStatic.isNodeInMaintenance( node_id, { from: addressFrom } )
+            "id": node_id,
+            "name": node[0],
+            "ip": owaspUtils.ip_from_hex( node[1] ),
+            "base_port": node[3],
+            "domain": await opts.imaState.jo_nodes.callStatic.getNodeDomainName( node_id, { from: addressFrom } ),
+            "isMaintenance": await opts.imaState.jo_nodes.callStatic.isNodeInMaintenance( node_id, { from: addressFrom } )
         };
         if( opts && opts.bStopNeeded )
             return;
@@ -167,7 +167,7 @@ export async function load_schain( addressFrom, idxSChain, hash, cntSChains, opt
         return null;
     let jo_data = await opts.imaState.jo_schains_internal.callStatic.schains( hash, { from: addressFrom } );
     jo_data = owaspUtils.clone_object_by_root_keys( jo_data ); // jo_data = JSON.parse( JSON.stringify( jo_data ) );
-    const jo_schain = { data: jo_data };
+    const jo_schain = { "data": jo_data };
     remove_schain_desc_data_num_keys( jo_schain.data, addressFrom );
     if( opts && opts.bStopNeeded )
         return null;
@@ -472,7 +472,7 @@ export async function ensure_have_worker( opts ) {
     if( g_worker )
         return g_worker;
     const url = "skale_observer_worker_server";
-    g_worker = new Worker( path.join( __dirname, "observer_worker.mjs" ), { type: "module" } );
+    g_worker = new Worker( path.join( __dirname, "observer_worker.mjs" ), { "type": "module" } );
     // if( opts && opts.details )
     //     opts.details.write( cc.debug( "Will connect to " ) + cc.info( url ) + "/n" );
     g_worker.on( "message", jo => {
@@ -500,10 +500,10 @@ export async function ensure_have_worker( opts ) {
     } );
     await impl_sleep( 1000 );
     const jo = {
-        method: "init",
-        message: {
-            opts: {
-                imaState: {
+        "method": "init",
+        "message": {
+            "opts": {
+                "imaState": {
                     "bNoWaitSChainStarted": opts.imaState.bNoWaitSChainStarted,
                     "nMaxWaitSChainAttempts": opts.imaState.nMaxWaitSChainAttempts,
                     "nNodeNumber": opts.imaState.nNodeNumber, // S-Chain node number(zero based)
@@ -572,11 +572,11 @@ export async function periodic_caching_start( strChainNameConnectedTo, addressFr
     owaspUtils.ensure_observer_opts_initialized( opts );
     await ensure_have_worker( opts );
     const jo = {
-        method: "periodic_caching_start",
-        message: {
-            secondsToReDiscoverSkaleNetwork: parseInt( opts.secondsToReDiscoverSkaleNetwork ),
-            strChainNameConnectedTo: strChainNameConnectedTo,
-            addressFrom: addressFrom
+        "method": "periodic_caching_start",
+        "message": {
+            "secondsToReDiscoverSkaleNetwork": parseInt( opts.secondsToReDiscoverSkaleNetwork ),
+            "strChainNameConnectedTo": strChainNameConnectedTo,
+            "addressFrom": addressFrom
         }
     };
     g_client.send( jo );
@@ -584,8 +584,8 @@ export async function periodic_caching_start( strChainNameConnectedTo, addressFr
 export async function periodic_caching_stop() {
     await ensure_have_worker( opts );
     const jo = {
-        method: "periodic_caching_stop",
-        message: {
+        "method": "periodic_caching_stop",
+        "message": {
         }
     };
     g_client.send( jo );
