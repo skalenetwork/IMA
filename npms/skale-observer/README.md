@@ -18,10 +18,7 @@ Cache of S-Chain descriptions is result of download process described above. Whe
 
 S-Chain descriptions directly affect on S-Chain to S-Chain transfers because they contain JSON RPC URLs of all `skaled`s of all S-Chains.
 
-**SNB** can be invoked from command line of IMA agent in one of the following ways:
-
-   - The`--browse-skale-network` command line options invokes download entire SKALE network description, all S-Chains, all `skaled` nodes.
-   - The `--browse-connected-schains` command line options invokes download of which are S-Chains connected to S-Chain with name specified in `--id-s-chain` command line parameter.
+**SNB** can be invoked from command line of IMA agent using `--browse-skale-network` or `--browse-connected-schains` command line options. The`--browse-skale-network` command line options invokes download entire SKALE network description, all S-Chains, all `skaled` nodes. The `--browse-connected-schains` command line options invokes download of which are S-Chains connected to S-Chain with name specified in `--id-s-chain` command line parameter.
 
 Example of **SNB** invocation:
 
