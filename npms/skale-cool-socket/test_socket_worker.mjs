@@ -19,16 +19,16 @@
  */
 
 /**
- * @file test_worker.js
+ * @file test_socket_worker.mjs
  * @copyright SKALE Labs 2019-Present
  */
 
-const network_layer = require( "./socket.js" );
-const { TestServer } = require( "./test_server.js" );
-const {
+import * as network_layer from "./socket.mjs";
+import { TestSocketServer } from "./test_socket_server.mjs";
+import {
     parentPort
     //, workerData
-} = require( "worker_threads" );
+} from "worker_threads";
 
 parentPort.on( "message", jo => {
     if( network_layer.in_worker_apis.on_message( jo ) )
@@ -38,15 +38,15 @@ parentPort.on( "message", jo => {
 function doSendMessage( type, endpoint, worker_uuid, data ) {
     const jo = network_layer.socket_received_data_reverse_marshall( data );
     const joSend = {
-        worker_message_type: ( type && typeof type == "string" && type.length > 0 ) ? type : "in_worker_message",
-        worker_endpoint: endpoint,
-        worker_uuid: worker_uuid,
-        data: jo
+        "worker_message_type": ( type && typeof type == "string" && type.length > 0 ) ? type : "in_worker_message",
+        "worker_endpoint": endpoint,
+        "worker_uuid": worker_uuid,
+        "data": jo
     };
     parentPort.postMessage( network_layer.socket_sent_data_marshall( joSend ) );
 }
 
 const url = "local_worker_server";
 const acceptor = new network_layer.InWorkerSocketServerAcceptor( url, doSendMessage );
-const server = new TestServer( acceptor );
+const server = new TestSocketServer( acceptor );
 server.on( "dispose", function() { console.log( "disposed in-worker server" ); } );

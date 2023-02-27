@@ -26,10 +26,9 @@
 const assert = require('chai').assert;
 const expect = require('chai').expect;
 const IMA = require( "../../npms/skale-ima" );
-// const w3 = require("web3")
 const w3mod = IMA.w3mod
-const tc_main_net = IMA.tc_main_net;
-const tc_s_chain = IMA.tc_s_chain;
+const tc_main_net = IMA.get_tc_main_net();
+const tc_s_chain = IMA.get_tc_s_chain();
 
 // 
 let chain_id_s_chain = "blah_blah_blah_schain_name"; // 1;
@@ -81,10 +80,10 @@ function toBN(string) {
     return "0"
 }
 function Contract(string, string) {
-    return {methods: {approve: approve}}
+    return { "methods": { "approve": approve}}
 }
 function approve(string, string) {
-    return {encodeABI: encodeABI}
+    return { "encodeABI": encodeABI}
 }
 function toHex(string) {
     return "0x9a"
@@ -94,122 +93,122 @@ function toWei(string, string) {
 }
 
 // mockup for `joAccountDst`
-let joAccountDst = { address: IMA.owaspUtils.fn_address_impl_, 
+let joAccountDst = { "address": IMA.owaspUtils.fn_address_impl_, 
     privateKey: "6270720ecca0185a979b6791bea433e9dbf23345e5b5b1b0258b1fbaf32b4390",
 };
 // mockup for `joAccountSrc`
-let joAccountSrc = { address: IMA.owaspUtils.fn_address_impl_, 
+let joAccountSrc = { "address": IMA.owaspUtils.fn_address_impl_, 
     privateKey: "6270720ecca0185a979b6791bea433e9dbf23345e5b5b1b0258b1fbaf32b4390",
 };
 // mockup for `joAccount`
-let joAccount = { address: IMA.owaspUtils.fn_address_impl_, 
+let joAccount = { "address": IMA.owaspUtils.fn_address_impl_, 
     privateKey: "6270720ecca0185a979b6791bea433e9dbf23345e5b5b1b0258b1fbaf32b4390",
 };
-// mockup for `joAccount_main_net`
-let joAccount_main_net = { address: IMA.owaspUtils.fn_address_impl_,
+// mockup for `joMainNetAccount`
+let joMainNetAccount = { "address": IMA.owaspUtils.fn_address_impl_,
     privateKey: "6270720ecca0185a979b6791bea433e9dbf23345e5b5b1b0258b1fbaf32b4390",
 };
 // mockup for `jo_deposit_box`
-let jo_deposit_box = {methods: {deposit: deposit, depositERC20: depositERC20,
+let jo_deposit_box = { "methods": {deposit: deposit, depositERC20: depositERC20,
     rawDepositERC20: rawDepositERC20}, 
-    options: {address: "0xd34e38f830736DB41CC6E10aA37A3C851A7a2B82"}
+    options: { "address": "0xd34e38f830736DB41CC6E10aA37A3C851A7a2B82"}
 };
 function deposit(string, string, string) {
-    return {encodeABI: encodeABI}
+    return { "encodeABI": encodeABI}
 }
 function depositERC20(string, string, string, string) {
-    return {encodeABI: encodeABI}
+    return { "encodeABI": encodeABI}
 }
 function rawDepositERC20(string, string, string, string, string) {
-    return {encodeABI: encodeABI}
+    return { "encodeABI": encodeABI}
 }
 
 // mockup for `jo_message_proxy_main_net`
-let jo_message_proxy_main_net = {methods: {isConnectedChain: isConnectedChain, addConnectedChain: addConnectedChain}, 
-    options: {address: "0xd34e38f830736DB41CC6E10aA37A3C851A7a2B82"}
+let jo_message_proxy_main_net = { "methods": {isConnectedChain: isConnectedChain, addConnectedChain: addConnectedChain}, 
+    options: { "address": "0xd34e38f830736DB41CC6E10aA37A3C851A7a2B82"}
 };
 function isConnectedChain(string) {
-    return {call: call}
+    return { "call": call}
 }
 function call({}) {
     return true
 }
 function addConnectedChain(string) {
-    return {encodeABI: encodeABI}
+    return { "encodeABI": encodeABI}
 }
 
 // mockup for `jo_lock_and_data_main_net`
-let jo_lock_and_data_main_net = {methods: {hasSchain: hasSchain, addSchain: addSchain, getMyEth: getMyEth,
+let jo_lock_and_data_main_net = { "methods": {hasSchain: hasSchain, addSchain: addSchain, getMyEth: getMyEth,
     approveTransfers: approveTransfers}, 
-    options: {address: "0xd34e38f830736DB41CC6E10aA37A3C851A7a2B82"}
+    options: { "address": "0xd34e38f830736DB41CC6E10aA37A3C851A7a2B82"}
 };
 function hasSchain(string) {
-    return {call: call}
+    return { "call": call}
 }
 function approveTransfers(string) {
-    return {call: call}
+    return { "call": call}
 }
 function addSchain(string, []) {
-    return {encodeABI: encodeABI}
+    return { "encodeABI": encodeABI}
 }
 function getMyEth() {
-    return {encodeABI: encodeABI}
+    return { "encodeABI": encodeABI}
 }
 
 // mockup for `jo_lock_and_data_s_chain`
-let jo_lock_and_data_s_chain = {methods: {hasDepositBox: hasDepositBox, addDepositBox: addDepositBox}, 
-    options: {address: "0xd34e38f830736DB41CC6E10aA37A3C851A7a2B82"}
+let jo_lock_and_data_s_chain = { "methods": {hasDepositBox: hasDepositBox, addDepositBox: addDepositBox}, 
+    options: { "address": "0xd34e38f830736DB41CC6E10aA37A3C851A7a2B82"}
 };
 function hasDepositBox() {
-    return {call: call}
+    return { "call": call}
 }
 function addDepositBox(string) {
-    return {encodeABI: encodeABI}
+    return { "encodeABI": encodeABI}
 }
 function encodeABI() {
     return "0x0"
 }
 
 // mockup for `jo_message_proxy_dst`
-let jo_message_proxy_dst = {methods: {getIncomingMessagesCounter: getIncomingMessagesCounter,
+let jo_message_proxy_dst = { "methods": {getIncomingMessagesCounter: getIncomingMessagesCounter,
     postIncomingMessages: postIncomingMessages},
-    options: {address: "0xd34e38f830736DB41CC6E10aA37A3C851A7a2B82"}
+    options: { "address": "0xd34e38f830736DB41CC6E10aA37A3C851A7a2B82"}
 };
 function getIncomingMessagesCounter(string) {
-    return {call: callNum}
+    return { "call": callNum}
 }
 function postIncomingMessages(string, {}) {
-    return {encodeABI: encodeABI}
+    return { "encodeABI": encodeABI}
 }
 
 // mockup for `jo_message_proxy_src`
-let jo_message_proxy_src = {methods: {getOutgoingMessagesCounter: getOutgoingMessagesCounter},
+let jo_message_proxy_src = { "methods": {getOutgoingMessagesCounter: getOutgoingMessagesCounter},
     getPastEvents: getPastEvents
 };
 function getOutgoingMessagesCounter(string) {
-    return {call: callNum}
+    return { "call": callNum}
 }
 function callNum() {
     return 3
 }
 
 // mockup for `jo_token_manager`
-let jo_token_manager = {methods: {exitToMain: exitToMain, exitToMainERC20: exitToMainERC20,
+let jo_token_manager = { "methods": {exitToMain: exitToMain, exitToMainERC20: exitToMainERC20,
     rawExitToMainERC20: rawExitToMainERC20}, 
-    options: {address: "0xd34e38f830736DB41CC6E10aA37A3C851A7a2B82"},
+    options: { "address": "0xd34e38f830736DB41CC6E10aA37A3C851A7a2B82"},
     getPastEvents: getPastEvents
 };
 function exitToMain(string) {
-    return {encodeABI: encodeABI}
+    return { "encodeABI": encodeABI}
 }
 function getPastEvents(string, {}) {
     return "events stub"
 }
 function rawExitToMainERC20(string, {}) {
-    return {encodeABI: encodeABI}
+    return { "encodeABI": encodeABI}
 }
 function exitToMainERC20(string, {}) {
-    return {encodeABI: encodeABI}
+    return { "encodeABI": encodeABI}
 }
 
 describe('tests for `npms/skale-ima`', function () {
@@ -232,7 +231,7 @@ describe('tests for `npms/skale-ima`', function () {
 
     it('should invoke `ensure_starts_with_0x`', async function () {
         let string = "123456789"
-        expect(IMA.owaspUtils.ensure_starts_with_0x(string)).to.be.equal("0x" + string);
+        expect(IMA.owaspUtils.ensure_starts_with_0x(string)).to.be.equal( "0" + "x" + string );
     });
 
     it('should invoke `remove_starting_0x`', async function () {
@@ -272,7 +271,7 @@ describe('tests for `npms/skale-ima`', function () {
     it('should invoke `private_key_2_account_address`', async function () {
         let keyPrivate = "23abdbd3c61b5330af61ebe8bef582f4e5cc08e554053a718bdce7813b9dc1fc";
         //
-        expect(IMA.owaspUtils.private_key_2_account_address(w3mod, keyPrivate)).to.include("0x");
+        expect( IMA.owaspUtils.private_key_2_account_address( keyPrivate ) ).to.include("0x");
     });
 
     it('should return `false` invoke `check_is_registered_s_chain_in_deposit_box`', async function () {
@@ -282,7 +281,7 @@ describe('tests for `npms/skale-ima`', function () {
             check_is_registered_s_chain_in_deposit_box(
                 w3_main_net,
                 jo_lock_and_data_main_net,
-                joAccount_main_net,
+                joMainNetAccount,
                 chain_id_s_chain
             )
         ).to.be.false;
@@ -294,7 +293,7 @@ describe('tests for `npms/skale-ima`', function () {
             check_is_registered_s_chain_in_deposit_box(
                 w3_main_net,
                 jo_lock_and_data_main_net,
-                joAccount_main_net,
+                joMainNetAccount,
                 chain_id_s_chain
             )
         ).to.be.true;
@@ -307,7 +306,7 @@ describe('tests for `npms/skale-ima`', function () {
             register_s_chain_in_deposit_box(
                 w3_main_net,
                 jo_lock_and_data_main_net,
-                joAccount_main_net,
+                joMainNetAccount,
                 jo_token_manager,
                 chain_id_s_chain,
                 tc_main_net //,
@@ -323,7 +322,7 @@ describe('tests for `npms/skale-ima`', function () {
             register_s_chain_in_deposit_box(
                 w3_main_net,
                 jo_lock_and_data_main_net,
-                joAccount_main_net,
+                joMainNetAccount,
                 jo_token_manager,
                 chain_id_s_chain,
                 tc_main_net //,
@@ -372,7 +371,7 @@ describe('tests for `npms/skale-ima`', function () {
     });
 
     it('should return `true` invoke `register_main_net_depositBox_on_s_chain`', async function () {
-        let jo_deposit_box_main_net = {options: {address: "0xd34e38f830736DB41CC6E10aA37A3C851A7a2B82"}};
+        let jo_deposit_box_main_net = { "options": { "address": "0xd34e38f830736DB41CC6E10aA37A3C851A7a2B82"}};
         // 
         expect(await IMA.
             register_main_net_depositBox_on_s_chain(
@@ -451,12 +450,12 @@ describe('tests for `npms/skale-ima`', function () {
     });
 
     it('should return `false` invoke `receive_eth_payment_from_s_chain_on_main_net`', async function () {
-        let joAccount_main_net; // for `false` output
+        let joMainNetAccount; // for `false` output
         // 
         expect(await IMA.
             receive_eth_payment_from_s_chain_on_main_net(
                 w3_main_net,
-                joAccount_main_net,
+                joMainNetAccount,
                 jo_lock_and_data_main_net,
                 tc_main_net
             )
@@ -468,7 +467,7 @@ describe('tests for `npms/skale-ima`', function () {
         expect(await IMA.
             receive_eth_payment_from_s_chain_on_main_net(
                 w3_main_net,
-                joAccount_main_net,
+                joMainNetAccount,
                 jo_lock_and_data_main_net,
                 tc_main_net
             )
@@ -476,12 +475,12 @@ describe('tests for `npms/skale-ima`', function () {
     });
 
     it('should return `null` invoke `view_eth_payment_from_s_chain_on_main_net`', async function () {
-        let joAccount_main_net; // for `false` output
+        let joMainNetAccount; // for `false` output
         // 
         expect(await IMA.
             view_eth_payment_from_s_chain_on_main_net(
                 w3_main_net,
-                joAccount_main_net,
+                joMainNetAccount,
                 jo_lock_and_data_main_net
             )
         ).to.be.null;
@@ -492,7 +491,7 @@ describe('tests for `npms/skale-ima`', function () {
         expect(await IMA.
             view_eth_payment_from_s_chain_on_main_net(
                 w3_main_net,
-                joAccount_main_net,
+                joMainNetAccount,
                 jo_lock_and_data_main_net
             )
         ).to.be.true;
@@ -554,13 +553,21 @@ describe('tests for `npms/skale-ima`', function () {
         let jo_message_proxy_src; // for `false` output
         let chain_id_src = "test";
         let chain_id_dst = "test";
-        let nTransactionsCountInBlock;
-        let nMaxTransactionsCount;
-        let nBlockAwaitDepth;
-        let nBlockAge;
+        let nTransactionsCountInBlock = 4;
+        let nTransferSteps = 0;
+        let nMaxTransactionsCount = 0;
+        let nBlockAwaitDepth = 0;
+        let nBlockAge = 0;
         // 
+        const joRuntimeOpts = {
+            isInsideWorker: false,
+            idxChainKnownForS2S: 0,
+            cntChainsKnownForS2S: 0
+        };
         expect(await IMA.
             do_transfer(
+                "M2S",
+                joRuntimeOpts,
                 w3_src,
                 jo_message_proxy_src,
                 joAccountSrc,
@@ -577,6 +584,7 @@ describe('tests for `npms/skale-ima`', function () {
                 null, //jo_token_manager - for logs validation on s-chain
                 //
                 nTransactionsCountInBlock,
+                nTransferSteps,
                 nMaxTransactionsCount,
                 nBlockAwaitDepth,
                 nBlockAge,
@@ -590,13 +598,21 @@ describe('tests for `npms/skale-ima`', function () {
     it('should return `true` invoke `do_transfer`', async function () {
         let chain_id_src = "test";
         let chain_id_dst = "test";
-        let nTransactionsCountInBlock;
-        let nMaxTransactionsCount;
-        let nBlockAwaitDepth;
-        let nBlockAge;
+        let nTransactionsCountInBlock = 4;
+        let nTransferSteps = 0;
+        let nMaxTransactionsCount = 0;
+        let nBlockAwaitDepth = 0;
+        let nBlockAge = 0;
         // 
+        const joRuntimeOpts = {
+            isInsideWorker: false,
+            idxChainKnownForS2S: 0,
+            cntChainsKnownForS2S: 0
+        };
         expect(await IMA.
             do_transfer(
+                "M2S",
+                joRuntimeOpts,
                 w3_src,
                 jo_message_proxy_src,
                 joAccountSrc,
@@ -613,6 +629,7 @@ describe('tests for `npms/skale-ima`', function () {
                 null, //jo_token_manager - for logs validation on s-chain
                 //
                 nTransactionsCountInBlock,
+                nTransferSteps,
                 nMaxTransactionsCount,
                 nBlockAwaitDepth,
                 nBlockAge,

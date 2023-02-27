@@ -9,7 +9,7 @@ module.exports = {
         "SharedArrayBuffer": "readonly"
     },
     "parserOptions": {
-        "ecmaVersion": 2018,
+        "ecmaVersion": 2020,
         "sourceType": "module"
     },
     "rules": {
@@ -60,6 +60,8 @@ module.exports = {
         "no-use-before-define": "off", // [ "error", { "variables": false,  "functions": false } ],
         "lines-between-class-members": [ "error", "never" ],
         "no-var": "error",
-        "no-unused-vars": "error"
+        "no-unused-vars": "error",
+        "object-shorthand": 0,
+        "multiline-ternary": "off"
     }
 };

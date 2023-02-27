@@ -19,44 +19,63 @@
  */
 
 /**
- * @file agent-test.js
+ * @file agent-test.mjs
  * @copyright SKALE Labs 2019-Present
  */
 
-const assert = require( "assert" );
-const fs = require( "fs" );
-const os = require( "os" );
-const path = require( "path" );
+import * as assert from "assert";
+import * as fs from "fs";
+import * as os from "os";
+import * as path from "path";
+import * as url from "url";
 
-process.env.NODE_TLS_REJECT_UNAUTHORIZED = 0; // allow self-signed wss and https
-
-global.IMA = require( "../npms/skale-ima" );
-global.w3mod = IMA.w3mod;
-global.ethereumjs_tx = IMA.ethereumjs_tx;
-global.ethereumjs_wallet = IMA.ethereumjs_wallet;
-global.ethereumjs_util = IMA.ethereumjs_util;
-global.compose_tx_instance = IMA.compose_tx_instance;
-global.owaspUtils = IMA.owaspUtils;
-global.imaUtils = require( "../agent/utils.js" );
-IMA.expose_details_set( false );
-IMA.verbose_set( IMA.verbose_parse( "info" ) );
-global.log = global.imaUtils.log;
-global.cc = global.imaUtils.cc;
-global.imaCLI = require( "../agent/cli.js" );
-global.imaBLS = require( "../agent/bls.js" );
-global.rpcCall = require( "../agent/rpc-call.js" );
-global.rpcCall.init();
-
-log.removeAll();
+import * as IMA from "../npms/skale-ima";
+import * as imaUtils from "../agent/utils.mjs";
+import * as imaCLI from "../agent/cli.mjs";
 // log.addStdout();
 // log.addMemory(); // console.log( log.getStreamWithFilePath( "memory" ).strAccumulatedLogText );
 
-global.imaState = {
+import * as state from "../../agent/state.mjs";
+
+const __dirname = path.dirname( url.fileURLToPath( import.meta.url ) );
+
+process.env.NODE_TLS_REJECT_UNAUTHORIZED = 0;
+
+IMA.expose_details_set( false );
+IMA.verbose_set( IMA.verbose_parse( "info" ) );
+const log = imaUtils.log;
+// import * as imaBLS from "../agent/bls.mjs";
+// import * as rpcCall from "../agent/rpc-call.mjs";
+
+log.removeAll();
+const imaState = {
+    "loopState": {
+        "oracle": {
+            "isInProgress": false,
+            "wasInProgress": false
+        },
+        "m2s": {
+            "isInProgress": false,
+            "wasInProgress": false
+        },
+        "s2m": {
+            "isInProgress": false,
+            "wasInProgress": false
+        },
+        "s2s": {
+            "isInProgress": false,
+            "wasInProgress": false
+        }
+    },
+
     "strLogFilePath": "",
     "nLogMaxSizeBeforeRotation": -1,
     "nLogMaxFilesCount": -1,
     "isPrintGathered": true,
     "isPrintSecurityValues": true,
+    "isPrintPWA": false,
+    "isDynamicLogInDoTransfer": false,
+    "isDynamicLogInBlsSigner": false,
 
     "bIsNeededCommonInit": true,
     "bSignMessages": false, // use BLS message signing, turned on with --sign-messages
@@ -65,73 +84,10 @@ global.imaState = {
     "strPathHashG1": "", // path to hash_g1 app, must have if --sign-messages specified
     "strPathBlsVerify": "", // path to verify_bls app, optional, if specified then we will verify gathered BLS signature
 
-    "joAbiPublishResult_skale_manager": { },
-    "joAbiPublishResult_main_net": { },
-    "joAbiPublishResult_s_chain": { },
-    "joAbiPublishResult_t_chain": { },
-    "bHaveSkaleManagerABI": false,
-    "bHaveImaAbiMainNet": false,
-    "bHaveImaAbiSchain": false,
-    "bHaveImaAbiSchainTarget": false,
-
-    "joErc20_main_net": null,
-    "joErc20_s_chain": null,
-    "joErc20_t_chain": null,
-    "strAddrErc20_explicit": "",
-    "strAddrErc20_explicit_target": "", // S<->S target
-    "strCoinNameErc20_main_net": "", // in-JSON coin name
-    "strCoinNameErc20_s_chain": "", // in-JSON coin name
-    "strCoinNameErc20_t_chain": "", // in-JSON coin name
-
-    "joErc721_main_net": null,
-    "joErc721_s_chain": null,
-    "joErc721_t_chain": null,
-    "strAddrErc721_explicit": "",
-    "strAddrErc721_explicit_target": "", // S<->S target
-    "strCoinNameErc721_main_net": "", // in-JSON coin name
-    "strCoinNameErc721_s_chain": "", // in-JSON coin name
-    "strCoinNameErc721_t_chain": "", // in-JSON coin name
-
-    "joErc1155_main_net": null,
-    "joErc1155_s_chain": null,
-    "joErc1155_t_chain": null,
-    "strAddrErc1155_explicit": "",
-    "strAddrErc1155_explicit_target": "", // S<->S target
-    "strCoinNameErc1155_main_net": "", // in-JSON coin name
-    "strCoinNameErc1155_s_chain": "", // in-JSON coin name
-    "strCoinNameErc1155_t_chain": "", // in-JSON coin name
-
-    "strPathAbiJson_skale_manager": null, // "", // imaUtils.normalizePath( "../proxy/data/skaleManager.json" ), // "./abi_skale_manager.json"
-    "strPathAbiJson_main_net": imaUtils.normalizePath( "./agent-test-data/proxyMainnet.json" ),
-    "strPathAbiJson_s_chain": imaUtils.normalizePath( "./agent-test-data/proxySchain_Bob.json" ),
-    "strPathAbiJson_t_chain": null,
-
     "bShowConfigMode": false, // true - just show configuration values and exit
 
     "bNoWaitSChainStarted": false,
     "nMaxWaitSChainAttempts": 0 + Number.MAX_SAFE_INTEGER, // 20
-    "isPreventExitAfterLastAction": false,
-
-    "strURL_main_net": owaspUtils.toStringURL( process.env.URL_W3_ETHEREUM || "http://127.0.0.1:8545" ), // example: "http://127.0.0.1:8545
-    "strURL_s_chain": owaspUtils.toStringURL( process.env.URL_W3_S_CHAIN || "http://127.0.0.1:15000" ),
-
-    "strChainName_main_net": ( process.env.CHAIN_NAME_ETHEREUM || "Mainnet" ).toString().trim(),
-    "strChainName_s_chain": ( process.env.CHAIN_NAME_SCHAIN || "Bob" ).toString().trim(),
-    "strChainName_origin_chain": ( process.env.CHAIN_NAME_ETHEREUM || "Mainnet" ).toString().trim(),
-    "strChainName_t_chain": ( process.env.CHAIN_NAME_SCHAIN_TARGET || "Alice" ).toString().trim(),
-    "cid_main_net": owaspUtils.toInteger( process.env.CID_ETHEREUM ) || -4,
-    "cid_s_chain": owaspUtils.toInteger( process.env.CID_SCHAIN ) || -4,
-    "cid_t_chain": owaspUtils.toInteger( process.env.CID_SCHAIN_TARGET ) || -4,
-
-    "strPathJsonErc20_main_net": "",
-    "strPathJsonErc20_s_chain": "",
-    "strPathJsonErc20_t_chain": "",
-    "strPathJsonErc721_main_net": "",
-    "strPathJsonErc721_s_chain": "",
-    "strPathJsonErc721_t_chain": "",
-    "strPathJsonErc1155_main_net": "",
-    "strPathJsonErc1155_s_chain": "",
-    "strPathJsonErc1155_t_chain": "",
 
     "nAmountOfWei": 0,
     "nAmountOfToken": 0,
@@ -141,9 +97,12 @@ global.imaState = {
     "have_idToken": false,
     "have_idTokens": false,
 
-    "nTransferBlockSizeM2S": 4, // 10
-    "nTransferBlockSizeS2M": 4, // 10
-    "nTransferBlockSizeS2S": 4, // 10
+    "nTransferBlockSizeM2S": 4,
+    "nTransferBlockSizeS2M": 4,
+    "nTransferBlockSizeS2S": 4,
+    "nTransferStepsM2S": 8,
+    "nTransferStepsS2M": 8,
+    "nTransferStepsS2S": 8,
     "nMaxTransactionsM2S": 0,
     "nMaxTransactionsS2M": 0,
     "nMaxTransactionsS2S": 0,
@@ -164,10 +123,6 @@ global.imaState = {
 
     "nAutoExitAfterSeconds": 0, // 0-disable
 
-    "w3_main_net": null,
-    "w3_s_chain": null,
-    "w3_t_chain": null,
-
     "jo_deposit_box_eth": null, // only main net
     "jo_deposit_box_erc20": null, // only main net
     "jo_deposit_box_erc721": null, // only main net
@@ -180,56 +135,129 @@ global.imaState = {
     // "eth_erc721": null, // only s-chain
     "eth_erc20": null, // only s-chain
 
-    "joAccount_main_net": {
-        "privateKey": owaspUtils.toEthPrivateKey( process.env.PRIVATE_KEY_FOR_ETHEREUM ),
-        "address": IMA.owaspUtils.fn_address_impl_,
-        "strTransactionManagerURL": owaspUtils.toStringURL( process.env.TRANSACTION_MANAGER_URL_ETHEREUM ),
-        "strSgxURL": owaspUtils.toStringURL( process.env.SGX_URL_ETHEREUM ),
-        "strSgxKeyName": owaspUtils.toStringURL( process.env.SGX_KEY_ETHEREUM ),
-        "strPathSslKey": ( process.env.SGX_SSL_KEY_FILE_ETHEREUM || "" ).toString().trim(),
-        "strPathSslCert": ( process.env.SGX_SSL_CERT_FILE_ETHEREUM || "" ).toString().trim()
-    },
-    "joAccount_s_chain": {
-        "privateKey": owaspUtils.toEthPrivateKey( process.env.PRIVATE_KEY_FOR_SCHAIN ),
-        "address": IMA.owaspUtils.fn_address_impl_,
-        "strTransactionManagerURL": owaspUtils.toStringURL( process.env.TRANSACTION_MANAGER_URL_S_CHAIN ),
-        "strSgxURL": owaspUtils.toStringURL( process.env.SGX_URL_S_CHAIN ),
-        "strSgxKeyName": owaspUtils.toStringURL( process.env.SGX_KEY_S_CHAIN ),
-        "strPathSslKey": ( process.env.SGX_SSL_KEY_FILE_S_CHAIN || "" ).toString().trim(),
-        "strPathSslCert": ( process.env.SGX_SSL_CERT_FILE_S_CHAIN || "" ).toString().trim()
-    },
-    "joAccount_t_chain": {
-        "privateKey": owaspUtils.toEthPrivateKey( process.env.PRIVATE_KEY_FOR_SCHAIN_TARGET ),
-        "address": IMA.owaspUtils.fn_address_impl_,
-        "strTransactionManagerURL": owaspUtils.toStringURL( process.env.TRANSACTION_MANAGER_URL_S_CHAIN_TARGET ),
-        "strSgxURL": owaspUtils.toStringURL( process.env.SGX_URL_S_CHAIN_TARGET ),
-        "strSgxKeyName": owaspUtils.toStringURL( process.env.SGX_KEY_S_CHAIN_TARGET ),
-        "strPathSslKey": ( process.env.SGX_SSL_KEY_FILE_S_CHAIN_TARGET || "" ).toString().trim(),
-        "strPathSslCert": ( process.env.SGX_SSL_CERT_FILE_S_CHAIN_TARGET || "" ).toString().trim()
+    "chainProperties": {
+        "mn": {
+            "joAccount": {
+                "privateKey": owaspUtils.toEthPrivateKey( process.env.PRIVATE_KEY_FOR_ETHEREUM ),
+                "address": owaspUtils.fn_address_impl_,
+                "strTransactionManagerURL": owaspUtils.toStringURL( process.env.TRANSACTION_MANAGER_URL_ETHEREUM ),
+                "tm_priority": owaspUtils.toStringURL( process.env.TRANSACTION_MANAGER_PRIORITY_ETHEREUM ) || 5,
+                "strSgxURL": owaspUtils.toStringURL( process.env.SGX_URL_ETHEREUM ),
+                "strSgxKeyName": owaspUtils.toStringURL( process.env.SGX_KEY_ETHEREUM ),
+                "strPathSslKey": ( process.env.SGX_SSL_KEY_FILE_ETHEREUM || "" ).toString().trim(),
+                "strPathSslCert": ( process.env.SGX_SSL_CERT_FILE_ETHEREUM || "" ).toString().trim(),
+                "strBlsKeyName": owaspUtils.toStringURL( process.env.BLS_KEY_ETHEREUM )
+            },
+            "transactionCustomizer": IMA.get_tc_main_net(),
+            "ethersProvider": null,
+            "strURL": owaspUtils.toStringURL( process.env.URL_W3_ETHEREUM || "http://127.0.0.1:8545" ),
+            "strChainName": ( process.env.CHAIN_NAME_ETHEREUM || "Mainnet" ).toString().trim(),
+            "cid": owaspUtils.toInteger( process.env.CID_ETHEREUM ) || -4,
+            "strPathAbiJson": imaUtils.normalizePath( "./agent-test-data/proxyMainnet.json" ),
+            "joAbiIMA": { },
+            "bHaveAbiIMA": false,
+            "joErc20": null,
+            "joErc721": null,
+            "joErc1155": null,
+            "strCoinNameErc20": "", // in-JSON coin name
+            "strCoinNameErc721": "", // in-JSON coin name
+            "strCoinNameErc1155": "", // in-JSON coin name
+            "strPathJsonErc20": "",
+            "strPathJsonErc721": "",
+            "strPathJsonErc1155": ""
+        },
+        "sc": {
+            "joAccount": {
+                "privateKey": owaspUtils.toEthPrivateKey( process.env.PRIVATE_KEY_FOR_SCHAIN ),
+                "address": owaspUtils.fn_address_impl_,
+                "strTransactionManagerURL": owaspUtils.toStringURL( process.env.TRANSACTION_MANAGER_URL_S_CHAIN ),
+                "tm_priority": owaspUtils.toStringURL( process.env.TRANSACTION_MANAGER_PRIORITY_S_CHAIN ) || 5,
+                "strSgxURL": owaspUtils.toStringURL( process.env.SGX_URL_S_CHAIN ),
+                "strSgxKeyName": owaspUtils.toStringURL( process.env.SGX_KEY_S_CHAIN ),
+                "strPathSslKey": ( process.env.SGX_SSL_KEY_FILE_S_CHAIN || "" ).toString().trim(),
+                "strPathSslCert": ( process.env.SGX_SSL_CERT_FILE_S_CHAIN || "" ).toString().trim(),
+                "strBlsKeyName": owaspUtils.toStringURL( process.env.BLS_KEY_S_CHAIN )
+            },
+            "transactionCustomizer": IMA.get_tc_s_chain(),
+            "ethersProvider": null,
+            "strURL": owaspUtils.toStringURL( process.env.URL_W3_S_CHAIN || "http://127.0.0.1:15000" ),
+            "strChainName": ( process.env.CHAIN_NAME_SCHAIN || "Bob" ).toString().trim(),
+            "cid": owaspUtils.toInteger( process.env.CID_SCHAIN ) || -4,
+            "strPathAbiJson": imaUtils.normalizePath( "./agent-test-data/proxySchain_Bob.json" ),
+            "joAbiIMA": { },
+            "bHaveAbiIMA": false,
+            "joErc20": null,
+            "joErc721": null,
+            "joErc1155": null,
+            "strCoinNameErc20": "", // in-JSON coin name
+            "strCoinNameErc721": "", // in-JSON coin name
+            "strCoinNameErc1155": "", // in-JSON coin name
+            "strPathJsonErc20": "",
+            "strPathJsonErc721": "",
+            "strPathJsonErc1155": ""
+        },
+        "tc": {
+            "joAccount": {
+                "privateKey": owaspUtils.toEthPrivateKey( process.env.PRIVATE_KEY_FOR_SCHAIN_TARGET ),
+                "address": owaspUtils.fn_address_impl_,
+                "strTransactionManagerURL": owaspUtils.toStringURL( process.env.TRANSACTION_MANAGER_URL_S_CHAIN_TARGET ),
+                "tm_priority": owaspUtils.toStringURL( process.env.TRANSACTION_MANAGER_PRIORITY_S_CHAIN_TARGET ) || 5,
+                "strSgxURL": owaspUtils.toStringURL( process.env.SGX_URL_S_CHAIN_TARGET ),
+                "strSgxKeyName": owaspUtils.toStringURL( process.env.SGX_KEY_S_CHAIN_TARGET ),
+                "strPathSslKey": ( process.env.SGX_SSL_KEY_FILE_S_CHAIN_TARGET || "" ).toString().trim(),
+                "strPathSslCert": ( process.env.SGX_SSL_CERT_FILE_S_CHAIN_TARGET || "" ).toString().trim(),
+                "strBlsKeyName": owaspUtils.toStringURL( process.env.BLS_KEY_T_CHAIN )
+            },
+            "transactionCustomizer": IMA.get_tc_t_chain(),
+            "ethersProvider": null,
+            "strURL": owaspUtils.toStringURL( process.env.URL_W3_S_CHAIN_TARGET ),
+            "strChainName": ( process.env.CHAIN_NAME_SCHAIN_TARGET || "Alice" ).toString().trim(),
+            "cid": owaspUtils.toInteger( process.env.CID_SCHAIN_TARGET ) || -4,
+            "strPathAbiJson": null,
+            "joAbiIMA": { },
+            "bHaveAbiIMA": false,
+            "joErc20": null,
+            "joErc721": null,
+            "joErc1155": null,
+            "strCoinNameErc20": "", // in-JSON coin name
+            "strCoinNameErc721": "", // in-JSON coin name
+            "strCoinNameErc1155": "", // in-JSON coin name
+            "strPathJsonErc20": "",
+            "strPathJsonErc721": "",
+            "strPathJsonErc1155": ""
+        }
     },
 
-    //
-    "tc_main_net": IMA.tc_main_net,
-    "tc_s_chain": IMA.tc_s_chain,
-    "tc_t_chain": IMA.tc_t_chain,
-    //
+    "strPathAbiJsonSkaleManager": null, // "", // imaUtils.normalizePath( "../proxy/data/skaleManager.json" ), // "./abi_skale_manager.json"
+    "joAbiSkaleManager": { },
+    "bHaveSkaleManagerABI": false,
 
-    "doEnableDryRun": function( isEnable ) { return IMA.dry_run_enable( isEnable ); },
-    "doIgnoreDryRun": function( isIgnore ) { return IMA.dry_run_ignore( isIgnore ); },
+    "strChainName_origin_chain": ( process.env.CHAIN_NAME_ETHEREUM || "Mainnet" ).toString().trim(),
 
-    optsPendingTxAnalysis: {
-        isEnabled: true
-    },
+    "strAddrErc20_explicit": "",
+    "strAddrErc20_explicit_target": "", // S<->S target
+    "strAddrErc721_explicit": "",
+    "strAddrErc721_explicit_target": "", // S<->S target
+    "strAddrErc1155_explicit": "",
+    "strAddrErc1155_explicit_target": "", // S<->S target
+
+    "isPWA": true,
+    "nTimeoutSecondsPWA": 60,
 
     "s2s_opts": { // S-Chain to S-Chain transfer options
         "isEnabled": false, // is S-Chain to S-Chain transfers enabled
         "secondsToReDiscoverSkaleNetwork": 10 * 60 // seconts to re-discover SKALE network, 0 to disable
     },
 
+    "nJsonRpcPort": 14999, // 0 to disable
+    "isCrossImaBlsMode": true,
+
     "arrActions": [] // array of actions to run
 };
+state.set( imaState );
 
 imaCLI.ima_common_init();
+imaCLI.ima_contracts_init();
 
 describe( "OWASP", function() {
 
@@ -427,34 +455,34 @@ describe( "OWASP", function() {
     } );
 
     describe( "Key/address utilities", function() {
-        const joAccount_test = {
+        const joTestAccount = {
             "privateKey": owaspUtils.toEthPrivateKey( "23ABDBD3C61B5330AF61EBE8BEF582F4E5CC08E554053A718BDCE7813B9DC1FC" ),
-            "address": IMA.owaspUtils.fn_address_impl_
+            "address": owaspUtils.fn_address_impl_
         };
 
         it( "Extract address from private key", function() {
-            const address = joAccount_test.address( imaState.w3_main_net );
-            const address2 = owaspUtils.private_key_2_account_address( imaState.w3_main_net, joAccount_test.privateKey );
-            // console.log( "private key is", joAccount_test.privateKey );
-            // console.log( "computed address is", joAccount_test.address( imaState.w3_main_net ) );
+            const address = joTestAccount.address();
+            const address2 = owaspUtils.private_key_2_account_address( joTestAccount.privateKey );
+            // console.log( "private key is", joTestAccount.privateKey );
+            // console.log( "computed address is", joTestAccount.address() );
             assert.equal( address.toLowerCase(), "0x7aa5E36AA15E93D10F4F26357C30F052DacDde5F".toLowerCase() );
             assert.equal( address2.toLowerCase(), "0x7aa5E36AA15E93D10F4F26357C30F052DacDde5F".toLowerCase() );
         } );
 
         it( "Extract public key from private key", function() {
-            // const address = joAccount_test.address( imaState.w3_main_net );
-            const publicKey = owaspUtils.private_key_2_public_key( imaState.w3_main_net, joAccount_test.privateKey );
-            // console.log( "private key is", joAccount_test.privateKey );
+            // const address = joTestAccount.address();
+            const publicKey = owaspUtils.private_key_2_public_key( imaState.chainProperties.mn.ethersProvider, joTestAccount.privateKey );
+            // console.log( "private key is", joTestAccount.privateKey );
             // console.log( "extracted public is", publicKey );
             assert.equal( publicKey.toLowerCase(), "5dd431d36ce6b88f27d351051b31a26848c4a886f0dd0bc87a7d5a9d821417c9e807e8589f680ab0f2ab29831231ad7b3d6659990ee830582fede785fc3c33c4".toLowerCase() );
         } );
 
         it( "Extract address from public key", function() {
-            const address = joAccount_test.address( imaState.w3_main_net );
-            const publicKey = owaspUtils.private_key_2_public_key( imaState.w3_main_net, joAccount_test.privateKey );
-            const address2 = owaspUtils.public_key_2_account_address( imaState.w3_main_net, publicKey );
-            // console.log( "computed address is", joAccount_test.address( imaState.w3_main_net ) );
-            // console.log( "private key is", joAccount_test.privateKey );
+            const address = joTestAccount.address();
+            const publicKey = owaspUtils.private_key_2_public_key( imaState.chainProperties.mn.ethersProvider, joTestAccount.privateKey );
+            const address2 = owaspUtils.public_key_2_account_address( imaState.chainProperties.mn.ethersProvider, publicKey );
+            // console.log( "computed address is", joTestAccount.address() );
+            // console.log( "private key is", joTestAccount.privateKey );
             // console.log( "extracted address is", publicKey );
             assert.equal( address.toLowerCase(), address2.toLowerCase() );
         } );
@@ -535,78 +563,77 @@ describe( "OWASP", function() {
         } );
 
         it( "Parse money value specification", function() {
-            const w3 = null;
-            assert.equal( owaspUtils.parseMoneySpecToWei( w3, "1ether" ), "1000000000000000000" );
-            assert.equal( owaspUtils.parseMoneySpecToWei( w3, "1ethe" ), "1000000000000000000" );
-            assert.equal( owaspUtils.parseMoneySpecToWei( w3, "1ethr" ), "1000000000000000000" );
-            assert.equal( owaspUtils.parseMoneySpecToWei( w3, "1eth" ), "1000000000000000000" );
-            assert.equal( owaspUtils.parseMoneySpecToWei( w3, "1eter" ), "1000000000000000000" );
-            assert.equal( owaspUtils.parseMoneySpecToWei( w3, "1ete" ), "1000000000000000000" );
-            assert.equal( owaspUtils.parseMoneySpecToWei( w3, "1et" ), "1000000000000000000" );
-            assert.equal( owaspUtils.parseMoneySpecToWei( w3, "1eh" ), "1000000000000000000" );
-            assert.equal( owaspUtils.parseMoneySpecToWei( w3, "1er" ), "1000000000000000000" );
-            assert.equal( owaspUtils.parseMoneySpecToWei( w3, "1finney" ), "1000000000000000" );
-            assert.equal( owaspUtils.parseMoneySpecToWei( w3, "1finne" ), "1000000000000000" );
-            assert.equal( owaspUtils.parseMoneySpecToWei( w3, "1finn" ), "1000000000000000" );
-            assert.equal( owaspUtils.parseMoneySpecToWei( w3, "1fin" ), "1000000000000000" );
-            assert.equal( owaspUtils.parseMoneySpecToWei( w3, "1fn" ), "1000000000000000" );
-            assert.equal( owaspUtils.parseMoneySpecToWei( w3, "1fi" ), "1000000000000000" );
-            assert.equal( owaspUtils.parseMoneySpecToWei( w3, "1szab" ), "1000000000000" );
-            assert.equal( owaspUtils.parseMoneySpecToWei( w3, "1szb" ), "1000000000000" );
-            assert.equal( owaspUtils.parseMoneySpecToWei( w3, "1sza" ), "1000000000000" );
-            assert.equal( owaspUtils.parseMoneySpecToWei( w3, "1sz" ), "1000000000000" );
-            assert.equal( owaspUtils.parseMoneySpecToWei( w3, "1shanno" ), "1000000000" );
-            assert.equal( owaspUtils.parseMoneySpecToWei( w3, "1shannn" ), "1000000000" );
-            assert.equal( owaspUtils.parseMoneySpecToWei( w3, "1shann" ), "1000000000" );
-            assert.equal( owaspUtils.parseMoneySpecToWei( w3, "1shan" ), "1000000000" );
-            assert.equal( owaspUtils.parseMoneySpecToWei( w3, "1sha" ), "1000000000" );
-            assert.equal( owaspUtils.parseMoneySpecToWei( w3, "1shn" ), "1000000000" );
-            assert.equal( owaspUtils.parseMoneySpecToWei( w3, "1sh" ), "1000000000" );
-            assert.equal( owaspUtils.parseMoneySpecToWei( w3, "1lovelac" ), "1000000" );
-            assert.equal( owaspUtils.parseMoneySpecToWei( w3, "1lovela" ), "1000000" );
-            assert.equal( owaspUtils.parseMoneySpecToWei( w3, "1lovel" ), "1000000" );
-            assert.equal( owaspUtils.parseMoneySpecToWei( w3, "1love" ), "1000000" );
-            assert.equal( owaspUtils.parseMoneySpecToWei( w3, "1lovl" ), "1000000" );
-            assert.equal( owaspUtils.parseMoneySpecToWei( w3, "1lvl" ), "1000000" );
-            assert.equal( owaspUtils.parseMoneySpecToWei( w3, "1lvla" ), "1000000" );
-            assert.equal( owaspUtils.parseMoneySpecToWei( w3, "1lvlc" ), "1000000" );
-            assert.equal( owaspUtils.parseMoneySpecToWei( w3, "1lvc" ), "1000000" );
-            assert.equal( owaspUtils.parseMoneySpecToWei( w3, "1lv" ), "1000000" );
-            assert.equal( owaspUtils.parseMoneySpecToWei( w3, "1lo" ), "1000000" );
-            assert.equal( owaspUtils.parseMoneySpecToWei( w3, "1lc" ), "1000000" );
-            assert.equal( owaspUtils.parseMoneySpecToWei( w3, "1ll" ), "1000000" );
-            assert.equal( owaspUtils.parseMoneySpecToWei( w3, "1babbag" ), "1000" );
-            assert.equal( owaspUtils.parseMoneySpecToWei( w3, "1babba" ), "1000" );
-            assert.equal( owaspUtils.parseMoneySpecToWei( w3, "1babbg" ), "1000" );
-            assert.equal( owaspUtils.parseMoneySpecToWei( w3, "1babb" ), "1000" );
-            assert.equal( owaspUtils.parseMoneySpecToWei( w3, "1bab" ), "1000" );
-            assert.equal( owaspUtils.parseMoneySpecToWei( w3, "1bag" ), "1000" );
-            assert.equal( owaspUtils.parseMoneySpecToWei( w3, "1bbb" ), "1000" );
-            assert.equal( owaspUtils.parseMoneySpecToWei( w3, "1bb" ), "1000" );
-            assert.equal( owaspUtils.parseMoneySpecToWei( w3, "1bg" ), "1000" );
-            assert.equal( owaspUtils.parseMoneySpecToWei( w3, "1ba" ), "1000" );
-            assert.equal( owaspUtils.parseMoneySpecToWei( w3, "1be" ), "1000" );
-            assert.equal( owaspUtils.parseMoneySpecToWei( w3, "1we" ), "1" );
-            assert.equal( owaspUtils.parseMoneySpecToWei( w3, "1wi" ), "1" );
-            assert.equal( owaspUtils.parseMoneySpecToWei( w3, "1noether" ), "0" );
-            assert.equal( owaspUtils.parseMoneySpecToWei( w3, "1noeth" ), "0" );
-            assert.equal( owaspUtils.parseMoneySpecToWei( w3, "1kwei" ), "1000" );
-            assert.equal( owaspUtils.parseMoneySpecToWei( w3, "1femtoether" ), "1000" );
-            assert.equal( owaspUtils.parseMoneySpecToWei( w3, "1femto" ), "1000" );
-            assert.equal( owaspUtils.parseMoneySpecToWei( w3, "1mwei" ), "1000000" );
-            assert.equal( owaspUtils.parseMoneySpecToWei( w3, "1picoether" ), "1000000" );
-            assert.equal( owaspUtils.parseMoneySpecToWei( w3, "1pico" ), "1000000" );
-            assert.equal( owaspUtils.parseMoneySpecToWei( w3, "1gwei" ), "1000000000" );
-            assert.equal( owaspUtils.parseMoneySpecToWei( w3, "1nanoether" ), "1000000000" );
-            assert.equal( owaspUtils.parseMoneySpecToWei( w3, "1nano" ), "1000000000" );
-            assert.equal( owaspUtils.parseMoneySpecToWei( w3, "1microether" ), "1000000000000" );
-            assert.equal( owaspUtils.parseMoneySpecToWei( w3, "1micro" ), "1000000000000" );
-            assert.equal( owaspUtils.parseMoneySpecToWei( w3, "1milliether" ), "1000000000000000" );
-            assert.equal( owaspUtils.parseMoneySpecToWei( w3, "1milli" ), "1000000000000000" );
-            assert.equal( owaspUtils.parseMoneySpecToWei( w3, "1kether" ), "1000000000000000000000" );
-            assert.equal( owaspUtils.parseMoneySpecToWei( w3, "1mether" ), "1000000000000000000000000" );
-            assert.equal( owaspUtils.parseMoneySpecToWei( w3, "1gether" ), "1000000000000000000000000000" );
-            assert.equal( owaspUtils.parseMoneySpecToWei( w3, "1tether" ), "1000000000000000000000000000000" );
+            assert.equal( owaspUtils.parseMoneySpecToWei( "1ether" ), "1000000000000000000" );
+            assert.equal( owaspUtils.parseMoneySpecToWei( "1ethe" ), "1000000000000000000" );
+            assert.equal( owaspUtils.parseMoneySpecToWei( "1ethr" ), "1000000000000000000" );
+            assert.equal( owaspUtils.parseMoneySpecToWei( "1eth" ), "1000000000000000000" );
+            assert.equal( owaspUtils.parseMoneySpecToWei( "1eter" ), "1000000000000000000" );
+            assert.equal( owaspUtils.parseMoneySpecToWei( "1ete" ), "1000000000000000000" );
+            assert.equal( owaspUtils.parseMoneySpecToWei( "1et" ), "1000000000000000000" );
+            assert.equal( owaspUtils.parseMoneySpecToWei( "1eh" ), "1000000000000000000" );
+            assert.equal( owaspUtils.parseMoneySpecToWei( "1er" ), "1000000000000000000" );
+            assert.equal( owaspUtils.parseMoneySpecToWei( "1finney" ), "1000000000000000" );
+            assert.equal( owaspUtils.parseMoneySpecToWei( "1finne" ), "1000000000000000" );
+            assert.equal( owaspUtils.parseMoneySpecToWei( "1finn" ), "1000000000000000" );
+            assert.equal( owaspUtils.parseMoneySpecToWei( "1fin" ), "1000000000000000" );
+            assert.equal( owaspUtils.parseMoneySpecToWei( "1fn" ), "1000000000000000" );
+            assert.equal( owaspUtils.parseMoneySpecToWei( "1fi" ), "1000000000000000" );
+            assert.equal( owaspUtils.parseMoneySpecToWei( "1szab" ), "1000000000000" );
+            assert.equal( owaspUtils.parseMoneySpecToWei( "1szb" ), "1000000000000" );
+            assert.equal( owaspUtils.parseMoneySpecToWei( "1sza" ), "1000000000000" );
+            assert.equal( owaspUtils.parseMoneySpecToWei( "1sz" ), "1000000000000" );
+            assert.equal( owaspUtils.parseMoneySpecToWei( "1shanno" ), "1000000000" );
+            assert.equal( owaspUtils.parseMoneySpecToWei( "1shannn" ), "1000000000" );
+            assert.equal( owaspUtils.parseMoneySpecToWei( "1shann" ), "1000000000" );
+            assert.equal( owaspUtils.parseMoneySpecToWei( "1shan" ), "1000000000" );
+            assert.equal( owaspUtils.parseMoneySpecToWei( "1sha" ), "1000000000" );
+            assert.equal( owaspUtils.parseMoneySpecToWei( "1shn" ), "1000000000" );
+            assert.equal( owaspUtils.parseMoneySpecToWei( "1sh" ), "1000000000" );
+            assert.equal( owaspUtils.parseMoneySpecToWei( "1lovelac" ), "1000000" );
+            assert.equal( owaspUtils.parseMoneySpecToWei( "1lovela" ), "1000000" );
+            assert.equal( owaspUtils.parseMoneySpecToWei( "1lovel" ), "1000000" );
+            assert.equal( owaspUtils.parseMoneySpecToWei( "1love" ), "1000000" );
+            assert.equal( owaspUtils.parseMoneySpecToWei( "1lovl" ), "1000000" );
+            assert.equal( owaspUtils.parseMoneySpecToWei( "1lvl" ), "1000000" );
+            assert.equal( owaspUtils.parseMoneySpecToWei( "1lvla" ), "1000000" );
+            assert.equal( owaspUtils.parseMoneySpecToWei( "1lvlc" ), "1000000" );
+            assert.equal( owaspUtils.parseMoneySpecToWei( "1lvc" ), "1000000" );
+            assert.equal( owaspUtils.parseMoneySpecToWei( "1lv" ), "1000000" );
+            assert.equal( owaspUtils.parseMoneySpecToWei( "1lo" ), "1000000" );
+            assert.equal( owaspUtils.parseMoneySpecToWei( "1lc" ), "1000000" );
+            assert.equal( owaspUtils.parseMoneySpecToWei( "1ll" ), "1000000" );
+            assert.equal( owaspUtils.parseMoneySpecToWei( "1babbag" ), "1000" );
+            assert.equal( owaspUtils.parseMoneySpecToWei( "1babba" ), "1000" );
+            assert.equal( owaspUtils.parseMoneySpecToWei( "1babbg" ), "1000" );
+            assert.equal( owaspUtils.parseMoneySpecToWei( "1babb" ), "1000" );
+            assert.equal( owaspUtils.parseMoneySpecToWei( "1bab" ), "1000" );
+            assert.equal( owaspUtils.parseMoneySpecToWei( "1bag" ), "1000" );
+            assert.equal( owaspUtils.parseMoneySpecToWei( "1bbb" ), "1000" );
+            assert.equal( owaspUtils.parseMoneySpecToWei( "1bb" ), "1000" );
+            assert.equal( owaspUtils.parseMoneySpecToWei( "1bg" ), "1000" );
+            assert.equal( owaspUtils.parseMoneySpecToWei( "1ba" ), "1000" );
+            assert.equal( owaspUtils.parseMoneySpecToWei( "1be" ), "1000" );
+            assert.equal( owaspUtils.parseMoneySpecToWei( "1we" ), "1" );
+            assert.equal( owaspUtils.parseMoneySpecToWei( "1wi" ), "1" );
+            assert.equal( owaspUtils.parseMoneySpecToWei( "1noether" ), "0" );
+            assert.equal( owaspUtils.parseMoneySpecToWei( "1noeth" ), "0" );
+            assert.equal( owaspUtils.parseMoneySpecToWei( "1kwei" ), "1000" );
+            assert.equal( owaspUtils.parseMoneySpecToWei( "1femtoether" ), "1000" );
+            assert.equal( owaspUtils.parseMoneySpecToWei( "1femto" ), "1000" );
+            assert.equal( owaspUtils.parseMoneySpecToWei( "1mwei" ), "1000000" );
+            assert.equal( owaspUtils.parseMoneySpecToWei( "1picoether" ), "1000000" );
+            assert.equal( owaspUtils.parseMoneySpecToWei( "1pico" ), "1000000" );
+            assert.equal( owaspUtils.parseMoneySpecToWei( "1gwei" ), "1000000000" );
+            assert.equal( owaspUtils.parseMoneySpecToWei( "1nanoether" ), "1000000000" );
+            assert.equal( owaspUtils.parseMoneySpecToWei( "1nano" ), "1000000000" );
+            assert.equal( owaspUtils.parseMoneySpecToWei( "1microether" ), "1000000000000" );
+            assert.equal( owaspUtils.parseMoneySpecToWei( "1micro" ), "1000000000000" );
+            assert.equal( owaspUtils.parseMoneySpecToWei( "1milliether" ), "1000000000000000" );
+            assert.equal( owaspUtils.parseMoneySpecToWei( "1milli" ), "1000000000000000" );
+            assert.equal( owaspUtils.parseMoneySpecToWei( "1kether" ), "1000000000000000000000" );
+            assert.equal( owaspUtils.parseMoneySpecToWei( "1mether" ), "1000000000000000000000000" );
+            assert.equal( owaspUtils.parseMoneySpecToWei( "1gether" ), "1000000000000000000000000000" );
+            assert.equal( owaspUtils.parseMoneySpecToWei( "1tether" ), "1000000000000000000000000000000" );
         } );
 
     } );
@@ -633,11 +660,11 @@ describe( "CLI", function() {
             const fnNameColorizer = null;
             const fnValueColorizer = null;
             assert.equal( imaCLI.ensure_have_value( "test-url", "http://127.0.0.1:3456", isExitIfEmpty, isPrintValue, fnNameColorizer, fnValueColorizer ), true );
-            const joAccount_test = {
+            const joTestAccount = {
                 "privateKey": owaspUtils.toEthPrivateKey( "23ABDBD3C61B5330AF61EBE8BEF582F4E5CC08E554053A718BDCE7813B9DC1FC" ),
-                "address": IMA.owaspUtils.fn_address_impl_
+                "address": owaspUtils.fn_address_impl_
             };
-            assert.equal( imaCLI.ensure_have_chain_credentials( imaState.strChainName_s_chain, joAccount_test, isExitIfEmpty, isPrintValue ), true );
+            assert.equal( imaCLI.ensure_have_chain_credentials( imaState.chainProperties.sc.strChainName, joTestAccount, isExitIfEmpty, isPrintValue ), true );
         } );
 
     } );
@@ -658,20 +685,20 @@ describe( "CLI", function() {
             const argv = [
                 "--verbose=9",
                 "--s2s-disable",
-                "--url-main-net=" + imaState.strURL_main_net,
-                "--url-s-chain=" + imaState.strURL_s_chain,
-                "--id-main-net=" + imaState.strChainName_main_net,
-                "--id-s-chain=" + imaState.strChainName_s_chain,
+                "--url-main-net=" + imaState.chainProperties.mn.strURL,
+                "--url-s-chain=" + imaState.chainProperties.sc.strURL,
+                "--id-main-net=" + imaState.chainProperties.mn.strChainName,
+                "--id-s-chain=" + imaState.chainProperties.sc.strChainName,
                 "--id-origin-chain=" + imaState.strChainName_origin_chain,
-                "--cid-main-net=" + imaState.cid_main_net,
-                "--cid-s-chain=" + imaState.cid_s_chain,
-                "--address-main-net=" + imaState.joAccount_main_net.address(),
-                "--address-s-chain=" + imaState.joAccount_s_chain.address(),
-                "--key-main-net=" + imaState.joAccount_main_net.privateKey,
-                "--key-s-chain=" + imaState.joAccount_s_chain.privateKey,
-                //"--abi-skale-manager=" + imaState.strPathAbiJson_skale_manager,
-                "--abi-main-net=" + imaState.strPathAbiJson_main_net,
-                "--abi-s-chain=" + imaState.strPathAbiJson_s_chain,
+                "--cid-main-net=" + imaState.chainProperties.mn.cid,
+                "--cid-s-chain=" + imaState.chainProperties.sc.cid,
+                "--address-main-net=" + imaState.chainProperties.mn.joAccount.address(),
+                "--address-s-chain=" + imaState.chainProperties.sc.joAccount.address(),
+                "--key-main-net=" + imaState.chainProperties.mn.joAccount.privateKey,
+                "--key-s-chain=" + imaState.chainProperties.sc.joAccount.privateKey,
+                //"--abi-skale-manager=" + imaState.strPathAbiJsonSkaleManager,
+                "--abi-main-net=" + imaState.chainProperties.mn.strPathAbiJson,
+                "--abi-s-chain=" + imaState.chainProperties.sc.strPathAbiJson,
                 // --erc721-main-net --erc721-s-chain --addr-erc721-s-chain
                 // --erc20-main-net --erc20-s-chain --addr-erc20-s-chain
                 // --erc1155-main-net --erc1155-s-chain --addr-erc1155-s-chain
@@ -704,7 +731,7 @@ describe( "CLI", function() {
                 "--nodes-count=1",
                 "--time-framing=0",
                 "--time-gap=10",
-                "--no-ptx"
+                "--no-pwa"
                 // --log-size --log-files --log
                 // --sign-messages --bls-glue --hash-g1 --bls-verify
             ];
@@ -746,6 +773,14 @@ describe( "Agent Utils Module", function() {
             assert.equal( imaUtils.compose_schain_node_url( { ip6: "::1", httpsRpcPort6: 3456 } ), "https://[::1]:3456" );
             assert.equal( imaUtils.compose_schain_node_url( { ip6: "::1", wsRpcPort6: 3456 } ), "ws://[::1]:3456" );
             assert.equal( imaUtils.compose_schain_node_url( { ip6: "::1", wssRpcPort6: 3456 } ), "wss://[::1]:3456" );
+        } );
+
+        it( "Compose IMA Agent URL", function() {
+            // HTTP_JSON = 3
+            // IMA_AGENT_JSON = 10
+            // so... distance is 10 - 3 = 7
+            // as result, 14999 + 7 = 15006
+            assert.equal( imaUtils.compose_ima_agent_node_url( { ip: "127.0.0.1", httpRpcPort: 14999 } ), "http://127.0.0.1:15006" );
         } );
 
     } );
@@ -871,8 +906,8 @@ describe( "Agent Utils Module", function() {
     describe( "ABI JSON Helpers", function() {
 
         it( "Find ABI entries", function() {
-            const strName = imaState.strChainName_s_chain;
-            const strFile = imaState.strPathAbiJson_s_chain;
+            const strName = imaState.chainProperties.sc.strChainName;
+            const strFile = imaState.chainProperties.sc.strPathAbiJson;
             const joABI = imaUtils.jsonFileLoad( strFile, { error: "file \"" + strFile + "\"was not loaded" } );
             const strKey = "token_manager_linker_address";
             const arrKeys = [
@@ -897,7 +932,7 @@ describe( "Agent Utils Module", function() {
         } );
 
         it( "Discover coin name", function() {
-            const strFile = imaState.strPathAbiJson_s_chain;
+            const strFile = imaState.chainProperties.sc.strPathAbiJson;
             const joABI = imaUtils.jsonFileLoad( strFile, { error: "file \"" + strFile + "\"was not loaded" } );
             const strCoinName = imaUtils.discover_in_json_coin_name( joABI );
             // console.log( "strCoinName is", strCoinName );

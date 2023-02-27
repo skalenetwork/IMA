@@ -19,14 +19,14 @@
  */
 
 /**
- * @file server.js
+ * @file socket_server.mjs
  * @copyright SKALE Labs 2019-Present
  */
 
-const { EventDispatcher, UniversalDispatcherEvent } = require( "./event_dispatcher.js" );
-const utils = require( "./utils.js" );
+import { EventDispatcher, UniversalDispatcherEvent } from "./event_dispatcher.mjs";
+import * as utils from "./socket_utils.mjs";
 
-class Server extends EventDispatcher {
+export class SocketServer extends EventDispatcher {
     constructor( acceptor ) {
         super();
         if( acceptor == null || acceptor == undefined || typeof acceptor != "object" )
@@ -92,7 +92,7 @@ class Server extends EventDispatcher {
                     }
                 } catch ( err ) {
                     if( self.isLogSocketErrors )
-                        self.log( "Server method", joMessage.method, "RPC exception:", err );
+                        self.log( "Server method", joMessage.method, "RPC exception:", err, ", stack is:", err.stack );
                     joAnswer = utils.prepareAnswerJSON( joMessage );
                     joAnswer.error = "" + err.toString();
                 }
@@ -128,14 +128,10 @@ class Server extends EventDispatcher {
             socket.on( "error", _onPipeError );
             socket.on( "message", _onPipeMessage );
         } );
-        this.dispatchEvent( new UniversalDispatcherEvent( "initialized", { detail: { ref: this } } ) );
+        this.dispatchEvent( new UniversalDispatcherEvent( "initialized", { "detail": { "ref": this } } ) );
     }
     dispose() {
         this.isDisposing = true;
         super.dispose();
     }
-};
-
-module.exports = {
-    Server: Server
 };

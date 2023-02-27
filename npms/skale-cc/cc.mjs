@@ -19,19 +19,82 @@
  */
 
 /**
- * @file cc.js
+ * @file cc.mjs
  * @copyright SKALE Labs 2019-Present
  */
 
-// const url = require( "url" );
-
 let g_bEnabled = true;
 
-function replaceAll( str, find, replace ) {
+export function enable( b ) {
+    g_bEnabled = !!b;
+}
+
+export function isEnabled() {
+    return !!g_bEnabled;
+}
+
+export function replaceAll( str, find, replace ) {
     return str.replace( new RegExp( find, "g" ), replace );
 }
 
-function toBoolean( value ) {
+export function validateRadix( value, radix ) {
+    value = "" + ( value ? value.toString() : "10" );
+    value = value.trim();
+    radix = ( radix == null || radix == undefined )
+        ? ( ( value.length > 2 && value[0] == "0" && ( value[1] == "x" || value[1] == "X" ) ) ? 16 : 10 )
+        : parseInt( radix, 10 );
+    return radix;
+}
+
+export function validateInteger( value, radix ) {
+    try {
+        value = "" + value;
+        value = value.trim();
+        if( value.length < 1 )
+            return false;
+        radix = validateRadix( value, radix );
+        if( ( !isNaN( value ) ) &&
+            ( parseInt( Number( value ), radix ) == value || radix !== 10 ) &&
+            ( !isNaN( parseInt( value, radix ) ) )
+        )
+            return true;
+    } catch ( err ) {
+    }
+    return false;
+}
+
+export function toInteger( value, radix ) {
+    try {
+        radix = validateRadix( value, radix );
+        if( !validateInteger( value, radix ) )
+            return NaN;
+        return parseInt( value, radix );
+    } catch ( err ) {
+    }
+    return false;
+}
+
+export function validateFloat( value ) {
+    try {
+        const f = parseFloat( value );
+        if( isNaN( f ) )
+            return false;
+        return true;
+    } catch ( err ) {
+    }
+    return false;
+}
+
+function toFloat( value ) {
+    try {
+        const f = parseFloat( value );
+        return f;
+    } catch ( err ) {
+    }
+    return false;
+}
+
+export function toBoolean( value ) {
     let b = false;
     try {
         if( typeof value === "boolean" )
@@ -39,8 +102,10 @@ function toBoolean( value ) {
         if( typeof value === "string" ) {
             const ch = value[0].toLowerCase();
             if( ch == "y" || ch == "t" )
-                b = true; else if( validateInteger( value ) )
-                b = !!toInteger( value ); else if( validateFloat( value ) )
+                b = true;
+            else if( /^-?\d+$/.test( value ) ) // check string is integer
+                b = !!parseInt( value, 10 );
+            else if( /^-?\d+(?:[.,]\d*?)?$/.test( value ) ) // check string is float
                 b = !!toFloat( value ); else
                 b = !!b;
         } else
@@ -52,23 +117,23 @@ function toBoolean( value ) {
     return b;
 }
 
-function _yn_( flag ) {
+export function yn( flag ) {
     if( !g_bEnabled )
         return flag;
-    return toBoolean( flag ) ? module.exports.yes( "yes" ) : module.exports.no( "no" );
+    return toBoolean( flag ) ? yes( "yes" ) : no( "no" );
 }
 
-function _tf_( flag ) {
+export function tf( flag ) {
     if( !g_bEnabled )
         return flag;
-    return toBoolean( flag ) ? module.exports.yes( "true" ) : module.exports.no( "false" );
+    return toBoolean( flag ) ? yes( "true" ) : no( "false" );
 }
 
-// function isInt( n ) {
+// export function isInt( n ) {
 //     return !( ( Number( n ) === n && n % 1 === 0 ) );
 // }
 
-// function isFloat( n ) {
+// export function isFloat( n ) {
 //     return !( ( Number( n ) === n && n % 1 !== 0 ) );
 // }
 const g_map_color_definitions = {
@@ -112,24 +177,24 @@ const g_arrRainbowParts = [
     g_map_color_definitions.fgMagenta
 ];
 
-function raibow_part( s, i ) {
+export function rainbow_part( s, i ) {
     if( !g_bEnabled )
         return s;
     const j = i % g_arrRainbowParts.length;
     return g_arrRainbowParts[j] + s + g_map_color_definitions.reset;
 }
 
-function rainbow( s ) {
+export function rainbow( s ) {
     if( ( !g_bEnabled ) || ( !s ) || ( typeof s != "string" ) || s.length == 0 )
         return s;
     let res = "";
     const cnt = s.length;
     for( let i = 0; i < cnt; ++ i )
-        res = res + raibow_part( s[i], i );
+        res = res + rainbow_part( s[i], i );
     return res;
 }
 
-function isInt2( n ) {
+export function isInt2( n ) {
     const intRegex = /^-?\d+$/;
     if( !intRegex.test( n ) )
         return false;
@@ -138,12 +203,12 @@ function isInt2( n ) {
     return parseFloat( n ) == intVal && !isNaN( intVal );
 }
 
-function isFloat2( n ) {
+export function isFloat2( n ) {
     const val = parseFloat( n );
     return !isNaN( val );
 }
 
-// function url2str( objURL ) {
+// export function url2str( objURL ) {
 //     const strProtocol = ( objURL.protocol && objURL.protocol.length > 0 ) ? ( "" + objURL.protocol + "//" ) : "";
 //     let strUP = "";
 //     const strHost = ( objURL.hostname && objURL.hostname.length > 0 ) ? ( "" + objURL.hostname.toString() ) : "";
@@ -166,42 +231,46 @@ function url_obj_colorized( objURL ) {
     if( !objURL )
         return strURL;
     // if( objURL.strStrippedStringComma )
-    //     strURL += module.exports.normal(objURL.strStrippedStringComma);
+    //     strURL += normal(objURL.strStrippedStringComma);
     if( objURL.protocol && objURL.protocol !== null && objURL.protocol !== undefined )
-        strURL += "" + module.exports.yellow( objURL.protocol ) + module.exports.normal( "//" );
+        strURL += "" + yellow( objURL.protocol ) + normal( "//" );
     if( objURL.username && objURL.username !== null && objURL.username !== undefined ) {
-        strURL += "" + module.exports.magenta( objURL.username );
+        strURL += "" + magenta( objURL.username );
         if( objURL.password && objURL.password !== null && objURL.password !== undefined )
-            strURL += module.exports.normal( ":" ) + module.exports.yellow( objURL.password );
-        strURL += module.exports.normal( "@" );
+            strURL += normal( ":" ) + yellow( objURL.password );
+        strURL += normal( "@" );
     }
     if( objURL.hostname )
-        strURL += "" + module.exports.magenta( log_arg_to_str_as_ipv4( objURL.hostname ) );
+        strURL += "" + magenta( log_arg_to_str_as_ipv4( objURL.hostname ) );
     if( objURL.port && objURL.port !== null && objURL.port !== undefined )
-        strURL += module.exports.normal( ":" ) + log_arg_to_str( objURL.port );
+        strURL += normal( ":" ) + log_arg_to_str( objURL.port );
     if( objURL.pathname && objURL.pathname !== null && objURL.pathname !== undefined && objURL.pathname !== "/" )
-        strURL += "" + module.exports.yellow( replaceAll( objURL.pathname, "/", module.exports.normal( "/" ) ) );
+        strURL += "" + yellow( replaceAll( objURL.pathname, "/", normal( "/" ) ) );
     if( objURL.search && objURL.search !== null && objURL.search !== undefined )
-        strURL += "" + module.exports.magenta( objURL.search );
+        strURL += "" + magenta( objURL.search );
     // if( objURL.strStrippedStringComma )
-    //     strURL += module.exports.normal(objURL.strStrippedStringComma);
+    //     strURL += normal(objURL.strStrippedStringComma);
     return strURL;
 }
 
-function url_str_colorized( s ) {
+export function url_str_colorized( s ) {
     const objURL = safeURL( s );
     if( !objURL )
         return "";
     return url_obj_colorized( objURL );
 }
 
-function url_colorized( x ) {
+export function url_colorized( x ) {
     if( typeof x === "string" || x instanceof String )
         return url_str_colorized( x );
     return url_obj_colorized( x );
 }
 
-// function url2strWithoutCredentials( objURL ) {
+export function u( x ) {
+    return url_colorized( x );
+}
+
+// export function url2strWithoutCredentials( objURL ) {
 //     const strProtocol = ( objURL.protocol && objURL.protocol.length > 0 ) ? ( "" + objURL.protocol + "//" ) : "";
 //     const strUP = "";
 //     const strHost = ( objURL.hostname && objURL.hostname.length > 0 ) ? ( "" + objURL.hostname.toString() ) : "";
@@ -212,7 +281,7 @@ function url_colorized( x ) {
 //     return strURL;
 // }
 
-function safeURL( arg ) {
+export function safeURL( arg ) {
     try {
         const sc = arg[0];
         if( sc == "\"" || sc == "'" ) {
@@ -241,7 +310,7 @@ function safeURL( arg ) {
     }
 }
 
-function to_ipv4_arr( s ) {
+export function to_ipv4_arr( s ) {
     if( /^(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$/.test( s ) ) {
         const arr = s.split( "." );
         if( ( !arr ) || arr.length !== 4 )
@@ -252,7 +321,7 @@ function to_ipv4_arr( s ) {
     return null;
 }
 
-function log_arg_to_str_as_ipv4( arg ) {
+export function log_arg_to_str_as_ipv4( arg ) {
     const arr = to_ipv4_arr( arg );
     if( !arr )
         return arg;
@@ -260,48 +329,48 @@ function log_arg_to_str_as_ipv4( arg ) {
     let s = "";
     for( let i = 0; i < 4; ++i ) {
         if( i > 0 )
-            s += module.exports.normal( "." );
+            s += normal( "." );
 
         s += log_arg_to_str( arr[i] );
     }
     return s;
 }
 
-function log_arg_to_str() {
+export function log_arg_to_str() {
     let i;
     const cnt = arguments.length;
     let s = "";
     for( i = 0; i < cnt; ++i ) {
         const arg = arguments[i];
         if( arg === undefined ) {
-            s += "" + module.exports.undefval( arg );
+            s += "" + undefval( arg );
             continue;
         }
         if( arg === null ) {
-            s += "" + module.exports.nullval( arg );
+            s += "" + nullval( arg );
             continue;
         }
         if( isNaN( arg ) ) {
-            s += "" + module.exports.nanval( arg );
+            s += "" + nanval( arg );
             continue;
         }
         if( typeof arg === "boolean" ) {
-            s += "" + _tf_( arg );
+            s += "" + tf( arg );
             continue;
         }
         if( typeof arg === "object" && typeof arg.valueOf() === "boolean" )
-            s += "" + _tf_( arg.valueOf() );
+            s += "" + tf( arg.valueOf() );
 
         if( typeof arg === "number" ) {
-            s += "" + module.exports.number( arg );
+            s += "" + number( arg );
             continue;
         }
         if( typeof arg === "object" && typeof arg.valueOf() === "number" ) {
-            s += "" + module.exports.number( arg.valueOf() );
+            s += "" + number( arg.valueOf() );
             continue;
         }
         // if( isNaN( arg ) ) {
-        // 	s += "" + module.exports.nanval( arg );
+        // 	s += "" + nanval( arg );
         // 	continue;
         // }
         if( typeof arg === "string" || arg instanceof String ) {
@@ -309,32 +378,32 @@ function log_arg_to_str() {
             if( objURL != null && objURL != undefined ) {
                 let strURL = "";
                 if( objURL.strStrippedStringComma )
-                    strURL += module.exports.normal( objURL.strStrippedStringComma );
+                    strURL += normal( objURL.strStrippedStringComma );
 
                 if( objURL.protocol )
-                    strURL += "" + module.exports.yellow( objURL.protocol ) + module.exports.normal( "//" );
+                    strURL += "" + yellow( objURL.protocol ) + normal( "//" );
 
                 if( objURL.username ) {
-                    strURL += "" + module.exports.magenta( objURL.username );
+                    strURL += "" + magenta( objURL.username );
                     if( objURL.password )
-                        strURL += module.exports.normal( ":" ) + module.exports.yellow( objURL.password );
+                        strURL += normal( ":" ) + yellow( objURL.password );
 
-                    strURL += module.exports.normal( "@" );
+                    strURL += normal( "@" );
                 }
                 if( objURL.hostname )
-                    strURL += "" + module.exports.magenta( log_arg_to_str_as_ipv4( objURL.hostname ) );
+                    strURL += "" + magenta( log_arg_to_str_as_ipv4( objURL.hostname ) );
 
                 if( objURL.port )
-                    strURL += module.exports.normal( ":" ) + log_arg_to_str( objURL.port );
+                    strURL += normal( ":" ) + log_arg_to_str( objURL.port );
 
                 if( objURL.pathname )
-                    strURL += "" + module.exports.yellow( replaceAll( objURL.pathname, "/", module.exports.normal( "/" ) ) );
+                    strURL += "" + yellow( replaceAll( objURL.pathname, "/", normal( "/" ) ) );
 
                 if( objURL.search )
-                    strURL += "" + module.exports.magenta( objURL.search );
+                    strURL += "" + magenta( objURL.search );
 
                 if( objURL.strStrippedStringComma )
-                    strURL += module.exports.normal( objURL.strStrippedStringComma );
+                    strURL += normal( objURL.strStrippedStringComma );
 
                 s += strURL;
                 continue;
@@ -342,27 +411,27 @@ function log_arg_to_str() {
             if( ( arg.length > 1 && arg[0] == "-" && arg[1] != "-" ) ||
                 ( arg.length > 2 && arg[0] == "-" && arg[1] == "-" && arg[2] != "-" )
             ) {
-                s += "" + module.exports.cla( arg );
+                s += "" + cla( arg );
                 continue;
             }
             if( arg.length > 0 && ( arg[0] == "\"" || arg[0] == "'" ) ) {
-                s += "" + module.exports.strval( arg );
+                s += "" + strval( arg );
                 continue;
             }
             // if( isFloat( arg ) ) {
-            // 	s += "" + module.exports.real( arg );
+            // 	s += "" + real( arg );
             // 	continue;
             // }
             // if( isInt( arg ) ) {
-            // 	s += "" + module.exports.number( arg );
+            // 	s += "" + number( arg );
             // 	continue;
             // }
             if( isFloat2( arg ) ) {
-                s += "" + module.exports.real( arg );
+                s += "" + real( arg );
                 continue;
             }
             if( isInt2( arg ) ) {
-                s += "" + module.exports.number( arg );
+                s += "" + number( arg );
                 continue;
             }
         }
@@ -371,12 +440,12 @@ function log_arg_to_str() {
             s += jsonColorizer.prettyPrintConsole( arg );
             continue;
         }
-        s += "" + module.exports.kk( arg );
+        s += "" + kk( arg );
     }
     return s;
 }
 
-const getCircularReplacerForJsonStringify = () => {
+export const getCircularReplacerForJsonStringify = () => {
     const seen = new WeakSet();
     return ( key, value ) => {
         if( typeof value === "object" && value !== null ) {
@@ -393,7 +462,7 @@ const getCircularReplacerForJsonStringify = () => {
 // @param censoredMessage optional: what to put instead of censored values
 // @param censorTheseItems should be kept null, used in recursion
 // @returns {undefined}
-// function preventCircularJson( source, censoredMessage, censorTheseItems ) {
+// export function preventCircularJson( source, censoredMessage, censorTheseItems ) {
 //     // init recursive value if this is the first call
 //     censorTheseItems = censorTheseItems || [source];
 //     // default if none is specified
@@ -441,7 +510,7 @@ const getCircularReplacerForJsonStringify = () => {
 //     return ret;
 // }
 
-const jsonColorizer = { // see http://jsfiddle.net/unLSJ/
+export const jsonColorizer = { // see http://jsfiddle.net/unLSJ/
     cntCensoredMax: 30000, // zero to disable censoring
     censor: ( censor ) => {
         let i = 0;
@@ -525,7 +594,7 @@ const jsonColorizer = { // see http://jsfiddle.net/unLSJ/
 // see:
 // http://jsfiddle.net/KJQ9K/554
 // https://qastack.ru/programming/4810841/pretty-print-json-using-javascript
-function syntaxHighlightJSON( jo, strKeyNamePrefix ) {
+export function syntaxHighlightJSON( jo, strKeyNamePrefix ) {
     strKeyNamePrefix = strKeyNamePrefix || "";
     jo = jo.replace( /&/g, "&amp;" ).replace( /</g, "&lt;" ).replace( />/g, "&gt;" );
     return jo.replace( /("(\\u[a-zA-Z0-9]{4}|\\[^u]|[^\\"])*"(\s*:)?|\b(true|false|null)\b|-?\d+(?:\.\d*)?(?:[eE][+-]?\d+)?)/g, function( match ) {
@@ -556,22 +625,22 @@ function syntaxHighlightJSON( jo, strKeyNamePrefix ) {
         case "key":
             return "" + strKeyNamePrefix + log_arg_to_str( match.replace( /[": ]/g, "" ) ) + ": ";
         case "boolean":
-            return _tf_( match );
+            return tf( match );
         case "null":
-            return "" + module.exports.nullval( match );
+            return "" + nullval( match );
         case "undefined":
-            return "" + module.exports.undefval( match );
+            return "" + undefval( match );
         case "nan":
-            return "" + module.exports.nanval( match );
+            return "" + nanval( match );
         case "string":
-            return "" + module.exports.strval( match );
+            return "" + strval( match );
             // case "number":
         }
         return log_arg_to_str( match );
     } );
 }
 
-function safeStringifyJSON( jo, n ) {
+export function safeStringifyJSON( jo, n ) {
     try {
         const s = "" + JSON.stringify( jo, getCircularReplacerForJsonStringify(), n );
         return s;
@@ -580,11 +649,11 @@ function safeStringifyJSON( jo, n ) {
     return undefined;
 }
 
-function jn( x ) {
+export function jn( x ) {
     return "" + jsonColorizer.prettyPrintConsole( x );
 }
 
-function j1( x, n, strKeyNamePrefix ) {
+export function j1( x, n, strKeyNamePrefix ) {
     let isDefaultKeyNamePrefix = false;
     if( typeof strKeyNamePrefix !== "string" ) {
         strKeyNamePrefix = " ";
@@ -599,213 +668,399 @@ function j1( x, n, strKeyNamePrefix ) {
     return s;
 }
 
-module.exports = {
-    enable: function( b ) {
-        g_bEnabled = !!b;
-    },
-    isEnabled: function() {
-        return !!g_bEnabled;
-    },
-    safeStringifyJSON: safeStringifyJSON,
-    reset: g_map_color_definitions.reset,
-    enlight: g_map_color_definitions.enlight,
-    dim: g_map_color_definitions.dim,
-    underscore: g_map_color_definitions.underscore,
-    blink: g_map_color_definitions.blink,
-    reverse: g_map_color_definitions.reverse,
-    hidden: g_map_color_definitions.hidden,
-    fgBlack: g_map_color_definitions.fgBlack,
-    fgRed: g_map_color_definitions.fgRed,
-    fgGreen: g_map_color_definitions.fgGreen,
-    fgYellow: g_map_color_definitions.fgYellow,
-    fgBlue: g_map_color_definitions.fgBlue,
-    fgMagenta: g_map_color_definitions.fgMagenta,
-    fgCyan: g_map_color_definitions.fgCyan,
-    fgWhite: g_map_color_definitions.fgWhite,
-    bgBlack: g_map_color_definitions.bgBlack,
-    bgRed: g_map_color_definitions.bgRed,
-    bgGreen: g_map_color_definitions.bgGreen,
-    bgYellow: g_map_color_definitions.bgYellow,
-    bgBlue: g_map_color_definitions.bgBlue,
-    bgMagenta: g_map_color_definitions.bgMagenta,
-    bgCyan: g_map_color_definitions.bgCyan,
-    bBgWhite: g_map_color_definitions.bBgWhite,
-    normal: function( s ) {
-        if( !g_bEnabled )
-            return s;
-        return "" + this.fgWhite + s + this.reset;
-    },
-    trace: function( s ) {
-        if( !g_bEnabled )
-            return s;
-        return "" + this.fgWhite + s + this.reset;
-    },
-    debug: function( s ) {
-        if( !g_bEnabled )
-            return s;
-        return "" + this.fgBlack + this.enlight + s + this.reset;
-    },
-    note: function( s ) {
-        if( !g_bEnabled )
-            return s;
-        return "" + this.fgBlue + s + this.reset;
-    },
-    notice: function( s ) {
-        if( !g_bEnabled )
-            return s;
-        return "" + this.fgMagenta + s + this.reset;
-    },
-    info: function( s ) {
-        if( !g_bEnabled )
-            return s;
-        return "" + this.fgBlue + this.enlight + s + this.reset;
-    },
-    warning: function( s ) {
-        if( !g_bEnabled )
-            return s;
-        return "" + this.fgYellow + s + this.reset;
-    },
-    warn: function( s ) {
-        if( !g_bEnabled )
-            return s;
-        return "" + this.fgYellow + s + this.reset;
-    },
-    error: function( s ) {
-        if( !g_bEnabled )
-            return s;
-        return "" + this.fgRed + s + this.reset;
-    },
-    fatal: function( s ) {
-        if( !g_bEnabled )
-            return s;
-        return "" + this.bgRed + this.fgYellow + this.enlight + s + this.reset;
-    },
-    success: function( s ) {
-        if( !g_bEnabled )
-            return s;
-        return "" + this.fgGreen + this.enlight + s + this.reset;
-    },
-    attention: function( s ) {
-        if( !g_bEnabled )
-            return s;
-        return "" + this.fgCyan + s + this.reset;
-    },
-    bright: function( s ) {
-        if( !g_bEnabled )
-            return s;
-        return "" + this.fgWhite + this.enlight + s + this.reset;
-    },
-    sunny: function( s ) {
-        if( !g_bEnabled )
-            return s;
-        return "" + this.fgYellow + this.enlight + s + this.reset;
-    },
-    rx: function( s ) {
-        if( !g_bEnabled )
-            return s;
-        return "" + this.fgMagenta + s + this.reset;
-    },
-    rxa: function( s ) {
-        if( !g_bEnabled )
-            return s;
-        return "" + this.fgMagenta + this.enlight + s + this.reset;
-    },
-    tx: function( s ) {
-        if( !g_bEnabled )
-            return s;
-        return "" + this.fgGreen + s + this.reset;
-    },
-    txa: function( s ) {
-        if( !g_bEnabled )
-            return s;
-        return "" + this.fgGreen + this.enlight + s + this.reset;
-    },
-    date: function( s ) {
-        if( !g_bEnabled )
-            return s;
-        return "" + this.fgYellow + s + this.reset;
-    },
-    time: function( s ) {
-        if( !g_bEnabled )
-            return s;
-        return "" + this.fgMagenta + this.enlight + s + this.reset;
-    },
-    frac_time: function( s ) {
-        if( !g_bEnabled )
-            return s;
-        return "" + this.fgMagenta + s + this.reset;
-    },
-    yes: function( s ) {
-        if( !g_bEnabled )
-            return s;
-        return "" + this.fgGreen + this.enlight + s + this.reset;
-    },
-    no: function( s ) {
-        if( !g_bEnabled )
-            return s;
-        return "" + this.fgBlue + s + this.reset;
-    },
-    real: function( s ) {
-        if( !g_bEnabled )
-            return s;
-        return "" + this.fgMagenta + s + this.reset;
-    },
-    undefval: function( s ) {
-        if( !g_bEnabled )
-            return s;
-        return "" + this.fgGreen + this.enlight + s + this.reset;
-    },
-    nullval: function( s ) {
-        if( !g_bEnabled )
-            return s;
-        return "" + this.fgGreen + this.enlight + s + this.reset;
-    },
-    nanval: function( s ) {
-        if( !g_bEnabled )
-            return s;
-        return "" + this.fgGreen + this.enlight + s + this.reset;
-    },
-    yellow: function( s ) {
-        if( !g_bEnabled )
-            return s;
-        return "" + this.fgYellow + s + this.reset;
-    },
-    magenta: function( s ) {
-        if( !g_bEnabled )
-            return s;
-        return "" + this.fgMagenta + s + this.reset;
-    },
-    cla: function( s ) {
-        if( !g_bEnabled )
-            return s;
-        return "" + this.fgBlue + this.dim + s + this.reset;
-    },
-    kk: function( s ) {
-        if( !g_bEnabled )
-            return s;
-        return "" + this.fgYellow + this.enlight + s + this.reset;
-    },
-    strval: function( s ) {
-        if( !g_bEnabled )
-            return s;
-        return "" + this.fgYellow + s + this.reset;
-    },
-    jn: jn,
-    j1: j1,
-    j: j1, // jn
-    yn: function( x ) {
-        return _yn_( x );
-    },
-    tf: function( x ) {
-        return _tf_( x );
-    },
-    u: function( x ) {
-        return url_colorized( x );
-    },
-    rainbow: rainbow,
-    syntaxHighlightJSON: syntaxHighlightJSON,
-    safeURL: safeURL,
-    getCircularReplacerForJsonStringify: getCircularReplacerForJsonStringify,
-    toBoolean: toBoolean,
-    replaceAll: replaceAll
-}; // module.exports
+export function j( x ) {
+    return j1( x ); // jn
+}
+
+const reset = g_map_color_definitions.reset;
+const enlight = g_map_color_definitions.enlight;
+const dim = g_map_color_definitions.dim;
+const underscore = g_map_color_definitions.underscore;
+const blink = g_map_color_definitions.blink;
+const reverse = g_map_color_definitions.reverse;
+const hidden = g_map_color_definitions.hidden;
+const fgBlack = g_map_color_definitions.fgBlack;
+const fgRed = g_map_color_definitions.fgRed;
+const fgGreen = g_map_color_definitions.fgGreen;
+const fgYellow = g_map_color_definitions.fgYellow;
+const fgBlue = g_map_color_definitions.fgBlue;
+const fgMagenta = g_map_color_definitions.fgMagenta;
+const fgCyan = g_map_color_definitions.fgCyan;
+const fgWhite = g_map_color_definitions.fgWhite;
+const bgBlack = g_map_color_definitions.bgBlack;
+const bgRed = g_map_color_definitions.bgRed;
+const bgGreen = g_map_color_definitions.bgGreen;
+const bgYellow = g_map_color_definitions.bgYellow;
+const bgBlue = g_map_color_definitions.bgBlue;
+const bgMagenta = g_map_color_definitions.bgMagenta;
+const bgCyan = g_map_color_definitions.bgCyan;
+const bBgWhite = g_map_color_definitions.bBgWhite;
+export {
+    reset,
+    enlight,
+    dim,
+    underscore,
+    blink,
+    reverse,
+    hidden,
+    fgBlack,
+    fgRed,
+    fgGreen,
+    fgYellow,
+    fgBlue,
+    fgMagenta,
+    fgCyan,
+    fgWhite,
+    bgBlack,
+    bgRed,
+    bgGreen,
+    bgYellow,
+    bgBlue,
+    bgMagenta,
+    bgCyan,
+    bBgWhite
+};
+
+export function normal( s ) {
+    if( !g_bEnabled )
+        return s;
+    return "" + fgWhite + s + reset;
+}
+
+export function trace( s ) {
+    if( !g_bEnabled )
+        return s;
+    return "" + fgWhite + s + reset;
+}
+
+export function debug( s ) {
+    if( !g_bEnabled )
+        return s;
+    return "" + fgBlack + enlight + s + reset;
+}
+
+export function note( s ) {
+    if( !g_bEnabled )
+        return s;
+    return "" + fgBlue + s + reset;
+}
+
+export function notice( s ) {
+    if( !g_bEnabled )
+        return s;
+    return "" + fgMagenta + s + reset;
+}
+
+export function info( s ) {
+    if( !g_bEnabled )
+        return s;
+    return "" + fgBlue + enlight + s + reset;
+}
+
+export function warning( s ) {
+    if( !g_bEnabled )
+        return s;
+    return "" + fgYellow + s + reset;
+}
+
+export function warn( s ) {
+    if( !g_bEnabled )
+        return s;
+    return "" + fgYellow + s + reset;
+}
+
+export function error( s ) {
+    if( !g_bEnabled )
+        return s;
+    return "" + fgRed + s + reset;
+}
+
+export function fatal( s ) {
+    if( !g_bEnabled )
+        return s;
+    return "" + bgRed + fgYellow + enlight + s + reset;
+}
+
+export function success( s ) {
+    if( !g_bEnabled )
+        return s;
+    return "" + fgGreen + enlight + s + reset;
+}
+
+export function attention( s ) {
+    if( !g_bEnabled )
+        return s;
+    return "" + fgCyan + s + reset;
+}
+
+export function bright( s ) {
+    if( !g_bEnabled )
+        return s;
+    return "" + fgWhite + enlight + s + reset;
+}
+
+export function sunny( s ) {
+    if( !g_bEnabled )
+        return s;
+    return "" + fgYellow + enlight + s + reset;
+}
+
+export function rx( s ) {
+    if( !g_bEnabled )
+        return s;
+    return "" + fgMagenta + s + reset;
+}
+
+export function rxa( s ) {
+    if( !g_bEnabled )
+        return s;
+    return "" + fgMagenta + enlight + s + reset;
+}
+
+export function tx( s ) {
+    if( !g_bEnabled )
+        return s;
+    return "" + fgGreen + s + reset;
+}
+
+export function txa( s ) {
+    if( !g_bEnabled )
+        return s;
+    return "" + fgGreen + enlight + s + reset;
+}
+
+export function date( s ) {
+    if( !g_bEnabled )
+        return s;
+    return "" + fgYellow + s + reset;
+}
+
+export function time( s ) {
+    if( !g_bEnabled )
+        return s;
+    return "" + fgMagenta + enlight + s + reset;
+}
+
+export function frac_time( s ) {
+    if( !g_bEnabled )
+        return s;
+    return "" + fgMagenta + s + reset;
+}
+
+export function yes( s ) {
+    if( !g_bEnabled )
+        return s;
+    return "" + fgGreen + enlight + s + reset;
+}
+
+export function no( s ) {
+    if( !g_bEnabled )
+        return s;
+    return "" + fgBlue + s + reset;
+}
+
+export function real( s ) {
+    if( !g_bEnabled )
+        return s;
+    return "" + fgMagenta + s + reset;
+}
+
+export function undefval( s ) {
+    if( !g_bEnabled )
+        return s;
+    return "" + fgGreen + enlight + s + reset;
+}
+
+export function nullval( s ) {
+    if( !g_bEnabled )
+        return s;
+    return "" + fgGreen + enlight + s + reset;
+}
+
+export function nanval( s ) {
+    if( !g_bEnabled )
+        return s;
+    return "" + fgGreen + enlight + s + reset;
+}
+
+export function yellow( s ) {
+    if( !g_bEnabled )
+        return s;
+    return "" + fgYellow + s + reset;
+}
+
+export function magenta( s ) {
+    if( !g_bEnabled )
+        return s;
+    return "" + fgMagenta + s + reset;
+}
+
+export function cla( s ) {
+    if( !g_bEnabled )
+        return s;
+    return "" + fgBlue + dim + s + reset;
+}
+
+export function kk( s ) {
+    if( !g_bEnabled )
+        return s;
+    return "" + fgYellow + enlight + s + reset;
+}
+
+export function strval( s ) {
+    if( !g_bEnabled )
+        return s;
+    return "" + fgYellow + s + reset;
+}
+
+export function n2s( n, sz ) {
+    let s = "" + n;
+    while( s.length < sz )
+        s = "0" + s;
+    return s;
+}
+
+export function ts_hr() {
+    const d = new Date();
+    const ts = Math.floor( ( d ).getTime() );
+    return ts;
+}
+
+export function ts_unix() {
+    const d = new Date();
+    const ts = Math.floor( ( d ).getTime() / 1000 );
+    return ts;
+}
+
+function trim_left_unneeded_timestamp_zeros( s ) {
+    while( s.length >= 2 ) {
+        if( s[0] == "0" && s[1] >= "0" && s[1] <= "9" )
+            s = s.substring( 1 );
+        else
+            break;
+    }
+    return s;
+}
+
+export function get_duration_string( tsFrom, tsTo ) {
+    let s = "";
+    let n = tsTo - tsFrom;
+    //
+    const ms = n % 1000;
+    n = Math.floor( n / 1000 );
+    s += "." + n2s( ms, 3 );
+    if( n == 0 )
+        return "0" + s;
+    //
+    const secs = n % 60;
+    n = Math.floor( n / 60 );
+    s = "" + n2s( secs, 2 ) + s;
+    if( n == 0 )
+        return trim_left_unneeded_timestamp_zeros( s );
+    s = ":" + s;
+    //
+    const mins = n % 60;
+    n = Math.floor( n / 60 );
+    s = "" + n2s( mins, 2 ) + s;
+    if( n == 0 )
+        return trim_left_unneeded_timestamp_zeros( s );
+    s = ":" + s;
+    //
+    const hours = n % 24;
+    n = Math.floor( n / 24 );
+    s = "" + n2s( hours, 2 ) + s;
+    if( n == 0 )
+        return trim_left_unneeded_timestamp_zeros( s );
+    //
+    return "" + n + " " + ( ( n > 1 ) ? "days" : "day" ) + "," + s;
+}
+
+export function capitalize_first_letter( s ) {
+    if( ! s )
+        return s;
+    let s2 = s.toString();
+    if( ! s2 )
+        return s;
+    s2 = s2.charAt( 0 ).toUpperCase() + s2.slice( 1 );
+    return s2;
+}
+
+function err_fn_dotted_name( s ) {
+    const arr = s.split( "." );
+    const cnt = arr.length;
+    let i, s2 = "";
+    for( i = 0; i < cnt; ++ i ) {
+        if( i > 0 )
+            s2 += bright( "." );
+        s2 += sunny( arr[i] );
+    }
+    return s2;
+}
+
+function err_fn_name( s ) {
+    if( s.indexOf( "async " ) == 0 )
+        return bright( "async" ) + " " + err_fn_dotted_name( s.substring( 6 ) );
+    return err_fn_dotted_name( s );
+}
+
+function err_loc_ln( s, isWithBraces ) {
+    let s2 = "";
+    s = s.replace( "file://", "" );
+    s = s.replace( "node:", "" );
+    if( isWithBraces )
+        s2 += " " + debug( "(" );
+    const arrCodePoint = s.split( ":" );
+    if( arrCodePoint.length > 0 ) {
+        s2 += trace( arrCodePoint[0] );
+        for( let j = 1; j < arrCodePoint.length; ++j ) {
+            s2 += debug( ":" );
+            if( j == 1 )
+                s2 += info( arrCodePoint[j] );
+            else
+                s2 += notice( arrCodePoint[j] );
+        }
+    } else
+        s2 += trace( s );
+    if( isWithBraces )
+        s2 += debug( ")" );
+    return s2;
+}
+
+export function stack( strIn ) {
+    if( ! strIn )
+        return strIn;
+    try {
+        const arr = ( typeof strIn == "string" ) ? strIn.split( "\n" ) : strIn;
+        const cnt = arr.length;
+        let i;
+        for( i = 0; i < cnt; ++ i ) {
+            let s = arr[i].replace( /\s+/g, " " ).trim();
+            if( s.indexOf( "at " ) == 0 ) {
+                // stack entry
+                s = s.substring( 3 );
+                let s2 = "    " + debug( "-->" ) + " ";
+                const n = s.indexOf( " (" );
+                if( n > 0 ) {
+                    s2 += err_fn_name( s.substring( 0, n ) );
+                    s = s.substring( n + 2 );
+                    if( s[s.length - 1] == ")" )
+                        s = s.substring( 0, s.length - 1 );
+                    s2 += err_loc_ln( s, true );
+                } else
+                    s2 += err_loc_ln( s, false );
+                s = s2;
+            } else {
+                // probably error description line
+                const n = s.indexOf( ":" );
+                if( n >= 0 )
+                    s = error( s.substring( 0, n ) ) + normal( ":" ) + warning( s.substring( n + 1 ) );
+                else
+                    s = error( s );
+            }
+            arr[i] = s;
+        }
+        return arr.join( "\n" );
+    } catch ( err ) {
+        return strIn;
+    }
+}

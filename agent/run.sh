@@ -34,6 +34,7 @@ DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
 # Optional IMA variables
 
 export GAS_PRICE_MULTIPLIER=${GAS_PRICE_MULTIPLIER:-2}
+export GAS_MULTIPLIER=${GAS_MULTIPLIER:-2}
 export VERBOSE=${VERBOSE:-9}
 
 export M2S_TRANSFER_BLOCK_SIZE=${M2S_TRANSFER_BLOCK_SIZE:-4}
@@ -67,6 +68,7 @@ echo "NODE_NUMBER: $NODE_NUMBER"
 echo "NODES_COUNT: $NODES_COUNT"
 
 BASE_OPTIONS="--gas-price-multiplier=$GAS_PRICE_MULTIPLIER \
+--gas-multiplier=$GAS_MULTIPLIER \
 --verbose=$VERBOSE \
 --s2s-enable \
 --abi-skale-manager=$MANAGER_ABI_PATH \
@@ -85,8 +87,11 @@ BASE_OPTIONS="--gas-price-multiplier=$GAS_PRICE_MULTIPLIER \
 --address-main-net=$NODE_ADDRESS \
 --address-s-chain=$NODE_ADDRESS \
 --sign-messages \
+--gathered \
 --expose \
+--no-expose-security-info \
 --skip-dry-run \
+--ignore-dry-run \
 --bls-glue=/ima/bls_binaries/bls_glue \
 --hash-g1=/ima/bls_binaries/hash_g1 \
 --bls-verify=/ima/bls_binaries/verify_bls \
@@ -109,13 +114,9 @@ BASE_OPTIONS="--gas-price-multiplier=$GAS_PRICE_MULTIPLIER \
 --tm-url-main-net=$TM_URL_MAIN_NET \
 --time-gap=$TIME_GAP \
 --monitoring-port=$MONITORING_PORT \
---ptx \
---ptx-attempt=3 "
-
-#echo "Base options:"
-#echo "$BASE_OPTIONS"
+--pwa \
+--no-expose-pwa"
 
 echo "Running loop cmd..."
-#echo "Going to run: node $DIR/main.js --loop $BASE_OPTIONS"
-echo "Going to run: node $DIR/main.js --loop ... ... ..."
-node "$DIR/main.js" --loop $BASE_OPTIONS
+echo "Going to run: node $DIR/main.mjs --loop $BASE_OPTIONS"
+node "$DIR/main.mjs" --loop "$BASE_OPTIONS"

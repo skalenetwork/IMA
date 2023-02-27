@@ -19,25 +19,38 @@
  */
 
 /**
- * @file log.js
+ * @file log.mjs
  * @copyright SKALE Labs 2019-Present
  */
 
-const cc = require( "../skale-cc/cc.js" );
-const fs = require( "fs" );
+import * as cc from "../skale-cc/cc.mjs";
+import * as fs from "fs";
+
 let g_arrStreams = [];
 
+let g_b_log_timestamps = true;
+
+let g_id = 0;
+
+export function get_print_timestamps() {
+    return g_b_log_timestamps;
+}
+
+export function set_print_timestamps( b ) {
+    g_b_log_timestamps = b ? true : false;
+}
+
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-function n2s( n, sz ) {
+export function n2s( n, sz ) {
     let s = "" + n;
     while( s.length < sz )
         s = "0" + s;
     return s;
 }
 
-function generate_timestamp_string( ts, isColorized ) {
+export function generate_timestamp_string( ts, isColorized ) {
     isColorized = ( typeof isColorized == "undefined" ) ? true : ( isColorized ? true : false );
     ts = ( ts instanceof Date ) ? ts : new Date();
     const cc_date = function( x ) { return isColorized ? cc.date( x ) : x; };
@@ -56,14 +69,14 @@ function generate_timestamp_string( ts, isColorized ) {
     return s;
 }
 
-function generate_timestamp_prefix( ts, isColorized ) {
+export function generate_timestamp_prefix( ts, isColorized ) {
     return generate_timestamp_string( ts, isColorized ) + cc.bright( ":" ) + " ";
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-function removeAllStreams() {
+export function removeAllStreams() {
     let i = 0; let cnt = 0;
     try {
         cnt = g_arrStreams.length;
@@ -79,7 +92,7 @@ function removeAllStreams() {
     g_arrStreams = [];
 }
 
-function getStreamWithFilePath( strFilePath ) {
+export function getStreamWithFilePath( strFilePath ) {
     try {
         let i = 0; const cnt = g_arrStreams.length;
         for( i = 0; i < cnt; ++i ) {
@@ -98,25 +111,32 @@ function getStreamWithFilePath( strFilePath ) {
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-function createStandardOutputStream() {
+export function createStandardOutputStream() {
     try {
         const objEntry = {
-			  strPath: "stdout",
-			  nMaxSizeBeforeRotation: -1,
-			  nMaxFilesCount: -1,
-			  objStream: null,
-			  write: function( s ) {
-                const x = "" + s; try {
+            "id": g_id ++,
+            "strPath": "stdout",
+            "nMaxSizeBeforeRotation": -1,
+            "nMaxFilesCount": -1,
+            "objStream": null,
+            "haveOwnTimestamps": false,
+            "strOwnIndent": "",
+            "write": function( s ) {
+                const x =
+                    this.strOwnIndent +
+                    + ( this.haveOwnTimestamps ? generate_timestamp_prefix( null, true ) : "" ) +
+                    s;
+                try {
                     if( this.objStream )
                         this.objStream.write( x );
                 } catch ( err ) { }
             },
-			  close: function() { this.objStream = null; },
-			  open: function() { try { this.objStream = process.stdout; } catch ( err ) { } },
-			  size: function() { return 0; },
-			  rotate: function( nBytesToWrite ) { },
-            toString: function() { return "" + strFilePath; },
-            exposeDetailsTo: function( otherStream, strTitle, isSuccess ) { }
+            "close": function() { this.objStream = null; },
+            "open": function() { try { this.objStream = process.stdout; } catch ( err ) { } },
+            "size": function() { return 0; },
+            "rotate": function( nBytesToWrite ) { },
+            "toString": function() { return "" + strFilePath; },
+            "exposeDetailsTo": function( otherStream, strTitle, isSuccess ) { }
         };
         objEntry.open();
         return objEntry;
@@ -125,7 +145,7 @@ function createStandardOutputStream() {
     return null;
 }
 
-function insertStandardOutputStream() {
+export function insertStandardOutputStream() {
     let objEntry = getStreamWithFilePath( "stdout" );
     if( objEntry !== null )
         return true;
@@ -139,33 +159,39 @@ function insertStandardOutputStream() {
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-function createMemoryOutputStream( isAutoAddTimestamps ) {
+export function createMemoryOutputStream() {
     try {
         const objEntry = {
-            strPath: "memory",
-            nMaxSizeBeforeRotation: -1,
-            nMaxFilesCount: -1,
-            strAccumulatedLogText: "",
-            isWithTimestamps: ( isAutoAddTimestamps || ( typeof isAutoAddTimestamps == "undefined" ) ) ? true : false,
-            write: function( s ) {
-                let strPrefix = "";
-                if( this.isWithTimestamps )
-                    strPrefix = generate_timestamp_prefix( null, true );
-                this.strAccumulatedLogText += strPrefix + s;
+            "id": g_id ++,
+            "strPath": "memory",
+            "nMaxSizeBeforeRotation": -1,
+            "nMaxFilesCount": -1,
+            "strAccumulatedLogText": "",
+            "haveOwnTimestamps": true,
+            "strOwnIndent": "    ",
+            "write": function( s ) {
+                if( this.strAccumulatedLogText.length == 0 ||
+                    this.strAccumulatedLogText[this.strAccumulatedLogText.length - 1] == "\n"
+                ) {
+                    this.strAccumulatedLogText += this.strOwnIndent;
+                    if( this.haveOwnTimestamps )
+                        this.strAccumulatedLogText += generate_timestamp_prefix( null, true );
+                }
+                this.strAccumulatedLogText += s;
             },
-            clear: function() { this.strAccumulatedLogText = ""; },
-            close: function() { this.clear(); },
-            open: function() { this.clear(); },
-            size: function() { return 0; },
-            rotate: function( nBytesToWrite ) { this.strAccumulatedLogText = ""; },
-            toString: function() { return "" + this.strAccumulatedLogText; },
-            exposeDetailsTo: function( otherStream, strTitle, isSuccess ) {
+            "clear": function() { this.strAccumulatedLogText = ""; },
+            "close": function() { this.clear(); },
+            "open": function() { this.clear(); },
+            "size": function() { return 0; },
+            "rotate": function( nBytesToWrite ) { this.strAccumulatedLogText = ""; },
+            "toString": function() { return "" + this.strAccumulatedLogText; },
+            "exposeDetailsTo": function( otherStream, strTitle, isSuccess ) {
                 strTitle = strTitle ? ( cc.bright( " (" ) + cc.attention( strTitle ) + cc.bright( ")" ) ) : "";
                 const strSuccessPrefix = isSuccess ? cc.success( "SUCCESS" ) : cc.fatal( "ERROR" );
                 otherStream.write(
-                    cc.bright( "\n\n\n--- --- --- --- --- GATHERED " ) + strSuccessPrefix + cc.bright( " DETAILS FOR LATEST(" ) + cc.sunny( strTitle ) + cc.bright( " action (" ) + cc.sunny( "BEGIN" ) + cc.bright( ") --- --- ------ --- \n\n" ) +
+                    cc.bright( "\n--- --- --- --- --- GATHERED " ) + strSuccessPrefix + cc.bright( " DETAILS FOR LATEST(" ) + cc.sunny( strTitle ) + cc.bright( " action (" ) + cc.sunny( "BEGIN" ) + cc.bright( ") --- --- ------ --- \n" ) +
                     this.strAccumulatedLogText +
-                    cc.bright( "\n--- --- --- --- --- GATHERED " ) + strSuccessPrefix + cc.bright( " DETAILS FOR LATEST(" ) + cc.sunny( strTitle ) + cc.bright( " action (" ) + cc.sunny( "END" ) + cc.bright( ") --- --- --- --- ---\n\n\n\n" )
+                    cc.bright( "--- --- --- --- --- GATHERED " ) + strSuccessPrefix + cc.bright( " DETAILS FOR LATEST(" ) + cc.sunny( strTitle ) + cc.bright( " action (" ) + cc.sunny( "END" ) + cc.bright( ") --- --- --- --- ---\n" )
                 );
             }
         };
@@ -176,7 +202,7 @@ function createMemoryOutputStream( isAutoAddTimestamps ) {
     return null;
 }
 
-function insertMemoryOutputStream() {
+export function insertMemoryOutputStream() {
     let objEntry = getStreamWithFilePath( "memory" );
     if( objEntry !== null )
         return true;
@@ -190,22 +216,36 @@ function insertMemoryOutputStream() {
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-function createFileOutput( strFilePath, nMaxSizeBeforeRotation, nMaxFilesCount ) {
+export function createFileOutput( strFilePath, nMaxSizeBeforeRotation, nMaxFilesCount ) {
     try {
         // const fd = fs.openSync( "" + strFilePath, "a", fs.constants.O_NONBLOCK | fs.constants.O_WR );
         const objEntry = {
-			  strPath: "" + strFilePath,
-			  nMaxSizeBeforeRotation: 0 + nMaxSizeBeforeRotation,
-			  nMaxFilesCount: 0 + nMaxFilesCount,
-			  objStream: null,
-			  write: function( s ) { const x = "" + s; this.rotate( x.length ); fs.appendFileSync( this.objStream, x, "utf8" ); },
-			  close: function() {
-                if( !this.objStream )
-                    return; fs.closeSync( this.objStream ); this.objStream = null;
+            "id": g_id ++,
+            "strPath": "" + strFilePath,
+            "nMaxSizeBeforeRotation": 0 + nMaxSizeBeforeRotation,
+            "nMaxFilesCount": 0 + nMaxFilesCount,
+            "objStream": null,
+            "haveOwnTimestamps": false,
+            "strOwnIndent": "",
+            "write": function( s ) {
+                const x =
+                    this.strOwnIndent +
+                    ( this.haveOwnTimestamps ? generate_timestamp_prefix( null, true ) : "" ) +
+                    s;
+                try {
+                    this.rotate( x.length );
+                    fs.appendFileSync( this.objStream, x, "utf8" );
+                } catch ( err ) { }
             },
-			  open: function() { this.objStream = fs.openSync( this.strPath, "a", fs.constants.O_NONBLOCK | fs.constants.O_WR ); },
-			  size: function() { try { return fs.lstatSync( this.strPath ).size; } catch ( err ) { return 0; } },
-			  rotate: function( nBytesToWrite ) {
+            "close": function() {
+                if( !this.objStream )
+                    return;
+                fs.closeSync( this.objStream );
+                this.objStream = null;
+            },
+            "open": function() { this.objStream = fs.openSync( this.strPath, "a", fs.constants.O_NONBLOCK | fs.constants.O_WR ); },
+            "size": function() { try { return fs.lstatSync( this.strPath ).size; } catch ( err ) { return 0; } },
+            "rotate": function( nBytesToWrite ) {
                 try {
                     if( this.nMaxSizeBeforeRotation <= 0 || this.nMaxFilesCount <= 1 )
                         return;
@@ -235,8 +275,8 @@ function createFileOutput( strFilePath, nMaxSizeBeforeRotation, nMaxFilesCount )
                 } catch ( err ) {
                 }
             },
-            toString: function() { return "" + strFilePath; },
-            exposeDetailsTo: function( otherStream, strTitle, isSuccess ) { }
+            "toString": function() { return "" + strFilePath; },
+            "exposeDetailsTo": function( otherStream, strTitle, isSuccess ) { }
         };
         objEntry.open();
         return objEntry;
@@ -245,7 +285,7 @@ function createFileOutput( strFilePath, nMaxSizeBeforeRotation, nMaxFilesCount )
     }
     return null;
 }
-function insertFileOutput( strFilePath, nMaxSizeBeforeRotation, nMaxFilesCount ) {
+export function insertFileOutput( strFilePath, nMaxSizeBeforeRotation, nMaxFilesCount ) {
     let objEntry = getStreamWithFilePath( "" + strFilePath );
     if( objEntry !== null )
         return true;
@@ -259,56 +299,63 @@ function insertFileOutput( strFilePath, nMaxSizeBeforeRotation, nMaxFilesCount )
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-module.exports = {
-    generate_timestamp_string: generate_timestamp_string,
-    generate_timestamp_prefix: generate_timestamp_prefix,
-    cc: cc,
-    write: function() {
-        let s = generate_timestamp_prefix( null, true ); let i = 0; let cnt = 0;
-        try {
-            for( i = 0; i < arguments.length; ++i ) {
-                try {
-                    s += arguments[i];
-                } catch ( err ) {
-                }
+export function write() {
+    let s = get_print_timestamps() ? generate_timestamp_prefix( null, true ) : "", i = 0;
+    try {
+        for( i = 0; i < arguments.length; ++i ) {
+            try {
+                s += arguments[i];
+            } catch ( err ) {
             }
-        } catch ( err ) {
         }
-        try {
-            if( s.length <= 0 )
-                return;
-            cnt = g_arrStreams.length;
-            for( i = 0; i < cnt; ++i ) {
-                try {
-                    const objEntry = g_arrStreams[i];
-                    objEntry.write( s );
-                } catch ( err ) {
-                }
+    } catch ( err ) {
+    }
+    try {
+        if( s.length <= 0 )
+            return;
+        const cnt = g_arrStreams.length;
+        for( i = 0; i < cnt; ++i ) {
+            try {
+                const objEntry = g_arrStreams[i];
+                objEntry.write( s );
+            } catch ( err ) {
             }
-        } catch ( err ) {
         }
-    },
-    removeAll: function() {
-        removeAllStreams();
-    },
-    addStdout: function() {
-        return insertStandardOutputStream();
-    },
-    addMemory: function() {
-        return insertMemoryOutputStream();
-    },
-    createMemoryStream: function( isAutoAddTimestamps ) {
-        return createMemoryOutputStream( isAutoAddTimestamps );
-    },
-    add: function( strFilePath, nMaxSizeBeforeRotation, nMaxFilesCount ) {
-        return insertFileOutput(
-            strFilePath,
-            ( nMaxSizeBeforeRotation <= 0 ) ? -1 : nMaxSizeBeforeRotation,
-            ( nMaxFilesCount <= 1 ) ? -1 : nMaxFilesCount
-        );
-    },
-    getStreamWithFilePath: getStreamWithFilePath
-}; // module.exports
+    } catch ( err ) {
+    }
+}
+
+export function removeAll() {
+    removeAllStreams();
+}
+
+export function addStdout() {
+    return insertStandardOutputStream();
+}
+
+export function addMemory() {
+    return insertMemoryOutputStream();
+}
+
+export function createMemoryStream() {
+    return createMemoryOutputStream();
+}
+
+export function add( strFilePath, nMaxSizeBeforeRotation, nMaxFilesCount ) {
+    return insertFileOutput(
+        strFilePath,
+        ( nMaxSizeBeforeRotation <= 0 ) ? -1 : nMaxSizeBeforeRotation,
+        ( nMaxFilesCount <= 1 ) ? -1 : nMaxFilesCount
+    );
+}
+
+export function close() {
+    // for compatibility with created streams
+}
+
+export function exposeDetailsTo() {
+    // for compatibility with created streams
+}
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

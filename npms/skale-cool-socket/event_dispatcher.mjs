@@ -19,11 +19,11 @@
  */
 
 /**
- * @file event_dispatcher.js
+ * @file event_dispatcher.mjs
  * @copyright SKALE Labs 2019-Present
  */
 
-class UniversalDispatcherEvent {
+export class UniversalDispatcherEvent {
     constructor( type, jo ) {
         this.type = type;
         for( const [ key, value ] of Object.entries( jo ) ) {
@@ -36,7 +36,7 @@ class UniversalDispatcherEvent {
     }
 };
 
-class EventDispatcher {
+export class EventDispatcher {
     // see https://stackoverflow.com/questions/36675693/eventtarget-interface-in-safari
     constructor() {
         this._listeners = [];
@@ -48,7 +48,7 @@ class EventDispatcher {
             return;
         this.isDisposing = true;
         this.isDisposed = true;
-        this.dispatchEvent( new UniversalDispatcherEvent( "dispose", { detail: { ref: this } } ) );
+        this.dispatchEvent( new UniversalDispatcherEvent( "dispose", { "detail": { "ref": this } } ) );
         this.removeAllEventListeners();
     }
     hasEventListener( type, listener ) {
@@ -62,7 +62,6 @@ class EventDispatcher {
                 options: { once: false }
             } );
         }
-        // console.log( `${this}-listeners:`,this._listeners );
         return this;
     }
     removeEventListener( type, listener ) {
@@ -76,7 +75,6 @@ class EventDispatcher {
             }
             break;
         }
-        // console.log( `${this}-listeners:`, this._listeners );
         return this;
     }
     removeAllEventListeners() {
@@ -104,12 +102,6 @@ class EventDispatcher {
             if( once === true )
                 this.removeEventListener( type, listener );
         }
-        // console.log( `${this}-listeners:`,this._listeners );
         return this;
     }
-};
-
-module.exports = {
-    UniversalDispatcherEvent: UniversalDispatcherEvent,
-    EventDispatcher: EventDispatcher
 };

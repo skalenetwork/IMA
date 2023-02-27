@@ -414,7 +414,7 @@ class Agent:
         flags = {**self._get_default_flags(), command: None, **flags}
 
         return ['node',
-                f'{self.config.agent_root}/main.js'] + \
+                f'{self.config.agent_root}/main.mjs'] + \
                [f'--{key}' + (f'={str(value)}' if value is not None else '') for key, value in flags.items() ]
 
     def _format_command(self, command, flags=None):
@@ -435,7 +435,7 @@ class Agent:
             'key-main-net': self.config.mainnet_key,
             'key-s-chain': self.config.schain_key,
             'no-wait-s-chain': None,
-            'no-ptx': None
+            'no-pwa': None
         }
 
     def _wei_to_bigger(self, amount):
