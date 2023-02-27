@@ -130,8 +130,6 @@ class ObserverServer extends SocketServer {
             }
             //
             self.opts.imaState.loop_opts.joRuntimeOpts.isInsideWorker = true;
-            self.opts.imaState.doEnableDryRun = function( isEnable ) { return IMA.dry_run_enable( isEnable ); };
-            self.opts.imaState.doIgnoreDryRun = function( isIgnore ) { return IMA.dry_run_ignore( isIgnore ); };
             imaState = self.opts.imaState;
             imaState.chainProperties.mn.ethersProvider = null;
             imaState.chainProperties.sc.ethersProvider = null;

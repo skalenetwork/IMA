@@ -34,6 +34,7 @@ DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
 # Optional IMA variables
 
 export GAS_PRICE_MULTIPLIER=${GAS_PRICE_MULTIPLIER:-2}
+export GAS_MULTIPLIER=${GAS_MULTIPLIER:-2}
 export VERBOSE=${VERBOSE:-9}
 
 export M2S_TRANSFER_BLOCK_SIZE=${M2S_TRANSFER_BLOCK_SIZE:-4}
@@ -67,6 +68,7 @@ echo "NODE_NUMBER: $NODE_NUMBER"
 echo "NODES_COUNT: $NODES_COUNT"
 
 BASE_OPTIONS="--gas-price-multiplier=$GAS_PRICE_MULTIPLIER \
+--gas-multiplier=$GAS_MULTIPLIER \
 --verbose=$VERBOSE \
 --s2s-enable \
 --abi-skale-manager=$MANAGER_ABI_PATH \
@@ -89,6 +91,7 @@ BASE_OPTIONS="--gas-price-multiplier=$GAS_PRICE_MULTIPLIER \
 --expose \
 --no-expose-security-info \
 --skip-dry-run \
+--ignore-dry-run \
 --bls-glue=/ima/bls_binaries/bls_glue \
 --hash-g1=/ima/bls_binaries/hash_g1 \
 --bls-verify=/ima/bls_binaries/verify_bls \

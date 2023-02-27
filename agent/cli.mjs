@@ -318,9 +318,10 @@ export function parse( joExternalHandlers, argv ) {
             console.log( cc.sunny( "ADDITIONAL ACTION" ) + cc.info( " options:" ) );
             console.log( soi + cc.debug( "--" ) + cc.bright( "no-wait-s-chain" ) + cc.debug( "......................." ) + cc.notice( "Do not wait until " ) + cc.note( "S-Chain" ) + cc.notice( " is started." ) );
             console.log( soi + cc.debug( "--" ) + cc.bright( "max-wait-attempts" ) + cc.sunny( "=" ) + cc.info( "value" ) + cc.debug( "..............." ) + cc.notice( "Max number of " ) + cc.note( "S-Chain" ) + cc.notice( " call attempts to do while it became alive and sane." ) );
-            console.log( soi + cc.debug( "--" ) + cc.bright( "skip-dry-run" ) + cc.debug( ".........................." ) + cc.notice( "Skip " ) + cc.note( "dry run" ) + cc.notice( " contract method calls." ) );
+            console.log( soi + cc.debug( "--" ) + cc.bright( "skip-dry-run" ) + cc.debug( ".........................." ) + cc.notice( "Skip " ) + cc.note( "dry run" ) + cc.notice( " invocation before payed contract method calls." ) );
+            console.log( soi + cc.debug( "--" ) + cc.bright( "no-skip-dry-run" ) + cc.debug( "......................." ) + cc.notice( "Invoke " ) + cc.note( "dry run" ) + cc.notice( " before payed contract method calls." ) + cc.debug( " Default behavior" ) + cc.notice( "." ) );
             console.log( soi + cc.debug( "--" ) + cc.bright( "ignore-dry-run" ) + cc.debug( "........................" ) + cc.notice( "Ignore result of " ) + cc.note( "dry run" ) + cc.notice( " contract method calls and continue execute." ) );
-            console.log( soi + cc.debug( "--" ) + cc.bright( "dry-run" ) + cc.debug( "..............................." ) + cc.notice( "Use error results of " ) + cc.note( "dry run" ) + cc.notice( " contract method calls as actual errors and stop execute." ) );
+            console.log( soi + cc.debug( "--" ) + cc.bright( "no-ignore-dry-run" ) + cc.debug( "....................." ) + cc.notice( "Use error results of " ) + cc.note( "dry run" ) + cc.notice( " contract method calls as actual errors and stop execute." ) + cc.debug( " Default behavior" ) + cc.notice( "." ) );
             console.log( soi + cc.debug( "--" ) + cc.bright( "m2s-transfer-block-size" ) + cc.sunny( "=" ) + cc.info( "value" ) + cc.debug( "........." ) + cc.notice( "Number of transactions in one block to use in message transfer loop from " ) + cc.note( "Main-net" ) + cc.notice( " to " ) + cc.note( "S-chain" ) + cc.notice( "." ) + cc.debug( " Default is " ) + cc.sunny( "4" ) + cc.notice( "." ) );
             console.log( soi + cc.debug( "--" ) + cc.bright( "s2m-transfer-block-size" ) + cc.sunny( "=" ) + cc.info( "value" ) + cc.debug( "........." ) + cc.notice( "Number of transactions in one block to use in message transfer loop from " ) + cc.note( "S-chain" ) + cc.notice( " to " ) + cc.note( "Main-net" ) + cc.notice( "." ) + cc.debug( " Default is " ) + cc.sunny( "4" ) + cc.notice( "." ) );
             console.log( soi + cc.debug( "--" ) + cc.bright( "s2s-transfer-block-size" ) + cc.sunny( "=" ) + cc.info( "value" ) + cc.debug( "........." ) + cc.notice( "Number of transactions in one block to use in message transfer loop from " ) + cc.note( "S-chain" ) + cc.notice( " to " ) + cc.note( "S-chain" ) + cc.notice( "." ) + cc.debug( " Default is " ) + cc.sunny( "4" ) + cc.notice( "." ) );
@@ -937,15 +938,19 @@ export function parse( joExternalHandlers, argv ) {
             continue;
         }
         if( joArg.name == "skip-dry-run" ) {
-            imaState.doEnableDryRun( false );
+            IMA.dry_run_enable( false );
+            continue;
+        }
+        if( joArg.name == "no-skip-dry-run" ) {
+            IMA.dry_run_enable( true );
             continue;
         }
         if( joArg.name == "ignore-dry-run" ) {
-            imaState.doIgnoreDryRun( true );
+            IMA.dry_run_ignore( true );
             continue;
         }
-        if( joArg.name == "dry-run" ) {
-            imaState.doIgnoreDryRun( false );
+        if( joArg.name == "dry-run" || joArg.name == "no-ignore-dry-run" ) {
+            IMA.dry_run_ignore( false );
             continue;
         }
         if( joArg.name == "m2s-transfer-block-size" ) {

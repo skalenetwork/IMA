@@ -218,9 +218,6 @@ export function get() {
         "strAddrErc1155_explicit": "",
         "strAddrErc1155_explicit_target": "", // S<->S target
 
-        "doEnableDryRun": function( isEnable ) { return IMA.dry_run_enable( isEnable ); },
-        "doIgnoreDryRun": function( isIgnore ) { return IMA.dry_run_ignore( isIgnore ); },
-
         "isPWA": true,
         "nTimeoutSecondsPWA": 60,
 

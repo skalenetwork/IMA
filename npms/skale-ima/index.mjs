@@ -1167,6 +1167,8 @@ export async function dry_run_call(
     } catch ( err ) {
         const strError = owaspUtils.extract_error_message( err );
         details.write( strLogPrefix + cc.error( "dry-run error: " ) + cc.warning( strError ) + "\n" );
+        if( dry_run_is_ignored() )
+            return null;
         return strError;
     }
 }
