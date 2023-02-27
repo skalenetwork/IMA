@@ -5955,10 +5955,15 @@ export class TransactionCustomizer {
                 cc.error( ", stack is: " ) + "\n" + cc.stack( err.stack ) +
                 "\n" );
         }
+        estimatedGas = owaspUtils.parseIntOrHex( owaspUtils.toBN( estimatedGas ).toString() );
         if( estimatedGas == 0 ) {
             estimatedGas = gasValueRecommended;
             details.write( strLogPrefix + cc.warning( "Will use recommended gas " ) + cc.j( estimatedGas ) + cc.warning( " instead of estimated" ) + "\n" );
         }
+        if( this.gasMultiplier > 0.0 )
+            estimatedGas = owaspUtils.parseIntOrHex( ( estimatedGas * this.gasMultiplier ).toString() );
+
+        details.write( strLogPrefix + cc.debug( "Final amount of gas is " ) + cc.j( estimatedGas ) + "\n" );
         return estimatedGas;
     }
 };
