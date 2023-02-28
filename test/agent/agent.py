@@ -435,7 +435,9 @@ class Agent:
             'key-main-net': self.config.mainnet_key,
             'key-s-chain': self.config.schain_key,
             'no-wait-s-chain': None,
-            'no-pwa': None
+            'no-pwa': None,
+            'no-skip-dry-run': None,
+            'ignore-dry-run': None
         }
 
     def _wei_to_bigger(self, amount):
