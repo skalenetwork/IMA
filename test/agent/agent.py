@@ -40,7 +40,13 @@ class Agent:
         self.blockchain = BlockChain(config)
 
     def register(self):
-        self._execute_command('register')
+        self._execute_command(
+            'register',
+            {
+                'no-skip-dry-run': None,
+                'ignore-dry-run': None
+            }
+        )
 
     def start(self):
         if self.agent_service is None:
@@ -64,7 +70,9 @@ class Agent:
             'm2s-payment',
             {
                 **self._wei_to_bigger(amount_wei),
-                'key-main-net': from_key
+                'key-main-net': from_key,
+                'no-skip-dry-run': None,
+                'ignore-dry-run': None
             }
         )
 
@@ -90,7 +98,9 @@ class Agent:
             {
                 **self._wei_to_bigger(amount_wei),
                 'key-s-chain': from_key,
-                'key-main-net': to_key
+                'key-main-net': to_key,
+                'no-skip-dry-run': None,
+                'ignore-dry-run': None
             }
         )
 
@@ -108,7 +118,14 @@ class Agent:
             start = time()
             debug(f'Initial balance: {initial_balance}')
 
-        self._execute_command('s2m-receive', {'key-main-net': from_key})
+        self._execute_command(
+            's2m-receive',
+            {
+                'key-main-net': from_key,
+                'no-skip-dry-run': None,
+                'ignore-dry-run': None
+                }
+            )
 
         if timeout > 0:
             approximate_gas_spends = 3 * 10 ** 15
@@ -135,7 +152,9 @@ class Agent:
                 'amount': amount,
                 'key-main-net': from_key,
                 'key-s-chain': to_key,
-                'erc20-main-net': erc20_config_filename
+                'erc20-main-net': erc20_config_filename,
+                'no-skip-dry-run': None,
+                'ignore-dry-run': None
             }
         )
 
@@ -163,7 +182,9 @@ class Agent:
                 'tid': token_id,
                 'key-main-net': from_key,
                 'key-s-chain': to_key,
-                'erc721-main-net': erc721_config_filename
+                'erc721-main-net': erc721_config_filename,
+                'no-skip-dry-run': None,
+                'ignore-dry-run': None
             }
         )
 
@@ -192,7 +213,9 @@ class Agent:
                 'amount': token_amount,
                 'key-main-net': from_key,
                 'key-s-chain': to_key,
-                'erc1155-main-net': erc1155_config_filename
+                'erc1155-main-net': erc1155_config_filename,
+                'no-skip-dry-run': None,
+                'ignore-dry-run': None
             }
         )
 
@@ -221,7 +244,9 @@ class Agent:
                 'amounts': str(token_amounts).replace(' ', ''),
                 'key-main-net': from_key,
                 'key-s-chain': to_key,
-                'erc1155-main-net': erc1155_config_filename
+                'erc1155-main-net': erc1155_config_filename,
+                'no-skip-dry-run': None,
+                'ignore-dry-run': None
             }
         )
 
@@ -261,7 +286,9 @@ class Agent:
                 'key-main-net': to_key,
                 'key-s-chain': from_key,
                 'erc20-main-net': erc20_config_filename,
-                'erc20-s-chain': erc20_clone_config_filename
+                'erc20-s-chain': erc20_clone_config_filename,
+                'no-skip-dry-run': None,
+                'ignore-dry-run': None
             }
         )
         # sleep(30)
@@ -302,7 +329,9 @@ class Agent:
                 'key-main-net': to_key,
                 'key-s-chain': from_key,
                 'erc721-main-net': erc721_config_filename,
-                'erc721-s-chain': erc721_clone_config_filename
+                'erc721-s-chain': erc721_clone_config_filename,
+                'no-skip-dry-run': None,
+                'ignore-dry-run': None
             }
         )
 
@@ -344,7 +373,9 @@ class Agent:
                 'key-main-net': to_key,
                 'key-s-chain': from_key,
                 'erc1155-main-net': erc1155_config_filename,
-                'erc1155-s-chain': erc1155_clone_config_filename
+                'erc1155-s-chain': erc1155_clone_config_filename,
+                'no-skip-dry-run': None,
+                'ignore-dry-run': None
             }
         )
 
@@ -386,7 +417,9 @@ class Agent:
                 'key-main-net': to_key,
                 'key-s-chain': from_key,
                 'erc1155-main-net': erc1155_config_filename,
-                'erc1155-s-chain': erc1155_clone_config_filename
+                'erc1155-s-chain': erc1155_clone_config_filename,
+                'no-skip-dry-run': None,
+                'ignore-dry-run': None
             }
         )
 
