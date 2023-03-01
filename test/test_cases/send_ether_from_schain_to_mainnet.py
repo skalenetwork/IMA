@@ -33,8 +33,8 @@ class SendEtherToMainnet(TestCase):
         super().__init__('Send ether from schain to mainnet', config)
 
     def _prepare(self):
-        amount = 200 * 10 ** 18 # 2 * 10 ** 18
-        self.blockchain.recharge_user_wallet(self.config.mainnet_key, self.config.schain_name, amount)
+        amountRecharge = 200 * 10 ** 18 # 2 * 10 ** 18
+        self.blockchain.recharge_user_wallet(self.config.mainnet_key, self.config.schain_name, amountRecharge)
 
         source_address = self.blockchain.key_to_address(self.config.schain_key)
         if self.blockchain.get_balance_on_schain(source_address) < self.amount:

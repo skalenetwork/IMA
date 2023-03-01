@@ -101,9 +101,16 @@ function initial_skale_network_scan_for_S2S() {
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 function parse_command_line() {
+    cc.auto_enable_from_command_line_args();
+    let strPrintedArguments = cc.normal( process.argv.join( " " ) );
+    strPrintedArguments = imaUtils.replaceAll( strPrintedArguments, "--", cc.bright( "--" ) );
+    strPrintedArguments = imaUtils.replaceAll( strPrintedArguments, "=", cc.sunny( "=" ) );
+    strPrintedArguments = imaUtils.replaceAll( strPrintedArguments, "/", cc.info( "/" ) );
+    strPrintedArguments = imaUtils.replaceAll( strPrintedArguments, ":", cc.info( ":" ) );
     log.write(
         cc.debug( "Agent was started with " ) + cc.info( process.argv.length ) +
-        cc.debug( " command line argument(s) as: " ) + cc.info( process.argv.join( " " ) ) +
+        cc.debug( " command line argument(s) as: " ) +
+        strPrintedArguments +
         "\n" );
     const imaState = state.get();
     imaCLI.parse( {
@@ -1495,7 +1502,7 @@ function parse_command_line() {
     }
     if( haveReimbursementCommands ) {
         if( imaState.strReimbursementChain == "" ) {
-            console.log( cc.fatal( "CRITICAL ERROR:" ) + cc.error( " missing value for " ) + cc.warning( "reimbursement-chain" ) + cc.error( " parameter, must be non-empty chain name" ) + "\n" );
+            console.log( cc.fatal( "RUNTIME INIT ERROR:" ) + cc.error( " missing value for " ) + cc.info( "reimbursement-chain" ) + cc.error( " parameter, must be non-empty chain name" ) + "\n" );
             process.exit( 163 );
         }
     }
@@ -2487,6 +2494,7 @@ async function wait_until_s_chain_started() {
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 async function main() {
+    cc.auto_enable_from_command_line_args();
     const imaState = state.get();
     const tmp_address_MN_from_env = owaspUtils.toEthPrivateKey( process.env.ACCOUNT_FOR_ETHEREUM );
     const tmp_address_SC_from_env = owaspUtils.toEthPrivateKey( process.env.ACCOUNT_FOR_SCHAIN );

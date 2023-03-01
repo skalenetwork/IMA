@@ -31,8 +31,8 @@ class SendEtherFromSchainToMainnetAndBack(TestCase):
         super().__init__('load_send_ether_from_mainnet_to_schain_and_back', config)
 
     def _execute(self):
-        amount = 200 * 10 ** 18 # 2 * 10 ** 18
-        self.blockchain.recharge_user_wallet(self.config.mainnet_key, self.config.schain_name, amount)
+        amountRecharge = 200 * 10 ** 18 # 2 * 10 ** 18
+        self.blockchain.recharge_user_wallet(self.config.mainnet_key, self.config.schain_name, amountRecharge)
         #
         range_int = 5
         # ETH

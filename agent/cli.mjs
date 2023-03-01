@@ -89,7 +89,7 @@ function ensure_have_value( name, value, isExitIfEmpty, isPrintValue, fnNameColo
     if( value.length === 0 ) {
         retVal = false;
         if( ! isPrintValue )
-            console.log( cc.fatal( "CRITICAL ERROR:" ) + cc.error( " missing value for " ) + fnNameColorizer( name ) );
+            console.log( "    " + cc.error( "IMPORTANT WARNING:" ) + cc.warning( " missing value for " ) + fnNameColorizer( name ) );
         if( isExitIfEmpty )
             process.exit( 126 );
     }
@@ -2193,11 +2193,11 @@ export function ima_common_init() {
             log.write( cc.info( "S-Chain to S-Chain transferring is" ) + cc.debug( "..................." ) + ( imaState.s2s_opts.isEnabled ? cc.success( "enabled" ) : cc.error( "disabled" ) ) + "\n" );
             log.write( cc.info( "SKALE network re-discovery interval is" ) + cc.debug( "..............." ) + ( imaState.s2s_opts.secondsToReDiscoverSkaleNetwork ? cc.info( imaState.s2s_opts.secondsToReDiscoverSkaleNetwork.toString() ) : cc.error( "disabled" ) ) + "\n" );
             log.write( cc.info( "S<->S transfer mode is" ) + cc.debug( "..............................." ) + IMA.get_S2S_transfer_mode_description_colorized() + "\n" );
+            log.write( cc.info( "IMA JSON RPC server port is" ) + cc.debug( "...,,,,,,,,,,,............" ) + ( ( imaState.nJsonRpcPort > 0 ) ? cc.info( imaState.nJsonRpcPort ) : cc.error( "disabled" ) ) + "\n" );
+            log.write( cc.info( "Cross-IMA mode is" ) + cc.debug( "...................................." ) + ( imaState.isCrossImaBlsMode ? cc.success( "enabled" ) : cc.error( "disabled" ) ) + "\n" );
+            log.write( cc.info( "Dry-run is enabled" ) + cc.debug( "..................................." ) + cc.yn( IMA.dry_run_is_enabled() ) + "\n" );
+            log.write( cc.info( "Dry-run execution result is ignored" ) + cc.debug( ".................." ) + cc.yn( IMA.dry_run_is_ignored() ) + "\n" );
         } // if( isPrintGathered )
-        log.write( cc.info( "IMA JSON RPC server port is" ) + cc.debug( "...,,,,,,,,,,,............" ) + ( ( imaState.nJsonRpcPort > 0 ) ? cc.info( imaState.nJsonRpcPort ) : cc.error( "disabled" ) ) + "\n" );
-        log.write( cc.info( "Cross-IMA mode is" ) + cc.debug( "...................................." ) + ( imaState.isCrossImaBlsMode ? cc.success( "enabled" ) : cc.error( "disabled" ) ) + "\n" );
-        log.write( cc.info( "Dry-run is enabled" ) + cc.debug( "..................................." ) + cc.yn( IMA.dry_run_is_enabled() ) + "\n" );
-        log.write( cc.info( "Dry-run execution result is ignored" ) + cc.debug( ".................." ) + cc.yn( IMA.dry_run_is_ignored() ) + "\n" );
     }
 } // ima_common_init
 

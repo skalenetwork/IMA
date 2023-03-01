@@ -622,7 +622,7 @@ export function parseMoneySpecToWei( s, isThrowException ) {
             s = s.div( toBN( ddr ) );
         if( mlr != null )
             s = s.mul( toBN( mlr ) );
-        s = s.toString( 10 );
+        s = s.toString();
         return s;
     } catch ( err ) {
         if( isThrowException )
