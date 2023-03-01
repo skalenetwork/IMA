@@ -351,7 +351,14 @@ jobs:
       run: |
         cd proxy
         #NODE_OPTIONS="--max_old_space_size=3072" npx ganache-cli --gasLimit 12000000 --quiet --allowUnlimitedContractSize --acctKeys ../test/accounts.json &
-        NODE_OPTIONS="--max_old_space_size=3072" npx ganache-cli --gasLimit 0xfffffffffff --quiet --allowUnlimitedContractSize --acctKeys ../test/accounts.json &
+        NODE_OPTIONS="--max_old_space_size=3072" npx ganache-cli --gasLimit 0xfffffffffff --quiet --allowUnlimitedContractSize --defaultBalanceEther 2000000 --acctKeys ../test/accounts.json &
+        echo "-----------------------------------------"
+        echo "---- accounts.json (begin)"
+        echo "-----------------------------------------"
+        cat ../test/accounts.json
+        echo "-----------------------------------------"
+        echo "---- accounts.json (end)"
+        echo "-----------------------------------------"
 
     - name: Prepare test (PY part)
       working-directory: ${{env.working-directory}}
