@@ -36,7 +36,7 @@ class SendERC1155ToSchain(TestCase):
         sleep( 5 )
 
         self.erc1155 = self.blockchain.deploy_erc1155_on_mainnet(self.config.mainnet_key, 'elv1155')
-        sleep( 15 )
+        sleep( 10 )
         address = self.blockchain.key_to_address(self.config.mainnet_key)
         mint_txn = self.erc1155.functions.mint(address, self.tokenId, self.tokenAmount, "0x")\
             .buildTransaction({
@@ -46,11 +46,11 @@ class SendERC1155ToSchain(TestCase):
         signed_txn = self.blockchain.web3_mainnet.eth.account.signTransaction(mint_txn,
                                                                               private_key=self.config.mainnet_key)
         self.blockchain.web3_mainnet.eth.sendRawTransaction(signed_txn.rawTransaction)
-        sleep( 15 )
+        sleep( 10 )
         self.blockchain.disableWhitelistERC1155(self.config.mainnet_key, self.config.schain_name)
-        sleep( 15 )
+        sleep( 10 )
         self.blockchain.enableAutomaticDeployERC1155(self.config.schain_key, "Mainnet")
-        sleep( 15 )
+        sleep( 10 )
 
     def _execute(self):
 

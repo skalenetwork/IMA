@@ -36,7 +36,7 @@ class SendEtherToMainnet(TestCase):
     def _prepare(self):
         amountRecharge = 200 * 10 ** 18 # 2 * 10 ** 18
         self.blockchain.recharge_user_wallet(self.config.mainnet_key, self.config.schain_name, amountRecharge)
-        sleep( 15 )
+        sleep( 10 )
 
         source_address = self.blockchain.key_to_address(self.config.schain_key)
         if self.blockchain.get_balance_on_schain(source_address) < self.amount:
