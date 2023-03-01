@@ -46,17 +46,18 @@ class SendERC1155BatchToMainnet(TestCase):
                 'gas': 8000000,
                 'nonce': self.blockchain.get_transactions_count_on_mainnet(address)})
         #
-        sleep(5)
+        sleep( 15 )
 
         signed_txn = self.blockchain.web3_mainnet.eth.account\
             .signTransaction(mint_txn, private_key=self.config.mainnet_key)
         #
-        sleep(5)
+        sleep( 15 )
         self.blockchain.web3_mainnet.eth.sendRawTransaction(signed_txn.rawTransaction)
-
+        sleep( 15 )
         self.blockchain.disableWhitelistERC1155(self.config.mainnet_key, self.config.schain_name)
+        sleep( 15 )
         self.blockchain.enableAutomaticDeployERC1155(self.config.schain_key, "Mainnet")
-        sleep(5)
+        sleep( 15 )
         # send to schain
         self.agent.transfer_erc1155_batch_from_mainnet_to_schain(self.erc1155,
                                                           self.config.mainnet_key,
@@ -64,7 +65,7 @@ class SendERC1155BatchToMainnet(TestCase):
                                                           self.token_ids,
                                                           self.token_amounts,
                                                           self.timeout)
-        sleep(5)
+        sleep( 15 )
         #
         amount_eth = 90 * 10 ** 15
         #
@@ -74,10 +75,10 @@ class SendERC1155BatchToMainnet(TestCase):
                                                        self.timeout)
 
         #
-        sleep(5)
+        sleep( 15 )
 
         #
-        sleep(5)
+        sleep( 15 )
         self.erc1155_clone = self.blockchain.get_erc1155_on_schain("Mainnet", self.erc1155.address)
 
     def _execute(self):
@@ -88,7 +89,7 @@ class SendERC1155BatchToMainnet(TestCase):
             error("Token was not send")
             return
         #
-        sleep(5)
+        sleep( 15 )
         self.agent.transfer_erc1155_batch_from_schain_to_mainnet(
             self.erc1155_clone,
             self.erc1155,
