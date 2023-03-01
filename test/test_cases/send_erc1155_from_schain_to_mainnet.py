@@ -37,6 +37,7 @@ class Senderc1155ToMainnet(TestCase):
     def _prepare(self):
         amountRecharge = 200 * 10 ** 18 # 2 * 10 ** 18
         self.blockchain.recharge_user_wallet(self.config.mainnet_key, self.config.schain_name, amountRecharge)
+        sleep( 15 )
         # deploy token
         self.erc1155 = self.blockchain.deploy_erc1155_on_mainnet(self.config.mainnet_key, 'elv1155')
         # mint
@@ -45,18 +46,14 @@ class Senderc1155ToMainnet(TestCase):
             .buildTransaction({
                 'gas': 8000000,
                 'nonce': self.blockchain.get_transactions_count_on_mainnet(address)})
-        #
-        sleep(5)
-
         signed_txn = self.blockchain.web3_mainnet.eth.account\
             .signTransaction(mint_txn, private_key=self.config.mainnet_key)
-        #
-        sleep(5)
         self.blockchain.web3_mainnet.eth.sendRawTransaction(signed_txn.rawTransaction)
-
+        sleep( 15 )
         self.blockchain.disableWhitelistERC1155(self.config.mainnet_key, self.config.schain_name)
+        sleep( 15 )
         self.blockchain.enableAutomaticDeployERC1155(self.config.schain_key, "Mainnet")
-        sleep(5)
+        sleep( 15 )
         # send to schain
         self.agent.transfer_erc1155_from_mainnet_to_schain(self.erc1155,
                                                           self.config.mainnet_key,
@@ -64,7 +61,7 @@ class Senderc1155ToMainnet(TestCase):
                                                           self.token_id,
                                                           self.token_amount,
                                                           self.timeout)
-        sleep(5)
+        sleep( 15 )
         #
         amount_eth = 90 * 10 ** 15
         #
@@ -74,10 +71,10 @@ class Senderc1155ToMainnet(TestCase):
                                                        self.timeout)
 
         #
-        sleep(5)
+        sleep( 15 )
 
         #
-        sleep(5)
+        sleep( 15 )
         self.erc1155_clone = self.blockchain.get_erc1155_on_schain("Mainnet", self.erc1155.address)
 
     def _execute(self):
@@ -88,7 +85,7 @@ class Senderc1155ToMainnet(TestCase):
             error("Token was not send")
             return
         #
-        sleep(5)
+        sleep( 15 )
         self.agent.transfer_erc1155_from_schain_to_mainnet(
             self.erc1155_clone,
             self.erc1155,

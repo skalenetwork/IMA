@@ -178,7 +178,7 @@ class Agent:
         self._create_path(erc721_config_filename)
         with open(erc721_config_filename, 'w') as erc721_file:
             json.dump(config_json, erc721_file)
-        sleep(5)
+        sleep( 5 )
 
         self._execute_command(
             'm2s-payment',
@@ -209,7 +209,7 @@ class Agent:
         self._create_path(erc1155_config_filename)
         with open(erc1155_config_filename, 'w') as erc1155_file:
             json.dump(config_json, erc1155_file)
-        sleep(5)
+        sleep( 5 )
 
         self._execute_command(
             'm2s-payment',
@@ -241,7 +241,7 @@ class Agent:
         self._create_path(erc1155_config_filename)
         with open(erc1155_config_filename, 'w') as erc1155_file:
             json.dump(config_json, erc1155_file)
-        sleep(5)
+        sleep( 5 )
 
         self._execute_command(
             'm2s-payment',

@@ -37,6 +37,7 @@ class SendERC1155BatchToMainnet(TestCase):
     def _prepare(self):
         amountRecharge = 200 * 10 ** 18 # 2 * 10 ** 18
         self.blockchain.recharge_user_wallet(self.config.mainnet_key, self.config.schain_name, amountRecharge)
+        sleep( 15 )
         # deploy token
         self.erc1155 = self.blockchain.deploy_erc1155_on_mainnet(self.config.mainnet_key, 'elv1155')
         # mint
@@ -45,13 +46,8 @@ class SendERC1155BatchToMainnet(TestCase):
             .buildTransaction({
                 'gas': 8000000,
                 'nonce': self.blockchain.get_transactions_count_on_mainnet(address)})
-        #
-        sleep( 15 )
-
         signed_txn = self.blockchain.web3_mainnet.eth.account\
             .signTransaction(mint_txn, private_key=self.config.mainnet_key)
-        #
-        sleep( 15 )
         self.blockchain.web3_mainnet.eth.sendRawTransaction(signed_txn.rawTransaction)
         sleep( 15 )
         self.blockchain.disableWhitelistERC1155(self.config.mainnet_key, self.config.schain_name)
