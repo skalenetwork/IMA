@@ -21,7 +21,7 @@
 from web3 import Web3, HTTPProvider
 import json
 from eth_account import Account
-from time import sleep, time
+from time import sleep
 
 class BlockChain:
     config = None

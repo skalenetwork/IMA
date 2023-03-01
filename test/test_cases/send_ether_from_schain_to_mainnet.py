@@ -23,6 +23,7 @@ from logging import debug
 from tools.test_case import TestCase
 from tools.test_pool import test_pool
 
+from time import sleep
 
 class SendEtherToMainnet(TestCase):
     amount = 7 * 10 ** 16  # 60 finney

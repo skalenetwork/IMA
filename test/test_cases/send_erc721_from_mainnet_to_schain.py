@@ -18,7 +18,7 @@
 #   You should have received a copy of the GNU Affero General Public License
 #   along with SKALE IMA.  If not, see <https://www.gnu.org/licenses/>.
 
-from time import sleep, time
+from time import sleep
 from logging import debug
 
 from tools.test_case import TestCase

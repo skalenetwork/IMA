@@ -22,7 +22,7 @@ from logging import debug
 
 from tools.test_case import TestCase
 from tools.test_pool import test_pool
-from time import sleep, time
+from time import sleep
 
 
 class SendEtherFromSchainToMainnetAndBack(TestCase):

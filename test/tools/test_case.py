@@ -22,6 +22,7 @@ from tools.blockchain import BlockChain
 from proxy.deployer import Deployer
 from agent.agent import Agent
 from time import time
+from logging import error
 
 class TestCase:
     name = None

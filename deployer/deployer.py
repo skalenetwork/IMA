@@ -19,7 +19,7 @@
 #   along with SKALE IMA.  If not, see <https://www.gnu.org/licenses/>.
 
 import os
-from time import sleep, time
+from time import sleep
 
 from helper import get_random_endpoint, get_schain_creds_file, get_abi_filename, get_abi_project_path, \
     get_schain_dir_path
