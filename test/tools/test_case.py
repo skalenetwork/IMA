@@ -34,7 +34,7 @@ class TestCase:
     timeout = None
     timeout_of_entire_test = None
 
-    def __init__(self, name, config, timeout=10, timeout_of_entire_test=80000)
+    def __init__(self, name, config, timeout=10, timeout_of_entire_test=80000):
         self.name = name
         self.deployer = Deployer(config)
         self.agent = Agent(config)
