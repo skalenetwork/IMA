@@ -34,7 +34,7 @@ class Senderc721ToMainnet(TestCase):
         super().__init__('Send ERC721 from schain to mainnet', config)
 
     def _prepare(self):
-        amount = 2 * 10 ** 18
+        amount = 200 * 10 ** 18 # 2 * 10 ** 18
         self.blockchain.recharge_user_wallet(self.config.mainnet_key, self.config.schain_name, amount)
         # deploy token
         self.erc721 = self.blockchain.deploy_erc721_on_mainnet(self.config.mainnet_key, 'elv721', 'ELV')
