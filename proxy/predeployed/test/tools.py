@@ -8,7 +8,7 @@ w3 = Web3()
 wait_connection_seconds = 20
 while not w3.isConnected():
     if wait_connection_seconds > 0:
-        sleep(1)
+        sleep( 1 )
         wait_connection_seconds -= 1
     else:
         raise ConnectionError("Can't connect to geth")

@@ -36,7 +36,7 @@ class SendERC1155BatchToSchain(TestCase):
         sleep( 5 )
 
         self.erc1155 = self.blockchain.deploy_erc1155_on_mainnet(self.config.mainnet_key, 'elv1155')
-        sleep( 5 )
+        sleep( 15 )
         address = self.blockchain.key_to_address(self.config.mainnet_key)
         mint_txn = self.erc1155.functions.mintBatch(address, self.tokenIds, self.tokenAmounts, "0x")\
             .buildTransaction({
