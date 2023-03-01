@@ -320,8 +320,8 @@ export function parse( joExternalHandlers, argv ) {
             console.log( soi + cc.debug( "--" ) + cc.bright( "max-wait-attempts" ) + cc.sunny( "=" ) + cc.info( "value" ) + cc.debug( "..............." ) + cc.notice( "Max number of " ) + cc.note( "S-Chain" ) + cc.notice( " call attempts to do while it became alive and sane." ) );
             console.log( soi + cc.debug( "--" ) + cc.bright( "skip-dry-run" ) + cc.debug( ".........................." ) + cc.notice( "Skip " ) + cc.note( "dry run" ) + cc.notice( " invocation before payed contract method calls." ) );
             console.log( soi + cc.debug( "--" ) + cc.bright( "no-skip-dry-run" ) + cc.debug( "......................." ) + cc.notice( "Invoke " ) + cc.note( "dry run" ) + cc.notice( " before payed contract method calls." ) + cc.debug( " Default behavior" ) + cc.notice( "." ) );
-            console.log( soi + cc.debug( "--" ) + cc.bright( "ignore-dry-run" ) + cc.debug( "........................" ) + cc.notice( "Ignore result of " ) + cc.note( "dry run" ) + cc.notice( " contract method calls and continue execute." ) );
-            console.log( soi + cc.debug( "--" ) + cc.bright( "no-ignore-dry-run" ) + cc.debug( "....................." ) + cc.notice( "Use error results of " ) + cc.note( "dry run" ) + cc.notice( " contract method calls as actual errors and stop execute." ) + cc.debug( " Default behavior" ) + cc.notice( "." ) );
+            console.log( soi + cc.debug( "--" ) + cc.bright( "ignore-dry-run" ) + cc.debug( "........................" ) + cc.notice( "Ignore result of " ) + cc.note( "dry run" ) + cc.notice( " contract method calls and continue execute." ) + cc.debug( " Default behavior" ) + cc.notice( "." ) );
+            console.log( soi + cc.debug( "--" ) + cc.bright( "no-ignore-dry-run" ) + cc.debug( "....................." ) + cc.notice( "Use error results of " ) + cc.note( "dry run" ) + cc.notice( " contract method calls as actual errors and stop execute." ) );
             console.log( soi + cc.debug( "--" ) + cc.bright( "m2s-transfer-block-size" ) + cc.sunny( "=" ) + cc.info( "value" ) + cc.debug( "........." ) + cc.notice( "Number of transactions in one block to use in message transfer loop from " ) + cc.note( "Main-net" ) + cc.notice( " to " ) + cc.note( "S-chain" ) + cc.notice( "." ) + cc.debug( " Default is " ) + cc.sunny( "4" ) + cc.notice( "." ) );
             console.log( soi + cc.debug( "--" ) + cc.bright( "s2m-transfer-block-size" ) + cc.sunny( "=" ) + cc.info( "value" ) + cc.debug( "........." ) + cc.notice( "Number of transactions in one block to use in message transfer loop from " ) + cc.note( "S-chain" ) + cc.notice( " to " ) + cc.note( "Main-net" ) + cc.notice( "." ) + cc.debug( " Default is " ) + cc.sunny( "4" ) + cc.notice( "." ) );
             console.log( soi + cc.debug( "--" ) + cc.bright( "s2s-transfer-block-size" ) + cc.sunny( "=" ) + cc.info( "value" ) + cc.debug( "........." ) + cc.notice( "Number of transactions in one block to use in message transfer loop from " ) + cc.note( "S-chain" ) + cc.notice( " to " ) + cc.note( "S-chain" ) + cc.notice( "." ) + cc.debug( " Default is " ) + cc.sunny( "4" ) + cc.notice( "." ) );
@@ -1929,7 +1929,7 @@ export function ima_common_init() {
         ensure_have_value( "App path", path.join( __dirname, "main.mjs" ), false, isPrintGathered, null, ( x ) => {
             return cc.normal( x );
         } );
-        ensure_have_value( "Verbose level", IMA.VERBOSE( IMA.verbose_get() ), false, isPrintGathered, null, ( x ) => {
+        ensure_have_value( "Verbose level", IMA.VERBOSE_level_as_text_4_log( IMA.verbose_get() ), false, isPrintGathered, null, ( x ) => {
             return cc.sunny( x );
         } );
         ensure_have_value( "Main-net URL", imaState.chainProperties.mn.strURL, false, isPrintGathered && isPrintSecurityValues, null, ( x ) => {
@@ -2196,6 +2196,8 @@ export function ima_common_init() {
         } // if( isPrintGathered )
         log.write( cc.info( "IMA JSON RPC server port is" ) + cc.debug( "...,,,,,,,,,,,............" ) + ( ( imaState.nJsonRpcPort > 0 ) ? cc.info( imaState.nJsonRpcPort ) : cc.error( "disabled" ) ) + "\n" );
         log.write( cc.info( "Cross-IMA mode is" ) + cc.debug( "...................................." ) + ( imaState.isCrossImaBlsMode ? cc.success( "enabled" ) : cc.error( "disabled" ) ) + "\n" );
+        log.write( cc.info( "Dry-run is enabled" ) + cc.debug( "..................................." ) + cc.yn( IMA.dry_run_is_enabled() ) + "\n" );
+        log.write( cc.info( "Dry-run execution result is ignored" ) + cc.debug( ".................." ) + cc.yn( IMA.dry_run_is_ignored() ) + "\n" );
     }
 } // ima_common_init
 

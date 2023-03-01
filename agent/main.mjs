@@ -101,6 +101,10 @@ function initial_skale_network_scan_for_S2S() {
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 function parse_command_line() {
+    log.write(
+        cc.debug( "Agent was started with " ) + cc.info( process.argv.length ) +
+        cc.debug( " command line argument(s) as: " ) + cc.info( process.argv.join( " " ) ) +
+        "\n" );
     const imaState = state.get();
     imaCLI.parse( {
         "register": function() {
