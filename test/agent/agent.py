@@ -470,7 +470,7 @@ class Agent:
             'no-wait-s-chain': None,
             'no-pwa': None,
             'gas-price-multiplier': '2.0',
-            'gas-multiplier': : '2.0',
+            'gas-multiplier': '2.0',
             'no-skip-dry-run': None,
             'ignore-dry-run': None
         }
