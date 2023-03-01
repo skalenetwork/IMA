@@ -25,6 +25,11 @@
 
 let g_bEnabled = true;
 
+export function auto_enable_from_command_line_args() {
+    const b = ( process.argv.indexOf( "--colors" ) >= 0 || process.argv.indexOf( "-colors" ) >= 0 ) ? true : false;
+    enable( b );
+}
+
 export function enable( b ) {
     g_bEnabled = !!b;
 }

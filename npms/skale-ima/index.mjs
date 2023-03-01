@@ -88,6 +88,15 @@ const mapRV_VERBOSE = compute_VERBOSE_alias();
 
 export function VERBOSE() { return mapVERBOSE; };
 export function RV_VERBOSE() { return mapRV_VERBOSE; };
+export function VERBOSE_level_as_text_4_log( vl ) {
+    if( typeof vl == "undefined" )
+        vl = verbose_get();
+    if( vl in mapVERBOSE ) {
+        const tl = mapVERBOSE[vl];
+        return tl;
+    }
+    return "unknown(" + JSON.stringify( y ) + ")";
+}
 
 let g_isExposeDetails = false;
 let g_verboseLevel = RV_VERBOSE().info;
@@ -1112,7 +1121,7 @@ export function dry_run_enable( isEnable ) {
     return g_bDryRunIsEnabled ? true : false;
 }
 
-let g_bDryRunIsIgnored = false;
+let g_bDryRunIsIgnored = true;
 
 export function dry_run_is_ignored() {
     return g_bDryRunIsIgnored ? true : false;

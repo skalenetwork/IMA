@@ -18,7 +18,7 @@
 #   You should have received a copy of the GNU Affero General Public License
 #   along with SKALE IMA.  If not, see <https://www.gnu.org/licenses/>.
 
-from time import sleep, time
+from time import sleep
 from logging import debug, error
 
 from tools.test_case import TestCase
@@ -36,8 +36,9 @@ class SendERC20ToMainnet(TestCase):
         super().__init__('Send ERC20 from schain to mainnet', config)
 
     def _prepare(self):
-        amount = 2 * 10 ** 18
-        self.blockchain.recharge_user_wallet(self.config.mainnet_key, self.config.schain_name, amount)
+        amountRecharge = 200 * 10 ** 18 # 2 * 10 ** 18
+        self.blockchain.recharge_user_wallet(self.config.mainnet_key, self.config.schain_name, amountRecharge)
+        sleep( 10 )
 
         # deploy token
 
@@ -54,9 +55,12 @@ class SendERC20ToMainnet(TestCase):
         signed_txn = self.blockchain.web3_mainnet.eth.account.signTransaction(mint_txn,
                                                                               private_key=self.config.mainnet_key)
         self.blockchain.web3_mainnet.eth.sendRawTransaction(signed_txn.rawTransaction)
+        sleep( 10 )
 
         self.blockchain.disableWhitelistERC20(self.config.mainnet_key, self.config.schain_name)
+        sleep( 10 )
         self.blockchain.enableAutomaticDeployERC20(self.config.schain_key, "Mainnet")
+        sleep( 10 )
 
         # send to schain
 
@@ -65,6 +69,7 @@ class SendERC20ToMainnet(TestCase):
                                                          self.config.schain_key,
                                                          self.amount,
                                                          self.timeout)
+        sleep( 10 )
 
         amount_of_eth = 90 * 10 ** 15
 
@@ -72,6 +77,7 @@ class SendERC20ToMainnet(TestCase):
                                                        self.config.schain_key,
                                                        amount_of_eth,
                                                        self.timeout)
+        sleep( 10 )
 
         # self.blockchain.add_eth_cost(self.config.schain_key,
         #                              amount_of_eth)

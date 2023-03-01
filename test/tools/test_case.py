@@ -22,6 +22,7 @@ from tools.blockchain import BlockChain
 from proxy.deployer import Deployer
 from agent.agent import Agent
 from time import time
+from logging import error
 
 class TestCase:
     name = None
@@ -32,14 +33,16 @@ class TestCase:
     config = None
     time_started = time()
     timeout = None
+    timeout_of_entire_test = None
 
-    def __init__(self, name, config, timeout=80000):
+    def __init__(self, name, config, timeout=10, timeout_of_entire_test=80000):
         self.name = name
         self.deployer = Deployer(config)
         self.agent = Agent(config)
         self.blockchain = BlockChain(config)
         self.config = config
         self.timeout = timeout
+        self.timeout_of_entire_test = timeout_of_entire_test
 
 
     def prepare(self):
@@ -52,6 +55,7 @@ class TestCase:
         self.time_started = time()
         self._execute()
         if self._timeout():
+            error(f'CRITICAL INTEGRATION TEST ERROR: Test "{self.name}" will be marked failed due to timeout')
             self.passed = False
 
     def clean_up(self):
@@ -79,7 +83,8 @@ class TestCase:
         self.passed = True
 
     def _timeout(self):
-        if self.timeout is not None and time() > self.time_started + self.timeout:
+        if self.timeout is not None and time() > self.time_started + self.timeout_of_entire_test:
             return True
         else:
             return False
+        return False

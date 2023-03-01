@@ -21,7 +21,7 @@
 from web3 import Web3, HTTPProvider
 import json
 from eth_account import Account
-import time
+from time import sleep
 
 class BlockChain:
     config = None
@@ -384,7 +384,7 @@ class BlockChain:
             receipt = BlockChain.get_receipt(web3, tx)
             if (receipt != None):
                 return receipt
-            time.sleep(timeout)
+            sleep( 3 ) # timeout
         return None
 
     @staticmethod
