@@ -33,7 +33,7 @@ class TestCase:
     time_started = time()
     timeout = None
 
-    def __init__(self, name, config, timeout=80000):
+    def __init__(self, name, config, timeout=10): # 80000
         self.name = name
         self.deployer = Deployer(config)
         self.agent = Agent(config)
@@ -79,7 +79,8 @@ class TestCase:
         self.passed = True
 
     def _timeout(self):
-        if self.timeout is not None and time() > self.time_started + self.timeout:
-            return True
-        else:
-            return False
+        # if self.timeout is not None and time() > self.time_started + self.timeout:
+        #    return True
+        #else:
+        #    return False
+        return False

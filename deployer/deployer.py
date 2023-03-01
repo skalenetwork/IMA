@@ -55,7 +55,7 @@ def copy_abi_on_nodes(schain_nodes, schain_name):
         cmd = f'scp -o StrictHostKeyChecking=no {abi_project_path} {node_user}@{node_ip}:{abi_path_on_node}/proxy.json'
         print(f'Uploading to {node_ip}...', '\n', cmd)
         os.system(cmd)
-        time.sleep(20)
+        time.sleep( 20 )
 
 
 if __name__ == '__main__':

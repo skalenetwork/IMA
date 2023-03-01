@@ -384,7 +384,7 @@ class BlockChain:
             receipt = BlockChain.get_receipt(web3, tx)
             if (receipt != None):
                 return receipt
-            time.sleep(timeout)
+            time.sleep( 3 ) # timeout
         return None
 
     @staticmethod

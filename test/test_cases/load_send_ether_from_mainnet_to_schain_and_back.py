@@ -59,7 +59,7 @@ class SendEtherFromSchainToMainnetAndBack(TestCase):
                                                            self.config.schain_key,
                                                            amount,
                                                            self.timeout)
-            time.sleep(2)
+            time.sleep( 10 )
             # back to mainnet
             self.agent.transfer_eth_from_schain_to_mainnet(self.config.mainnet_key,
                                                            self.config.schain_key,
@@ -69,9 +69,16 @@ class SendEtherFromSchainToMainnetAndBack(TestCase):
             a = 0
         #
         balance = self.blockchain.get_balance_on_schain(address)
+        print( 'Real balance.......', balance )
+        needed_balance = initial_balance + range_int * amount - range_int * amount_from_schain
+        print( 'Needed balance.....', needed_balance )
+
         res = initial_balance - range_int * amount
-        if balance == initial_balance + range_int * amount - range_int * amount_from_schain:
+        if balance == needed_balance:
+            print( 'Passed.............', 'YES!' )
             self._mark_passed()
+        else:
+            print( 'Passed.............', 'NO(' )
 
 
 test_pool.register_test(SendEtherFromSchainToMainnetAndBack)
