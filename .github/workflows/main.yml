@@ -350,6 +350,13 @@ jobs:
     - name: Start background ganache
       run: |
         cd proxy
+        echo "-----------------------------------------"
+        echo "---- accounts.json (begin)"
+        echo "-----------------------------------------"
+        cat ../test/accounts.json
+        echo "-----------------------------------------"
+        echo "---- accounts.json (end)"
+        echo "-----------------------------------------"
         #NODE_OPTIONS="--max_old_space_size=3072" npx ganache-cli --gasLimit 12000000 --quiet --allowUnlimitedContractSize --acctKeys ../test/accounts.json &
         NODE_OPTIONS="--max_old_space_size=3072" npx ganache-cli --gasLimit 0xfffffffffff --quiet --allowUnlimitedContractSize --acctKeys ../test/accounts.json &
 
