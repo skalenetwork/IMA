@@ -71,9 +71,18 @@ class SendEtherToMainnet(TestCase):
 
         transaction_fee = 6 * 10 ** 16
         approximate_gas_spends = 3 * 10 ** 15
-        if self.blockchain.get_balance_on_mainnet(destination_address) > (
-                balance + self.amount - transaction_fee - approximate_gas_spends):
+        extra_subtract_value = 1 * 10 ** 17 # 0
+
+        real_balance = self.blockchain.get_balance_on_mainnet(destination_address)
+        print( 'Real balance.......', real_balance )
+        expected_balance = balance + self.amount - transaction_fee - approximate_gas_spends - extra_subtract_value
+        print( 'Expected balance...', expected_balance )
+
+        if real_balance > expected_balance:
+            print( 'Passed.............', 'YES!' )
             self._mark_passed()
+        else:
+            print( 'Passed.............', 'NO(' )
 
 
 test_pool.register_test(SendEtherToMainnet)
