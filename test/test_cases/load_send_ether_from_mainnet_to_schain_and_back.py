@@ -22,7 +22,6 @@ from logging import debug
 
 from tools.test_case import TestCase
 from tools.test_pool import test_pool
-# import time
 from time import sleep, time
 
 
@@ -62,13 +61,13 @@ class SendEtherFromSchainToMainnetAndBack(TestCase):
                                                            self.config.schain_key,
                                                            amount,
                                                            self.timeout)
-            time.sleep( 10 )
+            sleep( 10 )
             # back to mainnet
             self.agent.transfer_eth_from_schain_to_mainnet(self.config.mainnet_key,
                                                            self.config.schain_key,
                                                            amount_from_schain,
                                                            self.timeout)
-            time.sleep( 10 )
+            sleep( 10 )
             self.blockchain.get_balance_on_schain(address)
             a = 0
         #
