@@ -658,7 +658,6 @@ export function private_key_2_account_address( keyPrivate ) {
 
 export function private_key_2_public_key( keyPrivate ) {
     const privateKeyBuffer = ethereumjs_util.toBuffer( ensure_starts_with_0x( keyPrivate ) );
-    console.log( Wallet );
     const wallet = Wallet.fromPrivateKey( privateKeyBuffer );
     const publicKey = wallet.getPublicKeyString();
     return remove_starting_0x( publicKey );
