@@ -331,6 +331,7 @@ export function verifyArgumentIsIntegerIpPortNumber( joArg ) {
             throw new Error( "Port number " + joArg.value + " too small" );
         if( joArg.value > 65535 )
             throw new Error( "Port number " + joArg.value + " too big" );
+        return joArg;
     } catch ( err ) {
         console.log( cc.fatal( "(OWASP) CRITICAL ERROR:" ) + cc.error( " value " ) + cc.warning( joArg.value ) + cc.error( " of argument " ) + cc.info( joArg.name ) + cc.error( " must be valid integer IP port number" ) );
         process.exit( 126 );
@@ -727,7 +728,6 @@ export function ensure_observer_opts_initialized( opts ) {
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 export function extract_error_message( jo, strDefaultErrorText ) {
-    // console.log( "------------------", cc.j( jo ) );
     strDefaultErrorText = strDefaultErrorText || "unknown error or error without a description";
     try {
         const isError = function( err ) {
@@ -739,14 +739,15 @@ export function extract_error_message( jo, strDefaultErrorText ) {
                 if( typeof jo == "string" )
                     return jo;
                 if( typeof jo != "object" )
-                    return strDefaultErrorText + "(" + jo.toString() + ")" + strStack;
+                    return strDefaultErrorText + "(" + jo.toString() + ")";
             }
             if( typeof jo == "string" && jo )
-                return strDefaultErrorText + "(" + jo.toString() + ")" + strStack;
+                return strDefaultErrorText + "(" + jo.toString() + ")";
             return strDefaultErrorText;
         }
-        jo = jo.message;
-        strDefaultErrorText += "(" + jo.toString() + ")" + strStack;
+        if( typeof jo.message == "string" && jo.message.length > 0 )
+            return jo.message; // + jo.stack;
+        strDefaultErrorText += "(" + jo.toString() + ")"; // + jo.stack;
     } catch ( err ) {
     }
     return strDefaultErrorText;
