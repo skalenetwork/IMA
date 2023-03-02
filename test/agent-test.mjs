@@ -249,7 +249,7 @@ const imaState = {
 
     "s2s_opts": { // S-Chain to S-Chain transfer options
         "isEnabled": false, // is S-Chain to S-Chain transfers enabled
-        "secondsToReDiscoverSkaleNetwork": 10 * 60 // seconts to re-discover SKALE network, 0 to disable
+        "secondsToReDiscoverSkaleNetwork": 10 * 60 // seconds to re-discover SKALE network, 0 to disable
     },
 
     "nJsonRpcPort": 14999, // 0 to disable
@@ -296,7 +296,21 @@ describe( "OWASP", function() {
             assert.equal( owaspUtils.toInteger( "0x20", 16 ), 0x20 );
         } );
 
-        it( "Floating point validation", function() {
+        it( "Integer automatic conversion", function() {
+            assert.equal( owaspUtils.parseIntOrHex( 12345, 10 ), 12345 );
+            assert.equal( owaspUtils.parseIntOrHex( "12345", 10 ), 12345 );
+            assert.equal( owaspUtils.parseIntOrHex( 0x20, 16 ), 0x20 );
+            assert.equal( owaspUtils.parseIntOrHex( "0x20", 16 ), 0x20 );
+        } );
+
+        it( "Integer advanced validation", function() {
+            assert.equal( owaspUtils.validateInteger( "12345", 10 ), true );
+            assert.equal( owaspUtils.validateInteger( "0x20", 16 ), true );
+            assert.equal( owaspUtils.validateInteger( "hello 12345", 10 ), false );
+            assert.equal( owaspUtils.validateInteger( "hello 0x20", 16 ), false );
+        } );
+
+        it( "Floating point advanced validation", function() {
             assert.equal( owaspUtils.validateFloat( "123.456" ), true );
             assert.equal( owaspUtils.validateFloat( "hello 123.456" ), false );
         } );
@@ -383,6 +397,60 @@ describe( "OWASP", function() {
             assert.equal( owaspUtils.toStringURL( "https://some.domain.org:3344/" ), "https://some.domain.org:3344/" );
         } );
 
+        it( "Check URL is HTTP(S)", function() {
+            assert.equal( owaspUtils.is_http_url( "http://127.0.0.1" ), true );
+            assert.equal( owaspUtils.is_http_url( "http://localhost" ), true );
+            assert.equal( owaspUtils.is_http_url( "http://[::1]" ), true );
+            assert.equal( owaspUtils.is_http_url( "http://127.0.0.1:1234" ), true );
+            assert.equal( owaspUtils.is_http_url( "http://localhost:1234" ), true );
+            assert.equal( owaspUtils.is_http_url( "http://[::1]:1234" ), true );
+            assert.equal( owaspUtils.is_http_url( "https://127.0.0.1" ), true );
+            assert.equal( owaspUtils.is_http_url( "https://localhost" ), true );
+            assert.equal( owaspUtils.is_http_url( "https://[::1]" ), true );
+            assert.equal( owaspUtils.is_http_url( "https://127.0.0.1:1234" ), true );
+            assert.equal( owaspUtils.is_http_url( "https://localhost:1234" ), true );
+            assert.equal( owaspUtils.is_http_url( "https://[::1]:1234" ), true );
+            assert.equal( owaspUtils.is_http_url( "ws://127.0.0.1" ), false );
+            assert.equal( owaspUtils.is_http_url( "ws://localhost" ), false );
+            assert.equal( owaspUtils.is_http_url( "ws://[::1]" ), false );
+            assert.equal( owaspUtils.is_http_url( "ws://127.0.0.1:1234" ), false );
+            assert.equal( owaspUtils.is_http_url( "ws://localhost:1234" ), false );
+            assert.equal( owaspUtils.is_http_url( "ws://[::1]:1234" ), false );
+            assert.equal( owaspUtils.is_http_url( "wss://127.0.0.1" ), false );
+            assert.equal( owaspUtils.is_http_url( "wss://localhost" ), false );
+            assert.equal( owaspUtils.is_http_url( "wss://[::1]" ), false );
+            assert.equal( owaspUtils.is_http_url( "wss://127.0.0.1:1234" ), false );
+            assert.equal( owaspUtils.is_http_url( "wss://localhost:1234" ), false );
+            assert.equal( owaspUtils.is_http_url( "wss://[::1]:1234" ), false );
+        } );
+
+        it( "Check URL is WS(S)", function() {
+            assert.equal( owaspUtils.is_ws_url( "http://127.0.0.1" ), false );
+            assert.equal( owaspUtils.is_ws_url( "http://localhost" ), false );
+            assert.equal( owaspUtils.is_ws_url( "http://[::1]" ), false );
+            assert.equal( owaspUtils.is_ws_url( "http://127.0.0.1:1234" ), false );
+            assert.equal( owaspUtils.is_ws_url( "http://localhost:1234" ), false );
+            assert.equal( owaspUtils.is_ws_url( "http://[::1]:1234" ), false );
+            assert.equal( owaspUtils.is_ws_url( "https://127.0.0.1" ), false );
+            assert.equal( owaspUtils.is_ws_url( "https://localhost" ), false );
+            assert.equal( owaspUtils.is_ws_url( "https://[::1]" ), false );
+            assert.equal( owaspUtils.is_ws_url( "https://127.0.0.1:1234" ), false );
+            assert.equal( owaspUtils.is_ws_url( "https://localhost:1234" ), false );
+            assert.equal( owaspUtils.is_ws_url( "https://[::1]:1234" ), false );
+            assert.equal( owaspUtils.is_ws_url( "ws://127.0.0.1" ), true );
+            assert.equal( owaspUtils.is_ws_url( "ws://localhost" ), true );
+            assert.equal( owaspUtils.is_ws_url( "ws://[::1]" ), true );
+            assert.equal( owaspUtils.is_ws_url( "ws://127.0.0.1:1234" ), true );
+            assert.equal( owaspUtils.is_ws_url( "ws://localhost:1234" ), true );
+            assert.equal( owaspUtils.is_ws_url( "ws://[::1]:1234" ), true );
+            assert.equal( owaspUtils.is_ws_url( "wss://127.0.0.1" ), true );
+            assert.equal( owaspUtils.is_ws_url( "wss://localhost" ), true );
+            assert.equal( owaspUtils.is_ws_url( "wss://[::1]" ), true );
+            assert.equal( owaspUtils.is_ws_url( "wss://127.0.0.1:1234" ), true );
+            assert.equal( owaspUtils.is_ws_url( "wss://localhost:1234" ), true );
+            assert.equal( owaspUtils.is_ws_url( "wss://[::1]:1234" ), true );
+        } );
+
         const strAddressValid0 = "0x7aa5E36AA15E93D10F4F26357C30F052DacDde5F";
         const strAddressValid1 = "7aa5E36AA15E93D10F4F26357C30F052DacDde5F";
         const strAddressInvalid0 = "0x7aa5E36AA15E93D10F4F26357C30F052DacDde5";
@@ -447,12 +515,54 @@ describe( "OWASP", function() {
         it( "Basic verification", function() {
             assert.equal( typeof owaspUtils.verifyArgumentWithNonEmptyValue( { name: "path", value: "/tmp/file.name.here" } ), "object" );
             assert.equal( typeof owaspUtils.verifyArgumentIsURL( { name: "url", value: "http://127.0.0.1" } ), "object" );
+            assert.equal( typeof owaspUtils.verifyArgumentIsURL( { name: "url", value: "http://[::1]" } ), "object" );
+            assert.equal( typeof owaspUtils.verifyArgumentIsURL( { name: "url", value: "http://localhost" } ), "object" );
+            assert.equal( typeof owaspUtils.verifyArgumentIsURL( { name: "url", value: "http://127.0.0.1:1234" } ), "object" );
+            assert.equal( typeof owaspUtils.verifyArgumentIsURL( { name: "url", value: "http://[::1]:1234" } ), "object" );
+            assert.equal( typeof owaspUtils.verifyArgumentIsURL( { name: "url", value: "http://localhost:1234" } ), "object" );
             assert.equal( typeof owaspUtils.verifyArgumentIsInteger( { name: "url", value: "123" } ), "object" );
+            assert.equal( typeof owaspUtils.verifyArgumentIsInteger( { name: "url", value: "0x123" } ), "object" );
+            assert.equal( typeof owaspUtils.verifyArgumentIsIntegerIpPortNumber( { name: "port", value: "1" } ), "object" );
+            assert.equal( typeof owaspUtils.verifyArgumentIsIntegerIpPortNumber( { name: "port", value: "123" } ), "object" );
+            assert.equal( typeof owaspUtils.verifyArgumentIsIntegerIpPortNumber( { name: "port", value: "1024" } ), "object" );
+            assert.equal( typeof owaspUtils.verifyArgumentIsIntegerIpPortNumber( { name: "port", value: "65535" } ), "object" );
+            assert.equal( typeof owaspUtils.verifyArgumentIsArrayOfIntegers( { name: "some_array", value: "[1]" } ), "object" );
+            assert.equal( typeof owaspUtils.verifyArgumentIsArrayOfIntegers( { name: "some_array", value: "[1,2,3]" } ), "object" );
         } );
 
         it( "Paths verification", function() {
             assert.equal( typeof owaspUtils.verifyArgumentIsPathToExistingFile( { name: "url", value: __filename } ), "object" );
             assert.equal( typeof owaspUtils.verifyArgumentIsPathToExistingFolder( { name: "url", value: __dirname } ), "object" );
+        } );
+
+    } );
+
+    describe( "Other utilities", function() {
+
+        it( "IP from her", function() {
+            assert.equal( owaspUtils.ip_from_hex( "0x0a0b0c0d" ), "10.11.12.13" );
+        } );
+
+        it( "Clone object by root keys", function() {
+            const joIn = { "a": 1, "2": 2, "c": { "d": 3, "e": 4 } };
+            const joOut = owaspUtils.clone_object_by_root_keys( joIn );
+            assert.equal( JSON.stringify( joIn ), JSON.stringify( joOut ) );
+        } );
+
+        it( "ID from chain name", function() {
+            assert.equal( owaspUtils.compute_chain_id_from_schain_name( "Hello World" ), "0x592fa743889fc7" );
+        } );
+
+        it( "Extract error message", function() {
+            const not_extracted = "error message was not extracted";
+            assert.equal( owaspUtils.extract_error_message( null, not_extracted ), not_extracted );
+            assert.equal( owaspUtils.extract_error_message( undefined, not_extracted ), not_extracted );
+            assert.equal( owaspUtils.extract_error_message( 123, not_extracted ), not_extracted );
+            assert.equal( owaspUtils.extract_error_message( "123", not_extracted ), not_extracted );
+            assert.equal( owaspUtils.extract_error_message( "", not_extracted ), not_extracted );
+            assert.equal( owaspUtils.extract_error_message( {}, not_extracted ), not_extracted );
+            assert.equal( owaspUtils.extract_error_message( { "err": "something" }, not_extracted ), not_extracted );
+            assert.equal( owaspUtils.extract_error_message( new Error( "Hello World" ), not_extracted ), "Hello World" );
         } );
 
     } );
