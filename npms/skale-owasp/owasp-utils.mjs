@@ -671,8 +671,10 @@ export function public_key_2_account_address( keyPublic ) {
 }
 
 export function fn_address_impl_() {
-    if( this.address_ == undefined || this.address_ == null )
-        this.address_ = "" + private_key_2_account_address( this.privateKey );
+    if( this.address_ == undefined || this.address_ == null || this.address_ == "" ) {
+        if( this.privateKey )
+            this.address_ = "" + private_key_2_account_address( this.privateKey );
+    }
     return this.address_;
 }
 
