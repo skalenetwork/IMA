@@ -40,7 +40,7 @@ const __dirname = path.dirname( url.fileURLToPath( import.meta.url ) );
 const g_strAppName = "IMA AGENT";
 const g_strVersion = imaUtils.jsonFileLoad( path.join( __dirname, "package.json" ), null ).version;
 
-function print_about( isLog ) {
+export function print_about( isLog ) {
     isLog = isLog || false;
     const strMsg = cc.attention( g_strAppName ) + cc.normal( " version " ) + cc.sunny( g_strVersion );
     if( isLog )
@@ -50,7 +50,7 @@ function print_about( isLog ) {
     return true;
 }
 
-function parse_command_line_argument( s ) {
+export function parse_command_line_argument( s ) {
     const joArg = {
         name: "",
         value: ""
@@ -75,7 +75,7 @@ function parse_command_line_argument( s ) {
 //
 //
 // check correctness of command line arguments
-function ensure_have_value( name, value, isExitIfEmpty, isPrintValue, fnNameColorizer, fnValueColorizer ) {
+export function ensure_have_value( name, value, isExitIfEmpty, isPrintValue, fnNameColorizer, fnValueColorizer ) {
     isExitIfEmpty = isExitIfEmpty || false;
     isPrintValue = isPrintValue || false;
     fnNameColorizer = fnNameColorizer || ( ( x ) => {
@@ -102,7 +102,7 @@ function ensure_have_value( name, value, isExitIfEmpty, isPrintValue, fnNameColo
     return retVal;
 }
 
-function ensure_have_chain_credentials( strFriendlyChainName, joAccount, isExitIfEmpty, isPrintValue ) {
+export function ensure_have_chain_credentials( strFriendlyChainName, joAccount, isExitIfEmpty, isPrintValue ) {
     strFriendlyChainName = strFriendlyChainName || "<UNKNOWN>";
     if( ! ( typeof joAccount == "object" ) ) {
         log.write( cc.error( "ARGUMENTS VALIDATION WARNING:" ) +

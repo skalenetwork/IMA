@@ -31,6 +31,9 @@
 import * as ethersMod from "ethers";
 import * as fs from "fs";
 import * as cc from "../skale-cc/cc.mjs";
+import * as ethereumjs_util from "ethereumjs-util";
+import * as ethereumjs_wallet from "ethereumjs-wallet";
+const Wallet = ethereumjs_wallet.default.default;
 
 const safeURL = cc.safeURL;
 const replaceAll = cc.replaceAll;
@@ -230,10 +233,16 @@ export function toBoolean( value ) {
     return b;
 }
 
+export function validateInputAddresses( address ) {
+    return ( /^(0x){1}[0-9a-fA-F]{40}$/i.test( address ) );
+}
+
 export function validateEthAddress( value ) {
     try {
-        if( ethersMod.ethers.util.isAddress( ensure_starts_with_0x( value ) ) )
+        if( validateInputAddresses( ensure_starts_with_0x( value ) ) )
             return true;
+        // if( ethersMod.ethers.util.isAddress( ensure_starts_with_0x( value ) ) )
+        //     return true;
     } catch ( err ) {
     }
     return false;
@@ -647,6 +656,20 @@ export function private_key_2_account_address( keyPrivate ) {
     return ethersMod.ethers.utils.computeAddress( ensure_starts_with_0x( keyPrivate ) );
 }
 
+export function private_key_2_public_key( keyPrivate ) {
+    const privateKeyBuffer = ethereumjs_util.toBuffer( ensure_starts_with_0x( keyPrivate ) );
+    console.log( Wallet );
+    const wallet = Wallet.fromPrivateKey( privateKeyBuffer );
+    const publicKey = wallet.getPublicKeyString();
+    return remove_starting_0x( publicKey );
+}
+
+export function public_key_2_account_address( keyPublic ) {
+    const hash = ethersMod.ethers.utils.keccak256( ensure_starts_with_0x( keyPublic ) );
+    const strAddress = ensure_starts_with_0x( hash.substr( hash.length - 40 ) );
+    return strAddress;
+}
+
 export function fn_address_impl_() {
     if( this.address_ == undefined || this.address_ == null )
         this.address_ = "" + private_key_2_account_address( this.privateKey );
@@ -736,5 +759,8 @@ export function toBN( x ) {
     return bn;
 }
 
+export function is_numeric( s ) {
+    return /^\d+$/.test( s );
+}
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

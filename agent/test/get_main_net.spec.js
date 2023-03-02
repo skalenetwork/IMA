@@ -259,13 +259,10 @@ describe('tests for `npms/skale-ima`', function () {
         let keyPublic = "5dd431d36ce6b88f27d351051b31a26848c4a886f0dd0bc87a7d5a9d821417c9" +
             "e807e8589f680ab0f2ab29831231ad7b3d6659990ee830582fede785fc3c33c4";
         let keyPublicUnd; // undefined
-        let w3mod_undefined; // undefined
-        // if w3mod `undefined` or `null`
-        expect(IMA.owaspUtils.public_key_2_account_address(w3mod_undefined, keyPublic)).to.be.empty;
         // if keyPrivate `undefined` or `null`
-        expect(IMA.owaspUtils.public_key_2_account_address(w3mod, keyPublicUnd)).to.be.empty;
+        expect(IMA.owaspUtils.public_key_2_account_address(keyPublicUnd)).to.be.empty;
         // when all parameters is OK
-        expect(IMA.owaspUtils.public_key_2_account_address(w3mod, keyPublic)).to.include("0x");
+        expect(IMA.owaspUtils.public_key_2_account_address(keyPublic)).to.include("0x");
     });
 
     it('should invoke `private_key_2_account_address`', async function () {

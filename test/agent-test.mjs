@@ -29,21 +29,24 @@ import * as os from "os";
 import * as path from "path";
 import * as url from "url";
 
-import * as IMA from "../npms/skale-ima";
+import * as owaspUtils from "../npms/skale-owasp/owasp-utils.mjs";
+import * as IMA from "../npms/skale-ima/index.mjs";
+// import * as cc from "../npms/skale-cc/cc.mjs";
+import * as log from "../npms/skale-log/log.mjs";
 import * as imaUtils from "../agent/utils.mjs";
 import * as imaCLI from "../agent/cli.mjs";
 // log.addStdout();
 // log.addMemory(); // console.log( log.getStreamWithFilePath( "memory" ).strAccumulatedLogText );
 
-import * as state from "../../agent/state.mjs";
+import * as state from "../agent/state.mjs";
 
 const __dirname = path.dirname( url.fileURLToPath( import.meta.url ) );
+const __filename = new URL( "", import.meta.url ).pathname;
 
 process.env.NODE_TLS_REJECT_UNAUTHORIZED = 0;
 
 IMA.expose_details_set( false );
 IMA.verbose_set( IMA.verbose_parse( "info" ) );
-const log = imaUtils.log;
 // import * as imaBLS from "../agent/bls.mjs";
 // import * as rpcCall from "../agent/rpc-call.mjs";
 
@@ -471,7 +474,7 @@ describe( "OWASP", function() {
 
         it( "Extract public key from private key", function() {
             // const address = joTestAccount.address();
-            const publicKey = owaspUtils.private_key_2_public_key( imaState.chainProperties.mn.ethersProvider, joTestAccount.privateKey );
+            const publicKey = owaspUtils.private_key_2_public_key( joTestAccount.privateKey );
             // console.log( "private key is", joTestAccount.privateKey );
             // console.log( "extracted public is", publicKey );
             assert.equal( publicKey.toLowerCase(), "5dd431d36ce6b88f27d351051b31a26848c4a886f0dd0bc87a7d5a9d821417c9e807e8589f680ab0f2ab29831231ad7b3d6659990ee830582fede785fc3c33c4".toLowerCase() );
@@ -479,8 +482,8 @@ describe( "OWASP", function() {
 
         it( "Extract address from public key", function() {
             const address = joTestAccount.address();
-            const publicKey = owaspUtils.private_key_2_public_key( imaState.chainProperties.mn.ethersProvider, joTestAccount.privateKey );
-            const address2 = owaspUtils.public_key_2_account_address( imaState.chainProperties.mn.ethersProvider, publicKey );
+            const publicKey = owaspUtils.private_key_2_public_key( joTestAccount.privateKey );
+            const address2 = owaspUtils.public_key_2_account_address( publicKey );
             // console.log( "computed address is", joTestAccount.address() );
             // console.log( "private key is", joTestAccount.privateKey );
             // console.log( "extracted address is", publicKey );
