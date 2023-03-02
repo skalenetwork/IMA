@@ -13,7 +13,9 @@
         "@ethersproject/experimental": "^5.7.0",
         "solc": "0.8.6",        
         "uuid": "^9.0.0",
-        "sha3": "2.1.4"
+        "sha3": "2.1.4",
+        "ethereumjs-util": "^7.1.5",
+        "ethereumjs-wallet": "^1.0.2"
     },
     "devDependencies": {},
     "resolutions": {
