@@ -30,11 +30,14 @@ RUN chmod +x /ima/bls_binaries/verify_bls
 RUN npm install -g node-gyp
 RUN which node-gyp
 RUN node-gyp --version
-RUN npms/scrypt/get_scrypt_npm.sh
+RUN cd npms/scrypt; ./get_scrypt_npm.sh; cd ../..
 
 RUN cd proxy && yarn install && cd ..
+RUN cd npms/skale-cool-socket && yarn install && cd ../..
 RUN cd npms/skale-owasp && yarn install && cd ../..
+RUN cd npms/skale-observer && yarn install && cd ../..
 RUN cd npms/skale-ima && yarn install && cd ../..
 RUN cd agent && yarn install && cd ..
+RUN yarn install
 
 CMD ["bash", "/ima/agent/run.sh"]

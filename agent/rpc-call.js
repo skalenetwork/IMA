@@ -287,7 +287,7 @@ async function do_call( joCall, joIn, fn ) {
             } catch ( err ) {
                 bCompleteFlag = true;
                 joOut = null;
-                errCall = "Responce body parse error: " + err.toString();
+                errCall = "Response body parse error: " + err.toString();
                 return;
             }
             bCompleteFlag = true;

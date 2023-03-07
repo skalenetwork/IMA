@@ -197,8 +197,8 @@ async function get_web3_blockNumber( details, cntAttempts, w3, retValOnFail, thr
     }
     ++ idxAttempt;
     while( ret === "" && idxAttempt <= cntAttempts ) {
-        const isOnlone = rpcCall.check_url( u, nWaitStepMilliseconds );
-        if( ! isOnlone ) {
+        const isOnLine = rpcCall.check_url( u, nWaitStepMilliseconds );
+        if( ! isOnLine ) {
             ret = retValOnFail;
             if( ! throwIfServerOffline )
                 return ret;
@@ -262,8 +262,8 @@ async function get_web3_transactionCount( details, cntAttempts, w3, address, par
     }
     ++ idxAttempt;
     while( ret === "" && idxAttempt <= cntAttempts ) {
-        const isOnlone = rpcCall.check_url( u, nWaitStepMilliseconds );
-        if( ! isOnlone ) {
+        const isOnLine = rpcCall.check_url( u, nWaitStepMilliseconds );
+        if( ! isOnLine ) {
             ret = retValOnFail;
             if( ! throwIfServerOffline )
                 return ret;
@@ -327,8 +327,8 @@ async function get_web3_transactionReceipt( details, cntAttempts, w3, txHash, re
     }
     ++ idxAttempt;
     while( txReceipt === "" && idxAttempt <= cntAttempts ) {
-        const isOnlone = rpcCall.check_url( u, nWaitStepMilliseconds );
-        if( ! isOnlone ) {
+        const isOnLine = rpcCall.check_url( u, nWaitStepMilliseconds );
+        if( ! isOnLine ) {
             ret = retValOnFail;
             if( ! throwIfServerOffline )
                 return ret;
@@ -406,8 +406,8 @@ async function get_web3_pastEvents( details, w3, cntAttempts, joContract, strEve
     }
     ++ idxAttempt;
     while( ret === "" && idxAttempt <= cntAttempts ) {
-        const isOnlone = rpcCall.check_url( u, nWaitStepMilliseconds );
-        if( ! isOnlone ) {
+        const isOnLine = rpcCall.check_url( u, nWaitStepMilliseconds );
+        if( ! isOnLine ) {
             ret = retValOnFail;
             if( ! throwIfServerOffline )
                 return ret;
@@ -549,7 +549,7 @@ async function get_web3_pastEventsIterative( details, w3, attempts, joContract, 
             }
         } catch ( err ) {
             details.write(
-                cc.error( "Got scan error during interative scan of " ) +
+                cc.error( "Got scan error during interactive scan of " ) +
                 cc.info( idxBlockSubRangeFrom ) + cc.error( "/" ) + cc.info( idxBlockSubRangeTo ) +
                 cc.error( " block sub-range in " ) + cc.info( nBlockFrom ) + cc.error( "/" ) + cc.info( nBlockTo ) +
                 cc.error( " block range, error is: " ) + cc.warning( owaspUtils.extract_error_message( err ) ) + "\n"
@@ -1233,7 +1233,7 @@ async function tm_ensure_transaction( details, w3, priority, txAdjusted, cntAtte
             cc.error( " transaction has been dropped" );
         details.write( strPrefixDetails + strMsg + "\n" );
         log.write( strPrefixLog + strMsg + "\n" );
-        throw new Error( "TM unseccessful transaction " + txId );
+        throw new Error( "TM unsuccessful transaction " + txId );
     }
     strMsg =
         cc.success( "TM - successful TX " ) + cc.info( txId ) + cc.success( ", sending attempt " ) + cc.info( idxAttempt ) +
@@ -5894,7 +5894,7 @@ async function do_transfer(
                 } ); // fn_sign_messages
             } catch ( err ) {
                 const strError = strLogPrefix + cc.fatal( "CRITICAL ERROR:" ) +
-                    cc.error( " Exception from sigining messages function: " ) + cc.error( err.toString() );
+                    cc.error( " Exception from signing messages function: " ) + cc.error( err.toString() );
                 log.write( strError + "\n" );
                 details.write( strError + "\n" );
                 if( detailsB )
