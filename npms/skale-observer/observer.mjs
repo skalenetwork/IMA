@@ -593,6 +593,7 @@ async function in_thread_periodic_caching_start( strChainNameConnectedTo, addres
 }
 
 async function parallel_periodic_caching_start( strChainNameConnectedTo, addressFrom, opts ) {
+    g_bHaveParallelResult = false;
     try {
         const nSecondsToWaitParallel = 60;
         setTimeout( function() {
