@@ -67,7 +67,8 @@ function initial_skale_network_scan_for_S2S() {
                 "details": log,
                 "bStopNeeded": false,
                 "secondsToReDiscoverSkaleNetwork": imaState.s2s_opts.secondsToReDiscoverSkaleNetwork,
-                "chain": imaState.chainProperties.sc
+                "chain": imaState.chainProperties.sc,
+                "bParallelMode": true
             };
             const addressFrom = imaState.chainProperties.mn.joAccount.address();
             // const strError = await skale_observer.cache_schains(
@@ -1162,24 +1163,6 @@ function parse_command_line() {
                     }
                     if( isPrintSummaryRegistrationCosts )
                         print_summary_registration_costs();
-                    //
-                    //
-                    // const joRuntimeOpts = {
-                    //     isInsideWorker: false,
-                    //     idxChainKnownForS2S: 0,
-                    //     cntChainsKnownForS2S: 0
-                    // };
-                    // const loop_opts = {
-                    //     joRuntimeOpts: joRuntimeOpts,
-                    //     isDelayFirstRun: false,
-                    //     enable_step_oracle: true,
-                    //     enable_step_m2s: true,
-                    //     enable_step_s2m: true,
-                    //     enable_step_s2s: true
-                    // };
-                    // return await loop.run_transfer_loop( loop_opts );
-                    //
-                    //
                     const opts = {
                         imaState: imaState,
                         "details": log

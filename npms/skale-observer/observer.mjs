@@ -37,6 +37,9 @@ import { UniversalDispatcherEvent, EventDispatcher } from "../skale-cool-socket/
 
 const __dirname = path.dirname( url.fileURLToPath( import.meta.url ) );
 
+let g_interval_periodic_caching = null;
+let g_bHaveParallelResult = false;
+
 const PORTS_PER_SCHAIN = 64;
 
 export const events = new EventDispatcher();
@@ -486,6 +489,7 @@ export async function ensure_have_worker( opts ) {
         switch ( joMessage.method ) {
         case "periodic_caching_do_now":
             set_last_cached_schains( joMessage.message );
+            g_bHaveParallelResult = true;
             if( opts && opts.details ) {
                 opts.details.write(
                     cc.debug( "Connected " ) + cc.attention( "S-Chains" ) +
@@ -568,27 +572,103 @@ export async function ensure_have_worker( opts ) {
     g_client.send( jo );
 }
 
-export async function periodic_caching_start( strChainNameConnectedTo, addressFrom, opts ) {
-    owaspUtils.ensure_observer_opts_initialized( opts );
-    await ensure_have_worker( opts );
-    const jo = {
-        "method": "periodic_caching_start",
-        "message": {
-            "secondsToReDiscoverSkaleNetwork": parseInt( opts.secondsToReDiscoverSkaleNetwork ),
-            "strChainNameConnectedTo": strChainNameConnectedTo,
-            "addressFrom": addressFrom
-        }
-    };
-    g_client.send( jo );
+async function in_thread_periodic_caching_start( strChainNameConnectedTo, addressFrom, opts ) {
+    if( g_interval_periodic_caching != null )
+        return;
+    try {
+        const fn_do_caching_now = async function() {
+            await cache_schains( strChainNameConnectedTo, addressFrom, opts );
+        };
+        g_interval_periodic_caching = setInterval( fn_do_caching_now, parseInt( opts.secondsToReDiscoverSkaleNetwork ) * 1000 );
+        await fn_do_caching_now();
+        return true;
+    } catch ( err ) {
+        log.write(
+            cc.error( "Failed to start in-thread periodic SNB refresh, error is: " ) +
+            cc.warning( owaspUtils.extract_error_message( err ) ) +
+            cc.error( ", stack is: " ) + "\n" + cc.stack( err.stack ) +
+            "\n" );
+    }
+    return false;
 }
+
+async function parallel_periodic_caching_start( strChainNameConnectedTo, addressFrom, opts ) {
+    try {
+        const nSecondsToWaitParallel = 60;
+        setTimeout( function() {
+            if( g_bHaveParallelResult )
+                return;
+            log.write(
+                cc.error( "Failed to start parallel periodic SNB refresh, error is: " ) +
+                cc.warning( "timeout of " ) + cc.info( nSecondsToWaitParallel ) +
+                cc.warning( " reached, will restart periodic SNB refresh in non-parallel mode" ) +
+                "\n" );
+            periodic_caching_stop();
+            in_thread_periodic_caching_start( strChainNameConnectedTo, addressFrom, opts );
+        }, nSecondsToWaitParallel * 1000 );
+        owaspUtils.ensure_observer_opts_initialized( opts );
+        await ensure_have_worker( opts );
+        const jo = {
+            "method": "periodic_caching_start",
+            "message": {
+                "secondsToReDiscoverSkaleNetwork": parseInt( opts.secondsToReDiscoverSkaleNetwork ),
+                "strChainNameConnectedTo": strChainNameConnectedTo,
+                "addressFrom": addressFrom
+            }
+        };
+        g_client.send( jo );
+        return true;
+    } catch ( err ) {
+        log.write(
+            cc.error( "Failed to start parallel periodic SNB refresh, error is: " ) +
+            cc.warning( owaspUtils.extract_error_message( err ) ) +
+            cc.error( ", stack is: " ) + "\n" + cc.stack( err.stack ) +
+            "\n" );
+    }
+    return false;
+}
+
+export async function periodic_caching_start( strChainNameConnectedTo, addressFrom, opts ) {
+    g_bHaveParallelResult = false;
+    const bParallelMode = ( opts && "bParallelMode" in opts && typeof opts.bParallelMode != "undefined" && opts.bParallelMode ) ? true : false;
+    let wasStarted = false;
+    if( bParallelMode )
+        wasStarted = parallel_periodic_caching_start( strChainNameConnectedTo, addressFrom, opts );
+    if( wasStarted )
+        return;
+    in_thread_periodic_caching_start( strChainNameConnectedTo, addressFrom, opts );
+}
+
 export async function periodic_caching_stop() {
-    await ensure_have_worker( opts );
-    const jo = {
-        "method": "periodic_caching_stop",
-        "message": {
+    if( g_worker && g_client ) {
+        try {
+            const jo = {
+                "method": "periodic_caching_stop",
+                "message": { }
+            };
+            g_client.send( jo );
+        } catch ( err ) {
+            log.write(
+                cc.error( "Failed to stop parallel periodic SNB refresh, error is: " ) +
+                cc.warning( owaspUtils.extract_error_message( err ) ) +
+                cc.error( ", stack is: " ) + "\n" + cc.stack( err.stack ) +
+                "\n" );
         }
-    };
-    g_client.send( jo );
+    }
+    if( g_interval_periodic_caching ) {
+        try {
+            clearInterval( g_interval_periodic_caching );
+            g_interval_periodic_caching = null;
+        } catch ( err ) {
+            log.write(
+                cc.error( "Failed to stop in-thread periodic SNB refresh, error is: " ) +
+                cc.warning( owaspUtils.extract_error_message( err ) ) +
+                cc.error( ", stack is: " ) + "\n" + cc.stack( err.stack ) +
+                "\n" );
+            g_interval_periodic_caching = null; // clear it anyway
+        }
+    }
+    g_bHaveParallelResult = false;
 }
 
 export function pick_random_schain_node_index( jo_schain ) {
