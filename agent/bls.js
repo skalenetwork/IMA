@@ -736,7 +736,7 @@ async function check_correctness_of_messages_to_sign( details, strLogPrefix, str
         joAccount = imaState.joAccount_s_chain;
         joChainName = joExtraSignOpts.chain_id_dst;
     } else
-        throw new Error( "CRITICAL ERROR: Failed check_correctness_of_messages_to_sign() with unknown directon \"" + strDirection + "\"" );
+        throw new Error( "CRITICAL ERROR: Failed check_correctness_of_messages_to_sign() with unknown direction \"" + strDirection + "\"" );
 
     const strCallerAccountAddress = joAccount.address( w3 );
     details.write( strLogPrefix + cc.sunny( strDirection ) + cc.debug( " message correctness validation through call to " ) +
@@ -895,7 +895,7 @@ async function do_sign_messages_impl(
         }
         const nCountOfBlsPartsToCollect = 0 + nThreshold;
         // if( nThreshold <= 1 && nParticipants > 1 ) {
-        //     details.write( strLogPrefix + cc.warning( "Minimal BLS parts number for dicovery was increased." ) + "\n" );
+        //     details.write( strLogPrefix + cc.warning( "Minimal BLS parts number for discovery was increased." ) + "\n" );
         //     nCountOfBlsPartsToCollect = 2;
         // }
         log.write( strLogPrefix +
@@ -962,7 +962,7 @@ async function do_sign_messages_impl(
                     // fromChainURL = owaspUtils.w3_2_url( joExtraSignOpts.w3_src );
                 } else {
                     await joCall.disconnect();
-                    throw new Error( "CRITICAL ERROR: Failed do_sign_messages_impl() with unknown directon \"" + strDirection + "\"" );
+                    throw new Error( "CRITICAL ERROR: Failed do_sign_messages_impl() with unknown direction \"" + strDirection + "\"" );
                 }
 
                 const joParams = {
@@ -1231,7 +1231,7 @@ async function do_sign_messages_impl(
             if( ! bHaveResultReportCalled ) {
                 bHaveResultReportCalled = true;
                 await fn(
-                    "Failed to gather BLS signatures in " + jarrNodes.length + " node(s), trakcer data is: " +
+                    "Failed to gather BLS signatures in " + jarrNodes.length + " node(s), tracker data is: " +
                         JSON.stringify( joGatheringTracker ) + ", error is: " + errGathering.toString(),
                     jarrMessages,
                     null
@@ -1256,7 +1256,7 @@ async function do_sign_messages_impl(
             log.write( strErrorMessage );
             details.write( strErrorMessage );
             bHaveResultReportCalled = true;
-            await fn( "Failed to gather BLS signatures in " + jarrNodes.length + " node(s), trakcer data is: " + JSON.stringify( joGatheringTracker ), jarrMessages, null ).catch( ( err ) => {
+            await fn( "Failed to gather BLS signatures in " + jarrNodes.length + " node(s), tracker data is: " + JSON.stringify( joGatheringTracker ), jarrMessages, null ).catch( ( err ) => {
                 const strErrorMessage =
                     cc.error( "Problem(6) in BLS sign result handler, not enough successful BLS signature parts(" ) +
                     cc.info( cntSuccess ) + cc.error( ") and timeout reached, error details: " ) +
@@ -1277,7 +1277,7 @@ async function do_sign_messages_impl(
         if( ! bHaveResultReportCalled ) {
             bHaveResultReportCalled = true;
             await fn( "Failed BLS sign due to exception: " + owaspUtils.extract_error_message( err ), jarrMessages, null ).catch( ( err ) => {
-                const strErrorMessage = cc.error( "Failed BLS sign due to error-erporting callback exception: " ) + cc.warning( owaspUtils.extract_error_message( err ) ) + "\n";
+                const strErrorMessage = cc.error( "Failed BLS sign due to error-reporting callback exception: " ) + cc.warning( owaspUtils.extract_error_message( err ) ) + "\n";
                 log.write( strErrorMessage );
                 if( details ) {
                     details.write( strErrorMessage );
@@ -1385,7 +1385,7 @@ async function do_sign_u256( u256, details, fn ) {
     }
     const nCountOfBlsPartsToCollect = 0 + nThreshold;
     // if( nThreshold <= 1 && nParticipants > 1 ) {
-    //     details.write( strLogPrefix + cc.warning( "Minimal BLS parts number for dicovery was increased." ) + "\n" );
+    //     details.write( strLogPrefix + cc.warning( "Minimal BLS parts number for discovery was increased." ) + "\n" );
     //     nCountOfBlsPartsToCollect = 2;
     // }
     log.write( strLogPrefix + cc.debug( "Will(u256) collect " ) + cc.info( nCountOfBlsPartsToCollect ) + "\n" );

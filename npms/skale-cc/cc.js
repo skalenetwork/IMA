@@ -169,7 +169,7 @@ const g_arrRainbowParts = [
     g_map_color_definitions.fgMagenta
 ];
 
-function raibow_part( s, i ) {
+function rainbow_part( s, i ) {
     if( !g_bEnabled )
         return s;
     const j = i % g_arrRainbowParts.length;
@@ -182,7 +182,7 @@ function rainbow( s ) {
     let res = "";
     const cnt = s.length;
     for( let i = 0; i < cnt; ++ i )
-        res = res + raibow_part( s[i], i );
+        res = res + rainbow_part( s[i], i );
     return res;
 }
 

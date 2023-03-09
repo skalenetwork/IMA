@@ -36,6 +36,9 @@ const w3mod = require( "web3" );
 // const ethereumjs_wallet = require( "ethereumjs-wallet" );
 // const ethereumjs_util = require( "ethereumjs-util" );
 
+let g_interval_periodic_caching = null;
+let g_bHaveParallelResult = false;
+
 const PORTS_PER_SCHAIN = 64;
 
 function getWeb3FromURL( strURL, log ) {
@@ -451,14 +454,14 @@ async function cache_schains( strChainNameConnectedTo, w3_main_net, w3_s_chain, 
                 cc.debug( "Connected " ) + cc.attention( "S-Chains" ) + cc.debug( " cache was updated in this thread: " ) +
                 cc.j( g_arr_schains_cached ) + "\n" );
         }
-        if( opts.fn_chache_changed )
-            opts.fn_chache_changed( g_arr_schains_cached, null ); // null - no error
+        if( opts.fn_cache_changed )
+            opts.fn_cache_changed( g_arr_schains_cached, null ); // null - no error
     } catch ( err ) {
         strError = owaspUtils.extract_error_message( err );
         if( ! strError )
             strError = "unknown exception during S-Chains download";
-        if( opts.fn_chache_changed )
-            opts.fn_chache_changed( g_arr_schains_cached, strError );
+        if( opts.fn_cache_changed )
+            opts.fn_cache_changed( g_arr_schains_cached, strError );
         if( opts && opts.details )
             opts.details.write( cc.fatal( "ERROR:" ) + cc.error( " Failed to cache: " ) + cc.error( err ) + "\n" );
 
@@ -487,11 +490,13 @@ async function ensure_have_worker( opts ) {
     } );
     g_client = new network_layer.OutOfWorkerSocketClientPipe( url, g_worker );
     g_client.on( "message", function( eventData ) {
+        // console.log( cc.attention( ">>>> TRACE - SNB HOST OBSERVER EVENT DATA >>>>" ), cc.j( eventData ) );
         const joMessage = eventData.message;
-        // console.log( "CLIENT <<<", JSON.stringify( joMessage ) );
+        // console.log( cc.attention( ">>>> TRACE - SNB HOST OBSERVER MESSAGE >>>>" ), cc.j( joMessage ) );
         switch ( joMessage.method ) {
         case "periodic_caching_do_now":
             g_arr_schains_cached = joMessage.message;
+            g_bHaveParallelResult = true;
             if( opts && opts.details ) {
                 opts.details.write(
                     cc.debug( "Connected " ) + cc.attention( "S-Chains" ) +
@@ -564,29 +569,101 @@ async function ensure_have_worker( opts ) {
             }
         }
     };
+    // console.log( cc.attention( "<<<< TRACE - SNB HOST OBSERVER MESSAGE <<<<" ), cc.j( jo ) );
     g_client.send( jo );
 }
 
-async function periodic_caching_start( strChainNameConnectedTo, w3_main_net, w3_s_chain, addressFrom, opts ) {
-    await ensure_have_worker( opts );
-    const jo = {
-        method: "periodic_caching_start",
-        message: {
-            secondsToReDiscoverSkaleNetwork: parseInt( opts.secondsToReDiscoverSkaleNetwork ),
-            strChainNameConnectedTo: strChainNameConnectedTo,
-            addressFrom: addressFrom
-        }
-    };
-    g_client.send( jo );
+async function in_thread_periodic_caching_start( strChainNameConnectedTo, w3_main_net, w3_s_chain, addressFrom, opts ) {
+    if( g_interval_periodic_caching != null )
+        return;
+    try {
+        const fn_do_caching_now = async function() {
+            await cache_schains( strChainNameConnectedTo, w3_main_net, w3_s_chain, addressFrom, opts );
+        };
+        g_interval_periodic_caching = setInterval( fn_do_caching_now, parseInt( opts.secondsToReDiscoverSkaleNetwork ) * 1000 );
+        await fn_do_caching_now();
+        return true;
+    } catch ( err ) {
+        log.write(
+            cc.error( "Failed to start in-thread periodic SNB refresh, error is: " ) +
+            cc.warning( owaspUtils.extract_error_message( err ) ) +
+            cc.error( ", stack is: " ) + "\n" + cc.stack( err.stack ) +
+            "\n" );
+    }
+    return false;
 }
+
+async function parallel_periodic_caching_start( strChainNameConnectedTo, w3_main_net, w3_s_chain, addressFrom, opts ) {
+    g_bHaveParallelResult = false;
+    try {
+        const nSecondsToWaitParallel = 60;
+        setTimeout( function() {
+            if( g_bHaveParallelResult )
+                return;
+            log.write(
+                cc.error( "Failed to start parallel periodic SNB refresh, error is: " ) +
+                cc.warning( "timeout of " ) + cc.info( nSecondsToWaitParallel ) +
+                cc.warning( " reached, will restart periodic SNB refresh in non-parallel mode" ) +
+                "\n" );
+            periodic_caching_stop();
+            in_thread_periodic_caching_start( strChainNameConnectedTo, w3_main_net, w3_s_chain, addressFrom, opts );
+        }, nSecondsToWaitParallel * 1000 );
+        await ensure_have_worker( opts );
+        const jo = {
+            method: "periodic_caching_start",
+            message: {
+                secondsToReDiscoverSkaleNetwork: parseInt( opts.secondsToReDiscoverSkaleNetwork ),
+                strChainNameConnectedTo: strChainNameConnectedTo,
+                addressFrom: addressFrom
+            }
+        };
+        // console.log( cc.attention( "<<<< TRACE - SNB HOST OBSERVER MESSAGE <<<<" ), cc.j( jo ) );
+        g_client.send( jo );
+        return true;
+    } catch ( err ) {
+        log.write(
+            cc.error( "Failed to start parallel periodic SNB refresh, error is: " ) +
+            cc.warning( owaspUtils.extract_error_message( err ) ) +
+            cc.error( ", stack is: " ) + "\n" + cc.stack( err.stack ) +
+            "\n" );
+    }
+    return false;
+}
+
+async function periodic_caching_start( strChainNameConnectedTo, w3_main_net, w3_s_chain, addressFrom, opts ) {
+    g_bHaveParallelResult = false;
+    const bParallelMode = ( opts && "bParallelMode" in opts && typeof opts.bParallelMode != "undefined" && opts.bParallelMode ) ? true : false;
+    let wasStarted = false;
+    if( bParallelMode )
+        wasStarted = parallel_periodic_caching_start( strChainNameConnectedTo, w3_main_net, w3_s_chain, addressFrom, opts );
+    if( wasStarted )
+        return;
+    in_thread_periodic_caching_start( strChainNameConnectedTo, w3_main_net, w3_s_chain, addressFrom, opts );
+}
+
 async function periodic_caching_stop() {
-    await ensure_have_worker( opts );
-    const jo = {
-        method: "periodic_caching_stop",
-        message: {
+    if( g_worker && g_client ) {
+        const jo = {
+            method: "periodic_caching_stop",
+            message: { }
+        };
+        // console.log( cc.attention( "<<<< TRACE - SNB HOST OBSERVER MESSAGE <<<<" ), cc.j( jo ) );
+        g_client.send( jo );
+    }
+    if( g_interval_periodic_caching ) {
+        try {
+            clearInterval( g_interval_periodic_caching );
+            g_interval_periodic_caching = null;
+        } catch ( err ) {
+            log.write(
+                cc.error( "Failed to stop in-thread periodic SNB refresh, error is: " ) +
+                cc.warning( owaspUtils.extract_error_message( err ) ) +
+                cc.error( ", stack is: " ) + "\n" + cc.stack( err.stack ) +
+                "\n" );
+            g_interval_periodic_caching = null; // clear it anyway
         }
-    };
-    g_client.send( jo );
+    }
+    g_bHaveParallelResult = false;
 }
 
 function pick_random_schain_node_index( jo_schain ) {

@@ -280,7 +280,7 @@ global.imaState = {
 
     "s2s_opts": { // S-Chain to S-Chain transfer options
         "isEnabled": true, // is S-Chain to S-Chain transfers enabled
-        "secondsToReDiscoverSkaleNetwork": 1 * 60 * 60 // seconts to re-discover SKALE network, 0 to disable
+        "secondsToReDiscoverSkaleNetwork": 1 * 60 * 60 // seconds to re-discover SKALE network, 0 to disable
     },
 
     "arrActions": [] // array of actions to run
@@ -314,10 +314,11 @@ const fnInitActionSkaleNetworkScanForS2S = function() {
             }
             log.write( strLogPrefix + cc.debug( "Downloading SKALE network information..." ) + "\n" ); // just print value
             const opts = {
-                imaState: imaState,
+                "imaState": imaState,
                 "details": log,
                 "bStopNeeded": false,
-                "secondsToReDiscoverSkaleNetwork": imaState.s2s_opts.secondsToReDiscoverSkaleNetwork
+                "secondsToReDiscoverSkaleNetwork": imaState.s2s_opts.secondsToReDiscoverSkaleNetwork,
+                "bParallelMode": true
             };
             const addressFrom = imaState.joAccount_main_net.address( imaState.w3_main_net );
             // const strError = await skale_observer.cache_schains(
@@ -1505,7 +1506,7 @@ imaCLI.parse( {
                 );
 
                 const cnt = arr_schains_cached.length;
-                log.write( strLogPrefix + cc.normal( "Got " ) + cc.info( cnt ) + cc.normal( " onnected S-Chain(s): " ) + cc.j( arr_schains_cached ) + "\n" );
+                log.write( strLogPrefix + cc.normal( "Got " ) + cc.info( cnt ) + cc.normal( " connected S-Chain(s): " ) + cc.j( arr_schains_cached ) + "\n" );
                 return true;
             }
         } );
@@ -1540,7 +1541,7 @@ imaCLI.parse( {
                 }
                 if( arr_urls_to_discover.length === 0 ) {
                     console.log( cc.fatal( "CRITICAL ERROR:" ) +
-                        cc.error( " no URLs privided to discover chain IDs, please specify " ) +
+                        cc.error( " no URLs provided to discover chain IDs, please specify " ) +
                         cc.warning( "--url-main-net" ) + cc.error( " and/or " ) +
                         cc.warning( "--url-s-chain" ) + cc.error( " and/or " ) +
                         cc.warning( "--url-t-chain" ) + cc.error( "." ) +
@@ -2452,7 +2453,7 @@ async function single_transfer_loop() {
     try {
         if( g_is_single_transfer_loop ) {
             if( IMA.verbose_get() >= IMA.RV_VERBOSE.debug )
-                log.write( strLogPrefix + cc.warning( "Skipped due to other single transfer loop is in progress rignt now" ) + "\n" );
+                log.write( strLogPrefix + cc.warning( "Skipped due to other single transfer loop is in progress right now" ) + "\n" );
             return true;
         }
         g_is_single_transfer_loop = true;

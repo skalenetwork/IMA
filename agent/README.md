@@ -712,9 +712,9 @@ reset; node ./main.js --verbose=9 --expose --colors \
     --key-main-net=$PRIVATE_KEY_FOR_ETHEREUM \
     --key-s-chain=$PRIVATE_KEY_FOR_SCHAIN \
     --sign-messages \
-    --bls-glue=/Users/l_sergiy/Work/skaled/build/libconsensus/libBLS/bls_glue \
-    --hash-g1=/Users/l_sergiy/Work/skaled/build/libconsensus/libBLS/hash_g1 \
-    --bls-verify=/Users/l_sergiy/Work/skaled/build/libconsensus/libBLS/verify_bls
+    --bls-glue...../bls_glue \
+    --hash-g1...../hash_g1 \
+    --bls-verify...../verify_bls
 
 reset; node ./main.js --verbose=9 --expose --colors \
     --loop \
@@ -729,9 +729,9 @@ reset; node ./main.js --verbose=9 --expose --colors \
     --key-main-net=$PRIVATE_KEY_FOR_ETHEREUM \
     --key-s-chain=$PRIVATE_KEY_FOR_SCHAIN \
     --sign-messages \
-    --bls-glue=/home/serge/Work/skaled/build/libconsensus/libBLS/bls_glue \
-    --hash-g1=/home/serge/Work/skaled/build/libconsensus/libBLS/hash_g1 \
-    --bls-verify=/home/serge/Work/skaled/build/libconsensus/libBLS/verify_bls
+    --bls-glue=...../bls_glue \
+    --hash-g1=...../hash_g1 \
+    --bls-verify=...../verify_bls
 ```
 
 ### Gas computation and transaction customization
