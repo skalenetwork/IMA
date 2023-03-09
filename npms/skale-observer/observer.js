@@ -490,8 +490,9 @@ async function ensure_have_worker( opts ) {
     } );
     g_client = new network_layer.OutOfWorkerSocketClientPipe( url, g_worker );
     g_client.on( "message", function( eventData ) {
+        // console.log( cc.attention( ">>>> TRACE - SNB HOST OBSERVER EVENT DATA >>>>" ), cc.j( eventData ) );
         const joMessage = eventData.message;
-        // console.log( "CLIENT <<<", JSON.stringify( joMessage ) );
+        // console.log( cc.attention( ">>>> TRACE - SNB HOST OBSERVER MESSAGE >>>>" ), cc.j( joMessage ) );
         switch ( joMessage.method ) {
         case "periodic_caching_do_now":
             g_arr_schains_cached = joMessage.message;
@@ -568,6 +569,7 @@ async function ensure_have_worker( opts ) {
             }
         }
     };
+    // console.log( cc.attention( "<<<< TRACE - SNB HOST OBSERVER MESSAGE <<<<" ), cc.j( jo ) );
     g_client.send( jo );
 }
 
@@ -615,6 +617,7 @@ async function parallel_periodic_caching_start( strChainNameConnectedTo, w3_main
                 addressFrom: addressFrom
             }
         };
+        // console.log( cc.attention( "<<<< TRACE - SNB HOST OBSERVER MESSAGE <<<<" ), cc.j( jo ) );
         g_client.send( jo );
         return true;
     } catch ( err ) {
@@ -644,6 +647,7 @@ async function periodic_caching_stop() {
             method: "periodic_caching_stop",
             message: { }
         };
+        // console.log( cc.attention( "<<<< TRACE - SNB HOST OBSERVER MESSAGE <<<<" ), cc.j( jo ) );
         g_client.send( jo );
     }
     if( g_interval_periodic_caching ) {

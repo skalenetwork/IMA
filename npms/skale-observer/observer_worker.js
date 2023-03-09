@@ -38,6 +38,7 @@ const skale_observer = require( "./observer.js" );
 const g_url = "skale_observer_worker_server";
 
 parentPort.on( "message", jo => {
+    // console.log( cc.attention( ">>>> TRACE - SNB WORKER MESSAGE >>>>" ), cc.j( jo ) );
     if( network_layer.in_worker_apis.on_message( jo ) )
         return;
 } );
@@ -45,7 +46,9 @@ parentPort.on( "message", jo => {
 const sleep = ( milliseconds ) => { return new Promise( resolve => setTimeout( resolve, milliseconds ) ); };
 
 function doSendMessage( type, endpoint, worker_uuid, data ) {
+    // console.log( cc.attention( "<<<< TRACE - SNB WORKER OUTGOING DATA <<<<" ), cc.j( arguments ) );
     const jo = network_layer.socket_received_data_reverse_marshall( data );
+    // console.log( cc.attention( "<<<< TRACE - SNB WORKER MESSAGE <<<<" ), cc.j( jo ) );
     const joSend = {
         worker_message_type: ( type && typeof type == "string" && type.length > 0 ) ? type : "in_worker_message",
         worker_endpoint: endpoint,
