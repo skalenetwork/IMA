@@ -1,7 +1,21 @@
-FROM node:16
+#FROM node:16
+FROM ubuntu:jammy
 
 RUN apt-get update
-RUN apt-get install -y build-essential zlib1g-dev libncurses5-dev libgdbm-dev libnss3-dev libssl-dev libreadline-dev libffi-dev wget
+RUN apt-get install -yq software-properties-common
+RUN apt-get update
+#RUN apt-get upgrade
+RUN apt-get install -y build-essential zlib1g-dev libncurses5-dev libgdbm-dev libnss3-dev libssl-dev libreadline-dev libffi-dev wget curl sudo git
+
+RUN curl -sL https://deb.nodesource.com/setup_16.x | sudo -E bash -
+RUN apt-get install -y nodejs
+RUN node --version
+RUN npm --version
+RUN npm install npm --global
+RUN npm --version
+RUN npm install --global yarn
+RUN yarn --version
+
 RUN curl -O https://www.python.org/ftp/python/3.7.3/Python-3.7.3.tar.xz
 RUN tar -xf Python-3.7.3.tar.xz
 RUN cd Python-3.7.3; ./configure --enable-optimizations; make -j 4 build_all; make altinstall; cd ..
