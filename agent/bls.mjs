@@ -1171,7 +1171,8 @@ async function do_sign_messages_impl(
                 cntSuccess = joGatheringTracker.nCountReceived - joGatheringTracker.nCountErrors;
                 if( cntSuccess >= nCountOfBlsPartsToCollect ) {
                     const strLogPrefixB =
-                        cc.bright( strDirection ) + cc.debug( "/" ) + cc.sunny( nTransferLoopCounter ) + cc.debug( "/" ) + cc.info( "BLS" ) +
+                        cc.bright( strDirection ) + cc.debug( "/" ) +
+                        cc.attention( "#" ) + cc.sunny( nTransferLoopCounter ) + cc.debug( "/" ) + cc.info( "BLS" ) +
                         cc.debug( "/" ) + cc.sunny( "Summary" ) + cc.debug( ":" ) + " ";
                     clearInterval( iv );
                     let strError = null, strSuccessfulResultDescription = null;
