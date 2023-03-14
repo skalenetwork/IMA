@@ -391,7 +391,11 @@ export async function safe_getTransactionReceipt( details, cntAttempts, ethersPr
     return ret;
 }
 
-export async function safe_getPastEvents( details, ethersProvider, cntAttempts, joContract, strEventName, nBlockFrom, nBlockTo, joFilter, retValOnFail, throwIfServerOffline ) {
+export async function safe_getPastEvents(
+    details, strLogPrefix,
+    ethersProvider, cntAttempts, joContract, strEventName,
+    nBlockFrom, nBlockTo, joFilter, retValOnFail, throwIfServerOffline
+) {
     const u = owaspUtils.ep_2_url( ethersProvider );
     const nWaitStepMilliseconds = 10 * 1000;
     if( throwIfServerOffline == null || throwIfServerOffline == undefined )
@@ -410,7 +414,7 @@ export async function safe_getPastEvents( details, ethersProvider, cntAttempts, 
     nBlockFrom = owaspUtils.toBN( nBlockFrom );
     try {
         // TO-IMPROVE: this must be re-checked
-        details.write(
+        details.write( strLogPrefix +
             cc.debug( "First time, will query filter " ) + cc.j( joFilter ) +
             cc.debug( " on contract " ) + cc.info( joContract.address ) +
             cc.debug( " from block " ) + cc.info( nBlockFrom.toHexString() ) +
@@ -425,7 +429,7 @@ export async function safe_getPastEvents( details, ethersProvider, cntAttempts, 
         return ret;
     } catch ( err ) {
         ret = retValOnFail;
-        details.write(
+        details.write( strLogPrefix +
             cc.error( "Failed filtering attempt " ) + cc.info( idxAttempt ) +
             cc.error( " for event " ) + cc.note( strEventName ) +
             cc.error( " via " ) + cc.u( u ) +
@@ -434,7 +438,7 @@ export async function safe_getPastEvents( details, ethersProvider, cntAttempts, 
             cc.error( ", stack is: " ) + "\n" + cc.stack( err.stack ) +
             "\n" );
         if( owaspUtils.extract_error_message( err ).indexOf( strErrorTextAboutNotExistingEvent ) >= 0 ) {
-            details.write(
+            details.write( strLogPrefix +
                 cc.error( "Did stopped filtering of " ) + cc.note( strEventName ) +
                 cc.error( " event because no such event exist in smart contract " ) +
                 "\n" );
@@ -448,7 +452,7 @@ export async function safe_getPastEvents( details, ethersProvider, cntAttempts, 
             ret = retValOnFail;
             if( ! throwIfServerOffline )
                 return ret;
-            details.write(
+            details.write( strLogPrefix +
                 cc.error( "Cannot do " ) + cc.note( strEventName ) + cc.error( " event filtering via " ) + cc.u( u ) +
                 cc.warning( " because server is off-line" ) + "\n" );
             throw new Error(
@@ -457,7 +461,7 @@ export async function safe_getPastEvents( details, ethersProvider, cntAttempts, 
                 " via " + u.toString() + " because server is off-line"
             );
         }
-        details.write(
+        details.write( strLogPrefix +
             cc.warning( "Repeat " ) + cc.note( strEventName ) +
             cc.error( " event filtering via " ) + cc.u( u ) +
             cc.warning( ", attempt " ) + cc.info( idxAttempt ) +
@@ -465,7 +469,7 @@ export async function safe_getPastEvents( details, ethersProvider, cntAttempts, 
         // await sleep( nWaitStepMilliseconds );
         try {
             // TO-IMPROVE: this must be re-checked
-            details.write(
+            details.write( strLogPrefix +
                 cc.debug( "Attempt " ) + cc.info( idxAttempt ) + cc.debug( ", will query filter " ) + cc.j( joFilter ) +
                 cc.debug( " on contract " ) + cc.info( joContract.address ) +
                 cc.debug( " from block " ) + cc.info( nBlockFrom.toHexString() ) +
@@ -481,7 +485,7 @@ export async function safe_getPastEvents( details, ethersProvider, cntAttempts, 
 
         } catch ( err ) {
             ret = retValOnFail;
-            details.write(
+            details.write( strLogPrefix +
                 cc.error( "Failed filtering attempt " ) + cc.info( idxAttempt ) +
                 cc.error( " for event " ) + cc.note( strEventName ) +
                 cc.error( " via " ) + cc.u( u ) +
@@ -490,7 +494,7 @@ export async function safe_getPastEvents( details, ethersProvider, cntAttempts, 
                 cc.error( ", stack is: " ) + "\n" + cc.stack( err.stack ) +
                 "\n" );
             if( owaspUtils.extract_error_message( err ).indexOf( strErrorTextAboutNotExistingEvent ) >= 0 ) {
-                details.write(
+                details.write( strLogPrefix +
                     cc.error( "Did stopped " ) + cc.note( strEventName ) +
                     cc.error( " event filtering because no such event exist in smart contract " ) +
                     "\n" );
@@ -500,7 +504,7 @@ export async function safe_getPastEvents( details, ethersProvider, cntAttempts, 
         ++ idxAttempt;
     }
     if( ( idxAttempt + 1 ) === cntAttempts && ret === "" ) {
-        details.write( cc.fatal( "ERROR:" ) +
+        details.write( strLogPrefix + cc.fatal( "ERROR:" ) +
             cc.error( " Failed filtering attempt for " ) + cc.note( strEventName ) +
             + cc.error( " event via " ) + cc.u( u ) +
             cc.error( ", from block " ) + cc.info( nBlockFrom.toHexString() ) + cc.error( ", to block " ) + cc.info( nBlockTo.toHexString() ) +
@@ -543,23 +547,31 @@ export function setMaxIterationsInAllRangeEventsScan( n ) {
     }
 }
 
-export async function safe_getPastEventsIterative( details, ethersProvider, attempts, joContract, strEventName, nBlockFrom, nBlockTo, joFilter ) {
+export async function safe_getPastEventsIterative(
+    details, strLogPrefix,
+    ethersProvider, attempts, joContract, strEventName,
+    nBlockFrom, nBlockTo, joFilter
+) {
     if( g_nCountOfBlocksInIterativeStep <= 0 || g_nMaxBlockScanIterationsInAllRange <= 0 ) {
-        details.write(
+        details.write( strLogPrefix +
             cc.fatal( "IMPORTANT NOTICE:" ) + " " +
             cc.warning( "Will skip " ) + cc.attention( "iterative" ) + cc.warning( " events scan in block range from " ) +
             cc.j( nBlockFrom ) + cc.warning( " to " ) + cc.j( nBlockTo ) +
             cc.warning( " because it's " ) + cc.error( "DISABLED" ) + "\n" );
-        return await safe_getPastEvents( details, ethersProvider, attempts, joContract, strEventName, nBlockFrom, nBlockTo, joFilter );
+        return await safe_getPastEvents(
+            details, strLogPrefix,
+            ethersProvider, attempts, joContract,
+            strEventName, nBlockFrom, nBlockTo, joFilter
+        );
     }
     const nLatestBlockNumber = owaspUtils.toBN( await safe_getBlockNumber( details, 10, ethersProvider ) );
     let isLastLatest = false;
     if( nBlockTo == "latest" ) {
         isLastLatest = true;
         nBlockTo = nLatestBlockNumber;
-        details.write(
+        details.write( strLogPrefix +
             cc.debug( "Iterative scan up to latest block " ) +
-            cc.attention( "#" ) + cc.info( nBlockTo.toHexString() ) +
+            cc.info( "#" ) + cc.info( nBlockTo.toHexString() ) +
             cc.debug( " assumed instead of " ) + cc.attention( "latest" ) + "\n" );
     } else {
         nBlockTo = owaspUtils.toBN( nBlockTo );
@@ -574,14 +586,18 @@ export async function safe_getPastEventsIterative( details, ethersProvider, atte
             owaspUtils.toBN( g_nCountOfBlocksInIterativeStep )
         ).gt( owaspUtils.toBN( g_nMaxBlockScanIterationsInAllRange ) )
         ) {
-            details.write(
+            details.write( strLogPrefix +
                 cc.fatal( "IMPORTANT NOTICE:" ) + " " +
                 cc.warning( "Will skip " ) + cc.attention( "iterative" ) + cc.warning( " scan and use scan in block range from " ) +
                 cc.info( nBlockFrom.toHexString() ) + cc.warning( " to " ) + cc.info( nBlockTo.toHexString() ) + "\n" );
-            return await safe_getPastEvents( details, ethersProvider, attempts, joContract, strEventName, nBlockFrom, nBlockTo, joFilter );
+            return await safe_getPastEvents(
+                details, strLogPrefix,
+                ethersProvider, attempts, joContract, strEventName,
+                nBlockFrom, nBlockTo, joFilter
+            );
         }
     }
-    details.write(
+    details.write( strLogPrefix +
         cc.debug( "Iterative scan in " ) +
         cc.info( nBlockFrom.toHexString() ) + cc.debug( "/" ) + cc.info( nBlockTo.toHexString() ) +
         cc.debug( " block range..." ) + "\n" );
@@ -591,22 +607,26 @@ export async function safe_getPastEventsIterative( details, ethersProvider, atte
         if( idxBlockSubRangeTo.gt( nBlockTo ) )
             idxBlockSubRangeTo = nBlockTo;
         try {
-            details.write(
+            details.write( strLogPrefix +
                 cc.debug( "Iterative scan of " ) +
                 cc.info( idxBlockSubRangeFrom.toHexString() ) + cc.debug( "/" ) + cc.info( idxBlockSubRangeTo.toHexString() ) +
                 cc.debug( " block sub-range in " ) +
                 cc.info( nBlockFrom.toHexString() ) + cc.debug( "/" ) + cc.info( nBlockTo.toHexString() ) +
                 cc.debug( " block range..." ) + "\n" );
-            const joAllEventsInBlock = await safe_getPastEvents( details, ethersProvider, attempts, joContract, strEventName, idxBlockSubRangeFrom, idxBlockSubRangeTo, joFilter );
+            const joAllEventsInBlock = await safe_getPastEvents(
+                details, strLogPrefix,
+                ethersProvider, attempts, joContract, strEventName,
+                idxBlockSubRangeFrom, idxBlockSubRangeTo, joFilter
+            );
             if( joAllEventsInBlock && joAllEventsInBlock != "" && joAllEventsInBlock.length > 0 ) {
-                details.write(
+                details.write( strLogPrefix +
                     cc.success( "Result of " ) + cc.attention( "iterative" ) + cc.success( " scan in " ) +
                     cc.info( nBlockFrom.toHexString() ) + cc.success( "/" ) + cc.info( nBlockTo.toHexString() ) +
                     cc.success( " block range is " ) + cc.j( joAllEventsInBlock ) + "\n" );
                 return joAllEventsInBlock;
             }
         } catch ( err ) {
-            details.write(
+            details.write( strLogPrefix +
                 cc.error( "Got scan error during interactive scan of " ) +
                 cc.info( idxBlockSubRangeFrom.toHexString() ) + cc.error( "/" ) + cc.info( idxBlockSubRangeTo.toHexString() ) +
                 cc.error( " block sub-range in " ) + cc.info( nBlockFrom.toHexString() ) + cc.error( "/" ) + cc.info( nBlockTo.toHexString() ) +
@@ -619,7 +639,7 @@ export async function safe_getPastEventsIterative( details, ethersProvider, atte
         if( idxBlockSubRangeFrom.eq( nBlockTo ) )
             break;
     }
-    details.write(
+    details.write( strLogPrefix +
         cc.debug( "Result of " ) + cc.attention( "iterative" ) + cc.debug( " scan in " ) +
         cc.info( nBlockFrom.toHexString() ) + cc.debug( "/" ) + cc.info( nBlockTo.toHexString() ) +
         cc.debug( " block range is " ) + cc.warning( "empty" ) + "\n" );
@@ -995,21 +1015,29 @@ export function create_progressive_events_scan_plan( details, nLatestBlockNumber
     return arr_progressive_events_scan_plan;
 }
 
-export async function safe_getPastEventsProgressive( details, ethersProvider, attempts, joContract, strEventName, nBlockFrom, nBlockTo, joFilter ) {
+export async function safe_getPastEventsProgressive(
+    details, strLogPrefix,
+    ethersProvider, attempts, joContract, strEventName,
+    nBlockFrom, nBlockTo, joFilter
+) {
     if( ! g_bIsEnabledProgressiveEventsScan ) {
-        details.write(
+        details.write( strLogPrefix +
             cc.fatal( "IMPORTANT NOTICE:" ) + " " +
             cc.warning( "Will skip " ) + cc.attention( "progressive" ) + cc.warning( " events scan in block range from " ) +
             cc.j( nBlockFrom ) + cc.warning( " to " ) + cc.j( nBlockTo ) +
             cc.warning( " because it's " ) + cc.error( "DISABLED" ) + "\n" );
-        return await safe_getPastEvents( details, ethersProvider, attempts, joContract, strEventName, nBlockFrom, nBlockTo, joFilter );
+        return await safe_getPastEvents(
+            details, strLogPrefix,
+            ethersProvider, attempts, joContract, strEventName,
+            nBlockFrom, nBlockTo, joFilter
+        );
     }
     const nLatestBlockNumber = owaspUtils.toBN( await safe_getBlockNumber( details, 10, ethersProvider ) );
     let isLastLatest = false;
     if( nBlockTo == "latest" ) {
         isLastLatest = true;
         nBlockTo = nLatestBlockNumber;
-        details.write(
+        details.write( strLogPrefix +
             cc.debug( "Iterative scan up to latest block " ) +
             cc.attention( "#" ) + cc.info( nBlockTo.toHexString() ) +
             cc.debug( " assumed instead of " ) + cc.attention( "latest" ) + "\n" );
@@ -1022,13 +1050,17 @@ export async function safe_getPastEventsProgressive( details, ethersProvider, at
     const nBlockZero = owaspUtils.toBN( 0 );
     const isFirstZero = ( nBlockFrom.eq( nBlockZero ) ) ? true : false;
     if( ! ( isFirstZero && isLastLatest ) ) {
-        details.write(
+        details.write( strLogPrefix +
             cc.debug( "Will skip " ) + cc.attention( "progressive" ) + cc.debug( " scan and use scan in block range from " ) +
             cc.info( nBlockFrom.toHexString() ) + cc.debug( " to " ) + cc.info( nBlockTo.toHexString() ) + "\n" );
-        return await safe_getPastEvents( details, ethersProvider, attempts, joContract, strEventName, nBlockFrom, nBlockTo, joFilter );
+        return await safe_getPastEvents(
+            details, strLogPrefix,
+            ethersProvider, attempts, joContract, strEventName,
+            nBlockFrom, nBlockTo, joFilter
+        );
     }
-    details.write( cc.debug( "Will run " ) + cc.attention( "progressive" ) + cc.debug( " scan..." ) + "\n" );
-    details.write( cc.debug( "Current latest block number is " ) + cc.info( nLatestBlockNumber.toHexString() ) + "\n" );
+    details.write( strLogPrefix + cc.debug( "Will run " ) + cc.attention( "progressive" ) + cc.debug( " scan..." ) + "\n" );
+    details.write( strLogPrefix + cc.debug( "Current latest block number is " ) + cc.info( nLatestBlockNumber.toHexString() ) + "\n" );
     const arr_progressive_events_scan_plan = create_progressive_events_scan_plan( details, nLatestBlockNumber );
     details.write( cc.debug( "Composed " ) + cc.attention( "progressive" ) + cc.debug( " scan plan is: " ) + cc.j( arr_progressive_events_scan_plan ) + "\n" );
     let joLastPlan = { "nBlockFrom": 0, "nBlockTo": "latest", "type": "entire block range" };
@@ -1037,7 +1069,7 @@ export async function safe_getPastEventsProgressive( details, ethersProvider, at
         if( joPlan.nBlockFrom < 0 )
             continue;
         joLastPlan = joPlan;
-        details.write(
+        details.write( strLogPrefix +
             cc.debug( "Progressive scan of " ) + cc.attention( "getPastEvents" ) + cc.debug( "/" ) + cc.info( strEventName ) +
             cc.debug( ", from block " ) + cc.info( joPlan.nBlockFrom ) +
             cc.debug( ", to block " ) + cc.info( joPlan.nBlockTo ) +
@@ -1046,13 +1078,12 @@ export async function safe_getPastEventsProgressive( details, ethersProvider, at
         try {
             const joAllEventsInBlock =
                 await safe_getPastEventsIterative(
-                    details, ethersProvider, attempts, joContract,
-                    strEventName,
-                    joPlan.nBlockFrom, joPlan.nBlockTo,
-                    joFilter
+                    details, strLogPrefix,
+                    ethersProvider, attempts, joContract, strEventName,
+                    joPlan.nBlockFrom, joPlan.nBlockTo, joFilter
                 );
             if( joAllEventsInBlock && joAllEventsInBlock.length > 0 ) {
-                details.write(
+                details.write( strLogPrefix +
                     cc.success( "Progressive scan of " ) + cc.attention( "getPastEvents" ) + cc.debug( "/" ) + cc.info( strEventName ) +
                     cc.success( ", from block " ) + cc.info( joPlan.nBlockFrom ) +
                     cc.success( ", to block " ) + cc.info( joPlan.nBlockTo ) +
@@ -1068,7 +1099,7 @@ export async function safe_getPastEventsProgressive( details, ethersProvider, at
     //     "\", from block " + joLastPlan.nBlockFrom + ", to block " + joLastPlan.nBlockTo +
     //     ", using progressive event scan"
     // );
-    details.write(
+    details.write( strLogPrefix +
         cc.error( "Could not not get Event \"" ) + cc.info( strEventName ) +
         cc.error( "\", from block " ) + cc.info( joLastPlan.nBlockFrom ) +
         cc.error( ", to block " ) + cc.info( joLastPlan.nBlockTo ) +
@@ -1080,7 +1111,11 @@ export async function safe_getPastEventsProgressive( details, ethersProvider, at
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-export async function get_contract_call_events( details, ethersProvider, joContract, strEventName, nBlockNumber, strTxHash, joFilter ) {
+export async function get_contract_call_events(
+    details, strLogPrefix,
+    ethersProvider, joContract, strEventName,
+    nBlockNumber, strTxHash, joFilter
+) {
     joFilter = joFilter || {};
     nBlockNumber = owaspUtils.toBN( nBlockNumber );
     const n10 = owaspUtils.toBN( 10 );
@@ -1093,10 +1128,9 @@ export async function get_contract_call_events( details, ethersProvider, joContr
         nBlockTo = nLatestBlockNumber;
     const joAllEventsInBlock =
         await safe_getPastEventsIterative(
-            details, ethersProvider, 10, joContract,
-            strEventName,
-            nBlockFrom, nBlockTo,
-            joFilter
+            details, strLogPrefix,
+            ethersProvider, 10, joContract, strEventName,
+            nBlockFrom, nBlockTo, joFilter
         );
     const joAllTransactionEvents = []; let i;
     for( i = 0; i < joAllEventsInBlock.length; ++i ) {
@@ -2359,9 +2393,9 @@ export async function do_eth_payment_from_main_net(
             await sleep( g_nSleepBeforeFetchOutgoingMessageEvent );
             const joEvents =
                 await get_contract_call_events(
-                    details, ethersProvider_main_net, jo_message_proxy_main_net,
-                    strEventName, joReceipt.blockNumber, joReceipt.transactionHash,
-                    jo_message_proxy_main_net.filters[strEventName]()
+                    details, strLogPrefix,
+                    ethersProvider_main_net, jo_message_proxy_main_net, strEventName,
+                    joReceipt.blockNumber, joReceipt.transactionHash, jo_message_proxy_main_net.filters[strEventName]()
                 );
             if( joEvents.length > 0 )
                 details.write( strLogPrefix + cc.success( "Success, verified the " ) + cc.info( strEventName ) + cc.success( " event of the " ) + cc.info( "MessageProxy" ) + cc.success( "/" ) + cc.notice( jo_message_proxy_main_net.address ) + cc.success( " contract, found event(s): " ) + cc.j( joEvents ) + "\n" );
@@ -2470,9 +2504,9 @@ export async function do_eth_payment_from_s_chain(
             await sleep( g_nSleepBeforeFetchOutgoingMessageEvent );
             const joEvents =
                 await get_contract_call_events(
-                    details, ethersProvider_s_chain, jo_message_proxy_s_chain,
-                    strEventName, joReceipt.blockNumber, joReceipt.transactionHash,
-                    jo_message_proxy_s_chain.filters[strEventName]()
+                    details, strLogPrefix,
+                    ethersProvider_s_chain, jo_message_proxy_s_chain, strEventName,
+                    joReceipt.blockNumber, joReceipt.transactionHash, jo_message_proxy_s_chain.filters[strEventName]()
                 );
             if( joEvents.length > 0 )
                 details.write( strLogPrefix + cc.success( "Success, verified the " ) + cc.info( strEventName ) + cc.success( " event of the " ) + cc.info( "MessageProxy" ) + cc.success( "/" ) + cc.notice( jo_message_proxy_s_chain.address ) + cc.success( " contract, found event(s): " ) + cc.j( joEvents ) + "\n" );
@@ -2752,9 +2786,9 @@ export async function do_erc721_payment_from_main_net(
             await sleep( g_nSleepBeforeFetchOutgoingMessageEvent );
             const joEvents =
                 await get_contract_call_events(
-                    details, ethersProvider_main_net, jo_message_proxy_main_net,
-                    strEventName, joReceiptDeposit.blockNumber, joReceiptDeposit.transactionHash,
-                    jo_message_proxy_main_net.filters[strEventName]()
+                    details, strLogPrefix,
+                    ethersProvider_main_net, jo_message_proxy_main_net, strEventName,
+                    joReceiptDeposit.blockNumber, joReceiptDeposit.transactionHash, jo_message_proxy_main_net.filters[strEventName]()
                 );
             if( joEvents.length > 0 )
                 details.write( strLogPrefix + cc.success( "Success, verified the " ) + cc.info( strEventName ) + cc.success( " event of the " ) + cc.info( "MessageProxy" ) + cc.success( "/" ) + cc.notice( jo_message_proxy_main_net.address ) + cc.success( " contract, found event(s): " ) + cc.j( joEvents ) + "\n" );
@@ -2920,9 +2954,9 @@ export async function do_erc20_payment_from_main_net(
             await sleep( g_nSleepBeforeFetchOutgoingMessageEvent );
             const joEvents =
                 await get_contract_call_events(
-                    details, ethersProvider_main_net, jo_message_proxy_main_net,
-                    strEventName, joReceiptDeposit.blockNumber, joReceiptDeposit.transactionHash,
-                    jo_message_proxy_main_net.filters[strEventName]()
+                    details, strLogPrefix,
+                    ethersProvider_main_net, jo_message_proxy_main_net, strEventName,
+                    joReceiptDeposit.blockNumber, joReceiptDeposit.transactionHash, jo_message_proxy_main_net.filters[strEventName]()
                 );
             if( joEvents.length > 0 )
                 details.write( strLogPrefix + cc.success( "Success, verified the " ) + cc.info( strEventName ) + cc.success( " event of the " ) + cc.info( "MessageProxy" ) + cc.success( "/" ) + cc.notice( jo_message_proxy_main_net.address ) + cc.success( " contract, found event(s): " ) + cc.j( joEvents ) + "\n" );
@@ -3087,9 +3121,9 @@ export async function do_erc1155_payment_from_main_net(
             await sleep( g_nSleepBeforeFetchOutgoingMessageEvent );
             const joEvents =
                 await get_contract_call_events(
-                    details, ethersProvider_main_net, jo_message_proxy_main_net,
-                    strEventName, joReceiptDeposit.blockNumber, joReceiptDeposit.transactionHash,
-                    jo_message_proxy_main_net.filters[strEventName]()
+                    details, strLogPrefix,
+                    ethersProvider_main_net, jo_message_proxy_main_net, strEventName,
+                    joReceiptDeposit.blockNumber, joReceiptDeposit.transactionHash, jo_message_proxy_main_net.filters[strEventName]()
                 );
             if( joEvents.length > 0 )
                 details.write( strLogPrefix + cc.success( "Success, verified the " ) + cc.info( strEventName ) + cc.success( " event of the " ) + cc.info( "MessageProxy" ) + cc.success( "/" ) + cc.notice( jo_message_proxy_main_net.address ) + cc.success( " contract, found event(s): " ) + cc.j( joEvents ) + "\n" );
@@ -3254,9 +3288,9 @@ export async function do_erc1155_batch_payment_from_main_net(
             await sleep( g_nSleepBeforeFetchOutgoingMessageEvent );
             const joEvents =
                 await get_contract_call_events(
-                    details, ethersProvider_main_net, jo_message_proxy_main_net,
-                    strEventName, joReceiptDeposit.blockNumber, joReceiptDeposit.transactionHash,
-                    jo_message_proxy_main_net.filters[strEventName]()
+                    details, strLogPrefix,
+                    ethersProvider_main_net, jo_message_proxy_main_net, strEventName,
+                    joReceiptDeposit.blockNumber, joReceiptDeposit.transactionHash, jo_message_proxy_main_net.filters[strEventName]()
                 );
             if( joEvents.length > 0 )
                 details.write( strLogPrefix + cc.success( "Success, verified the " ) + cc.info( strEventName ) + cc.success( " event of the " ) + cc.info( "MessageProxy" ) + cc.success( "/" ) + cc.notice( jo_message_proxy_main_net.address ) + cc.success( " contract, found event(s): " ) + cc.j( joEvents ) + "\n" );
@@ -3434,9 +3468,9 @@ export async function do_erc20_payment_from_s_chain(
             await sleep( g_nSleepBeforeFetchOutgoingMessageEvent );
             const joEvents =
                 await get_contract_call_events(
-                    details, ethersProvider_s_chain, jo_message_proxy_s_chain,
-                    strEventName, joReceiptExitToMainERC20.blockNumber, joReceiptExitToMainERC20.transactionHash,
-                    jo_message_proxy_s_chain.filters[strEventName]()
+                    details, strLogPrefix,
+                    ethersProvider_s_chain, jo_message_proxy_s_chain, strEventName,
+                    joReceiptExitToMainERC20.blockNumber, joReceiptExitToMainERC20.transactionHash, jo_message_proxy_s_chain.filters[strEventName]()
                 );
             if( joEvents.length > 0 )
                 details.write( strLogPrefix + cc.success( "Success, verified the " ) + cc.info( strEventName ) + cc.success( " event of the " ) + cc.info( "MessageProxy" ) + cc.success( "/" ) + cc.notice( jo_message_proxy_s_chain.address ) + cc.success( " contract, found event(s): " ) + cc.j( joEvents ) + "\n" );
@@ -3616,9 +3650,9 @@ export async function do_erc721_payment_from_s_chain(
             await sleep( g_nSleepBeforeFetchOutgoingMessageEvent );
             const joEvents =
                 await get_contract_call_events(
-                    details, ethersProvider_s_chain, jo_message_proxy_s_chain,
-                    strEventName, joReceiptExitToMainERC721.blockNumber, joReceiptExitToMainERC721.transactionHash,
-                    jo_message_proxy_s_chain.filters[strEventName]()
+                    details, strLogPrefix,
+                    ethersProvider_s_chain, jo_message_proxy_s_chain, strEventName,
+                    joReceiptExitToMainERC721.blockNumber, joReceiptExitToMainERC721.transactionHash, jo_message_proxy_s_chain.filters[strEventName]()
                 );
             if( joEvents.length > 0 )
                 details.write( strLogPrefix + cc.success( "Success, verified the " ) + cc.info( strEventName ) + cc.success( " event of the " ) + cc.info( "MessageProxy" ) + cc.success( "/" ) + cc.notice( jo_message_proxy_s_chain.address ) + cc.success( " contract, found event(s): " ) + cc.j( joEvents ) + "\n" );
@@ -3797,9 +3831,9 @@ export async function do_erc1155_payment_from_s_chain(
             await sleep( g_nSleepBeforeFetchOutgoingMessageEvent );
             const joEvents =
                 await get_contract_call_events(
-                    details, ethersProvider_s_chain, jo_message_proxy_s_chain,
-                    strEventName, joReceiptExitToMainERC1155.blockNumber, joReceiptExitToMainERC1155.transactionHash,
-                    jo_message_proxy_s_chain.filters[strEventName]()
+                    details, strLogPrefix,
+                    ethersProvider_s_chain, jo_message_proxy_s_chain, strEventName,
+                    joReceiptExitToMainERC1155.blockNumber, joReceiptExitToMainERC1155.transactionHash, jo_message_proxy_s_chain.filters[strEventName]()
                 );
             if( joEvents.length > 0 )
                 details.write( strLogPrefix + cc.success( "Success, verified the " ) + cc.info( strEventName ) + cc.success( " event of the " ) + cc.info( "MessageProxy" ) + cc.success( "/" ) + cc.notice( jo_message_proxy_s_chain.address ) + cc.success( " contract, found event(s): " ) + cc.j( joEvents ) + "\n" );
@@ -3977,9 +4011,9 @@ export async function do_erc1155_batch_payment_from_s_chain(
             await sleep( g_nSleepBeforeFetchOutgoingMessageEvent );
             const joEvents =
                 await get_contract_call_events(
-                    details, ethersProvider_s_chain, jo_message_proxy_s_chain,
-                    strEventName, joReceiptExitToMainERC1155Batch.blockNumber, joReceiptExitToMainERC1155Batch.transactionHash,
-                    jo_message_proxy_s_chain.filters[strEventName]()
+                    details, strLogPrefix,
+                    ethersProvider_s_chain, jo_message_proxy_s_chain, strEventName,
+                    joReceiptExitToMainERC1155Batch.blockNumber, joReceiptExitToMainERC1155Batch.transactionHash, jo_message_proxy_s_chain.filters[strEventName]()
                 );
             if( joEvents.length > 0 )
                 details.write( strLogPrefix + cc.success( "Success, verified the " ) + cc.info( strEventName ) + cc.success( " event of the " ) + cc.info( "MessageProxy" ) + cc.success( "/" ) + cc.notice( jo_message_proxy_s_chain.address ) + cc.success( " contract, found event(s): " ) + cc.j( joEvents ) + "\n" );
@@ -4691,26 +4725,17 @@ export async function do_erc1155_batch_payment_s2s(
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 async function find_out_reference_log_record(
-    details,
-    ethersProvider,
-    jo_message_proxy,
-    bnBlockId,
-    nMessageNumberToFind,
-    isVerbose
+    details, strLogPrefix,
+    ethersProvider, jo_message_proxy,
+    bnBlockId, nMessageNumberToFind, isVerbose
 ) {
-    const strLogPrefix = "";
     const bnMessageNumberToFind = owaspUtils.toBN( nMessageNumberToFind.toString() );
     const strEventName = "PreviousMessageReference";
     const arrLogRecords =
         await safe_getPastEventsProgressive(
-            details,
-            ethersProvider,
-            10,
-            jo_message_proxy,
-            strEventName,
-            bnBlockId, // nBlockFrom
-            bnBlockId, // nBlockTo
-            jo_message_proxy.filters[strEventName]()
+            details, strLogPrefix,
+            ethersProvider, 10, jo_message_proxy, strEventName,
+            bnBlockId, bnBlockId, jo_message_proxy.filters[strEventName]()
         );
     const cntLogRecord = arrLogRecords.length;
     if( isVerbose ) {
@@ -4748,15 +4773,10 @@ async function find_out_reference_log_record(
 }
 
 async function find_out_all_reference_log_records(
-    details,
-    ethersProvider,
-    jo_message_proxy,
-    bnBlockId,
-    nIncMsgCnt,
-    nOutMsgCnt,
-    isVerbose
+    details, strLogPrefix,
+    ethersProvider, jo_message_proxy,
+    bnBlockId, nIncMsgCnt, nOutMsgCnt, isVerbose
 ) {
-    const strLogPrefix = "";
     if( isVerbose ) {
         details.write( strLogPrefix +
             cc.debug( "Optimized IMA message search algorithm will start at block " ) + cc.info( bnBlockId.toString() ) +
@@ -4778,12 +4798,9 @@ async function find_out_all_reference_log_records(
     for( ; nWalkMsgNumber >= nIncMsgCnt; -- nWalkMsgNumber ) {
         const joReferenceLogRecord =
             await find_out_reference_log_record(
-                details,
-                ethersProvider,
-                jo_message_proxy,
-                nWalkBlockId,
-                nWalkMsgNumber,
-                isVerbose
+                details, strLogPrefix,
+                ethersProvider, jo_message_proxy,
+                nWalkBlockId, nWalkMsgNumber, isVerbose
             );
         if( joReferenceLogRecord == null )
             break;
@@ -4861,20 +4878,25 @@ export async function do_transfer(
     tc_dst
 ) {
     const imaState = state.get();
-    const nTransferLoopCounter = g_nTransferLoopCounter;
+    const nTransferLoopCounter = 0 + g_nTransferLoopCounter;
     ++ g_nTransferLoopCounter;
     //
     const strTransferErrorCategoryName = "loop-" + strDirection;
-    let strGatheredDetailsName = "" + strDirection + "-" +
-        "do_transfer-A-#" + nTransferLoopCounter +
-        "-" + chain_id_src + "-->" + chain_id_dst;
-    let strGatheredDetailsName_colored = "" + cc.bright( strDirection ) + cc.debug( "-" ) +
-        cc.info( "do_transfer-A-" ) + cc.debug( "-" ) + cc.notice( "#" ) + cc.note( nTransferLoopCounter ) +
-        cc.debug( "-" ) + cc.notice( chain_id_src ) + cc.debug( "-->" ) + cc.notice( chain_id_dst );
+    let strGatheredDetailsName =
+        strDirection + "/#" + nTransferLoopCounter +
+        "-" + "do_transfer-A" + "-" +
+        chain_id_src + "-->" + chain_id_dst;
+    let strGatheredDetailsName_colored =
+        cc.bright( strDirection ) + cc.debug( "/" ) + cc.attention( "#" ) + cc.sunny( nTransferLoopCounter ) +
+        cc.debug( "-" ) + cc.info( "do_transfer-A-" ) + cc.debug( "-" ) +
+        cc.notice( chain_id_src ) + cc.debug( "-->" ) + cc.notice( chain_id_dst );
     let details = imaState.isDynamicLogInDoTransfer ? log : log.createMemoryStream( true );
     const jarrReceipts = [];
     let bErrorInSigningMessages = false;
-    const strLogPrefix = cc.bright( strDirection ) + cc.info( " transfer loop from " ) + cc.notice( chain_id_src ) + cc.info( " to " ) + cc.notice( chain_id_dst ) + cc.info( ":" ) + " ";
+    const strLogPrefixShort =
+        cc.bright( strDirection ) + cc.debug( "/" ) + cc.attention( "#" ) + cc.sunny( nTransferLoopCounter ) + " ";
+    const strLogPrefix = strLogPrefixShort + cc.info( "transfer loop from " ) +
+        cc.notice( chain_id_src ) + cc.info( " to " ) + cc.notice( chain_id_dst ) + cc.info( ":" ) + " ";
     if( fn_sign_messages == null || fn_sign_messages == undefined ) {
         details.write( strLogPrefix + cc.debug( "Using internal signing stub function" ) + "\n" );
         fn_sign_messages = async function( jarrMessages, nIdxCurrentMsgBlockStart, details, joExtraSignOpts, fnAfter ) {
@@ -4902,8 +4924,8 @@ export async function do_transfer(
     let nIncMsgCnt = 0;
     try {
         let nPossibleIntegerValue = 0;
-        details.write( cc.info( "SRC " ) + cc.sunny( "MessageProxy" ) + cc.info( " address is....." ) + cc.bright( jo_message_proxy_src.address ) + "\n" );
-        details.write( cc.info( "DST " ) + cc.sunny( "MessageProxy" ) + cc.info( " address is....." ) + cc.bright( jo_message_proxy_dst.address ) + "\n" );
+        details.write( strLogPrefixShort + cc.info( "SRC " ) + cc.sunny( "MessageProxy" ) + cc.info( " address is....." ) + cc.bright( jo_message_proxy_src.address ) + "\n" );
+        details.write( strLogPrefixShort + cc.info( "DST " ) + cc.sunny( "MessageProxy" ) + cc.info( " address is....." ) + cc.bright( jo_message_proxy_dst.address ) + "\n" );
         strActionName = "src-chain.MessageProxy.getOutgoingMessagesCounter()";
         try {
             details.write( strLogPrefix + cc.debug( "Will call " ) + cc.notice( strActionName ) + cc.debug( "..." ) + "\n" );
@@ -4944,24 +4966,17 @@ export async function do_transfer(
         const bnBlockId = owaspUtils.toBN( await jo_message_proxy_src.callStatic.getLastOutgoingMessageBlockId( chain_id_dst, { from: joAccountSrc.address() } ) );
         // const joReferenceLogRecord =
         //     await find_out_reference_log_record(
-        //         details,
-        //         ethersProvider_src,
-        //         jo_message_proxy_src,
-        //         bnBlockId,
-        //         nOutMsgCnt - 1,
-        //         true
+        //         details, strLogPrefix,
+        //         ethersProvider_src, jo_message_proxy_src,
+        //         bnBlockId, nOutMsgCnt - 1, true
         //         );
         let arrLogRecordReferences = [];
         try {
             arrLogRecordReferences =
                 await find_out_all_reference_log_records(
-                    details,
-                    ethersProvider_src,
-                    jo_message_proxy_src,
-                    bnBlockId,
-                    nIncMsgCnt,
-                    nOutMsgCnt,
-                    true
+                    details, strLogPrefixShort,
+                    ethersProvider_src, jo_message_proxy_src,
+                    bnBlockId, nIncMsgCnt, nOutMsgCnt, true
                 );
             //if( arrLogRecordReferences.length <= 0 )
             //    details.success( cc.warning( "Nothing was found by optimized IMA messages search algorithm" ) + "\n" );
@@ -5045,13 +5060,9 @@ export async function do_transfer(
                     cc.debug( " for " ) + cc.info( strEventName ) + cc.debug( " event..." ) +
                     "\n" );
                 r = await safe_getPastEventsProgressive(
-                    details,
-                    ethersProvider_src,
-                    10,
-                    jo_message_proxy_src,
-                    strEventName,
-                    nBlockFrom,
-                    nBlockTo,
+                    details, strLogPrefixShort,
+                    ethersProvider_src, 10, jo_message_proxy_src, strEventName,
+                    nBlockFrom, nBlockTo,
                     jo_message_proxy_src.filters[strEventName](
                         owaspUtils.ethersMod.ethers.utils.id( chain_id_dst ), // dstChainHash
                         nIdxCurrentMsg // msgCounter
@@ -5311,11 +5322,8 @@ export async function do_transfer(
                                     );
                                 const strEventName = "OutgoingMessage";
                                 const node_r = await safe_getPastEventsProgressive(
-                                    details,
-                                    ethersProvider_node,
-                                    10,
-                                    jo_message_proxy_node,
-                                    strEventName,
+                                    details, strLogPrefixShort,
+                                    ethersProvider_node, 10, jo_message_proxy_node, strEventName,
                                     joMessage.savedBlockNumberForOptimizations, // 0, // nBlockFrom
                                     joMessage.savedBlockNumberForOptimizations, // "latest", // nBlockTo
                                     jo_message_proxy_node.filters[strEventName](
@@ -5450,12 +5458,12 @@ export async function do_transfer(
                 details.exposeDetailsTo( log, strGatheredDetailsName, true );
             details.close();
             details = imaState.isDynamicLogInDoTransfer ? log : log.createMemoryStream( true );
-            strGatheredDetailsName = "" + strDirection + "-" +
-                "do_transfer-B-#" + nTransferLoopCounter +
-                "-" + chain_id_src + "-->" + chain_id_dst;
-            strGatheredDetailsName_colored = "" + cc.bright( strDirection ) + cc.debug( "-" ) +
-                cc.info( "do_transfer-B-" ) + cc.debug( "-" ) + cc.notice( "#" ) + cc.note( nTransferLoopCounter ) +
-                cc.debug( "-" ) + cc.notice( chain_id_src ) + cc.debug( "-->" ) + cc.notice( chain_id_dst );
+            strGatheredDetailsName =
+                strDirection + "/#" + nTransferLoopCounter + "-" +
+                "do_transfer-B-" + chain_id_src + "-->" + chain_id_dst;
+            strGatheredDetailsName_colored =
+                cc.bright( strDirection ) + cc.debug( "/" ) + cc.attention( "#" ) + cc.sunny( nTransferLoopCounter ) + cc.debug( "-" ) +
+                cc.info( "do_transfer-B-" ) + cc.notice( chain_id_src ) + cc.debug( "-->" ) + cc.notice( chain_id_dst );
             //
             try {
                 await fn_sign_messages(
@@ -5615,9 +5623,9 @@ export async function do_transfer(
                                     details.write( strLogPrefix + cc.debug( "Verifying the " ) + cc.info( strEventName ) + cc.debug( " event of the " ) + cc.info( "MessageProxy" ) + cc.debug( "/" ) + cc.notice( jo_message_proxy_dst.address ) + cc.debug( " contract..." ) + "\n" );
                                     const joEvents =
                                         await get_contract_call_events(
-                                            details, ethersProvider_dst, jo_message_proxy_dst,
-                                            strEventName, joReceipt.blockNumber, joReceipt.transactionHash,
-                                            jo_message_proxy_dst.filters[strEventName]()
+                                            details, strLogPrefixShort,
+                                            ethersProvider_dst, jo_message_proxy_dst, strEventName,
+                                            joReceipt.blockNumber, joReceipt.transactionHash, jo_message_proxy_dst.filters[strEventName]()
                                         );
                                     if( joEvents.length == 0 )
                                         details.write( strLogPrefix + cc.success( "Success, verified the " ) + cc.info( strEventName ) + cc.success( " event of the " ) + cc.info( "MessageProxy" ) + cc.success( "/" ) + cc.notice( jo_message_proxy_dst.address ) + cc.success( " contract, no events found" ) + "\n" );

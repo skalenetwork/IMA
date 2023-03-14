@@ -772,7 +772,7 @@ async function check_correctness_of_messages_to_sign( details, strLogPrefix, str
 
     const strCallerAccountAddress = joAccount.address();
     details.write(
-        strLogPrefix + cc.sunny( strDirection ) + cc.debug( " message correctness validation through call to " ) +
+        strLogPrefix + cc.bright( strDirection ) + cc.debug( " message correctness validation through call to " ) +
         cc.notice( "verifyOutgoingMessageData" ) + cc.debug( " method of " ) + cc.bright( "MessageProxy" ) +
         cc.debug( " contract with address " ) + cc.notice( joMessageProxy.address ) +
         cc.debug( ", caller account address is " ) + cc.info( joMessageProxy.address ) +
@@ -790,7 +790,7 @@ async function check_correctness_of_messages_to_sign( details, strLogPrefix, str
             const idxMessage = nIdxCurrentMsgBlockStart + i;
             try {
                 details.write(
-                    strLogPrefix + cc.sunny( strDirection ) +
+                    strLogPrefix + cc.bright( strDirection ) +
                     cc.debug( " Will validate message " ) + cc.info( i ) + cc.debug( " of " ) + cc.info( cnt ) +
                     cc.debug( ", real message index is " ) + cc.info( idxMessage ) +
                     cc.debug( ", source contract is " ) + cc.info( joMessage.sender ) +
@@ -816,7 +816,7 @@ async function check_correctness_of_messages_to_sign( details, strLogPrefix, str
                     { from: strCallerAccountAddress }
                 );
                 details.write(
-                    strLogPrefix + cc.sunny( strDirection ) +
+                    strLogPrefix + cc.bright( strDirection ) +
                     cc.debug( " Got verification call result " ) + cc.tf( isValidMessage ) +
                     cc.debug( ", real message index is: " ) + cc.info( idxMessage ) +
                     cc.debug( ", saved msgCounter is: " ) + cc.info( outgoingMessageData.msgCounter ) +
@@ -827,7 +827,7 @@ async function check_correctness_of_messages_to_sign( details, strLogPrefix, str
                 ++cntBadMessages;
                 const s =
                     strLogPrefix + cc.fatal( "BAD ERROR:" ) + " " +
-                    cc.sunny( strDirection ) + cc.error( " Correctness validation failed for message " ) + cc.info( idxMessage ) +
+                    cc.bright( strDirection ) + cc.error( " Correctness validation failed for message " ) + cc.info( idxMessage ) +
                     cc.error( " sent to " ) + cc.info( joChainName ) +
                     cc.error( ", message is: " ) + cc.j( joMessage ) +
                     cc.error( ", error information: " ) + cc.warning( owaspUtils.extract_error_message( err ) ) +
@@ -860,7 +860,9 @@ async function do_sign_messages_impl(
     const imaState = state.get();
     let bHaveResultReportCalled = false;
     const strLogPrefix =
-        cc.bright( strDirection ) + " " + cc.info( "Sign msgs via " ) +
+        cc.bright( strDirection ) + cc.debug( "/" ) +
+        cc.attention( "#" ) + cc.sunny( nTransferLoopCounter ) + " " +
+        cc.info( "Sign msgs via " ) +
         cc.attention( imaState.isCrossImaBlsMode ? "IMA agent" : "skaled" ) +
         cc.info( ":" ) + " ";
     const joGatheringTracker = {
@@ -1168,7 +1170,9 @@ async function do_sign_messages_impl(
                 ++ joGatheringTracker.nWaitIntervalStepsDone;
                 cntSuccess = joGatheringTracker.nCountReceived - joGatheringTracker.nCountErrors;
                 if( cntSuccess >= nCountOfBlsPartsToCollect ) {
-                    const strLogPrefixB = cc.bright( strDirection ) + cc.debug( "/" ) + cc.info( "BLS" ) + cc.debug( "/" ) + cc.sunny( "Summary" ) + cc.debug( ":" ) + " ";
+                    const strLogPrefixB =
+                        cc.bright( strDirection ) + cc.debug( "/" ) + cc.sunny( nTransferLoopCounter ) + cc.debug( "/" ) + cc.info( "BLS" ) +
+                        cc.debug( "/" ) + cc.sunny( "Summary" ) + cc.debug( ":" ) + " ";
                     clearInterval( iv );
                     let strError = null, strSuccessfulResultDescription = null;
                     const joGlueResult = perform_bls_glue(
@@ -1266,8 +1270,8 @@ async function do_sign_messages_impl(
                 }
             }, joGatheringTracker.nWaitIntervalStepMilliseconds );
         } );
-        details.write( cc.debug( "Will await for message BLS verification and sending..." ) + "\n" );
-        // log.write( cc.debug( "Will await for message BLS verification and sending..." ) + "\n" );
+        details.write( strLogPrefix + cc.debug( "Will await for message BLS verification and sending..." ) + "\n" );
+        // log.write( strLogPrefix + cc.debug( "Will await for message BLS verification and sending..." ) + "\n" );
         await with_timeout( "BLS verification and sending", promise_gathering_complete, g_secondsMessageVerifySendTimeout ).then( strSuccessfulResultDescription => {
             details.write( cc.success( "BLS verification and sending promise awaited." ) + "\n" );
             // log.write( cc.success( "BLS verification and sending promise awaited." ) + "\n" );
@@ -1890,7 +1894,7 @@ export async function handle_skale_imaVerifyAndSign( joCallData ) {
         const strDirection = joCallData.params.direction;
         const jarrMessages = joCallData.params.messages;
         details.write(
-            strLogPrefix + cc.sunny( strDirection ) +
+            strLogPrefix + cc.bright( strDirection ) +
             cc.debug( " verification algorithm will work for transfer from chain " ) +
             cc.info( strFromChainName ) + cc.debug( "/" ) + cc.notice( strFromChainID ) +
             cc.debug( " to chain" ) +
@@ -1899,10 +1903,10 @@ export async function handle_skale_imaVerifyAndSign( joCallData ) {
             "\n" );
         const nThreshold = discover_bls_threshold( imaState.joSChainNetworkInfo );
         const nParticipants = discover_bls_participants( imaState.joSChainNetworkInfo );
-        details.write( strLogPrefix + cc.sunny( strDirection ) + cc.debug( " verification algorithm discovered BLS threshold is " ) + cc.info( nThreshold ) + cc.debug( "." ) + "\n" );
-        details.write( strLogPrefix + cc.sunny( strDirection ) + cc.debug( " verification algorithm discovered number of BLS participants is " ) + cc.info( nParticipants ) + cc.debug( "." ) + "\n" );
+        details.write( strLogPrefix + cc.bright( strDirection ) + cc.debug( " verification algorithm discovered BLS threshold is " ) + cc.info( nThreshold ) + cc.debug( "." ) + "\n" );
+        details.write( strLogPrefix + cc.bright( strDirection ) + cc.debug( " verification algorithm discovered number of BLS participants is " ) + cc.info( nParticipants ) + cc.debug( "." ) + "\n" );
         const strMessageHash = owaspUtils.remove_starting_0x( keccak256_message( jarrMessages, nIdxCurrentMsgBlockStart, strFromChainName ) );
-        details.write( strLogPrefix + cc.sunny( strDirection ) + cc.debug( " verification algorithm message hash to sign is " ) + cc.info( strMessageHash ) + "\n" );
+        details.write( strLogPrefix + cc.bright( strDirection ) + cc.debug( " verification algorithm message hash to sign is " ) + cc.info( strMessageHash ) + "\n" );
         //
         let joExtraSignOpts = null;
         if( strDirection == "S2S" ) {
@@ -1911,7 +1915,7 @@ export async function handle_skale_imaVerifyAndSign( joCallData ) {
             const strSChainNameSrc = joCallData.params.srcChainName;
             const strSChainNameDst = joCallData.params.dstChainName;
             details.write(
-                strLogPrefix + cc.sunny( strDirection ) +
+                strLogPrefix + cc.bright( strDirection ) +
                 cc.debug( " verification algorithm will use for source chain name " ) + cc.info( strSChainNameSrc ) +
                 cc.debug( " and destination chain name " ) + cc.info( strSChainNameDst ) +
                 "\n" );
@@ -1931,7 +1935,7 @@ export async function handle_skale_imaVerifyAndSign( joCallData ) {
             if( jo_schain_src == null || strUrlSrcSChain == null || strUrlSrcSChain.length == 0 )
                 throw new Error( "Could not handle " + strDirection + " skale_imaVerifyAndSign(2), failed to discover source chain access parameters, try again later" );
             details.write(
-                strLogPrefix + cc.sunny( strDirection ) +
+                strLogPrefix + cc.bright( strDirection ) +
                 cc.debug( " verification algorithm discovered source chain URL is " ) + cc.u( strUrlSrcSChain ) +
                 cc.debug( ", chain name is " ) + cc.info( jo_schain_src.data.computed.schain_id ) +
                 cc.debug( ", chain id is " ) + cc.info( jo_schain_src.data.computed.chainId ) +
@@ -1972,7 +1976,7 @@ export async function handle_skale_imaVerifyAndSign( joCallData ) {
         await rpcCall.create( joAccount.strSgxURL, rpcCallOpts, async function( joCall, err ) {
             if( err ) {
                 const strErrorMessage =
-                    strLogPrefix + cc.sunny( strDirection ) + " " + cc.fatal( "CRITICAL ERROR:" ) +
+                    strLogPrefix + cc.bright( strDirection ) + " " + cc.fatal( "CRITICAL ERROR:" ) +
                     cc.error( " JSON RPC call to SGX failed, RPC call was not created, error is: " ) + cc.warning( owaspUtils.extract_error_message( err ) ) + "\n";
                 log.write( strErrorMessage );
                 details.write( strErrorMessage );
@@ -1994,7 +1998,7 @@ export async function handle_skale_imaVerifyAndSign( joCallData ) {
                 }
             };
             details.write(
-                strLogPrefix + cc.sunny( strDirection ) +
+                strLogPrefix + cc.bright( strDirection ) +
                 cc.debug( " verification algorithm will invoke " ) + cc.info( "SGX" ) + " " +
                 // cc.u( joAccount.strSgxURL ) + " " +
                 cc.debug( "with call data" ) + " " + cc.j( joCallSGX ) +
@@ -2014,7 +2018,7 @@ export async function handle_skale_imaVerifyAndSign( joCallData ) {
                     await joCall.disconnect();
                     throw err_js;
                 }
-                details.write( strLogPrefix + cc.sunny( strDirection ) + cc.debug( " Call to " ) + cc.info( "SGX" ) + cc.debug( " done, answer is: " ) + cc.j( joOut ) + "\n" );
+                details.write( strLogPrefix + cc.bright( strDirection ) + cc.debug( " Call to " ) + cc.info( "SGX" ) + cc.debug( " done, answer is: " ) + cc.j( joOut ) + "\n" );
                 let joSignResult = joOut;
                 if( joOut.result != null && joOut.result != undefined && typeof joOut.result == "object" )
                     joSignResult = joOut.result;
