@@ -77,7 +77,7 @@ const imaState = {
     "isPrintGathered": true,
     "isPrintSecurityValues": true,
     "isPrintPWA": false,
-    "isDynamicLogInDoTransfer": false,
+    "isDynamicLogInDoTransfer": true,
     "isDynamicLogInBlsSigner": false,
 
     "bIsNeededCommonInit": true,

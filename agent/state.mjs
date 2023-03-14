@@ -32,7 +32,7 @@ export function get() {
         "isPrintGathered": true,
         "isPrintSecurityValues": false,
         "isPrintPWA": false,
-        "isDynamicLogInDoTransfer": false,
+        "isDynamicLogInDoTransfer": true,
         "isDynamicLogInBlsSigner": false,
 
         "bIsNeededCommonInit": true,
