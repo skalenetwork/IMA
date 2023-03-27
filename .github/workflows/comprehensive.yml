@@ -301,42 +301,42 @@ jobs:
     - name: SELF-TEST 1 A - use IMA to discover chain ID via node 00-00 and test last is alive
       working-directory: ${{env.working-directory}}
       run: |
-        node ./agent/main.js --colors --no-gathered --discover-cid --url-main-net=http://127.0.0.1:2164 || true
+        node ./agent/main.mjs --colors --no-gathered --discover-cid --url-main-net=http://127.0.0.1:2164 || true
 
     - name: SELF-TEST 1 B - use IMA to discover chain ID via node 00-01 and test last is alive
       working-directory: ${{env.working-directory}}
       run: |
-        node ./agent/main.js --colors --no-gathered --discover-cid --url-main-net=http://127.0.0.2:2264 || true
+        node ./agent/main.mjs --colors --no-gathered --discover-cid --url-main-net=http://127.0.0.2:2264 || true
 
     - name: SELF-TEST 1 C - use IMA to discover chain ID via node 01-00 and test last is alive
       working-directory: ${{env.working-directory}}
       run: |
-        node ./agent/main.js --colors --no-gathered --discover-cid --url-main-net=http://127.0.0.3:2364 || true
+        node ./agent/main.mjs --colors --no-gathered --discover-cid --url-main-net=http://127.0.0.3:2364 || true
 
     - name: SELF-TEST 1 D - use IMA to discover chain ID via node 01-01 and test last is alive
       working-directory: ${{env.working-directory}}
       run: |
-        node ./agent/main.js --colors --no-gathered --discover-cid --url-main-net=http://127.0.0.4:2464 || true
+        node ./agent/main.mjs --colors --no-gathered --discover-cid --url-main-net=http://127.0.0.4:2464 || true
 
     - name: SELF-TEST 2 A - use IMA to browse S-Chain via node 00-00 and test last is alive
       working-directory: ${{env.working-directory}}
       run: |
-        node ./agent/main.js --colors --no-gathered --browse-s-chain --url-s-chain=http://127.0.0.1:2164 || true
+        node ./agent/main.mjs --colors --no-gathered --browse-s-chain --url-s-chain=http://127.0.0.1:2164 || true
 
     - name: SELF-TEST 2 B - use IMA to browse S-Chain via node 00-01 and test last is alive
       working-directory: ${{env.working-directory}}
       run: |
-        node ./agent/main.js --colors --no-gathered --browse-s-chain --url-s-chain=http://127.0.0.2:2264 || true
+        node ./agent/main.mjs --colors --no-gathered --browse-s-chain --url-s-chain=http://127.0.0.2:2264 || true
 
     - name: SELF-TEST 2 C - use IMA to browse S-Chain via node 01-00 and test last is alive
       working-directory: ${{env.working-directory}}
       run: |
-        node ./agent/main.js --colors --no-gathered --browse-s-chain --url-s-chain=http://127.0.0.3:2364 || true
+        node ./agent/main.mjs --colors --no-gathered --browse-s-chain --url-s-chain=http://127.0.0.3:2364 || true
 
     - name: SELF-TEST 2 D - use IMA to browse S-Chain via node 01-01 and test last is alive
       working-directory: ${{env.working-directory}}
       run: |
-        node ./agent/main.js --colors --no-gathered --browse-s-chain --url-s-chain=http://127.0.0.4:2464 || true
+        node ./agent/main.mjs --colors --no-gathered --browse-s-chain --url-s-chain=http://127.0.0.4:2464 || true
 
     - name: INIT - download SGX Wallet
       working-directory: ${{env.working-directory}}
