@@ -86,11 +86,12 @@ jobs:
         echo ------------ lscpu
         lscpu || true
 
-    - name: UPDATE - system deps and install libc6, net-tools, btrfs-progs, zip, unzip, procps
+    - name: UPDATE - system deps and install libc6, net-tools, btrfs-progs, zip, unzip, bash, procps
       run: |
         sudo apt-get update
         #sudo apt-get upgrade
         sudo apt-get install libc6 net-tools btrfs-progs zip unzip
+        sudo apt-get install bash
         sudo apt-get install procps
 
     - name: INIT - install docker with compose
@@ -163,6 +164,7 @@ jobs:
     - name: INIT - install Ethereum Main Net emulation
       working-directory: ${{env.working-directory}}/comprehensive-test
       run: |
+        pwd
         #
         # # --- ganache-cli version ---
         # sudo yarn global add ganache-cli
