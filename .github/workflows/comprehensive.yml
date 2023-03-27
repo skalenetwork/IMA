@@ -20,7 +20,8 @@ jobs:
     - name: Where we are
       working-directory: ${{env.working-directory}}
       run: |
-        pwd
+        export IMA_ROOT_DIR=$(pwd)
+        echo $IMA_ROOT_DIR
 
     - uses: actions/checkout@v2
 
@@ -40,3 +41,7 @@ jobs:
         ./npms/scrypt/get_scrypt_npm.sh
         yarn install
 
+    - name: Where we are finally
+      working-directory: ${{env.working-directory}}
+      run: |
+        echo $IMA_ROOT_DIR
