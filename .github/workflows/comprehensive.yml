@@ -10,11 +10,12 @@ on:
       - 'docs-v*'
   
 jobs:
+
   test-comprehensive:
+
     runs-on: ubuntu-latest
 
-    env:
-      working-directory: ./
+    steps:
 
     - uses: actions/checkout@v2
 
