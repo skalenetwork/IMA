@@ -407,15 +407,16 @@ jobs:
         cd engine/create_pems
         ./create_pems.sh
         cd ../..
-      # - name: RUN - main engine steps
-      #   working-directory: ${{env.working-directory}}
-      #   run: |
-      #     export IMA_ROOT_DIR=$(pwd)
-      #     echo IMA_ROOT_DIR = $IMA_ROOT_DIR
-      #     cd comprehensive-test/engine
-      #     export ALL_SKALE_TEST_CLOUD_RUN=1
-      #     node ./index.js
-      #     cd ../..
+
+    - name: RUN - main engine steps
+      working-directory: ${{env.working-directory}}
+      run: |
+        export IMA_ROOT_DIR=$(pwd)
+        echo IMA_ROOT_DIR = $IMA_ROOT_DIR
+        cd comprehensive-test/engine
+        export ALL_SKALE_TEST_CLOUD_RUN=1
+        node ./index.js
+        cd ../..
 
     - name: SHUTDOWN - stop SGX Wallet
       run: |
