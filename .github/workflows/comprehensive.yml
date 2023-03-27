@@ -1,0 +1,42 @@
+
+name: Comprehensive test
+
+on: 
+  push:
+    branches-ignore:
+      - 'docs-v*'
+  pull_request:
+    branches-ignore:
+      - 'docs-v*'
+  
+jobs:
+  test-comprehensive:
+    runs-on: ubuntu-latest
+
+    env:
+      working-directory: ./
+
+    steps:
+    - name: Where we are
+      working-directory: ${{env.working-directory}}
+      run: |
+        pwd
+
+    - uses: actions/checkout@v2
+
+    - name: Install PYTHON
+      uses: actions/setup-python@v2
+      with:
+        python-version: 3.8
+
+    - name: Install NODE JS
+      uses: actions/setup-node@v2
+      with:
+        node-version: 16
+
+    - name: Install project
+      working-directory: ${{env.working-directory}}
+      run: |
+        ./npms/scrypt/get_scrypt_npm.sh
+        yarn install
+
