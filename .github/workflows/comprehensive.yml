@@ -211,7 +211,7 @@ jobs:
     - name: INIT - initialize comprehensive test tokens
       working-directory: ${{env.working-directory}}
       run: |
-        comprehensive-test/test_tokens/scrypt
+        cd comprehensive-test/test_tokens/scrypt
         ./get_scrypt_npm.sh
         cd ..
         yarn install
