@@ -12,8 +12,6 @@ then
     GITHUB_REPOSITORY="skalenetwork/IMA"
 fi
 
-echo 'helo'
-exit 0
 
 DEPLOYED_TAG="$(cat "$GITHUB_WORKSPACE"/proxy/DEPLOYED)"
 VERSION_TAG="$(cat "$GITHUB_WORKSPACE"/VERSION)"
