@@ -493,6 +493,8 @@ export async function ensure_have_workers( opts ) {
                         "strPathHashG1": opts.imaState.strPathHashG1, // path to hash_g1 app, must have if --sign-messages specified
                         "strPathBlsVerify": opts.imaState.strPathBlsVerify, // path to verify_bls app, optional, if specified then we will verify gathered BLS signature
 
+                        "isEnabledMultiCall": opts.imaState.isEnabledMultiCall,
+
                         "bNoWaitSChainStarted": opts.imaState.bNoWaitSChainStarted,
                         "nMaxWaitSChainAttempts": opts.imaState.nMaxWaitSChainAttempts,
 

@@ -89,6 +89,8 @@ const imaState = {
 
     "bShowConfigMode": false, // true - just show configuration values and exit
 
+    "isEnabledMultiCall": true,
+
     "bNoWaitSChainStarted": false,
     "nMaxWaitSChainAttempts": 0 + Number.MAX_SAFE_INTEGER, // 20
 

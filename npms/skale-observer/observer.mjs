@@ -35,6 +35,10 @@ import * as rpcCall from "../../agent/rpc-call.mjs";
 
 import { UniversalDispatcherEvent, EventDispatcher } from "../skale-cool-socket/event_dispatcher.mjs";
 
+//import { Multicall, ContractCallResults, ContractCallContext } from "ethereum-multicall";
+import * as EMC from "ethereum-multicall";
+// EMC.Multicall
+
 const __dirname = path.dirname( url.fileURLToPath( import.meta.url ) );
 
 let g_interval_periodic_caching = null;
@@ -98,40 +102,184 @@ export function calc_ports( jo_schain, schain_base_port ) {
     };
 }
 
+const g_arr_chain_ids_support_multicall = [
+    1, // Mainnet
+    3, // Kovan
+    4, // Rinkeby
+    5, // Görli
+    10, // Ropsten
+    42, // Sepolia
+    137, // Optimism
+    69, // Optimism Kovan
+    100, // Optimism Görli
+    420, // Arbitrum
+    42161, // Arbitrum Görli
+    421611, // Arbitrum Rinkeby
+    421613, // Polygon
+    80001, // Mumbai
+    11155111, // Gnosis Chain (xDai)
+    43114, // Avalanche
+    43113, // Avalanche Fuji
+    4002, // Fantom Testnet
+    250, // Fantom Opera
+    56, // BNB Smart Chain
+    97, // BNB Smart Chain Testnet
+    1284, // Moonbeam
+    1285, // Moonriver
+    1287, // Moonbase Alpha Testnet
+    1666600000, // Harmony
+    25, // Cronos
+    122, // Fuse
+    19, // Songbird Canary Network
+    16, // Coston Testnet
+    288, // Boba
+    1313161554, // Aurora
+    592, // Astar
+    66, // OKC
+    128, // Heco Chain
+    1088, // Metis
+    30, // RSK
+    31, // RSK Testnet
+    9001, // Evmos
+    9000, // Evmos Testnet
+    108, // Thundercore
+    18, // Thundercore Testnet
+    26863, // Oasis
+    42220, // Celo
+    71402, // Godwoken
+    71401, // Godwoken Testnet
+    8217, // Klatyn
+    2001, // Milkomeda
+    321, // KCC
+    111 // Etherlite
+];
+
+async function is_multicall_available( mn ) {
+    if( mn && mn.ethersProvider ) {
+        const { chainId } = await mn.ethersProvider.getNetwork();
+        const bnChainId = owaspUtils.toBN( chainId );
+        for( let i = 0; i < g_arr_chain_ids_support_multicall.length; ++ i ) {
+            const walkChainId = g_arr_chain_ids_support_multicall[i];
+            const bnWalkChainId = owaspUtils.toBN( walkChainId );
+            if( bnWalkChainId.eq( bnChainId ) )
+                return true;
+        }
+    }
+    return false;
+}
+
+function find_one_function_abi( joContractABI, strFunctionName ) {
+    for( let i = 0; i < joContractABI.length; ++ i ) {
+        const joEntry = joContractABI[i];
+        if( joEntry.type == "function" && joEntry.name == strFunctionName )
+            return joEntry;
+    }
+    return null;
+}
+
 // see https://github.com/skalenetwork/skale-proxy/blob/develop/endpoints.py
 export async function load_schain_parts( jo_schain, addressFrom, opts ) {
     owaspUtils.ensure_observer_opts_initialized( opts );
     if( ! opts.imaState )
         throw new Error( "Cannot load S-Chain parts in observer, no imaState is provided" );
+    let isEMC = false;
+    if( opts.imaState.isEnabledMultiCall )
+        isEMC = is_multicall_available( opts.imaState.chainProperties.mn );
     jo_schain.data.computed = {};
     const schain_id = owaspUtils.ethersMod.ethers.utils.id( jo_schain.data.name );
     const chainId = owaspUtils.compute_chain_id_from_schain_name( jo_schain.data.name );
     const node_ids = await opts.imaState.jo_schains_internal.callStatic.getNodesInGroup( schain_id, { from: addressFrom } );
     const nodes = [];
-    for( const node_id of node_ids ) {
-        if( opts && opts.bStopNeeded )
-            return;
-        const node = await opts.imaState.jo_nodes.callStatic.nodes( node_id, { from: addressFrom } );
-        const node_dict = {
-            "id": node_id,
-            "name": node[0],
-            "ip": owaspUtils.ip_from_hex( node[1] ),
-            "base_port": node[3],
-            "domain": await opts.imaState.jo_nodes.callStatic.getNodeDomainName( node_id, { from: addressFrom } ),
-            "isMaintenance": await opts.imaState.jo_nodes.callStatic.isNodeInMaintenance( node_id, { from: addressFrom } )
-        };
-        if( opts && opts.bStopNeeded )
-            return;
-        // const schain_ids = await opts.imaState.jo_schains_internal.callStatic.getSchainIdsForNode( node_id, { from: addressFrom } );
-        const schain_ids = await opts.imaState.jo_schains_internal.callStatic.getSchainHashesForNode( node_id, { from: addressFrom } );
-        node_dict.schain_base_port = get_schain_base_port_on_node( schain_id, schain_ids, node_dict.base_port );
-        calc_ports( jo_schain, node_dict.schain_base_port );
-        compose_endpoints( jo_schain, node_dict, "ip" );
-        compose_endpoints( jo_schain, node_dict, "domain" );
-        nodes.push( node_dict );
-        if( opts && opts.bStopNeeded )
-            return;
-    }
+    if( isEMC ) {
+        const multicall = new EMC.Multicall( { ethersProvider: opts.imaState.chainProperties.mn.ethersProvider, tryAggregate: true } );
+        const strRef0 = "Nodes-nodes";
+        const strRef1 = "Nodes-getNodeDomainName";
+        const strRef2 = "Nodes-isNodeInMaintenance";
+        const strRef3 = "SchainsInternal-getSchainHashesForNode";
+        const contractCallContext = [
+            {
+                reference: strRef0,
+                contractAddress: opts.imaState.jo_nodes.address,
+                abi: opts.imaState.joAbiSkaleManager.nodes_abi, // find_one_function_abi( opts.imaState.joAbiSkaleManager.nodes_abi, "nodes" ),
+                calls: [ ]
+            }, {
+                reference: strRef1,
+                contractAddress: opts.imaState.jo_nodes.address,
+                abi: opts.imaState.joAbiSkaleManager.nodes_abi,
+                calls: [ ]
+            }, {
+                reference: strRef2,
+                contractAddress: opts.imaState.jo_nodes.address,
+                abi: opts.imaState.joAbiSkaleManager.nodes_abi,
+                calls: [ ]
+            }, {
+                reference: strRef3,
+                contractAddress: opts.imaState.jo_schains_internal.address,
+                abi: opts.imaState.joAbiSkaleManager.schains_internal_abi,
+                calls: [ ]
+            }
+        ];
+        for( const node_id of node_ids ) {
+            if( opts && opts.bStopNeeded )
+                return;
+            contractCallContext[0].calls.push( { reference: strRef0, methodName: "nodes", methodParameters: [ node_id ] } );
+            contractCallContext[1].calls.push( { reference: strRef1, methodName: "getNodeDomainName", methodParameters: [ node_id ] } );
+            contractCallContext[2].calls.push( { reference: strRef2, methodName: "isNodeInMaintenance", methodParameters: [ node_id ] } );
+            contractCallContext[3].calls.push( { reference: strRef3, methodName: "getSchainHashesForNode", methodParameters: [ node_id ] } );
+        }
+        const rawResults = await multicall.call( contractCallContext );
+        let idxResult = 0;
+        for( const node_id of node_ids ) {
+            const values0 = rawResults.results[strRef0].callsReturnContext[idxResult].returnValues;
+            const values1 = rawResults.results[strRef1].callsReturnContext[idxResult].returnValues;
+            const values2 = rawResults.results[strRef2].callsReturnContext[idxResult].returnValues;
+            const values3 = rawResults.results[strRef3].callsReturnContext[idxResult].returnValues;
+            const node_dict = {
+                "id": node_id,
+                "name": values0[0],
+                "ip": owaspUtils.ip_from_hex( values0[1] ),
+                "base_port": values0[3],
+                "domain": values1[0],
+                "isMaintenance": values2[0]
+            };
+            if( opts && opts.bStopNeeded )
+                return;
+            const schain_ids = values3;
+            node_dict.schain_base_port = get_schain_base_port_on_node( schain_id, schain_ids, node_dict.base_port );
+            calc_ports( jo_schain, node_dict.schain_base_port );
+            compose_endpoints( jo_schain, node_dict, "ip" );
+            compose_endpoints( jo_schain, node_dict, "domain" );
+            nodes.push( node_dict );
+            if( opts && opts.bStopNeeded )
+                return;
+            ++ idxResult;
+        }
+    } // if( isEMC )
+    else {
+        for( const node_id of node_ids ) {
+            if( opts && opts.bStopNeeded )
+                return;
+            const node = await opts.imaState.jo_nodes.callStatic.nodes( node_id, { from: addressFrom } );
+            const node_dict = {
+                "id": node_id,
+                "name": node[0],
+                "ip": owaspUtils.ip_from_hex( node[1] ),
+                "base_port": node[3],
+                "domain": await opts.imaState.jo_nodes.callStatic.getNodeDomainName( node_id, { from: addressFrom } ),
+                "isMaintenance": await opts.imaState.jo_nodes.callStatic.isNodeInMaintenance( node_id, { from: addressFrom } )
+            };
+            if( opts && opts.bStopNeeded )
+                return;
+            const schain_ids = await opts.imaState.jo_schains_internal.callStatic.getSchainHashesForNode( node_id, { from: addressFrom } );
+            node_dict.schain_base_port = get_schain_base_port_on_node( schain_id, schain_ids, node_dict.base_port );
+            calc_ports( jo_schain, node_dict.schain_base_port );
+            compose_endpoints( jo_schain, node_dict, "ip" );
+            compose_endpoints( jo_schain, node_dict, "domain" );
+            nodes.push( node_dict );
+            if( opts && opts.bStopNeeded )
+                return;
+        }
+    } // else from if( isEMC )
     // const schain = await opts.imaState.jo_schains_internal.callStatic.schains( schain_id, { from: addressFrom } );
     // jo_schain.data.computed.schain = schain;
     jo_schain.data.computed.schain_id = schain_id;
@@ -485,7 +633,6 @@ export async function ensure_have_worker( opts ) {
     g_client = new network_layer.OutOfWorkerSocketClientPipe( url, g_worker );
     g_client.on( "message", function( eventData ) {
         const joMessage = eventData.message;
-        // console.log( "CLIENT <<<", JSON.stringify( joMessage ) );
         switch ( joMessage.method ) {
         case "periodic_caching_do_now":
             set_last_cached_schains( joMessage.message );

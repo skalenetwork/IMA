@@ -407,6 +407,10 @@ export function parse( joExternalHandlers, argv ) {
             console.log( soi + cc.debug( "--" ) + cc.bright( "browse-connected-schains" ) + cc.debug( ".............." ) + cc.notice( "Download " ) + cc.note( "S-Chains" ) + cc.notice( " connected to " ) + cc.note( "S-Chain" ) + cc.notice( " with name specified in " ) + cc.bright( "id-s-chain" ) + cc.notice( " command line parameter." ) );
             console.log( soi + cc.debug( "--" ) + cc.bright( "discover-cid" ) + cc.debug( ".........................." ) + cc.notice( "Discover " ) + cc.attention( "chains ID(s)" ) + cc.notice( " from provided " ) + cc.note( "URL(s)" ) + cc.notice( "." ) + cc.debug( " This command is not executed automatically at startup" ) + cc.notice( "." ) );
             //
+            console.log( cc.sunny( "OPTIMIZATION" ) + cc.info( " options:" ) );
+            console.log( soi + cc.debug( "--" ) + cc.bright( "enable-multicall" ) + cc.debug( "......................" ) + cc.success( "Enable" ) + cc.notice( " optimizations via multi-call." ) + cc.debug( " Default mode" ) + cc.notice( "." ) );
+            console.log( soi + cc.debug( "--" ) + cc.bright( "disable-multicall" ) + cc.debug( "....................." ) + cc.error( "Disable" ) + cc.notice( " optimizations via multi-call." ) );
+            //
             console.log( cc.sunny( "LOGGING" ) + cc.info( " options:" ) );
             console.log( soi + cc.debug( "--" ) + cc.bright( "expose" ) + cc.debug( "................................" ) + cc.notice( "Expose " ) + cc.note( "low-level log details" ) + cc.notice( " after " ) + cc.success( "successful operations" ) + cc.notice( ". " ) + cc.debug( "By default details exposed only " ) + cc.error( "on errors" ) + cc.notice( "." ) );
             console.log( soi + cc.debug( "--" ) + cc.bright( "no-expose" ) + cc.debug( "............................." ) + cc.notice( "Expose " ) + cc.note( "low-level log details" ) + cc.notice( " only after " ) + cc.error( "errors" ) + cc.notice( ". " ) + cc.debug( "Default expose mode" ) + cc.notice( "." ) );
@@ -1083,6 +1087,14 @@ export function parse( joExternalHandlers, argv ) {
         if( joArg.name == "auto-exit" ) {
             owaspUtils.verifyArgumentIsInteger( joArg );
             imaState.nAutoExitAfterSeconds = owaspUtils.toInteger( joArg.value );
+            continue;
+        }
+        if( joArg.name == "enable-multicall" ) {
+            imaState.isEnabledMultiCall = true;
+            continue;
+        }
+        if( joArg.name == "disable-multicall" ) {
+            imaState.isEnabledMultiCall = false;
             continue;
         }
         if( joArg.name == "pwa" ) {
@@ -1931,6 +1943,9 @@ export function ima_common_init() {
         } );
         ensure_have_value( "Verbose level", IMA.VERBOSE_level_as_text_4_log( IMA.verbose_get() ), false, isPrintGathered, null, ( x ) => {
             return cc.sunny( x );
+        } );
+        ensure_have_value( "Multi-call optimizations", imaState.isEnabledMultiCall, false, isPrintGathered, null, ( x ) => {
+            return cc.yn( x );
         } );
         ensure_have_value( "Main-net URL", imaState.chainProperties.mn.strURL, false, isPrintGathered && isPrintSecurityValues, null, ( x ) => {
             return cc.u( x );
