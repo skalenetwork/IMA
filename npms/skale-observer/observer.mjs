@@ -168,14 +168,14 @@ async function is_multicall_available( mn ) {
     return false;
 }
 
-function find_one_function_abi( joContractABI, strFunctionName ) {
-    for( let i = 0; i < joContractABI.length; ++ i ) {
-        const joEntry = joContractABI[i];
-        if( joEntry.type == "function" && joEntry.name == strFunctionName )
-            return joEntry;
-    }
-    return null;
-}
+// function find_one_function_abi( joContractABI, strFunctionName ) {
+//     for( let i = 0; i < joContractABI.length; ++ i ) {
+//         const joEntry = joContractABI[i];
+//         if( joEntry.type == "function" && joEntry.name == strFunctionName )
+//             return joEntry;
+//     }
+//     return null;
+// }
 
 // see https://github.com/skalenetwork/skale-proxy/blob/develop/endpoints.py
 export async function load_schain_parts( jo_schain, addressFrom, opts ) {
@@ -254,8 +254,7 @@ export async function load_schain_parts( jo_schain, addressFrom, opts ) {
                 return;
             ++ idxResult;
         }
-    } // if( isEMC )
-    else {
+    } else { // if( isEMC )
         for( const node_id of node_ids ) {
             if( opts && opts.bStopNeeded )
                 return;
