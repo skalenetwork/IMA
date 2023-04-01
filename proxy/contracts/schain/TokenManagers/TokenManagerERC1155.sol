@@ -101,7 +101,7 @@ contract TokenManagerERC1155 is
     /**
      * @dev Move tokens from schain to mainnet.
      * 
-     * {contractOnMainnet} tokens are burned on schain and unlocked on mainnet for {to} address.
+     * `contractOnMainnet` tokens are burned on schain and unlocked on mainnet for `to` address.
      */
     function exitToMainERC1155(
         address contractOnMainnet,
@@ -118,7 +118,7 @@ contract TokenManagerERC1155 is
     /**
      * @dev Move batch of tokens from schain to mainnet.
      * 
-     * {contractOnMainnet} tokens are burned on schain and unlocked on mainnet for {to} address.
+     * `contractOnMainnet` tokens are burned on schain and unlocked on mainnet for `to` address.
      */
     function exitToMainERC1155Batch(
         address contractOnMainnet,
@@ -135,8 +135,8 @@ contract TokenManagerERC1155 is
     /**
      * @dev Move tokens from schain to schain.
      * 
-     * {contractOnMainnet} tokens are burned on origin schain
-     * and are minted on {targetSchainName} schain for {to} address.
+     * `contractOnMainnet` tokens are burned on origin schain
+     * and are minted on `targetSchainName ` schain for `to` address.
      */
     function transferToSchainERC1155(
         string calldata targetSchainName,
@@ -155,8 +155,8 @@ contract TokenManagerERC1155 is
     /**
      * @dev Move batch of tokens from schain to schain.
      * 
-     * {contractOnMainnet} tokens are burned on origin schain
-     * and are minted on {targetSchainName} schain for {to} address.
+     * `contractOnMainnet` tokens are burned on origin schain
+     * and are minted on `targetSchainName ` schain for `to` address.
      */
     function transferToSchainERC1155Batch(
         string calldata targetSchainName,

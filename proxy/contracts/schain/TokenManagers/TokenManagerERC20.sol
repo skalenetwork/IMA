@@ -90,7 +90,7 @@ contract TokenManagerERC20 is TokenManager, ITokenManagerERC20 {
     /**
      * @dev Move tokens from schain to mainnet.
      * 
-     * {contractOnMainnet} tokens are burned on schain and unlocked on mainnet for {msg.sender} address.
+     * `contractOnMainnet` tokens are burned on schain and unlocked on mainnet for {msg.sender} address.
      */
     function exitToMainERC20(
         address contractOnMainnet,
@@ -106,8 +106,8 @@ contract TokenManagerERC20 is TokenManager, ITokenManagerERC20 {
     /**
      * @dev Move tokens from schain to schain.
      * 
-     * {contractOnMainnet} tokens are burned on origin schain
-     * and are minted on {targetSchainName} schain for {msg.sender} address.
+     * `contractOnMainnet` tokens are burned on origin schain
+     * and are minted on `targetSchainName ` schain for {msg.sender} address.
      */
     function transferToSchainERC20(
         string calldata targetSchainName,

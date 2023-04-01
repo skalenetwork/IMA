@@ -51,7 +51,7 @@ contract TokenManagerEth is TokenManager, ITokenManagerEth {
     /**
      * @dev Move ETH from schain to mainnet.
      * 
-     * EthErc20 tokens are burned on schain and ETH are unlocked on mainnet for {to} address.
+     * EthErc20 tokens are burned on schain and ETH are unlocked on mainnet for `to` address.
      */
     function exitToMain(uint256 amount) external override {
         communityLocker.checkAllowedToSendMessage(msg.sender);
