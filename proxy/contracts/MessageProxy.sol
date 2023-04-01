@@ -112,7 +112,7 @@ abstract contract MessageProxy is AccessControlEnumerableUpgradeable, IMessagePr
     );
 
     /**
-     * @dev Modifier to make a function callable only if caller is granted with {CHAIN_CONNECTOR_ROLE}.
+     * @dev Modifier to make a function callable only if caller is granted with `CHAIN_CONNECTOR_ROLE`.
      */
     modifier onlyChainConnector() {
         require(hasRole(CHAIN_CONNECTOR_ROLE, msg.sender), "CHAIN_CONNECTOR_ROLE is required");

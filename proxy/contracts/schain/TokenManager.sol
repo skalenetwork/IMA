@@ -228,7 +228,7 @@ abstract contract TokenManager is AccessControlEnumerableUpgradeable, ITokenMana
     }
 
     /**
-     * @dev Checks whether TokenManager is connected to a {schainName} SKALE chain TokenManager.
+     * @dev Checks whether TokenManager is connected to a `schainName` SKALE chain TokenManager.
      */
     function hasTokenManager(string calldata schainName) external view override returns (bool) {
         return tokenManagers[keccak256(abi.encodePacked(schainName))] != address(0);

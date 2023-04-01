@@ -184,7 +184,7 @@ contract TokenManagerLinker is ITokenManagerLinker, AccessControlEnumerableUpgra
     }
 
     /**
-     * @dev Check if SKALE chain with name {schainName} is registered in IMA.
+     * @dev Check if SKALE chain with name `schainName` is registered in IMA.
      */
     function hasSchain(string calldata schainName) external view override returns (bool connected) {
         uint length = tokenManagers.length;

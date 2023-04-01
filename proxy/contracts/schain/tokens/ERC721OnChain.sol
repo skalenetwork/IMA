@@ -61,7 +61,7 @@ contract ERC721OnChain is
      * 
      * Requirements:
      * 
-     * - token with {tokenId} must exist.
+     * - token with `tokenid` must exist.
      * - sender must be the token owner or approved for the token.
      */
     function setTokenURI(uint256 tokenId, string calldata tokenUri)
@@ -127,7 +127,7 @@ contract ERC721OnChain is
     // private
 
     /**
-     * @dev Burn {tokenId}.
+     * @dev Burn `tokenid`.
      */
     function _burn(uint256 tokenId) internal override (ERC721Upgradeable, ERC721URIStorageUpgradeable) {
         ERC721URIStorageUpgradeable._burn(tokenId);

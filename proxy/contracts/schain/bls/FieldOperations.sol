@@ -53,7 +53,7 @@ library Fp2Operations {
     uint constant public P = 21888242871839275222246405745257275088696311157297823662689037894645226208583;
 
     /**
-     * @dev Add {value1} to {value2}
+     * @dev Add `value1` to `value2`
      */
     function addFp2(
         IFieldOperations.Fp2Point memory value1,
@@ -67,7 +67,7 @@ library Fp2Operations {
     }
 
     /**
-     * @dev Perform scalar multiplication of {value} by {scalar}
+     * @dev Perform scalar multiplication of `value` by {scalar}
      */
     function scalarMulFp2(
         IFieldOperations.Fp2Point memory value,
@@ -105,7 +105,7 @@ library Fp2Operations {
     }
 
     /**
-     * @dev Multiply {value1} by {value2}
+     * @dev Multiply `value1` by `value2`
      */
     function mulFp2(
         IFieldOperations.Fp2Point memory value1,
@@ -133,7 +133,7 @@ library Fp2Operations {
     }
 
     /**
-     * @dev Square {value}
+     * @dev Square `value`
      */
     function squaredFp2(
         IFieldOperations.Fp2Point memory value
@@ -149,7 +149,7 @@ library Fp2Operations {
     }
 
     /**
-     * @dev Check if {value1} is equal to {value2}
+     * @dev Check if `value1` is equal to `value2`
      */
     function isEqual(
         IFieldOperations.Fp2Point memory value1,
@@ -332,7 +332,7 @@ library G2Operations {
     }
 
     /**
-     * @dev Check if {value} is an element of G2
+     * @dev Check if `value` is an element of G2
      */
     function isG2(IFieldOperations.G2Point memory value) internal pure returns (bool) {
         return isG2Point(value.x, value.y);
@@ -353,14 +353,14 @@ library G2Operations {
     }
 
     /**
-     * @dev Check if {value} is a zero element of G2
+     * @dev Check if `value` is a zero element of G2
      */
     function isG2Zero(IFieldOperations.G2Point memory value) internal pure returns (bool) {
         return value.x.a == 0 && value.x.b == 0 && value.y.a == 1 && value.y.b == 0;
     }
 
     /**
-     * @dev Check if {value1} is equal to {value2}
+     * @dev Check if `value1` is equal to `value2`
      */
     function isEqual(
         IFieldOperations.G2Point memory value1,
