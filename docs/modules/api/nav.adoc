@@ -7,7 +7,6 @@
 * xref:mainnet/DepositBoxes/DepositBoxERC721WithMetadata.adoc[Deposit Box ERC 721 With Metadata]
 * xref:mainnet/DepositBoxes/DepositBoxERC1155.adoc[Deposit Box ERC 1155]
 * xref:mainnet/DepositBoxes/DepositBoxEth.adoc[Deposit Box Eth]
-* xref:mainnet/DepositBoxes/IERC20TransferVoid.adoc[IERC 20 Transfer Void]
 * xref:schain/KeyStorage.adoc[Key Storage]
 * xref:mainnet/Linker.adoc[Linker]
 * xref:MessageProxy.adoc[Message Proxy]

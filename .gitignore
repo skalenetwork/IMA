@@ -52,6 +52,7 @@ proxy/predeployed/test/genesis.json
 
 # Dependency directories
 node_modules/
+package-lock.json
 
 # TypeScript v1 declaration files
 typings/
@@ -102,3 +103,4 @@ verify_bls
 venv
 
 npms/scrypt/node-scrypt
+build
