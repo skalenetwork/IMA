@@ -1,5 +1,5 @@
 module.exports = {
-    "ignorePatterns": ["docs/**"],
+    "ignorePatterns": ["docs/**", "doc-ui/*"],
     "env": {
         "browser": false,
         "es6": true
