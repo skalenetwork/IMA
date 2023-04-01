@@ -103,3 +103,4 @@ verify_bls
 venv
 
 npms/scrypt/node-scrypt
+build
