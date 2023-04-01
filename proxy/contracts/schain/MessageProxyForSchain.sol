@@ -114,7 +114,7 @@ contract MessageProxyForSchain is MessageProxy, IMessageProxyForSchain {
      * 
      * Requirements:
      * 
-     * - Function caller has to be granted with {EXTRA_CONTRACT_REGISTRAR_ROLE}.
+     * - Function caller has to be granted with `EXTRA_CONTRACT_REGISTRAR_ROLE`.
      * - Destination chain hash cannot be equal to itself
      */
     function registerExtraContract(
@@ -136,7 +136,7 @@ contract MessageProxyForSchain is MessageProxy, IMessageProxyForSchain {
      * 
      * Requirements:
      * 
-     * - Function caller has to be granted with {EXTRA_CONTRACT_REGISTRAR_ROLE}.
+     * - Function caller has to be granted with `EXTRA_CONTRACT_REGISTRAR_ROLE`.
      * - Destination chain hash cannot be equal to itself
      */
     function removeExtraContract(
@@ -159,7 +159,7 @@ contract MessageProxyForSchain is MessageProxy, IMessageProxyForSchain {
      * 
      * Requirements:
      * 
-     * - Function caller has to be granted with {CHAIN_CONNECTOR_ROLE}.
+     * - Function caller has to be granted with `CHAIN_CONNECTOR_ROLE`.
      * - Target chain must be different from the current.
      */
     function addConnectedChain(string calldata chainName) external override {
@@ -175,7 +175,7 @@ contract MessageProxyForSchain is MessageProxy, IMessageProxyForSchain {
      * Requirements:
      * 
      * - Origin chain has to be registered.
-     * - Amount of messages must be no more than {MESSAGES_LENGTH}.
+     * - Amount of messages must be no more than `MESSAGES_LENGTH`.
      * - Messages batch has to be signed with threshold signature.
      * by super majority of current SKALE chain nodes.
      * - All previous messages must be already delivered.
@@ -277,7 +277,7 @@ contract MessageProxyForSchain is MessageProxy, IMessageProxyForSchain {
      * 
      * Requirements:
      * 
-     * - Function caller has to be granted with {CHAIN_CONNECTOR_ROLE}.
+     * - Function caller has to be granted with `CHAIN_CONNECTOR_ROLE`.
      * - Target chain must be different from Mainnet.
      */
     function removeConnectedChain(

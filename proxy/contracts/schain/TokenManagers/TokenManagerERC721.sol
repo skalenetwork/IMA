@@ -89,7 +89,7 @@ contract TokenManagerERC721 is TokenManager, ITokenManagerERC721 {
     /**
      * @dev Move tokens from schain to mainnet.
      * 
-     * {contractOnMainnet} tokens are burned on schain and unlocked on mainnet for {msg.sender} address.
+     * `contractonmainnet` tokens are burned on schain and unlocked on mainnet for {msg.sender} address.
      */
     function exitToMainERC721(
         address contractOnMainnet,
@@ -105,8 +105,8 @@ contract TokenManagerERC721 is TokenManager, ITokenManagerERC721 {
     /**
      * @dev Move tokens from schain to schain.
      * 
-     * {contractOnMainnet} tokens are burned on origin schain
-     * and are minted on {targetSchainName} schain for {msg.sender} address.
+     * `contractonmainnet` tokens are burned on origin schain
+     * and are minted on `targetschainname ` schain for {msg.sender} address.
      */
     function transferToSchainERC721(
         string calldata targetSchainName,
@@ -203,8 +203,8 @@ contract TokenManagerERC721 is TokenManager, ITokenManagerERC721 {
     /**
      * @dev Allows TokenManager to send ERC721 tokens.
      *  
-     * Emits a {ERC20TokenCreated} event if token did not exist and was automatically deployed.
-     * Emits a {ERC20TokenReceived} event on success.
+     * Emits a `ERC20TokenCreated` event if token did not exist and was automatically deployed.
+     * Emits a `ERC20TokenReceived` event on success.
      */
     function _sendERC721(bytes32 fromChainHash, bytes calldata data) internal virtual returns (address) {
         Messages.MessageType messageType = Messages.getMessageType(data);
@@ -260,7 +260,7 @@ contract TokenManagerERC721 is TokenManager, ITokenManagerERC721 {
     /**
      * @dev Allows DepositBoxERC721 to receive ERC721 tokens.
      * 
-     * Emits an {ERC721TokenReady} event.
+     * Emits an `ERC721TokenReady` event.
      * 
      * Requirements:
      * 

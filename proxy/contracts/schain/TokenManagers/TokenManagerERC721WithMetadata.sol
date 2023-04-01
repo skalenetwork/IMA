@@ -72,8 +72,8 @@ contract TokenManagerERC721WithMetadata is TokenManagerERC721 {
     /**
      * @dev Allows TokenManager to send ERC721 tokens.
      *  
-     * Emits a {ERC20TokenCreated} event if token did not exist and was automatically deployed.
-     * Emits a {ERC20TokenReceived} event on success.
+     * Emits a `ERC20TokenCreated` event if token did not exist and was automatically deployed.
+     * Emits a `ERC20TokenReceived` event on success.
      */
     function _sendERC721(bytes32 fromChainHash, bytes calldata data) internal override returns (address) {
         Messages.MessageType messageType = Messages.getMessageType(data);
@@ -171,7 +171,7 @@ contract TokenManagerERC721WithMetadata is TokenManagerERC721 {
     /**
      * @dev Allows DepositBoxERC721 to receive ERC721 tokens.
      * 
-     * Emits an {ERC721TokenReady} event.
+     * Emits an `ERC721TokenReady` event.
      * 
      * Requirements:
      * 

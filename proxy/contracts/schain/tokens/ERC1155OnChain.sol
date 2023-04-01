@@ -91,7 +91,7 @@ contract ERC1155OnChain is AccessControlEnumerableUpgradeable, ERC1155BurnableUp
     }
 
     /**
-     * @dev Check if contract support {interfaceId} interface.
+     * @dev Check if contract support `interfaceid` interface.
      * 
      * See https://eips.ethereum.org/EIPS/eip-165 for more details.
      */

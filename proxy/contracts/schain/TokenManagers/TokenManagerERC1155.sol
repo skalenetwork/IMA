@@ -101,7 +101,7 @@ contract TokenManagerERC1155 is
     /**
      * @dev Move tokens from schain to mainnet.
      * 
-     * {contractOnMainnet} tokens are burned on schain and unlocked on mainnet for {to} address.
+     * `contractonmainnet` tokens are burned on schain and unlocked on mainnet for `to ` address.
      */
     function exitToMainERC1155(
         address contractOnMainnet,
@@ -118,7 +118,7 @@ contract TokenManagerERC1155 is
     /**
      * @dev Move batch of tokens from schain to mainnet.
      * 
-     * {contractOnMainnet} tokens are burned on schain and unlocked on mainnet for {to} address.
+     * `contractonmainnet` tokens are burned on schain and unlocked on mainnet for `to ` address.
      */
     function exitToMainERC1155Batch(
         address contractOnMainnet,
@@ -135,8 +135,8 @@ contract TokenManagerERC1155 is
     /**
      * @dev Move tokens from schain to schain.
      * 
-     * {contractOnMainnet} tokens are burned on origin schain
-     * and are minted on {targetSchainName} schain for {to} address.
+     * `contractonmainnet` tokens are burned on origin schain
+     * and are minted on `targetschainname ` schain for `to ` address.
      */
     function transferToSchainERC1155(
         string calldata targetSchainName,
@@ -156,8 +156,8 @@ contract TokenManagerERC1155 is
     /**
      * @dev Move batch of tokens from schain to schain.
      * 
-     * {contractOnMainnet} tokens are burned on origin schain
-     * and are minted on {targetSchainName} schain for {to} address.
+     * `contractonmainnet` tokens are burned on origin schain
+     * and are minted on `targetschainname ` schain for `to ` address.
      */
     function transferToSchainERC1155Batch(
         string calldata targetSchainName,
@@ -306,8 +306,8 @@ contract TokenManagerERC1155 is
     /**
      * @dev Allows TokenManager to send ERC1155 tokens.
      *  
-     * Emits a {ERC20TokenCreated} event if token did not exist and was automatically deployed.
-     * Emits a {ERC20TokenReceived} event on success.
+     * Emits a `ERC20TokenCreated` event if token did not exist and was automatically deployed.
+     * Emits a `ERC20TokenReceived` event on success.
      */
     function _sendERC1155(bytes32 fromChainHash, bytes calldata data) private returns (address) {
         Messages.MessageType messageType = Messages.getMessageType(data);
@@ -363,8 +363,8 @@ contract TokenManagerERC1155 is
     /**
      * @dev Allows TokenManager to send a batch of ERC1155 tokens.
      *  
-     * Emits a {ERC20TokenCreated} event if token did not exist and was automatically deployed.
-     * Emits a {ERC20TokenReceived} event on success.
+     * Emits a `ERC20TokenCreated` event if token did not exist and was automatically deployed.
+     * Emits a `ERC20TokenReceived` event on success.
      */
     function _sendERC1155Batch(bytes32 fromChainHash, bytes calldata data) private returns (address) {
         Messages.MessageType messageType = Messages.getMessageType(data);
