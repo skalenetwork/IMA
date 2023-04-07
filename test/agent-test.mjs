@@ -81,13 +81,13 @@ const imaState = {
     "isDynamicLogInBlsSigner": false,
 
     "bIsNeededCommonInit": true,
-    "bSignMessages": false, // use BLS message signing, turned on with --sign-messages
-    "joSChainNetworkInfo": null, // scanned S-Chain network description
-    "strPathBlsGlue": "", // path to bls_glue app, must have if --sign-messages specified
-    "strPathHashG1": "", // path to hash_g1 app, must have if --sign-messages specified
-    "strPathBlsVerify": "", // path to verify_bls app, optional, if specified then we will verify gathered BLS signature
+    "bSignMessages": false,
+    "joSChainNetworkInfo": null,
+    "strPathBlsGlue": "",
+    "strPathHashG1": "",
+    "strPathBlsVerify": "",
 
-    "bShowConfigMode": false, // true - just show configuration values and exit
+    "bShowConfigMode": false,
 
     "isEnabledMultiCall": true,
 
@@ -145,17 +145,23 @@ const imaState = {
             "joAccount": {
                 "privateKey": owaspUtils.toEthPrivateKey( process.env.PRIVATE_KEY_FOR_ETHEREUM ),
                 "address": owaspUtils.fn_address_impl_,
-                "strTransactionManagerURL": owaspUtils.toStringURL( process.env.TRANSACTION_MANAGER_URL_ETHEREUM ),
-                "tm_priority": owaspUtils.toStringURL( process.env.TRANSACTION_MANAGER_PRIORITY_ETHEREUM ) || 5,
+                "strTransactionManagerURL":
+                    owaspUtils.toStringURL( process.env.TRANSACTION_MANAGER_URL_ETHEREUM ),
+                "tm_priority":
+                    owaspUtils.toStringURL(
+                        process.env.TRANSACTION_MANAGER_PRIORITY_ETHEREUM ) || 5,
                 "strSgxURL": owaspUtils.toStringURL( process.env.SGX_URL_ETHEREUM ),
                 "strSgxKeyName": owaspUtils.toStringURL( process.env.SGX_KEY_ETHEREUM ),
-                "strPathSslKey": ( process.env.SGX_SSL_KEY_FILE_ETHEREUM || "" ).toString().trim(),
-                "strPathSslCert": ( process.env.SGX_SSL_CERT_FILE_ETHEREUM || "" ).toString().trim(),
+                "strPathSslKey":
+                    ( process.env.SGX_SSL_KEY_FILE_ETHEREUM || "" ).toString().trim(),
+                "strPathSslCert":
+                    ( process.env.SGX_SSL_CERT_FILE_ETHEREUM || "" ).toString().trim(),
                 "strBlsKeyName": owaspUtils.toStringURL( process.env.BLS_KEY_ETHEREUM )
             },
             "transactionCustomizer": IMA.get_tc_main_net(),
             "ethersProvider": null,
-            "strURL": owaspUtils.toStringURL( process.env.URL_W3_ETHEREUM || "http://127.0.0.1:8545" ),
+            "strURL":
+                owaspUtils.toStringURL( process.env.URL_W3_ETHEREUM || "http://127.0.0.1:8545" ),
             "strChainName": ( process.env.CHAIN_NAME_ETHEREUM || "Mainnet" ).toString().trim(),
             "cid": owaspUtils.toInteger( process.env.CID_ETHEREUM ) || -4,
             "strPathAbiJson": imaUtils.normalizePath( "./agent-test-data/proxyMainnet.json" ),
@@ -175,17 +181,23 @@ const imaState = {
             "joAccount": {
                 "privateKey": owaspUtils.toEthPrivateKey( process.env.PRIVATE_KEY_FOR_SCHAIN ),
                 "address": owaspUtils.fn_address_impl_,
-                "strTransactionManagerURL": owaspUtils.toStringURL( process.env.TRANSACTION_MANAGER_URL_S_CHAIN ),
-                "tm_priority": owaspUtils.toStringURL( process.env.TRANSACTION_MANAGER_PRIORITY_S_CHAIN ) || 5,
+                "strTransactionManagerURL":
+                    owaspUtils.toStringURL( process.env.TRANSACTION_MANAGER_URL_S_CHAIN ),
+                "tm_priority":
+                    owaspUtils.toStringURL(
+                        process.env.TRANSACTION_MANAGER_PRIORITY_S_CHAIN ) || 5,
                 "strSgxURL": owaspUtils.toStringURL( process.env.SGX_URL_S_CHAIN ),
                 "strSgxKeyName": owaspUtils.toStringURL( process.env.SGX_KEY_S_CHAIN ),
-                "strPathSslKey": ( process.env.SGX_SSL_KEY_FILE_S_CHAIN || "" ).toString().trim(),
-                "strPathSslCert": ( process.env.SGX_SSL_CERT_FILE_S_CHAIN || "" ).toString().trim(),
+                "strPathSslKey":
+                    ( process.env.SGX_SSL_KEY_FILE_S_CHAIN || "" ).toString().trim(),
+                "strPathSslCert":
+                    ( process.env.SGX_SSL_CERT_FILE_S_CHAIN || "" ).toString().trim(),
                 "strBlsKeyName": owaspUtils.toStringURL( process.env.BLS_KEY_S_CHAIN )
             },
             "transactionCustomizer": IMA.get_tc_s_chain(),
             "ethersProvider": null,
-            "strURL": owaspUtils.toStringURL( process.env.URL_W3_S_CHAIN || "http://127.0.0.1:15000" ),
+            "strURL":
+                owaspUtils.toStringURL( process.env.URL_W3_S_CHAIN || "http://127.0.0.1:15000" ),
             "strChainName": ( process.env.CHAIN_NAME_SCHAIN || "Bob" ).toString().trim(),
             "cid": owaspUtils.toInteger( process.env.CID_SCHAIN ) || -4,
             "strPathAbiJson": imaUtils.normalizePath( "./agent-test-data/proxySchain_Bob.json" ),
@@ -203,20 +215,27 @@ const imaState = {
         },
         "tc": {
             "joAccount": {
-                "privateKey": owaspUtils.toEthPrivateKey( process.env.PRIVATE_KEY_FOR_SCHAIN_TARGET ),
+                "privateKey":
+                    owaspUtils.toEthPrivateKey( process.env.PRIVATE_KEY_FOR_SCHAIN_TARGET ),
                 "address": owaspUtils.fn_address_impl_,
-                "strTransactionManagerURL": owaspUtils.toStringURL( process.env.TRANSACTION_MANAGER_URL_S_CHAIN_TARGET ),
-                "tm_priority": owaspUtils.toStringURL( process.env.TRANSACTION_MANAGER_PRIORITY_S_CHAIN_TARGET ) || 5,
+                "strTransactionManagerURL":
+                    owaspUtils.toStringURL( process.env.TRANSACTION_MANAGER_URL_S_CHAIN_TARGET ),
+                "tm_priority":
+                    owaspUtils.toStringURL(
+                        process.env.TRANSACTION_MANAGER_PRIORITY_S_CHAIN_TARGET ) || 5,
                 "strSgxURL": owaspUtils.toStringURL( process.env.SGX_URL_S_CHAIN_TARGET ),
                 "strSgxKeyName": owaspUtils.toStringURL( process.env.SGX_KEY_S_CHAIN_TARGET ),
-                "strPathSslKey": ( process.env.SGX_SSL_KEY_FILE_S_CHAIN_TARGET || "" ).toString().trim(),
-                "strPathSslCert": ( process.env.SGX_SSL_CERT_FILE_S_CHAIN_TARGET || "" ).toString().trim(),
+                "strPathSslKey":
+                    ( process.env.SGX_SSL_KEY_FILE_S_CHAIN_TARGET || "" ).toString().trim(),
+                "strPathSslCert":
+                    ( process.env.SGX_SSL_CERT_FILE_S_CHAIN_TARGET || "" ).toString().trim(),
                 "strBlsKeyName": owaspUtils.toStringURL( process.env.BLS_KEY_T_CHAIN )
             },
             "transactionCustomizer": IMA.get_tc_t_chain(),
             "ethersProvider": null,
             "strURL": owaspUtils.toStringURL( process.env.URL_W3_S_CHAIN_TARGET ),
-            "strChainName": ( process.env.CHAIN_NAME_SCHAIN_TARGET || "Alice" ).toString().trim(),
+            "strChainName":
+                ( process.env.CHAIN_NAME_SCHAIN_TARGET || "Alice" ).toString().trim(),
             "cid": owaspUtils.toInteger( process.env.CID_SCHAIN_TARGET ) || -4,
             "strPathAbiJson": null,
             "joAbiIMA": { },
@@ -233,11 +252,12 @@ const imaState = {
         }
     },
 
-    "strPathAbiJsonSkaleManager": null, // "", // imaUtils.normalizePath( "../proxy/data/skaleManager.json" ), // "./abi_skale_manager.json"
+    "strPathAbiJsonSkaleManager": null,
     "joAbiSkaleManager": { },
     "bHaveSkaleManagerABI": false,
 
-    "strChainName_origin_chain": ( process.env.CHAIN_NAME_ETHEREUM || "Mainnet" ).toString().trim(),
+    "strChainName_origin_chain":
+        ( process.env.CHAIN_NAME_ETHEREUM || "Mainnet" ).toString().trim(),
 
     "strAddrErc20_explicit": "",
     "strAddrErc20_explicit_target": "", // S<->S target
@@ -249,9 +269,9 @@ const imaState = {
     "isPWA": true,
     "nTimeoutSecondsPWA": 60,
 
-    "s2s_opts": { // S-Chain to S-Chain transfer options
-        "isEnabled": false, // is S-Chain to S-Chain transfers enabled
-        "secondsToReDiscoverSkaleNetwork": 10 * 60 // seconds to re-discover SKALE network, 0 to disable
+    "s2s_opts": {
+        "isEnabled": false,
+        "secondsToReDiscoverSkaleNetwork": 10 * 60
     },
 
     "nJsonRpcPort": 14999, // 0 to disable
@@ -371,32 +391,64 @@ describe( "OWASP", function() {
             assert.equal( owaspUtils.toURL( "wss://[::1]:3344/" ).constructor.name, "URL" );
             assert.equal( owaspUtils.toURL( "http://some.domain.org" ).constructor.name, "URL" );
             assert.equal( owaspUtils.toURL( "http://some.domain.org/" ).constructor.name, "URL" );
-            assert.equal( owaspUtils.toURL( "https://some.domain.org3344" ).constructor.name, "URL" );
-            assert.equal( owaspUtils.toURL( "https://some.domain.org:3344/" ).constructor.name, "URL" );
-            assert.equal( owaspUtils.toURL( "http://127.0.0.1" ).toString(), "http://127.0.0.1/" );
-            assert.equal( owaspUtils.toURL( "http://127.0.0.1/" ).toString(), "http://127.0.0.1/" );
-            assert.equal( owaspUtils.toURL( "https://127.0.0.1:3344" ).toString(), "https://127.0.0.1:3344/" );
-            assert.equal( owaspUtils.toURL( "https://127.0.0.1:3344/" ).toString(), "https://127.0.0.1:3344/" );
+            assert.equal(
+                owaspUtils.toURL( "https://some.domain.org3344" ).constructor.name, "URL" );
+            assert.equal(
+                owaspUtils.toURL( "https://some.domain.org:3344/" ).constructor.name, "URL" );
+            assert.equal(
+                owaspUtils.toURL( "http://127.0.0.1" ).toString(), "http://127.0.0.1/" );
+            assert.equal(
+                owaspUtils.toURL( "http://127.0.0.1/" ).toString(), "http://127.0.0.1/" );
+            assert.equal(
+                owaspUtils.toURL(
+                    "https://127.0.0.1:3344" ).toString(), "https://127.0.0.1:3344/" );
+            assert.equal(
+                owaspUtils.toURL(
+                    "https://127.0.0.1:3344/" ).toString(), "https://127.0.0.1:3344/" );
             assert.equal( owaspUtils.toURL( "ws://[::1]" ).toString(), "ws://[::1]/" );
             assert.equal( owaspUtils.toURL( "ws://[::1]/" ).toString(), "ws://[::1]/" );
-            assert.equal( owaspUtils.toURL( "wss://[::1]:3344" ).toString(), "wss://[::1]:3344/" );
-            assert.equal( owaspUtils.toURL( "wss://[::1]:3344/" ).toString(), "wss://[::1]:3344/" );
-            assert.equal( owaspUtils.toURL( "http://some.domain.org" ).toString(), "http://some.domain.org/" );
-            assert.equal( owaspUtils.toURL( "http://some.domain.org/" ).toString(), "http://some.domain.org/" );
-            assert.equal( owaspUtils.toURL( "https://some.domain.org:3344" ).toString(), "https://some.domain.org:3344/" );
-            assert.equal( owaspUtils.toURL( "https://some.domain.org:3344/" ).toString(), "https://some.domain.org:3344/" );
-            assert.equal( owaspUtils.toStringURL( "http://127.0.0.1" ), "http://127.0.0.1/" );
-            assert.equal( owaspUtils.toStringURL( "http://127.0.0.1/" ), "http://127.0.0.1/" );
-            assert.equal( owaspUtils.toStringURL( "https://127.0.0.1:3344" ), "https://127.0.0.1:3344/" );
-            assert.equal( owaspUtils.toStringURL( "https://127.0.0.1:3344/" ), "https://127.0.0.1:3344/" );
+            assert.equal(
+                owaspUtils.toURL( "wss://[::1]:3344" ).toString(), "wss://[::1]:3344/" );
+            assert.equal(
+                owaspUtils.toURL( "wss://[::1]:3344/" ).toString(), "wss://[::1]:3344/" );
+            assert.equal(
+                owaspUtils.toURL(
+                    "http://some.domain.org" ).toString(), "http://some.domain.org/" );
+            assert.equal(
+                owaspUtils.toURL(
+                    "http://some.domain.org/" ).toString(), "http://some.domain.org/" );
+            assert.equal(
+                owaspUtils.toURL(
+                    "https://some.domain.org:3344" ).toString(),
+                "https://some.domain.org:3344/" );
+            assert.equal(
+                owaspUtils.toURL(
+                    "https://some.domain.org:3344/" ).toString(),
+                "https://some.domain.org:3344/" );
+            assert.equal(
+                owaspUtils.toStringURL( "http://127.0.0.1" ), "http://127.0.0.1/" );
+            assert.equal(
+                owaspUtils.toStringURL( "http://127.0.0.1/" ), "http://127.0.0.1/" );
+            assert.equal(
+                owaspUtils.toStringURL( "https://127.0.0.1:3344" ), "https://127.0.0.1:3344/" );
+            assert.equal(
+                owaspUtils.toStringURL( "https://127.0.0.1:3344/" ), "https://127.0.0.1:3344/" );
             assert.equal( owaspUtils.toStringURL( "ws://[::1]" ), "ws://[::1]/" );
             assert.equal( owaspUtils.toStringURL( "ws://[::1]/" ), "ws://[::1]/" );
             assert.equal( owaspUtils.toStringURL( "wss://[::1]:3344" ), "wss://[::1]:3344/" );
             assert.equal( owaspUtils.toStringURL( "wss://[::1]:3344/" ), "wss://[::1]:3344/" );
-            assert.equal( owaspUtils.toStringURL( "http://some.domain.org" ), "http://some.domain.org/" );
-            assert.equal( owaspUtils.toStringURL( "http://some.domain.org/" ), "http://some.domain.org/" );
-            assert.equal( owaspUtils.toStringURL( "https://some.domain.org:3344" ), "https://some.domain.org:3344/" );
-            assert.equal( owaspUtils.toStringURL( "https://some.domain.org:3344/" ), "https://some.domain.org:3344/" );
+            assert.equal(
+                owaspUtils.toStringURL(
+                    "http://some.domain.org" ), "http://some.domain.org/" );
+            assert.equal(
+                owaspUtils.toStringURL(
+                    "http://some.domain.org/" ), "http://some.domain.org/" );
+            assert.equal(
+                owaspUtils.toStringURL(
+                    "https://some.domain.org:3344" ), "https://some.domain.org:3344/" );
+            assert.equal(
+                owaspUtils.toStringURL(
+                    "https://some.domain.org:3344/" ), "https://some.domain.org:3344/" );
         } );
 
         it( "Check URL is HTTP(S)", function() {
@@ -470,17 +522,32 @@ describe( "OWASP", function() {
         it( "Parse Ethereum address", function() {
             assert.equal( owaspUtils.toEthAddress( strAddressValid0 ), strAddressValid0 );
             assert.equal( owaspUtils.toEthAddress( strAddressValid1 ), strAddressValid0 );
-            assert.equal( owaspUtils.toEthAddress( strAddressInvalid0, strAddressValid0 ), strAddressValid0 );
-            assert.equal( owaspUtils.toEthAddress( strAddressInvalid0, "invalid value" ), "invalid value" );
-            assert.equal( owaspUtils.toEthAddress( strAddressInvalid1, strAddressValid0 ), strAddressValid0 );
-            assert.equal( owaspUtils.toEthAddress( strAddressInvalid1, "invalid value" ), "invalid value" );
-            assert.equal( owaspUtils.toEthAddress( strAddressInvalid2, strAddressValid0 ), strAddressValid0 );
-            assert.equal( owaspUtils.toEthAddress( strAddressInvalid2, "invalid value" ), "invalid value" );
+            assert.equal(
+                owaspUtils.toEthAddress(
+                    strAddressInvalid0, strAddressValid0 ), strAddressValid0 );
+            assert.equal(
+                owaspUtils.toEthAddress(
+                    strAddressInvalid0, "invalid value" ), "invalid value" );
+            assert.equal(
+                owaspUtils.toEthAddress(
+                    strAddressInvalid1, strAddressValid0 ), strAddressValid0 );
+            assert.equal(
+                owaspUtils.toEthAddress(
+                    strAddressInvalid1, "invalid value" ), "invalid value" );
+            assert.equal(
+                owaspUtils.toEthAddress(
+                    strAddressInvalid2, strAddressValid0 ), strAddressValid0 );
+            assert.equal(
+                owaspUtils.toEthAddress(
+                    strAddressInvalid2, "invalid value" ), "invalid value" );
         } );
 
-        const strPrivateKeyValid0 = "23ABDBD3C61B5330AF61EBE8BEF582F4E5CC08E554053A718BDCE7813B9DC1FC";
-        const strPrivateKeyValid1 = "23ABDBD3C61B5330AF61EBE8BEF582F4E5CC08E554053A718BDCE7813B9DC1FC";
-        const strPrivateKeyInvalid0 = "23ABDBD3C61B5330AF61EBE8BEF582F4E5CC08E554053A718BDCE7813B9DC1F";
+        const strPrivateKeyValid0 =
+            "23ABDBD3C61B5330AF61EBE8BEF582F4E5CC08E554053A718BDCE7813B9DC1FC";
+        const strPrivateKeyValid1 =
+            "23ABDBD3C61B5330AF61EBE8BEF582F4E5CC08E554053A718BDCE7813B9DC1FC";
+        const strPrivateKeyInvalid0 =
+            "23ABDBD3C61B5330AF61EBE8BEF582F4E5CC08E554053A718BDCE7813B9DC1F";
         const strPrivateKeyInvalid1 = "hello";
         const strPrivateKeyInvalid2 = "";
 
@@ -493,14 +560,28 @@ describe( "OWASP", function() {
         } );
 
         it( "Parse Ethereum private key", function() {
-            assert.equal( owaspUtils.toEthPrivateKey( strPrivateKeyValid0 ), strPrivateKeyValid0 );
-            assert.equal( owaspUtils.toEthPrivateKey( strPrivateKeyValid1 ), strPrivateKeyValid0 );
-            assert.equal( owaspUtils.toEthPrivateKey( strPrivateKeyInvalid0, strPrivateKeyValid0 ), strPrivateKeyValid0 );
-            assert.equal( owaspUtils.toEthPrivateKey( strPrivateKeyInvalid0, "invalid value" ), "invalid value" );
-            assert.equal( owaspUtils.toEthPrivateKey( strPrivateKeyInvalid1, strPrivateKeyValid0 ), strPrivateKeyValid0 );
-            assert.equal( owaspUtils.toEthPrivateKey( strPrivateKeyInvalid1, "invalid value" ), "invalid value" );
-            assert.equal( owaspUtils.toEthPrivateKey( strPrivateKeyInvalid2, strPrivateKeyValid0 ), strPrivateKeyValid0 );
-            assert.equal( owaspUtils.toEthPrivateKey( strPrivateKeyInvalid2, "invalid value" ), "invalid value" );
+            assert.equal(
+                owaspUtils.toEthPrivateKey( strPrivateKeyValid0 ), strPrivateKeyValid0 );
+            assert.equal(
+                owaspUtils.toEthPrivateKey( strPrivateKeyValid1 ), strPrivateKeyValid0 );
+            assert.equal(
+                owaspUtils.toEthPrivateKey(
+                    strPrivateKeyInvalid0, strPrivateKeyValid0 ), strPrivateKeyValid0 );
+            assert.equal(
+                owaspUtils.toEthPrivateKey(
+                    strPrivateKeyInvalid0, "invalid value" ), "invalid value" );
+            assert.equal(
+                owaspUtils.toEthPrivateKey(
+                    strPrivateKeyInvalid1, strPrivateKeyValid0 ), strPrivateKeyValid0 );
+            assert.equal(
+                owaspUtils.toEthPrivateKey(
+                    strPrivateKeyInvalid1, "invalid value" ), "invalid value" );
+            assert.equal(
+                owaspUtils.toEthPrivateKey(
+                    strPrivateKeyInvalid2, strPrivateKeyValid0 ), strPrivateKeyValid0 );
+            assert.equal(
+                owaspUtils.toEthPrivateKey(
+                    strPrivateKeyInvalid2, "invalid value" ), "invalid value" );
         } );
 
         it( "Byte sequence utilities", function() {
@@ -515,26 +596,60 @@ describe( "OWASP", function() {
     describe( "Command line argument utilities", function() {
 
         it( "Basic verification", function() {
-            assert.equal( typeof owaspUtils.verifyArgumentWithNonEmptyValue( { name: "path", value: "/tmp/file.name.here" } ), "object" );
-            assert.equal( typeof owaspUtils.verifyArgumentIsURL( { name: "url", value: "http://127.0.0.1" } ), "object" );
-            assert.equal( typeof owaspUtils.verifyArgumentIsURL( { name: "url", value: "http://[::1]" } ), "object" );
-            assert.equal( typeof owaspUtils.verifyArgumentIsURL( { name: "url", value: "http://localhost" } ), "object" );
-            assert.equal( typeof owaspUtils.verifyArgumentIsURL( { name: "url", value: "http://127.0.0.1:1234" } ), "object" );
-            assert.equal( typeof owaspUtils.verifyArgumentIsURL( { name: "url", value: "http://[::1]:1234" } ), "object" );
-            assert.equal( typeof owaspUtils.verifyArgumentIsURL( { name: "url", value: "http://localhost:1234" } ), "object" );
-            assert.equal( typeof owaspUtils.verifyArgumentIsInteger( { name: "url", value: "123" } ), "object" );
-            assert.equal( typeof owaspUtils.verifyArgumentIsInteger( { name: "url", value: "0x123" } ), "object" );
-            assert.equal( typeof owaspUtils.verifyArgumentIsIntegerIpPortNumber( { name: "port", value: "1" } ), "object" );
-            assert.equal( typeof owaspUtils.verifyArgumentIsIntegerIpPortNumber( { name: "port", value: "123" } ), "object" );
-            assert.equal( typeof owaspUtils.verifyArgumentIsIntegerIpPortNumber( { name: "port", value: "1024" } ), "object" );
-            assert.equal( typeof owaspUtils.verifyArgumentIsIntegerIpPortNumber( { name: "port", value: "65535" } ), "object" );
-            assert.equal( typeof owaspUtils.verifyArgumentIsArrayOfIntegers( { name: "some_array", value: "[1]" } ), "object" );
-            assert.equal( typeof owaspUtils.verifyArgumentIsArrayOfIntegers( { name: "some_array", value: "[1,2,3]" } ), "object" );
+            assert.equal(
+                typeof owaspUtils.verifyArgumentWithNonEmptyValue(
+                    { name: "path", value: "/tmp/file.name.here" } ), "object" );
+            assert.equal(
+                typeof owaspUtils.verifyArgumentIsURL(
+                    { name: "url", value: "http://127.0.0.1" } ), "object" );
+            assert.equal(
+                typeof owaspUtils.verifyArgumentIsURL(
+                    { name: "url", value: "http://[::1]" } ), "object" );
+            assert.equal(
+                typeof owaspUtils.verifyArgumentIsURL(
+                    { name: "url", value: "http://localhost" } ), "object" );
+            assert.equal(
+                typeof owaspUtils.verifyArgumentIsURL(
+                    { name: "url", value: "http://127.0.0.1:1234" } ), "object" );
+            assert.equal(
+                typeof owaspUtils.verifyArgumentIsURL(
+                    { name: "url", value: "http://[::1]:1234" } ), "object" );
+            assert.equal(
+                typeof owaspUtils.verifyArgumentIsURL(
+                    { name: "url", value: "http://localhost:1234" } ), "object" );
+            assert.equal(
+                typeof owaspUtils.verifyArgumentIsInteger(
+                    { name: "url", value: "123" } ), "object" );
+            assert.equal(
+                typeof owaspUtils.verifyArgumentIsInteger(
+                    { name: "url", value: "0x123" } ), "object" );
+            assert.equal(
+                typeof owaspUtils.verifyArgumentIsIntegerIpPortNumber(
+                    { name: "port", value: "1" } ), "object" );
+            assert.equal(
+                typeof owaspUtils.verifyArgumentIsIntegerIpPortNumber(
+                    { name: "port", value: "123" } ), "object" );
+            assert.equal(
+                typeof owaspUtils.verifyArgumentIsIntegerIpPortNumber(
+                    { name: "port", value: "1024" } ), "object" );
+            assert.equal(
+                typeof owaspUtils.verifyArgumentIsIntegerIpPortNumber(
+                    { name: "port", value: "65535" } ), "object" );
+            assert.equal(
+                typeof owaspUtils.verifyArgumentIsArrayOfIntegers(
+                    { name: "some_array", value: "[1]" } ), "object" );
+            assert.equal(
+                typeof owaspUtils.verifyArgumentIsArrayOfIntegers(
+                    { name: "some_array", value: "[1,2,3]" } ), "object" );
         } );
 
         it( "Paths verification", function() {
-            assert.equal( typeof owaspUtils.verifyArgumentIsPathToExistingFile( { name: "url", value: __filename } ), "object" );
-            assert.equal( typeof owaspUtils.verifyArgumentIsPathToExistingFolder( { name: "url", value: __dirname } ), "object" );
+            assert.equal(
+                typeof owaspUtils.verifyArgumentIsPathToExistingFile(
+                    { name: "url", value: __filename } ), "object" );
+            assert.equal(
+                typeof owaspUtils.verifyArgumentIsPathToExistingFolder(
+                    { name: "url", value: __dirname } ), "object" );
         } );
 
     } );
@@ -552,36 +667,61 @@ describe( "OWASP", function() {
         } );
 
         it( "ID from chain name", function() {
-            assert.equal( owaspUtils.compute_chain_id_from_schain_name( "Hello World" ), "0x592fa743889fc7" );
+            assert.equal(
+                owaspUtils.compute_chain_id_from_schain_name( "Hello World" ),
+                "0x592fa743889fc7" );
         } );
 
         it( "Extract error message", function() {
             const not_extracted = "error message was not extracted";
-            assert.equal( owaspUtils.extract_error_message( null, not_extracted ), not_extracted );
-            assert.equal( owaspUtils.extract_error_message( undefined, not_extracted ), not_extracted );
-            assert.equal( owaspUtils.extract_error_message( 123, not_extracted ), not_extracted );
-            assert.equal( owaspUtils.extract_error_message( "123", not_extracted ), not_extracted );
-            assert.equal( owaspUtils.extract_error_message( "", not_extracted ), not_extracted );
-            assert.equal( owaspUtils.extract_error_message( {}, not_extracted ), not_extracted );
-            assert.equal( owaspUtils.extract_error_message( { "err": "something" }, not_extracted ), not_extracted );
-            assert.equal( owaspUtils.extract_error_message( new Error( "Hello World" ), not_extracted ), "Hello World" );
+            assert.equal(
+                owaspUtils.extract_error_message(
+                    null, not_extracted ), not_extracted );
+            assert.equal(
+                owaspUtils.extract_error_message(
+                    undefined, not_extracted ), not_extracted );
+            assert.equal(
+                owaspUtils.extract_error_message(
+                    123, not_extracted ), not_extracted );
+            assert.equal(
+                owaspUtils.extract_error_message(
+                    "123", not_extracted ), not_extracted );
+            assert.equal(
+                owaspUtils.extract_error_message(
+                    "", not_extracted ), not_extracted );
+            assert.equal(
+                owaspUtils.extract_error_message(
+                    {}, not_extracted ), not_extracted );
+            assert.equal(
+                owaspUtils.extract_error_message(
+                    { "err": "something" }, not_extracted ), not_extracted );
+            assert.equal(
+                owaspUtils.extract_error_message(
+                    new Error( "Hello World" ), not_extracted ), "Hello World" );
         } );
 
     } );
 
     describe( "Key/address utilities", function() {
         const joTestAccount = {
-            "privateKey": owaspUtils.toEthPrivateKey( "23ABDBD3C61B5330AF61EBE8BEF582F4E5CC08E554053A718BDCE7813B9DC1FC" ),
+            "privateKey":
+                owaspUtils.toEthPrivateKey(
+                    "23ABDBD3C61B5330AF61EBE8BEF582F4E5CC08E554053A718BDCE7813B9DC1FC" ),
             "address": owaspUtils.fn_address_impl_
         };
 
         it( "Extract address from private key", function() {
             const address = joTestAccount.address();
-            const address2 = owaspUtils.private_key_2_account_address( joTestAccount.privateKey );
+            const address2 =
+                owaspUtils.private_key_2_account_address( joTestAccount.privateKey );
             // console.log( "private key is", joTestAccount.privateKey );
             // console.log( "computed address is", joTestAccount.address() );
-            assert.equal( address.toLowerCase(), "0x7aa5E36AA15E93D10F4F26357C30F052DacDde5F".toLowerCase() );
-            assert.equal( address2.toLowerCase(), "0x7aa5E36AA15E93D10F4F26357C30F052DacDde5F".toLowerCase() );
+            assert.equal(
+                address.toLowerCase(),
+                "0x7aa5E36AA15E93D10F4F26357C30F052DacDde5F".toLowerCase() );
+            assert.equal(
+                address2.toLowerCase(),
+                "0x7aa5E36AA15E93D10F4F26357C30F052DacDde5F".toLowerCase() );
         } );
 
         it( "Extract public key from private key", function() {
@@ -589,7 +729,11 @@ describe( "OWASP", function() {
             const publicKey = owaspUtils.private_key_2_public_key( joTestAccount.privateKey );
             // console.log( "private key is", joTestAccount.privateKey );
             // console.log( "extracted public is", publicKey );
-            assert.equal( publicKey.toLowerCase(), "5dd431d36ce6b88f27d351051b31a26848c4a886f0dd0bc87a7d5a9d821417c9e807e8589f680ab0f2ab29831231ad7b3d6659990ee830582fede785fc3c33c4".toLowerCase() );
+            assert.equal(
+                publicKey.toLowerCase(),
+                ( "5dd431d36ce6b88f27d351051b31a26848c4a886f0dd0bc87a7d5a9d82" +
+                "1417c9e807e8589f680ab0f2ab29831231ad" +
+                "7b3d6659990ee830582fede785fc3c33c4" ).toLowerCase() );
         } );
 
         it( "Extract address from public key", function() {
@@ -739,16 +883,26 @@ describe( "OWASP", function() {
             assert.equal( owaspUtils.parseMoneySpecToWei( "1picoether" ), "1000000" );
             assert.equal( owaspUtils.parseMoneySpecToWei( "1pico" ), "1000000" );
             assert.equal( owaspUtils.parseMoneySpecToWei( "1gwei" ), "1000000000" );
-            assert.equal( owaspUtils.parseMoneySpecToWei( "1nanoether" ), "1000000000" );
-            assert.equal( owaspUtils.parseMoneySpecToWei( "1nano" ), "1000000000" );
-            assert.equal( owaspUtils.parseMoneySpecToWei( "1microether" ), "1000000000000" );
-            assert.equal( owaspUtils.parseMoneySpecToWei( "1micro" ), "1000000000000" );
-            assert.equal( owaspUtils.parseMoneySpecToWei( "1milliether" ), "1000000000000000" );
-            assert.equal( owaspUtils.parseMoneySpecToWei( "1milli" ), "1000000000000000" );
-            assert.equal( owaspUtils.parseMoneySpecToWei( "1kether" ), "1000000000000000000000" );
-            assert.equal( owaspUtils.parseMoneySpecToWei( "1mether" ), "1000000000000000000000000" );
-            assert.equal( owaspUtils.parseMoneySpecToWei( "1gether" ), "1000000000000000000000000000" );
-            assert.equal( owaspUtils.parseMoneySpecToWei( "1tether" ), "1000000000000000000000000000000" );
+            assert.equal(
+                owaspUtils.parseMoneySpecToWei( "1nanoether" ), "1000000000" );
+            assert.equal(
+                owaspUtils.parseMoneySpecToWei( "1nano" ), "1000000000" );
+            assert.equal(
+                owaspUtils.parseMoneySpecToWei( "1microether" ), "1000000000000" );
+            assert.equal(
+                owaspUtils.parseMoneySpecToWei( "1micro" ), "1000000000000" );
+            assert.equal(
+                owaspUtils.parseMoneySpecToWei( "1milliether" ), "1000000000000000" );
+            assert.equal(
+                owaspUtils.parseMoneySpecToWei( "1milli" ), "1000000000000000" );
+            assert.equal(
+                owaspUtils.parseMoneySpecToWei( "1kether" ), "1000000000000000000000" );
+            assert.equal(
+                owaspUtils.parseMoneySpecToWei( "1mether" ), "1000000000000000000000000" );
+            assert.equal(
+                owaspUtils.parseMoneySpecToWei( "1gether" ), "1000000000000000000000000000" );
+            assert.equal(
+                owaspUtils.parseMoneySpecToWei( "1tether" ), "1000000000000000000000000000000" );
         } );
 
     } );
@@ -774,12 +928,29 @@ describe( "CLI", function() {
             const isPrintValue = true;
             const fnNameColorizer = null;
             const fnValueColorizer = null;
-            assert.equal( imaCLI.ensure_have_value( "test-url", "http://127.0.0.1:3456", isExitIfEmpty, isPrintValue, fnNameColorizer, fnValueColorizer ), true );
+            assert.equal(
+                maCLI.ensure_have_value(
+                    "test-url",
+                    "http://127.0.0.1:3456",
+                    isExitIfEmpty,
+                    isPrintValue,
+                    fnNameColorizer,
+                    fnValueColorizer
+                ),
+                true );
             const joTestAccount = {
-                "privateKey": owaspUtils.toEthPrivateKey( "23ABDBD3C61B5330AF61EBE8BEF582F4E5CC08E554053A718BDCE7813B9DC1FC" ),
+                "privateKey":
+                    owaspUtils.toEthPrivateKey(
+                        "23ABDBD3C61B5330AF61EBE8BEF582F4E5CC08E554053A718BDCE7813B9DC1FC" ),
                 "address": owaspUtils.fn_address_impl_
             };
-            assert.equal( imaCLI.ensure_have_chain_credentials( imaState.chainProperties.sc.strChainName, joTestAccount, isExitIfEmpty, isPrintValue ), true );
+            assert.equal(
+                imaCLI.ensure_have_chain_credentials(
+                    imaState.chainProperties.sc.strChainName,
+                    joTestAccount,
+                    isExitIfEmpty,
+                    isPrintValue ),
+                true );
         } );
 
     } );
@@ -807,10 +978,17 @@ describe( "CLI", function() {
                 "--id-origin-chain=" + imaState.strChainName_origin_chain,
                 "--cid-main-net=" + imaState.chainProperties.mn.cid,
                 "--cid-s-chain=" + imaState.chainProperties.sc.cid,
-                "--address-main-net=" + ( imaState.chainProperties.mn.joAccount.address() || "0x7aa5e36aa15e93d10f4f26357c30f052dacdde5f" ),
-                "--address-s-chain=" + ( imaState.chainProperties.sc.joAccount.address() || "0x66c5a87f4a49DD75e970055A265E8dd5C3F8f852" ),
-                "--key-main-net=" + ( imaState.chainProperties.mn.joAccount.privateKey || "23ABDBD3C61B5330AF61EBE8BEF582F4E5CC08E554053A718BDCE7813B9DC1FC" ),
-                "--key-s-chain=" + ( imaState.chainProperties.sc.joAccount.privateKey || "80ebc2e00b8f13c5e2622b5694ab63ee80f7c5399554d2a12feeb0212eb8c69e" ),
+                "--address-main-net=" +
+                    ( imaState.chainProperties.mn.joAccount.address() ||
+                    "0x7aa5e36aa15e93d10f4f26357c30f052dacdde5f" ),
+                "--address-s-chain=" +
+                    ( imaState.chainProperties.sc.joAccount.address() ||
+                    "0x66c5a87f4a49DD75e970055A265E8dd5C3F8f852" ),
+                "--key-main-net=" +
+                    ( imaState.chainProperties.mn.joAccount.privateKey ||
+                    "23ABDBD3C61B5330AF61EBE8BEF582F4E5CC08E554053A718BDCE7813B9DC1FC" ),
+                "--key-s-chain=" + ( imaState.chainProperties.sc.joAccount.privateKey ||
+                    "80ebc2e00b8f13c5e2622b5694ab63ee80f7c5399554d2a12feeb0212eb8c69e" ),
                 //"--abi-skale-manager=" + imaState.strPathAbiJsonSkaleManager,
                 "--abi-main-net=" + imaState.chainProperties.mn.strPathAbiJson,
                 "--abi-s-chain=" + imaState.chainProperties.sc.strPathAbiJson,
@@ -867,27 +1045,47 @@ describe( "Agent Utils Module", function() {
 
         it( "Random file name", function() {
             const strPathTmpFolder = os.tmpdir();
-            const strPathTmpFile = path.join( strPathTmpFolder, imaUtils.getRandomFileName() + ".txt" );
+            const strPathTmpFile =
+                path.join( strPathTmpFolder, imaUtils.getRandomFileName() + ".txt" );
             // console.log( "Tmp file is", strPathTmpFile );
             assert.equal( strPathTmpFile ? true : false, true );
         } );
 
         it( "UTF8 encode/decode", function() {
-            const strSrc = "Test string 123, Тестовая строка 123, 테스트 문자열 123, Cadena de prueba 123, テスト文字列123, Chaîne de test 123, Testzeichenfolge 123, 測試字符串123";
+            const strSrc =
+                "Test string 123, Тестовая строка 123, 테스트 문자열 123, " +
+                "Cadena de prueba 123, テスト文字列123, Chaîne de test 123, " +
+                "Testzeichenfolge 123, 測試字符串123";
             const arrBytes = imaUtils.encodeUTF8( strSrc );
             const strDst = imaUtils.decodeUTF8( arrBytes );
             assert.equal( strSrc, strDst );
         } );
 
         it( "Compose S-Chain URL", function() {
-            assert.equal( imaUtils.compose_schain_node_url( { ip: "127.0.0.1", httpRpcPort: 3456 } ), "http://127.0.0.1:3456" );
-            assert.equal( imaUtils.compose_schain_node_url( { ip: "127.0.0.1", httpsRpcPort: 3456 } ), "https://127.0.0.1:3456" );
-            assert.equal( imaUtils.compose_schain_node_url( { ip: "127.0.0.1", wsRpcPort: 3456 } ), "ws://127.0.0.1:3456" );
-            assert.equal( imaUtils.compose_schain_node_url( { ip: "127.0.0.1", wssRpcPort: 3456 } ), "wss://127.0.0.1:3456" );
-            assert.equal( imaUtils.compose_schain_node_url( { ip6: "::1", httpRpcPort6: 3456 } ), "http://[::1]:3456" );
-            assert.equal( imaUtils.compose_schain_node_url( { ip6: "::1", httpsRpcPort6: 3456 } ), "https://[::1]:3456" );
-            assert.equal( imaUtils.compose_schain_node_url( { ip6: "::1", wsRpcPort6: 3456 } ), "ws://[::1]:3456" );
-            assert.equal( imaUtils.compose_schain_node_url( { ip6: "::1", wssRpcPort6: 3456 } ), "wss://[::1]:3456" );
+            assert.equal(
+                imaUtils.compose_schain_node_url(
+                    { ip: "127.0.0.1", httpRpcPort: 3456 } ), "http://127.0.0.1:3456" );
+            assert.equal(
+                imaUtils.compose_schain_node_url(
+                    { ip: "127.0.0.1", httpsRpcPort: 3456 } ), "https://127.0.0.1:3456" );
+            assert.equal(
+                imaUtils.compose_schain_node_url(
+                    { ip: "127.0.0.1", wsRpcPort: 3456 } ), "ws://127.0.0.1:3456" );
+            assert.equal(
+                imaUtils.compose_schain_node_url(
+                    { ip: "127.0.0.1", wssRpcPort: 3456 } ), "wss://127.0.0.1:3456" );
+            assert.equal(
+                imaUtils.compose_schain_node_url(
+                    { ip6: "::1", httpRpcPort6: 3456 } ), "http://[::1]:3456" );
+            assert.equal(
+                imaUtils.compose_schain_node_url(
+                    { ip6: "::1", httpsRpcPort6: 3456 } ), "https://[::1]:3456" );
+            assert.equal(
+                imaUtils.compose_schain_node_url(
+                    { ip6: "::1", wsRpcPort6: 3456 } ), "ws://[::1]:3456" );
+            assert.equal(
+                imaUtils.compose_schain_node_url(
+                    { ip6: "::1", wssRpcPort6: 3456 } ), "wss://[::1]:3456" );
         } );
 
         it( "Compose IMA Agent URL", function() {
@@ -895,7 +1093,9 @@ describe( "Agent Utils Module", function() {
             // IMA_AGENT_JSON = 10
             // so... distance is 10 - 3 = 7
             // as result, 14999 + 7 = 15006
-            assert.equal( imaUtils.compose_ima_agent_node_url( { ip: "127.0.0.1", httpRpcPort: 14999 } ), "http://127.0.0.1:15006" );
+            assert.equal(
+                imaUtils.compose_ima_agent_node_url(
+                    { ip: "127.0.0.1", httpRpcPort: 14999 } ), "http://127.0.0.1:15006" );
         } );
 
     } );
@@ -932,14 +1132,18 @@ describe( "Agent Utils Module", function() {
 
         it( "Array padding with zeroes at left", function() {
             const strSrc = "123";
-            const arrBytes = imaUtils.bytesAlignLeftWithZeroes( imaUtils.hexToBytes( strSrc, false ), 4 );
+            const arrBytes =
+                imaUtils.bytesAlignLeftWithZeroes(
+                    imaUtils.hexToBytes( strSrc, false ), 4 );
             const strDst = imaUtils.bytesToHex( arrBytes, false );
             assert.equal( strDst, "00000123" );
         } );
 
         it( "Array padding with zeroes at right", function() {
             const strSrc = "123";
-            const arrBytes = imaUtils.bytesAlignRightWithZeroes( imaUtils.hexToBytes( strSrc, false ), 4 );
+            const arrBytes =
+                imaUtils.bytesAlignRightWithZeroes(
+                    imaUtils.hexToBytes( strSrc, false ), 4 );
             const strDst = imaUtils.bytesToHex( arrBytes, false );
             assert.equal( strDst, "01230000" );
         } );
@@ -972,7 +1176,9 @@ describe( "Agent Utils Module", function() {
 
         it( "Array/buffer conversion", function() {
             const strSrc = "baadf00d";
-            const arrBytes = imaUtils.toBuffer( imaUtils.toArrayBuffer( imaUtils.hexToBytes( strSrc, true ) ) );
+            const arrBytes =
+                imaUtils.toBuffer(
+                    imaUtils.toArrayBuffer( imaUtils.hexToBytes( strSrc, true ) ) );
             const strDst = imaUtils.bytesToHex( arrBytes, true );
             assert.equal( strDst, "baadf00d" );
         } );
@@ -990,29 +1196,37 @@ describe( "Agent Utils Module", function() {
 
         it( "File existence and text loading/saving", function() {
             const strPathTmpFolder = os.tmpdir();
-            const strPathTmpFile = path.join( strPathTmpFolder, imaUtils.getRandomFileName() + ".txt" );
+            const strPathTmpFile =
+                path.join( strPathTmpFolder, imaUtils.getRandomFileName() + ".txt" );
             // console.log( "Tmp file is", strPathTmpFile );
             try { fs.unlinkSync( strPathTmpFile ); } catch ( err ) { };
             assert.equal( imaUtils.fileExists( strPathTmpFile ), false );
             const strContentSaved = "Text file content";
             assert.equal( imaUtils.fileSave( strPathTmpFile, strContentSaved ), true );
             assert.equal( imaUtils.fileExists( strPathTmpFile ), true );
-            const strContentLoaded = imaUtils.fileLoad( strPathTmpFile, "file \"" + strPathTmpFile + "\"was not loaded" );
+            const strContentLoaded =
+                imaUtils.fileLoad(
+                    strPathTmpFile, "file \"" + strPathTmpFile + "\"was not loaded" );
             assert.equal( strContentLoaded, strContentSaved );
             try { fs.unlinkSync( strPathTmpFile ); } catch ( err ) { };
         } );
 
         it( "File existence and JSON loading/saving", function() {
             const strPathTmpFolder = os.tmpdir();
-            const strPathTmpFile = path.join( strPathTmpFolder, imaUtils.getRandomFileName() + ".json" );
+            const strPathTmpFile =
+                path.join( strPathTmpFolder, imaUtils.getRandomFileName() + ".json" );
             // console.log( "Tmp file is", strPathTmpFile );
             try { fs.unlinkSync( strPathTmpFile ); } catch ( err ) { };
             assert.equal( imaUtils.fileExists( strPathTmpFile ), false );
             const joContentSaved = { a: 123, b: 456 };
             assert.equal( imaUtils.jsonFileSave( strPathTmpFile, joContentSaved ), true );
             assert.equal( imaUtils.fileExists( strPathTmpFile ), true );
-            const joContentLoaded = imaUtils.jsonFileLoad( strPathTmpFile, { error: "file \"" + strPathTmpFile + "\"was not loaded" } );
-            assert.equal( JSON.stringify( joContentSaved ), JSON.stringify( joContentLoaded ) );
+            const joContentLoaded =
+                imaUtils.jsonFileLoad(
+                    strPathTmpFile,
+                    { error: "file \"" + strPathTmpFile + "\"was not loaded" } );
+            assert.equal(
+                JSON.stringify( joContentSaved ), JSON.stringify( joContentLoaded ) );
             try { fs.unlinkSync( strPathTmpFile ); } catch ( err ) { };
         } );
 
@@ -1023,7 +1237,10 @@ describe( "Agent Utils Module", function() {
         it( "Find ABI entries", function() {
             const strName = imaState.chainProperties.sc.strChainName;
             const strFile = imaState.chainProperties.sc.strPathAbiJson;
-            const joABI = imaUtils.jsonFileLoad( strFile, { error: "file \"" + strFile + "\"was not loaded" } );
+            const joABI =
+                imaUtils.jsonFileLoad(
+                    strFile,
+                    { error: "file \"" + strFile + "\"was not loaded" } );
             const strKey = "token_manager_linker_address";
             const arrKeys = [
                 "token_manager_linker_address",
@@ -1042,14 +1259,22 @@ describe( "Agent Utils Module", function() {
                 "message_proxy_chain_abi"
             ];
             const isExitOnError = false;
-            assert.equal( imaUtils.check_key_exist_in_abi( strName, strFile, joABI, strKey, isExitOnError ), true );
-            assert.equal( imaUtils.check_keys_exist_in_abi( strName, strFile, joABI, arrKeys, isExitOnError ), true );
+            assert.equal(
+                imaUtils.check_key_exist_in_abi(
+                    strName, strFile, joABI, strKey, isExitOnError ), true );
+            assert.equal(
+                imaUtils.check_keys_exist_in_abi(
+                    strName, strFile, joABI, arrKeys, isExitOnError ), true );
         } );
 
         it( "Discover coin name", function() {
             const strFile = imaState.chainProperties.sc.strPathAbiJson;
-            const joABI = imaUtils.jsonFileLoad( strFile, { error: "file \"" + strFile + "\"was not loaded" } );
-            const strCoinName = imaUtils.discover_in_json_coin_name( joABI );
+            const joABI =
+                imaUtils.jsonFileLoad(
+                    strFile,
+                    { error: "file \"" + strFile + "\"was not loaded" } );
+            const strCoinName =
+                maUtils.discover_in_json_coin_name( joABI );
             // console.log( "strCoinName is", strCoinName );
             assert.equal( strCoinName.length > 0, true );
         } );

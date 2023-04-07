@@ -2010,7 +2010,7 @@ async function continue_schain_discovery_in_background_if_needed( isSilent ) {
                 log.write(
                     cc.info( "Will re-discover " ) + cc.notice( cntNodes ) +
                     cc.info( "-node S-Chain network, " ) + cc.notice( cntDiscovered ) +
-                    c.info( " node(s) already discovered..." ) +
+                    cc.info( " node(s) already discovered..." ) +
                     "\n" );
             }
             await discover_s_chain_network( function( err, joSChainNetworkInfo ) {

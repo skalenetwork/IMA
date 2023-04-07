@@ -470,7 +470,7 @@ export function parse( joExternalHandlers, argv ) {
                 cc.notice( " environment variable if not specified." ) );
             console.log( soi + cc.debug( "--" ) +
                 cc.bright( "sgx-url-s-chain" ) + cc.sunny( "=" ) + cc.attention( "URL" ) +
-                c.debug( "..................." ) + cc.sunny( "SGX server" ) +
+                cc.debug( "..................." ) + cc.sunny( "SGX server" ) +
                 cc.notice( " URL for " ) + cc.note( "S-chain" ) +
                 cc.notice( ". Value is automatically loaded from the " ) +
                 cc.warning( "SGX_URL_S_CHAIN" ) +
@@ -555,7 +555,7 @@ export function parse( joExternalHandlers, argv ) {
                 cc.bright( "SGX wallet" ) + cc.notice( " of " ) + cc.note( "Main-net" ) +
                 cc.notice( ". Value is automatically loaded from the " ) +
                 cc.warning( "SGX_SSL_CERT_FILE_ETHEREUM" ) +
-                c.notice( " environment variable if not specified." ) );
+                cc.notice( " environment variable if not specified." ) );
             console.log( soi + cc.debug( "--" ) +
                 cc.bright( "sgx-ssl-cert-s-chain" ) + cc.sunny( "=" ) + cc.attention( "path" ) +
                 cc.debug( "............." ) + cc.notice( "Path to " ) +
@@ -602,7 +602,7 @@ export function parse( joExternalHandlers, argv ) {
                 cc.attention( "user account address" ) +
                 cc.notice( ". Value is automatically loaded from the " ) +
                 cc.warning( "PRIVATE_KEY_FOR_ETHEREUM" ) +
-                c.notice( " environment variable if not specified." ) );
+                cc.notice( " environment variable if not specified." ) );
             console.log( soi + cc.debug( "--" ) +
                 cc.bright( "key-s-chain" ) + cc.sunny( "=" ) + cc.error( "value" ) +
                 cc.debug( "....................." ) + cc.attention( "Private key" ) +
@@ -765,7 +765,7 @@ export function parse( joExternalHandlers, argv ) {
                 cc.debug( "Default value is " ) + cc.sunny( "1.25" ) + cc.notice( "." ) +
                 cc.debug( " Specify value " ) + cc.sunny( "0.0" ) + cc.debug( " to " ) +
                 cc.error( "disable" ) + " " + cc.attention( "Gas Price Customization" ) +
-                c.debug( " for " ) + cc.note( "Main Net" ) + cc.notice( "." ) );
+                cc.debug( " for " ) + cc.note( "Main Net" ) + cc.notice( "." ) );
             console.log( soi + cc.debug( "--" ) +
                 cc.bright( "gas-multiplier-sc" ) + cc.debug( "....................." ) +
                 cc.notice( "Sets " ) + cc.attention( "Gas Value Multiplier" ) +
@@ -1240,7 +1240,7 @@ export function parse( joExternalHandlers, argv ) {
             console.log( soi + cc.debug( "--" ) +
                 cc.bright( "disable-oracle" ) + cc.debug( "........................" ) +
                 cc.error( "Disable" ) + cc.notice( " call to " ) + cc.note( "Oracle" ) +
-                c.notice( " to compute " ) + cc.note( "gas price" ) + cc.notice( " for " ) +
+                cc.notice( " to compute " ) + cc.note( "gas price" ) + cc.notice( " for " ) +
                 cc.attention( "gas reimbursement" ) + cc.notice( "." ) );
             //
             console.log( cc.sunny( "IMA JSON RPC SERVER" ) + cc.info( " options:" ) );
@@ -2967,7 +2967,7 @@ export function ima_common_init() {
             }
             if( n2 === 0 && imaState.chainProperties.sc.strPathJsonErc721.length > 0 ) {
                 log.write(
-                    c.fatal( "FATAL, CRITICAL ERROR:" ) +
+                    cc.fatal( "FATAL, CRITICAL ERROR:" ) +
                     cc.error( "S-Chain ERC721 JSON is invalid" ) +
                     "\n" );
             }

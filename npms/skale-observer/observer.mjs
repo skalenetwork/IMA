@@ -33,7 +33,8 @@ import * as cc from "../skale-cc/cc.mjs";
 import * as log from "../skale-log/log.mjs";
 import * as rpcCall from "../../agent/rpc-call.mjs";
 
-import { UniversalDispatcherEvent, EventDispatcher } from "../skale-cool-socket/event_dispatcher.mjs";
+import { UniversalDispatcherEvent, EventDispatcher }
+    from "../skale-cool-socket/event_dispatcher.mjs";
 
 //import { Multicall, ContractCallResults, ContractCallContext } from "ethereum-multicall";
 import * as EMC from "ethereum-multicall";
@@ -55,7 +56,9 @@ export function get_schain_index_in_node( schain_id, schains_ids_on_node ) {
             return i;
         ++ i;
     }
-    throw new Error( "S-Chain " + schain_id + " is not found in the list: " + JSON.stringify( schains_ids_on_node ) );
+    throw new Error(
+        "S-Chain " + schain_id + " is not found in the list: " +
+        JSON.stringify( schains_ids_on_node ) );
 }
 
 export function get_schain_base_port_on_node( schain_id, schains_ids_on_node, node_base_port ) {
@@ -68,12 +71,18 @@ export function calc_schain_base_port( node_base_port, schain_index ) {
 }
 
 export function compose_endpoints( jo_schain, node_dict, endpoint_type ) {
-    node_dict["http_endpoint_" + endpoint_type] = "http://" + node_dict[endpoint_type] + ":" + jo_schain.data.computed.ports.httpRpcPort;
-    node_dict["https_endpoint_" + endpoint_type] = "https://" + node_dict[endpoint_type] + ":" + jo_schain.data.computed.ports.httpsRpcPort;
-    node_dict["ws_endpoint_" + endpoint_type] = "ws://" + node_dict[endpoint_type] + ":" + jo_schain.data.computed.ports.wsRpcPort;
-    node_dict["wss_endpoint_" + endpoint_type] = "wss://" + node_dict[endpoint_type] + ":" + jo_schain.data.computed.ports.wssRpcPort;
-    node_dict["info_http_endpoint_" + endpoint_type] = "http://" + node_dict[endpoint_type] + ":" + jo_schain.data.computed.ports.infoHttpRpcPort;
-    node_dict["ima_agent_endpoint_" + endpoint_type] = "http://" + node_dict[endpoint_type] + ":" + jo_schain.data.computed.ports.imaAgentRpcPort;
+    node_dict["http_endpoint_" + endpoint_type] =
+        "http://" + node_dict[endpoint_type] + ":" + jo_schain.data.computed.ports.httpRpcPort;
+    node_dict["https_endpoint_" + endpoint_type] =
+        "https://" + node_dict[endpoint_type] + ":" + jo_schain.data.computed.ports.httpsRpcPort;
+    node_dict["ws_endpoint_" + endpoint_type] =
+        "ws://" + node_dict[endpoint_type] + ":" + jo_schain.data.computed.ports.wsRpcPort;
+    node_dict["wss_endpoint_" + endpoint_type] =
+        "wss://" + node_dict[endpoint_type] + ":" + jo_schain.data.computed.ports.wssRpcPort;
+    node_dict["info_http_endpoint_" + endpoint_type] =
+        "http://" + node_dict[endpoint_type] + ":" + jo_schain.data.computed.ports.infoHttpRpcPort;
+    node_dict["ima_agent_endpoint_" + endpoint_type] =
+        "http://" + node_dict[endpoint_type] + ":" + jo_schain.data.computed.ports.imaAgentRpcPort;
 }
 
 export const SkaledPorts = {
@@ -188,10 +197,18 @@ export async function load_schain_parts( jo_schain, addressFrom, opts ) {
     jo_schain.data.computed = {};
     const schain_id = owaspUtils.ethersMod.ethers.utils.id( jo_schain.data.name );
     const chainId = owaspUtils.compute_chain_id_from_schain_name( jo_schain.data.name );
-    const node_ids = await opts.imaState.jo_schains_internal.callStatic.getNodesInGroup( schain_id, { from: addressFrom } );
+    const node_ids =
+        await opts.imaState.jo_schains_internal.callStatic.getNodesInGroup(
+            schain_id,
+            { from: addressFrom } );
     const nodes = [];
     if( isEMC ) {
-        const multicall = new EMC.Multicall( { ethersProvider: opts.imaState.chainProperties.mn.ethersProvider, tryAggregate: true } );
+        const multicall = new EMC.Multicall(
+            {
+                ethersProvider: opts.imaState.chainProperties.mn.ethersProvider,
+                tryAggregate: true
+            }
+        );
         const strRef0 = "Nodes-nodes";
         const strRef1 = "Nodes-getNodeDomainName";
         const strRef2 = "Nodes-isNodeInMaintenance";
@@ -200,7 +217,8 @@ export async function load_schain_parts( jo_schain, addressFrom, opts ) {
             {
                 reference: strRef0,
                 contractAddress: opts.imaState.jo_nodes.address,
-                abi: opts.imaState.joAbiSkaleManager.nodes_abi, // find_one_function_abi( opts.imaState.joAbiSkaleManager.nodes_abi, "nodes" ),
+                // abi:find_one_function_abi( opts.imaState.joAbiSkaleManager.nodes_abi, "nodes" ),
+                abi: opts.imaState.joAbiSkaleManager.nodes_abi,
                 calls: [ ]
             }, {
                 reference: strRef1,
@@ -222,18 +240,42 @@ export async function load_schain_parts( jo_schain, addressFrom, opts ) {
         for( const node_id of node_ids ) {
             if( opts && opts.bStopNeeded )
                 return;
-            contractCallContext[0].calls.push( { reference: strRef0, methodName: "nodes", methodParameters: [ node_id ] } );
-            contractCallContext[1].calls.push( { reference: strRef1, methodName: "getNodeDomainName", methodParameters: [ node_id ] } );
-            contractCallContext[2].calls.push( { reference: strRef2, methodName: "isNodeInMaintenance", methodParameters: [ node_id ] } );
-            contractCallContext[3].calls.push( { reference: strRef3, methodName: "getSchainHashesForNode", methodParameters: [ node_id ] } );
+            contractCallContext[0].calls.push(
+                {
+                    reference: strRef0,
+                    methodName: "nodes",
+                    methodParameters: [ node_id ]
+                } );
+            contractCallContext[1].calls.push(
+                {
+                    reference: strRef1,
+                    methodName: "getNodeDomainName",
+                    methodParameters: [ node_id ]
+                } );
+            contractCallContext[2].calls.push(
+                {
+                    reference: strRef2,
+                    methodName: "isNodeInMaintenance",
+                    methodParameters: [ node_id ]
+                } );
+            contractCallContext[3].calls.push(
+                {
+                    reference: strRef3,
+                    methodName: "getSchainHashesForNode",
+                    methodParameters: [ node_id ]
+                } );
         }
         const rawResults = await multicall.call( contractCallContext );
         let idxResult = 0;
         for( const node_id of node_ids ) {
-            const values0 = rawResults.results[strRef0].callsReturnContext[idxResult].returnValues;
-            const values1 = rawResults.results[strRef1].callsReturnContext[idxResult].returnValues;
-            const values2 = rawResults.results[strRef2].callsReturnContext[idxResult].returnValues;
-            const values3 = rawResults.results[strRef3].callsReturnContext[idxResult].returnValues;
+            const values0 =
+                rawResults.results[strRef0].callsReturnContext[idxResult].returnValues;
+            const values1 =
+                rawResults.results[strRef1].callsReturnContext[idxResult].returnValues;
+            const values2 =
+                rawResults.results[strRef2].callsReturnContext[idxResult].returnValues;
+            const values3 =
+                rawResults.results[strRef3].callsReturnContext[idxResult].returnValues;
             const node_dict = {
                 "id": node_id,
                 "name": values0[0],
@@ -245,7 +287,8 @@ export async function load_schain_parts( jo_schain, addressFrom, opts ) {
             if( opts && opts.bStopNeeded )
                 return;
             const schain_ids = values3;
-            node_dict.schain_base_port = get_schain_base_port_on_node( schain_id, schain_ids, node_dict.base_port );
+            node_dict.schain_base_port =
+                get_schain_base_port_on_node( schain_id, schain_ids, node_dict.base_port );
             calc_ports( jo_schain, node_dict.schain_base_port );
             compose_endpoints( jo_schain, node_dict, "ip" );
             compose_endpoints( jo_schain, node_dict, "domain" );
@@ -258,19 +301,28 @@ export async function load_schain_parts( jo_schain, addressFrom, opts ) {
         for( const node_id of node_ids ) {
             if( opts && opts.bStopNeeded )
                 return;
-            const node = await opts.imaState.jo_nodes.callStatic.nodes( node_id, { from: addressFrom } );
+            const node =
+                await opts.imaState.jo_nodes.callStatic.nodes( node_id, { from: addressFrom } );
             const node_dict = {
                 "id": node_id,
                 "name": node[0],
                 "ip": owaspUtils.ip_from_hex( node[1] ),
                 "base_port": node[3],
-                "domain": await opts.imaState.jo_nodes.callStatic.getNodeDomainName( node_id, { from: addressFrom } ),
-                "isMaintenance": await opts.imaState.jo_nodes.callStatic.isNodeInMaintenance( node_id, { from: addressFrom } )
+                "domain":
+                    await opts.imaState.jo_nodes.callStatic.getNodeDomainName(
+                        node_id, { from: addressFrom } ),
+                "isMaintenance":
+                    await opts.imaState.jo_nodes.callStatic.isNodeInMaintenance(
+                        node_id, { from: addressFrom } )
             };
             if( opts && opts.bStopNeeded )
                 return;
-            const schain_ids = await opts.imaState.jo_schains_internal.callStatic.getSchainHashesForNode( node_id, { from: addressFrom } );
-            node_dict.schain_base_port = get_schain_base_port_on_node( schain_id, schain_ids, node_dict.base_port );
+            const schain_ids =
+                await opts.imaState.jo_schains_internal.callStatic.getSchainHashesForNode(
+                    node_id, { from: addressFrom } );
+            node_dict.schain_base_port =
+                get_schain_base_port_on_node(
+                    schain_id, schain_ids, node_dict.base_port );
             calc_ports( jo_schain, node_dict.schain_base_port );
             compose_endpoints( jo_schain, node_dict, "ip" );
             compose_endpoints( jo_schain, node_dict, "domain" );
@@ -279,7 +331,9 @@ export async function load_schain_parts( jo_schain, addressFrom, opts ) {
                 return;
         }
     } // else from if( isEMC )
-    // const schain = await opts.imaState.jo_schains_internal.callStatic.schains( schain_id, { from: addressFrom } );
+    // const schain =
+    //     await opts.imaState.jo_schains_internal.callStatic.schains(
+    //         schain_id, { from: addressFrom } );
     // jo_schain.data.computed.schain = schain;
     jo_schain.data.computed.schain_id = schain_id;
     jo_schain.data.computed.chainId = chainId;
@@ -290,7 +344,9 @@ export async function get_schains_count( addressFrom, opts ) {
     owaspUtils.ensure_observer_opts_initialized( opts );
     if( ! opts.imaState )
         throw new Error( "Cannot get S-Chains count, no imaState is provided" );
-    const cntSChains = await opts.imaState.jo_schains_internal.callStatic.numberOfSchains( { from: addressFrom } );
+    const cntSChains =
+        await opts.imaState.jo_schains_internal.callStatic.numberOfSchains(
+            { from: addressFrom } );
     return cntSChains;
 }
 
@@ -308,15 +364,24 @@ export async function load_schain( addressFrom, idxSChain, hash, cntSChains, opt
     owaspUtils.ensure_observer_opts_initialized( opts );
     if( ! opts.imaState )
         throw new Error( "Cannot load S-Chain description in observer, no imaState is provided" );
-    if( opts && opts.details )
-        opts.details.write( cc.debug( "Loading S-Chain " ) + cc.notice( "#" ) + cc.info( idxSChain + 1 ) + cc.debug( " of " ) + cc.info( cntSChains ) + cc.debug( "..." ) + "\n" );
-    hash = hash || await opts.imaState.jo_schains_internal.callStatic.schainsAtSystem( idxSChain, { from: addressFrom } );
+    if( opts && opts.details ) {
+        opts.details.write(
+            cc.debug( "Loading S-Chain " ) + cc.notice( "#" ) + cc.info( idxSChain + 1 ) +
+            cc.debug( " of " ) + cc.info( cntSChains ) + cc.debug( "..." ) +
+            "\n" );
+    }
+    hash = hash ||
+        await opts.imaState.jo_schains_internal.callStatic.schainsAtSystem(
+            idxSChain, { from: addressFrom } );
     if( opts && opts.details )
         opts.details.write( cc.debug( "    Hash " ) + cc.attention( hash ) + "\n" );
     if( opts && opts.bStopNeeded )
         return null;
-    let jo_data = await opts.imaState.jo_schains_internal.callStatic.schains( hash, { from: addressFrom } );
-    jo_data = owaspUtils.clone_object_by_root_keys( jo_data ); // jo_data = JSON.parse( JSON.stringify( jo_data ) );
+    let jo_data =
+        await opts.imaState.jo_schains_internal.callStatic.schains(
+            hash, { from: addressFrom } );
+    // jo_data = JSON.parse( JSON.stringify( jo_data ) );
+    jo_data = owaspUtils.clone_object_by_root_keys( jo_data );
     const jo_schain = { "data": jo_data };
     remove_schain_desc_data_num_keys( jo_schain.data, addressFrom );
     if( opts && opts.bStopNeeded )
@@ -335,8 +400,11 @@ export async function load_schains( addressFrom, opts ) {
     if( ! opts.imaState )
         throw new Error( "Cannot load S-Chains in observer, no imaState is provided" );
     const cntSChains = await get_schains_count( addressFrom, opts );
-    if( opts && opts.details )
-        opts.details.write( cc.debug( "Have " ) + cc.info( cntSChains ) + cc.debug( " S-Chain(s) to load..." ) + "\n" );
+    if( opts && opts.details ) {
+        opts.details.write(
+            cc.debug( "Have " ) + cc.info( cntSChains ) + cc.debug( " S-Chain(s) to load..." ) +
+            "\n" );
+    }
     const arr_schains = [];
     for( let idxSChain = 0; idxSChain < cntSChains; ++ idxSChain ) {
         if( opts && opts.bStopNeeded )
@@ -360,21 +428,37 @@ export async function load_cached_schains_simplified( addressFrom, opts ) {
         throw new Error( "Cannot load S-Chains in observer, no imaState is provided" );
     if( opts && opts.details )
         opts.details.write( cc.debug( "Will request all S-Chain(s) hashes..." ) + "\n" );
-    const arrSChainHashes = await opts.imaState.jo_schains_internal.callStatic.getSchains( { from: addressFrom } );
+    const arrSChainHashes =
+        await opts.imaState.jo_schains_internal.callStatic.getSchains(
+            { from: addressFrom } );
     const cntSChains = arrSChainHashes.length;
-    if( opts && opts.details )
-        opts.details.write( cc.debug( "Have all " ) + cc.info( cntSChains ) + cc.debug( " S-Chain(s) hashes: " ) + cc.j( arrSChainHashes ) + "\n" );
+    if( opts && opts.details ) {
+        opts.details.write(
+            cc.debug( "Have all " ) + cc.info( cntSChains ) + cc.debug( " S-Chain(s) hashes: " ) +
+            cc.j( arrSChainHashes ) +
+            "\n" );
+    }
     const arr_schains = [];
     for( let idxSChain = 0; idxSChain < cntSChains; ++ idxSChain ) {
         if( opts && opts.bStopNeeded )
             break;
         const strSChainHash = arrSChainHashes[idxSChain];
-        const strSChainName = await opts.imaState.jo_schains_internal.callStatic.getSchainName( strSChainHash, { from: addressFrom } );
-        if( opts && opts.details )
-            opts.details.write( cc.debug( "S-Chain " ) + cc.notice( idxSChain ) + cc.debug( " hash " ) + cc.notice( strSChainHash ) + cc.debug( " corresponds to S-Chain name " ) + cc.notice( strSChainName ) + "\n" );
+        const strSChainName =
+            await opts.imaState.jo_schains_internal.callStatic.getSchainName(
+                strSChainHash, { from: addressFrom } );
+        if( opts && opts.details ) {
+            opts.details.write(
+                cc.debug( "S-Chain " ) + cc.notice( idxSChain ) + cc.debug( " hash " ) +
+                cc.notice( strSChainHash ) + cc.debug( " corresponds to S-Chain name " ) +
+                cc.notice( strSChainName ) +
+                "\n" );
+        }
         if( opts && opts.bStopNeeded )
             break;
-        const jo_schain = await load_schain( addressFrom, idxSChain, strSChainHash, cntSChains, opts );
+        const jo_schain =
+            await load_schain(
+                addressFrom, idxSChain, strSChainHash, cntSChains, opts
+            );
         if( ! jo_schain )
             break;
         arr_schains.push( jo_schain );
@@ -391,10 +475,16 @@ export async function load_schains_connected_only(
         throw new Error( "Cannot load S-Chains in observer, no imaState is provided" );
     if( opts && opts.details )
         opts.details.write( cc.debug( "Will request all S-Chain(s) hashes..." ) + "\n" );
-    const arrSChainHashes = await opts.imaState.jo_schains_internal.callStatic.getSchains( { from: addressFrom } );
+    const arrSChainHashes =
+        await opts.imaState.jo_schains_internal.callStatic.getSchains(
+            { from: addressFrom } );
     const cntSChains = arrSChainHashes.length;
-    if( opts && opts.details )
-        opts.details.write( cc.debug( "Have all " ) + cc.info( cntSChains ) + cc.debug( " S-Chain(s) hashes: " ) + cc.j( arrSChainHashes ) + "\n" );
+    if( opts && opts.details ) {
+        opts.details.write(
+            cc.debug( "Have all " ) + cc.info( cntSChains ) + cc.debug( " S-Chain(s) hashes: " ) +
+            cc.j( arrSChainHashes ) +
+            "\n" );
+    }
     const jo_message_proxy_s_chain =
         new owaspUtils.ethersMod.ethers.Contract(
             opts.imaState.chainProperties.sc.joAbiIMA.message_proxy_chain_address,
@@ -407,41 +497,68 @@ export async function load_schains_connected_only(
             if( opts && opts.bStopNeeded )
                 break;
             const strSChainHash = arrSChainHashes[idxSChain];
-            const strSChainName = await opts.imaState.jo_schains_internal.callStatic.getSchainName( strSChainHash, { from: addressFrom } );
-            if( opts && opts.details )
-                opts.details.write( cc.debug( "S-Chain " ) + cc.notice( idxSChain ) + cc.debug( " hash " ) + cc.notice( strSChainHash ) + cc.debug( " corresponds to S-Chain name " ) + cc.notice( strSChainName ) + "\n" );
+            const strSChainName =
+                await opts.imaState.jo_schains_internal.callStatic.getSchainName(
+                    strSChainHash, { from: addressFrom } );
+            if( opts && opts.details ) {
+                opts.details.write(
+                    cc.debug( "S-Chain " ) + cc.notice( idxSChain ) + cc.debug( " hash " ) +
+                    cc.notice( strSChainHash ) + cc.debug( " corresponds to S-Chain name " ) +
+                    cc.notice( strSChainName ) +
+                    "\n" );
+            }
             if( opts && opts.bStopNeeded )
                 break;
             //
             if( strChainNameConnectedTo == strSChainName ) {
-                if( opts && opts.details )
-                    opts.details.write( cc.debug( "Skip this S-Chain " ) + cc.info( strSChainName ) + cc.debug( " connected status check" ) + "\n" );
+                if( opts && opts.details ) {
+                    opts.details.write(
+                        cc.debug( "Skip this S-Chain " ) + cc.info( strSChainName ) +
+                        cc.debug( " connected status check" ) +
+                        "\n" );
+                }
                 continue;
             }
             if( opts && opts.details ) {
                 opts.details.write(
-                    cc.debug( "Querying connected status between S-Chain " ) + cc.info( strSChainName ) + cc.debug( " and S-Chain " ) +
+                    cc.debug( "Querying connected status between S-Chain " ) +
+                    cc.info( strSChainName ) + cc.debug( " and S-Chain " ) +
                     cc.info( strChainNameConnectedTo ) + cc.debug( "..." ) + "\n" );
             }
-            const isConnected = await jo_message_proxy_s_chain.callStatic.isConnectedChain( strSChainName, { from: addressFrom } );
-            if( opts && opts.details )
-                opts.details.write( cc.debug( "Got S-Chain " ) + cc.info( strSChainName ) + cc.debug( " connected status: " ) + cc.yn( isConnected ) + "\n" );
+            const isConnected =
+                await jo_message_proxy_s_chain.callStatic.isConnectedChain(
+                    strSChainName, { from: addressFrom } );
+            if( opts && opts.details ) {
+                opts.details.write(
+                    cc.debug( "Got S-Chain " ) + cc.info( strSChainName ) +
+                    cc.debug( " connected status: " ) + cc.yn( isConnected ) +
+                    "\n" );
+            }
             if( ! isConnected )
                 continue;
-            const jo_schain = await load_schain( addressFrom, idxSChain, strSChainHash, cntSChains, opts );
+            const jo_schain =
+                await load_schain(
+                    addressFrom, idxSChain, strSChainHash, cntSChains, opts );
             if( ! jo_schain )
                 break;
             jo_schain.isConnected = true;
             arr_schains.push( jo_schain );
         } catch ( err ) {
-            if( opts && opts.details )
-                opts.details.write( cc.error( "Got error: " ) + cc.warning( owaspUtils.extract_error_message( err ) ) + cc.error( ", stack is: " ) + "\n" + cc.stack( err.stack ) + "\n" );
+            if( opts && opts.details ) {
+                opts.details.write(
+                    cc.error( "Got error: " ) +
+                    cc.warning( owaspUtils.extract_error_message( err ) ) +
+                    cc.error( ", stack is: " ) + "\n" + cc.stack( err.stack ) +
+                    "\n" );
+            }
         }
     }
     return arr_schains;
 }
 
-export async function check_connected_schains( strChainNameConnectedTo, arr_schains, addressFrom, opts ) {
+export async function check_connected_schains(
+    strChainNameConnectedTo, arr_schains, addressFrom, opts
+) {
     owaspUtils.ensure_observer_opts_initialized( opts );
     if( ! opts.imaState )
         throw new Error( "Cannot load S-Chains in observer, no imaState is provided" );
@@ -457,8 +574,10 @@ export async function check_connected_schains( strChainNameConnectedTo, arr_scha
             const url = pick_random_schain_url( jo_schain );
             if( opts && opts.details ) {
                 opts.details.write(
-                    cc.debug( "Querying via URL " ) + cc.u( url ) + cc.debug( " to S-Chain " ) +
-                    cc.info( jo_schain.data.name ) + cc.debug( " whether it's connected to S-Chain " ) +
+                    cc.debug( "Querying via URL " ) + cc.u( url ) +
+                    cc.debug( " to S-Chain " ) +
+                    cc.info( jo_schain.data.name ) +
+                    cc.debug( " whether it's connected to S-Chain " ) +
                     cc.info( strChainNameConnectedTo ) + cc.debug( "..." ) + "\n" );
             }
             const ethersProvider = owaspUtils.getEthersProviderFromURL( url );
@@ -468,14 +587,21 @@ export async function check_connected_schains( strChainNameConnectedTo, arr_scha
                     opts.imaState.chainProperties.sc.joAbiIMA.message_proxy_chain_abi,
                     ethersProvider
                 );
-            jo_schain.isConnected = await jo_message_proxy_s_chain.callStatic.isConnectedChain( strChainNameConnectedTo, { from: addressFrom } );
+            jo_schain.isConnected =
+                await jo_message_proxy_s_chain.callStatic.isConnectedChain(
+                    strChainNameConnectedTo, { from: addressFrom } );
             if( opts && opts.details ) {
                 opts.details.write(
                     cc.debug( "Got " ) + cc.yn( jo_schain.isConnected ) + "\n" );
             }
         } catch ( err ) {
-            if( opts && opts.details )
-                opts.details.write( cc.error( "Got error: " ) + cc.warning( owaspUtils.extract_error_message( err ) ) + cc.error( ", stack is: " ) + "\n" + cc.stack( err.stack ) + "\n" );
+            if( opts && opts.details ) {
+                opts.details.write(
+                    cc.error( "Got error: " ) +
+                    cc.warning( owaspUtils.extract_error_message( err ) ) +
+                    cc.error( ", stack is: " ) + "\n" + cc.stack( err.stack ) +
+                    "\n" );
+            }
         }
     }
     return arr_schains;
@@ -510,34 +636,58 @@ export function merge_schains_array_from_to( arrSrc, arrDst, arrNew, arrOld, opt
     arrOld.splice( 0, arrOld.length );
     let i, j, cnt;
     cnt = arrSrc.length;
-    if( opts && opts.details )
-        opts.details.write( cc.debug( "Before merging, have " ) + cc.info( cnt ) + cc.debug( " S-Chain(s) to review" ) + "\n" );
+    if( opts && opts.details ) {
+        opts.details.write(
+            cc.debug( "Before merging, have " ) + cc.info( cnt ) +
+            cc.debug( " S-Chain(s) to review" ) +
+            "\n" );
+    }
     for( i = 0; i < cnt; ++ i ) {
         const jo_schain = arrSrc[i];
         j = find_schain_index_in_array_by_name( arrDst, jo_schain.data.name );
         if( j < 0 ) {
-            if( opts && opts.details )
-                opts.details.write( cc.debug( "Found new " ) + cc.notice( "#" ) + cc.info( i + 1 ) + cc.debug( " S-Chain " ) + cc.j( jo_schain ) + "\n" );
+            if( opts && opts.details ) {
+                opts.details.write(
+                    cc.debug( "Found new " ) + cc.notice( "#" ) + cc.info( i + 1 ) +
+                    cc.debug( " S-Chain " ) + cc.j( jo_schain ) +
+                    "\n" );
+            }
             arrNew.push( jo_schain );
         }
     }
-    if( opts && opts.details )
-        opts.details.write( cc.debug( "Summary, found new " ) + cc.info( arrNew.length ) + cc.debug( " S-Chain(s)" ) + "\n" );
+    if( opts && opts.details ) {
+        opts.details.write(
+            cc.debug( "Summary, found new " ) + cc.info( arrNew.length ) +
+            cc.debug( " S-Chain(s)" ) +
+            "\n" );
+    }
     cnt = arrDst.length;
     for( i = 0; i < cnt; ++ i ) {
         const jo_schain = arrDst[i];
         j = find_schain_index_in_array_by_name( arrSrc, jo_schain.data.name );
         if( j < 0 ) {
-            if( opts && opts.details )
-                opts.details.write( cc.debug( "Found old S-Chain " ) + cc.notice( "#" ) + cc.info( i + 1 ) + cc.debug( " " ) + cc.j( jo_schain ) + "\n" );
+            if( opts && opts.details ) {
+                opts.details.write(
+                    cc.debug( "Found old S-Chain " ) + cc.notice( "#" ) +
+                    cc.info( i + 1 ) + cc.debug( " " ) + cc.j( jo_schain ) +
+                    "\n" );
+            }
             arrOld.push( jo_schain );
         }
     }
-    if( opts && opts.details )
-        opts.details.write( cc.debug( "Summary, found old " ) + cc.info( arrOld.length ) + cc.debug( " S-Chain(s)" ) + "\n" );
+    if( opts && opts.details ) {
+        opts.details.write(
+            cc.debug( "Summary, found old " ) + cc.info( arrOld.length ) +
+            cc.debug( " S-Chain(s)" ) +
+            "\n" );
+    }
     if( arrNew.length > 0 ) {
-        if( opts && opts.details )
-            opts.details.write( cc.debug( "Merging new " ) + cc.info( arrNew.length ) + cc.debug( " S-Chain(s)" ) + "\n" );
+        if( opts && opts.details ) {
+            opts.details.write(
+                cc.debug( "Merging new " ) + cc.info( arrNew.length ) +
+                cc.debug( " S-Chain(s)" ) +
+                "\n" );
+        }
         for( i = 0; i < arrNew.length; ++ i ) {
             const jo_schain = arrNew[i];
             arrDst.push( jo_schain );
@@ -546,8 +696,12 @@ export function merge_schains_array_from_to( arrSrc, arrDst, arrNew, arrOld, opt
             opts.details.write( cc.success( "Done" ) + "\n" );
     }
     if( arrOld.length > 0 ) {
-        if( opts && opts.details )
-            opts.details.write( cc.debug( "Removing old " ) + cc.info( arrOld.length ) + cc.debug( " S-Chain(s)" ) + "\n" );
+        if( opts && opts.details ) {
+            opts.details.write(
+                cc.debug( "Removing old " ) + cc.info( arrOld.length ) +
+                cc.debug( " S-Chain(s)" ) +
+                "\n" );
+        }
         for( i = 0; i < arrOld.length; ++ i ) {
             const jo_schain = arrOld[i];
             j = find_schain_index_in_array_by_name( arrDst, jo_schain.data.name );
@@ -556,8 +710,12 @@ export function merge_schains_array_from_to( arrSrc, arrDst, arrNew, arrOld, opt
         if( opts && opts.details )
             opts.details.write( cc.success( "Done" ) + "\n" );
     }
-    if( opts && opts.details )
-        opts.details.write( cc.success( "Finally, have " ) + cc.info( arrDst.length ) + cc.success( " S-Chain(s)" ) + "\n" );
+    if( opts && opts.details ) {
+        opts.details.write(
+            cc.success( "Finally, have " ) + cc.info( arrDst.length ) +
+            cc.success( " S-Chain(s)" ) +
+            "\n" );
+    }
 }
 
 let g_arr_schains_cached = [];
@@ -567,7 +725,10 @@ export async function cache_schains( strChainNameConnectedTo, addressFrom, opts 
     let strError = null;
     try {
         const arr_schains = await load_schains( addressFrom, opts );
-        if( strChainNameConnectedTo && ( typeof strChainNameConnectedTo == "string" ) && strChainNameConnectedTo.length > 0 ) {
+        if( strChainNameConnectedTo &&
+            ( typeof strChainNameConnectedTo == "string" ) &&
+            strChainNameConnectedTo.length > 0
+        ) {
             await check_connected_schains(
                 strChainNameConnectedTo,
                 arr_schains,
@@ -582,7 +743,8 @@ export async function cache_schains( strChainNameConnectedTo, addressFrom, opts 
             g_arr_schains_cached = arr_schains;
         if( opts && opts.details ) {
             opts.details.write(
-                cc.debug( "Connected " ) + cc.attention( "S-Chains" ) + cc.debug( " cache was updated in this thread: " ) +
+                cc.debug( "Connected " ) + cc.attention( "S-Chains" ) +
+                cc.debug( " cache was updated in this thread: " ) +
                 cc.j( g_arr_schains_cached ) + "\n" );
         }
         if( opts.fn_cache_changed )
@@ -594,7 +756,8 @@ export async function cache_schains( strChainNameConnectedTo, addressFrom, opts 
         if( opts.fn_cache_changed )
             opts.fn_cache_changed( g_arr_schains_cached, strError );
         if( opts && opts.details ) {
-            opts.details.write( cc.fatal( "ERROR:" ) + cc.error( " Failed to cache: " ) + cc.error( err ) );
+            opts.details.write(
+                cc.fatal( "ERROR:" ) + cc.error( " Failed to cache: " ) + cc.error( err ) );
             opts.details.write( cc.stack( err.stack ) );
         }
     }
@@ -608,11 +771,16 @@ export function get_last_cached_schains() {
 export function set_last_cached_schains( arr_schains_cached ) {
     if( arr_schains_cached && typeof arr_schains_cached == "object" ) {
         g_arr_schains_cached = JSON.parse( JSON.stringify( arr_schains_cached ) );
-        events.dispatchEvent( new UniversalDispatcherEvent( "chainsCacheChanged", { "detail": { "arr_schains_cached": get_last_cached_schains() } } ) );
+        events.dispatchEvent(
+            new UniversalDispatcherEvent(
+                "chainsCacheChanged",
+                { "detail": { "arr_schains_cached": get_last_cached_schains() } } ) );
     }
 }
 
-const impl_sleep = ( milliseconds ) => { return new Promise( resolve => setTimeout( resolve, milliseconds ) ); };
+const impl_sleep = ( milliseconds ) => {
+    return new Promise( resolve => setTimeout( resolve, milliseconds ) );
+};
 
 let g_worker = null;
 let g_client = null;
@@ -622,7 +790,11 @@ export async function ensure_have_worker( opts ) {
     if( g_worker )
         return g_worker;
     const url = "skale_observer_worker_server";
-    g_worker = new Worker( path.join( __dirname, "observer_worker.mjs" ), { "type": "module" } );
+    g_worker =
+        new Worker(
+            path.join( __dirname, "observer_worker.mjs" ),
+            { "type": "module" }
+        );
     // if( opts && opts.details )
     //     opts.details.write( cc.debug( "Will connect to " ) + cc.info( url ) + "/n" );
     g_worker.on( "message", jo => {
@@ -656,22 +828,36 @@ export async function ensure_have_worker( opts ) {
                 "imaState": {
                     "bNoWaitSChainStarted": opts.imaState.bNoWaitSChainStarted,
                     "nMaxWaitSChainAttempts": opts.imaState.nMaxWaitSChainAttempts,
-                    "nNodeNumber": opts.imaState.nNodeNumber, // S-Chain node number(zero based)
+                    "nNodeNumber": opts.imaState.nNodeNumber,
                     "nNodesCount": opts.imaState.nNodesCount,
-                    "nTimeFrameSeconds": opts.imaState.nTimeFrameSeconds, // 0-disable, 60-recommended
+                    "nTimeFrameSeconds": opts.imaState.nTimeFrameSeconds,
                     "nNextFrameGap": opts.imaState.nNextFrameGap,
                     "chainProperties": {
                         "mn": {
                             "joAccount": {
                                 "privateKey": opts.imaState.chainProperties.mn.joAccount.privateKey,
                                 // "address": owaspUtils.fn_address_impl_,
-                                "strTransactionManagerURL": opts.imaState.chainProperties.mn.joAccount.strTransactionManagerURL,
-                                "tm_priority": opts.imaState.chainProperties.mn.joAccount.tm_priority,
-                                "strSgxURL": opts.imaState.chainProperties.mn.joAccount.strSgxURL,
-                                "strSgxKeyName": opts.imaState.chainProperties.mn.joAccount.strSgxKeyName,
-                                "strPathSslKey": opts.imaState.chainProperties.mn.joAccount.strPathSslKey,
-                                "strPathSslCert": opts.imaState.chainProperties.mn.joAccount.strPathSslCert,
-                                "strBlsKeyName": opts.imaState.chainProperties.mn.joAccount.strBlsKeyName
+                                "strTransactionManagerURL":
+                                    opts.imaState.chainProperties.mn
+                                        .joAccount.strTransactionManagerURL,
+                                "tm_priority":
+                                    opts.imaState.chainProperties.mn
+                                        .joAccount.tm_priority,
+                                "strSgxURL":
+                                    opts.imaState.chainProperties.mn
+                                        .joAccount.strSgxURL,
+                                "strSgxKeyName":
+                                    opts.imaState.chainProperties.mn
+                                        .joAccount.strSgxKeyName,
+                                "strPathSslKey":
+                                    opts.imaState.chainProperties.mn
+                                        .joAccount.strPathSslKey,
+                                "strPathSslCert":
+                                    opts.imaState.chainProperties.mn
+                                        .joAccount.strPathSslCert,
+                                "strBlsKeyName":
+                                    opts.imaState.chainProperties.mn
+                                        .joAccount.strBlsKeyName
                             },
                             "strURL": opts.imaState.chainProperties.mn.strURL,
                             "strChainName": opts.imaState.chainProperties.mn.strChainName,
@@ -681,15 +867,30 @@ export async function ensure_have_worker( opts ) {
                         },
                         "sc": {
                             "joAccount": {
-                                "privateKey": opts.imaState.chainProperties.sc.joAccount.privateKey,
+                                "privateKey":
+                                    opts.imaState.chainProperties.sc.joAccount.privateKey,
                                 // "address": owaspUtils.fn_address_impl_,
-                                "strTransactionManagerURL": opts.imaState.chainProperties.sc.joAccount.strTransactionManagerURL,
-                                "tm_priority": opts.imaState.chainProperties.sc.joAccount.tm_priority,
-                                "strSgxURL": opts.imaState.chainProperties.sc.joAccount.strSgxURL,
-                                "strSgxKeyName": opts.imaState.chainProperties.sc.joAccount.strSgxKeyName,
-                                "strPathSslKey": opts.imaState.chainProperties.sc.joAccount.strPathSslKey,
-                                "strPathSslCert": opts.imaState.chainProperties.sc.joAccount.strPathSslCert,
-                                "strBlsKeyName": opts.imaState.chainProperties.sc.joAccount.strBlsKeyName
+                                "strTransactionManagerURL":
+                                    opts.imaState.chainProperties.sc
+                                        .joAccount.strTransactionManagerURL,
+                                "tm_priority":
+                                    opts.imaState.chainProperties.sc
+                                        .joAccount.tm_priority,
+                                "strSgxURL":
+                                    opts.imaState.chainProperties.sc
+                                        .joAccount.strSgxURL,
+                                "strSgxKeyName":
+                                    opts.imaState.chainProperties.sc
+                                        .joAccount.strSgxKeyName,
+                                "strPathSslKey":
+                                    opts.imaState.chainProperties.sc
+                                        .joAccount.strPathSslKey,
+                                "strPathSslCert":
+                                    opts.imaState.chainProperties.sc
+                                        .joAccount.strPathSslCert,
+                                "strBlsKeyName":
+                                    opts.imaState.chainProperties.sc
+                                        .joAccount.strBlsKeyName
                             },
                             "strURL": opts.imaState.chainProperties.sc.strURL,
                             "strChainName": opts.imaState.chainProperties.sc.strChainName,
@@ -705,8 +906,10 @@ export async function ensure_have_worker( opts ) {
                     "joAbiSkaleManager": opts.imaState.joAbiSkaleManager,
                     "bHaveSkaleManagerABI": opts.imaState.bHaveSkaleManagerABI,
                     "joSChainDiscovery": {
-                        "isSilentReDiscovery": opts.imaState.joSChainDiscovery.isSilentReDiscovery,
-                        "repeatIntervalMilliseconds": opts.imaState.joSChainDiscovery.repeatIntervalMilliseconds // zero to disable (for debugging only)
+                        "isSilentReDiscovery":
+                            opts.imaState.joSChainDiscovery.isSilentReDiscovery,
+                        "repeatIntervalMilliseconds":
+                            opts.imaState.joSChainDiscovery.repeatIntervalMilliseconds
                     }
                 }
             },
@@ -725,7 +928,10 @@ async function in_thread_periodic_caching_start( strChainNameConnectedTo, addres
         const fn_do_caching_now = async function() {
             await cache_schains( strChainNameConnectedTo, addressFrom, opts );
         };
-        g_interval_periodic_caching = setInterval( fn_do_caching_now, parseInt( opts.secondsToReDiscoverSkaleNetwork ) * 1000 );
+        g_interval_periodic_caching =
+            setInterval(
+                fn_do_caching_now,
+                parseInt( opts.secondsToReDiscoverSkaleNetwork ) * 1000 );
         await fn_do_caching_now();
         return true;
     } catch ( err ) {
@@ -758,7 +964,8 @@ async function parallel_periodic_caching_start( strChainNameConnectedTo, address
         const jo = {
             "method": "periodic_caching_start",
             "message": {
-                "secondsToReDiscoverSkaleNetwork": parseInt( opts.secondsToReDiscoverSkaleNetwork ),
+                "secondsToReDiscoverSkaleNetwork":
+                    parseInt( opts.secondsToReDiscoverSkaleNetwork ),
                 "strChainNameConnectedTo": strChainNameConnectedTo,
                 "addressFrom": addressFrom
             }
@@ -777,10 +984,16 @@ async function parallel_periodic_caching_start( strChainNameConnectedTo, address
 
 export async function periodic_caching_start( strChainNameConnectedTo, addressFrom, opts ) {
     g_bHaveParallelResult = false;
-    const bParallelMode = ( opts && "bParallelMode" in opts && typeof opts.bParallelMode != "undefined" && opts.bParallelMode ) ? true : false;
+    const bParallelMode =
+        ( opts && "bParallelMode" in opts &&
+        typeof opts.bParallelMode != "undefined" &&
+        opts.bParallelMode )
+            ? true : false;
     let wasStarted = false;
-    if( bParallelMode )
-        wasStarted = parallel_periodic_caching_start( strChainNameConnectedTo, addressFrom, opts );
+    if( bParallelMode ) {
+        wasStarted =
+            parallel_periodic_caching_start( strChainNameConnectedTo, addressFrom, opts );
+    }
     if( wasStarted )
         return;
     in_thread_periodic_caching_start( strChainNameConnectedTo, addressFrom, opts );
@@ -840,7 +1053,6 @@ export async function discover_chain_id( strURL ) {
     const rpcCallOpts = null;
     await rpcCall.create( strURL, rpcCallOpts, async function( joCall, err ) {
         if( err ) {
-            //ret = "Failed to create RPC (" + strURL + ") call: " + owaspUtils.extract_error_message( err );
             if( joCall )
                 await joCall.disconnect();
             return;
@@ -850,12 +1062,10 @@ export async function discover_chain_id( strURL ) {
             "params": []
         }, async function( joIn, joOut, err ) {
             if( err ) {
-                //ret = "Failed to query RPC (" + strURL + ") for chain ID: " + owaspUtils.extract_error_message( err );
                 await joCall.disconnect();
                 return;
             }
             if( ! ( "result" in joOut && joOut.result ) ) {
-                //ret = "Failed to query RPC (" + strURL + ") for chain ID, got bad result: " + JSON.stringify( joOut );
                 await joCall.disconnect();
                 return;
             }

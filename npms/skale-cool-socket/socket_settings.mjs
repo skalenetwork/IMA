@@ -46,10 +46,14 @@ const settings = {
         },
         rtc: {
             arrKnownIceServers: [
-                // see: https://gist.github.com/mondain/b0ec1cf5f60ae726202e and https://gist.github.com/zziuni/3741933
-                // see: https://stackoverflow.com/questions/20068944/webrtc-stun-stun-l-google-com19302
+                // see: https://gist.github.com/mondain/b0ec1cf5f60ae726202e
+                //      and https://gist.github.com/zziuni/3741933
+                // see: https://stackoverflow.com/questions
+                //      /20068944/webrtc-stun-stun-l-google-com19302
                 // see: https://gist.github.com/yetithefoot/7592580
-                // even more to see: https://gist.github.com/sagivo/3a4b2f2c7ac6e1b5267c2f1f59ac6c6b
+                // even more to see:
+                //      https://gist.github.com/sagivo
+                //            /3a4b2f2c7ac6e1b5267c2f1f59ac6c6b
                 "stun:stun.1.google.com:19302",
                 "stun:stun.2.google.com:19302",
                 "stun:stun.3.google.com:19302",
@@ -81,13 +85,21 @@ const settings = {
             ] ,
             peerConfiguration: {
                 iceServers: [
-                    // { urls: "stun:192.168.88.220:3478", username: "webrtc", credential: "qwerty" }
-                    // { urls: "turn:192.168.88.220:3478", username: "webrtc", credential: "qwerty" }
-                    { urls: "stun:127.0.0.1:3478", username: "webrtc", credential: "qwerty" }
-                    // { urls: "turn:127.0.0.1:3478", username: "webrtc", credential: "qwerty" }
+                    // { urls: "stun:192.168.88.220:3478",
+                    //   username: "webrtc", credential: "qwerty" }
+                    // { urls: "turn:192.168.88.220:3478",
+                    //   username: "webrtc", credential: "qwerty" }
+                    {
+                        urls: "stun:127.0.0.1:3478",
+                        username: "webrtc",
+                        credential: "qwerty"
+                    }
+                    // { urls: "turn:127.0.0.1:3478",
+                    //   username: "webrtc", credential: "qwerty" }
                 ]
                 // , iceTransportPolicy: "all"
-                // , iceCandidatePoolSize: "0" // efault value is 0 (meaning no candidate pre-fetching will occur).
+                // // default value is 0 (meaning no candidate pre-fetching will occur).
+                // , iceCandidatePoolSize: "0"
             },
             peerAdditionalOptions: {
                 optional: [ { DtlsSrtpKeyAgreement: true } ]
@@ -97,9 +109,12 @@ const settings = {
                 opts: { reliable: true, ordered: true }
             },
             maxActiveOfferCount: 10,
-            isAutoCloseSignalingPipeOnDataChannelOpen: true, // network_layer.WebRTCClientPipe only
-            timeToPublishMilliseconds: 0, // 0 - no timeout, 300000 = 5 minutes, 60000 = 1 minute
-            timeToSignalingNegotiationMilliseconds: 0, // 0 - no timeout, 10000 = 10 seconds to identify by WebRTC
+            // network_layer.WebRTCClientPipe only
+            isAutoCloseSignalingPipeOnDataChannelOpen: true,
+            // 0 - no timeout, 300000 = 5 minutes, 60000 = 1 minute
+            timeToPublishMilliseconds: 0,
+            // 0 - no timeout, 10000 = 10 seconds to identify by WebRTC
+            timeToSignalingNegotiationMilliseconds: 0,
             offerDiscovery: {
                 periodMilliseconds: 1000,
                 stepCount: 20

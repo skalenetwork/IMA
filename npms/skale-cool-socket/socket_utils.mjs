@@ -37,7 +37,9 @@ export const getRandomInt = function( nMax ) {
 };
 
 export const randomFixedInteger = function( length ) {
-    return Math.floor( Math.pow( 10, length - 1 ) + Math.random() * ( Math.pow( 10, length ) - Math.pow( 10, length - 1 ) - 1 ) );
+    return Math.floor(
+        Math.pow( 10, length - 1 ) +
+        Math.random() * ( Math.pow( 10, length ) - Math.pow( 10, length - 1 ) - 1 ) );
 };
 
 export const randomStringABC = function( length, arrCharacters ) {
@@ -50,14 +52,20 @@ export const randomStringABC = function( length, arrCharacters ) {
     return s;
 };
 
-export const randomString = function( length, isABC, isDigits, isSpecChr, isPunctuation ) { // by default only isABC=true
+export const randomString = function(
+    length, isABC, isDigits, isSpecChr, isPunctuation
+) { // by default only isABC=true
     length = parseInt( length, 10 );
     if( length <= 0 )
         return "";
-    isABC = ( isABC == null || isABC == undefined ) ? true : ( isABC ? true : false );
-    isDigits = ( isDigits == null || isDigits == undefined ) ? false : ( isDigits ? true : false );
-    isSpecChr = ( isSpecChr == null || isSpecChr == undefined ) ? false : ( isSpecChr ? true : false );
-    isPunctuation = ( isPunctuation == null || isPunctuation == undefined ) ? false : ( isPunctuation ? true : false );
+    isABC = ( isABC == null || isABC == undefined )
+        ? true : ( isABC ? true : false );
+    isDigits = ( isDigits == null || isDigits == undefined )
+        ? false : ( isDigits ? true : false );
+    isSpecChr = ( isSpecChr == null || isSpecChr == undefined )
+        ? false : ( isSpecChr ? true : false );
+    isPunctuation = ( isPunctuation == null || isPunctuation == undefined )
+        ? false : ( isPunctuation ? true : false );
     let arrCharacters = "";
     if( isABC )
         arrCharacters += "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz";
@@ -72,7 +80,8 @@ export const randomString = function( length, isABC, isDigits, isSpecChr, isPunc
     return randomStringABC( length, arrCharacters );
 };
 
-export const randomHexString = function( length ) { // length in characters, not bytes, each byte is 2 characters
+export const randomHexString = function( length ) {
+    // length in characters, not bytes, each byte is 2 characters
     const arrCharacters = "0123456789abcdef";
     return randomStringABC( length, arrCharacters );
 };
@@ -123,8 +132,16 @@ export const bind_scope_to_function = function( scope, fn ) {
 
 export const prepareAnswerJSON = function( joMessage ) {
     const joAnswer = {
-        "id": "" + ( ( joMessage != null && joMessage != undefined && typeof joMessage.id == "string" ) ? joMessage.id : randomCallID() ),
-        "method": "" + ( ( joMessage != null && joMessage != undefined && typeof joMessage.method == "string" ) ? joMessage.method : "" ),
+        "id": "" +
+            ( ( joMessage != null &&
+                joMessage != undefined &&
+                typeof joMessage.id == "string" )
+                ? joMessage.id : randomCallID() ),
+        "method": "" +
+            ( ( joMessage != null &&
+                joMessage != undefined &&
+                typeof joMessage.method == "string" )
+                ? joMessage.method : "" ),
         "error": null
     };
     return joAnswer;
@@ -132,10 +149,14 @@ export const prepareAnswerJSON = function( joMessage ) {
 
 export const makeValidSignalingServerURL = function( strSignalingServerURL ) {
     const proto = settings.net.secure ? "wss" : "ws";
-    return "" + ( ( strSignalingServerURL != null && strSignalingServerURL != undefined && typeof strSignalingServerURL == "string" && strSignalingServerURL.length > 0 )
-        ? "" + strSignalingServerURL
-        : "" + proto + "://" + settings.net.hostname + ":" + settings.net.ports.signaling
-    );
+    return "" +
+        ( ( strSignalingServerURL != null &&
+            strSignalingServerURL != undefined &&
+            typeof strSignalingServerURL == "string" &&
+            strSignalingServerURL.length > 0 )
+            ? "" + strSignalingServerURL
+            : "" + proto + "://" + settings.net.hostname + ":" + settings.net.ports.signaling
+        );
 };
 
 export const zero_padding_left = function( val, cntCharsNeeded ) {
@@ -183,7 +204,9 @@ export const parse_date_time = function( ts ) {
     d.setMilliseconds( millisecond );
     return d;
 };
-export const format_date_time = function( dt, isDate, isTime, isMilliseconds, sepDate, sepTime, sepBetween, sepMilliseconds ) {
+export const format_date_time = function(
+    dt, isDate, isTime, isMilliseconds, sepDate, sepTime, sepBetween, sepMilliseconds
+) {
     if( dt === null )
         return "null-date-time";
     if( dt === undefined )
@@ -196,7 +219,8 @@ export const format_date_time = function( dt, isDate, isTime, isMilliseconds, se
         return "";
     let s = "";
     if( isDate ) {
-        sepDate = ( sepDate == null || sepDate == undefined || ( typeof sepDate != "string" ) ) ? "/" : sepDate;
+        sepDate = ( sepDate == null || sepDate == undefined || ( typeof sepDate != "string" ) )
+            ? "/" : sepDate;
         const strDate = "" +
             zero_padding_left( dt.getFullYear(), 4 ) +
             sepDate +
@@ -206,9 +230,14 @@ export const format_date_time = function( dt, isDate, isTime, isMilliseconds, se
         s += strDate;
     }
     if( isTime ) {
-        sepTime = ( sepTime == null || sepTime == undefined || ( typeof sepTime != "string" ) ) ? ":" : sepTime;
+        sepTime = ( sepTime == null || sepTime == undefined || ( typeof sepTime != "string" ) )
+            ? ":" : sepTime;
         if( isDate ) {
-            sepBetween = ( sepBetween == null || sepBetween == undefined || ( typeof sepBetween != "string" ) ) ? "-" : sepBetween;
+            sepBetween =
+                ( sepBetween == null ||
+                    sepBetween == undefined ||
+                    ( typeof sepBetween != "string" ) )
+                    ? "-" : sepBetween;
             s += sepBetween;
         }
         let strTime = "" +
@@ -217,9 +246,14 @@ export const format_date_time = function( dt, isDate, isTime, isMilliseconds, se
             zero_padding_left( dt.getMinutes(), 2 ) +
             sepDate +
             zero_padding_left( dt.getSeconds(), 2 );
-        isMilliseconds = ( isMilliseconds == null || isMilliseconds == undefined ) ? true : ( isMilliseconds ? true : false );
+        isMilliseconds = ( isMilliseconds == null || isMilliseconds == undefined )
+            ? true : ( isMilliseconds ? true : false );
         if( isMilliseconds ) {
-            sepMilliseconds = ( sepMilliseconds == null || sepMilliseconds == undefined || ( typeof sepMilliseconds != "string" ) ) ? "." : sepMilliseconds;
+            sepMilliseconds =
+                ( sepMilliseconds == null ||
+                    sepMilliseconds == undefined ||
+                    ( typeof sepMilliseconds != "string" ) )
+                    ? "." : sepMilliseconds;
             strTime += sepMilliseconds + zero_padding_right( dt.getMilliseconds(), 3 );
         }
         s += strTime;

@@ -47,14 +47,18 @@ network_layer.set_wrtc_mod( wrtc_mod );
 console.log( "Test signaling server application..." );
 process.env.NODE_TLS_REJECT_UNAUTHORIZED = "0";
 
-//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////
 
 class SignalingClient extends EventDispatcher {
     constructor( idRtcParticipant, strRole, signalingSpace, socket ) {
         super();
         this.isDisposed = false;
-        this.idRtcParticipant = "" + ( ( idRtcParticipant && typeof idRtcParticipant == "string" && idRtcParticipant.length > 0 ) ? idRtcParticipant : "" );
+        this.idRtcParticipant = "" +
+            ( ( idRtcParticipant &&
+                typeof idRtcParticipant == "string" &&
+                idRtcParticipant.length > 0 )
+                ? idRtcParticipant : "" );
         this.isCreator = ( strRole == "creator" ) ? true : false;
         this.isJoiner = ( strRole == "joiner" ) ? true : false;
         this.signalingSpace = signalingSpace;
@@ -68,20 +72,34 @@ class SignalingClient extends EventDispatcher {
         this.isFetchingOffer = false;
         this.timerFetchingOffer = null;
         this.fetchingOfferStepNumber = 0;
-        if( settings.logging.net.signaling.objectLifetime )
-            console.log( "New signaling client \"" + this.idRtcParticipant + "\" in signaling space \"" + this.idSpace + "\" in signaling category \"" + this.idCategory + "\" using socket " + this.socket.strSavedRemoteAddress );
-        this.signalingSpace.dispatchEvent( new UniversalDispatcherEvent( "clientAdded", { "detail": { "signalingClient": this } } ) );
+        if( settings.logging.net.signaling.objectLifetime ) {
+            console.log(
+                "New signaling client \"" + this.idRtcParticipant + "\" in signaling space \"" +
+                this.idSpace + "\" in signaling category \"" + this.idCategory +
+                "\" using socket " + this.socket.strSavedRemoteAddress );
+        }
+        this.signalingSpace.dispatchEvent(
+            new UniversalDispatcherEvent(
+                "clientAdded",
+                { "detail": { "signalingClient": this } } ) );
     }
     dispose() {
         if( this.isDisposed )
             return;
         this.isDisposing = true;
-        if( settings.logging.net.signaling.objectLifetime )
-            console.log( "Disposing signaling client \"" + this.idRtcParticipant + "\" in signaling space \"" + this.idSpace + "\" in signaling category \"" + this.idCategory + "\"" );
+        if( settings.logging.net.signaling.objectLifetime ) {
+            console.log(
+                "Disposing signaling client \"" + this.idRtcParticipant +
+                "\" in signaling space \"" + this.idSpace +
+                "\" in signaling category \"" + this.idCategory + "\"" );
+        }
         this.disconnect();
         if( this.idRtcParticipant ) {
             if( this.signalingSpace ) {
-                this.signalingSpace.dispatchEvent( new UniversalDispatcherEvent( "clientRemoved", { "detail": { "signalingClient": this } } ) );
+                this.signalingSpace.dispatchEvent(
+                    new UniversalDispatcherEvent(
+                        "clientRemoved",
+                        { "detail": { "signalingClient": this } } ) );
                 delete this.signalingSpace.map_clients[this.idRtcParticipant];
             }
             this.idRtcParticipant = null;
@@ -110,28 +128,44 @@ class SignalingClient extends EventDispatcher {
             anyError = err;
         }
         if( ! bPass ) {
-            if( settings.logging.net.signaling.error )
-                console.warn( "Signaling client \"" + this.idRtcParticipant + "\" in signaling space \"" + this.idSpace + "\" in signaling category \"" + this.idCategory + "\" - web socket signaling pipe termination error", anyError );
+            if( settings.logging.net.signaling.error ) {
+                console.warn(
+                    "Signaling client \"" + this.idRtcParticipant + "\" in signaling space \"" +
+                    his.idSpace + "\" in signaling category \"" + this.idCategory +
+                    "\" - web socket signaling pipe termination error", anyError );
+            }
         }
         //
         this.socket.signalingClient = null;
         this.socket = null;
-        if( settings.logging.net.signaling.disconnect )
-            console.warn( "Disconnected/force signaling client \"" + this.idRtcParticipant + "\" in signaling space \"" + this.idSpace + "\" in signaling category \"" + this.idCategory + "\"" );
+        if( settings.logging.net.signaling.disconnect ) {
+            console.warn(
+                "Disconnected/force signaling client \"" + this.idRtcParticipant +
+                "\" in signaling space \"" + this.idSpace + "\" in signaling category \"" +
+                this.idCategory + "\"" );
+        }
     }
     onPipeClose( socket ) {
         if( this.isDisposed )
             return;
-        if( settings.logging.net.signaling.disconnect )
-            console.warn( "Disconnected/pipe signaling client \"" + this.idRtcParticipant + "\" in signaling space \"" + this.idSpace + "\" in signaling category \"" + this.idCategory + "\"" );
+        if( settings.logging.net.signaling.disconnect ) {
+            console.warn(
+                "Disconnected/pipe signaling client \"" + this.idRtcParticipant +
+                "\" in signaling space \"" + this.idSpace + "\" in signaling category \"" +
+                this.idCategory + "\"" );
+        }
         this.offerDiscoveryStop();
         this.dispose();
     }
     onPipeError( socket ) {
         if( this.isDisposed )
             return;
-        if( settings.logging.net.signaling.error )
-            console.warn( "Disconnected/error signaling client \"" + this.idRtcParticipant + "\" in signaling space \"" + this.idSpace + "\" in signaling category \"" + this.idCategory + "\"" );
+        if( settings.logging.net.signaling.error ) {
+            console.warn(
+                "Disconnected/error signaling client \"" + this.idRtcParticipant +
+                "\" in signaling space \"" + this.idSpace + "\" in signaling category \"" +
+                this.idCategory + "\"" );
+        }
         this.offerDiscoveryStop();
         this.dispose();
     }
@@ -163,8 +197,12 @@ class SignalingClient extends EventDispatcher {
             //     signalingCategory = signalingSpace.signalingCategory;
             const joOfferInfo = signalingSpace.fetchPublishedOffer();
             if( ! joOfferInfo ) {
-                if( settings.logging.net.signaling.offerDiscoveryStepFail )
-                    console.warn( "Signaling client socket \"" + this.socket.strSavedRemoteAddress + "\" did not found offer at step", this.fetchingOfferStepNumber, "of", settings.net.rtc.offerDiscovery.stepCount );
+                if( settings.logging.net.signaling.offerDiscoveryStepFail ) {
+                    console.warn(
+                        "Signaling client socket \"" + this.socket.strSavedRemoteAddress +
+                        "\" did not found offer at step", this.fetchingOfferStepNumber, "of",
+                        settings.net.rtc.offerDiscovery.stepCount );
+                }
                 if( this.fetchingOfferStepNumber >= settings.net.rtc.offerDiscovery.stepCount ) {
                     this.offerDiscoveryStop();
                     throw new Error( "no offer found" );
@@ -178,8 +216,11 @@ class SignalingClient extends EventDispatcher {
                 return;
             }
             if( settings.logging.net.signaling.impersonate ) {
-                console.log( "Signaling client socket \"" + this.socket.strSavedRemoteAddress + "\" impersonated as \"" + this.idRtcParticipant +
-                    "\" in signaling space \"" + signalingSpace.idSpace + "\" did fetched published offer:", joOfferInfo );
+                console.log(
+                    "Signaling client socket \"" + this.socket.strSavedRemoteAddress +
+                    "\" impersonated as \"" + this.idRtcParticipant +
+                    "\" in signaling space \"" + signalingSpace.idSpace +
+                    "\" did fetched published offer:", joOfferInfo );
             }
             joAnswer = utils.prepareAnswerJSON( joMessage ); // successful answer
             joAnswer.offer = joOfferInfo.offer;
@@ -192,44 +233,64 @@ class SignalingClient extends EventDispatcher {
             joAnswer.error = "" + err.toString();
         }
         if( typeof joAnswer.error == "string" && joAnswer.error.length > 0 ) {
-            if( settings.logging.net.signaling.error )
-                console.warn( "Signaling client socket \"" + this.socket.strSavedRemoteAddress + "\" error answer", joAnswer );
-        } else if( settings.logging.net.signaling.message )
-            console.log( "Signaling client socket \"" + this.socket.strSavedRemoteAddress + " answer", joAnswer );
+            if( settings.logging.net.signaling.error ) {
+                console.warn(
+                    "Signaling client socket \"" + this.socket.strSavedRemoteAddress +
+                    "\" error answer", joAnswer );
+            }
+        } else if( settings.logging.net.signaling.message ) {
+            console.log(
+                "Signaling client socket \"" + this.socket.strSavedRemoteAddress +
+                " answer", joAnswer );
+        }
         this.socket.send( joAnswer, true ); // isFlush=true always in signaling server
         this.offerDiscoveryStop();
     }
 };
 
-//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////
 
 class SignalingSpace extends EventDispatcher {
     constructor( idSpace, signalingCategory ) {
         super();
         this.isDisposed = false;
-        this.idSpace = "" + ( ( idSpace && typeof idSpace == "string" && idSpace.length > 0 ) ? idSpace : "" );
+        this.idSpace = "" +
+            ( ( idSpace && typeof idSpace == "string" && idSpace.length > 0 )
+                ? idSpace : "" );
         this.idSomebodyCreator = "";
         this.arr_published_offers = [];
         this.signalingCategory = signalingCategory;
         this.map_clients = {};
         this.signalingCategory.map_spaces[this.idSpace] = this;
         this.idCategory = "" + this.signalingCategory.idCategory;
-        if( settings.logging.net.signaling.objectLifetime )
-            console.log( "New signaling space \"" + this.idSpace + "\" in signaling category \"" + this.idCategory + "\"" );
-        this.signalingCategory.dispatchEvent( new UniversalDispatcherEvent( "spaceAdded", { "detail": { "signalingSpace": this } } ) );
+        if( settings.logging.net.signaling.objectLifetime ) {
+            console.log(
+                "New signaling space \"" + this.idSpace + "\" in signaling category \"" +
+                this.idCategory + "\"" );
+        }
+        this.signalingCategory.dispatchEvent(
+            new UniversalDispatcherEvent(
+                "spaceAdded",
+                { "detail": { "signalingSpace": this } } ) );
     }
     dispose() {
         if( this.isDisposed )
             return;
         this.isDisposing = true;
-        if( settings.logging.net.signaling.objectLifetime )
-            console.log( "Disposing signaling space \"" + this.idSpace + "\" in signaling category \"" + this.idCategory + "\"" );
+        if( settings.logging.net.signaling.objectLifetime ) {
+            console.log(
+                "Disposing signaling space \"" + this.idSpace + "\" in signaling category \"" +
+                this.idCategory + "\"" );
+        }
         for( const [ /*idRtcParticipant*/, signalingClient ] of Object.entries( this.map_clients ) )
             signalingClient.dispose();
         if( this.idSpace ) {
             if( this.signalingCategory ) {
-                this.signalingCategory.dispatchEvent( new UniversalDispatcherEvent( "spaceRemoved", { "detail": { "signalingSpace": this } } ) );
+                this.signalingCategory.dispatchEvent(
+                    new UniversalDispatcherEvent(
+                        "spaceRemoved",
+                        { "detail": { "signalingSpace": this } } ) );
                 delete this.signalingCategory.map_spaces[this.idSpace];
             }
             this.idSpace = null;
@@ -245,8 +306,11 @@ class SignalingSpace extends EventDispatcher {
             return;
         if( this.allSomebodyIDs().length > 0 )
             return;
-        if( settings.logging.net.signaling.objectLifetime )
-            console.log( "Auto-dispose signaling space \"" + this.idSpace + "\" in signaling category \"" + this.idCategory + "\"" );
+        if( settings.logging.net.signaling.objectLifetime ) {
+            console.log(
+                "Auto-dispose signaling space \"" + this.idSpace + "\" in signaling category \"" +
+                this.idCategory + "\"" );
+        }
         this.dispose();
     }
     allSomebodyIDs() {
@@ -278,7 +342,10 @@ class SignalingSpace extends EventDispatcher {
                 console.warn( "Attempt to fetch offer in destroyed signaling space" );
             return null;
         }
-        if( this.idSomebodyCreator == undefined || this.idSomebodyCreator == null || this.idSomebodyCreator == "" ) {
+        if( this.idSomebodyCreator == undefined ||
+            this.idSomebodyCreator == null ||
+            this.idSomebodyCreator == ""
+        ) {
             if( settings.logging.net.signaling.offerDiscoveryStepFail )
                 console.warn( "Attempt to fetch offer in malformed signaling space" );
             return null;
@@ -295,20 +362,25 @@ class SignalingSpace extends EventDispatcher {
     }
 };
 
-//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////
 
 class SignalingCategory extends EventDispatcher {
     constructor( idCategory, signalingManager ) {
         super();
         this.isDisposed = false;
-        this.idCategory = "" + ( ( idCategory && typeof idCategory == "string" && idCategory.length > 0 ) ? idCategory : "" );
+        this.idCategory = "" +
+            ( ( idCategory && typeof idCategory == "string" && idCategory.length > 0 )
+                ? idCategory : "" );
         this.signalingManager = signalingManager;
         this.map_spaces = {};
         this.signalingManager.map_categories[this.idCategory] = this;
         if( settings.logging.net.signaling.objectLifetime )
             console.log( "New signaling category \"" + this.idCategory + "\"" );
-        this.signalingManager.dispatchEvent( new UniversalDispatcherEvent( "categoryAdded", { "detail": { "signalingCategory": this } } ) );
+        this.signalingManager.dispatchEvent(
+            new UniversalDispatcherEvent(
+                "categoryAdded",
+                { "detail": { "signalingCategory": this } } ) );
     }
     dispose() {
         if( this.isDisposed )
@@ -320,7 +392,10 @@ class SignalingCategory extends EventDispatcher {
             signalingSpace.dispose();
         if( this.signalingManager ) {
             delete this.signalingManager.map_categories[this.idCategory];
-            this.signalingManager.dispatchEvent( new UniversalDispatcherEvent( "categoryRemoved", { "detail": { "signalingCategory": this } } ) );
+            this.signalingManager.dispatchEvent(
+                new UniversalDispatcherEvent(
+                    "categoryRemoved",
+                    { "detail": { "signalingCategory": this } } ) );
             this.signalingManager = null;
         }
         this.map_spaces = {};
@@ -346,12 +421,17 @@ class SignalingCategory extends EventDispatcher {
             return null;
         try {
             idSpace = "" + ( idSpace ? idSpace.toString() : settings.rtcSpace.defaultSpaceName );
-            isAutoAlloc = ( isAutoAlloc == null || isAutoAlloc == undefined ) ? true : ( isAutoAlloc ? true : false );
+            isAutoAlloc =
+                ( isAutoAlloc == null || isAutoAlloc == undefined ) ? true : ( isAutoAlloc
+                    ? true : false );
             let signalingSpace = null;
             if( idSpace in this.map_spaces )
                 signalingSpace = this.map_spaces[idSpace];
-            else if( isAutoAlloc )
-                this.map_spaces["" + idSpace] = signalingSpace = new SignalingSpace( "" + idSpace, this );
+            else if( isAutoAlloc ) {
+                this.map_spaces["" + idSpace] =
+                    signalingSpace =
+                        new SignalingSpace( "" + idSpace, this );
+            }
             return signalingSpace;
         } catch ( err ) {
             if( settings.logging.net.signaling.error )
@@ -383,8 +463,8 @@ class SignalingCategory extends EventDispatcher {
     }
 };
 
-//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////
 
 class SignalingManager extends EventDispatcher {
     constructor() {
@@ -400,7 +480,8 @@ class SignalingManager extends EventDispatcher {
         this.isDisposing = true;
         if( settings.logging.net.signaling.objectLifetime )
             console.log( "Disposing signaling manager" );
-        for( const [ /*idCategory*/, signalingCategory ] of Object.entries( this.map_categories ) )
+        for( const [ /*idCategory*/, signalingCategory ]
+            of Object.entries( this.map_categories ) )
             signalingCategory.dispose();
         this.map_categories = {};
         super.dispose();
@@ -410,13 +491,18 @@ class SignalingManager extends EventDispatcher {
     }
     categoryGet( idCategory, isAutoAlloc ) {
         try {
-            idCategory = "" + ( idCategory ? idCategory.toString() : settings.rtcSpace.defaultSpaceCategory );
-            isAutoAlloc = ( isAutoAlloc == null || isAutoAlloc == undefined ) ? true : ( isAutoAlloc ? true : false );
+            idCategory = "" + ( idCategory
+                ? idCategory.toString() : settings.rtcSpace.defaultSpaceCategory );
+            isAutoAlloc = ( isAutoAlloc == null || isAutoAlloc == undefined )
+                ? true : ( isAutoAlloc ? true : false );
             let signalingCategory = null;
             if( idCategory in this.map_categories )
                 signalingCategory = this.map_categories[idCategory];
-            else if( isAutoAlloc )
-                this.map_categories["" + idCategory] = signalingCategory = new SignalingCategory( "" + idCategory, this );
+            else if( isAutoAlloc ) {
+                this.map_categories["" + idCategory] =
+                    signalingCategory =
+                        new SignalingCategory( "" + idCategory, this );
+            }
             return signalingCategory;
         } catch ( err ) {
             if( settings.logging.net.signaling.error )
@@ -425,7 +511,8 @@ class SignalingManager extends EventDispatcher {
         }
     }
     categoryRemove( idCategory ) {
-        idCategory = "" + ( idCategory ? idCategory.toString() : settings.rtcSpace.defaultSpaceName );
+        idCategory = "" + ( idCategory
+            ? idCategory.toString() : settings.rtcSpace.defaultSpaceName );
         if( idCategory in this.map_categories ) {
             const signalingCategory = this.map_categories[idCategory];
             signalingCategory.dispose();
@@ -437,26 +524,34 @@ class SignalingManager extends EventDispatcher {
 
 const g_default_signaling_manager = new SignalingManager();
 
-//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////
 
 class SignalingServer extends EventDispatcher {
     constructor( acceptor, signalingManager ) {
         super();
-        if( acceptor == null || acceptor == undefined || typeof acceptor != "object" )
+        if( acceptor == null ||
+            acceptor == undefined ||
+            typeof acceptor != "object" )
             throw new Error( "Cannot create test server on bad acceptor" );
         this.acceptor = acceptor;
         this.signalingManager = signalingManager || g_default_signaling_manager;
         const self = this;
         acceptor.on( "connection", function( eventData ) {
             const socket = eventData.socket;
-            if( ( ! ( "remoteAddress" in eventData ) ) || eventData.remoteAddress == null || eventData.remoteAddress == undefined )
+            if( ( ! ( "remoteAddress" in eventData ) ) ||
+                eventData.remoteAddress == null ||
+                eventData.remoteAddress == undefined )
                 socket.strSavedRemoteAddress = socket.constructor.name;
             else
                 socket.strSavedRemoteAddress = "" + eventData.remoteAddress;
             socket.signalingClient = null; // not impersonated yet
-            if( settings.logging.net.signaling.connect )
-                console.log( "New signaling server connection \"" + socket.strSavedRemoteAddress + "\"" );
+            if( settings.logging.net.signaling.connect ) {
+                console.log(
+                    "New signaling server connection \"" +
+                    socket.strSavedRemoteAddress + "\""
+                );
+            }
             socket.signalingAuthInfo = {
                 isAuthorized: false,
                 idCategory: null,
@@ -465,8 +560,12 @@ class SignalingServer extends EventDispatcher {
             };
             let _offAllPipeEventListeners = null;
             let _onPipeClose = function() {
-                if( settings.logging.net.signaling.disconnect )
-                    console.warn( "Signaling client socket closed \"" + socket.strSavedRemoteAddress + "\"" );
+                if( settings.logging.net.signaling.disconnect ) {
+                    console.warn(
+                        "Signaling client socket closed \"" +
+                        socket.strSavedRemoteAddress + "\""
+                    );
+                }
                 if( _offAllPipeEventListeners ) {
                     _offAllPipeEventListeners();
                     _offAllPipeEventListeners = null;
@@ -477,8 +576,11 @@ class SignalingServer extends EventDispatcher {
                 }
             };
             let _onPipeError = function( eventData ) {
-                if( settings.logging.net.signaling.error )
-                    console.warn( "Socket error \"" + socket.strSavedRemoteAddress + "\"" );
+                if( settings.logging.net.signaling.error ) {
+                    console.warn(
+                        "Socket error \"" + socket.strSavedRemoteAddress + "\""
+                    );
+                }
                 if( _offAllPipeEventListeners ) {
                     _offAllPipeEventListeners();
                     _offAllPipeEventListeners = null;
@@ -489,11 +591,17 @@ class SignalingServer extends EventDispatcher {
                 }
             };
             let _onPipeMessage = function( eventData ) {
-                if( settings.logging.net.signaling.rawMessage )
-                    console.log( "Signaling client socket \"" + eventData.strSavedRemoteAddress + "\" raw message", eventData );
+                if( settings.logging.net.signaling.rawMessage ) {
+                    console.log(
+                        "Signaling client socket \"" + eventData.strSavedRemoteAddress +
+                        "\" raw message", eventData );
+                }
                 const joMessage = eventData.message;
-                if( settings.logging.net.signaling.message )
-                    console.log( "Signaling client socket \"" + socket.strSavedRemoteAddress + "\" message ", joMessage );
+                if( settings.logging.net.signaling.message ) {
+                    console.log(
+                        "Signaling client socket \"" + socket.strSavedRemoteAddress +
+                        "\" message ", joMessage );
+                }
                 let signalingCategory = null;
                 let signalingSpace = null;
                 let signalingClient = socket.signalingClient;
@@ -512,54 +620,106 @@ class SignalingServer extends EventDispatcher {
                     } break;
                     case "signalingImpersonate": {
                         const idRtcParticipant = joMessage.idRtcParticipant;
-                        if( ( !idRtcParticipant ) || typeof idRtcParticipant != "string" || idRtcParticipant.length <= 0 ) {
+                        if( ( !idRtcParticipant ) ||
+                            typeof idRtcParticipant != "string" ||
+                            idRtcParticipant.length <= 0
+                        ) {
                             isForceDisconnect = true;
-                            throw new Error( "Bad impersonate call data, no valid signaling *somebody* ID provided" );
+                            throw new Error(
+                                "Bad impersonate call data, " +
+                                "no valid signaling *somebody* ID provided"
+                            );
                         }
                         //
                         const strRole = joMessage.role;
-                        if( ( !strRole ) || typeof strRole != "string" || strRole.length <= 0 || ( ! ( strRole == "creator" || strRole == "joiner" ) ) ) {
+                        if( ( !strRole ) ||
+                            typeof strRole != "string" ||
+                            strRole.length <= 0 ||
+                            ( ! ( strRole == "creator" || strRole == "joiner" ) )
+                        ) {
                             isForceDisconnect = true;
-                            throw new Error( "Bad impersonate call data, no valid signaling *somebody* role provided" );
+                            throw new Error(
+                                "Bad impersonate call data, " +
+                                "no valid signaling *somebody* role provided"
+                            );
                         }
                         //
                         const idCategory = joMessage.idCategory;
-                        if( ( !idCategory ) || typeof idCategory != "string" || idCategory.length <= 0 ) {
+                        if( ( !idCategory ) ||
+                            typeof idCategory != "string" ||
+                            idCategory.length <= 0
+                        ) {
                             isForceDisconnect = true;
-                            throw new Error( "Bad impersonate call data, no valid signaling space category provided" );
+                            throw new Error(
+                                "Bad impersonate call data, " +
+                                "no valid signaling space category provided"
+                            );
                         }
                         signalingCategory = self.signalingManager.categoryGet( idCategory, true );
                         if( ! signalingCategory ) {
                             isForceDisconnect = true;
-                            throw new Error( "Bad impersonate call data, cannot get/alloc signaling category with \"" + idCategory + "\" name" );
+                            throw new Error(
+                                "Bad impersonate call data, " +
+                                "cannot get/alloc signaling category with \"" +
+                                idCategory + "\" name"
+                            );
                         }
                         //
                         const idSpace = joMessage.idSpace;
                         if( ( !idSpace ) || typeof idSpace != "string" || idSpace.length <= 0 ) {
                             isForceDisconnect = true;
-                            throw new Error( "Bad impersonate call data, no valid signaling space name provided" );
+                            throw new Error(
+                                "Bad impersonate call data, " +
+                                "no valid signaling space name provided"
+                            );
                         }
                         signalingSpace = signalingCategory.spaceGet( idSpace, true );
                         if( ! signalingSpace ) {
                             isForceDisconnect = true;
-                            throw new Error( "Bad impersonate call data, cannot get/alloc signaling space with \"" + idSpace + "\" name" );
+                            throw new Error(
+                                "Bad impersonate call data, " +
+                                "cannot get/alloc signaling space with \"" +
+                                idSpace + "\" name"
+                            );
                         }
                         //
                         if( signalingSpace.clientGet( idRtcParticipant ) != null ) {
                             isForceDisconnect = true;
-                            throw new Error( "*Somebody* \"" + idRtcParticipant + "\" is already in \"" + idSpace + "\" signaling space" );
+                            throw new Error(
+                                "*Somebody* \"" + idRtcParticipant + "\" is already in \"" +
+                                idSpace + "\" signaling space"
+                            );
                         }
                         //
-                        if( strRole == "creator" && signalingSpace.idSomebodyCreator != "" && signalingSpace.idSomebodyCreator != idRtcParticipant )
-                            throw new Error( "*Somebody* \"" + idRtcParticipant + "\" is already in \"" + idSpace + "\" attempted to impersonate as creator while other creator already exist" );
+                        if( strRole == "creator" &&
+                            signalingSpace.idSomebodyCreator != "" &&
+                            signalingSpace.idSomebodyCreator != idRtcParticipant
+                        ) {
+                            throw new Error(
+                                "*Somebody* \"" + idRtcParticipant +
+                                "\" is already in \"" + idSpace +
+                                "\" attempted to impersonate as creator " +
+                                "while other creator already exist"
+                            );
+                        }
                         //
-                        signalingClient = new SignalingClient( "" + idRtcParticipant, "" + strRole, signalingSpace, socket );
+                        signalingClient =
+                            new SignalingClient(
+                                "" + idRtcParticipant,
+                                "" + strRole,
+                                signalingSpace,
+                                socket
+                            );
                         if( settings.logging.net.signaling.impersonate ) {
                             isForceDisconnect = true;
-                            console.log( "Signaling client socket \"" + socket.strSavedRemoteAddress + "\" was impersonated as \"" + idRtcParticipant +
-                                "\" in signaling space \"" + signalingSpace.idSpace + "\"" );
+                            console.log(
+                                "Signaling client socket \"" + socket.strSavedRemoteAddress +
+                                "\" was impersonated as \"" + idRtcParticipant +
+                                "\" in signaling space \"" + signalingSpace.idSpace + "\""
+                            );
                         }
-                        // if( (!( "fnFlushNetwork" in signalingSpace )) || (!signalingSpace.fnFlushNetwork) )
+                        // if( (!( "fnFlushNetwork" in signalingSpace ))
+                        //     || (!signalingSpace.fnFlushNetwork) )
                         //     //console.log( "Setting up network data flushing in acceptor" );
                         //     signalingSpace.fnFlushNetwork = function() {
                         //         // TO-DO: improve this
@@ -572,11 +732,14 @@ class SignalingServer extends EventDispatcher {
                         socket.signalingAuthInfo.idSpaceSpace = "" + idSpace;
                         socket.signalingAuthInfo.idRtcParticipant = "" + idRtcParticipant;
                         joAnswer = utils.prepareAnswerJSON( joMessage ); // successful answer
-                        joAnswer.signalingAuthInfo = JSON.parse( JSON.stringify( socket.signalingAuthInfo ) );
+                        joAnswer.signalingAuthInfo =
+                            JSON.parse( JSON.stringify( socket.signalingAuthInfo ) );
                     } break;
                     case "signalingPublishOffer": {
-                        if( ! ( signalingClient && signalingSpace && signalingCategory ) )
-                            throw new Error( "only connected signaling clients can publish offers" );
+                        if( ! ( signalingClient && signalingSpace && signalingCategory ) ) {
+                            throw new Error(
+                                "only connected signaling clients can publish offers" );
+                        }
                         if( ! ( signalingClient.isCreator ) )
                             throw new Error( "only creator can publish offers" );
                         const joOfferInfo = {
@@ -586,33 +749,50 @@ class SignalingServer extends EventDispatcher {
                         };
                         signalingSpace.arr_published_offers.push( joOfferInfo );
                         if( settings.logging.net.signaling.publishOffer ) {
-                            console.log( "Signaling client socket \"" + socket.strSavedRemoteAddress + "\" impersonated as \"" + signalingClient.idRtcParticipant +
-                                "\" in signaling space \"" + signalingSpace.idSpace + "\" did published creator offer:", joOfferInfo );
+                            console.log(
+                                "Signaling client socket \"" + socket.strSavedRemoteAddress +
+                                "\" impersonated as \"" + signalingClient.idRtcParticipant +
+                                "\" in signaling space \"" + signalingSpace.idSpace +
+                                "\" did published creator offer:", joOfferInfo
+                            );
                         }
                         joAnswer = utils.prepareAnswerJSON( joMessage ); // successful answer
                     } break;
                     case "signalingFetchOffer": {
-                        if( ! ( signalingClient && signalingSpace && signalingCategory ) )
-                            throw new Error( "only connected signaling clients can fetch published offers" );
+                        if( ! ( signalingClient && signalingSpace && signalingCategory ) ) {
+                            throw new Error(
+                                "only connected signaling clients can fetch published offers" );
+                        }
                         signalingClient.offerDiscoveryStart( joMessage );
                     } break;
                     case "signalingPublishAnswer": {
-                        if( ! ( signalingClient && signalingSpace && signalingCategory ) )
-                            throw new Error( "only connected signaling clients can publish offer answers" );
-                        const connectedServerCreator = signalingSpace.clientGet( joMessage.idSomebodyCreator );
-                        if( ! connectedServerCreator )
-                            throw new Error( "answer published with invalid server holder reference: " + joMessage.idSomebodyCreator );
+                        if( ! ( signalingClient && signalingSpace && signalingCategory ) ) {
+                            throw new Error(
+                                "only connected signaling clients can publish offer answers" );
+                        }
+                        const connectedServerCreator =
+                            signalingSpace.clientGet( joMessage.idSomebodyCreator );
+                        if( ! connectedServerCreator ) {
+                            throw new Error(
+                                "answer published with invalid server holder reference: " +
+                                joMessage.idSomebodyCreator );
+                        }
                         const joForwardMessage = JSON.parse( JSON.stringify( joMessage ) );
                         joForwardMessage.idSomebody_joiner = "" + signalingClient.idRtcParticipant;
-                        connectedServerCreator.socket.send( joForwardMessage ); // re-send it to server holder, joiner *somebody* ID is added
+                        // re-send it to server holder, joiner *somebody* ID is added
+                        connectedServerCreator.socket.send( joForwardMessage );
                         // no answer so far((
                     } break;
                     default: {
                         joAnswer = utils.prepareAnswerJSON( joMessage );
                         joAnswer.error = "Unhandled message";
                         joAnswer.joMessage = joMessage; // send it back ))
-                        if( settings.logging.net.signaling.error )
-                            console.warn( "Signaling client socket \"" + socket.strSavedRemoteAddress + "\" unhandled message", joMessage );
+                        if( settings.logging.net.signaling.error ) {
+                            console.warn(
+                                "Signaling client socket \"" + socket.strSavedRemoteAddress +
+                                "\" unhandled message", joMessage
+                            );
+                        }
                     } break;
                     } // switch( joMessage.method )
                 } catch ( err ) {
@@ -623,10 +803,18 @@ class SignalingServer extends EventDispatcher {
                 }
                 if( joAnswer != null && joAnswer != undefined ) {
                     if( typeof joAnswer.error == "string" && joAnswer.error.length > 0 ) {
-                        if( settings.logging.net.signaling.error )
-                            console.warn( "Signaling client socket \"" + socket.strSavedRemoteAddress + "\" error answer", joAnswer );
-                    } else if( settings.logging.net.signaling.message )
-                        console.log( "Signaling client socket \"" + socket.strSavedRemoteAddress + " answer", joAnswer );
+                        if( settings.logging.net.signaling.error ) {
+                            console.warn(
+                                "Signaling client socket \"" + socket.strSavedRemoteAddress +
+                                "\" error answer", joAnswer
+                            );
+                        }
+                    } else if( settings.logging.net.signaling.message ) {
+                        console.log(
+                            "Signaling client socket \"" + socket.strSavedRemoteAddress +
+                            " answer", joAnswer
+                        );
+                    }
                     socket.send( joAnswer, true ); // isFlush=true always in signaling server
                     if( isForceDisconnect )
                         socket.disconnect();
@@ -653,8 +841,12 @@ class SignalingServer extends EventDispatcher {
                 const signalingClient = socket.signalingClient;
                 if( signalingClient ) {
                     signalingSpace = signalingClient.signalingSpace;
-                    if( settings.logging.net.signaling.disconnect )
-                        console.log( "Handling connection close for signaling client \"" + signalingClient.idRtcParticipant + "\"" );
+                    if( settings.logging.net.signaling.disconnect ) {
+                        console.log(
+                            "Handling connection close for signaling client \"" +
+                            signalingClient.idRtcParticipant + "\""
+                        );
+                    }
                     if( signalingSpace )
                         signalingSpace.clientRemove( signalingClient.idRtcParticipant );
 
@@ -666,7 +858,10 @@ class SignalingServer extends EventDispatcher {
             socket.on( "error", _onPipeError );
             socket.on( "message", _onPipeMessage );
         } );
-        this.dispatchEvent( new UniversalDispatcherEvent( "initialized", { "detail": { "ref": this } } ) );
+        this.dispatchEvent(
+            new UniversalDispatcherEvent(
+                "initialized",
+                { "detail": { "ref": this } } ) );
     }
     dispose() {
         this.isDisposing = true;
@@ -674,16 +869,22 @@ class SignalingServer extends EventDispatcher {
     }
 };
 
-//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////
 
 const protoName = settings.net.secure ? "WSS" : "WS";
 if( settings.logging.net.signaling.generic )
     console.log( protoName + " signaling server will start" );
-
-const key = settings.net.secure ? fs.readFileSync( "./self-signed/self-signed-key.pem", "utf8" ) : null;
-const cert = settings.net.secure ? fs.readFileSync( "./self-signed/self-signed-cert.pem", "utf8" ) : null;
-let acceptor = new network_layer.WebSocketServerAcceptor( settings.net.ports.signaling, key, cert );
+const key = settings.net.secure
+    ? fs.readFileSync( "./self-signed/self-signed-key.pem", "utf8" ) : null;
+const cert = settings.net.secure
+    ? fs.readFileSync( "./self-signed/self-signed-cert.pem", "utf8" ) : null;
+let acceptor =
+    new network_layer.WebSocketServerAcceptor(
+        settings.net.ports.signaling,
+        key,
+        cert
+    );
 let signalingServer = new SignalingServer( acceptor );
 signalingServer.on( "initialized", function() {
     if( settings.logging.net.signaling.generic )
@@ -694,8 +895,8 @@ signalingServer.on( "dispose", function() {
         console.log( protoName + " signaling server did stopped" );
 } );
 
-//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////
 
 let g_bShouldExit = false, g_bProcessExitRequested = false;
 function exit_if_needed() {
@@ -730,5 +931,5 @@ process.on( "SIGINT", function() {
     g_bShouldExit = true;
 } );
 
-//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////

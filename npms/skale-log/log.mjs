@@ -40,8 +40,8 @@ export function set_print_timestamps( b ) {
     g_b_log_timestamps = b ? true : false;
 }
 
-////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////
 
 export function n2s( n, sz ) {
     let s = "" + n;
@@ -51,7 +51,9 @@ export function n2s( n, sz ) {
 }
 
 export function generate_timestamp_string( ts, isColorized ) {
-    isColorized = ( typeof isColorized == "undefined" ) ? true : ( isColorized ? true : false );
+    isColorized =
+        ( typeof isColorized == "undefined" )
+            ? true : ( isColorized ? true : false );
     ts = ( ts instanceof Date ) ? ts : new Date();
     const cc_date = function( x ) { return isColorized ? cc.date( x ) : x; };
     const cc_time = function( x ) { return isColorized ? cc.time( x ) : x; };
@@ -73,8 +75,8 @@ export function generate_timestamp_prefix( ts, isColorized ) {
     return generate_timestamp_string( ts, isColorized ) + cc.bright( ":" ) + " ";
 }
 
-////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////
 
 export function removeAllStreams() {
     let i = 0; let cnt = 0;
@@ -108,8 +110,8 @@ export function getStreamWithFilePath( strFilePath ) {
     return null;
 }
 
-////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////
 
 export function createStandardOutputStream() {
     try {
@@ -156,8 +158,8 @@ export function insertStandardOutputStream() {
     return true;
 }
 
-////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////
 
 export function createMemoryOutputStream() {
     try {
@@ -185,15 +187,25 @@ export function createMemoryOutputStream() {
             "size": function() { return 0; },
             "rotate": function( nBytesToWrite ) { this.strAccumulatedLogText = ""; },
             "toString": function() { return "" + this.strAccumulatedLogText; },
-            "exposeDetailsTo": function( otherStream, strTitle, isSuccess ) {
-                strTitle = strTitle ? ( cc.bright( " (" ) + cc.attention( strTitle ) + cc.bright( ")" ) ) : "";
-                const strSuccessPrefix = isSuccess ? cc.success( "SUCCESS" ) : cc.fatal( "ERROR" );
-                otherStream.write(
-                    cc.bright( "\n--- --- --- --- --- GATHERED " ) + strSuccessPrefix + cc.bright( " DETAILS FOR LATEST(" ) + cc.sunny( strTitle ) + cc.bright( " action (" ) + cc.sunny( "BEGIN" ) + cc.bright( ") --- --- ------ --- \n" ) +
-                    this.strAccumulatedLogText +
-                    cc.bright( "--- --- --- --- --- GATHERED " ) + strSuccessPrefix + cc.bright( " DETAILS FOR LATEST(" ) + cc.sunny( strTitle ) + cc.bright( " action (" ) + cc.sunny( "END" ) + cc.bright( ") --- --- --- --- ---\n" )
-                );
-            }
+            "exposeDetailsTo":
+                function( otherStream, strTitle, isSuccess ) {
+                    strTitle = strTitle
+                        ? ( cc.bright( " (" ) + cc.attention( strTitle ) + cc.bright( ")" ) ) : "";
+                    const strSuccessPrefix = isSuccess
+                        ? cc.success( "SUCCESS" ) : cc.fatal( "ERROR" );
+                    otherStream.write(
+                        cc.bright( "\n--- --- --- --- --- GATHERED " ) + strSuccessPrefix +
+                        cc.bright( " DETAILS FOR LATEST(" ) + cc.sunny( strTitle ) +
+                        cc.bright( " action (" ) + cc.sunny( "BEGIN" ) +
+                        cc.bright( ") --- --- ------ --- \n" ) +
+                        this.strAccumulatedLogText +
+                        cc.bright( "--- --- --- --- --- GATHERED " ) + strSuccessPrefix +
+                        cc.bright( " DETAILS FOR LATEST(" ) + cc.sunny( strTitle ) +
+                        cc.bright( " action (" ) + cc.sunny( "END" ) +
+                        cc.bright( ") --- --- --- --- ---\n"
+                        )
+                    );
+                }
         };
         objEntry.open();
         return objEntry;
@@ -213,12 +225,13 @@ export function insertMemoryOutputStream() {
     return true;
 }
 
-////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////
 
 export function createFileOutput( strFilePath, nMaxSizeBeforeRotation, nMaxFilesCount ) {
     try {
-        // const fd = fs.openSync( "" + strFilePath, "a", fs.constants.O_NONBLOCK | fs.constants.O_WR );
+        // const fd = fs.openSync(
+        //     "" + strFilePath, "a", fs.constants.O_NONBLOCK | fs.constants.O_WR );
         const objEntry = {
             "id": g_id ++,
             "strPath": "" + strFilePath,
@@ -243,8 +256,13 @@ export function createFileOutput( strFilePath, nMaxSizeBeforeRotation, nMaxFiles
                 fs.closeSync( this.objStream );
                 this.objStream = null;
             },
-            "open": function() { this.objStream = fs.openSync( this.strPath, "a", fs.constants.O_NONBLOCK | fs.constants.O_WR ); },
-            "size": function() { try { return fs.lstatSync( this.strPath ).size; } catch ( err ) { return 0; } },
+            "open": function() {
+                this.objStream =
+                    fs.openSync( this.strPath, "a", fs.constants.O_NONBLOCK | fs.constants.O_WR );
+            },
+            "size": function() {
+                try { return fs.lstatSync( this.strPath ).size; } catch ( err ) { return 0; }
+            },
             "rotate": function( nBytesToWrite ) {
                 try {
                     if( this.nMaxSizeBeforeRotation <= 0 || this.nMaxFilesCount <= 1 )
@@ -281,7 +299,10 @@ export function createFileOutput( strFilePath, nMaxSizeBeforeRotation, nMaxFiles
         objEntry.open();
         return objEntry;
     } catch ( err ) {
-        console.log( "CRITICAL ERROR: Failed to open file system log stream for " + strFilePath + ", error is " + JSON.stringify( err ) );
+        console.log(
+            "CRITICAL ERROR: Failed to open file system log stream for " + strFilePath +
+            ", error is " + JSON.stringify( err )
+        );
     }
     return null;
 }
@@ -296,8 +317,8 @@ export function insertFileOutput( strFilePath, nMaxSizeBeforeRotation, nMaxFiles
     return true;
 }
 
-////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////
 
 export function write() {
     let s = get_print_timestamps() ? generate_timestamp_prefix( null, true ) : "", i = 0;
@@ -357,5 +378,5 @@ export function exposeDetailsTo() {
     // for compatibility with created streams
 }
 
-////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////
