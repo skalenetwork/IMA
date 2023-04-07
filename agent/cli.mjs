@@ -3386,7 +3386,7 @@ export function ima_common_init() {
         ensure_have_value(
             "S<->S Target S-Chain Ethereum network name",
             imaState.chainProperties.tc.strChainName, false,
-            sPrintGathered && isPrintSecurityValues, null, ( x ) => {
+            isPrintGathered && isPrintSecurityValues, null, ( x ) => {
                 return cc.note( x );
             } );
         ensure_have_value(
