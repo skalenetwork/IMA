@@ -62,6 +62,7 @@ module.exports = {
         "no-var": "error",
         "no-unused-vars": "error",
         "object-shorthand": 0,
-        "multiline-ternary": "off"
+        "multiline-ternary": "off",
+        "max-len": [ "error", { "code": 100, "tabWidth": 4 } ]
     }
 };

@@ -46,8 +46,8 @@ import * as state from "./state.mjs";
 // allow self-signed wss and https
 process.env.NODE_TLS_REJECT_UNAUTHORIZED = 0;
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////////////////////////
 
 function initial_skale_network_scan_for_S2S() {
     const imaState = state.get();
@@ -58,15 +58,21 @@ function initial_skale_network_scan_for_S2S() {
         "fn": async function() {
             const strLogPrefix = cc.info( "SKALE network scan for S2S:" ) + " ";
             if( imaState.strPathAbiJsonSkaleManager.length === 0 ) {
-                console.log( cc.fatal( "CRITICAL ERROR:" ) + cc.error( " missing Skale Manager ABI, please specify " ) + cc.info( "abi-skale-manager" ) );
+                console.log( cc.fatal( "CRITICAL ERROR:" ) +
+                    cc.error( " missing Skale Manager ABI, please specify " ) +
+                    cc.info( "abi-skale-manager" )
+                );
                 process.exit( 153 );
             }
-            log.write( strLogPrefix + cc.debug( "Downloading SKALE network information..." ) + "\n" ); // just print value
+            log.write( strLogPrefix +
+                cc.debug( "Downloading SKALE network information..." ) +
+                "\n" ); // just print value
             const opts = {
                 imaState: imaState,
                 "details": log,
                 "bStopNeeded": false,
-                "secondsToReDiscoverSkaleNetwork": imaState.s2s_opts.secondsToReDiscoverSkaleNetwork,
+                "secondsToReDiscoverSkaleNetwork":
+                    imaState.s2s_opts.secondsToReDiscoverSkaleNetwork,
                 "chain": imaState.chainProperties.sc,
                 "bParallelMode": true
             };
@@ -79,12 +85,20 @@ function initial_skale_network_scan_for_S2S() {
             //     opts
             // );
             // if( strError ) {
-            //     log.write( strLogPrefix + cc.error( "Failed to get " ) + cc.info( "SKALE NETWORK" ) + cc.error( " information: " ) + cc.warning( strError ) + "\n" );
+            //    log.write( strLogPrefix +
+            //        cc.error( "Failed to get " ) + cc.info( "SKALE NETWORK" ) +
+            //        cc.error( " information: " ) + cc.warning( strError ) +
+            //        "\n" );
             //     return true;
             // }
             // const arr_schains = skale_observer.get_last_cached_schains();
-            // log.write( strLogPrefix + cc.normal( "Got " ) + cc.info( "SKALE NETWORK" ) + cc.normal( " information: " ) + cc.j( arr_schains ) + "\n" );
-            log.write( strLogPrefix + cc.debug( "Will start periodic S-Chains caching..." ) + "\n" );
+            // log.write( strLogPrefix +
+            //     cc.normal( "Got " ) + cc.info( "SKALE NETWORK" ) +
+            //     cc.normal( " information: " ) + cc.j( arr_schains ) +
+            //     "\n" );
+            log.write( strLogPrefix +
+                cc.debug( "Will start periodic S-Chains caching..." ) +
+                "\n" );
             await skale_observer.periodic_caching_start(
                 imaState.chainProperties.sc.strChainName, // strChainNameConnectedTo
                 // imaState.chainProperties.mn.ethersProvider,
@@ -92,14 +106,16 @@ function initial_skale_network_scan_for_S2S() {
                 addressFrom,
                 opts
             );
-            log.write( strLogPrefix + cc.success( "Done, did started periodic S-Chains caching." ) + "\n" );
+            log.write( strLogPrefix +
+                cc.success( "Done, did started periodic S-Chains caching." ) +
+                "\n" );
             return true;
         }
     } );
 };
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////////////////////////
 
 function parse_command_line() {
     cc.auto_enable_from_command_line_args();
@@ -142,7 +158,8 @@ function parse_command_line() {
                     if( ! imaState.bNoWaitSChainStarted )
                         await wait_until_s_chain_started(); // check_registration_all
                     const b = await check_registration_all();
-                    const nExitCode = b ? 0 : 150; // 0 - OKay - registered; non-zero -  not registered or error
+                    // nExitCode is: 0 - OKay - registered; non-zero -  not registered or error
+                    const nExitCode = b ? 0 : 150;
                     log.write( cc.notice( "Exiting with code " ) + cc.info( nExitCode ) + "\n" );
                     process.exit( nExitCode );
                 }
@@ -155,7 +172,8 @@ function parse_command_line() {
                     if( ! imaState.bNoWaitSChainStarted )
                         await wait_until_s_chain_started(); // check_registration_step1
                     const b = await check_registration_step1();
-                    const nExitCode = b ? 0 : 152; // 0 - OKay - registered; non-zero -  not registered or error
+                    // nExitCode is: 0 - OKay - registered; non-zero -  not registered or error
+                    const nExitCode = b ? 0 : 152;
                     log.write( cc.notice( "Exiting with code " ) + cc.info( nExitCode ) + "\n" );
                     process.exit( nExitCode );
                 }
@@ -168,7 +186,8 @@ function parse_command_line() {
                     let bMintIsOK = false;
                     if( imaState.chainProperties.tc.strCoinNameErc20.length > 0 ) {
                         try {
-                            const strAddressMintTo = imaState.chainProperties.tc.joAccount.address(); // same as caller/transaction signer
+                            const strAddressMintTo = // same as caller/transaction signer
+                                imaState.chainProperties.tc.joAccount.address();
                             bMintIsOK =
                                 await IMA.mintERC20(
                                     imaState.chainProperties.tc.ethersProvider,
@@ -177,8 +196,10 @@ function parse_command_line() {
                                     imaState.chainProperties.tc.joAccount,
                                     strAddressMintTo,
                                     imaState.nAmountOfToken,
-                                    imaState.chainProperties.tc.joErc20[imaState.chainProperties.tc.strCoinNameErc20 + "_address"],
-                                    imaState.chainProperties.tc.joErc20[imaState.chainProperties.tc.strCoinNameErc20 + "_abi"],
+                                    imaState.chainProperties.tc.joErc20[imaState.chainProperties
+                                        .tc.strCoinNameErc20 + "_address"],
+                                    imaState.chainProperties.tc.joErc20[imaState.chainProperties
+                                        .tc.strCoinNameErc20 + "_abi"],
                                     imaState.chainProperties.tc.transactionCustomizer
                                 ) ? true : false;
                         } catch ( err ) {
@@ -196,7 +217,8 @@ function parse_command_line() {
                     let bMintIsOK = false;
                     if( imaState.chainProperties.tc.strCoinNameErc721.length > 0 ) {
                         try {
-                            const strAddressMintTo = imaState.chainProperties.tc.joAccount.address(); // same as caller/transaction signer
+                            const strAddressMintTo = // same as caller/transaction signer
+                                imaState.chainProperties.tc.joAccount.address();
                             const idTokens = imaState.have_idTokens ? imaState.idTokens : [];
                             if( imaState.have_idToken )
                                 idTokens.push( imaState.idToken );
@@ -211,8 +233,10 @@ function parse_command_line() {
                                             imaState.chainProperties.tc.joAccount,
                                             strAddressMintTo,
                                             idToken,
-                                            imaState.chainProperties.tc.joErc721[imaState.chainProperties.tc.strCoinNameErc721 + "_address"],
-                                            imaState.chainProperties.tc.joErc721[imaState.chainProperties.tc.strCoinNameErc721 + "_abi"],
+                                            imaState.chainProperties.tc.joErc721[imaState
+                                                .chainProperties.tc.strCoinNameErc721 + "_address"],
+                                            imaState.chainProperties.tc.joErc721[imaState
+                                                .chainProperties.tc.strCoinNameErc721 + "_abi"],
                                             imaState.chainProperties.tc.transactionCustomizer
                                         ) ? true : false;
                                 }
@@ -232,7 +256,8 @@ function parse_command_line() {
                     let bMintIsOK = false;
                     if( imaState.chainProperties.tc.strCoinNameErc1155.length > 0 ) {
                         try {
-                            const strAddressMintTo = imaState.chainProperties.tc.joAccount.address(); // same as caller/transaction signer
+                            const strAddressMintTo = // same as caller/transaction signer
+                                imaState.chainProperties.tc.joAccount.address();
                             const idTokens = imaState.have_idTokens ? imaState.idTokens : [];
                             if( imaState.have_idToken )
                                 idTokens.push( imaState.idToken );
@@ -248,8 +273,12 @@ function parse_command_line() {
                                             strAddressMintTo,
                                             idToken,
                                             imaState.nAmountOfToken,
-                                            imaState.chainProperties.tc.joErc1155[imaState.chainProperties.tc.strCoinNameErc1155 + "_address"],
-                                            imaState.chainProperties.tc.joErc1155[imaState.chainProperties.tc.strCoinNameErc1155 + "_abi"],
+                                            imaState.chainProperties.tc
+                                                .joErc1155[imaState.chainProperties.tc
+                                                    .strCoinNameErc1155 + "_address"],
+                                            imaState.chainProperties.tc
+                                                .joErc1155[imaState.chainProperties.tc
+                                                    .strCoinNameErc1155 + "_abi"],
                                             imaState.chainProperties.tc.transactionCustomizer
                                         ) ? true : false;
                                 }
@@ -269,7 +298,8 @@ function parse_command_line() {
                     let bBurnIsOK = false;
                     if( imaState.chainProperties.tc.strCoinNameErc20.length > 0 ) {
                         try {
-                            const strAddressBurnFrom = imaState.chainProperties.tc.joAccount.address(); // same as caller/transaction signer
+                            const strAddressBurnFrom = // same as caller/transaction signer
+                                imaState.chainProperties.tc.joAccount.address();
                             bBurnIsOK =
                                 await IMA.burnERC20(
                                     imaState.chainProperties.tc.ethersProvider,
@@ -278,8 +308,12 @@ function parse_command_line() {
                                     imaState.chainProperties.tc.joAccount,
                                     strAddressBurnFrom,
                                     imaState.nAmountOfToken,
-                                    imaState.chainProperties.tc.joErc20[imaState.chainProperties.tc.strCoinNameErc20 + "_address"],
-                                    imaState.chainProperties.tc.joErc20[imaState.chainProperties.tc.strCoinNameErc20 + "_abi"],
+                                    imaState.chainProperties.tc
+                                        .joErc20[imaState.chainProperties
+                                            .tc.strCoinNameErc20 + "_address"],
+                                    imaState.chainProperties.tc
+                                        .joErc20[imaState.chainProperties
+                                            .tc.strCoinNameErc20 + "_abi"],
                                     imaState.chainProperties.tc.transactionCustomizer
                                 ) ? true : false;
                         } catch ( err ) {
@@ -297,7 +331,8 @@ function parse_command_line() {
                     let bBurnIsOK = false;
                     if( imaState.chainProperties.tc.strCoinNameErc721.length > 0 ) {
                         try {
-                        // const strAddressBurnFrom = imaState.chainProperties.tc.joAccount.address(); // same as caller/transaction signer
+                            // const strAddressBurnFrom = // same as caller/transaction signer
+                            //     imaState.chainProperties.tc.joAccount.address();
                             const idTokens = imaState.have_idTokens ? imaState.idTokens : [];
                             if( imaState.have_idToken )
                                 idTokens.push( imaState.idToken );
@@ -312,8 +347,12 @@ function parse_command_line() {
                                             imaState.chainProperties.tc.joAccount,
                                             // strAddressBurnFrom,
                                             idToken,
-                                            imaState.chainProperties.tc.joErc721[imaState.chainProperties.tc.strCoinNameErc721 + "_address"],
-                                            imaState.chainProperties.tc.joErc721[imaState.chainProperties.tc.strCoinNameErc721 + "_abi"],
+                                            imaState.chainProperties.tc
+                                                .joErc721[imaState.chainProperties
+                                                    .tc.strCoinNameErc721 + "_address"],
+                                            imaState.chainProperties.tc
+                                                .oErc721[imaState.chainProperties
+                                                    .tc.strCoinNameErc721 + "_abi"],
                                             imaState.chainProperties.tc.transactionCustomizer
                                         ) ? true : false;
                                 }
@@ -333,7 +372,8 @@ function parse_command_line() {
                     let bBurnIsOK = false;
                     if( imaState.chainProperties.tc.strCoinNameErc1155.length > 0 ) {
                         try {
-                            const strAddressBurnFrom = imaState.chainProperties.tc.joAccount.address(); // same as caller/transaction signer
+                            const strAddressBurnFrom = // same as caller/transaction signer
+                                imaState.chainProperties.tc.joAccount.address();
                             const idTokens = imaState.have_idTokens ? imaState.idTokens : [];
                             if( imaState.have_idToken )
                                 idTokens.push( imaState.idToken );
@@ -349,8 +389,12 @@ function parse_command_line() {
                                             strAddressBurnFrom,
                                             idToken,
                                             imaState.nAmountOfToken,
-                                            imaState.chainProperties.tc.joErc1155[imaState.chainProperties.tc.strCoinNameErc1155 + "_address"],
-                                            imaState.chainProperties.tc.joErc1155[imaState.chainProperties.tc.strCoinNameErc1155 + "_abi"],
+                                            imaState.chainProperties.tc
+                                                .joErc1155[imaState.chainProperties
+                                                    .tc.strCoinNameErc1155 + "_address"],
+                                            imaState.chainProperties.tc
+                                                .joErc1155[imaState.chainProperties
+                                                    .tc.strCoinNameErc1155 + "_abi"],
                                             imaState.chainProperties.tc.transactionCustomizer
                                         ) ? true : false;
                                 }
@@ -386,7 +430,11 @@ function parse_command_line() {
                             imaState.jo_deposit_box_eth
                         )
                     } );
-                    try { assetAddress = imaState.eth_erc20.address; } catch ( err ) { assetAddress = null; }
+                    try {
+                        assetAddress = imaState.eth_erc20.address;
+                    } catch ( err ) {
+                        assetAddress = null;
+                    }
                     arrBalancesSC.push( {
                         "assetName": "RealETH",
                         "assetAddress": assetAddress,
@@ -408,7 +456,13 @@ function parse_command_line() {
                         )
                     } );
                     if( imaState.chainProperties.tc.strCoinNameErc20.length > 0 ) {
-                        try { assetAddress = imaState.chainProperties.mn.joErc20[imaState.chainProperties.tc.strCoinNameErc20 + "_address"]; } catch ( err ) { assetAddress = null; }
+                        try {
+                            assetAddress =
+                                imaState.chainProperties.mn.joErc20[
+                                    imaState.chainProperties.tc.strCoinNameErc20 + "_address"];
+                        } catch ( err ) {
+                            assetAddress = null;
+                        }
                         arrBalancesMN.push( {
                             "assetName": "ERC20",
                             "assetAddress": assetAddress,
@@ -423,7 +477,13 @@ function parse_command_line() {
                         } );
                     }
                     if( imaState.chainProperties.sc.strCoinNameErc20.length > 0 ) {
-                        try { assetAddress = imaState.chainProperties.sc.joErc20[imaState.chainProperties.sc.strCoinNameErc20 + "_address"]; } catch ( err ) { assetAddress = null; }
+                        try {
+                            assetAddress =
+                                imaState.chainProperties.sc.joErc20[
+                                    imaState.chainProperties.sc.strCoinNameErc20 + "_address"];
+                        } catch ( err ) {
+                            assetAddress = null;
+                        }
                         arrBalancesSC.push( {
                             "assetName": "ERC20",
                             "assetAddress": assetAddress,
@@ -444,7 +504,14 @@ function parse_command_line() {
                         if( imaState.chainProperties.mn.strCoinNameErc721.length > 0 ) {
                             for( let i = 0; i < idTokens.length; ++ i ) {
                                 const idToken = idTokens[i];
-                                try { assetAddress = imaState.chainProperties.mn.joErc721[imaState.chainProperties.mn.strCoinNameErc721 + "_address"]; } catch ( err ) { assetAddress = null; }
+                                try {
+                                    assetAddress =
+                                        imaState.chainProperties.mn.joErc721[
+                                            imaState.chainProperties.mn.strCoinNameErc721 +
+                                                "_address"];
+                                } catch ( err ) {
+                                    assetAddress = null;
+                                }
                                 arrBalancesMN.push( {
                                     "assetName": "ERC721",
                                     "assetAddress": assetAddress,
@@ -464,7 +531,14 @@ function parse_command_line() {
                         if( imaState.chainProperties.sc.strCoinNameErc721.length > 0 ) {
                             for( let i = 0; i < idTokens.length; ++ i ) {
                                 const idToken = idTokens[i];
-                                try { assetAddress = imaState.chainProperties.sc.joErc721[imaState.chainProperties.sc.strCoinNameErc721 + "_address"]; } catch ( err ) { assetAddress = null; }
+                                try {
+                                    assetAddress =
+                                        imaState.chainProperties.sc.joErc721[
+                                            imaState.chainProperties.sc.strCoinNameErc721 +
+                                                "_address"];
+                                } catch ( err ) {
+                                    assetAddress = null;
+                                }
                                 arrBalancesSC.push( {
                                     "assetName": "ERC721",
                                     "assetAddress": assetAddress,
@@ -484,7 +558,14 @@ function parse_command_line() {
                         if( imaState.chainProperties.mn.strCoinNameErc1155.length > 0 ) {
                             for( let i = 0; i < idTokens.length; ++ i ) {
                                 const idToken = idTokens[i];
-                                try { assetAddress = imaState.chainProperties.mn.joErc1155[imaState.chainProperties.mn.strCoinNameErc1155 + "_address"]; } catch ( err ) { assetAddress = null; }
+                                try {
+                                    assetAddress =
+                                        imaState.chainProperties.mn.joErc1155[
+                                            imaState.chainProperties.mn.strCoinNameErc1155 +
+                                                "_address"];
+                                } catch ( err ) {
+                                    assetAddress = null;
+                                }
                                 arrBalancesMN.push( {
                                     "assetName": "ERC1155",
                                     "assetAddress": assetAddress,
@@ -504,7 +585,14 @@ function parse_command_line() {
                         if( imaState.chainProperties.sc.strCoinNameErc1155.length > 0 ) {
                             for( let i = 0; i < idTokens.length; ++ i ) {
                                 const idToken = idTokens[i];
-                                try { assetAddress = imaState.chainProperties.sc.joErc1155[imaState.chainProperties.sc.strCoinNameErc1155 + "_address"]; } catch ( err ) { assetAddress = null; }
+                                try {
+                                    assetAddress =
+                                        imaState.chainProperties.sc.joErc1155[
+                                            imaState.chainProperties.sc.strCoinNameErc1155 +
+                                                "_address"];
+                                } catch ( err ) {
+                                    assetAddress = null;
+                                }
                                 arrBalancesSC.push( {
                                     "assetName": "ERC1155",
                                     "assetAddress": assetAddress,
@@ -525,17 +613,28 @@ function parse_command_line() {
                     const format_balance_info = function( bi, strAddress ) {
                         let s = "";
                         s += cc.attention( bi.assetName );
-                        if( "assetAddress" in bi && typeof bi.assetAddress == "string" && bi.assetAddress.length > 0 )
+                        if( "assetAddress" in bi &&
+                            typeof bi.assetAddress == "string" &&
+                            bi.assetAddress.length > 0
+                        )
                             s += cc.normal( "/" ) + cc.notice( bi.assetAddress );
                         if( "idToken" in bi )
                             s += cc.normal( " token ID " ) + cc.notice( bi.idToken );
-                        s += cc.normal( ( bi.assetName == "ERC721" ) ? " owner is " : " balance is " );
-                        s += ( bi.assetName == "ERC721" ) ? cc.bright( bi.owner ) : cc.sunny( bi.balance );
+                        s += cc.normal( ( bi.assetName == "ERC721" )
+                            ? " owner is " : " balance is " );
+                        s += ( bi.assetName == "ERC721" )
+                            ? cc.bright( bi.owner ) : cc.sunny( bi.balance );
                         if( bi.assetName == "ERC721" ) {
-                            const isSame = ( bi.owner.trim().toLowerCase() == strAddress.trim().toLowerCase() );
+                            const isSame =
+                                ( bi.owner.trim().toLowerCase() ==
+                                    strAddress.trim().toLowerCase() );
                             s += " " + ( isSame
-                                ? cc.success( "same (as account " ) + cc.attention( strAddress ) + cc.success( " specified in the command line arguments)" )
-                                : cc.error( "different (than account " ) + cc.attention( strAddress ) + cc.error( " specified in the command line arguments)" ) );
+                                ? cc.success( "same (as account " ) +
+                                    cc.attention( strAddress ) +
+                                    cc.success( " specified in the command line arguments)" )
+                                : cc.error( "different (than account " ) +
+                                    cc.attention( strAddress ) +
+                                        cc.error( " specified in the command line arguments)" ) );
                         }
                         return s;
                     };
@@ -576,7 +675,10 @@ function parse_command_line() {
                     // && imaState.chainProperties.sc.strCoinNameErc721.length > 0
                     ) {
                     // ERC721 payment
-                        log.write( cc.info( "one M->S single ERC721 payment: " ) + cc.sunny( imaState.idToken ) + "\n" ); // just print value
+                        log.write(
+                            cc.info( "one M->S single ERC721 payment: " ) +
+                            cc.sunny( imaState.idToken ) +
+                            "\n" ); // just print value
                         return await IMA.do_erc721_payment_from_main_net(
                             imaState.chainProperties.mn.ethersProvider,
                             imaState.chainProperties.sc.ethersProvider,
@@ -584,12 +686,16 @@ function parse_command_line() {
                             imaState.chainProperties.sc.cid,
                             imaState.chainProperties.mn.joAccount,
                             imaState.chainProperties.sc.joAccount,
-                            imaState.isWithMetadata721 ? imaState.jo_deposit_box_erc721_with_metadata : imaState.jo_deposit_box_erc721, // only main net
+                            imaState.isWithMetadata721
+                                ? imaState.jo_deposit_box_erc721_with_metadata
+                                : imaState.jo_deposit_box_erc721, // only main net
                             imaState.jo_message_proxy_main_net, // for checking logs
                             imaState.chainProperties.sc.strChainName,
                             imaState.idToken, // which ERC721 token id to send
                             imaState.nAmountOfWei, // how much to send
-                            imaState.isWithMetadata721 ? imaState.jo_token_manager_erc721_with_metadata : imaState.jo_token_manager_erc721, // only s-chain
+                            imaState.isWithMetadata721
+                                ? imaState.jo_token_manager_erc721_with_metadata
+                                : imaState.jo_token_manager_erc721, // only s-chain
                             imaState.chainProperties.mn.strCoinNameErc721,
                             imaState.chainProperties.mn.joErc721,
                             imaState.chainProperties.sc.strCoinNameErc721,
@@ -601,7 +707,10 @@ function parse_command_line() {
                     // && imaState.chainProperties.sc.strCoinNameErc20.length > 0
                     ) {
                     // ERC20 payment
-                        log.write( cc.info( "one M->S single ERC20 payment: " ) + cc.sunny( imaState.nAmountOfToken ) + "\n" ); // just print value
+                        log.write(
+                            cc.info( "one M->S single ERC20 payment: " ) +
+                            cc.sunny( imaState.nAmountOfToken ) +
+                            "\n" ); // just print value
                         return await IMA.do_erc20_payment_from_main_net(
                             imaState.chainProperties.mn.ethersProvider,
                             imaState.chainProperties.sc.ethersProvider,
@@ -624,13 +733,25 @@ function parse_command_line() {
                     }
                     if(
                         imaState.chainProperties.mn.strCoinNameErc1155.length > 0 &&
-                    imaState.idToken && imaState.idToken !== null && imaState.idToken !== undefined &&
-                    imaState.nAmountOfToken && imaState.nAmountOfToken !== null && imaState.nAmountOfToken !== undefined &&
-                    ( ( !imaState.idTokens ) || imaState.idTokens === null || imaState.idTokens === undefined ) &&
-                    ( ( !imaState.arrAmountsOfTokens ) || imaState.arrAmountsOfTokens === null || imaState.arrAmountsOfTokens === undefined )
+                        imaState.idToken &&
+                        imaState.idToken !== null &&
+                        imaState.idToken !== undefined &&
+                        imaState.nAmountOfToken &&
+                        imaState.nAmountOfToken !== null &&
+                        imaState.nAmountOfToken !== undefined &&
+                        ( ( !imaState.idTokens ) ||
+                            imaState.idTokens === null ||
+                            imaState.idTokens === undefined ) &&
+                        ( ( !imaState.arrAmountsOfTokens ) ||
+                            imaState.arrAmountsOfTokens === null ||
+                            imaState.arrAmountsOfTokens === undefined )
                     ) {
                     // ERC1155 payment
-                        log.write( cc.info( "one M->S single ERC1155 payment: " ) + cc.sunny( imaState.idToken ) + " " + cc.sunny( imaState.nAmountOfToken ) + "\n" ); // just print value
+                        log.write(
+                            cc.info( "one M->S single ERC1155 payment: " ) +
+                            cc.sunny( imaState.idToken ) + " " +
+                            cc.sunny( imaState.nAmountOfToken ) +
+                            "\n" ); // just print value
                         return await IMA.do_erc1155_payment_from_main_net(
                             imaState.chainProperties.mn.ethersProvider,
                             imaState.chainProperties.sc.ethersProvider,
@@ -654,13 +775,25 @@ function parse_command_line() {
                     }
                     if(
                         imaState.chainProperties.mn.strCoinNameErc1155.length > 0 &&
-                    imaState.idTokens && imaState.idTokens !== null && imaState.idTokens !== undefined &&
-                    imaState.arrAmountsOfTokens && imaState.arrAmountsOfTokens !== null && imaState.arrAmountsOfTokens !== undefined &&
-                    ( !imaState.idToken || imaState.idToken === null || imaState.idToken === undefined ) &&
-                    ( !imaState.nAmountOfToken || imaState.nAmountOfToken === null || imaState.nAmountOfToken === undefined )
+                        imaState.idTokens &&
+                        imaState.idTokens !== null &&
+                        imaState.idTokens !== undefined &&
+                        imaState.arrAmountsOfTokens &&
+                        imaState.arrAmountsOfTokens !== null &&
+                        imaState.arrAmountsOfTokens !== undefined &&
+                        ( !imaState.idToken ||
+                            imaState.idToken === null ||
+                            imaState.idToken === undefined ) &&
+                        ( !imaState.nAmountOfToken ||
+                            imaState.nAmountOfToken === null ||
+                            imaState.nAmountOfToken === undefined )
                     ) {
                     // ERC1155 Batch payment
-                        log.write( cc.info( "one M->S single ERC1155 Batch payment: " ) + cc.sunny( imaState.idTokens ) + " " + cc.sunny( imaState.arrAmountsOfTokens ) + "\n" ); // just print value
+                        log.write(
+                            cc.info( "one M->S single ERC1155 Batch payment: " ) +
+                            cc.sunny( imaState.idTokens ) + " " +
+                            cc.sunny( imaState.arrAmountsOfTokens ) +
+                            "\n" ); // just print value
                         return await IMA.do_erc1155_batch_payment_from_main_net(
                             imaState.chainProperties.mn.ethersProvider,
                             imaState.chainProperties.sc.ethersProvider,
@@ -683,7 +816,10 @@ function parse_command_line() {
                         );
                     }
                     // ETH payment
-                    log.write( cc.info( "one M->S single ETH payment: " ) + cc.sunny( imaState.nAmountOfWei ) + "\n" ); // just print value
+                    log.write(
+                        cc.info( "one M->S single ETH payment: " ) +
+                        cc.sunny( imaState.nAmountOfWei ) +
+                        "\n" ); // just print value
                     return await IMA.do_eth_payment_from_main_net(
                         imaState.chainProperties.mn.ethersProvider,
                         imaState.chainProperties.mn.cid,
@@ -703,8 +839,11 @@ function parse_command_line() {
                 "name": "one S->M single payment",
                 "fn": async function() {
                     if( imaState.chainProperties.sc.strCoinNameErc721.length > 0 ) {
-                    // ERC721 payment
-                        log.write( cc.info( "one S->M single ERC721 payment: " ) + cc.sunny( imaState.idToken ) + "\n" ); // just print value
+                        // ERC721 payment
+                        log.write(
+                            cc.info( "one S->M single ERC721 payment: " ) +
+                            cc.sunny( imaState.idToken ) +
+                             "\n" ); // just print value
                         return await IMA.do_erc721_payment_from_s_chain(
                             imaState.chainProperties.mn.ethersProvider,
                             imaState.chainProperties.sc.ethersProvider,
@@ -712,9 +851,13 @@ function parse_command_line() {
                             imaState.chainProperties.sc.cid,
                             imaState.chainProperties.sc.joAccount,
                             imaState.chainProperties.mn.joAccount,
-                            imaState.isWithMetadata721 ? imaState.jo_token_manager_erc721_with_metadata : imaState.jo_token_manager_erc721, // only s-chain
+                            imaState.isWithMetadata721
+                                ? imaState.jo_token_manager_erc721_with_metadata
+                                : imaState.jo_token_manager_erc721, // only s-chain
                             imaState.jo_message_proxy_s_chain, // for checking logs
-                            imaState.isWithMetadata721 ? imaState.jo_deposit_box_erc721_with_metadata : imaState.jo_deposit_box_erc721, // only main net
+                            imaState.isWithMetadata721
+                                ? imaState.jo_deposit_box_erc721_with_metadata
+                                : imaState.jo_deposit_box_erc721, // only main net
                             imaState.idToken, // which ERC721 token id to send
                             imaState.nAmountOfWei, // how much to send
                             imaState.chainProperties.mn.strCoinNameErc721,
@@ -726,7 +869,10 @@ function parse_command_line() {
                     }
                     if( imaState.chainProperties.sc.strCoinNameErc20.length > 0 ) {
                     // ERC20 payment
-                        log.write( cc.info( "one S->M single ERC20 payment: " ) + cc.sunny( imaState.nAmountOfToken ) + "\n" ); // just print value
+                        log.write(
+                            cc.info( "one S->M single ERC20 payment: " ) +
+                            cc.sunny( imaState.nAmountOfToken ) +
+                            "\n" ); // just print value
                         return await IMA.do_erc20_payment_from_s_chain(
                             imaState.chainProperties.mn.ethersProvider,
                             imaState.chainProperties.sc.ethersProvider,
@@ -748,13 +894,25 @@ function parse_command_line() {
                     }
                     if(
                         imaState.chainProperties.sc.strCoinNameErc1155.length > 0 &&
-                    imaState.idToken && imaState.idToken !== null && imaState.idToken !== undefined &&
-                    imaState.nAmountOfToken && imaState.nAmountOfToken !== null && imaState.nAmountOfToken !== undefined &&
-                    ( ( !imaState.idTokens ) || imaState.idTokens === null || imaState.idTokens === undefined ) &&
-                    ( ( !imaState.arrAmountsOfTokens ) || imaState.arrAmountsOfTokens === null || imaState.arrAmountsOfTokens === undefined )
+                        imaState.idToken &&
+                        imaState.idToken !== null &&
+                        imaState.idToken !== undefined &&
+                        imaState.nAmountOfToken &&
+                        imaState.nAmountOfToken !== null &&
+                        imaState.nAmountOfToken !== undefined &&
+                        ( ( !imaState.idTokens ) ||
+                            imaState.idTokens === null ||
+                            imaState.idTokens === undefined ) &&
+                        ( ( !imaState.arrAmountsOfTokens ) ||
+                            imaState.arrAmountsOfTokens === null ||
+                            imaState.arrAmountsOfTokens === undefined )
                     ) {
                     // ERC1155 payment
-                        log.write( cc.info( "one S->M single ERC1155 payment: " ) + cc.sunny( imaState.idToken ) + " " + cc.sunny( imaState.nAmountOfToken ) + "\n" ); // just print value
+                        log.write(
+                            cc.info( "one S->M single ERC1155 payment: " ) +
+                            cc.sunny( imaState.idToken ) + " " +
+                            cc.sunny( imaState.nAmountOfToken ) +
+                            "\n" ); // just print value
                         return await IMA.do_erc1155_payment_from_s_chain(
                             imaState.chainProperties.mn.ethersProvider,
                             imaState.chainProperties.sc.ethersProvider,
@@ -777,13 +935,25 @@ function parse_command_line() {
                     }
                     if(
                         imaState.chainProperties.sc.strCoinNameErc1155.length > 0 &&
-                    imaState.idTokens && imaState.idTokens !== null && imaState.idTokens !== undefined &&
-                    imaState.arrAmountsOfTokens && imaState.arrAmountsOfTokens !== null && imaState.arrAmountsOfTokens !== undefined &&
-                    ( !imaState.idToken || imaState.idToken === null || imaState.idToken === undefined ) &&
-                    ( !imaState.nAmountOfToken || imaState.nAmountOfToken === null || imaState.nAmountOfToken === undefined )
+                        imaState.idTokens &&
+                        imaState.idTokens !== null &&
+                        imaState.idTokens !== undefined &&
+                        imaState.arrAmountsOfTokens &&
+                        imaState.arrAmountsOfTokens !== null &&
+                        imaState.arrAmountsOfTokens !== undefined &&
+                        ( !imaState.idToken ||
+                            imaState.idToken === null ||
+                            imaState.idToken === undefined ) &&
+                        ( !imaState.nAmountOfToken ||
+                            imaState.nAmountOfToken === null ||
+                            imaState.nAmountOfToken === undefined )
                     ) {
-                    // ERC1155 payment
-                        log.write( cc.info( "one S->M single ERC1155 payment: " ) + cc.sunny( imaState.idTokens ) + " " + cc.sunny( imaState.arrAmountsOfTokens ) + "\n" ); // just print value
+                        // ERC1155 payment
+                        log.write(
+                            cc.info( "one S->M single ERC1155 payment: " ) +
+                            cc.sunny( imaState.idTokens ) + " " +
+                            cc.sunny( imaState.arrAmountsOfTokens ) +
+                            "\n" ); // just print value
                         return await IMA.do_erc1155_batch_payment_from_s_chain(
                             imaState.chainProperties.mn.ethersProvider,
                             imaState.chainProperties.sc.ethersProvider,
@@ -805,7 +975,10 @@ function parse_command_line() {
                         );
                     }
                     // ETH payment
-                    log.write( cc.info( "one S->M single ETH payment: " ) + cc.sunny( imaState.nAmountOfWei ) + "\n" ); // just print value
+                    log.write(
+                        cc.info( "one S->M single ETH payment: " ) +
+                        cc.sunny( imaState.nAmountOfWei ) +
+                        "\n" ); // just print value
                     return await IMA.do_eth_payment_from_s_chain(
                         imaState.chainProperties.sc.ethersProvider,
                         imaState.chainProperties.sc.cid,
@@ -824,65 +997,166 @@ function parse_command_line() {
                 "name": "one S->S single payment",
                 "fn": async function() {
                     const isForward = IMA.isForwardS2S();
-                    const ethersProvider_src = isForward ? imaState.chainProperties.sc.ethersProvider : imaState.chainProperties.tc.ethersProvider;
-                    // const ethersProvider_dst = isForward ? imaState.chainProperties.tc.ethersProvider : imaState.chainProperties.sc.ethersProvider;
-                    const cid_src = isForward ? imaState.chainProperties.sc.cid : imaState.chainProperties.tc.cid;
-                    // const cid_dst = isForward ? imaState.chainProperties.tc.cid : imaState.chainProperties.sc.cid;
-                    const joAccountSrc = isForward ? imaState.chainProperties.sc.joAccount : imaState.chainProperties.tc.joAccount;
-                    // const joAccountDst = isForward ? imaState.chainProperties.tc.joAccount : imaState.chainProperties.sc.joAccount;
-                    // const jo_message_proxy_src = isForward ? imaState.jo_message_proxy_s_chain : imaState.jo_message_proxy_t_chain;
-                    // const jo_message_proxy_dst = isForward ? imaState.jo_message_proxy_t_chain : imaState.jo_message_proxy_s_chain;
-                    const jo_token_manager_erc20_src = isForward ? imaState.jo_token_manager_erc20 : imaState.jo_token_manager_erc20_target;
-                    // const jo_token_manager_erc20_dst = isForward ? imaState.jo_token_manager_erc20_target : imaState.jo_token_manager_erc20
+                    const ethersProvider_src = isForward
+                        ? imaState.chainProperties.sc.ethersProvider
+                        : imaState.chainProperties.tc.ethersProvider;
+                    // const ethersProvider_dst = isForward
+                    //     ? imaState.chainProperties.tc.ethersProvider
+                    //     : imaState.chainProperties.sc.ethersProvider;
+                    const cid_src = isForward
+                        ? imaState.chainProperties.sc.cid
+                        : imaState.chainProperties.tc.cid;
+                    // const cid_dst = isForward
+                    //     ? imaState.chainProperties.tc.cid
+                    //     : imaState.chainProperties.sc.cid;
+                    const joAccountSrc = isForward
+                        ? imaState.chainProperties.sc.joAccount
+                        : imaState.chainProperties.tc.joAccount;
+                    // const joAccountDst = isForward
+                    //     ? imaState.chainProperties.tc.joAccount
+                    //     : imaState.chainProperties.sc.joAccount;
+                    // const jo_message_proxy_src = isForward
+                    //     ? imaState.jo_message_proxy_s_chain
+                    //     : imaState.jo_message_proxy_t_chain;
+                    // const jo_message_proxy_dst = isForward
+                    //     ? imaState.jo_message_proxy_t_chain
+                    //     : imaState.jo_message_proxy_s_chain;
+                    const jo_token_manager_erc20_src = isForward
+                        ? imaState.jo_token_manager_erc20
+                        : imaState.jo_token_manager_erc20_target;
+                    // const jo_token_manager_erc20_dst = isForward
+                    //     ? imaState.jo_token_manager_erc20_target
+                    //     : imaState.jo_token_manager_erc20
                     const jo_token_manager_erc721_src = isForward
-                        ? ( imaState.isWithMetadata721 ? imaState.jo_token_manager_erc721_with_metadata : imaState.jo_token_manager_erc721 )
-                        : ( imaState.isWithMetadata721 ? imaState.jo_token_manager_erc721_with_metadata_target : imaState.jo_token_manager_erc721_target )
+                        ? ( imaState.isWithMetadata721
+                            ? imaState.jo_token_manager_erc721_with_metadata
+                            : imaState.jo_token_manager_erc721 )
+                        : ( imaState.isWithMetadata721
+                            ? imaState.jo_token_manager_erc721_with_metadata_target
+                            : imaState.jo_token_manager_erc721_target )
                     ;
                     // const jo_token_manager_erc721_dst = isForward
-                    //     ? ( imaState.isWithMetadata721 ? imaState.jo_token_manager_erc721_with_metadata_target : imaState.jo_token_manager_erc721_target )
-                    //     : ( imaState.isWithMetadata721 ? imaState.jo_token_manager_erc721_with_metadata : imaState.jo_token_manager_erc721 )
+                    //     ? ( imaState.isWithMetadata721
+                    //             ? imaState.jo_token_manager_erc721_with_metadata_target
+                    //             : imaState.jo_token_manager_erc721_target )
+                    //     : ( imaState.isWithMetadata721
+                    //             ? imaState.jo_token_manager_erc721_with_metadata
+                    //             : imaState.jo_token_manager_erc721 )
                     //     ;
-                    const jo_token_manager_erc1155_src = isForward ? imaState.jo_token_manager_erc1155 : imaState.jo_token_manager_erc1155_target;
-                    // const jo_token_manager_erc1155_dst = isForward ? imaState.jo_token_manager_erc1155_target : imaState.jo_token_manager_erc1155
-                    // const strChainName_src = isForward ? imaState.chainProperties.sc.strChainName : imaState.chainProperties.tc.strChainName;
-                    const strChainName_dst = isForward ? imaState.chainProperties.tc.strChainName : imaState.chainProperties.sc.strChainName;
-                    const strCoinNameErc20_src = isForward ? imaState.chainProperties.sc.strCoinNameErc20 : imaState.chainProperties.tc.strCoinNameErc20;
-                    // const strCoinNameErc20_dst = isForward ? imaState.chainProperties.tc.strCoinNameErc20 : imaState.chainProperties.sc.strCoinNameErc20;
-                    const strCoinNameErc721_src = isForward ? imaState.chainProperties.sc.strCoinNameErc721 : imaState.chainProperties.tc.strCoinNameErc721;
-                    // const strCoinNameErc721_dst = isForward ? imaState.chainProperties.tc.strCoinNameErc721 : imaState.chainProperties.sc.strCoinNameErc721;
-                    const strCoinNameErc1155_src = isForward ? imaState.chainProperties.sc.strCoinNameErc1155 : imaState.chainProperties.tc.strCoinNameErc1155;
-                    // const strCoinNameErc1155_dst = isForward ? imaState.chainProperties.tc.strCoinNameErc1155 : imaState.chainProperties.sc.strCoinNameErc1155;
-                    const joErc20_src = isForward ? imaState.chainProperties.sc.joErc20 : imaState.chainProperties.tc.joErc20;
-                    const joErc721_src = isForward ? imaState.chainProperties.sc.joErc721 : imaState.chainProperties.tc.joErc721;
-                    const joErc1155_src = isForward ? imaState.chainProperties.sc.joErc1155 : imaState.chainProperties.tc.joErc1155;
+                    const jo_token_manager_erc1155_src = isForward
+                        ? imaState.jo_token_manager_erc1155
+                        : imaState.jo_token_manager_erc1155_target;
+                    // const jo_token_manager_erc1155_dst = isForward
+                    //     ? imaState.jo_token_manager_erc1155_target
+                    //     : imaState.jo_token_manager_erc1155
+                    // const strChainName_src = isForward
+                    //     ? imaState.chainProperties.sc.strChainName
+                    //     : imaState.chainProperties.tc.strChainName;
+                    const strChainName_dst = isForward
+                        ? imaState.chainProperties.tc.strChainName
+                        : imaState.chainProperties.sc.strChainName;
+                    const strCoinNameErc20_src = isForward
+                        ? imaState.chainProperties.sc.strCoinNameErc20
+                        : imaState.chainProperties.tc.strCoinNameErc20;
+                    // const strCoinNameErc20_dst = isForward
+                    //     ? imaState.chainProperties.tc.strCoinNameErc20
+                    //     : imaState.chainProperties.sc.strCoinNameErc20;
+                    const strCoinNameErc721_src = isForward
+                        ? imaState.chainProperties.sc.strCoinNameErc721
+                        : imaState.chainProperties.tc.strCoinNameErc721;
+                    // const strCoinNameErc721_dst = isForward
+                    //     ? imaState.chainProperties.tc.strCoinNameErc721
+                    //     : imaState.chainProperties.sc.strCoinNameErc721;
+                    const strCoinNameErc1155_src = isForward
+                        ? imaState.chainProperties.sc.strCoinNameErc1155
+                        : imaState.chainProperties.tc.strCoinNameErc1155;
+                    // const strCoinNameErc1155_dst = isForward
+                    //     ? imaState.chainProperties.tc.strCoinNameErc1155
+                    //     : imaState.chainProperties.sc.strCoinNameErc1155;
+                    const joErc20_src = isForward
+                        ? imaState.chainProperties.sc.joErc20
+                        : imaState.chainProperties.tc.joErc20;
+                    const joErc721_src = isForward
+                        ? imaState.chainProperties.sc.joErc721
+                        : imaState.chainProperties.tc.joErc721;
+                    const joErc1155_src = isForward
+                        ? imaState.chainProperties.sc.joErc1155
+                        : imaState.chainProperties.tc.joErc1155;
                     let strAddrErc20_explicit = imaState.strAddrErc20_explicit;
                     let strAddrErc20_explicit_target = imaState.strAddrErc20_explicit_target;
                     let strAddrErc721_explicit = imaState.strAddrErc721_explicit;
                     let strAddrErc721_explicit_target = imaState.strAddrErc721_explicit_target;
                     let strAddrErc1155_explicit = imaState.strAddrErc1155_explicit;
                     let strAddrErc1155_explicit_target = imaState.strAddrErc1155_explicit_target;
-                    if( ( ! strAddrErc20_explicit ) && imaState.chainProperties.sc.joErc20 && imaState.chainProperties.sc.strCoinNameErc20 )
-                        strAddrErc20_explicit = imaState.chainProperties.sc.joErc20[imaState.chainProperties.sc.strCoinNameErc20 + "_address"];
-                    if( ( ! strAddrErc20_explicit_target ) && imaState.chainProperties.tc.joErc20 && imaState.chainProperties.tc.strCoinNameErc20 )
-                        strAddrErc20_explicit_target = imaState.chainProperties.tc.joErc20[imaState.chainProperties.tc.strCoinNameErc20 + "_address"];
-                    if( ( ! strAddrErc721_explicit ) && imaState.chainProperties.sc.joErc721 && imaState.chainProperties.sc.strCoinNameErc721 )
-                        strAddrErc721_explicit = imaState.chainProperties.sc.joErc721[imaState.chainProperties.sc.strCoinNameErc721 + "_address"];
-                    if( ( ! strAddrErc721_explicit_target ) && imaState.chainProperties.tc.joErc721 && imaState.chainProperties.tc.strCoinNameErc721 )
-                        strAddrErc721_explicit_target = imaState.chainProperties.tc.joErc721[imaState.chainProperties.tc.strCoinNameErc721 + "_address"];
-                    if( ( ! strAddrErc1155_explicit ) && imaState.chainProperties.sc.joErc1155 && imaState.chainProperties.sc.strCoinNameErc1155 )
-                        strAddrErc1155_explicit = imaState.chainProperties.sc.joErc1155[imaState.chainProperties.sc.strCoinNameErc1155 + "_address"];
-                    if( ( ! strAddrErc1155_explicit_target ) && imaState.chainProperties.tc.joErc1155 && imaState.chainProperties.tc.strCoinNameErc1155 )
-                        strAddrErc1155_explicit_target = imaState.chainProperties.tc.joErc1155[imaState.chainProperties.tc.strCoinNameErc1155 + "_address"];
-                    // const strAddrErc20_src = isForward ? strAddrErc20_explicit : strAddrErc20_explicit_target;
-                    const strAddrErc20_dst = isForward ? strAddrErc20_explicit_target : strAddrErc20_explicit;
-                    // const strAddrErc721_src = isForward ? strAddrErc721_explicit : strAddrErc721_explicit_target;
-                    const strAddrErc721_dst = isForward ? strAddrErc721_explicit_target : strAddrErc721_explicit;
-                    // const strAddrErc1155_src = isForward ? strAddrErc1155_explicit : strAddrErc1155_explicit_target;
-                    const strAddrErc1155_dst = isForward ? strAddrErc1155_explicit_target : strAddrErc1155_explicit;
-                    const tc = isForward ? imaState.chainProperties.sc.transactionCustomizer : imaState.chainProperties.tc.transactionCustomizer;
+                    if( ( ! strAddrErc20_explicit ) &&
+                        imaState.chainProperties.sc.joErc20 &&
+                        imaState.chainProperties.sc.strCoinNameErc20 ) {
+                        strAddrErc20_explicit =
+                            imaState.chainProperties.sc.joErc20[
+                                imaState.chainProperties.sc.strCoinNameErc20 + "_address"];
+                    }
+                    if( ( ! strAddrErc20_explicit_target ) &&
+                        imaState.chainProperties.tc.joErc20 &&
+                        imaState.chainProperties.tc.strCoinNameErc20 ) {
+                        strAddrErc20_explicit_target =
+                            imaState.chainProperties.tc.joErc20[
+                                imaState.chainProperties.tc.strCoinNameErc20 + "_address"];
+                    }
+                    if( ( ! strAddrErc721_explicit ) &&
+                        imaState.chainProperties.sc.joErc721 &&
+                        imaState.chainProperties.sc.strCoinNameErc721 ) {
+                        strAddrErc721_explicit =
+                            imaState.chainProperties.sc.joErc721[
+                                imaState.chainProperties.sc.strCoinNameErc721 + "_address"];
+                    }
+                    if( ( ! strAddrErc721_explicit_target ) &&
+                        imaState.chainProperties.tc.joErc721 &&
+                        imaState.chainProperties.tc.strCoinNameErc721 ) {
+                        strAddrErc721_explicit_target =
+                            imaState.chainProperties.tc.joErc721[
+                                imaState.chainProperties.tc.strCoinNameErc721 + "_address"];
+                    }
+                    if( ( ! strAddrErc1155_explicit ) &&
+                        imaState.chainProperties.sc.joErc1155 &&
+                        imaState.chainProperties.sc.strCoinNameErc1155 ) {
+                        strAddrErc1155_explicit =
+                            imaState.chainProperties.sc.joErc1155[
+                                imaState.chainProperties.sc.strCoinNameErc1155 + "_address"];
+                    }
+                    if( ( ! strAddrErc1155_explicit_target ) &&
+                        imaState.chainProperties.tc.joErc1155 &&
+                        imaState.chainProperties.tc.strCoinNameErc1155 ) {
+                        strAddrErc1155_explicit_target =
+                            imaState.chainProperties.tc.joErc1155[
+                                imaState.chainProperties.tc.strCoinNameErc1155 + "_address"];
+                    }
+                    // const strAddrErc20_src = isForward
+                    //     ? strAddrErc20_explicit
+                    //     : strAddrErc20_explicit_target;
+                    const strAddrErc20_dst = isForward
+                        ? strAddrErc20_explicit_target
+                        : strAddrErc20_explicit;
+                    // const strAddrErc721_src = isForward
+                    //     ? strAddrErc721_explicit
+                    //     : strAddrErc721_explicit_target;
+                    const strAddrErc721_dst = isForward
+                        ? strAddrErc721_explicit_target
+                        : strAddrErc721_explicit;
+                    // const strAddrErc1155_src = isForward
+                    //     ? strAddrErc1155_explicit
+                    //     : strAddrErc1155_explicit_target;
+                    const strAddrErc1155_dst = isForward
+                        ? strAddrErc1155_explicit_target
+                        : strAddrErc1155_explicit;
+                    const tc = isForward
+                        ? imaState.chainProperties.sc.transactionCustomizer
+                        : imaState.chainProperties.tc.transactionCustomizer;
                     if( strCoinNameErc721_src.length > 0 ) {
-                    // ERC721 payment
-                        log.write( cc.info( "one S->S single ERC721 payment: " ) + cc.sunny( imaState.idToken ) + "\n" ); // just print value
+                        // ERC721 payment
+                        log.write(
+                            cc.info( "one S->S single ERC721 payment: " ) +
+                            cc.sunny( imaState.idToken ) +
+                            "\n" ); // just print value
                         return await IMA.do_erc721_payment_s2s(
                             isForward,
                             ethersProvider_src,
@@ -900,7 +1174,10 @@ function parse_command_line() {
                     }
                     if( strCoinNameErc20_src.length > 0 ) {
                     // ERC20 payment
-                        log.write( cc.info( "one S->S single ERC20 payment: " ) + cc.sunny( imaState.nAmountOfToken ) + "\n" ); // just print value
+                        log.write(
+                            cc.info( "one S->S single ERC20 payment: " ) +
+                            cc.sunny( imaState.nAmountOfToken ) +
+                            "\n" ); // just print value
                         return await IMA.do_erc20_payment_s2s(
                             isForward,
                             ethersProvider_src,
@@ -918,13 +1195,25 @@ function parse_command_line() {
                     }
                     if(
                         strCoinNameErc1155_src.length > 0 &&
-                    imaState.idToken && imaState.idToken !== null && imaState.idToken !== undefined &&
-                    imaState.nAmountOfToken && imaState.nAmountOfToken !== null && imaState.nAmountOfToken !== undefined &&
-                    ( ( !imaState.idTokens ) || imaState.idTokens === null || imaState.idTokens === undefined ) &&
-                    ( ( !imaState.arrAmountsOfTokens ) || imaState.arrAmountsOfTokens === null || imaState.arrAmountsOfTokens === undefined )
+                        imaState.idToken &&
+                        imaState.idToken !== null &&
+                        imaState.idToken !== undefined &&
+                        imaState.nAmountOfToken &&
+                        imaState.nAmountOfToken !== null &&
+                        imaState.nAmountOfToken !== undefined &&
+                        ( ( !imaState.idTokens ) ||
+                            imaState.idTokens === null ||
+                            imaState.idTokens === undefined ) &&
+                        ( ( !imaState.arrAmountsOfTokens ) ||
+                            imaState.arrAmountsOfTokens === null ||
+                            imaState.arrAmountsOfTokens === undefined )
                     ) {
-                    // ERC1155 payment
-                        log.write( cc.info( "one S->S single ERC1155 payment: " ) + cc.sunny( imaState.idToken ) + " " + cc.sunny( imaState.nAmountOfToken ) + "\n" ); // just print value
+                        // ERC1155 payment
+                        log.write(
+                            cc.info( "one S->S single ERC1155 payment: " ) +
+                            cc.sunny( imaState.idToken ) + " " +
+                            cc.sunny( imaState.nAmountOfToken ) +
+                            "\n" ); // just print value
                         return await IMA.do_erc1155_payment_s2s(
                             isForward,
                             ethersProvider_src,
@@ -943,13 +1232,25 @@ function parse_command_line() {
                     }
                     if(
                         strCoinNameErc1155_src.length > 0 &&
-                    imaState.idTokens && imaState.idTokens !== null && imaState.idTokens !== undefined &&
-                    imaState.arrAmountsOfTokens && imaState.arrAmountsOfTokens !== null && imaState.arrAmountsOfTokens !== undefined &&
-                    ( !imaState.idToken || imaState.idToken === null || imaState.idToken === undefined ) &&
-                    ( !imaState.nAmountOfToken || imaState.nAmountOfToken === null || imaState.nAmountOfToken === undefined )
+                        imaState.idTokens &&
+                        imaState.idTokens !== null &&
+                        imaState.idTokens !== undefined &&
+                        imaState.arrAmountsOfTokens &&
+                        imaState.arrAmountsOfTokens !== null &&
+                        imaState.arrAmountsOfTokens !== undefined &&
+                        ( !imaState.idToken ||
+                            imaState.idToken === null ||
+                            imaState.idToken === undefined ) &&
+                        ( !imaState.nAmountOfToken ||
+                            imaState.nAmountOfToken === null ||
+                            imaState.nAmountOfToken === undefined )
                     ) {
-                    // ERC1155 Batch payment
-                        log.write( cc.info( "one S->S single ERC1155 Batch payment: " ) + cc.sunny( imaState.idTokens ) + " " + cc.sunny( imaState.arrAmountsOfTokens ) + "\n" ); // just print value
+                        // ERC1155 Batch payment
+                        log.write(
+                            cc.info( "one S->S single ERC1155 Batch payment: " ) +
+                            cc.sunny( imaState.idTokens ) + " " +
+                            cc.sunny( imaState.arrAmountsOfTokens ) +
+                            "\n" ); // just print value
                         return await IMA.do_erc1155_batch_payment_s2s(
                             isForward,
                             ethersProvider_src,
@@ -967,8 +1268,13 @@ function parse_command_line() {
                         );
                     }
                     // ETH payment
-                    log.write( cc.info( "one S->S single ETH payment: " ) + cc.sunny( imaState.nAmountOfWei ) + "\n" ); // just print value
-                    console.log( cc.fatal( "CRITICAL ERROR:" ) + cc.error( " S->S ETH payment(s) are neither supported nor allowed" ) );
+                    log.write(
+                        cc.info( "one S->S single ETH payment: " ) +
+                        cc.sunny( imaState.nAmountOfWei ) +
+                        "\n" ); // just print value
+                    console.log( cc.fatal( "CRITICAL ERROR:" ) +
+                        cc.error( " S->S ETH payment(s) are neither supported nor allowed" )
+                    );
                     process.exit( 154 );
                 }
             } );
@@ -977,7 +1283,9 @@ function parse_command_line() {
             imaState.arrActions.push( {
                 "name": "receive one S->M single ETH payment",
                 "fn": async function() {
-                    log.write( cc.info( "receive one S->M single ETH payment: " ) + "\n" ); // just print value
+                    log.write(
+                        cc.info( "receive one S->M single ETH payment: " ) +
+                        "\n" ); // just print value
                     return await IMA.receive_eth_payment_from_s_chain_on_main_net(
                         imaState.chainProperties.mn.ethersProvider,
                         imaState.chainProperties.mn.cid,
@@ -992,7 +1300,9 @@ function parse_command_line() {
             imaState.arrActions.push( {
                 "name": "view one S->M single ETH payment",
                 "fn": async function() {
-                    log.write( cc.info( "view one S->M single ETH payment: " ) + "\n" ); // just print value
+                    log.write(
+                        cc.info( "view one S->M single ETH payment: " ) +
+                        "\n" ); // just print value
                     const xWei = await IMA.view_eth_payment_from_s_chain_on_main_net(
                         imaState.chainProperties.mn.ethersProvider,
                         imaState.chainProperties.mn.joAccount,
@@ -1000,8 +1310,12 @@ function parse_command_line() {
                     );
                     if( xWei === null || xWei === undefined )
                         return false;
-                    const xEth = owaspUtils.ethersMod.ethers.utils.formatEther( owaspUtils.toBN( xWei ) );
-                    log.write( cc.success( "Main-net user can receive: " ) + cc.attention( xWei ) + cc.success( " wei = " ) + cc.attention( xEth ) + cc.success( " eth" ) + "\n" );
+                    const xEth =
+                        owaspUtils.ethersMod.ethers.utils.formatEther( owaspUtils.toBN( xWei ) );
+                    log.write(
+                        cc.success( "Main-net user can receive: " ) + cc.attention( xWei ) +
+                        cc.success( " wei = " ) + cc.attention( xEth ) + cc.success( " eth" ) +
+                        "\n" );
                     return true;
                 }
             } );
@@ -1213,78 +1527,109 @@ function parse_command_line() {
                 "fn": async function() {
                     const strLogPrefix = cc.info( "S-Chain Browse:" ) + " ";
                     if( imaState.chainProperties.sc.strURL.length === 0 ) {
-                        console.log( cc.fatal( "CRITICAL ERROR:" ) + cc.error( " missing S-Chain URL, please specify " ) + cc.info( "url-s-chain" ) );
+                        console.log( cc.fatal( "CRITICAL ERROR:" ) +
+                            cc.error( " missing S-Chain URL, please specify " ) +
+                            cc.info( "url-s-chain" )
+                        );
                         process.exit( 155 );
                     }
-                    log.write( strLogPrefix + cc.normal( "Downloading S-Chain network information " ) + cc.normal( "..." ) + "\n" ); // just print value
+                    log.write( strLogPrefix +
+                        cc.normal( "Downloading S-Chain network information " ) +
+                        cc.normal( "..." ) +
+                        "\n" ); // just print value
                     //
                     const rpcCallOpts = null;
-                    await rpcCall.create( imaState.chainProperties.sc.strURL, rpcCallOpts, async function( joCall, err ) {
-                        if( err ) {
-                            console.log( cc.fatal( "CRITICAL ERROR:" ) + cc.error( " JSON RPC call to S-Chain failed" ) );
-                            if( joCall )
-                                await joCall.disconnect();
-                            process.exit( 156 );
-                        }
-                        await joCall.call( {
-                            "method": "skale_nodesRpcInfo",
-                            "params": {
-                                "fromImaAgentIndex": imaState.nNodeNumber
-                            }
-                        }, async function( joIn, joOut, err ) {
+                    await rpcCall.create(
+                        imaState.chainProperties.sc.strURL,
+                        rpcCallOpts,
+                        async function( joCall, err ) {
                             if( err ) {
-                                const strError = owaspUtils.extract_error_message( err );
-                                console.log( cc.fatal( "CRITICAL ERROR:" ) + cc.error( " JSON RPC call to S-Chain failed, error: " ) + cc.warning( strError ) );
-                                await joCall.disconnect();
-                                process.exit( 157 );
+                                console.log( cc.fatal( "CRITICAL ERROR:" ) +
+                                cc.error( " JSON RPC call to S-Chain failed" )
+                                );
+                                if( joCall )
+                                    await joCall.disconnect();
+                                process.exit( 156 );
                             }
-                            log.write( strLogPrefix + cc.normal( "S-Chain network information: " ) + cc.j( joOut.result ) + "\n" );
-                            let nCountReceivedImaDescriptions = 0;
-                            const jarrNodes = joOut.result.network;
-                            for( let i = 0; i < jarrNodes.length; ++ i ) {
-                                const joNode = jarrNodes[i];
-                                if( ! joNode ) {
-                                    log.write(
-                                        strLogPrefix + cc.error( "Discovery node " ) + cc.info( i ) +
-                                    cc.error( " is completely unknown and will be skipped" ) + "\n" );
-                                    continue;
+                            await joCall.call( {
+                                "method": "skale_nodesRpcInfo",
+                                "params": {
+                                    "fromImaAgentIndex": imaState.nNodeNumber
                                 }
-                                const strNodeURL = imaUtils.compose_schain_node_url( joNode );
-                                const rpcCallOpts = null;
-                                await rpcCall.create( strNodeURL, rpcCallOpts, async function( joCall, err ) {
-                                    if( err ) {
-                                        console.log( cc.fatal( "CRITICAL ERROR:" ) + cc.error( " JSON RPC call to S-Chain failed" ) );
-                                        await joCall.disconnect();
-                                        process.exit( 158 );
+                            }, async function( joIn, joOut, err ) {
+                                if( err ) {
+                                    const strError = owaspUtils.extract_error_message( err );
+                                    console.log( cc.fatal( "CRITICAL ERROR:" ) +
+                                    cc.error( " JSON RPC call to S-Chain failed, error: " ) +
+                                    cc.warning( strError )
+                                    );
+                                    await joCall.disconnect();
+                                    process.exit( 157 );
+                                }
+                                log.write( strLogPrefix +
+                                cc.normal( "S-Chain network information: " ) +
+                                cc.j( joOut.result ) +
+                                "\n" );
+                                let nCountReceivedImaDescriptions = 0;
+                                const jarrNodes = joOut.result.network;
+                                for( let i = 0; i < jarrNodes.length; ++ i ) {
+                                    const joNode = jarrNodes[i];
+                                    if( ! joNode ) {
+                                        log.write( strLogPrefix +
+                                        cc.error( "Discovery node " ) + cc.info( i ) +
+                                        cc.error( " is completely unknown and will be skipped" ) +
+                                        "\n" );
+                                        continue;
                                     }
-                                    await joCall.call( {
-                                        "method": "skale_imaInfo",
-                                        "params": {
-                                            "fromImaAgentIndex": imaState.nNodeNumber
-                                        }
-                                    }, async function( joIn, joOut, err ) {
-                                        ++ nCountReceivedImaDescriptions;
-                                        if( err ) {
-                                            const strError = owaspUtils.extract_error_message( err );
-                                            console.log( cc.fatal( "CRITICAL ERROR:" ) + cc.error( " JSON RPC call to S-Chain failed, error: " ) + cc.warning( strError ) );
-                                            process.exit( 159 );
-                                        }
-                                        log.write( strLogPrefix + cc.normal( "Node " ) + cc.info( joNode.nodeID ) + cc.normal( " IMA information: " ) + cc.j( joOut.result ) + "\n" );
-                                        //process.exit( 0 );
-                                        await joCall.disconnect();
-                                    } );
-                                } );
-                            }
-                            //process.exit( 0 );
-                            const iv = setInterval( function() {
-                                if( nCountReceivedImaDescriptions == jarrNodes.length ) {
-                                    clearInterval( iv );
-                                    process.exit( 0 );
+                                    const strNodeURL = imaUtils.compose_schain_node_url( joNode );
+                                    const rpcCallOpts = null;
+                                    await rpcCall.create(
+                                        strNodeURL,
+                                        rpcCallOpts,
+                                        async function( joCall, err ) {
+                                            if( err ) {
+                                                console.log( cc.fatal( "CRITICAL ERROR:" ) +
+                                            cc.error( " JSON RPC call to S-Chain failed" )
+                                                );
+                                                await joCall.disconnect();
+                                                process.exit( 158 );
+                                            }
+                                            await joCall.call( {
+                                                "method": "skale_imaInfo",
+                                                "params": {
+                                                    "fromImaAgentIndex": imaState.nNodeNumber
+                                                }
+                                            }, async function( joIn, joOut, err ) {
+                                                ++ nCountReceivedImaDescriptions;
+                                                if( err ) {
+                                                    const strError =
+                                                        owaspUtils.extract_error_message( err );
+                                                    console.log( cc.fatal( "CRITICAL ERROR:" ) +
+                                                cc.error( " JSON RPC call to S-Chain failed, " +
+                                                "error: " ) + cc.warning( strError )
+                                                    );
+                                                    process.exit( 159 );
+                                                }
+                                                log.write( strLogPrefix +
+                                            cc.normal( "Node " ) + cc.info( joNode.nodeID ) +
+                                            cc.normal( " IMA information: " ) +
+                                            cc.j( joOut.result ) +
+                                            "\n" );
+                                                //process.exit( 0 );
+                                                await joCall.disconnect();
+                                            } );
+                                        } );
                                 }
-                            }, 100 );
-                            await joCall.disconnect();
+                                //process.exit( 0 );
+                                const iv = setInterval( function() {
+                                    if( nCountReceivedImaDescriptions == jarrNodes.length ) {
+                                        clearInterval( iv );
+                                        process.exit( 0 );
+                                    }
+                                }, 100 );
+                                await joCall.disconnect();
+                            } );
                         } );
-                    } );
                     return true;
                 }
             } );
@@ -1296,10 +1641,15 @@ function parse_command_line() {
                 "fn": async function() {
                     const strLogPrefix = cc.info( "SKALE NETWORK Browse:" ) + " ";
                     if( imaState.strPathAbiJsonSkaleManager.length === 0 ) {
-                        console.log( cc.fatal( "CRITICAL ERROR:" ) + cc.error( " missing Skale Manager ABI, please specify " ) + cc.info( "abi-skale-manager" ) );
+                        console.log( cc.fatal( "CRITICAL ERROR:" ) +
+                            cc.error( " missing Skale Manager ABI, please specify " ) +
+                            cc.info( "abi-skale-manager" )
+                        );
                         process.exit( 160 );
                     }
-                    log.write( strLogPrefix + cc.debug( "Downloading SKALE network information..." ) + "\n" ); // just print value
+                    log.write( strLogPrefix +
+                        cc.debug( "Downloading SKALE network information..." ) +
+                        "\n" ); // just print value
                     const opts = {
                         imaState: imaState,
                         "details": log,
@@ -1308,7 +1658,11 @@ function parse_command_line() {
                     const addressFrom = imaState.chainProperties.mn.joAccount.address();
                     const arr_schains = await skale_observer.load_schains( addressFrom, opts );
                     const cnt = arr_schains.length;
-                    log.write( strLogPrefix + cc.normal( "Got " ) + cc.info( cnt ) + cc.normal( " S-Chains(s) in SKALE NETWORK information: " ) + cc.j( arr_schains ) + "\n" );
+                    log.write( strLogPrefix +
+                        cc.normal( "Got " ) + cc.info( cnt ) +
+                        cc.normal( " S-Chains(s) in SKALE NETWORK information: " ) +
+                        cc.j( arr_schains ) +
+                        "\n" );
                     return true;
                 }
             } );
@@ -1320,10 +1674,15 @@ function parse_command_line() {
                 "fn": async function() {
                     const strLogPrefix = cc.info( "Browse connected S-Chains:" ) + " ";
                     if( imaState.strPathAbiJsonSkaleManager.length === 0 ) {
-                        console.log( cc.fatal( "CRITICAL ERROR:" ) + cc.error( " missing Skale Manager ABI, please specify " ) + cc.info( "abi-skale-manager" ) );
+                        console.log( cc.fatal( "CRITICAL ERROR:" ) +
+                            cc.error( " missing Skale Manager ABI, please specify " ) +
+                            cc.info( "abi-skale-manager" )
+                        );
                         process.exit( 161 );
                     }
-                    log.write( strLogPrefix + cc.debug( "Downloading SKALE network information..." ) + "\n" ); // just print value
+                    log.write( strLogPrefix +
+                        cc.debug( "Downloading SKALE network information..." ) +
+                        "\n" ); // just print value
 
                     const opts = {
                         imaState: imaState,
@@ -1338,7 +1697,10 @@ function parse_command_line() {
                     );
 
                     const cnt = arr_schains_cached.length;
-                    log.write( strLogPrefix + cc.normal( "Got " ) + cc.info( cnt ) + cc.normal( " connected S-Chain(s): " ) + cc.j( arr_schains_cached ) + "\n" );
+                    log.write( strLogPrefix +
+                        cc.normal( "Got " ) + cc.info( cnt ) +
+                        cc.normal( " connected S-Chain(s): " ) + cc.j( arr_schains_cached ) +
+                        "\n" );
                     return true;
                 }
             } );
@@ -1350,25 +1712,40 @@ function parse_command_line() {
                 "fn": async function() {
                     const strLogPrefix = cc.info( "Discover chains ID(s):" ) + " ";
                     const arr_urls_to_discover = [];
-                    if( imaState.chainProperties.mn.strURL && typeof( imaState.chainProperties.mn.strURL ) == "string" && imaState.chainProperties.mn.strURL.length > 0 ) {
+                    if( imaState.chainProperties.mn.strURL &&
+                        typeof( imaState.chainProperties.mn.strURL ) == "string" &&
+                        imaState.chainProperties.mn.strURL.length > 0
+                    ) {
                         arr_urls_to_discover.push( {
                             "name": "Main Net",
                             "strURL": "" + imaState.chainProperties.mn.strURL,
-                            "fnSave": function( chainID ) { imaState.chainProperties.mn.cid = chainID; }
+                            "fnSave": function( chainID ) {
+                                imaState.chainProperties.mn.cid = chainID;
+                            }
                         } );
                     }
-                    if( imaState.chainProperties.sc.strURL && typeof( imaState.chainProperties.sc.strURL ) == "string" && imaState.chainProperties.sc.strURL.length > 0 ) {
+                    if( imaState.chainProperties.sc.strURL &&
+                        typeof( imaState.chainProperties.sc.strURL ) == "string" &&
+                        imaState.chainProperties.sc.strURL.length > 0
+                    ) {
                         arr_urls_to_discover.push( {
                             "name": "S-Chain",
                             "strURL": "" + "" + imaState.chainProperties.sc.strURL,
-                            "fnSave": function( chainID ) { imaState.chainProperties.sc.cid = chainID; }
+                            "fnSave": function( chainID ) {
+                                imaState.chainProperties.sc.cid = chainID;
+                            }
                         } );
                     }
-                    if( imaState.chainProperties.tc.strURL && typeof( imaState.chainProperties.tc.strURL ) == "string" && imaState.chainProperties.tc.strURL.length > 0 ) {
+                    if( imaState.chainProperties.tc.strURL &&
+                        typeof( imaState.chainProperties.tc.strURL ) == "string" &&
+                        imaState.chainProperties.tc.strURL.length > 0
+                    ) {
                         arr_urls_to_discover.push( {
                             "name": "S<->S Target S-Chain",
                             "strURL": "" + "" + imaState.chainProperties.tc.strURL,
-                            "fnSave": function( chainID ) { imaState.chainProperties.tc.cid = chainID; }
+                            "fnSave": function( chainID ) {
+                                imaState.chainProperties.tc.cid = chainID;
+                            }
                         } );
                     }
                     if( arr_urls_to_discover.length === 0 ) {
@@ -1382,19 +1759,26 @@ function parse_command_line() {
                     }
                     for( let i = 0; i < arr_urls_to_discover.length; ++ i ) {
                         const joDiscoverEntry = arr_urls_to_discover[i];
-                        const chainID = await skale_observer.discover_chain_id( joDiscoverEntry.strURL );
+                        const chainID = await
+                        skale_observer.discover_chain_id( joDiscoverEntry.strURL );
                         if( chainID === null ) {
                             log.write( strLogPrefix +
-                            cc.error( "Failed to detect " ) + cc.note( joDiscoverEntry.name ) + " " +
+                            cc.error( "Failed to detect " ) +
+                            cc.note( joDiscoverEntry.name ) + " " +
                             cc.attention( "chain ID" ) +
                             "\n" );
                         } else {
-                            const cid16 = owaspUtils.ensure_starts_with_0x( owaspUtils.toBN( chainID ).toHexString() );
+                            const cid16 =
+                                owaspUtils.ensure_starts_with_0x(
+                                    owaspUtils.toBN( chainID ).toHexString()
+                                );
                             const cid10 = "" + owaspUtils.toBN( chainID ).toString();
                             log.write( strLogPrefix +
                             cc.normal( "Got " ) + cc.note( joDiscoverEntry.name ) + " " +
-                            cc.attention( "chain ID" ) + cc.normal( "=" ) + cc.note( cid16 ) + cc.normal( "=" ) +
-                            cc.note( cid10 ) + cc.normal( " from URL " ) + cc.u( joDiscoverEntry.strURL ) +
+                            cc.attention( "chain ID" ) + cc.normal( "=" ) +
+                            cc.note( cid16 ) + cc.normal( "=" ) +
+                            cc.note( cid10 ) + cc.normal( " from URL " ) +
+                            cc.u( joDiscoverEntry.strURL ) +
                             "\n" );
                             joDiscoverEntry.fnSave( chainID );
                         }
@@ -1485,7 +1869,10 @@ function parse_command_line() {
     }
     if( haveReimbursementCommands ) {
         if( imaState.strReimbursementChain == "" ) {
-            console.log( cc.fatal( "RUNTIME INIT ERROR:" ) + cc.error( " missing value for " ) + cc.info( "reimbursement-chain" ) + cc.error( " parameter, must be non-empty chain name" ) + "\n" );
+            console.log( cc.fatal( "RUNTIME INIT ERROR:" ) +
+                cc.error( " missing value for " ) + cc.info( "reimbursement-chain" ) +
+                cc.error( " parameter, must be non-empty chain name" )
+            );
             process.exit( 163 );
         }
     }
@@ -1509,9 +1896,15 @@ function parse_command_line() {
     }
 
     if( imaState.nAutoExitAfterSeconds > 0 ) {
-        log.write( cc.debug( "Automatic exit after " ) + cc.info( imaState.nAutoExitAfterSeconds ) + cc.debug( " second(s) is requested." ) + "\n" );
+        log.write(
+            cc.debug( "Automatic exit after " ) + cc.info( imaState.nAutoExitAfterSeconds ) +
+            cc.debug( " second(s) is requested." ) +
+            "\n" );
         const iv = setInterval( function() {
-            log.write( cc.debug( "Performing automatic exit after " ) + cc.info( imaState.nAutoExitAfterSeconds ) + cc.debug( " second(s)..." ) + "\n" );
+            log.write(
+                cc.debug( "Performing automatic exit after " ) +
+                cc.info( imaState.nAutoExitAfterSeconds ) + cc.debug( " second(s)..." ) +
+                "\n" );
             clearInterval( iv );
             process.exit( 0 );
         }, imaState.nAutoExitAfterSeconds * 1000 );
@@ -1519,8 +1912,14 @@ function parse_command_line() {
         log.write( cc.debug( "Automatic exit was not requested, skipping it." ) + "\n" );
 
     if( imaState.strLogFilePath.length > 0 ) {
-        log.write( cc.debug( "Will print message to file " ) + cc.info( imaState.strLogFilePath ) + "\n" );
-        log.add( imaState.strLogFilePath, imaState.nLogMaxSizeBeforeRotation, imaState.nLogMaxFilesCount );
+        log.write(
+            cc.debug( "Will print message to file " ) + cc.info( imaState.strLogFilePath ) +
+            "\n" );
+        log.add(
+            imaState.strLogFilePath,
+            imaState.nLogMaxSizeBeforeRotation,
+            imaState.nLogMaxFilesCount
+        );
     }
 
     if( imaState.bIsNeededCommonInit ) {
@@ -1535,8 +1934,8 @@ function parse_command_line() {
 
 }
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////////////////////////
 
 function get_s_chain_nodes_count( joSChainNetworkInfo ) {
     try {
@@ -1609,22 +2008,28 @@ async function continue_schain_discovery_in_background_if_needed( isSilent ) {
         try {
             if( IMA.verbose_get() >= IMA.RV_VERBOSE().information ) {
                 log.write(
-                    cc.info( "Will re-discover " ) + cc.notice( cntNodes ) + cc.info( "-node S-Chain network, " ) +
-                    cc.notice( cntDiscovered ) + cc.info( " node(s) already discovered..." ) + "\n" );
+                    cc.info( "Will re-discover " ) + cc.notice( cntNodes ) +
+                    cc.info( "-node S-Chain network, " ) + cc.notice( cntDiscovered ) +
+                    c.info( " node(s) already discovered..." ) +
+                    "\n" );
             }
             await discover_s_chain_network( function( err, joSChainNetworkInfo ) {
                 if( ! err ) {
-                    const cntDiscoveredNew = get_s_chain_discovered_nodes_count( joSChainNetworkInfo );
+                    const cntDiscoveredNew =
+                        get_s_chain_discovered_nodes_count( joSChainNetworkInfo );
                     if( IMA.verbose_get() >= IMA.RV_VERBOSE().information ) {
-                        const strDiscoveryStatus = cc.info( cntDiscoveredNew ) + cc.success( " nodes known" );
+                        const strDiscoveryStatus =
+                            cc.info( cntDiscoveredNew ) + cc.success( " nodes known" );
                         let strMessage =
-                            cc.success( "S-Chain network was re-discovered, " ) + cc.info( cntDiscoveredNew ) +
+                            cc.success( "S-Chain network was re-discovered, " ) +
+                            cc.info( cntDiscoveredNew ) +
                             cc.success( " of " ) + cc.info( cntNodes ) +
                             cc.success( " node(s) (" ) + strDiscoveryStatus + cc.success( ")" );
                         const cntStillUnknown = cntNodes - cntDiscoveredNew;
                         if( cntStillUnknown > 0 ) {
                             strMessage += cc.success( ", " ) +
-                                cc.info( cntStillUnknown ) + cc.success( " of " ) + cc.info( cntNodes ) +
+                                cc.info( cntStillUnknown ) +
+                                cc.success( " of " ) + cc.info( cntNodes ) +
                                 cc.success( " still unknown (" );
                             try {
                                 const jarrNodes = joSChainNetworkInfo.network;
@@ -1632,14 +2037,19 @@ async function continue_schain_discovery_in_background_if_needed( isSilent ) {
                                 for( let i = 0; i < jarrNodes.length; ++i ) {
                                     const joNode = jarrNodes[i];
                                     try {
-                                        if( ! ( joNode && "imaInfo" in joNode && typeof joNode.imaInfo === "object" &&
-                                            "t" in joNode.imaInfo && typeof joNode.imaInfo.t === "number" ) ) {
+                                        if( ! ( joNode && "imaInfo" in joNode &&
+                                            typeof joNode.imaInfo === "object" &&
+                                            "t" in joNode.imaInfo &&
+                                            typeof joNode.imaInfo.t === "number" )
+                                        ) {
                                             if( cntBad > 0 )
                                                 strMessage += cc.success( ", " );
-                                            const strNodeURL = imaUtils.compose_schain_node_url( joNode );
+                                            const strNodeURL =
+                                                imaUtils.compose_schain_node_url( joNode );
                                             const strNodeDescColorized =
                                                 cc.notice( "#" ) + cc.info( i ) +
-                                                cc.attention( "(" ) + cc.u( strNodeURL ) + cc.attention( ")" );
+                                                cc.attention( "(" ) + cc.u( strNodeURL ) +
+                                                cc.attention( ")" );
                                             strMessage += strNodeDescColorized;
                                             ++ cntBad;
                                         }
@@ -1676,7 +2086,9 @@ async function continue_schain_discovery_in_background_if_needed( isSilent ) {
     }, imaState.joSChainDiscovery.repeatIntervalMilliseconds );
 }
 
-async function discover_s_chain_network( fnAfter, isSilent, joPrevSChainNetworkInfo, nCountToWait ) {
+async function discover_s_chain_network(
+    fnAfter, isSilent, joPrevSChainNetworkInfo, nCountToWait
+) {
     const imaState = state.get();
     isSilent = isSilent || false;
     joPrevSChainNetworkInfo = joPrevSChainNetworkInfo || null;
@@ -1687,257 +2099,322 @@ async function discover_s_chain_network( fnAfter, isSilent, joPrevSChainNetworkI
     let joSChainNetworkInfo = null;
     const rpcCallOpts = null;
     try {
-        await rpcCall.create( imaState.chainProperties.sc.strURL, rpcCallOpts, async function( joCall, err ) {
-            if( err ) {
-                const strError = owaspUtils.extract_error_message( err );
-                if( ! isSilent ) {
-                    log.write(
-                        strLogPrefix + cc.fatal( "CRITICAL ERROR:" ) +
-                        cc.error( " JSON RPC call to (own) S-Chain " ) + cc.u( imaState.chainProperties.sc.strURL ) + cc.error( " failed: " ) +
-                        cc.warning( strError ) + "\n"
-                    );
-                }
-                fnAfter( err, null );
-                if( joCall )
-                    await joCall.disconnect();
-                return;
-            }
-            await joCall.call( {
-                "method": "skale_nodesRpcInfo",
-                "params": {
-                    "fromImaAgentIndex": imaState.nNodeNumber
-                }
-            }, async function( joIn, joOut, err ) {
+        await rpcCall.create(
+            imaState.chainProperties.sc.strURL,
+            rpcCallOpts,
+            async function( joCall, err ) {
                 if( err ) {
                     const strError = owaspUtils.extract_error_message( err );
                     if( ! isSilent ) {
                         log.write(
                             strLogPrefix + cc.fatal( "CRITICAL ERROR:" ) +
-                            cc.error( " JSON RPC call to (own) S-Chain " ) + cc.u( imaState.chainProperties.sc.strURL ) + cc.error( " failed, error: " ) +
-                            cc.warning( strError ) + "\n"
+                        cc.error( " JSON RPC call to (own) S-Chain " ) +
+                        cc.u( imaState.chainProperties.sc.strURL ) +
+                        cc.error( " failed: " ) +
+                        cc.warning( strError ) + "\n"
                         );
                     }
                     fnAfter( err, null );
-                    await joCall.disconnect();
+                    if( joCall )
+                        await joCall.disconnect();
                     return;
                 }
-                if( ( !isSilent ) && IMA.verbose_get() >= IMA.RV_VERBOSE().trace )
-                    log.write( strLogPrefix + cc.debug( "OK, got (own) S-Chain network information: " ) + cc.j( joOut.result ) + "\n" );
-                else if( ( !isSilent ) && IMA.verbose_get() >= IMA.RV_VERBOSE().information )
-                    log.write( strLogPrefix + cc.success( "OK, got S-Chain " ) + cc.u( imaState.chainProperties.sc.strURL ) + cc.success( " network information." ) + "\n" );
-                //
-                let nCountReceivedImaDescriptions = 0;
-                joSChainNetworkInfo = joOut.result;
-                if( ! joSChainNetworkInfo ) {
-                    const err2 = new Error( "Got wrong response, network information description was not detected" );
-                    if( ! isSilent ) {
-                        log.write( strLogPrefix + cc.fatal( "CRITICAL ERROR:" ) +
-                        cc.error( " Network was not detected via call to " ) + cc.u( imaState.chainProperties.sc.strURL ) + cc.error( ": " ) +
-                        cc.warning( err2 ) + "\n"
-                        );
+                await joCall.call( {
+                    "method": "skale_nodesRpcInfo",
+                    "params": {
+                        "fromImaAgentIndex": imaState.nNodeNumber
                     }
-                    fnAfter( err2, null );
-                    await joCall.disconnect();
-                    return;
-                }
-                const jarrNodes = joSChainNetworkInfo.network;
-                const cntNodes = jarrNodes.length;
-                if( nCountToWait <= 0 ) {
-                    nCountToWait = 0 + cntNodes;
-                    if( nCountToWait > 2 )
-                        nCountToWait = Math.ceil( nCountToWait * 2 / 3 );
-                } else if( nCountToWait > cntNodes )
-                    nCountToWait = cntNodes;
-                if( ! isSilent ) {
-                    log.write( strLogPrefix + cc.debug( "Will gather details of " ) + cc.info( nCountToWait ) +
-                        cc.debug( " of " ) + cc.info( cntNodes ) + cc.debug( " node(s)..." ) + "\n"
-                    );
-                }
-                let cntFailed = 0;
-                for( let i = 0; i < cntNodes; ++ i ) {
-                    const nCurrentNodeIdx = 0 + i;
-                    const joNode = jarrNodes[nCurrentNodeIdx];
-                    const strNodeURL = imaUtils.compose_schain_node_url( joNode );
-                    const strNodeDescColorized =
-                        cc.notice( "#" ) + cc.info( nCurrentNodeIdx ) +
-                        cc.attention( "(" ) + cc.u( strNodeURL ) + cc.attention( ")" );
-                    try {
-                        if( joPrevSChainNetworkInfo && "network" in joPrevSChainNetworkInfo && joPrevSChainNetworkInfo.network ) {
-                            const joPrevNode = joPrevSChainNetworkInfo.network[nCurrentNodeIdx];
-                            if( joPrevNode && "imaInfo" in joPrevNode && typeof joPrevNode.imaInfo === "object" &&
-                                "t" in joPrevNode.imaInfo && typeof joPrevNode.imaInfo.t === "number"
-                            ) {
-                                joNode.imaInfo = JSON.parse( JSON.stringify( joPrevNode.imaInfo ) );
-                                if( ( !isSilent ) && IMA.verbose_get() >= IMA.RV_VERBOSE().information ) {
-                                    log.write(
-                                        strLogPrefix + cc.info( "OK, in case of " ) + strNodeDescColorized +
-                                        cc.info( " node " ) + cc.info( joNode.nodeID ) +
-                                        cc.info( " will use previous discovery result." ) + "\n"
-                                    );
-                                }
-                                continue; // skip this node discovery, enrich rest of nodes
-                            }
-                        }
-                    } catch ( err ) {
-                    }
-                    const rpcCallOpts = null;
-                    try {
-                        await rpcCall.create( strNodeURL, rpcCallOpts, async function( joCall, err ) {
-                            if( err ) {
-                                if( ! isSilent ) {
-                                    log.write(
-                                        strLogPrefix + cc.fatal( "CRITICAL ERROR:" ) +
-                                        cc.error( " JSON RPC call to S-Chain node " ) + strNodeDescColorized + cc.error( " failed" ) +
-                                        "\n"
-                                    );
-                                }
-                                // fnAfter( err, null );
-                                ++ cntFailed;
-                                if( joCall )
-                                    await joCall.disconnect();
-                                return;
-                            }
-                            joCall.call( {
-                                "method": "skale_imaInfo",
-                                "params": {
-                                    "fromImaAgentIndex": imaState.nNodeNumber
-                                }
-                            }, function( joIn, joOut, err ) {
-                                ++ nCountReceivedImaDescriptions;
-                                if( err ) {
-                                    const strError = owaspUtils.extract_error_message( err );
-                                    if( ! isSilent ) {
-                                        log.write(
-                                            strLogPrefix + cc.fatal( "CRITICAL ERROR:" ) +
-                                            cc.error( " JSON RPC call to S-Chain node " ) + strNodeDescColorized + cc.error( " failed, error: " ) +
-                                            cc.warning( strError ) + "\n"
-                                        );
-                                    }
-                                    // fnAfter( err, null );
-                                    ++ cntFailed;
-                                    return;
-                                }
-                                //if( (!isSilent) && IMA.verbose_get() >= IMA.RV_VERBOSE().information )
-                                //    log.write( strLogPrefix + cc.normal( "Node ") + cc.info(joNode.nodeID) + cc.normal(" IMA information: " ) + cc.j( joOut.result ) + "\n" );
-                                joNode.imaInfo = joOut.result;
-                                //joNode.joCall = joCall;
-                                if( ( !isSilent ) && IMA.verbose_get() >= IMA.RV_VERBOSE().information ) {
-                                    log.write(
-                                        strLogPrefix + cc.success( "OK, got " ) + strNodeDescColorized +
-                                        cc.success( " node " ) + cc.info( joNode.nodeID ) +
-                                        cc.success( " IMA information(" ) + cc.info( nCountReceivedImaDescriptions ) + cc.success( " of " ) +
-                                        cc.info( cntNodes ) + cc.success( ")." ) + "\n"
-                                    );
-                                }
-                            } );
-                        } );
-                    } catch ( err ) {
+                }, async function( joIn, joOut, err ) {
+                    if( err ) {
                         const strError = owaspUtils.extract_error_message( err );
                         if( ! isSilent ) {
                             log.write(
                                 strLogPrefix + cc.fatal( "CRITICAL ERROR:" ) +
-                                cc.error( " JSON RPC call to S-Chain node " ) + strNodeDescColorized +
+                            cc.error( " JSON RPC call to (own) S-Chain " ) +
+                            cc.u( imaState.chainProperties.sc.strURL ) +
+                            cc.error( " failed, error: " ) +
+                            cc.warning( strError ) + "\n"
+                            );
+                        }
+                        fnAfter( err, null );
+                        await joCall.disconnect();
+                        return;
+                    }
+                    if( ( !isSilent ) && IMA.verbose_get() >= IMA.RV_VERBOSE().trace ) {
+                        log.write( strLogPrefix +
+                        cc.debug( "OK, got (own) S-Chain network information: " ) +
+                        cc.j( joOut.result ) +
+                        "\n" );
+                    } else if(
+                        ( !isSilent ) &&
+                        IMA.verbose_get() >= IMA.RV_VERBOSE().information ) {
+                        log.write( strLogPrefix +
+                        cc.success( "OK, got S-Chain " ) +
+                        cc.u( imaState.chainProperties.sc.strURL ) +
+                        cc.success( " network information." ) +
+                        "\n" );
+                    }
+                    //
+                    let nCountReceivedImaDescriptions = 0;
+                    joSChainNetworkInfo = joOut.result;
+                    if( ! joSChainNetworkInfo ) {
+                        const err2 = new Error(
+                            "Got wrong response, network information description was not detected"
+                        );
+                        if( ! isSilent ) {
+                            log.write( strLogPrefix + cc.fatal( "CRITICAL ERROR:" ) +
+                        cc.error( " Network was not detected via call to " ) +
+                        cc.u( imaState.chainProperties.sc.strURL ) + cc.error( ": " ) +
+                        cc.warning( err2 ) + "\n"
+                            );
+                        }
+                        fnAfter( err2, null );
+                        await joCall.disconnect();
+                        return;
+                    }
+                    const jarrNodes = joSChainNetworkInfo.network;
+                    const cntNodes = jarrNodes.length;
+                    if( nCountToWait <= 0 ) {
+                        nCountToWait = 0 + cntNodes;
+                        if( nCountToWait > 2 )
+                            nCountToWait = Math.ceil( nCountToWait * 2 / 3 );
+                    } else if( nCountToWait > cntNodes )
+                        nCountToWait = cntNodes;
+                    if( ! isSilent ) {
+                        log.write( strLogPrefix +
+                        cc.debug( "Will gather details of " ) + cc.info( nCountToWait ) +
+                        cc.debug( " of " ) + cc.info( cntNodes ) + cc.debug( " node(s)..." ) +
+                        "\n"
+                        );
+                    }
+                    let cntFailed = 0;
+                    for( let i = 0; i < cntNodes; ++ i ) {
+                        const nCurrentNodeIdx = 0 + i;
+                        const joNode = jarrNodes[nCurrentNodeIdx];
+                        const strNodeURL = imaUtils.compose_schain_node_url( joNode );
+                        const strNodeDescColorized =
+                        cc.notice( "#" ) + cc.info( nCurrentNodeIdx ) +
+                        cc.attention( "(" ) + cc.u( strNodeURL ) + cc.attention( ")" );
+                        try {
+                            if( joPrevSChainNetworkInfo &&
+                            "network" in joPrevSChainNetworkInfo &&
+                            joPrevSChainNetworkInfo.network
+                            ) {
+                                const joPrevNode = joPrevSChainNetworkInfo.network[nCurrentNodeIdx];
+                                if( joPrevNode &&
+                                "imaInfo" in joPrevNode &&
+                                typeof joPrevNode.imaInfo === "object" &&
+                                "t" in joPrevNode.imaInfo &&
+                                typeof joPrevNode.imaInfo.t === "number"
+                                ) {
+                                    joNode.imaInfo =
+                                    JSON.parse( JSON.stringify( joPrevNode.imaInfo ) );
+                                    if( ( !isSilent ) &&
+                                    IMA.verbose_get() >= IMA.RV_VERBOSE().information
+                                    ) {
+                                        log.write(
+                                            strLogPrefix + cc.info( "OK, in case of " ) +
+                                        strNodeDescColorized +
+                                        cc.info( " node " ) + cc.info( joNode.nodeID ) +
+                                        cc.info( " will use previous discovery result." ) +
+                                        "\n"
+                                        );
+                                    }
+                                    continue; // skip this node discovery, enrich rest of nodes
+                                }
+                            }
+                        } catch ( err ) {
+                        }
+                        const rpcCallOpts = null;
+                        try {
+                            await rpcCall.create(
+                                strNodeURL,
+                                rpcCallOpts,
+                                async function( joCall, err ) {
+                                    if( err ) {
+                                        if( ! isSilent ) {
+                                            log.write(
+                                                strLogPrefix + cc.fatal( "CRITICAL ERROR:" ) +
+                                        cc.error( " JSON RPC call to S-Chain node " ) +
+                                        strNodeDescColorized + cc.error( " failed" ) +
+                                        "\n"
+                                            );
+                                        }
+                                        // fnAfter( err, null );
+                                        ++ cntFailed;
+                                        if( joCall )
+                                            await joCall.disconnect();
+                                        return;
+                                    }
+                                    joCall.call( {
+                                        "method": "skale_imaInfo",
+                                        "params": {
+                                            "fromImaAgentIndex": imaState.nNodeNumber
+                                        }
+                                    }, function( joIn, joOut, err ) {
+                                        ++ nCountReceivedImaDescriptions;
+                                        if( err ) {
+                                            const strError =
+                                                owaspUtils.extract_error_message( err );
+                                            if( ! isSilent ) {
+                                                log.write(
+                                                    strLogPrefix + cc.fatal( "CRITICAL ERROR:" ) +
+                                            cc.error( " JSON RPC call to S-Chain node " ) +
+                                            strNodeDescColorized + cc.error( " failed, error: " ) +
+                                            cc.warning( strError ) + "\n"
+                                                );
+                                            }
+                                            // fnAfter( err, null );
+                                            ++ cntFailed;
+                                            return;
+                                        }
+                                        // if( (!isSilent) && IMA.verbose_get() >=
+                                        //        IMA.RV_VERBOSE().information )
+                                        //     log.write( strLogPrefix +
+                                        //         cc.normal( "Node ") + cc.info(joNode.nodeID) +
+                                        //         cc.normal(" IMA information: " ) +
+                                        //         cc.j( joOut.result ) +
+                                        //         "\n" );
+                                        joNode.imaInfo = joOut.result;
+                                        //joNode.joCall = joCall;
+                                        if( ( !isSilent ) &&
+                                    IMA.verbose_get() >= IMA.RV_VERBOSE().information
+                                        ) {
+                                            log.write(
+                                                strLogPrefix + cc.success( "OK, got " ) +
+                                        strNodeDescColorized +
+                                        cc.success( " node " ) + cc.info( joNode.nodeID ) +
+                                        cc.success( " IMA information(" ) +
+                                        cc.info( nCountReceivedImaDescriptions ) +
+                                        cc.success( " of " ) +
+                                        cc.info( cntNodes ) + cc.success( ")." ) + "\n"
+                                            );
+                                        }
+                                    } );
+                                } );
+                        } catch ( err ) {
+                            const strError = owaspUtils.extract_error_message( err );
+                            if( ! isSilent ) {
+                                log.write(
+                                    strLogPrefix + cc.fatal( "CRITICAL ERROR:" ) +
+                                cc.error( " JSON RPC call to S-Chain node " ) +
+                                strNodeDescColorized +
                                 cc.error( " was not created: " ) + cc.warning( strError ) +
                                 cc.error( ", stack is: " ) + "\n" + cc.stack( err.stack ) +
                                 "\n"
-                            );
-                        }
-                        // fnAfter( err, null );
-                        ++ cntFailed;
+                                );
+                            }
+                            // fnAfter( err, null );
+                            ++ cntFailed;
                         // return;
+                        }
                     }
-                }
-                let nCountAvailable = cntNodes - cntFailed;
-                if( ! isSilent ) {
-                    log.write(
-                        cc.debug( "Waiting for S-Chain nodes, total " ) + cc.warning( cntNodes ) +
+                    let nCountAvailable = cntNodes - cntFailed;
+                    if( ! isSilent ) {
+                        log.write(
+                            cc.debug( "Waiting for S-Chain nodes, total " ) +
+                            cc.warning( cntNodes ) +
                         cc.debug( ", available " ) + cc.warning( nCountAvailable ) +
                         cc.debug( ", expected at least " ) + cc.warning( nCountToWait ) +
                         "\n"
-                    );
-                }
-                if( nCountAvailable < nCountToWait ) {
-                    if( ! isSilent ) {
-                        log.write(
-                            strLogPrefix + cc.fatal( "CRITICAL ERROR:" ) +
-                            cc.error( " Not enough nodes available on S-Chain, total " ) + cc.warning( cntNodes ) +
+                        );
+                    }
+                    if( nCountAvailable < nCountToWait ) {
+                        if( ! isSilent ) {
+                            log.write(
+                                strLogPrefix + cc.fatal( "CRITICAL ERROR:" ) +
+                            cc.error( " Not enough nodes available on S-Chain, total " ) +
+                            cc.warning( cntNodes ) +
                             cc.error( ", available " ) + cc.warning( nCountAvailable ) +
                             cc.error( ", expected at least " ) + cc.warning( nCountToWait ) +
                             "\n"
+                            );
+                        }
+                        const err = new Error(
+                            "Not enough nodes available on S-Chain, total " + cntNodes +
+                        ", available " + nCountAvailable + ", expected at least " + nCountToWait
+                        );
+                        fnAfter( err, null );
+                        return;
+                    }
+                    if( ( !isSilent ) && IMA.verbose_get() >= IMA.RV_VERBOSE().information ) {
+                        log.write(
+                            strLogPrefix + cc.debug( "Waiting for response from at least " ) +
+                        cc.info( nCountToWait ) +
+                        cc.debug( " node(s)..." ) + "\n"
                         );
                     }
-                    const err = new Error(
-                        "Not enough nodes available on S-Chain, total " + cntNodes +
-                        ", available " + nCountAvailable + ", expected at least " + nCountToWait
-                    );
-                    fnAfter( err, null );
-                    return;
-                }
-                if( ( !isSilent ) && IMA.verbose_get() >= IMA.RV_VERBOSE().information ) {
-                    log.write(
-                        strLogPrefix + cc.debug( "Waiting for response from at least " ) + cc.info( nCountToWait ) +
-                        cc.debug( " node(s)..." ) + "\n"
-                    );
-                }
-                let nWaitAttempt = 0;
-                const nWaitStepMilliseconds = 1000;
-                let cntWaitAttempts = Math.floor( imaState.joSChainDiscovery.repeatIntervalMilliseconds / nWaitStepMilliseconds ) - 3;
-                if( cntWaitAttempts < 1 )
-                    cntWaitAttempts = 1;
-                const iv = setInterval( function() {
-                    nCountAvailable = cntNodes - cntFailed;
-                    if( ! isSilent ) {
-                        log.write(
-                            cc.debug( "Waiting attempt " ) +
-                            cc.info( nWaitAttempt ) + cc.debug( " of " ) + cc.info( cntWaitAttempts ) +
+                    let nWaitAttempt = 0;
+                    const nWaitStepMilliseconds = 1000;
+                    let cntWaitAttempts = Math.floor(
+                        imaState.joSChainDiscovery.repeatIntervalMilliseconds /
+                        nWaitStepMilliseconds ) -
+                    3;
+                    if( cntWaitAttempts < 1 )
+                        cntWaitAttempts = 1;
+                    const iv = setInterval( function() {
+                        nCountAvailable = cntNodes - cntFailed;
+                        if( ! isSilent ) {
+                            log.write(
+                                cc.debug( "Waiting attempt " ) +
+                            cc.info( nWaitAttempt ) + cc.debug( " of " ) +
+                            cc.info( cntWaitAttempts ) +
                             cc.debug( " for S-Chain nodes, total " ) + cc.info( cntNodes ) +
                             cc.debug( ", available " ) + cc.info( nCountAvailable ) +
                             cc.debug( ", expected at least " ) + cc.info( nCountToWait ) +
                             "\n"
-                        );
-                    }
-                    if( ( !isSilent ) && IMA.verbose_get() >= IMA.RV_VERBOSE().information ) {
-                        log.write(
-                            strLogPrefix + cc.debug( "Have S-Chain description response about " ) +
-                            cc.info( nCountReceivedImaDescriptions ) + cc.debug( " node(s)." ) + "\n"
-                        );
-                    }
-                    if( nCountReceivedImaDescriptions >= nCountToWait ) {
-                        clearInterval( iv );
-                        fnAfter( null, joSChainNetworkInfo );
-                        return;
-                    }
-                    ++ nWaitAttempt;
-                    if( nWaitAttempt >= cntWaitAttempts ) {
-                        clearInterval( iv );
-                        const strErrorDescription = "S-Chain network discovery wait timeout, network will be re-discovered";
-                        if( ! isSilent )
-                            log.write( strLogPrefix + cc.warning( "WARNING:" ) + " " + cc.warning( strErrorDescription ) + "\n" );
-                        if( get_s_chain_discovered_nodes_count( joSChainNetworkInfo ) > 0 )
+                            );
+                        }
+                        if( ( !isSilent ) && IMA.verbose_get() >= IMA.RV_VERBOSE().information ) {
+                            log.write( strLogPrefix +
+                            cc.debug( "Have S-Chain description response about " ) +
+                            cc.info( nCountReceivedImaDescriptions ) + cc.debug( " node(s)." ) +
+                            "\n"
+                            );
+                        }
+                        if( nCountReceivedImaDescriptions >= nCountToWait ) {
+                            clearInterval( iv );
                             fnAfter( null, joSChainNetworkInfo );
-                        else
-                            fnAfter( new Error( strErrorDescription ), null );
-                        return;
-                    }
-                    if( ! isSilent ) {
-                        log.write(
-                            strLogPrefix + cc.debug( " Waiting attempt " ) +
-                            cc.info( nWaitAttempt ) + cc.debug( " of " ) + cc.info( cntWaitAttempts ) +
-                            cc.debug( " for " ) + cc.notice( nCountToWait - nCountReceivedImaDescriptions ) +
+                            return;
+                        }
+                        ++ nWaitAttempt;
+                        if( nWaitAttempt >= cntWaitAttempts ) {
+                            clearInterval( iv );
+                            const strErrorDescription =
+                            "S-Chain network discovery wait timeout, " +
+                            "network will be re-discovered";
+                            if( ! isSilent ) {
+                                log.write( strLogPrefix + cc.warning( "WARNING:" ) + " " +
+                            cc.warning( strErrorDescription ) + "\n" );
+                            }
+                            if( get_s_chain_discovered_nodes_count( joSChainNetworkInfo ) > 0 )
+                                fnAfter( null, joSChainNetworkInfo );
+                            else
+                                fnAfter( new Error( strErrorDescription ), null );
+                            return;
+                        }
+                        if( ! isSilent ) {
+                            log.write(
+                                strLogPrefix + cc.debug( " Waiting attempt " ) +
+                            cc.info( nWaitAttempt ) + cc.debug( " of " ) +
+                            cc.info( cntWaitAttempts ) +
+                            cc.debug( " for " ) +
+                            cc.notice( nCountToWait - nCountReceivedImaDescriptions ) +
                             cc.debug( " node answer(s)" ) +
                             "\n"
-                        );
-                    }
-                }, nWaitStepMilliseconds );
-                await joCall.disconnect();
+                            );
+                        }
+                    }, nWaitStepMilliseconds );
+                    await joCall.disconnect();
+                } );
             } );
-        } );
     } catch ( err ) {
         const strError = owaspUtils.extract_error_message( err );
         if( ! isSilent ) {
             log.write(
                 strLogPrefix + cc.fatal( "CRITICAL ERROR:" ) +
-                cc.error( " JSON RPC call to S-Chain was not created: " ) + cc.warning( strError ) +
+                cc.error( " JSON RPC call to S-Chain was not created: " ) +
+                cc.warning( strError ) +
                 cc.error( ", stack is: " ) + "\n" + cc.stack( err.stack ) +
                 "\n"
             );
@@ -1948,8 +2425,8 @@ async function discover_s_chain_network( fnAfter, isSilent, joPrevSChainNetworkI
     return joSChainNetworkInfo;
 }
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////////////////////////
 
 let g_ws_server_monitoring = null;
 
@@ -1958,8 +2435,12 @@ function init_monitoring_server() {
     if( imaState.nMonitoringPort <= 0 )
         return;
     const strLogPrefix = cc.attention( "Monitoring:" ) + " ";
-    if( IMA.verbose_get() >= IMA.RV_VERBOSE().trace )
-        log.write( strLogPrefix + cc.normal( "Will start monitoring WS server on port " ) + cc.info( imaState.nMonitoringPort ) + "\n" );
+    if( IMA.verbose_get() >= IMA.RV_VERBOSE().trace ) {
+        log.write( strLogPrefix +
+            cc.normal( "Will start monitoring WS server on port " ) +
+            cc.info( imaState.nMonitoringPort ) +
+            "\n" );
+    }
     g_ws_server_monitoring = new ws.WebSocketServer( { port: 0 + imaState.nMonitoringPort } );
     g_ws_server_monitoring.on( "connection", function( ws_peer, req ) {
         const ip = req.socket.remoteAddress;
@@ -1973,8 +2454,12 @@ function init_monitoring_server() {
             };
             try {
                 const joMessage = JSON.parse( message );
-                if( IMA.verbose_get() >= IMA.RV_VERBOSE().trace )
-                    log.write( strLogPrefix + cc.sunny( "<<<" ) + " " + cc.normal( "message from " ) + cc.info( ip ) + cc.normal( ": " ) + cc.j( joMessage ) + "\n" );
+                if( IMA.verbose_get() >= IMA.RV_VERBOSE().trace ) {
+                    log.write( strLogPrefix +
+                        cc.sunny( "<<<" ) + " " + cc.normal( "message from " ) + cc.info( ip ) +
+                        cc.normal( ": " ) + cc.j( joMessage ) +
+                        "\n" );
+                }
                 if( ! ( "method" in joMessage ) )
                     throw new Error( "\"method\" field was not specified" );
                 joAnswer.method = joMessage.method;
@@ -1991,12 +2476,14 @@ function init_monitoring_server() {
                     break;
                 case "get_schain_network_info":
                     // call:   { "id": 1, "method": "get_schain_network_info" }
-                    // answer: { "id": 1, "method": "get_schain_network_info", "error": null, "schain_network_info": ... }
+                    // answer: { "id": 1, "method": "get_schain_network_info", "error": null,
+                    //            "schain_network_info": ... }
                     joAnswer.schain_network_info = imaState.joSChainNetworkInfo;
                     break;
                 case "get_runtime_params":
                     // call:   { "id": 1, "method": "get_runtime_params" }
-                    // answer: { "id": 1, "method": "get_runtime_params", "error": null, "runtime_params": ... }
+                    // answer: { "id": 1, "method": "get_runtime_params", "error": null,
+                    //                  "runtime_params": ... }
                     {
                         joAnswer.runtime_params = {};
                         const arr_runtime_param_names = [
@@ -2039,18 +2526,25 @@ function init_monitoring_server() {
                     } break;
                 case "get_last_transfer_errors":
                     // call:   { "id": 1, "method": "get_last_transfer_errors" }
-                    // answer: { "id": 1, "method": "get_last_transfer_errors", "isIncludeTextLog": true, "error": null, "last_transfer_errors": [ { "ts": ..., "textLog": ... }, ... ] }
-                    joAnswer.last_transfer_errors = IMA.get_last_transfer_errors( ( ( "isIncludeTextLog" in joMessage ) && joMessage.isIncludeTextLog ) ? true : false );
+                    // answer: { "id": 1, "method": "get_last_transfer_errors",
+                    //             "isIncludeTextLog": true, "error": null,
+                    //             "last_transfer_errors":
+                    //                 [ { "ts": ..., "textLog": ... }, ... ] }
+                    joAnswer.last_transfer_errors = IMA.get_last_transfer_errors(
+                        ( ( "isIncludeTextLog" in joMessage ) && joMessage.isIncludeTextLog )
+                            ? true : false );
                     joAnswer.last_error_categories = IMA.get_last_error_categories();
                     break;
                 default:
-                    throw new Error( "Unknown method name \"" + joMessage.method + "\" was specified" );
+                    throw new Error(
+                        "Unknown method name \"" + joMessage.method + "\" was specified" );
                 } // switch( joMessage.method )
             } catch ( err ) {
                 const strError = owaspUtils.extract_error_message( err );
                 if( IMA.verbose_get() >= IMA.RV_VERBOSE().error ) {
                     log.write( strLogPrefix +
-                        cc.error( "Bad message from " ) + cc.info( ip ) + cc.error( ": " ) + cc.warning( message ) +
+                        cc.error( "Bad message from " ) + cc.info( ip ) + cc.error( ": " ) +
+                        cc.warning( message ) +
                         cc.error( ", error is: " ) + cc.warning( strError ) +
                         cc.error( ", stack is: " ) + "\n" + cc.stack( err.stack ) +
                         "\n"
@@ -2058,8 +2552,11 @@ function init_monitoring_server() {
                 }
             }
             try {
-                if( IMA.verbose_get() >= IMA.RV_VERBOSE().trace )
-                    log.write( strLogPrefix + cc.sunny( ">>>" ) + " " + cc.normal( "answer to " ) + cc.info( ip ) + cc.normal( ": " ) + cc.j( joAnswer ) + "\n" );
+                if( IMA.verbose_get() >= IMA.RV_VERBOSE().trace ) {
+                    log.write( strLogPrefix + cc.sunny( ">>>" ) + " " + cc.normal( "answer to " ) +
+                    cc.info( ip ) + cc.normal( ": " ) + cc.j( joAnswer ) +
+                    "\n" );
+                }
                 ws_peer.send( JSON.stringify( joAnswer ) );
             } catch ( err ) {
                 const strError = owaspUtils.extract_error_message( err );
@@ -2077,8 +2574,8 @@ function init_monitoring_server() {
     } );
 } // if( imaState.nMonitoringPort > 0 )
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////////////////////////
 
 // let g_ws_server_ima = null;
 let g_json_rpc_app_ima = null;
@@ -2090,7 +2587,10 @@ function init_json_rpc_server() {
     const strLogPrefix = cc.attention( "JSON RPC:" ) + " ";
     /*
     if( IMA.verbose_get() >= IMA.RV_VERBOSE().trace )
-        log.write( strLogPrefix + cc.normal( "Will start JSON RPC WS server on port " ) + cc.info( imaState.nJsonRpcPort ) + "\n" );
+        log.write( strLogPrefix +
+            cc.normal( "Will start JSON RPC WS server on port " ) +
+            cc.info( imaState.nJsonRpcPort ) +
+            "\n" );
     g_ws_server_ima = new ws.WebSocketServer( { port: 0 + imaState.nJsonRpcPort } );
     g_ws_server_ima.on( "connection", function( ws_peer, req ) {
         const ip = req.socket.remoteAddress;
@@ -2100,10 +2600,16 @@ function init_json_rpc_server() {
             const fn_send_answer = function( joAnswer ) {
                 try {
                     if( IMA.verbose_get() >= IMA.RV_VERBOSE().trace )
-                        log.write( strLogPrefix + cc.sunny( ">>>" ) + " " + cc.normal( "Peer will send answer to " ) + cc.info( ip ) + cc.normal( ": " ) + cc.j( joAnswer ) + "\n" );
+                        log.write( strLogPrefix +
+                            cc.sunny( ">>>" ) + " " + cc.normal( "Peer will send answer to " ) +
+                            cc.info( ip ) + cc.normal( ": " ) + cc.j( joAnswer ) +
+                            "\n" );
                     ws_peer.send( JSON.stringify( joAnswer ) );
                     if( IMA.verbose_get() >= IMA.RV_VERBOSE().trace )
-                        log.write( strLogPrefix + cc.sunny( ">>>" ) + " " + cc.normal( "Peer did sent answer to " ) + cc.info( ip ) + cc.normal( ": " ) + cc.j( joAnswer ) + "\n" );
+                        log.write( strLogPrefix +
+                            cc.sunny( ">>>" ) + " " + cc.normal( "Peer did sent answer to " ) +
+                            cc.info( ip ) + cc.normal( ": " ) + cc.j( joAnswer ) +
+                            "\n" );
                 } catch ( err ) {
                     const strError = owaspUtils.extract_error_message( err );
                     if( IMA.verbose_get() >= IMA.RV_VERBOSE().error ) {
@@ -2125,7 +2631,10 @@ function init_json_rpc_server() {
             try {
                 const joMessage = JSON.parse( message );
                 if( IMA.verbose_get() >= IMA.RV_VERBOSE().trace )
-                    log.write( strLogPrefix + cc.sunny( "<<<" ) + " " + cc.normal( "Peer message from " ) + cc.info( ip ) + cc.normal( ": " ) + cc.j( joMessage ) + "\n" );
+                    log.write( strLogPrefix +
+                        cc.sunny( "<<<" ) + " " + cc.normal( "Peer message from " ) +
+                        cc.info( ip ) + cc.normal( ": " ) + cc.j( joMessage ) +
+                        "\n" );
                 if( ! ( "method" in joMessage ) )
                     throw new Error( "\"method\" field was not specified" );
                 joAnswer.method = joMessage.method;
@@ -2147,7 +2656,8 @@ function init_json_rpc_server() {
                 case "skale_imaVerifyAndSign":
                     joAnswer = await imaBLS.handle_skale_imaVerifyAndSign( joMessage );
                     // isSkipMode = true;
-                    // imaBLS.handle_skale_imaVerifyAndSign( joMessage ).then( function( joAnswer ) {
+                    // imaBLS.handle_skale_imaVerifyAndSign( joMessage )
+                    //  .then( function( joAnswer ) {
                     //     fn_send_answer( joAnswer , joMessage );
                     // } );
                     break;
@@ -2172,13 +2682,15 @@ function init_json_rpc_server() {
                     }
                     break;
                 default:
-                    throw new Error( "Unknown method name \"" + joMessage.method + "\" was specified" );
+                    throw new Error(
+                        "Unknown method name \"" + joMessage.method + "\" was specified" );
                 } // switch( joMessage.method )
             } catch ( err ) {
                 const strError = owaspUtils.extract_error_message( err );
                 if( IMA.verbose_get() >= IMA.RV_VERBOSE().error ) {
                     log.write( strLogPrefix +
-                        cc.error( "Bad message from " ) + cc.info( ip ) + cc.error( ": " ) + cc.warning( message ) +
+                        cc.error( "Bad message from " ) + cc.info( ip ) + cc.error( ": " ) +
+                        cc.warning( message ) +
                         cc.error( ", error is: " ) + cc.warning( strError ) +
                         cc.error( ", stack is: " ) + "\n" + cc.stack( err.stack ) +
                         "\n"
@@ -2208,11 +2720,18 @@ function init_json_rpc_server() {
         const fn_send_answer = function( joAnswer ) {
             try {
                 // if( IMA.verbose_get() >= IMA.RV_VERBOSE().trace )
-                //     log.write( strLogPrefix + cc.sunny( ">>>" ) + " " + cc.normal( "will send answer to " ) + cc.info( ip ) + cc.normal( ": " ) + cc.j( joAnswer ) + "\n" );
+                //     log.write( strLogPrefix +
+                //         cc.sunny( ">>>" ) + " " + cc.normal( "will send answer to " ) +
+                //         cc.info( ip ) + cc.normal( ": " ) + cc.j( joAnswer ) +
+                //         "\n" );
                 res.header( "Content-Type", "application/json" );
                 res.status( 200 ).send( JSON.stringify( joAnswer ) );
-                if( IMA.verbose_get() >= IMA.RV_VERBOSE().trace )
-                    log.write( strLogPrefix + cc.sunny( ">>>" ) + " " + cc.normal( "did sent answer to " ) + cc.info( ip ) + cc.normal( ": " ) + cc.j( joAnswer ) + "\n" );
+                if( IMA.verbose_get() >= IMA.RV_VERBOSE().trace ) {
+                    log.write( strLogPrefix +
+                        cc.sunny( ">>>" ) + " " + cc.normal( "did sent answer to " ) +
+                        cc.info( ip ) + cc.normal( ": " ) + cc.j( joAnswer ) +
+                        "\n" );
+                }
             } catch ( err ) {
                 const strError = owaspUtils.extract_error_message( err );
                 if( IMA.verbose_get() >= IMA.RV_VERBOSE().error ) {
@@ -2233,8 +2752,12 @@ function init_json_rpc_server() {
         };
         try {
             const joMessage = JSON.parse( message );
-            if( IMA.verbose_get() >= IMA.RV_VERBOSE().trace )
-                log.write( strLogPrefix + cc.sunny( "<<<" ) + " " + cc.normal( "Peer message from " ) + cc.info( ip ) + cc.normal( ": " ) + cc.j( joMessage ) + "\n" );
+            if( IMA.verbose_get() >= IMA.RV_VERBOSE().trace ) {
+                log.write( strLogPrefix +
+                    cc.sunny( "<<<" ) + " " + cc.normal( "Peer message from " ) +
+                    cc.info( ip ) + cc.normal( ": " ) + cc.j( joMessage ) +
+                    "\n" );
+            }
             if( ! ( "method" in joMessage ) )
                 throw new Error( "\"method\" field was not specified" );
             joAnswer.method = joMessage.method;
@@ -2287,7 +2810,8 @@ function init_json_rpc_server() {
             const strError = owaspUtils.extract_error_message( err );
             if( IMA.verbose_get() >= IMA.RV_VERBOSE().error ) {
                 log.write( strLogPrefix +
-                    cc.error( "Bad message from " ) + cc.info( ip ) + cc.error( ": " ) + cc.warning( message ) +
+                    cc.error( "Bad message from " ) + cc.info( ip ) + cc.error( ": " ) +
+                    cc.warning( message ) +
                     cc.error( ", error is: " ) + cc.warning( strError ) +
                     cc.error( ", stack is: " ) + "\n" + cc.stack( err.stack ) +
                     "\n"
@@ -2300,8 +2824,8 @@ function init_json_rpc_server() {
     g_json_rpc_app_ima.listen( imaState.nJsonRpcPort );
 } // if( imaState.nJsonRpcPort > 0 )
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////////////////////////
 
 async function do_the_job() {
     const imaState = state.get();
@@ -2315,23 +2839,40 @@ async function do_the_job() {
             log.write( strLogPrefix + cc.debug( IMA.longSeparator ) + "\n" );
 
         const joAction = imaState.arrActions[idxAction];
-        if( IMA.verbose_get() >= IMA.RV_VERBOSE().debug )
-            log.write( strLogPrefix + cc.notice( "Will execute action:" ) + " " + cc.info( joAction.name ) + cc.debug( " (" ) + cc.info( idxAction + 1 ) + cc.debug( " of " ) + cc.info( cntActions ) + cc.debug( ")" ) + "\n" );
+        if( IMA.verbose_get() >= IMA.RV_VERBOSE().debug ) {
+            log.write( strLogPrefix +
+                cc.notice( "Will execute action:" ) + " " + cc.info( joAction.name ) +
+                cc.debug( " (" ) + cc.info( idxAction + 1 ) + cc.debug( " of " ) +
+                cc.info( cntActions ) + cc.debug( ")" ) +
+                "\n" );
+        }
 
         try {
             if( await joAction.fn() ) {
                 ++cntTrue;
-                if( IMA.verbose_get() >= IMA.RV_VERBOSE().information )
-                    log.write( strLogPrefix + cc.success( "Succeeded action:" ) + " " + cc.info( joAction.name ) + "\n" );
+                if( IMA.verbose_get() >= IMA.RV_VERBOSE().information ) {
+                    log.write( strLogPrefix +
+                        cc.success( "Succeeded action:" ) + " " + cc.info( joAction.name ) +
+                        "\n" );
+                }
             } else {
                 ++cntFalse;
-                if( IMA.verbose_get() >= IMA.RV_VERBOSE().error )
-                    log.write( strLogPrefix + cc.warning( "Failed action:" ) + " " + cc.info( joAction.name ) + "\n" );
+                if( IMA.verbose_get() >= IMA.RV_VERBOSE().error ) {
+                    log.write( strLogPrefix +
+                        cc.warning( "Failed action:" ) + " " + cc.info( joAction.name ) +
+                        "\n" );
+                }
             }
         } catch ( err ) {
             ++cntFalse;
-            if( IMA.verbose_get() >= IMA.RV_VERBOSE().fatal )
-                log.write( strLogPrefix + cc.fatal( "CRITICAL ERROR:" ) + cc.error( " Exception occurred while executing action: " ) + cc.error( owaspUtils.extract_error_message( err ) ) + cc.error( ", stack is: " ) + "\n" + cc.stack( err.stack ) + "\n" );
+            if( IMA.verbose_get() >= IMA.RV_VERBOSE().fatal ) {
+                log.write( strLogPrefix +
+                    cc.fatal( "CRITICAL ERROR:" ) +
+                    cc.error( " Exception occurred while executing action: " ) +
+                    cc.error( owaspUtils.extract_error_message( err ) ) +
+                    cc.error( ", stack is: " ) + "\n" + cc.stack( err.stack ) +
+                    "\n" );
+            }
         }
     } // for( idxAction = 0; idxAction < cntActions; ++ idxAction )
     if( IMA.verbose_get() >= IMA.RV_VERBOSE().information ) {
@@ -2347,8 +2888,8 @@ async function do_the_job() {
         process.exit( process.exitCode );
 }
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////////////////////////
 
 const g_registrationCostInfo = {
     mn: [],
@@ -2366,7 +2907,10 @@ async function register_step1( isPrintSummaryRegistrationCosts ) {
         imaState.chainProperties.mn.joAccount,
         imaState.chainProperties.sc.strChainName
     );
-    log.write( strLogPrefix + cc.debug( "Chain is " ) + ( bSuccess ? cc.success( "already registered" ) : cc.warning( "not registered yet" ) ) + "\n" );
+    log.write( strLogPrefix +
+        cc.debug( "Chain is " ) +
+        ( bSuccess ? cc.success( "already registered" ) : cc.warning( "not registered yet" ) ) +
+        "\n" );
     if( bSuccess )
         return true;
     const jarrReceipts =
@@ -2374,7 +2918,9 @@ async function register_step1( isPrintSummaryRegistrationCosts ) {
             imaState.chainProperties.mn.ethersProvider,
             // imaState.jo_deposit_box_eth, // only main net
             // imaState.jo_deposit_box_erc20, // only main net
-            // imaState.isWithMetadata721 ? imaState.jo_deposit_box_erc721_with_metadata : imaState.jo_deposit_box_erc721, // only main net
+            // imaState.isWithMetadata721
+            //     ? imaState.jo_deposit_box_erc721_with_metadata
+            //     : imaState.jo_deposit_box_erc721, // only main net
             imaState.jo_linker,
             imaState.chainProperties.mn.joAccount,
             imaState.jo_token_manager_eth, // only s-chain
@@ -2391,14 +2937,22 @@ async function register_step1( isPrintSummaryRegistrationCosts ) {
             // nSleepMilliseconds
         );
     bSuccess = ( jarrReceipts != null && jarrReceipts.length > 0 ) ? true : false;
-    log.write( strLogPrefix + cc.debug( "Chain was " ) + ( bSuccess ? cc.success( "registered successfully" ) : cc.error( "not registered" ) ) + "\n" );
-    if( bSuccess )
-        g_registrationCostInfo.mn = g_registrationCostInfo.mn.concat( g_registrationCostInfo.mn, jarrReceipts );
+    log.write( strLogPrefix +
+        cc.debug( "Chain was " ) +
+        ( bSuccess ? cc.success( "registered successfully" ) : cc.error( "not registered" ) ) +
+        "\n" );
+    if( bSuccess ) {
+        g_registrationCostInfo.mn =
+            g_registrationCostInfo.mn.concat( g_registrationCostInfo.mn, jarrReceipts );
+    }
     if( isPrintSummaryRegistrationCosts )
         print_summary_registration_costs();
     if( !bSuccess ) {
         const nRetCode = 163;
-        log.write( strLogPrefix + cc.fatal( "FATAL, CRITICAL ERROR:" ) + cc.error( " failed to register S-Chain in deposit box, will return code " ) + cc.warning( nRetCode ) + "\n" );
+        log.write( strLogPrefix +
+            cc.fatal( "FATAL, CRITICAL ERROR:" ) +
+            cc.error( " failed to register S-Chain in deposit box, will return code " ) +
+            cc.warning( nRetCode ) + "\n" );
         process.exit( nRetCode );
     }
     return true;
@@ -2428,28 +2982,44 @@ async function check_registration_step1() {
 }
 
 function print_summary_registration_costs( details ) {
-    IMA.print_gas_usage_report_from_array( "Main Net REGISTRATION", g_registrationCostInfo.mn, details );
-    IMA.print_gas_usage_report_from_array( "S-Chain REGISTRATION", g_registrationCostInfo.sc, details );
+    IMA.print_gas_usage_report_from_array(
+        "Main Net REGISTRATION",
+        g_registrationCostInfo.mn,
+        details
+    );
+    IMA.print_gas_usage_report_from_array(
+        "S-Chain REGISTRATION",
+        g_registrationCostInfo.sc,
+        details
+    );
 }
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////////////////////////
 
 async function wait_until_s_chain_started() {
     const imaState = state.get();
-    log.write( cc.debug( "Checking " ) + cc.info( "S-Chain" ) + cc.debug( " is accessible and sane..." ) + "\n" );
-    if( ( !imaState.chainProperties.sc.strURL ) || imaState.chainProperties.sc.strURL.length === 0 ) {
-        log.write( cc.warning( "Skipped, " ) + cc.info( "S-Chain" ) + cc.warning( " URL was not provided." ) + "\n" );
+    log.write(
+        cc.debug( "Checking " ) + cc.info( "S-Chain" ) + cc.debug( " is accessible and sane..." ) +
+        "\n" );
+    if( ( !imaState.chainProperties.sc.strURL ) ||
+        imaState.chainProperties.sc.strURL.length === 0
+    ) {
+        log.write(
+            cc.warning( "Skipped, " ) + cc.info( "S-Chain" ) +
+            cc.warning( " URL was not provided." ) +
+            "\n" );
         return;
     }
     let bSuccess = false;
     let idxWaitAttempt = 0;
     for( ; !bSuccess; ) {
         try {
-            const joSChainNetworkInfo = await discover_s_chain_network( function( err, joSChainNetworkInfo ) {
-                if( ! err )
-                    bSuccess = true;
-            }, true, null, -1 ).catch( ( err ) => {
+            const joSChainNetworkInfo = await discover_s_chain_network(
+                function( err, joSChainNetworkInfo ) {
+                    if( ! err )
+                        bSuccess = true;
+                }, true, null, -1 ).catch( ( err ) => {
                 const strError = owaspUtils.extract_error_message( err );
                 log.write(
                     cc.fatal( "CRITICAL ERROR:" ) +
@@ -2465,49 +3035,78 @@ async function wait_until_s_chain_started() {
         if( !bSuccess )
             ++ idxWaitAttempt;
         if( idxWaitAttempt >= imaState.nMaxWaitSChainAttempts ) {
-            log.write( cc.warning( "Incomplete, " ) + cc.info( "S-Chain" ) + cc.warning( " sanity check failed after " ) + cc.info( idxWaitAttempt ) + cc.warning( " attempts." ) + "\n" );
+            log.write(
+                cc.warning( "Incomplete, " ) + cc.info( "S-Chain" ) +
+                cc.warning( " sanity check failed after " ) + cc.info( idxWaitAttempt ) +
+                cc.warning( " attempts." ) +
+                "\n" );
             return;
         }
         await IMA.sleep( 1000 );
     }
-    log.write( cc.success( "Done, " ) + cc.info( "S-Chain" ) + cc.success( " is accessible and sane." ) + "\n" );
+    log.write(
+        cc.success( "Done, " ) + cc.info( "S-Chain" ) +
+        cc.success( " is accessible and sane." ) +
+        "\n" );
 }
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////////////////////////
 
 async function main() {
     cc.auto_enable_from_command_line_args();
     const imaState = state.get();
-    const tmp_address_MN_from_env = owaspUtils.toEthPrivateKey( process.env.ACCOUNT_FOR_ETHEREUM );
-    const tmp_address_SC_from_env = owaspUtils.toEthPrivateKey( process.env.ACCOUNT_FOR_SCHAIN );
-    const tmp_address_TC_from_env = owaspUtils.toEthPrivateKey( process.env.ACCOUNT_FOR_SCHAIN_TARGET );
-    if( tmp_address_MN_from_env && typeof tmp_address_MN_from_env == "string" && tmp_address_MN_from_env.length > 0 )
+    const tmp_address_MN_from_env =
+        owaspUtils.toEthPrivateKey( process.env.ACCOUNT_FOR_ETHEREUM );
+    const tmp_address_SC_from_env =
+        owaspUtils.toEthPrivateKey( process.env.ACCOUNT_FOR_SCHAIN );
+    const tmp_address_TC_from_env =
+        owaspUtils.toEthPrivateKey( process.env.ACCOUNT_FOR_SCHAIN_TARGET );
+    if( tmp_address_MN_from_env &&
+        typeof tmp_address_MN_from_env == "string" &&
+        tmp_address_MN_from_env.length > 0 )
         imaState.chainProperties.mn.joAccount.address_ = "" + tmp_address_MN_from_env;
-    if( tmp_address_SC_from_env && typeof tmp_address_SC_from_env == "string" && tmp_address_SC_from_env.length > 0 )
+    if( tmp_address_SC_from_env &&
+        typeof tmp_address_SC_from_env == "string" &&
+        tmp_address_SC_from_env.length > 0 )
         imaState.chainProperties.sc.joAccount.address_ = "" + tmp_address_SC_from_env;
-    if( tmp_address_TC_from_env && typeof tmp_address_TC_from_env == "string" && tmp_address_TC_from_env.length > 0 )
+    if( tmp_address_TC_from_env &&
+        typeof tmp_address_TC_from_env == "string" &&
+        tmp_address_TC_from_env.length > 0 )
         imaState.chainProperties.tc.joAccount.address_ = "" + tmp_address_TC_from_env;
     parse_command_line();
     init_monitoring_server();
     init_json_rpc_server();
     if( imaState.bSignMessages ) {
         if( imaState.strPathBlsGlue.length == 0 ) {
-            log.write( cc.fatal( "FATAL, CRITICAL ERROR:" ) + cc.error( " please specify --bls-glue parameter." ) + "\n" );
+            log.write(
+                cc.fatal( "FATAL, CRITICAL ERROR:" ) +
+                cc.error( " please specify --bls-glue parameter." ) +
+                "\n" );
             process.exit( 164 );
         }
         if( imaState.strPathHashG1.length == 0 ) {
-            log.write( cc.fatal( "FATAL, CRITICAL ERROR:" ) + cc.error( " please specify --hash-g1 parameter." ) + "\n" );
+            log.write(
+                cc.fatal( "FATAL, CRITICAL ERROR:" ) +
+                cc.error( " please specify --hash-g1 parameter." ) +
+                "\n" );
             process.exit( 165 );
         }
         if( ! imaState.bNoWaitSChainStarted ) {
             const isSilent = imaState.joSChainDiscovery.isSilentReDiscovery;
-            wait_until_s_chain_started().then( function() { // uses call to discover_s_chain_network()
+            wait_until_s_chain_started().then( function() {
+                // uses call to discover_s_chain_network()
                 discover_s_chain_network( function( err, joSChainNetworkInfo ) {
-                    if( err )
-                        process.exit( 166 ); // error information is printed by discover_s_chain_network()
-                    if( IMA.verbose_get() >= IMA.RV_VERBOSE().information )
-                        log.write( cc.success( "S-Chain network was discovered: " ) + cc.j( joSChainNetworkInfo ) + "\n" );
+                    if( err ) {
+                        // error information is printed by discover_s_chain_network()
+                        process.exit( 166 );
+                    }
+                    if( IMA.verbose_get() >= IMA.RV_VERBOSE().information ) {
+                        log.write(
+                            cc.success( "S-Chain network was discovered: " ) +
+                            cc.j( joSChainNetworkInfo ) +
+                            "\n" );
+                    }
                     imaState.joSChainNetworkInfo = joSChainNetworkInfo;
                     continue_schain_discovery_in_background_if_needed( isSilent );
                     do_the_job();
@@ -2524,10 +3123,11 @@ async function main() {
         }
     } else
         do_the_job();
-        // process.exit( 0 ); // FINISH (skip exit here to avoid early termination while tasks ase still running)
+        // FINISH (skip exit here to avoid early termination while tasks ase still running)
+        // process.exit( 0 );
 }
 
 main();
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////////////////////////

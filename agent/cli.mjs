@@ -3759,7 +3759,7 @@ export function ima_common_init() {
                         } );
                     ensure_have_value(
                         "ERC1155 batch of token amounts ",
-                        maState.arrAmountsOfTokens, false,
+                        imaState.arrAmountsOfTokens, false,
                         isPrintGathered, null, ( x ) => {
                             return cc.info( x );
                         } );
@@ -3835,7 +3835,7 @@ export function ima_common_init() {
                 cc.debug( "..............." ) +
                 ( imaState.chainProperties.tc.transactionCustomizer.gasMultiplier
                     ? cc.info(
-                        maState.chainProperties.tc
+                        imaState.chainProperties.tc
                             .transactionCustomizer.gasMultiplier.toString() )
                     : cc.notice( "default" ) ) +
                 "\n" );
@@ -4150,7 +4150,7 @@ export function ima_contracts_init() {
         imaState.jo_key_storage =
             new owaspUtils.ethersMod.ethers.Contract(
                 joABI.key_storage_address,
-                oABI.key_storage_abi,
+                joABI.key_storage_abi,
                 ep );
         imaState.jo_schains =
             new owaspUtils.ethersMod.ethers.Contract(
