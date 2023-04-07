@@ -37,7 +37,9 @@ const __dirname = path.dirname( url.fileURLToPath( import.meta.url ) );
 
 const joTestMessage = { "method": "echo", "message": "Please echo this message!" };
 
-const sleep = ( milliseconds ) => { return new Promise( resolve => setTimeout( resolve, milliseconds ) ); };
+const sleep = ( milliseconds ) => {
+    return new Promise( resolve => setTimeout( resolve, milliseconds ) );
+};
 
 async function test_local() {
     console.log( "Local test" );
@@ -65,7 +67,11 @@ async function test_local() {
 async function test_worker() {
     console.log( "Worker test" );
     const url = "local_worker_server";
-    const worker = new Worker( path.join( __dirname, "test_socket_worker.mjs" ), { "type": "module" } );
+    const worker =
+        new Worker(
+            path.join( __dirname, "test_socket_worker.mjs" ),
+            { "type": "module" }
+        );
     console.log( "Will connect to " + url );
     worker.on( "message", jo => {
         if( network_layer.out_of_worker_apis.on_message( worker, jo ) )
@@ -94,9 +100,13 @@ async function test_web_socket() {
     console.log( "Web socket test" );
     network_layer.set_ws_mod( ws );
     const nPort = 33123;
-    const url = ( settings.net.secure ? "wss" : "ws" ) + "://127.0.0.1:" + nPort;
-    const key = settings.net.secure ? fs.readFileSync( "./self-signed/self-signed-key.pem", "utf8" ) : null;
-    const cert = settings.net.secure ? fs.readFileSync( "./self-signed/self-signed-cert.pem", "utf8" ) : null;
+    const url =
+        ( settings.net.secure ? "wss" : "ws" ) +
+        "://127.0.0.1:" + nPort;
+    const key = settings.net.secure
+        ? fs.readFileSync( "./self-signed/self-signed-key.pem", "utf8" ) : null;
+    const cert = settings.net.secure
+        ? fs.readFileSync( "./self-signed/self-signed-cert.pem", "utf8" ) : null;
     const acceptor = new network_layer.WebSocketServerAcceptor( nPort, key, cert );
     const server = new TestSocketServer( acceptor );
     const client = new network_layer.WebSocketClientPipe( url );
@@ -123,15 +133,21 @@ async function test_web_socket() {
 //     //
 //     // ## Coturn - own STUN and/or TURN server
 //     //
-//     // See <https://github.com/coturn/coturn> and see <https://www.allerstorfer.at/install-coturn-on-ubuntu/>
-//     // Explanation for Mac OSX is <https://medium.com/@ittipon.bay/how-to-setup-coturn-for-mac-a3c4a6ba4db8>
+//     // See <https://github.com/coturn/coturn>
+//     // and see <https://www.allerstorfer.at/install-coturn-on-ubuntu/>
+//     // Explanation for Mac OSX is
+//     //    <https://medium.com/@ittipon.bay/how-to-setup-coturn-for-mac-a3c4a6ba4db8>
 //     //
 //     // Install via **sudo apt-get install coturn** or **brew install coturn**.
-//     // Run **sudo nano /etc/turnserver.conf** and specify described in <https://www.allerstorfer.at/install-coturn-on-ubuntu/>,
-//     // realm **realm=origin/realm**, **no-tls** and **no-dtls**. Also set **listening-ip** to **0.0.0.0**
+//     // Run **sudo nano /etc/turnserver.conf** and specify
+//     // described in <https://www.allerstorfer.at/install-coturn-on-ubuntu/>,
+//     // realm **realm=origin/realm**, **no-tls** and **no-dtls**.
+//     // Also set **listening-ip** to **0.0.0.0**
 //     //
-//     // **STUN** config entry is **{ urls: "stun:127.0.0.1:3478", username: "webrtc", credential: "qwerty" }**.
-//     // **TURN** config entry is **{ urls: "turn:127.0.0.1:3478", username: "webrtc", credential: "qwerty" }**.
+//     // **STUN** config entry is
+//     //     **{ urls: "stun:127.0.0.1:3478", username: "webrtc", credential: "qwerty" }**.
+//     // **TURN** config entry is
+//     //     **{ urls: "turn:127.0.0.1:3478", username: "webrtc", credential: "qwerty" }**.
 //     //
 //     console.log( "Web RTC test" );
 //     network_layer.set_ws_mod( ws );

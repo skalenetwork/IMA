@@ -41,12 +41,16 @@ parentPort.on( "message", jo => {
         return;
 } );
 
-const sleep = ( milliseconds ) => { return new Promise( resolve => setTimeout( resolve, milliseconds ) ); };
+const sleep = ( milliseconds ) => {
+    return new Promise( resolve => setTimeout( resolve, milliseconds ) );
+};
 
 function doSendMessage( type, endpoint, worker_uuid, data ) {
     const jo = network_layer.socket_received_data_reverse_marshall( data );
     const joSend = {
-        "worker_message_type": ( type && typeof type == "string" && type.length > 0 ) ? type : "in_worker_message",
+        "worker_message_type":
+            ( type && typeof type == "string" && type.length > 0 )
+                ? type : "in_worker_message",
         "worker_endpoint": endpoint,
         "worker_uuid": worker_uuid,
         "data": jo
@@ -81,15 +85,25 @@ class ObserverServer extends SocketServer {
                 "method": "" + joMessage.method,
                 "error": null
             };
-            // self.log( cc.debug( "Initialized in-worker(observer) options:" ) + " " + cc.j( self.opts ) + "\n" );
+            // self.log(
+            //     cc.debug( "Initialized in-worker(observer) options:" ) + " " +
+            //     cc.j( self.opts ) +
+            //     "\n" );
             //
-            self.opts.imaState.chainProperties.mn.joAccount.address = owaspUtils.fn_address_impl_;
-            self.opts.imaState.chainProperties.sc.joAccount.address = owaspUtils.fn_address_impl_;
-            // self.opts.imaState.chainProperties.tc.joAccount.address = owaspUtils.fn_address_impl_;
+            self.opts.imaState.chainProperties.mn.joAccount.address =
+                owaspUtils.fn_address_impl_;
+            self.opts.imaState.chainProperties.sc.joAccount.address =
+                owaspUtils.fn_address_impl_;
+            // self.opts.imaState.chainProperties.tc.joAccount.address =
+            //     owaspUtils.fn_address_impl_;
             //
-            if( self.opts.imaState.chainProperties.mn.strURL && typeof self.opts.imaState.chainProperties.mn.strURL == "string" && self.opts.imaState.chainProperties.mn.strURL.length > 0 ) {
+            if( self.opts.imaState.chainProperties.mn.strURL &&
+                typeof self.opts.imaState.chainProperties.mn.strURL == "string" &&
+                self.opts.imaState.chainProperties.mn.strURL.length > 0
+            ) {
                 const u = self.opts.imaState.chainProperties.mn.strURL;
-                self.opts.imaState.chainProperties.mn.ethersProvider = owaspUtils.getEthersProviderFromURL( u );
+                self.opts.imaState.chainProperties.mn.ethersProvider =
+                    owaspUtils.getEthersProviderFromURL( u );
             } else {
                 self.log(
                     cc.warning( "WARNING:" ) + cc.warning( " No " ) + cc.note( "Main-net" ) +
@@ -98,9 +112,13 @@ class ObserverServer extends SocketServer {
                     "\n" );
             }
             //
-            if( self.opts.imaState.chainProperties.sc.strURL && typeof self.opts.imaState.chainProperties.sc.strURL == "string" && self.opts.imaState.chainProperties.sc.strURL.length > 0 ) {
+            if( self.opts.imaState.chainProperties.sc.strURL &&
+                typeof self.opts.imaState.chainProperties.sc.strURL == "string" &&
+                self.opts.imaState.chainProperties.sc.strURL.length > 0
+            ) {
                 const u = self.opts.imaState.chainProperties.sc.strURL;
-                self.opts.imaState.chainProperties.sc.ethersProvider = owaspUtils.getEthersProviderFromURL( u );
+                self.opts.imaState.chainProperties.sc.ethersProvider =
+                    owaspUtils.getEthersProviderFromURL( u );
             } else {
                 self.log(
                     cc.warning( "WARNING:" ) + cc.warning( " No " ) + cc.note( "Main-net" ) +
@@ -135,23 +153,28 @@ class ObserverServer extends SocketServer {
                     self.opts.imaState.chainProperties.sc.ethersProvider
                 );
             //
-            self.log( cc.debug( "Full init compete for in-worker SNB server" ) + " " + cc.notice( g_url ) + "\n" );
+            self.log(
+                cc.debug( "Full init compete for in-worker SNB server" ) + " " +
+                cc.notice( g_url ) +
+                "\n" );
             return joAnswer;
         };
-        self.mapApiHandlers.periodic_caching_start = function( joMessage, joAnswer, eventData, socket ) {
-            self.periodic_caching_start(
-                socket,
-                joMessage.message.secondsToReDiscoverSkaleNetwork,
-                joMessage.message.strChainNameConnectedTo,
-                joMessage.message.addressFrom
-            );
-            joAnswer.message = {
-                "method": "" + joMessage.method,
-                "error": null
+        self.mapApiHandlers.periodic_caching_start =
+            function( joMessage, joAnswer, eventData, socket ) {
+                self.periodic_caching_start(
+                    socket,
+                    joMessage.message.secondsToReDiscoverSkaleNetwork,
+                    joMessage.message.strChainNameConnectedTo,
+                    joMessage.message.addressFrom
+                );
+                joAnswer.message = {
+                    "method": "" + joMessage.method,
+                    "error": null
+                };
+                return joAnswer;
             };
-            return joAnswer;
-        };
-        self.mapApiHandlers.periodic_caching_stop = function( joMessage, joAnswer, eventData, socket ) {
+        self.mapApiHandlers.periodic_caching_stop =
+        function( joMessage, joAnswer, eventData, socket ) {
             self.periodic_caching_stop();
             joAnswer.message = {
                 "method": "" + joMessage.method,
@@ -159,7 +182,9 @@ class ObserverServer extends SocketServer {
             };
             return joAnswer;
         };
-        self.log( cc.debug( "Initialized in-worker SNB server" ) + " " + cc.notice( g_url ) + "\n" );
+        self.log(
+            cc.debug( "Initialized in-worker SNB server" ) + " " + cc.notice( g_url ) +
+            "\n" );
     }
     dispose() {
         const self = this;
@@ -170,7 +195,9 @@ class ObserverServer extends SocketServer {
         }
         super.dispose();
     }
-    async periodic_caching_do_now( socket, secondsToReDiscoverSkaleNetwork, strChainNameConnectedTo, addressFrom ) {
+    async periodic_caching_do_now(
+        socket, secondsToReDiscoverSkaleNetwork, strChainNameConnectedTo, addressFrom
+    ) {
         const self = this;
         if( self.bIsPeriodicCachingStepInProgress )
             return null;
@@ -197,7 +224,10 @@ class ObserverServer extends SocketServer {
         if( strError )
             return strError;
         const arr_schains = skale_observer.get_last_cached_schains();
-        // self.log( cc.normal( "Got " ) + cc.info( "SKALE NETWORK" ) + cc.normal( " information in worker: " ) + cc.j( arr_schains ) + "\n" );
+        // self.log(
+        //     cc.normal( "Got " ) + cc.info( "SKALE NETWORK" ) +
+        //     cc.normal( " information in worker: " ) + cc.j( arr_schains ) +
+        //     "\n" );
         const jo = {
             "method": "periodic_caching_do_now",
             "error": null,
@@ -207,13 +237,16 @@ class ObserverServer extends SocketServer {
         socket.send( jo, isFlush );
         return null;
     }
-    async periodic_caching_start( socket, secondsToReDiscoverSkaleNetwork, strChainNameConnectedTo, addressFrom ) {
+    async periodic_caching_start(
+        socket, secondsToReDiscoverSkaleNetwork, strChainNameConnectedTo, addressFrom
+    ) {
         const self = this;
         await self.periodic_caching_stop();
         if( secondsToReDiscoverSkaleNetwork <= 0 )
             return false;
         const fn_async_handler = async function() {
-            await self.periodic_caching_do_now( socket, secondsToReDiscoverSkaleNetwork, strChainNameConnectedTo, addressFrom );
+            await self.periodic_caching_do_now(
+                socket, secondsToReDiscoverSkaleNetwork, strChainNameConnectedTo, addressFrom );
         };
         self.intervalPeriodicSchainsCaching = setInterval( function() {
             if( self.bIsPeriodicCachingStepInProgress )

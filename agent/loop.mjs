@@ -41,8 +41,8 @@ import * as state from "./state.mjs";
 
 const __dirname = path.dirname( url.fileURLToPath( import.meta.url ) );
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////////////////////////
 //
 // Run transfer loop
 //
@@ -57,13 +57,21 @@ export function check_time_framing( d, strDirection, joRuntimeOpts ) {
             d = new Date(); // now
 
         const nFrameShift = 0;
-        // if( joRuntimeOpts && typeof joRuntimeOpts == "object" && joRuntimeOpts.isInsideWorker &&
-        //     strDirection && typeof strDirection == "string" && strDirection.toLowerCase() == "s2s" &&
-        //     joRuntimeOpts.cntChainsKnownForS2S > 0 &&
-        //     joRuntimeOpts.idxChainKnownForS2S >= 0 && joRuntimeOpts.idxChainKnownForS2S < joRuntimeOpts.cntChainsKnownForS2S
+
+        // if( joRuntimeOpts
+        //     && typeof joRuntimeOpts == "object"
+        //     && joRuntimeOpts.isInsideWorker
+        //     &&  strDirection
+        //     && typeof strDirection == "string"
+        //     && strDirection.toLowerCase() == "s2s"
+        //     && joRuntimeOpts.cntChainsKnownForS2S > 0
+        //     && joRuntimeOpts.idxChainKnownForS2S >= 0
+        //     && joRuntimeOpts.idxChainKnownForS2S < joRuntimeOpts.cntChainsKnownForS2S
         // ) {
-        //     const nReservedFrames = 1; // 1st frame index 0 is reserved for m2s and s2m
-        //     const nRestRangeOfFrames = imaState.nNodesCount - nReservedFrames; // rest range of frames available for S2S
+        //     // 1st frame index 0 is reserved for m2s and s2m
+        //     const nReservedFrames = 1;
+        //     // rest range of frames available for S2S
+        //     const nRestRangeOfFrames = imaState.nNodesCount - nReservedFrames;
         //     nFrameShift = nReservedFrames + // 1st frame index 0 is reserved for m2s and s2m
         //         joRuntimeOpts.idxChainKnownForS2S % nRestRangeOfFrames
         //     ;
@@ -73,8 +81,9 @@ export function check_time_framing( d, strDirection, joRuntimeOpts ) {
         // log.write( "---------- joRuntimeOpts......" + cc.j( joRuntimeOpts ) + "\n" );
         // log.write( "---------- nFrameShift........" + cc.j( nFrameShift ) + "\n" );
 
-        // const nUtcUnixTimeStamp = Math.floor( d.valueOf() / 1000 ); // Unix UTC timestamp, see https://stackoverflow.com/questions/9756120/how-do-i-get-a-utc-timestamp-in-javascript
-        const nUtcUnixTimeStamp = Math.floor( ( d ).getTime() / 1000 ); // https://stackoverflow.com/questions/9756120/how-do-i-get-a-utc-timestamp-in-javascript
+        // Unix UTC timestamp, see:
+        // https://stackoverflow.com/questions/9756120/how-do-i-get-a-utc-timestamp-in-javascript
+        const nUtcUnixTimeStamp = Math.floor( ( d ).getTime() / 1000 );
 
         const nSecondsRangeForAllSChains = imaState.nTimeFrameSeconds * imaState.nNodesCount;
         const nMod = Math.floor( nUtcUnixTimeStamp % nSecondsRangeForAllSChains );
@@ -86,7 +95,9 @@ export function check_time_framing( d, strDirection, joRuntimeOpts ) {
         let bSkip = ( nActiveNodeFrameIndex != imaState.nNodeNumber ) ? true : false;
         let bInsideGap = false;
         //
-        const nRangeStart = nUtcUnixTimeStamp - Math.floor( nUtcUnixTimeStamp % nSecondsRangeForAllSChains );
+        const nRangeStart =
+            nUtcUnixTimeStamp -
+            Math.floor( nUtcUnixTimeStamp % nSecondsRangeForAllSChains );
         const nFrameStart = nRangeStart + imaState.nNodeNumber * imaState.nTimeFrameSeconds;
         const nGapStart = nFrameStart + imaState.nTimeFrameSeconds - imaState.nNextFrameGap;
         if( !bSkip ) {
@@ -98,34 +109,63 @@ export function check_time_framing( d, strDirection, joRuntimeOpts ) {
         // if( IMA.verbose_get() >= IMA.RV_VERBOSE().trace ) {
         log.write(
             "\n" +
-            cc.info( "Unix UTC time stamp" ) + cc.debug( "........" ) + cc.attention( nUtcUnixTimeStamp ) + "\n" +
-            cc.info( "All Chains Range" ) + cc.debug( "..........." ) + cc.notice( nSecondsRangeForAllSChains ) + "\n" +
-            cc.info( "S-Chain Range Mod" ) + cc.debug( ".........." ) + cc.notice( nMod ) + "\n" +
-            cc.info( "Active Node Frame Index" ) + cc.debug( "...." ) + cc.notice( nActiveNodeFrameIndex ) + "\n" +
-            cc.info( "Testing Frame Index" ) + cc.debug( "........" ) + cc.notice( imaState.nNodeNumber ) + "\n" +
-            cc.info( "Transfer Direction" ) + cc.debug( "........." ) + cc.sunny( strDirection || "NA" ) + "\n" +
+            cc.info( "Unix UTC time stamp" ) + cc.debug( "........" ) +
+            cc.attention( nUtcUnixTimeStamp ) + "\n" +
+            cc.info( "All Chains Range" ) + cc.debug( "..........." ) +
+            cc.notice( nSecondsRangeForAllSChains ) + "\n" +
+            cc.info( "S-Chain Range Mod" ) + cc.debug( ".........." ) +
+            cc.notice( nMod ) + "\n" +
+            cc.info( "Active Node Frame Index" ) + cc.debug( "...." ) +
+            cc.notice( nActiveNodeFrameIndex ) + "\n" +
+            cc.info( "Testing Frame Index" ) + cc.debug( "........" ) +
+            cc.notice( imaState.nNodeNumber ) + "\n" +
+            cc.info( "Transfer Direction" ) + cc.debug( "........." ) +
+            cc.sunny( strDirection || "NA" ) + "\n" +
             ( ( nFrameShift > 0 )
-                ? ( cc.info( "Frame Shift" ) + cc.debug( "................" ) + cc.note( nFrameShift ) + "\n" +
-                    cc.info( "S2S known chain index" ) + cc.debug( "......" ) + cc.note( joRuntimeOpts.idxChainKnownForS2S ) + "\n" +
-                    cc.info( "S2S known chains count" ) + cc.debug( "....." ) + cc.note( joRuntimeOpts.cntChainsKnownForS2S ) + "\n" +
-                    ( ( "joExtraSignOpts" in joRuntimeOpts && typeof joRuntimeOpts.joExtraSignOpts == "object" )
-                        ? cc.info( "S-Chain source" ) + cc.debug( "............." ) + cc.info( joRuntimeOpts.joExtraSignOpts.chain_id_src ) + cc.debug( "/" ) + cc.attention( joRuntimeOpts.joExtraSignOpts.cid_src ) + "\n" +
-                          cc.info( "S-Chain destination" ) + cc.debug( "........" ) + cc.info( joRuntimeOpts.joExtraSignOpts.chain_id_dst ) + cc.debug( "/" ) + cc.attention( joRuntimeOpts.joExtraSignOpts.cid_dst ) + "\n"
+                ? ( cc.info( "Frame Shift" ) + cc.debug( "................" ) +
+                    cc.note( nFrameShift ) + "\n" +
+                    cc.info( "S2S known chain index" ) + cc.debug( "......" ) +
+                    cc.note( joRuntimeOpts.idxChainKnownForS2S ) + "\n" +
+                    cc.info( "S2S known chains count" ) + cc.debug( "....." ) +
+                    cc.note( joRuntimeOpts.cntChainsKnownForS2S ) +
+                    "\n" +
+                    ( ( "joExtraSignOpts" in joRuntimeOpts &&
+                        typeof joRuntimeOpts.joExtraSignOpts == "object" )
+                        ? cc.info( "S-Chain source" ) + cc.debug( "............." ) +
+                          cc.info( joRuntimeOpts.joExtraSignOpts.chain_id_src ) +
+                          cc.debug( "/" ) +
+                          cc.attention( joRuntimeOpts.joExtraSignOpts.cid_src ) +
+                          "\n" +
+                          cc.info( "S-Chain destination" ) + cc.debug( "........" ) +
+                          cc.info( joRuntimeOpts.joExtraSignOpts.chain_id_dst ) +
+                          cc.debug( "/" ) +
+                          cc.attention( joRuntimeOpts.joExtraSignOpts.cid_dst ) +
+                          "\n"
                         : "" )
                 )
                 : "" ) +
-            cc.info( "Is skip" ) + cc.debug( "...................." ) + cc.yn( bSkip ) + "\n" +
-            cc.info( "Is inside gap" ) + cc.debug( ".............." ) + cc.yn( bInsideGap ) + "\n" +
-            cc.info( "Range Start" ) + cc.debug( "................" ) + cc.notice( nRangeStart ) + "\n" +
-            cc.info( "Frame Start" ) + cc.debug( "................" ) + cc.notice( nFrameStart ) + "\n" +
-            cc.info( "Gap Start" ) + cc.debug( ".................." ) + cc.notice( nGapStart ) + "\n"
+            cc.info( "Is skip" ) + cc.debug( "...................." ) +
+            cc.yn( bSkip ) + "\n" +
+            cc.info( "Is inside gap" ) + cc.debug( ".............." ) +
+            cc.yn( bInsideGap ) + "\n" +
+            cc.info( "Range Start" ) + cc.debug( "................" ) +
+            cc.notice( nRangeStart ) + "\n" +
+            cc.info( "Frame Start" ) + cc.debug( "................" ) +
+            cc.notice( nFrameStart ) + "\n" +
+            cc.info( "Gap Start" ) + cc.debug( ".................." ) +
+            cc.notice( nGapStart ) + "\n"
         );
         // }
         if( bSkip )
             return false;
     } catch ( err ) {
-        if( IMA.verbose_get() >= IMA.RV_VERBOSE().fatal )
-            log.write( cc.error( "Exception in time framing check: " ) + cc.error( owaspUtils.extract_error_message( err ) ) + cc.error( ", stack is: " ) + "\n" + cc.stack( err.stack ) + "\n" );
+        if( IMA.verbose_get() >= IMA.RV_VERBOSE().fatal ) {
+            log.write(
+                cc.error( "Exception in time framing check: " ) +
+                cc.error( owaspUtils.extract_error_message( err ) ) +
+                cc.error( ", stack is: " ) + "\n" + cc.stack( err.stack ) +
+                "\n" );
+        }
     }
     return true;
 };
@@ -145,20 +185,30 @@ export async function single_transfer_loop( loop_opts ) {
             imaState.loopState.m2s.wasInProgress = false;
             imaState.loopState.s2m.wasInProgress = false;
             imaState.loopState.s2s.wasInProgress = false;
-            if( IMA.verbose_get() >= IMA.RV_VERBOSE().debug )
-                log.write( strLogPrefix + cc.warning( "Skipped due to other single transfer loop is in progress right now" ) + "\n" );
+            if( IMA.verbose_get() >= IMA.RV_VERBOSE().debug ) {
+                log.write( strLogPrefix +
+                    cc.warning( "Skipped due to other single " +
+                        "transfer loop is in progress right now" ) +
+                    "\n" );
+            }
             return true;
         }
 
         let b0 = true;
         if( loop_opts.enable_step_oracle && IMA.getEnabledOracle() ) {
-            if( IMA.verbose_get() >= IMA.RV_VERBOSE().information )
-                log.write( strLogPrefix + cc.debug( "Will invoke Oracle gas price setup..." ) + "\n" );
+            if( IMA.verbose_get() >= IMA.RV_VERBOSE().information ) {
+                log.write( strLogPrefix +
+                    cc.debug( "Will invoke Oracle gas price setup..." ) +
+                    "\n" );
+            }
             try {
                 if( ! await pwa.check_on_loop_start( imaState, "oracle" ) ) {
                     imaState.loopState.oracle.wasInProgress = false;
-                    if( IMA.verbose_get() >= IMA.RV_VERBOSE().debug )
-                        log.write( strLogPrefix + cc.warning( "Skipped(oracle) due to cancel mode reported from PWA" ) + "\n" );
+                    if( IMA.verbose_get() >= IMA.RV_VERBOSE().debug ) {
+                        log.write( strLogPrefix +
+                            cc.warning( "Skipped(oracle) due to cancel mode reported from PWA" ) +
+                            "\n" );
+                    }
                 } else {
                     if( check_time_framing( null, "oracle", loop_opts.joRuntimeOpts ) ) {
                         imaState.loopState.oracle.isInProgress = true;
@@ -176,29 +226,45 @@ export async function single_transfer_loop( loop_opts ) {
                         imaState.loopState.oracle.isInProgress = false;
                         await pwa.notify_on_loop_end( imaState, "oracle" );
                     } else {
-                        if( IMA.verbose_get() >= IMA.RV_VERBOSE().debug )
-                            log.write( strLogPrefix + cc.warning( "Skipped(oracle) due to time framing check" ) + "\n" );
+                        if( IMA.verbose_get() >= IMA.RV_VERBOSE().debug ) {
+                            log.write( strLogPrefix +
+                                cc.warning( "Skipped(oracle) due to time framing check" ) +
+                                "\n" );
+                        }
                     }
                 }
             } catch ( err ) {
-                log.write( strLogPrefix + cc.error( "Oracle operation exception: " ) + cc.error( owaspUtils.extract_error_message( err ) ) + cc.error( ", stack is: " ) + "\n" + cc.stack( err.stack ) + "\n" );
+                log.write( strLogPrefix +
+                    cc.error( "Oracle operation exception: " ) +
+                    cc.error( owaspUtils.extract_error_message( err ) ) +
+                    cc.error( ", stack is: " ) + "\n" + cc.stack( err.stack ) +
+                    "\n" );
                 imaState.loopState.oracle.isInProgress = false;
                 await pwa.notify_on_loop_end( imaState, "oracle" );
                 throw err;
             }
-            if( IMA.verbose_get() >= IMA.RV_VERBOSE().information )
-                log.write( strLogPrefix + cc.debug( "Oracle gas price setup done: " ) + cc.tf( b0 ) + "\n" );
+            if( IMA.verbose_get() >= IMA.RV_VERBOSE().information ) {
+                log.write( strLogPrefix +
+                    cc.debug( "Oracle gas price setup done: " ) + cc.tf( b0 ) +
+                    "\n" );
+            }
         }
 
         let b1 = true;
         if( loop_opts.enable_step_m2s ) {
-            if( IMA.verbose_get() >= IMA.RV_VERBOSE().information )
-                log.write( strLogPrefix + cc.debug( "Will invoke M2S transfer..." ) + "\n" );
+            if( IMA.verbose_get() >= IMA.RV_VERBOSE().information ) {
+                log.write( strLogPrefix +
+                    cc.debug( "Will invoke M2S transfer..." ) +
+                    "\n" );
+            }
             try {
                 if( ! await pwa.check_on_loop_start( imaState, "m2s" ) ) {
                     imaState.loopState.m2s.wasInProgress = false;
-                    if( IMA.verbose_get() >= IMA.RV_VERBOSE().debug )
-                        log.write( strLogPrefix + cc.warning( "Skipped(m2s) due to cancel mode reported from PWA" ) + "\n" );
+                    if( IMA.verbose_get() >= IMA.RV_VERBOSE().debug ) {
+                        log.write( strLogPrefix +
+                            cc.warning( "Skipped(m2s) due to cancel mode reported from PWA" ) +
+                            "\n" );
+                    }
                 } else {
                     if( check_time_framing( null, "m2s", loop_opts.joRuntimeOpts ) ) {
                         imaState.loopState.m2s.isInProgress = true;
@@ -232,32 +298,51 @@ export async function single_transfer_loop( loop_opts ) {
                         imaState.loopState.m2s.isInProgress = false;
                         await pwa.notify_on_loop_end( imaState, "m2s" );
                     } else {
-                        if( IMA.verbose_get() >= IMA.RV_VERBOSE().debug )
-                            log.write( strLogPrefix + cc.warning( "Skipped(m2s) due to time framing check" ) + "\n" );
+                        if( IMA.verbose_get() >= IMA.RV_VERBOSE().debug ) {
+                            log.write( strLogPrefix +
+                                cc.warning( "Skipped(m2s) due to time framing check" ) +
+                                "\n" );
+                        }
                     }
                 }
             } catch ( err ) {
-                log.write( strLogPrefix + cc.error( "M2S transfer exception: " ) + cc.error( owaspUtils.extract_error_message( err ) ) + cc.error( ", stack is: " ) + "\n" + cc.stack( err.stack ) + "\n" );
+                log.write( strLogPrefix +
+                    cc.error( "M2S transfer exception: " ) +
+                    cc.error( owaspUtils.extract_error_message( err ) ) +
+                    cc.error( ", stack is: " ) + "\n" + cc.stack( err.stack ) +
+                    "\n" );
                 imaState.loopState.m2s.isInProgress = false;
                 await pwa.notify_on_loop_end( imaState, "m2s" );
                 throw err;
             }
-            if( IMA.verbose_get() >= IMA.RV_VERBOSE().information )
-                log.write( strLogPrefix + cc.debug( "M2S transfer done: " ) + cc.tf( b1 ) + "\n" );
+            if( IMA.verbose_get() >= IMA.RV_VERBOSE().information ) {
+                log.write( strLogPrefix +
+                    cc.debug( "M2S transfer done: " ) + cc.tf( b1 ) +
+                    "\n" );
+            }
         } else {
-            if( IMA.verbose_get() >= IMA.RV_VERBOSE().information )
-                log.write( strLogPrefix + cc.debug( "Skipped M2S transfer." ) + "\n" );
+            if( IMA.verbose_get() >= IMA.RV_VERBOSE().information ) {
+                log.write( strLogPrefix +
+                    cc.debug( "Skipped M2S transfer." ) +
+                    "\n" );
+            }
         }
 
         let b2 = true;
         if( loop_opts.enable_step_s2m ) {
-            if( IMA.verbose_get() >= IMA.RV_VERBOSE().information )
-                log.write( strLogPrefix + cc.debug( "Will invoke S2M transfer..." ) + "\n" );
+            if( IMA.verbose_get() >= IMA.RV_VERBOSE().information ) {
+                log.write( strLogPrefix +
+                    cc.debug( "Will invoke S2M transfer..." ) +
+                    "\n" );
+            }
             try {
                 if( ! await pwa.check_on_loop_start( imaState, "s2m" ) ) {
                     imaState.loopState.s2m.wasInProgress = false;
-                    if( IMA.verbose_get() >= IMA.RV_VERBOSE().debug )
-                        log.write( strLogPrefix + cc.warning( "Skipped(s2m) due to cancel mode reported from PWA" ) + "\n" );
+                    if( IMA.verbose_get() >= IMA.RV_VERBOSE().debug ) {
+                        log.write( strLogPrefix +
+                            cc.warning( "Skipped(s2m) due to cancel mode reported from PWA" ) +
+                            "\n" );
+                    }
                 } else {
                     if( check_time_framing( null, "s2m", loop_opts.joRuntimeOpts ) ) {
                         imaState.loopState.s2m.isInProgress = true;
@@ -291,12 +376,19 @@ export async function single_transfer_loop( loop_opts ) {
                         imaState.loopState.s2m.isInProgress = false;
                         await pwa.notify_on_loop_end( imaState, "s2m" );
                     } else {
-                        if( IMA.verbose_get() >= IMA.RV_VERBOSE().debug )
-                            log.write( strLogPrefix + cc.warning( "Skipped(s2m) due to time framing check" ) + "\n" );
+                        if( IMA.verbose_get() >= IMA.RV_VERBOSE().debug ) {
+                            log.write( strLogPrefix +
+                                cc.warning( "Skipped(s2m) due to time framing check" ) +
+                                "\n" );
+                        }
                     }
                 }
             } catch ( err ) {
-                log.write( strLogPrefix + cc.error( "S2M transfer exception: " ) + cc.error( owaspUtils.extract_error_message( err ) ) + cc.error( ", stack is: " ) + "\n" + cc.stack( err.stack ) + "\n" );
+                log.write( strLogPrefix +
+                    cc.error( "S2M transfer exception: " ) +
+                    cc.error( owaspUtils.extract_error_message( err ) ) +
+                    cc.error( ", stack is: " ) + "\n" + cc.stack( err.stack ) +
+                    "\n" );
                 imaState.loopState.s2m.isInProgress = false;
                 await pwa.notify_on_loop_end( imaState, "s2m" );
                 throw err;
@@ -333,14 +425,24 @@ export async function single_transfer_loop( loop_opts ) {
                     imaState.chainProperties.sc.transactionCustomizer
                 );
             } catch ( err ) {
-                log.write( strLogPrefix + cc.error( "S2S transfer exception: " ) + cc.error( owaspUtils.extract_error_message( err ) ) + cc.error( ", stack is: " ) + "\n" + cc.stack( err.stack ) + "\n" );
+                log.write( strLogPrefix +
+                    cc.error( "S2S transfer exception: " ) +
+                    cc.error( owaspUtils.extract_error_message( err ) ) +
+                    cc.error( ", stack is: " ) + "\n" + cc.stack( err.stack ) +
+                    "\n" );
                 throw err;
             }
-            if( IMA.verbose_get() >= IMA.RV_VERBOSE().information )
-                log.write( strLogPrefix + cc.debug( "All S2S transfers done: " ) + cc.tf( b3 ) + "\n" );
+            if( IMA.verbose_get() >= IMA.RV_VERBOSE().information ) {
+                log.write( strLogPrefix +
+                    cc.debug( "All S2S transfers done: " ) + cc.tf( b3 ) +
+                    "\n" );
+            }
         } else {
-            if( IMA.verbose_get() >= IMA.RV_VERBOSE().information )
-                log.write( strLogPrefix + cc.debug( "Skipped S2S transfer." ) + "\n" );
+            if( IMA.verbose_get() >= IMA.RV_VERBOSE().information ) {
+                log.write( strLogPrefix +
+                    cc.debug( "Skipped S2S transfer." ) +
+                    "\n" );
+            }
         }
 
         const bResult = b0 && b1 && b2 && b3;
@@ -348,7 +450,11 @@ export async function single_transfer_loop( loop_opts ) {
             log.write( strLogPrefix + cc.debug( "Completed: " ) + cc.tf( bResult ) + "\n" );
         return bResult;
     } catch ( err ) {
-        log.write( strLogPrefix + cc.fatal( "Exception in single transfer loop: " ) + cc.error( owaspUtils.extract_error_message( err ) ) + cc.error( ", stack is: " ) + "\n" + cc.stack( err.stack ) + "\n" );
+        log.write( strLogPrefix +
+            cc.fatal( "Exception in single transfer loop: " ) +
+            cc.error( owaspUtils.extract_error_message( err ) ) +
+            cc.error( ", stack is: " ) + "\n" + cc.stack( err.stack ) +
+            "\n" );
     }
     imaState.loopState.oracle.isInProgress = false;
     imaState.loopState.m2s.isInProgress = false;
@@ -375,13 +481,15 @@ export async function run_transfer_loop( loop_opts ) {
     return true;
 }
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////////////////////////
 //
 // Parallel thread based loop
 //
 
-const impl_sleep = ( milliseconds ) => { return new Promise( resolve => setTimeout( resolve, milliseconds ) ); };
+const impl_sleep = ( milliseconds ) => {
+    return new Promise( resolve => setTimeout( resolve, milliseconds ) );
+};
 
 const g_workers = [];
 const g_clients = [];
@@ -414,22 +522,41 @@ export async function ensure_have_workers( opts ) {
                 isEnabled: cc.isEnabled()
             }
         };
-        g_workers.push( new Worker( path.join( __dirname, "loop_worker.mjs" ), { "type": "module", "workerData": workerData } ) );
+        g_workers.push(
+            new Worker(
+                path.join( __dirname, "loop_worker.mjs" ),
+                { "type": "module", "workerData": workerData }
+            )
+        );
         // console.log( "Will connect to " + workerData.url );
         g_workers[idxWorker].on( "message", jo => {
             if( network_layer.out_of_worker_apis.on_message( g_workers[idxWorker], jo ) )
                 return;
         } );
-        g_clients.push( new network_layer.OutOfWorkerSocketClientPipe( workerData.url, g_workers[idxWorker] ) );
+        g_clients.push(
+            new network_layer.OutOfWorkerSocketClientPipe(
+                workerData.url,
+                g_workers[idxWorker]
+            )
+        );
         g_clients[idxWorker].on( "message", async function( eventData ) {
             const joMessage = eventData.message;
             // console.log( "CLIENT <<<", JSON.stringify( joMessage ) );
             switch ( joMessage.method ) {
             case "log":
-                log.write( cc.attention( "LOOP WORKER" ) + " " + cc.notice( workerData.url ) + " " + joMessage.message );
+                log.write(
+                    cc.attention( "LOOP WORKER" ) +
+                    " " + cc.notice( workerData.url ) +
+                    " " + joMessage.message +
+                    "\n"
+                );
                 break;
             case "save_transfer_error":
-                IMA.save_transfer_error( joMessage.message.category, joMessage.message.textLog, joMessage.message.ts );
+                IMA.save_transfer_error(
+                    joMessage.message.category,
+                    joMessage.message.textLog,
+                    joMessage.message.ts
+                );
                 break;
             case "save_transfer_success":
                 IMA.save_transfer_success( joMessage.message.category );
@@ -487,11 +614,11 @@ export async function ensure_have_workers( opts ) {
                         "isDynamicLogInBlsSigner": opts.imaState.isDynamicLogInBlsSigner,
 
                         "bIsNeededCommonInit": false,
-                        "bSignMessages": opts.imaState.bSignMessages, // use BLS message signing, turned on with --sign-messages
-                        "joSChainNetworkInfo": opts.imaState.joSChainNetworkInfo, // scanned S-Chain network description
-                        "strPathBlsGlue": opts.imaState.strPathBlsGlue, // path to bls_glue app, must have if --sign-messages specified
-                        "strPathHashG1": opts.imaState.strPathHashG1, // path to hash_g1 app, must have if --sign-messages specified
-                        "strPathBlsVerify": opts.imaState.strPathBlsVerify, // path to verify_bls app, optional, if specified then we will verify gathered BLS signature
+                        "bSignMessages": opts.imaState.bSignMessages,
+                        "joSChainNetworkInfo": opts.imaState.joSChainNetworkInfo,
+                        "strPathBlsGlue": opts.imaState.strPathBlsGlue,
+                        "strPathHashG1": opts.imaState.strPathHashG1,
+                        "strPathBlsVerify": opts.imaState.strPathBlsVerify,
 
                         "isEnabledMultiCall": opts.imaState.isEnabledMultiCall,
 
@@ -517,58 +644,68 @@ export async function ensure_have_workers( opts ) {
 
                         "nLoopPeriodSeconds": opts.imaState.nLoopPeriodSeconds,
 
-                        "nNodeNumber": opts.imaState.nNodeNumber, // S-Chain node number(zero based)
+                        "nNodeNumber": opts.imaState.nNodeNumber,
                         "nNodesCount": opts.imaState.nNodesCount,
-                        "nTimeFrameSeconds": opts.imaState.nTimeFrameSeconds, // 0-disable, 60-recommended
+                        "nTimeFrameSeconds": opts.imaState.nTimeFrameSeconds,
                         "nNextFrameGap": opts.imaState.nNextFrameGap,
 
-                        "jo_community_pool": null, // only main net
-                        "jo_deposit_box_eth": null, // only main net
-                        "jo_deposit_box_erc20": null, // only main net
-                        "jo_deposit_box_erc721": null, // only main net
-                        "jo_deposit_box_erc1155": null, // only main net
-                        "jo_deposit_box_erc721_with_metadata": null, // only main net
-                        "jo_linker": null, // only main net
+                        "jo_community_pool": null,
+                        "jo_deposit_box_eth": null,
+                        "jo_deposit_box_erc20": null,
+                        "jo_deposit_box_erc721": null,
+                        "jo_deposit_box_erc1155": null,
+                        "jo_deposit_box_erc721_with_metadata": null,
+                        "jo_linker": null,
 
                         "isWithMetadata721": false,
 
-                        "jo_token_manager_eth": null, // only s-chain
-                        // "jo_token_manager_eth_target": null, // only s-chain target
-                        "jo_token_manager_erc20": null, // only s-chain
-                        "jo_token_manager_erc20_target": null, // only s-chain
-                        "jo_token_manager_erc721": null, // only s-chain target
-                        "jo_token_manager_erc721_target": null, // only s-chain target
-                        "jo_token_manager_erc1155": null, // only s-chain
-                        "jo_token_manager_erc1155_target": null, // only s-chain target
-                        "jo_token_manager_erc721_with_metadata": null, // only s-chain target
-                        "jo_token_manager_erc721_with_metadata_target": null, // only s-chain target
-                        "jo_community_locker": null, // only s-chain
-                        "jo_community_locker_target": null, // only s-chain target
+                        "jo_token_manager_eth": null,
+                        // "jo_token_manager_eth_target": null,
+                        "jo_token_manager_erc20": null,
+                        "jo_token_manager_erc20_target": null,
+                        "jo_token_manager_erc721": null,
+                        "jo_token_manager_erc721_target": null,
+                        "jo_token_manager_erc1155": null,
+                        "jo_token_manager_erc1155_target": null,
+                        "jo_token_manager_erc721_with_metadata": null,
+                        "jo_token_manager_erc721_with_metadata_target": null,
+                        "jo_community_locker": null,
+                        "jo_community_locker_target": null,
                         "jo_message_proxy_main_net": null,
                         "jo_message_proxy_s_chain": null,
-                        "jo_message_proxy_s_chain_target": null, // only s-chain target
+                        "jo_message_proxy_s_chain_target": null,
                         "jo_token_manager_linker": null,
-                        "jo_token_manager_linker_target": null, // only s-chain target
-                        "eth_erc20": null, // only s-chain
-                        // "eth_erc721": null, // only s-chain
-                        // "eth_erc1155": null, // only s-chain
-                        "eth_erc20_target": null, // only s-chain target
-                        // "eth_erc721_target": null, // only s-chain target
-                        // "eth_erc1155_target": null, // only s-chain target
+                        "jo_token_manager_linker_target": null,
+                        "eth_erc20": null,
+                        // "eth_erc721": null,
+                        // "eth_erc1155": null,
+                        "eth_erc20_target": null,
+                        // "eth_erc721_target": null,
+                        // "eth_erc1155_target": null,
 
                         "chainProperties": {
                             "mn": {
                                 "joAccount": {
-                                    "privateKey": opts.imaState.chainProperties.mn.joAccount.privateKey,
-                                    "address_": opts.imaState.chainProperties.mn.joAccount.address_,
+                                    "privateKey":
+                                        opts.imaState.chainProperties.mn.joAccount.privateKey,
+                                    "address_":
+                                        opts.imaState.chainProperties.mn.joAccount.address_,
                                     // "address": owaspUtils.fn_address_impl_,
-                                    "strTransactionManagerURL": opts.imaState.chainProperties.mn.joAccount.strTransactionManagerURL,
-                                    "tm_priority": opts.imaState.chainProperties.mn.joAccount.tm_priority,
-                                    "strSgxURL": opts.imaState.chainProperties.mn.joAccount.strSgxURL,
-                                    "strSgxKeyName": opts.imaState.chainProperties.mn.joAccount.strSgxKeyName,
-                                    "strPathSslKey": opts.imaState.chainProperties.mn.joAccount.strPathSslKey,
-                                    "strPathSslCert": opts.imaState.chainProperties.mn.joAccount.strPathSslCert,
-                                    "strBlsKeyName": opts.imaState.chainProperties.mn.joAccount.strBlsKeyName
+                                    "strTransactionManagerURL":
+                                        opts.imaState.chainProperties.mn
+                                            .joAccount.strTransactionManagerURL,
+                                    "tm_priority":
+                                        opts.imaState.chainProperties.mn.joAccount.tm_priority,
+                                    "strSgxURL":
+                                        opts.imaState.chainProperties.mn.joAccount.strSgxURL,
+                                    "strSgxKeyName":
+                                        opts.imaState.chainProperties.mn.joAccount.strSgxKeyName,
+                                    "strPathSslKey":
+                                        opts.imaState.chainProperties.mn.joAccount.strPathSslKey,
+                                    "strPathSslCert":
+                                        opts.imaState.chainProperties.mn.joAccount.strPathSslCert,
+                                    "strBlsKeyName":
+                                        opts.imaState.chainProperties.mn.joAccount.strBlsKeyName
                                 },
                                 "ethersProvider": null,
                                 "strURL": opts.imaState.chainProperties.mn.strURL,
@@ -579,16 +716,26 @@ export async function ensure_have_workers( opts ) {
                             },
                             "sc": {
                                 "joAccount": {
-                                    "privateKey": opts.imaState.chainProperties.sc.joAccount.privateKey,
-                                    "address_": opts.imaState.chainProperties.sc.joAccount.address_,
+                                    "privateKey":
+                                        opts.imaState.chainProperties.sc.joAccount.privateKey,
+                                    "address_":
+                                        opts.imaState.chainProperties.sc.joAccount.address_,
                                     // "address": owaspUtils.fn_address_impl_,
-                                    "strTransactionManagerURL": opts.imaState.chainProperties.sc.joAccount.strTransactionManagerURL,
-                                    "tm_priority": opts.imaState.chainProperties.sc.joAccount.tm_priority,
-                                    "strSgxURL": opts.imaState.chainProperties.sc.joAccount.strSgxURL,
-                                    "strSgxKeyName": opts.imaState.chainProperties.sc.joAccount.strSgxKeyName,
-                                    "strPathSslKey": opts.imaState.chainProperties.sc.joAccount.strPathSslKey,
-                                    "strPathSslCert": opts.imaState.chainProperties.mn.joAccount.strPathSslCert,
-                                    "strBlsKeyName": opts.imaState.chainProperties.mn.joAccount.strBlsKeyName
+                                    "strTransactionManagerURL":
+                                        opts.imaState.chainProperties.sc
+                                            .joAccount.strTransactionManagerURL,
+                                    "tm_priority":
+                                        opts.imaState.chainProperties.sc.joAccount.tm_priority,
+                                    "strSgxURL":
+                                        opts.imaState.chainProperties.sc.joAccount.strSgxURL,
+                                    "strSgxKeyName":
+                                        opts.imaState.chainProperties.sc.joAccount.strSgxKeyName,
+                                    "strPathSslKey":
+                                        opts.imaState.chainProperties.sc.joAccount.strPathSslKey,
+                                    "strPathSslCert":
+                                        opts.imaState.chainProperties.mn.joAccount.strPathSslCert,
+                                    "strBlsKeyName":
+                                        opts.imaState.chainProperties.mn.joAccount.strBlsKeyName
                                 },
                                 "ethersProvider": null,
                                 "strURL": opts.imaState.chainProperties.sc.strURL,
@@ -599,16 +746,26 @@ export async function ensure_have_workers( opts ) {
                             },
                             "tc": {
                                 "joAccount": {
-                                    "privateKey": opts.imaState.chainProperties.tc.joAccount.privateKey,
-                                    "address_": opts.imaState.chainProperties.tc.joAccount.address_,
+                                    "privateKey":
+                                        opts.imaState.chainProperties.tc.joAccount.privateKey,
+                                    "address_":
+                                        opts.imaState.chainProperties.tc.joAccount.address_,
                                     // "address": owaspUtils.fn_address_impl_,
-                                    "strTransactionManagerURL": opts.imaState.chainProperties.tc.joAccount.strTransactionManagerURL,
-                                    "tm_priority": opts.imaState.chainProperties.tc.joAccount.tm_priority,
-                                    "strSgxURL": opts.imaState.chainProperties.tc.joAccount.strSgxURL,
-                                    "strSgxKeyName": opts.imaState.chainProperties.tc.joAccount.strSgxKeyName,
-                                    "strPathSslKey": opts.imaState.chainProperties.tc.joAccount.strPathSslKey,
-                                    "strPathSslCert": opts.imaState.chainProperties.tc.joAccount.strPathSslCert,
-                                    "strBlsKeyName": opts.imaState.chainProperties.tc.joAccount.strBlsKeyName
+                                    "strTransactionManagerURL":
+                                        opts.imaState.chainProperties.tc
+                                            .joAccount.strTransactionManagerURL,
+                                    "tm_priority":
+                                        opts.imaState.chainProperties.tc.joAccount.tm_priority,
+                                    "strSgxURL":
+                                        opts.imaState.chainProperties.tc.joAccount.strSgxURL,
+                                    "strSgxKeyName":
+                                        opts.imaState.chainProperties.tc.joAccount.strSgxKeyName,
+                                    "strPathSslKey":
+                                        opts.imaState.chainProperties.tc.joAccount.strPathSslKey,
+                                    "strPathSslCert":
+                                        opts.imaState.chainProperties.tc.joAccount.strPathSslCert,
+                                    "strBlsKeyName":
+                                        opts.imaState.chainProperties.tc.joAccount.strBlsKeyName
                                 },
                                 "ethersProvider": null,
                                 "strURL": opts.imaState.chainProperties.tc.strURL,
@@ -633,16 +790,18 @@ export async function ensure_have_workers( opts ) {
                         "nReimbursementRange": opts.imaState.nReimbursementRange,
 
                         "joSChainDiscovery": {
-                            "isSilentReDiscovery": opts.imaState.joSChainDiscovery.isSilentReDiscovery,
-                            "repeatIntervalMilliseconds": opts.imaState.joSChainDiscovery.repeatIntervalMilliseconds // zero to disable (for debugging only)
+                            "isSilentReDiscovery":
+                                opts.imaState.joSChainDiscovery.isSilentReDiscovery,
+                            "repeatIntervalMilliseconds":
+                                opts.imaState.joSChainDiscovery.repeatIntervalMilliseconds
                         },
 
                         "s2s_opts": { // S-Chain to S-Chain transfer options
-                            "isEnabled": true, // is S-Chain to S-Chain transfers enabled
-                            "secondsToReDiscoverSkaleNetwork": 1 * 60 * 60 // seconds to re-discover SKALE network, 0 to disable
+                            "isEnabled": true,
+                            "secondsToReDiscoverSkaleNetwork": 1 * 60 * 60
                         },
 
-                        "nJsonRpcPort": opts.imaState.nJsonRpcPort, // 0 to disable
+                        "nJsonRpcPort": opts.imaState.nJsonRpcPort,
                         "isCrossImaBlsMode": opts.imaState.isCrossImaBlsMode
 
                     }
@@ -665,7 +824,9 @@ export async function run_parallel_loops( opts ) {
 }
 
 export async function spread_arrived_pwa_state( joMessage ) {
-    if( ! ( joMessage && typeof joMessage == "object" && "method" in joMessage && joMessage.method == "skale_imaNotifyLoopWork" ) )
+    if( ! ( joMessage && typeof joMessage == "object" &&
+        "method" in joMessage && joMessage.method == "skale_imaNotifyLoopWork" )
+    )
         return;
     const cntWorkers = g_workers.length;
     for( let idxWorker = 0; idxWorker < cntWorkers; ++ idxWorker )

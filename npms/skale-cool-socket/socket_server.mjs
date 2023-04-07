@@ -42,7 +42,9 @@ export class SocketServer extends EventDispatcher {
         self.isLogSocketTrafficRaw = false;
         acceptor.on( "connection", function( eventData ) {
             const socket = eventData.socket;
-            if( ( ! ( "remoteAddress" in eventData ) ) || eventData.remoteAddress == null || eventData.remoteAddress == undefined )
+            if( ( ! ( "remoteAddress" in eventData ) ) ||
+                eventData.remoteAddress == null ||
+                eventData.remoteAddress == undefined )
                 socket.strSavedRemoteAddress = socket.constructor.name;
             else
                 socket.strSavedRemoteAddress = "" + eventData.remoteAddress;
@@ -69,30 +71,43 @@ export class SocketServer extends EventDispatcher {
                 delete self.mapAcceptedPipes[socket];
             };
             let _onPipeMessage = function( eventData ) {
-                if( self.isLogSocketTrafficRaw )
-                    self.log( "Accepted socket \"" + socket.strSavedRemoteAddress + "\" raw message", eventData );
+                if( self.isLogSocketTrafficRaw ) {
+                    self.log(
+                        "Accepted socket \"" + socket.strSavedRemoteAddress +
+                        "\" raw message", eventData );
+                }
                 const joMessage = eventData.message;
-                if( self.isLogAcceptedSocket )
-                    self.log( "Accepted socket \"" + socket.strSavedRemoteAddress + "\" message", joMessage );
+                if( self.isLogAcceptedSocket ) {
+                    self.log(
+                        "Accepted socket \"" + socket.strSavedRemoteAddress +
+                        "\" message", joMessage );
+                }
                 let joAnswer = null;
                 let isFlush = false;
                 try {
                     if( joMessage.method in self.mapApiHandlers ) {
                         joAnswer = utils.prepareAnswerJSON( joMessage );
-                        joAnswer = self.mapApiHandlers[joMessage.method]( joMessage, joAnswer, eventData, socket );
+                        joAnswer = self.mapApiHandlers[joMessage.method](
+                            joMessage, joAnswer, eventData, socket );
                         if( joAnswer )
                             isFlush = true;
                     } else {
                         joAnswer = utils.prepareAnswerJSON( joMessage );
                         joAnswer.error = "Unhandled message";
                         joAnswer.joMessage = joMessage; // send it back ))
-                        if( self.isLogSocketTraffic )
-                            self.log( "Accepted socket \"" + socket.strSavedRemoteAddress + "\" unhandled message", joMessage );
+                        if( self.isLogSocketTraffic ) {
+                            self.log(
+                                "Accepted socket \"" + socket.strSavedRemoteAddress +
+                                "\" unhandled message", joMessage );
+                        }
                         isFlush = true;
                     }
                 } catch ( err ) {
-                    if( self.isLogSocketErrors )
-                        self.log( "Server method", joMessage.method, "RPC exception:", err, ", stack is:", err.stack );
+                    if( self.isLogSocketErrors ) {
+                        self.log(
+                            "Server method", joMessage.method,
+                            "RPC exception:", err, ", stack is:", err.stack );
+                    }
                     joAnswer = utils.prepareAnswerJSON( joMessage );
                     joAnswer.error = "" + err.toString();
                 }
@@ -100,11 +115,17 @@ export class SocketServer extends EventDispatcher {
                 //
                 if( joAnswer != null && joAnswer != undefined ) {
                     if( typeof joAnswer.error == "string" && joAnswer.error.length > 0 ) {
-                        if( self.isLogSocketErrors )
-                            self.log( "Accepted socket \"" + socket.strSavedRemoteAddress + "\" error answer", joAnswer );
+                        if( self.isLogSocketErrors ) {
+                            self.log(
+                                "Accepted socket \"" + socket.strSavedRemoteAddress +
+                                "\" error answer", joAnswer );
+                        }
                     } else {
-                        if( self.isLogSocketTraffic )
-                            self.log( "Accepted socket \"" + socket.strSavedRemoteAddress + " answer", joAnswer );
+                        if( self.isLogSocketTraffic ) {
+                            self.log(
+                                "Accepted socket \"" + socket.strSavedRemoteAddress +
+                                " answer", joAnswer );
+                        }
                     }
                     socket.send( joAnswer, isFlush );
                 }
@@ -128,7 +149,8 @@ export class SocketServer extends EventDispatcher {
             socket.on( "error", _onPipeError );
             socket.on( "message", _onPipeMessage );
         } );
-        this.dispatchEvent( new UniversalDispatcherEvent( "initialized", { "detail": { "ref": this } } ) );
+        this.dispatchEvent(
+            new UniversalDispatcherEvent( "initialized", { "detail": { "ref": this } } ) );
     }
     dispose() {
         this.isDisposing = true;

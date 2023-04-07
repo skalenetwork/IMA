@@ -48,7 +48,9 @@ export class EventDispatcher {
             return;
         this.isDisposing = true;
         this.isDisposed = true;
-        this.dispatchEvent( new UniversalDispatcherEvent( "dispose", { "detail": { "ref": this } } ) );
+        this.dispatchEvent(
+            new UniversalDispatcherEvent( "dispose", { "detail": { "ref": this } } )
+        );
         this.removeAllEventListeners();
     }
     hasEventListener( type, listener ) {
@@ -67,8 +69,10 @@ export class EventDispatcher {
     removeEventListener( type, listener ) {
         while( true ) {
             const index = ( listener != undefined )
-                ? this._listeners.findIndex( item => item.type === type && item.listener === listener )
-                : this._listeners.findIndex( item => item.type === type );
+                ? this._listeners.findIndex(
+                    item => item.type === type && item.listener === listener )
+                : this._listeners.findIndex(
+                    item => item.type === type );
             if( index >= 0 ) {
                 this._listeners.splice( index, 1 );
                 continue;

@@ -38,7 +38,9 @@ parentPort.on( "message", jo => {
 function doSendMessage( type, endpoint, worker_uuid, data ) {
     const jo = network_layer.socket_received_data_reverse_marshall( data );
     const joSend = {
-        "worker_message_type": ( type && typeof type == "string" && type.length > 0 ) ? type : "in_worker_message",
+        "worker_message_type":
+            ( type && typeof type == "string" && type.length > 0 )
+                ? type : "in_worker_message",
         "worker_endpoint": endpoint,
         "worker_uuid": worker_uuid,
         "data": jo
