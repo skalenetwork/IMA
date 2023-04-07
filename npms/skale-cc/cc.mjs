@@ -26,7 +26,9 @@
 let g_bEnabled = true;
 
 export function auto_enable_from_command_line_args() {
-    const b = ( process.argv.indexOf( "--colors" ) >= 0 || process.argv.indexOf( "-colors" ) >= 0 ) ? true : false;
+    const b =
+        ( process.argv.indexOf( "--colors" ) >= 0 || process.argv.indexOf( "-colors" ) >= 0 )
+            ? true : false;
     enable( b );
 }
 
@@ -46,7 +48,8 @@ export function validateRadix( value, radix ) {
     value = "" + ( value ? value.toString() : "10" );
     value = value.trim();
     radix = ( radix == null || radix == undefined )
-        ? ( ( value.length > 2 && value[0] == "0" && ( value[1] == "x" || value[1] == "X" ) ) ? 16 : 10 )
+        ? ( ( value.length > 2 && value[0] == "0" && ( value[1] == "x" || value[1] == "X" ) )
+            ? 16 : 10 )
         : parseInt( radix, 10 );
     return radix;
 }
@@ -214,12 +217,20 @@ export function isFloat2( n ) {
 }
 
 // export function url2str( objURL ) {
-//     const strProtocol = ( objURL.protocol && objURL.protocol.length > 0 ) ? ( "" + objURL.protocol + "//" ) : "";
+//     const strProtocol =
+//         ( objURL.protocol && objURL.protocol.length > 0 )
+//             ? ( "" + objURL.protocol + "//" ) : "";
 //     let strUP = "";
-//     const strHost = ( objURL.hostname && objURL.hostname.length > 0 ) ? ( "" + objURL.hostname.toString() ) : "";
+//     const strHost =
+//         ( objURL.hostname && objURL.hostname.length > 0 )
+//             ? ( "" + objURL.hostname.toString() ) : "";
 //     const strPort = objURL.port ? ( ":" + objURL.port ) : "";
-//     const strPath = ( objURL.pathname && objURL.pathname.length > 0 ) ? ( "" + objURL.pathname ) : "";
-//     const strSearch = ( objURL.search && objURL.search.length > 0 ) ? ( "" + objURL.search ) : "";
+//     const strPath =
+//         ( objURL.pathname && objURL.pathname.length > 0 )
+//             ? ( "" + objURL.pathname ) : "";
+//     const strSearch =
+//         ( objURL.search && objURL.search.length > 0 )
+//             ? ( "" + objURL.search ) : "";
 //     if( objURL.username && objURL.username.length > 0 ) {
 //         strUP += "" + objURL.username;
 //         if( objURL.password && objURL.password.length > 0 ) {
@@ -227,7 +238,8 @@ export function isFloat2( n ) {
 //         }
 //         strUP += "@";
 //     }
-//     const strURL = "" + strProtocol + strUP + strHost + strPort + strPath + strSearch;
+//     const strURL =
+//         "" + strProtocol + strUP + strHost + strPort + strPath + strSearch;
 //     return strURL;
 // }
 
@@ -249,7 +261,8 @@ function url_obj_colorized( objURL ) {
         strURL += "" + magenta( log_arg_to_str_as_ipv4( objURL.hostname ) );
     if( objURL.port && objURL.port !== null && objURL.port !== undefined )
         strURL += normal( ":" ) + log_arg_to_str( objURL.port );
-    if( objURL.pathname && objURL.pathname !== null && objURL.pathname !== undefined && objURL.pathname !== "/" )
+    if( objURL.pathname && objURL.pathname !== null &&
+        objURL.pathname !== undefined && objURL.pathname !== "/" )
         strURL += "" + yellow( replaceAll( objURL.pathname, "/", normal( "/" ) ) );
     if( objURL.search && objURL.search !== null && objURL.search !== undefined )
         strURL += "" + magenta( objURL.search );
@@ -276,13 +289,22 @@ export function u( x ) {
 }
 
 // export function url2strWithoutCredentials( objURL ) {
-//     const strProtocol = ( objURL.protocol && objURL.protocol.length > 0 ) ? ( "" + objURL.protocol + "//" ) : "";
+//     const strProtocol =
+//         ( objURL.protocol && objURL.protocol.length > 0 )
+//             ? ( "" + objURL.protocol + "//" ) : "";
 //     const strUP = "";
-//     const strHost = ( objURL.hostname && objURL.hostname.length > 0 ) ? ( "" + objURL.hostname.toString() ) : "";
+//     const strHost =
+//         ( objURL.hostname && objURL.hostname.length > 0 )
+//             ? ( "" + objURL.hostname.toString() ) : "";
 //     const strPort = objURL.port ? ( ":" + objURL.port ) : "";
-//     const strPath = ( objURL.pathname && objURL.pathname.length > 0 ) ? ( "" + objURL.pathname ) : "";
-//     const strSearch = ( objURL.search && objURL.search.length > 0 ) ? ( "" + objURL.search ) : "";
-//     const strURL = "" + strProtocol + strUP + strHost + strPort + strPath + strSearch;
+//     const strPath =
+//         ( objURL.pathname && objURL.pathname.length > 0 )
+//             ? ( "" + objURL.pathname ) : "";
+//     const strSearch =
+//         ( objURL.search && objURL.search.length > 0 )
+//             ? ( "" + objURL.search ) : "";
+//     const strURL =
+//         "" + strProtocol + strUP + strHost + strPort + strPath + strSearch;
 //     return strURL;
 // }
 
@@ -316,6 +338,7 @@ export function safeURL( arg ) {
 }
 
 export function to_ipv4_arr( s ) {
+    // eslint-disable-next-line max-len
     if( /^(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$/.test( s ) ) {
         const arr = s.split( "." );
         if( ( !arr ) || arr.length !== 4 )
@@ -508,7 +531,9 @@ export const getCircularReplacerForJsonStringify = () => {
 //             value = censoredMessage;
 //         } else {
 //             // recursion:
-//             value = preventCircularJson( value, censoredMessage, censorChildItems.concat( censorTheseItems ) );
+//             value =
+//                 preventCircularJson(
+//                     value, censoredMessage, censorChildItems.concat( censorTheseItems ) );
 //         }
 //         ret[key] = value;
 //     }
@@ -520,7 +545,9 @@ export const jsonColorizer = { // see http://jsfiddle.net/unLSJ/
     censor: ( censor ) => {
         let i = 0;
         return ( key, value ) => {
-            if( i !== 0 && typeof ( censor ) === "object" && typeof ( value ) === "object" && censor == value )
+            if( i !== 0 && typeof ( censor ) === "object" &&
+                typeof ( value ) === "object" && censor == value
+            )
                 return "[Circular]";
 
             if( i >= jsonColorizer.cntCensoredMax )
@@ -546,7 +573,10 @@ export const jsonColorizer = { // see http://jsfiddle.net/unLSJ/
     prettyPrintHTML: ( obj ) => {
         const jsonLine = /^( *)("[\w]+": )?("[^"]*"|[\w.+-]*)?([,[{])?$/mg;
         const s =
-            JSON.stringify( obj, ( jsonColorizer.cntCensoredMax > 0 ) ? jsonColorizer.censor( obj ) : null, 4 )
+            JSON.stringify(
+                obj, ( jsonColorizer.cntCensoredMax > 0 )
+                    ? jsonColorizer.censor( obj ) : null, 4
+            )
                 .replace( /&/g, "&amp;" ).replace( /\\"/g, "&quot;" )
                 .replace( /</g, "&lt;" ).replace( />/g, "&gt;" )
                 .replace( jsonLine, jsonColorizer.replacerHTML );
@@ -585,12 +615,20 @@ export const jsonColorizer = { // see http://jsfiddle.net/unLSJ/
         const cntSpaces = 4;
         const jsonLine = /^( *)("[\w]+": )?("[^"]*"|[\w.+-]*)?([,[{])?$/mg;
         try {
-            const tmp = JSON.stringify( obj, ( jsonColorizer.cntCensoredMax > 0 ) ? jsonColorizer.censor( obj ) : null, cntSpaces );
+            const tmp = JSON.stringify(
+                obj,
+                ( jsonColorizer.cntCensoredMax > 0 ) ? jsonColorizer.censor( obj ) : null,
+                cntSpaces
+            );
             const s = tmp ? tmp.replace( jsonLine, jsonColorizer.replacerConsole ) : ( "" + tmp );
             return s;
         } catch ( err ) { }
         obj = JSON.parse( JSON.stringify( obj, getCircularReplacerForJsonStringify() ) );
-        const tmp = JSON.stringify( obj, ( jsonColorizer.cntCensoredMax > 0 ) ? jsonColorizer.censor( obj ) : null, cntSpaces );
+        const tmp = JSON.stringify(
+            obj,
+            ( jsonColorizer.cntCensoredMax > 0 ) ? jsonColorizer.censor( obj ) : null,
+            cntSpaces
+        );
         const s = tmp ? tmp.replace( jsonLine, jsonColorizer.replacerConsole ) : ( "" + tmp );
         return s;
     }
@@ -602,47 +640,51 @@ export const jsonColorizer = { // see http://jsfiddle.net/unLSJ/
 export function syntaxHighlightJSON( jo, strKeyNamePrefix ) {
     strKeyNamePrefix = strKeyNamePrefix || "";
     jo = jo.replace( /&/g, "&amp;" ).replace( /</g, "&lt;" ).replace( />/g, "&gt;" );
-    return jo.replace( /("(\\u[a-zA-Z0-9]{4}|\\[^u]|[^\\"])*"(\s*:)?|\b(true|false|null)\b|-?\d+(?:\.\d*)?(?:[eE][+-]?\d+)?)/g, function( match ) {
-        if( ! g_bEnabled )
-            return match;
-        let cls = "number";
-        if( /^"/.test( match ) ) {
-            if( /:$/.test( match ) )
-                cls = "key";
-            else
-                cls = "string";
-        } else if( /true|false/.test( match ) )
-            cls = "boolean";
-        else if( /null/.test( match ) )
-            cls = "null";
-        else if( /NaN/.test( match ) )
-            cls = "nan";
-        else if( /undefined/.test( match ) )
-            cls = "undefined";
-        else if( ( typeof match === "string" || match instanceof String ) &&
+    return jo.replace(
+        // eslint-disable-next-line max-len
+        /("(\\u[a-zA-Z0-9]{4}|\\[^u]|[^\\"])*"(\s*:)?|\b(true|false|null)\b|-?\d+(?:\.\d*)?(?:[eE][+-]?\d+)?)/g,
+        function( match ) {
+            if( ! g_bEnabled )
+                return match;
+            let cls = "number";
+            if( /^"/.test( match ) ) {
+                if( /:$/.test( match ) )
+                    cls = "key";
+                else
+                    cls = "string";
+            } else if( /true|false/.test( match ) )
+                cls = "boolean";
+            else if( /null/.test( match ) )
+                cls = "null";
+            else if( /NaN/.test( match ) )
+                cls = "nan";
+            else if( /undefined/.test( match ) )
+                cls = "undefined";
+            else if( ( typeof match === "string" || match instanceof String ) &&
             match.length >= 2 &&
             ( ( match[0] == "\"" && match[match.length - 1] == "\"" ) ||
             ( match[0] == "'" && match[match.length - 1] == "'" ) )
-        )
-            cls = "string";
-        // return "<span class=\"" + cls + "\">" + match + "</span>";
-        switch ( cls ) {
-        case "key":
-            return "" + strKeyNamePrefix + log_arg_to_str( match.replace( /[": ]/g, "" ) ) + ": ";
-        case "boolean":
-            return tf( match );
-        case "null":
-            return "" + nullval( match );
-        case "undefined":
-            return "" + undefval( match );
-        case "nan":
-            return "" + nanval( match );
-        case "string":
-            return "" + strval( match );
+            )
+                cls = "string";
+            // return "<span class=\"" + cls + "\">" + match + "</span>";
+            switch ( cls ) {
+            case "key":
+                return "" +
+                    strKeyNamePrefix + log_arg_to_str( match.replace( /[": ]/g, "" ) ) + ": ";
+            case "boolean":
+                return tf( match );
+            case "null":
+                return "" + nullval( match );
+            case "undefined":
+                return "" + undefval( match );
+            case "nan":
+                return "" + nanval( match );
+            case "string":
+                return "" + strval( match );
             // case "number":
-        }
-        return log_arg_to_str( match );
-    } );
+            }
+            return log_arg_to_str( match );
+        } );
 }
 
 export function safeStringifyJSON( jo, n ) {
@@ -1057,9 +1099,10 @@ export function stack( strIn ) {
             } else {
                 // probably error description line
                 const n = s.indexOf( ":" );
-                if( n >= 0 )
-                    s = error( s.substring( 0, n ) ) + normal( ":" ) + warning( s.substring( n + 1 ) );
-                else
+                if( n >= 0 ) {
+                    s = error(
+                        s.substring( 0, n ) ) + normal( ":" ) + warning( s.substring( n + 1 ) );
+                } else
                     s = error( s );
             }
             arr[i] = s;
