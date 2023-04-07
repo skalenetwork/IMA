@@ -30,8 +30,8 @@ import * as rpcCall from "./rpc-call.mjs";
 import * as imaBLS from "./bls.mjs";
 import * as imaUtils from "./utils.mjs";
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////////////////////////
 
 function compute_walk_node_indices( nNodeNumber, nNodesCount ) {
     if( nNodesCount <= 1 )
@@ -66,8 +66,8 @@ export function check_loop_work_type_string_is_correct( strLoopWorkType ) {
     return false;
 }
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////////////////////////
 
 function compose_empty_pwaState() {
     return {
@@ -98,8 +98,12 @@ function get_node_progress_and_ts( joNode, strLoopWorkType, nIndexS2S ) {
     if( ! ( "pwaState" in joNode ) )
         joNode.pwaState = compose_empty_pwaState();
     strLoopWorkType = strLoopWorkType.toLowerCase();
-    if( ! ( strLoopWorkType in joNode.pwaState ) )
-        throw new Error( "Specified value \"" + strLoopWorkType + "\" is not a correct loop work type, cannot access info" );
+    if( ! ( strLoopWorkType in joNode.pwaState ) ) {
+        throw new Error(
+            "Specified value \"" + strLoopWorkType +
+            "\" is not a correct loop work type, cannot access info"
+        );
+    }
     if( strLoopWorkType != "s2s" )
         return joNode.pwaState[strLoopWorkType];
     if( ! ( nIndexS2S in joNode.pwaState[strLoopWorkType].mapS2S ) ) {
@@ -111,14 +115,17 @@ function get_node_progress_and_ts( joNode, strLoopWorkType, nIndexS2S ) {
     return joNode.pwaState[strLoopWorkType].mapS2S[nIndexS2S];
 }
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////////////////////////
 
 export async function check_on_loop_start( imaState, strLoopWorkType, nIndexS2S ) {
     try {
         nIndexS2S = nIndexS2S || 0; // convert to number if undefined
-        if( ! check_loop_work_type_string_is_correct( strLoopWorkType ) )
-            throw new Error( "Specified value \"" + strLoopWorkType + "\" is not a correct loop work type" );
+        if( ! check_loop_work_type_string_is_correct( strLoopWorkType ) ) {
+            throw new Error(
+                "Specified value \"" + strLoopWorkType + "\" is not a correct loop work type"
+            );
+        }
         if( ! imaState.isPWA )
             return true; // PWA is N/A
         if( imaState.nNodesCount <= 1 )
@@ -131,7 +138,8 @@ export async function check_on_loop_start( imaState, strLoopWorkType, nIndexS2S 
         if( ! jarrNodes )
             throw new Error( "S-Chain network info is not available yet to PWA" );
         const arr_busy_node_indices = [];
-        const arr_walk_node_indices = compute_walk_node_indices( imaState.nNodeNumber, imaState.nNodesCount );
+        const arr_walk_node_indices =
+            compute_walk_node_indices( imaState.nNodeNumber, imaState.nNodesCount );
         if( imaState.isPrintPWA ) {
             log.write(
                 cc.debug( "PWA will check loop start condition via node(s) sequence " ) +
@@ -151,12 +159,17 @@ export async function check_on_loop_start( imaState, strLoopWorkType, nIndexS2S 
                 if( d >= imaState.nTimeoutSecondsPWA ) {
                     if( imaState.isPrintPWA ) {
                         log.write(
-                            cc.warning( "PWA busy state timeout for node #" ) + cc.info( walk_node_index ) +
+                            cc.warning( "PWA busy state timeout for node #" ) +
+                            cc.info( walk_node_index ) +
                             cc.debug( ", old timestamp is " ) + cc.info( joProps.ts ) +
-                            cc.debug( ", current system timestamp is " ) + cc.info( nUtcUnixTimeStamp ) +
+                            cc.debug( ", current system timestamp is " ) +
+                            cc.info( nUtcUnixTimeStamp ) +
                             cc.debug( ", duration " ) + cc.info( d ) +
-                            cc.debug( " is greater than conditionally allowed " ) + cc.info( imaState.nTimeoutSecondsPWA ) +
-                            cc.debug( " and exceeded by " ) + cc.info( d - imaState.nTimeoutSecondsPWA ) + cc.debug( " second(s)" ) +
+                            cc.debug( " is greater than conditionally allowed " ) +
+                            cc.info( imaState.nTimeoutSecondsPWA ) +
+                            cc.debug( " and exceeded by " ) +
+                            cc.info( d - imaState.nTimeoutSecondsPWA ) +
+                            cc.debug( " second(s)" ) +
                             "\n" );
                     }
                     joProps.isInProgress = false;
@@ -182,8 +195,8 @@ export async function check_on_loop_start( imaState, strLoopWorkType, nIndexS2S 
     return true;
 }
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////////////////////////
 
 export async function handle_loop_state_arrived( imaState, nNodeNumber, strLoopWorkType, nIndexS2S, isStart, ts, signature ) {
     const se = isStart ? "start" : "end";
@@ -240,8 +253,8 @@ export async function handle_loop_state_arrived( imaState, nNodeNumber, strLoopW
     return isSuccess;
 }
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////////////////////////
 
 async function notify_on_loop_impl( imaState, strLoopWorkType, nIndexS2S, isStart ) {
     const se = isStart ? "start" : "end";
@@ -330,5 +343,5 @@ export async function notify_on_loop_end( imaState, strLoopWorkType, nIndexS2S )
     return await notify_on_loop_impl( imaState, strLoopWorkType, nIndexS2S, false );
 }
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////////////////////////
