@@ -1274,7 +1274,7 @@ describe( "Agent Utils Module", function() {
                     strFile,
                     { error: "file \"" + strFile + "\"was not loaded" } );
             const strCoinName =
-                maUtils.discover_in_json_coin_name( joABI );
+                imaUtils.discover_in_json_coin_name( joABI );
             // console.log( "strCoinName is", strCoinName );
             assert.equal( strCoinName.length > 0, true );
         } );
