@@ -37,8 +37,6 @@ import * as ethereumjs_util from "ethereumjs-util";
 
 import * as log from "../skale-log/log.mjs";
 import * as cc from "../skale-cc/cc.mjs";
-// example: log output to file:
-// log.add( strFilePath, nMaxSizeBeforeRotation, nMaxFilesCount );
 
 import * as owaspUtils from "../skale-owasp/owasp-utils.mjs";
 import * as loop from "../../agent/loop.mjs";
@@ -251,7 +249,6 @@ export async function safe_getBlockNumber(
             cc.error( " via " ) + cc.u( u ) +
             cc.warning( ", attempt " ) + cc.info( idxAttempt ) +
             "\n" );
-        // await sleep( nWaitStepMilliseconds );
         try {
             ret = await ethersProvider[strFnName]();
             return ret;
@@ -329,7 +326,6 @@ export async function safe_getTransactionCount(
             cc.error( " via " ) + cc.u( u ) +
             cc.warning( ", attempt " ) + cc.info( idxAttempt ) +
             "\n" );
-        // await sleep( nWaitStepMilliseconds );
         try {
             ret = await ethersProvider[strFnName]( address, param );
             return ret;
@@ -408,7 +404,6 @@ export async function safe_getTransactionReceipt(
             cc.error( " via " ) + cc.u( u ) +
             cc.warning( ", attempt " ) + cc.info( idxAttempt ) +
             "\n" );
-        // await sleep( nWaitStepMilliseconds );
         try {
             ret = await ethersProvider[strFnName]( txHash );
             return ret;
@@ -465,7 +460,6 @@ export async function safe_getPastEvents(
         nBlockTo = owaspUtils.toBN( nBlockTo );
     nBlockFrom = owaspUtils.toBN( nBlockFrom );
     try {
-        // TO-IMPROVE: this must be re-checked
         details.write( strLogPrefix +
             cc.debug( "First time, will query filter " ) + cc.j( joFilter ) +
             cc.debug( " on contract " ) + cc.info( joContract.address ) +
@@ -522,9 +516,7 @@ export async function safe_getPastEvents(
             cc.error( " event filtering via " ) + cc.u( u ) +
             cc.warning( ", attempt " ) + cc.info( idxAttempt ) +
             "\n" );
-        // await sleep( nWaitStepMilliseconds );
         try {
-            // TO-IMPROVE: this must be re-checked
             details.write( strLogPrefix +
                 cc.debug( "Attempt " ) + cc.info( idxAttempt ) +
                 cc.debug( ", will query filter " ) + cc.j( joFilter ) +
@@ -1486,9 +1478,6 @@ export async function payed_call(
             unsignedTx =
                 await checkTransactionToSchain( unsignedTx, details, ethersProvider, joAccount );
         }
-        // details.write( strLogPrefix +
-        //     cc.debug( "Raw transaction, checked for S-chain: " ) + cc.j( unsignedTx ) +
-        //     "\n" );
 
         rawTx = owaspUtils.ethersMod.ethers.utils.serializeTransaction( unsignedTx );
         details.write( strLogPrefix + cc.debug( "Raw transaction: " ) + cc.j( rawTx ) + "\n" );
@@ -1513,8 +1502,6 @@ export async function payed_call(
                     if( "chainId" in txAdjusted )
                         delete txAdjusted.chainId;
                     const { chainId } = await ethersProvider.getNetwork();
-                    // if( chainId == "string" )
-                    //     chainId = owaspUtils.parseIntOrHex( chainId );
                     txAdjusted.chainId = chainId;
                     details.write( strLogPrefix +
                         cc.debug( "Adjusted transaction: " ) + cc.j( txAdjusted ) +
@@ -1564,9 +1551,6 @@ export async function payed_call(
                     "cert": fs.readFileSync( joAccount.strPathSslCert, "utf8" ),
                     "key": fs.readFileSync( joAccount.strPathSslKey, "utf8" )
                 };
-                // details.write(
-                //     cc.debug( "Will sign via SGX with SSL options " ) + cc.j( rpcCallOpts ) +
-                //     "\n" );
             }
             const promiseComplete = new Promise( function( resolve, reject ) {
                 rpcCall.create( joAccount.strSgxURL, rpcCallOpts, async function( joCall, err ) {
@@ -1622,18 +1606,16 @@ export async function payed_call(
                             const v =
                                 owaspUtils.parseIntOrHex(
                                     owaspUtils.toBN( joOut.result.signature_v ).toString() );
-                            // const recoveryParam = 1 - ( v % 2 );
                             const joExpanded = {
                                 "v": v,
                                 "r": joOut.result.signature_r,
                                 "s": joOut.result.signature_s
-                                //, "recoveryParam": recoveryParam
                             };
                             details.write( strLogPrefix +
                                 cc.debug( "Preliminary expanded signature: " ) +
                                 cc.j( joExpanded ) +
                                 "\n" );
-                            //
+
                             let { chainId } = await ethersProvider.getNetwork();
                             if( chainId == "string" )
                                 chainId = owaspUtils.parseIntOrHex( chainId );
@@ -1641,7 +1623,7 @@ export async function payed_call(
                                 cc.debug( "Chain ID is: " ) + cc.info( chainId ) +
                                 "\n" );
                             joExpanded.v += chainId * 2 + 8 + 27;
-                            //
+
                             details.write( strLogPrefix +
                                 cc.debug( "Final expanded signature: " ) + cc.j( joExpanded ) +
                                 "\n" );
@@ -1656,7 +1638,7 @@ export async function payed_call(
                             details.write( strLogPrefix +
                                 cc.debug( "Raw transaction with signature: " ) + cc.j( rawTx ) +
                                 "\n" );
-                            //
+
                             const { hash } = await ethersProvider.sendTransaction(
                                 owaspUtils.ensure_starts_with_0x( rawTx )
                             );
@@ -1706,7 +1688,6 @@ export async function payed_call(
             const s = cc.fatal( strErrorPrefix ) + " " +
                 cc.error( "bad credentials information specified, " +
                     "no explicit SGX and no explicit private key found" ) +
-                // + cc.error( ", account is: " ) + cc.j( joAccount )
                 "\n";
             details.write( s );
             log.write( s );
@@ -2342,18 +2323,18 @@ export async function reimbursement_show_balance(
         const xWei =
             await jo_community_pool.callStatic.getBalance(
                 addressFrom, strReimbursementChain, { from: addressFrom } );
-        //
+
         s = strLogPrefix + cc.success( "Balance(wei): " ) + cc.attention( xWei ) + "\n";
         if( isForcePrintOut || verbose_get() >= RV_VERBOSE().information )
             log.write( s );
         details.write( s );
-        //
+
         const xEth = owaspUtils.ethersMod.ethers.utils.formatEther( owaspUtils.toBN( xWei ) );
         s = strLogPrefix + cc.success( "Balance(eth): " ) + cc.attention( xEth ) + "\n";
         if( isForcePrintOut || verbose_get() >= RV_VERBOSE().information )
             log.write( s );
         details.write( s );
-        //
+
         if( expose_details_get() )
             details.exposeDetailsTo( log, "reimbursement_show_balance", true );
         details.close();
@@ -2396,18 +2377,18 @@ export async function reimbursement_estimate_amount(
         const xWei =
         await jo_community_pool.callStatic.getBalance(
             addressReceiver, strReimbursementChain, { from: addressReceiver } );
-        //
+
         s = strLogPrefix + cc.success( "Balance(wei): " ) + cc.attention( xWei ) + "\n";
         if( isForcePrintOut || verbose_get() >= RV_VERBOSE().information )
             log.write( s );
         details.write( s );
-        //
+
         const xEth = owaspUtils.ethersMod.ethers.utils.formatEther( owaspUtils.toBN( xWei ) );
         s = strLogPrefix + cc.success( "Balance(eth): " ) + cc.attention( xEth ) + "\n";
         if( isForcePrintOut || verbose_get() >= RV_VERBOSE().information )
             log.write( s );
         details.write( s );
-        //
+
         const minTransactionGas =
             owaspUtils.parseIntOrHex(
                 await jo_community_pool.callStatic.minTransactionGas(
@@ -2417,21 +2398,21 @@ export async function reimbursement_estimate_amount(
         if( isForcePrintOut || verbose_get() >= RV_VERBOSE().information )
             log.write( s );
         details.write( s );
-        //
+
         const gasPrice =
             await tc_main_net.computeGasPrice( ethersProvider_main_net, 200000000000 );
         s = strLogPrefix + cc.success( "Multiplied Gas Price: " ) + cc.attention( gasPrice ) + "\n";
         if( isForcePrintOut || verbose_get() >= RV_VERBOSE().information )
             log.write( s );
         details.write( s );
-        //
+
         const minAmount = minTransactionGas * gasPrice;
         s = strLogPrefix + cc.success( "Minimum recharge balance: " ) +
             cc.attention( minAmount ) + "\n";
         if( isForcePrintOut || verbose_get() >= RV_VERBOSE().information )
             log.write( s );
         details.write( s );
-        //
+
         let amountToRecharge = 0;
         if( xWei >= minAmount )
             amountToRecharge = 1;
@@ -2443,7 +2424,7 @@ export async function reimbursement_estimate_amount(
         if( isForcePrintOut || verbose_get() >= RV_VERBOSE().information )
             log.write( s );
         details.write( s );
-        //
+
         const amountToRechargeEth =
             owaspUtils.ethersMod.ethers.utils.formatEther(
                 owaspUtils.toBN( amountToRecharge.toString() ) );
@@ -2452,7 +2433,7 @@ export async function reimbursement_estimate_amount(
         if( isForcePrintOut || verbose_get() >= RV_VERBOSE().information )
             log.write( s );
         details.write( s );
-        //
+
         if( expose_details_get() )
             details.exposeDetailsTo( log, "reimbursement_estimate_amount", true );
         details.close();
@@ -4055,7 +4036,7 @@ export async function do_erc20_payment_from_s_chain(
                 "receipt": joReceiptApprove
             } );
         }
-        //
+
         if( g_nSleepBetweenTransactionsOnSChainMilliseconds ) {
             details.write(
                 cc.normal( "Sleeping " ) +
@@ -4066,10 +4047,7 @@ export async function do_erc20_payment_from_s_chain(
         }
         if( g_bWaitForNextBlockOnSChain )
             await safe_waitForNextBlockToAppear( details, ethersProvider_s_chain );
-        //
-        //
-        //
-        //
+
         strActionName = "ERC20 payment from S-Chain, exitToMainERC20";
         const weiHowMuch_exitToMainERC20 = undefined;
         const estimatedGas_exitToMainERC20 =
@@ -4216,7 +4194,6 @@ export async function do_erc721_payment_from_s_chain(
                 ethersProvider_s_chain
             );
         const arrArguments_approve = [
-            // accountForSchain,
             tokenManagerAddress,
             owaspUtils.ensure_starts_with_0x( owaspUtils.toBN( token_id ).toHexString() )
         ];
@@ -4225,7 +4202,6 @@ export async function do_erc721_payment_from_s_chain(
         const arrArguments_exitToMainERC721 = [
             erc721Address_main_net,
             owaspUtils.ensure_starts_with_0x( owaspUtils.toBN( token_id ).toHexString() )
-            // owaspUtils.ensure_starts_with_0x( owaspUtils.toBN( weiHowMuch ).toHexString() )
         ];
         const weiHowMuch_approve = undefined;
         let gasPrice = await tc_s_chain.computeGasPrice( ethersProvider_s_chain, 200000000000 );
@@ -4286,10 +4262,7 @@ export async function do_erc721_payment_from_s_chain(
         }
         if( g_bWaitForNextBlockOnSChain )
             await safe_waitForNextBlockToAppear( details, ethersProvider_s_chain );
-        //
-        //
-        //
-        //
+
         strActionName = "ERC721 payment from S-Chain, exitToMainERC721";
         const weiHowMuch_exitToMainERC721 = undefined;
         gasPrice = await tc_s_chain.computeGasPrice( ethersProvider_s_chain, 200000000000 );
@@ -4433,7 +4406,6 @@ export async function do_erc1155_payment_from_s_chain(
                 ethersProvider_s_chain
             );
         const arrArguments_approve = [
-            // accountForSchain,
             tokenManagerAddress,
             true
         ];
@@ -4509,10 +4481,7 @@ export async function do_erc1155_payment_from_s_chain(
         }
         if( g_bWaitForNextBlockOnSChain )
             await safe_waitForNextBlockToAppear( details, ethersProvider_s_chain );
-        //
-        //
-        //
-        //
+
         strActionName = "ERC1155 payment from S-Chain, exitToMainERC1155";
         const weiHowMuch_exitToMainERC1155 = undefined;
         gasPrice = await tc_s_chain.computeGasPrice( ethersProvider_s_chain, 200000000000 );
@@ -4656,7 +4625,6 @@ export async function do_erc1155_batch_payment_from_s_chain(
                 ethersProvider_s_chain
             );
         const arrArguments_approve = [
-            // accountForSchain,
             tokenManagerAddress,
             true
         ];
@@ -4731,10 +4699,7 @@ export async function do_erc1155_batch_payment_from_s_chain(
         }
         if( g_bWaitForNextBlockOnSChain )
             await safe_waitForNextBlockToAppear( details, ethersProvider_s_chain );
-        //
-        //
-        //
-        //
+
         strActionName = "ERC1155 batch-payment from S-Chain, exitToMainERC1155Batch";
         const weiHowMuch_exitToMainERC1155Batch = undefined;
         gasPrice = await tc_s_chain.computeGasPrice( ethersProvider_s_chain, 200000000000 );
@@ -4843,10 +4808,9 @@ export async function do_erc1155_batch_payment_from_s_chain(
     return true;
 } // async function do_erc1155_batch_payment_from_s_chain(...
 
-//
 ///////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////
-//
+
 export async function do_erc20_payment_s2s(
     isForward,
     ethersProvider_src,
@@ -5063,10 +5027,8 @@ export async function do_erc20_payment_s2s(
     return true;
 }
 
-//
 ///////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////
-//
 
 export async function do_erc721_payment_s2s(
     isForward,
@@ -6081,12 +6043,6 @@ export async function do_transfer(
                 await jo_message_proxy_src.callStatic.getLastOutgoingMessageBlockId(
                     chain_id_dst,
                     { from: joAccountSrc.address() } ) );
-        // const joReferenceLogRecord =
-        //     await find_out_reference_log_record(
-        //         details, strLogPrefix,
-        //         ethersProvider_src, jo_message_proxy_src,
-        //         bnBlockId, nOutMsgCnt - 1, true
-        //         );
         let arrLogRecordReferences = [];
         try {
             arrLogRecordReferences =
@@ -6095,11 +6051,6 @@ export async function do_transfer(
                     ethersProvider_src, jo_message_proxy_src,
                     bnBlockId, nIncMsgCnt, nOutMsgCnt, true
                 );
-            // if( arrLogRecordReferences.length <= 0 )
-            //     details.success(
-            //         cc.warning(
-            //             "Nothing was found by optimized IMA messages search algorithm" ) +
-            //         "\n" );
         } catch ( err ) {
             arrLogRecordReferences = [];
             details.write(
@@ -6199,9 +6150,6 @@ export async function do_transfer(
                         nIdxCurrentMsg // msgCounter
                     )
                 );
-                // details.write( strLogPrefix +
-                //     cc.normal( "Logs search result(s): " ) + cc.j( r ) +
-                //     "\n" );
                 const strChainHashWeAreLookingFor =
                     owaspUtils.ethersMod.ethers.utils.id( chain_id_dst );
                 let joValues = "";
@@ -6385,9 +6333,7 @@ export async function do_transfer(
                         break;
                     }
                 } // if( nBlockAge > 0 )
-                //
-                //
-                //
+
                 details.write(
                     strLogPrefix +
                     cc.success( "Got event details from " ) + cc.notice( "getPastEvents()" ) +
@@ -6399,8 +6345,7 @@ export async function do_transfer(
                     // + cc.j(evs) +
                     "\n"
                 );
-                //
-                //
+
                 details.write( strLogPrefix +
                     cc.debug( "Will process message counter value " ) +
                     cc.info( nIdxCurrentMsg ) +
@@ -6432,9 +6377,7 @@ export async function do_transfer(
                 save_transfer_success_all();
                 return false;
             }
-            //
-            //
-            //
+
             if( strDirection == "S2S" ) {
                 strActionName = "S2S message analysis";
                 if( ! joExtraSignOpts ) {
@@ -6492,13 +6435,6 @@ export async function do_transfer(
                     cc.info( cntMessages ) + cc.debug( " message(s) to check..." ) +
                     "\n" );
 
-                // jarrMessages.push( {
-                //     "sender": joValues.srcContract,
-                //     "destinationContract": joValues.dstContract,
-                //     "to": joValues.to,
-                //     "amount": joValues.amount,
-                //     "data": joValues.data
-                // } );
                 for( let idxMessage = 0; idxMessage < cntMessages; ++ idxMessage ) {
                     const idxImaMessage = arrMessageCounters[idxMessage];
                     const joMessage = jarrMessages[idxMessage];
@@ -6587,11 +6523,6 @@ export async function do_transfer(
                                 details.write( strError );
                                 if( log.id != details.id )
                                     log.write( strError );
-                                // details.exposeDetailsTo( log, strGatheredDetailsName, false );
-                                // save_transfer_error(
-                                //     strTransferErrorCategoryName, details.toString() );
-                                // details.close();
-                                // return false;
                                 continue;
                             }
                             if( bEventIsFound ) {
@@ -6688,9 +6619,7 @@ export async function do_transfer(
                 } // for( let idxMessage = 0; idxMessage < cntMessages; ++ idxMessage )
 
             } // if( strDirection == "S2S" ) //// "S2S message analysis
-            //
-            //
-            //
+
             strActionName = "sign messages";
             const strWillInvokeSigningCallbackMessage =
                 strLogPrefix +
@@ -6702,7 +6631,7 @@ export async function do_transfer(
             details.write( strWillInvokeSigningCallbackMessage );
             if( log.id != details.id )
                 log.write( strWillInvokeSigningCallbackMessage );
-            //
+
             // will re-open details B log here for next step,
             // it can be delayed so we will flush accumulated details A now
             if( expose_details_get() && details.exposeDetailsTo )
@@ -6718,7 +6647,7 @@ export async function do_transfer(
                 cc.sunny( nTransferLoopCounter ) + cc.debug( "-" ) +
                 cc.info( "do_transfer-B-" ) + cc.notice( chain_id_src ) +
                 cc.debug( "-->" ) + cc.notice( chain_id_dst );
-            //
+
             try {
                 await fn_sign_messages(
                     nTransferLoopCounter,
@@ -6761,7 +6690,6 @@ export async function do_transfer(
                             return false;
                         }
 
-                        //
                         const nBlockSize = arrMessageCounters.length;
                         strActionName = "dst-chain.MessageProxy.postIncomingMessages()";
                         const strWillCallPostIncomingMessagesAction =
@@ -6776,8 +6704,7 @@ export async function do_transfer(
                         details.write( strWillCallPostIncomingMessagesAction );
                         if( log.id != details.id )
                             log.write( strWillCallPostIncomingMessagesAction );
-                        //
-                        //
+
                         let signature = joGlueResult ? joGlueResult.signature : null;
                         if( !signature )
                             signature = { X: "0", Y: "0" };
@@ -6890,20 +6817,13 @@ export async function do_transfer(
                                 details );
                         }
                         cntProcessed += cntAccumulatedForBlock;
-                        //
-                        //
-                        //
-                        //
-                        //
-                        //
-                        //
+
                         details.write( strLogPrefix +
                             cc.debug( "Validating transfer from " ) + cc.info( chain_id_src ) +
                             cc.debug( " to " ) + cc.info( chain_id_dst ) + cc.debug( "..." ) +
                             "\n" );
-                        //
+
                         // check DepositBox -> Error on Mainnet only
-                        //
                         if( chain_id_dst == "Mainnet" ) {
                             details.write( strLogPrefix +
                                 cc.debug( "Validating transfer to Main Net via MessageProxy " +
@@ -7125,31 +7045,26 @@ export async function do_s2s_all( // s-chain --> s-chain
                     joRuntimeOpts.idxChainKnownForS2S = idxSChain;
                     joRuntimeOpts.cntChainsKnownForS2S = cntSChains;
                     joRuntimeOpts.joExtraSignOpts = joExtraSignOpts;
-                    //
+
                     imaState.loopState.s2s.isInProgress = true;
                     await pwa.notify_on_loop_start( imaState, "s2s", nIndexS2S );
-                    //
+
                     bOK =
                     await do_transfer(
                         strDirection,
                         joRuntimeOpts,
-                        //
                         ethersProvider_src,
                         jo_message_proxy_src,
                         joAccountSrc,
                         ethersProvider_dst,
                         jo_message_proxy_dst,
-                        //
                         joAccountDst,
-                        //
                         chain_id_src,
                         chain_id_dst,
                         cid_src,
                         cid_dst,
-                        //
                         jo_deposit_box_src, // for logs validation on mainnet or source S-Chain
                         jo_token_manager_schain, // for logs validation on s-chain
-                        //
                         nTransactionsCountInBlock,
                         nTransferSteps,
                         nMaxTransactionsCount,
@@ -7157,10 +7072,8 @@ export async function do_s2s_all( // s-chain --> s-chain
                         nBlockAge,
                         fn_sign_messages,
                         joExtraSignOpts,
-                        //
                         tc_dst
                     );
-                    //
                     imaState.loopState.s2s.isInProgress = false;
                     await pwa.notify_on_loop_end( imaState, "s2s", nIndexS2S );
                 } else {
@@ -7183,10 +7096,8 @@ export async function do_s2s_all( // s-chain --> s-chain
                     cc.error( ", stack is: " ) + "\n" + cc.stack( err.stack ) +
                     "\n" );
             }
-            //
             imaState.loopState.s2s.isInProgress = false;
             await pwa.notify_on_loop_end( imaState, "s2s", nIndexS2S );
-            //
         }
         if( bOK )
             ++ cntOK;
@@ -7978,7 +7889,6 @@ export async function burnERC721(
     cid,
     chainName,
     joAccount,
-    // strAddressBurnFrom,
     idToken,
     strTokenContractAddress,
     joTokenContractABI,
@@ -7992,8 +7902,6 @@ export async function burnERC721(
             cc.debug( "Burn " ) + cc.info( "ERC721" ) +
             cc.debug( " token ID " ) + cc.notice( idToken ) + "\n" );
         if( ! ( ethersProvider && joAccount &&
-            // strAddressBurnFrom && typeof strAddressBurnFrom == "string" &&
-            // strAddressBurnFrom.length > 0 &&
             strTokenContractAddress && typeof strTokenContractAddress == "string" &&
             strTokenContractAddress.length > 0 && joTokenContractABI
         ) )
@@ -8006,7 +7914,6 @@ export async function burnERC721(
                 ethersProvider
             );
         const arrArguments_burn = [
-            //strAddressBurnFrom,
             owaspUtils.ensure_starts_with_0x( owaspUtils.toBN( idToken ).toHexString() )
         ];
         const weiHowMuch_burn = undefined;

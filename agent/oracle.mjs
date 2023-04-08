@@ -38,11 +38,6 @@ const g_bn1 = numberToBN( 1 );
 const g_bn2 = numberToBN( 2 );
 const g_bn256 = numberToBN( 256 );
 const g_bnUpperPart = g_bn2.pow( g_bn256 ).sub( g_bn1 );
-// log.write(
-//     cc.debug( "using " ) + cc.info( "2**256-1" ) + cc.debug( "=" ) +
-//     cc.info( owaspUtils.ensure_starts_with_0x( g_bnUpperPart.toString( 16 ) ) ) +
-//     cc.debug( "=" ) + cc.info( g_bnUpperPart.toString() ) +
-//     "\n" );
 
 const sleep = ( milliseconds ) => {
     return new Promise( resolve => setTimeout( resolve, milliseconds ) );
@@ -55,7 +50,6 @@ function get_utc_timestamp_string( d ) {
     d = d || new Date(); // use now time if d is not specified
     const nUtcUnixTimeStampWithMilliseconds = d.getTime();
     const t = "" + nUtcUnixTimeStampWithMilliseconds;
-    // const t = "" + parseInt( nUtcUnixTimeStampWithMilliseconds / 1000, 10 ) + "000";
     return t;
 }
 
@@ -85,8 +79,8 @@ export function find_pow_number( strRequestPart, details, isVerbose ) {
         strHash = owaspUtils.ensure_starts_with_0x( strHash );
         //
         const f = numberToBN( strHash );
-        const r = g_bnUpperPart.div( f ); // r = ( 2 ** 256 - 1 ) / f;
-        if( r.gt( g_bnMIN_POW_RESULT ) ) { // if( r > MIN_POW_RESULT )
+        const r = g_bnUpperPart.div( f );
+        if( r.gt( g_bnMIN_POW_RESULT ) ) {
             if( isVerbose ) {
                 details.write(
                     cc.debug( "computed " ) + cc.sunny( "n" ) + cc.debug( "=" ) +
@@ -258,11 +252,6 @@ export function oracle_get_gas_price( oracleOpts, details ) {
                                                 "\n" );
                                         }
                                         await joCall.disconnect();
-                                        // reject( new Error(
-                                        //     "CRITICAL ORACLE CALL ERROR: " +
-                                        //     "JSON RPC call(oracle_checkResult) failed, error: " +
-                                        //     owaspUtils.extract_error_message( err ) )
-                                        //     );
                                         return;
                                     }
                                     if( isVerboseTraceDetails ) {
@@ -287,10 +276,6 @@ export function oracle_get_gas_price( oracleOpts, details ) {
                                                 "\n" );
                                         }
                                         await joCall.disconnect();
-                                        // reject( new Error(
-                                        //     "CRITICAL ORACLE CALL ERROR: " +
-                                        //     "bad unexpected result(oracle_checkResult)"
-                                        // ) );
                                         return;
                                     }
                                     const joResult = JSON.parse( joOut.result );

@@ -104,16 +104,8 @@ class ObserverServer extends SocketServer {
                 "method": "" + joMessage.method,
                 "error": null
             };
-            // self.log(
-            //     cc.debug( "Initialized in-worker IMA loop ") + cc.info( workerData.url ) +
-            //     cc.debug( " options:" ) + " " + cc.j( self.opts ) +
-            //     "\n" );
-            //
             self.opts.imaState.chainProperties.mn.joAccount.address = owaspUtils.fn_address_impl_;
             self.opts.imaState.chainProperties.sc.joAccount.address = owaspUtils.fn_address_impl_;
-            // self.opts.imaState.chainProperties.tc.joAccount.address =
-            //     owaspUtils.fn_address_impl_;
-            //
             if( self.opts.imaState.chainProperties.mn.strURL &&
                 typeof self.opts.imaState.chainProperties.mn.strURL == "string" &&
                 self.opts.imaState.chainProperties.mn.strURL.length > 0
@@ -128,7 +120,7 @@ class ObserverServer extends SocketServer {
                     cc.debug( "(needed for particular operations only)" ) +
                     "\n" );
             }
-            //
+
             if( self.opts.imaState.chainProperties.sc.strURL &&
                 typeof self.opts.imaState.chainProperties.sc.strURL == "string" &&
                 self.opts.imaState.chainProperties.sc.strURL.length > 0
@@ -143,7 +135,7 @@ class ObserverServer extends SocketServer {
                     cc.debug( "(needed for particular operations only)" ) +
                     "\n" );
             }
-            //
+
             self.opts.imaState.loop_opts.joRuntimeOpts.isInsideWorker = true;
             imaState = self.opts.imaState;
             imaState.chainProperties.mn.ethersProvider = null;
@@ -154,7 +146,7 @@ class ObserverServer extends SocketServer {
             imaState.chainProperties.tc.transactionCustomizer = IMA.get_tc_t_chain();
             state.set( imaState );
             imaCLI.ima_contracts_init();
-            //
+
             self.log(
                 cc.debug( "IMA loop worker" ) + " " +
                 cc.notice( workerData.url ) + cc.debug( " will do the following work:" ) + "\n" +
@@ -169,8 +161,6 @@ class ObserverServer extends SocketServer {
             );
             /* await */
             loop.run_transfer_loop( self.opts.imaState.loop_opts );
-            // loop.single_transfer_loop( self.opts.imaState.loop_opts );
-            //
             self.log(
                 cc.debug( "Full init compete for in-worker IMA loop" ) +
                 " " + cc.notice( workerData.url ) +

@@ -203,17 +203,17 @@ function keccak256_message( jarrMessages, nIdxCurrentMsgBlockStart, strFromChain
     let i = 0; const cnt = jarrMessages.length;
     for( i = 0; i < cnt; ++i ) {
         const joMessage = jarrMessages[i];
-        //
+
         let bytesSender = imaUtils.hexToBytes( joMessage.sender.toString() );
         bytesSender = imaUtils.bytesAlignLeftWithZeroes( bytesSender, 32 );
         arrBytes = imaUtils.bytesConcat( arrBytes, bytesSender );
-        //
+
         let bytesDestinationContract =
             imaUtils.hexToBytes( joMessage.destinationContract );
         bytesDestinationContract =
             imaUtils.bytesAlignLeftWithZeroes( bytesDestinationContract, 32 );
         arrBytes = imaUtils.bytesConcat( arrBytes, bytesDestinationContract );
-        //
+
         const bytesData = imaUtils.hexToBytes( joMessage.data );
         arrBytes = imaUtils.bytesConcat( arrBytes, bytesData );
         arrBytes = a2ha( arrBytes );
@@ -221,46 +221,15 @@ function keccak256_message( jarrMessages, nIdxCurrentMsgBlockStart, strFromChain
     return owaspUtils.ensure_starts_with_0x( imaUtils.bytesToHex( arrBytes, false ) );
 }
 
-// const strHashExpected =
-//   "0x3094d655630537e78650506931ca36191bc2d4a85ab3216632f5bf107265c8ea".toLowerCase(),
-//   strHashComputed =
-// keccak256_message(
-//     [ {
-//         "sender": "0x0000000000000000000000000000000000000001",
-//         "destinationContract": "0x0000000000000000000000000000000000000002",
-//         "data": "0x030405" // 0x010203"
-//     } ],
-//     6,
-//     "d2"
-// ).toLowerCase();
-// console.log( "----------------- computed.....", strHashComputed );
-// console.log( "----------------- expected.....", strHashExpected );
-// console.log( "----------------- equal........",
-//          ( strHashComputed == strHashExpected ) ? "yes" : "no" );
-// process.exit( 0 );
-
-// const strHashComputed = keccak256_message( [
-//     {
-//         "sender": "0xAe79233541427BC70Bd3Bfe452ca4B1c69d5a82e",
-//         "destinationContract": "0xd2AaA00400000000000000000000000000000000",
-//         "data": "0x" +
-//                "0000000000000000000000000000000000000000000000000000000000000001" +
-//                "0000000000000000000000007aa5e36aa15e93d10f4f26357c30f052dacdde5f" +
-//                "00000000000000000000000000000000000000000000006c6b935b8bbd400000"
-//     }
-// ], 1, "Mainnet" ).toLowerCase();
-// console.log( "----------------- computed.....", strHashComputed );
-// process.exit( 0 );
-
 export function keccak256_u256( u256, isHash ) {
     let arrBytes = new Uint8Array();
-    //
+
     let bytes_u256 = imaUtils.hexToBytes( u256 );
     bytes_u256 = imaUtils.invertArrayItemsLR( bytes_u256 );
     bytes_u256 = imaUtils.bytesAlignLeftWithZeroes( bytes_u256, 32 );
     bytes_u256 = imaUtils.invertArrayItemsLR( bytes_u256 );
     arrBytes = imaUtils.bytesConcat( arrBytes, bytes_u256 );
-    //
+
     let strMessageHash = "";
     if( isHash ) {
         const hash = new Keccak( 256 );
@@ -273,21 +242,21 @@ export function keccak256_u256( u256, isHash ) {
 
 export function keccak256_pwa( nNodeNumber, strLoopWorkType, isStart, ts ) {
     let arrBytes = new Uint8Array();
-    //
+
     let bytes_u256 = imaUtils.hexToBytes( nNodeNumber );
     bytes_u256 = imaUtils.invertArrayItemsLR( bytes_u256 );
     bytes_u256 = imaUtils.bytesAlignLeftWithZeroes( bytes_u256, 32 );
     bytes_u256 = imaUtils.invertArrayItemsLR( bytes_u256 );
     arrBytes = imaUtils.bytesConcat( arrBytes, bytes_u256 );
-    //
+
     arrBytes = imaUtils.bytesConcat( arrBytes, s2ha( strLoopWorkType ) );
-    //
+
     bytes_u256 = imaUtils.hexToBytes( isStart ? 1 : 0 );
     bytes_u256 = imaUtils.invertArrayItemsLR( bytes_u256 );
     bytes_u256 = imaUtils.bytesAlignLeftWithZeroes( bytes_u256, 32 );
     bytes_u256 = imaUtils.invertArrayItemsLR( bytes_u256 );
     arrBytes = imaUtils.bytesConcat( arrBytes, bytes_u256 );
-    //
+
     bytes_u256 = imaUtils.hexToBytes( ts );
     bytes_u256 = imaUtils.invertArrayItemsLR( bytes_u256 );
     bytes_u256 = imaUtils.bytesAlignLeftWithZeroes( bytes_u256, 32 );
@@ -317,7 +286,6 @@ function get_bls_glue_tmp_dir() {
 function alloc_bls_tmp_action_dir() {
     const strActionDir =
         get_bls_glue_tmp_dir() + "/" + imaUtils.replaceAll( imaUtils.uuid(), "-", "" );
-    // shell.mkdir( "-p", strActionDir );
     if( ! fs.existsSync( strActionDir ) )
         fs.mkdirSync( strActionDir , { recursive: true } );
     return strActionDir;
@@ -335,7 +303,6 @@ function perform_bls_glue(
         cc.info( "BLS" ) + cc.debug( "/" ) +
         cc.attention( "Glue" ) + cc.debug( ":" ) + " ";
     let joGlueResult = null;
-    // const jarrNodes = imaState.joSChainNetworkInfo.network;
     const nThreshold = discover_bls_threshold( imaState.joSChainNetworkInfo );
     const nParticipants = discover_bls_participants( imaState.joSChainNetworkInfo );
     details.write( strLogPrefix +
@@ -353,7 +320,6 @@ function perform_bls_glue(
     details.write( strLogPrefix +
         cc.debug( "Message hash to sign is " ) + cc.info( strMessageHash ) +
         "\n" );
-    // const strPWD = shell.pwd();
     const strActionDir = alloc_bls_tmp_action_dir();
     details.write( strLogPrefix +
         cc.debug( "perform_bls_glue will work in " ) + cc.info( strActionDir ) +
@@ -361,12 +327,10 @@ function perform_bls_glue(
         cc.debug( " sign results..." ) +
         "\n" );
     const fnShellRestore = function() {
-        // shell.cd( strPWD );
         shell.rm( "-rf", strActionDir );
     };
     let strOutput = "";
     try {
-        // shell.cd( strActionDir );
         let strInput = "";
         let i = 0; const cnt = arrSignResults.length;
         for( i = 0; i < cnt; ++i ) {
@@ -441,15 +405,6 @@ function perform_bls_glue(
             joGlueResult = null;
             throw new Error( "malformed BLS glue result: " + JSON.stringify( joSavedGlueResult ) );
         }
-        //
-        // typical glue result is:
-        // {
-        //   "signature": {
-        //     "X": "2533808148583356869465588922364792219279924240245650719832918161014673583859",
-        //     "Y": "2900553917645502192745899163584745093808998719667605626180761629013549672201"
-        //   }
-        // }
-        //
         fnShellRestore();
     } catch ( err ) {
         const s1 = strLogPrefix +
@@ -474,7 +429,6 @@ function perform_bls_glue_u256( details, u256, arrSignResults ) {
         cc.info( "BLS" ) + cc.debug( "/" ) + cc.attention( "Glue" ) +
         cc.debug( ":" ) + " ";
     let joGlueResult = null;
-    // const jarrNodes = imaState.joSChainNetworkInfo.network;
     const nThreshold = discover_bls_threshold( imaState.joSChainNetworkInfo );
     const nParticipants = discover_bls_participants( imaState.joSChainNetworkInfo );
     details.write( strLogPrefix +
@@ -492,7 +446,6 @@ function perform_bls_glue_u256( details, u256, arrSignResults ) {
     details.write( strLogPrefix +
         cc.debug( "Message hash to sign is " ) + cc.info( strMessageHash ) +
         "\n" );
-    // const strPWD = shell.pwd();
     const strActionDir = alloc_bls_tmp_action_dir();
     details.write( strLogPrefix +
         cc.debug( "perform_bls_glue_u256 will work in " ) + cc.info( strActionDir ) +
@@ -500,12 +453,10 @@ function perform_bls_glue_u256( details, u256, arrSignResults ) {
         cc.debug( " sign results..." ) +
         "\n" );
     const fnShellRestore = function() {
-        // shell.cd( strPWD );
         shell.rm( "-rf", strActionDir );
     };
     let strOutput = "";
     try {
-        // shell.cd( strActionDir );
         let strInput = "";
         let i = 0; const cnt = arrSignResults.length;
         for( i = 0; i < cnt; ++i ) {
@@ -539,7 +490,7 @@ function perform_bls_glue_u256( details, u256, arrSignResults ) {
                 cc.success( "BLS glue success" ) +
                 "\n" );
             joGlueResult.hashSrc = strMessageHash;
-            //
+
             details.write( strLogPrefix +
                 cc.debug( "Computing " ) + cc.info( "G1" ) + cc.debug( " hash point..." ) +
                 "\n" );
@@ -563,7 +514,7 @@ function perform_bls_glue_u256( details, u256, arrSignResults ) {
             details.write( strLogPrefix +
                 cc.debug( "HashG1 result is: " ) + cc.j( joResultHashG1 ) +
                 "\n" );
-            //
+
             if( "g1" in joResultHashG1 &&
                 "hint" in joResultHashG1.g1 &&
                 "hashPoint" in joResultHashG1.g1 &&
@@ -581,15 +532,6 @@ function perform_bls_glue_u256( details, u256, arrSignResults ) {
             joGlueResult = null;
             throw new Error( "malformed BLS glue result: " + JSON.stringify( joSavedGlueResult ) );
         }
-        //
-        // typical glue result is:
-        // {
-        //   "signature": {
-        //     "X": "2533808148583356869465588922364792219279924240245650719832918161014673583859",
-        //     "Y": "2900553917645502192745899163584745093808998719667605626180761629013549672201"
-        //   }
-        // }
-        //
         fnShellRestore();
     } catch ( err ) {
         const s1 = strLogPrefix +
@@ -624,15 +566,12 @@ function perform_bls_verify_i(
         cc.notice( "#" ) + cc.bright( nZeroBasedNodeIndex ) + cc.debug( ":" ) + " ";
     const nThreshold = discover_bls_threshold( imaState.joSChainNetworkInfo );
     const nParticipants = discover_bls_participants( imaState.joSChainNetworkInfo );
-    // const strPWD = shell.pwd();
     const strActionDir = alloc_bls_tmp_action_dir();
     const fnShellRestore = function() {
-        // shell.cd( strPWD );
         shell.rm( "-rf", strActionDir );
     };
     let strOutput = "";
     try {
-        // shell.cd( strActionDir );
         details.write( strLogPrefix +
             cc.debug( "BLS node " ) + cc.notice( "#" ) + cc.info( nZeroBasedNodeIndex ) +
             cc.debug( " - first message nonce is " ) + cc.info( nIdxCurrentMsgBlockStart ) +
@@ -663,9 +602,6 @@ function perform_bls_verify_i(
             cc.debug( " and public key " ) + cc.j( joPublicKey ) +
             "\n" );
         const strSignResultFileName = strActionDir + "/sign-result" + nZeroBasedNodeIndex + ".json";
-        // console.log( "--- joResultFromNode ---", JSON.stringify( joResultFromNode ) );
-        // console.log( "--- joMsg ---", JSON.stringify( joMsg ) );
-        // console.log( "--- joPublicKey ---", JSON.stringify( joPublicKey ) );
         imaUtils.jsonFileSave( strSignResultFileName, joResultFromNode );
         imaUtils.jsonFileSave( strActionDir + "/hash.json", joMsg );
         imaUtils.jsonFileSave(
@@ -728,16 +664,12 @@ function perform_bls_verify_i_u256(
         cc.debug( ":" ) + " ";
     const nThreshold = discover_bls_threshold( imaState.joSChainNetworkInfo );
     const nParticipants = discover_bls_participants( imaState.joSChainNetworkInfo );
-    // const strPWD = shell.pwd();
     const strActionDir = alloc_bls_tmp_action_dir();
     const fnShellRestore = function() {
-        // shell.cd( strPWD );
         shell.rm( "-rf", strActionDir );
     };
     let strOutput = "";
     try {
-        // shell.cd( strActionDir );
-        //
         const joMsg = { "message": keccak256_u256( u256, true ) };
         details.write( strLogPrefix +
             cc.debug( "BLS u256 node " ) +
@@ -748,9 +680,6 @@ function perform_bls_verify_i_u256(
             cc.debug( " and public key " ) + cc.j( joPublicKey ) +
             "\n" );
         const strSignResultFileName = strActionDir + "/sign-result" + nZeroBasedNodeIndex + ".json";
-        // console.log( "--- joResultFromNode ---", JSON.stringify( joResultFromNode ) );
-        // console.log( "--- joMsg ---", JSON.stringify( joMsg ) );
-        // console.log( "--- joPublicKey ---", JSON.stringify( joPublicKey ) );
         imaUtils.jsonFileSave( strSignResultFileName, joResultFromNode );
         imaUtils.jsonFileSave( strActionDir + "/hash.json", joMsg );
         imaUtils.jsonFileSave(
@@ -813,10 +742,8 @@ function perform_bls_verify(
     const imaState = state.get();
     const nThreshold = discover_bls_threshold( imaState.joSChainNetworkInfo );
     const nParticipants = discover_bls_participants( imaState.joSChainNetworkInfo );
-    // const strPWD = shell.pwd();
     const strActionDir = alloc_bls_tmp_action_dir();
     const fnShellRestore = function() {
-        // shell.cd( strPWD );
         shell.rm( "-rf", strActionDir );
     };
     let strOutput = "";
@@ -825,7 +752,6 @@ function perform_bls_verify(
         cc.info( "BLS" ) + cc.debug( "/" ) +
         cc.sunny( "Summary" ) + cc.debug( ":" ) + " ";
     try {
-        // shell.cd( strActionDir );
         details.write( strLogPrefix +
             cc.debug( "BLS/summary verify message - first message nonce is " ) +
             cc.info( nIdxCurrentMsgBlockStart ) +
@@ -854,13 +780,6 @@ function perform_bls_verify(
             "\n" );
         imaUtils.jsonFileSave( strActionDir + "/glue-result.json", joGlueResult );
         imaUtils.jsonFileSave( strActionDir + "/hash.json", joMsg );
-        // let joCommonPublicKey_for_O = joCommonPublicKey;
-        // const joCommonPublicKey_for_O = {
-        //     commonBLSPublicKey0: joCommonPublicKey.commonBLSPublicKey1,
-        //     commonBLSPublicKey1: joCommonPublicKey.commonBLSPublicKey0,
-        //     commonBLSPublicKey2: joCommonPublicKey.commonBLSPublicKey3,
-        //     commonBLSPublicKey3: joCommonPublicKey.commonBLSPublicKey2
-        // };
         const joCommonPublicKey_for_O = {
             commonBLSPublicKey0: joCommonPublicKey.commonBLSPublicKey0,
             commonBLSPublicKey1: joCommonPublicKey.commonBLSPublicKey1,
@@ -913,17 +832,14 @@ function perform_bls_verify_u256( details, joGlueResult, u256, joCommonPublicKey
     const imaState = state.get();
     const nThreshold = discover_bls_threshold( imaState.joSChainNetworkInfo );
     const nParticipants = discover_bls_participants( imaState.joSChainNetworkInfo );
-    // const strPWD = shell.pwd();
     const strActionDir = alloc_bls_tmp_action_dir();
     const fnShellRestore = function() {
-        // shell.cd( strPWD );
         shell.rm( "-rf", strActionDir );
     };
     let strOutput = "";
     const strLogPrefix =
         cc.info( "BLS u256" ) + cc.debug( "/" ) + cc.sunny( "Summary" ) + cc.debug( ":" ) + " ";
     try {
-        // shell.cd( strActionDir );
         const joMsg = { "message": keccak256_u256( u256, true ) };
         details.write( strLogPrefix +
             cc.debug( "BLS u256/summary verify message " ) + cc.j( joMsg ) +
@@ -933,13 +849,6 @@ function perform_bls_verify_u256( details, joGlueResult, u256, joCommonPublicKey
             "\n" );
         imaUtils.jsonFileSave( strActionDir + "/glue-result.json", joGlueResult );
         imaUtils.jsonFileSave( strActionDir + "/hash.json", joMsg );
-        // let joCommonPublicKey_for_O = joCommonPublicKey;
-        // const joCommonPublicKey_for_O = {
-        //     commonBLSPublicKey0: joCommonPublicKey.commonBLSPublicKey1,
-        //     commonBLSPublicKey1: joCommonPublicKey.commonBLSPublicKey0,
-        //     commonBLSPublicKey2: joCommonPublicKey.commonBLSPublicKey3,
-        //     commonBLSPublicKey3: joCommonPublicKey.commonBLSPublicKey2
-        // };
         const joCommonPublicKey_for_O = {
             commonBLSPublicKey0: joCommonPublicKey.commonBLSPublicKey0,
             commonBLSPublicKey1: joCommonPublicKey.commonBLSPublicKey1,
@@ -1069,16 +978,8 @@ async function check_correctness_of_messages_to_sign(
                     "msgCounter": 0 + idxMessage,
                     "srcContract": joMessage.sender,
                     "dstContract": joMessage.destinationContract,
-                    // "to": joMessage.to,
-                    // "amount": strHexAmount,
                     "data": joMessage.data
                 };
-                // details.write(
-                //     cc.debug( "Outgoing message data is " ) + cc.j( outgoingMessageData ) +
-                //     cc.debug( ", real message index is: " ) + cc.info( idxMessage ) +
-                //     cc.debug( ", saved msgCounter is: " ) +
-                //     cc.info( outgoingMessageData.msgCounter ) +
-                //     "\n" );
                 const isValidMessage = await joMessageProxy.callStatic.verifyOutgoingMessageData(
                     outgoingMessageData,
                     { from: strCallerAccountAddress }
@@ -1188,30 +1089,6 @@ async function do_sign_messages_impl(
             details, strLogPrefix, strDirection,
             jarrMessages, nIdxCurrentMsgBlockStart, joExtraSignOpts
         );
-        //
-        // each message in array looks like:
-        // {
-        //     "amount": joValues.amount,
-        //     "data": joValues.data,
-        //     "destinationContract": joValues.dstContract,
-        //     "sender": joValues.srcContract,
-        //     "to": joValues.to
-        // }
-        //
-        // sign result looks like:
-        // {
-        //     "id": 1, "jsonrpc": "2.0", "result": {
-        //         "signResult": {
-        //             "errorMessage": "",
-        //             "signatureShare":
-        //                "1388840966680404685349011481382162449183640761793190558611252027" +
-        //                "5264817002720:98715892663124762783225875563408719829391352371231" +
-        //                "40475925975407511373249165:0",
-        //             "status": 0
-        //         }
-        //     }
-        // }
-        //
         const sequence_id =
             owaspUtils.remove_starting_0x(
                 owaspUtils.ethersMod.ethers.utils.id( log.generate_timestamp_string( null, false ) )
@@ -1249,12 +1126,6 @@ async function do_sign_messages_impl(
             return;
         }
         const nCountOfBlsPartsToCollect = 0 + nThreshold;
-        // if( nThreshold <= 1 && nParticipants > 1 ) {
-        //     details.write( strLogPrefix +
-        //         cc.warning( "Minimal BLS parts number for discovery was increased." ) +
-        //         "\n" );
-        //     nCountOfBlsPartsToCollect = 2;
-        // }
         details.write( strLogPrefix +
             cc.debug( "Will collect " ) + cc.info( nCountOfBlsPartsToCollect ) +
             cc.debug( " from " ) + cc.info( jarrNodes.length ) + cc.debug( " nodes" ) +
@@ -1306,8 +1177,6 @@ async function do_sign_messages_impl(
                 let fromChainName = "";
                 let targetChainID = -4;
                 let fromChainID = -4;
-                // let targetChainURL = "";
-                // let fromChainURL = "";
                 if( strDirection == "M2S" ) {
                     targetChainName = "" +
                         ( imaState.chainProperties.sc.strChainName
@@ -1352,8 +1221,6 @@ async function do_sign_messages_impl(
                     "dstChainID": targetChainID,
                     "srcChainID": fromChainID,
                     "messages": jarrMessages,
-                    // "fromChainURL": fromChainURL,
-                    // "targetChainURL": targetChainURL,
                     "qa": {
                         "skaled_no": 0 + i,
                         "sequence_id": "" + sequence_id,
@@ -1511,19 +1378,6 @@ async function do_sign_messages_impl(
                                 log.write( strErrorMessage );
                                 details.write( strErrorMessage );
                             }
-                            //
-                            // sign result for bls_glue should look like:
-                            // {
-                            //     "index": "1",
-                            //     "signature": {
-                            //         "X":
-                            //            "81844716946346301195501275399737047691906" +
-                            //            "48951089883109386639469590492862134",
-                            //         "Y": "477377543524431896472608585645269137938" +
-                            //              "1914783621253742616578726383405809710"
-                            //     }
-                            // }
-                            //
                             if( bNodeSignatureOKay ) {
                                 arrSignResults.push( {
                                     index: "" + nZeroBasedNodeIndex,
@@ -1558,7 +1412,6 @@ async function do_sign_messages_impl(
         } // for( let i = 0; i < jarrNodes.length; ++i )
 
         details.write( strLogPrefix + cc.debug( "Waiting for BLS glue result " ) + "\n" );
-        // log.write( strLogPrefix + cc.debug( "Waiting for BLS glue result " ) + "\n" );
         let errGathering = null;
         const promise_gathering_complete = new Promise( ( resolve, reject ) => {
             const iv = setInterval( function() {
@@ -1585,7 +1438,6 @@ async function do_sign_messages_impl(
                         if( imaState.strPathBlsVerify.length > 0 ) {
                             const joCommonPublicKey =
                                 discover_common_public_key( imaState.joSChainNetworkInfo );
-                            // console.log(joCommonPublicKey);
                             if( perform_bls_verify(
                                 details,
                                 strDirection,
@@ -1620,7 +1472,6 @@ async function do_sign_messages_impl(
                         cc.debug( ", jarrMessages is " ) + cc.j( jarrMessages ) +
                         cc.debug( ", glue result is " ) + cc.j( joGlueResult ) + "\n";
                     details.write( strCallbackCallDescription );
-                    // log.write( strCallbackCallDescription );
                     /*await*/ fn( strError, jarrMessages, joGlueResult ).catch( ( err ) => {
                         const strErrorMessage =
                             cc.error( "Problem(2) in BLS sign result handler: " ) +
@@ -1753,7 +1604,6 @@ async function do_sign_messages_impl(
         if( ! bHaveResultReportCalled ) {
             const strErrorMessage = cc.error( "Failed BLS sign result awaiting(2): " ) +
                 cc.warning( "No reports were arrived" ) +
-                // cc.warning( owaspUtils.extract_error_message( err ) )
                 + "\n";
             log.write( strErrorMessage );
             details.write( strErrorMessage );
@@ -1806,7 +1656,6 @@ async function do_sign_messages_impl(
     }
     const strFinalMessage = cc.info( strGatheredDetailsName ) + cc.success( " completed" ) + "\n";
     details.write( strFinalMessage );
-    // log.write( strFinalMessage );
     if( details ) {
         details.exposeDetailsTo( log, strGatheredDetailsName, true );
         details.close();
@@ -1873,21 +1722,6 @@ export async function do_sign_u256( u256, details, fn ) {
         await fn( "BLS u256 signing is unavailable", u256, null );
         return;
     }
-    //
-    // sign result looks like:
-    // {
-    //     "id": 1, "jsonrpc": "2.0", "result": {
-    //         "signResult": {
-    //             "errorMessage": "",
-    //             "signatureShare":
-    //               "1388840966680404685349011481382162449183640761793190558611252027526481700" +
-    //               "2720:98715892663124762783225875563408719829391352371231404759259754075113" +
-    //               "73249165:0",
-    //             "status": 0
-    //         }
-    //     }
-    // }
-    //
     details.write( strLogPrefix +
         cc.debug( "Will sign " ) + cc.info( u256 ) + cc.debug( " value..." ) +
         "\n" );
@@ -1925,12 +1759,6 @@ export async function do_sign_u256( u256, details, fn ) {
         return;
     }
     const nCountOfBlsPartsToCollect = 0 + nThreshold;
-    // if( nThreshold <= 1 && nParticipants > 1 ) {
-    //     details.write( strLogPrefix +
-    //         cc.warning( "Minimal BLS parts number for discovery was increased." ) +
-    //         "\n" );
-    //     nCountOfBlsPartsToCollect = 2;
-    // }
     details.write( strLogPrefix +
         cc.debug( "Will(u256) collect " ) + cc.info( nCountOfBlsPartsToCollect ) +
         cc.debug( " from " ) + cc.info( jarrNodes.length ) + cc.debug( " nodes" ) +
@@ -2094,18 +1922,6 @@ export async function do_sign_u256( u256, details, fn ) {
                             log.write( strErrorMessage );
                             details.write( strErrorMessage );
                         }
-                        //
-                        // sign result for bls_glue should look like:
-                        // {
-                        //     "index": "1",
-                        //     "signature": {
-                        //         "X":  "818447169463463011955012753997370476919" +
-                        //               "0648951089883109386639469590492862134",
-                        //         "Y":  "477377543524431896472608585645269137938" +
-                        //               "1914783621253742616578726383405809710"
-                        //     }
-                        // }
-                        //
                         if( bNodeSignatureOKay ) {
                             arrSignResults.push( {
                                 index: "" + nZeroBasedNodeIndex,
@@ -2160,7 +1976,6 @@ export async function do_sign_u256( u256, details, fn ) {
                     if( imaState.strPathBlsVerify.length > 0 ) {
                         const joCommonPublicKey =
                             discover_common_public_key( imaState.joSChainNetworkInfo );
-                        // console.log(joCommonPublicKey);
                         if( perform_bls_verify_u256(
                             details,
                             joGlueResult,
@@ -2278,7 +2093,6 @@ export async function do_sign_u256( u256, details, fn ) {
         g_secondsMessageVerifySendTimeout
     ).then( strSuccessfulResultDescription => {
         details.write( cc.info( "BLS u256 sign promise awaited." ) + "\n" );
-        // log.write( cc.info( "BLS u256 sign promise awaited." ) + "\n" );
     } ).catch( err => {
         const strErrorMessage =
             cc.error( "Failed to verify BLS and send message : " ) +
@@ -2326,15 +2140,12 @@ export async function do_verify_ready_hash(
     };
     const nThreshold = discover_bls_threshold( imaState.joSChainNetworkInfo );
     const nParticipants = discover_bls_participants( imaState.joSChainNetworkInfo );
-    // const strPWD = shell.pwd();
     const strActionDir = alloc_bls_tmp_action_dir();
     const fnShellRestore = function() {
-        // shell.cd( strPWD );
         shell.rm( "-rf", strActionDir );
     };
     let strOutput = "";
     try {
-        // shell.cd( strActionDir );
         details.write( strLogPrefix +
             cc.debug( "BLS node " ) + cc.notice( "#" ) +
             cc.info( nZeroBasedNodeIndex ) +
@@ -2351,9 +2162,6 @@ export async function do_verify_ready_hash(
             cc.debug( " and public key " ) + cc.j( joPublicKey ) +
             "\n" );
         const strSignResultFileName = strActionDir + "/sign-result" + nZeroBasedNodeIndex + ".json";
-        // console.log( "--- joResultFromNode ---", JSON.stringify( joResultFromNode ) );
-        // console.log( "--- joMsg ---", JSON.stringify( joMsg ) );
-        // console.log( "--- joPublicKey ---", JSON.stringify( joPublicKey ) );
         imaUtils.jsonFileSave( strSignResultFileName, joResultFromNode );
         imaUtils.jsonFileSave( strActionDir + "/hash.json", joMsg );
         imaUtils.jsonFileSave(
@@ -2450,9 +2258,6 @@ export async function do_sign_ready_hash( strMessageHash, isExposeOutput ) {
                 "cert": fs.readFileSync( joAccount.strPathSslCert, "utf8" ),
                 "key": fs.readFileSync( joAccount.strPathSslKey, "utf8" )
             };
-            // details.write(
-            //     cc.debug( "Will sign via SGX with SSL options " ) + cc.j( rpcCallOpts ) +
-            //     "\n" );
         } else {
             details.write(
                 cc.warning( "Will sign via SGX" ) + " " + cc.error( "without SSL options" ) +
@@ -2480,7 +2285,6 @@ export async function do_sign_ready_hash( strMessageHash, isExposeOutput ) {
                 "jsonrpc": "2.0",
                 "id": randomCallID(),
                 "method": "blsSignMessageHash",
-                // "type": "BLSSignReq",
                 "params": {
                     "keyShareName": joAccount.strBlsKeyName,
                     "messageHash": strMessageHash,
@@ -2615,11 +2419,9 @@ export async function handle_skale_imaVerifyAndSign( joCallData ) {
             cc.debug( " verification algorithm message hash to sign is " ) +
             cc.info( strMessageHash ) +
             "\n" );
-        //
+
         let joExtraSignOpts = null;
         if( strDirection == "S2S" ) {
-            // joCallData.params.dstChainName
-            // joCallData.params.srcChainName
             const strSChainNameSrc = joCallData.params.srcChainName;
             const strSChainNameDst = joCallData.params.dstChainName;
             details.write(
@@ -2695,9 +2497,6 @@ export async function handle_skale_imaVerifyAndSign( joCallData ) {
                 "cert": fs.readFileSync( joAccount.strPathSslCert, "utf8" ),
                 "key": fs.readFileSync( joAccount.strPathSslKey, "utf8" )
             };
-            // details.write(
-            //     cc.debug( "Will sign via SGX with SSL options " ) + cc.j( rpcCallOpts ) +
-            //     "\n" );
         } else {
             details.write(
                 cc.warning( "Will sign via SGX" ) +
@@ -2726,7 +2525,6 @@ export async function handle_skale_imaVerifyAndSign( joCallData ) {
                 "jsonrpc": "2.0",
                 "id": randomCallID(),
                 "method": "blsSignMessageHash",
-                // "type": "BLSSignReq",
                 "params": {
                     "keyShareName": joAccount.strBlsKeyName,
                     "messageHash": strMessageHash,
@@ -2738,7 +2536,6 @@ export async function handle_skale_imaVerifyAndSign( joCallData ) {
             details.write(
                 strLogPrefix + cc.bright( strDirection ) +
                 cc.debug( " verification algorithm will invoke " ) + cc.info( "SGX" ) + " " +
-                // cc.u( joAccount.strSgxURL ) + " " +
                 cc.debug( "with call data" ) + " " + cc.j( joCallSGX ) +
                 "\n" );
             await joCall.call( joCallSGX, async function( joIn, joOut, err ) {
@@ -2870,9 +2667,6 @@ export async function handle_skale_imaBSU256( joCallData ) {
                 "cert": fs.readFileSync( joAccount.strPathSslCert, "utf8" ),
                 "key": fs.readFileSync( joAccount.strPathSslKey, "utf8" )
             };
-            // details.write(
-            //     cc.debug( "Will sign via SGX with SSL options " ) + cc.j( rpcCallOpts ) +
-            //     "\n" );
         } else {
             details.write(
                 cc.warning( "Will sign via SGX" ) + " " + cc.error( "without SSL options" ) +
@@ -2900,7 +2694,6 @@ export async function handle_skale_imaBSU256( joCallData ) {
                 "jsonrpc": "2.0",
                 "id": randomCallID(),
                 "method": "blsSignMessageHash",
-                // "type": "BLSSignReq",
                 "params": {
                     "keyShareName": joAccount.strBlsKeyName,
                     "messageHash": strMessageHash,

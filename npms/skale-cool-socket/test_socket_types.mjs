@@ -127,59 +127,10 @@ async function test_web_socket() {
     return joReturnValue;
 }
 
-// async function test_wrtc() {
-//     //
-//     // Needed in package.json: "wrtc": "^0.4.6",
-//     //
-//     // ## Coturn - own STUN and/or TURN server
-//     //
-//     // See <https://github.com/coturn/coturn>
-//     // and see <https://www.allerstorfer.at/install-coturn-on-ubuntu/>
-//     // Explanation for Mac OSX is
-//     //    <https://medium.com/@ittipon.bay/how-to-setup-coturn-for-mac-a3c4a6ba4db8>
-//     //
-//     // Install via **sudo apt-get install coturn** or **brew install coturn**.
-//     // Run **sudo nano /etc/turnserver.conf** and specify
-//     // described in <https://www.allerstorfer.at/install-coturn-on-ubuntu/>,
-//     // realm **realm=origin/realm**, **no-tls** and **no-dtls**.
-//     // Also set **listening-ip** to **0.0.0.0**
-//     //
-//     // **STUN** config entry is
-//     //     **{ urls: "stun:127.0.0.1:3478", username: "webrtc", credential: "qwerty" }**.
-//     // **TURN** config entry is
-//     //     **{ urls: "turn:127.0.0.1:3478", username: "webrtc", credential: "qwerty" }**.
-//     //
-//     console.log( "Web RTC test" );
-//     network_layer.set_ws_mod( ws );
-//     network_layer.set_wrtc_mod( wrtc );
-//     const url = null; // null here means url will be got from settings
-//     const acceptor = new network_layer.WebRTCServerAcceptor( url );
-//     const server = new TestSocketServer( acceptor );
-//     server.on( "dispose", function() { console.log( "disposed", url ); } );
-//     console.log( "Will connect to " + url );
-//     const client = new network_layer.WebRTCClientPipe( url );
-//     client.on( "message", function( eventData ) {
-//         const joMessage = eventData.message;
-//         console.log( "CLIENT <<<", JSON.stringify( joMessage ) );
-//         client.disconnect();
-//         console.log( " " );
-//     } );
-//     await sleep( 1000 );
-//     console.log( "CLIENT >>>", JSON.stringify( joTestMessage ) );
-//     client.send( joTestMessage );
-//     await sleep( 1000 );
-//     const joReturnValue = {
-//         server: server,
-//         client: client
-//     };
-//     return joReturnValue;
-// }
-
 async function test() {
     await test_local();
     await test_worker();
     await test_web_socket();
-    // await test_wrtc();
     process.exit( 0 );
 }
 test();

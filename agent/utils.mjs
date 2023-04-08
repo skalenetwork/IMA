@@ -254,9 +254,6 @@ export async function wait_for_cloned_token_erc20_appear(
     const address_on_s_chain =
         await wait_for_cloned_token_to_appear(
             sc, "erc20", addressCallFrom, 40, tokensMN, strMainnetName );
-    // if( ! tokenERC20SC.joABI )
-    //     tokenERC20SC.joABI = { };
-    // tokenERC20SC.joABI.ERC20_abi = JSON.parse( JSON.stringify( tokensMN.joABI.ERC20_abi ) );
     tokenERC20SC.abi = JSON.parse( JSON.stringify( tokensMN.joABI.ERC20_abi ) );
     tokenERC20SC.address = "" + address_on_s_chain;
 }
@@ -278,10 +275,6 @@ export async function wait_for_cloned_token_erc721_appear(
         await wait_for_cloned_token_to_appear(
             sc, "erc721", addressCallFrom, 40, tokensMN, strMainnetName
         );
-    // if( ! tokenERC721SC.joABI )
-    //     tokenERC721SC.joABI = { };
-    // tokenERC721SC.joABI.ERC721_abi = JSON.parse( JSON.stringify( tokensMN.joABI.ERC721_abi ) );
-    // tokenERC721SC.joABI.ERC721_address = "" + address_on_s_chain;
     tokenERC721SC.abi = JSON.parse( JSON.stringify( tokensMN.joABI.ERC721_abi ) );
     tokenERC721SC.address = "" + address_on_s_chain;
 }
@@ -301,11 +294,6 @@ export async function wait_for_cloned_token_erc721_with_metadata_appear(
     const address_on_s_chain =
         await wait_for_cloned_token_to_appear(
             sc, "erc721_with_metadata", addressCallFrom, 40, tokensMN, strMainnetName );
-    // if( ! tokenERC721SC.joABI )
-    //     tokenERC721SC.joABI = { };
-    // tokenERC721SC.joABI.ERC721_with_metadata_abi =
-    //     JSON.parse( JSON.stringify( tokensMN.joABI.ERC721_with_metadata_abi ) );
-    // tokenERC721SC.joABI.ERC72_with_metadata1_address = "" + address_on_s_chain;
     tokenERC721SC.abi = JSON.parse( JSON.stringify( tokensMN.joABI.ERC721_with_metadata_abi ) );
     tokenERC721SC.address = "" + address_on_s_chain;
 }
@@ -326,11 +314,6 @@ export async function wait_for_cloned_token_erc1155_appear(
     const address_on_s_chain =
         await wait_for_cloned_token_to_appear(
             sc, "erc1155", addressCallFrom, 40, tokensMN, strMainnetName );
-    // if( ! tokenERC1155SC.joABI )
-    //     tokenERC1155SC.joABI = { };
-    // tokenERC1155SC.joABI.ERC1155_abi =
-    //     JSON.parse( JSON.stringify( tokensMN.joABI.ERC1155_abi ) );
-    // tokenERC1155SC.joABI.ERC1155_address = "" + address_on_s_chain;
     tokenERC1155SC.abi = JSON.parse( JSON.stringify( tokensMN.joABI.ERC1155_abi ) );
     tokenERC1155SC.address = "" + address_on_s_chain;
 }

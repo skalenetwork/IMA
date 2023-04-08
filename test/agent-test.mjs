@@ -35,8 +35,6 @@ import * as IMA from "../npms/skale-ima/index.mjs";
 import * as log from "../npms/skale-log/log.mjs";
 import * as imaUtils from "../agent/utils.mjs";
 import * as imaCLI from "../agent/cli.mjs";
-// log.addStdout();
-// log.addMemory(); // console.log( log.getStreamWithFilePath( "memory" ).strAccumulatedLogText );
 
 import * as state from "../agent/state.mjs";
 
@@ -714,8 +712,6 @@ describe( "OWASP", function() {
             const address = joTestAccount.address();
             const address2 =
                 owaspUtils.private_key_2_account_address( joTestAccount.privateKey );
-            // console.log( "private key is", joTestAccount.privateKey );
-            // console.log( "computed address is", joTestAccount.address() );
             assert.equal(
                 address.toLowerCase(),
                 "0x7aa5E36AA15E93D10F4F26357C30F052DacDde5F".toLowerCase() );
@@ -725,10 +721,7 @@ describe( "OWASP", function() {
         } );
 
         it( "Extract public key from private key", function() {
-            // const address = joTestAccount.address();
             const publicKey = owaspUtils.private_key_2_public_key( joTestAccount.privateKey );
-            // console.log( "private key is", joTestAccount.privateKey );
-            // console.log( "extracted public is", publicKey );
             assert.equal(
                 publicKey.toLowerCase(),
                 ( "5dd431d36ce6b88f27d351051b31a26848c4a886f0dd0bc87a7d5a9d82" +
@@ -740,9 +733,6 @@ describe( "OWASP", function() {
             const address = joTestAccount.address();
             const publicKey = owaspUtils.private_key_2_public_key( joTestAccount.privateKey );
             const address2 = owaspUtils.public_key_2_account_address( publicKey );
-            // console.log( "computed address is", joTestAccount.address() );
-            // console.log( "private key is", joTestAccount.privateKey );
-            // console.log( "extracted address is", publicKey );
             assert.equal( address.toLowerCase(), address2.toLowerCase() );
         } );
     } );
@@ -1047,7 +1037,6 @@ describe( "Agent Utils Module", function() {
             const strPathTmpFolder = os.tmpdir();
             const strPathTmpFile =
                 path.join( strPathTmpFolder, imaUtils.getRandomFileName() + ".txt" );
-            // console.log( "Tmp file is", strPathTmpFile );
             assert.equal( strPathTmpFile ? true : false, true );
         } );
 
@@ -1198,7 +1187,6 @@ describe( "Agent Utils Module", function() {
             const strPathTmpFolder = os.tmpdir();
             const strPathTmpFile =
                 path.join( strPathTmpFolder, imaUtils.getRandomFileName() + ".txt" );
-            // console.log( "Tmp file is", strPathTmpFile );
             try { fs.unlinkSync( strPathTmpFile ); } catch ( err ) { };
             assert.equal( imaUtils.fileExists( strPathTmpFile ), false );
             const strContentSaved = "Text file content";
@@ -1215,7 +1203,6 @@ describe( "Agent Utils Module", function() {
             const strPathTmpFolder = os.tmpdir();
             const strPathTmpFile =
                 path.join( strPathTmpFolder, imaUtils.getRandomFileName() + ".json" );
-            // console.log( "Tmp file is", strPathTmpFile );
             try { fs.unlinkSync( strPathTmpFile ); } catch ( err ) { };
             assert.equal( imaUtils.fileExists( strPathTmpFile ), false );
             const joContentSaved = { a: 123, b: 456 };
@@ -1275,7 +1262,6 @@ describe( "Agent Utils Module", function() {
                     { error: "file \"" + strFile + "\"was not loaded" } );
             const strCoinName =
                 imaUtils.discover_in_json_coin_name( joABI );
-            // console.log( "strCoinName is", strCoinName );
             assert.equal( strCoinName.length > 0, true );
         } );
 

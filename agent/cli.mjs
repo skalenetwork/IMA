@@ -74,8 +74,6 @@ export function parse_command_line_argument( s ) {
     return joArg;
 }
 
-//
-//
 // check correctness of command line arguments
 export function ensure_have_value(
     name, value, isExitIfEmpty,
@@ -219,7 +217,7 @@ export function find_node_index( joSChainNodeConfiguration ) {
                 return i;
         }
     } catch ( err ) {}
-    return 0; // ???
+    return 0;
 }
 
 export function parse( joExternalHandlers, argv ) {
@@ -230,7 +228,7 @@ export function parse( joExternalHandlers, argv ) {
         if( joArg.name == "help" ) {
             print_about();
             const soi = "    "; // options indent
-            //
+
             console.log( cc.sunny( "GENERAL" ) + cc.info( " options:" ) );
             console.log( soi + cc.debug( "--" ) + cc.bright( "help" ) +
                 cc.debug( ".................................." ) + cc.notice( "Show this " ) +
@@ -244,7 +242,7 @@ export function parse( joExternalHandlers, argv ) {
             console.log( soi + cc.debug( "--" ) + cc.bright( "no-colors" ) +
                 cc.debug( "............................." ) + cc.notice( "Use " ) +
                 cc.normal( "monochrome logging" ) + cc.notice( "." ) );
-            //
+
             console.log( cc.sunny( "BLOCKCHAIN NETWORK" ) + cc.info( " options:" ) );
             console.log( soi + cc.debug( "--" ) +
                 cc.bright( "url-main-net" ) + cc.sunny( "=" ) + cc.attention( "URL" ) +
@@ -314,7 +312,7 @@ export function parse( joExternalHandlers, argv ) {
                 cc.warning( "CID_SCHAIN_TARGET" ) +
                 cc.notice( " environment variable if not specified. " ) +
                 cc.debug( "Default value is " ) + cc.sunny( -4 ) + cc.notice( "." ) );
-            //
+
             console.log( cc.sunny( "BLOCKCHAIN INTERFACE" ) + cc.info( " options:" ) );
             console.log( soi + cc.debug( "--" ) +
                 cc.bright( "abi-skale-manager" ) + cc.sunny( "=" ) + cc.attention( "path" ) +
@@ -337,7 +335,7 @@ export function parse( joExternalHandlers, argv ) {
                 cc.debug( "......................" ) +
                 cc.notice( "Path to JSON file containing " ) + cc.bright( "IMA" ) +
                 cc.notice( " ABI for " ) + cc.note( "S<->S Target S-chain" ) + cc.notice( "." ) );
-            //
+
             console.log( cc.sunny( "ERC20 INTERFACE" ) + cc.info( " options:" ) );
             console.log( soi + cc.debug( "--" ) +
                 cc.bright( "erc20-main-net" ) + cc.sunny( "=" ) + cc.attention( "path" ) +
@@ -363,7 +361,7 @@ export function parse( joExternalHandlers, argv ) {
                 cc.debug( "............" ) + cc.notice( "Explicit " ) + cc.bright( "ERC20" ) +
                 cc.notice( " address in " ) +
                 cc.note( "S<->S Target S-chain" ) + cc.notice( "." ) );
-            //
+
             console.log( cc.sunny( "ERC721 INTERFACE" ) + cc.info( " options:" ) );
             console.log( soi + cc.debug( "--" ) +
                 cc.bright( "erc721-main-net" ) + cc.sunny( "=" ) + cc.attention( "path" ) +
@@ -388,7 +386,7 @@ export function parse( joExternalHandlers, argv ) {
                 cc.bright( "addr-erc721-t-chain" ) + cc.sunny( "=" ) + cc.attention( "address" ) +
                 cc.debug( "..........." ) + cc.notice( "Explicit " ) + cc.bright( "ERC721" ) +
                 cc.notice( " address in " ) + cc.note( "S<->S S-chain" ) + cc.notice( "." ) );
-            //
+
             console.log( cc.sunny( "ERC1155 INTERFACE" ) + cc.info( " options:" ) );
             console.log( soi + cc.debug( "--" ) +
                 cc.bright( "erc1155-main-net" ) + cc.sunny( "=" ) + cc.attention( "path" ) +
@@ -413,7 +411,7 @@ export function parse( joExternalHandlers, argv ) {
                 cc.bright( "addr-erc1155-t-chain" ) + cc.sunny( "=" ) + cc.attention( "address" ) +
                 cc.debug( ".........." ) + cc.notice( "Explicit " ) + cc.bright( "ERC1155" ) +
                 cc.notice( " address in " ) + cc.note( "S<->S S-chain" ) + cc.notice( "." ) );
-            //
+
             console.log( cc.sunny( "USER ACCOUNT" ) + cc.info( " options:" ) );
             console.log( soi + cc.debug( "--" ) +
                 cc.bright( "tm-url-main-net" ) + cc.sunny( "=" ) + cc.attention( "URL" ) +
@@ -524,7 +522,7 @@ export function parse( joExternalHandlers, argv ) {
                 cc.notice( ". Value is automatically loaded from the " ) +
                 cc.warning( "BLS_KEY_S_CHAIN_TARGET" ) +
                 cc.notice( " environment variable if not specified." ) );
-            //
+
             console.log( soi + cc.debug( "--" ) +
                 cc.bright( "sgx-ssl-key-main-net" ) + cc.sunny( "=" ) + cc.attention( "path" ) +
                 cc.debug( "............." ) + cc.notice( "Path to " ) + cc.note( "SSL key file" ) +
@@ -573,7 +571,7 @@ export function parse( joExternalHandlers, argv ) {
                 cc.notice( ". Value is automatically loaded from the " ) +
                 cc.warning( "SGX_SSL_CERT_FILE_S_CHAIN_TARGET" ) +
                 cc.notice( " environment variable if not specified." ) );
-            //
+
             console.log( soi + cc.debug( "--" ) +
                 cc.bright( "address-main-net" ) + cc.sunny( "=" ) + cc.warning( "value" ) +
                 cc.debug( "................" ) + cc.note( "Main-net" ) + " " +
@@ -619,7 +617,7 @@ export function parse( joExternalHandlers, argv ) {
                 cc.notice( ". Value is automatically loaded from the " ) +
                 cc.warning( "PRIVATE_KEY_FOR_SCHAIN_TARGET" ) +
                 cc.notice( " environment variable if not specified." ) );
-            //
+
             console.log( soi + cc.debug( "Please notice, IMA prefer to use transaction manager " +
                 "to sign blockchain transactions if " ) +
                 cc.attention( "--tm-url-main-net" ) + cc.debug( "/" ) +
@@ -642,7 +640,7 @@ export function parse( joExternalHandlers, argv ) {
                 cc.warning( "PRIVATE_KEY_FOR_SCHAIN" ) +
                 cc.debug( " shell variables were specified. " )
             );
-            //
+
             console.log( cc.sunny( "GENERAL TRANSFER" ) + cc.info( " options:" ) );
             console.log( soi + cc.debug( "--" ) +
                 cc.bright( "value" ) + cc.sunny( "=" ) + cc.attention( "number" ) +
@@ -712,7 +710,7 @@ export function parse( joExternalHandlers, argv ) {
                 cc.debug( "......................." ) +
                 cc.notice( "Wait for next block between transactions " +
                 "during complex operations." ) );
-            //
+
             console.log( cc.sunny( "S-CHAIN TO S-CHAIN TRANSFER" ) + cc.info( " options:" ) );
             console.log( soi + cc.debug( "--" ) +
                 cc.bright( "s2s-enable" ) + cc.debug( "............................" ) +
@@ -732,7 +730,7 @@ export function parse( joExternalHandlers, argv ) {
                 cc.debug( " seconds or " ) + cc.sunny( "1" ) + cc.debug( " hour, specify " ) +
                 cc.sunny( "0" ) + cc.debug( " to " ) + cc.error( "disable" ) + " " +
                 cc.note( "SKALE NETWORK" ) + cc.debug( " re-discovery" ) + cc.notice( "." ) );
-            //
+
             console.log( cc.sunny( "PAYMENT TRANSACTION" ) + cc.info( " options:" ) );
             console.log( soi + cc.debug( "--" ) +
                 cc.bright( "gas-price-multiplier-mn" ) + cc.debug( "..............." ) +
@@ -782,7 +780,7 @@ export function parse( joExternalHandlers, argv ) {
                 cc.notice( "Sets " ) + cc.attention( "Gas Value Multiplier" ) +
                 cc.notice( " for both " ) + cc.note( "Main Net" ) + cc.notice( " and " ) +
                 cc.note( "S-Chain" ) + cc.debug( "(s)" ) + cc.notice( "." ) );
-            //
+
             console.log( cc.sunny( "REGISTRATION" ) + cc.info( " commands:" ) );
             console.log( soi + cc.debug( "--" ) +
                 cc.bright( "register" ) + cc.debug( ".............................." ) +
@@ -813,7 +811,7 @@ export function parse( joExternalHandlers, argv ) {
                 cc.notice( " - register " ) + cc.note( "Main-net" ) + cc.notice( "'s " ) +
                 cc.attention( "deposit box" ) + cc.notice( " on " ) + cc.note( "S-Chain" ) +
                 cc.notice( "." ) );
-            //
+
             console.log( cc.sunny( "ACTION" ) + cc.info( " commands:" ) );
             console.log( soi + cc.debug( "--" ) +
                 cc.bright( "show-config" ) + cc.debug( "..........................." ) +
@@ -899,7 +897,7 @@ export function parse( joExternalHandlers, argv ) {
                 cc.bright( "simple-loop" ) + cc.debug( "..........................." ) +
                 cc.notice( "Run " ) + cc.note( "M<->S" ) + cc.notice( " and, optionally, " ) +
                 cc.note( "S->S" ) + cc.notice( " transfer loops in main thread only." ) );
-            //
+
             console.log( cc.sunny( "ADDITIONAL ACTION" ) + cc.info( " options:" ) );
             console.log( soi + cc.debug( "--" ) +
                 cc.bright( "no-wait-s-chain" ) + cc.debug( "......................." ) +
@@ -1097,7 +1095,7 @@ export function parse( joExternalHandlers, argv ) {
                 cc.bright( "IMA Agent" ) + cc.notice( " after specified number of seconds" ) +
                 cc.debug( "(" ) + cc.sunny( "0" ) + cc.debug( " is no automatic exit, " ) +
                 cc.sunny( "3600" ) + cc.debug( " is no default)" ) + cc.notice( "." ) );
-            //
+
             console.log( cc.sunny( "TOKEN TESTING" ) + cc.info( " commands:" ) );
             console.log( soi + cc.debug( "--" ) +
                 cc.bright( "mint-erc20" ) + cc.debug( "............................" ) +
@@ -1131,7 +1129,7 @@ export function parse( joExternalHandlers, argv ) {
                 cc.attention( "tid" ) + cc.debug( " or " ) + cc.attention( "tids" ) +
                 cc.debug( " command line arguments." )
             );
-            //
+
             console.log( cc.sunny( "IMA WORK STATE ANALYSIS" ) + cc.info( " options:" ) );
             console.log( soi + cc.debug( "--" ) +
                 cc.bright( "pwa" ) + cc.debug( "..................................." ) +
@@ -1167,7 +1165,7 @@ export function parse( joExternalHandlers, argv ) {
                 cc.debug( "......................." ) +
                 cc.debug( "Optional parameter, specifies path to " ) +
                 cc.note( "verify_bls" ) + cc.debug( " application." ) );
-            //
+
             console.log( cc.sunny( "MONITORING" ) + cc.info( " options:" ) );
             console.log( soi + cc.debug( "--" ) +
                 cc.bright( "monitoring-port" ) + cc.sunny( "=" ) + cc.note( "number" ) +
@@ -1177,7 +1175,7 @@ export function parse( joExternalHandlers, argv ) {
                 cc.sunny( "0" ) + cc.debug( " to " ) + cc.error( "disable" ) +
                 cc.notice( "." ) + cc.debug( " By default monitoring server is " ) +
                 cc.error( "disabled" ) + cc.notice( "." ) );
-            //
+
             console.log( cc.sunny( "GAS REIMBURSEMENT" ) + cc.info( " options:" ) );
             console.log( soi + cc.debug( "--" ) +
                 cc.bright( "reimbursement-chain" ) + cc.sunny( "=" ) + cc.note( "name" ) +
@@ -1205,7 +1203,7 @@ export function parse( joExternalHandlers, argv ) {
                 cc.note( "minimal time interval" ) + cc.notice( " between transfers from " ) +
                 cc.note( "S-Chain" ) + cc.notice( " to " ) + cc.note( "Main Net" ) +
                 cc.notice( "." ) );
-            //
+
             console.log( cc.sunny( "PAST EVENTS SCAN" ) + cc.info( " options:" ) );
             console.log( soi + cc.debug( "--" ) +
                 cc.bright( "bs-step-size" ) + cc.sunny( "=" ) + cc.note( "number" ) +
@@ -1229,7 +1227,7 @@ export function parse( joExternalHandlers, argv ) {
                 cc.bright( "bs-progressive-disable" ) + cc.debug( "................" ) +
                 cc.error( "Disables" ) + " " + cc.attention( "progressive block scan" ) +
                 cc.notice( " to search past events." ) );
-            //
+
             console.log( cc.sunny( "ORACLE BASED GAS REIMBURSEMENT" ) + cc.info( " options:" ) );
             console.log( soi + cc.debug( "--" ) +
                 cc.bright( "enable-oracle" ) + cc.debug( "........................." ) +
@@ -1242,7 +1240,7 @@ export function parse( joExternalHandlers, argv ) {
                 cc.error( "Disable" ) + cc.notice( " call to " ) + cc.note( "Oracle" ) +
                 cc.notice( " to compute " ) + cc.note( "gas price" ) + cc.notice( " for " ) +
                 cc.attention( "gas reimbursement" ) + cc.notice( "." ) );
-            //
+
             console.log( cc.sunny( "IMA JSON RPC SERVER" ) + cc.info( " options:" ) );
             console.log( soi + cc.debug( "--" ) +
                 cc.bright( "json-rpc-port" ) + cc.sunny( "=" ) + cc.note( "number" ) +
@@ -1266,7 +1264,7 @@ export function parse( joExternalHandlers, argv ) {
                 cc.notice( " and operation state inside time frames. " ) +
                 cc.debug( "Use calls to " ) + cc.attention( "skaled" ) + cc.notice( "." ) +
                 cc.debug( " Default mode" ) + cc.notice( "." ) );
-            //
+
             console.log( cc.sunny( "TEST" ) + cc.info( " options:" ) );
             console.log( soi + cc.debug( "--" ) +
                 cc.bright( "browse-s-chain" ) + cc.debug( "........................" ) +
@@ -1288,7 +1286,7 @@ export function parse( joExternalHandlers, argv ) {
                 cc.notice( " from provided " ) + cc.note( "URL(s)" ) + cc.notice( "." ) +
                 cc.debug( " This command is not executed automatically at startup" ) +
                 cc.notice( "." ) );
-            //
+
             console.log( cc.sunny( "OPTIMIZATION" ) + cc.info( " options:" ) );
             console.log( soi + cc.debug( "--" ) +
                 cc.bright( "enable-multicall" ) + cc.debug( "......................" ) +
@@ -1297,7 +1295,7 @@ export function parse( joExternalHandlers, argv ) {
             console.log( soi + cc.debug( "--" ) +
                 cc.bright( "disable-multicall" ) + cc.debug( "....................." ) +
                 cc.error( "Disable" ) + cc.notice( " optimizations via multi-call." ) );
-            //
+
             console.log( cc.sunny( "LOGGING" ) + cc.info( " options:" ) );
             console.log( soi + cc.debug( "--" ) +
                 cc.bright( "expose" ) + cc.debug( "................................" ) +
@@ -1368,7 +1366,7 @@ export function parse( joExternalHandlers, argv ) {
             console.log( soi + cc.debug( "--" ) +
                 cc.bright( "dynamic-log-in-bls-signer" ) + cc.debug( "............." ) +
                 cc.notice( "Use realtime log in BLS signer." ) );
-            //
+
             process.exit( 0 );
         }
         if( joArg.name == "version" ) {
@@ -1449,32 +1447,22 @@ export function parse( joExternalHandlers, argv ) {
             imaState.chainProperties.tc.cid = owaspUtils.toInteger( joArg.value );
             continue;
         }
-        //
-        //
+
         if( joArg.name == "tm-url-main-net" ) {
             owaspUtils.verifyArgumentIsURL( joArg );
             const strURL = "" + joArg.value;
-            // if( strURL.indexOf( "/sign-and-send" ) < 0 )
-            //    strURL += "/sign-and-send";
-            // strURL += "/0";
             imaState.chainProperties.mn.joAccount.strTransactionManagerURL = strURL;
             continue;
         }
         if( joArg.name == "tm-url-s-chain" ) {
             owaspUtils.verifyArgumentIsURL( joArg );
             const strURL = "" + joArg.value;
-            // if( strURL.indexOf( "/sign-and-send" ) < 0 )
-            //    strURL += "/sign-and-send";
-            // strURL += "/0";
             imaState.chainProperties.sc.joAccount.strTransactionManagerURL = strURL;
             continue;
         }
         if( joArg.name == "tm-url-t-chain" ) {
             owaspUtils.verifyArgumentIsURL( joArg );
             const strURL = "" + joArg.value;
-            // if( strURL.indexOf( "/sign-and-send" ) < 0 )
-            //    strURL += "/sign-and-send";
-            // strURL += "/0";
             imaState.chainProperties.tc.joAccount.strTransactionManagerURL = strURL;
             continue;
         }
@@ -1541,7 +1529,7 @@ export function parse( joExternalHandlers, argv ) {
             imaState.chainProperties.tc.joAccount.strBlsKeyName = joArg.value;
             continue;
         }
-        //
+
         if( joArg.name == "sgx-ssl-key-main-net" ) {
             owaspUtils.verifyArgumentIsPathToExistingFile( joArg );
             imaState.chainProperties.mn.joAccount.strPathSslKey =
@@ -1578,8 +1566,7 @@ export function parse( joExternalHandlers, argv ) {
                 imaUtils.normalizePath( joArg.value );
             continue;
         }
-        //
-        //
+
         if( joArg.name == "address-main-net" ) {
             owaspUtils.verifyArgumentWithNonEmptyValue( joArg );
             imaState.chainProperties.mn.joAccount.address_ = joArg.value;
@@ -1635,8 +1622,7 @@ export function parse( joExternalHandlers, argv ) {
             imaState.chainProperties.tc.strPathAbiJson = imaUtils.normalizePath( joArg.value );
             continue;
         }
-        //
-        //
+
         if( joArg.name == "erc20-main-net" ) {
             owaspUtils.verifyArgumentIsPathToExistingFile( joArg );
             imaState.chainProperties.mn.strPathJsonErc20 = imaUtils.normalizePath( joArg.value );
@@ -1662,8 +1648,7 @@ export function parse( joExternalHandlers, argv ) {
             imaState.strAddrErc20_explicit_target = joArg.value;
             continue;
         }
-        //
-        //
+
         if( joArg.name == "erc721-main-net" ) {
             owaspUtils.verifyArgumentIsPathToExistingFile( joArg );
             imaState.chainProperties.mn.strPathJsonErc721 = imaUtils.normalizePath( joArg.value );
@@ -1689,8 +1674,7 @@ export function parse( joExternalHandlers, argv ) {
             imaState.strAddrErc721_explicit_target = joArg.value;
             continue;
         }
-        //
-        //
+
         if( joArg.name == "erc1155-main-net" ) {
             owaspUtils.verifyArgumentIsPathToExistingFile( joArg );
             imaState.chainProperties.mn.strPathJsonErc1155 = imaUtils.normalizePath( joArg.value );
@@ -1716,8 +1700,7 @@ export function parse( joExternalHandlers, argv ) {
             imaState.strAddrErc1155_explicit_target = joArg.value;
             continue;
         }
-        //
-        //
+
         if( joArg.name == "sleep-between-tx" ) {
             owaspUtils.verifyArgumentIsInteger( joArg );
             IMA.setSleepBetweenTransactionsOnSChainMilliseconds( joArg.value );
@@ -1734,49 +1717,42 @@ export function parse( joExternalHandlers, argv ) {
         }
         if( joArg.name == "wei" ) {
             owaspUtils.verifyArgumentWithNonEmptyValue( joArg );
-            // imaState.nAmountOfWei = joArg.value * 1;
             imaState.nAmountOfWei =
                 owaspUtils.parseMoneySpecToWei( "" + joArg.value + "wei", true );
             continue;
         }
         if( joArg.name == "babbage" ) {
             owaspUtils.verifyArgumentWithNonEmptyValue( joArg );
-            // imaState.nAmountOfWei = joArg.value * 1000;
             imaState.nAmountOfWei =
                 owaspUtils.parseMoneySpecToWei( "" + joArg.value + "babbage", true );
             continue;
         }
         if( joArg.name == "lovelace" ) {
             owaspUtils.verifyArgumentWithNonEmptyValue( joArg );
-            // imaState.nAmountOfWei = joArg.value * 1000 * 1000;
             imaState.nAmountOfWei =
                 owaspUtils.parseMoneySpecToWei( "" + joArg.value + "lovelace", true );
             continue;
         }
         if( joArg.name == "shannon" ) {
             owaspUtils.verifyArgumentWithNonEmptyValue( joArg );
-            // imaState.nAmountOfWei = joArg.value * 1000 * 1000 * 1000;
             imaState.nAmountOfWei =
                 owaspUtils.parseMoneySpecToWei( "" + joArg.value + "shannon", true );
             continue;
         }
         if( joArg.name == "szabo" ) {
             owaspUtils.verifyArgumentWithNonEmptyValue( joArg );
-            // imaState.nAmountOfWei = joArg.value * 1000 * 1000 * 1000 * 1000;
             imaState.nAmountOfWei =
                 owaspUtils.parseMoneySpecToWei( "" + joArg.value + "szabo", true );
             continue;
         }
         if( joArg.name == "finney" ) {
             owaspUtils.verifyArgumentWithNonEmptyValue( joArg );
-            // imaState.nAmountOfWei = joArg.value * 1000 * 1000 * 1000 * 1000 * 1000;
             imaState.nAmountOfWei =
                 owaspUtils.parseMoneySpecToWei( "" + joArg.value + "finney", true );
             continue;
         }
         if( joArg.name == "ether" ) {
             owaspUtils.verifyArgumentWithNonEmptyValue( joArg );
-            // imaState.nAmountOfWei = joArg.value * 1000 * 1000 * 1000 * 1000 * 1000 * 1000;
             imaState.nAmountOfWei =
                 owaspUtils.parseMoneySpecToWei( "" + joArg.value + "ether", true );
             continue;
@@ -1801,7 +1777,7 @@ export function parse( joExternalHandlers, argv ) {
             imaState.have_idTokens = true;
             continue;
         }
-        //
+
         if( joArg.name == "gas-price-multiplier-mn" ) {
             let gasPriceMultiplier = owaspUtils.toFloat( joArg.value );
             if( gasPriceMultiplier < 0.0 )
@@ -1836,7 +1812,7 @@ export function parse( joExternalHandlers, argv ) {
                 gasPriceMultiplier;
             continue;
         }
-        //
+
         if( joArg.name == "gas-multiplier-mn" ) {
             let gasMultiplier = owaspUtils.toFloat( joArg.value );
             if( gasMultiplier < 0.0 )
@@ -1871,7 +1847,7 @@ export function parse( joExternalHandlers, argv ) {
                 gasMultiplier;
             continue;
         }
-        //
+
         if( joArg.name == "s2s-enable" ) {
             imaState.s2s_opts.isEnabled = true;
             continue;
@@ -1890,7 +1866,7 @@ export function parse( joExternalHandlers, argv ) {
             imaState.isWithMetadata721 = true;
             continue;
         }
-        //
+
         if( joArg.name == "show-config" ) {
             imaState.bShowConfigMode = true;
             continue;
@@ -2316,9 +2292,6 @@ async function async_check_url_at_startup( u, name ) {
             cc.error( ", stack is: " ) + "\n" + cc.stack( err.stack ) +
             "\n" );
     }
-    // details.exposeDetailsTo( log,
-    //    "async_check_url_at_startup( \"" + u + "\", \"" + name + "\" )", true );
-    // details.close();
     return false;
 }
 
@@ -2401,7 +2374,7 @@ export function ima_common_init() {
             cc.debug( "(needed for particular operations only)" ) +
             "\n" );
     }
-    //
+
     if( imaState.chainProperties.mn.strPathAbiJson &&
         typeof imaState.chainProperties.mn.strPathAbiJson == "string" &&
         imaState.chainProperties.mn.strPathAbiJson.length > 0 ) {
@@ -2416,7 +2389,7 @@ export function ima_common_init() {
             cc.debug( "(needed for particular operations only)" ) +
             "\n" );
     }
-    //
+
     if( imaState.chainProperties.sc.strPathAbiJson &&
         typeof imaState.chainProperties.sc.strPathAbiJson == "string" &&
         imaState.chainProperties.sc.strPathAbiJson.length > 0
@@ -2432,7 +2405,7 @@ export function ima_common_init() {
             cc.debug( "(needed for particular operations only)" ) +
             "\n" );
     }
-    //
+
     if( imaState.chainProperties.tc.strPathAbiJson &&
         typeof imaState.chainProperties.tc.strPathAbiJson == "string" &&
         imaState.chainProperties.tc.strPathAbiJson.length > 0
@@ -2448,7 +2421,6 @@ export function ima_common_init() {
             cc.debug( "(needed for particular operations only)" ) +
             "\n" );
     }
-    //
 
     if( imaState.bHaveSkaleManagerABI ) {
         imaUtils.check_keys_exist_in_abi( "skale-manager",
@@ -2483,7 +2455,6 @@ export function ima_common_init() {
             cc.note( "S-Chain" ) + cc.warning( " transfers" ) +
             "\n" );
     }
-    // process.exit( 126 );
 
     if( imaState.chainProperties.mn.bHaveAbiIMA ) {
         imaUtils.check_keys_exist_in_abi( "main-net",
@@ -2610,16 +2581,7 @@ export function ima_common_init() {
             oct( imaState.jo_token_manager_linker ) + "\n" );
         log.write( cc.sunny( "ERC20" ) + cc.debug( " ..........................address is....." ) +
             oct( imaState.eth_erc20 ) + "\n" );
-        // log.write( "S-Chain  " ) + cc.sunny( "ERC721" ) +
-        //     cc.debug( " ......................address is....." ) +
-        //     oct( imaState.eth_erc721 ) + "\n" );
-        // log.write( "S-Chain  " ) + cc.sunny( "ERC1155" ) +
-        //     cc.debug( " .....................address is....." ) +
-        //     oct( imaState.eth_erc1155 ) + "\n" );
         log.write( cc.bright( "IMA contracts(Target S-Chain):" ) + "\n" );
-        // log.write( "S-Chain  " ) + cc.sunny( "TokenManagerEth" ) +
-        //     cc.debug( "..............address is....." ) +
-        //     oct( imaState.jo_token_manager_eth_target ) + "\n" );
         log.write( cc.sunny( "TokenManagerERC20" ) + cc.debug( "...............address is....." ) +
             oct( imaState.jo_token_manager_erc20_target ) + "\n" );
         log.write( cc.sunny( "TokenManagerERC721" ) + cc.debug( "..............address is....." ) +
@@ -2636,14 +2598,7 @@ export function ima_common_init() {
             oct( imaState.jo_token_manager_linker_target ) + "\n" );
         log.write( cc.sunny( "ERC20" ) + cc.debug( " ..........................address is....." ) +
             oct( imaState.eth_erc20_target ) + "\n" );
-        // log.write( "S-Chain  " ) + cc.sunny( "ERC721" ) +
-        //     cc.debug( " ......................address is....." ) +
-        //     oct( imaState.eth_erc721_target ) + "\n" );
-        // log.write( "S-Chain  " ) + cc.sunny( "ERC1155" ) +
-        ///    cc.debug( " .....................address is....." ) +
-        //     oct( imaState.eth_erc1155_target ) + "\n" );
 
-        // if( imaState.bHaveSkaleManagerABI ) {
         log.write( cc.bright( "Skale Manager contracts:" ) + "\n" );
         log.write( cc.sunny( "ConstantsHolder" ) + cc.debug( ".................address is....." ) +
             oct( imaState.jo_constants_holder ) + "\n" );
@@ -2665,15 +2620,8 @@ export function ima_common_init() {
             oct( imaState.jo_validator_service ) + "\n" );
         log.write( cc.sunny( "Wallets" ) + cc.debug( ".........................address is....." ) +
             oct( imaState.jo_wallets ) + "\n" );
-        // } else
-        //     log.write( cc.warning( "WARNING:" ) + " " +
-        //         cc.warning( "no Skale Manager contracts to list, " +
-        //             "Skale Manager ABI was not provided" ) + "\n" );
     } // if( isPrintGathered )
 
-    //
-    //
-    //
     if( imaState.chainProperties.mn.strPathJsonErc20.length > 0
     /* && imaState.chainProperties.sc.strPathJsonErc20.length > 0 */
     ) {
@@ -2699,7 +2647,7 @@ export function ima_common_init() {
                 imaUtils.jsonFileLoad( imaState.chainProperties.sc.strPathJsonErc20, null );
             n2 = Object.keys( imaState.chainProperties.sc.joErc20 ).length;
         }
-        if( n1 > 0 /* && n2 > 0 */ ) {
+        if( n1 > 0 ) {
             imaState.chainProperties.tc.strCoinNameErc20 =
                 imaUtils.discover_in_json_coin_name( imaState.chainProperties.mn.joErc20 );
             if( n2 > 0 ) {
@@ -2709,7 +2657,7 @@ export function ima_common_init() {
             n1 = imaState.chainProperties.tc.strCoinNameErc20.length;
             if( n2 > 0 )
                 n2 = imaState.chainProperties.sc.strCoinNameErc20.length;
-            if( n1 > 0 /* && n2 > 0 */ ) {
+            if( n1 > 0 ) {
                 if( isPrintGathered &&
                     IMA.verbose_get() >= IMA.RV_VERBOSE().information &&
                     ( !imaState.bShowConfigMode )
@@ -2766,8 +2714,6 @@ export function ima_common_init() {
             process.exit( 126 );
         }
     } else {
-        // if( imaState.chainProperties.mn.strPathJsonErc20.length > 0
-        // /*&& imaState.chainProperties.sc.strPathJsonErc20.length > 0*/ )
         if( imaState.chainProperties.sc.strPathJsonErc20.length > 0 ) {
             n1 = 0;
             n2 = 0;
@@ -2829,14 +2775,9 @@ export function ima_common_init() {
             imaState.chainProperties.sc.joErc20[
                 imaState.chainProperties.sc.strCoinNameErc20 + "_address"] =
                     "" + imaState.strAddrErc20_explicit; // set explicit address
-            // if( isPrintGathered && IMA.verbose_get() > IMA.RV_VERBOSE().information )
-            //     log.write(
-            //          cc.info("Auto-generated S-Chain ERC20 JSON is ") +
-            //          cc.j(imaState.chainProperties.sc.joErc20) +
-            //          "\n" );
         }
     }
-    //
+
     if( imaState.chainProperties.tc.strPathJsonErc20.length > 0 ) {
         if( isPrintGathered && IMA.verbose_get() > IMA.RV_VERBOSE().information ) {
             log.write(
@@ -2883,12 +2824,8 @@ export function ima_common_init() {
                 "explicit ERC20 address are not specified" ) +
             "\n" );
     }
-    //
-    //
-    //
-    if( imaState.chainProperties.mn.strPathJsonErc721.length > 0
-    /* && imaState.chainProperties.sc.strPathJsonErc721.length > 0 */
-    ) {
+
+    if( imaState.chainProperties.mn.strPathJsonErc721.length > 0 ) {
         n1 = 0;
         n2 = 0;
         if( isPrintGathered && IMA.verbose_get() > IMA.RV_VERBOSE().information ) {
@@ -2911,7 +2848,7 @@ export function ima_common_init() {
                 imaUtils.jsonFileLoad( imaState.chainProperties.sc.strPathJsonErc721, null );
             n2 = Object.keys( imaState.chainProperties.sc.joErc721 ).length;
         }
-        if( n1 > 0 /* && n2 > 0 */ ) {
+        if( n1 > 0 ) {
             imaState.chainProperties.mn.strCoinNameErc721 =
                 imaUtils.discover_in_json_coin_name( imaState.chainProperties.mn.joErc721 );
             if( n2 > 0 ) {
@@ -2921,7 +2858,7 @@ export function ima_common_init() {
             n1 = imaState.chainProperties.mn.strCoinNameErc721.length;
             if( n2 > 0 )
                 n2 = imaState.chainProperties.sc.strCoinNameErc721.length;
-            if( n1 > 0 /* && n2 > 0 */ ) {
+            if( n1 > 0 ) {
                 if( IMA.verbose_get() >= IMA.RV_VERBOSE().information &&
                 ( !imaState.bShowConfigMode ) ) {
                     if( isPrintGathered ) {
@@ -2978,8 +2915,6 @@ export function ima_common_init() {
             process.exit( 126 );
         }
     } else {
-        // if( imaState.chainProperties.mn.strPathJsonErc721.length > 0
-        // /*&& imaState.chainProperties.sc.strPathJsonErc721.length > 0*/ )
         if( imaState.chainProperties.sc.strPathJsonErc721.length > 0 ) {
             n1 = 0;
             n2 = 0;
@@ -3044,14 +2979,9 @@ export function ima_common_init() {
             imaState.chainProperties.sc.joErc721[
                 imaState.chainProperties.sc.strCoinNameErc721 + "_address"] =
                     "" + imaState.strAddrErc721_explicit; // set explicit address
-            // if( IMA.verbose_get() > IMA.RV_VERBOSE().information )
-            //     log.write(
-            //         cc.info("Auto-generated S-Chain ERC721 JSON is ") +
-            //         cc.j(imaState.chainProperties.sc.joErc721) +
-            //         "\n" );
         }
     }
-    //
+
     if( imaState.chainProperties.tc.strPathJsonErc721.length > 0 &&
         isPrintGathered
     ) {
@@ -3101,12 +3031,8 @@ export function ima_common_init() {
                 "explicit ERC721 address are not specified" ) +
             "\n" );
     }
-    //
-    //
-    //
-    if( imaState.chainProperties.mn.strPathJsonErc1155.length > 0
-    /* && imaState.chainProperties.sc.strPathJsonErc1155.length > 0 */
-    ) {
+
+    if( imaState.chainProperties.mn.strPathJsonErc1155.length > 0 ) {
         n1 = 0;
         n2 = 0;
         if( isPrintGathered && IMA.verbose_get() > IMA.RV_VERBOSE().information ) {
@@ -3129,7 +3055,7 @@ export function ima_common_init() {
                 imaUtils.jsonFileLoad( imaState.chainProperties.sc.strPathJsonErc1155, null );
             n2 = Object.keys( imaState.chainProperties.sc.joErc1155 ).length;
         }
-        if( n1 > 0 /* && n2 > 0 */ ) {
+        if( n1 > 0 ) {
             imaState.chainProperties.mn.strCoinNameErc1155 =
                 imaUtils.discover_in_json_coin_name( imaState.chainProperties.mn.joErc1155 );
             if( n2 > 0 ) {
@@ -3139,7 +3065,7 @@ export function ima_common_init() {
             n1 = imaState.chainProperties.mn.strCoinNameErc1155.length;
             if( n2 > 0 )
                 n2 = imaState.chainProperties.sc.strCoinNameErc1155.length;
-            if( n1 > 0 /* && n2 > 0 */ ) {
+            if( n1 > 0 ) {
                 if( IMA.verbose_get() >= IMA.RV_VERBOSE().information &&
                     ( !imaState.bShowConfigMode )
                 ) {
@@ -3197,8 +3123,6 @@ export function ima_common_init() {
             process.exit( 126 );
         }
     } else {
-        // if( imaState.chainProperties.mn.strPathJsonErc1155.length > 0
-        // /*&& imaState.chainProperties.sc.strPathJsonErc1155.length > 0*/ )
         if( imaState.chainProperties.sc.strPathJsonErc1155.length > 0 ) {
             n1 = 0;
             n2 = 0;
@@ -3263,14 +3187,9 @@ export function ima_common_init() {
             imaState.chainProperties.sc.joErc1155[
                 imaState.chainProperties.sc.strCoinNameErc1155 + "_address"] =
                     "" + imaState.strAddrErc1155_explicit; // set explicit address
-            // if( IMA.verbose_get() > IMA.RV_VERBOSE().information )
-            //     log.write(
-            //         cc.info("Auto-generated S-Chain ERC1155 JSON is ") +
-            //         cc.j(imaState.chainProperties.sc.joErc1155) +
-            //         "\n" );
         }
     }
-    //
+
     if( imaState.chainProperties.tc.strPathJsonErc1155.length > 0 ) {
         if( isPrintGathered && IMA.verbose_get() > IMA.RV_VERBOSE().information ) {
             log.write(
@@ -3320,9 +3239,6 @@ export function ima_common_init() {
                 "explicit ERC1155 address are not specified" ) +
             "\n" );
     }
-    //
-    //
-    //
 
     if( IMA.verbose_get() > IMA.RV_VERBOSE().information || imaState.bShowConfigMode ) {
         const isPrintGathered = imaState.isPrintGathered ? true : false;
@@ -3427,8 +3343,7 @@ export function ima_common_init() {
             imaState.chainProperties.tc.strPathAbiJson, false, isPrintGathered, null, ( x ) => {
                 return cc.warning( x );
             } );
-        //
-        //
+
         try {
             ensure_have_value( "Main-net user account address",
                 imaState.chainProperties.mn.joAccount.address(), false,
@@ -3445,26 +3360,7 @@ export function ima_common_init() {
                 imaState.chainProperties.tc.joAccount.address(),
                 false, isPrintGathered );
         } catch ( err ) {}
-        //
-        // ensure_have_value(
-        //     "Private key for main-net user account address",
-        //     imaState.chainProperties.mn.joAccount.privateKey, false,
-        //     isPrintGathered && isPrintSecurityValues, null, ( x ) => {
-        //     return cc.attention( x );
-        // } );
-        // ensure_have_value(
-        //     "Private key for S-Chain user account address",
-        //     imaState.chainProperties.sc.joAccount.privateKey, false,
-        //     isPrintGathered && isPrintSecurityValues, null, ( x ) => {
-        //     return cc.attention( x );
-        // } );
-        // ensure_have_value(
-        //     "Private key for S<->S Target S-Chain user account address",
-        //     imaState.chainProperties.tc.joAccount.privateKey, false,
-        //     isPrintGathered && isPrintSecurityValues, null, ( x ) => {
-        //     return cc.attention( x );
-        // } );
-        //
+
         try {
             ensure_have_chain_credentials(
                 "Main Net",
@@ -3509,8 +3405,7 @@ export function ima_common_init() {
                     } );
             }
         }
-        //
-        //
+
         ensure_have_value(
             "Amount of wei to transfer", imaState.nAmountOfWei,
             false, isPrintGathered, null, ( x ) => {
@@ -3655,9 +3550,7 @@ export function ima_common_init() {
                     return ( x <= 1 ) ? cc.warning( "not set" ) : cc.note( x );
                 } );
         }
-        if( imaState.chainProperties.tc.strCoinNameErc20.length > 0
-        /* && imaState.chainProperties.sc.strCoinNameErc20.length > 0 */
-        ) {
+        if( imaState.chainProperties.tc.strCoinNameErc20.length > 0 ) {
             ensure_have_value(
                 "Loaded Main-net ERC20 ABI ",
                 imaState.chainProperties.tc.strCoinNameErc20,
@@ -3691,9 +3584,7 @@ export function ima_common_init() {
                     return cc.attention( x );
                 } );
         }
-        if( imaState.chainProperties.mn.strCoinNameErc721.length > 0
-        /* && imaState.chainProperties.sc.strCoinNameErc721.length > 0 */
-        ) {
+        if( imaState.chainProperties.mn.strCoinNameErc721.length > 0 ) {
             ensure_have_value(
                 "Loaded Main-net ERC721 ABI ",
                 imaState.chainProperties.mn.strCoinNameErc721,
@@ -3727,9 +3618,7 @@ export function ima_common_init() {
                     return cc.attention( x );
                 } );
         }
-        if( imaState.chainProperties.mn.strCoinNameErc1155.length > 0
-        /* && imaState.chainProperties.sc.strCoinNameErc1155.length > 0 */
-        ) {
+        if( imaState.chainProperties.mn.strCoinNameErc1155.length > 0 ) {
             ensure_have_value( "Loaded Main-net ERC1155 ABI ",
                 imaState.chainProperties.mn.strCoinNameErc1155,
                 false, isPrintGathered, null, ( x ) => {
@@ -3918,7 +3807,7 @@ export function ima_init_ethers_providers() {
             "\n"
         );
     }
-    //
+
     if( imaState.chainProperties.sc.strURL &&
         typeof imaState.chainProperties.sc.strURL == "string" &&
         imaState.chainProperties.sc.strURL.length > 0
@@ -3934,7 +3823,7 @@ export function ima_init_ethers_providers() {
             "\n"
         );
     }
-    //
+
     if( imaState.chainProperties.tc.strURL &&
         typeof imaState.chainProperties.tc.strURL == "string" &&
         imaState.chainProperties.tc.strURL.length > 0
@@ -4052,16 +3941,6 @@ export function ima_contracts_init() {
                 joABI.eth_erc20_address,
                 joABI.eth_erc20_abi,
                 ep ); // only s-chain
-        // imaState.eth_erc721 =
-        //     new owaspUtils.ethersMod.ethers.Contract(
-        //         joABI.eth_erc721_address,
-        //         joABI.eth_erc721_abi,
-        //         ep ); // only s-chain
-        // imaState.eth_erc1155 =
-        //     new owaspUtils.ethersMod.ethers.Contract(
-        //         joABI.eth_erc1155_address,
-        //         joABI.eth_erc721_abi,
-        //         ep ); // only s-chain
     }
     if( imaState.chainProperties.tc.bHaveAbiIMA ) {
         const cp = imaState.chainProperties.tc;
@@ -4112,16 +3991,6 @@ export function ima_contracts_init() {
                 joABI.eth_erc20_address,
                 joABI.eth_erc20_abi,
                 ep ); // only s-chain
-        // imaState.eth_erc721_target =
-        //     new owaspUtils.ethersMod.ethers.Contract(
-        //         joABI.eth_erc721_address,
-        //         joABI.eth_erc721_abi,
-        //         ep ); // only s-chain
-        // imaState.eth_erc1155_target =
-        //     new owaspUtils.ethersMod.ethers.Contract(
-        //         joABI.eth_erc1155_address,
-        //         joABI.eth_erc721_abi,
-        //         ep ); // only s-chain
     }
     if( imaState.bHaveSkaleManagerABI ) {
         const cp = imaState.chainProperties.mn;

@@ -267,13 +267,11 @@ describe('tests for `npms/skale-ima`', function () {
 
     it('should invoke `private_key_2_account_address`', async function () {
         let keyPrivate = "23abdbd3c61b5330af61ebe8bef582f4e5cc08e554053a718bdce7813b9dc1fc";
-        //
         expect( IMA.owaspUtils.private_key_2_account_address( keyPrivate ) ).to.include("0x");
     });
 
     it('should return `false` invoke `check_is_registered_s_chain_in_deposit_box`', async function () {
         let jo_lock_and_data_main_net; // for `false` output
-        // 
         expect(await IMA.
             check_is_registered_s_chain_in_deposit_box(
                 w3_main_net,
@@ -285,7 +283,6 @@ describe('tests for `npms/skale-ima`', function () {
     });
 
     it('should return `true` invoke `check_is_registered_s_chain_in_deposit_box`', async function () {
-        // 
         expect(await IMA.
             check_is_registered_s_chain_in_deposit_box(
                 w3_main_net,
@@ -298,7 +295,6 @@ describe('tests for `npms/skale-ima`', function () {
 
     it('should return `false` invoke `register_s_chain_in_deposit_box`', async function () {
         let jo_lock_and_data_main_net; // for `false` output
-        // 
         expect(await IMA.
             register_s_chain_in_deposit_box(
                 w3_main_net,
@@ -306,15 +302,12 @@ describe('tests for `npms/skale-ima`', function () {
                 joMainNetAccount,
                 jo_token_manager,
                 chain_id_s_chain,
-                tc_main_net //,
-                // cntWaitAttempts,
-                // nSleepMilliseconds
+                tc_main_net
             )
         ).to.be.false;
     });
 
     it('should return `true` invoke `register_s_chain_in_deposit_box`', async function () {
-        // 
         expect(await IMA.
             register_s_chain_in_deposit_box(
                 w3_main_net,
@@ -322,16 +315,13 @@ describe('tests for `npms/skale-ima`', function () {
                 joMainNetAccount,
                 jo_token_manager,
                 chain_id_s_chain,
-                tc_main_net //,
-                // cntWaitAttempts,
-                // nSleepMilliseconds
+                tc_main_net
             )
         ).to.be.true;
     });
 
     it('should return `false` invoke `check_is_registered_main_net_depositBox_on_s_chain`', async function () {
         let jo_lock_and_data_s_chain; // for `false` output
-        // 
         expect(await IMA.
             check_is_registered_main_net_depositBox_on_s_chain(
                 w3_main_net,
@@ -342,7 +332,6 @@ describe('tests for `npms/skale-ima`', function () {
     });
 
     it('should return `true` invoke `check_is_registered_main_net_depositBox_on_s_chain`', async function () {
-        // 
         expect(await IMA.
             check_is_registered_main_net_depositBox_on_s_chain(
                 w3_main_net,
@@ -354,7 +343,6 @@ describe('tests for `npms/skale-ima`', function () {
 
     it('should return `false` invoke `register_main_net_depositBox_on_s_chain`', async function () {
         let jo_deposit_box_main_net; // for `false` output
-        // 
         expect(await IMA.
             register_main_net_depositBox_on_s_chain(
                 w3_s_chain,
@@ -384,7 +372,6 @@ describe('tests for `npms/skale-ima`', function () {
 
     it('should return `false` invoke `do_eth_payment_from_main_net`', async function () {
         let joAccountSrc, wei_how_much; // for `false` output
-        // 
         expect(await IMA.
             do_eth_payment_from_main_net(
                 w3_main_net,
@@ -400,7 +387,6 @@ describe('tests for `npms/skale-ima`', function () {
 
     it('should return `true` invoke `do_eth_payment_from_main_net`', async function () {
         let wei_how_much;
-        // 
         expect(await IMA.
             do_eth_payment_from_main_net(
                 w3_main_net,
@@ -416,7 +402,6 @@ describe('tests for `npms/skale-ima`', function () {
 
     it('should return `false` invoke `do_eth_payment_from_s_chain`', async function () {
         let joAccountSrc, wei_how_much; // for `false` output
-        // 
         expect(await IMA.
             do_eth_payment_from_s_chain(
                 w3_s_chain,
@@ -432,7 +417,6 @@ describe('tests for `npms/skale-ima`', function () {
 
     it('should return `true` invoke `do_eth_payment_from_s_chain`', async function () {
         let wei_how_much;
-        // 
         expect(await IMA.
             do_eth_payment_from_s_chain(
                 w3_s_chain,
@@ -448,7 +432,6 @@ describe('tests for `npms/skale-ima`', function () {
 
     it('should return `false` invoke `receive_eth_payment_from_s_chain_on_main_net`', async function () {
         let joMainNetAccount; // for `false` output
-        // 
         expect(await IMA.
             receive_eth_payment_from_s_chain_on_main_net(
                 w3_main_net,
@@ -460,7 +443,6 @@ describe('tests for `npms/skale-ima`', function () {
     });
 
     it('should return `true` invoke `receive_eth_payment_from_s_chain_on_main_net`', async function () {
-        // 
         expect(await IMA.
             receive_eth_payment_from_s_chain_on_main_net(
                 w3_main_net,
@@ -473,7 +455,6 @@ describe('tests for `npms/skale-ima`', function () {
 
     it('should return `null` invoke `view_eth_payment_from_s_chain_on_main_net`', async function () {
         let joMainNetAccount; // for `false` output
-        // 
         expect(await IMA.
             view_eth_payment_from_s_chain_on_main_net(
                 w3_main_net,
@@ -484,7 +465,6 @@ describe('tests for `npms/skale-ima`', function () {
     });
 
     it('should return `true` invoke `view_eth_payment_from_s_chain_on_main_net`', async function () {
-        // 
         expect(await IMA.
             view_eth_payment_from_s_chain_on_main_net(
                 w3_main_net,
@@ -500,7 +480,6 @@ describe('tests for `npms/skale-ima`', function () {
         let erc20PrivateTestnetJson_main_net;
         let strCoinNameErc20_s_chain;
         let erc20PrivateTestnetJson_s_chain;
-        // 
         expect(await IMA.
             do_erc20_payment_from_main_net(
                 w3_main_net,
@@ -526,7 +505,6 @@ describe('tests for `npms/skale-ima`', function () {
         let joErc20_main_net;
         let strCoinNameErc20_s_chain;
         let joErc20_s_chain;
-        // 
         expect(await IMA.
             do_erc20_payment_from_s_chain(
                 w3_main_net,
@@ -555,7 +533,6 @@ describe('tests for `npms/skale-ima`', function () {
         let nMaxTransactionsCount = 0;
         let nBlockAwaitDepth = 0;
         let nBlockAge = 0;
-        // 
         const joRuntimeOpts = {
             isInsideWorker: false,
             idxChainKnownForS2S: 0,
@@ -568,26 +545,23 @@ describe('tests for `npms/skale-ima`', function () {
                 w3_src,
                 jo_message_proxy_src,
                 joAccountSrc,
-                //
                 w3_dst,
                 jo_message_proxy_dst,
                 joAccountDst,
-                //
                 chain_id_src,
                 chain_id_dst,
                 -4,
                 -4,
                 null, // jo_deposit_box - for logs validation on mainnet
                 null, //jo_token_manager - for logs validation on s-chain
-                //
                 nTransactionsCountInBlock,
                 nTransferSteps,
                 nMaxTransactionsCount,
                 nBlockAwaitDepth,
                 nBlockAge,
-                null, // fn_sign_messages or null
+                null,
                 tc_main_net, // or tc_s_chain
-                null // optsPendingTxAnalysis
+                null
             )
         ).to.be.false;
     });
@@ -600,7 +574,6 @@ describe('tests for `npms/skale-ima`', function () {
         let nMaxTransactionsCount = 0;
         let nBlockAwaitDepth = 0;
         let nBlockAge = 0;
-        // 
         const joRuntimeOpts = {
             isInsideWorker: false,
             idxChainKnownForS2S: 0,
@@ -613,26 +586,23 @@ describe('tests for `npms/skale-ima`', function () {
                 w3_src,
                 jo_message_proxy_src,
                 joAccountSrc,
-                //
                 w3_dst,
                 jo_message_proxy_dst,
                 joAccountDst,
-                //
                 chain_id_src,
                 chain_id_dst,
                 -4,
                 -4,
                 null, // jo_deposit_box - for logs validation on mainnet
                 null, //jo_token_manager - for logs validation on s-chain
-                //
                 nTransactionsCountInBlock,
                 nTransferSteps,
                 nMaxTransactionsCount,
                 nBlockAwaitDepth,
                 nBlockAge,
-                null, // fn_sign_messages or null
+                null,
                 tc_main_net, // or tc_s_chain
-                null // optsPendingTxAnalysis
+                null
             )
         ).to.be.true;
     });

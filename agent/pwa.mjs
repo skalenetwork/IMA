@@ -290,7 +290,7 @@ async function notify_on_loop_impl( imaState, strLoopWorkType, nIndexS2S, isStar
         if( ! jarrNodes )
             throw new Error( "S-Chain network info is not available yet to PWA" );
         const nUtcUnixTimeStamp = Math.floor( ( new Date() ).getTime() / 1000 );
-        //
+
         const strMessageHash =
             imaBLS.keccak256_pwa(
                 0 + imaState.nNodeNumber, strLoopWorkType, isStart, nUtcUnixTimeStamp );
@@ -299,7 +299,7 @@ async function notify_on_loop_impl( imaState, strLoopWorkType, nIndexS2S, isStar
             imaState, imaState.nNodeNumber, strLoopWorkType,
             nIndexS2S, isStart, nUtcUnixTimeStamp, signature
         ); // save own started
-        //
+
         for( let i = 0; i < jarrNodes.length; ++i ) {
             if( i == imaState.nNodeNumber )
                 continue; // skip this node
@@ -341,7 +341,6 @@ async function notify_on_loop_impl( imaState, strLoopWorkType, nIndexS2S, isStar
                         await joCall.disconnect();
                         return;
                     }
-                    // if( joOut.result...
                     if( imaState.isPrintPWA ) {
                         log.write(
                             cc.success( "Was successfully sent PWA loop-" ) + cc.attention( se ) +
