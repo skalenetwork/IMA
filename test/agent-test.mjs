@@ -929,7 +929,7 @@ describe( "CLI", function() {
             const fnNameColorizer = null;
             const fnValueColorizer = null;
             assert.equal(
-                maCLI.ensure_have_value(
+                imaCLI.ensure_have_value(
                     "test-url",
                     "http://127.0.0.1:3456",
                     isExitIfEmpty,
