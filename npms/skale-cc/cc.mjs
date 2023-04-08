@@ -137,13 +137,6 @@ export function tf( flag ) {
     return toBoolean( flag ) ? yes( "true" ) : no( "false" );
 }
 
-// export function isInt( n ) {
-//     return !( ( Number( n ) === n && n % 1 === 0 ) );
-// }
-
-// export function isFloat( n ) {
-//     return !( ( Number( n ) === n && n % 1 !== 0 ) );
-// }
 const g_map_color_definitions = {
     reset: "\x1b[0m",
     enlight: "\x1b[1m",
@@ -216,39 +209,10 @@ export function isFloat2( n ) {
     return !isNaN( val );
 }
 
-// export function url2str( objURL ) {
-//     const strProtocol =
-//         ( objURL.protocol && objURL.protocol.length > 0 )
-//             ? ( "" + objURL.protocol + "//" ) : "";
-//     let strUP = "";
-//     const strHost =
-//         ( objURL.hostname && objURL.hostname.length > 0 )
-//             ? ( "" + objURL.hostname.toString() ) : "";
-//     const strPort = objURL.port ? ( ":" + objURL.port ) : "";
-//     const strPath =
-//         ( objURL.pathname && objURL.pathname.length > 0 )
-//             ? ( "" + objURL.pathname ) : "";
-//     const strSearch =
-//         ( objURL.search && objURL.search.length > 0 )
-//             ? ( "" + objURL.search ) : "";
-//     if( objURL.username && objURL.username.length > 0 ) {
-//         strUP += "" + objURL.username;
-//         if( objURL.password && objURL.password.length > 0 ) {
-//             strUP += ":" + objURL.password;
-//         }
-//         strUP += "@";
-//     }
-//     const strURL =
-//         "" + strProtocol + strUP + strHost + strPort + strPath + strSearch;
-//     return strURL;
-// }
-
 function url_obj_colorized( objURL ) {
     let strURL = "";
     if( !objURL )
         return strURL;
-    // if( objURL.strStrippedStringComma )
-    //     strURL += normal(objURL.strStrippedStringComma);
     if( objURL.protocol && objURL.protocol !== null && objURL.protocol !== undefined )
         strURL += "" + yellow( objURL.protocol ) + normal( "//" );
     if( objURL.username && objURL.username !== null && objURL.username !== undefined ) {
@@ -266,8 +230,6 @@ function url_obj_colorized( objURL ) {
         strURL += "" + yellow( replaceAll( objURL.pathname, "/", normal( "/" ) ) );
     if( objURL.search && objURL.search !== null && objURL.search !== undefined )
         strURL += "" + magenta( objURL.search );
-    // if( objURL.strStrippedStringComma )
-    //     strURL += normal(objURL.strStrippedStringComma);
     return strURL;
 }
 
@@ -287,26 +249,6 @@ export function url_colorized( x ) {
 export function u( x ) {
     return url_colorized( x );
 }
-
-// export function url2strWithoutCredentials( objURL ) {
-//     const strProtocol =
-//         ( objURL.protocol && objURL.protocol.length > 0 )
-//             ? ( "" + objURL.protocol + "//" ) : "";
-//     const strUP = "";
-//     const strHost =
-//         ( objURL.hostname && objURL.hostname.length > 0 )
-//             ? ( "" + objURL.hostname.toString() ) : "";
-//     const strPort = objURL.port ? ( ":" + objURL.port ) : "";
-//     const strPath =
-//         ( objURL.pathname && objURL.pathname.length > 0 )
-//             ? ( "" + objURL.pathname ) : "";
-//     const strSearch =
-//         ( objURL.search && objURL.search.length > 0 )
-//             ? ( "" + objURL.search ) : "";
-//     const strURL =
-//         "" + strProtocol + strUP + strHost + strPort + strPath + strSearch;
-//     return strURL;
-// }
 
 export function safeURL( arg ) {
     try {
@@ -397,10 +339,6 @@ export function log_arg_to_str() {
             s += "" + number( arg.valueOf() );
             continue;
         }
-        // if( isNaN( arg ) ) {
-        // 	s += "" + nanval( arg );
-        // 	continue;
-        // }
         if( typeof arg === "string" || arg instanceof String ) {
             const objURL = safeURL( arg );
             if( objURL != null && objURL != undefined ) {
@@ -446,14 +384,6 @@ export function log_arg_to_str() {
                 s += "" + strval( arg );
                 continue;
             }
-            // if( isFloat( arg ) ) {
-            // 	s += "" + real( arg );
-            // 	continue;
-            // }
-            // if( isInt( arg ) ) {
-            // 	s += "" + number( arg );
-            // 	continue;
-            // }
             if( isFloat2( arg ) ) {
                 s += "" + real( arg );
                 continue;
@@ -464,7 +394,6 @@ export function log_arg_to_str() {
             }
         }
         if( Array.isArray( arg ) || typeof arg === "object" ) {
-            // s += JSON.stringify(arg);
             s += jsonColorizer.prettyPrintConsole( arg );
             continue;
         }
@@ -484,61 +413,6 @@ export const getCircularReplacerForJsonStringify = () => {
         return value;
     };
 };
-
-// Traverses a javascript object, and deletes all circular values
-// @param source object to remove circular references from
-// @param censoredMessage optional: what to put instead of censored values
-// @param censorTheseItems should be kept null, used in recursion
-// @returns {undefined}
-// export function preventCircularJson( source, censoredMessage, censorTheseItems ) {
-//     // init recursive value if this is the first call
-//     censorTheseItems = censorTheseItems || [source];
-//     // default if none is specified
-//     censoredMessage = censoredMessage || "CIRCULAR_REFERENCE_REMOVED";
-//     // values that have already appeared will be placed here:
-//     const recursiveItems = {};
-//     // initialize a censored clone to return back
-//     const ret = {};
-//     // traverse the object:
-//     for( const key in source ) {
-//         const value = source[key];
-//         if( typeof value === "object" ) {
-//             // re-examine all complex children again later:
-//             recursiveItems[key] = value;
-//         } else {
-//             // simple values copied as is
-//             ret[key] = value;
-//         }
-//     }
-//     // create list of values to censor:
-//     const censorChildItems = [];
-//     for( const key in recursiveItems ) {
-//         const value = source[key];
-//         // all complex child objects should not appear again in children:
-//         censorChildItems.push( value );
-//     }
-//     // censor all circular values
-//     for( const key in recursiveItems ) {
-//         let value = source[key];
-//         let censored = false;
-//         censorTheseItems.forEach( function( item ) {
-//             if( item === value ) {
-//                 censored = true;
-//             }
-//         } );
-//         if( censored ) {
-//             // change circular values to this
-//             value = censoredMessage;
-//         } else {
-//             // recursion:
-//             value =
-//                 preventCircularJson(
-//                     value, censoredMessage, censorChildItems.concat( censorTheseItems ) );
-//         }
-//         ret[key] = value;
-//     }
-//     return ret;
-// }
 
 export const jsonColorizer = { // see http://jsfiddle.net/unLSJ/
     cntCensoredMax: 30000, // zero to disable censoring
@@ -666,7 +540,6 @@ export function syntaxHighlightJSON( jo, strKeyNamePrefix ) {
             ( match[0] == "'" && match[match.length - 1] == "'" ) )
             )
                 cls = "string";
-            // return "<span class=\"" + cls + "\">" + match + "</span>";
             switch ( cls ) {
             case "key":
                 return "" +

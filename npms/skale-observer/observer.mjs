@@ -177,15 +177,6 @@ async function is_multicall_available( mn ) {
     return false;
 }
 
-// function find_one_function_abi( joContractABI, strFunctionName ) {
-//     for( let i = 0; i < joContractABI.length; ++ i ) {
-//         const joEntry = joContractABI[i];
-//         if( joEntry.type == "function" && joEntry.name == strFunctionName )
-//             return joEntry;
-//     }
-//     return null;
-// }
-
 // see https://github.com/skalenetwork/skale-proxy/blob/develop/endpoints.py
 export async function load_schain_parts( jo_schain, addressFrom, opts ) {
     owaspUtils.ensure_observer_opts_initialized( opts );
@@ -331,10 +322,6 @@ export async function load_schain_parts( jo_schain, addressFrom, opts ) {
                 return;
         }
     } // else from if( isEMC )
-    // const schain =
-    //     await opts.imaState.jo_schains_internal.callStatic.schains(
-    //         schain_id, { from: addressFrom } );
-    // jo_schain.data.computed.schain = schain;
     jo_schain.data.computed.schain_id = schain_id;
     jo_schain.data.computed.chainId = chainId;
     jo_schain.data.computed.nodes = nodes;
@@ -795,8 +782,6 @@ export async function ensure_have_worker( opts ) {
             path.join( __dirname, "observer_worker.mjs" ),
             { "type": "module" }
         );
-    // if( opts && opts.details )
-    //     opts.details.write( cc.debug( "Will connect to " ) + cc.info( url ) + "/n" );
     g_worker.on( "message", jo => {
         if( network_layer.out_of_worker_apis.on_message( g_worker, jo ) )
             return;

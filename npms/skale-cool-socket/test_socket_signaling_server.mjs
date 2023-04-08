@@ -193,8 +193,6 @@ class SignalingClient extends EventDispatcher {
         try {
             // let signalingCategory = null;
             const signalingSpace = this.signalingSpace;
-            // if( signalingSpace )
-            //     signalingCategory = signalingSpace.signalingCategory;
             const joOfferInfo = signalingSpace.fetchPublishedOffer();
             if( ! joOfferInfo ) {
                 if( settings.logging.net.signaling.offerDiscoveryStepFail ) {
@@ -718,14 +716,6 @@ class SignalingServer extends EventDispatcher {
                                 "\" in signaling space \"" + signalingSpace.idSpace + "\""
                             );
                         }
-                        // if( (!( "fnFlushNetwork" in signalingSpace ))
-                        //     || (!signalingSpace.fnFlushNetwork) )
-                        //     //console.log( "Setting up network data flushing in acceptor" );
-                        //     signalingSpace.fnFlushNetwork = function() {
-                        //         // TO-DO: improve this
-                        //         //console.log( "Flushing data to network via acceptor" );
-                        //         acceptor.flush(); // network
-                        //     };
                         socket.signalingClient = signalingClient;
                         socket.signalingAuthInfo.isAuthorized = true;
                         socket.signalingAuthInfo.idCategory = "" + idCategory;

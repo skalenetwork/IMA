@@ -58,29 +58,6 @@ export function check_time_framing( d, strDirection, joRuntimeOpts ) {
 
         const nFrameShift = 0;
 
-        // if( joRuntimeOpts
-        //     && typeof joRuntimeOpts == "object"
-        //     && joRuntimeOpts.isInsideWorker
-        //     &&  strDirection
-        //     && typeof strDirection == "string"
-        //     && strDirection.toLowerCase() == "s2s"
-        //     && joRuntimeOpts.cntChainsKnownForS2S > 0
-        //     && joRuntimeOpts.idxChainKnownForS2S >= 0
-        //     && joRuntimeOpts.idxChainKnownForS2S < joRuntimeOpts.cntChainsKnownForS2S
-        // ) {
-        //     // 1st frame index 0 is reserved for m2s and s2m
-        //     const nReservedFrames = 1;
-        //     // rest range of frames available for S2S
-        //     const nRestRangeOfFrames = imaState.nNodesCount - nReservedFrames;
-        //     nFrameShift = nReservedFrames + // 1st frame index 0 is reserved for m2s and s2m
-        //         joRuntimeOpts.idxChainKnownForS2S % nRestRangeOfFrames
-        //     ;
-        // }
-
-        // log.write( "---------- strDirection......." + cc.j( strDirection ) + "\n" );
-        // log.write( "---------- joRuntimeOpts......" + cc.j( joRuntimeOpts ) + "\n" );
-        // log.write( "---------- nFrameShift........" + cc.j( nFrameShift ) + "\n" );
-
         // Unix UTC timestamp, see:
         // https://stackoverflow.com/questions/9756120/how-do-i-get-a-utc-timestamp-in-javascript
         const nUtcUnixTimeStamp = Math.floor( ( d ).getTime() / 1000 );
@@ -106,7 +83,6 @@ export function check_time_framing( d, strDirection, joRuntimeOpts ) {
                 bInsideGap = true;
             }
         }
-        // if( IMA.verbose_get() >= IMA.RV_VERBOSE().trace ) {
         log.write(
             "\n" +
             cc.info( "Unix UTC time stamp" ) + cc.debug( "........" ) +
@@ -155,7 +131,6 @@ export function check_time_framing( d, strDirection, joRuntimeOpts ) {
             cc.info( "Gap Start" ) + cc.debug( ".................." ) +
             cc.notice( nGapStart ) + "\n"
         );
-        // }
         if( bSkip )
             return false;
     } catch ( err ) {
@@ -272,27 +247,27 @@ export async function single_transfer_loop( loop_opts ) {
                         b1 = await IMA.do_transfer( // main-net --> s-chain
                             "M2S",
                             loop_opts.joRuntimeOpts,
-                            //
+
                             imaState.chainProperties.mn.ethersProvider,
                             imaState.jo_message_proxy_main_net,
                             imaState.chainProperties.mn.joAccount,
                             imaState.chainProperties.sc.ethersProvider,
                             imaState.jo_message_proxy_s_chain,
-                            //
+
                             imaState.chainProperties.sc.joAccount,
                             imaState.chainProperties.mn.strChainName,
                             imaState.chainProperties.sc.strChainName,
                             imaState.chainProperties.mn.cid,
                             imaState.chainProperties.sc.cid,
-                            null, // imaState.jo_deposit_box - for logs validation on mainnet
+                            null,
                             imaState.jo_token_manager_eth, // for logs validation on s-chain
                             imaState.nTransferBlockSizeM2S,
                             imaState.nTransferStepsM2S,
                             imaState.nMaxTransactionsM2S,
                             imaState.nBlockAwaitDepthM2S,
                             imaState.nBlockAgeM2S,
-                            imaBLS.do_sign_messages_m2s, // fn_sign_messages
-                            null, // joExtraSignOpts
+                            imaBLS.do_sign_messages_m2s,
+                            null,
                             imaState.chainProperties.sc.transactionCustomizer
                         );
                         imaState.loopState.m2s.isInProgress = false;
@@ -350,27 +325,27 @@ export async function single_transfer_loop( loop_opts ) {
                         b2 = await IMA.do_transfer( // s-chain --> main-net
                             "S2M",
                             loop_opts.joRuntimeOpts,
-                            //
+
                             imaState.chainProperties.sc.ethersProvider,
                             imaState.jo_message_proxy_s_chain,
                             imaState.chainProperties.sc.joAccount,
                             imaState.chainProperties.mn.ethersProvider,
                             imaState.jo_message_proxy_main_net,
-                            //
+
                             imaState.chainProperties.mn.joAccount,
                             imaState.chainProperties.sc.strChainName,
                             imaState.chainProperties.mn.strChainName,
                             imaState.chainProperties.sc.cid,
                             imaState.chainProperties.mn.cid,
                             imaState.jo_deposit_box_eth, // for logs validation on mainnet
-                            null, // imaState.jo_token_manager, // for logs validation on s-chain
+                            null,
                             imaState.nTransferBlockSizeS2M,
                             imaState.nTransferStepsS2M,
                             imaState.nMaxTransactionsS2M,
                             imaState.nBlockAwaitDepthS2M,
                             imaState.nBlockAgeS2M,
-                            imaBLS.do_sign_messages_s2m, // fn_sign_messages
-                            null, // joExtraSignOpts
+                            imaBLS.do_sign_messages_s2m,
+                            null,
                             imaState.chainProperties.mn.transactionCustomizer
                         );
                         imaState.loopState.s2m.isInProgress = false;
@@ -411,7 +386,6 @@ export async function single_transfer_loop( loop_opts ) {
                     skale_observer,
                     imaState.chainProperties.sc.ethersProvider,
                     imaState.jo_message_proxy_s_chain,
-                    //
                     imaState.chainProperties.sc.joAccount,
                     imaState.chainProperties.sc.strChainName,
                     imaState.chainProperties.sc.cid,
@@ -421,7 +395,7 @@ export async function single_transfer_loop( loop_opts ) {
                     imaState.nMaxTransactionsS2S,
                     imaState.nBlockAwaitDepthMSS,
                     imaState.nBlockAgeS2S,
-                    imaBLS.do_sign_messages_s2s, // fn_sign_messages
+                    imaBLS.do_sign_messages_s2s,
                     imaState.chainProperties.sc.transactionCustomizer
                 );
             } catch ( err ) {
@@ -528,7 +502,6 @@ export async function ensure_have_workers( opts ) {
                 { "type": "module", "workerData": workerData }
             )
         );
-        // console.log( "Will connect to " + workerData.url );
         g_workers[idxWorker].on( "message", jo => {
             if( network_layer.out_of_worker_apis.on_message( g_workers[idxWorker], jo ) )
                 return;
@@ -541,7 +514,6 @@ export async function ensure_have_workers( opts ) {
         );
         g_clients[idxWorker].on( "message", async function( eventData ) {
             const joMessage = eventData.message;
-            // console.log( "CLIENT <<<", JSON.stringify( joMessage ) );
             switch ( joMessage.method ) {
             case "log":
                 log.write(
@@ -585,9 +557,7 @@ export async function ensure_have_workers( opts ) {
                         "verbose_": IMA.verbose_get(),
                         "expose_details_": IMA.expose_details_get(),
                         "arr_schains_cached": skale_observer.get_last_cached_schains(),
-                        //
-                        //
-                        //
+
                         "loopState": {
                             "oracle": {
                                 "isInProgress": false,
@@ -677,11 +647,7 @@ export async function ensure_have_workers( opts ) {
                         "jo_token_manager_linker": null,
                         "jo_token_manager_linker_target": null,
                         "eth_erc20": null,
-                        // "eth_erc721": null,
-                        // "eth_erc1155": null,
                         "eth_erc20_target": null,
-                        // "eth_erc721_target": null,
-                        // "eth_erc1155_target": null,
 
                         "chainProperties": {
                             "mn": {
@@ -690,7 +656,6 @@ export async function ensure_have_workers( opts ) {
                                         opts.imaState.chainProperties.mn.joAccount.privateKey,
                                     "address_":
                                         opts.imaState.chainProperties.mn.joAccount.address_,
-                                    // "address": owaspUtils.fn_address_impl_,
                                     "strTransactionManagerURL":
                                         opts.imaState.chainProperties.mn
                                             .joAccount.strTransactionManagerURL,
@@ -720,7 +685,6 @@ export async function ensure_have_workers( opts ) {
                                         opts.imaState.chainProperties.sc.joAccount.privateKey,
                                     "address_":
                                         opts.imaState.chainProperties.sc.joAccount.address_,
-                                    // "address": owaspUtils.fn_address_impl_,
                                     "strTransactionManagerURL":
                                         opts.imaState.chainProperties.sc
                                             .joAccount.strTransactionManagerURL,
@@ -750,7 +714,6 @@ export async function ensure_have_workers( opts ) {
                                         opts.imaState.chainProperties.tc.joAccount.privateKey,
                                     "address_":
                                         opts.imaState.chainProperties.tc.joAccount.address_,
-                                    // "address": owaspUtils.fn_address_impl_,
                                     "strTransactionManagerURL":
                                         opts.imaState.chainProperties.tc
                                             .joAccount.strTransactionManagerURL,
@@ -812,7 +775,6 @@ export async function ensure_have_workers( opts ) {
             }
         };
         g_clients[idxWorker].send( jo );
-        // notify_snb_cache_changed( skale_observer.get_last_cached_schains() );
     } // for( let idxWorker = 0; idxWorker < cntWorkers; ++ idxWorker )
 }
 

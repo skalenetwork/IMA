@@ -31,25 +31,6 @@ export let https_mod = null; // server side only
 export let ws_mod = null; // server side only
 export let wrtc_mod = null; // server side only
 
-// if( typeof window == "undefined" ) {
-//     try {
-//         import * as https_mod from "https";
-//         console.log( "Using pre-loaded HTTPS API in socket.mjs" );
-//     } catch ( err ) {
-//     }
-//     try {
-//         ws_mod = WebSocket;
-//         console.log( "Using pre-loaded WebSocket API in socket.mjs" );
-//     } catch ( err ) {
-//     }
-// } else {
-//     try {
-//         wrtc_mod = window;
-//         console.log( "Using pre-loaded WebSocket API in socket.mjs" );
-//     } catch ( err ) {
-//     }
-// }
-
 // needed to init from outside: import * as https_loaded_mod from "https";
 // const https_mod = https_loaded_mod.default;
 // needed to init from outside: import * as ws_loaded_mod from "ws";
@@ -361,10 +342,6 @@ export class BasicSocketPipe extends EventDispatcher {
     }
     disconnect() {
         this.isConnected = false;
-        // if( this.relayClientSocket ) {
-        //     this.relayClientSocket.disconnect();
-        //     this.relayClientSocket = null;
-        // }
     }
     reconnect() {
     }
@@ -2723,8 +2700,6 @@ export class RTCCreator extends RTCActor {
                         answerDescription
                     );
                 }
-                // console.log(
-                //     "----- will set remote desc when in state", rtcPeer.pc.signalingState );
                 if( rtcPeer.pc.signalingState != "have-local-offer" ) {
                     if( settings.logging.net.signaling.offerSkipPublishedAnswer ) {
                         console.warn(
@@ -2899,8 +2874,6 @@ export class RTCJoiner extends RTCActor {
                 if( ! self.signalingPipe ) {
                     if( self.dc )
                         return; // already connected, ignore (Firefox fix)
-                    // if( self.pc && self.pc.onicecandidate )
-                    //     self.pc.onicecandidate = null;
                     throw new Error( "no connection to signaling server" );
                 }
                 if( ! self.isAnswerPublishedOnSignalingServer ) {
@@ -3133,12 +3106,6 @@ export class WebRTCServerPipe extends BasicSocketPipe {
         self.strSignalingServerURL =
         utils.makeValidSignalingServerURL( strSignalingServerURL );
         self.url = "rtc_server_pipe(" + self.clientNumber + ")://" + strSignalingServerURL;
-        // self.rtcPeer.on( "identified", function( event ) {
-        //     if( settings.logging.net.signaling.generic )
-        //        console.log(
-        //            self.describe() +
-        //            " is now identified peer", event.detail.idSomebodyOtherSide );
-        // } );
         self.rtcPeer.on( "dataChannelOpen", function( jo ) {
             self.isConnected = true;
             self.acceptor.mapClients["" + self.clientPort] = self;
@@ -3314,17 +3281,6 @@ export class WebRTCServerAcceptor extends BasicServerAcceptor {
         this.disposeNotifyClients();
         super.dispose();
     }
-    // flush() {
-    //     if( this.isDisposed )
-    //         return;
-    //     if( this.rtcCreator ) {
-    //         for( const [ /*idSomebodyOtherSide*/, rtcPeer ]
-    //                    of Object.entries( this.rtcCreator.map_server_peers ) ) {
-    //             const serverPipe = rtcPeer.serverPipe;
-    //             serverPipe.flush();
-    //         }
-    //     }
-    // }
     addPendingOffer() {
         if( this.isDisposed )
             return;

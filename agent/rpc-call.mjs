@@ -45,7 +45,7 @@ export async function wait_web_socket_is_open( socket, fnDone, fnStep ) {
             isInsideAsyncHandler = true;
             ++ nStep;
             if( socket.readyState === 1 ) {
-                // console.log( "Connection is made" )
+                // Notice, connection is made if we are here
                 clearInterval( iv );
                 await fnDone( nStep );
                 resolve();
@@ -111,7 +111,6 @@ export async function do_connect( joCall, opts, fn ) {
                 do_reconnect_ws_step( joCall, opts );
             } );
             joCall.wsConn.on( "message", async function incoming( data ) {
-                // log.write( cc.info( "WS message " ) + cc.attention( data ) + "\n" );
                 const joOut = JSON.parse( data );
                 if( joOut.id in joCall.mapPendingByCallID ) {
                     const entry = joCall.mapPendingByCallID[joOut.id];
@@ -214,9 +213,7 @@ async function do_disconnect( joCall, fn ) {
 }
 
 export async function do_call( joCall, joIn, fn ) {
-    // console.log( "--- --- --- initial joIn is", joIn );
     joIn = enrich_top_level_json_fields( joIn );
-    // console.log( "--- --- --- enriched joIn is", joIn );
     fn = fn || async function() {};
     if( joCall.wsConn ) {
         const entry = {
@@ -232,10 +229,7 @@ export async function do_call( joCall, joIn, fn ) {
         }, 200 * 1000 );
         joCall.wsConn.send( JSON.stringify( joIn ) );
     } else {
-        // console.log( "--- --- --- call URL is", joCall.url );
         if( !owaspUtils.validateURL( joCall.url ) ) {
-            // throw new Error(
-            //      "JSON RPC CALLER cannot do query post to invalid URL: " + joCall.url );
             await fn(
                 joIn,
                 null,
@@ -243,10 +237,7 @@ export async function do_call( joCall, joIn, fn ) {
             );
             return;
         }
-        // console.log( "--- --- --- joIn is", joIn );
         const strBody = JSON.stringify( joIn );
-        // console.log( "--- --- --- strBody is", strBody );
-        // console.log( "--- --- --- joCall is", joCall );
         let errCall = null, joOut = null;
         if( joCall.joRpcOptions &&
             joCall.joRpcOptions.cert && typeof joCall.joRpcOptions.cert == "string" &&
@@ -273,13 +264,10 @@ export async function do_call( joCall, joIn, fn ) {
                     typeof joCall.joRpcOptions.key == "string" )
                     ? joCall.joRpcOptions.key : null
             };
-            // console.log( "--- request options ---", options );
             let accumulatedBody = "";
             const promise_complete = new Promise( ( resolve, reject ) => {
                 const req = https.request( options, res => {
                     res.setEncoding( "utf8" );
-                    // console.log( "--- response status code ---", res.statusCode );
-                    // console.log( "--- response headers ---", res.headers );
                     res.on( "data", body => {
                         accumulatedBody += body;
                     } );
@@ -292,9 +280,7 @@ export async function do_call( joCall, joIn, fn ) {
                             reject( errCall );
                         }
                         try {
-                            // console.log( "--- response accumulated body ---", accumulatedBody );
                             joOut = JSON.parse( accumulatedBody );
-                            // console.log( "--- response accumulated JSON ---", cc.j( joOut ) );
                             errCall = null;
                             resolve( joOut );
                         } catch ( err ) {
@@ -317,7 +303,6 @@ export async function do_call( joCall, joIn, fn ) {
                 req.end();
             } );
             await promise_complete;
-            // console.log( "--- response received JSON ---", cc.j( joOut ) );
         } else {
             try {
                 const response = await urllib.request( joCall.url, {
@@ -343,10 +328,7 @@ export async function do_call( joCall, joIn, fn ) {
                         typeof joCall.joRpcOptions.key == "string" )
                         ? joCall.joRpcOptions.key : null
                 } );
-                // console.log( "--- --- --- response is", response );
-                // console.log( "--- --- --- response.data is", response.data );
                 const body = response.data.toString( "utf8" );
-                // console.log( "--- --- --- response body is", body );
                 if( response && response.statusCode && response.statusCode !== 200 ) {
                     log.write(
                         cc.warning( "WARNING:" ) + cc.warning( " REST call status code is " ) +
@@ -356,7 +338,6 @@ export async function do_call( joCall, joIn, fn ) {
                 joOut = JSON.parse( body );
                 errCall = null;
             } catch ( err ) {
-                // console.log( "--- --- --- request caught err is", err );
                 log.write(
                     cc.u( joCall.url ) + cc.error( " request error " ) +
                     cc.warning( err.toString() ) +

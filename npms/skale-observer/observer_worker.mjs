@@ -26,7 +26,6 @@
 
 import {
     parentPort
-    //, workerData
 } from "worker_threads";
 import * as network_layer from "../skale-cool-socket/socket.mjs";
 import { SocketServer } from "../skale-cool-socket/socket_server.mjs";
@@ -85,18 +84,10 @@ class ObserverServer extends SocketServer {
                 "method": "" + joMessage.method,
                 "error": null
             };
-            // self.log(
-            //     cc.debug( "Initialized in-worker(observer) options:" ) + " " +
-            //     cc.j( self.opts ) +
-            //     "\n" );
-            //
             self.opts.imaState.chainProperties.mn.joAccount.address =
                 owaspUtils.fn_address_impl_;
             self.opts.imaState.chainProperties.sc.joAccount.address =
                 owaspUtils.fn_address_impl_;
-            // self.opts.imaState.chainProperties.tc.joAccount.address =
-            //     owaspUtils.fn_address_impl_;
-            //
             if( self.opts.imaState.chainProperties.mn.strURL &&
                 typeof self.opts.imaState.chainProperties.mn.strURL == "string" &&
                 self.opts.imaState.chainProperties.mn.strURL.length > 0
@@ -111,7 +102,7 @@ class ObserverServer extends SocketServer {
                     cc.debug( "(needed for particular operations only)" ) +
                     "\n" );
             }
-            //
+
             if( self.opts.imaState.chainProperties.sc.strURL &&
                 typeof self.opts.imaState.chainProperties.sc.strURL == "string" &&
                 self.opts.imaState.chainProperties.sc.strURL.length > 0
@@ -126,7 +117,7 @@ class ObserverServer extends SocketServer {
                     cc.debug( "(needed for particular operations only)" ) +
                     "\n" );
             }
-            //
+
             self.opts.imaState.jo_nodes =
                 new owaspUtils.ethersMod.ethers.Contract(
                     self.opts.imaState.joAbiSkaleManager.nodes_address,
@@ -145,14 +136,14 @@ class ObserverServer extends SocketServer {
                     self.opts.imaState.joAbiSkaleManager.schains_internal_abi,
                     self.opts.imaState.chainProperties.mn.ethersProvider
                 );
-            //
+
             self.opts.imaState.jo_message_proxy_s_chain =
                 new owaspUtils.ethersMod.ethers.Contract(
                     self.opts.imaState.chainProperties.sc.joAbiIMA.message_proxy_chain_address,
                     self.opts.imaState.chainProperties.sc.joAbiIMA.message_proxy_chain_abi,
                     self.opts.imaState.chainProperties.sc.ethersProvider
                 );
-            //
+
             self.log(
                 cc.debug( "Full init compete for in-worker SNB server" ) + " " +
                 cc.notice( g_url ) +
@@ -224,10 +215,6 @@ class ObserverServer extends SocketServer {
         if( strError )
             return strError;
         const arr_schains = skale_observer.get_last_cached_schains();
-        // self.log(
-        //     cc.normal( "Got " ) + cc.info( "SKALE NETWORK" ) +
-        //     cc.normal( " information in worker: " ) + cc.j( arr_schains ) +
-        //     "\n" );
         const jo = {
             "method": "periodic_caching_do_now",
             "error": null,

@@ -243,8 +243,6 @@ export function validateEthAddress( value ) {
     try {
         if( validateInputAddresses( ensure_starts_with_0x( value ) ) )
             return true;
-        // if( ethersMod.ethers.util.isAddress( ensure_starts_with_0x( value ) ) )
-        //     return true;
     } catch ( err ) {
     }
     return false;
@@ -538,9 +536,6 @@ export function clone_object_by_root_keys( joIn ) {
 ///////////////////////////////////////////////////////////////////////////////
 
 // example: "1ether" -> "1000000000000000000"
-// supported suffixes, lowercase
-// const g_arrMoneyNameSuffixes =
-//     [ "ether", "finney", "szabo", "shannon", "lovelace", "babbage", "wei" ];
 
 // supported suffix aliases, lowercase
 const g_mapMoneyNameSuffixAliases = {
@@ -552,13 +547,11 @@ const g_mapMoneyNameSuffixAliases = {
     "et": "ether",
     "eh": "ether",
     "er": "ether",
-    // "e": "ether",
     "finne": "finney",
     "finn": "finney",
     "fin": "finney",
     "fn": "finney",
     "fi": "finney",
-    // "f": "finney",
     "szab": "szabo",
     "szb": "szabo",
     "sza": "szabo",
@@ -583,7 +576,6 @@ const g_mapMoneyNameSuffixAliases = {
     "lo": "lovelace",
     "lc": "lovelace",
     "ll": "lovelace",
-    // "l": "lovelace",
     "babbag": "babbage",
     "babba": "babbage",
     "babbg": "babbage",
@@ -595,10 +587,8 @@ const g_mapMoneyNameSuffixAliases = {
     "bg": "babbage",
     "ba": "babbage",
     "be": "babbage",
-    // "b": "babbage",
     "we": "wei",
     "wi": "wei",
-    // "w": "wei",
     //
     // next are advanced kind of
     //
@@ -631,9 +621,6 @@ export function parseMoneyUnitName( s ) {
         s = g_mapMoneyNameSuffixAliases[s];
         return s;
     }
-    // if( g_arrMoneyNameSuffixes.indexOf( s ) >= 0 )
-    //     return s;
-    // throw new Error( "\"" + s + "\" is unknown money unit name" );
     return s;
 }
 
@@ -766,8 +753,6 @@ export function getEthersProviderFromURL( strURL ) {
     const joConnectionInfo = { // see https://docs.ethers.io/v5/api/utils/web/#ConnectionInfo
         url: strURL,
         allowInsecureAuthentication: true
-        // timeout: 60
-        // skipFetchSetup: true
     };
     const ethersProvider = new ethersMod.ethers.providers.JsonRpcProvider( joConnectionInfo );
     return ethersProvider;
