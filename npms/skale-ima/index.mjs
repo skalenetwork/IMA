@@ -6547,9 +6547,10 @@ async function do_check_outgoing_message_event( optsTransfer ) {
             cc.debug( " and message envelope data:" ) + cc.j( joMessage ) +
             "\n" );
         let cntPassedNodes = 0, cntFailedNodes = 0;
+        let jo_node = null;
         try {
             for( let idxNode = 0; idxNode < cntNodes; ++ idxNode ) {
-                const jo_node = jo_schain.data.computed.nodes[idxNode];
+                jo_node = jo_schain.data.computed.nodes[idxNode];
                 optsTransfer.details.write( optsTransfer.strLogPrefix +
                     cc.debug( "Validating " ) + cc.sunny( optsTransfer.strDirection ) +
                     cc.debug( " message " ) + cc.info( idxMessage + 1 ) +
@@ -6669,9 +6670,13 @@ async function do_check_outgoing_message_event( optsTransfer ) {
                 " " + cc.error( "Failed to process events for " ) +
                 cc.sunny( optsTransfer.strDirection ) + cc.error( " message " ) +
                 cc.info( idxMessage + 1 ) + cc.error( " on node " ) +
-                cc.info( jo_node.name ) +
+                ( jo_node
+                    ? cc.info( jo_node.name )
+                    : cc.error( "<<unknown node name>>" ) ) +
                 cc.error( " using URL " ) +
-                cc.info( jo_node.http_endpoint_ip ) +
+                ( jo_node
+                    ? cc.info( jo_node.http_endpoint_ip )
+                    : cc.error( "<<unknown node endpoint>>" ) ) +
                 cc.error( ", error is: " ) +
                 cc.warning( owaspUtils.extract_error_message( err ) ) +
                 cc.error( ", stack is: " ) + "\n" + cc.stack( err.stack ) +
