@@ -145,6 +145,272 @@ export function check_time_framing( d, strDirection, joRuntimeOpts ) {
     return true;
 };
 
+async function single_transfer_loop_part_oracle( loop_opts, strLogPrefix ) {
+    const imaState = state.get();
+    let b0 = true;
+    if( loop_opts.enable_step_oracle && IMA.getEnabledOracle() ) {
+        if( IMA.verbose_get() >= IMA.RV_VERBOSE().information ) {
+            log.write( strLogPrefix +
+                cc.debug( "Will invoke Oracle gas price setup..." ) +
+                "\n" );
+        }
+        try {
+            if( ! await pwa.check_on_loop_start( imaState, "oracle" ) ) {
+                imaState.loopState.oracle.wasInProgress = false;
+                if( IMA.verbose_get() >= IMA.RV_VERBOSE().debug ) {
+                    log.write( strLogPrefix +
+                        cc.warning( "Skipped(oracle) due to cancel mode reported from PWA" ) +
+                        "\n" );
+                }
+            } else {
+                if( check_time_framing( null, "oracle", loop_opts.joRuntimeOpts ) ) {
+                    imaState.loopState.oracle.isInProgress = true;
+                    await pwa.notify_on_loop_start( imaState, "oracle" );
+                    b0 = IMA.do_oracle_gas_price_setup(
+                        imaState.chainProperties.mn.ethersProvider,
+                        imaState.chainProperties.sc.ethersProvider,
+                        imaState.chainProperties.sc.transactionCustomizer,
+                        imaState.jo_community_locker,
+                        imaState.chainProperties.sc.joAccount,
+                        imaState.chainProperties.mn.cid,
+                        imaState.chainProperties.sc.cid,
+                        imaBLS.do_sign_u256
+                    );
+                    imaState.loopState.oracle.isInProgress = false;
+                    await pwa.notify_on_loop_end( imaState, "oracle" );
+                } else {
+                    if( IMA.verbose_get() >= IMA.RV_VERBOSE().debug ) {
+                        log.write( strLogPrefix +
+                            cc.warning( "Skipped(oracle) due to time framing check" ) +
+                            "\n" );
+                    }
+                }
+            }
+        } catch ( err ) {
+            log.write( strLogPrefix +
+                cc.error( "Oracle operation exception: " ) +
+                cc.error( owaspUtils.extract_error_message( err ) ) +
+                cc.error( ", stack is: " ) + "\n" + cc.stack( err.stack ) +
+                "\n" );
+            imaState.loopState.oracle.isInProgress = false;
+            await pwa.notify_on_loop_end( imaState, "oracle" );
+            throw err;
+        }
+        if( IMA.verbose_get() >= IMA.RV_VERBOSE().information ) {
+            log.write( strLogPrefix +
+                cc.debug( "Oracle gas price setup done: " ) + cc.tf( b0 ) +
+                "\n" );
+        }
+    }
+    return b0;
+}
+
+async function single_transfer_loop_part_m2s( loop_opts, strLogPrefix ) {
+    const imaState = state.get();
+    let b1 = true;
+    if( loop_opts.enable_step_m2s ) {
+        if( IMA.verbose_get() >= IMA.RV_VERBOSE().information ) {
+            log.write( strLogPrefix +
+                cc.debug( "Will invoke M2S transfer..." ) +
+                "\n" );
+        }
+        try {
+            if( ! await pwa.check_on_loop_start( imaState, "m2s" ) ) {
+                imaState.loopState.m2s.wasInProgress = false;
+                if( IMA.verbose_get() >= IMA.RV_VERBOSE().debug ) {
+                    log.write( strLogPrefix +
+                        cc.warning( "Skipped(m2s) due to cancel mode reported from PWA" ) +
+                        "\n" );
+                }
+            } else {
+                if( check_time_framing( null, "m2s", loop_opts.joRuntimeOpts ) ) {
+                    imaState.loopState.m2s.isInProgress = true;
+                    await pwa.notify_on_loop_start( imaState, "m2s" );
+                    b1 = await IMA.do_transfer( // main-net --> s-chain
+                        "M2S",
+                        loop_opts.joRuntimeOpts,
+
+                        imaState.chainProperties.mn.ethersProvider,
+                        imaState.jo_message_proxy_main_net,
+                        imaState.chainProperties.mn.joAccount,
+                        imaState.chainProperties.sc.ethersProvider,
+                        imaState.jo_message_proxy_s_chain,
+
+                        imaState.chainProperties.sc.joAccount,
+                        imaState.chainProperties.mn.strChainName,
+                        imaState.chainProperties.sc.strChainName,
+                        imaState.chainProperties.mn.cid,
+                        imaState.chainProperties.sc.cid,
+                        null,
+                        imaState.jo_token_manager_eth, // for logs validation on s-chain
+                        imaState.nTransferBlockSizeM2S,
+                        imaState.nTransferStepsM2S,
+                        imaState.nMaxTransactionsM2S,
+                        imaState.nBlockAwaitDepthM2S,
+                        imaState.nBlockAgeM2S,
+                        imaBLS.do_sign_messages_m2s,
+                        null,
+                        imaState.chainProperties.sc.transactionCustomizer
+                    );
+                    imaState.loopState.m2s.isInProgress = false;
+                    await pwa.notify_on_loop_end( imaState, "m2s" );
+                } else {
+                    if( IMA.verbose_get() >= IMA.RV_VERBOSE().debug ) {
+                        log.write( strLogPrefix +
+                            cc.warning( "Skipped(m2s) due to time framing check" ) +
+                            "\n" );
+                    }
+                }
+            }
+        } catch ( err ) {
+            log.write( strLogPrefix +
+                cc.error( "M2S transfer exception: " ) +
+                cc.error( owaspUtils.extract_error_message( err ) ) +
+                cc.error( ", stack is: " ) + "\n" + cc.stack( err.stack ) +
+                "\n" );
+            imaState.loopState.m2s.isInProgress = false;
+            await pwa.notify_on_loop_end( imaState, "m2s" );
+            throw err;
+        }
+        if( IMA.verbose_get() >= IMA.RV_VERBOSE().information ) {
+            log.write( strLogPrefix +
+                cc.debug( "M2S transfer done: " ) + cc.tf( b1 ) +
+                "\n" );
+        }
+    } else {
+        if( IMA.verbose_get() >= IMA.RV_VERBOSE().information ) {
+            log.write( strLogPrefix +
+                cc.debug( "Skipped M2S transfer." ) +
+                "\n" );
+        }
+    }
+    return b1;
+}
+
+async function single_transfer_loop_part_s2m( loop_opts, strLogPrefix ) {
+    const imaState = state.get();
+    let b2 = true;
+    if( loop_opts.enable_step_s2m ) {
+        if( IMA.verbose_get() >= IMA.RV_VERBOSE().information ) {
+            log.write( strLogPrefix +
+                cc.debug( "Will invoke S2M transfer..." ) +
+                "\n" );
+        }
+        try {
+            if( ! await pwa.check_on_loop_start( imaState, "s2m" ) ) {
+                imaState.loopState.s2m.wasInProgress = false;
+                if( IMA.verbose_get() >= IMA.RV_VERBOSE().debug ) {
+                    log.write( strLogPrefix +
+                        cc.warning( "Skipped(s2m) due to cancel mode reported from PWA" ) +
+                        "\n" );
+                }
+            } else {
+                if( check_time_framing( null, "s2m", loop_opts.joRuntimeOpts ) ) {
+                    imaState.loopState.s2m.isInProgress = true;
+                    await pwa.notify_on_loop_start( imaState, "s2m" );
+                    b2 = await IMA.do_transfer( // s-chain --> main-net
+                        "S2M",
+                        loop_opts.joRuntimeOpts,
+
+                        imaState.chainProperties.sc.ethersProvider,
+                        imaState.jo_message_proxy_s_chain,
+                        imaState.chainProperties.sc.joAccount,
+                        imaState.chainProperties.mn.ethersProvider,
+                        imaState.jo_message_proxy_main_net,
+
+                        imaState.chainProperties.mn.joAccount,
+                        imaState.chainProperties.sc.strChainName,
+                        imaState.chainProperties.mn.strChainName,
+                        imaState.chainProperties.sc.cid,
+                        imaState.chainProperties.mn.cid,
+                        imaState.jo_deposit_box_eth, // for logs validation on mainnet
+                        null,
+                        imaState.nTransferBlockSizeS2M,
+                        imaState.nTransferStepsS2M,
+                        imaState.nMaxTransactionsS2M,
+                        imaState.nBlockAwaitDepthS2M,
+                        imaState.nBlockAgeS2M,
+                        imaBLS.do_sign_messages_s2m,
+                        null,
+                        imaState.chainProperties.mn.transactionCustomizer
+                    );
+                    imaState.loopState.s2m.isInProgress = false;
+                    await pwa.notify_on_loop_end( imaState, "s2m" );
+                } else {
+                    if( IMA.verbose_get() >= IMA.RV_VERBOSE().debug ) {
+                        log.write( strLogPrefix +
+                            cc.warning( "Skipped(s2m) due to time framing check" ) +
+                            "\n" );
+                    }
+                }
+            }
+        } catch ( err ) {
+            log.write( strLogPrefix +
+                cc.error( "S2M transfer exception: " ) +
+                cc.error( owaspUtils.extract_error_message( err ) ) +
+                cc.error( ", stack is: " ) + "\n" + cc.stack( err.stack ) +
+                "\n" );
+            imaState.loopState.s2m.isInProgress = false;
+            await pwa.notify_on_loop_end( imaState, "s2m" );
+            throw err;
+        }
+        if( IMA.verbose_get() >= IMA.RV_VERBOSE().information )
+            log.write( strLogPrefix + cc.debug( "S2M transfer done: " ) + cc.tf( b2 ) + "\n" );
+    } else {
+        if( IMA.verbose_get() >= IMA.RV_VERBOSE().information )
+            log.write( strLogPrefix + cc.debug( "Skipped S2M transfer." ) + "\n" );
+    }
+    return b2;
+}
+
+async function single_transfer_loop_part_s2s( loop_opts, strLogPrefix ) {
+    const imaState = state.get();
+    let b3 = true;
+    if( loop_opts.enable_step_s2s && imaState.s2s_opts.isEnabled ) {
+        if( IMA.verbose_get() >= IMA.RV_VERBOSE().information )
+            log.write( strLogPrefix + cc.debug( "Will invoke all S2S transfers..." ) + "\n" );
+        try {
+            b3 = await IMA.do_s2s_all( // s-chain --> s-chain
+                loop_opts.joRuntimeOpts,
+                imaState,
+                skale_observer,
+                imaState.chainProperties.sc.ethersProvider,
+                imaState.jo_message_proxy_s_chain,
+                imaState.chainProperties.sc.joAccount,
+                imaState.chainProperties.sc.strChainName,
+                imaState.chainProperties.sc.cid,
+                imaState.jo_token_manager_eth, // for logs validation on s-chain
+                imaState.nTransferBlockSizeS2S,
+                imaState.nTransferStepsS2S,
+                imaState.nMaxTransactionsS2S,
+                imaState.nBlockAwaitDepthMSS,
+                imaState.nBlockAgeS2S,
+                imaBLS.do_sign_messages_s2s,
+                imaState.chainProperties.sc.transactionCustomizer
+            );
+        } catch ( err ) {
+            log.write( strLogPrefix +
+                cc.error( "S2S transfer exception: " ) +
+                cc.error( owaspUtils.extract_error_message( err ) ) +
+                cc.error( ", stack is: " ) + "\n" + cc.stack( err.stack ) +
+                "\n" );
+            throw err;
+        }
+        if( IMA.verbose_get() >= IMA.RV_VERBOSE().information ) {
+            log.write( strLogPrefix +
+                cc.debug( "All S2S transfers done: " ) + cc.tf( b3 ) +
+                "\n" );
+        }
+    } else {
+        if( IMA.verbose_get() >= IMA.RV_VERBOSE().information ) {
+            log.write( strLogPrefix +
+                cc.debug( "Skipped S2S transfer." ) +
+                "\n" );
+        }
+    }
+    return b3;
+}
+
 export async function single_transfer_loop( loop_opts ) {
     const imaState = state.get();
     const strLogPrefix = cc.attention( "Single Loop:" ) + " ";
@@ -168,257 +434,10 @@ export async function single_transfer_loop( loop_opts ) {
             }
             return true;
         }
-
-        let b0 = true;
-        if( loop_opts.enable_step_oracle && IMA.getEnabledOracle() ) {
-            if( IMA.verbose_get() >= IMA.RV_VERBOSE().information ) {
-                log.write( strLogPrefix +
-                    cc.debug( "Will invoke Oracle gas price setup..." ) +
-                    "\n" );
-            }
-            try {
-                if( ! await pwa.check_on_loop_start( imaState, "oracle" ) ) {
-                    imaState.loopState.oracle.wasInProgress = false;
-                    if( IMA.verbose_get() >= IMA.RV_VERBOSE().debug ) {
-                        log.write( strLogPrefix +
-                            cc.warning( "Skipped(oracle) due to cancel mode reported from PWA" ) +
-                            "\n" );
-                    }
-                } else {
-                    if( check_time_framing( null, "oracle", loop_opts.joRuntimeOpts ) ) {
-                        imaState.loopState.oracle.isInProgress = true;
-                        await pwa.notify_on_loop_start( imaState, "oracle" );
-                        b0 = IMA.do_oracle_gas_price_setup(
-                            imaState.chainProperties.mn.ethersProvider,
-                            imaState.chainProperties.sc.ethersProvider,
-                            imaState.chainProperties.sc.transactionCustomizer,
-                            imaState.jo_community_locker,
-                            imaState.chainProperties.sc.joAccount,
-                            imaState.chainProperties.mn.cid,
-                            imaState.chainProperties.sc.cid,
-                            imaBLS.do_sign_u256
-                        );
-                        imaState.loopState.oracle.isInProgress = false;
-                        await pwa.notify_on_loop_end( imaState, "oracle" );
-                    } else {
-                        if( IMA.verbose_get() >= IMA.RV_VERBOSE().debug ) {
-                            log.write( strLogPrefix +
-                                cc.warning( "Skipped(oracle) due to time framing check" ) +
-                                "\n" );
-                        }
-                    }
-                }
-            } catch ( err ) {
-                log.write( strLogPrefix +
-                    cc.error( "Oracle operation exception: " ) +
-                    cc.error( owaspUtils.extract_error_message( err ) ) +
-                    cc.error( ", stack is: " ) + "\n" + cc.stack( err.stack ) +
-                    "\n" );
-                imaState.loopState.oracle.isInProgress = false;
-                await pwa.notify_on_loop_end( imaState, "oracle" );
-                throw err;
-            }
-            if( IMA.verbose_get() >= IMA.RV_VERBOSE().information ) {
-                log.write( strLogPrefix +
-                    cc.debug( "Oracle gas price setup done: " ) + cc.tf( b0 ) +
-                    "\n" );
-            }
-        }
-
-        let b1 = true;
-        if( loop_opts.enable_step_m2s ) {
-            if( IMA.verbose_get() >= IMA.RV_VERBOSE().information ) {
-                log.write( strLogPrefix +
-                    cc.debug( "Will invoke M2S transfer..." ) +
-                    "\n" );
-            }
-            try {
-                if( ! await pwa.check_on_loop_start( imaState, "m2s" ) ) {
-                    imaState.loopState.m2s.wasInProgress = false;
-                    if( IMA.verbose_get() >= IMA.RV_VERBOSE().debug ) {
-                        log.write( strLogPrefix +
-                            cc.warning( "Skipped(m2s) due to cancel mode reported from PWA" ) +
-                            "\n" );
-                    }
-                } else {
-                    if( check_time_framing( null, "m2s", loop_opts.joRuntimeOpts ) ) {
-                        imaState.loopState.m2s.isInProgress = true;
-                        await pwa.notify_on_loop_start( imaState, "m2s" );
-                        b1 = await IMA.do_transfer( // main-net --> s-chain
-                            "M2S",
-                            loop_opts.joRuntimeOpts,
-
-                            imaState.chainProperties.mn.ethersProvider,
-                            imaState.jo_message_proxy_main_net,
-                            imaState.chainProperties.mn.joAccount,
-                            imaState.chainProperties.sc.ethersProvider,
-                            imaState.jo_message_proxy_s_chain,
-
-                            imaState.chainProperties.sc.joAccount,
-                            imaState.chainProperties.mn.strChainName,
-                            imaState.chainProperties.sc.strChainName,
-                            imaState.chainProperties.mn.cid,
-                            imaState.chainProperties.sc.cid,
-                            null,
-                            imaState.jo_token_manager_eth, // for logs validation on s-chain
-                            imaState.nTransferBlockSizeM2S,
-                            imaState.nTransferStepsM2S,
-                            imaState.nMaxTransactionsM2S,
-                            imaState.nBlockAwaitDepthM2S,
-                            imaState.nBlockAgeM2S,
-                            imaBLS.do_sign_messages_m2s,
-                            null,
-                            imaState.chainProperties.sc.transactionCustomizer
-                        );
-                        imaState.loopState.m2s.isInProgress = false;
-                        await pwa.notify_on_loop_end( imaState, "m2s" );
-                    } else {
-                        if( IMA.verbose_get() >= IMA.RV_VERBOSE().debug ) {
-                            log.write( strLogPrefix +
-                                cc.warning( "Skipped(m2s) due to time framing check" ) +
-                                "\n" );
-                        }
-                    }
-                }
-            } catch ( err ) {
-                log.write( strLogPrefix +
-                    cc.error( "M2S transfer exception: " ) +
-                    cc.error( owaspUtils.extract_error_message( err ) ) +
-                    cc.error( ", stack is: " ) + "\n" + cc.stack( err.stack ) +
-                    "\n" );
-                imaState.loopState.m2s.isInProgress = false;
-                await pwa.notify_on_loop_end( imaState, "m2s" );
-                throw err;
-            }
-            if( IMA.verbose_get() >= IMA.RV_VERBOSE().information ) {
-                log.write( strLogPrefix +
-                    cc.debug( "M2S transfer done: " ) + cc.tf( b1 ) +
-                    "\n" );
-            }
-        } else {
-            if( IMA.verbose_get() >= IMA.RV_VERBOSE().information ) {
-                log.write( strLogPrefix +
-                    cc.debug( "Skipped M2S transfer." ) +
-                    "\n" );
-            }
-        }
-
-        let b2 = true;
-        if( loop_opts.enable_step_s2m ) {
-            if( IMA.verbose_get() >= IMA.RV_VERBOSE().information ) {
-                log.write( strLogPrefix +
-                    cc.debug( "Will invoke S2M transfer..." ) +
-                    "\n" );
-            }
-            try {
-                if( ! await pwa.check_on_loop_start( imaState, "s2m" ) ) {
-                    imaState.loopState.s2m.wasInProgress = false;
-                    if( IMA.verbose_get() >= IMA.RV_VERBOSE().debug ) {
-                        log.write( strLogPrefix +
-                            cc.warning( "Skipped(s2m) due to cancel mode reported from PWA" ) +
-                            "\n" );
-                    }
-                } else {
-                    if( check_time_framing( null, "s2m", loop_opts.joRuntimeOpts ) ) {
-                        imaState.loopState.s2m.isInProgress = true;
-                        await pwa.notify_on_loop_start( imaState, "s2m" );
-                        b2 = await IMA.do_transfer( // s-chain --> main-net
-                            "S2M",
-                            loop_opts.joRuntimeOpts,
-
-                            imaState.chainProperties.sc.ethersProvider,
-                            imaState.jo_message_proxy_s_chain,
-                            imaState.chainProperties.sc.joAccount,
-                            imaState.chainProperties.mn.ethersProvider,
-                            imaState.jo_message_proxy_main_net,
-
-                            imaState.chainProperties.mn.joAccount,
-                            imaState.chainProperties.sc.strChainName,
-                            imaState.chainProperties.mn.strChainName,
-                            imaState.chainProperties.sc.cid,
-                            imaState.chainProperties.mn.cid,
-                            imaState.jo_deposit_box_eth, // for logs validation on mainnet
-                            null,
-                            imaState.nTransferBlockSizeS2M,
-                            imaState.nTransferStepsS2M,
-                            imaState.nMaxTransactionsS2M,
-                            imaState.nBlockAwaitDepthS2M,
-                            imaState.nBlockAgeS2M,
-                            imaBLS.do_sign_messages_s2m,
-                            null,
-                            imaState.chainProperties.mn.transactionCustomizer
-                        );
-                        imaState.loopState.s2m.isInProgress = false;
-                        await pwa.notify_on_loop_end( imaState, "s2m" );
-                    } else {
-                        if( IMA.verbose_get() >= IMA.RV_VERBOSE().debug ) {
-                            log.write( strLogPrefix +
-                                cc.warning( "Skipped(s2m) due to time framing check" ) +
-                                "\n" );
-                        }
-                    }
-                }
-            } catch ( err ) {
-                log.write( strLogPrefix +
-                    cc.error( "S2M transfer exception: " ) +
-                    cc.error( owaspUtils.extract_error_message( err ) ) +
-                    cc.error( ", stack is: " ) + "\n" + cc.stack( err.stack ) +
-                    "\n" );
-                imaState.loopState.s2m.isInProgress = false;
-                await pwa.notify_on_loop_end( imaState, "s2m" );
-                throw err;
-            }
-            if( IMA.verbose_get() >= IMA.RV_VERBOSE().information )
-                log.write( strLogPrefix + cc.debug( "S2M transfer done: " ) + cc.tf( b2 ) + "\n" );
-        } else {
-            if( IMA.verbose_get() >= IMA.RV_VERBOSE().information )
-                log.write( strLogPrefix + cc.debug( "Skipped S2M transfer." ) + "\n" );
-        }
-
-        let b3 = true;
-        if( loop_opts.enable_step_s2s && imaState.s2s_opts.isEnabled ) {
-            if( IMA.verbose_get() >= IMA.RV_VERBOSE().information )
-                log.write( strLogPrefix + cc.debug( "Will invoke all S2S transfers..." ) + "\n" );
-            try {
-                b3 = await IMA.do_s2s_all( // s-chain --> s-chain
-                    loop_opts.joRuntimeOpts,
-                    imaState,
-                    skale_observer,
-                    imaState.chainProperties.sc.ethersProvider,
-                    imaState.jo_message_proxy_s_chain,
-                    imaState.chainProperties.sc.joAccount,
-                    imaState.chainProperties.sc.strChainName,
-                    imaState.chainProperties.sc.cid,
-                    imaState.jo_token_manager_eth, // for logs validation on s-chain
-                    imaState.nTransferBlockSizeS2S,
-                    imaState.nTransferStepsS2S,
-                    imaState.nMaxTransactionsS2S,
-                    imaState.nBlockAwaitDepthMSS,
-                    imaState.nBlockAgeS2S,
-                    imaBLS.do_sign_messages_s2s,
-                    imaState.chainProperties.sc.transactionCustomizer
-                );
-            } catch ( err ) {
-                log.write( strLogPrefix +
-                    cc.error( "S2S transfer exception: " ) +
-                    cc.error( owaspUtils.extract_error_message( err ) ) +
-                    cc.error( ", stack is: " ) + "\n" + cc.stack( err.stack ) +
-                    "\n" );
-                throw err;
-            }
-            if( IMA.verbose_get() >= IMA.RV_VERBOSE().information ) {
-                log.write( strLogPrefix +
-                    cc.debug( "All S2S transfers done: " ) + cc.tf( b3 ) +
-                    "\n" );
-            }
-        } else {
-            if( IMA.verbose_get() >= IMA.RV_VERBOSE().information ) {
-                log.write( strLogPrefix +
-                    cc.debug( "Skipped S2S transfer." ) +
-                    "\n" );
-            }
-        }
-
+        const b0 = await single_transfer_loop_part_oracle( loop_opts, strLogPrefix );
+        const b1 = await single_transfer_loop_part_m2s( loop_opts, strLogPrefix );
+        const b2 = await single_transfer_loop_part_s2m( loop_opts, strLogPrefix );
+        const b3 = await single_transfer_loop_part_s2s( loop_opts, strLogPrefix );
         const bResult = b0 && b1 && b2 && b3;
         if( IMA.verbose_get() >= IMA.RV_VERBOSE().information )
             log.write( strLogPrefix + cc.debug( "Completed: " ) + cc.tf( bResult ) + "\n" );
@@ -485,6 +504,117 @@ skale_observer.events.on( "chainsCacheChanged", function( eventData ) {
     notify_snb_cache_changed( eventData.detail.arr_schains_cached );
 } );
 
+const g_default_value_for_loopState = {
+    "oracle": {
+        "isInProgress": false,
+        "wasInProgress": false
+    },
+    "m2s": {
+        "isInProgress": false,
+        "wasInProgress": false
+    },
+    "s2m": {
+        "isInProgress": false,
+        "wasInProgress": false
+    },
+    "s2s": {
+        "isInProgress": false,
+        "wasInProgress": false
+    }
+};
+
+function construct_chain_properties( opts ) {
+    return {
+        "mn": {
+            "joAccount": {
+                "privateKey":
+                    opts.imaState.chainProperties.mn.joAccount.privateKey,
+                "address_":
+                    opts.imaState.chainProperties.mn.joAccount.address_,
+                "strTransactionManagerURL":
+                    opts.imaState.chainProperties.mn
+                        .joAccount.strTransactionManagerURL,
+                "tm_priority":
+                    opts.imaState.chainProperties.mn.joAccount.tm_priority,
+                "strSgxURL":
+                    opts.imaState.chainProperties.mn.joAccount.strSgxURL,
+                "strSgxKeyName":
+                    opts.imaState.chainProperties.mn.joAccount.strSgxKeyName,
+                "strPathSslKey":
+                    opts.imaState.chainProperties.mn.joAccount.strPathSslKey,
+                "strPathSslCert":
+                    opts.imaState.chainProperties.mn.joAccount.strPathSslCert,
+                "strBlsKeyName":
+                    opts.imaState.chainProperties.mn.joAccount.strBlsKeyName
+            },
+            "ethersProvider": null,
+            "strURL": opts.imaState.chainProperties.mn.strURL,
+            "strChainName": opts.imaState.chainProperties.mn.strChainName,
+            "cid": opts.imaState.chainProperties.mn.cid,
+            "joAbiIMA": opts.imaState.chainProperties.mn.joAbiIMA,
+            "bHaveAbiIMA": opts.imaState.chainProperties.mn.bHaveAbiIMA
+        },
+        "sc": {
+            "joAccount": {
+                "privateKey":
+                    opts.imaState.chainProperties.sc.joAccount.privateKey,
+                "address_":
+                    opts.imaState.chainProperties.sc.joAccount.address_,
+                "strTransactionManagerURL":
+                    opts.imaState.chainProperties.sc
+                        .joAccount.strTransactionManagerURL,
+                "tm_priority":
+                    opts.imaState.chainProperties.sc.joAccount.tm_priority,
+                "strSgxURL":
+                    opts.imaState.chainProperties.sc.joAccount.strSgxURL,
+                "strSgxKeyName":
+                    opts.imaState.chainProperties.sc.joAccount.strSgxKeyName,
+                "strPathSslKey":
+                    opts.imaState.chainProperties.sc.joAccount.strPathSslKey,
+                "strPathSslCert":
+                    opts.imaState.chainProperties.mn.joAccount.strPathSslCert,
+                "strBlsKeyName":
+                    opts.imaState.chainProperties.mn.joAccount.strBlsKeyName
+            },
+            "ethersProvider": null,
+            "strURL": opts.imaState.chainProperties.sc.strURL,
+            "strChainName": opts.imaState.chainProperties.sc.strChainName,
+            "cid": opts.imaState.chainProperties.sc.cid,
+            "joAbiIMA": opts.imaState.chainProperties.sc.joAbiIMA,
+            "bHaveAbiIMA": opts.imaState.chainProperties.sc.bHaveAbiIMA
+        },
+        "tc": {
+            "joAccount": {
+                "privateKey":
+                    opts.imaState.chainProperties.tc.joAccount.privateKey,
+                "address_":
+                    opts.imaState.chainProperties.tc.joAccount.address_,
+                "strTransactionManagerURL":
+                    opts.imaState.chainProperties.tc
+                        .joAccount.strTransactionManagerURL,
+                "tm_priority":
+                    opts.imaState.chainProperties.tc.joAccount.tm_priority,
+                "strSgxURL":
+                    opts.imaState.chainProperties.tc.joAccount.strSgxURL,
+                "strSgxKeyName":
+                    opts.imaState.chainProperties.tc.joAccount.strSgxKeyName,
+                "strPathSslKey":
+                    opts.imaState.chainProperties.tc.joAccount.strPathSslKey,
+                "strPathSslCert":
+                    opts.imaState.chainProperties.tc.joAccount.strPathSslCert,
+                "strBlsKeyName":
+                    opts.imaState.chainProperties.tc.joAccount.strBlsKeyName
+            },
+            "ethersProvider": null,
+            "strURL": opts.imaState.chainProperties.tc.strURL,
+            "strChainName": opts.imaState.chainProperties.tc.strChainName,
+            "cid": opts.imaState.chainProperties.tc.cid,
+            "joAbiIMA": opts.imaState.chainProperties.tc.joAbiIMA,
+            "bHaveAbiIMA": opts.imaState.chainProperties.tc.bHaveAbiIMA
+        }
+    };
+}
+
 export async function ensure_have_workers( opts ) {
     if( g_workers.length > 0 )
         return g_workers;
@@ -492,9 +622,7 @@ export async function ensure_have_workers( opts ) {
     for( let idxWorker = 0; idxWorker < cntWorkers; ++ idxWorker ) {
         const workerData = {
             url: "ima_loop_server" + idxWorker,
-            cc: {
-                isEnabled: cc.isEnabled()
-            }
+            cc: { isEnabled: cc.isEnabled() }
         };
         g_workers.push(
             new Worker(
@@ -508,9 +636,7 @@ export async function ensure_have_workers( opts ) {
         } );
         g_clients.push(
             new network_layer.OutOfWorkerSocketClientPipe(
-                workerData.url,
-                g_workers[idxWorker]
-            )
+                workerData.url, g_workers[idxWorker] )
         );
         g_clients[idxWorker].on( "message", async function( eventData ) {
             const joMessage = eventData.message;
@@ -557,39 +683,18 @@ export async function ensure_have_workers( opts ) {
                         "verbose_": IMA.verbose_get(),
                         "expose_details_": IMA.expose_details_get(),
                         "arr_schains_cached": skale_observer.get_last_cached_schains(),
-
-                        "loopState": {
-                            "oracle": {
-                                "isInProgress": false,
-                                "wasInProgress": false
-                            },
-                            "m2s": {
-                                "isInProgress": false,
-                                "wasInProgress": false
-                            },
-                            "s2m": {
-                                "isInProgress": false,
-                                "wasInProgress": false
-                            },
-                            "s2s": {
-                                "isInProgress": false,
-                                "wasInProgress": false
-                            }
-                        },
-
+                        "loopState": g_default_value_for_loopState,
                         "isPrintGathered": opts.imaState.isPrintGathered,
                         "isPrintSecurityValues": opts.imaState.isPrintSecurityValues,
                         "isPrintPWA": opts.imaState.isPrintPWA,
                         "isDynamicLogInDoTransfer": opts.imaState.isDynamicLogInDoTransfer,
                         "isDynamicLogInBlsSigner": opts.imaState.isDynamicLogInBlsSigner,
-
                         "bIsNeededCommonInit": false,
                         "bSignMessages": opts.imaState.bSignMessages,
                         "joSChainNetworkInfo": opts.imaState.joSChainNetworkInfo,
                         "strPathBlsGlue": opts.imaState.strPathBlsGlue,
                         "strPathHashG1": opts.imaState.strPathHashG1,
                         "strPathBlsVerify": opts.imaState.strPathBlsVerify,
-
                         "isEnabledMultiCall": opts.imaState.isEnabledMultiCall,
 
                         "bNoWaitSChainStarted": opts.imaState.bNoWaitSChainStarted,
@@ -649,95 +754,7 @@ export async function ensure_have_workers( opts ) {
                         "eth_erc20": null,
                         "eth_erc20_target": null,
 
-                        "chainProperties": {
-                            "mn": {
-                                "joAccount": {
-                                    "privateKey":
-                                        opts.imaState.chainProperties.mn.joAccount.privateKey,
-                                    "address_":
-                                        opts.imaState.chainProperties.mn.joAccount.address_,
-                                    "strTransactionManagerURL":
-                                        opts.imaState.chainProperties.mn
-                                            .joAccount.strTransactionManagerURL,
-                                    "tm_priority":
-                                        opts.imaState.chainProperties.mn.joAccount.tm_priority,
-                                    "strSgxURL":
-                                        opts.imaState.chainProperties.mn.joAccount.strSgxURL,
-                                    "strSgxKeyName":
-                                        opts.imaState.chainProperties.mn.joAccount.strSgxKeyName,
-                                    "strPathSslKey":
-                                        opts.imaState.chainProperties.mn.joAccount.strPathSslKey,
-                                    "strPathSslCert":
-                                        opts.imaState.chainProperties.mn.joAccount.strPathSslCert,
-                                    "strBlsKeyName":
-                                        opts.imaState.chainProperties.mn.joAccount.strBlsKeyName
-                                },
-                                "ethersProvider": null,
-                                "strURL": opts.imaState.chainProperties.mn.strURL,
-                                "strChainName": opts.imaState.chainProperties.mn.strChainName,
-                                "cid": opts.imaState.chainProperties.mn.cid,
-                                "joAbiIMA": opts.imaState.chainProperties.mn.joAbiIMA,
-                                "bHaveAbiIMA": opts.imaState.chainProperties.mn.bHaveAbiIMA
-                            },
-                            "sc": {
-                                "joAccount": {
-                                    "privateKey":
-                                        opts.imaState.chainProperties.sc.joAccount.privateKey,
-                                    "address_":
-                                        opts.imaState.chainProperties.sc.joAccount.address_,
-                                    "strTransactionManagerURL":
-                                        opts.imaState.chainProperties.sc
-                                            .joAccount.strTransactionManagerURL,
-                                    "tm_priority":
-                                        opts.imaState.chainProperties.sc.joAccount.tm_priority,
-                                    "strSgxURL":
-                                        opts.imaState.chainProperties.sc.joAccount.strSgxURL,
-                                    "strSgxKeyName":
-                                        opts.imaState.chainProperties.sc.joAccount.strSgxKeyName,
-                                    "strPathSslKey":
-                                        opts.imaState.chainProperties.sc.joAccount.strPathSslKey,
-                                    "strPathSslCert":
-                                        opts.imaState.chainProperties.mn.joAccount.strPathSslCert,
-                                    "strBlsKeyName":
-                                        opts.imaState.chainProperties.mn.joAccount.strBlsKeyName
-                                },
-                                "ethersProvider": null,
-                                "strURL": opts.imaState.chainProperties.sc.strURL,
-                                "strChainName": opts.imaState.chainProperties.sc.strChainName,
-                                "cid": opts.imaState.chainProperties.sc.cid,
-                                "joAbiIMA": opts.imaState.chainProperties.sc.joAbiIMA,
-                                "bHaveAbiIMA": opts.imaState.chainProperties.sc.bHaveAbiIMA
-                            },
-                            "tc": {
-                                "joAccount": {
-                                    "privateKey":
-                                        opts.imaState.chainProperties.tc.joAccount.privateKey,
-                                    "address_":
-                                        opts.imaState.chainProperties.tc.joAccount.address_,
-                                    "strTransactionManagerURL":
-                                        opts.imaState.chainProperties.tc
-                                            .joAccount.strTransactionManagerURL,
-                                    "tm_priority":
-                                        opts.imaState.chainProperties.tc.joAccount.tm_priority,
-                                    "strSgxURL":
-                                        opts.imaState.chainProperties.tc.joAccount.strSgxURL,
-                                    "strSgxKeyName":
-                                        opts.imaState.chainProperties.tc.joAccount.strSgxKeyName,
-                                    "strPathSslKey":
-                                        opts.imaState.chainProperties.tc.joAccount.strPathSslKey,
-                                    "strPathSslCert":
-                                        opts.imaState.chainProperties.tc.joAccount.strPathSslCert,
-                                    "strBlsKeyName":
-                                        opts.imaState.chainProperties.tc.joAccount.strBlsKeyName
-                                },
-                                "ethersProvider": null,
-                                "strURL": opts.imaState.chainProperties.tc.strURL,
-                                "strChainName": opts.imaState.chainProperties.tc.strChainName,
-                                "cid": opts.imaState.chainProperties.tc.cid,
-                                "joAbiIMA": opts.imaState.chainProperties.tc.joAbiIMA,
-                                "bHaveAbiIMA": opts.imaState.chainProperties.tc.bHaveAbiIMA
-                            }
-                        },
+                        "chainProperties": construct_chain_properties( opts ),
                         "joAbiSkaleManager": opts.imaState.joAbiSkaleManager,
                         "bHaveSkaleManagerABI": opts.imaState.bHaveSkaleManagerABI,
 
@@ -766,7 +783,6 @@ export async function ensure_have_workers( opts ) {
 
                         "nJsonRpcPort": opts.imaState.nJsonRpcPort,
                         "isCrossImaBlsMode": opts.imaState.isCrossImaBlsMode
-
                     }
                 },
                 "cc": {

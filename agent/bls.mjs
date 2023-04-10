@@ -1361,6 +1361,228 @@ async function gather_signing_finish_impl( optsSignOperation ) {
     }
 }
 
+async function do_sign_configure_chain_access_params( optsSignOperation ) {
+    optsSignOperation.targetChainName = "";
+    optsSignOperation.fromChainName = "";
+    optsSignOperation.targetChainID = -4;
+    optsSignOperation.fromChainID = -4;
+    if( optsSignOperation.strDirection == "M2S" ) {
+        optsSignOperation.targetChainName = "" +
+            ( optsSignOperation.imaState.chainProperties.sc.strChainName
+                ? optsSignOperation.imaState.chainProperties.sc.strChainName
+                : "" );
+        optsSignOperation.fromChainName = "" +
+            ( optsSignOperation.imaState.chainProperties.mn.strChainName
+                ? optsSignOperation.imaState.chainProperties.mn.strChainName
+                : "" );
+        optsSignOperation.targetChainID = optsSignOperation.imaState.chainProperties.sc.cid;
+        optsSignOperation.fromChainID = optsSignOperation.imaState.chainProperties.mn.cid;
+    } else if( optsSignOperation.strDirection == "S2M" ) {
+        optsSignOperation.targetChainName = "" +
+            ( optsSignOperation.imaState.chainProperties.mn.strChainName
+                ? optsSignOperation.imaState.chainProperties.mn.strChainName
+                : "" );
+        optsSignOperation.fromChainName = "" +
+            ( optsSignOperation.imaState.chainProperties.sc.strChainName
+                ? optsSignOperation.imaState.chainProperties.sc.strChainName
+                : "" );
+        optsSignOperation.targetChainID = optsSignOperation.imaState.chainProperties.mn.cid;
+        optsSignOperation.fromChainID = optsSignOperation.imaState.chainProperties.sc.cid;
+    } else if( optsSignOperation.strDirection == "S2S" ) {
+        optsSignOperation.targetChainName =
+            "" + optsSignOperation.joExtraSignOpts.chain_id_dst;
+        optsSignOperation.fromChainName = "" + optsSignOperation.joExtraSignOpts.chain_id_src;
+        optsSignOperation.targetChainID = optsSignOperation.joExtraSignOpts.cid_dst;
+        optsSignOperation.fromChainID = optsSignOperation.joExtraSignOpts.cid_src;
+    } else {
+        await joCall.disconnect();
+        throw new Error(
+            "CRITICAL ERROR: " +
+            "Failed do_sign_messages_impl() with unknown direction \"" +
+            optsSignOperation.strDirection + "\""
+        );
+    }
+}
+
+async function do_sign_process_handle_call(
+    optsSignOperation,
+    joNode, joParams,
+    joIn, joOut, err
+) {
+    ++optsSignOperation.joGatheringTracker.nCountReceived; // including errors
+    if( err ) {
+        ++optsSignOperation.joGatheringTracker.nCountErrors;
+        const strErrorMessage =
+            optsSignOperation.strLogPrefix + cc.fatal( "CRITICAL ERROR:" ) +
+            cc.error( " JSON RPC call to S-Chain node " ) + strNodeDescColorized +
+            cc.error( " failed, RPC call reported error: " ) +
+            cc.warning( owaspUtils.extract_error_message( err ) ) +
+            cc.error( ", " ) + cc.notice( "sequence ID" ) +
+            cc.error( " is " ) + cc.attention( optsSignOperation.sequence_id ) +
+            "\n";
+        log.write( strErrorMessage );
+        optsSignOperation.details.write( strErrorMessage );
+        await joCall.disconnect();
+        return;
+    }
+    optsSignOperation.details.write( optsSignOperation.strLogPrefix +
+        log.generate_timestamp_string( null, true ) + " " +
+        cc.debug( "Got answer from " ) + cc.info( "skale_imaVerifyAndSign" ) +
+        cc.debug( " for transfer from chain " ) +
+        cc.info( optsSignOperation.fromChainName ) +
+        cc.debug( " to chain " ) + cc.info( optsSignOperation.targetChainName ) +
+        cc.debug( " with params " ) + cc.j( joParams ) +
+        cc.debug( ", answer is " ) + cc.j( joOut ) +
+        cc.debug( ", " ) + cc.notice( "sequence ID" ) +
+        cc.debug( " is " ) + cc.attention( optsSignOperation.sequence_id ) +
+        "\n" );
+    if( joOut.result == null ||
+        joOut.result == undefined ||
+        ( !typeof joOut.result == "object" )
+    ) {
+        ++optsSignOperation.joGatheringTracker.nCountErrors;
+        const strErrorMessage = optsSignOperation.strLogPrefix +
+            cc.fatal( "Wallet CRITICAL ERROR:" ) + " " +
+            cc.error( "S-Chain node " ) + strNodeDescColorized +
+            cc.error( " reported wallet error: " ) +
+            cc.warning(
+                owaspUtils.extract_error_message( joOut, "unknown wallet error(1)" )
+            ) +
+            cc.error( ", " ) + cc.notice( "sequence ID" ) +
+            cc.error( " is " ) + cc.attention( optsSignOperation.sequence_id ) +
+            "\n";
+        log.write( strErrorMessage );
+        optsSignOperation.details.write( strErrorMessage );
+        await joCall.disconnect();
+        return;
+    }
+    optsSignOperation.details.write( optsSignOperation.strLogPrefix +
+        cc.debug( "Node " ) + cc.info( joNode.nodeID ) +
+        cc.debug( " sign result: " ) +
+        cc.j( joOut.result ? joOut.result : null ) +
+        "\n" );
+    try {
+        if( joOut.result.signResult.signatureShare.length > 0 &&
+            joOut.result.signResult.status === 0
+        ) {
+            const nZeroBasedNodeIndex = joNode.imaInfo.thisNodeIndex - 1;
+            //
+            // partial BLS verification for one participant
+            //
+            let bNodeSignatureOKay = false; // initially assume signature is wrong
+            optsSignOperation.strLogPrefixA =
+                cc.bright( optsSignOperation.strDirection ) + cc.debug( "/" ) +
+                cc.info( "BLS" ) + cc.debug( "/" ) +
+                cc.notice( "#" ) + cc.bright( nZeroBasedNodeIndex ) +
+                cc.debug( ":" ) + " ";
+            try {
+                optsSignOperation.cntSuccess =
+                    optsSignOperation.joGatheringTracker.nCountReceived -
+                    optsSignOperation.joGatheringTracker.nCountErrors;
+                if( optsSignOperation.cntSuccess >
+                        optsSignOperation.nCountOfBlsPartsToCollect ) {
+                    ++optsSignOperation.joGatheringTracker.nCountSkipped;
+                    optsSignOperation.details.write(
+                        optsSignOperation.strLogPrefixA +
+                        cc.debug( "Will ignore sign result for node " ) +
+                        cc.info( nZeroBasedNodeIndex ) + cc.debug( " because " ) +
+                        cc.info( optsSignOperation.nThreshold ) + cc.debug( "/" ) +
+                        cc.info( optsSignOperation.nCountOfBlsPartsToCollect ) +
+                        cc.debug(
+                            " threshold number of BLS signature " +
+                            "parts already gathered"
+                        ) +
+                        "\n" );
+                    await joCall.disconnect();
+                    return;
+                }
+                const arrTmp = joOut.result.signResult.signatureShare.split( ":" );
+                const joResultFromNode = {
+                    index: "" + nZeroBasedNodeIndex,
+                    signature: {
+                        X: arrTmp[0],
+                        Y: arrTmp[1]
+                    }
+                };
+                optsSignOperation.details.write( optsSignOperation.strLogPrefixA +
+                    cc.info( "Will verify sign result for node " ) +
+                    cc.info( nZeroBasedNodeIndex ) +
+                    "\n" );
+                const joPublicKey =
+                    discover_public_key_by_index(
+                        nZeroBasedNodeIndex,
+                        optsSignOperation.imaState.joSChainNetworkInfo
+                    );
+                if( perform_bls_verify_i(
+                    optsSignOperation.details, optsSignOperation.strDirection,
+                    nZeroBasedNodeIndex, joResultFromNode,
+                    optsSignOperation.jarrMessages,
+                    optsSignOperation.nIdxCurrentMsgBlockStart,
+                    optsSignOperation.strFromChainName,
+                    joPublicKey
+                ) ) {
+                    optsSignOperation.details.write(
+                        optsSignOperation.strLogPrefixA +
+                        cc.success(
+                            "Got successful BLS verification result for node " ) +
+                        cc.info( joNode.nodeID ) + cc.success( " with index " ) +
+                        cc.info( nZeroBasedNodeIndex ) +
+                        "\n" );
+                    bNodeSignatureOKay = true; // node verification passed
+                } else {
+                    optsSignOperation.details.write(
+                        optsSignOperation.strLogPrefixA +
+                        cc.fatal( "CRITICAL ERROR:" ) +
+                        " " + cc.error( "BLS verification failed" ) +
+                        "\n" );
+                }
+            } catch ( err ) {
+                const strErrorMessage =
+                    optsSignOperation.strLogPrefixA + cc.error( "S-Chain node " ) +
+                    strNodeDescColorized + cc.error( " sign " ) +
+                    cc.error( " CRITICAL ERROR:" ) +
+                    cc.error( " partial signature fail from with index " ) +
+                    cc.info( nZeroBasedNodeIndex ) +
+                    cc.error( ", error is " ) +
+                    cc.warning( owaspUtils.extract_error_message( err ) ) +
+                    cc.error( ", " ) + cc.notice( "sequence ID" ) +
+                    cc.error( " is " ) + cc.attention( optsSignOperation.sequence_id ) +
+                    cc.error( ", stack is:" ) + "\n" + cc.stack( err.stack ) +
+                    "\n";
+                log.write( strErrorMessage );
+                optsSignOperation.details.write( strErrorMessage );
+            }
+            if( bNodeSignatureOKay ) {
+                optsSignOperation.arrSignResults.push( {
+                    index: "" + nZeroBasedNodeIndex,
+                    signature:
+                        split_signature_share(
+                            joOut.result.signResult.signatureShare
+                        ),
+                    fromNode: joNode, // extra, not needed for bls_glue
+                    signResult: joOut.result.signResult
+                } );
+            } else
+                ++optsSignOperation.joGatheringTracker.nCountErrors;
+        }
+    } catch ( err ) {
+        ++optsSignOperation.joGatheringTracker.nCountErrors;
+        const strErrorMessage =
+            optsSignOperation.strLogPrefix + cc.error( "S-Chain node " ) +
+            strNodeDescColorized + " " + cc.fatal( "CRITICAL ERROR:" ) +
+            cc.error( " signature fail from node " ) + cc.info( joNode.nodeID ) +
+            cc.error( ", error is " ) +
+            cc.warning( owaspUtils.extract_error_message( err ) ) +
+            cc.error( ", " ) + cc.notice( "sequence ID" ) +
+            cc.error( " is " ) + cc.attention( optsSignOperation.sequence_id ) +
+            cc.error( ", stack is:" ) + "\n" + cc.stack( err.stack ) +
+            "\n";
+        log.write( strErrorMessage );
+        optsSignOperation.details.write( strErrorMessage );
+    }
+    await joCall.disconnect();
+}
+
 async function do_sign_process_one_impl( i, optsSignOperation ) {
     const joNode = optsSignOperation.jarrNodes[i];
     const strNodeURL = optsSignOperation.imaState.isCrossImaBlsMode
@@ -1391,53 +1613,14 @@ async function do_sign_process_one_impl( i, optsSignOperation ) {
                 await joCall.disconnect();
             return;
         }
-        let targetChainName = "";
-        let fromChainName = "";
-        let targetChainID = -4;
-        let fromChainID = -4;
-        if( optsSignOperation.strDirection == "M2S" ) {
-            targetChainName = "" +
-                ( optsSignOperation.imaState.chainProperties.sc.strChainName
-                    ? optsSignOperation.imaState.chainProperties.sc.strChainName
-                    : "" );
-            fromChainName = "" +
-                ( optsSignOperation.imaState.chainProperties.mn.strChainName
-                    ? optsSignOperation.imaState.chainProperties.mn.strChainName
-                    : "" );
-            targetChainID = optsSignOperation.imaState.chainProperties.sc.cid;
-            fromChainID = optsSignOperation.imaState.chainProperties.mn.cid;
-        } else if( optsSignOperation.strDirection == "S2M" ) {
-            targetChainName = "" +
-                ( optsSignOperation.imaState.chainProperties.mn.strChainName
-                    ? optsSignOperation.imaState.chainProperties.mn.strChainName
-                    : "" );
-            fromChainName = "" +
-                ( optsSignOperation.imaState.chainProperties.sc.strChainName
-                    ? optsSignOperation.imaState.chainProperties.sc.strChainName
-                    : "" );
-            targetChainID = optsSignOperation.imaState.chainProperties.mn.cid;
-            fromChainID = optsSignOperation.imaState.chainProperties.sc.cid;
-        } else if( optsSignOperation.strDirection == "S2S" ) {
-            targetChainName = "" + optsSignOperation.joExtraSignOpts.chain_id_dst;
-            fromChainName = "" + optsSignOperation.joExtraSignOpts.chain_id_src;
-            targetChainID = optsSignOperation.joExtraSignOpts.cid_dst;
-            fromChainID = optsSignOperation.joExtraSignOpts.cid_src;
-        } else {
-            await joCall.disconnect();
-            throw new Error(
-                "CRITICAL ERROR: " +
-                "Failed do_sign_messages_impl() with unknown direction \"" +
-                optsSignOperation.strDirection + "\""
-            );
-        }
-
+        await do_sign_configure_chain_access_params( optsSignOperation );
         const joParams = {
             "direction": "" + optsSignOperation.strDirection,
             "startMessageIdx": optsSignOperation.nIdxCurrentMsgBlockStart,
-            "dstChainName": targetChainName,
-            "srcChainName": fromChainName,
-            "dstChainID": targetChainID,
-            "srcChainID": fromChainID,
+            "dstChainName": optsSignOperation.targetChainName,
+            "srcChainName": optsSignOperation.fromChainName,
+            "dstChainID": optsSignOperation.targetChainID,
+            "srcChainID": optsSignOperation.fromChainID,
             "messages": optsSignOperation.jarrMessages,
             "qa": {
                 "skaled_no": 0 + i,
@@ -1449,8 +1632,8 @@ async function do_sign_process_one_impl( i, optsSignOperation ) {
             optsSignOperation.strLogPrefix +
             log.generate_timestamp_string( null, true ) + " " +
             cc.debug( "Will invoke " ) + cc.info( "skale_imaVerifyAndSign" ) +
-            cc.debug( " for transfer from chain " ) + cc.info( fromChainName ) +
-            cc.debug( " to chain " ) + cc.info( targetChainName ) +
+            cc.debug( " for transfer from chain " ) + cc.info( optsSignOperation.fromChainName ) +
+            cc.debug( " to chain " ) + cc.info( optsSignOperation.targetChainName ) +
             cc.debug( " with params " ) + cc.j( joParams ) +
             cc.debug( ", " ) + cc.notice( "sequence ID" ) +
             cc.debug( " is " ) + cc.attention( optsSignOperation.sequence_id ) +
@@ -1459,177 +1642,11 @@ async function do_sign_process_one_impl( i, optsSignOperation ) {
             "method": "skale_imaVerifyAndSign",
             "params": joParams
         }, async function( joIn, joOut, err ) {
-            ++optsSignOperation.joGatheringTracker.nCountReceived; // including errors
-            if( err ) {
-                ++optsSignOperation.joGatheringTracker.nCountErrors;
-                const strErrorMessage =
-                    optsSignOperation.strLogPrefix + cc.fatal( "CRITICAL ERROR:" ) +
-                    cc.error( " JSON RPC call to S-Chain node " ) + strNodeDescColorized +
-                    cc.error( " failed, RPC call reported error: " ) +
-                    cc.warning( owaspUtils.extract_error_message( err ) ) +
-                    cc.error( ", " ) + cc.notice( "sequence ID" ) +
-                    cc.error( " is " ) + cc.attention( optsSignOperation.sequence_id ) +
-                    "\n";
-                log.write( strErrorMessage );
-                optsSignOperation.details.write( strErrorMessage );
-                await joCall.disconnect();
-                return;
-            }
-            optsSignOperation.details.write( optsSignOperation.strLogPrefix +
-                log.generate_timestamp_string( null, true ) + " " +
-                cc.debug( "Got answer from " ) + cc.info( "skale_imaVerifyAndSign" ) +
-                cc.debug( " for transfer from chain " ) + cc.info( fromChainName ) +
-                cc.debug( " to chain " ) + cc.info( targetChainName ) +
-                cc.debug( " with params " ) + cc.j( joParams ) +
-                cc.debug( ", answer is " ) + cc.j( joOut ) +
-                cc.debug( ", " ) + cc.notice( "sequence ID" ) +
-                cc.debug( " is " ) + cc.attention( optsSignOperation.sequence_id ) +
-                "\n" );
-            if( joOut.result == null ||
-                joOut.result == undefined ||
-                ( !typeof joOut.result == "object" )
-            ) {
-                ++optsSignOperation.joGatheringTracker.nCountErrors;
-                const strErrorMessage = optsSignOperation.strLogPrefix +
-                    cc.fatal( "Wallet CRITICAL ERROR:" ) + " " +
-                    cc.error( "S-Chain node " ) + strNodeDescColorized +
-                    cc.error( " reported wallet error: " ) +
-                    cc.warning(
-                        owaspUtils.extract_error_message( joOut, "unknown wallet error(1)" )
-                    ) +
-                    cc.error( ", " ) + cc.notice( "sequence ID" ) +
-                    cc.error( " is " ) + cc.attention( optsSignOperation.sequence_id ) +
-                    "\n";
-                log.write( strErrorMessage );
-                optsSignOperation.details.write( strErrorMessage );
-                await joCall.disconnect();
-                return;
-            }
-            optsSignOperation.details.write( optsSignOperation.strLogPrefix +
-                cc.debug( "Node " ) + cc.info( joNode.nodeID ) +
-                cc.debug( " sign result: " ) +
-                cc.j( joOut.result ? joOut.result : null ) +
-                "\n" );
-            try {
-                if( joOut.result.signResult.signatureShare.length > 0 &&
-                    joOut.result.signResult.status === 0
-                ) {
-                    const nZeroBasedNodeIndex = joNode.imaInfo.thisNodeIndex - 1;
-                    //
-                    // partial BLS verification for one participant
-                    //
-                    let bNodeSignatureOKay = false; // initially assume signature is wrong
-                    optsSignOperation.strLogPrefixA =
-                        cc.bright( optsSignOperation.strDirection ) + cc.debug( "/" ) +
-                        cc.info( "BLS" ) + cc.debug( "/" ) +
-                        cc.notice( "#" ) + cc.bright( nZeroBasedNodeIndex ) +
-                        cc.debug( ":" ) + " ";
-                    try {
-                        optsSignOperation.cntSuccess =
-                            optsSignOperation.joGatheringTracker.nCountReceived -
-                            optsSignOperation.joGatheringTracker.nCountErrors;
-                        if( optsSignOperation.cntSuccess >
-                                optsSignOperation.nCountOfBlsPartsToCollect ) {
-                            ++optsSignOperation.joGatheringTracker.nCountSkipped;
-                            optsSignOperation.details.write(
-                                optsSignOperation.strLogPrefixA +
-                                cc.debug( "Will ignore sign result for node " ) +
-                                cc.info( nZeroBasedNodeIndex ) + cc.debug( " because " ) +
-                                cc.info( optsSignOperation.nThreshold ) + cc.debug( "/" ) +
-                                cc.info( optsSignOperation.nCountOfBlsPartsToCollect ) +
-                                cc.debug(
-                                    " threshold number of BLS signature " +
-                                    "parts already gathered"
-                                ) +
-                                "\n" );
-                            await joCall.disconnect();
-                            return;
-                        }
-                        const arrTmp = joOut.result.signResult.signatureShare.split( ":" );
-                        const joResultFromNode = {
-                            index: "" + nZeroBasedNodeIndex,
-                            signature: {
-                                X: arrTmp[0],
-                                Y: arrTmp[1]
-                            }
-                        };
-                        optsSignOperation.details.write( optsSignOperation.strLogPrefixA +
-                            cc.info( "Will verify sign result for node " ) +
-                            cc.info( nZeroBasedNodeIndex ) +
-                            "\n" );
-                        const joPublicKey =
-                            discover_public_key_by_index(
-                                nZeroBasedNodeIndex,
-                                optsSignOperation.imaState.joSChainNetworkInfo
-                            );
-                        if( perform_bls_verify_i(
-                            optsSignOperation.details, optsSignOperation.strDirection,
-                            nZeroBasedNodeIndex, joResultFromNode,
-                            optsSignOperation.jarrMessages,
-                            optsSignOperation.nIdxCurrentMsgBlockStart,
-                            optsSignOperation.strFromChainName,
-                            joPublicKey
-                        ) ) {
-                            optsSignOperation.details.write(
-                                optsSignOperation.strLogPrefixA +
-                                cc.success(
-                                    "Got successful BLS verification result for node " ) +
-                                cc.info( joNode.nodeID ) + cc.success( " with index " ) +
-                                cc.info( nZeroBasedNodeIndex ) +
-                                "\n" );
-                            bNodeSignatureOKay = true; // node verification passed
-                        } else {
-                            optsSignOperation.details.write(
-                                optsSignOperation.strLogPrefixA +
-                                cc.fatal( "CRITICAL ERROR:" ) +
-                                " " + cc.error( "BLS verification failed" ) +
-                                "\n" );
-                        }
-                    } catch ( err ) {
-                        const strErrorMessage =
-                            optsSignOperation.strLogPrefixA + cc.error( "S-Chain node " ) +
-                            strNodeDescColorized + cc.error( " sign " ) +
-                            cc.error( " CRITICAL ERROR:" ) +
-                            cc.error( " partial signature fail from with index " ) +
-                            cc.info( nZeroBasedNodeIndex ) +
-                            cc.error( ", error is " ) +
-                            cc.warning( owaspUtils.extract_error_message( err ) ) +
-                            cc.error( ", " ) + cc.notice( "sequence ID" ) +
-                            cc.error( " is " ) + cc.attention( optsSignOperation.sequence_id ) +
-                            cc.error( ", stack is:" ) + "\n" + cc.stack( err.stack ) +
-                            "\n";
-                        log.write( strErrorMessage );
-                        optsSignOperation.details.write( strErrorMessage );
-                    }
-                    if( bNodeSignatureOKay ) {
-                        optsSignOperation.arrSignResults.push( {
-                            index: "" + nZeroBasedNodeIndex,
-                            signature:
-                                split_signature_share(
-                                    joOut.result.signResult.signatureShare
-                                ),
-                            fromNode: joNode, // extra, not needed for bls_glue
-                            signResult: joOut.result.signResult
-                        } );
-                    } else
-                        ++optsSignOperation.joGatheringTracker.nCountErrors;
-                }
-            } catch ( err ) {
-                ++optsSignOperation.joGatheringTracker.nCountErrors;
-                const strErrorMessage =
-                    optsSignOperation.strLogPrefix + cc.error( "S-Chain node " ) +
-                    strNodeDescColorized + " " + cc.fatal( "CRITICAL ERROR:" ) +
-                    cc.error( " signature fail from node " ) + cc.info( joNode.nodeID ) +
-                    cc.error( ", error is " ) +
-                    cc.warning( owaspUtils.extract_error_message( err ) ) +
-                    cc.error( ", " ) + cc.notice( "sequence ID" ) +
-                    cc.error( " is " ) + cc.attention( optsSignOperation.sequence_id ) +
-                    cc.error( ", stack is:" ) + "\n" + cc.stack( err.stack ) +
-                    "\n";
-                log.write( strErrorMessage );
-                optsSignOperation.details.write( strErrorMessage );
-            }
-            await joCall.disconnect();
+            await do_sign_process_handle_call(
+                optsSignOperation,
+                joNode, joParams,
+                joIn, joOut, err
+            );
         } ); // joCall.call ...
     } ); // rpcCall.create ...
 }
@@ -1663,7 +1680,11 @@ async function do_sign_messages_impl(
         nParticipants: 1,
         nCountOfBlsPartsToCollect: 1,
         errGathering: null,
-        promise_gathering_complete: null
+        promise_gathering_complete: null,
+        targetChainName: "",
+        fromChainName: "",
+        targetChainID: -4,
+        fromChainID: -4
     };
     optsSignOperation.strLogPrefix =
         cc.bright( optsSignOperation.strDirection ) + cc.debug( "/" ) +

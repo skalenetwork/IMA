@@ -220,2005 +220,2205 @@ export function find_node_index( joSChainNodeConfiguration ) {
     return 0;
 }
 
+function print_help_general( soi ) {
+    console.log( cc.sunny( "GENERAL" ) + cc.info( " options:" ) );
+    console.log( soi + cc.debug( "--" ) + cc.bright( "help" ) +
+        cc.debug( ".................................." ) + cc.notice( "Show this " ) +
+        cc.note( "help info" ) + cc.notice( " and exit." ) );
+    console.log( soi + cc.debug( "--" ) + cc.bright( "version" ) +
+        cc.debug( "..............................." ) + cc.notice( "Show " ) +
+        cc.note( "version info" ) + cc.notice( " and exit." ) );
+    console.log( soi + cc.debug( "--" ) + cc.bright( "colors" ) +
+        cc.debug( "................................" ) + cc.notice( "Use " ) +
+        cc.rainbow( "ANSI-colorized logging" ) + cc.notice( "." ) );
+    console.log( soi + cc.debug( "--" ) + cc.bright( "no-colors" ) +
+        cc.debug( "............................." ) + cc.notice( "Use " ) +
+        cc.normal( "monochrome logging" ) + cc.notice( "." ) );
+}
+
+function print_help_blockchain_network( soi ) {
+    console.log( cc.sunny( "BLOCKCHAIN NETWORK" ) + cc.info( " options:" ) );
+    console.log( soi + cc.debug( "--" ) +
+        cc.bright( "url-main-net" ) + cc.sunny( "=" ) + cc.attention( "URL" ) +
+        cc.debug( "......................" ) + cc.note( "Main-net" ) +
+        cc.notice( " URL. Value is automatically loaded from the " ) +
+        cc.warning( "URL_W3_ETHEREUM" ) +
+        cc.notice( " environment variable if not specified." ) );
+    console.log( soi + cc.debug( "--" ) +
+        cc.bright( "url-s-chain" ) + cc.sunny( "=" ) + cc.attention( "URL" ) +
+        cc.debug( "......................." ) + cc.note( "S-chain" ) +
+        cc.notice( " URL. Value is automatically loaded from the " ) +
+        cc.warning( "URL_W3_S_CHAIN" ) +
+        cc.notice( " environment variable if not specified." ) );
+    console.log( soi + cc.debug( "--" ) +
+        cc.bright( "url-t-chain" ) + cc.sunny( "=" ) + cc.attention( "URL" ) +
+        cc.debug( "......................." ) + cc.note( "S<->S Target S-chain" ) +
+        cc.notice( " URL. Value is automatically loaded from the " ) +
+        cc.warning( "URL_W3_S_CHAIN_TARGET" ) +
+        cc.notice( " environment variable if not specified." ) );
+    console.log( soi + cc.debug( "--" ) +
+        cc.bright( "id-main-net" ) + cc.sunny( "=" ) + cc.success( "number" ) +
+        cc.debug( "...................." ) + cc.note( "Main-net" ) +
+        cc.notice( " Ethereum " ) + cc.note( "network name." ) +
+        cc.notice( ". Value is automatically loaded from the " ) +
+        cc.warning( "CHAIN_NAME_ETHEREUM" ) +
+        cc.notice( " environment variable if not specified. " ) +
+        cc.debug( "Default value is " ) + cc.sunny( "\"Mainnet\"" ) + cc.notice( "." ) );
+    console.log( soi + cc.debug( "--" ) +
+        cc.bright( "id-s-chain" ) + cc.sunny( "=" ) + cc.success( "number" ) +
+        cc.debug( "....................." ) + cc.note( "S-chain" ) +
+        cc.notice( " Ethereum " ) + cc.note( "network name." ) +
+        cc.notice( ". Value is automatically loaded from the " ) +
+        cc.warning( "CHAIN_NAME_SCHAIN" ) +
+        cc.notice( " environment variable if not specified. " ) +
+        cc.debug( "Default value is " ) + cc.sunny( "\"id-S-chain\"" ) +
+        cc.notice( "." ) );
+    console.log( soi + cc.debug( "--" ) +
+        cc.bright( "id-t-chain" ) + cc.sunny( "=" ) + cc.success( "number" ) +
+        cc.debug( "....................." ) + cc.note( "S<->S Target S-chain" ) +
+        cc.notice( " Ethereum " ) + cc.note( "network name." ) +
+        cc.notice( ". Value is automatically loaded from the " ) +
+        cc.warning( "CHAIN_NAME_SCHAIN_TARGET" ) +
+        cc.notice( " environment variable if not specified. " ) +
+        cc.debug( "Default value is " ) + cc.sunny( "\"id-T-chain\"" ) +
+        cc.notice( "." ) );
+    console.log( soi + cc.debug( "--" ) +
+        cc.bright( "cid-main-net" ) + cc.sunny( "=" ) + cc.success( "number" ) +
+        cc.debug( "..................." ) + cc.note( "Main-net" ) +
+        cc.notice( " Ethereum " ) + cc.attention( "chain ID" ) +
+        cc.notice( ". Value is automatically loaded from the " ) +
+        cc.warning( "CID_ETHEREUM" ) +
+        cc.notice( " environment variable if not specified. " ) +
+        cc.debug( "Default value is " ) + cc.sunny( -4 ) + cc.notice( "." ) );
+    console.log( soi + cc.debug( "--" ) +
+        cc.bright( "cid-s-chain" ) + cc.sunny( "=" ) + cc.success( "number" ) +
+        cc.debug( "...................." ) + cc.note( "S-chain" ) +
+        cc.notice( " Ethereum " ) + cc.attention( "chain ID" ) +
+        cc.notice( ". Value is automatically loaded from the " ) +
+        cc.warning( "CID_SCHAIN" ) +
+        cc.notice( " environment variable if not specified. " ) +
+        cc.debug( "Default value is " ) + cc.sunny( -4 ) + cc.notice( "." ) );
+    console.log( soi + cc.debug( "--" ) +
+        cc.bright( "cid-t-chain" ) + cc.sunny( "=" ) + cc.success( "number" ) +
+        cc.debug( "...................." ) + cc.note( "S<->S Target S-chain" ) +
+        cc.notice( " Ethereum " ) + cc.attention( "chain ID" ) +
+        cc.notice( ". Value is automatically loaded from the " ) +
+        cc.warning( "CID_SCHAIN_TARGET" ) +
+        cc.notice( " environment variable if not specified. " ) +
+        cc.debug( "Default value is " ) + cc.sunny( -4 ) + cc.notice( "." ) );
+}
+
+function print_help_blockchain_interface( soi ) {
+    console.log( cc.sunny( "BLOCKCHAIN INTERFACE" ) + cc.info( " options:" ) );
+    console.log( soi + cc.debug( "--" ) +
+        cc.bright( "abi-skale-manager" ) + cc.sunny( "=" ) + cc.attention( "path" ) +
+        cc.debug( "................" ) + cc.notice( "Path to JSON file containing " ) +
+        cc.bright( "Skale Manager" ) + cc.notice( " ABI. " ) +
+        cc.debug( "Optional parameter. It's needed for " ) + cc.note( "S-Chain" ) +
+        cc.debug( " to " ) + cc.note( "S-Chain" ) + cc.debug( " transfers." ) );
+    console.log( soi + cc.debug( "--" ) +
+        cc.bright( "abi-main-net" ) + cc.sunny( "=" ) + cc.attention( "path" ) +
+        cc.debug( "....................." ) +
+        cc.notice( "Path to JSON file containing " ) + cc.bright( "IMA" ) +
+        cc.notice( " ABI for " ) + cc.note( "Main-net" ) + cc.notice( "." ) );
+    console.log( soi + cc.debug( "--" ) +
+        cc.bright( "abi-s-chain" ) + cc.sunny( "=" ) + cc.attention( "path" ) +
+        cc.debug( "......................" ) +
+        cc.notice( "Path to JSON file containing " ) + cc.bright( "IMA" ) +
+        cc.notice( " ABI for " ) + cc.note( "S-chain" ) + cc.notice( "." ) );
+    console.log( soi + cc.debug( "--" ) +
+        cc.bright( "abi-t-chain" ) + cc.sunny( "=" ) + cc.attention( "path" ) +
+        cc.debug( "......................" ) +
+        cc.notice( "Path to JSON file containing " ) + cc.bright( "IMA" ) +
+        cc.notice( " ABI for " ) + cc.note( "S<->S Target S-chain" ) + cc.notice( "." ) );
+}
+
+function print_help_erc_interfaces( soi ) {
+    console.log( cc.sunny( "ERC20 INTERFACE" ) + cc.info( " options:" ) );
+    console.log( soi + cc.debug( "--" ) +
+        cc.bright( "erc20-main-net" ) + cc.sunny( "=" ) + cc.attention( "path" ) +
+        cc.debug( "..................." ) + cc.notice( "Path to JSON file containing " ) +
+        cc.bright( "ERC20" ) + cc.notice( " ABI for " ) +
+        cc.note( "Main-net" ) + cc.notice( "." ) );
+    console.log( soi + cc.debug( "--" ) +
+        cc.bright( "erc20-s-chain" ) + cc.sunny( "=" ) + cc.attention( "path" ) +
+        cc.debug( "...................." ) +
+        cc.notice( "Path to JSON file containing " ) + cc.bright( "ERC20" ) +
+        cc.notice( " ABI for " ) + cc.note( "S-chain" ) + cc.notice( "." ) );
+    console.log( soi + cc.debug( "--" ) +
+        cc.bright( "addr-erc20-s-chain" ) + cc.sunny( "=" ) + cc.attention( "address" ) +
+        cc.debug( "............" ) + cc.notice( "Explicit " ) + cc.bright( "ERC20" ) +
+        cc.notice( " address in " ) + cc.note( "S-chain" ) + cc.notice( "." ) );
+    console.log( soi + cc.debug( "--" ) +
+        cc.bright( "erc20-t-chain" ) + cc.sunny( "=" ) + cc.attention( "path" ) +
+        cc.debug( "...................." ) +
+        cc.notice( "Path to JSON file containing " ) + cc.bright( "ERC20" ) +
+        cc.notice( " ABI for " ) + cc.note( "S<->S Target S-chain" ) + cc.notice( "." ) );
+    console.log( soi + cc.debug( "--" ) +
+        cc.bright( "addr-erc20-t-chain" ) + cc.sunny( "=" ) + cc.attention( "address" ) +
+        cc.debug( "............" ) + cc.notice( "Explicit " ) + cc.bright( "ERC20" ) +
+        cc.notice( " address in " ) +
+        cc.note( "S<->S Target S-chain" ) + cc.notice( "." ) );
+
+    console.log( cc.sunny( "ERC721 INTERFACE" ) + cc.info( " options:" ) );
+    console.log( soi + cc.debug( "--" ) +
+        cc.bright( "erc721-main-net" ) + cc.sunny( "=" ) + cc.attention( "path" ) +
+        cc.debug( ".................." ) + cc.notice( "Path to JSON file containing " ) +
+        cc.bright( "ERC721" ) + cc.notice( " ABI for " ) +
+        cc.note( "Main-net" ) + cc.notice( "." ) );
+    console.log( soi + cc.debug( "--" ) +
+        cc.bright( "erc721-s-chain" ) + cc.sunny( "=" ) + cc.attention( "path" ) +
+        cc.debug( "..................." ) +
+        cc.notice( "Path to JSON file containing " ) + cc.bright( "ERC721" ) +
+        cc.notice( " ABI for " ) + cc.note( "S-chain" ) + cc.notice( "." ) );
+    console.log( soi + cc.debug( "--" ) +
+        cc.bright( "addr-erc721-s-chain" ) + cc.sunny( "=" ) + cc.attention( "address" ) +
+        cc.debug( "..........." ) + cc.notice( "Explicit " ) + cc.bright( "ERC721" ) +
+        cc.notice( " address in " ) + cc.note( "S-chain" ) + cc.notice( "." ) );
+    console.log( soi + cc.debug( "--" ) +
+        cc.bright( "erc721-t-chain" ) + cc.sunny( "=" ) + cc.attention( "path" ) +
+        cc.debug( "..................." ) +
+        cc.notice( "Path to JSON file containing " ) + cc.bright( "ERC721" ) +
+        cc.notice( " ABI for " ) + cc.note( "S<->S S-chain" ) + cc.notice( "." ) );
+    console.log( soi + cc.debug( "--" ) +
+        cc.bright( "addr-erc721-t-chain" ) + cc.sunny( "=" ) + cc.attention( "address" ) +
+        cc.debug( "..........." ) + cc.notice( "Explicit " ) + cc.bright( "ERC721" ) +
+        cc.notice( " address in " ) + cc.note( "S<->S S-chain" ) + cc.notice( "." ) );
+
+    console.log( cc.sunny( "ERC1155 INTERFACE" ) + cc.info( " options:" ) );
+    console.log( soi + cc.debug( "--" ) +
+        cc.bright( "erc1155-main-net" ) + cc.sunny( "=" ) + cc.attention( "path" ) +
+        cc.debug( "................." ) +
+        cc.notice( "Path to JSON file containing " ) + cc.bright( "ERC1155" ) +
+        cc.notice( " ABI for " ) + cc.note( "Main-net" ) + cc.notice( "." ) );
+    console.log( soi + cc.debug( "--" ) +
+        cc.bright( "erc1155-s-chain" ) + cc.sunny( "=" ) + cc.attention( "path" ) +
+        cc.debug( ".................." ) +
+        cc.notice( "Path to JSON file containing " ) + cc.bright( "ERC1155" ) +
+        cc.notice( " ABI for " ) + cc.note( "S-chain" ) + cc.notice( "." ) );
+    console.log( soi + cc.debug( "--" ) +
+        cc.bright( "addr-erc1155-s-chain" ) + cc.sunny( "=" ) + cc.attention( "address" ) +
+        cc.debug( ".........." ) + cc.notice( "Explicit " ) + cc.bright( "ERC1155" ) +
+        cc.notice( " address in " ) + cc.note( "S-chain" ) + cc.notice( "." ) );
+    console.log( soi + cc.debug( "--" ) +
+        cc.bright( "erc1155-t-chain" ) + cc.sunny( "=" ) + cc.attention( "path" ) +
+        cc.debug( ".................." ) +
+        cc.notice( "Path to JSON file containing " ) + cc.bright( "ERC1155" ) +
+        cc.notice( " ABI for " ) + cc.note( "S<->S S-chain" ) + cc.notice( "." ) );
+    console.log( soi + cc.debug( "--" ) +
+        cc.bright( "addr-erc1155-t-chain" ) + cc.sunny( "=" ) + cc.attention( "address" ) +
+        cc.debug( ".........." ) + cc.notice( "Explicit " ) + cc.bright( "ERC1155" ) +
+        cc.notice( " address in " ) + cc.note( "S<->S S-chain" ) + cc.notice( "." ) );
+}
+
+function print_help_user_account_1( soi ) {
+    console.log( cc.sunny( "USER ACCOUNT" ) + cc.info( " options:" ) );
+    console.log( soi + cc.debug( "--" ) +
+        cc.bright( "tm-url-main-net" ) + cc.sunny( "=" ) + cc.attention( "URL" ) +
+        cc.debug( "..................." ) + cc.bright( "Transaction Manager" ) +
+        cc.notice( " server URL for " ) + cc.note( "Main-net" ) +
+        cc.notice( ". Value is automatically loaded from the " ) +
+        cc.warning( "TRANSACTION_MANAGER_URL_ETHEREUM" ) +
+        cc.notice( " environment variable if not specified. " ) +
+        cc.debug( "Example: " ) + cc.bright( "redis://@127.0.0.1:6379" ) );
+    console.log( soi + cc.debug( "--" ) +
+        cc.bright( "tm-url-s-chain" ) + cc.sunny( "=" ) + cc.attention( "URL" ) +
+        cc.debug( "...................." ) + cc.bright( "Transaction Manager" ) +
+        cc.notice( " server URL for " ) + cc.note( "S-chain" ) +
+        cc.notice( ". Value is automatically loaded from the " ) +
+        cc.warning( "TRANSACTION_MANAGER_URL_S_CHAIN" ) +
+        cc.notice( " environment variable if not specified." ) );
+    console.log( soi + cc.debug( "--" ) +
+        cc.bright( "tm-url-t-chain" ) + cc.sunny( "=" ) + cc.attention( "URL" ) +
+        cc.debug( "...................." ) + cc.bright( "Transaction Manager" ) +
+        cc.notice( " server URL for " ) + cc.note( "S<->S Target S-chain" ) +
+        cc.notice( ". Value is automatically loaded from the " ) +
+        cc.warning( "TRANSACTION_MANAGER_URL_S_CHAIN_TARGET" ) +
+        cc.notice( " environment variable if not specified." ) );
+    console.log( soi + cc.debug( "--" ) +
+        cc.bright( "tm-priority-main-net" ) + cc.sunny( "=" ) + cc.attention( "URL" ) +
+        cc.debug( ".............." ) + cc.bright( "Transaction Manager" ) +
+        cc.notice( " priority for " ) + cc.note( "Main-net" ) +
+        cc.notice( ". Value is automatically loaded from the " ) +
+        cc.warning( "TRANSACTION_MANAGER_PRIORITY_ETHEREUM" ) +
+        cc.notice( " environment variable if not specified. " ) +
+        cc.debug( "Default is " ) + cc.sunny( "5" ) + cc.notice( "." ) );
+    console.log( soi + cc.debug( "--" ) +
+        cc.bright( "tm-priority-s-chain" ) + cc.sunny( "=" ) + cc.attention( "URL" ) +
+        cc.debug( "..............." ) + cc.bright( "Transaction Manager" ) +
+        cc.notice( " priority for " ) + cc.note( "S-chain" ) +
+        cc.notice( ". Value is automatically loaded from the " ) +
+        cc.warning( "TRANSACTION_MANAGER_PRIORITY_S_CHAIN" ) +
+        cc.notice( " environment variable if not specified. " ) +
+        cc.debug( "Default is " ) + cc.sunny( "5" ) + cc.notice( "." ) );
+    console.log( soi + cc.debug( "--" ) +
+        cc.bright( "tm-priority-t-chain" ) + cc.sunny( "=" ) + cc.attention( "URL" ) +
+        cc.debug( "..............." ) + cc.bright( "Transaction Manager" ) +
+        cc.notice( " priority for " ) + cc.note( "S<->S Target S-chain" ) +
+        cc.notice( ". Value is automatically loaded from the " ) +
+        cc.warning( "TRANSACTION_MANAGER_PRIORITY_S_CHAIN_TARGET" ) +
+        cc.notice( " environment variable if not specified. " ) +
+        cc.debug( "Default is " ) + cc.sunny( "5" ) + cc.notice( "." ) );
+    console.log( soi + cc.debug( "--" ) +
+        cc.bright( "sgx-url-main-net" ) + cc.sunny( "=" ) + cc.attention( "URL" ) +
+        cc.debug( ".................." ) + cc.sunny( "SGX server" ) +
+        cc.notice( " URL for " ) + cc.note( "Main-net" ) +
+        cc.notice( ". Value is automatically loaded from the " ) +
+        cc.warning( "SGX_URL_ETHEREUM" ) +
+        cc.notice( " environment variable if not specified." ) );
+    console.log( soi + cc.debug( "--" ) +
+        cc.bright( "sgx-url-s-chain" ) + cc.sunny( "=" ) + cc.attention( "URL" ) +
+        cc.debug( "..................." ) + cc.sunny( "SGX server" ) +
+        cc.notice( " URL for " ) + cc.note( "S-chain" ) +
+        cc.notice( ". Value is automatically loaded from the " ) +
+        cc.warning( "SGX_URL_S_CHAIN" ) +
+        cc.notice( " environment variable if not specified." ) );
+    console.log( soi + cc.debug( "--" ) +
+        cc.bright( "sgx-url-t-chain" ) + cc.sunny( "=" ) + cc.attention( "URL" ) +
+        cc.debug( "..................." ) + cc.sunny( "SGX server" ) +
+        cc.notice( " URL for " ) + cc.note( "S<->S Target S-chain" ) +
+        cc.notice( ". Value is automatically loaded from the " ) +
+        cc.warning( "SGX_URL_S_CHAIN_TARGET" ) +
+        cc.notice( " environment variable if not specified." ) );
+    console.log( soi + cc.debug( "--" ) +
+        cc.bright( "sgx-ecdsa-key-main-net" ) + cc.sunny( "=" ) + cc.error( "name" ) +
+        cc.debug( "..........." ) + cc.attention( "SGX/ECDSA key name" ) +
+        cc.notice( " for " ) + cc.note( "Main-net" ) +
+        cc.notice( ". Value is automatically loaded from the " ) +
+        cc.warning( "SGX_KEY_ETHEREUM" ) +
+        cc.notice( " environment variable if not specified." ) );
+    console.log( soi + cc.debug( "--" ) +
+        cc.bright( "sgx-ecdsa-key-s-chain" ) + cc.sunny( "=" ) + cc.error( "name" ) +
+        cc.debug( "............" ) + cc.attention( "SGX/ECDSA key name" ) +
+        cc.notice( " for " ) + cc.note( "S-chain" ) +
+        cc.notice( ". Value is automatically loaded from the " ) +
+        cc.warning( "SGX_KEY_S_CHAIN" ) +
+        cc.notice( " environment variable if not specified." ) );
+    console.log( soi + cc.debug( "--" ) +
+        cc.bright( "sgx-ecdsa-key-t-chain" ) + cc.sunny( "=" ) + cc.error( "name" ) +
+        cc.debug( "............" ) + cc.attention( "SGX/ECDSA key name" ) +
+        cc.notice( " for " ) + cc.note( "S<->S Target S-chain" ) +
+        cc.notice( ". Value is automatically loaded from the " ) +
+        cc.warning( "SGX_KEY_S_CHAIN_TARGET" ) +
+        cc.notice( " environment variable if not specified." ) );
+    console.log( soi + cc.debug( "--" ) +
+        cc.bright( "sgx-bls-key-main-net" ) + cc.sunny( "=" ) + cc.error( "name" ) +
+        cc.debug( "............." ) + cc.attention( "SGX/BLS key name" ) +
+        cc.notice( " for " ) + cc.note( "Main-net" ) +
+        cc.notice( ". Value is automatically loaded from the " ) +
+        cc.warning( "BLS_KEY_ETHEREUM" ) +
+        cc.notice( " environment variable if not specified." ) );
+    console.log( soi + cc.debug( "--" ) +
+        cc.bright( "sgx-bls-key-s-chain" ) + cc.sunny( "=" ) + cc.error( "name" ) +
+        cc.debug( ".............." ) + cc.attention( "SGX/BLS key name" ) +
+        cc.notice( " for " ) + cc.note( "S-chain" ) +
+        cc.notice( ". Value is automatically loaded from the " ) +
+        cc.warning( "BLS_KEY_S_CHAIN" ) +
+        cc.notice( " environment variable if not specified." ) );
+    console.log( soi + cc.debug( "--" ) +
+        cc.bright( "sgx-bls-key-t-chain" ) + cc.sunny( "=" ) + cc.error( "name" ) +
+        cc.debug( ".............." ) + cc.attention( "SGX/BLS key name" ) +
+        cc.notice( " for " ) + cc.note( "S<->S Target S-chain" ) +
+        cc.notice( ". Value is automatically loaded from the " ) +
+        cc.warning( "BLS_KEY_S_CHAIN_TARGET" ) +
+        cc.notice( " environment variable if not specified." ) );
+    console.log( soi + cc.debug( "--" ) +
+        cc.bright( "sgx-ssl-key-main-net" ) + cc.sunny( "=" ) + cc.attention( "path" ) +
+        cc.debug( "............." ) + cc.notice( "Path to " ) + cc.note( "SSL key file" ) +
+        cc.notice( " for " ) + cc.bright( "SGX wallet" ) + cc.notice( " of " ) +
+        cc.note( "Main-net" ) + cc.notice( ". Value is automatically loaded from the " ) +
+        cc.warning( "SGX_SSL_KEY_FILE_ETHEREUM" ) +
+        cc.notice( " environment variable if not specified." ) );
+    console.log( soi + cc.debug( "--" ) +
+        cc.bright( "sgx-ssl-key-s-chain" ) + cc.sunny( "=" ) + cc.attention( "path" ) +
+        cc.debug( ".............." ) + cc.notice( "Path to " ) +
+        cc.note( "SSL key file" ) + cc.notice( " for " ) + cc.bright( "SGX wallet" ) +
+        cc.notice( " of " ) + cc.note( "S-chain" ) +
+        cc.notice( ". Value is automatically loaded from the " ) +
+        cc.warning( "SGX_SSL_KEY_FILE_S_CHAIN" ) +
+        cc.notice( " environment variable if not specified." ) );
+    console.log( soi + cc.debug( "--" ) +
+        cc.bright( "sgx-ssl-key-t-chain" ) + cc.sunny( "=" ) + cc.attention( "path" ) +
+        cc.debug( ".............." ) + cc.notice( "Path to " ) + cc.note( "SSL key file" ) +
+        cc.notice( " for " ) + cc.bright( "SGX wallet" ) + cc.notice( " of " ) +
+        cc.note( "S<->S Target S-chain" ) +
+        cc.notice( ". Value is automatically loaded from the " ) +
+        cc.warning( "SGX_SSL_KEY_FILE_S_CHAIN_TARGET" ) +
+        cc.notice( " environment variable if not specified." ) );
+    console.log( soi + cc.debug( "--" ) +
+        cc.bright( "sgx-ssl-cert-main-net" ) + cc.sunny( "=" ) + cc.attention( "path" ) +
+        cc.debug( "............" ) + cc.notice( "Path to " ) +
+        cc.note( "SSL certificate file" ) + cc.notice( " for " ) +
+        cc.bright( "SGX wallet" ) + cc.notice( " of " ) + cc.note( "Main-net" ) +
+        cc.notice( ". Value is automatically loaded from the " ) +
+        cc.warning( "SGX_SSL_CERT_FILE_ETHEREUM" ) +
+        cc.notice( " environment variable if not specified." ) );
+    console.log( soi + cc.debug( "--" ) +
+        cc.bright( "sgx-ssl-cert-s-chain" ) + cc.sunny( "=" ) + cc.attention( "path" ) +
+        cc.debug( "............." ) + cc.notice( "Path to " ) +
+        cc.note( "SSL certificate file" ) + cc.notice( " for " ) +
+        cc.bright( "SGX wallet" ) + cc.notice( " of " ) + cc.note( "S-chain" ) +
+        cc.notice( ". Value is automatically loaded from the " ) +
+        cc.warning( "SGX_SSL_CERT_FILE_S_CHAIN" ) +
+        cc.notice( " environment variable if not specified." ) );
+    console.log( soi + cc.debug( "--" ) +
+        cc.bright( "sgx-ssl-cert-t-chain" ) + cc.sunny( "=" ) + cc.attention( "path" ) +
+        cc.debug( "............." ) + cc.notice( "Path to " ) +
+        cc.note( "SSL certificate file" ) + cc.notice( " for " ) +
+        cc.bright( "SGX wallet" ) + cc.notice( " of " ) +
+        cc.note( "S<->S Target S-chain" ) +
+        cc.notice( ". Value is automatically loaded from the " ) +
+        cc.warning( "SGX_SSL_CERT_FILE_S_CHAIN_TARGET" ) +
+        cc.notice( " environment variable if not specified." ) );
+    console.log( soi + cc.debug( "--" ) +
+        cc.bright( "address-main-net" ) + cc.sunny( "=" ) + cc.warning( "value" ) +
+        cc.debug( "................" ) + cc.note( "Main-net" ) + " " +
+        cc.attention( "user account address" ) +
+        cc.notice( ". Value is automatically loaded from the " ) +
+        cc.warning( "ACCOUNT_FOR_ETHEREUM" ) +
+        cc.notice( " environment variable if not specified." ) );
+    console.log( soi + cc.debug( "--" ) +
+        cc.bright( "address-s-chain" ) + cc.sunny( "=" ) + cc.warning( "value" ) +
+        cc.debug( "................." ) + cc.note( "S-chain" ) + " " +
+        cc.attention( "user account address" ) +
+        cc.notice( ". Value is automatically loaded from the " ) +
+        cc.warning( "ACCOUNT_FOR_SCHAIN" ) +
+        cc.notice( " environment variable if not specified." ) );
+    console.log( soi + cc.debug( "--" ) +
+        cc.bright( "address-t-chain" ) + cc.sunny( "=" ) + cc.warning( "value" ) +
+        cc.debug( "................." ) + cc.note( "S<->S Target S-chain" ) +
+        " " + cc.attention( "user account address" ) +
+        cc.notice( ". Value is automatically loaded from the " ) +
+        cc.warning( "ACCOUNT_FOR_SCHAIN_TARGET" ) +
+        cc.notice( " environment variable if not specified." ) );
+}
+
+function print_help_user_account_2( soi ) {
+    console.log( soi + cc.debug( "--" ) +
+        cc.bright( "key-main-net" ) + cc.sunny( "=" ) + cc.error( "value" ) +
+        cc.debug( "...................." ) + cc.attention( "Private key" ) +
+        cc.notice( " for " ) + cc.note( "Main-net" ) + " " +
+        cc.attention( "user account address" ) +
+        cc.notice( ". Value is automatically loaded from the " ) +
+        cc.warning( "PRIVATE_KEY_FOR_ETHEREUM" ) +
+        cc.notice( " environment variable if not specified." ) );
+    console.log( soi + cc.debug( "--" ) +
+        cc.bright( "key-s-chain" ) + cc.sunny( "=" ) + cc.error( "value" ) +
+        cc.debug( "....................." ) + cc.attention( "Private key" ) +
+        cc.notice( " for " ) + cc.note( "S-Chain" ) + " " +
+        cc.attention( "user account address" ) +
+        cc.notice( ". Value is automatically loaded from the " ) +
+        cc.warning( "PRIVATE_KEY_FOR_SCHAIN" ) +
+        cc.notice( " environment variable if not specified." ) );
+    console.log( soi + cc.debug( "--" ) +
+        cc.bright( "key-t-chain" ) + cc.sunny( "=" ) + cc.error( "value" ) +
+        cc.debug( "....................." ) + cc.attention( "Private key" ) +
+        cc.notice( " for " ) + cc.note( "S<->S Target S-Chain" ) + " " +
+        cc.attention( "user account address" ) +
+        cc.notice( ". Value is automatically loaded from the " ) +
+        cc.warning( "PRIVATE_KEY_FOR_SCHAIN_TARGET" ) +
+        cc.notice( " environment variable if not specified." ) );
+    console.log( soi + cc.debug( "Please notice, IMA prefer to use transaction manager " +
+        "to sign blockchain transactions if " ) +
+        cc.attention( "--tm-url-main-net" ) + cc.debug( "/" ) +
+        cc.attention( "--tm-url-s-chain" ) + cc.debug( " command line values or " ) +
+        cc.warning( "TRANSACTION_MANAGER_URL_ETHEREUM" ) + cc.debug( "/" ) +
+        cc.warning( "TRANSACTION_MANAGER_URL_S_CHAIN" ) +
+        cc.debug( " shell variables were specified. " +
+        "Next preferred option is SGX wallet which is used if " ) +
+        cc.attention( "--sgx-url-main-net" ) + cc.debug( "/" ) +
+        cc.attention( "--sgx-url-s-chain" ) + cc.debug( " command line values or " ) +
+        cc.warning( "SGX_URL_ETHEREUM" ) + cc.debug( "/" ) +
+        cc.warning( "SGX_URL_S_CHAIN" ) +
+        cc.debug( " shell variables were specified. SGX signing also needs " +
+        "key name, key and certificate files. " ) +
+        cc.debug( "Finally, IMA attempts to use explicitly provided private key " +
+        "to sign blockchain transactions if " ) +
+        cc.attention( "--key-main-net" ) + cc.debug( "/" ) +
+        cc.attention( "--key-s-chain" ) + cc.debug( " command line values or " ) +
+        cc.warning( "PRIVATE_KEY_FOR_ETHEREUM" ) + cc.debug( "/" ) +
+        cc.warning( "PRIVATE_KEY_FOR_SCHAIN" ) +
+        cc.debug( " shell variables were specified. " )
+    );
+}
+
+function print_help_transfers( soi ) {
+    console.log( cc.sunny( "GENERAL TRANSFER" ) + cc.info( " options:" ) );
+    console.log( soi + cc.debug( "--" ) +
+        cc.bright( "value" ) + cc.sunny( "=" ) + cc.attention( "number" ) +
+        cc.warning( "unitName" ) + cc.debug( ".................." ) +
+        cc.notice( "Amount of " ) + cc.attention( "unitName" ) +
+        cc.notice( " to transfer, where " ) + cc.attention( "unitName" ) +
+        cc.notice( " is well known Ethereum unit name like " ) + cc.attention( "ether" ) +
+        cc.notice( " or " ) + cc.attention( "wei" ) + cc.notice( "." ) );
+    console.log( soi + cc.debug( "--" ) +
+        cc.bright( "wei" ) + cc.sunny( "=" ) + cc.attention( "number" ) +
+        cc.debug( "............................" ) + cc.notice( "Amount of " ) +
+        cc.attention( "wei" ) + cc.notice( " to transfer." ) );
+    console.log( soi + cc.debug( "--" ) +
+        cc.bright( "babbage" ) + cc.sunny( "=" ) + cc.attention( "number" ) +
+        cc.debug( "........................" ) + cc.notice( "Amount of " ) +
+        cc.attention( "babbage" ) + cc.info( "(wei*1000)" ) +
+        cc.notice( " to transfer." ) );
+    console.log( soi + cc.debug( "--" ) +
+        cc.bright( "lovelace" ) + cc.sunny( "=" ) + cc.attention( "number" ) +
+        cc.debug( "......................." ) + cc.notice( "Amount of " ) +
+        cc.attention( "lovelace" ) + cc.info( "(wei*1000*1000)" ) +
+        cc.notice( " to transfer." ) );
+    console.log( soi + cc.debug( "--" ) +
+        cc.bright( "shannon" ) + cc.sunny( "=" ) + cc.attention( "number" ) +
+        cc.debug( "........................" ) + cc.notice( "Amount of " ) +
+        cc.attention( "shannon" ) + cc.info( "(wei*1000*1000*1000)" ) +
+        cc.notice( " to transfer." ) );
+    console.log( soi + cc.debug( "--" ) +
+        cc.bright( "szabo" ) + cc.sunny( "=" ) + cc.attention( "number" ) +
+        cc.debug( ".........................." ) + cc.notice( "Amount of " ) +
+        cc.attention( "szabo" ) + cc.info( "(wei*1000*1000*1000*1000)" ) +
+        cc.notice( " to transfer." ) );
+    console.log( soi + cc.debug( "--" ) +
+        cc.bright( "finney" ) + cc.sunny( "=" ) + cc.attention( "number" ) +
+        cc.debug( "........................." ) + cc.notice( "Amount of " ) +
+        cc.attention( "finney" ) + cc.info( "(wei*1000*1000*1000*1000*1000)" ) +
+        cc.notice( " to transfer." ) );
+    console.log( soi + cc.debug( "--" ) +
+        cc.bright( "ether" ) + cc.sunny( "=" ) + cc.attention( "number" ) +
+        cc.debug( ".........................." ) + cc.notice( "Amount of " ) +
+        cc.attention( "ether" ) + cc.info( "(wei*1000*1000*1000*1000*1000*1000)" ) +
+        cc.notice( " to transfer." ) );
+    console.log( soi + cc.debug( "--" ) +
+        cc.bright( "amount" ) + cc.sunny( "=" ) + cc.attention( "number" ) +
+        cc.debug( "........................." ) + cc.notice( "Amount of " ) +
+        cc.attention( "tokens" ) + cc.notice( " to transfer." ) );
+    console.log( soi + cc.debug( "--" ) +
+        cc.bright( "tid" ) + cc.sunny( "=" ) + cc.attention( "number" ) +
+        cc.debug( "............................" ) + cc.bright( "ERC721" ) +
+        cc.notice( " or " ) + cc.bright( "ERC1155" ) +
+        cc.notice( " token id to transfer." ) );
+    console.log( soi + cc.debug( "--" ) +
+        cc.bright( "amounts" ) + cc.sunny( "=" ) + cc.attention( "array of numbers" ) +
+        cc.debug( ".............." ) + cc.bright( "ERC1155" ) +
+        cc.notice( " token id to transfer in batch." ) );
+    console.log( soi + cc.debug( "--" ) +
+        cc.bright( "tids" ) + cc.sunny( "=" ) + cc.attention( "array of numbers" ) +
+        cc.debug( "................." ) + cc.bright( "ERC1155" ) +
+        cc.notice( " token amount to transfer in batch." ) );
+    console.log( soi + cc.debug( "--" ) +
+        cc.bright( "sleep-between-tx" ) + cc.sunny( "=" ) + cc.attention( "number" ) +
+        cc.debug( "..............." ) + cc.notice( "Sleep time " ) +
+        cc.debug( "(in milliseconds)" ) +
+        cc.notice( " between transactions during complex operations." ) );
+    console.log( soi + cc.debug( "--" ) +
+        cc.bright( "wait-next-block" ) +
+        cc.debug( "......................." ) +
+        cc.notice( "Wait for next block between transactions " +
+        "during complex operations." ) );
+
+    console.log( cc.sunny( "S-CHAIN TO S-CHAIN TRANSFER" ) + cc.info( " options:" ) );
+    console.log( soi + cc.debug( "--" ) +
+        cc.bright( "s2s-enable" ) + cc.debug( "............................" ) +
+        cc.success( "Enables" ) + " " + cc.note( "S-Chain" ) + cc.notice( " to " ) +
+        cc.note( "S-Chain" ) + cc.notice( " transfers. " ) + cc.debug( "Default mode" ) +
+        cc.notice( ". The " ) + cc.bright( "abi-skale-manager" ) +
+        cc.notice( " path must be provided." ) );
+    console.log( soi + cc.debug( "--" ) +
+        cc.bright( "s2s-disable" ) + cc.debug( "..........................." ) +
+        cc.error( "Disables" ) + " " + cc.note( "S-Chain" ) + cc.notice( " to " ) +
+        cc.note( "S-Chain" ) + cc.notice( " transfers." ) );
+    console.log( soi + cc.debug( "--" ) +
+        cc.bright( "net-rediscover" ) + cc.sunny( "=" ) + cc.attention( "number" ) +
+        cc.debug( "................." ) + cc.note( "SKALE NETWORK" ) +
+        cc.notice( " re-discovery interval" ) + cc.debug( "(in seconds)" ) +
+        cc.notice( ". " ) + cc.debug( "Default is " ) + cc.sunny( "3600" ) +
+        cc.debug( " seconds or " ) + cc.sunny( "1" ) + cc.debug( " hour, specify " ) +
+        cc.sunny( "0" ) + cc.debug( " to " ) + cc.error( "disable" ) + " " +
+        cc.note( "SKALE NETWORK" ) + cc.debug( " re-discovery" ) + cc.notice( "." ) );
+}
+
+function print_help_payment_transaction( soi ) {
+    console.log( cc.sunny( "PAYMENT TRANSACTION" ) + cc.info( " options:" ) );
+    console.log( soi + cc.debug( "--" ) +
+        cc.bright( "gas-price-multiplier-mn" ) + cc.debug( "..............." ) +
+        cc.notice( "Sets " ) + cc.attention( "Gas Price Multiplier" ) +
+        cc.notice( " for " ) + cc.note( "Main Net" ) + cc.notice( " transactions, " ) +
+        cc.debug( "Default value is " ) + cc.sunny( "1.25" ) + cc.notice( "." ) +
+        cc.debug( " Specify value " ) + cc.sunny( "0.0" ) + cc.debug( " to " ) +
+        cc.error( "disable" ) + " " + cc.attention( "Gas Price Customization" ) +
+        cc.debug( " for " ) + cc.note( "Main Net" ) + cc.notice( "." ) );
+    console.log( soi + cc.debug( "--" ) +
+        cc.bright( "gas-price-multiplier-sc" ) + cc.debug( "..............." ) +
+        cc.notice( "Sets " ) + cc.attention( "Gas Price Multiplier" ) +
+        cc.notice( " for " ) + cc.note( "S-Chain" ) + cc.notice( " transactions, " ) +
+        cc.debug( "Default value is " ) + cc.sunny( "0.0" ) + cc.notice( "." ) );
+    console.log( soi + cc.debug( "--" ) +
+        cc.bright( "gas-price-multiplier-tc" ) + cc.debug( "..............." ) +
+        cc.notice( "Sets " ) + cc.attention( "Gas Price Multiplier" ) +
+        cc.notice( " for " ) + cc.note( "S<->S Target S-Chain" ) +
+        cc.notice( " transactions, " ) + cc.debug( "Default value is " ) +
+        cc.sunny( "0.0" ) + cc.notice( "." ) );
+    console.log( soi + cc.debug( "--" ) +
+        cc.bright( "gas-price-multiplier" ) + cc.debug( ".................." ) +
+        cc.notice( "Sets " ) + cc.attention( "Gas Price Multiplier" ) +
+        cc.notice( " for both " ) + cc.note( "Main Net" ) + cc.notice( " and " ) +
+        cc.note( "S-Chain" ) + cc.debug( "(s)" ) + cc.notice( "." ) );
+    console.log( soi + cc.debug( "--" ) +
+        cc.bright( "gas-multiplier-mn" ) + cc.debug( "....................." ) +
+        cc.notice( "Sets " ) + cc.attention( "Gas Value Multiplier" ) +
+        cc.notice( " for " ) + cc.note( "Main Net" ) + cc.notice( " transactions, " ) +
+        cc.debug( "Default value is " ) + cc.sunny( "1.25" ) + cc.notice( "." ) +
+        cc.debug( " Specify value " ) + cc.sunny( "0.0" ) + cc.debug( " to " ) +
+        cc.error( "disable" ) + " " + cc.attention( "Gas Price Customization" ) +
+        cc.debug( " for " ) + cc.note( "Main Net" ) + cc.notice( "." ) );
+    console.log( soi + cc.debug( "--" ) +
+        cc.bright( "gas-multiplier-sc" ) + cc.debug( "....................." ) +
+        cc.notice( "Sets " ) + cc.attention( "Gas Value Multiplier" ) +
+        cc.notice( " for " ) + cc.note( "S-Chain" ) + cc.notice( " transactions, " ) +
+        cc.debug( "Default value is " ) + cc.sunny( "1.25" ) + cc.notice( "." ) );
+    console.log( soi + cc.debug( "--" ) +
+        cc.bright( "gas-multiplier-tc" ) + cc.debug( "....................." ) +
+        cc.notice( "Sets " ) + cc.attention( "Gas Value Multiplier" ) +
+        cc.notice( " for " ) + cc.note( "S<->S Target S-Chain" ) +
+        cc.notice( " transactions, " ) + cc.debug( "Default value is " ) +
+        cc.sunny( "1.25" ) + cc.notice( "." ) );
+    console.log( soi + cc.debug( "--" ) +
+        cc.bright( "gas-multiplier" ) + cc.debug( "........................" ) +
+        cc.notice( "Sets " ) + cc.attention( "Gas Value Multiplier" ) +
+        cc.notice( " for both " ) + cc.note( "Main Net" ) + cc.notice( " and " ) +
+        cc.note( "S-Chain" ) + cc.debug( "(s)" ) + cc.notice( "." ) );
+}
+
+function print_help_registration( soi ) {
+    console.log( cc.sunny( "REGISTRATION" ) + cc.info( " commands:" ) );
+    console.log( soi + cc.debug( "--" ) +
+        cc.bright( "register" ) + cc.debug( ".............................." ) +
+        cc.notice( "Register" ) + cc.debug( "(perform " ) + cc.sunny( "all steps" ) +
+        cc.debug( ")" ) + cc.notice( "." ) );
+    console.log( soi + cc.debug( "--" ) +
+        cc.bright( "register1" ) + cc.debug( "............................." ) +
+        cc.notice( "Perform registration " ) + cc.sunny( "step 1" ) +
+        cc.notice( " - register " ) + cc.note( "S-Chain" ) + cc.notice( " on " ) +
+        cc.note( "Main-net" ) + cc.notice( "." ) );
+    console.log( soi + cc.debug( "--" ) +
+        cc.bright( "check-registration" ) + cc.debug( "...................." ) +
+        cc.notice( "Perform registration status check" ) + cc.debug( "(perform " ) +
+        cc.sunny( "all steps" ) + cc.debug( ")" ) + cc.notice( "." ) );
+    console.log( soi + cc.debug( "--" ) +
+        cc.bright( "check-registration1" ) + cc.debug( "..................." ) +
+        cc.notice( "Perform registration status check " ) + cc.sunny( "step 1" ) +
+        cc.notice( " - register " ) + cc.note( "S-Chain" ) + cc.notice( " on " ) +
+        cc.note( "Main-net" ) + cc.notice( "." ) );
+    console.log( soi + cc.debug( "--" ) +
+        cc.bright( "check-registration2" ) + cc.debug( "..................." ) +
+        cc.notice( "Perform registration status check " ) + cc.sunny( "step 2" ) +
+        cc.notice( " - register " ) + cc.note( "S-Chain" ) + cc.notice( " in " ) +
+        cc.attention( "deposit box" ) + cc.notice( "." ) );
+    console.log( soi + cc.debug( "--" ) +
+        cc.bright( "check-registration3" ) + cc.debug( "..................." ) +
+        cc.notice( "Perform registration status check " ) + cc.sunny( "step 3" ) +
+        cc.notice( " - register " ) + cc.note( "Main-net" ) + cc.notice( "'s " ) +
+        cc.attention( "deposit box" ) + cc.notice( " on " ) + cc.note( "S-Chain" ) +
+        cc.notice( "." ) );
+}
+
+function print_help_action( soi ) {
+    console.log( cc.sunny( "ACTION" ) + cc.info( " commands:" ) );
+    console.log( soi + cc.debug( "--" ) +
+        cc.bright( "show-config" ) + cc.debug( "..........................." ) +
+        cc.notice( "Show " ) + cc.note( "configuration values" ) +
+        cc.notice( " and exit." ) );
+    console.log( soi + cc.debug( "--" ) +
+        cc.bright( "show-balance" ) + cc.debug( ".........................." ) +
+        cc.notice( "Show " ) + cc.note( "ETH" ) +
+        cc.notice( " and/or token balances on " ) + cc.note( "Main-net" ) +
+        cc.notice( " and/or " ) + cc.note( "S-Chain" ) + cc.notice( " and exit." ) );
+    console.log( soi + cc.debug( "--" ) +
+        cc.bright( "m2s-payment" ) + cc.debug( "..........................." ) +
+        cc.notice( "Do one payment from " ) + cc.note( "Main-net" ) +
+        cc.notice( " user account to " ) + cc.note( "S-chain" ) +
+        cc.notice( " user account." ) );
+    console.log( soi + cc.debug( "--" ) +
+        cc.bright( "s2m-payment" ) + cc.debug( "..........................." ) +
+        cc.notice( "Do one payment from " ) + cc.note( "S-chain" ) +
+        cc.notice( " user account to " ) + cc.note( "Main-net" ) +
+        cc.notice( " user account." ) );
+    console.log( soi + cc.debug( "--" ) +
+        cc.bright( "s2m-receive" ) + cc.debug( "..........................." ) +
+        cc.notice( "Receive one payment from " ) + cc.note( "S-chain" ) +
+        cc.notice( " user account to " ) + cc.note( "Main-net" ) +
+        cc.notice( " user account" ) +
+        cc.debug( "(ETH only, receives all the ETH pending in transfer)" ) +
+        cc.notice( "." ) );
+    console.log( soi + cc.debug( "--" ) +
+        cc.bright( "s2m-view" ) + cc.debug( ".............................." ) +
+        cc.notice( "View money amount user can receive as payment from " ) +
+        cc.note( "S-chain" ) + cc.notice( " user account to " ) + cc.note( "Main-net" ) +
+        cc.notice( " user account" ) +
+        cc.debug( "(ETH only, receives all the ETH pending in transfer)" ) +
+        cc.notice( "." ) );
+    console.log( soi + cc.debug( "--" ) +
+        cc.bright( "s2s-payment" ) + cc.debug( "..........................." ) +
+        cc.notice( "Do one payment from " ) + cc.note( "S-chain" ) +
+        cc.notice( " user account to other " ) + cc.note( "S-chain" ) +
+        cc.notice( " user account." ) );
+    console.log( soi + cc.debug( "--" ) +
+        cc.bright( "s2s-forward" ) + cc.debug( "..........................." ) +
+        cc.notice( "Indicates " ) + cc.note( "S<->S" ) +
+        cc.notice( " transfer direction is " ) + cc.attention( "forward" ) +
+        cc.notice( ". I.e. source " ) + cc.note( "S-chain" ) +
+        cc.notice( " is token minter and instantiator. " ) +
+        cc.debug( "This is default mode" ) + cc.notice( "." ) );
+    console.log( soi + cc.debug( "--" ) +
+        cc.bright( "s2s-reverse" ) + cc.debug( "..........................." ) +
+        cc.notice( "Indicates " ) + cc.note( "S<->S" ) +
+        cc.notice( " transfer direction is " ) + cc.attention( "reverse" ) +
+        cc.notice( ". I.e. destination " ) + cc.note( "S-chain" ) +
+        cc.notice( " is token minter and instantiator." ) );
+    console.log( soi + cc.debug( "--" ) +
+        cc.bright( "m2s-transfer" ) + cc.debug( ".........................." ) +
+        cc.notice( "Do single " ) + cc.attention( "message transfer loop" ) +
+        cc.notice( " from " ) + cc.note( "Main-net" ) + cc.notice( " to " ) +
+        cc.note( "S-chain" ) + cc.notice( "." ) );
+    console.log( soi + cc.debug( "--" ) +
+        cc.bright( "s2m-transfer" ) + cc.debug( ".........................." ) +
+        cc.notice( "Do single " ) + cc.attention( "message transfer loop" ) +
+        cc.notice( " from " ) + cc.note( "S-chain" ) + cc.notice( " to " ) +
+        cc.note( "Main-net" ) + cc.notice( "." ) );
+    console.log( soi + cc.debug( "--" ) +
+        cc.bright( "s2s-transfer" ) + cc.debug( ".........................." ) +
+        cc.notice( "Do single " ) + cc.attention( "message transfer loop" ) +
+        cc.notice( " from " ) + cc.note( "S-chain" ) + cc.notice( " to " ) +
+        cc.note( "S-chain" ) + cc.notice( "." ) );
+    console.log( soi + cc.debug( "--" ) +
+        cc.bright( "with-metadata" ) + cc.debug( "........................." ) +
+        cc.notice( "Makes " ) + cc.bright( "ERC721" ) +
+        cc.notice( " transfer using special version of " ) +
+        cc.bright( "Token Manager" ) + cc.notice( " to transfer token metadata." ) );
+    console.log( soi + cc.debug( "--" ) +
+        cc.bright( "transfer" ) + cc.debug( ".............................." ) +
+        cc.notice( "Run single " ) + cc.note( "M<->S" ) +
+        cc.notice( " and, optionally, " ) + cc.note( "S->S" ) +
+        cc.notice( " transfer loop iteration" ) + cc.notice( "." ) );
+    console.log( soi + cc.debug( "--" ) +
+        cc.bright( "loop" ) + cc.debug( ".................................." ) +
+        cc.notice( "Run " ) + cc.note( "M<->S" ) + cc.notice( " and, optionally, " ) +
+        cc.note( "S->S" ) + cc.notice( " transfer loops in parallel threads." ) );
+    console.log( soi + cc.debug( "--" ) +
+        cc.bright( "simple-loop" ) + cc.debug( "..........................." ) +
+        cc.notice( "Run " ) + cc.note( "M<->S" ) + cc.notice( " and, optionally, " ) +
+        cc.note( "S->S" ) + cc.notice( " transfer loops in main thread only." ) );
+}
+
+function print_help_additional_action( soi ) {
+    console.log( cc.sunny( "ADDITIONAL ACTION" ) + cc.info( " options:" ) );
+    console.log( soi + cc.debug( "--" ) +
+        cc.bright( "no-wait-s-chain" ) + cc.debug( "......................." ) +
+        cc.notice( "Do not wait until " ) + cc.note( "S-Chain" ) +
+        cc.notice( " is started." ) );
+    console.log( soi + cc.debug( "--" ) +
+        cc.bright( "max-wait-attempts" ) + cc.sunny( "=" ) + cc.info( "value" ) +
+        cc.debug( "..............." ) + cc.notice( "Max number of " ) +
+        cc.note( "S-Chain" ) +
+        cc.notice( " call attempts to do while it became alive and sane." ) );
+    console.log( soi + cc.debug( "--" ) +
+        cc.bright( "skip-dry-run" ) + cc.debug( ".........................." ) +
+        cc.notice( "Skip " ) + cc.note( "dry run" ) +
+        cc.notice( " invocation before payed contract method calls." ) );
+    console.log( soi + cc.debug( "--" ) +
+        cc.bright( "no-skip-dry-run" ) + cc.debug( "......................." ) +
+        cc.notice( "Invoke " ) + cc.note( "dry run" ) +
+        cc.notice( " before payed contract method calls." ) +
+        cc.debug( " Default behavior" ) + cc.notice( "." ) );
+    console.log( soi + cc.debug( "--" ) +
+        cc.bright( "ignore-dry-run" ) + cc.debug( "........................" ) +
+        cc.notice( "Ignore result of " ) + cc.note( "dry run" ) +
+        cc.notice( " contract method calls and continue execute." ) +
+        cc.debug( " Default behavior" ) + cc.notice( "." ) );
+    console.log( soi + cc.debug( "--" ) +
+        cc.bright( "no-ignore-dry-run" ) + cc.debug( "....................." ) +
+        cc.notice( "Use error results of " ) + cc.note( "dry run" ) +
+        cc.notice( " contract method calls as actual errors and stop execute." ) );
+    console.log( soi + cc.debug( "--" ) +
+        cc.bright( "m2s-transfer-block-size" ) + cc.sunny( "=" ) + cc.info( "value" ) +
+        cc.debug( "........." ) + cc.notice( "Number of transactions in one block " +
+        "to use in message transfer loop from " ) + cc.note( "Main-net" ) +
+        cc.notice( " to " ) + cc.note( "S-chain" ) + cc.notice( "." ) +
+        cc.debug( " Default is " ) + cc.sunny( "4" ) + cc.notice( "." ) );
+    console.log( soi + cc.debug( "--" ) +
+        cc.bright( "s2m-transfer-block-size" ) + cc.sunny( "=" ) + cc.info( "value" ) +
+        cc.debug( "........." ) + cc.notice( "Number of transactions in one block " +
+        "to use in message transfer loop from " ) + cc.note( "S-chain" ) +
+        cc.notice( " to " ) + cc.note( "Main-net" ) + cc.notice( "." ) +
+        cc.debug( " Default is " ) + cc.sunny( "4" ) + cc.notice( "." ) );
+    console.log( soi + cc.debug( "--" ) +
+        cc.bright( "s2s-transfer-block-size" ) + cc.sunny( "=" ) + cc.info( "value" ) +
+        cc.debug( "........." ) + cc.notice( "Number of transactions in one block " +
+        "to use in message transfer loop from " ) + cc.note( "S-chain" ) +
+        cc.notice( " to " ) + cc.note( "S-chain" ) + cc.notice( "." ) +
+        cc.debug( " Default is " ) + cc.sunny( "4" ) + cc.notice( "." ) );
+    console.log( soi + cc.debug( "--" ) +
+        cc.bright( "transfer-block-size" ) + cc.sunny( "=" ) + cc.info( "value" ) +
+        cc.debug( "............." ) + cc.notice( "Number of transactions in one block " +
+        "to use in all message transfer loops." ) );
+    console.log( soi + cc.debug( "--" ) +
+        cc.bright( "m2s-transfer-steps" ) + cc.sunny( "=" ) + cc.info( "value" ) +
+        cc.debug( ".............." ) + cc.notice( "Maximal number of blocks " +
+        "to transfer at a job run from " ) + cc.note( "Main-net" ) +
+        cc.notice( " to " ) + cc.note( "S-chain" ) + cc.notice( "." ) +
+        cc.debug( " Value " ) + cc.sunny( "0" ) + cc.debug( " is unlimited" ) +
+        cc.notice( "." ) + cc.debug( " Default is " ) + cc.sunny( "8" ) +
+        cc.notice( "." ) );
+    console.log( soi + cc.debug( "--" ) +
+        cc.bright( "s2m-transfer-steps" ) + cc.sunny( "=" ) + cc.info( "value" ) +
+        cc.debug( ".............." ) + cc.notice( "Maximal number of blocks " +
+        "to transfer at a job run from " ) + cc.note( "S-chain" ) +
+        cc.notice( " to " ) + cc.note( "Main-net" ) + cc.notice( "." ) +
+        cc.debug( " Value " ) + cc.sunny( "0" ) + cc.debug( " is unlimited" ) +
+        cc.notice( "." ) + cc.debug( " Default is " ) + cc.sunny( "8" ) +
+        cc.notice( "." ) );
+    console.log( soi + cc.debug( "--" ) +
+        cc.bright( "s2s-transfer-steps" ) + cc.sunny( "=" ) + cc.info( "value" ) +
+        cc.debug( ".............." ) + cc.notice( "Maximal number of blocks " +
+        "to transfer at a job run from " ) + cc.note( "S-chain" ) +
+        cc.notice( " to " ) + cc.note( "S-chain" ) + cc.notice( "." ) +
+        cc.debug( " Value " ) + cc.sunny( "0" ) + cc.debug( " is unlimited" ) +
+        cc.notice( "." ) + cc.debug( " Default is " ) + cc.sunny( "8" ) +
+        cc.notice( "." ) );
+    console.log( soi + cc.debug( "--" ) +
+        cc.bright( "transfer-steps" ) + cc.sunny( "=" ) + cc.info( "value" ) +
+        cc.debug( ".................." ) + cc.notice( "Maximal number of blocks " +
+        "to transfer at a job run in all transfer loops." ) + cc.debug( " Value " ) +
+        cc.sunny( "0" ) + cc.debug( " is unlimited" ) + cc.notice( "." ) );
+    console.log( soi + cc.debug( "--" ) +
+        cc.bright( "m2s-max-transactions" ) + cc.sunny( "=" ) + cc.info( "number" ) +
+        cc.debug( "..........." ) + cc.notice( "Maximal number of transactions " +
+        "to do in message transfer loop from " ) + cc.note( "Main-net" ) +
+        cc.notice( " to " ) + cc.note( "S-chain" ) + cc.debug( "(" ) +
+        cc.sunny( "0" ) + cc.debug( " is unlimited)" ) + cc.notice( "." ) +
+        cc.debug( " Default is " ) + cc.sunny( "0" ) + cc.notice( "." ) );
+    console.log( soi + cc.debug( "--" ) +
+        cc.bright( "s2m-max-transactions" ) + cc.sunny( "=" ) + cc.info( "number" ) +
+        cc.debug( "..........." ) + cc.notice( "Maximal number of transactions " +
+        "to do in message transfer loop from " ) + cc.note( "S-chain" ) +
+        cc.notice( " to " ) + cc.note( "Main-net" ) + cc.debug( "(" ) +
+        cc.sunny( "0" ) + cc.debug( " is unlimited)" ) + cc.notice( "." ) +
+        cc.debug( " Default is " ) + cc.sunny( "0" ) + cc.notice( "." ) );
+    console.log( soi + cc.debug( "--" ) +
+        cc.bright( "s2s-max-transactions" ) + cc.sunny( "=" ) + cc.info( "number" ) +
+        cc.debug( "..........." ) + cc.notice( "Maximal number of transactions " +
+        "to do in message transfer loop from " ) + cc.note( "S-chain" ) +
+        cc.notice( " to " ) + cc.note( "S-chain" ) + cc.debug( "(" ) + cc.sunny( "0" ) +
+        cc.debug( " is unlimited)" ) + cc.notice( "." ) + cc.debug( " Default is " ) +
+        cc.sunny( "0" ) + cc.notice( "." ) );
+    console.log( soi + cc.debug( "--" ) +
+        cc.bright( "max-transactions" ) + cc.sunny( "=" ) + cc.info( "number" ) +
+        cc.debug( "..............." ) + cc.notice( "Maximal number of transactions " +
+        "to do in all message transfer loops" ) + cc.debug( "(" ) + cc.sunny( "0" ) +
+        cc.debug( " is unlimited)" ) + cc.notice( "." ) );
+    console.log( soi + cc.debug( "--" ) +
+        cc.bright( "m2s-await-blocks" ) + cc.sunny( "=" ) + cc.info( "number" ) +
+        cc.debug( "..............." ) + cc.notice( "Maximal number of blocks to wait " +
+        "to appear in blockchain before transaction from " ) + cc.note( "Main-net" ) +
+        cc.notice( " to " ) + cc.note( "S-chain" ) + cc.debug( "(" ) + cc.sunny( "0" ) +
+        cc.debug( " is no wait)" ) + cc.notice( "." ) + cc.debug( " Default is " ) +
+        cc.sunny( "0" ) + cc.notice( "." ) );
+    console.log( soi + cc.debug( "--" ) +
+        cc.bright( "s2m-await-blocks" ) + cc.sunny( "=" ) + cc.info( "number" ) +
+        cc.debug( "..............." ) + cc.notice( "Maximal number of blocks to wait " +
+        "to appear in blockchain before transaction from " ) + cc.note( "S-chain" ) +
+        cc.notice( " to " ) + cc.note( "Main-net" ) + cc.debug( "(" ) + cc.sunny( "0" ) +
+        cc.debug( " is no wait)" ) + cc.notice( "." ) + cc.debug( " Default is " ) +
+        cc.sunny( "0" ) + cc.notice( "." ) );
+    console.log( soi + cc.debug( "--" ) +
+        cc.bright( "s2s-await-blocks" ) + cc.sunny( "=" ) + cc.info( "number" ) +
+        cc.debug( "..............." ) + cc.notice( "Maximal number of blocks to wait " +
+        "to appear in blockchain before transaction from " ) + cc.note( "S-chain" ) +
+        cc.notice( " to " ) + cc.note( "S-chain" ) + cc.debug( "(" ) + cc.sunny( "0" ) +
+        cc.debug( " is no wait)" ) + cc.notice( "." ) + cc.debug( " Default is " ) +
+        cc.sunny( "0" ) + cc.notice( "." ) );
+    console.log( soi + cc.debug( "--" ) +
+        cc.bright( "await-blocks" ) + cc.sunny( "=" ) + cc.info( "number" ) +
+        cc.debug( "..................." ) + cc.notice( "Maximal number of blocks " +
+        "to wait to appear in blockchain before transaction between both " ) +
+        cc.note( "S-chain" ) + cc.notice( " and " ) + cc.note( "Main-net" ) +
+        cc.debug( "(" ) + cc.sunny( "0 " ) + cc.debug( "is no wait)" ) +
+        cc.notice( "." ) );
+    console.log( soi + cc.debug( "--" ) +
+        cc.bright( "m2s-await-time" ) + cc.sunny( "=" ) + cc.info( "seconds" ) +
+        cc.debug( "................" ) +
+        cc.notice( "Minimal age of transaction message" ) +
+        cc.debug( "(in seconds)" ) + cc.notice( " before it will be transferred from " ) +
+        cc.note( "Main-net" ) + cc.notice( " to " ) + cc.note( "S-chain" ) +
+        cc.debug( "(" ) + cc.sunny( "0" ) + cc.debug( " is no wait)" ) +
+        cc.notice( "." ) + cc.debug( " Default is " ) + cc.sunny( "0" ) +
+        cc.notice( "." ) );
+    console.log( soi + cc.debug( "--" ) +
+        cc.bright( "s2m-await-time" ) + cc.sunny( "=" ) + cc.info( "seconds" ) +
+        cc.debug( "................" ) +
+        cc.notice( "Minimal age of transaction message" ) + cc.debug( "(in seconds)" ) +
+        cc.notice( " before it will be transferred from " ) + cc.note( "S-chain" ) +
+        cc.notice( " to " ) + cc.note( "Main-net" ) + cc.debug( "(" ) + cc.sunny( "0" ) +
+        cc.debug( " is no wait)" ) + cc.notice( "." ) + cc.debug( " Default is " ) +
+        cc.sunny( "0" ) + cc.notice( "." ) );
+    console.log( soi + cc.debug( "--" ) +
+        cc.bright( "s2s-await-time" ) + cc.sunny( "=" ) + cc.info( "seconds" ) +
+        cc.debug( "................" ) +
+        cc.notice( "Minimal age of transaction message" ) + cc.debug( "(in seconds)" ) +
+        cc.notice( " before it will be transferred from " ) + cc.note( "S-chain" ) +
+        cc.notice( " to " ) + cc.note( "S-chain" ) + cc.debug( "(" ) + cc.sunny( "0" ) +
+        cc.debug( " is no wait)" ) + cc.notice( "." ) + cc.debug( " Default is " ) +
+        cc.sunny( "0" ) + cc.notice( "." ) );
+    console.log( soi + cc.debug( "--" ) +
+        cc.bright( "await-time" ) + cc.sunny( "=" ) + cc.info( "seconds" ) +
+        cc.debug( "...................." ) +
+        cc.notice( "Minimal age of transaction message" ) + cc.debug( "(in seconds)" ) +
+        cc.notice( " before it will be transferred between both " ) +
+        cc.note( "S-chain" ) + cc.notice( " and " ) + cc.note( "Main-net" ) +
+        cc.debug( "(" ) + cc.sunny( "0" ) + cc.debug( " is no wait)" ) +
+        cc.notice( "." ) );
+    console.log( soi + cc.debug( "--" ) +
+        cc.bright( "period" ) + cc.debug( "................................" ) +
+        cc.notice( "Transfer " ) + cc.note( "loop period" ) + cc.debug( "(in seconds)" ) +
+        cc.notice( "." ) );
+    console.log( soi + cc.debug( "--" ) +
+        cc.bright( "node-number" ) + cc.sunny( "=" ) + cc.info( "value" ) +
+        cc.debug( "....................." ) + cc.note( "S-Chain" ) + " " +
+        cc.bright( "node number" ) + cc.debug( "(" ) + cc.sunny( "0" ) +
+        cc.debug( "-based)" ) + cc.notice( "." ) );
+    console.log( soi + cc.debug( "--" ) +
+        cc.bright( "nodes-count" ) + cc.sunny( "=" ) + cc.info( "value" ) +
+        cc.debug( "....................." ) + cc.note( "S-Chain" ) + " " +
+        cc.bright( "nodes count" ) + cc.notice( "." ) );
+    console.log( soi + cc.debug( "--" ) +
+        cc.bright( "time-framing" ) + cc.sunny( "=" ) + cc.note( "value" ) +
+        cc.debug( "...................." ) + cc.notice( "Specifies " ) +
+        cc.note( "period" ) + cc.debug( "(in seconds) " ) +
+        cc.note( "for time framing" ) + cc.debug( "(" ) + cc.sunny( "0" ) +
+        cc.debug( " to " ) + cc.error( "disable" ) +
+        cc.debug( " time framing)" ) + cc.notice( "." ) );
+    console.log( soi + cc.debug( "--" ) +
+        cc.bright( "time-gap" ) + cc.sunny( "=" ) + cc.note( "value" ) +
+        cc.debug( "........................" ) + cc.notice( "Specifies " ) +
+        cc.note( "gap" ) + cc.debug( "(in seconds) " ) +
+        cc.note( "before next time frame" ) + cc.notice( "." ) );
+    console.log( soi + cc.debug( "--" ) +
+        cc.bright( "auto-exit" ) + cc.sunny( "=" ) + cc.note( "seconds" ) +
+        cc.debug( "....................." ) + cc.notice( "Automatically exit " ) +
+        cc.bright( "IMA Agent" ) + cc.notice( " after specified number of seconds" ) +
+        cc.debug( "(" ) + cc.sunny( "0" ) + cc.debug( " is no automatic exit, " ) +
+        cc.sunny( "3600" ) + cc.debug( " is no default)" ) + cc.notice( "." ) );
+}
+
+function print_help_token_testing( soi ) {
+    console.log( cc.sunny( "TOKEN TESTING" ) + cc.info( " commands:" ) );
+    console.log( soi + cc.debug( "--" ) +
+        cc.bright( "mint-erc20" ) + cc.debug( "............................" ) +
+        cc.notice( "Mint " ) + cc.note( "ERC20" ) + cc.notice( " tokens." ) );
+    console.log( soi + cc.debug( "--" ) +
+        cc.bright( "mint-erc721" ) + cc.debug( "..........................." ) +
+        cc.notice( "Mint " ) + cc.note( "ERC721" ) + cc.notice( " tokens." ) );
+    console.log( soi + cc.debug( "--" ) +
+        cc.bright( "mint-erc1155" ) + cc.debug( ".........................." ) +
+        cc.notice( "Mint " ) + cc.note( "ERC1155" ) + cc.notice( " tokens." ) );
+    console.log( soi + cc.debug( "--" ) +
+        cc.bright( "burn-erc20" ) + cc.debug( "............................" ) +
+        cc.notice( "Burn " ) + cc.note( "ERC20" ) + cc.notice( " tokens." ) );
+    console.log( soi + cc.debug( "--" ) +
+        cc.bright( "burn-erc721" ) + cc.debug( "..........................." ) +
+        cc.notice( "Burn " ) + cc.note( "ERC721" ) + cc.notice( " tokens." ) );
+    console.log( soi + cc.debug( "--" ) +
+        cc.bright( "burn-erc1155" ) + cc.debug( ".........................." ) +
+        cc.notice( "Burn " ) + cc.note( "ERC1155" ) + cc.notice( " tokens." ) );
+    console.log( soi + cc.debug( "Please notice, token testing commands require " ) +
+        cc.attention( "--tm-url-t-chain" ) + cc.debug( ", " ) +
+        cc.attention( "cid-t-chain" ) + cc.debug( ", " ) +
+        cc.attention( "erc20-t-chain" ) + cc.debug( " or " ) +
+        cc.attention( "erc721-t-chain" ) + cc.debug( " or " ) +
+        cc.attention( "erc1155-t-chain" ) +
+        cc.debug( ", account information (like private key " ) +
+        cc.attention( "key-t-chain" ) +
+        cc.debug( ") command line arguments specified. Token amounts are specified via " ) +
+        cc.attention( "amount" ) +
+        cc.debug( " command line arguments specified. Token IDs are specified via " ) +
+        cc.attention( "tid" ) + cc.debug( " or " ) + cc.attention( "tids" ) +
+        cc.debug( " command line arguments." )
+    );
+}
+
+function print_help_network_state_analysis( soi ) {
+    console.log( cc.sunny( "IMA WORK STATE ANALYSIS" ) + cc.info( " options:" ) );
+    console.log( soi + cc.debug( "--" ) +
+        cc.bright( "pwa" ) + cc.debug( "..................................." ) +
+        cc.success( "Enable" ) + " " + cc.attention( "pending work analysis" ) +
+        cc.notice( " to avoid transaction conflicts." ) + " " +
+        cc.debug( "Default mode" ) + cc.notice( "." ) );
+    console.log( soi + cc.debug( "--" ) +
+        cc.bright( "no-pwa" ) + cc.debug( "................................" ) +
+        cc.error( "Disable" ) + " " + cc.attention( "pending work analysis" ) +
+        cc.notice( ". " ) + cc.warning( "Not recommended" ) +
+        cc.notice( " for slow and overloaded blockchains." ) );
+    console.log( soi + cc.debug( "--" ) +
+        cc.bright( "pwa-timeout" ) + cc.sunny( "=" ) + cc.note( "seconds" ) +
+        cc.debug( "..................." ) + cc.notice( "Node state timeout during " ) +
+        cc.attention( "pending work analysis" ) + cc.notice( ". " ) +
+        cc.debug( "Default is " ) + cc.sunny( "60" ) + cc.debug( " seconds" ) +
+        cc.notice( "." ) );
+}
+
+function print_help_message_signing( soi ) {
+    console.log( cc.sunny( "MESSAGE SIGNING" ) + cc.info( " options:" ) );
+    console.log( soi + cc.debug( "--" ) +
+        cc.bright( "sign-messages" ) + cc.debug( "........................." ) +
+        cc.notice( "Sign transferred messages." ) );
+    console.log( soi + cc.debug( "--" ) +
+        cc.bright( "bls-glue" ) + cc.sunny( "=" ) + cc.note( "path" ) +
+        cc.debug( "........................." ) + cc.notice( "Specifies path to " ) +
+        cc.note( "bls_glue" ) + cc.notice( " application." ) );
+    console.log( soi + cc.debug( "--" ) +
+        cc.bright( "hash-g1" ) + cc.sunny( "=" ) + cc.note( "path" ) +
+        cc.debug( ".........................." ) + cc.notice( "Specifies path to " ) +
+        cc.note( "hash_g1" ) + cc.notice( " application." ) );
+    console.log( soi + cc.debug( "--" ) +
+        cc.bright( "bls-verify" ) + cc.sunny( "=" ) + cc.note( "path" ) +
+        cc.debug( "......................." ) +
+        cc.debug( "Optional parameter, specifies path to " ) +
+        cc.note( "verify_bls" ) + cc.debug( " application." ) );
+}
+
+function print_help_monitoring( soi ) {
+    console.log( cc.sunny( "MONITORING" ) + cc.info( " options:" ) );
+    console.log( soi + cc.debug( "--" ) +
+        cc.bright( "monitoring-port" ) + cc.sunny( "=" ) + cc.note( "number" ) +
+        cc.debug( "................" ) + cc.notice( "Run " ) +
+        cc.note( "monitoring web socket RPC server" ) +
+        cc.notice( " on specified port. " ) + cc.debug( "Specify " ) +
+        cc.sunny( "0" ) + cc.debug( " to " ) + cc.error( "disable" ) +
+        cc.notice( "." ) + cc.debug( " By default monitoring server is " ) +
+        cc.error( "disabled" ) + cc.notice( "." ) );
+}
+
+function print_help_gas_reimbursement( soi ) {
+    console.log( cc.sunny( "GAS REIMBURSEMENT" ) + cc.info( " options:" ) );
+    console.log( soi + cc.debug( "--" ) +
+        cc.bright( "reimbursement-chain" ) + cc.sunny( "=" ) + cc.note( "name" ) +
+        cc.debug( ".............." ) + cc.notice( "Specifies chain name." ) );
+    console.log( soi + cc.debug( "--" ) +
+        cc.bright( "reimbursement-recharge" ) + cc.sunny( "=" ) + cc.note( "v" ) +
+        cc.warning( "u" ) + cc.debug( "............." ) + cc.success( "Recharge" ) +
+        cc.notice( " user wallet with specified value " ) + cc.attention( "v" ) +
+        cc.notice( ", unit name " ) + cc.attention( "u" ) +
+        cc.notice( " is well known Ethereum unit name like " ) + cc.attention( "ether" ) +
+        cc.notice( " or " ) + cc.attention( "wei" ) + cc.notice( "." ) );
+    console.log( soi + cc.debug( "--" ) +
+        cc.bright( "reimbursement-withdraw" ) + cc.sunny( "=" ) + cc.note( "v" ) +
+        cc.warning( "u" ) + cc.debug( "............." ) + cc.error( "Withdraw" ) +
+        cc.notice( " user wallet with specified value " ) + cc.attention( "v" ) +
+        cc.notice( ", unit name " ) + cc.attention( "u" ) +
+        cc.notice( " is well known Ethereum unit name like " ) + cc.attention( "ether" ) +
+        cc.notice( " or " ) + cc.attention( "wei" ) + cc.notice( "." ) );
+    console.log( soi + cc.debug( "--" ) +
+        cc.bright( "reimbursement-balance" ) + cc.debug( "................." ) +
+        cc.notice( "Show wallet balance." ) );
+    console.log( soi + cc.debug( "--" ) +
+        cc.bright( "reimbursement-range" ) + cc.sunny( "=" ) + cc.note( "number" ) +
+        cc.debug( "............" ) + cc.notice( "Sets " ) +
+        cc.note( "minimal time interval" ) + cc.notice( " between transfers from " ) +
+        cc.note( "S-Chain" ) + cc.notice( " to " ) + cc.note( "Main Net" ) +
+        cc.notice( "." ) );
+}
+
+function print_help_past_events_scan( soi ) {
+    console.log( cc.sunny( "PAST EVENTS SCAN" ) + cc.info( " options:" ) );
+    console.log( soi + cc.debug( "--" ) +
+        cc.bright( "bs-step-size" ) + cc.sunny( "=" ) + cc.note( "number" ) +
+        cc.debug( "..................." ) + cc.notice( "Specifies " ) +
+        cc.note( "step block range size" ) +
+        cc.notice( " to search iterative past events step by step. " ) +
+        cc.sunny( "0" ) + cc.notice( " to " ) + cc.error( "disable" ) +
+        cc.notice( " iterative search." ) );
+    console.log( soi + cc.debug( "--" ) +
+        cc.bright( "bs-max-all-range" ) +
+        cc.sunny( "=" ) + cc.note( "number" ) + cc.debug( "..............." ) +
+        cc.notice( "Specifies " ) + cc.note( "max number of steps" ) +
+        cc.notice( " to allow to search as [0...latest] range. " ) +
+        cc.sunny( "0" ) + cc.notice( " to " ) + cc.error( "disable" ) +
+        cc.notice( " iterative search." ) );
+    console.log( soi + cc.debug( "--" ) +
+        cc.bright( "bs-progressive-enable" ) + cc.debug( "................." ) +
+        cc.success( "Enables" ) + " " + cc.attention( "progressive block scan" ) +
+        cc.notice( " to search past events." ) );
+    console.log( soi + cc.debug( "--" ) +
+        cc.bright( "bs-progressive-disable" ) + cc.debug( "................" ) +
+        cc.error( "Disables" ) + " " + cc.attention( "progressive block scan" ) +
+        cc.notice( " to search past events." ) );
+}
+
+function print_help_oracle_based_reimbursement( soi ) {
+    console.log( cc.sunny( "ORACLE BASED GAS REIMBURSEMENT" ) + cc.info( " options:" ) );
+    console.log( soi + cc.debug( "--" ) +
+        cc.bright( "enable-oracle" ) + cc.debug( "........................." ) +
+        cc.success( "Enable" ) + cc.notice( " call to " ) + cc.note( "Oracle" ) +
+        cc.notice( " to compute " ) + cc.note( "gas price" ) + cc.notice( " for " ) +
+        cc.attention( "gas reimbursement" ) + cc.notice( ". " ) +
+        cc.debug( "Default mode" ) + cc.notice( "." ) );
+    console.log( soi + cc.debug( "--" ) +
+        cc.bright( "disable-oracle" ) + cc.debug( "........................" ) +
+        cc.error( "Disable" ) + cc.notice( " call to " ) + cc.note( "Oracle" ) +
+        cc.notice( " to compute " ) + cc.note( "gas price" ) + cc.notice( " for " ) +
+        cc.attention( "gas reimbursement" ) + cc.notice( "." ) );
+}
+
+function print_help_json_rpc_server( soi ) {
+    console.log( cc.sunny( "IMA JSON RPC SERVER" ) + cc.info( " options:" ) );
+    console.log( soi + cc.debug( "--" ) +
+        cc.bright( "json-rpc-port" ) + cc.sunny( "=" ) + cc.note( "number" ) +
+        cc.debug( ".................." ) + cc.notice( "Run " ) +
+        cc.note( "IMA JSON RPC server" ) + cc.notice( " on specified " ) +
+        cc.note( "port" ) + cc.notice( "." ) + cc.debug( " Specify " ) +
+        cc.sunny( "0" ) + cc.debug( " to " ) + cc.error( "disable" ) + cc.notice( "." ) +
+        cc.debug( " Default is " ) + cc.sunny( "0" ) + cc.notice( "." ) );
+    console.log( soi + cc.debug( "--" ) +
+        cc.bright( "cross-ima" ) + cc.debug( "............................." ) +
+        cc.success( "Enable" ) + cc.notice( " calls to " ) +
+        cc.note( "IMA JSON RPC servers" ) + cc.notice( " to compute " ) +
+        cc.note( "BLS signature parts" ) +
+        cc.notice( " and operation state inside time frames." ) +
+        cc.debug( "Use calls to " ) + cc.attention( "IMA Agent" ) + cc.notice( "." ) );
+    console.log( soi + cc.debug( "--" ) +
+        cc.bright( "no-cross-ima" ) + cc.debug( ".........................." ) +
+        cc.error( "Disable" ) + cc.notice( " calls to " ) +
+        cc.note( "IMA JSON RPC servers" ) + cc.notice( " to compute " ) +
+        cc.note( "BLS signature parts" ) +
+        cc.notice( " and operation state inside time frames. " ) +
+        cc.debug( "Use calls to " ) + cc.attention( "skaled" ) + cc.notice( "." ) +
+        cc.debug( " Default mode" ) + cc.notice( "." ) );
+}
+
+function print_help_test( soi ) {
+    console.log( cc.sunny( "TEST" ) + cc.info( " options:" ) );
+    console.log( soi + cc.debug( "--" ) +
+        cc.bright( "browse-s-chain" ) + cc.debug( "........................" ) +
+        cc.notice( "Download own " ) + cc.note( "S-Chain" ) +
+        cc.notice( " network information." ) );
+    console.log( soi + cc.debug( "--" ) +
+        cc.bright( "browse-skale-network" ) + cc.debug( ".................." ) +
+        cc.notice( "Download entire " ) + cc.note( "SKALE network" ) +
+        cc.notice( " description." ) );
+    console.log( soi + cc.debug( "--" ) +
+        cc.bright( "browse-connected-schains" ) + cc.debug( ".............." ) +
+        cc.notice( "Download " ) + cc.note( "S-Chains" ) +
+        cc.notice( " connected to " ) + cc.note( "S-Chain" ) +
+        cc.notice( " with name specified in " ) + cc.bright( "id-s-chain" ) +
+        cc.notice( " command line parameter." ) );
+    console.log( soi + cc.debug( "--" ) +
+        cc.bright( "discover-cid" ) + cc.debug( ".........................." ) +
+        cc.notice( "Discover " ) + cc.attention( "chains ID(s)" ) +
+        cc.notice( " from provided " ) + cc.note( "URL(s)" ) + cc.notice( "." ) +
+        cc.debug( " This command is not executed automatically at startup" ) +
+        cc.notice( "." ) );
+}
+
+function print_help_optimization( soi ) {
+    console.log( cc.sunny( "OPTIMIZATION" ) + cc.info( " options:" ) );
+    console.log( soi + cc.debug( "--" ) +
+        cc.bright( "enable-multicall" ) + cc.debug( "......................" ) +
+        cc.success( "Enable" ) + cc.notice( " optimizations via multi-call." ) +
+        cc.debug( " Default mode" ) + cc.notice( "." ) );
+    console.log( soi + cc.debug( "--" ) +
+        cc.bright( "disable-multicall" ) + cc.debug( "....................." ) +
+        cc.error( "Disable" ) + cc.notice( " optimizations via multi-call." ) );
+}
+
+function print_help_logging( soi ) {
+    console.log( cc.sunny( "LOGGING" ) + cc.info( " options:" ) );
+    console.log( soi + cc.debug( "--" ) +
+        cc.bright( "expose" ) + cc.debug( "................................" ) +
+        cc.notice( "Expose " ) + cc.note( "low-level log details" ) +
+        cc.notice( " after " ) + cc.success( "successful operations" ) +
+        cc.notice( ". " ) + cc.debug( "By default details exposed only " ) +
+        cc.error( "on errors" ) + cc.notice( "." ) );
+    console.log( soi + cc.debug( "--" ) +
+        cc.bright( "no-expose" ) + cc.debug( "............................." ) +
+        cc.notice( "Expose " ) + cc.note( "low-level log details" ) +
+        cc.notice( " only after " ) + cc.error( "errors" ) + cc.notice( ". " ) +
+        cc.debug( "Default expose mode" ) + cc.notice( "." ) );
+    console.log( soi + cc.debug( "--" ) +
+        cc.bright( "verbose" ) + cc.sunny( "=" ) + cc.bright( "value" ) +
+        cc.debug( "........................." ) +
+        cc.notice( "Set " ) + cc.note( "level" ) + cc.notice( " of output details." ) );
+    console.log( soi + cc.debug( "--" ) + cc.bright( "verbose-list" ) +
+        cc.debug( ".........................." ) +
+        cc.notice( "List available " ) + cc.note( "verbose levels" ) +
+        cc.notice( " and exit." ) );
+    console.log( soi + cc.debug( "--" ) +
+        cc.bright( "log" ) + cc.sunny( "=" ) + cc.note( "path" ) +
+        cc.debug( ".............................." ) +
+        cc.notice( "Write program output to specified " ) + cc.note( "log file" ) +
+        cc.debug( "(multiple files can be specified)" ) + cc.notice( "." ) );
+    console.log( soi + cc.debug( "--" ) +
+        cc.bright( "log-size" ) + cc.sunny( "=" ) + cc.note( "value" ) +
+        cc.debug( "........................" ) + cc.notice( "Max size" ) +
+        cc.debug( "(in bytes)" ) + cc.notice( " of one log file" ) +
+        cc.debug( "(affects to log log rotation)" ) + cc.notice( "." ) );
+    console.log( soi + cc.debug( "--" ) +
+        cc.bright( "log-files" ) + cc.sunny( "=" ) + cc.note( "value" ) +
+        cc.debug( "......................." ) +
+        cc.notice( "Maximum number of log files for log rotation." ) );
+    console.log( soi + cc.debug( "--" ) +
+        cc.bright( "gathered" ) + cc.debug( ".............................." ) +
+        cc.notice( "Print details of gathering data from command line arguments. " ) +
+        cc.debug( "Default mode" ) + cc.notice( "." ) );
+    console.log( soi + cc.debug( "--" ) +
+        cc.bright( "no-gathered" ) + cc.debug( "..........................." ) +
+        cc.notice( "Do not print details of gathering data " +
+        "from command line arguments." ) );
+    console.log( soi + cc.debug( "--" ) +
+        cc.bright( "expose-security-info" ) + cc.debug( ".................." ) +
+        cc.notice( "Expose security-related values in log output." ) + " " +
+        cc.debug( "This mode is needed for debugging purposes only" ) +
+        cc.notice( "." ) );
+    console.log( soi + cc.debug( "--" ) +
+        cc.bright( "no-expose-security-info" ) + cc.debug( "..............." ) +
+        cc.notice( "Do not expose security-related values in log output." ) +
+        " " + cc.debug( "Default mode" ) + cc.notice( "." ) );
+    console.log( soi + cc.debug( "--" ) +
+        cc.bright( "expose-pwa" ) + cc.debug( "............................" ) +
+        cc.notice( "Expose IMA agent pending work analysis information" ) );
+    console.log( soi + cc.debug( "--" ) +
+        cc.bright( "no-expose-pwa" ) + cc.debug( "........................." ) +
+        cc.notice( "Do not expose IMA agent pending work analysis information." ) +
+        cc.notice( "." ) + " " + cc.debug( "Default mode" ) + cc.notice( "." ) );
+    console.log( soi + cc.debug( "--" ) +
+        cc.bright( "accumulated-log-in-transfer" ) + cc.debug( "..........." ) +
+        cc.notice( "Use accumulated log in message transfer loop." ) );
+    console.log( soi + cc.debug( "--" ) +
+        cc.bright( "accumulated-log-in-bls-signer" ) + cc.debug( "........." ) +
+        cc.notice( "Use accumulated log in BLS signer." ) );
+    console.log( soi + cc.debug( "--" ) +
+        cc.bright( "dynamic-log-in-transfer" ) + cc.debug( "..............." ) +
+        cc.notice( "Use realtime log in message transfer loop." ) );
+    console.log( soi + cc.debug( "--" ) +
+        cc.bright( "dynamic-log-in-bls-signer" ) + cc.debug( "............." ) +
+        cc.notice( "Use realtime log in BLS signer." ) );
+}
+
+function parse_help( imaState, joArg ) { // exits process on "--help"
+    if( joArg.name != "help" )
+        return false;
+    print_about();
+    const soi = "    "; // options indent
+    print_help_general( soi );
+    print_help_blockchain_network( soi );
+    print_help_blockchain_interface( soi );
+    print_help_erc_interfaces( soi );
+    print_help_user_account_1( soi );
+    print_help_user_account_2( soi );
+    print_help_transfers( soi );
+    print_help_payment_transaction( soi );
+    print_help_registration( soi );
+    print_help_action( soi );
+    print_help_additional_action( soi );
+    print_help_token_testing( soi );
+    print_help_network_state_analysis( soi );
+    print_help_message_signing( soi );
+    print_help_monitoring( soi );
+    print_help_gas_reimbursement( soi );
+    print_help_past_events_scan( soi );
+    print_help_oracle_based_reimbursement( soi );
+    print_help_json_rpc_server( soi );
+    print_help_test( soi );
+    print_help_optimization( soi );
+    print_help_logging( soi );
+    process.exit( 0 );
+}
+
+function parse_version( imaState, joArg ) { // exits process on "--version"
+    if( joArg.name != "version" )
+        return false;
+    print_about();
+    process.exit( 0 );
+}
+
+function parse_basic_args( imaState, joArg ) {
+    if( joArg.name == "colors" ) {
+        cc.enable( true );
+        return true;
+    }
+    if( joArg.name == "no-colors" ) {
+        cc.enable( false );
+        return true;
+    }
+    if( joArg.name == "expose" ) {
+        IMA.expose_details_set( true );
+        return true;
+    }
+    if( joArg.name == "no-expose" ) {
+        IMA.expose_details_set( false );
+        return true;
+    }
+    if( joArg.name == "verbose" ) {
+        IMA.verbose_set( IMA.verbose_parse( joArg.value ) );
+        return true;
+    }
+    if( joArg.name == "verbose-list" ) {
+        IMA.verbose_list();
+        return true;
+    }
+    return false;
+}
+
+function parse_chain_access_args( imaState, joArg ) {
+    if( joArg.name == "url-main-net" ) {
+        owaspUtils.verifyArgumentIsURL( joArg );
+        imaState.chainProperties.mn.strURL = joArg.value;
+        return true;
+    }
+    if( joArg.name == "url-s-chain" ) {
+        owaspUtils.verifyArgumentIsURL( joArg );
+        imaState.chainProperties.sc.strURL = joArg.value;
+        return true;
+    }
+    if( joArg.name == "url-t-chain" ) {
+        owaspUtils.verifyArgumentIsURL( joArg );
+        imaState.chainProperties.tc.strURL = joArg.value;
+        return true;
+    }
+    if( joArg.name == "id-main-net" ) {
+        owaspUtils.verifyArgumentWithNonEmptyValue( joArg );
+        imaState.chainProperties.mn.strChainName = joArg.value;
+        return true;
+    }
+    if( joArg.name == "id-s-chain" ) {
+        owaspUtils.verifyArgumentWithNonEmptyValue( joArg );
+        imaState.chainProperties.sc.strChainName = joArg.value;
+        return true;
+    }
+    if( joArg.name == "id-origin-chain" ) {
+        owaspUtils.verifyArgumentWithNonEmptyValue( joArg );
+        imaState.strChainName_origin_chain = joArg.value;
+        return true;
+    }
+    if( joArg.name == "id-t-chain" ) {
+        owaspUtils.verifyArgumentWithNonEmptyValue( joArg );
+        imaState.chainProperties.tc.strChainName = joArg.value;
+        return true;
+    }
+    if( joArg.name == "cid-main-net" ) {
+        owaspUtils.verifyArgumentIsInteger( joArg );
+        imaState.chainProperties.mn.cid = owaspUtils.toInteger( joArg.value );
+        return true;
+    }
+    if( joArg.name == "cid-s-chain" ) {
+        owaspUtils.verifyArgumentIsInteger( joArg );
+        imaState.chainProperties.sc.cid = owaspUtils.toInteger( joArg.value );
+        return true;
+    }
+    if( joArg.name == "cid-t-chain" ) {
+        owaspUtils.verifyArgumentIsInteger( joArg );
+        imaState.chainProperties.tc.cid = owaspUtils.toInteger( joArg.value );
+        return true;
+    }
+    return false;
+}
+
+function parse_transaction_manager_args( imaState, joArg ) {
+    if( joArg.name == "tm-url-main-net" ) {
+        owaspUtils.verifyArgumentIsURL( joArg );
+        const strURL = "" + joArg.value;
+        imaState.chainProperties.mn.joAccount.strTransactionManagerURL = strURL;
+        return true;
+    }
+    if( joArg.name == "tm-url-s-chain" ) {
+        owaspUtils.verifyArgumentIsURL( joArg );
+        const strURL = "" + joArg.value;
+        imaState.chainProperties.sc.joAccount.strTransactionManagerURL = strURL;
+        return true;
+    }
+    if( joArg.name == "tm-url-t-chain" ) {
+        owaspUtils.verifyArgumentIsURL( joArg );
+        const strURL = "" + joArg.value;
+        imaState.chainProperties.tc.joAccount.strTransactionManagerURL = strURL;
+        return true;
+    }
+    if( joArg.name == "tm-priority-main-net" ) {
+        owaspUtils.verifyArgumentIsInteger( joArg );
+        imaState.chainProperties.mn.joAccount.tm_priority =
+            owaspUtils.toInteger( joArg.value );
+        return true;
+    }
+    if( joArg.name == "tm-priority-s-chain" ) {
+        owaspUtils.verifyArgumentIsInteger( joArg );
+        imaState.chainProperties.sc.joAccount.tm_priority =
+            owaspUtils.toInteger( joArg.value );
+        return true;
+    }
+    if( joArg.name == "tm-priority-t-chain" ) {
+        owaspUtils.verifyArgumentIsInteger( joArg );
+        imaState.chainProperties.tc.joAccount.tm_priority =
+            owaspUtils.toInteger( joArg.value );
+        return true;
+    }
+    return false;
+}
+
+function parse_sgx_args( imaState, joArg ) {
+    if( joArg.name == "sgx-url-main-net" ) {
+        owaspUtils.verifyArgumentIsURL( joArg );
+        imaState.chainProperties.mn.joAccount.strSgxURL = joArg.value;
+        return true;
+    }
+    if( joArg.name == "sgx-url-s-chain" ) {
+        owaspUtils.verifyArgumentIsURL( joArg );
+        imaState.chainProperties.sc.joAccount.strSgxURL = joArg.value;
+        return true;
+    }
+    if( joArg.name == "sgx-url-t-chain" ) {
+        owaspUtils.verifyArgumentIsURL( joArg );
+        imaState.chainProperties.tc.joAccount.strSgxURL = joArg.value;
+        return true;
+    }
+    if( joArg.name == "sgx-ecdsa-key-main-net" ) {
+        owaspUtils.verifyArgumentWithNonEmptyValue( joArg );
+        imaState.chainProperties.mn.joAccount.strSgxKeyName = joArg.value;
+        return true;
+    }
+    if( joArg.name == "sgx-ecdsa-key-s-chain" ) {
+        owaspUtils.verifyArgumentWithNonEmptyValue( joArg );
+        imaState.chainProperties.sc.joAccount.strSgxKeyName = joArg.value;
+        return true;
+    }
+    if( joArg.name == "sgx-ecdsa-key-t-chain" ) {
+        owaspUtils.verifyArgumentWithNonEmptyValue( joArg );
+        imaState.chainProperties.tc.joAccount.strSgxKeyName = joArg.value;
+        return true;
+    }
+    if( joArg.name == "sgx-bls-key-main-net" ) {
+        owaspUtils.verifyArgumentWithNonEmptyValue( joArg );
+        imaState.chainProperties.mn.joAccount.strBlsKeyName = joArg.value;
+        return true;
+    }
+    if( joArg.name == "sgx-bls-key-s-chain" ) {
+        owaspUtils.verifyArgumentWithNonEmptyValue( joArg );
+        imaState.chainProperties.sc.joAccount.strBlsKeyName = joArg.value;
+        return true;
+    }
+    if( joArg.name == "sgx-bls-key-t-chain" ) {
+        owaspUtils.verifyArgumentWithNonEmptyValue( joArg );
+        imaState.chainProperties.tc.joAccount.strBlsKeyName = joArg.value;
+        return true;
+    }
+    if( joArg.name == "sgx-ssl-key-main-net" ) {
+        owaspUtils.verifyArgumentIsPathToExistingFile( joArg );
+        imaState.chainProperties.mn.joAccount.strPathSslKey =
+            imaUtils.normalizePath( joArg.value );
+        return true;
+    }
+    if( joArg.name == "sgx-ssl-key-s-chain" ) {
+        owaspUtils.verifyArgumentIsPathToExistingFile( joArg );
+        imaState.chainProperties.sc.joAccount.strPathSslKey =
+            imaUtils.normalizePath( joArg.value );
+        return true;
+    }
+    if( joArg.name == "sgx-ssl-key-t-chain" ) {
+        owaspUtils.verifyArgumentIsPathToExistingFile( joArg );
+        imaState.chainProperties.tc.joAccount.strPathSslKey =
+            imaUtils.normalizePath( joArg.value );
+        return true;
+    }
+    if( joArg.name == "sgx-ssl-cert-main-net" ) {
+        owaspUtils.verifyArgumentIsPathToExistingFile( joArg );
+        imaState.chainProperties.mn.joAccount.strPathSslCert =
+            imaUtils.normalizePath( joArg.value );
+        return true;
+    }
+    if( joArg.name == "sgx-ssl-cert-s-chain" ) {
+        owaspUtils.verifyArgumentIsPathToExistingFile( joArg );
+        imaState.chainProperties.sc.joAccount.strPathSslCert =
+            imaUtils.normalizePath( joArg.value );
+        return true;
+    }
+    if( joArg.name == "sgx-ssl-cert-t-chain" ) {
+        owaspUtils.verifyArgumentIsPathToExistingFile( joArg );
+        imaState.chainProperties.tc.joAccount.strPathSslCert =
+            imaUtils.normalizePath( joArg.value );
+        return true;
+    }
+    return false;
+}
+
+function parse_credentials_args( imaState, joArg ) {
+    if( joArg.name == "address-main-net" ) {
+        owaspUtils.verifyArgumentWithNonEmptyValue( joArg );
+        imaState.chainProperties.mn.joAccount.address_ = joArg.value;
+        return true;
+    }
+    if( joArg.name == "address-s-chain" ) {
+        owaspUtils.verifyArgumentWithNonEmptyValue( joArg );
+        imaState.chainProperties.sc.joAccount.address_ = joArg.value;
+        return true;
+    }
+    if( joArg.name == "address-t-chain" ) {
+        owaspUtils.verifyArgumentWithNonEmptyValue( joArg );
+        imaState.chainProperties.tc.joAccount.address_ = joArg.value;
+        return true;
+    }
+    if( joArg.name == "receiver" ) {
+        owaspUtils.verifyArgumentWithNonEmptyValue( joArg );
+        imaState.receiver = joArg.value;
+        return true;
+    }
+    if( joArg.name == "key-main-net" ) {
+        owaspUtils.verifyArgumentWithNonEmptyValue( joArg );
+        imaState.chainProperties.mn.joAccount.privateKey = joArg.value;
+        return true;
+    }
+    if( joArg.name == "key-s-chain" ) {
+        owaspUtils.verifyArgumentWithNonEmptyValue( joArg );
+        imaState.chainProperties.sc.joAccount.privateKey = joArg.value;
+        return true;
+    }
+    if( joArg.name == "key-t-chain" ) {
+        owaspUtils.verifyArgumentWithNonEmptyValue( joArg );
+        imaState.chainProperties.tc.joAccount.privateKey = joArg.value;
+        return true;
+    }
+    return false;
+}
+
+function parse_abi_args( imaState, joArg ) {
+    if( joArg.name == "abi-skale-manager" ) {
+        owaspUtils.verifyArgumentIsPathToExistingFile( joArg );
+        imaState.strPathAbiJsonSkaleManager = imaUtils.normalizePath( joArg.value );
+        return true;
+    }
+    if( joArg.name == "abi-main-net" ) {
+        owaspUtils.verifyArgumentIsPathToExistingFile( joArg );
+        imaState.chainProperties.mn.strPathAbiJson = imaUtils.normalizePath( joArg.value );
+        return true;
+    }
+    if( joArg.name == "abi-s-chain" ) {
+        owaspUtils.verifyArgumentIsPathToExistingFile( joArg );
+        imaState.chainProperties.sc.strPathAbiJson = imaUtils.normalizePath( joArg.value );
+        return true;
+    }
+    if( joArg.name == "abi-t-chain" ) {
+        owaspUtils.verifyArgumentIsPathToExistingFile( joArg );
+        imaState.chainProperties.tc.strPathAbiJson = imaUtils.normalizePath( joArg.value );
+        return true;
+    }
+    return false;
+}
+
+function parse_erc_args( imaState, joArg ) {
+    if( joArg.name == "erc20-main-net" ) {
+        owaspUtils.verifyArgumentIsPathToExistingFile( joArg );
+        imaState.chainProperties.mn.strPathJsonErc20 = imaUtils.normalizePath( joArg.value );
+        return true;
+    }
+    if( joArg.name == "erc20-s-chain" ) {
+        owaspUtils.verifyArgumentIsPathToExistingFile( joArg );
+        imaState.chainProperties.sc.strPathJsonErc20 = imaUtils.normalizePath( joArg.value );
+        return true;
+    }
+    if( joArg.name == "addr-erc20-s-chain" ) {
+        owaspUtils.verifyArgumentWithNonEmptyValue( joArg );
+        imaState.strAddrErc20_explicit = joArg.value;
+        return true;
+    }
+    if( joArg.name == "erc20-t-chain" ) {
+        owaspUtils.verifyArgumentIsPathToExistingFile( joArg );
+        imaState.chainProperties.tc.strPathJsonErc20 = imaUtils.normalizePath( joArg.value );
+        return true;
+    }
+    if( joArg.name == "addr-erc20-t-chain" ) {
+        owaspUtils.verifyArgumentWithNonEmptyValue( joArg );
+        imaState.strAddrErc20_explicit_target = joArg.value;
+        return true;
+    }
+
+    if( joArg.name == "erc721-main-net" ) {
+        owaspUtils.verifyArgumentIsPathToExistingFile( joArg );
+        imaState.chainProperties.mn.strPathJsonErc721 = imaUtils.normalizePath( joArg.value );
+        return true;
+    }
+    if( joArg.name == "erc721-s-chain" ) {
+        owaspUtils.verifyArgumentIsPathToExistingFile( joArg );
+        imaState.chainProperties.sc.strPathJsonErc721 = imaUtils.normalizePath( joArg.value );
+        return true;
+    }
+    if( joArg.name == "addr-erc721-s-chain" ) {
+        owaspUtils.verifyArgumentWithNonEmptyValue( joArg );
+        imaState.strAddrErc721_explicit = joArg.value;
+        return true;
+    }
+    if( joArg.name == "erc721-t-chain" ) {
+        owaspUtils.verifyArgumentIsPathToExistingFile( joArg );
+        imaState.chainProperties.tc.strPathJsonErc721 = imaUtils.normalizePath( joArg.value );
+        return true;
+    }
+    if( joArg.name == "addr-erc721-t-chain" ) {
+        owaspUtils.verifyArgumentWithNonEmptyValue( joArg );
+        imaState.strAddrErc721_explicit_target = joArg.value;
+        return true;
+    }
+
+    if( joArg.name == "erc1155-main-net" ) {
+        owaspUtils.verifyArgumentIsPathToExistingFile( joArg );
+        imaState.chainProperties.mn.strPathJsonErc1155 = imaUtils.normalizePath( joArg.value );
+        return true;
+    }
+    if( joArg.name == "erc1155-s-chain" ) {
+        owaspUtils.verifyArgumentIsPathToExistingFile( joArg );
+        imaState.chainProperties.sc.strPathJsonErc1155 = imaUtils.normalizePath( joArg.value );
+        return true;
+    }
+    if( joArg.name == "addr-erc1155-s-chain" ) {
+        owaspUtils.verifyArgumentWithNonEmptyValue( joArg );
+        imaState.strAddrErc1155_explicit = joArg.value;
+        return true;
+    }
+    if( joArg.name == "erc1155-t-chain" ) {
+        owaspUtils.verifyArgumentIsPathToExistingFile( joArg );
+        imaState.chainProperties.tc.strPathJsonErc1155 = imaUtils.normalizePath( joArg.value );
+        return true;
+    }
+    if( joArg.name == "addr-erc1155-t-chain" ) {
+        owaspUtils.verifyArgumentWithNonEmptyValue( joArg );
+        imaState.strAddrErc1155_explicit_target = joArg.value;
+        return true;
+    }
+    if( joArg.name == "with-metadata" ) {
+        imaState.isWithMetadata721 = true;
+        return true;
+    }
+    return false;
+}
+
+function parse_transaction_args( imaState, joArg ) {
+    if( joArg.name == "sleep-between-tx" ) {
+        owaspUtils.verifyArgumentIsInteger( joArg );
+        IMA.setSleepBetweenTransactionsOnSChainMilliseconds( joArg.value );
+        return true;
+    }
+    if( joArg.name == "wait-next-block" ) {
+        IMA.setWaitForNextBlockOnSChain( true );
+        return true;
+    }
+    if( joArg.name == "gas-price-multiplier-mn" ) {
+        let gasPriceMultiplier = owaspUtils.toFloat( joArg.value );
+        if( gasPriceMultiplier < 0.0 )
+            gasPriceMultiplier = 0.0;
+        imaState.chainProperties.mn.transactionCustomizer.gasPriceMultiplier =
+            gasPriceMultiplier;
+        return true;
+    }
+    if( joArg.name == "gas-price-multiplier-sc" ) {
+        let gasPriceMultiplier = owaspUtils.toFloat( joArg.value );
+        if( gasPriceMultiplier < 0.0 )
+            gasPriceMultiplier = 0.0;
+        imaState.chainProperties.sc.transactionCustomizer.gasPriceMultiplier =
+            gasPriceMultiplier;
+        return true;
+    }
+    if( joArg.name == "gas-price-multiplier-tc" ) {
+        let gasPriceMultiplier = owaspUtils.toFloat( joArg.value );
+        if( gasPriceMultiplier < 0.0 )
+            gasPriceMultiplier = 0.0;
+        imaState.chainProperties.tc.transactionCustomizer.gasPriceMultiplier =
+            gasPriceMultiplier;
+        return true;
+    }
+    if( joArg.name == "gas-price-multiplier" ) {
+        let gasPriceMultiplier = owaspUtils.toFloat( joArg.value );
+        if( gasPriceMultiplier < 0.0 )
+            gasPriceMultiplier = 0.0;
+        imaState.chainProperties.mn.transactionCustomizer.gasPriceMultiplier =
+            imaState.chainProperties.sc.transactionCustomizer.gasPriceMultiplier =
+            imaState.chainProperties.tc.transactionCustomizer.gasPriceMultiplier =
+            gasPriceMultiplier;
+        return true;
+    }
+
+    if( joArg.name == "gas-multiplier-mn" ) {
+        let gasMultiplier = owaspUtils.toFloat( joArg.value );
+        if( gasMultiplier < 0.0 )
+            gasMultiplier = 0.0;
+        imaState.chainProperties.mn.transactionCustomizer.gasMultiplier =
+            gasMultiplier;
+        return true;
+    }
+    if( joArg.name == "gas-multiplier-sc" ) {
+        let gasMultiplier = owaspUtils.toFloat( joArg.value );
+        if( gasMultiplier < 0.0 )
+            gasMultiplier = 0.0;
+        imaState.chainProperties.sc.transactionCustomizer.gasMultiplier =
+            gasMultiplier;
+        return true;
+    }
+    if( joArg.name == "gas-multiplier-tc" ) {
+        let gasMultiplier = owaspUtils.toFloat( joArg.value );
+        if( gasMultiplier < 0.0 )
+            gasMultiplier = 0.0;
+        imaState.chainProperties.tc.transactionCustomizer.gasMultiplier =
+            gasMultiplier;
+        return true;
+    }
+    if( joArg.name == "gas-multiplier" ) {
+        let gasMultiplier = owaspUtils.toFloat( joArg.value );
+        if( gasMultiplier < 0.0 )
+            gasMultiplier = 0.0;
+        imaState.chainProperties.mn.transactionCustomizer.gasMultiplier =
+            imaState.chainProperties.sc.transactionCustomizer.gasMultiplier =
+            imaState.chainProperties.tc.transactionCustomizer.gasMultiplier =
+            gasMultiplier;
+        return true;
+    }
+    if( joArg.name == "skip-dry-run" ) {
+        IMA.dry_run_enable( false );
+        return true;
+    }
+    if( joArg.name == "no-skip-dry-run" ) {
+        IMA.dry_run_enable( true );
+        return true;
+    }
+    if( joArg.name == "ignore-dry-run" ) {
+        IMA.dry_run_ignore( true );
+        return true;
+    }
+    if( joArg.name == "dry-run" || joArg.name == "no-ignore-dry-run" ) {
+        IMA.dry_run_ignore( false );
+        return true;
+    }
+    return false;
+}
+
+function parse_payment_amount_args( imaState, joArg ) {
+    if( joArg.name == "value" ) {
+        owaspUtils.verifyArgumentWithNonEmptyValue( joArg );
+        imaState.nAmountOfWei = owaspUtils.parseMoneySpecToWei( "" + joArg.value, true );
+        return true;
+    }
+    if( joArg.name == "wei" ) {
+        owaspUtils.verifyArgumentWithNonEmptyValue( joArg );
+        imaState.nAmountOfWei =
+            owaspUtils.parseMoneySpecToWei( "" + joArg.value + "wei", true );
+        return true;
+    }
+    if( joArg.name == "babbage" ) {
+        owaspUtils.verifyArgumentWithNonEmptyValue( joArg );
+        imaState.nAmountOfWei =
+            owaspUtils.parseMoneySpecToWei( "" + joArg.value + "babbage", true );
+        return true;
+    }
+    if( joArg.name == "lovelace" ) {
+        owaspUtils.verifyArgumentWithNonEmptyValue( joArg );
+        imaState.nAmountOfWei =
+            owaspUtils.parseMoneySpecToWei( "" + joArg.value + "lovelace", true );
+        return true;
+    }
+    if( joArg.name == "shannon" ) {
+        owaspUtils.verifyArgumentWithNonEmptyValue( joArg );
+        imaState.nAmountOfWei =
+            owaspUtils.parseMoneySpecToWei( "" + joArg.value + "shannon", true );
+        return true;
+    }
+    if( joArg.name == "szabo" ) {
+        owaspUtils.verifyArgumentWithNonEmptyValue( joArg );
+        imaState.nAmountOfWei =
+            owaspUtils.parseMoneySpecToWei( "" + joArg.value + "szabo", true );
+        return true;
+    }
+    if( joArg.name == "finney" ) {
+        owaspUtils.verifyArgumentWithNonEmptyValue( joArg );
+        imaState.nAmountOfWei =
+            owaspUtils.parseMoneySpecToWei( "" + joArg.value + "finney", true );
+        return true;
+    }
+    if( joArg.name == "ether" ) {
+        owaspUtils.verifyArgumentWithNonEmptyValue( joArg );
+        imaState.nAmountOfWei =
+            owaspUtils.parseMoneySpecToWei( "" + joArg.value + "ether", true );
+        return true;
+    }
+    if( joArg.name == "amount" ) {
+        owaspUtils.verifyArgumentWithNonEmptyValue( joArg );
+        imaState.nAmountOfToken = joArg.value;
+        return true;
+    }
+    if( joArg.name == "tid" ) {
+        owaspUtils.verifyArgumentWithNonEmptyValue( joArg );
+        imaState.idToken = joArg.value;
+        imaState.have_idToken = true;
+        return true;
+    }
+    if( joArg.name == "amounts" ) {
+        imaState.arrAmountsOfTokens = owaspUtils.verifyArgumentIsArrayOfIntegers( joArg );
+        return true;
+    }
+    if( joArg.name == "tids" ) {
+        imaState.idTokens = owaspUtils.verifyArgumentIsArrayOfIntegers( joArg );
+        imaState.have_idTokens = true;
+        return true;
+    }
+    return false;
+}
+
+function parse_transfer_args( imaState, joArg ) {
+    if( joArg.name == "s2s-forward" ) {
+        IMA.setForwardS2S();
+        return true;
+    }
+    if( joArg.name == "s2s-reverse" ) {
+        IMA.setReverseS2S();
+        return true;
+    }
+    if( joArg.name == "s2s-enable" ) {
+        imaState.s2s_opts.isEnabled = true;
+        return true;
+    }
+    if( joArg.name == "s2s-disable" ) {
+        imaState.s2s_opts.isEnabled = false;
+        return true;
+    }
+    if( joArg.name == "no-wait-s-chain" ) {
+        imaState.bNoWaitSChainStarted = true;
+        return true;
+    }
+    if( joArg.name == "max-wait-attempts" ) {
+        imaState.nMaxWaitSChainAttempts = owaspUtils.toInteger( joArg.value );
+        return true;
+    }
+    if( joArg.name == "m2s-transfer-block-size" ) {
+        owaspUtils.verifyArgumentIsInteger( joArg );
+        imaState.nTransferBlockSizeM2S = owaspUtils.toInteger( joArg.value );
+        return true;
+    }
+    if( joArg.name == "s2m-transfer-block-size" ) {
+        owaspUtils.verifyArgumentIsInteger( joArg );
+        imaState.nTransferBlockSizeS2M = owaspUtils.toInteger( joArg.value );
+        return true;
+    }
+    if( joArg.name == "s2s-transfer-block-size" ) {
+        owaspUtils.verifyArgumentIsInteger( joArg );
+        imaState.nTransferBlockSizeS2S = owaspUtils.toInteger( joArg.value );
+        return true;
+    }
+    if( joArg.name == "transfer-block-size" ) {
+        owaspUtils.verifyArgumentIsInteger( joArg );
+        imaState.nTransferBlockSizeM2S =
+            imaState.nTransferBlockSizeS2M =
+            imaState.nTransferBlockSizeS2S =
+                owaspUtils.toInteger( joArg.value );
+        return true;
+    }
+    if( joArg.name == "m2s-transfer-steps" ) {
+        owaspUtils.verifyArgumentIsInteger( joArg );
+        imaState.nTransferStepsM2S = owaspUtils.toInteger( joArg.value );
+        return true;
+    }
+    if( joArg.name == "s2m-transfer-steps" ) {
+        owaspUtils.verifyArgumentIsInteger( joArg );
+        imaState.nTransferStepsS2M = owaspUtils.toInteger( joArg.value );
+        return true;
+    }
+    if( joArg.name == "s2s-transfer-steps" ) {
+        owaspUtils.verifyArgumentIsInteger( joArg );
+        imaState.nTransferStepsS2S = owaspUtils.toInteger( joArg.value );
+        return true;
+    }
+    if( joArg.name == "transfer-steps" ) {
+        owaspUtils.verifyArgumentIsInteger( joArg );
+        imaState.nTransferStepsM2S =
+            imaState.nTransferStepsS2M =
+            imaState.nTransferStepsS2S =
+                owaspUtils.toInteger( joArg.value );
+        return true;
+    }
+    if( joArg.name == "m2s-max-transactions" ) {
+        owaspUtils.verifyArgumentIsInteger( joArg );
+        imaState.nMaxTransactionsM2S = owaspUtils.toInteger( joArg.value );
+        return true;
+    }
+    if( joArg.name == "s2m-max-transactions" ) {
+        owaspUtils.verifyArgumentIsInteger( joArg );
+        imaState.nMaxTransactionsS2M = owaspUtils.toInteger( joArg.value );
+        return true;
+    }
+    if( joArg.name == "s2s-max-transactions" ) {
+        owaspUtils.verifyArgumentIsInteger( joArg );
+        imaState.nMaxTransactionsS2S = owaspUtils.toInteger( joArg.value );
+        return true;
+    }
+    if( joArg.name == "max-transactions" ) {
+        owaspUtils.verifyArgumentIsInteger( joArg );
+        imaState.nMaxTransactionsM2S =
+            imaState.nMaxTransactionsS2M =
+            imaState.nMaxTransactionsS2S =
+                owaspUtils.toInteger( joArg.value );
+        return true;
+    }
+    if( joArg.name == "m2s-await-blocks" ) {
+        owaspUtils.verifyArgumentIsInteger( joArg );
+        imaState.nBlockAwaitDepthM2S = owaspUtils.toInteger( joArg.value );
+        return true;
+    }
+    if( joArg.name == "s2m-await-blocks" ) {
+        owaspUtils.verifyArgumentIsInteger( joArg );
+        imaState.nBlockAwaitDepthS2M = owaspUtils.toInteger( joArg.value );
+        return true;
+    }
+    if( joArg.name == "s2s-await-blocks" ) {
+        owaspUtils.verifyArgumentIsInteger( joArg );
+        imaState.nBlockAwaitDepthS2S = owaspUtils.toInteger( joArg.value );
+        return true;
+    }
+    if( joArg.name == "await-blocks" ) {
+        owaspUtils.verifyArgumentIsInteger( joArg );
+        imaState.nBlockAwaitDepthM2S =
+            imaState.nBlockAwaitDepthS2M =
+            imaState.nBlockAwaitDepthS2S =
+                owaspUtils.toInteger( joArg.value );
+        return true;
+    }
+    if( joArg.name == "m2s-await-time" ) {
+        owaspUtils.verifyArgumentIsInteger( joArg );
+        imaState.nBlockAgeM2S = owaspUtils.toInteger( joArg.value );
+        return true;
+    }
+    if( joArg.name == "s2m-await-time" ) {
+        owaspUtils.verifyArgumentIsInteger( joArg );
+        imaState.nBlockAgeS2M = owaspUtils.toInteger( joArg.value );
+        return true;
+    }
+    if( joArg.name == "s2s-await-time" ) {
+        owaspUtils.verifyArgumentIsInteger( joArg );
+        imaState.nBlockAgeS2S = owaspUtils.toInteger( joArg.value );
+        return true;
+    }
+    if( joArg.name == "await-time" ) {
+        owaspUtils.verifyArgumentIsInteger( joArg );
+        imaState.nBlockAgeM2S =
+            imaState.nBlockAgeS2M =
+            imaState.nBlockAgeS2S =
+                owaspUtils.toInteger( joArg.value );
+        return true;
+    }
+    if( joArg.name == "period" ) {
+        owaspUtils.verifyArgumentIsInteger( joArg );
+        imaState.nLoopPeriodSeconds = owaspUtils.toInteger( joArg.value );
+        return true;
+    }
+    if( joArg.name == "node-number" ) {
+        owaspUtils.verifyArgumentIsInteger( joArg );
+        imaState.nNodeNumber = owaspUtils.toInteger( joArg.value );
+        return true;
+    }
+    if( joArg.name == "nodes-count" ) {
+        owaspUtils.verifyArgumentIsInteger( joArg );
+        imaState.nNodesCount = owaspUtils.toInteger( joArg.value );
+        return true;
+    }
+    if( joArg.name == "time-framing" ) {
+        owaspUtils.verifyArgumentIsInteger( joArg );
+        imaState.nTimeFrameSeconds = owaspUtils.toInteger( joArg.value );
+        return true;
+    }
+    if( joArg.name == "time-gap" ) {
+        owaspUtils.verifyArgumentIsInteger( joArg );
+        imaState.nNextFrameGap = owaspUtils.toInteger( joArg.value );
+        return true;
+    }
+    return false;
+}
+
+function parse_multicall_args( imaState, joArg ) {
+    if( joArg.name == "enable-multicall" ) {
+        imaState.isEnabledMultiCall = true;
+        return true;
+    }
+    if( joArg.name == "disable-multicall" ) {
+        imaState.isEnabledMultiCall = false;
+        return true;
+    }
+    return false;
+}
+
+function parse_pending_work_analysis_args( imaState, joArg ) {
+    if( joArg.name == "pwa" ) {
+        imaState.isPWA = true;
+        return true;
+    }
+    if( joArg.name == "no-pwa" ) {
+        imaState.isPWA = false;
+        return true;
+    }
+    if( joArg.name == "pwa-timeout" ) {
+        owaspUtils.verifyArgumentIsInteger( joArg );
+        imaState.nTimeoutSecondsPWA = owaspUtils.toInteger( joArg.value );
+        return true;
+    }
+    if( joArg.name == "expose-pwa" ) {
+        imaState.isPrintPWA = true;
+        return true;
+    }
+    if( joArg.name == "no-expose-pwa" ) {
+        imaState.isPrintPWA = false;
+        return true;
+    }
+    return false;
+}
+
+function parse_logging_args( imaState, joArg ) {
+    if( joArg.name == "gathered" ) {
+        imaState.isPrintGathered = true;
+        return true;
+    }
+    if( joArg.name == "no-gathered" ) {
+        imaState.isPrintGathered = false;
+        return true;
+    }
+    if( joArg.name == "expose-security-info" ) {
+        imaState.isPrintSecurityValues = true;
+        return true;
+    }
+    if( joArg.name == "no-expose-security-info" ) {
+        imaState.isPrintSecurityValues = false;
+        return true;
+    }
+    if( joArg.name == "log-size" ) {
+        owaspUtils.verifyArgumentIsInteger( joArg );
+        imaState.nLogMaxSizeBeforeRotation = owaspUtils.toInteger( joArg.value );
+        return true;
+    }
+    if( joArg.name == "log-files" ) {
+        owaspUtils.verifyArgumentIsInteger( joArg );
+        imaState.nLogMaxFilesCount = owaspUtils.toInteger( joArg.value );
+        return true;
+    }
+    if( joArg.name == "accumulated-log-in-transfer" ) {
+        imaState.isDynamicLogInDoTransfer = false;
+        return true;
+    }
+    if( joArg.name == "accumulated-log-in-bls-signer" ) {
+        imaState.isDynamicLogInBlsSigner = false;
+        return true;
+    }
+    if( joArg.name == "dynamic-log-in-transfer" ) {
+        imaState.isDynamicLogInDoTransfer = true;
+        return true;
+    }
+    if( joArg.name == "dynamic-log-in-bls-signer" ) {
+        imaState.isDynamicLogInBlsSigner = true;
+        return true;
+    }
+    if( joArg.name == "log" ) {
+        owaspUtils.verifyArgumentWithNonEmptyValue( joArg );
+        imaState.strLogFilePath = "" + joArg.value;
+        return true;
+    }
+    return false;
+}
+
+function parse_bls_args( imaState, joArg ) {
+    if( joArg.name == "sign-messages" ) {
+        imaState.bSignMessages = true;
+        return true;
+    }
+    if( joArg.name == "bls-glue" ) {
+        owaspUtils.verifyArgumentIsPathToExistingFile( joArg );
+        imaState.strPathBlsGlue = "" + joArg.value;
+        return true;
+    }
+    if( joArg.name == "hash-g1" ) {
+        owaspUtils.verifyArgumentIsPathToExistingFile( joArg );
+        imaState.strPathHashG1 = "" + joArg.value;
+        return true;
+    }
+    if( joArg.name == "bls-verify" ) {
+        owaspUtils.verifyArgumentIsPathToExistingFile( joArg );
+        imaState.strPathBlsVerify = "" + joArg.value;
+        return true;
+    }
+    return false;
+}
+
+function parse_monitoring_args( imaState, joArg ) {
+    if( joArg.name == "monitoring-port" ) {
+        owaspUtils.verifyArgumentIsIntegerIpPortNumber( joArg, true );
+        imaState.nMonitoringPort = owaspUtils.toInteger( joArg.value );
+        return true;
+    }
+    return false;
+}
+
+function parse_reimbursement_args( imaState, joArg ) {
+    if( joArg.name == "reimbursement-chain" ) {
+        owaspUtils.verifyArgumentWithNonEmptyValue( joArg );
+        imaState.strReimbursementChain = joArg.value.trim();
+        return true;
+    }
+    if( joArg.name == "reimbursement-recharge" ) {
+        owaspUtils.verifyArgumentWithNonEmptyValue( joArg );
+        imaState.nReimbursementRecharge =
+            owaspUtils.parseMoneySpecToWei( "" + joArg.value, true );
+        return true;
+    }
+    if( joArg.name == "reimbursement-withdraw" ) {
+        owaspUtils.verifyArgumentWithNonEmptyValue( joArg );
+        imaState.nReimbursementWithdraw =
+            owaspUtils.parseMoneySpecToWei( "" + joArg.value, true );
+        return true;
+    }
+    if( joArg.name == "reimbursement-balance" ) {
+        imaState.isShowReimbursementBalance = true;
+        return true;
+    }
+    if( joArg.name == "reimbursement-estimate" ) {
+        imaState.nReimbursementEstimate = true;
+        return true;
+    }
+    if( joArg.name == "reimbursement-range" ) {
+        owaspUtils.verifyArgumentWithNonEmptyValue( joArg );
+        imaState.nReimbursementRange = owaspUtils.toInteger( joArg.value );
+        return true;
+    }
+    return false;
+}
+
+function parse_oracle_args( imaState, joArg ) {
+    if( joArg.name == "enable-oracle" ) {
+        IMA.setEnabledOracle( true );
+        return true;
+    }
+    if( joArg.name == "disable-oracle" ) {
+        IMA.setEnabledOracle( false );
+        return true;
+    }
+    return false;
+}
+
+function parse_network_discovery_args( imaState, joArg ) {
+    if( joArg.name == "net-rediscover" ) {
+        owaspUtils.verifyArgumentIsInteger( joArg );
+        imaState.s2s_opts.secondsToReDiscoverSkaleNetwork =
+            owaspUtils.toInteger( joArg.value );
+        return true;
+    }
+    return false;
+}
+
+function parse_block_scanner_args( imaState, joArg ) {
+    if( joArg.name == "bs-step-size" ) {
+        owaspUtils.verifyArgumentIsInteger( joArg );
+        IMA.setBlocksCountInInIterativeStepOfEventsScan( owaspUtils.toInteger( joArg.value ) );
+        return true;
+    }
+    if( joArg.name == "bs-max-all-range" ) {
+        owaspUtils.verifyArgumentIsInteger( joArg );
+        IMA.setMaxIterationsInAllRangeEventsScan( owaspUtils.toInteger( joArg.value ) );
+        return true;
+    }
+    if( joArg.name == "bs-progressive-enable" ) {
+        IMA.setEnabledProgressiveEventsScan( true );
+        return true;
+    }
+    if( joArg.name == "bs-progressive-disable" ) {
+        IMA.setEnabledProgressiveEventsScan( false );
+        return true;
+    }
+    return false;
+}
+
+function parse_json_rpc_server_args( imaState, joArg ) {
+    if( joArg.name == "json-rpc-port" ) {
+        owaspUtils.verifyArgumentIsIntegerIpPortNumber( joArg, true );
+        imaState.nJsonRpcPort = owaspUtils.toInteger( joArg.value );
+        return true;
+    }
+    return false;
+}
+
+function parse_cross_ima_communication_args( imaState, joArg ) {
+    if( joArg.name == "cross-ima" ) {
+        imaState.isCrossImaBlsMode = true;
+        return true;
+    }
+    if( joArg.name == "no-cross-ima" ) {
+        imaState.isCrossImaBlsMode = false;
+        return true;
+    }
+    return false;
+}
+
+function parse_show_config_args( imaState, joArg ) {
+    if( joArg.name == "show-config" ) {
+        imaState.bShowConfigMode = true;
+        return true;
+    }
+    return false;
+}
+
+function parse_other_args( imaState, joArg ) {
+    if( joArg.name == "auto-exit" ) {
+        owaspUtils.verifyArgumentIsInteger( joArg );
+        imaState.nAutoExitAfterSeconds = owaspUtils.toInteger( joArg.value );
+        return true;
+    }
+    return false;
+}
+
 export function parse( joExternalHandlers, argv ) {
     const imaState = state.get();
     let idxArg; const cntArgs = argv || process.argv.length;
     for( idxArg = 2; idxArg < cntArgs; ++idxArg ) {
         const joArg = parse_command_line_argument( process.argv[idxArg] );
-        if( joArg.name == "help" ) {
-            print_about();
-            const soi = "    "; // options indent
-
-            console.log( cc.sunny( "GENERAL" ) + cc.info( " options:" ) );
-            console.log( soi + cc.debug( "--" ) + cc.bright( "help" ) +
-                cc.debug( ".................................." ) + cc.notice( "Show this " ) +
-                cc.note( "help info" ) + cc.notice( " and exit." ) );
-            console.log( soi + cc.debug( "--" ) + cc.bright( "version" ) +
-                cc.debug( "..............................." ) + cc.notice( "Show " ) +
-                cc.note( "version info" ) + cc.notice( " and exit." ) );
-            console.log( soi + cc.debug( "--" ) + cc.bright( "colors" ) +
-                cc.debug( "................................" ) + cc.notice( "Use " ) +
-                cc.rainbow( "ANSI-colorized logging" ) + cc.notice( "." ) );
-            console.log( soi + cc.debug( "--" ) + cc.bright( "no-colors" ) +
-                cc.debug( "............................." ) + cc.notice( "Use " ) +
-                cc.normal( "monochrome logging" ) + cc.notice( "." ) );
-
-            console.log( cc.sunny( "BLOCKCHAIN NETWORK" ) + cc.info( " options:" ) );
-            console.log( soi + cc.debug( "--" ) +
-                cc.bright( "url-main-net" ) + cc.sunny( "=" ) + cc.attention( "URL" ) +
-                cc.debug( "......................" ) + cc.note( "Main-net" ) +
-                cc.notice( " URL. Value is automatically loaded from the " ) +
-                cc.warning( "URL_W3_ETHEREUM" ) +
-                cc.notice( " environment variable if not specified." ) );
-            console.log( soi + cc.debug( "--" ) +
-                cc.bright( "url-s-chain" ) + cc.sunny( "=" ) + cc.attention( "URL" ) +
-                cc.debug( "......................." ) + cc.note( "S-chain" ) +
-                cc.notice( " URL. Value is automatically loaded from the " ) +
-                cc.warning( "URL_W3_S_CHAIN" ) +
-                cc.notice( " environment variable if not specified." ) );
-            console.log( soi + cc.debug( "--" ) +
-                cc.bright( "url-t-chain" ) + cc.sunny( "=" ) + cc.attention( "URL" ) +
-                cc.debug( "......................." ) + cc.note( "S<->S Target S-chain" ) +
-                cc.notice( " URL. Value is automatically loaded from the " ) +
-                cc.warning( "URL_W3_S_CHAIN_TARGET" ) +
-                cc.notice( " environment variable if not specified." ) );
-            console.log( soi + cc.debug( "--" ) +
-                cc.bright( "id-main-net" ) + cc.sunny( "=" ) + cc.success( "number" ) +
-                cc.debug( "...................." ) + cc.note( "Main-net" ) +
-                cc.notice( " Ethereum " ) + cc.note( "network name." ) +
-                cc.notice( ". Value is automatically loaded from the " ) +
-                cc.warning( "CHAIN_NAME_ETHEREUM" ) +
-                cc.notice( " environment variable if not specified. " ) +
-                cc.debug( "Default value is " ) + cc.sunny( "\"Mainnet\"" ) + cc.notice( "." ) );
-            console.log( soi + cc.debug( "--" ) +
-                cc.bright( "id-s-chain" ) + cc.sunny( "=" ) + cc.success( "number" ) +
-                cc.debug( "....................." ) + cc.note( "S-chain" ) +
-                cc.notice( " Ethereum " ) + cc.note( "network name." ) +
-                cc.notice( ". Value is automatically loaded from the " ) +
-                cc.warning( "CHAIN_NAME_SCHAIN" ) +
-                cc.notice( " environment variable if not specified. " ) +
-                cc.debug( "Default value is " ) + cc.sunny( "\"id-S-chain\"" ) +
-                cc.notice( "." ) );
-            console.log( soi + cc.debug( "--" ) +
-                cc.bright( "id-t-chain" ) + cc.sunny( "=" ) + cc.success( "number" ) +
-                cc.debug( "....................." ) + cc.note( "S<->S Target S-chain" ) +
-                cc.notice( " Ethereum " ) + cc.note( "network name." ) +
-                cc.notice( ". Value is automatically loaded from the " ) +
-                cc.warning( "CHAIN_NAME_SCHAIN_TARGET" ) +
-                cc.notice( " environment variable if not specified. " ) +
-                cc.debug( "Default value is " ) + cc.sunny( "\"id-T-chain\"" ) +
-                cc.notice( "." ) );
-            console.log( soi + cc.debug( "--" ) +
-                cc.bright( "cid-main-net" ) + cc.sunny( "=" ) + cc.success( "number" ) +
-                cc.debug( "..................." ) + cc.note( "Main-net" ) +
-                cc.notice( " Ethereum " ) + cc.attention( "chain ID" ) +
-                cc.notice( ". Value is automatically loaded from the " ) +
-                cc.warning( "CID_ETHEREUM" ) +
-                cc.notice( " environment variable if not specified. " ) +
-                cc.debug( "Default value is " ) + cc.sunny( -4 ) + cc.notice( "." ) );
-            console.log( soi + cc.debug( "--" ) +
-                cc.bright( "cid-s-chain" ) + cc.sunny( "=" ) + cc.success( "number" ) +
-                cc.debug( "...................." ) + cc.note( "S-chain" ) +
-                cc.notice( " Ethereum " ) + cc.attention( "chain ID" ) +
-                cc.notice( ". Value is automatically loaded from the " ) +
-                cc.warning( "CID_SCHAIN" ) +
-                cc.notice( " environment variable if not specified. " ) +
-                cc.debug( "Default value is " ) + cc.sunny( -4 ) + cc.notice( "." ) );
-            console.log( soi + cc.debug( "--" ) +
-                cc.bright( "cid-t-chain" ) + cc.sunny( "=" ) + cc.success( "number" ) +
-                cc.debug( "...................." ) + cc.note( "S<->S Target S-chain" ) +
-                cc.notice( " Ethereum " ) + cc.attention( "chain ID" ) +
-                cc.notice( ". Value is automatically loaded from the " ) +
-                cc.warning( "CID_SCHAIN_TARGET" ) +
-                cc.notice( " environment variable if not specified. " ) +
-                cc.debug( "Default value is " ) + cc.sunny( -4 ) + cc.notice( "." ) );
-
-            console.log( cc.sunny( "BLOCKCHAIN INTERFACE" ) + cc.info( " options:" ) );
-            console.log( soi + cc.debug( "--" ) +
-                cc.bright( "abi-skale-manager" ) + cc.sunny( "=" ) + cc.attention( "path" ) +
-                cc.debug( "................" ) + cc.notice( "Path to JSON file containing " ) +
-                cc.bright( "Skale Manager" ) + cc.notice( " ABI. " ) +
-                cc.debug( "Optional parameter. It's needed for " ) + cc.note( "S-Chain" ) +
-                cc.debug( " to " ) + cc.note( "S-Chain" ) + cc.debug( " transfers." ) );
-            console.log( soi + cc.debug( "--" ) +
-                cc.bright( "abi-main-net" ) + cc.sunny( "=" ) + cc.attention( "path" ) +
-                cc.debug( "....................." ) +
-                cc.notice( "Path to JSON file containing " ) + cc.bright( "IMA" ) +
-                cc.notice( " ABI for " ) + cc.note( "Main-net" ) + cc.notice( "." ) );
-            console.log( soi + cc.debug( "--" ) +
-                cc.bright( "abi-s-chain" ) + cc.sunny( "=" ) + cc.attention( "path" ) +
-                cc.debug( "......................" ) +
-                cc.notice( "Path to JSON file containing " ) + cc.bright( "IMA" ) +
-                cc.notice( " ABI for " ) + cc.note( "S-chain" ) + cc.notice( "." ) );
-            console.log( soi + cc.debug( "--" ) +
-                cc.bright( "abi-t-chain" ) + cc.sunny( "=" ) + cc.attention( "path" ) +
-                cc.debug( "......................" ) +
-                cc.notice( "Path to JSON file containing " ) + cc.bright( "IMA" ) +
-                cc.notice( " ABI for " ) + cc.note( "S<->S Target S-chain" ) + cc.notice( "." ) );
-
-            console.log( cc.sunny( "ERC20 INTERFACE" ) + cc.info( " options:" ) );
-            console.log( soi + cc.debug( "--" ) +
-                cc.bright( "erc20-main-net" ) + cc.sunny( "=" ) + cc.attention( "path" ) +
-                cc.debug( "..................." ) + cc.notice( "Path to JSON file containing " ) +
-                cc.bright( "ERC20" ) + cc.notice( " ABI for " ) +
-                cc.note( "Main-net" ) + cc.notice( "." ) );
-            console.log( soi + cc.debug( "--" ) +
-                cc.bright( "erc20-s-chain" ) + cc.sunny( "=" ) + cc.attention( "path" ) +
-                cc.debug( "...................." ) +
-                cc.notice( "Path to JSON file containing " ) + cc.bright( "ERC20" ) +
-                cc.notice( " ABI for " ) + cc.note( "S-chain" ) + cc.notice( "." ) );
-            console.log( soi + cc.debug( "--" ) +
-                cc.bright( "addr-erc20-s-chain" ) + cc.sunny( "=" ) + cc.attention( "address" ) +
-                cc.debug( "............" ) + cc.notice( "Explicit " ) + cc.bright( "ERC20" ) +
-                cc.notice( " address in " ) + cc.note( "S-chain" ) + cc.notice( "." ) );
-            console.log( soi + cc.debug( "--" ) +
-                cc.bright( "erc20-t-chain" ) + cc.sunny( "=" ) + cc.attention( "path" ) +
-                cc.debug( "...................." ) +
-                cc.notice( "Path to JSON file containing " ) + cc.bright( "ERC20" ) +
-                cc.notice( " ABI for " ) + cc.note( "S<->S Target S-chain" ) + cc.notice( "." ) );
-            console.log( soi + cc.debug( "--" ) +
-                cc.bright( "addr-erc20-t-chain" ) + cc.sunny( "=" ) + cc.attention( "address" ) +
-                cc.debug( "............" ) + cc.notice( "Explicit " ) + cc.bright( "ERC20" ) +
-                cc.notice( " address in " ) +
-                cc.note( "S<->S Target S-chain" ) + cc.notice( "." ) );
-
-            console.log( cc.sunny( "ERC721 INTERFACE" ) + cc.info( " options:" ) );
-            console.log( soi + cc.debug( "--" ) +
-                cc.bright( "erc721-main-net" ) + cc.sunny( "=" ) + cc.attention( "path" ) +
-                cc.debug( ".................." ) + cc.notice( "Path to JSON file containing " ) +
-                cc.bright( "ERC721" ) + cc.notice( " ABI for " ) +
-                cc.note( "Main-net" ) + cc.notice( "." ) );
-            console.log( soi + cc.debug( "--" ) +
-                cc.bright( "erc721-s-chain" ) + cc.sunny( "=" ) + cc.attention( "path" ) +
-                cc.debug( "..................." ) +
-                cc.notice( "Path to JSON file containing " ) + cc.bright( "ERC721" ) +
-                cc.notice( " ABI for " ) + cc.note( "S-chain" ) + cc.notice( "." ) );
-            console.log( soi + cc.debug( "--" ) +
-                cc.bright( "addr-erc721-s-chain" ) + cc.sunny( "=" ) + cc.attention( "address" ) +
-                cc.debug( "..........." ) + cc.notice( "Explicit " ) + cc.bright( "ERC721" ) +
-                cc.notice( " address in " ) + cc.note( "S-chain" ) + cc.notice( "." ) );
-            console.log( soi + cc.debug( "--" ) +
-                cc.bright( "erc721-t-chain" ) + cc.sunny( "=" ) + cc.attention( "path" ) +
-                cc.debug( "..................." ) +
-                cc.notice( "Path to JSON file containing " ) + cc.bright( "ERC721" ) +
-                cc.notice( " ABI for " ) + cc.note( "S<->S S-chain" ) + cc.notice( "." ) );
-            console.log( soi + cc.debug( "--" ) +
-                cc.bright( "addr-erc721-t-chain" ) + cc.sunny( "=" ) + cc.attention( "address" ) +
-                cc.debug( "..........." ) + cc.notice( "Explicit " ) + cc.bright( "ERC721" ) +
-                cc.notice( " address in " ) + cc.note( "S<->S S-chain" ) + cc.notice( "." ) );
-
-            console.log( cc.sunny( "ERC1155 INTERFACE" ) + cc.info( " options:" ) );
-            console.log( soi + cc.debug( "--" ) +
-                cc.bright( "erc1155-main-net" ) + cc.sunny( "=" ) + cc.attention( "path" ) +
-                cc.debug( "................." ) +
-                cc.notice( "Path to JSON file containing " ) + cc.bright( "ERC1155" ) +
-                cc.notice( " ABI for " ) + cc.note( "Main-net" ) + cc.notice( "." ) );
-            console.log( soi + cc.debug( "--" ) +
-                cc.bright( "erc1155-s-chain" ) + cc.sunny( "=" ) + cc.attention( "path" ) +
-                cc.debug( ".................." ) +
-                cc.notice( "Path to JSON file containing " ) + cc.bright( "ERC1155" ) +
-                cc.notice( " ABI for " ) + cc.note( "S-chain" ) + cc.notice( "." ) );
-            console.log( soi + cc.debug( "--" ) +
-                cc.bright( "addr-erc1155-s-chain" ) + cc.sunny( "=" ) + cc.attention( "address" ) +
-                cc.debug( ".........." ) + cc.notice( "Explicit " ) + cc.bright( "ERC1155" ) +
-                cc.notice( " address in " ) + cc.note( "S-chain" ) + cc.notice( "." ) );
-            console.log( soi + cc.debug( "--" ) +
-                cc.bright( "erc1155-t-chain" ) + cc.sunny( "=" ) + cc.attention( "path" ) +
-                cc.debug( ".................." ) +
-                cc.notice( "Path to JSON file containing " ) + cc.bright( "ERC1155" ) +
-                cc.notice( " ABI for " ) + cc.note( "S<->S S-chain" ) + cc.notice( "." ) );
-            console.log( soi + cc.debug( "--" ) +
-                cc.bright( "addr-erc1155-t-chain" ) + cc.sunny( "=" ) + cc.attention( "address" ) +
-                cc.debug( ".........." ) + cc.notice( "Explicit " ) + cc.bright( "ERC1155" ) +
-                cc.notice( " address in " ) + cc.note( "S<->S S-chain" ) + cc.notice( "." ) );
-
-            console.log( cc.sunny( "USER ACCOUNT" ) + cc.info( " options:" ) );
-            console.log( soi + cc.debug( "--" ) +
-                cc.bright( "tm-url-main-net" ) + cc.sunny( "=" ) + cc.attention( "URL" ) +
-                cc.debug( "..................." ) + cc.bright( "Transaction Manager" ) +
-                cc.notice( " server URL for " ) + cc.note( "Main-net" ) +
-                cc.notice( ". Value is automatically loaded from the " ) +
-                cc.warning( "TRANSACTION_MANAGER_URL_ETHEREUM" ) +
-                cc.notice( " environment variable if not specified. " ) +
-                cc.debug( "Example: " ) + cc.bright( "redis://@127.0.0.1:6379" ) );
-            console.log( soi + cc.debug( "--" ) +
-                cc.bright( "tm-url-s-chain" ) + cc.sunny( "=" ) + cc.attention( "URL" ) +
-                cc.debug( "...................." ) + cc.bright( "Transaction Manager" ) +
-                cc.notice( " server URL for " ) + cc.note( "S-chain" ) +
-                cc.notice( ". Value is automatically loaded from the " ) +
-                cc.warning( "TRANSACTION_MANAGER_URL_S_CHAIN" ) +
-                cc.notice( " environment variable if not specified." ) );
-            console.log( soi + cc.debug( "--" ) +
-                cc.bright( "tm-url-t-chain" ) + cc.sunny( "=" ) + cc.attention( "URL" ) +
-                cc.debug( "...................." ) + cc.bright( "Transaction Manager" ) +
-                cc.notice( " server URL for " ) + cc.note( "S<->S Target S-chain" ) +
-                cc.notice( ". Value is automatically loaded from the " ) +
-                cc.warning( "TRANSACTION_MANAGER_URL_S_CHAIN_TARGET" ) +
-                cc.notice( " environment variable if not specified." ) );
-            console.log( soi + cc.debug( "--" ) +
-                cc.bright( "tm-priority-main-net" ) + cc.sunny( "=" ) + cc.attention( "URL" ) +
-                cc.debug( ".............." ) + cc.bright( "Transaction Manager" ) +
-                cc.notice( " priority for " ) + cc.note( "Main-net" ) +
-                cc.notice( ". Value is automatically loaded from the " ) +
-                cc.warning( "TRANSACTION_MANAGER_PRIORITY_ETHEREUM" ) +
-                cc.notice( " environment variable if not specified. " ) +
-                cc.debug( "Default is " ) + cc.sunny( "5" ) + cc.notice( "." ) );
-            console.log( soi + cc.debug( "--" ) +
-                cc.bright( "tm-priority-s-chain" ) + cc.sunny( "=" ) + cc.attention( "URL" ) +
-                cc.debug( "..............." ) + cc.bright( "Transaction Manager" ) +
-                cc.notice( " priority for " ) + cc.note( "S-chain" ) +
-                cc.notice( ". Value is automatically loaded from the " ) +
-                cc.warning( "TRANSACTION_MANAGER_PRIORITY_S_CHAIN" ) +
-                cc.notice( " environment variable if not specified. " ) +
-                cc.debug( "Default is " ) + cc.sunny( "5" ) + cc.notice( "." ) );
-            console.log( soi + cc.debug( "--" ) +
-                cc.bright( "tm-priority-t-chain" ) + cc.sunny( "=" ) + cc.attention( "URL" ) +
-                cc.debug( "..............." ) + cc.bright( "Transaction Manager" ) +
-                cc.notice( " priority for " ) + cc.note( "S<->S Target S-chain" ) +
-                cc.notice( ". Value is automatically loaded from the " ) +
-                cc.warning( "TRANSACTION_MANAGER_PRIORITY_S_CHAIN_TARGET" ) +
-                cc.notice( " environment variable if not specified. " ) +
-                cc.debug( "Default is " ) + cc.sunny( "5" ) + cc.notice( "." ) );
-            console.log( soi + cc.debug( "--" ) +
-                cc.bright( "sgx-url-main-net" ) + cc.sunny( "=" ) + cc.attention( "URL" ) +
-                cc.debug( ".................." ) + cc.sunny( "SGX server" ) +
-                cc.notice( " URL for " ) + cc.note( "Main-net" ) +
-                cc.notice( ". Value is automatically loaded from the " ) +
-                cc.warning( "SGX_URL_ETHEREUM" ) +
-                cc.notice( " environment variable if not specified." ) );
-            console.log( soi + cc.debug( "--" ) +
-                cc.bright( "sgx-url-s-chain" ) + cc.sunny( "=" ) + cc.attention( "URL" ) +
-                cc.debug( "..................." ) + cc.sunny( "SGX server" ) +
-                cc.notice( " URL for " ) + cc.note( "S-chain" ) +
-                cc.notice( ". Value is automatically loaded from the " ) +
-                cc.warning( "SGX_URL_S_CHAIN" ) +
-                cc.notice( " environment variable if not specified." ) );
-            console.log( soi + cc.debug( "--" ) +
-                cc.bright( "sgx-url-t-chain" ) + cc.sunny( "=" ) + cc.attention( "URL" ) +
-                cc.debug( "..................." ) + cc.sunny( "SGX server" ) +
-                cc.notice( " URL for " ) + cc.note( "S<->S Target S-chain" ) +
-                cc.notice( ". Value is automatically loaded from the " ) +
-                cc.warning( "SGX_URL_S_CHAIN_TARGET" ) +
-                cc.notice( " environment variable if not specified." ) );
-            console.log( soi + cc.debug( "--" ) +
-                cc.bright( "sgx-ecdsa-key-main-net" ) + cc.sunny( "=" ) + cc.error( "name" ) +
-                cc.debug( "..........." ) + cc.attention( "SGX/ECDSA key name" ) +
-                cc.notice( " for " ) + cc.note( "Main-net" ) +
-                cc.notice( ". Value is automatically loaded from the " ) +
-                cc.warning( "SGX_KEY_ETHEREUM" ) +
-                cc.notice( " environment variable if not specified." ) );
-            console.log( soi + cc.debug( "--" ) +
-                cc.bright( "sgx-ecdsa-key-s-chain" ) + cc.sunny( "=" ) + cc.error( "name" ) +
-                cc.debug( "............" ) + cc.attention( "SGX/ECDSA key name" ) +
-                cc.notice( " for " ) + cc.note( "S-chain" ) +
-                cc.notice( ". Value is automatically loaded from the " ) +
-                cc.warning( "SGX_KEY_S_CHAIN" ) +
-                cc.notice( " environment variable if not specified." ) );
-            console.log( soi + cc.debug( "--" ) +
-                cc.bright( "sgx-ecdsa-key-t-chain" ) + cc.sunny( "=" ) + cc.error( "name" ) +
-                cc.debug( "............" ) + cc.attention( "SGX/ECDSA key name" ) +
-                cc.notice( " for " ) + cc.note( "S<->S Target S-chain" ) +
-                cc.notice( ". Value is automatically loaded from the " ) +
-                cc.warning( "SGX_KEY_S_CHAIN_TARGET" ) +
-                cc.notice( " environment variable if not specified." ) );
-            console.log( soi + cc.debug( "--" ) +
-                cc.bright( "sgx-bls-key-main-net" ) + cc.sunny( "=" ) + cc.error( "name" ) +
-                cc.debug( "............." ) + cc.attention( "SGX/BLS key name" ) +
-                cc.notice( " for " ) + cc.note( "Main-net" ) +
-                cc.notice( ". Value is automatically loaded from the " ) +
-                cc.warning( "BLS_KEY_ETHEREUM" ) +
-                cc.notice( " environment variable if not specified." ) );
-            console.log( soi + cc.debug( "--" ) +
-                cc.bright( "sgx-bls-key-s-chain" ) + cc.sunny( "=" ) + cc.error( "name" ) +
-                cc.debug( ".............." ) + cc.attention( "SGX/BLS key name" ) +
-                cc.notice( " for " ) + cc.note( "S-chain" ) +
-                cc.notice( ". Value is automatically loaded from the " ) +
-                cc.warning( "BLS_KEY_S_CHAIN" ) +
-                cc.notice( " environment variable if not specified." ) );
-            console.log( soi + cc.debug( "--" ) +
-                cc.bright( "sgx-bls-key-t-chain" ) + cc.sunny( "=" ) + cc.error( "name" ) +
-                cc.debug( ".............." ) + cc.attention( "SGX/BLS key name" ) +
-                cc.notice( " for " ) + cc.note( "S<->S Target S-chain" ) +
-                cc.notice( ". Value is automatically loaded from the " ) +
-                cc.warning( "BLS_KEY_S_CHAIN_TARGET" ) +
-                cc.notice( " environment variable if not specified." ) );
-
-            console.log( soi + cc.debug( "--" ) +
-                cc.bright( "sgx-ssl-key-main-net" ) + cc.sunny( "=" ) + cc.attention( "path" ) +
-                cc.debug( "............." ) + cc.notice( "Path to " ) + cc.note( "SSL key file" ) +
-                cc.notice( " for " ) + cc.bright( "SGX wallet" ) + cc.notice( " of " ) +
-                cc.note( "Main-net" ) + cc.notice( ". Value is automatically loaded from the " ) +
-                cc.warning( "SGX_SSL_KEY_FILE_ETHEREUM" ) +
-                cc.notice( " environment variable if not specified." ) );
-            console.log( soi + cc.debug( "--" ) +
-                cc.bright( "sgx-ssl-key-s-chain" ) + cc.sunny( "=" ) + cc.attention( "path" ) +
-                cc.debug( ".............." ) + cc.notice( "Path to " ) +
-                cc.note( "SSL key file" ) + cc.notice( " for " ) + cc.bright( "SGX wallet" ) +
-                cc.notice( " of " ) + cc.note( "S-chain" ) +
-                cc.notice( ". Value is automatically loaded from the " ) +
-                cc.warning( "SGX_SSL_KEY_FILE_S_CHAIN" ) +
-                cc.notice( " environment variable if not specified." ) );
-            console.log( soi + cc.debug( "--" ) +
-                cc.bright( "sgx-ssl-key-t-chain" ) + cc.sunny( "=" ) + cc.attention( "path" ) +
-                cc.debug( ".............." ) + cc.notice( "Path to " ) + cc.note( "SSL key file" ) +
-                cc.notice( " for " ) + cc.bright( "SGX wallet" ) + cc.notice( " of " ) +
-                cc.note( "S<->S Target S-chain" ) +
-                cc.notice( ". Value is automatically loaded from the " ) +
-                cc.warning( "SGX_SSL_KEY_FILE_S_CHAIN_TARGET" ) +
-                cc.notice( " environment variable if not specified." ) );
-            console.log( soi + cc.debug( "--" ) +
-                cc.bright( "sgx-ssl-cert-main-net" ) + cc.sunny( "=" ) + cc.attention( "path" ) +
-                cc.debug( "............" ) + cc.notice( "Path to " ) +
-                cc.note( "SSL certificate file" ) + cc.notice( " for " ) +
-                cc.bright( "SGX wallet" ) + cc.notice( " of " ) + cc.note( "Main-net" ) +
-                cc.notice( ". Value is automatically loaded from the " ) +
-                cc.warning( "SGX_SSL_CERT_FILE_ETHEREUM" ) +
-                cc.notice( " environment variable if not specified." ) );
-            console.log( soi + cc.debug( "--" ) +
-                cc.bright( "sgx-ssl-cert-s-chain" ) + cc.sunny( "=" ) + cc.attention( "path" ) +
-                cc.debug( "............." ) + cc.notice( "Path to " ) +
-                cc.note( "SSL certificate file" ) + cc.notice( " for " ) +
-                cc.bright( "SGX wallet" ) + cc.notice( " of " ) + cc.note( "S-chain" ) +
-                cc.notice( ". Value is automatically loaded from the " ) +
-                cc.warning( "SGX_SSL_CERT_FILE_S_CHAIN" ) +
-                cc.notice( " environment variable if not specified." ) );
-            console.log( soi + cc.debug( "--" ) +
-                cc.bright( "sgx-ssl-cert-t-chain" ) + cc.sunny( "=" ) + cc.attention( "path" ) +
-                cc.debug( "............." ) + cc.notice( "Path to " ) +
-                cc.note( "SSL certificate file" ) + cc.notice( " for " ) +
-                cc.bright( "SGX wallet" ) + cc.notice( " of " ) +
-                cc.note( "S<->S Target S-chain" ) +
-                cc.notice( ". Value is automatically loaded from the " ) +
-                cc.warning( "SGX_SSL_CERT_FILE_S_CHAIN_TARGET" ) +
-                cc.notice( " environment variable if not specified." ) );
-
-            console.log( soi + cc.debug( "--" ) +
-                cc.bright( "address-main-net" ) + cc.sunny( "=" ) + cc.warning( "value" ) +
-                cc.debug( "................" ) + cc.note( "Main-net" ) + " " +
-                cc.attention( "user account address" ) +
-                cc.notice( ". Value is automatically loaded from the " ) +
-                cc.warning( "ACCOUNT_FOR_ETHEREUM" ) +
-                cc.notice( " environment variable if not specified." ) );
-            console.log( soi + cc.debug( "--" ) +
-                cc.bright( "address-s-chain" ) + cc.sunny( "=" ) + cc.warning( "value" ) +
-                cc.debug( "................." ) + cc.note( "S-chain" ) + " " +
-                cc.attention( "user account address" ) +
-                cc.notice( ". Value is automatically loaded from the " ) +
-                cc.warning( "ACCOUNT_FOR_SCHAIN" ) +
-                cc.notice( " environment variable if not specified." ) );
-            console.log( soi + cc.debug( "--" ) +
-                cc.bright( "address-t-chain" ) + cc.sunny( "=" ) + cc.warning( "value" ) +
-                cc.debug( "................." ) + cc.note( "S<->S Target S-chain" ) +
-                " " + cc.attention( "user account address" ) +
-                cc.notice( ". Value is automatically loaded from the " ) +
-                cc.warning( "ACCOUNT_FOR_SCHAIN_TARGET" ) +
-                cc.notice( " environment variable if not specified." ) );
-            console.log( soi + cc.debug( "--" ) +
-                cc.bright( "key-main-net" ) + cc.sunny( "=" ) + cc.error( "value" ) +
-                cc.debug( "...................." ) + cc.attention( "Private key" ) +
-                cc.notice( " for " ) + cc.note( "Main-net" ) + " " +
-                cc.attention( "user account address" ) +
-                cc.notice( ". Value is automatically loaded from the " ) +
-                cc.warning( "PRIVATE_KEY_FOR_ETHEREUM" ) +
-                cc.notice( " environment variable if not specified." ) );
-            console.log( soi + cc.debug( "--" ) +
-                cc.bright( "key-s-chain" ) + cc.sunny( "=" ) + cc.error( "value" ) +
-                cc.debug( "....................." ) + cc.attention( "Private key" ) +
-                cc.notice( " for " ) + cc.note( "S-Chain" ) + " " +
-                cc.attention( "user account address" ) +
-                cc.notice( ". Value is automatically loaded from the " ) +
-                cc.warning( "PRIVATE_KEY_FOR_SCHAIN" ) +
-                cc.notice( " environment variable if not specified." ) );
-            console.log( soi + cc.debug( "--" ) +
-                cc.bright( "key-t-chain" ) + cc.sunny( "=" ) + cc.error( "value" ) +
-                cc.debug( "....................." ) + cc.attention( "Private key" ) +
-                cc.notice( " for " ) + cc.note( "S<->S Target S-Chain" ) + " " +
-                cc.attention( "user account address" ) +
-                cc.notice( ". Value is automatically loaded from the " ) +
-                cc.warning( "PRIVATE_KEY_FOR_SCHAIN_TARGET" ) +
-                cc.notice( " environment variable if not specified." ) );
-
-            console.log( soi + cc.debug( "Please notice, IMA prefer to use transaction manager " +
-                "to sign blockchain transactions if " ) +
-                cc.attention( "--tm-url-main-net" ) + cc.debug( "/" ) +
-                cc.attention( "--tm-url-s-chain" ) + cc.debug( " command line values or " ) +
-                cc.warning( "TRANSACTION_MANAGER_URL_ETHEREUM" ) + cc.debug( "/" ) +
-                cc.warning( "TRANSACTION_MANAGER_URL_S_CHAIN" ) +
-                cc.debug( " shell variables were specified. " +
-                "Next preferred option is SGX wallet which is used if " ) +
-                cc.attention( "--sgx-url-main-net" ) + cc.debug( "/" ) +
-                cc.attention( "--sgx-url-s-chain" ) + cc.debug( " command line values or " ) +
-                cc.warning( "SGX_URL_ETHEREUM" ) + cc.debug( "/" ) +
-                cc.warning( "SGX_URL_S_CHAIN" ) +
-                cc.debug( " shell variables were specified. SGX signing also needs " +
-                "key name, key and certificate files. " ) +
-                cc.debug( "Finally, IMA attempts to use explicitly provided private key " +
-                "to sign blockchain transactions if " ) +
-                cc.attention( "--key-main-net" ) + cc.debug( "/" ) +
-                cc.attention( "--key-s-chain" ) + cc.debug( " command line values or " ) +
-                cc.warning( "PRIVATE_KEY_FOR_ETHEREUM" ) + cc.debug( "/" ) +
-                cc.warning( "PRIVATE_KEY_FOR_SCHAIN" ) +
-                cc.debug( " shell variables were specified. " )
-            );
-
-            console.log( cc.sunny( "GENERAL TRANSFER" ) + cc.info( " options:" ) );
-            console.log( soi + cc.debug( "--" ) +
-                cc.bright( "value" ) + cc.sunny( "=" ) + cc.attention( "number" ) +
-                cc.warning( "unitName" ) + cc.debug( ".................." ) +
-                cc.notice( "Amount of " ) + cc.attention( "unitName" ) +
-                cc.notice( " to transfer, where " ) + cc.attention( "unitName" ) +
-                cc.notice( " is well known Ethereum unit name like " ) + cc.attention( "ether" ) +
-                cc.notice( " or " ) + cc.attention( "wei" ) + cc.notice( "." ) );
-            console.log( soi + cc.debug( "--" ) +
-                cc.bright( "wei" ) + cc.sunny( "=" ) + cc.attention( "number" ) +
-                cc.debug( "............................" ) + cc.notice( "Amount of " ) +
-                cc.attention( "wei" ) + cc.notice( " to transfer." ) );
-            console.log( soi + cc.debug( "--" ) +
-                cc.bright( "babbage" ) + cc.sunny( "=" ) + cc.attention( "number" ) +
-                cc.debug( "........................" ) + cc.notice( "Amount of " ) +
-                cc.attention( "babbage" ) + cc.info( "(wei*1000)" ) +
-                cc.notice( " to transfer." ) );
-            console.log( soi + cc.debug( "--" ) +
-                cc.bright( "lovelace" ) + cc.sunny( "=" ) + cc.attention( "number" ) +
-                cc.debug( "......................." ) + cc.notice( "Amount of " ) +
-                cc.attention( "lovelace" ) + cc.info( "(wei*1000*1000)" ) +
-                cc.notice( " to transfer." ) );
-            console.log( soi + cc.debug( "--" ) +
-                cc.bright( "shannon" ) + cc.sunny( "=" ) + cc.attention( "number" ) +
-                cc.debug( "........................" ) + cc.notice( "Amount of " ) +
-                cc.attention( "shannon" ) + cc.info( "(wei*1000*1000*1000)" ) +
-                cc.notice( " to transfer." ) );
-            console.log( soi + cc.debug( "--" ) +
-                cc.bright( "szabo" ) + cc.sunny( "=" ) + cc.attention( "number" ) +
-                cc.debug( ".........................." ) + cc.notice( "Amount of " ) +
-                cc.attention( "szabo" ) + cc.info( "(wei*1000*1000*1000*1000)" ) +
-                cc.notice( " to transfer." ) );
-            console.log( soi + cc.debug( "--" ) +
-                cc.bright( "finney" ) + cc.sunny( "=" ) + cc.attention( "number" ) +
-                cc.debug( "........................." ) + cc.notice( "Amount of " ) +
-                cc.attention( "finney" ) + cc.info( "(wei*1000*1000*1000*1000*1000)" ) +
-                cc.notice( " to transfer." ) );
-            console.log( soi + cc.debug( "--" ) +
-                cc.bright( "ether" ) + cc.sunny( "=" ) + cc.attention( "number" ) +
-                cc.debug( ".........................." ) + cc.notice( "Amount of " ) +
-                cc.attention( "ether" ) + cc.info( "(wei*1000*1000*1000*1000*1000*1000)" ) +
-                cc.notice( " to transfer." ) );
-            console.log( soi + cc.debug( "--" ) +
-                cc.bright( "amount" ) + cc.sunny( "=" ) + cc.attention( "number" ) +
-                cc.debug( "........................." ) + cc.notice( "Amount of " ) +
-                cc.attention( "tokens" ) + cc.notice( " to transfer." ) );
-            console.log( soi + cc.debug( "--" ) +
-                cc.bright( "tid" ) + cc.sunny( "=" ) + cc.attention( "number" ) +
-                cc.debug( "............................" ) + cc.bright( "ERC721" ) +
-                cc.notice( " or " ) + cc.bright( "ERC1155" ) +
-                cc.notice( " token id to transfer." ) );
-            console.log( soi + cc.debug( "--" ) +
-                cc.bright( "amounts" ) + cc.sunny( "=" ) + cc.attention( "array of numbers" ) +
-                cc.debug( ".............." ) + cc.bright( "ERC1155" ) +
-                cc.notice( " token id to transfer in batch." ) );
-            console.log( soi + cc.debug( "--" ) +
-                cc.bright( "tids" ) + cc.sunny( "=" ) + cc.attention( "array of numbers" ) +
-                cc.debug( "................." ) + cc.bright( "ERC1155" ) +
-                cc.notice( " token amount to transfer in batch." ) );
-            console.log( soi + cc.debug( "--" ) +
-                cc.bright( "sleep-between-tx" ) + cc.sunny( "=" ) + cc.attention( "number" ) +
-                cc.debug( "..............." ) + cc.notice( "Sleep time " ) +
-                cc.debug( "(in milliseconds)" ) +
-                cc.notice( " between transactions during complex operations." ) );
-            console.log( soi + cc.debug( "--" ) +
-                cc.bright( "wait-next-block" ) +
-                cc.debug( "......................." ) +
-                cc.notice( "Wait for next block between transactions " +
-                "during complex operations." ) );
-
-            console.log( cc.sunny( "S-CHAIN TO S-CHAIN TRANSFER" ) + cc.info( " options:" ) );
-            console.log( soi + cc.debug( "--" ) +
-                cc.bright( "s2s-enable" ) + cc.debug( "............................" ) +
-                cc.success( "Enables" ) + " " + cc.note( "S-Chain" ) + cc.notice( " to " ) +
-                cc.note( "S-Chain" ) + cc.notice( " transfers. " ) + cc.debug( "Default mode" ) +
-                cc.notice( ". The " ) + cc.bright( "abi-skale-manager" ) +
-                cc.notice( " path must be provided." ) );
-            console.log( soi + cc.debug( "--" ) +
-                cc.bright( "s2s-disable" ) + cc.debug( "..........................." ) +
-                cc.error( "Disables" ) + " " + cc.note( "S-Chain" ) + cc.notice( " to " ) +
-                cc.note( "S-Chain" ) + cc.notice( " transfers." ) );
-            console.log( soi + cc.debug( "--" ) +
-                cc.bright( "net-rediscover" ) + cc.sunny( "=" ) + cc.attention( "number" ) +
-                cc.debug( "................." ) + cc.note( "SKALE NETWORK" ) +
-                cc.notice( " re-discovery interval" ) + cc.debug( "(in seconds)" ) +
-                cc.notice( ". " ) + cc.debug( "Default is " ) + cc.sunny( "3600" ) +
-                cc.debug( " seconds or " ) + cc.sunny( "1" ) + cc.debug( " hour, specify " ) +
-                cc.sunny( "0" ) + cc.debug( " to " ) + cc.error( "disable" ) + " " +
-                cc.note( "SKALE NETWORK" ) + cc.debug( " re-discovery" ) + cc.notice( "." ) );
-
-            console.log( cc.sunny( "PAYMENT TRANSACTION" ) + cc.info( " options:" ) );
-            console.log( soi + cc.debug( "--" ) +
-                cc.bright( "gas-price-multiplier-mn" ) + cc.debug( "..............." ) +
-                cc.notice( "Sets " ) + cc.attention( "Gas Price Multiplier" ) +
-                cc.notice( " for " ) + cc.note( "Main Net" ) + cc.notice( " transactions, " ) +
-                cc.debug( "Default value is " ) + cc.sunny( "1.25" ) + cc.notice( "." ) +
-                cc.debug( " Specify value " ) + cc.sunny( "0.0" ) + cc.debug( " to " ) +
-                cc.error( "disable" ) + " " + cc.attention( "Gas Price Customization" ) +
-                cc.debug( " for " ) + cc.note( "Main Net" ) + cc.notice( "." ) );
-            console.log( soi + cc.debug( "--" ) +
-                cc.bright( "gas-price-multiplier-sc" ) + cc.debug( "..............." ) +
-                cc.notice( "Sets " ) + cc.attention( "Gas Price Multiplier" ) +
-                cc.notice( " for " ) + cc.note( "S-Chain" ) + cc.notice( " transactions, " ) +
-                cc.debug( "Default value is " ) + cc.sunny( "0.0" ) + cc.notice( "." ) );
-            console.log( soi + cc.debug( "--" ) +
-                cc.bright( "gas-price-multiplier-tc" ) + cc.debug( "..............." ) +
-                cc.notice( "Sets " ) + cc.attention( "Gas Price Multiplier" ) +
-                cc.notice( " for " ) + cc.note( "S<->S Target S-Chain" ) +
-                cc.notice( " transactions, " ) + cc.debug( "Default value is " ) +
-                cc.sunny( "0.0" ) + cc.notice( "." ) );
-            console.log( soi + cc.debug( "--" ) +
-                cc.bright( "gas-price-multiplier" ) + cc.debug( ".................." ) +
-                cc.notice( "Sets " ) + cc.attention( "Gas Price Multiplier" ) +
-                cc.notice( " for both " ) + cc.note( "Main Net" ) + cc.notice( " and " ) +
-                cc.note( "S-Chain" ) + cc.debug( "(s)" ) + cc.notice( "." ) );
-            console.log( soi + cc.debug( "--" ) +
-                cc.bright( "gas-multiplier-mn" ) + cc.debug( "....................." ) +
-                cc.notice( "Sets " ) + cc.attention( "Gas Value Multiplier" ) +
-                cc.notice( " for " ) + cc.note( "Main Net" ) + cc.notice( " transactions, " ) +
-                cc.debug( "Default value is " ) + cc.sunny( "1.25" ) + cc.notice( "." ) +
-                cc.debug( " Specify value " ) + cc.sunny( "0.0" ) + cc.debug( " to " ) +
-                cc.error( "disable" ) + " " + cc.attention( "Gas Price Customization" ) +
-                cc.debug( " for " ) + cc.note( "Main Net" ) + cc.notice( "." ) );
-            console.log( soi + cc.debug( "--" ) +
-                cc.bright( "gas-multiplier-sc" ) + cc.debug( "....................." ) +
-                cc.notice( "Sets " ) + cc.attention( "Gas Value Multiplier" ) +
-                cc.notice( " for " ) + cc.note( "S-Chain" ) + cc.notice( " transactions, " ) +
-                cc.debug( "Default value is " ) + cc.sunny( "1.25" ) + cc.notice( "." ) );
-            console.log( soi + cc.debug( "--" ) +
-                cc.bright( "gas-multiplier-tc" ) + cc.debug( "....................." ) +
-                cc.notice( "Sets " ) + cc.attention( "Gas Value Multiplier" ) +
-                cc.notice( " for " ) + cc.note( "S<->S Target S-Chain" ) +
-                cc.notice( " transactions, " ) + cc.debug( "Default value is " ) +
-                cc.sunny( "1.25" ) + cc.notice( "." ) );
-            console.log( soi + cc.debug( "--" ) +
-                cc.bright( "gas-multiplier" ) + cc.debug( "........................" ) +
-                cc.notice( "Sets " ) + cc.attention( "Gas Value Multiplier" ) +
-                cc.notice( " for both " ) + cc.note( "Main Net" ) + cc.notice( " and " ) +
-                cc.note( "S-Chain" ) + cc.debug( "(s)" ) + cc.notice( "." ) );
-
-            console.log( cc.sunny( "REGISTRATION" ) + cc.info( " commands:" ) );
-            console.log( soi + cc.debug( "--" ) +
-                cc.bright( "register" ) + cc.debug( ".............................." ) +
-                cc.notice( "Register" ) + cc.debug( "(perform " ) + cc.sunny( "all steps" ) +
-                cc.debug( ")" ) + cc.notice( "." ) );
-            console.log( soi + cc.debug( "--" ) +
-                cc.bright( "register1" ) + cc.debug( "............................." ) +
-                cc.notice( "Perform registration " ) + cc.sunny( "step 1" ) +
-                cc.notice( " - register " ) + cc.note( "S-Chain" ) + cc.notice( " on " ) +
-                cc.note( "Main-net" ) + cc.notice( "." ) );
-            console.log( soi + cc.debug( "--" ) +
-                cc.bright( "check-registration" ) + cc.debug( "...................." ) +
-                cc.notice( "Perform registration status check" ) + cc.debug( "(perform " ) +
-                cc.sunny( "all steps" ) + cc.debug( ")" ) + cc.notice( "." ) );
-            console.log( soi + cc.debug( "--" ) +
-                cc.bright( "check-registration1" ) + cc.debug( "..................." ) +
-                cc.notice( "Perform registration status check " ) + cc.sunny( "step 1" ) +
-                cc.notice( " - register " ) + cc.note( "S-Chain" ) + cc.notice( " on " ) +
-                cc.note( "Main-net" ) + cc.notice( "." ) );
-            console.log( soi + cc.debug( "--" ) +
-                cc.bright( "check-registration2" ) + cc.debug( "..................." ) +
-                cc.notice( "Perform registration status check " ) + cc.sunny( "step 2" ) +
-                cc.notice( " - register " ) + cc.note( "S-Chain" ) + cc.notice( " in " ) +
-                cc.attention( "deposit box" ) + cc.notice( "." ) );
-            console.log( soi + cc.debug( "--" ) +
-                cc.bright( "check-registration3" ) + cc.debug( "..................." ) +
-                cc.notice( "Perform registration status check " ) + cc.sunny( "step 3" ) +
-                cc.notice( " - register " ) + cc.note( "Main-net" ) + cc.notice( "'s " ) +
-                cc.attention( "deposit box" ) + cc.notice( " on " ) + cc.note( "S-Chain" ) +
-                cc.notice( "." ) );
-
-            console.log( cc.sunny( "ACTION" ) + cc.info( " commands:" ) );
-            console.log( soi + cc.debug( "--" ) +
-                cc.bright( "show-config" ) + cc.debug( "..........................." ) +
-                cc.notice( "Show " ) + cc.note( "configuration values" ) +
-                cc.notice( " and exit." ) );
-            console.log( soi + cc.debug( "--" ) +
-                cc.bright( "show-balance" ) + cc.debug( ".........................." ) +
-                cc.notice( "Show " ) + cc.note( "ETH" ) +
-                cc.notice( " and/or token balances on " ) + cc.note( "Main-net" ) +
-                cc.notice( " and/or " ) + cc.note( "S-Chain" ) + cc.notice( " and exit." ) );
-            console.log( soi + cc.debug( "--" ) +
-                cc.bright( "m2s-payment" ) + cc.debug( "..........................." ) +
-                cc.notice( "Do one payment from " ) + cc.note( "Main-net" ) +
-                cc.notice( " user account to " ) + cc.note( "S-chain" ) +
-                cc.notice( " user account." ) );
-            console.log( soi + cc.debug( "--" ) +
-                cc.bright( "s2m-payment" ) + cc.debug( "..........................." ) +
-                cc.notice( "Do one payment from " ) + cc.note( "S-chain" ) +
-                cc.notice( " user account to " ) + cc.note( "Main-net" ) +
-                cc.notice( " user account." ) );
-            console.log( soi + cc.debug( "--" ) +
-                cc.bright( "s2m-receive" ) + cc.debug( "..........................." ) +
-                cc.notice( "Receive one payment from " ) + cc.note( "S-chain" ) +
-                cc.notice( " user account to " ) + cc.note( "Main-net" ) +
-                cc.notice( " user account" ) +
-                cc.debug( "(ETH only, receives all the ETH pending in transfer)" ) +
-                cc.notice( "." ) );
-            console.log( soi + cc.debug( "--" ) +
-                cc.bright( "s2m-view" ) + cc.debug( ".............................." ) +
-                cc.notice( "View money amount user can receive as payment from " ) +
-                cc.note( "S-chain" ) + cc.notice( " user account to " ) + cc.note( "Main-net" ) +
-                cc.notice( " user account" ) +
-                cc.debug( "(ETH only, receives all the ETH pending in transfer)" ) +
-                cc.notice( "." ) );
-            console.log( soi + cc.debug( "--" ) +
-                cc.bright( "s2s-payment" ) + cc.debug( "..........................." ) +
-                cc.notice( "Do one payment from " ) + cc.note( "S-chain" ) +
-                cc.notice( " user account to other " ) + cc.note( "S-chain" ) +
-                cc.notice( " user account." ) );
-            console.log( soi + cc.debug( "--" ) +
-                cc.bright( "s2s-forward" ) + cc.debug( "..........................." ) +
-                cc.notice( "Indicates " ) + cc.note( "S<->S" ) +
-                cc.notice( " transfer direction is " ) + cc.attention( "forward" ) +
-                cc.notice( ". I.e. source " ) + cc.note( "S-chain" ) +
-                cc.notice( " is token minter and instantiator. " ) +
-                cc.debug( "This is default mode" ) + cc.notice( "." ) );
-            console.log( soi + cc.debug( "--" ) +
-                cc.bright( "s2s-reverse" ) + cc.debug( "..........................." ) +
-                cc.notice( "Indicates " ) + cc.note( "S<->S" ) +
-                cc.notice( " transfer direction is " ) + cc.attention( "reverse" ) +
-                cc.notice( ". I.e. destination " ) + cc.note( "S-chain" ) +
-                cc.notice( " is token minter and instantiator." ) );
-            console.log( soi + cc.debug( "--" ) +
-                cc.bright( "m2s-transfer" ) + cc.debug( ".........................." ) +
-                cc.notice( "Do single " ) + cc.attention( "message transfer loop" ) +
-                cc.notice( " from " ) + cc.note( "Main-net" ) + cc.notice( " to " ) +
-                cc.note( "S-chain" ) + cc.notice( "." ) );
-            console.log( soi + cc.debug( "--" ) +
-                cc.bright( "s2m-transfer" ) + cc.debug( ".........................." ) +
-                cc.notice( "Do single " ) + cc.attention( "message transfer loop" ) +
-                cc.notice( " from " ) + cc.note( "S-chain" ) + cc.notice( " to " ) +
-                cc.note( "Main-net" ) + cc.notice( "." ) );
-            console.log( soi + cc.debug( "--" ) +
-                cc.bright( "s2s-transfer" ) + cc.debug( ".........................." ) +
-                cc.notice( "Do single " ) + cc.attention( "message transfer loop" ) +
-                cc.notice( " from " ) + cc.note( "S-chain" ) + cc.notice( " to " ) +
-                cc.note( "S-chain" ) + cc.notice( "." ) );
-            console.log( soi + cc.debug( "--" ) +
-                cc.bright( "with-metadata" ) + cc.debug( "........................." ) +
-                cc.notice( "Makes " ) + cc.bright( "ERC721" ) +
-                cc.notice( " transfer using special version of " ) +
-                cc.bright( "Token Manager" ) + cc.notice( " to transfer token metadata." ) );
-            console.log( soi + cc.debug( "--" ) +
-                cc.bright( "transfer" ) + cc.debug( ".............................." ) +
-                cc.notice( "Run single " ) + cc.note( "M<->S" ) +
-                cc.notice( " and, optionally, " ) + cc.note( "S->S" ) +
-                cc.notice( " transfer loop iteration" ) + cc.notice( "." ) );
-            console.log( soi + cc.debug( "--" ) +
-                cc.bright( "loop" ) + cc.debug( ".................................." ) +
-                cc.notice( "Run " ) + cc.note( "M<->S" ) + cc.notice( " and, optionally, " ) +
-                cc.note( "S->S" ) + cc.notice( " transfer loops in parallel threads." ) );
-            console.log( soi + cc.debug( "--" ) +
-                cc.bright( "simple-loop" ) + cc.debug( "..........................." ) +
-                cc.notice( "Run " ) + cc.note( "M<->S" ) + cc.notice( " and, optionally, " ) +
-                cc.note( "S->S" ) + cc.notice( " transfer loops in main thread only." ) );
-
-            console.log( cc.sunny( "ADDITIONAL ACTION" ) + cc.info( " options:" ) );
-            console.log( soi + cc.debug( "--" ) +
-                cc.bright( "no-wait-s-chain" ) + cc.debug( "......................." ) +
-                cc.notice( "Do not wait until " ) + cc.note( "S-Chain" ) +
-                cc.notice( " is started." ) );
-            console.log( soi + cc.debug( "--" ) +
-                cc.bright( "max-wait-attempts" ) + cc.sunny( "=" ) + cc.info( "value" ) +
-                cc.debug( "..............." ) + cc.notice( "Max number of " ) +
-                cc.note( "S-Chain" ) +
-                cc.notice( " call attempts to do while it became alive and sane." ) );
-            console.log( soi + cc.debug( "--" ) +
-                cc.bright( "skip-dry-run" ) + cc.debug( ".........................." ) +
-                cc.notice( "Skip " ) + cc.note( "dry run" ) +
-                cc.notice( " invocation before payed contract method calls." ) );
-            console.log( soi + cc.debug( "--" ) +
-                cc.bright( "no-skip-dry-run" ) + cc.debug( "......................." ) +
-                cc.notice( "Invoke " ) + cc.note( "dry run" ) +
-                cc.notice( " before payed contract method calls." ) +
-                cc.debug( " Default behavior" ) + cc.notice( "." ) );
-            console.log( soi + cc.debug( "--" ) +
-                cc.bright( "ignore-dry-run" ) + cc.debug( "........................" ) +
-                cc.notice( "Ignore result of " ) + cc.note( "dry run" ) +
-                cc.notice( " contract method calls and continue execute." ) +
-                cc.debug( " Default behavior" ) + cc.notice( "." ) );
-            console.log( soi + cc.debug( "--" ) +
-                cc.bright( "no-ignore-dry-run" ) + cc.debug( "....................." ) +
-                cc.notice( "Use error results of " ) + cc.note( "dry run" ) +
-                cc.notice( " contract method calls as actual errors and stop execute." ) );
-            console.log( soi + cc.debug( "--" ) +
-                cc.bright( "m2s-transfer-block-size" ) + cc.sunny( "=" ) + cc.info( "value" ) +
-                cc.debug( "........." ) + cc.notice( "Number of transactions in one block " +
-                "to use in message transfer loop from " ) + cc.note( "Main-net" ) +
-                cc.notice( " to " ) + cc.note( "S-chain" ) + cc.notice( "." ) +
-                cc.debug( " Default is " ) + cc.sunny( "4" ) + cc.notice( "." ) );
-            console.log( soi + cc.debug( "--" ) +
-                cc.bright( "s2m-transfer-block-size" ) + cc.sunny( "=" ) + cc.info( "value" ) +
-                cc.debug( "........." ) + cc.notice( "Number of transactions in one block " +
-                "to use in message transfer loop from " ) + cc.note( "S-chain" ) +
-                cc.notice( " to " ) + cc.note( "Main-net" ) + cc.notice( "." ) +
-                cc.debug( " Default is " ) + cc.sunny( "4" ) + cc.notice( "." ) );
-            console.log( soi + cc.debug( "--" ) +
-                cc.bright( "s2s-transfer-block-size" ) + cc.sunny( "=" ) + cc.info( "value" ) +
-                cc.debug( "........." ) + cc.notice( "Number of transactions in one block " +
-                "to use in message transfer loop from " ) + cc.note( "S-chain" ) +
-                cc.notice( " to " ) + cc.note( "S-chain" ) + cc.notice( "." ) +
-                cc.debug( " Default is " ) + cc.sunny( "4" ) + cc.notice( "." ) );
-            console.log( soi + cc.debug( "--" ) +
-                cc.bright( "transfer-block-size" ) + cc.sunny( "=" ) + cc.info( "value" ) +
-                cc.debug( "............." ) + cc.notice( "Number of transactions in one block " +
-                "to use in all message transfer loops." ) );
-            console.log( soi + cc.debug( "--" ) +
-                cc.bright( "m2s-transfer-steps" ) + cc.sunny( "=" ) + cc.info( "value" ) +
-                cc.debug( ".............." ) + cc.notice( "Maximal number of blocks " +
-                "to transfer at a job run from " ) + cc.note( "Main-net" ) +
-                cc.notice( " to " ) + cc.note( "S-chain" ) + cc.notice( "." ) +
-                cc.debug( " Value " ) + cc.sunny( "0" ) + cc.debug( " is unlimited" ) +
-                cc.notice( "." ) + cc.debug( " Default is " ) + cc.sunny( "8" ) +
-                cc.notice( "." ) );
-            console.log( soi + cc.debug( "--" ) +
-                cc.bright( "s2m-transfer-steps" ) + cc.sunny( "=" ) + cc.info( "value" ) +
-                cc.debug( ".............." ) + cc.notice( "Maximal number of blocks " +
-                "to transfer at a job run from " ) + cc.note( "S-chain" ) +
-                cc.notice( " to " ) + cc.note( "Main-net" ) + cc.notice( "." ) +
-                cc.debug( " Value " ) + cc.sunny( "0" ) + cc.debug( " is unlimited" ) +
-                cc.notice( "." ) + cc.debug( " Default is " ) + cc.sunny( "8" ) +
-                cc.notice( "." ) );
-            console.log( soi + cc.debug( "--" ) +
-                cc.bright( "s2s-transfer-steps" ) + cc.sunny( "=" ) + cc.info( "value" ) +
-                cc.debug( ".............." ) + cc.notice( "Maximal number of blocks " +
-                "to transfer at a job run from " ) + cc.note( "S-chain" ) +
-                cc.notice( " to " ) + cc.note( "S-chain" ) + cc.notice( "." ) +
-                cc.debug( " Value " ) + cc.sunny( "0" ) + cc.debug( " is unlimited" ) +
-                cc.notice( "." ) + cc.debug( " Default is " ) + cc.sunny( "8" ) +
-                cc.notice( "." ) );
-            console.log( soi + cc.debug( "--" ) +
-                cc.bright( "transfer-steps" ) + cc.sunny( "=" ) + cc.info( "value" ) +
-                cc.debug( ".................." ) + cc.notice( "Maximal number of blocks " +
-                "to transfer at a job run in all transfer loops." ) + cc.debug( " Value " ) +
-                cc.sunny( "0" ) + cc.debug( " is unlimited" ) + cc.notice( "." ) );
-            console.log( soi + cc.debug( "--" ) +
-                cc.bright( "m2s-max-transactions" ) + cc.sunny( "=" ) + cc.info( "number" ) +
-                cc.debug( "..........." ) + cc.notice( "Maximal number of transactions " +
-                "to do in message transfer loop from " ) + cc.note( "Main-net" ) +
-                cc.notice( " to " ) + cc.note( "S-chain" ) + cc.debug( "(" ) +
-                cc.sunny( "0" ) + cc.debug( " is unlimited)" ) + cc.notice( "." ) +
-                cc.debug( " Default is " ) + cc.sunny( "0" ) + cc.notice( "." ) );
-            console.log( soi + cc.debug( "--" ) +
-                cc.bright( "s2m-max-transactions" ) + cc.sunny( "=" ) + cc.info( "number" ) +
-                cc.debug( "..........." ) + cc.notice( "Maximal number of transactions " +
-                "to do in message transfer loop from " ) + cc.note( "S-chain" ) +
-                cc.notice( " to " ) + cc.note( "Main-net" ) + cc.debug( "(" ) +
-                cc.sunny( "0" ) + cc.debug( " is unlimited)" ) + cc.notice( "." ) +
-                cc.debug( " Default is " ) + cc.sunny( "0" ) + cc.notice( "." ) );
-            console.log( soi + cc.debug( "--" ) +
-                cc.bright( "s2s-max-transactions" ) + cc.sunny( "=" ) + cc.info( "number" ) +
-                cc.debug( "..........." ) + cc.notice( "Maximal number of transactions " +
-                "to do in message transfer loop from " ) + cc.note( "S-chain" ) +
-                cc.notice( " to " ) + cc.note( "S-chain" ) + cc.debug( "(" ) + cc.sunny( "0" ) +
-                cc.debug( " is unlimited)" ) + cc.notice( "." ) + cc.debug( " Default is " ) +
-                cc.sunny( "0" ) + cc.notice( "." ) );
-            console.log( soi + cc.debug( "--" ) +
-                cc.bright( "max-transactions" ) + cc.sunny( "=" ) + cc.info( "number" ) +
-                cc.debug( "..............." ) + cc.notice( "Maximal number of transactions " +
-                "to do in all message transfer loops" ) + cc.debug( "(" ) + cc.sunny( "0" ) +
-                cc.debug( " is unlimited)" ) + cc.notice( "." ) );
-            console.log( soi + cc.debug( "--" ) +
-                cc.bright( "m2s-await-blocks" ) + cc.sunny( "=" ) + cc.info( "number" ) +
-                cc.debug( "..............." ) + cc.notice( "Maximal number of blocks to wait " +
-                "to appear in blockchain before transaction from " ) + cc.note( "Main-net" ) +
-                cc.notice( " to " ) + cc.note( "S-chain" ) + cc.debug( "(" ) + cc.sunny( "0" ) +
-                cc.debug( " is no wait)" ) + cc.notice( "." ) + cc.debug( " Default is " ) +
-                cc.sunny( "0" ) + cc.notice( "." ) );
-            console.log( soi + cc.debug( "--" ) +
-                cc.bright( "s2m-await-blocks" ) + cc.sunny( "=" ) + cc.info( "number" ) +
-                cc.debug( "..............." ) + cc.notice( "Maximal number of blocks to wait " +
-                "to appear in blockchain before transaction from " ) + cc.note( "S-chain" ) +
-                cc.notice( " to " ) + cc.note( "Main-net" ) + cc.debug( "(" ) + cc.sunny( "0" ) +
-                cc.debug( " is no wait)" ) + cc.notice( "." ) + cc.debug( " Default is " ) +
-                cc.sunny( "0" ) + cc.notice( "." ) );
-            console.log( soi + cc.debug( "--" ) +
-                cc.bright( "s2s-await-blocks" ) + cc.sunny( "=" ) + cc.info( "number" ) +
-                cc.debug( "..............." ) + cc.notice( "Maximal number of blocks to wait " +
-                "to appear in blockchain before transaction from " ) + cc.note( "S-chain" ) +
-                cc.notice( " to " ) + cc.note( "S-chain" ) + cc.debug( "(" ) + cc.sunny( "0" ) +
-                cc.debug( " is no wait)" ) + cc.notice( "." ) + cc.debug( " Default is " ) +
-                cc.sunny( "0" ) + cc.notice( "." ) );
-            console.log( soi + cc.debug( "--" ) +
-                cc.bright( "await-blocks" ) + cc.sunny( "=" ) + cc.info( "number" ) +
-                cc.debug( "..................." ) + cc.notice( "Maximal number of blocks " +
-                "to wait to appear in blockchain before transaction between both " ) +
-                cc.note( "S-chain" ) + cc.notice( " and " ) + cc.note( "Main-net" ) +
-                cc.debug( "(" ) + cc.sunny( "0 " ) + cc.debug( "is no wait)" ) +
-                cc.notice( "." ) );
-            console.log( soi + cc.debug( "--" ) +
-                cc.bright( "m2s-await-time" ) + cc.sunny( "=" ) + cc.info( "seconds" ) +
-                cc.debug( "................" ) +
-                cc.notice( "Minimal age of transaction message" ) +
-                cc.debug( "(in seconds)" ) + cc.notice( " before it will be transferred from " ) +
-                cc.note( "Main-net" ) + cc.notice( " to " ) + cc.note( "S-chain" ) +
-                cc.debug( "(" ) + cc.sunny( "0" ) + cc.debug( " is no wait)" ) +
-                cc.notice( "." ) + cc.debug( " Default is " ) + cc.sunny( "0" ) +
-                cc.notice( "." ) );
-            console.log( soi + cc.debug( "--" ) +
-                cc.bright( "s2m-await-time" ) + cc.sunny( "=" ) + cc.info( "seconds" ) +
-                cc.debug( "................" ) +
-                cc.notice( "Minimal age of transaction message" ) + cc.debug( "(in seconds)" ) +
-                cc.notice( " before it will be transferred from " ) + cc.note( "S-chain" ) +
-                cc.notice( " to " ) + cc.note( "Main-net" ) + cc.debug( "(" ) + cc.sunny( "0" ) +
-                cc.debug( " is no wait)" ) + cc.notice( "." ) + cc.debug( " Default is " ) +
-                cc.sunny( "0" ) + cc.notice( "." ) );
-            console.log( soi + cc.debug( "--" ) +
-                cc.bright( "s2s-await-time" ) + cc.sunny( "=" ) + cc.info( "seconds" ) +
-                cc.debug( "................" ) +
-                cc.notice( "Minimal age of transaction message" ) + cc.debug( "(in seconds)" ) +
-                cc.notice( " before it will be transferred from " ) + cc.note( "S-chain" ) +
-                cc.notice( " to " ) + cc.note( "S-chain" ) + cc.debug( "(" ) + cc.sunny( "0" ) +
-                cc.debug( " is no wait)" ) + cc.notice( "." ) + cc.debug( " Default is " ) +
-                cc.sunny( "0" ) + cc.notice( "." ) );
-            console.log( soi + cc.debug( "--" ) +
-                cc.bright( "await-time" ) + cc.sunny( "=" ) + cc.info( "seconds" ) +
-                cc.debug( "...................." ) +
-                cc.notice( "Minimal age of transaction message" ) + cc.debug( "(in seconds)" ) +
-                cc.notice( " before it will be transferred between both " ) +
-                cc.note( "S-chain" ) + cc.notice( " and " ) + cc.note( "Main-net" ) +
-                cc.debug( "(" ) + cc.sunny( "0" ) + cc.debug( " is no wait)" ) +
-                cc.notice( "." ) );
-            console.log( soi + cc.debug( "--" ) +
-                cc.bright( "period" ) + cc.debug( "................................" ) +
-                cc.notice( "Transfer " ) + cc.note( "loop period" ) + cc.debug( "(in seconds)" ) +
-                cc.notice( "." ) );
-            console.log( soi + cc.debug( "--" ) +
-                cc.bright( "node-number" ) + cc.sunny( "=" ) + cc.info( "value" ) +
-                cc.debug( "....................." ) + cc.note( "S-Chain" ) + " " +
-                cc.bright( "node number" ) + cc.debug( "(" ) + cc.sunny( "0" ) +
-                cc.debug( "-based)" ) + cc.notice( "." ) );
-            console.log( soi + cc.debug( "--" ) +
-                cc.bright( "nodes-count" ) + cc.sunny( "=" ) + cc.info( "value" ) +
-                cc.debug( "....................." ) + cc.note( "S-Chain" ) + " " +
-                cc.bright( "nodes count" ) + cc.notice( "." ) );
-            console.log( soi + cc.debug( "--" ) +
-                cc.bright( "time-framing" ) + cc.sunny( "=" ) + cc.note( "value" ) +
-                cc.debug( "...................." ) + cc.notice( "Specifies " ) +
-                cc.note( "period" ) + cc.debug( "(in seconds) " ) +
-                cc.note( "for time framing" ) + cc.debug( "(" ) + cc.sunny( "0" ) +
-                cc.debug( " to " ) + cc.error( "disable" ) +
-                cc.debug( " time framing)" ) + cc.notice( "." ) );
-            console.log( soi + cc.debug( "--" ) +
-                cc.bright( "time-gap" ) + cc.sunny( "=" ) + cc.note( "value" ) +
-                cc.debug( "........................" ) + cc.notice( "Specifies " ) +
-                cc.note( "gap" ) + cc.debug( "(in seconds) " ) +
-                cc.note( "before next time frame" ) + cc.notice( "." ) );
-            console.log( soi + cc.debug( "--" ) +
-                cc.bright( "auto-exit" ) + cc.sunny( "=" ) + cc.note( "seconds" ) +
-                cc.debug( "....................." ) + cc.notice( "Automatically exit " ) +
-                cc.bright( "IMA Agent" ) + cc.notice( " after specified number of seconds" ) +
-                cc.debug( "(" ) + cc.sunny( "0" ) + cc.debug( " is no automatic exit, " ) +
-                cc.sunny( "3600" ) + cc.debug( " is no default)" ) + cc.notice( "." ) );
-
-            console.log( cc.sunny( "TOKEN TESTING" ) + cc.info( " commands:" ) );
-            console.log( soi + cc.debug( "--" ) +
-                cc.bright( "mint-erc20" ) + cc.debug( "............................" ) +
-                cc.notice( "Mint " ) + cc.note( "ERC20" ) + cc.notice( " tokens." ) );
-            console.log( soi + cc.debug( "--" ) +
-                cc.bright( "mint-erc721" ) + cc.debug( "..........................." ) +
-                cc.notice( "Mint " ) + cc.note( "ERC721" ) + cc.notice( " tokens." ) );
-            console.log( soi + cc.debug( "--" ) +
-                cc.bright( "mint-erc1155" ) + cc.debug( ".........................." ) +
-                cc.notice( "Mint " ) + cc.note( "ERC1155" ) + cc.notice( " tokens." ) );
-            console.log( soi + cc.debug( "--" ) +
-                cc.bright( "burn-erc20" ) + cc.debug( "............................" ) +
-                cc.notice( "Burn " ) + cc.note( "ERC20" ) + cc.notice( " tokens." ) );
-            console.log( soi + cc.debug( "--" ) +
-                cc.bright( "burn-erc721" ) + cc.debug( "..........................." ) +
-                cc.notice( "Burn " ) + cc.note( "ERC721" ) + cc.notice( " tokens." ) );
-            console.log( soi + cc.debug( "--" ) +
-                cc.bright( "burn-erc1155" ) + cc.debug( ".........................." ) +
-                cc.notice( "Burn " ) + cc.note( "ERC1155" ) + cc.notice( " tokens." ) );
-            console.log( soi + cc.debug( "Please notice, token testing commands require " ) +
-                cc.attention( "--tm-url-t-chain" ) + cc.debug( ", " ) +
-                cc.attention( "cid-t-chain" ) + cc.debug( ", " ) +
-                cc.attention( "erc20-t-chain" ) + cc.debug( " or " ) +
-                cc.attention( "erc721-t-chain" ) + cc.debug( " or " ) +
-                cc.attention( "erc1155-t-chain" ) +
-                cc.debug( ", account information (like private key " ) +
-                cc.attention( "key-t-chain" ) +
-                cc.debug( ") command line arguments specified. Token amounts are specified via " ) +
-                cc.attention( "amount" ) +
-                cc.debug( " command line arguments specified. Token IDs are specified via " ) +
-                cc.attention( "tid" ) + cc.debug( " or " ) + cc.attention( "tids" ) +
-                cc.debug( " command line arguments." )
-            );
-
-            console.log( cc.sunny( "IMA WORK STATE ANALYSIS" ) + cc.info( " options:" ) );
-            console.log( soi + cc.debug( "--" ) +
-                cc.bright( "pwa" ) + cc.debug( "..................................." ) +
-                cc.success( "Enable" ) + " " + cc.attention( "pending work analysis" ) +
-                cc.notice( " to avoid transaction conflicts." ) + " " +
-                cc.debug( "Default mode" ) + cc.notice( "." ) );
-            console.log( soi + cc.debug( "--" ) +
-                cc.bright( "no-pwa" ) + cc.debug( "................................" ) +
-                cc.error( "Disable" ) + " " + cc.attention( "pending work analysis" ) +
-                cc.notice( ". " ) + cc.warning( "Not recommended" ) +
-                cc.notice( " for slow and overloaded blockchains." ) );
-            console.log( soi + cc.debug( "--" ) +
-                cc.bright( "pwa-timeout" ) + cc.sunny( "=" ) + cc.note( "seconds" ) +
-                cc.debug( "..................." ) + cc.notice( "Node state timeout during " ) +
-                cc.attention( "pending work analysis" ) + cc.notice( ". " ) +
-                cc.debug( "Default is " ) + cc.sunny( "60" ) + cc.debug( " seconds" ) +
-                cc.notice( "." ) );
-            //
-            console.log( cc.sunny( "MESSAGE SIGNING" ) + cc.info( " options:" ) );
-            console.log( soi + cc.debug( "--" ) +
-                cc.bright( "sign-messages" ) + cc.debug( "........................." ) +
-                cc.notice( "Sign transferred messages." ) );
-            console.log( soi + cc.debug( "--" ) +
-                cc.bright( "bls-glue" ) + cc.sunny( "=" ) + cc.note( "path" ) +
-                cc.debug( "........................." ) + cc.notice( "Specifies path to " ) +
-                cc.note( "bls_glue" ) + cc.notice( " application." ) );
-            console.log( soi + cc.debug( "--" ) +
-                cc.bright( "hash-g1" ) + cc.sunny( "=" ) + cc.note( "path" ) +
-                cc.debug( ".........................." ) + cc.notice( "Specifies path to " ) +
-                cc.note( "hash_g1" ) + cc.notice( " application." ) );
-            console.log( soi + cc.debug( "--" ) +
-                cc.bright( "bls-verify" ) + cc.sunny( "=" ) + cc.note( "path" ) +
-                cc.debug( "......................." ) +
-                cc.debug( "Optional parameter, specifies path to " ) +
-                cc.note( "verify_bls" ) + cc.debug( " application." ) );
-
-            console.log( cc.sunny( "MONITORING" ) + cc.info( " options:" ) );
-            console.log( soi + cc.debug( "--" ) +
-                cc.bright( "monitoring-port" ) + cc.sunny( "=" ) + cc.note( "number" ) +
-                cc.debug( "................" ) + cc.notice( "Run " ) +
-                cc.note( "monitoring web socket RPC server" ) +
-                cc.notice( " on specified port. " ) + cc.debug( "Specify " ) +
-                cc.sunny( "0" ) + cc.debug( " to " ) + cc.error( "disable" ) +
-                cc.notice( "." ) + cc.debug( " By default monitoring server is " ) +
-                cc.error( "disabled" ) + cc.notice( "." ) );
-
-            console.log( cc.sunny( "GAS REIMBURSEMENT" ) + cc.info( " options:" ) );
-            console.log( soi + cc.debug( "--" ) +
-                cc.bright( "reimbursement-chain" ) + cc.sunny( "=" ) + cc.note( "name" ) +
-                cc.debug( ".............." ) + cc.notice( "Specifies chain name." ) );
-            console.log( soi + cc.debug( "--" ) +
-                cc.bright( "reimbursement-recharge" ) + cc.sunny( "=" ) + cc.note( "v" ) +
-                cc.warning( "u" ) + cc.debug( "............." ) + cc.success( "Recharge" ) +
-                cc.notice( " user wallet with specified value " ) + cc.attention( "v" ) +
-                cc.notice( ", unit name " ) + cc.attention( "u" ) +
-                cc.notice( " is well known Ethereum unit name like " ) + cc.attention( "ether" ) +
-                cc.notice( " or " ) + cc.attention( "wei" ) + cc.notice( "." ) );
-            console.log( soi + cc.debug( "--" ) +
-                cc.bright( "reimbursement-withdraw" ) + cc.sunny( "=" ) + cc.note( "v" ) +
-                cc.warning( "u" ) + cc.debug( "............." ) + cc.error( "Withdraw" ) +
-                cc.notice( " user wallet with specified value " ) + cc.attention( "v" ) +
-                cc.notice( ", unit name " ) + cc.attention( "u" ) +
-                cc.notice( " is well known Ethereum unit name like " ) + cc.attention( "ether" ) +
-                cc.notice( " or " ) + cc.attention( "wei" ) + cc.notice( "." ) );
-            console.log( soi + cc.debug( "--" ) +
-                cc.bright( "reimbursement-balance" ) + cc.debug( "................." ) +
-                cc.notice( "Show wallet balance." ) );
-            console.log( soi + cc.debug( "--" ) +
-                cc.bright( "reimbursement-range" ) + cc.sunny( "=" ) + cc.note( "number" ) +
-                cc.debug( "............" ) + cc.notice( "Sets " ) +
-                cc.note( "minimal time interval" ) + cc.notice( " between transfers from " ) +
-                cc.note( "S-Chain" ) + cc.notice( " to " ) + cc.note( "Main Net" ) +
-                cc.notice( "." ) );
-
-            console.log( cc.sunny( "PAST EVENTS SCAN" ) + cc.info( " options:" ) );
-            console.log( soi + cc.debug( "--" ) +
-                cc.bright( "bs-step-size" ) + cc.sunny( "=" ) + cc.note( "number" ) +
-                cc.debug( "..................." ) + cc.notice( "Specifies " ) +
-                cc.note( "step block range size" ) +
-                cc.notice( " to search iterative past events step by step. " ) +
-                cc.sunny( "0" ) + cc.notice( " to " ) + cc.error( "disable" ) +
-                cc.notice( " iterative search." ) );
-            console.log( soi + cc.debug( "--" ) +
-                cc.bright( "bs-max-all-range" ) +
-                cc.sunny( "=" ) + cc.note( "number" ) + cc.debug( "..............." ) +
-                cc.notice( "Specifies " ) + cc.note( "max number of steps" ) +
-                cc.notice( " to allow to search as [0...latest] range. " ) +
-                cc.sunny( "0" ) + cc.notice( " to " ) + cc.error( "disable" ) +
-                cc.notice( " iterative search." ) );
-            console.log( soi + cc.debug( "--" ) +
-                cc.bright( "bs-progressive-enable" ) + cc.debug( "................." ) +
-                cc.success( "Enables" ) + " " + cc.attention( "progressive block scan" ) +
-                cc.notice( " to search past events." ) );
-            console.log( soi + cc.debug( "--" ) +
-                cc.bright( "bs-progressive-disable" ) + cc.debug( "................" ) +
-                cc.error( "Disables" ) + " " + cc.attention( "progressive block scan" ) +
-                cc.notice( " to search past events." ) );
-
-            console.log( cc.sunny( "ORACLE BASED GAS REIMBURSEMENT" ) + cc.info( " options:" ) );
-            console.log( soi + cc.debug( "--" ) +
-                cc.bright( "enable-oracle" ) + cc.debug( "........................." ) +
-                cc.success( "Enable" ) + cc.notice( " call to " ) + cc.note( "Oracle" ) +
-                cc.notice( " to compute " ) + cc.note( "gas price" ) + cc.notice( " for " ) +
-                cc.attention( "gas reimbursement" ) + cc.notice( ". " ) +
-                cc.debug( "Default mode" ) + cc.notice( "." ) );
-            console.log( soi + cc.debug( "--" ) +
-                cc.bright( "disable-oracle" ) + cc.debug( "........................" ) +
-                cc.error( "Disable" ) + cc.notice( " call to " ) + cc.note( "Oracle" ) +
-                cc.notice( " to compute " ) + cc.note( "gas price" ) + cc.notice( " for " ) +
-                cc.attention( "gas reimbursement" ) + cc.notice( "." ) );
-
-            console.log( cc.sunny( "IMA JSON RPC SERVER" ) + cc.info( " options:" ) );
-            console.log( soi + cc.debug( "--" ) +
-                cc.bright( "json-rpc-port" ) + cc.sunny( "=" ) + cc.note( "number" ) +
-                cc.debug( ".................." ) + cc.notice( "Run " ) +
-                cc.note( "IMA JSON RPC server" ) + cc.notice( " on specified " ) +
-                cc.note( "port" ) + cc.notice( "." ) + cc.debug( " Specify " ) +
-                cc.sunny( "0" ) + cc.debug( " to " ) + cc.error( "disable" ) + cc.notice( "." ) +
-                cc.debug( " Default is " ) + cc.sunny( "0" ) + cc.notice( "." ) );
-            console.log( soi + cc.debug( "--" ) +
-                cc.bright( "cross-ima" ) + cc.debug( "............................." ) +
-                cc.success( "Enable" ) + cc.notice( " calls to " ) +
-                cc.note( "IMA JSON RPC servers" ) + cc.notice( " to compute " ) +
-                cc.note( "BLS signature parts" ) +
-                cc.notice( " and operation state inside time frames." ) +
-                cc.debug( "Use calls to " ) + cc.attention( "IMA Agent" ) + cc.notice( "." ) );
-            console.log( soi + cc.debug( "--" ) +
-                cc.bright( "no-cross-ima" ) + cc.debug( ".........................." ) +
-                cc.error( "Disable" ) + cc.notice( " calls to " ) +
-                cc.note( "IMA JSON RPC servers" ) + cc.notice( " to compute " ) +
-                cc.note( "BLS signature parts" ) +
-                cc.notice( " and operation state inside time frames. " ) +
-                cc.debug( "Use calls to " ) + cc.attention( "skaled" ) + cc.notice( "." ) +
-                cc.debug( " Default mode" ) + cc.notice( "." ) );
-
-            console.log( cc.sunny( "TEST" ) + cc.info( " options:" ) );
-            console.log( soi + cc.debug( "--" ) +
-                cc.bright( "browse-s-chain" ) + cc.debug( "........................" ) +
-                cc.notice( "Download own " ) + cc.note( "S-Chain" ) +
-                cc.notice( " network information." ) );
-            console.log( soi + cc.debug( "--" ) +
-                cc.bright( "browse-skale-network" ) + cc.debug( ".................." ) +
-                cc.notice( "Download entire " ) + cc.note( "SKALE network" ) +
-                cc.notice( " description." ) );
-            console.log( soi + cc.debug( "--" ) +
-                cc.bright( "browse-connected-schains" ) + cc.debug( ".............." ) +
-                cc.notice( "Download " ) + cc.note( "S-Chains" ) +
-                cc.notice( " connected to " ) + cc.note( "S-Chain" ) +
-                cc.notice( " with name specified in " ) + cc.bright( "id-s-chain" ) +
-                cc.notice( " command line parameter." ) );
-            console.log( soi + cc.debug( "--" ) +
-                cc.bright( "discover-cid" ) + cc.debug( ".........................." ) +
-                cc.notice( "Discover " ) + cc.attention( "chains ID(s)" ) +
-                cc.notice( " from provided " ) + cc.note( "URL(s)" ) + cc.notice( "." ) +
-                cc.debug( " This command is not executed automatically at startup" ) +
-                cc.notice( "." ) );
-
-            console.log( cc.sunny( "OPTIMIZATION" ) + cc.info( " options:" ) );
-            console.log( soi + cc.debug( "--" ) +
-                cc.bright( "enable-multicall" ) + cc.debug( "......................" ) +
-                cc.success( "Enable" ) + cc.notice( " optimizations via multi-call." ) +
-                cc.debug( " Default mode" ) + cc.notice( "." ) );
-            console.log( soi + cc.debug( "--" ) +
-                cc.bright( "disable-multicall" ) + cc.debug( "....................." ) +
-                cc.error( "Disable" ) + cc.notice( " optimizations via multi-call." ) );
-
-            console.log( cc.sunny( "LOGGING" ) + cc.info( " options:" ) );
-            console.log( soi + cc.debug( "--" ) +
-                cc.bright( "expose" ) + cc.debug( "................................" ) +
-                cc.notice( "Expose " ) + cc.note( "low-level log details" ) +
-                cc.notice( " after " ) + cc.success( "successful operations" ) +
-                cc.notice( ". " ) + cc.debug( "By default details exposed only " ) +
-                cc.error( "on errors" ) + cc.notice( "." ) );
-            console.log( soi + cc.debug( "--" ) +
-                cc.bright( "no-expose" ) + cc.debug( "............................." ) +
-                cc.notice( "Expose " ) + cc.note( "low-level log details" ) +
-                cc.notice( " only after " ) + cc.error( "errors" ) + cc.notice( ". " ) +
-                cc.debug( "Default expose mode" ) + cc.notice( "." ) );
-            console.log( soi + cc.debug( "--" ) +
-                cc.bright( "verbose" ) + cc.sunny( "=" ) + cc.bright( "value" ) +
-                cc.debug( "........................." ) +
-                cc.notice( "Set " ) + cc.note( "level" ) + cc.notice( " of output details." ) );
-            console.log( soi + cc.debug( "--" ) + cc.bright( "verbose-list" ) +
-                cc.debug( ".........................." ) +
-                cc.notice( "List available " ) + cc.note( "verbose levels" ) +
-                cc.notice( " and exit." ) );
-            console.log( soi + cc.debug( "--" ) +
-                cc.bright( "log" ) + cc.sunny( "=" ) + cc.note( "path" ) +
-                cc.debug( ".............................." ) +
-                cc.notice( "Write program output to specified " ) + cc.note( "log file" ) +
-                cc.debug( "(multiple files can be specified)" ) + cc.notice( "." ) );
-            console.log( soi + cc.debug( "--" ) +
-                cc.bright( "log-size" ) + cc.sunny( "=" ) + cc.note( "value" ) +
-                cc.debug( "........................" ) + cc.notice( "Max size" ) +
-                cc.debug( "(in bytes)" ) + cc.notice( " of one log file" ) +
-                cc.debug( "(affects to log log rotation)" ) + cc.notice( "." ) );
-            console.log( soi + cc.debug( "--" ) +
-                cc.bright( "log-files" ) + cc.sunny( "=" ) + cc.note( "value" ) +
-                cc.debug( "......................." ) +
-                cc.notice( "Maximum number of log files for log rotation." ) );
-            console.log( soi + cc.debug( "--" ) +
-                cc.bright( "gathered" ) + cc.debug( ".............................." ) +
-                cc.notice( "Print details of gathering data from command line arguments. " ) +
-                cc.debug( "Default mode" ) + cc.notice( "." ) );
-            console.log( soi + cc.debug( "--" ) +
-                cc.bright( "no-gathered" ) + cc.debug( "..........................." ) +
-                cc.notice( "Do not print details of gathering data " +
-                "from command line arguments." ) );
-            console.log( soi + cc.debug( "--" ) +
-                cc.bright( "expose-security-info" ) + cc.debug( ".................." ) +
-                cc.notice( "Expose security-related values in log output." ) + " " +
-                cc.debug( "This mode is needed for debugging purposes only" ) +
-                cc.notice( "." ) );
-            console.log( soi + cc.debug( "--" ) +
-                cc.bright( "no-expose-security-info" ) + cc.debug( "..............." ) +
-                cc.notice( "Do not expose security-related values in log output." ) +
-                " " + cc.debug( "Default mode" ) + cc.notice( "." ) );
-            console.log( soi + cc.debug( "--" ) +
-                cc.bright( "expose-pwa" ) + cc.debug( "............................" ) +
-                cc.notice( "Expose IMA agent pending work analysis information" ) );
-            console.log( soi + cc.debug( "--" ) +
-                cc.bright( "no-expose-pwa" ) + cc.debug( "........................." ) +
-                cc.notice( "Do not expose IMA agent pending work analysis information." ) +
-                cc.notice( "." ) + " " + cc.debug( "Default mode" ) + cc.notice( "." ) );
-            console.log( soi + cc.debug( "--" ) +
-                cc.bright( "accumulated-log-in-transfer" ) + cc.debug( "..........." ) +
-                cc.notice( "Use accumulated log in message transfer loop." ) );
-            console.log( soi + cc.debug( "--" ) +
-                cc.bright( "accumulated-log-in-bls-signer" ) + cc.debug( "........." ) +
-                cc.notice( "Use accumulated log in BLS signer." ) );
-            console.log( soi + cc.debug( "--" ) +
-                cc.bright( "dynamic-log-in-transfer" ) + cc.debug( "..............." ) +
-                cc.notice( "Use realtime log in message transfer loop." ) );
-            console.log( soi + cc.debug( "--" ) +
-                cc.bright( "dynamic-log-in-bls-signer" ) + cc.debug( "............." ) +
-                cc.notice( "Use realtime log in BLS signer." ) );
-
-            process.exit( 0 );
-        }
-        if( joArg.name == "version" ) {
-            print_about();
-            process.exit( 0 );
-        }
-        if( joArg.name == "colors" ) {
-            cc.enable( true );
+        parse_help( imaState, joArg ); // exits process on "--help"
+        parse_version( imaState, joArg ); // exits process on "--version"
+        if( parse_basic_args( imaState, joArg ) )
             continue;
-        }
-        if( joArg.name == "no-colors" ) {
-            cc.enable( false );
+        if( parse_chain_access_args( imaState, joArg ) )
             continue;
-        }
-        if( joArg.name == "expose" ) {
-            IMA.expose_details_set( true );
+        if( parse_transaction_manager_args( imaState, joArg ) )
             continue;
-        }
-        if( joArg.name == "no-expose" ) {
-            IMA.expose_details_set( false );
+        if( parse_sgx_args( imaState, joArg ) )
             continue;
-        }
-        if( joArg.name == "verbose" ) {
-            IMA.verbose_set( IMA.verbose_parse( joArg.value ) );
+        if( parse_credentials_args( imaState, joArg ) )
             continue;
-        }
-        if( joArg.name == "verbose-list" ) {
-            IMA.verbose_list();
-            return 0;
-        }
-        if( joArg.name == "url-main-net" ) {
-            owaspUtils.verifyArgumentIsURL( joArg );
-            imaState.chainProperties.mn.strURL = joArg.value;
+        if( parse_abi_args( imaState, joArg ) )
             continue;
-        }
-        if( joArg.name == "url-s-chain" ) {
-            owaspUtils.verifyArgumentIsURL( joArg );
-            imaState.chainProperties.sc.strURL = joArg.value;
+        if( parse_erc_args( imaState, joArg ) )
             continue;
-        }
-        if( joArg.name == "url-t-chain" ) {
-            owaspUtils.verifyArgumentIsURL( joArg );
-            imaState.chainProperties.tc.strURL = joArg.value;
+        if( parse_transaction_args( imaState, joArg ) )
             continue;
-        }
-        if( joArg.name == "id-main-net" ) {
-            owaspUtils.verifyArgumentWithNonEmptyValue( joArg );
-            imaState.chainProperties.mn.strChainName = joArg.value;
+        if( parse_payment_amount_args( imaState, joArg ) )
             continue;
-        }
-        if( joArg.name == "id-s-chain" ) {
-            owaspUtils.verifyArgumentWithNonEmptyValue( joArg );
-            imaState.chainProperties.sc.strChainName = joArg.value;
+        if( parse_transfer_args( imaState, joArg ) )
             continue;
-        }
-        if( joArg.name == "id-origin-chain" ) {
-            owaspUtils.verifyArgumentWithNonEmptyValue( joArg );
-            imaState.strChainName_origin_chain = joArg.value;
+        if( parse_multicall_args( imaState, joArg ) )
             continue;
-        }
-        if( joArg.name == "id-t-chain" ) {
-            owaspUtils.verifyArgumentWithNonEmptyValue( joArg );
-            imaState.chainProperties.tc.strChainName = joArg.value;
+        if( parse_pending_work_analysis_args( imaState, joArg ) )
             continue;
-        }
-        if( joArg.name == "cid-main-net" ) {
-            owaspUtils.verifyArgumentIsInteger( joArg );
-            imaState.chainProperties.mn.cid = owaspUtils.toInteger( joArg.value );
+        if( parse_logging_args( imaState, joArg ) )
             continue;
-        }
-        if( joArg.name == "cid-s-chain" ) {
-            owaspUtils.verifyArgumentIsInteger( joArg );
-            imaState.chainProperties.sc.cid = owaspUtils.toInteger( joArg.value );
+        if( parse_bls_args( imaState, joArg ) )
             continue;
-        }
-        if( joArg.name == "cid-t-chain" ) {
-            owaspUtils.verifyArgumentIsInteger( joArg );
-            imaState.chainProperties.tc.cid = owaspUtils.toInteger( joArg.value );
+        if( parse_monitoring_args( imaState, joArg ) )
+            continue; if( parse_block_scanner_args( imaState, joArg ) )
             continue;
-        }
-
-        if( joArg.name == "tm-url-main-net" ) {
-            owaspUtils.verifyArgumentIsURL( joArg );
-            const strURL = "" + joArg.value;
-            imaState.chainProperties.mn.joAccount.strTransactionManagerURL = strURL;
+        if( parse_reimbursement_args( imaState, joArg ) )
             continue;
-        }
-        if( joArg.name == "tm-url-s-chain" ) {
-            owaspUtils.verifyArgumentIsURL( joArg );
-            const strURL = "" + joArg.value;
-            imaState.chainProperties.sc.joAccount.strTransactionManagerURL = strURL;
+        if( parse_oracle_args( imaState, joArg ) )
             continue;
-        }
-        if( joArg.name == "tm-url-t-chain" ) {
-            owaspUtils.verifyArgumentIsURL( joArg );
-            const strURL = "" + joArg.value;
-            imaState.chainProperties.tc.joAccount.strTransactionManagerURL = strURL;
+        if( parse_network_discovery_args( imaState, joArg ) )
             continue;
-        }
-        if( joArg.name == "tm-priority-main-net" ) {
-            owaspUtils.verifyArgumentIsInteger( joArg );
-            imaState.chainProperties.mn.joAccount.tm_priority =
-                owaspUtils.toInteger( joArg.value );
+        if( parse_block_scanner_args( imaState, joArg ) )
             continue;
-        }
-        if( joArg.name == "tm-priority-s-chain" ) {
-            owaspUtils.verifyArgumentIsInteger( joArg );
-            imaState.chainProperties.sc.joAccount.tm_priority =
-                owaspUtils.toInteger( joArg.value );
+        if( parse_json_rpc_server_args( imaState, joArg ) )
             continue;
-        }
-        if( joArg.name == "tm-priority-t-chain" ) {
-            owaspUtils.verifyArgumentIsInteger( joArg );
-            imaState.chainProperties.tc.joAccount.tm_priority =
-                owaspUtils.toInteger( joArg.value );
+        if( parse_cross_ima_communication_args( imaState, joArg ) )
             continue;
-        }
-        if( joArg.name == "sgx-url-main-net" ) {
-            owaspUtils.verifyArgumentIsURL( joArg );
-            imaState.chainProperties.mn.joAccount.strSgxURL = joArg.value;
+        if( parse_show_config_args( imaState, joArg ) )
             continue;
-        }
-        if( joArg.name == "sgx-url-s-chain" ) {
-            owaspUtils.verifyArgumentIsURL( joArg );
-            imaState.chainProperties.sc.joAccount.strSgxURL = joArg.value;
+        if( parse_other_args( imaState, joArg ) )
             continue;
-        }
-        if( joArg.name == "sgx-url-t-chain" ) {
-            owaspUtils.verifyArgumentIsURL( joArg );
-            imaState.chainProperties.tc.joAccount.strSgxURL = joArg.value;
-            continue;
-        }
-        if( joArg.name == "sgx-ecdsa-key-main-net" ) {
-            owaspUtils.verifyArgumentWithNonEmptyValue( joArg );
-            imaState.chainProperties.mn.joAccount.strSgxKeyName = joArg.value;
-            continue;
-        }
-        if( joArg.name == "sgx-ecdsa-key-s-chain" ) {
-            owaspUtils.verifyArgumentWithNonEmptyValue( joArg );
-            imaState.chainProperties.sc.joAccount.strSgxKeyName = joArg.value;
-            continue;
-        }
-        if( joArg.name == "sgx-ecdsa-key-t-chain" ) {
-            owaspUtils.verifyArgumentWithNonEmptyValue( joArg );
-            imaState.chainProperties.tc.joAccount.strSgxKeyName = joArg.value;
-            continue;
-        }
-        if( joArg.name == "sgx-bls-key-main-net" ) {
-            owaspUtils.verifyArgumentWithNonEmptyValue( joArg );
-            imaState.chainProperties.mn.joAccount.strBlsKeyName = joArg.value;
-            continue;
-        }
-        if( joArg.name == "sgx-bls-key-s-chain" ) {
-            owaspUtils.verifyArgumentWithNonEmptyValue( joArg );
-            imaState.chainProperties.sc.joAccount.strBlsKeyName = joArg.value;
-            continue;
-        }
-        if( joArg.name == "sgx-bls-key-t-chain" ) {
-            owaspUtils.verifyArgumentWithNonEmptyValue( joArg );
-            imaState.chainProperties.tc.joAccount.strBlsKeyName = joArg.value;
-            continue;
-        }
-
-        if( joArg.name == "sgx-ssl-key-main-net" ) {
-            owaspUtils.verifyArgumentIsPathToExistingFile( joArg );
-            imaState.chainProperties.mn.joAccount.strPathSslKey =
-                imaUtils.normalizePath( joArg.value );
-            continue;
-        }
-        if( joArg.name == "sgx-ssl-key-s-chain" ) {
-            owaspUtils.verifyArgumentIsPathToExistingFile( joArg );
-            imaState.chainProperties.sc.joAccount.strPathSslKey =
-                imaUtils.normalizePath( joArg.value );
-            continue;
-        }
-        if( joArg.name == "sgx-ssl-key-t-chain" ) {
-            owaspUtils.verifyArgumentIsPathToExistingFile( joArg );
-            imaState.chainProperties.tc.joAccount.strPathSslKey =
-                imaUtils.normalizePath( joArg.value );
-            continue;
-        }
-        if( joArg.name == "sgx-ssl-cert-main-net" ) {
-            owaspUtils.verifyArgumentIsPathToExistingFile( joArg );
-            imaState.chainProperties.mn.joAccount.strPathSslCert =
-                imaUtils.normalizePath( joArg.value );
-            continue;
-        }
-        if( joArg.name == "sgx-ssl-cert-s-chain" ) {
-            owaspUtils.verifyArgumentIsPathToExistingFile( joArg );
-            imaState.chainProperties.sc.joAccount.strPathSslCert =
-                imaUtils.normalizePath( joArg.value );
-            continue;
-        }
-        if( joArg.name == "sgx-ssl-cert-t-chain" ) {
-            owaspUtils.verifyArgumentIsPathToExistingFile( joArg );
-            imaState.chainProperties.tc.joAccount.strPathSslCert =
-                imaUtils.normalizePath( joArg.value );
-            continue;
-        }
-
-        if( joArg.name == "address-main-net" ) {
-            owaspUtils.verifyArgumentWithNonEmptyValue( joArg );
-            imaState.chainProperties.mn.joAccount.address_ = joArg.value;
-            continue;
-        }
-        if( joArg.name == "address-s-chain" ) {
-            owaspUtils.verifyArgumentWithNonEmptyValue( joArg );
-            imaState.chainProperties.sc.joAccount.address_ = joArg.value;
-            continue;
-        }
-        if( joArg.name == "address-t-chain" ) {
-            owaspUtils.verifyArgumentWithNonEmptyValue( joArg );
-            imaState.chainProperties.tc.joAccount.address_ = joArg.value;
-            continue;
-        }
-        if( joArg.name == "receiver" ) {
-            owaspUtils.verifyArgumentWithNonEmptyValue( joArg );
-            imaState.receiver = joArg.value;
-            continue;
-        }
-        if( joArg.name == "key-main-net" ) {
-            owaspUtils.verifyArgumentWithNonEmptyValue( joArg );
-            imaState.chainProperties.mn.joAccount.privateKey = joArg.value;
-            continue;
-        }
-        if( joArg.name == "key-s-chain" ) {
-            owaspUtils.verifyArgumentWithNonEmptyValue( joArg );
-            imaState.chainProperties.sc.joAccount.privateKey = joArg.value;
-            continue;
-        }
-        if( joArg.name == "key-t-chain" ) {
-            owaspUtils.verifyArgumentWithNonEmptyValue( joArg );
-            imaState.chainProperties.tc.joAccount.privateKey = joArg.value;
-            continue;
-        }
-        if( joArg.name == "abi-skale-manager" ) {
-            owaspUtils.verifyArgumentIsPathToExistingFile( joArg );
-            imaState.strPathAbiJsonSkaleManager = imaUtils.normalizePath( joArg.value );
-            continue;
-        }
-        if( joArg.name == "abi-main-net" ) {
-            owaspUtils.verifyArgumentIsPathToExistingFile( joArg );
-            imaState.chainProperties.mn.strPathAbiJson = imaUtils.normalizePath( joArg.value );
-            continue;
-        }
-        if( joArg.name == "abi-s-chain" ) {
-            owaspUtils.verifyArgumentIsPathToExistingFile( joArg );
-            imaState.chainProperties.sc.strPathAbiJson = imaUtils.normalizePath( joArg.value );
-            continue;
-        }
-        if( joArg.name == "abi-t-chain" ) {
-            owaspUtils.verifyArgumentIsPathToExistingFile( joArg );
-            imaState.chainProperties.tc.strPathAbiJson = imaUtils.normalizePath( joArg.value );
-            continue;
-        }
-
-        if( joArg.name == "erc20-main-net" ) {
-            owaspUtils.verifyArgumentIsPathToExistingFile( joArg );
-            imaState.chainProperties.mn.strPathJsonErc20 = imaUtils.normalizePath( joArg.value );
-            continue;
-        }
-        if( joArg.name == "erc20-s-chain" ) {
-            owaspUtils.verifyArgumentIsPathToExistingFile( joArg );
-            imaState.chainProperties.sc.strPathJsonErc20 = imaUtils.normalizePath( joArg.value );
-            continue;
-        }
-        if( joArg.name == "addr-erc20-s-chain" ) {
-            owaspUtils.verifyArgumentWithNonEmptyValue( joArg );
-            imaState.strAddrErc20_explicit = joArg.value;
-            continue;
-        }
-        if( joArg.name == "erc20-t-chain" ) {
-            owaspUtils.verifyArgumentIsPathToExistingFile( joArg );
-            imaState.chainProperties.tc.strPathJsonErc20 = imaUtils.normalizePath( joArg.value );
-            continue;
-        }
-        if( joArg.name == "addr-erc20-t-chain" ) {
-            owaspUtils.verifyArgumentWithNonEmptyValue( joArg );
-            imaState.strAddrErc20_explicit_target = joArg.value;
-            continue;
-        }
-
-        if( joArg.name == "erc721-main-net" ) {
-            owaspUtils.verifyArgumentIsPathToExistingFile( joArg );
-            imaState.chainProperties.mn.strPathJsonErc721 = imaUtils.normalizePath( joArg.value );
-            continue;
-        }
-        if( joArg.name == "erc721-s-chain" ) {
-            owaspUtils.verifyArgumentIsPathToExistingFile( joArg );
-            imaState.chainProperties.sc.strPathJsonErc721 = imaUtils.normalizePath( joArg.value );
-            continue;
-        }
-        if( joArg.name == "addr-erc721-s-chain" ) {
-            owaspUtils.verifyArgumentWithNonEmptyValue( joArg );
-            imaState.strAddrErc721_explicit = joArg.value;
-            continue;
-        }
-        if( joArg.name == "erc721-t-chain" ) {
-            owaspUtils.verifyArgumentIsPathToExistingFile( joArg );
-            imaState.chainProperties.tc.strPathJsonErc721 = imaUtils.normalizePath( joArg.value );
-            continue;
-        }
-        if( joArg.name == "addr-erc721-t-chain" ) {
-            owaspUtils.verifyArgumentWithNonEmptyValue( joArg );
-            imaState.strAddrErc721_explicit_target = joArg.value;
-            continue;
-        }
-
-        if( joArg.name == "erc1155-main-net" ) {
-            owaspUtils.verifyArgumentIsPathToExistingFile( joArg );
-            imaState.chainProperties.mn.strPathJsonErc1155 = imaUtils.normalizePath( joArg.value );
-            continue;
-        }
-        if( joArg.name == "erc1155-s-chain" ) {
-            owaspUtils.verifyArgumentIsPathToExistingFile( joArg );
-            imaState.chainProperties.sc.strPathJsonErc1155 = imaUtils.normalizePath( joArg.value );
-            continue;
-        }
-        if( joArg.name == "addr-erc1155-s-chain" ) {
-            owaspUtils.verifyArgumentWithNonEmptyValue( joArg );
-            imaState.strAddrErc1155_explicit = joArg.value;
-            continue;
-        }
-        if( joArg.name == "erc1155-t-chain" ) {
-            owaspUtils.verifyArgumentIsPathToExistingFile( joArg );
-            imaState.chainProperties.tc.strPathJsonErc1155 = imaUtils.normalizePath( joArg.value );
-            continue;
-        }
-        if( joArg.name == "addr-erc1155-t-chain" ) {
-            owaspUtils.verifyArgumentWithNonEmptyValue( joArg );
-            imaState.strAddrErc1155_explicit_target = joArg.value;
-            continue;
-        }
-
-        if( joArg.name == "sleep-between-tx" ) {
-            owaspUtils.verifyArgumentIsInteger( joArg );
-            IMA.setSleepBetweenTransactionsOnSChainMilliseconds( joArg.value );
-            continue;
-        }
-        if( joArg.name == "wait-next-block" ) {
-            IMA.setWaitForNextBlockOnSChain( true );
-            continue;
-        }
-        if( joArg.name == "value" ) {
-            owaspUtils.verifyArgumentWithNonEmptyValue( joArg );
-            imaState.nAmountOfWei = owaspUtils.parseMoneySpecToWei( "" + joArg.value, true );
-            continue;
-        }
-        if( joArg.name == "wei" ) {
-            owaspUtils.verifyArgumentWithNonEmptyValue( joArg );
-            imaState.nAmountOfWei =
-                owaspUtils.parseMoneySpecToWei( "" + joArg.value + "wei", true );
-            continue;
-        }
-        if( joArg.name == "babbage" ) {
-            owaspUtils.verifyArgumentWithNonEmptyValue( joArg );
-            imaState.nAmountOfWei =
-                owaspUtils.parseMoneySpecToWei( "" + joArg.value + "babbage", true );
-            continue;
-        }
-        if( joArg.name == "lovelace" ) {
-            owaspUtils.verifyArgumentWithNonEmptyValue( joArg );
-            imaState.nAmountOfWei =
-                owaspUtils.parseMoneySpecToWei( "" + joArg.value + "lovelace", true );
-            continue;
-        }
-        if( joArg.name == "shannon" ) {
-            owaspUtils.verifyArgumentWithNonEmptyValue( joArg );
-            imaState.nAmountOfWei =
-                owaspUtils.parseMoneySpecToWei( "" + joArg.value + "shannon", true );
-            continue;
-        }
-        if( joArg.name == "szabo" ) {
-            owaspUtils.verifyArgumentWithNonEmptyValue( joArg );
-            imaState.nAmountOfWei =
-                owaspUtils.parseMoneySpecToWei( "" + joArg.value + "szabo", true );
-            continue;
-        }
-        if( joArg.name == "finney" ) {
-            owaspUtils.verifyArgumentWithNonEmptyValue( joArg );
-            imaState.nAmountOfWei =
-                owaspUtils.parseMoneySpecToWei( "" + joArg.value + "finney", true );
-            continue;
-        }
-        if( joArg.name == "ether" ) {
-            owaspUtils.verifyArgumentWithNonEmptyValue( joArg );
-            imaState.nAmountOfWei =
-                owaspUtils.parseMoneySpecToWei( "" + joArg.value + "ether", true );
-            continue;
-        }
-        if( joArg.name == "amount" ) {
-            owaspUtils.verifyArgumentWithNonEmptyValue( joArg );
-            imaState.nAmountOfToken = joArg.value;
-            continue;
-        }
-        if( joArg.name == "tid" ) {
-            owaspUtils.verifyArgumentWithNonEmptyValue( joArg );
-            imaState.idToken = joArg.value;
-            imaState.have_idToken = true;
-            continue;
-        }
-        if( joArg.name == "amounts" ) {
-            imaState.arrAmountsOfTokens = owaspUtils.verifyArgumentIsArrayOfIntegers( joArg );
-            continue;
-        }
-        if( joArg.name == "tids" ) {
-            imaState.idTokens = owaspUtils.verifyArgumentIsArrayOfIntegers( joArg );
-            imaState.have_idTokens = true;
-            continue;
-        }
-
-        if( joArg.name == "gas-price-multiplier-mn" ) {
-            let gasPriceMultiplier = owaspUtils.toFloat( joArg.value );
-            if( gasPriceMultiplier < 0.0 )
-                gasPriceMultiplier = 0.0;
-            imaState.chainProperties.mn.transactionCustomizer.gasPriceMultiplier =
-                gasPriceMultiplier;
-            continue;
-        }
-        if( joArg.name == "gas-price-multiplier-sc" ) {
-            let gasPriceMultiplier = owaspUtils.toFloat( joArg.value );
-            if( gasPriceMultiplier < 0.0 )
-                gasPriceMultiplier = 0.0;
-            imaState.chainProperties.sc.transactionCustomizer.gasPriceMultiplier =
-                gasPriceMultiplier;
-            continue;
-        }
-        if( joArg.name == "gas-price-multiplier-tc" ) {
-            let gasPriceMultiplier = owaspUtils.toFloat( joArg.value );
-            if( gasPriceMultiplier < 0.0 )
-                gasPriceMultiplier = 0.0;
-            imaState.chainProperties.tc.transactionCustomizer.gasPriceMultiplier =
-                gasPriceMultiplier;
-            continue;
-        }
-        if( joArg.name == "gas-price-multiplier" ) {
-            let gasPriceMultiplier = owaspUtils.toFloat( joArg.value );
-            if( gasPriceMultiplier < 0.0 )
-                gasPriceMultiplier = 0.0;
-            imaState.chainProperties.mn.transactionCustomizer.gasPriceMultiplier =
-                imaState.chainProperties.sc.transactionCustomizer.gasPriceMultiplier =
-                imaState.chainProperties.tc.transactionCustomizer.gasPriceMultiplier =
-                gasPriceMultiplier;
-            continue;
-        }
-
-        if( joArg.name == "gas-multiplier-mn" ) {
-            let gasMultiplier = owaspUtils.toFloat( joArg.value );
-            if( gasMultiplier < 0.0 )
-                gasMultiplier = 0.0;
-            imaState.chainProperties.mn.transactionCustomizer.gasMultiplier =
-                gasMultiplier;
-            continue;
-        }
-        if( joArg.name == "gas-multiplier-sc" ) {
-            let gasMultiplier = owaspUtils.toFloat( joArg.value );
-            if( gasMultiplier < 0.0 )
-                gasMultiplier = 0.0;
-            imaState.chainProperties.sc.transactionCustomizer.gasMultiplier =
-                gasMultiplier;
-            continue;
-        }
-        if( joArg.name == "gas-multiplier-tc" ) {
-            let gasMultiplier = owaspUtils.toFloat( joArg.value );
-            if( gasMultiplier < 0.0 )
-                gasMultiplier = 0.0;
-            imaState.chainProperties.tc.transactionCustomizer.gasMultiplier =
-                gasMultiplier;
-            continue;
-        }
-        if( joArg.name == "gas-multiplier" ) {
-            let gasMultiplier = owaspUtils.toFloat( joArg.value );
-            if( gasMultiplier < 0.0 )
-                gasMultiplier = 0.0;
-            imaState.chainProperties.mn.transactionCustomizer.gasMultiplier =
-                imaState.chainProperties.sc.transactionCustomizer.gasMultiplier =
-                imaState.chainProperties.tc.transactionCustomizer.gasMultiplier =
-                gasMultiplier;
-            continue;
-        }
-
-        if( joArg.name == "s2s-enable" ) {
-            imaState.s2s_opts.isEnabled = true;
-            continue;
-        }
-        if( joArg.name == "s2s-disable" ) {
-            imaState.s2s_opts.isEnabled = false;
-            continue;
-        }
-        if( joArg.name == "net-rediscover" ) {
-            owaspUtils.verifyArgumentIsInteger( joArg );
-            imaState.s2s_opts.secondsToReDiscoverSkaleNetwork =
-                owaspUtils.toInteger( joArg.value );
-            continue;
-        }
-        if( joArg.name == "with-metadata" ) {
-            imaState.isWithMetadata721 = true;
-            continue;
-        }
-
-        if( joArg.name == "show-config" ) {
-            imaState.bShowConfigMode = true;
-            continue;
-        }
-        if( joArg.name == "no-wait-s-chain" ) {
-            imaState.bNoWaitSChainStarted = true;
-            continue;
-        }
-        if( joArg.name == "max-wait-attempts" ) {
-            imaState.nMaxWaitSChainAttempts = owaspUtils.toInteger( joArg.value );
-            continue;
-        }
-        if( joArg.name == "skip-dry-run" ) {
-            IMA.dry_run_enable( false );
-            continue;
-        }
-        if( joArg.name == "no-skip-dry-run" ) {
-            IMA.dry_run_enable( true );
-            continue;
-        }
-        if( joArg.name == "ignore-dry-run" ) {
-            IMA.dry_run_ignore( true );
-            continue;
-        }
-        if( joArg.name == "dry-run" || joArg.name == "no-ignore-dry-run" ) {
-            IMA.dry_run_ignore( false );
-            continue;
-        }
-        if( joArg.name == "m2s-transfer-block-size" ) {
-            owaspUtils.verifyArgumentIsInteger( joArg );
-            imaState.nTransferBlockSizeM2S = owaspUtils.toInteger( joArg.value );
-            continue;
-        }
-        if( joArg.name == "s2m-transfer-block-size" ) {
-            owaspUtils.verifyArgumentIsInteger( joArg );
-            imaState.nTransferBlockSizeS2M = owaspUtils.toInteger( joArg.value );
-            continue;
-        }
-        if( joArg.name == "s2s-transfer-block-size" ) {
-            owaspUtils.verifyArgumentIsInteger( joArg );
-            imaState.nTransferBlockSizeS2S = owaspUtils.toInteger( joArg.value );
-            continue;
-        }
-        if( joArg.name == "transfer-block-size" ) {
-            owaspUtils.verifyArgumentIsInteger( joArg );
-            imaState.nTransferBlockSizeM2S =
-                imaState.nTransferBlockSizeS2M =
-                imaState.nTransferBlockSizeS2S =
-                    owaspUtils.toInteger( joArg.value );
-            continue;
-        }
-
-        if( joArg.name == "m2s-transfer-steps" ) {
-            owaspUtils.verifyArgumentIsInteger( joArg );
-            imaState.nTransferStepsM2S = owaspUtils.toInteger( joArg.value );
-            continue;
-        }
-        if( joArg.name == "s2m-transfer-steps" ) {
-            owaspUtils.verifyArgumentIsInteger( joArg );
-            imaState.nTransferStepsS2M = owaspUtils.toInteger( joArg.value );
-            continue;
-        }
-        if( joArg.name == "s2s-transfer-steps" ) {
-            owaspUtils.verifyArgumentIsInteger( joArg );
-            imaState.nTransferStepsS2S = owaspUtils.toInteger( joArg.value );
-            continue;
-        }
-        if( joArg.name == "transfer-steps" ) {
-            owaspUtils.verifyArgumentIsInteger( joArg );
-            imaState.nTransferStepsM2S =
-                imaState.nTransferStepsS2M =
-                imaState.nTransferStepsS2S =
-                    owaspUtils.toInteger( joArg.value );
-            continue;
-        }
-
-        if( joArg.name == "m2s-max-transactions" ) {
-            owaspUtils.verifyArgumentIsInteger( joArg );
-            imaState.nMaxTransactionsM2S = owaspUtils.toInteger( joArg.value );
-            continue;
-        }
-        if( joArg.name == "s2m-max-transactions" ) {
-            owaspUtils.verifyArgumentIsInteger( joArg );
-            imaState.nMaxTransactionsS2M = owaspUtils.toInteger( joArg.value );
-            continue;
-        }
-        if( joArg.name == "s2s-max-transactions" ) {
-            owaspUtils.verifyArgumentIsInteger( joArg );
-            imaState.nMaxTransactionsS2S = owaspUtils.toInteger( joArg.value );
-            continue;
-        }
-        if( joArg.name == "max-transactions" ) {
-            owaspUtils.verifyArgumentIsInteger( joArg );
-            imaState.nMaxTransactionsM2S =
-                imaState.nMaxTransactionsS2M =
-                imaState.nMaxTransactionsS2S =
-                    owaspUtils.toInteger( joArg.value );
-            continue;
-        }
-        if( joArg.name == "m2s-await-blocks" ) {
-            owaspUtils.verifyArgumentIsInteger( joArg );
-            imaState.nBlockAwaitDepthM2S = owaspUtils.toInteger( joArg.value );
-            continue;
-        }
-        if( joArg.name == "s2m-await-blocks" ) {
-            owaspUtils.verifyArgumentIsInteger( joArg );
-            imaState.nBlockAwaitDepthS2M = owaspUtils.toInteger( joArg.value );
-            continue;
-        }
-        if( joArg.name == "s2s-await-blocks" ) {
-            owaspUtils.verifyArgumentIsInteger( joArg );
-            imaState.nBlockAwaitDepthS2S = owaspUtils.toInteger( joArg.value );
-            continue;
-        }
-        if( joArg.name == "await-blocks" ) {
-            owaspUtils.verifyArgumentIsInteger( joArg );
-            imaState.nBlockAwaitDepthM2S =
-                imaState.nBlockAwaitDepthS2M =
-                imaState.nBlockAwaitDepthS2S =
-                    owaspUtils.toInteger( joArg.value );
-            continue;
-        }
-        if( joArg.name == "m2s-await-time" ) {
-            owaspUtils.verifyArgumentIsInteger( joArg );
-            imaState.nBlockAgeM2S = owaspUtils.toInteger( joArg.value );
-            continue;
-        }
-        if( joArg.name == "s2m-await-time" ) {
-            owaspUtils.verifyArgumentIsInteger( joArg );
-            imaState.nBlockAgeS2M = owaspUtils.toInteger( joArg.value );
-            continue;
-        }
-        if( joArg.name == "s2s-await-time" ) {
-            owaspUtils.verifyArgumentIsInteger( joArg );
-            imaState.nBlockAgeS2S = owaspUtils.toInteger( joArg.value );
-            continue;
-        }
-        if( joArg.name == "await-time" ) {
-            owaspUtils.verifyArgumentIsInteger( joArg );
-            imaState.nBlockAgeM2S =
-                imaState.nBlockAgeS2M =
-                imaState.nBlockAgeS2S =
-                    owaspUtils.toInteger( joArg.value );
-            continue;
-        }
-        if( joArg.name == "period" ) {
-            owaspUtils.verifyArgumentIsInteger( joArg );
-            imaState.nLoopPeriodSeconds = owaspUtils.toInteger( joArg.value );
-            continue;
-        }
-        if( joArg.name == "node-number" ) {
-            owaspUtils.verifyArgumentIsInteger( joArg );
-            imaState.nNodeNumber = owaspUtils.toInteger( joArg.value );
-            continue;
-        }
-        if( joArg.name == "nodes-count" ) {
-            owaspUtils.verifyArgumentIsInteger( joArg );
-            imaState.nNodesCount = owaspUtils.toInteger( joArg.value );
-            continue;
-        }
-        if( joArg.name == "time-framing" ) {
-            owaspUtils.verifyArgumentIsInteger( joArg );
-            imaState.nTimeFrameSeconds = owaspUtils.toInteger( joArg.value );
-            continue;
-        }
-        if( joArg.name == "time-gap" ) {
-            owaspUtils.verifyArgumentIsInteger( joArg );
-            imaState.nNextFrameGap = owaspUtils.toInteger( joArg.value );
-            continue;
-        }
-        if( joArg.name == "auto-exit" ) {
-            owaspUtils.verifyArgumentIsInteger( joArg );
-            imaState.nAutoExitAfterSeconds = owaspUtils.toInteger( joArg.value );
-            continue;
-        }
-        if( joArg.name == "enable-multicall" ) {
-            imaState.isEnabledMultiCall = true;
-            continue;
-        }
-        if( joArg.name == "disable-multicall" ) {
-            imaState.isEnabledMultiCall = false;
-            continue;
-        }
-        if( joArg.name == "pwa" ) {
-            imaState.isPWA = true;
-            continue;
-        }
-        if( joArg.name == "no-pwa" ) {
-            imaState.isPWA = false;
-            continue;
-        }
-        if( joArg.name == "pwa-timeout" ) {
-            owaspUtils.verifyArgumentIsInteger( joArg );
-            imaState.nTimeoutSecondsPWA = owaspUtils.toInteger( joArg.value );
-            continue;
-        }
-        if( joArg.name == "log-size" ) {
-            owaspUtils.verifyArgumentIsInteger( joArg );
-            imaState.nLogMaxSizeBeforeRotation = owaspUtils.toInteger( joArg.value );
-            continue;
-        }
-        if( joArg.name == "log-files" ) {
-            owaspUtils.verifyArgumentIsInteger( joArg );
-            imaState.nLogMaxFilesCount = owaspUtils.toInteger( joArg.value );
-            continue;
-        }
-        if( joArg.name == "gathered" ) {
-            imaState.isPrintGathered = true;
-            continue;
-        }
-        if( joArg.name == "no-gathered" ) {
-            imaState.isPrintGathered = false;
-            continue;
-        }
-        if( joArg.name == "expose-security-info" ) {
-            imaState.isPrintSecurityValues = true;
-            continue;
-        }
-        if( joArg.name == "no-expose-security-info" ) {
-            imaState.isPrintSecurityValues = false;
-            continue;
-        }
-        if( joArg.name == "expose-pwa" ) {
-            imaState.isPrintPWA = true;
-            continue;
-        }
-        if( joArg.name == "no-expose-pwa" ) {
-            imaState.isPrintPWA = false;
-            continue;
-        }
-        if( joArg.name == "accumulated-log-in-transfer" ) {
-            imaState.isDynamicLogInDoTransfer = false;
-            continue;
-        }
-        if( joArg.name == "accumulated-log-in-bls-signer" ) {
-            imaState.isDynamicLogInBlsSigner = false;
-            continue;
-        }
-        if( joArg.name == "dynamic-log-in-transfer" ) {
-            imaState.isDynamicLogInDoTransfer = true;
-            continue;
-        }
-        if( joArg.name == "dynamic-log-in-bls-signer" ) {
-            imaState.isDynamicLogInBlsSigner = true;
-            continue;
-        }
-        if( joArg.name == "log" ) {
-            owaspUtils.verifyArgumentWithNonEmptyValue( joArg );
-            imaState.strLogFilePath = "" + joArg.value;
-            continue;
-        }
-        if( joArg.name == "sign-messages" ) {
-            imaState.bSignMessages = true;
-            continue;
-        }
-        if( joArg.name == "bls-glue" ) {
-            owaspUtils.verifyArgumentIsPathToExistingFile( joArg );
-            imaState.strPathBlsGlue = "" + joArg.value;
-            continue;
-        }
-        if( joArg.name == "hash-g1" ) {
-            owaspUtils.verifyArgumentIsPathToExistingFile( joArg );
-            imaState.strPathHashG1 = "" + joArg.value;
-            continue;
-        }
-        if( joArg.name == "bls-verify" ) {
-            owaspUtils.verifyArgumentIsPathToExistingFile( joArg );
-            imaState.strPathBlsVerify = "" + joArg.value;
-            continue;
-        }
-        if( joArg.name == "monitoring-port" ) {
-            owaspUtils.verifyArgumentIsIntegerIpPortNumber( joArg, true );
-            imaState.nMonitoringPort = owaspUtils.toInteger( joArg.value );
-            continue;
-        }
-        if( joArg.name == "reimbursement-chain" ) {
-            owaspUtils.verifyArgumentWithNonEmptyValue( joArg );
-            imaState.strReimbursementChain = joArg.value.trim();
-            continue;
-        }
-        if( joArg.name == "reimbursement-recharge" ) {
-            owaspUtils.verifyArgumentWithNonEmptyValue( joArg );
-            imaState.nReimbursementRecharge =
-                owaspUtils.parseMoneySpecToWei( "" + joArg.value, true );
-            continue;
-        }
-        if( joArg.name == "reimbursement-withdraw" ) {
-            owaspUtils.verifyArgumentWithNonEmptyValue( joArg );
-            imaState.nReimbursementWithdraw =
-                owaspUtils.parseMoneySpecToWei( "" + joArg.value, true );
-            continue;
-        }
-        if( joArg.name == "reimbursement-balance" ) {
-            imaState.isShowReimbursementBalance = true;
-            continue;
-        }
-        if( joArg.name == "reimbursement-estimate" ) {
-            imaState.nReimbursementEstimate = true;
-            continue;
-        }
-        if( joArg.name == "reimbursement-range" ) {
-            owaspUtils.verifyArgumentWithNonEmptyValue( joArg );
-            imaState.nReimbursementRange = owaspUtils.toInteger( joArg.value );
-            continue;
-        }
-        if( joArg.name == "bs-step-size" ) {
-            owaspUtils.verifyArgumentIsInteger( joArg );
-            IMA.setBlocksCountInInIterativeStepOfEventsScan( owaspUtils.toInteger( joArg.value ) );
-            continue;
-        }
-        if( joArg.name == "bs-max-all-range" ) {
-            owaspUtils.verifyArgumentIsInteger( joArg );
-            IMA.setMaxIterationsInAllRangeEventsScan( owaspUtils.toInteger( joArg.value ) );
-            continue;
-        }
-        if( joArg.name == "bs-progressive-enable" ) {
-            IMA.setEnabledProgressiveEventsScan( true );
-            continue;
-        }
-        if( joArg.name == "bs-progressive-disable" ) {
-            IMA.setEnabledProgressiveEventsScan( false );
-            continue;
-        }
-        if( joArg.name == "enable-oracle" ) {
-            IMA.setEnabledOracle( true );
-            continue;
-        }
-        if( joArg.name == "disable-oracle" ) {
-            IMA.setEnabledOracle( false );
-            continue;
-        }
-        if( joArg.name == "json-rpc-port" ) {
-            owaspUtils.verifyArgumentIsIntegerIpPortNumber( joArg, true );
-            imaState.nJsonRpcPort = owaspUtils.toInteger( joArg.value );
-            continue;
-        }
-        if( joArg.name == "cross-ima" ) {
-            imaState.isCrossImaBlsMode = true;
-            continue;
-        }
-        if( joArg.name == "no-cross-ima" ) {
-            imaState.isCrossImaBlsMode = false;
-            continue;
-        }
-        if( joArg.name == "s2s-forward" ) {
-            IMA.setForwardS2S();
-            continue;
-        }
-        if( joArg.name == "s2s-reverse" ) {
-            IMA.setReverseS2S();
-            continue;
-        }
         if( joArg.name == "register" ||
             joArg.name == "register1" ||
             joArg.name == "check-registration" ||
@@ -2295,7 +2495,7 @@ async function async_check_url_at_startup( u, name ) {
     return false;
 }
 
-export function ima_common_init() {
+function ima_common_init_print_sys_info() {
     const imaState = state.get();
     const isPrintGathered = imaState.isPrintGathered ? true : false;
     if( isPrintGathered ) {
@@ -2356,9 +2556,11 @@ export function ima_common_init() {
         log.write( cc.sunny( "OS" ) + " " + cc.bright( "average load" ) +
             cc.debug( " is " ) + cc.j( os.loadavg() ) + "\n" );
     } // if( isPrintGathered )
+}
 
-    let n1 = 0;
-    let n2 = 0;
+function ima_common_init_check_abi_paths() {
+    const imaState = state.get();
+    // const isPrintGathered = imaState.isPrintGathered ? true : false;
     if( imaState.strPathAbiJsonSkaleManager &&
         ( typeof imaState.strPathAbiJsonSkaleManager == "string" ) &&
         imaState.strPathAbiJsonSkaleManager.length > 0
@@ -2421,7 +2623,11 @@ export function ima_common_init() {
             cc.debug( "(needed for particular operations only)" ) +
             "\n" );
     }
+}
 
+function ima_common_init_check_abi_contracts_presences() {
+    const imaState = state.get();
+    // const isPrintGathered = imaState.isPrintGathered ? true : false;
     if( imaState.bHaveSkaleManagerABI ) {
         imaUtils.check_keys_exist_in_abi( "skale-manager",
             imaState.strPathAbiJsonSkaleManager,
@@ -2522,7 +2728,11 @@ export function ima_common_init() {
                 "community_locker_address"
             ] );
     }
+}
 
+function ima_common_init_print_found_contracts() {
+    const imaState = state.get();
+    const isPrintGathered = imaState.isPrintGathered ? true : false;
     // deposit_box_eth_address                    --> deposit_box_eth_abi
     // deposit_box_erc20_address                  --> deposit_box_erc20_abi
     // deposit_box_erc721_address                 --> deposit_box_erc721_abi
@@ -2621,25 +2831,24 @@ export function ima_common_init() {
         log.write( cc.sunny( "Wallets" ) + cc.debug( ".........................address is....." ) +
             oct( imaState.jo_wallets ) + "\n" );
     } // if( isPrintGathered )
+}
 
-    if( imaState.chainProperties.mn.strPathJsonErc20.length > 0
-    /* && imaState.chainProperties.sc.strPathJsonErc20.length > 0 */
-    ) {
-        n1 = 0;
-        n2 = 0;
+function ima_common_init_check_erc20() {
+    const imaState = state.get();
+    const isPrintGathered = imaState.isPrintGathered ? true : false;
+    let n1 = 0;
+    let n2 = 0;
+    if( imaState.chainProperties.mn.strPathJsonErc20.length > 0 ) {
         if( isPrintGathered && IMA.verbose_get() > IMA.RV_VERBOSE().information ) {
-            log.write(
-                cc.info( "Loading Main-net ERC20 ABI from " ) +
-                cc.info( imaState.chainProperties.mn.strPathJsonErc20 ) +
-                "\n" );
+            log.write( cc.info( "Loading Main-net ERC20 ABI from " ) +
+                cc.info( imaState.chainProperties.mn.strPathJsonErc20 ) + "\n" );
         }
         imaState.chainProperties.mn.joErc20 =
             imaUtils.jsonFileLoad( imaState.chainProperties.mn.strPathJsonErc20, null );
         n1 = Object.keys( imaState.chainProperties.mn.joErc20 ).length;
         if( imaState.chainProperties.sc.strPathJsonErc20.length > 0 ) {
             if( isPrintGathered && IMA.verbose_get() > IMA.RV_VERBOSE().information ) {
-                log.write(
-                    cc.info( "Loading S-Chain ERC20 ABI from " ) +
+                log.write( cc.info( "Loading S-Chain ERC20 ABI from " ) +
                     cc.info( imaState.chainProperties.sc.strPathJsonErc20 ) +
                     "\n" );
             }
@@ -2663,14 +2872,12 @@ export function ima_common_init() {
                     ( !imaState.bShowConfigMode )
                 ) {
                     if( isPrintGathered ) {
-                        log.write(
-                            cc.info( "Loaded Main-net ERC20 ABI " ) +
+                        log.write( cc.info( "Loaded Main-net ERC20 ABI " ) +
                             cc.attention( imaState.chainProperties.tc.strCoinNameErc20 ) +
                             "\n" );
                     }
                     if( isPrintGathered && n2 > 0 ) {
-                        log.write(
-                            cc.info( "Loaded S-Chain ERC20 ABI " ) +
+                        log.write( cc.info( "Loaded S-Chain ERC20 ABI " ) +
                             cc.attention( imaState.chainProperties.sc.strCoinNameErc20 ) +
                             "\n" );
                     }
@@ -2824,13 +3031,16 @@ export function ima_common_init() {
                 "explicit ERC20 address are not specified" ) +
             "\n" );
     }
+}
 
+function ima_common_init_check_erc721() {
+    const imaState = state.get();
+    const isPrintGathered = imaState.isPrintGathered ? true : false;
+    let n1 = 0;
+    let n2 = 0;
     if( imaState.chainProperties.mn.strPathJsonErc721.length > 0 ) {
-        n1 = 0;
-        n2 = 0;
         if( isPrintGathered && IMA.verbose_get() > IMA.RV_VERBOSE().information ) {
-            log.write(
-                cc.info( "Loading Main-net ERC721 ABI from " ) +
+            log.write( cc.info( "Loading Main-net ERC721 ABI from " ) +
                 cc.info( imaState.chainProperties.mn.strPathJsonErc721 ) +
                 "\n" );
         }
@@ -2862,29 +3072,25 @@ export function ima_common_init() {
                 if( IMA.verbose_get() >= IMA.RV_VERBOSE().information &&
                 ( !imaState.bShowConfigMode ) ) {
                     if( isPrintGathered ) {
-                        log.write(
-                            cc.info( "Loaded Main-net ERC721 ABI " ) +
+                        log.write( cc.info( "Loaded Main-net ERC721 ABI " ) +
                             cc.attention( imaState.chainProperties.mn.strCoinNameErc721 ) +
                             "\n" );
                     }
                     if( n2 > 0 && isPrintGathered ) {
-                        log.write(
-                            cc.info( "Loaded S-Chain ERC721 ABI " ) +
+                        log.write( cc.info( "Loaded S-Chain ERC721 ABI " ) +
                             cc.attention( imaState.chainProperties.sc.strCoinNameErc721 ) +
                             "\n" );
                     }
                 }
             } else {
                 if( n1 === 0 ) {
-                    log.write(
-                        cc.fatal( "FATAL, CRITICAL ERROR:" ) +
+                    log.write( cc.fatal( "FATAL, CRITICAL ERROR:" ) +
                         cc.error( "Main-net ERC721 token name " +
                             "is not discovered (malformed JSON)" ) +
                         "\n" );
                 }
                 if( n2 === 0 && imaState.chainProperties.sc.strPathJsonErc721.length > 0 ) {
-                    log.write(
-                        cc.fatal( "FATAL, CRITICAL ERROR:" ) +
+                    log.write( cc.fatal( "FATAL, CRITICAL ERROR:" ) +
                         cc.error( "S-Chain ERC721 token name " +
                             "is not discovered (malformed JSON)" ) +
                         "\n" );
@@ -2897,14 +3103,12 @@ export function ima_common_init() {
             }
         } else {
             if( n1 === 0 ) {
-                log.write(
-                    cc.fatal( "FATAL, CRITICAL ERROR:" ) +
+                log.write( cc.fatal( "FATAL, CRITICAL ERROR:" ) +
                     cc.error( "Main-net ERC721 JSON is invalid" ) +
                     "\n" );
             }
             if( n2 === 0 && imaState.chainProperties.sc.strPathJsonErc721.length > 0 ) {
-                log.write(
-                    cc.fatal( "FATAL, CRITICAL ERROR:" ) +
+                log.write( cc.fatal( "FATAL, CRITICAL ERROR:" ) +
                     cc.error( "S-Chain ERC721 JSON is invalid" ) +
                     "\n" );
             }
@@ -2940,8 +3144,7 @@ export function ima_common_init() {
                             "\n" );
                     } else {
                         if( n2 === 0 && imaState.chainProperties.sc.strPathJsonErc721.length > 0 ) {
-                            log.write(
-                                cc.fatal( "FATAL, CRITICAL ERROR:" ) +
+                            log.write( cc.fatal( "FATAL, CRITICAL ERROR:" ) +
                                 cc.error( "S-Chain ERC721 token name " +
                                     "is not discovered (malformed JSON)" ) +
                                 "\n" );
@@ -2959,16 +3162,14 @@ export function ima_common_init() {
     if( n1 !== 0 && n2 === 0 ) {
         if( imaState.strAddrErc721_explicit.length === 0 ) {
             if( isPrintGathered ) {
-                log.write(
-                    cc.error( "IMPORTANT NOTICE:" ) + " " +
+                log.write( cc.error( "IMPORTANT NOTICE:" ) + " " +
                     cc.warning( "Both S-Chain ERC721 JSON and " +
                         "explicit ERC721 address are not specified" ) +
                     "\n" );
             }
         } else {
             if( isPrintGathered ) {
-                log.write(
-                    cc.attention( "IMPORTANT NOTICE:" ) + " " +
+                log.write( cc.attention( "IMPORTANT NOTICE:" ) + " " +
                     cc.note( "S-Chain ERC721 ABI will be auto-generated" ) +
                     "\n" );
             }
@@ -2986,8 +3187,7 @@ export function ima_common_init() {
         isPrintGathered
     ) {
         if( IMA.verbose_get() > IMA.RV_VERBOSE().information ) {
-            log.write(
-                cc.info( "Loading S<->S Target S-Chain ERC721 ABI from " ) +
+            log.write( cc.info( "Loading S<->S Target S-Chain ERC721 ABI from " ) +
                 cc.info( imaState.chainProperties.tc.strPathJsonErc721 ) +
                 "\n" );
         }
@@ -2999,8 +3199,7 @@ export function ima_common_init() {
                 imaUtils.discover_in_json_coin_name( imaState.chainProperties.tc.joErc721 );
             n2 = imaState.chainProperties.tc.strCoinNameErc721.length;
             if( n2 > 0 && isPrintGathered ) {
-                log.write(
-                    cc.info( "Loaded S<->S Target S-Chain ERC721 ABI " ) +
+                log.write( cc.info( "Loaded S<->S Target S-Chain ERC721 ABI " ) +
                     cc.attention( imaState.chainProperties.tc.strCoinNameErc721 ) +
                     "\n" );
             } else {
@@ -3008,8 +3207,7 @@ export function ima_common_init() {
                     imaState.chainProperties.tc.strPathJsonErc721.length > 0 &&
                     isPrintGathered
                 ) {
-                    log.write(
-                        cc.fatal( "FATAL, CRITICAL ERROR:" ) +
+                    log.write( cc.fatal( "FATAL, CRITICAL ERROR:" ) +
                         cc.error( "S<->S Target S-Chain ERC721 token name " +
                             "is not discovered (malformed JSON)" ) +
                         "\n" );
@@ -3025,19 +3223,21 @@ export function ima_common_init() {
         imaState.chainProperties.tc.strCoinNameErc721.length === 0 &&
         imaState.chainProperties.sc.strCoinNameErc721.length > 0
     ) {
-        log.write(
-            cc.error( "IMPORTANT NOTICE:" ) + " " +
+        log.write( cc.error( "IMPORTANT NOTICE:" ) + " " +
             cc.warning( "Both S<->S Target S-Chain ERC721 JSON and " +
                 "explicit ERC721 address are not specified" ) +
             "\n" );
     }
+}
 
+function ima_common_init_check_erc1155() {
+    const imaState = state.get();
+    const isPrintGathered = imaState.isPrintGathered ? true : false;
+    let n1 = 0;
+    let n2 = 0;
     if( imaState.chainProperties.mn.strPathJsonErc1155.length > 0 ) {
-        n1 = 0;
-        n2 = 0;
         if( isPrintGathered && IMA.verbose_get() > IMA.RV_VERBOSE().information ) {
-            log.write(
-                cc.info( "Loading Main-net ERC1155 ABI from " ) +
+            log.write( cc.info( "Loading Main-net ERC1155 ABI from " ) +
                 cc.info( imaState.chainProperties.mn.strPathJsonErc1155 ) +
                 "\n" );
         }
@@ -3046,8 +3246,7 @@ export function ima_common_init() {
         n1 = Object.keys( imaState.chainProperties.mn.joErc1155 ).length;
         if( imaState.chainProperties.sc.strPathJsonErc1155.length > 0 ) {
             if( isPrintGathered && IMA.verbose_get() > IMA.RV_VERBOSE().information ) {
-                log.write(
-                    cc.info( "Loading S-Chain ERC1155 ABI from " ) +
+                log.write( cc.info( "Loading S-Chain ERC1155 ABI from " ) +
                     cc.info( imaState.chainProperties.sc.strPathJsonErc1155 ) +
                     "\n" );
             }
@@ -3070,29 +3269,25 @@ export function ima_common_init() {
                     ( !imaState.bShowConfigMode )
                 ) {
                     if( isPrintGathered ) {
-                        log.write(
-                            cc.info( "Loaded Main-net ERC1155 ABI " ) +
+                        log.write( cc.info( "Loaded Main-net ERC1155 ABI " ) +
                             cc.attention( imaState.chainProperties.mn.strCoinNameErc1155 ) +
                             "\n" );
                     }
                     if( n2 > 0 && isPrintGathered ) {
-                        log.write(
-                            cc.info( "Loaded S-Chain ERC1155 ABI " ) +
+                        log.write( cc.info( "Loaded S-Chain ERC1155 ABI " ) +
                             cc.attention( imaState.chainProperties.sc.strCoinNameErc1155 ) +
                             "\n" );
                     }
                 }
             } else {
                 if( n1 === 0 ) {
-                    log.write(
-                        cc.fatal( "FATAL, CRITICAL ERROR:" ) +
+                    log.write( cc.fatal( "FATAL, CRITICAL ERROR:" ) +
                         cc.error( "Main-net ERC1155 token name " +
                             "is not discovered (malformed JSON)" ) +
                         "\n" );
                 }
                 if( n2 === 0 && imaState.chainProperties.sc.strPathJsonErc1155.length > 0 ) {
-                    log.write(
-                        cc.fatal( "FATAL, CRITICAL ERROR:" ) +
+                    log.write( cc.fatal( "FATAL, CRITICAL ERROR:" ) +
                         cc.error( "S-Chain ERC1155 token name " +
                             "is not discovered (malformed JSON)" ) +
                         "\n" );
@@ -3105,14 +3300,12 @@ export function ima_common_init() {
             }
         } else {
             if( n1 === 0 ) {
-                log.write(
-                    cc.fatal( "FATAL, CRITICAL ERROR:" ) +
+                log.write( cc.fatal( "FATAL, CRITICAL ERROR:" ) +
                     cc.error( "Main-net ERC1155 JSON is invalid" ) +
                     "\n" );
             }
             if( n2 === 0 && imaState.chainProperties.sc.strPathJsonErc1155.length > 0 ) {
-                log.write(
-                    cc.fatal( "FATAL, CRITICAL ERROR:" ) +
+                log.write( cc.fatal( "FATAL, CRITICAL ERROR:" ) +
                     cc.error( "S-Chain ERC1155 JSON is invalid" ) +
                     "\n" );
             }
@@ -3127,8 +3320,7 @@ export function ima_common_init() {
             n1 = 0;
             n2 = 0;
             if( isPrintGathered && IMA.verbose_get() > IMA.RV_VERBOSE().information ) {
-                log.write(
-                    cc.info( "Loading S-Chain ERC1155 ABI from " ) +
+                log.write( cc.info( "Loading S-Chain ERC1155 ABI from " ) +
                     cc.info( imaState.chainProperties.sc.strPathJsonErc1155 ) +
                     "\n" );
             }
@@ -3142,15 +3334,13 @@ export function ima_common_init() {
                 n2 = imaState.chainProperties.sc.strCoinNameErc1155.length;
                 if( n2 > 0 ) {
                     if( isPrintGathered ) {
-                        log.write(
-                            cc.info( "Loaded S-Chain ERC1155 ABI " ) +
+                        log.write( cc.info( "Loaded S-Chain ERC1155 ABI " ) +
                             cc.attention( imaState.chainProperties.sc.strCoinNameErc1155 ) +
                             "\n" );
                     }
                 } else {
                     if( n2 === 0 && imaState.chainProperties.sc.strPathJsonErc1155.length > 0 ) {
-                        log.write(
-                            cc.fatal( "FATAL, CRITICAL ERROR:" ) +
+                        log.write( cc.fatal( "FATAL, CRITICAL ERROR:" ) +
                             cc.error( "S-Chain ERC1155 token name " +
                                 "is not discovered (malformed JSON)" ) +
                             "\n" );
@@ -3239,554 +3429,625 @@ export function ima_common_init() {
                 "explicit ERC1155 address are not specified" ) +
             "\n" );
     }
+}
 
-    if( IMA.verbose_get() > IMA.RV_VERBOSE().information || imaState.bShowConfigMode ) {
-        const isPrintGathered = imaState.isPrintGathered ? true : false;
-        const isPrintSecurityValues = imaState.isPrintSecurityValues ? true : false;
-        if( isPrintGathered ) {
-            print_about( true );
-            log.write(
-                cc.attention( "IMA AGENT" ) + cc.normal( " is using " ) +
-                cc.bright( "Ethers JS" ) + cc.normal( " version " ) +
-                cc.sunny(
-                    owaspUtils.ethersMod.ethers.version.toString().replace( "ethers/", "" )
-                ) +
-                "\n" );
-        }
-        ensure_have_value(
-            "App path",
-            path.join( __dirname, "main.mjs" ), false, isPrintGathered, null, ( x ) => {
-                return cc.normal( x );
-            } );
-        ensure_have_value(
-            "Verbose level",
-            IMA.VERBOSE_level_as_text_4_log( IMA.verbose_get() ),
-            false, isPrintGathered, null, ( x ) => {
-                return cc.sunny( x );
-            } );
-        ensure_have_value(
-            "Multi-call optimizations",
-            imaState.isEnabledMultiCall, false, isPrintGathered, null, ( x ) => {
-                return cc.yn( x );
-            } );
-        ensure_have_value(
-            "Main-net URL",
-            imaState.chainProperties.mn.strURL, false,
-            isPrintGathered && isPrintSecurityValues, null, ( x ) => {
-                return cc.u( x );
-            } );
-        ensure_have_value(
-            "S-chain URL",
-            imaState.chainProperties.sc.strURL, false,
-            isPrintGathered && isPrintSecurityValues, null, ( x ) => {
-                return cc.u( x );
-            } );
-        ensure_have_value(
-            "S<->S Target S-chain URL",
-            imaState.chainProperties.tc.strURL, false,
-            isPrintGathered && isPrintSecurityValues, null, ( x ) => {
-                return cc.u( x );
-            } );
-        ensure_have_value(
-            "Main-net Ethereum network name",
-            imaState.chainProperties.mn.strChainName, false,
-            isPrintGathered && isPrintSecurityValues, null, ( x ) => {
-                return cc.note( x );
-            } );
-        ensure_have_value(
-            "S-Chain Ethereum network name",
-            imaState.chainProperties.sc.strChainName, false,
-            isPrintGathered && isPrintSecurityValues, null, ( x ) => {
-                return cc.note( x );
-            } );
-        ensure_have_value(
-            "S<->S Target S-Chain Ethereum network name",
-            imaState.chainProperties.tc.strChainName, false,
-            isPrintGathered && isPrintSecurityValues, null, ( x ) => {
-                return cc.note( x );
-            } );
-        ensure_have_value(
-            "Main-net Ethereum chain ID",
-            imaState.chainProperties.mn.cid, false,
-            isPrintGathered && isPrintSecurityValues, null, ( x ) => {
-                return cc.note( x );
-            } );
-        ensure_have_value(
-            "S-Chain Ethereum chain ID",
-            imaState.chainProperties.sc.cid, false,
-            isPrintGathered && isPrintSecurityValues, null, ( x ) => {
-                return cc.note( x );
-            } );
-        ensure_have_value(
-            "S<->S Target S-Chain Ethereum chain ID",
-            imaState.chainProperties.tc.cid, false,
-            isPrintGathered && isPrintSecurityValues, null, ( x ) => {
-                return cc.note( x );
-            } );
-        ensure_have_value(
-            "Skale Manager ABI JSON file path",
-            imaState.strPathAbiJsonSkaleManager, false, isPrintGathered, null, ( x ) => {
-                return cc.warning( x );
-            } );
-        ensure_have_value(
-            "Main-net ABI JSON file path",
-            imaState.chainProperties.mn.strPathAbiJson, false, isPrintGathered, null, ( x ) => {
-                return cc.warning( x );
-            } );
-        ensure_have_value(
-            "S-Chain ABI JSON file path",
-            imaState.chainProperties.sc.strPathAbiJson, false, isPrintGathered, null, ( x ) => {
-                return cc.warning( x );
-            } );
-        ensure_have_value(
-            "S<->S Target S-Chain ABI JSON file path",
-            imaState.chainProperties.tc.strPathAbiJson, false, isPrintGathered, null, ( x ) => {
-                return cc.warning( x );
-            } );
+function ima_common_init_check_general_args() {
+    const imaState = state.get();
+    const isPrintGathered = imaState.isPrintGathered ? true : false;
+    const isPrintSecurityValues = imaState.isPrintSecurityValues ? true : false;
+    if( isPrintGathered ) {
+        print_about( true );
+        log.write(
+            cc.attention( "IMA AGENT" ) + cc.normal( " is using " ) +
+            cc.bright( "Ethers JS" ) + cc.normal( " version " ) +
+            cc.sunny(
+                owaspUtils.ethersMod.ethers.version.toString().replace( "ethers/", "" )
+            ) +
+            "\n" );
+    }
+    ensure_have_value(
+        "App path",
+        path.join( __dirname, "main.mjs" ), false, isPrintGathered, null, ( x ) => {
+            return cc.normal( x );
+        } );
+    ensure_have_value(
+        "Verbose level",
+        IMA.VERBOSE_level_as_text_4_log( IMA.verbose_get() ),
+        false, isPrintGathered, null, ( x ) => {
+            return cc.sunny( x );
+        } );
+    ensure_have_value(
+        "Multi-call optimizations",
+        imaState.isEnabledMultiCall, false, isPrintGathered, null, ( x ) => {
+            return cc.yn( x );
+        } );
+    ensure_have_value(
+        "Main-net URL",
+        imaState.chainProperties.mn.strURL, false,
+        isPrintGathered && isPrintSecurityValues, null, ( x ) => {
+            return cc.u( x );
+        } );
+    ensure_have_value(
+        "S-chain URL",
+        imaState.chainProperties.sc.strURL, false,
+        isPrintGathered && isPrintSecurityValues, null, ( x ) => {
+            return cc.u( x );
+        } );
+    ensure_have_value(
+        "S<->S Target S-chain URL",
+        imaState.chainProperties.tc.strURL, false,
+        isPrintGathered && isPrintSecurityValues, null, ( x ) => {
+            return cc.u( x );
+        } );
+    ensure_have_value(
+        "Main-net Ethereum network name",
+        imaState.chainProperties.mn.strChainName, false,
+        isPrintGathered && isPrintSecurityValues, null, ( x ) => {
+            return cc.note( x );
+        } );
+    ensure_have_value(
+        "S-Chain Ethereum network name",
+        imaState.chainProperties.sc.strChainName, false,
+        isPrintGathered && isPrintSecurityValues, null, ( x ) => {
+            return cc.note( x );
+        } );
+    ensure_have_value(
+        "S<->S Target S-Chain Ethereum network name",
+        imaState.chainProperties.tc.strChainName, false,
+        isPrintGathered && isPrintSecurityValues, null, ( x ) => {
+            return cc.note( x );
+        } );
+    ensure_have_value(
+        "Main-net Ethereum chain ID",
+        imaState.chainProperties.mn.cid, false,
+        isPrintGathered && isPrintSecurityValues, null, ( x ) => {
+            return cc.note( x );
+        } );
+    ensure_have_value(
+        "S-Chain Ethereum chain ID",
+        imaState.chainProperties.sc.cid, false,
+        isPrintGathered && isPrintSecurityValues, null, ( x ) => {
+            return cc.note( x );
+        } );
+    ensure_have_value(
+        "S<->S Target S-Chain Ethereum chain ID",
+        imaState.chainProperties.tc.cid, false,
+        isPrintGathered && isPrintSecurityValues, null, ( x ) => {
+            return cc.note( x );
+        } );
+    ensure_have_value(
+        "Skale Manager ABI JSON file path",
+        imaState.strPathAbiJsonSkaleManager, false, isPrintGathered, null, ( x ) => {
+            return cc.warning( x );
+        } );
+    ensure_have_value(
+        "Main-net ABI JSON file path",
+        imaState.chainProperties.mn.strPathAbiJson, false, isPrintGathered, null, ( x ) => {
+            return cc.warning( x );
+        } );
+    ensure_have_value(
+        "S-Chain ABI JSON file path",
+        imaState.chainProperties.sc.strPathAbiJson, false, isPrintGathered, null, ( x ) => {
+            return cc.warning( x );
+        } );
+    ensure_have_value(
+        "S<->S Target S-Chain ABI JSON file path",
+        imaState.chainProperties.tc.strPathAbiJson, false, isPrintGathered, null, ( x ) => {
+            return cc.warning( x );
+        } );
 
-        try {
-            ensure_have_value( "Main-net user account address",
-                imaState.chainProperties.mn.joAccount.address(), false,
-                isPrintGathered && isPrintSecurityValues );
-        } catch ( err ) {}
-        try {
-            ensure_have_value( "S-chain user account address",
-                imaState.chainProperties.sc.joAccount.address(), false,
-                isPrintGathered && isPrintSecurityValues );
-        } catch ( err ) {}
-        try {
-            ensure_have_value(
-                "S<->S Target S-chain user account address",
-                imaState.chainProperties.tc.joAccount.address(),
-                false, isPrintGathered );
-        } catch ( err ) {}
-
-        try {
-            ensure_have_chain_credentials(
-                "Main Net",
-                imaState.chainProperties.mn.joAccount, false,
-                isPrintGathered && isPrintSecurityValues );
-        } catch ( err ) {}
-        try {
-            ensure_have_chain_credentials(
-                "S-Chain",
-                imaState.chainProperties.sc.joAccount, false,
-                isPrintGathered && isPrintSecurityValues );
-        } catch ( err ) {}
-        try {
-            ensure_have_chain_credentials(
-                "S<->S Target S-Chain",
-                imaState.chainProperties.tc.joAccount, false,
-                isPrintGathered && isPrintSecurityValues );
-        } catch ( err ) {}
-        if( isPrintGathered && isPrintSecurityValues ) {
-            if( imaState.chainProperties.mn.joAccount.strBlsKeyName ) {
-                ensure_have_value(
-                    "BLS/Main Net key name",
-                    imaState.chainProperties.mn.joAccount.strBlsKeyName,
-                    false, isPrintGathered, null, ( x ) => {
-                        return cc.attention( x );
-                    } );
-            }
-            if( imaState.chainProperties.sc.joAccount.strBlsKeyName ) {
-                ensure_have_value(
-                    "BLS/S-Chain key name",
-                    imaState.chainProperties.sc.joAccount.strBlsKeyName,
-                    false, isPrintGathered, null, ( x ) => {
-                        return cc.attention( x );
-                    } );
-            }
-            if( imaState.chainProperties.tc.joAccount.strBlsKeyName ) {
-                ensure_have_value(
-                    "BLS/Target S-Chain key name",
-                    imaState.chainProperties.tc.joAccount.strBlsKeyName,
-                    false, isPrintGathered, null, ( x ) => {
-                        return cc.attention( x );
-                    } );
-            }
-        }
-
-        ensure_have_value(
-            "Amount of wei to transfer", imaState.nAmountOfWei,
-            false, isPrintGathered, null, ( x ) => {
-                return cc.info( x );
-            } );
-        ensure_have_value(
-            "M->S transfer block size", imaState.nTransferBlockSizeM2S,
-            false, isPrintGathered, null, ( x ) => {
-                return cc.note( x );
-            } );
-        ensure_have_value(
-            "S->M transfer block size", imaState.nTransferBlockSizeS2M,
-            false, isPrintGathered, null, ( x ) => {
-                return cc.note( x );
-            } );
-        if( imaState.bHaveSkaleManagerABI ) {
-            ensure_have_value(
-                "S->S transfer block size", imaState.nTransferBlockSizeS2S,
-                false, isPrintGathered, null, ( x ) => {
-                    return cc.note( x );
-                } );
-        }
-        ensure_have_value(
-            "M->S transfer job steps", imaState.nTransferStepsM2S,
-            false, isPrintGathered, null, ( x ) => {
-                return cc.note( x );
-            } );
-        ensure_have_value(
-            "S->M transfer job steps", imaState.nTransferStepsS2M,
-            false, isPrintGathered, null, ( x ) => {
-                return cc.note( x );
-            } );
-        if( imaState.bHaveSkaleManagerABI ) {
-            ensure_have_value(
-                "S->S transfer job steps", imaState.nTransferStepsS2S,
-                false, isPrintGathered, null, ( x ) => {
-                    return cc.note( x );
-                } );
-        }
-        ensure_have_value(
-            "M->S transactions limit", imaState.nMaxTransactionsM2S,
-            false, isPrintGathered, null, ( x ) => {
-                return cc.note( x );
-            } );
-        ensure_have_value(
-            "S->M transactions limit", imaState.nMaxTransactionsS2M,
-            false, isPrintGathered, null, ( x ) => {
-                return cc.note( x );
-            } );
-        if( imaState.bHaveSkaleManagerABI ) {
-            ensure_have_value(
-                "S->S transactions limit", imaState.nMaxTransactionsS2S,
-                false, isPrintGathered, null, ( x ) => {
-                    return cc.note( x );
-                } );
-        }
-        ensure_have_value(
-            "M->S await blocks", imaState.nBlockAwaitDepthM2S, false,
-            isPrintGathered, null, ( x ) => {
-                return cc.note( x );
-            } );
-        ensure_have_value(
-            "S->M await blocks", imaState.nBlockAwaitDepthS2M, false,
-            isPrintGathered, null, ( x ) => {
-                return cc.note( x );
-            } );
-        if( imaState.bHaveSkaleManagerABI ) {
-            ensure_have_value(
-                "S->S await blocks", imaState.nBlockAwaitDepthS2S, false,
-                isPrintGathered, null, ( x ) => {
-                    return cc.note( x );
-                } );
-        }
-        ensure_have_value(
-            "M->S minimal block age", imaState.nBlockAgeM2S,
-            false, isPrintGathered, null, ( x ) => {
-                return cc.note( x );
-            } );
-        ensure_have_value(
-            "S->M minimal block age", imaState.nBlockAgeS2M,
-            false, isPrintGathered, null, ( x ) => {
-                return cc.note( x );
-            } );
-        if( imaState.bHaveSkaleManagerABI ) {
-            ensure_have_value(
-                "S->S minimal block age", imaState.nBlockAgeS2S,
-                false, isPrintGathered, null, ( x ) => {
-                    return cc.note( x );
-                } );
-        }
-        ensure_have_value(
-            "Transfer loop period(seconds)", imaState.nLoopPeriodSeconds,
-            false, isPrintGathered, null, ( x ) => {
-                return cc.success( x );
-            } );
-        if( imaState.nTimeFrameSeconds > 0 ) {
-            ensure_have_value(
-                "Time framing(seconds)", imaState.nTimeFrameSeconds,
-                false, isPrintGathered );
-            ensure_have_value(
-                "Next frame gap(seconds)", imaState.nNextFrameGap,
-                false, isPrintGathered );
-        } else {
-            ensure_have_value(
-                "Time framing", cc.error( "disabled" ),
-                false, isPrintGathered
-            );
-        }
-        ensure_have_value(
-            "S-Chain node number(zero based)",
-            imaState.nNodeNumber, false, isPrintGathered, null, ( x ) => {
-                return cc.info( x );
-            } );
-        ensure_have_value(
-            "S-Chain nodes count",
-            imaState.nNodesCount, false, isPrintGathered, null, ( x ) => {
-                return cc.info( x );
-            } );
-
-        ensure_have_value(
-            "Automatic exit(seconds)",
-            imaState.nAutoExitAfterSeconds, false,
+    try {
+        ensure_have_value( "Main-net user account address",
+            imaState.chainProperties.mn.joAccount.address(), false,
             isPrintGathered && isPrintSecurityValues );
+    } catch ( err ) {}
+    try {
+        ensure_have_value( "S-chain user account address",
+            imaState.chainProperties.sc.joAccount.address(), false,
+            isPrintGathered && isPrintSecurityValues );
+    } catch ( err ) {}
+    try {
+        ensure_have_value(
+            "S<->S Target S-chain user account address",
+            imaState.chainProperties.tc.joAccount.address(),
+            false, isPrintGathered );
+    } catch ( err ) {}
+}
 
-        if( imaState.strLogFilePath.length > 0 ) {
+function ima_common_init_check_credentials_args() {
+    const imaState = state.get();
+    const isPrintGathered = imaState.isPrintGathered ? true : false;
+    const isPrintSecurityValues = imaState.isPrintSecurityValues ? true : false;
+    try {
+        ensure_have_chain_credentials(
+            "Main Net",
+            imaState.chainProperties.mn.joAccount, false,
+            isPrintGathered && isPrintSecurityValues );
+    } catch ( err ) {}
+    try {
+        ensure_have_chain_credentials(
+            "S-Chain",
+            imaState.chainProperties.sc.joAccount, false,
+            isPrintGathered && isPrintSecurityValues );
+    } catch ( err ) {}
+    try {
+        ima_common_init_check_transfer_amount_args();
+        ensure_have_chain_credentials(
+            "S<->S Target S-Chain",
+            imaState.chainProperties.tc.joAccount, false,
+            isPrintGathered && isPrintSecurityValues );
+    } catch ( err ) {}
+    if( isPrintGathered && isPrintSecurityValues ) {
+        if( imaState.chainProperties.mn.joAccount.strBlsKeyName ) {
             ensure_have_value(
-                "Log file path",
-                imaState.strLogFilePath, false,
-                isPrintGathered, null, ( x ) => {
+                "BLS/Main Net key name",
+                imaState.chainProperties.mn.joAccount.strBlsKeyName,
+                false, isPrintGathered, null, ( x ) => {
+                    return cc.attention( x );
+                } );
+        }
+        if( imaState.chainProperties.sc.joAccount.strBlsKeyName ) {
+            ensure_have_value(
+                "BLS/S-Chain key name",
+                imaState.chainProperties.sc.joAccount.strBlsKeyName,
+                false, isPrintGathered, null, ( x ) => {
+                    return cc.attention( x );
+                } );
+        }
+        if( imaState.chainProperties.tc.joAccount.strBlsKeyName ) {
+            ensure_have_value(
+                "BLS/Target S-Chain key name",
+                imaState.chainProperties.tc.joAccount.strBlsKeyName,
+                false, isPrintGathered, null, ( x ) => {
+                    return cc.attention( x );
+                } );
+        }
+    }
+}
+
+function ima_common_init_check_transfer_amount_args() {
+    const imaState = state.get();
+    const isPrintGathered = imaState.isPrintGathered ? true : false;
+    // const isPrintSecurityValues = imaState.isPrintSecurityValues ? true : false;
+    ensure_have_value(
+        "Amount of wei to transfer", imaState.nAmountOfWei,
+        false, isPrintGathered, null, ( x ) => {
+            return cc.info( x );
+        } );
+}
+
+function ima_common_init_transferring_args() {
+    const imaState = state.get();
+    const isPrintGathered = imaState.isPrintGathered ? true : false;
+    // const isPrintSecurityValues = imaState.isPrintSecurityValues ? true : false;
+    ensure_have_value(
+        "M->S transfer block size", imaState.nTransferBlockSizeM2S,
+        false, isPrintGathered, null, ( x ) => {
+            return cc.note( x );
+        } );
+    ensure_have_value(
+        "S->M transfer block size", imaState.nTransferBlockSizeS2M,
+        false, isPrintGathered, null, ( x ) => {
+            return cc.note( x );
+        } );
+    if( imaState.bHaveSkaleManagerABI ) {
+        ensure_have_value(
+            "S->S transfer block size", imaState.nTransferBlockSizeS2S,
+            false, isPrintGathered, null, ( x ) => {
+                return cc.note( x );
+            } );
+    }
+    ensure_have_value(
+        "M->S transfer job steps", imaState.nTransferStepsM2S,
+        false, isPrintGathered, null, ( x ) => {
+            return cc.note( x );
+        } );
+    ensure_have_value(
+        "S->M transfer job steps", imaState.nTransferStepsS2M,
+        false, isPrintGathered, null, ( x ) => {
+            return cc.note( x );
+        } );
+    if( imaState.bHaveSkaleManagerABI ) {
+        ensure_have_value(
+            "S->S transfer job steps", imaState.nTransferStepsS2S,
+            false, isPrintGathered, null, ( x ) => {
+                return cc.note( x );
+            } );
+    }
+    ensure_have_value(
+        "M->S transactions limit", imaState.nMaxTransactionsM2S,
+        false, isPrintGathered, null, ( x ) => {
+            return cc.note( x );
+        } );
+    ensure_have_value(
+        "S->M transactions limit", imaState.nMaxTransactionsS2M,
+        false, isPrintGathered, null, ( x ) => {
+            return cc.note( x );
+        } );
+    if( imaState.bHaveSkaleManagerABI ) {
+        ensure_have_value(
+            "S->S transactions limit", imaState.nMaxTransactionsS2S,
+            false, isPrintGathered, null, ( x ) => {
+                return cc.note( x );
+            } );
+    }
+    ensure_have_value(
+        "M->S await blocks", imaState.nBlockAwaitDepthM2S, false,
+        isPrintGathered, null, ( x ) => {
+            return cc.note( x );
+        } );
+    ensure_have_value(
+        "S->M await blocks", imaState.nBlockAwaitDepthS2M, false,
+        isPrintGathered, null, ( x ) => {
+            return cc.note( x );
+        } );
+    if( imaState.bHaveSkaleManagerABI ) {
+        ensure_have_value(
+            "S->S await blocks", imaState.nBlockAwaitDepthS2S, false,
+            isPrintGathered, null, ( x ) => {
+                return cc.note( x );
+            } );
+    }
+    ensure_have_value(
+        "M->S minimal block age", imaState.nBlockAgeM2S,
+        false, isPrintGathered, null, ( x ) => {
+            return cc.note( x );
+        } );
+    ensure_have_value(
+        "S->M minimal block age", imaState.nBlockAgeS2M,
+        false, isPrintGathered, null, ( x ) => {
+            return cc.note( x );
+        } );
+    if( imaState.bHaveSkaleManagerABI ) {
+        ensure_have_value(
+            "S->S minimal block age", imaState.nBlockAgeS2S,
+            false, isPrintGathered, null, ( x ) => {
+                return cc.note( x );
+            } );
+    }
+    ensure_have_value(
+        "Transfer loop period(seconds)", imaState.nLoopPeriodSeconds,
+        false, isPrintGathered, null, ( x ) => {
+            return cc.success( x );
+        } );
+    if( imaState.nTimeFrameSeconds > 0 ) {
+        ensure_have_value(
+            "Time framing(seconds)", imaState.nTimeFrameSeconds,
+            false, isPrintGathered );
+        ensure_have_value(
+            "Next frame gap(seconds)", imaState.nNextFrameGap,
+            false, isPrintGathered );
+    } else {
+        ensure_have_value(
+            "Time framing", cc.error( "disabled" ),
+            false, isPrintGathered
+        );
+    }
+}
+
+function ima_common_init_check_access_args() {
+    const imaState = state.get();
+    const isPrintGathered = imaState.isPrintGathered ? true : false;
+    // const isPrintSecurityValues = imaState.isPrintSecurityValues ? true : false;
+    ensure_have_value(
+        "S-Chain node number(zero based)",
+        imaState.nNodeNumber, false, isPrintGathered, null, ( x ) => {
+            return cc.info( x );
+        } );
+    ensure_have_value(
+        "S-Chain nodes count",
+        imaState.nNodesCount, false, isPrintGathered, null, ( x ) => {
+            return cc.info( x );
+        } );
+}
+
+function ima_common_init_erc_tokens_args() {
+    const imaState = state.get();
+    const isPrintGathered = imaState.isPrintGathered ? true : false;
+    // const isPrintSecurityValues = imaState.isPrintSecurityValues ? true : false;
+    if( imaState.chainProperties.tc.strCoinNameErc20.length > 0 ) {
+        ensure_have_value(
+            "Loaded Main-net ERC20 ABI ",
+            imaState.chainProperties.tc.strCoinNameErc20,
+            false, isPrintGathered, null, ( x ) => {
+                return cc.attention( x );
+            } );
+        ensure_have_value(
+            "Loaded S-Chain ERC20 ABI ",
+            imaState.chainProperties.sc.strCoinNameErc20,
+            false, isPrintGathered, null, ( x ) => {
+                return cc.attention( x );
+            } );
+        ensure_have_value(
+            "Amount of tokens to transfer",
+            imaState.nAmountOfToken,
+            false, isPrintGathered, null, ( x ) => {
+                return cc.info( x );
+            } );
+        if( isPrintGathered ) {
+            log.write(
+                cc.info( "ERC20 explicit S-Chain address is " ) +
+                cc.attention( imaState.strAddrErc20_explicit ) +
+                "\n" );
+        }
+    }
+    if( imaState.chainProperties.tc.strCoinNameErc20.length > 0 ) {
+        ensure_have_value(
+            "Loaded S<->S Target S-Chain ERC20 ABI ",
+            imaState.chainProperties.tc.strCoinNameErc20,
+            false, isPrintGathered, null, ( x ) => {
+                return cc.attention( x );
+            } );
+    }
+    if( imaState.chainProperties.mn.strCoinNameErc721.length > 0 ) {
+        ensure_have_value(
+            "Loaded Main-net ERC721 ABI ",
+            imaState.chainProperties.mn.strCoinNameErc721,
+            false, isPrintGathered, null, ( x ) => {
+                return cc.attention( x );
+            } );
+        ensure_have_value(
+            "Loaded S-Chain ERC721 ABI ",
+            imaState.chainProperties.sc.strCoinNameErc721,
+            false, isPrintGathered, null, ( x ) => {
+                return cc.attention( x );
+            } );
+        ensure_have_value(
+            "ERC721 token id ",
+            imaState.idToken, false,
+            isPrintGathered, null, ( x ) => {
+                return cc.info( x );
+            } );
+        if( isPrintGathered ) {
+            log.write(
+                cc.info( "ERC721 explicit S-Chain address is " ) +
+                cc.attention( imaState.strAddrErc721_explicit ) +
+                "\n" );
+        }
+    }
+    if( imaState.chainProperties.tc.strCoinNameErc721.length > 0 ) {
+        ensure_have_value(
+            "Loaded S<->S Target S-Chain ERC721 ABI ",
+            imaState.chainProperties.tc.strCoinNameErc721,
+            false, isPrintGathered, null, ( x ) => {
+                return cc.attention( x );
+            } );
+    }
+    if( imaState.chainProperties.mn.strCoinNameErc1155.length > 0 ) {
+        ensure_have_value( "Loaded Main-net ERC1155 ABI ",
+            imaState.chainProperties.mn.strCoinNameErc1155,
+            false, isPrintGathered, null, ( x ) => {
+                return cc.attention( x );
+            } );
+        ensure_have_value( "Loaded S-Chain ERC1155 ABI ",
+            imaState.chainProperties.sc.strCoinNameErc1155,
+            false, isPrintGathered, null, ( x ) => {
+                return cc.attention( x );
+            } );
+        try {
+            ensure_have_value( "ERC1155 token id ",
+                imaState.idToken, false, isPrintGathered, null, ( x ) => {
                     return cc.info( x );
                 } );
-            ensure_have_value(
-                "Max size of log file path",
-                imaState.nLogMaxSizeBeforeRotation, false,
-                isPrintGathered, null, ( x ) => {
-                    return ( x <= 0 ) ? cc.warning( "unlimited" ) : cc.note( x );
-                } );
-            ensure_have_value(
-                "Max rotated count of log files",
-                imaState.nLogMaxFilesCount,
-                false, isPrintGathered, null, ( x ) => {
-                    return ( x <= 1 ) ? cc.warning( "not set" ) : cc.note( x );
-                } );
-        }
-        if( imaState.chainProperties.tc.strCoinNameErc20.length > 0 ) {
-            ensure_have_value(
-                "Loaded Main-net ERC20 ABI ",
-                imaState.chainProperties.tc.strCoinNameErc20,
-                false, isPrintGathered, null, ( x ) => {
-                    return cc.attention( x );
-                } );
-            ensure_have_value(
-                "Loaded S-Chain ERC20 ABI ",
-                imaState.chainProperties.sc.strCoinNameErc20,
-                false, isPrintGathered, null, ( x ) => {
-                    return cc.attention( x );
-                } );
-            ensure_have_value(
-                "Amount of tokens to transfer",
-                imaState.nAmountOfToken,
-                false, isPrintGathered, null, ( x ) => {
+            ensure_have_value( "ERC1155 token amount ",
+                imaState.nAmountOfToken, false, isPrintGathered, null, ( x ) => {
                     return cc.info( x );
                 } );
-            if( isPrintGathered ) {
-                log.write(
-                    cc.info( "ERC20 explicit S-Chain address is " ) +
-                    cc.attention( imaState.strAddrErc20_explicit ) +
-                    "\n" );
-            }
-        }
-        if( imaState.chainProperties.tc.strCoinNameErc20.length > 0 ) {
-            ensure_have_value(
-                "Loaded S<->S Target S-Chain ERC20 ABI ",
-                imaState.chainProperties.tc.strCoinNameErc20,
-                false, isPrintGathered, null, ( x ) => {
-                    return cc.attention( x );
-                } );
-        }
-        if( imaState.chainProperties.mn.strCoinNameErc721.length > 0 ) {
-            ensure_have_value(
-                "Loaded Main-net ERC721 ABI ",
-                imaState.chainProperties.mn.strCoinNameErc721,
-                false, isPrintGathered, null, ( x ) => {
-                    return cc.attention( x );
-                } );
-            ensure_have_value(
-                "Loaded S-Chain ERC721 ABI ",
-                imaState.chainProperties.sc.strCoinNameErc721,
-                false, isPrintGathered, null, ( x ) => {
-                    return cc.attention( x );
-                } );
-            ensure_have_value(
-                "ERC721 token id ",
-                imaState.idToken, false,
-                isPrintGathered, null, ( x ) => {
-                    return cc.info( x );
-                } );
-            if( isPrintGathered ) {
-                log.write(
-                    cc.info( "ERC721 explicit S-Chain address is " ) +
-                    cc.attention( imaState.strAddrErc721_explicit ) +
-                    "\n" );
-            }
-        }
-        if( imaState.chainProperties.tc.strCoinNameErc721.length > 0 ) {
-            ensure_have_value(
-                "Loaded S<->S Target S-Chain ERC721 ABI ",
-                imaState.chainProperties.tc.strCoinNameErc721,
-                false, isPrintGathered, null, ( x ) => {
-                    return cc.attention( x );
-                } );
-        }
-        if( imaState.chainProperties.mn.strCoinNameErc1155.length > 0 ) {
-            ensure_have_value( "Loaded Main-net ERC1155 ABI ",
-                imaState.chainProperties.mn.strCoinNameErc1155,
-                false, isPrintGathered, null, ( x ) => {
-                    return cc.attention( x );
-                } );
-            ensure_have_value( "Loaded S-Chain ERC1155 ABI ",
-                imaState.chainProperties.sc.strCoinNameErc1155,
-                false, isPrintGathered, null, ( x ) => {
-                    return cc.attention( x );
-                } );
+        } catch ( e1 ) {
             try {
-                ensure_have_value( "ERC1155 token id ",
-                    imaState.idToken, false, isPrintGathered, null, ( x ) => {
+                ensure_have_value(
+                    "ERC1155 batch of token ids ",
+                    imaState.idTokens, false,
+                    isPrintGathered, null, ( x ) => {
                         return cc.info( x );
                     } );
-                ensure_have_value( "ERC1155 token amount ",
-                    imaState.nAmountOfToken, false, isPrintGathered, null, ( x ) => {
+                ensure_have_value(
+                    "ERC1155 batch of token amounts ",
+                    imaState.arrAmountsOfTokens, false,
+                    isPrintGathered, null, ( x ) => {
                         return cc.info( x );
                     } );
-            } catch ( e1 ) {
-                try {
-                    ensure_have_value(
-                        "ERC1155 batch of token ids ",
-                        imaState.idTokens, false,
-                        isPrintGathered, null, ( x ) => {
-                            return cc.info( x );
-                        } );
-                    ensure_have_value(
-                        "ERC1155 batch of token amounts ",
-                        imaState.arrAmountsOfTokens, false,
-                        isPrintGathered, null, ( x ) => {
-                            return cc.info( x );
-                        } );
-                } catch ( e2 ) {
-                    log.write( cc.warning( "Please check your params in ERC1155 transfer \n" ) );
-                    log.write( cc.warning( "Error 1" ) + cc.sunny( e1 ) + "\n" );
-                    log.write( cc.warning( "Error 2" ) + cc.sunny( e2 ) + "\n" );
-                    process.exit( 126 );
-                }
+            } catch ( e2 ) {
+                log.write( cc.warning( "Please check your params in ERC1155 transfer \n" ) );
+                log.write( cc.warning( "Error 1" ) + cc.sunny( e1 ) + "\n" );
+                log.write( cc.warning( "Error 2" ) + cc.sunny( e2 ) + "\n" );
+                process.exit( 126 );
             }
-            if( isPrintGathered ) {
-                log.write(
-                    cc.info( "ERC1155 explicit S-Chain address is " ) +
-                    cc.attention( imaState.strAddrErc1155_explicit ) +
-                    "\n" );
-            }
-        }
-        if( imaState.chainProperties.tc.strCoinNameErc1155.length > 0 ) {
-            ensure_have_value(
-                "Loaded S<->S Target S-Chain ERC1155 ABI ",
-                imaState.chainProperties.tc.strCoinNameErc1155,
-                false, isPrintGathered, null, ( x ) => {
-                    return cc.attention( x );
-                } );
         }
         if( isPrintGathered ) {
             log.write(
-                cc.info( "Main Net Gas Price Multiplier is" ) +
-                cc.debug( "....................." ) +
-                ( imaState.chainProperties.mn.transactionCustomizer.gasPriceMultiplier
-                    ? cc.info(
-                        imaState.chainProperties.mn.transactionCustomizer
-                            .gasPriceMultiplier.toString() )
-                    : cc.error( "disabled" ) ) +
+                cc.info( "ERC1155 explicit S-Chain address is " ) +
+                cc.attention( imaState.strAddrErc1155_explicit ) +
                 "\n" );
-            log.write(
-                cc.info( "S-Chain Gas Price Multiplier is" ) +
-                cc.debug( "......................" ) +
-                ( imaState.chainProperties.sc.transactionCustomizer.gasPriceMultiplier
-                    ? cc.info(
-                        imaState.chainProperties.sc.transactionCustomizer
-                            .gasPriceMultiplier.toString() )
-                    : cc.error( "disabled" ) ) +
-                "\n" );
-            log.write(
-                cc.info( "Target S-Chain Gas Price Multiplier is" ) +
-                cc.debug( "..............." ) +
-                ( imaState.chainProperties.tc.transactionCustomizer.gasPriceMultiplier
-                    ? cc.info( imaState.chainProperties.tc.transactionCustomizer
+        }
+    }
+    if( imaState.chainProperties.tc.strCoinNameErc1155.length > 0 ) {
+        ensure_have_value(
+            "Loaded S<->S Target S-Chain ERC1155 ABI ",
+            imaState.chainProperties.tc.strCoinNameErc1155,
+            false, isPrintGathered, null, ( x ) => {
+                return cc.attention( x );
+            } );
+    }
+}
+
+function ima_common_init_gas_multipliers_and_transaction_args() {
+    const imaState = state.get();
+    const isPrintGathered = imaState.isPrintGathered ? true : false;
+    // const isPrintSecurityValues = imaState.isPrintSecurityValues ? true : false;
+    if( isPrintGathered ) {
+        log.write(
+            cc.info( "Main Net Gas Price Multiplier is" ) +
+            cc.debug( "....................." ) +
+            ( imaState.chainProperties.mn.transactionCustomizer.gasPriceMultiplier
+                ? cc.info(
+                    imaState.chainProperties.mn.transactionCustomizer
                         .gasPriceMultiplier.toString() )
-                    : cc.error( "disabled" ) ) +
-                "\n" );
-            log.write(
-                cc.info( "Main Net Gas Value Multiplier is" ) +
-                cc.debug( "....................." ) +
-                ( imaState.chainProperties.mn.transactionCustomizer.gasMultiplier
-                    ? cc.info(
-                        imaState.chainProperties.mn
-                            .transactionCustomizer.gasMultiplier.toString() )
-                    : cc.notice( "default" ) ) +
-                "\n" );
-            log.write(
-                cc.info( "S-Chain Gas Value Multiplier is" ) +
-                cc.debug( "......................" ) +
-                ( imaState.chainProperties.sc.transactionCustomizer.gasMultiplier
-                    ? cc.info(
-                        imaState.chainProperties.sc
-                            .transactionCustomizer.gasMultiplier.toString() )
-                    : cc.notice( "default" ) ) +
-                "\n" );
-            log.write(
-                cc.info( "Target S-Chain Gas Value Multiplier is" ) +
-                cc.debug( "..............." ) +
-                ( imaState.chainProperties.tc.transactionCustomizer.gasMultiplier
-                    ? cc.info(
-                        imaState.chainProperties.tc
-                            .transactionCustomizer.gasMultiplier.toString() )
-                    : cc.notice( "default" ) ) +
-                "\n" );
-            log.write(
-                cc.info( "Pending work analysis(PWA) is" ) +
-                cc.debug( "........................" ) +
-                ( imaState.isPWA ? cc.success( "enabled" ) : cc.error( "disabled" ) ) +
-                "\n" );
-            log.write(
-                cc.info( "Expose PWA details to log is" ) +
-                cc.debug( "........................." ) +
-                ( imaState.isPrintPWA ? cc.success( "enabled" ) : cc.error( "disabled" ) ) +
-                "\n" );
-            log.write(
-                cc.info( "Oracle based gas reimbursement is" ) +
-                cc.debug( "...................." ) +
-                ( IMA.getEnabledOracle() ? cc.success( "enabled" ) : cc.error( "disabled" ) ) +
-                "\n" );
-            log.write(
-                cc.info( "S-Chain to S-Chain transferring is" ) +
-                cc.debug( "..................." ) +
-                ( imaState.s2s_opts.isEnabled
-                    ? cc.success( "enabled" )
-                    : cc.error( "disabled" ) ) +
-                "\n" );
-            log.write(
-                cc.info( "SKALE network re-discovery interval is" ) +
-                cc.debug( "..............." ) +
-                ( imaState.s2s_opts.secondsToReDiscoverSkaleNetwork
-                    ? cc.info( imaState.s2s_opts.secondsToReDiscoverSkaleNetwork.toString() )
-                    : cc.error( "disabled" ) ) +
-                "\n" );
-            log.write(
-                cc.info( "S<->S transfer mode is" ) +
-                cc.debug( "..............................." ) +
-                IMA.get_S2S_transfer_mode_description_colorized() +
-                "\n" );
-            log.write(
-                cc.info( "IMA JSON RPC server port is" ) +
-                cc.debug( "...,,,,,,,,,,,............" ) +
-                ( ( imaState.nJsonRpcPort > 0 )
-                    ? cc.info( imaState.nJsonRpcPort )
-                    : cc.error( "disabled" ) ) +
-                "\n" );
-            log.write(
-                cc.info( "Cross-IMA mode is" ) +
-                cc.debug( "...................................." ) +
-                ( imaState.isCrossImaBlsMode
-                    ? cc.success( "enabled" )
-                    : cc.error( "disabled" ) ) +
-                "\n" );
-            log.write(
-                cc.info( "Dry-run is enabled" ) +
-                cc.debug( "..................................." ) +
-                cc.yn( IMA.dry_run_is_enabled() ) +
-                "\n" );
-            log.write(
-                cc.info( "Dry-run execution result is ignored" ) +
-                cc.debug( ".................." ) +
-                cc.yn( IMA.dry_run_is_ignored() ) +
-                "\n" );
-        } // if( isPrintGathered )
+                : cc.error( "disabled" ) ) +
+            "\n" );
+        log.write(
+            cc.info( "S-Chain Gas Price Multiplier is" ) +
+            cc.debug( "......................" ) +
+            ( imaState.chainProperties.sc.transactionCustomizer.gasPriceMultiplier
+                ? cc.info(
+                    imaState.chainProperties.sc.transactionCustomizer
+                        .gasPriceMultiplier.toString() )
+                : cc.error( "disabled" ) ) +
+            "\n" );
+        log.write(
+            cc.info( "Target S-Chain Gas Price Multiplier is" ) +
+            cc.debug( "..............." ) +
+            ( imaState.chainProperties.tc.transactionCustomizer.gasPriceMultiplier
+                ? cc.info( imaState.chainProperties.tc.transactionCustomizer
+                    .gasPriceMultiplier.toString() )
+                : cc.error( "disabled" ) ) +
+            "\n" );
+        log.write(
+            cc.info( "Main Net Gas Value Multiplier is" ) +
+            cc.debug( "....................." ) +
+            ( imaState.chainProperties.mn.transactionCustomizer.gasMultiplier
+                ? cc.info(
+                    imaState.chainProperties.mn
+                        .transactionCustomizer.gasMultiplier.toString() )
+                : cc.notice( "default" ) ) +
+            "\n" );
+        log.write(
+            cc.info( "S-Chain Gas Value Multiplier is" ) +
+            cc.debug( "......................" ) +
+            ( imaState.chainProperties.sc.transactionCustomizer.gasMultiplier
+                ? cc.info(
+                    imaState.chainProperties.sc
+                        .transactionCustomizer.gasMultiplier.toString() )
+                : cc.notice( "default" ) ) +
+            "\n" );
+        log.write(
+            cc.info( "Target S-Chain Gas Value Multiplier is" ) +
+            cc.debug( "..............." ) +
+            ( imaState.chainProperties.tc.transactionCustomizer.gasMultiplier
+                ? cc.info(
+                    imaState.chainProperties.tc
+                        .transactionCustomizer.gasMultiplier.toString() )
+                : cc.notice( "default" ) ) +
+            "\n" );
+        log.write(
+            cc.info( "Pending work analysis(PWA) is" ) +
+            cc.debug( "........................" ) +
+            ( imaState.isPWA ? cc.success( "enabled" ) : cc.error( "disabled" ) ) +
+            "\n" );
+        log.write(
+            cc.info( "Expose PWA details to log is" ) +
+            cc.debug( "........................." ) +
+            ( imaState.isPrintPWA ? cc.success( "enabled" ) : cc.error( "disabled" ) ) +
+            "\n" );
+        log.write(
+            cc.info( "Oracle based gas reimbursement is" ) +
+            cc.debug( "...................." ) +
+            ( IMA.getEnabledOracle() ? cc.success( "enabled" ) : cc.error( "disabled" ) ) +
+            "\n" );
+        log.write(
+            cc.info( "S-Chain to S-Chain transferring is" ) +
+            cc.debug( "..................." ) +
+            ( imaState.s2s_opts.isEnabled
+                ? cc.success( "enabled" )
+                : cc.error( "disabled" ) ) +
+            "\n" );
+        log.write(
+            cc.info( "SKALE network re-discovery interval is" ) +
+            cc.debug( "..............." ) +
+            ( imaState.s2s_opts.secondsToReDiscoverSkaleNetwork
+                ? cc.info( imaState.s2s_opts.secondsToReDiscoverSkaleNetwork.toString() )
+                : cc.error( "disabled" ) ) +
+            "\n" );
+        log.write(
+            cc.info( "S<->S transfer mode is" ) +
+            cc.debug( "..............................." ) +
+            IMA.get_S2S_transfer_mode_description_colorized() +
+            "\n" );
+        log.write(
+            cc.info( "IMA JSON RPC server port is" ) +
+            cc.debug( "...,,,,,,,,,,,............" ) +
+            ( ( imaState.nJsonRpcPort > 0 )
+                ? cc.info( imaState.nJsonRpcPort )
+                : cc.error( "disabled" ) ) +
+            "\n" );
+        log.write(
+            cc.info( "Cross-IMA mode is" ) +
+            cc.debug( "...................................." ) +
+            ( imaState.isCrossImaBlsMode
+                ? cc.success( "enabled" )
+                : cc.error( "disabled" ) ) +
+            "\n" );
+        log.write(
+            cc.info( "Dry-run is enabled" ) +
+            cc.debug( "..................................." ) +
+            cc.yn( IMA.dry_run_is_enabled() ) +
+            "\n" );
+        log.write(
+            cc.info( "Dry-run execution result is ignored" ) +
+            cc.debug( ".................." ) +
+            cc.yn( IMA.dry_run_is_ignored() ) +
+            "\n" );
+    } // if( isPrintGathered )
+}
+
+function ima_common_init_logging_args() {
+    const imaState = state.get();
+    const isPrintGathered = imaState.isPrintGathered ? true : false;
+    // const isPrintSecurityValues = imaState.isPrintSecurityValues ? true : false;
+    if( imaState.strLogFilePath.length > 0 ) {
+        ensure_have_value(
+            "Log file path",
+            imaState.strLogFilePath, false,
+            isPrintGathered, null, ( x ) => {
+                return cc.info( x );
+            } );
+        ensure_have_value(
+            "Max size of log file path",
+            imaState.nLogMaxSizeBeforeRotation, false,
+            isPrintGathered, null, ( x ) => {
+                return ( x <= 0 ) ? cc.warning( "unlimited" ) : cc.note( x );
+            } );
+        ensure_have_value(
+            "Max rotated count of log files",
+            imaState.nLogMaxFilesCount,
+            false, isPrintGathered, null, ( x ) => {
+                return ( x <= 1 ) ? cc.warning( "not set" ) : cc.note( x );
+            } );
+    }
+}
+
+function ima_common_init_automatic_exit_args() {
+    const imaState = state.get();
+    const isPrintGathered = imaState.isPrintGathered ? true : false;
+    const isPrintSecurityValues = imaState.isPrintSecurityValues ? true : false;
+    ensure_have_value(
+        "Automatic exit(seconds)",
+        imaState.nAutoExitAfterSeconds, false,
+        isPrintGathered && isPrintSecurityValues );
+}
+
+export function ima_common_init() {
+    const imaState = state.get();
+    // const isPrintGathered = imaState.isPrintGathered ? true : false;
+    ima_common_init_print_sys_info();
+    ima_common_init_check_abi_paths();
+    ima_common_init_check_abi_contracts_presences();
+    ima_common_init_print_found_contracts();
+    ima_common_init_check_erc20();
+    ima_common_init_check_erc721();
+    ima_common_init_check_erc1155();
+    if( IMA.verbose_get() > IMA.RV_VERBOSE().information || imaState.bShowConfigMode ) {
+        // const isPrintGathered = imaState.isPrintGathered ? true : false;
+        // const isPrintSecurityValues = imaState.isPrintSecurityValues ? true : false;
+        ima_common_init_check_general_args();
+        ima_common_init_check_credentials_args();
+        ima_common_init_check_transfer_amount_args();
+        ima_common_init_transferring_args();
+        ima_common_init_check_access_args();
+        ima_common_init_erc_tokens_args();
+        ima_common_init_gas_multipliers_and_transaction_args();
+        ima_common_init_logging_args();
+        ima_common_init_automatic_exit_args();
     }
 } // ima_common_init
 
@@ -3842,9 +4103,8 @@ export function ima_init_ethers_providers() {
 
 } // ima_init_ethers_providers
 
-export function ima_contracts_init() {
+function ima_contracts_init_ima() {
     const imaState = state.get();
-    ima_init_ethers_providers();
     if( imaState.chainProperties.mn.bHaveAbiIMA ) {
         const cp = imaState.chainProperties.mn;
         const ep = cp.ethersProvider;
@@ -3992,6 +4252,10 @@ export function ima_contracts_init() {
                 joABI.eth_erc20_abi,
                 ep ); // only s-chain
     }
+}
+
+function ima_contracts_init_skale_manager() {
+    const imaState = state.get();
     if( imaState.bHaveSkaleManagerABI ) {
         const cp = imaState.chainProperties.mn;
         const ep = cp.ethersProvider;
@@ -4064,5 +4328,10 @@ export function ima_contracts_init() {
                 joABI.wallets_abi,
                 ep );
     } // if( imaState.bHaveSkaleManagerABI )
+}
 
-} // ima_contracts_init
+export function ima_contracts_init() {
+    ima_init_ethers_providers();
+    ima_contracts_init_ima();
+    ima_contracts_init_skale_manager();
+}

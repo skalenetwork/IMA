@@ -6535,7 +6535,8 @@ async function do_handle_all_messages_signing( optsTransfer ) {
     return true;
 }
 
-async function do_check_outgoing_message_event( optsTransfer ) {
+async function do_check_outgoing_message_event( optsTransfer, jo_schain ) {
+    const cntNodes = jo_schain.data.computed.nodes.length;
     const cntMessages = optsTransfer.jarrMessages.length;
     for( let idxMessage = 0; idxMessage < cntMessages; ++ idxMessage ) {
         const idxImaMessage = optsTransfer.arrMessageCounters[idxMessage];
@@ -6651,9 +6652,9 @@ async function do_check_outgoing_message_event( optsTransfer ) {
                     if( log.id != optsTransfer.details.id )
                         log.write( strError );
                 }
-                if( cntFailedNodes > cntNodesMayFail )
+                if( cntFailedNodes > optsTransfer.cntNodesMayFail )
                     break;
-                if( cntPassedNodes >= cntNodesShouldPass ) {
+                if( cntPassedNodes >= optsTransfer.cntNodesShouldPass ) {
                     optsTransfer.details.write( optsTransfer.strLogPrefix +
                         cc.sunny( optsTransfer.strDirection ) +
                         cc.success( " message " ) + cc.info( idxMessage + 1 ) +
@@ -6685,7 +6686,7 @@ async function do_check_outgoing_message_event( optsTransfer ) {
             if( log.id != optsTransfer.details.id )
                 log.write( strError );
         }
-        if( cntFailedNodes > cntNodesMayFail ) {
+        if( cntFailedNodes > optsTransfer.cntNodesMayFail ) {
             const s =
                 optsTransfer.strLogPrefix + cc.fatal( "CRITICAL ERROR:" ) +
                 cc.error( " Error validating " ) +
@@ -6693,7 +6694,7 @@ async function do_check_outgoing_message_event( optsTransfer ) {
                 cc.error( " messages, failed node count " ) +
                 cc.info( cntFailedNodes ) +
                 cc.error( " is greater then allowed to fail " ) +
-                cc.info( cntNodesMayFail ) +
+                cc.info( optsTransfer.cntNodesMayFail ) +
                 "\n";
             optsTransfer.details.write( s );
             if( log.id != optsTransfer.details.id )
@@ -6706,7 +6707,7 @@ async function do_check_outgoing_message_event( optsTransfer ) {
             optsTransfer.details.close();
             return false;
         }
-        if( ! ( cntPassedNodes >= cntNodesShouldPass ) ) {
+        if( ! ( cntPassedNodes >= optsTransfer.cntNodesShouldPass ) ) {
             const s =
                 optsTransfer.strLogPrefix + cc.fatal( "CRITICAL ERROR:" ) +
                 cc.error( " Error validating " ) +
@@ -6714,7 +6715,7 @@ async function do_check_outgoing_message_event( optsTransfer ) {
                 cc.error( " messages, passed node count " ) +
                 cc.info( cntFailedNodes ) +
                 cc.error( " is less then needed count " ) +
-                cc.info( cntNodesShouldPass ) +
+                cc.info( optsTransfer.cntNodesShouldPass ) +
                 "\n";
             optsTransfer.details.write( s );
             if( log.id != optsTransfer.details.id )
@@ -6832,7 +6833,7 @@ async function do_main_transfer_loop_actions( optsTransfer ) {
             const cntMessages = optsTransfer.jarrMessages.length;
             const jo_schain = arr_schains_cached[idxSChain];
             const cntNodes = jo_schain.data.computed.nodes.length;
-            const cntNodesShouldPass =
+            optsTransfer.cntNodesShouldPass =
                 ( cntNodes == 16 )
                     ? 11
                     : (
@@ -6844,19 +6845,19 @@ async function do_main_transfer_loop_actions( optsTransfer ) {
                                     : parseInt( ( cntNodes * 2 ) / 3 )
                             )
                     );
-            const cntNodesMayFail = cntNodes - cntNodesShouldPass;
+            optsTransfer.cntNodesMayFail = cntNodes - optsTransfer.cntNodesShouldPass;
             optsTransfer.details.write( optsTransfer.strLogPrefix +
                 cc.sunny( optsTransfer.strDirection ) +
                 cc.debug( " message analysis will be performed o S-Chain " ) +
                 cc.info( optsTransfer.chain_id_src ) + cc.debug( " with " ) +
                 cc.info( cntNodes ) + cc.debug( " node(s), " ) +
-                cc.info( cntNodesShouldPass ) +
+                cc.info( optsTransfer.cntNodesShouldPass ) +
                 cc.debug( " node(s) should have same message(s), " ) +
-                cc.info( cntNodesMayFail ) +
+                cc.info( optsTransfer.cntNodesMayFail ) +
                 cc.debug( " node(s) allowed to fail message(s) comparison, " ) +
                 cc.info( cntMessages ) + cc.debug( " message(s) to check..." ) +
                 "\n" );
-            if( ! ( await do_check_outgoing_message_event( optsTransfer ) ) )
+            if( ! ( await do_check_outgoing_message_event( optsTransfer, jo_schain ) ) )
                 return false;
         } // if( optsTransfer.strDirection == "S2S" ) //// "S2S message analysis
 
