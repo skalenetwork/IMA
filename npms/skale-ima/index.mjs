@@ -6536,6 +6536,7 @@ async function do_handle_all_messages_signing( optsTransfer ) {
 }
 
 async function do_check_outgoing_message_event( optsTransfer ) {
+    const cntMessages = optsTransfer.jarrMessages.length;
     for( let idxMessage = 0; idxMessage < cntMessages; ++ idxMessage ) {
         const idxImaMessage = optsTransfer.arrMessageCounters[idxMessage];
         const joMessage = optsTransfer.jarrMessages[idxMessage];

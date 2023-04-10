@@ -2496,114 +2496,153 @@ export async function do_sign_ready_hash( strMessageHash, isExposeOutput ) {
     return joSignResult;
 }
 
-export async function handle_skale_imaVerifyAndSign( joCallData ) {
-    const imaState = state.get();
-    const strLogPrefix = "";
-    const details = log.createMemoryStream();
-    const joRetVal = { };
-    let isSuccess = false;
-    try {
-        //
-        details.write( strLogPrefix +
-            cc.debug( "Will verify and sign " ) + cc.j( joCallData ) +
-            "\n" );
-        const nIdxCurrentMsgBlockStart = joCallData.params.startMessageIdx;
-        const strFromChainName = joCallData.params.srcChainName;
-        const strToChainName = joCallData.params.dstChainName;
-        const strFromChainID = joCallData.params.srcChainID;
-        const strToChainID = joCallData.params.dstChainID;
-        const strDirection = joCallData.params.direction;
-        const jarrMessages = joCallData.params.messages;
-        details.write(
-            strLogPrefix + cc.bright( strDirection ) +
-            cc.debug( " verification algorithm will work for transfer from chain " ) +
-            cc.info( strFromChainName ) + cc.debug( "/" ) + cc.notice( strFromChainID ) +
-            cc.debug( " to chain" ) +
-            cc.info( strToChainName ) + cc.debug( "/" ) + cc.notice( strToChainID ) +
-            cc.debug( " and work with array of message(s) " ) + cc.j( jarrMessages ) +
-            "\n" );
-        const nThreshold = discover_bls_threshold( imaState.joSChainNetworkInfo );
-        const nParticipants = discover_bls_participants( imaState.joSChainNetworkInfo );
-        details.write( strLogPrefix +
-            cc.bright( strDirection ) +
-            cc.debug( " verification algorithm discovered BLS threshold is " ) +
-            cc.info( nThreshold ) + cc.debug( "." ) +
-            "\n" );
-        details.write( strLogPrefix +
-            cc.bright( strDirection ) +
-            cc.debug( " verification algorithm discovered number of BLS participants is " ) +
-            cc.info( nParticipants ) + cc.debug( "." ) +
-            "\n" );
-        const strMessageHash =
-            owaspUtils.remove_starting_0x(
-                keccak256_message( jarrMessages, nIdxCurrentMsgBlockStart, strFromChainName )
-            );
-        details.write( strLogPrefix +
-            cc.bright( strDirection ) +
-            cc.debug( " verification algorithm message hash to sign is " ) +
-            cc.info( strMessageHash ) +
-            "\n" );
+async function prepare_handling_of_skale_imaVerifyAndSign( optsHandleVerifyAndSign ) {
+    optsHandleVerifyAndSign.details.write( optsHandleVerifyAndSign.strLogPrefix +
+        cc.debug( "Will verify and sign " ) + cc.j( optsHandleVerifyAndSign.joCallData ) +
+        "\n" );
+    optsHandleVerifyAndSign.nIdxCurrentMsgBlockStart =
+        optsHandleVerifyAndSign.joCallData.params.startMessageIdx;
+    optsHandleVerifyAndSign.strFromChainName =
+        optsHandleVerifyAndSign.joCallData.params.srcChainName;
+    optsHandleVerifyAndSign.strToChainName =
+        optsHandleVerifyAndSign.joCallData.params.dstChainName;
+    optsHandleVerifyAndSign.strFromChainID =
+        optsHandleVerifyAndSign.joCallData.params.srcChainID;
+    optsHandleVerifyAndSign.strToChainID =
+        optsHandleVerifyAndSign.joCallData.params.dstChainID;
+    optsHandleVerifyAndSign.strDirection =
+        optsHandleVerifyAndSign.joCallData.params.direction;
+    optsHandleVerifyAndSign.jarrMessages =
+        optsHandleVerifyAndSign.joCallData.params.messages;
+    optsHandleVerifyAndSign.details.write( optsHandleVerifyAndSign.strLogPrefix +
+        cc.bright( optsHandleVerifyAndSign.strDirection ) +
+        cc.debug( " verification algorithm will work for transfer from chain " ) +
+        cc.info( optsHandleVerifyAndSign.strFromChainName ) + cc.debug( "/" ) +
+        cc.notice( optsHandleVerifyAndSign.strFromChainID ) +
+        cc.debug( " to chain" ) +
+        cc.info( optsHandleVerifyAndSign.strToChainName ) + cc.debug( "/" ) +
+        cc.notice( optsHandleVerifyAndSign.strToChainID ) +
+        cc.debug( " and work with array of message(s) " ) +
+        cc.j( optsHandleVerifyAndSign.jarrMessages ) +
+        "\n" );
+    optsHandleVerifyAndSign.nThreshold =
+        discover_bls_threshold( optsHandleVerifyAndSign.imaState.joSChainNetworkInfo );
+    optsHandleVerifyAndSign.nParticipants =
+        discover_bls_participants( optsHandleVerifyAndSign.imaState.joSChainNetworkInfo );
+    optsHandleVerifyAndSign.details.write( optsHandleVerifyAndSign.strLogPrefix +
+        cc.bright( optsHandleVerifyAndSign.strDirection ) +
+        cc.debug( " verification algorithm discovered BLS threshold is " ) +
+        cc.info( optsHandleVerifyAndSign.nThreshold ) + cc.debug( "." ) +
+        "\n" );
+    optsHandleVerifyAndSign.details.write( optsHandleVerifyAndSign.strLogPrefix +
+        cc.bright( optsHandleVerifyAndSign.strDirection ) +
+        cc.debug( " verification algorithm discovered number of BLS participants is " ) +
+        cc.info( optsHandleVerifyAndSign.nParticipants ) + cc.debug( "." ) +
+        "\n" );
+    optsHandleVerifyAndSign.strMessageHash =
+        owaspUtils.remove_starting_0x(
+            keccak256_message(
+                optsHandleVerifyAndSign.jarrMessages,
+                optsHandleVerifyAndSign.nIdxCurrentMsgBlockStart,
+                optsHandleVerifyAndSign.strFromChainName
+            )
+        );
+    optsHandleVerifyAndSign.details.write( optsHandleVerifyAndSign.strLogPrefix +
+        cc.bright( optsHandleVerifyAndSign.strDirection ) +
+        cc.debug( " verification algorithm message hash to sign is " ) +
+        cc.info( optsHandleVerifyAndSign.strMessageHash ) +
+        "\n" );
+}
 
-        let joExtraSignOpts = null;
-        if( strDirection == "S2S" ) {
-            const strSChainNameSrc = joCallData.params.srcChainName;
-            const strSChainNameDst = joCallData.params.dstChainName;
-            details.write(
-                strLogPrefix + cc.bright( strDirection ) +
-                cc.debug( " verification algorithm will use for source chain name " ) +
-                cc.info( strSChainNameSrc ) +
-                cc.debug( " and destination chain name " ) + cc.info( strSChainNameDst ) +
-                "\n" );
-            const arr_schains_cached = skale_observer.get_last_cached_schains();
-            if( ( !arr_schains_cached ) || arr_schains_cached.length == 0 ) {
-                throw new Error(
-                    "Could not handle " + strDirection +
-                    " skale_imaVerifyAndSign(1), no S-Chains in SKALE NETWORK " +
-                    "observer cached yet, try again later"
-                );
-            }
-            //
-            let jo_schain_src = null, strUrlSrcSChain = null;
-            for( let idxSChain = 0; idxSChain < arr_schains_cached.length; ++ idxSChain ) {
-                const jo_schain = arr_schains_cached[idxSChain];
-                if( jo_schain.data.name.toString() == strSChainNameSrc.toString() ) {
-                    jo_schain_src = jo_schain;
-                    strUrlSrcSChain = skale_observer.pick_random_schain_url( jo_schain );
-                    break;
-                }
-            } // for( let idxSChain = 0; idxSChain < arr_schains_cached.length; ++ idxSChain )
-            if( jo_schain_src == null || strUrlSrcSChain == null || strUrlSrcSChain.length == 0 ) {
-                throw new Error(
-                    "Could not handle " + strDirection +
-                    " skale_imaVerifyAndSign(2), failed to discover source " +
-                    "chain access parameters, try again later" );
-            }
-            details.write(
-                strLogPrefix + cc.bright( strDirection ) +
-                cc.debug( " verification algorithm discovered source chain URL is " ) +
-                cc.u( strUrlSrcSChain ) +
-                cc.debug( ", chain name is " ) + cc.info( jo_schain_src.data.computed.schain_id ) +
-                cc.debug( ", chain id is " ) + cc.info( jo_schain_src.data.computed.chainId ) +
-                "\n" );
-            //
-            joExtraSignOpts = {
-                skale_observer: skale_observer,
-                ethersProvider_src: owaspUtils.getEthersProviderFromURL( strUrlSrcSChain ),
-                chain_id_src: strFromChainName,
-                chain_id_dst: strToChainName,
-                cid_src: strFromChainID,
-                cid_dst: strToChainID
-            };
+async function prepare_S2S_of_skale_imaVerifyAndSign( optsHandleVerifyAndSign ) {
+    const strSChainNameSrc = optsHandleVerifyAndSign.joCallData.params.srcChainName;
+    const strSChainNameDst = optsHandleVerifyAndSign.joCallData.params.dstChainName;
+    optsHandleVerifyAndSign.details.write( optsHandleVerifyAndSign.strLogPrefix +
+        cc.bright( optsHandleVerifyAndSign.strDirection ) +
+        cc.debug( " verification algorithm will use for source chain name " ) +
+        cc.info( strSChainNameSrc ) +
+        cc.debug( " and destination chain name " ) + cc.info( strSChainNameDst ) +
+        "\n" );
+    const arr_schains_cached = skale_observer.get_last_cached_schains();
+    if( ( !arr_schains_cached ) || arr_schains_cached.length == 0 ) {
+        throw new Error(
+            "Could not handle " + optsHandleVerifyAndSign.strDirection +
+            " skale_imaVerifyAndSign(1), no S-Chains in SKALE NETWORK " +
+            "observer cached yet, try again later"
+        );
+    }
+
+    let jo_schain_src = null, strUrlSrcSChain = null;
+    for( let idxSChain = 0; idxSChain < arr_schains_cached.length; ++ idxSChain ) {
+        const jo_schain = arr_schains_cached[idxSChain];
+        if( jo_schain.data.name.toString() == strSChainNameSrc.toString() ) {
+            jo_schain_src = jo_schain;
+            strUrlSrcSChain = skale_observer.pick_random_schain_url( jo_schain );
+            break;
         }
+    } // for( let idxSChain = 0; idxSChain < arr_schains_cached.length; ++ idxSChain )
+    if( jo_schain_src == null || strUrlSrcSChain == null || strUrlSrcSChain.length == 0 ) {
+        throw new Error(
+            "Could not handle " + optsHandleVerifyAndSign.strDirection +
+            " skale_imaVerifyAndSign(2), failed to discover source " +
+            "chain access parameters, try again later" );
+    }
+    optsHandleVerifyAndSign.details.write(
+        optsHandleVerifyAndSign.strLogPrefix + cc.bright( optsHandleVerifyAndSign.strDirection ) +
+        cc.debug( " verification algorithm discovered source chain URL is " ) +
+        cc.u( strUrlSrcSChain ) +
+        cc.debug( ", chain name is " ) + cc.info( jo_schain_src.data.computed.schain_id ) +
+        cc.debug( ", chain id is " ) + cc.info( jo_schain_src.data.computed.chainId ) +
+        "\n" );
+    //
+    optsHandleVerifyAndSign.joExtraSignOpts = {
+        skale_observer: skale_observer,
+        ethersProvider_src: owaspUtils.getEthersProviderFromURL( strUrlSrcSChain ),
+        chain_id_src: optsHandleVerifyAndSign.strFromChainName,
+        chain_id_dst: optsHandleVerifyAndSign.strToChainName,
+        cid_src: optsHandleVerifyAndSign.strFromChainID,
+        cid_dst: optsHandleVerifyAndSign.strToChainID
+    };
+}
+
+export async function handle_skale_imaVerifyAndSign( joCallData ) {
+    const optsHandleVerifyAndSign = {
+        joCallData: joCallData,
+        imaState: state.get(),
+        strLogPrefix: "",
+        details: log.createMemoryStream(),
+        joRetVal: {},
+        isSuccess: false,
+        nIdxCurrentMsgBlockStart: 0,
+        strFromChainName: "",
+        strToChainName: "",
+        strFromChainID: "",
+        strToChainID: "",
+        strDirection: "",
+        jarrMessages: [],
+        strMessageHash: "",
+        joExtraSignOpts: null,
+        nThreshold: 1,
+        nParticipants: 1
+    };
+    try {
+        await prepare_handling_of_skale_imaVerifyAndSign( optsHandleVerifyAndSign );
+        optsHandleVerifyAndSign.joExtraSignOpts = null;
+        if( optsHandleVerifyAndSign.strDirection == "S2S" )
+            await prepare_S2S_of_skale_imaVerifyAndSign( optsHandleVerifyAndSign );
+
         await check_correctness_of_messages_to_sign(
-            details, strLogPrefix, strDirection,
-            jarrMessages, nIdxCurrentMsgBlockStart, joExtraSignOpts
+            optsHandleVerifyAndSign.details, optsHandleVerifyAndSign.strLogPrefix,
+            optsHandleVerifyAndSign.strDirection, optsHandleVerifyAndSign.jarrMessages,
+            optsHandleVerifyAndSign.nIdxCurrentMsgBlockStart,
+            optsHandleVerifyAndSign.joExtraSignOpts
         );
         //
-        details.write( strLogPrefix + cc.debug( "Will BLS-sign verified messages." ) + "\n" );
-        let joAccount = imaState.chainProperties.sc.joAccount;
+        optsHandleVerifyAndSign.details.write( optsHandleVerifyAndSign.strLogPrefix +
+            cc.debug( "Will BLS-sign verified messages." ) + "\n" );
+        let joAccount = optsHandleVerifyAndSign.imaState.chainProperties.sc.joAccount;
         if( ! joAccount.strURL ) {
-            joAccount = imaState.chainProperties.mn.joAccount;
+            joAccount = optsHandleVerifyAndSign.imaState.chainProperties.mn.joAccount;
             if( ! joAccount.strSgxURL )
                 throw new Error( "SGX URL is unknown, cannot sign IMA message(s)" );
             if( ! joAccount.strBlsKeyName )
@@ -2622,22 +2661,24 @@ export async function handle_skale_imaVerifyAndSign( joCallData ) {
                 "key": fs.readFileSync( joAccount.strPathSslKey, "utf8" )
             };
         } else {
-            details.write(
+            optsHandleVerifyAndSign.details.write(
                 cc.warning( "Will sign via SGX" ) +
                 " " + cc.error( "without SSL options" ) +
                 "\n" );
         }
-        const signerIndex = imaState.nNodeNumber;
+        const signerIndex = optsHandleVerifyAndSign.imaState.nNodeNumber;
         await rpcCall.create( joAccount.strSgxURL, rpcCallOpts, async function( joCall, err ) {
             if( err ) {
                 const strErrorMessage =
-                    strLogPrefix + cc.bright( strDirection ) + " " + cc.fatal( "CRITICAL ERROR:" ) +
+                    optsHandleVerifyAndSign.strLogPrefix +
+                    cc.bright( optsHandleVerifyAndSign.strDirection ) + " " +
+                    cc.fatal( "CRITICAL ERROR:" ) +
                     cc.error( " JSON RPC call to SGX failed, " +
                         "RPC call was not created, error is: " ) +
                     cc.warning( owaspUtils.extract_error_message( err ) ) +
                     "\n";
                 log.write( strErrorMessage );
-                details.write( strErrorMessage );
+                optsHandleVerifyAndSign.details.write( strErrorMessage );
                 if( joCall )
                     await joCall.disconnect();
                 throw new Error(
@@ -2651,14 +2692,15 @@ export async function handle_skale_imaVerifyAndSign( joCallData ) {
                 "method": "blsSignMessageHash",
                 "params": {
                     "keyShareName": joAccount.strBlsKeyName,
-                    "messageHash": strMessageHash,
-                    "n": nParticipants,
-                    "t": nThreshold,
+                    "messageHash": optsHandleVerifyAndSign.strMessageHash,
+                    "n": optsHandleVerifyAndSign.nParticipants,
+                    "t": optsHandleVerifyAndSign.nThreshold,
                     "signerIndex": signerIndex + 0 // 1-based
                 }
             };
-            details.write(
-                strLogPrefix + cc.bright( strDirection ) +
+            optsHandleVerifyAndSign.details.write(
+                optsHandleVerifyAndSign.strLogPrefix +
+                cc.bright( optsHandleVerifyAndSign.strDirection ) +
                 cc.debug( " verification algorithm will invoke " ) + cc.info( "SGX" ) + " " +
                 cc.debug( "with call data" ) + " " + cc.j( joCallSGX ) +
                 "\n" );
@@ -2667,21 +2709,22 @@ export async function handle_skale_imaVerifyAndSign( joCallData ) {
                     const strError =
                         "JSON RPC call to SGX failed, RPC call reported error: " +
                         owaspUtils.extract_error_message( err );
-                    joRetVal.error = strError;
+                    optsHandleVerifyAndSign.joRetVal.error = strError;
                     const err_js = new Error( strError );
                     const strErrorMessage =
-                        strLogPrefix + cc.fatal( "CRITICAL ERROR:" ) +
+                        optsHandleVerifyAndSign.strLogPrefix + cc.fatal( "CRITICAL ERROR:" ) +
                         cc.error( " JSON RPC call to SGX failed, RPC call reported error: " ) +
                         cc.warning( owaspUtils.extract_error_message( err ) ) +
                         cc.error( ", stack is:" ) + "\n" + cc.stack( err_js.stack ) +
                         "\n";
                     log.write( strErrorMessage );
-                    details.write( strErrorMessage );
+                    optsHandleVerifyAndSign.details.write( strErrorMessage );
                     await joCall.disconnect();
                     throw err_js;
                 }
-                details.write( strLogPrefix +
-                    cc.bright( strDirection ) + cc.debug( " Call to " ) + cc.info( "SGX" ) +
+                optsHandleVerifyAndSign.details.write( optsHandleVerifyAndSign.strLogPrefix +
+                    cc.bright( optsHandleVerifyAndSign.strDirection ) +
+                    cc.debug( " Call to " ) + cc.info( "SGX" ) +
                     cc.debug( " done, answer is: " ) + cc.j( joOut ) +
                     "\n" );
                 let joSignResult = joOut;
@@ -2695,56 +2738,59 @@ export async function handle_skale_imaVerifyAndSign( joCallData ) {
                     typeof joOut.signResult == "object"
                 )
                     joSignResult = joOut.signResult;
-                if( "qa" in joCallData )
-                    joRetVal.qa = joCallData.qa;
+                if( "qa" in optsHandleVerifyAndSign.joCallData )
+                    optsHandleVerifyAndSign.joRetVal.qa = optsHandleVerifyAndSign.joCallData.qa;
                 if( "errorMessage" in joSignResult &&
                     typeof joSignResult.errorMessage == "string" &&
                     joSignResult.errorMessage.length > 0
                 ) {
-                    isSuccess = false;
+                    optsHandleVerifyAndSign.isSuccess = false;
                     const strError =
                         "BLS signing finished with error: " + joSignResult.errorMessage;
-                    joRetVal.error = strError;
+                    optsHandleVerifyAndSign.joRetVal.error = strError;
                     const strErrorMessage =
-                        strLogPrefix + cc.fatal( "CRITICAL ERROR:" ) +
+                        optsHandleVerifyAndSign.strLogPrefix + cc.fatal( "CRITICAL ERROR:" ) +
                         cc.error( " BLS signing(2) finished with error: " ) +
                         cc.warning( joSignResult.errorMessage ) +
                         "\n";
                     log.write( strErrorMessage );
-                    details.write( strErrorMessage );
+                    optsHandleVerifyAndSign.details.write( strErrorMessage );
                     await joCall.disconnect();
                     throw new Error( strError );
                 }
-                isSuccess = true;
-                joRetVal.result = { signResult: joSignResult };
-                if( "qa" in joCallData )
-                    joRetVal.qa = joCallData.qa;
+                optsHandleVerifyAndSign.isSuccess = true;
+                optsHandleVerifyAndSign.joRetVal.result = { signResult: joSignResult };
+                if( "qa" in optsHandleVerifyAndSign.joCallData )
+                    optsHandleVerifyAndSign.joRetVal.qa = optsHandleVerifyAndSign.joCallData.qa;
                 await joCall.disconnect();
             } ); // joCall.call ...
         } ); // rpcCall.create ...
     } catch ( err ) {
-        isSuccess = false;
+        optsHandleVerifyAndSign.isSuccess = false;
         const strError = owaspUtils.extract_error_message( err );
-        joRetVal.error = strError;
+        optsHandleVerifyAndSign.joRetVal.error = strError;
         const strErrorMessage =
-            strLogPrefix + cc.fatal( "CRITICAL ERROR:" ) + " " +
+            optsHandleVerifyAndSign.strLogPrefix + cc.fatal( "CRITICAL ERROR:" ) + " " +
             cc.error( "IMA messages verifier/signer error: " ) + cc.warning( strError ) +
             cc.error( ", stack is:" ) + "\n" + cc.stack( err.stack ) +
             "\n";
         log.write( strErrorMessage );
-        details.write( strErrorMessage );
+        optsHandleVerifyAndSign.details.write( strErrorMessage );
     }
-    details.exposeDetailsTo( log, "IMA messages verifier/signer", isSuccess );
-    details.close();
-    return joRetVal;
+    optsHandleVerifyAndSign.details.exposeDetailsTo(
+        log, "IMA messages verifier/signer", optsHandleVerifyAndSign.isSuccess );
+    optsHandleVerifyAndSign.details.close();
+    return optsHandleVerifyAndSign.joRetVal;
 }
 
 async function handle_skale_imaBSU256_prepare( optsBSU256 ) {
     optsBSU256.details.write( optsBSU256.strLogPrefix +
         cc.debug( "Will U256-BLS-sign " ) + cc.j( optsBSU256.joCallData ) +
         "\n" );
-    optsBSU256.nThreshold = discover_bls_threshold( optsBSU256.imaState.joSChainNetworkInfo );
-    optsBSU256.nParticipants = discover_bls_participants( optsBSU256.imaState.joSChainNetworkInfo );
+    optsBSU256.nThreshold =
+        discover_bls_threshold( optsBSU256.imaState.joSChainNetworkInfo );
+    optsBSU256.nParticipants =
+        discover_bls_participants( optsBSU256.imaState.joSChainNetworkInfo );
     optsBSU256.details.write( optsBSU256.strLogPrefix +
         cc.debug( "Discovered BLS threshold is " ) +
         cc.info( optsBSU256.nThreshold ) + cc.debug( "." ) +
