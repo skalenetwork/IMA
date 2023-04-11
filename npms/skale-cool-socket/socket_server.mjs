@@ -111,8 +111,7 @@ export class SocketServer extends EventDispatcher {
                     joAnswer = utils.prepareAnswerJSON( joMessage );
                     joAnswer.error = "" + err.toString();
                 }
-                //
-                //
+
                 if( joAnswer != null && joAnswer != undefined ) {
                     if( typeof joAnswer.error == "string" && joAnswer.error.length > 0 ) {
                         if( self.isLogSocketErrors ) {

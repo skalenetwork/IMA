@@ -63,6 +63,7 @@ module.exports = {
         "no-unused-vars": "error",
         "object-shorthand": 0,
         "multiline-ternary": "off",
-        "max-len": [ "error", { "code": 100, "tabWidth": 4 } ]
+        "max-len": [ "error", { "code": 100, "tabWidth": 4 } ],
+        "max-lines-per-function": [ "error", { "max": 200, "skipBlankLines": false } ]
     }
 };

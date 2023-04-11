@@ -282,7 +282,7 @@ state.set( imaState );
 imaCLI.ima_common_init();
 imaCLI.ima_contracts_init();
 
-describe( "OWASP", function() {
+describe( "OWASP-1", function() {
 
     describe( "Parsing utilities", function() {
 
@@ -359,6 +359,13 @@ describe( "OWASP", function() {
             assert.equal( owaspUtils.toBoolean( "0.123" ), true );
             assert.equal( owaspUtils.toBoolean( "" ), false );
         } );
+
+    } );
+} );
+
+describe( "OWASP-2", function() {
+
+    describe( "Parsing utilities", function() {
 
         it( "URL validation", function() {
             assert.equal( owaspUtils.validateURL( "http://127.0.0.1" ), true );
@@ -502,6 +509,12 @@ describe( "OWASP", function() {
             assert.equal( owaspUtils.is_ws_url( "wss://localhost:1234" ), true );
             assert.equal( owaspUtils.is_ws_url( "wss://[::1]:1234" ), true );
         } );
+    } );
+} );
+
+describe( "OWASP-3", function() {
+
+    describe( "Parsing utilities", function() {
 
         const strAddressValid0 = "0x7aa5E36AA15E93D10F4F26357C30F052DacDde5F";
         const strAddressValid1 = "7aa5E36AA15E93D10F4F26357C30F052DacDde5F";
@@ -590,6 +603,9 @@ describe( "OWASP", function() {
         } );
 
     } );
+} );
+
+describe( "OWASP-4", function() {
 
     describe( "Command line argument utilities", function() {
 
@@ -651,6 +667,9 @@ describe( "OWASP", function() {
         } );
 
     } );
+} );
+
+describe( "OWASP-5", function() {
 
     describe( "Other utilities", function() {
 
@@ -736,6 +755,9 @@ describe( "OWASP", function() {
             assert.equal( address.toLowerCase(), address2.toLowerCase() );
         } );
     } );
+} );
+
+describe( "OWASP-6", function() {
 
     describe( "Ethereum value of money utilities", function() {
 
@@ -1025,7 +1047,7 @@ describe( "CLI", function() {
 
 } );
 
-describe( "Agent Utils Module", function() {
+describe( "Agent Utils Module-1", function() {
 
     describe( "String helpers", function() {
 
@@ -1088,6 +1110,10 @@ describe( "Agent Utils Module", function() {
         } );
 
     } );
+
+} );
+
+describe( "Agent Utils Module-2", function() {
 
     describe( "Byte array manipulation helpers", function() {
 
@@ -1173,6 +1199,10 @@ describe( "Agent Utils Module", function() {
         } );
 
     } );
+
+} );
+
+describe( "Agent Utils Module-3", function() {
 
     describe( "Path/file/JSON helpers", function() {
 

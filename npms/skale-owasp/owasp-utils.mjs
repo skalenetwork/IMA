@@ -589,9 +589,8 @@ const g_mapMoneyNameSuffixAliases = {
     "be": "babbage",
     "we": "wei",
     "wi": "wei",
-    //
+
     // next are advanced kind of
-    //
     "noether": "noether",
     "noeth": "noether",
     "kwei": "kwei",

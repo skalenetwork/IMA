@@ -357,7 +357,6 @@ describe('tests for `npms/skale-ima`', function () {
 
     it('should return `true` invoke `register_main_net_depositBox_on_s_chain`', async function () {
         let jo_deposit_box_main_net = { "options": { "address": "0xd34e38f830736DB41CC6E10aA37A3C851A7a2B82"}};
-        // 
         expect(await IMA.
             register_main_net_depositBox_on_s_chain(
                 w3_s_chain,

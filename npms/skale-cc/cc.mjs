@@ -865,33 +865,33 @@ function trim_left_unneeded_timestamp_zeros( s ) {
 export function get_duration_string( tsFrom, tsTo ) {
     let s = "";
     let n = tsTo - tsFrom;
-    //
+
     const ms = n % 1000;
     n = Math.floor( n / 1000 );
     s += "." + n2s( ms, 3 );
     if( n == 0 )
         return "0" + s;
-    //
+
     const secs = n % 60;
     n = Math.floor( n / 60 );
     s = "" + n2s( secs, 2 ) + s;
     if( n == 0 )
         return trim_left_unneeded_timestamp_zeros( s );
     s = ":" + s;
-    //
+
     const mins = n % 60;
     n = Math.floor( n / 60 );
     s = "" + n2s( mins, 2 ) + s;
     if( n == 0 )
         return trim_left_unneeded_timestamp_zeros( s );
     s = ":" + s;
-    //
+
     const hours = n % 24;
     n = Math.floor( n / 24 );
     s = "" + n2s( hours, 2 ) + s;
     if( n == 0 )
         return trim_left_unneeded_timestamp_zeros( s );
-    //
+
     return "" + n + " " + ( ( n > 1 ) ? "days" : "day" ) + "," + s;
 }
 

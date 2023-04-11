@@ -681,6 +681,7 @@ export class OutOfWorkerSocketClientPipe extends BasicSocketPipe {
 ///////////////////////////////////////////////////////////////////////////////
 
 export class OutOfWorkerRelay extends EventDispatcher {
+    // eslint-disable-next-line max-lines-per-function
     constructor(
         strRelayName, acceptor, fnCreateClient, isAutoFlushIncoming, isAutoFlushOutgoing
     ) {
@@ -710,6 +711,7 @@ export class OutOfWorkerRelay extends EventDispatcher {
         }
         self.acceptor = acceptor;
         self.fnCreateClient = fnCreateClient;
+        // eslint-disable-next-line max-lines-per-function
         self.onConnection_ = function( eventData ) {
             const pipeIncoming = eventData.socket;
             let pipeOutgoing = null;
@@ -735,9 +737,8 @@ export class OutOfWorkerRelay extends EventDispatcher {
                         "remoteAddress": "" + pipeIncoming.strSavedRemoteAddress
                     } )
             );
-            //
+
             // 1) configure incoming pipe
-            //
             let _offAllPipeEventListeners = null;
             let _onExternalPipeClose = function() {
                 if( settings.logging.net.relay.disconnect ) {
@@ -931,9 +932,8 @@ export class OutOfWorkerRelay extends EventDispatcher {
             pipeIncoming.on( "close", _onExternalPipeClose );
             pipeIncoming.on( "error", _onExternalPipeError );
             pipeIncoming.on( "message", _onExternalPipeMessage );
-            //
+
             // 2) configure outgoing relay client pipe
-            //
             pipeOutgoing = pipeIncoming.relayClientSocket = self.fnCreateClient();
             if( ! pipeOutgoing ) {
                 pipeIncoming.dispose();
@@ -965,6 +965,7 @@ export class OutOfWorkerRelay extends EventDispatcher {
 ///////////////////////////////////////////////////////////////////////////////
 
 export class OneToOneRelay extends EventDispatcher {
+    // eslint-disable-next-line max-lines-per-function
     constructor(
         strRelayName, pipeIncoming, pipeOutgoing, isAutoFlushIncoming, isAutoFlushOutgoing
     ) {
@@ -990,9 +991,8 @@ export class OneToOneRelay extends EventDispatcher {
             pipeOutgoing.strSavedRemoteAddress == null ||
             pipeOutgoing.strSavedRemoteAddress == undefined )
             pipeOutgoing.strSavedRemoteAddress = "" + pipeOutgoing.constructor.name;
-        //
+
         // 1) configure incoming pipe
-        //
         let _offAllPipeEventListeners = null;
         let _onIncomingPipeClose = function() {
             if( settings.logging.net.relay.disconnect ) {
@@ -1187,9 +1187,8 @@ export class OneToOneRelay extends EventDispatcher {
         pipeIncoming.on( "close", _onIncomingPipeClose );
         pipeIncoming.on( "error", _onIncomingPipeError );
         pipeIncoming.on( "message", _onIncomingPipeMessage );
-        //
+
         // 2) configure outgoing relay client pipe
-        //
         pipeOutgoing.on( "close", _onOutgoingPipeClose );
         pipeOutgoing.on( "error", _onOutgoingPipeError );
         pipeOutgoing.on( "message", _onOutgoingPipeMessage );
@@ -1989,7 +1988,7 @@ export class RTCActor extends RTCConnection {
         this.bWasImpersonated = false;
         this.isCreator = false;
         this.isJoiner = false;
-        //
+
         this.offerOptions = {
             optional: [],
             // offer to the remote peer the opportunity to try to send audio
@@ -2013,7 +2012,7 @@ export class RTCActor extends RTCConnection {
                 ( "iceRestart" in offerOptions && offerOptions.iceRestart )
                     ? true : false;
         }
-        //
+
         this.signalingOptions = {
             idCategory: "" + settings.rtcSpace.defaultSpaceCategory,
             idSpace: "" + settings.rtcSpace.defaultSpaceName

@@ -236,7 +236,8 @@ export async function handle_loop_state_arrived(
                 "\n" );
         }
         const strMessageHash =
-            imaBLS.keccak256_pwa( nNodeNumber, strLoopWorkType, isStart, 0 + ts );
+            imaBLS.keccak256_4_pending_work_analysis(
+                nNodeNumber, strLoopWorkType, isStart, 0 + ts );
         const isSignatureOK =
             await imaBLS.do_verify_ready_hash(
                 strMessageHash, nNodeNumber, signature, imaState.isPrintPWA );
@@ -292,7 +293,7 @@ async function notify_on_loop_impl( imaState, strLoopWorkType, nIndexS2S, isStar
         const nUtcUnixTimeStamp = Math.floor( ( new Date() ).getTime() / 1000 );
 
         const strMessageHash =
-            imaBLS.keccak256_pwa(
+            imaBLS.keccak256_4_pending_work_analysis(
                 0 + imaState.nNodeNumber, strLoopWorkType, isStart, nUtcUnixTimeStamp );
         const signature = await imaBLS.do_sign_ready_hash( strMessageHash, imaState.isPrintPWA );
         await handle_loop_state_arrived(
