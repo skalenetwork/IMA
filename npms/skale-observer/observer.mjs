@@ -496,7 +496,7 @@ export async function load_schains_connected_only(
             }
             if( opts && opts.bStopNeeded )
                 break;
-            //
+
             if( strChainNameConnectedTo == strSChainName ) {
                 if( opts && opts.details ) {
                     opts.details.write(

@@ -262,7 +262,7 @@ export function keccak256_4_pending_work_analysis( nNodeNumber, strLoopWorkType,
     bytes_u256 = imaUtils.bytesAlignLeftWithZeroes( bytes_u256, 32 );
     bytes_u256 = imaUtils.invertArrayItemsLR( bytes_u256 );
     arrBytes = imaUtils.bytesConcat( arrBytes, bytes_u256 );
-    //
+
     const hash = new Keccak( 256 );
     hash.update( imaUtils.toBuffer( arrBytes ) );
     const strMessageHash = hash.digest( "hex" );
@@ -363,7 +363,7 @@ function perform_bls_glue(
         if( "X" in joGlueResult.signature && "Y" in joGlueResult.signature ) {
             details.write( strLogPrefix + cc.success( "BLS glue success" ) + "\n" );
             joGlueResult.hashSrc = strMessageHash;
-            //
+
             details.write( strLogPrefix +
                 cc.debug( "Computing " ) + cc.info( "G1" ) + cc.debug( " hash point..." ) +
                 "\n" );
@@ -387,7 +387,7 @@ function perform_bls_glue(
             details.write( strLogPrefix +
                 cc.debug( "HashG1 result is: " ) + cc.j( joResultHashG1 ) +
                 "\n" );
-            //
+
             if( "g1" in joResultHashG1 &&
                 "hint" in joResultHashG1.g1 &&
                 "hashPoint" in joResultHashG1.g1 &&
@@ -1466,9 +1466,7 @@ async function do_sign_process_handle_call(
             joOut.result.signResult.status === 0
         ) {
             const nZeroBasedNodeIndex = joNode.imaInfo.thisNodeIndex - 1;
-            //
             // partial BLS verification for one participant
-            //
             let bNodeSignatureOKay = false; // initially assume signature is wrong
             optsSignOperation.strLogPrefixA =
                 cc.bright( optsSignOperation.strDirection ) + cc.debug( "/" ) +
@@ -1935,9 +1933,7 @@ async function do_sign_u256_one_impl( optsSign_u256 ) {
                     joOut.result.signResult.status === 0
                 ) {
                     const nZeroBasedNodeIndex = joNode.imaInfo.thisNodeIndex - 1;
-                    //
                     // partial BLS verification for one participant
-                    //
                     let bNodeSignatureOKay = false; // initially assume signature is wrong
                     const strLogPrefixA =
                         cc.info( "BLS" ) + cc.debug( "/" ) +
@@ -2378,11 +2374,9 @@ export async function do_sign_ready_hash( strMessageHash, isExposeOutput ) {
             cc.debug( "Discovered number of BLS participants is " ) +
             cc.info( nParticipants ) + cc.debug( "." ) +
             "\n" );
-        //
         details.write( strLogPrefix +
             cc.debug( "hash value to sign is " ) + cc.info( strMessageHash ) +
             "\n" );
-        //
         let joAccount = imaState.chainProperties.sc.joAccount;
         if( ! joAccount.strURL ) {
             joAccount = imaState.chainProperties.mn.joAccount;
@@ -2615,7 +2609,7 @@ async function prepare_S2S_of_skale_imaVerifyAndSign( optsHandleVerifyAndSign ) 
         cc.debug( ", chain name is " ) + cc.info( jo_schain_src.data.computed.schain_id ) +
         cc.debug( ", chain id is " ) + cc.info( jo_schain_src.data.computed.chainId ) +
         "\n" );
-    //
+
     optsHandleVerifyAndSign.joExtraSignOpts = {
         skale_observer: skale_observer,
         ethersProvider_src: owaspUtils.getEthersProviderFromURL( strUrlSrcSChain ),
@@ -2658,7 +2652,6 @@ export async function handle_skale_imaVerifyAndSign( joCallData ) {
             optsHandleVerifyAndSign.nIdxCurrentMsgBlockStart,
             optsHandleVerifyAndSign.joExtraSignOpts
         );
-        //
         optsHandleVerifyAndSign.details.write( optsHandleVerifyAndSign.strLogPrefix +
             cc.debug( "Will BLS-sign verified messages." ) + "\n" );
         let joAccount = optsHandleVerifyAndSign.imaState.chainProperties.sc.joAccount;

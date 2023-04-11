@@ -1,30 +1,150 @@
 import * as owaspUtils from "../npms/skale-owasp/owasp-utils.mjs";
 import * as IMA from "../npms/skale-ima/index.mjs";
 
+export const g_default_value_for_loopState = {
+    "oracle": {
+        "isInProgress": false,
+        "wasInProgress": false
+    },
+    "m2s": {
+        "isInProgress": false,
+        "wasInProgress": false
+    },
+    "s2m": {
+        "isInProgress": false,
+        "wasInProgress": false
+    },
+    "s2s": {
+        "isInProgress": false,
+        "wasInProgress": false
+    }
+};
+
+function construct_chain_properties() {
+    return {
+        "mn": {
+            "joAccount": {
+                "privateKey":
+                    owaspUtils.toEthPrivateKey( process.env.PRIVATE_KEY_FOR_ETHEREUM ),
+                "address": owaspUtils.fn_address_impl_,
+                "strTransactionManagerURL":
+                    owaspUtils.toStringURL(
+                        process.env.TRANSACTION_MANAGER_URL_ETHEREUM ),
+                "tm_priority":
+                    owaspUtils.toStringURL(
+                        process.env.TRANSACTION_MANAGER_PRIORITY_ETHEREUM ) || 5,
+                "strSgxURL": owaspUtils.toStringURL( process.env.SGX_URL_ETHEREUM ),
+                "strSgxKeyName": owaspUtils.toStringURL( process.env.SGX_KEY_ETHEREUM ),
+                "strPathSslKey":
+                    ( process.env.SGX_SSL_KEY_FILE_ETHEREUM || "" ).toString().trim(),
+                "strPathSslCert":
+                    ( process.env.SGX_SSL_CERT_FILE_ETHEREUM || "" ).toString().trim(),
+                "strBlsKeyName": owaspUtils.toStringURL( process.env.BLS_KEY_ETHEREUM )
+            },
+            "transactionCustomizer": IMA.get_tc_main_net(),
+            "ethersProvider": null,
+            "strURL": owaspUtils.toStringURL( process.env.URL_W3_ETHEREUM ),
+            "strChainName":
+                ( process.env.CHAIN_NAME_ETHEREUM || "Mainnet" ).toString().trim(),
+            "cid": owaspUtils.toInteger( process.env.CID_ETHEREUM ) || -4,
+            "strPathAbiJson": null,
+            "joAbiIMA": { },
+            "bHaveAbiIMA": false,
+            "joErc20": null,
+            "joErc721": null,
+            "joErc1155": null,
+            "strCoinNameErc20": "", // in-JSON coin name
+            "strCoinNameErc721": "", // in-JSON coin name
+            "strCoinNameErc1155": "", // in-JSON coin name
+            "strPathJsonErc20": "",
+            "strPathJsonErc721": "",
+            "strPathJsonErc1155": ""
+        },
+        "sc": {
+            "joAccount": {
+                "privateKey":
+                    owaspUtils.toEthPrivateKey( process.env.PRIVATE_KEY_FOR_SCHAIN ),
+                "address": owaspUtils.fn_address_impl_,
+                "strTransactionManagerURL":
+                    owaspUtils.toStringURL( process.env.TRANSACTION_MANAGER_URL_S_CHAIN ),
+                "tm_priority":
+                    owaspUtils.toStringURL(
+                        process.env.TRANSACTION_MANAGER_PRIORITY_S_CHAIN ) || 5,
+                "strSgxURL": owaspUtils.toStringURL( process.env.SGX_URL_S_CHAIN ),
+                "strSgxKeyName": owaspUtils.toStringURL( process.env.SGX_KEY_S_CHAIN ),
+                "strPathSslKey":
+                    ( process.env.SGX_SSL_KEY_FILE_S_CHAIN || "" ).toString().trim(),
+                "strPathSslCert":
+                    ( process.env.SGX_SSL_CERT_FILE_S_CHAIN || "" ).toString().trim(),
+                "strBlsKeyName": owaspUtils.toStringURL( process.env.BLS_KEY_S_CHAIN )
+            },
+            "transactionCustomizer": IMA.get_tc_s_chain(),
+            "ethersProvider": null,
+            "strURL": owaspUtils.toStringURL( process.env.URL_W3_S_CHAIN ),
+            "strChainName":
+                ( process.env.CHAIN_NAME_SCHAIN || "id-S-chain" ).toString().trim(),
+            "cid": owaspUtils.toInteger( process.env.CID_SCHAIN ) || -4,
+            "strPathAbiJson": null,
+            "joAbiIMA": { },
+            "bHaveAbiIMA": false,
+            "joErc20": null,
+            "joErc721": null,
+            "joErc1155": null,
+            "strCoinNameErc20": "", // in-JSON coin name
+            "strCoinNameErc721": "", // in-JSON coin name
+            "strCoinNameErc1155": "", // in-JSON coin name
+            "strPathJsonErc20": "",
+            "strPathJsonErc721": "",
+            "strPathJsonErc1155": ""
+        },
+        "tc": {
+            "joAccount": {
+                "privateKey":
+                    owaspUtils.toEthPrivateKey( process.env.PRIVATE_KEY_FOR_SCHAIN_TARGET ),
+                "address": owaspUtils.fn_address_impl_,
+                "strTransactionManagerURL":
+                    owaspUtils.toStringURL(
+                        process.env.TRANSACTION_MANAGER_URL_S_CHAIN_TARGET ),
+                "tm_priority":
+                    owaspUtils.toStringURL(
+                        process.env.TRANSACTION_MANAGER_PRIORITY_S_CHAIN_TARGET ) || 5,
+                "strSgxURL": owaspUtils.toStringURL( process.env.SGX_URL_S_CHAIN_TARGET ),
+                "strSgxKeyName": owaspUtils.toStringURL( process.env.SGX_KEY_S_CHAIN_TARGET ),
+                "strPathSslKey":
+                    ( process.env.SGX_SSL_KEY_FILE_S_CHAIN_TARGET || "" ).toString().trim(),
+                "strPathSslCert":
+                    ( process.env.SGX_SSL_CERT_FILE_S_CHAIN_TARGET || "" ).toString().trim(),
+                "strBlsKeyName": owaspUtils.toStringURL( process.env.BLS_KEY_T_CHAIN )
+            },
+            "transactionCustomizer": IMA.get_tc_t_chain(),
+            "ethersProvider": null,
+            "strURL": owaspUtils.toStringURL( process.env.URL_W3_S_CHAIN_TARGET ),
+            "strChainName":
+                ( process.env.CHAIN_NAME_SCHAIN_TARGET || "id-T-chain" ).toString().trim(),
+            "cid": owaspUtils.toInteger( process.env.CID_SCHAIN_TARGET ) || -4,
+            "strPathAbiJson": null,
+            "joAbiIMA": { },
+            "bHaveAbiIMA": false,
+            "joErc20": null,
+            "joErc721": null,
+            "joErc1155": null,
+            "strCoinNameErc20": "", // in-JSON coin name
+            "strCoinNameErc721": "", // in-JSON coin name
+            "strCoinNameErc1155": "", // in-JSON coin name
+            "strPathJsonErc20": "",
+            "strPathJsonErc721": "",
+            "strPathJsonErc1155": ""
+        }
+    };
+}
+
 let imaState = null;
 
 export function get() {
     if( imaState )
         return imaState;
     imaState = {
-        "loopState": {
-            "oracle": {
-                "isInProgress": false,
-                "wasInProgress": false
-            },
-            "m2s": {
-                "isInProgress": false,
-                "wasInProgress": false
-            },
-            "s2m": {
-                "isInProgress": false,
-                "wasInProgress": false
-            },
-            "s2s": {
-                "isInProgress": false,
-                "wasInProgress": false
-            }
-        },
+        "loopState": g_default_value_for_loopState,
 
         "strLogFilePath": "",
         "nLogMaxSizeBeforeRotation": -1,
@@ -121,121 +241,7 @@ export function get() {
         // "eth_erc721_target": null, // only s-chain target
         // "eth_erc1155_target": null, // only s-chain target
 
-        "chainProperties": {
-            "mn": {
-                "joAccount": {
-                    "privateKey":
-                        owaspUtils.toEthPrivateKey( process.env.PRIVATE_KEY_FOR_ETHEREUM ),
-                    "address": owaspUtils.fn_address_impl_,
-                    "strTransactionManagerURL":
-                        owaspUtils.toStringURL(
-                            process.env.TRANSACTION_MANAGER_URL_ETHEREUM ),
-                    "tm_priority":
-                        owaspUtils.toStringURL(
-                            process.env.TRANSACTION_MANAGER_PRIORITY_ETHEREUM ) || 5,
-                    "strSgxURL": owaspUtils.toStringURL( process.env.SGX_URL_ETHEREUM ),
-                    "strSgxKeyName": owaspUtils.toStringURL( process.env.SGX_KEY_ETHEREUM ),
-                    "strPathSslKey":
-                        ( process.env.SGX_SSL_KEY_FILE_ETHEREUM || "" ).toString().trim(),
-                    "strPathSslCert":
-                        ( process.env.SGX_SSL_CERT_FILE_ETHEREUM || "" ).toString().trim(),
-                    "strBlsKeyName": owaspUtils.toStringURL( process.env.BLS_KEY_ETHEREUM )
-                },
-                "transactionCustomizer": IMA.get_tc_main_net(),
-                "ethersProvider": null,
-                "strURL": owaspUtils.toStringURL( process.env.URL_W3_ETHEREUM ),
-                "strChainName":
-                    ( process.env.CHAIN_NAME_ETHEREUM || "Mainnet" ).toString().trim(),
-                "cid": owaspUtils.toInteger( process.env.CID_ETHEREUM ) || -4,
-                "strPathAbiJson": null,
-                "joAbiIMA": { },
-                "bHaveAbiIMA": false,
-                "joErc20": null,
-                "joErc721": null,
-                "joErc1155": null,
-                "strCoinNameErc20": "", // in-JSON coin name
-                "strCoinNameErc721": "", // in-JSON coin name
-                "strCoinNameErc1155": "", // in-JSON coin name
-                "strPathJsonErc20": "",
-                "strPathJsonErc721": "",
-                "strPathJsonErc1155": ""
-            },
-            "sc": {
-                "joAccount": {
-                    "privateKey":
-                        owaspUtils.toEthPrivateKey( process.env.PRIVATE_KEY_FOR_SCHAIN ),
-                    "address": owaspUtils.fn_address_impl_,
-                    "strTransactionManagerURL":
-                        owaspUtils.toStringURL( process.env.TRANSACTION_MANAGER_URL_S_CHAIN ),
-                    "tm_priority":
-                        owaspUtils.toStringURL(
-                            process.env.TRANSACTION_MANAGER_PRIORITY_S_CHAIN ) || 5,
-                    "strSgxURL": owaspUtils.toStringURL( process.env.SGX_URL_S_CHAIN ),
-                    "strSgxKeyName": owaspUtils.toStringURL( process.env.SGX_KEY_S_CHAIN ),
-                    "strPathSslKey":
-                        ( process.env.SGX_SSL_KEY_FILE_S_CHAIN || "" ).toString().trim(),
-                    "strPathSslCert":
-                        ( process.env.SGX_SSL_CERT_FILE_S_CHAIN || "" ).toString().trim(),
-                    "strBlsKeyName": owaspUtils.toStringURL( process.env.BLS_KEY_S_CHAIN )
-                },
-                "transactionCustomizer": IMA.get_tc_s_chain(),
-                "ethersProvider": null,
-                "strURL": owaspUtils.toStringURL( process.env.URL_W3_S_CHAIN ),
-                "strChainName":
-                    ( process.env.CHAIN_NAME_SCHAIN || "id-S-chain" ).toString().trim(),
-                "cid": owaspUtils.toInteger( process.env.CID_SCHAIN ) || -4,
-                "strPathAbiJson": null,
-                "joAbiIMA": { },
-                "bHaveAbiIMA": false,
-                "joErc20": null,
-                "joErc721": null,
-                "joErc1155": null,
-                "strCoinNameErc20": "", // in-JSON coin name
-                "strCoinNameErc721": "", // in-JSON coin name
-                "strCoinNameErc1155": "", // in-JSON coin name
-                "strPathJsonErc20": "",
-                "strPathJsonErc721": "",
-                "strPathJsonErc1155": ""
-            },
-            "tc": {
-                "joAccount": {
-                    "privateKey":
-                        owaspUtils.toEthPrivateKey( process.env.PRIVATE_KEY_FOR_SCHAIN_TARGET ),
-                    "address": owaspUtils.fn_address_impl_,
-                    "strTransactionManagerURL":
-                        owaspUtils.toStringURL(
-                            process.env.TRANSACTION_MANAGER_URL_S_CHAIN_TARGET ),
-                    "tm_priority":
-                        owaspUtils.toStringURL(
-                            process.env.TRANSACTION_MANAGER_PRIORITY_S_CHAIN_TARGET ) || 5,
-                    "strSgxURL": owaspUtils.toStringURL( process.env.SGX_URL_S_CHAIN_TARGET ),
-                    "strSgxKeyName": owaspUtils.toStringURL( process.env.SGX_KEY_S_CHAIN_TARGET ),
-                    "strPathSslKey":
-                        ( process.env.SGX_SSL_KEY_FILE_S_CHAIN_TARGET || "" ).toString().trim(),
-                    "strPathSslCert":
-                        ( process.env.SGX_SSL_CERT_FILE_S_CHAIN_TARGET || "" ).toString().trim(),
-                    "strBlsKeyName": owaspUtils.toStringURL( process.env.BLS_KEY_T_CHAIN )
-                },
-                "transactionCustomizer": IMA.get_tc_t_chain(),
-                "ethersProvider": null,
-                "strURL": owaspUtils.toStringURL( process.env.URL_W3_S_CHAIN_TARGET ),
-                "strChainName":
-                    ( process.env.CHAIN_NAME_SCHAIN_TARGET || "id-T-chain" ).toString().trim(),
-                "cid": owaspUtils.toInteger( process.env.CID_SCHAIN_TARGET ) || -4,
-                "strPathAbiJson": null,
-                "joAbiIMA": { },
-                "bHaveAbiIMA": false,
-                "joErc20": null,
-                "joErc721": null,
-                "joErc1155": null,
-                "strCoinNameErc20": "", // in-JSON coin name
-                "strCoinNameErc721": "", // in-JSON coin name
-                "strCoinNameErc1155": "", // in-JSON coin name
-                "strPathJsonErc20": "",
-                "strPathJsonErc721": "",
-                "strPathJsonErc1155": ""
-            }
-        },
+        "chainProperties": construct_chain_properties(),
 
         "strPathAbiJsonSkaleManager": "",
         "joAbiSkaleManager": { },

@@ -135,7 +135,7 @@ class SignalingClient extends EventDispatcher {
                     "\" - web socket signaling pipe termination error", anyError );
             }
         }
-        //
+
         this.socket.signalingClient = null;
         this.socket = null;
         if( settings.logging.net.signaling.disconnect ) {
@@ -526,6 +526,7 @@ const g_default_signaling_manager = new SignalingManager();
 ///////////////////////////////////////////////////////////////////////////////
 
 class SignalingServer extends EventDispatcher {
+    // eslint-disable-next-line max-lines-per-function
     constructor( acceptor, signalingManager ) {
         super();
         if( acceptor == null ||
@@ -535,6 +536,7 @@ class SignalingServer extends EventDispatcher {
         this.acceptor = acceptor;
         this.signalingManager = signalingManager || g_default_signaling_manager;
         const self = this;
+        // eslint-disable-next-line max-lines-per-function
         acceptor.on( "connection", function( eventData ) {
             const socket = eventData.socket;
             if( ( ! ( "remoteAddress" in eventData ) ) ||
@@ -588,6 +590,7 @@ class SignalingServer extends EventDispatcher {
                     socket.signalingClient = null;
                 }
             };
+            // eslint-disable-next-line max-lines-per-function
             let _onPipeMessage = function( eventData ) {
                 if( settings.logging.net.signaling.rawMessage ) {
                     console.log(
@@ -628,7 +631,7 @@ class SignalingServer extends EventDispatcher {
                                 "no valid signaling *somebody* ID provided"
                             );
                         }
-                        //
+
                         const strRole = joMessage.role;
                         if( ( !strRole ) ||
                             typeof strRole != "string" ||
@@ -641,7 +644,7 @@ class SignalingServer extends EventDispatcher {
                                 "no valid signaling *somebody* role provided"
                             );
                         }
-                        //
+
                         const idCategory = joMessage.idCategory;
                         if( ( !idCategory ) ||
                             typeof idCategory != "string" ||
@@ -662,7 +665,7 @@ class SignalingServer extends EventDispatcher {
                                 idCategory + "\" name"
                             );
                         }
-                        //
+
                         const idSpace = joMessage.idSpace;
                         if( ( !idSpace ) || typeof idSpace != "string" || idSpace.length <= 0 ) {
                             isForceDisconnect = true;
@@ -680,7 +683,7 @@ class SignalingServer extends EventDispatcher {
                                 idSpace + "\" name"
                             );
                         }
-                        //
+
                         if( signalingSpace.clientGet( idRtcParticipant ) != null ) {
                             isForceDisconnect = true;
                             throw new Error(
@@ -688,7 +691,7 @@ class SignalingServer extends EventDispatcher {
                                 idSpace + "\" signaling space"
                             );
                         }
-                        //
+
                         if( strRole == "creator" &&
                             signalingSpace.idSomebodyCreator != "" &&
                             signalingSpace.idSomebodyCreator != idRtcParticipant
@@ -700,7 +703,7 @@ class SignalingServer extends EventDispatcher {
                                 "while other creator already exist"
                             );
                         }
-                        //
+
                         signalingClient =
                             new SignalingClient(
                                 "" + idRtcParticipant,
@@ -916,7 +919,7 @@ process.on( "SIGINT", function() {
         console.log( "Did stopped signaling acceptor" );
     }
     g_bShouldExit = true;
-    //
+
     exit_if_needed();
     g_bShouldExit = true;
 } );

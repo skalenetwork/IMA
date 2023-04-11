@@ -71,7 +71,7 @@ export function check_time_framing( d, strDirection, joRuntimeOpts ) {
         }
         let bSkip = ( nActiveNodeFrameIndex != imaState.nNodeNumber ) ? true : false;
         let bInsideGap = false;
-        //
+
         const nRangeStart =
             nUtcUnixTimeStamp -
             Math.floor( nUtcUnixTimeStamp % nSecondsRangeForAllSChains );
@@ -504,25 +504,6 @@ skale_observer.events.on( "chainsCacheChanged", function( eventData ) {
     notify_snb_cache_changed( eventData.detail.arr_schains_cached );
 } );
 
-const g_default_value_for_loopState = {
-    "oracle": {
-        "isInProgress": false,
-        "wasInProgress": false
-    },
-    "m2s": {
-        "isInProgress": false,
-        "wasInProgress": false
-    },
-    "s2m": {
-        "isInProgress": false,
-        "wasInProgress": false
-    },
-    "s2s": {
-        "isInProgress": false,
-        "wasInProgress": false
-    }
-};
-
 function construct_chain_properties( opts ) {
     return {
         "mn": {
@@ -683,7 +664,7 @@ export async function ensure_have_workers( opts ) {
                         "verbose_": IMA.verbose_get(),
                         "expose_details_": IMA.expose_details_get(),
                         "arr_schains_cached": skale_observer.get_last_cached_schains(),
-                        "loopState": g_default_value_for_loopState,
+                        "loopState": state.g_default_value_for_loopState,
                         "isPrintGathered": opts.imaState.isPrintGathered,
                         "isPrintSecurityValues": opts.imaState.isPrintSecurityValues,
                         "isPrintPWA": opts.imaState.isPrintPWA,
