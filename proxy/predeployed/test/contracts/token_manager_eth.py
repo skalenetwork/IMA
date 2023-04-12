@@ -22,7 +22,7 @@ def check_token_manager_eth(deployer_address, deposit_box_address, schain_name):
     if not token_manager_eth.functions.messageProxy().call() == MESSAGE_PROXY_FOR_SCHAIN_ADDRESS: raise AssertionError
     if not token_manager_eth.functions.tokenManagerLinker().call() == TOKEN_MANAGER_LINKER_ADDRESS: raise AssertionError
     if not token_manager_eth.functions.communityLocker().call() == COMMUNITY_LOCKER_ADDRESS: raise AssertionError
-    if not token_manager_eth.functions.schainHash().call() == w3.solidityKeccak(['string'], [schain_name]): raise AssertionError
+    if not token_manager_eth.functions.schainHash().call() == w3.solidity_keccak(['string'], [schain_name]): raise AssertionError
     if not token_manager_eth.functions.depositBox().call() == deposit_box_address: raise AssertionError
     if token_manager_eth.functions.automaticDeploy().call(): raise AssertionError
     if not token_manager_eth.functions.ethErc20().call() == ETH_ERC20_ADDRESS: raise AssertionError

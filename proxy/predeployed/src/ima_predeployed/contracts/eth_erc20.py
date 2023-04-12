@@ -14,8 +14,8 @@ class EthErc20Generator(AccessControlEnumerableGenerator):
     ARTIFACT_FILENAME = "EthErc20.json"
     META_FILENAME = "EthErc20.meta.json"
     DEFAULT_ADMIN_ROLE = (0).to_bytes(32, 'big')
-    MINTER_ROLE = Web3.solidityKeccak(['string'], ['MINTER_ROLE'])
-    BURNER_ROLE = Web3.solidityKeccak(['string'], ['BURNER_ROLE'])
+    MINTER_ROLE = Web3.solidity_keccak(['string'], ['MINTER_ROLE'])
+    BURNER_ROLE = Web3.solidity_keccak(['string'], ['BURNER_ROLE'])
     NAME = 'ERC20 Ether Clone'
     SYMBOL = 'ETHC'
     DECIMALS = 18
