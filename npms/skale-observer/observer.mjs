@@ -184,7 +184,7 @@ export async function load_schain_parts( jo_schain, addressFrom, opts ) {
         throw new Error( "Cannot load S-Chain parts in observer, no imaState is provided" );
     let isEMC = false;
     if( opts.imaState.isEnabledMultiCall )
-        isEMC = is_multicall_available( opts.imaState.chainProperties.mn );
+        isEMC = await is_multicall_available( opts.imaState.chainProperties.mn );
     jo_schain.data.computed = {};
     const schain_id = owaspUtils.ethersMod.ethers.utils.id( jo_schain.data.name );
     const chainId = owaspUtils.compute_chain_id_from_schain_name( jo_schain.data.name );
