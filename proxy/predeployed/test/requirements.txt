@@ -1,2 +1,1 @@
-web3==5.31.1
-predeployed-generator>=1.1.0a1
+predeployed-generator>=1.1.0
