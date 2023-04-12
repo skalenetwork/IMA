@@ -17,7 +17,7 @@ class TokenManagerLinkerGenerator(Generator):
     ARTIFACT_FILENAME = "TokenManagerLinker.json"
     META_FILENAME = "TokenManagerLinker.meta.json"
     DEFAULT_ADMIN_ROLE = (0).to_bytes(32, 'big')
-    REGISTRAR_ROLE = Web3.solidityKeccak(['string'], ['REGISTRAR_ROLE'])
+    REGISTRAR_ROLE = Web3.solidity_keccak(['string'], ['REGISTRAR_ROLE'])
 
     # ---------- storage ----------
     # --------Initializable--------

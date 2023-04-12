@@ -412,159 +412,286 @@ function format_balance_info( bi, strAddress ) {
     return s;
 }
 
+async function command_line_task_show_balance_eth(
+    arrBalancesMN, arrBalancesSC, arrBalancesTC
+) {
+    const imaState = state.get();
+    let assetAddress = null;
+    if( imaState.chainProperties.mn.ethersProvider ) {
+        arrBalancesMN.push( {
+            "assetName": "RealETH",
+            "balance": await IMA.balanceETH( true, // isMainNet
+                imaState.chainProperties.mn.ethersProvider,
+                imaState.chainProperties.mn.cid, imaState.chainProperties.mn.joAccount )
+        } );
+        arrBalancesMN.push( {
+            "assetName": "CanReceiveETH",
+            "balance": await IMA.view_eth_payment_from_s_chain_on_main_net(
+                imaState.chainProperties.mn.ethersProvider,
+                imaState.chainProperties.mn.joAccount, imaState.jo_deposit_box_eth )
+        } );
+    }
+    try {
+        assetAddress = imaState.eth_erc20.address;
+    } catch ( err ) {
+        assetAddress = null;
+    }
+    if( imaState.chainProperties.sc.ethersProvider ) {
+        arrBalancesSC.push( {
+            "assetName": "S-Chain Real ETH as ERC20",
+            "assetAddress": assetAddress,
+            "balance": await IMA.balanceETH( false, // isMainNet
+                imaState.chainProperties.sc.ethersProvider, imaState.chainProperties.sc.cid,
+                imaState.chainProperties.sc.joAccount, imaState.eth_erc20 )
+        } );
+        arrBalancesSC.push( {
+            "assetName": "S-Chain ETH Fuel",
+            "balance": await IMA.balanceETH( true, // isMainNet=true here, but we call S-Chain
+                imaState.chainProperties.sc.ethersProvider,
+                imaState.chainProperties.sc.cid, imaState.chainProperties.sc.joAccount )
+        } );
+    }
+    if( imaState.chainProperties.tc.ethersProvider ) {
+        arrBalancesSC.push( {
+            "assetName": "Target S-Chain Real ETH as ERC20",
+            "assetAddress": assetAddress,
+            "balance": await IMA.balanceETH( false, // isMainNet
+                imaState.chainProperties.tc.ethersProvider, imaState.chainProperties.sc.cid,
+                imaState.chainProperties.tc.joAccount, imaState.eth_erc20 )
+        } );
+        arrBalancesTC.push( {
+            "assetName": "Target S-Chain ETH Fuel",
+            "balance": await IMA.balanceETH( true, // isMainNet=true here, but we call S-Chain
+                imaState.chainProperties.tc.ethersProvider,
+                imaState.chainProperties.tc.cid, imaState.chainProperties.tc.joAccount )
+        } );
+    }
+}
+
+async function command_line_task_show_balance_erc20(
+    arrBalancesMN, arrBalancesSC, arrBalancesTC
+) {
+    const imaState = state.get();
+    let assetAddress = null;
+    if( imaState.chainProperties.mn.ethersProvider &&
+        imaState.chainProperties.mn.strCoinNameErc20.length > 0
+    ) {
+        try {
+            assetAddress = imaState.chainProperties.mn.joErc20[
+                imaState.chainProperties.mn.strCoinNameErc20 + "_address"];
+        } catch ( err ) { assetAddress = null; }
+        arrBalancesMN.push( {
+            "assetName": "ERC20",
+            "assetAddress": assetAddress,
+            "balance": await IMA.balanceERC20( true, // isMainNet
+                imaState.chainProperties.mn.ethersProvider, imaState.chainProperties.mn.cid,
+                imaState.chainProperties.mn.joAccount,
+                imaState.chainProperties.mn.strCoinNameErc20,
+                imaState.chainProperties.mn.joErc20 )
+        } );
+    }
+    if( imaState.chainProperties.sc.ethersProvider &&
+        imaState.chainProperties.sc.strCoinNameErc20.length > 0
+    ) {
+        try {
+            assetAddress = imaState.chainProperties.sc.joErc20[
+                imaState.chainProperties.sc.strCoinNameErc20 + "_address"];
+        } catch ( err ) { assetAddress = null; }
+        arrBalancesSC.push( {
+            "assetName": "ERC20",
+            "assetAddress": assetAddress,
+            "balance": await IMA.balanceERC20( false, // isMainNet
+                imaState.chainProperties.sc.ethersProvider, imaState.chainProperties.sc.cid,
+                imaState.chainProperties.sc.joAccount,
+                imaState.chainProperties.sc.strCoinNameErc20,
+                imaState.chainProperties.sc.joErc20 )
+        } );
+    }
+    if( imaState.chainProperties.tc.ethersProvider &&
+        imaState.chainProperties.tc.strCoinNameErc20.length > 0
+    ) {
+        try {
+            assetAddress = imaState.chainProperties.tc.joErc20[
+                imaState.chainProperties.tc.strCoinNameErc20 + "_address"];
+        } catch ( err ) { assetAddress = null; }
+        arrBalancesTC.push( {
+            "assetName": "ERC20",
+            "assetAddress": assetAddress,
+            "balance": await IMA.balanceERC20( true, // isMainNet
+                imaState.chainProperties.tc.ethersProvider, imaState.chainProperties.mn.cid,
+                imaState.chainProperties.tc.joAccount,
+                imaState.chainProperties.tc.strCoinNameErc20,
+                imaState.chainProperties.tc.joErc20 )
+        } );
+    }
+}
+
+async function command_line_task_show_balance_erc721(
+    arrBalancesMN, arrBalancesSC, arrBalancesTC, idTokens
+) {
+    const imaState = state.get();
+    let assetAddress = null;
+    if( imaState.chainProperties.mn.ethersProvider &&
+        imaState.chainProperties.mn.strCoinNameErc721.length > 0
+    ) {
+        for( let i = 0; i < idTokens.length; ++ i ) {
+            const idToken = idTokens[i];
+            try {
+                assetAddress = imaState.chainProperties.mn.joErc721[
+                    imaState.chainProperties.mn.strCoinNameErc721 + "_address"];
+            } catch ( err ) { assetAddress = null; }
+            arrBalancesMN.push( {
+                "assetName": "ERC721",
+                "assetAddress": assetAddress,
+                "idToken": idToken,
+                "owner": await IMA.ownerOfERC721( true, // isMainNet
+                    imaState.chainProperties.mn.ethersProvider,
+                    imaState.chainProperties.mn.cid,
+                    imaState.chainProperties.mn.joAccount,
+                    imaState.chainProperties.mn.strCoinNameErc721,
+                    imaState.chainProperties.mn.joErc721, idToken )
+            } );
+        }
+    }
+    if( imaState.chainProperties.sc.ethersProvider &&
+        imaState.chainProperties.sc.strCoinNameErc721.length > 0
+    ) {
+        for( let i = 0; i < idTokens.length; ++ i ) {
+            const idToken = idTokens[i];
+            try {
+                assetAddress = imaState.chainProperties.sc.joErc721[
+                    imaState.chainProperties.sc.strCoinNameErc721 + "_address"];
+            } catch ( err ) { assetAddress = null; }
+            arrBalancesSC.push( {
+                "assetName": "ERC721",
+                "assetAddress": assetAddress,
+                "idToken": idToken,
+                "owner": await IMA.ownerOfERC721( false, // isMainNet
+                    imaState.chainProperties.sc.ethersProvider,
+                    imaState.chainProperties.sc.cid,
+                    imaState.chainProperties.sc.joAccount,
+                    imaState.chainProperties.sc.strCoinNameErc721,
+                    imaState.chainProperties.sc.joErc721, idToken )
+            } );
+        }
+    }
+    if( imaState.chainProperties.tc.ethersProvider &&
+        imaState.chainProperties.tc.strCoinNameErc721.length > 0
+    ) {
+        for( let i = 0; i < idTokens.length; ++ i ) {
+            const idToken = idTokens[i];
+            try {
+                assetAddress = imaState.chainProperties.tc.joErc721[
+                    imaState.chainProperties.tc.strCoinNameErc721 + "_address"];
+            } catch ( err ) { assetAddress = null; }
+            arrBalancesTC.push( {
+                "assetName": "ERC721",
+                "assetAddress": assetAddress,
+                "idToken": idToken,
+                "owner": await IMA.ownerOfERC721( false, // isMainNet
+                    imaState.chainProperties.tc.ethersProvider,
+                    imaState.chainProperties.tc.cid,
+                    imaState.chainProperties.tc.joAccount,
+                    imaState.chainProperties.tc.strCoinNameErc721,
+                    imaState.chainProperties.tc.joErc721, idToken )
+            } );
+        }
+    }
+}
+
+async function command_line_task_show_balance_erc1155(
+    arrBalancesMN, arrBalancesSC, arrBalancesTC, idTokens
+) {
+    const imaState = state.get();
+    let assetAddress = null;
+    if( imaState.chainProperties.mn.ethersProvider &&
+        imaState.chainProperties.mn.strCoinNameErc1155.length > 0
+    ) {
+        for( let i = 0; i < idTokens.length; ++ i ) {
+            const idToken = idTokens[i];
+            try {
+                assetAddress = imaState.chainProperties.mn.joErc1155[
+                    imaState.chainProperties.mn.strCoinNameErc1155 + "_address"];
+            } catch ( err ) { assetAddress = null; }
+            arrBalancesMN.push( {
+                "assetName": "ERC1155",
+                "assetAddress": assetAddress,
+                "idToken": idToken,
+                "balance": await IMA.balanceERC1155( true, // isMainNet
+                    imaState.chainProperties.mn.ethersProvider,
+                    imaState.chainProperties.mn.cid,
+                    imaState.chainProperties.mn.joAccount,
+                    imaState.chainProperties.mn.strCoinNameErc1155,
+                    imaState.chainProperties.mn.joErc1155, idToken )
+            } );
+        }
+    }
+    if( imaState.chainProperties.sc.ethersProvider &&
+        imaState.chainProperties.sc.strCoinNameErc1155.length > 0
+    ) {
+        for( let i = 0; i < idTokens.length; ++ i ) {
+            const idToken = idTokens[i];
+            try {
+                assetAddress = imaState.chainProperties.sc.joErc1155[
+                    imaState.chainProperties.sc.strCoinNameErc1155 + "_address"];
+            } catch ( err ) { assetAddress = null; }
+            arrBalancesSC.push( {
+                "assetName": "ERC1155",
+                "assetAddress": assetAddress,
+                "idToken": idToken,
+                "balance": await IMA.balanceERC1155( false, // isMainNet
+                    imaState.chainProperties.sc.ethersProvider,
+                    imaState.chainProperties.sc.cid,
+                    imaState.chainProperties.sc.joAccount,
+                    imaState.chainProperties.sc.strCoinNameErc1155,
+                    imaState.chainProperties.sc.joErc1155, idToken )
+            } );
+        }
+    }
+    if( imaState.chainProperties.tc.ethersProvider &&
+        imaState.chainProperties.tc.strCoinNameErc1155.length > 0
+    ) {
+        for( let i = 0; i < idTokens.length; ++ i ) {
+            const idToken = idTokens[i];
+            try {
+                assetAddress = imaState.chainProperties.tc.joErc1155[
+                    imaState.chainProperties.tc.strCoinNameErc1155 + "_address"];
+            } catch ( err ) { assetAddress = null; }
+            arrBalancesTC.push( {
+                "assetName": "ERC1155",
+                "assetAddress": assetAddress,
+                "idToken": idToken,
+                "balance": await IMA.balanceERC1155( false, // isMainNet
+                    imaState.chainProperties.tc.ethersProvider,
+                    imaState.chainProperties.tc.cid,
+                    imaState.chainProperties.tc.joAccount,
+                    imaState.chainProperties.tc.strCoinNameErc1155,
+                    imaState.chainProperties.tc.joErc1155, idToken )
+            } );
+        }
+    }
+}
+
 function command_line_task_show_balance() {
     const imaState = state.get();
     imaState.arrActions.push( {
         "name": "show balance",
         "fn": async function() {
-            let assetAddress = null;
-            const arrBalancesMN = [], arrBalancesSC = [];
-            arrBalancesMN.push( {
-                "assetName": "RealETH",
-                "balance": await IMA.balanceETH( true, // isMainNet
-                    imaState.chainProperties.mn.ethersProvider,
-                    imaState.chainProperties.mn.cid, imaState.chainProperties.mn.joAccount )
-            } );
-            arrBalancesMN.push( {
-                "assetName": "CanReceiveETH",
-                "balance": await IMA.view_eth_payment_from_s_chain_on_main_net(
-                    imaState.chainProperties.mn.ethersProvider,
-                    imaState.chainProperties.mn.joAccount, imaState.jo_deposit_box_eth )
-            } );
-            try {
-                assetAddress = imaState.eth_erc20.address;
-            } catch ( err ) {
-                assetAddress = null;
-            }
-            arrBalancesSC.push( {
-                "assetName": "RealETH",
-                "assetAddress": assetAddress,
-                "balance": await IMA.balanceETH( false, // isMainNet
-                    imaState.chainProperties.sc.ethersProvider, imaState.chainProperties.sc.cid,
-                    imaState.chainProperties.sc.joAccount, imaState.eth_erc20 )
-            } );
-            arrBalancesSC.push( {
-                "assetName": "FakeETH",
-                "balance": await IMA.balanceETH( true, // isMainNet=true here, but we call S-Chain
-                    imaState.chainProperties.sc.ethersProvider,
-                    imaState.chainProperties.sc.cid, imaState.chainProperties.sc.joAccount )
-            } );
-            if( imaState.chainProperties.tc.strCoinNameErc20.length > 0 ) {
-                try {
-                    assetAddress = imaState.chainProperties.mn.joErc20[
-                        imaState.chainProperties.tc.strCoinNameErc20 + "_address"];
-                } catch ( err ) { assetAddress = null; }
-                arrBalancesMN.push( {
-                    "assetName": "ERC20",
-                    "assetAddress": assetAddress,
-                    "balance": await IMA.balanceERC20( true, // isMainNet
-                        imaState.chainProperties.mn.ethersProvider, imaState.chainProperties.mn.cid,
-                        imaState.chainProperties.mn.joAccount,
-                        imaState.chainProperties.tc.strCoinNameErc20,
-                        imaState.chainProperties.mn.joErc20 )
-                } );
-            }
-            if( imaState.chainProperties.sc.strCoinNameErc20.length > 0 ) {
-                try {
-                    assetAddress = imaState.chainProperties.sc.joErc20[
-                        imaState.chainProperties.sc.strCoinNameErc20 + "_address"];
-                } catch ( err ) { assetAddress = null; }
-                arrBalancesSC.push( {
-                    "assetName": "ERC20",
-                    "assetAddress": assetAddress,
-                    "balance": await IMA.balanceERC20( false, // isMainNet
-                        imaState.chainProperties.sc.ethersProvider, imaState.chainProperties.sc.cid,
-                        imaState.chainProperties.sc.joAccount,
-                        imaState.chainProperties.sc.strCoinNameErc20,
-                        imaState.chainProperties.sc.joErc20 )
-                } );
-            }
+            const arrBalancesMN = [], arrBalancesSC = [], arrBalancesTC = [];
+            await command_line_task_show_balance_eth(
+                arrBalancesMN, arrBalancesSC, arrBalancesTC );
+            await command_line_task_show_balance_erc20(
+                arrBalancesMN, arrBalancesSC, arrBalancesTC );
             const idTokens = imaState.have_idTokens ? imaState.idTokens : [];
             if( imaState.have_idToken )
                 idTokens.push( imaState.idToken );
             if( idTokens.length > 0 ) {
-                if( imaState.chainProperties.mn.strCoinNameErc721.length > 0 ) {
-                    for( let i = 0; i < idTokens.length; ++ i ) {
-                        const idToken = idTokens[i];
-                        try {
-                            assetAddress = imaState.chainProperties.mn.joErc721[
-                                imaState.chainProperties.mn.strCoinNameErc721 + "_address"];
-                        } catch ( err ) { assetAddress = null; }
-                        arrBalancesMN.push( {
-                            "assetName": "ERC721",
-                            "assetAddress": assetAddress,
-                            "idToken": idToken,
-                            "owner": await IMA.ownerOfERC721( true, // isMainNet
-                                imaState.chainProperties.mn.ethersProvider,
-                                imaState.chainProperties.mn.cid,
-                                imaState.chainProperties.mn.joAccount,
-                                imaState.chainProperties.mn.strCoinNameErc721,
-                                imaState.chainProperties.mn.joErc721, idToken )
-                        } );
-                    }
-                }
-                if( imaState.chainProperties.sc.strCoinNameErc721.length > 0 ) {
-                    for( let i = 0; i < idTokens.length; ++ i ) {
-                        const idToken = idTokens[i];
-                        try {
-                            assetAddress = imaState.chainProperties.sc.joErc721[
-                                imaState.chainProperties.sc.strCoinNameErc721 + "_address"];
-                        } catch ( err ) { assetAddress = null; }
-                        arrBalancesSC.push( {
-                            "assetName": "ERC721",
-                            "assetAddress": assetAddress,
-                            "idToken": idToken,
-                            "owner": await IMA.ownerOfERC721( false, // isMainNet
-                                imaState.chainProperties.sc.ethersProvider,
-                                imaState.chainProperties.sc.cid,
-                                imaState.chainProperties.sc.joAccount,
-                                imaState.chainProperties.sc.strCoinNameErc721,
-                                imaState.chainProperties.sc.joErc721, idToken )
-                        } );
-                    }
-                }
-                if( imaState.chainProperties.mn.strCoinNameErc1155.length > 0 ) {
-                    for( let i = 0; i < idTokens.length; ++ i ) {
-                        const idToken = idTokens[i];
-                        try {
-                            assetAddress = imaState.chainProperties.mn.joErc1155[
-                                imaState.chainProperties.mn.strCoinNameErc1155 + "_address"];
-                        } catch ( err ) { assetAddress = null; }
-                        arrBalancesMN.push( {
-                            "assetName": "ERC1155",
-                            "assetAddress": assetAddress,
-                            "idToken": idToken,
-                            "balance": await IMA.balanceERC1155( true, // isMainNet
-                                imaState.chainProperties.mn.ethersProvider,
-                                imaState.chainProperties.mn.cid,
-                                imaState.chainProperties.mn.joAccount,
-                                imaState.chainProperties.mn.strCoinNameErc1155,
-                                imaState.chainProperties.mn.joErc1155, idToken )
-                        } );
-                    }
-                }
-                if( imaState.chainProperties.sc.strCoinNameErc1155.length > 0 ) {
-                    for( let i = 0; i < idTokens.length; ++ i ) {
-                        const idToken = idTokens[i];
-                        try {
-                            assetAddress = imaState.chainProperties.sc.joErc1155[
-                                imaState.chainProperties.sc.strCoinNameErc1155 + "_address"];
-                        } catch ( err ) { assetAddress = null; }
-                        arrBalancesSC.push( {
-                            "assetName": "ERC1155",
-                            "assetAddress": assetAddress,
-                            "idToken": idToken,
-                            "balance": await IMA.balanceERC1155( false, // isMainNet
-                                imaState.chainProperties.sc.ethersProvider,
-                                imaState.chainProperties.sc.cid,
-                                imaState.chainProperties.sc.joAccount,
-                                imaState.chainProperties.sc.strCoinNameErc1155,
-                                imaState.chainProperties.sc.joErc1155, idToken )
-                        } );
-                    }
-                }
-            } // if( idTokens.length > 0 )
-            if( arrBalancesMN.length > 0 || arrBalancesSC.length > 0 ) {
+                await command_line_task_show_balance_erc721(
+                    arrBalancesMN, arrBalancesSC, arrBalancesTC, idTokens );
+                await command_line_task_show_balance_erc1155(
+                    arrBalancesMN, arrBalancesSC, arrBalancesTC, idTokens );
+            }
+            if( arrBalancesMN.length > 0 || arrBalancesSC.length > 0 || arrBalancesTC.length > 0 ) {
                 if( arrBalancesMN.length > 0 ) {
                     const strAddress = imaState.chainProperties.mn.joAccount.address();
                     log.write( cc.sunny( "Main Net" ) + " " +
@@ -582,6 +709,16 @@ function command_line_task_show_balance() {
                         cc.bright( " of " ) + cc.notice( strAddress ) + cc.bright( ":" ) + "\n" );
                     for( let i = 0; i < arrBalancesSC.length; ++ i ) {
                         const bi = arrBalancesSC[i];
+                        log.write( "    " + format_balance_info( bi, strAddress ) + "\n" );
+                    }
+                }
+                if( arrBalancesTC.length > 0 ) {
+                    const strAddress = imaState.chainProperties.mn.joAccount.address();
+                    log.write( cc.sunny( "Target S-Chain" ) + " " +
+                        cc.bright( arrBalancesTC.length > 1 ? "balances" : "balance" ) +
+                        cc.bright( " of " ) + cc.notice( strAddress ) + cc.bright( ":" ) + "\n" );
+                    for( let i = 0; i < arrBalancesTC.length; ++ i ) {
+                        const bi = arrBalancesTC[i];
                         log.write( "    " + format_balance_info( bi, strAddress ) + "\n" );
                     }
                 }

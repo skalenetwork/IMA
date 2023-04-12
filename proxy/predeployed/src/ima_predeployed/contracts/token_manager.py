@@ -15,8 +15,8 @@ class TokenManagerGenerator(Generator):
     ARTIFACT_FILENAME = "TokenManager.json"
     META_FILENAME = "TokenManager.meta.json"
     DEFAULT_ADMIN_ROLE = (0).to_bytes(32, 'big')
-    AUTOMATIC_DEPLOY_ROLE = Web3.solidityKeccak(['string'], ['AUTOMATIC_DEPLOY_ROLE'])
-    TOKEN_REGISTRAR_ROLE = Web3.solidityKeccak(['string'], ['TOKEN_REGISTRAR_ROLE'])
+    AUTOMATIC_DEPLOY_ROLE = Web3.solidity_keccak(['string'], ['AUTOMATIC_DEPLOY_ROLE'])
+    TOKEN_REGISTRAR_ROLE = Web3.solidity_keccak(['string'], ['TOKEN_REGISTRAR_ROLE'])
 
     # ---------- storage ----------
     # --------Initializable--------
@@ -79,7 +79,7 @@ class TokenManagerGenerator(Generator):
         cls._write_address(storage, cls.MESSAGE_PROXY_SLOT, MESSAGE_PROXY_FOR_SCHAIN_ADDRESS)
         cls._write_address(storage, cls.TOKEN_MANAGER_LINKER_SLOT, TOKEN_MANAGER_LINKER_ADDRESS)
         cls._write_address(storage, cls.COMMUNITY_LOCKER_SLOT, COMMUNITY_LOCKER_ADDRESS)
-        cls._write_bytes32(storage, cls.SCHAIN_HASH_SLOT, Web3.solidityKeccak(['string'], [schain_name]))
+        cls._write_bytes32(storage, cls.SCHAIN_HASH_SLOT, Web3.solidity_keccak(['string'], [schain_name]))
         cls._write_address(storage, cls.DEPOSIT_BOX_SLOT, deposit_box_address)
         
         return storage

@@ -7001,7 +7001,7 @@ export async function balanceETH(
     joAccount,
     contractERC20
 ) {
-    strLogPrefix = cc.info( "balanceETH() call" ) + " ";
+    const strLogPrefix = cc.info( "balanceETH() call" ) + " ";
     try {
         if( ! ( ethersProvider && joAccount ) )
             return "<no-data>";
@@ -7032,7 +7032,7 @@ export async function balanceERC20(
     strCoinName,
     joABI
 ) {
-    strLogPrefix = cc.info( "balanceERC20() call" ) + " ";
+    const strLogPrefix = cc.info( "balanceERC20() call" ) + " ";
     try {
         if( ! ( ethersProvider && joAccount && strCoinName && joABI && ( strCoinName + "_abi" ) in
                 joABI &&
@@ -7068,7 +7068,7 @@ export async function ownerOfERC721(
     joABI,
     idToken
 ) {
-    strLogPrefix = cc.info( "ownerOfERC721() call" ) + " ";
+    const strLogPrefix = cc.info( "ownerOfERC721() call" ) + " ";
     try {
         if( ! ( ethersProvider && joAccount && strCoinName && joABI && ( strCoinName + "_abi" ) in
                 joABI &&
@@ -7104,7 +7104,7 @@ export async function balanceERC1155(
     joABI,
     idToken
 ) {
-    strLogPrefix = cc.info( "balanceERC1155() call" ) + " ";
+    const strLogPrefix = cc.info( "balanceERC1155() call" ) + " ";
     try {
         if( ! ( ethersProvider && joAccount && strCoinName && joABI && ( strCoinName + "_abi" ) in
                 joABI &&
