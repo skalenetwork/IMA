@@ -683,14 +683,12 @@ export class OutOfWorkerSocketClientPipe extends BasicSocketPipe {
 export class OutOfWorkerRelay extends EventDispatcher {
     // eslint-disable-next-line max-lines-per-function
     constructor(
-        strRelayName, acceptor, fnCreateClient, isAutoFlushIncoming, isAutoFlushOutgoing
-    ) {
+        strRelayName, acceptor, fnCreateClient, isAutoFlushIncoming, isAutoFlushOutgoing ) {
         super();
         const self = this;
-        self.strRelayName =
-            ( strRelayName != null && strRelayName != undefined &&
-                typeof strRelayName == "string" && strRelayName.length > 0 )
-                ? ( "" + strRelayName ) : "unnamed";
+        self.strRelayName = ( strRelayName != null && strRelayName != undefined &&
+            typeof strRelayName == "string" && strRelayName.length > 0 )
+            ? ( "" + strRelayName ) : "unnamed";
         self.isAutoFlushIncoming =
             ( isAutoFlushIncoming == null || isAutoFlushIncoming == undefined )
                 ? true : ( isAutoFlushIncoming ? true : false );
@@ -698,16 +696,12 @@ export class OutOfWorkerRelay extends EventDispatcher {
             ( isAutoFlushOutgoing == null || isAutoFlushOutgoing == undefined )
                 ? true : ( isAutoFlushOutgoing ? true : false );
         if( ! acceptor ) {
-            throw new Error(
-                "OutOfWorkerRelay \"" + self.strRelayName +
-                "\" needs acceptor for normal functionality"
-            );
+            throw new Error( "OutOfWorkerRelay \"" + self.strRelayName +
+                "\" needs acceptor for normal functionality" );
         }
         if( typeof fnCreateClient != "function" ) {
-            throw new Error(
-                "OutOfWorkerRelay \"" + self.strRelayName +
-                "\" needs callback to create connections to target server"
-            );
+            throw new Error( "OutOfWorkerRelay \"" + self.strRelayName +
+                "\" needs callback to create connections to target server" );
         }
         self.acceptor = acceptor;
         self.fnCreateClient = fnCreateClient;
@@ -716,47 +710,36 @@ export class OutOfWorkerRelay extends EventDispatcher {
             const pipeIncoming = eventData.socket;
             let pipeOutgoing = null;
             if( ( ! ( "remoteAddress" in eventData ) ) ||
-                eventData.remoteAddress == null ||
-                eventData.remoteAddress == undefined
-            )
+                eventData.remoteAddress == null || eventData.remoteAddress == undefined )
                 pipeIncoming.strSavedRemoteAddress = pipeIncoming.constructor.name;
             else
                 pipeIncoming.strSavedRemoteAddress = "" + eventData.remoteAddress;
             if( settings.logging.net.relay.connect ) {
-                console.log(
-                    "Relay \"" + self.strRelayName + "\" got new external-client connection \"" +
-                    pipeIncoming.strSavedRemoteAddress + "\""
-                );
+                console.log( "Relay \"" + self.strRelayName +
+                    "\" got new external-client connection \"" +
+                    pipeIncoming.strSavedRemoteAddress + "\"" );
             }
-            self.dispatchEvent(
-                new UniversalDispatcherEvent(
-                    "connection",
-                    {
-                        "relay": self,
-                        "socket": pipeIncoming,
-                        "remoteAddress": "" + pipeIncoming.strSavedRemoteAddress
-                    } )
-            );
-
+            self.dispatchEvent( new UniversalDispatcherEvent(
+                "connection", {
+                    "relay": self,
+                    "socket": pipeIncoming,
+                    "remoteAddress": "" + pipeIncoming.strSavedRemoteAddress
+                } ) );
             // 1) configure incoming pipe
             let _offAllPipeEventListeners = null;
             let _onExternalPipeClose = function() {
                 if( settings.logging.net.relay.disconnect ) {
-                    console.warn(
-                        "Relay \"" + self.strRelayName + "\" external-client socket closed \"" +
-                        pipeIncoming.strSavedRemoteAddress + "\""
-                    );
+                    console.warn( "Relay \"" + self.strRelayName +
+                        "\" external-client socket closed \"" +
+                        pipeIncoming.strSavedRemoteAddress + "\"" );
                 }
-                self.dispatchEvent(
-                    new UniversalDispatcherEvent(
-                        "close",
-                        {
-                            "relay": self,
-                            "socket": pipeIncoming,
-                            "remoteAddress": "" + pipeIncoming.strSavedRemoteAddress,
-                            "isExternalSocket": true
-                        } )
-                );
+                self.dispatchEvent( new UniversalDispatcherEvent(
+                    "close", {
+                        "relay": self,
+                        "socket": pipeIncoming,
+                        "remoteAddress": "" + pipeIncoming.strSavedRemoteAddress,
+                        "isExternalSocket": true
+                    } ) );
                 if( _offAllPipeEventListeners ) {
                     _offAllPipeEventListeners();
                     _offAllPipeEventListeners = null;
@@ -764,21 +747,17 @@ export class OutOfWorkerRelay extends EventDispatcher {
             };
             let _onRelayPipeClose = function() {
                 if( settings.logging.net.relay.disconnect ) {
-                    console.warn(
-                        "Relay \"" + self.strRelayName + "\" relay-client socket closed \"" +
-                        pipeIncoming.strSavedRemoteAddress + "\""
-                    );
+                    console.warn( "Relay \"" + self.strRelayName +
+                        "\" relay-client socket closed \"" +
+                        pipeIncoming.strSavedRemoteAddress + "\"" );
                 }
-                self.dispatchEvent(
-                    new UniversalDispatcherEvent(
-                        "close",
-                        {
-                            "relay": self,
-                            "socket": pipeIncoming,
-                            "remoteAddress": "" + pipeIncoming.strSavedRemoteAddress,
-                            "isExternalSocket": false
-                        } )
-                );
+                self.dispatchEvent( new UniversalDispatcherEvent(
+                    "close", {
+                        "relay": self,
+                        "socket": pipeIncoming,
+                        "remoteAddress": "" + pipeIncoming.strSavedRemoteAddress,
+                        "isExternalSocket": false
+                    } ) );
                 if( _offAllPipeEventListeners ) {
                     _offAllPipeEventListeners();
                     _offAllPipeEventListeners = null;
@@ -786,21 +765,17 @@ export class OutOfWorkerRelay extends EventDispatcher {
             };
             let _onExternalPipeError = function( eventData ) {
                 if( settings.logging.net.relay.error ) {
-                    console.warn(
-                        "Relay client  \"" + self.strRelayName +
+                    console.warn( "Relay client  \"" + self.strRelayName +
                         "\" external-client socket error \"" +
-                        pipeIncoming.strSavedRemoteAddress + "\""
-                    );
+                        pipeIncoming.strSavedRemoteAddress + "\"" );
                 }
-                self.dispatchEvent(
-                    new UniversalDispatcherEvent(
-                        "error", {
-                            "relay": self,
-                            "socket": pipeIncoming,
-                            "remoteAddress": "" + pipeIncoming.strSavedRemoteAddress,
-                            "isExternalSocket": true
-                        } )
-                );
+                self.dispatchEvent( new UniversalDispatcherEvent(
+                    "error", {
+                        "relay": self,
+                        "socket": pipeIncoming,
+                        "remoteAddress": "" + pipeIncoming.strSavedRemoteAddress,
+                        "isExternalSocket": true
+                    } ) );
                 if( _offAllPipeEventListeners ) {
                     _offAllPipeEventListeners();
                     _offAllPipeEventListeners = null;
@@ -808,21 +783,17 @@ export class OutOfWorkerRelay extends EventDispatcher {
             };
             let _onRelayPipeError = function( eventData ) {
                 if( settings.logging.net.relay.error ) {
-                    console.warn(
-                        "Relay client  \"" + self.strRelayName +
+                    console.warn( "Relay client  \"" + self.strRelayName +
                         "\" relay-client socket error \"" +
-                        pipeIncoming.strSavedRemoteAddress + "\""
-                    );
+                        pipeIncoming.strSavedRemoteAddress + "\"" );
                 }
-                self.dispatchEvent(
-                    new UniversalDispatcherEvent(
-                        "error", {
-                            "relay": self,
-                            "socket": pipeIncoming,
-                            "remoteAddress": "" + pipeIncoming.strSavedRemoteAddress,
-                            "isExternalSocket": false
-                        } )
-                );
+                self.dispatchEvent( new UniversalDispatcherEvent(
+                    "error", {
+                        "relay": self,
+                        "socket": pipeIncoming,
+                        "remoteAddress": "" + pipeIncoming.strSavedRemoteAddress,
+                        "isExternalSocket": false
+                    } ) );
                 if( _offAllPipeEventListeners ) {
                     _offAllPipeEventListeners();
                     _offAllPipeEventListeners = null;
@@ -830,69 +801,52 @@ export class OutOfWorkerRelay extends EventDispatcher {
             };
             let _onExternalPipeMessage = function( eventData ) {
                 if( settings.logging.net.relay.rawMessage ) {
-                    console.log(
-                        "Relay \"" + self.strRelayName + "\" external-client socket \"" +
-                        eventData.strSavedRemoteAddress + "\" raw message", eventData
-                    );
+                    console.log( "Relay \"" + self.strRelayName + "\" external-client socket \"" +
+                        eventData.strSavedRemoteAddress + "\" raw message", eventData );
                 }
                 const joMessage = eventData.message;
                 if( settings.logging.net.relay.message ) {
-                    console.log(
-                        "Relay \"" + self.strRelayName + "\" external-client socket \"" +
-                        pipeIncoming.strSavedRemoteAddress + "\" message ", joMessage
-                    );
+                    console.log( "Relay \"" + self.strRelayName + "\" external-client socket \"" +
+                        pipeIncoming.strSavedRemoteAddress + "\" message ", joMessage );
                 }
                 if( ! pipeOutgoing ) {
-                    throw new Error(
-                        "Relay \"" + self.strRelayName +
-                        "\" is not completely initialized and cannot transfer messages"
-                    );
+                    throw new Error( "Relay \"" + self.strRelayName +
+                        "\" is not completely initialized and cannot transfer messages" );
                 }
-                self.dispatchEvent(
-                    new UniversalDispatcherEvent(
-                        "message",
-                        {
-                            "relay": self,
-                            "socket": pipeIncoming,
-                            "remoteAddress": "" + pipeIncoming.strSavedRemoteAddress,
-                            "isExternalSocket": true,
-                            "message": joMessage
-                        } )
-                );
+                self.dispatchEvent( new UniversalDispatcherEvent(
+                    "message", {
+                        "relay": self,
+                        "socket": pipeIncoming,
+                        "remoteAddress": "" + pipeIncoming.strSavedRemoteAddress,
+                        "isExternalSocket": true,
+                        "message": joMessage
+                    } ) );
                 pipeOutgoing.send( joMessage );
                 if( self.isAutoFlushIncoming )
                     pipeOutgoing.flush();
             };
             let _onRelayPipeMessage = function( eventData ) {
                 if( settings.logging.net.relay.rawMessage ) {
-                    console.log(
-                        "Relay \"" + self.strRelayName + "\" relay-client socket \"" +
-                        eventData.strSavedRemoteAddress + "\" raw message", eventData
-                    );
+                    console.log( "Relay \"" + self.strRelayName + "\" relay-client socket \"" +
+                        eventData.strSavedRemoteAddress + "\" raw message", eventData );
                 }
                 const joMessage = eventData.message;
                 if( settings.logging.net.relay.message ) {
-                    console.log(
-                        "Relay \"" + self.strRelayName + "\" relay-client socket \"" +
-                        pipeIncoming.strSavedRemoteAddress + "\" message ", joMessage
-                    );
+                    console.log( "Relay \"" + self.strRelayName + "\" relay-client socket \"" +
+                        pipeIncoming.strSavedRemoteAddress + "\" message ", joMessage );
                 }
                 if( ! pipeOutgoing ) {
-                    throw new Error(
-                        "Relay \"" + self.strRelayName +
+                    throw new Error( "Relay \"" + self.strRelayName +
                         "\" is not completely initialized and cannot transfer messages" );
                 }
-                self.dispatchEvent(
-                    new UniversalDispatcherEvent(
-                        "message",
-                        {
-                            "relay": self,
-                            "socket": pipeIncoming,
-                            "remoteAddress": "" + pipeIncoming.strSavedRemoteAddress,
-                            "isExternalSocket": false,
-                            "message": joMessage
-                        } )
-                );
+                self.dispatchEvent( new UniversalDispatcherEvent(
+                    "message", {
+                        "relay": self,
+                        "socket": pipeIncoming,
+                        "remoteAddress": "" + pipeIncoming.strSavedRemoteAddress,
+                        "isExternalSocket": false,
+                        "message": joMessage
+                    } ) );
                 pipeOutgoing.send( joMessage );
                 if( self.isAutoFlushOutgoing )
                     pipeOutgoing.flush();
@@ -932,15 +886,12 @@ export class OutOfWorkerRelay extends EventDispatcher {
             pipeIncoming.on( "close", _onExternalPipeClose );
             pipeIncoming.on( "error", _onExternalPipeError );
             pipeIncoming.on( "message", _onExternalPipeMessage );
-
             // 2) configure outgoing relay client pipe
             pipeOutgoing = pipeIncoming.relayClientSocket = self.fnCreateClient();
             if( ! pipeOutgoing ) {
                 pipeIncoming.dispose();
-                throw new Error(
-                    "Relay \"" + self.strRelayName +
-                    "\" failed to initialize relay-client socket to target server"
-                );
+                throw new Error( "Relay \"" + self.strRelayName +
+                    "\" failed to initialize relay-client socket to target server" );
             }
             pipeOutgoing.on( "close", _onRelayPipeClose );
             pipeOutgoing.on( "error", _onRelayPipeError );

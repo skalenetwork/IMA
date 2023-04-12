@@ -1347,7 +1347,7 @@ function command_line_task_browse_s_chain() {
     const imaState = state.get();
     imaState.bIsNeededCommonInit = false;
     imaState.arrActions.push( {
-        "name": "Brows S-Chain network",
+        "name": "Browse S-Chain network",
         "fn": async function() {
             const strLogPrefix = cc.info( "S-Chain Browse:" ) + " ";
             if( imaState.chainProperties.sc.strURL.length === 0 ) {

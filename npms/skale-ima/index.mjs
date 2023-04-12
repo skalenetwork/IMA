@@ -3998,14 +3998,10 @@ export async function do_erc20_payment_from_s_chain(
         const tokenManagerAddress = jo_token_manager_erc20.address;
         const contractERC20 =
             new owaspUtils.ethersMod.ethers.Contract(
-                erc20Address_s_chain,
-                erc20ABI,
-                ethersProvider_s_chain
-            );
+                erc20Address_s_chain, erc20ABI, ethersProvider_s_chain );
         const arrArguments_approve = [
             tokenManagerAddress,
-            owaspUtils.ensure_starts_with_0x( owaspUtils.toBN( token_amount ).toHexString() )
-        ];
+            owaspUtils.ensure_starts_with_0x( owaspUtils.toBN( token_amount ).toHexString() ) ];
         const erc20Address_main_net = joErc20_main_net[strCoinNameErc20_main_net + "_address"];
         const arrArguments_exitToMainERC20 = [
             erc20Address_main_net,
@@ -4013,131 +4009,91 @@ export async function do_erc20_payment_from_s_chain(
             // owaspUtils.ensure_starts_with_0x( owaspUtils.toBN( weiHowMuch ).toHexString() )
         ];
         const weiHowMuch_approve = undefined;
-        let gasPrice =
-            await tc_s_chain.computeGasPrice( ethersProvider_s_chain, 200000000000 );
-        details.write( strLogPrefix +
-            cc.debug( "Using computed " ) + cc.info( "gasPrice" ) +
-            cc.debug( "=" ) + cc.j( gasPrice ) +
-            "\n" );
+        let gasPrice = await tc_s_chain.computeGasPrice( ethersProvider_s_chain, 200000000000 );
+        details.write( strLogPrefix + cc.debug( "Using computed " ) +
+            cc.info( "gasPrice" ) + cc.debug( "=" ) + cc.j( gasPrice ) + "\n" );
         const estimatedGas_approve =
             await tc_s_chain.computeGas(
-                details,
-                ethersProvider_s_chain,
+                details, ethersProvider_s_chain,
                 "ERC20", contractERC20, "approve", arrArguments_approve,
                 joAccountSrc, strActionName,
-                gasPrice, 8000000, weiHowMuch_approve,
-                null
-            );
-        details.write( strLogPrefix +
-            cc.debug( "Using estimated(approve) " ) + cc.info( "gas" ) +
-            cc.debug( "=" ) + cc.notice( estimatedGas_approve ) +
-            "\n" );
+                gasPrice, 8000000, weiHowMuch_approve, null );
+        details.write( strLogPrefix + cc.debug( "Using estimated(approve) " ) +
+            cc.info( "gas" ) + cc.debug( "=" ) + cc.notice( estimatedGas_approve ) + "\n" );
         const isIgnore_approve = false;
         const strErrorOfDryRun_approve =
             await dry_run_call(
-                details,
-                ethersProvider_s_chain,
+                details, ethersProvider_s_chain,
                 "ERC20", contractERC20, "approve", arrArguments_approve,
                 joAccountSrc, strActionName, isIgnore_approve,
-                gasPrice, estimatedGas_approve, weiHowMuch_approve,
-                null
-            );
+                gasPrice, estimatedGas_approve, weiHowMuch_approve, null );
         if( strErrorOfDryRun_approve )
             throw new Error( strErrorOfDryRun_approve );
-
-        const opts = {
-            isCheckTransactionToSchain: true
-        };
+        const opts = { isCheckTransactionToSchain: true };
         const joReceiptApprove =
             await payed_call(
-                details,
-                ethersProvider_s_chain,
+                details, ethersProvider_s_chain,
                 "ERC20", contractERC20, "approve", arrArguments_approve,
                 joAccountSrc, strActionName,
-                gasPrice, estimatedGas_approve, weiHowMuch_approve,
-                opts
-            );
+                gasPrice, estimatedGas_approve, weiHowMuch_approve, opts );
         if( joReceiptApprove && typeof joReceiptApprove == "object" ) {
             jarrReceipts.push( {
                 "description": "do_erc20_payment_from_s_chain/approve",
                 "receipt": joReceiptApprove
             } );
         }
-
         if( g_nSleepBetweenTransactionsOnSChainMilliseconds ) {
-            details.write(
-                cc.normal( "Sleeping " ) +
+            details.write( cc.normal( "Sleeping " ) +
                 cc.info( g_nSleepBetweenTransactionsOnSChainMilliseconds ) +
-                cc.normal( " milliseconds between transactions..." ) +
-                "\n" );
+                cc.normal( " milliseconds between transactions..." ) + "\n" );
             await sleep( g_nSleepBetweenTransactionsOnSChainMilliseconds );
         }
         if( g_bWaitForNextBlockOnSChain )
             await safe_waitForNextBlockToAppear( details, ethersProvider_s_chain );
-
         strActionName = "ERC20 payment from S-Chain, exitToMainERC20";
         const weiHowMuch_exitToMainERC20 = undefined;
         const estimatedGas_exitToMainERC20 =
             await tc_s_chain.computeGas(
-                details,
-                ethersProvider_s_chain,
+                details, ethersProvider_s_chain,
                 "TokenManagerERC20", jo_token_manager_erc20,
                 "exitToMainERC20", arrArguments_exitToMainERC20,
                 joAccountSrc, strActionName,
-                gasPrice, 8000000, weiHowMuch_exitToMainERC20,
-                null
-            );
-        details.write( strLogPrefix +
-            cc.debug( "Using estimated(approve) " ) + cc.info( "gas" ) +
-            cc.debug( "=" ) + cc.notice( estimatedGas_exitToMainERC20 ) +
-            "\n" );
+                gasPrice, 8000000, weiHowMuch_exitToMainERC20, null );
+        details.write( strLogPrefix + cc.debug( "Using estimated(approve) " ) +
+            cc.info( "gas" ) + cc.debug( "=" ) + cc.notice( estimatedGas_exitToMainERC20 ) + "\n" );
         gasPrice = await tc_s_chain.computeGasPrice( ethersProvider_s_chain, 200000000000 );
-        details.write( strLogPrefix +
-            cc.debug( "Using computed " ) + cc.info( "gasPrice" ) +
-            cc.debug( "=" ) + cc.j( gasPrice ) +
-            "\n" );
+        details.write( strLogPrefix + cc.debug( "Using computed " ) +
+            cc.info( "gasPrice" ) + cc.debug( "=" ) + cc.j( gasPrice ) + "\n" );
         const isIgnore_exitToMainERC20 = true;
         const strErrorOfDryRun_exitToMainERC20 =
             await dry_run_call(
-                details,
-                ethersProvider_s_chain,
+                details, ethersProvider_s_chain,
                 "TokenManagerERC20", jo_token_manager_erc20,
                 "exitToMainERC20", arrArguments_exitToMainERC20,
                 joAccountSrc, strActionName, isIgnore_exitToMainERC20,
-                gasPrice, estimatedGas_exitToMainERC20, weiHowMuch_exitToMainERC20,
-                null
-            );
+                gasPrice, estimatedGas_exitToMainERC20, weiHowMuch_exitToMainERC20, null );
         if( strErrorOfDryRun_exitToMainERC20 )
             throw new Error( strErrorOfDryRun_exitToMainERC20 );
-
         opts.isCheckTransactionToSchain = true;
         const joReceiptExitToMainERC20 =
             await payed_call(
-                details,
-                ethersProvider_s_chain,
+                details, ethersProvider_s_chain,
                 "TokenManagerERC20", jo_token_manager_erc20,
                 "exitToMainERC20", arrArguments_exitToMainERC20,
-                joAccountSrc, strActionName,
-                gasPrice, estimatedGas_exitToMainERC20, weiHowMuch_exitToMainERC20,
-                opts
-            );
-        if( joReceiptExitToMainERC20 &&
-            typeof joReceiptExitToMainERC20 == "object"
-        ) {
+                joAccountSrc, strActionName, gasPrice,
+                estimatedGas_exitToMainERC20, weiHowMuch_exitToMainERC20, opts );
+        if( joReceiptExitToMainERC20 && typeof joReceiptExitToMainERC20 == "object" ) {
             jarrReceipts.push( {
                 "description": "do_erc20_payment_from_s_chain/exit-to-main",
                 "receipt": joReceiptExitToMainERC20
             } );
         }
-
         // Must-have event(s) analysis as indicator(s) of success
         const strEventName = "OutgoingMessage";
         if( jo_message_proxy_s_chain ) {
-            details.write( strLogPrefix +
-                cc.debug( "Verifying the " ) + cc.info( strEventName ) +
-                cc.debug( " event of the " ) + cc.info( "MessageProxy" ) +
-                cc.debug( "/" ) + cc.notice( jo_message_proxy_s_chain.address ) +
-                cc.debug( " contract ..." ) +
+            details.write( strLogPrefix + cc.debug( "Verifying the " ) + cc.info( strEventName ) +
+                cc.debug( " event of the " ) + cc.info( "MessageProxy" ) + cc.debug( "/" ) +
+                cc.notice( jo_message_proxy_s_chain.address ) + cc.debug( " contract ..." ) +
                 "\n" );
             await sleep( g_nSleepBeforeFetchOutgoingMessageEvent );
             const joEvents =
@@ -4145,15 +4101,13 @@ export async function do_erc20_payment_from_s_chain(
                     details, strLogPrefix,
                     ethersProvider_s_chain, jo_message_proxy_s_chain, strEventName,
                     joReceiptExitToMainERC20.blockNumber, joReceiptExitToMainERC20.transactionHash,
-                    jo_message_proxy_s_chain.filters[strEventName]()
-                );
+                    jo_message_proxy_s_chain.filters[strEventName]() );
             if( joEvents.length > 0 ) {
-                details.write( strLogPrefix +
-                    cc.success( "Success, verified the " ) + cc.info( strEventName ) +
-                    cc.success( " event of the " ) + cc.info( "MessageProxy" ) +
-                    cc.success( "/" ) + cc.notice( jo_message_proxy_s_chain.address ) +
-                    cc.success( " contract, found event(s): " ) + cc.j( joEvents ) +
-                    "\n" );
+                details.write( strLogPrefix + cc.success( "Success, verified the " ) +
+                    cc.info( strEventName ) + cc.success( " event of the " ) +
+                    cc.info( "MessageProxy" ) + cc.success( "/" ) +
+                    cc.notice( jo_message_proxy_s_chain.address ) +
+                    cc.success( " contract, found event(s): " ) + cc.j( joEvents ) + "\n" );
             } else {
                 throw new Error(
                     "Verification failed for the \"OutgoingMessage\" event " +
@@ -4207,17 +4161,12 @@ export async function do_erc721_payment_from_s_chain(
     const strLogPrefix = cc.info( "S2M ERC721 Payment:" ) + " ";
     try {
         strActionName = "ERC721 payment from S-Chain, approve";
-        const erc721ABI =
-            joErc721_s_chain[strCoinNameErc721_s_chain + "_abi"];
-        const erc721Address_s_chain =
-            joErc721_s_chain[strCoinNameErc721_s_chain + "_address"];
+        const erc721ABI = joErc721_s_chain[strCoinNameErc721_s_chain + "_abi"];
+        const erc721Address_s_chain = joErc721_s_chain[strCoinNameErc721_s_chain + "_address"];
         const tokenManagerAddress = jo_token_manager_erc721.address;
         const contractERC721 =
             new owaspUtils.ethersMod.ethers.Contract(
-                erc721Address_s_chain,
-                erc721ABI,
-                ethersProvider_s_chain
-            );
+                erc721Address_s_chain, erc721ABI, ethersProvider_s_chain );
         const arrArguments_approve = [
             tokenManagerAddress,
             owaspUtils.ensure_starts_with_0x( owaspUtils.toBN( token_id ).toHexString() )
@@ -4234,77 +4183,54 @@ export async function do_erc721_payment_from_s_chain(
             cc.info( "gasPrice" ) + cc.debug( "=" ) + cc.j( gasPrice ) + "\n" );
         const estimatedGas_approve =
             await tc_s_chain.computeGas(
-                details,
-                ethersProvider_s_chain,
+                details, ethersProvider_s_chain,
                 "ERC721", contractERC721, "approve", arrArguments_approve,
                 joAccountSrc, strActionName,
-                gasPrice, 8000000, weiHowMuch_approve,
-                null
-            );
-        details.write( strLogPrefix +
-            cc.debug( "Using estimated(transfer from) " ) + cc.info( "gas" ) +
-            cc.debug( "=" ) + cc.notice( estimatedGas_approve ) +
-            "\n" );
+                gasPrice, 8000000, weiHowMuch_approve, null );
+        details.write( strLogPrefix + cc.debug( "Using estimated(transfer from) " ) +
+            cc.info( "gas" ) + cc.debug( "=" ) + cc.notice( estimatedGas_approve ) + "\n" );
         const isIgnore_approve = false;
         const strErrorOfDryRun_approve =
             await dry_run_call(
-                details,
-                ethersProvider_s_chain,
+                details, ethersProvider_s_chain,
                 "ERC721", contractERC721, "approve", arrArguments_approve,
                 joAccountSrc, strActionName, isIgnore_approve,
-                gasPrice, estimatedGas_approve, weiHowMuch_approve,
-                null
-            );
+                gasPrice, estimatedGas_approve, weiHowMuch_approve, null );
         if( strErrorOfDryRun_approve )
             throw new Error( strErrorOfDryRun_approve );
-
-        const opts = {
-            isCheckTransactionToSchain: true
-        };
+        const opts = { isCheckTransactionToSchain: true };
         const joReceiptApprove =
             await payed_call(
-                details,
-                ethersProvider_s_chain,
+                details, ethersProvider_s_chain,
                 "ERC721", contractERC721, "approve", arrArguments_approve,
-                joAccountSrc, strActionName,
-                gasPrice, estimatedGas_approve, weiHowMuch_approve,
-                opts
-            );
+                joAccountSrc, strActionName, gasPrice,
+                estimatedGas_approve, weiHowMuch_approve, opts );
         if( joReceiptApprove && typeof joReceiptApprove == "object" ) {
             jarrReceipts.push( {
                 "description": "do_erc721_payment_from_s_chain/transfer-from",
                 "receipt": joReceiptApprove
             } );
         }
-
         if( g_nSleepBetweenTransactionsOnSChainMilliseconds ) {
-            details.write(
-                cc.normal( "Sleeping " ) +
+            details.write( cc.normal( "Sleeping " ) +
                 cc.info( g_nSleepBetweenTransactionsOnSChainMilliseconds ) +
-                cc.normal( " milliseconds between transactions..." ) +
-                "\n" );
+                cc.normal( " milliseconds between transactions..." ) + "\n" );
             await sleep( g_nSleepBetweenTransactionsOnSChainMilliseconds );
         }
         if( g_bWaitForNextBlockOnSChain )
             await safe_waitForNextBlockToAppear( details, ethersProvider_s_chain );
-
         strActionName = "ERC721 payment from S-Chain, exitToMainERC721";
         const weiHowMuch_exitToMainERC721 = undefined;
         gasPrice = await tc_s_chain.computeGasPrice( ethersProvider_s_chain, 200000000000 );
-        details.write( strLogPrefix +
-            cc.debug( "Using computed " ) + cc.info( "gasPrice" ) +
-            cc.debug( "=" ) + cc.j( gasPrice ) +
-            "\n" );
+        details.write( strLogPrefix + cc.debug( "Using computed " ) + cc.info( "gasPrice" ) +
+            cc.debug( "=" ) + cc.j( gasPrice ) + "\n" );
         const estimatedGas_exitToMainERC721 =
             await tc_s_chain.computeGas(
-                details,
-                ethersProvider_s_chain,
+                details, ethersProvider_s_chain,
                 "TokenManagerERC721", jo_token_manager_erc721,
                 "exitToMainERC721", arrArguments_exitToMainERC721,
                 joAccountSrc, strActionName,
-                gasPrice, 8000000, weiHowMuch_exitToMainERC721,
-                null
-            );
+                gasPrice, 8000000, weiHowMuch_exitToMainERC721, null );
         details.write( strLogPrefix +
             cc.debug( "Using estimated(exit to main) " ) + cc.info( "gas" ) +
             cc.debug( "=" ) + cc.notice( estimatedGas_exitToMainERC721 ) +
@@ -4312,44 +4238,34 @@ export async function do_erc721_payment_from_s_chain(
         const isIgnore_exitToMainERC721 = true;
         const strErrorOfDryRun_exitToMainERC721 =
             await dry_run_call(
-                details,
-                ethersProvider_s_chain,
+                details, ethersProvider_s_chain,
                 "TokenManagerERC721", jo_token_manager_erc721,
                 "exitToMainERC721", arrArguments_exitToMainERC721,
-                joAccountSrc, strActionName, isIgnore_exitToMainERC721,
-                gasPrice, estimatedGas_exitToMainERC721, weiHowMuch_exitToMainERC721,
-                null
-            );
+                joAccountSrc, strActionName, isIgnore_exitToMainERC721, gasPrice,
+                estimatedGas_exitToMainERC721, weiHowMuch_exitToMainERC721, null );
         if( strErrorOfDryRun_exitToMainERC721 )
             throw new Error( strErrorOfDryRun_exitToMainERC721 );
-
         opts.isCheckTransactionToSchain = true;
         const joReceiptExitToMainERC721 =
             await payed_call(
-                details,
-                ethersProvider_s_chain,
+                details, ethersProvider_s_chain,
                 "TokenManagerERC721", jo_token_manager_erc721,
                 "exitToMainERC721", arrArguments_exitToMainERC721,
-                joAccountSrc, strActionName,
-                gasPrice, estimatedGas_exitToMainERC721, weiHowMuch_exitToMainERC721,
-                opts
-            );
+                joAccountSrc, strActionName, gasPrice,
+                estimatedGas_exitToMainERC721, weiHowMuch_exitToMainERC721, opts );
         if( joReceiptExitToMainERC721 && typeof joReceiptExitToMainERC721 == "object" ) {
             jarrReceipts.push( {
                 "description": "do_erc721_payment_from_s_chain/exit-to-main",
                 "receipt": joReceiptExitToMainERC721
             } );
         }
-
         // Must-have event(s) analysis as indicator(s) of success
         const strEventName = "OutgoingMessage";
         if( jo_message_proxy_s_chain ) {
-            details.write( strLogPrefix +
-                cc.debug( "Verifying the " ) + cc.info( strEventName ) +
-                cc.debug( " event of the " ) + cc.info( "MessageProxy" ) +
+            details.write( strLogPrefix + cc.debug( "Verifying the " ) +
+                cc.info( strEventName ) + cc.debug( " event of the " ) + cc.info( "MessageProxy" ) +
                 cc.debug( "/" ) + cc.notice( jo_message_proxy_s_chain.address ) +
-                cc.debug( " contract ..." ) +
-                "\n" );
+                cc.debug( " contract ..." ) + "\n" );
             await sleep( g_nSleepBeforeFetchOutgoingMessageEvent );
             const joEvents =
                 await get_contract_call_events(
@@ -4357,15 +4273,13 @@ export async function do_erc721_payment_from_s_chain(
                     ethersProvider_s_chain, jo_message_proxy_s_chain, strEventName,
                     joReceiptExitToMainERC721.blockNumber,
                     joReceiptExitToMainERC721.transactionHash,
-                    jo_message_proxy_s_chain.filters[strEventName]()
-                );
+                    jo_message_proxy_s_chain.filters[strEventName]() );
             if( joEvents.length > 0 ) {
-                details.write( strLogPrefix +
-                    cc.success( "Success, verified the " ) + cc.info( strEventName ) +
-                    cc.success( " event of the " ) + cc.info( "MessageProxy" ) +
-                    cc.success( "/" ) + cc.notice( jo_message_proxy_s_chain.address ) +
-                    cc.success( " contract, found event(s): " ) + cc.j( joEvents ) +
-                    "\n" );
+                details.write( strLogPrefix + cc.success( "Success, verified the " ) +
+                    cc.info( strEventName ) + cc.success( " event of the " ) +
+                    cc.info( "MessageProxy" ) + cc.success( "/" ) +
+                    cc.notice( jo_message_proxy_s_chain.address ) +
+                    cc.success( " contract, found event(s): " ) + cc.j( joEvents ) + "\n" );
             } else {
                 throw new Error(
                     "Verification failed for the \"OutgoingMessage\" event " +
@@ -4375,8 +4289,8 @@ export async function do_erc721_payment_from_s_chain(
         } // if( jo_message_proxy_s_chain )
     } catch ( err ) {
         const strError = owaspUtils.extract_error_message( err );
-        const s = strLogPrefix + cc.fatal( "CRITICAL ERROR:" ) +
-            cc.error( " Payment error in " + strActionName + ": " ) + cc.error( strError ) +
+        const s = strLogPrefix + cc.fatal( "CRITICAL ERROR:" ) + cc.error( " Payment error in " +
+            strActionName + ": " ) + cc.error( strError ) +
             cc.error( ", stack is: " ) + "\n" + cc.stack( err.stack ) + "\n";
         if( verbose_get() >= RV_VERBOSE().fatal )
             log.write( s );
@@ -4417,17 +4331,12 @@ export async function do_erc1155_payment_from_s_chain(
     const strLogPrefix = cc.info( "S2M ERC1155 Payment:" ) + " ";
     try {
         strActionName = "ERC1155 payment from S-Chain, approve";
-        const erc1155ABI =
-            joErc1155_s_chain[strCoinNameErc1155_s_chain + "_abi"];
-        const erc1155Address_s_chain =
-            joErc1155_s_chain[strCoinNameErc1155_s_chain + "_address"];
+        const erc1155ABI = joErc1155_s_chain[strCoinNameErc1155_s_chain + "_abi"];
+        const erc1155Address_s_chain = joErc1155_s_chain[strCoinNameErc1155_s_chain + "_address"];
         const tokenManagerAddress = jo_token_manager_erc1155.address;
         const contractERC1155 =
             new owaspUtils.ethersMod.ethers.Contract(
-                erc1155Address_s_chain,
-                erc1155ABI,
-                ethersProvider_s_chain
-            );
+                erc1155Address_s_chain, erc1155ABI, ethersProvider_s_chain );
         const arrArguments_approve = [
             tokenManagerAddress,
             true
@@ -4442,130 +4351,91 @@ export async function do_erc1155_payment_from_s_chain(
         ];
         const weiHowMuch_approve = undefined;
         let gasPrice = await tc_s_chain.computeGasPrice( ethersProvider_s_chain, 200000000000 );
-        details.write( strLogPrefix +
-            cc.debug( "Using computed " ) + cc.info( "gasPrice" ) +
-            cc.debug( "=" ) + cc.j( gasPrice ) +
-            "\n" );
+        details.write( strLogPrefix + cc.debug( "Using computed " ) +
+            cc.info( "gasPrice" ) + cc.debug( "=" ) + cc.j( gasPrice ) + "\n" );
         const estimatedGas_approve =
             await tc_s_chain.computeGas(
-                details,
-                ethersProvider_s_chain,
-                "ERC1155", contractERC1155,
-                "setApprovalForAll", arrArguments_approve,
-                joAccountSrc, strActionName,
-                gasPrice, 8000000, weiHowMuch_approve,
-                null
-            );
-        details.write( strLogPrefix +
-            cc.debug( "Using estimated(transfer from) " ) + cc.info( "gas" ) +
-            cc.debug( "=" ) + cc.notice( estimatedGas_approve ) +
-            "\n" );
+                details, ethersProvider_s_chain,
+                "ERC1155", contractERC1155, "setApprovalForAll", arrArguments_approve,
+                joAccountSrc, strActionName, gasPrice, 8000000, weiHowMuch_approve, null );
+        details.write( strLogPrefix + cc.debug( "Using estimated(transfer from) " ) +
+            cc.info( "gas" ) + cc.debug( "=" ) + cc.notice( estimatedGas_approve ) + "\n" );
         const isIgnore_approve = false;
         const strErrorOfDryRun_approve =
             await dry_run_call(
-                details,
-                ethersProvider_s_chain,
-                "ERC1155", contractERC1155,
-                "setApprovalForAll", arrArguments_approve,
+                details, ethersProvider_s_chain,
+                "ERC1155", contractERC1155, "setApprovalForAll", arrArguments_approve,
                 joAccountSrc, strActionName, isIgnore_approve,
-                gasPrice, estimatedGas_approve, weiHowMuch_approve,
-                null
-            );
+                gasPrice, estimatedGas_approve, weiHowMuch_approve, null );
         if( strErrorOfDryRun_approve )
             throw new Error( strErrorOfDryRun_approve );
-
-        const opts = {
-            isCheckTransactionToSchain: true
-        };
+        const opts = { isCheckTransactionToSchain: true };
         const joReceiptApprove =
             await payed_call(
-                details,
-                ethersProvider_s_chain,
-                "ERC1155", contractERC1155,
-                "setApprovalForAll", arrArguments_approve,
-                joAccountSrc, strActionName,
-                gasPrice, estimatedGas_approve, weiHowMuch_approve,
-                opts
-            );
+                details, ethersProvider_s_chain,
+                "ERC1155", contractERC1155, "setApprovalForAll", arrArguments_approve,
+                joAccountSrc, strActionName, gasPrice, estimatedGas_approve, weiHowMuch_approve,
+                opts );
         if( joReceiptApprove && typeof joReceiptApprove == "object" ) {
             jarrReceipts.push( {
                 "description": "do_erc1155_payment_from_s_chain/transfer-from",
                 "receipt": joReceiptApprove
             } );
         }
-
         if( g_nSleepBetweenTransactionsOnSChainMilliseconds ) {
-            details.write(
-                cc.normal( "Sleeping " ) +
+            details.write( cc.normal( "Sleeping " ) +
                 cc.info( g_nSleepBetweenTransactionsOnSChainMilliseconds ) +
-                cc.normal( " milliseconds between transactions..." ) +
-                "\n" );
+                cc.normal( " milliseconds between transactions..." ) + "\n" );
             await sleep( g_nSleepBetweenTransactionsOnSChainMilliseconds );
         }
         if( g_bWaitForNextBlockOnSChain )
             await safe_waitForNextBlockToAppear( details, ethersProvider_s_chain );
-
         strActionName = "ERC1155 payment from S-Chain, exitToMainERC1155";
         const weiHowMuch_exitToMainERC1155 = undefined;
         gasPrice = await tc_s_chain.computeGasPrice( ethersProvider_s_chain, 200000000000 );
-        details.write( strLogPrefix +
-            cc.debug( "Using computed " ) + cc.info( "gasPrice" ) +
-            cc.debug( "=" ) + cc.j( gasPrice ) +
-            "\n" );
+        details.write( strLogPrefix + cc.debug( "Using computed " ) +
+            cc.info( "gasPrice" ) + cc.debug( "=" ) + cc.j( gasPrice ) + "\n" );
         const estimatedGas_exitToMainERC1155 =
             await tc_s_chain.computeGas(
-                details,
-                ethersProvider_s_chain,
+                details, ethersProvider_s_chain,
                 "TokenManagerERC1155", jo_token_manager_erc1155,
                 "exitToMainERC1155", arrArguments_exitToMainERC1155,
-                joAccountSrc, strActionName,
-                gasPrice, 8000000, weiHowMuch_exitToMainERC1155,
-                null
-            );
-        details.write( strLogPrefix +
-            cc.debug( "Using estimated(exit to main) " ) + cc.info( "gas" ) +
-            cc.debug( "=" ) + cc.notice( estimatedGas_exitToMainERC1155 ) +
+                joAccountSrc, strActionName, gasPrice, 8000000, weiHowMuch_exitToMainERC1155,
+                null );
+        details.write( strLogPrefix + cc.debug( "Using estimated(exit to main) " ) +
+            cc.info( "gas" ) + cc.debug( "=" ) + cc.notice( estimatedGas_exitToMainERC1155 ) +
             "\n" );
         const isIgnore_exitToMainERC1155 = true;
         const strErrorOfDryRun_exitToMainERC1155 =
             await dry_run_call(
-                details,
-                ethersProvider_s_chain,
+                details, ethersProvider_s_chain,
                 "TokenManagerERC1155", jo_token_manager_erc1155,
                 "exitToMainERC1155", arrArguments_exitToMainERC1155,
                 joAccountSrc, strActionName, isIgnore_exitToMainERC1155,
                 gasPrice, estimatedGas_exitToMainERC1155, weiHowMuch_exitToMainERC1155,
-                null
-            );
+                null );
         if( strErrorOfDryRun_exitToMainERC1155 )
             throw new Error( strErrorOfDryRun_exitToMainERC1155 );
-
         opts.isCheckTransactionToSchain = true;
         const joReceiptExitToMainERC1155 =
             await payed_call(
-                details,
-                ethersProvider_s_chain,
+                details, ethersProvider_s_chain,
                 "TokenManagerERC1155", jo_token_manager_erc1155,
                 "exitToMainERC1155", arrArguments_exitToMainERC1155,
-                joAccountSrc, strActionName,
-                gasPrice, estimatedGas_exitToMainERC1155, weiHowMuch_exitToMainERC1155,
-                opts
-            );
+                joAccountSrc, strActionName, gasPrice,
+                estimatedGas_exitToMainERC1155, weiHowMuch_exitToMainERC1155, opts );
         if( joReceiptExitToMainERC1155 && typeof joReceiptExitToMainERC1155 == "object" ) {
             jarrReceipts.push( {
                 "description": "do_erc1155_payment_from_s_chain/exit-to-main",
                 "receipt": joReceiptExitToMainERC1155
             } );
         }
-
         // Must-have event(s) analysis as indicator(s) of success
         const strEventName = "OutgoingMessage";
         if( jo_message_proxy_s_chain ) {
-            details.write( strLogPrefix +
-                cc.debug( "Verifying the " ) + cc.info( strEventName ) +
-                cc.debug( " event of the " ) + cc.info( "MessageProxy" ) +
-                cc.debug( "/" ) + cc.notice( jo_message_proxy_s_chain.address ) +
-                cc.debug( " contract ..." ) +
+            details.write( strLogPrefix + cc.debug( "Verifying the " ) + cc.info( strEventName ) +
+                cc.debug( " event of the " ) + cc.info( "MessageProxy" ) + cc.debug( "/" ) +
+                cc.notice( jo_message_proxy_s_chain.address ) + cc.debug( " contract ..." ) +
                 "\n" );
             await sleep( g_nSleepBeforeFetchOutgoingMessageEvent );
             const joEvents =
@@ -4574,15 +4444,13 @@ export async function do_erc1155_payment_from_s_chain(
                     ethersProvider_s_chain, jo_message_proxy_s_chain, strEventName,
                     joReceiptExitToMainERC1155.blockNumber,
                     joReceiptExitToMainERC1155.transactionHash,
-                    jo_message_proxy_s_chain.filters[strEventName]()
-                );
+                    jo_message_proxy_s_chain.filters[strEventName]() );
             if( joEvents.length > 0 ) {
-                details.write( strLogPrefix +
-                    cc.success( "Success, verified the " ) + cc.info( strEventName ) +
-                    cc.success( " event of the " ) + cc.info( "MessageProxy" ) +
-                    cc.success( "/" ) + cc.notice( jo_message_proxy_s_chain.address ) +
-                    cc.success( " contract, found event(s): " ) + cc.j( joEvents ) +
-                    "\n" );
+                details.write( strLogPrefix + cc.success( "Success, verified the " ) +
+                    cc.info( strEventName ) + cc.success( " event of the " ) +
+                    cc.info( "MessageProxy" ) + cc.success( "/" ) +
+                    cc.notice( jo_message_proxy_s_chain.address ) +
+                    cc.success( " contract, found event(s): " ) + cc.j( joEvents ) + "\n" );
             } else {
                 throw new Error(
                     "Verification failed for the \"OutgoingMessage\" event " +
@@ -4634,17 +4502,12 @@ export async function do_erc1155_batch_payment_from_s_chain(
     const strLogPrefix = cc.info( "S2M ERC1155 Batch Payment:" ) + " ";
     try {
         strActionName = "ERC1155 payment from S-Chain, approve";
-        const erc1155ABI =
-            joErc1155_s_chain[strCoinNameErc1155_s_chain + "_abi"];
-        const erc1155Address_s_chain =
-            joErc1155_s_chain[strCoinNameErc1155_s_chain + "_address"];
+        const erc1155ABI = joErc1155_s_chain[strCoinNameErc1155_s_chain + "_abi"];
+        const erc1155Address_s_chain = joErc1155_s_chain[strCoinNameErc1155_s_chain + "_address"];
         const tokenManagerAddress = jo_token_manager_erc1155.address;
         const contractERC1155 =
             new owaspUtils.ethersMod.ethers.Contract(
-                erc1155Address_s_chain,
-                erc1155ABI,
-                ethersProvider_s_chain
-            );
+                erc1155Address_s_chain, erc1155ABI, ethersProvider_s_chain );
         const arrArguments_approve = [
             tokenManagerAddress,
             true
@@ -4658,50 +4521,31 @@ export async function do_erc1155_batch_payment_from_s_chain(
         ];
         const weiHowMuch_approve = undefined;
         let gasPrice = await tc_s_chain.computeGasPrice( ethersProvider_s_chain, 200000000000 );
-        details.write( strLogPrefix +
-            cc.debug( "Using computed " ) + cc.info( "gasPrice" ) +
-            cc.debug( "=" ) + cc.j( gasPrice ) +
-            "\n" );
+        details.write( strLogPrefix + cc.debug( "Using computed " ) +
+            cc.info( "gasPrice" ) + cc.debug( "=" ) + cc.j( gasPrice ) + "\n" );
         const estimatedGas_approve =
             await tc_s_chain.computeGas(
-                details,
-                ethersProvider_s_chain,
+                details, ethersProvider_s_chain,
                 "ERC1155", contractERC1155, "setApprovalForAll", arrArguments_approve,
-                joAccountSrc, strActionName,
-                gasPrice, 8000000, weiHowMuch_approve,
-                null
-            );
-        details.write( strLogPrefix +
-            cc.debug( "Using estimated(transfer from) " ) + cc.info( "gas" ) +
-            cc.debug( "=" ) + cc.notice( estimatedGas_approve ) +
-            "\n" );
+                joAccountSrc, strActionName, gasPrice, 8000000, weiHowMuch_approve, null );
+        details.write( strLogPrefix + cc.debug( "Using estimated(transfer from) " ) +
+            cc.info( "gas" ) + cc.debug( "=" ) + cc.notice( estimatedGas_approve ) + "\n" );
         const isIgnore_approve = false;
         const strErrorOfDryRun_approve =
             await dry_run_call(
-                details,
-                ethersProvider_s_chain,
-                "ERC1155", contractERC1155,
-                "setApprovalForAll", arrArguments_approve,
+                details, ethersProvider_s_chain,
+                "ERC1155", contractERC1155, "setApprovalForAll", arrArguments_approve,
                 joAccountSrc, strActionName, isIgnore_approve,
-                gasPrice, estimatedGas_approve, weiHowMuch_approve,
-                null
-            );
+                gasPrice, estimatedGas_approve, weiHowMuch_approve, null );
         if( strErrorOfDryRun_approve )
             throw new Error( strErrorOfDryRun_approve );
-
-        const opts = {
-            isCheckTransactionToSchain: true
-        };
+        const opts = { isCheckTransactionToSchain: true };
         const joReceiptApprove =
             await payed_call(
-                details,
-                ethersProvider_s_chain,
-                "ERC1155", contractERC1155,
-                "setApprovalForAll", arrArguments_approve,
-                joAccountSrc, strActionName,
-                gasPrice, estimatedGas_approve, weiHowMuch_approve,
-                opts
-            );
+                details, ethersProvider_s_chain,
+                "ERC1155", contractERC1155, "setApprovalForAll", arrArguments_approve,
+                joAccountSrc, strActionName, gasPrice, estimatedGas_approve, weiHowMuch_approve,
+                opts );
         if( joReceiptApprove && typeof joReceiptApprove == "object" ) {
             jarrReceipts.push( {
                 "description":
@@ -4709,64 +4553,47 @@ export async function do_erc1155_batch_payment_from_s_chain(
                 "receipt": joReceiptApprove
             } );
         }
-
         if( g_nSleepBetweenTransactionsOnSChainMilliseconds ) {
-            details.write(
-                cc.normal( "Sleeping " ) +
+            details.write( cc.normal( "Sleeping " ) +
                 cc.info( g_nSleepBetweenTransactionsOnSChainMilliseconds ) +
-                cc.normal( " milliseconds between transactions..." ) +
-                "\n" );
+                cc.normal( " milliseconds between transactions..." ) + "\n" );
             await sleep( g_nSleepBetweenTransactionsOnSChainMilliseconds );
         }
         if( g_bWaitForNextBlockOnSChain )
             await safe_waitForNextBlockToAppear( details, ethersProvider_s_chain );
-
         strActionName = "ERC1155 batch-payment from S-Chain, exitToMainERC1155Batch";
         const weiHowMuch_exitToMainERC1155Batch = undefined;
         gasPrice = await tc_s_chain.computeGasPrice( ethersProvider_s_chain, 200000000000 );
-        details.write( strLogPrefix +
-            cc.debug( "Using computed " ) + cc.info( "gasPrice" ) +
-            cc.debug( "=" ) + cc.j( gasPrice ) +
-            "\n" );
+        details.write( strLogPrefix + cc.debug( "Using computed " ) +
+            cc.info( "gasPrice" ) + cc.debug( "=" ) + cc.j( gasPrice ) + "\n" );
         const estimatedGas_exitToMainERC1155Batch =
             await tc_s_chain.computeGas(
-                details,
-                ethersProvider_s_chain,
+                details, ethersProvider_s_chain,
                 "TokenManagerERC1155", jo_token_manager_erc1155,
                 "exitToMainERC1155Batch", arrArguments_exitToMainERC1155Batch,
-                joAccountSrc, strActionName,
-                gasPrice, 8000000, weiHowMuch_exitToMainERC1155Batch,
-                null
-            );
-        details.write( strLogPrefix +
-            cc.debug( "Using estimated(exit to main) " ) + cc.info( "gas" ) +
-            cc.debug( "=" ) + cc.notice( estimatedGas_exitToMainERC1155Batch ) +
+                joAccountSrc, strActionName, gasPrice, 8000000,
+                weiHowMuch_exitToMainERC1155Batch, null );
+        details.write( strLogPrefix + cc.debug( "Using estimated(exit to main) " ) +
+            cc.info( "gas" ) + cc.debug( "=" ) + cc.notice( estimatedGas_exitToMainERC1155Batch ) +
             "\n" );
         const isIgnore_exitToMainERC1155Batch = true;
         const strErrorOfDryRun_exitToMainERC1155Batch =
             await dry_run_call(
-                details,
-                ethersProvider_s_chain,
+                details, ethersProvider_s_chain,
                 "TokenManagerERC1155", jo_token_manager_erc1155,
                 "exitToMainERC1155Batch", arrArguments_exitToMainERC1155Batch,
-                joAccountSrc, strActionName, isIgnore_exitToMainERC1155Batch,
-                gasPrice, estimatedGas_exitToMainERC1155Batch, weiHowMuch_exitToMainERC1155Batch,
-                null
-            );
+                joAccountSrc, strActionName, isIgnore_exitToMainERC1155Batch, gasPrice,
+                estimatedGas_exitToMainERC1155Batch, weiHowMuch_exitToMainERC1155Batch, null );
         if( strErrorOfDryRun_exitToMainERC1155Batch )
             throw new Error( strErrorOfDryRun_exitToMainERC1155Batch );
-
         opts.isCheckTransactionToSchain = true;
         const joReceiptExitToMainERC1155Batch =
             await payed_call(
-                details,
-                ethersProvider_s_chain,
+                details, ethersProvider_s_chain,
                 "TokenManagerERC1155", jo_token_manager_erc1155,
                 "exitToMainERC1155Batch", arrArguments_exitToMainERC1155Batch,
-                joAccountSrc, strActionName,
-                gasPrice, estimatedGas_exitToMainERC1155Batch, weiHowMuch_exitToMainERC1155Batch,
-                opts
-            );
+                joAccountSrc, strActionName, gasPrice,
+                estimatedGas_exitToMainERC1155Batch, weiHowMuch_exitToMainERC1155Batch, opts );
         if( joReceiptExitToMainERC1155Batch &&
             typeof joReceiptExitToMainERC1155Batch == "object"
         ) {
@@ -4775,15 +4602,12 @@ export async function do_erc1155_batch_payment_from_s_chain(
                 "receipt": joReceiptExitToMainERC1155Batch
             } );
         }
-
         // Must-have event(s) analysis as indicator(s) of success
         const strEventName = "OutgoingMessage";
         if( jo_message_proxy_s_chain ) {
-            details.write( strLogPrefix +
-                cc.debug( "Verifying the " ) + cc.info( strEventName ) +
-                cc.debug( " event of the " ) + cc.info( "MessageProxy" ) +
-                cc.debug( "/" ) + cc.notice( jo_message_proxy_s_chain.address ) +
-                cc.debug( " contract ..." ) +
+            details.write( strLogPrefix + cc.debug( "Verifying the " ) + cc.info( strEventName ) +
+                cc.debug( " event of the " ) + cc.info( "MessageProxy" ) + cc.debug( "/" ) +
+                cc.notice( jo_message_proxy_s_chain.address ) + cc.debug( " contract ..." ) +
                 "\n" );
             await sleep( g_nSleepBeforeFetchOutgoingMessageEvent );
             const joEvents =
@@ -4792,15 +4616,13 @@ export async function do_erc1155_batch_payment_from_s_chain(
                     ethersProvider_s_chain, jo_message_proxy_s_chain, strEventName,
                     joReceiptExitToMainERC1155Batch.blockNumber,
                     joReceiptExitToMainERC1155Batch.transactionHash,
-                    jo_message_proxy_s_chain.filters[strEventName]()
-                );
+                    jo_message_proxy_s_chain.filters[strEventName]() );
             if( joEvents.length > 0 ) {
-                details.write( strLogPrefix +
-                    cc.success( "Success, verified the " ) + cc.info( strEventName ) +
-                    cc.success( " event of the " ) + cc.info( "MessageProxy" ) +
-                    cc.success( "/" ) + cc.notice( jo_message_proxy_s_chain.address ) +
-                    cc.success( " contract, found event(s): " ) + cc.j( joEvents ) +
-                    "\n" );
+                details.write( strLogPrefix + cc.success( "Success, verified the " ) +
+                    cc.info( strEventName ) + cc.success( " event of the " ) +
+                    cc.info( "MessageProxy" ) + cc.success( "/" ) +
+                    cc.notice( jo_message_proxy_s_chain.address ) +
+                    cc.success( " contract, found event(s): " ) + cc.j( joEvents ) + "\n" );
             } else {
                 throw new Error(
                     "Verification failed for the \"OutgoingMessage\" event " +
@@ -4872,41 +4694,30 @@ export async function do_erc20_payment_s2s(
             throw new Error( "No transaction customizer provided" );
         const erc20_abi_src = joErc20_src[strCoinNameErc20_src + "_abi"];
         const erc20_address_src = joErc20_src[strCoinNameErc20_src + "_address"];
-        details.write( strLogPrefix +
-            cc.attention( "Token Manager ERC20" ) +
+        details.write( strLogPrefix + cc.attention( "Token Manager ERC20" ) +
             cc.debug( " address on source chain...." ) +
             cc.note( jo_token_manager_erc20_src.address ) + "\n" );
-        details.write( strLogPrefix +
-            cc.attention( "Source ERC20" ) +
+        details.write( strLogPrefix + cc.attention( "Source ERC20" ) +
             cc.debug( " coin name........................." ) +
             cc.note( strCoinNameErc20_src ) + "\n" );
-        details.write( strLogPrefix +
-            cc.attention( "Source ERC20" ) +
+        details.write( strLogPrefix + cc.attention( "Source ERC20" ) +
             cc.debug( " token address....................." ) +
             cc.note( erc20_address_src ) + "\n" );
         if( isReverse || erc20_address_dst ) {
-            details.write( strLogPrefix +
-                cc.attention( "Destination ERC20" ) +
+            details.write( strLogPrefix + cc.attention( "Destination ERC20" ) +
                 cc.debug( " token address................" ) +
                 cc.note( erc20_address_dst ) + "\n" );
         }
-        details.write( strLogPrefix +
-            cc.attention( "Destination chain name" ) +
+        details.write( strLogPrefix + cc.attention( "Destination chain name" ) +
             cc.debug( "........................." ) +
             cc.note( strChainName_dst ) + "\n" );
-        details.write( strLogPrefix +
-            cc.attention( "Amount of tokens" ) +
+        details.write( strLogPrefix + cc.attention( "Amount of tokens" ) +
             cc.debug( " to transfer..................." ) +
             cc.note( nAmountOfToken ) + "\n" );
-
-        strActionName =
-            "ERC20 payment S2S, approve, " + ( isForward ? "forward" : "reverse" );
+        strActionName = "ERC20 payment S2S, approve, " + ( isForward ? "forward" : "reverse" );
         const contractERC20 =
             new owaspUtils.ethersMod.ethers.Contract(
-                erc20_address_src,
-                erc20_abi_src,
-                ethersProvider_src
-            );
+                erc20_address_src, erc20_abi_src, ethersProvider_src );
         const arrArguments_approve = [
             jo_token_manager_erc20_src.address,
             owaspUtils.ensure_starts_with_0x( owaspUtils.toBN( nAmountOfToken ).toHexString() )
@@ -4918,45 +4729,30 @@ export async function do_erc20_payment_s2s(
         ];
         const weiHowMuch_approve = undefined;
         let gasPrice = await tc.computeGasPrice( ethersProvider_src, 200000000000 );
-        details.write( strLogPrefix +
-            cc.debug( "Using computed " ) + cc.info( "gasPrice" ) +
-            cc.debug( "=" ) + cc.j( gasPrice ) +
-            "\n" );
+        details.write( strLogPrefix + cc.debug( "Using computed " ) +
+            cc.info( "gasPrice" ) + cc.debug( "=" ) + cc.j( gasPrice ) + "\n" );
         const estimatedGas_approve =
             await tc.computeGas(
-                details,
-                ethersProvider_src,
+                details, ethersProvider_src,
                 "ERC20", contractERC20, "approve", arrArguments_approve,
-                joAccountSrc, strActionName,
-                gasPrice, 8000000, weiHowMuch_approve,
-                null
-            );
-        details.write( strLogPrefix +
-            cc.debug( "Using estimated(approve) " ) + cc.info( "gas" ) +
-            cc.debug( "=" ) + cc.notice( estimatedGas_approve ) +
-            "\n" );
+                joAccountSrc, strActionName, gasPrice, 8000000, weiHowMuch_approve, null );
+        details.write( strLogPrefix + cc.debug( "Using estimated(approve) " ) +
+            cc.info( "gas" ) + cc.debug( "=" ) + cc.notice( estimatedGas_approve ) + "\n" );
         const isIgnore_approve = false;
         const strErrorOfDryRun_approve =
             await dry_run_call(
-                details,
-                ethersProvider_src,
+                details, ethersProvider_src,
                 "ERC20", contractERC20, "approve", arrArguments_approve,
                 joAccountSrc, strActionName, isIgnore_approve,
-                gasPrice, estimatedGas_approve, weiHowMuch_approve,
-                null
-            );
+                gasPrice, estimatedGas_approve, weiHowMuch_approve, null );
         if( strErrorOfDryRun_approve )
             throw new Error( strErrorOfDryRun_approve );
-
         const joReceipt_approve =
             await payed_call(
-                details,
-                ethersProvider_src,
+                details, ethersProvider_src,
                 "ERC20", contractERC20, "approve", arrArguments_approve,
-                joAccountSrc, strActionName,
-                gasPrice, estimatedGas_approve, weiHowMuch_approve,
-                null
-            );
+                joAccountSrc, strActionName, gasPrice,
+                estimatedGas_approve, weiHowMuch_approve, null );
         if( joReceipt_approve && typeof joReceipt_approve == "object" ) {
             jarrReceipts.push( {
                 "description":
@@ -4964,53 +4760,38 @@ export async function do_erc20_payment_s2s(
                 "receipt": joReceipt_approve
             } );
         }
-
         strActionName =
             "ERC20 payment S2S, transferERC20 " + ( isForward ? "forward" : "reverse" );
         const weiHowMuch_transferERC20 = undefined;
         gasPrice = await tc.computeGasPrice( ethersProvider_src, 200000000000 );
-        details.write( strLogPrefix +
-            cc.debug( "Using computed " ) + cc.info( "gasPrice" ) +
-            cc.debug( "=" ) + cc.j( gasPrice ) +
-            "\n" );
+        details.write( strLogPrefix + cc.debug( "Using computed " ) +
+            cc.info( "gasPrice" ) + cc.debug( "=" ) + cc.j( gasPrice ) + "\n" );
         const estimatedGas_transfer =
             await tc.computeGas(
-                details,
-                ethersProvider_src,
+                details, ethersProvider_src,
                 "TokenManagerERC20", jo_token_manager_erc20_src,
                 "transferToSchainERC20", arrArguments_transfer,
-                joAccountSrc, strActionName,
-                gasPrice, 8000000, weiHowMuch_transferERC20,
-                null
-            );
-        details.write( strLogPrefix +
-            cc.debug( "Using estimated(transfer) " ) + cc.info( "gas" ) +
-            cc.debug( "=" ) + cc.notice( estimatedGas_transfer ) +
-            "\n" );
+                joAccountSrc, strActionName, gasPrice,
+                8000000, weiHowMuch_transferERC20, null );
+        details.write( strLogPrefix + cc.debug( "Using estimated(transfer) " ) +
+            cc.info( "gas" ) + cc.debug( "=" ) + cc.notice( estimatedGas_transfer ) + "\n" );
         const isIgnore_transferERC20 = true;
         const strErrorOfDryRun_transferERC20 =
             await dry_run_call(
-                details,
-                ethersProvider_src,
+                details, ethersProvider_src,
                 "TokenManagerERC20", jo_token_manager_erc20_src,
                 "transferToSchainERC20", arrArguments_transfer,
                 joAccountSrc, strActionName, isIgnore_transferERC20,
-                gasPrice, estimatedGas_transfer, weiHowMuch_transferERC20,
-                null
-            );
+                gasPrice, estimatedGas_transfer, weiHowMuch_transferERC20, null );
         if( strErrorOfDryRun_transferERC20 )
             throw new Error( strErrorOfDryRun_transferERC20 );
-
         const joReceipt_transfer =
             await payed_call(
-                details,
-                ethersProvider_src,
+                details, ethersProvider_src,
                 "TokenManagerERC20", jo_token_manager_erc20_src,
                 "transferToSchainERC20", arrArguments_transfer,
-                joAccountSrc, strActionName,
-                gasPrice, estimatedGas_transfer, weiHowMuch_transferERC20,
-                null
-            );
+                joAccountSrc, strActionName, gasPrice,
+                estimatedGas_transfer, weiHowMuch_transferERC20, null );
         if( joReceipt_transfer && typeof joReceipt_transfer == "object" ) {
             jarrReceipts.push( {
                 "description": "do_erc20_payment_from_src/transfer",
@@ -5019,29 +4800,22 @@ export async function do_erc20_payment_s2s(
         }
     } catch ( err ) {
         const strError = owaspUtils.extract_error_message( err );
-        const s = strLogPrefix +
-            cc.fatal( "CRITICAL ERROR:" ) + cc.error( " Payment error in " +
+        const s = strLogPrefix + cc.fatal( "CRITICAL ERROR:" ) + cc.error( " Payment error in " +
             strActionName + ": " ) + cc.error( strError ) +
             cc.error( ", stack is: " ) + "\n" + cc.stack( err.stack ) + "\n";
         if( verbose_get() >= RV_VERBOSE().fatal )
             log.write( s );
         details.write( s );
         details.exposeDetailsTo(
-            log,
-            "do_erc20_payment_s2s/" + ( isForward ? "forward" : "reverse" ),
-            false );
+            log, "do_erc20_payment_s2s/" + ( isForward ? "forward" : "reverse" ), false );
         details.close();
         return false;
     }
     print_gas_usage_report_from_array(
-        "ERC-20 PAYMENT FROM S2S/" + ( isForward ? "forward" : "reverse" ),
-        jarrReceipts,
-        details );
+        "ERC-20 PAYMENT FROM S2S/" + ( isForward ? "forward" : "reverse" ), jarrReceipts, details );
     if( expose_details_get() ) {
         details.exposeDetailsTo(
-            log,
-            "do_erc20_payment_s2s/" + ( isForward ? "forward" : "reverse" ),
-            true );
+            log, "do_erc20_payment_s2s/" + ( isForward ? "forward" : "reverse" ), true );
     }
     details.close();
     return true;
@@ -5091,47 +4865,28 @@ export async function do_erc721_payment_s2s(
             throw new Error( "No transaction customizer provided" );
         const erc721_abi_src = joErc721_src[strCoinNameErc721_src + "_abi"];
         const erc721_address_src = joErc721_src[strCoinNameErc721_src + "_address"];
-        details.write( strLogPrefix +
-            cc.attention( "Token Manager ERC721" ) +
+        details.write( strLogPrefix + cc.attention( "Token Manager ERC721" ) +
             cc.debug( " address on source chain...." ) +
-            cc.note( jo_token_manager_erc721_src.address ) +
-            "\n" );
-        details.write( strLogPrefix +
-            cc.attention( "Source ERC721" ) +
+            cc.note( jo_token_manager_erc721_src.address ) + "\n" );
+        details.write( strLogPrefix + cc.attention( "Source ERC721" ) +
             cc.debug( " coin name........................." ) +
-            cc.note( strCoinNameErc721_src ) +
-            "\n" );
-        details.write( strLogPrefix +
-            cc.attention( "Source ERC721" ) +
+            cc.note( strCoinNameErc721_src ) + "\n" );
+        details.write( strLogPrefix + cc.attention( "Source ERC721" ) +
             cc.debug( " token address....................." ) +
-            cc.note( erc721_address_src ) +
-            "\n" );
+            cc.note( erc721_address_src ) + "\n" );
         if( isReverse || erc721_address_dst ) {
-            details.write( strLogPrefix +
-                cc.attention( "Destination ERC721" ) +
+            details.write( strLogPrefix + cc.attention( "Destination ERC721" ) +
                 cc.debug( " token address................" ) +
-                cc.note( erc721_address_dst ) +
-                "\n" );
+                cc.note( erc721_address_dst ) + "\n" );
         }
-        details.write( strLogPrefix +
-            cc.attention( "Destination chain name" ) +
-            cc.debug( "........................." ) +
-            cc.note( strChainName_dst ) +
-            "\n" );
-        details.write( strLogPrefix +
-            cc.attention( "Token ID" ) +
-            cc.debug( " to transfer..........................." ) +
-            cc.note( token_id ) +
-            "\n" );
-
-        strActionName =
-            "ERC721 payment S2S, approve, " + ( isForward ? "forward" : "reverse" );
+        details.write( strLogPrefix + cc.attention( "Destination chain name" ) +
+            cc.debug( "........................." ) + cc.note( strChainName_dst ) + "\n" );
+        details.write( strLogPrefix + cc.attention( "Token ID" ) +
+            cc.debug( " to transfer..........................." ) + cc.note( token_id ) + "\n" );
+        strActionName = "ERC721 payment S2S, approve, " + ( isForward ? "forward" : "reverse" );
         const contractERC721 =
             new owaspUtils.ethersMod.ethers.Contract(
-                erc721_address_src,
-                erc721_abi_src,
-                ethersProvider_src
-            );
+                erc721_address_src, erc721_abi_src, ethersProvider_src );
         const arrArguments_approve = [
             jo_token_manager_erc721_src.address,
             owaspUtils.ensure_starts_with_0x( owaspUtils.toBN( token_id ).toHexString() )
@@ -5143,45 +4898,30 @@ export async function do_erc721_payment_s2s(
         ];
         const weiHowMuch_approve = undefined;
         let gasPrice = await tc.computeGasPrice( ethersProvider_src, 200000000000 );
-        details.write( strLogPrefix +
-            cc.debug( "Using computed " ) + cc.info( "gasPrice" ) +
-            cc.debug( "=" ) + cc.j( gasPrice ) +
-            "\n" );
+        details.write( strLogPrefix + cc.debug( "Using computed " ) +
+            cc.info( "gasPrice" ) + cc.debug( "=" ) + cc.j( gasPrice ) + "\n" );
         const estimatedGas_approve =
             await tc.computeGas(
-                details,
-                ethersProvider_src,
+                details, ethersProvider_src,
                 "ERC721", contractERC721, "approve", arrArguments_approve,
-                joAccountSrc, strActionName,
-                gasPrice, 8000000, weiHowMuch_approve,
-                null
-            );
-        details.write( strLogPrefix +
-            cc.debug( "Using estimated(approve) " ) + cc.info( "gas" ) +
-            cc.debug( "=" ) + cc.notice( estimatedGas_approve ) +
-            "\n" );
+                joAccountSrc, strActionName, gasPrice, 8000000, weiHowMuch_approve, null );
+        details.write( strLogPrefix + cc.debug( "Using estimated(approve) " ) +
+            cc.info( "gas" ) + cc.debug( "=" ) + cc.notice( estimatedGas_approve ) + "\n" );
         const isIgnore_approve = false;
         const strErrorOfDryRun_approve =
             await dry_run_call(
-                details,
-                ethersProvider_src,
+                details, ethersProvider_src,
                 "ERC721", contractERC721, "approve", arrArguments_approve,
                 joAccountSrc, strActionName, isIgnore_approve,
-                gasPrice, estimatedGas_approve, weiHowMuch_approve,
-                null
-            );
+                gasPrice, estimatedGas_approve, weiHowMuch_approve, null );
         if( strErrorOfDryRun_approve )
             throw new Error( strErrorOfDryRun_approve );
-
         const joReceipt_approve =
             await payed_call(
-                details,
-                ethersProvider_src,
+                details, ethersProvider_src,
                 "ERC721", contractERC721, "approve", arrArguments_approve,
                 joAccountSrc, strActionName,
-                gasPrice, estimatedGas_approve, weiHowMuch_approve,
-                null
-            );
+                gasPrice, estimatedGas_approve, weiHowMuch_approve, null );
         if( joReceipt_approve && typeof joReceipt_approve == "object" ) {
             jarrReceipts.push( {
                 "description":
@@ -5189,53 +4929,38 @@ export async function do_erc721_payment_s2s(
                 "receipt": joReceipt_approve
             } );
         }
-
         const isIgnore_transferERC721 = true;
         strActionName =
             "ERC721 payment S2S, transferERC721 " + ( isForward ? "forward" : "reverse" );
         const weiHowMuch_transferERC721 = undefined;
         gasPrice = await tc.computeGasPrice( ethersProvider_src, 200000000000 );
-        details.write( strLogPrefix +
-            cc.debug( "Using computed " ) + cc.info( "gasPrice" ) +
-            cc.debug( "=" ) + cc.j( gasPrice ) +
-            "\n" );
+        details.write( strLogPrefix + cc.debug( "Using computed " ) +
+            cc.info( "gasPrice" ) + cc.debug( "=" ) + cc.j( gasPrice ) + "\n" );
         const estimatedGas_transfer =
             await tc.computeGas(
-                details,
-                ethersProvider_src,
+                details, ethersProvider_src,
                 "TokenManagerERC721", jo_token_manager_erc721_src,
                 "transferToSchainERC721", arrArguments_transfer,
                 joAccountSrc, strActionName, isIgnore_transferERC721,
-                gasPrice, 8000000, weiHowMuch_transferERC721,
-                null
-            );
-        details.write( strLogPrefix +
-            cc.debug( "Using estimated(transfer) " ) + cc.info( "gas" ) +
-            cc.debug( "=" ) + cc.notice( estimatedGas_transfer ) +
-            "\n" );
+                gasPrice, 8000000, weiHowMuch_transferERC721, null );
+        details.write( strLogPrefix + cc.debug( "Using estimated(transfer) " ) +
+            cc.info( "gas" ) + cc.debug( "=" ) + cc.notice( estimatedGas_transfer ) + "\n" );
         const strErrorOfDryRun_transferERC721 =
             await dry_run_call(
-                details,
-                ethersProvider_src,
+                details, ethersProvider_src,
                 "TokenManagerERC721", jo_token_manager_erc721_src,
                 "transferToSchainERC721", arrArguments_transfer,
                 joAccountSrc, strActionName, isIgnore_transferERC721,
-                gasPrice, estimatedGas_transfer, weiHowMuch_transferERC721,
-                null
-            );
+                gasPrice, estimatedGas_transfer, weiHowMuch_transferERC721, null );
         if( strErrorOfDryRun_transferERC721 )
             throw new Error( strErrorOfDryRun_transferERC721 );
-
         const joReceipt_transfer =
             await payed_call(
-                details,
-                ethersProvider_src,
+                details, ethersProvider_src,
                 "TokenManagerERC721", jo_token_manager_erc721_src,
                 "transferToSchainERC721", arrArguments_transfer,
                 joAccountSrc, strActionName,
-                gasPrice, estimatedGas_transfer, weiHowMuch_transferERC721,
-                null
-            );
+                gasPrice, estimatedGas_transfer, weiHowMuch_transferERC721, null );
         if( joReceipt_transfer && typeof joReceipt_transfer == "object" ) {
             jarrReceipts.push( {
                 "description": "do_erc721_payment_from_src/transfer",
@@ -5317,51 +5042,30 @@ export async function do_erc1155_payment_s2s(
             throw new Error( "No transaction customizer provided" );
         const erc1155_abi_src = joErc1155_src[strCoinNameErc1155_src + "_abi"];
         const erc1155_address_src = joErc1155_src[strCoinNameErc1155_src + "_address"];
-        details.write( strLogPrefix +
-            cc.attention( "Token Manager ERC1155" ) +
+        details.write( strLogPrefix + cc.attention( "Token Manager ERC1155" ) +
             cc.debug( " address on source chain...." ) +
-            cc.note( jo_token_manager_erc1155_src.address ) +
-            "\n" );
-        details.write( strLogPrefix +
-            cc.attention( "Source ERC1155" ) +
+            cc.note( jo_token_manager_erc1155_src.address ) + "\n" );
+        details.write( strLogPrefix + cc.attention( "Source ERC1155" ) +
             cc.debug( " coin name........................." ) +
-            cc.note( strCoinNameErc1155_src ) +
-            "\n" );
-        details.write( strLogPrefix +
-            cc.attention( "Source ERC1155" ) +
+            cc.note( strCoinNameErc1155_src ) + "\n" );
+        details.write( strLogPrefix + cc.attention( "Source ERC1155" ) +
             cc.debug( " token address....................." ) +
-            cc.note( erc1155_address_src ) +
-            "\n" );
+            cc.note( erc1155_address_src ) + "\n" );
         if( isReverse || erc1155_address_dst ) {
-            details.write( strLogPrefix +
-                cc.attention( "Destination ERC1155" ) +
+            details.write( strLogPrefix + cc.attention( "Destination ERC1155" ) +
                 cc.debug( " token address................" ) +
-                cc.note( erc1155_address_dst ) +
-                "\n" );
+                cc.note( erc1155_address_dst ) + "\n" );
         }
-        details.write( strLogPrefix +
-            cc.attention( "Destination chain name" ) +
-            cc.debug( "........................." ) +
-            cc.note( strChainName_dst ) +
-            "\n" );
-        details.write( strLogPrefix +
-            cc.attention( "Token ID" ) +
-            cc.debug( " to transfer..........................." ) +
-            cc.note( token_id ) +
-            "\n" );
-        details.write( strLogPrefix +
-            cc.attention( "Amount of tokens" ) +
-            cc.debug( " to transfer..................." ) +
-            cc.note( nAmountOfToken ) +
-            "\n" );
-
+        details.write( strLogPrefix + cc.attention( "Destination chain name" ) +
+            cc.debug( "........................." ) + cc.note( strChainName_dst ) + "\n" );
+        details.write( strLogPrefix + cc.attention( "Token ID" ) +
+            cc.debug( " to transfer..........................." ) + cc.note( token_id ) + "\n" );
+        details.write( strLogPrefix + cc.attention( "Amount of tokens" ) +
+            cc.debug( " to transfer..................." ) + cc.note( nAmountOfToken ) + "\n" );
         strActionName = "ERC1155 payment S2S, approve, " + ( isForward ? "forward" : "reverse" );
         const contractERC1155 =
             new owaspUtils.ethersMod.ethers.Contract(
-                erc1155_address_src,
-                erc1155_abi_src,
-                ethersProvider_src
-            );
+                erc1155_address_src, erc1155_abi_src, ethersProvider_src );
         const arrArguments_approve = [
             jo_token_manager_erc1155_src.address,
             true
@@ -5374,48 +5078,30 @@ export async function do_erc1155_payment_s2s(
         ];
         const weiHowMuch_approve = undefined;
         let gasPrice = await tc.computeGasPrice( ethersProvider_src, 200000000000 );
-        details.write( strLogPrefix +
-            cc.debug( "Using computed " ) + cc.info( "gasPrice" ) +
-            cc.debug( "=" ) + cc.j( gasPrice ) +
-            "\n" );
+        details.write( strLogPrefix + cc.debug( "Using computed " ) +
+            cc.info( "gasPrice" ) + cc.debug( "=" ) + cc.j( gasPrice ) + "\n" );
         const estimatedGas_approve =
             await tc.computeGas(
-                details,
-                ethersProvider_src,
-                "ERC1155", contractERC1155,
-                "setApprovalForAll", arrArguments_approve,
-                joAccountSrc, strActionName,
-                gasPrice, 8000000, weiHowMuch_approve,
-                null
-            );
-        details.write( strLogPrefix +
-            cc.debug( "Using estimated(approve) " ) + cc.info( "gas" ) +
-            cc.debug( "=" ) + cc.notice( estimatedGas_approve ) +
-            "\n" );
+                details, ethersProvider_src,
+                "ERC1155", contractERC1155, "setApprovalForAll", arrArguments_approve,
+                joAccountSrc, strActionName, gasPrice, 8000000, weiHowMuch_approve, null );
+        details.write( strLogPrefix + cc.debug( "Using estimated(approve) " ) +
+            cc.info( "gas" ) + cc.debug( "=" ) + cc.notice( estimatedGas_approve ) + "\n" );
         const isIgnore_approve = false;
         const strErrorOfDryRun_approve =
             await dry_run_call(
-                details,
-                ethersProvider_src,
-                "ERC1155", contractERC1155,
-                "setApprovalForAll", arrArguments_approve,
+                details, ethersProvider_src,
+                "ERC1155", contractERC1155, "setApprovalForAll", arrArguments_approve,
                 joAccountSrc, strActionName, isIgnore_approve,
-                gasPrice, estimatedGas_approve, weiHowMuch_approve,
-                null
-            );
+                gasPrice, estimatedGas_approve, weiHowMuch_approve, null );
         if( strErrorOfDryRun_approve )
             throw new Error( strErrorOfDryRun_approve );
-
         const joReceipt_approve =
             await payed_call(
-                details,
-                ethersProvider_src,
-                "ERC1155", contractERC1155,
-                "setApprovalForAll", arrArguments_approve,
-                joAccountSrc, strActionName,
-                gasPrice, estimatedGas_approve, weiHowMuch_approve,
-                null
-            );
+                details, ethersProvider_src,
+                "ERC1155", contractERC1155, "setApprovalForAll", arrArguments_approve,
+                joAccountSrc, strActionName, gasPrice,
+                estimatedGas_approve, weiHowMuch_approve, null );
         if( joReceipt_approve && typeof joReceipt_approve == "object" ) {
             jarrReceipts.push( {
                 "description":
@@ -5423,54 +5109,38 @@ export async function do_erc1155_payment_s2s(
                 "receipt": joReceipt_approve
             } );
         }
-
         strActionName =
             "ERC1155 payment S2S, transferERC1155 " + ( isForward ? "forward" : "reverse" );
         const weiHowMuch_transferERC1155 = undefined;
-        gasPrice =
-            await tc.computeGasPrice( ethersProvider_src, 200000000000 );
-        details.write( strLogPrefix +
-            cc.debug( "Using computed " ) + cc.info( "gasPrice" ) +
-            cc.debug( "=" ) + cc.j( gasPrice ) +
-            "\n" );
+        gasPrice = await tc.computeGasPrice( ethersProvider_src, 200000000000 );
+        details.write( strLogPrefix + cc.debug( "Using computed " ) +
+            cc.info( "gasPrice" ) + cc.debug( "=" ) + cc.j( gasPrice ) + "\n" );
         const estimatedGas_transfer =
             await tc.computeGas(
-                details,
-                ethersProvider_src,
+                details, ethersProvider_src,
                 "TokenManagerERC1155", jo_token_manager_erc1155_src,
                 "transferToSchainERC1155", arrArguments_transfer,
-                joAccountSrc, strActionName,
-                gasPrice, 8000000, weiHowMuch_transferERC1155,
-                null
-            );
-        details.write( strLogPrefix +
-            cc.debug( "Using estimated(transfer) " ) + cc.info( "gas" ) +
-            cc.debug( "=" ) + cc.notice( estimatedGas_transfer ) +
-            "\n" );
+                joAccountSrc, strActionName, gasPrice,
+                8000000, weiHowMuch_transferERC1155, null );
+        details.write( strLogPrefix + cc.debug( "Using estimated(transfer) " ) +
+            cc.info( "gas" ) + cc.debug( "=" ) + cc.notice( estimatedGas_transfer ) + "\n" );
         const isIgnore_transferERC1155 = true;
         const strErrorOfDryRun_transferERC1155 =
             await dry_run_call(
-                details,
-                ethersProvider_src,
+                details, ethersProvider_src,
                 "TokenManagerERC1155", jo_token_manager_erc1155_src,
                 "transferToSchainERC1155", arrArguments_transfer,
-                joAccountSrc, strActionName, isIgnore_transferERC1155,
-                gasPrice, estimatedGas_transfer, weiHowMuch_transferERC1155,
-                null
-            );
+                joAccountSrc, strActionName, isIgnore_transferERC1155, gasPrice,
+                estimatedGas_transfer, weiHowMuch_transferERC1155, null );
         if( strErrorOfDryRun_transferERC1155 )
             throw new Error( strErrorOfDryRun_transferERC1155 );
-
         const joReceipt_transfer =
             await payed_call(
-                details,
-                ethersProvider_src,
+                details, ethersProvider_src,
                 "TokenManagerERC1155", jo_token_manager_erc1155_src,
                 "transferToSchainERC1155", arrArguments_transfer,
-                joAccountSrc, strActionName,
-                gasPrice, estimatedGas_transfer, weiHowMuch_transferERC1155,
-                null
-            );
+                joAccountSrc, strActionName, gasPrice, estimatedGas_transfer,
+                weiHowMuch_transferERC1155, null );
         if( joReceipt_transfer && typeof joReceipt_transfer == "object" ) {
             jarrReceipts.push( {
                 "description": "do_erc1155_payment_from_src/transfer",
@@ -5487,9 +5157,7 @@ export async function do_erc1155_payment_s2s(
             log.write( s );
         details.write( s );
         details.exposeDetailsTo(
-            log,
-            "do_erc1155_payment_s2s/" + ( isForward ? "forward" : "reverse" ),
-            false );
+            log, "do_erc1155_payment_s2s/" + ( isForward ? "forward" : "reverse" ), false );
         details.close();
         return false;
     }
@@ -5499,9 +5167,7 @@ export async function do_erc1155_payment_s2s(
         details );
     if( expose_details_get() ) {
         details.exposeDetailsTo(
-            log,
-            "do_erc1155_payment_s2s/" + ( isForward ? "forward" : "reverse" ),
-            true );
+            log, "do_erc1155_payment_s2s/" + ( isForward ? "forward" : "reverse" ), true );
     }
     details.close();
     return true;
@@ -5555,52 +5221,31 @@ export async function do_erc1155_batch_payment_s2s(
             throw new Error( "No transaction customizer provided" );
         const erc1155_abi_src = joErc1155_src[strCoinNameErc1155_src + "_abi"];
         const erc1155_address_src = joErc1155_src[strCoinNameErc1155_src + "_address"];
-        details.write( strLogPrefix +
-            cc.attention( "Token Manager ERC1155" ) +
+        details.write( strLogPrefix + cc.attention( "Token Manager ERC1155" ) +
             cc.debug( " address on source chain...." ) +
-            cc.note( jo_token_manager_erc1155_src.address ) +
-            "\n" );
-        details.write( strLogPrefix +
-            cc.attention( "Source ERC1155" ) +
+            cc.note( jo_token_manager_erc1155_src.address ) + "\n" );
+        details.write( strLogPrefix + cc.attention( "Source ERC1155" ) +
             cc.debug( " coin name........................." ) +
-            cc.note( strCoinNameErc1155_src ) +
-            "\n" );
-        details.write( strLogPrefix +
-            cc.attention( "Source ERC1155" ) +
+            cc.note( strCoinNameErc1155_src ) + "\n" );
+        details.write( strLogPrefix + cc.attention( "Source ERC1155" ) +
             cc.debug( " token address....................." ) +
-            cc.note( erc1155_address_src ) +
-            "\n" );
+            cc.note( erc1155_address_src ) + "\n" );
         if( isReverse || erc1155_address_dst ) {
-            details.write( strLogPrefix +
-                cc.attention( "Destination ERC1155" ) +
+            details.write( strLogPrefix + cc.attention( "Destination ERC1155" ) +
                 cc.debug( " token address................" ) +
-                cc.note( erc1155_address_dst ) +
-                "\n" );
+                cc.note( erc1155_address_dst ) + "\n" );
         }
-        details.write( strLogPrefix +
-            cc.attention( "Destination chain name" ) +
-            cc.debug( "........................." ) +
-            cc.note( strChainName_dst ) +
-            "\n" );
-        details.write( strLogPrefix +
-            cc.attention( "Token IDs" ) +
-            cc.debug( " to transfer.........................." ) +
-            cc.j( token_ids ) +
-            "\n" );
-        details.write( strLogPrefix +
-            cc.attention( "Amounts of tokens" ) +
-            cc.debug( " to transfer.................." ) +
-            cc.j( token_amounts ) +
-            "\n" );
-
+        details.write( strLogPrefix + cc.attention( "Destination chain name" ) +
+            cc.debug( "........................." ) + cc.note( strChainName_dst ) + "\n" );
+        details.write( strLogPrefix + cc.attention( "Token IDs" ) +
+            cc.debug( " to transfer.........................." ) + cc.j( token_ids ) + "\n" );
+        details.write( strLogPrefix + cc.attention( "Amounts of tokens" ) +
+            cc.debug( " to transfer.................." ) + cc.j( token_amounts ) + "\n" );
         strActionName =
             "ERC1155 batch-payment S2S, approve, " + ( isForward ? "forward" : "reverse" );
         const contractERC1155 =
             new owaspUtils.ethersMod.ethers.Contract(
-                erc1155_address_src,
-                erc1155_abi_src,
-                ethersProvider_src
-            );
+                erc1155_address_src, erc1155_abi_src, ethersProvider_src );
         const arrArguments_approve = [
             jo_token_manager_erc1155_src.address,
             true
@@ -5613,48 +5258,30 @@ export async function do_erc1155_batch_payment_s2s(
         ];
         const weiHowMuch_approve = undefined;
         let gasPrice = await tc.computeGasPrice( ethersProvider_src, 200000000000 );
-        details.write( strLogPrefix +
-            cc.debug( "Using computed " ) + cc.info( "gasPrice" ) +
-            cc.debug( "=" ) + cc.j( gasPrice ) +
-            "\n" );
+        details.write( strLogPrefix + cc.debug( "Using computed " ) +
+            cc.info( "gasPrice" ) + cc.debug( "=" ) + cc.j( gasPrice ) + "\n" );
         const estimatedGas_approve =
             await tc.computeGas(
-                details,
-                ethersProvider_src,
-                "ERC1155", contractERC1155,
-                "setApprovalForAll", arrArguments_approve,
-                joAccountSrc, strActionName,
-                gasPrice, 8000000, weiHowMuch_approve,
-                null
-            );
-        details.write( strLogPrefix +
-            cc.debug( "Using estimated(approve) " ) + cc.info( "gas" ) +
-            cc.debug( "=" ) + cc.notice( estimatedGas_approve ) +
-            "\n" );
+                details, ethersProvider_src,
+                "ERC1155", contractERC1155, "setApprovalForAll", arrArguments_approve,
+                joAccountSrc, strActionName, gasPrice, 8000000, weiHowMuch_approve, null );
+        details.write( strLogPrefix + cc.debug( "Using estimated(approve) " ) +
+            cc.info( "gas" ) + cc.debug( "=" ) + cc.notice( estimatedGas_approve ) + "\n" );
         const isIgnore_approve = false;
         const strErrorOfDryRun_approve =
             await dry_run_call(
-                details,
-                ethersProvider_src,
-                "ERC1155", contractERC1155,
-                "setApprovalForAll", arrArguments_approve,
+                details, ethersProvider_src,
+                "ERC1155", contractERC1155, "setApprovalForAll", arrArguments_approve,
                 joAccountSrc, strActionName, isIgnore_approve,
-                gasPrice, estimatedGas_approve, weiHowMuch_approve,
-                null
-            );
+                gasPrice, estimatedGas_approve, weiHowMuch_approve, null );
         if( strErrorOfDryRun_approve )
             throw new Error( strErrorOfDryRun_approve );
-
         const joReceipt_approve =
             await payed_call(
-                details,
-                ethersProvider_src,
-                "ERC1155", contractERC1155,
-                "setApprovalForAll", arrArguments_approve,
+                details, ethersProvider_src,
+                "ERC1155", contractERC1155, "setApprovalForAll", arrArguments_approve,
                 joAccountSrc, strActionName,
-                gasPrice, estimatedGas_approve, weiHowMuch_approve,
-                null
-            );
+                gasPrice, estimatedGas_approve, weiHowMuch_approve, null );
         if( joReceipt_approve && typeof joReceipt_approve == "object" ) {
             jarrReceipts.push( {
                 "description":
@@ -5663,53 +5290,38 @@ export async function do_erc1155_batch_payment_s2s(
                 "receipt": joReceipt_approve
             } );
         }
-
         strActionName =
             "ERC1155 batch-payment S2S, transferERC1155 " + ( isForward ? "forward" : "reverse" );
         const weiHowMuch_transferERC1155 = undefined;
         gasPrice = await tc.computeGasPrice( ethersProvider_src, 200000000000 );
-        details.write( strLogPrefix +
-            cc.debug( "Using computed " ) + cc.info( "gasPrice" ) +
-            cc.debug( "=" ) + cc.j( gasPrice ) +
-            "\n" );
+        details.write( strLogPrefix + cc.debug( "Using computed " ) +
+            cc.info( "gasPrice" ) + cc.debug( "=" ) + cc.j( gasPrice ) + "\n" );
         const estimatedGas_transfer =
             await tc.computeGas(
-                details,
-                ethersProvider_src,
+                details, ethersProvider_src,
                 "TokenManagerERC1155", jo_token_manager_erc1155_src,
                 "transferToSchainERC1155Batch", arrArguments_transfer,
                 joAccountSrc, strActionName,
-                gasPrice, 8000000, weiHowMuch_transferERC1155,
-                null
-            );
-        details.write( strLogPrefix +
-            cc.debug( "Using estimated(transfer) " ) + cc.info( "gas" ) +
-            cc.debug( "=" ) + cc.notice( estimatedGas_transfer ) +
-            "\n" );
+                gasPrice, 8000000, weiHowMuch_transferERC1155, null );
+        details.write( strLogPrefix + cc.debug( "Using estimated(transfer) " ) +
+            cc.info( "gas" ) + cc.debug( "=" ) + cc.notice( estimatedGas_transfer ) + "\n" );
         const isIgnore_transferERC1155 = true;
         const strErrorOfDryRun_transferERC1155 =
             await dry_run_call(
-                details,
-                ethersProvider_src,
+                details, ethersProvider_src,
                 "TokenManagerERC1155", jo_token_manager_erc1155_src,
                 "transferToSchainERC1155Batch", arrArguments_transfer,
                 joAccountSrc, strActionName, isIgnore_transferERC1155,
-                gasPrice, estimatedGas_transfer, weiHowMuch_transferERC1155,
-                null
-            );
+                gasPrice, estimatedGas_transfer, weiHowMuch_transferERC1155, null );
         if( strErrorOfDryRun_transferERC1155 )
             throw new Error( strErrorOfDryRun_transferERC1155 );
-
         const joReceipt_transfer =
             await payed_call(
-                details,
-                ethersProvider_src,
+                details, ethersProvider_src,
                 "TokenManagerERC1155", jo_token_manager_erc1155_src,
                 "transferToSchainERC1155Batch", arrArguments_transfer,
                 joAccountSrc, strActionName,
-                gasPrice, estimatedGas_transfer, weiHowMuch_transferERC1155,
-                null
-            );
+                gasPrice, estimatedGas_transfer, weiHowMuch_transferERC1155, null );
         if( joReceipt_transfer && typeof joReceipt_transfer == "object" ) {
             jarrReceipts.push( {
                 "description": "do_erc1155_payment_from_src/transfer",
@@ -5725,9 +5337,7 @@ export async function do_erc1155_batch_payment_s2s(
             log.write( s );
         details.write( s );
         details.exposeDetailsTo(
-            log,
-            "do_erc1155_batch_payment_s2s/" + ( isForward ? "forward" : "reverse" ),
-            false );
+            log, "do_erc1155_batch_payment_s2s/" + ( isForward ? "forward" : "reverse" ), false );
         details.close();
         return false;
     }
@@ -5737,9 +5347,7 @@ export async function do_erc1155_batch_payment_s2s(
         details );
     if( expose_details_get() ) {
         details.exposeDetailsTo(
-            log,
-            "do_erc1155_batch_payment_s2s/" + ( isForward ? "forward" : "reverse" ),
-            true );
+            log, "do_erc1155_batch_payment_s2s/" + ( isForward ? "forward" : "reverse" ), true );
     }
     details.close();
     return true;
@@ -6232,6 +5840,239 @@ async function do_gathering_messages( optsTransfer ) {
     } // for( let idxInBlock = 0; optsTransfer.nIdxCurrentMsg < optsTransfer.nOutMsgCnt &&... ...
 }
 
+async function pre_check_all_messages_signing( optsTransfer, err, jarrMessages, joGlueResult ) {
+    const strDidInvokedSigningCallbackMessage =
+        optsTransfer.strLogPrefix +
+        cc.debug( "Did invoked message signing callback, " +
+            "first real message index is: " ) +
+        cc.info( optsTransfer.nIdxCurrentMsgBlockStart ) +
+        cc.info( optsTransfer.jarrMessages.length ) +
+        cc.debug( " message(s) to process: " ) + cc.j( optsTransfer.jarrMessages ) + "\n";
+    optsTransfer.details.write( strDidInvokedSigningCallbackMessage );
+    if( log.id != optsTransfer.details.id )
+        log.write( strDidInvokedSigningCallbackMessage );
+    if( err ) {
+        optsTransfer.bErrorInSigningMessages = true;
+        const strError = owaspUtils.extract_error_message( err );
+        const s = optsTransfer.strLogPrefix + cc.fatal( "CRITICAL ERROR:" ) +
+            cc.error( " Error signing messages: " ) + cc.error( strError ) + "\n";
+        optsTransfer.details.write( s );
+        if( log.id != optsTransfer.details.id )
+            log.write( s );
+        save_transfer_error(
+            optsTransfer.strTransferErrorCategoryName, optsTransfer.details.toString() );
+        return false;
+    }
+    if( ! loop.check_time_framing(
+        null, optsTransfer.strDirection, optsTransfer.joRuntimeOpts )
+    ) {
+        const strWarning = optsTransfer.strLogPrefix + cc.warning( "WARNING:" ) + " " +
+            cc.warning( "Time framing overflow (after signing messages)" ) + "\n";
+        optsTransfer.details.write( strWarning );
+        if( log.id != optsTransfer.details.id )
+            log.write( strWarning );
+        save_transfer_success_all();
+        return false;
+    }
+    return true;
+}
+
+async function callback_all_messages_signing( optsTransfer, err, jarrMessages, joGlueResult ) {
+    if( ! await pre_check_all_messages_signing( optsTransfer, err, jarrMessages, joGlueResult ) )
+        return;
+    const nBlockSize = optsTransfer.arrMessageCounters.length;
+    optsTransfer.strActionName = "dst-chain.MessageProxy.postIncomingMessages()";
+    const strWillCallPostIncomingMessagesAction = optsTransfer.strLogPrefix +
+        cc.debug( "Will call " ) + cc.notice( optsTransfer.strActionName ) +
+        cc.debug( " for " ) + cc.notice( "block size" ) + cc.debug( " set to " ) +
+        cc.info( nBlockSize ) + cc.debug( ", " ) + cc.notice( "message counters =" ) +
+        cc.debug( " are " ) + cc.info( JSON.stringify( optsTransfer.arrMessageCounters ) ) +
+        cc.debug( "..." ) + "\n";
+    optsTransfer.details.write( strWillCallPostIncomingMessagesAction );
+    if( log.id != optsTransfer.details.id )
+        log.write( strWillCallPostIncomingMessagesAction );
+    let signature = joGlueResult ? joGlueResult.signature : null;
+    if( !signature )
+        signature = { X: "0", Y: "0" };
+    let hashPoint = joGlueResult ? joGlueResult.hashPoint : null;
+    if( !hashPoint )
+        hashPoint = { X: "0", Y: "0" };
+    let hint = joGlueResult ? joGlueResult.hint : null;
+    if( !hint )
+        hint = "0";
+    const sign = {
+        blsSignature: [ signature.X, signature.Y ], // BLS glue of signatures
+        hashA: hashPoint.X, // G1.X from joGlueResult.hashSrc
+        hashB: hashPoint.Y, // G1.Y from joGlueResult.hashSrc
+        counter: hint
+    };
+    const arrArguments_postIncomingMessages = [
+        optsTransfer.chain_id_src,
+        optsTransfer.nIdxCurrentMsgBlockStart,
+        optsTransfer.jarrMessages,
+        sign //, // bls signature components
+        // idxLastToPopNotIncluding
+    ];
+    if( verbose_get() >= RV_VERBOSE().debug ) {
+        const joDebugArgs = [
+            optsTransfer.chain_id_src,
+            optsTransfer.chain_id_dst,
+            optsTransfer.nIdxCurrentMsgBlockStart,
+            optsTransfer.jarrMessages,
+            [ signature.X, signature.Y ], // BLS glue of signatures
+            hashPoint.X, // G1.X from joGlueResult.hashSrc
+            hashPoint.Y, // G1.Y from joGlueResult.hashSrc
+            hint
+        ];
+        optsTransfer.details.write( optsTransfer.strLogPrefix +
+            cc.debug( "....debug args for " ) +
+            cc.notice( "msgCounter" ) + cc.debug( " set to " ) +
+            cc.info( optsTransfer.nIdxCurrentMsgBlockStart ) + cc.debug( ": " ) +
+            cc.j( joDebugArgs ) + "\n" );
+    }
+    optsTransfer.strActionName =
+        optsTransfer.strDirection + " - Post incoming messages";
+    const weiHowMuch_postIncomingMessages = undefined;
+    const gasPrice =
+        await optsTransfer.tc_dst.computeGasPrice(
+            optsTransfer.ethersProvider_dst, 200000000000 );
+    optsTransfer.details.write( optsTransfer.strLogPrefix + cc.debug( "Using computed " ) +
+        cc.info( "gasPrice" ) + cc.debug( "=" ) + cc.j( gasPrice ) + "\n" );
+    let estimatedGas_postIncomingMessages =
+        await optsTransfer.tc_dst.computeGas(
+            optsTransfer.details,
+            optsTransfer.ethersProvider_dst,
+            "MessageProxy", optsTransfer.jo_message_proxy_dst,
+            "postIncomingMessages", arrArguments_postIncomingMessages,
+            optsTransfer.joAccountDst, optsTransfer.strActionName,
+            gasPrice, 10000000, weiHowMuch_postIncomingMessages,
+            null
+        );
+    optsTransfer.details.write( optsTransfer.strLogPrefix +
+        cc.debug( "Using estimated " ) + cc.info( "gas" ) + cc.debug( "=" ) +
+        cc.notice( estimatedGas_postIncomingMessages ) + "\n" );
+    if( optsTransfer.strDirection == "S2M" ) {
+        const expectedGasLimit =
+            perMessageGasForTransfer * optsTransfer.jarrMessages.length +
+                additionalS2MTransferOverhead;
+        estimatedGas_postIncomingMessages =
+            Math.max( estimatedGas_postIncomingMessages, expectedGasLimit );
+    }
+    const isIgnore_postIncomingMessages = false;
+    const strErrorOfDryRun =
+        await dry_run_call(
+            optsTransfer.details,
+            optsTransfer.ethersProvider_dst,
+            "MessageProxy", optsTransfer.jo_message_proxy_dst,
+            "postIncomingMessages", arrArguments_postIncomingMessages,
+            optsTransfer.joAccountDst, optsTransfer.strActionName,
+            isIgnore_postIncomingMessages,
+            gasPrice, estimatedGas_postIncomingMessages,
+            weiHowMuch_postIncomingMessages,
+            null
+        );
+    if( strErrorOfDryRun )
+        throw new Error( strErrorOfDryRun );
+    const opts = {
+        isCheckTransactionToSchain:
+            ( optsTransfer.chain_id_dst !== "Mainnet" ) ? true : false
+    };
+    const joReceipt =
+        await payed_call(
+            optsTransfer.details, optsTransfer.ethersProvider_dst,
+            "MessageProxy", optsTransfer.jo_message_proxy_dst,
+            "postIncomingMessages", arrArguments_postIncomingMessages,
+            optsTransfer.joAccountDst, optsTransfer.strActionName,
+            gasPrice, estimatedGas_postIncomingMessages,
+            weiHowMuch_postIncomingMessages, opts );
+    if( joReceipt && typeof joReceipt == "object" ) {
+        optsTransfer.jarrReceipts.push( {
+            "description": "do_transfer/postIncomingMessages()",
+            "optsTransfer.detailsString":
+                "" + optsTransfer.strGatheredDetailsName,
+            "receipt": joReceipt
+        } );
+        print_gas_usage_report_from_array(
+            "(intermediate result) TRANSFER " +
+                optsTransfer.chain_id_src + " -> " + optsTransfer.chain_id_dst,
+            optsTransfer.jarrReceipts,
+            optsTransfer.details );
+    }
+    optsTransfer.cntProcessed += optsTransfer.cntAccumulatedForBlock;
+    optsTransfer.details.write( optsTransfer.strLogPrefix +
+        cc.debug( "Validating transfer from " ) +
+        cc.info( optsTransfer.chain_id_src ) + cc.debug( " to " ) +
+        cc.info( optsTransfer.chain_id_dst ) + cc.debug( "..." ) + "\n" );
+    // check DepositBox -> Error on Mainnet only
+    if( optsTransfer.chain_id_dst == "Mainnet" ) {
+        optsTransfer.details.write( optsTransfer.strLogPrefix +
+            cc.debug( "Validating transfer to Main Net via MessageProxy " +
+                "error absence on Main Net..." ) + "\n" );
+        if( optsTransfer.jo_deposit_box_main_net ) {
+            if( joReceipt && "blockNumber" in joReceipt &&
+                "transactionHash" in joReceipt ) {
+                const strEventName = "PostMessageError";
+                optsTransfer.details.write( optsTransfer.strLogPrefix +
+                    cc.debug( "Verifying the " ) + cc.info( strEventName ) +
+                    cc.debug( " event of the " ) + cc.info( "MessageProxy" ) +
+                    cc.debug( "/" ) +
+                    cc.notice( optsTransfer.jo_message_proxy_dst.address ) +
+                    cc.debug( " contract..." ) + "\n" );
+                const joEvents =
+                    await get_contract_call_events(
+                        optsTransfer.details, optsTransfer.strLogPrefixShort,
+                        optsTransfer.ethersProvider_dst,
+                        optsTransfer.jo_message_proxy_dst, strEventName,
+                        joReceipt.blockNumber,
+                        joReceipt.transactionHash,
+                        optsTransfer.jo_message_proxy_dst.filters[strEventName]() );
+                if( joEvents.length == 0 ) {
+                    optsTransfer.details.write( optsTransfer.strLogPrefix +
+                        cc.success( "Success, verified the " ) + cc.info( strEventName ) +
+                        cc.success( " event of the " ) + cc.info( "MessageProxy" ) +
+                        cc.success( "/" ) +
+                        cc.notice( optsTransfer.jo_message_proxy_dst.address ) +
+                        cc.success( " contract, no events found" ) + "\n" );
+                } else {
+                    const strError = optsTransfer.strLogPrefix +
+                        cc.fatal( "CRITICAL ERROR:" ) + cc.warning( " Failed" ) +
+                        cc.error( " verification of the " ) +
+                        cc.warning( "PostMessageError" ) + cc.error( " event of the " ) +
+                        cc.warning( "MessageProxy" ) + cc.error( "/" ) +
+                        cc.notice( optsTransfer.jo_message_proxy_dst.address ) +
+                        cc.error( " contract, found event(s): " ) + cc.j( joEvents ) + "\n";
+                    optsTransfer.details.write( strError );
+                    if( log.id != optsTransfer.details.id )
+                        log.write( strError );
+                    save_transfer_error(
+                        optsTransfer.strTransferErrorCategoryName,
+                        optsTransfer.details.toString() );
+                    throw new Error(
+                        "Verification failed for the \"PostMessageError\" " +
+                            "event of the \"MessageProxy\"/" +
+                        optsTransfer.jo_message_proxy_dst.address +
+                            " contract, error events found" );
+                }
+                optsTransfer.details.write( optsTransfer.strLogPrefix +
+                    cc.success( "Done, validated transfer to Main Net " +
+                        "via MessageProxy error absence on Main Net" ) + "\n" );
+            } else {
+                optsTransfer.details.write( optsTransfer.strLogPrefix +
+                    cc.warning( "WARNING:" ) + " " +
+                    cc.warn( "Cannot validate transfer to Main Net via " +
+                        "MessageProxy error absence on Main Net, " +
+                        "no valid transaction receipt provided" ) + "\n" );
+            }
+        } else {
+            optsTransfer.details.write( optsTransfer.strLogPrefix +
+                cc.warning( "WARNING:" ) + " " +
+                cc.warn( "Cannot validate transfer to Main Net " +
+                    "via MessageProxy error absence on Main Net, " +
+                    "no MessageProxy provided" ) + "\n" );
+        }
+    } // if( optsTransfer.chain_id_dst == "Mainnet" )
+}
+
 async function do_handle_all_messages_signing( optsTransfer ) {
     await optsTransfer.fn_sign_messages(
         optsTransfer.nTransferLoopCounter,
@@ -6239,268 +6080,7 @@ async function do_handle_all_messages_signing( optsTransfer ) {
         optsTransfer.chain_id_src,
         optsTransfer.joExtraSignOpts,
         async function( err, jarrMessages, joGlueResult ) {
-            const strDidInvokedSigningCallbackMessage =
-                optsTransfer.strLogPrefix +
-                cc.debug( "Did invoked message signing callback, " +
-                    "first real message index is: " ) +
-                cc.info( optsTransfer.nIdxCurrentMsgBlockStart ) +
-                cc.info( optsTransfer.jarrMessages.length ) +
-                cc.debug( " message(s) to process: " ) + cc.j( optsTransfer.jarrMessages ) +
-                "\n";
-            optsTransfer.details.write( strDidInvokedSigningCallbackMessage );
-            if( log.id != optsTransfer.details.id )
-                log.write( strDidInvokedSigningCallbackMessage );
-            if( err ) {
-                optsTransfer.bErrorInSigningMessages = true;
-                const strError = owaspUtils.extract_error_message( err );
-                const s = optsTransfer.strLogPrefix + cc.fatal( "CRITICAL ERROR:" ) +
-                    cc.error( " Error signing messages: " ) + cc.error( strError ) +
-                    "\n";
-                optsTransfer.details.write( s );
-                if( log.id != optsTransfer.details.id )
-                    log.write( s );
-                save_transfer_error(
-                    optsTransfer.strTransferErrorCategoryName,
-                    optsTransfer.details.toString() );
-                return false;
-            }
-            if( ! loop.check_time_framing(
-                null, optsTransfer.strDirection, optsTransfer.joRuntimeOpts )
-            ) {
-                const strWarning = optsTransfer.strLogPrefix +
-                    cc.warning( "WARNING:" ) + " " +
-                    cc.warning( "Time framing overflow (after signing messages)" ) +
-                    "\n";
-                optsTransfer.details.write( strWarning );
-                if( log.id != optsTransfer.details.id )
-                    log.write( strWarning );
-                save_transfer_success_all();
-                return false;
-            }
-
-            const nBlockSize = optsTransfer.arrMessageCounters.length;
-            optsTransfer.strActionName =
-                "dst-chain.MessageProxy.postIncomingMessages()";
-            const strWillCallPostIncomingMessagesAction =
-                optsTransfer.strLogPrefix +
-                cc.debug( "Will call " ) + cc.notice( optsTransfer.strActionName ) +
-                cc.debug( " for " ) +
-                cc.notice( "block size" ) + cc.debug( " set to " ) +
-                cc.info( nBlockSize ) +
-                cc.debug( ", " ) + cc.notice( "message counters =" ) +
-                cc.debug( " are " ) +
-                cc.info( JSON.stringify( optsTransfer.arrMessageCounters ) ) +
-                cc.debug( "..." ) + "\n";
-            optsTransfer.details.write( strWillCallPostIncomingMessagesAction );
-            if( log.id != optsTransfer.details.id )
-                log.write( strWillCallPostIncomingMessagesAction );
-
-            let signature = joGlueResult ? joGlueResult.signature : null;
-            if( !signature )
-                signature = { X: "0", Y: "0" };
-            let hashPoint = joGlueResult ? joGlueResult.hashPoint : null;
-            if( !hashPoint )
-                hashPoint = { X: "0", Y: "0" };
-            let hint = joGlueResult ? joGlueResult.hint : null;
-            if( !hint )
-                hint = "0";
-            const sign = {
-                blsSignature: [ signature.X, signature.Y ], // BLS glue of signatures
-                hashA: hashPoint.X, // G1.X from joGlueResult.hashSrc
-                hashB: hashPoint.Y, // G1.Y from joGlueResult.hashSrc
-                counter: hint
-            };
-
-            const arrArguments_postIncomingMessages = [
-                optsTransfer.chain_id_src,
-                optsTransfer.nIdxCurrentMsgBlockStart,
-                optsTransfer.jarrMessages,
-                sign //, // bls signature components
-                // idxLastToPopNotIncluding
-            ];
-            if( verbose_get() >= RV_VERBOSE().debug ) {
-                const joDebugArgs = [
-                    optsTransfer.chain_id_src,
-                    optsTransfer.chain_id_dst,
-                    optsTransfer.nIdxCurrentMsgBlockStart,
-                    optsTransfer.jarrMessages,
-                    [ signature.X, signature.Y ], // BLS glue of signatures
-                    hashPoint.X, // G1.X from joGlueResult.hashSrc
-                    hashPoint.Y, // G1.Y from joGlueResult.hashSrc
-                    hint
-                ];
-                optsTransfer.details.write( optsTransfer.strLogPrefix +
-                    cc.debug( "....debug args for " ) +
-                    cc.notice( "msgCounter" ) + cc.debug( " set to " ) +
-                    cc.info( optsTransfer.nIdxCurrentMsgBlockStart ) + cc.debug( ": " ) +
-                    cc.j( joDebugArgs ) + "\n" );
-            }
-            optsTransfer.strActionName =
-                optsTransfer.strDirection + " - Post incoming messages";
-            const weiHowMuch_postIncomingMessages = undefined;
-            const gasPrice =
-                await optsTransfer.tc_dst.computeGasPrice(
-                    optsTransfer.ethersProvider_dst, 200000000000 );
-            optsTransfer.details.write( optsTransfer.strLogPrefix +
-                cc.debug( "Using computed " ) + cc.info( "gasPrice" ) +
-                cc.debug( "=" ) + cc.j( gasPrice ) +
-                "\n" );
-            let estimatedGas_postIncomingMessages =
-                await optsTransfer.tc_dst.computeGas(
-                    optsTransfer.details,
-                    optsTransfer.ethersProvider_dst,
-                    "MessageProxy", optsTransfer.jo_message_proxy_dst,
-                    "postIncomingMessages", arrArguments_postIncomingMessages,
-                    optsTransfer.joAccountDst, optsTransfer.strActionName,
-                    gasPrice, 10000000, weiHowMuch_postIncomingMessages,
-                    null
-                );
-            optsTransfer.details.write( optsTransfer.strLogPrefix +
-                cc.debug( "Using estimated " ) + cc.info( "gas" ) +
-                cc.debug( "=" ) + cc.notice( estimatedGas_postIncomingMessages ) +
-                "\n" );
-            if( optsTransfer.strDirection == "S2M" ) {
-                const expectedGasLimit =
-                    perMessageGasForTransfer * optsTransfer.jarrMessages.length +
-                        additionalS2MTransferOverhead;
-                estimatedGas_postIncomingMessages =
-                    Math.max( estimatedGas_postIncomingMessages, expectedGasLimit );
-            }
-            const isIgnore_postIncomingMessages = false;
-            const strErrorOfDryRun =
-                await dry_run_call(
-                    optsTransfer.details,
-                    optsTransfer.ethersProvider_dst,
-                    "MessageProxy", optsTransfer.jo_message_proxy_dst,
-                    "postIncomingMessages", arrArguments_postIncomingMessages,
-                    optsTransfer.joAccountDst, optsTransfer.strActionName,
-                    isIgnore_postIncomingMessages,
-                    gasPrice, estimatedGas_postIncomingMessages,
-                    weiHowMuch_postIncomingMessages,
-                    null
-                );
-            if( strErrorOfDryRun )
-                throw new Error( strErrorOfDryRun );
-
-            const opts = {
-                isCheckTransactionToSchain:
-                    ( optsTransfer.chain_id_dst !== "Mainnet" ) ? true : false
-            };
-            const joReceipt =
-                await payed_call(
-                    optsTransfer.details,
-                    optsTransfer.ethersProvider_dst,
-                    "MessageProxy", optsTransfer.jo_message_proxy_dst,
-                    "postIncomingMessages", arrArguments_postIncomingMessages,
-                    optsTransfer.joAccountDst, optsTransfer.strActionName,
-                    gasPrice, estimatedGas_postIncomingMessages,
-                    weiHowMuch_postIncomingMessages,
-                    opts
-                );
-            if( joReceipt && typeof joReceipt == "object" ) {
-                optsTransfer.jarrReceipts.push( {
-                    "description": "do_transfer/postIncomingMessages()",
-                    "optsTransfer.detailsString":
-                        "" + optsTransfer.strGatheredDetailsName,
-                    "receipt": joReceipt
-                } );
-                print_gas_usage_report_from_array(
-                    "(intermediate result) TRANSFER " +
-                        optsTransfer.chain_id_src + " -> " + optsTransfer.chain_id_dst,
-                    optsTransfer.jarrReceipts,
-                    optsTransfer.details );
-            }
-            optsTransfer.cntProcessed += optsTransfer.cntAccumulatedForBlock;
-
-            optsTransfer.details.write( optsTransfer.strLogPrefix +
-                cc.debug( "Validating transfer from " ) +
-                cc.info( optsTransfer.chain_id_src ) +
-                cc.debug( " to " ) + cc.info( optsTransfer.chain_id_dst ) +
-                cc.debug( "..." ) +
-                "\n" );
-
-            // check DepositBox -> Error on Mainnet only
-            if( optsTransfer.chain_id_dst == "Mainnet" ) {
-                optsTransfer.details.write( optsTransfer.strLogPrefix +
-                    cc.debug( "Validating transfer to Main Net via MessageProxy " +
-                        "error absence on Main Net..." ) +
-                    "\n" );
-                if( optsTransfer.jo_deposit_box_main_net ) {
-                    if( joReceipt &&
-                        "blockNumber" in joReceipt &&
-                        "transactionHash" in joReceipt ) {
-                        const strEventName = "PostMessageError";
-                        optsTransfer.details.write( optsTransfer.strLogPrefix +
-                            cc.debug( "Verifying the " ) + cc.info( strEventName ) +
-                            cc.debug( " event of the " ) + cc.info( "MessageProxy" ) +
-                            cc.debug( "/" ) +
-                            cc.notice( optsTransfer.jo_message_proxy_dst.address ) +
-                            cc.debug( " contract..." ) +
-                            "\n" );
-                        const joEvents =
-                            await get_contract_call_events(
-                                optsTransfer.details, optsTransfer.strLogPrefixShort,
-                                optsTransfer.ethersProvider_dst,
-                                optsTransfer.jo_message_proxy_dst, strEventName,
-                                joReceipt.blockNumber,
-                                joReceipt.transactionHash,
-                                optsTransfer.jo_message_proxy_dst.filters[strEventName]()
-                            );
-                        if( joEvents.length == 0 ) {
-                            optsTransfer.details.write( optsTransfer.strLogPrefix +
-                                cc.success( "Success, verified the " ) +
-                                cc.info( strEventName ) +
-                                cc.success( " event of the " ) +
-                                cc.info( "MessageProxy" ) + cc.success( "/" ) +
-                                cc.notice( optsTransfer.jo_message_proxy_dst.address ) +
-                                cc.success( " contract, no events found" ) +
-                                "\n" );
-                        } else {
-                            const strError = optsTransfer.strLogPrefix +
-                                cc.fatal( "CRITICAL ERROR:" ) +
-                                cc.warning( " Failed" ) +
-                                cc.error( " verification of the " ) +
-                                cc.warning( "PostMessageError" ) +
-                                cc.error( " event of the " ) +
-                                cc.warning( "MessageProxy" ) +
-                                cc.error( "/" ) +
-                                cc.notice( optsTransfer.jo_message_proxy_dst.address ) +
-                                cc.error( " contract, found event(s): " ) +
-                                cc.j( joEvents ) + "\n";
-                            optsTransfer.details.write( strError );
-                            if( log.id != optsTransfer.details.id )
-                                log.write( strError );
-                            save_transfer_error(
-                                optsTransfer.strTransferErrorCategoryName,
-                                optsTransfer.details.toString() );
-                            throw new Error(
-                                "Verification failed for the \"PostMessageError\" " +
-                                    "event of the \"MessageProxy\"/" +
-                                optsTransfer.jo_message_proxy_dst.address +
-                                    " contract, error events found" );
-                        }
-                        optsTransfer.details.write( optsTransfer.strLogPrefix +
-                            cc.success( "Done, validated transfer to Main Net " +
-                                "via MessageProxy error absence on Main Net" ) +
-                            "\n" );
-                    } else {
-                        optsTransfer.details.write( optsTransfer.strLogPrefix +
-                            cc.warning( "WARNING:" ) + " " +
-                            cc.warn( "Cannot validate transfer to Main Net via " +
-                                "MessageProxy error absence on Main Net, " +
-                                "no valid transaction receipt provided" ) +
-                            "\n" );
-                    }
-                } else {
-                    optsTransfer.details.write( optsTransfer.strLogPrefix +
-                        cc.warning( "WARNING:" ) + " " +
-                        cc.warn( "Cannot validate transfer to Main Net " +
-                            "via MessageProxy error absence on Main Net, " +
-                            "no MessageProxy provided" ) +
-                        "\n" );
-                }
-            } // if( optsTransfer.chain_id_dst == "Mainnet" )
-
+            await callback_all_messages_signing( optsTransfer, err, jarrMessages, joGlueResult );
         } ).catch( ( err ) => {
         // callback fn as argument of optsTransfer.fn_sign_messages
         optsTransfer.bErrorInSigningMessages = true;
@@ -6514,8 +6094,7 @@ async function do_handle_all_messages_signing( optsTransfer ) {
                 log.write( strErrorMessage + "\n" );
             save_transfer_error(
                 optsTransfer.strTransferErrorCategoryName,
-                optsTransfer.details.toString()
-            );
+                optsTransfer.details.toString() );
         }
     } ); // optsTransfer.fn_sign_messages
     return true;
