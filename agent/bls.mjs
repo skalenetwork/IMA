@@ -200,8 +200,8 @@ function keccak256_message( jarrMessages, nIdxCurrentMsgBlockStart, strFromChain
         )
     );
     arrBytes = a2ha( arrBytes );
-    let i = 0; const cnt = jarrMessages.length;
-    for( i = 0; i < cnt; ++i ) {
+    const cnt = jarrMessages.length;
+    for( let i = 0; i < cnt; ++i ) {
         const joMessage = jarrMessages[i];
 
         let bytesSender = imaUtils.hexToBytes( joMessage.sender.toString() );

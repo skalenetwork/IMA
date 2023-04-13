@@ -358,7 +358,7 @@ export function encodeUTF8( s ) {
 export function decodeUTF8( arrBytes ) {
     // un-marshals a string from an Uint8Array,
     // see https://gist.github.com/pascaldekloe/62546103a1576803dade9269ccf76330
-    let i = 0; let s = "";
+    let i = 0, s = "";
     while( i < arrBytes.length ) {
         let c = arrBytes[i++];
         if( c > 127 ) {
