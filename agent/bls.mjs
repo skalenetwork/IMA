@@ -332,8 +332,8 @@ function performBlsGlue(
     let strOutput = "";
     try {
         let strInput = "";
-        let i = 0; const cnt = arrSignResults.length;
-        for( i = 0; i < cnt; ++i ) {
+        const cnt = arrSignResults.length;
+        for( let i = 0; i < cnt; ++i ) {
             const jo = arrSignResults[i];
             const strPath = strActionDir + "/sign-result" + jo.index + ".json";
             details.write( strLogPrefix +
@@ -458,8 +458,8 @@ function performBlsGlueU256( details, u256, arrSignResults ) {
     let strOutput = "";
     try {
         let strInput = "";
-        let i = 0; const cnt = arrSignResults.length;
-        for( i = 0; i < cnt; ++i ) {
+        const cnt = arrSignResults.length;
+        for( let i = 0; i < cnt; ++i ) {
             const jo = arrSignResults[i];
             const strPath = strActionDir + "/sign-result" + jo.index + ".json";
             details.write( strLogPrefix +
