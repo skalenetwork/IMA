@@ -42,14 +42,14 @@ import * as EMC from "ethereum-multicall";
 
 const __dirname = path.dirname( url.fileURLToPath( import.meta.url ) );
 
-let g_interval_periodic_caching = null;
+let g_intervalPeriodicCaching = null;
 let g_bHaveParallelResult = false;
 
 const PORTS_PER_SCHAIN = 64;
 
 export const events = new EventDispatcher();
 
-export function get_schain_index_in_node( schain_id, schains_ids_on_node ) {
+export function getSChainIndexInNode( schain_id, schains_ids_on_node ) {
     let i = 0;
     for( const schain_id_on_node of schains_ids_on_node ) {
         if( schain_id == schain_id_on_node )
@@ -61,16 +61,16 @@ export function get_schain_index_in_node( schain_id, schains_ids_on_node ) {
         JSON.stringify( schains_ids_on_node ) );
 }
 
-export function get_schain_base_port_on_node( schain_id, schains_ids_on_node, node_base_port ) {
-    const schain_index = get_schain_index_in_node( schain_id, schains_ids_on_node );
-    return calc_schain_base_port( node_base_port, schain_index );
+export function getSChainBasePortOnNode( schain_id, schains_ids_on_node, node_base_port ) {
+    const schain_index = getSChainIndexInNode( schain_id, schains_ids_on_node );
+    return calcSChainBasePort( node_base_port, schain_index );
 }
 
-export function calc_schain_base_port( node_base_port, schain_index ) {
+export function calcSChainBasePort( node_base_port, schain_index ) {
     return parseInt( node_base_port ) + parseInt( schain_index ) * PORTS_PER_SCHAIN;
 }
 
-export function compose_endpoints( jo_schain, node_dict, endpoint_type ) {
+export function composeEndPoints( jo_schain, node_dict, endpoint_type ) {
     node_dict["http_endpoint_" + endpoint_type] =
         "http://" + node_dict[endpoint_type] + ":" + jo_schain.data.computed.ports.httpRpcPort;
     node_dict["https_endpoint_" + endpoint_type] =
@@ -99,7 +99,7 @@ export const SkaledPorts = {
     IMA_AGENT_JSON: 10
 };
 
-export function calc_ports( jo_schain, schain_base_port ) {
+export function calcPorts( jo_schain, schain_base_port ) {
     // TO-DO: these temporary port values should be in "node", not in "schain"
     jo_schain.data.computed.ports = {
         httpRpcPort: schain_base_port + SkaledPorts.HTTP_JSON,
@@ -111,7 +111,7 @@ export function calc_ports( jo_schain, schain_base_port ) {
     };
 }
 
-const g_arr_chain_ids_support_multicall = [
+const g_arrChainIdsSupportedByMulticall = [
     1, // Mainnet
     3, // Kovan
     4, // Rinkeby
@@ -163,12 +163,12 @@ const g_arr_chain_ids_support_multicall = [
     111 // Etherlite
 ];
 
-async function is_multicall_available( mn ) {
+async function isMulticallAvailable( mn ) {
     if( mn && mn.ethersProvider ) {
         const { chainId } = await mn.ethersProvider.getNetwork();
         const bnChainId = owaspUtils.toBN( chainId );
-        for( let i = 0; i < g_arr_chain_ids_support_multicall.length; ++ i ) {
-            const walkChainId = g_arr_chain_ids_support_multicall[i];
+        for( let i = 0; i < g_arrChainIdsSupportedByMulticall.length; ++ i ) {
+            const walkChainId = g_arrChainIdsSupportedByMulticall[i];
             const bnWalkChainId = owaspUtils.toBN( walkChainId );
             if( bnWalkChainId.eq( bnChainId ) )
                 return true;
@@ -178,16 +178,16 @@ async function is_multicall_available( mn ) {
 }
 
 // see https://github.com/skalenetwork/skale-proxy/blob/develop/endpoints.py
-export async function load_schain_parts( jo_schain, addressFrom, opts ) {
-    owaspUtils.ensure_observer_opts_initialized( opts );
+export async function loadSChainParts( jo_schain, addressFrom, opts ) {
+    owaspUtils.ensureObserverOptionsInitialized( opts );
     if( ! opts.imaState )
         throw new Error( "Cannot load S-Chain parts in observer, no imaState is provided" );
     let isEMC = false;
     if( opts.imaState.isEnabledMultiCall )
-        isEMC = await is_multicall_available( opts.imaState.chainProperties.mn );
+        isEMC = await isMulticallAvailable( opts.imaState.chainProperties.mn );
     jo_schain.data.computed = {};
     const schain_id = owaspUtils.ethersMod.ethers.utils.id( jo_schain.data.name );
-    const chainId = owaspUtils.compute_chain_id_from_schain_name( jo_schain.data.name );
+    const chainId = owaspUtils.computeChainIdFromSChainName( jo_schain.data.name );
     const node_ids =
         await opts.imaState.jo_schains_internal.callStatic.getNodesInGroup(
             schain_id,
@@ -270,7 +270,7 @@ export async function load_schain_parts( jo_schain, addressFrom, opts ) {
             const node_dict = {
                 "id": node_id,
                 "name": values0[0],
-                "ip": owaspUtils.ip_from_hex( values0[1] ),
+                "ip": owaspUtils.ipFromHex( values0[1] ),
                 "base_port": values0[3],
                 "domain": values1[0],
                 "isMaintenance": values2[0]
@@ -279,10 +279,10 @@ export async function load_schain_parts( jo_schain, addressFrom, opts ) {
                 return;
             const schain_ids = values3;
             node_dict.schain_base_port =
-                get_schain_base_port_on_node( schain_id, schain_ids, node_dict.base_port );
-            calc_ports( jo_schain, node_dict.schain_base_port );
-            compose_endpoints( jo_schain, node_dict, "ip" );
-            compose_endpoints( jo_schain, node_dict, "domain" );
+                getSChainBasePortOnNode( schain_id, schain_ids, node_dict.base_port );
+            calcPorts( jo_schain, node_dict.schain_base_port );
+            composeEndPoints( jo_schain, node_dict, "ip" );
+            composeEndPoints( jo_schain, node_dict, "domain" );
             nodes.push( node_dict );
             if( opts && opts.bStopNeeded )
                 return;
@@ -297,7 +297,7 @@ export async function load_schain_parts( jo_schain, addressFrom, opts ) {
             const node_dict = {
                 "id": node_id,
                 "name": node[0],
-                "ip": owaspUtils.ip_from_hex( node[1] ),
+                "ip": owaspUtils.ipFromHex( node[1] ),
                 "base_port": node[3],
                 "domain":
                     await opts.imaState.jo_nodes.callStatic.getNodeDomainName(
@@ -312,11 +312,11 @@ export async function load_schain_parts( jo_schain, addressFrom, opts ) {
                 await opts.imaState.jo_schains_internal.callStatic.getSchainHashesForNode(
                     node_id, { from: addressFrom } );
             node_dict.schain_base_port =
-                get_schain_base_port_on_node(
+                getSChainBasePortOnNode(
                     schain_id, schain_ids, node_dict.base_port );
-            calc_ports( jo_schain, node_dict.schain_base_port );
-            compose_endpoints( jo_schain, node_dict, "ip" );
-            compose_endpoints( jo_schain, node_dict, "domain" );
+            calcPorts( jo_schain, node_dict.schain_base_port );
+            composeEndPoints( jo_schain, node_dict, "ip" );
+            composeEndPoints( jo_schain, node_dict, "domain" );
             nodes.push( node_dict );
             if( opts && opts.bStopNeeded )
                 return;
@@ -327,8 +327,8 @@ export async function load_schain_parts( jo_schain, addressFrom, opts ) {
     jo_schain.data.computed.nodes = nodes;
 }
 
-export async function get_schains_count( addressFrom, opts ) {
-    owaspUtils.ensure_observer_opts_initialized( opts );
+export async function getSChainsCount( addressFrom, opts ) {
+    owaspUtils.ensureObserverOptionsInitialized( opts );
     if( ! opts.imaState )
         throw new Error( "Cannot get S-Chains count, no imaState is provided" );
     const cntSChains =
@@ -337,7 +337,7 @@ export async function get_schains_count( addressFrom, opts ) {
     return cntSChains;
 }
 
-export function remove_schain_desc_data_num_keys( jo_schain ) {
+export function removeSChainDescDataNumKeys( jo_schain ) {
     const cnt = Object.keys( jo_schain ).length;
     for( let i = 0; i < cnt; ++ i ) {
         try {
@@ -347,8 +347,8 @@ export function remove_schain_desc_data_num_keys( jo_schain ) {
     }
 }
 
-export async function load_schain( addressFrom, idxSChain, hash, cntSChains, opts ) {
-    owaspUtils.ensure_observer_opts_initialized( opts );
+export async function loadSChain( addressFrom, idxSChain, hash, cntSChains, opts ) {
+    owaspUtils.ensureObserverOptionsInitialized( opts );
     if( ! opts.imaState )
         throw new Error( "Cannot load S-Chain description in observer, no imaState is provided" );
     if( opts && opts.details ) {
@@ -368,12 +368,12 @@ export async function load_schain( addressFrom, idxSChain, hash, cntSChains, opt
         await opts.imaState.jo_schains_internal.callStatic.schains(
             hash, { from: addressFrom } );
     // jo_data = JSON.parse( JSON.stringify( jo_data ) );
-    jo_data = owaspUtils.clone_object_by_root_keys( jo_data );
+    jo_data = owaspUtils.cloneObjectByRootKeys( jo_data );
     const jo_schain = { "data": jo_data };
-    remove_schain_desc_data_num_keys( jo_schain.data, addressFrom );
+    removeSChainDescDataNumKeys( jo_schain.data, addressFrom );
     if( opts && opts.bStopNeeded )
         return null;
-    await load_schain_parts( jo_schain, addressFrom, opts );
+    await loadSChainParts( jo_schain, addressFrom, opts );
     if( opts && opts.details ) {
         opts.details.write( cc.debug( "    Desc " ) + cc.j( jo_schain.data ) + "\n" );
         opts.details.write( cc.success( "Done" ) + "\n" );
@@ -382,11 +382,11 @@ export async function load_schain( addressFrom, idxSChain, hash, cntSChains, opt
     return jo_schain;
 }
 
-export async function load_schains( addressFrom, opts ) {
-    owaspUtils.ensure_observer_opts_initialized( opts );
+export async function loadSChains( addressFrom, opts ) {
+    owaspUtils.ensureObserverOptionsInitialized( opts );
     if( ! opts.imaState )
         throw new Error( "Cannot load S-Chains in observer, no imaState is provided" );
-    const cntSChains = await get_schains_count( addressFrom, opts );
+    const cntSChains = await getSChainsCount( addressFrom, opts );
     if( opts && opts.details ) {
         opts.details.write(
             cc.debug( "Have " ) + cc.info( cntSChains ) + cc.debug( " S-Chain(s) to load..." ) +
@@ -396,7 +396,7 @@ export async function load_schains( addressFrom, opts ) {
     for( let idxSChain = 0; idxSChain < cntSChains; ++ idxSChain ) {
         if( opts && opts.bStopNeeded )
             break;
-        const jo_schain = await load_schain( addressFrom, idxSChain, null, cntSChains, opts );
+        const jo_schain = await loadSChain( addressFrom, idxSChain, null, cntSChains, opts );
         if( ! jo_schain )
             break;
         arr_schains.push( jo_schain );
@@ -410,7 +410,7 @@ export async function load_schains( addressFrom, opts ) {
     return arr_schains;
 }
 
-export async function load_cached_schains_simplified( addressFrom, opts ) {
+export async function loadCachedSChainsSimplified( addressFrom, opts ) {
     if( ! opts.imaState )
         throw new Error( "Cannot load S-Chains in observer, no imaState is provided" );
     if( opts && opts.details )
@@ -443,7 +443,7 @@ export async function load_cached_schains_simplified( addressFrom, opts ) {
         if( opts && opts.bStopNeeded )
             break;
         const jo_schain =
-            await load_schain(
+            await loadSChain(
                 addressFrom, idxSChain, strSChainHash, cntSChains, opts
             );
         if( ! jo_schain )
@@ -453,7 +453,7 @@ export async function load_cached_schains_simplified( addressFrom, opts ) {
     return arr_schains;
 }
 
-export async function load_schains_connected_only(
+export async function loadSChainsConnectedOnly(
     strChainNameConnectedTo,
     addressFrom,
     opts
@@ -524,7 +524,7 @@ export async function load_schains_connected_only(
             if( ! isConnected )
                 continue;
             const jo_schain =
-                await load_schain(
+                await loadSChain(
                     addressFrom, idxSChain, strSChainHash, cntSChains, opts );
             if( ! jo_schain )
                 break;
@@ -534,7 +534,7 @@ export async function load_schains_connected_only(
             if( opts && opts.details ) {
                 opts.details.write(
                     cc.error( "Got error: " ) +
-                    cc.warning( owaspUtils.extract_error_message( err ) ) +
+                    cc.warning( owaspUtils.extractErrorMessage( err ) ) +
                     cc.error( ", stack is: " ) + "\n" + cc.stack( err.stack ) +
                     "\n" );
             }
@@ -543,10 +543,10 @@ export async function load_schains_connected_only(
     return arr_schains;
 }
 
-export async function check_connected_schains(
+export async function checkConnectedSChains(
     strChainNameConnectedTo, arr_schains, addressFrom, opts
 ) {
-    owaspUtils.ensure_observer_opts_initialized( opts );
+    owaspUtils.ensureObserverOptionsInitialized( opts );
     if( ! opts.imaState )
         throw new Error( "Cannot load S-Chains in observer, no imaState is provided" );
     const cntSChains = arr_schains.length;
@@ -558,7 +558,7 @@ export async function check_connected_schains(
         if( jo_schain.data.name == strChainNameConnectedTo )
             continue;
         try {
-            const url = pick_random_schain_url( jo_schain );
+            const url = pickRandomSChainUrl( jo_schain );
             if( opts && opts.details ) {
                 opts.details.write(
                     cc.debug( "Querying via URL " ) + cc.u( url ) +
@@ -585,7 +585,7 @@ export async function check_connected_schains(
             if( opts && opts.details ) {
                 opts.details.write(
                     cc.error( "Got error: " ) +
-                    cc.warning( owaspUtils.extract_error_message( err ) ) +
+                    cc.warning( owaspUtils.extractErrorMessage( err ) ) +
                     cc.error( ", stack is: " ) + "\n" + cc.stack( err.stack ) +
                     "\n" );
             }
@@ -594,8 +594,8 @@ export async function check_connected_schains(
     return arr_schains;
 }
 
-export async function filter_schains_marked_as_connected( arr_schains, opts ) {
-    owaspUtils.ensure_observer_opts_initialized( opts );
+export async function filterSChainsMarkedAsConnected( arr_schains, opts ) {
+    owaspUtils.ensureObserverOptionsInitialized( opts );
     const arr_connected_schains = [];
     const cntSChains = arr_schains.length;
     for( let idxSChain = 0; idxSChain < cntSChains; ++ idxSChain ) {
@@ -608,7 +608,7 @@ export async function filter_schains_marked_as_connected( arr_schains, opts ) {
     return arr_connected_schains;
 }
 
-export function find_schain_index_in_array_by_name( arr_schains, strSChainName ) {
+export function findSChainIndexInArrayByName( arr_schains, strSChainName ) {
     for( let idxSChain = 0; idxSChain < arr_schains.length; ++ idxSChain ) {
         const jo_schain = arr_schains[idxSChain];
         if( jo_schain.data.name.toString() == strSChainName.toString() )
@@ -617,8 +617,8 @@ export function find_schain_index_in_array_by_name( arr_schains, strSChainName )
     return -1;
 }
 
-export function merge_schains_array_from_to( arrSrc, arrDst, arrNew, arrOld, opts ) {
-    owaspUtils.ensure_observer_opts_initialized( opts );
+export function mergeSChainsArrayFromTo( arrSrc, arrDst, arrNew, arrOld, opts ) {
+    owaspUtils.ensureObserverOptionsInitialized( opts );
     arrNew.splice( 0, arrNew.length );
     arrOld.splice( 0, arrOld.length );
     let i, j, cnt;
@@ -631,7 +631,7 @@ export function merge_schains_array_from_to( arrSrc, arrDst, arrNew, arrOld, opt
     }
     for( i = 0; i < cnt; ++ i ) {
         const jo_schain = arrSrc[i];
-        j = find_schain_index_in_array_by_name( arrDst, jo_schain.data.name );
+        j = findSChainIndexInArrayByName( arrDst, jo_schain.data.name );
         if( j < 0 ) {
             if( opts && opts.details ) {
                 opts.details.write(
@@ -651,7 +651,7 @@ export function merge_schains_array_from_to( arrSrc, arrDst, arrNew, arrOld, opt
     cnt = arrDst.length;
     for( i = 0; i < cnt; ++ i ) {
         const jo_schain = arrDst[i];
-        j = find_schain_index_in_array_by_name( arrSrc, jo_schain.data.name );
+        j = findSChainIndexInArrayByName( arrSrc, jo_schain.data.name );
         if( j < 0 ) {
             if( opts && opts.details ) {
                 opts.details.write(
@@ -691,7 +691,7 @@ export function merge_schains_array_from_to( arrSrc, arrDst, arrNew, arrOld, opt
         }
         for( i = 0; i < arrOld.length; ++ i ) {
             const jo_schain = arrOld[i];
-            j = find_schain_index_in_array_by_name( arrDst, jo_schain.data.name );
+            j = findSChainIndexInArrayByName( arrDst, jo_schain.data.name );
             arrDst.splice( j, 1 );
         }
         if( opts && opts.details )
@@ -707,22 +707,22 @@ export function merge_schains_array_from_to( arrSrc, arrDst, arrNew, arrOld, opt
 
 let g_arr_schains_cached = [];
 
-export async function cache_schains( strChainNameConnectedTo, addressFrom, opts ) {
-    owaspUtils.ensure_observer_opts_initialized( opts );
+export async function cacheSChains( strChainNameConnectedTo, addressFrom, opts ) {
+    owaspUtils.ensureObserverOptionsInitialized( opts );
     let strError = null;
     try {
-        const arr_schains = await load_schains( addressFrom, opts );
+        const arr_schains = await loadSChains( addressFrom, opts );
         if( strChainNameConnectedTo &&
             ( typeof strChainNameConnectedTo == "string" ) &&
             strChainNameConnectedTo.length > 0
         ) {
-            await check_connected_schains(
+            await checkConnectedSChains(
                 strChainNameConnectedTo,
                 arr_schains,
                 addressFrom,
                 opts
             );
-            g_arr_schains_cached = await filter_schains_marked_as_connected(
+            g_arr_schains_cached = await filterSChainsMarkedAsConnected(
                 arr_schains,
                 opts
             );
@@ -737,7 +737,7 @@ export async function cache_schains( strChainNameConnectedTo, addressFrom, opts 
         if( opts.fn_cache_changed )
             opts.fn_cache_changed( g_arr_schains_cached, null ); // null - no error
     } catch ( err ) {
-        strError = owaspUtils.extract_error_message( err );
+        strError = owaspUtils.extractErrorMessage( err );
         if( ! strError )
             strError = "unknown exception during S-Chains download";
         if( opts.fn_cache_changed )
@@ -751,29 +751,29 @@ export async function cache_schains( strChainNameConnectedTo, addressFrom, opts 
     return strError; // null on success
 }
 
-export function get_last_cached_schains() {
+export function getLastCachedSChains() {
     return JSON.parse( JSON.stringify( g_arr_schains_cached ) );
 }
 
-export function set_last_cached_schains( arr_schains_cached ) {
+export function setLastCachedSChains( arr_schains_cached ) {
     if( arr_schains_cached && typeof arr_schains_cached == "object" ) {
         g_arr_schains_cached = JSON.parse( JSON.stringify( arr_schains_cached ) );
         events.dispatchEvent(
             new UniversalDispatcherEvent(
                 "chainsCacheChanged",
-                { "detail": { "arr_schains_cached": get_last_cached_schains() } } ) );
+                { "detail": { "arr_schains_cached": getLastCachedSChains() } } ) );
     }
 }
 
-const impl_sleep = ( milliseconds ) => {
+const sleepImpl = ( milliseconds ) => {
     return new Promise( resolve => setTimeout( resolve, milliseconds ) );
 };
 
 let g_worker = null;
 let g_client = null;
 
-export async function ensure_have_worker( opts ) {
-    owaspUtils.ensure_observer_opts_initialized( opts );
+export async function ensureHaveWorker( opts ) {
+    owaspUtils.ensureObserverOptionsInitialized( opts );
     if( g_worker )
         return g_worker;
     const url = "skale_observer_worker_server";
@@ -790,8 +790,8 @@ export async function ensure_have_worker( opts ) {
     g_client.on( "message", function( eventData ) {
         const joMessage = eventData.message;
         switch ( joMessage.method ) {
-        case "periodic_caching_do_now":
-            set_last_cached_schains( joMessage.message );
+        case "periodicCachingDoNow":
+            setLastCachedSChains( joMessage.message );
             g_bHaveParallelResult = true;
             if( opts && opts.details ) {
                 opts.details.write(
@@ -805,7 +805,7 @@ export async function ensure_have_worker( opts ) {
             break;
         } // switch ( joMessage.method )
     } );
-    await impl_sleep( 1000 );
+    await sleepImpl( 1000 );
     const jo = {
         "method": "init",
         "message": {
@@ -821,7 +821,6 @@ export async function ensure_have_worker( opts ) {
                         "mn": {
                             "joAccount": {
                                 "privateKey": opts.imaState.chainProperties.mn.joAccount.privateKey,
-                                // "address": owaspUtils.fn_address_impl_,
                                 "strTransactionManagerURL":
                                     opts.imaState.chainProperties.mn
                                         .joAccount.strTransactionManagerURL,
@@ -854,7 +853,6 @@ export async function ensure_have_worker( opts ) {
                             "joAccount": {
                                 "privateKey":
                                     opts.imaState.chainProperties.sc.joAccount.privateKey,
-                                // "address": owaspUtils.fn_address_impl_,
                                 "strTransactionManagerURL":
                                     opts.imaState.chainProperties.sc
                                         .joAccount.strTransactionManagerURL,
@@ -906,14 +904,14 @@ export async function ensure_have_worker( opts ) {
     g_client.send( jo );
 }
 
-async function in_thread_periodic_caching_start( strChainNameConnectedTo, addressFrom, opts ) {
-    if( g_interval_periodic_caching != null )
+async function inThreadPeriodicCachingStart( strChainNameConnectedTo, addressFrom, opts ) {
+    if( g_intervalPeriodicCaching != null )
         return;
     try {
         const fn_do_caching_now = async function() {
-            await cache_schains( strChainNameConnectedTo, addressFrom, opts );
+            await cacheSChains( strChainNameConnectedTo, addressFrom, opts );
         };
-        g_interval_periodic_caching =
+        g_intervalPeriodicCaching =
             setInterval(
                 fn_do_caching_now,
                 parseInt( opts.secondsToReDiscoverSkaleNetwork ) * 1000 );
@@ -922,14 +920,14 @@ async function in_thread_periodic_caching_start( strChainNameConnectedTo, addres
     } catch ( err ) {
         log.write(
             cc.error( "Failed to start in-thread periodic SNB refresh, error is: " ) +
-            cc.warning( owaspUtils.extract_error_message( err ) ) +
+            cc.warning( owaspUtils.extractErrorMessage( err ) ) +
             cc.error( ", stack is: " ) + "\n" + cc.stack( err.stack ) +
             "\n" );
     }
     return false;
 }
 
-async function parallel_periodic_caching_start( strChainNameConnectedTo, addressFrom, opts ) {
+async function parallelPeriodicCachingStart( strChainNameConnectedTo, addressFrom, opts ) {
     g_bHaveParallelResult = false;
     try {
         const nSecondsToWaitParallel = 60;
@@ -941,13 +939,13 @@ async function parallel_periodic_caching_start( strChainNameConnectedTo, address
                 cc.warning( "timeout of " ) + cc.info( nSecondsToWaitParallel ) +
                 cc.warning( " reached, will restart periodic SNB refresh in non-parallel mode" ) +
                 "\n" );
-            periodic_caching_stop();
-            in_thread_periodic_caching_start( strChainNameConnectedTo, addressFrom, opts );
+            periodicCachingStop();
+            inThreadPeriodicCachingStart( strChainNameConnectedTo, addressFrom, opts );
         }, nSecondsToWaitParallel * 1000 );
-        owaspUtils.ensure_observer_opts_initialized( opts );
-        await ensure_have_worker( opts );
+        owaspUtils.ensureObserverOptionsInitialized( opts );
+        await ensureHaveWorker( opts );
         const jo = {
-            "method": "periodic_caching_start",
+            "method": "periodicCachingStart",
             "message": {
                 "secondsToReDiscoverSkaleNetwork":
                     parseInt( opts.secondsToReDiscoverSkaleNetwork ),
@@ -960,14 +958,14 @@ async function parallel_periodic_caching_start( strChainNameConnectedTo, address
     } catch ( err ) {
         log.write(
             cc.error( "Failed to start parallel periodic SNB refresh, error is: " ) +
-            cc.warning( owaspUtils.extract_error_message( err ) ) +
+            cc.warning( owaspUtils.extractErrorMessage( err ) ) +
             cc.error( ", stack is: " ) + "\n" + cc.stack( err.stack ) +
             "\n" );
     }
     return false;
 }
 
-export async function periodic_caching_start( strChainNameConnectedTo, addressFrom, opts ) {
+export async function periodicCachingStart( strChainNameConnectedTo, addressFrom, opts ) {
     g_bHaveParallelResult = false;
     const bParallelMode =
         ( opts && "bParallelMode" in opts &&
@@ -977,63 +975,63 @@ export async function periodic_caching_start( strChainNameConnectedTo, addressFr
     let wasStarted = false;
     if( bParallelMode ) {
         wasStarted =
-            parallel_periodic_caching_start( strChainNameConnectedTo, addressFrom, opts );
+            parallelPeriodicCachingStart( strChainNameConnectedTo, addressFrom, opts );
     }
     if( wasStarted )
         return;
-    in_thread_periodic_caching_start( strChainNameConnectedTo, addressFrom, opts );
+    inThreadPeriodicCachingStart( strChainNameConnectedTo, addressFrom, opts );
 }
 
-export async function periodic_caching_stop() {
+export async function periodicCachingStop() {
     if( g_worker && g_client ) {
         try {
             const jo = {
-                "method": "periodic_caching_stop",
+                "method": "periodicCachingStop",
                 "message": { }
             };
             g_client.send( jo );
         } catch ( err ) {
             log.write(
                 cc.error( "Failed to stop parallel periodic SNB refresh, error is: " ) +
-                cc.warning( owaspUtils.extract_error_message( err ) ) +
+                cc.warning( owaspUtils.extractErrorMessage( err ) ) +
                 cc.error( ", stack is: " ) + "\n" + cc.stack( err.stack ) +
                 "\n" );
         }
     }
-    if( g_interval_periodic_caching ) {
+    if( g_intervalPeriodicCaching ) {
         try {
-            clearInterval( g_interval_periodic_caching );
-            g_interval_periodic_caching = null;
+            clearInterval( g_intervalPeriodicCaching );
+            g_intervalPeriodicCaching = null;
         } catch ( err ) {
             log.write(
                 cc.error( "Failed to stop in-thread periodic SNB refresh, error is: " ) +
-                cc.warning( owaspUtils.extract_error_message( err ) ) +
+                cc.warning( owaspUtils.extractErrorMessage( err ) ) +
                 cc.error( ", stack is: " ) + "\n" + cc.stack( err.stack ) +
                 "\n" );
-            g_interval_periodic_caching = null; // clear it anyway
+            g_intervalPeriodicCaching = null; // clear it anyway
         }
     }
     g_bHaveParallelResult = false;
 }
 
-export function pick_random_schain_node_index( jo_schain ) {
+export function pickRandomSChainNodeIndex( jo_schain ) {
     let min = 0, max = jo_schain.data.computed.nodes.length - 1;
     min = Math.ceil( min );
     max = Math.floor( max );
     const idxNode = Math.floor( Math.random() * ( max - min + 1 ) ) + min;
     return idxNode;
 }
-export function pick_random_schain_node( jo_schain ) {
-    const idxNode = pick_random_schain_node_index( jo_schain );
+export function pickRandomSChainNode( jo_schain ) {
+    const idxNode = pickRandomSChainNodeIndex( jo_schain );
     return jo_schain.data.computed.nodes[idxNode];
 }
 
-export function pick_random_schain_url( jo_schain ) {
-    const jo_node = pick_random_schain_node( jo_schain );
+export function pickRandomSChainUrl( jo_schain ) {
+    const jo_node = pickRandomSChainNode( jo_schain );
     return "" + jo_node.http_endpoint_ip;
 }
 
-export async function discover_chain_id( strURL ) {
+export async function discoverChainId( strURL ) {
     let ret = null;
     const rpcCallOpts = null;
     await rpcCall.create( strURL, rpcCallOpts, async function( joCall, err ) {

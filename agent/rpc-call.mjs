@@ -33,7 +33,7 @@ import * as cc from "../npms/skale-cc/cc.mjs";
 
 const g_nConnectionTimeoutSeconds = 60;
 
-export async function wait_web_socket_is_open( socket, fnDone, fnStep ) {
+export async function waitWebSocketIsOpen( socket, fnDone, fnStep ) {
     fnDone = fnDone || async function( nStep ) {};
     fnDone = fnStep || async function( nStep ) { return true; };
     let nStep = 0;
@@ -70,14 +70,14 @@ export async function wait_web_socket_is_open( socket, fnDone, fnStep ) {
     await Promise.all( [ promiseComplete ] );
 }
 
-export async function do_connect( joCall, opts, fn ) {
+export async function doConnect( joCall, opts, fn ) {
     try {
         fn = fn || async function() {};
         if( !owaspUtils.validateURL( joCall.url ) ) {
             throw new Error(
                 "JSON RPC CALLER cannot connect web socket to invalid URL: " + joCall.url );
         }
-        if( owaspUtils.is_ws_url( joCall.url ) ) {
+        if( owaspUtils.isUrlWS( joCall.url ) ) {
             let strWsError = null;
             joCall.wsConn = new ws.WebSocket( joCall.url );
             joCall.wsConn.on( "open", async function() {
@@ -97,7 +97,7 @@ export async function do_connect( joCall, opts, fn ) {
                 const wsConn = joCall.wsConn;
                 joCall.wsConn = null;
                 wsConn.close();
-                do_reconnect_ws_step( joCall, opts );
+                doReconnectWsStep( joCall, opts );
             } );
             joCall.wsConn.on( "fail", async function( err ) {
                 strWsError = err.toString() || "internal web socket failure";
@@ -108,7 +108,7 @@ export async function do_connect( joCall, opts, fn ) {
                 const wsConn = joCall.wsConn;
                 joCall.wsConn = null;
                 wsConn.close();
-                do_reconnect_ws_step( joCall, opts );
+                doReconnectWsStep( joCall, opts );
             } );
             joCall.wsConn.on( "message", async function incoming( data ) {
                 const joOut = JSON.parse( data );
@@ -123,7 +123,7 @@ export async function do_connect( joCall, opts, fn ) {
                     await entry.fn( entry.joIn, joOut, null );
                 }
             } );
-            await wait_web_socket_is_open( joCall.wsConn,
+            await waitWebSocketIsOpen( joCall.wsConn,
                 async function( nStep ) { // done
                 },
                 async function( nStep ) { // step
@@ -142,7 +142,7 @@ export async function do_connect( joCall, opts, fn ) {
                         const wsConn = joCall.wsConn;
                         joCall.wsConn = null;
                         wsConn.close();
-                        do_reconnect_ws_step( joCall, opts );
+                        doReconnectWsStep( joCall, opts );
                         return false; // stop waiting
                     }
                     return true; // continue waiting
@@ -161,14 +161,14 @@ export async function do_connect( joCall, opts, fn ) {
     return joCall;
 }
 
-export async function do_connect_if_needed( joCall, opts, fn ) {
+export async function doConnectIfNeeded( joCall, opts, fn ) {
     try {
         fn = fn || async function() {};
         if( !owaspUtils.validateURL( joCall.url ) ) {
             throw new Error(
                 "JSON RPC CALLER cannot connect web socket to invalid URL: " + joCall.url );
         }
-        if( owaspUtils.is_ws_url( joCall.url ) && ( !joCall.wsConn ) ) {
+        if( owaspUtils.isUrlWS( joCall.url ) && ( !joCall.wsConn ) ) {
             await joCall.reconnect( fn );
             return;
         }
@@ -179,22 +179,22 @@ export async function do_connect_if_needed( joCall, opts, fn ) {
     return joCall;
 }
 
-async function do_reconnect_ws_step( joCall, opts, fn ) {
+async function doReconnectWsStep( joCall, opts, fn ) {
     if( ! joCall.isAutoReconnect )
         return;
     if( joCall.isDisconnectMode )
         return;
     fn = fn || async function() {};
-    do_connect( joCall, opts, async function( joCall, err ) {
+    doConnect( joCall, opts, async function( joCall, err ) {
         if( err ) {
-            do_reconnect_ws_step( joCall, opts );
+            doReconnectWsStep( joCall, opts );
             return;
         }
         await fn( joCall, null );
     } );
 }
 
-async function do_disconnect( joCall, fn ) {
+async function doDisconnect( joCall, fn ) {
     fn = fn || async function() {};
     try {
         joCall.isDisconnectMode = true;
@@ -212,8 +212,8 @@ async function do_disconnect( joCall, fn ) {
     }
 }
 
-export async function do_call( joCall, joIn, fn ) {
-    joIn = enrich_top_level_json_fields( joIn );
+export async function doCall( joCall, joIn, fn ) {
+    joIn = enrichTopLevelFieldsinJSON( joIn );
     fn = fn || async function() {};
     if( joCall.wsConn ) {
         const entry = {
@@ -353,13 +353,13 @@ export async function do_call( joCall, joIn, fn ) {
     }
 }
 
-export async function rpc_call_create( strURL, opts, fn ) {
+export async function rpcCallCreate( strURL, opts, fn ) {
     if( !owaspUtils.validateURL( strURL ) )
         throw new Error( "JSON RPC CALLER cannot create a call object invalid URL: " + strURL );
     fn = fn || async function() {};
     if( !( strURL && typeof strURL == "string" && strURL.length > 0 ) ) {
         throw new Error(
-            "rpc_call_create() was invoked with bad parameters: " + JSON.stringify( arguments ) );
+            "rpcCallCreate() was invoked with bad parameters: " + JSON.stringify( arguments ) );
     }
     const joCall = {
         "url": "" + strURL,
@@ -370,10 +370,10 @@ export async function rpc_call_create( strURL, opts, fn ) {
             ( opts && "isAutoReconnect" in opts && opts.isAutoReconnect ) ? true : false,
         "isDisconnectMode": false,
         "reconnect": async function( fnAfter ) {
-            await do_connect( joCall, fnAfter );
+            await doConnect( joCall, fnAfter );
         },
         "reconnect_if_needed": async function( fnAfter ) {
-            await do_connect_if_needed( joCall, opts, fnAfter );
+            await doConnectIfNeeded( joCall, opts, fnAfter );
         },
         "call": async function( joIn, fnAfter ) {
             const self = this;
@@ -382,41 +382,41 @@ export async function rpc_call_create( strURL, opts, fn ) {
                     await fnAfter( joIn, null, err );
                     return;
                 }
-                await do_call( joCall, joIn, fnAfter );
+                await doCall( joCall, joIn, fnAfter );
             } );
         },
         "disconnect": async function( fnAfter ) {
-            await do_disconnect( joCall, fnAfter );
+            await doDisconnect( joCall, fnAfter );
         }
     };
-    await do_connect( joCall, opts, fn );
+    await doConnect( joCall, opts, fn );
     return joCall;
 }
 
-export { rpc_call_create as create };
+export { rpcCallCreate as create };
 
-export function generate_random_integer_in_range( min, max ) {
+export function generateRandomIntegerInRange( min, max ) {
     min = Math.ceil( min );
     max = Math.floor( max );
     return Math.floor( Math.random() * ( max - min + 1 ) ) + min;
 }
 
-export function generate_random_rpc_call_id() {
-    return generate_random_integer_in_range( 1, Number.MAX_SAFE_INTEGER );
+export function generateRandomRpcCallId() {
+    return generateRandomIntegerInRange( 1, Number.MAX_SAFE_INTEGER );
 }
 
-export function enrich_top_level_json_fields( jo ) {
+export function enrichTopLevelFieldsinJSON( jo ) {
     if( ( !( "jsonrpc" in jo ) ) ||
         ( typeof jo.jsonrpc !== "string" ) ||
         jo.jsonrpc.length === 0
     )
         jo.jsonrpc = "2.0";
     if( ( !( "id" in jo ) ) || ( typeof jo.id !== "number" ) || jo.id <= 0 )
-        jo.id = generate_random_rpc_call_id();
+        jo.id = generateRandomRpcCallId();
     return jo;
 }
 
-export function is_valid_url( s ) {
+export function isValidUrl( s ) {
     if( ! s )
         return false;
     try {
@@ -428,7 +428,7 @@ export function is_valid_url( s ) {
     return false;
 }
 
-export function get_valid_url( s ) {
+export function getValidUrl( s ) {
     if( ! s )
         return null;
     try {
@@ -438,7 +438,7 @@ export function get_valid_url( s ) {
     return null;
 }
 
-export function get_default_port( strProtocol ) {
+export function getDefaultPort( strProtocol ) {
     if( ! strProtocol )
         return 80;
     switch ( strProtocol.toString().toLowerCase() ) {
@@ -452,20 +452,20 @@ export function get_default_port( strProtocol ) {
     return 80;
 }
 
-export function get_valid_host_and_port( s ) {
-    const u = get_valid_url( s );
+export function getValidHostAndPort( s ) {
+    const u = getValidUrl( s );
     if( ! u )
         return null;
     const jo = {
         strHost: u.hostname,
-        nPort: u.port ? parseInt( u.port, 10 ) : get_default_port( u.protocol )
+        nPort: u.port ? parseInt( u.port, 10 ) : getDefaultPort( u.protocol )
     };
     return jo;
 }
 
 const g_strTcpConnectionHeader = "TCP connection checker: ";
 
-export function check_tcp_promise( strHost, nPort, nTimeoutMilliseconds, isLog ) {
+export function checkTcpPromise( strHost, nPort, nTimeoutMilliseconds, isLog ) {
     return new Promise( ( resolve, reject ) => {
         if( isLog ) {
             console.log(
@@ -536,10 +536,10 @@ export function check_tcp_promise( strHost, nPort, nTimeoutMilliseconds, isLog )
     } );
 }
 
-export async function check_tcp( strHost, nPort, nTimeoutMilliseconds, isLog ) {
+export async function checkTcp( strHost, nPort, nTimeoutMilliseconds, isLog ) {
     let isOnline = false;
     try {
-        const promise_tcp = check_tcp_promise( strHost, nPort, nTimeoutMilliseconds, isLog )
+        const promise_tcp = checkTcpPromise( strHost, nPort, nTimeoutMilliseconds, isLog )
             .then( () => ( isOnline = true ) )
             .catch( () => ( isOnline = false ) )
             //.finally( () => console.log( { isOnline } ) )
@@ -567,10 +567,10 @@ export async function check_tcp( strHost, nPort, nTimeoutMilliseconds, isLog ) {
     return isOnline;
 }
 
-export async function check_url( u, nTimeoutMilliseconds, isLog ) {
+export async function checkUrl( u, nTimeoutMilliseconds, isLog ) {
     if( ! u )
         return false;
-    const jo = get_valid_host_and_port( u );
+    const jo = getValidHostAndPort( u );
     if( isLog ) {
         console.log( g_strTcpConnectionHeader +
             "Extracted from URL \"" + u.toString() + "\" data fields are: " +
@@ -584,5 +584,5 @@ export async function check_url( u, nTimeoutMilliseconds, isLog ) {
         );
         return false;
     }
-    return await check_tcp( jo.strHost, jo.nPort, nTimeoutMilliseconds, isLog );
+    return await checkTcp( jo.strHost, jo.nPort, nTimeoutMilliseconds, isLog );
 }

@@ -34,7 +34,7 @@ import * as IMA from "../npms/skale-ima/index.mjs";
 import * as owaspUtils from "../npms/skale-owasp/owasp-utils.mjs";
 // import * as imaUtils from "./utils.mjs";
 import * as imaBLS from "./bls.mjs";
-import * as skale_observer from "../npms/skale-observer/observer.mjs";
+import * as skaleObserver from "../npms/skale-observer/observer.mjs";
 // import * as imaOracle from "./oracle.mjs";
 import * as pwa from "./pwa.mjs";
 import * as state from "./state.mjs";
@@ -47,7 +47,7 @@ const __dirname = path.dirname( url.fileURLToPath( import.meta.url ) );
 // Run transfer loop
 //
 
-export function check_time_framing( d, strDirection, joRuntimeOpts ) {
+export function checkTimeFraming( d, strDirection, joRuntimeOpts ) {
     try {
         const imaState = state.get();
         if( imaState.nTimeFrameSeconds <= 0 || imaState.nNodesCount <= 1 )
@@ -134,10 +134,10 @@ export function check_time_framing( d, strDirection, joRuntimeOpts ) {
         if( bSkip )
             return false;
     } catch ( err ) {
-        if( IMA.verbose_get() >= IMA.RV_VERBOSE().fatal ) {
+        if( IMA.verboseGet() >= IMA.verboseReversed().fatal ) {
             log.write(
                 cc.error( "Exception in time framing check: " ) +
-                cc.error( owaspUtils.extract_error_message( err ) ) +
+                cc.error( owaspUtils.extractErrorMessage( err ) ) +
                 cc.error( ", stack is: " ) + "\n" + cc.stack( err.stack ) +
                 "\n" );
         }
@@ -145,28 +145,28 @@ export function check_time_framing( d, strDirection, joRuntimeOpts ) {
     return true;
 };
 
-async function single_transfer_loop_part_oracle( loop_opts, strLogPrefix ) {
+async function singleTransferLoopPartOracle( optsLoop, strLogPrefix ) {
     const imaState = state.get();
     let b0 = true;
-    if( loop_opts.enable_step_oracle && IMA.getEnabledOracle() ) {
-        if( IMA.verbose_get() >= IMA.RV_VERBOSE().information ) {
+    if( optsLoop.enable_step_oracle && IMA.getEnabledOracle() ) {
+        if( IMA.verboseGet() >= IMA.verboseReversed().information ) {
             log.write( strLogPrefix +
                 cc.debug( "Will invoke Oracle gas price setup..." ) +
                 "\n" );
         }
         try {
-            if( ! await pwa.check_on_loop_start( imaState, "oracle" ) ) {
+            if( ! await pwa.checkOnLoopStart( imaState, "oracle" ) ) {
                 imaState.loopState.oracle.wasInProgress = false;
-                if( IMA.verbose_get() >= IMA.RV_VERBOSE().debug ) {
+                if( IMA.verboseGet() >= IMA.verboseReversed().debug ) {
                     log.write( strLogPrefix +
                         cc.warning( "Skipped(oracle) due to cancel mode reported from PWA" ) +
                         "\n" );
                 }
             } else {
-                if( check_time_framing( null, "oracle", loop_opts.joRuntimeOpts ) ) {
+                if( checkTimeFraming( null, "oracle", optsLoop.joRuntimeOpts ) ) {
                     imaState.loopState.oracle.isInProgress = true;
-                    await pwa.notify_on_loop_start( imaState, "oracle" );
-                    b0 = IMA.do_oracle_gas_price_setup(
+                    await pwa.notifyOnLoopStart( imaState, "oracle" );
+                    b0 = IMA.doOracleGasPriceSetup(
                         imaState.chainProperties.mn.ethersProvider,
                         imaState.chainProperties.sc.ethersProvider,
                         imaState.chainProperties.sc.transactionCustomizer,
@@ -174,12 +174,12 @@ async function single_transfer_loop_part_oracle( loop_opts, strLogPrefix ) {
                         imaState.chainProperties.sc.joAccount,
                         imaState.chainProperties.mn.cid,
                         imaState.chainProperties.sc.cid,
-                        imaBLS.do_sign_u256
+                        imaBLS.doSignU256
                     );
                     imaState.loopState.oracle.isInProgress = false;
-                    await pwa.notify_on_loop_end( imaState, "oracle" );
+                    await pwa.notifyOnLoopEnd( imaState, "oracle" );
                 } else {
-                    if( IMA.verbose_get() >= IMA.RV_VERBOSE().debug ) {
+                    if( IMA.verboseGet() >= IMA.verboseReversed().debug ) {
                         log.write( strLogPrefix +
                             cc.warning( "Skipped(oracle) due to time framing check" ) +
                             "\n" );
@@ -189,14 +189,14 @@ async function single_transfer_loop_part_oracle( loop_opts, strLogPrefix ) {
         } catch ( err ) {
             log.write( strLogPrefix +
                 cc.error( "Oracle operation exception: " ) +
-                cc.error( owaspUtils.extract_error_message( err ) ) +
+                cc.error( owaspUtils.extractErrorMessage( err ) ) +
                 cc.error( ", stack is: " ) + "\n" + cc.stack( err.stack ) +
                 "\n" );
             imaState.loopState.oracle.isInProgress = false;
-            await pwa.notify_on_loop_end( imaState, "oracle" );
+            await pwa.notifyOnLoopEnd( imaState, "oracle" );
             throw err;
         }
-        if( IMA.verbose_get() >= IMA.RV_VERBOSE().information ) {
+        if( IMA.verboseGet() >= IMA.verboseReversed().information ) {
             log.write( strLogPrefix +
                 cc.debug( "Oracle gas price setup done: " ) + cc.tf( b0 ) +
                 "\n" );
@@ -205,30 +205,30 @@ async function single_transfer_loop_part_oracle( loop_opts, strLogPrefix ) {
     return b0;
 }
 
-async function single_transfer_loop_part_m2s( loop_opts, strLogPrefix ) {
+async function singleTransferLoopPartM2S( optsLoop, strLogPrefix ) {
     const imaState = state.get();
     let b1 = true;
-    if( loop_opts.enable_step_m2s ) {
-        if( IMA.verbose_get() >= IMA.RV_VERBOSE().information ) {
+    if( optsLoop.enable_step_m2s ) {
+        if( IMA.verboseGet() >= IMA.verboseReversed().information ) {
             log.write( strLogPrefix +
                 cc.debug( "Will invoke M2S transfer..." ) +
                 "\n" );
         }
         try {
-            if( ! await pwa.check_on_loop_start( imaState, "m2s" ) ) {
+            if( ! await pwa.checkOnLoopStart( imaState, "m2s" ) ) {
                 imaState.loopState.m2s.wasInProgress = false;
-                if( IMA.verbose_get() >= IMA.RV_VERBOSE().debug ) {
+                if( IMA.verboseGet() >= IMA.verboseReversed().debug ) {
                     log.write( strLogPrefix +
                         cc.warning( "Skipped(m2s) due to cancel mode reported from PWA" ) +
                         "\n" );
                 }
             } else {
-                if( check_time_framing( null, "m2s", loop_opts.joRuntimeOpts ) ) {
+                if( checkTimeFraming( null, "m2s", optsLoop.joRuntimeOpts ) ) {
                     imaState.loopState.m2s.isInProgress = true;
-                    await pwa.notify_on_loop_start( imaState, "m2s" );
-                    b1 = await IMA.do_transfer( // main-net --> s-chain
+                    await pwa.notifyOnLoopStart( imaState, "m2s" );
+                    b1 = await IMA.doTransfer( // main-net --> s-chain
                         "M2S",
-                        loop_opts.joRuntimeOpts,
+                        optsLoop.joRuntimeOpts,
 
                         imaState.chainProperties.mn.ethersProvider,
                         imaState.jo_message_proxy_main_net,
@@ -248,14 +248,14 @@ async function single_transfer_loop_part_m2s( loop_opts, strLogPrefix ) {
                         imaState.nMaxTransactionsM2S,
                         imaState.nBlockAwaitDepthM2S,
                         imaState.nBlockAgeM2S,
-                        imaBLS.do_sign_messages_m2s,
+                        imaBLS.doSignMessagesM2S,
                         null,
                         imaState.chainProperties.sc.transactionCustomizer
                     );
                     imaState.loopState.m2s.isInProgress = false;
-                    await pwa.notify_on_loop_end( imaState, "m2s" );
+                    await pwa.notifyOnLoopEnd( imaState, "m2s" );
                 } else {
-                    if( IMA.verbose_get() >= IMA.RV_VERBOSE().debug ) {
+                    if( IMA.verboseGet() >= IMA.verboseReversed().debug ) {
                         log.write( strLogPrefix +
                             cc.warning( "Skipped(m2s) due to time framing check" ) +
                             "\n" );
@@ -265,20 +265,20 @@ async function single_transfer_loop_part_m2s( loop_opts, strLogPrefix ) {
         } catch ( err ) {
             log.write( strLogPrefix +
                 cc.error( "M2S transfer exception: " ) +
-                cc.error( owaspUtils.extract_error_message( err ) ) +
+                cc.error( owaspUtils.extractErrorMessage( err ) ) +
                 cc.error( ", stack is: " ) + "\n" + cc.stack( err.stack ) +
                 "\n" );
             imaState.loopState.m2s.isInProgress = false;
-            await pwa.notify_on_loop_end( imaState, "m2s" );
+            await pwa.notifyOnLoopEnd( imaState, "m2s" );
             throw err;
         }
-        if( IMA.verbose_get() >= IMA.RV_VERBOSE().information ) {
+        if( IMA.verboseGet() >= IMA.verboseReversed().information ) {
             log.write( strLogPrefix +
                 cc.debug( "M2S transfer done: " ) + cc.tf( b1 ) +
                 "\n" );
         }
     } else {
-        if( IMA.verbose_get() >= IMA.RV_VERBOSE().information ) {
+        if( IMA.verboseGet() >= IMA.verboseReversed().information ) {
             log.write( strLogPrefix +
                 cc.debug( "Skipped M2S transfer." ) +
                 "\n" );
@@ -287,30 +287,30 @@ async function single_transfer_loop_part_m2s( loop_opts, strLogPrefix ) {
     return b1;
 }
 
-async function single_transfer_loop_part_s2m( loop_opts, strLogPrefix ) {
+async function singleTransferLoopPartS2M( optsLoop, strLogPrefix ) {
     const imaState = state.get();
     let b2 = true;
-    if( loop_opts.enable_step_s2m ) {
-        if( IMA.verbose_get() >= IMA.RV_VERBOSE().information ) {
+    if( optsLoop.enable_step_s2m ) {
+        if( IMA.verboseGet() >= IMA.verboseReversed().information ) {
             log.write( strLogPrefix +
                 cc.debug( "Will invoke S2M transfer..." ) +
                 "\n" );
         }
         try {
-            if( ! await pwa.check_on_loop_start( imaState, "s2m" ) ) {
+            if( ! await pwa.checkOnLoopStart( imaState, "s2m" ) ) {
                 imaState.loopState.s2m.wasInProgress = false;
-                if( IMA.verbose_get() >= IMA.RV_VERBOSE().debug ) {
+                if( IMA.verboseGet() >= IMA.verboseReversed().debug ) {
                     log.write( strLogPrefix +
                         cc.warning( "Skipped(s2m) due to cancel mode reported from PWA" ) +
                         "\n" );
                 }
             } else {
-                if( check_time_framing( null, "s2m", loop_opts.joRuntimeOpts ) ) {
+                if( checkTimeFraming( null, "s2m", optsLoop.joRuntimeOpts ) ) {
                     imaState.loopState.s2m.isInProgress = true;
-                    await pwa.notify_on_loop_start( imaState, "s2m" );
-                    b2 = await IMA.do_transfer( // s-chain --> main-net
+                    await pwa.notifyOnLoopStart( imaState, "s2m" );
+                    b2 = await IMA.doTransfer( // s-chain --> main-net
                         "S2M",
-                        loop_opts.joRuntimeOpts,
+                        optsLoop.joRuntimeOpts,
 
                         imaState.chainProperties.sc.ethersProvider,
                         imaState.jo_message_proxy_s_chain,
@@ -330,14 +330,14 @@ async function single_transfer_loop_part_s2m( loop_opts, strLogPrefix ) {
                         imaState.nMaxTransactionsS2M,
                         imaState.nBlockAwaitDepthS2M,
                         imaState.nBlockAgeS2M,
-                        imaBLS.do_sign_messages_s2m,
+                        imaBLS.doSignMessagesS2M,
                         null,
                         imaState.chainProperties.mn.transactionCustomizer
                     );
                     imaState.loopState.s2m.isInProgress = false;
-                    await pwa.notify_on_loop_end( imaState, "s2m" );
+                    await pwa.notifyOnLoopEnd( imaState, "s2m" );
                 } else {
-                    if( IMA.verbose_get() >= IMA.RV_VERBOSE().debug ) {
+                    if( IMA.verboseGet() >= IMA.verboseReversed().debug ) {
                         log.write( strLogPrefix +
                             cc.warning( "Skipped(s2m) due to time framing check" ) +
                             "\n" );
@@ -347,33 +347,33 @@ async function single_transfer_loop_part_s2m( loop_opts, strLogPrefix ) {
         } catch ( err ) {
             log.write( strLogPrefix +
                 cc.error( "S2M transfer exception: " ) +
-                cc.error( owaspUtils.extract_error_message( err ) ) +
+                cc.error( owaspUtils.extractErrorMessage( err ) ) +
                 cc.error( ", stack is: " ) + "\n" + cc.stack( err.stack ) +
                 "\n" );
             imaState.loopState.s2m.isInProgress = false;
-            await pwa.notify_on_loop_end( imaState, "s2m" );
+            await pwa.notifyOnLoopEnd( imaState, "s2m" );
             throw err;
         }
-        if( IMA.verbose_get() >= IMA.RV_VERBOSE().information )
+        if( IMA.verboseGet() >= IMA.verboseReversed().information )
             log.write( strLogPrefix + cc.debug( "S2M transfer done: " ) + cc.tf( b2 ) + "\n" );
     } else {
-        if( IMA.verbose_get() >= IMA.RV_VERBOSE().information )
+        if( IMA.verboseGet() >= IMA.verboseReversed().information )
             log.write( strLogPrefix + cc.debug( "Skipped S2M transfer." ) + "\n" );
     }
     return b2;
 }
 
-async function single_transfer_loop_part_s2s( loop_opts, strLogPrefix ) {
+async function singleTransferLoopPartS2S( optsLoop, strLogPrefix ) {
     const imaState = state.get();
     let b3 = true;
-    if( loop_opts.enable_step_s2s && imaState.s2s_opts.isEnabled ) {
-        if( IMA.verbose_get() >= IMA.RV_VERBOSE().information )
+    if( optsLoop.enable_step_s2s && imaState.s2s_opts.isEnabled ) {
+        if( IMA.verboseGet() >= IMA.verboseReversed().information )
             log.write( strLogPrefix + cc.debug( "Will invoke all S2S transfers..." ) + "\n" );
         try {
-            b3 = await IMA.do_s2s_all( // s-chain --> s-chain
-                loop_opts.joRuntimeOpts,
+            b3 = await IMA.doAllS2S( // s-chain --> s-chain
+                optsLoop.joRuntimeOpts,
                 imaState,
-                skale_observer,
+                skaleObserver,
                 imaState.chainProperties.sc.ethersProvider,
                 imaState.jo_message_proxy_s_chain,
                 imaState.chainProperties.sc.joAccount,
@@ -385,24 +385,24 @@ async function single_transfer_loop_part_s2s( loop_opts, strLogPrefix ) {
                 imaState.nMaxTransactionsS2S,
                 imaState.nBlockAwaitDepthMSS,
                 imaState.nBlockAgeS2S,
-                imaBLS.do_sign_messages_s2s,
+                imaBLS.doSignMessagesS2S,
                 imaState.chainProperties.sc.transactionCustomizer
             );
         } catch ( err ) {
             log.write( strLogPrefix +
                 cc.error( "S2S transfer exception: " ) +
-                cc.error( owaspUtils.extract_error_message( err ) ) +
+                cc.error( owaspUtils.extractErrorMessage( err ) ) +
                 cc.error( ", stack is: " ) + "\n" + cc.stack( err.stack ) +
                 "\n" );
             throw err;
         }
-        if( IMA.verbose_get() >= IMA.RV_VERBOSE().information ) {
+        if( IMA.verboseGet() >= IMA.verboseReversed().information ) {
             log.write( strLogPrefix +
                 cc.debug( "All S2S transfers done: " ) + cc.tf( b3 ) +
                 "\n" );
         }
     } else {
-        if( IMA.verbose_get() >= IMA.RV_VERBOSE().information ) {
+        if( IMA.verboseGet() >= IMA.verboseReversed().information ) {
             log.write( strLogPrefix +
                 cc.debug( "Skipped S2S transfer." ) +
                 "\n" );
@@ -411,22 +411,22 @@ async function single_transfer_loop_part_s2s( loop_opts, strLogPrefix ) {
     return b3;
 }
 
-export async function single_transfer_loop( loop_opts ) {
+export async function singleTransferLoop( optsLoop ) {
     const imaState = state.get();
     const strLogPrefix = cc.attention( "Single Loop:" ) + " ";
     try {
-        if( IMA.verbose_get() >= IMA.RV_VERBOSE().debug )
+        if( IMA.verboseGet() >= IMA.verboseReversed().debug )
             log.write( strLogPrefix + cc.debug( IMA.longSeparator ) + "\n" );
-        if( ( loop_opts.enable_step_oracle && imaState.loopState.oracle.isInProgress ) ||
-            ( loop_opts.enable_step_m2s && imaState.loopState.m2s.isInProgress ) ||
-            ( loop_opts.enable_step_s2m && imaState.loopState.s2m.isInProgress ) ||
-            ( loop_opts.enable_step_s2s && imaState.loopState.s2s.isInProgress )
+        if( ( optsLoop.enable_step_oracle && imaState.loopState.oracle.isInProgress ) ||
+            ( optsLoop.enable_step_m2s && imaState.loopState.m2s.isInProgress ) ||
+            ( optsLoop.enable_step_s2m && imaState.loopState.s2m.isInProgress ) ||
+            ( optsLoop.enable_step_s2s && imaState.loopState.s2s.isInProgress )
         ) {
             imaState.loopState.oracle.wasInProgress = false;
             imaState.loopState.m2s.wasInProgress = false;
             imaState.loopState.s2m.wasInProgress = false;
             imaState.loopState.s2s.wasInProgress = false;
-            if( IMA.verbose_get() >= IMA.RV_VERBOSE().debug ) {
+            if( IMA.verboseGet() >= IMA.verboseReversed().debug ) {
                 log.write( strLogPrefix +
                     cc.warning( "Skipped due to other single " +
                         "transfer loop is in progress right now" ) +
@@ -434,18 +434,18 @@ export async function single_transfer_loop( loop_opts ) {
             }
             return true;
         }
-        const b0 = await single_transfer_loop_part_oracle( loop_opts, strLogPrefix );
-        const b1 = await single_transfer_loop_part_m2s( loop_opts, strLogPrefix );
-        const b2 = await single_transfer_loop_part_s2m( loop_opts, strLogPrefix );
-        const b3 = await single_transfer_loop_part_s2s( loop_opts, strLogPrefix );
+        const b0 = await singleTransferLoopPartOracle( optsLoop, strLogPrefix );
+        const b1 = await singleTransferLoopPartM2S( optsLoop, strLogPrefix );
+        const b2 = await singleTransferLoopPartS2M( optsLoop, strLogPrefix );
+        const b3 = await singleTransferLoopPartS2S( optsLoop, strLogPrefix );
         const bResult = b0 && b1 && b2 && b3;
-        if( IMA.verbose_get() >= IMA.RV_VERBOSE().information )
+        if( IMA.verboseGet() >= IMA.verboseReversed().information )
             log.write( strLogPrefix + cc.debug( "Completed: " ) + cc.tf( bResult ) + "\n" );
         return bResult;
     } catch ( err ) {
         log.write( strLogPrefix +
             cc.fatal( "Exception in single transfer loop: " ) +
-            cc.error( owaspUtils.extract_error_message( err ) ) +
+            cc.error( owaspUtils.extractErrorMessage( err ) ) +
             cc.error( ", stack is: " ) + "\n" + cc.stack( err.stack ) +
             "\n" );
     }
@@ -455,22 +455,22 @@ export async function single_transfer_loop( loop_opts ) {
     imaState.loopState.s2s.isInProgress = false;
     return false;
 }
-export async function single_transfer_loop_with_repeat( loop_opts ) {
+export async function singleTransferLoopWithRepeat( optsLoop ) {
     const imaState = state.get();
-    await single_transfer_loop( loop_opts );
+    await singleTransferLoop( optsLoop );
     setTimeout( async function() {
-        await single_transfer_loop_with_repeat( loop_opts );
+        await singleTransferLoopWithRepeat( optsLoop );
     }, imaState.nLoopPeriodSeconds * 1000 );
 };
-export async function run_transfer_loop( loop_opts ) {
+export async function runTransferLoop( optsLoop ) {
     const imaState = state.get();
-    const isDelayFirstRun = owaspUtils.toBoolean( loop_opts.isDelayFirstRun );
+    const isDelayFirstRun = owaspUtils.toBoolean( optsLoop.isDelayFirstRun );
     if( isDelayFirstRun ) {
         setTimeout( async function() {
-            await single_transfer_loop_with_repeat( loop_opts );
+            await singleTransferLoopWithRepeat( optsLoop );
         }, imaState.nLoopPeriodSeconds * 1000 );
     } else
-        await single_transfer_loop_with_repeat( loop_opts );
+        await singleTransferLoopWithRepeat( optsLoop );
     return true;
 }
 
@@ -480,14 +480,14 @@ export async function run_transfer_loop( loop_opts ) {
 // Parallel thread based loop
 //
 
-const impl_sleep = ( milliseconds ) => {
+const sleepImpl = ( milliseconds ) => {
     return new Promise( resolve => setTimeout( resolve, milliseconds ) );
 };
 
 const g_workers = [];
 const g_clients = [];
 
-export function notify_snb_cache_changed( arr_schains_cached ) {
+export function notifyCacheChangedSNB( arr_schains_cached ) {
     const cntWorkers = g_workers.length;
     for( let idxWorker = 0; idxWorker < cntWorkers; ++ idxWorker ) {
         const jo = {
@@ -500,11 +500,11 @@ export function notify_snb_cache_changed( arr_schains_cached ) {
     }
 }
 
-skale_observer.events.on( "chainsCacheChanged", function( eventData ) {
-    notify_snb_cache_changed( eventData.detail.arr_schains_cached );
+skaleObserver.events.on( "chainsCacheChanged", function( eventData ) {
+    notifyCacheChangedSNB( eventData.detail.arr_schains_cached );
 } );
 
-function construct_chain_properties( opts ) {
+function constructChainProperties( opts ) {
     return {
         "mn": {
             "joAccount": {
@@ -596,7 +596,7 @@ function construct_chain_properties( opts ) {
     };
 }
 
-export async function ensure_have_workers( opts ) {
+export async function ensureHaveWorkers( opts ) {
     if( g_workers.length > 0 )
         return g_workers;
     const cntWorkers = 2;
@@ -630,20 +630,20 @@ export async function ensure_have_workers( opts ) {
                     "\n"
                 );
                 break;
-            case "save_transfer_error":
-                IMA.save_transfer_error(
+            case "saveTransferError":
+                IMA.saveTransferError(
                     joMessage.message.category,
                     joMessage.message.textLog,
                     joMessage.message.ts
                 );
                 break;
-            case "save_transfer_success":
-                IMA.save_transfer_success( joMessage.message.category );
+            case "saveTransferSuccess":
+                IMA.saveTransferSuccess( joMessage.message.category );
                 break;
             } // switch ( joMessage.method )
         } );
-        await impl_sleep( 3 * 1000 );
-        const loop_opts = {
+        await sleepImpl( 3 * 1000 );
+        const optsLoop = {
             joRuntimeOpts: {
                 isInsideWorker: true,
                 idxChainKnownForS2S: 0,
@@ -660,11 +660,11 @@ export async function ensure_have_workers( opts ) {
             "message": {
                 "opts": {
                     "imaState": {
-                        "loop_opts": loop_opts,
-                        "verbose_": IMA.verbose_get(),
-                        "expose_details_": IMA.expose_details_get(),
-                        "arr_schains_cached": skale_observer.get_last_cached_schains(),
-                        "loopState": state.g_default_value_for_loopState,
+                        "optsLoop": optsLoop,
+                        "verbose_": IMA.verboseGet(),
+                        "expose_details_": IMA.exposeDetailsGet(),
+                        "arr_schains_cached": skaleObserver.getLastCachedSChains(),
+                        "loopState": state.g_defaultValueForLoopState,
                         "isPrintGathered": opts.imaState.isPrintGathered,
                         "isPrintSecurityValues": opts.imaState.isPrintSecurityValues,
                         "isPrintPWA": opts.imaState.isPrintPWA,
@@ -735,7 +735,7 @@ export async function ensure_have_workers( opts ) {
                         "eth_erc20": null,
                         "eth_erc20_target": null,
 
-                        "chainProperties": construct_chain_properties( opts ),
+                        "chainProperties": constructChainProperties( opts ),
                         "joAbiSkaleManager": opts.imaState.joAbiSkaleManager,
                         "bHaveSkaleManagerABI": opts.imaState.bHaveSkaleManagerABI,
 
@@ -775,14 +775,14 @@ export async function ensure_have_workers( opts ) {
     } // for( let idxWorker = 0; idxWorker < cntWorkers; ++ idxWorker )
 }
 
-export async function run_parallel_loops( opts ) {
+export async function runParallelLoops( opts ) {
     log.write( cc.debug( "Will start parallel IMA transfer loops..." ) + "\n" );
-    await ensure_have_workers( opts );
+    await ensureHaveWorkers( opts );
     log.write( cc.success( "Done, did parallel IMA transfer loops." ) + "\n" );
     return true;
 }
 
-export async function spread_arrived_pwa_state( joMessage ) {
+export async function spreadArrivedStateOfPendingWorkAnalysis( joMessage ) {
     if( ! ( joMessage && typeof joMessage == "object" &&
         "method" in joMessage && joMessage.method == "skale_imaNotifyLoopWork" )
     )

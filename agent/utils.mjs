@@ -126,7 +126,7 @@ export function jsonFileLoad( strPath, joDefault, bLogOutput ) {
         }
         return jo;
     } catch ( err ) {
-        const strError = owaspUtils.extract_error_message( err );
+        const strError = owaspUtils.extractErrorMessage( err );
         log.write(
             cc.fatal( "CRITICAL ERROR:" ) + cc.error( " failed to load JSON file " ) +
             cc.info( strPath ) + cc.error( ": " ) +
@@ -156,7 +156,7 @@ export function jsonFileSave( strPath, jo, bLogOutput ) {
         }
         return true;
     } catch ( err ) {
-        const strError = owaspUtils.extract_error_message( err );
+        const strError = owaspUtils.extractErrorMessage( err );
         log.write(
             cc.fatal( "CRITICAL ERROR:" ) + cc.error( " failed to save JSON file " ) +
             cc.info( strPath ) + cc.error( ": " ) +
@@ -171,7 +171,7 @@ export function jsonFileSave( strPath, jo, bLogOutput ) {
 
 const g_nTimeToSleepStepWaitForClonedTokenToAppearMilliseconds = 1000;
 
-export async function wait_for_cloned_token_to_appear(
+export async function waitForClonedTokenToAppear(
     sc,
     strTokenSuffix, // example "erc20"
     addressCallFrom,
@@ -212,7 +212,7 @@ export async function wait_for_cloned_token_to_appear(
             await core.sleep( g_nTimeToSleepStepWaitForClonedTokenToAppearMilliseconds );
         const address_on_s_chain =
             await contractTokenManager.callStatic[
-                "clones" + cc.capitalize_first_letter( strTokenSuffixLCshort )](
+                "clones" + cc.capitalizeFirstLetter( strTokenSuffixLCshort )](
                 sc.ethersMod.ethers.utils.id( strMainnetName ),
                 tokensMN.joABI[strTokenSuffixUC + "_address"],
                 { from: addressCallFrom }
@@ -220,7 +220,7 @@ export async function wait_for_cloned_token_to_appear(
         if( address_on_s_chain != "0x0000000000000000000000000000000000000000" ) {
             ts1 = cc.ts_hr();
             log.write(
-                cc.success( "Done, duration is " ) + cc.info( cc.get_duration_string( ts0, ts1 ) ) +
+                cc.success( "Done, duration is " ) + cc.info( cc.getDurationString( ts0, ts1 ) ) +
                 "\n" );
             log.write(
                 cc.success( "Discovered " ) + cc.notice( strTokenSuffixUC ) +
@@ -238,7 +238,7 @@ export async function wait_for_cloned_token_to_appear(
     throw new Error( strError );
 }
 
-export async function wait_for_cloned_token_erc20_appear(
+export async function waitForClonedTokenAppearErc20(
     sc, tokenERC20SC, joAccountSC, tokensMN, strMainnetName
 ) {
     if( "abi" in tokenERC20SC && typeof tokenERC20SC.abi == "object" &&
@@ -252,13 +252,13 @@ export async function wait_for_cloned_token_erc20_appear(
     }
     const addressCallFrom = joAccountSC.address();
     const address_on_s_chain =
-        await wait_for_cloned_token_to_appear(
+        await waitForClonedTokenToAppear(
             sc, "erc20", addressCallFrom, 40, tokensMN, strMainnetName );
     tokenERC20SC.abi = JSON.parse( JSON.stringify( tokensMN.joABI.ERC20_abi ) );
     tokenERC20SC.address = "" + address_on_s_chain;
 }
 
-export async function wait_for_cloned_token_erc721_appear(
+export async function waitForClonedTokenAppearErc721(
     sc, tokenERC721SC, joAccountSC, tokensMN, strMainnetName
 ) {
     if( "abi" in tokenERC721SC && typeof tokenERC721SC.abi == "object" &&
@@ -272,7 +272,7 @@ export async function wait_for_cloned_token_erc721_appear(
     }
     const addressCallFrom = joAccountSC.address();
     const address_on_s_chain =
-        await wait_for_cloned_token_to_appear(
+        await waitForClonedTokenToAppear(
             sc, "erc721", addressCallFrom, 40, tokensMN, strMainnetName
         );
     tokenERC721SC.abi = JSON.parse( JSON.stringify( tokensMN.joABI.ERC721_abi ) );
@@ -292,13 +292,13 @@ export async function wait_for_cloned_token_erc721_with_metadata_appear(
     }
     const addressCallFrom = joAccountSC.address();
     const address_on_s_chain =
-        await wait_for_cloned_token_to_appear(
+        await waitForClonedTokenToAppear(
             sc, "erc721_with_metadata", addressCallFrom, 40, tokensMN, strMainnetName );
     tokenERC721SC.abi = JSON.parse( JSON.stringify( tokensMN.joABI.ERC721_with_metadata_abi ) );
     tokenERC721SC.address = "" + address_on_s_chain;
 }
 
-export async function wait_for_cloned_token_erc1155_appear(
+export async function waitForClonedTokenAppearErc1155(
     sc, tokenERC1155SC, joAccountSC, tokensMN, strMainnetName
 ) {
     if( "abi" in tokenERC1155SC && typeof tokenERC1155SC.abi == "object" &&
@@ -312,7 +312,7 @@ export async function wait_for_cloned_token_erc1155_appear(
     }
     const addressCallFrom = joAccountSC.address();
     const address_on_s_chain =
-        await wait_for_cloned_token_to_appear(
+        await waitForClonedTokenToAppear(
             sc, "erc1155", addressCallFrom, 40, tokensMN, strMainnetName );
     tokenERC1155SC.abi = JSON.parse( JSON.stringify( tokensMN.joABI.ERC1155_abi ) );
     tokenERC1155SC.address = "" + address_on_s_chain;
@@ -527,7 +527,7 @@ export function str2ab( str ) {
 ///////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////
 
-export function discover_in_json_coin_name( jo ) {
+export function discoverCoinNameInJSON( jo ) {
     if( typeof jo !== "object" )
         return "";
     const arrKeys = Object.keys( jo );
@@ -557,7 +557,7 @@ export function discover_in_json_coin_name( jo ) {
     return s1;
 }
 
-export function check_key_exist_in_abi( strName, strFile, joABI, strKey, isExitOnError ) {
+export function checkKeyExistInABI( strName, strFile, joABI, strKey, isExitOnError ) {
     if( isExitOnError == null || isExitOnError == undefined )
         isExitOnError = true;
     try {
@@ -578,11 +578,11 @@ export function check_key_exist_in_abi( strName, strFile, joABI, strKey, isExitO
     return false;
 }
 
-export function check_keys_exist_in_abi( strName, strFile, joABI, arrKeys, isExitOnError ) {
+export function checkKeysExistInABI( strName, strFile, joABI, arrKeys, isExitOnError ) {
     const cnt = arrKeys.length;
     for( let i = 0; i < cnt; ++i ) {
         const strKey = arrKeys[i];
-        if( ! check_key_exist_in_abi( strName, strFile, joABI, strKey, isExitOnError ) )
+        if( ! checkKeyExistInABI( strName, strFile, joABI, strKey, isExitOnError ) )
             return false;
     }
     return true;
@@ -591,7 +591,7 @@ export function check_keys_exist_in_abi( strName, strFile, joABI, arrKeys, isExi
 ///////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////
 
-export function compose_schain_node_url( joNode ) {
+export function composeSChainNodeUrl( joNode ) {
     if( "ip" in joNode && typeof joNode.ip === "string" && joNode.ip.length > 0 ) {
         if( "httpRpcPort" in joNode &&
             typeof joNode.httpRpcPort === "number" &&
@@ -632,7 +632,7 @@ export function compose_schain_node_url( joNode ) {
     return "";
 }
 
-export function compose_ima_agent_node_url( joNode ) {
+export function composeImaAgentNodeUrl( joNode ) {
     let nPort = -1;
     if( "imaAgentRpcPort" in joNode &&
         typeof joNode.imaAgentRpcPort === "number" &&

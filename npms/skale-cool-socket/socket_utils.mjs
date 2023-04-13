@@ -124,7 +124,7 @@ export const randomDirectPipeID = function() {
     return id;
 };
 
-export const bind_scope_to_function = function( scope, fn ) {
+export const bindScopeToFunction = function( scope, fn ) {
     return function() {
         fn.apply( scope, arguments );
     };
@@ -159,7 +159,7 @@ export const makeValidSignalingServerURL = function( strSignalingServerURL ) {
         );
 };
 
-export const zero_padding_left = function( val, cntCharsNeeded ) {
+export const zeroPaddingLeft = function( val, cntCharsNeeded ) {
     if( val == null || val == undefined )
         return val;
     let s = "" + val;
@@ -167,7 +167,7 @@ export const zero_padding_left = function( val, cntCharsNeeded ) {
         s = "0" + s;
     return s;
 };
-export const zero_padding_right = function( val, cntCharsNeeded ) {
+export const zeroPaddingRight = function( val, cntCharsNeeded ) {
     if( val == null || val == undefined )
         return val;
     let s = "" + val;
@@ -176,7 +176,7 @@ export const zero_padding_right = function( val, cntCharsNeeded ) {
     return s;
 };
 
-export const parse_date_time = function( ts ) {
+export const parseDateTime = function( ts ) {
     if( ts === null || ts === undefined )
         return ts;
     if( typeof ts != "string" )
@@ -204,7 +204,7 @@ export const parse_date_time = function( ts ) {
     d.setMilliseconds( millisecond );
     return d;
 };
-export const format_date_time = function(
+export const formatDateTime = function(
     dt, isDate, isTime, isMilliseconds, sepDate, sepTime, sepBetween, sepMilliseconds
 ) {
     if( dt === null )
@@ -222,11 +222,11 @@ export const format_date_time = function(
         sepDate = ( sepDate == null || sepDate == undefined || ( typeof sepDate != "string" ) )
             ? "/" : sepDate;
         const strDate = "" +
-            zero_padding_left( dt.getFullYear(), 4 ) +
+            zeroPaddingLeft( dt.getFullYear(), 4 ) +
             sepDate +
-            zero_padding_left( dt.getMonth() + 1, 2 ) +
+            zeroPaddingLeft( dt.getMonth() + 1, 2 ) +
             sepDate +
-            zero_padding_left( dt.getDate(), 2 );
+            zeroPaddingLeft( dt.getDate(), 2 );
         s += strDate;
     }
     if( isTime ) {
@@ -241,11 +241,11 @@ export const format_date_time = function(
             s += sepBetween;
         }
         let strTime = "" +
-            zero_padding_left( dt.getHours(), 2 ) +
+            zeroPaddingLeft( dt.getHours(), 2 ) +
             sepDate +
-            zero_padding_left( dt.getMinutes(), 2 ) +
+            zeroPaddingLeft( dt.getMinutes(), 2 ) +
             sepDate +
-            zero_padding_left( dt.getSeconds(), 2 );
+            zeroPaddingLeft( dt.getSeconds(), 2 );
         isMilliseconds = ( isMilliseconds == null || isMilliseconds == undefined )
             ? true : ( isMilliseconds ? true : false );
         if( isMilliseconds ) {
@@ -254,7 +254,7 @@ export const format_date_time = function(
                     sepMilliseconds == undefined ||
                     ( typeof sepMilliseconds != "string" ) )
                     ? "." : sepMilliseconds;
-            strTime += sepMilliseconds + zero_padding_right( dt.getMilliseconds(), 3 );
+            strTime += sepMilliseconds + zeroPaddingRight( dt.getMilliseconds(), 3 );
         }
         s += strTime;
     }

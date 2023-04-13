@@ -31,7 +31,7 @@ import * as network_layer from "../skale-cool-socket/socket.mjs";
 import { SocketServer } from "../skale-cool-socket/socket_server.mjs";
 import * as cc from "../skale-cc/cc.mjs";
 import * as owaspUtils from "../skale-owasp/owasp-utils.mjs";
-import * as skale_observer from "./observer.mjs";
+import * as skaleObserver from "./observer.mjs";
 
 const g_url = "skale_observer_worker_server";
 
@@ -85,9 +85,9 @@ class ObserverServer extends SocketServer {
                 "error": null
             };
             self.opts.imaState.chainProperties.mn.joAccount.address =
-                owaspUtils.fn_address_impl_;
+                owaspUtils.fnAddressImpl_;
             self.opts.imaState.chainProperties.sc.joAccount.address =
-                owaspUtils.fn_address_impl_;
+                owaspUtils.fnAddressImpl_;
             if( self.opts.imaState.chainProperties.mn.strURL &&
                 typeof self.opts.imaState.chainProperties.mn.strURL == "string" &&
                 self.opts.imaState.chainProperties.mn.strURL.length > 0
@@ -150,9 +150,9 @@ class ObserverServer extends SocketServer {
                 "\n" );
             return joAnswer;
         };
-        self.mapApiHandlers.periodic_caching_start =
+        self.mapApiHandlers.periodicCachingStart =
             function( joMessage, joAnswer, eventData, socket ) {
-                self.periodic_caching_start(
+                self.periodicCachingStart(
                     socket,
                     joMessage.message.secondsToReDiscoverSkaleNetwork,
                     joMessage.message.strChainNameConnectedTo,
@@ -164,9 +164,9 @@ class ObserverServer extends SocketServer {
                 };
                 return joAnswer;
             };
-        self.mapApiHandlers.periodic_caching_stop =
+        self.mapApiHandlers.periodicCachingStop =
         function( joMessage, joAnswer, eventData, socket ) {
-            self.periodic_caching_stop();
+            self.periodicCachingStop();
             joAnswer.message = {
                 "method": "" + joMessage.method,
                 "error": null
@@ -186,7 +186,7 @@ class ObserverServer extends SocketServer {
         }
         super.dispose();
     }
-    async periodic_caching_do_now(
+    async periodicCachingDoNow(
         socket, secondsToReDiscoverSkaleNetwork, strChainNameConnectedTo, addressFrom
     ) {
         const self = this;
@@ -197,7 +197,7 @@ class ObserverServer extends SocketServer {
         for( let idxAttempt = 0; idxAttempt < 10; ++ idxAttempt ) {
             try {
                 strError =
-                    await skale_observer.cache_schains(
+                    await skaleObserver.cacheSChains(
                         strChainNameConnectedTo,
                         addressFrom,
                         self.opts
@@ -205,7 +205,7 @@ class ObserverServer extends SocketServer {
                 if( ! strError )
                     break;
             } catch ( err ) {
-                strError = owaspUtils.extract_error_message( err );
+                strError = owaspUtils.extractErrorMessage( err );
                 if( ! strError )
                     strError = "runtime error without description";
             }
@@ -214,9 +214,9 @@ class ObserverServer extends SocketServer {
         self.bIsPeriodicCachingStepInProgress = false;
         if( strError )
             return strError;
-        const arr_schains = skale_observer.get_last_cached_schains();
+        const arr_schains = skaleObserver.getLastCachedSChains();
         const jo = {
-            "method": "periodic_caching_do_now",
+            "method": "periodicCachingDoNow",
             "error": null,
             "message": arr_schains
         };
@@ -224,15 +224,15 @@ class ObserverServer extends SocketServer {
         socket.send( jo, isFlush );
         return null;
     }
-    async periodic_caching_start(
+    async periodicCachingStart(
         socket, secondsToReDiscoverSkaleNetwork, strChainNameConnectedTo, addressFrom
     ) {
         const self = this;
-        await self.periodic_caching_stop();
+        await self.periodicCachingStop();
         if( secondsToReDiscoverSkaleNetwork <= 0 )
             return false;
         const fn_async_handler = async function() {
-            await self.periodic_caching_do_now(
+            await self.periodicCachingDoNow(
                 socket, secondsToReDiscoverSkaleNetwork, strChainNameConnectedTo, addressFrom );
         };
         self.intervalPeriodicSchainsCaching = setInterval( function() {
@@ -246,7 +246,7 @@ class ObserverServer extends SocketServer {
         fn_async_handler(); // initial async call
         return true;
     }
-    async periodic_caching_stop() {
+    async periodicCachingStop() {
         const self = this;
         if( ! self.intervalPeriodicSchainsCaching )
             return false;

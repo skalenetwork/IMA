@@ -2339,7 +2339,7 @@ export class RTCServerPeer extends RTCConnection {
                 if( settings.logging.net.signaling.offer ) {
                     console.log(
                         " <<< " + self.describe() + " offer created at " +
-                        utils.format_date_time( self.tsOfferCreated ) +
+                        utils.formatDateTime( self.tsOfferCreated ) +
                         " with description:", offerDescription
                     );
                 }
@@ -2976,7 +2976,7 @@ export class RTCJoiner extends RTCActor {
                                 if( settings.logging.net.signaling.answer ) {
                                     console.log(
                                         " <<< " + self.describe() + "did created answer at " +
-                                        utils.format_date_time( self.tsAnswerCreated ) +
+                                        utils.formatDateTime( self.tsAnswerCreated ) +
                                         " with description:", answerDescription );
                                 }
                                 self.dispatchEvent(

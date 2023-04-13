@@ -1,7 +1,7 @@
 import * as owaspUtils from "../npms/skale-owasp/owasp-utils.mjs";
 import * as IMA from "../npms/skale-ima/index.mjs";
 
-export const g_default_value_for_loopState = {
+export const g_defaultValueForLoopState = {
     "oracle": {
         "isInProgress": false,
         "wasInProgress": false
@@ -20,13 +20,13 @@ export const g_default_value_for_loopState = {
     }
 };
 
-function construct_chain_properties() {
+function constructChainProperties() {
     return {
         "mn": {
             "joAccount": {
                 "privateKey":
                     owaspUtils.toEthPrivateKey( process.env.PRIVATE_KEY_FOR_ETHEREUM ),
-                "address": owaspUtils.fn_address_impl_,
+                "address": owaspUtils.fnAddressImpl_,
                 "strTransactionManagerURL":
                     owaspUtils.toStringURL(
                         process.env.TRANSACTION_MANAGER_URL_ETHEREUM ),
@@ -41,7 +41,7 @@ function construct_chain_properties() {
                     ( process.env.SGX_SSL_CERT_FILE_ETHEREUM || "" ).toString().trim(),
                 "strBlsKeyName": owaspUtils.toStringURL( process.env.BLS_KEY_ETHEREUM )
             },
-            "transactionCustomizer": IMA.get_tc_main_net(),
+            "transactionCustomizer": IMA.getTransactionCustomizerForMainNet(),
             "ethersProvider": null,
             "strURL": owaspUtils.toStringURL( process.env.URL_W3_ETHEREUM ),
             "strChainName":
@@ -64,7 +64,7 @@ function construct_chain_properties() {
             "joAccount": {
                 "privateKey":
                     owaspUtils.toEthPrivateKey( process.env.PRIVATE_KEY_FOR_SCHAIN ),
-                "address": owaspUtils.fn_address_impl_,
+                "address": owaspUtils.fnAddressImpl_,
                 "strTransactionManagerURL":
                     owaspUtils.toStringURL( process.env.TRANSACTION_MANAGER_URL_S_CHAIN ),
                 "tm_priority":
@@ -78,7 +78,7 @@ function construct_chain_properties() {
                     ( process.env.SGX_SSL_CERT_FILE_S_CHAIN || "" ).toString().trim(),
                 "strBlsKeyName": owaspUtils.toStringURL( process.env.BLS_KEY_S_CHAIN )
             },
-            "transactionCustomizer": IMA.get_tc_s_chain(),
+            "transactionCustomizer": IMA.getTransactionCustomizerForSChain(),
             "ethersProvider": null,
             "strURL": owaspUtils.toStringURL( process.env.URL_W3_S_CHAIN ),
             "strChainName":
@@ -101,7 +101,7 @@ function construct_chain_properties() {
             "joAccount": {
                 "privateKey":
                     owaspUtils.toEthPrivateKey( process.env.PRIVATE_KEY_FOR_SCHAIN_TARGET ),
-                "address": owaspUtils.fn_address_impl_,
+                "address": owaspUtils.fnAddressImpl_,
                 "strTransactionManagerURL":
                     owaspUtils.toStringURL(
                         process.env.TRANSACTION_MANAGER_URL_S_CHAIN_TARGET ),
@@ -116,7 +116,7 @@ function construct_chain_properties() {
                     ( process.env.SGX_SSL_CERT_FILE_S_CHAIN_TARGET || "" ).toString().trim(),
                 "strBlsKeyName": owaspUtils.toStringURL( process.env.BLS_KEY_T_CHAIN )
             },
-            "transactionCustomizer": IMA.get_tc_t_chain(),
+            "transactionCustomizer": IMA.getTransactionCustomizerForSChainTarget(),
             "ethersProvider": null,
             "strURL": owaspUtils.toStringURL( process.env.URL_W3_S_CHAIN_TARGET ),
             "strChainName":
@@ -144,7 +144,7 @@ export function get() {
     if( imaState )
         return imaState;
     imaState = {
-        "loopState": g_default_value_for_loopState,
+        "loopState": g_defaultValueForLoopState,
 
         "strLogFilePath": "",
         "nLogMaxSizeBeforeRotation": -1,
@@ -241,7 +241,7 @@ export function get() {
         // "eth_erc721_target": null, // only s-chain target
         // "eth_erc1155_target": null, // only s-chain target
 
-        "chainProperties": construct_chain_properties(),
+        "chainProperties": constructChainProperties(),
 
         "strPathAbiJsonSkaleManager": "",
         "joAbiSkaleManager": { },

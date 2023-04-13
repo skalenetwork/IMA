@@ -28,16 +28,16 @@ import * as fs from "fs";
 
 let g_arrStreams = [];
 
-let g_b_log_timestamps = true;
+let g_bLogWithTimeStamps = true;
 
 let g_id = 0;
 
-export function get_print_timestamps() {
-    return g_b_log_timestamps;
+export function getPrintTimestamps() {
+    return g_bLogWithTimeStamps;
 }
 
-export function set_print_timestamps( b ) {
-    g_b_log_timestamps = b ? true : false;
+export function setPrintTimestamps( b ) {
+    g_bLogWithTimeStamps = b ? true : false;
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -50,7 +50,7 @@ export function n2s( n, sz ) {
     return s;
 }
 
-export function generate_timestamp_string( ts, isColorized ) {
+export function generateTimestampString( ts, isColorized ) {
     isColorized =
         ( typeof isColorized == "undefined" )
             ? true : ( isColorized ? true : false );
@@ -71,8 +71,8 @@ export function generate_timestamp_string( ts, isColorized ) {
     return s;
 }
 
-export function generate_timestamp_prefix( ts, isColorized ) {
-    return generate_timestamp_string( ts, isColorized ) + cc.bright( ":" ) + " ";
+export function generateTimestampPrefix( ts, isColorized ) {
+    return generateTimestampString( ts, isColorized ) + cc.bright( ":" ) + " ";
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -126,7 +126,7 @@ export function createStandardOutputStream() {
             "write": function( s ) {
                 const x =
                     this.strOwnIndent +
-                    + ( this.haveOwnTimestamps ? generate_timestamp_prefix( null, true ) : "" ) +
+                    + ( this.haveOwnTimestamps ? generateTimestampPrefix( null, true ) : "" ) +
                     s;
                 try {
                     if( this.objStream )
@@ -177,7 +177,7 @@ export function createMemoryOutputStream() {
                 ) {
                     this.strAccumulatedLogText += this.strOwnIndent;
                     if( this.haveOwnTimestamps )
-                        this.strAccumulatedLogText += generate_timestamp_prefix( null, true );
+                        this.strAccumulatedLogText += generateTimestampPrefix( null, true );
                 }
                 this.strAccumulatedLogText += s;
             },
@@ -243,7 +243,7 @@ export function createFileOutput( strFilePath, nMaxSizeBeforeRotation, nMaxFiles
             "write": function( s ) {
                 const x =
                     this.strOwnIndent +
-                    ( this.haveOwnTimestamps ? generate_timestamp_prefix( null, true ) : "" ) +
+                    ( this.haveOwnTimestamps ? generateTimestampPrefix( null, true ) : "" ) +
                     s;
                 try {
                     this.rotate( x.length );
@@ -321,7 +321,7 @@ export function insertFileOutput( strFilePath, nMaxSizeBeforeRotation, nMaxFiles
 ///////////////////////////////////////////////////////////////////////////////
 
 export function write() {
-    let s = get_print_timestamps() ? generate_timestamp_prefix( null, true ) : "", i = 0;
+    let s = getPrintTimestamps() ? generateTimestampPrefix( null, true ) : "", i = 0;
     try {
         for( i = 0; i < arguments.length; ++i ) {
             try {
