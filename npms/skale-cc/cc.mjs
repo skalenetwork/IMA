@@ -25,7 +25,7 @@
 
 let g_bEnabled = true;
 
-export function auto_enable_from_command_line_args() {
+export function autoEnableFromCommandLineArgs() {
     const b =
         ( process.argv.indexOf( "--colors" ) >= 0 || process.argv.indexOf( "-colors" ) >= 0 )
             ? true : false;
@@ -137,7 +137,7 @@ export function tf( flag ) {
     return toBoolean( flag ) ? yes( "true" ) : no( "false" );
 }
 
-const g_map_color_definitions = {
+const g_mapColorDefinitions = {
     reset: "\x1b[0m",
     enlight: "\x1b[1m",
     dim: "\x1b[2m",
@@ -164,25 +164,25 @@ const g_map_color_definitions = {
 };
 
 const g_arrRainbowParts = [
-    g_map_color_definitions.enlight + g_map_color_definitions.fgRed,
-    g_map_color_definitions.fgRed,
-    g_map_color_definitions.enlight + g_map_color_definitions.fgYellow,
-    g_map_color_definitions.fgYellow,
-    g_map_color_definitions.enlight + g_map_color_definitions.fgGreen,
-    g_map_color_definitions.fgGreen,
-    g_map_color_definitions.enlight + g_map_color_definitions.fgCyan,
-    g_map_color_definitions.fgCyan,
-    g_map_color_definitions.enlight + g_map_color_definitions.fgBlue,
-    g_map_color_definitions.fgBlue,
-    g_map_color_definitions.enlight + g_map_color_definitions.fgMagenta,
-    g_map_color_definitions.fgMagenta
+    g_mapColorDefinitions.enlight + g_mapColorDefinitions.fgRed,
+    g_mapColorDefinitions.fgRed,
+    g_mapColorDefinitions.enlight + g_mapColorDefinitions.fgYellow,
+    g_mapColorDefinitions.fgYellow,
+    g_mapColorDefinitions.enlight + g_mapColorDefinitions.fgGreen,
+    g_mapColorDefinitions.fgGreen,
+    g_mapColorDefinitions.enlight + g_mapColorDefinitions.fgCyan,
+    g_mapColorDefinitions.fgCyan,
+    g_mapColorDefinitions.enlight + g_mapColorDefinitions.fgBlue,
+    g_mapColorDefinitions.fgBlue,
+    g_mapColorDefinitions.enlight + g_mapColorDefinitions.fgMagenta,
+    g_mapColorDefinitions.fgMagenta
 ];
 
 export function rainbow_part( s, i ) {
     if( !g_bEnabled )
         return s;
     const j = i % g_arrRainbowParts.length;
-    return g_arrRainbowParts[j] + s + g_map_color_definitions.reset;
+    return g_arrRainbowParts[j] + s + g_mapColorDefinitions.reset;
 }
 
 export function rainbow( s ) {
@@ -222,9 +222,9 @@ function url_obj_colorized( objURL ) {
         strURL += normal( "@" );
     }
     if( objURL.hostname )
-        strURL += "" + magenta( log_arg_to_str_as_ipv4( objURL.hostname ) );
+        strURL += "" + magenta( logArgToStringAsIpv4( objURL.hostname ) );
     if( objURL.port && objURL.port !== null && objURL.port !== undefined )
-        strURL += normal( ":" ) + log_arg_to_str( objURL.port );
+        strURL += normal( ":" ) + logArgToString( objURL.port );
     if( objURL.pathname && objURL.pathname !== null &&
         objURL.pathname !== undefined && objURL.pathname !== "/" )
         strURL += "" + yellow( replaceAll( objURL.pathname, "/", normal( "/" ) ) );
@@ -279,7 +279,7 @@ export function safeURL( arg ) {
     }
 }
 
-export function to_ipv4_arr( s ) {
+export function toIpv4Arr( s ) {
     // eslint-disable-next-line max-len
     if( /^(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$/.test( s ) ) {
         const arr = s.split( "." );
@@ -291,8 +291,8 @@ export function to_ipv4_arr( s ) {
     return null;
 }
 
-export function log_arg_to_str_as_ipv4( arg ) {
-    const arr = to_ipv4_arr( arg );
+export function logArgToStringAsIpv4( arg ) {
+    const arr = toIpv4Arr( arg );
     if( !arr )
         return arg;
 
@@ -301,12 +301,12 @@ export function log_arg_to_str_as_ipv4( arg ) {
         if( i > 0 )
             s += normal( "." );
 
-        s += log_arg_to_str( arr[i] );
+        s += logArgToString( arr[i] );
     }
     return s;
 }
 
-export function log_arg_to_str() {
+export function logArgToString() {
     let i;
     const cnt = arguments.length;
     let s = "";
@@ -357,10 +357,10 @@ export function log_arg_to_str() {
                     strURL += normal( "@" );
                 }
                 if( objURL.hostname )
-                    strURL += "" + magenta( log_arg_to_str_as_ipv4( objURL.hostname ) );
+                    strURL += "" + magenta( logArgToStringAsIpv4( objURL.hostname ) );
 
                 if( objURL.port )
-                    strURL += normal( ":" ) + log_arg_to_str( objURL.port );
+                    strURL += normal( ":" ) + logArgToString( objURL.port );
 
                 if( objURL.pathname )
                     strURL += "" + yellow( replaceAll( objURL.pathname, "/", normal( "/" ) ) );
@@ -459,10 +459,10 @@ export const jsonColorizer = { // see http://jsfiddle.net/unLSJ/
     replacerConsole: ( match, pIndent, pKey, pVal, pEnd ) => {
         let r = pIndent || "";
         if( pKey )
-            r = r + log_arg_to_str( pKey.replace( /[": ]/g, "" ) ) + ": ";
+            r = r + logArgToString( pKey.replace( /[": ]/g, "" ) ) + ": ";
 
         if( pVal )
-            r = r + log_arg_to_str( pVal );
+            r = r + logArgToString( pVal );
 
         return r + ( pEnd || "" );
     },
@@ -543,7 +543,7 @@ export function syntaxHighlightJSON( jo, strKeyNamePrefix ) {
             switch ( cls ) {
             case "key":
                 return "" +
-                    strKeyNamePrefix + log_arg_to_str( match.replace( /[": ]/g, "" ) ) + ": ";
+                    strKeyNamePrefix + logArgToString( match.replace( /[": ]/g, "" ) ) + ": ";
             case "boolean":
                 return tf( match );
             case "null":
@@ -556,7 +556,7 @@ export function syntaxHighlightJSON( jo, strKeyNamePrefix ) {
                 return "" + strval( match );
             // case "number":
             }
-            return log_arg_to_str( match );
+            return logArgToString( match );
         } );
 }
 
@@ -592,29 +592,29 @@ export function j( x ) {
     return j1( x ); // jn
 }
 
-const reset = g_map_color_definitions.reset;
-const enlight = g_map_color_definitions.enlight;
-const dim = g_map_color_definitions.dim;
-const underscore = g_map_color_definitions.underscore;
-const blink = g_map_color_definitions.blink;
-const reverse = g_map_color_definitions.reverse;
-const hidden = g_map_color_definitions.hidden;
-const fgBlack = g_map_color_definitions.fgBlack;
-const fgRed = g_map_color_definitions.fgRed;
-const fgGreen = g_map_color_definitions.fgGreen;
-const fgYellow = g_map_color_definitions.fgYellow;
-const fgBlue = g_map_color_definitions.fgBlue;
-const fgMagenta = g_map_color_definitions.fgMagenta;
-const fgCyan = g_map_color_definitions.fgCyan;
-const fgWhite = g_map_color_definitions.fgWhite;
-const bgBlack = g_map_color_definitions.bgBlack;
-const bgRed = g_map_color_definitions.bgRed;
-const bgGreen = g_map_color_definitions.bgGreen;
-const bgYellow = g_map_color_definitions.bgYellow;
-const bgBlue = g_map_color_definitions.bgBlue;
-const bgMagenta = g_map_color_definitions.bgMagenta;
-const bgCyan = g_map_color_definitions.bgCyan;
-const bBgWhite = g_map_color_definitions.bBgWhite;
+const reset = g_mapColorDefinitions.reset;
+const enlight = g_mapColorDefinitions.enlight;
+const dim = g_mapColorDefinitions.dim;
+const underscore = g_mapColorDefinitions.underscore;
+const blink = g_mapColorDefinitions.blink;
+const reverse = g_mapColorDefinitions.reverse;
+const hidden = g_mapColorDefinitions.hidden;
+const fgBlack = g_mapColorDefinitions.fgBlack;
+const fgRed = g_mapColorDefinitions.fgRed;
+const fgGreen = g_mapColorDefinitions.fgGreen;
+const fgYellow = g_mapColorDefinitions.fgYellow;
+const fgBlue = g_mapColorDefinitions.fgBlue;
+const fgMagenta = g_mapColorDefinitions.fgMagenta;
+const fgCyan = g_mapColorDefinitions.fgCyan;
+const fgWhite = g_mapColorDefinitions.fgWhite;
+const bgBlack = g_mapColorDefinitions.bgBlack;
+const bgRed = g_mapColorDefinitions.bgRed;
+const bgGreen = g_mapColorDefinitions.bgGreen;
+const bgYellow = g_mapColorDefinitions.bgYellow;
+const bgBlue = g_mapColorDefinitions.bgBlue;
+const bgMagenta = g_mapColorDefinitions.bgMagenta;
+const bgCyan = g_mapColorDefinitions.bgCyan;
+const bBgWhite = g_mapColorDefinitions.bBgWhite;
 export {
     reset,
     enlight,
@@ -852,7 +852,7 @@ export function ts_unix() {
     return ts;
 }
 
-function trim_left_unneeded_timestamp_zeros( s ) {
+function trimLeftUnneededTimestampZeros( s ) {
     while( s.length >= 2 ) {
         if( s[0] == "0" && s[1] >= "0" && s[1] <= "9" )
             s = s.substring( 1 );
@@ -862,7 +862,7 @@ function trim_left_unneeded_timestamp_zeros( s ) {
     return s;
 }
 
-export function get_duration_string( tsFrom, tsTo ) {
+export function getDurationString( tsFrom, tsTo ) {
     let s = "";
     let n = tsTo - tsFrom;
 
@@ -876,26 +876,26 @@ export function get_duration_string( tsFrom, tsTo ) {
     n = Math.floor( n / 60 );
     s = "" + n2s( secs, 2 ) + s;
     if( n == 0 )
-        return trim_left_unneeded_timestamp_zeros( s );
+        return trimLeftUnneededTimestampZeros( s );
     s = ":" + s;
 
     const mins = n % 60;
     n = Math.floor( n / 60 );
     s = "" + n2s( mins, 2 ) + s;
     if( n == 0 )
-        return trim_left_unneeded_timestamp_zeros( s );
+        return trimLeftUnneededTimestampZeros( s );
     s = ":" + s;
 
     const hours = n % 24;
     n = Math.floor( n / 24 );
     s = "" + n2s( hours, 2 ) + s;
     if( n == 0 )
-        return trim_left_unneeded_timestamp_zeros( s );
+        return trimLeftUnneededTimestampZeros( s );
 
     return "" + n + " " + ( ( n > 1 ) ? "days" : "day" ) + "," + s;
 }
 
-export function capitalize_first_letter( s ) {
+export function capitalizeFirstLetter( s ) {
     if( ! s )
         return s;
     let s2 = s.toString();
@@ -905,7 +905,7 @@ export function capitalize_first_letter( s ) {
     return s2;
 }
 
-function err_fn_dotted_name( s ) {
+function errFnDottedName( s ) {
     const arr = s.split( "." );
     const cnt = arr.length;
     let i, s2 = "";
@@ -917,10 +917,10 @@ function err_fn_dotted_name( s ) {
     return s2;
 }
 
-function err_fn_name( s ) {
+function errFnName( s ) {
     if( s.indexOf( "async " ) == 0 )
-        return bright( "async" ) + " " + err_fn_dotted_name( s.substring( 6 ) );
-    return err_fn_dotted_name( s );
+        return bright( "async" ) + " " + errFnDottedName( s.substring( 6 ) );
+    return errFnDottedName( s );
 }
 
 function err_loc_ln( s, isWithBraces ) {
@@ -961,7 +961,7 @@ export function stack( strIn ) {
                 let s2 = "    " + debug( "-->" ) + " ";
                 const n = s.indexOf( " (" );
                 if( n > 0 ) {
-                    s2 += err_fn_name( s.substring( 0, n ) );
+                    s2 += errFnName( s.substring( 0, n ) );
                     s = s.substring( n + 2 );
                     if( s[s.length - 1] == ")" )
                         s = s.substring( 0, s.length - 1 );

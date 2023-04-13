@@ -27,8 +27,8 @@ const assert = require('chai').assert;
 const expect = require('chai').expect;
 const IMA = require( "../../npms/skale-ima" );
 const w3mod = IMA.w3mod
-const tc_main_net = IMA.get_tc_main_net();
-const tc_s_chain = IMA.get_tc_s_chain();
+const tc_main_net = IMA.getTransactionCustomizerForMainNet();
+const tc_s_chain = IMA.getTransactionCustomizerForSChain();
 
 // 
 let chain_id_s_chain = "blah_blah_blah_schain_name"; // 1;
@@ -93,19 +93,19 @@ function toWei(string, string) {
 }
 
 // mockup for `joAccountDst`
-let joAccountDst = { "address": IMA.owaspUtils.fn_address_impl_, 
+let joAccountDst = { "address": IMA.owaspUtils.fnAddressImpl_, 
     privateKey: "6270720ecca0185a979b6791bea433e9dbf23345e5b5b1b0258b1fbaf32b4390",
 };
 // mockup for `joAccountSrc`
-let joAccountSrc = { "address": IMA.owaspUtils.fn_address_impl_, 
+let joAccountSrc = { "address": IMA.owaspUtils.fnAddressImpl_, 
     privateKey: "6270720ecca0185a979b6791bea433e9dbf23345e5b5b1b0258b1fbaf32b4390",
 };
 // mockup for `joAccount`
-let joAccount = { "address": IMA.owaspUtils.fn_address_impl_, 
+let joAccount = { "address": IMA.owaspUtils.fnAddressImpl_, 
     privateKey: "6270720ecca0185a979b6791bea433e9dbf23345e5b5b1b0258b1fbaf32b4390",
 };
 // mockup for `joMainNetAccount`
-let joMainNetAccount = { "address": IMA.owaspUtils.fn_address_impl_,
+let joMainNetAccount = { "address": IMA.owaspUtils.fnAddressImpl_,
     privateKey: "6270720ecca0185a979b6791bea433e9dbf23345e5b5b1b0258b1fbaf32b4390",
 };
 // mockup for `jo_deposit_box`
@@ -213,61 +213,61 @@ function exitToMainERC20(string, {}) {
 
 describe('tests for `npms/skale-ima`', function () {
 
-    it('should invoke `verbose_get`', async function () {
-        expect(IMA.verbose_get()).to.equal("3");
+    it('should invoke `verboseGet`', async function () {
+        expect(IMA.verboseGet()).to.equal("3");
     });
 
-    it('should invoke `verbose_set`', async function () {
-        IMA.verbose_set("0");
-        expect(IMA.verbose_get()).to.equal("0");
+    it('should invoke `verboseSet`', async function () {
+        IMA.verboseSet("0");
+        expect(IMA.verboseGet()).to.equal("0");
     });
 
-    it('should invoke `verbose_parse`', async function () {
+    it('should invoke `verboseParse`', async function () {
         // return 5 by default
-        expect(IMA.verbose_parse()).to.equal(5);
+        expect(IMA.verboseParse()).to.equal(5);
         // return 6 when `info` in parameters
-        expect(IMA.verbose_parse("info")).to.equal("6");
+        expect(IMA.verboseParse("info")).to.equal("6");
     });
 
-    it('should invoke `ensure_starts_with_0x`', async function () {
+    it('should invoke `ensureStartsWith0x`', async function () {
         let string = "123456789"
-        expect(IMA.owaspUtils.ensure_starts_with_0x(string)).to.be.equal( "0" + "x" + string );
+        expect(IMA.owaspUtils.ensureStartsWith0x(string)).to.be.equal( "0" + "x" + string );
     });
 
-    it('should invoke `remove_starting_0x`', async function () {
+    it('should invoke `removeStarting0x`', async function () {
         let string = "0x123456789"
-        expect(IMA.owaspUtils.remove_starting_0x(string)).to.be.equal(string.substr(2));
+        expect(IMA.owaspUtils.removeStarting0x(string)).to.be.equal(string.substr(2));
         // not string
-        expect(IMA.owaspUtils.remove_starting_0x(321)).to.be.equal(321);
+        expect(IMA.owaspUtils.removeStarting0x(321)).to.be.equal(321);
         // short string less than 2
-        expect(IMA.owaspUtils.remove_starting_0x("1")).to.be.equal("1");
+        expect(IMA.owaspUtils.removeStarting0x("1")).to.be.equal("1");
     });
 
-    it('should invoke `private_key_2_public_key`', async function () {
+    it('should invoke `privateKeyToPublicKey`', async function () {
         let keyPrivate = "23abdbd3c61b5330af61ebe8bef582f4e5cc08e554053a718bdce7813b9dc1fc";
         let keyPrivateUnd; // undefined
         let w3mod_undefined; // undefined
         // if w3mod `undefined` or `null`
-        expect(IMA.owaspUtils.private_key_2_public_key(w3mod_undefined, keyPrivate)).to.be.empty;
+        expect(IMA.owaspUtils.privateKeyToPublicKey(w3mod_undefined, keyPrivate)).to.be.empty;
         // if keyPrivate `undefined` or `null`
-        expect(IMA.owaspUtils.private_key_2_public_key(w3mod, keyPrivateUnd)).to.be.empty;
+        expect(IMA.owaspUtils.privateKeyToPublicKey(w3mod, keyPrivateUnd)).to.be.empty;
         // when all parameters is OK
-        expect(IMA.owaspUtils.private_key_2_public_key(w3mod, keyPrivate)).to.have.lengthOf(128);
+        expect(IMA.owaspUtils.privateKeyToPublicKey(w3mod, keyPrivate)).to.have.lengthOf(128);
     });
 
-    it('should invoke `public_key_2_account_address`', async function () {
+    it('should invoke `publicKeyToAccountAddress`', async function () {
         let keyPublic = "5dd431d36ce6b88f27d351051b31a26848c4a886f0dd0bc87a7d5a9d821417c9" +
             "e807e8589f680ab0f2ab29831231ad7b3d6659990ee830582fede785fc3c33c4";
         let keyPublicUnd; // undefined
         // if keyPrivate `undefined` or `null`
-        expect(IMA.owaspUtils.public_key_2_account_address(keyPublicUnd)).to.be.empty;
+        expect(IMA.owaspUtils.publicKeyToAccountAddress(keyPublicUnd)).to.be.empty;
         // when all parameters is OK
-        expect(IMA.owaspUtils.public_key_2_account_address(keyPublic)).to.include("0x");
+        expect(IMA.owaspUtils.publicKeyToAccountAddress(keyPublic)).to.include("0x");
     });
 
-    it('should invoke `private_key_2_account_address`', async function () {
+    it('should invoke `privateKeyToAccountAddress`', async function () {
         let keyPrivate = "23abdbd3c61b5330af61ebe8bef582f4e5cc08e554053a718bdce7813b9dc1fc";
-        expect( IMA.owaspUtils.private_key_2_account_address( keyPrivate ) ).to.include("0x");
+        expect( IMA.owaspUtils.privateKeyToAccountAddress( keyPrivate ) ).to.include("0x");
     });
 
     it('should return `false` invoke `check_is_registered_s_chain_in_deposit_box`', async function () {
@@ -369,10 +369,10 @@ describe('tests for `npms/skale-ima`', function () {
         ).to.be.true;
     });
 
-    it('should return `false` invoke `do_eth_payment_from_main_net`', async function () {
+    it('should return `false` invoke `doEthPaymentFromMainNet`', async function () {
         let joAccountSrc, wei_how_much; // for `false` output
         expect(await IMA.
-            do_eth_payment_from_main_net(
+            doEthPaymentFromMainNet(
                 w3_main_net,
                 joAccountSrc,
                 joAccountDst,
@@ -384,10 +384,10 @@ describe('tests for `npms/skale-ima`', function () {
         ).to.be.false;
     });
 
-    it('should return `true` invoke `do_eth_payment_from_main_net`', async function () {
+    it('should return `true` invoke `doEthPaymentFromMainNet`', async function () {
         let wei_how_much;
         expect(await IMA.
-            do_eth_payment_from_main_net(
+            doEthPaymentFromMainNet(
                 w3_main_net,
                 joAccountSrc,
                 joAccountDst,
@@ -399,10 +399,10 @@ describe('tests for `npms/skale-ima`', function () {
         ).to.be.true;
     });
 
-    it('should return `false` invoke `do_eth_payment_from_s_chain`', async function () {
+    it('should return `false` invoke `doEthPaymentFromSChain`', async function () {
         let joAccountSrc, wei_how_much; // for `false` output
         expect(await IMA.
-            do_eth_payment_from_s_chain(
+            doEthPaymentFromSChain(
                 w3_s_chain,
                 joAccountSrc,
                 joAccountDst,
@@ -414,10 +414,10 @@ describe('tests for `npms/skale-ima`', function () {
         ).to.be.false;
     });
 
-    it('should return `true` invoke `do_eth_payment_from_s_chain`', async function () {
+    it('should return `true` invoke `doEthPaymentFromSChain`', async function () {
         let wei_how_much;
         expect(await IMA.
-            do_eth_payment_from_s_chain(
+            doEthPaymentFromSChain(
                 w3_s_chain,
                 joAccountSrc,
                 joAccountDst,
@@ -429,10 +429,10 @@ describe('tests for `npms/skale-ima`', function () {
         ).to.be.true;
     });
 
-    it('should return `false` invoke `receive_eth_payment_from_s_chain_on_main_net`', async function () {
+    it('should return `false` invoke `receiveEthPaymentFromSchainOnMainNet`', async function () {
         let joMainNetAccount; // for `false` output
         expect(await IMA.
-            receive_eth_payment_from_s_chain_on_main_net(
+            receiveEthPaymentFromSchainOnMainNet(
                 w3_main_net,
                 joMainNetAccount,
                 jo_lock_and_data_main_net,
@@ -441,9 +441,9 @@ describe('tests for `npms/skale-ima`', function () {
         ).to.be.false;
     });
 
-    it('should return `true` invoke `receive_eth_payment_from_s_chain_on_main_net`', async function () {
+    it('should return `true` invoke `receiveEthPaymentFromSchainOnMainNet`', async function () {
         expect(await IMA.
-            receive_eth_payment_from_s_chain_on_main_net(
+            receiveEthPaymentFromSchainOnMainNet(
                 w3_main_net,
                 joMainNetAccount,
                 jo_lock_and_data_main_net,
@@ -452,10 +452,10 @@ describe('tests for `npms/skale-ima`', function () {
         ).to.be.true;
     });
 
-    it('should return `null` invoke `view_eth_payment_from_s_chain_on_main_net`', async function () {
+    it('should return `null` invoke `viewEthPaymentFromSchainOnMainNet`', async function () {
         let joMainNetAccount; // for `false` output
         expect(await IMA.
-            view_eth_payment_from_s_chain_on_main_net(
+            viewEthPaymentFromSchainOnMainNet(
                 w3_main_net,
                 joMainNetAccount,
                 jo_lock_and_data_main_net
@@ -463,9 +463,9 @@ describe('tests for `npms/skale-ima`', function () {
         ).to.be.null;
     });
 
-    it('should return `true` invoke `view_eth_payment_from_s_chain_on_main_net`', async function () {
+    it('should return `true` invoke `viewEthPaymentFromSchainOnMainNet`', async function () {
         expect(await IMA.
-            view_eth_payment_from_s_chain_on_main_net(
+            viewEthPaymentFromSchainOnMainNet(
                 w3_main_net,
                 joMainNetAccount,
                 jo_lock_and_data_main_net
@@ -473,14 +473,14 @@ describe('tests for `npms/skale-ima`', function () {
         ).to.be.true;
     });
 
-    it('should return `false` invoke `do_erc20_payment_from_main_net`', async function () {
+    it('should return `false` invoke `doErc20PaymentFromMainNet`', async function () {
         let token_amount;
         let strCoinNameErc20_main_net;
         let erc20PrivateTestnetJson_main_net;
         let strCoinNameErc20_s_chain;
         let erc20PrivateTestnetJson_s_chain;
         expect(await IMA.
-            do_erc20_payment_from_main_net(
+            doErc20PaymentFromMainNet(
                 w3_main_net,
                 w3_s_chain,
                 joAccountSrc,
@@ -498,14 +498,14 @@ describe('tests for `npms/skale-ima`', function () {
         ).to.be.false;
     });
 
-    it('should return `false` invoke `do_erc20_payment_from_s_chain`', async function () {
+    it('should return `false` invoke `doErc20PaymentFromSChain`', async function () {
         let token_amount;
         let strCoinNameErc20_main_net;
         let joErc20_main_net;
         let strCoinNameErc20_s_chain;
         let joErc20_s_chain;
         expect(await IMA.
-            do_erc20_payment_from_s_chain(
+            doErc20PaymentFromSChain(
                 w3_main_net,
                 w3_s_chain,
                 joAccountSrc,
@@ -523,7 +523,7 @@ describe('tests for `npms/skale-ima`', function () {
         ).to.be.false;
     });
 
-    it('should return `false` invoke `do_transfer`', async function () {
+    it('should return `false` invoke `doTransfer`', async function () {
         let jo_message_proxy_src; // for `false` output
         let chain_id_src = "test";
         let chain_id_dst = "test";
@@ -538,7 +538,7 @@ describe('tests for `npms/skale-ima`', function () {
             cntChainsKnownForS2S: 0
         };
         expect(await IMA.
-            do_transfer(
+            doTransfer(
                 "M2S",
                 joRuntimeOpts,
                 w3_src,
@@ -565,7 +565,7 @@ describe('tests for `npms/skale-ima`', function () {
         ).to.be.false;
     });
 
-    it('should return `true` invoke `do_transfer`', async function () {
+    it('should return `true` invoke `doTransfer`', async function () {
         let chain_id_src = "test";
         let chain_id_dst = "test";
         let nTransactionsCountInBlock = 4;
@@ -579,7 +579,7 @@ describe('tests for `npms/skale-ima`', function () {
             cntChainsKnownForS2S: 0
         };
         expect(await IMA.
-            do_transfer(
+            doTransfer(
                 "M2S",
                 joRuntimeOpts,
                 w3_src,

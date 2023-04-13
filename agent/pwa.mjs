@@ -33,7 +33,7 @@ import * as imaUtils from "./utils.mjs";
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 
-function compute_walk_node_indices( nNodeNumber, nNodesCount ) {
+function computeWalkNodeIndices( nNodeNumber, nNodesCount ) {
     if( nNodesCount <= 1 )
         return []; // PWA is N/A
     if( !( nNodeNumber >= 0 && nNodeNumber < nNodesCount ) )
@@ -53,7 +53,7 @@ function compute_walk_node_indices( nNodeNumber, nNodesCount ) {
     return arr_walk_node_indices;
 }
 
-export function check_loop_work_type_string_is_correct( strLoopWorkType ) {
+export function checkLoopWorkTypeStringIsCorrect( strLoopWorkType ) {
     if( ! strLoopWorkType )
         return false;
     switch ( strLoopWorkType.toString().toLowerCase() ) {
@@ -69,7 +69,7 @@ export function check_loop_work_type_string_is_correct( strLoopWorkType ) {
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 
-function compose_empty_pwaState() {
+function composeEmptyStateForPendingWorkAnalysis() {
     return {
         "oracle": {
             "isInProgress": false,
@@ -94,9 +94,9 @@ function compose_empty_pwaState() {
     };
 }
 
-function get_node_progress_and_ts( joNode, strLoopWorkType, nIndexS2S ) {
+function getNodeProgressAndTimestamp( joNode, strLoopWorkType, nIndexS2S ) {
     if( ! ( "pwaState" in joNode ) )
-        joNode.pwaState = compose_empty_pwaState();
+        joNode.pwaState = composeEmptyStateForPendingWorkAnalysis();
     strLoopWorkType = strLoopWorkType.toLowerCase();
     if( ! ( strLoopWorkType in joNode.pwaState ) ) {
         throw new Error(
@@ -118,10 +118,10 @@ function get_node_progress_and_ts( joNode, strLoopWorkType, nIndexS2S ) {
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 
-export async function check_on_loop_start( imaState, strLoopWorkType, nIndexS2S ) {
+export async function checkOnLoopStart( imaState, strLoopWorkType, nIndexS2S ) {
     try {
         nIndexS2S = nIndexS2S || 0; // convert to number if undefined
-        if( ! check_loop_work_type_string_is_correct( strLoopWorkType ) ) {
+        if( ! checkLoopWorkTypeStringIsCorrect( strLoopWorkType ) ) {
             throw new Error(
                 "Specified value \"" + strLoopWorkType + "\" is not a correct loop work type"
             );
@@ -139,7 +139,7 @@ export async function check_on_loop_start( imaState, strLoopWorkType, nIndexS2S 
             throw new Error( "S-Chain network info is not available yet to PWA" );
         const arr_busy_node_indices = [];
         const arr_walk_node_indices =
-            compute_walk_node_indices( imaState.nNodeNumber, imaState.nNodesCount );
+            computeWalkNodeIndices( imaState.nNodeNumber, imaState.nNodesCount );
         if( imaState.isPrintPWA ) {
             log.write(
                 cc.debug( "PWA will check loop start condition via node(s) sequence " ) +
@@ -150,7 +150,7 @@ export async function check_on_loop_start( imaState, strLoopWorkType, nIndexS2S 
         for( let i = 0; i < arr_walk_node_indices.length; ++i ) {
             const walk_node_index = arr_walk_node_indices[i];
             const joNode = jarrNodes[walk_node_index];
-            const joProps = get_node_progress_and_ts( joNode, strLoopWorkType, nIndexS2S );
+            const joProps = getNodeProgressAndTimestamp( joNode, strLoopWorkType, nIndexS2S );
             if( joProps && typeof joProps == "object" &&
                 "isInProgress" in joProps && joProps.isInProgress &&
                 joProps.ts != 0 && nUtcUnixTimeStamp >= joProps.ts
@@ -193,7 +193,7 @@ export async function check_on_loop_start( imaState, strLoopWorkType, nIndexS2S 
     } catch ( err ) {
         log.write(
             cc.error( "Exception in PWA check on loop start: " ) +
-            cc.error( owaspUtils.extract_error_message( err ) ) +
+            cc.error( owaspUtils.extractErrorMessage( err ) ) +
             cc.error( ", stack is: " ) + "\n" + cc.stack( err.stack ) +
             "\n" );
     }
@@ -203,14 +203,14 @@ export async function check_on_loop_start( imaState, strLoopWorkType, nIndexS2S 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 
-export async function handle_loop_state_arrived(
+export async function handleLoopStateArrived(
     imaState, nNodeNumber, strLoopWorkType, nIndexS2S, isStart, ts, signature
 ) {
     const se = isStart ? "start" : "end";
     let isSuccess = false;
     let joNode = null;
     try {
-        if( ! check_loop_work_type_string_is_correct( strLoopWorkType ) ) {
+        if( ! checkLoopWorkTypeStringIsCorrect( strLoopWorkType ) ) {
             throw new Error(
                 "Arrived value \"" + strLoopWorkType + "\" is not a correct loop work type" );
         }
@@ -226,20 +226,19 @@ export async function handle_loop_state_arrived(
         if( ! jarrNodes )
             throw new Error( "S-Chain network info is not available yet to PWA" );
         joNode = jarrNodes[nNodeNumber];
-        const joProps = get_node_progress_and_ts( joNode, strLoopWorkType, nIndexS2S );
+        const joProps = getNodeProgressAndTimestamp( joNode, strLoopWorkType, nIndexS2S );
         if( imaState.isPrintPWA ) {
             log.write(
                 cc.debug( "PWA loop-" ) + cc.attention( se ) +
                 cc.debug( " state arrived for node " ) + cc.info( nNodeNumber ) +
                 cc.debug( ", PWA state " ) + cc.j( joNode.pwaState ) +
-                cc.debug( ", arrived signature is " ) + cc.j( signature ) +
-                "\n" );
+                cc.debug( ", arrived signature is " ) + cc.j( signature ) + "\n" );
         }
         const strMessageHash =
             imaBLS.keccak256_4_pending_work_analysis(
                 nNodeNumber, strLoopWorkType, isStart, 0 + ts );
         const isSignatureOK =
-            await imaBLS.do_verify_ready_hash(
+            await imaBLS.doVerifyReadyHash(
                 strMessageHash, nNodeNumber, signature, imaState.isPrintPWA );
         if( ! isSignatureOK )
             throw new Error( "BLS verification failed" );
@@ -250,8 +249,7 @@ export async function handle_loop_state_arrived(
                 cc.success( "PWA loop-" ) + cc.attention( se ) +
                 cc.success( " state successfully verified for node " ) + cc.info( nNodeNumber ) +
                 cc.success( ", now have PWA state " ) + cc.j( joNode.pwaState ) +
-                cc.success( ", arrived signature is " ) + cc.j( signature ) +
-                "\n" );
+                cc.success( ", arrived signature is " ) + cc.j( signature ) + "\n" );
         }
         isSuccess = true;
     } catch ( err ) {
@@ -261,9 +259,8 @@ export async function handle_loop_state_arrived(
             cc.error( " for node " ) + cc.info( nNodeNumber ) + cc.error( ", PWA state " ) +
             cc.j( ( joNode && "pwaState" in joNode ) ? joNode.pwaState : "N/A" ) +
             cc.error( ", arrived signature is " ) + cc.j( signature ) +
-            cc.error( ", error is: " ) + cc.error( owaspUtils.extract_error_message( err ) ) +
-            cc.error( ", stack is: " ) + "\n" + cc.stack( err.stack ) +
-            "\n" );
+            cc.error( ", error is: " ) + cc.error( owaspUtils.extractErrorMessage( err ) ) +
+            cc.error( ", stack is: " ) + "\n" + cc.stack( err.stack ) + "\n" );
     }
     return isSuccess;
 }
@@ -271,11 +268,11 @@ export async function handle_loop_state_arrived(
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 
-async function notify_on_loop_impl( imaState, strLoopWorkType, nIndexS2S, isStart ) {
+async function notifyOnLoopImpl( imaState, strLoopWorkType, nIndexS2S, isStart ) {
     const se = isStart ? "start" : "end";
     try {
         nIndexS2S = nIndexS2S || 0; // convert to number if undefined
-        if( ! check_loop_work_type_string_is_correct( strLoopWorkType ) ) {
+        if( ! checkLoopWorkTypeStringIsCorrect( strLoopWorkType ) ) {
             throw new Error(
                 "Specified value \"" + strLoopWorkType + "\" is not a correct loop work type" );
         }
@@ -295,81 +292,74 @@ async function notify_on_loop_impl( imaState, strLoopWorkType, nIndexS2S, isStar
         const strMessageHash =
             imaBLS.keccak256_4_pending_work_analysis(
                 0 + imaState.nNodeNumber, strLoopWorkType, isStart, nUtcUnixTimeStamp );
-        const signature = await imaBLS.do_sign_ready_hash( strMessageHash, imaState.isPrintPWA );
-        await handle_loop_state_arrived(
+        const signature = await imaBLS.doSignReadyHash( strMessageHash, imaState.isPrintPWA );
+        await handleLoopStateArrived(
             imaState, imaState.nNodeNumber, strLoopWorkType,
             nIndexS2S, isStart, nUtcUnixTimeStamp, signature
         ); // save own started
-
         for( let i = 0; i < jarrNodes.length; ++i ) {
             if( i == imaState.nNodeNumber )
                 continue; // skip this node
             const joNode = jarrNodes[i];
-            const strNodeURL = imaUtils.compose_ima_agent_node_url( joNode );
+            const strNodeURL = imaUtils.composeImaAgentNodeUrl( joNode );
             const rpcCallOpts = null;
-            /*await*/ rpcCall.create( strNodeURL, rpcCallOpts, async function( joCall, err ) {
-                if( err ) {
-                    log.write(
-                        cc.error( "PWA failed to create loop-" ) + cc.attention( se ) +
+            rpcCall.create( // NOTICE: no await here, executed async
+                strNodeURL, rpcCallOpts, async function( joCall, err ) {
+                    if( err ) {
+                        log.write(
+                            cc.error( "PWA failed to create loop-" ) + cc.attention( se ) +
                         cc.error( " notification RPC call to node #" ) + cc.info( i ) +
                         cc.error( " with URL " ) + cc.u( strNodeURL ) +
                         cc.error( ", error is: " ) +
-                        cc.error( owaspUtils.extract_error_message( err ) ) +
-                        "\n"
-                    );
-                    return;
-                }
-                /*await*/ joCall.call( {
-                    "method": "skale_imaNotifyLoopWork",
-                    "params": {
-                        "nNodeNumber": 0 + imaState.nNodeNumber,
-                        "strLoopWorkType": "" + strLoopWorkType,
-                        "nIndexS2S": 0 + nIndexS2S,
-                        "isStart": isStart ? true : false,
-                        "ts": nUtcUnixTimeStamp,
-                        "signature": signature
+                        cc.error( owaspUtils.extractErrorMessage( err ) ) + "\n" );
+                        return;
                     }
-                }, async function( joIn, joOut, err ) {
-                    if( err ) {
-                        log.write(
-                            cc.error( "PWA failed to perform loop-" ) + cc.attention( se ) +
+                    joCall.call( { // NOTICE: no await here, executed async
+                        "method": "skale_imaNotifyLoopWork",
+                        "params": {
+                            "nNodeNumber": 0 + imaState.nNodeNumber,
+                            "strLoopWorkType": "" + strLoopWorkType,
+                            "nIndexS2S": 0 + nIndexS2S,
+                            "isStart": isStart ? true : false,
+                            "ts": nUtcUnixTimeStamp,
+                            "signature": signature
+                        }
+                    }, async function( joIn, joOut, err ) {
+                        if( err ) {
+                            log.write(
+                                cc.error( "PWA failed to perform loop-" ) + cc.attention( se ) +
                             cc.error( " notification RPC call to node #" ) + cc.info( i ) +
                             cc.error( " with URL " ) + cc.u( strNodeURL ) +
                             cc.error( ", error is: " ) +
-                            cc.error( owaspUtils.extract_error_message( err ) ) +
-                            "\n"
-                        );
+                            cc.error( owaspUtils.extractErrorMessage( err ) ) + "\n" );
+                            await joCall.disconnect();
+                            return;
+                        }
+                        if( imaState.isPrintPWA ) {
+                            log.write( cc.success( "Was successfully sent PWA loop-" ) +
+                            cc.attention( se ) + cc.success( " notification to node #" ) +
+                            cc.info( i ) + cc.success( " with URL " ) + cc.u( strNodeURL ) + "\n" );
+                        }
                         await joCall.disconnect();
-                        return;
-                    }
-                    if( imaState.isPrintPWA ) {
-                        log.write(
-                            cc.success( "Was successfully sent PWA loop-" ) + cc.attention( se ) +
-                            cc.success( " notification to node #" ) + cc.info( i ) +
-                            cc.success( " with URL " ) + cc.u( strNodeURL ) +
-                            "\n"
-                        );
-                    }
-                    await joCall.disconnect();
-                } ); // joCall.call ...
-            } ); // rpcCall.create ...
+                    } ); // joCall.call ...
+                } ); // rpcCall.create ...
         } // for( let i = 0; i < jarrNodes.length; ++i )
     } catch ( err ) {
         log.write(
             cc.error( "Exception in PWA notify on loop " ) + cc.attention( se ) +
-            cc.error( ": " ) + cc.error( owaspUtils.extract_error_message( err ) ) +
+            cc.error( ": " ) + cc.error( owaspUtils.extractErrorMessage( err ) ) +
             cc.error( ", stack is: " ) + "\n" + cc.stack( err.stack ) +
             "\n" );
     }
     return true;
 }
 
-export async function notify_on_loop_start( imaState, strLoopWorkType, nIndexS2S ) {
-    return await notify_on_loop_impl( imaState, strLoopWorkType, nIndexS2S, true );
+export async function notifyOnLoopStart( imaState, strLoopWorkType, nIndexS2S ) {
+    return await notifyOnLoopImpl( imaState, strLoopWorkType, nIndexS2S, true );
 }
 
-export async function notify_on_loop_end( imaState, strLoopWorkType, nIndexS2S ) {
-    return await notify_on_loop_impl( imaState, strLoopWorkType, nIndexS2S, false );
+export async function notifyOnLoopEnd( imaState, strLoopWorkType, nIndexS2S ) {
+    return await notifyOnLoopImpl( imaState, strLoopWorkType, nIndexS2S, false );
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////

@@ -89,7 +89,6 @@ jobs:
     - name: UPDATE - system deps and install libc6, net-tools, btrfs-progs, zip, unzip, bash, procps
       run: |
         sudo apt-get update
-        #sudo apt-get upgrade
         sudo apt-get install libc6 net-tools btrfs-progs zip unzip
         sudo apt-get install bash
         sudo apt-get install procps
@@ -101,7 +100,6 @@ jobs:
         echo " --------------------------- install containerd.io ---------------------------------------------------------------------------------------------------- "
         sudo apt-get install containerd.io
         echo " --------------------------- install docker.io -------------------------------------------------------------------------------------------------------- "
-        #sudo apt-get install docker.io
         echo " --------------------------- install docker-compose --------------------------------------------------------------------------------------------------- "
         sudo apt-get install docker-compose
 
@@ -166,36 +164,18 @@ jobs:
       run: |
         cd comprehensive-test
         pwd
-        #
-        # # --- ganache-cli version ---
-        # sudo yarn global add ganache-cli
-        # which ganache-cli
-        # ganache-cli --version
-        #
-        # # --- hardhat version ---
         cd cli-hh
         ./clean.sh
         ./init.sh
-        cd ..
-        #
-        cd ..
+        cd ../..
 
     - name: INIT - startup Ethereum Main Net emulation
       working-directory: ${{env.working-directory}}
       run: |
         cd comprehensive-test
-        #
-        # # --- ganache-cli version ---
-        # cd cli-ganache
-        # ./run.sh &> ../local_mainnet_output_log.txt &
-        # cd ..
-        #
-        # # --- hardhat version ---
         cd cli-hh
         ./run.sh &> ../local_mainnet_output_log.txt &
-        cd ..
-        #
-        cd ..
+        cd ../..
 
     - name: INIT - Install PYTHON
       uses: actions/setup-python@v2
@@ -251,27 +231,7 @@ jobs:
         cd comprehensive-test
         cd s_chain_gen
         ./init.sh
-        cd ..
-        #
-        # - name: INIT - start S-Chain node 00
-        #   run: |
-        #     cd s_chain_gen/node_00
-        #     # ./run-skaled.sh &>/dev/null &
-        #     ./run-skaled.sh &> ./log_skaled_00.txt &
-        #     sleep 30
-        #     cat ./log_skaled_00.txt
-        #     cd ../..
-        #
-        # - name: INIT - start S-Chain node 01
-        #   run: |
-        #     cd s_chain_gen/node_01
-        #     # ./run-skaled.sh &>/dev/null &
-        #     ./run-skaled.sh &> ./log_skaled_01.txt &
-        #     sleep 30
-        #     cat ./log_skaled_01.txt
-        #     cd ../..
-        #
-        cd ..
+        cd ../..
 
     - name: INIT - download Skale Manager
       working-directory: ${{env.working-directory}}
@@ -286,8 +246,7 @@ jobs:
         cd comprehensive-test
         cd skale-manager
         yarn install
-        cd ..
-        cd ..
+        cd ../..
 
     - name: INIT - install comprehensive engine dependencies
       working-directory: ${{env.working-directory}}
@@ -295,8 +254,7 @@ jobs:
         cd comprehensive-test
         cd engine 
         yarn install
-        cd ..
-        cd ..
+        cd ../..
 
     - name: SELF-TEST 1 A - use IMA to discover chain ID via node 00-00 and test last is alive
       working-directory: ${{env.working-directory}}
@@ -365,9 +323,6 @@ jobs:
         echo "version: '3'"                                 > docker-compose.yml
         echo 'services:'                                   >> docker-compose.yml
         echo '  sgxwallet:'                                >> docker-compose.yml
-        # echo '    image: skalenetwork/sgxwallet_sim:develop-latest'                           >> docker-compose.yml
-        # echo '    image: skalenetwork/sgxwallet_sim:119170448fe6ebece3782ed7e17bdd563ce9b6a5' >> docker-compose.yml
-        # echo '    image: skalenetwork/sgxwallet_sim:6fef3a1dcea6921dfa0682961dc884e814f10251' >> docker-compose.yml
         echo '    image: skalenetwork/sgxwallet_sim:1.83.0-develop.19'                          >> docker-compose.yml
         echo '    restart: unless-stopped'                 >> docker-compose.yml
         echo '    ports:'                                  >> docker-compose.yml

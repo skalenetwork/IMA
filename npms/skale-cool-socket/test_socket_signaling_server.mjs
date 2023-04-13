@@ -892,7 +892,7 @@ signalingServer.on( "dispose", function() {
 ///////////////////////////////////////////////////////////////////////////////
 
 let g_bShouldExit = false, g_bProcessExitRequested = false;
-function exit_if_needed() {
+function exitIfNeeded() {
     if( ! g_bShouldExit )
         return;
     if( g_bProcessExitRequested )
@@ -920,7 +920,7 @@ process.on( "SIGINT", function() {
     }
     g_bShouldExit = true;
 
-    exit_if_needed();
+    exitIfNeeded();
     g_bShouldExit = true;
 } );
 

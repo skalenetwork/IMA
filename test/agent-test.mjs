@@ -43,8 +43,8 @@ const __filename = new URL( "", import.meta.url ).pathname;
 
 process.env.NODE_TLS_REJECT_UNAUTHORIZED = 0;
 
-IMA.expose_details_set( false );
-IMA.verbose_set( IMA.verbose_parse( "info" ) );
+IMA.exposeDetailsSet( false );
+IMA.verboseSet( IMA.verboseParse( "info" ) );
 // import * as imaBLS from "../agent/bls.mjs";
 // import * as rpcCall from "../agent/rpc-call.mjs";
 
@@ -142,7 +142,7 @@ const imaState = {
         "mn": {
             "joAccount": {
                 "privateKey": owaspUtils.toEthPrivateKey( process.env.PRIVATE_KEY_FOR_ETHEREUM ),
-                "address": owaspUtils.fn_address_impl_,
+                "address": owaspUtils.fnAddressImpl_,
                 "strTransactionManagerURL":
                     owaspUtils.toStringURL( process.env.TRANSACTION_MANAGER_URL_ETHEREUM ),
                 "tm_priority":
@@ -156,7 +156,7 @@ const imaState = {
                     ( process.env.SGX_SSL_CERT_FILE_ETHEREUM || "" ).toString().trim(),
                 "strBlsKeyName": owaspUtils.toStringURL( process.env.BLS_KEY_ETHEREUM )
             },
-            "transactionCustomizer": IMA.get_tc_main_net(),
+            "transactionCustomizer": IMA.getTransactionCustomizerForMainNet(),
             "ethersProvider": null,
             "strURL":
                 owaspUtils.toStringURL( process.env.URL_W3_ETHEREUM || "http://127.0.0.1:8545" ),
@@ -178,7 +178,7 @@ const imaState = {
         "sc": {
             "joAccount": {
                 "privateKey": owaspUtils.toEthPrivateKey( process.env.PRIVATE_KEY_FOR_SCHAIN ),
-                "address": owaspUtils.fn_address_impl_,
+                "address": owaspUtils.fnAddressImpl_,
                 "strTransactionManagerURL":
                     owaspUtils.toStringURL( process.env.TRANSACTION_MANAGER_URL_S_CHAIN ),
                 "tm_priority":
@@ -192,7 +192,7 @@ const imaState = {
                     ( process.env.SGX_SSL_CERT_FILE_S_CHAIN || "" ).toString().trim(),
                 "strBlsKeyName": owaspUtils.toStringURL( process.env.BLS_KEY_S_CHAIN )
             },
-            "transactionCustomizer": IMA.get_tc_s_chain(),
+            "transactionCustomizer": IMA.getTransactionCustomizerForSChain(),
             "ethersProvider": null,
             "strURL":
                 owaspUtils.toStringURL( process.env.URL_W3_S_CHAIN || "http://127.0.0.1:15000" ),
@@ -215,7 +215,7 @@ const imaState = {
             "joAccount": {
                 "privateKey":
                     owaspUtils.toEthPrivateKey( process.env.PRIVATE_KEY_FOR_SCHAIN_TARGET ),
-                "address": owaspUtils.fn_address_impl_,
+                "address": owaspUtils.fnAddressImpl_,
                 "strTransactionManagerURL":
                     owaspUtils.toStringURL( process.env.TRANSACTION_MANAGER_URL_S_CHAIN_TARGET ),
                 "tm_priority":
@@ -229,7 +229,7 @@ const imaState = {
                     ( process.env.SGX_SSL_CERT_FILE_S_CHAIN_TARGET || "" ).toString().trim(),
                 "strBlsKeyName": owaspUtils.toStringURL( process.env.BLS_KEY_T_CHAIN )
             },
-            "transactionCustomizer": IMA.get_tc_t_chain(),
+            "transactionCustomizer": IMA.getTransactionCustomizerForSChainTarget(),
             "ethersProvider": null,
             "strURL": owaspUtils.toStringURL( process.env.URL_W3_S_CHAIN_TARGET ),
             "strChainName":
@@ -279,16 +279,16 @@ const imaState = {
 };
 state.set( imaState );
 
-imaCLI.ima_common_init();
-imaCLI.ima_contracts_init();
+imaCLI.commonInit();
+imaCLI.initContracts();
 
 describe( "OWASP-1", function() {
 
     describe( "Parsing utilities", function() {
 
         it( "Integer basic validation", function() {
-            assert.equal( owaspUtils.is_numeric( "0" ), true );
-            assert.equal( owaspUtils.is_numeric( "123" ), true );
+            assert.equal( owaspUtils.isNumeric( "0" ), true );
+            assert.equal( owaspUtils.isNumeric( "123" ), true );
         } );
 
         it( "Integer RegEx validation", function() {
@@ -457,57 +457,57 @@ describe( "OWASP-2", function() {
         } );
 
         it( "Check URL is HTTP(S)", function() {
-            assert.equal( owaspUtils.is_http_url( "http://127.0.0.1" ), true );
-            assert.equal( owaspUtils.is_http_url( "http://localhost" ), true );
-            assert.equal( owaspUtils.is_http_url( "http://[::1]" ), true );
-            assert.equal( owaspUtils.is_http_url( "http://127.0.0.1:1234" ), true );
-            assert.equal( owaspUtils.is_http_url( "http://localhost:1234" ), true );
-            assert.equal( owaspUtils.is_http_url( "http://[::1]:1234" ), true );
-            assert.equal( owaspUtils.is_http_url( "https://127.0.0.1" ), true );
-            assert.equal( owaspUtils.is_http_url( "https://localhost" ), true );
-            assert.equal( owaspUtils.is_http_url( "https://[::1]" ), true );
-            assert.equal( owaspUtils.is_http_url( "https://127.0.0.1:1234" ), true );
-            assert.equal( owaspUtils.is_http_url( "https://localhost:1234" ), true );
-            assert.equal( owaspUtils.is_http_url( "https://[::1]:1234" ), true );
-            assert.equal( owaspUtils.is_http_url( "ws://127.0.0.1" ), false );
-            assert.equal( owaspUtils.is_http_url( "ws://localhost" ), false );
-            assert.equal( owaspUtils.is_http_url( "ws://[::1]" ), false );
-            assert.equal( owaspUtils.is_http_url( "ws://127.0.0.1:1234" ), false );
-            assert.equal( owaspUtils.is_http_url( "ws://localhost:1234" ), false );
-            assert.equal( owaspUtils.is_http_url( "ws://[::1]:1234" ), false );
-            assert.equal( owaspUtils.is_http_url( "wss://127.0.0.1" ), false );
-            assert.equal( owaspUtils.is_http_url( "wss://localhost" ), false );
-            assert.equal( owaspUtils.is_http_url( "wss://[::1]" ), false );
-            assert.equal( owaspUtils.is_http_url( "wss://127.0.0.1:1234" ), false );
-            assert.equal( owaspUtils.is_http_url( "wss://localhost:1234" ), false );
-            assert.equal( owaspUtils.is_http_url( "wss://[::1]:1234" ), false );
+            assert.equal( owaspUtils.isUrlHTTP( "http://127.0.0.1" ), true );
+            assert.equal( owaspUtils.isUrlHTTP( "http://localhost" ), true );
+            assert.equal( owaspUtils.isUrlHTTP( "http://[::1]" ), true );
+            assert.equal( owaspUtils.isUrlHTTP( "http://127.0.0.1:1234" ), true );
+            assert.equal( owaspUtils.isUrlHTTP( "http://localhost:1234" ), true );
+            assert.equal( owaspUtils.isUrlHTTP( "http://[::1]:1234" ), true );
+            assert.equal( owaspUtils.isUrlHTTP( "https://127.0.0.1" ), true );
+            assert.equal( owaspUtils.isUrlHTTP( "https://localhost" ), true );
+            assert.equal( owaspUtils.isUrlHTTP( "https://[::1]" ), true );
+            assert.equal( owaspUtils.isUrlHTTP( "https://127.0.0.1:1234" ), true );
+            assert.equal( owaspUtils.isUrlHTTP( "https://localhost:1234" ), true );
+            assert.equal( owaspUtils.isUrlHTTP( "https://[::1]:1234" ), true );
+            assert.equal( owaspUtils.isUrlHTTP( "ws://127.0.0.1" ), false );
+            assert.equal( owaspUtils.isUrlHTTP( "ws://localhost" ), false );
+            assert.equal( owaspUtils.isUrlHTTP( "ws://[::1]" ), false );
+            assert.equal( owaspUtils.isUrlHTTP( "ws://127.0.0.1:1234" ), false );
+            assert.equal( owaspUtils.isUrlHTTP( "ws://localhost:1234" ), false );
+            assert.equal( owaspUtils.isUrlHTTP( "ws://[::1]:1234" ), false );
+            assert.equal( owaspUtils.isUrlHTTP( "wss://127.0.0.1" ), false );
+            assert.equal( owaspUtils.isUrlHTTP( "wss://localhost" ), false );
+            assert.equal( owaspUtils.isUrlHTTP( "wss://[::1]" ), false );
+            assert.equal( owaspUtils.isUrlHTTP( "wss://127.0.0.1:1234" ), false );
+            assert.equal( owaspUtils.isUrlHTTP( "wss://localhost:1234" ), false );
+            assert.equal( owaspUtils.isUrlHTTP( "wss://[::1]:1234" ), false );
         } );
 
         it( "Check URL is WS(S)", function() {
-            assert.equal( owaspUtils.is_ws_url( "http://127.0.0.1" ), false );
-            assert.equal( owaspUtils.is_ws_url( "http://localhost" ), false );
-            assert.equal( owaspUtils.is_ws_url( "http://[::1]" ), false );
-            assert.equal( owaspUtils.is_ws_url( "http://127.0.0.1:1234" ), false );
-            assert.equal( owaspUtils.is_ws_url( "http://localhost:1234" ), false );
-            assert.equal( owaspUtils.is_ws_url( "http://[::1]:1234" ), false );
-            assert.equal( owaspUtils.is_ws_url( "https://127.0.0.1" ), false );
-            assert.equal( owaspUtils.is_ws_url( "https://localhost" ), false );
-            assert.equal( owaspUtils.is_ws_url( "https://[::1]" ), false );
-            assert.equal( owaspUtils.is_ws_url( "https://127.0.0.1:1234" ), false );
-            assert.equal( owaspUtils.is_ws_url( "https://localhost:1234" ), false );
-            assert.equal( owaspUtils.is_ws_url( "https://[::1]:1234" ), false );
-            assert.equal( owaspUtils.is_ws_url( "ws://127.0.0.1" ), true );
-            assert.equal( owaspUtils.is_ws_url( "ws://localhost" ), true );
-            assert.equal( owaspUtils.is_ws_url( "ws://[::1]" ), true );
-            assert.equal( owaspUtils.is_ws_url( "ws://127.0.0.1:1234" ), true );
-            assert.equal( owaspUtils.is_ws_url( "ws://localhost:1234" ), true );
-            assert.equal( owaspUtils.is_ws_url( "ws://[::1]:1234" ), true );
-            assert.equal( owaspUtils.is_ws_url( "wss://127.0.0.1" ), true );
-            assert.equal( owaspUtils.is_ws_url( "wss://localhost" ), true );
-            assert.equal( owaspUtils.is_ws_url( "wss://[::1]" ), true );
-            assert.equal( owaspUtils.is_ws_url( "wss://127.0.0.1:1234" ), true );
-            assert.equal( owaspUtils.is_ws_url( "wss://localhost:1234" ), true );
-            assert.equal( owaspUtils.is_ws_url( "wss://[::1]:1234" ), true );
+            assert.equal( owaspUtils.isUrlWS( "http://127.0.0.1" ), false );
+            assert.equal( owaspUtils.isUrlWS( "http://localhost" ), false );
+            assert.equal( owaspUtils.isUrlWS( "http://[::1]" ), false );
+            assert.equal( owaspUtils.isUrlWS( "http://127.0.0.1:1234" ), false );
+            assert.equal( owaspUtils.isUrlWS( "http://localhost:1234" ), false );
+            assert.equal( owaspUtils.isUrlWS( "http://[::1]:1234" ), false );
+            assert.equal( owaspUtils.isUrlWS( "https://127.0.0.1" ), false );
+            assert.equal( owaspUtils.isUrlWS( "https://localhost" ), false );
+            assert.equal( owaspUtils.isUrlWS( "https://[::1]" ), false );
+            assert.equal( owaspUtils.isUrlWS( "https://127.0.0.1:1234" ), false );
+            assert.equal( owaspUtils.isUrlWS( "https://localhost:1234" ), false );
+            assert.equal( owaspUtils.isUrlWS( "https://[::1]:1234" ), false );
+            assert.equal( owaspUtils.isUrlWS( "ws://127.0.0.1" ), true );
+            assert.equal( owaspUtils.isUrlWS( "ws://localhost" ), true );
+            assert.equal( owaspUtils.isUrlWS( "ws://[::1]" ), true );
+            assert.equal( owaspUtils.isUrlWS( "ws://127.0.0.1:1234" ), true );
+            assert.equal( owaspUtils.isUrlWS( "ws://localhost:1234" ), true );
+            assert.equal( owaspUtils.isUrlWS( "ws://[::1]:1234" ), true );
+            assert.equal( owaspUtils.isUrlWS( "wss://127.0.0.1" ), true );
+            assert.equal( owaspUtils.isUrlWS( "wss://localhost" ), true );
+            assert.equal( owaspUtils.isUrlWS( "wss://[::1]" ), true );
+            assert.equal( owaspUtils.isUrlWS( "wss://127.0.0.1:1234" ), true );
+            assert.equal( owaspUtils.isUrlWS( "wss://localhost:1234" ), true );
+            assert.equal( owaspUtils.isUrlWS( "wss://[::1]:1234" ), true );
         } );
     } );
 } );
@@ -596,10 +596,10 @@ describe( "OWASP-3", function() {
         } );
 
         it( "Byte sequence utilities", function() {
-            assert.equal( owaspUtils.ensure_starts_with_0x( "0x123" ), "0x123" );
-            assert.equal( owaspUtils.ensure_starts_with_0x( "123" ), "0x123" );
-            assert.equal( owaspUtils.remove_starting_0x( "0x123" ), "123" );
-            assert.equal( owaspUtils.remove_starting_0x( "123" ), "123" );
+            assert.equal( owaspUtils.ensureStartsWith0x( "0x123" ), "0x123" );
+            assert.equal( owaspUtils.ensureStartsWith0x( "123" ), "0x123" );
+            assert.equal( owaspUtils.removeStarting0x( "0x123" ), "123" );
+            assert.equal( owaspUtils.removeStarting0x( "123" ), "123" );
         } );
 
     } );
@@ -674,7 +674,7 @@ describe( "OWASP-5", function() {
     describe( "Other utilities", function() {
 
         it( "IP from her", function() {
-            assert.equal( owaspUtils.ip_from_hex( "0x0a0b0c0d" ), "10.11.12.13" );
+            assert.equal( owaspUtils.ipFromHex( "0x0a0b0c0d" ), "10.11.12.13" );
         } );
 
         it( "Clone object by root keys", function() {
@@ -685,35 +685,35 @@ describe( "OWASP-5", function() {
 
         it( "ID from chain name", function() {
             assert.equal(
-                owaspUtils.compute_chain_id_from_schain_name( "Hello World" ),
+                owaspUtils.computeChainIdFromSChainName( "Hello World" ),
                 "0x592fa743889fc7" );
         } );
 
         it( "Extract error message", function() {
             const not_extracted = "error message was not extracted";
             assert.equal(
-                owaspUtils.extract_error_message(
+                owaspUtils.extractErrorMessage(
                     null, not_extracted ), not_extracted );
             assert.equal(
-                owaspUtils.extract_error_message(
+                owaspUtils.extractErrorMessage(
                     undefined, not_extracted ), not_extracted );
             assert.equal(
-                owaspUtils.extract_error_message(
+                owaspUtils.extractErrorMessage(
                     123, not_extracted ), not_extracted );
             assert.equal(
-                owaspUtils.extract_error_message(
+                owaspUtils.extractErrorMessage(
                     "123", not_extracted ), not_extracted );
             assert.equal(
-                owaspUtils.extract_error_message(
+                owaspUtils.extractErrorMessage(
                     "", not_extracted ), not_extracted );
             assert.equal(
-                owaspUtils.extract_error_message(
+                owaspUtils.extractErrorMessage(
                     {}, not_extracted ), not_extracted );
             assert.equal(
-                owaspUtils.extract_error_message(
+                owaspUtils.extractErrorMessage(
                     { "err": "something" }, not_extracted ), not_extracted );
             assert.equal(
-                owaspUtils.extract_error_message(
+                owaspUtils.extractErrorMessage(
                     new Error( "Hello World" ), not_extracted ), "Hello World" );
         } );
 
@@ -724,13 +724,13 @@ describe( "OWASP-5", function() {
             "privateKey":
                 owaspUtils.toEthPrivateKey(
                     "23ABDBD3C61B5330AF61EBE8BEF582F4E5CC08E554053A718BDCE7813B9DC1FC" ),
-            "address": owaspUtils.fn_address_impl_
+            "address": owaspUtils.fnAddressImpl_
         };
 
         it( "Extract address from private key", function() {
             const address = joTestAccount.address();
             const address2 =
-                owaspUtils.private_key_2_account_address( joTestAccount.privateKey );
+                owaspUtils.privateKeyToAccountAddress( joTestAccount.privateKey );
             assert.equal(
                 address.toLowerCase(),
                 "0x7aa5E36AA15E93D10F4F26357C30F052DacDde5F".toLowerCase() );
@@ -740,7 +740,7 @@ describe( "OWASP-5", function() {
         } );
 
         it( "Extract public key from private key", function() {
-            const publicKey = owaspUtils.private_key_2_public_key( joTestAccount.privateKey );
+            const publicKey = owaspUtils.privateKeyToPublicKey( joTestAccount.privateKey );
             assert.equal(
                 publicKey.toLowerCase(),
                 ( "5dd431d36ce6b88f27d351051b31a26848c4a886f0dd0bc87a7d5a9d82" +
@@ -750,8 +750,8 @@ describe( "OWASP-5", function() {
 
         it( "Extract address from public key", function() {
             const address = joTestAccount.address();
-            const publicKey = owaspUtils.private_key_2_public_key( joTestAccount.privateKey );
-            const address2 = owaspUtils.public_key_2_account_address( publicKey );
+            const publicKey = owaspUtils.privateKeyToPublicKey( joTestAccount.privateKey );
+            const address2 = owaspUtils.publicKeyToAccountAddress( publicKey );
             assert.equal( address.toLowerCase(), address2.toLowerCase() );
         } );
     } );
@@ -926,14 +926,14 @@ describe( "CLI", function() {
     describe( "IMA Agent command line helpers", function() {
 
         it( "About", function() {
-            assert.equal( imaCLI.print_about( true ), true );
+            assert.equal( imaCLI.printAbout( true ), true );
         } );
 
         it( "Parse and collect CLI argument", function() {
-            let joArg = imaCLI.parse_command_line_argument( "--help" );
+            let joArg = imaCLI.parseCommandLineArgument( "--help" );
             assert.equal( joArg.name, "help" );
             assert.equal( joArg.value, "" );
-            joArg = imaCLI.parse_command_line_argument( "--test-url=http://127.0.0.1:3456" );
+            joArg = imaCLI.parseCommandLineArgument( "--test-url=http://127.0.0.1:3456" );
             assert.equal( joArg.name, "test-url" );
             assert.equal( joArg.value, "http://127.0.0.1:3456" );
             const isExitIfEmpty = false;
@@ -954,10 +954,10 @@ describe( "CLI", function() {
                 "privateKey":
                     owaspUtils.toEthPrivateKey(
                         "23ABDBD3C61B5330AF61EBE8BEF582F4E5CC08E554053A718BDCE7813B9DC1FC" ),
-                "address": owaspUtils.fn_address_impl_
+                "address": owaspUtils.fnAddressImpl_
             };
             assert.equal(
-                imaCLI.ensure_have_chain_credentials(
+                imaCLI.ensureHaveCredentials(
                     imaState.chainProperties.sc.strChainName,
                     joTestAccount,
                     isExitIfEmpty,
@@ -967,8 +967,7 @@ describe( "CLI", function() {
 
     } );
 
-    // TO-DO: imaCLI.find_node_index
-    // TO-DO: imaCLI.load_node_config
+    // TO-DO: imaCLI.findNodeIndex
 
     describe( "IMA Agent command line parser", function() {
 
@@ -1074,28 +1073,28 @@ describe( "Agent Utils Module-1", function() {
 
         it( "Compose S-Chain URL", function() {
             assert.equal(
-                imaUtils.compose_schain_node_url(
+                imaUtils.composeSChainNodeUrl(
                     { ip: "127.0.0.1", httpRpcPort: 3456 } ), "http://127.0.0.1:3456" );
             assert.equal(
-                imaUtils.compose_schain_node_url(
+                imaUtils.composeSChainNodeUrl(
                     { ip: "127.0.0.1", httpsRpcPort: 3456 } ), "https://127.0.0.1:3456" );
             assert.equal(
-                imaUtils.compose_schain_node_url(
+                imaUtils.composeSChainNodeUrl(
                     { ip: "127.0.0.1", wsRpcPort: 3456 } ), "ws://127.0.0.1:3456" );
             assert.equal(
-                imaUtils.compose_schain_node_url(
+                imaUtils.composeSChainNodeUrl(
                     { ip: "127.0.0.1", wssRpcPort: 3456 } ), "wss://127.0.0.1:3456" );
             assert.equal(
-                imaUtils.compose_schain_node_url(
+                imaUtils.composeSChainNodeUrl(
                     { ip6: "::1", httpRpcPort6: 3456 } ), "http://[::1]:3456" );
             assert.equal(
-                imaUtils.compose_schain_node_url(
+                imaUtils.composeSChainNodeUrl(
                     { ip6: "::1", httpsRpcPort6: 3456 } ), "https://[::1]:3456" );
             assert.equal(
-                imaUtils.compose_schain_node_url(
+                imaUtils.composeSChainNodeUrl(
                     { ip6: "::1", wsRpcPort6: 3456 } ), "ws://[::1]:3456" );
             assert.equal(
-                imaUtils.compose_schain_node_url(
+                imaUtils.composeSChainNodeUrl(
                     { ip6: "::1", wssRpcPort6: 3456 } ), "wss://[::1]:3456" );
         } );
 
@@ -1105,7 +1104,7 @@ describe( "Agent Utils Module-1", function() {
             // so... distance is 10 - 3 = 7
             // as result, 14999 + 7 = 15006
             assert.equal(
-                imaUtils.compose_ima_agent_node_url(
+                imaUtils.composeImaAgentNodeUrl(
                     { ip: "127.0.0.1", httpRpcPort: 14999 } ), "http://127.0.0.1:15006" );
         } );
 
@@ -1277,10 +1276,10 @@ describe( "Agent Utils Module-3", function() {
             ];
             const isExitOnError = false;
             assert.equal(
-                imaUtils.check_key_exist_in_abi(
+                imaUtils.checkKeyExistInABI(
                     strName, strFile, joABI, strKey, isExitOnError ), true );
             assert.equal(
-                imaUtils.check_keys_exist_in_abi(
+                imaUtils.checkKeysExistInABI(
                     strName, strFile, joABI, arrKeys, isExitOnError ), true );
         } );
 
@@ -1291,7 +1290,7 @@ describe( "Agent Utils Module-3", function() {
                     strFile,
                     { error: "file \"" + strFile + "\"was not loaded" } );
             const strCoinName =
-                imaUtils.discover_in_json_coin_name( joABI );
+                imaUtils.discoverCoinNameInJSON( joABI );
             assert.equal( strCoinName.length > 0, true );
         } );
 

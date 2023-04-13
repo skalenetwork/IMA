@@ -33,7 +33,7 @@ import * as log from "../npms/skale-log/log.mjs";
 import * as cc from "../npms/skale-cc/cc.mjs";
 import * as imaCLI from "./cli.mjs";
 import * as rpcCall from "./rpc-call.mjs";
-import * as skale_observer from "../npms/skale-observer/observer.mjs";
+import * as skaleObserver from "../npms/skale-observer/observer.mjs";
 import * as loop from "./loop.mjs";
 import * as imaUtils from "./utils.mjs";
 import * as IMA from "../npms/skale-ima/index.mjs";
@@ -48,7 +48,7 @@ process.env.NODE_TLS_REJECT_UNAUTHORIZED = 0;
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 
-function initial_skale_network_scan_for_S2S() {
+function initialSkaleNetworkScanForS2S() {
     const imaState = state.get();
     if( ! imaState.s2s_opts.isEnabled )
         return;
@@ -79,7 +79,7 @@ function initial_skale_network_scan_for_S2S() {
             log.write( strLogPrefix +
                 cc.debug( "Will start periodic S-Chains caching..." ) +
                 "\n" );
-            await skale_observer.periodic_caching_start(
+            await skaleObserver.periodicCachingStart(
                 imaState.chainProperties.sc.strChainName,
                 addressFrom,
                 opts
@@ -95,38 +95,38 @@ function initial_skale_network_scan_for_S2S() {
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 
-function command_line_task_register() {
+function commandLineTaskRegister() {
     const imaState = state.get();
     imaState.arrActions.push( {
         "name": "Full registration(all steps)",
         "fn": async function() {
             if( ! imaState.bNoWaitSChainStarted )
-                await wait_until_s_chain_started(); // register_all
-            return await register_all( true );
+                await waitUntilSChainStarted(); // registerAll
+            return await registerAll( true );
         }
     } );
 }
 
-function command_line_task_register1() {
+function commandLineTaskRegister1() {
     const imaState = state.get();
     imaState.arrActions.push( {
         "name": "Registration step 1, register S-Chain in deposit box",
         "fn": async function() {
             if( ! imaState.bNoWaitSChainStarted )
-                await wait_until_s_chain_started(); // register_step1
-            return await register_step1( true );
+                await waitUntilSChainStarted(); // registerStep1
+            return await registerStep1( true );
         }
     } );
 }
 
-function command_line_task_check_registration() {
+function commandLineTaskCheckRegistration() {
     const imaState = state.get();
     imaState.arrActions.push( {
         "name": "Full registration status check(all steps)",
         "fn": async function() {
             if( ! imaState.bNoWaitSChainStarted )
-                await wait_until_s_chain_started(); // check_registration_all
-            const b = await check_registration_all();
+                await waitUntilSChainStarted(); // checkRegistrationAll
+            const b = await checkRegistrationAll();
             // nExitCode is: 0 - OKay - registered; non-zero -  not registered or error
             const nExitCode = b ? 0 : 150;
             log.write( cc.notice( "Exiting with code " ) + cc.info( nExitCode ) + "\n" );
@@ -135,14 +135,14 @@ function command_line_task_check_registration() {
     } );
 }
 
-function command_line_task_check_registration1() {
+function commandLineTaskCheckRegistration1() {
     const imaState = state.get();
     imaState.arrActions.push( {
         "name": "Registration status check step 1, register S-Chain in deposit box",
         "fn": async function() {
             if( ! imaState.bNoWaitSChainStarted )
-                await wait_until_s_chain_started(); // check_registration_step1
-            const b = await check_registration_step1();
+                await waitUntilSChainStarted(); // checkRegistrationStep1
+            const b = await checkRegistrationStep1();
             // nExitCode is: 0 - OKay - registered; non-zero -  not registered or error
             const nExitCode = b ? 0 : 152;
             log.write( cc.notice( "Exiting with code " ) + cc.info( nExitCode ) + "\n" );
@@ -151,7 +151,7 @@ function command_line_task_check_registration1() {
     } );
 }
 
-function command_line_task_mint_erc20() {
+function commandLineTaskMintErc20() {
     const imaState = state.get();
     imaState.arrActions.push( {
         "name": "mint ERC20",
@@ -162,7 +162,7 @@ function command_line_task_mint_erc20() {
                     const strAddressMintTo = // same as caller/transaction signer
                         imaState.chainProperties.tc.joAccount.address();
                     bMintIsOK =
-                        await IMA.mintERC20(
+                        await IMA.mintErc20(
                             imaState.chainProperties.tc.ethersProvider,
                             imaState.chainProperties.tc.cid,
                             imaState.chainProperties.tc.strChainName,
@@ -184,7 +184,7 @@ function command_line_task_mint_erc20() {
     } );
 }
 
-function command_line_task_mint_erc721() {
+function commandLineTaskMintErc721() {
     const imaState = state.get();
     imaState.arrActions.push( {
         "name": "mint ERC721",
@@ -201,7 +201,7 @@ function command_line_task_mint_erc721() {
                         for( let i = 0; i < idTokens.length; ++ i ) {
                             const idToken = idTokens[i];
                             bMintIsOK =
-                                await IMA.mintERC721(
+                                await IMA.mintErc721(
                                     imaState.chainProperties.tc.ethersProvider,
                                     imaState.chainProperties.tc.cid,
                                     imaState.chainProperties.tc.strChainName,
@@ -225,7 +225,7 @@ function command_line_task_mint_erc721() {
     } );
 }
 
-function command_line_task_mint_erc1155() {
+function commandLineTaskMintErc1155() {
     const imaState = state.get();
     imaState.arrActions.push( {
         "name": "mint ERC1155",
@@ -242,7 +242,7 @@ function command_line_task_mint_erc1155() {
                         for( let i = 0; i < idTokens.length; ++ i ) {
                             const idToken = idTokens[i];
                             bMintIsOK =
-                                await IMA.mintERC1155(
+                                await IMA.mintErc1155(
                                     imaState.chainProperties.tc.ethersProvider,
                                     imaState.chainProperties.tc.cid,
                                     imaState.chainProperties.tc.strChainName,
@@ -269,7 +269,7 @@ function command_line_task_mint_erc1155() {
     } );
 }
 
-function command_line_task_burn_erc20() {
+function commandLineTaskBurnErc20() {
     const imaState = state.get();
     imaState.arrActions.push( {
         "name": "burn ERC20",
@@ -280,7 +280,7 @@ function command_line_task_burn_erc20() {
                     const strAddressBurnFrom = // same as caller/transaction signer
                         imaState.chainProperties.tc.joAccount.address();
                     bBurnIsOK =
-                        await IMA.burnERC20(
+                        await IMA.burnErc20(
                             imaState.chainProperties.tc.ethersProvider,
                             imaState.chainProperties.tc.cid,
                             imaState.chainProperties.tc.strChainName,
@@ -304,7 +304,7 @@ function command_line_task_burn_erc20() {
     } );
 }
 
-function command_line_task_burn_erc721() {
+function commandLineTaskBurnErc721() {
     const imaState = state.get();
     imaState.arrActions.push( {
         "name": "burn ERC721",
@@ -319,7 +319,7 @@ function command_line_task_burn_erc721() {
                         for( let i = 0; i < idTokens.length; ++ i ) {
                             const idToken = idTokens[i];
                             bBurnIsOK =
-                                await IMA.burnERC721(
+                                await IMA.burnErc721(
                                     imaState.chainProperties.tc.ethersProvider,
                                     imaState.chainProperties.tc.cid,
                                     imaState.chainProperties.tc.strChainName,
@@ -344,7 +344,7 @@ function command_line_task_burn_erc721() {
     } );
 }
 
-function command_line_task_burn_erc1155() {
+function commandLineTaskBurnErc1155() {
     const imaState = state.get();
     imaState.arrActions.push( {
         "name": "burn ERC1155",
@@ -361,7 +361,7 @@ function command_line_task_burn_erc1155() {
                         for( let i = 0; i < idTokens.length; ++ i ) {
                             const idToken = idTokens[i];
                             bBurnIsOK =
-                                await IMA.burnERC1155(
+                                await IMA.burnErc1155(
                                     imaState.chainProperties.tc.ethersProvider,
                                     imaState.chainProperties.tc.cid,
                                     imaState.chainProperties.tc.strChainName,
@@ -388,7 +388,7 @@ function command_line_task_burn_erc1155() {
     } );
 }
 
-function format_balance_info( bi, strAddress ) {
+function formatBalanceInfo( bi, strAddress ) {
     let s = "";
     s += cc.attention( bi.assetName );
     if( "assetAddress" in bi &&
@@ -412,7 +412,7 @@ function format_balance_info( bi, strAddress ) {
     return s;
 }
 
-async function command_line_task_show_balance_eth(
+async function commandLineTaskShowBalanceEth(
     arrBalancesMN, arrBalancesSC, arrBalancesTC
 ) {
     const imaState = state.get();
@@ -420,13 +420,13 @@ async function command_line_task_show_balance_eth(
     if( imaState.chainProperties.mn.ethersProvider ) {
         arrBalancesMN.push( {
             "assetName": "RealETH",
-            "balance": await IMA.balanceETH( true, // isMainNet
+            "balance": await IMA.getBalanceEth( true, // isMainNet
                 imaState.chainProperties.mn.ethersProvider,
                 imaState.chainProperties.mn.cid, imaState.chainProperties.mn.joAccount )
         } );
         arrBalancesMN.push( {
             "assetName": "CanReceiveETH",
-            "balance": await IMA.view_eth_payment_from_s_chain_on_main_net(
+            "balance": await IMA.viewEthPaymentFromSchainOnMainNet(
                 imaState.chainProperties.mn.ethersProvider,
                 imaState.chainProperties.mn.joAccount, imaState.jo_deposit_box_eth )
         } );
@@ -440,13 +440,13 @@ async function command_line_task_show_balance_eth(
         arrBalancesSC.push( {
             "assetName": "S-Chain Real ETH as ERC20",
             "assetAddress": assetAddress,
-            "balance": await IMA.balanceETH( false, // isMainNet
+            "balance": await IMA.getBalanceEth( false, // isMainNet
                 imaState.chainProperties.sc.ethersProvider, imaState.chainProperties.sc.cid,
                 imaState.chainProperties.sc.joAccount, imaState.eth_erc20 )
         } );
         arrBalancesSC.push( {
             "assetName": "S-Chain ETH Fuel",
-            "balance": await IMA.balanceETH( true, // isMainNet=true here, but we call S-Chain
+            "balance": await IMA.getBalanceEth( true, // isMainNet=true here, but we call S-Chain
                 imaState.chainProperties.sc.ethersProvider,
                 imaState.chainProperties.sc.cid, imaState.chainProperties.sc.joAccount )
         } );
@@ -455,20 +455,20 @@ async function command_line_task_show_balance_eth(
         arrBalancesSC.push( {
             "assetName": "Target S-Chain Real ETH as ERC20",
             "assetAddress": assetAddress,
-            "balance": await IMA.balanceETH( false, // isMainNet
+            "balance": await IMA.getBalanceEth( false, // isMainNet
                 imaState.chainProperties.tc.ethersProvider, imaState.chainProperties.sc.cid,
                 imaState.chainProperties.tc.joAccount, imaState.eth_erc20 )
         } );
         arrBalancesTC.push( {
             "assetName": "Target S-Chain ETH Fuel",
-            "balance": await IMA.balanceETH( true, // isMainNet=true here, but we call S-Chain
+            "balance": await IMA.getBalanceEth( true, // isMainNet=true here, but we call S-Chain
                 imaState.chainProperties.tc.ethersProvider,
                 imaState.chainProperties.tc.cid, imaState.chainProperties.tc.joAccount )
         } );
     }
 }
 
-async function command_line_task_show_balance_erc20(
+async function commandLineTaskShowBalanceErc20(
     arrBalancesMN, arrBalancesSC, arrBalancesTC
 ) {
     const imaState = state.get();
@@ -483,7 +483,7 @@ async function command_line_task_show_balance_erc20(
         arrBalancesMN.push( {
             "assetName": "ERC20",
             "assetAddress": assetAddress,
-            "balance": await IMA.balanceERC20( true, // isMainNet
+            "balance": await IMA.getBalanceErc20( true, // isMainNet
                 imaState.chainProperties.mn.ethersProvider, imaState.chainProperties.mn.cid,
                 imaState.chainProperties.mn.joAccount,
                 imaState.chainProperties.mn.strCoinNameErc20,
@@ -500,7 +500,7 @@ async function command_line_task_show_balance_erc20(
         arrBalancesSC.push( {
             "assetName": "ERC20",
             "assetAddress": assetAddress,
-            "balance": await IMA.balanceERC20( false, // isMainNet
+            "balance": await IMA.getBalanceErc20( false, // isMainNet
                 imaState.chainProperties.sc.ethersProvider, imaState.chainProperties.sc.cid,
                 imaState.chainProperties.sc.joAccount,
                 imaState.chainProperties.sc.strCoinNameErc20,
@@ -517,7 +517,7 @@ async function command_line_task_show_balance_erc20(
         arrBalancesTC.push( {
             "assetName": "ERC20",
             "assetAddress": assetAddress,
-            "balance": await IMA.balanceERC20( true, // isMainNet
+            "balance": await IMA.getBalanceErc20( true, // isMainNet
                 imaState.chainProperties.tc.ethersProvider, imaState.chainProperties.mn.cid,
                 imaState.chainProperties.tc.joAccount,
                 imaState.chainProperties.tc.strCoinNameErc20,
@@ -526,7 +526,7 @@ async function command_line_task_show_balance_erc20(
     }
 }
 
-async function command_line_task_show_balance_erc721(
+async function commandLineTaskShowBalanceErc721(
     arrBalancesMN, arrBalancesSC, arrBalancesTC, idTokens
 ) {
     const imaState = state.get();
@@ -544,7 +544,7 @@ async function command_line_task_show_balance_erc721(
                 "assetName": "ERC721",
                 "assetAddress": assetAddress,
                 "idToken": idToken,
-                "owner": await IMA.ownerOfERC721( true, // isMainNet
+                "owner": await IMA.getOwnerOfErc721( true, // isMainNet
                     imaState.chainProperties.mn.ethersProvider,
                     imaState.chainProperties.mn.cid,
                     imaState.chainProperties.mn.joAccount,
@@ -566,7 +566,7 @@ async function command_line_task_show_balance_erc721(
                 "assetName": "ERC721",
                 "assetAddress": assetAddress,
                 "idToken": idToken,
-                "owner": await IMA.ownerOfERC721( false, // isMainNet
+                "owner": await IMA.getOwnerOfErc721( false, // isMainNet
                     imaState.chainProperties.sc.ethersProvider,
                     imaState.chainProperties.sc.cid,
                     imaState.chainProperties.sc.joAccount,
@@ -588,7 +588,7 @@ async function command_line_task_show_balance_erc721(
                 "assetName": "ERC721",
                 "assetAddress": assetAddress,
                 "idToken": idToken,
-                "owner": await IMA.ownerOfERC721( false, // isMainNet
+                "owner": await IMA.getOwnerOfErc721( false, // isMainNet
                     imaState.chainProperties.tc.ethersProvider,
                     imaState.chainProperties.tc.cid,
                     imaState.chainProperties.tc.joAccount,
@@ -599,7 +599,7 @@ async function command_line_task_show_balance_erc721(
     }
 }
 
-async function command_line_task_show_balance_erc1155(
+async function commandLineTaskShowBalanceErc1155(
     arrBalancesMN, arrBalancesSC, arrBalancesTC, idTokens
 ) {
     const imaState = state.get();
@@ -617,7 +617,7 @@ async function command_line_task_show_balance_erc1155(
                 "assetName": "ERC1155",
                 "assetAddress": assetAddress,
                 "idToken": idToken,
-                "balance": await IMA.balanceERC1155( true, // isMainNet
+                "balance": await IMA.getBalanceErc1155( true, // isMainNet
                     imaState.chainProperties.mn.ethersProvider,
                     imaState.chainProperties.mn.cid,
                     imaState.chainProperties.mn.joAccount,
@@ -639,7 +639,7 @@ async function command_line_task_show_balance_erc1155(
                 "assetName": "ERC1155",
                 "assetAddress": assetAddress,
                 "idToken": idToken,
-                "balance": await IMA.balanceERC1155( false, // isMainNet
+                "balance": await IMA.getBalanceErc1155( false, // isMainNet
                     imaState.chainProperties.sc.ethersProvider,
                     imaState.chainProperties.sc.cid,
                     imaState.chainProperties.sc.joAccount,
@@ -661,7 +661,7 @@ async function command_line_task_show_balance_erc1155(
                 "assetName": "ERC1155",
                 "assetAddress": assetAddress,
                 "idToken": idToken,
-                "balance": await IMA.balanceERC1155( false, // isMainNet
+                "balance": await IMA.getBalanceErc1155( false, // isMainNet
                     imaState.chainProperties.tc.ethersProvider,
                     imaState.chainProperties.tc.cid,
                     imaState.chainProperties.tc.joAccount,
@@ -672,23 +672,23 @@ async function command_line_task_show_balance_erc1155(
     }
 }
 
-function command_line_task_show_balance() {
+function commandLineTaskShowBalance() {
     const imaState = state.get();
     imaState.arrActions.push( {
         "name": "show balance",
         "fn": async function() {
             const arrBalancesMN = [], arrBalancesSC = [], arrBalancesTC = [];
-            await command_line_task_show_balance_eth(
+            await commandLineTaskShowBalanceEth(
                 arrBalancesMN, arrBalancesSC, arrBalancesTC );
-            await command_line_task_show_balance_erc20(
+            await commandLineTaskShowBalanceErc20(
                 arrBalancesMN, arrBalancesSC, arrBalancesTC );
             const idTokens = imaState.have_idTokens ? imaState.idTokens : [];
             if( imaState.have_idToken )
                 idTokens.push( imaState.idToken );
             if( idTokens.length > 0 ) {
-                await command_line_task_show_balance_erc721(
+                await commandLineTaskShowBalanceErc721(
                     arrBalancesMN, arrBalancesSC, arrBalancesTC, idTokens );
-                await command_line_task_show_balance_erc1155(
+                await commandLineTaskShowBalanceErc1155(
                     arrBalancesMN, arrBalancesSC, arrBalancesTC, idTokens );
             }
             if( arrBalancesMN.length > 0 || arrBalancesSC.length > 0 || arrBalancesTC.length > 0 ) {
@@ -699,7 +699,7 @@ function command_line_task_show_balance() {
                         cc.bright( " of " ) + cc.notice( strAddress ) + cc.bright( ":" ) + "\n" );
                     for( let i = 0; i < arrBalancesMN.length; ++ i ) {
                         const bi = arrBalancesMN[i];
-                        log.write( "    " + format_balance_info( bi, strAddress ) + "\n" );
+                        log.write( "    " + formatBalanceInfo( bi, strAddress ) + "\n" );
                     }
                 }
                 if( arrBalancesSC.length > 0 ) {
@@ -709,7 +709,7 @@ function command_line_task_show_balance() {
                         cc.bright( " of " ) + cc.notice( strAddress ) + cc.bright( ":" ) + "\n" );
                     for( let i = 0; i < arrBalancesSC.length; ++ i ) {
                         const bi = arrBalancesSC[i];
-                        log.write( "    " + format_balance_info( bi, strAddress ) + "\n" );
+                        log.write( "    " + formatBalanceInfo( bi, strAddress ) + "\n" );
                     }
                 }
                 if( arrBalancesTC.length > 0 ) {
@@ -719,7 +719,7 @@ function command_line_task_show_balance() {
                         cc.bright( " of " ) + cc.notice( strAddress ) + cc.bright( ":" ) + "\n" );
                     for( let i = 0; i < arrBalancesTC.length; ++ i ) {
                         const bi = arrBalancesTC[i];
-                        log.write( "    " + format_balance_info( bi, strAddress ) + "\n" );
+                        log.write( "    " + formatBalanceInfo( bi, strAddress ) + "\n" );
                     }
                 }
             } else
@@ -729,7 +729,7 @@ function command_line_task_show_balance() {
     } );
 }
 
-function command_line_task_payment_m2s() {
+function commandLineTaskPaymentM2S() {
     const imaState = state.get();
     imaState.arrActions.push( {
         "name": "one M->S single payment",
@@ -740,7 +740,7 @@ function command_line_task_payment_m2s() {
                     cc.info( "one M->S single ERC721 payment: " ) +
                     cc.sunny( imaState.idToken ) +
                     "\n" ); // just print value
-                return await IMA.do_erc721_payment_from_main_net(
+                return await IMA.doErc721PaymentFromMainNet(
                     imaState.chainProperties.mn.ethersProvider,
                     imaState.chainProperties.sc.ethersProvider,
                     imaState.chainProperties.mn.cid,
@@ -770,7 +770,7 @@ function command_line_task_payment_m2s() {
                     cc.info( "one M->S single ERC20 payment: " ) +
                     cc.sunny( imaState.nAmountOfToken ) +
                     "\n" ); // just print value
-                return await IMA.do_erc20_payment_from_main_net(
+                return await IMA.doErc20PaymentFromMainNet(
                     imaState.chainProperties.mn.ethersProvider,
                     imaState.chainProperties.sc.ethersProvider,
                     imaState.chainProperties.mn.cid,
@@ -811,7 +811,7 @@ function command_line_task_payment_m2s() {
                     cc.sunny( imaState.idToken ) + " " +
                     cc.sunny( imaState.nAmountOfToken ) +
                     "\n" ); // just print value
-                return await IMA.do_erc1155_payment_from_main_net(
+                return await IMA.doErc1155PaymentFromMainNet(
                     imaState.chainProperties.mn.ethersProvider,
                     imaState.chainProperties.sc.ethersProvider,
                     imaState.chainProperties.mn.cid,
@@ -853,7 +853,7 @@ function command_line_task_payment_m2s() {
                     cc.sunny( imaState.idTokens ) + " " +
                     cc.sunny( imaState.arrAmountsOfTokens ) +
                     "\n" ); // just print value
-                return await IMA.do_erc1155_batch_payment_from_main_net(
+                return await IMA.doErc1155BatchPaymentFromMainNet(
                     imaState.chainProperties.mn.ethersProvider,
                     imaState.chainProperties.sc.ethersProvider,
                     imaState.chainProperties.mn.cid,
@@ -879,7 +879,7 @@ function command_line_task_payment_m2s() {
                 cc.info( "one M->S single ETH payment: " ) +
                 cc.sunny( imaState.nAmountOfWei ) +
                 "\n" ); // just print value
-            return await IMA.do_eth_payment_from_main_net(
+            return await IMA.doEthPaymentFromMainNet(
                 imaState.chainProperties.mn.ethersProvider,
                 imaState.chainProperties.mn.cid,
                 imaState.chainProperties.mn.joAccount,
@@ -894,7 +894,7 @@ function command_line_task_payment_m2s() {
     } );
 }
 
-function command_line_task_payment_s2m() {
+function commandLineTaskPaymentS2M() {
     const imaState = state.get();
     imaState.arrActions.push( {
         "name": "one S->M single payment",
@@ -905,7 +905,7 @@ function command_line_task_payment_s2m() {
                     cc.info( "one S->M single ERC721 payment: " ) +
                     cc.sunny( imaState.idToken ) +
                         "\n" ); // just print value
-                return await IMA.do_erc721_payment_from_s_chain(
+                return await IMA.doErc721PaymentFromSChain(
                     imaState.chainProperties.mn.ethersProvider,
                     imaState.chainProperties.sc.ethersProvider,
                     imaState.chainProperties.mn.cid,
@@ -934,7 +934,7 @@ function command_line_task_payment_s2m() {
                     cc.info( "one S->M single ERC20 payment: " ) +
                     cc.sunny( imaState.nAmountOfToken ) +
                     "\n" ); // just print value
-                return await IMA.do_erc20_payment_from_s_chain(
+                return await IMA.doErc20PaymentFromSChain(
                     imaState.chainProperties.mn.ethersProvider,
                     imaState.chainProperties.sc.ethersProvider,
                     imaState.chainProperties.mn.cid,
@@ -974,7 +974,7 @@ function command_line_task_payment_s2m() {
                     cc.sunny( imaState.idToken ) + " " +
                     cc.sunny( imaState.nAmountOfToken ) +
                     "\n" ); // just print value
-                return await IMA.do_erc1155_payment_from_s_chain(
+                return await IMA.doErc1155PaymentFromSChain(
                     imaState.chainProperties.mn.ethersProvider,
                     imaState.chainProperties.sc.ethersProvider,
                     imaState.chainProperties.mn.cid,
@@ -1015,7 +1015,7 @@ function command_line_task_payment_s2m() {
                     cc.sunny( imaState.idTokens ) + " " +
                     cc.sunny( imaState.arrAmountsOfTokens ) +
                     "\n" ); // just print value
-                return await IMA.do_erc1155_batch_payment_from_s_chain(
+                return await IMA.doErc1155BatchPaymentFromSChain(
                     imaState.chainProperties.mn.ethersProvider,
                     imaState.chainProperties.sc.ethersProvider,
                     imaState.chainProperties.mn.cid,
@@ -1040,7 +1040,7 @@ function command_line_task_payment_s2m() {
                 cc.info( "one S->M single ETH payment: " ) +
                 cc.sunny( imaState.nAmountOfWei ) +
                 "\n" ); // just print value
-            return await IMA.do_eth_payment_from_s_chain(
+            return await IMA.doEthPaymentFromSChain(
                 imaState.chainProperties.sc.ethersProvider,
                 imaState.chainProperties.sc.cid,
                 imaState.chainProperties.sc.joAccount,
@@ -1054,7 +1054,7 @@ function command_line_task_payment_s2m() {
     } );
 }
 
-function command_line_task_payment_s2s() {
+function commandLineTaskPaymentS2S() {
     const imaState = state.get();
     imaState.arrActions.push( {
         "name": "one S->S single payment",
@@ -1113,7 +1113,7 @@ function command_line_task_payment_s2s() {
                 // ERC721 payment
                 log.write( cc.info( "one S->S single ERC721 payment: " ) +
                     cc.sunny( imaState.idToken ) + "\n" ); // just print value
-                return await IMA.do_erc721_payment_s2s(
+                return await IMA.doErc721PaymentS2S(
                     isForward,
                     ethersProvider_src,
                     cid_src,
@@ -1132,7 +1132,7 @@ function command_line_task_payment_s2s() {
             // ERC20 payment
                 log.write( cc.info( "one S->S single ERC20 payment: " ) +
                     cc.sunny( imaState.nAmountOfToken ) + "\n" ); // just print value
-                return await IMA.do_erc20_payment_s2s(
+                return await IMA.doErc20PaymentS2S(
                     isForward,
                     ethersProvider_src,
                     cid_src,
@@ -1166,7 +1166,7 @@ function command_line_task_payment_s2s() {
                 log.write( cc.info( "one S->S single ERC1155 payment: " ) +
                     cc.sunny( imaState.idToken ) + " " + cc.sunny( imaState.nAmountOfToken ) +
                     "\n" ); // just print value
-                return await IMA.do_erc1155_payment_s2s(
+                return await IMA.doErc1155PaymentS2S(
                     isForward,
                     ethersProvider_src,
                     cid_src,
@@ -1201,7 +1201,7 @@ function command_line_task_payment_s2s() {
                 log.write( cc.info( "one S->S single ERC1155 Batch payment: " ) +
                     cc.sunny( imaState.idTokens ) + " " + cc.sunny( imaState.arrAmountsOfTokens ) +
                     "\n" ); // just print value
-                return await IMA.do_erc1155_batch_payment_s2s(
+                return await IMA.doErc1155BatchPaymentS2S(
                     isForward,
                     ethersProvider_src,
                     cid_src,
@@ -1228,7 +1228,7 @@ function command_line_task_payment_s2s() {
     } );
 }
 
-function command_line_task_s2m_receive() {
+function commandLineTaskReceiveS2M() {
     const imaState = state.get();
     imaState.arrActions.push( {
         "name": "receive one S->M single ETH payment",
@@ -1236,7 +1236,7 @@ function command_line_task_s2m_receive() {
             log.write(
                 cc.info( "receive one S->M single ETH payment: " ) +
                 "\n" ); // just print value
-            return await IMA.receive_eth_payment_from_s_chain_on_main_net(
+            return await IMA.receiveEthPaymentFromSchainOnMainNet(
                 imaState.chainProperties.mn.ethersProvider,
                 imaState.chainProperties.mn.cid,
                 imaState.chainProperties.mn.joAccount,
@@ -1247,7 +1247,7 @@ function command_line_task_s2m_receive() {
     } );
 }
 
-function command_line_task_s2m_view() {
+function commandLineTaskViewS2M() {
     const imaState = state.get();
     imaState.arrActions.push( {
         "name": "view one S->M single ETH payment",
@@ -1255,7 +1255,7 @@ function command_line_task_s2m_view() {
             log.write(
                 cc.info( "view one S->M single ETH payment: " ) +
                 "\n" ); // just print value
-            const xWei = await IMA.view_eth_payment_from_s_chain_on_main_net(
+            const xWei = await IMA.viewEthPaymentFromSchainOnMainNet(
                 imaState.chainProperties.mn.ethersProvider,
                 imaState.chainProperties.mn.joAccount,
                 imaState.jo_deposit_box_eth
@@ -1273,19 +1273,19 @@ function command_line_task_s2m_view() {
     } );
 }
 
-function command_line_task_transfer_m2s() {
+function commandLineTaskTransferM2S() {
     const imaState = state.get();
     imaState.arrActions.push( {
         "name": "single M->S transfer loop",
         "fn": async function() {
             if( ! imaState.bNoWaitSChainStarted )
-                await wait_until_s_chain_started(); // main-net --> s-chain transfer
+                await waitUntilSChainStarted(); // main-net --> s-chain transfer
             const joRuntimeOpts = {
                 isInsideWorker: false,
                 idxChainKnownForS2S: 0,
                 cntChainsKnownForS2S: 0
             };
-            return await IMA.do_transfer( // main-net --> s-chain
+            return await IMA.doTransfer( // main-net --> s-chain
                 "M2S",
                 joRuntimeOpts,
                 imaState.chainProperties.mn.ethersProvider,
@@ -1305,7 +1305,7 @@ function command_line_task_transfer_m2s() {
                 imaState.nMaxTransactionsM2S,
                 imaState.nBlockAwaitDepthM2S,
                 imaState.nBlockAgeM2S,
-                imaBLS.do_sign_messages_m2s,
+                imaBLS.doSignMessagesM2S,
                 null,
                 imaState.chainProperties.sc.transactionCustomizer
             );
@@ -1313,19 +1313,19 @@ function command_line_task_transfer_m2s() {
     } );
 }
 
-function command_line_task_transfer_s2m() {
+function commandLineTaskTransferS2M() {
     const imaState = state.get();
     imaState.arrActions.push( {
         "name": "single S->M transfer loop",
         "fn": async function() {
             if( ! imaState.bNoWaitSChainStarted )
-                await wait_until_s_chain_started(); // s-chain --> main-net transfer
+                await waitUntilSChainStarted(); // s-chain --> main-net transfer
             const joRuntimeOpts = {
                 isInsideWorker: false,
                 idxChainKnownForS2S: 0,
                 cntChainsKnownForS2S: 0
             };
-            return await IMA.do_transfer( // s-chain --> main-net
+            return await IMA.doTransfer( // s-chain --> main-net
                 "S2M",
                 joRuntimeOpts,
                 imaState.chainProperties.sc.ethersProvider,
@@ -1345,7 +1345,7 @@ function command_line_task_transfer_s2m() {
                 imaState.nMaxTransactionsS2M,
                 imaState.nBlockAwaitDepthS2M,
                 imaState.nBlockAgeS2M,
-                imaBLS.do_sign_messages_s2m,
+                imaBLS.doSignMessagesS2M,
                 null,
                 imaState.chainProperties.mn.transactionCustomizer
             );
@@ -1353,25 +1353,25 @@ function command_line_task_transfer_s2m() {
     } );
 }
 
-function command_line_task_transfer_s2s() {
+function commandLineTaskTransferS2S() {
     const imaState = state.get();
     imaState.arrActions.push( {
         "name": "single S->S transfer loop",
         "fn": async function() {
             if( ! imaState.s2s_opts.isEnabled )
                 return;
-            initial_skale_network_scan_for_S2S();
+            initialSkaleNetworkScanForS2S();
             if( ! imaState.bNoWaitSChainStarted )
-                await wait_until_s_chain_started(); // s-chain --> main-net transfer
+                await waitUntilSChainStarted(); // s-chain --> main-net transfer
             const joRuntimeOpts = {
                 isInsideWorker: false,
                 idxChainKnownForS2S: 0,
                 cntChainsKnownForS2S: 0
             };
-            return await IMA.do_s2s_all( // s-chain --> s-chain
+            return await IMA.doAllS2S( // s-chain --> s-chain
                 joRuntimeOpts,
                 imaState,
-                skale_observer,
+                skaleObserver,
                 imaState.chainProperties.sc.ethersProvider,
                 imaState.jo_message_proxy_s_chain,
                 imaState.chainProperties.sc.joAccount,
@@ -1383,28 +1383,28 @@ function command_line_task_transfer_s2s() {
                 imaState.nMaxTransactionsM2S,
                 imaState.nBlockAwaitDepthM2S,
                 imaState.nBlockAgeM2S,
-                imaBLS.do_sign_messages_m2s,
+                imaBLS.doSignMessagesM2S,
                 imaState.chainProperties.sc.transactionCustomizer
             );
         }
     } );
 }
 
-function command_line_task_transfer() {
+function commandLineTaskTransfer() {
     const imaState = state.get();
-    initial_skale_network_scan_for_S2S();
+    initialSkaleNetworkScanForS2S();
     imaState.arrActions.push( {
         "name": "Single M<->S transfer loop iteration",
         "fn": async function() {
-            initial_skale_network_scan_for_S2S();
+            initialSkaleNetworkScanForS2S();
             if( ! imaState.bNoWaitSChainStarted )
-                await wait_until_s_chain_started();
+                await waitUntilSChainStarted();
             const joRuntimeOpts = {
                 isInsideWorker: false,
                 idxChainKnownForS2S: 0,
                 cntChainsKnownForS2S: 0
             };
-            const loop_opts = {
+            const optsLoop = {
                 joRuntimeOpts: joRuntimeOpts,
                 isDelayFirstRun: false,
                 enable_step_oracle: true,
@@ -1412,62 +1412,62 @@ function command_line_task_transfer() {
                 enable_step_s2m: true,
                 enable_step_s2s: true
             };
-            return await single_transfer_loop( loop_opts );
+            return await singleTransferLoop( optsLoop );
         }
     } );
 }
 
-function command_line_task_loop() {
+function commandLineTaskLoop() {
     const imaState = state.get();
-    initial_skale_network_scan_for_S2S();
+    initialSkaleNetworkScanForS2S();
     imaState.arrActions.push( {
         "name": "M<->S and S->S transfer loop, startup in parallel mode",
         "fn": async function() {
             state.setPreventExitAfterLastAction( true );
             if( ! imaState.bNoWaitSChainStarted )
-                await wait_until_s_chain_started(); // M<->S transfer loop
+                await waitUntilSChainStarted(); // M<->S transfer loop
             let isPrintSummaryRegistrationCosts = false;
-            if( !await check_registration_step1() ) {
-                if( !await register_step1( false ) )
+            if( !await checkRegistrationStep1() ) {
+                if( !await registerStep1( false ) )
                     return false;
                 isPrintSummaryRegistrationCosts = true;
             }
             if( isPrintSummaryRegistrationCosts )
-                print_summary_registration_costs();
+                printSummaryRegistrationCosts();
             const opts = {
                 imaState: imaState,
                 "details": log
             };
-            return await loop.run_parallel_loops(
+            return await loop.runParallelLoops(
                 opts
             );
         }
     } );
 }
 
-function command_line_task_simple_loop() {
+function commandLineTaskLoopSimple() {
     const imaState = state.get();
-    initial_skale_network_scan_for_S2S();
+    initialSkaleNetworkScanForS2S();
     imaState.arrActions.push( {
         "name": "M<->S and S->S transfer loop, simple mode",
         "fn": async function() {
             state.setPreventExitAfterLastAction( true );
             if( ! imaState.bNoWaitSChainStarted )
-                await wait_until_s_chain_started(); // M<->S transfer loop
+                await waitUntilSChainStarted(); // M<->S transfer loop
             let isPrintSummaryRegistrationCosts = false;
-            if( !await check_registration_step1() ) {
-                if( !await register_step1( false ) )
+            if( !await checkRegistrationStep1() ) {
+                if( !await registerStep1( false ) )
                     return false;
                 isPrintSummaryRegistrationCosts = true;
             }
             if( isPrintSummaryRegistrationCosts )
-                print_summary_registration_costs();
+                printSummaryRegistrationCosts();
             const joRuntimeOpts = {
                 isInsideWorker: false,
                 idxChainKnownForS2S: 0,
                 cntChainsKnownForS2S: 0
             };
-            const loop_opts = {
+            const optsLoop = {
                 joRuntimeOpts: joRuntimeOpts,
                 isDelayFirstRun: false,
                 enable_step_oracle: true,
@@ -1475,12 +1475,12 @@ function command_line_task_simple_loop() {
                 enable_step_s2m: true,
                 enable_step_s2s: true
             };
-            return await loop.run_transfer_loop( loop_opts );
+            return await loop.runTransferLoop( optsLoop );
         }
     } );
 }
 
-function command_line_task_browse_s_chain() {
+function commandLineTaskBrowseSChain() {
     const imaState = state.get();
     imaState.bIsNeededCommonInit = false;
     imaState.arrActions.push( {
@@ -1519,7 +1519,7 @@ function command_line_task_browse_s_chain() {
                         }
                     }, async function( joIn, joOut, err ) {
                         if( err ) {
-                            const strError = owaspUtils.extract_error_message( err );
+                            const strError = owaspUtils.extractErrorMessage( err );
                             console.log( cc.fatal( "CRITICAL ERROR:" ) +
                             cc.error( " JSON RPC call to S-Chain failed, error: " ) +
                             cc.warning( strError )
@@ -1542,7 +1542,7 @@ function command_line_task_browse_s_chain() {
                                 "\n" );
                                 continue;
                             }
-                            const strNodeURL = imaUtils.compose_schain_node_url( joNode );
+                            const strNodeURL = imaUtils.composeSChainNodeUrl( joNode );
                             const rpcCallOpts = null;
                             await rpcCall.create(
                                 strNodeURL,
@@ -1564,7 +1564,7 @@ function command_line_task_browse_s_chain() {
                                         ++ nCountReceivedImaDescriptions;
                                         if( err ) {
                                             const strError =
-                                                owaspUtils.extract_error_message( err );
+                                                owaspUtils.extractErrorMessage( err );
                                             console.log( cc.fatal( "CRITICAL ERROR:" ) +
                                         cc.error( " JSON RPC call to S-Chain failed, " +
                                         "error: " ) + cc.warning( strError )
@@ -1594,7 +1594,7 @@ function command_line_task_browse_s_chain() {
     } );
 }
 
-function command_line_task_browse_skale_network() {
+function commandLineTaskBrowseSkaleNetwork() {
     const imaState = state.get();
     imaState.arrActions.push( {
         "name": "Browse S-Chain network",
@@ -1616,7 +1616,7 @@ function command_line_task_browse_skale_network() {
                 "bStopNeeded": false
             };
             const addressFrom = imaState.chainProperties.mn.joAccount.address();
-            const arr_schains = await skale_observer.load_schains( addressFrom, opts );
+            const arr_schains = await skaleObserver.loadSChains( addressFrom, opts );
             const cnt = arr_schains.length;
             log.write( strLogPrefix +
                 cc.normal( "Got " ) + cc.info( cnt ) +
@@ -1628,7 +1628,7 @@ function command_line_task_browse_skale_network() {
     } );
 }
 
-function command_line_task_browse_connected_schains() {
+function commandLineTaskBrowseConnectedSChains() {
     const imaState = state.get();
     imaState.arrActions.push( {
         "name": "Browse connected S-Chains",
@@ -1651,7 +1651,7 @@ function command_line_task_browse_connected_schains() {
                 "bStopNeeded": false
             };
             const addressFrom = imaState.chainProperties.mn.joAccount.address();
-            const arr_schains_cached = await skale_observer.load_schains_connected_only(
+            const arr_schains_cached = await skaleObserver.load_schains_connected_only(
                 imaState.chainProperties.sc.strChainName,
                 addressFrom,
                 opts
@@ -1667,7 +1667,7 @@ function command_line_task_browse_connected_schains() {
     } );
 }
 
-function command_line_task_discover_chain_id() {
+function commandLineTaskDiscoverChainId() {
     const imaState = state.get();
     imaState.arrActions.push( {
         "name": "Discover chains ID(s)",
@@ -1722,7 +1722,7 @@ function command_line_task_discover_chain_id() {
             for( let i = 0; i < arr_urls_to_discover.length; ++ i ) {
                 const joDiscoverEntry = arr_urls_to_discover[i];
                 const chainID = await
-                skale_observer.discover_chain_id( joDiscoverEntry.strURL );
+                skaleObserver.discoverChainId( joDiscoverEntry.strURL );
                 if( chainID === null ) {
                     log.write( strLogPrefix +
                     cc.error( "Failed to detect " ) +
@@ -1731,7 +1731,7 @@ function command_line_task_discover_chain_id() {
                     "\n" );
                 } else {
                     const cid16 =
-                        owaspUtils.ensure_starts_with_0x(
+                        owaspUtils.ensureStartsWith0x(
                             owaspUtils.toBN( chainID ).toHexString()
                         );
                     const cid10 = "" + owaspUtils.toBN( chainID ).toString();
@@ -1750,12 +1750,12 @@ function command_line_task_discover_chain_id() {
     } );
 }
 
-function command_line_task_reimbursement_show_balance() {
+function commandLineTaskReimbursementShowBalance() {
     const imaState = state.get();
     imaState.arrActions.push( {
         "name": "Gas Reimbursement - Show Balance",
         "fn": async function() {
-            await IMA.reimbursement_show_balance(
+            await IMA.reimbursementShowBalance(
                 imaState.chainProperties.mn.ethersProvider,
                 imaState.jo_community_pool,
                 imaState.chainProperties.mn.joAccount.address(),
@@ -1770,12 +1770,12 @@ function command_line_task_reimbursement_show_balance() {
     } );
 }
 
-function command_line_task_reimbursement_estimate_amount() {
+function commandLineTaskReimbursementEstimateAmount() {
     const imaState = state.get();
     imaState.arrActions.push( {
         "name": "Gas Reimbursement - Estimate Amount",
         "fn": async function() {
-            await IMA.reimbursement_estimate_amount(
+            await IMA.reimbursementEstimateAmount(
                 imaState.chainProperties.mn.ethersProvider,
                 imaState.jo_community_pool,
                 imaState.chainProperties.mn.joAccount.address(),
@@ -1790,12 +1790,12 @@ function command_line_task_reimbursement_estimate_amount() {
     } );
 }
 
-function command_line_task_reimbursement_recharge() {
+function commandLineTaskReimbursementRecharge() {
     const imaState = state.get();
     imaState.arrActions.push( {
         "name": "Gas Reimbursement - Recharge User Wallet",
         "fn": async function() {
-            await IMA.reimbursement_wallet_recharge(
+            await IMA.reimbursementWalletRecharge(
                 imaState.chainProperties.mn.ethersProvider,
                 imaState.jo_community_pool,
                 imaState.chainProperties.mn.joAccount,
@@ -1810,12 +1810,12 @@ function command_line_task_reimbursement_recharge() {
     } );
 }
 
-function command_line_task_reimbursement_withdraw() {
+function commandLineTaskReimbursementWithdraw() {
     const imaState = state.get();
     imaState.arrActions.push( {
         "name": "Gas Reimbursement - Withdraw User Wallet",
         "fn": async function() {
-            await IMA.reimbursement_wallet_withdraw(
+            await IMA.reimbursementWalletWithdraw(
                 imaState.chainProperties.mn.ethersProvider,
                 imaState.jo_community_pool,
                 imaState.chainProperties.mn.joAccount,
@@ -1830,12 +1830,12 @@ function command_line_task_reimbursement_withdraw() {
     } );
 }
 
-function command_line_task_reimbursement_set_range() {
+function commandLineTaskReimbursementSetRange() {
     const imaState = state.get();
     imaState.arrActions.push( {
         "name": "Gas Reimbursement - Set Minimal time interval from S2M and S2S transfers",
         "fn": async function() {
-            await IMA.reimbursement_set_range(
+            await IMA.reimbursementSetRange(
                 imaState.chainProperties.sc.ethersProvider,
                 imaState.jo_community_locker,
                 imaState.chainProperties.sc.joAccount,
@@ -1850,9 +1850,9 @@ function command_line_task_reimbursement_set_range() {
     } );
 }
 
-function parse_command_line() {
+function parseCommandLine() {
     const imaState = state.get();
-    cc.auto_enable_from_command_line_args();
+    cc.autoEnableFromCommandLineArgs();
     let strPrintedArguments = cc.normal( process.argv.join( " " ) );
     strPrintedArguments = imaUtils.replaceAll( strPrintedArguments, "--", cc.bright( "--" ) );
     strPrintedArguments = imaUtils.replaceAll( strPrintedArguments, "=", cc.sunny( "=" ) );
@@ -1864,49 +1864,49 @@ function parse_command_line() {
         strPrintedArguments +
         "\n" );
     imaCLI.parse( {
-        "register": command_line_task_register,
-        "register1": command_line_task_register1,
-        "check-registration": command_line_task_check_registration,
-        "check-registration1": command_line_task_check_registration1,
-        "mint-erc20": command_line_task_mint_erc20,
-        "mint-erc721": command_line_task_mint_erc721,
-        "mint-erc1155": command_line_task_mint_erc1155,
-        "burn-erc20": command_line_task_burn_erc20,
-        "burn-erc721": command_line_task_burn_erc721,
-        "burn-erc1155": command_line_task_burn_erc1155,
-        "show-balance": command_line_task_show_balance,
-        "m2s-payment": command_line_task_payment_m2s,
-        "s2m-payment": command_line_task_payment_s2m,
-        "s2s-payment": command_line_task_payment_s2s,
-        "s2m-receive": command_line_task_s2m_receive,
-        "s2m-view": command_line_task_s2m_view,
-        "m2s-transfer": command_line_task_transfer_m2s,
-        "s2m-transfer": command_line_task_transfer_s2m,
-        "s2s-transfer": command_line_task_transfer_s2s,
-        "transfer": command_line_task_transfer,
-        "loop": command_line_task_loop,
-        "simple-loop": command_line_task_simple_loop,
-        "browse-s-chain": command_line_task_browse_s_chain,
-        "browse-skale-network": command_line_task_browse_skale_network,
-        "browse-connected-schains": command_line_task_browse_connected_schains,
-        "discover-cid": command_line_task_discover_chain_id
+        "register": commandLineTaskRegister,
+        "register1": commandLineTaskRegister1,
+        "check-registration": commandLineTaskCheckRegistration,
+        "check-registration1": commandLineTaskCheckRegistration1,
+        "mint-erc20": commandLineTaskMintErc20,
+        "mint-erc721": commandLineTaskMintErc721,
+        "mint-erc1155": commandLineTaskMintErc1155,
+        "burn-erc20": commandLineTaskBurnErc20,
+        "burn-erc721": commandLineTaskBurnErc721,
+        "burn-erc1155": commandLineTaskBurnErc1155,
+        "show-balance": commandLineTaskShowBalance,
+        "m2s-payment": commandLineTaskPaymentM2S,
+        "s2m-payment": commandLineTaskPaymentS2M,
+        "s2s-payment": commandLineTaskPaymentS2S,
+        "s2m-receive": commandLineTaskReceiveS2M,
+        "s2m-view": commandLineTaskViewS2M,
+        "m2s-transfer": commandLineTaskTransferM2S,
+        "s2m-transfer": commandLineTaskTransferS2M,
+        "s2s-transfer": commandLineTaskTransferS2S,
+        "transfer": commandLineTaskTransfer,
+        "loop": commandLineTaskLoop,
+        "simple-loop": commandLineTaskLoopSimple,
+        "browse-s-chain": commandLineTaskBrowseSChain,
+        "browse-skale-network": commandLineTaskBrowseSkaleNetwork,
+        "browse-connected-schains": commandLineTaskBrowseConnectedSChains,
+        "discover-cid": commandLineTaskDiscoverChainId
     } );
     let haveReimbursementCommands = false;
     if( imaState.isShowReimbursementBalance ) {
         haveReimbursementCommands = true;
-        command_line_task_reimbursement_show_balance();
+        commandLineTaskReimbursementShowBalance();
     }
     if( imaState.nReimbursementEstimate ) {
         haveReimbursementCommands = true;
-        command_line_task_reimbursement_estimate_amount();
+        commandLineTaskReimbursementEstimateAmount();
     }
     if( imaState.nReimbursementRecharge ) {
         haveReimbursementCommands = true;
-        command_line_task_reimbursement_recharge();
+        commandLineTaskReimbursementRecharge();
     }
     if( imaState.nReimbursementWithdraw ) {
         haveReimbursementCommands = true;
-        command_line_task_reimbursement_withdraw();
+        commandLineTaskReimbursementWithdraw();
     }
     if( haveReimbursementCommands ) {
         if( imaState.strReimbursementChain == "" ) {
@@ -1918,7 +1918,7 @@ function parse_command_line() {
         }
     }
     if( imaState.nReimbursementRange >= 0 )
-        command_line_task_reimbursement_set_range();
+        commandLineTaskReimbursementSetRange();
     if( imaState.nAutoExitAfterSeconds > 0 ) {
         log.write(
             cc.debug( "Automatic exit after " ) + cc.info( imaState.nAutoExitAfterSeconds ) +
@@ -1945,8 +1945,8 @@ function parse_command_line() {
         );
     }
     if( imaState.bIsNeededCommonInit ) {
-        imaCLI.ima_common_init();
-        imaCLI.ima_contracts_init();
+        imaCLI.commonInit();
+        imaCLI.initContracts();
     }
     if( imaState.bShowConfigMode ) {
         // just show configuration values and exit
@@ -1957,7 +1957,7 @@ function parse_command_line() {
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 
-function get_s_chain_nodes_count( joSChainNetworkInfo ) {
+function getSChainNodesCount( joSChainNetworkInfo ) {
     try {
         if( ! joSChainNetworkInfo )
             return 0;
@@ -1969,7 +1969,7 @@ function get_s_chain_nodes_count( joSChainNetworkInfo ) {
     }
 }
 
-function get_s_chain_discovered_nodes_count( joSChainNetworkInfo ) {
+function getSChainDiscoveredNodesCount( joSChainNetworkInfo ) {
     try {
         if( ! joSChainNetworkInfo )
             return 0;
@@ -1997,47 +1997,47 @@ function get_s_chain_discovered_nodes_count( joSChainNetworkInfo ) {
     }
 }
 
-let g_timer_s_chain_discovery = null;
-let g_b_in_s_chain_discovery = false;
+let g_timerSChainDiscovery = null;
+let g_bInSChainDiscovery = false;
 
-async function continue_schain_discovery_in_background_if_needed( isSilent ) {
+async function continueSChainDiscoveryInBackgroundIfNeeded( isSilent ) {
     const imaState = state.get();
-    const cntNodes = get_s_chain_nodes_count( imaState.joSChainNetworkInfo );
-    const cntDiscovered = get_s_chain_discovered_nodes_count( imaState.joSChainNetworkInfo );
+    const cntNodes = getSChainNodesCount( imaState.joSChainNetworkInfo );
+    const cntDiscovered = getSChainDiscoveredNodesCount( imaState.joSChainNetworkInfo );
     if( cntDiscovered >= cntNodes ) {
-        if( g_timer_s_chain_discovery != null ) {
-            clearInterval( g_timer_s_chain_discovery );
-            g_timer_s_chain_discovery = null;
+        if( g_timerSChainDiscovery != null ) {
+            clearInterval( g_timerSChainDiscovery );
+            g_timerSChainDiscovery = null;
         }
         return;
     }
-    if( g_timer_s_chain_discovery != null )
+    if( g_timerSChainDiscovery != null )
         return;
     if( imaState.joSChainDiscovery.repeatIntervalMilliseconds <= 0 )
         return; // no S-Chain re-discovery (for debugging only)
     const fn_async_handler = async function() {
-        if( g_b_in_s_chain_discovery )
+        if( g_bInSChainDiscovery )
             return;
-        if( g_b_in_s_chain_discovery ) {
+        if( g_bInSChainDiscovery ) {
             isInsideAsyncHandler = false;
-            if( IMA.verbose_get() >= IMA.RV_VERBOSE().information )
+            if( IMA.verboseGet() >= IMA.verboseReversed().information )
                 log.write( cc.warning( "Notice: long S-Chain discovery is in progress" ) + "\n" );
             return;
         }
-        g_b_in_s_chain_discovery = true;
+        g_bInSChainDiscovery = true;
         try {
-            if( IMA.verbose_get() >= IMA.RV_VERBOSE().information ) {
+            if( IMA.verboseGet() >= IMA.verboseReversed().information ) {
                 log.write(
                     cc.info( "Will re-discover " ) + cc.notice( cntNodes ) +
                     cc.info( "-node S-Chain network, " ) + cc.notice( cntDiscovered ) +
                     cc.info( " node(s) already discovered..." ) +
                     "\n" );
             }
-            await discover_s_chain_network( function( err, joSChainNetworkInfo ) {
+            await discoverSChainNetwork( function( err, joSChainNetworkInfo ) {
                 if( ! err ) {
                     const cntDiscoveredNew =
-                        get_s_chain_discovered_nodes_count( joSChainNetworkInfo );
-                    if( IMA.verbose_get() >= IMA.RV_VERBOSE().information ) {
+                        getSChainDiscoveredNodesCount( joSChainNetworkInfo );
+                    if( IMA.verboseGet() >= IMA.verboseReversed().information ) {
                         const strDiscoveryStatus =
                             cc.info( cntDiscoveredNew ) + cc.success( " nodes known" );
                         let strMessage =
@@ -2065,7 +2065,7 @@ async function continue_schain_discovery_in_background_if_needed( isSilent ) {
                                             if( cntBad > 0 )
                                                 strMessage += cc.success( ", " );
                                             const strNodeURL =
-                                                imaUtils.compose_schain_node_url( joNode );
+                                                imaUtils.composeSChainNodeUrl( joNode );
                                             const strNodeDescColorized =
                                                 cc.notice( "#" ) + cc.info( i ) +
                                                 cc.attention( "(" ) + cc.u( strNodeURL ) +
@@ -2087,9 +2087,9 @@ async function continue_schain_discovery_in_background_if_needed( isSilent ) {
                     }
                     imaState.joSChainNetworkInfo = joSChainNetworkInfo;
                 }
-                continue_schain_discovery_in_background_if_needed( isSilent );
+                continueSChainDiscoveryInBackgroundIfNeeded( isSilent );
             }, isSilent, imaState.joSChainNetworkInfo, cntNodes ).catch( ( err ) => {
-                const strError = owaspUtils.extract_error_message( err );
+                const strError = owaspUtils.extractErrorMessage( err );
                 log.write(
                     cc.fatal( "CRITICAL ERROR:" ) +
                     cc.error( " S-Chain network re-discovery failed: " ) +
@@ -2097,21 +2097,21 @@ async function continue_schain_discovery_in_background_if_needed( isSilent ) {
                 );
             } );
         } catch ( err ) { }
-        g_b_in_s_chain_discovery = false;
+        g_bInSChainDiscovery = false;
     };
-    g_timer_s_chain_discovery = setInterval( function() {
-        if( g_b_in_s_chain_discovery )
+    g_timerSChainDiscovery = setInterval( function() {
+        if( g_bInSChainDiscovery )
             return;
         fn_async_handler();
     }, imaState.joSChainDiscovery.repeatIntervalMilliseconds );
 }
 
-async function discover_s_chain_walk_nodes( optsDiscover ) {
+async function discoverSChainWalkNodes( optsDiscover ) {
     optsDiscover.cntFailed = 0;
     for( let i = 0; i < optsDiscover.cntNodes; ++ i ) {
         const nCurrentNodeIdx = 0 + i;
         const joNode = optsDiscover.jarrNodes[nCurrentNodeIdx];
-        const strNodeURL = imaUtils.compose_schain_node_url( joNode );
+        const strNodeURL = imaUtils.composeSChainNodeUrl( joNode );
         const strNodeDescColorized =
             cc.notice( "#" ) + cc.info( nCurrentNodeIdx ) +
             cc.attention( "(" ) + cc.u( strNodeURL ) + cc.attention( ")" );
@@ -2129,7 +2129,7 @@ async function discover_s_chain_walk_nodes( optsDiscover ) {
                     joNode.imaInfo =
                     JSON.parse( JSON.stringify( joPrevNode.imaInfo ) );
                     if( ( !optsDiscover.isSilent ) &&
-                    IMA.verbose_get() >= IMA.RV_VERBOSE().information
+                    IMA.verboseGet() >= IMA.verboseReversed().information
                     ) {
                         log.write( optsDiscover.strLogPrefix +
                             cc.info( "OK, in case of " ) + strNodeDescColorized +
@@ -2169,7 +2169,7 @@ async function discover_s_chain_walk_nodes( optsDiscover ) {
                         ++ optsDiscover.nCountReceivedImaDescriptions;
                         if( err ) {
                             const strError =
-                                owaspUtils.extract_error_message( err );
+                                owaspUtils.extractErrorMessage( err );
                             if( ! optsDiscover.isSilent ) {
                                 log.write( optsDiscover.strLogPrefix +
                                     cc.fatal( "CRITICAL ERROR:" ) +
@@ -2182,7 +2182,7 @@ async function discover_s_chain_walk_nodes( optsDiscover ) {
                         }
                         joNode.imaInfo = joOut.result;
                         if( ( !optsDiscover.isSilent ) &&
-                    IMA.verbose_get() >= IMA.RV_VERBOSE().information ) {
+                    IMA.verboseGet() >= IMA.verboseReversed().information ) {
                             log.write( optsDiscover.strLogPrefix +
                                 cc.success( "OK, got " ) + strNodeDescColorized +
                                 cc.success( " node " ) + cc.info( joNode.nodeID ) +
@@ -2195,7 +2195,7 @@ async function discover_s_chain_walk_nodes( optsDiscover ) {
                     } );
                 } );
         } catch ( err ) {
-            const strError = owaspUtils.extract_error_message( err );
+            const strError = owaspUtils.extractErrorMessage( err );
             if( ! optsDiscover.isSilent ) {
                 log.write( optsDiscover.strLogPrefix +
                     cc.fatal( "CRITICAL ERROR:" ) +
@@ -2210,9 +2210,9 @@ async function discover_s_chain_walk_nodes( optsDiscover ) {
     }
 }
 
-async function discover_s_chain_wait( optsDiscover ) {
+async function discoverSChainWait( optsDiscover ) {
     if( ( !optsDiscover.isSilent ) &&
-        IMA.verbose_get() >= IMA.RV_VERBOSE().information ) {
+        IMA.verboseGet() >= IMA.verboseReversed().information ) {
         log.write( optsDiscover.strLogPrefix +
             cc.debug( "Waiting for response from at least " ) +
             cc.info( optsDiscover.nCountToWait ) +
@@ -2238,7 +2238,7 @@ async function discover_s_chain_wait( optsDiscover ) {
                 cc.info( optsDiscover.nCountToWait ) + "\n" );
         }
         if( ( !optsDiscover.isSilent ) &&
-            IMA.verbose_get() >= IMA.RV_VERBOSE().information ) {
+            IMA.verboseGet() >= IMA.verboseReversed().information ) {
             log.write( optsDiscover.strLogPrefix +
                 cc.debug( "Have S-Chain description response about " ) +
                 cc.info( optsDiscover.nCountReceivedImaDescriptions ) +
@@ -2261,7 +2261,7 @@ async function discover_s_chain_wait( optsDiscover ) {
                     cc.warning( "WARNING:" ) + " " +
                     cc.warning( strErrorDescription ) + "\n" );
             }
-            if( get_s_chain_discovered_nodes_count(
+            if( getSChainDiscoveredNodesCount(
                 optsDiscover.joSChainNetworkInfo ) > 0 )
                 optsDiscover.fnAfter( null, optsDiscover.joSChainNetworkInfo );
             else
@@ -2280,7 +2280,7 @@ async function discover_s_chain_wait( optsDiscover ) {
     await joCall.disconnect();
 }
 
-async function discover_s_chain_network(
+async function discoverSChainNetwork(
     fnAfter, isSilent, joPrevSChainNetworkInfo, nCountToWait
 ) {
     const optsDiscover = {
@@ -2307,7 +2307,7 @@ async function discover_s_chain_network(
         await rpcCall.create( optsDiscover.imaState.chainProperties.sc.strURL, rpcCallOpts,
             async function( joCall, err ) {
                 if( err ) {
-                    const strError = owaspUtils.extract_error_message( err );
+                    const strError = owaspUtils.extractErrorMessage( err );
                     if( ! optsDiscover.isSilent ) {
                         log.write( optsDiscover.strLogPrefix + cc.fatal( "CRITICAL ERROR:" ) +
                             cc.error( " JSON RPC call to (own) S-Chain " ) +
@@ -2324,7 +2324,7 @@ async function discover_s_chain_network(
                     "params": { "fromImaAgentIndex": optsDiscover.imaState.nNodeNumber }
                 }, async function( joIn, joOut, err ) {
                     if( err ) {
-                        const strError = owaspUtils.extract_error_message( err );
+                        const strError = owaspUtils.extractErrorMessage( err );
                         if( ! optsDiscover.isSilent ) {
                             log.write( optsDiscover.strLogPrefix + cc.fatal( "CRITICAL ERROR:" ) +
                                 cc.error( " JSON RPC call to (own) S-Chain " ) +
@@ -2336,13 +2336,13 @@ async function discover_s_chain_network(
                         return;
                     }
                     if( ( !optsDiscover.isSilent ) &&
-                        IMA.verbose_get() >= IMA.RV_VERBOSE().trace ) {
+                        IMA.verboseGet() >= IMA.verboseReversed().trace ) {
                         log.write( optsDiscover.strLogPrefix +
                         cc.debug( "OK, got (own) S-Chain network information: " ) +
                         cc.j( joOut.result ) + "\n" );
                     } else if(
                         ( !optsDiscover.isSilent ) &&
-                        IMA.verbose_get() >= IMA.RV_VERBOSE().information ) {
+                        IMA.verboseGet() >= IMA.verboseReversed().information ) {
                         log.write( optsDiscover.strLogPrefix + cc.success( "OK, got S-Chain " ) +
                             cc.u( optsDiscover.imaState.chainProperties.sc.strURL ) +
                             cc.success( " network information." ) + "\n" );
@@ -2379,7 +2379,7 @@ async function discover_s_chain_network(
                             cc.info( optsDiscover.nCountToWait ) + cc.debug( " of " ) +
                             cc.info( optsDiscover.cntNodes ) + cc.debug( " node(s)..." ) + "\n" );
                     }
-                    await discover_s_chain_walk_nodes( optsDiscover );
+                    await discoverSChainWalkNodes( optsDiscover );
                     optsDiscover.nCountAvailable = optsDiscover.cntNodes - optsDiscover.cntFailed;
                     if( ! optsDiscover.isSilent ) {
                         log.write( cc.debug( "Waiting for S-Chain nodes, total " ) +
@@ -2404,11 +2404,11 @@ async function discover_s_chain_network(
                         optsDiscover.fnAfter( err, null );
                         return;
                     }
-                    await discover_s_chain_wait( optsDiscover );
+                    await discoverSChainWait( optsDiscover );
                 } );
             } );
     } catch ( err ) {
-        const strError = owaspUtils.extract_error_message( err );
+        const strError = owaspUtils.extractErrorMessage( err );
         if( ! optsDiscover.isSilent ) {
             log.write( optsDiscover.strLogPrefix + cc.fatal( "CRITICAL ERROR:" ) +
                 cc.error( " JSON RPC call to S-Chain was not created: " ) +
@@ -2424,23 +2424,23 @@ async function discover_s_chain_network(
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 
-let g_ws_server_monitoring = null;
+let g_wsServerMonitoring = null;
 
-function init_monitoring_server() {
+function initMonitoringServer() {
     const imaState = state.get();
     if( imaState.nMonitoringPort <= 0 )
         return;
     const strLogPrefix = cc.attention( "Monitoring:" ) + " ";
-    if( IMA.verbose_get() >= IMA.RV_VERBOSE().trace ) {
+    if( IMA.verboseGet() >= IMA.verboseReversed().trace ) {
         log.write( strLogPrefix +
             cc.normal( "Will start monitoring WS server on port " ) +
             cc.info( imaState.nMonitoringPort ) +
             "\n" );
     }
-    g_ws_server_monitoring = new ws.WebSocketServer( { port: 0 + imaState.nMonitoringPort } );
-    g_ws_server_monitoring.on( "connection", function( ws_peer, req ) {
+    g_wsServerMonitoring = new ws.WebSocketServer( { port: 0 + imaState.nMonitoringPort } );
+    g_wsServerMonitoring.on( "connection", function( ws_peer, req ) {
         const ip = req.socket.remoteAddress;
-        if( IMA.verbose_get() >= IMA.RV_VERBOSE().trace )
+        if( IMA.verboseGet() >= IMA.verboseReversed().trace )
             log.write( strLogPrefix + cc.normal( "New connection from " ) + cc.info( ip ) + "\n" );
         ws_peer.on( "message", function( message ) {
             const joAnswer = {
@@ -2450,7 +2450,7 @@ function init_monitoring_server() {
             };
             try {
                 const joMessage = JSON.parse( message );
-                if( IMA.verbose_get() >= IMA.RV_VERBOSE().trace ) {
+                if( IMA.verboseGet() >= IMA.verboseReversed().trace ) {
                     log.write( strLogPrefix +
                         cc.sunny( "<<<" ) + " " + cc.normal( "message from " ) + cc.info( ip ) +
                         cc.normal( ": " ) + cc.j( joMessage ) +
@@ -2511,18 +2511,18 @@ function init_monitoring_server() {
                         }
                     } break;
                 case "get_last_transfer_errors":
-                    joAnswer.last_transfer_errors = IMA.get_last_transfer_errors(
+                    joAnswer.last_transfer_errors = IMA.getLastTransferErrors(
                         ( ( "isIncludeTextLog" in joMessage ) && joMessage.isIncludeTextLog )
                             ? true : false );
-                    joAnswer.last_error_categories = IMA.get_last_error_categories();
+                    joAnswer.last_error_categories = IMA.getLastErrorCategories();
                     break;
                 default:
                     throw new Error(
                         "Unknown method name \"" + joMessage.method + "\" was specified" );
                 } // switch( joMessage.method )
             } catch ( err ) {
-                const strError = owaspUtils.extract_error_message( err );
-                if( IMA.verbose_get() >= IMA.RV_VERBOSE().error ) {
+                const strError = owaspUtils.extractErrorMessage( err );
+                if( IMA.verboseGet() >= IMA.verboseReversed().error ) {
                     log.write( strLogPrefix +
                         cc.error( "Bad message from " ) + cc.info( ip ) + cc.error( ": " ) +
                         cc.warning( message ) +
@@ -2533,15 +2533,15 @@ function init_monitoring_server() {
                 }
             }
             try {
-                if( IMA.verbose_get() >= IMA.RV_VERBOSE().trace ) {
+                if( IMA.verboseGet() >= IMA.verboseReversed().trace ) {
                     log.write( strLogPrefix + cc.sunny( ">>>" ) + " " + cc.normal( "answer to " ) +
                     cc.info( ip ) + cc.normal( ": " ) + cc.j( joAnswer ) +
                     "\n" );
                 }
                 ws_peer.send( JSON.stringify( joAnswer ) );
             } catch ( err ) {
-                const strError = owaspUtils.extract_error_message( err );
-                if( IMA.verbose_get() >= IMA.RV_VERBOSE().error ) {
+                const strError = owaspUtils.extractErrorMessage( err );
+                if( IMA.verboseGet() >= IMA.verboseReversed().error ) {
                     log.write( strLogPrefix +
                         cc.error( "Failed to sent answer to " ) + cc.info( ip ) +
                         cc.error( ", error is: " ) + cc.warning( strError ) +
@@ -2558,18 +2558,17 @@ function init_monitoring_server() {
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 
-// let g_ws_server_ima = null;
-let g_json_rpc_app_ima = null;
+let g_jsonRpcAppIMA = null;
 
-function init_json_rpc_server() {
+function initJsonRpcServer() {
     const imaState = state.get();
     if( imaState.nJsonRpcPort <= 0 )
         return;
     const strLogPrefix = cc.attention( "JSON RPC:" ) + " ";
-    g_json_rpc_app_ima = express();
-    g_json_rpc_app_ima.use( bodyParser.urlencoded( { extended: true } ) );
-    g_json_rpc_app_ima.use( bodyParser.json() );
-    g_json_rpc_app_ima.post( "/", async function( req, res ) {
+    g_jsonRpcAppIMA = express();
+    g_jsonRpcAppIMA.use( bodyParser.urlencoded( { extended: true } ) );
+    g_jsonRpcAppIMA.use( bodyParser.json() );
+    g_jsonRpcAppIMA.post( "/", async function( req, res ) {
         const isSkipMode = false;
         const message = JSON.stringify( req.body );
         const ip = req.connection.remoteAddress.split( ":" ).pop();
@@ -2577,15 +2576,15 @@ function init_json_rpc_server() {
             try {
                 res.header( "Content-Type", "application/json" );
                 res.status( 200 ).send( JSON.stringify( joAnswer ) );
-                if( IMA.verbose_get() >= IMA.RV_VERBOSE().trace ) {
+                if( IMA.verboseGet() >= IMA.verboseReversed().trace ) {
                     log.write( strLogPrefix +
                         cc.sunny( ">>>" ) + " " + cc.normal( "did sent answer to " ) +
                         cc.info( ip ) + cc.normal( ": " ) + cc.j( joAnswer ) +
                         "\n" );
                 }
             } catch ( err ) {
-                const strError = owaspUtils.extract_error_message( err );
-                if( IMA.verbose_get() >= IMA.RV_VERBOSE().error ) {
+                const strError = owaspUtils.extractErrorMessage( err );
+                if( IMA.verboseGet() >= IMA.verboseReversed().error ) {
                     log.write( strLogPrefix +
                         cc.error( "Failed to sent answer " ) + cc.j( joAnswer ) +
                         cc.error( " to " ) + cc.info( ip ) +
@@ -2603,7 +2602,7 @@ function init_json_rpc_server() {
         };
         try {
             const joMessage = JSON.parse( message );
-            if( IMA.verbose_get() >= IMA.RV_VERBOSE().trace ) {
+            if( IMA.verboseGet() >= IMA.verboseReversed().trace ) {
                 log.write( strLogPrefix +
                     cc.sunny( "<<<" ) + " " + cc.normal( "Peer message from " ) +
                     cc.info( ip ) + cc.normal( ": " ) + cc.j( joMessage ) +
@@ -2628,13 +2627,13 @@ function init_json_rpc_server() {
                 fn_send_answer( joAnswer );
                 break;
             case "skale_imaVerifyAndSign":
-                joAnswer = await imaBLS.handle_skale_imaVerifyAndSign( joMessage );
+                joAnswer = await imaBLS.handleSkaleImaVerifyAndSign( joMessage );
                 break;
             case "skale_imaBSU256":
-                joAnswer = await imaBLS.handle_skale_imaBSU256( joMessage );
+                joAnswer = await imaBLS.handleSkaleImaBSU256( joMessage );
                 break;
             case "skale_imaNotifyLoopWork":
-                if( await pwa.handle_loop_state_arrived(
+                if( await pwa.handleLoopStateArrived(
                     imaState,
                     owaspUtils.toInteger( joMessage.params.nNodeNumber ),
                     joMessage.params.strLoopWorkType,
@@ -2643,15 +2642,15 @@ function init_json_rpc_server() {
                     owaspUtils.toInteger( joMessage.params.ts ),
                     joMessage.params.signature
                 ) )
-                    await loop.spread_arrived_pwa_state( joMessage );
+                    await loop.spreadArrivedStateOfPendingWorkAnalysis( joMessage );
 
                 break;
             default:
                 throw new Error( "Unknown method name \"" + joMessage.method + "\" was specified" );
             } // switch( joMessage.method )
         } catch ( err ) {
-            const strError = owaspUtils.extract_error_message( err );
-            if( IMA.verbose_get() >= IMA.RV_VERBOSE().error ) {
+            const strError = owaspUtils.extractErrorMessage( err );
+            if( IMA.verboseGet() >= IMA.verboseReversed().error ) {
                 log.write( strLogPrefix +
                     cc.error( "Bad message from " ) + cc.info( ip ) + cc.error( ": " ) +
                     cc.warning( message ) +
@@ -2664,13 +2663,13 @@ function init_json_rpc_server() {
         if( ! isSkipMode )
             fn_send_answer( joAnswer );
     } );
-    g_json_rpc_app_ima.listen( imaState.nJsonRpcPort );
+    g_jsonRpcAppIMA.listen( imaState.nJsonRpcPort );
 } // if( imaState.nJsonRpcPort > 0 )
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 
-async function do_the_job() {
+async function doTheJob() {
     const imaState = state.get();
     const strLogPrefix = cc.info( "Job 1:" ) + " ";
     let idxAction = 0;
@@ -2678,11 +2677,11 @@ async function do_the_job() {
     let cntFalse = 0;
     let cntTrue = 0;
     for( idxAction = 0; idxAction < cntActions; ++idxAction ) {
-        if( IMA.verbose_get() >= IMA.RV_VERBOSE().information )
+        if( IMA.verboseGet() >= IMA.verboseReversed().information )
             log.write( strLogPrefix + cc.debug( IMA.longSeparator ) + "\n" );
 
         const joAction = imaState.arrActions[idxAction];
-        if( IMA.verbose_get() >= IMA.RV_VERBOSE().debug ) {
+        if( IMA.verboseGet() >= IMA.verboseReversed().debug ) {
             log.write( strLogPrefix +
                 cc.notice( "Will execute action:" ) + " " + cc.info( joAction.name ) +
                 cc.debug( " (" ) + cc.info( idxAction + 1 ) + cc.debug( " of " ) +
@@ -2693,14 +2692,14 @@ async function do_the_job() {
         try {
             if( await joAction.fn() ) {
                 ++cntTrue;
-                if( IMA.verbose_get() >= IMA.RV_VERBOSE().information ) {
+                if( IMA.verboseGet() >= IMA.verboseReversed().information ) {
                     log.write( strLogPrefix +
                         cc.success( "Succeeded action:" ) + " " + cc.info( joAction.name ) +
                         "\n" );
                 }
             } else {
                 ++cntFalse;
-                if( IMA.verbose_get() >= IMA.RV_VERBOSE().error ) {
+                if( IMA.verboseGet() >= IMA.verboseReversed().error ) {
                     log.write( strLogPrefix +
                         cc.warning( "Failed action:" ) + " " + cc.info( joAction.name ) +
                         "\n" );
@@ -2708,17 +2707,17 @@ async function do_the_job() {
             }
         } catch ( err ) {
             ++cntFalse;
-            if( IMA.verbose_get() >= IMA.RV_VERBOSE().fatal ) {
+            if( IMA.verboseGet() >= IMA.verboseReversed().fatal ) {
                 log.write( strLogPrefix +
                     cc.fatal( "CRITICAL ERROR:" ) +
                     cc.error( " Exception occurred while executing action: " ) +
-                    cc.error( owaspUtils.extract_error_message( err ) ) +
+                    cc.error( owaspUtils.extractErrorMessage( err ) ) +
                     cc.error( ", stack is: " ) + "\n" + cc.stack( err.stack ) +
                     "\n" );
             }
         }
     } // for( idxAction = 0; idxAction < cntActions; ++ idxAction )
-    if( IMA.verbose_get() >= IMA.RV_VERBOSE().information ) {
+    if( IMA.verboseGet() >= IMA.verboseReversed().information ) {
         log.write( strLogPrefix + cc.debug( IMA.longSeparator ) + "\n" );
         log.write( strLogPrefix + cc.info( "FINISH:" ) + "\n" );
         log.write( strLogPrefix + cc.info( cntActions ) + cc.notice( " task(s) executed" ) + "\n" );
@@ -2739,12 +2738,12 @@ const g_registrationCostInfo = {
     sc: []
 };
 
-async function register_step1( isPrintSummaryRegistrationCosts ) {
+async function registerStep1( isPrintSummaryRegistrationCosts ) {
     const imaState = state.get();
-    imaCLI.ima_contracts_init();
+    imaCLI.initContracts();
     const strLogPrefix = cc.info( "Reg 1:" ) + " ";
     log.write( strLogPrefix + cc.debug( "Will check chain registration now..." ) + "\n" );
-    let bSuccess = await IMA.check_is_registered_s_chain_in_deposit_boxes( // step 1
+    let bSuccess = await IMA.checkIsRegisteredSChainInDepositBoxes( // step 1
         imaState.chainProperties.mn.ethersProvider,
         imaState.jo_linker,
         imaState.chainProperties.mn.joAccount,
@@ -2757,7 +2756,7 @@ async function register_step1( isPrintSummaryRegistrationCosts ) {
     if( bSuccess )
         return true;
     const jarrReceipts =
-        await IMA.register_s_chain_in_deposit_boxes( // step 1
+        await IMA.registerSChainInDepositBoxes( // step 1
             imaState.chainProperties.mn.ethersProvider,
             imaState.jo_linker,
             imaState.chainProperties.mn.joAccount,
@@ -2782,7 +2781,7 @@ async function register_step1( isPrintSummaryRegistrationCosts ) {
             g_registrationCostInfo.mn.concat( g_registrationCostInfo.mn, jarrReceipts );
     }
     if( isPrintSummaryRegistrationCosts )
-        print_summary_registration_costs();
+        printSummaryRegistrationCosts();
     if( !bSuccess ) {
         const nRetCode = 163;
         log.write( strLogPrefix +
@@ -2793,22 +2792,22 @@ async function register_step1( isPrintSummaryRegistrationCosts ) {
     }
     return true;
 }
-async function register_all( isPrintSummaryRegistrationCosts ) {
-    if( !await register_step1( false ) )
+async function registerAll( isPrintSummaryRegistrationCosts ) {
+    if( !await registerStep1( false ) )
         return false;
     if( isPrintSummaryRegistrationCosts )
-        print_summary_registration_costs();
+        printSummaryRegistrationCosts();
     return true;
 }
 
-async function check_registration_all() {
-    const b1 = await check_registration_step1();
+async function checkRegistrationAll() {
+    const b1 = await checkRegistrationStep1();
     return b1;
 }
-async function check_registration_step1() {
+async function checkRegistrationStep1() {
     const imaState = state.get();
-    imaCLI.ima_contracts_init();
-    const bRetVal = await IMA.check_is_registered_s_chain_in_deposit_boxes( // step 1
+    imaCLI.initContracts();
+    const bRetVal = await IMA.checkIsRegisteredSChainInDepositBoxes( // step 1
         imaState.chainProperties.mn.ethersProvider,
         imaState.jo_linker,
         imaState.chainProperties.mn.joAccount,
@@ -2817,13 +2816,13 @@ async function check_registration_step1() {
     return bRetVal;
 }
 
-function print_summary_registration_costs( details ) {
-    IMA.print_gas_usage_report_from_array(
+function printSummaryRegistrationCosts( details ) {
+    IMA.printGasUsageReportFromArray(
         "Main Net REGISTRATION",
         g_registrationCostInfo.mn,
         details
     );
-    IMA.print_gas_usage_report_from_array(
+    IMA.printGasUsageReportFromArray(
         "S-Chain REGISTRATION",
         g_registrationCostInfo.sc,
         details
@@ -2833,7 +2832,7 @@ function print_summary_registration_costs( details ) {
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 
-async function wait_until_s_chain_started() {
+async function waitUntilSChainStarted() {
     const imaState = state.get();
     log.write(
         cc.debug( "Checking " ) + cc.info( "S-Chain" ) + cc.debug( " is accessible and sane..." ) +
@@ -2851,12 +2850,12 @@ async function wait_until_s_chain_started() {
     let idxWaitAttempt = 0;
     for( ; !bSuccess; ) {
         try {
-            const joSChainNetworkInfo = await discover_s_chain_network(
+            const joSChainNetworkInfo = await discoverSChainNetwork(
                 function( err, joSChainNetworkInfo ) {
                     if( ! err )
                         bSuccess = true;
                 }, true, null, -1 ).catch( ( err ) => {
-                const strError = owaspUtils.extract_error_message( err );
+                const strError = owaspUtils.extractErrorMessage( err );
                 log.write(
                     cc.fatal( "CRITICAL ERROR:" ) +
                     cc.error( " S-Chain network discovery failed: " ) +
@@ -2890,7 +2889,7 @@ async function wait_until_s_chain_started() {
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 
 async function main() {
-    cc.auto_enable_from_command_line_args();
+    cc.autoEnableFromCommandLineArgs();
     const imaState = state.get();
     const tmp_address_MN_from_env =
         owaspUtils.toEthPrivateKey( process.env.ACCOUNT_FOR_ETHEREUM );
@@ -2910,9 +2909,9 @@ async function main() {
         typeof tmp_address_TC_from_env == "string" &&
         tmp_address_TC_from_env.length > 0 )
         imaState.chainProperties.tc.joAccount.address_ = "" + tmp_address_TC_from_env;
-    parse_command_line();
-    init_monitoring_server();
-    init_json_rpc_server();
+    parseCommandLine();
+    initMonitoringServer();
+    initJsonRpcServer();
     if( imaState.bSignMessages ) {
         if( imaState.strPathBlsGlue.length == 0 ) {
             log.write(
@@ -2930,25 +2929,25 @@ async function main() {
         }
         if( ! imaState.bNoWaitSChainStarted ) {
             const isSilent = imaState.joSChainDiscovery.isSilentReDiscovery;
-            wait_until_s_chain_started().then( function() {
-                // uses call to discover_s_chain_network()
-                discover_s_chain_network( function( err, joSChainNetworkInfo ) {
+            waitUntilSChainStarted().then( function() {
+                // uses call to discoverSChainNetwork()
+                discoverSChainNetwork( function( err, joSChainNetworkInfo ) {
                     if( err ) {
-                        // error information is printed by discover_s_chain_network()
+                        // error information is printed by discoverSChainNetwork()
                         process.exit( 166 );
                     }
-                    if( IMA.verbose_get() >= IMA.RV_VERBOSE().information ) {
+                    if( IMA.verboseGet() >= IMA.verboseReversed().information ) {
                         log.write(
                             cc.success( "S-Chain network was discovered: " ) +
                             cc.j( joSChainNetworkInfo ) +
                             "\n" );
                     }
                     imaState.joSChainNetworkInfo = joSChainNetworkInfo;
-                    continue_schain_discovery_in_background_if_needed( isSilent );
-                    do_the_job();
+                    continueSChainDiscoveryInBackgroundIfNeeded( isSilent );
+                    doTheJob();
                     return 0; // FINISH
                 }, isSilent, imaState.joSChainNetworkInfo, -1 ).catch( ( err ) => {
-                    const strError = owaspUtils.extract_error_message( err );
+                    const strError = owaspUtils.extractErrorMessage( err );
                     log.write(
                         cc.fatal( "CRITICAL ERROR:" ) +
                         cc.error( " S-Chain network discovery failed: " ) +
@@ -2958,7 +2957,7 @@ async function main() {
             } );
         }
     } else
-        do_the_job();
+        doTheJob();
         // FINISH!!! (skip exit here to avoid early termination while tasks ase still running)
 }
 

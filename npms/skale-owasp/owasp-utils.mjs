@@ -190,7 +190,7 @@ export function toStringURL( s, defValue ) {
     }
 }
 
-export function is_http_url( strURL ) {
+export function isUrlHTTP( strURL ) {
     try {
         if( !validateURL( strURL ) )
             return false;
@@ -202,7 +202,7 @@ export function is_http_url( strURL ) {
     return false;
 }
 
-export function is_ws_url( strURL ) {
+export function isUrlWS( strURL ) {
     try {
         if( !validateURL( strURL ) )
             return false;
@@ -241,7 +241,7 @@ export function validateInputAddresses( address ) {
 
 export function validateEthAddress( value ) {
     try {
-        if( validateInputAddresses( ensure_starts_with_0x( value ) ) )
+        if( validateInputAddresses( ensureStartsWith0x( value ) ) )
             return true;
     } catch ( err ) {
     }
@@ -250,7 +250,7 @@ export function validateEthAddress( value ) {
 
 export function validateEthPrivateKey( value ) {
     try {
-        const ethersWallet = new ethersMod.ethers.Wallet( ensure_starts_with_0x( value ) );
+        const ethersWallet = new ethersMod.ethers.Wallet( ensureStartsWith0x( value ) );
         if( ethersWallet.address )
             return true;
     } catch ( err ) {
@@ -260,7 +260,7 @@ export function validateEthPrivateKey( value ) {
 
 export function toEthAddress( value, defValue ) {
     try {
-        value = "" + ( value ? ensure_starts_with_0x( value.toString() ) : "" );
+        value = "" + ( value ? ensureStartsWith0x( value.toString() ) : "" );
         defValue = defValue || "";
         if( !validateEthAddress( value ) )
             return defValue;
@@ -484,7 +484,7 @@ export function verifyArgumentIsArrayOfIntegers( joArg ) {
 ///////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////
 
-export function ensure_starts_with_0x( s ) {
+export function ensureStartsWith0x( s ) {
     if( s == null || s == undefined || typeof s !== "string" )
         return s;
     if( s.length < 2 )
@@ -494,7 +494,7 @@ export function ensure_starts_with_0x( s ) {
     return "0x" + s;
 }
 
-export function remove_starting_0x( s ) {
+export function removeStarting0x( s ) {
     if( s == null || s == undefined || typeof s !== "string" )
         return s;
     if( s.length < 2 )
@@ -507,7 +507,7 @@ export function remove_starting_0x( s ) {
 ///////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////
 
-export function inet_ntoa( n ) {
+export function inetNtoA( n ) {
     const a = ( ( n >> 24 ) & 0xFF ) >>> 0;
     const b = ( ( n >> 16 ) & 0xFF ) >>> 0;
     const c = ( ( n >> 8 ) & 0xFF ) >>> 0;
@@ -515,14 +515,14 @@ export function inet_ntoa( n ) {
     return ( a + "." + b + "." + c + "." + d );
 }
 
-export function ip_from_hex( hex ) {
-    return inet_ntoa( parseInt( remove_starting_0x( hex ), 16 ) );
+export function ipFromHex( hex ) {
+    return inetNtoA( parseInt( removeStarting0x( hex ), 16 ) );
 }
 
 ///////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////
 
-export function clone_object_by_root_keys( joIn ) {
+export function cloneObjectByRootKeys( joIn ) {
     const joOut = { }, arrKeys = Object.keys( joIn );
     for( let i = 0; i < arrKeys.length; ++ i ) {
         const key = arrKeys[i];
@@ -712,38 +712,38 @@ export function parseMoneySpecToWei( s, isThrowException ) {
 ///////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////
 
-export function compute_chain_id_from_schain_name( strName ) {
+export function computeChainIdFromSChainName( strName ) {
     let h = ethersMod.ethers.utils.id( strName );
-    h = remove_starting_0x( h ).toLowerCase();
+    h = removeStarting0x( h ).toLowerCase();
     while( h.length < 64 )
         h = "0" + h;
     h = h.substr( 0, 14 );
-    return ensure_starts_with_0x( h );
+    return ensureStartsWith0x( h );
 }
 
-export function private_key_2_account_address( keyPrivate ) {
+export function privateKeyToAccountAddress( keyPrivate ) {
     return ethersMod.ethers.utils.computeAddress(
-        ensure_starts_with_0x( keyPrivate ) );
+        ensureStartsWith0x( keyPrivate ) );
 }
 
-export function private_key_2_public_key( keyPrivate ) {
+export function privateKeyToPublicKey( keyPrivate ) {
     const privateKeyBuffer =
-    ethereumjs_util.toBuffer( ensure_starts_with_0x( keyPrivate ) );
+    ethereumjs_util.toBuffer( ensureStartsWith0x( keyPrivate ) );
     const wallet = Wallet.fromPrivateKey( privateKeyBuffer );
     const publicKey = wallet.getPublicKeyString();
-    return remove_starting_0x( publicKey );
+    return removeStarting0x( publicKey );
 }
 
-export function public_key_2_account_address( keyPublic ) {
-    const hash = ethersMod.ethers.utils.keccak256( ensure_starts_with_0x( keyPublic ) );
-    const strAddress = ensure_starts_with_0x( hash.substr( hash.length - 40 ) );
+export function publicKeyToAccountAddress( keyPublic ) {
+    const hash = ethersMod.ethers.utils.keccak256( ensureStartsWith0x( keyPublic ) );
+    const strAddress = ensureStartsWith0x( hash.substr( hash.length - 40 ) );
     return strAddress;
 }
 
-export function fn_address_impl_() {
+export function fnAddressImpl_() {
     if( this.address_ == undefined || this.address_ == null || this.address_ == "" ) {
         if( this.privateKey )
-            this.address_ = "" + private_key_2_account_address( this.privateKey );
+            this.address_ = "" + privateKeyToAccountAddress( this.privateKey );
     }
     return this.address_;
 }
@@ -757,7 +757,7 @@ export function getEthersProviderFromURL( strURL ) {
     return ethersProvider;
 }
 
-export function ep_2_url( ethersProvider ) {
+export function ethersProviderToUrl( ethersProvider ) {
     let strURL = null;
     if( ethersProvider &&
         "connection" in ethersProvider && typeof ethersProvider.connection == "object" &&
@@ -770,7 +770,7 @@ export function ep_2_url( ethersProvider ) {
 ///////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////
 
-export function ensure_observer_opts_initialized( opts ) {
+export function ensureObserverOptionsInitialized( opts ) {
     if( ! opts )
         throw new Error( "IMA observer options is not valid JS object" );
     if( ! ( "imaState" in opts && opts.imaState && typeof opts.imaState == "object" ) )
@@ -798,7 +798,7 @@ export function ensure_observer_opts_initialized( opts ) {
 ///////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////
 
-export function extract_error_message( jo, strDefaultErrorText ) {
+export function extractErrorMessage( jo, strDefaultErrorText ) {
     strDefaultErrorText = strDefaultErrorText || "unknown error or error without a description";
     try {
         const isError = function( err ) {
@@ -832,7 +832,7 @@ export function toBN( x ) {
     return bn;
 }
 
-export function is_numeric( s ) {
+export function isNumeric( s ) {
     return /^\d+$/.test( s );
 }
 ///////////////////////////////////////////////////////////////////////////////
