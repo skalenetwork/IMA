@@ -772,7 +772,7 @@ export async function ensureHaveWorkers( opts ) {
             }
         };
         g_clients[idxWorker].send( jo );
-    } // for( let idxWorker = 0; idxWorker < cntWorkers; ++ idxWorker )
+    }
 }
 
 export async function runParallelLoops( opts ) {

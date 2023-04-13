@@ -288,7 +288,7 @@ export async function loadSChainParts( jo_schain, addressFrom, opts ) {
                 return;
             ++ idxResult;
         }
-    } else { // if( isEMC )
+    } else {
         for( const node_id of node_ids ) {
             if( opts && opts.bStopNeeded )
                 return;
@@ -321,7 +321,7 @@ export async function loadSChainParts( jo_schain, addressFrom, opts ) {
             if( opts && opts.bStopNeeded )
                 return;
         }
-    } // else from if( isEMC )
+    }
     jo_schain.data.computed.schain_id = schain_id;
     jo_schain.data.computed.chainId = chainId;
     jo_schain.data.computed.nodes = nodes;

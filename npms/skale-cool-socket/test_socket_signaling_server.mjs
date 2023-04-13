@@ -34,8 +34,6 @@ import { settings } from "./socket_settings.mjs";
 import { UniversalDispatcherEvent, EventDispatcher } from "./event_dispatcher.mjs";
 import * as utils from "./socket_utils.mjs";
 
-// const connect = connect_loaded_mod; // .default;
-// const serveStatic = serveStatic_loaded_mod; // .default;
 const https_mod = https_loaded_mod; // .default;
 const ws_mod = ws_loaded_mod; // .default;
 const wrtc_mod = wrtc_loaded_mod; // .default;
@@ -191,7 +189,6 @@ class SignalingClient extends EventDispatcher {
         let joAnswer = null;
         ++ this.fetchingOfferStepNumber;
         try {
-            // let signalingCategory = null;
             const signalingSpace = this.signalingSpace;
             const joOfferInfo = signalingSpace.fetchPublishedOffer();
             if( ! joOfferInfo ) {

@@ -269,7 +269,7 @@ export function oracleGetGasPrice( oracleOpts, details ) {
                                 await joCall.disconnect();
                                 return;
                             }
-                        } // for( let idxAttempt = 0; idxAttempt < cntAttempts; ++idxAttempt )
+                        }
                         details.write( cc.fatal( "CRITICAL ORACLE CALL ERROR:" ) +
                             cc.error( " RPC call" ) + cc.normal( "(" ) +
                             cc.attention( "oracle_checkResult" ) + cc.normal( ")" ) +

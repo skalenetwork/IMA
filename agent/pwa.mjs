@@ -178,7 +178,7 @@ export async function checkOnLoopStart( imaState, strLoopWorkType, nIndexS2S ) {
                 }
                 arr_busy_node_indices.push( walk_node_index );
             }
-        } // for( let i = 0; i < arr_walk_node_indices.length; ++i )
+        }
         if( arr_busy_node_indices.length > 0 ) {
             if( imaState.isPrintPWA ) {
                 log.write(
@@ -343,7 +343,7 @@ async function notifyOnLoopImpl( imaState, strLoopWorkType, nIndexS2S, isStart )
                         await joCall.disconnect();
                     } ); // joCall.call ...
                 } ); // rpcCall.create ...
-        } // for( let i = 0; i < jarrNodes.length; ++i )
+        }
     } catch ( err ) {
         log.write(
             cc.error( "Exception in PWA notify on loop " ) + cc.attention( se ) +

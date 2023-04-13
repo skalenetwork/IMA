@@ -1011,8 +1011,8 @@ async function checkCorrectnessOfMessagesToSign(
                 log.write( s );
                 details.write( s );
             }
-        } // for( i = 0; i < cnt; ++i )
-    } // if( strDirection == "S2M" || strDirection == "S2S" )
+        }
+    }
     // TODO: M2S - check events
     if( cntBadMessages > 0 ) {
         const s =
@@ -1725,7 +1725,7 @@ async function doSignMessagesImpl(
                 break;
             }
             await doSignProcessOneImpl( i, optsSignOperation );
-        } // for( let i = 0; i < optsSignOperation.jarrNodes.length; ++i )
+        }
         await gatherSigningStartImpl( optsSignOperation );
         await gatherSigningFinishImpl( optsSignOperation );
     } catch ( err ) {
@@ -2597,7 +2597,7 @@ async function prepareS2sOfSkaleImaVerifyAndSign( optsHandleVerifyAndSign ) {
             strUrlSrcSChain = skaleObserver.pickRandomSChainUrl( jo_schain );
             break;
         }
-    } // for( let idxSChain = 0; idxSChain < arr_schains_cached.length; ++ idxSChain )
+    }
     if( jo_schain_src == null || strUrlSrcSChain == null || strUrlSrcSChain.length == 0 ) {
         throw new Error(
             "Could not handle " + optsHandleVerifyAndSign.strDirection +

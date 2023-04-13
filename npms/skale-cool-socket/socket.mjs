@@ -31,11 +31,6 @@ export let https_mod = null; // server side only
 export let ws_mod = null; // server side only
 export let wrtc_mod = null; // server side only
 
-// needed to init from outside: import * as https_loaded_mod from "https";
-// const https_mod = https_loaded_mod.default;
-// needed to init from outside: import * as ws_loaded_mod from "ws";
-// const ws_mod = ws_loaded_mod.default;
-
 export function set_https_mod( mod ) {
     https_mod = mod ? mod : null;
 }
@@ -587,7 +582,6 @@ export class InWorkerSocketServerAcceptor extends BasicServerAcceptor {
     performAccept( jo ) {
         if( jo.worker_uuid in this.mapClients )
             return false; // TO-DO: send error answer and return true
-        // const pipe =
         new InWorkerServerPipe( this, "" + jo.worker_uuid, this.fnSend );
         return true;
     }
@@ -2318,7 +2312,7 @@ export class RTCServerPeer extends RTCConnection {
                     );
                 }
             }, self.timeToPublishMilliseconds );
-        } // if( self.timeToPublishMilliseconds > 0 )
+        }
         self.dispatchEvent(
             new UniversalDispatcherEvent(
                 "publishStart", { "detail": { "participant": self } } ) );
@@ -2470,7 +2464,7 @@ export class RTCServerPeer extends RTCConnection {
                         );
                     }
                 }, self.timeToSignalingNegotiationMilliseconds );
-            } // if( self.timeToSignalingNegotiationMilliseconds > 0 )
+            }
         } catch ( err ) {
             throw err;
         }
@@ -3475,7 +3469,7 @@ export class WebRTCClientPipe extends BasicSocketPipe {
                 console.warn( "WebRTC client connect error:", err );
                 continue;
             }
-        } // while( true )
+        }
     }
     rtc_disconnect() {
         if( this.rtcPeer ) {

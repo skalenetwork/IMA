@@ -2555,12 +2555,11 @@ function commonInitPrintSysInfo() {
             cc.debug( " is " ) + cc.j( joMemory ) + "\n" );
         log.write( cc.sunny( "OS" ) + " " + cc.bright( "average load" ) +
             cc.debug( " is " ) + cc.j( os.loadavg() ) + "\n" );
-    } // if( isPrintGathered )
+    }
 }
 
 function commonInitCheckAbiPaths() {
     const imaState = state.get();
-    // const isPrintGathered = imaState.isPrintGathered ? true : false;
     if( imaState.strPathAbiJsonSkaleManager &&
         ( typeof imaState.strPathAbiJsonSkaleManager == "string" ) &&
         imaState.strPathAbiJsonSkaleManager.length > 0
@@ -2627,7 +2626,6 @@ function commonInitCheckAbiPaths() {
 
 function commonInitCheckContractPresences() {
     const imaState = state.get();
-    // const isPrintGathered = imaState.isPrintGathered ? true : false;
     if( imaState.bHaveSkaleManagerABI ) {
         imaUtils.checkKeysExistInABI( "skale-manager",
             imaState.strPathAbiJsonSkaleManager,
@@ -2830,7 +2828,7 @@ function commonInitPrintFoundContracts() {
             oct( imaState.jo_validator_service ) + "\n" );
         log.write( cc.sunny( "Wallets" ) + cc.debug( ".........................address is....." ) +
             oct( imaState.jo_wallets ) + "\n" );
-    } // if( isPrintGathered )
+    }
 }
 
 function commonInitCheckErc20() {
@@ -3019,7 +3017,7 @@ function commonInitCheckErc20() {
                 process.exit( 126 );
             }
         }
-    } // if( imaState.chainProperties.tc.strPathJsonErc20.length > 0 )
+    }
     if( isPrintGathered &&
         imaState.strAddrErc20_explicit_target.length === 0 &&
         imaState.chainProperties.tc.strCoinNameErc20.length === 0 &&
@@ -3217,7 +3215,7 @@ function commonInitCheckErc721() {
                 process.exit( 126 );
             }
         }
-    } // if( imaState.chainProperties.tc.strPathJsonErc721.length > 0 )
+    }
     if( isPrintGathered &&
         imaState.strAddrErc721_explicit_target.length === 0 &&
         imaState.chainProperties.tc.strCoinNameErc721.length === 0 &&
@@ -3417,7 +3415,7 @@ function commonInitCheckErc1155() {
                 process.exit( 126 );
             }
         }
-    } // if( imaState.chainProperties.tc.strPathJsonErc1155.length > 0 )
+    }
     if( isPrintGathered &&
         imaState.strAddrErc1155_explicit_target.length === 0 &&
         imaState.chainProperties.tc.strCoinNameErc1155.length === 0 &&
@@ -3608,7 +3606,6 @@ function commonInitCheckCredentialsArgs() {
 function commonInitCheckTransferAmountArgs() {
     const imaState = state.get();
     const isPrintGathered = imaState.isPrintGathered ? true : false;
-    // const isPrintSecurityValues = imaState.isPrintSecurityValues ? true : false;
     ensureHaveValue(
         "Amount of wei to transfer", imaState.nAmountOfWei,
         false, isPrintGathered, null, ( x ) => {
@@ -3619,7 +3616,6 @@ function commonInitCheckTransferAmountArgs() {
 function commonInitTransferringArgs() {
     const imaState = state.get();
     const isPrintGathered = imaState.isPrintGathered ? true : false;
-    // const isPrintSecurityValues = imaState.isPrintSecurityValues ? true : false;
     ensureHaveValue(
         "M->S transfer block size", imaState.nTransferBlockSizeM2S,
         false, isPrintGathered, null, ( x ) => {
@@ -3728,7 +3724,6 @@ function commonInitTransferringArgs() {
 function commonInitCheckAccessArgs() {
     const imaState = state.get();
     const isPrintGathered = imaState.isPrintGathered ? true : false;
-    // const isPrintSecurityValues = imaState.isPrintSecurityValues ? true : false;
     ensureHaveValue(
         "S-Chain node number(zero based)",
         imaState.nNodeNumber, false, isPrintGathered, null, ( x ) => {
@@ -3744,7 +3739,6 @@ function commonInitCheckAccessArgs() {
 function commonInitErcTokensArgs() {
     const imaState = state.get();
     const isPrintGathered = imaState.isPrintGathered ? true : false;
-    // const isPrintSecurityValues = imaState.isPrintSecurityValues ? true : false;
     if( imaState.chainProperties.tc.strCoinNameErc20.length > 0 ) {
         ensureHaveValue(
             "Loaded Main-net ERC20 ABI ",
@@ -3874,7 +3868,6 @@ function commonInitErcTokensArgs() {
 function commonInitGasMultipliersAndTransactionArgs() {
     const imaState = state.get();
     const isPrintGathered = imaState.isPrintGathered ? true : false;
-    // const isPrintSecurityValues = imaState.isPrintSecurityValues ? true : false;
     if( isPrintGathered ) {
         log.write(
             cc.info( "Main Net Gas Price Multiplier is" ) +
@@ -3987,13 +3980,12 @@ function commonInitGasMultipliersAndTransactionArgs() {
             cc.debug( ".................." ) +
             cc.yn( IMA.dryRunIsIgnored() ) +
             "\n" );
-    } // if( isPrintGathered )
+    }
 }
 
 function commonInitLoggingArgs() {
     const imaState = state.get();
     const isPrintGathered = imaState.isPrintGathered ? true : false;
-    // const isPrintSecurityValues = imaState.isPrintSecurityValues ? true : false;
     if( imaState.strLogFilePath.length > 0 ) {
         ensureHaveValue(
             "Log file path",
@@ -4028,7 +4020,6 @@ function commonInitAutomaticExitArgs() {
 
 export function commonInit() {
     const imaState = state.get();
-    // const isPrintGathered = imaState.isPrintGathered ? true : false;
     commonInitPrintSysInfo();
     commonInitCheckAbiPaths();
     commonInitCheckContractPresences();
@@ -4037,8 +4028,6 @@ export function commonInit() {
     commonInitCheckErc721();
     commonInitCheckErc1155();
     if( IMA.verboseGet() > IMA.verboseReversed().information || imaState.bShowConfigMode ) {
-        // const isPrintGathered = imaState.isPrintGathered ? true : false;
-        // const isPrintSecurityValues = imaState.isPrintSecurityValues ? true : false;
         commonInitCheckGeneralArgs();
         commonInitCheckCredentialsArgs();
         commonInitCheckTransferAmountArgs();
@@ -4265,21 +4254,11 @@ function initContractsSkaleManager() {
                 joABI.constants_holder_address,
                 joABI.constants_holder_abi,
                 ep );
-        // jo_contract_manager
-        // jo_decryption
-        // jo_delegation_controller
-        // jo_delegation_period_manager
-        // jo_distributor
-        // jo_ecdh
-        // jo_manager_data
-        // jo_monitors_functionality
         imaState.jo_nodes =
             new owaspUtils.ethersMod.ethers.Contract(
                 joABI.nodes_address,
                 joABI.nodes_abi,
                 ep );
-        // jo_pricing
-        // jo_punisher
         imaState.jo_key_storage =
             new owaspUtils.ethersMod.ethers.Contract(
                 joABI.key_storage_address,
@@ -4295,8 +4274,6 @@ function initContractsSkaleManager() {
                 joABI.schains_internal_address,
                 joABI.schains_internal_abi,
                 ep );
-        // jo_schains_functionality
-        // jo_schains_functionality_internal
         imaState.jo_skale_dkg =
             new owaspUtils.ethersMod.ethers.Contract(
                 joABI.skale_d_k_g_address,
@@ -4312,11 +4289,6 @@ function initContractsSkaleManager() {
                 joABI.skale_token_address,
                 joABI.skale_token_abi,
                 ep );
-        // jo_skale_verifier
-        // jo_slashing_table
-        // jo_time_helpers
-        // jo_time_helpers_with_debug
-        // jo_token_state
         imaState.jo_validator_service =
             new owaspUtils.ethersMod.ethers.Contract(
                 joABI.validator_service_address,
@@ -4327,7 +4299,7 @@ function initContractsSkaleManager() {
                 joABI.wallets_address,
                 joABI.wallets_abi,
                 ep );
-    } // if( imaState.bHaveSkaleManagerABI )
+    }
 }
 
 export function initContracts() {
