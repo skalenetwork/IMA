@@ -2551,9 +2551,8 @@ function initMonitoringServer() {
                 }
             }
         } );
-        // ws_peer.send( "something" );
     } );
-} // if( imaState.nMonitoringPort > 0 )
+}
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////////////////////
@@ -2664,7 +2663,7 @@ function initJsonRpcServer() {
             fn_send_answer( joAnswer );
     } );
     g_jsonRpcAppIMA.listen( imaState.nJsonRpcPort );
-} // if( imaState.nJsonRpcPort > 0 )
+}
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////////////////////
@@ -2716,7 +2715,7 @@ async function doTheJob() {
                     "\n" );
             }
         }
-    } // for( idxAction = 0; idxAction < cntActions; ++ idxAction )
+    }
     if( IMA.verboseGet() >= IMA.verboseReversed().information ) {
         log.write( strLogPrefix + cc.debug( IMA.longSeparator ) + "\n" );
         log.write( strLogPrefix + cc.info( "FINISH:" ) + "\n" );

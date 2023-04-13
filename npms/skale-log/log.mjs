@@ -230,8 +230,6 @@ export function insertMemoryOutputStream() {
 
 export function createFileOutput( strFilePath, nMaxSizeBeforeRotation, nMaxFilesCount ) {
     try {
-        // const fd = fs.openSync(
-        //     "" + strFilePath, "a", fs.constants.O_NONBLOCK | fs.constants.O_WR );
         const objEntry = {
             "id": g_id ++,
             "strPath": "" + strFilePath,
@@ -285,7 +283,7 @@ export function createFileOutput( strFilePath, nMaxSizeBeforeRotation, nMaxFiles
                         const strPathPrev = "" + this.strPath + "." + ( j + 1 );
                         try { fs.unlinkSync( strPathPrev ); } catch ( err ) { }
                         try { fs.renameSync( strPath, strPathPrev ); } catch ( err ) { }
-                    } // for( i = 0; i < cnt; ++ i )
+                    }
                 } catch ( err ) {
                 }
                 try {

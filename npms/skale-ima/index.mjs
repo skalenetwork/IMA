@@ -768,7 +768,7 @@ export function getLastTransferErrors( isIncludeTextLog ) {
             if( "textLog" in jo )
                 delete jo.textLog;
         }
-    } // if( ! isIncludeTextLog )
+    }
     return jarr;
 }
 
@@ -2887,7 +2887,7 @@ export async function doEthPaymentFromMainNet(
                         "event of the \"MessageProxy\"/" +
                     jo_message_proxy_main_net.address + " contract, no events found" );
             }
-        } // if( jo_message_proxy_main_net )
+        }
     } catch ( err ) {
         const strError = owaspUtils.extractErrorMessage( err );
         const s = strLogPrefix + cc.fatal( "CRITICAL ERROR:" ) + cc.error( " Payment error in " +
@@ -3018,7 +3018,7 @@ export async function doEthPaymentFromSChain(
                         "event of the \"MessageProxy\"/" +
                     jo_message_proxy_s_chain.address + " contract, no events found" );
             }
-        } // if( jo_message_proxy_s_chain )
+        }
     } catch ( err ) {
         const strError = owaspUtils.extractErrorMessage( err );
         const s = strLogPrefix +
@@ -3348,7 +3348,7 @@ export async function doErc721PaymentFromMainNet(
                     jo_message_proxy_main_net.address + " contract, no events found"
                 );
             }
-        } // if( jo_message_proxy_main_net )
+        }
     } catch ( err ) {
         const strError = owaspUtils.extractErrorMessage( err );
         const s = strLogPrefix +
@@ -3547,7 +3547,7 @@ export async function doErc20PaymentFromMainNet(
                         "of the \"MessageProxy\"/" +
                     jo_message_proxy_main_net.address + " contract, no events found" );
             }
-        } // if( jo_message_proxy_main_net )
+        }
     } catch ( err ) {
         const strError = owaspUtils.extractErrorMessage( err );
         const s = strLogPrefix + cc.fatal( "CRITICAL ERROR:" ) + cc.error( " Payment error in " +
@@ -3747,7 +3747,7 @@ export async function doErc1155PaymentFromMainNet(
                         "of the \"MessageProxy\"/" +
                     jo_message_proxy_main_net.address + " contract, no events found" );
             }
-        } // if( jo_message_proxy_main_net )
+        }
     } catch ( err ) {
         const strError = owaspUtils.extractErrorMessage( err );
         const s = strLogPrefix + cc.fatal( "CRITICAL ERROR:" ) +
@@ -3946,7 +3946,7 @@ export async function doErc1155BatchPaymentFromMainNet(
                         "of the \"MessageProxy\"/" +
                     jo_message_proxy_main_net.address + " contract, no events found" );
             }
-        } // if( jo_message_proxy_main_net )
+        }
     } catch ( err ) {
         const strError = owaspUtils.extractErrorMessage( err );
         const s = strLogPrefix + cc.fatal( "CRITICAL ERROR:" ) +
@@ -4114,7 +4114,7 @@ export async function doErc20PaymentFromSChain(
                         "of the \"MessageProxy\"/" +
                     jo_message_proxy_s_chain.address + " contract, no events found" );
             }
-        } // if( jo_message_proxy_s_chain )
+        }
     } catch ( err ) {
         const strError = owaspUtils.extractErrorMessage( err );
         const s = strLogPrefix + cc.fatal( "CRITICAL ERROR:" ) +
@@ -4286,7 +4286,7 @@ export async function doErc721PaymentFromSChain(
                         "of the \"MessageProxy\"/" +
                     jo_message_proxy_s_chain.address + " contract, no events found" );
             }
-        } // if( jo_message_proxy_s_chain )
+        }
     } catch ( err ) {
         const strError = owaspUtils.extractErrorMessage( err );
         const s = strLogPrefix + cc.fatal( "CRITICAL ERROR:" ) + cc.error( " Payment error in " +
@@ -4457,7 +4457,7 @@ export async function doErc1155PaymentFromSChain(
                         "of the \"MessageProxy\"/" +
                     jo_message_proxy_s_chain.address + " contract, no events found" );
             }
-        } // if( jo_message_proxy_s_chain )
+        }
     } catch ( err ) {
         const strError = owaspUtils.extractErrorMessage( err );
         const s = strLogPrefix + cc.fatal( "CRITICAL ERROR:" ) +
@@ -4629,7 +4629,7 @@ export async function doErc1155BatchPaymentFromSChain(
                         "of the \"MessageProxy\"/" +
                     jo_message_proxy_s_chain.address + " contract, no events found" );
             }
-        } // if( jo_message_proxy_s_chain )
+        }
     } catch ( err ) {
         const strError = owaspUtils.extractErrorMessage( err );
         const s = strLogPrefix + cc.fatal( "CRITICAL ERROR:" ) +
@@ -5401,7 +5401,7 @@ async function findOutReferenceLogRecord(
             }
             return joReferenceLogRecord;
         }
-    } // for( let idxLogRecord = 0; idxLogRecord < cntLogRecord; ++ idxLogRecord )
+    }
     if( isVerbose ) {
         details.write( strLogPrefix +
             cc.error( "Failed to find " ) + cc.info( strEventName ) +
@@ -5451,7 +5451,7 @@ async function findOutAllReferenceLogRecords(
             break;
         nWalkBlockId = owaspUtils.toBN( joReferenceLogRecord.previousOutgoingMessageBlockId );
         arrLogRecordReferences.unshift( joReferenceLogRecord );
-    } // for( ; nWalkMsgNumber >= nIncMsgCnt; -- nWalkMsgNumber )
+    }
     const cntFound = arrLogRecordReferences.length;
     if( cntFound != cntExpected ) {
         if( isVerbose ) {
@@ -5752,7 +5752,7 @@ async function gatherMessages( optsTransfer ) {
                     log.write( s );
                 break;
             }
-        } // if( optsTransfer.nBlockAwaitDepth > 0 )
+        }
         if( optsTransfer.nBlockAge > 0 ) {
             let bSecurityCheckPassed = true;
             const strActionName_old = "" + optsTransfer.strActionName;
@@ -5810,7 +5810,7 @@ async function gatherMessages( optsTransfer ) {
                         "canceling search for transfer events" ) + "\n" );
                 break;
             }
-        } // if( optsTransfer.nBlockAge > 0 )
+        }
         optsTransfer.details.write(
             optsTransfer.strLogPrefix +
             cc.success( "Got event optsTransfer.details from " ) +
@@ -5837,7 +5837,7 @@ async function gatherMessages( optsTransfer ) {
                 joValues.savedBlockNumberForOptimizations
         };
         optsTransfer.jarrMessages.push( joMessage );
-    } // for( let idxInBlock = 0; optsTransfer.nIdxCurrentMsg < optsTransfer.nOutMsgCnt &&... ...
+    }
 }
 
 async function preCheckAllMessagesSign( optsTransfer, err, jarrMessages, joGlueResult ) {
@@ -6070,7 +6070,7 @@ async function callbackAllMessagesSign( optsTransfer, err, jarrMessages, joGlueR
                     "via MessageProxy error absence on Main Net, " +
                     "no MessageProxy provided" ) + "\n" );
         }
-    } // if( optsTransfer.chain_id_dst == "Mainnet" )
+    }
 }
 
 async function handleAllMessagesSigning( optsTransfer ) {
@@ -6176,7 +6176,7 @@ async function checkOutgoingMessageEvent( optsTransfer, jo_schain ) {
                             bEventIsFound = true;
                             break;
                         }
-                    } // for( let idxEvent = 0; idxEvent < cntEvents; ++ idxEvent )
+                    }
                 } catch ( err ) {
                     ++ cntFailedNodes;
                     const strError = optsTransfer.strLogPrefix +
@@ -6229,7 +6229,7 @@ async function checkOutgoingMessageEvent( optsTransfer, jo_schain ) {
                         cc.success( " is passed" ) + "\n" );
                     break;
                 }
-            } // for( let idxNode = 0; idxNode < cntNodes; ++ idxNode )
+            }
         } catch ( err ) {
             const strError = optsTransfer.strLogPrefix +
                 cc.fatal( optsTransfer.strDirection + " message analysis error:" ) +
@@ -6296,7 +6296,7 @@ async function checkOutgoingMessageEvent( optsTransfer, jo_schain ) {
             optsTransfer.details.close();
             return false;
         }
-    } // for( let idxMessage = 0; idxMessage < cntMessages; ++ idxMessage )
+    }
     return true;
 }
 
@@ -6422,7 +6422,7 @@ async function doMainTransferLoopActions( optsTransfer ) {
                 "\n" );
             if( ! ( await checkOutgoingMessageEvent( optsTransfer, jo_schain ) ) )
                 return false;
-        } // if( optsTransfer.strDirection == "S2S" ) //// "S2S message analysis
+        }
 
         optsTransfer.strActionName = "sign messages";
         const strWillInvokeSigningCallbackMessage =
@@ -6472,7 +6472,7 @@ async function doMainTransferLoopActions( optsTransfer ) {
         if( optsTransfer.bErrorInSigningMessages )
             break;
         ++ optsTransfer.nStepsDone;
-    } // while( optsTransfer.nIdxCurrentMsg < optsTransfer.nOutMsgCnt )
+    }
     return true;
 }
 
