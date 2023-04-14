@@ -479,6 +479,7 @@ class Agent:
             'abi-s-chain': self.config.abi_schain,
             'key-main-net': self.config.mainnet_key,
             'key-s-chain': self.config.schain_key,
+            'no-wait-s-chain': None,
             'no-pwa': None,
             'gas-price-multiplier': '2.0',
             'gas-multiplier': '2.0',
@@ -492,7 +493,6 @@ class Agent:
             'dynamic-log-in-transfer': None,
             'accumulated-log-in-bls-signer': None
         }
-    # NOTICE: startup speed-up cannot be used here with 'no-wait-s-chain': None,
 
     def _wei_to_bigger(self, amount):
         new_amount, unit = self.blockchain.wei_to_bigger(amount)
