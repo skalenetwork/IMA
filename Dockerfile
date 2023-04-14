@@ -1,13 +1,13 @@
 FROM ubuntu:jammy
 
 RUN apt-get update
-RUN apt-get install -yq software-properties-common
+RUN apt-get install --no-install-recommends -yq software-properties-common
 RUN apt-get update
 #RUN apt-get upgrade
-RUN apt-get install -y build-essential zlib1g-dev libncurses5-dev libgdbm-dev libnss3-dev libssl-dev libreadline-dev libffi-dev wget curl sudo git
+RUN apt-get install --no-install-recommends -y build-essential zlib1g-dev libncurses5-dev libgdbm-dev libnss3-dev libssl-dev libreadline-dev libffi-dev wget curl sudo git
 
-RUN curl -sL https://deb.nodesource.com/setup_16.x | sudo -E bash -
-RUN apt-get install -y nodejs
+RUN curl -sL https://deb.nodesource.com/setup_16.x | bash
+RUN apt-get install --no-install-recommends -y nodejs=16
 RUN node --version
 RUN npm --version
 RUN npm install npm --global
@@ -43,14 +43,22 @@ RUN chmod +x /ima/bls_binaries/verify_bls
 RUN npm install -g node-gyp
 RUN which node-gyp
 RUN node-gyp --version
-RUN cd npms/scrypt; ./get_scrypt_npm.sh; cd ../..
+WORKDIR /ima/npms/scrypt
+RUN ./get_scrypt_npm.sh
 
-RUN cd proxy && yarn install && cd ..
-RUN cd npms/skale-cool-socket && yarn install && cd ../..
-RUN cd npms/skale-owasp && yarn install && cd ../..
-RUN cd npms/skale-observer && yarn install && cd ../..
-RUN cd npms/skale-ima && yarn install && cd ../..
-RUN cd agent && yarn install && cd ..
+WORKDIR /ima/proxy
+RUN yarn install
+WORKDIR /ima/npms/skale-cool-socket
+RUN yarn install
+WORKDIR /ima/npms/skale-owasp
+RUN yarn install
+WORKDIR /ima/npms/skale-observer
+RUN yarn install
+WORKDIR /ima/npms/skale-ima
+RUN yarn install
+WORKDIR /ima/agent
+RUN yarn install
+WORKDIR /ima
 RUN yarn install
 
 CMD ["bash", "/ima/agent/run.sh"]
