@@ -32,6 +32,7 @@ class SendERC20ToSchain(TestCase):
         super().__init__('Send ERC20 to schain', config)
 
     def _prepare(self):
+        sleep( 5 )
         self.erc20 = self.blockchain.deploy_erc20_on_mainnet(self.config.mainnet_key, 'D2-Token', 'D2', 100)
 
         address = self.blockchain.key_to_address(self.config.mainnet_key)

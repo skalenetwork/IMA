@@ -1,7 +1,7 @@
 FROM ubuntu:jammy
 
 RUN apt-get update
-RUN apt-get install -yq software-properties-common
+RUN apt-get install --no-install-recommends -yq software-properties-common
 RUN apt-get update
 #RUN apt-get upgrade
 RUN apt-get install --no-install-recommends -y build-essential zlib1g-dev libncurses5-dev libgdbm-dev libnss3-dev libssl-dev libreadline-dev libffi-dev wget curl sudo git
