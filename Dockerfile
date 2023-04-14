@@ -6,7 +6,7 @@ RUN apt-get update
 #RUN apt-get upgrade
 RUN apt-get install -y build-essential zlib1g-dev libncurses5-dev libgdbm-dev libnss3-dev libssl-dev libreadline-dev libffi-dev wget curl sudo git
 
-RUN curl -sL https://deb.nodesource.com/setup_16.x | sudo -E bash -
+RUN curl -sL https://deb.nodesource.com/setup_16.x | bash
 RUN apt-get install -y nodejs
 RUN node --version
 RUN npm --version
