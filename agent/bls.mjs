@@ -1035,10 +1035,19 @@ async function prepareSignMessagesImpl( optsSignOperation ) {
         owaspUtils.removeStarting0x(
             owaspUtils.ethersMod.ethers.utils.id( log.generateTimestampString( null, false ) )
         );
-    optsSignOperation.jarrNodes = optsSignOperation.imaState.joSChainNetworkInfo.network;
+    optsSignOperation.jarrNodes =
+        ( optsSignOperation.imaState.bSignMessages &&
+            "joSChainNetworkInfo" in optsSignOperation.imaState &&
+            typeof optsSignOperation.imaState.joSChainNetworkInfo == "object" &&
+            "network" in optsSignOperation.imaState.joSChainNetworkInfo &&
+            typeof optsSignOperation.imaState.joSChainNetworkInfo.network == "object"
+        )
+            ? optsSignOperation.imaState.joSChainNetworkInfo.network
+            : [];
     optsSignOperation.details.write( optsSignOperation.strLogPrefix +
         cc.debug( " Invoking " ) + cc.bright( optsSignOperation.strDirection ) +
-        cc.debug( " signing messages procedure " ) +
+        cc.debug( " signing messages procedure, message signing is " ) +
+        cc.onOff( optsSignOperation.imaState.bSignMessages ) +
         "\n" );
     if( !( optsSignOperation.imaState.bSignMessages &&
         optsSignOperation.imaState.strPathBlsGlue.length > 0 &&

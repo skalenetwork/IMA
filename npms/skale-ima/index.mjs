@@ -6096,7 +6096,7 @@ async function handleAllMessagesSigning( optsTransfer ) {
                 optsTransfer.strTransferErrorCategoryName,
                 optsTransfer.details.toString() );
         }
-    } ); // optsTransfer.fn_sign_messages
+    } );
     return true;
 }
 
@@ -6552,38 +6552,39 @@ export async function doTransfer(
         optsTransfer.chain_id_src + "-->" + optsTransfer.chain_id_dst;
     optsTransfer.strGatheredDetailsName_colored =
         cc.bright( optsTransfer.strDirection ) + cc.debug( "/" ) + cc.attention( "#" ) +
-        cc.sunny( optsTransfer.nTransferLoopCounter ) +
-        cc.debug( "-" ) + cc.info( "doTransfer-A-" ) + cc.debug( "-" ) +
-        cc.notice( optsTransfer.chain_id_src ) + cc.debug( "-->" ) +
-        cc.notice( optsTransfer.chain_id_dst );
+        cc.sunny( optsTransfer.nTransferLoopCounter ) + cc.debug( "-" ) +
+        cc.info( "doTransfer-A-" ) + cc.debug( "-" ) + cc.notice( optsTransfer.chain_id_src ) +
+        cc.debug( "-->" ) + cc.notice( optsTransfer.chain_id_dst );
     optsTransfer.details = optsTransfer.imaState.isDynamicLogInDoTransfer
         ? log : log.createMemoryStream( true );
-    optsTransfer.strLogPrefixShort =
-        cc.bright( optsTransfer.strDirection ) + cc.debug( "/" ) +
+    optsTransfer.strLogPrefixShort = cc.bright( optsTransfer.strDirection ) + cc.debug( "/" ) +
         cc.attention( "#" ) + cc.sunny( optsTransfer.nTransferLoopCounter ) + " ";
     optsTransfer.strLogPrefix = optsTransfer.strLogPrefixShort + cc.info( "transfer loop from " ) +
         cc.notice( optsTransfer.chain_id_src ) + cc.info( " to " ) +
         cc.notice( optsTransfer.chain_id_dst ) + cc.info( ":" ) + " ";
-    if( optsTransfer.fn_sign_messages == null || optsTransfer.fn_sign_messages == undefined ) {
+    optsTransfer.details.write( optsTransfer.strLogPrefix + cc.debug( "Message signing is " ) +
+        cc.onOff( optsTransfer.imaState.bSignMessages ) + "\n" );
+    if( optsTransfer.fn_sign_messages == null ||
+        optsTransfer.fn_sign_messages == undefined ||
+        ( ! optsTransfer.imaState.bSignMessages )
+    ) {
         optsTransfer.details.write( optsTransfer.strLogPrefix +
-            cc.debug( "Using internal signing stub function" ) +
-            "\n" );
+            cc.debug( "Using internal signing stub function" ) + "\n" );
         optsTransfer.fn_sign_messages = async function(
-            jarrMessages, nIdxCurrentMsgBlockStart, details, joExtraSignOpts, fnAfter
+            nTransferLoopCounter, jarrMessages, nIdxCurrentMsgBlockStart, strFromChainName,
+            joExtraSignOpts, fnAfter
         ) {
-            details.write( optsTransfer.strLogPrefix + cc.debug( "Message signing callback was " ) +
-                cc.error( "not provided" ) +
+            optsTransfer.details.write( optsTransfer.strLogPrefix +
+                cc.debug( "Message signing callback was " ) + cc.error( "not provided" ) +
                 cc.debug( " to IMA, first real message index is:" ) +
-                cc.info( nIdxCurrentMsgBlockStart ) +
-                cc.debug( ", have " ) + cc.info( optsTransfer.jarrMessages.length ) +
-                cc.debug( " message(s) to process:" ) + cc.j( optsTransfer.jarrMessages ) +
-                "\n" );
+                cc.info( nIdxCurrentMsgBlockStart ) + cc.debug( ", have " ) +
+                cc.info( optsTransfer.jarrMessages.length ) +
+                cc.debug( " message(s) to process:" ) + cc.j( optsTransfer.jarrMessages ) + "\n" );
             await fnAfter( null, jarrMessages, null ); // null - no error, null - no signatures
         };
     } else {
         optsTransfer.details.write( optsTransfer.strLogPrefix +
-            cc.debug( "Using externally provided signing function" ) +
-            "\n" );
+            cc.debug( "Using externally provided signing function" ) + "\n" );
     }
     optsTransfer.nTransactionsCountInBlock = optsTransfer.nTransactionsCountInBlock || 5;
     optsTransfer.nTransferSteps = optsTransfer.nTransferSteps || Number.MAX_SAFE_INTEGER;

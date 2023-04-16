@@ -679,7 +679,7 @@ describe( "OWASP-5", function() {
 
         it( "Clone object by root keys", function() {
             const joIn = { "a": 1, "2": 2, "c": { "d": 3, "e": 4 } };
-            const joOut = owaspUtils.clone_object_by_root_keys( joIn );
+            const joOut = owaspUtils.cloneObjectByRootKeys( joIn );
             assert.equal( JSON.stringify( joIn ), JSON.stringify( joOut ) );
         } );
 
