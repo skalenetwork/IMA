@@ -137,6 +137,11 @@ export function tf( flag ) {
     return toBoolean( flag ) ? yes( "true" ) : no( "false" );
 }
 
+export function onOff( flag ) {
+    if( !g_bEnabled )
+        return flag;
+    return toBoolean( flag ) ? yes( "on" ) : no( "off" );
+}
 const g_mapColorDefinitions = {
     reset: "\x1b[0m",
     enlight: "\x1b[1m",
