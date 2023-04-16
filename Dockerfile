@@ -4,7 +4,7 @@ RUN apt-get update
 RUN apt-get install --no-install-recommends -yq software-properties-common
 RUN apt-get update
 #RUN apt-get upgrade
-RUN apt-get install --no-install-recommends -y build-essential zlib1g-dev libncurses5-dev libgdbm-dev libnss3-dev libssl-dev libreadline-dev libffi-dev wget curl sudo git
+RUN apt-get install --no-install-recommends -y build-essential=12 zlib1g-dev=1 libncurses5-dev=6 libgdbm-dev=1 libnss3-dev=2 libssl-dev=3 libreadline-dev=8 libffi-dev=3 wget=1 curl=7 sudo=1 git=1
 
 RUN curl -sL https://deb.nodesource.com/setup_16.x | bash
 RUN apt-get install --no-install-recommends -y nodejs=16
