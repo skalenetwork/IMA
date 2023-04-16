@@ -6571,10 +6571,12 @@ export async function doTransfer(
         optsTransfer.details.write( optsTransfer.strLogPrefix +
             cc.debug( "Using internal signing stub function" ) + "\n" );
         optsTransfer.fn_sign_messages = async function(
-            jarrMessages, nIdxCurrentMsgBlockStart, details, joExtraSignOpts, fnAfter
+            nTransferLoopCounter, jarrMessages, nIdxCurrentMsgBlockStart, strFromChainName,
+            joExtraSignOpts, fnAfter
         ) {
-            details.write( optsTransfer.strLogPrefix + cc.debug( "Message signing callback was " ) +
-                cc.error( "not provided" ) + cc.debug( " to IMA, first real message index is:" ) +
+            optsTransfer.details.write( optsTransfer.strLogPrefix +
+                cc.debug( "Message signing callback was " ) + cc.error( "not provided" ) +
+                cc.debug( " to IMA, first real message index is:" ) +
                 cc.info( nIdxCurrentMsgBlockStart ) + cc.debug( ", have " ) +
                 cc.info( optsTransfer.jarrMessages.length ) +
                 cc.debug( " message(s) to process:" ) + cc.j( optsTransfer.jarrMessages ) + "\n" );
