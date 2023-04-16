@@ -6563,7 +6563,7 @@ export async function doTransfer(
         cc.notice( optsTransfer.chain_id_src ) + cc.info( " to " ) +
         cc.notice( optsTransfer.chain_id_dst ) + cc.info( ":" ) + " ";
     optsSignOperation.details.write( optsTransfer.strLogPrefix + cc.debug( "Message signing is " ) +
-        cc.onOff( optsSignOperation.imaState.bSignMessages ) + "\n" );
+        cc.onOff( optsTransfer.imaState.bSignMessages ) + "\n" );
     if( optsTransfer.fn_sign_messages == null ||
         optsTransfer.fn_sign_messages == undefined ||
         ( ! optsTransfer.imaState.bSignMessages )
