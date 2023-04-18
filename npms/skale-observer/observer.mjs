@@ -26,19 +26,17 @@
 
 import * as path from "path";
 import * as url from "url";
-import * as network_layer from "../skale-cool-socket/socket.mjs";
+import * as networkLayer from "../skale-cool-socket/socket.mjs";
 import { Worker } from "worker_threads";
-import * as owaspUtils from "../skale-owasp/owasp-utils.mjs";
+import * as owaspUtils from "../skale-owasp/owaspUtils.mjs";
 import * as cc from "../skale-cc/cc.mjs";
 import * as log from "../skale-log/log.mjs";
-import * as rpcCall from "../../agent/rpc-call.mjs";
+import * as rpcCall from "../../agent/rpcCall.mjs";
 
 import { UniversalDispatcherEvent, EventDispatcher }
-    from "../skale-cool-socket/event_dispatcher.mjs";
+    from "../skale-cool-socket/eventDispatcher.mjs";
 
-//import { Multicall, ContractCallResults, ContractCallContext } from "ethereum-multicall";
 import * as EMC from "ethereum-multicall";
-// EMC.Multicall
 
 const __dirname = path.dirname( url.fileURLToPath( import.meta.url ) );
 
@@ -734,14 +732,14 @@ export async function cacheSChains( strChainNameConnectedTo, addressFrom, opts )
                 cc.debug( " cache was updated in this thread: " ) +
                 cc.j( g_arrSChainsCached ) + "\n" );
         }
-        if( opts.fn_cache_changed )
-            opts.fn_cache_changed( g_arrSChainsCached, null ); // null - no error
+        if( opts.fnCacheChanged )
+            opts.fnCacheChanged( g_arrSChainsCached, null ); // null - no error
     } catch ( err ) {
         strError = owaspUtils.extractErrorMessage( err );
         if( ! strError )
             strError = "unknown exception during S-Chains download";
-        if( opts.fn_cache_changed )
-            opts.fn_cache_changed( g_arrSChainsCached, strError );
+        if( opts.fnCacheChanged )
+            opts.fnCacheChanged( g_arrSChainsCached, strError );
         if( opts && opts.details ) {
             opts.details.write(
                 cc.fatal( "ERROR:" ) + cc.error( " Failed to cache: " ) + cc.error( err ) );
@@ -779,14 +777,14 @@ export async function ensureHaveWorker( opts ) {
     const url = "skale_observer_worker_server";
     g_worker =
         new Worker(
-            path.join( __dirname, "observer_worker.mjs" ),
+            path.join( __dirname, "observerWorker.mjs" ),
             { "type": "module" }
         );
     g_worker.on( "message", jo => {
-        if( network_layer.out_of_worker_apis.on_message( g_worker, jo ) )
+        if( networkLayer.out_of_worker_apis.on_message( g_worker, jo ) )
             return;
     } );
-    g_client = new network_layer.OutOfWorkerSocketClientPipe( url, g_worker );
+    g_client = new networkLayer.OutOfWorkerSocketClientPipe( url, g_worker );
     g_client.on( "message", function( eventData ) {
         const joMessage = eventData.message;
         switch ( joMessage.method ) {
@@ -908,14 +906,14 @@ async function inThreadPeriodicCachingStart( strChainNameConnectedTo, addressFro
     if( g_intervalPeriodicCaching != null )
         return;
     try {
-        const fn_do_caching_now = async function() {
+        const fnDoCachingNow = async function() {
             await cacheSChains( strChainNameConnectedTo, addressFrom, opts );
         };
         g_intervalPeriodicCaching =
             setInterval(
-                fn_do_caching_now,
+                fnDoCachingNow,
                 parseInt( opts.secondsToReDiscoverSkaleNetwork ) * 1000 );
-        await fn_do_caching_now();
+        await fnDoCachingNow();
         return true;
     } catch ( err ) {
         log.write(

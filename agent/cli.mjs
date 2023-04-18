@@ -23,15 +23,14 @@
  * @copyright SKALE Labs 2019-Present
  */
 
-// import * as fs from "fs";
 import * as path from "path";
 import * as url from "url";
 import * as os from "os";
 import * as cc from "../npms/skale-cc/cc.mjs";
 import * as log from "../npms/skale-log/log.mjs";
-import * as owaspUtils from "../npms/skale-owasp/owasp-utils.mjs";
+import * as owaspUtils from "../npms/skale-owasp/owaspUtils.mjs";
 import * as imaUtils from "./utils.mjs";
-import * as rpcCall from "./rpc-call.mjs";
+import * as rpcCall from "./rpcCall.mjs";
 import * as IMA from "../npms/skale-ima/index.mjs";
 import * as state from "./state.mjs";
 
@@ -1720,7 +1719,7 @@ function parseErcArgs( imaState, joArg ) {
     }
     if( joArg.name == "addr-erc20-s-chain" ) {
         owaspUtils.verifyArgumentWithNonEmptyValue( joArg );
-        imaState.strAddrErc20_explicit = joArg.value;
+        imaState.strAddrErc20Explicit = joArg.value;
         return true;
     }
     if( joArg.name == "erc20-t-chain" ) {
@@ -1730,7 +1729,7 @@ function parseErcArgs( imaState, joArg ) {
     }
     if( joArg.name == "addr-erc20-t-chain" ) {
         owaspUtils.verifyArgumentWithNonEmptyValue( joArg );
-        imaState.strAddrErc20_explicit_target = joArg.value;
+        imaState.strAddrErc20ExplicitTarget = joArg.value;
         return true;
     }
 
@@ -1746,7 +1745,7 @@ function parseErcArgs( imaState, joArg ) {
     }
     if( joArg.name == "addr-erc721-s-chain" ) {
         owaspUtils.verifyArgumentWithNonEmptyValue( joArg );
-        imaState.strAddrErc721_explicit = joArg.value;
+        imaState.strAddrErc721Explicit = joArg.value;
         return true;
     }
     if( joArg.name == "erc721-t-chain" ) {
@@ -1756,7 +1755,7 @@ function parseErcArgs( imaState, joArg ) {
     }
     if( joArg.name == "addr-erc721-t-chain" ) {
         owaspUtils.verifyArgumentWithNonEmptyValue( joArg );
-        imaState.strAddrErc721_explicit_target = joArg.value;
+        imaState.strAddrErc721ExplicitTarget = joArg.value;
         return true;
     }
 
@@ -1772,7 +1771,7 @@ function parseErcArgs( imaState, joArg ) {
     }
     if( joArg.name == "addr-erc1155-s-chain" ) {
         owaspUtils.verifyArgumentWithNonEmptyValue( joArg );
-        imaState.strAddrErc1155_explicit = joArg.value;
+        imaState.strAddrErc1155Explicit = joArg.value;
         return true;
     }
     if( joArg.name == "erc1155-t-chain" ) {
@@ -1782,7 +1781,7 @@ function parseErcArgs( imaState, joArg ) {
     }
     if( joArg.name == "addr-erc1155-t-chain" ) {
         owaspUtils.verifyArgumentWithNonEmptyValue( joArg );
-        imaState.strAddrErc1155_explicit_target = joArg.value;
+        imaState.strAddrErc1155ExplicitTarget = joArg.value;
         return true;
     }
     if( joArg.name == "with-metadata" ) {
@@ -1971,11 +1970,11 @@ function parseTransferArgs( imaState, joArg ) {
         return true;
     }
     if( joArg.name == "s2s-enable" ) {
-        imaState.s2s_opts.isEnabled = true;
+        imaState.optsS2S.isEnabled = true;
         return true;
     }
     if( joArg.name == "s2s-disable" ) {
-        imaState.s2s_opts.isEnabled = false;
+        imaState.optsS2S.isEnabled = false;
         return true;
     }
     if( joArg.name == "no-wait-s-chain" ) {
@@ -2298,7 +2297,7 @@ function parseOracleArgs( imaState, joArg ) {
 function parseNetworkDiscoveryArgs( imaState, joArg ) {
     if( joArg.name == "net-rediscover" ) {
         owaspUtils.verifyArgumentIsInteger( joArg );
-        imaState.s2s_opts.secondsToReDiscoverSkaleNetwork =
+        imaState.optsS2S.secondsToReDiscoverSkaleNetwork =
             owaspUtils.toInteger( joArg.value );
         return true;
     }
@@ -2367,8 +2366,8 @@ function parseOtherArgs( imaState, joArg ) {
 
 export function parse( joExternalHandlers, argv ) {
     const imaState = state.get();
-    let idxArg; const cntArgs = argv || process.argv.length;
-    for( idxArg = 2; idxArg < cntArgs; ++idxArg ) {
+    const cntArgs = argv || process.argv.length;
+    for( let idxArg = 2; idxArg < cntArgs; ++idxArg ) {
         const joArg = parseCommandLineArgument( process.argv[idxArg] );
         parseHelp( imaState, joArg ); // exits process on "--help"
         parseVersion( imaState, joArg ); // exits process on "--version"
@@ -2652,7 +2651,7 @@ function commonInitCheckContractPresences() {
                 "wallets_abi",
                 "wallets_address"
             ] );
-    } else if( imaState.s2s_opts.isEnabled ) {
+    } else if( imaState.optsS2S.isEnabled ) {
         log.write( cc.warning( "WARNING:" ) +
             cc.warning( " Missing " ) + cc.note( "Skale Manager" ) +
             cc.warning( " ABI path for " ) + cc.note( "S-Chain" ) + cc.warning( " to " ) +
@@ -2960,7 +2959,7 @@ function commonInitCheckErc20() {
         }
     }
     if( n1 !== 0 && n2 === 0 ) {
-        if( imaState.strAddrErc20_explicit.length === 0 ) {
+        if( imaState.strAddrErc20Explicit.length === 0 ) {
             log.write(
                 cc.error( "IMPORTANT NOTICE:" ) + " " +
                 cc.warning( "Both S-Chain ERC20 JSON and explicit " +
@@ -2979,7 +2978,7 @@ function commonInitCheckErc20() {
                 JSON.parse( JSON.stringify( imaState.chainProperties.mn.joErc20 ) ); // clone
             imaState.chainProperties.sc.joErc20[
                 imaState.chainProperties.sc.strCoinNameErc20 + "_address"] =
-                    "" + imaState.strAddrErc20_explicit; // set explicit address
+                    "" + imaState.strAddrErc20Explicit; // set explicit address
         }
     }
 
@@ -3019,7 +3018,7 @@ function commonInitCheckErc20() {
         }
     }
     if( isPrintGathered &&
-        imaState.strAddrErc20_explicit_target.length === 0 &&
+        imaState.strAddrErc20ExplicitTarget.length === 0 &&
         imaState.chainProperties.tc.strCoinNameErc20.length === 0 &&
         imaState.chainProperties.sc.strCoinNameErc20.length > 0
     ) {
@@ -3158,7 +3157,7 @@ function commonInitCheckErc721() {
         }
     }
     if( n1 !== 0 && n2 === 0 ) {
-        if( imaState.strAddrErc721_explicit.length === 0 ) {
+        if( imaState.strAddrErc721Explicit.length === 0 ) {
             if( isPrintGathered ) {
                 log.write( cc.error( "IMPORTANT NOTICE:" ) + " " +
                     cc.warning( "Both S-Chain ERC721 JSON and " +
@@ -3177,7 +3176,7 @@ function commonInitCheckErc721() {
                 JSON.parse( JSON.stringify( imaState.chainProperties.mn.joErc721 ) ); // clone
             imaState.chainProperties.sc.joErc721[
                 imaState.chainProperties.sc.strCoinNameErc721 + "_address"] =
-                    "" + imaState.strAddrErc721_explicit; // set explicit address
+                    "" + imaState.strAddrErc721Explicit; // set explicit address
         }
     }
 
@@ -3217,7 +3216,7 @@ function commonInitCheckErc721() {
         }
     }
     if( isPrintGathered &&
-        imaState.strAddrErc721_explicit_target.length === 0 &&
+        imaState.strAddrErc721ExplicitTarget.length === 0 &&
         imaState.chainProperties.tc.strCoinNameErc721.length === 0 &&
         imaState.chainProperties.sc.strCoinNameErc721.length > 0
     ) {
@@ -3353,7 +3352,7 @@ function commonInitCheckErc1155() {
         }
     }
     if( n1 !== 0 && n2 === 0 ) {
-        if( imaState.strAddrErc1155_explicit.length === 0 ) {
+        if( imaState.strAddrErc1155Explicit.length === 0 ) {
             if( isPrintGathered ) {
                 log.write(
                     cc.error( "IMPORTANT NOTICE:" ) + " " +
@@ -3374,7 +3373,7 @@ function commonInitCheckErc1155() {
                 JSON.parse( JSON.stringify( imaState.chainProperties.mn.joErc1155 ) ); // clone
             imaState.chainProperties.sc.joErc1155[
                 imaState.chainProperties.sc.strCoinNameErc1155 + "_address"] =
-                    "" + imaState.strAddrErc1155_explicit; // set explicit address
+                    "" + imaState.strAddrErc1155Explicit; // set explicit address
         }
     }
 
@@ -3417,7 +3416,7 @@ function commonInitCheckErc1155() {
         }
     }
     if( isPrintGathered &&
-        imaState.strAddrErc1155_explicit_target.length === 0 &&
+        imaState.strAddrErc1155ExplicitTarget.length === 0 &&
         imaState.chainProperties.tc.strCoinNameErc1155.length === 0 &&
         imaState.chainProperties.sc.strCoinNameErc1155.length > 0
     ) {
@@ -3761,7 +3760,7 @@ function commonInitErcTokensArgs() {
         if( isPrintGathered ) {
             log.write(
                 cc.info( "ERC20 explicit S-Chain address is " ) +
-                cc.attention( imaState.strAddrErc20_explicit ) +
+                cc.attention( imaState.strAddrErc20Explicit ) +
                 "\n" );
         }
     }
@@ -3795,7 +3794,7 @@ function commonInitErcTokensArgs() {
         if( isPrintGathered ) {
             log.write(
                 cc.info( "ERC721 explicit S-Chain address is " ) +
-                cc.attention( imaState.strAddrErc721_explicit ) +
+                cc.attention( imaState.strAddrErc721Explicit ) +
                 "\n" );
         }
     }
@@ -3851,7 +3850,7 @@ function commonInitErcTokensArgs() {
         if( isPrintGathered ) {
             log.write(
                 cc.info( "ERC1155 explicit S-Chain address is " ) +
-                cc.attention( imaState.strAddrErc1155_explicit ) +
+                cc.attention( imaState.strAddrErc1155Explicit ) +
                 "\n" );
         }
     }
@@ -3940,15 +3939,15 @@ function commonInitGasMultipliersAndTransactionArgs() {
         log.write(
             cc.info( "S-Chain to S-Chain transferring is" ) +
             cc.debug( "..................." ) +
-            ( imaState.s2s_opts.isEnabled
+            ( imaState.optsS2S.isEnabled
                 ? cc.success( "enabled" )
                 : cc.error( "disabled" ) ) +
             "\n" );
         log.write(
             cc.info( "SKALE network re-discovery interval is" ) +
             cc.debug( "..............." ) +
-            ( imaState.s2s_opts.secondsToReDiscoverSkaleNetwork
-                ? cc.info( imaState.s2s_opts.secondsToReDiscoverSkaleNetwork.toString() )
+            ( imaState.optsS2S.secondsToReDiscoverSkaleNetwork
+                ? cc.info( imaState.optsS2S.secondsToReDiscoverSkaleNetwork.toString() )
                 : cc.error( "disabled" ) ) +
             "\n" );
         log.write(

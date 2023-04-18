@@ -23,22 +23,22 @@
  * @copyright SKALE Labs 2019-Present
  */
 
-import { UniversalDispatcherEvent, EventDispatcher } from "./event_dispatcher.mjs";
-import { settings } from "./socket_settings.mjs";
-import * as utils from "./socket_utils.mjs";
+import { UniversalDispatcherEvent, EventDispatcher } from "./eventDispatcher.mjs";
+import { settings } from "./socketSettings.mjs";
+import * as utils from "./socketUtils.mjs";
 
-export let https_mod = null; // server side only
-export let ws_mod = null; // server side only
-export let wrtc_mod = null; // server side only
+export let httpsModule = null; // server side only
+export let wsModule = null; // server side only
+export let webRtcModule = null; // server side only
 
-export function set_https_mod( mod ) {
-    https_mod = mod ? mod : null;
+export function setHttpsModule( mod ) {
+    httpsModule = mod ? mod : null;
 }
-export function set_ws_mod( mod ) {
-    ws_mod = mod ? mod : null;
+export function setWsModule( mod ) {
+    wsModule = mod ? mod : null;
 }
-export function set_wrtc_mod( mod ) {
-    wrtc_mod = mod ? mod : null;
+export function setWebRtcModule( mod ) {
+    webRtcModule = mod ? mod : null;
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -46,7 +46,7 @@ export function set_wrtc_mod( mod ) {
 
 export const g_mapLocalServers = { }; // used both for local and in-worker servers
 
-export const socket_sent_data_marshall = function( data ) {
+export const socketSentDataMarshall = function( data ) {
     const s = data
         ? ( ( typeof data == "string" )
             ? data
@@ -55,7 +55,7 @@ export const socket_sent_data_marshall = function( data ) {
         : "";
     return s;
 };
-export const socket_received_data_reverse_marshall = function( data ) {
+export const socketReceivedDataReverseMarshall = function( data ) {
     try {
         const jo = data
             ? ( ( typeof data == "object" )
@@ -73,7 +73,7 @@ export const socket_received_data_reverse_marshall = function( data ) {
     }
 };
 
-export const update_socket_data_stats_for_message = function( joMessage, joStats ) {
+export const updateSocketDataStatsForMessage = function( joMessage, joStats ) {
     let strMethod = "_N/A_";
     if( "method" in joMessage &&
         joMessage.method &&
@@ -85,7 +85,7 @@ export const update_socket_data_stats_for_message = function( joMessage, joStats
     else
         joStats[strMethod] = 1;
 };
-export const generate_socket_data_stats_JSON = function( jo ) {
+export const generateSocketDataStatsJSON = function( jo ) {
     const joStats = {};
     //let cnt = 1;
     if( "arr_packed_messages" in jo &&
@@ -94,10 +94,10 @@ export const generate_socket_data_stats_JSON = function( jo ) {
     ) {
         //cnt = jo.arr_packed_messages.length;
         for( const joMessage of jo.arr_packed_messages )
-            update_socket_data_stats_for_message( joMessage, joStats );
+            updateSocketDataStatsForMessage( joMessage, joStats );
 
     } else
-        update_socket_data_stats_for_message( jo, joStats );
+        updateSocketDataStatsForMessage( jo, joStats );
     //joStats["_cnt_"] = cnt;
     return joStats;
 };
@@ -225,11 +225,11 @@ export class BasicSocketPipe extends EventDispatcher {
         }
         this.mapImpersonatedEntries = { }; // for app usage
     }
-    impl_send( data ) {
+    implSend( data ) {
         throw new Error(
-            "BasicSocketPipe.impl_send() must be overridden but calling it was attempted" );
+            "BasicSocketPipe.implSend() must be overridden but calling it was attempted" );
     }
-    is_auto_flush() {
+    isAutoFlush() {
         if( this.maxAccumulatedMessagesCount <= 1 )
             return true;
         const cnt = this.arr_accumulated_messages.length;
@@ -251,14 +251,14 @@ export class BasicSocketPipe extends EventDispatcher {
     send( data, isFlush ) {
         if( this.isDisposed || ( !this.isConnected ) )
             return;
-        if( this.is_auto_flush() ) {
+        if( this.isAutoFlush() ) {
             if( settings.logging.net.socket.send || settings.logging.net.socket.flush )
                 console.log( this.socketLoggingTextPrefix( "send+flush" ), data );
-            this.impl_send( data );
+            this.implSend( data );
             return;
         }
         isFlush = ( isFlush == undefined || isFlush == null ) ? true : ( isFlush ? true : false );
-        const jo = socket_received_data_reverse_marshall( data );
+        const jo = socketReceivedDataReverseMarshall( data );
         if( settings.logging.net.socket.accumulate )
             console.log( this.socketLoggingTextPrefix( "accumulate" ), data );
         this.arr_accumulated_messages.push( jo );
@@ -286,23 +286,23 @@ export class BasicSocketPipe extends EventDispatcher {
         if( settings.logging.net.socket.flushMethodStats ) {
             console.log(
                 this.socketLoggingTextPrefix( "flush-method-stats(" + cnt + ")" ),
-                generate_socket_data_stats_JSON( joSend )
+                generateSocketDataStatsJSON( joSend )
             );
         }
-        this.impl_send( joSend );
+        this.implSend( joSend );
         this.arr_accumulated_messages = [];
         if( this.relayClientSocket )
             this.relayClientSocket.flush();
     }
-    impl_receive( data ) {
-        const jo = socket_received_data_reverse_marshall( data );
+    implReceive( data ) {
+        const jo = socketReceivedDataReverseMarshall( data );
         this.dispatchEvent(
             new UniversalDispatcherEvent( "message", { "socket": this, "message": jo } ) );
     }
     receive( data ) {
         if( settings.logging.net.socket.receiveBlock )
             console.log( this.socketLoggingTextPrefix( "receive-block" ), data );
-        const jo = socket_received_data_reverse_marshall( data );
+        const jo = socketReceivedDataReverseMarshall( data );
         if( "arr_packed_messages" in jo &&
             jo.arr_packed_messages &&
             typeof jo.arr_packed_messages == "object"
@@ -313,14 +313,14 @@ export class BasicSocketPipe extends EventDispatcher {
             if( settings.logging.net.socket.receiveMethodStats ) {
                 console.log(
                     this.socketLoggingTextPrefix( "receive-method-stats(" + cnt + ")" ),
-                    generate_socket_data_stats_JSON( jo )
+                    generateSocketDataStatsJSON( jo )
                 );
             }
             for( let i = 0; i < cnt; ++ i ) {
                 const joMessage = jo.arr_packed_messages[i];
                 if( settings.logging.net.socket.receive )
                     console.log( this.socketLoggingTextPrefix( "receive" ), joMessage );
-                this.impl_receive( joMessage );
+                this.implReceive( joMessage );
             }
             return;
         }
@@ -329,11 +329,11 @@ export class BasicSocketPipe extends EventDispatcher {
         if( settings.logging.net.socket.receiveMethodStats ) {
             console.log(
                 this.socketLoggingTextPrefix(
-                    "receive-method-stats(" + 1 + ")" ), generate_socket_data_stats_JSON( jo ) );
+                    "receive-method-stats(" + 1 + ")" ), generateSocketDataStatsJSON( jo ) );
         }
         if( settings.logging.net.socket.receive )
             console.log( this.socketLoggingTextPrefix( "receive" ), jo );
-        this.impl_receive( jo );
+        this.implReceive( jo );
     }
     disconnect() {
         this.isConnected = false;
@@ -357,9 +357,9 @@ export class NullSocketPipe extends BasicSocketPipe {
         this.isConnected = false;
         super.dispose();
     }
-    impl_send( data ) {
+    implSend( data ) {
     }
-    impl_receive( data ) {
+    implReceive( data ) {
     }
     send( data ) {
     }
@@ -385,7 +385,7 @@ export const g_map_connected_in_worker_clients = { };
 
 export const out_of_worker_apis = {
     "on_message": function( worker, data ) {
-        const jo = socket_received_data_reverse_marshall( data );
+        const jo = socketReceivedDataReverseMarshall( data );
         if( ! ( "worker_message_type" in jo ) ||
             typeof jo.worker_message_type != "string" ||
             jo.worker_message_type.length == 0 )
@@ -422,7 +422,7 @@ export const out_of_worker_apis = {
         } // switch( jo.worker_message_type )
     },
     "on_send_message": function( worker, type, endpoint, worker_uuid, data ) {
-        const jo = socket_received_data_reverse_marshall( data );
+        const jo = socketReceivedDataReverseMarshall( data );
         const joSend = {
             "worker_message_type":
                 ( type && typeof type == "string" && type.length > 0 )
@@ -431,13 +431,13 @@ export const out_of_worker_apis = {
             "worker_uuid": worker_uuid,
             "data": jo
         };
-        //worker.postMessage( socket_received_data_reverse_marshall( joSend ) );
-        worker.postMessage( socket_sent_data_marshall( joSend ) );
+        //worker.postMessage( socketReceivedDataReverseMarshall( joSend ) );
+        worker.postMessage( socketSentDataMarshall( joSend ) );
     }
 };
 export const in_worker_apis = {
     "on_message": function( data ) {
-        const jo = socket_received_data_reverse_marshall( data );
+        const jo = socketReceivedDataReverseMarshall( data );
         if( ! ( "worker_message_type" in jo ) ||
             typeof jo.worker_message_type != "string" ||
             jo.worker_message_type.length == 0 )
@@ -465,7 +465,7 @@ export const in_worker_apis = {
         } // switch( jo.worker_message_type )
     },
     "on_send_message": function( type, endpoint, worker_uuid, data ) {
-        const jo = socket_received_data_reverse_marshall( data );
+        const jo = socketReceivedDataReverseMarshall( data );
         const joSend = {
             "worker_message_type":
                 ( type && typeof type == "string" && type.length > 0 )
@@ -474,8 +474,8 @@ export const in_worker_apis = {
             "worker_uuid": worker_uuid,
             "data": jo
         };
-        //postMessage( socket_received_data_reverse_marshall( joSend ) );
-        postMessage( socket_sent_data_marshall( joSend ) );
+        //postMessage( socketReceivedDataReverseMarshall( joSend ) );
+        postMessage( socketSentDataMarshall( joSend ) );
     }
 };
 
@@ -525,14 +525,14 @@ export class InWorkerServerPipe extends BasicSocketPipe {
         this.fnSend = null;
         this.url = "";
     }
-    impl_send( data ) {
+    implSend( data ) {
         if( ( !this.isConnected ) || ( !this.fnSend ) || typeof this.fnSend != "function" ) {
             const s = "Cannot send messages to disconnected in-worker server pipe";
             this.dispatchEvent(
                 new UniversalDispatcherEvent( "error", { "socket": this, "message": "" + s } ) );
             throw new Error( s );
         }
-        const jo = socket_received_data_reverse_marshall( data );
+        const jo = socketReceivedDataReverseMarshall( data );
         this.fnSend( "in_worker_message", this.acceptor.strEndPoint, this.clientPort, jo );
     }
     disconnect() {
@@ -648,7 +648,7 @@ export class OutOfWorkerSocketClientPipe extends BasicSocketPipe {
         this.isConnected = true;
         this.dispatchEvent( new UniversalDispatcherEvent( "open", { "socket": this } ) );
     }
-    impl_send( data ) {
+    implSend( data ) {
         if( ( !this.isConnected ) ||
             ( !this.worker ) ||
             ( !this.fnSend ) ||
@@ -662,7 +662,7 @@ export class OutOfWorkerSocketClientPipe extends BasicSocketPipe {
             );
             throw new Error( s );
         }
-        const jo = socket_received_data_reverse_marshall( data );
+        const jo = socketReceivedDataReverseMarshall( data );
         this.fnSend( this.worker, "in_worker_message", this.strEndPoint, this.clientPort, jo );
     }
     disconnect() {
@@ -1212,15 +1212,15 @@ export class DirectPipe extends BasicSocketPipe {
         this.clientPort = 0;
         this.url = "";
     }
-    impl_send( data ) {
+    implSend( data ) {
         if( ( !this.isConnected ) || ( !this.counterPipe ) || ( !this.counterPipe.isConnected ) ) {
             const s = "Cannot send messages to disconnected local server pipe";
             this.dispatchEvent(
                 new UniversalDispatcherEvent( "error", { "socket": this, "message": "" + s } ) );
             throw new Error( s );
         }
-        const s = socket_sent_data_marshall( data );
-        const jo = socket_received_data_reverse_marshall( s );
+        const s = socketSentDataMarshall( data );
+        const jo = socketReceivedDataReverseMarshall( s );
         this.counterPipe.receive( jo );
     }
     disconnect() {
@@ -1436,22 +1436,22 @@ export class WebSocketServerPipe extends BasicSocketPipe {
         this.url = "";
         this.remoteAddress = "";
     }
-    impl_send( data ) {
+    implSend( data ) {
         if( ( !this.isConnected ) || ( !this.ws_conn ) ) {
             const s = "Cannot send messages to disconnected web socket server pipe";
             this.dispatchEvent(
                 new UniversalDispatcherEvent( "error", { "socket": this, "message": "" + s } ) );
             throw new Error( s );
         }
-        const s = socket_sent_data_marshall( data );
+        const s = socketSentDataMarshall( data );
         this.ws_conn.send( s );
     }
     disconnect() {
         this.performDisconnect();
         super.disconnect();
     }
-    impl_receive( data ) {
-        const jo = socket_received_data_reverse_marshall( data );
+    implReceive( data ) {
+        const jo = socketReceivedDataReverseMarshall( data );
         this.dispatchEvent(
             new UniversalDispatcherEvent( "message", { "socket": this, "message": jo } ) );
     }
@@ -1465,15 +1465,15 @@ export class WebSocketServerAcceptor extends BasicServerAcceptor {
         if( key != null && key != undefined && typeof key == "string" && key.length > 0 &&
             cert != null && cert != undefined && typeof cert == "string" && cert.length > 0
         ) {
-            const server = https_mod.createServer( {
+            const server = httpsModule.createServer( {
                 key: "" + key,
                 cert: "" + cert
                 // , ca: ...
             } );
             server.listen( nTcpPort );
-            this.ws_srv = new ws_mod.WebSocketServer( { server } );
+            this.ws_srv = new wsModule.WebSocketServer( { server } );
         } else
-            this.ws_srv = new ws_mod.WebSocketServer( { port: nTcpPort } );
+            this.ws_srv = new wsModule.WebSocketServer( { port: nTcpPort } );
 
         const self = this;
         self.ws_srv.on( "connection", function( ws_conn, req ) {
@@ -1520,14 +1520,14 @@ export class WebSocketClientPipe extends BasicSocketPipe {
         this.ws_url = null;
         super.dispose();
     }
-    impl_send( data ) {
+    implSend( data ) {
         if( ( !this.isConnected ) || ( !this.ws_conn ) ) {
             const s = "Cannot send messages to disconnected web socket client pipe";
             this.dispatchEvent(
                 new UniversalDispatcherEvent( "error", { "socket": this, "message": "" + s } ) );
             throw new Error( s );
         }
-        const s = socket_sent_data_marshall( data );
+        const s = socketSentDataMarshall( data );
         this.ws_conn.send( s );
     }
     reconnect() {
@@ -1548,8 +1548,8 @@ export class WebSocketClientPipe extends BasicSocketPipe {
         try {
             if( this.isConnected || this.ws_conn )
                 this.ws_disconnect();
-            this.ws_conn = ws_mod
-                ? new ws_mod.WebSocket(
+            this.ws_conn = wsModule
+                ? new wsModule.WebSocket(
                     url,
                     { tlsOptions: { rejectUnauthorized: false } }
                 ) // server side
@@ -1657,8 +1657,8 @@ export class WebSocketClientPipe extends BasicSocketPipe {
         this.isConnected = false;
         this.url = "";
     }
-    impl_receive( data ) {
-        const jo = socket_received_data_reverse_marshall( data );
+    implReceive( data ) {
+        const jo = socketReceivedDataReverseMarshall( data );
         this.dispatchEvent(
             new UniversalDispatcherEvent( "message", { "socket": this, "message": jo } ) );
     }
@@ -1765,7 +1765,7 @@ export class RTCConnection extends EventDispatcher {
         this.closePeer();
     }
     send( data ) {
-        const s = socket_sent_data_marshall( data );
+        const s = socketSentDataMarshall( data );
         if( ! this.dc ) {
             this.onError( "Attempt to send message to uninitialized RTC data channel: " + s );
             return;
@@ -2242,7 +2242,7 @@ export class RTCServerPeer extends RTCConnection {
         if( self.pc )
             return;
         self.pc =
-            new wrtc_mod.RTCPeerConnection(
+            new webRtcModule.RTCPeerConnection(
                 self.peerConfiguration, self.peerAdditionalOptions );
         if( self.localMediaStream ) {
             for( const track of self.localMediaStream.getTracks() )
@@ -2637,7 +2637,7 @@ export class RTCCreator extends RTCActor {
                 const answer = joMessage.answer;
                 if( settings.logging.net.signaling.offer )
                     console.log( " >>> " + self.describe() + " got answer:", answer );
-                const answerDescription = new wrtc_mod.RTCSessionDescription( answer );
+                const answerDescription = new webRtcModule.RTCSessionDescription( answer );
                 if( settings.logging.net.signaling.offer ) {
                     console.log(
                         " >>> " + self.describe() + " got answer description:",
@@ -2696,7 +2696,7 @@ export class RTCCreator extends RTCActor {
     }
     send( data ) { // implementation in RTCCreator does send to all
         try {
-            const s = socket_sent_data_marshall( data );
+            const s = socketSentDataMarshall( data );
             for( const [ /*idSomebodyOtherSide*/, rtcPeer ]
                 of Object.entries( this.map_server_peers ) ) {
                 try {
@@ -2772,7 +2772,7 @@ export class RTCJoiner extends RTCActor {
         if( self.pc )
             return;
         self.pc =
-            new wrtc_mod.RTCPeerConnection(
+            new webRtcModule.RTCPeerConnection(
                 self.peerConfiguration, self.peerAdditionalOptions );
         self.pc.addEventListener( "track", function( event ) {
             self.dispatchEvent(
@@ -2945,7 +2945,7 @@ export class RTCJoiner extends RTCActor {
                 const offer = joMessage.offer;
                 if( settings.logging.net.signaling.offer )
                     console.log( " <<< " + self.describe() + " got offer:", offer );
-                const offerDescription = new wrtc_mod.RTCSessionDescription( offer );
+                const offerDescription = new webRtcModule.RTCSessionDescription( offer );
                 if( settings.logging.net.signaling.offer ) {
                     console.log(
                         " <<< " + self.describe() + " got offer description:", offerDescription
@@ -3113,21 +3113,21 @@ export class WebRTCServerPipe extends BasicSocketPipe {
         this.url = "";
         this.strSignalingServerURL = "";
     }
-    impl_send( data ) {
+    implSend( data ) {
         if( ( !this.isConnected ) || ( !this.rtcPeer ) ) {
             const err = "Cannot send messages to disconnected WebRTC socket server pipe";
             this.onError( err );
             throw err;
         }
-        const s = socket_sent_data_marshall( data );
+        const s = socketSentDataMarshall( data );
         this.rtcPeer.send( s );
     }
     disconnect() {
         this.performDisconnect();
         super.disconnect();
     }
-    impl_receive( data ) {
-        const jo = socket_received_data_reverse_marshall( data );
+    implReceive( data ) {
+        const jo = socketReceivedDataReverseMarshall( data );
         this.dispatchEvent(
             new UniversalDispatcherEvent( "message", { "socket": this, "message": jo } ) );
     }
@@ -3351,7 +3351,7 @@ export class WebRTCClientPipe extends BasicSocketPipe {
         this.strSignalingServerURL = null;
         super.dispose();
     }
-    impl_send( data ) {
+    implSend( data ) {
         if( ( !this.isConnected ) || ( !this.rtcPeer ) ) {
             const s = "Cannot send messages to disconnected WebRTC socket client pipe";
             this.dispatchEvent(
@@ -3360,7 +3360,7 @@ export class WebRTCClientPipe extends BasicSocketPipe {
                     { "socket": this, "message": "" + s, "errorType": "dataSendError" } ) );
             throw new Error( s );
         }
-        const s = socket_sent_data_marshall( data );
+        const s = socketSentDataMarshall( data );
         this.rtcPeer.send( s );
     }
     reconnect() {
@@ -3480,8 +3480,8 @@ export class WebRTCClientPipe extends BasicSocketPipe {
         this.isConnected = false;
         this.url = "";
     }
-    impl_receive( data ) {
-        const jo = socket_received_data_reverse_marshall( data );
+    implReceive( data ) {
+        const jo = socketReceivedDataReverseMarshall( data );
         this.dispatchEvent(
             new UniversalDispatcherEvent(
                 "message",

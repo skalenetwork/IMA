@@ -19,7 +19,7 @@
  */
 
 /**
- * @file event_dispatcher.mjs
+ * @file eventDispatcher.mjs
  * @copyright SKALE Labs 2019-Present
  */
 

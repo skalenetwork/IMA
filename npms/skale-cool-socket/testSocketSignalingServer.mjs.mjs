@@ -19,28 +19,28 @@
  */
 
 /**
- * @file test_socket_signaling_server.mjs
+ * @file testSocketSignalingServer.mjs.mjs
  * @copyright SKALE Labs 2019-Present
  */
 
 import * as fs from "fs";
 
-import * as https_loaded_mod from "https";
-import * as ws_loaded_mod from "ws";
-import * as wrtc_loaded_mod from "wrtc";
+import * as httpsModuleLoaded from "https";
+import * as wsModuleLoaded from "ws";
+import * as webRtcModuleLoaded from "wrtc";
 
-import * as network_layer from "./socket.mjs";
-import { settings } from "./socket_settings.mjs";
-import { UniversalDispatcherEvent, EventDispatcher } from "./event_dispatcher.mjs";
-import * as utils from "./socket_utils.mjs";
+import * as networkLayer from "./socket.mjs";
+import { settings } from "./socketSettings.mjs";
+import { UniversalDispatcherEvent, EventDispatcher } from "./eventDispatcher.mjs";
+import * as utils from "./socketUtils.mjs";
 
-const https_mod = https_loaded_mod; // .default;
-const ws_mod = ws_loaded_mod; // .default;
-const wrtc_mod = wrtc_loaded_mod; // .default;
+const https_mod = httpsModuleLoaded; // .default;
+const wsModule = wsModuleLoaded; // .default;
+const webRtcModule = webRtcModuleLoaded; // .default;
 
-network_layer.set_https_mod( https_mod );
-network_layer.set_ws_mod( ws_mod );
-network_layer.set_wrtc_mod( wrtc_mod );
+networkLayer.setHttpsModule( https_mod );
+networkLayer.setWsModule( wsModule );
+networkLayer.setWebRtcModule( webRtcModule );
 
 console.log( "Test signaling server application..." );
 process.env.NODE_TLS_REJECT_UNAUTHORIZED = "0";
@@ -870,7 +870,7 @@ const key = settings.net.secure
 const cert = settings.net.secure
     ? fs.readFileSync( "./self-signed/self-signed-cert.pem", "utf8" ) : null;
 let acceptor =
-    new network_layer.WebSocketServerAcceptor(
+    new networkLayer.WebSocketServerAcceptor(
         settings.net.ports.signaling,
         key,
         cert

@@ -20,15 +20,15 @@
  */
 
 /**
- * @file loop_worker.mjs
+ * @file loopWorker.mjs
  * @copyright SKALE Labs 2019-Present
  */
 
 import { parentPort, workerData } from "worker_threads";
-import * as network_layer from "../npms/skale-cool-socket/socket.mjs";
-import { SocketServer } from "../npms/skale-cool-socket/socket_server.mjs";
+import * as networkLayer from "../npms/skale-cool-socket/socket.mjs";
+import { SocketServer } from "../npms/skale-cool-socket/socketServer.mjs";
 import * as cc from "../npms/skale-cc/cc.mjs";
-import * as owaspUtils from "../npms/skale-owasp/owasp-utils.mjs";
+import * as owaspUtils from "../npms/skale-owasp/owaspUtils.mjs";
 import * as loop from "./loop.mjs";
 import * as IMA from "../npms/skale-ima/index.mjs";
 import * as skaleObserver from "../npms/skale-observer/observer.mjs";
@@ -39,12 +39,12 @@ import * as pwa from "./pwa.mjs";
 let imaState = state.get();
 
 parentPort.on( "message", jo => {
-    if( network_layer.in_worker_apis.on_message( jo ) )
+    if( networkLayer.in_worker_apis.on_message( jo ) )
         return;
 } );
 
 function doSendMessage( type, endpoint, worker_uuid, data ) {
-    const jo = network_layer.socket_received_data_reverse_marshall( data );
+    const jo = networkLayer.socketReceivedDataReverseMarshall( data );
     const joSend = {
         "worker_message_type":
             ( type && typeof type == "string" && type.length > 0 )
@@ -54,7 +54,7 @@ function doSendMessage( type, endpoint, worker_uuid, data ) {
         "worker_uuid": worker_uuid,
         "data": jo
     };
-    parentPort.postMessage( network_layer.socket_sent_data_marshall( joSend ) );
+    parentPort.postMessage( networkLayer.socketSentDataMarshall( joSend ) );
 }
 
 class ObserverServer extends SocketServer {
@@ -154,13 +154,13 @@ class ObserverServer extends SocketServer {
                 cc.debug( "IMA loop worker" ) + " " +
                 cc.notice( workerData.url ) + cc.debug( " will do the following work:" ) + "\n" +
                 "    " + cc.info( "Oracle" ) + cc.debug( " operations....." ) +
-                cc.yn( self.opts.imaState.optsLoop.enable_step_oracle ) + "\n" +
+                cc.yn( self.opts.imaState.optsLoop.enableStepOracle ) + "\n" +
                 "    " + cc.info( "M2S" ) + cc.debug( " transfers........." ) +
-                cc.yn( self.opts.imaState.optsLoop.enable_step_m2s ) + "\n" +
+                cc.yn( self.opts.imaState.optsLoop.enableStepM2S ) + "\n" +
                 "    " + cc.info( "S2M" ) + cc.debug( " transfers........." ) +
-                cc.yn( self.opts.imaState.optsLoop.enable_step_s2m ) + "\n" +
+                cc.yn( self.opts.imaState.optsLoop.enableStepS2M ) + "\n" +
                 "    " + cc.info( "S2S" ) + cc.debug( " transfers........." ) +
-                cc.yn( self.opts.imaState.optsLoop.enable_step_s2s ) + "\n"
+                cc.yn( self.opts.imaState.optsLoop.enableStepS2S ) + "\n"
             );
             /* await */
             loop.runTransferLoop( self.opts.imaState.optsLoop );
@@ -170,7 +170,7 @@ class ObserverServer extends SocketServer {
                 "\n" );
             return joAnswer;
         };
-        self.mapApiHandlers.schains_cached = function( joMessage, joAnswer, eventData, socket ) {
+        self.mapApiHandlers.schainsCached = function( joMessage, joAnswer, eventData, socket ) {
             skaleObserver.setLastCachedSChains( joMessage.message.arrSChainsCached );
         };
         self.mapApiHandlers.skale_imaNotifyLoopWork =
@@ -201,7 +201,7 @@ class ObserverServer extends SocketServer {
     }
 };
 
-const acceptor = new network_layer.InWorkerSocketServerAcceptor( workerData.url, doSendMessage );
+const acceptor = new networkLayer.InWorkerSocketServerAcceptor( workerData.url, doSendMessage );
 const server = new ObserverServer( acceptor );
 server.on( "dispose", function() {
     const self = server;

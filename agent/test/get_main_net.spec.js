@@ -33,8 +33,8 @@ const tc_s_chain = IMA.getTransactionCustomizerForSChain();
 // 
 let chain_id_s_chain = "blah_blah_blah_schain_name"; // 1;
 
-// mockup for `w3_src`
-let w3_src = {eth: {getBlockNumber: getBlockNumber, getBlock: getBlock}};
+// mockup for `ethersProviderSrc`
+let ethersProviderSrc = {eth: {getBlockNumber: getBlockNumber, getBlock: getBlock}};
 function getBlockNumber(string) {
     return 2
 }
@@ -42,8 +42,8 @@ function getBlock(number) {
     return {timestamp: "1469021581"}
 }
 
-// mockup for `w3_dst`
-let w3_dst = {eth: {sendSignedTransaction: sendSignedTransaction,
+// mockup for `ethersProviderDst`
+let ethersProviderDst = {eth: {sendSignedTransaction: sendSignedTransaction,
     getTransactionCount: getTransactionCount}, 
     utils: {hexToAscii: hexToAscii, asciiToHex: asciiToHex}
 };
@@ -525,8 +525,8 @@ describe('tests for `npms/skale-ima`', function () {
 
     it('should return `false` invoke `doTransfer`', async function () {
         let jo_message_proxy_src; // for `false` output
-        let chain_id_src = "test";
-        let chain_id_dst = "test";
+        let chainNameSrc = "test";
+        let chainNameDst = "test";
         let nTransactionsCountInBlock = 4;
         let nTransferSteps = 0;
         let nMaxTransactionsCount = 0;
@@ -541,14 +541,14 @@ describe('tests for `npms/skale-ima`', function () {
             doTransfer(
                 "M2S",
                 joRuntimeOpts,
-                w3_src,
+                ethersProviderSrc,
                 jo_message_proxy_src,
                 joAccountSrc,
-                w3_dst,
+                ethersProviderDst,
                 jo_message_proxy_dst,
                 joAccountDst,
-                chain_id_src,
-                chain_id_dst,
+                chainNameSrc,
+                chainNameDst,
                 -4,
                 -4,
                 null, // jo_deposit_box - for logs validation on mainnet
@@ -566,8 +566,8 @@ describe('tests for `npms/skale-ima`', function () {
     });
 
     it('should return `true` invoke `doTransfer`', async function () {
-        let chain_id_src = "test";
-        let chain_id_dst = "test";
+        let chainNameSrc = "test";
+        let chainNameDst = "test";
         let nTransactionsCountInBlock = 4;
         let nTransferSteps = 0;
         let nMaxTransactionsCount = 0;
@@ -582,14 +582,14 @@ describe('tests for `npms/skale-ima`', function () {
             doTransfer(
                 "M2S",
                 joRuntimeOpts,
-                w3_src,
+                ethersProviderSrc,
                 jo_message_proxy_src,
                 joAccountSrc,
-                w3_dst,
+                ethersProviderDst,
                 jo_message_proxy_dst,
                 joAccountDst,
-                chain_id_src,
-                chain_id_dst,
+                chainNameSrc,
+                chainNameDst,
                 -4,
                 -4,
                 null, // jo_deposit_box - for logs validation on mainnet

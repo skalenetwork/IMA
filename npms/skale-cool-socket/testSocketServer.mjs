@@ -19,11 +19,11 @@
  */
 
 /**
- * @file test_socket_server.mjs
+ * @file testSocketServer.mjs
  * @copyright SKALE Labs 2019-Present
  */
 
-import { SocketServer } from "./socket_server.mjs";
+import { SocketServer } from "./socketServer.mjs";
 
 export class TestSocketServer extends SocketServer {
     constructor( acceptor ) {

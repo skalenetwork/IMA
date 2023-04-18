@@ -19,7 +19,7 @@
  */
 
 /**
- * @file rpc-call.mjs
+ * @file rpcCall.mjs
  * @copyright SKALE Labs 2019-Present
  */
 
@@ -27,7 +27,7 @@ import * as ws from "ws";
 import * as urllib from "urllib";
 import * as https from "https";
 import * as net from "net";
-import * as owaspUtils from "../npms/skale-owasp/owasp-utils.mjs";
+import * as owaspUtils from "../npms/skale-owasp/owaspUtils.mjs";
 import * as log from "../npms/skale-log/log.mjs";
 import * as cc from "../npms/skale-cc/cc.mjs";
 
@@ -39,7 +39,7 @@ export async function waitWebSocketIsOpen( socket, fnDone, fnStep ) {
     let nStep = 0;
     const promiseComplete = new Promise( function( resolve, reject ) {
         let isInsideAsyncHandler = false;
-        const fn_async_handler = async function() {
+        const fnAsyncHandler = async function() {
             if( isInsideAsyncHandler )
                 return;
             isInsideAsyncHandler = true;
@@ -61,7 +61,7 @@ export async function waitWebSocketIsOpen( socket, fnDone, fnStep ) {
         const iv = setInterval( function() {
             if( isInsideAsyncHandler )
                 return;
-            fn_async_handler()
+            fnAsyncHandler()
                 .then( () => {
                 } ).catch( () => {
                 } );
@@ -251,8 +251,6 @@ export async function doCall( joCall, joIn, fn ) {
                 "method": "POST",
                 "headers": {
                     "Content-Type": "application/json"
-                    // "Accept": "*/*",
-                    // "Content-Length": strBody.length,
                 },
                 "ca": ( joCall.joRpcOptions && joCall.joRpcOptions.ca &&
                     typeof joCall.joRpcOptions.ca == "string" )
@@ -310,8 +308,6 @@ export async function doCall( joCall, joIn, fn ) {
                     "timeout": g_nConnectionTimeoutSeconds * 1000, // in milliseconds
                     "headers": {
                         "Content-Type": "application/json"
-                        // "Accept": "*/*",
-                        // "Content-Length": strBody.length,
                     },
                     "content": strBody,
                     "rejectUnauthorized": false,
@@ -542,7 +538,6 @@ export async function checkTcp( strHost, nPort, nTimeoutMilliseconds, isLog ) {
         const promise_tcp = checkTcpPromise( strHost, nPort, nTimeoutMilliseconds, isLog )
             .then( () => ( isOnline = true ) )
             .catch( () => ( isOnline = false ) )
-            //.finally( () => console.log( { isOnline } ) )
             ;
         if( isLog ) {
             console.log(
