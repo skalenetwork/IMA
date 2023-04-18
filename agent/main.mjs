@@ -1651,7 +1651,7 @@ function commandLineTaskBrowseConnectedSChains() {
                 "bStopNeeded": false
             };
             const addressFrom = imaState.chainProperties.mn.joAccount.address();
-            const arr_schains_cached = await skaleObserver.load_schains_connected_only(
+            const arr_schains_cached = await skaleObserver.loadSChainsConnectedOnly(
                 imaState.chainProperties.sc.strChainName,
                 addressFrom,
                 opts
