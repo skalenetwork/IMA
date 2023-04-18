@@ -29,9 +29,8 @@ import * as os from "os";
 import * as path from "path";
 import * as url from "url";
 
-import * as owaspUtils from "../npms/skale-owasp/owasp-utils.mjs";
+import * as owaspUtils from "../npms/skale-owasp/owaspUtils.mjs";
 import * as IMA from "../npms/skale-ima/index.mjs";
-// import * as cc from "../npms/skale-cc/cc.mjs";
 import * as log from "../npms/skale-log/log.mjs";
 import * as imaUtils from "../agent/utils.mjs";
 import * as imaCLI from "../agent/cli.mjs";
@@ -45,8 +44,6 @@ process.env.NODE_TLS_REJECT_UNAUTHORIZED = 0;
 
 IMA.exposeDetailsSet( false );
 IMA.verboseSet( IMA.verboseParse( "info" ) );
-// import * as imaBLS from "../agent/bls.mjs";
-// import * as rpcCall from "../agent/rpc-call.mjs";
 
 log.removeAll();
 const imaState = {
@@ -135,7 +132,6 @@ const imaState = {
     "jo_message_proxy_s_chain": null,
     "jo_linker": null,
     "jo_lock_and_data_s_chain": null,
-    // "eth_erc721": null, // only s-chain
     "eth_erc20": null, // only s-chain
 
     "chainProperties": {
@@ -257,17 +253,17 @@ const imaState = {
     "strChainNameOriginChain":
         ( process.env.CHAIN_NAME_ETHEREUM || "Mainnet" ).toString().trim(),
 
-    "strAddrErc20_explicit": "",
-    "strAddrErc20_explicit_target": "", // S<->S target
-    "strAddrErc721_explicit": "",
-    "strAddrErc721_explicit_target": "", // S<->S target
-    "strAddrErc1155_explicit": "",
-    "strAddrErc1155_explicit_target": "", // S<->S target
+    "strAddrErc20Explicit": "",
+    "strAddrErc20ExplicitTarget": "", // S<->S target
+    "strAddrErc721Explicit": "",
+    "strAddrErc721ExplicitTarget": "", // S<->S target
+    "strAddrErc1155Explicit": "",
+    "strAddrErc1155ExplicitTarget": "", // S<->S target
 
     "isPWA": true,
     "nTimeoutSecondsPWA": 60,
 
-    "s2s_opts": {
+    "optsS2S": {
         "isEnabled": false,
         "secondsToReDiscoverSkaleNetwork": 10 * 60
     },

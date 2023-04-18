@@ -19,7 +19,7 @@
  */
 
 /**
- * @file socket_settings.mjs
+ * @file socketSettings.mjs
  * @copyright SKALE Labs 2019-Present
  */
 
@@ -109,7 +109,7 @@ const settings = {
                 opts: { reliable: true, ordered: true }
             },
             maxActiveOfferCount: 10,
-            // network_layer.WebRTCClientPipe only
+            // networkLayer.WebRTCClientPipe only
             isAutoCloseSignalingPipeOnDataChannelOpen: true,
             // 0 - no timeout, 300000 = 5 minutes, 60000 = 1 minute
             timeToPublishMilliseconds: 0,

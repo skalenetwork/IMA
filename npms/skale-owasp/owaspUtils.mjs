@@ -20,7 +20,7 @@
  */
 
 /**
- * @file owasp-utils.mjs
+ * @file owaspUtils.mjs
  * @copyright SKALE Labs 2019-Present
  */
 
@@ -32,9 +32,9 @@
 import * as ethersMod from "ethers";
 import * as fs from "fs";
 import * as cc from "../skale-cc/cc.mjs";
-import * as ethereumjs_util from "ethereumjs-util";
-import * as ethereumjs_wallet from "ethereumjs-wallet";
-const Wallet = ethereumjs_wallet.default.default;
+import * as ethereumJsUtilModule from "ethereumjs-util";
+import * as ethereumJsWalletModule from "ethereumjs-wallet";
+const Wallet = ethereumJsWalletModule.default.default;
 
 const safeURL = cc.safeURL;
 const replaceAll = cc.replaceAll;
@@ -728,7 +728,7 @@ export function privateKeyToAccountAddress( keyPrivate ) {
 
 export function privateKeyToPublicKey( keyPrivate ) {
     const privateKeyBuffer =
-    ethereumjs_util.toBuffer( ensureStartsWith0x( keyPrivate ) );
+    ethereumJsUtilModule.toBuffer( ensureStartsWith0x( keyPrivate ) );
     const wallet = Wallet.fromPrivateKey( privateKeyBuffer );
     const publicKey = wallet.getPublicKeyString();
     return removeStarting0x( publicKey );

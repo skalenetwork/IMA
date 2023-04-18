@@ -24,18 +24,16 @@
  * @copyright SKALE Labs 2019-Present
  */
 
-import * as network_layer from "../npms/skale-cool-socket/socket.mjs";
+import * as networkLayer from "../npms/skale-cool-socket/socket.mjs";
 import * as url from "url";
 import { Worker } from "worker_threads";
 import * as path from "path";
 import * as cc from "../npms/skale-cc/cc.mjs";
 import * as log from "../npms/skale-log/log.mjs";
 import * as IMA from "../npms/skale-ima/index.mjs";
-import * as owaspUtils from "../npms/skale-owasp/owasp-utils.mjs";
-// import * as imaUtils from "./utils.mjs";
+import * as owaspUtils from "../npms/skale-owasp/owaspUtils.mjs";
 import * as imaBLS from "./bls.mjs";
 import * as skaleObserver from "../npms/skale-observer/observer.mjs";
-// import * as imaOracle from "./oracle.mjs";
 import * as pwa from "./pwa.mjs";
 import * as state from "./state.mjs";
 
@@ -108,14 +106,14 @@ export function checkTimeFraming( d, strDirection, joRuntimeOpts ) {
                     ( ( "joExtraSignOpts" in joRuntimeOpts &&
                         typeof joRuntimeOpts.joExtraSignOpts == "object" )
                         ? cc.info( "S-Chain source" ) + cc.debug( "............." ) +
-                          cc.info( joRuntimeOpts.joExtraSignOpts.chain_id_src ) +
+                          cc.info( joRuntimeOpts.joExtraSignOpts.chainNameSrc ) +
                           cc.debug( "/" ) +
-                          cc.attention( joRuntimeOpts.joExtraSignOpts.cid_src ) +
+                          cc.attention( joRuntimeOpts.joExtraSignOpts.chainIdSrc ) +
                           "\n" +
                           cc.info( "S-Chain destination" ) + cc.debug( "........" ) +
-                          cc.info( joRuntimeOpts.joExtraSignOpts.chain_id_dst ) +
+                          cc.info( joRuntimeOpts.joExtraSignOpts.chainNameDst ) +
                           cc.debug( "/" ) +
-                          cc.attention( joRuntimeOpts.joExtraSignOpts.cid_dst ) +
+                          cc.attention( joRuntimeOpts.joExtraSignOpts.chainIdDst ) +
                           "\n"
                         : "" )
                 )
@@ -148,7 +146,7 @@ export function checkTimeFraming( d, strDirection, joRuntimeOpts ) {
 async function singleTransferLoopPartOracle( optsLoop, strLogPrefix ) {
     const imaState = state.get();
     let b0 = true;
-    if( optsLoop.enable_step_oracle && IMA.getEnabledOracle() ) {
+    if( optsLoop.enableStepOracle && IMA.getEnabledOracle() ) {
         if( IMA.verboseGet() >= IMA.verboseReversed().information ) {
             log.write( strLogPrefix +
                 cc.debug( "Will invoke Oracle gas price setup..." ) +
@@ -208,7 +206,7 @@ async function singleTransferLoopPartOracle( optsLoop, strLogPrefix ) {
 async function singleTransferLoopPartM2S( optsLoop, strLogPrefix ) {
     const imaState = state.get();
     let b1 = true;
-    if( optsLoop.enable_step_m2s ) {
+    if( optsLoop.enableStepM2S ) {
         if( IMA.verboseGet() >= IMA.verboseReversed().information ) {
             log.write( strLogPrefix +
                 cc.debug( "Will invoke M2S transfer..." ) +
@@ -290,7 +288,7 @@ async function singleTransferLoopPartM2S( optsLoop, strLogPrefix ) {
 async function singleTransferLoopPartS2M( optsLoop, strLogPrefix ) {
     const imaState = state.get();
     let b2 = true;
-    if( optsLoop.enable_step_s2m ) {
+    if( optsLoop.enableStepS2M ) {
         if( IMA.verboseGet() >= IMA.verboseReversed().information ) {
             log.write( strLogPrefix +
                 cc.debug( "Will invoke S2M transfer..." ) +
@@ -366,7 +364,7 @@ async function singleTransferLoopPartS2M( optsLoop, strLogPrefix ) {
 async function singleTransferLoopPartS2S( optsLoop, strLogPrefix ) {
     const imaState = state.get();
     let b3 = true;
-    if( optsLoop.enable_step_s2s && imaState.s2s_opts.isEnabled ) {
+    if( optsLoop.enableStepS2S && imaState.optsS2S.isEnabled ) {
         if( IMA.verboseGet() >= IMA.verboseReversed().information )
             log.write( strLogPrefix + cc.debug( "Will invoke all S2S transfers..." ) + "\n" );
         try {
@@ -417,10 +415,10 @@ export async function singleTransferLoop( optsLoop ) {
     try {
         if( IMA.verboseGet() >= IMA.verboseReversed().debug )
             log.write( strLogPrefix + cc.debug( IMA.longSeparator ) + "\n" );
-        if( ( optsLoop.enable_step_oracle && imaState.loopState.oracle.isInProgress ) ||
-            ( optsLoop.enable_step_m2s && imaState.loopState.m2s.isInProgress ) ||
-            ( optsLoop.enable_step_s2m && imaState.loopState.s2m.isInProgress ) ||
-            ( optsLoop.enable_step_s2s && imaState.loopState.s2s.isInProgress )
+        if( ( optsLoop.enableStepOracle && imaState.loopState.oracle.isInProgress ) ||
+            ( optsLoop.enableStepM2S && imaState.loopState.m2s.isInProgress ) ||
+            ( optsLoop.enableStepS2M && imaState.loopState.s2m.isInProgress ) ||
+            ( optsLoop.enableStepS2S && imaState.loopState.s2s.isInProgress )
         ) {
             imaState.loopState.oracle.wasInProgress = false;
             imaState.loopState.m2s.wasInProgress = false;
@@ -491,7 +489,7 @@ export function notifyCacheChangedSNB( arrSChainsCached ) {
     const cntWorkers = g_workers.length;
     for( let idxWorker = 0; idxWorker < cntWorkers; ++ idxWorker ) {
         const jo = {
-            "method": "schains_cached",
+            "method": "schainsCached",
             "message": {
                 "arrSChainsCached": arrSChainsCached
             }
@@ -607,16 +605,16 @@ export async function ensureHaveWorkers( opts ) {
         };
         g_workers.push(
             new Worker(
-                path.join( __dirname, "loop_worker.mjs" ),
+                path.join( __dirname, "loopWorker.mjs" ),
                 { "type": "module", "workerData": workerData }
             )
         );
         g_workers[idxWorker].on( "message", jo => {
-            if( network_layer.out_of_worker_apis.on_message( g_workers[idxWorker], jo ) )
+            if( networkLayer.out_of_worker_apis.on_message( g_workers[idxWorker], jo ) )
                 return;
         } );
         g_clients.push(
-            new network_layer.OutOfWorkerSocketClientPipe(
+            new networkLayer.OutOfWorkerSocketClientPipe(
                 workerData.url, g_workers[idxWorker] )
         );
         g_clients[idxWorker].on( "message", async function( eventData ) {
@@ -650,10 +648,10 @@ export async function ensureHaveWorkers( opts ) {
                 cntChainsKnownForS2S: 0
             },
             isDelayFirstRun: false,
-            enable_step_oracle: ( idxWorker == 0 ) ? true : false,
-            enable_step_m2s: ( idxWorker == 0 ) ? true : false,
-            enable_step_s2m: ( idxWorker == 1 ) ? true : false,
-            enable_step_s2s: ( idxWorker == 0 ) ? true : false
+            enableStepOracle: ( idxWorker == 0 ) ? true : false,
+            enableStepM2S: ( idxWorker == 0 ) ? true : false,
+            enableStepS2M: ( idxWorker == 1 ) ? true : false,
+            enableStepS2S: ( idxWorker == 0 ) ? true : false
         };
         const jo = {
             "method": "init",
@@ -716,7 +714,6 @@ export async function ensureHaveWorkers( opts ) {
                         "isWithMetadata721": false,
 
                         "jo_token_manager_eth": null,
-                        // "jo_token_manager_eth_target": null,
                         "jo_token_manager_erc20": null,
                         "jo_token_manager_erc20_target": null,
                         "jo_token_manager_erc721": null,
@@ -757,7 +754,7 @@ export async function ensureHaveWorkers( opts ) {
                                 opts.imaState.joSChainDiscovery.repeatIntervalMilliseconds
                         },
 
-                        "s2s_opts": { // S-Chain to S-Chain transfer options
+                        "optsS2S": { // S-Chain to S-Chain transfer options
                             "isEnabled": true,
                             "secondsToReDiscoverSkaleNetwork": 1 * 60 * 60
                         },

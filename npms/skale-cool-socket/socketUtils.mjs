@@ -19,11 +19,11 @@
  */
 
 /**
- * @file socket_utils.mjs
+ * @file socketUtils.mjs
  * @copyright SKALE Labs 2019-Present
  */
 
-import { settings } from "./socket_settings.mjs";
+import { settings } from "./socketSettings.mjs";
 
 export const uuid_v4 = function() {
     return "xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx".replace( /[xy]/g, function( c ) {

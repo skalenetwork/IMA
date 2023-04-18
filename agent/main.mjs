@@ -28,11 +28,11 @@ import bodyParser from "body-parser";
 
 import * as ws from "ws";
 
-import * as owaspUtils from "../npms/skale-owasp/owasp-utils.mjs";
+import * as owaspUtils from "../npms/skale-owasp/owaspUtils.mjs";
 import * as log from "../npms/skale-log/log.mjs";
 import * as cc from "../npms/skale-cc/cc.mjs";
 import * as imaCLI from "./cli.mjs";
-import * as rpcCall from "./rpc-call.mjs";
+import * as rpcCall from "./rpcCall.mjs";
 import * as skaleObserver from "../npms/skale-observer/observer.mjs";
 import * as loop from "./loop.mjs";
 import * as imaUtils from "./utils.mjs";
@@ -50,7 +50,7 @@ process.env.NODE_TLS_REJECT_UNAUTHORIZED = 0;
 
 function initialSkaleNetworkScanForS2S() {
     const imaState = state.get();
-    if( ! imaState.s2s_opts.isEnabled )
+    if( ! imaState.optsS2S.isEnabled )
         return;
     imaState.arrActions.push( {
         "name": "SKALE network scan for S2S",
@@ -71,7 +71,7 @@ function initialSkaleNetworkScanForS2S() {
                 "details": log,
                 "bStopNeeded": false,
                 "secondsToReDiscoverSkaleNetwork":
-                    imaState.s2s_opts.secondsToReDiscoverSkaleNetwork,
+                    imaState.optsS2S.secondsToReDiscoverSkaleNetwork,
                 "chain": imaState.chainProperties.sc,
                 "bParallelMode": true
             };
@@ -1061,8 +1061,8 @@ function commandLineTaskPaymentS2S() {
         "fn": async function() {
             const isForward = IMA.isForwardS2S();
             const sc = imaState.chainProperties.sc, tc = imaState.chainProperties.tc;
-            const ethersProvider_src = isForward ? sc.ethersProvider : tc.ethersProvider;
-            const cid_src = isForward ? sc.chainId : tc.chainId;
+            const ethersProviderSrc = isForward ? sc.ethersProvider : tc.ethersProvider;
+            const chainIdSrc = isForward ? sc.chainId : tc.chainId;
             const joAccountSrc = isForward ? sc.joAccount : tc.joAccount;
             const jo_token_manager_erc20_src = isForward
                 ? imaState.jo_token_manager_erc20 : imaState.jo_token_manager_erc20_target;
@@ -1076,79 +1076,79 @@ function commandLineTaskPaymentS2S() {
             ;
             const jo_token_manager_erc1155_src = isForward
                 ? imaState.jo_token_manager_erc1155 : imaState.jo_token_manager_erc1155_target;
-            const strChainName_dst = isForward ? tc.strChainName : sc.strChainName;
-            const strCoinNameErc20_src = isForward ? sc.strCoinNameErc20 : tc.strCoinNameErc20;
-            const strCoinNameErc721_src = isForward ? sc.strCoinNameErc721 : tc.strCoinNameErc721;
-            const strCoinNameErc1155_src =
+            const strChainNameDst = isForward ? tc.strChainName : sc.strChainName;
+            const strCoinNameErc20Src = isForward ? sc.strCoinNameErc20 : tc.strCoinNameErc20;
+            const strCoinNameErc721Src = isForward ? sc.strCoinNameErc721 : tc.strCoinNameErc721;
+            const strCoinNameErc1155Src =
                 isForward ? sc.strCoinNameErc1155 : tc.strCoinNameErc1155;
             const joErc20_src = isForward ? sc.joErc20 : tc.joErc20;
             const joErc721_src = isForward ? sc.joErc721 : tc.joErc721;
             const joErc1155_src = isForward ? sc.joErc1155 : tc.joErc1155;
-            let strAddrErc20_explicit = imaState.strAddrErc20_explicit;
-            let strAddrErc20_explicit_target = imaState.strAddrErc20_explicit_target;
-            let strAddrErc721_explicit = imaState.strAddrErc721_explicit;
-            let strAddrErc721_explicit_target = imaState.strAddrErc721_explicit_target;
-            let strAddrErc1155_explicit = imaState.strAddrErc1155_explicit;
-            let strAddrErc1155_explicit_target = imaState.strAddrErc1155_explicit_target;
-            if( ( ! strAddrErc20_explicit ) && sc.joErc20 && sc.strCoinNameErc20 )
-                strAddrErc20_explicit = sc.joErc20[sc.strCoinNameErc20 + "_address"];
-            if( ( ! strAddrErc20_explicit_target ) && tc.joErc20 && tc.strCoinNameErc20 )
-                strAddrErc20_explicit_target = tc.joErc20[tc.strCoinNameErc20 + "_address"];
-            if( ( ! strAddrErc721_explicit ) && sc.joErc721 && sc.strCoinNameErc721 )
-                strAddrErc721_explicit = sc.joErc721[sc.strCoinNameErc721 + "_address"];
-            if( ( ! strAddrErc721_explicit_target ) && tc.joErc721 && tc.strCoinNameErc721 )
-                strAddrErc721_explicit_target = tc.joErc721[tc.strCoinNameErc721 + "_address"];
-            if( ( ! strAddrErc1155_explicit ) && sc.joErc1155 && sc.strCoinNameErc1155 )
-                strAddrErc1155_explicit = sc.joErc1155[sc.strCoinNameErc1155 + "_address"];
-            if( ( ! strAddrErc1155_explicit_target ) && tc.joErc1155 && tc.strCoinNameErc1155 )
-                strAddrErc1155_explicit_target = tc.joErc1155[tc.strCoinNameErc1155 + "_address"];
-            const strAddrErc20_dst = isForward
-                ? strAddrErc20_explicit_target : strAddrErc20_explicit;
-            const strAddrErc721_dst = isForward
-                ? strAddrErc721_explicit_target : strAddrErc721_explicit;
-            const strAddrErc1155_dst = isForward
-                ? strAddrErc1155_explicit_target : strAddrErc1155_explicit;
+            let strAddrErc20Explicit = imaState.strAddrErc20Explicit;
+            let strAddrErc20ExplicitTarget = imaState.strAddrErc20ExplicitTarget;
+            let strAddrErc721Explicit = imaState.strAddrErc721Explicit;
+            let strAddrErc721ExplicitTarget = imaState.strAddrErc721ExplicitTarget;
+            let strAddrErc1155Explicit = imaState.strAddrErc1155Explicit;
+            let strAddrErc1155ExplicitTarget = imaState.strAddrErc1155ExplicitTarget;
+            if( ( ! strAddrErc20Explicit ) && sc.joErc20 && sc.strCoinNameErc20 )
+                strAddrErc20Explicit = sc.joErc20[sc.strCoinNameErc20 + "_address"];
+            if( ( ! strAddrErc20ExplicitTarget ) && tc.joErc20 && tc.strCoinNameErc20 )
+                strAddrErc20ExplicitTarget = tc.joErc20[tc.strCoinNameErc20 + "_address"];
+            if( ( ! strAddrErc721Explicit ) && sc.joErc721 && sc.strCoinNameErc721 )
+                strAddrErc721Explicit = sc.joErc721[sc.strCoinNameErc721 + "_address"];
+            if( ( ! strAddrErc721ExplicitTarget ) && tc.joErc721 && tc.strCoinNameErc721 )
+                strAddrErc721ExplicitTarget = tc.joErc721[tc.strCoinNameErc721 + "_address"];
+            if( ( ! strAddrErc1155Explicit ) && sc.joErc1155 && sc.strCoinNameErc1155 )
+                strAddrErc1155Explicit = sc.joErc1155[sc.strCoinNameErc1155 + "_address"];
+            if( ( ! strAddrErc1155ExplicitTarget ) && tc.joErc1155 && tc.strCoinNameErc1155 )
+                strAddrErc1155ExplicitTarget = tc.joErc1155[tc.strCoinNameErc1155 + "_address"];
+            const strAddrErc20Dst = isForward
+                ? strAddrErc20ExplicitTarget : strAddrErc20Explicit;
+            const strAddrErc721Dst = isForward
+                ? strAddrErc721ExplicitTarget : strAddrErc721Explicit;
+            const strAddrErc1155Dst = isForward
+                ? strAddrErc1155ExplicitTarget : strAddrErc1155Explicit;
             const tx_customizer = isForward ? sc.transactionCustomizer : tc.transactionCustomizer;
-            if( strCoinNameErc721_src.length > 0 ) {
+            if( strCoinNameErc721Src.length > 0 ) {
                 // ERC721 payment
                 log.write( cc.info( "one S->S single ERC721 payment: " ) +
                     cc.sunny( imaState.idToken ) + "\n" ); // just print value
                 return await IMA.doErc721PaymentS2S(
                     isForward,
-                    ethersProvider_src,
-                    cid_src,
-                    strChainName_dst,
+                    ethersProviderSrc,
+                    chainIdSrc,
+                    strChainNameDst,
                     joAccountSrc,
                     jo_token_manager_erc721_src,
                     imaState.idToken, // which ERC721 token id to send
                     imaState.nAmountOfWei, // how much to send
-                    strCoinNameErc721_src,
+                    strCoinNameErc721Src,
                     joErc721_src,
-                    strAddrErc721_dst, // only reverse payment needs it
+                    strAddrErc721Dst, // only reverse payment needs it
                     tx_customizer
                 );
             }
-            if( strCoinNameErc20_src.length > 0 ) {
+            if( strCoinNameErc20Src.length > 0 ) {
             // ERC20 payment
                 log.write( cc.info( "one S->S single ERC20 payment: " ) +
                     cc.sunny( imaState.nAmountOfToken ) + "\n" ); // just print value
                 return await IMA.doErc20PaymentS2S(
                     isForward,
-                    ethersProvider_src,
-                    cid_src,
-                    strChainName_dst,
+                    ethersProviderSrc,
+                    chainIdSrc,
+                    strChainNameDst,
                     joAccountSrc,
                     jo_token_manager_erc20_src,
                     imaState.nAmountOfToken, // how much ERC20 tokens to send
                     imaState.nAmountOfWei, // how much to send
-                    strCoinNameErc20_src,
+                    strCoinNameErc20Src,
                     joErc20_src,
-                    strAddrErc20_dst, // only reverse payment needs it
+                    strAddrErc20Dst, // only reverse payment needs it
                     tx_customizer
                 );
             }
             if(
-                strCoinNameErc1155_src.length > 0 &&
+                strCoinNameErc1155Src.length > 0 &&
                 imaState.idToken &&
                 imaState.idToken !== null &&
                 imaState.idToken !== undefined &&
@@ -1168,22 +1168,22 @@ function commandLineTaskPaymentS2S() {
                     "\n" ); // just print value
                 return await IMA.doErc1155PaymentS2S(
                     isForward,
-                    ethersProvider_src,
-                    cid_src,
-                    strChainName_dst,
+                    ethersProviderSrc,
+                    chainIdSrc,
+                    strChainNameDst,
                     joAccountSrc,
                     jo_token_manager_erc1155_src,
                     imaState.idToken, // which ERC1155 token id to send
                     imaState.nAmountOfToken, // how much ERC1155 tokens to send
                     imaState.nAmountOfWei, // how much to send
-                    strCoinNameErc1155_src,
+                    strCoinNameErc1155Src,
                     joErc1155_src,
-                    strAddrErc1155_dst, // only reverse payment needs it
+                    strAddrErc1155Dst, // only reverse payment needs it
                     tx_customizer
                 );
             }
             if(
-                strCoinNameErc1155_src.length > 0 &&
+                strCoinNameErc1155Src.length > 0 &&
                 imaState.idTokens &&
                 imaState.idTokens !== null &&
                 imaState.idTokens !== undefined &&
@@ -1203,17 +1203,17 @@ function commandLineTaskPaymentS2S() {
                     "\n" ); // just print value
                 return await IMA.doErc1155BatchPaymentS2S(
                     isForward,
-                    ethersProvider_src,
-                    cid_src,
-                    strChainName_dst,
+                    ethersProviderSrc,
+                    chainIdSrc,
+                    strChainNameDst,
                     joAccountSrc,
                     jo_token_manager_erc1155_src,
                     imaState.idTokens, // which ERC1155 token id to send
                     imaState.arrAmountsOfTokens, // which ERC1155 token amount to send
                     imaState.nAmountOfWei, // how much to send
-                    strCoinNameErc1155_src,
+                    strCoinNameErc1155Src,
                     joErc1155_src,
-                    strAddrErc1155_dst,
+                    strAddrErc1155Dst,
                     tx_customizer
                 );
             }
@@ -1358,7 +1358,7 @@ function commandLineTaskTransferS2S() {
     imaState.arrActions.push( {
         "name": "single S->S transfer loop",
         "fn": async function() {
-            if( ! imaState.s2s_opts.isEnabled )
+            if( ! imaState.optsS2S.isEnabled )
                 return;
             initialSkaleNetworkScanForS2S();
             if( ! imaState.bNoWaitSChainStarted )
@@ -1407,10 +1407,10 @@ function commandLineTaskTransfer() {
             const optsLoop = {
                 joRuntimeOpts: joRuntimeOpts,
                 isDelayFirstRun: false,
-                enable_step_oracle: true,
-                enable_step_m2s: true,
-                enable_step_s2m: true,
-                enable_step_s2s: true
+                enableStepOracle: true,
+                enableStepM2S: true,
+                enableStepS2M: true,
+                enableStepS2S: true
             };
             return await singleTransferLoop( optsLoop );
         }
@@ -1470,10 +1470,10 @@ function commandLineTaskLoopSimple() {
             const optsLoop = {
                 joRuntimeOpts: joRuntimeOpts,
                 isDelayFirstRun: false,
-                enable_step_oracle: true,
-                enable_step_m2s: true,
-                enable_step_s2m: true,
-                enable_step_s2s: true
+                enableStepOracle: true,
+                enableStepM2S: true,
+                enableStepS2M: true,
+                enableStepS2S: true
             };
             return await loop.runTransferLoop( optsLoop );
         }
@@ -2015,7 +2015,7 @@ async function continueSChainDiscoveryInBackgroundIfNeeded( isSilent ) {
         return;
     if( imaState.joSChainDiscovery.repeatIntervalMilliseconds <= 0 )
         return; // no S-Chain re-discovery (for debugging only)
-    const fn_async_handler = async function() {
+    const fnAsyncHandler = async function() {
         if( g_bInSChainDiscovery )
             return;
         if( g_bInSChainDiscovery ) {
@@ -2102,7 +2102,7 @@ async function continueSChainDiscoveryInBackgroundIfNeeded( isSilent ) {
     g_timerSChainDiscovery = setInterval( function() {
         if( g_bInSChainDiscovery )
             return;
-        fn_async_handler();
+        fnAsyncHandler();
     }, imaState.joSChainDiscovery.repeatIntervalMilliseconds );
 }
 
@@ -2571,7 +2571,7 @@ function initJsonRpcServer() {
         const isSkipMode = false;
         const message = JSON.stringify( req.body );
         const ip = req.connection.remoteAddress.split( ":" ).pop();
-        const fn_send_answer = function( joAnswer ) {
+        const fnSendAnswer = function( joAnswer ) {
             try {
                 res.header( "Content-Type", "application/json" );
                 res.status( 200 ).send( JSON.stringify( joAnswer ) );
@@ -2619,11 +2619,11 @@ function initJsonRpcServer() {
             switch ( joMessage.method ) {
             case "echo":
                 joAnswer.result = "echo";
-                fn_send_answer( joAnswer );
+                fnSendAnswer( joAnswer );
                 break;
             case "ping":
                 joAnswer.result = "pong";
-                fn_send_answer( joAnswer );
+                fnSendAnswer( joAnswer );
                 break;
             case "skale_imaVerifyAndSign":
                 joAnswer = await imaBLS.handleSkaleImaVerifyAndSign( joMessage );
@@ -2660,7 +2660,7 @@ function initJsonRpcServer() {
             }
         }
         if( ! isSkipMode )
-            fn_send_answer( joAnswer );
+            fnSendAnswer( joAnswer );
     } );
     g_jsonRpcAppIMA.listen( imaState.nJsonRpcPort );
 }

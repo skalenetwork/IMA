@@ -214,7 +214,7 @@ export function isFloat2( n ) {
     return !isNaN( val );
 }
 
-function url_obj_colorized( objURL ) {
+function urlObjColorized( objURL ) {
     let strURL = "";
     if( !objURL )
         return strURL;
@@ -238,21 +238,21 @@ function url_obj_colorized( objURL ) {
     return strURL;
 }
 
-export function url_str_colorized( s ) {
+export function urlStrColorized( s ) {
     const objURL = safeURL( s );
     if( !objURL )
         return "";
-    return url_obj_colorized( objURL );
+    return urlObjColorized( objURL );
 }
 
-export function url_colorized( x ) {
+export function urlColorized( x ) {
     if( typeof x === "string" || x instanceof String )
-        return url_str_colorized( x );
-    return url_obj_colorized( x );
+        return urlStrColorized( x );
+    return urlObjColorized( x );
 }
 
 export function u( x ) {
-    return url_colorized( x );
+    return urlColorized( x );
 }
 
 export function safeURL( arg ) {

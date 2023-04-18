@@ -25,8 +25,8 @@
 
 import * as cc from "../npms/skale-cc/cc.mjs";
 import * as log from "../npms/skale-log/log.mjs";
-import * as owaspUtils from "../npms/skale-owasp/owasp-utils.mjs";
-import * as rpcCall from "./rpc-call.mjs";
+import * as owaspUtils from "../npms/skale-owasp/owaspUtils.mjs";
+import * as rpcCall from "./rpcCall.mjs";
 import * as imaBLS from "./bls.mjs";
 import * as imaUtils from "./utils.mjs";
 
@@ -235,7 +235,7 @@ export async function handleLoopStateArrived(
                 cc.debug( ", arrived signature is " ) + cc.j( signature ) + "\n" );
         }
         const strMessageHash =
-            imaBLS.keccak256_4_pending_work_analysis(
+            imaBLS.keccak256ForPendingWorkAnalysis(
                 nNodeNumber, strLoopWorkType, isStart, 0 + ts );
         const isSignatureOK =
             await imaBLS.doVerifyReadyHash(
@@ -290,7 +290,7 @@ async function notifyOnLoopImpl( imaState, strLoopWorkType, nIndexS2S, isStart )
         const nUtcUnixTimeStamp = Math.floor( ( new Date() ).getTime() / 1000 );
 
         const strMessageHash =
-            imaBLS.keccak256_4_pending_work_analysis(
+            imaBLS.keccak256ForPendingWorkAnalysis(
                 0 + imaState.nNodeNumber, strLoopWorkType, isStart, nUtcUnixTimeStamp );
         const signature = await imaBLS.doSignReadyHash( strMessageHash, imaState.isPrintPWA );
         await handleLoopStateArrived(

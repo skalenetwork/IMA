@@ -23,7 +23,7 @@
  * @copyright SKALE Labs 2019-Present
  */
 
-import * as owaspUtils from "../npms/skale-owasp/owasp-utils.mjs";
+import * as owaspUtils from "../npms/skale-owasp/owaspUtils.mjs";
 import * as fs from "fs";
 import * as path from "path";
 import * as os from "os";
@@ -279,7 +279,7 @@ export async function waitForClonedTokenAppearErc721(
     tokenERC721SC.address = "" + address_on_s_chain;
 }
 
-export async function wait_for_cloned_token_erc721_with_metadata_appear(
+export async function waitForClonedTokenAppearErc721WithMetadata(
     sc, tokenERC721SC, joAccountSC, tokensMN, strMainnetName
 ) {
     if( "abi" in tokenERC721SC && typeof tokenERC721SC.abi == "object" &&

@@ -23,12 +23,12 @@
  * @copyright SKALE Labs 2019-Present
  */
 
-import * as rpcCall from "./rpc-call.mjs";
+import * as rpcCall from "./rpcCall.mjs";
 import numberToBN from "number-to-bn";
 
-import * as sha3_mod from "sha3";
+import * as sha3Module from "sha3";
 
-const Keccak = sha3_mod.Keccak;
+const Keccak = sha3Module.Keccak;
 
 export const MIN_POW_RESULT = 10000;
 export const MAX_POW_NUMBER = 100000;

@@ -19,12 +19,12 @@
  */
 
 /**
- * @file socket_server.mjs
+ * @file socketServer.mjs
  * @copyright SKALE Labs 2019-Present
  */
 
-import { EventDispatcher, UniversalDispatcherEvent } from "./event_dispatcher.mjs";
-import * as utils from "./socket_utils.mjs";
+import { EventDispatcher, UniversalDispatcherEvent } from "./eventDispatcher.mjs";
+import * as utils from "./socketUtils.mjs";
 
 export class SocketServer extends EventDispatcher {
     constructor( acceptor ) {

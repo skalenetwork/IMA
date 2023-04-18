@@ -20,23 +20,23 @@
  */
 
 /**
- * @file observer_worker.mjs
+ * @file observerWorker.mjs
  * @copyright SKALE Labs 2019-Present
  */
 
 import {
     parentPort
 } from "worker_threads";
-import * as network_layer from "../skale-cool-socket/socket.mjs";
-import { SocketServer } from "../skale-cool-socket/socket_server.mjs";
+import * as networkLayer from "../skale-cool-socket/socket.mjs";
+import { SocketServer } from "../skale-cool-socket/socketServer.mjs";
 import * as cc from "../skale-cc/cc.mjs";
-import * as owaspUtils from "../skale-owasp/owasp-utils.mjs";
+import * as owaspUtils from "../skale-owasp/owaspUtils.mjs";
 import * as skaleObserver from "./observer.mjs";
 
 const g_url = "skale_observer_worker_server";
 
 parentPort.on( "message", jo => {
-    if( network_layer.in_worker_apis.on_message( jo ) )
+    if( networkLayer.in_worker_apis.on_message( jo ) )
         return;
 } );
 
@@ -45,7 +45,7 @@ const sleep = ( milliseconds ) => {
 };
 
 function doSendMessage( type, endpoint, worker_uuid, data ) {
-    const jo = network_layer.socket_received_data_reverse_marshall( data );
+    const jo = networkLayer.socketReceivedDataReverseMarshall( data );
     const joSend = {
         "worker_message_type":
             ( type && typeof type == "string" && type.length > 0 )
@@ -54,7 +54,7 @@ function doSendMessage( type, endpoint, worker_uuid, data ) {
         "worker_uuid": worker_uuid,
         "data": jo
     };
-    parentPort.postMessage( network_layer.socket_sent_data_marshall( joSend ) );
+    parentPort.postMessage( networkLayer.socketSentDataMarshall( joSend ) );
 }
 
 class ObserverServer extends SocketServer {
@@ -231,19 +231,19 @@ class ObserverServer extends SocketServer {
         await self.periodicCachingStop();
         if( secondsToReDiscoverSkaleNetwork <= 0 )
             return false;
-        const fn_async_handler = async function() {
+        const fnAsyncHandler = async function() {
             await self.periodicCachingDoNow(
                 socket, secondsToReDiscoverSkaleNetwork, strChainNameConnectedTo, addressFrom );
         };
         self.intervalPeriodicSchainsCaching = setInterval( function() {
             if( self.bIsPeriodicCachingStepInProgress )
                 return;
-            fn_async_handler()
+            fnAsyncHandler()
                 .then( () => {
                 } ).catch( () => {
                 } );
         }, secondsToReDiscoverSkaleNetwork * 1000 );
-        fn_async_handler(); // initial async call
+        fnAsyncHandler(); // initial async call
         return true;
     }
     async periodicCachingStop() {
@@ -257,7 +257,7 @@ class ObserverServer extends SocketServer {
     }
 };
 
-const acceptor = new network_layer.InWorkerSocketServerAcceptor( g_url, doSendMessage );
+const acceptor = new networkLayer.InWorkerSocketServerAcceptor( g_url, doSendMessage );
 const server = new ObserverServer( acceptor );
 server.on( "dispose", function() {
     const self = server;

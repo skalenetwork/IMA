@@ -1,4 +1,4 @@
-import * as owaspUtils from "../npms/skale-owasp/owasp-utils.mjs";
+import * as owaspUtils from "../npms/skale-owasp/owaspUtils.mjs";
 import * as IMA from "../npms/skale-ima/index.mjs";
 
 export const g_defaultValueForLoopState = {
@@ -218,7 +218,6 @@ export function get() {
         "isWithMetadata721": false,
 
         "jo_token_manager_eth": null, // only s-chain
-        // "jo_token_manager_eth_target": null, // only s-chain target
         "jo_token_manager_erc20": null, // only s-chain
         "jo_token_manager_erc20_target": null, // only s-chain
         "jo_token_manager_erc721": null, // only s-chain target
@@ -235,11 +234,7 @@ export function get() {
         "jo_token_manager_linker": null,
         "jo_token_manager_linker_target": null, // only s-chain target
         "eth_erc20": null, // only s-chain
-        // "eth_erc721": null, // only s-chain
-        // "eth_erc1155": null, // only s-chain
         "eth_erc20_target": null, // only s-chain target
-        // "eth_erc721_target": null, // only s-chain target
-        // "eth_erc1155_target": null, // only s-chain target
 
         "chainProperties": constructChainProperties(),
 
@@ -250,12 +245,12 @@ export function get() {
         "strChainNameOriginChain":
             ( process.env.CHAIN_NAME_SCHAIN_ORIGIN || "Mainnet" ).toString().trim(),
 
-        "strAddrErc20_explicit": "",
-        "strAddrErc20_explicit_target": "", // S<->S target
-        "strAddrErc721_explicit": "",
-        "strAddrErc721_explicit_target": "", // S<->S target
-        "strAddrErc1155_explicit": "",
-        "strAddrErc1155_explicit_target": "", // S<->S target
+        "strAddrErc20Explicit": "",
+        "strAddrErc20ExplicitTarget": "", // S<->S target
+        "strAddrErc721Explicit": "",
+        "strAddrErc721ExplicitTarget": "", // S<->S target
+        "strAddrErc1155Explicit": "",
+        "strAddrErc1155ExplicitTarget": "", // S<->S target
 
         "isPWA": true,
         "nTimeoutSecondsPWA": 60,
@@ -275,7 +270,7 @@ export function get() {
         },
 
         // S-Chain to S-Chain transfer options
-        "s2s_opts": {
+        "optsS2S": {
             // is S-Chain to S-Chain transfers enabled
             "isEnabled": true,
             // seconds to re-discover SKALE network, 0 to disable

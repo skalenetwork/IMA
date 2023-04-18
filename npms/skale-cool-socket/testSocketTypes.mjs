@@ -19,21 +19,19 @@
  */
 
 /**
- * @file test_socket_types.mjs
+ * @file testSocketTypes.mjs
  * @copyright SKALE Labs 2019-Present
  */
 
 import * as path from "path";
 import * as url from "url";
-import * as network_layer from "./socket.mjs";
-import { TestSocketServer } from "./test_socket_server.mjs";
+import * as networkLayer from "./socket.mjs";
+import { TestSocketServer } from "./testSocketServer.mjs";
 import { Worker } from "worker_threads";
-import { settings } from "./socket_settings.mjs";
+import { settings } from "./socketSettings.mjs";
 import * as ws from "ws";
 
 const __dirname = path.dirname( url.fileURLToPath( import.meta.url ) );
-
-// import * as wrtc from "wrtc";
 
 const joTestMessage = { "method": "echo", "message": "Please echo this message!" };
 
@@ -44,9 +42,9 @@ const sleep = ( milliseconds ) => {
 async function test_local() {
     console.log( "Local test" );
     const strEndPoint = "local_endpoint";
-    const acceptor = new network_layer.LocalSocketServerAcceptor( strEndPoint );
+    const acceptor = new networkLayer.LocalSocketServerAcceptor( strEndPoint );
     const server = new TestSocketServer( acceptor );
-    const client = new network_layer.LocalSocketClientPipe( strEndPoint );
+    const client = new networkLayer.LocalSocketClientPipe( strEndPoint );
     client.on( "message", function( eventData ) {
         const joMessage = eventData.message;
         console.log( "CLIENT <<<", JSON.stringify( joMessage ) );
@@ -69,15 +67,15 @@ async function test_worker() {
     const url = "local_worker_server";
     const worker =
         new Worker(
-            path.join( __dirname, "test_socket_worker.mjs" ),
+            path.join( __dirname, "testSocketWorker.mjs" ),
             { "type": "module" }
         );
     console.log( "Will connect to " + url );
     worker.on( "message", jo => {
-        if( network_layer.out_of_worker_apis.on_message( worker, jo ) )
+        if( networkLayer.out_of_worker_apis.on_message( worker, jo ) )
             return;
     } );
-    const client = new network_layer.OutOfWorkerSocketClientPipe( url, worker );
+    const client = new networkLayer.OutOfWorkerSocketClientPipe( url, worker );
     client.on( "message", function( eventData ) {
         const joMessage = eventData.message;
         console.log( "CLIENT <<<", JSON.stringify( joMessage ) );
@@ -98,7 +96,7 @@ async function test_worker() {
 
 async function test_web_socket() {
     console.log( "Web socket test" );
-    network_layer.set_ws_mod( ws );
+    networkLayer.setWsModule( ws );
     const nPort = 33123;
     const url =
         ( settings.net.secure ? "wss" : "ws" ) +
@@ -107,9 +105,9 @@ async function test_web_socket() {
         ? fs.readFileSync( "./self-signed/self-signed-key.pem", "utf8" ) : null;
     const cert = settings.net.secure
         ? fs.readFileSync( "./self-signed/self-signed-cert.pem", "utf8" ) : null;
-    const acceptor = new network_layer.WebSocketServerAcceptor( nPort, key, cert );
+    const acceptor = new networkLayer.WebSocketServerAcceptor( nPort, key, cert );
     const server = new TestSocketServer( acceptor );
-    const client = new network_layer.WebSocketClientPipe( url );
+    const client = new networkLayer.WebSocketClientPipe( url );
     client.on( "message", function( eventData ) {
         const joMessage = eventData.message;
         console.log( "CLIENT <<<", JSON.stringify( joMessage ) );
