@@ -1384,8 +1384,8 @@ async function doSignConfigureChainAccessParams( optsSignOperation ) {
             ( optsSignOperation.imaState.chainProperties.mn.strChainName
                 ? optsSignOperation.imaState.chainProperties.mn.strChainName
                 : "" );
-        optsSignOperation.targetChainID = optsSignOperation.imaState.chainProperties.sc.cid;
-        optsSignOperation.fromChainID = optsSignOperation.imaState.chainProperties.mn.cid;
+        optsSignOperation.targetChainID = optsSignOperation.imaState.chainProperties.sc.chainId;
+        optsSignOperation.fromChainID = optsSignOperation.imaState.chainProperties.mn.chainId;
     } else if( optsSignOperation.strDirection == "S2M" ) {
         optsSignOperation.targetChainName = "" +
             ( optsSignOperation.imaState.chainProperties.mn.strChainName
@@ -1395,8 +1395,8 @@ async function doSignConfigureChainAccessParams( optsSignOperation ) {
             ( optsSignOperation.imaState.chainProperties.sc.strChainName
                 ? optsSignOperation.imaState.chainProperties.sc.strChainName
                 : "" );
-        optsSignOperation.targetChainID = optsSignOperation.imaState.chainProperties.mn.cid;
-        optsSignOperation.fromChainID = optsSignOperation.imaState.chainProperties.sc.cid;
+        optsSignOperation.targetChainID = optsSignOperation.imaState.chainProperties.mn.chainId;
+        optsSignOperation.fromChainID = optsSignOperation.imaState.chainProperties.sc.chainId;
     } else if( optsSignOperation.strDirection == "S2S" ) {
         optsSignOperation.targetChainName =
             "" + optsSignOperation.joExtraSignOpts.chain_id_dst;
@@ -2589,8 +2589,8 @@ async function prepareS2sOfSkaleImaVerifyAndSign( optsHandleVerifyAndSign ) {
         cc.info( strSChainNameSrc ) +
         cc.debug( " and destination chain name " ) + cc.info( strSChainNameDst ) +
         "\n" );
-    const arr_schains_cached = skaleObserver.getLastCachedSChains();
-    if( ( !arr_schains_cached ) || arr_schains_cached.length == 0 ) {
+    const arrSChainsCached = skaleObserver.getLastCachedSChains();
+    if( ( !arrSChainsCached ) || arrSChainsCached.length == 0 ) {
         throw new Error(
             "Could not handle " + optsHandleVerifyAndSign.strDirection +
             " skale_imaVerifyAndSign(1), no S-Chains in SKALE NETWORK " +
@@ -2599,8 +2599,8 @@ async function prepareS2sOfSkaleImaVerifyAndSign( optsHandleVerifyAndSign ) {
     }
 
     let jo_schain_src = null, strUrlSrcSChain = null;
-    for( let idxSChain = 0; idxSChain < arr_schains_cached.length; ++ idxSChain ) {
-        const jo_schain = arr_schains_cached[idxSChain];
+    for( let idxSChain = 0; idxSChain < arrSChainsCached.length; ++ idxSChain ) {
+        const jo_schain = arrSChainsCached[idxSChain];
         if( jo_schain.data.name.toString() == strSChainNameSrc.toString() ) {
             jo_schain_src = jo_schain;
             strUrlSrcSChain = skaleObserver.pickRandomSChainUrl( jo_schain );

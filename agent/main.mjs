@@ -164,7 +164,7 @@ function commandLineTaskMintErc20() {
                     bMintIsOK =
                         await IMA.mintErc20(
                             imaState.chainProperties.tc.ethersProvider,
-                            imaState.chainProperties.tc.cid,
+                            imaState.chainProperties.tc.chainId,
                             imaState.chainProperties.tc.strChainName,
                             imaState.chainProperties.tc.joAccount,
                             strAddressMintTo,
@@ -203,7 +203,7 @@ function commandLineTaskMintErc721() {
                             bMintIsOK =
                                 await IMA.mintErc721(
                                     imaState.chainProperties.tc.ethersProvider,
-                                    imaState.chainProperties.tc.cid,
+                                    imaState.chainProperties.tc.chainId,
                                     imaState.chainProperties.tc.strChainName,
                                     imaState.chainProperties.tc.joAccount,
                                     strAddressMintTo,
@@ -244,7 +244,7 @@ function commandLineTaskMintErc1155() {
                             bMintIsOK =
                                 await IMA.mintErc1155(
                                     imaState.chainProperties.tc.ethersProvider,
-                                    imaState.chainProperties.tc.cid,
+                                    imaState.chainProperties.tc.chainId,
                                     imaState.chainProperties.tc.strChainName,
                                     imaState.chainProperties.tc.joAccount,
                                     strAddressMintTo,
@@ -282,7 +282,7 @@ function commandLineTaskBurnErc20() {
                     bBurnIsOK =
                         await IMA.burnErc20(
                             imaState.chainProperties.tc.ethersProvider,
-                            imaState.chainProperties.tc.cid,
+                            imaState.chainProperties.tc.chainId,
                             imaState.chainProperties.tc.strChainName,
                             imaState.chainProperties.tc.joAccount,
                             strAddressBurnFrom,
@@ -321,7 +321,7 @@ function commandLineTaskBurnErc721() {
                             bBurnIsOK =
                                 await IMA.burnErc721(
                                     imaState.chainProperties.tc.ethersProvider,
-                                    imaState.chainProperties.tc.cid,
+                                    imaState.chainProperties.tc.chainId,
                                     imaState.chainProperties.tc.strChainName,
                                     imaState.chainProperties.tc.joAccount,
                                     idToken,
@@ -363,7 +363,7 @@ function commandLineTaskBurnErc1155() {
                             bBurnIsOK =
                                 await IMA.burnErc1155(
                                     imaState.chainProperties.tc.ethersProvider,
-                                    imaState.chainProperties.tc.cid,
+                                    imaState.chainProperties.tc.chainId,
                                     imaState.chainProperties.tc.strChainName,
                                     imaState.chainProperties.tc.joAccount,
                                     strAddressBurnFrom,
@@ -422,7 +422,7 @@ async function commandLineTaskShowBalanceEth(
             "assetName": "RealETH",
             "balance": await IMA.getBalanceEth( true, // isMainNet
                 imaState.chainProperties.mn.ethersProvider,
-                imaState.chainProperties.mn.cid, imaState.chainProperties.mn.joAccount )
+                imaState.chainProperties.mn.chainId, imaState.chainProperties.mn.joAccount )
         } );
         arrBalancesMN.push( {
             "assetName": "CanReceiveETH",
@@ -441,14 +441,14 @@ async function commandLineTaskShowBalanceEth(
             "assetName": "S-Chain Real ETH as ERC20",
             "assetAddress": assetAddress,
             "balance": await IMA.getBalanceEth( false, // isMainNet
-                imaState.chainProperties.sc.ethersProvider, imaState.chainProperties.sc.cid,
+                imaState.chainProperties.sc.ethersProvider, imaState.chainProperties.sc.chainId,
                 imaState.chainProperties.sc.joAccount, imaState.eth_erc20 )
         } );
         arrBalancesSC.push( {
             "assetName": "S-Chain ETH Fuel",
             "balance": await IMA.getBalanceEth( true, // isMainNet=true here, but we call S-Chain
                 imaState.chainProperties.sc.ethersProvider,
-                imaState.chainProperties.sc.cid, imaState.chainProperties.sc.joAccount )
+                imaState.chainProperties.sc.chainId, imaState.chainProperties.sc.joAccount )
         } );
     }
     if( imaState.chainProperties.tc.ethersProvider ) {
@@ -456,14 +456,14 @@ async function commandLineTaskShowBalanceEth(
             "assetName": "Target S-Chain Real ETH as ERC20",
             "assetAddress": assetAddress,
             "balance": await IMA.getBalanceEth( false, // isMainNet
-                imaState.chainProperties.tc.ethersProvider, imaState.chainProperties.sc.cid,
+                imaState.chainProperties.tc.ethersProvider, imaState.chainProperties.sc.chainId,
                 imaState.chainProperties.tc.joAccount, imaState.eth_erc20 )
         } );
         arrBalancesTC.push( {
             "assetName": "Target S-Chain ETH Fuel",
             "balance": await IMA.getBalanceEth( true, // isMainNet=true here, but we call S-Chain
                 imaState.chainProperties.tc.ethersProvider,
-                imaState.chainProperties.tc.cid, imaState.chainProperties.tc.joAccount )
+                imaState.chainProperties.tc.chainId, imaState.chainProperties.tc.joAccount )
         } );
     }
 }
@@ -484,7 +484,7 @@ async function commandLineTaskShowBalanceErc20(
             "assetName": "ERC20",
             "assetAddress": assetAddress,
             "balance": await IMA.getBalanceErc20( true, // isMainNet
-                imaState.chainProperties.mn.ethersProvider, imaState.chainProperties.mn.cid,
+                imaState.chainProperties.mn.ethersProvider, imaState.chainProperties.mn.chainId,
                 imaState.chainProperties.mn.joAccount,
                 imaState.chainProperties.mn.strCoinNameErc20,
                 imaState.chainProperties.mn.joErc20 )
@@ -501,7 +501,7 @@ async function commandLineTaskShowBalanceErc20(
             "assetName": "ERC20",
             "assetAddress": assetAddress,
             "balance": await IMA.getBalanceErc20( false, // isMainNet
-                imaState.chainProperties.sc.ethersProvider, imaState.chainProperties.sc.cid,
+                imaState.chainProperties.sc.ethersProvider, imaState.chainProperties.sc.chainId,
                 imaState.chainProperties.sc.joAccount,
                 imaState.chainProperties.sc.strCoinNameErc20,
                 imaState.chainProperties.sc.joErc20 )
@@ -518,7 +518,7 @@ async function commandLineTaskShowBalanceErc20(
             "assetName": "ERC20",
             "assetAddress": assetAddress,
             "balance": await IMA.getBalanceErc20( true, // isMainNet
-                imaState.chainProperties.tc.ethersProvider, imaState.chainProperties.mn.cid,
+                imaState.chainProperties.tc.ethersProvider, imaState.chainProperties.mn.chainId,
                 imaState.chainProperties.tc.joAccount,
                 imaState.chainProperties.tc.strCoinNameErc20,
                 imaState.chainProperties.tc.joErc20 )
@@ -546,7 +546,7 @@ async function commandLineTaskShowBalanceErc721(
                 "idToken": idToken,
                 "owner": await IMA.getOwnerOfErc721( true, // isMainNet
                     imaState.chainProperties.mn.ethersProvider,
-                    imaState.chainProperties.mn.cid,
+                    imaState.chainProperties.mn.chainId,
                     imaState.chainProperties.mn.joAccount,
                     imaState.chainProperties.mn.strCoinNameErc721,
                     imaState.chainProperties.mn.joErc721, idToken )
@@ -568,7 +568,7 @@ async function commandLineTaskShowBalanceErc721(
                 "idToken": idToken,
                 "owner": await IMA.getOwnerOfErc721( false, // isMainNet
                     imaState.chainProperties.sc.ethersProvider,
-                    imaState.chainProperties.sc.cid,
+                    imaState.chainProperties.sc.chainId,
                     imaState.chainProperties.sc.joAccount,
                     imaState.chainProperties.sc.strCoinNameErc721,
                     imaState.chainProperties.sc.joErc721, idToken )
@@ -590,7 +590,7 @@ async function commandLineTaskShowBalanceErc721(
                 "idToken": idToken,
                 "owner": await IMA.getOwnerOfErc721( false, // isMainNet
                     imaState.chainProperties.tc.ethersProvider,
-                    imaState.chainProperties.tc.cid,
+                    imaState.chainProperties.tc.chainId,
                     imaState.chainProperties.tc.joAccount,
                     imaState.chainProperties.tc.strCoinNameErc721,
                     imaState.chainProperties.tc.joErc721, idToken )
@@ -619,7 +619,7 @@ async function commandLineTaskShowBalanceErc1155(
                 "idToken": idToken,
                 "balance": await IMA.getBalanceErc1155( true, // isMainNet
                     imaState.chainProperties.mn.ethersProvider,
-                    imaState.chainProperties.mn.cid,
+                    imaState.chainProperties.mn.chainId,
                     imaState.chainProperties.mn.joAccount,
                     imaState.chainProperties.mn.strCoinNameErc1155,
                     imaState.chainProperties.mn.joErc1155, idToken )
@@ -641,7 +641,7 @@ async function commandLineTaskShowBalanceErc1155(
                 "idToken": idToken,
                 "balance": await IMA.getBalanceErc1155( false, // isMainNet
                     imaState.chainProperties.sc.ethersProvider,
-                    imaState.chainProperties.sc.cid,
+                    imaState.chainProperties.sc.chainId,
                     imaState.chainProperties.sc.joAccount,
                     imaState.chainProperties.sc.strCoinNameErc1155,
                     imaState.chainProperties.sc.joErc1155, idToken )
@@ -663,7 +663,7 @@ async function commandLineTaskShowBalanceErc1155(
                 "idToken": idToken,
                 "balance": await IMA.getBalanceErc1155( false, // isMainNet
                     imaState.chainProperties.tc.ethersProvider,
-                    imaState.chainProperties.tc.cid,
+                    imaState.chainProperties.tc.chainId,
                     imaState.chainProperties.tc.joAccount,
                     imaState.chainProperties.tc.strCoinNameErc1155,
                     imaState.chainProperties.tc.joErc1155, idToken )
@@ -743,8 +743,8 @@ function commandLineTaskPaymentM2S() {
                 return await IMA.doErc721PaymentFromMainNet(
                     imaState.chainProperties.mn.ethersProvider,
                     imaState.chainProperties.sc.ethersProvider,
-                    imaState.chainProperties.mn.cid,
-                    imaState.chainProperties.sc.cid,
+                    imaState.chainProperties.mn.chainId,
+                    imaState.chainProperties.sc.chainId,
                     imaState.chainProperties.mn.joAccount,
                     imaState.chainProperties.sc.joAccount,
                     imaState.isWithMetadata721
@@ -773,8 +773,8 @@ function commandLineTaskPaymentM2S() {
                 return await IMA.doErc20PaymentFromMainNet(
                     imaState.chainProperties.mn.ethersProvider,
                     imaState.chainProperties.sc.ethersProvider,
-                    imaState.chainProperties.mn.cid,
-                    imaState.chainProperties.sc.cid,
+                    imaState.chainProperties.mn.chainId,
+                    imaState.chainProperties.sc.chainId,
                     imaState.chainProperties.mn.joAccount,
                     imaState.chainProperties.sc.joAccount,
                     imaState.jo_deposit_box_erc20, // only main net
@@ -814,8 +814,8 @@ function commandLineTaskPaymentM2S() {
                 return await IMA.doErc1155PaymentFromMainNet(
                     imaState.chainProperties.mn.ethersProvider,
                     imaState.chainProperties.sc.ethersProvider,
-                    imaState.chainProperties.mn.cid,
-                    imaState.chainProperties.sc.cid,
+                    imaState.chainProperties.mn.chainId,
+                    imaState.chainProperties.sc.chainId,
                     imaState.chainProperties.mn.joAccount,
                     imaState.chainProperties.sc.joAccount,
                     imaState.jo_deposit_box_erc1155, // only main net
@@ -856,8 +856,8 @@ function commandLineTaskPaymentM2S() {
                 return await IMA.doErc1155BatchPaymentFromMainNet(
                     imaState.chainProperties.mn.ethersProvider,
                     imaState.chainProperties.sc.ethersProvider,
-                    imaState.chainProperties.mn.cid,
-                    imaState.chainProperties.sc.cid,
+                    imaState.chainProperties.mn.chainId,
+                    imaState.chainProperties.sc.chainId,
                     imaState.chainProperties.mn.joAccount,
                     imaState.chainProperties.sc.joAccount,
                     imaState.jo_deposit_box_erc1155, // only main net
@@ -881,7 +881,7 @@ function commandLineTaskPaymentM2S() {
                 "\n" ); // just print value
             return await IMA.doEthPaymentFromMainNet(
                 imaState.chainProperties.mn.ethersProvider,
-                imaState.chainProperties.mn.cid,
+                imaState.chainProperties.mn.chainId,
                 imaState.chainProperties.mn.joAccount,
                 imaState.chainProperties.sc.joAccount,
                 imaState.jo_deposit_box_eth, // only main net
@@ -908,8 +908,8 @@ function commandLineTaskPaymentS2M() {
                 return await IMA.doErc721PaymentFromSChain(
                     imaState.chainProperties.mn.ethersProvider,
                     imaState.chainProperties.sc.ethersProvider,
-                    imaState.chainProperties.mn.cid,
-                    imaState.chainProperties.sc.cid,
+                    imaState.chainProperties.mn.chainId,
+                    imaState.chainProperties.sc.chainId,
                     imaState.chainProperties.sc.joAccount,
                     imaState.chainProperties.mn.joAccount,
                     imaState.isWithMetadata721
@@ -937,8 +937,8 @@ function commandLineTaskPaymentS2M() {
                 return await IMA.doErc20PaymentFromSChain(
                     imaState.chainProperties.mn.ethersProvider,
                     imaState.chainProperties.sc.ethersProvider,
-                    imaState.chainProperties.mn.cid,
-                    imaState.chainProperties.sc.cid,
+                    imaState.chainProperties.mn.chainId,
+                    imaState.chainProperties.sc.chainId,
                     imaState.chainProperties.sc.joAccount,
                     imaState.chainProperties.mn.joAccount,
                     imaState.jo_token_manager_erc20, // only s-chain
@@ -977,8 +977,8 @@ function commandLineTaskPaymentS2M() {
                 return await IMA.doErc1155PaymentFromSChain(
                     imaState.chainProperties.mn.ethersProvider,
                     imaState.chainProperties.sc.ethersProvider,
-                    imaState.chainProperties.mn.cid,
-                    imaState.chainProperties.sc.cid,
+                    imaState.chainProperties.mn.chainId,
+                    imaState.chainProperties.sc.chainId,
                     imaState.chainProperties.sc.joAccount,
                     imaState.chainProperties.mn.joAccount,
                     imaState.jo_token_manager_erc1155, // only s-chain
@@ -1018,8 +1018,8 @@ function commandLineTaskPaymentS2M() {
                 return await IMA.doErc1155BatchPaymentFromSChain(
                     imaState.chainProperties.mn.ethersProvider,
                     imaState.chainProperties.sc.ethersProvider,
-                    imaState.chainProperties.mn.cid,
-                    imaState.chainProperties.sc.cid,
+                    imaState.chainProperties.mn.chainId,
+                    imaState.chainProperties.sc.chainId,
                     imaState.chainProperties.sc.joAccount,
                     imaState.chainProperties.mn.joAccount,
                     imaState.jo_token_manager_erc1155, // only s-chain
@@ -1042,7 +1042,7 @@ function commandLineTaskPaymentS2M() {
                 "\n" ); // just print value
             return await IMA.doEthPaymentFromSChain(
                 imaState.chainProperties.sc.ethersProvider,
-                imaState.chainProperties.sc.cid,
+                imaState.chainProperties.sc.chainId,
                 imaState.chainProperties.sc.joAccount,
                 imaState.chainProperties.mn.joAccount,
                 imaState.jo_token_manager_eth, // only s-chain
@@ -1062,7 +1062,7 @@ function commandLineTaskPaymentS2S() {
             const isForward = IMA.isForwardS2S();
             const sc = imaState.chainProperties.sc, tc = imaState.chainProperties.tc;
             const ethersProvider_src = isForward ? sc.ethersProvider : tc.ethersProvider;
-            const cid_src = isForward ? sc.cid : tc.cid;
+            const cid_src = isForward ? sc.chainId : tc.chainId;
             const joAccountSrc = isForward ? sc.joAccount : tc.joAccount;
             const jo_token_manager_erc20_src = isForward
                 ? imaState.jo_token_manager_erc20 : imaState.jo_token_manager_erc20_target;
@@ -1238,7 +1238,7 @@ function commandLineTaskReceiveS2M() {
                 "\n" ); // just print value
             return await IMA.receiveEthPaymentFromSchainOnMainNet(
                 imaState.chainProperties.mn.ethersProvider,
-                imaState.chainProperties.mn.cid,
+                imaState.chainProperties.mn.chainId,
                 imaState.chainProperties.mn.joAccount,
                 imaState.jo_deposit_box_eth,
                 imaState.chainProperties.mn.transactionCustomizer
@@ -1296,8 +1296,8 @@ function commandLineTaskTransferM2S() {
                 imaState.chainProperties.sc.joAccount,
                 imaState.chainProperties.mn.strChainName,
                 imaState.chainProperties.sc.strChainName,
-                imaState.chainProperties.mn.cid,
-                imaState.chainProperties.sc.cid,
+                imaState.chainProperties.mn.chainId,
+                imaState.chainProperties.sc.chainId,
                 null,
                 imaState.jo_token_manager_eth, // for logs validation on s-chain
                 imaState.nTransferBlockSizeM2S,
@@ -1336,8 +1336,8 @@ function commandLineTaskTransferS2M() {
                 imaState.chainProperties.mn.joAccount,
                 imaState.chainProperties.sc.strChainName,
                 imaState.chainProperties.mn.strChainName,
-                imaState.chainProperties.sc.cid,
-                imaState.chainProperties.mn.cid,
+                imaState.chainProperties.sc.chainId,
+                imaState.chainProperties.mn.chainId,
                 imaState.jo_deposit_box_eth, // for logs validation on mainnet
                 null,
                 imaState.nTransferBlockSizeS2M,
@@ -1376,7 +1376,7 @@ function commandLineTaskTransferS2S() {
                 imaState.jo_message_proxy_s_chain,
                 imaState.chainProperties.sc.joAccount,
                 imaState.chainProperties.sc.strChainName,
-                imaState.chainProperties.sc.cid,
+                imaState.chainProperties.sc.chainId,
                 imaState.jo_token_manager_eth, // for logs validation on s-chain
                 imaState.nTransferBlockSizeM2S,
                 imaState.nTransferStepsS2S,
@@ -1616,12 +1616,12 @@ function commandLineTaskBrowseSkaleNetwork() {
                 "bStopNeeded": false
             };
             const addressFrom = imaState.chainProperties.mn.joAccount.address();
-            const arr_schains = await skaleObserver.loadSChains( addressFrom, opts );
-            const cnt = arr_schains.length;
+            const arrSChains = await skaleObserver.loadSChains( addressFrom, opts );
+            const cnt = arrSChains.length;
             log.write( strLogPrefix +
                 cc.normal( "Got " ) + cc.info( cnt ) +
                 cc.normal( " S-Chains(s) in SKALE NETWORK information: " ) +
-                cc.j( arr_schains ) +
+                cc.j( arrSChains ) +
                 "\n" );
             return true;
         }
@@ -1651,16 +1651,16 @@ function commandLineTaskBrowseConnectedSChains() {
                 "bStopNeeded": false
             };
             const addressFrom = imaState.chainProperties.mn.joAccount.address();
-            const arr_schains_cached = await skaleObserver.loadSChainsConnectedOnly(
+            const arrSChainsCached = await skaleObserver.loadSChainsConnectedOnly(
                 imaState.chainProperties.sc.strChainName,
                 addressFrom,
                 opts
             );
 
-            const cnt = arr_schains_cached.length;
+            const cnt = arrSChainsCached.length;
             log.write( strLogPrefix +
                 cc.normal( "Got " ) + cc.info( cnt ) +
-                cc.normal( " connected S-Chain(s): " ) + cc.j( arr_schains_cached ) +
+                cc.normal( " connected S-Chain(s): " ) + cc.j( arrSChainsCached ) +
                 "\n" );
             return true;
         }
@@ -1681,8 +1681,8 @@ function commandLineTaskDiscoverChainId() {
                 arr_urls_to_discover.push( {
                     "name": "Main Net",
                     "strURL": "" + imaState.chainProperties.mn.strURL,
-                    "fnSave": function( chainID ) {
-                        imaState.chainProperties.mn.cid = chainID;
+                    "fnSave": function( chainId ) {
+                        imaState.chainProperties.mn.chainId = chainId;
                     }
                 } );
             }
@@ -1693,8 +1693,8 @@ function commandLineTaskDiscoverChainId() {
                 arr_urls_to_discover.push( {
                     "name": "S-Chain",
                     "strURL": "" + "" + imaState.chainProperties.sc.strURL,
-                    "fnSave": function( chainID ) {
-                        imaState.chainProperties.sc.cid = chainID;
+                    "fnSave": function( chainId ) {
+                        imaState.chainProperties.sc.chainId = chainId;
                     }
                 } );
             }
@@ -1705,8 +1705,8 @@ function commandLineTaskDiscoverChainId() {
                 arr_urls_to_discover.push( {
                     "name": "S<->S Target S-Chain",
                     "strURL": "" + "" + imaState.chainProperties.tc.strURL,
-                    "fnSave": function( chainID ) {
-                        imaState.chainProperties.tc.cid = chainID;
+                    "fnSave": function( chainId ) {
+                        imaState.chainProperties.tc.chainId = chainId;
                     }
                 } );
             }
@@ -1721,9 +1721,9 @@ function commandLineTaskDiscoverChainId() {
             }
             for( let i = 0; i < arr_urls_to_discover.length; ++ i ) {
                 const joDiscoverEntry = arr_urls_to_discover[i];
-                const chainID = await
+                const chainId = await
                 skaleObserver.discoverChainId( joDiscoverEntry.strURL );
-                if( chainID === null ) {
+                if( chainId === null ) {
                     log.write( strLogPrefix +
                     cc.error( "Failed to detect " ) +
                     cc.note( joDiscoverEntry.name ) + " " +
@@ -1732,9 +1732,9 @@ function commandLineTaskDiscoverChainId() {
                 } else {
                     const cid16 =
                         owaspUtils.ensureStartsWith0x(
-                            owaspUtils.toBN( chainID ).toHexString()
+                            owaspUtils.toBN( chainId ).toHexString()
                         );
-                    const cid10 = "" + owaspUtils.toBN( chainID ).toString();
+                    const cid10 = "" + owaspUtils.toBN( chainId ).toString();
                     log.write( strLogPrefix +
                     cc.normal( "Got " ) + cc.note( joDiscoverEntry.name ) + " " +
                     cc.attention( "chain ID" ) + cc.normal( "=" ) +
@@ -1742,7 +1742,7 @@ function commandLineTaskDiscoverChainId() {
                     cc.note( cid10 ) + cc.normal( " from URL " ) +
                     cc.u( joDiscoverEntry.strURL ) +
                     "\n" );
-                    joDiscoverEntry.fnSave( chainID );
+                    joDiscoverEntry.fnSave( chainId );
                 }
             }
             return true;
@@ -1760,7 +1760,7 @@ function commandLineTaskReimbursementShowBalance() {
                 imaState.jo_community_pool,
                 imaState.chainProperties.mn.joAccount.address(),
                 imaState.chainProperties.mn.strChainName,
-                imaState.chainProperties.mn.cid,
+                imaState.chainProperties.mn.chainId,
                 imaState.chainProperties.mn.transactionCustomizer,
                 imaState.strReimbursementChain,
                 true
@@ -1780,7 +1780,7 @@ function commandLineTaskReimbursementEstimateAmount() {
                 imaState.jo_community_pool,
                 imaState.chainProperties.mn.joAccount.address(),
                 imaState.chainProperties.mn.strChainName,
-                imaState.chainProperties.mn.cid,
+                imaState.chainProperties.mn.chainId,
                 imaState.chainProperties.mn.transactionCustomizer,
                 imaState.strReimbursementChain,
                 true
@@ -1800,7 +1800,7 @@ function commandLineTaskReimbursementRecharge() {
                 imaState.jo_community_pool,
                 imaState.chainProperties.mn.joAccount,
                 imaState.chainProperties.mn.strChainName,
-                imaState.chainProperties.mn.cid,
+                imaState.chainProperties.mn.chainId,
                 imaState.chainProperties.mn.transactionCustomizer,
                 imaState.strReimbursementChain,
                 imaState.nReimbursementRecharge
@@ -1820,7 +1820,7 @@ function commandLineTaskReimbursementWithdraw() {
                 imaState.jo_community_pool,
                 imaState.chainProperties.mn.joAccount,
                 imaState.chainProperties.mn.strChainName,
-                imaState.chainProperties.mn.cid,
+                imaState.chainProperties.mn.chainId,
                 imaState.chainProperties.mn.transactionCustomizer,
                 imaState.strReimbursementChain,
                 imaState.nReimbursementWithdraw
@@ -1840,9 +1840,9 @@ function commandLineTaskReimbursementSetRange() {
                 imaState.jo_community_locker,
                 imaState.chainProperties.sc.joAccount,
                 imaState.chainProperties.sc.strChainName,
-                imaState.chainProperties.sc.cid,
+                imaState.chainProperties.sc.chainId,
                 imaState.chainProperties.sc.transactionCustomizer,
-                imaState.strChainName_origin_chain,
+                imaState.strChainNameOriginChain,
                 imaState.nReimbursementRange
             );
             return true;
@@ -2767,7 +2767,7 @@ async function registerStep1( isPrintSummaryRegistrationCosts ) {
             imaState.jo_community_locker, // only s-chain
             imaState.jo_token_manager_linker, // only s-chain
             imaState.chainProperties.sc.strChainName,
-            imaState.chainProperties.mn.cid,
+            imaState.chainProperties.mn.chainId,
             imaState.chainProperties.mn.transactionCustomizer //,
         );
     bSuccess = ( jarrReceipts != null && jarrReceipts.length > 0 ) ? true : false;
