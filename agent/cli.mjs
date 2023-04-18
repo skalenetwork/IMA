@@ -1493,7 +1493,7 @@ function parseChainAccessArgs( imaState, joArg ) {
     }
     if( joArg.name == "id-origin-chain" ) {
         owaspUtils.verifyArgumentWithNonEmptyValue( joArg );
-        imaState.strChainName_origin_chain = joArg.value;
+        imaState.strChainNameOriginChain = joArg.value;
         return true;
     }
     if( joArg.name == "id-t-chain" ) {
@@ -1503,17 +1503,17 @@ function parseChainAccessArgs( imaState, joArg ) {
     }
     if( joArg.name == "cid-main-net" ) {
         owaspUtils.verifyArgumentIsInteger( joArg );
-        imaState.chainProperties.mn.cid = owaspUtils.toInteger( joArg.value );
+        imaState.chainProperties.mn.chainId = owaspUtils.toInteger( joArg.value );
         return true;
     }
     if( joArg.name == "cid-s-chain" ) {
         owaspUtils.verifyArgumentIsInteger( joArg );
-        imaState.chainProperties.sc.cid = owaspUtils.toInteger( joArg.value );
+        imaState.chainProperties.sc.chainId = owaspUtils.toInteger( joArg.value );
         return true;
     }
     if( joArg.name == "cid-t-chain" ) {
         owaspUtils.verifyArgumentIsInteger( joArg );
-        imaState.chainProperties.tc.cid = owaspUtils.toInteger( joArg.value );
+        imaState.chainProperties.tc.chainId = owaspUtils.toInteger( joArg.value );
         return true;
     }
     return false;
@@ -1540,19 +1540,19 @@ function parseTransactionManagerArgs( imaState, joArg ) {
     }
     if( joArg.name == "tm-priority-main-net" ) {
         owaspUtils.verifyArgumentIsInteger( joArg );
-        imaState.chainProperties.mn.joAccount.tm_priority =
+        imaState.chainProperties.mn.joAccount.nTmPriority =
             owaspUtils.toInteger( joArg.value );
         return true;
     }
     if( joArg.name == "tm-priority-s-chain" ) {
         owaspUtils.verifyArgumentIsInteger( joArg );
-        imaState.chainProperties.sc.joAccount.tm_priority =
+        imaState.chainProperties.sc.joAccount.nTmPriority =
             owaspUtils.toInteger( joArg.value );
         return true;
     }
     if( joArg.name == "tm-priority-t-chain" ) {
         owaspUtils.verifyArgumentIsInteger( joArg );
-        imaState.chainProperties.tc.joAccount.tm_priority =
+        imaState.chainProperties.tc.joAccount.nTmPriority =
             owaspUtils.toInteger( joArg.value );
         return true;
     }
@@ -3497,19 +3497,19 @@ function commonInitCheckGeneralArgs() {
         } );
     ensureHaveValue(
         "Main-net Ethereum chain ID",
-        imaState.chainProperties.mn.cid, false,
+        imaState.chainProperties.mn.chainId, false,
         isPrintGathered && isPrintSecurityValues, null, ( x ) => {
             return cc.note( x );
         } );
     ensureHaveValue(
         "S-Chain Ethereum chain ID",
-        imaState.chainProperties.sc.cid, false,
+        imaState.chainProperties.sc.chainId, false,
         isPrintGathered && isPrintSecurityValues, null, ( x ) => {
             return cc.note( x );
         } );
     ensureHaveValue(
         "S<->S Target S-Chain Ethereum chain ID",
-        imaState.chainProperties.tc.cid, false,
+        imaState.chainProperties.tc.chainId, false,
         isPrintGathered && isPrintSecurityValues, null, ( x ) => {
             return cc.note( x );
         } );

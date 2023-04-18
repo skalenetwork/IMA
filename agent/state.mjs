@@ -30,7 +30,7 @@ function constructChainProperties() {
                 "strTransactionManagerURL":
                     owaspUtils.toStringURL(
                         process.env.TRANSACTION_MANAGER_URL_ETHEREUM ),
-                "tm_priority":
+                "nTmPriority":
                     owaspUtils.toStringURL(
                         process.env.TRANSACTION_MANAGER_PRIORITY_ETHEREUM ) || 5,
                 "strSgxURL": owaspUtils.toStringURL( process.env.SGX_URL_ETHEREUM ),
@@ -46,7 +46,7 @@ function constructChainProperties() {
             "strURL": owaspUtils.toStringURL( process.env.URL_W3_ETHEREUM ),
             "strChainName":
                 ( process.env.CHAIN_NAME_ETHEREUM || "Mainnet" ).toString().trim(),
-            "cid": owaspUtils.toInteger( process.env.CID_ETHEREUM ) || -4,
+            "chainId": owaspUtils.toInteger( process.env.CID_ETHEREUM ) || -4,
             "strPathAbiJson": null,
             "joAbiIMA": { },
             "bHaveAbiIMA": false,
@@ -67,7 +67,7 @@ function constructChainProperties() {
                 "address": owaspUtils.fnAddressImpl_,
                 "strTransactionManagerURL":
                     owaspUtils.toStringURL( process.env.TRANSACTION_MANAGER_URL_S_CHAIN ),
-                "tm_priority":
+                "nTmPriority":
                     owaspUtils.toStringURL(
                         process.env.TRANSACTION_MANAGER_PRIORITY_S_CHAIN ) || 5,
                 "strSgxURL": owaspUtils.toStringURL( process.env.SGX_URL_S_CHAIN ),
@@ -83,7 +83,7 @@ function constructChainProperties() {
             "strURL": owaspUtils.toStringURL( process.env.URL_W3_S_CHAIN ),
             "strChainName":
                 ( process.env.CHAIN_NAME_SCHAIN || "id-S-chain" ).toString().trim(),
-            "cid": owaspUtils.toInteger( process.env.CID_SCHAIN ) || -4,
+            "chainId": owaspUtils.toInteger( process.env.CID_SCHAIN ) || -4,
             "strPathAbiJson": null,
             "joAbiIMA": { },
             "bHaveAbiIMA": false,
@@ -105,7 +105,7 @@ function constructChainProperties() {
                 "strTransactionManagerURL":
                     owaspUtils.toStringURL(
                         process.env.TRANSACTION_MANAGER_URL_S_CHAIN_TARGET ),
-                "tm_priority":
+                "nTmPriority":
                     owaspUtils.toStringURL(
                         process.env.TRANSACTION_MANAGER_PRIORITY_S_CHAIN_TARGET ) || 5,
                 "strSgxURL": owaspUtils.toStringURL( process.env.SGX_URL_S_CHAIN_TARGET ),
@@ -121,7 +121,7 @@ function constructChainProperties() {
             "strURL": owaspUtils.toStringURL( process.env.URL_W3_S_CHAIN_TARGET ),
             "strChainName":
                 ( process.env.CHAIN_NAME_SCHAIN_TARGET || "id-T-chain" ).toString().trim(),
-            "cid": owaspUtils.toInteger( process.env.CID_SCHAIN_TARGET ) || -4,
+            "chainId": owaspUtils.toInteger( process.env.CID_SCHAIN_TARGET ) || -4,
             "strPathAbiJson": null,
             "joAbiIMA": { },
             "bHaveAbiIMA": false,
@@ -247,7 +247,7 @@ export function get() {
         "joAbiSkaleManager": { },
         "bHaveSkaleManagerABI": false,
 
-        "strChainName_origin_chain":
+        "strChainNameOriginChain":
             ( process.env.CHAIN_NAME_SCHAIN_ORIGIN || "Mainnet" ).toString().trim(),
 
         "strAddrErc20_explicit": "",

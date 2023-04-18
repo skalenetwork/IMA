@@ -145,7 +145,7 @@ const imaState = {
                 "address": owaspUtils.fnAddressImpl_,
                 "strTransactionManagerURL":
                     owaspUtils.toStringURL( process.env.TRANSACTION_MANAGER_URL_ETHEREUM ),
-                "tm_priority":
+                "nTmPriority":
                     owaspUtils.toStringURL(
                         process.env.TRANSACTION_MANAGER_PRIORITY_ETHEREUM ) || 5,
                 "strSgxURL": owaspUtils.toStringURL( process.env.SGX_URL_ETHEREUM ),
@@ -161,7 +161,7 @@ const imaState = {
             "strURL":
                 owaspUtils.toStringURL( process.env.URL_W3_ETHEREUM || "http://127.0.0.1:8545" ),
             "strChainName": ( process.env.CHAIN_NAME_ETHEREUM || "Mainnet" ).toString().trim(),
-            "cid": owaspUtils.toInteger( process.env.CID_ETHEREUM ) || -4,
+            "chainId": owaspUtils.toInteger( process.env.CID_ETHEREUM ) || -4,
             "strPathAbiJson": imaUtils.normalizePath( "./agent-test-data/proxyMainnet.json" ),
             "joAbiIMA": { },
             "bHaveAbiIMA": false,
@@ -181,7 +181,7 @@ const imaState = {
                 "address": owaspUtils.fnAddressImpl_,
                 "strTransactionManagerURL":
                     owaspUtils.toStringURL( process.env.TRANSACTION_MANAGER_URL_S_CHAIN ),
-                "tm_priority":
+                "nTmPriority":
                     owaspUtils.toStringURL(
                         process.env.TRANSACTION_MANAGER_PRIORITY_S_CHAIN ) || 5,
                 "strSgxURL": owaspUtils.toStringURL( process.env.SGX_URL_S_CHAIN ),
@@ -197,7 +197,7 @@ const imaState = {
             "strURL":
                 owaspUtils.toStringURL( process.env.URL_W3_S_CHAIN || "http://127.0.0.1:15000" ),
             "strChainName": ( process.env.CHAIN_NAME_SCHAIN || "Bob" ).toString().trim(),
-            "cid": owaspUtils.toInteger( process.env.CID_SCHAIN ) || -4,
+            "chainId": owaspUtils.toInteger( process.env.CID_SCHAIN ) || -4,
             "strPathAbiJson": imaUtils.normalizePath( "./agent-test-data/proxySchain_Bob.json" ),
             "joAbiIMA": { },
             "bHaveAbiIMA": false,
@@ -218,7 +218,7 @@ const imaState = {
                 "address": owaspUtils.fnAddressImpl_,
                 "strTransactionManagerURL":
                     owaspUtils.toStringURL( process.env.TRANSACTION_MANAGER_URL_S_CHAIN_TARGET ),
-                "tm_priority":
+                "nTmPriority":
                     owaspUtils.toStringURL(
                         process.env.TRANSACTION_MANAGER_PRIORITY_S_CHAIN_TARGET ) || 5,
                 "strSgxURL": owaspUtils.toStringURL( process.env.SGX_URL_S_CHAIN_TARGET ),
@@ -234,7 +234,7 @@ const imaState = {
             "strURL": owaspUtils.toStringURL( process.env.URL_W3_S_CHAIN_TARGET ),
             "strChainName":
                 ( process.env.CHAIN_NAME_SCHAIN_TARGET || "Alice" ).toString().trim(),
-            "cid": owaspUtils.toInteger( process.env.CID_SCHAIN_TARGET ) || -4,
+            "chainId": owaspUtils.toInteger( process.env.CID_SCHAIN_TARGET ) || -4,
             "strPathAbiJson": null,
             "joAbiIMA": { },
             "bHaveAbiIMA": false,
@@ -254,7 +254,7 @@ const imaState = {
     "joAbiSkaleManager": { },
     "bHaveSkaleManagerABI": false,
 
-    "strChainName_origin_chain":
+    "strChainNameOriginChain":
         ( process.env.CHAIN_NAME_ETHEREUM || "Mainnet" ).toString().trim(),
 
     "strAddrErc20_explicit": "",
@@ -986,9 +986,9 @@ describe( "CLI", function() {
                 "--url-s-chain=" + imaState.chainProperties.sc.strURL,
                 "--id-main-net=" + imaState.chainProperties.mn.strChainName,
                 "--id-s-chain=" + imaState.chainProperties.sc.strChainName,
-                "--id-origin-chain=" + imaState.strChainName_origin_chain,
-                "--cid-main-net=" + imaState.chainProperties.mn.cid,
-                "--cid-s-chain=" + imaState.chainProperties.sc.cid,
+                "--id-origin-chain=" + imaState.strChainNameOriginChain,
+                "--cid-main-net=" + imaState.chainProperties.mn.chainId,
+                "--cid-s-chain=" + imaState.chainProperties.sc.chainId,
                 "--address-main-net=" +
                     ( imaState.chainProperties.mn.joAccount.address() ||
                     "0x7aa5e36aa15e93d10f4f26357c30f052dacdde5f" ),

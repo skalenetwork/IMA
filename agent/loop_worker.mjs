@@ -99,7 +99,7 @@ class ObserverServer extends SocketServer {
                 const isFlush = true;
                 socket.send( jo, isFlush );
             } );
-            skaleObserver.setLastCachedSChains( self.opts.imaState.arr_schains_cached );
+            skaleObserver.setLastCachedSChains( self.opts.imaState.arrSChainsCached );
             joAnswer.message = {
                 "method": "" + joMessage.method,
                 "error": null
@@ -171,7 +171,7 @@ class ObserverServer extends SocketServer {
             return joAnswer;
         };
         self.mapApiHandlers.schains_cached = function( joMessage, joAnswer, eventData, socket ) {
-            skaleObserver.setLastCachedSChains( joMessage.message.arr_schains_cached );
+            skaleObserver.setLastCachedSChains( joMessage.message.arrSChainsCached );
         };
         self.mapApiHandlers.skale_imaNotifyLoopWork =
             function( joMessage, joAnswer, eventData, socket ) {

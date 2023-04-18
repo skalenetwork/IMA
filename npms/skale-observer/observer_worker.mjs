@@ -214,11 +214,11 @@ class ObserverServer extends SocketServer {
         self.bIsPeriodicCachingStepInProgress = false;
         if( strError )
             return strError;
-        const arr_schains = skaleObserver.getLastCachedSChains();
+        const arrSChains = skaleObserver.getLastCachedSChains();
         const jo = {
             "method": "periodicCachingDoNow",
             "error": null,
-            "message": arr_schains
+            "message": arrSChains
         };
         const isFlush = true;
         socket.send( jo, isFlush );

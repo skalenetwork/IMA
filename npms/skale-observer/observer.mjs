@@ -392,22 +392,22 @@ export async function loadSChains( addressFrom, opts ) {
             cc.debug( "Have " ) + cc.info( cntSChains ) + cc.debug( " S-Chain(s) to load..." ) +
             "\n" );
     }
-    const arr_schains = [];
+    const arrSChains = [];
     for( let idxSChain = 0; idxSChain < cntSChains; ++ idxSChain ) {
         if( opts && opts.bStopNeeded )
             break;
         const jo_schain = await loadSChain( addressFrom, idxSChain, null, cntSChains, opts );
         if( ! jo_schain )
             break;
-        arr_schains.push( jo_schain );
+        arrSChains.push( jo_schain );
     }
     if( opts && opts.details ) {
         opts.details.write(
             cc.success( "All " ) + cc.info( cntSChains ) +
-            cc.debug( " S-Chain(s) loaded:" ) + cc.j( arr_schains ) +
+            cc.debug( " S-Chain(s) loaded:" ) + cc.j( arrSChains ) +
             "\n" );
     }
-    return arr_schains;
+    return arrSChains;
 }
 
 export async function loadCachedSChainsSimplified( addressFrom, opts ) {
@@ -425,7 +425,7 @@ export async function loadCachedSChainsSimplified( addressFrom, opts ) {
             cc.j( arrSChainHashes ) +
             "\n" );
     }
-    const arr_schains = [];
+    const arrSChains = [];
     for( let idxSChain = 0; idxSChain < cntSChains; ++ idxSChain ) {
         if( opts && opts.bStopNeeded )
             break;
@@ -448,9 +448,9 @@ export async function loadCachedSChainsSimplified( addressFrom, opts ) {
             );
         if( ! jo_schain )
             break;
-        arr_schains.push( jo_schain );
+        arrSChains.push( jo_schain );
     }
-    return arr_schains;
+    return arrSChains;
 }
 
 export async function loadSChainsConnectedOnly(
@@ -478,7 +478,7 @@ export async function loadSChainsConnectedOnly(
             opts.imaState.chainProperties.sc.joAbiIMA.message_proxy_chain_abi,
             opts.imaState.chainProperties.sc.ethersProvider
         );
-    const arr_schains = [];
+    const arrSChains = [];
     for( let idxSChain = 0; idxSChain < cntSChains; ++ idxSChain ) {
         try {
             if( opts && opts.bStopNeeded )
@@ -529,7 +529,7 @@ export async function loadSChainsConnectedOnly(
             if( ! jo_schain )
                 break;
             jo_schain.isConnected = true;
-            arr_schains.push( jo_schain );
+            arrSChains.push( jo_schain );
         } catch ( err ) {
             if( opts && opts.details ) {
                 opts.details.write(
@@ -540,20 +540,20 @@ export async function loadSChainsConnectedOnly(
             }
         }
     }
-    return arr_schains;
+    return arrSChains;
 }
 
 export async function checkConnectedSChains(
-    strChainNameConnectedTo, arr_schains, addressFrom, opts
+    strChainNameConnectedTo, arrSChains, addressFrom, opts
 ) {
     owaspUtils.ensureObserverOptionsInitialized( opts );
     if( ! opts.imaState )
         throw new Error( "Cannot load S-Chains in observer, no imaState is provided" );
-    const cntSChains = arr_schains.length;
+    const cntSChains = arrSChains.length;
     for( let idxSChain = 0; idxSChain < cntSChains; ++ idxSChain ) {
         if( opts && opts.bStopNeeded )
             break;
-        const jo_schain = arr_schains[idxSChain];
+        const jo_schain = arrSChains[idxSChain];
         jo_schain.isConnected = false;
         if( jo_schain.data.name == strChainNameConnectedTo )
             continue;
@@ -591,26 +591,26 @@ export async function checkConnectedSChains(
             }
         }
     }
-    return arr_schains;
+    return arrSChains;
 }
 
-export async function filterSChainsMarkedAsConnected( arr_schains, opts ) {
+export async function filterSChainsMarkedAsConnected( arrSChains, opts ) {
     owaspUtils.ensureObserverOptionsInitialized( opts );
     const arr_connected_schains = [];
-    const cntSChains = arr_schains.length;
+    const cntSChains = arrSChains.length;
     for( let idxSChain = 0; idxSChain < cntSChains; ++ idxSChain ) {
         if( opts && opts.bStopNeeded )
             break;
-        const jo_schain = arr_schains[idxSChain];
+        const jo_schain = arrSChains[idxSChain];
         if( jo_schain.isConnected )
             arr_connected_schains.push( jo_schain );
     }
     return arr_connected_schains;
 }
 
-export function findSChainIndexInArrayByName( arr_schains, strSChainName ) {
-    for( let idxSChain = 0; idxSChain < arr_schains.length; ++ idxSChain ) {
-        const jo_schain = arr_schains[idxSChain];
+export function findSChainIndexInArrayByName( arrSChains, strSChainName ) {
+    for( let idxSChain = 0; idxSChain < arrSChains.length; ++ idxSChain ) {
+        const jo_schain = arrSChains[idxSChain];
         if( jo_schain.data.name.toString() == strSChainName.toString() )
             return idxSChain;
     }
@@ -705,43 +705,43 @@ export function mergeSChainsArrayFromTo( arrSrc, arrDst, arrNew, arrOld, opts ) 
     }
 }
 
-let g_arr_schains_cached = [];
+let g_arrSChainsCached = [];
 
 export async function cacheSChains( strChainNameConnectedTo, addressFrom, opts ) {
     owaspUtils.ensureObserverOptionsInitialized( opts );
     let strError = null;
     try {
-        const arr_schains = await loadSChains( addressFrom, opts );
+        const arrSChains = await loadSChains( addressFrom, opts );
         if( strChainNameConnectedTo &&
             ( typeof strChainNameConnectedTo == "string" ) &&
             strChainNameConnectedTo.length > 0
         ) {
             await checkConnectedSChains(
                 strChainNameConnectedTo,
-                arr_schains,
+                arrSChains,
                 addressFrom,
                 opts
             );
-            g_arr_schains_cached = await filterSChainsMarkedAsConnected(
-                arr_schains,
+            g_arrSChainsCached = await filterSChainsMarkedAsConnected(
+                arrSChains,
                 opts
             );
         } else
-            g_arr_schains_cached = arr_schains;
+            g_arrSChainsCached = arrSChains;
         if( opts && opts.details ) {
             opts.details.write(
                 cc.debug( "Connected " ) + cc.attention( "S-Chains" ) +
                 cc.debug( " cache was updated in this thread: " ) +
-                cc.j( g_arr_schains_cached ) + "\n" );
+                cc.j( g_arrSChainsCached ) + "\n" );
         }
         if( opts.fn_cache_changed )
-            opts.fn_cache_changed( g_arr_schains_cached, null ); // null - no error
+            opts.fn_cache_changed( g_arrSChainsCached, null ); // null - no error
     } catch ( err ) {
         strError = owaspUtils.extractErrorMessage( err );
         if( ! strError )
             strError = "unknown exception during S-Chains download";
         if( opts.fn_cache_changed )
-            opts.fn_cache_changed( g_arr_schains_cached, strError );
+            opts.fn_cache_changed( g_arrSChainsCached, strError );
         if( opts && opts.details ) {
             opts.details.write(
                 cc.fatal( "ERROR:" ) + cc.error( " Failed to cache: " ) + cc.error( err ) );
@@ -752,16 +752,16 @@ export async function cacheSChains( strChainNameConnectedTo, addressFrom, opts )
 }
 
 export function getLastCachedSChains() {
-    return JSON.parse( JSON.stringify( g_arr_schains_cached ) );
+    return JSON.parse( JSON.stringify( g_arrSChainsCached ) );
 }
 
-export function setLastCachedSChains( arr_schains_cached ) {
-    if( arr_schains_cached && typeof arr_schains_cached == "object" ) {
-        g_arr_schains_cached = JSON.parse( JSON.stringify( arr_schains_cached ) );
+export function setLastCachedSChains( arrSChainsCached ) {
+    if( arrSChainsCached && typeof arrSChainsCached == "object" ) {
+        g_arrSChainsCached = JSON.parse( JSON.stringify( arrSChainsCached ) );
         events.dispatchEvent(
             new UniversalDispatcherEvent(
                 "chainsCacheChanged",
-                { "detail": { "arr_schains_cached": getLastCachedSChains() } } ) );
+                { "detail": { "arrSChainsCached": getLastCachedSChains() } } ) );
     }
 }
 
@@ -797,7 +797,7 @@ export async function ensureHaveWorker( opts ) {
                 opts.details.write(
                     cc.debug( "Connected " ) + cc.attention( "S-Chains" ) +
                     cc.debug( " cache was updated using data arrived from SNB worker: " ) +
-                    cc.j( g_arr_schains_cached ) + "\n" );
+                    cc.j( g_arrSChainsCached ) + "\n" );
             }
             break;
         case "log":
@@ -824,9 +824,9 @@ export async function ensureHaveWorker( opts ) {
                                 "strTransactionManagerURL":
                                     opts.imaState.chainProperties.mn
                                         .joAccount.strTransactionManagerURL,
-                                "tm_priority":
+                                "nTmPriority":
                                     opts.imaState.chainProperties.mn
-                                        .joAccount.tm_priority,
+                                        .joAccount.nTmPriority,
                                 "strSgxURL":
                                     opts.imaState.chainProperties.mn
                                         .joAccount.strSgxURL,
@@ -845,7 +845,7 @@ export async function ensureHaveWorker( opts ) {
                             },
                             "strURL": opts.imaState.chainProperties.mn.strURL,
                             "strChainName": opts.imaState.chainProperties.mn.strChainName,
-                            "cid": opts.imaState.chainProperties.mn.cid,
+                            "chainId": opts.imaState.chainProperties.mn.chainId,
                             "joAbiIMA": opts.imaState.chainProperties.mn.joAbiIMA,
                             "bHaveAbiIMA": opts.imaState.chainProperties.mn.bHaveAbiIMA
                         },
@@ -856,9 +856,9 @@ export async function ensureHaveWorker( opts ) {
                                 "strTransactionManagerURL":
                                     opts.imaState.chainProperties.sc
                                         .joAccount.strTransactionManagerURL,
-                                "tm_priority":
+                                "nTmPriority":
                                     opts.imaState.chainProperties.sc
-                                        .joAccount.tm_priority,
+                                        .joAccount.nTmPriority,
                                 "strSgxURL":
                                     opts.imaState.chainProperties.sc
                                         .joAccount.strSgxURL,
@@ -877,7 +877,7 @@ export async function ensureHaveWorker( opts ) {
                             },
                             "strURL": opts.imaState.chainProperties.sc.strURL,
                             "strChainName": opts.imaState.chainProperties.sc.strChainName,
-                            "cid": opts.imaState.chainProperties.sc.cid,
+                            "chainId": opts.imaState.chainProperties.sc.chainId,
                             "joAbiIMA": opts.imaState.chainProperties.sc.joAbiIMA,
                             "bHaveAbiIMA": opts.imaState.chainProperties.sc.bHaveAbiIMA
                         }

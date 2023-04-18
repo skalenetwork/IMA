@@ -1480,7 +1480,7 @@ async function payedCallTM( optsPayedCall ) {
                 "\n" );
             if( redis == null )
                 redis = new Redis( optsPayedCall.joAccount.strTransactionManagerURL );
-            const priority = optsPayedCall.joAccount.tm_priority || 5;
+            const priority = optsPayedCall.joAccount.nTmPriority || 5;
             optsPayedCall.details.write( optsPayedCall.strLogPrefix +
                 cc.debug( "TM priority: " ) + cc.j( priority ) + "\n" );
             try {
@@ -2683,7 +2683,7 @@ export async function reimbursementSetRange(
     strChainName_s_chain,
     cid_s_chain,
     tc_s_chain,
-    strChainName_origin_chain,
+    strChainNameOriginChain,
     nReimbursementRange
 ) {
     const details = log.createMemoryStream();
@@ -2698,7 +2698,7 @@ export async function reimbursementSetRange(
             "\n" );
         strActionName = "Set reimbursement range";
         const arrArguments = [
-            strChainName_origin_chain,
+            strChainNameOriginChain,
             owaspUtils.ensureStartsWith0x( owaspUtils.toBN( nReimbursementRange ).toHexString() )
         ];
         const weiHowMuch = undefined;
@@ -6375,16 +6375,16 @@ async function doMainTransferLoopActions( optsTransfer ) {
                     "Could not validate S2S messages, " +
                         "no SKALE NETWORK observer provided to transfer algorithm" );
             }
-            const arr_schains_cached =
+            const arrSChainsCached =
                 optsTransfer.joExtraSignOpts.skaleObserver.getLastCachedSChains();
-            if( ( !arr_schains_cached ) || arr_schains_cached.length == 0 ) {
+            if( ( !arrSChainsCached ) || arrSChainsCached.length == 0 ) {
                 throw new Error(
                     "Could not validate S2S messages, " +
                         "no S-Chains in SKALE NETWORK observer cached yet, try again later" );
             }
             const idxSChain =
                 optsTransfer.joExtraSignOpts.skaleObserver.findSChainIndexInArrayByName(
-                    arr_schains_cached, optsTransfer.chain_id_src );
+                    arrSChainsCached, optsTransfer.chain_id_src );
             if( idxSChain < 0 ) {
                 throw new Error(
                     "Could not validate S2S messages, source S-Chain \"" +
@@ -6394,7 +6394,7 @@ async function doMainTransferLoopActions( optsTransfer ) {
                     "\" S-Chain yet, try again later" );
             }
             const cntMessages = optsTransfer.jarrMessages.length;
-            const jo_schain = arr_schains_cached[idxSChain];
+            const jo_schain = arrSChainsCached[idxSChain];
             const cntNodes = jo_schain.data.computed.nodes.length;
             optsTransfer.cntNodesShouldPass =
                 ( cntNodes == 16 )
@@ -6657,8 +6657,8 @@ export async function doAllS2S( // s-chain --> s-chain
 ) {
     let cntOK = 0, cntFail = 0, nIndexS2S = 0;
     const strDirection = "S2S";
-    const arr_schains_cached = skaleObserver.getLastCachedSChains();
-    const cntSChains = arr_schains_cached.length;
+    const arrSChainsCached = skaleObserver.getLastCachedSChains();
+    const cntSChains = arrSChainsCached.length;
     if( verboseGet() >= verboseReversed().information ) {
         log.write(
             cc.debug( "Have " ) + cc.info( cntSChains ) +
@@ -6666,7 +6666,7 @@ export async function doAllS2S( // s-chain --> s-chain
             "\n" );
     }
     for( let idxSChain = 0; idxSChain < cntSChains; ++ idxSChain ) {
-        const jo_schain = arr_schains_cached[idxSChain];
+        const jo_schain = arrSChainsCached[idxSChain];
         const url_src = skaleObserver.pickRandomSChainUrl( jo_schain );
         const ethersProvider_src = owaspUtils.getEthersProviderFromURL( url_src );
         const joAccountSrc = joAccountDst; // ???
@@ -6998,7 +6998,7 @@ export function getTransactionCustomizerForSChainTarget() {
 export async function getBalanceEth(
     isMainNet,
     ethersProvider,
-    cid,
+    chainId,
     joAccount,
     contractERC20
 ) {
@@ -7028,7 +7028,7 @@ export async function getBalanceEth(
 export async function getBalanceErc20(
     isMainNet,
     ethersProvider,
-    cid,
+    chainId,
     joAccount,
     strCoinName,
     joABI
@@ -7063,7 +7063,7 @@ export async function getBalanceErc20(
 export async function getOwnerOfErc721(
     isMainNet,
     ethersProvider,
-    cid,
+    chainId,
     joAccount,
     strCoinName,
     joABI,
@@ -7099,7 +7099,7 @@ export async function getOwnerOfErc721(
 export async function getBalanceErc1155(
     isMainNet,
     ethersProvider,
-    cid,
+    chainId,
     joAccount,
     strCoinName,
     joABI,
@@ -7135,7 +7135,7 @@ export async function getBalanceErc1155(
 
 export async function mintErc20(
     ethersProvider,
-    cid,
+    chainId,
     chainName,
     joAccount,
     strAddressMintTo,
@@ -7238,7 +7238,7 @@ export async function mintErc20(
 
 export async function mintErc721(
     ethersProvider,
-    cid,
+    chainId,
     chainName,
     joAccount,
     strAddressMintTo,
@@ -7345,7 +7345,7 @@ export async function mintErc721(
 
 export async function mintErc1155(
     ethersProvider,
-    cid,
+    chainId,
     chainName,
     joAccount,
     strAddressMintTo,
@@ -7453,7 +7453,7 @@ export async function mintErc1155(
 
 export async function burnErc20(
     ethersProvider,
-    cid,
+    chainId,
     chainName,
     joAccount,
     strAddressBurnFrom,
@@ -7558,7 +7558,7 @@ export async function burnErc20(
 
 export async function burnErc721(
     ethersProvider,
-    cid,
+    chainId,
     chainName,
     joAccount,
     idToken,
@@ -7659,7 +7659,7 @@ export async function burnErc721(
 
 export async function burnErc1155(
     ethersProvider,
-    cid,
+    chainId,
     chainName,
     joAccount,
     strAddressBurnFrom,

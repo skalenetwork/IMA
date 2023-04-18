@@ -172,8 +172,8 @@ async function singleTransferLoopPartOracle( optsLoop, strLogPrefix ) {
                         imaState.chainProperties.sc.transactionCustomizer,
                         imaState.jo_community_locker,
                         imaState.chainProperties.sc.joAccount,
-                        imaState.chainProperties.mn.cid,
-                        imaState.chainProperties.sc.cid,
+                        imaState.chainProperties.mn.chainId,
+                        imaState.chainProperties.sc.chainId,
                         imaBLS.doSignU256
                     );
                     imaState.loopState.oracle.isInProgress = false;
@@ -239,8 +239,8 @@ async function singleTransferLoopPartM2S( optsLoop, strLogPrefix ) {
                         imaState.chainProperties.sc.joAccount,
                         imaState.chainProperties.mn.strChainName,
                         imaState.chainProperties.sc.strChainName,
-                        imaState.chainProperties.mn.cid,
-                        imaState.chainProperties.sc.cid,
+                        imaState.chainProperties.mn.chainId,
+                        imaState.chainProperties.sc.chainId,
                         null,
                         imaState.jo_token_manager_eth, // for logs validation on s-chain
                         imaState.nTransferBlockSizeM2S,
@@ -321,8 +321,8 @@ async function singleTransferLoopPartS2M( optsLoop, strLogPrefix ) {
                         imaState.chainProperties.mn.joAccount,
                         imaState.chainProperties.sc.strChainName,
                         imaState.chainProperties.mn.strChainName,
-                        imaState.chainProperties.sc.cid,
-                        imaState.chainProperties.mn.cid,
+                        imaState.chainProperties.sc.chainId,
+                        imaState.chainProperties.mn.chainId,
                         imaState.jo_deposit_box_eth, // for logs validation on mainnet
                         null,
                         imaState.nTransferBlockSizeS2M,
@@ -378,7 +378,7 @@ async function singleTransferLoopPartS2S( optsLoop, strLogPrefix ) {
                 imaState.jo_message_proxy_s_chain,
                 imaState.chainProperties.sc.joAccount,
                 imaState.chainProperties.sc.strChainName,
-                imaState.chainProperties.sc.cid,
+                imaState.chainProperties.sc.chainId,
                 imaState.jo_token_manager_eth, // for logs validation on s-chain
                 imaState.nTransferBlockSizeS2S,
                 imaState.nTransferStepsS2S,
@@ -487,13 +487,13 @@ const sleepImpl = ( milliseconds ) => {
 const g_workers = [];
 const g_clients = [];
 
-export function notifyCacheChangedSNB( arr_schains_cached ) {
+export function notifyCacheChangedSNB( arrSChainsCached ) {
     const cntWorkers = g_workers.length;
     for( let idxWorker = 0; idxWorker < cntWorkers; ++ idxWorker ) {
         const jo = {
             "method": "schains_cached",
             "message": {
-                "arr_schains_cached": arr_schains_cached
+                "arrSChainsCached": arrSChainsCached
             }
         };
         g_clients[idxWorker].send( jo );
@@ -501,7 +501,7 @@ export function notifyCacheChangedSNB( arr_schains_cached ) {
 }
 
 skaleObserver.events.on( "chainsCacheChanged", function( eventData ) {
-    notifyCacheChangedSNB( eventData.detail.arr_schains_cached );
+    notifyCacheChangedSNB( eventData.detail.arrSChainsCached );
 } );
 
 function constructChainProperties( opts ) {
@@ -515,8 +515,8 @@ function constructChainProperties( opts ) {
                 "strTransactionManagerURL":
                     opts.imaState.chainProperties.mn
                         .joAccount.strTransactionManagerURL,
-                "tm_priority":
-                    opts.imaState.chainProperties.mn.joAccount.tm_priority,
+                "nTmPriority":
+                    opts.imaState.chainProperties.mn.joAccount.nTmPriority,
                 "strSgxURL":
                     opts.imaState.chainProperties.mn.joAccount.strSgxURL,
                 "strSgxKeyName":
@@ -531,7 +531,7 @@ function constructChainProperties( opts ) {
             "ethersProvider": null,
             "strURL": opts.imaState.chainProperties.mn.strURL,
             "strChainName": opts.imaState.chainProperties.mn.strChainName,
-            "cid": opts.imaState.chainProperties.mn.cid,
+            "chainId": opts.imaState.chainProperties.mn.chainId,
             "joAbiIMA": opts.imaState.chainProperties.mn.joAbiIMA,
             "bHaveAbiIMA": opts.imaState.chainProperties.mn.bHaveAbiIMA
         },
@@ -544,8 +544,8 @@ function constructChainProperties( opts ) {
                 "strTransactionManagerURL":
                     opts.imaState.chainProperties.sc
                         .joAccount.strTransactionManagerURL,
-                "tm_priority":
-                    opts.imaState.chainProperties.sc.joAccount.tm_priority,
+                "nTmPriority":
+                    opts.imaState.chainProperties.sc.joAccount.nTmPriority,
                 "strSgxURL":
                     opts.imaState.chainProperties.sc.joAccount.strSgxURL,
                 "strSgxKeyName":
@@ -560,7 +560,7 @@ function constructChainProperties( opts ) {
             "ethersProvider": null,
             "strURL": opts.imaState.chainProperties.sc.strURL,
             "strChainName": opts.imaState.chainProperties.sc.strChainName,
-            "cid": opts.imaState.chainProperties.sc.cid,
+            "chainId": opts.imaState.chainProperties.sc.chainId,
             "joAbiIMA": opts.imaState.chainProperties.sc.joAbiIMA,
             "bHaveAbiIMA": opts.imaState.chainProperties.sc.bHaveAbiIMA
         },
@@ -573,8 +573,8 @@ function constructChainProperties( opts ) {
                 "strTransactionManagerURL":
                     opts.imaState.chainProperties.tc
                         .joAccount.strTransactionManagerURL,
-                "tm_priority":
-                    opts.imaState.chainProperties.tc.joAccount.tm_priority,
+                "nTmPriority":
+                    opts.imaState.chainProperties.tc.joAccount.nTmPriority,
                 "strSgxURL":
                     opts.imaState.chainProperties.tc.joAccount.strSgxURL,
                 "strSgxKeyName":
@@ -589,7 +589,7 @@ function constructChainProperties( opts ) {
             "ethersProvider": null,
             "strURL": opts.imaState.chainProperties.tc.strURL,
             "strChainName": opts.imaState.chainProperties.tc.strChainName,
-            "cid": opts.imaState.chainProperties.tc.cid,
+            "chainId": opts.imaState.chainProperties.tc.chainId,
             "joAbiIMA": opts.imaState.chainProperties.tc.joAbiIMA,
             "bHaveAbiIMA": opts.imaState.chainProperties.tc.bHaveAbiIMA
         }
@@ -663,7 +663,7 @@ export async function ensureHaveWorkers( opts ) {
                         "optsLoop": optsLoop,
                         "verbose_": IMA.verboseGet(),
                         "expose_details_": IMA.exposeDetailsGet(),
-                        "arr_schains_cached": skaleObserver.getLastCachedSChains(),
+                        "arrSChainsCached": skaleObserver.getLastCachedSChains(),
                         "loopState": state.g_defaultValueForLoopState,
                         "isPrintGathered": opts.imaState.isPrintGathered,
                         "isPrintSecurityValues": opts.imaState.isPrintSecurityValues,
@@ -739,7 +739,7 @@ export async function ensureHaveWorkers( opts ) {
                         "joAbiSkaleManager": opts.imaState.joAbiSkaleManager,
                         "bHaveSkaleManagerABI": opts.imaState.bHaveSkaleManagerABI,
 
-                        "strChainName_origin_chain": opts.imaState.strChainName_origin_chain,
+                        "strChainNameOriginChain": opts.imaState.strChainNameOriginChain,
 
                         "isPWA": opts.imaState.isPWA,
                         "nTimeoutSecondsPWA": opts.imaState.nTimeoutSecondsPWA,
