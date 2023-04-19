@@ -428,11 +428,11 @@ async function commandLineTaskShowBalanceEth(
             "assetName": "CanReceiveETH",
             "balance": await IMA.viewEthPaymentFromSchainOnMainNet(
                 imaState.chainProperties.mn.ethersProvider,
-                imaState.chainProperties.mn.joAccount, imaState.jo_deposit_box_eth )
+                imaState.chainProperties.mn.joAccount, imaState.joDepositBoxETH )
         } );
     }
     try {
-        assetAddress = imaState.eth_erc20.address;
+        assetAddress = imaState.joEthErc20.address;
     } catch ( err ) {
         assetAddress = null;
     }
@@ -442,7 +442,7 @@ async function commandLineTaskShowBalanceEth(
             "assetAddress": assetAddress,
             "balance": await IMA.getBalanceEth( false, // isMainNet
                 imaState.chainProperties.sc.ethersProvider, imaState.chainProperties.sc.chainId,
-                imaState.chainProperties.sc.joAccount, imaState.eth_erc20 )
+                imaState.chainProperties.sc.joAccount, imaState.joEthErc20 )
         } );
         arrBalancesSC.push( {
             "assetName": "S-Chain ETH Fuel",
@@ -457,7 +457,7 @@ async function commandLineTaskShowBalanceEth(
             "assetAddress": assetAddress,
             "balance": await IMA.getBalanceEth( false, // isMainNet
                 imaState.chainProperties.tc.ethersProvider, imaState.chainProperties.sc.chainId,
-                imaState.chainProperties.tc.joAccount, imaState.eth_erc20 )
+                imaState.chainProperties.tc.joAccount, imaState.joEthErc20 )
         } );
         arrBalancesTC.push( {
             "assetName": "Target S-Chain ETH Fuel",
@@ -748,15 +748,15 @@ function commandLineTaskPaymentM2S() {
                     imaState.chainProperties.mn.joAccount,
                     imaState.chainProperties.sc.joAccount,
                     imaState.isWithMetadata721
-                        ? imaState.jo_deposit_box_erc721_with_metadata
-                        : imaState.jo_deposit_box_erc721, // only main net
-                    imaState.jo_message_proxy_main_net, // for checking logs
+                        ? imaState.joDepositBoxERC721WithMetadata
+                        : imaState.joDepositBoxERC721, // only main net
+                    imaState.joMessageProxyMainNet, // for checking logs
                     imaState.chainProperties.sc.strChainName,
                     imaState.idToken, // which ERC721 token id to send
                     imaState.nAmountOfWei, // how much to send
                     imaState.isWithMetadata721
-                        ? imaState.jo_token_manager_erc721_with_metadata
-                        : imaState.jo_token_manager_erc721, // only s-chain
+                        ? imaState.joTokenManagerERC721WithMetadata
+                        : imaState.joTokenManagerERC721, // only s-chain
                     imaState.chainProperties.mn.strCoinNameErc721,
                     imaState.chainProperties.mn.joErc721,
                     imaState.chainProperties.sc.strCoinNameErc721,
@@ -777,12 +777,12 @@ function commandLineTaskPaymentM2S() {
                     imaState.chainProperties.sc.chainId,
                     imaState.chainProperties.mn.joAccount,
                     imaState.chainProperties.sc.joAccount,
-                    imaState.jo_deposit_box_erc20, // only main net
-                    imaState.jo_message_proxy_main_net, // for checking logs
+                    imaState.joDepositBoxERC20, // only main net
+                    imaState.joMessageProxyMainNet, // for checking logs
                     imaState.chainProperties.sc.strChainName,
                     imaState.nAmountOfToken, // how much ERC20 tokens to send
                     imaState.nAmountOfWei, // how much to send
-                    imaState.jo_token_manager_erc20, // only s-chain
+                    imaState.joTokenManagerERC20, // only s-chain
                     imaState.chainProperties.tc.strCoinNameErc20,
                     imaState.chainProperties.mn.joErc20,
                     imaState.chainProperties.sc.strCoinNameErc20,
@@ -818,13 +818,13 @@ function commandLineTaskPaymentM2S() {
                     imaState.chainProperties.sc.chainId,
                     imaState.chainProperties.mn.joAccount,
                     imaState.chainProperties.sc.joAccount,
-                    imaState.jo_deposit_box_erc1155, // only main net
-                    imaState.jo_message_proxy_main_net, // for checking logs
+                    imaState.joDepositBoxERC1155, // only main net
+                    imaState.joMessageProxyMainNet, // for checking logs
                     imaState.chainProperties.sc.strChainName,
                     imaState.idToken, // which ERC1155 token id to send
                     imaState.nAmountOfToken, // which ERC1155 token amount to send
                     imaState.nAmountOfWei, // how much to send
-                    imaState.jo_token_manager_erc1155, // only s-chain
+                    imaState.joTokenManagerERC1155, // only s-chain
                     imaState.chainProperties.mn.strCoinNameErc1155,
                     imaState.chainProperties.mn.joErc1155,
                     imaState.chainProperties.sc.strCoinNameErc1155,
@@ -860,13 +860,13 @@ function commandLineTaskPaymentM2S() {
                     imaState.chainProperties.sc.chainId,
                     imaState.chainProperties.mn.joAccount,
                     imaState.chainProperties.sc.joAccount,
-                    imaState.jo_deposit_box_erc1155, // only main net
-                    imaState.jo_message_proxy_main_net, // for checking logs
+                    imaState.joDepositBoxERC1155, // only main net
+                    imaState.joMessageProxyMainNet, // for checking logs
                     imaState.chainProperties.sc.strChainName,
                     imaState.idTokens, // which ERC1155 token id to send
                     imaState.arrAmountsOfTokens, // which ERC1155 token amount to send
                     imaState.nAmountOfWei, // how much to send
-                    imaState.jo_token_manager_erc1155, // only s-chain
+                    imaState.joTokenManagerERC1155, // only s-chain
                     imaState.chainProperties.mn.strCoinNameErc1155,
                     imaState.chainProperties.mn.joErc1155,
                     imaState.chainProperties.sc.strCoinNameErc1155,
@@ -884,8 +884,8 @@ function commandLineTaskPaymentM2S() {
                 imaState.chainProperties.mn.chainId,
                 imaState.chainProperties.mn.joAccount,
                 imaState.chainProperties.sc.joAccount,
-                imaState.jo_deposit_box_eth, // only main net
-                imaState.jo_message_proxy_main_net, // for checking logs
+                imaState.joDepositBoxETH, // only main net
+                imaState.joMessageProxyMainNet, // for checking logs
                 imaState.chainProperties.sc.strChainName,
                 imaState.nAmountOfWei, // how much WEI money to send
                 imaState.chainProperties.mn.transactionCustomizer
@@ -913,12 +913,12 @@ function commandLineTaskPaymentS2M() {
                     imaState.chainProperties.sc.joAccount,
                     imaState.chainProperties.mn.joAccount,
                     imaState.isWithMetadata721
-                        ? imaState.jo_token_manager_erc721_with_metadata
-                        : imaState.jo_token_manager_erc721, // only s-chain
-                    imaState.jo_message_proxy_s_chain, // for checking logs
+                        ? imaState.joTokenManagerERC721WithMetadata
+                        : imaState.joTokenManagerERC721, // only s-chain
+                    imaState.joMessageProxySChain, // for checking logs
                     imaState.isWithMetadata721
-                        ? imaState.jo_deposit_box_erc721_with_metadata
-                        : imaState.jo_deposit_box_erc721, // only main net
+                        ? imaState.joDepositBoxERC721WithMetadata
+                        : imaState.joDepositBoxERC721, // only main net
                     imaState.idToken, // which ERC721 token id to send
                     imaState.nAmountOfWei, // how much to send
                     imaState.chainProperties.mn.strCoinNameErc721,
@@ -941,9 +941,9 @@ function commandLineTaskPaymentS2M() {
                     imaState.chainProperties.sc.chainId,
                     imaState.chainProperties.sc.joAccount,
                     imaState.chainProperties.mn.joAccount,
-                    imaState.jo_token_manager_erc20, // only s-chain
-                    imaState.jo_message_proxy_s_chain, // for checking logs
-                    imaState.jo_deposit_box_erc20, // only main net
+                    imaState.joTokenManagerERC20, // only s-chain
+                    imaState.joMessageProxySChain, // for checking logs
+                    imaState.joDepositBoxERC20, // only main net
                     imaState.nAmountOfToken, // how ERC20 tokens money to send
                     imaState.nAmountOfWei, // how much to send
                     imaState.chainProperties.tc.strCoinNameErc20,
@@ -981,9 +981,9 @@ function commandLineTaskPaymentS2M() {
                     imaState.chainProperties.sc.chainId,
                     imaState.chainProperties.sc.joAccount,
                     imaState.chainProperties.mn.joAccount,
-                    imaState.jo_token_manager_erc1155, // only s-chain
-                    imaState.jo_message_proxy_s_chain, // for checking logs
-                    imaState.jo_deposit_box_erc1155, // only main net
+                    imaState.joTokenManagerERC1155, // only s-chain
+                    imaState.joMessageProxySChain, // for checking logs
+                    imaState.joDepositBoxERC1155, // only main net
                     imaState.idToken, // which ERC1155 token id to send
                     imaState.nAmountOfToken, // which ERC1155 token amount to send
                     imaState.nAmountOfWei, // how much to send
@@ -1022,9 +1022,9 @@ function commandLineTaskPaymentS2M() {
                     imaState.chainProperties.sc.chainId,
                     imaState.chainProperties.sc.joAccount,
                     imaState.chainProperties.mn.joAccount,
-                    imaState.jo_token_manager_erc1155, // only s-chain
-                    imaState.jo_message_proxy_s_chain, // for checking logs
-                    imaState.jo_deposit_box_erc1155, // only main net
+                    imaState.joTokenManagerERC1155, // only s-chain
+                    imaState.joMessageProxySChain, // for checking logs
+                    imaState.joDepositBoxERC1155, // only main net
                     imaState.idTokens, // which ERC1155 token id to send
                     imaState.arrAmountsOfTokens, // which ERC1155 token amount to send
                     imaState.nAmountOfWei, // how much to send
@@ -1045,8 +1045,8 @@ function commandLineTaskPaymentS2M() {
                 imaState.chainProperties.sc.chainId,
                 imaState.chainProperties.sc.joAccount,
                 imaState.chainProperties.mn.joAccount,
-                imaState.jo_token_manager_eth, // only s-chain
-                imaState.jo_message_proxy_s_chain, // for checking logs
+                imaState.joTokenManagerETH, // only s-chain
+                imaState.joMessageProxySChain, // for checking logs
                 imaState.nAmountOfWei, // how much WEI money to send
                 imaState.chainProperties.sc.transactionCustomizer
             );
@@ -1064,18 +1064,18 @@ function commandLineTaskPaymentS2S() {
             const ethersProviderSrc = isForward ? sc.ethersProvider : tc.ethersProvider;
             const chainIdSrc = isForward ? sc.chainId : tc.chainId;
             const joAccountSrc = isForward ? sc.joAccount : tc.joAccount;
-            const jo_token_manager_erc20_src = isForward
-                ? imaState.jo_token_manager_erc20 : imaState.jo_token_manager_erc20_target;
-            const jo_token_manager_erc721_src = isForward
+            const joTokenManagerERC20Src = isForward
+                ? imaState.joTokenManagerERC20 : imaState.joTokenManagerERC20Target;
+            const joTokenManagerERC721Src = isForward
                 ? ( imaState.isWithMetadata721
-                    ? imaState.jo_token_manager_erc721_with_metadata
-                    : imaState.jo_token_manager_erc721 )
+                    ? imaState.joTokenManagerERC721WithMetadata
+                    : imaState.joTokenManagerERC721 )
                 : ( imaState.isWithMetadata721
-                    ? imaState.jo_token_manager_erc721_with_metadata_target
-                    : imaState.jo_token_manager_erc721_target )
+                    ? imaState.joTokenManagerERC721WithMetadataTarget
+                    : imaState.joTokenManagerERC721Target )
             ;
-            const jo_token_manager_erc1155_src = isForward
-                ? imaState.jo_token_manager_erc1155 : imaState.jo_token_manager_erc1155_target;
+            const joTokenManagerERC1155Src = isForward
+                ? imaState.joTokenManagerERC1155 : imaState.joTokenManagerERC1155Target;
             const strChainNameDst = isForward ? tc.strChainName : sc.strChainName;
             const strCoinNameErc20Src = isForward ? sc.strCoinNameErc20 : tc.strCoinNameErc20;
             const strCoinNameErc721Src = isForward ? sc.strCoinNameErc721 : tc.strCoinNameErc721;
@@ -1119,7 +1119,7 @@ function commandLineTaskPaymentS2S() {
                     chainIdSrc,
                     strChainNameDst,
                     joAccountSrc,
-                    jo_token_manager_erc721_src,
+                    joTokenManagerERC721Src,
                     imaState.idToken, // which ERC721 token id to send
                     imaState.nAmountOfWei, // how much to send
                     strCoinNameErc721Src,
@@ -1138,7 +1138,7 @@ function commandLineTaskPaymentS2S() {
                     chainIdSrc,
                     strChainNameDst,
                     joAccountSrc,
-                    jo_token_manager_erc20_src,
+                    joTokenManagerERC20Src,
                     imaState.nAmountOfToken, // how much ERC20 tokens to send
                     imaState.nAmountOfWei, // how much to send
                     strCoinNameErc20Src,
@@ -1172,7 +1172,7 @@ function commandLineTaskPaymentS2S() {
                     chainIdSrc,
                     strChainNameDst,
                     joAccountSrc,
-                    jo_token_manager_erc1155_src,
+                    joTokenManagerERC1155Src,
                     imaState.idToken, // which ERC1155 token id to send
                     imaState.nAmountOfToken, // how much ERC1155 tokens to send
                     imaState.nAmountOfWei, // how much to send
@@ -1207,7 +1207,7 @@ function commandLineTaskPaymentS2S() {
                     chainIdSrc,
                     strChainNameDst,
                     joAccountSrc,
-                    jo_token_manager_erc1155_src,
+                    joTokenManagerERC1155Src,
                     imaState.idTokens, // which ERC1155 token id to send
                     imaState.arrAmountsOfTokens, // which ERC1155 token amount to send
                     imaState.nAmountOfWei, // how much to send
@@ -1240,7 +1240,7 @@ function commandLineTaskReceiveS2M() {
                 imaState.chainProperties.mn.ethersProvider,
                 imaState.chainProperties.mn.chainId,
                 imaState.chainProperties.mn.joAccount,
-                imaState.jo_deposit_box_eth,
+                imaState.joDepositBoxETH,
                 imaState.chainProperties.mn.transactionCustomizer
             );
         }
@@ -1258,7 +1258,7 @@ function commandLineTaskViewS2M() {
             const xWei = await IMA.viewEthPaymentFromSchainOnMainNet(
                 imaState.chainProperties.mn.ethersProvider,
                 imaState.chainProperties.mn.joAccount,
-                imaState.jo_deposit_box_eth
+                imaState.joDepositBoxETH
             );
             if( xWei === null || xWei === undefined )
                 return false;
@@ -1289,17 +1289,17 @@ function commandLineTaskTransferM2S() {
                 "M2S",
                 joRuntimeOpts,
                 imaState.chainProperties.mn.ethersProvider,
-                imaState.jo_message_proxy_main_net,
+                imaState.joMessageProxyMainNet,
                 imaState.chainProperties.mn.joAccount,
                 imaState.chainProperties.sc.ethersProvider,
-                imaState.jo_message_proxy_s_chain,
+                imaState.joMessageProxySChain,
                 imaState.chainProperties.sc.joAccount,
                 imaState.chainProperties.mn.strChainName,
                 imaState.chainProperties.sc.strChainName,
                 imaState.chainProperties.mn.chainId,
                 imaState.chainProperties.sc.chainId,
                 null,
-                imaState.jo_token_manager_eth, // for logs validation on s-chain
+                imaState.joTokenManagerETH, // for logs validation on s-chain
                 imaState.nTransferBlockSizeM2S,
                 imaState.nTransferStepsM2S,
                 imaState.nMaxTransactionsM2S,
@@ -1329,16 +1329,16 @@ function commandLineTaskTransferS2M() {
                 "S2M",
                 joRuntimeOpts,
                 imaState.chainProperties.sc.ethersProvider,
-                imaState.jo_message_proxy_s_chain,
+                imaState.joMessageProxySChain,
                 imaState.chainProperties.sc.joAccount,
                 imaState.chainProperties.mn.ethersProvider,
-                imaState.jo_message_proxy_main_net,
+                imaState.joMessageProxyMainNet,
                 imaState.chainProperties.mn.joAccount,
                 imaState.chainProperties.sc.strChainName,
                 imaState.chainProperties.mn.strChainName,
                 imaState.chainProperties.sc.chainId,
                 imaState.chainProperties.mn.chainId,
-                imaState.jo_deposit_box_eth, // for logs validation on mainnet
+                imaState.joDepositBoxETH, // for logs validation on mainnet
                 null,
                 imaState.nTransferBlockSizeS2M,
                 imaState.nTransferStepsS2M,
@@ -1373,11 +1373,11 @@ function commandLineTaskTransferS2S() {
                 imaState,
                 skaleObserver,
                 imaState.chainProperties.sc.ethersProvider,
-                imaState.jo_message_proxy_s_chain,
+                imaState.joMessageProxySChain,
                 imaState.chainProperties.sc.joAccount,
                 imaState.chainProperties.sc.strChainName,
                 imaState.chainProperties.sc.chainId,
-                imaState.jo_token_manager_eth, // for logs validation on s-chain
+                imaState.joTokenManagerETH, // for logs validation on s-chain
                 imaState.nTransferBlockSizeM2S,
                 imaState.nTransferStepsS2S,
                 imaState.nMaxTransactionsM2S,
@@ -1757,7 +1757,7 @@ function commandLineTaskReimbursementShowBalance() {
         "fn": async function() {
             await IMA.reimbursementShowBalance(
                 imaState.chainProperties.mn.ethersProvider,
-                imaState.jo_community_pool,
+                imaState.joCommunityPool,
                 imaState.chainProperties.mn.joAccount.address(),
                 imaState.chainProperties.mn.strChainName,
                 imaState.chainProperties.mn.chainId,
@@ -1777,7 +1777,7 @@ function commandLineTaskReimbursementEstimateAmount() {
         "fn": async function() {
             await IMA.reimbursementEstimateAmount(
                 imaState.chainProperties.mn.ethersProvider,
-                imaState.jo_community_pool,
+                imaState.joCommunityPool,
                 imaState.chainProperties.mn.joAccount.address(),
                 imaState.chainProperties.mn.strChainName,
                 imaState.chainProperties.mn.chainId,
@@ -1797,7 +1797,7 @@ function commandLineTaskReimbursementRecharge() {
         "fn": async function() {
             await IMA.reimbursementWalletRecharge(
                 imaState.chainProperties.mn.ethersProvider,
-                imaState.jo_community_pool,
+                imaState.joCommunityPool,
                 imaState.chainProperties.mn.joAccount,
                 imaState.chainProperties.mn.strChainName,
                 imaState.chainProperties.mn.chainId,
@@ -1817,7 +1817,7 @@ function commandLineTaskReimbursementWithdraw() {
         "fn": async function() {
             await IMA.reimbursementWalletWithdraw(
                 imaState.chainProperties.mn.ethersProvider,
-                imaState.jo_community_pool,
+                imaState.joCommunityPool,
                 imaState.chainProperties.mn.joAccount,
                 imaState.chainProperties.mn.strChainName,
                 imaState.chainProperties.mn.chainId,
@@ -1837,7 +1837,7 @@ function commandLineTaskReimbursementSetRange() {
         "fn": async function() {
             await IMA.reimbursementSetRange(
                 imaState.chainProperties.sc.ethersProvider,
-                imaState.jo_community_locker,
+                imaState.joCommunityLocker,
                 imaState.chainProperties.sc.joAccount,
                 imaState.chainProperties.sc.strChainName,
                 imaState.chainProperties.sc.chainId,
@@ -2744,7 +2744,7 @@ async function registerStep1( isPrintSummaryRegistrationCosts ) {
     log.write( strLogPrefix + cc.debug( "Will check chain registration now..." ) + "\n" );
     let bSuccess = await IMA.checkIsRegisteredSChainInDepositBoxes( // step 1
         imaState.chainProperties.mn.ethersProvider,
-        imaState.jo_linker,
+        imaState.joLinker,
         imaState.chainProperties.mn.joAccount,
         imaState.chainProperties.sc.strChainName
     );
@@ -2757,15 +2757,15 @@ async function registerStep1( isPrintSummaryRegistrationCosts ) {
     const jarrReceipts =
         await IMA.registerSChainInDepositBoxes( // step 1
             imaState.chainProperties.mn.ethersProvider,
-            imaState.jo_linker,
+            imaState.joLinker,
             imaState.chainProperties.mn.joAccount,
-            imaState.jo_token_manager_eth, // only s-chain
-            imaState.jo_token_manager_erc20, // only s-chain
-            imaState.jo_token_manager_erc721, // only s-chain
-            imaState.jo_token_manager_erc1155, // only s-chain
-            imaState.jo_token_manager_erc721_with_metadata, // only s-chain
-            imaState.jo_community_locker, // only s-chain
-            imaState.jo_token_manager_linker, // only s-chain
+            imaState.joTokenManagerETH, // only s-chain
+            imaState.joTokenManagerERC20, // only s-chain
+            imaState.joTokenManagerERC721, // only s-chain
+            imaState.joTokenManagerERC1155, // only s-chain
+            imaState.joTokenManagerERC721WithMetadata, // only s-chain
+            imaState.joCommunityLocker, // only s-chain
+            imaState.joTokenManagerLinker, // only s-chain
             imaState.chainProperties.sc.strChainName,
             imaState.chainProperties.mn.chainId,
             imaState.chainProperties.mn.transactionCustomizer //,
@@ -2808,7 +2808,7 @@ async function checkRegistrationStep1() {
     imaCLI.initContracts();
     const bRetVal = await IMA.checkIsRegisteredSChainInDepositBoxes( // step 1
         imaState.chainProperties.mn.ethersProvider,
-        imaState.jo_linker,
+        imaState.joLinker,
         imaState.chainProperties.mn.joAccount,
         imaState.chainProperties.sc.strChainName
     );

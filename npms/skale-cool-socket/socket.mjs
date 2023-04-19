@@ -87,7 +87,6 @@ export const updateSocketDataStatsForMessage = function( joMessage, joStats ) {
 };
 export const generateSocketDataStatsJSON = function( jo ) {
     const joStats = {};
-    //let cnt = 1;
     if( "arr_packed_messages" in jo &&
         jo.arr_packed_messages &&
         typeof jo.arr_packed_messages == "object"
@@ -98,7 +97,6 @@ export const generateSocketDataStatsJSON = function( jo ) {
 
     } else
         updateSocketDataStatsForMessage( jo, joStats );
-    //joStats["_cnt_"] = cnt;
     return joStats;
 };
 

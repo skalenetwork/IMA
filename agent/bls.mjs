@@ -908,11 +908,11 @@ async function checkCorrectnessOfMessagesToSign(
     const imaState = state.get();
     let joMessageProxy = null, joAccount = null, joChainName = null;
     if( strDirection == "M2S" ) {
-        joMessageProxy = imaState.jo_message_proxy_main_net;
+        joMessageProxy = imaState.joMessageProxyMainNet;
         joAccount = imaState.chainProperties.mn.joAccount;
         joChainName = imaState.chainProperties.sc.strChainName;
     } else if( strDirection == "S2M" ) {
-        joMessageProxy = imaState.jo_message_proxy_s_chain;
+        joMessageProxy = imaState.joMessageProxySChain;
         joAccount = imaState.chainProperties.sc.joAccount;
         joChainName = imaState.chainProperties.mn.strChainName;
     } else if( strDirection == "S2S" ) {
@@ -2600,10 +2600,10 @@ async function prepareS2sOfSkaleImaVerifyAndSign( optsHandleVerifyAndSign ) {
 
     let joSChainSrc = null, strUrlSrcSChain = null;
     for( let idxSChain = 0; idxSChain < arrSChainsCached.length; ++ idxSChain ) {
-        const jo_schain = arrSChainsCached[idxSChain];
-        if( jo_schain.data.name.toString() == strSChainNameSrc.toString() ) {
-            joSChainSrc = jo_schain;
-            strUrlSrcSChain = skaleObserver.pickRandomSChainUrl( jo_schain );
+        const joSChain = arrSChainsCached[idxSChain];
+        if( joSChain.data.name.toString() == strSChainNameSrc.toString() ) {
+            joSChainSrc = joSChain;
+            strUrlSrcSChain = skaleObserver.pickRandomSChainUrl( joSChain );
             break;
         }
     }
@@ -2617,7 +2617,7 @@ async function prepareS2sOfSkaleImaVerifyAndSign( optsHandleVerifyAndSign ) {
         optsHandleVerifyAndSign.strLogPrefix + cc.bright( optsHandleVerifyAndSign.strDirection ) +
         cc.debug( " verification algorithm discovered source chain URL is " ) +
         cc.u( strUrlSrcSChain ) +
-        cc.debug( ", chain name is " ) + cc.info( joSChainSrc.data.computed.schain_id ) +
+        cc.debug( ", chain name is " ) + cc.info( joSChainSrc.data.computed.computedSChainId ) +
         cc.debug( ", chain id is " ) + cc.info( joSChainSrc.data.computed.chainId ) +
         "\n" );
 

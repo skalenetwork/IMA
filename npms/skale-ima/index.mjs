@@ -890,7 +890,7 @@ async function prepareOracleGasPriceSetup( optsGasPriseSetup ) {
         cc.bright( owaspUtils.toBN( optsGasPriseSetup.gasPriceOnMainNet ).toString() ) +
         cc.success( "=" ) + cc.bright( optsGasPriseSetup.gasPriceOnMainNet ) + "\n" );
     const joGasPriceOnMainNetOld =
-        await optsGasPriseSetup.jo_community_locker.callStatic.mainnetGasPrice(
+        await optsGasPriseSetup.joCommunityLocker.callStatic.mainnetGasPrice(
             { from: optsGasPriseSetup.joAccountSC.address() } );
     const bnGasPriceOnMainNetOld = owaspUtils.toBN( joGasPriceOnMainNetOld );
     optsGasPriseSetup.details.write( cc.debug( "Previous " ) + cc.info( "Main Net gas price" ) +
@@ -912,11 +912,11 @@ async function prepareOracleGasPriceSetup( optsGasPriseSetup ) {
 export async function doOracleGasPriceSetup(
     ethersProviderMainNet,
     ethersProviderSChain,
-    tc_s_chain,
-    jo_community_locker,
+    transactionCustomizerSChain,
+    joCommunityLocker,
     joAccountSC,
-    chain_id_mainnet,
-    chain_id_schain,
+    chainIdMainNet,
+    chainIdSChain,
     fnSignMsgOracle
 ) {
     if( ! getEnabledOracle() )
@@ -924,11 +924,11 @@ export async function doOracleGasPriceSetup(
     const optsGasPriseSetup = {
         ethersProviderMainNet: ethersProviderMainNet,
         ethersProviderSChain: ethersProviderSChain,
-        tc_s_chain: tc_s_chain,
-        jo_community_locker: jo_community_locker,
+        transactionCustomizerSChain: transactionCustomizerSChain,
+        joCommunityLocker: joCommunityLocker,
         joAccountSC: joAccountSC,
-        chain_id_mainnet: chain_id_mainnet,
-        chain_id_schain: chain_id_schain,
+        chainIdMainNet: chainIdMainNet,
+        chainIdSChain: chainIdSChain,
         fnSignMsgOracle: fnSignMsgOracle,
         details: log.createMemoryStream(),
         jarrReceipts: [],
@@ -1015,23 +1015,24 @@ export async function doOracleGasPriceSetup(
                 }
                 const weiHowMuch = undefined;
                 const gasPrice =
-                    await optsGasPriseSetup.tc_s_chain.computeGasPrice(
+                    await optsGasPriseSetup.transactionCustomizerSChain.computeGasPrice(
                         optsGasPriseSetup.ethersProviderSChain, 200000000000 );
                 optsGasPriseSetup.details.write( optsGasPriseSetup.strLogPrefix +
                     cc.debug( "Using computed " ) + cc.info( "gasPrice" ) + cc.debug( "=" ) +
                     cc.j( gasPrice ) + "\n" );
-                const estimatedGasSetGasPrice = await optsGasPriseSetup.tc_s_chain.computeGas(
-                    optsGasPriseSetup.details, optsGasPriseSetup.ethersProviderSChain,
-                    "CommunityLocker", optsGasPriseSetup.jo_community_locker,
-                    "setGasPrice", arrArgumentsSetGasPrice, optsGasPriseSetup.joAccountSC,
-                    optsGasPriseSetup.strActionName, gasPrice, 10000000, weiHowMuch, null );
+                const estimatedGasSetGasPrice =
+                    await optsGasPriseSetup.transactionCustomizerSChain.computeGas(
+                        optsGasPriseSetup.details, optsGasPriseSetup.ethersProviderSChain,
+                        "CommunityLocker", optsGasPriseSetup.joCommunityLocker,
+                        "setGasPrice", arrArgumentsSetGasPrice, optsGasPriseSetup.joAccountSC,
+                        optsGasPriseSetup.strActionName, gasPrice, 10000000, weiHowMuch, null );
                 optsGasPriseSetup.details.write( optsGasPriseSetup.strLogPrefix +
                     cc.debug( "Using estimated " ) + cc.info( "gas" ) +
                     cc.debug( "=" ) + cc.notice( estimatedGasSetGasPrice ) + "\n" );
                 const isIgnoreSetGasPrice = false;
                 const strErrorOfDryRun = await dryRunCall( optsGasPriseSetup.details,
                     optsGasPriseSetup.ethersProviderSChain,
-                    "CommunityLocker", optsGasPriseSetup.jo_community_locker,
+                    "CommunityLocker", optsGasPriseSetup.joCommunityLocker,
                     "setGasPrice", arrArgumentsSetGasPrice,
                     optsGasPriseSetup.joAccountSC, optsGasPriseSetup.strActionName,
                     isIgnoreSetGasPrice, gasPrice,
@@ -1040,11 +1041,11 @@ export async function doOracleGasPriceSetup(
                     throw new Error( strErrorOfDryRun );
                 const opts = {
                     isCheckTransactionToSchain:
-                        ( optsGasPriseSetup.chain_id_schain !== "Mainnet" ) ? true : false
+                        ( optsGasPriseSetup.chainIdSChain !== "Mainnet" ) ? true : false
                 };
                 const joReceipt = await payedCall( optsGasPriseSetup.details,
                     optsGasPriseSetup.ethersProviderSChain,
-                    "CommunityLocker", optsGasPriseSetup.jo_community_locker,
+                    "CommunityLocker", optsGasPriseSetup.joCommunityLocker,
                     "setGasPrice", arrArgumentsSetGasPrice,
                     optsGasPriseSetup.joAccountSC, optsGasPriseSetup.strActionName,
                     gasPrice, estimatedGasSetGasPrice, weiHowMuch,
@@ -1733,7 +1734,7 @@ export async function payedCall(
                 " bad credentials information specified, " +
                 "no explicit SGX and no explicit private key found"
             );
-        } // break;
+        } // NOTICE: "break;" is not needed here because of "throw" above
         } // switch( optsPayedCall.joACI.strType )
     } catch ( err ) {
         const strErrorPrefix = "CRITICAL TRANSACTION SIGN AND SEND ERROR(OUTER FLOW):";
@@ -2098,18 +2099,18 @@ async function tmEnsureTransaction(
 //
 export async function checkIsRegisteredSChainInDepositBoxes( // step 1
     ethersProviderMainNet,
-    jo_linker,
+    joLinker,
     joAccountMN,
-    chain_id_s_chain
+    chainIdSChain
 ) {
     const details = log.createMemoryStream();
     details.write(
         cc.info( "Main-net " ) + cc.sunny( "Linker" ) +
-        cc.info( "  address is....." ) + cc.bright( jo_linker.address ) +
+        cc.info( "  address is....." ) + cc.bright( joLinker.address ) +
         "\n" );
     details.write(
         cc.info( "S-Chain  " ) + cc.sunny( "ID" ) + cc.info( " is......................." ) +
-        cc.bright( chain_id_s_chain ) +
+        cc.bright( chainIdSChain ) +
         "\n" );
     const strLogPrefix = cc.note( "RegChk S in depositBox:" ) + " ";
     details.write( strLogPrefix + cc.debug( longSeparator ) + "\n" );
@@ -2121,7 +2122,7 @@ export async function checkIsRegisteredSChainInDepositBoxes( // step 1
         strActionName = "checkIsRegisteredSChainInDepositBoxes(reg-step1)";
         const addressFrom = joAccountMN.address();
         const bIsRegistered =
-            await jo_linker.callStatic.hasSchain( chain_id_s_chain, { from: addressFrom } );
+            await joLinker.callStatic.hasSchain( chainIdSChain, { from: addressFrom } );
         details.write( strLogPrefix +
             cc.success( "checkIsRegisteredSChainInDepositBoxes(reg-step1) status is: " ) +
             cc.attention( bIsRegistered ) +
@@ -2149,20 +2150,20 @@ export async function checkIsRegisteredSChainInDepositBoxes( // step 1
 export async function invokeHasChain(
     details,
     ethersProvider, // Main-Net or S-Chin
-    jo_linker, // Main-Net or S-Chin
+    joLinker, // Main-Net or S-Chin
     joAccount, // Main-Net or S-Chin
-    chain_id_s_chain
+    chainIdSChain
 ) {
     const strLogPrefix = cc.sunny( "Wait for added chain status:" ) + " ";
-    const strActionName = "invokeHasChain(hasSchain): jo_linker.hasSchain";
+    const strActionName = "invokeHasChain(hasSchain): joLinker.hasSchain";
     try {
         details.write( strLogPrefix +
             cc.debug( "Will call " ) + cc.notice( strActionName ) + cc.debug( "..." ) + "\n" );
         const addressFrom = joAccount.address();
         const bHasSchain =
-            await jo_linker.callStatic.hasSchain( chain_id_s_chain, { from: addressFrom } );
+            await joLinker.callStatic.hasSchain( chainIdSChain, { from: addressFrom } );
         details.write( strLogPrefix +
-            cc.success( "Got jo_linker.hasSchain() status is: " ) + cc.attention( bHasSchain ) +
+            cc.success( "Got joLinker.hasSchain() status is: " ) + cc.attention( bHasSchain ) +
             "\n" );
         return bHasSchain;
     } catch ( err ) {
@@ -2181,9 +2182,9 @@ export async function invokeHasChain(
 export async function waitForHasChain(
     details,
     ethersProvider, // Main-Net or S-Chin
-    jo_linker, // Main-Net or S-Chin
+    joLinker, // Main-Net or S-Chin
     joAccount, // Main-Net or S-Chin
-    chain_id_s_chain,
+    chainIdSChain,
     cntWaitAttempts,
     nSleepMilliseconds
 ) {
@@ -2193,7 +2194,7 @@ export async function waitForHasChain(
         nSleepMilliseconds = 5;
     for( let idxWaitAttempts = 0; idxWaitAttempts < cntWaitAttempts; ++ idxWaitAttempts ) {
         if( await invokeHasChain(
-            details, ethersProvider, jo_linker, joAccount, chain_id_s_chain
+            details, ethersProvider, joLinker, joAccount, chainIdSChain
         ) )
             return true;
         details.write(
@@ -2207,21 +2208,18 @@ export async function waitForHasChain(
 
 export async function registerSChainInDepositBoxes( // step 1
     ethersProviderMainNet,
-    // jo_deposit_box_eth, // only main net
-    // jo_deposit_box_erc20, // only main net
-    // jo_deposit_box_erc721, // only main net
-    jo_linker,
+    joLinker,
     joAccountMN,
-    jo_token_manager_eth, // only s-chain
-    jo_token_manager_erc20, // only s-chain
-    jo_token_manager_erc721, // only s-chain
-    jo_token_manager_erc1155, // only s-chain
-    jo_token_manager_erc721_with_metadata, // only s-chain
-    jo_community_locker, // only s-chain
-    jo_token_manager_linker,
-    chain_id_s_chain,
-    cid_main_net,
-    tc_main_net,
+    joTokenManagerETH, // only s-chain
+    joTokenManagerERC20, // only s-chain
+    joTokenManagerERC721, // only s-chain
+    joTokenManagerERC1155, // only s-chain
+    joTokenManagerERC721WithMetadata, // only s-chain
+    joCommunityLocker, // only s-chain
+    joTokenManagerLinker,
+    chainIdSChain,
+    chainIdMainNet,
+    transactionCustomizerMainNet,
     cntWaitAttempts,
     nSleepMilliseconds
 ) {
@@ -2229,11 +2227,11 @@ export async function registerSChainInDepositBoxes( // step 1
     const jarrReceipts = []; // registerSChainInDepositBoxes
     details.write(
         cc.info( "Main-net " ) + cc.sunny( "Linker" ) + cc.info( "  address is......." ) +
-        cc.bright( jo_linker.address ) +
+        cc.bright( joLinker.address ) +
         "\n" );
     details.write(
         cc.info( "S-Chain  " ) + cc.sunny( "ID" ) + cc.info( " is......................." ) +
-        cc.bright( chain_id_s_chain ) +
+        cc.bright( chainIdSChain ) +
         "\n" );
     const strLogPrefix = cc.sunny( "Reg S in depositBoxes:" ) + " ";
     details.write( strLogPrefix + cc.debug( longSeparator ) + "\n" );
@@ -2246,29 +2244,29 @@ export async function registerSChainInDepositBoxes( // step 1
         details.write( strLogPrefix +
             cc.debug( "Will register S-Chain in lock_and_data on Main-net" ) + "\n" );
         const arrArguments = [
-            chain_id_s_chain,
+            chainIdSChain,
             [
-                jo_token_manager_linker.address, // call params
-                jo_community_locker.address, // call params
-                jo_token_manager_eth.address, // call params
-                jo_token_manager_erc20.address, // call params
-                jo_token_manager_erc721.address, // call params
-                jo_token_manager_erc1155.address, // call params
-                jo_token_manager_erc721_with_metadata.address // call params
+                joTokenManagerLinker.address, // call params
+                joCommunityLocker.address, // call params
+                joTokenManagerETH.address, // call params
+                joTokenManagerERC20.address, // call params
+                joTokenManagerERC721.address, // call params
+                joTokenManagerERC1155.address, // call params
+                joTokenManagerERC721WithMetadata.address // call params
             ]
         ];
         const weiHowMuch = undefined;
-        const gasPrice =
-            await tc_main_net.computeGasPrice( ethersProviderMainNet, 200000000000 );
+        const gasPrice = await transactionCustomizerMainNet.computeGasPrice(
+            ethersProviderMainNet, 200000000000 );
         details.write( strLogPrefix +
             cc.debug( "Using computed " ) + cc.info( "gasPrice" ) +
             cc.debug( "=" ) + cc.j( gasPrice ) +
             "\n" );
         const estimatedGas =
-            await tc_main_net.computeGas(
+            await transactionCustomizerMainNet.computeGas(
                 details,
                 ethersProviderMainNet,
-                "Linker", jo_linker, "connectSchain", arrArguments,
+                "Linker", joLinker, "connectSchain", arrArguments,
                 joAccountMN, strActionName,
                 gasPrice, 3000000, weiHowMuch,
                 null
@@ -2282,7 +2280,7 @@ export async function registerSChainInDepositBoxes( // step 1
             await dryRunCall(
                 details,
                 ethersProviderMainNet,
-                "Linker", jo_linker, "connectSchain", arrArguments,
+                "Linker", joLinker, "connectSchain", arrArguments,
                 joAccountMN, strActionName, isIgnore,
                 gasPrice, estimatedGas, weiHowMuch,
                 null
@@ -2294,7 +2292,7 @@ export async function registerSChainInDepositBoxes( // step 1
             await payedCall(
                 details,
                 ethersProviderMainNet,
-                "Linker", jo_linker, "connectSchain", arrArguments,
+                "Linker", joLinker, "connectSchain", arrArguments,
                 joAccountMN, strActionName,
                 gasPrice, estimatedGas, weiHowMuch,
                 null
@@ -2309,9 +2307,9 @@ export async function registerSChainInDepositBoxes( // step 1
         const isSChainStatusOKay = await waitForHasChain(
             details,
             ethersProviderMainNet,
-            jo_linker,
+            joLinker,
             joAccountMN,
-            chain_id_s_chain,
+            chainIdSChain,
             cntWaitAttempts,
             nSleepMilliseconds
         );
@@ -2343,11 +2341,11 @@ export async function registerSChainInDepositBoxes( // step 1
 
 export async function reimbursementShowBalance(
     ethersProviderMainNet,
-    jo_community_pool,
-    joReceiver_main_net,
-    strChainName_main_net,
-    cid_main_net,
-    tc_main_net,
+    joCommunityPool,
+    joReceiverMainNet,
+    strChainNameMainNet,
+    chainIdMainNet,
+    transactionCustomizerMainNet,
     strReimbursementChain,
     isForcePrintOut
 ) {
@@ -2355,13 +2353,13 @@ export async function reimbursementShowBalance(
     let s = "";
     const strLogPrefix = cc.info( "Gas Reimbursement - Show Balance" ) + " ";
     try {
-        const addressFrom = joReceiver_main_net;
+        const addressFrom = joReceiverMainNet;
         details.write( strLogPrefix +
             cc.debug( "Querying wallet " ) + cc.notice( strReimbursementChain ) +
             cc.debug( "/" ) + cc.info( addressFrom ) +
             cc.debug( " balance..." ) + "\n" );
         const xWei =
-            await jo_community_pool.callStatic.getBalance(
+            await joCommunityPool.callStatic.getBalance(
                 addressFrom, strReimbursementChain, { from: addressFrom } );
 
         s = strLogPrefix + cc.success( "Balance(wei): " ) + cc.attention( xWei ) + "\n";
@@ -2397,11 +2395,11 @@ export async function reimbursementShowBalance(
 
 export async function reimbursementEstimateAmount(
     ethersProviderMainNet,
-    jo_community_pool,
-    joReceiver_main_net,
-    strChainName_main_net,
-    cid_main_net,
-    tc_main_net,
+    joCommunityPool,
+    joReceiverMainNet,
+    strChainNameMainNet,
+    chainIdMainNet,
+    transactionCustomizerMainNet,
     strReimbursementChain,
     isForcePrintOut
 ) {
@@ -2413,9 +2411,9 @@ export async function reimbursementEstimateAmount(
             cc.debug( "Querying wallet " ) + cc.notice( strReimbursementChain ) +
             cc.debug( " balance..." ) +
             "\n" );
-        const addressReceiver = joReceiver_main_net;
+        const addressReceiver = joReceiverMainNet;
         const xWei =
-        await jo_community_pool.callStatic.getBalance(
+        await joCommunityPool.callStatic.getBalance(
             addressReceiver, strReimbursementChain, { from: addressReceiver } );
 
         s = strLogPrefix + cc.success( "Balance(wei): " ) + cc.attention( xWei ) + "\n";
@@ -2431,7 +2429,7 @@ export async function reimbursementEstimateAmount(
 
         const minTransactionGas =
             owaspUtils.parseIntOrHex(
-                await jo_community_pool.callStatic.minTransactionGas(
+                await joCommunityPool.callStatic.minTransactionGas(
                     { from: addressReceiver } ) );
         s = strLogPrefix + cc.success( "MinTransactionGas: " ) +
             cc.attention( minTransactionGas ) + "\n";
@@ -2439,8 +2437,8 @@ export async function reimbursementEstimateAmount(
             log.write( s );
         details.write( s );
 
-        const gasPrice =
-            await tc_main_net.computeGasPrice( ethersProviderMainNet, 200000000000 );
+        const gasPrice = await transactionCustomizerMainNet.computeGasPrice(
+            ethersProviderMainNet, 200000000000 );
         s = strLogPrefix + cc.success( "Multiplied Gas Price: " ) + cc.attention( gasPrice ) + "\n";
         if( isForcePrintOut || verboseGet() >= verboseReversed().information )
             log.write( s );
@@ -2495,11 +2493,11 @@ export async function reimbursementEstimateAmount(
 
 export async function reimbursementWalletRecharge(
     ethersProviderMainNet,
-    jo_community_pool,
+    joCommunityPool,
     joAccountMN,
-    strChainName_main_net,
-    cid_main_net,
-    tc_main_net,
+    strChainNameMainNet,
+    chainIdMainNet,
+    transactionCustomizerMainNet,
     strReimbursementChain,
     nReimbursementRecharge
 ) {
@@ -2518,17 +2516,17 @@ export async function reimbursementWalletRecharge(
             strReimbursementChain,
             addressReceiver
         ];
-        const gasPrice =
-            await tc_main_net.computeGasPrice( ethersProviderMainNet, 200000000000 );
+        const gasPrice = await transactionCustomizerMainNet.computeGasPrice(
+            ethersProviderMainNet, 200000000000 );
         details.write( strLogPrefix +
             cc.debug( "Using computed " ) + cc.info( "gasPrice" ) +
             cc.debug( "=" ) + cc.j( gasPrice ) +
             "\n" );
         const estimatedGas =
-            await tc_main_net.computeGas(
+            await transactionCustomizerMainNet.computeGas(
                 details,
                 ethersProviderMainNet,
-                "CommunityPool", jo_community_pool, "rechargeUserWallet", arrArguments,
+                "CommunityPool", joCommunityPool, "rechargeUserWallet", arrArguments,
                 joAccountMN, strActionName,
                 gasPrice, 3000000, nReimbursementRecharge,
                 null
@@ -2542,7 +2540,7 @@ export async function reimbursementWalletRecharge(
             await dryRunCall(
                 details,
                 ethersProviderMainNet,
-                "CommunityPool", jo_community_pool, "rechargeUserWallet", arrArguments,
+                "CommunityPool", joCommunityPool, "rechargeUserWallet", arrArguments,
                 joAccountMN, strActionName, isIgnore,
                 gasPrice, estimatedGas, nReimbursementRecharge,
                 null
@@ -2554,7 +2552,7 @@ export async function reimbursementWalletRecharge(
             await payedCall(
                 details,
                 ethersProviderMainNet,
-                "CommunityPool", jo_community_pool, "rechargeUserWallet", arrArguments,
+                "CommunityPool", joCommunityPool, "rechargeUserWallet", arrArguments,
                 joAccountMN, strActionName,
                 gasPrice, estimatedGas, nReimbursementRecharge,
                 null
@@ -2587,11 +2585,11 @@ export async function reimbursementWalletRecharge(
 
 export async function reimbursementWalletWithdraw(
     ethersProviderMainNet,
-    jo_community_pool,
+    joCommunityPool,
     joAccountMN,
-    strChainName_main_net,
-    cid_main_net,
-    tc_main_net,
+    strChainNameMainNet,
+    chainIdMainNet,
+    transactionCustomizerMainNet,
     strReimbursementChain,
     nReimbursementWithdraw
 ) {
@@ -2611,16 +2609,16 @@ export async function reimbursementWalletWithdraw(
                 owaspUtils.toBN( nReimbursementWithdraw ).toHexString() )
         ];
         const weiHowMuch = undefined;
-        const gasPrice =
-        await tc_main_net.computeGasPrice( ethersProviderMainNet, 200000000000 );
+        const gasPrice = await transactionCustomizerMainNet.computeGasPrice(
+            ethersProviderMainNet, 200000000000 );
         details.write( strLogPrefix + cc.debug( "Using computed " ) +
             cc.info( "gasPrice" ) + cc.debug( "=" ) + cc.j( gasPrice ) +
             "\n" );
         const estimatedGas =
-            await tc_main_net.computeGas(
+            await transactionCustomizerMainNet.computeGas(
                 details,
                 ethersProviderMainNet,
-                "CommunityPool", jo_community_pool, "withdrawFunds", arrArguments,
+                "CommunityPool", joCommunityPool, "withdrawFunds", arrArguments,
                 joAccountMN, strActionName,
                 gasPrice, 3000000, weiHowMuch,
                 null
@@ -2634,7 +2632,7 @@ export async function reimbursementWalletWithdraw(
             await dryRunCall(
                 details,
                 ethersProviderMainNet,
-                "CommunityPool", jo_community_pool, "withdrawFunds", arrArguments,
+                "CommunityPool", joCommunityPool, "withdrawFunds", arrArguments,
                 joAccountMN, strActionName, isIgnore,
                 gasPrice, estimatedGas, weiHowMuch,
                 null
@@ -2646,7 +2644,7 @@ export async function reimbursementWalletWithdraw(
             await payedCall(
                 details,
                 ethersProviderMainNet,
-                "CommunityPool", jo_community_pool, "withdrawFunds", arrArguments,
+                "CommunityPool", joCommunityPool, "withdrawFunds", arrArguments,
                 joAccountMN, strActionName,
                 gasPrice, estimatedGas, weiHowMuch,
                 null
@@ -2679,11 +2677,11 @@ export async function reimbursementWalletWithdraw(
 
 export async function reimbursementSetRange(
     ethersProviderSChain,
-    jo_community_locker,
+    joCommunityLocker,
     joAccountSC,
-    strChainName_s_chain,
+    strChainNameSChain,
     cid_s_chain,
-    tc_s_chain,
+    transactionCustomizerSChain,
     strChainNameOriginChain,
     nReimbursementRange
 ) {
@@ -2703,17 +2701,17 @@ export async function reimbursementSetRange(
             owaspUtils.ensureStartsWith0x( owaspUtils.toBN( nReimbursementRange ).toHexString() )
         ];
         const weiHowMuch = undefined;
-        const gasPrice =
-            await tc_s_chain.computeGasPrice( ethersProviderSChain, 200000000000 );
+        const gasPrice = await transactionCustomizerSChain.computeGasPrice(
+            ethersProviderSChain, 200000000000 );
         details.write( strLogPrefix +
             cc.debug( "Using computed " ) + cc.info( "gasPrice" ) +
             cc.debug( "=" ) + cc.j( gasPrice ) +
             "\n" );
         const estimatedGas =
-            await tc_s_chain.computeGas(
+            await transactionCustomizerSChain.computeGas(
                 details,
                 ethersProviderSChain,
-                "CommunityLocker", jo_community_locker,
+                "CommunityLocker", joCommunityLocker,
                 "setTimeLimitPerMessage", arrArguments,
                 joAccountSC, strActionName,
                 gasPrice, 3000000, weiHowMuch,
@@ -2728,7 +2726,7 @@ export async function reimbursementSetRange(
             await dryRunCall(
                 details,
                 ethersProviderSChain,
-                "CommunityLocker", jo_community_locker,
+                "CommunityLocker", joCommunityLocker,
                 "setTimeLimitPerMessage", arrArguments,
                 joAccountSC, strActionName, isIgnore,
                 gasPrice, estimatedGas, weiHowMuch,
@@ -2744,7 +2742,7 @@ export async function reimbursementSetRange(
             await payedCall(
                 details,
                 ethersProviderSChain,
-                "CommunityLocker", jo_community_locker,
+                "CommunityLocker", joCommunityLocker,
                 "setTimeLimitPerMessage", arrArguments,
                 joAccountSC, strActionName,
                 gasPrice, estimatedGas, weiHowMuch,
@@ -2790,14 +2788,14 @@ export async function reimbursementSetRange(
 //
 export async function doEthPaymentFromMainNet(
     ethersProviderMainNet,
-    cid_main_net,
+    chainIdMainNet,
     joAccountSrc,
     joAccountDst,
-    jo_deposit_box,
-    jo_message_proxy_main_net, // for checking logs
-    chain_id_s_chain,
+    joDepositBox,
+    joMessageProxyMainNet, // for checking logs
+    chainIdSChain,
     weiHowMuch, // how much WEI money to send
-    tc_main_net
+    transactionCustomizerMainNet
 ) {
     const details = log.createMemoryStream();
     const jarrReceipts = []; // doEthPaymentFromMainNet
@@ -2805,23 +2803,24 @@ export async function doEthPaymentFromMainNet(
     const strLogPrefix = cc.info( "M2S ETH Payment:" ) + " ";
     try {
         details.write( strLogPrefix +
-            cc.debug( "Doing payment from mainnet with " ) + cc.notice( "chain_id_s_chain" ) +
-            cc.debug( "=" ) + cc.notice( chain_id_s_chain ) + cc.debug( "..." ) +
+            cc.debug( "Doing payment from mainnet with " ) + cc.notice( "chainIdSChain" ) +
+            cc.debug( "=" ) + cc.notice( chainIdSChain ) + cc.debug( "..." ) +
             "\n" );
         strActionName = "ETH payment from Main Net, deposit";
         const arrArguments = [
-            chain_id_s_chain
+            chainIdSChain
         ];
-        const gasPrice = await tc_main_net.computeGasPrice( ethersProviderMainNet, 200000000000 );
+        const gasPrice = await transactionCustomizerMainNet.computeGasPrice(
+            ethersProviderMainNet, 200000000000 );
         details.write( strLogPrefix +
             cc.debug( "Using computed " ) + cc.info( "gasPrice" ) +
             cc.debug( "=" ) + cc.j( gasPrice ) +
             "\n" );
         const estimatedGas =
-            await tc_main_net.computeGas(
+            await transactionCustomizerMainNet.computeGas(
                 details,
                 ethersProviderMainNet,
-                "DepositBox", jo_deposit_box, "deposit", arrArguments,
+                "DepositBox", joDepositBox, "deposit", arrArguments,
                 joAccountSrc, strActionName,
                 gasPrice, 3000000, weiHowMuch,
                 null
@@ -2835,7 +2834,7 @@ export async function doEthPaymentFromMainNet(
             await dryRunCall(
                 details,
                 ethersProviderMainNet,
-                "DepositBox", jo_deposit_box, "deposit", arrArguments,
+                "DepositBox", joDepositBox, "deposit", arrArguments,
                 joAccountSrc, strActionName, isIgnore,
                 gasPrice, estimatedGas, weiHowMuch,
                 null
@@ -2847,7 +2846,7 @@ export async function doEthPaymentFromMainNet(
             await payedCall(
                 details,
                 ethersProviderMainNet,
-                "DepositBox", jo_deposit_box, "deposit", arrArguments,
+                "DepositBox", joDepositBox, "deposit", arrArguments,
                 joAccountSrc, strActionName,
                 gasPrice, estimatedGas, weiHowMuch,
                 null
@@ -2861,32 +2860,32 @@ export async function doEthPaymentFromMainNet(
 
         // Must-have event(s) analysis as indicator(s) of success
         const strEventName = "OutgoingMessage";
-        if( jo_message_proxy_main_net ) {
+        if( joMessageProxyMainNet ) {
             details.write( strLogPrefix +
                 cc.debug( "Verifying the " ) + cc.info( strEventName ) +
                 cc.debug( " event of the " ) + cc.info( "MessageProxy" ) + cc.debug( "/" ) +
-                cc.notice( jo_message_proxy_main_net.address ) + cc.debug( " contract ..." ) +
+                cc.notice( joMessageProxyMainNet.address ) + cc.debug( " contract ..." ) +
                 "\n" );
             await sleep( g_nSleepBeforeFetchOutgoingMessageEvent );
             const joEvents =
                 await getContractCallEvents(
                     details, strLogPrefix,
-                    ethersProviderMainNet, jo_message_proxy_main_net, strEventName,
+                    ethersProviderMainNet, joMessageProxyMainNet, strEventName,
                     joReceipt.blockNumber, joReceipt.transactionHash,
-                    jo_message_proxy_main_net.filters[strEventName]()
+                    joMessageProxyMainNet.filters[strEventName]()
                 );
             if( joEvents.length > 0 ) {
                 details.write( strLogPrefix +
                     cc.success( "Success, verified the " ) + cc.info( strEventName ) +
                     cc.success( " event of the " ) + cc.info( "MessageProxy" ) +
-                    cc.success( "/" ) + cc.notice( jo_message_proxy_main_net.address ) +
+                    cc.success( "/" ) + cc.notice( joMessageProxyMainNet.address ) +
                     cc.success( " contract, found event(s): " ) + cc.j( joEvents ) +
                     "\n" );
             } else {
                 throw new Error(
                     "Verification failed for the \"OutgoingMessage\" " +
                         "event of the \"MessageProxy\"/" +
-                    jo_message_proxy_main_net.address + " contract, no events found" );
+                    joMessageProxyMainNet.address + " contract, no events found" );
             }
         }
     } catch ( err ) {
@@ -2925,10 +2924,10 @@ export async function doEthPaymentFromSChain(
     cid_s_chain,
     joAccountSrc,
     joAccountDst,
-    jo_token_manager_eth,
-    jo_message_proxy_s_chain, // for checking logs
+    joTokenManagerETH,
+    joMessageProxySChain, // for checking logs
     weiHowMuch, // how much WEI money to send
-    tc_s_chain
+    transactionCustomizerSChain
 ) {
     const details = log.createMemoryStream();
     const jarrReceipts = []; // doEthPaymentFromSChain
@@ -2939,17 +2938,17 @@ export async function doEthPaymentFromSChain(
         const arrArguments = [
             owaspUtils.toBN( weiHowMuch )
         ];
-        const gasPrice =
-            await tc_s_chain.computeGasPrice( ethersProviderSChain, 200000000000 );
+        const gasPrice = await transactionCustomizerSChain.computeGasPrice(
+            ethersProviderSChain, 200000000000 );
         details.write( strLogPrefix +
             cc.debug( "Using computed " ) + cc.info( "gasPrice" ) +
             cc.debug( "=" ) + cc.j( gasPrice ) +
             "\n" );
         const estimatedGas =
-            await tc_s_chain.computeGas(
+            await transactionCustomizerSChain.computeGas(
                 details,
                 ethersProviderSChain,
-                "TokenManagerETH", jo_token_manager_eth, "exitToMain", arrArguments,
+                "TokenManagerETH", joTokenManagerETH, "exitToMain", arrArguments,
                 joAccountSrc, strActionName,
                 gasPrice, 6000000, 0, // weiHowMuch
                 null
@@ -2963,7 +2962,7 @@ export async function doEthPaymentFromSChain(
             await dryRunCall(
                 details,
                 ethersProviderSChain,
-                "TokenManagerETH", jo_token_manager_eth, "exitToMain", arrArguments,
+                "TokenManagerETH", joTokenManagerETH, "exitToMain", arrArguments,
                 joAccountSrc, strActionName, isIgnore,
                 gasPrice, estimatedGas, 0, // weiHowMuch
                 null
@@ -2978,7 +2977,7 @@ export async function doEthPaymentFromSChain(
             await payedCall(
                 details,
                 ethersProviderSChain,
-                "TokenManagerETH", jo_token_manager_eth, "exitToMain", arrArguments,
+                "TokenManagerETH", joTokenManagerETH, "exitToMain", arrArguments,
                 joAccountSrc, strActionName,
                 gasPrice, estimatedGas, 0, // weiHowMuch
                 opts
@@ -2992,32 +2991,32 @@ export async function doEthPaymentFromSChain(
 
         // Must-have event(s) analysis as indicator(s) of success
         const strEventName = "OutgoingMessage";
-        if( jo_message_proxy_s_chain ) {
+        if( joMessageProxySChain ) {
             details.write( strLogPrefix +
                 cc.debug( "Verifying the " ) + cc.info( strEventName ) +
                 cc.debug( " event of the " ) + cc.info( "MessageProxy" ) + cc.debug( "/" ) +
-                cc.notice( jo_message_proxy_s_chain.address ) + cc.debug( " contract ..." ) +
+                cc.notice( joMessageProxySChain.address ) + cc.debug( " contract ..." ) +
                 "\n" );
             await sleep( g_nSleepBeforeFetchOutgoingMessageEvent );
             const joEvents =
                 await getContractCallEvents(
                     details, strLogPrefix,
-                    ethersProviderSChain, jo_message_proxy_s_chain, strEventName,
+                    ethersProviderSChain, joMessageProxySChain, strEventName,
                     joReceipt.blockNumber, joReceipt.transactionHash,
-                    jo_message_proxy_s_chain.filters[strEventName]()
+                    joMessageProxySChain.filters[strEventName]()
                 );
             if( joEvents.length > 0 ) {
                 details.write( strLogPrefix +
                     cc.success( "Success, verified the " ) + cc.info( strEventName ) +
                     cc.success( " event of the " ) + cc.info( "MessageProxy" ) +
-                    cc.success( "/" ) + cc.notice( jo_message_proxy_s_chain.address ) +
+                    cc.success( "/" ) + cc.notice( joMessageProxySChain.address ) +
                     cc.success( " contract, found event(s): " ) + cc.j( joEvents ) +
                     "\n" );
             } else {
                 throw new Error(
                     "Verification failed for the \"OutgoingMessage\" " +
                         "event of the \"MessageProxy\"/" +
-                    jo_message_proxy_s_chain.address + " contract, no events found" );
+                    joMessageProxySChain.address + " contract, no events found" );
             }
         }
     } catch ( err ) {
@@ -3045,10 +3044,10 @@ export async function doEthPaymentFromSChain(
 //
 export async function receiveEthPaymentFromSchainOnMainNet(
     ethersProviderMainNet,
-    cid_main_net,
+    chainIdMainNet,
     joAccountMN,
-    jo_deposit_box_eth,
-    tc_main_net
+    joDepositBoxETH,
+    transactionCustomizerMainNet
 ) {
     const details = log.createMemoryStream();
     const jarrReceipts = []; // receiveEthPaymentFromSchainOnMainNet
@@ -3058,17 +3057,17 @@ export async function receiveEthPaymentFromSchainOnMainNet(
         strActionName = "Receive ETH payment from S-Chain on Main Met, getMyEth";
         const arrArguments = [];
         const weiHowMuch = undefined;
-        const gasPrice =
-            await tc_main_net.computeGasPrice( ethersProviderMainNet, 200000000000 );
+        const gasPrice = await transactionCustomizerMainNet.computeGasPrice(
+            ethersProviderMainNet, 200000000000 );
         details.write( strLogPrefix +
             cc.debug( "Using computed " ) + cc.info( "gasPrice" ) +
             cc.debug( "=" ) + cc.j( gasPrice ) +
             "\n" );
         const estimatedGas =
-            await tc_main_net.computeGas(
+            await transactionCustomizerMainNet.computeGas(
                 details,
                 ethersProviderMainNet,
-                "DepositBoxETH", jo_deposit_box_eth, "getMyEth", arrArguments,
+                "DepositBoxETH", joDepositBoxETH, "getMyEth", arrArguments,
                 joAccountMN, strActionName,
                 gasPrice, 3000000, weiHowMuch,
                 null
@@ -3082,7 +3081,7 @@ export async function receiveEthPaymentFromSchainOnMainNet(
             await dryRunCall(
                 details,
                 ethersProviderMainNet,
-                "DepositBoxETH", jo_deposit_box_eth,
+                "DepositBoxETH", joDepositBoxETH,
                 "getMyEth", arrArguments,
                 joAccountMN, strActionName, isIgnore,
                 gasPrice, estimatedGas, weiHowMuch,
@@ -3095,7 +3094,7 @@ export async function receiveEthPaymentFromSchainOnMainNet(
             await payedCall(
                 details,
                 ethersProviderMainNet,
-                "DepositBoxETH", jo_deposit_box_eth,
+                "DepositBoxETH", joDepositBoxETH,
                 "getMyEth", arrArguments,
                 joAccountMN, strActionName,
                 gasPrice, estimatedGas, weiHowMuch,
@@ -3133,17 +3132,17 @@ export async function receiveEthPaymentFromSchainOnMainNet(
 export async function viewEthPaymentFromSchainOnMainNet(
     ethersProviderMainNet,
     joAccountMN,
-    jo_deposit_box_eth
+    joDepositBoxETH
 ) {
     const details = log.createMemoryStream();
     const strActionName = "";
     const strLogPrefix = cc.info( "S ETH View:" ) + " ";
     try {
-        if( ! ( ethersProviderMainNet && joAccountMN && jo_deposit_box_eth ) )
+        if( ! ( ethersProviderMainNet && joAccountMN && joDepositBoxETH ) )
             return null;
         const addressFrom = joAccountMN.address();
         const xWei =
-            await jo_deposit_box_eth.callStatic.approveTransfers(
+            await joDepositBoxETH.callStatic.approveTransfers(
                 addressFrom,
                 { from: addressFrom } );
         details.write( strLogPrefix +
@@ -3178,21 +3177,21 @@ export async function viewEthPaymentFromSchainOnMainNet(
 export async function doErc721PaymentFromMainNet(
     ethersProviderMainNet,
     ethersProviderSChain,
-    cid_main_net,
+    chainIdMainNet,
     cid_s_chain,
     joAccountSrc,
     joAccountDst,
-    jo_deposit_box_erc721,
-    jo_message_proxy_main_net, // for checking logs
-    chain_id_s_chain,
-    token_id, // which ERC721 token id to send
+    joDepositBoxERC721,
+    joMessageProxyMainNet, // for checking logs
+    chainIdSChain,
+    tokenId, // which ERC721 token id to send
     weiHowMuch, // how much ETH
-    jo_token_manager_erc721, // only s-chain
-    strCoinNameErc721_main_net,
+    joTokenManagerERC721, // only s-chain
+    strCoinNameErc721MainNet,
     erc721PrivateTestnetJson_main_net,
-    strCoinNameErc721_s_chain,
+    strCoinNameErc721SChain,
     erc721PrivateTestnetJson_s_chain,
-    tc_main_net
+    transactionCustomizerMainNet
 ) {
     const details = log.createMemoryStream();
     const jarrReceipts = []; // doErc721PaymentFromMainNet
@@ -3200,33 +3199,34 @@ export async function doErc721PaymentFromMainNet(
     const strLogPrefix = cc.info( "M2S ERC721 Payment:" ) + " ";
     try {
         strActionName = "ERC721 payment from Main Net, approve";
-        const erc721ABI = erc721PrivateTestnetJson_main_net[strCoinNameErc721_main_net + "_abi"];
+        const erc721ABI = erc721PrivateTestnetJson_main_net[strCoinNameErc721MainNet + "_abi"];
         const erc721Address_main_net =
-            erc721PrivateTestnetJson_main_net[strCoinNameErc721_main_net + "_address"];
+            erc721PrivateTestnetJson_main_net[strCoinNameErc721MainNet + "_address"];
         const contractERC721 =
             new owaspUtils.ethersMod.ethers.Contract(
                 erc721Address_main_net,
                 erc721ABI,
                 ethersProviderMainNet
             );
-        const depositBoxAddress = jo_deposit_box_erc721.address;
+        const depositBoxAddress = joDepositBoxERC721.address;
         const arrArgumentsApprove = [
             depositBoxAddress,
-            owaspUtils.ensureStartsWith0x( owaspUtils.toBN( token_id ).toHexString() )
+            owaspUtils.ensureStartsWith0x( owaspUtils.toBN( tokenId ).toHexString() )
         ];
         const arrArgumentsDepositERC721 = [
-            chain_id_s_chain,
+            chainIdSChain,
             erc721Address_main_net,
-            owaspUtils.ensureStartsWith0x( owaspUtils.toBN( token_id ).toHexString() )
+            owaspUtils.ensureStartsWith0x( owaspUtils.toBN( tokenId ).toHexString() )
         ];
         const weiHowMuchApprove = undefined;
-        let gasPrice = await tc_main_net.computeGasPrice( ethersProviderMainNet, 200000000000 );
+        let gasPrice = await transactionCustomizerMainNet.computeGasPrice(
+            ethersProviderMainNet, 200000000000 );
         details.write( strLogPrefix +
             cc.debug( "Using computed " ) + cc.info( "gasPrice" ) +
             cc.debug( "=" ) + cc.j( gasPrice ) +
             "\n" );
         const estimatedGasApprove =
-            await tc_main_net.computeGas(
+            await transactionCustomizerMainNet.computeGas(
                 details,
                 ethersProviderMainNet,
                 "ERC721", contractERC721, "approve", arrArgumentsApprove,
@@ -3269,16 +3269,17 @@ export async function doErc721PaymentFromMainNet(
 
         strActionName = "ERC721 payment from Main Net, depositERC721";
         const weiHowMuchDepositERC721 = undefined;
-        gasPrice = await tc_main_net.computeGasPrice( ethersProviderMainNet, 200000000000 );
+        gasPrice = await transactionCustomizerMainNet.computeGasPrice(
+            ethersProviderMainNet, 200000000000 );
         details.write( strLogPrefix +
             cc.debug( "Using computed " ) + cc.info( "gasPrice" ) +
             cc.debug( "=" ) + cc.j( gasPrice ) +
             "\n" );
         const estimatedGasDeposit =
-            await tc_main_net.computeGas(
+            await transactionCustomizerMainNet.computeGas(
                 details,
                 ethersProviderMainNet,
-                "DepositBoxERC721", jo_deposit_box_erc721,
+                "DepositBoxERC721", joDepositBoxERC721,
                 "depositERC721", arrArgumentsDepositERC721,
                 joAccountSrc, strActionName,
                 gasPrice, 8000000, weiHowMuchDepositERC721,
@@ -3293,7 +3294,7 @@ export async function doErc721PaymentFromMainNet(
             await dryRunCall(
                 details,
                 ethersProviderMainNet,
-                "DepositBoxERC721", jo_deposit_box_erc721,
+                "DepositBoxERC721", joDepositBoxERC721,
                 "depositERC721", arrArgumentsDepositERC721,
                 joAccountSrc, strActionName, isIgnoreDepositERC721,
                 gasPrice, estimatedGasDeposit, weiHowMuchDepositERC721,
@@ -3306,7 +3307,7 @@ export async function doErc721PaymentFromMainNet(
             await payedCall(
                 details,
                 ethersProviderMainNet,
-                "DepositBoxERC721", jo_deposit_box_erc721,
+                "DepositBoxERC721", joDepositBoxERC721,
                 "depositERC721", arrArgumentsDepositERC721,
                 joAccountSrc, strActionName,
                 gasPrice, estimatedGasDeposit, weiHowMuchDepositERC721,
@@ -3321,32 +3322,32 @@ export async function doErc721PaymentFromMainNet(
 
         // Must-have event(s) analysis as indicator(s) of success
         const strEventName = "OutgoingMessage";
-        if( jo_message_proxy_main_net ) {
+        if( joMessageProxyMainNet ) {
             details.write( strLogPrefix +
                 cc.debug( "Verifying the " ) + cc.info( strEventName ) +
                 cc.debug( " event of the " ) + cc.info( "MessageProxy" ) + cc.debug( "/" ) +
-                cc.notice( jo_message_proxy_main_net.address ) + cc.debug( " contract ..." ) +
+                cc.notice( joMessageProxyMainNet.address ) + cc.debug( " contract ..." ) +
                 "\n" );
             await sleep( g_nSleepBeforeFetchOutgoingMessageEvent );
             const joEvents =
                 await getContractCallEvents(
                     details, strLogPrefix,
-                    ethersProviderMainNet, jo_message_proxy_main_net, strEventName,
+                    ethersProviderMainNet, joMessageProxyMainNet, strEventName,
                     joReceiptDeposit.blockNumber, joReceiptDeposit.transactionHash,
-                    jo_message_proxy_main_net.filters[strEventName]()
+                    joMessageProxyMainNet.filters[strEventName]()
                 );
             if( joEvents.length > 0 ) {
                 details.write( strLogPrefix +
                     cc.success( "Success, verified the " ) + cc.info( strEventName ) +
                     cc.success( " event of the " ) + cc.info( "MessageProxy" ) +
-                    cc.success( "/" ) + cc.notice( jo_message_proxy_main_net.address ) +
+                    cc.success( "/" ) + cc.notice( joMessageProxyMainNet.address ) +
                     cc.success( " contract, found event(s): " ) + cc.j( joEvents ) +
                     "\n" );
             } else {
                 throw new Error(
                     "Verification failed for the \"OutgoingMessage\" " +
                         "event of the \"MessageProxy\"/" +
-                    jo_message_proxy_main_net.address + " contract, no events found"
+                    joMessageProxyMainNet.address + " contract, no events found"
                 );
             }
         }
@@ -3378,21 +3379,21 @@ export async function doErc721PaymentFromMainNet(
 export async function doErc20PaymentFromMainNet(
     ethersProviderMainNet,
     ethersProviderSChain,
-    cid_main_net,
+    chainIdMainNet,
     cid_s_chain,
     joAccountSrc,
     joAccountDst,
-    jo_deposit_box_erc20,
-    jo_message_proxy_main_net, // for checking logs
-    chain_id_s_chain,
-    token_amount, // how much ERC20 tokens to send
+    joDepositBoxERC20,
+    joMessageProxyMainNet, // for checking logs
+    chainIdSChain,
+    tokenAmount, // how much ERC20 tokens to send
     weiHowMuch, // how much ETH
-    jo_token_manager_erc20, // only s-chain
-    strCoinNameErc20_main_net,
-    erc20_main_net,
-    strCoinNameErc20_s_chain,
-    erc20_s_chain,
-    tc_main_net
+    joTokenManagerERC20, // only s-chain
+    strCoinNameErc20MainNet,
+    erc20MainNet,
+    strCoinNameErc20SChain,
+    erc20SChain,
+    transactionCustomizerMainNet
 ) {
     const details = log.createMemoryStream();
     const jarrReceipts = []; // doErc20PaymentFromMainNet
@@ -3400,33 +3401,34 @@ export async function doErc20PaymentFromMainNet(
     const strLogPrefix = cc.info( "M2S ERC20 Payment:" ) + " ";
     try {
         strActionName = "ERC20 payment from Main Net, approve";
-        const erc20ABI = erc20_main_net[strCoinNameErc20_main_net + "_abi"];
+        const erc20ABI = erc20MainNet[strCoinNameErc20MainNet + "_abi"];
         const erc20Address_main_net =
-            erc20_main_net[strCoinNameErc20_main_net + "_address"];
+            erc20MainNet[strCoinNameErc20MainNet + "_address"];
         const contractERC20 =
             new owaspUtils.ethersMod.ethers.Contract(
                 erc20Address_main_net,
                 erc20ABI,
                 ethersProviderMainNet
             );
-        const depositBoxAddress = jo_deposit_box_erc20.address;
+        const depositBoxAddress = joDepositBoxERC20.address;
         const arrArgumentsApprove = [
             depositBoxAddress,
-            owaspUtils.ensureStartsWith0x( owaspUtils.toBN( token_amount ).toHexString() )
+            owaspUtils.ensureStartsWith0x( owaspUtils.toBN( tokenAmount ).toHexString() )
         ];
         const arrArgumentsDepositERC20 = [
-            chain_id_s_chain,
+            chainIdSChain,
             erc20Address_main_net,
-            owaspUtils.ensureStartsWith0x( owaspUtils.toBN( token_amount ).toHexString() )
+            owaspUtils.ensureStartsWith0x( owaspUtils.toBN( tokenAmount ).toHexString() )
         ];
         const weiHowMuchApprove = undefined;
-        let gasPrice = await tc_main_net.computeGasPrice( ethersProviderMainNet, 200000000000 );
+        let gasPrice = await transactionCustomizerMainNet.computeGasPrice(
+            ethersProviderMainNet, 200000000000 );
         details.write( strLogPrefix +
             cc.debug( "Using computed " ) + cc.info( "gasPrice" ) +
             cc.debug( "=" ) + cc.j( gasPrice ) +
             "\n" );
         const estimatedGasApprove =
-            await tc_main_net.computeGas(
+            await transactionCustomizerMainNet.computeGas(
                 details,
                 ethersProviderMainNet,
                 "ERC20", contractERC20, "approve", arrArgumentsApprove,
@@ -3469,16 +3471,17 @@ export async function doErc20PaymentFromMainNet(
 
         strActionName = "ERC20 payment from Main Net, depositERC20";
         const weiHowMuchDepositERC20 = undefined;
-        gasPrice = await tc_main_net.computeGasPrice( ethersProviderMainNet, 200000000000 );
+        gasPrice = await transactionCustomizerMainNet.computeGasPrice(
+            ethersProviderMainNet, 200000000000 );
         details.write( strLogPrefix +
             cc.debug( "Using computed " ) + cc.info( "gasPrice" ) +
             cc.debug( "=" ) + cc.j( gasPrice ) +
             "\n" );
         const estimatedGasDeposit =
-            await tc_main_net.computeGas(
+            await transactionCustomizerMainNet.computeGas(
                 details,
                 ethersProviderMainNet,
-                "DepositBoxERC20", jo_deposit_box_erc20,
+                "DepositBoxERC20", joDepositBoxERC20,
                 "depositERC20", arrArgumentsDepositERC20,
                 joAccountSrc, strActionName,
                 gasPrice, 8000000, weiHowMuchDepositERC20,
@@ -3493,7 +3496,7 @@ export async function doErc20PaymentFromMainNet(
             await dryRunCall(
                 details,
                 ethersProviderMainNet,
-                "DepositBoxERC20", jo_deposit_box_erc20,
+                "DepositBoxERC20", joDepositBoxERC20,
                 "depositERC20", arrArgumentsDepositERC20,
                 joAccountSrc, strActionName, isIgnoreDepositERC20,
                 gasPrice, estimatedGasDeposit, weiHowMuchDepositERC20,
@@ -3506,7 +3509,7 @@ export async function doErc20PaymentFromMainNet(
             await payedCall(
                 details,
                 ethersProviderMainNet,
-                "DepositBoxERC20", jo_deposit_box_erc20,
+                "DepositBoxERC20", joDepositBoxERC20,
                 "depositERC20", arrArgumentsDepositERC20,
                 joAccountSrc, strActionName,
                 gasPrice, estimatedGasDeposit, weiHowMuchDepositERC20,
@@ -3521,32 +3524,32 @@ export async function doErc20PaymentFromMainNet(
 
         // Must-have event(s) analysis as indicator(s) of success
         const strEventName = "OutgoingMessage";
-        if( jo_message_proxy_main_net ) {
+        if( joMessageProxyMainNet ) {
             details.write( strLogPrefix +
                 cc.debug( "Verifying the " ) + cc.info( strEventName ) +
                 cc.debug( " event of the " ) + cc.info( "MessageProxy" ) + cc.debug( "/" ) +
-                cc.notice( jo_message_proxy_main_net.address ) + cc.debug( " contract ..." ) +
+                cc.notice( joMessageProxyMainNet.address ) + cc.debug( " contract ..." ) +
                 "\n" );
             await sleep( g_nSleepBeforeFetchOutgoingMessageEvent );
             const joEvents =
                 await getContractCallEvents(
                     details, strLogPrefix,
-                    ethersProviderMainNet, jo_message_proxy_main_net, strEventName,
+                    ethersProviderMainNet, joMessageProxyMainNet, strEventName,
                     joReceiptDeposit.blockNumber, joReceiptDeposit.transactionHash,
-                    jo_message_proxy_main_net.filters[strEventName]()
+                    joMessageProxyMainNet.filters[strEventName]()
                 );
             if( joEvents.length > 0 ) {
                 details.write( strLogPrefix +
                     cc.success( "Success, verified the " ) + cc.info( strEventName ) +
                     cc.success( " event of the " ) + cc.info( "MessageProxy" ) +
-                    cc.success( "/" ) + cc.notice( jo_message_proxy_main_net.address ) +
+                    cc.success( "/" ) + cc.notice( joMessageProxyMainNet.address ) +
                     cc.success( " contract, found event(s): " ) + cc.j( joEvents ) +
                     "\n" );
             } else {
                 throw new Error(
                     "Verification failed for th\"OutgoingMessage\" event " +
                         "of the \"MessageProxy\"/" +
-                    jo_message_proxy_main_net.address + " contract, no events found" );
+                    joMessageProxyMainNet.address + " contract, no events found" );
             }
         }
     } catch ( err ) {
@@ -3571,22 +3574,22 @@ export async function doErc20PaymentFromMainNet(
 export async function doErc1155PaymentFromMainNet(
     ethersProviderMainNet,
     ethersProviderSChain,
-    cid_main_net,
+    chainIdMainNet,
     cid_s_chain,
     joAccountSrc,
     joAccountDst,
-    jo_deposit_box_erc1155,
-    jo_message_proxy_main_net, // for checking logs
-    chain_id_s_chain,
-    token_id, // which ERC1155 token id to send
-    token_amount, // which ERC1155 token id to send
+    joDepositBoxERC1155,
+    joMessageProxyMainNet, // for checking logs
+    chainIdSChain,
+    tokenId, // which ERC1155 token id to send
+    tokenAmount, // which ERC1155 token id to send
     weiHowMuch, // how much ETH
-    jo_token_manager_erc1155, // only s-chain
-    strCoinNameErc1155_main_net,
+    joTokenManagerERC1155, // only s-chain
+    strCoinNameErc1155SMainNet,
     erc1155PrivateTestnetJson_main_net,
-    strCoinNameErc1155_s_chain,
+    strCoinNameErc1155SChain,
     erc1155PrivateTestnetJson_s_chain,
-    tc_main_net
+    transactionCustomizerMainNet
 ) {
     const details = log.createMemoryStream();
     const jarrReceipts = []; // doErc1155PaymentFromMainNet
@@ -3595,95 +3598,72 @@ export async function doErc1155PaymentFromMainNet(
     try {
         strActionName = "ERC1155 payment from Main Net, approve";
         const erc1155ABI =
-            erc1155PrivateTestnetJson_main_net[strCoinNameErc1155_main_net + "_abi"];
+            erc1155PrivateTestnetJson_main_net[strCoinNameErc1155SMainNet + "_abi"];
         const erc1155Address_main_net =
-            erc1155PrivateTestnetJson_main_net[strCoinNameErc1155_main_net + "_address"];
-        const contractERC1155 =
-            new owaspUtils.ethersMod.ethers.Contract(
-                erc1155Address_main_net,
-                erc1155ABI,
-                ethersProviderMainNet
-            );
-        const depositBoxAddress = jo_deposit_box_erc1155.address;
+            erc1155PrivateTestnetJson_main_net[strCoinNameErc1155SMainNet + "_address"];
+        const contractERC1155 = new owaspUtils.ethersMod.ethers.Contract(
+            erc1155Address_main_net, erc1155ABI, ethersProviderMainNet );
+        const depositBoxAddress = joDepositBoxERC1155.address;
         const arrArgumentsApprove = [
-            // joAccountSrc.address(),
             depositBoxAddress,
             true
         ];
         const arrArgumentsDepositERC1155 = [
-            chain_id_s_chain,
+            chainIdSChain,
             erc1155Address_main_net,
-            owaspUtils.ensureStartsWith0x( owaspUtils.toBN( token_id ).toHexString() ),
-            owaspUtils.ensureStartsWith0x( owaspUtils.toBN( token_amount ).toHexString() )
+            owaspUtils.ensureStartsWith0x( owaspUtils.toBN( tokenId ).toHexString() ),
+            owaspUtils.ensureStartsWith0x( owaspUtils.toBN( tokenAmount ).toHexString() )
         ];
         const weiHowMuchApprove = undefined;
-        let gasPrice = await tc_main_net.computeGasPrice( ethersProviderMainNet, 200000000000 );
+        let gasPrice = await transactionCustomizerMainNet.computeGasPrice(
+            ethersProviderMainNet, 200000000000 );
         details.write( strLogPrefix +
             cc.debug( "Using computed " ) + cc.info( "gasPrice" ) +
             cc.debug( "=" ) + cc.j( gasPrice ) +
             "\n" );
         const estimatedGasApprove =
-            await tc_main_net.computeGas(
-                details,
-                ethersProviderMainNet,
-                "ERC1155", contractERC1155,
-                "setApprovalForAll", arrArgumentsApprove,
-                joAccountSrc, strActionName,
-                gasPrice, 8000000, weiHowMuchApprove,
-                null
-            );
-        details.write( strLogPrefix +
-            cc.debug( "Using estimated(approve) " ) + cc.info( "gas" ) +
-            cc.debug( "=" ) + cc.notice( estimatedGasApprove ) +
-            "\n" );
+            await transactionCustomizerMainNet.computeGas(
+                details, ethersProviderMainNet,
+                "ERC1155", contractERC1155, "setApprovalForAll", arrArgumentsApprove,
+                joAccountSrc, strActionName, gasPrice, 8000000, weiHowMuchApprove, null );
+        details.write( strLogPrefix + cc.debug( "Using estimated(approve) " ) + cc.info( "gas" ) +
+            cc.debug( "=" ) + cc.notice( estimatedGasApprove ) + "\n" );
         const isIgnoreApprove = false;
         const strErrorOfDryRunApprove =
             await dryRunCall(
-                details,
-                ethersProviderMainNet,
-                "ERC1155", contractERC1155,
-                "setApprovalForAll", arrArgumentsApprove,
+                details, ethersProviderMainNet,
+                "ERC1155", contractERC1155, "setApprovalForAll", arrArgumentsApprove,
                 joAccountSrc, strActionName, isIgnoreApprove,
-                gasPrice, estimatedGasApprove, weiHowMuchApprove,
-                null
-            );
+                gasPrice, estimatedGasApprove, weiHowMuchApprove, null );
         if( strErrorOfDryRunApprove )
             throw new Error( strErrorOfDryRunApprove );
-
         const joReceiptApprove =
             await payedCall(
-                details,
-                ethersProviderMainNet,
-                "ERC1155", contractERC1155,
-                "setApprovalForAll", arrArgumentsApprove,
-                joAccountSrc, strActionName,
-                gasPrice, estimatedGasApprove, weiHowMuchApprove,
-                null
-            );
+                details, ethersProviderMainNet,
+                "ERC1155", contractERC1155, "setApprovalForAll", arrArgumentsApprove,
+                joAccountSrc, strActionName, gasPrice, estimatedGasApprove, weiHowMuchApprove,
+                null );
         if( joReceiptApprove && typeof joReceiptApprove == "object" ) {
             jarrReceipts.push( {
                 "description": "doErc1155PaymentFromMainNet/approve",
                 "receipt": joReceiptApprove
             } );
         }
-
         strActionName = "ERC1155 payment from Main Net, depositERC1155";
         const weiHowMuchDepositERC1155 = undefined;
-        gasPrice = await tc_main_net.computeGasPrice( ethersProviderMainNet, 200000000000 );
+        gasPrice = await transactionCustomizerMainNet.computeGasPrice(
+            ethersProviderMainNet, 200000000000 );
         details.write( strLogPrefix +
             cc.debug( "Using computed " ) + cc.info( "gasPrice" ) +
             cc.debug( "=" ) + cc.j( gasPrice ) +
             "\n" );
         const estimatedGasDeposit =
-            await tc_main_net.computeGas(
-                details,
-                ethersProviderMainNet,
-                "DepositBoxERC1155", jo_deposit_box_erc1155,
+            await transactionCustomizerMainNet.computeGas(
+                details, ethersProviderMainNet,
+                "DepositBoxERC1155", joDepositBoxERC1155,
                 "depositERC1155", arrArgumentsDepositERC1155,
                 joAccountSrc, strActionName,
-                gasPrice, 8000000, weiHowMuchDepositERC1155,
-                null
-            );
+                gasPrice, 8000000, weiHowMuchDepositERC1155, null );
         details.write( strLogPrefix +
             cc.debug( "Using estimated(deposit) " ) + cc.info( "gas" ) +
             cc.debug( "=" ) + cc.notice( estimatedGasDeposit ) +
@@ -3691,62 +3671,54 @@ export async function doErc1155PaymentFromMainNet(
         const isIgnoreDepositERC1155 = true;
         const strErrorOfDryRunDepositERC1155 =
             await dryRunCall(
-                details,
-                ethersProviderMainNet,
-                "DepositBoxERC1155", jo_deposit_box_erc1155,
+                details, ethersProviderMainNet,
+                "DepositBoxERC1155", joDepositBoxERC1155,
                 "depositERC1155", arrArgumentsDepositERC1155,
                 joAccountSrc, strActionName, isIgnoreDepositERC1155,
-                gasPrice, estimatedGasDeposit, weiHowMuchDepositERC1155,
-                null
-            );
+                gasPrice, estimatedGasDeposit, weiHowMuchDepositERC1155, null );
         if( strErrorOfDryRunDepositERC1155 )
             throw new Error( strErrorOfDryRunDepositERC1155 );
-
         const joReceiptDeposit =
             await payedCall(
-                details,
-                ethersProviderMainNet,
-                "DepositBoxERC1155", jo_deposit_box_erc1155,
+                details, ethersProviderMainNet,
+                "DepositBoxERC1155", joDepositBoxERC1155,
                 "depositERC1155", arrArgumentsDepositERC1155,
                 joAccountSrc, strActionName,
-                gasPrice, estimatedGasDeposit, weiHowMuchDepositERC1155,
-                null
-            );
+                gasPrice, estimatedGasDeposit, weiHowMuchDepositERC1155, null );
         if( joReceiptDeposit && typeof joReceiptDeposit == "object" ) {
             jarrReceipts.push( {
                 "description": "doErc1155PaymentFromMainNet/deposit",
                 "receipt": joReceiptDeposit
             } );
         }
-
         // Must-have event(s) analysis as indicator(s) of success
         const strEventName = "OutgoingMessage";
-        if( jo_message_proxy_main_net ) {
+        if( joMessageProxyMainNet ) {
             details.write( strLogPrefix +
                 cc.debug( "Verifying the " ) + cc.info( strEventName ) +
                 cc.debug( " event of the " ) + cc.info( "MessageProxy" ) + cc.debug( "/" ) +
-                cc.notice( jo_message_proxy_main_net.address ) + cc.debug( " contract ..." ) +
+                cc.notice( joMessageProxyMainNet.address ) + cc.debug( " contract ..." ) +
                 "\n" );
             await sleep( g_nSleepBeforeFetchOutgoingMessageEvent );
             const joEvents =
                 await getContractCallEvents(
                     details, strLogPrefix,
-                    ethersProviderMainNet, jo_message_proxy_main_net, strEventName,
+                    ethersProviderMainNet, joMessageProxyMainNet, strEventName,
                     joReceiptDeposit.blockNumber, joReceiptDeposit.transactionHash,
-                    jo_message_proxy_main_net.filters[strEventName]()
+                    joMessageProxyMainNet.filters[strEventName]()
                 );
             if( joEvents.length > 0 ) {
                 details.write( strLogPrefix +
                     cc.success( "Success, verified the " ) + cc.info( strEventName ) +
                     cc.success( " event of the " ) + cc.info( "MessageProxy" ) +
-                    cc.success( "/" ) + cc.notice( jo_message_proxy_main_net.address ) +
+                    cc.success( "/" ) + cc.notice( joMessageProxyMainNet.address ) +
                     cc.success( " contract, found event(s): " ) + cc.j( joEvents ) +
                     "\n" );
             } else {
                 throw new Error(
                     "Verification failed for the \"OutgoingMessage\" event " +
                         "of the \"MessageProxy\"/" +
-                    jo_message_proxy_main_net.address + " contract, no events found" );
+                    joMessageProxyMainNet.address + " contract, no events found" );
             }
         }
     } catch ( err ) {
@@ -3771,22 +3743,22 @@ export async function doErc1155PaymentFromMainNet(
 export async function doErc1155BatchPaymentFromMainNet(
     ethersProviderMainNet,
     ethersProviderSChain,
-    cid_main_net,
+    chainIdMainNet,
     cid_s_chain,
     joAccountSrc,
     joAccountDst,
-    jo_deposit_box_erc1155,
-    jo_message_proxy_main_net, // for checking logs
-    chain_id_s_chain,
-    token_ids, // which ERC1155 token id to send
-    token_amounts, // which ERC1155 token id to send
+    joDepositBoxERC1155,
+    joMessageProxyMainNet, // for checking logs
+    chainIdSChain,
+    arrTokenIds, // which ERC1155 token id to send
+    arrTokenAmounts, // which ERC1155 token id to send
     weiHowMuch, // how much ETH
-    jo_token_manager_erc1155, // only s-chain
-    strCoinNameErc1155_main_net,
+    joTokenManagerERC1155, // only s-chain
+    strCoinNameErc1155SMainNet,
     erc1155PrivateTestnetJson_main_net,
-    strCoinNameErc1155_s_chain,
+    strCoinNameErc1155SChain,
     erc1155PrivateTestnetJson_s_chain,
-    tc_main_net
+    transactionCustomizerMainNet
 ) {
     const details = log.createMemoryStream();
     const jarrReceipts = []; // doErc1155BatchPaymentFromMainNet
@@ -3795,35 +3767,36 @@ export async function doErc1155BatchPaymentFromMainNet(
     try {
         strActionName = "ERC1155 batch-payment from Main Net, approve";
         const erc1155ABI =
-            erc1155PrivateTestnetJson_main_net[strCoinNameErc1155_main_net + "_abi"];
+            erc1155PrivateTestnetJson_main_net[strCoinNameErc1155SMainNet + "_abi"];
         const erc1155Address_main_net =
-            erc1155PrivateTestnetJson_main_net[strCoinNameErc1155_main_net + "_address"];
+            erc1155PrivateTestnetJson_main_net[strCoinNameErc1155SMainNet + "_address"];
         const contractERC1155 =
             new owaspUtils.ethersMod.ethers.Contract(
                 erc1155Address_main_net,
                 erc1155ABI,
                 ethersProviderMainNet
             );
-        const depositBoxAddress = jo_deposit_box_erc1155.address;
+        const depositBoxAddress = joDepositBoxERC1155.address;
         const arrArgumentsApprove = [
             // joAccountSrc.address(),
             depositBoxAddress,
             true
         ];
         const arrArgumentsDepositERC1155Batch = [
-            chain_id_s_chain,
+            chainIdSChain,
             erc1155Address_main_net,
-            token_ids,
-            token_amounts
+            arrTokenIds,
+            arrTokenAmounts
         ];
         const weiHowMuchApprove = undefined;
-        let gasPrice = await tc_main_net.computeGasPrice( ethersProviderMainNet, 200000000000 );
+        let gasPrice = await transactionCustomizerMainNet.computeGasPrice(
+            ethersProviderMainNet, 200000000000 );
         details.write( strLogPrefix +
             cc.debug( "Using computed " ) + cc.info( "gasPrice" ) +
             cc.debug( "=" ) + cc.j( gasPrice ) +
             "\n" );
         const estimatedGasApprove =
-            await tc_main_net.computeGas(
+            await transactionCustomizerMainNet.computeGas(
                 details,
                 ethersProviderMainNet,
                 "ERC1155", contractERC1155, "setApprovalForAll", arrArgumentsApprove,
@@ -3868,16 +3841,17 @@ export async function doErc1155BatchPaymentFromMainNet(
 
         strActionName = "ERC1155 batch-payment from Main Net, depositERC1155Batch";
         const weiHowMuchDepositERC1155Batch = undefined;
-        gasPrice = await tc_main_net.computeGasPrice( ethersProviderMainNet, 200000000000 );
+        gasPrice = await transactionCustomizerMainNet.computeGasPrice(
+            ethersProviderMainNet, 200000000000 );
         details.write( strLogPrefix +
             cc.debug( "Using computed " ) + cc.info( "gasPrice" ) +
             cc.debug( "=" ) + cc.j( gasPrice ) +
             "\n" );
         const estimatedGasDeposit =
-            await tc_main_net.computeGas(
+            await transactionCustomizerMainNet.computeGas(
                 details,
                 ethersProviderMainNet,
-                "DepositBoxERC1155", jo_deposit_box_erc1155,
+                "DepositBoxERC1155", joDepositBoxERC1155,
                 "depositERC1155Batch", arrArgumentsDepositERC1155Batch,
                 joAccountSrc, strActionName,
                 gasPrice, 8000000, weiHowMuchDepositERC1155Batch,
@@ -3892,7 +3866,7 @@ export async function doErc1155BatchPaymentFromMainNet(
             await dryRunCall(
                 details,
                 ethersProviderMainNet,
-                "DepositBoxERC1155", jo_deposit_box_erc1155,
+                "DepositBoxERC1155", joDepositBoxERC1155,
                 "depositERC1155Batch", arrArgumentsDepositERC1155Batch,
                 joAccountSrc, strActionName, isIgnoreDepositERC1155Batch,
                 gasPrice, estimatedGasDeposit, weiHowMuchDepositERC1155Batch,
@@ -3905,7 +3879,7 @@ export async function doErc1155BatchPaymentFromMainNet(
             await payedCall(
                 details,
                 ethersProviderMainNet,
-                "DepositBoxERC1155", jo_deposit_box_erc1155,
+                "DepositBoxERC1155", joDepositBoxERC1155,
                 "depositERC1155Batch", arrArgumentsDepositERC1155Batch,
                 joAccountSrc, strActionName,
                 gasPrice, estimatedGasDeposit, weiHowMuchDepositERC1155Batch,
@@ -3920,32 +3894,32 @@ export async function doErc1155BatchPaymentFromMainNet(
 
         // Must-have event(s) analysis as indicator(s) of success
         const strEventName = "OutgoingMessage";
-        if( jo_message_proxy_main_net ) {
+        if( joMessageProxyMainNet ) {
             details.write( strLogPrefix +
                 cc.debug( "Verifying the " ) + cc.info( strEventName ) +
                 cc.debug( " event of the " ) + cc.info( "MessageProxy" ) + cc.debug( "/" ) +
-                cc.notice( jo_message_proxy_main_net.address ) + cc.debug( " contract ..." ) +
+                cc.notice( joMessageProxyMainNet.address ) + cc.debug( " contract ..." ) +
                 "\n" );
             await sleep( g_nSleepBeforeFetchOutgoingMessageEvent );
             const joEvents =
                 await getContractCallEvents(
                     details, strLogPrefix,
-                    ethersProviderMainNet, jo_message_proxy_main_net, strEventName,
+                    ethersProviderMainNet, joMessageProxyMainNet, strEventName,
                     joReceiptDeposit.blockNumber, joReceiptDeposit.transactionHash,
-                    jo_message_proxy_main_net.filters[strEventName]()
+                    joMessageProxyMainNet.filters[strEventName]()
                 );
             if( joEvents.length > 0 ) {
                 details.write( strLogPrefix +
                     cc.success( "Success, verified the " ) + cc.info( strEventName ) +
                     cc.success( " event of the " ) + cc.info( "MessageProxy" ) +
-                    cc.success( "/" ) + cc.notice( jo_message_proxy_main_net.address ) +
+                    cc.success( "/" ) + cc.notice( joMessageProxyMainNet.address ) +
                     cc.success( " contract, found event(s): " ) + cc.j( joEvents ) +
                     "\n" );
             } else {
                 throw new Error(
                     "Verification failed for the \"OutgoingMessage\" event " +
                         "of the \"MessageProxy\"/" +
-                    jo_message_proxy_main_net.address + " contract, no events found" );
+                    joMessageProxyMainNet.address + " contract, no events found" );
             }
         }
     } catch ( err ) {
@@ -3973,20 +3947,20 @@ export async function doErc1155BatchPaymentFromMainNet(
 export async function doErc20PaymentFromSChain(
     ethersProviderMainNet,
     ethersProviderSChain,
-    cid_main_net,
+    chainIdMainNet,
     cid_s_chain,
     joAccountSrc,
     joAccountDst,
-    jo_token_manager_erc20, // only s-chain
-    jo_message_proxy_s_chain, // for checking logs
-    jo_deposit_box, // only main net
-    token_amount, // how much ERC20 tokens to send
+    joTokenManagerERC20, // only s-chain
+    joMessageProxySChain, // for checking logs
+    joDepositBox, // only main net
+    tokenAmount, // how much ERC20 tokens to send
     weiHowMuch, // how much ETH
-    strCoinNameErc20_main_net,
+    strCoinNameErc20MainNet,
     joErc20_main_net,
-    strCoinNameErc20_s_chain,
+    strCoinNameErc20SChain,
     joErc20_s_chain,
-    tc_s_chain
+    transactionCustomizerSChain
 ) {
     const details = log.createMemoryStream();
     const jarrReceipts = []; // doErc20PaymentFromSChain
@@ -3994,27 +3968,28 @@ export async function doErc20PaymentFromSChain(
     const strLogPrefix = cc.info( "S2M ERC20 Payment:" ) + " ";
     try {
         strActionName = "ERC20 payment from S-Chain, approve";
-        const erc20ABI = joErc20_s_chain[strCoinNameErc20_s_chain + "_abi"];
-        const erc20Address_s_chain = joErc20_s_chain[strCoinNameErc20_s_chain + "_address"];
-        const tokenManagerAddress = jo_token_manager_erc20.address;
+        const erc20ABI = joErc20_s_chain[strCoinNameErc20SChain + "_abi"];
+        const erc20Address_s_chain = joErc20_s_chain[strCoinNameErc20SChain + "_address"];
+        const tokenManagerAddress = joTokenManagerERC20.address;
         const contractERC20 =
             new owaspUtils.ethersMod.ethers.Contract(
                 erc20Address_s_chain, erc20ABI, ethersProviderSChain );
         const arrArgumentsApprove = [
             tokenManagerAddress,
-            owaspUtils.ensureStartsWith0x( owaspUtils.toBN( token_amount ).toHexString() ) ];
-        const erc20Address_main_net = joErc20_main_net[strCoinNameErc20_main_net + "_address"];
+            owaspUtils.ensureStartsWith0x( owaspUtils.toBN( tokenAmount ).toHexString() ) ];
+        const erc20Address_main_net = joErc20_main_net[strCoinNameErc20MainNet + "_address"];
         const arrArgumentsExitToMainERC20 = [
             erc20Address_main_net,
-            owaspUtils.ensureStartsWith0x( owaspUtils.toBN( token_amount ).toHexString() )
+            owaspUtils.ensureStartsWith0x( owaspUtils.toBN( tokenAmount ).toHexString() )
             // owaspUtils.ensureStartsWith0x( owaspUtils.toBN( weiHowMuch ).toHexString() )
         ];
         const weiHowMuchApprove = undefined;
-        let gasPrice = await tc_s_chain.computeGasPrice( ethersProviderSChain, 200000000000 );
+        let gasPrice = await transactionCustomizerSChain.computeGasPrice(
+            ethersProviderSChain, 200000000000 );
         details.write( strLogPrefix + cc.debug( "Using computed " ) +
             cc.info( "gasPrice" ) + cc.debug( "=" ) + cc.j( gasPrice ) + "\n" );
         const estimatedGasApprove =
-            await tc_s_chain.computeGas(
+            await transactionCustomizerSChain.computeGas(
                 details, ethersProviderSChain,
                 "ERC20", contractERC20, "approve", arrArgumentsApprove,
                 joAccountSrc, strActionName,
@@ -4054,22 +4029,23 @@ export async function doErc20PaymentFromSChain(
         strActionName = "ERC20 payment from S-Chain, exitToMainERC20";
         const weiHowMuchExitToMainERC20 = undefined;
         const estimatedGasExitToMainERC20 =
-            await tc_s_chain.computeGas(
+            await transactionCustomizerSChain.computeGas(
                 details, ethersProviderSChain,
-                "TokenManagerERC20", jo_token_manager_erc20,
+                "TokenManagerERC20", joTokenManagerERC20,
                 "exitToMainERC20", arrArgumentsExitToMainERC20,
                 joAccountSrc, strActionName,
                 gasPrice, 8000000, weiHowMuchExitToMainERC20, null );
         details.write( strLogPrefix + cc.debug( "Using estimated(approve) " ) +
             cc.info( "gas" ) + cc.debug( "=" ) + cc.notice( estimatedGasExitToMainERC20 ) + "\n" );
-        gasPrice = await tc_s_chain.computeGasPrice( ethersProviderSChain, 200000000000 );
+        gasPrice = await transactionCustomizerSChain.computeGasPrice(
+            ethersProviderSChain, 200000000000 );
         details.write( strLogPrefix + cc.debug( "Using computed " ) +
             cc.info( "gasPrice" ) + cc.debug( "=" ) + cc.j( gasPrice ) + "\n" );
         const isIgnoreExitToMainERC20 = true;
         const strErrorOfDryRunExitToMainERC20 =
             await dryRunCall(
                 details, ethersProviderSChain,
-                "TokenManagerERC20", jo_token_manager_erc20,
+                "TokenManagerERC20", joTokenManagerERC20,
                 "exitToMainERC20", arrArgumentsExitToMainERC20,
                 joAccountSrc, strActionName, isIgnoreExitToMainERC20,
                 gasPrice, estimatedGasExitToMainERC20, weiHowMuchExitToMainERC20, null );
@@ -4079,7 +4055,7 @@ export async function doErc20PaymentFromSChain(
         const joReceiptExitToMainERC20 =
             await payedCall(
                 details, ethersProviderSChain,
-                "TokenManagerERC20", jo_token_manager_erc20,
+                "TokenManagerERC20", joTokenManagerERC20,
                 "exitToMainERC20", arrArgumentsExitToMainERC20,
                 joAccountSrc, strActionName, gasPrice,
                 estimatedGasExitToMainERC20, weiHowMuchExitToMainERC20, opts );
@@ -4091,29 +4067,29 @@ export async function doErc20PaymentFromSChain(
         }
         // Must-have event(s) analysis as indicator(s) of success
         const strEventName = "OutgoingMessage";
-        if( jo_message_proxy_s_chain ) {
+        if( joMessageProxySChain ) {
             details.write( strLogPrefix + cc.debug( "Verifying the " ) + cc.info( strEventName ) +
                 cc.debug( " event of the " ) + cc.info( "MessageProxy" ) + cc.debug( "/" ) +
-                cc.notice( jo_message_proxy_s_chain.address ) + cc.debug( " contract ..." ) +
+                cc.notice( joMessageProxySChain.address ) + cc.debug( " contract ..." ) +
                 "\n" );
             await sleep( g_nSleepBeforeFetchOutgoingMessageEvent );
             const joEvents =
                 await getContractCallEvents(
                     details, strLogPrefix,
-                    ethersProviderSChain, jo_message_proxy_s_chain, strEventName,
+                    ethersProviderSChain, joMessageProxySChain, strEventName,
                     joReceiptExitToMainERC20.blockNumber, joReceiptExitToMainERC20.transactionHash,
-                    jo_message_proxy_s_chain.filters[strEventName]() );
+                    joMessageProxySChain.filters[strEventName]() );
             if( joEvents.length > 0 ) {
                 details.write( strLogPrefix + cc.success( "Success, verified the " ) +
                     cc.info( strEventName ) + cc.success( " event of the " ) +
                     cc.info( "MessageProxy" ) + cc.success( "/" ) +
-                    cc.notice( jo_message_proxy_s_chain.address ) +
+                    cc.notice( joMessageProxySChain.address ) +
                     cc.success( " contract, found event(s): " ) + cc.j( joEvents ) + "\n" );
             } else {
                 throw new Error(
                     "Verification failed for the \"OutgoingMessage\" event " +
                         "of the \"MessageProxy\"/" +
-                    jo_message_proxy_s_chain.address + " contract, no events found" );
+                    joMessageProxySChain.address + " contract, no events found" );
             }
         }
     } catch ( err ) {
@@ -4141,20 +4117,20 @@ export async function doErc20PaymentFromSChain(
 export async function doErc721PaymentFromSChain(
     ethersProviderMainNet,
     ethersProviderSChain,
-    cid_main_net,
+    chainIdMainNet,
     cid_s_chain,
     joAccountSrc,
     joAccountDst,
-    jo_token_manager_erc721, // only s-chain
-    jo_message_proxy_s_chain, // for checking logs
-    jo_deposit_box, // only main net
-    token_id, // which ERC721 token id to send
+    joTokenManagerERC721, // only s-chain
+    joMessageProxySChain, // for checking logs
+    joDepositBox, // only main net
+    tokenId, // which ERC721 token id to send
     weiHowMuch, // how much ETH
-    strCoinNameErc721_main_net,
+    strCoinNameErc721MainNet,
     joErc721_main_net,
-    strCoinNameErc721_s_chain,
+    strCoinNameErc721SChain,
     joErc721_s_chain,
-    tc_s_chain
+    transactionCustomizerSChain
 ) {
     const details = log.createMemoryStream();
     const jarrReceipts = []; // doErc721PaymentFromSChain
@@ -4162,28 +4138,29 @@ export async function doErc721PaymentFromSChain(
     const strLogPrefix = cc.info( "S2M ERC721 Payment:" ) + " ";
     try {
         strActionName = "ERC721 payment from S-Chain, approve";
-        const erc721ABI = joErc721_s_chain[strCoinNameErc721_s_chain + "_abi"];
-        const erc721Address_s_chain = joErc721_s_chain[strCoinNameErc721_s_chain + "_address"];
-        const tokenManagerAddress = jo_token_manager_erc721.address;
+        const erc721ABI = joErc721_s_chain[strCoinNameErc721SChain + "_abi"];
+        const erc721Address_s_chain = joErc721_s_chain[strCoinNameErc721SChain + "_address"];
+        const tokenManagerAddress = joTokenManagerERC721.address;
         const contractERC721 =
             new owaspUtils.ethersMod.ethers.Contract(
                 erc721Address_s_chain, erc721ABI, ethersProviderSChain );
         const arrArgumentsApprove = [
             tokenManagerAddress,
-            owaspUtils.ensureStartsWith0x( owaspUtils.toBN( token_id ).toHexString() )
+            owaspUtils.ensureStartsWith0x( owaspUtils.toBN( tokenId ).toHexString() )
         ];
         const erc721Address_main_net =
-            joErc721_main_net[strCoinNameErc721_main_net + "_address"];
+            joErc721_main_net[strCoinNameErc721MainNet + "_address"];
         const arrArgumentsExitToMainERC721 = [
             erc721Address_main_net,
-            owaspUtils.ensureStartsWith0x( owaspUtils.toBN( token_id ).toHexString() )
+            owaspUtils.ensureStartsWith0x( owaspUtils.toBN( tokenId ).toHexString() )
         ];
         const weiHowMuchApprove = undefined;
-        let gasPrice = await tc_s_chain.computeGasPrice( ethersProviderSChain, 200000000000 );
+        let gasPrice = await transactionCustomizerSChain.computeGasPrice(
+            ethersProviderSChain, 200000000000 );
         details.write( strLogPrefix + cc.debug( "Using computed " ) +
             cc.info( "gasPrice" ) + cc.debug( "=" ) + cc.j( gasPrice ) + "\n" );
         const estimatedGasApprove =
-            await tc_s_chain.computeGas(
+            await transactionCustomizerSChain.computeGas(
                 details, ethersProviderSChain,
                 "ERC721", contractERC721, "approve", arrArgumentsApprove,
                 joAccountSrc, strActionName,
@@ -4222,13 +4199,14 @@ export async function doErc721PaymentFromSChain(
             await safeWaitForNextBlockToAppear( details, ethersProviderSChain );
         strActionName = "ERC721 payment from S-Chain, exitToMainERC721";
         const weiHowMuchExitToMainERC721 = undefined;
-        gasPrice = await tc_s_chain.computeGasPrice( ethersProviderSChain, 200000000000 );
+        gasPrice = await transactionCustomizerSChain.computeGasPrice(
+            ethersProviderSChain, 200000000000 );
         details.write( strLogPrefix + cc.debug( "Using computed " ) + cc.info( "gasPrice" ) +
             cc.debug( "=" ) + cc.j( gasPrice ) + "\n" );
         const estimatedGasExitToMainERC721 =
-            await tc_s_chain.computeGas(
+            await transactionCustomizerSChain.computeGas(
                 details, ethersProviderSChain,
-                "TokenManagerERC721", jo_token_manager_erc721,
+                "TokenManagerERC721", joTokenManagerERC721,
                 "exitToMainERC721", arrArgumentsExitToMainERC721,
                 joAccountSrc, strActionName,
                 gasPrice, 8000000, weiHowMuchExitToMainERC721, null );
@@ -4240,7 +4218,7 @@ export async function doErc721PaymentFromSChain(
         const strErrorOfDryRunExitToMainERC721 =
             await dryRunCall(
                 details, ethersProviderSChain,
-                "TokenManagerERC721", jo_token_manager_erc721,
+                "TokenManagerERC721", joTokenManagerERC721,
                 "exitToMainERC721", arrArgumentsExitToMainERC721,
                 joAccountSrc, strActionName, isIgnoreExitToMainERC721, gasPrice,
                 estimatedGasExitToMainERC721, weiHowMuchExitToMainERC721, null );
@@ -4250,7 +4228,7 @@ export async function doErc721PaymentFromSChain(
         const joReceiptExitToMainERC721 =
             await payedCall(
                 details, ethersProviderSChain,
-                "TokenManagerERC721", jo_token_manager_erc721,
+                "TokenManagerERC721", joTokenManagerERC721,
                 "exitToMainERC721", arrArgumentsExitToMainERC721,
                 joAccountSrc, strActionName, gasPrice,
                 estimatedGasExitToMainERC721, weiHowMuchExitToMainERC721, opts );
@@ -4262,30 +4240,30 @@ export async function doErc721PaymentFromSChain(
         }
         // Must-have event(s) analysis as indicator(s) of success
         const strEventName = "OutgoingMessage";
-        if( jo_message_proxy_s_chain ) {
+        if( joMessageProxySChain ) {
             details.write( strLogPrefix + cc.debug( "Verifying the " ) +
                 cc.info( strEventName ) + cc.debug( " event of the " ) + cc.info( "MessageProxy" ) +
-                cc.debug( "/" ) + cc.notice( jo_message_proxy_s_chain.address ) +
+                cc.debug( "/" ) + cc.notice( joMessageProxySChain.address ) +
                 cc.debug( " contract ..." ) + "\n" );
             await sleep( g_nSleepBeforeFetchOutgoingMessageEvent );
             const joEvents =
                 await getContractCallEvents(
                     details, strLogPrefix,
-                    ethersProviderSChain, jo_message_proxy_s_chain, strEventName,
+                    ethersProviderSChain, joMessageProxySChain, strEventName,
                     joReceiptExitToMainERC721.blockNumber,
                     joReceiptExitToMainERC721.transactionHash,
-                    jo_message_proxy_s_chain.filters[strEventName]() );
+                    joMessageProxySChain.filters[strEventName]() );
             if( joEvents.length > 0 ) {
                 details.write( strLogPrefix + cc.success( "Success, verified the " ) +
                     cc.info( strEventName ) + cc.success( " event of the " ) +
                     cc.info( "MessageProxy" ) + cc.success( "/" ) +
-                    cc.notice( jo_message_proxy_s_chain.address ) +
+                    cc.notice( joMessageProxySChain.address ) +
                     cc.success( " contract, found event(s): " ) + cc.j( joEvents ) + "\n" );
             } else {
                 throw new Error(
                     "Verification failed for the \"OutgoingMessage\" event " +
                         "of the \"MessageProxy\"/" +
-                    jo_message_proxy_s_chain.address + " contract, no events found" );
+                    joMessageProxySChain.address + " contract, no events found" );
             }
         }
     } catch ( err ) {
@@ -4310,21 +4288,21 @@ export async function doErc721PaymentFromSChain(
 export async function doErc1155PaymentFromSChain(
     ethersProviderMainNet,
     ethersProviderSChain,
-    cid_main_net,
+    chainIdMainNet,
     cid_s_chain,
     joAccountSrc,
     joAccountDst,
-    jo_token_manager_erc1155, // only s-chain
-    jo_message_proxy_s_chain, // for checking logs
-    jo_deposit_box, // only main net
-    token_id, // which ERC1155 token id to send
-    token_amount, // which ERC1155 token id to send
+    joTokenManagerERC1155, // only s-chain
+    joMessageProxySChain, // for checking logs
+    joDepositBox, // only main net
+    tokenId, // which ERC1155 token id to send
+    tokenAmount, // which ERC1155 token id to send
     weiHowMuch, // how much ETH
-    strCoinNameErc1155_main_net,
+    strCoinNameErc1155SMainNet,
     joErc1155_main_net,
-    strCoinNameErc1155_s_chain,
+    strCoinNameErc1155SChain,
     joErc1155_s_chain,
-    tc_s_chain
+    transactionCustomizerSChain
 ) {
     const details = log.createMemoryStream();
     const jarrReceipts = []; // doErc1155PaymentFromSChain
@@ -4332,9 +4310,9 @@ export async function doErc1155PaymentFromSChain(
     const strLogPrefix = cc.info( "S2M ERC1155 Payment:" ) + " ";
     try {
         strActionName = "ERC1155 payment from S-Chain, approve";
-        const erc1155ABI = joErc1155_s_chain[strCoinNameErc1155_s_chain + "_abi"];
-        const erc1155Address_s_chain = joErc1155_s_chain[strCoinNameErc1155_s_chain + "_address"];
-        const tokenManagerAddress = jo_token_manager_erc1155.address;
+        const erc1155ABI = joErc1155_s_chain[strCoinNameErc1155SChain + "_abi"];
+        const erc1155Address_s_chain = joErc1155_s_chain[strCoinNameErc1155SChain + "_address"];
+        const tokenManagerAddress = joTokenManagerERC1155.address;
         const contractERC1155 =
             new owaspUtils.ethersMod.ethers.Contract(
                 erc1155Address_s_chain, erc1155ABI, ethersProviderSChain );
@@ -4343,19 +4321,20 @@ export async function doErc1155PaymentFromSChain(
             true
         ];
         const erc1155Address_main_net =
-            joErc1155_main_net[strCoinNameErc1155_main_net + "_address"];
+            joErc1155_main_net[strCoinNameErc1155SMainNet + "_address"];
         const arrArgumentsExitToMainERC1155 = [
             erc1155Address_main_net,
-            owaspUtils.ensureStartsWith0x( owaspUtils.toBN( token_id ).toHexString() ),
-            owaspUtils.ensureStartsWith0x( owaspUtils.toBN( token_amount ).toHexString() )
+            owaspUtils.ensureStartsWith0x( owaspUtils.toBN( tokenId ).toHexString() ),
+            owaspUtils.ensureStartsWith0x( owaspUtils.toBN( tokenAmount ).toHexString() )
             // owaspUtils.ensureStartsWith0x( owaspUtils.toBN( weiHowMuch ).toHexString() )
         ];
         const weiHowMuchApprove = undefined;
-        let gasPrice = await tc_s_chain.computeGasPrice( ethersProviderSChain, 200000000000 );
+        let gasPrice = await transactionCustomizerSChain.computeGasPrice(
+            ethersProviderSChain, 200000000000 );
         details.write( strLogPrefix + cc.debug( "Using computed " ) +
             cc.info( "gasPrice" ) + cc.debug( "=" ) + cc.j( gasPrice ) + "\n" );
         const estimatedGasApprove =
-            await tc_s_chain.computeGas(
+            await transactionCustomizerSChain.computeGas(
                 details, ethersProviderSChain,
                 "ERC1155", contractERC1155, "setApprovalForAll", arrArgumentsApprove,
                 joAccountSrc, strActionName, gasPrice, 8000000, weiHowMuchApprove, null );
@@ -4393,13 +4372,14 @@ export async function doErc1155PaymentFromSChain(
             await safeWaitForNextBlockToAppear( details, ethersProviderSChain );
         strActionName = "ERC1155 payment from S-Chain, exitToMainERC1155";
         const weiHowMuchExitToMainERC1155 = undefined;
-        gasPrice = await tc_s_chain.computeGasPrice( ethersProviderSChain, 200000000000 );
+        gasPrice = await transactionCustomizerSChain.computeGasPrice(
+            ethersProviderSChain, 200000000000 );
         details.write( strLogPrefix + cc.debug( "Using computed " ) +
             cc.info( "gasPrice" ) + cc.debug( "=" ) + cc.j( gasPrice ) + "\n" );
         const estimatedGasExitToMainERC1155 =
-            await tc_s_chain.computeGas(
+            await transactionCustomizerSChain.computeGas(
                 details, ethersProviderSChain,
-                "TokenManagerERC1155", jo_token_manager_erc1155,
+                "TokenManagerERC1155", joTokenManagerERC1155,
                 "exitToMainERC1155", arrArgumentsExitToMainERC1155,
                 joAccountSrc, strActionName, gasPrice, 8000000, weiHowMuchExitToMainERC1155,
                 null );
@@ -4410,7 +4390,7 @@ export async function doErc1155PaymentFromSChain(
         const strErrorOfDryRunExitToMainERC1155 =
             await dryRunCall(
                 details, ethersProviderSChain,
-                "TokenManagerERC1155", jo_token_manager_erc1155,
+                "TokenManagerERC1155", joTokenManagerERC1155,
                 "exitToMainERC1155", arrArgumentsExitToMainERC1155,
                 joAccountSrc, strActionName, isIgnoreExitToMainERC1155,
                 gasPrice, estimatedGasExitToMainERC1155, weiHowMuchExitToMainERC1155,
@@ -4421,7 +4401,7 @@ export async function doErc1155PaymentFromSChain(
         const joReceiptExitToMainERC1155 =
             await payedCall(
                 details, ethersProviderSChain,
-                "TokenManagerERC1155", jo_token_manager_erc1155,
+                "TokenManagerERC1155", joTokenManagerERC1155,
                 "exitToMainERC1155", arrArgumentsExitToMainERC1155,
                 joAccountSrc, strActionName, gasPrice,
                 estimatedGasExitToMainERC1155, weiHowMuchExitToMainERC1155, opts );
@@ -4433,30 +4413,30 @@ export async function doErc1155PaymentFromSChain(
         }
         // Must-have event(s) analysis as indicator(s) of success
         const strEventName = "OutgoingMessage";
-        if( jo_message_proxy_s_chain ) {
+        if( joMessageProxySChain ) {
             details.write( strLogPrefix + cc.debug( "Verifying the " ) + cc.info( strEventName ) +
                 cc.debug( " event of the " ) + cc.info( "MessageProxy" ) + cc.debug( "/" ) +
-                cc.notice( jo_message_proxy_s_chain.address ) + cc.debug( " contract ..." ) +
+                cc.notice( joMessageProxySChain.address ) + cc.debug( " contract ..." ) +
                 "\n" );
             await sleep( g_nSleepBeforeFetchOutgoingMessageEvent );
             const joEvents =
                 await getContractCallEvents(
                     details, strLogPrefix,
-                    ethersProviderSChain, jo_message_proxy_s_chain, strEventName,
+                    ethersProviderSChain, joMessageProxySChain, strEventName,
                     joReceiptExitToMainERC1155.blockNumber,
                     joReceiptExitToMainERC1155.transactionHash,
-                    jo_message_proxy_s_chain.filters[strEventName]() );
+                    joMessageProxySChain.filters[strEventName]() );
             if( joEvents.length > 0 ) {
                 details.write( strLogPrefix + cc.success( "Success, verified the " ) +
                     cc.info( strEventName ) + cc.success( " event of the " ) +
                     cc.info( "MessageProxy" ) + cc.success( "/" ) +
-                    cc.notice( jo_message_proxy_s_chain.address ) +
+                    cc.notice( joMessageProxySChain.address ) +
                     cc.success( " contract, found event(s): " ) + cc.j( joEvents ) + "\n" );
             } else {
                 throw new Error(
                     "Verification failed for the \"OutgoingMessage\" event " +
                         "of the \"MessageProxy\"/" +
-                    jo_message_proxy_s_chain.address + " contract, no events found" );
+                    joMessageProxySChain.address + " contract, no events found" );
             }
         }
     } catch ( err ) {
@@ -4481,21 +4461,21 @@ export async function doErc1155PaymentFromSChain(
 export async function doErc1155BatchPaymentFromSChain(
     ethersProviderMainNet,
     ethersProviderSChain,
-    cid_main_net,
+    chainIdMainNet,
     cid_s_chain,
     joAccountSrc,
     joAccountDst,
-    jo_token_manager_erc1155, // only s-chain
-    jo_message_proxy_s_chain, // for checking logs
-    jo_deposit_box, // only main net
-    token_ids, // which ERC1155 token ids to send
-    token_amounts, // which ERC1155 token amounts to send
+    joTokenManagerERC1155, // only s-chain
+    joMessageProxySChain, // for checking logs
+    joDepositBox, // only main net
+    arrTokenIds, // which ERC1155 token ids to send
+    arrTokenAmounts, // which ERC1155 token amounts to send
     weiHowMuch, // how much ETH
-    strCoinNameErc1155_main_net,
+    strCoinNameErc1155SMainNet,
     joErc1155_main_net,
-    strCoinNameErc1155_s_chain,
+    strCoinNameErc1155SChain,
     joErc1155_s_chain,
-    tc_s_chain
+    transactionCustomizerSChain
 ) {
     const details = log.createMemoryStream();
     const jarrReceipts = []; // doErc1155BatchPaymentFromSChain
@@ -4503,9 +4483,9 @@ export async function doErc1155BatchPaymentFromSChain(
     const strLogPrefix = cc.info( "S2M ERC1155 Batch Payment:" ) + " ";
     try {
         strActionName = "ERC1155 payment from S-Chain, approve";
-        const erc1155ABI = joErc1155_s_chain[strCoinNameErc1155_s_chain + "_abi"];
-        const erc1155Address_s_chain = joErc1155_s_chain[strCoinNameErc1155_s_chain + "_address"];
-        const tokenManagerAddress = jo_token_manager_erc1155.address;
+        const erc1155ABI = joErc1155_s_chain[strCoinNameErc1155SChain + "_abi"];
+        const erc1155Address_s_chain = joErc1155_s_chain[strCoinNameErc1155SChain + "_address"];
+        const tokenManagerAddress = joTokenManagerERC1155.address;
         const contractERC1155 =
             new owaspUtils.ethersMod.ethers.Contract(
                 erc1155Address_s_chain, erc1155ABI, ethersProviderSChain );
@@ -4514,18 +4494,19 @@ export async function doErc1155BatchPaymentFromSChain(
             true
         ];
         const erc1155Address_main_net =
-            joErc1155_main_net[strCoinNameErc1155_main_net + "_address"];
+            joErc1155_main_net[strCoinNameErc1155SMainNet + "_address"];
         const arrArgumentsExitToMainERC1155Batch = [
             erc1155Address_main_net,
-            token_ids,
-            token_amounts
+            arrTokenIds,
+            arrTokenAmounts
         ];
         const weiHowMuchApprove = undefined;
-        let gasPrice = await tc_s_chain.computeGasPrice( ethersProviderSChain, 200000000000 );
+        let gasPrice = await transactionCustomizerSChain.computeGasPrice(
+            ethersProviderSChain, 200000000000 );
         details.write( strLogPrefix + cc.debug( "Using computed " ) +
             cc.info( "gasPrice" ) + cc.debug( "=" ) + cc.j( gasPrice ) + "\n" );
         const estimatedGasApprove =
-            await tc_s_chain.computeGas(
+            await transactionCustomizerSChain.computeGas(
                 details, ethersProviderSChain,
                 "ERC1155", contractERC1155, "setApprovalForAll", arrArgumentsApprove,
                 joAccountSrc, strActionName, gasPrice, 8000000, weiHowMuchApprove, null );
@@ -4564,13 +4545,14 @@ export async function doErc1155BatchPaymentFromSChain(
             await safeWaitForNextBlockToAppear( details, ethersProviderSChain );
         strActionName = "ERC1155 batch-payment from S-Chain, exitToMainERC1155Batch";
         const weiHowMuchExitToMainERC1155Batch = undefined;
-        gasPrice = await tc_s_chain.computeGasPrice( ethersProviderSChain, 200000000000 );
+        gasPrice = await transactionCustomizerSChain.computeGasPrice(
+            ethersProviderSChain, 200000000000 );
         details.write( strLogPrefix + cc.debug( "Using computed " ) +
             cc.info( "gasPrice" ) + cc.debug( "=" ) + cc.j( gasPrice ) + "\n" );
         const estimatedGasExitToMainERC1155Batch =
-            await tc_s_chain.computeGas(
+            await transactionCustomizerSChain.computeGas(
                 details, ethersProviderSChain,
-                "TokenManagerERC1155", jo_token_manager_erc1155,
+                "TokenManagerERC1155", joTokenManagerERC1155,
                 "exitToMainERC1155Batch", arrArgumentsExitToMainERC1155Batch,
                 joAccountSrc, strActionName, gasPrice, 8000000,
                 weiHowMuchExitToMainERC1155Batch, null );
@@ -4581,7 +4563,7 @@ export async function doErc1155BatchPaymentFromSChain(
         const strErrorOfDryRunExitToMainERC1155Batch =
             await dryRunCall(
                 details, ethersProviderSChain,
-                "TokenManagerERC1155", jo_token_manager_erc1155,
+                "TokenManagerERC1155", joTokenManagerERC1155,
                 "exitToMainERC1155Batch", arrArgumentsExitToMainERC1155Batch,
                 joAccountSrc, strActionName, isIgnoreExitToMainERC1155Batch, gasPrice,
                 estimatedGasExitToMainERC1155Batch, weiHowMuchExitToMainERC1155Batch, null );
@@ -4591,7 +4573,7 @@ export async function doErc1155BatchPaymentFromSChain(
         const joReceiptExitToMainERC1155Batch =
             await payedCall(
                 details, ethersProviderSChain,
-                "TokenManagerERC1155", jo_token_manager_erc1155,
+                "TokenManagerERC1155", joTokenManagerERC1155,
                 "exitToMainERC1155Batch", arrArgumentsExitToMainERC1155Batch,
                 joAccountSrc, strActionName, gasPrice,
                 estimatedGasExitToMainERC1155Batch, weiHowMuchExitToMainERC1155Batch, opts );
@@ -4605,30 +4587,30 @@ export async function doErc1155BatchPaymentFromSChain(
         }
         // Must-have event(s) analysis as indicator(s) of success
         const strEventName = "OutgoingMessage";
-        if( jo_message_proxy_s_chain ) {
+        if( joMessageProxySChain ) {
             details.write( strLogPrefix + cc.debug( "Verifying the " ) + cc.info( strEventName ) +
                 cc.debug( " event of the " ) + cc.info( "MessageProxy" ) + cc.debug( "/" ) +
-                cc.notice( jo_message_proxy_s_chain.address ) + cc.debug( " contract ..." ) +
+                cc.notice( joMessageProxySChain.address ) + cc.debug( " contract ..." ) +
                 "\n" );
             await sleep( g_nSleepBeforeFetchOutgoingMessageEvent );
             const joEvents =
                 await getContractCallEvents(
                     details, strLogPrefix,
-                    ethersProviderSChain, jo_message_proxy_s_chain, strEventName,
+                    ethersProviderSChain, joMessageProxySChain, strEventName,
                     joReceiptExitToMainERC1155Batch.blockNumber,
                     joReceiptExitToMainERC1155Batch.transactionHash,
-                    jo_message_proxy_s_chain.filters[strEventName]() );
+                    joMessageProxySChain.filters[strEventName]() );
             if( joEvents.length > 0 ) {
                 details.write( strLogPrefix + cc.success( "Success, verified the " ) +
                     cc.info( strEventName ) + cc.success( " event of the " ) +
                     cc.info( "MessageProxy" ) + cc.success( "/" ) +
-                    cc.notice( jo_message_proxy_s_chain.address ) +
+                    cc.notice( joMessageProxySChain.address ) +
                     cc.success( " contract, found event(s): " ) + cc.j( joEvents ) + "\n" );
             } else {
                 throw new Error(
                     "Verification failed for the \"OutgoingMessage\" event " +
                         "of the \"MessageProxy\"/" +
-                    jo_message_proxy_s_chain.address + " contract, no events found" );
+                    joMessageProxySChain.address + " contract, no events found" );
             }
         }
     } catch ( err ) {
@@ -4660,7 +4642,7 @@ export async function doErc20PaymentS2S(
     chainIdSrc,
     strChainNameDst,
     joAccountSrc,
-    jo_token_manager_erc20_src,
+    joTokenManagerERC20Src,
     nAmountOfToken, // how much ERC20 tokens to send
     nAmountOfWei, // how much to send
     strCoinNameErc20Src,
@@ -4697,7 +4679,7 @@ export async function doErc20PaymentS2S(
         const erc20_address_src = joErc20_src[strCoinNameErc20Src + "_address"];
         details.write( strLogPrefix + cc.attention( "Token Manager ERC20" ) +
             cc.debug( " address on source chain...." ) +
-            cc.note( jo_token_manager_erc20_src.address ) + "\n" );
+            cc.note( joTokenManagerERC20Src.address ) + "\n" );
         details.write( strLogPrefix + cc.attention( "Source ERC20" ) +
             cc.debug( " coin name........................." ) +
             cc.note( strCoinNameErc20Src ) + "\n" );
@@ -4720,7 +4702,7 @@ export async function doErc20PaymentS2S(
             new owaspUtils.ethersMod.ethers.Contract(
                 erc20_address_src, erc20_abi_src, ethersProviderSrc );
         const arrArgumentsApprove = [
-            jo_token_manager_erc20_src.address,
+            joTokenManagerERC20Src.address,
             owaspUtils.ensureStartsWith0x( owaspUtils.toBN( nAmountOfToken ).toHexString() )
         ];
         const arrArgumentsTransfer = [
@@ -4770,7 +4752,7 @@ export async function doErc20PaymentS2S(
         const estimatedGasTransfer =
             await tc.computeGas(
                 details, ethersProviderSrc,
-                "TokenManagerERC20", jo_token_manager_erc20_src,
+                "TokenManagerERC20", joTokenManagerERC20Src,
                 "transferToSchainERC20", arrArgumentsTransfer,
                 joAccountSrc, strActionName, gasPrice,
                 8000000, weiHowMuchTransferERC20, null );
@@ -4780,7 +4762,7 @@ export async function doErc20PaymentS2S(
         const strErrorOfDryRunTransferERC20 =
             await dryRunCall(
                 details, ethersProviderSrc,
-                "TokenManagerERC20", jo_token_manager_erc20_src,
+                "TokenManagerERC20", joTokenManagerERC20Src,
                 "transferToSchainERC20", arrArgumentsTransfer,
                 joAccountSrc, strActionName, isIgnoreTransferERC20,
                 gasPrice, estimatedGasTransfer, weiHowMuchTransferERC20, null );
@@ -4789,7 +4771,7 @@ export async function doErc20PaymentS2S(
         const joReceipt_transfer =
             await payedCall(
                 details, ethersProviderSrc,
-                "TokenManagerERC20", jo_token_manager_erc20_src,
+                "TokenManagerERC20", joTokenManagerERC20Src,
                 "transferToSchainERC20", arrArgumentsTransfer,
                 joAccountSrc, strActionName, gasPrice,
                 estimatedGasTransfer, weiHowMuchTransferERC20, null );
@@ -4831,8 +4813,8 @@ export async function doErc721PaymentS2S(
     chainIdSrc,
     strChainNameDst,
     joAccountSrc,
-    jo_token_manager_erc721_src,
-    token_id, // which ERC721 token id to send
+    joTokenManagerERC721Src,
+    tokenId, // which ERC721 token id to send
     nAmountOfWei, // how much to send
     strCoinNameErc721Src,
     joErc721_src,
@@ -4868,7 +4850,7 @@ export async function doErc721PaymentS2S(
         const erc721_address_src = joErc721_src[strCoinNameErc721Src + "_address"];
         details.write( strLogPrefix + cc.attention( "Token Manager ERC721" ) +
             cc.debug( " address on source chain...." ) +
-            cc.note( jo_token_manager_erc721_src.address ) + "\n" );
+            cc.note( joTokenManagerERC721Src.address ) + "\n" );
         details.write( strLogPrefix + cc.attention( "Source ERC721" ) +
             cc.debug( " coin name........................." ) +
             cc.note( strCoinNameErc721Src ) + "\n" );
@@ -4883,19 +4865,19 @@ export async function doErc721PaymentS2S(
         details.write( strLogPrefix + cc.attention( "Destination chain name" ) +
             cc.debug( "........................." ) + cc.note( strChainNameDst ) + "\n" );
         details.write( strLogPrefix + cc.attention( "Token ID" ) +
-            cc.debug( " to transfer..........................." ) + cc.note( token_id ) + "\n" );
+            cc.debug( " to transfer..........................." ) + cc.note( tokenId ) + "\n" );
         strActionName = "ERC721 payment S2S, approve, " + ( isForward ? "forward" : "reverse" );
         const contractERC721 =
             new owaspUtils.ethersMod.ethers.Contract(
                 erc721_address_src, erc721_abi_src, ethersProviderSrc );
         const arrArgumentsApprove = [
-            jo_token_manager_erc721_src.address,
-            owaspUtils.ensureStartsWith0x( owaspUtils.toBN( token_id ).toHexString() )
+            joTokenManagerERC721Src.address,
+            owaspUtils.ensureStartsWith0x( owaspUtils.toBN( tokenId ).toHexString() )
         ];
         const arrArgumentsTransfer = [
             strChainNameDst,
             isReverse ? erc721_address_dst : erc721_address_src,
-            owaspUtils.ensureStartsWith0x( owaspUtils.toBN( token_id ).toHexString() )
+            owaspUtils.ensureStartsWith0x( owaspUtils.toBN( tokenId ).toHexString() )
         ];
         const weiHowMuchApprove = undefined;
         let gasPrice = await tc.computeGasPrice( ethersProviderSrc, 200000000000 );
@@ -4940,7 +4922,7 @@ export async function doErc721PaymentS2S(
         const estimatedGasTransfer =
             await tc.computeGas(
                 details, ethersProviderSrc,
-                "TokenManagerERC721", jo_token_manager_erc721_src,
+                "TokenManagerERC721", joTokenManagerERC721Src,
                 "transferToSchainERC721", arrArgumentsTransfer,
                 joAccountSrc, strActionName, isIgnoreTransferERC721,
                 gasPrice, 8000000, weiHowMuchTransferERC721, null );
@@ -4949,7 +4931,7 @@ export async function doErc721PaymentS2S(
         const strErrorOfDryRunTransferERC721 =
             await dryRunCall(
                 details, ethersProviderSrc,
-                "TokenManagerERC721", jo_token_manager_erc721_src,
+                "TokenManagerERC721", joTokenManagerERC721Src,
                 "transferToSchainERC721", arrArgumentsTransfer,
                 joAccountSrc, strActionName, isIgnoreTransferERC721,
                 gasPrice, estimatedGasTransfer, weiHowMuchTransferERC721, null );
@@ -4958,7 +4940,7 @@ export async function doErc721PaymentS2S(
         const joReceipt_transfer =
             await payedCall(
                 details, ethersProviderSrc,
-                "TokenManagerERC721", jo_token_manager_erc721_src,
+                "TokenManagerERC721", joTokenManagerERC721Src,
                 "transferToSchainERC721", arrArgumentsTransfer,
                 joAccountSrc, strActionName,
                 gasPrice, estimatedGasTransfer, weiHowMuchTransferERC721, null );
@@ -5007,8 +4989,8 @@ export async function doErc1155PaymentS2S(
     chainIdSrc,
     strChainNameDst,
     joAccountSrc,
-    jo_token_manager_erc1155_src,
-    token_id, // which ERC721 token id to send
+    joTokenManagerERC1155Src,
+    tokenId, // which ERC721 token id to send
     nAmountOfToken, // how much ERC1155 tokens to send
     nAmountOfWei, // how much to send
     strCoinNameErc1155Src,
@@ -5045,7 +5027,7 @@ export async function doErc1155PaymentS2S(
         const erc1155_address_src = joErc1155_src[strCoinNameErc1155Src + "_address"];
         details.write( strLogPrefix + cc.attention( "Token Manager ERC1155" ) +
             cc.debug( " address on source chain...." ) +
-            cc.note( jo_token_manager_erc1155_src.address ) + "\n" );
+            cc.note( joTokenManagerERC1155Src.address ) + "\n" );
         details.write( strLogPrefix + cc.attention( "Source ERC1155" ) +
             cc.debug( " coin name........................." ) +
             cc.note( strCoinNameErc1155Src ) + "\n" );
@@ -5060,7 +5042,7 @@ export async function doErc1155PaymentS2S(
         details.write( strLogPrefix + cc.attention( "Destination chain name" ) +
             cc.debug( "........................." ) + cc.note( strChainNameDst ) + "\n" );
         details.write( strLogPrefix + cc.attention( "Token ID" ) +
-            cc.debug( " to transfer..........................." ) + cc.note( token_id ) + "\n" );
+            cc.debug( " to transfer..........................." ) + cc.note( tokenId ) + "\n" );
         details.write( strLogPrefix + cc.attention( "Amount of tokens" ) +
             cc.debug( " to transfer..................." ) + cc.note( nAmountOfToken ) + "\n" );
         strActionName = "ERC1155 payment S2S, approve, " + ( isForward ? "forward" : "reverse" );
@@ -5068,13 +5050,13 @@ export async function doErc1155PaymentS2S(
             new owaspUtils.ethersMod.ethers.Contract(
                 erc1155_address_src, erc1155_abi_src, ethersProviderSrc );
         const arrArgumentsApprove = [
-            jo_token_manager_erc1155_src.address,
+            joTokenManagerERC1155Src.address,
             true
         ];
         const arrArgumentsTransfer = [
             strChainNameDst,
             isReverse ? erc1155_address_dst : erc1155_address_src,
-            owaspUtils.ensureStartsWith0x( owaspUtils.toBN( token_id ).toHexString() ),
+            owaspUtils.ensureStartsWith0x( owaspUtils.toBN( tokenId ).toHexString() ),
             owaspUtils.ensureStartsWith0x( owaspUtils.toBN( nAmountOfToken ).toHexString() )
         ];
         const weiHowMuchApprove = undefined;
@@ -5119,7 +5101,7 @@ export async function doErc1155PaymentS2S(
         const estimatedGasTransfer =
             await tc.computeGas(
                 details, ethersProviderSrc,
-                "TokenManagerERC1155", jo_token_manager_erc1155_src,
+                "TokenManagerERC1155", joTokenManagerERC1155Src,
                 "transferToSchainERC1155", arrArgumentsTransfer,
                 joAccountSrc, strActionName, gasPrice,
                 8000000, weiHowMuchTransferERC1155, null );
@@ -5129,7 +5111,7 @@ export async function doErc1155PaymentS2S(
         const strErrorOfDryRunTransferERC1155 =
             await dryRunCall(
                 details, ethersProviderSrc,
-                "TokenManagerERC1155", jo_token_manager_erc1155_src,
+                "TokenManagerERC1155", joTokenManagerERC1155Src,
                 "transferToSchainERC1155", arrArgumentsTransfer,
                 joAccountSrc, strActionName, isIgnoreTransferERC1155, gasPrice,
                 estimatedGasTransfer, weiHowMuchTransferERC1155, null );
@@ -5138,7 +5120,7 @@ export async function doErc1155PaymentS2S(
         const joReceipt_transfer =
             await payedCall(
                 details, ethersProviderSrc,
-                "TokenManagerERC1155", jo_token_manager_erc1155_src,
+                "TokenManagerERC1155", joTokenManagerERC1155Src,
                 "transferToSchainERC1155", arrArgumentsTransfer,
                 joAccountSrc, strActionName, gasPrice, estimatedGasTransfer,
                 weiHowMuchTransferERC1155, null );
@@ -5184,9 +5166,9 @@ export async function doErc1155BatchPaymentS2S(
     chainIdSrc,
     strChainNameDst,
     joAccountSrc,
-    jo_token_manager_erc1155_src,
-    token_ids, // which ERC1155 token id to send
-    token_amounts, // which ERC1155 token id to send
+    joTokenManagerERC1155Src,
+    arrTokenIds, // which ERC1155 token id to send
+    arrTokenAmounts, // which ERC1155 token id to send
     nAmountOfWei, // how much to send
     strCoinNameErc1155Src,
     joErc1155_src,
@@ -5224,7 +5206,7 @@ export async function doErc1155BatchPaymentS2S(
         const erc1155_address_src = joErc1155_src[strCoinNameErc1155Src + "_address"];
         details.write( strLogPrefix + cc.attention( "Token Manager ERC1155" ) +
             cc.debug( " address on source chain...." ) +
-            cc.note( jo_token_manager_erc1155_src.address ) + "\n" );
+            cc.note( joTokenManagerERC1155Src.address ) + "\n" );
         details.write( strLogPrefix + cc.attention( "Source ERC1155" ) +
             cc.debug( " coin name........................." ) +
             cc.note( strCoinNameErc1155Src ) + "\n" );
@@ -5239,23 +5221,23 @@ export async function doErc1155BatchPaymentS2S(
         details.write( strLogPrefix + cc.attention( "Destination chain name" ) +
             cc.debug( "........................." ) + cc.note( strChainNameDst ) + "\n" );
         details.write( strLogPrefix + cc.attention( "Token IDs" ) +
-            cc.debug( " to transfer.........................." ) + cc.j( token_ids ) + "\n" );
+            cc.debug( " to transfer.........................." ) + cc.j( arrTokenIds ) + "\n" );
         details.write( strLogPrefix + cc.attention( "Amounts of tokens" ) +
-            cc.debug( " to transfer.................." ) + cc.j( token_amounts ) + "\n" );
+            cc.debug( " to transfer.................." ) + cc.j( arrTokenAmounts ) + "\n" );
         strActionName =
             "ERC1155 batch-payment S2S, approve, " + ( isForward ? "forward" : "reverse" );
         const contractERC1155 =
             new owaspUtils.ethersMod.ethers.Contract(
                 erc1155_address_src, erc1155_abi_src, ethersProviderSrc );
         const arrArgumentsApprove = [
-            jo_token_manager_erc1155_src.address,
+            joTokenManagerERC1155Src.address,
             true
         ];
         const arrArgumentsTransfer = [
             strChainNameDst,
             isReverse ? erc1155_address_dst : erc1155_address_src,
-            token_ids,
-            token_amounts
+            arrTokenIds,
+            arrTokenAmounts
         ];
         const weiHowMuchApprove = undefined;
         let gasPrice = await tc.computeGasPrice( ethersProviderSrc, 200000000000 );
@@ -5300,7 +5282,7 @@ export async function doErc1155BatchPaymentS2S(
         const estimatedGasTransfer =
             await tc.computeGas(
                 details, ethersProviderSrc,
-                "TokenManagerERC1155", jo_token_manager_erc1155_src,
+                "TokenManagerERC1155", joTokenManagerERC1155Src,
                 "transferToSchainERC1155Batch", arrArgumentsTransfer,
                 joAccountSrc, strActionName,
                 gasPrice, 8000000, weiHowMuchTransferERC1155, null );
@@ -5310,7 +5292,7 @@ export async function doErc1155BatchPaymentS2S(
         const strErrorOfDryRunTransferERC1155 =
             await dryRunCall(
                 details, ethersProviderSrc,
-                "TokenManagerERC1155", jo_token_manager_erc1155_src,
+                "TokenManagerERC1155", joTokenManagerERC1155Src,
                 "transferToSchainERC1155Batch", arrArgumentsTransfer,
                 joAccountSrc, strActionName, isIgnoreTransferERC1155,
                 gasPrice, estimatedGasTransfer, weiHowMuchTransferERC1155, null );
@@ -5319,7 +5301,7 @@ export async function doErc1155BatchPaymentS2S(
         const joReceipt_transfer =
             await payedCall(
                 details, ethersProviderSrc,
-                "TokenManagerERC1155", jo_token_manager_erc1155_src,
+                "TokenManagerERC1155", joTokenManagerERC1155Src,
                 "transferToSchainERC1155Batch", arrArgumentsTransfer,
                 joAccountSrc, strActionName,
                 gasPrice, estimatedGasTransfer, weiHowMuchTransferERC1155, null );
@@ -5359,7 +5341,7 @@ export async function doErc1155BatchPaymentS2S(
 
 async function findOutReferenceLogRecord(
     details, strLogPrefix,
-    ethersProvider, jo_message_proxy,
+    ethersProvider, joMessageProxy,
     bnBlockId, nMessageNumberToFind, isVerbose
 ) {
     const bnMessageNumberToFind = owaspUtils.toBN( nMessageNumberToFind.toString() );
@@ -5367,8 +5349,8 @@ async function findOutReferenceLogRecord(
     const arrLogRecords =
         await safeGetPastEventsProgressive(
             details, strLogPrefix,
-            ethersProvider, 10, jo_message_proxy, strEventName,
-            bnBlockId, bnBlockId, jo_message_proxy.filters[strEventName]()
+            ethersProvider, 10, joMessageProxy, strEventName,
+            bnBlockId, bnBlockId, joMessageProxy.filters[strEventName]()
         );
     const cntLogRecord = arrLogRecords.length;
     if( isVerbose ) {
@@ -5415,7 +5397,7 @@ async function findOutReferenceLogRecord(
 
 async function findOutAllReferenceLogRecords(
     details, strLogPrefix,
-    ethersProvider, jo_message_proxy,
+    ethersProvider, joMessageProxy,
     bnBlockId, nIncMsgCnt, nOutMsgCnt, isVerbose
 ) {
     if( isVerbose ) {
@@ -5445,7 +5427,7 @@ async function findOutAllReferenceLogRecords(
         const joReferenceLogRecord =
             await findOutReferenceLogRecord(
                 details, strLogPrefix,
-                ethersProvider, jo_message_proxy,
+                ethersProvider, joMessageProxy,
                 nWalkBlockId, nWalkMsgNumber, isVerbose
             );
         if( joReferenceLogRecord == null )
@@ -5504,11 +5486,11 @@ async function doQueryOutgoingMessageCounter( optsTransfer ) {
     let nPossibleIntegerValue = 0;
     optsTransfer.details.write( optsTransfer.strLogPrefixShort +
         cc.info( "SRC " ) + cc.sunny( "MessageProxy" ) + cc.info( " address is....." ) +
-        cc.bright( optsTransfer.jo_message_proxy_src.address ) +
+        cc.bright( optsTransfer.joMessageProxySrc.address ) +
         "\n" );
     optsTransfer.details.write( optsTransfer.strLogPrefixShort +
         cc.info( "DST " ) + cc.sunny( "MessageProxy" ) + cc.info( " address is....." ) +
-        cc.bright( optsTransfer.jo_message_proxy_dst.address ) +
+        cc.bright( optsTransfer.joMessageProxyDst.address ) +
         "\n" );
     optsTransfer.strActionName = "src-chain.MessageProxy.getOutgoingMessagesCounter()";
     try {
@@ -5517,7 +5499,7 @@ async function doQueryOutgoingMessageCounter( optsTransfer ) {
             cc.debug( "..." ) +
             "\n" );
         nPossibleIntegerValue =
-            await optsTransfer.jo_message_proxy_src.callStatic.getOutgoingMessagesCounter(
+            await optsTransfer.joMessageProxySrc.callStatic.getOutgoingMessagesCounter(
                 optsTransfer.chainNameDst,
                 { from: optsTransfer.joAccountSrc.address() } );
         if( !owaspUtils.validateInteger( nPossibleIntegerValue ) ) {
@@ -5549,7 +5531,7 @@ async function doQueryOutgoingMessageCounter( optsTransfer ) {
         cc.debug( "Will call " ) + cc.notice( optsTransfer.strActionName ) + cc.debug( "..." ) +
         "\n" );
     nPossibleIntegerValue =
-        await optsTransfer.jo_message_proxy_dst.callStatic.getIncomingMessagesCounter(
+        await optsTransfer.joMessageProxyDst.callStatic.getIncomingMessagesCounter(
             optsTransfer.chainNameSrc,
             { from: optsTransfer.joAccountDst.address() } );
     if( !owaspUtils.validateInteger( nPossibleIntegerValue ) ) {
@@ -5565,7 +5547,7 @@ async function doQueryOutgoingMessageCounter( optsTransfer ) {
 
     optsTransfer.strActionName = "src-chain.MessageProxy.getIncomingMessagesCounter()";
     nPossibleIntegerValue =
-        await optsTransfer.jo_message_proxy_src.callStatic.getIncomingMessagesCounter(
+        await optsTransfer.joMessageProxySrc.callStatic.getIncomingMessagesCounter(
             optsTransfer.chainNameDst,
             { from: optsTransfer.joAccountSrc.address() } );
     if( !owaspUtils.validateInteger( nPossibleIntegerValue ) ) {
@@ -5582,7 +5564,7 @@ async function doQueryOutgoingMessageCounter( optsTransfer ) {
     // optimized scanner
     const bnBlockId =
         owaspUtils.toBN(
-            await optsTransfer.jo_message_proxy_src.callStatic.getLastOutgoingMessageBlockId(
+            await optsTransfer.joMessageProxySrc.callStatic.getLastOutgoingMessageBlockId(
                 optsTransfer.chainNameDst,
                 { from: optsTransfer.joAccountSrc.address() } ) );
     optsTransfer.arrLogRecordReferences = [];
@@ -5590,7 +5572,7 @@ async function doQueryOutgoingMessageCounter( optsTransfer ) {
         optsTransfer.arrLogRecordReferences =
             await findOutAllReferenceLogRecords(
                 optsTransfer.details, optsTransfer.strLogPrefixShort,
-                optsTransfer.ethersProviderSrc, optsTransfer.jo_message_proxy_src,
+                optsTransfer.ethersProviderSrc, optsTransfer.joMessageProxySrc,
                 bnBlockId, optsTransfer.nIncMsgCnt, optsTransfer.nOutMsgCnt, true
             );
     } catch ( err ) {
@@ -5691,9 +5673,9 @@ async function gatherMessages( optsTransfer ) {
         r = await safeGetPastEventsProgressive(
             optsTransfer.details, optsTransfer.strLogPrefixShort,
             optsTransfer.ethersProviderSrc, 10,
-            optsTransfer.jo_message_proxy_src, strEventName,
+            optsTransfer.joMessageProxySrc, strEventName,
             nBlockFrom, nBlockTo,
-            optsTransfer.jo_message_proxy_src.filters[strEventName](
+            optsTransfer.joMessageProxySrc.filters[strEventName](
                 owaspUtils.ethersMod.ethers.utils.id(
                     optsTransfer.chainNameDst ), // dstChainHash
                 optsTransfer.nIdxCurrentMsg // msgCounter
@@ -5943,7 +5925,7 @@ async function callbackAllMessagesSign( optsTransfer, err, jarrMessages, joGlueR
         await optsTransfer.transactionCustomizerDst.computeGas(
             optsTransfer.details,
             optsTransfer.ethersProviderDst,
-            "MessageProxy", optsTransfer.jo_message_proxy_dst,
+            "MessageProxy", optsTransfer.joMessageProxyDst,
             "postIncomingMessages", arrArgumentsPostIncomingMessages,
             optsTransfer.joAccountDst, optsTransfer.strActionName,
             gasPrice, 10000000, weiHowMuchPostIncomingMessages,
@@ -5964,7 +5946,7 @@ async function callbackAllMessagesSign( optsTransfer, err, jarrMessages, joGlueR
         await dryRunCall(
             optsTransfer.details,
             optsTransfer.ethersProviderDst,
-            "MessageProxy", optsTransfer.jo_message_proxy_dst,
+            "MessageProxy", optsTransfer.joMessageProxyDst,
             "postIncomingMessages", arrArgumentsPostIncomingMessages,
             optsTransfer.joAccountDst, optsTransfer.strActionName,
             isIgnorePostIncomingMessages,
@@ -5981,7 +5963,7 @@ async function callbackAllMessagesSign( optsTransfer, err, jarrMessages, joGlueR
     const joReceipt =
         await payedCall(
             optsTransfer.details, optsTransfer.ethersProviderDst,
-            "MessageProxy", optsTransfer.jo_message_proxy_dst,
+            "MessageProxy", optsTransfer.joMessageProxyDst,
             "postIncomingMessages", arrArgumentsPostIncomingMessages,
             optsTransfer.joAccountDst, optsTransfer.strActionName,
             gasPrice, estimatedGasPostIncomingMessages,
@@ -6009,7 +5991,7 @@ async function callbackAllMessagesSign( optsTransfer, err, jarrMessages, joGlueR
         optsTransfer.details.write( optsTransfer.strLogPrefix +
             cc.debug( "Validating transfer to Main Net via MessageProxy " +
                 "error absence on Main Net..." ) + "\n" );
-        if( optsTransfer.jo_deposit_box_main_net ) {
+        if( optsTransfer.joDepositBoxMainNet ) {
             if( joReceipt && "blockNumber" in joReceipt &&
                 "transactionHash" in joReceipt ) {
                 const strEventName = "PostMessageError";
@@ -6017,22 +5999,22 @@ async function callbackAllMessagesSign( optsTransfer, err, jarrMessages, joGlueR
                     cc.debug( "Verifying the " ) + cc.info( strEventName ) +
                     cc.debug( " event of the " ) + cc.info( "MessageProxy" ) +
                     cc.debug( "/" ) +
-                    cc.notice( optsTransfer.jo_message_proxy_dst.address ) +
+                    cc.notice( optsTransfer.joMessageProxyDst.address ) +
                     cc.debug( " contract..." ) + "\n" );
                 const joEvents =
                     await getContractCallEvents(
                         optsTransfer.details, optsTransfer.strLogPrefixShort,
                         optsTransfer.ethersProviderDst,
-                        optsTransfer.jo_message_proxy_dst, strEventName,
+                        optsTransfer.joMessageProxyDst, strEventName,
                         joReceipt.blockNumber,
                         joReceipt.transactionHash,
-                        optsTransfer.jo_message_proxy_dst.filters[strEventName]() );
+                        optsTransfer.joMessageProxyDst.filters[strEventName]() );
                 if( joEvents.length == 0 ) {
                     optsTransfer.details.write( optsTransfer.strLogPrefix +
                         cc.success( "Success, verified the " ) + cc.info( strEventName ) +
                         cc.success( " event of the " ) + cc.info( "MessageProxy" ) +
                         cc.success( "/" ) +
-                        cc.notice( optsTransfer.jo_message_proxy_dst.address ) +
+                        cc.notice( optsTransfer.joMessageProxyDst.address ) +
                         cc.success( " contract, no events found" ) + "\n" );
                 } else {
                     const strError = optsTransfer.strLogPrefix +
@@ -6040,7 +6022,7 @@ async function callbackAllMessagesSign( optsTransfer, err, jarrMessages, joGlueR
                         cc.error( " verification of the " ) +
                         cc.warning( "PostMessageError" ) + cc.error( " event of the " ) +
                         cc.warning( "MessageProxy" ) + cc.error( "/" ) +
-                        cc.notice( optsTransfer.jo_message_proxy_dst.address ) +
+                        cc.notice( optsTransfer.joMessageProxyDst.address ) +
                         cc.error( " contract, found event(s): " ) + cc.j( joEvents ) + "\n";
                     optsTransfer.details.write( strError );
                     if( log.id != optsTransfer.details.id )
@@ -6051,7 +6033,7 @@ async function callbackAllMessagesSign( optsTransfer, err, jarrMessages, joGlueR
                     throw new Error(
                         "Verification failed for the \"PostMessageError\" " +
                             "event of the \"MessageProxy\"/" +
-                        optsTransfer.jo_message_proxy_dst.address +
+                        optsTransfer.joMessageProxyDst.address +
                             " contract, error events found" );
                 }
                 optsTransfer.details.write( optsTransfer.strLogPrefix +
@@ -6101,8 +6083,8 @@ async function handleAllMessagesSigning( optsTransfer ) {
     return true;
 }
 
-async function checkOutgoingMessageEvent( optsTransfer, jo_schain ) {
-    const cntNodes = jo_schain.data.computed.nodes.length;
+async function checkOutgoingMessageEvent( optsTransfer, joSChain ) {
+    const cntNodes = joSChain.data.computed.nodes.length;
     const cntMessages = optsTransfer.jarrMessages.length;
     for( let idxMessage = 0; idxMessage < cntMessages; ++ idxMessage ) {
         const idxImaMessage = optsTransfer.arrMessageCounters[idxMessage];
@@ -6114,22 +6096,22 @@ async function checkOutgoingMessageEvent( optsTransfer, jo_schain ) {
             cc.debug( " and message envelope data:" ) + cc.j( joMessage ) +
             "\n" );
         let cntPassedNodes = 0, cntFailedNodes = 0;
-        let jo_node = null;
+        let joNode = null;
         try {
             for( let idxNode = 0; idxNode < cntNodes; ++ idxNode ) {
-                jo_node = jo_schain.data.computed.nodes[idxNode];
+                joNode = joSChain.data.computed.nodes[idxNode];
                 optsTransfer.details.write( optsTransfer.strLogPrefix +
                     cc.debug( "Validating " ) + cc.sunny( optsTransfer.strDirection ) +
                     cc.debug( " message " ) + cc.info( idxMessage + 1 ) +
-                    cc.debug( " on node " ) + cc.info( jo_node.name ) +
-                    cc.debug( " using URL " ) + cc.info( jo_node.http_endpoint_ip ) +
+                    cc.debug( " on node " ) + cc.info( joNode.name ) +
+                    cc.debug( " using URL " ) + cc.info( joNode.http_endpoint_ip ) +
                     cc.debug( "..." ) + "\n" );
                 let bEventIsFound = false;
                 try {
                     const ethersProviderNode =
                         owaspUtils.getEthersProviderFromURL(
-                            jo_node.http_endpoint_ip );
-                    const jo_message_proxy_node =
+                            joNode.http_endpoint_ip );
+                    const joMessageProxyNode =
                         new owaspUtils.ethersMod.ethers.Contract(
                             optsTransfer.imaState.chainProperties.sc
                                 .joAbiIMA.message_proxy_chain_address,
@@ -6140,10 +6122,10 @@ async function checkOutgoingMessageEvent( optsTransfer, jo_schain ) {
                     const strEventName = "OutgoingMessage";
                     const node_r = await safeGetPastEventsProgressive(
                         optsTransfer.details, optsTransfer.strLogPrefixShort,
-                        ethersProviderNode, 10, jo_message_proxy_node, strEventName,
+                        ethersProviderNode, 10, joMessageProxyNode, strEventName,
                         joMessage.savedBlockNumberForOptimizations,
                         joMessage.savedBlockNumberForOptimizations,
-                        jo_message_proxy_node.filters[strEventName](
+                        joMessageProxyNode.filters[strEventName](
                             owaspUtils.ethersMod.ethers.utils.id( optsTransfer.chainNameDst ),
                             idxImaMessage // msgCounter
                         )
@@ -6153,7 +6135,7 @@ async function checkOutgoingMessageEvent( optsTransfer, jo_schain ) {
                         cc.debug( "Got " ) + cc.info( cntEvents ) +
                         cc.debug( " event(s) (" ) + cc.info( strEventName ) +
                         cc.debug( ") on node " ) +
-                        cc.info( jo_node.name ) + cc.debug( " with data: " ) +
+                        cc.info( joNode.name ) + cc.debug( " with data: " ) +
                         cc.j( node_r ) +
                         "\n" );
                     for( let idxEvent = 0; idxEvent < cntEvents; ++ idxEvent ) {
@@ -6184,11 +6166,11 @@ async function checkOutgoingMessageEvent( optsTransfer, jo_schain ) {
                         cc.fatal( optsTransfer.strDirection +
                         " message analysis error:" ) + " " +
                         cc.error( "Failed to scan events on node " ) +
-                        cc.info( jo_node.name ) +
+                        cc.info( joNode.name ) +
                         cc.error( ", error is: " ) +
                         cc.warning( owaspUtils.extractErrorMessage( err ) ) +
                         cc.error( ", detailed node description is: " ) +
-                        cc.j( jo_node ) +
+                        cc.j( joNode ) +
                         cc.error( ", stack is: " ) + "\n" + cc.stack( err.stack ) +
                         "\n";
                     optsTransfer.details.write( strError );
@@ -6202,8 +6184,8 @@ async function checkOutgoingMessageEvent( optsTransfer, jo_schain ) {
                         cc.sunny( optsTransfer.strDirection ) +
                         cc.success( " message " ) + cc.info( idxMessage + 1 ) +
                         cc.success( " validation on node " ) +
-                        cc.info( jo_node.name ) + cc.success( " using URL " ) +
-                        cc.info( jo_node.http_endpoint_ip ) +
+                        cc.info( joNode.name ) + cc.success( " using URL " ) +
+                        cc.info( joNode.http_endpoint_ip ) +
                         cc.success( " is passed" ) + "\n" );
                 } else {
                     ++ cntFailedNodes;
@@ -6211,8 +6193,8 @@ async function checkOutgoingMessageEvent( optsTransfer, jo_schain ) {
                         cc.sunny( optsTransfer.strDirection ) +
                         cc.error( " message " ) + cc.info( idxMessage + 1 ) +
                         cc.error( " validation on node " ) +
-                        cc.info( jo_node.name ) + cc.success( " using URL " ) +
-                        cc.info( jo_node.http_endpoint_ip ) +
+                        cc.info( joNode.name ) + cc.success( " using URL " ) +
+                        cc.info( joNode.http_endpoint_ip ) +
                         cc.error( " is failed" ) + "\n"; ;
                     optsTransfer.details.write( strError );
                     if( log.id != optsTransfer.details.id )
@@ -6225,8 +6207,8 @@ async function checkOutgoingMessageEvent( optsTransfer, jo_schain ) {
                         cc.sunny( optsTransfer.strDirection ) +
                         cc.success( " message " ) + cc.info( idxMessage + 1 ) +
                         cc.success( " validation on node " ) +
-                        cc.info( jo_node.name ) + cc.success( " using URL " ) +
-                        cc.info( jo_node.http_endpoint_ip ) +
+                        cc.info( joNode.name ) + cc.success( " using URL " ) +
+                        cc.info( joNode.http_endpoint_ip ) +
                         cc.success( " is passed" ) + "\n" );
                     break;
                 }
@@ -6237,12 +6219,12 @@ async function checkOutgoingMessageEvent( optsTransfer, jo_schain ) {
                 " " + cc.error( "Failed to process events for " ) +
                 cc.sunny( optsTransfer.strDirection ) + cc.error( " message " ) +
                 cc.info( idxMessage + 1 ) + cc.error( " on node " ) +
-                ( jo_node
-                    ? cc.info( jo_node.name )
+                ( joNode
+                    ? cc.info( joNode.name )
                     : cc.error( "<<unknown node name>>" ) ) +
                 cc.error( " using URL " ) +
-                ( jo_node
-                    ? cc.info( jo_node.http_endpoint_ip )
+                ( joNode
+                    ? cc.info( joNode.http_endpoint_ip )
                     : cc.error( "<<unknown node endpoint>>" ) ) +
                 cc.error( ", error is: " ) +
                 cc.warning( owaspUtils.extractErrorMessage( err ) ) +
@@ -6395,8 +6377,8 @@ async function doMainTransferLoopActions( optsTransfer ) {
                     "\" S-Chain yet, try again later" );
             }
             const cntMessages = optsTransfer.jarrMessages.length;
-            const jo_schain = arrSChainsCached[idxSChain];
-            const cntNodes = jo_schain.data.computed.nodes.length;
+            const joSChain = arrSChainsCached[idxSChain];
+            const cntNodes = joSChain.data.computed.nodes.length;
             optsTransfer.cntNodesShouldPass =
                 ( cntNodes == 16 )
                     ? 11
@@ -6421,7 +6403,7 @@ async function doMainTransferLoopActions( optsTransfer ) {
                 cc.debug( " node(s) allowed to fail message(s) comparison, " ) +
                 cc.info( cntMessages ) + cc.debug( " message(s) to check..." ) +
                 "\n" );
-            if( ! ( await checkOutgoingMessageEvent( optsTransfer, jo_schain ) ) )
+            if( ! ( await checkOutgoingMessageEvent( optsTransfer, joSChain ) ) )
                 return false;
         }
 
@@ -6481,17 +6463,17 @@ export async function doTransfer(
     strDirection,
     joRuntimeOpts,
     ethersProviderSrc,
-    jo_message_proxy_src,
+    joMessageProxySrc,
     joAccountSrc,
     ethersProviderDst,
-    jo_message_proxy_dst,
+    joMessageProxyDst,
     joAccountDst,
     chainNameSrc,
     chainNameDst,
     chainIdSrc,
     chainIdDst,
-    jo_deposit_box_main_net, // for logs validation on mainnet
-    jo_token_manager_schain, // for logs validation on s-chain
+    joDepositBoxMainNet, // for logs validation on mainnet
+    joTokenManagerSChain, // for logs validation on s-chain
     nTransactionsCountInBlock,
     nTransferSteps,
     nMaxTransactionsCount,
@@ -6505,17 +6487,17 @@ export async function doTransfer(
         strDirection: strDirection,
         joRuntimeOpts: joRuntimeOpts,
         ethersProviderSrc: ethersProviderSrc,
-        jo_message_proxy_src: jo_message_proxy_src,
+        joMessageProxySrc: joMessageProxySrc,
         joAccountSrc: joAccountSrc,
         ethersProviderDst: ethersProviderDst,
-        jo_message_proxy_dst: jo_message_proxy_dst,
+        joMessageProxyDst: joMessageProxyDst,
         joAccountDst: joAccountDst,
         chainNameSrc: chainNameSrc,
         chainNameDst: chainNameDst,
         chainIdSrc: chainIdSrc,
         chainIdDst: chainIdDst,
-        jo_deposit_box_main_net: jo_deposit_box_main_net, // for logs validation on mainnet
-        jo_token_manager_schain: jo_token_manager_schain, // for logs validation on s-chain
+        joDepositBoxMainNet: joDepositBoxMainNet, // for logs validation on mainnet
+        joTokenManagerSChain: joTokenManagerSChain, // for logs validation on s-chain
         nTransactionsCountInBlock: nTransactionsCountInBlock,
         nTransferSteps: nTransferSteps,
         nMaxTransactionsCount: nMaxTransactionsCount,
@@ -6643,11 +6625,11 @@ export async function doAllS2S( // s-chain --> s-chain
     imaState,
     skaleObserver,
     ethersProviderDst,
-    jo_message_proxy_dst,
+    joMessageProxyDst,
     joAccountDst,
     chainNameDst,
     chainIdDst,
-    jo_token_manager_schain, // for logs validation on s-chain
+    joTokenManagerSChain, // for logs validation on s-chain
     nTransactionsCountInBlock,
     nTransferSteps,
     nMaxTransactionsCount,
@@ -6667,12 +6649,12 @@ export async function doAllS2S( // s-chain --> s-chain
             "\n" );
     }
     for( let idxSChain = 0; idxSChain < cntSChains; ++ idxSChain ) {
-        const jo_schain = arrSChainsCached[idxSChain];
-        const urlSrc = skaleObserver.pickRandomSChainUrl( jo_schain );
+        const joSChain = arrSChainsCached[idxSChain];
+        const urlSrc = skaleObserver.pickRandomSChainUrl( joSChain );
         const ethersProviderSrc = owaspUtils.getEthersProviderFromURL( urlSrc );
         const joAccountSrc = joAccountDst; // ???
-        const chainNameSrc = "" + jo_schain.data.name;
-        const chainIdSrc = "" + jo_schain.data.computed.chainId;
+        const chainNameSrc = "" + joSChain.data.name;
+        const chainIdSrc = "" + joSChain.data.computed.chainId;
         if( verboseGet() >= verboseReversed().information ) {
             log.write(
                 cc.debug( "S2S transfer walk trough " ) + cc.info( chainNameSrc ) +
@@ -6692,13 +6674,13 @@ export async function doAllS2S( // s-chain --> s-chain
             } else {
                 if( loop.checkTimeFraming( null, "s2s", joRuntimeOpts ) ) {
                     // ??? assuming all S-Chains have same ABIs here
-                    const jo_message_proxy_src =
+                    const joMessageProxySrc =
                         new owaspUtils.ethersMod.ethers.Contract(
                             imaState.chainProperties.sc.joAbiIMA.message_proxy_chain_address,
                             imaState.chainProperties.sc.joAbiIMA.message_proxy_chain_abi,
                             ethersProviderSrc
                         );
-                    const jo_deposit_box_src =
+                    const joDepositBoxSrc =
                         new owaspUtils.ethersMod.ethers.Contract(
                             imaState.chainProperties.sc.joAbiIMA.message_proxy_chain_address,
                             imaState.chainProperties.sc.joAbiIMA.message_proxy_chain_abi,
@@ -6727,17 +6709,17 @@ export async function doAllS2S( // s-chain --> s-chain
                         strDirection,
                         joRuntimeOpts,
                         ethersProviderSrc,
-                        jo_message_proxy_src,
+                        joMessageProxySrc,
                         joAccountSrc,
                         ethersProviderDst,
-                        jo_message_proxy_dst,
+                        joMessageProxyDst,
                         joAccountDst,
                         chainNameSrc,
                         chainNameDst,
                         chainIdSrc,
                         chainIdDst,
-                        jo_deposit_box_src, // for logs validation on mainnet or source S-Chain
-                        jo_token_manager_schain, // for logs validation on s-chain
+                        joDepositBoxSrc, // for logs validation on mainnet or source S-Chain
+                        joTokenManagerSChain, // for logs validation on s-chain
                         nTransactionsCountInBlock,
                         nTransferSteps,
                         nMaxTransactionsCount,

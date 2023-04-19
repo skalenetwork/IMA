@@ -2754,79 +2754,79 @@ function commonInitPrintFoundContracts() {
     if( isPrintGathered ) {
         log.write( cc.bright( "IMA contracts(Main Net):" ) + "\n" );
         log.write( cc.sunny( "DepositBoxEth" ) + cc.debug( "...................address is....." ) +
-            oct( imaState.jo_deposit_box_eth ) + "\n" );
+            oct( imaState.joDepositBoxETH ) + "\n" );
         log.write( cc.sunny( "DepositBoxERC20" ) + cc.debug( ".................address is....." ) +
-            oct( imaState.jo_deposit_box_erc20 ) + "\n" );
+            oct( imaState.joDepositBoxERC20 ) + "\n" );
         log.write( cc.sunny( "DepositBoxERC721" ) + cc.debug( "................address is....." ) +
-            oct( imaState.jo_deposit_box_erc721 ) + "\n" );
+            oct( imaState.joDepositBoxERC721 ) + "\n" );
         log.write( cc.sunny( "DepositBoxERC1155" ) + cc.debug( "...............address is....." ) +
-            oct( imaState.jo_deposit_box_erc1155 ) + "\n" );
+            oct( imaState.joDepositBoxERC1155 ) + "\n" );
         log.write( cc.sunny( "DepositBoxERC721WithMetadata" ) + cc.debug( "....address is....." ) +
-            oct( imaState.jo_deposit_box_erc721_with_metadata ) + "\n" );
+            oct( imaState.joDepositBoxERC721WithMetadata ) + "\n" );
         log.write( cc.sunny( "CommunityPool" ) + cc.debug( "...................address is....." ) +
-            oct( imaState.jo_community_pool ) + "\n" );
+            oct( imaState.joCommunityPool ) + "\n" );
         log.write( cc.sunny( "MessageProxy" ) + cc.debug( "....................address is....." ) +
-            oct( imaState.jo_message_proxy_main_net ) + "\n" );
+            oct( imaState.joMessageProxyMainNet ) + "\n" );
         log.write( cc.sunny( "Linker" ) + cc.debug( "..........................address is....." ) +
-            oct( imaState.jo_linker ) + "\n" );
+            oct( imaState.joLinker ) + "\n" );
         log.write( cc.bright( "IMA contracts(S-Chain):" ) + "\n" );
         log.write( cc.sunny( "TokenManagerEth" ) + cc.debug( ".................address is....." ) +
-            oct( imaState.jo_token_manager_eth ) + "\n" );
+            oct( imaState.joTokenManagerETH ) + "\n" );
         log.write( cc.sunny( "TokenManagerERC20" ) + cc.debug( "...............address is....." ) +
-            oct( imaState.jo_token_manager_erc20 ) + "\n" );
+            oct( imaState.joTokenManagerERC20 ) + "\n" );
         log.write( cc.sunny( "TokenManagerERC721" ) + cc.debug( "..............address is....." ) +
-            oct( imaState.jo_token_manager_erc721 ) + "\n" );
+            oct( imaState.joTokenManagerERC721 ) + "\n" );
         log.write( cc.sunny( "TokenManagerERC1155" ) + cc.debug( ".............address is....." ) +
-            oct( imaState.jo_token_manager_erc1155 ) + "\n" );
+            oct( imaState.joTokenManagerERC1155 ) + "\n" );
         log.write( cc.sunny( "TokenManagerERC721WithMetadata" ) + cc.debug( "..address is....." ) +
-            oct( imaState.jo_token_manager_erc721_with_metadata ) + "\n" );
+            oct( imaState.joTokenManagerERC721WithMetadata ) + "\n" );
         log.write( cc.sunny( "CommunityLocker" ) + cc.debug( ".................address is....." ) +
-            oct( imaState.jo_community_locker ) + "\n" );
+            oct( imaState.joCommunityLocker ) + "\n" );
         log.write( cc.sunny( "MessageProxy" ) + cc.debug( "....................address is....." ) +
-            oct( imaState.jo_message_proxy_s_chain ) + "\n" );
+            oct( imaState.joMessageProxySChain ) + "\n" );
         log.write( cc.sunny( "TokenManagerLinker" ) + cc.debug( "..............address is....." ) +
-            oct( imaState.jo_token_manager_linker ) + "\n" );
+            oct( imaState.joTokenManagerLinker ) + "\n" );
         log.write( cc.sunny( "ERC20" ) + cc.debug( " ..........................address is....." ) +
-            oct( imaState.eth_erc20 ) + "\n" );
+            oct( imaState.joEthErc20 ) + "\n" );
         log.write( cc.bright( "IMA contracts(Target S-Chain):" ) + "\n" );
         log.write( cc.sunny( "TokenManagerERC20" ) + cc.debug( "...............address is....." ) +
-            oct( imaState.jo_token_manager_erc20_target ) + "\n" );
+            oct( imaState.joTokenManagerERC20Target ) + "\n" );
         log.write( cc.sunny( "TokenManagerERC721" ) + cc.debug( "..............address is....." ) +
-            oct( imaState.jo_token_manager_erc721_target ) + "\n" );
+            oct( imaState.joTokenManagerERC721Target ) + "\n" );
         log.write( cc.sunny( "TokenManagerERC1155" ) + cc.debug( ".............address is....." ) +
-            oct( imaState.jo_token_manager_erc1155_target ) + "\n" );
+            oct( imaState.joTokenManagerERC1155Target ) + "\n" );
         log.write( cc.sunny( "TokenManagerERC721WithMetadata" ) + cc.debug( "..address is....." ) +
-            oct( imaState.jo_token_manager_erc721_with_metadata_target ) + "\n" );
+            oct( imaState.joTokenManagerERC721WithMetadataTarget ) + "\n" );
         log.write( cc.sunny( "CommunityLocker" ) + cc.debug( ".................address is....." ) +
-            oct( imaState.jo_community_locker_target ) + "\n" );
+            oct( imaState.joCommunityLockerTarget ) + "\n" );
         log.write( cc.sunny( "MessageProxy" ) + cc.debug( "....................address is....." ) +
-            oct( imaState.jo_message_proxy_s_chain_target ) + "\n" );
+            oct( imaState.joMessageProxySChainTarget ) + "\n" );
         log.write( cc.sunny( "TokenManagerLinker" ) + cc.debug( "..............address is....." ) +
-            oct( imaState.jo_token_manager_linker_target ) + "\n" );
+            oct( imaState.joTokenManagerLinkerTarget ) + "\n" );
         log.write( cc.sunny( "ERC20" ) + cc.debug( " ..........................address is....." ) +
-            oct( imaState.eth_erc20_target ) + "\n" );
+            oct( imaState.joEthErc20Target ) + "\n" );
 
         log.write( cc.bright( "Skale Manager contracts:" ) + "\n" );
         log.write( cc.sunny( "ConstantsHolder" ) + cc.debug( ".................address is....." ) +
-            oct( imaState.jo_constants_holder ) + "\n" );
+            oct( imaState.joConstantsHolder ) + "\n" );
         log.write( cc.sunny( "Nodes" ) + cc.debug( "...........................address is....." ) +
-            oct( imaState.jo_nodes ) + "\n" );
+            oct( imaState.joNodes ) + "\n" );
         log.write( cc.sunny( "KeyStorage" ) + cc.debug( "......................address is....." ) +
-            oct( imaState.jo_key_storage ) + "\n" );
+            oct( imaState.joKeyStorage ) + "\n" );
         log.write( cc.sunny( "Schains" ) + cc.debug( ".........................address is....." ) +
-            oct( imaState.jo_schains ) + "\n" );
+            oct( imaState.joSChains ) + "\n" );
         log.write( cc.sunny( "SchainsInternal" ) + cc.debug( ".................address is....." ) +
-            oct( imaState.jo_schains_internal ) + "\n" );
+            oct( imaState.joSChainsInternal ) + "\n" );
         log.write( cc.sunny( "SkaleDKG" ) + cc.debug( "........................address is....." ) +
-            oct( imaState.jo_skale_dkg ) + "\n" );
+            oct( imaState.joSkaleDKG ) + "\n" );
         log.write( cc.sunny( "SkaleManager" ) + cc.debug( "....................address is....." ) +
-            oct( imaState.jo_skale_manager ) + "\n" );
+            oct( imaState.joSkaleManager ) + "\n" );
         log.write( cc.sunny( "SkaleToken" ) + cc.debug( "......................address is....." ) +
-            oct( imaState.jo_skale_token ) + "\n" );
+            oct( imaState.joSkaleToken ) + "\n" );
         log.write( cc.sunny( "ValidatorService" ) + cc.debug( "................address is....." ) +
-            oct( imaState.jo_validator_service ) + "\n" );
+            oct( imaState.joValidatorService ) + "\n" );
         log.write( cc.sunny( "Wallets" ) + cc.debug( ".........................address is....." ) +
-            oct( imaState.jo_wallets ) + "\n" );
+            oct( imaState.joWallets ) + "\n" );
     }
 }
 
@@ -4097,46 +4097,46 @@ function initContractsIMA() {
         const cp = imaState.chainProperties.mn;
         const ep = cp.ethersProvider;
         const joABI = cp.joAbiIMA;
-        imaState.jo_deposit_box_eth =
+        imaState.joDepositBoxETH =
             new owaspUtils.ethersMod.ethers.Contract(
                 joABI.deposit_box_eth_address,
                 joABI.deposit_box_eth_abi,
                 ep
             ); // only main net
-        imaState.jo_deposit_box_erc20 =
+        imaState.joDepositBoxERC20 =
             new owaspUtils.ethersMod.ethers.Contract(
                 joABI.deposit_box_erc20_address,
                 joABI.deposit_box_erc20_abi,
                 ep
             ); // only main net
-        imaState.jo_deposit_box_erc721 =
+        imaState.joDepositBoxERC721 =
             new owaspUtils.ethersMod.ethers.Contract(
                 joABI.deposit_box_erc721_address,
                 joABI.deposit_box_erc721_abi,
                 ep
             ); // only main net
-        imaState.jo_deposit_box_erc1155 =
+        imaState.joDepositBoxERC1155 =
             new owaspUtils.ethersMod.ethers.Contract(
                 joABI.deposit_box_erc1155_address,
                 joABI.deposit_box_erc1155_abi,
                 ep )
         ; // only main net
-        imaState.jo_deposit_box_erc721_with_metadata =
+        imaState.joDepositBoxERC721WithMetadata =
             new owaspUtils.ethersMod.ethers.Contract(
                 joABI.deposit_box_erc721_with_metadata_address,
                 joABI.deposit_box_erc721_with_metadata_abi,
                 ep
             ); // only main net
-        imaState.jo_community_pool =
+        imaState.joCommunityPool =
             new owaspUtils.ethersMod.ethers.Contract(
                 joABI.community_pool_address,
                 joABI.community_pool_abi,
                 ep
             ); // only main net
-        imaState.jo_linker =
+        imaState.joLinker =
             new owaspUtils.ethersMod.ethers.Contract(
                 joABI.linker_address, joABI.linker_abi, ep ); // only main net
-        imaState.jo_message_proxy_main_net =
+        imaState.joMessageProxyMainNet =
             new owaspUtils.ethersMod.ethers.Contract(
                 joABI.message_proxy_mainnet_address, joABI.message_proxy_mainnet_abi, ep );
     }
@@ -4144,47 +4144,47 @@ function initContractsIMA() {
         const cp = imaState.chainProperties.sc;
         const ep = cp.ethersProvider;
         const joABI = cp.joAbiIMA;
-        imaState.jo_token_manager_eth =
+        imaState.joTokenManagerETH =
             new owaspUtils.ethersMod.ethers.Contract(
                 joABI.token_manager_eth_address,
                 joABI.token_manager_eth_abi,
                 ep ); // only s-chain
-        imaState.jo_token_manager_erc20 =
+        imaState.joTokenManagerERC20 =
             new owaspUtils.ethersMod.ethers.Contract(
                 joABI.token_manager_erc20_address,
                 joABI.token_manager_erc20_abi,
                 ep ); // only s-chain
-        imaState.jo_token_manager_erc721 =
+        imaState.joTokenManagerERC721 =
             new owaspUtils.ethersMod.ethers.Contract(
                 joABI.token_manager_erc721_address,
                 joABI.token_manager_erc721_abi,
                 ep ); // only s-chain
-        imaState.jo_token_manager_erc1155 =
+        imaState.joTokenManagerERC1155 =
             new owaspUtils.ethersMod.ethers.Contract(
                 joABI.token_manager_erc1155_address,
                 joABI.token_manager_erc1155_abi,
                 ep ); // only s-chain
-        imaState.jo_token_manager_erc721_with_metadata =
+        imaState.joTokenManagerERC721WithMetadata =
             new owaspUtils.ethersMod.ethers.Contract(
                 joABI.token_manager_erc721_with_metadata_address,
                 joABI.token_manager_erc721_with_metadata_abi,
                 ep ); // only s-chain
-        imaState.jo_community_locker =
+        imaState.joCommunityLocker =
             new owaspUtils.ethersMod.ethers.Contract(
                 joABI.community_locker_address,
                 joABI.community_locker_abi,
                 ep ); // only s-chain
-        imaState.jo_message_proxy_s_chain =
+        imaState.joMessageProxySChain =
             new owaspUtils.ethersMod.ethers.Contract(
                 joABI.message_proxy_chain_address,
                 joABI.message_proxy_chain_abi,
                 ep );
-        imaState.jo_token_manager_linker =
+        imaState.joTokenManagerLinker =
             new owaspUtils.ethersMod.ethers.Contract(
                 joABI.token_manager_linker_address,
                 joABI.token_manager_linker_abi,
                 ep );
-        imaState.eth_erc20 =
+        imaState.joEthErc20 =
             new owaspUtils.ethersMod.ethers.Contract(
                 joABI.eth_erc20_address,
                 joABI.eth_erc20_abi,
@@ -4194,47 +4194,47 @@ function initContractsIMA() {
         const cp = imaState.chainProperties.tc;
         const ep = cp.ethersProvider;
         const joABI = cp.joAbiIMA;
-        imaState.jo_token_manager_eth_target =
+        imaState.joTokenManagerETHTarget =
             new owaspUtils.ethersMod.ethers.Contract(
                 joABI.token_manager_eth_address,
                 joABI.token_manager_eth_abi,
                 ep ); // only s-chain
-        imaState.jo_token_manager_erc20_target =
+        imaState.joTokenManagerERC20Target =
             new owaspUtils.ethersMod.ethers.Contract(
                 joABI.token_manager_erc20_address,
                 joABI.token_manager_erc20_abi,
                 ep ); // only s-chain
-        imaState.jo_token_manager_erc721_target =
+        imaState.joTokenManagerERC721Target =
             new owaspUtils.ethersMod.ethers.Contract(
                 joABI.token_manager_erc721_address,
                 joABI.token_manager_erc721_abi,
                 ep ); // only s-chain
-        imaState.jo_token_manager_erc1155_target =
+        imaState.joTokenManagerERC1155Target =
             new owaspUtils.ethersMod.ethers.Contract(
                 joABI.token_manager_erc1155_address,
                 joABI.token_manager_erc1155_abi,
                 ep ); // only s-chain
-        imaState.jo_token_manager_erc721_with_metadata_target =
+        imaState.joTokenManagerERC721WithMetadataTarget =
             new owaspUtils.ethersMod.ethers.Contract(
                 joABI.token_manager_erc721_with_metadata_address,
                 joABI.token_manager_erc721_with_metadata_abi,
                 ep ); // only s-chain
-        imaState.jo_community_locker_target =
+        imaState.joCommunityLockerTarget =
             new owaspUtils.ethersMod.ethers.Contract(
                 joABI.community_locker_address,
                 joABI.community_locker_abi,
                 ep ); // only s-chain
-        imaState.jo_message_proxy_s_chain_target =
+        imaState.joMessageProxySChainTarget =
             new owaspUtils.ethersMod.ethers.Contract(
                 joABI.message_proxy_chain_address,
                 joABI.message_proxy_chain_abi,
                 ep );
-        imaState.jo_token_manager_linker_target =
+        imaState.joTokenManagerLinkerTarget =
             new owaspUtils.ethersMod.ethers.Contract(
                 joABI.token_manager_linker_address,
                 joABI.token_manager_linker_abi,
                 ep );
-        imaState.eth_erc20_target =
+        imaState.joEthErc20Target =
             new owaspUtils.ethersMod.ethers.Contract(
                 joABI.eth_erc20_address,
                 joABI.eth_erc20_abi,
@@ -4248,52 +4248,52 @@ function initContractsSkaleManager() {
         const cp = imaState.chainProperties.mn;
         const ep = cp.ethersProvider;
         const joABI = imaState.joAbiSkaleManager;
-        imaState.jo_constants_holder =
+        imaState.joConstantsHolder =
             new owaspUtils.ethersMod.ethers.Contract(
                 joABI.constants_holder_address,
                 joABI.constants_holder_abi,
                 ep );
-        imaState.jo_nodes =
+        imaState.joNodes =
             new owaspUtils.ethersMod.ethers.Contract(
                 joABI.nodes_address,
                 joABI.nodes_abi,
                 ep );
-        imaState.jo_key_storage =
+        imaState.joKeyStorage =
             new owaspUtils.ethersMod.ethers.Contract(
                 joABI.key_storage_address,
                 joABI.key_storage_abi,
                 ep );
-        imaState.jo_schains =
+        imaState.joSChains =
             new owaspUtils.ethersMod.ethers.Contract(
                 joABI.schains_address,
                 joABI.schains_abi,
                 ep );
-        imaState.jo_schains_internal =
+        imaState.joSChainsInternal =
             new owaspUtils.ethersMod.ethers.Contract(
                 joABI.schains_internal_address,
                 joABI.schains_internal_abi,
                 ep );
-        imaState.jo_skale_dkg =
+        imaState.joSkaleDKG =
             new owaspUtils.ethersMod.ethers.Contract(
                 joABI.skale_d_k_g_address,
                 joABI.skale_d_k_g_abi,
                 ep );
-        imaState.jo_skale_manager =
+        imaState.joSkaleManager =
             new owaspUtils.ethersMod.ethers.Contract(
                 joABI.skale_manager_address,
                 joABI.skale_manager_abi,
                 ep );
-        imaState.jo_skale_token =
+        imaState.joSkaleToken =
             new owaspUtils.ethersMod.ethers.Contract(
                 joABI.skale_token_address,
                 joABI.skale_token_abi,
                 ep );
-        imaState.jo_validator_service =
+        imaState.joValidatorService =
             new owaspUtils.ethersMod.ethers.Contract(
                 joABI.validator_service_address,
                 joABI.validator_service_abi,
                 ep );
-        imaState.jo_wallets =
+        imaState.joWallets =
             new owaspUtils.ethersMod.ethers.Contract(
                 joABI.wallets_address,
                 joABI.wallets_abi,

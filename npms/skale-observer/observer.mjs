@@ -47,40 +47,40 @@ const PORTS_PER_SCHAIN = 64;
 
 export const events = new EventDispatcher();
 
-export function getSChainIndexInNode( schain_id, schains_ids_on_node ) {
+export function getSChainIndexInNode( computedSChainId, arrChainIdsOnNode ) {
     let i = 0;
-    for( const schain_id_on_node of schains_ids_on_node ) {
-        if( schain_id == schain_id_on_node )
+    for( const chainIdOnNode of arrChainIdsOnNode ) {
+        if( computedSChainId == chainIdOnNode )
             return i;
         ++ i;
     }
     throw new Error(
-        "S-Chain " + schain_id + " is not found in the list: " +
-        JSON.stringify( schains_ids_on_node ) );
+        "S-Chain " + computedSChainId + " is not found in the list: " +
+        JSON.stringify( arrChainIdsOnNode ) );
 }
 
-export function getSChainBasePortOnNode( schain_id, schains_ids_on_node, node_base_port ) {
-    const schain_index = getSChainIndexInNode( schain_id, schains_ids_on_node );
-    return calcSChainBasePort( node_base_port, schain_index );
+export function getSChainBasePortOnNode( computedSChainId, arrChainIdsOnNode, basePortOfNode ) {
+    const indexOfSChain = getSChainIndexInNode( computedSChainId, arrChainIdsOnNode );
+    return calcSChainBasePort( basePortOfNode, indexOfSChain );
 }
 
-export function calcSChainBasePort( node_base_port, schain_index ) {
-    return parseInt( node_base_port ) + parseInt( schain_index ) * PORTS_PER_SCHAIN;
+export function calcSChainBasePort( basePortOfNode, indexOfSChain ) {
+    return parseInt( basePortOfNode ) + parseInt( indexOfSChain ) * PORTS_PER_SCHAIN;
 }
 
-export function composeEndPoints( jo_schain, node_dict, endpoint_type ) {
-    node_dict["http_endpoint_" + endpoint_type] =
-        "http://" + node_dict[endpoint_type] + ":" + jo_schain.data.computed.ports.httpRpcPort;
-    node_dict["https_endpoint_" + endpoint_type] =
-        "https://" + node_dict[endpoint_type] + ":" + jo_schain.data.computed.ports.httpsRpcPort;
-    node_dict["ws_endpoint_" + endpoint_type] =
-        "ws://" + node_dict[endpoint_type] + ":" + jo_schain.data.computed.ports.wsRpcPort;
-    node_dict["wss_endpoint_" + endpoint_type] =
-        "wss://" + node_dict[endpoint_type] + ":" + jo_schain.data.computed.ports.wssRpcPort;
-    node_dict["info_http_endpoint_" + endpoint_type] =
-        "http://" + node_dict[endpoint_type] + ":" + jo_schain.data.computed.ports.infoHttpRpcPort;
-    node_dict["ima_agent_endpoint_" + endpoint_type] =
-        "http://" + node_dict[endpoint_type] + ":" + jo_schain.data.computed.ports.imaAgentRpcPort;
+export function composeEndPoints( joSChain, nodeDict, strEndPointType ) {
+    nodeDict["http_endpoint_" + strEndPointType] =
+        "http://" + nodeDict[strEndPointType] + ":" + joSChain.data.computed.ports.httpRpcPort;
+    nodeDict["https_endpoint_" + strEndPointType] =
+        "https://" + nodeDict[strEndPointType] + ":" + joSChain.data.computed.ports.httpsRpcPort;
+    nodeDict["ws_endpoint_" + strEndPointType] =
+        "ws://" + nodeDict[strEndPointType] + ":" + joSChain.data.computed.ports.wsRpcPort;
+    nodeDict["wss_endpoint_" + strEndPointType] =
+        "wss://" + nodeDict[strEndPointType] + ":" + joSChain.data.computed.ports.wssRpcPort;
+    nodeDict["info_http_endpoint_" + strEndPointType] =
+        "http://" + nodeDict[strEndPointType] + ":" + joSChain.data.computed.ports.infoHttpRpcPort;
+    nodeDict["ima_agent_endpoint_" + strEndPointType] =
+        "http://" + nodeDict[strEndPointType] + ":" + joSChain.data.computed.ports.imaAgentRpcPort;
 }
 
 export const SkaledPorts = {
@@ -97,15 +97,15 @@ export const SkaledPorts = {
     IMA_AGENT_JSON: 10
 };
 
-export function calcPorts( jo_schain, schain_base_port ) {
+export function calcPorts( joSChain, basePortOfSChain ) {
     // TO-DO: these temporary port values should be in "node", not in "schain"
-    jo_schain.data.computed.ports = {
-        httpRpcPort: schain_base_port + SkaledPorts.HTTP_JSON,
-        httpsRpcPort: schain_base_port + SkaledPorts.HTTPS_JSON,
-        wsRpcPort: schain_base_port + SkaledPorts.WS_JSON,
-        wssRpcPort: schain_base_port + SkaledPorts.WSS_JSON,
-        infoHttpRpcPort: schain_base_port + SkaledPorts.INFO_HTTP_JSON,
-        imaAgentRpcPort: schain_base_port + SkaledPorts.IMA_AGENT_JSON
+    joSChain.data.computed.ports = {
+        httpRpcPort: basePortOfSChain + SkaledPorts.HTTP_JSON,
+        httpsRpcPort: basePortOfSChain + SkaledPorts.HTTPS_JSON,
+        wsRpcPort: basePortOfSChain + SkaledPorts.WS_JSON,
+        wssRpcPort: basePortOfSChain + SkaledPorts.WSS_JSON,
+        infoHttpRpcPort: basePortOfSChain + SkaledPorts.INFO_HTTP_JSON,
+        imaAgentRpcPort: basePortOfSChain + SkaledPorts.IMA_AGENT_JSON
     };
 }
 
@@ -176,19 +176,19 @@ async function isMulticallAvailable( mn ) {
 }
 
 // see https://github.com/skalenetwork/skale-proxy/blob/develop/endpoints.py
-export async function loadSChainParts( jo_schain, addressFrom, opts ) {
+export async function loadSChainParts( joSChain, addressFrom, opts ) {
     owaspUtils.ensureObserverOptionsInitialized( opts );
     if( ! opts.imaState )
         throw new Error( "Cannot load S-Chain parts in observer, no imaState is provided" );
     let isEMC = false;
     if( opts.imaState.isEnabledMultiCall )
         isEMC = await isMulticallAvailable( opts.imaState.chainProperties.mn );
-    jo_schain.data.computed = {};
-    const schain_id = owaspUtils.ethersMod.ethers.utils.id( jo_schain.data.name );
-    const chainId = owaspUtils.computeChainIdFromSChainName( jo_schain.data.name );
-    const node_ids =
-        await opts.imaState.jo_schains_internal.callStatic.getNodesInGroup(
-            schain_id,
+    joSChain.data.computed = {};
+    const computedSChainId = owaspUtils.ethersMod.ethers.utils.id( joSChain.data.name );
+    const chainId = owaspUtils.computeChainIdFromSChainName( joSChain.data.name );
+    const arrNodeIds =
+        await opts.imaState.joSChainsInternal.callStatic.getNodesInGroup(
+            computedSChainId,
             { from: addressFrom } );
     const nodes = [];
     if( isEMC ) {
@@ -205,58 +205,58 @@ export async function loadSChainParts( jo_schain, addressFrom, opts ) {
         const contractCallContext = [
             {
                 reference: strRef0,
-                contractAddress: opts.imaState.jo_nodes.address,
+                contractAddress: opts.imaState.joNodes.address,
                 // abi:find_one_function_abi( opts.imaState.joAbiSkaleManager.nodes_abi, "nodes" ),
                 abi: opts.imaState.joAbiSkaleManager.nodes_abi,
                 calls: [ ]
             }, {
                 reference: strRef1,
-                contractAddress: opts.imaState.jo_nodes.address,
+                contractAddress: opts.imaState.joNodes.address,
                 abi: opts.imaState.joAbiSkaleManager.nodes_abi,
                 calls: [ ]
             }, {
                 reference: strRef2,
-                contractAddress: opts.imaState.jo_nodes.address,
+                contractAddress: opts.imaState.joNodes.address,
                 abi: opts.imaState.joAbiSkaleManager.nodes_abi,
                 calls: [ ]
             }, {
                 reference: strRef3,
-                contractAddress: opts.imaState.jo_schains_internal.address,
+                contractAddress: opts.imaState.joSChainsInternal.address,
                 abi: opts.imaState.joAbiSkaleManager.schains_internal_abi,
                 calls: [ ]
             }
         ];
-        for( const node_id of node_ids ) {
+        for( const nodeId of arrNodeIds ) {
             if( opts && opts.bStopNeeded )
                 return;
             contractCallContext[0].calls.push(
                 {
                     reference: strRef0,
                     methodName: "nodes",
-                    methodParameters: [ node_id ]
+                    methodParameters: [ nodeId ]
                 } );
             contractCallContext[1].calls.push(
                 {
                     reference: strRef1,
                     methodName: "getNodeDomainName",
-                    methodParameters: [ node_id ]
+                    methodParameters: [ nodeId ]
                 } );
             contractCallContext[2].calls.push(
                 {
                     reference: strRef2,
                     methodName: "isNodeInMaintenance",
-                    methodParameters: [ node_id ]
+                    methodParameters: [ nodeId ]
                 } );
             contractCallContext[3].calls.push(
                 {
                     reference: strRef3,
                     methodName: "getSchainHashesForNode",
-                    methodParameters: [ node_id ]
+                    methodParameters: [ nodeId ]
                 } );
         }
         const rawResults = await multicall.call( contractCallContext );
         let idxResult = 0;
-        for( const node_id of node_ids ) {
+        for( const nodeId of arrNodeIds ) {
             const values0 =
                 rawResults.results[strRef0].callsReturnContext[idxResult].returnValues;
             const values1 =
@@ -265,8 +265,8 @@ export async function loadSChainParts( jo_schain, addressFrom, opts ) {
                 rawResults.results[strRef2].callsReturnContext[idxResult].returnValues;
             const values3 =
                 rawResults.results[strRef3].callsReturnContext[idxResult].returnValues;
-            const node_dict = {
-                "id": node_id,
+            const nodeDict = {
+                "id": nodeId,
                 "name": values0[0],
                 "ip": owaspUtils.ipFromHex( values0[1] ),
                 "base_port": values0[3],
@@ -275,54 +275,54 @@ export async function loadSChainParts( jo_schain, addressFrom, opts ) {
             };
             if( opts && opts.bStopNeeded )
                 return;
-            const schain_ids = values3;
-            node_dict.schain_base_port =
-                getSChainBasePortOnNode( schain_id, schain_ids, node_dict.base_port );
-            calcPorts( jo_schain, node_dict.schain_base_port );
-            composeEndPoints( jo_schain, node_dict, "ip" );
-            composeEndPoints( jo_schain, node_dict, "domain" );
-            nodes.push( node_dict );
+            const arrFetchedSChainIds = values3;
+            nodeDict.basePortOfSChain = getSChainBasePortOnNode(
+                computedSChainId, arrFetchedSChainIds, nodeDict.base_port );
+            calcPorts( joSChain, nodeDict.basePortOfSChain );
+            composeEndPoints( joSChain, nodeDict, "ip" );
+            composeEndPoints( joSChain, nodeDict, "domain" );
+            nodes.push( nodeDict );
             if( opts && opts.bStopNeeded )
                 return;
             ++ idxResult;
         }
     } else {
-        for( const node_id of node_ids ) {
+        for( const nodeId of arrNodeIds ) {
             if( opts && opts.bStopNeeded )
                 return;
             const node =
-                await opts.imaState.jo_nodes.callStatic.nodes( node_id, { from: addressFrom } );
-            const node_dict = {
-                "id": node_id,
+                await opts.imaState.joNodes.callStatic.nodes( nodeId, { from: addressFrom } );
+            const nodeDict = {
+                "id": nodeId,
                 "name": node[0],
                 "ip": owaspUtils.ipFromHex( node[1] ),
                 "base_port": node[3],
                 "domain":
-                    await opts.imaState.jo_nodes.callStatic.getNodeDomainName(
-                        node_id, { from: addressFrom } ),
+                    await opts.imaState.joNodes.callStatic.getNodeDomainName(
+                        nodeId, { from: addressFrom } ),
                 "isMaintenance":
-                    await opts.imaState.jo_nodes.callStatic.isNodeInMaintenance(
-                        node_id, { from: addressFrom } )
+                    await opts.imaState.joNodes.callStatic.isNodeInMaintenance(
+                        nodeId, { from: addressFrom } )
             };
             if( opts && opts.bStopNeeded )
                 return;
-            const schain_ids =
-                await opts.imaState.jo_schains_internal.callStatic.getSchainHashesForNode(
-                    node_id, { from: addressFrom } );
-            node_dict.schain_base_port =
+            const arrFetchedSChainIds =
+                await opts.imaState.joSChainsInternal.callStatic.getSchainHashesForNode(
+                    nodeId, { from: addressFrom } );
+            nodeDict.basePortOfSChain =
                 getSChainBasePortOnNode(
-                    schain_id, schain_ids, node_dict.base_port );
-            calcPorts( jo_schain, node_dict.schain_base_port );
-            composeEndPoints( jo_schain, node_dict, "ip" );
-            composeEndPoints( jo_schain, node_dict, "domain" );
-            nodes.push( node_dict );
+                    computedSChainId, arrFetchedSChainIds, nodeDict.base_port );
+            calcPorts( joSChain, nodeDict.basePortOfSChain );
+            composeEndPoints( joSChain, nodeDict, "ip" );
+            composeEndPoints( joSChain, nodeDict, "domain" );
+            nodes.push( nodeDict );
             if( opts && opts.bStopNeeded )
                 return;
         }
     }
-    jo_schain.data.computed.schain_id = schain_id;
-    jo_schain.data.computed.chainId = chainId;
-    jo_schain.data.computed.nodes = nodes;
+    joSChain.data.computed.computedSChainId = computedSChainId;
+    joSChain.data.computed.chainId = chainId;
+    joSChain.data.computed.nodes = nodes;
 }
 
 export async function getSChainsCount( addressFrom, opts ) {
@@ -330,16 +330,16 @@ export async function getSChainsCount( addressFrom, opts ) {
     if( ! opts.imaState )
         throw new Error( "Cannot get S-Chains count, no imaState is provided" );
     const cntSChains =
-        await opts.imaState.jo_schains_internal.callStatic.numberOfSchains(
+        await opts.imaState.joSChainsInternal.callStatic.numberOfSchains(
             { from: addressFrom } );
     return cntSChains;
 }
 
-export function removeSChainDescDataNumKeys( jo_schain ) {
-    const cnt = Object.keys( jo_schain ).length;
+export function removeSChainDescDataNumKeys( joSChain ) {
+    const cnt = Object.keys( joSChain ).length;
     for( let i = 0; i < cnt; ++ i ) {
         try {
-            delete jo_schain[i];
+            delete joSChain[i];
         } catch ( err ) {
         }
     }
@@ -356,28 +356,27 @@ export async function loadSChain( addressFrom, idxSChain, hash, cntSChains, opts
             "\n" );
     }
     hash = hash ||
-        await opts.imaState.jo_schains_internal.callStatic.schainsAtSystem(
+        await opts.imaState.joSChainsInternal.callStatic.schainsAtSystem(
             idxSChain, { from: addressFrom } );
     if( opts && opts.details )
         opts.details.write( cc.debug( "    Hash " ) + cc.attention( hash ) + "\n" );
     if( opts && opts.bStopNeeded )
         return null;
-    let jo_data =
-        await opts.imaState.jo_schains_internal.callStatic.schains(
+    let joData =
+        await opts.imaState.joSChainsInternal.callStatic.schains(
             hash, { from: addressFrom } );
-    // jo_data = JSON.parse( JSON.stringify( jo_data ) );
-    jo_data = owaspUtils.cloneObjectByRootKeys( jo_data );
-    const jo_schain = { "data": jo_data };
-    removeSChainDescDataNumKeys( jo_schain.data, addressFrom );
+    joData = owaspUtils.cloneObjectByRootKeys( joData );
+    const joSChain = { "data": joData };
+    removeSChainDescDataNumKeys( joSChain.data, addressFrom );
     if( opts && opts.bStopNeeded )
         return null;
-    await loadSChainParts( jo_schain, addressFrom, opts );
+    await loadSChainParts( joSChain, addressFrom, opts );
     if( opts && opts.details ) {
-        opts.details.write( cc.debug( "    Desc " ) + cc.j( jo_schain.data ) + "\n" );
+        opts.details.write( cc.debug( "    Desc " ) + cc.j( joSChain.data ) + "\n" );
         opts.details.write( cc.success( "Done" ) + "\n" );
     }
-    jo_schain.isConnected = false;
-    return jo_schain;
+    joSChain.isConnected = false;
+    return joSChain;
 }
 
 export async function loadSChains( addressFrom, opts ) {
@@ -394,10 +393,10 @@ export async function loadSChains( addressFrom, opts ) {
     for( let idxSChain = 0; idxSChain < cntSChains; ++ idxSChain ) {
         if( opts && opts.bStopNeeded )
             break;
-        const jo_schain = await loadSChain( addressFrom, idxSChain, null, cntSChains, opts );
-        if( ! jo_schain )
+        const joSChain = await loadSChain( addressFrom, idxSChain, null, cntSChains, opts );
+        if( ! joSChain )
             break;
-        arrSChains.push( jo_schain );
+        arrSChains.push( joSChain );
     }
     if( opts && opts.details ) {
         opts.details.write(
@@ -414,7 +413,7 @@ export async function loadCachedSChainsSimplified( addressFrom, opts ) {
     if( opts && opts.details )
         opts.details.write( cc.debug( "Will request all S-Chain(s) hashes..." ) + "\n" );
     const arrSChainHashes =
-        await opts.imaState.jo_schains_internal.callStatic.getSchains(
+        await opts.imaState.joSChainsInternal.callStatic.getSchains(
             { from: addressFrom } );
     const cntSChains = arrSChainHashes.length;
     if( opts && opts.details ) {
@@ -429,7 +428,7 @@ export async function loadCachedSChainsSimplified( addressFrom, opts ) {
             break;
         const strSChainHash = arrSChainHashes[idxSChain];
         const strSChainName =
-            await opts.imaState.jo_schains_internal.callStatic.getSchainName(
+            await opts.imaState.joSChainsInternal.callStatic.getSchainName(
                 strSChainHash, { from: addressFrom } );
         if( opts && opts.details ) {
             opts.details.write(
@@ -440,13 +439,13 @@ export async function loadCachedSChainsSimplified( addressFrom, opts ) {
         }
         if( opts && opts.bStopNeeded )
             break;
-        const jo_schain =
+        const joSChain =
             await loadSChain(
                 addressFrom, idxSChain, strSChainHash, cntSChains, opts
             );
-        if( ! jo_schain )
+        if( ! joSChain )
             break;
-        arrSChains.push( jo_schain );
+        arrSChains.push( joSChain );
     }
     return arrSChains;
 }
@@ -461,7 +460,7 @@ export async function loadSChainsConnectedOnly(
     if( opts && opts.details )
         opts.details.write( cc.debug( "Will request all S-Chain(s) hashes..." ) + "\n" );
     const arrSChainHashes =
-        await opts.imaState.jo_schains_internal.callStatic.getSchains(
+        await opts.imaState.joSChainsInternal.callStatic.getSchains(
             { from: addressFrom } );
     const cntSChains = arrSChainHashes.length;
     if( opts && opts.details ) {
@@ -470,7 +469,7 @@ export async function loadSChainsConnectedOnly(
             cc.j( arrSChainHashes ) +
             "\n" );
     }
-    const jo_message_proxy_s_chain =
+    const joMessageProxySChain =
         new owaspUtils.ethersMod.ethers.Contract(
             opts.imaState.chainProperties.sc.joAbiIMA.message_proxy_chain_address,
             opts.imaState.chainProperties.sc.joAbiIMA.message_proxy_chain_abi,
@@ -483,7 +482,7 @@ export async function loadSChainsConnectedOnly(
                 break;
             const strSChainHash = arrSChainHashes[idxSChain];
             const strSChainName =
-                await opts.imaState.jo_schains_internal.callStatic.getSchainName(
+                await opts.imaState.joSChainsInternal.callStatic.getSchainName(
                     strSChainHash, { from: addressFrom } );
             if( opts && opts.details ) {
                 opts.details.write(
@@ -511,7 +510,7 @@ export async function loadSChainsConnectedOnly(
                     cc.info( strChainNameConnectedTo ) + cc.debug( "..." ) + "\n" );
             }
             const isConnected =
-                await jo_message_proxy_s_chain.callStatic.isConnectedChain(
+                await joMessageProxySChain.callStatic.isConnectedChain(
                     strSChainName, { from: addressFrom } );
             if( opts && opts.details ) {
                 opts.details.write(
@@ -521,13 +520,13 @@ export async function loadSChainsConnectedOnly(
             }
             if( ! isConnected )
                 continue;
-            const jo_schain =
+            const joSChain =
                 await loadSChain(
                     addressFrom, idxSChain, strSChainHash, cntSChains, opts );
-            if( ! jo_schain )
+            if( ! joSChain )
                 break;
-            jo_schain.isConnected = true;
-            arrSChains.push( jo_schain );
+            joSChain.isConnected = true;
+            arrSChains.push( joSChain );
         } catch ( err ) {
             if( opts && opts.details ) {
                 opts.details.write(
@@ -551,33 +550,33 @@ export async function checkConnectedSChains(
     for( let idxSChain = 0; idxSChain < cntSChains; ++ idxSChain ) {
         if( opts && opts.bStopNeeded )
             break;
-        const jo_schain = arrSChains[idxSChain];
-        jo_schain.isConnected = false;
-        if( jo_schain.data.name == strChainNameConnectedTo )
+        const joSChain = arrSChains[idxSChain];
+        joSChain.isConnected = false;
+        if( joSChain.data.name == strChainNameConnectedTo )
             continue;
         try {
-            const url = pickRandomSChainUrl( jo_schain );
+            const url = pickRandomSChainUrl( joSChain );
             if( opts && opts.details ) {
                 opts.details.write(
                     cc.debug( "Querying via URL " ) + cc.u( url ) +
                     cc.debug( " to S-Chain " ) +
-                    cc.info( jo_schain.data.name ) +
+                    cc.info( joSChain.data.name ) +
                     cc.debug( " whether it's connected to S-Chain " ) +
                     cc.info( strChainNameConnectedTo ) + cc.debug( "..." ) + "\n" );
             }
             const ethersProvider = owaspUtils.getEthersProviderFromURL( url );
-            const jo_message_proxy_s_chain =
+            const joMessageProxySChain =
                 new owaspUtils.ethersMod.ethers.Contract(
                     opts.imaState.chainProperties.sc.joAbiIMA.message_proxy_chain_address,
                     opts.imaState.chainProperties.sc.joAbiIMA.message_proxy_chain_abi,
                     ethersProvider
                 );
-            jo_schain.isConnected =
-                await jo_message_proxy_s_chain.callStatic.isConnectedChain(
+            joSChain.isConnected =
+                await joMessageProxySChain.callStatic.isConnectedChain(
                     strChainNameConnectedTo, { from: addressFrom } );
             if( opts && opts.details ) {
                 opts.details.write(
-                    cc.debug( "Got " ) + cc.yn( jo_schain.isConnected ) + "\n" );
+                    cc.debug( "Got " ) + cc.yn( joSChain.isConnected ) + "\n" );
             }
         } catch ( err ) {
             if( opts && opts.details ) {
@@ -599,17 +598,17 @@ export async function filterSChainsMarkedAsConnected( arrSChains, opts ) {
     for( let idxSChain = 0; idxSChain < cntSChains; ++ idxSChain ) {
         if( opts && opts.bStopNeeded )
             break;
-        const jo_schain = arrSChains[idxSChain];
-        if( jo_schain.isConnected )
-            arr_connected_schains.push( jo_schain );
+        const joSChain = arrSChains[idxSChain];
+        if( joSChain.isConnected )
+            arr_connected_schains.push( joSChain );
     }
     return arr_connected_schains;
 }
 
 export function findSChainIndexInArrayByName( arrSChains, strSChainName ) {
     for( let idxSChain = 0; idxSChain < arrSChains.length; ++ idxSChain ) {
-        const jo_schain = arrSChains[idxSChain];
-        if( jo_schain.data.name.toString() == strSChainName.toString() )
+        const joSChain = arrSChains[idxSChain];
+        if( joSChain.data.name.toString() == strSChainName.toString() )
             return idxSChain;
     }
     return -1;
@@ -628,16 +627,16 @@ export function mergeSChainsArrayFromTo( arrSrc, arrDst, arrNew, arrOld, opts ) 
             "\n" );
     }
     for( i = 0; i < cnt; ++ i ) {
-        const jo_schain = arrSrc[i];
-        j = findSChainIndexInArrayByName( arrDst, jo_schain.data.name );
+        const joSChain = arrSrc[i];
+        j = findSChainIndexInArrayByName( arrDst, joSChain.data.name );
         if( j < 0 ) {
             if( opts && opts.details ) {
                 opts.details.write(
                     cc.debug( "Found new " ) + cc.notice( "#" ) + cc.info( i + 1 ) +
-                    cc.debug( " S-Chain " ) + cc.j( jo_schain ) +
+                    cc.debug( " S-Chain " ) + cc.j( joSChain ) +
                     "\n" );
             }
-            arrNew.push( jo_schain );
+            arrNew.push( joSChain );
         }
     }
     if( opts && opts.details ) {
@@ -648,16 +647,16 @@ export function mergeSChainsArrayFromTo( arrSrc, arrDst, arrNew, arrOld, opts ) 
     }
     cnt = arrDst.length;
     for( i = 0; i < cnt; ++ i ) {
-        const jo_schain = arrDst[i];
-        j = findSChainIndexInArrayByName( arrSrc, jo_schain.data.name );
+        const joSChain = arrDst[i];
+        j = findSChainIndexInArrayByName( arrSrc, joSChain.data.name );
         if( j < 0 ) {
             if( opts && opts.details ) {
                 opts.details.write(
                     cc.debug( "Found old S-Chain " ) + cc.notice( "#" ) +
-                    cc.info( i + 1 ) + cc.debug( " " ) + cc.j( jo_schain ) +
+                    cc.info( i + 1 ) + cc.debug( " " ) + cc.j( joSChain ) +
                     "\n" );
             }
-            arrOld.push( jo_schain );
+            arrOld.push( joSChain );
         }
     }
     if( opts && opts.details ) {
@@ -674,8 +673,8 @@ export function mergeSChainsArrayFromTo( arrSrc, arrDst, arrNew, arrOld, opts ) 
                 "\n" );
         }
         for( i = 0; i < arrNew.length; ++ i ) {
-            const jo_schain = arrNew[i];
-            arrDst.push( jo_schain );
+            const joSChain = arrNew[i];
+            arrDst.push( joSChain );
         }
         if( opts && opts.details )
             opts.details.write( cc.success( "Done" ) + "\n" );
@@ -688,8 +687,8 @@ export function mergeSChainsArrayFromTo( arrSrc, arrDst, arrNew, arrOld, opts ) 
                 "\n" );
         }
         for( i = 0; i < arrOld.length; ++ i ) {
-            const jo_schain = arrOld[i];
-            j = findSChainIndexInArrayByName( arrDst, jo_schain.data.name );
+            const joSChain = arrOld[i];
+            j = findSChainIndexInArrayByName( arrDst, joSChain.data.name );
             arrDst.splice( j, 1 );
         }
         if( opts && opts.details )
@@ -1012,21 +1011,21 @@ export async function periodicCachingStop() {
     g_bHaveParallelResult = false;
 }
 
-export function pickRandomSChainNodeIndex( jo_schain ) {
-    let min = 0, max = jo_schain.data.computed.nodes.length - 1;
+export function pickRandomSChainNodeIndex( joSChain ) {
+    let min = 0, max = joSChain.data.computed.nodes.length - 1;
     min = Math.ceil( min );
     max = Math.floor( max );
     const idxNode = Math.floor( Math.random() * ( max - min + 1 ) ) + min;
     return idxNode;
 }
-export function pickRandomSChainNode( jo_schain ) {
-    const idxNode = pickRandomSChainNodeIndex( jo_schain );
-    return jo_schain.data.computed.nodes[idxNode];
+export function pickRandomSChainNode( joSChain ) {
+    const idxNode = pickRandomSChainNodeIndex( joSChain );
+    return joSChain.data.computed.nodes[idxNode];
 }
 
-export function pickRandomSChainUrl( jo_schain ) {
-    const jo_node = pickRandomSChainNode( jo_schain );
-    return "" + jo_node.http_endpoint_ip;
+export function pickRandomSChainUrl( joSChain ) {
+    const joNode = pickRandomSChainNode( joSChain );
+    return "" + joNode.http_endpoint_ip;
 }
 
 export async function discoverChainId( strURL ) {

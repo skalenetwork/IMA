@@ -118,26 +118,26 @@ class ObserverServer extends SocketServer {
                     "\n" );
             }
 
-            self.opts.imaState.jo_nodes =
+            self.opts.imaState.joNodes =
                 new owaspUtils.ethersMod.ethers.Contract(
                     self.opts.imaState.joAbiSkaleManager.nodes_address,
                     self.opts.imaState.joAbiSkaleManager.nodes_abi,
                     self.opts.imaState.chainProperties.mn.ethersProvider
                 );
-            self.opts.imaState.jo_schains =
+            self.opts.imaState.joSChains =
                 new owaspUtils.ethersMod.ethers.Contract(
                     self.opts.imaState.joAbiSkaleManager.schains_address,
                     self.opts.imaState.joAbiSkaleManager.schains_abi,
                     self.opts.imaState.chainProperties.mn.ethersProvider
                 );
-            self.opts.imaState.jo_schains_internal =
+            self.opts.imaState.joSChainsInternal =
                 new owaspUtils.ethersMod.ethers.Contract(
                     self.opts.imaState.joAbiSkaleManager.schains_internal_address,
                     self.opts.imaState.joAbiSkaleManager.schains_internal_abi,
                     self.opts.imaState.chainProperties.mn.ethersProvider
                 );
 
-            self.opts.imaState.jo_message_proxy_s_chain =
+            self.opts.imaState.joMessageProxySChain =
                 new owaspUtils.ethersMod.ethers.Contract(
                     self.opts.imaState.chainProperties.sc.joAbiIMA.message_proxy_chain_address,
                     self.opts.imaState.chainProperties.sc.joAbiIMA.message_proxy_chain_abi,
