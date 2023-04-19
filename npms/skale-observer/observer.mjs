@@ -780,7 +780,7 @@ export async function ensureHaveWorker( opts ) {
             { "type": "module" }
         );
     g_worker.on( "message", jo => {
-        if( networkLayer.out_of_worker_apis.on_message( g_worker, jo ) )
+        if( networkLayer.outOfWorkerAPIs.onMessage( g_worker, jo ) )
             return;
     } );
     g_client = new networkLayer.OutOfWorkerSocketClientPipe( url, g_worker );

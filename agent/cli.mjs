@@ -1945,7 +1945,7 @@ function parsePaymentAmountArgs( imaState, joArg ) {
     if( joArg.name == "tid" ) {
         owaspUtils.verifyArgumentWithNonEmptyValue( joArg );
         imaState.idToken = joArg.value;
-        imaState.have_idToken = true;
+        imaState.haveOneTokenIdentifier = true;
         return true;
     }
     if( joArg.name == "amounts" ) {
@@ -1954,7 +1954,7 @@ function parsePaymentAmountArgs( imaState, joArg ) {
     }
     if( joArg.name == "tids" ) {
         imaState.idTokens = owaspUtils.verifyArgumentIsArrayOfIntegers( joArg );
-        imaState.have_idTokens = true;
+        imaState.haveArrayOfTokenIdentifiers = true;
         return true;
     }
     return false;

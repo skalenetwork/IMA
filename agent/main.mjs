@@ -45,9 +45,6 @@ import * as state from "./state.mjs";
 // allow self-signed wss and https
 process.env.NODE_TLS_REJECT_UNAUTHORIZED = 0;
 
-///////////////////////////////////////////////////////////////////////////////////////////////////
-///////////////////////////////////////////////////////////////////////////////////////////////////
-
 function initialSkaleNetworkScanForS2S() {
     const imaState = state.get();
     if( ! imaState.optsS2S.isEnabled )
@@ -91,9 +88,6 @@ function initialSkaleNetworkScanForS2S() {
         }
     } );
 };
-
-///////////////////////////////////////////////////////////////////////////////////////////////////
-///////////////////////////////////////////////////////////////////////////////////////////////////
 
 function commandLineTaskRegister() {
     const imaState = state.get();
@@ -194,8 +188,8 @@ function commandLineTaskMintErc721() {
                 try {
                     const strAddressMintTo = // same as caller/transaction signer
                         imaState.chainProperties.tc.joAccount.address();
-                    const idTokens = imaState.have_idTokens ? imaState.idTokens : [];
-                    if( imaState.have_idToken )
+                    const idTokens = imaState.haveArrayOfTokenIdentifiers ? imaState.idTokens : [];
+                    if( imaState.haveOneTokenIdentifier )
                         idTokens.push( imaState.idToken );
                     if( idTokens.length > 0 ) {
                         for( let i = 0; i < idTokens.length; ++ i ) {
@@ -235,8 +229,8 @@ function commandLineTaskMintErc1155() {
                 try {
                     const strAddressMintTo = // same as caller/transaction signer
                         imaState.chainProperties.tc.joAccount.address();
-                    const idTokens = imaState.have_idTokens ? imaState.idTokens : [];
-                    if( imaState.have_idToken )
+                    const idTokens = imaState.haveArrayOfTokenIdentifiers ? imaState.idTokens : [];
+                    if( imaState.haveOneTokenIdentifier )
                         idTokens.push( imaState.idToken );
                     if( idTokens.length > 0 ) {
                         for( let i = 0; i < idTokens.length; ++ i ) {
@@ -312,8 +306,8 @@ function commandLineTaskBurnErc721() {
             let bBurnIsOK = false;
             if( imaState.chainProperties.tc.strCoinNameErc721.length > 0 ) {
                 try {
-                    const idTokens = imaState.have_idTokens ? imaState.idTokens : [];
-                    if( imaState.have_idToken )
+                    const idTokens = imaState.haveArrayOfTokenIdentifiers ? imaState.idTokens : [];
+                    if( imaState.haveOneTokenIdentifier )
                         idTokens.push( imaState.idToken );
                     if( idTokens.length > 0 ) {
                         for( let i = 0; i < idTokens.length; ++ i ) {
@@ -354,8 +348,8 @@ function commandLineTaskBurnErc1155() {
                 try {
                     const strAddressBurnFrom = // same as caller/transaction signer
                         imaState.chainProperties.tc.joAccount.address();
-                    const idTokens = imaState.have_idTokens ? imaState.idTokens : [];
-                    if( imaState.have_idToken )
+                    const idTokens = imaState.haveArrayOfTokenIdentifiers ? imaState.idTokens : [];
+                    if( imaState.haveOneTokenIdentifier )
                         idTokens.push( imaState.idToken );
                     if( idTokens.length > 0 ) {
                         for( let i = 0; i < idTokens.length; ++ i ) {
@@ -682,8 +676,8 @@ function commandLineTaskShowBalance() {
                 arrBalancesMN, arrBalancesSC, arrBalancesTC );
             await commandLineTaskShowBalanceErc20(
                 arrBalancesMN, arrBalancesSC, arrBalancesTC );
-            const idTokens = imaState.have_idTokens ? imaState.idTokens : [];
-            if( imaState.have_idToken )
+            const idTokens = imaState.haveArrayOfTokenIdentifiers ? imaState.idTokens : [];
+            if( imaState.haveOneTokenIdentifier )
                 idTokens.push( imaState.idToken );
             if( idTokens.length > 0 ) {
                 await commandLineTaskShowBalanceErc721(
@@ -1954,9 +1948,6 @@ function parseCommandLine() {
     }
 }
 
-///////////////////////////////////////////////////////////////////////////////////////////////////
-///////////////////////////////////////////////////////////////////////////////////////////////////
-
 function getSChainNodesCount( joSChainNetworkInfo ) {
     try {
         if( ! joSChainNetworkInfo )
@@ -2421,9 +2412,6 @@ async function discoverSChainNetwork(
     return optsDiscover.joSChainNetworkInfo;
 }
 
-///////////////////////////////////////////////////////////////////////////////////////////////////
-///////////////////////////////////////////////////////////////////////////////////////////////////
-
 let g_wsServerMonitoring = null;
 
 function initMonitoringServer() {
@@ -2554,9 +2542,6 @@ function initMonitoringServer() {
     } );
 }
 
-///////////////////////////////////////////////////////////////////////////////////////////////////
-///////////////////////////////////////////////////////////////////////////////////////////////////
-
 let g_jsonRpcAppIMA = null;
 
 function initJsonRpcServer() {
@@ -2665,9 +2650,6 @@ function initJsonRpcServer() {
     g_jsonRpcAppIMA.listen( imaState.nJsonRpcPort );
 }
 
-///////////////////////////////////////////////////////////////////////////////////////////////////
-///////////////////////////////////////////////////////////////////////////////////////////////////
-
 async function doTheJob() {
     const imaState = state.get();
     const strLogPrefix = cc.info( "Job 1:" ) + " ";
@@ -2729,9 +2711,6 @@ async function doTheJob() {
         process.exit( process.exitCode );
 }
 
-///////////////////////////////////////////////////////////////////////////////////////////////////
-///////////////////////////////////////////////////////////////////////////////////////////////////
-
 const g_registrationCostInfo = {
     mn: [],
     sc: []
@@ -2748,8 +2727,7 @@ async function registerStep1( isPrintSummaryRegistrationCosts ) {
         imaState.chainProperties.mn.joAccount,
         imaState.chainProperties.sc.strChainName
     );
-    log.write( strLogPrefix +
-        cc.debug( "Chain is " ) +
+    log.write( strLogPrefix + cc.debug( "Chain is " ) +
         ( bSuccess ? cc.success( "already registered" ) : cc.warning( "not registered yet" ) ) +
         "\n" );
     if( bSuccess )
@@ -2771,8 +2749,7 @@ async function registerStep1( isPrintSummaryRegistrationCosts ) {
             imaState.chainProperties.mn.transactionCustomizer //,
         );
     bSuccess = ( jarrReceipts != null && jarrReceipts.length > 0 ) ? true : false;
-    log.write( strLogPrefix +
-        cc.debug( "Chain was " ) +
+    log.write( strLogPrefix + cc.debug( "Chain was " ) +
         ( bSuccess ? cc.success( "registered successfully" ) : cc.error( "not registered" ) ) +
         "\n" );
     if( bSuccess ) {
@@ -2783,8 +2760,7 @@ async function registerStep1( isPrintSummaryRegistrationCosts ) {
         printSummaryRegistrationCosts();
     if( !bSuccess ) {
         const nRetCode = 163;
-        log.write( strLogPrefix +
-            cc.fatal( "FATAL, CRITICAL ERROR:" ) +
+        log.write( strLogPrefix + cc.fatal( "FATAL, CRITICAL ERROR:" ) +
             cc.error( " failed to register S-Chain in deposit box, will return code " ) +
             cc.warning( nRetCode ) + "\n" );
         process.exit( nRetCode );
@@ -2828,9 +2804,6 @@ function printSummaryRegistrationCosts( details ) {
     );
 }
 
-///////////////////////////////////////////////////////////////////////////////////////////////////
-///////////////////////////////////////////////////////////////////////////////////////////////////
-
 async function waitUntilSChainStarted() {
     const imaState = state.get();
     log.write(
@@ -2839,10 +2812,8 @@ async function waitUntilSChainStarted() {
     if( ( !imaState.chainProperties.sc.strURL ) ||
         imaState.chainProperties.sc.strURL.length === 0
     ) {
-        log.write(
-            cc.warning( "Skipped, " ) + cc.info( "S-Chain" ) +
-            cc.warning( " URL was not provided." ) +
-            "\n" );
+        log.write( cc.warning( "Skipped, " ) + cc.info( "S-Chain" ) +
+            cc.warning( " URL was not provided." ) + "\n" );
         return;
     }
     let bSuccess = false;
@@ -2855,11 +2826,9 @@ async function waitUntilSChainStarted() {
                         bSuccess = true;
                 }, true, null, -1 ).catch( ( err ) => {
                 const strError = owaspUtils.extractErrorMessage( err );
-                log.write(
-                    cc.fatal( "CRITICAL ERROR:" ) +
+                log.write( cc.fatal( "CRITICAL ERROR:" ) +
                     cc.error( " S-Chain network discovery failed: " ) +
-                    cc.warning( strError ) + "\n"
-                );
+                    cc.warning( strError ) + "\n" );
             } );
             if( ! joSChainNetworkInfo )
                 bSuccess = false;
@@ -2869,11 +2838,9 @@ async function waitUntilSChainStarted() {
         if( !bSuccess )
             ++ idxWaitAttempt;
         if( idxWaitAttempt >= imaState.nMaxWaitSChainAttempts ) {
-            log.write(
-                cc.warning( "Incomplete, " ) + cc.info( "S-Chain" ) +
+            log.write( cc.warning( "Incomplete, " ) + cc.info( "S-Chain" ) +
                 cc.warning( " sanity check failed after " ) + cc.info( idxWaitAttempt ) +
-                cc.warning( " attempts." ) +
-                "\n" );
+                cc.warning( " attempts." ) + "\n" );
             return;
         }
         await IMA.sleep( 1000 );
@@ -2884,46 +2851,39 @@ async function waitUntilSChainStarted() {
         "\n" );
 }
 
-///////////////////////////////////////////////////////////////////////////////////////////////////
-///////////////////////////////////////////////////////////////////////////////////////////////////
-
 async function main() {
     cc.autoEnableFromCommandLineArgs();
     const imaState = state.get();
-    const tmp_address_MN_from_env =
+    const strTmpAddressFromEnvMainNet =
         owaspUtils.toEthPrivateKey( process.env.ACCOUNT_FOR_ETHEREUM );
-    const tmp_address_SC_from_env =
+    const strTmpAddressFromEnvSChain =
         owaspUtils.toEthPrivateKey( process.env.ACCOUNT_FOR_SCHAIN );
-    const tmp_address_TC_from_env =
+    const strTmpAddressFromEnvSChainTarget =
         owaspUtils.toEthPrivateKey( process.env.ACCOUNT_FOR_SCHAIN_TARGET );
-    if( tmp_address_MN_from_env &&
-        typeof tmp_address_MN_from_env == "string" &&
-        tmp_address_MN_from_env.length > 0 )
-        imaState.chainProperties.mn.joAccount.address_ = "" + tmp_address_MN_from_env;
-    if( tmp_address_SC_from_env &&
-        typeof tmp_address_SC_from_env == "string" &&
-        tmp_address_SC_from_env.length > 0 )
-        imaState.chainProperties.sc.joAccount.address_ = "" + tmp_address_SC_from_env;
-    if( tmp_address_TC_from_env &&
-        typeof tmp_address_TC_from_env == "string" &&
-        tmp_address_TC_from_env.length > 0 )
-        imaState.chainProperties.tc.joAccount.address_ = "" + tmp_address_TC_from_env;
+    if( strTmpAddressFromEnvMainNet &&
+        typeof strTmpAddressFromEnvMainNet == "string" &&
+        strTmpAddressFromEnvMainNet.length > 0 )
+        imaState.chainProperties.mn.joAccount.address_ = "" + strTmpAddressFromEnvMainNet;
+    if( strTmpAddressFromEnvSChain &&
+        typeof strTmpAddressFromEnvSChain == "string" &&
+        strTmpAddressFromEnvSChain.length > 0 )
+        imaState.chainProperties.sc.joAccount.address_ = "" + strTmpAddressFromEnvSChain;
+    if( strTmpAddressFromEnvSChainTarget &&
+        typeof strTmpAddressFromEnvSChainTarget == "string" &&
+        strTmpAddressFromEnvSChainTarget.length > 0 )
+        imaState.chainProperties.tc.joAccount.address_ = "" + strTmpAddressFromEnvSChainTarget;
     parseCommandLine();
     initMonitoringServer();
     initJsonRpcServer();
     if( imaState.bSignMessages ) {
         if( imaState.strPathBlsGlue.length == 0 ) {
-            log.write(
-                cc.fatal( "FATAL, CRITICAL ERROR:" ) +
-                cc.error( " please specify --bls-glue parameter." ) +
-                "\n" );
+            log.write( cc.fatal( "FATAL, CRITICAL ERROR:" ) +
+                cc.error( " please specify --bls-glue parameter." ) + "\n" );
             process.exit( 164 );
         }
         if( imaState.strPathHashG1.length == 0 ) {
-            log.write(
-                cc.fatal( "FATAL, CRITICAL ERROR:" ) +
-                cc.error( " please specify --hash-g1 parameter." ) +
-                "\n" );
+            log.write( cc.fatal( "FATAL, CRITICAL ERROR:" ) +
+                cc.error( " please specify --hash-g1 parameter." ) + "\n" );
             process.exit( 165 );
         }
         if( ! imaState.bNoWaitSChainStarted ) {
@@ -2936,10 +2896,8 @@ async function main() {
                         process.exit( 166 );
                     }
                     if( IMA.verboseGet() >= IMA.verboseReversed().information ) {
-                        log.write(
-                            cc.success( "S-Chain network was discovered: " ) +
-                            cc.j( joSChainNetworkInfo ) +
-                            "\n" );
+                        log.write( cc.success( "S-Chain network was discovered: " ) +
+                            cc.j( joSChainNetworkInfo ) + "\n" );
                     }
                     imaState.joSChainNetworkInfo = joSChainNetworkInfo;
                     continueSChainDiscoveryInBackgroundIfNeeded( isSilent );
@@ -2961,6 +2919,3 @@ async function main() {
 }
 
 main();
-
-///////////////////////////////////////////////////////////////////////////////////////////////////
-///////////////////////////////////////////////////////////////////////////////////////////////////

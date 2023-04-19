@@ -124,9 +124,9 @@ export async function doConnect( joCall, opts, fn ) {
                 }
             } );
             await waitWebSocketIsOpen( joCall.wsConn,
-                async function( nStep ) { // done
+                async function( nStep ) { // work done handler
                 },
-                async function( nStep ) { // step
+                async function( nStep ) { // step handler
                     if( strWsError && typeof strWsError == "string" && strWsError.length > 0 ) {
                         log.write(
                             cc.u( joCall.url ) + cc.error( " web socket wait error detected: " ) +
@@ -263,7 +263,7 @@ export async function doCall( joCall, joIn, fn ) {
                     ? joCall.joRpcOptions.key : null
             };
             let accumulatedBody = "";
-            const promise_complete = new Promise( ( resolve, reject ) => {
+            const promiseComplete = new Promise( ( resolve, reject ) => {
                 const req = https.request( options, res => {
                     res.setEncoding( "utf8" );
                     res.on( "data", body => {
@@ -300,7 +300,7 @@ export async function doCall( joCall, joIn, fn ) {
                 req.write( strBody );
                 req.end();
             } );
-            await promise_complete;
+            await promiseComplete;
         } else {
             try {
                 const response = await urllib.request( joCall.url, {
@@ -535,7 +535,8 @@ export function checkTcpPromise( strHost, nPort, nTimeoutMilliseconds, isLog ) {
 export async function checkTcp( strHost, nPort, nTimeoutMilliseconds, isLog ) {
     let isOnline = false;
     try {
-        const promise_tcp = checkTcpPromise( strHost, nPort, nTimeoutMilliseconds, isLog )
+        const promiseCompleteTcpCheck = checkTcpPromise(
+            strHost, nPort, nTimeoutMilliseconds, isLog )
             .then( () => ( isOnline = true ) )
             .catch( () => ( isOnline = false ) )
             ;
@@ -545,7 +546,7 @@ export async function checkTcp( strHost, nPort, nTimeoutMilliseconds, isLog ) {
                 "TCP connection to ${strHost}:${nPort} check done...`
             );
         }
-        await Promise.all( [ promise_tcp ] );
+        await Promise.all( [ promiseCompleteTcpCheck ] );
         if( isLog ) {
             console.log(
                 `${g_strTcpConnectionHeader}TCP connection " + 

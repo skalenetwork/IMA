@@ -107,7 +107,7 @@ export function findPowNumber( strRequestPart, details, isVerbose ) {
 
 export function oracleGetGasPrice( oracleOpts, details ) {
     details = details || log;
-    const promise_complete = new Promise( ( resolve, reject ) => {
+    const promiseComplete = new Promise( ( resolve, reject ) => {
         try {
             const url = oracleOpts.url;
             const isVerbose = "isVerbose" in oracleOpts
@@ -299,5 +299,5 @@ export function oracleGetGasPrice( oracleOpts, details ) {
             return;
         }
     } );
-    return promise_complete;
+    return promiseComplete;
 }

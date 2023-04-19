@@ -58,11 +58,8 @@ export const longSeparator =
 const perMessageGasForTransfer = 1000000;
 const additionalS2MTransferOverhead = 200000;
 
-///////////////////////////////////////////////////////////////////////////////
-///////////////////////////////////////////////////////////////////////////////
-//
 // logging helpers
-//
+
 const mapVerbose = {
     0: "silent",
     2: "fatal",
@@ -149,9 +146,6 @@ export function verboseList() {
     }
 }
 
-///////////////////////////////////////////////////////////////////////////////
-///////////////////////////////////////////////////////////////////////////////
-
 const g_nSleepBeforeFetchOutgoingMessageEvent = 5000;
 let g_nSleepBetweenTransactionsOnSChainMilliseconds = 0; // example - 5000
 let g_bWaitForNextBlockOnSChain = false;
@@ -170,18 +164,12 @@ export function setWaitForNextBlockOnSChain( val ) {
     g_bWaitForNextBlockOnSChain = val ? true : false;
 }
 
-///////////////////////////////////////////////////////////////////////////////
-///////////////////////////////////////////////////////////////////////////////
-
 export const sleep = ( milliseconds ) => {
     return new Promise( resolve => setTimeout( resolve, milliseconds ) );
 };
 export const currentTimestamp = () => {
     return parseInt( parseInt( Date.now().valueOf() ) / 1000 );
 };
-
-///////////////////////////////////////////////////////////////////////////////
-///////////////////////////////////////////////////////////////////////////////
 
 export async function safeWaitForNextBlockToAppear( details, ethersProvider ) {
     const nBlockNumber =
@@ -713,9 +701,6 @@ export async function safeGetPastEventsIterative(
     return "";
 }
 
-///////////////////////////////////////////////////////////////////////////////
-///////////////////////////////////////////////////////////////////////////////
-
 export function verifyTransferErrorCategoryName( strCategory ) {
     return "" + ( strCategory ? strCategory : "default" );
 }
@@ -776,9 +761,6 @@ export function getLastErrorCategories() {
     return Object.keys( g_mapTransferErrorCategories );
 }
 
-///////////////////////////////////////////////////////////////////////////////
-///////////////////////////////////////////////////////////////////////////////
-
 let g_bIsEnabledProgressiveEventsScan = true;
 
 export function getEnabledProgressiveEventsScan() {
@@ -787,9 +769,6 @@ export function getEnabledProgressiveEventsScan() {
 export function setEnabledProgressiveEventsScan( isEnabled ) {
     g_bIsEnabledProgressiveEventsScan = isEnabled ? true : false;
 }
-
-///////////////////////////////////////////////////////////////////////////////
-///////////////////////////////////////////////////////////////////////////////
 
 let g_bIsEnabledOracle = false;
 
@@ -1277,11 +1256,6 @@ export async function safeGetPastEventsProgressive(
             }
         } catch ( err ) {}
     }
-    // throw new Error(
-    //     "Could not not get Event \"" + strEventName +
-    //     "\", from block " + joLastPlan.nBlockFrom + ", to block " + joLastPlan.nBlockTo +
-    //     ", using progressive event scan"
-    // );
     details.write( strLogPrefix +
         cc.error( "Could not not get Event \"" ) + cc.info( strEventName ) +
         cc.error( "\", from block " ) + cc.info( joLastPlan.nBlockFrom ) +
@@ -1291,9 +1265,6 @@ export async function safeGetPastEventsProgressive(
         "\n" );
     return [];
 }
-
-///////////////////////////////////////////////////////////////////////////////
-///////////////////////////////////////////////////////////////////////////////
 
 export async function getContractCallEvents(
     details, strLogPrefix,
@@ -1325,9 +1296,6 @@ export async function getContractCallEvents(
     }
     return joAllTransactionEvents;
 }
-
-///////////////////////////////////////////////////////////////////////////////
-///////////////////////////////////////////////////////////////////////////////
 
 let g_bDryRunIsEnabled = true;
 
@@ -1782,9 +1750,6 @@ export async function payedCall(
     return optsPayedCall.joReceipt;
 }
 
-///////////////////////////////////////////////////////////////////////////////
-///////////////////////////////////////////////////////////////////////////////
-
 export async function checkTransactionToSchain(
     unsignedTx,
     details,
@@ -1897,9 +1862,6 @@ export async function calculatePowNumber( address, nonce, gas, details, strLogPr
     }
 }
 
-///////////////////////////////////////////////////////////////////////////////
-///////////////////////////////////////////////////////////////////////////////
-
 export function getAccountConnectivityInfo( joAccount ) {
     const joACI = {
         "isBad": true,
@@ -1933,9 +1895,6 @@ export function getAccountConnectivityInfo( joAccount ) {
     }
     return joACI;
 }
-
-///////////////////////////////////////////////////////////////////////////////
-///////////////////////////////////////////////////////////////////////////////
 
 const g_tmPool = "transactions";
 
@@ -2044,9 +2003,6 @@ async function tmWait( details, txId, ethersProvider, nWaitSeconds = 36000 ) {
     }
     return joReceipt;
 }
-
-///////////////////////////////////////////////////////////////////////////////
-///////////////////////////////////////////////////////////////////////////////
 
 async function tmEnsureTransaction(
     details, ethersProvider, priority, txAdjusted, cntAttempts, sleepMilliseconds
@@ -2335,9 +2291,6 @@ export async function registerSChainInDepositBoxes( // step 1
     details.close();
     return jarrReceipts;
 }
-
-///////////////////////////////////////////////////////////////////////////////
-///////////////////////////////////////////////////////////////////////////////
 
 export async function reimbursementShowBalance(
     ethersProviderMainNet,
@@ -2773,9 +2726,6 @@ export async function reimbursementSetRange(
     return true;
 }
 
-///////////////////////////////////////////////////////////////////////////////
-///////////////////////////////////////////////////////////////////////////////
-//
 // transfer money from main-net to S-chain
 // main-net.DepositBox call: function deposit(string schainName, address to) public payable
 // Where:
@@ -2785,7 +2735,6 @@ export async function reimbursementSetRange(
 //   this function is available for everyone in main-net
 //   money is sent from caller
 //   "value" JSON arg is used to specify amount of money to sent
-//
 export async function doEthPaymentFromMainNet(
     ethersProviderMainNet,
     chainIdMainNet,
@@ -2798,7 +2747,7 @@ export async function doEthPaymentFromMainNet(
     transactionCustomizerMainNet
 ) {
     const details = log.createMemoryStream();
-    const jarrReceipts = []; // doEthPaymentFromMainNet
+    const jarrReceipts = [];
     let strActionName = "";
     const strLogPrefix = cc.info( "M2S ETH Payment:" ) + " ";
     try {
@@ -2907,9 +2856,6 @@ export async function doEthPaymentFromMainNet(
     return true;
 }
 
-///////////////////////////////////////////////////////////////////////////////
-///////////////////////////////////////////////////////////////////////////////
-//
 // transfer money from S-chain to main-net
 // S-chain.TokenManager call: function exitToMain(address to) public payable
 // Where:
@@ -2918,7 +2864,6 @@ export async function doEthPaymentFromMainNet(
 //   this function is available for everyone in S-chain
 //   money is sent from caller
 //   "value" JSON arg is used to specify amount of money to sent
-//
 export async function doEthPaymentFromSChain(
     ethersProviderSChain,
     chainIdSChain,
@@ -2930,7 +2875,7 @@ export async function doEthPaymentFromSChain(
     transactionCustomizerSChain
 ) {
     const details = log.createMemoryStream();
-    const jarrReceipts = []; // doEthPaymentFromSChain
+    const jarrReceipts = [];
     let strActionName = "";
     const strLogPrefix = cc.info( "S2M ETH Payment:" ) + " ";
     try {
@@ -3039,9 +2984,6 @@ export async function doEthPaymentFromSChain(
     return true;
 }
 
-///////////////////////////////////////////////////////////////////////////////
-///////////////////////////////////////////////////////////////////////////////
-//
 export async function receiveEthPaymentFromSchainOnMainNet(
     ethersProviderMainNet,
     chainIdMainNet,
@@ -3126,9 +3068,6 @@ export async function receiveEthPaymentFromSchainOnMainNet(
     return true;
 }
 
-///////////////////////////////////////////////////////////////////////////////
-///////////////////////////////////////////////////////////////////////////////
-
 export async function viewEthPaymentFromSchainOnMainNet(
     ethersProviderMainNet,
     joAccountMN,
@@ -3171,9 +3110,6 @@ export async function viewEthPaymentFromSchainOnMainNet(
     }
 }
 
-///////////////////////////////////////////////////////////////////////////////
-///////////////////////////////////////////////////////////////////////////////
-
 export async function doErc721PaymentFromMainNet(
     ethersProviderMainNet,
     ethersProviderSChain,
@@ -3194,7 +3130,7 @@ export async function doErc721PaymentFromMainNet(
     transactionCustomizerMainNet
 ) {
     const details = log.createMemoryStream();
-    const jarrReceipts = []; // doErc721PaymentFromMainNet
+    const jarrReceipts = [];
     let strActionName = "";
     const strLogPrefix = cc.info( "M2S ERC721 Payment:" ) + " ";
     try {
@@ -3372,10 +3308,6 @@ export async function doErc721PaymentFromMainNet(
     return true;
 }
 
-//
-///////////////////////////////////////////////////////////////////////////////
-///////////////////////////////////////////////////////////////////////////////
-//
 export async function doErc20PaymentFromMainNet(
     ethersProviderMainNet,
     ethersProviderSChain,
@@ -3396,7 +3328,7 @@ export async function doErc20PaymentFromMainNet(
     transactionCustomizerMainNet
 ) {
     const details = log.createMemoryStream();
-    const jarrReceipts = []; // doErc20PaymentFromMainNet
+    const jarrReceipts = [];
     let strActionName = "";
     const strLogPrefix = cc.info( "M2S ERC20 Payment:" ) + " ";
     try {
@@ -3592,7 +3524,7 @@ export async function doErc1155PaymentFromMainNet(
     transactionCustomizerMainNet
 ) {
     const details = log.createMemoryStream();
-    const jarrReceipts = []; // doErc1155PaymentFromMainNet
+    const jarrReceipts = [];
     let strActionName = "";
     const strLogPrefix = cc.info( "M2S ERC1155 Payment:" ) + " ";
     try {
@@ -3761,7 +3693,7 @@ export async function doErc1155BatchPaymentFromMainNet(
     transactionCustomizerMainNet
 ) {
     const details = log.createMemoryStream();
-    const jarrReceipts = []; // doErc1155BatchPaymentFromMainNet
+    const jarrReceipts = [];
     let strActionName = "";
     const strLogPrefix = cc.info( "M2S ERC1155 Batch Payment:" ) + " ";
     try {
@@ -3941,9 +3873,6 @@ export async function doErc1155BatchPaymentFromMainNet(
     return true;
 }
 
-///////////////////////////////////////////////////////////////////////////////
-///////////////////////////////////////////////////////////////////////////////
-
 export async function doErc20PaymentFromSChain(
     ethersProviderMainNet,
     ethersProviderSChain,
@@ -3963,7 +3892,7 @@ export async function doErc20PaymentFromSChain(
     transactionCustomizerSChain
 ) {
     const details = log.createMemoryStream();
-    const jarrReceipts = []; // doErc20PaymentFromSChain
+    const jarrReceipts = [];
     let strActionName = "";
     const strLogPrefix = cc.info( "S2M ERC20 Payment:" ) + " ";
     try {
@@ -4111,9 +4040,6 @@ export async function doErc20PaymentFromSChain(
     return true;
 }
 
-///////////////////////////////////////////////////////////////////////////////
-///////////////////////////////////////////////////////////////////////////////
-
 export async function doErc721PaymentFromSChain(
     ethersProviderMainNet,
     ethersProviderSChain,
@@ -4133,7 +4059,7 @@ export async function doErc721PaymentFromSChain(
     transactionCustomizerSChain
 ) {
     const details = log.createMemoryStream();
-    const jarrReceipts = []; // doErc721PaymentFromSChain
+    const jarrReceipts = [];
     let strActionName = "";
     const strLogPrefix = cc.info( "S2M ERC721 Payment:" ) + " ";
     try {
@@ -4305,7 +4231,7 @@ export async function doErc1155PaymentFromSChain(
     transactionCustomizerSChain
 ) {
     const details = log.createMemoryStream();
-    const jarrReceipts = []; // doErc1155PaymentFromSChain
+    const jarrReceipts = [];
     let strActionName = "";
     const strLogPrefix = cc.info( "S2M ERC1155 Payment:" ) + " ";
     try {
@@ -4478,7 +4404,7 @@ export async function doErc1155BatchPaymentFromSChain(
     transactionCustomizerSChain
 ) {
     const details = log.createMemoryStream();
-    const jarrReceipts = []; // doErc1155BatchPaymentFromSChain
+    const jarrReceipts = [];
     let strActionName = "";
     const strLogPrefix = cc.info( "S2M ERC1155 Batch Payment:" ) + " ";
     try {
@@ -4633,9 +4559,6 @@ export async function doErc1155BatchPaymentFromSChain(
     return true;
 }
 
-///////////////////////////////////////////////////////////////////////////////
-///////////////////////////////////////////////////////////////////////////////
-
 export async function doErc20PaymentS2S(
     isForward,
     ethersProviderSrc,
@@ -4652,7 +4575,7 @@ export async function doErc20PaymentS2S(
 ) {
     const isReverse = isForward ? false : true;
     const details = log.createMemoryStream();
-    const jarrReceipts = []; // doErc20PaymentS2S
+    const jarrReceipts = [];
     let strActionName = "";
     const strLogPrefix =
         cc.info( "S2S ERC20 Payment(" + ( isForward ? "forward" : "reverse" ) + "):" ) + " ";
@@ -4804,9 +4727,6 @@ export async function doErc20PaymentS2S(
     return true;
 }
 
-///////////////////////////////////////////////////////////////////////////////
-///////////////////////////////////////////////////////////////////////////////
-
 export async function doErc721PaymentS2S(
     isForward,
     ethersProviderSrc,
@@ -4823,7 +4743,7 @@ export async function doErc721PaymentS2S(
 ) {
     const isReverse = isForward ? false : true;
     const details = log.createMemoryStream();
-    const jarrReceipts = []; // doErc721PaymentS2S
+    const jarrReceipts = [];
     let strActionName = "";
     const strLogPrefix =
         cc.info( "S2S ERC721 Payment(" + ( isForward ? "forward" : "reverse" ) + "):" ) + " ";
@@ -4979,10 +4899,6 @@ export async function doErc721PaymentS2S(
     return true;
 }
 
-//
-///////////////////////////////////////////////////////////////////////////////
-///////////////////////////////////////////////////////////////////////////////
-//
 export async function doErc1155PaymentS2S(
     isForward,
     ethersProviderSrc,
@@ -5000,7 +4916,7 @@ export async function doErc1155PaymentS2S(
 ) {
     const isReverse = isForward ? false : true;
     const details = log.createMemoryStream();
-    const jarrReceipts = []; // doErc1155PaymentS2S
+    const jarrReceipts = [];
     let strActionName = "";
     const strLogPrefix =
         cc.info( "S2S ERC1155 Payment(" + ( isForward ? "forward" : "reverse" ) + "):" ) + " ";
@@ -5156,10 +5072,6 @@ export async function doErc1155PaymentS2S(
     return true;
 }
 
-//
-///////////////////////////////////////////////////////////////////////////////
-///////////////////////////////////////////////////////////////////////////////
-//
 export async function doErc1155BatchPaymentS2S(
     isForward,
     ethersProviderSrc,
@@ -5177,7 +5089,7 @@ export async function doErc1155BatchPaymentS2S(
 ) {
     const isReverse = isForward ? false : true;
     const details = log.createMemoryStream();
-    const jarrReceipts = []; // doErc1155BatchPaymentS2S
+    const jarrReceipts = [];
     let strActionName = "";
     const strLogPrefix =
         cc.info( "S2S Batch ERC1155 Payment(" +
@@ -5336,9 +5248,6 @@ export async function doErc1155BatchPaymentS2S(
     return true;
 }
 
-///////////////////////////////////////////////////////////////////////////////
-///////////////////////////////////////////////////////////////////////////////
-
 async function findOutReferenceLogRecord(
     details, strLogPrefix,
     ethersProvider, joMessageProxy,
@@ -5457,12 +5366,8 @@ async function findOutAllReferenceLogRecords(
     return arrLogRecordReferences;
 }
 
-///////////////////////////////////////////////////////////////////////////////
-///////////////////////////////////////////////////////////////////////////////
-
 let g_nTransferLoopCounter = 0;
 
-//
 // Do real money movement from main-net to S-chain by sniffing events
 // 1) main-net.MessageProxyForMainnet.getOutgoingMessagesCounter -> save to nOutMsgCnt
 // 2) S-chain.MessageProxySchain.getIncomingMessagesCounter -> save to nIncMsgCnt
@@ -5480,8 +5385,6 @@ let g_nTransferLoopCounter = 0;
 //            [to]           // address[] memory to
 //            [amount]       // uint256[] memory amount / *uint256[2] memory blsSignature* /
 //            )
-//
-
 async function doQueryOutgoingMessageCounter( optsTransfer ) {
     let nPossibleIntegerValue = 0;
     optsTransfer.details.write( optsTransfer.strLogPrefixShort +
@@ -6617,9 +6520,6 @@ export async function doTransfer(
     return true;
 }
 
-///////////////////////////////////////////////////////////////////////////////
-///////////////////////////////////////////////////////////////////////////////
-
 export async function doAllS2S( // s-chain --> s-chain
     joRuntimeOpts,
     imaState,
@@ -6778,9 +6678,6 @@ export async function doAllS2S( // s-chain --> s-chain
     return ( cntFail == 0 ) ? true : false;
 }
 
-///////////////////////////////////////////////////////////////////////////////
-///////////////////////////////////////////////////////////////////////////////
-
 export function composeGasUsageReportFromArray( strName, jarrReceipts ) {
     if( ! ( strName && typeof strName == "string" && jarrReceipts ) )
         return "";
@@ -6810,18 +6707,11 @@ export function printGasUsageReportFromArray( strName, jarrReceipts, details ) {
         log.write( jo.strReport );
 }
 
-///////////////////////////////////////////////////////////////////////////////
-///////////////////////////////////////////////////////////////////////////////
-//
 // init helpers
-//
 
 export function noop() {
     return null;
 }
-
-///////////////////////////////////////////////////////////////////////////////
-///////////////////////////////////////////////////////////////////////////////
 
 export class TransactionCustomizer {
     constructor( gasPriceMultiplier, gasMultiplier ) {
@@ -6974,9 +6864,6 @@ export function getTransactionCustomizerForSChainTarget() {
     g_tcSChainTarget = new TransactionCustomizer( null, 1.25 );
     return g_tcSChainTarget;
 }
-
-///////////////////////////////////////////////////////////////////////////////
-///////////////////////////////////////////////////////////////////////////////
 
 export async function getBalanceEth(
     isMainNet,
@@ -7749,6 +7636,3 @@ export async function burnErc1155(
         return false;
     }
 }
-
-///////////////////////////////////////////////////////////////////////////////
-///////////////////////////////////////////////////////////////////////////////

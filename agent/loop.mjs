@@ -39,11 +39,7 @@ import * as state from "./state.mjs";
 
 const __dirname = path.dirname( url.fileURLToPath( import.meta.url ) );
 
-///////////////////////////////////////////////////////////////////////////////////////////////////
-///////////////////////////////////////////////////////////////////////////////////////////////////
-//
 // Run transfer loop
-//
 
 export function checkTimeFraming( d, strDirection, joRuntimeOpts ) {
     try {
@@ -472,11 +468,7 @@ export async function runTransferLoop( optsLoop ) {
     return true;
 }
 
-///////////////////////////////////////////////////////////////////////////////////////////////////
-///////////////////////////////////////////////////////////////////////////////////////////////////
-//
 // Parallel thread based loop
-//
 
 const sleepImpl = ( milliseconds ) => {
     return new Promise( resolve => setTimeout( resolve, milliseconds ) );
@@ -610,7 +602,7 @@ export async function ensureHaveWorkers( opts ) {
             )
         );
         g_workers[idxWorker].on( "message", jo => {
-            if( networkLayer.out_of_worker_apis.on_message( g_workers[idxWorker], jo ) )
+            if( networkLayer.outOfWorkerAPIs.onMessage( g_workers[idxWorker], jo ) )
                 return;
         } );
         g_clients.push(
