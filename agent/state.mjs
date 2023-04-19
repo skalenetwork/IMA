@@ -207,34 +207,34 @@ export function get() {
 
         "nAutoExitAfterSeconds": 3600, // 0-disable
 
-        "jo_community_pool": null, // only main net
-        "jo_deposit_box_eth": null, // only main net
-        "jo_deposit_box_erc20": null, // only main net
-        "jo_deposit_box_erc721": null, // only main net
-        "jo_deposit_box_erc1155": null, // only main net
-        "jo_deposit_box_erc721_with_metadata": null, // only main net
-        "jo_linker": null, // only main net
+        "joCommunityPool": null, // only main net
+        "joDepositBoxETH": null, // only main net
+        "joDepositBoxERC20": null, // only main net
+        "joDepositBoxERC721": null, // only main net
+        "joDepositBoxERC1155": null, // only main net
+        "joDepositBoxERC721WithMetadata": null, // only main net
+        "joLinker": null, // only main net
 
         "isWithMetadata721": false,
 
-        "jo_token_manager_eth": null, // only s-chain
-        "jo_token_manager_erc20": null, // only s-chain
-        "jo_token_manager_erc20_target": null, // only s-chain
-        "jo_token_manager_erc721": null, // only s-chain target
-        "jo_token_manager_erc721_target": null, // only s-chain target
-        "jo_token_manager_erc1155": null, // only s-chain
-        "jo_token_manager_erc1155_target": null, // only s-chain target
-        "jo_token_manager_erc721_with_metadata": null, // only s-chain target
-        "jo_token_manager_erc721_with_metadata_target": null, // only s-chain target
-        "jo_community_locker": null, // only s-chain
-        "jo_community_locker_target": null, // only s-chain target
-        "jo_message_proxy_main_net": null,
-        "jo_message_proxy_s_chain": null,
-        "jo_message_proxy_s_chain_target": null, // only s-chain target
-        "jo_token_manager_linker": null,
-        "jo_token_manager_linker_target": null, // only s-chain target
-        "eth_erc20": null, // only s-chain
-        "eth_erc20_target": null, // only s-chain target
+        "joTokenManagerETH": null, // only s-chain
+        "joTokenManagerERC20": null, // only s-chain
+        "joTokenManagerERC20Target": null, // only s-chain
+        "joTokenManagerERC721": null, // only s-chain target
+        "joTokenManagerERC721Target": null, // only s-chain target
+        "joTokenManagerERC1155": null, // only s-chain
+        "joTokenManagerERC1155Target": null, // only s-chain target
+        "joTokenManagerERC721WithMetadata": null, // only s-chain target
+        "joTokenManagerERC721WithMetadataTarget": null, // only s-chain target
+        "joCommunityLocker": null, // only s-chain
+        "joCommunityLockerTarget": null, // only s-chain target
+        "joMessageProxyMainNet": null,
+        "joMessageProxySChain": null,
+        "joMessageProxySChainTarget": null, // only s-chain target
+        "joTokenManagerLinker": null,
+        "joTokenManagerLinkerTarget": null, // only s-chain target
+        "joEthErc20": null, // only s-chain
+        "joEthErc20Target": null, // only s-chain target
 
         "chainProperties": constructChainProperties(),
 

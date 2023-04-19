@@ -34,11 +34,11 @@ import { settings } from "./socketSettings.mjs";
 import { UniversalDispatcherEvent, EventDispatcher } from "./eventDispatcher.mjs";
 import * as utils from "./socketUtils.mjs";
 
-const https_mod = httpsModuleLoaded; // .default;
+const httpsModule = httpsModuleLoaded; // .default;
 const wsModule = wsModuleLoaded; // .default;
 const webRtcModule = webRtcModuleLoaded; // .default;
 
-networkLayer.setHttpsModule( https_mod );
+networkLayer.setHttpsModule( httpsModule );
 networkLayer.setWsModule( wsModule );
 networkLayer.setWebRtcModule( webRtcModule );
 

@@ -780,13 +780,18 @@ export function ensureObserverOptionsInitialized( opts ) {
         typeof opts.imaState.joAbiSkaleManager == "object" )
     )
         throw new Error( "IMA observer options does not contain \"joAbiSkaleManager\" instance" );
-    const arrContractNames = [ "schains", "schains_internal", "nodes" ];
+    const arrContractNames = [
+        { abiKey: "schains", nameKey: "SChains" },
+        { abiKey: "schains_internal", nameKey: "SChainsInternal" },
+        { abiKey: "nodes", nameKey: "Nodes" }
+    ];
     for( let i = 0; i < arrContractNames.length; ++ i ) {
-        const strContractName = arrContractNames[i];
-        const strKeyName = "jo_" + strContractName;
-        const contractAddress = opts.imaState.joAbiSkaleManager[strContractName + "_address"];
-        const joContractABI = opts.imaState.joAbiSkaleManager[strContractName + "_abi"];
-        opts[strKeyName] =
+        const strAbiSuffixName = arrContractNames[i].abiKey;
+        const strPropertySuffixName = arrContractNames[i].nameKey;
+        const strPropertyName = "jo" + strPropertySuffixName;
+        const contractAddress = opts.imaState.joAbiSkaleManager[strAbiSuffixName + "_address"];
+        const joContractABI = opts.imaState.joAbiSkaleManager[strAbiSuffixName + "_abi"];
+        opts[strPropertyName] =
             new ethersMod.ethers.Contract(
                 contractAddress,
                 joContractABI,

@@ -27,11 +27,11 @@ const assert = require('chai').assert;
 const expect = require('chai').expect;
 const IMA = require( "../../npms/skale-ima" );
 const w3mod = IMA.w3mod
-const tc_main_net = IMA.getTransactionCustomizerForMainNet();
-const tc_s_chain = IMA.getTransactionCustomizerForSChain();
+const transactionCustomizerMainNet = IMA.getTransactionCustomizerForMainNet();
+const transactionCustomizerSChain = IMA.getTransactionCustomizerForSChain();
 
 // 
-let chain_id_s_chain = "blah_blah_blah_schain_name"; // 1;
+let chainIdSChain = "blah_blah_blah_schain_name"; // 1;
 
 // mockup for `ethersProviderSrc`
 let ethersProviderSrc = {eth: {getBlockNumber: getBlockNumber, getBlock: getBlock}};
@@ -54,13 +54,13 @@ function asciiToHex(string) {
     return "0x0"
 }
 
-// mockup for `w3_main_net`
-let w3_main_net = {eth: {sendSignedTransaction: sendSignedTransaction, Contract: Contract,
+// mockup for `ethersProviderMainNet`
+let ethersProviderMainNet = {eth: {sendSignedTransaction: sendSignedTransaction, Contract: Contract,
     getTransactionCount: getTransactionCount}, 
     utils: {fromAscii: fromAscii, fromWei: fromWei, toBN: toBN, toHex: toHex, toWei: toWei}
 };
-// mockup for `w3_s_chain`
-let w3_s_chain = {eth: {sendSignedTransaction: sendSignedTransaction, Contract: Contract,
+// mockup for `ethersProviderSChain`
+let ethersProviderSChain = {eth: {sendSignedTransaction: sendSignedTransaction, Contract: Contract,
     getTransactionCount: getTransactionCount}, 
     utils: {fromAscii: fromAscii, fromWei: fromWei, toBN: toBN, toHex: toHex, toWei: toWei}
 };
@@ -108,8 +108,8 @@ let joAccount = { "address": IMA.owaspUtils.fnAddressImpl_,
 let joMainNetAccount = { "address": IMA.owaspUtils.fnAddressImpl_,
     privateKey: "6270720ecca0185a979b6791bea433e9dbf23345e5b5b1b0258b1fbaf32b4390",
 };
-// mockup for `jo_deposit_box`
-let jo_deposit_box = { "methods": {deposit: deposit, depositERC20: depositERC20,
+// mockup for `joDepositBox`
+let joDepositBox = { "methods": {deposit: deposit, depositERC20: depositERC20,
     rawDepositERC20: rawDepositERC20}, 
     options: { "address": "0xd34e38f830736DB41CC6E10aA37A3C851A7a2B82"}
 };
@@ -123,8 +123,8 @@ function rawDepositERC20(string, string, string, string, string) {
     return { "encodeABI": encodeABI}
 }
 
-// mockup for `jo_message_proxy_main_net`
-let jo_message_proxy_main_net = { "methods": {isConnectedChain: isConnectedChain, addConnectedChain: addConnectedChain}, 
+// mockup for `joMessageProxyMainNet`
+let joMessageProxyMainNet = { "methods": {isConnectedChain: isConnectedChain, addConnectedChain: addConnectedChain}, 
     options: { "address": "0xd34e38f830736DB41CC6E10aA37A3C851A7a2B82"}
 };
 function isConnectedChain(string) {
@@ -137,8 +137,8 @@ function addConnectedChain(string) {
     return { "encodeABI": encodeABI}
 }
 
-// mockup for `jo_lock_and_data_main_net`
-let jo_lock_and_data_main_net = { "methods": {hasSchain: hasSchain, addSchain: addSchain, getMyEth: getMyEth,
+// mockup for `joLockAndDataMainNet`
+let joLockAndDataMainNet = { "methods": {hasSchain: hasSchain, addSchain: addSchain, getMyEth: getMyEth,
     approveTransfers: approveTransfers}, 
     options: { "address": "0xd34e38f830736DB41CC6E10aA37A3C851A7a2B82"}
 };
@@ -155,8 +155,8 @@ function getMyEth() {
     return { "encodeABI": encodeABI}
 }
 
-// mockup for `jo_lock_and_data_s_chain`
-let jo_lock_and_data_s_chain = { "methods": {hasDepositBox: hasDepositBox, addDepositBox: addDepositBox}, 
+// mockup for `joLockAndDataSChain`
+let joLockAndDataSChain = { "methods": {hasDepositBox: hasDepositBox, addDepositBox: addDepositBox}, 
     options: { "address": "0xd34e38f830736DB41CC6E10aA37A3C851A7a2B82"}
 };
 function hasDepositBox() {
@@ -169,8 +169,8 @@ function encodeABI() {
     return "0x0"
 }
 
-// mockup for `jo_message_proxy_dst`
-let jo_message_proxy_dst = { "methods": {getIncomingMessagesCounter: getIncomingMessagesCounter,
+// mockup for `joMessageProxyDst`
+let joMessageProxyDst = { "methods": {getIncomingMessagesCounter: getIncomingMessagesCounter,
     postIncomingMessages: postIncomingMessages},
     options: { "address": "0xd34e38f830736DB41CC6E10aA37A3C851A7a2B82"}
 };
@@ -181,8 +181,8 @@ function postIncomingMessages(string, {}) {
     return { "encodeABI": encodeABI}
 }
 
-// mockup for `jo_message_proxy_src`
-let jo_message_proxy_src = { "methods": {getOutgoingMessagesCounter: getOutgoingMessagesCounter},
+// mockup for `joMessageProxySrc`
+let joMessageProxySrc = { "methods": {getOutgoingMessagesCounter: getOutgoingMessagesCounter},
     getPastEvents: getPastEvents
 };
 function getOutgoingMessagesCounter(string) {
@@ -192,8 +192,8 @@ function callNum() {
     return 3
 }
 
-// mockup for `jo_token_manager`
-let jo_token_manager = { "methods": {exitToMain: exitToMain, exitToMainERC20: exitToMainERC20,
+// mockup for `joTokenManager`
+let joTokenManager = { "methods": {exitToMain: exitToMain, exitToMainERC20: exitToMainERC20,
     rawExitToMainERC20: rawExitToMainERC20}, 
     options: { "address": "0xd34e38f830736DB41CC6E10aA37A3C851A7a2B82"},
     getPastEvents: getPastEvents
@@ -271,13 +271,13 @@ describe('tests for `npms/skale-ima`', function () {
     });
 
     it('should return `false` invoke `check_is_registered_s_chain_in_deposit_box`', async function () {
-        let jo_lock_and_data_main_net; // for `false` output
+        let joLockAndDataMainNet; // for `false` output
         expect(await IMA.
             check_is_registered_s_chain_in_deposit_box(
-                w3_main_net,
-                jo_lock_and_data_main_net,
+                ethersProviderMainNet,
+                joLockAndDataMainNet,
                 joMainNetAccount,
-                chain_id_s_chain
+                chainIdSChain
             )
         ).to.be.false;
     });
@@ -285,24 +285,24 @@ describe('tests for `npms/skale-ima`', function () {
     it('should return `true` invoke `check_is_registered_s_chain_in_deposit_box`', async function () {
         expect(await IMA.
             check_is_registered_s_chain_in_deposit_box(
-                w3_main_net,
-                jo_lock_and_data_main_net,
+                ethersProviderMainNet,
+                joLockAndDataMainNet,
                 joMainNetAccount,
-                chain_id_s_chain
+                chainIdSChain
             )
         ).to.be.true;
     });
 
     it('should return `false` invoke `register_s_chain_in_deposit_box`', async function () {
-        let jo_lock_and_data_main_net; // for `false` output
+        let joLockAndDataMainNet; // for `false` output
         expect(await IMA.
             register_s_chain_in_deposit_box(
-                w3_main_net,
-                jo_lock_and_data_main_net,
+                ethersProviderMainNet,
+                joLockAndDataMainNet,
                 joMainNetAccount,
-                jo_token_manager,
-                chain_id_s_chain,
-                tc_main_net
+                joTokenManager,
+                chainIdSChain,
+                transactionCustomizerMainNet
             )
         ).to.be.false;
     });
@@ -310,22 +310,22 @@ describe('tests for `npms/skale-ima`', function () {
     it('should return `true` invoke `register_s_chain_in_deposit_box`', async function () {
         expect(await IMA.
             register_s_chain_in_deposit_box(
-                w3_main_net,
-                jo_lock_and_data_main_net,
+                ethersProviderMainNet,
+                joLockAndDataMainNet,
                 joMainNetAccount,
-                jo_token_manager,
-                chain_id_s_chain,
-                tc_main_net
+                joTokenManager,
+                chainIdSChain,
+                transactionCustomizerMainNet
             )
         ).to.be.true;
     });
 
     it('should return `false` invoke `check_is_registered_main_net_depositBox_on_s_chain`', async function () {
-        let jo_lock_and_data_s_chain; // for `false` output
+        let joLockAndDataSChain; // for `false` output
         expect(await IMA.
             check_is_registered_main_net_depositBox_on_s_chain(
-                w3_main_net,
-                jo_lock_and_data_s_chain,
+                ethersProviderMainNet,
+                joLockAndDataSChain,
                 joAccount
             )
         ).to.be.false;
@@ -334,37 +334,37 @@ describe('tests for `npms/skale-ima`', function () {
     it('should return `true` invoke `check_is_registered_main_net_depositBox_on_s_chain`', async function () {
         expect(await IMA.
             check_is_registered_main_net_depositBox_on_s_chain(
-                w3_main_net,
-                jo_lock_and_data_s_chain,
+                ethersProviderMainNet,
+                joLockAndDataSChain,
                 joAccount
             )
         ).to.be.true;
     });
 
     it('should return `false` invoke `register_main_net_depositBox_on_s_chain`', async function () {
-        let jo_deposit_box_main_net; // for `false` output
+        let joDepositBoxMainNet; // for `false` output
         expect(await IMA.
             register_main_net_depositBox_on_s_chain(
-                w3_s_chain,
-                jo_deposit_box_main_net,
-                jo_lock_and_data_s_chain,
+                ethersProviderSChain,
+                joDepositBoxMainNet,
+                joLockAndDataSChain,
                 joAccount,
                 -4,
-                tc_s_chain
+                transactionCustomizerSChain
             )
         ).to.be.false;
     });
 
     it('should return `true` invoke `register_main_net_depositBox_on_s_chain`', async function () {
-        let jo_deposit_box_main_net = { "options": { "address": "0xd34e38f830736DB41CC6E10aA37A3C851A7a2B82"}};
+        let joDepositBoxMainNet = { "options": { "address": "0xd34e38f830736DB41CC6E10aA37A3C851A7a2B82"}};
         expect(await IMA.
             register_main_net_depositBox_on_s_chain(
-                w3_s_chain,
-                jo_deposit_box_main_net,
-                jo_lock_and_data_s_chain,
+                ethersProviderSChain,
+                joDepositBoxMainNet,
+                joLockAndDataSChain,
                 joAccount,
                 -4,
-                tc_s_chain
+                transactionCustomizerSChain
             )
         ).to.be.true;
     });
@@ -373,13 +373,13 @@ describe('tests for `npms/skale-ima`', function () {
         let joAccountSrc, wei_how_much; // for `false` output
         expect(await IMA.
             doEthPaymentFromMainNet(
-                w3_main_net,
+                ethersProviderMainNet,
                 joAccountSrc,
                 joAccountDst,
-                jo_deposit_box,
-                chain_id_s_chain,
+                joDepositBox,
+                chainIdSChain,
                 wei_how_much, // how much WEI money to send
-                tc_main_net
+                transactionCustomizerMainNet
             )
         ).to.be.false;
     });
@@ -388,13 +388,13 @@ describe('tests for `npms/skale-ima`', function () {
         let wei_how_much;
         expect(await IMA.
             doEthPaymentFromMainNet(
-                w3_main_net,
+                ethersProviderMainNet,
                 joAccountSrc,
                 joAccountDst,
-                jo_deposit_box,
-                chain_id_s_chain,
+                joDepositBox,
+                chainIdSChain,
                 wei_how_much, // how much WEI money to send
-                tc_main_net
+                transactionCustomizerMainNet
             )
         ).to.be.true;
     });
@@ -403,13 +403,13 @@ describe('tests for `npms/skale-ima`', function () {
         let joAccountSrc, wei_how_much; // for `false` output
         expect(await IMA.
             doEthPaymentFromSChain(
-                w3_s_chain,
+                ethersProviderSChain,
                 joAccountSrc,
                 joAccountDst,
-                jo_token_manager,
-                jo_lock_and_data_s_chain,
+                joTokenManager,
+                joLockAndDataSChain,
                 wei_how_much, // how much WEI money to send
-                tc_s_chain
+                transactionCustomizerSChain
             )
         ).to.be.false;
     });
@@ -418,13 +418,13 @@ describe('tests for `npms/skale-ima`', function () {
         let wei_how_much;
         expect(await IMA.
             doEthPaymentFromSChain(
-                w3_s_chain,
+                ethersProviderSChain,
                 joAccountSrc,
                 joAccountDst,
-                jo_token_manager,
-                jo_lock_and_data_s_chain,
+                joTokenManager,
+                joLockAndDataSChain,
                 wei_how_much, // how much WEI money to send
-                tc_s_chain
+                transactionCustomizerSChain
             )
         ).to.be.true;
     });
@@ -433,10 +433,10 @@ describe('tests for `npms/skale-ima`', function () {
         let joMainNetAccount; // for `false` output
         expect(await IMA.
             receiveEthPaymentFromSchainOnMainNet(
-                w3_main_net,
+                ethersProviderMainNet,
                 joMainNetAccount,
-                jo_lock_and_data_main_net,
-                tc_main_net
+                joLockAndDataMainNet,
+                transactionCustomizerMainNet
             )
         ).to.be.false;
     });
@@ -444,10 +444,10 @@ describe('tests for `npms/skale-ima`', function () {
     it('should return `true` invoke `receiveEthPaymentFromSchainOnMainNet`', async function () {
         expect(await IMA.
             receiveEthPaymentFromSchainOnMainNet(
-                w3_main_net,
+                ethersProviderMainNet,
                 joMainNetAccount,
-                jo_lock_and_data_main_net,
-                tc_main_net
+                joLockAndDataMainNet,
+                transactionCustomizerMainNet
             )
         ).to.be.true;
     });
@@ -456,9 +456,9 @@ describe('tests for `npms/skale-ima`', function () {
         let joMainNetAccount; // for `false` output
         expect(await IMA.
             viewEthPaymentFromSchainOnMainNet(
-                w3_main_net,
+                ethersProviderMainNet,
                 joMainNetAccount,
-                jo_lock_and_data_main_net
+                joLockAndDataMainNet
             )
         ).to.be.null;
     });
@@ -466,65 +466,65 @@ describe('tests for `npms/skale-ima`', function () {
     it('should return `true` invoke `viewEthPaymentFromSchainOnMainNet`', async function () {
         expect(await IMA.
             viewEthPaymentFromSchainOnMainNet(
-                w3_main_net,
+                ethersProviderMainNet,
                 joMainNetAccount,
-                jo_lock_and_data_main_net
+                joLockAndDataMainNet
             )
         ).to.be.true;
     });
 
     it('should return `false` invoke `doErc20PaymentFromMainNet`', async function () {
-        let token_amount;
-        let strCoinNameErc20_main_net;
+        let nAmountOfToken;
+        let strCoinNameErc20MainNet;
         let erc20PrivateTestnetJson_main_net;
-        let strCoinNameErc20_s_chain;
+        let strCoinNameErc20SChain;
         let erc20PrivateTestnetJson_s_chain;
         expect(await IMA.
             doErc20PaymentFromMainNet(
-                w3_main_net,
-                w3_s_chain,
+                ethersProviderMainNet,
+                ethersProviderSChain,
                 joAccountSrc,
                 joAccountDst,
-                jo_deposit_box,
-                chain_id_s_chain,
-                token_amount, // how much ERC20 tokens to send
-                jo_token_manager, // only s-chain
-                strCoinNameErc20_main_net,
+                joDepositBox,
+                chainIdSChain,
+                nAmountOfToken, // how much ERC20 tokens to send
+                joTokenManager, // only s-chain
+                strCoinNameErc20MainNet,
                 erc20PrivateTestnetJson_main_net,
-                strCoinNameErc20_s_chain,
+                strCoinNameErc20SChain,
                 erc20PrivateTestnetJson_s_chain,
-                tc_main_net
+                transactionCustomizerMainNet
             )
         ).to.be.false;
     });
 
     it('should return `false` invoke `doErc20PaymentFromSChain`', async function () {
-        let token_amount;
-        let strCoinNameErc20_main_net;
+        let nAmountOfToken;
+        let strCoinNameErc20MainNet;
         let joErc20_main_net;
-        let strCoinNameErc20_s_chain;
+        let strCoinNameErc20SChain;
         let joErc20_s_chain;
         expect(await IMA.
             doErc20PaymentFromSChain(
-                w3_main_net,
-                w3_s_chain,
+                ethersProviderMainNet,
+                ethersProviderSChain,
                 joAccountSrc,
                 joAccountDst,
-                jo_token_manager, // only s-chain
-                jo_lock_and_data_s_chain,
-                jo_deposit_box, // only main net
-                token_amount, // how much ERC20 tokens to send
-                strCoinNameErc20_main_net,
+                joTokenManager, // only s-chain
+                joLockAndDataSChain,
+                joDepositBox, // only main net
+                nAmountOfToken, // how much ERC20 tokens to send
+                strCoinNameErc20MainNet,
                 joErc20_main_net,
-                strCoinNameErc20_s_chain,
+                strCoinNameErc20SChain,
                 joErc20_s_chain,
-                tc_s_chain
+                transactionCustomizerSChain
             )
         ).to.be.false;
     });
 
     it('should return `false` invoke `doTransfer`', async function () {
-        let jo_message_proxy_src; // for `false` output
+        let joMessageProxySrc; // for `false` output
         let chainNameSrc = "test";
         let chainNameDst = "test";
         let nTransactionsCountInBlock = 4;
@@ -542,24 +542,24 @@ describe('tests for `npms/skale-ima`', function () {
                 "M2S",
                 joRuntimeOpts,
                 ethersProviderSrc,
-                jo_message_proxy_src,
+                joMessageProxySrc,
                 joAccountSrc,
                 ethersProviderDst,
-                jo_message_proxy_dst,
+                joMessageProxyDst,
                 joAccountDst,
                 chainNameSrc,
                 chainNameDst,
                 -4,
                 -4,
-                null, // jo_deposit_box - for logs validation on mainnet
-                null, //jo_token_manager - for logs validation on s-chain
+                null, // joDepositBox - for logs validation on mainnet
+                null, // joTokenManager - for logs validation on s-chain
                 nTransactionsCountInBlock,
                 nTransferSteps,
                 nMaxTransactionsCount,
                 nBlockAwaitDepth,
                 nBlockAge,
                 null,
-                tc_main_net, // or tc_s_chain
+                transactionCustomizerMainNet, // or transactionCustomizerSChain
                 null
             )
         ).to.be.false;
@@ -583,24 +583,24 @@ describe('tests for `npms/skale-ima`', function () {
                 "M2S",
                 joRuntimeOpts,
                 ethersProviderSrc,
-                jo_message_proxy_src,
+                joMessageProxySrc,
                 joAccountSrc,
                 ethersProviderDst,
-                jo_message_proxy_dst,
+                joMessageProxyDst,
                 joAccountDst,
                 chainNameSrc,
                 chainNameDst,
                 -4,
                 -4,
-                null, // jo_deposit_box - for logs validation on mainnet
-                null, //jo_token_manager - for logs validation on s-chain
+                null, // joDepositBox - for logs validation on mainnet
+                null, // joTokenManager - for logs validation on s-chain
                 nTransactionsCountInBlock,
                 nTransferSteps,
                 nMaxTransactionsCount,
                 nBlockAwaitDepth,
                 nBlockAge,
                 null,
-                tc_main_net, // or tc_s_chain
+                transactionCustomizerMainNet, // or transactionCustomizerSChain
                 null
             )
         ).to.be.true;
