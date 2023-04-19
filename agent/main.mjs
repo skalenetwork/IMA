@@ -1081,9 +1081,9 @@ function commandLineTaskPaymentS2S() {
             const strCoinNameErc721Src = isForward ? sc.strCoinNameErc721 : tc.strCoinNameErc721;
             const strCoinNameErc1155Src =
                 isForward ? sc.strCoinNameErc1155 : tc.strCoinNameErc1155;
-            const joErc20_src = isForward ? sc.joErc20 : tc.joErc20;
-            const joErc721_src = isForward ? sc.joErc721 : tc.joErc721;
-            const joErc1155_src = isForward ? sc.joErc1155 : tc.joErc1155;
+            const joSrcErc20 = isForward ? sc.joErc20 : tc.joErc20;
+            const joSrcErc721 = isForward ? sc.joErc721 : tc.joErc721;
+            const joSrcErc1155 = isForward ? sc.joErc1155 : tc.joErc1155;
             let strAddrErc20Explicit = imaState.strAddrErc20Explicit;
             let strAddrErc20ExplicitTarget = imaState.strAddrErc20ExplicitTarget;
             let strAddrErc721Explicit = imaState.strAddrErc721Explicit;
@@ -1123,7 +1123,7 @@ function commandLineTaskPaymentS2S() {
                     imaState.idToken, // which ERC721 token id to send
                     imaState.nAmountOfWei, // how much to send
                     strCoinNameErc721Src,
-                    joErc721_src,
+                    joSrcErc721,
                     strAddrErc721Dst, // only reverse payment needs it
                     tx_customizer
                 );
@@ -1142,7 +1142,7 @@ function commandLineTaskPaymentS2S() {
                     imaState.nAmountOfToken, // how much ERC20 tokens to send
                     imaState.nAmountOfWei, // how much to send
                     strCoinNameErc20Src,
-                    joErc20_src,
+                    joSrcErc20,
                     strAddrErc20Dst, // only reverse payment needs it
                     tx_customizer
                 );
@@ -1177,7 +1177,7 @@ function commandLineTaskPaymentS2S() {
                     imaState.nAmountOfToken, // how much ERC1155 tokens to send
                     imaState.nAmountOfWei, // how much to send
                     strCoinNameErc1155Src,
-                    joErc1155_src,
+                    joSrcErc1155,
                     strAddrErc1155Dst, // only reverse payment needs it
                     tx_customizer
                 );
@@ -1212,7 +1212,7 @@ function commandLineTaskPaymentS2S() {
                     imaState.arrAmountsOfTokens, // which ERC1155 token amount to send
                     imaState.nAmountOfWei, // how much to send
                     strCoinNameErc1155Src,
-                    joErc1155_src,
+                    joSrcErc1155,
                     strAddrErc1155Dst,
                     tx_customizer
                 );
