@@ -39,19 +39,19 @@ import * as pwa from "./pwa.mjs";
 let imaState = state.get();
 
 parentPort.on( "message", jo => {
-    if( networkLayer.in_worker_apis.on_message( jo ) )
+    if( networkLayer.inWorkerAPIs.onMessage( jo ) )
         return;
 } );
 
-function doSendMessage( type, endpoint, worker_uuid, data ) {
+function doSendMessage( type, endpoint, workerUUID, data ) {
     const jo = networkLayer.socketReceivedDataReverseMarshall( data );
     const joSend = {
-        "worker_message_type":
+        "workerMessageType":
             ( type && typeof type == "string" && type.length > 0 )
                 ? type
-                : "in_worker_message",
-        "worker_endpoint": endpoint,
-        "worker_uuid": worker_uuid,
+                : "inWorkerMessage",
+        "workerEndPoint": endpoint,
+        "workerUUID": workerUUID,
         "data": jo
     };
     parentPort.postMessage( networkLayer.socketSentDataMarshall( joSend ) );

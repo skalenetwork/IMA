@@ -41,9 +41,6 @@ export function setWebRtcModule( mod ) {
     webRtcModule = mod ? mod : null;
 }
 
-///////////////////////////////////////////////////////////////////////////////
-///////////////////////////////////////////////////////////////////////////////
-
 export const g_mapLocalServers = { }; // used both for local and in-worker servers
 
 export const socketSentDataMarshall = function( data ) {
@@ -99,9 +96,6 @@ export const generateSocketDataStatsJSON = function( jo ) {
         updateSocketDataStatsForMessage( jo, joStats );
     return joStats;
 };
-
-///////////////////////////////////////////////////////////////////////////////
-///////////////////////////////////////////////////////////////////////////////
 
 export class BasicServerAcceptor extends EventDispatcher {
     constructor() {
@@ -187,9 +181,6 @@ export class BasicServerAcceptor extends EventDispatcher {
         return clientPipe;
     }
 };
-
-///////////////////////////////////////////////////////////////////////////////
-///////////////////////////////////////////////////////////////////////////////
 
 export class BasicSocketPipe extends EventDispatcher {
     constructor() {
@@ -340,9 +331,6 @@ export class BasicSocketPipe extends EventDispatcher {
     }
 };
 
-///////////////////////////////////////////////////////////////////////////////
-///////////////////////////////////////////////////////////////////////////////
-
 export class NullSocketPipe extends BasicSocketPipe {
     constructor() {
         super();
@@ -367,109 +355,106 @@ export class NullSocketPipe extends BasicSocketPipe {
     }
 };
 
-///////////////////////////////////////////////////////////////////////////////
-///////////////////////////////////////////////////////////////////////////////
-
-export const is_running_in_worker = function() {
+export const isRunningInWorker = function() {
     if( self.document === undefined )
         return true;
     return false;
 };
 
 // in-worker clients in connecting state
-export const g_map_awaiting_in_worker_clients = { };
+export const g_mapAwaitingInWorkerClients = { };
 // in-worker clients in connecting state
-export const g_map_connected_in_worker_clients = { };
+export const g_mapConnectedInWorkerClients = { };
 
-export const out_of_worker_apis = {
-    "on_message": function( worker, data ) {
+export const outOfWorkerAPIs = {
+    "onMessage": function( worker, data ) {
         const jo = socketReceivedDataReverseMarshall( data );
-        if( ! ( "worker_message_type" in jo ) ||
-            typeof jo.worker_message_type != "string" ||
-            jo.worker_message_type.length == 0 )
+        if( ! ( "workerMessageType" in jo ) ||
+            typeof jo.workerMessageType != "string" ||
+            jo.workerMessageType.length == 0 )
             return false; // not a socket message
-        if( ! ( "worker_endpoint" in jo ) ||
-        typeof jo.worker_endpoint != "string" ||
-        jo.worker_endpoint.length == 0 )
+        if( ! ( "workerEndPoint" in jo ) ||
+        typeof jo.workerEndPoint != "string" ||
+        jo.workerEndPoint.length == 0 )
             return false; // TO-DO: send error answer and return true
-        if( ! ( "worker_uuid" in jo ) ||
-        typeof jo.worker_uuid != "string" ||
-        jo.worker_uuid.length == 0 )
+        if( ! ( "workerUUID" in jo ) ||
+        typeof jo.workerUUID != "string" ||
+        jo.workerUUID.length == 0 )
             return false; // TO-DO: send error answer and return true
-        switch ( jo.worker_message_type ) {
-        case "in_worker_connect": {
-            if( !( jo.worker_uuid in g_map_awaiting_in_worker_clients ) )
+        switch ( jo.workerMessageType ) {
+        case "inWorkerConnect": {
+            if( !( jo.workerUUID in g_mapAwaitingInWorkerClients ) )
                 return false;
-            const pipe = g_map_awaiting_in_worker_clients[jo.worker_uuid];
+            const pipe = g_mapAwaitingInWorkerClients[jo.workerUUID];
             pipe.performSuccessfulConnection();
         } return true;
-        case "in_worker_disconnect": {
-            if( !( jo.worker_uuid in g_map_connected_in_worker_clients ) )
+        case "inWorkerDisconnect": {
+            if( !( jo.workerUUID in g_mapConnectedInWorkerClients ) )
                 return false;
-            const pipe = g_map_connected_in_worker_clients[jo.worker_uuid];
+            const pipe = g_mapConnectedInWorkerClients[jo.workerUUID];
             pipe.performDisconnect();
         } return true;
-        case "in_worker_message": {
-            if( !( jo.worker_uuid in g_map_connected_in_worker_clients ) )
+        case "inWorkerMessage": {
+            if( !( jo.workerUUID in g_mapConnectedInWorkerClients ) )
                 return false;
-            const pipe = g_map_connected_in_worker_clients[jo.worker_uuid];
+            const pipe = g_mapConnectedInWorkerClients[jo.workerUUID];
             pipe.receive( jo.data );
         } return true;
         default:
             return false; // TO-DO: send error answer and return true
-        } // switch( jo.worker_message_type )
+        } // switch( jo.workerMessageType )
     },
-    "on_send_message": function( worker, type, endpoint, worker_uuid, data ) {
+    "onSendMessage": function( worker, type, endpoint, workerUUID, data ) {
         const jo = socketReceivedDataReverseMarshall( data );
         const joSend = {
-            "worker_message_type":
+            "workerMessageType":
                 ( type && typeof type == "string" && type.length > 0 )
-                    ? type : "in_worker_message",
-            "worker_endpoint": endpoint,
-            "worker_uuid": worker_uuid,
+                    ? type : "inWorkerMessage",
+            "workerEndPoint": endpoint,
+            "workerUUID": workerUUID,
             "data": jo
         };
         //worker.postMessage( socketReceivedDataReverseMarshall( joSend ) );
         worker.postMessage( socketSentDataMarshall( joSend ) );
     }
 };
-export const in_worker_apis = {
-    "on_message": function( data ) {
+export const inWorkerAPIs = {
+    "onMessage": function( data ) {
         const jo = socketReceivedDataReverseMarshall( data );
-        if( ! ( "worker_message_type" in jo ) ||
-            typeof jo.worker_message_type != "string" ||
-            jo.worker_message_type.length == 0 )
+        if( ! ( "workerMessageType" in jo ) ||
+            typeof jo.workerMessageType != "string" ||
+            jo.workerMessageType.length == 0 )
             return false; // not a socket message
-        if( ! ( "worker_endpoint" in jo ) ||
-            typeof jo.worker_endpoint != "string" ||
-            jo.worker_endpoint.length == 0 )
+        if( ! ( "workerEndPoint" in jo ) ||
+            typeof jo.workerEndPoint != "string" ||
+            jo.workerEndPoint.length == 0 )
             return false; // TO-DO: send error answer and return true
-        if( ! ( "worker_uuid" in jo ) ||
-            typeof jo.worker_uuid != "string" ||
-            jo.worker_uuid.length == 0 )
+        if( ! ( "workerUUID" in jo ) ||
+            typeof jo.workerUUID != "string" ||
+            jo.workerUUID.length == 0 )
             return false; // TO-DO: send error answer and return true
-        if( ! ( jo.worker_endpoint in g_mapLocalServers ) )
+        if( ! ( jo.workerEndPoint in g_mapLocalServers ) )
             return false; // TO-DO: send error answer and return true
-        const acceptor = g_mapLocalServers[jo.worker_endpoint];
-        switch ( jo.worker_message_type ) {
-        case "in_worker_connect":
+        const acceptor = g_mapLocalServers[jo.workerEndPoint];
+        switch ( jo.workerMessageType ) {
+        case "inWorkerConnect":
             return acceptor.performAccept( jo );
-        case "in_worker_disconnect":
+        case "inWorkerDisconnect":
             return acceptor.performDisconnect( jo );
-        case "in_worker_message":
-            return acceptor.receiveForClientPort( jo.worker_uuid, jo.data );
+        case "inWorkerMessage":
+            return acceptor.receiveForClientPort( jo.workerUUID, jo.data );
         default:
             return false; // TO-DO: send error answer and return true
-        } // switch( jo.worker_message_type )
+        } // switch( jo.workerMessageType )
     },
-    "on_send_message": function( type, endpoint, worker_uuid, data ) {
+    "onSendMessage": function( type, endpoint, workerUUID, data ) {
         const jo = socketReceivedDataReverseMarshall( data );
         const joSend = {
-            "worker_message_type":
+            "workerMessageType":
                 ( type && typeof type == "string" && type.length > 0 )
-                    ? type : "in_worker_message",
-            "worker_endpoint": endpoint,
-            "worker_uuid": worker_uuid,
+                    ? type : "inWorkerMessage",
+            "workerEndPoint": endpoint,
+            "workerUUID": workerUUID,
             "data": jo
         };
         //postMessage( socketReceivedDataReverseMarshall( joSend ) );
@@ -485,10 +470,10 @@ export class InWorkerServerPipe extends BasicSocketPipe {
         this.isConnected = true;
         this.acceptor = acceptor;
         this.clientPort = "" + clientPort;
-        this.fnSend = fnSend || in_worker_apis.on_send_message;
+        this.fnSend = fnSend || inWorkerAPIs.onSendMessage;
         this.url = "in_worker_server_pipe://" + acceptor.strEndPoint + ":" + clientPort;
         this.acceptor.mapClients[this.clientPort] = this;
-        this.fnSend( "in_worker_connect", this.acceptor.strEndPoint, this.clientPort, {} );
+        this.fnSend( "inWorkerConnect", this.acceptor.strEndPoint, this.clientPort, {} );
         const self = this;
         const iv = setTimeout( function() {
             clearTimeout( iv );
@@ -514,7 +499,7 @@ export class InWorkerServerPipe extends BasicSocketPipe {
     performDisconnect() {
         if( ! this.isConnected )
             return;
-        this.fnSend( "in_worker_disconnect", this.acceptor.strEndPoint, this.clientPort, {} );
+        this.fnSend( "inWorkerDisconnect", this.acceptor.strEndPoint, this.clientPort, {} );
         this.isConnected = false;
         if( this.acceptor )
             this.acceptor.unregisterClientByKey( this.clientPort );
@@ -531,7 +516,7 @@ export class InWorkerServerPipe extends BasicSocketPipe {
             throw new Error( s );
         }
         const jo = socketReceivedDataReverseMarshall( data );
-        this.fnSend( "in_worker_message", this.acceptor.strEndPoint, this.clientPort, jo );
+        this.fnSend( "inWorkerMessage", this.acceptor.strEndPoint, this.clientPort, jo );
     }
     disconnect() {
         this.performDisconnect();
@@ -555,7 +540,7 @@ export class InWorkerSocketServerAcceptor extends BasicServerAcceptor {
             throw new Error( s );
         }
         g_mapLocalServers[this.strEndPoint] = this;
-        this.fnSend = fnSend || in_worker_apis.on_send_message;
+        this.fnSend = fnSend || inWorkerAPIs.onSendMessage;
         this.isListening = true;
         const self = this;
         const iv = setTimeout( function() {
@@ -578,15 +563,15 @@ export class InWorkerSocketServerAcceptor extends BasicServerAcceptor {
         super.dispose();
     }
     performAccept( jo ) {
-        if( jo.worker_uuid in this.mapClients )
+        if( jo.workerUUID in this.mapClients )
             return false; // TO-DO: send error answer and return true
-        new InWorkerServerPipe( this, "" + jo.worker_uuid, this.fnSend );
+        new InWorkerServerPipe( this, "" + jo.workerUUID, this.fnSend );
         return true;
     }
     performDisconnect( jo ) {
-        if( ! ( jo.worker_uuid in this.mapClients ) )
+        if( ! ( jo.workerUUID in this.mapClients ) )
             return false; // TO-DO: send error answer and return true
-        const pipe = this.mapClients[jo.worker_uuid];
+        const pipe = this.mapClients[jo.workerUUID];
         pipe.performDisconnect();
         return true;
     }
@@ -615,25 +600,25 @@ export class OutOfWorkerSocketClientPipe extends BasicSocketPipe {
                 ? strEndPoint
                 : "default_in_worker_endpoint";
         this.url = "out_of_worker_client_pipe://" + this.strEndPoint + ":" + this.clientPort;
-        this.fnSend = fnSend || out_of_worker_apis.on_send_message;
-        this.fnSend( this.worker, "in_worker_connect", this.strEndPoint, this.clientPort, {} );
-        g_map_awaiting_in_worker_clients["" + this.clientPort] = this;
+        this.fnSend = fnSend || outOfWorkerAPIs.onSendMessage;
+        this.fnSend( this.worker, "inWorkerConnect", this.strEndPoint, this.clientPort, {} );
+        g_mapAwaitingInWorkerClients["" + this.clientPort] = this;
     }
     dispose() {
         if( this.isDisposed )
             return;
         this.isDisposing = true;
         this.performDisconnect();
-        if( this.clientPort in g_map_awaiting_in_worker_clients )
-            delete g_map_awaiting_in_worker_clients[this.clientPort];
+        if( this.clientPort in g_mapAwaitingInWorkerClients )
+            delete g_mapAwaitingInWorkerClients[this.clientPort];
         super.dispose();
     }
     performDisconnect() {
         if( ! this.isConnected )
             return;
         this.isConnected = false;
-        delete g_map_connected_in_worker_clients["" + this.clientPort];
-        this.fnSend( this.worker, "in_worker_disconnect", this.strEndPoint, this.clientPort, {} );
+        delete g_mapConnectedInWorkerClients["" + this.clientPort];
+        this.fnSend( this.worker, "inWorkerDisconnect", this.strEndPoint, this.clientPort, {} );
         this.dispatchEvent( new UniversalDispatcherEvent( "close", { "socket": this } ) );
         this.worker = null;
         this.clientPort = "";
@@ -641,8 +626,8 @@ export class OutOfWorkerSocketClientPipe extends BasicSocketPipe {
         this.url = "";
     }
     performSuccessfulConnection() {
-        delete g_map_awaiting_in_worker_clients[this.clientPort];
-        g_map_connected_in_worker_clients["" + this.clientPort] = this;
+        delete g_mapAwaitingInWorkerClients[this.clientPort];
+        g_mapConnectedInWorkerClients["" + this.clientPort] = this;
         this.isConnected = true;
         this.dispatchEvent( new UniversalDispatcherEvent( "open", { "socket": this } ) );
     }
@@ -661,16 +646,13 @@ export class OutOfWorkerSocketClientPipe extends BasicSocketPipe {
             throw new Error( s );
         }
         const jo = socketReceivedDataReverseMarshall( data );
-        this.fnSend( this.worker, "in_worker_message", this.strEndPoint, this.clientPort, jo );
+        this.fnSend( this.worker, "inWorkerMessage", this.strEndPoint, this.clientPort, jo );
     }
     disconnect() {
         this.performDisconnect();
         super.disconnect();
     }
 };
-
-///////////////////////////////////////////////////////////////////////////////
-///////////////////////////////////////////////////////////////////////////////
 
 export class OutOfWorkerRelay extends EventDispatcher {
     // eslint-disable-next-line max-lines-per-function
@@ -903,9 +885,6 @@ export class OutOfWorkerRelay extends EventDispatcher {
             this.acceptor.flush();
     }
 };
-
-///////////////////////////////////////////////////////////////////////////////
-///////////////////////////////////////////////////////////////////////////////
 
 export class OneToOneRelay extends EventDispatcher {
     // eslint-disable-next-line max-lines-per-function
@@ -1148,9 +1127,6 @@ export class OneToOneRelay extends EventDispatcher {
     }
 };
 
-///////////////////////////////////////////////////////////////////////////////
-///////////////////////////////////////////////////////////////////////////////
-
 export class DirectPipe extends BasicSocketPipe {
     constructor( counterPipe, isBroadcastOpenEvents ) {
         super();
@@ -1226,9 +1202,6 @@ export class DirectPipe extends BasicSocketPipe {
         super.disconnect();
     }
 };
-
-///////////////////////////////////////////////////////////////////////////////
-///////////////////////////////////////////////////////////////////////////////
 
 export class LocalSocketServerPipe extends DirectPipe {
     constructor( counterPipe, acceptor, clientPort ) {
@@ -1341,9 +1314,6 @@ export class LocalSocketClientPipe extends DirectPipe {
         super.dispose();
     }
 };
-
-///////////////////////////////////////////////////////////////////////////////
-///////////////////////////////////////////////////////////////////////////////
 
 export class WebSocketServerPipe extends BasicSocketPipe {
     constructor( acceptor, ws_conn, remoteAddress ) {
@@ -1661,9 +1631,6 @@ export class WebSocketClientPipe extends BasicSocketPipe {
             new UniversalDispatcherEvent( "message", { "socket": this, "message": jo } ) );
     }
 };
-
-///////////////////////////////////////////////////////////////////////////////
-///////////////////////////////////////////////////////////////////////////////
 
 export class RTCConnection extends EventDispatcher {
     constructor( strSignalingServerURL, idRtcParticipant ) {
@@ -3030,9 +2997,6 @@ export class RTCJoiner extends RTCActor {
     }
 };
 
-///////////////////////////////////////////////////////////////////////////////
-///////////////////////////////////////////////////////////////////////////////
-
 export class WebRTCServerPipe extends BasicSocketPipe {
     constructor( acceptor, rtcPeer, strSignalingServerURL ) {
         super();
@@ -3486,6 +3450,3 @@ export class WebRTCClientPipe extends BasicSocketPipe {
                 { "socket": this, "message": jo } ) );
     }
 };
-
-///////////////////////////////////////////////////////////////////////////////
-///////////////////////////////////////////////////////////////////////////////

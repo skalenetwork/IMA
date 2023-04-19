@@ -94,8 +94,8 @@ const imaState = {
     "arrAmountsOfTokens": null,
     "idToken": 0,
     "idTokens": [],
-    "have_idToken": false,
-    "have_idTokens": false,
+    "haveOneTokenIdentifier": false,
+    "haveArrayOfTokenIdentifiers": false,
 
     "nTransferBlockSizeM2S": 4,
     "nTransferBlockSizeS2M": 4,

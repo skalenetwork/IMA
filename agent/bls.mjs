@@ -1133,7 +1133,7 @@ async function gatherSigningStartImpl( optsSignOperation ) {
     optsSignOperation.details.write( optsSignOperation.strLogPrefix +
         cc.debug( "Waiting for BLS glue result " ) + "\n" );
     optsSignOperation.errGathering = null;
-    optsSignOperation.promise_gathering_complete = new Promise( ( resolve, reject ) => {
+    optsSignOperation.promiseCompleteGathering = new Promise( ( resolve, reject ) => {
         const iv = setInterval( function() {
             ++ optsSignOperation.joGatheringTracker.nWaitIntervalStepsDone;
             optsSignOperation.cntSuccess =
@@ -1293,7 +1293,7 @@ async function gatherSigningFinishImpl( optsSignOperation ) {
         "\n" );
     await withTimeout(
         "BLS verification and sending",
-        optsSignOperation.promise_gathering_complete,
+        optsSignOperation.promiseCompleteGathering,
         g_secondsMessageVerifySendTimeout )
         .then( strSuccessfulResultDescription => {
             optsSignOperation.details.write(
@@ -1688,7 +1688,7 @@ async function doSignMessagesImpl(
         nParticipants: 1,
         nCountOfBlsPartsToCollect: 1,
         errGathering: null,
-        promise_gathering_complete: null,
+        promiseCompleteGathering: null,
         targetChainName: "",
         fromChainName: "",
         targetChainID: -4,
@@ -2055,7 +2055,7 @@ async function doSignU256Gathering( optsSignU256 ) {
         cc.debug( "Waiting for BLS glue result " ) +
         "\n" );
     optsSignU256.errGathering = null;
-    optsSignU256.promise_gathering_complete = new Promise( ( resolve, reject ) => {
+    optsSignU256.promiseCompleteGathering = new Promise( ( resolve, reject ) => {
         const iv = setInterval( function() {
             ++ optsSignU256.joGatheringTracker.nWaitIntervalStepsDone;
             const cntSuccess =
@@ -2216,7 +2216,7 @@ export async function doSignU256( u256, details, fn ) {
         nParticipants: 1,
         nCountOfBlsPartsToCollect: 1,
         errGathering: null,
-        promise_gathering_complete: null
+        promiseCompleteGathering: null
     };
     optsSignU256.jarrNodes = optsSignU256.imaState.joSChainNetworkInfo.network;
     optsSignU256.details.write( optsSignU256.strLogPrefix +
@@ -2240,7 +2240,7 @@ export async function doSignU256( u256, details, fn ) {
     optsSignU256.details.write( cc.debug( "Will await BLS u256 sign result..." ) + "\n" );
     await withTimeout(
         "BLS u256 sign",
-        optsSignU256.promise_gathering_complete,
+        optsSignU256.promiseCompleteGathering,
         g_secondsMessageVerifySendTimeout
     ).then( strSuccessfulResultDescription => {
         optsSignU256.details.write( cc.info( "BLS u256 sign promise awaited." ) + "\n" );

@@ -72,7 +72,7 @@ async function test_worker() {
         );
     console.log( "Will connect to " + url );
     worker.on( "message", jo => {
-        if( networkLayer.out_of_worker_apis.on_message( worker, jo ) )
+        if( networkLayer.outOfWorkerAPIs.onMessage( worker, jo ) )
             return;
     } );
     const client = new networkLayer.OutOfWorkerSocketClientPipe( url, worker );

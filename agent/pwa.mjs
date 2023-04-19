@@ -30,9 +30,6 @@ import * as rpcCall from "./rpcCall.mjs";
 import * as imaBLS from "./bls.mjs";
 import * as imaUtils from "./utils.mjs";
 
-///////////////////////////////////////////////////////////////////////////////////////////////////
-///////////////////////////////////////////////////////////////////////////////////////////////////
-
 function computeWalkNodeIndices( nNodeNumber, nNodesCount ) {
     if( nNodesCount <= 1 )
         return []; // PWA is N/A
@@ -66,9 +63,6 @@ export function checkLoopWorkTypeStringIsCorrect( strLoopWorkType ) {
     return false;
 }
 
-///////////////////////////////////////////////////////////////////////////////////////////////////
-///////////////////////////////////////////////////////////////////////////////////////////////////
-
 function composeEmptyStateForPendingWorkAnalysis() {
     return {
         "oracle": {
@@ -85,10 +79,6 @@ function composeEmptyStateForPendingWorkAnalysis() {
         },
         "s2s": {
             "mapS2S": {
-                // 0: {
-                //     "isInProgress": false,
-                //     "ts": 0,
-                // }
             }
         }
     };
@@ -114,9 +104,6 @@ function getNodeProgressAndTimestamp( joNode, strLoopWorkType, nIndexS2S ) {
     }
     return joNode.pwaState[strLoopWorkType].mapS2S[nIndexS2S];
 }
-
-///////////////////////////////////////////////////////////////////////////////////////////////////
-///////////////////////////////////////////////////////////////////////////////////////////////////
 
 export async function checkOnLoopStart( imaState, strLoopWorkType, nIndexS2S ) {
     try {
@@ -200,9 +187,6 @@ export async function checkOnLoopStart( imaState, strLoopWorkType, nIndexS2S ) {
     return true;
 }
 
-///////////////////////////////////////////////////////////////////////////////////////////////////
-///////////////////////////////////////////////////////////////////////////////////////////////////
-
 export async function handleLoopStateArrived(
     imaState, nNodeNumber, strLoopWorkType, nIndexS2S, isStart, ts, signature
 ) {
@@ -264,9 +248,6 @@ export async function handleLoopStateArrived(
     }
     return isSuccess;
 }
-
-///////////////////////////////////////////////////////////////////////////////////////////////////
-///////////////////////////////////////////////////////////////////////////////////////////////////
 
 async function notifyOnLoopImpl( imaState, strLoopWorkType, nIndexS2S, isStart ) {
     const se = isStart ? "start" : "end";
@@ -361,6 +342,3 @@ export async function notifyOnLoopStart( imaState, strLoopWorkType, nIndexS2S ) 
 export async function notifyOnLoopEnd( imaState, strLoopWorkType, nIndexS2S ) {
     return await notifyOnLoopImpl( imaState, strLoopWorkType, nIndexS2S, false );
 }
-
-///////////////////////////////////////////////////////////////////////////////////////////////////
-///////////////////////////////////////////////////////////////////////////////////////////////////
