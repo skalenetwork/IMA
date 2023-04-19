@@ -4,8 +4,8 @@
     "license": "AGPL-3.0",
     "author": "SKALE Labs and contributors",
     "scripts": {
-        "lint-check": "eslint ./agent/*.*js ./npms/skale-*/*.*js ./test/*.*js",
-        "lint-fix": "eslint ./agent/*.*js ./npms/skale-*/*.*js ./test/*.*js --fix",
+        "lint-check": "eslint ./agent/*.*js ./npms/skale-*/*.*js ./test/*.*js ./agent/test/*.*js",
+        "lint-fix": "eslint ./agent/*.*js ./npms/skale-*/*.*js ./test/*.*js ./agent/test/*.*js --fix",
         "preinstall": "./npms/scrypt/get_scrypt_npm.sh",
         "postinstall": "echo \"----- installing in agent\n\" && cd ./agent && yarn install && cd .. && echo \"----- installing in test\n\" && cd ./test && yarn install && cd .. && echo \"----- installing in proxy\n\" && cd ./proxy && yarn install && cd .. && echo \"----- installing in test-tokens\n\" && cd ./test-tokens && yarn install && cd ..",
         "check-outdated": "yarn outdated",

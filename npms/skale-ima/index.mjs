@@ -1459,7 +1459,7 @@ async function payedCallPrepare( optsPayedCall ) {
 
 async function payedCallTM( optsPayedCall ) {
     const promiseComplete = new Promise( function( resolve, reject ) {
-        const do_tm = async function() {
+        const doTM = async function() {
             const txAdjusted =
                 optsPayedCall.unsignedTx; // JSON.parse( JSON.stringify( optsPayedCall.rawTx ) );
             const arrNamesConvertToHex = [ "gas", "gasLimit", "optsPayedCall.gasPrice", "value" ];
@@ -1508,7 +1508,7 @@ async function payedCallTM( optsPayedCall ) {
                 reject( err );
             }
         };
-        do_tm();
+        doTM();
     } );
     await Promise.all( [ promiseComplete ] );
 }
@@ -2217,8 +2217,8 @@ export async function registerSChainInDepositBoxes( // step 1
     joTokenManagerERC721WithMetadata, // only s-chain
     joCommunityLocker, // only s-chain
     joTokenManagerLinker,
-    chainIdSChain,
-    chainIdMainNet,
+    chainNameSChain,
+    chainNameMainNet,
     transactionCustomizerMainNet,
     cntWaitAttempts,
     nSleepMilliseconds
@@ -2231,7 +2231,7 @@ export async function registerSChainInDepositBoxes( // step 1
         "\n" );
     details.write(
         cc.info( "S-Chain  " ) + cc.sunny( "ID" ) + cc.info( " is......................." ) +
-        cc.bright( chainIdSChain ) +
+        cc.bright( chainNameSChain ) +
         "\n" );
     const strLogPrefix = cc.sunny( "Reg S in depositBoxes:" ) + " ";
     details.write( strLogPrefix + cc.debug( longSeparator ) + "\n" );
@@ -2244,7 +2244,7 @@ export async function registerSChainInDepositBoxes( // step 1
         details.write( strLogPrefix +
             cc.debug( "Will register S-Chain in lock_and_data on Main-net" ) + "\n" );
         const arrArguments = [
-            chainIdSChain,
+            chainNameSChain,
             [
                 joTokenManagerLinker.address, // call params
                 joCommunityLocker.address, // call params
@@ -2309,7 +2309,7 @@ export async function registerSChainInDepositBoxes( // step 1
             ethersProviderMainNet,
             joLinker,
             joAccountMN,
-            chainIdSChain,
+            chainNameSChain,
             cntWaitAttempts,
             nSleepMilliseconds
         );
@@ -2334,7 +2334,7 @@ export async function registerSChainInDepositBoxes( // step 1
         details.exposeDetailsTo( log, "registerSChainInDepositBoxes", true );
     details.close();
     return jarrReceipts;
-} // async function register_deposit_box_on_s_chain(...
+}
 
 ///////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////
@@ -2680,7 +2680,7 @@ export async function reimbursementSetRange(
     joCommunityLocker,
     joAccountSC,
     strChainNameSChain,
-    cid_s_chain,
+    chainIdSChain,
     transactionCustomizerSChain,
     strChainNameOriginChain,
     nReimbursementRange
@@ -2905,7 +2905,7 @@ export async function doEthPaymentFromMainNet(
         details.exposeDetailsTo( log, "doEthPaymentFromMainNet", true );
     details.close();
     return true;
-} // async function doEthPaymentFromMainNet(...
+}
 
 ///////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////
@@ -2921,7 +2921,7 @@ export async function doEthPaymentFromMainNet(
 //
 export async function doEthPaymentFromSChain(
     ethersProviderSChain,
-    cid_s_chain,
+    chainIdSChain,
     joAccountSrc,
     joAccountDst,
     joTokenManagerETH,
@@ -3037,7 +3037,7 @@ export async function doEthPaymentFromSChain(
         details.exposeDetailsTo( log, "doEthPaymentFromSChain", true );
     details.close();
     return true;
-} // async function doEthPaymentFromSChain(...
+}
 
 ///////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////
@@ -3178,19 +3178,19 @@ export async function doErc721PaymentFromMainNet(
     ethersProviderMainNet,
     ethersProviderSChain,
     chainIdMainNet,
-    cid_s_chain,
+    chainIdSChain,
     joAccountSrc,
     joAccountDst,
     joDepositBoxERC721,
     joMessageProxyMainNet, // for checking logs
-    chainIdSChain,
+    chainNameSChain,
     tokenId, // which ERC721 token id to send
     weiHowMuch, // how much ETH
     joTokenManagerERC721, // only s-chain
     strCoinNameErc721MainNet,
-    erc721PrivateTestnetJson_main_net,
+    erc721PrivateTestnetJsonMainNet,
     strCoinNameErc721SChain,
-    erc721PrivateTestnetJson_s_chain,
+    erc721PrivateTestnetJsonSChain,
     transactionCustomizerMainNet
 ) {
     const details = log.createMemoryStream();
@@ -3199,12 +3199,12 @@ export async function doErc721PaymentFromMainNet(
     const strLogPrefix = cc.info( "M2S ERC721 Payment:" ) + " ";
     try {
         strActionName = "ERC721 payment from Main Net, approve";
-        const erc721ABI = erc721PrivateTestnetJson_main_net[strCoinNameErc721MainNet + "_abi"];
-        const erc721Address_main_net =
-            erc721PrivateTestnetJson_main_net[strCoinNameErc721MainNet + "_address"];
+        const erc721ABI = erc721PrivateTestnetJsonMainNet[strCoinNameErc721MainNet + "_abi"];
+        const erc721AddressMainNet =
+            erc721PrivateTestnetJsonMainNet[strCoinNameErc721MainNet + "_address"];
         const contractERC721 =
             new owaspUtils.ethersMod.ethers.Contract(
-                erc721Address_main_net,
+                erc721AddressMainNet,
                 erc721ABI,
                 ethersProviderMainNet
             );
@@ -3214,8 +3214,8 @@ export async function doErc721PaymentFromMainNet(
             owaspUtils.ensureStartsWith0x( owaspUtils.toBN( tokenId ).toHexString() )
         ];
         const arrArgumentsDepositERC721 = [
-            chainIdSChain,
-            erc721Address_main_net,
+            chainNameSChain,
+            erc721AddressMainNet,
             owaspUtils.ensureStartsWith0x( owaspUtils.toBN( tokenId ).toHexString() )
         ];
         const weiHowMuchApprove = undefined;
@@ -3370,7 +3370,7 @@ export async function doErc721PaymentFromMainNet(
         details.exposeDetailsTo( log, "doErc721PaymentFromMainNet", true );
     details.close();
     return true;
-} // async function doErc721PaymentFromMainNet(...
+}
 
 //
 ///////////////////////////////////////////////////////////////////////////////
@@ -3380,12 +3380,12 @@ export async function doErc20PaymentFromMainNet(
     ethersProviderMainNet,
     ethersProviderSChain,
     chainIdMainNet,
-    cid_s_chain,
+    chainIdSChain,
     joAccountSrc,
     joAccountDst,
     joDepositBoxERC20,
     joMessageProxyMainNet, // for checking logs
-    chainIdSChain,
+    chainNameSChain,
     tokenAmount, // how much ERC20 tokens to send
     weiHowMuch, // how much ETH
     joTokenManagerERC20, // only s-chain
@@ -3402,11 +3402,11 @@ export async function doErc20PaymentFromMainNet(
     try {
         strActionName = "ERC20 payment from Main Net, approve";
         const erc20ABI = erc20MainNet[strCoinNameErc20MainNet + "_abi"];
-        const erc20Address_main_net =
+        const erc20AddressMainNet =
             erc20MainNet[strCoinNameErc20MainNet + "_address"];
         const contractERC20 =
             new owaspUtils.ethersMod.ethers.Contract(
-                erc20Address_main_net,
+                erc20AddressMainNet,
                 erc20ABI,
                 ethersProviderMainNet
             );
@@ -3416,8 +3416,8 @@ export async function doErc20PaymentFromMainNet(
             owaspUtils.ensureStartsWith0x( owaspUtils.toBN( tokenAmount ).toHexString() )
         ];
         const arrArgumentsDepositERC20 = [
-            chainIdSChain,
-            erc20Address_main_net,
+            chainNameSChain,
+            erc20AddressMainNet,
             owaspUtils.ensureStartsWith0x( owaspUtils.toBN( tokenAmount ).toHexString() )
         ];
         const weiHowMuchApprove = undefined;
@@ -3569,26 +3569,26 @@ export async function doErc20PaymentFromMainNet(
         details.exposeDetailsTo( log, "doErc20PaymentFromMainNet", true );
     details.close();
     return true;
-} // async function doErc20PaymentFromMainNet(...
+}
 
 export async function doErc1155PaymentFromMainNet(
     ethersProviderMainNet,
     ethersProviderSChain,
     chainIdMainNet,
-    cid_s_chain,
+    chainIdSChain,
     joAccountSrc,
     joAccountDst,
     joDepositBoxERC1155,
     joMessageProxyMainNet, // for checking logs
-    chainIdSChain,
+    chainNameSChain,
     tokenId, // which ERC1155 token id to send
     tokenAmount, // which ERC1155 token id to send
     weiHowMuch, // how much ETH
     joTokenManagerERC1155, // only s-chain
     strCoinNameErc1155SMainNet,
-    erc1155PrivateTestnetJson_main_net,
+    erc1155PrivateTestnetJsonMainNet,
     strCoinNameErc1155SChain,
-    erc1155PrivateTestnetJson_s_chain,
+    erc1155PrivateTestnetJsonSChain,
     transactionCustomizerMainNet
 ) {
     const details = log.createMemoryStream();
@@ -3598,19 +3598,19 @@ export async function doErc1155PaymentFromMainNet(
     try {
         strActionName = "ERC1155 payment from Main Net, approve";
         const erc1155ABI =
-            erc1155PrivateTestnetJson_main_net[strCoinNameErc1155SMainNet + "_abi"];
-        const erc1155Address_main_net =
-            erc1155PrivateTestnetJson_main_net[strCoinNameErc1155SMainNet + "_address"];
+            erc1155PrivateTestnetJsonMainNet[strCoinNameErc1155SMainNet + "_abi"];
+        const erc1155AddressMainNet =
+            erc1155PrivateTestnetJsonMainNet[strCoinNameErc1155SMainNet + "_address"];
         const contractERC1155 = new owaspUtils.ethersMod.ethers.Contract(
-            erc1155Address_main_net, erc1155ABI, ethersProviderMainNet );
+            erc1155AddressMainNet, erc1155ABI, ethersProviderMainNet );
         const depositBoxAddress = joDepositBoxERC1155.address;
         const arrArgumentsApprove = [
             depositBoxAddress,
             true
         ];
         const arrArgumentsDepositERC1155 = [
-            chainIdSChain,
-            erc1155Address_main_net,
+            chainNameSChain,
+            erc1155AddressMainNet,
             owaspUtils.ensureStartsWith0x( owaspUtils.toBN( tokenId ).toHexString() ),
             owaspUtils.ensureStartsWith0x( owaspUtils.toBN( tokenAmount ).toHexString() )
         ];
@@ -3738,26 +3738,26 @@ export async function doErc1155PaymentFromMainNet(
         details.exposeDetailsTo( log, "doErc1155PaymentFromMainNet", true );
     details.close();
     return true;
-} // async function doErc1155PaymentFromMainNet(...
+}
 
 export async function doErc1155BatchPaymentFromMainNet(
     ethersProviderMainNet,
     ethersProviderSChain,
     chainIdMainNet,
-    cid_s_chain,
+    chainIdSChain,
     joAccountSrc,
     joAccountDst,
     joDepositBoxERC1155,
     joMessageProxyMainNet, // for checking logs
-    chainIdSChain,
+    chainNameSChain,
     arrTokenIds, // which ERC1155 token id to send
     arrTokenAmounts, // which ERC1155 token id to send
     weiHowMuch, // how much ETH
     joTokenManagerERC1155, // only s-chain
     strCoinNameErc1155SMainNet,
-    erc1155PrivateTestnetJson_main_net,
+    erc1155PrivateTestnetJsonMainNet,
     strCoinNameErc1155SChain,
-    erc1155PrivateTestnetJson_s_chain,
+    erc1155PrivateTestnetJsonSChain,
     transactionCustomizerMainNet
 ) {
     const details = log.createMemoryStream();
@@ -3767,12 +3767,12 @@ export async function doErc1155BatchPaymentFromMainNet(
     try {
         strActionName = "ERC1155 batch-payment from Main Net, approve";
         const erc1155ABI =
-            erc1155PrivateTestnetJson_main_net[strCoinNameErc1155SMainNet + "_abi"];
-        const erc1155Address_main_net =
-            erc1155PrivateTestnetJson_main_net[strCoinNameErc1155SMainNet + "_address"];
+            erc1155PrivateTestnetJsonMainNet[strCoinNameErc1155SMainNet + "_abi"];
+        const erc1155AddressMainNet =
+            erc1155PrivateTestnetJsonMainNet[strCoinNameErc1155SMainNet + "_address"];
         const contractERC1155 =
             new owaspUtils.ethersMod.ethers.Contract(
-                erc1155Address_main_net,
+                erc1155AddressMainNet,
                 erc1155ABI,
                 ethersProviderMainNet
             );
@@ -3783,8 +3783,8 @@ export async function doErc1155BatchPaymentFromMainNet(
             true
         ];
         const arrArgumentsDepositERC1155Batch = [
-            chainIdSChain,
-            erc1155Address_main_net,
+            chainNameSChain,
+            erc1155AddressMainNet,
             arrTokenIds,
             arrTokenAmounts
         ];
@@ -3939,7 +3939,7 @@ export async function doErc1155BatchPaymentFromMainNet(
         details.exposeDetailsTo( log, "doErc1155BatchPaymentFromMainNet", true );
     details.close();
     return true;
-} // async function doErc1155BatchPaymentFromMainNet(...
+}
 
 ///////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////
@@ -3948,7 +3948,7 @@ export async function doErc20PaymentFromSChain(
     ethersProviderMainNet,
     ethersProviderSChain,
     chainIdMainNet,
-    cid_s_chain,
+    chainIdSChain,
     joAccountSrc,
     joAccountDst,
     joTokenManagerERC20, // only s-chain
@@ -3957,9 +3957,9 @@ export async function doErc20PaymentFromSChain(
     tokenAmount, // how much ERC20 tokens to send
     weiHowMuch, // how much ETH
     strCoinNameErc20MainNet,
-    joErc20_main_net,
+    joErc20MainNet,
     strCoinNameErc20SChain,
-    joErc20_s_chain,
+    joErc20SChain,
     transactionCustomizerSChain
 ) {
     const details = log.createMemoryStream();
@@ -3968,18 +3968,18 @@ export async function doErc20PaymentFromSChain(
     const strLogPrefix = cc.info( "S2M ERC20 Payment:" ) + " ";
     try {
         strActionName = "ERC20 payment from S-Chain, approve";
-        const erc20ABI = joErc20_s_chain[strCoinNameErc20SChain + "_abi"];
-        const erc20Address_s_chain = joErc20_s_chain[strCoinNameErc20SChain + "_address"];
+        const erc20ABI = joErc20SChain[strCoinNameErc20SChain + "_abi"];
+        const erc20AddressSChain = joErc20SChain[strCoinNameErc20SChain + "_address"];
         const tokenManagerAddress = joTokenManagerERC20.address;
         const contractERC20 =
             new owaspUtils.ethersMod.ethers.Contract(
-                erc20Address_s_chain, erc20ABI, ethersProviderSChain );
+                erc20AddressSChain, erc20ABI, ethersProviderSChain );
         const arrArgumentsApprove = [
             tokenManagerAddress,
             owaspUtils.ensureStartsWith0x( owaspUtils.toBN( tokenAmount ).toHexString() ) ];
-        const erc20Address_main_net = joErc20_main_net[strCoinNameErc20MainNet + "_address"];
+        const erc20AddressMainNet = joErc20MainNet[strCoinNameErc20MainNet + "_address"];
         const arrArgumentsExitToMainERC20 = [
-            erc20Address_main_net,
+            erc20AddressMainNet,
             owaspUtils.ensureStartsWith0x( owaspUtils.toBN( tokenAmount ).toHexString() )
             // owaspUtils.ensureStartsWith0x( owaspUtils.toBN( weiHowMuch ).toHexString() )
         ];
@@ -4109,7 +4109,7 @@ export async function doErc20PaymentFromSChain(
         details.exposeDetailsTo( log, "doErc20PaymentFromSChain", true );
     details.close();
     return true;
-} // async function doErc20PaymentFromSChain(...
+}
 
 ///////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////
@@ -4118,7 +4118,7 @@ export async function doErc721PaymentFromSChain(
     ethersProviderMainNet,
     ethersProviderSChain,
     chainIdMainNet,
-    cid_s_chain,
+    chainIdSChain,
     joAccountSrc,
     joAccountDst,
     joTokenManagerERC721, // only s-chain
@@ -4127,9 +4127,9 @@ export async function doErc721PaymentFromSChain(
     tokenId, // which ERC721 token id to send
     weiHowMuch, // how much ETH
     strCoinNameErc721MainNet,
-    joErc721_main_net,
+    joErc721MainNet,
     strCoinNameErc721SChain,
-    joErc721_s_chain,
+    joErc721SChain,
     transactionCustomizerSChain
 ) {
     const details = log.createMemoryStream();
@@ -4138,20 +4138,20 @@ export async function doErc721PaymentFromSChain(
     const strLogPrefix = cc.info( "S2M ERC721 Payment:" ) + " ";
     try {
         strActionName = "ERC721 payment from S-Chain, approve";
-        const erc721ABI = joErc721_s_chain[strCoinNameErc721SChain + "_abi"];
-        const erc721Address_s_chain = joErc721_s_chain[strCoinNameErc721SChain + "_address"];
+        const erc721ABI = joErc721SChain[strCoinNameErc721SChain + "_abi"];
+        const erc721AddressSChain = joErc721SChain[strCoinNameErc721SChain + "_address"];
         const tokenManagerAddress = joTokenManagerERC721.address;
         const contractERC721 =
             new owaspUtils.ethersMod.ethers.Contract(
-                erc721Address_s_chain, erc721ABI, ethersProviderSChain );
+                erc721AddressSChain, erc721ABI, ethersProviderSChain );
         const arrArgumentsApprove = [
             tokenManagerAddress,
             owaspUtils.ensureStartsWith0x( owaspUtils.toBN( tokenId ).toHexString() )
         ];
-        const erc721Address_main_net =
-            joErc721_main_net[strCoinNameErc721MainNet + "_address"];
+        const erc721AddressMainNet =
+            joErc721MainNet[strCoinNameErc721MainNet + "_address"];
         const arrArgumentsExitToMainERC721 = [
-            erc721Address_main_net,
+            erc721AddressMainNet,
             owaspUtils.ensureStartsWith0x( owaspUtils.toBN( tokenId ).toHexString() )
         ];
         const weiHowMuchApprove = undefined;
@@ -4283,13 +4283,13 @@ export async function doErc721PaymentFromSChain(
         details.exposeDetailsTo( log, "doErc721PaymentFromSChain", true );
     details.close();
     return true;
-} // async function doErc721PaymentFromSChain(...
+}
 
 export async function doErc1155PaymentFromSChain(
     ethersProviderMainNet,
     ethersProviderSChain,
     chainIdMainNet,
-    cid_s_chain,
+    chainIdSChain,
     joAccountSrc,
     joAccountDst,
     joTokenManagerERC1155, // only s-chain
@@ -4299,9 +4299,9 @@ export async function doErc1155PaymentFromSChain(
     tokenAmount, // which ERC1155 token id to send
     weiHowMuch, // how much ETH
     strCoinNameErc1155SMainNet,
-    joErc1155_main_net,
+    joErc1155MainNet,
     strCoinNameErc1155SChain,
-    joErc1155_s_chain,
+    joErc1155Chain,
     transactionCustomizerSChain
 ) {
     const details = log.createMemoryStream();
@@ -4310,20 +4310,20 @@ export async function doErc1155PaymentFromSChain(
     const strLogPrefix = cc.info( "S2M ERC1155 Payment:" ) + " ";
     try {
         strActionName = "ERC1155 payment from S-Chain, approve";
-        const erc1155ABI = joErc1155_s_chain[strCoinNameErc1155SChain + "_abi"];
-        const erc1155Address_s_chain = joErc1155_s_chain[strCoinNameErc1155SChain + "_address"];
+        const erc1155ABI = joErc1155Chain[strCoinNameErc1155SChain + "_abi"];
+        const erc1155AddressSChain = joErc1155Chain[strCoinNameErc1155SChain + "_address"];
         const tokenManagerAddress = joTokenManagerERC1155.address;
         const contractERC1155 =
             new owaspUtils.ethersMod.ethers.Contract(
-                erc1155Address_s_chain, erc1155ABI, ethersProviderSChain );
+                erc1155AddressSChain, erc1155ABI, ethersProviderSChain );
         const arrArgumentsApprove = [
             tokenManagerAddress,
             true
         ];
-        const erc1155Address_main_net =
-            joErc1155_main_net[strCoinNameErc1155SMainNet + "_address"];
+        const erc1155AddressMainNet =
+            joErc1155MainNet[strCoinNameErc1155SMainNet + "_address"];
         const arrArgumentsExitToMainERC1155 = [
-            erc1155Address_main_net,
+            erc1155AddressMainNet,
             owaspUtils.ensureStartsWith0x( owaspUtils.toBN( tokenId ).toHexString() ),
             owaspUtils.ensureStartsWith0x( owaspUtils.toBN( tokenAmount ).toHexString() )
             // owaspUtils.ensureStartsWith0x( owaspUtils.toBN( weiHowMuch ).toHexString() )
@@ -4456,13 +4456,13 @@ export async function doErc1155PaymentFromSChain(
         details.exposeDetailsTo( log, "doErc1155PaymentFromSChain", true );
     details.close();
     return true;
-} // async function doErc1155PaymentFromSChain(...
+}
 
 export async function doErc1155BatchPaymentFromSChain(
     ethersProviderMainNet,
     ethersProviderSChain,
     chainIdMainNet,
-    cid_s_chain,
+    chainIdSChain,
     joAccountSrc,
     joAccountDst,
     joTokenManagerERC1155, // only s-chain
@@ -4472,9 +4472,9 @@ export async function doErc1155BatchPaymentFromSChain(
     arrTokenAmounts, // which ERC1155 token amounts to send
     weiHowMuch, // how much ETH
     strCoinNameErc1155SMainNet,
-    joErc1155_main_net,
+    joErc1155MainNet,
     strCoinNameErc1155SChain,
-    joErc1155_s_chain,
+    joErc1155Chain,
     transactionCustomizerSChain
 ) {
     const details = log.createMemoryStream();
@@ -4483,20 +4483,20 @@ export async function doErc1155BatchPaymentFromSChain(
     const strLogPrefix = cc.info( "S2M ERC1155 Batch Payment:" ) + " ";
     try {
         strActionName = "ERC1155 payment from S-Chain, approve";
-        const erc1155ABI = joErc1155_s_chain[strCoinNameErc1155SChain + "_abi"];
-        const erc1155Address_s_chain = joErc1155_s_chain[strCoinNameErc1155SChain + "_address"];
+        const erc1155ABI = joErc1155Chain[strCoinNameErc1155SChain + "_abi"];
+        const erc1155AddressSChain = joErc1155Chain[strCoinNameErc1155SChain + "_address"];
         const tokenManagerAddress = joTokenManagerERC1155.address;
         const contractERC1155 =
             new owaspUtils.ethersMod.ethers.Contract(
-                erc1155Address_s_chain, erc1155ABI, ethersProviderSChain );
+                erc1155AddressSChain, erc1155ABI, ethersProviderSChain );
         const arrArgumentsApprove = [
             tokenManagerAddress,
             true
         ];
-        const erc1155Address_main_net =
-            joErc1155_main_net[strCoinNameErc1155SMainNet + "_address"];
+        const erc1155AddressMainNet =
+            joErc1155MainNet[strCoinNameErc1155SMainNet + "_address"];
         const arrArgumentsExitToMainERC1155Batch = [
-            erc1155Address_main_net,
+            erc1155AddressMainNet,
             arrTokenIds,
             arrTokenAmounts
         ];
@@ -4631,7 +4631,7 @@ export async function doErc1155BatchPaymentFromSChain(
         details.exposeDetailsTo( log, "doErc1155BatchPaymentFromSChain", true );
     details.close();
     return true;
-} // async function doErc1155BatchPaymentFromSChain(...
+}
 
 ///////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////
@@ -4646,8 +4646,8 @@ export async function doErc20PaymentS2S(
     nAmountOfToken, // how much ERC20 tokens to send
     nAmountOfWei, // how much to send
     strCoinNameErc20Src,
-    joErc20_src,
-    erc20_address_dst, // only reverse payment needs it
+    joSrcErc20,
+    ercDstAddress20, // only reverse payment needs it
     tc
 ) {
     const isReverse = isForward ? false : true;
@@ -4667,16 +4667,16 @@ export async function doErc20PaymentS2S(
             throw new Error( "No account or sign TX way provided" );
         if( ! strCoinNameErc20Src )
             throw new Error( "Need full source ERC20 information, like ABI" );
-        if( ! joErc20_src )
+        if( ! joSrcErc20 )
             throw new Error( "No source ERC20 ABI provided" );
         if( isReverse ) {
-            if( ! erc20_address_dst )
+            if( ! ercDstAddress20 )
                 throw new Error( "No destination ERC20 address provided" );
         }
         if( ! tc )
             throw new Error( "No transaction customizer provided" );
-        const erc20_abi_src = joErc20_src[strCoinNameErc20Src + "_abi"];
-        const erc20_address_src = joErc20_src[strCoinNameErc20Src + "_address"];
+        const ercSrcAbi20 = joSrcErc20[strCoinNameErc20Src + "_abi"];
+        const ercSrcAddress20 = joSrcErc20[strCoinNameErc20Src + "_address"];
         details.write( strLogPrefix + cc.attention( "Token Manager ERC20" ) +
             cc.debug( " address on source chain...." ) +
             cc.note( joTokenManagerERC20Src.address ) + "\n" );
@@ -4685,11 +4685,11 @@ export async function doErc20PaymentS2S(
             cc.note( strCoinNameErc20Src ) + "\n" );
         details.write( strLogPrefix + cc.attention( "Source ERC20" ) +
             cc.debug( " token address....................." ) +
-            cc.note( erc20_address_src ) + "\n" );
-        if( isReverse || erc20_address_dst ) {
+            cc.note( ercSrcAddress20 ) + "\n" );
+        if( isReverse || ercDstAddress20 ) {
             details.write( strLogPrefix + cc.attention( "Destination ERC20" ) +
                 cc.debug( " token address................" ) +
-                cc.note( erc20_address_dst ) + "\n" );
+                cc.note( ercDstAddress20 ) + "\n" );
         }
         details.write( strLogPrefix + cc.attention( "Destination chain name" ) +
             cc.debug( "........................." ) +
@@ -4700,14 +4700,14 @@ export async function doErc20PaymentS2S(
         strActionName = "ERC20 payment S2S, approve, " + ( isForward ? "forward" : "reverse" );
         const contractERC20 =
             new owaspUtils.ethersMod.ethers.Contract(
-                erc20_address_src, erc20_abi_src, ethersProviderSrc );
+                ercSrcAddress20, ercSrcAbi20, ethersProviderSrc );
         const arrArgumentsApprove = [
             joTokenManagerERC20Src.address,
             owaspUtils.ensureStartsWith0x( owaspUtils.toBN( nAmountOfToken ).toHexString() )
         ];
         const arrArgumentsTransfer = [
             strChainNameDst,
-            isReverse ? erc20_address_dst : erc20_address_src,
+            isReverse ? ercDstAddress20 : ercSrcAddress20,
             owaspUtils.ensureStartsWith0x( owaspUtils.toBN( nAmountOfToken ).toHexString() )
         ];
         const weiHowMuchApprove = undefined;
@@ -4777,7 +4777,7 @@ export async function doErc20PaymentS2S(
                 estimatedGasTransfer, weiHowMuchTransferERC20, null );
         if( joReceipt_transfer && typeof joReceipt_transfer == "object" ) {
             jarrReceipts.push( {
-                "description": "do_erc20_payment_from_src/transfer",
+                "description": "doErc20PaymentS2S/transfer",
                 "receipt": joReceipt_transfer
             } );
         }
@@ -4817,8 +4817,8 @@ export async function doErc721PaymentS2S(
     tokenId, // which ERC721 token id to send
     nAmountOfWei, // how much to send
     strCoinNameErc721Src,
-    joErc721_src,
-    erc721_address_dst, // only reverse payment needs it
+    joSrcErc721,
+    ercDstAddress721, // only reverse payment needs it
     tc
 ) {
     const isReverse = isForward ? false : true;
@@ -4838,16 +4838,16 @@ export async function doErc721PaymentS2S(
             throw new Error( "No account or sign TX way provided" );
         if( ! strCoinNameErc721Src )
             throw new Error( "Need full source ERC721 information, like ABI" );
-        if( ! joErc721_src )
+        if( ! joSrcErc721 )
             throw new Error( "No source ERC721 ABI provided" );
         if( isReverse ) {
-            if( ! erc721_address_dst )
+            if( ! ercDstAddress721 )
                 throw new Error( "No destination ERC721 address provided" );
         }
         if( ! tc )
             throw new Error( "No transaction customizer provided" );
-        const erc721_abi_src = joErc721_src[strCoinNameErc721Src + "_abi"];
-        const erc721_address_src = joErc721_src[strCoinNameErc721Src + "_address"];
+        const ercSrcAbi721 = joSrcErc721[strCoinNameErc721Src + "_abi"];
+        const ercSrcAddress721 = joSrcErc721[strCoinNameErc721Src + "_address"];
         details.write( strLogPrefix + cc.attention( "Token Manager ERC721" ) +
             cc.debug( " address on source chain...." ) +
             cc.note( joTokenManagerERC721Src.address ) + "\n" );
@@ -4856,11 +4856,11 @@ export async function doErc721PaymentS2S(
             cc.note( strCoinNameErc721Src ) + "\n" );
         details.write( strLogPrefix + cc.attention( "Source ERC721" ) +
             cc.debug( " token address....................." ) +
-            cc.note( erc721_address_src ) + "\n" );
-        if( isReverse || erc721_address_dst ) {
+            cc.note( ercSrcAddress721 ) + "\n" );
+        if( isReverse || ercDstAddress721 ) {
             details.write( strLogPrefix + cc.attention( "Destination ERC721" ) +
                 cc.debug( " token address................" ) +
-                cc.note( erc721_address_dst ) + "\n" );
+                cc.note( ercDstAddress721 ) + "\n" );
         }
         details.write( strLogPrefix + cc.attention( "Destination chain name" ) +
             cc.debug( "........................." ) + cc.note( strChainNameDst ) + "\n" );
@@ -4869,14 +4869,14 @@ export async function doErc721PaymentS2S(
         strActionName = "ERC721 payment S2S, approve, " + ( isForward ? "forward" : "reverse" );
         const contractERC721 =
             new owaspUtils.ethersMod.ethers.Contract(
-                erc721_address_src, erc721_abi_src, ethersProviderSrc );
+                ercSrcAddress721, ercSrcAbi721, ethersProviderSrc );
         const arrArgumentsApprove = [
             joTokenManagerERC721Src.address,
             owaspUtils.ensureStartsWith0x( owaspUtils.toBN( tokenId ).toHexString() )
         ];
         const arrArgumentsTransfer = [
             strChainNameDst,
-            isReverse ? erc721_address_dst : erc721_address_src,
+            isReverse ? ercDstAddress721 : ercSrcAddress721,
             owaspUtils.ensureStartsWith0x( owaspUtils.toBN( tokenId ).toHexString() )
         ];
         const weiHowMuchApprove = undefined;
@@ -4946,7 +4946,7 @@ export async function doErc721PaymentS2S(
                 gasPrice, estimatedGasTransfer, weiHowMuchTransferERC721, null );
         if( joReceipt_transfer && typeof joReceipt_transfer == "object" ) {
             jarrReceipts.push( {
-                "description": "do_erc721_payment_from_src/transfer",
+                "description": "doErc721PaymentS2S/transfer",
                 "receipt": joReceipt_transfer
             } );
         }
@@ -4994,8 +4994,8 @@ export async function doErc1155PaymentS2S(
     nAmountOfToken, // how much ERC1155 tokens to send
     nAmountOfWei, // how much to send
     strCoinNameErc1155Src,
-    joErc1155_src,
-    erc1155_address_dst, // only reverse payment needs it
+    joSrcErc1155,
+    ercDstAddress1155, // only reverse payment needs it
     tc
 ) {
     const isReverse = isForward ? false : true;
@@ -5015,16 +5015,16 @@ export async function doErc1155PaymentS2S(
             throw new Error( "No account or sign TX way provided" );
         if( ! strCoinNameErc1155Src )
             throw new Error( "Need full source ERC1155 information, like ABI" );
-        if( ! joErc1155_src )
+        if( ! joSrcErc1155 )
             throw new Error( "No source ERC1155 ABI provided" );
         if( isReverse ) {
-            if( ! erc1155_address_dst )
+            if( ! ercDstAddress1155 )
                 throw new Error( "No destination ERC1155 address provided" );
         }
         if( ! tc )
             throw new Error( "No transaction customizer provided" );
-        const erc1155_abi_src = joErc1155_src[strCoinNameErc1155Src + "_abi"];
-        const erc1155_address_src = joErc1155_src[strCoinNameErc1155Src + "_address"];
+        const ercSrcAbi1155 = joSrcErc1155[strCoinNameErc1155Src + "_abi"];
+        const ercSrcAddress1155 = joSrcErc1155[strCoinNameErc1155Src + "_address"];
         details.write( strLogPrefix + cc.attention( "Token Manager ERC1155" ) +
             cc.debug( " address on source chain...." ) +
             cc.note( joTokenManagerERC1155Src.address ) + "\n" );
@@ -5033,11 +5033,11 @@ export async function doErc1155PaymentS2S(
             cc.note( strCoinNameErc1155Src ) + "\n" );
         details.write( strLogPrefix + cc.attention( "Source ERC1155" ) +
             cc.debug( " token address....................." ) +
-            cc.note( erc1155_address_src ) + "\n" );
-        if( isReverse || erc1155_address_dst ) {
+            cc.note( ercSrcAddress1155 ) + "\n" );
+        if( isReverse || ercDstAddress1155 ) {
             details.write( strLogPrefix + cc.attention( "Destination ERC1155" ) +
                 cc.debug( " token address................" ) +
-                cc.note( erc1155_address_dst ) + "\n" );
+                cc.note( ercDstAddress1155 ) + "\n" );
         }
         details.write( strLogPrefix + cc.attention( "Destination chain name" ) +
             cc.debug( "........................." ) + cc.note( strChainNameDst ) + "\n" );
@@ -5048,14 +5048,14 @@ export async function doErc1155PaymentS2S(
         strActionName = "ERC1155 payment S2S, approve, " + ( isForward ? "forward" : "reverse" );
         const contractERC1155 =
             new owaspUtils.ethersMod.ethers.Contract(
-                erc1155_address_src, erc1155_abi_src, ethersProviderSrc );
+                ercSrcAddress1155, ercSrcAbi1155, ethersProviderSrc );
         const arrArgumentsApprove = [
             joTokenManagerERC1155Src.address,
             true
         ];
         const arrArgumentsTransfer = [
             strChainNameDst,
-            isReverse ? erc1155_address_dst : erc1155_address_src,
+            isReverse ? ercDstAddress1155 : ercSrcAddress1155,
             owaspUtils.ensureStartsWith0x( owaspUtils.toBN( tokenId ).toHexString() ),
             owaspUtils.ensureStartsWith0x( owaspUtils.toBN( nAmountOfToken ).toHexString() )
         ];
@@ -5126,7 +5126,7 @@ export async function doErc1155PaymentS2S(
                 weiHowMuchTransferERC1155, null );
         if( joReceipt_transfer && typeof joReceipt_transfer == "object" ) {
             jarrReceipts.push( {
-                "description": "do_erc1155_payment_from_src/transfer",
+                "description": "doErc1155PaymentS2S/transfer",
                 "receipt": joReceipt_transfer
             } );
         }
@@ -5171,8 +5171,8 @@ export async function doErc1155BatchPaymentS2S(
     arrTokenAmounts, // which ERC1155 token id to send
     nAmountOfWei, // how much to send
     strCoinNameErc1155Src,
-    joErc1155_src,
-    erc1155_address_dst, // only reverse payment needs it
+    joSrcErc1155,
+    ercDstAddress1155, // only reverse payment needs it
     tc
 ) {
     const isReverse = isForward ? false : true;
@@ -5194,16 +5194,16 @@ export async function doErc1155BatchPaymentS2S(
             throw new Error( "No account or sign TX way provided" );
         if( ! strCoinNameErc1155Src )
             throw new Error( "Need full source ERC1155 information, like ABI" );
-        if( ! joErc1155_src )
+        if( ! joSrcErc1155 )
             throw new Error( "No source ERC1155 ABI provided" );
         if( isReverse ) {
-            if( ! erc1155_address_dst )
+            if( ! ercDstAddress1155 )
                 throw new Error( "No destination ERC1155 address provided" );
         }
         if( ! tc )
             throw new Error( "No transaction customizer provided" );
-        const erc1155_abi_src = joErc1155_src[strCoinNameErc1155Src + "_abi"];
-        const erc1155_address_src = joErc1155_src[strCoinNameErc1155Src + "_address"];
+        const ercSrcAbi1155 = joSrcErc1155[strCoinNameErc1155Src + "_abi"];
+        const ercSrcAddress1155 = joSrcErc1155[strCoinNameErc1155Src + "_address"];
         details.write( strLogPrefix + cc.attention( "Token Manager ERC1155" ) +
             cc.debug( " address on source chain...." ) +
             cc.note( joTokenManagerERC1155Src.address ) + "\n" );
@@ -5212,11 +5212,11 @@ export async function doErc1155BatchPaymentS2S(
             cc.note( strCoinNameErc1155Src ) + "\n" );
         details.write( strLogPrefix + cc.attention( "Source ERC1155" ) +
             cc.debug( " token address....................." ) +
-            cc.note( erc1155_address_src ) + "\n" );
-        if( isReverse || erc1155_address_dst ) {
+            cc.note( ercSrcAddress1155 ) + "\n" );
+        if( isReverse || ercDstAddress1155 ) {
             details.write( strLogPrefix + cc.attention( "Destination ERC1155" ) +
                 cc.debug( " token address................" ) +
-                cc.note( erc1155_address_dst ) + "\n" );
+                cc.note( ercDstAddress1155 ) + "\n" );
         }
         details.write( strLogPrefix + cc.attention( "Destination chain name" ) +
             cc.debug( "........................." ) + cc.note( strChainNameDst ) + "\n" );
@@ -5228,14 +5228,14 @@ export async function doErc1155BatchPaymentS2S(
             "ERC1155 batch-payment S2S, approve, " + ( isForward ? "forward" : "reverse" );
         const contractERC1155 =
             new owaspUtils.ethersMod.ethers.Contract(
-                erc1155_address_src, erc1155_abi_src, ethersProviderSrc );
+                ercSrcAddress1155, ercSrcAbi1155, ethersProviderSrc );
         const arrArgumentsApprove = [
             joTokenManagerERC1155Src.address,
             true
         ];
         const arrArgumentsTransfer = [
             strChainNameDst,
-            isReverse ? erc1155_address_dst : erc1155_address_src,
+            isReverse ? ercDstAddress1155 : ercSrcAddress1155,
             arrTokenIds,
             arrTokenAmounts
         ];
@@ -5307,7 +5307,7 @@ export async function doErc1155BatchPaymentS2S(
                 gasPrice, estimatedGasTransfer, weiHowMuchTransferERC1155, null );
         if( joReceipt_transfer && typeof joReceipt_transfer == "object" ) {
             jarrReceipts.push( {
-                "description": "do_erc1155_payment_from_src/transfer",
+                "description": "doErc1155PaymentS2S/transfer",
                 "receipt": joReceipt_transfer
             } );
         }
@@ -6615,7 +6615,7 @@ export async function doTransfer(
     if( ! optsTransfer.bErrorInSigningMessages )
         saveTransferSuccess( optsTransfer.strTransferErrorCategoryName );
     return true;
-} // async function doTransfer( ...
+}
 
 ///////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////
@@ -6883,7 +6883,7 @@ export class TransactionCustomizer {
         const strLogPrefix = strContractMethodDescription + " ";
         try {
             const promiseComplete = new Promise( function( resolve, reject ) {
-                const do_estimation = async function() {
+                const doEstimation = async function() {
                     try {
                         details.write(
                             cc.debug( "Estimate-gas of action " ) + cc.info( strActionName ) +
@@ -6919,7 +6919,7 @@ export class TransactionCustomizer {
                         reject( err );
                     }
                 };
-                do_estimation();
+                doEstimation();
             } );
             await Promise.all( [ promiseComplete ] );
         } catch ( err ) {
