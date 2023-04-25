@@ -178,11 +178,13 @@ export async function checkOnLoopStart( imaState, strLoopWorkType, nIndexS2S ) {
         if( imaState.isPrintPWA )
             log.write( cc.success( "PWA loop start condition check passed" ) + "\n" );
     } catch ( err ) {
-        log.write(
-            cc.error( "Exception in PWA check on loop start: " ) +
-            cc.error( owaspUtils.extractErrorMessage( err ) ) +
-            cc.error( ", stack is: " ) + "\n" + cc.stack( err.stack ) +
-            "\n" );
+        if( log.verboseGet() >= log.verboseReversed().critical ) {
+            log.write(
+                cc.error( "Exception in PWA check on loop start: " ) +
+                cc.error( owaspUtils.extractErrorMessage( err ) ) +
+                cc.error( ", stack is: " ) + "\n" + cc.stack( err.stack ) +
+                "\n" );
+        }
     }
     return true;
 }
@@ -238,13 +240,15 @@ export async function handleLoopStateArrived(
         isSuccess = true;
     } catch ( err ) {
         isSuccess = false;
-        log.write(
-            cc.error( "Exception in PWA handler for loop-" ) + cc.attention( se ) +
-            cc.error( " for node " ) + cc.info( nNodeNumber ) + cc.error( ", PWA state " ) +
-            cc.j( ( joNode && "pwaState" in joNode ) ? joNode.pwaState : "N/A" ) +
-            cc.error( ", arrived signature is " ) + cc.j( signature ) +
-            cc.error( ", error is: " ) + cc.error( owaspUtils.extractErrorMessage( err ) ) +
-            cc.error( ", stack is: " ) + "\n" + cc.stack( err.stack ) + "\n" );
+        if( log.verboseGet() >= log.verboseReversed().critical ) {
+            log.write(
+                cc.error( "Exception in PWA handler for loop-" ) + cc.attention( se ) +
+                cc.error( " for node " ) + cc.info( nNodeNumber ) + cc.error( ", PWA state " ) +
+                cc.j( ( joNode && "pwaState" in joNode ) ? joNode.pwaState : "N/A" ) +
+                cc.error( ", arrived signature is " ) + cc.j( signature ) +
+                cc.error( ", error is: " ) + cc.error( owaspUtils.extractErrorMessage( err ) ) +
+                cc.error( ", stack is: " ) + "\n" + cc.stack( err.stack ) + "\n" );
+        }
     }
     return isSuccess;
 }
@@ -326,11 +330,13 @@ async function notifyOnLoopImpl( imaState, strLoopWorkType, nIndexS2S, isStart )
                 } ); // rpcCall.create ...
         }
     } catch ( err ) {
-        log.write(
-            cc.error( "Exception in PWA notify on loop " ) + cc.attention( se ) +
-            cc.error( ": " ) + cc.error( owaspUtils.extractErrorMessage( err ) ) +
-            cc.error( ", stack is: " ) + "\n" + cc.stack( err.stack ) +
-            "\n" );
+        if( log.verboseGet() >= log.verboseReversed().critical ) {
+            log.write(
+                cc.error( "Exception in PWA notify on loop " ) + cc.attention( se ) +
+                cc.error( ": " ) + cc.error( owaspUtils.extractErrorMessage( err ) ) +
+                cc.error( ", stack is: " ) + "\n" + cc.stack( err.stack ) +
+                "\n" );
+        }
     }
     return true;
 }

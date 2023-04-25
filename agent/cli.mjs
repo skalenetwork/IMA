@@ -1446,19 +1446,19 @@ function parseBasicArgs( imaState, joArg ) {
         return true;
     }
     if( joArg.name == "expose" ) {
-        IMA.exposeDetailsSet( true );
+        log.exposeDetailsSet( true );
         return true;
     }
     if( joArg.name == "no-expose" ) {
-        IMA.exposeDetailsSet( false );
+        log.exposeDetailsSet( false );
         return true;
     }
     if( joArg.name == "verbose" ) {
-        IMA.verboseSet( IMA.verboseParse( joArg.value ) );
+        log.verboseSet( log.verboseParse( joArg.value ) );
         return true;
     }
     if( joArg.name == "verbose-list" ) {
-        IMA.verboseList();
+        log.verboseList();
         return true;
     }
     return false;
@@ -2836,7 +2836,7 @@ function commonInitCheckErc20() {
     let n1 = 0;
     let n2 = 0;
     if( imaState.chainProperties.mn.strPathJsonErc20.length > 0 ) {
-        if( isPrintGathered && IMA.verboseGet() > IMA.verboseReversed().information ) {
+        if( isPrintGathered && log.verboseGet() > log.verboseReversed().information ) {
             log.write( cc.info( "Loading Main-net ERC20 ABI from " ) +
                 cc.info( imaState.chainProperties.mn.strPathJsonErc20 ) + "\n" );
         }
@@ -2844,7 +2844,7 @@ function commonInitCheckErc20() {
             imaUtils.jsonFileLoad( imaState.chainProperties.mn.strPathJsonErc20, null );
         n1 = Object.keys( imaState.chainProperties.mn.joErc20 ).length;
         if( imaState.chainProperties.sc.strPathJsonErc20.length > 0 ) {
-            if( isPrintGathered && IMA.verboseGet() > IMA.verboseReversed().information ) {
+            if( isPrintGathered && log.verboseGet() > log.verboseReversed().information ) {
                 log.write( cc.info( "Loading S-Chain ERC20 ABI from " ) +
                     cc.info( imaState.chainProperties.sc.strPathJsonErc20 ) +
                     "\n" );
@@ -2865,7 +2865,7 @@ function commonInitCheckErc20() {
                 n2 = imaState.chainProperties.sc.strCoinNameErc20.length;
             if( n1 > 0 ) {
                 if( isPrintGathered &&
-                    IMA.verboseGet() >= IMA.verboseReversed().information &&
+                    log.verboseGet() >= log.verboseReversed().information &&
                     ( !imaState.bShowConfigMode )
                 ) {
                     if( isPrintGathered ) {
@@ -2921,7 +2921,7 @@ function commonInitCheckErc20() {
         if( imaState.chainProperties.sc.strPathJsonErc20.length > 0 ) {
             n1 = 0;
             n2 = 0;
-            if( isPrintGathered && IMA.verboseGet() > IMA.verboseReversed().information ) {
+            if( isPrintGathered && log.verboseGet() > log.verboseReversed().information ) {
                 log.write(
                     cc.info( "Loading S-Chain ERC20 ABI from " ) +
                     cc.info( imaState.chainProperties.sc.strPathJsonErc20 ) +
@@ -2983,7 +2983,7 @@ function commonInitCheckErc20() {
     }
 
     if( imaState.chainProperties.tc.strPathJsonErc20.length > 0 ) {
-        if( isPrintGathered && IMA.verboseGet() > IMA.verboseReversed().information ) {
+        if( isPrintGathered && log.verboseGet() > log.verboseReversed().information ) {
             log.write(
                 cc.info( "Loading S<->S Target S-Chain ERC20 ABI from " ) +
                 cc.info( imaState.chainProperties.tc.strPathJsonErc20 ) +
@@ -3036,7 +3036,7 @@ function commonInitCheckErc721() {
     let n1 = 0;
     let n2 = 0;
     if( imaState.chainProperties.mn.strPathJsonErc721.length > 0 ) {
-        if( isPrintGathered && IMA.verboseGet() > IMA.verboseReversed().information ) {
+        if( isPrintGathered && log.verboseGet() > log.verboseReversed().information ) {
             log.write( cc.info( "Loading Main-net ERC721 ABI from " ) +
                 cc.info( imaState.chainProperties.mn.strPathJsonErc721 ) +
                 "\n" );
@@ -3045,7 +3045,7 @@ function commonInitCheckErc721() {
             imaUtils.jsonFileLoad( imaState.chainProperties.mn.strPathJsonErc721, null );
         n1 = Object.keys( imaState.chainProperties.mn.joErc721 ).length;
         if( imaState.chainProperties.sc.strPathJsonErc721.length > 0 ) {
-            if( isPrintGathered && IMA.verboseGet() > IMA.verboseReversed().information ) {
+            if( isPrintGathered && log.verboseGet() > log.verboseReversed().information ) {
                 log.write(
                     cc.info( "Loading S-Chain ERC721 ABI from " ) +
                     cc.info( imaState.chainProperties.sc.strPathJsonErc721 ) +
@@ -3066,7 +3066,7 @@ function commonInitCheckErc721() {
             if( n2 > 0 )
                 n2 = imaState.chainProperties.sc.strCoinNameErc721.length;
             if( n1 > 0 ) {
-                if( IMA.verboseGet() >= IMA.verboseReversed().information &&
+                if( log.verboseGet() >= log.verboseReversed().information &&
                 ( !imaState.bShowConfigMode ) ) {
                     if( isPrintGathered ) {
                         log.write( cc.info( "Loaded Main-net ERC721 ABI " ) +
@@ -3119,7 +3119,7 @@ function commonInitCheckErc721() {
         if( imaState.chainProperties.sc.strPathJsonErc721.length > 0 ) {
             n1 = 0;
             n2 = 0;
-            if( isPrintGathered && IMA.verboseGet() > IMA.verboseReversed().information ) {
+            if( isPrintGathered && log.verboseGet() > log.verboseReversed().information ) {
                 log.write(
                     cc.info( "Loading S-Chain ERC721 ABI from " ) +
                     cc.info( imaState.chainProperties.sc.strPathJsonErc721 ) +
@@ -3183,7 +3183,7 @@ function commonInitCheckErc721() {
     if( imaState.chainProperties.tc.strPathJsonErc721.length > 0 &&
         isPrintGathered
     ) {
-        if( IMA.verboseGet() > IMA.verboseReversed().information ) {
+        if( log.verboseGet() > log.verboseReversed().information ) {
             log.write( cc.info( "Loading S<->S Target S-Chain ERC721 ABI from " ) +
                 cc.info( imaState.chainProperties.tc.strPathJsonErc721 ) +
                 "\n" );
@@ -3233,7 +3233,7 @@ function commonInitCheckErc1155() {
     let n1 = 0;
     let n2 = 0;
     if( imaState.chainProperties.mn.strPathJsonErc1155.length > 0 ) {
-        if( isPrintGathered && IMA.verboseGet() > IMA.verboseReversed().information ) {
+        if( isPrintGathered && log.verboseGet() > log.verboseReversed().information ) {
             log.write( cc.info( "Loading Main-net ERC1155 ABI from " ) +
                 cc.info( imaState.chainProperties.mn.strPathJsonErc1155 ) +
                 "\n" );
@@ -3242,7 +3242,7 @@ function commonInitCheckErc1155() {
             imaUtils.jsonFileLoad( imaState.chainProperties.mn.strPathJsonErc1155, null );
         n1 = Object.keys( imaState.chainProperties.mn.joErc1155 ).length;
         if( imaState.chainProperties.sc.strPathJsonErc1155.length > 0 ) {
-            if( isPrintGathered && IMA.verboseGet() > IMA.verboseReversed().information ) {
+            if( isPrintGathered && log.verboseGet() > log.verboseReversed().information ) {
                 log.write( cc.info( "Loading S-Chain ERC1155 ABI from " ) +
                     cc.info( imaState.chainProperties.sc.strPathJsonErc1155 ) +
                     "\n" );
@@ -3262,7 +3262,7 @@ function commonInitCheckErc1155() {
             if( n2 > 0 )
                 n2 = imaState.chainProperties.sc.strCoinNameErc1155.length;
             if( n1 > 0 ) {
-                if( IMA.verboseGet() >= IMA.verboseReversed().information &&
+                if( log.verboseGet() >= log.verboseReversed().information &&
                     ( !imaState.bShowConfigMode )
                 ) {
                     if( isPrintGathered ) {
@@ -3316,7 +3316,7 @@ function commonInitCheckErc1155() {
         if( imaState.chainProperties.sc.strPathJsonErc1155.length > 0 ) {
             n1 = 0;
             n2 = 0;
-            if( isPrintGathered && IMA.verboseGet() > IMA.verboseReversed().information ) {
+            if( isPrintGathered && log.verboseGet() > log.verboseReversed().information ) {
                 log.write( cc.info( "Loading S-Chain ERC1155 ABI from " ) +
                     cc.info( imaState.chainProperties.sc.strPathJsonErc1155 ) +
                     "\n" );
@@ -3378,7 +3378,7 @@ function commonInitCheckErc1155() {
     }
 
     if( imaState.chainProperties.tc.strPathJsonErc1155.length > 0 ) {
-        if( isPrintGathered && IMA.verboseGet() > IMA.verboseReversed().information ) {
+        if( isPrintGathered && log.verboseGet() > log.verboseReversed().information ) {
             log.write(
                 cc.info( "Loading S<->S Target S-Chain ERC1155 ABI from " ) +
                 cc.info( imaState.chainProperties.tc.strPathJsonErc1155 ) +
@@ -3449,7 +3449,7 @@ function commonInitCheckGeneralArgs() {
         } );
     ensureHaveValue(
         "Verbose level",
-        IMA.verboseLevelAsTextForLog( IMA.verboseGet() ),
+        log.verboseLevelAsTextForLog( log.verboseGet() ),
         false, isPrintGathered, null, ( x ) => {
             return cc.sunny( x );
         } );
@@ -4026,7 +4026,7 @@ export function commonInit() {
     commonInitCheckErc20();
     commonInitCheckErc721();
     commonInitCheckErc1155();
-    if( IMA.verboseGet() > IMA.verboseReversed().information || imaState.bShowConfigMode ) {
+    if( log.verboseGet() > log.verboseReversed().information || imaState.bShowConfigMode ) {
         commonInitCheckGeneralArgs();
         commonInitCheckCredentialsArgs();
         commonInitCheckTransferAmountArgs();

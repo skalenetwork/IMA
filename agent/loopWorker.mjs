@@ -35,6 +35,7 @@ import * as skaleObserver from "../npms/skale-observer/observer.mjs";
 import * as imaCLI from "./cli.mjs";
 import * as state from "./state.mjs";
 import * as pwa from "./pwa.mjs";
+import * as log from "../npms/skale-log/log.mjs";
 
 let imaState = state.get();
 
@@ -81,8 +82,8 @@ class ObserverServer extends SocketServer {
                 write: self.log
             };
             cc.enable( joMessage.message.cc.isEnabled );
-            IMA.verboseSet( self.opts.imaState.verbose_ );
-            IMA.exposeDetailsSet( self.opts.imaState.expose_details_ );
+            log.verboseSet( self.opts.imaState.verbose_ );
+            log.exposeDetailsSet( self.opts.imaState.expose_details_ );
             IMA.saveTransferEvents.on( "error", function( eventData ) {
                 const jo = {
                     "method": "saveTransferError",

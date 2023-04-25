@@ -2011,13 +2011,13 @@ async function continueSChainDiscoveryInBackgroundIfNeeded( isSilent ) {
             return;
         if( g_bInSChainDiscovery ) {
             isInsideAsyncHandler = false;
-            if( IMA.verboseGet() >= IMA.verboseReversed().information )
+            if( log.verboseGet() >= log.verboseReversed().information )
                 log.write( cc.warning( "Notice: long S-Chain discovery is in progress" ) + "\n" );
             return;
         }
         g_bInSChainDiscovery = true;
         try {
-            if( IMA.verboseGet() >= IMA.verboseReversed().information ) {
+            if( log.verboseGet() >= log.verboseReversed().information ) {
                 log.write(
                     cc.info( "Will re-discover " ) + cc.notice( cntNodes ) +
                     cc.info( "-node S-Chain network, " ) + cc.notice( cntDiscovered ) +
@@ -2028,7 +2028,7 @@ async function continueSChainDiscoveryInBackgroundIfNeeded( isSilent ) {
                 if( ! err ) {
                     const cntDiscoveredNew =
                         getSChainDiscoveredNodesCount( joSChainNetworkInfo );
-                    if( IMA.verboseGet() >= IMA.verboseReversed().information ) {
+                    if( log.verboseGet() >= log.verboseReversed().information ) {
                         const strDiscoveryStatus =
                             cc.info( cntDiscoveredNew ) + cc.success( " nodes known" );
                         let strMessage =
@@ -2080,12 +2080,14 @@ async function continueSChainDiscoveryInBackgroundIfNeeded( isSilent ) {
                 }
                 continueSChainDiscoveryInBackgroundIfNeeded( isSilent );
             }, isSilent, imaState.joSChainNetworkInfo, cntNodes ).catch( ( err ) => {
-                const strError = owaspUtils.extractErrorMessage( err );
-                log.write(
-                    cc.fatal( "CRITICAL ERROR:" ) +
-                    cc.error( " S-Chain network re-discovery failed: " ) +
-                    cc.warning( strError ) + "\n"
-                );
+                if( log.verboseGet() >= log.verboseReversed().critical ) {
+                    const strError = owaspUtils.extractErrorMessage( err );
+                    log.write(
+                        cc.fatal( "CRITICAL ERROR:" ) +
+                        cc.error( " S-Chain network re-discovery failed: " ) +
+                        cc.warning( strError ) + "\n"
+                    );
+                }
             } );
         } catch ( err ) { }
         g_bInSChainDiscovery = false;
@@ -2120,7 +2122,7 @@ async function discoverSChainWalkNodes( optsDiscover ) {
                     joNode.imaInfo =
                     JSON.parse( JSON.stringify( joPrevNode.imaInfo ) );
                     if( ( !optsDiscover.isSilent ) &&
-                    IMA.verboseGet() >= IMA.verboseReversed().information
+                    log.verboseGet() >= log.verboseReversed().information
                     ) {
                         log.write( optsDiscover.strLogPrefix +
                             cc.info( "OK, in case of " ) + strNodeDescColorized +
@@ -2132,8 +2134,7 @@ async function discoverSChainWalkNodes( optsDiscover ) {
                     continue; // skip this node discovery, enrich rest of nodes
                 }
             }
-        } catch ( err ) {
-        }
+        } catch ( err ) { }
         const rpcCallOpts = null;
         try {
             await rpcCall.create( strNodeURL, rpcCallOpts,
@@ -2173,7 +2174,7 @@ async function discoverSChainWalkNodes( optsDiscover ) {
                         }
                         joNode.imaInfo = joOut.result;
                         if( ( !optsDiscover.isSilent ) &&
-                    IMA.verboseGet() >= IMA.verboseReversed().information ) {
+                    log.verboseGet() >= log.verboseReversed().information ) {
                             log.write( optsDiscover.strLogPrefix +
                                 cc.success( "OK, got " ) + strNodeDescColorized +
                                 cc.success( " node " ) + cc.info( joNode.nodeID ) +
@@ -2186,15 +2187,17 @@ async function discoverSChainWalkNodes( optsDiscover ) {
                     } );
                 } );
         } catch ( err ) {
-            const strError = owaspUtils.extractErrorMessage( err );
-            if( ! optsDiscover.isSilent ) {
-                log.write( optsDiscover.strLogPrefix +
-                    cc.fatal( "CRITICAL ERROR:" ) +
-                    cc.error( " JSON RPC call to S-Chain node " ) +
-                    strNodeDescColorized +
-                    cc.error( " was not created: " ) + cc.warning( strError ) +
-                    cc.error( ", stack is: " ) + "\n" + cc.stack( err.stack ) +
-                    "\n" );
+            if( log.verboseGet() >= log.verboseReversed().critical ) {
+                const strError = owaspUtils.extractErrorMessage( err );
+                if( ! optsDiscover.isSilent ) {
+                    log.write( optsDiscover.strLogPrefix +
+                        cc.fatal( "CRITICAL ERROR:" ) +
+                        cc.error( " JSON RPC call to S-Chain node " ) +
+                        strNodeDescColorized +
+                        cc.error( " was not created: " ) + cc.warning( strError ) +
+                        cc.error( ", stack is: " ) + "\n" + cc.stack( err.stack ) +
+                        "\n" );
+                }
             }
             ++ optsDiscover.cntFailed;
         }
@@ -2203,7 +2206,7 @@ async function discoverSChainWalkNodes( optsDiscover ) {
 
 async function discoverSChainWait( optsDiscover ) {
     if( ( !optsDiscover.isSilent ) &&
-        IMA.verboseGet() >= IMA.verboseReversed().information ) {
+        log.verboseGet() >= log.verboseReversed().information ) {
         log.write( optsDiscover.strLogPrefix +
             cc.debug( "Waiting for response from at least " ) +
             cc.info( optsDiscover.nCountToWait ) +
@@ -2229,7 +2232,7 @@ async function discoverSChainWait( optsDiscover ) {
                 cc.info( optsDiscover.nCountToWait ) + "\n" );
         }
         if( ( !optsDiscover.isSilent ) &&
-            IMA.verboseGet() >= IMA.verboseReversed().information ) {
+            log.verboseGet() >= log.verboseReversed().information ) {
             log.write( optsDiscover.strLogPrefix +
                 cc.debug( "Have S-Chain description response about " ) +
                 cc.info( optsDiscover.nCountReceivedImaDescriptions ) +
@@ -2327,13 +2330,13 @@ async function discoverSChainNetwork(
                         return;
                     }
                     if( ( !optsDiscover.isSilent ) &&
-                        IMA.verboseGet() >= IMA.verboseReversed().trace ) {
+                        log.verboseGet() >= log.verboseReversed().trace ) {
                         log.write( optsDiscover.strLogPrefix +
                         cc.debug( "OK, got (own) S-Chain network information: " ) +
                         cc.j( joOut.result ) + "\n" );
                     } else if(
                         ( !optsDiscover.isSilent ) &&
-                        IMA.verboseGet() >= IMA.verboseReversed().information ) {
+                        log.verboseGet() >= log.verboseReversed().information ) {
                         log.write( optsDiscover.strLogPrefix + cc.success( "OK, got S-Chain " ) +
                             cc.u( optsDiscover.imaState.chainProperties.sc.strURL ) +
                             cc.success( " network information." ) + "\n" );
@@ -2399,12 +2402,14 @@ async function discoverSChainNetwork(
                 } );
             } );
     } catch ( err ) {
-        const strError = owaspUtils.extractErrorMessage( err );
-        if( ! optsDiscover.isSilent ) {
-            log.write( optsDiscover.strLogPrefix + cc.fatal( "CRITICAL ERROR:" ) +
-                cc.error( " JSON RPC call to S-Chain was not created: " ) +
-                cc.warning( strError ) + cc.error( ", stack is: " ) + "\n" + cc.stack( err.stack ) +
-                "\n" );
+        if( log.verboseGet() >= log.verboseReversed().critical ) {
+            const strError = owaspUtils.extractErrorMessage( err );
+            if( ! optsDiscover.isSilent ) {
+                log.write( optsDiscover.strLogPrefix + cc.fatal( "CRITICAL ERROR:" ) +
+                    cc.error( " JSON RPC call to S-Chain was not created: " ) +
+                    cc.warning( strError ) + cc.error( ", stack is: " ) + "\n" +
+                    cc.stack( err.stack ) + "\n" );
+            }
         }
         optsDiscover.joSChainNetworkInfo = null;
         optsDiscover.fnAfter( err, null );
@@ -2419,7 +2424,7 @@ function initMonitoringServer() {
     if( imaState.nMonitoringPort <= 0 )
         return;
     const strLogPrefix = cc.attention( "Monitoring:" ) + " ";
-    if( IMA.verboseGet() >= IMA.verboseReversed().trace ) {
+    if( log.verboseGet() >= log.verboseReversed().trace ) {
         log.write( strLogPrefix +
             cc.normal( "Will start monitoring WS server on port " ) +
             cc.info( imaState.nMonitoringPort ) +
@@ -2428,7 +2433,7 @@ function initMonitoringServer() {
     g_wsServerMonitoring = new ws.WebSocketServer( { port: 0 + imaState.nMonitoringPort } );
     g_wsServerMonitoring.on( "connection", function( ws_peer, req ) {
         const ip = req.socket.remoteAddress;
-        if( IMA.verboseGet() >= IMA.verboseReversed().trace )
+        if( log.verboseGet() >= log.verboseReversed().trace )
             log.write( strLogPrefix + cc.normal( "New connection from " ) + cc.info( ip ) + "\n" );
         ws_peer.on( "message", function( message ) {
             const joAnswer = {
@@ -2438,7 +2443,7 @@ function initMonitoringServer() {
             };
             try {
                 const joMessage = JSON.parse( message );
-                if( IMA.verboseGet() >= IMA.verboseReversed().trace ) {
+                if( log.verboseGet() >= log.verboseReversed().trace ) {
                     log.write( strLogPrefix +
                         cc.sunny( "<<<" ) + " " + cc.normal( "message from " ) + cc.info( ip ) +
                         cc.normal( ": " ) + cc.j( joMessage ) +
@@ -2509,8 +2514,8 @@ function initMonitoringServer() {
                         "Unknown method name \"" + joMessage.method + "\" was specified" );
                 } // switch( joMessage.method )
             } catch ( err ) {
-                const strError = owaspUtils.extractErrorMessage( err );
-                if( IMA.verboseGet() >= IMA.verboseReversed().error ) {
+                if( log.verboseGet() >= log.verboseReversed().critical ) {
+                    const strError = owaspUtils.extractErrorMessage( err );
                     log.write( strLogPrefix +
                         cc.error( "Bad message from " ) + cc.info( ip ) + cc.error( ": " ) +
                         cc.warning( message ) +
@@ -2521,15 +2526,15 @@ function initMonitoringServer() {
                 }
             }
             try {
-                if( IMA.verboseGet() >= IMA.verboseReversed().trace ) {
+                if( log.verboseGet() >= log.verboseReversed().trace ) {
                     log.write( strLogPrefix + cc.sunny( ">>>" ) + " " + cc.normal( "answer to " ) +
                     cc.info( ip ) + cc.normal( ": " ) + cc.j( joAnswer ) +
                     "\n" );
                 }
                 ws_peer.send( JSON.stringify( joAnswer ) );
             } catch ( err ) {
-                const strError = owaspUtils.extractErrorMessage( err );
-                if( IMA.verboseGet() >= IMA.verboseReversed().error ) {
+                if( log.verboseGet() >= log.verboseReversed().critical ) {
+                    const strError = owaspUtils.extractErrorMessage( err );
                     log.write( strLogPrefix +
                         cc.error( "Failed to sent answer to " ) + cc.info( ip ) +
                         cc.error( ", error is: " ) + cc.warning( strError ) +
@@ -2560,15 +2565,15 @@ function initJsonRpcServer() {
             try {
                 res.header( "Content-Type", "application/json" );
                 res.status( 200 ).send( JSON.stringify( joAnswer ) );
-                if( IMA.verboseGet() >= IMA.verboseReversed().trace ) {
+                if( log.verboseGet() >= log.verboseReversed().trace ) {
                     log.write( strLogPrefix +
                         cc.sunny( ">>>" ) + " " + cc.normal( "did sent answer to " ) +
                         cc.info( ip ) + cc.normal( ": " ) + cc.j( joAnswer ) +
                         "\n" );
                 }
             } catch ( err ) {
-                const strError = owaspUtils.extractErrorMessage( err );
-                if( IMA.verboseGet() >= IMA.verboseReversed().error ) {
+                if( log.verboseGet() >= log.verboseReversed().critical ) {
+                    const strError = owaspUtils.extractErrorMessage( err );
                     log.write( strLogPrefix +
                         cc.error( "Failed to sent answer " ) + cc.j( joAnswer ) +
                         cc.error( " to " ) + cc.info( ip ) +
@@ -2586,7 +2591,7 @@ function initJsonRpcServer() {
         };
         try {
             const joMessage = JSON.parse( message );
-            if( IMA.verboseGet() >= IMA.verboseReversed().trace ) {
+            if( log.verboseGet() >= log.verboseReversed().trace ) {
                 log.write( strLogPrefix +
                     cc.sunny( "<<<" ) + " " + cc.normal( "Peer message from " ) +
                     cc.info( ip ) + cc.normal( ": " ) + cc.j( joMessage ) +
@@ -2633,8 +2638,8 @@ function initJsonRpcServer() {
                 throw new Error( "Unknown method name \"" + joMessage.method + "\" was specified" );
             } // switch( joMessage.method )
         } catch ( err ) {
-            const strError = owaspUtils.extractErrorMessage( err );
-            if( IMA.verboseGet() >= IMA.verboseReversed().error ) {
+            if( log.verboseGet() >= log.verboseReversed().critical ) {
+                const strError = owaspUtils.extractErrorMessage( err );
                 log.write( strLogPrefix +
                     cc.error( "Bad message from " ) + cc.info( ip ) + cc.error( ": " ) +
                     cc.warning( message ) +
@@ -2658,11 +2663,11 @@ async function doTheJob() {
     let cntFalse = 0;
     let cntTrue = 0;
     for( idxAction = 0; idxAction < cntActions; ++idxAction ) {
-        if( IMA.verboseGet() >= IMA.verboseReversed().information )
+        if( log.verboseGet() >= log.verboseReversed().information )
             log.write( strLogPrefix + cc.debug( IMA.longSeparator ) + "\n" );
 
         const joAction = imaState.arrActions[idxAction];
-        if( IMA.verboseGet() >= IMA.verboseReversed().debug ) {
+        if( log.verboseGet() >= log.verboseReversed().debug ) {
             log.write( strLogPrefix +
                 cc.notice( "Will execute action:" ) + " " + cc.info( joAction.name ) +
                 cc.debug( " (" ) + cc.info( idxAction + 1 ) + cc.debug( " of " ) +
@@ -2673,14 +2678,14 @@ async function doTheJob() {
         try {
             if( await joAction.fn() ) {
                 ++cntTrue;
-                if( IMA.verboseGet() >= IMA.verboseReversed().information ) {
+                if( log.verboseGet() >= log.verboseReversed().information ) {
                     log.write( strLogPrefix +
                         cc.success( "Succeeded action:" ) + " " + cc.info( joAction.name ) +
                         "\n" );
                 }
             } else {
                 ++cntFalse;
-                if( IMA.verboseGet() >= IMA.verboseReversed().error ) {
+                if( log.verboseGet() >= log.verboseReversed().error ) {
                     log.write( strLogPrefix +
                         cc.warning( "Failed action:" ) + " " + cc.info( joAction.name ) +
                         "\n" );
@@ -2688,7 +2693,7 @@ async function doTheJob() {
             }
         } catch ( err ) {
             ++cntFalse;
-            if( IMA.verboseGet() >= IMA.verboseReversed().fatal ) {
+            if( log.verboseGet() >= log.verboseReversed().critical ) {
                 log.write( strLogPrefix +
                     cc.fatal( "CRITICAL ERROR:" ) +
                     cc.error( " Exception occurred while executing action: " ) +
@@ -2698,7 +2703,7 @@ async function doTheJob() {
             }
         }
     }
-    if( IMA.verboseGet() >= IMA.verboseReversed().information ) {
+    if( log.verboseGet() >= log.verboseReversed().information ) {
         log.write( strLogPrefix + cc.debug( IMA.longSeparator ) + "\n" );
         log.write( strLogPrefix + cc.info( "FINISH:" ) + "\n" );
         log.write( strLogPrefix + cc.info( cntActions ) + cc.notice( " task(s) executed" ) + "\n" );
@@ -2825,10 +2830,12 @@ async function waitUntilSChainStarted() {
                     if( ! err )
                         bSuccess = true;
                 }, true, null, -1 ).catch( ( err ) => {
-                const strError = owaspUtils.extractErrorMessage( err );
-                log.write( cc.fatal( "CRITICAL ERROR:" ) +
-                    cc.error( " S-Chain network discovery failed: " ) +
-                    cc.warning( strError ) + "\n" );
+                if( log.verboseGet() >= log.verboseReversed().critical ) {
+                    const strError = owaspUtils.extractErrorMessage( err );
+                    log.write( cc.fatal( "CRITICAL ERROR:" ) +
+                            cc.error( " S-Chain network discovery failed: " ) +
+                            cc.warning( strError ) + "\n" );
+                }
             } );
             if( ! joSChainNetworkInfo )
                 bSuccess = false;
@@ -2895,7 +2902,7 @@ async function main() {
                         // error information is printed by discoverSChainNetwork()
                         process.exit( 166 );
                     }
-                    if( IMA.verboseGet() >= IMA.verboseReversed().information ) {
+                    if( log.verboseGet() >= log.verboseReversed().information ) {
                         log.write( cc.success( "S-Chain network was discovered: " ) +
                             cc.j( joSChainNetworkInfo ) + "\n" );
                     }
@@ -2904,12 +2911,13 @@ async function main() {
                     doTheJob();
                     return 0; // FINISH
                 }, isSilent, imaState.joSChainNetworkInfo, -1 ).catch( ( err ) => {
-                    const strError = owaspUtils.extractErrorMessage( err );
-                    log.write(
-                        cc.fatal( "CRITICAL ERROR:" ) +
-                        cc.error( " S-Chain network discovery failed: " ) +
-                        cc.warning( strError ) + "\n"
-                    );
+                    if( log.verboseGet() >= log.verboseReversed().critical ) {
+                        const strError = owaspUtils.extractErrorMessage( err );
+                        log.write(
+                            cc.fatal( "CRITICAL ERROR:" ) +
+                            cc.error( " S-Chain network discovery failed: " ) +
+                            cc.warning( strError ) + "\n" );
+                    }
                 } );
             } );
         }

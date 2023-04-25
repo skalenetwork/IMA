@@ -362,3 +362,100 @@ export function toString() {
     // for compatibility with created streams
     return "";
 }
+
+const g_mapVerbose = {
+    0: "silent",
+    1: "fatal",
+    2: "critical",
+    3: "error",
+    4: "warning",
+    5: "attention",
+    6: "information",
+    7: "notice",
+    8: "debug",
+    9: "trace"
+};
+function computeVerboseAlias() {
+    const m = {};
+    for( const key in g_mapVerbose ) {
+        if( !g_mapVerbose.hasOwnProperty( key ) )
+            continue; // skip loop if the property is from prototype
+        const name = g_mapVerbose[key];
+        m[name] = key;
+    }
+    m.empty = 0 + m.silent; // alias
+    m.none = 0 + m.silent; // alias
+    m.stop = 0 + m.fatal; // alias
+    m.bad = 0 + m.critical; // alias
+    m.err = 0 + m.error; // alias
+    m.warn = 0 + m.warning; // alias
+    m.attn = 0 + m.attention; // alias
+    m.info = 0 + m.information; // alias
+    m.note = 0 + m.notice; // alias
+    m.dbg = 0 + m.debug; // alias
+    m.crazy = 0 + m.trace; // alias
+    m.detailed = 0 + m.trace; // alias
+    return m;
+}
+const g_mapReversedVerbose = computeVerboseAlias();
+
+export function verbose() { return g_mapVerbose; };
+export function verboseReversed() { return g_mapReversedVerbose; };
+export function verboseLevelAsTextForLog( vl ) {
+    if( typeof vl == "undefined" )
+        vl = verboseGet();
+    if( vl in g_mapVerbose ) {
+        const tl = g_mapVerbose[vl];
+        return tl;
+    }
+    return "unknown(" + JSON.stringify( y ) + ")";
+}
+
+let g_isExposeDetails = false;
+let g_nVerboseLevel = 0 + verboseReversed().info;
+
+export function exposeDetailsGet() {
+    return g_isExposeDetails;
+}
+export function exposeDetailsSet( isExpose ) {
+    g_isExposeDetails = isExpose ? true : false;
+}
+
+export function verboseGet() {
+    return 0 + g_nVerboseLevel;
+}
+export function verboseSet( vl ) {
+    g_nVerboseLevel = vl;
+}
+
+export function verboseParse( s ) {
+    let n = 5;
+    try {
+        const isNumbersOnly = /^\d+$/.test( s );
+        if( isNumbersOnly )
+            n = owaspUtils.toInteger( s );
+        else {
+            const ch0 = s[0].toLowerCase();
+            for( const key in g_mapVerbose ) {
+                if( !g_mapVerbose.hasOwnProperty( key ) )
+                    continue; // skip loop if the property is from prototype
+                const name = g_mapVerbose[key];
+                const ch1 = name[0].toLowerCase();
+                if( ch0 == ch1 ) {
+                    n = key;
+                    break;
+                }
+            }
+        }
+    } catch ( err ) {}
+    return n;
+}
+
+export function verboseList() {
+    for( const key in g_mapVerbose ) {
+        if( !g_mapVerbose.hasOwnProperty( key ) )
+            continue; // skip loop if the property is from prototype
+        const name = g_mapVerbose[key];
+        console.log( "    " + cc.info( key ) + cc.sunny( "=" ) + cc.bright( name ) );
+    }
+}

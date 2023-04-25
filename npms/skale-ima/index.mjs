@@ -58,94 +58,6 @@ export const longSeparator =
 const perMessageGasForTransfer = 1000000;
 const additionalS2MTransferOverhead = 200000;
 
-// logging helpers
-
-const mapVerbose = {
-    0: "silent",
-    2: "fatal",
-    3: "error",
-    4: "warning",
-    5: "attention",
-    6: "information",
-    7: "notice",
-    8: "debug",
-    9: "trace"
-};
-function computeVerboseAlias() {
-    const m = {};
-    for( const key in mapVerbose ) {
-        if( !mapVerbose.hasOwnProperty( key ) )
-            continue; // skip loop if the property is from prototype
-        const name = mapVerbose[key];
-        m[name] = key;
-    }
-    m.warn = m.warning; // alias
-    m.info = m.information; // alias
-    return m;
-}
-const mapReverseVerbose = computeVerboseAlias();
-
-export function verbose() { return mapVerbose; };
-export function verboseReversed() { return mapReverseVerbose; };
-export function verboseLevelAsTextForLog( vl ) {
-    if( typeof vl == "undefined" )
-        vl = verboseGet();
-    if( vl in mapVerbose ) {
-        const tl = mapVerbose[vl];
-        return tl;
-    }
-    return "unknown(" + JSON.stringify( y ) + ")";
-}
-
-let g_isExposeDetails = false;
-let g_verboseLevel = verboseReversed().info;
-
-export function exposeDetailsGet() {
-    return g_isExposeDetails;
-}
-export function exposeDetailsSet( x ) {
-    g_isExposeDetails = x ? true : false;
-}
-
-export function verboseGet() {
-    return g_verboseLevel;
-}
-export function verboseSet( x ) {
-    g_verboseLevel = x;
-}
-
-export function verboseParse( s ) {
-    let n = 5;
-    try {
-        const isNumbersOnly = /^\d+$/.test( s );
-        if( isNumbersOnly )
-            n = owaspUtils.toInteger( s );
-        else {
-            const ch0 = s[0].toLowerCase();
-            for( const key in mapVerbose ) {
-                if( !mapVerbose.hasOwnProperty( key ) )
-                    continue; // skip loop if the property is from prototype
-                const name = mapVerbose[key];
-                const ch1 = name[0].toLowerCase();
-                if( ch0 == ch1 ) {
-                    n = key;
-                    break;
-                }
-            }
-        }
-    } catch ( err ) {}
-    return n;
-}
-
-export function verboseList() {
-    for( const key in mapVerbose ) {
-        if( !mapVerbose.hasOwnProperty( key ) )
-            continue; // skip loop if the property is from prototype
-        const name = mapVerbose[key];
-        console.log( "    " + cc.info( key ) + cc.sunny( "=" ) + cc.bright( name ) );
-    }
-}
-
 const g_nSleepBeforeFetchOutgoingMessageEvent = 5000;
 let g_nSleepBetweenTransactionsOnSChainMilliseconds = 0; // example - 5000
 let g_bWaitForNextBlockOnSChain = false;
@@ -209,14 +121,13 @@ export async function safeGetBlockNumber(
         return ret;
     } catch ( err ) {
         ret = retValOnFail;
-        details.write(
-            cc.error( "Failed call attempt " ) + cc.info( idxAttempt ) +
-            cc.error( " to " ) + cc.note( strFnName + "()" ) +
-            cc.error( " via " ) + cc.u( u ) +
-            cc.error( ", error is: " ) +
-            cc.warning( owaspUtils.extractErrorMessage( err ) ) +
-            cc.error( ", stack is: " ) + "\n" + cc.stack( err.stack ) +
-            "\n" );
+        if( log.verboseGet() >= log.verboseReversed().error ) {
+            details.write( cc.error( "Failed call attempt " ) + cc.info( idxAttempt ) +
+                cc.error( " to " ) + cc.note( strFnName + "()" ) + cc.error( " via " ) +
+                cc.u( u ) + cc.error( ", error is: " ) +
+                cc.warning( owaspUtils.extractErrorMessage( err ) ) +
+                cc.error( ", stack is: " ) + "\n" + cc.stack( err.stack ) + "\n" );
+        }
     }
     ++ idxAttempt;
     while( ret === "" && idxAttempt <= cntAttempts ) {
@@ -242,14 +153,13 @@ export async function safeGetBlockNumber(
             return ret;
         } catch ( err ) {
             ret = retValOnFail;
-            details.write(
-                cc.error( "Failed call attempt " ) + cc.info( idxAttempt ) +
-                cc.error( " to " ) + cc.note( strFnName + "()" ) +
-                cc.error( " via " ) + cc.u( u ) +
-                cc.error( ", error is: " ) +
-                cc.warning( owaspUtils.extractErrorMessage( err ) ) +
-                cc.error( ", stack is: " ) + "\n" + cc.stack( err.stack ) +
-                "\n" );
+            if( log.verboseGet() >= log.verboseReversed().error ) {
+                details.write( cc.error( "Failed call attempt " ) + cc.info( idxAttempt ) +
+                    cc.error( " to " ) + cc.note( strFnName + "()" ) + cc.error( " via " ) +
+                    cc.u( u ) + cc.error( ", error is: " ) +
+                    cc.warning( owaspUtils.extractErrorMessage( err ) ) +
+                    cc.error( ", stack is: " ) + "\n" + cc.stack( err.stack ) + "\n" );
+            }
         }
         ++ idxAttempt;
     }
@@ -286,13 +196,13 @@ export async function safeGetTransactionCount(
         return ret;
     } catch ( err ) {
         ret = retValOnFail;
-        details.write(
-            cc.error( "Failed call attempt " ) + cc.info( idxAttempt ) +
-            cc.error( " to " ) + cc.note( strFnName + "()" ) +
-            cc.error( " via " ) + cc.u( u ) +
-            cc.error( ", error is: " ) + cc.warning( owaspUtils.extractErrorMessage( err ) ) +
-            cc.error( ", stack is: " ) + "\n" + cc.stack( err.stack ) +
-            "\n" );
+        if( log.verboseGet() >= log.verboseReversed().error ) {
+            details.write( cc.error( "Failed call attempt " ) + cc.info( idxAttempt ) +
+                cc.error( " to " ) + cc.note( strFnName + "()" ) + cc.error( " via " ) +
+                cc.u( u ) + cc.error( ", error is: " ) +
+                cc.warning( owaspUtils.extractErrorMessage( err ) ) +
+                cc.error( ", stack is: " ) + "\n" + cc.stack( err.stack ) + "\n" );
+        }
     }
     ++ idxAttempt;
     while( ret === "" && idxAttempt <= cntAttempts ) {
@@ -319,14 +229,13 @@ export async function safeGetTransactionCount(
             return ret;
         } catch ( err ) {
             ret = retValOnFail;
-            details.write(
-                cc.error( "Failed call attempt " ) + cc.info( idxAttempt ) +
-                cc.error( " to " ) + cc.note( strFnName + "()" ) +
-                cc.error( " via " ) + cc.u( u ) +
-                cc.error( ", error is: " ) +
-                cc.warning( owaspUtils.extractErrorMessage( err ) ) +
-                cc.error( ", stack is: " ) + "\n" + cc.stack( err.stack ) +
-                "\n" );
+            if( log.verboseGet() >= log.verboseReversed().error ) {
+                details.write( cc.error( "Failed call attempt " ) + cc.info( idxAttempt ) +
+                    cc.error( " to " ) + cc.note( strFnName + "()" ) + cc.error( " via " ) +
+                    cc.u( u ) + cc.error( ", error is: " ) +
+                    cc.warning( owaspUtils.extractErrorMessage( err ) ) +
+                    cc.error( ", stack is: " ) + "\n" + cc.stack( err.stack ) + "\n" );
+            }
         }
         ++ idxAttempt;
     }
@@ -364,13 +273,13 @@ export async function safeGetTransactionReceipt(
         return ret;
     } catch ( err ) {
         ret = retValOnFail;
-        details.write(
-            cc.error( "Failed call attempt " ) + cc.info( idxAttempt ) +
-            cc.error( " to " ) + cc.note( strFnName + "()" ) +
-            cc.error( " via " ) + cc.u( u ) +
-            cc.error( ", error is: " ) + cc.warning( owaspUtils.extractErrorMessage( err ) ) +
-            cc.error( ", stack is: " ) + "\n" + cc.stack( err.stack ) +
-            "\n" );
+        if( log.verboseGet() >= log.verboseReversed().error ) {
+            details.write(
+                cc.error( "Failed call attempt " ) + cc.info( idxAttempt ) +
+                cc.error( " to " ) + cc.note( strFnName + "()" ) + cc.error( " via " ) + cc.u( u ) +
+                cc.error( ", error is: " ) + cc.warning( owaspUtils.extractErrorMessage( err ) ) +
+                cc.error( ", stack is: " ) + "\n" + cc.stack( err.stack ) + "\n" );
+        }
     }
     ++ idxAttempt;
     while( txReceipt === "" && idxAttempt <= cntAttempts ) {
@@ -397,14 +306,14 @@ export async function safeGetTransactionReceipt(
             return ret;
         } catch ( err ) {
             ret = retValOnFail;
-            details.write(
-                cc.error( "Failed call attempt " ) + cc.info( idxAttempt ) +
-                cc.error( " to " ) + cc.note( strFnName + "()" ) +
-                cc.error( " via " ) + cc.u( u ) +
-                cc.error( ", error is: " ) +
-                cc.warning( owaspUtils.extractErrorMessage( err ) ) +
-                cc.error( ", stack is: " ) + "\n" + cc.stack( err.stack ) +
-                "\n" );
+            if( log.verboseGet() >= log.verboseReversed().error ) {
+                details.write(
+                    cc.error( "Failed call attempt " ) + cc.info( idxAttempt ) +
+                    cc.error( " to " ) + cc.note( strFnName + "()" ) + cc.error( " via " ) +
+                    cc.u( u ) + cc.error( ", error is: " ) +
+                    cc.warning( owaspUtils.extractErrorMessage( err ) ) +
+                    cc.error( ", stack is: " ) + "\n" + cc.stack( err.stack ) + "\n" );
+            }
         }
         ++ idxAttempt;
     }
@@ -463,15 +372,15 @@ export async function safeGetPastEvents(
         return ret;
     } catch ( err ) {
         ret = retValOnFail;
-        details.write( strLogPrefix +
-            cc.error( "Failed filtering attempt " ) + cc.info( idxAttempt ) +
-            cc.error( " for event " ) + cc.note( strEventName ) +
-            cc.error( " via " ) + cc.u( u ) +
-            cc.error( ", from block " ) + cc.warning( nBlockFrom.toHexString() ) +
-            cc.error( ", to block " ) + cc.warning( nBlockTo.toHexString() ) +
-            cc.error( ", error is: " ) + cc.warning( owaspUtils.extractErrorMessage( err ) ) +
-            cc.error( ", stack is: " ) + "\n" + cc.stack( err.stack ) +
-            "\n" );
+        if( log.verboseGet() >= log.verboseReversed().error ) {
+            details.write( strLogPrefix +
+                cc.error( "Failed filtering attempt " ) + cc.info( idxAttempt ) +
+                cc.error( " for event " ) + cc.note( strEventName ) + cc.error( " via " ) +
+                cc.u( u ) + cc.error( ", from block " ) + cc.warning( nBlockFrom.toHexString() ) +
+                cc.error( ", to block " ) + cc.warning( nBlockTo.toHexString() ) +
+                cc.error( ", error is: " ) + cc.warning( owaspUtils.extractErrorMessage( err ) ) +
+                cc.error( ", stack is: " ) + "\n" + cc.stack( err.stack ) + "\n" );
+        }
         if( owaspUtils.extractErrorMessage( err )
             .indexOf( strErrorTextAboutNotExistingEvent ) >= 0
         ) {
@@ -522,16 +431,16 @@ export async function safeGetPastEvents(
 
         } catch ( err ) {
             ret = retValOnFail;
-            details.write( strLogPrefix +
-                cc.error( "Failed filtering attempt " ) + cc.info( idxAttempt ) +
-                cc.error( " for event " ) + cc.note( strEventName ) +
-                cc.error( " via " ) + cc.u( u ) +
-                cc.error( ", from block " ) + cc.info( nBlockFrom.toHexString() ) +
-                cc.error( ", to block " ) + cc.info( nBlockTo.toHexString() ) +
-                cc.error( ", error is: " ) +
-                cc.warning( owaspUtils.extractErrorMessage( err ) ) +
-                cc.error( ", stack is: " ) + "\n" + cc.stack( err.stack ) +
-                "\n" );
+            if( log.verboseGet() >= log.verboseReversed().error ) {
+                details.write( strLogPrefix +
+                    cc.error( "Failed filtering attempt " ) + cc.info( idxAttempt ) +
+                    cc.error( " for event " ) + cc.note( strEventName ) + cc.error( " via " ) +
+                    cc.u( u ) + cc.error( ", from block " ) + cc.info( nBlockFrom.toHexString() ) +
+                    cc.error( ", to block " ) + cc.info( nBlockTo.toHexString() ) +
+                    cc.error( ", error is: " ) +
+                    cc.warning( owaspUtils.extractErrorMessage( err ) ) +
+                    cc.error( ", stack is: " ) + "\n" + cc.stack( err.stack ) + "\n" );
+            }
             if( owaspUtils.extractErrorMessage( err )
                 .indexOf( strErrorTextAboutNotExistingEvent ) >= 0
             ) {
@@ -678,17 +587,17 @@ export async function safeGetPastEventsIterative(
                 return joAllEventsInBlock;
             }
         } catch ( err ) {
-            details.write( strLogPrefix +
-                cc.error( "Got scan error during interactive scan of " ) +
-                cc.info( idxBlockSubRangeFrom.toHexString() ) + cc.error( "/" ) +
-                cc.info( idxBlockSubRangeTo.toHexString() ) +
-                cc.error( " block sub-range in " ) + cc.info( nBlockFrom.toHexString() ) +
-                cc.error( "/" ) + cc.info( nBlockTo.toHexString() ) +
-                cc.error( " block range, error is: " ) +
-                cc.warning( owaspUtils.extractErrorMessage( err ) ) +
-                cc.error( ", stack is: " ) + "\n" + cc.stack( err.stack ) +
-                "\n"
-            );
+            if( log.verboseGet() >= log.verboseReversed().critical ) {
+                details.write( strLogPrefix +
+                    cc.error( "Got scan error during interactive scan of " ) +
+                    cc.info( idxBlockSubRangeFrom.toHexString() ) + cc.error( "/" ) +
+                    cc.info( idxBlockSubRangeTo.toHexString() ) +
+                    cc.error( " block sub-range in " ) + cc.info( nBlockFrom.toHexString() ) +
+                    cc.error( "/" ) + cc.info( nBlockTo.toHexString() ) +
+                    cc.error( " block range, error is: " ) +
+                    cc.warning( owaspUtils.extractErrorMessage( err ) ) +
+                    cc.error( ", stack is: " ) + "\n" + cc.stack( err.stack ) + "\n" );
+            }
         }
         idxBlockSubRangeFrom = idxBlockSubRangeTo;
         if( idxBlockSubRangeFrom.eq( nBlockTo ) )
@@ -836,8 +745,9 @@ async function prepareOracleGasPriceSetup( optsGasPriseSetup ) {
             nMillisecondsSleepBefore: 1000,
             nMillisecondsSleepPeriod: 3000,
             cntAttempts: 40,
-            isVerbose: ( verboseGet() >= verboseReversed().information ) ? true : false,
-            isVerboseTraceDetails: ( verboseGet() >= verboseReversed().debug ) ? true : false
+            isVerbose: ( log.verboseGet() >= log.verboseReversed().information ) ? true : false,
+            isVerboseTraceDetails:
+                ( log.verboseGet() >= log.verboseReversed().debug ) ? true : false
         };
         optsGasPriseSetup.details.write( cc.debug( "Will fetch " ) +
             cc.info( "Main Net gas price" ) + cc.debug( " via call to " ) +
@@ -849,11 +759,13 @@ async function prepareOracleGasPriceSetup( optsGasPriseSetup ) {
                     oracleOpts, optsGasPriseSetup.details ) ).toString( 16 ) );
         } catch ( err ) {
             optsGasPriseSetup.gasPriceOnMainNet = null;
-            optsGasPriseSetup.details.write( cc.error( "Failed to fetch " ) +
-                cc.info( "Main Net gas price" ) + cc.error( " via call to " ) +
-                cc.info( "Oracle" ) + cc.error( ", error is: " ) +
-                cc.warning( owaspUtils.extractErrorMessage( err ) ) +
-                cc.error( ", stack is: " ) + "\n" + cc.stack( err.stack ) + "\n" );
+            if( log.verboseGet() >= log.verboseReversed().error ) {
+                optsGasPriseSetup.details.write( cc.error( "Failed to fetch " ) +
+                    cc.info( "Main Net gas price" ) + cc.error( " via call to " ) +
+                    cc.info( "Oracle" ) + cc.error( ", error is: " ) +
+                    cc.warning( owaspUtils.extractErrorMessage( err ) ) +
+                    cc.error( ", stack is: " ) + "\n" + cc.stack( err.stack ) + "\n" );
+            }
         }
     }
     if( optsGasPriseSetup.gasPriceOnMainNet === null ) {
@@ -881,7 +793,7 @@ async function prepareOracleGasPriceSetup( optsGasPriseSetup ) {
             cc.info( "Main Net gas price" ) +
             cc.debug( " is equal to new one, will skip setting it in " ) +
             cc.info( "CommunityLocker" ) + "\n" );
-        if( exposeDetailsGet() )
+        if( log.exposeDetailsGet() )
             optsGasPriseSetup.details.exposeDetailsTo( log, "doOracleGasPriceSetup", true );
         optsGasPriseSetup.details.close();
         return;
@@ -941,7 +853,7 @@ export async function doOracleGasPriceSetup(
             optsGasPriseSetup.gasPriceOnMainNet, optsGasPriseSetup.details,
             async function( strError, u256, joGlueResult ) {
                 if( strError ) {
-                    if( verboseGet() >= verboseReversed().fatal ) {
+                    if( log.verboseGet() >= log.verboseReversed().fatal ) {
                         log.write( optsGasPriseSetup.strLogPrefix + cc.fatal( "CRITICAL ERROR:" ) +
                             cc.error( " Error in doOracleGasPriceSetup() during " +
                             optsGasPriseSetup.strActionName + ": " ) +
@@ -981,7 +893,7 @@ export async function doOracleGasPriceSetup(
                         optsGasPriseSetup.bnTimestampOfBlock.toHexString() ),
                     sign // bls signature components
                 ];
-                if( verboseGet() >= verboseReversed().debug ) {
+                if( log.verboseGet() >= log.verboseReversed().debug ) {
                     const joDebugArgs = [
                         [ signature.X, signature.Y ], // BLS glue of signatures
                         hashPoint.X, // G1.X from joGlueResult.hashSrc
@@ -1044,18 +956,19 @@ export async function doOracleGasPriceSetup(
             } );
     } catch ( err ) {
         const strError = owaspUtils.extractErrorMessage( err );
-        if( verboseGet() >= verboseReversed().fatal ) {
-            log.write( optsGasPriseSetup.strLogPrefix + cc.fatal( "CRITICAL ERROR:" ) +
+        if( log.verboseGet() >= log.verboseReversed().critical ) {
+            if( log.id != optsGasPriseSetup.details.id ) {
+                log.write( optsGasPriseSetup.strLogPrefix + cc.fatal( "CRITICAL ERROR:" ) +
+                    cc.error( " Error in doOracleGasPriceSetup() during " +
+                    optsGasPriseSetup.strActionName + ": " ) + cc.error( strError ) +
+                    cc.error( ", stack is: " ) + "\n" + cc.stack( err.stack ) + "\n" );
+            }
+            optsGasPriseSetup.details.write( optsGasPriseSetup.strLogPrefix +
+                cc.fatal( "CRITICAL ERROR:" ) +
                 cc.error( " Error in doOracleGasPriceSetup() during " +
                 optsGasPriseSetup.strActionName + ": " ) + cc.error( strError ) +
-                cc.error( ", stack is: " ) + "\n" + cc.stack( err.stack ) +
-                "\n" );
+                cc.error( ", stack is: " ) + "\n" + cc.stack( err.stack ) + "\n" );
         }
-        optsGasPriseSetup.details.write( optsGasPriseSetup.strLogPrefix +
-            cc.fatal( "CRITICAL ERROR:" ) +
-            cc.error( " Error in doOracleGasPriceSetup() during " +
-            optsGasPriseSetup.strActionName + ": " ) + cc.error( strError ) +
-            cc.error( ", stack is: " ) + "\n" + cc.stack( err.stack ) + "\n" );
         optsGasPriseSetup.details.exposeDetailsTo( log, "doOracleGasPriceSetup", false );
         saveTransferError( "oracle", optsGasPriseSetup.details.toString() );
         optsGasPriseSetup.details.close();
@@ -1063,7 +976,7 @@ export async function doOracleGasPriceSetup(
     }
     printGasUsageReportFromArray(
         "ORACLE GAS PRICE SETUP ", optsGasPriseSetup.jarrReceipts, optsGasPriseSetup.details );
-    if( exposeDetailsGet() )
+    if( log.exposeDetailsGet() )
         optsGasPriseSetup.details.exposeDetailsTo( log, "doOracleGasPriceSetup", true );
     optsGasPriseSetup.details.close();
     return true;
@@ -1373,10 +1286,11 @@ export async function dryRunCall(
             "\n" );
         return null; // success
     } catch ( err ) {
-        const strError = owaspUtils.extractErrorMessage( err );
-        details.write( strLogPrefix +
-            cc.error( "dry-run error: " ) + cc.warning( strError ) +
-            "\n" );
+        if( log.verboseGet() >= log.verboseReversed().error ) {
+            const strError = owaspUtils.extractErrorMessage( err );
+            details.write( strLogPrefix +
+                cc.error( "dry-run error: " ) + cc.warning( strError ) + "\n" );
+        }
         if( dryRunIsIgnored() )
             return null;
         return strError;
@@ -1467,12 +1381,15 @@ async function payedCallTM( optsPayedCall ) {
                     "\n" );
                 resolve( optsPayedCall.joReceipt );
             } catch ( err ) {
-                const strError =
-                    cc.fatal( "BAD ERROR:" ) + " " +
-                    cc.error( "TM-transaction was not sent, underlying error is: " ) +
-                    cc.warning( err.toString() );
-                optsPayedCall.details.write( optsPayedCall.strLogPrefix + strError + "\n" );
-                log.write( optsPayedCall.strLogPrefix + strError + "\n" );
+                if( log.verboseGet() >= log.verboseReversed().critical ) {
+                    const strError =
+                        cc.fatal( "BAD ERROR:" ) + " " +
+                        cc.error( "TM-transaction was not sent, underlying error is: " ) +
+                        cc.warning( err.toString() );
+                    optsPayedCall.details.write( optsPayedCall.strLogPrefix + strError + "\n" );
+                    if( log.id != optsPayedCall.details.id )
+                        log.write( optsPayedCall.strLogPrefix + strError + "\n" );
+                }
                 reject( err );
             }
         };
@@ -1506,7 +1423,7 @@ async function payedCallSGX( optsPayedCall ) {
                     cc.warning( owaspUtils.extractErrorMessage( err ) ) +
                     cc.error( ", stack is: " ) + "\n" + cc.stack( err.stack ) +
                     "\n";
-                    if( verboseGet() >= verboseReversed.error )
+                    if( log.verboseGet() >= log.verboseReversed.error )
                         log.write( optsPayedCall.strLogPrefix + strError );
                     optsPayedCall.details.write( optsPayedCall.strLogPrefix + strError );
                     reject(
@@ -1535,7 +1452,7 @@ async function payedCallSGX( optsPayedCall ) {
                         cc.warning( owaspUtils.extractErrorMessage( err ) ) +
                         cc.error( ", stack is: " ) + "\n" + cc.stack( err.stack ) +
                         "\n";
-                        if( verboseGet() >= verboseReversed.error )
+                        if( log.verboseGet() >= log.verboseReversed.error )
                             log.write( optsPayedCall.strLogPrefix + strError );
                         optsPayedCall.details.write( optsPayedCall.strLogPrefix + strError );
                         reject(
@@ -1594,19 +1511,20 @@ async function payedCallSGX( optsPayedCall ) {
                         resolve( optsPayedCall.joReceipt );
                     } catch ( err ) {
                         const strErrorPrefix =
-                        "CRITICAL TRANSACTION SIGN AND SEND ERROR(PROCESSING SGX RESULT):";
-                        const s =
-                        optsPayedCall.strLogPrefix + cc.error( strErrorPrefix ) + " " +
-                        cc.warning( owaspUtils.extractErrorMessage( err ) ) +
-                        cc.error( ", stack is: " ) + "\n" + cc.stack( err.stack ) +
-                        "\n";
-                        optsPayedCall.details.write( s );
-                        log.write( s );
-                        reject( new Error(
-                            strErrorPrefix +
-                        " Invoking the " + optsPayedCall.strContractCallDescription +
-                        ", error is: " + owaspUtils.extractErrorMessage( err )
-                        ) );
+                            "CRITICAL TRANSACTION SIGN AND SEND ERROR(PROCESSING SGX RESULT):";
+                        if( log.verboseGet() >= log.verboseReversed().critical ) {
+                            const s =
+                                optsPayedCall.strLogPrefix + cc.error( strErrorPrefix ) + " " +
+                                cc.warning( owaspUtils.extractErrorMessage( err ) ) +
+                                cc.error( ", stack is: " ) + "\n" + cc.stack( err.stack ) +
+                                "\n";
+                            optsPayedCall.details.write( s );
+                            if( log.id != optsPayedCall.details.id )
+                                log.write( s );
+                        }
+                        reject( new Error( strErrorPrefix +
+                            " Invoking the " + optsPayedCall.strContractCallDescription +
+                            ", error is: " + owaspUtils.extractErrorMessage( err ) ) );
                     }
                 } );
             } );
@@ -1706,18 +1624,19 @@ export async function payedCall(
         } // switch( optsPayedCall.joACI.strType )
     } catch ( err ) {
         const strErrorPrefix = "CRITICAL TRANSACTION SIGN AND SEND ERROR(OUTER FLOW):";
-        const s =
-            optsPayedCall.strLogPrefix + cc.error( strErrorPrefix ) + " " +
-            cc.warning( owaspUtils.extractErrorMessage( err ) ) +
-            cc.error( ", stack is: " ) + "\n" + cc.stack( err.stack ) +
-            "\n";
-        optsPayedCall.details.write( s );
-        log.write( s );
-        throw new Error(
-            strErrorPrefix +
+        if( log.verboseGet() >= log.verboseReversed().critical ) {
+            const s =
+                optsPayedCall.strLogPrefix + cc.error( strErrorPrefix ) + " " +
+                cc.warning( owaspUtils.extractErrorMessage( err ) ) +
+                cc.error( ", stack is: " ) + "\n" + cc.stack( err.stack ) +
+                "\n";
+            optsPayedCall.details.write( s );
+            if( log.id != optsPayedCall.details.id )
+                log.write( s );
+        }
+        throw new Error( strErrorPrefix +
             " invoking the " + optsPayedCall.strContractCallDescription +
-            ", error is: " + owaspUtils.extractErrorMessage( err )
-        );
+            ", error is: " + owaspUtils.extractErrorMessage( err ) );
     }
     optsPayedCall.details.write( optsPayedCall.strLogPrefix + cc.success( "Done, TX was " ) +
         cc.attention( optsPayedCall.joACI ? optsPayedCall.joACI.strType : "N/A" ) +
@@ -1739,13 +1658,13 @@ export async function payedCall(
         optsPayedCall.details.write( optsPayedCall.strLogPrefix +
             cc.debug( "ETH spent: " ) + cc.info( ethSpent ) + "\n" );
     } catch ( err ) {
-        optsPayedCall.details.write(
-            optsPayedCall.strLogPrefix + cc.warning( "WARNING: " ) + " " +
-            cc.warning( "TX stats computation error " ) +
-            cc.warning( owaspUtils.extractErrorMessage( err ) ) +
-            cc.warning( ", stack is: " ) + "\n" + cc.stack( err.stack ) +
-            "\n"
-        );
+        if( log.verboseGet() >= log.verboseReversed().critical ) {
+            optsPayedCall.details.write(
+                optsPayedCall.strLogPrefix + cc.warning( "WARNING: " ) + " " +
+                cc.warning( "TX stats computation error " ) +
+                cc.warning( owaspUtils.extractErrorMessage( err ) ) +
+                cc.warning( ", stack is: " ) + "\n" + cc.stack( err.stack ) + "\n" );
+        }
     }
     return optsPayedCall.joReceipt;
 }
@@ -1822,13 +1741,13 @@ export async function checkTransactionToSchain(
                 "\n" );
         }
     } catch ( err ) {
-        details.write(
-            strLogPrefix +
-            cc.fatal( "CRITICAL PoW-mining ERROR(checkTransactionToSchain):" ) + " " +
-            cc.error( "exception occur before PoW-mining, error is:" ) + " " +
-            cc.error( owaspUtils.extractErrorMessage( err ) ) +
-            cc.error( ", stack is: " ) + "\n" + cc.stack( err.stack ) +
-            "\n" );
+        if( log.verboseGet() >= log.verboseReversed().critical ) {
+            details.write( strLogPrefix +
+                cc.fatal( "CRITICAL PoW-mining ERROR(checkTransactionToSchain):" ) + " " +
+                cc.error( "exception occur before PoW-mining, error is:" ) + " " +
+                cc.error( owaspUtils.extractErrorMessage( err ) ) +
+                cc.error( ", stack is: " ) + "\n" + cc.stack( err.stack ) + "\n" );
+        }
     }
     return unsignedTx;
 }
@@ -1847,17 +1766,17 @@ export async function calculatePowNumber( address, nonce, gas, details, strLogPr
             "\n" );
         const res = childProcessModule.execSync( cmd );
         details.write( strLogPrefix +
-            cc.debug( "Got PoW-mining execution result: " ) + cc.notice( res ) +
-            "\n" );
+            cc.debug( "Got PoW-mining execution result: " ) + cc.notice( res ) + "\n" );
         return res;
     } catch ( err ) {
-        details.write(
-            strLogPrefix +
-            cc.fatal( "CRITICAL PoW-mining ERROR(calculatePowNumber):" ) + " " +
-            cc.error( "exception occur during PoW-mining, error is:" ) + " " +
-            cc.error( owaspUtils.extractErrorMessage( err ) ) +
-            cc.error( ", stack is: " ) + "\n" + cc.stack( err.stack ) +
-            "\n" );
+        if( log.verboseGet() >= log.verboseReversed().critical ) {
+            details.write( strLogPrefix +
+                cc.fatal( "CRITICAL PoW-mining ERROR(calculatePowNumber):" ) + " " +
+                cc.error( "exception occur during PoW-mining, error is:" ) + " " +
+                cc.error( owaspUtils.extractErrorMessage( err ) ) +
+                cc.error( ", stack is: " ) + "\n" + cc.stack( err.stack ) +
+                "\n" );
+        }
         throw err;
     }
 }
@@ -2083,20 +2002,22 @@ export async function checkIsRegisteredSChainInDepositBoxes( // step 1
             cc.success( "checkIsRegisteredSChainInDepositBoxes(reg-step1) status is: " ) +
             cc.attention( bIsRegistered ) +
             "\n" );
-        if( exposeDetailsGet() )
+        if( log.exposeDetailsGet() )
             details.exposeDetailsTo( log, "checkIsRegisteredSChainInDepositBoxes", true );
         details.close();
         return bIsRegistered;
     } catch ( err ) {
-        const strError = owaspUtils.extractErrorMessage( err );
-        const s = strLogPrefix + cc.fatal( "CRITICAL ERROR:" ) +
-            cc.error(
-                " Error in checkIsRegisteredSChainInDepositBoxes(reg-step1)() during " +
-            strActionName + ": " ) + cc.error( strError ) + cc.error( ", stack is: " ) +
-            "\n" + cc.stack( err.stack ) + "\n";
-        if( verboseGet() >= verboseReversed().fatal )
-            log.write( s );
-        details.write( s );
+        if( log.verboseGet() >= log.verboseReversed().critical ) {
+            const strError = owaspUtils.extractErrorMessage( err );
+            const s = strLogPrefix + cc.fatal( "CRITICAL ERROR:" ) +
+                cc.error(
+                    " Error in checkIsRegisteredSChainInDepositBoxes(reg-step1)() during " +
+                strActionName + ": " ) + cc.error( strError ) + cc.error( ", stack is: " ) +
+                "\n" + cc.stack( err.stack ) + "\n";
+            if( log.id != details.id )
+                log.write( s );
+            details.write( s );
+        }
         details.exposeDetailsTo( log, "checkIsRegisteredSChainInDepositBoxes", false );
         details.close();
     }
@@ -2123,14 +2044,16 @@ export async function invokeHasChain(
             "\n" );
         return bHasSchain;
     } catch ( err ) {
-        const strError = owaspUtils.extractErrorMessage( err );
-        const s = strLogPrefix + cc.fatal( "CRITICAL ERROR:" ) +
-            cc.error( "Error in invokeHasChain() during " + strActionName + ": " ) +
-            cc.error( strError ) + cc.error( ", stack is: " ) + "\n" + cc.stack( err.stack ) +
-            "\n";
-        if( verboseGet() >= verboseReversed().fatal )
-            log.write( s );
-        details.write( s );
+        if( log.verboseGet() >= log.verboseReversed().critical ) {
+            const strError = owaspUtils.extractErrorMessage( err );
+            const s = strLogPrefix + cc.fatal( "CRITICAL ERROR:" ) +
+                cc.error( "Error in invokeHasChain() during " + strActionName + ": " ) +
+                cc.error( strError ) + cc.error( ", stack is: " ) + "\n" + cc.stack( err.stack ) +
+                "\n";
+            if( log.id != details.id )
+                log.write( s );
+            details.write( s );
+        }
     }
     return false;
 }
@@ -2272,21 +2195,23 @@ export async function registerSChainInDepositBoxes( // step 1
         if( ! isSChainStatusOKay )
             throw new Error( "S-Chain ownership status check timeout" );
     } catch ( err ) {
-        const strError = owaspUtils.extractErrorMessage( err );
-        const s = strLogPrefix +
-            cc.fatal( "CRITICAL ERROR:" ) +
-            cc.error( " Error in registerSChainInDepositBoxes() during " +
-            strActionName + ": " ) +
-            cc.error( strError ) + cc.error( ", stack is: " ) +
-            "\n" + cc.stack( err.stack ) + "\n";
-        if( verboseGet() >= verboseReversed().fatal )
-            log.write( s );
-        details.write( s );
+        if( log.verboseGet() >= log.verboseReversed().critical ) {
+            const strError = owaspUtils.extractErrorMessage( err );
+            const s = strLogPrefix +
+                cc.fatal( "CRITICAL ERROR:" ) +
+                cc.error( " Error in registerSChainInDepositBoxes() during " +
+                strActionName + ": " ) +
+                cc.error( strError ) + cc.error( ", stack is: " ) +
+                "\n" + cc.stack( err.stack ) + "\n";
+            if( log.id != details.id )
+                log.write( s );
+            details.write( s );
+        }
         details.exposeDetailsTo( log, "registerSChainInDepositBoxes", false );
         details.close();
         return null;
     }
-    if( exposeDetailsGet() )
+    if( log.exposeDetailsGet() )
         details.exposeDetailsTo( log, "registerSChainInDepositBoxes", true );
     details.close();
     return jarrReceipts;
@@ -2316,30 +2241,32 @@ export async function reimbursementShowBalance(
                 addressFrom, strReimbursementChain, { from: addressFrom } );
 
         s = strLogPrefix + cc.success( "Balance(wei): " ) + cc.attention( xWei ) + "\n";
-        if( isForcePrintOut || verboseGet() >= verboseReversed().information )
+        if( isForcePrintOut || log.verboseGet() >= log.verboseReversed().information )
             log.write( s );
         details.write( s );
 
         const xEth = owaspUtils.ethersMod.ethers.utils.formatEther( owaspUtils.toBN( xWei ) );
         s = strLogPrefix + cc.success( "Balance(eth): " ) + cc.attention( xEth ) + "\n";
-        if( isForcePrintOut || verboseGet() >= verboseReversed().information )
+        if( isForcePrintOut || log.verboseGet() >= log.verboseReversed().information )
             log.write( s );
         details.write( s );
 
-        if( exposeDetailsGet() )
+        if( log.exposeDetailsGet() )
             details.exposeDetailsTo( log, "reimbursementShowBalance", true );
         details.close();
         return xWei;
     } catch ( err ) {
-        const strError = owaspUtils.extractErrorMessage( err );
-        const s = strLogPrefix +
-            cc.fatal( "CRITICAL ERROR:" ) +
-            cc.error( " Payment error in reimbursementShowBalance(): " ) +
-            cc.error( strError ) +
-            cc.error( ", stack is: " ) + "\n" + cc.stack( err.stack ) + "\n";
-        if( verboseGet() >= verboseReversed().fatal )
-            log.write( s );
-        details.write( s );
+        if( log.verboseGet() >= log.verboseReversed().critical ) {
+            const strError = owaspUtils.extractErrorMessage( err );
+            const s = strLogPrefix +
+                cc.fatal( "CRITICAL ERROR:" ) +
+                cc.error( " Payment error in reimbursementShowBalance(): " ) +
+                cc.error( strError ) +
+                cc.error( ", stack is: " ) + "\n" + cc.stack( err.stack ) + "\n";
+            if( log.id != details.id )
+                log.write( s );
+            details.write( s );
+        }
         details.exposeDetailsTo( log, "reimbursementShowBalance", false );
         details.close();
         return 0;
@@ -2370,13 +2297,13 @@ export async function reimbursementEstimateAmount(
             addressReceiver, strReimbursementChain, { from: addressReceiver } );
 
         s = strLogPrefix + cc.success( "Balance(wei): " ) + cc.attention( xWei ) + "\n";
-        if( isForcePrintOut || verboseGet() >= verboseReversed().information )
+        if( isForcePrintOut || log.verboseGet() >= log.verboseReversed().information )
             log.write( s );
         details.write( s );
 
         const xEth = owaspUtils.ethersMod.ethers.utils.formatEther( owaspUtils.toBN( xWei ) );
         s = strLogPrefix + cc.success( "Balance(eth): " ) + cc.attention( xEth ) + "\n";
-        if( isForcePrintOut || verboseGet() >= verboseReversed().information )
+        if( isForcePrintOut || log.verboseGet() >= log.verboseReversed().information )
             log.write( s );
         details.write( s );
 
@@ -2386,21 +2313,21 @@ export async function reimbursementEstimateAmount(
                     { from: addressReceiver } ) );
         s = strLogPrefix + cc.success( "MinTransactionGas: " ) +
             cc.attention( minTransactionGas ) + "\n";
-        if( isForcePrintOut || verboseGet() >= verboseReversed().information )
+        if( isForcePrintOut || log.verboseGet() >= log.verboseReversed().information )
             log.write( s );
         details.write( s );
 
         const gasPrice = await transactionCustomizerMainNet.computeGasPrice(
             ethersProviderMainNet, 200000000000 );
         s = strLogPrefix + cc.success( "Multiplied Gas Price: " ) + cc.attention( gasPrice ) + "\n";
-        if( isForcePrintOut || verboseGet() >= verboseReversed().information )
+        if( isForcePrintOut || log.verboseGet() >= log.verboseReversed().information )
             log.write( s );
         details.write( s );
 
         const minAmount = minTransactionGas * gasPrice;
         s = strLogPrefix + cc.success( "Minimum recharge balance: " ) +
             cc.attention( minAmount ) + "\n";
-        if( isForcePrintOut || verboseGet() >= verboseReversed().information )
+        if( isForcePrintOut || log.verboseGet() >= log.verboseReversed().information )
             log.write( s );
         details.write( s );
 
@@ -2412,7 +2339,7 @@ export async function reimbursementEstimateAmount(
 
         s = strLogPrefix + cc.success( "Estimated amount to recharge(wei): " ) +
             cc.attention( amountToRecharge ) + "\n";
-        if( isForcePrintOut || verboseGet() >= verboseReversed().information )
+        if( isForcePrintOut || log.verboseGet() >= log.verboseReversed().information )
             log.write( s );
         details.write( s );
 
@@ -2421,23 +2348,25 @@ export async function reimbursementEstimateAmount(
                 owaspUtils.toBN( amountToRecharge.toString() ) );
         s = strLogPrefix + cc.success( "Estimated amount to recharge(eth): " ) +
             cc.attention( amountToRechargeEth ) + "\n";
-        if( isForcePrintOut || verboseGet() >= verboseReversed().information )
+        if( isForcePrintOut || log.verboseGet() >= log.verboseReversed().information )
             log.write( s );
         details.write( s );
 
-        if( exposeDetailsGet() )
+        if( log.exposeDetailsGet() )
             details.exposeDetailsTo( log, "reimbursementEstimateAmount", true );
         details.close();
         return amountToRecharge;
     } catch ( err ) {
-        const strError = owaspUtils.extractErrorMessage( err );
-        const s = strLogPrefix + cc.fatal( "CRITICAL ERROR:" ) +
-            cc.error( " Payment error in reimbursementEstimateAmount(): " ) +
-            cc.error( strError ) +
-            cc.error( ", stack is: " ) + "\n" + cc.stack( err.stack ) + "\n";
-        if( verboseGet() >= verboseReversed().fatal )
-            log.write( s );
-        details.write( s );
+        if( log.verboseGet() >= log.verboseReversed().critical ) {
+            const strError = owaspUtils.extractErrorMessage( err );
+            const s = strLogPrefix + cc.fatal( "CRITICAL ERROR:" ) +
+                cc.error( " Payment error in reimbursementEstimateAmount(): " ) +
+                cc.error( strError ) +
+                cc.error( ", stack is: " ) + "\n" + cc.stack( err.stack ) + "\n";
+            if( log.id != details.id )
+                log.write( s );
+            details.write( s );
+        }
         details.exposeDetailsTo( log, "reimbursementEstimateAmount", false );
         details.close();
         return 0;
@@ -2517,20 +2446,22 @@ export async function reimbursementWalletRecharge(
             } );
         }
     } catch ( err ) {
-        const strError = owaspUtils.extractErrorMessage( err );
-        const s = strLogPrefix +
-            cc.fatal( "CRITICAL ERROR:" ) + cc.error( " Payment error in " +
-            strActionName + ": " ) + cc.error( strError ) +
-            cc.error( ", stack is: " ) + "\n" + cc.stack( err.stack ) + "\n";
-        if( verboseGet() >= verboseReversed().fatal )
-            log.write( s );
-        details.write( s );
+        if( log.verboseGet() >= log.verboseReversed().critical ) {
+            const strError = owaspUtils.extractErrorMessage( err );
+            const s = strLogPrefix +
+                cc.fatal( "CRITICAL ERROR:" ) + cc.error( " Payment error in " +
+                strActionName + ": " ) + cc.error( strError ) +
+                cc.error( ", stack is: " ) + "\n" + cc.stack( err.stack ) + "\n";
+            if( log.id != details.id )
+                log.write( s );
+            details.write( s );
+        }
         details.exposeDetailsTo( log, "reimbursementWalletRecharge", false );
         details.close();
         return false;
     }
     printGasUsageReportFromArray( "REIMBURSEMENT_WALLET_RECHARGE", jarrReceipts, details );
-    if( exposeDetailsGet() )
+    if( log.exposeDetailsGet() )
         details.exposeDetailsTo( log, "reimbursementWalletRecharge", true );
     details.close();
     return true;
@@ -2609,20 +2540,22 @@ export async function reimbursementWalletWithdraw(
             } );
         }
     } catch ( err ) {
-        const strError = owaspUtils.extractErrorMessage( err );
-        const s = strLogPrefix +
-            cc.fatal( "CRITICAL ERROR:" ) + cc.error( " Payment error in " +
-            strActionName + ": " ) + cc.error( strError ) +
-            cc.error( ", stack is: " ) + "\n" + cc.stack( err.stack ) + "\n";
-        if( verboseGet() >= verboseReversed().fatal )
-            log.write( s );
-        details.write( s );
+        if( log.verboseGet() >= log.verboseReversed().critical ) {
+            const strError = owaspUtils.extractErrorMessage( err );
+            const s = strLogPrefix +
+                cc.fatal( "CRITICAL ERROR:" ) + cc.error( " Payment error in " +
+                strActionName + ": " ) + cc.error( strError ) +
+                cc.error( ", stack is: " ) + "\n" + cc.stack( err.stack ) + "\n";
+            if( log.id != details.id )
+                log.write( s );
+            details.write( s );
+        }
         details.exposeDetailsTo( log, "reimbursementWalletWithdraw", false );
         details.close();
         return false;
     }
     printGasUsageReportFromArray( "REIMBURSEMENT_WALLET_WITHDRAW", jarrReceipts, details );
-    if( exposeDetailsGet() )
+    if( log.exposeDetailsGet() )
         details.exposeDetailsTo( log, "reimbursementWalletWithdraw", true );
     details.close();
     return true;
@@ -2708,19 +2641,21 @@ export async function reimbursementSetRange(
             } );
         }
     } catch ( err ) {
-        const strError = owaspUtils.extractErrorMessage( err );
-        const s = strLogPrefix + cc.fatal( "CRITICAL ERROR:" ) +
-            cc.error( " Payment error in " + strActionName + ": " ) + cc.error( strError ) +
-            cc.error( ", stack is: " ) + "\n" + cc.stack( err.stack ) + "\n";
-        if( verboseGet() >= verboseReversed().fatal )
-            log.write( s );
-        details.write( s );
+        if( log.verboseGet() >= log.verboseReversed().critical ) {
+            const strError = owaspUtils.extractErrorMessage( err );
+            const s = strLogPrefix + cc.fatal( "CRITICAL ERROR:" ) +
+                cc.error( " Payment error in " + strActionName + ": " ) + cc.error( strError ) +
+                cc.error( ", stack is: " ) + "\n" + cc.stack( err.stack ) + "\n";
+            if( log.id != details.id )
+                log.write( s );
+            details.write( s );
+        }
         details.exposeDetailsTo( log, "reimbursementSetRange", false );
         details.close();
         return false;
     }
     printGasUsageReportFromArray( "REIMBURSEMENT_SET_RANGE", jarrReceipts, details );
-    if( exposeDetailsGet() )
+    if( log.exposeDetailsGet() )
         details.exposeDetailsTo( log, "reimbursementSetRange", true );
     details.close();
     return true;
@@ -2838,19 +2773,21 @@ export async function doEthPaymentFromMainNet(
             }
         }
     } catch ( err ) {
-        const strError = owaspUtils.extractErrorMessage( err );
-        const s = strLogPrefix + cc.fatal( "CRITICAL ERROR:" ) + cc.error( " Payment error in " +
-            strActionName + ": " ) + cc.error( strError ) +
-            cc.error( ", stack is: " ) + "\n" + cc.stack( err.stack ) + "\n";
-        if( verboseGet() >= verboseReversed().fatal )
-            log.write( s );
-        details.write( s );
+        if( log.verboseGet() >= log.verboseReversed().critical ) {
+            const strError = owaspUtils.extractErrorMessage( err );
+            const s = strLogPrefix + cc.fatal( "CRITICAL ERROR:" ) +
+                cc.error( " Payment error in " + strActionName + ": " ) + cc.error( strError ) +
+                cc.error( ", stack is: " ) + "\n" + cc.stack( err.stack ) + "\n";
+            if( log.id != details.id )
+                log.write( s );
+            details.write( s );
+        }
         details.exposeDetailsTo( log, "doEthPaymentFromMainNet", false );
         details.close();
         return false;
     }
     printGasUsageReportFromArray( "ETH PAYMENT FROM MAIN NET", jarrReceipts, details );
-    if( exposeDetailsGet() )
+    if( log.exposeDetailsGet() )
         details.exposeDetailsTo( log, "doEthPaymentFromMainNet", true );
     details.close();
     return true;
@@ -2965,20 +2902,22 @@ export async function doEthPaymentFromSChain(
             }
         }
     } catch ( err ) {
-        const strError = owaspUtils.extractErrorMessage( err );
-        const s = strLogPrefix +
-            cc.fatal( "CRITICAL ERROR:" ) + cc.error( " Payment error in " +
-            strActionName + ": " ) + cc.error( strError ) +
-            cc.error( ", stack is: " ) + "\n" + cc.stack( err.stack ) + "\n";
-        if( verboseGet() >= verboseReversed().fatal )
-            log.write( s );
-        details.write( s );
+        if( log.verboseGet() >= log.verboseReversed().critical ) {
+            const strError = owaspUtils.extractErrorMessage( err );
+            const s = strLogPrefix +
+                cc.fatal( "CRITICAL ERROR:" ) + cc.error( " Payment error in " +
+                strActionName + ": " ) + cc.error( strError ) +
+                cc.error( ", stack is: " ) + "\n" + cc.stack( err.stack ) + "\n";
+            if( log.id != details.id )
+                log.write( s );
+            details.write( s );
+        }
         details.exposeDetailsTo( log, "doEthPaymentFromSChain", false );
         details.close();
         return false;
     }
     printGasUsageReportFromArray( "ETH PAYMENT FROM S-CHAIN", jarrReceipts, details );
-    if( exposeDetailsGet() )
+    if( log.exposeDetailsGet() )
         details.exposeDetailsTo( log, "doEthPaymentFromSChain", true );
     details.close();
     return true;
@@ -3049,20 +2988,22 @@ export async function receiveEthPaymentFromSchainOnMainNet(
             } );
         }
     } catch ( err ) {
-        const strError = owaspUtils.extractErrorMessage( err );
-        const s = strLogPrefix + cc.fatal( "CRITICAL ERROR:" ) +
-            cc.error( " Receive payment error in " + strActionName + ": " ) +
-            cc.error( strError ) +
-            cc.error( ", stack is: " ) + "\n" + cc.stack( err.stack ) + "\n";
-        if( verboseGet() >= verboseReversed().fatal )
-            log.write( s );
-        details.write( s );
+        if( log.verboseGet() >= log.verboseReversed().critical ) {
+            const strError = owaspUtils.extractErrorMessage( err );
+            const s = strLogPrefix + cc.fatal( "CRITICAL ERROR:" ) +
+                cc.error( " Receive payment error in " + strActionName + ": " ) +
+                cc.error( strError ) +
+                cc.error( ", stack is: " ) + "\n" + cc.stack( err.stack ) + "\n";
+            if( log.id != details.id )
+                log.write( s );
+            details.write( s );
+        }
         details.exposeDetailsTo( log, "receiveEthPaymentFromSchainOnMainNet", false );
         details.close();
         return false;
     }
     printGasUsageReportFromArray( "RECEIVE ETH ON MAIN NET", jarrReceipts, details );
-    if( exposeDetailsGet() )
+    if( log.exposeDetailsGet() )
         details.exposeDetailsTo( log, "receiveEthPaymentFromSchainOnMainNet", true );
     details.close();
     return true;
@@ -3089,21 +3030,24 @@ export async function viewEthPaymentFromSchainOnMainNet(
         const xEth = owaspUtils.ethersMod.ethers.utils.formatEther( owaspUtils.toBN( xWei ) );
         const s = strLogPrefix +
             cc.success( "You can receive(eth): " ) + cc.attention( xEth ) + "\n";
-        if( verboseGet() >= verboseReversed().information )
+        if( log.verboseGet() >= log.verboseReversed().information )
             log.write( s );
         details.write( s );
-        if( exposeDetailsGet() )
+        if( log.exposeDetailsGet() )
             details.exposeDetailsTo( log, "viewEthPaymentFromSchainOnMainNet", true );
         details.close();
         return xWei;
     } catch ( err ) {
-        const strError = owaspUtils.extractErrorMessage( err );
-        const s = strLogPrefix + cc.fatal( "CRITICAL ERROR:" ) +
-            cc.error( " View payment error in " + strActionName + ": " ) + cc.error( strError ) +
-            cc.error( ", stack is: " ) + "\n" + cc.stack( err.stack ) + "\n";
-        if( verboseGet() >= verboseReversed().fatal )
-            log.write( s );
-        details.write( s );
+        if( log.verboseGet() >= log.verboseReversed().critical ) {
+            const strError = owaspUtils.extractErrorMessage( err );
+            const s = strLogPrefix + cc.fatal( "CRITICAL ERROR:" ) +
+                cc.error( " View payment error in " + strActionName + ": " ) +
+                cc.error( strError ) + cc.error( ", stack is: " ) + "\n" +
+                cc.stack( err.stack ) + "\n";
+            if( log.id != details.id )
+                log.write( s );
+            details.write( s );
+        }
         details.exposeDetailsTo( log, "viewEthPaymentFromSchainOnMainNet", false );
         details.close();
         return null;
@@ -3288,21 +3232,23 @@ export async function doErc721PaymentFromMainNet(
             }
         }
     } catch ( err ) {
-        const strError = owaspUtils.extractErrorMessage( err );
-        const s = strLogPrefix +
-            cc.fatal( "CRITICAL ERROR:" ) + cc.error( " Payment error in " +
-            strActionName + ": " ) + cc.error( strError ) +
-            cc.error( ", stack is: " ) + "\n" + cc.stack( err.stack ) + "\n";
-        if( verboseGet() >= verboseReversed().fatal )
-            log.write( s );
-        details.write( s );
+        if( log.verboseGet() >= log.verboseReversed().critical ) {
+            const strError = owaspUtils.extractErrorMessage( err );
+            const s = strLogPrefix +
+                cc.fatal( "CRITICAL ERROR:" ) + cc.error( " Payment error in " +
+                strActionName + ": " ) + cc.error( strError ) +
+                cc.error( ", stack is: " ) + "\n" + cc.stack( err.stack ) + "\n";
+            if( log.id != details.id )
+                log.write( s );
+            details.write( s );
+        }
         details.exposeDetailsTo( log, "doErc721PaymentFromMainNet", false );
         details.close();
         return false;
     }
     printGasUsageReportFromArray(
         "ERC-721 PAYMENT FROM MAIN NET", jarrReceipts, details );
-    if( exposeDetailsGet() )
+    if( log.exposeDetailsGet() )
         details.exposeDetailsTo( log, "doErc721PaymentFromMainNet", true );
     details.close();
     return true;
@@ -3485,19 +3431,21 @@ export async function doErc20PaymentFromMainNet(
             }
         }
     } catch ( err ) {
-        const strError = owaspUtils.extractErrorMessage( err );
-        const s = strLogPrefix + cc.fatal( "CRITICAL ERROR:" ) + cc.error( " Payment error in " +
-            strActionName + ": " ) + cc.error( strError ) +
-            cc.error( ", stack is: " ) + "\n" + cc.stack( err.stack ) + "\n";
-        if( verboseGet() >= verboseReversed().fatal )
-            log.write( s );
-        details.write( s );
+        if( log.verboseGet() >= log.verboseReversed().critical ) {
+            const strError = owaspUtils.extractErrorMessage( err );
+            const s = strLogPrefix + cc.fatal( "CRITICAL ERROR:" ) +
+                cc.error( " Payment error in " + strActionName + ": " ) + cc.error( strError ) +
+                cc.error( ", stack is: " ) + "\n" + cc.stack( err.stack ) + "\n";
+            if( log.id != details.id )
+                log.write( s );
+            details.write( s );
+        }
         details.exposeDetailsTo( log, "doErc20PaymentFromMainNet", false );
         details.close();
         return false;
     }
     printGasUsageReportFromArray( "ERC-20 PAYMENT FROM MAIN NET", jarrReceipts, details );
-    if( exposeDetailsGet() )
+    if( log.exposeDetailsGet() )
         details.exposeDetailsTo( log, "doErc20PaymentFromMainNet", true );
     details.close();
     return true;
@@ -3654,31 +3602,30 @@ export async function doErc1155PaymentFromMainNet(
             }
         }
     } catch ( err ) {
-        const strError = owaspUtils.extractErrorMessage( err );
-        const s = strLogPrefix + cc.fatal( "CRITICAL ERROR:" ) +
-            cc.error( " Payment error in " + strActionName + ": " ) + cc.error( strError ) +
-            cc.error( ", stack is: " ) + "\n" + cc.stack( err.stack ) + "\n";
-        if( verboseGet() >= verboseReversed().fatal )
-            log.write( s );
-        details.write( s );
+        if( log.verboseGet() >= log.verboseReversed().critical ) {
+            const strError = owaspUtils.extractErrorMessage( err );
+            const s = strLogPrefix + cc.fatal( "CRITICAL ERROR:" ) +
+                cc.error( " Payment error in " + strActionName + ": " ) + cc.error( strError ) +
+                cc.error( ", stack is: " ) + "\n" + cc.stack( err.stack ) + "\n";
+            if( log.id != details.id )
+                log.write( s );
+            details.write( s );
+        }
         details.exposeDetailsTo( log, "doErc1155PaymentFromMainNet", false );
         details.close();
         return false;
     }
     printGasUsageReportFromArray( "ERC-1155 PAYMENT FROM MAIN NET", jarrReceipts, details );
-    if( exposeDetailsGet() )
+    if( log.exposeDetailsGet() )
         details.exposeDetailsTo( log, "doErc1155PaymentFromMainNet", true );
     details.close();
     return true;
 }
 
 export async function doErc1155BatchPaymentFromMainNet(
-    ethersProviderMainNet,
-    ethersProviderSChain,
-    chainIdMainNet,
-    chainIdSChain,
-    joAccountSrc,
-    joAccountDst,
+    ethersProviderMainNet, ethersProviderSChain,
+    chainIdMainNet, chainIdSChain,
+    joAccountSrc, joAccountDst,
     joDepositBoxERC1155,
     joMessageProxyMainNet, // for checking logs
     chainNameSChain,
@@ -3687,10 +3634,8 @@ export async function doErc1155BatchPaymentFromMainNet(
     weiHowMuch, // how much ETH
     joTokenManagerERC1155, // only s-chain
     strCoinNameErc1155SMainNet,
-    erc1155PrivateTestnetJsonMainNet,
-    strCoinNameErc1155SChain,
-    erc1155PrivateTestnetJsonSChain,
-    transactionCustomizerMainNet
+    erc1155PrivateTestnetJsonMainNet, strCoinNameErc1155SChain,
+    erc1155PrivateTestnetJsonSChain, transactionCustomizerMainNet
 ) {
     const details = log.createMemoryStream();
     const jarrReceipts = [];
@@ -3715,62 +3660,40 @@ export async function doErc1155BatchPaymentFromMainNet(
             true
         ];
         const arrArgumentsDepositERC1155Batch = [
-            chainNameSChain,
-            erc1155AddressMainNet,
-            arrTokenIds,
-            arrTokenAmounts
-        ];
+            chainNameSChain, erc1155AddressMainNet, arrTokenIds, arrTokenAmounts ];
         const weiHowMuchApprove = undefined;
         let gasPrice = await transactionCustomizerMainNet.computeGasPrice(
             ethersProviderMainNet, 200000000000 );
-        details.write( strLogPrefix +
-            cc.debug( "Using computed " ) + cc.info( "gasPrice" ) +
-            cc.debug( "=" ) + cc.j( gasPrice ) +
-            "\n" );
+        details.write( strLogPrefix + cc.debug( "Using computed " ) + cc.info( "gasPrice" ) +
+            cc.debug( "=" ) + cc.j( gasPrice ) + "\n" );
         const estimatedGasApprove =
             await transactionCustomizerMainNet.computeGas(
-                details,
-                ethersProviderMainNet,
+                details, ethersProviderMainNet,
                 "ERC1155", contractERC1155, "setApprovalForAll", arrArgumentsApprove,
-                joAccountSrc, strActionName,
-                gasPrice, 8000000, weiHowMuchApprove,
-                null
-            );
-        details.write( strLogPrefix +
-            cc.debug( "Using estimated(approve) " ) + cc.info( "gas" ) +
-            cc.debug( "=" ) + cc.notice( estimatedGasApprove ) +
-            "\n" );
+                joAccountSrc, strActionName, gasPrice, 8000000, weiHowMuchApprove, null );
+        details.write( strLogPrefix + cc.debug( "Using estimated(approve) " ) + cc.info( "gas" ) +
+            cc.debug( "=" ) + cc.notice( estimatedGasApprove ) + "\n" );
         const isIgnoreApprove = false;
         const strErrorOfDryRunApprove =
             await dryRunCall(
-                details,
-                ethersProviderMainNet,
-                "ERC1155", contractERC1155,
+                details, ethersProviderMainNet, "ERC1155", contractERC1155,
                 "setApprovalForAll", arrArgumentsApprove,
                 joAccountSrc, strActionName, isIgnoreApprove,
-                gasPrice, estimatedGasApprove, weiHowMuchApprove,
-                null
-            );
+                gasPrice, estimatedGasApprove, weiHowMuchApprove, null );
         if( strErrorOfDryRunApprove )
             throw new Error( strErrorOfDryRunApprove );
-
         const joReceiptApprove =
             await payedCall(
-                details,
-                ethersProviderMainNet,
-                "ERC1155", contractERC1155,
-                "setApprovalForAll", arrArgumentsApprove,
+                details, ethersProviderMainNet,
+                "ERC1155", contractERC1155, "setApprovalForAll", arrArgumentsApprove,
                 joAccountSrc, strActionName,
-                gasPrice, estimatedGasApprove, weiHowMuchApprove,
-                null
-            );
+                gasPrice, estimatedGasApprove, weiHowMuchApprove, null );
         if( joReceiptApprove && typeof joReceiptApprove == "object" ) {
             jarrReceipts.push( {
                 "description": "doErc1155BatchPaymentFromMainNet/approve",
                 "receipt": joReceiptApprove
             } );
         }
-
         strActionName = "ERC1155 batch-payment from Main Net, depositERC1155Batch";
         const weiHowMuchDepositERC1155Batch = undefined;
         gasPrice = await transactionCustomizerMainNet.computeGasPrice(
@@ -3781,49 +3704,36 @@ export async function doErc1155BatchPaymentFromMainNet(
             "\n" );
         const estimatedGasDeposit =
             await transactionCustomizerMainNet.computeGas(
-                details,
-                ethersProviderMainNet,
+                details, ethersProviderMainNet,
                 "DepositBoxERC1155", joDepositBoxERC1155,
                 "depositERC1155Batch", arrArgumentsDepositERC1155Batch,
                 joAccountSrc, strActionName,
-                gasPrice, 8000000, weiHowMuchDepositERC1155Batch,
-                null
-            );
-        details.write( strLogPrefix +
-            cc.debug( "Using estimated(deposit) " ) + cc.info( "gas" ) +
-            cc.debug( "=" ) + cc.notice( estimatedGasDeposit ) +
-            "\n" );
+                gasPrice, 8000000, weiHowMuchDepositERC1155Batch, null );
+        details.write( strLogPrefix + cc.debug( "Using estimated(deposit) " ) + cc.info( "gas" ) +
+            cc.debug( "=" ) + cc.notice( estimatedGasDeposit ) + "\n" );
         const isIgnoreDepositERC1155Batch = true;
         const strErrorOfDryRunDepositERC1155Batch =
             await dryRunCall(
-                details,
-                ethersProviderMainNet,
+                details, ethersProviderMainNet,
                 "DepositBoxERC1155", joDepositBoxERC1155,
                 "depositERC1155Batch", arrArgumentsDepositERC1155Batch,
                 joAccountSrc, strActionName, isIgnoreDepositERC1155Batch,
-                gasPrice, estimatedGasDeposit, weiHowMuchDepositERC1155Batch,
-                null
-            );
+                gasPrice, estimatedGasDeposit, weiHowMuchDepositERC1155Batch, null );
         if( strErrorOfDryRunDepositERC1155Batch )
             throw new Error( strErrorOfDryRunDepositERC1155Batch );
-
         const joReceiptDeposit =
             await payedCall(
-                details,
-                ethersProviderMainNet,
+                details, ethersProviderMainNet,
                 "DepositBoxERC1155", joDepositBoxERC1155,
                 "depositERC1155Batch", arrArgumentsDepositERC1155Batch,
                 joAccountSrc, strActionName,
-                gasPrice, estimatedGasDeposit, weiHowMuchDepositERC1155Batch,
-                null
-            );
+                gasPrice, estimatedGasDeposit, weiHowMuchDepositERC1155Batch, null );
         if( joReceiptDeposit && typeof joReceiptDeposit == "object" ) {
             jarrReceipts.push( {
                 "description": "doErc1155BatchPaymentFromMainNet/deposit",
                 "receipt": joReceiptDeposit
             } );
         }
-
         // Must-have event(s) analysis as indicator(s) of success
         const strEventName = "OutgoingMessage";
         if( joMessageProxyMainNet ) {
@@ -3855,19 +3765,21 @@ export async function doErc1155BatchPaymentFromMainNet(
             }
         }
     } catch ( err ) {
-        const strError = owaspUtils.extractErrorMessage( err );
-        const s = strLogPrefix + cc.fatal( "CRITICAL ERROR:" ) +
-            cc.error( " Payment error in " + strActionName + ": " ) + cc.error( strError ) +
-            cc.error( ", stack is: " ) + "\n" + cc.stack( err.stack ) + "\n";
-        if( verboseGet() >= verboseReversed().fatal )
-            log.write( s );
-        details.write( s );
+        if( log.verboseGet() >= log.verboseReversed().critical ) {
+            const strError = owaspUtils.extractErrorMessage( err );
+            const s = strLogPrefix + cc.fatal( "CRITICAL ERROR:" ) +
+                cc.error( " Payment error in " + strActionName + ": " ) + cc.error( strError ) +
+                cc.error( ", stack is: " ) + "\n" + cc.stack( err.stack ) + "\n";
+            if( log.id != details.id )
+                log.write( s );
+            details.write( s );
+        }
         details.exposeDetailsTo( log, "doErc1155BatchPaymentFromMainNet", false );
         details.close();
         return false;
     }
     printGasUsageReportFromArray( "ERC-1155 PAYMENT FROM MAIN NET", jarrReceipts, details );
-    if( exposeDetailsGet() )
+    if( log.exposeDetailsGet() )
         details.exposeDetailsTo( log, "doErc1155BatchPaymentFromMainNet", true );
     details.close();
     return true;
@@ -4022,19 +3934,21 @@ export async function doErc20PaymentFromSChain(
             }
         }
     } catch ( err ) {
-        const strError = owaspUtils.extractErrorMessage( err );
-        const s = strLogPrefix + cc.fatal( "CRITICAL ERROR:" ) +
-            cc.error( " Payment error in " + strActionName + ": " ) + cc.error( strError ) +
-            cc.error( ", stack is: " ) + "\n" + cc.stack( err.stack ) + "\n";
-        if( verboseGet() >= verboseReversed().fatal )
-            log.write( s );
-        details.write( s );
+        if( log.verboseGet() >= log.verboseReversed().critical ) {
+            const strError = owaspUtils.extractErrorMessage( err );
+            const s = strLogPrefix + cc.fatal( "CRITICAL ERROR:" ) +
+                cc.error( " Payment error in " + strActionName + ": " ) + cc.error( strError ) +
+                cc.error( ", stack is: " ) + "\n" + cc.stack( err.stack ) + "\n";
+            if( log.id != details.id )
+                log.write( s );
+            details.write( s );
+        }
         details.exposeDetailsTo( log, "doErc20PaymentFromSChain", false );
         details.close();
         return false;
     }
     printGasUsageReportFromArray( "ERC-20 PAYMENT FROM S-CHAIN", jarrReceipts, details );
-    if( exposeDetailsGet() )
+    if( log.exposeDetailsGet() )
         details.exposeDetailsTo( log, "doErc20PaymentFromSChain", true );
     details.close();
     return true;
@@ -4193,19 +4107,21 @@ export async function doErc721PaymentFromSChain(
             }
         }
     } catch ( err ) {
-        const strError = owaspUtils.extractErrorMessage( err );
-        const s = strLogPrefix + cc.fatal( "CRITICAL ERROR:" ) + cc.error( " Payment error in " +
-            strActionName + ": " ) + cc.error( strError ) +
-            cc.error( ", stack is: " ) + "\n" + cc.stack( err.stack ) + "\n";
-        if( verboseGet() >= verboseReversed().fatal )
-            log.write( s );
-        details.write( s );
+        if( log.verboseGet() >= log.verboseReversed().critical ) {
+            const strError = owaspUtils.extractErrorMessage( err );
+            const s = strLogPrefix + cc.fatal( "CRITICAL ERROR:" ) +
+                cc.error( " Payment error in " + strActionName + ": " ) + cc.error( strError ) +
+                cc.error( ", stack is: " ) + "\n" + cc.stack( err.stack ) + "\n";
+            if( log.id != details.id )
+                log.write( s );
+            details.write( s );
+        }
         details.exposeDetailsTo( log, "doErc721PaymentFromSChain", false );
         details.close();
         return false;
     }
     printGasUsageReportFromArray( "ERC-721 PAYMENT FROM S-CHAIN", jarrReceipts, details );
-    if( exposeDetailsGet() )
+    if( log.exposeDetailsGet() )
         details.exposeDetailsTo( log, "doErc721PaymentFromSChain", true );
     details.close();
     return true;
@@ -4366,19 +4282,21 @@ export async function doErc1155PaymentFromSChain(
             }
         }
     } catch ( err ) {
-        const strError = owaspUtils.extractErrorMessage( err );
-        const s = strLogPrefix + cc.fatal( "CRITICAL ERROR:" ) +
-            cc.error( " Payment error in " + strActionName + ": " ) + cc.error( strError ) +
-            cc.error( ", stack is: " ) + "\n" + cc.stack( err.stack ) + "\n";
-        if( verboseGet() >= verboseReversed().fatal )
-            log.write( s );
-        details.write( s );
+        if( log.verboseGet() >= log.verboseReversed().critical ) {
+            const strError = owaspUtils.extractErrorMessage( err );
+            const s = strLogPrefix + cc.fatal( "CRITICAL ERROR:" ) +
+                cc.error( " Payment error in " + strActionName + ": " ) + cc.error( strError ) +
+                cc.error( ", stack is: " ) + "\n" + cc.stack( err.stack ) + "\n";
+            if( log.id != details.id )
+                log.write( s );
+            details.write( s );
+        }
         details.exposeDetailsTo( log, "doErc1155PaymentFromSChain", false );
         details.close();
         return false;
     }
     printGasUsageReportFromArray( "ERC-1155 PAYMENT FROM S-CHAIN", jarrReceipts, details );
-    if( exposeDetailsGet() )
+    if( log.exposeDetailsGet() )
         details.exposeDetailsTo( log, "doErc1155PaymentFromSChain", true );
     details.close();
     return true;
@@ -4540,20 +4458,22 @@ export async function doErc1155BatchPaymentFromSChain(
             }
         }
     } catch ( err ) {
-        const strError = owaspUtils.extractErrorMessage( err );
-        const s = strLogPrefix + cc.fatal( "CRITICAL ERROR:" ) +
-            cc.error( " Payment error in " + strActionName + ": " ) + cc.error( strError ) +
-            cc.error( ", stack is: " ) + "\n" + cc.stack( err.stack ) + "\n";
-        if( verboseGet() >= verboseReversed().fatal )
-            log.write( s );
-        details.write( s );
+        if( log.verboseGet() >= log.verboseReversed().critical ) {
+            const strError = owaspUtils.extractErrorMessage( err );
+            const s = strLogPrefix + cc.fatal( "CRITICAL ERROR:" ) +
+                cc.error( " Payment error in " + strActionName + ": " ) + cc.error( strError ) +
+                cc.error( ", stack is: " ) + "\n" + cc.stack( err.stack ) + "\n";
+            if( log.id != details.id )
+                log.write( s );
+            details.write( s );
+        }
         details.exposeDetailsTo( log, "doErc1155BatchPaymentFromSChain", false );
         details.close();
         return false;
     }
     printGasUsageReportFromArray(
         "ERC-1155 PAYMENT FROM S-CHAIN", jarrReceipts, details );
-    if( exposeDetailsGet() )
+    if( log.exposeDetailsGet() )
         details.exposeDetailsTo( log, "doErc1155BatchPaymentFromSChain", true );
     details.close();
     return true;
@@ -4705,13 +4625,15 @@ export async function doErc20PaymentS2S(
             } );
         }
     } catch ( err ) {
-        const strError = owaspUtils.extractErrorMessage( err );
-        const s = strLogPrefix + cc.fatal( "CRITICAL ERROR:" ) + cc.error( " Payment error in " +
-            strActionName + ": " ) + cc.error( strError ) +
-            cc.error( ", stack is: " ) + "\n" + cc.stack( err.stack ) + "\n";
-        if( verboseGet() >= verboseReversed().fatal )
-            log.write( s );
-        details.write( s );
+        if( log.verboseGet() >= log.verboseReversed().critical ) {
+            const strError = owaspUtils.extractErrorMessage( err );
+            const s = strLogPrefix + cc.fatal( "CRITICAL ERROR:" ) +
+                cc.error( " Payment error in " + strActionName + ": " ) + cc.error( strError ) +
+                cc.error( ", stack is: " ) + "\n" + cc.stack( err.stack ) + "\n";
+            if( log.id != details.id )
+                log.write( s );
+            details.write( s );
+        }
         details.exposeDetailsTo(
             log, "doErc20PaymentS2S/" + ( isForward ? "forward" : "reverse" ), false );
         details.close();
@@ -4719,7 +4641,7 @@ export async function doErc20PaymentS2S(
     }
     printGasUsageReportFromArray(
         "ERC-20 PAYMENT FROM S2S/" + ( isForward ? "forward" : "reverse" ), jarrReceipts, details );
-    if( exposeDetailsGet() ) {
+    if( log.exposeDetailsGet() ) {
         details.exposeDetailsTo(
             log, "doErc20PaymentS2S/" + ( isForward ? "forward" : "reverse" ), true );
     }
@@ -4871,13 +4793,15 @@ export async function doErc721PaymentS2S(
             } );
         }
     } catch ( err ) {
-        const strError = owaspUtils.extractErrorMessage( err );
-        const s = strLogPrefix + cc.fatal( "CRITICAL ERROR:" ) +
-            cc.error( " Payment error in " + strActionName + ": " ) + cc.error( strError ) +
-            cc.error( ", stack is: " ) + "\n" + cc.stack( err.stack ) + "\n";
-        if( verboseGet() >= verboseReversed().fatal )
-            log.write( s );
-        details.write( s );
+        if( log.verboseGet() >= log.verboseReversed().critical ) {
+            const strError = owaspUtils.extractErrorMessage( err );
+            const s = strLogPrefix + cc.fatal( "CRITICAL ERROR:" ) +
+                cc.error( " Payment error in " + strActionName + ": " ) + cc.error( strError ) +
+                cc.error( ", stack is: " ) + "\n" + cc.stack( err.stack ) + "\n";
+            if( log.id != details.id )
+                log.write( s );
+            details.write( s );
+        }
         details.exposeDetailsTo(
             log,
             "doErc721PaymentS2S/" + ( isForward ? "forward" : "reverse" ), false );
@@ -4889,7 +4813,7 @@ export async function doErc721PaymentS2S(
         jarrReceipts,
         details
     );
-    if( exposeDetailsGet() ) {
+    if( log.exposeDetailsGet() ) {
         details.exposeDetailsTo(
             log,
             "doErc721PaymentS2S/" + ( isForward ? "forward" : "reverse" ),
@@ -5047,14 +4971,16 @@ export async function doErc1155PaymentS2S(
             } );
         }
     } catch ( err ) {
-        const strError = owaspUtils.extractErrorMessage( err );
-        const s = strLogPrefix +
-            cc.fatal( "CRITICAL ERROR:" ) + cc.error( " Payment error in " +
-            strActionName + ": " ) + cc.error( strError ) +
-            cc.error( ", stack is: " ) + "\n" + cc.stack( err.stack ) + "\n";
-        if( verboseGet() >= verboseReversed().fatal )
-            log.write( s );
-        details.write( s );
+        if( log.verboseGet() >= log.verboseReversed().critical ) {
+            const strError = owaspUtils.extractErrorMessage( err );
+            const s = strLogPrefix +
+                cc.fatal( "CRITICAL ERROR:" ) + cc.error( " Payment error in " +
+                strActionName + ": " ) + cc.error( strError ) +
+                cc.error( ", stack is: " ) + "\n" + cc.stack( err.stack ) + "\n";
+            if( log.id != details.id )
+                log.write( s );
+            details.write( s );
+        }
         details.exposeDetailsTo(
             log, "doErc1155PaymentS2S/" + ( isForward ? "forward" : "reverse" ), false );
         details.close();
@@ -5064,7 +4990,7 @@ export async function doErc1155PaymentS2S(
         "ERC-1155 PAYMENT FROM S2S/" + ( isForward ? "forward" : "reverse" ),
         jarrReceipts,
         details );
-    if( exposeDetailsGet() ) {
+    if( log.exposeDetailsGet() ) {
         details.exposeDetailsTo(
             log, "doErc1155PaymentS2S/" + ( isForward ? "forward" : "reverse" ), true );
     }
@@ -5224,13 +5150,15 @@ export async function doErc1155BatchPaymentS2S(
             } );
         }
     } catch ( err ) {
-        const strError = owaspUtils.extractErrorMessage( err );
-        const s = strLogPrefix + cc.fatal( "CRITICAL ERROR:" ) +
-            cc.error( " Payment error in " + strActionName + ": " ) + cc.error( strError ) +
-            cc.error( ", stack is: " ) + "\n" + cc.stack( err.stack ) + "\n";
-        if( verboseGet() >= verboseReversed().fatal )
-            log.write( s );
-        details.write( s );
+        if( log.verboseGet() >= log.verboseReversed().critical ) {
+            const strError = owaspUtils.extractErrorMessage( err );
+            const s = strLogPrefix + cc.fatal( "CRITICAL ERROR:" ) +
+                cc.error( " Payment error in " + strActionName + ": " ) + cc.error( strError ) +
+                cc.error( ", stack is: " ) + "\n" + cc.stack( err.stack ) + "\n";
+            if( log.id != details.id )
+                log.write( s );
+            details.write( s );
+        }
         details.exposeDetailsTo(
             log, "doErc1155BatchPaymentS2S/" + ( isForward ? "forward" : "reverse" ), false );
         details.close();
@@ -5240,7 +5168,7 @@ export async function doErc1155BatchPaymentS2S(
         "ERC-1155-batch PAYMENT FROM S2S/" + ( isForward ? "forward" : "reverse" ),
         jarrReceipts,
         details );
-    if( exposeDetailsGet() ) {
+    if( log.exposeDetailsGet() ) {
         details.exposeDetailsTo(
             log, "doErc1155BatchPaymentS2S/" + ( isForward ? "forward" : "reverse" ), true );
     }
@@ -5418,15 +5346,17 @@ async function doQueryOutgoingMessageCounter( optsTransfer ) {
             cc.debug( " call: " ) + cc.info( optsTransfer.nOutMsgCnt ) +
             "\n" );
     } catch ( err ) {
-        const strError = cc.fatal( "IMMEDIATE ERROR LOG:" ) +
-            cc.error( " error caught during " ) + cc.attention( optsTransfer.strActionName ) +
-            cc.error( ", error optsTransfer.details: " ) +
-            cc.warning( owaspUtils.extractErrorMessage( err ) ) +
-            cc.error( ", stack is: " ) + "\n" + cc.stack( err.stack ) +
-            "\n";
-        optsTransfer.details.write( strError );
-        if( log.id != optsTransfer.details.id )
-            log.write( strError );
+        if( log.verboseGet() >= log.verboseReversed().critical ) {
+            const strError = cc.fatal( "IMMEDIATE ERROR LOG:" ) +
+                cc.error( " error caught during " ) + cc.attention( optsTransfer.strActionName ) +
+                cc.error( ", error optsTransfer.details: " ) +
+                cc.warning( owaspUtils.extractErrorMessage( err ) ) +
+                cc.error( ", stack is: " ) + "\n" + cc.stack( err.stack ) +
+                "\n";
+            optsTransfer.details.write( strError );
+            if( log.id != optsTransfer.details.id )
+                log.write( strError );
+        }
     }
 
     optsTransfer.strActionName = "dst-chain.MessageProxy.getIncomingMessagesCounter()";
@@ -5480,17 +5410,17 @@ async function doQueryOutgoingMessageCounter( optsTransfer ) {
             );
     } catch ( err ) {
         optsTransfer.arrLogRecordReferences = [];
-        optsTransfer.details.write(
-            optsTransfer.strLogPrefix + cc.warning( "Optimized log search is " ) +
-            cc.error( "off" ) +
-            cc.warning( ". Running old IMA smart contracts?" ) +
-            cc.success( " Please upgrade, if possible." ) +
-            cc.warning( " This message is based on error: " ) +
-            cc.success( " Please upgrade, if possible." ) +
-            cc.warning( " Error is: " ) +
-            cc.error( owaspUtils.extractErrorMessage( err ) ) +
-            cc.warning( ", stack is: " ) + "\n" + cc.stack( err.stack ) +
-            "\n" );
+        if( log.verboseGet() >= log.verboseReversed().error ) {
+            optsTransfer.details.write(
+                optsTransfer.strLogPrefix + cc.warning( "Optimized log search is " ) +
+                cc.error( "off" ) + cc.warning( ". Running old IMA smart contracts?" ) +
+                cc.success( " Please upgrade, if possible." ) +
+                cc.warning( " This message is based on error: " ) +
+                cc.success( " Please upgrade, if possible." ) +
+                cc.warning( " Error is: " ) +
+                cc.error( owaspUtils.extractErrorMessage( err ) ) +
+                cc.warning( ", stack is: " ) + "\n" + cc.stack( err.stack ) + "\n" );
+        }
     }
     return true;
 }
@@ -5611,16 +5541,18 @@ async function gatherMessages( optsTransfer ) {
                     ? cc.success( "PASSED" ) : cc.error( "FAILED" ) ) + "\n" );
             } catch ( err ) {
                 bSecurityCheckPassed = false;
-                const strError = owaspUtils.extractErrorMessage( err );
-                const s =
-                    optsTransfer.strLogPrefix + cc.fatal( "CRITICAL ERROR:" ) +
-                    cc.error( " Exception(evaluate block depth) while " +
-                        "getting transaction hash and block number during " +
-                    optsTransfer.strActionName + ": " ) + cc.error( strError ) +
-                    cc.error( ", stack is: " ) + "\n" + cc.stack( err.stack ) + "\n";
-                optsTransfer.details.write( s );
-                if( log.id != optsTransfer.details.id )
-                    log.write( s );
+                if( log.verboseGet() >= log.verboseReversed().critical ) {
+                    const strError = owaspUtils.extractErrorMessage( err );
+                    const s =
+                        optsTransfer.strLogPrefix + cc.fatal( "CRITICAL ERROR:" ) +
+                        cc.error( " Exception(evaluate block depth) while " +
+                            "getting transaction hash and block number during " +
+                        optsTransfer.strActionName + ": " ) + cc.error( strError ) +
+                        cc.error( ", stack is: " ) + "\n" + cc.stack( err.stack ) + "\n";
+                    optsTransfer.details.write( s );
+                    if( log.id != optsTransfer.details.id )
+                        log.write( s );
+                }
                 optsTransfer.details.exposeDetailsTo(
                     log, optsTransfer.strGatheredDetailsName, false );
                 saveTransferError(
@@ -5673,15 +5605,17 @@ async function gatherMessages( optsTransfer ) {
                     ? cc.success( "PASSED" ) : cc.error( "FAILED" ) ) + "\n" );
             } catch ( err ) {
                 bSecurityCheckPassed = false;
-                const strError = owaspUtils.extractErrorMessage( err );
-                const s = optsTransfer.strLogPrefix + cc.fatal( "CRITICAL ERROR:" ) +
-                    cc.error( " Exception(evaluate block age) while " +
-                        "getting block number and timestamp during " +
-                    optsTransfer.strActionName + ": " ) + cc.error( strError ) +
-                    cc.error( ", stack is: " ) + "\n" + cc.stack( err.stack ) + "\n";
-                optsTransfer.details.write( s );
-                if( log.id != optsTransfer.details.id )
-                    log.write( s );
+                if( log.verboseGet() >= log.verboseReversed().critical ) {
+                    const strError = owaspUtils.extractErrorMessage( err );
+                    const s = optsTransfer.strLogPrefix + cc.fatal( "CRITICAL ERROR:" ) +
+                        cc.error( " Exception(evaluate block age) while " +
+                            "getting block number and timestamp during " +
+                        optsTransfer.strActionName + ": " ) + cc.error( strError ) +
+                        cc.error( ", stack is: " ) + "\n" + cc.stack( err.stack ) + "\n";
+                    optsTransfer.details.write( s );
+                    if( log.id != optsTransfer.details.id )
+                        log.write( s );
+                }
                 optsTransfer.details.exposeDetailsTo(
                     log, optsTransfer.strGatheredDetailsName, false );
                 saveTransferError(
@@ -5799,7 +5733,7 @@ async function callbackAllMessagesSign( optsTransfer, err, jarrMessages, joGlueR
         sign //, // bls signature components
         // idxLastToPopNotIncluding
     ];
-    if( verboseGet() >= verboseReversed().debug ) {
+    if( log.verboseGet() >= log.verboseReversed().debug ) {
         const joDebugArgs = [
             optsTransfer.chainNameSrc,
             optsTransfer.chainNameDst,
@@ -5970,7 +5904,7 @@ async function handleAllMessagesSigning( optsTransfer ) {
         } ).catch( ( err ) => {
         // callback fn as argument of optsTransfer.fnSignMessages
         optsTransfer.bErrorInSigningMessages = true;
-        if( verboseGet() >= verboseReversed().fatal ) {
+        if( log.verboseGet() >= log.verboseReversed().error ) {
             const strError = owaspUtils.extractErrorMessage( err );
             const strErrorMessage = optsTransfer.strLogPrefix +
                 cc.error( "Problem in transfer handler: " ) +
@@ -5996,24 +5930,20 @@ async function checkOutgoingMessageEvent( optsTransfer, joSChain ) {
             cc.sunny( optsTransfer.strDirection ) + cc.debug( " message analysis for message " ) +
             cc.info( idxMessage + 1 ) + cc.debug( " of " ) + cc.info( cntMessages ) +
             cc.debug( " with IMA message index " ) + cc.j( idxImaMessage ) +
-            cc.debug( " and message envelope data:" ) + cc.j( joMessage ) +
-            "\n" );
-        let cntPassedNodes = 0, cntFailedNodes = 0;
-        let joNode = null;
+            cc.debug( " and message envelope data:" ) + cc.j( joMessage ) + "\n" );
+        let cntPassedNodes = 0, cntFailedNodes = 0, joNode = null;
         try {
             for( let idxNode = 0; idxNode < cntNodes; ++ idxNode ) {
                 joNode = joSChain.data.computed.nodes[idxNode];
-                optsTransfer.details.write( optsTransfer.strLogPrefix +
-                    cc.debug( "Validating " ) + cc.sunny( optsTransfer.strDirection ) +
-                    cc.debug( " message " ) + cc.info( idxMessage + 1 ) +
-                    cc.debug( " on node " ) + cc.info( joNode.name ) +
+                optsTransfer.details.write( optsTransfer.strLogPrefix + cc.debug( "Validating " ) +
+                    cc.sunny( optsTransfer.strDirection ) + cc.debug( " message " ) +
+                    cc.info( idxMessage + 1 ) + cc.debug( " on node " ) + cc.info( joNode.name ) +
                     cc.debug( " using URL " ) + cc.info( joNode.http_endpoint_ip ) +
                     cc.debug( "..." ) + "\n" );
                 let bEventIsFound = false;
                 try {
                     const ethersProviderNode =
-                        owaspUtils.getEthersProviderFromURL(
-                            joNode.http_endpoint_ip );
+                        owaspUtils.getEthersProviderFromURL( joNode.http_endpoint_ip );
                     const joMessageProxyNode =
                         new owaspUtils.ethersMod.ethers.Contract(
                             optsTransfer.imaState.chainProperties.sc
@@ -6034,13 +5964,10 @@ async function checkOutgoingMessageEvent( optsTransfer, joSChain ) {
                         )
                     );
                     const cntEvents = node_r.length;
-                    optsTransfer.details.write( optsTransfer.strLogPrefix +
-                        cc.debug( "Got " ) + cc.info( cntEvents ) +
-                        cc.debug( " event(s) (" ) + cc.info( strEventName ) +
-                        cc.debug( ") on node " ) +
-                        cc.info( joNode.name ) + cc.debug( " with data: " ) +
-                        cc.j( node_r ) +
-                        "\n" );
+                    optsTransfer.details.write( optsTransfer.strLogPrefix + cc.debug( "Got " ) +
+                        cc.info( cntEvents ) + cc.debug( " event(s) (" ) + cc.info( strEventName ) +
+                        cc.debug( ") on node " ) + cc.info( joNode.name ) +
+                        cc.debug( " with data: " ) + cc.j( node_r ) + "\n" );
                     for( let idxEvent = 0; idxEvent < cntEvents; ++ idxEvent ) {
                         const joEvent = node_r[idxEvent];
                         const eventValuesByName = {
@@ -6065,40 +5992,35 @@ async function checkOutgoingMessageEvent( optsTransfer, joSChain ) {
                     }
                 } catch ( err ) {
                     ++ cntFailedNodes;
-                    const strError = optsTransfer.strLogPrefix +
-                        cc.fatal( optsTransfer.strDirection +
-                        " message analysis error:" ) + " " +
-                        cc.error( "Failed to scan events on node " ) +
-                        cc.info( joNode.name ) +
-                        cc.error( ", error is: " ) +
-                        cc.warning( owaspUtils.extractErrorMessage( err ) ) +
-                        cc.error( ", detailed node description is: " ) +
-                        cc.j( joNode ) +
-                        cc.error( ", stack is: " ) + "\n" + cc.stack( err.stack ) +
-                        "\n";
-                    optsTransfer.details.write( strError );
-                    if( log.id != optsTransfer.details.id )
-                        log.write( strError );
+                    if( log.verboseGet() >= log.verboseReversed().error ) {
+                        const strError = optsTransfer.strLogPrefix +
+                            cc.fatal( optsTransfer.strDirection +
+                            " message analysis error:" ) + " " +
+                            cc.error( "Failed to scan events on node " ) + cc.info( joNode.name ) +
+                            cc.error( ", error is: " ) +
+                            cc.warning( owaspUtils.extractErrorMessage( err ) ) +
+                            cc.error( ", detailed node description is: " ) + cc.j( joNode ) +
+                            cc.error( ", stack is: " ) + "\n" + cc.stack( err.stack ) + "\n";
+                        optsTransfer.details.write( strError );
+                        if( log.id != optsTransfer.details.id )
+                            log.write( strError );
+                    }
                     continue;
                 }
                 if( bEventIsFound ) {
                     ++ cntPassedNodes;
                     optsTransfer.details.write( optsTransfer.strLogPrefix +
-                        cc.sunny( optsTransfer.strDirection ) +
-                        cc.success( " message " ) + cc.info( idxMessage + 1 ) +
-                        cc.success( " validation on node " ) +
+                        cc.sunny( optsTransfer.strDirection ) + cc.success( " message " ) +
+                        cc.info( idxMessage + 1 ) + cc.success( " validation on node " ) +
                         cc.info( joNode.name ) + cc.success( " using URL " ) +
-                        cc.info( joNode.http_endpoint_ip ) +
-                        cc.success( " is passed" ) + "\n" );
+                        cc.info( joNode.http_endpoint_ip ) + cc.success( " is passed" ) + "\n" );
                 } else {
                     ++ cntFailedNodes;
                     const strError = optsTransfer.strLogPrefix +
-                        cc.sunny( optsTransfer.strDirection ) +
-                        cc.error( " message " ) + cc.info( idxMessage + 1 ) +
-                        cc.error( " validation on node " ) +
+                        cc.sunny( optsTransfer.strDirection ) + cc.error( " message " ) +
+                        cc.info( idxMessage + 1 ) + cc.error( " validation on node " ) +
                         cc.info( joNode.name ) + cc.success( " using URL " ) +
-                        cc.info( joNode.http_endpoint_ip ) +
-                        cc.error( " is failed" ) + "\n"; ;
+                        cc.info( joNode.http_endpoint_ip ) + cc.error( " is failed" ) + "\n";
                     optsTransfer.details.write( strError );
                     if( log.id != optsTransfer.details.id )
                         log.write( strError );
@@ -6107,46 +6029,42 @@ async function checkOutgoingMessageEvent( optsTransfer, joSChain ) {
                     break;
                 if( cntPassedNodes >= optsTransfer.cntNodesShouldPass ) {
                     optsTransfer.details.write( optsTransfer.strLogPrefix +
-                        cc.sunny( optsTransfer.strDirection ) +
-                        cc.success( " message " ) + cc.info( idxMessage + 1 ) +
-                        cc.success( " validation on node " ) +
+                        cc.sunny( optsTransfer.strDirection ) + cc.success( " message " ) +
+                        cc.info( idxMessage + 1 ) + cc.success( " validation on node " ) +
                         cc.info( joNode.name ) + cc.success( " using URL " ) +
-                        cc.info( joNode.http_endpoint_ip ) +
-                        cc.success( " is passed" ) + "\n" );
+                        cc.info( joNode.http_endpoint_ip ) + cc.success( " is passed" ) + "\n" );
                     break;
                 }
             }
         } catch ( err ) {
-            const strError = optsTransfer.strLogPrefix +
-                cc.fatal( optsTransfer.strDirection + " message analysis error:" ) +
-                " " + cc.error( "Failed to process events for " ) +
-                cc.sunny( optsTransfer.strDirection ) + cc.error( " message " ) +
-                cc.info( idxMessage + 1 ) + cc.error( " on node " ) +
-                ( joNode
-                    ? cc.info( joNode.name )
-                    : cc.error( "<<unknown node name>>" ) ) +
-                cc.error( " using URL " ) +
-                ( joNode
-                    ? cc.info( joNode.http_endpoint_ip )
-                    : cc.error( "<<unknown node endpoint>>" ) ) +
-                cc.error( ", error is: " ) +
-                cc.warning( owaspUtils.extractErrorMessage( err ) ) +
-                cc.error( ", stack is: " ) + "\n" + cc.stack( err.stack ) +
-                "\n";
-            optsTransfer.details.write( strError );
-            if( log.id != optsTransfer.details.id )
-                log.write( strError );
+            if( log.verboseGet() >= log.verboseReversed().critical ) {
+                const strError = optsTransfer.strLogPrefix +
+                    cc.fatal( optsTransfer.strDirection + " message analysis error:" ) +
+                    " " + cc.error( "Failed to process events for " ) +
+                    cc.sunny( optsTransfer.strDirection ) + cc.error( " message " ) +
+                    cc.info( idxMessage + 1 ) + cc.error( " on node " ) +
+                    ( joNode
+                        ? cc.info( joNode.name )
+                        : cc.error( "<<unknown node name>>" ) ) +
+                    cc.error( " using URL " ) +
+                    ( joNode
+                        ? cc.info( joNode.http_endpoint_ip )
+                        : cc.error( "<<unknown node endpoint>>" ) ) +
+                    cc.error( ", error is: " ) +
+                    cc.warning( owaspUtils.extractErrorMessage( err ) ) +
+                    cc.error( ", stack is: " ) + "\n" + cc.stack( err.stack ) +
+                    "\n";
+                optsTransfer.details.write( strError );
+                if( log.id != optsTransfer.details.id )
+                    log.write( strError );
+            }
         }
         if( cntFailedNodes > optsTransfer.cntNodesMayFail ) {
-            const s =
-                optsTransfer.strLogPrefix + cc.fatal( "CRITICAL ERROR:" ) +
-                cc.error( " Error validating " ) +
-                cc.sunny( optsTransfer.strDirection ) +
-                cc.error( " messages, failed node count " ) +
-                cc.info( cntFailedNodes ) +
+            const s = optsTransfer.strLogPrefix + cc.fatal( "CRITICAL ERROR:" ) +
+                cc.error( " Error validating " ) + cc.sunny( optsTransfer.strDirection ) +
+                cc.error( " messages, failed node count " ) + cc.info( cntFailedNodes ) +
                 cc.error( " is greater then allowed to fail " ) +
-                cc.info( optsTransfer.cntNodesMayFail ) +
-                "\n";
+                cc.info( optsTransfer.cntNodesMayFail ) + "\n";
             optsTransfer.details.write( s );
             if( log.id != optsTransfer.details.id )
                 log.write( s );
@@ -6159,15 +6077,11 @@ async function checkOutgoingMessageEvent( optsTransfer, joSChain ) {
             return false;
         }
         if( ! ( cntPassedNodes >= optsTransfer.cntNodesShouldPass ) ) {
-            const s =
-                optsTransfer.strLogPrefix + cc.fatal( "CRITICAL ERROR:" ) +
-                cc.error( " Error validating " ) +
-                cc.sunny( optsTransfer.strDirection ) +
-                cc.error( " messages, passed node count " ) +
-                cc.info( cntFailedNodes ) +
+            const s = optsTransfer.strLogPrefix + cc.fatal( "CRITICAL ERROR:" ) +
+                cc.error( " Error validating " ) + cc.sunny( optsTransfer.strDirection ) +
+                cc.error( " messages, passed node count " ) + cc.info( cntFailedNodes ) +
                 cc.error( " is less then needed count " ) +
-                cc.info( optsTransfer.cntNodesShouldPass ) +
-                "\n";
+                cc.info( optsTransfer.cntNodesShouldPass ) + "\n";
             optsTransfer.details.write( s );
             if( log.id != optsTransfer.details.id )
                 log.write( s );
@@ -6192,7 +6106,7 @@ async function doMainTransferLoopActions( optsTransfer ) {
     optsTransfer.nIdxCurrentMsg = optsTransfer.nIncMsgCnt;
     while( optsTransfer.nIdxCurrentMsg < optsTransfer.nOutMsgCnt ) {
         if( optsTransfer.nStepsDone > optsTransfer.nTransferSteps ) {
-            if( verboseGet() >= verboseReversed().information ) {
+            if( log.verboseGet() >= log.verboseReversed().information ) {
                 const strWarning =
                     optsTransfer.strLogPrefix + cc.warning( "WARNING:" ) + " " +
                     cc.warning( "Transfer step count overflow" ) +
@@ -6217,7 +6131,7 @@ async function doMainTransferLoopActions( optsTransfer ) {
             "\n" );
         if( ! loop.checkTimeFraming(
             null, optsTransfer.strDirection, optsTransfer.joRuntimeOpts ) ) {
-            if( verboseGet() >= verboseReversed().information ) {
+            if( log.verboseGet() >= log.verboseReversed().information ) {
                 const strWarning =
                     optsTransfer.strLogPrefix + cc.warning( "WARNING:" ) + " " +
                     cc.warning( "Time framing overflow " +
@@ -6325,7 +6239,7 @@ async function doMainTransferLoopActions( optsTransfer ) {
 
         // will re-open optsTransfer.details B log here for next step,
         // it can be delayed so we will flush accumulated optsTransfer.details A now
-        if( exposeDetailsGet() && optsTransfer.details.exposeDetailsTo ) {
+        if( log.exposeDetailsGet() && optsTransfer.details.exposeDetailsTo ) {
             optsTransfer.details.exposeDetailsTo(
                 log, optsTransfer.strGatheredDetailsName, true );
         }
@@ -6345,15 +6259,17 @@ async function doMainTransferLoopActions( optsTransfer ) {
             if( ! ( await handleAllMessagesSigning( optsTransfer ) ) )
                 return false;
         } catch ( err ) {
-            const strError =
-                optsTransfer.strLogPrefix + cc.fatal( "CRITICAL ERROR:" ) +
-                cc.error( " Exception from signing messages function: " ) +
-                cc.error( owaspUtils.extractErrorMessage( err ) +
-                cc.error( ", stack is: " ) + "\n" + cc.stack( err.stack ) +
-                "\n" );
-            optsTransfer.details.write( strError );
-            if( log.id != optsTransfer.details.id )
-                log.write( strError );
+            if( log.verboseGet() >= log.verboseReversed().critical ) {
+                const strError =
+                    optsTransfer.strLogPrefix + cc.fatal( "CRITICAL ERROR:" ) +
+                    cc.error( " Exception from signing messages function: " ) +
+                    cc.error( owaspUtils.extractErrorMessage( err ) +
+                    cc.error( ", stack is: " ) + "\n" + cc.stack( err.stack ) +
+                    "\n" );
+                optsTransfer.details.write( strError );
+                if( log.id != optsTransfer.details.id )
+                    log.write( strError );
+            }
         }
         if( optsTransfer.bErrorInSigningMessages )
             break;
@@ -6488,15 +6404,17 @@ export async function doTransfer(
         if( ! ( await doMainTransferLoopActions( optsTransfer ) ) )
             return false;
     } catch ( err ) {
-        const strError = optsTransfer.strLogPrefix + cc.fatal( "CRITICAL ERROR:" ) +
-            cc.error( " Error in " ) + optsTransfer.strGatheredDetailsName_colored +
-            cc.error( " during " + optsTransfer.strActionName + ": " ) +
-            cc.error( owaspUtils.extractErrorMessage( err ) ) +
-            cc.error( ", stack is: " ) + "\n" + cc.stack( err.stack ) +
-            "\n";
-        optsTransfer.details.write( strError );
-        if( log.id != optsTransfer.details.id )
-            log.write( strError );
+        if( log.verboseGet() >= log.verboseReversed().critical ) {
+            const strError = optsTransfer.strLogPrefix + cc.fatal( "CRITICAL ERROR:" ) +
+                cc.error( " Error in " ) + optsTransfer.strGatheredDetailsName_colored +
+                cc.error( " during " + optsTransfer.strActionName + ": " ) +
+                cc.error( owaspUtils.extractErrorMessage( err ) ) +
+                cc.error( ", stack is: " ) + "\n" + cc.stack( err.stack ) +
+                "\n";
+            optsTransfer.details.write( strError );
+            if( log.id != optsTransfer.details.id )
+                log.write( strError );
+        }
         optsTransfer.details.exposeDetailsTo( log, optsTransfer.strGatheredDetailsName, false );
         saveTransferError(
             optsTransfer.strTransferErrorCategoryName, optsTransfer.details.toString() );
@@ -6509,7 +6427,7 @@ export async function doTransfer(
         optsTransfer.details
     );
     if( optsTransfer.details ) {
-        if( exposeDetailsGet() && optsTransfer.details.exposeDetailsTo ) {
+        if( log.exposeDetailsGet() && optsTransfer.details.exposeDetailsTo ) {
             optsTransfer.details.exposeDetailsTo(
                 log, optsTransfer.strGatheredDetailsName, true );
         }
@@ -6542,7 +6460,7 @@ export async function doAllS2S( // s-chain --> s-chain
     const strDirection = "S2S";
     const arrSChainsCached = skaleObserver.getLastCachedSChains();
     const cntSChains = arrSChainsCached.length;
-    if( verboseGet() >= verboseReversed().information ) {
+    if( log.verboseGet() >= log.verboseReversed().information ) {
         log.write(
             cc.debug( "Have " ) + cc.info( cntSChains ) +
             cc.debug( " S-Chain(s) connected to this S-Chain for performing S2S transfers." ) +
@@ -6555,7 +6473,7 @@ export async function doAllS2S( // s-chain --> s-chain
         const joAccountSrc = joAccountDst; // ???
         const chainNameSrc = "" + joSChain.data.name;
         const chainIdSrc = "" + joSChain.data.computed.chainId;
-        if( verboseGet() >= verboseReversed().information ) {
+        if( log.verboseGet() >= log.verboseReversed().information ) {
             log.write(
                 cc.debug( "S2S transfer walk trough " ) + cc.info( chainNameSrc ) +
                 cc.debug( "/" ) + cc.info( chainIdSrc ) + cc.debug( " S-Chain..." ) +
@@ -6566,7 +6484,7 @@ export async function doAllS2S( // s-chain --> s-chain
             nIndexS2S = idxSChain;
             if( ! await pwa.checkOnLoopStart( imaState, "s2s", nIndexS2S ) ) {
                 imaState.loopState.s2s.wasInProgress = false;
-                if( verboseGet() >= verboseReversed().debug ) {
+                if( log.verboseGet() >= log.verboseReversed().debug ) {
                     log.write(
                         cc.warning( "Skipped(s2s) due to cancel mode reported from PWA" ) +
                         "\n" );
@@ -6633,7 +6551,7 @@ export async function doAllS2S( // s-chain --> s-chain
                     await pwa.notifyOnLoopEnd( imaState, "s2s", nIndexS2S );
                 } else {
                     bOK = true;
-                    if( verboseGet() >= verboseReversed().debug ) {
+                    if( log.verboseGet() >= log.verboseReversed().debug ) {
                         const strLogPrefix = cc.attention( "S2S Loop:" ) + " ";
                         log.write( strLogPrefix +
                             cc.warning( "Skipped(s2s) due to time framing check" ) +
@@ -6643,8 +6561,8 @@ export async function doAllS2S( // s-chain --> s-chain
             }
         } catch ( err ) {
             bOK = false;
-            const strError = owaspUtils.extractErrorMessage( err );
-            if( verboseGet() >= verboseReversed().fatal ) {
+            if( log.verboseGet() >= log.verboseReversed().error ) {
+                const strError = owaspUtils.extractErrorMessage( err );
                 log.write( cc.fatal( "S2S STEP ERROR:" ) +
                     cc.error( " From S-Chain " ) + cc.info( chainNameSrc ) +
                     cc.error( ", error is: " ) + cc.warning( strError ) +
@@ -6663,7 +6581,7 @@ export async function doAllS2S( // s-chain --> s-chain
     joRuntimeOpts.cntChainsKnownForS2S = 0; // reset/clear
     if( "joExtraSignOpts" in joRuntimeOpts )
         delete joRuntimeOpts.joExtraSignOpts; // reset/clear
-    if( verboseGet() >= verboseReversed().debug && ( cntOK > 0 || cntFail > 0 ) ) {
+    if( log.verboseGet() >= log.verboseReversed().debug && ( cntOK > 0 || cntFail > 0 ) ) {
         let s = cc.debug( "Stats for S2S steps:" );
         if( cntOK > 0 ) {
             s += " " + cc.info( cntOK ) +
@@ -6813,12 +6731,14 @@ export class TransactionCustomizer {
             } );
             await Promise.all( [ promiseComplete ] );
         } catch ( err ) {
-            const strError = owaspUtils.extractErrorMessage( err );
-            details.write(
-                strLogPrefix + cc.error( "Estimate-gas error: " ) + cc.warning( strError ) +
-                cc.error( ", default recommended gas value will be used instead of estimated" ) +
-                cc.error( ", stack is: " ) + "\n" + cc.stack( err.stack ) +
-                "\n" );
+            if( log.verboseGet() >= log.verboseReversed().error ) {
+                const strError = owaspUtils.extractErrorMessage( err );
+                details.write( strLogPrefix + cc.error( "Estimate-gas error: " ) +
+                    cc.warning( strError ) +
+                    cc.error( ", default recommended gas value " +
+                        "will be used instead of estimated" ) +
+                    cc.error( ", stack is: " ) + "\n" + cc.stack( err.stack ) + "\n" );
+            }
         }
         estimatedGas = owaspUtils.parseIntOrHex( owaspUtils.toBN( estimatedGas ).toString() );
         if( estimatedGas == 0 ) {
@@ -6885,8 +6805,8 @@ export async function getBalanceEth(
         const balance = await ethersProvider.getBalance( strAddress );
         return balance;
     } catch ( err ) {
-        const strError = owaspUtils.extractErrorMessage( err );
-        if( verboseGet() >= verboseReversed().fatal ) {
+        if( log.verboseGet() >= log.verboseReversed().error ) {
+            const strError = owaspUtils.extractErrorMessage( err );
             log.write( strLogPrefix +
                 cc.fatal( "ERROR:" ) + " " + cc.error( strError ) + cc.error( ", stack is: " ) +
                 "\n" + cc.stack( err.stack ) + "\n" );
@@ -6920,8 +6840,8 @@ export async function getBalanceErc20(
             await contractERC20.callStatic.balanceOf( strAddress, { from: strAddress } );
         return balance;
     } catch ( err ) {
-        const strError = owaspUtils.extractErrorMessage( err );
-        if( verboseGet() >= verboseReversed().fatal ) {
+        if( log.verboseGet() >= log.verboseReversed().error ) {
+            const strError = owaspUtils.extractErrorMessage( err );
             log.write( strLogPrefix +
                 cc.fatal( "ERROR:" ) + " " + cc.error( strError ) + cc.error( ", stack is: " ) +
                 "\n" + cc.stack( err.stack ) + "\n" );
@@ -6956,8 +6876,8 @@ export async function getOwnerOfErc721(
             await contractERC721.callStatic.ownerOf( idToken, { from: strAddress } );
         return owner;
     } catch ( err ) {
-        const strError = owaspUtils.extractErrorMessage( err );
-        if( verboseGet() >= verboseReversed().fatal ) {
+        if( log.verboseGet() >= log.verboseReversed().error ) {
+            const strError = owaspUtils.extractErrorMessage( err );
             log.write( strLogPrefix +
                 cc.fatal( "ERROR:" ) + " " + cc.error( strError ) +
                 cc.error( ", stack is: " ) + "\n" + cc.stack( err.stack ) + "\n" );
@@ -6993,8 +6913,8 @@ export async function getBalanceErc1155(
                 strAddress, idToken, { from: strAddress } );
         return balance;
     } catch ( err ) {
-        const strError = owaspUtils.extractErrorMessage( err );
-        if( verboseGet() >= verboseReversed().fatal ) {
+        if( log.verboseGet() >= log.verboseReversed().error ) {
+            const strError = owaspUtils.extractErrorMessage( err );
             log.write( strLogPrefix +
                 cc.fatal( "ERROR:" ) + " " + cc.error( strError ) + cc.error( ", stack is: " ) +
                 "\n" + cc.stack( err.stack ) + "\n" );
@@ -7084,22 +7004,24 @@ export async function mintErc20(
             "description": "mintErc20()/mint",
             "receipt": joReceipt
         } ], details );
-        if( exposeDetailsGet() )
+        if( log.exposeDetailsGet() )
             details.exposeDetailsTo( log, "mintErc20", true );
         details.close();
         return joReceipt; // can be used as "true" boolean value
     } catch ( err ) {
-        const strError = owaspUtils.extractErrorMessage( err );
-        if( verboseGet() >= verboseReversed().fatal ) {
-            log.write( strLogPrefix +
+        if( log.verboseGet() >= log.verboseReversed().critical ) {
+            const strError = owaspUtils.extractErrorMessage( err );
+            if( log.id != details.id ) {
+                log.write( strLogPrefix +
+                    cc.fatal( "CRITICAL ERROR:" ) + cc.error( " Error in mintErc20() during " +
+                    strActionName + ": " ) + cc.error( strError ) + cc.error( ", stack is: " ) +
+                    "\n" + cc.stack( err.stack ) + "\n" );
+            }
+            details.write( strLogPrefix +
                 cc.fatal( "CRITICAL ERROR:" ) + cc.error( " Error in mintErc20() during " +
                 strActionName + ": " ) + cc.error( strError ) + cc.error( ", stack is: " ) +
                 "\n" + cc.stack( err.stack ) + "\n" );
         }
-        details.write( strLogPrefix +
-            cc.fatal( "CRITICAL ERROR:" ) + cc.error( " Error in mintErc20() during " +
-            strActionName + ": " ) + cc.error( strError ) + cc.error( ", stack is: " ) +
-            "\n" + cc.stack( err.stack ) + "\n" );
         details.exposeDetailsTo( log, "mintErc20()", false );
         details.close();
         return false;
@@ -7191,22 +7113,24 @@ export async function mintErc721(
             "description": "mintErc721()/mint",
             "receipt": joReceipt
         } ], details );
-        if( exposeDetailsGet() )
+        if( log.exposeDetailsGet() )
             details.exposeDetailsTo( log, "mintErc721", true );
         details.close();
         return joReceipt; // can be used as "true" boolean value
     } catch ( err ) {
-        const strError = owaspUtils.extractErrorMessage( err );
-        if( verboseGet() >= verboseReversed().fatal ) {
-            log.write( strLogPrefix +
+        if( log.verboseGet() >= log.verboseReversed().critical ) {
+            const strError = owaspUtils.extractErrorMessage( err );
+            if( log.id != details.id ) {
+                log.write( strLogPrefix +
+                    cc.fatal( "CRITICAL ERROR:" ) + cc.error( " Error in mintErc721() during " +
+                    strActionName + ": " ) + cc.error( strError ) + cc.error( ", stack is: " ) +
+                    "\n" + cc.stack( err.stack ) + "\n" );
+            }
+            details.write( strLogPrefix +
                 cc.fatal( "CRITICAL ERROR:" ) + cc.error( " Error in mintErc721() during " +
                 strActionName + ": " ) + cc.error( strError ) + cc.error( ", stack is: " ) +
                 "\n" + cc.stack( err.stack ) + "\n" );
         }
-        details.write( strLogPrefix +
-            cc.fatal( "CRITICAL ERROR:" ) + cc.error( " Error in mintErc721() during " +
-            strActionName + ": " ) + cc.error( strError ) + cc.error( ", stack is: " ) +
-            "\n" + cc.stack( err.stack ) + "\n" );
         details.exposeDetailsTo( log, "mintErc721()", false );
         details.close();
         return false;
@@ -7299,22 +7223,24 @@ export async function mintErc1155(
             "description": "mintErc1155()/mint",
             "receipt": joReceipt
         } ], details );
-        if( exposeDetailsGet() )
+        if( log.exposeDetailsGet() )
             details.exposeDetailsTo( log, "mintErc1155", true );
         details.close();
         return joReceipt; // can be used as "true" boolean value
     } catch ( err ) {
-        const strError = owaspUtils.extractErrorMessage( err );
-        if( verboseGet() >= verboseReversed().fatal ) {
-            log.write( strLogPrefix +
+        if( log.verboseGet() >= log.verboseReversed().critical ) {
+            const strError = owaspUtils.extractErrorMessage( err );
+            if( log.id != details.id ) {
+                log.write( strLogPrefix +
+                    cc.fatal( "CRITICAL ERROR:" ) + cc.error( " Error in mintErc1155() during " +
+                    strActionName + ": " ) + cc.error( strError ) + cc.error( ", stack is: " ) +
+                    "\n" + cc.stack( err.stack ) + "\n" );
+            }
+            details.write( strLogPrefix +
                 cc.fatal( "CRITICAL ERROR:" ) + cc.error( " Error in mintErc1155() during " +
                 strActionName + ": " ) + cc.error( strError ) + cc.error( ", stack is: " ) +
                 "\n" + cc.stack( err.stack ) + "\n" );
         }
-        details.write( strLogPrefix +
-            cc.fatal( "CRITICAL ERROR:" ) + cc.error( " Error in mintErc1155() during " +
-            strActionName + ": " ) + cc.error( strError ) + cc.error( ", stack is: " ) +
-            "\n" + cc.stack( err.stack ) + "\n" );
         details.exposeDetailsTo( log, "mintErc1155()", false );
         details.close();
         return false;
@@ -7404,22 +7330,24 @@ export async function burnErc20(
             "description": "burnErc20()/burn",
             "receipt": joReceipt
         } ], details );
-        if( exposeDetailsGet() )
+        if( log.exposeDetailsGet() )
             details.exposeDetailsTo( log, "burnErc20", true );
         details.close();
         return joReceipt; // can be used as "true" boolean value
     } catch ( err ) {
-        const strError = owaspUtils.extractErrorMessage( err );
-        if( verboseGet() >= verboseReversed().fatal ) {
-            log.write( strLogPrefix +
+        if( log.verboseGet() >= log.verboseReversed().critical ) {
+            const strError = owaspUtils.extractErrorMessage( err );
+            if( log.id != details.id ) {
+                log.write( strLogPrefix +
+                    cc.fatal( "CRITICAL ERROR:" ) + cc.error( " Error in burnErc20() during " +
+                    strActionName + ": " ) + cc.error( strError ) + cc.error( ", stack is: " ) +
+                    "\n" + cc.stack( err.stack ) + "\n" );
+            }
+            details.write( strLogPrefix +
                 cc.fatal( "CRITICAL ERROR:" ) + cc.error( " Error in burnErc20() during " +
                 strActionName + ": " ) + cc.error( strError ) + cc.error( ", stack is: " ) +
                 "\n" + cc.stack( err.stack ) + "\n" );
         }
-        details.write( strLogPrefix +
-            cc.fatal( "CRITICAL ERROR:" ) + cc.error( " Error in burnErc20() during " +
-            strActionName + ": " ) + cc.error( strError ) + cc.error( ", stack is: " ) +
-            "\n" + cc.stack( err.stack ) + "\n" );
         details.exposeDetailsTo( log, "burnErc20()", false );
         details.close();
         return false;
@@ -7505,22 +7433,24 @@ export async function burnErc721(
             "description": "burnErc721()/burn",
             "receipt": joReceipt
         } ], details );
-        if( exposeDetailsGet() )
+        if( log.exposeDetailsGet() )
             details.exposeDetailsTo( log, "burnErc721", true );
         details.close();
         return joReceipt; // can be used as "true" boolean value
     } catch ( err ) {
-        const strError = owaspUtils.extractErrorMessage( err );
-        if( verboseGet() >= verboseReversed().fatal ) {
-            log.write( strLogPrefix +
+        if( log.verboseGet() >= log.verboseReversed().critical ) {
+            const strError = owaspUtils.extractErrorMessage( err );
+            if( log.id != details.id ) {
+                log.write( strLogPrefix + cc.fatal( "CRITICAL ERROR:" ) +
+                    cc.error( " Error in burnErc721() during " + strActionName + ": " ) +
+                    cc.error( strError ) + cc.error( ", stack is: " ) +
+                    "\n" + cc.stack( err.stack ) + "\n" );
+            }
+            details.write( strLogPrefix +
                 cc.fatal( "CRITICAL ERROR:" ) + cc.error( " Error in burnErc721() during " +
                 strActionName + ": " ) + cc.error( strError ) + cc.error( ", stack is: " ) +
                 "\n" + cc.stack( err.stack ) + "\n" );
         }
-        details.write( strLogPrefix +
-            cc.fatal( "CRITICAL ERROR:" ) + cc.error( " Error in burnErc721() during " +
-            strActionName + ": " ) + cc.error( strError ) + cc.error( ", stack is: " ) +
-            "\n" + cc.stack( err.stack ) + "\n" );
         details.exposeDetailsTo( log, "burnErc721()", false );
         details.close();
         return false;
@@ -7615,22 +7545,24 @@ export async function burnErc1155(
             "description": "burnErc1155()/burn",
             "receipt": joReceipt
         } ], details );
-        if( exposeDetailsGet() )
+        if( log.exposeDetailsGet() )
             details.exposeDetailsTo( log, "burnErc1155", true );
         details.close();
         return joReceipt; // can be used as "true" boolean value
     } catch ( err ) {
-        const strError = owaspUtils.extractErrorMessage( err );
-        if( verboseGet() >= verboseReversed().fatal ) {
-            log.write( strLogPrefix +
+        if( log.verboseGet() >= log.verboseReversed().critical ) {
+            const strError = owaspUtils.extractErrorMessage( err );
+            if( log.id != details.id ) {
+                log.write( strLogPrefix +
+                    cc.fatal( "CRITICAL ERROR:" ) + cc.error( " Error in burnErc1155() during " +
+                    strActionName + ": " ) + cc.error( strError ) + cc.error( ", stack is: " ) +
+                    "\n" + cc.stack( err.stack ) + "\n" );
+            }
+            details.write( strLogPrefix +
                 cc.fatal( "CRITICAL ERROR:" ) + cc.error( " Error in burnErc1155() during " +
                 strActionName + ": " ) + cc.error( strError ) + cc.error( ", stack is: " ) +
                 "\n" + cc.stack( err.stack ) + "\n" );
         }
-        details.write( strLogPrefix +
-            cc.fatal( "CRITICAL ERROR:" ) + cc.error( " Error in burnErc1155() during " +
-            strActionName + ": " ) + cc.error( strError ) + cc.error( ", stack is: " ) +
-            "\n" + cc.stack( err.stack ) + "\n" );
         details.exposeDetailsTo( log, "burnErc1155()", false );
         details.close();
         return false;

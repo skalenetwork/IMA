@@ -42,8 +42,8 @@ const __filename = new URL( "", import.meta.url ).pathname;
 
 process.env.NODE_TLS_REJECT_UNAUTHORIZED = 0;
 
-IMA.exposeDetailsSet( false );
-IMA.verboseSet( IMA.verboseParse( "info" ) );
+log.exposeDetailsSet( false );
+log.verboseSet( log.verboseParse( "info" ) );
 
 log.removeAll();
 const imaState = {

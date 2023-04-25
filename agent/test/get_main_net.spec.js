@@ -229,19 +229,19 @@ function exitToMainERC20( string, obj ) {
 describe( "tests for `npms/skale-ima` 1", function() {
 
     it( "should invoke `verboseGet`", async function() {
-        expect( IMA.verboseGet() ).to.equal( "3" );
+        expect( log.verboseGet() ).to.equal( "3" );
     } );
 
     it( "should invoke `verboseSet`", async function() {
-        IMA.verboseSet( "0" );
-        expect( IMA.verboseGet() ).to.equal( "0" );
+        log.verboseSet( "0" );
+        expect( log.verboseGet() ).to.equal( "0" );
     } );
 
     it( "should invoke `verboseParse`", async function() {
         // return 5 by default
-        expect( IMA.verboseParse() ).to.equal( 5 );
+        expect( log.verboseParse() ).to.equal( 5 );
         // return 6 when `info` in parameters
-        expect( IMA.verboseParse( "info" ) ).to.equal( "6" );
+        expect( log.verboseParse( "info" ) ).to.equal( "6" );
     } );
 
     it( "should invoke `ensureStartsWith0x`", async function() {
