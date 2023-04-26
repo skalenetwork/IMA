@@ -915,11 +915,11 @@ async function inThreadPeriodicCachingStart( strChainNameConnectedTo, addressFro
         await fnDoCachingNow();
         return true;
     } catch ( err ) {
-        log.write(
-            cc.error( "Failed to start in-thread periodic SNB refresh, error is: " ) +
-            cc.warning( owaspUtils.extractErrorMessage( err ) ) +
-            cc.error( ", stack is: " ) + "\n" + cc.stack( err.stack ) +
-            "\n" );
+        if( log.verboseGet() >= log.verboseReversed().error ) {
+            log.write( cc.error( "Failed to start in-thread periodic SNB refresh, error is: " ) +
+                cc.warning( owaspUtils.extractErrorMessage( err ) ) +
+                cc.error( ", stack is: " ) + "\n" + cc.stack( err.stack ) + "\n" );
+        }
     }
     return false;
 }
@@ -931,11 +931,12 @@ async function parallelPeriodicCachingStart( strChainNameConnectedTo, addressFro
         setTimeout( function() {
             if( g_bHaveParallelResult )
                 return;
-            log.write(
-                cc.error( "Failed to start parallel periodic SNB refresh, error is: " ) +
-                cc.warning( "timeout of " ) + cc.info( nSecondsToWaitParallel ) +
-                cc.warning( " reached, will restart periodic SNB refresh in non-parallel mode" ) +
-                "\n" );
+            if( log.verboseGet() >= log.verboseReversed().error ) {
+                log.write( cc.error( "Failed to start parallel periodic SNB refresh, error is: " ) +
+                    cc.warning( "timeout of " ) + cc.info( nSecondsToWaitParallel ) +
+                    cc.warning( " reached, will restart periodic SNB refresh " +
+                        "in non-parallel mode" ) + "\n" );
+            }
             periodicCachingStop();
             inThreadPeriodicCachingStart( strChainNameConnectedTo, addressFrom, opts );
         }, nSecondsToWaitParallel * 1000 );
@@ -953,11 +954,11 @@ async function parallelPeriodicCachingStart( strChainNameConnectedTo, addressFro
         g_client.send( jo );
         return true;
     } catch ( err ) {
-        log.write(
-            cc.error( "Failed to start parallel periodic SNB refresh, error is: " ) +
-            cc.warning( owaspUtils.extractErrorMessage( err ) ) +
-            cc.error( ", stack is: " ) + "\n" + cc.stack( err.stack ) +
-            "\n" );
+        if( log.verboseGet() >= log.verboseReversed().error ) {
+            log.write( cc.error( "Failed to start parallel periodic SNB refresh, error is: " ) +
+                cc.warning( owaspUtils.extractErrorMessage( err ) ) +
+                cc.error( ", stack is: " ) + "\n" + cc.stack( err.stack ) + "\n" );
+        }
     }
     return false;
 }
@@ -988,11 +989,11 @@ export async function periodicCachingStop() {
             };
             g_client.send( jo );
         } catch ( err ) {
-            log.write(
-                cc.error( "Failed to stop parallel periodic SNB refresh, error is: " ) +
-                cc.warning( owaspUtils.extractErrorMessage( err ) ) +
-                cc.error( ", stack is: " ) + "\n" + cc.stack( err.stack ) +
-                "\n" );
+            if( log.verboseGet() >= log.verboseReversed().error ) {
+                log.write( cc.error( "Failed to stop parallel periodic SNB refresh, error is: " ) +
+                    cc.warning( owaspUtils.extractErrorMessage( err ) ) +
+                    cc.error( ", stack is: " ) + "\n" + cc.stack( err.stack ) + "\n" );
+            }
         }
     }
     if( g_intervalPeriodicCaching ) {
@@ -1000,11 +1001,11 @@ export async function periodicCachingStop() {
             clearInterval( g_intervalPeriodicCaching );
             g_intervalPeriodicCaching = null;
         } catch ( err ) {
-            log.write(
-                cc.error( "Failed to stop in-thread periodic SNB refresh, error is: " ) +
-                cc.warning( owaspUtils.extractErrorMessage( err ) ) +
-                cc.error( ", stack is: " ) + "\n" + cc.stack( err.stack ) +
-                "\n" );
+            if( log.verboseGet() >= log.verboseReversed().error ) {
+                log.write( cc.error( "Failed to stop in-thread periodic SNB refresh, error is: " ) +
+                    cc.warning( owaspUtils.extractErrorMessage( err ) ) +
+                    cc.error( ", stack is: " ) + "\n" + cc.stack( err.stack ) + "\n" );
+            }
             g_intervalPeriodicCaching = null; // clear it anyway
         }
     }

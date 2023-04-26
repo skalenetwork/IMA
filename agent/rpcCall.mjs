@@ -90,10 +90,10 @@ export async function doConnect( joCall, opts, fn ) {
             } );
             joCall.wsConn.on( "error", async function( err ) {
                 strWsError = err.toString() || "internal web socket error";
-                log.write(
-                    cc.u( joCall.url ) + cc.error( " web socket error: " ) +
-                    cc.warning( err.toString() ) +
-                    "\n" );
+                if( log.verboseGet() >= log.verboseReversed().error ) {
+                    log.write( cc.u( joCall.url ) + cc.error( " web socket error: " ) +
+                        cc.warning( err.toString() ) + "\n" );
+                }
                 const wsConn = joCall.wsConn;
                 joCall.wsConn = null;
                 wsConn.close();
@@ -101,10 +101,10 @@ export async function doConnect( joCall, opts, fn ) {
             } );
             joCall.wsConn.on( "fail", async function( err ) {
                 strWsError = err.toString() || "internal web socket failure";
-                log.write(
-                    cc.u( joCall.url ) + cc.error( " web socket fail: " ) +
-                    cc.warning( err.toString() ) +
-                    "\n" );
+                if( log.verboseGet() >= log.verboseReversed().error ) {
+                    log.write( cc.u( joCall.url ) + cc.error( " web socket fail: " ) +
+                        cc.warning( err.toString() ) + "\n" );
+                }
                 const wsConn = joCall.wsConn;
                 joCall.wsConn = null;
                 wsConn.close();
@@ -128,17 +128,19 @@ export async function doConnect( joCall, opts, fn ) {
                 },
                 async function( nStep ) { // step handler
                     if( strWsError && typeof strWsError == "string" && strWsError.length > 0 ) {
-                        log.write(
-                            cc.u( joCall.url ) + cc.error( " web socket wait error detected: " ) +
-                            cc.warning( strWsError ) +
-                            "\n" );
+                        if( log.verboseGet() >= log.verboseReversed().error ) {
+                            log.write( cc.u( joCall.url ) +
+                            cc.error( " web socket wait error detected: " ) +
+                            cc.warning( strWsError ) + "\n" );
+                        }
                         return false;
                     }
                     if( nStep >= g_nConnectionTimeoutSeconds ) {
                         strWsError = "wait timeout, web socket is connecting too long";
-                        log.write(
-                            cc.u( joCall.url ) + cc.error( " web socket wait timeout detected" ) +
-                            "\n" );
+                        if( log.verboseGet() >= log.verboseReversed().error ) {
+                            log.write( cc.u( joCall.url ) +
+                                cc.error( " web socket wait timeout detected" ) + "\n" );
+                        }
                         const wsConn = joCall.wsConn;
                         joCall.wsConn = null;
                         wsConn.close();
@@ -213,7 +215,7 @@ async function doDisconnect( joCall, fn ) {
 }
 
 export async function doCall( joCall, joIn, fn ) {
-    joIn = enrichTopLevelFieldsinJSON( joIn );
+    joIn = enrichTopLevelFieldsInJSON( joIn );
     fn = fn || async function() {};
     if( joCall.wsConn ) {
         const entry = {
@@ -289,10 +291,10 @@ export async function doCall( joCall, joIn, fn ) {
                     } );
                 } );
                 req.on( "error", err => {
-                    log.write(
-                        cc.u( joCall.url ) + cc.error( " REST error " ) +
-                        cc.warning( err.toString() ) +
-                        "\n" );
+                    if( log.verboseGet() >= log.verboseReversed().error ) {
+                        log.write( cc.u( joCall.url ) + cc.error( " REST error " ) +
+                            cc.warning( err.toString() ) + "\n" );
+                    }
                     joOut = null;
                     errCall = "RPC call error: " + err.toString();
                     reject( errCall );
@@ -326,18 +328,19 @@ export async function doCall( joCall, joIn, fn ) {
                 } );
                 const body = response.data.toString( "utf8" );
                 if( response && response.statusCode && response.statusCode !== 200 ) {
-                    log.write(
-                        cc.warning( "WARNING:" ) + cc.warning( " REST call status code is " ) +
-                        cc.info( response.statusCode ) +
-                        "\n" );
+                    if( log.verboseGet() >= log.verboseReversed().warning ) {
+                        log.write( cc.warning( "WARNING:" ) +
+                            cc.warning( " REST call status code is " ) +
+                            cc.info( response.statusCode ) + "\n" );
+                    }
                 }
                 joOut = JSON.parse( body );
                 errCall = null;
             } catch ( err ) {
-                log.write(
-                    cc.u( joCall.url ) + cc.error( " request error " ) +
-                    cc.warning( err.toString() ) +
-                    "\n" );
+                if( log.verboseGet() >= log.verboseReversed().error ) {
+                    log.write( cc.u( joCall.url ) + cc.error( " request error " ) +
+                        cc.warning( err.toString() ) + "\n" );
+                }
                 joOut = null;
                 errCall = "request error: " + err.toString();
             }
@@ -401,7 +404,7 @@ export function generateRandomRpcCallId() {
     return generateRandomIntegerInRange( 1, Number.MAX_SAFE_INTEGER );
 }
 
-export function enrichTopLevelFieldsinJSON( jo ) {
+export function enrichTopLevelFieldsInJSON( jo ) {
     if( ( !( "jsonrpc" in jo ) ) ||
         ( typeof jo.jsonrpc !== "string" ) ||
         jo.jsonrpc.length === 0

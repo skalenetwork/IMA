@@ -1021,7 +1021,8 @@ async function checkCorrectnessOfMessagesToSign(
                         cc.warning( owaspUtils.extractErrorMessage( err ) ) +
                         cc.error( ", stack is:" ) + "\n" + cc.stack( err.stack ) +
                         "\n";
-                    log.write( strErrorMessage );
+                    if( log.id != details.id )
+                        log.write( strErrorMessage );
                     details.write( strErrorMessage );
                 }
             }
@@ -1029,12 +1030,15 @@ async function checkCorrectnessOfMessagesToSign(
     }
     // TODO: M2S - check events
     if( cntBadMessages > 0 ) {
-        const s =
-            strLogPrefix + cc.fatal( "BAD ERROR:" ) +
-            cc.error( " Correctness validation failed for " ) + cc.info( cntBadMessages ) +
-            cc.error( " of " ) + cc.info( cnt ) + cc.error( " message(s)" ) + "\n";
-        log.write( s );
-        details.write( s );
+        if( log.verboseGet() >= log.verboseReversed().critical ) {
+            const s =
+                strLogPrefix + cc.fatal( "BAD ERROR:" ) +
+                cc.error( " Correctness validation failed for " ) + cc.info( cntBadMessages ) +
+                cc.error( " of " ) + cc.info( cnt ) + cc.error( " message(s)" ) + "\n";
+            if( log.id != details.id )
+                log.write( s );
+            details.write( s );
+        }
     } else {
         details.write( strLogPrefix +
             cc.success( "Correctness validation passed for " ) + cc.info( cnt ) +
@@ -1202,7 +1206,8 @@ async function gatherSigningStartImpl( optsSignOperation ) {
                         cc.warning( strError ) +
                         "\n";
                     optsSignOperation.details.write( strErrorMessage );
-                    log.write( strErrorMessage );
+                    if( log.id != details.id )
+                        log.write( strErrorMessage );
                 }
                 const strCallbackCallDescription =
                     cc.debug( "Will call signed-hash answer-sending callback " ) +
@@ -1219,7 +1224,8 @@ async function gatherSigningStartImpl( optsSignOperation ) {
                                 cc.error( "Problem(2) in BLS sign result handler: " ) +
                                 cc.warning( owaspUtils.extractErrorMessage( err ) ) +
                                 "\n";
-                            log.write( strErrorMessage );
+                            if( log.id != optsSignOperation.details.id )
+                                log.write( strErrorMessage );
                             optsSignOperation.details.write( strErrorMessage );
                         }
                         optsSignOperation.errGathering =
@@ -1255,7 +1261,8 @@ async function gatherSigningStartImpl( optsSignOperation ) {
                             cc.warning( owaspUtils.extractErrorMessage( err ) ) +
                             "\n";
                         optsSignOperation.details.write( strErrorMessage );
-                        log.write( strErrorMessage );
+                        if( log.id != optsSignOperation.details.id )
+                            log.write( strErrorMessage );
                     }
                     optsSignOperation.errGathering =
                         "Problem(3) in BLS sign result handler," +
@@ -1290,7 +1297,8 @@ async function gatherSigningStartImpl( optsSignOperation ) {
                             cc.warning( owaspUtils.extractErrorMessage( err ) ) +
                             "\n";
                         optsSignOperation.details.write( strErrorMessage );
-                        log.write( strErrorMessage );
+                        if( log.id != optsSignOperation.details.id )
+                            log.write( strErrorMessage );
                     }
                     optsSignOperation.errGathering =
                         "Problem(4) in BLS sign result handler, " +
@@ -1325,7 +1333,8 @@ async function gatherSigningFinishImpl( optsSignOperation ) {
                     cc.error( "Failed to verify BLS and send message : " ) +
                     cc.warning( owaspUtils.extractErrorMessage( err ) ) +
                     "\n";
-                log.write( strErrorMessage );
+                if( log.id != optsSignOperation.details.id )
+                    log.write( strErrorMessage );
                 optsSignOperation.details.write( strErrorMessage );
             }
         } );
@@ -1334,7 +1343,8 @@ async function gatherSigningFinishImpl( optsSignOperation ) {
             cc.error( "Failed BLS sign result awaiting(1): " ) +
             cc.warning( optsSignOperation.errGathering.toString() ) +
             "\n";
-        log.write( strErrorMessage );
+        if( log.id != optsSignOperation.details.id )
+            log.write( strErrorMessage );
         optsSignOperation.details.write( strErrorMessage );
         if( ! optsSignOperation.bHaveResultReportCalled ) {
             optsSignOperation.bHaveResultReportCalled = true;
@@ -1354,7 +1364,8 @@ async function gatherSigningFinishImpl( optsSignOperation ) {
                         cc.error( ") and timeout reached, error optsSignOperation.details: " ) +
                         cc.warning( owaspUtils.extractErrorMessage( err ) ) +
                         "\n";
-                    log.write( strErrorMessage );
+                    if( log.id != optsSignOperation.details.id )
+                        log.write( strErrorMessage );
                     optsSignOperation.details.write( strErrorMessage );
                 }
                 optsSignOperation.details.exposeDetailsTo(
@@ -1369,7 +1380,8 @@ async function gatherSigningFinishImpl( optsSignOperation ) {
         const strErrorMessage = cc.error( "Failed BLS sign result awaiting(2): " ) +
             cc.warning( "No reports were arrived" ) +
             + "\n";
-        log.write( strErrorMessage );
+        if( log.id != optsSignOperation.details.id )
+            log.write( strErrorMessage );
         optsSignOperation.details.write( strErrorMessage );
         optsSignOperation.bHaveResultReportCalled = true;
         await optsSignOperation.fn(
@@ -1385,7 +1397,8 @@ async function gatherSigningFinishImpl( optsSignOperation ) {
                     cc.info( optsSignOperation.cntSuccess ) +
                     cc.error( ") and timeout reached, error optsSignOperation.details: " ) +
                     cc.warning( owaspUtils.extractErrorMessage( err ) ) + "\n";
-                log.write( strErrorMessage );
+                if( log.id != optsSignOperation.details.id )
+                    log.write( strErrorMessage );
                 optsSignOperation.details.write( strErrorMessage );
             }
             optsSignOperation.details.exposeDetailsTo(
@@ -1455,7 +1468,8 @@ async function doSignProcessHandleCall(
             cc.error( ", " ) + cc.notice( "sequence ID" ) +
             cc.error( " is " ) + cc.attention( optsSignOperation.sequenceId ) +
             "\n";
-        log.write( strErrorMessage );
+        if( log.id != optsSignOperation.details.id )
+            log.write( strErrorMessage );
         optsSignOperation.details.write( strErrorMessage );
         await joCall.disconnect();
         return;
@@ -1486,7 +1500,8 @@ async function doSignProcessHandleCall(
             cc.error( ", " ) + cc.notice( "sequence ID" ) +
             cc.error( " is " ) + cc.attention( optsSignOperation.sequenceId ) +
             "\n";
-        log.write( strErrorMessage );
+        if( log.id != optsSignOperation.details.id )
+            log.write( strErrorMessage );
         optsSignOperation.details.write( strErrorMessage );
         await joCall.disconnect();
         return;
@@ -1583,7 +1598,8 @@ async function doSignProcessHandleCall(
                         cc.error( " is " ) + cc.attention( optsSignOperation.sequenceId ) +
                         cc.error( ", stack is:" ) + "\n" + cc.stack( err.stack ) +
                         "\n";
-                    log.write( strErrorMessage );
+                    if( log.id != optsSignOperation.details.id )
+                        log.write( strErrorMessage );
                     optsSignOperation.details.write( strErrorMessage );
                 }
             }
@@ -1613,7 +1629,8 @@ async function doSignProcessHandleCall(
                 cc.error( " is " ) + cc.attention( optsSignOperation.sequenceId ) +
                 cc.error( ", stack is:" ) + "\n" + cc.stack( err.stack ) +
                 "\n";
-            log.write( strErrorMessage );
+            if( log.id != optsSignOperation.details.id )
+                log.write( strErrorMessage );
             optsSignOperation.details.write( strErrorMessage );
         }
     }
@@ -1645,7 +1662,8 @@ async function doSignProcessOneImpl( i, optsSignOperation ) {
                 cc.error( ", " ) + cc.notice( "sequence ID" ) +
                 cc.error( " is " ) + cc.attention( optsSignOperation.sequenceId ) +
                 "\n";
-                log.write( strErrorMessage );
+                if( log.id != optsSignOperation.details.id )
+                    log.write( strErrorMessage );
                 optsSignOperation.details.write( strErrorMessage );
                 if( joCall )
                     await joCall.disconnect();
@@ -1773,7 +1791,8 @@ async function doSignMessagesImpl(
                 cc.error( "Failed BLS sign due to generic flow exception: " ) +
                 cc.warning( owaspUtils.extractErrorMessage( err ) ) +
                 cc.error( ", stack is: " ) + "\n" + cc.stack( err.stack ) + "\n";
-            log.write( strErrorMessage );
+            if( ( !optsSignOperation.details ) || log.id != optsSignOperation.details.id )
+                log.write( strErrorMessage );
             if( optsSignOperation.details )
                 optsSignOperation.details.write( strErrorMessage );
         }
@@ -1918,7 +1937,8 @@ async function doSignU256OneImpl( optsSignU256 ) {
                 cc.error( " failed, RPC call was not created, error is: " ) +
                 cc.warning( owaspUtils.extractErrorMessage( err ) ) +
                 "\n";
-            log.write( strErrorMessage );
+            if( log.id != optsSignU256.details.id )
+                log.write( strErrorMessage );
             optsSignU256.details.write( strErrorMessage );
             if( joCall )
                 await joCall.disconnect();
@@ -1943,7 +1963,8 @@ async function doSignU256OneImpl( optsSignU256 ) {
                     cc.error( " failed, RPC call reported error: " ) +
                     cc.warning( owaspUtils.extractErrorMessage( err ) ) +
                     "\n";
-                log.write( strErrorMessage );
+                if( log.id != optsSignU256.details.id )
+                    log.write( strErrorMessage );
                 optsSignU256.details.write( strErrorMessage );
                 await joCall.disconnect();
                 return;
@@ -1967,7 +1988,8 @@ async function doSignU256OneImpl( optsSignU256 ) {
                         owaspUtils.extractErrorMessage( joOut, "unknown wallet error(2)" )
                     ) +
                     "\n";
-                log.write( strErrorMessage );
+                if( log.id != optsSignU256.details.id )
+                    log.write( strErrorMessage );
                 optsSignU256.details.write( strErrorMessage );
                 await joCall.disconnect();
                 return;
@@ -2055,7 +2077,8 @@ async function doSignU256OneImpl( optsSignU256 ) {
                                 cc.warning( owaspUtils.extractErrorMessage( err ) ) +
                                 cc.error( ", stack is:" ) + "\n" + cc.stack( err.stack ) +
                                 "\n";
-                            log.write( strErrorMessage );
+                            if( log.id != optsSignU256.details.id )
+                                log.write( strErrorMessage );
                             optsSignU256.details.write( strErrorMessage );
                         }
                     }
@@ -2083,7 +2106,8 @@ async function doSignU256OneImpl( optsSignU256 ) {
                         cc.warning( owaspUtils.extractErrorMessage( err ) ) +
                         cc.error( ", stack is:" ) + "\n" + cc.stack( err.stack ) +
                         "\n";
-                    log.write( strErrorMessage );
+                    if( log.id != optsSignU256.details.id )
+                        log.write( strErrorMessage );
                     optsSignU256.details.write( strErrorMessage );
                 }
             }
@@ -2134,12 +2158,12 @@ async function doSignU256Gathering( optsSignU256 ) {
                                 "\n" );
                         } else {
                             strError = "BLS verification failed";
-                            log.write( strLogPrefixB +
-                                cc.fatal( "CRITICAL ERROR:" ) + cc.error( strError ) +
-                                "\n" );
+                            if( log.id != optsSignU256.details.id ) {
+                                log.write( strLogPrefixB +
+                                    cc.fatal( "CRITICAL ERROR:" ) + cc.error( strError ) + "\n" );
+                            }
                             optsSignU256.details.write( strLogPrefixB +
-                                cc.fatal( "CRITICAL ERROR:" ) + cc.error( strError ) +
-                                "\n" );
+                                cc.fatal( "CRITICAL ERROR:" ) + cc.error( strError ) + "\n" );
                         }
                     }
                 } else {
@@ -2148,7 +2172,8 @@ async function doSignU256Gathering( optsSignU256 ) {
                         cc.error( "Problem(1) in BLS u256 sign result handler: " ) +
                         cc.warning( strError ) +
                         "\n";
-                    log.write( strErrorMessage );
+                    if( log.id != optsSignU256.details.id )
+                        log.write( strErrorMessage );
                     optsSignU256.details.write( strErrorMessage );
                 }
                 const strCallbackCallDescription =
@@ -2165,7 +2190,8 @@ async function doSignU256Gathering( optsSignU256 ) {
                                 cc.error( "Problem(2) in BLS u256 sign result handler: " ) +
                                 cc.warning( owaspUtils.extractErrorMessage( err ) ) +
                                 "\n";
-                            log.write( strErrorMessage );
+                            if( log.id != optsSignU256.details.id )
+                                log.write( strErrorMessage );
                             optsSignU256.details.write( strErrorMessage );
                         }
                         optsSignU256.errGathering =
@@ -2197,7 +2223,8 @@ async function doSignU256Gathering( optsSignU256 ) {
                             cc.error( " when all attempts done, error optsSignU256.details: " ) +
                             cc.warning( owaspUtils.extractErrorMessage( err ) ) +
                             "\n";
-                        log.write( strErrorMessage );
+                        if( log.id != optsSignU256.details.id )
+                            log.write( strErrorMessage );
                         optsSignU256.details.write( strErrorMessage );
                     }
                     optsSignU256.errGathering =
@@ -2227,7 +2254,8 @@ async function doSignU256Gathering( optsSignU256 ) {
                             cc.info( cntSuccess ) +
                             cc.error( ") and timeout reached, error optsSignU256.details: " ) +
                             cc.warning( owaspUtils.extractErrorMessage( err ) ) + "\n";
-                        log.write( strErrorMessage );
+                        if( log.id != optsSignU256.details.id )
+                            log.write( strErrorMessage );
                         optsSignU256.details.write( strErrorMessage );
                     }
                     optsSignU256.errGathering =
@@ -2298,7 +2326,8 @@ export async function doSignU256( u256, details, fn ) {
                 cc.error( "Failed to verify BLS and send message : " ) +
                 cc.warning( owaspUtils.extractErrorMessage( err ) ) +
                 "\n";
-            log.write( strErrorMessage );
+            if( log.id != optsSignU256.details.id )
+                log.write( strErrorMessage );
             optsSignU256.details.write( strErrorMessage );
         }
     } );
@@ -2307,7 +2336,8 @@ export async function doSignU256( u256, details, fn ) {
             cc.error( "Failed BLS u256 sign result awaiting: " ) +
             cc.warning( optsSignU256.errGathering.toString() ) +
             "\n";
-        log.write( strErrorMessage );
+        if( log.id != optsSignU256.details.id )
+            log.write( strErrorMessage );
         optsSignU256.details.write( strErrorMessage );
         return;
     }
@@ -2404,9 +2434,11 @@ export async function doVerifyReadyHash(
                 cc.notice( "#" ) + cc.info( nZeroBasedNodeIndex ) +
                 cc.error( " verify output is:\n" ) + cc.warning( strOutput ) +
                 "\n";
-            log.write( s1 );
+            if( log.id != details.id ) {
+                log.write( s1 );
+                log.write( s2 );
+            }
             details.write( s1 );
-            log.write( s2 );
             details.write( s2 );
         }
         fnShellRestore();
@@ -2474,7 +2506,8 @@ export async function doSignReadyHash( strMessageHash, isExposeOutput ) {
                         "RPC call was not created, error is: " ) +
                     cc.warning( owaspUtils.extractErrorMessage( err ) ) +
                     "\n";
-                log.write( strErrorMessage );
+                if( log.id != details.id )
+                    log.write( strErrorMessage );
                 details.write( strErrorMessage );
                 if( joCall )
                     await joCall.disconnect();
@@ -2511,7 +2544,8 @@ export async function doSignReadyHash( strMessageHash, isExposeOutput ) {
                         cc.warning( owaspUtils.extractErrorMessage( err ) ) +
                         cc.error( ", stack is:" ) + "\n" + cc.stack( jsErrorObject.stack ) +
                         "\n";
-                    log.write( strErrorMessage );
+                    if( log.id != details.id )
+                        log.write( strErrorMessage );
                     details.write( strErrorMessage );
                     await joCall.disconnect();
                     throw jsErrorObject;
@@ -2543,7 +2577,8 @@ export async function doSignReadyHash( strMessageHash, isExposeOutput ) {
                         cc.error( " BLS signing(1) finished with error: " ) +
                         cc.warning( joSignResult.errorMessage ) +
                         "\n";
-                    log.write( strErrorMessage );
+                    if( log.id != details.id )
+                        log.write( strErrorMessage );
                     details.write( strErrorMessage );
                     await joCall.disconnect();
                     throw new Error( strError );
@@ -2562,7 +2597,8 @@ export async function doSignReadyHash( strMessageHash, isExposeOutput ) {
                 cc.error( "BLS-raw-signer error: " ) + cc.warning( strError ) +
                 cc.error( ", stack is:" ) + "\n" + cc.stack( err.stack ) +
                 "\n";
-            log.write( strErrorMessage );
+            if( log.id != details.id )
+                log.write( strErrorMessage );
             details.write( strErrorMessage );
         }
     }
@@ -2756,7 +2792,8 @@ export async function handleSkaleImaVerifyAndSign( joCallData ) {
                         "RPC call was not created, error is: " ) +
                     cc.warning( owaspUtils.extractErrorMessage( err ) ) +
                     "\n";
-                log.write( strErrorMessage );
+                if( log.id != optsHandleVerifyAndSign.details.id )
+                    log.write( strErrorMessage );
                 optsHandleVerifyAndSign.details.write( strErrorMessage );
                 if( joCall )
                     await joCall.disconnect();
@@ -2796,7 +2833,8 @@ export async function handleSkaleImaVerifyAndSign( joCallData ) {
                         cc.warning( owaspUtils.extractErrorMessage( err ) ) +
                         cc.error( ", stack is:" ) + "\n" + cc.stack( jsErrorObject.stack ) +
                         "\n";
-                    log.write( strErrorMessage );
+                    if( log.id != optsHandleVerifyAndSign.details.id )
+                        log.write( strErrorMessage );
                     optsHandleVerifyAndSign.details.write( strErrorMessage );
                     await joCall.disconnect();
                     throw jsErrorObject;
@@ -2832,7 +2870,8 @@ export async function handleSkaleImaVerifyAndSign( joCallData ) {
                         cc.error( " BLS signing(2) finished with error: " ) +
                         cc.warning( joSignResult.errorMessage ) +
                         "\n";
-                    log.write( strErrorMessage );
+                    if( log.id != optsHandleVerifyAndSign.details.id )
+                        log.write( strErrorMessage );
                     optsHandleVerifyAndSign.details.write( strErrorMessage );
                     await joCall.disconnect();
                     throw new Error( strError );
@@ -2854,7 +2893,8 @@ export async function handleSkaleImaVerifyAndSign( joCallData ) {
                 cc.error( "IMA messages verifier/signer error: " ) + cc.warning( strError ) +
                 cc.error( ", stack is:" ) + "\n" + cc.stack( err.stack ) +
                 "\n";
-            log.write( strErrorMessage );
+            if( log.id != optsHandleVerifyAndSign.details.id )
+                log.write( strErrorMessage );
             optsHandleVerifyAndSign.details.write( strErrorMessage );
         }
     }
@@ -2944,7 +2984,8 @@ export async function handleSkaleImaBSU256( joCallData ) {
                         "RPC call was not created, error is: " ) +
                     cc.warning( owaspUtils.extractErrorMessage( err ) ) +
                     "\n";
-                    log.write( strErrorMessage );
+                    if( log.id != optsBSU256.details.id )
+                        log.write( strErrorMessage );
                     optsBSU256.details.write( strErrorMessage );
                     if( joCall )
                         await joCall.disconnect();
@@ -2977,11 +3018,12 @@ export async function handleSkaleImaBSU256( joCallData ) {
                         );
                         const strErrorMessage =
                         optsBSU256.strLogPrefix + cc.fatal( "CRITICAL ERROR:" ) +
-                        cc.error( " JSON RPC call to SGX failed, RPC call reported error: " ) +
-                        cc.warning( owaspUtils.extractErrorMessage( err ) ) +
-                        cc.error( ", stack is:" ) + "\n" + cc.stack( jsErrorObject.stack ) +
-                        "\n";
-                        log.write( strErrorMessage );
+                            cc.error( " JSON RPC call to SGX failed, RPC call reported error: " ) +
+                            cc.warning( owaspUtils.extractErrorMessage( err ) ) +
+                            cc.error( ", stack is:" ) + "\n" + cc.stack( jsErrorObject.stack ) +
+                            "\n";
+                        if( log.id != optsBSU256.details.id )
+                            log.write( strErrorMessage );
                         optsBSU256.details.write( strErrorMessage );
                         await joCall.disconnect();
                         throw jsErrorObject;
@@ -3011,9 +3053,10 @@ export async function handleSkaleImaBSU256( joCallData ) {
                         optsBSU256.joRetVal.error = strError;
                         const strErrorMessage =
                         optsBSU256.strLogPrefix + cc.fatal( "CRITICAL ERROR:" ) +
-                        cc.error( " BLS signing(3) finished with error: " ) +
-                        cc.warning( joSignResult.errorMessage ) + "\n";
-                        log.write( strErrorMessage );
+                            cc.error( " BLS signing(3) finished with error: " ) +
+                            cc.warning( joSignResult.errorMessage ) + "\n";
+                        if( log.id != optsBSU256.details.id )
+                            log.write( strErrorMessage );
                         optsBSU256.details.write( strErrorMessage );
                         await joCall.disconnect();
                         throw new Error( strError );
@@ -3035,7 +3078,8 @@ export async function handleSkaleImaBSU256( joCallData ) {
                 cc.error( "U256-BLS-signer error: " ) + cc.warning( strError ) +
                 cc.error( ", stack is:" ) + "\n" + cc.stack( err.stack ) +
                 "\n";
-            log.write( strErrorMessage );
+            if( log.id != optsBSU256.details.id )
+                log.write( strErrorMessage );
             optsBSU256.details.write( strErrorMessage );
         }
     }

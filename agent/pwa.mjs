@@ -127,11 +127,11 @@ export async function checkOnLoopStart( imaState, strLoopWorkType, nIndexS2S ) {
         const arr_busy_node_indices = [];
         const arr_walk_node_indices =
             computeWalkNodeIndices( imaState.nNodeNumber, imaState.nNodesCount );
-        if( imaState.isPrintPWA ) {
-            log.write(
-                cc.debug( "PWA will check loop start condition via node(s) sequence " ) +
-                cc.j( arr_busy_node_indices ) + cc.debug( "..." ) +
-                "\n" );
+        if( log.verboseGet() >= log.verboseReversed().information ) {
+            if( imaState.isPrintPWA ) {
+                log.write( cc.debug( "PWA will check loop start condition via node(s) sequence " ) +
+                    cc.j( arr_busy_node_indices ) + cc.debug( "..." ) + "\n" );
+            }
         }
         const nUtcUnixTimeStamp = Math.floor( ( new Date() ).getTime() / 1000 );
         for( let i = 0; i < arr_walk_node_indices.length; ++i ) {
@@ -144,20 +144,20 @@ export async function checkOnLoopStart( imaState, strLoopWorkType, nIndexS2S ) {
             ) {
                 const d = nUtcUnixTimeStamp - joProps.ts;
                 if( d >= imaState.nTimeoutSecondsPWA ) {
-                    if( imaState.isPrintPWA ) {
-                        log.write(
-                            cc.warning( "PWA busy state timeout for node #" ) +
-                            cc.info( walk_node_index ) +
-                            cc.debug( ", old timestamp is " ) + cc.info( joProps.ts ) +
-                            cc.debug( ", current system timestamp is " ) +
-                            cc.info( nUtcUnixTimeStamp ) +
-                            cc.debug( ", duration " ) + cc.info( d ) +
-                            cc.debug( " is greater than conditionally allowed " ) +
-                            cc.info( imaState.nTimeoutSecondsPWA ) +
-                            cc.debug( " and exceeded by " ) +
-                            cc.info( d - imaState.nTimeoutSecondsPWA ) +
-                            cc.debug( " second(s)" ) +
-                            "\n" );
+                    if( log.verboseGet() >= log.verboseReversed().information ) {
+                        if( imaState.isPrintPWA ) {
+                            log.write( cc.warning( "PWA busy state timeout for node #" ) +
+                                cc.info( walk_node_index ) + cc.debug( ", old timestamp is " ) +
+                                cc.info( joProps.ts ) +
+                                cc.debug( ", current system timestamp is " ) +
+                                cc.info( nUtcUnixTimeStamp ) + cc.debug( ", duration " ) +
+                                cc.info( d ) +
+                                cc.debug( " is greater than conditionally allowed " ) +
+                                cc.info( imaState.nTimeoutSecondsPWA ) +
+                                cc.debug( " and exceeded by " ) +
+                                cc.info( d - imaState.nTimeoutSecondsPWA ) +
+                                cc.debug( " second(s)" ) + "\n" );
+                        }
                     }
                     joProps.isInProgress = false;
                     joProps.ts = 0;
@@ -167,23 +167,24 @@ export async function checkOnLoopStart( imaState, strLoopWorkType, nIndexS2S ) {
             }
         }
         if( arr_busy_node_indices.length > 0 ) {
-            if( imaState.isPrintPWA ) {
-                log.write(
-                    cc.warning( "PWA loop start condition check failed, busy node(s): " ) +
-                    cc.j( arr_busy_node_indices ) +
-                    "\n" );
+            if( log.verboseGet() >= log.verboseReversed().error ) {
+                if( imaState.isPrintPWA ) {
+                    log.write(
+                        cc.warning( "PWA loop start condition check failed, busy node(s): " ) +
+                        cc.j( arr_busy_node_indices ) + "\n" );
+                }
             }
             return false;
         }
-        if( imaState.isPrintPWA )
-            log.write( cc.success( "PWA loop start condition check passed" ) + "\n" );
+        if( log.verboseGet() >= log.verboseReversed().information ) {
+            if( imaState.isPrintPWA )
+                log.write( cc.success( "PWA loop start condition check passed" ) + "\n" );
+        }
     } catch ( err ) {
         if( log.verboseGet() >= log.verboseReversed().critical ) {
-            log.write(
-                cc.error( "Exception in PWA check on loop start: " ) +
+            log.write( cc.error( "Exception in PWA check on loop start: " ) +
                 cc.error( owaspUtils.extractErrorMessage( err ) ) +
-                cc.error( ", stack is: " ) + "\n" + cc.stack( err.stack ) +
-                "\n" );
+                cc.error( ", stack is: " ) + "\n" + cc.stack( err.stack ) + "\n" );
         }
     }
     return true;
@@ -213,12 +214,13 @@ export async function handleLoopStateArrived(
             throw new Error( "S-Chain network info is not available yet to PWA" );
         joNode = jarrNodes[nNodeNumber];
         const joProps = getNodeProgressAndTimestamp( joNode, strLoopWorkType, nIndexS2S );
-        if( imaState.isPrintPWA ) {
-            log.write(
-                cc.debug( "PWA loop-" ) + cc.attention( se ) +
-                cc.debug( " state arrived for node " ) + cc.info( nNodeNumber ) +
-                cc.debug( ", PWA state " ) + cc.j( joNode.pwaState ) +
-                cc.debug( ", arrived signature is " ) + cc.j( signature ) + "\n" );
+        if( log.verboseGet() >= log.verboseReversed().trace ) {
+            if( imaState.isPrintPWA ) {
+                log.write( cc.debug( "PWA loop-" ) + cc.attention( se ) +
+                    cc.debug( " state arrived for node " ) + cc.info( nNodeNumber ) +
+                    cc.debug( ", PWA state " ) + cc.j( joNode.pwaState ) +
+                    cc.debug( ", arrived signature is " ) + cc.j( signature ) + "\n" );
+            }
         }
         const strMessageHash =
             imaBLS.keccak256ForPendingWorkAnalysis(
@@ -230,19 +232,20 @@ export async function handleLoopStateArrived(
             throw new Error( "BLS verification failed" );
         joProps.isInProgress = isStart ? true : false;
         joProps.ts = 0 + ts;
-        if( imaState.isPrintPWA ) {
-            log.write(
-                cc.success( "PWA loop-" ) + cc.attention( se ) +
-                cc.success( " state successfully verified for node " ) + cc.info( nNodeNumber ) +
-                cc.success( ", now have PWA state " ) + cc.j( joNode.pwaState ) +
-                cc.success( ", arrived signature is " ) + cc.j( signature ) + "\n" );
+        if( log.verboseGet() >= log.verboseReversed().error ) {
+            if( imaState.isPrintPWA ) {
+                log.write( cc.success( "PWA loop-" ) + cc.attention( se ) +
+                    cc.success( " state successfully verified for node " ) +
+                    cc.info( nNodeNumber ) + cc.success( ", now have PWA state " ) +
+                    cc.j( joNode.pwaState ) + cc.success( ", arrived signature is " ) +
+                    cc.j( signature ) + "\n" );
+            }
         }
         isSuccess = true;
     } catch ( err ) {
         isSuccess = false;
         if( log.verboseGet() >= log.verboseReversed().critical ) {
-            log.write(
-                cc.error( "Exception in PWA handler for loop-" ) + cc.attention( se ) +
+            log.write( cc.error( "Exception in PWA handler for loop-" ) + cc.attention( se ) +
                 cc.error( " for node " ) + cc.info( nNodeNumber ) + cc.error( ", PWA state " ) +
                 cc.j( ( joNode && "pwaState" in joNode ) ? joNode.pwaState : "N/A" ) +
                 cc.error( ", arrived signature is " ) + cc.j( signature ) +
@@ -291,12 +294,14 @@ async function notifyOnLoopImpl( imaState, strLoopWorkType, nIndexS2S, isStart )
             rpcCall.create( // NOTICE: no await here, executed async
                 strNodeURL, rpcCallOpts, async function( joCall, err ) {
                     if( err ) {
-                        log.write(
-                            cc.error( "PWA failed to create loop-" ) + cc.attention( se ) +
-                        cc.error( " notification RPC call to node #" ) + cc.info( i ) +
-                        cc.error( " with URL " ) + cc.u( strNodeURL ) +
-                        cc.error( ", error is: " ) +
-                        cc.error( owaspUtils.extractErrorMessage( err ) ) + "\n" );
+                        if( log.verboseGet() >= log.verboseReversed().error ) {
+                            log.write( cc.error( "PWA failed to create loop-" ) +
+                                cc.attention( se ) +
+                                cc.error( " notification RPC call to node #" ) +
+                                cc.info( i ) + cc.error( " with URL " ) + cc.u( strNodeURL ) +
+                                cc.error( ", error is: " ) +
+                                cc.error( owaspUtils.extractErrorMessage( err ) ) + "\n" );
+                        }
                         return;
                     }
                     joCall.call( { // NOTICE: no await here, executed async
@@ -311,31 +316,34 @@ async function notifyOnLoopImpl( imaState, strLoopWorkType, nIndexS2S, isStart )
                         }
                     }, async function( joIn, joOut, err ) {
                         if( err ) {
-                            log.write(
-                                cc.error( "PWA failed to perform loop-" ) + cc.attention( se ) +
-                            cc.error( " notification RPC call to node #" ) + cc.info( i ) +
-                            cc.error( " with URL " ) + cc.u( strNodeURL ) +
-                            cc.error( ", error is: " ) +
-                            cc.error( owaspUtils.extractErrorMessage( err ) ) + "\n" );
+                            if( log.verboseGet() >= log.verboseReversed().error ) {
+                                log.write( cc.error( "PWA failed to perform loop-" ) +
+                                cc.attention( se ) +
+                                cc.error( " notification RPC call to node #" ) +
+                                cc.info( i ) + cc.error( " with URL " ) + cc.u( strNodeURL ) +
+                                cc.error( ", error is: " ) +
+                                cc.error( owaspUtils.extractErrorMessage( err ) ) + "\n" );
+                            }
                             await joCall.disconnect();
                             return;
                         }
-                        if( imaState.isPrintPWA ) {
-                            log.write( cc.success( "Was successfully sent PWA loop-" ) +
-                            cc.attention( se ) + cc.success( " notification to node #" ) +
-                            cc.info( i ) + cc.success( " with URL " ) + cc.u( strNodeURL ) + "\n" );
+                        if( log.verboseGet() >= log.verboseReversed().information ) {
+                            if( imaState.isPrintPWA ) {
+                                log.write( cc.success( "Was successfully sent PWA loop-" ) +
+                                cc.attention( se ) + cc.success( " notification to node #" ) +
+                                cc.info( i ) + cc.success( " with URL " ) + cc.u( strNodeURL ) +
+                                "\n" );
+                            }
                         }
                         await joCall.disconnect();
                     } ); // joCall.call ...
                 } ); // rpcCall.create ...
         }
     } catch ( err ) {
-        if( log.verboseGet() >= log.verboseReversed().critical ) {
-            log.write(
-                cc.error( "Exception in PWA notify on loop " ) + cc.attention( se ) +
+        if( log.verboseGet() >= log.verboseReversed().error ) {
+            log.write( cc.error( "Exception in PWA notify on loop " ) + cc.attention( se ) +
                 cc.error( ": " ) + cc.error( owaspUtils.extractErrorMessage( err ) ) +
-                cc.error( ", stack is: " ) + "\n" + cc.stack( err.stack ) +
-                "\n" );
+                cc.error( ", stack is: " ) + "\n" + cc.stack( err.stack ) + "\n" );
         }
     }
     return true;

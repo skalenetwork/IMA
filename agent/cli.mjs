@@ -91,10 +91,8 @@ export function ensureHaveValue(
     if( value.length === 0 ) {
         retVal = false;
         if( ! isPrintValue ) {
-            console.log(
-                "    " + cc.error( "IMPORTANT WARNING:" ) +
-                cc.warning( " missing value for " ) + fnNameColorizer( name )
-            );
+            console.log( "    " + cc.error( "IMPORTANT WARNING:" ) +
+                cc.warning( " missing value for " ) + fnNameColorizer( name ) );
         }
         if( isExitIfEmpty )
             process.exit( 126 );
@@ -104,10 +102,9 @@ export function ensureHaveValue(
     for( ; n > 0; --n )
         strDots += ".";
     if( isPrintValue ) {
-        log.write(
-            fnNameColorizer( name ) + cc.debug( strDots ) + fnValueColorizer( value ) +
-            "\n" );
-    } // just print value
+        log.write( fnNameColorizer( name ) + cc.debug( strDots ) +
+            fnValueColorizer( value ) + "\n" );
+    }
     return retVal;
 }
 
@@ -2450,8 +2447,7 @@ export function parse( joExternalHandlers, argv ) {
             joExternalHandlers[joArg.name]();
             continue;
         }
-        console.log(
-            cc.fatal( "CRITICAL ERROR:" ) +
+        console.log( cc.fatal( "CRITICAL ERROR:" ) +
             cc.error( " unknown command line argument " ) + cc.info( joArg.name ) );
         return 666;
     }

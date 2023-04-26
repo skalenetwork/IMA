@@ -77,63 +77,62 @@ export function checkTimeFraming( d, strDirection, joRuntimeOpts ) {
                 bInsideGap = true;
             }
         }
-        log.write(
-            "\n" +
-            cc.info( "Unix UTC time stamp" ) + cc.debug( "........" ) +
-            cc.attention( nUtcUnixTimeStamp ) + "\n" +
-            cc.info( "All Chains Range" ) + cc.debug( "..........." ) +
-            cc.notice( nSecondsRangeForAllSChains ) + "\n" +
-            cc.info( "S-Chain Range Mod" ) + cc.debug( ".........." ) +
-            cc.notice( nMod ) + "\n" +
-            cc.info( "Active Node Frame Index" ) + cc.debug( "...." ) +
-            cc.notice( nActiveNodeFrameIndex ) + "\n" +
-            cc.info( "Testing Frame Index" ) + cc.debug( "........" ) +
-            cc.notice( imaState.nNodeNumber ) + "\n" +
-            cc.info( "Transfer Direction" ) + cc.debug( "........." ) +
-            cc.sunny( strDirection || "NA" ) + "\n" +
-            ( ( nFrameShift > 0 )
-                ? ( cc.info( "Frame Shift" ) + cc.debug( "................" ) +
-                    cc.note( nFrameShift ) + "\n" +
-                    cc.info( "S2S known chain index" ) + cc.debug( "......" ) +
-                    cc.note( joRuntimeOpts.idxChainKnownForS2S ) + "\n" +
-                    cc.info( "S2S known chains count" ) + cc.debug( "....." ) +
-                    cc.note( joRuntimeOpts.cntChainsKnownForS2S ) +
-                    "\n" +
-                    ( ( "joExtraSignOpts" in joRuntimeOpts &&
-                        typeof joRuntimeOpts.joExtraSignOpts == "object" )
-                        ? cc.info( "S-Chain source" ) + cc.debug( "............." ) +
-                          cc.info( joRuntimeOpts.joExtraSignOpts.chainNameSrc ) +
-                          cc.debug( "/" ) +
-                          cc.attention( joRuntimeOpts.joExtraSignOpts.chainIdSrc ) +
-                          "\n" +
-                          cc.info( "S-Chain destination" ) + cc.debug( "........" ) +
-                          cc.info( joRuntimeOpts.joExtraSignOpts.chainNameDst ) +
-                          cc.debug( "/" ) +
-                          cc.attention( joRuntimeOpts.joExtraSignOpts.chainIdDst ) +
-                          "\n"
-                        : "" )
-                )
-                : "" ) +
-            cc.info( "Is skip" ) + cc.debug( "...................." ) +
-            cc.yn( bSkip ) + "\n" +
-            cc.info( "Is inside gap" ) + cc.debug( ".............." ) +
-            cc.yn( bInsideGap ) + "\n" +
-            cc.info( "Range Start" ) + cc.debug( "................" ) +
-            cc.notice( nRangeStart ) + "\n" +
-            cc.info( "Frame Start" ) + cc.debug( "................" ) +
-            cc.notice( nFrameStart ) + "\n" +
-            cc.info( "Gap Start" ) + cc.debug( ".................." ) +
-            cc.notice( nGapStart ) + "\n"
-        );
+        if( log.verboseGet() >= log.verboseReversed().debug ) {
+            log.write( "\n" +
+                cc.info( "Unix UTC time stamp" ) + cc.debug( "........" ) +
+                cc.attention( nUtcUnixTimeStamp ) + "\n" +
+                cc.info( "All Chains Range" ) + cc.debug( "..........." ) +
+                cc.notice( nSecondsRangeForAllSChains ) + "\n" +
+                cc.info( "S-Chain Range Mod" ) + cc.debug( ".........." ) +
+                cc.notice( nMod ) + "\n" +
+                cc.info( "Active Node Frame Index" ) + cc.debug( "...." ) +
+                cc.notice( nActiveNodeFrameIndex ) + "\n" +
+                cc.info( "Testing Frame Index" ) + cc.debug( "........" ) +
+                cc.notice( imaState.nNodeNumber ) + "\n" +
+                cc.info( "Transfer Direction" ) + cc.debug( "........." ) +
+                cc.sunny( strDirection || "NA" ) + "\n" +
+                ( ( nFrameShift > 0 )
+                    ? ( cc.info( "Frame Shift" ) + cc.debug( "................" ) +
+                        cc.note( nFrameShift ) + "\n" +
+                        cc.info( "S2S known chain index" ) + cc.debug( "......" ) +
+                        cc.note( joRuntimeOpts.idxChainKnownForS2S ) + "\n" +
+                        cc.info( "S2S known chains count" ) + cc.debug( "....." ) +
+                        cc.note( joRuntimeOpts.cntChainsKnownForS2S ) +
+                        "\n" +
+                        ( ( "joExtraSignOpts" in joRuntimeOpts &&
+                            typeof joRuntimeOpts.joExtraSignOpts == "object" )
+                            ? cc.info( "S-Chain source" ) + cc.debug( "............." ) +
+                            cc.info( joRuntimeOpts.joExtraSignOpts.chainNameSrc ) +
+                            cc.debug( "/" ) +
+                            cc.attention( joRuntimeOpts.joExtraSignOpts.chainIdSrc ) +
+                            "\n" +
+                            cc.info( "S-Chain destination" ) + cc.debug( "........" ) +
+                            cc.info( joRuntimeOpts.joExtraSignOpts.chainNameDst ) +
+                            cc.debug( "/" ) +
+                            cc.attention( joRuntimeOpts.joExtraSignOpts.chainIdDst ) +
+                            "\n"
+                            : "" )
+                    )
+                    : "" ) +
+                cc.info( "Is skip" ) + cc.debug( "...................." ) +
+                cc.yn( bSkip ) + "\n" +
+                cc.info( "Is inside gap" ) + cc.debug( ".............." ) +
+                cc.yn( bInsideGap ) + "\n" +
+                cc.info( "Range Start" ) + cc.debug( "................" ) +
+                cc.notice( nRangeStart ) + "\n" +
+                cc.info( "Frame Start" ) + cc.debug( "................" ) +
+                cc.notice( nFrameStart ) + "\n" +
+                cc.info( "Gap Start" ) + cc.debug( ".................." ) +
+                cc.notice( nGapStart ) + "\n"
+            );
+        }
         if( bSkip )
             return false;
     } catch ( err ) {
-        if( log.verboseGet() >= log.verboseReversed().critical ) {
-            log.write(
-                cc.error( "Exception in time framing check: " ) +
+        if( log.verboseGet() >= log.verboseReversed().error ) {
+            log.write( cc.error( "Exception in time framing check: " ) +
                 cc.error( owaspUtils.extractErrorMessage( err ) ) +
-                cc.error( ", stack is: " ) + "\n" + cc.stack( err.stack ) +
-                "\n" );
+                cc.error( ", stack is: " ) + "\n" + cc.stack( err.stack ) + "\n" );
         }
     }
     return true;
@@ -143,15 +142,12 @@ async function singleTransferLoopPartOracle( optsLoop, strLogPrefix ) {
     const imaState = state.get();
     let b0 = true;
     if( optsLoop.enableStepOracle && IMA.getEnabledOracle() ) {
-        if( log.verboseGet() >= log.verboseReversed().information ) {
-            log.write( strLogPrefix +
-                cc.debug( "Will invoke Oracle gas price setup..." ) +
-                "\n" );
-        }
+        if( log.verboseGet() >= log.verboseReversed().information )
+            log.write( strLogPrefix + cc.debug( "Will invoke Oracle gas price setup..." ) + "\n" );
         try {
             if( ! await pwa.checkOnLoopStart( imaState, "oracle" ) ) {
                 imaState.loopState.oracle.wasInProgress = false;
-                if( log.verboseGet() >= log.verboseReversed().debug ) {
+                if( log.verboseGet() >= log.verboseReversed().warning ) {
                     log.write( strLogPrefix +
                         cc.warning( "Skipped(oracle) due to cancel mode reported from PWA" ) +
                         "\n" );
@@ -173,7 +169,7 @@ async function singleTransferLoopPartOracle( optsLoop, strLogPrefix ) {
                     imaState.loopState.oracle.isInProgress = false;
                     await pwa.notifyOnLoopEnd( imaState, "oracle" );
                 } else {
-                    if( log.verboseGet() >= log.verboseReversed().debug ) {
+                    if( log.verboseGet() >= log.verboseReversed().warning ) {
                         log.write( strLogPrefix +
                             cc.warning( "Skipped(oracle) due to time framing check" ) +
                             "\n" );
@@ -181,20 +177,17 @@ async function singleTransferLoopPartOracle( optsLoop, strLogPrefix ) {
                 }
             }
         } catch ( err ) {
-            if( log.verboseGet() >= log.verboseReversed().critical ) {
-                log.write( strLogPrefix +
-                    cc.error( "Oracle operation exception: " ) +
+            if( log.verboseGet() >= log.verboseReversed().error ) {
+                log.write( strLogPrefix + cc.error( "Oracle operation exception: " ) +
                     cc.error( owaspUtils.extractErrorMessage( err ) ) +
-                    cc.error( ", stack is: " ) + "\n" + cc.stack( err.stack ) +
-                    "\n" );
+                    cc.error( ", stack is: " ) + "\n" + cc.stack( err.stack ) + "\n" );
             }
             imaState.loopState.oracle.isInProgress = false;
             await pwa.notifyOnLoopEnd( imaState, "oracle" );
             throw err;
         }
         if( log.verboseGet() >= log.verboseReversed().information ) {
-            log.write( strLogPrefix +
-                cc.debug( "Oracle gas price setup done: " ) + cc.tf( b0 ) +
+            log.write( strLogPrefix + cc.debug( "Oracle gas price setup done: " ) + cc.tf( b0 ) +
                 "\n" );
         }
     }
@@ -205,18 +198,14 @@ async function singleTransferLoopPartM2S( optsLoop, strLogPrefix ) {
     const imaState = state.get();
     let b1 = true;
     if( optsLoop.enableStepM2S ) {
-        if( log.verboseGet() >= log.verboseReversed().information ) {
-            log.write( strLogPrefix +
-                cc.debug( "Will invoke M2S transfer..." ) +
-                "\n" );
-        }
+        if( log.verboseGet() >= log.verboseReversed().information )
+            log.write( strLogPrefix + cc.debug( "Will invoke M2S transfer..." ) + "\n" );
         try {
             if( ! await pwa.checkOnLoopStart( imaState, "m2s" ) ) {
                 imaState.loopState.m2s.wasInProgress = false;
-                if( log.verboseGet() >= log.verboseReversed().debug ) {
+                if( log.verboseGet() >= log.verboseReversed().warning ) {
                     log.write( strLogPrefix +
-                        cc.warning( "Skipped(m2s) due to cancel mode reported from PWA" ) +
-                        "\n" );
+                        cc.warning( "Skipped(m2s) due to cancel mode reported from PWA" ) + "\n" );
                 }
             } else {
                 if( checkTimeFraming( null, "m2s", optsLoop.joRuntimeOpts ) ) {
@@ -251,36 +240,27 @@ async function singleTransferLoopPartM2S( optsLoop, strLogPrefix ) {
                     imaState.loopState.m2s.isInProgress = false;
                     await pwa.notifyOnLoopEnd( imaState, "m2s" );
                 } else {
-                    if( log.verboseGet() >= log.verboseReversed().debug ) {
+                    if( log.verboseGet() >= log.verboseReversed().warning ) {
                         log.write( strLogPrefix +
-                            cc.warning( "Skipped(m2s) due to time framing check" ) +
-                            "\n" );
+                            cc.warning( "Skipped(m2s) due to time framing check" ) + "\n" );
                     }
                 }
             }
         } catch ( err ) {
-            if( log.verboseGet() >= log.verboseReversed().critical ) {
-                log.write( strLogPrefix +
-                    cc.error( "M2S transfer exception: " ) +
+            if( log.verboseGet() >= log.verboseReversed().error ) {
+                log.write( strLogPrefix + cc.error( "M2S transfer exception: " ) +
                     cc.error( owaspUtils.extractErrorMessage( err ) ) +
-                    cc.error( ", stack is: " ) + "\n" + cc.stack( err.stack ) +
-                    "\n" );
+                    cc.error( ", stack is: " ) + "\n" + cc.stack( err.stack ) + "\n" );
             }
             imaState.loopState.m2s.isInProgress = false;
             await pwa.notifyOnLoopEnd( imaState, "m2s" );
             throw err;
         }
-        if( log.verboseGet() >= log.verboseReversed().information ) {
-            log.write( strLogPrefix +
-                cc.debug( "M2S transfer done: " ) + cc.tf( b1 ) +
-                "\n" );
-        }
+        if( log.verboseGet() >= log.verboseReversed().information )
+            log.write( strLogPrefix + cc.debug( "M2S transfer done: " ) + cc.tf( b1 ) + "\n" );
     } else {
-        if( log.verboseGet() >= log.verboseReversed().information ) {
-            log.write( strLogPrefix +
-                cc.debug( "Skipped M2S transfer." ) +
-                "\n" );
-        }
+        if( log.verboseGet() >= log.verboseReversed().debug )
+            log.write( strLogPrefix + cc.debug( "Skipped M2S transfer." ) + "\n" );
     }
     return b1;
 }
@@ -289,18 +269,14 @@ async function singleTransferLoopPartS2M( optsLoop, strLogPrefix ) {
     const imaState = state.get();
     let b2 = true;
     if( optsLoop.enableStepS2M ) {
-        if( log.verboseGet() >= log.verboseReversed().information ) {
-            log.write( strLogPrefix +
-                cc.debug( "Will invoke S2M transfer..." ) +
-                "\n" );
-        }
+        if( log.verboseGet() >= log.verboseReversed().information )
+            log.write( strLogPrefix + cc.debug( "Will invoke S2M transfer..." ) + "\n" );
         try {
             if( ! await pwa.checkOnLoopStart( imaState, "s2m" ) ) {
                 imaState.loopState.s2m.wasInProgress = false;
-                if( log.verboseGet() >= log.verboseReversed().debug ) {
+                if( log.verboseGet() >= log.verboseReversed().warning ) {
                     log.write( strLogPrefix +
-                        cc.warning( "Skipped(s2m) due to cancel mode reported from PWA" ) +
-                        "\n" );
+                        cc.warning( "Skipped(s2m) due to cancel mode reported from PWA" ) + "\n" );
                 }
             } else {
                 if( checkTimeFraming( null, "s2m", optsLoop.joRuntimeOpts ) ) {
@@ -335,20 +311,17 @@ async function singleTransferLoopPartS2M( optsLoop, strLogPrefix ) {
                     imaState.loopState.s2m.isInProgress = false;
                     await pwa.notifyOnLoopEnd( imaState, "s2m" );
                 } else {
-                    if( log.verboseGet() >= log.verboseReversed().debug ) {
+                    if( log.verboseGet() >= log.verboseReversed().warning ) {
                         log.write( strLogPrefix +
-                            cc.warning( "Skipped(s2m) due to time framing check" ) +
-                            "\n" );
+                            cc.warning( "Skipped(s2m) due to time framing check" ) + "\n" );
                     }
                 }
             }
         } catch ( err ) {
-            if( log.verboseGet() >= log.verboseReversed().critical ) {
-                log.write( strLogPrefix +
-                    cc.error( "S2M transfer exception: " ) +
+            if( log.verboseGet() >= log.verboseReversed().error ) {
+                log.write( strLogPrefix + cc.error( "S2M transfer exception: " ) +
                     cc.error( owaspUtils.extractErrorMessage( err ) ) +
-                    cc.error( ", stack is: " ) + "\n" + cc.stack( err.stack ) +
-                    "\n" );
+                    cc.error( ", stack is: " ) + "\n" + cc.stack( err.stack ) + "\n" );
             }
             imaState.loopState.s2m.isInProgress = false;
             await pwa.notifyOnLoopEnd( imaState, "s2m" );
@@ -357,7 +330,7 @@ async function singleTransferLoopPartS2M( optsLoop, strLogPrefix ) {
         if( log.verboseGet() >= log.verboseReversed().information )
             log.write( strLogPrefix + cc.debug( "S2M transfer done: " ) + cc.tf( b2 ) + "\n" );
     } else {
-        if( log.verboseGet() >= log.verboseReversed().information )
+        if( log.verboseGet() >= log.verboseReversed().debug )
             log.write( strLogPrefix + cc.debug( "Skipped S2M transfer." ) + "\n" );
     }
     return b2;
@@ -389,26 +362,19 @@ async function singleTransferLoopPartS2S( optsLoop, strLogPrefix ) {
                 imaState.chainProperties.sc.transactionCustomizer
             );
         } catch ( err ) {
-            if( log.verboseGet() >= log.verboseReversed().critical ) {
-                log.write( strLogPrefix +
-                    cc.error( "S2S transfer exception: " ) +
+            if( log.verboseGet() >= log.verboseReversed().error ) {
+                log.write( strLogPrefix + cc.error( "S2S transfer exception: " ) +
                     cc.error( owaspUtils.extractErrorMessage( err ) ) +
-                    cc.error( ", stack is: " ) + "\n" + cc.stack( err.stack ) +
-                    "\n" );
+                    cc.error( ", stack is: " ) + "\n" + cc.stack( err.stack ) + "\n" );
             }
             throw err;
         }
-        if( log.verboseGet() >= log.verboseReversed().information ) {
-            log.write( strLogPrefix +
-                cc.debug( "All S2S transfers done: " ) + cc.tf( b3 ) +
-                "\n" );
-        }
+        if( log.verboseGet() >= log.verboseReversed().information )
+            log.write( strLogPrefix + cc.debug( "All S2S transfers done: " ) + cc.tf( b3 ) + "\n" );
+
     } else {
-        if( log.verboseGet() >= log.verboseReversed().information ) {
-            log.write( strLogPrefix +
-                cc.debug( "Skipped S2S transfer." ) +
-                "\n" );
-        }
+        if( log.verboseGet() >= log.verboseReversed().debug )
+            log.write( strLogPrefix + cc.debug( "Skipped S2S transfer." ) + "\n" );
     }
     return b3;
 }
@@ -428,11 +394,9 @@ export async function singleTransferLoop( optsLoop ) {
             imaState.loopState.m2s.wasInProgress = false;
             imaState.loopState.s2m.wasInProgress = false;
             imaState.loopState.s2s.wasInProgress = false;
-            if( log.verboseGet() >= log.verboseReversed().debug ) {
-                log.write( strLogPrefix +
-                    cc.warning( "Skipped due to other single " +
-                        "transfer loop is in progress right now" ) +
-                    "\n" );
+            if( log.verboseGet() >= log.verboseReversed().warning ) {
+                log.write( strLogPrefix + cc.warning( "Skipped due to other single " +
+                    "transfer loop is in progress right now" ) + "\n" );
             }
             return true;
         }
@@ -445,12 +409,10 @@ export async function singleTransferLoop( optsLoop ) {
             log.write( strLogPrefix + cc.debug( "Completed: " ) + cc.tf( bResult ) + "\n" );
         return bResult;
     } catch ( err ) {
-        if( log.verboseGet() >= log.verboseReversed().critical ) {
-            log.write( strLogPrefix +
-                cc.fatal( "Exception in single transfer loop: " ) +
+        if( log.verboseGet() >= log.verboseReversed().error ) {
+            log.write( strLogPrefix + cc.fatal( "Exception in single transfer loop: " ) +
                 cc.error( owaspUtils.extractErrorMessage( err ) ) +
-                cc.error( ", stack is: " ) + "\n" + cc.stack( err.stack ) +
-                "\n" );
+                cc.error( ", stack is: " ) + "\n" + cc.stack( err.stack ) + "\n" );
         }
     }
     imaState.loopState.oracle.isInProgress = false;
@@ -623,11 +585,8 @@ export async function ensureHaveWorkers( opts ) {
             const joMessage = eventData.message;
             switch ( joMessage.method ) {
             case "log":
-                log.write(
-                    cc.attention( "LOOP WORKER" ) +
-                    " " + cc.notice( workerData.url ) +
-                    " " + joMessage.message +
-                    "\n"
+                log.write( cc.attention( "LOOP WORKER" ) +
+                    " " + cc.notice( workerData.url ) + " " + joMessage.message + "\n"
                 );
                 break;
             case "saveTransferError":
@@ -775,9 +734,11 @@ export async function ensureHaveWorkers( opts ) {
 }
 
 export async function runParallelLoops( opts ) {
-    log.write( cc.debug( "Will start parallel IMA transfer loops..." ) + "\n" );
+    if( log.verboseGet() >= log.verboseReversed().information )
+        log.write( cc.debug( "Will start parallel IMA transfer loops..." ) + "\n" );
     await ensureHaveWorkers( opts );
-    log.write( cc.success( "Done, did parallel IMA transfer loops." ) + "\n" );
+    if( log.verboseGet() >= log.verboseReversed().information )
+        log.write( cc.success( "Done, did parallel IMA transfer loops." ) + "\n" );
     return true;
 }
 
