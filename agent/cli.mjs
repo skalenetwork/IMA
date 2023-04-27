@@ -36,14 +36,14 @@ import * as state from "./state.mjs";
 
 const __dirname = path.dirname( url.fileURLToPath( import.meta.url ) );
 
-const g_strAppName = "IMA AGENT";
-const g_strVersion =
+const gStrAppName = "IMA AGENT";
+const gStrVersion =
     imaUtils.jsonFileLoad( path.join( __dirname, "package.json" ), null ).version;
 
 export function printAbout( isLog ) {
     isLog = isLog || false;
     const strMsg =
-        cc.attention( g_strAppName ) + cc.normal( " version " ) + cc.sunny( g_strVersion );
+        cc.attention( gStrAppName ) + cc.normal( " version " ) + cc.sunny( gStrVersion );
     if( isLog )
         log.write( strMsg + "\n" );
     else

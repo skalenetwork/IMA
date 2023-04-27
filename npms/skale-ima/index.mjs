@@ -44,6 +44,7 @@ import * as pwa from "../../agent/pwa.mjs";
 import * as rpcCall from "../../agent/rpcCall.mjs";
 import * as state from "../../agent/state.mjs";
 import * as imaUtils from "../../agent/utils.mjs";
+import * as imaOracle from "../../agent/oracle.mjs";
 
 const __dirname = path.dirname( url.fileURLToPath( import.meta.url ) );
 
@@ -58,22 +59,22 @@ export const longSeparator =
 const perMessageGasForTransfer = 1000000;
 const additionalS2MTransferOverhead = 200000;
 
-const g_nSleepBeforeFetchOutgoingMessageEvent = 5000;
-let g_nSleepBetweenTransactionsOnSChainMilliseconds = 0; // example - 5000
-let g_bWaitForNextBlockOnSChain = false;
+const gMillisecondsSleepBeforeFetchOutgoingMessageEvent = 5000;
+let gMillisecondsSleepBetweenTransactionsOnSChain = 0; // example - 5000
+let gFlagWaitForNextBlockOnSChain = false;
 
 export function getSleepBetweenTransactionsOnSChainMilliseconds() {
-    return g_nSleepBetweenTransactionsOnSChainMilliseconds;
+    return gMillisecondsSleepBetweenTransactionsOnSChain;
 }
 export function setSleepBetweenTransactionsOnSChainMilliseconds( val ) {
-    g_nSleepBetweenTransactionsOnSChainMilliseconds = val ? val : 0;
+    gMillisecondsSleepBetweenTransactionsOnSChain = val ? val : 0;
 }
 
 export function getWaitForNextBlockOnSChain() {
-    return g_bWaitForNextBlockOnSChain ? true : false;
+    return gFlagWaitForNextBlockOnSChain ? true : false;
 }
 export function setWaitForNextBlockOnSChain( val ) {
-    g_bWaitForNextBlockOnSChain = val ? true : false;
+    gFlagWaitForNextBlockOnSChain = val ? true : false;
 }
 
 export const sleep = ( milliseconds ) => {
@@ -470,32 +471,32 @@ export async function safeGetPastEvents(
     return ret;
 }
 
-let g_nCountOfBlocksInIterativeStep = 1000;
-let g_nMaxBlockScanIterationsInAllRange = 5000;
+let gCountOfBlocksInIterativeStep = 1000;
+let gMaxBlockScanIterationsInAllRange = 5000;
 
 export function getBlocksCountInInIterativeStepOfEventsScan() {
-    return g_nCountOfBlocksInIterativeStep;
+    return gCountOfBlocksInIterativeStep;
 }
 export function setBlocksCountInInIterativeStepOfEventsScan( n ) {
     if( ! n )
-        g_nCountOfBlocksInIterativeStep = 0;
+        gCountOfBlocksInIterativeStep = 0;
     else {
-        g_nCountOfBlocksInIterativeStep = owaspUtils.parseIntOrHex( n );
-        if( g_nCountOfBlocksInIterativeStep < 0 )
-            g_nCountOfBlocksInIterativeStep = 0;
+        gCountOfBlocksInIterativeStep = owaspUtils.parseIntOrHex( n );
+        if( gCountOfBlocksInIterativeStep < 0 )
+            gCountOfBlocksInIterativeStep = 0;
     }
 }
 
 export function getMaxIterationsInAllRangeEventsScan() {
-    return g_nCountOfBlocksInIterativeStep;
+    return gCountOfBlocksInIterativeStep;
 }
 export function setMaxIterationsInAllRangeEventsScan( n ) {
     if( ! n )
-        g_nMaxBlockScanIterationsInAllRange = 0;
+        gMaxBlockScanIterationsInAllRange = 0;
     else {
-        g_nMaxBlockScanIterationsInAllRange = owaspUtils.parseIntOrHex( n );
-        if( g_nMaxBlockScanIterationsInAllRange < 0 )
-            g_nMaxBlockScanIterationsInAllRange = 0;
+        gMaxBlockScanIterationsInAllRange = owaspUtils.parseIntOrHex( n );
+        if( gMaxBlockScanIterationsInAllRange < 0 )
+            gMaxBlockScanIterationsInAllRange = 0;
     }
 }
 
@@ -504,7 +505,7 @@ export async function safeGetPastEventsIterative(
     ethersProvider, attempts, joContract, strEventName,
     nBlockFrom, nBlockTo, joFilter
 ) {
-    if( g_nCountOfBlocksInIterativeStep <= 0 || g_nMaxBlockScanIterationsInAllRange <= 0 ) {
+    if( gCountOfBlocksInIterativeStep <= 0 || gMaxBlockScanIterationsInAllRange <= 0 ) {
         details.write( strLogPrefix +
             cc.fatal( "IMPORTANT NOTICE:" ) + " " +
             cc.warning( "Will skip " ) + cc.attention( "iterative" ) +
@@ -537,8 +538,8 @@ export async function safeGetPastEventsIterative(
     const isFirstZero = ( nBlockFrom.eq( nBlockZero ) ) ? true : false;
     if( isFirstZero && isLastLatest ) {
         if( nLatestBlockNumber.div(
-            owaspUtils.toBN( g_nCountOfBlocksInIterativeStep )
-        ).gt( owaspUtils.toBN( g_nMaxBlockScanIterationsInAllRange ) )
+            owaspUtils.toBN( gCountOfBlocksInIterativeStep )
+        ).gt( owaspUtils.toBN( gMaxBlockScanIterationsInAllRange ) )
         ) {
             details.write( strLogPrefix +
                 cc.fatal( "IMPORTANT NOTICE:" ) + " " +
@@ -560,7 +561,7 @@ export async function safeGetPastEventsIterative(
     let idxBlockSubRangeFrom = nBlockFrom;
     for( ; true; ) {
         let idxBlockSubRangeTo =
-            idxBlockSubRangeFrom.add( owaspUtils.toBN( g_nCountOfBlocksInIterativeStep ) );
+            idxBlockSubRangeFrom.add( owaspUtils.toBN( gCountOfBlocksInIterativeStep ) );
         if( idxBlockSubRangeTo.gt( nBlockTo ) )
             idxBlockSubRangeTo = nBlockTo;
         try {
@@ -614,9 +615,9 @@ export function verifyTransferErrorCategoryName( strCategory ) {
     return "" + ( strCategory ? strCategory : "default" );
 }
 
-const g_nMaxLastTransferErrors = 20;
-const g_arrLastTransferErrors = [];
-let g_mapTransferErrorCategories = { };
+const gMaxLastTransferErrors = 20;
+const gArrLastTransferErrors = [];
+let gMapTransferErrorCategories = { };
 
 export const saveTransferEvents = new EventDispatcher();
 
@@ -628,10 +629,10 @@ export function saveTransferError( strCategory, textLog, ts ) {
         "category": "" + c,
         "textLog": "" + textLog.toString()
     };
-    g_arrLastTransferErrors.push( joTransferEventError );
-    while( g_arrLastTransferErrors.length > g_nMaxLastTransferErrors )
-        g_arrLastTransferErrors.shift();
-    g_mapTransferErrorCategories["" + c] = true;
+    gArrLastTransferErrors.push( joTransferEventError );
+    while( gArrLastTransferErrors.length > gMaxLastTransferErrors )
+        gArrLastTransferErrors.shift();
+    gMapTransferErrorCategories["" + c] = true;
     saveTransferEvents.dispatchEvent(
         new UniversalDispatcherEvent(
             "error",
@@ -640,7 +641,7 @@ export function saveTransferError( strCategory, textLog, ts ) {
 
 export function saveTransferSuccess( strCategory ) {
     const c = verifyTransferErrorCategoryName( strCategory );
-    try { delete g_mapTransferErrorCategories["" + c]; } catch ( err ) { }
+    try { delete gMapTransferErrorCategories["" + c]; } catch ( err ) { }
     saveTransferEvents.dispatchEvent(
         new UniversalDispatcherEvent(
             "success",
@@ -649,13 +650,13 @@ export function saveTransferSuccess( strCategory ) {
 
 export function saveTransferSuccessAll() {
     // clear all transfer error categories, out of time frame
-    g_mapTransferErrorCategories = { };
+    gMapTransferErrorCategories = { };
 }
 
 export function getLastTransferErrors( isIncludeTextLog ) {
     if( typeof isIncludeTextLog == "undefined" )
         isIncludeTextLog = true;
-    const jarr = JSON.parse( JSON.stringify( g_arrLastTransferErrors ) );
+    const jarr = JSON.parse( JSON.stringify( gArrLastTransferErrors ) );
     if( ! isIncludeTextLog ) {
         for( let i = 0; i < jarr.length; ++ i ) {
             const jo = jarr[i];
@@ -667,26 +668,26 @@ export function getLastTransferErrors( isIncludeTextLog ) {
 }
 
 export function getLastErrorCategories() {
-    return Object.keys( g_mapTransferErrorCategories );
+    return Object.keys( gMapTransferErrorCategories );
 }
 
-let g_bIsEnabledProgressiveEventsScan = true;
+let gFlagIsEnabledProgressiveEventsScan = true;
 
 export function getEnabledProgressiveEventsScan() {
-    return g_bIsEnabledProgressiveEventsScan ? true : false;
+    return gFlagIsEnabledProgressiveEventsScan ? true : false;
 }
 export function setEnabledProgressiveEventsScan( isEnabled ) {
-    g_bIsEnabledProgressiveEventsScan = isEnabled ? true : false;
+    gFlagIsEnabledProgressiveEventsScan = isEnabled ? true : false;
 }
 
-let g_bIsEnabledOracle = false;
+let gFlagIsEnabledOracle = false;
 
 export function getEnabledOracle( isEnabled ) {
-    return g_bIsEnabledOracle ? true : false;
+    return gFlagIsEnabledOracle ? true : false;
 }
 
 export function setEnabledOracle( isEnabled ) {
-    g_bIsEnabledOracle = isEnabled ? true : false;
+    gFlagIsEnabledOracle = isEnabled ? true : false;
 }
 
 async function prepareOracleGasPriceSetup( optsGasPriseSetup ) {
@@ -755,7 +756,7 @@ async function prepareOracleGasPriceSetup( optsGasPriseSetup ) {
             cc.j( oracleOpts ) + cc.debug( "..." ) + "\n" );
         try {
             optsGasPriseSetup.gasPriceOnMainNet = owaspUtils.ensureStartsWith0x(
-                ( await imaOracle.get_gas_price(
+                ( await imaOracle.oracleGetGasPrice(
                     oracleOpts, optsGasPriseSetup.details ) ).toString( 16 ) );
         } catch ( err ) {
             optsGasPriseSetup.gasPriceOnMainNet = null;
@@ -983,95 +984,95 @@ export async function doOracleGasPriceSetup(
 }
 
 // default S<->S transfer mode for "--s2s-transfer" is "forward"
-let g_isForwardS2S = true;
+let gFlagIsForwardS2S = true;
 
 export function getS2STransferModeDescription() {
-    return g_isForwardS2S ? "forward" : "reverse";
+    return gFlagIsForwardS2S ? "forward" : "reverse";
 }
 
 export function getS2STransferModeDescriptionColorized() {
-    return g_isForwardS2S ? cc.success( "forward" ) : cc.error( "reverse" );
+    return gFlagIsForwardS2S ? cc.success( "forward" ) : cc.error( "reverse" );
 }
 
 export function isForwardS2S() {
-    return g_isForwardS2S ? true : false;
+    return gFlagIsForwardS2S ? true : false;
 }
 
 export function isReverseS2S() {
-    return g_isForwardS2S ? false : true;
+    return gFlagIsForwardS2S ? false : true;
 }
 
 export function setForwardS2S( b ) {
     if( b == null || b == undefined )
         b = true;
-    g_isForwardS2S = b ? true : false;
+    gFlagIsForwardS2S = b ? true : false;
 }
 
 export function setReverseS2S( b ) {
     if( b == null || b == undefined )
         b = true;
-    g_isForwardS2S = b ? false : true;
+    gFlagIsForwardS2S = b ? false : true;
 }
 
 export function createProgressiveEventsScanPlan( details, nLatestBlockNumber ) {
     // assume Main Net mines 6 blocks per minute
-    const blocks_in_1_minute = 6;
-    const blocks_in_1_hour = blocks_in_1_minute * 60;
-    const blocks_in_1_day = blocks_in_1_hour * 24;
-    const blocks_in_1_week = blocks_in_1_day * 7;
-    const blocks_in_1_month = blocks_in_1_day * 31;
-    const blocks_in_1_year = blocks_in_1_day * 366;
-    const blocks_in_3_years = blocks_in_1_year * 3;
-    const arr_progressive_events_scan_plan_A = [
+    const blocksInOneMinute = 6;
+    const blocksInOneHour = blocksInOneMinute * 60;
+    const blocksInOneDay = blocksInOneHour * 24;
+    const blocksInOneWeek = blocksInOneDay * 7;
+    const blocksInOneMonth = blocksInOneDay * 31;
+    const blocksInOneYear = blocksInOneDay * 366;
+    const blocksInThreeYears = blocksInOneYear * 3;
+    const arrProgressiveEventsScanPlanA = [
         {
             "nBlockFrom":
-            nLatestBlockNumber - blocks_in_1_day,
+            nLatestBlockNumber - blocksInOneDay,
             "nBlockTo": "latest",
             "type": "1 day"
         },
         {
             "nBlockFrom":
-            nLatestBlockNumber - blocks_in_1_week,
+            nLatestBlockNumber - blocksInOneWeek,
             "nBlockTo": "latest",
             "type": "1 week"
         },
         {
             "nBlockFrom":
-            nLatestBlockNumber - blocks_in_1_month,
+            nLatestBlockNumber - blocksInOneMonth,
             "nBlockTo": "latest",
             "type": "1 month"
         },
         {
             "nBlockFrom":
-            nLatestBlockNumber - blocks_in_1_year,
+            nLatestBlockNumber - blocksInOneYear,
             "nBlockTo": "latest",
             "type": "1 year"
         },
         {
             "nBlockFrom":
-            nLatestBlockNumber - blocks_in_3_years,
+            nLatestBlockNumber - blocksInThreeYears,
             "nBlockTo": "latest",
             "type": "3 years"
         }
     ];
-    const arr_progressive_events_scan_plan = [];
-    for( let idxPlan = 0; idxPlan < arr_progressive_events_scan_plan_A.length; ++idxPlan ) {
-        const joPlan = arr_progressive_events_scan_plan_A[idxPlan];
+    const arrProgressiveEventsScanPlan = [];
+    for( let idxPlan = 0; idxPlan < arrProgressiveEventsScanPlanA.length; ++idxPlan ) {
+        const joPlan = arrProgressiveEventsScanPlanA[idxPlan];
         if( joPlan.nBlockFrom >= 0 )
-            arr_progressive_events_scan_plan.push( joPlan );
+            arrProgressiveEventsScanPlan.push( joPlan );
     }
-    if( arr_progressive_events_scan_plan.length > 0 ) {
+    if( arrProgressiveEventsScanPlan.length > 0 ) {
         const joLastPlan =
-        arr_progressive_events_scan_plan[arr_progressive_events_scan_plan.length - 1];
+        arrProgressiveEventsScanPlan[arrProgressiveEventsScanPlan.length - 1];
         if( ! ( joLastPlan.nBlockFrom == 0 && joLastPlan.nBlockTo == "latest" ) ) {
-            arr_progressive_events_scan_plan.push(
+            arrProgressiveEventsScanPlan.push(
                 { "nBlockFrom": 0, "nBlockTo": "latest", "type": "entire block range" } );
         }
     } else {
-        arr_progressive_events_scan_plan.push(
+        arrProgressiveEventsScanPlan.push(
             { "nBlockFrom": 0, "nBlockTo": "latest", "type": "entire block range" } );
     }
-    return arr_progressive_events_scan_plan;
+    return arrProgressiveEventsScanPlan;
 }
 
 export async function safeGetPastEventsProgressive(
@@ -1079,7 +1080,7 @@ export async function safeGetPastEventsProgressive(
     ethersProvider, attempts, joContract, strEventName,
     nBlockFrom, nBlockTo, joFilter
 ) {
-    if( ! g_bIsEnabledProgressiveEventsScan ) {
+    if( ! gFlagIsEnabledProgressiveEventsScan ) {
         details.write( strLogPrefix +
             cc.fatal( "IMPORTANT NOTICE:" ) + " " +
             cc.warning( "Will skip " ) + cc.attention( "progressive" ) +
@@ -1130,15 +1131,15 @@ export async function safeGetPastEventsProgressive(
         cc.debug( "Current latest block number is " ) +
         cc.info( nLatestBlockNumber.toHexString() ) +
         "\n" );
-    const arr_progressive_events_scan_plan =
+    const arrProgressiveEventsScanPlan =
     createProgressiveEventsScanPlan( details, nLatestBlockNumber );
     details.write(
         cc.debug( "Composed " ) + cc.attention( "progressive" ) +
-        cc.debug( " scan plan is: " ) + cc.j( arr_progressive_events_scan_plan ) +
+        cc.debug( " scan plan is: " ) + cc.j( arrProgressiveEventsScanPlan ) +
         "\n" );
     let joLastPlan = { "nBlockFrom": 0, "nBlockTo": "latest", "type": "entire block range" };
-    for( let idxPlan = 0; idxPlan < arr_progressive_events_scan_plan.length; ++idxPlan ) {
-        const joPlan = arr_progressive_events_scan_plan[idxPlan];
+    for( let idxPlan = 0; idxPlan < arrProgressiveEventsScanPlan.length; ++idxPlan ) {
+        const joPlan = arrProgressiveEventsScanPlan[idxPlan];
         if( joPlan.nBlockFrom < 0 )
             continue;
         joLastPlan = joPlan;
@@ -1210,28 +1211,28 @@ export async function getContractCallEvents(
     return joAllTransactionEvents;
 }
 
-let g_bDryRunIsEnabled = true;
+let gFlagDryRunIsEnabled = true;
 
 export function dryRunIsEnabled() {
-    return g_bDryRunIsEnabled ? true : false;
+    return gFlagDryRunIsEnabled ? true : false;
 }
 
 export function dryRunEnable( isEnable ) {
-    g_bDryRunIsEnabled = ( isEnable != null && isEnable != undefined )
+    gFlagDryRunIsEnabled = ( isEnable != null && isEnable != undefined )
         ? ( isEnable ? true : false ) : true;
-    return g_bDryRunIsEnabled ? true : false;
+    return gFlagDryRunIsEnabled ? true : false;
 }
 
-let g_bDryRunIsIgnored = true;
+let gFlagDryRunIsIgnored = true;
 
 export function dryRunIsIgnored() {
-    return g_bDryRunIsIgnored ? true : false;
+    return gFlagDryRunIsIgnored ? true : false;
 }
 
 export function dryRunIgnore( isIgnored ) {
-    g_bDryRunIsIgnored = ( isIgnored != null && isIgnored != undefined )
+    gFlagDryRunIsIgnored = ( isIgnored != null && isIgnored != undefined )
         ? ( isIgnored ? true : false ) : true;
-    return g_bDryRunIsIgnored ? true : false;
+    return gFlagDryRunIsIgnored ? true : false;
 }
 
 export async function dryRunCall(
@@ -1368,12 +1369,12 @@ async function payedCallTM( optsPayedCall ) {
             optsPayedCall.details.write( optsPayedCall.strLogPrefix +
                 cc.debug( "TM priority: " ) + cc.j( priority ) + "\n" );
             try {
-                const [ tx_id, joReceiptFromTM ] =
+                const [ idTransaction, joReceiptFromTM ] =
                     await tmEnsureTransaction(
                         optsPayedCall.details, optsPayedCall.ethersProvider, priority, txAdjusted );
                 optsPayedCall.joReceipt = joReceiptFromTM;
                 optsPayedCall.details.write( optsPayedCall.strLogPrefix +
-                    cc.debug( "ID of TM-transaction : " ) + cc.j( tx_id ) +
+                    cc.debug( "ID of TM-transaction : " ) + cc.j( idTransaction ) +
                     "\n" );
                 const txHashSent = "" + optsPayedCall.joReceipt.transactionHash;
                 optsPayedCall.details.write( optsPayedCall.strLogPrefix +
@@ -1818,7 +1819,7 @@ export function getAccountConnectivityInfo( joAccount ) {
     return joACI;
 }
 
-const g_tmPool = "transactions";
+const gTransactionManagerPool = "transactions";
 
 const tmGenerateRandomHex =
     size => [ ...Array( size ) ]
@@ -1859,7 +1860,7 @@ async function tmSend( details, tx, priority = 5 ) {
     const expiration = 24 * 60 * 60; // 1 day;
     await redis.multi()
         .set( id, record, "EX", expiration )
-        .zadd( g_tmPool, score, id )
+        .zadd( gTransactionManagerPool, score, id )
         .exec();
     return id;
 }
@@ -2785,7 +2786,7 @@ export async function doEthPaymentFromMainNet(
                 cc.debug( " event of the " ) + cc.info( "MessageProxy" ) + cc.debug( "/" ) +
                 cc.notice( joMessageProxyMainNet.address ) + cc.debug( " contract ..." ) +
                 "\n" );
-            await sleep( g_nSleepBeforeFetchOutgoingMessageEvent );
+            await sleep( gMillisecondsSleepBeforeFetchOutgoingMessageEvent );
             const joEvents =
                 await getContractCallEvents(
                     details, strLogPrefix,
@@ -2914,7 +2915,7 @@ export async function doEthPaymentFromSChain(
                 cc.debug( " event of the " ) + cc.info( "MessageProxy" ) + cc.debug( "/" ) +
                 cc.notice( joMessageProxySChain.address ) + cc.debug( " contract ..." ) +
                 "\n" );
-            await sleep( g_nSleepBeforeFetchOutgoingMessageEvent );
+            await sleep( gMillisecondsSleepBeforeFetchOutgoingMessageEvent );
             const joEvents =
                 await getContractCallEvents(
                     details, strLogPrefix,
@@ -3243,7 +3244,7 @@ export async function doErc721PaymentFromMainNet(
                 cc.debug( " event of the " ) + cc.info( "MessageProxy" ) + cc.debug( "/" ) +
                 cc.notice( joMessageProxyMainNet.address ) + cc.debug( " contract ..." ) +
                 "\n" );
-            await sleep( g_nSleepBeforeFetchOutgoingMessageEvent );
+            await sleep( gMillisecondsSleepBeforeFetchOutgoingMessageEvent );
             const joEvents =
                 await getContractCallEvents(
                     details, strLogPrefix,
@@ -3442,7 +3443,7 @@ export async function doErc20PaymentFromMainNet(
                 cc.debug( " event of the " ) + cc.info( "MessageProxy" ) + cc.debug( "/" ) +
                 cc.notice( joMessageProxyMainNet.address ) + cc.debug( " contract ..." ) +
                 "\n" );
-            await sleep( g_nSleepBeforeFetchOutgoingMessageEvent );
+            await sleep( gMillisecondsSleepBeforeFetchOutgoingMessageEvent );
             const joEvents =
                 await getContractCallEvents(
                     details, strLogPrefix,
@@ -3613,7 +3614,7 @@ export async function doErc1155PaymentFromMainNet(
                 cc.debug( " event of the " ) + cc.info( "MessageProxy" ) + cc.debug( "/" ) +
                 cc.notice( joMessageProxyMainNet.address ) + cc.debug( " contract ..." ) +
                 "\n" );
-            await sleep( g_nSleepBeforeFetchOutgoingMessageEvent );
+            await sleep( gMillisecondsSleepBeforeFetchOutgoingMessageEvent );
             const joEvents =
                 await getContractCallEvents(
                     details, strLogPrefix,
@@ -3776,7 +3777,7 @@ export async function doErc1155BatchPaymentFromMainNet(
                 cc.debug( " event of the " ) + cc.info( "MessageProxy" ) + cc.debug( "/" ) +
                 cc.notice( joMessageProxyMainNet.address ) + cc.debug( " contract ..." ) +
                 "\n" );
-            await sleep( g_nSleepBeforeFetchOutgoingMessageEvent );
+            await sleep( gMillisecondsSleepBeforeFetchOutgoingMessageEvent );
             const joEvents =
                 await getContractCallEvents(
                     details, strLogPrefix,
@@ -3893,13 +3894,13 @@ export async function doErc20PaymentFromSChain(
                 "receipt": joReceiptApprove
             } );
         }
-        if( g_nSleepBetweenTransactionsOnSChainMilliseconds ) {
+        if( gMillisecondsSleepBetweenTransactionsOnSChain ) {
             details.write( cc.normal( "Sleeping " ) +
-                cc.info( g_nSleepBetweenTransactionsOnSChainMilliseconds ) +
+                cc.info( gMillisecondsSleepBetweenTransactionsOnSChain ) +
                 cc.normal( " milliseconds between transactions..." ) + "\n" );
-            await sleep( g_nSleepBetweenTransactionsOnSChainMilliseconds );
+            await sleep( gMillisecondsSleepBetweenTransactionsOnSChain );
         }
-        if( g_bWaitForNextBlockOnSChain )
+        if( gFlagWaitForNextBlockOnSChain )
             await safeWaitForNextBlockToAppear( details, ethersProviderSChain );
         strActionName = "ERC20 payment from S-Chain, exitToMainERC20";
         const weiHowMuchExitToMainERC20 = undefined;
@@ -3947,7 +3948,7 @@ export async function doErc20PaymentFromSChain(
                 cc.debug( " event of the " ) + cc.info( "MessageProxy" ) + cc.debug( "/" ) +
                 cc.notice( joMessageProxySChain.address ) + cc.debug( " contract ..." ) +
                 "\n" );
-            await sleep( g_nSleepBeforeFetchOutgoingMessageEvent );
+            await sleep( gMillisecondsSleepBeforeFetchOutgoingMessageEvent );
             const joEvents =
                 await getContractCallEvents(
                     details, strLogPrefix,
@@ -4063,13 +4064,13 @@ export async function doErc721PaymentFromSChain(
                 "receipt": joReceiptApprove
             } );
         }
-        if( g_nSleepBetweenTransactionsOnSChainMilliseconds ) {
+        if( gMillisecondsSleepBetweenTransactionsOnSChain ) {
             details.write( cc.normal( "Sleeping " ) +
-                cc.info( g_nSleepBetweenTransactionsOnSChainMilliseconds ) +
+                cc.info( gMillisecondsSleepBetweenTransactionsOnSChain ) +
                 cc.normal( " milliseconds between transactions..." ) + "\n" );
-            await sleep( g_nSleepBetweenTransactionsOnSChainMilliseconds );
+            await sleep( gMillisecondsSleepBetweenTransactionsOnSChain );
         }
-        if( g_bWaitForNextBlockOnSChain )
+        if( gFlagWaitForNextBlockOnSChain )
             await safeWaitForNextBlockToAppear( details, ethersProviderSChain );
         strActionName = "ERC721 payment from S-Chain, exitToMainERC721";
         const weiHowMuchExitToMainERC721 = undefined;
@@ -4119,7 +4120,7 @@ export async function doErc721PaymentFromSChain(
                 cc.info( strEventName ) + cc.debug( " event of the " ) + cc.info( "MessageProxy" ) +
                 cc.debug( "/" ) + cc.notice( joMessageProxySChain.address ) +
                 cc.debug( " contract ..." ) + "\n" );
-            await sleep( g_nSleepBeforeFetchOutgoingMessageEvent );
+            await sleep( gMillisecondsSleepBeforeFetchOutgoingMessageEvent );
             const joEvents =
                 await getContractCallEvents(
                     details, strLogPrefix,
@@ -4238,13 +4239,13 @@ export async function doErc1155PaymentFromSChain(
                 "receipt": joReceiptApprove
             } );
         }
-        if( g_nSleepBetweenTransactionsOnSChainMilliseconds ) {
+        if( gMillisecondsSleepBetweenTransactionsOnSChain ) {
             details.write( cc.normal( "Sleeping " ) +
-                cc.info( g_nSleepBetweenTransactionsOnSChainMilliseconds ) +
+                cc.info( gMillisecondsSleepBetweenTransactionsOnSChain ) +
                 cc.normal( " milliseconds between transactions..." ) + "\n" );
-            await sleep( g_nSleepBetweenTransactionsOnSChainMilliseconds );
+            await sleep( gMillisecondsSleepBetweenTransactionsOnSChain );
         }
-        if( g_bWaitForNextBlockOnSChain )
+        if( gFlagWaitForNextBlockOnSChain )
             await safeWaitForNextBlockToAppear( details, ethersProviderSChain );
         strActionName = "ERC1155 payment from S-Chain, exitToMainERC1155";
         const weiHowMuchExitToMainERC1155 = undefined;
@@ -4294,7 +4295,7 @@ export async function doErc1155PaymentFromSChain(
                 cc.debug( " event of the " ) + cc.info( "MessageProxy" ) + cc.debug( "/" ) +
                 cc.notice( joMessageProxySChain.address ) + cc.debug( " contract ..." ) +
                 "\n" );
-            await sleep( g_nSleepBeforeFetchOutgoingMessageEvent );
+            await sleep( gMillisecondsSleepBeforeFetchOutgoingMessageEvent );
             const joEvents =
                 await getContractCallEvents(
                     details, strLogPrefix,
@@ -4413,13 +4414,13 @@ export async function doErc1155BatchPaymentFromSChain(
                 "receipt": joReceiptApprove
             } );
         }
-        if( g_nSleepBetweenTransactionsOnSChainMilliseconds ) {
+        if( gMillisecondsSleepBetweenTransactionsOnSChain ) {
             details.write( cc.normal( "Sleeping " ) +
-                cc.info( g_nSleepBetweenTransactionsOnSChainMilliseconds ) +
+                cc.info( gMillisecondsSleepBetweenTransactionsOnSChain ) +
                 cc.normal( " milliseconds between transactions..." ) + "\n" );
-            await sleep( g_nSleepBetweenTransactionsOnSChainMilliseconds );
+            await sleep( gMillisecondsSleepBetweenTransactionsOnSChain );
         }
-        if( g_bWaitForNextBlockOnSChain )
+        if( gFlagWaitForNextBlockOnSChain )
             await safeWaitForNextBlockToAppear( details, ethersProviderSChain );
         strActionName = "ERC1155 batch-payment from S-Chain, exitToMainERC1155Batch";
         const weiHowMuchExitToMainERC1155Batch = undefined;
@@ -4470,7 +4471,7 @@ export async function doErc1155BatchPaymentFromSChain(
                 cc.debug( " event of the " ) + cc.info( "MessageProxy" ) + cc.debug( "/" ) +
                 cc.notice( joMessageProxySChain.address ) + cc.debug( " contract ..." ) +
                 "\n" );
-            await sleep( g_nSleepBeforeFetchOutgoingMessageEvent );
+            await sleep( gMillisecondsSleepBeforeFetchOutgoingMessageEvent );
             const joEvents =
                 await getContractCallEvents(
                     details, strLogPrefix,
@@ -4606,17 +4607,17 @@ export async function doErc20PaymentS2S(
                 gasPrice, estimatedGasApprove, weiHowMuchApprove, null );
         if( strErrorOfDryRunApprove )
             throw new Error( strErrorOfDryRunApprove );
-        const joReceipt_approve =
+        const joReceiptApprove =
             await payedCall(
                 details, ethersProviderSrc,
                 "ERC20", contractERC20, "approve", arrArgumentsApprove,
                 joAccountSrc, strActionName, gasPrice,
                 estimatedGasApprove, weiHowMuchApprove, null );
-        if( joReceipt_approve && typeof joReceipt_approve == "object" ) {
+        if( joReceiptApprove && typeof joReceiptApprove == "object" ) {
             jarrReceipts.push( {
                 "description":
                     "doErc20PaymentS2S/approve/" + ( isForward ? "forward" : "reverse" ),
-                "receipt": joReceipt_approve
+                "receipt": joReceiptApprove
             } );
         }
         strActionName =
@@ -4644,17 +4645,17 @@ export async function doErc20PaymentS2S(
                 gasPrice, estimatedGasTransfer, weiHowMuchTransferERC20, null );
         if( strErrorOfDryRunTransferERC20 )
             throw new Error( strErrorOfDryRunTransferERC20 );
-        const joReceipt_transfer =
+        const joReceiptTransfer =
             await payedCall(
                 details, ethersProviderSrc,
                 "TokenManagerERC20", joTokenManagerERC20Src,
                 "transferToSchainERC20", arrArgumentsTransfer,
                 joAccountSrc, strActionName, gasPrice,
                 estimatedGasTransfer, weiHowMuchTransferERC20, null );
-        if( joReceipt_transfer && typeof joReceipt_transfer == "object" ) {
+        if( joReceiptTransfer && typeof joReceiptTransfer == "object" ) {
             jarrReceipts.push( {
                 "description": "doErc20PaymentS2S/transfer",
-                "receipt": joReceipt_transfer
+                "receipt": joReceiptTransfer
             } );
         }
     } catch ( err ) {
@@ -4774,17 +4775,17 @@ export async function doErc721PaymentS2S(
                 gasPrice, estimatedGasApprove, weiHowMuchApprove, null );
         if( strErrorOfDryRunApprove )
             throw new Error( strErrorOfDryRunApprove );
-        const joReceipt_approve =
+        const joReceiptApprove =
             await payedCall(
                 details, ethersProviderSrc,
                 "ERC721", contractERC721, "approve", arrArgumentsApprove,
                 joAccountSrc, strActionName,
                 gasPrice, estimatedGasApprove, weiHowMuchApprove, null );
-        if( joReceipt_approve && typeof joReceipt_approve == "object" ) {
+        if( joReceiptApprove && typeof joReceiptApprove == "object" ) {
             jarrReceipts.push( {
                 "description":
                     "doErc721PaymentS2S/approve/" + ( isForward ? "forward" : "reverse" ),
-                "receipt": joReceipt_approve
+                "receipt": joReceiptApprove
             } );
         }
         const isIgnoreTransferERC721 = true;
@@ -4812,17 +4813,17 @@ export async function doErc721PaymentS2S(
                 gasPrice, estimatedGasTransfer, weiHowMuchTransferERC721, null );
         if( strErrorOfDryRunTransferERC721 )
             throw new Error( strErrorOfDryRunTransferERC721 );
-        const joReceipt_transfer =
+        const joReceiptTransfer =
             await payedCall(
                 details, ethersProviderSrc,
                 "TokenManagerERC721", joTokenManagerERC721Src,
                 "transferToSchainERC721", arrArgumentsTransfer,
                 joAccountSrc, strActionName,
                 gasPrice, estimatedGasTransfer, weiHowMuchTransferERC721, null );
-        if( joReceipt_transfer && typeof joReceipt_transfer == "object" ) {
+        if( joReceiptTransfer && typeof joReceiptTransfer == "object" ) {
             jarrReceipts.push( {
                 "description": "doErc721PaymentS2S/transfer",
-                "receipt": joReceipt_transfer
+                "receipt": joReceiptTransfer
             } );
         }
     } catch ( err ) {
@@ -4950,17 +4951,17 @@ export async function doErc1155PaymentS2S(
                 gasPrice, estimatedGasApprove, weiHowMuchApprove, null );
         if( strErrorOfDryRunApprove )
             throw new Error( strErrorOfDryRunApprove );
-        const joReceipt_approve =
+        const joReceiptApprove =
             await payedCall(
                 details, ethersProviderSrc,
                 "ERC1155", contractERC1155, "setApprovalForAll", arrArgumentsApprove,
                 joAccountSrc, strActionName, gasPrice,
                 estimatedGasApprove, weiHowMuchApprove, null );
-        if( joReceipt_approve && typeof joReceipt_approve == "object" ) {
+        if( joReceiptApprove && typeof joReceiptApprove == "object" ) {
             jarrReceipts.push( {
                 "description":
                     "doErc1155PaymentS2S/approve/" + ( isForward ? "forward" : "reverse" ),
-                "receipt": joReceipt_approve
+                "receipt": joReceiptApprove
             } );
         }
         strActionName =
@@ -4988,17 +4989,17 @@ export async function doErc1155PaymentS2S(
                 estimatedGasTransfer, weiHowMuchTransferERC1155, null );
         if( strErrorOfDryRunTransferERC1155 )
             throw new Error( strErrorOfDryRunTransferERC1155 );
-        const joReceipt_transfer =
+        const joReceiptTransfer =
             await payedCall(
                 details, ethersProviderSrc,
                 "TokenManagerERC1155", joTokenManagerERC1155Src,
                 "transferToSchainERC1155", arrArgumentsTransfer,
                 joAccountSrc, strActionName, gasPrice, estimatedGasTransfer,
                 weiHowMuchTransferERC1155, null );
-        if( joReceipt_transfer && typeof joReceipt_transfer == "object" ) {
+        if( joReceiptTransfer && typeof joReceiptTransfer == "object" ) {
             jarrReceipts.push( {
                 "description": "doErc1155PaymentS2S/transfer",
-                "receipt": joReceipt_transfer
+                "receipt": joReceiptTransfer
             } );
         }
     } catch ( err ) {
@@ -5126,18 +5127,18 @@ export async function doErc1155BatchPaymentS2S(
                 gasPrice, estimatedGasApprove, weiHowMuchApprove, null );
         if( strErrorOfDryRunApprove )
             throw new Error( strErrorOfDryRunApprove );
-        const joReceipt_approve =
+        const joReceiptApprove =
             await payedCall(
                 details, ethersProviderSrc,
                 "ERC1155", contractERC1155, "setApprovalForAll", arrArgumentsApprove,
                 joAccountSrc, strActionName,
                 gasPrice, estimatedGasApprove, weiHowMuchApprove, null );
-        if( joReceipt_approve && typeof joReceipt_approve == "object" ) {
+        if( joReceiptApprove && typeof joReceiptApprove == "object" ) {
             jarrReceipts.push( {
                 "description":
                     "doErc1155BatchPaymentS2S/approve/" +
                         ( isForward ? "forward" : "reverse" ),
-                "receipt": joReceipt_approve
+                "receipt": joReceiptApprove
             } );
         }
         strActionName =
@@ -5165,17 +5166,17 @@ export async function doErc1155BatchPaymentS2S(
                 gasPrice, estimatedGasTransfer, weiHowMuchTransferERC1155, null );
         if( strErrorOfDryRunTransferERC1155 )
             throw new Error( strErrorOfDryRunTransferERC1155 );
-        const joReceipt_transfer =
+        const joReceiptTransfer =
             await payedCall(
                 details, ethersProviderSrc,
                 "TokenManagerERC1155", joTokenManagerERC1155Src,
                 "transferToSchainERC1155Batch", arrArgumentsTransfer,
                 joAccountSrc, strActionName,
                 gasPrice, estimatedGasTransfer, weiHowMuchTransferERC1155, null );
-        if( joReceipt_transfer && typeof joReceipt_transfer == "object" ) {
+        if( joReceiptTransfer && typeof joReceiptTransfer == "object" ) {
             jarrReceipts.push( {
                 "description": "doErc1155PaymentS2S/transfer",
-                "receipt": joReceipt_transfer
+                "receipt": joReceiptTransfer
             } );
         }
     } catch ( err ) {
@@ -5325,7 +5326,7 @@ async function findOutAllReferenceLogRecords(
     return arrLogRecordReferences;
 }
 
-let g_nTransferLoopCounter = 0;
+let gTransferLoopCounter = 0;
 
 // Do real money movement from main-net to S-chain by sniffing events
 // 1) main-net.MessageProxyForMainnet.getOutgoingMessagesCounter -> save to nOutMsgCnt
@@ -5568,7 +5569,7 @@ async function gatherMessages( optsTransfer ) {
             return false;
         if( optsTransfer.nBlockAwaitDepth > 0 ) {
             let bSecurityCheckPassed = true;
-            const strActionName_old = "" + optsTransfer.strActionName;
+            const strActionNameOld = "" + optsTransfer.strActionName;
             optsTransfer.strActionName = "security check: evaluate block depth";
             try {
                 const transactionHash = r[0].transactionHash;
@@ -5616,7 +5617,7 @@ async function gatherMessages( optsTransfer ) {
                 optsTransfer.details.close();
                 return false;
             }
-            optsTransfer.strActionName = "" + strActionName_old;
+            optsTransfer.strActionName = "" + strActionNameOld;
             if( !bSecurityCheckPassed ) {
                 if( log.verboseGet() >= log.verboseReversed().warning ) {
                     const s = optsTransfer.strLogPrefix + cc.warning( "Block depth check was " +
@@ -5630,7 +5631,7 @@ async function gatherMessages( optsTransfer ) {
         }
         if( optsTransfer.nBlockAge > 0 ) {
             let bSecurityCheckPassed = true;
-            const strActionName_old = "" + optsTransfer.strActionName;
+            const strActionNameOld = "" + optsTransfer.strActionName;
             optsTransfer.strActionName = "security check: evaluate block age";
             try {
                 const transactionHash = r[0].transactionHash;
@@ -5691,7 +5692,7 @@ async function gatherMessages( optsTransfer ) {
                 optsTransfer.details.close();
                 return false;
             }
-            optsTransfer.strActionName = "" + strActionName_old;
+            optsTransfer.strActionName = "" + strActionNameOld;
             if( !bSecurityCheckPassed ) {
                 if( log.verboseGet() >= log.verboseReversed().warning ) {
                     optsTransfer.details.write( optsTransfer.strLogPrefix +
@@ -6405,7 +6406,7 @@ export async function doTransfer(
         joExtraSignOpts: joExtraSignOpts,
         transactionCustomizerDst: transactionCustomizerDst,
         imaState: state.get(),
-        nTransferLoopCounter: 0 + g_nTransferLoopCounter,
+        nTransferLoopCounter: 0 + gTransferLoopCounter,
         strTransferErrorCategoryName: "loop-" + strDirection,
         strGatheredDetailsName: "",
         strGatheredDetailsName_colored: "",
@@ -6426,7 +6427,7 @@ export async function doTransfer(
         cntAccumulatedForBlock: 0,
         arrLogRecordReferences: []
     };
-    ++ g_nTransferLoopCounter;
+    ++ gTransferLoopCounter;
     optsTransfer.strGatheredDetailsName =
         optsTransfer.strDirection + "/#" + optsTransfer.nTransferLoopCounter +
         "-" + "doTransfer-A" + "-" +
@@ -6840,29 +6841,29 @@ export class TransactionCustomizer {
     }
 };
 
-let g_tcMainNet = null;
-let g_tcSChain = null;
-let g_tcSChainTarget = null;
+let gTransactionCustomizerMainNet = null;
+let gTransactionCustomizerSChain = null;
+let gTransactionCustomizerSChainTarget = null;
 
 export function getTransactionCustomizerForMainNet() {
-    if( g_tcMainNet )
-        return g_tcMainNet;
-    g_tcMainNet = new TransactionCustomizer( 1.25, 1.25 );
-    return g_tcMainNet;
+    if( gTransactionCustomizerMainNet )
+        return gTransactionCustomizerMainNet;
+    gTransactionCustomizerMainNet = new TransactionCustomizer( 1.25, 1.25 );
+    return gTransactionCustomizerMainNet;
 }
 
 export function getTransactionCustomizerForSChain() {
-    if( g_tcSChain )
-        return g_tcSChain;
-    g_tcSChain = new TransactionCustomizer( null, 1.25 );
-    return g_tcSChain;
+    if( gTransactionCustomizerSChain )
+        return gTransactionCustomizerSChain;
+    gTransactionCustomizerSChain = new TransactionCustomizer( null, 1.25 );
+    return gTransactionCustomizerSChain;
 }
 
 export function getTransactionCustomizerForSChainTarget() {
-    if( g_tcSChainTarget )
-        return g_tcSChainTarget;
-    g_tcSChainTarget = new TransactionCustomizer( null, 1.25 );
-    return g_tcSChainTarget;
+    if( gTransactionCustomizerSChainTarget )
+        return gTransactionCustomizerSChainTarget;
+    gTransactionCustomizerSChainTarget = new TransactionCustomizer( null, 1.25 );
+    return gTransactionCustomizerSChainTarget;
 }
 
 export async function getBalanceEth(

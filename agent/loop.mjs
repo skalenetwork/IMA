@@ -446,11 +446,11 @@ const sleepImpl = ( milliseconds ) => {
     return new Promise( resolve => setTimeout( resolve, milliseconds ) );
 };
 
-const g_workers = [];
-const g_clients = [];
+const gArrWorkers = [];
+const gArrClients = [];
 
 export function notifyCacheChangedSNB( arrSChainsCached ) {
-    const cntWorkers = g_workers.length;
+    const cntWorkers = gArrWorkers.length;
     for( let idxWorker = 0; idxWorker < cntWorkers; ++ idxWorker ) {
         const jo = {
             "method": "schainsCached",
@@ -458,7 +458,7 @@ export function notifyCacheChangedSNB( arrSChainsCached ) {
                 "arrSChainsCached": arrSChainsCached
             }
         };
-        g_clients[idxWorker].send( jo );
+        gArrClients[idxWorker].send( jo );
     }
 }
 
@@ -559,29 +559,29 @@ function constructChainProperties( opts ) {
 }
 
 export async function ensureHaveWorkers( opts ) {
-    if( g_workers.length > 0 )
-        return g_workers;
+    if( gArrWorkers.length > 0 )
+        return gArrWorkers;
     const cntWorkers = 2;
     for( let idxWorker = 0; idxWorker < cntWorkers; ++ idxWorker ) {
         const workerData = {
             url: "ima_loop_server" + idxWorker,
             cc: { isEnabled: cc.isEnabled() }
         };
-        g_workers.push(
+        gArrWorkers.push(
             new Worker(
                 path.join( __dirname, "loopWorker.mjs" ),
                 { "type": "module", "workerData": workerData }
             )
         );
-        g_workers[idxWorker].on( "message", jo => {
-            if( networkLayer.outOfWorkerAPIs.onMessage( g_workers[idxWorker], jo ) )
+        gArrWorkers[idxWorker].on( "message", jo => {
+            if( networkLayer.outOfWorkerAPIs.onMessage( gArrWorkers[idxWorker], jo ) )
                 return;
         } );
-        g_clients.push(
+        gArrClients.push(
             new networkLayer.OutOfWorkerSocketClientPipe(
-                workerData.url, g_workers[idxWorker] )
+                workerData.url, gArrWorkers[idxWorker] )
         );
-        g_clients[idxWorker].on( "message", async function( eventData ) {
+        gArrClients[idxWorker].on( "message", async function( eventData ) {
             const joMessage = eventData.message;
             switch ( joMessage.method ) {
             case "log":
@@ -623,7 +623,7 @@ export async function ensureHaveWorkers( opts ) {
                         "verbose_": log.verboseGet(),
                         "expose_details_": log.exposeDetailsGet(),
                         "arrSChainsCached": skaleObserver.getLastCachedSChains(),
-                        "loopState": state.g_defaultValueForLoopState,
+                        "loopState": state.gDefaultValueForLoopState,
                         "isPrintGathered": opts.imaState.isPrintGathered,
                         "isPrintSecurityValues": opts.imaState.isPrintSecurityValues,
                         "isPrintPWA": opts.imaState.isPrintPWA,
@@ -729,7 +729,7 @@ export async function ensureHaveWorkers( opts ) {
                 }
             }
         };
-        g_clients[idxWorker].send( jo );
+        gArrClients[idxWorker].send( jo );
     }
 }
 
@@ -747,8 +747,8 @@ export async function spreadArrivedStateOfPendingWorkAnalysis( joMessage ) {
         "method" in joMessage && joMessage.method == "skale_imaNotifyLoopWork" )
     )
         return;
-    const cntWorkers = g_workers.length;
+    const cntWorkers = gArrWorkers.length;
     for( let idxWorker = 0; idxWorker < cntWorkers; ++ idxWorker )
-        g_clients[idxWorker].send( joMessage );
+        gArrClients[idxWorker].send( joMessage );
 
 }

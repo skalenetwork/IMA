@@ -307,11 +307,6 @@ class Agent:
                 balance == erc20.functions.balanceOf(destination_address).call():
             debug('Wait for erc20 payment')
             sleep( 1 )
-        # start = time()
-        # while (time() < start + timeout if timeout > 0 else True) and \
-        #         self.blockchain.get_transactions_count_on_mainnet(destination_address) == tx_count:
-        #     debug('Wait for erc20 payment')
-        #     sleep( 1 )
 
     def transfer_erc721_from_schain_to_mainnet(self, token_contract, token_contract_on_mainnet, from_key, to_key, token_id, amount_wei, timeout=0):
         config_schain_json = {'token_address': token_contract.address, 'token_abi': token_contract.abi}
@@ -327,7 +322,6 @@ class Agent:
 
         erc721 = token_contract_on_mainnet
         destination_address = erc721.functions.ownerOf(token_id).call()
-        # destination_address = self.blockchain.key_to_address(to_key)
         tx_count = self.blockchain.get_transactions_count_on_mainnet(destination_address)
         sleep( 10 )
         self._execute_command(
@@ -350,11 +344,6 @@ class Agent:
                 destination_address == erc721.functions.ownerOf(token_id).call():
             debug('Wait for erc721 payment')
             sleep( 1 )
-        # start = time()
-        # while (time() < start + timeout if timeout > 0 else True) and \
-        #         self.blockchain.get_transactions_count_on_mainnet(destination_address) == tx_count:
-        #     debug('Wait for erc721 payment')
-        #     sleep( 1 )
 
     def transfer_erc1155_from_schain_to_mainnet(self, token_contract, token_contract_on_mainnet, from_key, to_key, token_id, token_amount, amount_wei, timeout=0):
         config_schain_json = {'token_address': token_contract.address, 'token_abi': token_contract.abi}
@@ -370,9 +359,6 @@ class Agent:
 
         erc1155 = token_contract_on_mainnet
         destination_address = self.blockchain.key_to_address(from_key)
-        # destination_address = erc1155.functions.balanceOf(token_id).call()
-        # destination_address = self.blockchain.key_to_address(to_key)
-        # tx_count = self.blockchain.get_transactions_count_on_mainnet(destination_address)
         sleep( 10 )
         self._execute_command(
             's2m-payment',
@@ -395,11 +381,6 @@ class Agent:
                 token_amount != erc1155.functions.balanceOf(destination_address, token_id).call():
             debug('Wait for erc1155 payment')
             sleep( 1 )
-        # start = time()
-        # while (time() < start + timeout if timeout > 0 else True) and \
-        #         self.blockchain.get_transactions_count_on_mainnet(destination_address) == tx_count:
-        #     debug('Wait for erc1155 payment')
-        #     sleep( 1 )
 
     def transfer_erc1155_batch_from_schain_to_mainnet(self, token_contract, token_contract_on_mainnet, from_key, to_key, token_ids, token_amounts, amount_wei, timeout=0):
         config_schain_json = {'token_address': token_contract.address, 'token_abi': token_contract.abi}
@@ -415,9 +396,6 @@ class Agent:
 
         erc1155 = token_contract_on_mainnet
         destination_address = self.blockchain.key_to_address(from_key)
-        # destination_address = erc1155.functions.balanceOf(token_id).call()
-        # destination_address = self.blockchain.key_to_address(to_key)
-        # tx_count = self.blockchain.get_transactions_count_on_mainnet(destination_address)
         sleep( 10 )
         self._execute_command(
             's2m-payment',
@@ -440,11 +418,6 @@ class Agent:
                 token_amounts != erc1155.functions.balanceOfBatch([destination_address]*len(token_ids), token_ids).call():
             debug('Wait for erc1155 payment')
             sleep( 1 )
-        # start = time()
-        # while (time() < start + timeout if timeout > 0 else True) and \
-        #         self.blockchain.get_transactions_count_on_mainnet(destination_address) == tx_count:
-        #     debug('Wait for erc1155 payment')
-        #     sleep( 1 )
 
     # private
 

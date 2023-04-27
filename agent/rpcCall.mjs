@@ -31,7 +31,7 @@ import * as owaspUtils from "../npms/skale-owasp/owaspUtils.mjs";
 import * as log from "../npms/skale-log/log.mjs";
 import * as cc from "../npms/skale-cc/cc.mjs";
 
-const g_nConnectionTimeoutSeconds = 60;
+const gSecondsConnectionTimeout = 60;
 
 export async function waitWebSocketIsOpen( socket, fnDone, fnStep ) {
     fnDone = fnDone || async function( nStep ) {};
@@ -135,7 +135,7 @@ export async function doConnect( joCall, opts, fn ) {
                         }
                         return false;
                     }
-                    if( nStep >= g_nConnectionTimeoutSeconds ) {
+                    if( nStep >= gSecondsConnectionTimeout ) {
                         strWsError = "wait timeout, web socket is connecting too long";
                         if( log.verboseGet() >= log.verboseReversed().error ) {
                             log.write( cc.u( joCall.url ) +
@@ -307,7 +307,7 @@ export async function doCall( joCall, joIn, fn ) {
             try {
                 const response = await urllib.request( joCall.url, {
                     "method": "POST",
-                    "timeout": g_nConnectionTimeoutSeconds * 1000, // in milliseconds
+                    "timeout": gSecondsConnectionTimeout * 1000, // in milliseconds
                     "headers": {
                         "Content-Type": "application/json"
                     },
@@ -462,20 +462,20 @@ export function getValidHostAndPort( s ) {
     return jo;
 }
 
-const g_strTcpConnectionHeader = "TCP connection checker: ";
+const gStrTcpConnectionHeader = "TCP connection checker: ";
 
 export function checkTcpPromise( strHost, nPort, nTimeoutMilliseconds, isLog ) {
     return new Promise( ( resolve, reject ) => {
         if( isLog ) {
             console.log(
-                `${g_strTcpConnectionHeader}Will establish " +
+                `${gStrTcpConnectionHeader}Will establish " +
                 "TCP connection to ${strHost}:${nPort}...`
             );
         }
         const conn = net.createConnection( { host: strHost, port: nPort }, () => {
             if( isLog ) {
                 console.log(
-                    `${g_strTcpConnectionHeader}Done, " +
+                    `${gStrTcpConnectionHeader}Done, " +
                     "TCP connection to ${strHost}:${nPort} established`
                 );
             }
@@ -484,7 +484,7 @@ export function checkTcpPromise( strHost, nPort, nTimeoutMilliseconds, isLog ) {
         } );
         if( isLog ) {
             console.log(
-                `${g_strTcpConnectionHeader}Did created NET object " +
+                `${gStrTcpConnectionHeader}Did created NET object " +
                 "for TCP connection to ${strHost}:${nPort}...`
             );
         }
@@ -493,7 +493,7 @@ export function checkTcpPromise( strHost, nPort, nTimeoutMilliseconds, isLog ) {
         if( nTimeoutMilliseconds > 0 ) {
             if( isLog ) {
                 console.log(
-                    `${g_strTcpConnectionHeader}Will use " +
+                    `${gStrTcpConnectionHeader}Will use " +
                     "TCP connection to ${strHost}:${nPort} " +
                     "timeout ${nTimeoutMilliseconds} milliseconds...`
                 );
@@ -502,7 +502,7 @@ export function checkTcpPromise( strHost, nPort, nTimeoutMilliseconds, isLog ) {
         } else {
             if( isLog ) {
                 console.log(
-                    `${g_strTcpConnectionHeader}Will use " +
+                    `${gStrTcpConnectionHeader}Will use " +
                     "default TCP connection to ${strHost}:${nPort} timeout...`
                 );
             }
@@ -510,7 +510,7 @@ export function checkTcpPromise( strHost, nPort, nTimeoutMilliseconds, isLog ) {
         conn.on( "timeout", err => {
             if( isLog ) {
                 console.log(
-                    `${g_strTcpConnectionHeader}TCP connection " +
+                    `${gStrTcpConnectionHeader}TCP connection " +
                     "to ${strHost}:${nPort} timed out`
                 );
             }
@@ -520,7 +520,7 @@ export function checkTcpPromise( strHost, nPort, nTimeoutMilliseconds, isLog ) {
         conn.on( "error", err => {
             if( isLog ) {
                 console.log(
-                    `${g_strTcpConnectionHeader}TCP connection " +
+                    `${gStrTcpConnectionHeader}TCP connection " +
                     "to ${strHost}:${nPort} failed`
                 );
             }
@@ -528,7 +528,7 @@ export function checkTcpPromise( strHost, nPort, nTimeoutMilliseconds, isLog ) {
         } );
         if( isLog ) {
             console.log(
-                `${g_strTcpConnectionHeader}TCP connection " +
+                `${gStrTcpConnectionHeader}TCP connection " +
                 "to ${strHost}:${nPort} check started...`
             );
         }
@@ -545,21 +545,21 @@ export async function checkTcp( strHost, nPort, nTimeoutMilliseconds, isLog ) {
             ;
         if( isLog ) {
             console.log(
-                `${g_strTcpConnectionHeader}Waiting for " + 
+                `${gStrTcpConnectionHeader}Waiting for " + 
                 "TCP connection to ${strHost}:${nPort} check done...`
             );
         }
         await Promise.all( [ promiseCompleteTcpCheck ] );
         if( isLog ) {
             console.log(
-                `${g_strTcpConnectionHeader}TCP connection " + 
+                `${gStrTcpConnectionHeader}TCP connection " + 
                 "to ${strHost}:${nPort} check finished`
             );
         }
     } catch ( err ) {
         isOnline = false;
         console.log(
-            `${g_strTcpConnectionHeader}TCP connection " + 
+            `${gStrTcpConnectionHeader}TCP connection " + 
             "to ${strHost}:${nPort} check failed with error: ` + err.toString()
         );
     }
@@ -571,13 +571,13 @@ export async function checkUrl( u, nTimeoutMilliseconds, isLog ) {
         return false;
     const jo = getValidHostAndPort( u );
     if( isLog ) {
-        console.log( g_strTcpConnectionHeader +
+        console.log( gStrTcpConnectionHeader +
             "Extracted from URL \"" + u.toString() + "\" data fields are: " +
             JSON.stringify( jo )
         );
     }
     if( ! ( jo && jo.strHost && "nPort" in jo ) ) {
-        console.log( g_strTcpConnectionHeader +
+        console.log( gStrTcpConnectionHeader +
             "Extracted from URL \"" + u.toString() +
             "\" data fields are bad, returning \"false\" as result of TCP connection check"
         );

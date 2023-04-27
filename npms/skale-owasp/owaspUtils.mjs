@@ -522,7 +522,7 @@ export function cloneObjectByRootKeys( joIn ) {
 
 // example: "1ether" -> "1000000000000000000"
 // supported suffix aliases, lowercase
-const g_mapMoneyNameSuffixAliases = {
+const gMapMoneyNameSuffixAliases = {
     "ethe": "ether",
     "ethr": "ether",
     "eth": "ether",
@@ -600,8 +600,8 @@ export function parseMoneyUnitName( s ) {
     s = s.trim().toLowerCase();
     if( s == "" )
         return "wei";
-    if( s in g_mapMoneyNameSuffixAliases ) {
-        s = g_mapMoneyNameSuffixAliases[s];
+    if( s in gMapMoneyNameSuffixAliases ) {
+        s = gMapMoneyNameSuffixAliases[s];
         return s;
     }
     return s;

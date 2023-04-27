@@ -38,16 +38,16 @@ function computeWalkNodeIndices( nNodeNumber, nNodesCount ) {
     let i = nNodeNumber - 1;
     if( i < 0 )
         i = nNodesCount - 1;
-    const arr_walk_node_indices = [];
+    const arrWalkNodeIndices = [];
     for( ; true; ) {
         if( i == nNodeNumber )
             break;
-        arr_walk_node_indices.push( i );
+        arrWalkNodeIndices.push( i );
         -- i;
         if( i < 0 )
             i = nNodesCount - 1;
     }
-    return arr_walk_node_indices;
+    return arrWalkNodeIndices;
 }
 
 export function checkLoopWorkTypeStringIsCorrect( strLoopWorkType ) {
@@ -124,18 +124,18 @@ export async function checkOnLoopStart( imaState, strLoopWorkType, nIndexS2S ) {
         const jarrNodes = imaState.joSChainNetworkInfo.network;
         if( ! jarrNodes )
             throw new Error( "S-Chain network info is not available yet to PWA" );
-        const arr_busy_node_indices = [];
-        const arr_walk_node_indices =
+        const arrBusyNodeIndices = [];
+        const arrWalkNodeIndices =
             computeWalkNodeIndices( imaState.nNodeNumber, imaState.nNodesCount );
         if( log.verboseGet() >= log.verboseReversed().information ) {
             if( imaState.isPrintPWA ) {
                 log.write( cc.debug( "PWA will check loop start condition via node(s) sequence " ) +
-                    cc.j( arr_busy_node_indices ) + cc.debug( "..." ) + "\n" );
+                    cc.j( arrBusyNodeIndices ) + cc.debug( "..." ) + "\n" );
             }
         }
         const nUtcUnixTimeStamp = Math.floor( ( new Date() ).getTime() / 1000 );
-        for( let i = 0; i < arr_walk_node_indices.length; ++i ) {
-            const walk_node_index = arr_walk_node_indices[i];
+        for( let i = 0; i < arrWalkNodeIndices.length; ++i ) {
+            const walk_node_index = arrWalkNodeIndices[i];
             const joNode = jarrNodes[walk_node_index];
             const joProps = getNodeProgressAndTimestamp( joNode, strLoopWorkType, nIndexS2S );
             if( joProps && typeof joProps == "object" &&
@@ -163,15 +163,15 @@ export async function checkOnLoopStart( imaState, strLoopWorkType, nIndexS2S ) {
                     joProps.ts = 0;
                     continue;
                 }
-                arr_busy_node_indices.push( walk_node_index );
+                arrBusyNodeIndices.push( walk_node_index );
             }
         }
-        if( arr_busy_node_indices.length > 0 ) {
+        if( arrBusyNodeIndices.length > 0 ) {
             if( log.verboseGet() >= log.verboseReversed().error ) {
                 if( imaState.isPrintPWA ) {
                     log.write(
                         cc.warning( "PWA loop start condition check failed, busy node(s): " ) +
-                        cc.j( arr_busy_node_indices ) + "\n" );
+                        cc.j( arrBusyNodeIndices ) + "\n" );
                 }
             }
             return false;

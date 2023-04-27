@@ -175,7 +175,8 @@ class ObserverServer extends SocketServer {
         self.mapApiHandlers.schainsCached = function( joMessage, joAnswer, eventData, socket ) {
             skaleObserver.setLastCachedSChains( joMessage.message.arrSChainsCached );
         };
-        self.mapApiHandlers.skale_imaNotifyLoopWork =
+        // eslint-disable-next-line dot-notation
+        self.mapApiHandlers["skale_imaNotifyLoopWork"] =
             function( joMessage, joAnswer, eventData, socket ) {
                 pwa.handleLoopStateArrived( // NOTICE: no await here, executed async
                     imaState,

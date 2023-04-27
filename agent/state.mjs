@@ -1,7 +1,7 @@
 import * as owaspUtils from "../npms/skale-owasp/owaspUtils.mjs";
 import * as IMA from "../npms/skale-ima/index.mjs";
 
-export const g_defaultValueForLoopState = {
+export const gDefaultValueForLoopState = {
     "oracle": {
         "isInProgress": false,
         "wasInProgress": false
@@ -144,7 +144,7 @@ export function get() {
     if( imaState )
         return imaState;
     imaState = {
-        "loopState": g_defaultValueForLoopState,
+        "loopState": gDefaultValueForLoopState,
 
         "strLogFilePath": "",
         "nLogMaxSizeBeforeRotation": -1,
@@ -285,17 +285,17 @@ export function get() {
     return imaState;
 }
 
-export function set( imaState_new ) {
-    imaState = imaState_new;
+export function set( imaStateNew ) {
+    imaState = imaStateNew;
     return imaState;
 }
 
-let g_isPreventExitAfterLastAction = false;
+let gFlagIsPreventExitAfterLastAction = false;
 
 export function isPreventExitAfterLastAction() {
-    return g_isPreventExitAfterLastAction;
+    return gFlagIsPreventExitAfterLastAction;
 }
 
 export function setPreventExitAfterLastAction( isPrevent ) {
-    g_isPreventExitAfterLastAction = isPrevent;
+    gFlagIsPreventExitAfterLastAction = isPrevent;
 }

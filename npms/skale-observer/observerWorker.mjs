@@ -34,7 +34,7 @@ import * as owaspUtils from "../skale-owasp/owaspUtils.mjs";
 import * as skaleObserver from "./observer.mjs";
 import * as log from "../skale-log/log.mjs";
 
-const g_url = "skale_observer_worker_server";
+const gURL = "skale_observer_worker_server";
 
 parentPort.on( "message", jo => {
     if( networkLayer.inWorkerAPIs.onMessage( jo ) )
@@ -149,7 +149,7 @@ class ObserverServer extends SocketServer {
                 );
             if( log.verboseGet() >= log.verboseReversed().information ) {
                 self.log( cc.debug( "Full init compete for in-worker SNB server" ) + " " +
-                    cc.notice( g_url ) + "\n" );
+                    cc.notice( gURL ) + "\n" );
             }
             return joAnswer;
         };
@@ -178,7 +178,7 @@ class ObserverServer extends SocketServer {
         };
         if( log.verboseGet() >= log.verboseReversed().information ) {
             self.log( cc.debug( "Initialized in-worker SNB server" ) + " " +
-                cc.notice( g_url ) + "\n" );
+                cc.notice( gURL ) + "\n" );
         }
     }
     dispose() {
@@ -261,10 +261,10 @@ class ObserverServer extends SocketServer {
     }
 };
 
-const acceptor = new networkLayer.InWorkerSocketServerAcceptor( g_url, doSendMessage );
+const acceptor = new networkLayer.InWorkerSocketServerAcceptor( gURL, doSendMessage );
 const server = new ObserverServer( acceptor );
 server.on( "dispose", function() {
     const self = server;
     if( log.verboseGet() >= log.verboseReversed().debug )
-        self.log( cc.debug( "Disposed in-worker SNB server" ) + " " + cc.notice( g_url ) + "\n" );
+        self.log( cc.debug( "Disposed in-worker SNB server" ) + " " + cc.notice( gURL ) + "\n" );
 } );

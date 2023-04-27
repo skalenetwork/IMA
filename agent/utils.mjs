@@ -50,8 +50,8 @@ export function normalizePath( strPath ) {
 export function getRandomFileName() {
     const timestamp = new Date().toISOString().replace( /[-:.]/g,"" );
     const random = ( "" + Math.random() ).substring( 2, 8 );
-    const random_number = timestamp + random;
-    return random_number;
+    const randomNumber = timestamp + random;
+    return randomNumber;
 }
 
 export function fileExists( strPath ) {
@@ -162,7 +162,7 @@ export function jsonFileSave( strPath, jo, bLogOutput ) {
     return false;
 }
 
-const g_nTimeToSleepStepWaitForClonedTokenToAppearMilliseconds = 1000;
+const gMillisecondsToSleepStepWaitForClonedTokenToAppear = 1000;
 
 export async function waitForClonedTokenToAppear(
     sc,
@@ -200,25 +200,25 @@ export async function waitForClonedTokenToAppear(
             log.write( cc.debug( "Discovering " ) + cc.notice( strTokenSuffixUC ) +
                 cc.debug( " step " ) + cc.info( idxAttempt ) + cc.debug( "..." ) + "\n" );
         }
-        if( g_nTimeToSleepStepWaitForClonedTokenToAppearMilliseconds > 0 )
-            await core.sleep( g_nTimeToSleepStepWaitForClonedTokenToAppearMilliseconds );
-        const address_on_s_chain =
+        if( gMillisecondsToSleepStepWaitForClonedTokenToAppear > 0 )
+            await core.sleep( gMillisecondsToSleepStepWaitForClonedTokenToAppear );
+        const addressOnSChain =
             await contractTokenManager.callStatic[
                 "clones" + cc.capitalizeFirstLetter( strTokenSuffixLCshort )](
                 sc.ethersMod.ethers.utils.id( strMainnetName ),
                 tokensMN.joABI[strTokenSuffixUC + "_address"],
                 { from: addressCallFrom }
             );
-        if( address_on_s_chain != "0x0000000000000000000000000000000000000000" ) {
+        if( addressOnSChain != "0x0000000000000000000000000000000000000000" ) {
             ts1 = cc.ts_hr();
             if( log.verboseGet() >= log.verboseReversed().information ) {
                 log.write( cc.success( "Done, duration is " ) +
                     cc.info( cc.getDurationString( ts0, ts1 ) ) + "\n" );
                 log.write( cc.success( "Discovered " ) + cc.notice( strTokenSuffixUC ) +
                     cc.success( " instantiated on S-Chain " ) + cc.attention( sc.chainName ) +
-                    cc.success( " at address " ) + cc.notice( address_on_s_chain ) + "\n" );
+                    cc.success( " at address " ) + cc.notice( addressOnSChain ) + "\n" );
             }
-            return address_on_s_chain;
+            return addressOnSChain;
         }
     }
     ts1 = cc.ts_hr();
@@ -243,11 +243,11 @@ export async function waitForClonedTokenAppearErc20(
         return;
     }
     const addressCallFrom = joAccountSC.address();
-    const address_on_s_chain =
+    const addressOnSChain =
         await waitForClonedTokenToAppear(
             sc, "erc20", addressCallFrom, 40, tokensMN, strMainnetName );
     tokenERC20SC.abi = JSON.parse( JSON.stringify( tokensMN.joABI.ERC20_abi ) );
-    tokenERC20SC.address = "" + address_on_s_chain;
+    tokenERC20SC.address = "" + addressOnSChain;
 }
 
 export async function waitForClonedTokenAppearErc721(
@@ -263,11 +263,11 @@ export async function waitForClonedTokenAppearErc721(
         return;
     }
     const addressCallFrom = joAccountSC.address();
-    const address_on_s_chain =
+    const addressOnSChain =
         await waitForClonedTokenToAppear(
             sc, "erc721", addressCallFrom, 40, tokensMN, strMainnetName );
     tokenERC721SC.abi = JSON.parse( JSON.stringify( tokensMN.joABI.ERC721_abi ) );
-    tokenERC721SC.address = "" + address_on_s_chain;
+    tokenERC721SC.address = "" + addressOnSChain;
 }
 
 export async function waitForClonedTokenAppearErc721WithMetadata(
@@ -283,11 +283,11 @@ export async function waitForClonedTokenAppearErc721WithMetadata(
         return;
     }
     const addressCallFrom = joAccountSC.address();
-    const address_on_s_chain =
+    const addressOnSChain =
         await waitForClonedTokenToAppear(
             sc, "erc721_with_metadata", addressCallFrom, 40, tokensMN, strMainnetName );
     tokenERC721SC.abi = JSON.parse( JSON.stringify( tokensMN.joABI.ERC721_with_metadata_abi ) );
-    tokenERC721SC.address = "" + address_on_s_chain;
+    tokenERC721SC.address = "" + addressOnSChain;
 }
 
 export async function waitForClonedTokenAppearErc1155(
@@ -303,11 +303,11 @@ export async function waitForClonedTokenAppearErc1155(
         return;
     }
     const addressCallFrom = joAccountSC.address();
-    const address_on_s_chain =
+    const addressOnSChain =
         await waitForClonedTokenToAppear(
             sc, "erc1155", addressCallFrom, 40, tokensMN, strMainnetName );
     tokenERC1155SC.abi = JSON.parse( JSON.stringify( tokensMN.joABI.ERC1155_abi ) );
-    tokenERC1155SC.address = "" + address_on_s_chain;
+    tokenERC1155SC.address = "" + addressOnSChain;
 }
 
 export function encodeUTF8( s ) {

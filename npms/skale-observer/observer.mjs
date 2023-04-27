@@ -40,8 +40,8 @@ import * as EMC from "ethereum-multicall";
 
 const __dirname = path.dirname( url.fileURLToPath( import.meta.url ) );
 
-let g_intervalPeriodicCaching = null;
-let g_bHaveParallelResult = false;
+let gIntervalPeriodicCaching = null;
+let gFlagHaveParallelResult = false;
 
 const PORTS_PER_SCHAIN = 64;
 
@@ -109,7 +109,7 @@ export function calcPorts( joSChain, basePortOfSChain ) {
     };
 }
 
-const g_arrChainIdsSupportedByMulticall = [
+const gArrChainIdsSupportedByMulticall = [
     1, // Mainnet
     3, // Kovan
     4, // Rinkeby
@@ -165,8 +165,8 @@ async function isMulticallAvailable( mn ) {
     if( mn && mn.ethersProvider ) {
         const { chainId } = await mn.ethersProvider.getNetwork();
         const bnChainId = owaspUtils.toBN( chainId );
-        for( let i = 0; i < g_arrChainIdsSupportedByMulticall.length; ++ i ) {
-            const walkChainId = g_arrChainIdsSupportedByMulticall[i];
+        for( let i = 0; i < gArrChainIdsSupportedByMulticall.length; ++ i ) {
+            const walkChainId = gArrChainIdsSupportedByMulticall[i];
             const bnWalkChainId = owaspUtils.toBN( walkChainId );
             if( bnWalkChainId.eq( bnChainId ) )
                 return true;
@@ -269,7 +269,7 @@ export async function loadSChainParts( joSChain, addressFrom, opts ) {
                 "id": nodeId,
                 "name": values0[0],
                 "ip": owaspUtils.ipFromHex( values0[1] ),
-                "base_port": values0[3],
+                "basePort": values0[3],
                 "domain": values1[0],
                 "isMaintenance": values2[0]
             };
@@ -277,7 +277,7 @@ export async function loadSChainParts( joSChain, addressFrom, opts ) {
                 return;
             const arrFetchedSChainIds = values3;
             nodeDict.basePortOfSChain = getSChainBasePortOnNode(
-                computedSChainId, arrFetchedSChainIds, nodeDict.base_port );
+                computedSChainId, arrFetchedSChainIds, nodeDict.basePort );
             calcPorts( joSChain, nodeDict.basePortOfSChain );
             composeEndPoints( joSChain, nodeDict, "ip" );
             composeEndPoints( joSChain, nodeDict, "domain" );
@@ -296,7 +296,7 @@ export async function loadSChainParts( joSChain, addressFrom, opts ) {
                 "id": nodeId,
                 "name": node[0],
                 "ip": owaspUtils.ipFromHex( node[1] ),
-                "base_port": node[3],
+                "basePort": node[3],
                 "domain":
                     await opts.imaState.joNodes.callStatic.getNodeDomainName(
                         nodeId, { from: addressFrom } ),
@@ -311,7 +311,7 @@ export async function loadSChainParts( joSChain, addressFrom, opts ) {
                     nodeId, { from: addressFrom } );
             nodeDict.basePortOfSChain =
                 getSChainBasePortOnNode(
-                    computedSChainId, arrFetchedSChainIds, nodeDict.base_port );
+                    computedSChainId, arrFetchedSChainIds, nodeDict.basePort );
             calcPorts( joSChain, nodeDict.basePortOfSChain );
             composeEndPoints( joSChain, nodeDict, "ip" );
             composeEndPoints( joSChain, nodeDict, "domain" );
@@ -593,16 +593,16 @@ export async function checkConnectedSChains(
 
 export async function filterSChainsMarkedAsConnected( arrSChains, opts ) {
     owaspUtils.ensureObserverOptionsInitialized( opts );
-    const arr_connected_schains = [];
+    const arrConnectedSChains = [];
     const cntSChains = arrSChains.length;
     for( let idxSChain = 0; idxSChain < cntSChains; ++ idxSChain ) {
         if( opts && opts.bStopNeeded )
             break;
         const joSChain = arrSChains[idxSChain];
         if( joSChain.isConnected )
-            arr_connected_schains.push( joSChain );
+            arrConnectedSChains.push( joSChain );
     }
-    return arr_connected_schains;
+    return arrConnectedSChains;
 }
 
 export function findSChainIndexInArrayByName( arrSChains, strSChainName ) {
@@ -702,7 +702,7 @@ export function mergeSChainsArrayFromTo( arrSrc, arrDst, arrNew, arrOld, opts ) 
     }
 }
 
-let g_arrSChainsCached = [];
+let gArrSChainsCached = [];
 
 export async function cacheSChains( strChainNameConnectedTo, addressFrom, opts ) {
     owaspUtils.ensureObserverOptionsInitialized( opts );
@@ -719,26 +719,26 @@ export async function cacheSChains( strChainNameConnectedTo, addressFrom, opts )
                 addressFrom,
                 opts
             );
-            g_arrSChainsCached = await filterSChainsMarkedAsConnected(
+            gArrSChainsCached = await filterSChainsMarkedAsConnected(
                 arrSChains,
                 opts
             );
         } else
-            g_arrSChainsCached = arrSChains;
+            gArrSChainsCached = arrSChains;
         if( opts && opts.details ) {
             opts.details.write(
                 cc.debug( "Connected " ) + cc.attention( "S-Chains" ) +
                 cc.debug( " cache was updated in this thread: " ) +
-                cc.j( g_arrSChainsCached ) + "\n" );
+                cc.j( gArrSChainsCached ) + "\n" );
         }
         if( opts.fnCacheChanged )
-            opts.fnCacheChanged( g_arrSChainsCached, null ); // null - no error
+            opts.fnCacheChanged( gArrSChainsCached, null ); // null - no error
     } catch ( err ) {
         strError = owaspUtils.extractErrorMessage( err );
         if( ! strError )
             strError = "unknown exception during S-Chains download";
         if( opts.fnCacheChanged )
-            opts.fnCacheChanged( g_arrSChainsCached, strError );
+            opts.fnCacheChanged( gArrSChainsCached, strError );
         if( opts && opts.details ) {
             opts.details.write(
                 cc.fatal( "ERROR:" ) + cc.error( " Failed to cache: " ) + cc.error( err ) );
@@ -749,12 +749,12 @@ export async function cacheSChains( strChainNameConnectedTo, addressFrom, opts )
 }
 
 export function getLastCachedSChains() {
-    return JSON.parse( JSON.stringify( g_arrSChainsCached ) );
+    return JSON.parse( JSON.stringify( gArrSChainsCached ) );
 }
 
 export function setLastCachedSChains( arrSChainsCached ) {
     if( arrSChainsCached && typeof arrSChainsCached == "object" ) {
-        g_arrSChainsCached = JSON.parse( JSON.stringify( arrSChainsCached ) );
+        gArrSChainsCached = JSON.parse( JSON.stringify( arrSChainsCached ) );
         events.dispatchEvent(
             new UniversalDispatcherEvent(
                 "chainsCacheChanged",
@@ -766,35 +766,35 @@ const sleepImpl = ( milliseconds ) => {
     return new Promise( resolve => setTimeout( resolve, milliseconds ) );
 };
 
-let g_worker = null;
-let g_client = null;
+let gWorker = null;
+let gClient = null;
 
 export async function ensureHaveWorker( opts ) {
     owaspUtils.ensureObserverOptionsInitialized( opts );
-    if( g_worker )
-        return g_worker;
+    if( gWorker )
+        return gWorker;
     const url = "skale_observer_worker_server";
-    g_worker =
+    gWorker =
         new Worker(
             path.join( __dirname, "observerWorker.mjs" ),
             { "type": "module" }
         );
-    g_worker.on( "message", jo => {
-        if( networkLayer.outOfWorkerAPIs.onMessage( g_worker, jo ) )
+    gWorker.on( "message", jo => {
+        if( networkLayer.outOfWorkerAPIs.onMessage( gWorker, jo ) )
             return;
     } );
-    g_client = new networkLayer.OutOfWorkerSocketClientPipe( url, g_worker );
-    g_client.on( "message", function( eventData ) {
+    gClient = new networkLayer.OutOfWorkerSocketClientPipe( url, gWorker );
+    gClient.on( "message", function( eventData ) {
         const joMessage = eventData.message;
         switch ( joMessage.method ) {
         case "periodicCachingDoNow":
             setLastCachedSChains( joMessage.message );
-            g_bHaveParallelResult = true;
+            gFlagHaveParallelResult = true;
             if( opts && opts.details ) {
                 opts.details.write(
                     cc.debug( "Connected " ) + cc.attention( "S-Chains" ) +
                     cc.debug( " cache was updated using data arrived from SNB worker: " ) +
-                    cc.j( g_arrSChainsCached ) + "\n" );
+                    cc.j( gArrSChainsCached ) + "\n" );
             }
             break;
         case "log":
@@ -896,17 +896,17 @@ export async function ensureHaveWorker( opts ) {
             }
         }
     };
-    g_client.send( jo );
+    gClient.send( jo );
 }
 
 async function inThreadPeriodicCachingStart( strChainNameConnectedTo, addressFrom, opts ) {
-    if( g_intervalPeriodicCaching != null )
+    if( gIntervalPeriodicCaching != null )
         return;
     try {
         const fnDoCachingNow = async function() {
             await cacheSChains( strChainNameConnectedTo, addressFrom, opts );
         };
-        g_intervalPeriodicCaching =
+        gIntervalPeriodicCaching =
             setInterval(
                 fnDoCachingNow,
                 parseInt( opts.secondsToReDiscoverSkaleNetwork ) * 1000 );
@@ -923,11 +923,11 @@ async function inThreadPeriodicCachingStart( strChainNameConnectedTo, addressFro
 }
 
 async function parallelPeriodicCachingStart( strChainNameConnectedTo, addressFrom, opts ) {
-    g_bHaveParallelResult = false;
+    gFlagHaveParallelResult = false;
     try {
         const nSecondsToWaitParallel = 60;
         setTimeout( function() {
-            if( g_bHaveParallelResult )
+            if( gFlagHaveParallelResult )
                 return;
             if( log.verboseGet() >= log.verboseReversed().error ) {
                 log.write( cc.error( "Failed to start parallel periodic SNB refresh, error is: " ) +
@@ -949,7 +949,7 @@ async function parallelPeriodicCachingStart( strChainNameConnectedTo, addressFro
                 "addressFrom": addressFrom
             }
         };
-        g_client.send( jo );
+        gClient.send( jo );
         return true;
     } catch ( err ) {
         if( log.verboseGet() >= log.verboseReversed().error ) {
@@ -962,7 +962,7 @@ async function parallelPeriodicCachingStart( strChainNameConnectedTo, addressFro
 }
 
 export async function periodicCachingStart( strChainNameConnectedTo, addressFrom, opts ) {
-    g_bHaveParallelResult = false;
+    gFlagHaveParallelResult = false;
     const bParallelMode =
         ( opts && "bParallelMode" in opts &&
         typeof opts.bParallelMode != "undefined" &&
@@ -979,13 +979,13 @@ export async function periodicCachingStart( strChainNameConnectedTo, addressFrom
 }
 
 export async function periodicCachingStop() {
-    if( g_worker && g_client ) {
+    if( gWorker && gClient ) {
         try {
             const jo = {
                 "method": "periodicCachingStop",
                 "message": { }
             };
-            g_client.send( jo );
+            gClient.send( jo );
         } catch ( err ) {
             if( log.verboseGet() >= log.verboseReversed().error ) {
                 log.write( cc.error( "Failed to stop parallel periodic SNB refresh, error is: " ) +
@@ -994,20 +994,20 @@ export async function periodicCachingStop() {
             }
         }
     }
-    if( g_intervalPeriodicCaching ) {
+    if( gIntervalPeriodicCaching ) {
         try {
-            clearInterval( g_intervalPeriodicCaching );
-            g_intervalPeriodicCaching = null;
+            clearInterval( gIntervalPeriodicCaching );
+            gIntervalPeriodicCaching = null;
         } catch ( err ) {
             if( log.verboseGet() >= log.verboseReversed().error ) {
                 log.write( cc.error( "Failed to stop in-thread periodic SNB refresh, error is: " ) +
                     cc.warning( owaspUtils.extractErrorMessage( err ) ) +
                     cc.error( ", stack is: " ) + "\n" + cc.stack( err.stack ) + "\n" );
             }
-            g_intervalPeriodicCaching = null; // clear it anyway
+            gIntervalPeriodicCaching = null; // clear it anyway
         }
     }
-    g_bHaveParallelResult = false;
+    gFlagHaveParallelResult = false;
 }
 
 export function pickRandomSChainNodeIndex( joSChain ) {

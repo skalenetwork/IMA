@@ -1681,12 +1681,12 @@ function commandLineTaskDiscoverChainId() {
         "name": "Discover chains ID(s)",
         "fn": async function() {
             const strLogPrefix = cc.info( "Discover chains ID(s):" ) + " ";
-            const arr_urls_to_discover = [];
+            const arrURLsToDiscover = [];
             if( imaState.chainProperties.mn.strURL &&
                 typeof( imaState.chainProperties.mn.strURL ) == "string" &&
                 imaState.chainProperties.mn.strURL.length > 0
             ) {
-                arr_urls_to_discover.push( {
+                arrURLsToDiscover.push( {
                     "name": "Main Net",
                     "strURL": "" + imaState.chainProperties.mn.strURL,
                     "fnSave": function( chainId ) {
@@ -1698,7 +1698,7 @@ function commandLineTaskDiscoverChainId() {
                 typeof( imaState.chainProperties.sc.strURL ) == "string" &&
                 imaState.chainProperties.sc.strURL.length > 0
             ) {
-                arr_urls_to_discover.push( {
+                arrURLsToDiscover.push( {
                     "name": "S-Chain",
                     "strURL": "" + "" + imaState.chainProperties.sc.strURL,
                     "fnSave": function( chainId ) {
@@ -1710,7 +1710,7 @@ function commandLineTaskDiscoverChainId() {
                 typeof( imaState.chainProperties.tc.strURL ) == "string" &&
                 imaState.chainProperties.tc.strURL.length > 0
             ) {
-                arr_urls_to_discover.push( {
+                arrURLsToDiscover.push( {
                     "name": "S<->S Target S-Chain",
                     "strURL": "" + "" + imaState.chainProperties.tc.strURL,
                     "fnSave": function( chainId ) {
@@ -1718,7 +1718,7 @@ function commandLineTaskDiscoverChainId() {
                     }
                 } );
             }
-            if( arr_urls_to_discover.length === 0 ) {
+            if( arrURLsToDiscover.length === 0 ) {
                 if( log.verboseGet() >= log.verboseReversed().fatal ) {
                     log.write( cc.fatal( "CRITICAL ERROR:" ) +
                         cc.error( " no URLs provided to discover chain IDs, please specify " ) +
@@ -1728,8 +1728,8 @@ function commandLineTaskDiscoverChainId() {
                 }
                 process.exit( 162 );
             }
-            for( let i = 0; i < arr_urls_to_discover.length; ++ i ) {
-                const joDiscoverEntry = arr_urls_to_discover[i];
+            for( let i = 0; i < arrURLsToDiscover.length; ++ i ) {
+                const joDiscoverEntry = arrURLsToDiscover[i];
                 const chainId = await
                 skaleObserver.discoverChainId( joDiscoverEntry.strURL );
                 if( chainId === null ) {
@@ -2000,34 +2000,34 @@ function getSChainDiscoveredNodesCount( joSChainNetworkInfo ) {
     }
 }
 
-let g_timerSChainDiscovery = null;
-let g_bInSChainDiscovery = false;
+let gTimerSChainDiscovery = null;
+let gFlagIsInSChainDiscovery = false;
 
 async function continueSChainDiscoveryInBackgroundIfNeeded( isSilent ) {
     const imaState = state.get();
     const cntNodes = getSChainNodesCount( imaState.joSChainNetworkInfo );
     const cntDiscovered = getSChainDiscoveredNodesCount( imaState.joSChainNetworkInfo );
     if( cntDiscovered >= cntNodes ) {
-        if( g_timerSChainDiscovery != null ) {
-            clearInterval( g_timerSChainDiscovery );
-            g_timerSChainDiscovery = null;
+        if( gTimerSChainDiscovery != null ) {
+            clearInterval( gTimerSChainDiscovery );
+            gTimerSChainDiscovery = null;
         }
         return;
     }
-    if( g_timerSChainDiscovery != null )
+    if( gTimerSChainDiscovery != null )
         return;
     if( imaState.joSChainDiscovery.repeatIntervalMilliseconds <= 0 )
         return; // no S-Chain re-discovery (for debugging only)
     const fnAsyncHandler = async function() {
-        if( g_bInSChainDiscovery )
+        if( gFlagIsInSChainDiscovery )
             return;
-        if( g_bInSChainDiscovery ) {
+        if( gFlagIsInSChainDiscovery ) {
             isInsideAsyncHandler = false;
             if( log.verboseGet() >= log.verboseReversed().information )
                 log.write( cc.warning( "Notice: long S-Chain discovery is in progress" ) + "\n" );
             return;
         }
-        g_bInSChainDiscovery = true;
+        gFlagIsInSChainDiscovery = true;
         try {
             if( log.verboseGet() >= log.verboseReversed().information ) {
                 log.write( cc.info( "Will re-discover " ) + cc.notice( cntNodes ) +
@@ -2099,10 +2099,10 @@ async function continueSChainDiscoveryInBackgroundIfNeeded( isSilent ) {
                 }
             } );
         } catch ( err ) { }
-        g_bInSChainDiscovery = false;
+        gFlagIsInSChainDiscovery = false;
     };
-    g_timerSChainDiscovery = setInterval( function() {
-        if( g_bInSChainDiscovery )
+    gTimerSChainDiscovery = setInterval( function() {
+        if( gFlagIsInSChainDiscovery )
             return;
         fnAsyncHandler();
     }, imaState.joSChainDiscovery.repeatIntervalMilliseconds );
@@ -2443,7 +2443,7 @@ async function discoverSChainNetwork(
     return optsDiscover.joSChainNetworkInfo;
 }
 
-let g_wsServerMonitoring = null;
+let gServerMonitoringWS = null;
 
 function initMonitoringServer() {
     const imaState = state.get();
@@ -2454,8 +2454,8 @@ function initMonitoringServer() {
         log.write( strLogPrefix + cc.normal( "Will start monitoring WS server on port " ) +
             cc.info( imaState.nMonitoringPort ) + "\n" );
     }
-    g_wsServerMonitoring = new ws.WebSocketServer( { port: 0 + imaState.nMonitoringPort } );
-    g_wsServerMonitoring.on( "connection", function( ws_peer, req ) {
+    gServerMonitoringWS = new ws.WebSocketServer( { port: 0 + imaState.nMonitoringPort } );
+    gServerMonitoringWS.on( "connection", function( ws_peer, req ) {
         const ip = req.socket.remoteAddress;
         if( log.verboseGet() >= log.verboseReversed().debug )
             log.write( strLogPrefix + cc.normal( "New connection from " ) + cc.info( ip ) + "\n" );
@@ -2488,7 +2488,7 @@ function initMonitoringServer() {
                 case "get_runtime_params":
                     {
                         joAnswer.runtime_params = {};
-                        const arr_runtime_param_names = [
+                        const arrRuntimeParamNames = [
                             "bNoWaitSChainStarted",
                             "nMaxWaitSChainAttempts",
 
@@ -2520,7 +2520,7 @@ function initMonitoringServer() {
 
                             "nMonitoringPort"
                         ];
-                        for( const param_name of arr_runtime_param_names ) {
+                        for( const param_name of arrRuntimeParamNames ) {
                             if( param_name in imaState )
                                 joAnswer.runtime_params[param_name] = imaState[param_name];
 
@@ -2563,17 +2563,17 @@ function initMonitoringServer() {
     } );
 }
 
-let g_jsonRpcAppIMA = null;
+let gExpressJsonRpcAppIMA = null;
 
 function initJsonRpcServer() {
     const imaState = state.get();
     if( imaState.nJsonRpcPort <= 0 )
         return;
     const strLogPrefix = cc.attention( "JSON RPC:" ) + " ";
-    g_jsonRpcAppIMA = express();
-    g_jsonRpcAppIMA.use( bodyParser.urlencoded( { extended: true } ) );
-    g_jsonRpcAppIMA.use( bodyParser.json() );
-    g_jsonRpcAppIMA.post( "/", async function( req, res ) {
+    gExpressJsonRpcAppIMA = express();
+    gExpressJsonRpcAppIMA.use( bodyParser.urlencoded( { extended: true } ) );
+    gExpressJsonRpcAppIMA.use( bodyParser.json() );
+    gExpressJsonRpcAppIMA.post( "/", async function( req, res ) {
         const isSkipMode = false;
         const message = JSON.stringify( req.body );
         const ip = req.connection.remoteAddress.split( ":" ).pop();
@@ -2660,7 +2660,7 @@ function initJsonRpcServer() {
         if( ! isSkipMode )
             fnSendAnswer( joAnswer );
     } );
-    g_jsonRpcAppIMA.listen( imaState.nJsonRpcPort );
+    gExpressJsonRpcAppIMA.listen( imaState.nJsonRpcPort );
 }
 
 async function doTheJob() {
@@ -2716,7 +2716,7 @@ async function doTheJob() {
         process.exit( process.exitCode );
 }
 
-const g_registrationCostInfo = {
+const gInfoRegistrationCost = {
     mn: [],
     sc: []
 };
@@ -2763,8 +2763,8 @@ async function registerStep1( isPrintSummaryRegistrationCosts ) {
             "\n" );
     }
     if( bSuccess ) {
-        g_registrationCostInfo.mn =
-            g_registrationCostInfo.mn.concat( g_registrationCostInfo.mn, jarrReceipts );
+        gInfoRegistrationCost.mn =
+            gInfoRegistrationCost.mn.concat( gInfoRegistrationCost.mn, jarrReceipts );
     }
     if( isPrintSummaryRegistrationCosts )
         printSummaryRegistrationCosts();
@@ -2806,12 +2806,12 @@ async function checkRegistrationStep1() {
 function printSummaryRegistrationCosts( details ) {
     IMA.printGasUsageReportFromArray(
         "Main Net REGISTRATION",
-        g_registrationCostInfo.mn,
+        gInfoRegistrationCost.mn,
         details
     );
     IMA.printGasUsageReportFromArray(
         "S-Chain REGISTRATION",
-        g_registrationCostInfo.sc,
+        gInfoRegistrationCost.sc,
         details
     );
 }

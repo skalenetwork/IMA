@@ -44,7 +44,7 @@ const Keccak = sha3Module.Keccak;
 const sleep =
     ( milliseconds ) => { return new Promise( resolve => setTimeout( resolve, milliseconds ) ); };
 
-const g_secondsMessageVerifySendTimeout = 2 * 60;
+const gSecondsMessageVerifySendTimeout = 2 * 60;
 
 async function withTimeout( strDescription, promise, seconds ) {
     strDescription = strDescription || "withTimeout()";
@@ -1322,7 +1322,7 @@ async function gatherSigningFinishImpl( optsSignOperation ) {
     await withTimeout(
         "BLS verification and sending",
         optsSignOperation.promiseCompleteGathering,
-        g_secondsMessageVerifySendTimeout )
+        gSecondsMessageVerifySendTimeout )
         .then( strSuccessfulResultDescription => {
             optsSignOperation.details.write(
                 cc.success( "BLS verification and sending promise awaited." ) +
@@ -2317,7 +2317,7 @@ export async function doSignU256( u256, details, fn ) {
     await withTimeout(
         "BLS u256 sign",
         optsSignU256.promiseCompleteGathering,
-        g_secondsMessageVerifySendTimeout
+        gSecondsMessageVerifySendTimeout
     ).then( strSuccessfulResultDescription => {
         optsSignU256.details.write( cc.info( "BLS u256 sign promise awaited." ) + "\n" );
     } ).catch( err => {
