@@ -115,11 +115,12 @@ class ObserverServer extends SocketServer {
                 self.opts.imaState.chainProperties.mn.ethersProvider =
                     owaspUtils.getEthersProviderFromURL( u );
             } else {
-                self.log(
-                    cc.warning( "WARNING:" ) + cc.warning( " No " ) + cc.note( "Main-net" ) +
-                    cc.warning( " URL specified in command line arguments" ) +
-                    cc.debug( "(needed for particular operations only)" ) +
-                    "\n" );
+                if( log.verboseGet() >= log.verboseReversed().warning ) {
+                    self.log( cc.warning( "WARNING:" ) + cc.warning( " No " ) +
+                        cc.note( "Main-net" ) +
+                        cc.warning( " URL specified in command line arguments" ) +
+                        cc.debug( "(needed for particular operations only)" ) + "\n" );
+                }
             }
 
             if( self.opts.imaState.chainProperties.sc.strURL &&
@@ -130,11 +131,12 @@ class ObserverServer extends SocketServer {
                 self.opts.imaState.chainProperties.sc.ethersProvider =
                     owaspUtils.getEthersProviderFromURL( u );
             } else {
-                self.log(
-                    cc.warning( "WARNING:" ) + cc.warning( " No " ) + cc.note( "Main-net" ) +
-                    cc.warning( " URL specified in command line arguments" ) +
-                    cc.debug( "(needed for particular operations only)" ) +
-                    "\n" );
+                if( log.verboseGet() >= log.verboseReversed().warning ) {
+                    self.log( cc.warning( "WARNING:" ) + cc.warning( " No " ) +
+                        cc.note( "Main-net" ) +
+                        cc.warning( " URL specified in command line arguments" ) +
+                        cc.debug( "(needed for particular operations only)" ) + "\n" );
+                }
             }
 
             self.opts.imaState.optsLoop.joRuntimeOpts.isInsideWorker = true;
@@ -150,25 +152,24 @@ class ObserverServer extends SocketServer {
                 IMA.getTransactionCustomizerForSChainTarget();
             state.set( imaState );
             imaCLI.initContracts();
-
-            self.log(
-                cc.debug( "IMA loop worker" ) + " " +
-                cc.notice( workerData.url ) + cc.debug( " will do the following work:" ) + "\n" +
-                "    " + cc.info( "Oracle" ) + cc.debug( " operations....." ) +
-                cc.yn( self.opts.imaState.optsLoop.enableStepOracle ) + "\n" +
-                "    " + cc.info( "M2S" ) + cc.debug( " transfers........." ) +
-                cc.yn( self.opts.imaState.optsLoop.enableStepM2S ) + "\n" +
-                "    " + cc.info( "S2M" ) + cc.debug( " transfers........." ) +
-                cc.yn( self.opts.imaState.optsLoop.enableStepS2M ) + "\n" +
-                "    " + cc.info( "S2S" ) + cc.debug( " transfers........." ) +
-                cc.yn( self.opts.imaState.optsLoop.enableStepS2S ) + "\n"
-            );
+            if( log.verboseGet() >= log.verboseReversed().information ) {
+                self.log( cc.debug( "IMA loop worker" ) + " " + cc.notice( workerData.url ) +
+                    cc.debug( " will do the following work:" ) + "\n" + "    " +
+                    cc.info( "Oracle" ) + cc.debug( " operations....." ) +
+                    cc.yn( self.opts.imaState.optsLoop.enableStepOracle ) + "\n" +
+                    "    " + cc.info( "M2S" ) + cc.debug( " transfers........." ) +
+                    cc.yn( self.opts.imaState.optsLoop.enableStepM2S ) + "\n" +
+                    "    " + cc.info( "S2M" ) + cc.debug( " transfers........." ) +
+                    cc.yn( self.opts.imaState.optsLoop.enableStepS2M ) + "\n" +
+                    "    " + cc.info( "S2S" ) + cc.debug( " transfers........." ) +
+                    cc.yn( self.opts.imaState.optsLoop.enableStepS2S ) + "\n" );
+            }
             /* await */
             loop.runTransferLoop( self.opts.imaState.optsLoop );
-            self.log(
-                cc.debug( "Full init compete for in-worker IMA loop" ) +
-                " " + cc.notice( workerData.url ) +
-                "\n" );
+            if( log.verboseGet() >= log.verboseReversed().information ) {
+                self.log( cc.debug( "Full init compete for in-worker IMA loop" ) +
+                    " " + cc.notice( workerData.url ) + "\n" );
+            }
             return joAnswer;
         };
         self.mapApiHandlers.schainsCached = function( joMessage, joAnswer, eventData, socket ) {
@@ -186,10 +187,10 @@ class ObserverServer extends SocketServer {
                     joMessage.params.signature
                 );
             };
-        self.log(
-            cc.debug( "Initialized in-worker IMA loop " ) +
-            cc.info( workerData.url ) + cc.debug( " server" ) +
-            "\n" );
+        if( log.verboseGet() >= log.verboseReversed().information ) {
+            self.log( cc.debug( "Initialized in-worker IMA loop " ) +
+                cc.info( workerData.url ) + cc.debug( " server" ) + "\n" );
+        }
     }
     dispose() {
         const self = this;
@@ -206,8 +207,8 @@ const acceptor = new networkLayer.InWorkerSocketServerAcceptor( workerData.url, 
 const server = new ObserverServer( acceptor );
 server.on( "dispose", function() {
     const self = server;
-    self.log(
-        cc.debug( "Disposed in-worker IMA loop" ) +
-        " " + cc.notice( workerData.url ) +
-        "\n" );
+    if( log.verboseGet() >= log.verboseReversed().debug ) {
+        self.log( cc.debug( "Disposed in-worker IMA loop" ) +
+        " " + cc.notice( workerData.url ) + "\n" );
+    }
 } );

@@ -808,6 +808,8 @@ export async function ensureHaveWorker( opts ) {
         "message": {
             "opts": {
                 "imaState": {
+                    "verbose_": log.verboseGet(),
+                    "expose_details_": log.exposeDetailsGet(),
                     "bNoWaitSChainStarted": opts.imaState.bNoWaitSChainStarted,
                     "nMaxWaitSChainAttempts": opts.imaState.nMaxWaitSChainAttempts,
                     "nNodeNumber": opts.imaState.nNodeNumber,
@@ -878,10 +880,6 @@ export async function ensureHaveWorker( opts ) {
                             "joAbiIMA": opts.imaState.chainProperties.sc.joAbiIMA,
                             "bHaveAbiIMA": opts.imaState.chainProperties.sc.bHaveAbiIMA
                         }
-                        // "tc": {
-                        //     "joAccount": {
-                        //     }
-                        // },
                     },
                     "joAbiSkaleManager": opts.imaState.joAbiSkaleManager,
                     "bHaveSkaleManagerABI": opts.imaState.bHaveSkaleManagerABI,

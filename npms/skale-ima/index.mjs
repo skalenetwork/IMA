@@ -5218,11 +5218,11 @@ async function findOutReferenceLogRecord(
         );
     const cntLogRecord = arrLogRecords.length;
     if( isVerbose ) {
-        details.write( strLogPrefix +
-            cc.debug( "Got " ) + cc.info( cntLogRecord ) +
-            cc.debug( " log record(s) (" ) + cc.info( strEventName ) +
-            cc.debug( ") with data: " ) + cc.j( arrLogRecords ) +
-            "\n" );
+        if( log.verboseGet() >= log.verboseReversed().debug ) {
+            details.write( strLogPrefix + cc.debug( "Got " ) + cc.info( cntLogRecord ) +
+                cc.debug( " log record(s) (" ) + cc.info( strEventName ) +
+                cc.debug( ") with data: " ) + cc.j( arrLogRecords ) + "\n" );
+        }
     }
     for( let idxLogRecord = 0; idxLogRecord < cntLogRecord; ++ idxLogRecord ) {
         const joEvent = arrLogRecords[idxLogRecord];
@@ -5240,21 +5240,20 @@ async function findOutReferenceLogRecord(
             owaspUtils.toBN( joReferenceLogRecord.currentMessage.toString() );
         if( bnCurrentMessage.eq( bnMessageNumberToFind ) ) {
             if( isVerbose ) {
-                details.write( strLogPrefix +
-                    cc.success( "Found " ) + cc.info( strEventName ) +
-                    cc.success( " log record " ) + cc.j( joReferenceLogRecord ) +
-                    cc.success( " for message " ) + cc.info( nMessageNumberToFind ) +
-                    "\n" );
+                if( log.verboseGet() >= log.verboseReversed().debug ) {
+                    details.write( strLogPrefix + cc.success( "Found " ) + cc.info( strEventName ) +
+                        cc.success( " log record " ) + cc.j( joReferenceLogRecord ) +
+                        cc.success( " for message " ) + cc.info( nMessageNumberToFind ) + "\n" );
+                }
             }
             return joReferenceLogRecord;
         }
     }
     if( isVerbose ) {
-        details.write( strLogPrefix +
-            cc.error( "Failed to find " ) + cc.info( strEventName ) +
-            cc.error( " log record for message " ) +
-            cc.info( nMessageNumberToFind ) +
-            "\n" );
+        if( log.verboseGet() >= log.verboseReversed().error ) {
+            details.write( strLogPrefix + cc.error( "Failed to find " ) + cc.info( strEventName ) +
+                cc.error( " log record for message " ) + cc.info( nMessageNumberToFind ) + "\n" );
+        }
     }
     return null;
 }
@@ -5265,23 +5264,25 @@ async function findOutAllReferenceLogRecords(
     bnBlockId, nIncMsgCnt, nOutMsgCnt, isVerbose
 ) {
     if( isVerbose ) {
-        details.write( strLogPrefix +
-            cc.debug( "Optimized IMA message search algorithm will start at block " ) +
-            cc.info( bnBlockId.toString() ) +
-            cc.debug( ", will search for outgoing message counter " ) +
-            cc.info( nOutMsgCnt.toString() ) +
-            cc.debug( " and approach down to incoming message counter " ) +
-            cc.info( nIncMsgCnt.toString() ) +
-            "\n" );
+        if( log.verboseGet() >= log.verboseReversed().debug ) {
+            details.write( strLogPrefix +
+                cc.debug( "Optimized IMA message search algorithm will start at block " ) +
+                cc.info( bnBlockId.toString() ) +
+                cc.debug( ", will search for outgoing message counter " ) +
+                cc.info( nOutMsgCnt.toString() ) +
+                cc.debug( " and approach down to incoming message counter " ) +
+                cc.info( nIncMsgCnt.toString() ) + "\n" );
+        }
     }
     const arrLogRecordReferences = [];
     const cntExpected = nOutMsgCnt - nIncMsgCnt;
     if( cntExpected <= 0 ) {
         if( isVerbose ) {
-            details.write( strLogPrefix +
-                cc.success( "Optimized IMA message search algorithm success, " +
-                    "nothing to search, result is empty" ) +
-                "\n" );
+            if( log.verboseGet() >= log.verboseReversed().information ) {
+                details.write( strLogPrefix +
+                    cc.success( "Optimized IMA message search algorithm success, " +
+                        "nothing to search, result is empty" ) + "\n" );
+            }
         }
         return arrLogRecordReferences; // nothing to search
     }
@@ -5302,20 +5303,23 @@ async function findOutAllReferenceLogRecords(
     const cntFound = arrLogRecordReferences.length;
     if( cntFound != cntExpected ) {
         if( isVerbose ) {
-            details.write( strLogPrefix +
-                cc.error( "Optimized IMA message search algorithm fail, found " ) +
-                cc.info( cntFound ) +
-                cc.error( " log record(s), expected " ) + cc.info( cntExpected ) +
-                cc.error( " log record(s), found records are: " ) +
-                cc.j( arrLogRecordReferences ) + "\n" );
+            if( log.verboseGet() >= log.verboseReversed().error ) {
+                details.write( strLogPrefix +
+                    cc.error( "Optimized IMA message search algorithm fail, found " ) +
+                    cc.info( cntFound ) +
+                    cc.error( " log record(s), expected " ) + cc.info( cntExpected ) +
+                    cc.error( " log record(s), found records are: " ) +
+                    cc.j( arrLogRecordReferences ) + "\n" );
+            }
         }
     } else {
         if( isVerbose ) {
-            details.write( strLogPrefix +
-                cc.success( "Optimized IMA message search algorithm success, found all " ) +
-                cc.info( cntFound ) + cc.success( " log record(s): " ) +
-                cc.j( arrLogRecordReferences ) +
-                "\n" );
+            if( log.verboseGet() >= log.verboseReversed().debug ) {
+                details.write( strLogPrefix +
+                    cc.success( "Optimized IMA message search algorithm success, found all " ) +
+                    cc.info( cntFound ) + cc.success( " log record(s): " ) +
+                    cc.j( arrLogRecordReferences ) + "\n" );
+            }
         }
     }
     return arrLogRecordReferences;
@@ -5342,20 +5346,24 @@ let g_nTransferLoopCounter = 0;
 //            )
 async function doQueryOutgoingMessageCounter( optsTransfer ) {
     let nPossibleIntegerValue = 0;
-    optsTransfer.details.write( optsTransfer.strLogPrefixShort +
-        cc.info( "SRC " ) + cc.sunny( "MessageProxy" ) + cc.info( " address is....." ) +
-        cc.bright( optsTransfer.joMessageProxySrc.address ) +
-        "\n" );
-    optsTransfer.details.write( optsTransfer.strLogPrefixShort +
-        cc.info( "DST " ) + cc.sunny( "MessageProxy" ) + cc.info( " address is....." ) +
-        cc.bright( optsTransfer.joMessageProxyDst.address ) +
-        "\n" );
+    if( log.verboseGet() >= log.verboseReversed().debug ) {
+        optsTransfer.details.write( optsTransfer.strLogPrefixShort +
+            cc.info( "SRC " ) + cc.sunny( "MessageProxy" ) + cc.info( " address is....." ) +
+            cc.bright( optsTransfer.joMessageProxySrc.address ) +
+            "\n" );
+        optsTransfer.details.write( optsTransfer.strLogPrefixShort +
+            cc.info( "DST " ) + cc.sunny( "MessageProxy" ) + cc.info( " address is....." ) +
+            cc.bright( optsTransfer.joMessageProxyDst.address ) +
+            "\n" );
+    }
     optsTransfer.strActionName = "src-chain.MessageProxy.getOutgoingMessagesCounter()";
     try {
-        optsTransfer.details.write( optsTransfer.strLogPrefix +
-            cc.debug( "Will call " ) + cc.notice( optsTransfer.strActionName ) +
-            cc.debug( "..." ) +
-            "\n" );
+        if( log.verboseGet() >= log.verboseReversed().debug ) {
+            optsTransfer.details.write( optsTransfer.strLogPrefix +
+                cc.debug( "Will call " ) + cc.notice( optsTransfer.strActionName ) +
+                cc.debug( "..." ) +
+                "\n" );
+        }
         nPossibleIntegerValue =
             await optsTransfer.joMessageProxySrc.callStatic.getOutgoingMessagesCounter(
                 optsTransfer.chainNameDst,
@@ -5368,10 +5376,12 @@ async function doQueryOutgoingMessageCounter( optsTransfer ) {
             );
         }
         optsTransfer.nOutMsgCnt = owaspUtils.toInteger( nPossibleIntegerValue );
-        optsTransfer.details.write( optsTransfer.strLogPrefix +
-            cc.debug( "Result of " ) + cc.notice( optsTransfer.strActionName ) +
-            cc.debug( " call: " ) + cc.info( optsTransfer.nOutMsgCnt ) +
-            "\n" );
+        if( log.verboseGet() >= log.verboseReversed().debug ) {
+            optsTransfer.details.write( optsTransfer.strLogPrefix +
+                cc.debug( "Result of " ) + cc.notice( optsTransfer.strActionName ) +
+                cc.debug( " call: " ) + cc.info( optsTransfer.nOutMsgCnt ) +
+                "\n" );
+        }
     } catch ( err ) {
         if( log.verboseGet() >= log.verboseReversed().critical ) {
             const strError = cc.fatal( "IMMEDIATE ERROR LOG:" ) +
@@ -5387,9 +5397,11 @@ async function doQueryOutgoingMessageCounter( optsTransfer ) {
     }
 
     optsTransfer.strActionName = "dst-chain.MessageProxy.getIncomingMessagesCounter()";
-    optsTransfer.details.write( optsTransfer.strLogPrefix +
-        cc.debug( "Will call " ) + cc.notice( optsTransfer.strActionName ) + cc.debug( "..." ) +
-        "\n" );
+    if( log.verboseGet() >= log.verboseReversed().debug ) {
+        optsTransfer.details.write( optsTransfer.strLogPrefix +
+            cc.debug( "Will call " ) + cc.notice( optsTransfer.strActionName ) +
+            cc.debug( "..." ) + "\n" );
+    }
     nPossibleIntegerValue =
         await optsTransfer.joMessageProxyDst.callStatic.getIncomingMessagesCounter(
             optsTransfer.chainNameSrc,
@@ -5400,10 +5412,11 @@ async function doQueryOutgoingMessageCounter( optsTransfer ) {
             nPossibleIntegerValue + " which is not a valid integer" );
     }
     optsTransfer.nIncMsgCnt = owaspUtils.toInteger( nPossibleIntegerValue );
-    optsTransfer.details.write( optsTransfer.strLogPrefix +
-        cc.debug( "Result of " ) + cc.notice( optsTransfer.strActionName ) +
-        cc.debug( " call: " ) + cc.info( optsTransfer.nIncMsgCnt ) +
-        "\n" );
+    if( log.verboseGet() >= log.verboseReversed().debug ) {
+        optsTransfer.details.write( optsTransfer.strLogPrefix +
+            cc.debug( "Result of " ) + cc.notice( optsTransfer.strActionName ) +
+            cc.debug( " call: " ) + cc.info( optsTransfer.nIncMsgCnt ) + "\n" );
+    }
 
     optsTransfer.strActionName = "src-chain.MessageProxy.getIncomingMessagesCounter()";
     nPossibleIntegerValue =
@@ -5416,10 +5429,11 @@ async function doQueryOutgoingMessageCounter( optsTransfer ) {
             nPossibleIntegerValue + " which is not a valid integer" );
     }
     const idxLastToPopNotIncluding = owaspUtils.toInteger( nPossibleIntegerValue );
-    optsTransfer.details.write( optsTransfer.strLogPrefix +
-        cc.debug( "Result of " ) + cc.notice( optsTransfer.strActionName ) +
-        cc.debug( " call: " ) + cc.info( idxLastToPopNotIncluding ) +
-        "\n" );
+    if( log.verboseGet() >= log.verboseReversed().debug ) {
+        optsTransfer.details.write( optsTransfer.strLogPrefix +
+            cc.debug( "Result of " ) + cc.notice( optsTransfer.strActionName ) +
+            cc.debug( " call: " ) + cc.info( idxLastToPopNotIncluding ) + "\n" );
+    }
 
     // optimized scanner
     const bnBlockId =
@@ -5456,16 +5470,20 @@ async function analyzeGatheredRecords( optsTransfer, r ) {
     let joValues = "";
     const strChainHashWeAreLookingFor =
         owaspUtils.ethersMod.ethers.utils.id( optsTransfer.chainNameDst );
-    optsTransfer.details.write( optsTransfer.strLogPrefix +
-        cc.debug( "Will review " ) + cc.info( r.length ) +
-        cc.debug( " found event records(in reverse order, newest to oldest)" ) +
-        cc.debug( " while looking for hash " ) + cc.info( strChainHashWeAreLookingFor ) +
-        cc.debug( " of destination chain " ) + cc.info( optsTransfer.chainNameDst ) + "\n" );
+    if( log.verboseGet() >= log.verboseReversed().debug ) {
+        optsTransfer.details.write( optsTransfer.strLogPrefix + cc.debug( "Will review " ) +
+            cc.info( r.length ) +
+            cc.debug( " found event records(in reverse order, newest to oldest)" ) +
+            cc.debug( " while looking for hash " ) + cc.info( strChainHashWeAreLookingFor ) +
+            cc.debug( " of destination chain " ) + cc.info( optsTransfer.chainNameDst ) + "\n" );
+    }
     for( let i = r.length - 1; i >= 0; i-- ) {
         const joEvent = r[i];
-        optsTransfer.details.write( optsTransfer.strLogPrefix +
-            cc.debug( "Will review found event record " ) + cc.info( i ) +
-            cc.debug( " with data " ) + cc.j( joEvent ) + "\n" );
+        if( log.verboseGet() >= log.verboseReversed().debug ) {
+            optsTransfer.details.write( optsTransfer.strLogPrefix +
+                cc.debug( "Will review found event record " ) + cc.info( i ) +
+                cc.debug( " with data " ) + cc.j( joEvent ) + "\n" );
+        }
         const eventValuesByName = {
             "dstChainHash": joEvent.args[0],
             "msgCounter": joEvent.args[1],
@@ -5476,17 +5494,21 @@ async function analyzeGatheredRecords( optsTransfer, r ) {
         if( eventValuesByName.dstChainHash == strChainHashWeAreLookingFor ) {
             joValues = eventValuesByName;
             joValues.savedBlockNumberForOptimizations = r[i].blockNumber;
-            optsTransfer.details.write( optsTransfer.strLogPrefix +
-                cc.debug( "Found event record " ) + cc.info( i ) +
-                cc.debug( " reviewed and " ) +
-                cc.success( "accepted for processing, found event values are " ) +
-                cc.j( joValues ) + cc.success( ", found block number is " ) +
-                cc.info( joValues.savedBlockNumberForOptimizations ) + "\n" );
+            if( log.verboseGet() >= log.verboseReversed().debug ) {
+                optsTransfer.details.write( optsTransfer.strLogPrefix +
+                    cc.debug( "Found event record " ) + cc.info( i ) +
+                    cc.debug( " reviewed and " ) +
+                    cc.success( "accepted for processing, found event values are " ) +
+                    cc.j( joValues ) + cc.success( ", found block number is " ) +
+                    cc.info( joValues.savedBlockNumberForOptimizations ) + "\n" );
+            }
             break;
         } else {
-            optsTransfer.details.write( optsTransfer.strLogPrefix +
-                cc.debug( "Found event record " ) + cc.info( i ) +
-                cc.debug( " reviewed and " ) + cc.warning( "skipped" ) + "\n" );
+            if( log.verboseGet() >= log.verboseReversed().debug ) {
+                optsTransfer.details.write( optsTransfer.strLogPrefix +
+                    cc.debug( "Found event record " ) + cc.info( i ) +
+                    cc.debug( " reviewed and " ) + cc.warning( "skipped" ) + "\n" );
+            }
         }
     }
     if( joValues == "" ) {
@@ -5529,20 +5551,18 @@ async function gatherMessages( optsTransfer ) {
         }
         optsTransfer.strActionName = "src-chain->MessageProxy->scan-past-events()";
         const strEventName = "OutgoingMessage";
-        optsTransfer.details.write( optsTransfer.strLogPrefix + cc.debug( "Will call " ) +
-            cc.notice( optsTransfer.strActionName ) + cc.debug( " for " ) +
-            cc.info( strEventName ) + cc.debug( " event..." ) + "\n" );
+        if( log.verboseGet() >= log.verboseReversed().debug ) {
+            optsTransfer.details.write( optsTransfer.strLogPrefix + cc.debug( "Will call " ) +
+                cc.notice( optsTransfer.strActionName ) + cc.debug( " for " ) +
+                cc.info( strEventName ) + cc.debug( " event..." ) + "\n" );
+        }
         r = await safeGetPastEventsProgressive(
-            optsTransfer.details, optsTransfer.strLogPrefixShort,
-            optsTransfer.ethersProviderSrc, 10,
-            optsTransfer.joMessageProxySrc, strEventName,
-            nBlockFrom, nBlockTo,
+            optsTransfer.details, optsTransfer.strLogPrefixShort, optsTransfer.ethersProviderSrc,
+            10, optsTransfer.joMessageProxySrc, strEventName, nBlockFrom, nBlockTo,
             optsTransfer.joMessageProxySrc.filters[strEventName](
-                owaspUtils.ethersMod.ethers.utils.id(
-                    optsTransfer.chainNameDst ), // dstChainHash
+                owaspUtils.ethersMod.ethers.utils.id( optsTransfer.chainNameDst ), // dstChainHash
                 optsTransfer.nIdxCurrentMsg // msgCounter
-            )
-        );
+            ) );
         const joValues = await analyzeGatheredRecords( optsTransfer, r );
         if( joValues == null )
             return false;
@@ -5552,28 +5572,35 @@ async function gatherMessages( optsTransfer ) {
             optsTransfer.strActionName = "security check: evaluate block depth";
             try {
                 const transactionHash = r[0].transactionHash;
-                optsTransfer.details.write( optsTransfer.strLogPrefix +
-                    cc.debug( "Event transactionHash is " ) + cc.info( transactionHash ) + "\n" );
+                if( log.verboseGet() >= log.verboseReversed().debug ) {
+                    optsTransfer.details.write( optsTransfer.strLogPrefix +
+                        cc.debug( "Event transactionHash is " ) + cc.info( transactionHash ) +
+                        "\n" );
+                }
                 const blockNumber = r[0].blockNumber;
                 optsTransfer.details.write( optsTransfer.strLogPrefix +
                     cc.debug( "Event blockNumber is " ) + cc.info( blockNumber ) + "\n" );
                 const nLatestBlockNumber = await safeGetBlockNumber(
                     optsTransfer.details, 10, optsTransfer.ethersProviderSrc );
-                optsTransfer.details.write( optsTransfer.strLogPrefix +
-                    cc.debug( "Latest blockNumber is " ) + cc.info( nLatestBlockNumber ) + "\n" );
+                if( log.verboseGet() >= log.verboseReversed().debug ) {
+                    optsTransfer.details.write( optsTransfer.strLogPrefix +
+                        cc.debug( "Latest blockNumber is " ) + cc.info( nLatestBlockNumber ) +
+                        "\n" );
+                }
                 const nDist = nLatestBlockNumber - blockNumber;
                 if( nDist < optsTransfer.nBlockAwaitDepth )
                     bSecurityCheckPassed = false;
-                optsTransfer.details.write( optsTransfer.strLogPrefix +
-                    cc.debug( "Distance by blockNumber is " ) + cc.info( nDist ) +
-                    cc.debug( ", await check is " ) + ( bSecurityCheckPassed
-                    ? cc.success( "PASSED" ) : cc.error( "FAILED" ) ) + "\n" );
+                if( log.verboseGet() >= log.verboseReversed().debug ) {
+                    optsTransfer.details.write( optsTransfer.strLogPrefix +
+                        cc.debug( "Distance by blockNumber is " ) + cc.info( nDist ) +
+                        cc.debug( ", await check is " ) + ( bSecurityCheckPassed
+                        ? cc.success( "PASSED" ) : cc.error( "FAILED" ) ) + "\n" );
+                }
             } catch ( err ) {
                 bSecurityCheckPassed = false;
                 if( log.verboseGet() >= log.verboseReversed().critical ) {
                     const strError = owaspUtils.extractErrorMessage( err );
-                    const s =
-                        optsTransfer.strLogPrefix + cc.fatal( "CRITICAL ERROR:" ) +
+                    const s = optsTransfer.strLogPrefix + cc.fatal( "CRITICAL ERROR:" ) +
                         cc.error( " Exception(evaluate block depth) while " +
                             "getting transaction hash and block number during " +
                         optsTransfer.strActionName + ": " ) + cc.error( strError ) +
@@ -5592,9 +5619,8 @@ async function gatherMessages( optsTransfer ) {
             optsTransfer.strActionName = "" + strActionName_old;
             if( !bSecurityCheckPassed ) {
                 if( log.verboseGet() >= log.verboseReversed().warning ) {
-                    const s = optsTransfer.strLogPrefix +
-                        cc.warning( "Block depth check was not passed, " +
-                            "canceling search for transfer events" ) + "\n";
+                    const s = optsTransfer.strLogPrefix + cc.warning( "Block depth check was " +
+                        "not passed, canceling search for transfer events" ) + "\n";
                     optsTransfer.details.write( s );
                     if( log.id != optsTransfer.details.id )
                         log.write( s );
@@ -5608,27 +5634,38 @@ async function gatherMessages( optsTransfer ) {
             optsTransfer.strActionName = "security check: evaluate block age";
             try {
                 const transactionHash = r[0].transactionHash;
-                optsTransfer.details.write( optsTransfer.strLogPrefix +
-                    cc.debug( "Event transactionHash is " ) + cc.info( transactionHash ) + "\n" );
+                if( log.verboseGet() >= log.verboseReversed().debug ) {
+                    optsTransfer.details.write( optsTransfer.strLogPrefix +
+                        cc.debug( "Event transactionHash is " ) + cc.info( transactionHash ) +
+                        "\n" );
+                }
                 const blockNumber = r[0].blockNumber;
-                optsTransfer.details.write( optsTransfer.strLogPrefix +
-                    cc.debug( "Event blockNumber is " ) + cc.info( blockNumber ) + "\n" );
+                if( log.verboseGet() >= log.verboseReversed().debug ) {
+                    optsTransfer.details.write( optsTransfer.strLogPrefix +
+                        cc.debug( "Event blockNumber is " ) + cc.info( blockNumber ) + "\n" );
+                }
                 const joBlock = await optsTransfer.ethersProviderSrc.getBlock( blockNumber );
                 if( !owaspUtils.validateInteger( joBlock.timestamp ) ) {
                     throw new Error( "Block \"timestamp\" is not a valid integer value: " +
                         joBlock.timestamp );
                 }
                 const timestampBlock = owaspUtils.toInteger( joBlock.timestamp );
-                optsTransfer.details.write( optsTransfer.strLogPrefix +
-                    cc.debug( "Block   TS is " ) + cc.info( timestampBlock ) + "\n" );
+                if( log.verboseGet() >= log.verboseReversed().debug ) {
+                    optsTransfer.details.write( optsTransfer.strLogPrefix +
+                        cc.debug( "Block   TS is " ) + cc.info( timestampBlock ) + "\n" );
+                }
                 const timestampCurrent = currentTimestamp();
-                optsTransfer.details.write( optsTransfer.strLogPrefix +
-                    cc.debug( "Current TS is " ) + cc.info( timestampCurrent ) + "\n" );
+                if( log.verboseGet() >= log.verboseReversed().debug ) {
+                    optsTransfer.details.write( optsTransfer.strLogPrefix +
+                        cc.debug( "Current TS is " ) + cc.info( timestampCurrent ) + "\n" );
+                }
                 const tsDiff = timestampCurrent - timestampBlock;
-                optsTransfer.details.write( optsTransfer.strLogPrefix +
-                    cc.debug( "Diff    TS is " ) + cc.info( tsDiff ) + "\n" );
-                optsTransfer.details.write( optsTransfer.strLogPrefix +
-                    cc.debug( "Expected diff " ) + cc.info( optsTransfer.nBlockAge ) + "\n" );
+                if( log.verboseGet() >= log.verboseReversed().debug ) {
+                    optsTransfer.details.write( optsTransfer.strLogPrefix +
+                        cc.debug( "Diff    TS is " ) + cc.info( tsDiff ) + "\n" );
+                    optsTransfer.details.write( optsTransfer.strLogPrefix +
+                        cc.debug( "Expected diff " ) + cc.info( optsTransfer.nBlockAge ) + "\n" );
+                }
                 if( tsDiff < optsTransfer.nBlockAge )
                     bSecurityCheckPassed = false;
                 optsTransfer.details.write( optsTransfer.strLogPrefix +
@@ -5656,27 +5693,29 @@ async function gatherMessages( optsTransfer ) {
             }
             optsTransfer.strActionName = "" + strActionName_old;
             if( !bSecurityCheckPassed ) {
-                optsTransfer.details.write( optsTransfer.strLogPrefix +
-                    cc.warning( "Block age check was not passed, " +
-                        "canceling search for transfer events" ) + "\n" );
+                if( log.verboseGet() >= log.verboseReversed().warning ) {
+                    optsTransfer.details.write( optsTransfer.strLogPrefix +
+                        cc.warning( "Block age check was not passed, " +
+                            "canceling search for transfer events" ) + "\n" );
+                }
                 break;
             }
         }
-        optsTransfer.details.write(
-            optsTransfer.strLogPrefix +
-            cc.success( "Got event optsTransfer.details from " ) +
-            cc.notice( "getPastEvents()" ) +
-            cc.success( " event invoked with " ) + cc.notice( "msgCounter" ) +
-            cc.success( " set to " ) + cc.info( optsTransfer.nIdxCurrentMsg ) +
-            cc.success( " and " ) + cc.notice( "dstChain" ) +
-            cc.success( " set to " ) + cc.info( optsTransfer.chainNameDst ) +
-            cc.success( ", event description: " ) + cc.j( joValues ) +
-            // + cc.j(evs) +
-            "\n"
-        );
-        optsTransfer.details.write( optsTransfer.strLogPrefix +
-            cc.debug( "Will process message counter value " ) +
-            cc.info( optsTransfer.nIdxCurrentMsg ) + "\n" );
+        if( log.verboseGet() >= log.verboseReversed().debug ) {
+            optsTransfer.details.write( optsTransfer.strLogPrefix +
+                cc.success( "Got event optsTransfer.details from " ) +
+                cc.notice( "getPastEvents()" ) + cc.success( " event invoked with " ) +
+                cc.notice( "msgCounter" ) + cc.success( " set to " ) +
+                cc.info( optsTransfer.nIdxCurrentMsg ) + cc.success( " and " ) +
+                cc.notice( "dstChain" ) + cc.success( " set to " ) +
+                cc.info( optsTransfer.chainNameDst ) + cc.success( ", event description: " ) +
+                cc.j( joValues ) +
+                // + cc.j(evs) +
+                "\n" );
+            optsTransfer.details.write( optsTransfer.strLogPrefix +
+                cc.debug( "Will process message counter value " ) +
+                cc.info( optsTransfer.nIdxCurrentMsg ) + "\n" );
+        }
         optsTransfer.arrMessageCounters.push( optsTransfer.nIdxCurrentMsg );
         const joMessage = {
             "sender": joValues.srcContract,
@@ -6404,29 +6443,38 @@ export async function doTransfer(
     optsTransfer.strLogPrefix = optsTransfer.strLogPrefixShort + cc.info( "transfer loop from " ) +
         cc.notice( optsTransfer.chainNameSrc ) + cc.info( " to " ) +
         cc.notice( optsTransfer.chainNameDst ) + cc.info( ":" ) + " ";
-    optsTransfer.details.write( optsTransfer.strLogPrefix + cc.debug( "Message signing is " ) +
-        cc.onOff( optsTransfer.imaState.bSignMessages ) + "\n" );
+    if( log.verboseGet() >= log.verboseReversed().debug ) {
+        optsTransfer.details.write( optsTransfer.strLogPrefix + cc.debug( "Message signing is " ) +
+            cc.onOff( optsTransfer.imaState.bSignMessages ) + "\n" );
+    }
     if( optsTransfer.fnSignMessages == null ||
         optsTransfer.fnSignMessages == undefined ||
         ( ! optsTransfer.imaState.bSignMessages )
     ) {
-        optsTransfer.details.write( optsTransfer.strLogPrefix +
-            cc.debug( "Using internal signing stub function" ) + "\n" );
+        if( log.verboseGet() >= log.verboseReversed().debug ) {
+            optsTransfer.details.write( optsTransfer.strLogPrefix +
+                cc.debug( "Using internal signing stub function" ) + "\n" );
+        }
         optsTransfer.fnSignMessages = async function(
             nTransferLoopCounter, jarrMessages, nIdxCurrentMsgBlockStart, strFromChainName,
             joExtraSignOpts, fnAfter
         ) {
-            optsTransfer.details.write( optsTransfer.strLogPrefix +
-                cc.debug( "Message signing callback was " ) + cc.error( "not provided" ) +
-                cc.debug( " to IMA, first real message index is:" ) +
-                cc.info( nIdxCurrentMsgBlockStart ) + cc.debug( ", have " ) +
-                cc.info( optsTransfer.jarrMessages.length ) +
-                cc.debug( " message(s) to process:" ) + cc.j( optsTransfer.jarrMessages ) + "\n" );
+            if( log.verboseGet() >= log.verboseReversed().debug ) {
+                optsTransfer.details.write( optsTransfer.strLogPrefix +
+                    cc.debug( "Message signing callback was " ) + cc.error( "not provided" ) +
+                    cc.debug( " to IMA, first real message index is:" ) +
+                    cc.info( nIdxCurrentMsgBlockStart ) + cc.debug( ", have " ) +
+                    cc.info( optsTransfer.jarrMessages.length ) +
+                    cc.debug( " message(s) to process:" ) + cc.j( optsTransfer.jarrMessages ) +
+                    "\n" );
+            }
             await fnAfter( null, jarrMessages, null ); // null - no error, null - no signatures
         };
     } else {
-        optsTransfer.details.write( optsTransfer.strLogPrefix +
-            cc.debug( "Using externally provided signing function" ) + "\n" );
+        if( log.verboseGet() >= log.verboseReversed().debug ) {
+            optsTransfer.details.write( optsTransfer.strLogPrefix +
+                cc.debug( "Using externally provided signing function" ) + "\n" );
+        }
     }
     optsTransfer.nTransactionsCountInBlock = optsTransfer.nTransactionsCountInBlock || 5;
     optsTransfer.nTransferSteps = optsTransfer.nTransferSteps || Number.MAX_SAFE_INTEGER;
