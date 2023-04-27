@@ -32,8 +32,9 @@ import { SocketServer } from "../skale-cool-socket/socketServer.mjs";
 import * as cc from "../skale-cc/cc.mjs";
 import * as owaspUtils from "../skale-owasp/owaspUtils.mjs";
 import * as skaleObserver from "./observer.mjs";
+import * as log from "../skale-log/log.mjs";
 
-const g_url = "skale_observer_worker_server";
+const gURL = "skale_observer_worker_server";
 
 parentPort.on( "message", jo => {
     if( networkLayer.inWorkerAPIs.onMessage( jo ) )
@@ -80,6 +81,8 @@ class ObserverServer extends SocketServer {
                 write: self.log
             };
             cc.enable( joMessage.message.cc.isEnabled );
+            log.verboseSet( self.opts.imaState.verbose_ );
+            log.exposeDetailsSet( self.opts.imaState.expose_details_ );
             joAnswer.message = {
                 "method": "" + joMessage.method,
                 "error": null
@@ -96,11 +99,12 @@ class ObserverServer extends SocketServer {
                 self.opts.imaState.chainProperties.mn.ethersProvider =
                     owaspUtils.getEthersProviderFromURL( u );
             } else {
-                self.log(
-                    cc.warning( "WARNING:" ) + cc.warning( " No " ) + cc.note( "Main-net" ) +
-                    cc.warning( " URL specified in command line arguments" ) +
-                    cc.debug( "(needed for particular operations only)" ) +
-                    "\n" );
+                if( log.verboseGet() >= log.verboseReversed().warning ) {
+                    self.log( cc.warning( "WARNING:" ) + cc.warning( " No " ) +
+                        cc.note( "Main-net" ) +
+                        cc.warning( " URL specified in command line arguments" ) +
+                        cc.debug( "(needed for particular operations only)" ) + "\n" );
+                }
             }
 
             if( self.opts.imaState.chainProperties.sc.strURL &&
@@ -111,13 +115,13 @@ class ObserverServer extends SocketServer {
                 self.opts.imaState.chainProperties.sc.ethersProvider =
                     owaspUtils.getEthersProviderFromURL( u );
             } else {
-                self.log(
-                    cc.warning( "WARNING:" ) + cc.warning( " No " ) + cc.note( "Main-net" ) +
-                    cc.warning( " URL specified in command line arguments" ) +
-                    cc.debug( "(needed for particular operations only)" ) +
-                    "\n" );
+                if( log.verboseGet() >= log.verboseReversed().warning ) {
+                    self.log( cc.warning( "WARNING:" ) + cc.warning( " No " ) +
+                        cc.note( "Main-net" ) +
+                        cc.warning( " URL specified in command line arguments" ) +
+                        cc.debug( "(needed for particular operations only)" ) + "\n" );
+                }
             }
-
             self.opts.imaState.joNodes =
                 new owaspUtils.ethersMod.ethers.Contract(
                     self.opts.imaState.joAbiSkaleManager.nodes_address,
@@ -143,11 +147,10 @@ class ObserverServer extends SocketServer {
                     self.opts.imaState.chainProperties.sc.joAbiIMA.message_proxy_chain_abi,
                     self.opts.imaState.chainProperties.sc.ethersProvider
                 );
-
-            self.log(
-                cc.debug( "Full init compete for in-worker SNB server" ) + " " +
-                cc.notice( g_url ) +
-                "\n" );
+            if( log.verboseGet() >= log.verboseReversed().information ) {
+                self.log( cc.debug( "Full init compete for in-worker SNB server" ) + " " +
+                    cc.notice( gURL ) + "\n" );
+            }
             return joAnswer;
         };
         self.mapApiHandlers.periodicCachingStart =
@@ -173,9 +176,10 @@ class ObserverServer extends SocketServer {
             };
             return joAnswer;
         };
-        self.log(
-            cc.debug( "Initialized in-worker SNB server" ) + " " + cc.notice( g_url ) +
-            "\n" );
+        if( log.verboseGet() >= log.verboseReversed().information ) {
+            self.log( cc.debug( "Initialized in-worker SNB server" ) + " " +
+                cc.notice( gURL ) + "\n" );
+        }
     }
     dispose() {
         const self = this;
@@ -257,9 +261,10 @@ class ObserverServer extends SocketServer {
     }
 };
 
-const acceptor = new networkLayer.InWorkerSocketServerAcceptor( g_url, doSendMessage );
+const acceptor = new networkLayer.InWorkerSocketServerAcceptor( gURL, doSendMessage );
 const server = new ObserverServer( acceptor );
 server.on( "dispose", function() {
     const self = server;
-    self.log( cc.debug( "Disposed in-worker SNB server" ) + " " + cc.notice( g_url ) + "\n" );
+    if( log.verboseGet() >= log.verboseReversed().debug )
+        self.log( cc.debug( "Disposed in-worker SNB server" ) + " " + cc.notice( gURL ) + "\n" );
 } );

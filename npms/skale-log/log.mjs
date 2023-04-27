@@ -26,18 +26,18 @@
 import * as cc from "../skale-cc/cc.mjs";
 import * as fs from "fs";
 
-let g_arrStreams = [];
+let gArrStreams = [];
 
-let g_bLogWithTimeStamps = true;
+let gFlagLogWithTimeStamps = true;
 
-let g_id = 0;
+let gIdentifierAllocatorCounter = 0;
 
 export function getPrintTimestamps() {
-    return g_bLogWithTimeStamps;
+    return gFlagLogWithTimeStamps;
 }
 
 export function setPrintTimestamps( b ) {
-    g_bLogWithTimeStamps = b ? true : false;
+    gFlagLogWithTimeStamps = b ? true : false;
 }
 
 export function n2s( n, sz ) {
@@ -52,18 +52,18 @@ export function generateTimestampString( ts, isColorized ) {
         ( typeof isColorized == "undefined" )
             ? true : ( isColorized ? true : false );
     ts = ( ts instanceof Date ) ? ts : new Date();
-    const cc_date = function( x ) { return isColorized ? cc.date( x ) : x; };
-    const cc_time = function( x ) { return isColorized ? cc.time( x ) : x; };
-    const cc_frac_time = function( x ) { return isColorized ? cc.frac_time( x ) : x; };
-    const cc_bright = function( x ) { return isColorized ? cc.bright( x ) : x; };
+    const ccDate = function( x ) { return isColorized ? cc.date( x ) : x; };
+    const ccTime = function( x ) { return isColorized ? cc.time( x ) : x; };
+    const ccFractionPartOfTime = function( x ) { return isColorized ? cc.frac_time( x ) : x; };
+    const ccBright = function( x ) { return isColorized ? cc.bright( x ) : x; };
     const s =
-        "" + cc_date( n2s( ts.getUTCFullYear(), 4 ) ) +
-        cc_bright( "-" ) + cc_date( n2s( ts.getUTCMonth() + 1, 2 ) ) +
-        cc_bright( "-" ) + cc_date( n2s( ts.getUTCDate(), 2 ) ) +
-        " " + cc_time( n2s( ts.getUTCHours(), 2 ) ) +
-        cc_bright( ":" ) + cc_time( n2s( ts.getUTCMinutes(), 2 ) ) +
-        cc_bright( ":" ) + cc_time( n2s( ts.getUTCSeconds(), 2 ) ) +
-        cc_bright( "." ) + cc_frac_time( n2s( ts.getUTCMilliseconds(), 3 ) )
+        "" + ccDate( n2s( ts.getUTCFullYear(), 4 ) ) +
+        ccBright( "-" ) + ccDate( n2s( ts.getUTCMonth() + 1, 2 ) ) +
+        ccBright( "-" ) + ccDate( n2s( ts.getUTCDate(), 2 ) ) +
+        " " + ccTime( n2s( ts.getUTCHours(), 2 ) ) +
+        ccBright( ":" ) + ccTime( n2s( ts.getUTCMinutes(), 2 ) ) +
+        ccBright( ":" ) + ccTime( n2s( ts.getUTCSeconds(), 2 ) ) +
+        ccBright( "." ) + ccFractionPartOfTime( n2s( ts.getUTCMilliseconds(), 3 ) )
         ;
     return s;
 }
@@ -75,25 +75,25 @@ export function generateTimestampPrefix( ts, isColorized ) {
 export function removeAllStreams() {
     let i = 0; let cnt = 0;
     try {
-        cnt = g_arrStreams.length;
+        cnt = gArrStreams.length;
         for( i = 0; i < cnt; ++i ) {
             try {
-                const objEntry = g_arrStreams[i];
+                const objEntry = gArrStreams[i];
                 objEntry.objStream.close();
             } catch ( err ) {
             }
         }
     } catch ( err ) {
     }
-    g_arrStreams = [];
+    gArrStreams = [];
 }
 
 export function getStreamWithFilePath( strFilePath ) {
     try {
-        let i = 0; const cnt = g_arrStreams.length;
+        let i = 0; const cnt = gArrStreams.length;
         for( i = 0; i < cnt; ++i ) {
             try {
-                const objEntry = g_arrStreams[i];
+                const objEntry = gArrStreams[i];
                 if( objEntry.strPath === strFilePath )
                     return objEntry;
             } catch ( err ) {
@@ -107,7 +107,7 @@ export function getStreamWithFilePath( strFilePath ) {
 export function createStandardOutputStream() {
     try {
         const objEntry = {
-            "id": g_id ++,
+            "id": gIdentifierAllocatorCounter ++,
             "strPath": "stdout",
             "nMaxSizeBeforeRotation": -1,
             "nMaxFilesCount": -1,
@@ -145,14 +145,14 @@ export function insertStandardOutputStream() {
     objEntry = createStandardOutputStream();
     if( !objEntry )
         return false;
-    g_arrStreams.push( objEntry );
+    gArrStreams.push( objEntry );
     return true;
 }
 
 export function createMemoryOutputStream() {
     try {
         const objEntry = {
-            "id": g_id ++,
+            "id": gIdentifierAllocatorCounter ++,
             "strPath": "memory",
             "nMaxSizeBeforeRotation": -1,
             "nMaxFilesCount": -1,
@@ -209,14 +209,14 @@ export function insertMemoryOutputStream() {
     objEntry = createMemoryOutputStream();
     if( !objEntry )
         return false;
-    g_arrStreams.push( objEntry );
+    gArrStreams.push( objEntry );
     return true;
 }
 
 export function createFileOutput( strFilePath, nMaxSizeBeforeRotation, nMaxFilesCount ) {
     try {
         const objEntry = {
-            "id": g_id ++,
+            "id": gIdentifierAllocatorCounter ++,
             "strPath": "" + strFilePath,
             "nMaxSizeBeforeRotation": 0 + nMaxSizeBeforeRotation,
             "nMaxFilesCount": 0 + nMaxFilesCount,
@@ -296,7 +296,7 @@ export function insertFileOutput( strFilePath, nMaxSizeBeforeRotation, nMaxFiles
     objEntry = createFileOutput( strFilePath, nMaxSizeBeforeRotation, nMaxFilesCount );
     if( !objEntry )
         return false;
-    g_arrStreams.push( objEntry );
+    gArrStreams.push( objEntry );
     return true;
 }
 
@@ -314,10 +314,10 @@ export function write() {
     try {
         if( s.length <= 0 )
             return;
-        const cnt = g_arrStreams.length;
+        const cnt = gArrStreams.length;
         for( i = 0; i < cnt; ++i ) {
             try {
-                const objEntry = g_arrStreams[i];
+                const objEntry = gArrStreams[i];
                 objEntry.write( s );
             } catch ( err ) {
             }
@@ -361,4 +361,101 @@ export function exposeDetailsTo() {
 export function toString() {
     // for compatibility with created streams
     return "";
+}
+
+const gMapVerbose = {
+    0: "silent",
+    1: "fatal",
+    2: "critical",
+    3: "error",
+    4: "warning",
+    5: "attention",
+    6: "information",
+    7: "notice",
+    8: "debug",
+    9: "trace"
+};
+function computeVerboseAlias() {
+    const m = {};
+    for( const key in gMapVerbose ) {
+        if( !gMapVerbose.hasOwnProperty( key ) )
+            continue; // skip loop if the property is from prototype
+        const name = gMapVerbose[key];
+        m[name] = key;
+    }
+    m.empty = 0 + m.silent; // alias
+    m.none = 0 + m.silent; // alias
+    m.stop = 0 + m.fatal; // alias
+    m.bad = 0 + m.critical; // alias
+    m.err = 0 + m.error; // alias
+    m.warn = 0 + m.warning; // alias
+    m.attn = 0 + m.attention; // alias
+    m.info = 0 + m.information; // alias
+    m.note = 0 + m.notice; // alias
+    m.dbg = 0 + m.debug; // alias
+    m.crazy = 0 + m.trace; // alias
+    m.detailed = 0 + m.trace; // alias
+    return m;
+}
+const gMapReversedVerbose = computeVerboseAlias();
+
+export function verbose() { return gMapVerbose; };
+export function verboseReversed() { return gMapReversedVerbose; };
+export function verboseLevelAsTextForLog( vl ) {
+    if( typeof vl == "undefined" )
+        vl = verboseGet();
+    if( vl in gMapVerbose ) {
+        const tl = gMapVerbose[vl];
+        return tl;
+    }
+    return "unknown(" + JSON.stringify( y ) + ")";
+}
+
+let gFlagIsExposeDetails = false;
+let gVerboseLevel = 0 + verboseReversed().info;
+
+export function exposeDetailsGet() {
+    return gFlagIsExposeDetails;
+}
+export function exposeDetailsSet( isExpose ) {
+    gFlagIsExposeDetails = isExpose ? true : false;
+}
+
+export function verboseGet() {
+    return 0 + gVerboseLevel;
+}
+export function verboseSet( vl ) {
+    gVerboseLevel = vl;
+}
+
+export function verboseParse( s ) {
+    let n = 5;
+    try {
+        const isNumbersOnly = /^\d+$/.test( s );
+        if( isNumbersOnly )
+            n = owaspUtils.toInteger( s );
+        else {
+            const ch0 = s[0].toLowerCase();
+            for( const key in gMapVerbose ) {
+                if( !gMapVerbose.hasOwnProperty( key ) )
+                    continue; // skip loop if the property is from prototype
+                const name = gMapVerbose[key];
+                const ch1 = name[0].toLowerCase();
+                if( ch0 == ch1 ) {
+                    n = key;
+                    break;
+                }
+            }
+        }
+    } catch ( err ) {}
+    return n;
+}
+
+export function verboseList() {
+    for( const key in gMapVerbose ) {
+        if( !gMapVerbose.hasOwnProperty( key ) )
+            continue; // skip loop if the property is from prototype
+        const name = gMapVerbose[key];
+        console.log( "    " + cc.info( key ) + cc.sunny( "=" ) + cc.bright( name ) );
+    }
 }

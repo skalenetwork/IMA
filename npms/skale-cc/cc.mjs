@@ -23,7 +23,7 @@
  * @copyright SKALE Labs 2019-Present
  */
 
-let g_bEnabled = true;
+let gFlagIsEnabled = true;
 
 export function autoEnableFromCommandLineArgs() {
     const b =
@@ -33,11 +33,11 @@ export function autoEnableFromCommandLineArgs() {
 }
 
 export function enable( b ) {
-    g_bEnabled = !!b;
+    gFlagIsEnabled = !!b;
 }
 
 export function isEnabled() {
-    return !!g_bEnabled;
+    return !!gFlagIsEnabled;
 }
 
 export function replaceAll( str, find, replace ) {
@@ -126,23 +126,23 @@ export function toBoolean( value ) {
 }
 
 export function yn( flag ) {
-    if( !g_bEnabled )
+    if( !gFlagIsEnabled )
         return flag;
     return toBoolean( flag ) ? yes( "yes" ) : no( "no" );
 }
 
 export function tf( flag ) {
-    if( !g_bEnabled )
+    if( !gFlagIsEnabled )
         return flag;
     return toBoolean( flag ) ? yes( "true" ) : no( "false" );
 }
 
 export function onOff( flag ) {
-    if( !g_bEnabled )
+    if( !gFlagIsEnabled )
         return flag;
     return toBoolean( flag ) ? yes( "on" ) : no( "off" );
 }
-const g_mapColorDefinitions = {
+const gMapColorDefinitions = {
     reset: "\x1b[0m",
     enlight: "\x1b[1m",
     dim: "\x1b[2m",
@@ -168,30 +168,30 @@ const g_mapColorDefinitions = {
     bBgWhite: "\x1b[47m"
 };
 
-const g_arrRainbowParts = [
-    g_mapColorDefinitions.enlight + g_mapColorDefinitions.fgRed,
-    g_mapColorDefinitions.fgRed,
-    g_mapColorDefinitions.enlight + g_mapColorDefinitions.fgYellow,
-    g_mapColorDefinitions.fgYellow,
-    g_mapColorDefinitions.enlight + g_mapColorDefinitions.fgGreen,
-    g_mapColorDefinitions.fgGreen,
-    g_mapColorDefinitions.enlight + g_mapColorDefinitions.fgCyan,
-    g_mapColorDefinitions.fgCyan,
-    g_mapColorDefinitions.enlight + g_mapColorDefinitions.fgBlue,
-    g_mapColorDefinitions.fgBlue,
-    g_mapColorDefinitions.enlight + g_mapColorDefinitions.fgMagenta,
-    g_mapColorDefinitions.fgMagenta
+const gArrRainbowParts = [
+    gMapColorDefinitions.enlight + gMapColorDefinitions.fgRed,
+    gMapColorDefinitions.fgRed,
+    gMapColorDefinitions.enlight + gMapColorDefinitions.fgYellow,
+    gMapColorDefinitions.fgYellow,
+    gMapColorDefinitions.enlight + gMapColorDefinitions.fgGreen,
+    gMapColorDefinitions.fgGreen,
+    gMapColorDefinitions.enlight + gMapColorDefinitions.fgCyan,
+    gMapColorDefinitions.fgCyan,
+    gMapColorDefinitions.enlight + gMapColorDefinitions.fgBlue,
+    gMapColorDefinitions.fgBlue,
+    gMapColorDefinitions.enlight + gMapColorDefinitions.fgMagenta,
+    gMapColorDefinitions.fgMagenta
 ];
 
 export function rainbow_part( s, i ) {
-    if( !g_bEnabled )
+    if( !gFlagIsEnabled )
         return s;
-    const j = i % g_arrRainbowParts.length;
-    return g_arrRainbowParts[j] + s + g_mapColorDefinitions.reset;
+    const j = i % gArrRainbowParts.length;
+    return gArrRainbowParts[j] + s + gMapColorDefinitions.reset;
 }
 
 export function rainbow( s ) {
-    if( ( !g_bEnabled ) || ( !s ) || ( typeof s != "string" ) || s.length == 0 )
+    if( ( !gFlagIsEnabled ) || ( !s ) || ( typeof s != "string" ) || s.length == 0 )
         return s;
     let res = "";
     const cnt = s.length;
@@ -472,7 +472,7 @@ export const jsonColorizer = { // see http://jsfiddle.net/unLSJ/
         return r + ( pEnd || "" );
     },
     prettyPrintConsole: ( obj ) => {
-        if( !g_bEnabled ) {
+        if( !gFlagIsEnabled ) {
             if( obj === null )
                 return "null";
             if( obj === undefined )
@@ -523,7 +523,7 @@ export function syntaxHighlightJSON( jo, strKeyNamePrefix ) {
         // eslint-disable-next-line max-len
         /("(\\u[a-zA-Z0-9]{4}|\\[^u]|[^\\"])*"(\s*:)?|\b(true|false|null)\b|-?\d+(?:\.\d*)?(?:[eE][+-]?\d+)?)/g,
         function( match ) {
-            if( ! g_bEnabled )
+            if( ! gFlagIsEnabled )
                 return match;
             let cls = "number";
             if( /^"/.test( match ) ) {
@@ -585,7 +585,7 @@ export function j1( x, n, strKeyNamePrefix ) {
         isDefaultKeyNamePrefix = true;
     }
     let s = safeStringifyJSON( x, n );
-    if( ! g_bEnabled )
+    if( ! gFlagIsEnabled )
         return s;
     s = "" + syntaxHighlightJSON( s, strKeyNamePrefix );
     if( isDefaultKeyNamePrefix && s.length > 9 && s[0] == " " )
@@ -597,29 +597,29 @@ export function j( x ) {
     return j1( x ); // jn
 }
 
-const reset = g_mapColorDefinitions.reset;
-const enlight = g_mapColorDefinitions.enlight;
-const dim = g_mapColorDefinitions.dim;
-const underscore = g_mapColorDefinitions.underscore;
-const blink = g_mapColorDefinitions.blink;
-const reverse = g_mapColorDefinitions.reverse;
-const hidden = g_mapColorDefinitions.hidden;
-const fgBlack = g_mapColorDefinitions.fgBlack;
-const fgRed = g_mapColorDefinitions.fgRed;
-const fgGreen = g_mapColorDefinitions.fgGreen;
-const fgYellow = g_mapColorDefinitions.fgYellow;
-const fgBlue = g_mapColorDefinitions.fgBlue;
-const fgMagenta = g_mapColorDefinitions.fgMagenta;
-const fgCyan = g_mapColorDefinitions.fgCyan;
-const fgWhite = g_mapColorDefinitions.fgWhite;
-const bgBlack = g_mapColorDefinitions.bgBlack;
-const bgRed = g_mapColorDefinitions.bgRed;
-const bgGreen = g_mapColorDefinitions.bgGreen;
-const bgYellow = g_mapColorDefinitions.bgYellow;
-const bgBlue = g_mapColorDefinitions.bgBlue;
-const bgMagenta = g_mapColorDefinitions.bgMagenta;
-const bgCyan = g_mapColorDefinitions.bgCyan;
-const bBgWhite = g_mapColorDefinitions.bBgWhite;
+const reset = gMapColorDefinitions.reset;
+const enlight = gMapColorDefinitions.enlight;
+const dim = gMapColorDefinitions.dim;
+const underscore = gMapColorDefinitions.underscore;
+const blink = gMapColorDefinitions.blink;
+const reverse = gMapColorDefinitions.reverse;
+const hidden = gMapColorDefinitions.hidden;
+const fgBlack = gMapColorDefinitions.fgBlack;
+const fgRed = gMapColorDefinitions.fgRed;
+const fgGreen = gMapColorDefinitions.fgGreen;
+const fgYellow = gMapColorDefinitions.fgYellow;
+const fgBlue = gMapColorDefinitions.fgBlue;
+const fgMagenta = gMapColorDefinitions.fgMagenta;
+const fgCyan = gMapColorDefinitions.fgCyan;
+const fgWhite = gMapColorDefinitions.fgWhite;
+const bgBlack = gMapColorDefinitions.bgBlack;
+const bgRed = gMapColorDefinitions.bgRed;
+const bgGreen = gMapColorDefinitions.bgGreen;
+const bgYellow = gMapColorDefinitions.bgYellow;
+const bgBlue = gMapColorDefinitions.bgBlue;
+const bgMagenta = gMapColorDefinitions.bgMagenta;
+const bgCyan = gMapColorDefinitions.bgCyan;
+const bBgWhite = gMapColorDefinitions.bBgWhite;
 export {
     reset,
     enlight,
@@ -647,193 +647,193 @@ export {
 };
 
 export function normal( s ) {
-    if( !g_bEnabled )
+    if( !gFlagIsEnabled )
         return s;
     return "" + fgWhite + s + reset;
 }
 
 export function trace( s ) {
-    if( !g_bEnabled )
+    if( !gFlagIsEnabled )
         return s;
     return "" + fgWhite + s + reset;
 }
 
 export function debug( s ) {
-    if( !g_bEnabled )
+    if( !gFlagIsEnabled )
         return s;
     return "" + fgBlack + enlight + s + reset;
 }
 
 export function note( s ) {
-    if( !g_bEnabled )
+    if( !gFlagIsEnabled )
         return s;
     return "" + fgBlue + s + reset;
 }
 
 export function notice( s ) {
-    if( !g_bEnabled )
+    if( !gFlagIsEnabled )
         return s;
     return "" + fgMagenta + s + reset;
 }
 
 export function info( s ) {
-    if( !g_bEnabled )
+    if( !gFlagIsEnabled )
         return s;
     return "" + fgBlue + enlight + s + reset;
 }
 
 export function warning( s ) {
-    if( !g_bEnabled )
+    if( !gFlagIsEnabled )
         return s;
     return "" + fgYellow + s + reset;
 }
 
 export function warn( s ) {
-    if( !g_bEnabled )
+    if( !gFlagIsEnabled )
         return s;
     return "" + fgYellow + s + reset;
 }
 
 export function error( s ) {
-    if( !g_bEnabled )
+    if( !gFlagIsEnabled )
         return s;
     return "" + fgRed + s + reset;
 }
 
 export function fatal( s ) {
-    if( !g_bEnabled )
+    if( !gFlagIsEnabled )
         return s;
     return "" + bgRed + fgYellow + enlight + s + reset;
 }
 
 export function success( s ) {
-    if( !g_bEnabled )
+    if( !gFlagIsEnabled )
         return s;
     return "" + fgGreen + enlight + s + reset;
 }
 
 export function attention( s ) {
-    if( !g_bEnabled )
+    if( !gFlagIsEnabled )
         return s;
     return "" + fgCyan + s + reset;
 }
 
 export function bright( s ) {
-    if( !g_bEnabled )
+    if( !gFlagIsEnabled )
         return s;
     return "" + fgWhite + enlight + s + reset;
 }
 
 export function sunny( s ) {
-    if( !g_bEnabled )
+    if( !gFlagIsEnabled )
         return s;
     return "" + fgYellow + enlight + s + reset;
 }
 
 export function rx( s ) {
-    if( !g_bEnabled )
+    if( !gFlagIsEnabled )
         return s;
     return "" + fgMagenta + s + reset;
 }
 
 export function rxa( s ) {
-    if( !g_bEnabled )
+    if( !gFlagIsEnabled )
         return s;
     return "" + fgMagenta + enlight + s + reset;
 }
 
 export function tx( s ) {
-    if( !g_bEnabled )
+    if( !gFlagIsEnabled )
         return s;
     return "" + fgGreen + s + reset;
 }
 
 export function txa( s ) {
-    if( !g_bEnabled )
+    if( !gFlagIsEnabled )
         return s;
     return "" + fgGreen + enlight + s + reset;
 }
 
 export function date( s ) {
-    if( !g_bEnabled )
+    if( !gFlagIsEnabled )
         return s;
     return "" + fgYellow + s + reset;
 }
 
 export function time( s ) {
-    if( !g_bEnabled )
+    if( !gFlagIsEnabled )
         return s;
     return "" + fgMagenta + enlight + s + reset;
 }
 
 export function frac_time( s ) {
-    if( !g_bEnabled )
+    if( !gFlagIsEnabled )
         return s;
     return "" + fgMagenta + s + reset;
 }
 
 export function yes( s ) {
-    if( !g_bEnabled )
+    if( !gFlagIsEnabled )
         return s;
     return "" + fgGreen + enlight + s + reset;
 }
 
 export function no( s ) {
-    if( !g_bEnabled )
+    if( !gFlagIsEnabled )
         return s;
     return "" + fgBlue + s + reset;
 }
 
 export function real( s ) {
-    if( !g_bEnabled )
+    if( !gFlagIsEnabled )
         return s;
     return "" + fgMagenta + s + reset;
 }
 
 export function undefval( s ) {
-    if( !g_bEnabled )
+    if( !gFlagIsEnabled )
         return s;
     return "" + fgGreen + enlight + s + reset;
 }
 
 export function nullval( s ) {
-    if( !g_bEnabled )
+    if( !gFlagIsEnabled )
         return s;
     return "" + fgGreen + enlight + s + reset;
 }
 
 export function nanval( s ) {
-    if( !g_bEnabled )
+    if( !gFlagIsEnabled )
         return s;
     return "" + fgGreen + enlight + s + reset;
 }
 
 export function yellow( s ) {
-    if( !g_bEnabled )
+    if( !gFlagIsEnabled )
         return s;
     return "" + fgYellow + s + reset;
 }
 
 export function magenta( s ) {
-    if( !g_bEnabled )
+    if( !gFlagIsEnabled )
         return s;
     return "" + fgMagenta + s + reset;
 }
 
 export function cla( s ) {
-    if( !g_bEnabled )
+    if( !gFlagIsEnabled )
         return s;
     return "" + fgBlue + dim + s + reset;
 }
 
 export function kk( s ) {
-    if( !g_bEnabled )
+    if( !gFlagIsEnabled )
         return s;
     return "" + fgYellow + enlight + s + reset;
 }
 
 export function strval( s ) {
-    if( !g_bEnabled )
+    if( !gFlagIsEnabled )
         return s;
     return "" + fgYellow + s + reset;
 }
@@ -928,7 +928,7 @@ function errFnName( s ) {
     return errFnDottedName( s );
 }
 
-function err_loc_ln( s, isWithBraces ) {
+function errLocLn( s, isWithBraces ) {
     let s2 = "";
     s = s.replace( "file://", "" );
     s = s.replace( "node:", "" );
@@ -970,9 +970,9 @@ export function stack( strIn ) {
                     s = s.substring( n + 2 );
                     if( s[s.length - 1] == ")" )
                         s = s.substring( 0, s.length - 1 );
-                    s2 += err_loc_ln( s, true );
+                    s2 += errLocLn( s, true );
                 } else
-                    s2 += err_loc_ln( s, false );
+                    s2 += errLocLn( s, false );
                 s = s2;
             } else {
                 // probably error description line

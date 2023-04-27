@@ -79,9 +79,6 @@ class SendERC20ToMainnet(TestCase):
                                                        self.timeout)
         sleep( 10 )
 
-        # self.blockchain.add_eth_cost(self.config.schain_key,
-        #                              amount_of_eth)
-
         self.erc20_clone = self.blockchain.get_erc20_on_schain("Mainnet", self.erc20.address)
 
     def _execute(self):

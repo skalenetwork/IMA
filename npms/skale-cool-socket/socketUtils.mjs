@@ -25,7 +25,7 @@
 
 import { settings } from "./socketSettings.mjs";
 
-export const uuid_v4 = function() {
+export const UUIDv4 = function() {
     return "xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx".replace( /[xy]/g, function( c ) {
         const r = Math.random() * 16 | 0, v = c == "x" ? r : ( r & 0x3 | 0x8 );
         return v.toString( 16 );
@@ -101,7 +101,7 @@ export const simpleEscapeString = function( s ) {
 };
 
 export const abstractUniqueID = function() {
-    const id = replaceAll( uuid_v4(), "-", "" ).toLowerCase();
+    const id = replaceAll( UUIDv4(), "-", "" ).toLowerCase();
     return id;
 };
 
@@ -112,15 +112,15 @@ export const isOdd = function( n ) {
     return Math.abs( n % 2 ) == 1;
 };
 
-const g_nCallIdDigits = 10;
+const gCountOfCallIdDigits = 10;
 export const randomCallID = function() {
-    const id = randomHexString( g_nCallIdDigits );
+    const id = randomHexString( gCountOfCallIdDigits );
     return id;
 };
 
-const g_nDirectPipeIdDigits = 10;
+const gCountOfDirectPipeIdDigits = 10;
 export const randomDirectPipeID = function() {
-    const id = randomHexString( g_nDirectPipeIdDigits );
+    const id = randomHexString( gCountOfDirectPipeIdDigits );
     return id;
 };
 

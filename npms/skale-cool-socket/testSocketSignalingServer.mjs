@@ -61,7 +61,7 @@ class SignalingClient extends EventDispatcher {
         socket.signalingClient = this;
         if( this.isCreator )
             this.signalingSpace.idSomebodyCreator = "" + this.idRtcParticipant;
-        this.signalingSpace.map_clients[this.idRtcParticipant] = this;
+        this.signalingSpace.mapClients[this.idRtcParticipant] = this;
         this.idSpace = "" + this.signalingSpace.idSpace;
         this.idCategory = "" + this.signalingSpace.signalingCategory.idCategory;
         this.isFetchingOffer = false;
@@ -95,7 +95,7 @@ class SignalingClient extends EventDispatcher {
                     new UniversalDispatcherEvent(
                         "clientRemoved",
                         { "detail": { "signalingClient": this } } ) );
-                delete this.signalingSpace.map_clients[this.idRtcParticipant];
+                delete this.signalingSpace.mapClients[this.idRtcParticipant];
             }
             this.idRtcParticipant = null;
         }
@@ -248,10 +248,10 @@ class SignalingSpace extends EventDispatcher {
             ( ( idSpace && typeof idSpace == "string" && idSpace.length > 0 )
                 ? idSpace : "" );
         this.idSomebodyCreator = "";
-        this.arr_published_offers = [];
+        this.arrPublishedOffers = [];
         this.signalingCategory = signalingCategory;
-        this.map_clients = {};
-        this.signalingCategory.map_spaces[this.idSpace] = this;
+        this.mapClients = {};
+        this.signalingCategory.mapSpaces[this.idSpace] = this;
         this.idCategory = "" + this.signalingCategory.idCategory;
         if( settings.logging.net.signaling.objectLifetime ) {
             console.log(
@@ -272,7 +272,7 @@ class SignalingSpace extends EventDispatcher {
                 "Disposing signaling space \"" + this.idSpace + "\" in signaling category \"" +
                 this.idCategory + "\"" );
         }
-        for( const [ /*idRtcParticipant*/, signalingClient ] of Object.entries( this.map_clients ) )
+        for( const [ /*idRtcParticipant*/, signalingClient ] of Object.entries( this.mapClients ) )
             signalingClient.dispose();
         if( this.idSpace ) {
             if( this.signalingCategory ) {
@@ -280,14 +280,14 @@ class SignalingSpace extends EventDispatcher {
                     new UniversalDispatcherEvent(
                         "spaceRemoved",
                         { "detail": { "signalingSpace": this } } ) );
-                delete this.signalingCategory.map_spaces[this.idSpace];
+                delete this.signalingCategory.mapSpaces[this.idSpace];
             }
             this.idSpace = null;
         }
         this.idCategory = null;
         this.signalingCategory.autoDispose();
         this.signalingCategory = null;
-        this.arr_published_offers = [];
+        this.arrPublishedOffers = [];
         super.dispose();
     }
     autoDispose() {
@@ -305,20 +305,20 @@ class SignalingSpace extends EventDispatcher {
     allSomebodyIDs() {
         if( this.isDisposed )
             return [];
-        return Object.keys( this.map_clients );
+        return Object.keys( this.mapClients );
     }
     clientGet( idRtcParticipant ) {
         if( this.isDisposed )
             return null;
-        const signalingClient = this.map_clients[idRtcParticipant];
+        const signalingClient = this.mapClients[idRtcParticipant];
         return signalingClient ? signalingClient : null;
     }
     clientRemove( idRtcParticipant ) {
         if( this.isDisposed )
             return false;
         idRtcParticipant = "" + ( idRtcParticipant ? idRtcParticipant.toString() : "" );
-        if( idRtcParticipant in this.map_clients ) {
-            const signalingClient = this.map_clients[idRtcParticipant];
+        if( idRtcParticipant in this.mapClients ) {
+            const signalingClient = this.mapClients[idRtcParticipant];
             signalingClient.dispose();
             this.autoDispose();
             return true;
@@ -339,13 +339,13 @@ class SignalingSpace extends EventDispatcher {
                 console.warn( "Attempt to fetch offer in malformed signaling space" );
             return null;
         }
-        if( this.arr_published_offers.length == 0 ) {
+        if( this.arrPublishedOffers.length == 0 ) {
             if( settings.logging.net.signaling.offerDiscoveryStepFail )
                 console.warn( "Attempt to fetch offer in  signaling space with no offers" );
             return null;
         }
-        const joOfferInfo = this.arr_published_offers[0];
-        this.arr_published_offers.splice( 0, 1 );
+        const joOfferInfo = this.arrPublishedOffers[0];
+        this.arrPublishedOffers.splice( 0, 1 );
         joOfferInfo.idSomebodyCreator = "" + this.idSomebodyCreator;
         return joOfferInfo;
     }
@@ -359,8 +359,8 @@ class SignalingCategory extends EventDispatcher {
             ( ( idCategory && typeof idCategory == "string" && idCategory.length > 0 )
                 ? idCategory : "" );
         this.signalingManager = signalingManager;
-        this.map_spaces = {};
-        this.signalingManager.map_categories[this.idCategory] = this;
+        this.mapSpaces = {};
+        this.signalingManager.mapCategories[this.idCategory] = this;
         if( settings.logging.net.signaling.objectLifetime )
             console.log( "New signaling category \"" + this.idCategory + "\"" );
         this.signalingManager.dispatchEvent(
@@ -374,17 +374,17 @@ class SignalingCategory extends EventDispatcher {
         this.isDisposing = true;
         if( settings.logging.net.signaling.objectLifetime )
             console.log( "Disposing signaling category \"" + this.idCategory + "\"" );
-        for( const [ /*idSpace*/, signalingSpace ] of Object.entries( this.map_spaces ) )
+        for( const [ /*idSpace*/, signalingSpace ] of Object.entries( this.mapSpaces ) )
             signalingSpace.dispose();
         if( this.signalingManager ) {
-            delete this.signalingManager.map_categories[this.idCategory];
+            delete this.signalingManager.mapCategories[this.idCategory];
             this.signalingManager.dispatchEvent(
                 new UniversalDispatcherEvent(
                     "categoryRemoved",
                     { "detail": { "signalingCategory": this } } ) );
             this.signalingManager = null;
         }
-        this.map_spaces = {};
+        this.mapSpaces = {};
         this.idCategory = null;
         super.dispose();
     }
@@ -400,7 +400,7 @@ class SignalingCategory extends EventDispatcher {
     allCSpaceIDs() {
         if( this.isDisposed )
             return [];
-        return Object.keys( this.map_spaces );
+        return Object.keys( this.mapSpaces );
     }
     spaceGet( idSpace, isAutoAlloc ) {
         if( this.isDisposed )
@@ -411,10 +411,10 @@ class SignalingCategory extends EventDispatcher {
                 ( isAutoAlloc == null || isAutoAlloc == undefined ) ? true : ( isAutoAlloc
                     ? true : false );
             let signalingSpace = null;
-            if( idSpace in this.map_spaces )
-                signalingSpace = this.map_spaces[idSpace];
+            if( idSpace in this.mapSpaces )
+                signalingSpace = this.mapSpaces[idSpace];
             else if( isAutoAlloc ) {
-                this.map_spaces["" + idSpace] =
+                this.mapSpaces["" + idSpace] =
                     signalingSpace =
                         new SignalingSpace( "" + idSpace, this );
             }
@@ -429,8 +429,8 @@ class SignalingCategory extends EventDispatcher {
         if( this.isDisposed )
             return false;
         idSpace = "" + ( idSpace ? idSpace.toString() : idSpace.rtcSpace.defaultSpaceName );
-        if( idSpace in this.map_spaces ) {
-            const signalingSpace = this.map_spaces[idSpace];
+        if( idSpace in this.mapSpaces ) {
+            const signalingSpace = this.mapSpaces[idSpace];
             signalingSpace.dispose();
             this.autoDispose();
             return true;
@@ -440,7 +440,7 @@ class SignalingCategory extends EventDispatcher {
     fetchPublishedOffer() {
         if( this.isDisposed )
             return null;
-        for( const [ /*idSpace*/, signalingSpace ] of Object.entries( this.map_spaces ) ) {
+        for( const [ /*idSpace*/, signalingSpace ] of Object.entries( this.mapSpaces ) ) {
             const joOfferInfo = signalingSpace.fetchPublishedOffer();
             if( joOfferInfo )
                 return joOfferInfo;
@@ -453,7 +453,7 @@ class SignalingManager extends EventDispatcher {
     constructor() {
         super();
         this.isDisposed = false;
-        this.map_categories = {};
+        this.mapCategories = {};
         if( settings.logging.net.signaling.objectLifetime )
             console.log( "New signaling manager" );
     }
@@ -464,13 +464,13 @@ class SignalingManager extends EventDispatcher {
         if( settings.logging.net.signaling.objectLifetime )
             console.log( "Disposing signaling manager" );
         for( const [ /*idCategory*/, signalingCategory ]
-            of Object.entries( this.map_categories ) )
+            of Object.entries( this.mapCategories ) )
             signalingCategory.dispose();
-        this.map_categories = {};
+        this.mapCategories = {};
         super.dispose();
     }
     allCategoryIDs() {
-        return Object.keys( this.map_categories );
+        return Object.keys( this.mapCategories );
     }
     categoryGet( idCategory, isAutoAlloc ) {
         try {
@@ -479,10 +479,10 @@ class SignalingManager extends EventDispatcher {
             isAutoAlloc = ( isAutoAlloc == null || isAutoAlloc == undefined )
                 ? true : ( isAutoAlloc ? true : false );
             let signalingCategory = null;
-            if( idCategory in this.map_categories )
-                signalingCategory = this.map_categories[idCategory];
+            if( idCategory in this.mapCategories )
+                signalingCategory = this.mapCategories[idCategory];
             else if( isAutoAlloc ) {
-                this.map_categories["" + idCategory] =
+                this.mapCategories["" + idCategory] =
                     signalingCategory =
                         new SignalingCategory( "" + idCategory, this );
             }
@@ -496,8 +496,8 @@ class SignalingManager extends EventDispatcher {
     categoryRemove( idCategory ) {
         idCategory = "" + ( idCategory
             ? idCategory.toString() : settings.rtcSpace.defaultSpaceName );
-        if( idCategory in this.map_categories ) {
-            const signalingCategory = this.map_categories[idCategory];
+        if( idCategory in this.mapCategories ) {
+            const signalingCategory = this.mapCategories[idCategory];
             signalingCategory.dispose();
             return true;
         }
@@ -505,7 +505,7 @@ class SignalingManager extends EventDispatcher {
     }
 };
 
-const g_default_signaling_manager = new SignalingManager();
+const gDefaultSignalingManager = new SignalingManager();
 
 class SignalingServer extends EventDispatcher {
     // eslint-disable-next-line max-lines-per-function
@@ -516,7 +516,7 @@ class SignalingServer extends EventDispatcher {
             typeof acceptor != "object" )
             throw new Error( "Cannot create test server on bad acceptor" );
         this.acceptor = acceptor;
-        this.signalingManager = signalingManager || g_default_signaling_manager;
+        this.signalingManager = signalingManager || gDefaultSignalingManager;
         const self = this;
         // eslint-disable-next-line max-lines-per-function
         acceptor.on( "connection", function( eventData ) {
@@ -722,7 +722,7 @@ class SignalingServer extends EventDispatcher {
                             "offer": joMessage.offer,
                             "idOffer": 0 + joMessage.idOffer
                         };
-                        signalingSpace.arr_published_offers.push( joOfferInfo );
+                        signalingSpace.arrPublishedOffers.push( joOfferInfo );
                         if( settings.logging.net.signaling.publishOffer ) {
                             console.log(
                                 "Signaling client socket \"" + socket.strSavedRemoteAddress +
@@ -867,14 +867,14 @@ signalingServer.on( "dispose", function() {
         console.log( protoName + " signaling server did stopped" );
 } );
 
-let g_bShouldExit = false, g_bProcessExitRequested = false;
+let gFlagShouldExit = false, gFlagProcessExitWasRequested = false;
 function exitIfNeeded() {
-    if( ! g_bShouldExit )
+    if( ! gFlagShouldExit )
         return;
-    if( g_bProcessExitRequested )
+    if( gFlagProcessExitWasRequested )
         return;
     // ensure components stopped here, if needed
-    g_bProcessExitRequested = true;
+    gFlagProcessExitWasRequested = true;
     console.log( "App will exit" );
     process.exit( 0 );
 }
@@ -894,8 +894,8 @@ process.on( "SIGINT", function() {
         acceptor = null;
         console.log( "Did stopped signaling acceptor" );
     }
-    g_bShouldExit = true;
+    gFlagShouldExit = true;
 
     exitIfNeeded();
-    g_bShouldExit = true;
+    gFlagShouldExit = true;
 } );

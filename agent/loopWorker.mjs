@@ -35,6 +35,7 @@ import * as skaleObserver from "../npms/skale-observer/observer.mjs";
 import * as imaCLI from "./cli.mjs";
 import * as state from "./state.mjs";
 import * as pwa from "./pwa.mjs";
+import * as log from "../npms/skale-log/log.mjs";
 
 let imaState = state.get();
 
@@ -81,8 +82,8 @@ class ObserverServer extends SocketServer {
                 write: self.log
             };
             cc.enable( joMessage.message.cc.isEnabled );
-            IMA.verboseSet( self.opts.imaState.verbose_ );
-            IMA.exposeDetailsSet( self.opts.imaState.expose_details_ );
+            log.verboseSet( self.opts.imaState.verbose_ );
+            log.exposeDetailsSet( self.opts.imaState.expose_details_ );
             IMA.saveTransferEvents.on( "error", function( eventData ) {
                 const jo = {
                     "method": "saveTransferError",
@@ -114,11 +115,12 @@ class ObserverServer extends SocketServer {
                 self.opts.imaState.chainProperties.mn.ethersProvider =
                     owaspUtils.getEthersProviderFromURL( u );
             } else {
-                self.log(
-                    cc.warning( "WARNING:" ) + cc.warning( " No " ) + cc.note( "Main-net" ) +
-                    cc.warning( " URL specified in command line arguments" ) +
-                    cc.debug( "(needed for particular operations only)" ) +
-                    "\n" );
+                if( log.verboseGet() >= log.verboseReversed().warning ) {
+                    self.log( cc.warning( "WARNING:" ) + cc.warning( " No " ) +
+                        cc.note( "Main-net" ) +
+                        cc.warning( " URL specified in command line arguments" ) +
+                        cc.debug( "(needed for particular operations only)" ) + "\n" );
+                }
             }
 
             if( self.opts.imaState.chainProperties.sc.strURL &&
@@ -129,11 +131,12 @@ class ObserverServer extends SocketServer {
                 self.opts.imaState.chainProperties.sc.ethersProvider =
                     owaspUtils.getEthersProviderFromURL( u );
             } else {
-                self.log(
-                    cc.warning( "WARNING:" ) + cc.warning( " No " ) + cc.note( "Main-net" ) +
-                    cc.warning( " URL specified in command line arguments" ) +
-                    cc.debug( "(needed for particular operations only)" ) +
-                    "\n" );
+                if( log.verboseGet() >= log.verboseReversed().warning ) {
+                    self.log( cc.warning( "WARNING:" ) + cc.warning( " No " ) +
+                        cc.note( "Main-net" ) +
+                        cc.warning( " URL specified in command line arguments" ) +
+                        cc.debug( "(needed for particular operations only)" ) + "\n" );
+                }
             }
 
             self.opts.imaState.optsLoop.joRuntimeOpts.isInsideWorker = true;
@@ -149,31 +152,31 @@ class ObserverServer extends SocketServer {
                 IMA.getTransactionCustomizerForSChainTarget();
             state.set( imaState );
             imaCLI.initContracts();
-
-            self.log(
-                cc.debug( "IMA loop worker" ) + " " +
-                cc.notice( workerData.url ) + cc.debug( " will do the following work:" ) + "\n" +
-                "    " + cc.info( "Oracle" ) + cc.debug( " operations....." ) +
-                cc.yn( self.opts.imaState.optsLoop.enableStepOracle ) + "\n" +
-                "    " + cc.info( "M2S" ) + cc.debug( " transfers........." ) +
-                cc.yn( self.opts.imaState.optsLoop.enableStepM2S ) + "\n" +
-                "    " + cc.info( "S2M" ) + cc.debug( " transfers........." ) +
-                cc.yn( self.opts.imaState.optsLoop.enableStepS2M ) + "\n" +
-                "    " + cc.info( "S2S" ) + cc.debug( " transfers........." ) +
-                cc.yn( self.opts.imaState.optsLoop.enableStepS2S ) + "\n"
-            );
+            if( log.verboseGet() >= log.verboseReversed().information ) {
+                self.log( cc.debug( "IMA loop worker" ) + " " + cc.notice( workerData.url ) +
+                    cc.debug( " will do the following work:" ) + "\n" + "    " +
+                    cc.info( "Oracle" ) + cc.debug( " operations....." ) +
+                    cc.yn( self.opts.imaState.optsLoop.enableStepOracle ) + "\n" +
+                    "    " + cc.info( "M2S" ) + cc.debug( " transfers........." ) +
+                    cc.yn( self.opts.imaState.optsLoop.enableStepM2S ) + "\n" +
+                    "    " + cc.info( "S2M" ) + cc.debug( " transfers........." ) +
+                    cc.yn( self.opts.imaState.optsLoop.enableStepS2M ) + "\n" +
+                    "    " + cc.info( "S2S" ) + cc.debug( " transfers........." ) +
+                    cc.yn( self.opts.imaState.optsLoop.enableStepS2S ) + "\n" );
+            }
             /* await */
             loop.runTransferLoop( self.opts.imaState.optsLoop );
-            self.log(
-                cc.debug( "Full init compete for in-worker IMA loop" ) +
-                " " + cc.notice( workerData.url ) +
-                "\n" );
+            if( log.verboseGet() >= log.verboseReversed().information ) {
+                self.log( cc.debug( "Full init compete for in-worker IMA loop" ) +
+                    " " + cc.notice( workerData.url ) + "\n" );
+            }
             return joAnswer;
         };
         self.mapApiHandlers.schainsCached = function( joMessage, joAnswer, eventData, socket ) {
             skaleObserver.setLastCachedSChains( joMessage.message.arrSChainsCached );
         };
-        self.mapApiHandlers.skale_imaNotifyLoopWork =
+        // eslint-disable-next-line dot-notation
+        self.mapApiHandlers["skale_imaNotifyLoopWork"] =
             function( joMessage, joAnswer, eventData, socket ) {
                 pwa.handleLoopStateArrived( // NOTICE: no await here, executed async
                     imaState,
@@ -185,10 +188,10 @@ class ObserverServer extends SocketServer {
                     joMessage.params.signature
                 );
             };
-        self.log(
-            cc.debug( "Initialized in-worker IMA loop " ) +
-            cc.info( workerData.url ) + cc.debug( " server" ) +
-            "\n" );
+        if( log.verboseGet() >= log.verboseReversed().information ) {
+            self.log( cc.debug( "Initialized in-worker IMA loop " ) +
+                cc.info( workerData.url ) + cc.debug( " server" ) + "\n" );
+        }
     }
     dispose() {
         const self = this;
@@ -205,8 +208,8 @@ const acceptor = new networkLayer.InWorkerSocketServerAcceptor( workerData.url, 
 const server = new ObserverServer( acceptor );
 server.on( "dispose", function() {
     const self = server;
-    self.log(
-        cc.debug( "Disposed in-worker IMA loop" ) +
-        " " + cc.notice( workerData.url ) +
-        "\n" );
+    if( log.verboseGet() >= log.verboseReversed().debug ) {
+        self.log( cc.debug( "Disposed in-worker IMA loop" ) +
+        " " + cc.notice( workerData.url ) + "\n" );
+    }
 } );

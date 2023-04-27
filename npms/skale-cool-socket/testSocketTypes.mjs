@@ -39,7 +39,7 @@ const sleep = ( milliseconds ) => {
     return new Promise( resolve => setTimeout( resolve, milliseconds ) );
 };
 
-async function test_local() {
+async function testLocal() {
     console.log( "Local test" );
     const strEndPoint = "local_endpoint";
     const acceptor = new networkLayer.LocalSocketServerAcceptor( strEndPoint );
@@ -62,7 +62,7 @@ async function test_local() {
     return joReturnValue;
 }
 
-async function test_worker() {
+async function testWorker() {
     console.log( "Worker test" );
     const url = "local_worker_server";
     const worker =
@@ -94,7 +94,7 @@ async function test_worker() {
     return joReturnValue;
 }
 
-async function test_web_socket() {
+async function testWS() {
     console.log( "Web socket test" );
     networkLayer.setWsModule( ws );
     const nPort = 33123;
@@ -126,9 +126,9 @@ async function test_web_socket() {
 }
 
 async function test() {
-    await test_local();
-    await test_worker();
-    await test_web_socket();
+    await testLocal();
+    await testWorker();
+    await testWS();
     process.exit( 0 );
 }
 test();

@@ -41,7 +41,7 @@ export function setWebRtcModule( mod ) {
     webRtcModule = mod ? mod : null;
 }
 
-export const g_mapLocalServers = { }; // used both for local and in-worker servers
+export const gMapLocalServers = { }; // used both for local and in-worker servers
 
 export const socketSentDataMarshall = function( data ) {
     const s = data
@@ -84,12 +84,12 @@ export const updateSocketDataStatsForMessage = function( joMessage, joStats ) {
 };
 export const generateSocketDataStatsJSON = function( jo ) {
     const joStats = {};
-    if( "arr_packed_messages" in jo &&
-        jo.arr_packed_messages &&
-        typeof jo.arr_packed_messages == "object"
+    if( "arrPackedMessages" in jo &&
+        jo.arrPackedMessages &&
+        typeof jo.arrPackedMessages == "object"
     ) {
-        //cnt = jo.arr_packed_messages.length;
-        for( const joMessage of jo.arr_packed_messages )
+        //cnt = jo.arrPackedMessages.length;
+        for( const joMessage of jo.arrPackedMessages )
             updateSocketDataStatsForMessage( joMessage, joStats );
 
     } else
@@ -189,7 +189,7 @@ export class BasicSocketPipe extends EventDispatcher {
         this.socketSubtype = "N/A";
         this.url = "N/A";
         this.isConnected = true;
-        this.arr_accumulated_messages = [];
+        this.arrAccumulatedMessages = [];
         this.maxAccumulatedMessagesCount = 0 + settings.net.pipe.maxAccumulatedMessagesCount;
         this.relayClientSocket = null; // for relay only
         this.mapImpersonatedEntries = { }; // for external in-app usage only
@@ -201,7 +201,7 @@ export class BasicSocketPipe extends EventDispatcher {
         }
         this.disposeImpersonatedEntries(); // for external in-app usage only
         this.disconnect();
-        this.arr_accumulated_messages = [];
+        this.arrAccumulatedMessages = [];
         super.dispose();
     }
     disposeImpersonatedEntries() { // for external in-app usage only
@@ -221,7 +221,7 @@ export class BasicSocketPipe extends EventDispatcher {
     isAutoFlush() {
         if( this.maxAccumulatedMessagesCount <= 1 )
             return true;
-        const cnt = this.arr_accumulated_messages.length;
+        const cnt = this.arrAccumulatedMessages.length;
         if( cnt == 0 || cnt < this.maxAccumulatedMessagesCount )
             return false;
         return true;
@@ -250,25 +250,25 @@ export class BasicSocketPipe extends EventDispatcher {
         const jo = socketReceivedDataReverseMarshall( data );
         if( settings.logging.net.socket.accumulate )
             console.log( this.socketLoggingTextPrefix( "accumulate" ), data );
-        this.arr_accumulated_messages.push( jo );
+        this.arrAccumulatedMessages.push( jo );
         if( isFlush )
             this.flush();
     }
     flush() {
         if( this.isDisposed || ( !this.isConnected ) )
             return;
-        const cnt = this.arr_accumulated_messages.length;
+        const cnt = this.arrAccumulatedMessages.length;
         if( cnt == 0 )
             return;
         if( settings.logging.net.socket.flushCount )
             console.log( this.socketLoggingTextPrefix( "flush-count(" + cnt + ")" ) );
         let joSend = null;
         if( cnt == 1 ) {
-            joSend = this.arr_accumulated_messages[0];
+            joSend = this.arrAccumulatedMessages[0];
             if( settings.logging.net.socket.flushOne || settings.logging.net.socket.flush )
                 console.log( this.socketLoggingTextPrefix( "flush-one" ), joSend );
         } else {
-            joSend = { arr_packed_messages: this.arr_accumulated_messages };
+            joSend = { arrPackedMessages: this.arrAccumulatedMessages };
             if( settings.logging.net.socket.flushBlock || settings.logging.net.socket.flush )
                 console.log( this.socketLoggingTextPrefix( "flush-block(" + cnt + ")" ), joSend );
         }
@@ -279,7 +279,7 @@ export class BasicSocketPipe extends EventDispatcher {
             );
         }
         this.implSend( joSend );
-        this.arr_accumulated_messages = [];
+        this.arrAccumulatedMessages = [];
         if( this.relayClientSocket )
             this.relayClientSocket.flush();
     }
@@ -292,11 +292,11 @@ export class BasicSocketPipe extends EventDispatcher {
         if( settings.logging.net.socket.receiveBlock )
             console.log( this.socketLoggingTextPrefix( "receive-block" ), data );
         const jo = socketReceivedDataReverseMarshall( data );
-        if( "arr_packed_messages" in jo &&
-            jo.arr_packed_messages &&
-            typeof jo.arr_packed_messages == "object"
+        if( "arrPackedMessages" in jo &&
+            jo.arrPackedMessages &&
+            typeof jo.arrPackedMessages == "object"
         ) {
-            const cnt = jo.arr_packed_messages.length;
+            const cnt = jo.arrPackedMessages.length;
             if( settings.logging.net.socket.receiveCount )
                 console.log( this.socketLoggingTextPrefix( "receive-count(" + cnt + ")" ) );
             if( settings.logging.net.socket.receiveMethodStats ) {
@@ -306,7 +306,7 @@ export class BasicSocketPipe extends EventDispatcher {
                 );
             }
             for( let i = 0; i < cnt; ++ i ) {
-                const joMessage = jo.arr_packed_messages[i];
+                const joMessage = jo.arrPackedMessages[i];
                 if( settings.logging.net.socket.receive )
                     console.log( this.socketLoggingTextPrefix( "receive" ), joMessage );
                 this.implReceive( joMessage );
@@ -362,9 +362,9 @@ export const isRunningInWorker = function() {
 };
 
 // in-worker clients in connecting state
-export const g_mapAwaitingInWorkerClients = { };
+export const gMapAwaitingInWorkerClients = { };
 // in-worker clients in connecting state
-export const g_mapConnectedInWorkerClients = { };
+export const gMapConnectedInWorkerClients = { };
 
 export const outOfWorkerAPIs = {
     "onMessage": function( worker, data ) {
@@ -383,21 +383,21 @@ export const outOfWorkerAPIs = {
             return false; // TO-DO: send error answer and return true
         switch ( jo.workerMessageType ) {
         case "inWorkerConnect": {
-            if( !( jo.workerUUID in g_mapAwaitingInWorkerClients ) )
+            if( !( jo.workerUUID in gMapAwaitingInWorkerClients ) )
                 return false;
-            const pipe = g_mapAwaitingInWorkerClients[jo.workerUUID];
+            const pipe = gMapAwaitingInWorkerClients[jo.workerUUID];
             pipe.performSuccessfulConnection();
         } return true;
         case "inWorkerDisconnect": {
-            if( !( jo.workerUUID in g_mapConnectedInWorkerClients ) )
+            if( !( jo.workerUUID in gMapConnectedInWorkerClients ) )
                 return false;
-            const pipe = g_mapConnectedInWorkerClients[jo.workerUUID];
+            const pipe = gMapConnectedInWorkerClients[jo.workerUUID];
             pipe.performDisconnect();
         } return true;
         case "inWorkerMessage": {
-            if( !( jo.workerUUID in g_mapConnectedInWorkerClients ) )
+            if( !( jo.workerUUID in gMapConnectedInWorkerClients ) )
                 return false;
-            const pipe = g_mapConnectedInWorkerClients[jo.workerUUID];
+            const pipe = gMapConnectedInWorkerClients[jo.workerUUID];
             pipe.receive( jo.data );
         } return true;
         default:
@@ -433,9 +433,9 @@ export const inWorkerAPIs = {
             typeof jo.workerUUID != "string" ||
             jo.workerUUID.length == 0 )
             return false; // TO-DO: send error answer and return true
-        if( ! ( jo.workerEndPoint in g_mapLocalServers ) )
+        if( ! ( jo.workerEndPoint in gMapLocalServers ) )
             return false; // TO-DO: send error answer and return true
-        const acceptor = g_mapLocalServers[jo.workerEndPoint];
+        const acceptor = gMapLocalServers[jo.workerEndPoint];
         switch ( jo.workerMessageType ) {
         case "inWorkerConnect":
             return acceptor.performAccept( jo );
@@ -531,7 +531,7 @@ export class InWorkerSocketServerAcceptor extends BasicServerAcceptor {
         this.strEndPoint =
             ( strEndPoint && typeof strEndPoint == "string" && strEndPoint.length > 0 )
                 ? strEndPoint : "default_local_endpoint";
-        if( this.strEndPoint in g_mapLocalServers ) {
+        if( this.strEndPoint in gMapLocalServers ) {
             const s =
                 "Cannot start in-worker socket server on already listening \"" +
                 this.strEndPoint + "\" endpoint";
@@ -539,7 +539,7 @@ export class InWorkerSocketServerAcceptor extends BasicServerAcceptor {
                 new UniversalDispatcherEvent( "error", { "socket": this, "message": "" + s } ) );
             throw new Error( s );
         }
-        g_mapLocalServers[this.strEndPoint] = this;
+        gMapLocalServers[this.strEndPoint] = this;
         this.fnSend = fnSend || inWorkerAPIs.onSendMessage;
         this.isListening = true;
         const self = this;
@@ -557,8 +557,8 @@ export class InWorkerSocketServerAcceptor extends BasicServerAcceptor {
             typeof this.strEndPoint == "string" &&
             this.strEndPoint.length > 0
         ) {
-            if( this.strEndPoint in g_mapLocalServers )
-                delete g_mapLocalServers[this.strEndPoint];
+            if( this.strEndPoint in gMapLocalServers )
+                delete gMapLocalServers[this.strEndPoint];
         }
         super.dispose();
     }
@@ -591,7 +591,7 @@ export class OutOfWorkerSocketClientPipe extends BasicSocketPipe {
         this.socketSubtype = "client";
         this.isConnected = false;
         this.worker = worker;
-        this.clientPort = utils.uuid_v4();
+        this.clientPort = utils.UUIDv4();
         this.strEndPoint =
             ( strEndPoint &&
             typeof strEndPoint == "string" &&
@@ -602,22 +602,22 @@ export class OutOfWorkerSocketClientPipe extends BasicSocketPipe {
         this.url = "out_of_worker_client_pipe://" + this.strEndPoint + ":" + this.clientPort;
         this.fnSend = fnSend || outOfWorkerAPIs.onSendMessage;
         this.fnSend( this.worker, "inWorkerConnect", this.strEndPoint, this.clientPort, {} );
-        g_mapAwaitingInWorkerClients["" + this.clientPort] = this;
+        gMapAwaitingInWorkerClients["" + this.clientPort] = this;
     }
     dispose() {
         if( this.isDisposed )
             return;
         this.isDisposing = true;
         this.performDisconnect();
-        if( this.clientPort in g_mapAwaitingInWorkerClients )
-            delete g_mapAwaitingInWorkerClients[this.clientPort];
+        if( this.clientPort in gMapAwaitingInWorkerClients )
+            delete gMapAwaitingInWorkerClients[this.clientPort];
         super.dispose();
     }
     performDisconnect() {
         if( ! this.isConnected )
             return;
         this.isConnected = false;
-        delete g_mapConnectedInWorkerClients["" + this.clientPort];
+        delete gMapConnectedInWorkerClients["" + this.clientPort];
         this.fnSend( this.worker, "inWorkerDisconnect", this.strEndPoint, this.clientPort, {} );
         this.dispatchEvent( new UniversalDispatcherEvent( "close", { "socket": this } ) );
         this.worker = null;
@@ -626,8 +626,8 @@ export class OutOfWorkerSocketClientPipe extends BasicSocketPipe {
         this.url = "";
     }
     performSuccessfulConnection() {
-        delete g_mapAwaitingInWorkerClients[this.clientPort];
-        g_mapConnectedInWorkerClients["" + this.clientPort] = this;
+        delete gMapAwaitingInWorkerClients[this.clientPort];
+        gMapConnectedInWorkerClients["" + this.clientPort] = this;
         this.isConnected = true;
         this.dispatchEvent( new UniversalDispatcherEvent( "open", { "socket": this } ) );
     }
@@ -1232,7 +1232,7 @@ export class LocalSocketServerAcceptor extends BasicServerAcceptor {
         this.strEndPoint =
             ( strEndPoint && typeof strEndPoint == "string" && strEndPoint.length > 0 )
                 ? strEndPoint : "default_local_endpoint";
-        if( this.strEndPoint in g_mapLocalServers ) {
+        if( this.strEndPoint in gMapLocalServers ) {
             const s =
                 "Cannot start local socket server on already listening \"" +
                 this.strEndPoint + "\" endpoint";
@@ -1240,7 +1240,7 @@ export class LocalSocketServerAcceptor extends BasicServerAcceptor {
                 "error", { "socket": this, "message": "" + s } ) );
             throw new Error( s );
         }
-        g_mapLocalServers[this.strEndPoint] = this;
+        gMapLocalServers[this.strEndPoint] = this;
         this.isListening = true;
         const self = this;
         const iv = setTimeout( function() {
@@ -1258,8 +1258,8 @@ export class LocalSocketServerAcceptor extends BasicServerAcceptor {
             typeof this.strEndPoint == "string" &&
             this.strEndPoint.length > 0
         ) {
-            if( this.strEndPoint in g_mapLocalServers )
-                delete g_mapLocalServers[this.strEndPoint];
+            if( this.strEndPoint in gMapLocalServers )
+                delete gMapLocalServers[this.strEndPoint];
         }
         super.dispose();
     }
@@ -1277,7 +1277,7 @@ export class LocalSocketClientPipe extends DirectPipe {
         this.strEndPoint =
             ( strEndPoint && typeof strEndPoint == "string" && strEndPoint.length > 0 )
                 ? strEndPoint : "default_local_endpoint";
-        if( !( this.strEndPoint in g_mapLocalServers ) ) {
+        if( !( this.strEndPoint in gMapLocalServers ) ) {
             const s =
                 "Cannot connect to local socket server \"" + this.strEndPoint +
                 "\" endpoint, no such server";
@@ -1287,7 +1287,7 @@ export class LocalSocketClientPipe extends DirectPipe {
                     { "socket": this, "message": "" + s } ) );
             throw new Error( s );
         }
-        this.acceptor = g_mapLocalServers[this.strEndPoint];
+        this.acceptor = gMapLocalServers[this.strEndPoint];
         this.clientPort = 0 + this.acceptor.nextClientPort;
         ++ this.acceptor.nextClientPort;
         this.url = "local_client_pipe://" + this.strEndPoint + ":" + this.clientPort;
@@ -1639,7 +1639,7 @@ export class RTCConnection extends EventDispatcher {
         this.idRtcParticipant = "" +
             ( ( idRtcParticipant != null && idRtcParticipant != undefined &&
                 typeof idRtcParticipant == "string" && idRtcParticipant.length > 0 )
-                ? idRtcParticipant : utils.uuid_v4() );
+                ? idRtcParticipant : utils.UUIDv4() );
         this.wasIdentified = false;
         this.iceComplete = false;
         this.pc = null;
@@ -2139,7 +2139,7 @@ export class RTCServerPeer extends RTCConnection {
         this.tsOfferCreated = null;
         if( settings.logging.net.signaling.offerRegister )
             console.log( "Register offer", this.idOffer, "(RTCServerPeer constructor)" );
-        this.rtcCreator.map_server_offers[0 + this.idOffer] = this;
+        this.rtcCreator.mapServerOffers[0 + this.idOffer] = this;
         this.isPublishing = false;
         this.isSignalingNegotiation = false;
         this.isPublishTimeout = false;
@@ -2173,17 +2173,17 @@ export class RTCServerPeer extends RTCConnection {
         this.publishCancel();
         this.signalingNegotiationCancel();
         if( this.rtcCreator ) {
-            if( this.idOffer in this.rtcCreator.map_server_offers ) {
+            if( this.idOffer in this.rtcCreator.mapServerOffers ) {
                 if( settings.logging.net.signaling.offerUnregister )
                     console.log( "Unregister offer", this.idOffer, "(RTCServerPeer dispose)" );
-                delete this.rtcCreator.map_server_offers[this.idOffer];
+                delete this.rtcCreator.mapServerOffers[this.idOffer];
             }
             this.idOffer = 0;
         }
         this.idOffer = 0;
         if( this.idSomebodyOtherSide != null ) {
-            if( this.idSomebodyOtherSide in this.rtcCreator.map_server_peers )
-                delete this.rtcCreator.map_server_peers[this.idSomebodyOtherSide];
+            if( this.idSomebodyOtherSide in this.rtcCreator.mapServerPeers )
+                delete this.rtcCreator.mapServerPeers[this.idSomebodyOtherSide];
 
             this.idSomebodyOtherSide = null;
         }
@@ -2355,20 +2355,20 @@ export class RTCServerPeer extends RTCConnection {
     onError( err ) {
         if( this.rtcCreator ) {
             this.rtcCreator.onRtcPeerError( this, err );
-            if( this.idOffer in this.rtcCreator.map_server_offers ) {
+            if( this.idOffer in this.rtcCreator.mapServerOffers ) {
                 if( settings.logging.net.signaling.offerUnregister ) {
                     console.log(
                         "Unregister offer", this.idOffer,
                         "due to RTCServerPeer error:".err
                     );
                 }
-                delete this.rtcCreator.map_server_offers[this.idOffer];
+                delete this.rtcCreator.mapServerOffers[this.idOffer];
             }
             this.idOffer = 0;
         }
         if( this.idSomebodyOtherSide != null ) {
-            if( this.idSomebodyOtherSide in this.rtcCreator.map_server_peers )
-                delete this.rtcCreator.map_server_peers[this.idSomebodyOtherSide];
+            if( this.idSomebodyOtherSide in this.rtcCreator.mapServerPeers )
+                delete this.rtcCreator.mapServerPeers[this.idSomebodyOtherSide];
             this.idSomebodyOtherSide = null;
         }
         super.onError( err );
@@ -2472,23 +2472,23 @@ export class RTCCreator extends RTCActor {
         const self = this;
         self.idOfferNext = 1;
         self.isCreator = true;
-        self.map_server_offers = { }; // idOffer -> RTCServerPeer
-        self.map_server_peers = { }; // idSomebodyOtherSide -> RTCServerPeer
+        self.mapServerOffers = { }; // idOffer -> RTCServerPeer
+        self.mapServerPeers = { }; // idSomebodyOtherSide -> RTCServerPeer
         self.signalingPipeOpen();
     }
     dispose() {
         if( this.isDisposed )
             return;
         this.isDisposing = true;
-        for( const [ idOffer, rtcPeer ] of Object.entries( this.map_server_offers ) ) {
+        for( const [ idOffer, rtcPeer ] of Object.entries( this.mapServerOffers ) ) {
             if( settings.logging.net.signaling.offerUnregister )
                 console.log( "Unregister offer", idOffer, "(one of all, RTCCreator dispose)" );
             rtcPeer.dispose();
         }
         for( const [ /*idSomebodyOtherSide*/, rtcPeer ] of
-            Object.entries( this.map_server_peers ) )
+            Object.entries( this.mapServerPeers ) )
             rtcPeer.dispose();
-        this.map_server_offers = { };
+        this.mapServerOffers = { };
         // self.idOfferNext = 0;
         super.dispose();
     }
@@ -2508,7 +2508,7 @@ export class RTCCreator extends RTCActor {
                 idSomebodyOtherSide + "\" via offer ID " + idOffer.toString()
             );
         }
-        if( ! ( idOffer in this.map_server_offers ) ) {
+        if( ! ( idOffer in this.mapServerOffers ) ) {
             const strError = "not a registered pending offer(onOtherSideIdentified)";
             if( settings.logging.net.signaling.error ) {
                 console.warn(
@@ -2520,14 +2520,14 @@ export class RTCCreator extends RTCActor {
             this.onError( strError );
             return;
         }
-        const rtcPeer = this.map_server_offers[idOffer];
+        const rtcPeer = this.mapServerOffers[idOffer];
         if( settings.logging.net.signaling.offerUnregister ) {
             console.log(
                 "Unregister offer", idOffer, "(onOtherSideIdentified in RTCCreator)"
             );
         }
-        delete this.map_server_offers[idOffer];
-        this.map_server_peers["" + idSomebodyOtherSide] = rtcPeer;
+        delete this.mapServerOffers[idOffer];
+        this.mapServerPeers["" + idSomebodyOtherSide] = rtcPeer;
         rtcPeer.onOtherSideIdentified( "" + idSomebodyOtherSide );
     }
     onRtcPeerError( rtcPeer, err ) {
@@ -2568,7 +2568,7 @@ export class RTCCreator extends RTCActor {
             if( joMessage.error == null ) {
                 const idSomebodyOtherSide = "" + joMessage.idSomebody_joiner;
                 const idOffer = 0 + joMessage.idOffer;
-                if( ! ( idOffer in this.map_server_offers ) ) {
+                if( ! ( idOffer in this.mapServerOffers ) ) {
                     const strError = "not a registered pending offer(signalingPublishAnswer)";
                     if( settings.logging.net.signaling.error ) {
                         console.warn(
@@ -2581,7 +2581,7 @@ export class RTCCreator extends RTCActor {
                     this.onError( strError );
                     return;
                 }
-                const rtcPeer = this.map_server_offers[idOffer];
+                const rtcPeer = this.mapServerOffers[idOffer];
                 // OKay, finally got answer from candida
                 if( settings.logging.net.signaling.generic ) {
                     console.log(
@@ -2663,7 +2663,7 @@ export class RTCCreator extends RTCActor {
         try {
             const s = socketSentDataMarshall( data );
             for( const [ /*idSomebodyOtherSide*/, rtcPeer ]
-                of Object.entries( this.map_server_peers ) ) {
+                of Object.entries( this.mapServerPeers ) ) {
                 try {
                     rtcPeer.send( s );
                 } catch ( err ) {
@@ -2677,10 +2677,10 @@ export class RTCCreator extends RTCActor {
     onImpersonationComplete() {
         super.onImpersonationComplete();
         for( const [ /*idOffer*/, rtcPeer ]
-            of Object.entries( this.map_server_offers ) )
+            of Object.entries( this.mapServerOffers ) )
             rtcPeer.onImpersonationCompleteForCreator();
         for( const [ /*idSomebodyOtherSide*/, rtcPeer ]
-            of Object.entries( this.map_server_peers ) )
+            of Object.entries( this.mapServerPeers ) )
             rtcPeer.onImpersonationCompleteForCreator();
     }
 };
@@ -3106,7 +3106,7 @@ export class WebRTCServerAcceptor extends BasicServerAcceptor {
         this.idRtcParticipant = "" +
             ( ( idRtcParticipant != null && idRtcParticipant != undefined &&
                 typeof idRtcParticipant == "string" && idRtcParticipant.length > 0 )
-                ? idRtcParticipant : utils.uuid_v4() );
+                ? idRtcParticipant : utils.UUIDv4() );
         this.offerOptions = offerOptions ? offerOptions : null;
         this.signalingOptions = signalingOptions ? signalingOptions : null;
         this.peerConfiguration =
@@ -3258,11 +3258,11 @@ export class WebRTCServerAcceptor extends BasicServerAcceptor {
     }
     removeAllPendingOffers() {
         for( const [ /*idOffer*/, rtcPeer ]
-            of Object.entries( this.rtcCreator.map_server_peers ) ) {
+            of Object.entries( this.rtcCreator.mapServerPeers ) ) {
             const serverPipe = rtcPeer.serverPipe;
             serverPipe.dispose();
         }
-        this.rtcCreator.map_server_peers = { };
+        this.rtcCreator.mapServerPeers = { };
         for( const [ /*idOffer*/, rtcPeer ]
             of Object.entries( this.rtcCreator.mapPendingOffers ) )
             rtcPeer.dispose();
@@ -3287,7 +3287,7 @@ export class WebRTCClientPipe extends BasicSocketPipe {
         this.idRtcParticipant = "" +
             ( ( idRtcParticipant != null && idRtcParticipant != undefined &&
                 typeof idRtcParticipant == "string" && idRtcParticipant.length > 0 )
-                ? idRtcParticipant : utils.uuid_v4() );
+                ? idRtcParticipant : utils.UUIDv4() );
         this.offerOptions = offerOptions ? offerOptions : null;
         this.signalingOptions = signalingOptions ? signalingOptions : null;
         this.peerConfiguration =

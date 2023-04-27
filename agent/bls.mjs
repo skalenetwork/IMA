@@ -44,7 +44,7 @@ const Keccak = sha3Module.Keccak;
 const sleep =
     ( milliseconds ) => { return new Promise( resolve => setTimeout( resolve, milliseconds ) ); };
 
-const g_secondsMessageVerifySendTimeout = 2 * 60;
+const gSecondsMessageVerifySendTimeout = 2 * 60;
 
 async function withTimeout( strDescription, promise, seconds ) {
     strDescription = strDescription || "withTimeout()";
@@ -407,16 +407,18 @@ function performBlsGlue(
         }
         fnShellRestore();
     } catch ( err ) {
-        const s1 = strLogPrefix +
-            cc.fatal( "BLS glue CRITICAL ERROR:" ) + cc.error( " error description is: " ) +
-            cc.warning( owaspUtils.extractErrorMessage( err ) ) +
-            cc.error( ", stack is: " ) + "\n" + cc.stack( err.stack ) +
-            "\n";
-        const s2 = strLogPrefix +
-            cc.error( "BLS glue output is:\n" ) + cc.notice( strOutput ) +
-            "\n";
-        details.write( s1 );
-        details.write( s2 );
+        if( log.verboseGet() >= log.verboseReversed().critical ) {
+            const s1 = strLogPrefix +
+                cc.fatal( "BLS glue CRITICAL ERROR:" ) + cc.error( " error description is: " ) +
+                cc.warning( owaspUtils.extractErrorMessage( err ) ) +
+                cc.error( ", stack is: " ) + "\n" + cc.stack( err.stack ) +
+                "\n";
+            const s2 = strLogPrefix +
+                cc.error( "BLS glue output is:\n" ) + cc.notice( strOutput ) +
+                "\n";
+            details.write( s1 );
+            details.write( s2 );
+        }
         fnShellRestore();
         joGlueResult = null;
     }
@@ -534,16 +536,18 @@ function performBlsGlueU256( details, u256, arrSignResults ) {
         }
         fnShellRestore();
     } catch ( err ) {
-        const s1 = strLogPrefix +
-            cc.fatal( "BLS glue CRITICAL ERROR:" ) + cc.error( " error description is: " ) +
-            cc.warning( owaspUtils.extractErrorMessage( err ) ) + "\n" +
-            cc.error( ", stack is: " ) + cc.stack( err.stack ) +
-            "\n";
-        const s2 = strLogPrefix +
-            cc.error( "BLS glue output is:\n" ) + cc.notice( strOutput ) +
-            "\n";
-        details.write( s1 );
-        details.write( s2 );
+        if( log.verboseGet() >= log.verboseReversed().critical ) {
+            const s1 = strLogPrefix +
+                cc.fatal( "BLS glue CRITICAL ERROR:" ) + cc.error( " error description is: " ) +
+                cc.warning( owaspUtils.extractErrorMessage( err ) ) + "\n" +
+                cc.error( ", stack is: " ) + cc.stack( err.stack ) +
+                "\n";
+            const s2 = strLogPrefix +
+                cc.error( "BLS glue output is:\n" ) + cc.notice( strOutput ) +
+                "\n";
+            details.write( s1 );
+            details.write( s2 );
+        }
         fnShellRestore();
         joGlueResult = null;
     }
@@ -629,20 +633,22 @@ function performBlsVerifyI(
         fnShellRestore();
         return true;
     } catch ( err ) {
-        const s1 = strLogPrefix +
-            cc.fatal( "CRITICAL ERROR:" ) + cc.error( " BLS node " ) +
-            cc.notice( "#" ) + cc.info( nZeroBasedNodeIndex ) + cc.error( " verify error:" ) +
-            cc.warning( " error description is: " ) +
-            cc.warning( owaspUtils.extractErrorMessage( err ) ) +
-            cc.error( ", stack is: " ) + "\n" + cc.stack( err.stack ) +
-            "\n";
-        const s2 = strLogPrefix +
-            cc.error( "CRITICAL ERROR:" ) + cc.error( " BLS node " ) +
-            cc.notice( "#" ) + cc.info( nZeroBasedNodeIndex ) +
-            cc.error( " verify output is:\n" ) + cc.notice( strOutput ) +
-            "\n";
-        details.write( s1 );
-        details.write( s2 );
+        if( log.verboseGet() >= log.verboseReversed().critical ) {
+            const s1 = strLogPrefix +
+                cc.fatal( "CRITICAL ERROR:" ) + cc.error( " BLS node " ) +
+                cc.notice( "#" ) + cc.info( nZeroBasedNodeIndex ) + cc.error( " verify error:" ) +
+                cc.warning( " error description is: " ) +
+                cc.warning( owaspUtils.extractErrorMessage( err ) ) +
+                cc.error( ", stack is: " ) + "\n" + cc.stack( err.stack ) +
+                "\n";
+            const s2 = strLogPrefix +
+                cc.error( "CRITICAL ERROR:" ) + cc.error( " BLS node " ) +
+                cc.notice( "#" ) + cc.info( nZeroBasedNodeIndex ) +
+                cc.error( " verify output is:\n" ) + cc.notice( strOutput ) +
+                "\n";
+            details.write( s1 );
+            details.write( s2 );
+        }
         fnShellRestore();
     }
     return false;
@@ -710,21 +716,23 @@ function performBlsVerifyIU256(
         fnShellRestore();
         return true;
     } catch ( err ) {
-        const s1 = strLogPrefix +
-            cc.fatal( "CRITICAL ERROR:" ) + cc.error( " BLS u256 node " ) +
-            cc.notice( "#" ) + cc.info( nZeroBasedNodeIndex ) +
-            cc.error( " verify error:" ) +
-            cc.warning( " error description is: " ) +
-            cc.warning( owaspUtils.extractErrorMessage( err ) ) +
-            cc.error( ", stack is: " ) + "\n" + cc.stack( err.stack ) +
-            "\n";
-        const s2 = strLogPrefix +
-            cc.error( "CRITICAL ERROR:" ) + cc.error( " BLS u256 node " ) +
-            cc.notice( "#" ) + cc.info( nZeroBasedNodeIndex ) +
-            cc.error( " verify output is:\n" ) + cc.notice( strOutput ) +
-            "\n";
-        details.write( s1 );
-        details.write( s2 );
+        if( log.verboseGet() >= log.verboseReversed().critical ) {
+            const s1 = strLogPrefix +
+                cc.fatal( "CRITICAL ERROR:" ) + cc.error( " BLS u256 node " ) +
+                cc.notice( "#" ) + cc.info( nZeroBasedNodeIndex ) +
+                cc.error( " verify error:" ) +
+                cc.warning( " error description is: " ) +
+                cc.warning( owaspUtils.extractErrorMessage( err ) ) +
+                cc.error( ", stack is: " ) + "\n" + cc.stack( err.stack ) +
+                "\n";
+            const s2 = strLogPrefix +
+                cc.error( "CRITICAL ERROR:" ) + cc.error( " BLS u256 node " ) +
+                cc.notice( "#" ) + cc.info( nZeroBasedNodeIndex ) +
+                cc.error( " verify output is:\n" ) + cc.notice( strOutput ) +
+                "\n";
+            details.write( s1 );
+            details.write( s2 );
+        }
         fnShellRestore();
     }
     return false;
@@ -811,16 +819,18 @@ function performBlsVerify(
         fnShellRestore();
         return true;
     } catch ( err ) {
-        const s1 = strLogPrefix +
-            cc.fatal( "BLS/summary verify CRITICAL ERROR:" ) +
-            cc.error( " error description is: " ) +
-            cc.warning( owaspUtils.extractErrorMessage( err ) ) +
-            cc.error( ", stack is: " ) + "\n" + cc.stack( err.stack ) +
-            "\n";
-        const s2 = strLogPrefix +
-        cc.error( "BLS/summary verify output is:\n" ) + cc.notice( strOutput ) + "\n";
-        details.write( s1 );
-        details.write( s2 );
+        if( log.verboseGet() >= log.verboseReversed().critical ) {
+            const s1 = strLogPrefix +
+                cc.fatal( "BLS/summary verify CRITICAL ERROR:" ) +
+                cc.error( " error description is: " ) +
+                cc.warning( owaspUtils.extractErrorMessage( err ) ) +
+                cc.error( ", stack is: " ) + "\n" + cc.stack( err.stack ) +
+                "\n";
+            const s2 = strLogPrefix +
+                cc.error( "BLS/summary verify output is:\n" ) + cc.notice( strOutput ) + "\n";
+            details.write( s1 );
+            details.write( s2 );
+        }
         fnShellRestore();
     }
     return false;
@@ -880,18 +890,20 @@ function performBlsVerifyU256( details, joGlueResult, u256, joCommonPublicKey ) 
         fnShellRestore();
         return true;
     } catch ( err ) {
-        const s1 = strLogPrefix +
-            cc.fatal( "BLS u256/summary verify CRITICAL ERROR:" ) +
-            cc.error( " error description is: " ) +
-            cc.warning( owaspUtils.extractErrorMessage( err ) ) +
-            cc.error( ", stack is: " ) + "\n" + cc.stack( err.stack ) +
-            "\n";
-        const s2 = strLogPrefix +
-            cc.error( "BLS u256/summary verify output is:\n" ) +
-            cc.notice( strOutput ) +
-            "\n";
-        details.write( s1 );
-        details.write( s2 );
+        if( log.verboseGet() >= log.verboseReversed().critical ) {
+            const s1 = strLogPrefix +
+                cc.fatal( "BLS u256/summary verify CRITICAL ERROR:" ) +
+                cc.error( " error description is: " ) +
+                cc.warning( owaspUtils.extractErrorMessage( err ) ) +
+                cc.error( ", stack is: " ) + "\n" + cc.stack( err.stack ) +
+                "\n";
+            const s2 = strLogPrefix +
+                cc.error( "BLS u256/summary verify output is:\n" ) +
+                cc.notice( strOutput ) +
+                "\n";
+            details.write( s1 );
+            details.write( s2 );
+        }
         fnShellRestore();
     }
     return false;
@@ -997,30 +1009,36 @@ async function checkCorrectnessOfMessagesToSign(
                 }
             } catch ( err ) {
                 ++cntBadMessages;
-                const s =
-                    strLogPrefix + cc.fatal( "BAD ERROR:" ) + " " +
-                    cc.bright( strDirection ) +
-                    cc.error( " Correctness validation failed for message " ) +
-                    cc.info( idxMessage ) +
-                    cc.error( " sent to " ) + cc.info( joChainName ) +
-                    cc.error( ", message is: " ) + cc.j( joMessage ) +
-                    cc.error( ", error information: " ) +
-                    cc.warning( owaspUtils.extractErrorMessage( err ) ) +
-                    cc.error( ", stack is:" ) + "\n" + cc.stack( err.stack ) +
-                    "\n";
-                log.write( s );
-                details.write( s );
+                if( log.verboseGet() >= log.verboseReversed().critical ) {
+                    const strErrorMessage =
+                        strLogPrefix + cc.fatal( "BAD ERROR:" ) + " " +
+                        cc.bright( strDirection ) +
+                        cc.error( " Correctness validation failed for message " ) +
+                        cc.info( idxMessage ) +
+                        cc.error( " sent to " ) + cc.info( joChainName ) +
+                        cc.error( ", message is: " ) + cc.j( joMessage ) +
+                        cc.error( ", error information: " ) +
+                        cc.warning( owaspUtils.extractErrorMessage( err ) ) +
+                        cc.error( ", stack is:" ) + "\n" + cc.stack( err.stack ) +
+                        "\n";
+                    if( log.id != details.id )
+                        log.write( strErrorMessage );
+                    details.write( strErrorMessage );
+                }
             }
         }
     }
     // TODO: M2S - check events
     if( cntBadMessages > 0 ) {
-        const s =
-            strLogPrefix + cc.fatal( "BAD ERROR:" ) +
-            cc.error( " Correctness validation failed for " ) + cc.info( cntBadMessages ) +
-            cc.error( " of " ) + cc.info( cnt ) + cc.error( " message(s)" ) + "\n";
-        log.write( s );
-        details.write( s );
+        if( log.verboseGet() >= log.verboseReversed().critical ) {
+            const s =
+                strLogPrefix + cc.fatal( "BAD ERROR:" ) +
+                cc.error( " Correctness validation failed for " ) + cc.info( cntBadMessages ) +
+                cc.error( " of " ) + cc.info( cnt ) + cc.error( " message(s)" ) + "\n";
+            if( log.id != details.id )
+                log.write( s );
+            details.write( s );
+        }
     } else {
         details.write( strLogPrefix +
             cc.success( "Correctness validation passed for " ) + cc.info( cnt ) +
@@ -1188,7 +1206,8 @@ async function gatherSigningStartImpl( optsSignOperation ) {
                         cc.warning( strError ) +
                         "\n";
                     optsSignOperation.details.write( strErrorMessage );
-                    log.write( strErrorMessage );
+                    if( log.id != details.id )
+                        log.write( strErrorMessage );
                 }
                 const strCallbackCallDescription =
                     cc.debug( "Will call signed-hash answer-sending callback " ) +
@@ -1200,15 +1219,18 @@ async function gatherSigningStartImpl( optsSignOperation ) {
                 optsSignOperation.fn( // NOTICE: no await here, executed async
                     strError, optsSignOperation.jarrMessages, joGlueResult )
                     .catch( ( err ) => {
-                        const strErrorMessage =
-                        cc.error( "Problem(2) in BLS sign result handler: " ) +
-                        cc.warning( owaspUtils.extractErrorMessage( err ) ) +
-                        "\n";
-                        log.write( strErrorMessage );
-                        optsSignOperation.details.write( strErrorMessage );
+                        if( log.verboseGet() >= log.verboseReversed().critical ) {
+                            const strErrorMessage =
+                                cc.error( "Problem(2) in BLS sign result handler: " ) +
+                                cc.warning( owaspUtils.extractErrorMessage( err ) ) +
+                                "\n";
+                            if( log.id != optsSignOperation.details.id )
+                                log.write( strErrorMessage );
+                            optsSignOperation.details.write( strErrorMessage );
+                        }
                         optsSignOperation.errGathering =
-                        "Problem(2) in BLS sign result handler: " +
-                        owaspUtils.extractErrorMessage( err );
+                            "Problem(2) in BLS sign result handler: " +
+                            owaspUtils.extractErrorMessage( err );
                         return;
                     } );
                 optsSignOperation.bHaveResultReportCalled = true;
@@ -1229,16 +1251,19 @@ async function gatherSigningStartImpl( optsSignOperation ) {
                     " node(s)", optsSignOperation.jarrMessages,
                     null
                 ).catch( ( err ) => {
-                    const strErrorMessage =
-                        cc.error( "Problem(3) in BLS sign result handler, " +
-                            "not enough successful BLS signature parts(" ) +
-                        cc.info( optsSignOperation.cntSuccess ) +
-                        cc.error( " when all attempts done, " +
-                            "error optsSignOperation.details: " ) +
-                        cc.warning( owaspUtils.extractErrorMessage( err ) ) +
-                        "\n";
-                    optsSignOperation.details.write( strErrorMessage );
-                    log.write( strErrorMessage );
+                    if( log.verboseGet() >= log.verboseReversed().critical ) {
+                        const strErrorMessage =
+                            cc.error( "Problem(3) in BLS sign result handler, " +
+                                "not enough successful BLS signature parts(" ) +
+                            cc.info( optsSignOperation.cntSuccess ) +
+                            cc.error( " when all attempts done, " +
+                                "error optsSignOperation.details: " ) +
+                            cc.warning( owaspUtils.extractErrorMessage( err ) ) +
+                            "\n";
+                        optsSignOperation.details.write( strErrorMessage );
+                        if( log.id != optsSignOperation.details.id )
+                            log.write( strErrorMessage );
+                    }
                     optsSignOperation.errGathering =
                         "Problem(3) in BLS sign result handler," +
                             " not enough successful BLS signature parts(" +
@@ -1261,17 +1286,20 @@ async function gatherSigningStartImpl( optsSignOperation ) {
                     optsSignOperation.jarrMessages,
                     null
                 ).catch( ( err ) => {
-                    const strErrorMessage =
-                        cc.error(
-                            "Problem(4) in BLS sign result handler, " +
-                            "not enough successful BLS signature parts(" ) +
-                        cc.info( optsSignOperation.cntSuccess ) +
-                        cc.error( ") and timeout reached, " +
-                            "error optsSignOperation.details: " ) +
-                        cc.warning( owaspUtils.extractErrorMessage( err ) ) +
-                        "\n";
-                    optsSignOperation.details.write( strErrorMessage );
-                    log.write( strErrorMessage );
+                    if( log.verboseGet() >= log.verboseReversed().critical ) {
+                        const strErrorMessage =
+                            cc.error(
+                                "Problem(4) in BLS sign result handler, " +
+                                "not enough successful BLS signature parts(" ) +
+                            cc.info( optsSignOperation.cntSuccess ) +
+                            cc.error( ") and timeout reached, " +
+                                "error optsSignOperation.details: " ) +
+                            cc.warning( owaspUtils.extractErrorMessage( err ) ) +
+                            "\n";
+                        optsSignOperation.details.write( strErrorMessage );
+                        if( log.id != optsSignOperation.details.id )
+                            log.write( strErrorMessage );
+                    }
                     optsSignOperation.errGathering =
                         "Problem(4) in BLS sign result handler, " +
                         "not enough successful BLS signature parts(" +
@@ -1294,25 +1322,29 @@ async function gatherSigningFinishImpl( optsSignOperation ) {
     await withTimeout(
         "BLS verification and sending",
         optsSignOperation.promiseCompleteGathering,
-        g_secondsMessageVerifySendTimeout )
+        gSecondsMessageVerifySendTimeout )
         .then( strSuccessfulResultDescription => {
             optsSignOperation.details.write(
                 cc.success( "BLS verification and sending promise awaited." ) +
                 "\n" );
         } ).catch( err => {
-            const strErrorMessage =
-            cc.error( "Failed to verify BLS and send message : " ) +
-            cc.warning( owaspUtils.extractErrorMessage( err ) ) +
-            "\n";
-            log.write( strErrorMessage );
-            optsSignOperation.details.write( strErrorMessage );
+            if( log.verboseGet() >= log.verboseReversed().critical ) {
+                const strErrorMessage =
+                    cc.error( "Failed to verify BLS and send message : " ) +
+                    cc.warning( owaspUtils.extractErrorMessage( err ) ) +
+                    "\n";
+                if( log.id != optsSignOperation.details.id )
+                    log.write( strErrorMessage );
+                optsSignOperation.details.write( strErrorMessage );
+            }
         } );
     if( optsSignOperation.errGathering ) {
         const strErrorMessage =
             cc.error( "Failed BLS sign result awaiting(1): " ) +
             cc.warning( optsSignOperation.errGathering.toString() ) +
             "\n";
-        log.write( strErrorMessage );
+        if( log.id != optsSignOperation.details.id )
+            log.write( strErrorMessage );
         optsSignOperation.details.write( strErrorMessage );
         if( ! optsSignOperation.bHaveResultReportCalled ) {
             optsSignOperation.bHaveResultReportCalled = true;
@@ -1324,15 +1356,18 @@ async function gatherSigningFinishImpl( optsSignOperation ) {
                 optsSignOperation.jarrMessages,
                 null
             ).catch( ( err ) => {
-                const strErrorMessage =
-                    cc.error( "Problem(5) in BLS sign result handler, " +
-                    "not enough successful BLS signature parts(" ) +
-                    cc.info( optsSignOperation.cntSuccess ) +
-                    cc.error( ") and timeout reached, error optsSignOperation.details: " ) +
-                    cc.warning( owaspUtils.extractErrorMessage( err ) ) +
-                    "\n";
-                log.write( strErrorMessage );
-                optsSignOperation.details.write( strErrorMessage );
+                if( log.verboseGet() >= log.verboseReversed().critical ) {
+                    const strErrorMessage =
+                        cc.error( "Problem(5) in BLS sign result handler, " +
+                        "not enough successful BLS signature parts(" ) +
+                        cc.info( optsSignOperation.cntSuccess ) +
+                        cc.error( ") and timeout reached, error optsSignOperation.details: " ) +
+                        cc.warning( owaspUtils.extractErrorMessage( err ) ) +
+                        "\n";
+                    if( log.id != optsSignOperation.details.id )
+                        log.write( strErrorMessage );
+                    optsSignOperation.details.write( strErrorMessage );
+                }
                 optsSignOperation.details.exposeDetailsTo(
                     log, optsSignOperation.strGatheredDetailsName, false );
                 optsSignOperation.details.close();
@@ -1345,7 +1380,8 @@ async function gatherSigningFinishImpl( optsSignOperation ) {
         const strErrorMessage = cc.error( "Failed BLS sign result awaiting(2): " ) +
             cc.warning( "No reports were arrived" ) +
             + "\n";
-        log.write( strErrorMessage );
+        if( log.id != optsSignOperation.details.id )
+            log.write( strErrorMessage );
         optsSignOperation.details.write( strErrorMessage );
         optsSignOperation.bHaveResultReportCalled = true;
         await optsSignOperation.fn(
@@ -1354,14 +1390,17 @@ async function gatherSigningFinishImpl( optsSignOperation ) {
             JSON.stringify( optsSignOperation.joGatheringTracker ),
             optsSignOperation.jarrMessages, null
         ).catch( ( err ) => {
-            const strErrorMessage =
-                cc.error( "Problem(6) in BLS sign result handler, " +
-                "not enough successful BLS signature parts(" ) +
-                cc.info( optsSignOperation.cntSuccess ) +
-                cc.error( ") and timeout reached, error optsSignOperation.details: " ) +
-                cc.warning( owaspUtils.extractErrorMessage( err ) ) + "\n";
-            log.write( strErrorMessage );
-            optsSignOperation.details.write( strErrorMessage );
+            if( log.verboseGet() >= log.verboseReversed().critical ) {
+                const strErrorMessage =
+                    cc.error( "Problem(6) in BLS sign result handler, " +
+                    "not enough successful BLS signature parts(" ) +
+                    cc.info( optsSignOperation.cntSuccess ) +
+                    cc.error( ") and timeout reached, error optsSignOperation.details: " ) +
+                    cc.warning( owaspUtils.extractErrorMessage( err ) ) + "\n";
+                if( log.id != optsSignOperation.details.id )
+                    log.write( strErrorMessage );
+                optsSignOperation.details.write( strErrorMessage );
+            }
             optsSignOperation.details.exposeDetailsTo(
                 log, optsSignOperation.strGatheredDetailsName, false );
             optsSignOperation.details.close();
@@ -1429,7 +1468,8 @@ async function doSignProcessHandleCall(
             cc.error( ", " ) + cc.notice( "sequence ID" ) +
             cc.error( " is " ) + cc.attention( optsSignOperation.sequenceId ) +
             "\n";
-        log.write( strErrorMessage );
+        if( log.id != optsSignOperation.details.id )
+            log.write( strErrorMessage );
         optsSignOperation.details.write( strErrorMessage );
         await joCall.disconnect();
         return;
@@ -1460,7 +1500,8 @@ async function doSignProcessHandleCall(
             cc.error( ", " ) + cc.notice( "sequence ID" ) +
             cc.error( " is " ) + cc.attention( optsSignOperation.sequenceId ) +
             "\n";
-        log.write( strErrorMessage );
+        if( log.id != optsSignOperation.details.id )
+            log.write( strErrorMessage );
         optsSignOperation.details.write( strErrorMessage );
         await joCall.disconnect();
         return;
@@ -1544,20 +1585,23 @@ async function doSignProcessHandleCall(
                         "\n" );
                 }
             } catch ( err ) {
-                const strErrorMessage =
-                    optsSignOperation.strLogPrefixA + cc.error( "S-Chain node " ) +
-                    strNodeDescColorized + cc.error( " sign " ) +
-                    cc.error( " CRITICAL ERROR:" ) +
-                    cc.error( " partial signature fail from with index " ) +
-                    cc.info( nZeroBasedNodeIndex ) +
-                    cc.error( ", error is " ) +
-                    cc.warning( owaspUtils.extractErrorMessage( err ) ) +
-                    cc.error( ", " ) + cc.notice( "sequence ID" ) +
-                    cc.error( " is " ) + cc.attention( optsSignOperation.sequenceId ) +
-                    cc.error( ", stack is:" ) + "\n" + cc.stack( err.stack ) +
-                    "\n";
-                log.write( strErrorMessage );
-                optsSignOperation.details.write( strErrorMessage );
+                if( log.verboseGet() >= log.verboseReversed().critical ) {
+                    const strErrorMessage =
+                        optsSignOperation.strLogPrefixA + cc.error( "S-Chain node " ) +
+                        strNodeDescColorized + cc.error( " sign " ) +
+                        cc.error( " CRITICAL ERROR:" ) +
+                        cc.error( " partial signature fail from with index " ) +
+                        cc.info( nZeroBasedNodeIndex ) +
+                        cc.error( ", error is " ) +
+                        cc.warning( owaspUtils.extractErrorMessage( err ) ) +
+                        cc.error( ", " ) + cc.notice( "sequence ID" ) +
+                        cc.error( " is " ) + cc.attention( optsSignOperation.sequenceId ) +
+                        cc.error( ", stack is:" ) + "\n" + cc.stack( err.stack ) +
+                        "\n";
+                    if( log.id != optsSignOperation.details.id )
+                        log.write( strErrorMessage );
+                    optsSignOperation.details.write( strErrorMessage );
+                }
             }
             if( bNodeSignatureOKay ) {
                 optsSignOperation.arrSignResults.push( {
@@ -1574,18 +1618,21 @@ async function doSignProcessHandleCall(
         }
     } catch ( err ) {
         ++optsSignOperation.joGatheringTracker.nCountErrors;
-        const strErrorMessage =
-            optsSignOperation.strLogPrefix + cc.error( "S-Chain node " ) +
-            strNodeDescColorized + " " + cc.fatal( "CRITICAL ERROR:" ) +
-            cc.error( " signature fail from node " ) + cc.info( joNode.nodeID ) +
-            cc.error( ", error is " ) +
-            cc.warning( owaspUtils.extractErrorMessage( err ) ) +
-            cc.error( ", " ) + cc.notice( "sequence ID" ) +
-            cc.error( " is " ) + cc.attention( optsSignOperation.sequenceId ) +
-            cc.error( ", stack is:" ) + "\n" + cc.stack( err.stack ) +
-            "\n";
-        log.write( strErrorMessage );
-        optsSignOperation.details.write( strErrorMessage );
+        if( log.verboseGet() >= log.verboseReversed().critical ) {
+            const strErrorMessage =
+                optsSignOperation.strLogPrefix + cc.error( "S-Chain node " ) +
+                strNodeDescColorized + " " + cc.fatal( "CRITICAL ERROR:" ) +
+                cc.error( " signature fail from node " ) + cc.info( joNode.nodeID ) +
+                cc.error( ", error is " ) +
+                cc.warning( owaspUtils.extractErrorMessage( err ) ) +
+                cc.error( ", " ) + cc.notice( "sequence ID" ) +
+                cc.error( " is " ) + cc.attention( optsSignOperation.sequenceId ) +
+                cc.error( ", stack is:" ) + "\n" + cc.stack( err.stack ) +
+                "\n";
+            if( log.id != optsSignOperation.details.id )
+                log.write( strErrorMessage );
+            optsSignOperation.details.write( strErrorMessage );
+        }
     }
     await joCall.disconnect();
 }
@@ -1615,7 +1662,8 @@ async function doSignProcessOneImpl( i, optsSignOperation ) {
                 cc.error( ", " ) + cc.notice( "sequence ID" ) +
                 cc.error( " is " ) + cc.attention( optsSignOperation.sequenceId ) +
                 "\n";
-                log.write( strErrorMessage );
+                if( log.id != optsSignOperation.details.id )
+                    log.write( strErrorMessage );
                 optsSignOperation.details.write( strErrorMessage );
                 if( joCall )
                     await joCall.disconnect();
@@ -1738,13 +1786,16 @@ async function doSignMessagesImpl(
         await gatherSigningStartImpl( optsSignOperation );
         await gatherSigningFinishImpl( optsSignOperation );
     } catch ( err ) {
-        const strErrorMessage =
-            cc.error( "Failed BLS sign due to generic flow exception: " ) +
-            cc.warning( owaspUtils.extractErrorMessage( err ) ) +
-            cc.error( ", stack is: " ) + "\n" + cc.stack( err.stack ) + "\n";
-        log.write( strErrorMessage );
-        if( optsSignOperation.details )
-            optsSignOperation.details.write( strErrorMessage );
+        if( log.verboseGet() >= log.verboseReversed().critical ) {
+            const strErrorMessage =
+                cc.error( "Failed BLS sign due to generic flow exception: " ) +
+                cc.warning( owaspUtils.extractErrorMessage( err ) ) +
+                cc.error( ", stack is: " ) + "\n" + cc.stack( err.stack ) + "\n";
+            if( ( !optsSignOperation.details ) || log.id != optsSignOperation.details.id )
+                log.write( strErrorMessage );
+            if( optsSignOperation.details )
+                optsSignOperation.details.write( strErrorMessage );
+        }
         if( ! optsSignOperation.bHaveResultReportCalled ) {
             optsSignOperation.bHaveResultReportCalled = true;
             await optsSignOperation.fn(
@@ -1753,14 +1804,20 @@ async function doSignMessagesImpl(
                 optsSignOperation.jarrMessages,
                 null
             ).catch( ( err ) => {
-                const strErrorMessage =
-                    cc.error( "Failed BLS sign due to " +
-                        "error-reporting callback exception: " ) +
-                    cc.warning( owaspUtils.extractErrorMessage( err ) ) +
-                    "\n";
-                log.write( strErrorMessage );
+                let strErrorMessage = null;
+                if( log.verboseGet() >= log.verboseReversed().critical ) {
+                    strErrorMessage =
+                        cc.error( "Failed BLS sign due to " +
+                            "error-reporting callback exception: " ) +
+                        cc.warning( owaspUtils.extractErrorMessage( err ) ) +
+                        "\n";
+                    log.write( strErrorMessage );
+                }
                 if( optsSignOperation.details ) {
-                    optsSignOperation.details.write( strErrorMessage );
+                    if( log.verboseGet() >= log.verboseReversed().critical ) {
+                        if( strErrorMessage )
+                            optsSignOperation.details.write( strErrorMessage );
+                    }
                     optsSignOperation.details.exposeDetailsTo(
                         log, optsSignOperation.strGatheredDetailsName, false );
                     optsSignOperation.details.close();
@@ -1880,7 +1937,8 @@ async function doSignU256OneImpl( optsSignU256 ) {
                 cc.error( " failed, RPC call was not created, error is: " ) +
                 cc.warning( owaspUtils.extractErrorMessage( err ) ) +
                 "\n";
-            log.write( strErrorMessage );
+            if( log.id != optsSignU256.details.id )
+                log.write( strErrorMessage );
             optsSignU256.details.write( strErrorMessage );
             if( joCall )
                 await joCall.disconnect();
@@ -1905,7 +1963,8 @@ async function doSignU256OneImpl( optsSignU256 ) {
                     cc.error( " failed, RPC call reported error: " ) +
                     cc.warning( owaspUtils.extractErrorMessage( err ) ) +
                     "\n";
-                log.write( strErrorMessage );
+                if( log.id != optsSignU256.details.id )
+                    log.write( strErrorMessage );
                 optsSignU256.details.write( strErrorMessage );
                 await joCall.disconnect();
                 return;
@@ -1929,7 +1988,8 @@ async function doSignU256OneImpl( optsSignU256 ) {
                         owaspUtils.extractErrorMessage( joOut, "unknown wallet error(2)" )
                     ) +
                     "\n";
-                log.write( strErrorMessage );
+                if( log.id != optsSignU256.details.id )
+                    log.write( strErrorMessage );
                 optsSignU256.details.write( strErrorMessage );
                 await joCall.disconnect();
                 return;
@@ -2006,18 +2066,21 @@ async function doSignU256OneImpl( optsSignU256 ) {
                                 "\n" );
                         }
                     } catch ( err ) {
-                        const strErrorMessage =
-                            strLogPrefixA + cc.error( "S-Chain node " ) +
-                            strNodeDescColorized + cc.error( " sign " ) +
-                            cc.error( " CRITICAL ERROR:" ) +
-                            cc.error( " partial signature fail from with index " ) +
-                            cc.info( nZeroBasedNodeIndex ) +
-                            cc.error( ", error is " ) +
-                            cc.warning( owaspUtils.extractErrorMessage( err ) ) +
-                            cc.error( ", stack is:" ) + "\n" + cc.stack( err.stack ) +
-                            "\n";
-                        log.write( strErrorMessage );
-                        optsSignU256.details.write( strErrorMessage );
+                        if( log.verboseGet() >= log.verboseReversed().critical ) {
+                            const strErrorMessage =
+                                strLogPrefixA + cc.error( "S-Chain node " ) +
+                                strNodeDescColorized + cc.error( " sign " ) +
+                                cc.error( " CRITICAL ERROR:" ) +
+                                cc.error( " partial signature fail from with index " ) +
+                                cc.info( nZeroBasedNodeIndex ) +
+                                cc.error( ", error is " ) +
+                                cc.warning( owaspUtils.extractErrorMessage( err ) ) +
+                                cc.error( ", stack is:" ) + "\n" + cc.stack( err.stack ) +
+                                "\n";
+                            if( log.id != optsSignU256.details.id )
+                                log.write( strErrorMessage );
+                            optsSignU256.details.write( strErrorMessage );
+                        }
                     }
                     if( bNodeSignatureOKay ) {
                         optsSignU256.arrSignResults.push( {
@@ -2034,16 +2097,19 @@ async function doSignU256OneImpl( optsSignU256 ) {
                 }
             } catch ( err ) {
                 ++optsSignU256.joGatheringTracker.nCountErrors;
-                const strErrorMessage =
-                    optsSignU256.strLogPrefix + cc.error( "S-Chain node " ) +
-                    strNodeDescColorized + " " + cc.fatal( "CRITICAL ERROR:" ) +
-                    cc.error( " signature fail from node " ) + cc.info( joNode.nodeID ) +
-                    cc.error( ", error is " ) +
-                    cc.warning( owaspUtils.extractErrorMessage( err ) ) +
-                    cc.error( ", stack is:" ) + "\n" + cc.stack( err.stack ) +
-                    "\n";
-                log.write( strErrorMessage );
-                optsSignU256.details.write( strErrorMessage );
+                if( log.verboseGet() >= log.verboseReversed().critical ) {
+                    const strErrorMessage =
+                        optsSignU256.strLogPrefix + cc.error( "S-Chain node " ) +
+                        strNodeDescColorized + " " + cc.fatal( "CRITICAL ERROR:" ) +
+                        cc.error( " signature fail from node " ) + cc.info( joNode.nodeID ) +
+                        cc.error( ", error is " ) +
+                        cc.warning( owaspUtils.extractErrorMessage( err ) ) +
+                        cc.error( ", stack is:" ) + "\n" + cc.stack( err.stack ) +
+                        "\n";
+                    if( log.id != optsSignU256.details.id )
+                        log.write( strErrorMessage );
+                    optsSignU256.details.write( strErrorMessage );
+                }
             }
             await joCall.disconnect();
         } ); // joCall.call ...
@@ -2092,12 +2158,12 @@ async function doSignU256Gathering( optsSignU256 ) {
                                 "\n" );
                         } else {
                             strError = "BLS verification failed";
-                            log.write( strLogPrefixB +
-                                cc.fatal( "CRITICAL ERROR:" ) + cc.error( strError ) +
-                                "\n" );
+                            if( log.id != optsSignU256.details.id ) {
+                                log.write( strLogPrefixB +
+                                    cc.fatal( "CRITICAL ERROR:" ) + cc.error( strError ) + "\n" );
+                            }
                             optsSignU256.details.write( strLogPrefixB +
-                                cc.fatal( "CRITICAL ERROR:" ) + cc.error( strError ) +
-                                "\n" );
+                                cc.fatal( "CRITICAL ERROR:" ) + cc.error( strError ) + "\n" );
                         }
                     }
                 } else {
@@ -2106,7 +2172,8 @@ async function doSignU256Gathering( optsSignU256 ) {
                         cc.error( "Problem(1) in BLS u256 sign result handler: " ) +
                         cc.warning( strError ) +
                         "\n";
-                    log.write( strErrorMessage );
+                    if( log.id != optsSignU256.details.id )
+                        log.write( strErrorMessage );
                     optsSignU256.details.write( strErrorMessage );
                 }
                 const strCallbackCallDescription =
@@ -2118,15 +2185,18 @@ async function doSignU256Gathering( optsSignU256 ) {
                 optsSignU256.fn( // NOTICE: no await here, executed async
                     strError, optsSignU256.u256, joGlueResult )
                     .catch( ( err ) => {
-                        const strErrorMessage =
-                        cc.error( "Problem(2) in BLS u256 sign result handler: " ) +
-                        cc.warning( owaspUtils.extractErrorMessage( err ) ) +
-                        "\n";
-                        log.write( strErrorMessage );
-                        optsSignU256.details.write( strErrorMessage );
+                        if( log.verboseGet() >= log.verboseReversed().critical ) {
+                            const strErrorMessage =
+                                cc.error( "Problem(2) in BLS u256 sign result handler: " ) +
+                                cc.warning( owaspUtils.extractErrorMessage( err ) ) +
+                                "\n";
+                            if( log.id != optsSignU256.details.id )
+                                log.write( strErrorMessage );
+                            optsSignU256.details.write( strErrorMessage );
+                        }
                         optsSignU256.errGathering =
-                        "Problem(2) in BLS u256 sign result handler: " +
-                        owaspUtils.extractErrorMessage( err );
+                            "Problem(2) in BLS u256 sign result handler: " +
+                            owaspUtils.extractErrorMessage( err );
                     } );
                 if( strError ) {
                     optsSignU256.errGathering = strError;
@@ -2145,15 +2215,18 @@ async function doSignU256Gathering( optsSignU256 ) {
                     optsSignU256.u256,
                     null
                 ).catch( ( err ) => {
-                    const strErrorMessage =
-                        cc.error( "Problem(3) in BLS u256 sign result handler, " +
-                        "not enough successful BLS signature parts(" ) +
-                        cc.info( cntSuccess ) +
-                        cc.error( " when all attempts done, error optsSignU256.details: " ) +
-                        cc.warning( owaspUtils.extractErrorMessage( err ) ) +
-                        "\n";
-                    log.write( strErrorMessage );
-                    optsSignU256.details.write( strErrorMessage );
+                    if( log.verboseGet() >= log.verboseReversed().critical ) {
+                        const strErrorMessage =
+                            cc.error( "Problem(3) in BLS u256 sign result handler, " +
+                            "not enough successful BLS signature parts(" ) +
+                            cc.info( cntSuccess ) +
+                            cc.error( " when all attempts done, error optsSignU256.details: " ) +
+                            cc.warning( owaspUtils.extractErrorMessage( err ) ) +
+                            "\n";
+                        if( log.id != optsSignU256.details.id )
+                            log.write( strErrorMessage );
+                        optsSignU256.details.write( strErrorMessage );
+                    }
                     optsSignU256.errGathering =
                         "Problem(3) in BLS u256 sign result handler, " +
                         "not enough successful BLS signature parts(" +
@@ -2174,14 +2247,17 @@ async function doSignU256Gathering( optsSignU256 ) {
                     optsSignU256.u256,
                     null
                 ).catch( ( err ) => {
-                    const strErrorMessage =
-                        cc.error( "Problem(4) in BLS u256 sign result handler, " +
-                        "not enough successful BLS signature parts(" ) +
-                        cc.info( cntSuccess ) +
-                        cc.error( ") and timeout reached, error optsSignU256.details: " ) +
-                        cc.warning( owaspUtils.extractErrorMessage( err ) ) + "\n";
-                    log.write( strErrorMessage );
-                    optsSignU256.details.write( strErrorMessage );
+                    if( log.verboseGet() >= log.verboseReversed().critical ) {
+                        const strErrorMessage =
+                            cc.error( "Problem(4) in BLS u256 sign result handler, " +
+                            "not enough successful BLS signature parts(" ) +
+                            cc.info( cntSuccess ) +
+                            cc.error( ") and timeout reached, error optsSignU256.details: " ) +
+                            cc.warning( owaspUtils.extractErrorMessage( err ) ) + "\n";
+                        if( log.id != optsSignU256.details.id )
+                            log.write( strErrorMessage );
+                        optsSignU256.details.write( strErrorMessage );
+                    }
                     optsSignU256.errGathering =
                         "Problem(4) in BLS u256 sign result handler, " +
                         "not enough successful BLS signature parts(" +
@@ -2241,23 +2317,27 @@ export async function doSignU256( u256, details, fn ) {
     await withTimeout(
         "BLS u256 sign",
         optsSignU256.promiseCompleteGathering,
-        g_secondsMessageVerifySendTimeout
+        gSecondsMessageVerifySendTimeout
     ).then( strSuccessfulResultDescription => {
         optsSignU256.details.write( cc.info( "BLS u256 sign promise awaited." ) + "\n" );
     } ).catch( err => {
-        const strErrorMessage =
-            cc.error( "Failed to verify BLS and send message : " ) +
-            cc.warning( owaspUtils.extractErrorMessage( err ) ) +
-            "\n";
-        log.write( strErrorMessage );
-        optsSignU256.details.write( strErrorMessage );
+        if( log.verboseGet() >= log.verboseReversed().critical ) {
+            const strErrorMessage =
+                cc.error( "Failed to verify BLS and send message : " ) +
+                cc.warning( owaspUtils.extractErrorMessage( err ) ) +
+                "\n";
+            if( log.id != optsSignU256.details.id )
+                log.write( strErrorMessage );
+            optsSignU256.details.write( strErrorMessage );
+        }
     } );
     if( optsSignU256.errGathering ) {
         const strErrorMessage =
             cc.error( "Failed BLS u256 sign result awaiting: " ) +
             cc.warning( optsSignU256.errGathering.toString() ) +
             "\n";
-        log.write( strErrorMessage );
+        if( log.id != optsSignU256.details.id )
+            log.write( strErrorMessage );
         optsSignU256.details.write( strErrorMessage );
         return;
     }
@@ -2341,22 +2421,26 @@ export async function doVerifyReadyHash(
         fnShellRestore();
         isSuccess = true;
     } catch ( err ) {
-        const s1 = strLogPrefix +
-            cc.fatal( "CRITICAL ERROR:" ) +
-            cc.error( " BLS node " ) + cc.notice( "#" ) + cc.info( nZeroBasedNodeIndex ) +
-            cc.error( " verify error:" ) + cc.warning( " error description is: " ) +
-            cc.warning( owaspUtils.extractErrorMessage( err ) ) +
-            cc.error( ", stack is: " ) + "\n" + cc.stack( err.stack ) +
-            "\n";
-        const s2 = strLogPrefix +
-            cc.error( "CRITICAL ERROR:" ) + cc.error( " BLS node " ) +
-            cc.notice( "#" ) + cc.info( nZeroBasedNodeIndex ) +
-            cc.error( " verify output is:\n" ) + cc.warning( strOutput ) +
-            "\n";
-        log.write( s1 );
-        details.write( s1 );
-        log.write( s2 );
-        details.write( s2 );
+        if( log.verboseGet() >= log.verboseReversed().critical ) {
+            const s1 = strLogPrefix +
+                cc.fatal( "CRITICAL ERROR:" ) +
+                cc.error( " BLS node " ) + cc.notice( "#" ) + cc.info( nZeroBasedNodeIndex ) +
+                cc.error( " verify error:" ) + cc.warning( " error description is: " ) +
+                cc.warning( owaspUtils.extractErrorMessage( err ) ) +
+                cc.error( ", stack is: " ) + "\n" + cc.stack( err.stack ) +
+                "\n";
+            const s2 = strLogPrefix +
+                cc.error( "CRITICAL ERROR:" ) + cc.error( " BLS node " ) +
+                cc.notice( "#" ) + cc.info( nZeroBasedNodeIndex ) +
+                cc.error( " verify output is:\n" ) + cc.warning( strOutput ) +
+                "\n";
+            if( log.id != details.id ) {
+                log.write( s1 );
+                log.write( s2 );
+            }
+            details.write( s1 );
+            details.write( s2 );
+        }
         fnShellRestore();
         isSuccess = false;
     }
@@ -2422,7 +2506,8 @@ export async function doSignReadyHash( strMessageHash, isExposeOutput ) {
                         "RPC call was not created, error is: " ) +
                     cc.warning( owaspUtils.extractErrorMessage( err ) ) +
                     "\n";
-                log.write( strErrorMessage );
+                if( log.id != details.id )
+                    log.write( strErrorMessage );
                 details.write( strErrorMessage );
                 if( joCall )
                     await joCall.disconnect();
@@ -2459,7 +2544,8 @@ export async function doSignReadyHash( strMessageHash, isExposeOutput ) {
                         cc.warning( owaspUtils.extractErrorMessage( err ) ) +
                         cc.error( ", stack is:" ) + "\n" + cc.stack( jsErrorObject.stack ) +
                         "\n";
-                    log.write( strErrorMessage );
+                    if( log.id != details.id )
+                        log.write( strErrorMessage );
                     details.write( strErrorMessage );
                     await joCall.disconnect();
                     throw jsErrorObject;
@@ -2491,7 +2577,8 @@ export async function doSignReadyHash( strMessageHash, isExposeOutput ) {
                         cc.error( " BLS signing(1) finished with error: " ) +
                         cc.warning( joSignResult.errorMessage ) +
                         "\n";
-                    log.write( strErrorMessage );
+                    if( log.id != details.id )
+                        log.write( strErrorMessage );
                     details.write( strErrorMessage );
                     await joCall.disconnect();
                     throw new Error( strError );
@@ -2504,13 +2591,16 @@ export async function doSignReadyHash( strMessageHash, isExposeOutput ) {
         const strError = owaspUtils.extractErrorMessage( err );
         joSignResult = { };
         joSignResult.error = strError;
-        const strErrorMessage =
-            strLogPrefix + cc.fatal( "CRITICAL ERROR:" ) + " " +
-            cc.error( "BLS-raw-signer error: " ) + cc.warning( strError ) +
-            cc.error( ", stack is:" ) + "\n" + cc.stack( err.stack ) +
-            "\n";
-        log.write( strErrorMessage );
-        details.write( strErrorMessage );
+        if( log.verboseGet() >= log.verboseReversed().critical ) {
+            const strErrorMessage =
+                strLogPrefix + cc.fatal( "CRITICAL ERROR:" ) + " " +
+                cc.error( "BLS-raw-signer error: " ) + cc.warning( strError ) +
+                cc.error( ", stack is:" ) + "\n" + cc.stack( err.stack ) +
+                "\n";
+            if( log.id != details.id )
+                log.write( strErrorMessage );
+            details.write( strErrorMessage );
+        }
     }
     const isSuccess = (
         joSignResult && typeof joSignResult == "object" && ( !joSignResult.error ) )
@@ -2702,7 +2792,8 @@ export async function handleSkaleImaVerifyAndSign( joCallData ) {
                         "RPC call was not created, error is: " ) +
                     cc.warning( owaspUtils.extractErrorMessage( err ) ) +
                     "\n";
-                log.write( strErrorMessage );
+                if( log.id != optsHandleVerifyAndSign.details.id )
+                    log.write( strErrorMessage );
                 optsHandleVerifyAndSign.details.write( strErrorMessage );
                 if( joCall )
                     await joCall.disconnect();
@@ -2742,7 +2833,8 @@ export async function handleSkaleImaVerifyAndSign( joCallData ) {
                         cc.warning( owaspUtils.extractErrorMessage( err ) ) +
                         cc.error( ", stack is:" ) + "\n" + cc.stack( jsErrorObject.stack ) +
                         "\n";
-                    log.write( strErrorMessage );
+                    if( log.id != optsHandleVerifyAndSign.details.id )
+                        log.write( strErrorMessage );
                     optsHandleVerifyAndSign.details.write( strErrorMessage );
                     await joCall.disconnect();
                     throw jsErrorObject;
@@ -2778,7 +2870,8 @@ export async function handleSkaleImaVerifyAndSign( joCallData ) {
                         cc.error( " BLS signing(2) finished with error: " ) +
                         cc.warning( joSignResult.errorMessage ) +
                         "\n";
-                    log.write( strErrorMessage );
+                    if( log.id != optsHandleVerifyAndSign.details.id )
+                        log.write( strErrorMessage );
                     optsHandleVerifyAndSign.details.write( strErrorMessage );
                     await joCall.disconnect();
                     throw new Error( strError );
@@ -2794,13 +2887,16 @@ export async function handleSkaleImaVerifyAndSign( joCallData ) {
         optsHandleVerifyAndSign.isSuccess = false;
         const strError = owaspUtils.extractErrorMessage( err );
         optsHandleVerifyAndSign.joRetVal.error = strError;
-        const strErrorMessage =
-            optsHandleVerifyAndSign.strLogPrefix + cc.fatal( "CRITICAL ERROR:" ) + " " +
-            cc.error( "IMA messages verifier/signer error: " ) + cc.warning( strError ) +
-            cc.error( ", stack is:" ) + "\n" + cc.stack( err.stack ) +
-            "\n";
-        log.write( strErrorMessage );
-        optsHandleVerifyAndSign.details.write( strErrorMessage );
+        if( log.verboseGet() >= log.verboseReversed().critical ) {
+            const strErrorMessage =
+                optsHandleVerifyAndSign.strLogPrefix + cc.fatal( "CRITICAL ERROR:" ) + " " +
+                cc.error( "IMA messages verifier/signer error: " ) + cc.warning( strError ) +
+                cc.error( ", stack is:" ) + "\n" + cc.stack( err.stack ) +
+                "\n";
+            if( log.id != optsHandleVerifyAndSign.details.id )
+                log.write( strErrorMessage );
+            optsHandleVerifyAndSign.details.write( strErrorMessage );
+        }
     }
     optsHandleVerifyAndSign.details.exposeDetailsTo(
         log, "IMA messages verifier/signer", optsHandleVerifyAndSign.isSuccess );
@@ -2888,7 +2984,8 @@ export async function handleSkaleImaBSU256( joCallData ) {
                         "RPC call was not created, error is: " ) +
                     cc.warning( owaspUtils.extractErrorMessage( err ) ) +
                     "\n";
-                    log.write( strErrorMessage );
+                    if( log.id != optsBSU256.details.id )
+                        log.write( strErrorMessage );
                     optsBSU256.details.write( strErrorMessage );
                     if( joCall )
                         await joCall.disconnect();
@@ -2921,11 +3018,12 @@ export async function handleSkaleImaBSU256( joCallData ) {
                         );
                         const strErrorMessage =
                         optsBSU256.strLogPrefix + cc.fatal( "CRITICAL ERROR:" ) +
-                        cc.error( " JSON RPC call to SGX failed, RPC call reported error: " ) +
-                        cc.warning( owaspUtils.extractErrorMessage( err ) ) +
-                        cc.error( ", stack is:" ) + "\n" + cc.stack( jsErrorObject.stack ) +
-                        "\n";
-                        log.write( strErrorMessage );
+                            cc.error( " JSON RPC call to SGX failed, RPC call reported error: " ) +
+                            cc.warning( owaspUtils.extractErrorMessage( err ) ) +
+                            cc.error( ", stack is:" ) + "\n" + cc.stack( jsErrorObject.stack ) +
+                            "\n";
+                        if( log.id != optsBSU256.details.id )
+                            log.write( strErrorMessage );
                         optsBSU256.details.write( strErrorMessage );
                         await joCall.disconnect();
                         throw jsErrorObject;
@@ -2955,9 +3053,10 @@ export async function handleSkaleImaBSU256( joCallData ) {
                         optsBSU256.joRetVal.error = strError;
                         const strErrorMessage =
                         optsBSU256.strLogPrefix + cc.fatal( "CRITICAL ERROR:" ) +
-                        cc.error( " BLS signing(3) finished with error: " ) +
-                        cc.warning( joSignResult.errorMessage ) + "\n";
-                        log.write( strErrorMessage );
+                            cc.error( " BLS signing(3) finished with error: " ) +
+                            cc.warning( joSignResult.errorMessage ) + "\n";
+                        if( log.id != optsBSU256.details.id )
+                            log.write( strErrorMessage );
                         optsBSU256.details.write( strErrorMessage );
                         await joCall.disconnect();
                         throw new Error( strError );
@@ -2973,13 +3072,16 @@ export async function handleSkaleImaBSU256( joCallData ) {
         optsBSU256.isSuccess = false;
         const strError = owaspUtils.extractErrorMessage( err );
         optsBSU256.joRetVal.error = strError;
-        const strErrorMessage =
-            optsBSU256.strLogPrefix + cc.fatal( "CRITICAL ERROR:" ) + " " +
-            cc.error( "U256-BLS-signer error: " ) + cc.warning( strError ) +
-            cc.error( ", stack is:" ) + "\n" + cc.stack( err.stack ) +
-            "\n";
-        log.write( strErrorMessage );
-        optsBSU256.details.write( strErrorMessage );
+        if( log.verboseGet() >= log.verboseReversed().critical ) {
+            const strErrorMessage =
+                optsBSU256.strLogPrefix + cc.fatal( "CRITICAL ERROR:" ) + " " +
+                cc.error( "U256-BLS-signer error: " ) + cc.warning( strError ) +
+                cc.error( ", stack is:" ) + "\n" + cc.stack( err.stack ) +
+                "\n";
+            if( log.id != optsBSU256.details.id )
+                log.write( strErrorMessage );
+            optsBSU256.details.write( strErrorMessage );
+        }
     }
     optsBSU256.details.exposeDetailsTo( log, "U256-BLS-signer", optsBSU256.isSuccess );
     optsBSU256.details.close();
