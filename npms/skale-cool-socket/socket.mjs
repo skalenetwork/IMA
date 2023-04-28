@@ -88,7 +88,6 @@ export const generateSocketDataStatsJSON = function( jo ) {
         jo.arrPackedMessages &&
         typeof jo.arrPackedMessages == "object"
     ) {
-        //cnt = jo.arrPackedMessages.length;
         for( const joMessage of jo.arrPackedMessages )
             updateSocketDataStatsForMessage( joMessage, joStats );
 
@@ -1316,7 +1315,7 @@ export class LocalSocketClientPipe extends DirectPipe {
 };
 
 export class WebSocketServerPipe extends BasicSocketPipe {
-    constructor( acceptor, ws_conn, remoteAddress ) {
+    constructor( acceptor, wsConnection, remoteAddress ) {
         super();
         this.socketType = "WS";
         this.socketSubtype = "server";
@@ -1326,7 +1325,7 @@ export class WebSocketServerPipe extends BasicSocketPipe {
         this.clientNumber = 0 + acceptor.nextClientNumber;
         this.clientPort = 0 + this.clientNumber;
         ++ acceptor.nextClientNumber;
-        this.ws_conn = ws_conn;
+        this.wsConnection = wsConnection;
         this.remoteAddress = "" + remoteAddress;
         this.url = "ws_server_pipe(" + this.clientNumber + ")://" + remoteAddress;
         this._onWsClose = function() {
@@ -1342,21 +1341,21 @@ export class WebSocketServerPipe extends BasicSocketPipe {
         };
         this._removeWsEventListeners = function() {
             if( self._onWsClose ) {
-                ws_conn.removeEventListener( "close", self._onWsClose );
+                wsConnection.removeEventListener( "close", self._onWsClose );
                 self._onWsClose = null;
             }
             if( self._onWsError ) {
-                ws_conn.removeEventListener( "error", self._onWsError );
+                wsConnection.removeEventListener( "error", self._onWsError );
                 self._onWsError = null;
             }
             if( self._onWsMessage ) {
-                ws_conn.removeEventListener( "message", self._onWsMessage );
+                wsConnection.removeEventListener( "message", self._onWsMessage );
                 self._onWsMessage = null;
             }
         };
-        ws_conn.addEventListener( "close", this._onWsClose );
-        ws_conn.addEventListener( "error", this._onWsError );
-        ws_conn.addEventListener( "message", this._onWsMessage );
+        wsConnection.addEventListener( "close", this._onWsClose );
+        wsConnection.addEventListener( "error", this._onWsError );
+        wsConnection.addEventListener( "message", this._onWsMessage );
         this.acceptor.mapClients["" + this.clientPort] = this;
         const iv = setTimeout( function() {
             clearTimeout( iv );
@@ -1376,7 +1375,7 @@ export class WebSocketServerPipe extends BasicSocketPipe {
         this.isConnected = false;
         this.clientNumber = 0;
         this.acceptor = null;
-        this.ws_conn = null;
+        this.wsConnection = null;
         this.url = "";
         this.remoteAddress = "";
         this.dispose();
@@ -1389,13 +1388,13 @@ export class WebSocketServerPipe extends BasicSocketPipe {
             this._removeWsEventListeners();
             this._removeWsEventListeners = null;
         }
-        if( this.ws_conn ) {
+        if( this.wsConnection ) {
             try {
-                this.ws_conn.terminate();
+                this.wsConnection.terminate();
             } catch ( err ) {
                 console.warn( "Web socket server pipe termination error", err );
             }
-            this.ws_conn = null;
+            this.wsConnection = null;
         }
         if( this.acceptor )
             this.acceptor.unregisterClientByKey( this.clientPort );
@@ -1405,14 +1404,14 @@ export class WebSocketServerPipe extends BasicSocketPipe {
         this.remoteAddress = "";
     }
     implSend( data ) {
-        if( ( !this.isConnected ) || ( !this.ws_conn ) ) {
+        if( ( !this.isConnected ) || ( !this.wsConnection ) ) {
             const s = "Cannot send messages to disconnected web socket server pipe";
             this.dispatchEvent(
                 new UniversalDispatcherEvent( "error", { "socket": this, "message": "" + s } ) );
             throw new Error( s );
         }
         const s = socketSentDataMarshall( data );
-        this.ws_conn.send( s );
+        this.wsConnection.send( s );
     }
     disconnect() {
         this.performDisconnect();
@@ -1429,7 +1428,7 @@ export class WebSocketServerAcceptor extends BasicServerAcceptor {
     constructor( nTcpPort, key, cert ) {
         super();
         this.socketType = "WS";
-        this.ws_srv = null;
+        this.wsServer = null;
         if( key != null && key != undefined && typeof key == "string" && key.length > 0 &&
             cert != null && cert != undefined && typeof cert == "string" && cert.length > 0
         ) {
@@ -1439,15 +1438,15 @@ export class WebSocketServerAcceptor extends BasicServerAcceptor {
                 // , ca: ...
             } );
             server.listen( nTcpPort );
-            this.ws_srv = new wsModule.WebSocketServer( { server } );
+            this.wsServer = new wsModule.WebSocketServer( { server } );
         } else
-            this.ws_srv = new wsModule.WebSocketServer( { port: nTcpPort } );
+            this.wsServer = new wsModule.WebSocketServer( { port: nTcpPort } );
 
         const self = this;
-        self.ws_srv.on( "connection", function( ws_conn, req ) {
-            ws_conn.strSavedRemoteAddress = "" + req.connection.remoteAddress;
-            ws_conn.serverPipe =
-                new WebSocketServerPipe( self, ws_conn, req.connection.remoteAddress );
+        self.wsServer.on( "connection", function( wsConnection, req ) {
+            wsConnection.strSavedRemoteAddress = "" + req.connection.remoteAddress;
+            wsConnection.serverPipe =
+                new WebSocketServerPipe( self, wsConnection, req.connection.remoteAddress );
         } );
         this.isListening = true;
         const iv = setTimeout( function() {
@@ -1470,14 +1469,14 @@ export class WebSocketClientPipe extends BasicSocketPipe {
         this.socketType = "WS";
         this.socketSubtype = "client";
         this.isConnected = false;
-        this.ws_conn = null;
+        this.wsConnection = null;
         this._onWsOpen = null;
         this._onWsClose = null;
         this._onWsError = null;
         this._onWsMessage = null;
-        this.ws_url =
+        this.urlWS =
             "" + ( ( url != null && url != undefined && typeof url == "string" ) ? url : "" );
-        this.url = "ws_client_pipe-" + this.ws_url;
+        this.url = "ws_client_pipe-" + this.urlWS;
         this.reconnect();
     }
     dispose() {
@@ -1485,22 +1484,22 @@ export class WebSocketClientPipe extends BasicSocketPipe {
             return;
         this.isDisposing = true;
         this.performDisconnect();
-        this.ws_url = null;
+        this.urlWS = null;
         super.dispose();
     }
     implSend( data ) {
-        if( ( !this.isConnected ) || ( !this.ws_conn ) ) {
+        if( ( !this.isConnected ) || ( !this.wsConnection ) ) {
             const s = "Cannot send messages to disconnected web socket client pipe";
             this.dispatchEvent(
                 new UniversalDispatcherEvent( "error", { "socket": this, "message": "" + s } ) );
             throw new Error( s );
         }
         const s = socketSentDataMarshall( data );
-        this.ws_conn.send( s );
+        this.wsConnection.send( s );
     }
     reconnect() {
         this.performDisconnect();
-        this.ws_connect( "" + this.ws_url );
+        this.wsConnect( "" + this.urlWS );
     }
     disconnect() {
         this.performDisconnect();
@@ -1509,14 +1508,14 @@ export class WebSocketClientPipe extends BasicSocketPipe {
     performDisconnect() {
         if( ! this.isConnected )
             return;
-        this.ws_disconnect();
+        this.wsDisconnect();
     }
-    ws_connect_attempt( url, reconnectAfterMilliseconds, iv ) {
+    wsConnectAttempt( url, reconnectAfterMilliseconds, iv ) {
         const self = this;
         try {
-            if( this.isConnected || this.ws_conn )
-                this.ws_disconnect();
-            this.ws_conn = wsModule
+            if( this.isConnected || this.wsConnection )
+                this.wsDisconnect();
+            this.wsConnection = wsModule
                 ? new wsModule.WebSocket(
                     url,
                     { tlsOptions: { rejectUnauthorized: false } }
@@ -1548,26 +1547,26 @@ export class WebSocketClientPipe extends BasicSocketPipe {
             };
             this._removeWsEventListeners = function() {
                 if( self._onWsOpen ) {
-                    self.ws_conn.removeEventListener( "open", self._onWsOpen );
+                    self.wsConnection.removeEventListener( "open", self._onWsOpen );
                     self._onWsOpen = null;
                 }
                 if( self._onWsClose ) {
-                    self.ws_conn.removeEventListener( "close", self._onWsClose );
+                    self.wsConnection.removeEventListener( "close", self._onWsClose );
                     self._onWsClose = null;
                 }
                 if( self._onWsError ) {
-                    self.ws_conn.removeEventListener( "error", self._onWsError );
+                    self.wsConnection.removeEventListener( "error", self._onWsError );
                     self._onWsError = null;
                 }
                 if( self._onWsMessage ) {
-                    self.ws_conn.removeEventListener( "message", self._onWsMessage );
+                    self.wsConnection.removeEventListener( "message", self._onWsMessage );
                     self._onWsMessage = null;
                 }
             };
-            this.ws_conn.addEventListener( "open", this._onWsOpen );
-            this.ws_conn.addEventListener( "close", this._onWsClose );
-            this.ws_conn.addEventListener( "error", this._onWsError );
-            this.ws_conn.addEventListener( "message", this._onWsMessage );
+            this.wsConnection.addEventListener( "open", this._onWsOpen );
+            this.wsConnection.addEventListener( "close", this._onWsClose );
+            this.wsConnection.addEventListener( "error", this._onWsError );
+            this.wsConnection.addEventListener( "message", this._onWsMessage );
             if( iv )
                 clearTimeout( iv );
             return true;
@@ -1579,7 +1578,7 @@ export class WebSocketClientPipe extends BasicSocketPipe {
             if( reconnectAfterMilliseconds > 0 && ( !iv ) ) {
                 const iv = setTimeout( function() {
                     try {
-                        if( self.ws_connect_attempt( url, reconnectAfterMilliseconds, iv ) )
+                        if( self.wsConnectAttempt( url, reconnectAfterMilliseconds, iv ) )
                             clearTimeout( iv );
                     } catch ( err ) {
                     }
@@ -1588,31 +1587,31 @@ export class WebSocketClientPipe extends BasicSocketPipe {
         }
         return false;
     }
-    ws_connect( url ) {
+    wsConnect( url ) {
         if( url.length == 0 ) {
             const s = "Cannot connect web socket server \"" + url + "\", bad url";
             this.dispatchEvent(
                 new UniversalDispatcherEvent( "error", { "socket": this, "message": "" + s } ) );
             throw new Error( s );
         }
-        this.ws_connect_attempt( url, settings.net.ws.client.reconnectAfterMilliseconds, null );
+        this.wsConnectAttempt( url, settings.net.ws.client.reconnectAfterMilliseconds, null );
     }
-    ws_disconnect() {
+    wsDisconnect() {
         if( this._removeWsEventListeners ) {
             this._removeWsEventListeners();
             this._removeWsEventListeners = null;
         }
-        if( this.ws_conn ) {
+        if( this.wsConnection ) {
             let bPass = false, anyError = null;
             try {
-                this.ws_conn.close();
+                this.wsConnection.close();
                 bPass = true;
             } catch ( err ) {
                 anyError = err;
             }
             if( ! bPass ) {
                 try {
-                    this.ws_conn.terminate();
+                    this.wsConnection.terminate();
                     bPass = true;
                 } catch ( err ) {
                     anyError = err;
@@ -1620,7 +1619,7 @@ export class WebSocketClientPipe extends BasicSocketPipe {
             }
             if( ! bPass )
                 console.warn( "Web socket client pipe termination error", anyError );
-            this.ws_conn = null;
+            this.wsConnection = null;
         }
         this.isConnected = false;
         this.url = "";
@@ -1750,7 +1749,6 @@ export class RTCConnection extends EventDispatcher {
         this.dispatchEvent(
             new UniversalDispatcherEvent(
                 "dataChannelClose", { "detail": { "actor": this } } ) );
-        // this.onError( "Data channel closed" );
     }
     onDataChannelError( event ) {
         this.dispatchEvent(
@@ -1760,7 +1758,6 @@ export class RTCConnection extends EventDispatcher {
     }
     onDataChannelMessage( event ) {
         if( event.data.size ) {
-            // fileReceiver.receive( event.data, { } );
             if( settings.logging.net.rtc.error ) {
                 console.warn(
                     this.describe() + " will ignore file transfer message of size", event.data.size
@@ -1771,7 +1768,6 @@ export class RTCConnection extends EventDispatcher {
                 return;
             const data = JSON.parse( event.data );
             if( data.type === "file" ) {
-                // fileReceiver.receive( event.data, { } );
                 if( settings.logging.net.rtc.error )
                     console.warn( this.describe() + " will ignore file transfer message" );
             } else {
@@ -1958,7 +1954,6 @@ export class RTCActor extends RTCConnection {
                 strInstanceType.length == 0 )
                 ? ( this.isCreator ? "creator" : ( this.isJoiner ? "joiner" : "actor" ) )
                 : strInstanceType;
-        // arrAdditionalProps = arrAdditionalProps || [];
         return super.describe( strInstanceType, arrAdditionalProps );
     }
     onError( err ) {
@@ -2197,7 +2192,6 @@ export class RTCServerPeer extends RTCConnection {
                 ( typeof strInstanceType != "string" ) || strInstanceType.length == 0 )
                 ? "server-peer"
                 : strInstanceType;
-        // arrAdditionalProps = arrAdditionalProps || [];
         return super.describe( strInstanceType, arrAdditionalProps );
     }
     initPeer() {
@@ -2489,7 +2483,6 @@ export class RTCCreator extends RTCActor {
             Object.entries( this.mapServerPeers ) )
             rtcPeer.dispose();
         this.mapServerOffers = { };
-        // self.idOfferNext = 0;
         super.dispose();
     }
     describe( strInstanceType, arrAdditionalProps ) {
@@ -2498,7 +2491,6 @@ export class RTCCreator extends RTCActor {
                 ( typeof strInstanceType != "string" ) || strInstanceType.length == 0 )
                 ? "rtc-creator"
                 : strInstanceType;
-        // arrAdditionalProps = arrAdditionalProps || [];
         return super.describe( strInstanceType, arrAdditionalProps );
     }
     onOtherSideIdentified( idSomebodyOtherSide, idOffer ) { // server peer got result
@@ -2707,7 +2699,6 @@ export class RTCJoiner extends RTCActor {
         this.peerAdditionalOptions =
             ( peerAdditionalOptions && typeof peerAdditionalOptions == "object" )
                 ? peerAdditionalOptions : settings.net.rtc.peerAdditionalOptions;
-        // this.initPeer();
     }
     dispose() {
         if( this.isDisposed )
@@ -2727,7 +2718,6 @@ export class RTCJoiner extends RTCActor {
                 strInstanceType.length == 0 )
                 ? "rtc-joiner"
                 : strInstanceType;
-        // arrAdditionalProps = arrAdditionalProps || [];
         return super.describe( strInstanceType, arrAdditionalProps );
     }
     initPeer() {
@@ -2798,8 +2788,6 @@ export class RTCJoiner extends RTCActor {
                     }
                 }
             } catch ( err ) {
-                // self.publishCancel();
-                // self.signalingNegotiationCancel();
                 self.onError(
                     "Failed to process ICE candidate: " + err.toString()
                 );
@@ -3327,7 +3315,7 @@ export class WebRTCClientPipe extends BasicSocketPipe {
     }
     reconnect() {
         this.performDisconnect();
-        this.rtc_connect( "" + this.strSignalingServerURL );
+        this.rtcConnect( "" + this.strSignalingServerURL );
     }
     disconnect() {
         this.performDisconnect();
@@ -3336,9 +3324,9 @@ export class WebRTCClientPipe extends BasicSocketPipe {
     performDisconnect() {
         if( ! this.isConnected )
             return;
-        this.rtc_disconnect();
+        this.rtcDisconnect();
     }
-    rtc_connect( strSignalingServerURL ) {
+    rtcConnect( strSignalingServerURL ) {
         if( strSignalingServerURL.length == 0 ) {
             const s = "Cannot connect signaling server \"" + strSignalingServerURL + "\", bad url";
             this.dispatchEvent(
@@ -3351,7 +3339,7 @@ export class WebRTCClientPipe extends BasicSocketPipe {
         while( true ) {
             try {
                 if( self.isConnected || self.rtcPeer )
-                    self.rtc_disconnect();
+                    self.rtcDisconnect();
                 self.rtcPeer =
                     new RTCJoiner(
                         "" + strSignalingServerURL, "" + self.idRtcParticipant,
@@ -3433,7 +3421,7 @@ export class WebRTCClientPipe extends BasicSocketPipe {
             }
         }
     }
-    rtc_disconnect() {
+    rtcDisconnect() {
         if( this.rtcPeer ) {
             this.rtcPeer.offAll();
             this.rtcPeer.dispose();
