@@ -176,7 +176,7 @@ export async function waitForClonedTokenToAppear(
     const strTokenSuffixUC =
         owaspUtils.replaceAll( strTokenSuffix.toUpperCase(), "_WITH_METADATA", "_with_metadata" );
     const strTokenSuffixLCshort = owaspUtils.replaceAll( strTokenSuffixLC, "_with_metadata", "" );
-    const ts0 = cc.ts_hr();
+    const ts0 = cc.timestampHR();
     let ts1;
     if( log.verboseGet() >= log.verboseReversed().information ) {
         log.write( cc.debug( "Waiting for " ) + cc.notice( strTokenSuffixUC ) +
@@ -210,7 +210,7 @@ export async function waitForClonedTokenToAppear(
                 { from: addressCallFrom }
             );
         if( addressOnSChain != "0x0000000000000000000000000000000000000000" ) {
-            ts1 = cc.ts_hr();
+            ts1 = cc.timestampHR();
             if( log.verboseGet() >= log.verboseReversed().information ) {
                 log.write( cc.success( "Done, duration is " ) +
                     cc.info( cc.getDurationString( ts0, ts1 ) ) + "\n" );
@@ -221,7 +221,7 @@ export async function waitForClonedTokenToAppear(
             return addressOnSChain;
         }
     }
-    ts1 = cc.ts_hr();
+    ts1 = cc.timestampHR();
     const strError =
         cc.error( "Failed to discover " ) + cc.notice( strTokenSuffixUC ) +
         cc.error( " instantiated on S-Chain " ) + cc.attention( sc.chainName );

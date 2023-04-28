@@ -206,7 +206,6 @@ export async function loadSChainParts( joSChain, addressFrom, opts ) {
             {
                 reference: strRef0,
                 contractAddress: opts.imaState.joNodes.address,
-                // abi:find_one_function_abi( opts.imaState.joAbiSkaleManager.nodes_abi, "nodes" ),
                 abi: opts.imaState.joAbiSkaleManager.nodes_abi,
                 calls: [ ]
             }, {
@@ -1024,7 +1023,8 @@ export function pickRandomSChainNode( joSChain ) {
 
 export function pickRandomSChainUrl( joSChain ) {
     const joNode = pickRandomSChainNode( joSChain );
-    return "" + joNode.http_endpoint_ip;
+    // eslint-disable-next-line dot-notation
+    return "" + joNode["http_endpoint_ip"];
 }
 
 export async function discoverChainId( strURL ) {

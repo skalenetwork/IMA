@@ -6016,15 +6016,18 @@ async function checkOutgoingMessageEvent( optsTransfer, joSChain ) {
         try {
             for( let idxNode = 0; idxNode < cntNodes; ++ idxNode ) {
                 joNode = joSChain.data.computed.nodes[idxNode];
+                // eslint-disable-next-line dot-notation
+                const strUrlHttp = joNode["http_endpoint_ip"];
                 optsTransfer.details.write( optsTransfer.strLogPrefix + cc.debug( "Validating " ) +
                     cc.sunny( optsTransfer.strDirection ) + cc.debug( " message " ) +
                     cc.info( idxMessage + 1 ) + cc.debug( " on node " ) + cc.info( joNode.name ) +
-                    cc.debug( " using URL " ) + cc.info( joNode.http_endpoint_ip ) +
+                    cc.debug( " using URL " ) + cc.info( strUrlHttp ) +
                     cc.debug( "..." ) + "\n" );
                 let bEventIsFound = false;
                 try {
+                    // eslint-disable-next-line dot-notation
                     const ethersProviderNode =
-                        owaspUtils.getEthersProviderFromURL( joNode.http_endpoint_ip );
+                        owaspUtils.getEthersProviderFromURL( strUrlHttp );
                     const joMessageProxyNode =
                         new owaspUtils.ethersMod.ethers.Contract(
                             optsTransfer.imaState.chainProperties.sc
@@ -6094,15 +6097,16 @@ async function checkOutgoingMessageEvent( optsTransfer, joSChain ) {
                         cc.sunny( optsTransfer.strDirection ) + cc.success( " message " ) +
                         cc.info( idxMessage + 1 ) + cc.success( " validation on node " ) +
                         cc.info( joNode.name ) + cc.success( " using URL " ) +
-                        cc.info( joNode.http_endpoint_ip ) + cc.success( " is passed" ) + "\n" );
+                        cc.info( strUrlHttp ) + cc.success( " is passed" ) + "\n" );
                 } else {
                     ++ cntFailedNodes;
                     if( log.verboseGet() >= log.verboseReversed().error ) {
+                        // eslint-disable-next-line dot-notation
                         const strError = optsTransfer.strLogPrefix +
                             cc.sunny( optsTransfer.strDirection ) + cc.error( " message " ) +
                             cc.info( idxMessage + 1 ) + cc.error( " validation on node " ) +
                             cc.info( joNode.name ) + cc.success( " using URL " ) +
-                            cc.info( joNode.http_endpoint_ip ) + cc.error( " is failed" ) + "\n";
+                            cc.info( strUrlHttp ) + cc.error( " is failed" ) + "\n";
                         optsTransfer.details.write( strError );
                         if( log.id != optsTransfer.details.id )
                             log.write( strError );
@@ -6111,16 +6115,19 @@ async function checkOutgoingMessageEvent( optsTransfer, joSChain ) {
                 if( cntFailedNodes > optsTransfer.cntNodesMayFail )
                     break;
                 if( cntPassedNodes >= optsTransfer.cntNodesShouldPass ) {
+                    // eslint-disable-next-line dot-notation
                     optsTransfer.details.write( optsTransfer.strLogPrefix +
                         cc.sunny( optsTransfer.strDirection ) + cc.success( " message " ) +
                         cc.info( idxMessage + 1 ) + cc.success( " validation on node " ) +
                         cc.info( joNode.name ) + cc.success( " using URL " ) +
-                        cc.info( joNode.http_endpoint_ip ) + cc.success( " is passed" ) + "\n" );
+                        cc.info( strUrlHttp ) + cc.success( " is passed" ) + "\n" );
                     break;
                 }
             }
         } catch ( err ) {
             if( log.verboseGet() >= log.verboseReversed().critical ) {
+                // eslint-disable-next-line dot-notation
+                const strUrlHttp = joNode ? joNode["http_endpoint_ip"] : "";
                 const strError = optsTransfer.strLogPrefix +
                     cc.fatal( optsTransfer.strDirection + " message analysis error:" ) +
                     " " + cc.error( "Failed to process events for " ) +
@@ -6130,9 +6137,7 @@ async function checkOutgoingMessageEvent( optsTransfer, joSChain ) {
                         ? cc.info( joNode.name )
                         : cc.error( "<<unknown node name>>" ) ) +
                     cc.error( " using URL " ) +
-                    ( joNode
-                        ? cc.info( joNode.http_endpoint_ip )
-                        : cc.error( "<<unknown node endpoint>>" ) ) +
+                    ( joNode ? cc.info( strUrlHttp ) : cc.error( "<<unknown node endpoint>>" ) ) +
                     cc.error( ", error is: " ) +
                     cc.warning( owaspUtils.extractErrorMessage( err ) ) +
                     cc.error( ", stack is: " ) + "\n" + cc.stack( err.stack ) +

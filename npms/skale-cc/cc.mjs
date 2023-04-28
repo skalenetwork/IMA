@@ -183,7 +183,7 @@ const gArrRainbowParts = [
     gMapColorDefinitions.fgMagenta
 ];
 
-export function rainbow_part( s, i ) {
+export function rainbowPart( s, i ) {
     if( !gFlagIsEnabled )
         return s;
     const j = i % gArrRainbowParts.length;
@@ -196,7 +196,7 @@ export function rainbow( s ) {
     let res = "";
     const cnt = s.length;
     for( let i = 0; i < cnt; ++ i )
-        res = res + rainbow_part( s[i], i );
+        res = res + rainbowPart( s[i], i );
     return res;
 }
 
@@ -845,13 +845,13 @@ export function n2s( n, sz ) {
     return s;
 }
 
-export function ts_hr() {
+export function timestampHR() {
     const d = new Date();
     const ts = Math.floor( ( d ).getTime() );
     return ts;
 }
 
-export function ts_unix() {
+export function timestampUnix() {
     const d = new Date();
     const ts = Math.floor( ( d ).getTime() / 1000 );
     return ts;

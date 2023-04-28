@@ -2455,11 +2455,11 @@ function initMonitoringServer() {
             cc.info( imaState.nMonitoringPort ) + "\n" );
     }
     gServerMonitoringWS = new ws.WebSocketServer( { port: 0 + imaState.nMonitoringPort } );
-    gServerMonitoringWS.on( "connection", function( ws_peer, req ) {
+    gServerMonitoringWS.on( "connection", function( wsPeer, req ) {
         const ip = req.socket.remoteAddress;
         if( log.verboseGet() >= log.verboseReversed().debug )
             log.write( strLogPrefix + cc.normal( "New connection from " ) + cc.info( ip ) + "\n" );
-        ws_peer.on( "message", function( message ) {
+        wsPeer.on( "message", function( message ) {
             const joAnswer = {
                 "method": null,
                 "id": null,
@@ -2550,7 +2550,7 @@ function initMonitoringServer() {
                     log.write( strLogPrefix + cc.sunny( ">>>" ) + " " + cc.normal( "answer to " ) +
                         cc.info( ip ) + cc.normal( ": " ) + cc.j( joAnswer ) + "\n" );
                 }
-                ws_peer.send( JSON.stringify( joAnswer ) );
+                wsPeer.send( JSON.stringify( joAnswer ) );
             } catch ( err ) {
                 if( log.verboseGet() >= log.verboseReversed().error ) {
                     const strError = owaspUtils.extractErrorMessage( err );
