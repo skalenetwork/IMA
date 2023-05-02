@@ -175,25 +175,28 @@ export function createMemoryOutputStream() {
             "size": function() { return 0; },
             "rotate": function( nBytesToWrite ) { this.strAccumulatedLogText = ""; },
             "toString": function() { return "" + this.strAccumulatedLogText; },
-            "exposeDetailsTo":
-                function( otherStream, strTitle, isSuccess ) {
-                    strTitle = strTitle
-                        ? ( cc.bright( " (" ) + cc.attention( strTitle ) + cc.bright( ")" ) ) : "";
-                    const strSuccessPrefix = isSuccess
-                        ? cc.success( "SUCCESS" ) : cc.fatal( "ERROR" );
-                    otherStream.write(
-                        cc.bright( "\n--- --- --- --- --- GATHERED " ) + strSuccessPrefix +
-                        cc.bright( " DETAILS FOR LATEST(" ) + cc.sunny( strTitle ) +
-                        cc.bright( " action (" ) + cc.sunny( "BEGIN" ) +
-                        cc.bright( ") --- --- ------ --- \n" ) +
-                        this.strAccumulatedLogText +
-                        cc.bright( "--- --- --- --- --- GATHERED " ) + strSuccessPrefix +
-                        cc.bright( " DETAILS FOR LATEST(" ) + cc.sunny( strTitle ) +
-                        cc.bright( " action (" ) + cc.sunny( "END" ) +
-                        cc.bright( ") --- --- --- --- ---\n"
-                        )
-                    );
-                }
+            "exposeDetailsTo": function( otherStream, strTitle, isSuccess ) {
+                if( ! ( this.strAccumulatedLogText &&
+                    typeof this.strAccumulatedLogText == "string" &&
+                    this.strAccumulatedLogText.length > 0 ) )
+                    return;
+                strTitle = strTitle
+                    ? ( cc.bright( " (" ) + cc.attention( strTitle ) + cc.bright( ")" ) ) : "";
+                const strSuccessPrefix = isSuccess
+                    ? cc.success( "SUCCESS" ) : cc.fatal( "ERROR" );
+                otherStream.write(
+                    cc.bright( "\n--- --- --- --- --- GATHERED " ) + strSuccessPrefix +
+                    cc.bright( " DETAILS FOR LATEST(" ) + cc.sunny( strTitle ) +
+                    cc.bright( " action (" ) + cc.sunny( "BEGIN" ) +
+                    cc.bright( ") --- --- ------ --- \n" ) +
+                    this.strAccumulatedLogText +
+                    cc.bright( "--- --- --- --- --- GATHERED " ) + strSuccessPrefix +
+                    cc.bright( " DETAILS FOR LATEST(" ) + cc.sunny( strTitle ) +
+                    cc.bright( " action (" ) + cc.sunny( "END" ) +
+                    cc.bright( ") --- --- --- --- ---\n"
+                    )
+                );
+            }
         };
         objEntry.open();
         return objEntry;
@@ -381,26 +384,30 @@ function computeVerboseAlias() {
         if( !gMapVerbose.hasOwnProperty( key ) )
             continue; // skip loop if the property is from prototype
         const name = gMapVerbose[key];
-        m[name] = key;
+        m[name] = parseInt( key );
     }
-    m.empty = 0 + m.silent; // alias
-    m.none = 0 + m.silent; // alias
-    m.stop = 0 + m.fatal; // alias
-    m.bad = 0 + m.critical; // alias
-    m.err = 0 + m.error; // alias
-    m.warn = 0 + m.warning; // alias
-    m.attn = 0 + m.attention; // alias
-    m.info = 0 + m.information; // alias
-    m.note = 0 + m.notice; // alias
-    m.dbg = 0 + m.debug; // alias
-    m.crazy = 0 + m.trace; // alias
-    m.detailed = 0 + m.trace; // alias
+    m.empty = 0 + parseInt( m.silent ); // alias
+    m.none = 0 + parseInt( m.silent ); // alias
+    m.stop = 0 + parseInt( m.fatal ); // alias
+    m.bad = 0 + parseInt( m.critical ); // alias
+    m.err = 0 + parseInt( m.error ); // alias
+    m.warn = 0 + parseInt( m.warning ); // alias
+    m.attn = 0 + parseInt( m.attention ); // alias
+    m.info = 0 + parseInt( m.information ); // alias
+    m.note = 0 + parseInt( m.notice ); // alias
+    m.dbg = 0 + parseInt( m.debug ); // alias
+    m.crazy = 0 + parseInt( m.trace ); // alias
+    m.detailed = 0 + parseInt( m.trace ); // alias
     return m;
 }
-const gMapReversedVerbose = computeVerboseAlias();
+let gMapReversedVerbose = null;
 
-export function verbose() { return gMapVerbose; };
-export function verboseReversed() { return gMapReversedVerbose; };
+export function verbose() { return gMapVerbose; }
+export function verboseReversed() {
+    if( ! gMapReversedVerbose )
+        gMapReversedVerbose = computeVerboseAlias();
+    return gMapReversedVerbose;
+}
 export function verboseLevelAsTextForLog( vl ) {
     if( typeof vl == "undefined" )
         vl = verboseGet();
@@ -412,10 +419,10 @@ export function verboseLevelAsTextForLog( vl ) {
 }
 
 let gFlagIsExposeDetails = false;
-let gVerboseLevel = 0 + verboseReversed().info;
+let gVerboseLevel = 0 + verboseReversed().information;
 
 export function exposeDetailsGet() {
-    return gFlagIsExposeDetails;
+    return gFlagIsExposeDetails ? true : false;
 }
 export function exposeDetailsSet( isExpose ) {
     gFlagIsExposeDetails = isExpose ? true : false;
@@ -425,7 +432,7 @@ export function verboseGet() {
     return 0 + gVerboseLevel;
 }
 export function verboseSet( vl ) {
-    gVerboseLevel = vl;
+    gVerboseLevel = parseInt( vl );
 }
 
 export function verboseParse( s ) {
@@ -433,7 +440,7 @@ export function verboseParse( s ) {
     try {
         const isNumbersOnly = /^\d+$/.test( s );
         if( isNumbersOnly )
-            n = owaspUtils.toInteger( s );
+            n = cc.toInteger( s );
         else {
             const ch0 = s[0].toLowerCase();
             for( const key in gMapVerbose ) {
@@ -443,11 +450,11 @@ export function verboseParse( s ) {
                 const ch1 = name[0].toLowerCase();
                 if( ch0 == ch1 ) {
                     n = key;
-                    break;
+                    return n;
                 }
             }
         }
-    } catch ( err ) {}
+    } catch ( err ) { }
     return n;
 }
 

@@ -87,16 +87,19 @@ export const currentTimestamp = () => {
 export async function safeWaitForNextBlockToAppear( details, ethersProvider ) {
     const nBlockNumber =
         owaspUtils.toBN( await safeGetBlockNumber( details, 10, ethersProvider ) );
-    details.write(
-        cc.debug( "Waiting for next block to appear..." ) + "\n" );
-    details.write(
-        cc.debug( "    ...have block " ) + cc.info( nBlockNumber.toHexString() ) + "\n" );
+    if( log.verboseGet() >= log.verboseReversed().trace ) {
+        details.write( cc.debug( "Waiting for next block to appear..." ) + "\n" );
+        details.write( cc.debug( "    ...have block " ) +
+            cc.info( nBlockNumber.toHexString() ) + "\n" );
+    }
     for( ; true; ) {
         await sleep( 1000 );
         const nBlockNumber2 =
             owaspUtils.toBN( await safeGetBlockNumber( details, 10, ethersProvider ) );
-        details.write(
-            cc.debug( "    ...have block " ) + cc.info( nBlockNumber2.toHexString() ) + "\n" );
+        if( log.verboseGet() >= log.verboseReversed().trace ) {
+            details.write( cc.debug( "    ...have block " ) +
+                cc.info( nBlockNumber2.toHexString() ) + "\n" );
+        }
         if( nBlockNumber2.gt( nBlockNumber ) )
             break;
     }
@@ -137,18 +140,19 @@ export async function safeGetBlockNumber(
             ret = retValOnFail;
             if( ! throwIfServerOffline )
                 return ret;
-            details.write(
-                cc.error( "Cannot call " ) + cc.note( strFnName + "()" ) +
-                cc.error( " via " ) + cc.u( u ) +
-                cc.warning( " because server is off-line" ) + "\n" );
+            if( log.verboseGet() >= log.verboseReversed().error ) {
+                details.write( cc.error( "Cannot call " ) + cc.note( strFnName + "()" ) +
+                    cc.error( " via " ) + cc.u( u ) + cc.warning( " because server is off-line" ) +
+                    "\n" );
+            }
             throw new Error( "Cannot " + strFnName + "() via " + u.toString() +
             " because server is off-line" );
         }
-        details.write(
-            cc.warning( "Repeat call to " ) + cc.note( strFnName + "()" ) +
-            cc.error( " via " ) + cc.u( u ) +
-            cc.warning( ", attempt " ) + cc.info( idxAttempt ) +
-            "\n" );
+        if( log.verboseGet() >= log.verboseReversed().trace ) {
+            details.write( cc.warning( "Repeat call to " ) + cc.note( strFnName + "()" ) +
+                cc.error( " via " ) + cc.u( u ) + cc.warning( ", attempt " ) +
+                cc.info( idxAttempt ) + "\n" );
+        }
         try {
             ret = await ethersProvider[strFnName]();
             return ret;
@@ -212,19 +216,20 @@ export async function safeGetTransactionCount(
             ret = retValOnFail;
             if( ! throwIfServerOffline )
                 return ret;
-            details.write(
-                cc.error( "Cannot call " ) + cc.note( strFnName + "()" ) +
-                cc.error( " via " ) + cc.u( u ) +
-                cc.warning( " because server is off-line" ) + "\n" );
+            if( log.verboseGet() >= log.verboseReversed().error ) {
+                details.write( cc.error( "Cannot call " ) + cc.note( strFnName + "()" ) +
+                    cc.error( " via " ) + cc.u( u ) +
+                    cc.warning( " because server is off-line" ) + "\n" );
+            }
             throw new Error(
                 "Cannot " + strFnName + "() via " + u.toString() +
                 " because server is off-line" );
         }
-        details.write(
-            cc.warning( "Repeat call to " ) + cc.note( strFnName + "()" ) +
-            cc.error( " via " ) + cc.u( u ) +
-            cc.warning( ", attempt " ) + cc.info( idxAttempt ) +
-            "\n" );
+        if( log.verboseGet() >= log.verboseReversed().trace ) {
+            details.write( cc.warning( "Repeat call to " ) + cc.note( strFnName + "()" ) +
+                cc.error( " via " ) + cc.u( u ) + cc.warning( ", attempt " ) +
+                cc.info( idxAttempt ) + "\n" );
+        }
         try {
             ret = await ethersProvider[strFnName]( address, param );
             return ret;
@@ -241,11 +246,11 @@ export async function safeGetTransactionCount(
         ++ idxAttempt;
     }
     if( ( idxAttempt + 1 ) > cntAttempts && ret === "" ) {
-        details.write( cc.fatal( "ERROR:" ) +
-            cc.error( " Failed call to " ) + cc.note( strFnName + "()" ) +
-            + cc.error( " via " ) + cc.u( u ) + cc.error( " after " ) +
-            cc.info( cntAttempts ) + cc.error( " attempts " ) +
-            "\n" );
+        if( log.verboseGet() >= log.verboseReversed().error ) {
+            details.write( cc.fatal( "ERROR:" ) + cc.error( " Failed call to " ) +
+                cc.note( strFnName + "()" ) + + cc.error( " via " ) + cc.u( u ) +
+                cc.error( " after " ) + cc.info( cntAttempts ) + cc.error( " attempts " ) + "\n" );
+        }
         throw new Error(
             "Failed call to " + strFnName + "() via " + u.toString() +
             " after " + cntAttempts + " attempts" );
@@ -275,8 +280,7 @@ export async function safeGetTransactionReceipt(
     } catch ( err ) {
         ret = retValOnFail;
         if( log.verboseGet() >= log.verboseReversed().error ) {
-            details.write(
-                cc.error( "Failed call attempt " ) + cc.info( idxAttempt ) +
+            details.write( cc.error( "Failed call attempt " ) + cc.info( idxAttempt ) +
                 cc.error( " to " ) + cc.note( strFnName + "()" ) + cc.error( " via " ) + cc.u( u ) +
                 cc.error( ", error is: " ) + cc.warning( owaspUtils.extractErrorMessage( err ) ) +
                 cc.error( ", stack is: " ) + "\n" + cc.stack( err.stack ) + "\n" );
@@ -289,27 +293,27 @@ export async function safeGetTransactionReceipt(
             ret = retValOnFail;
             if( ! throwIfServerOffline )
                 return ret;
-            details.write(
-                cc.error( "Cannot call " ) + cc.note( strFnName + "()" ) +
-                cc.error( " via " ) + cc.u( u ) +
-                cc.warning( " because server is off-line" ) + "\n" );
+            if( log.verboseGet() >= log.verboseReversed().error ) {
+                details.write( cc.error( "Cannot call " ) + cc.note( strFnName + "()" ) +
+                    cc.error( " via " ) + cc.u( u ) + cc.warning( " because server is off-line" ) +
+                    "\n" );
+            }
             throw new Error(
                 "Cannot " + strFnName + "() via " + u.toString() +
                 " because server is off-line" );
         }
-        details.write(
-            cc.warning( "Repeat call to " ) + cc.note( strFnName + "()" ) +
-            cc.error( " via " ) + cc.u( u ) +
-            cc.warning( ", attempt " ) + cc.info( idxAttempt ) +
-            "\n" );
+        if( log.verboseGet() >= log.verboseReversed().trace ) {
+            details.write( cc.warning( "Repeat call to " ) + cc.note( strFnName + "()" ) +
+                cc.error( " via " ) + cc.u( u ) + cc.warning( ", attempt " ) +
+                cc.info( idxAttempt ) + "\n" );
+        }
         try {
             ret = await ethersProvider[strFnName]( txHash );
             return ret;
         } catch ( err ) {
             ret = retValOnFail;
             if( log.verboseGet() >= log.verboseReversed().error ) {
-                details.write(
-                    cc.error( "Failed call attempt " ) + cc.info( idxAttempt ) +
+                details.write( cc.error( "Failed call attempt " ) + cc.info( idxAttempt ) +
                     cc.error( " to " ) + cc.note( strFnName + "()" ) + cc.error( " via " ) +
                     cc.u( u ) + cc.error( ", error is: " ) +
                     cc.warning( owaspUtils.extractErrorMessage( err ) ) +
@@ -319,11 +323,11 @@ export async function safeGetTransactionReceipt(
         ++ idxAttempt;
     }
     if( ( idxAttempt + 1 ) > cntAttempts && ( txReceipt === "" || txReceipt === undefined ) ) {
-        details.write( cc.fatal( "ERROR:" ) +
-            cc.error( " Failed call to " ) + cc.note( strFnName + "()" ) +
-            + cc.error( " via " ) + cc.u( u ) + cc.error( " after " ) +
-            cc.info( cntAttempts ) + cc.error( " attempts " ) +
-            "\n" );
+        if( log.verboseGet() >= log.verboseReversed().error ) {
+            details.write( cc.fatal( "ERROR:" ) + cc.error( " Failed call to " ) +
+                cc.note( strFnName + "()" ) + cc.error( " via " ) + cc.u( u ) +
+                cc.error( " after " ) + cc.info( cntAttempts ) + cc.error( " attempts " ) + "\n" );
+        }
         throw new Error(
             "Failed call to " + strFnName + "() via " + u.toString() +
             " after " + cntAttempts + " attempts" );
@@ -358,12 +362,12 @@ export async function safeGetPastEvents(
         nBlockTo = owaspUtils.toBN( nBlockTo );
     nBlockFrom = owaspUtils.toBN( nBlockFrom );
     try {
-        details.write( strLogPrefix +
-            cc.debug( "First time, will query filter " ) + cc.j( joFilter ) +
-            cc.debug( " on contract " ) + cc.info( joContract.address ) +
-            cc.debug( " from block " ) + cc.info( nBlockFrom.toHexString() ) +
-            cc.debug( " to block " ) + cc.info( nBlockTo.toHexString() ) +
-            "\n" );
+        if( log.verboseGet() >= log.verboseReversed().trace ) {
+            details.write( strLogPrefix + cc.debug( "First time, will query filter " ) +
+                cc.j( joFilter ) + cc.debug( " on contract " ) + cc.info( joContract.address ) +
+                cc.debug( " from block " ) + cc.info( nBlockFrom.toHexString() ) +
+                cc.debug( " to block " ) + cc.info( nBlockTo.toHexString() ) + "\n" );
+        }
         ret =
             await joContract.queryFilter(
                 joFilter,
@@ -374,10 +378,10 @@ export async function safeGetPastEvents(
     } catch ( err ) {
         ret = retValOnFail;
         if( log.verboseGet() >= log.verboseReversed().error ) {
-            details.write( strLogPrefix +
-                cc.error( "Failed filtering attempt " ) + cc.info( idxAttempt ) +
-                cc.error( " for event " ) + cc.note( strEventName ) + cc.error( " via " ) +
-                cc.u( u ) + cc.error( ", from block " ) + cc.warning( nBlockFrom.toHexString() ) +
+            details.write( strLogPrefix + cc.error( "Failed filtering attempt " ) +
+                cc.info( idxAttempt ) + cc.error( " for event " ) + cc.note( strEventName ) +
+                cc.error( " via " ) + cc.u( u ) + cc.error( ", from block " ) +
+                cc.warning( nBlockFrom.toHexString() ) +
                 cc.error( ", to block " ) + cc.warning( nBlockTo.toHexString() ) +
                 cc.error( ", error is: " ) + cc.warning( owaspUtils.extractErrorMessage( err ) ) +
                 cc.error( ", stack is: " ) + "\n" + cc.stack( err.stack ) + "\n" );
@@ -385,10 +389,11 @@ export async function safeGetPastEvents(
         if( owaspUtils.extractErrorMessage( err )
             .indexOf( strErrorTextAboutNotExistingEvent ) >= 0
         ) {
-            details.write( strLogPrefix +
-                cc.error( "Did stopped filtering of " ) + cc.note( strEventName ) +
-                cc.error( " event because no such event exist in smart contract " ) +
-                "\n" );
+            if( log.verboseGet() >= log.verboseReversed().error ) {
+                details.write( strLogPrefix + cc.error( "Did stopped filtering of " ) +
+                    cc.note( strEventName ) + cc.error( " event because no such event " +
+                    "exist in smart contract " ) + "\n" );
+            }
             return ret;
         }
     }
@@ -399,29 +404,30 @@ export async function safeGetPastEvents(
             ret = retValOnFail;
             if( ! throwIfServerOffline )
                 return ret;
-            details.write( strLogPrefix +
-                cc.error( "Cannot do " ) + cc.note( strEventName ) +
-                cc.error( " event filtering via " ) + cc.u( u ) +
-                cc.warning( " because server is off-line" ) + "\n" );
+            if( log.verboseGet() >= log.verboseReversed().error ) {
+                details.write( strLogPrefix + cc.error( "Cannot do " ) + cc.note( strEventName ) +
+                    cc.error( " event filtering via " ) + cc.u( u ) +
+                    cc.warning( " because server is off-line" ) + "\n" );
+            }
             throw new Error(
                 "Cannot do " + strEventName + " event filtering, from block " +
                 nBlockFrom.toHexString() + ", to block " + nBlockTo.toHexString() +
                 " via " + u.toString() + " because server is off-line"
             );
         }
-        details.write( strLogPrefix +
-            cc.warning( "Repeat " ) + cc.note( strEventName ) +
-            cc.error( " event filtering via " ) + cc.u( u ) +
-            cc.warning( ", attempt " ) + cc.info( idxAttempt ) +
-            "\n" );
+        if( log.verboseGet() >= log.verboseReversed().trace ) {
+            details.write( strLogPrefix + cc.warning( "Repeat " ) + cc.note( strEventName ) +
+                cc.error( " event filtering via " ) + cc.u( u ) +
+                cc.warning( ", attempt " ) + cc.info( idxAttempt ) + "\n" );
+        }
         try {
-            details.write( strLogPrefix +
-                cc.debug( "Attempt " ) + cc.info( idxAttempt ) +
-                cc.debug( ", will query filter " ) + cc.j( joFilter ) +
-                cc.debug( " on contract " ) + cc.info( joContract.address ) +
-                cc.debug( " from block " ) + cc.info( nBlockFrom.toHexString() ) +
-                cc.debug( " to block " ) + cc.info( nBlockTo.toHexString() ) +
-                "\n" );
+            if( log.verboseGet() >= log.verboseReversed().trace ) {
+                details.write( strLogPrefix + cc.debug( "Attempt " ) + cc.info( idxAttempt ) +
+                    cc.debug( ", will query filter " ) + cc.j( joFilter ) +
+                    cc.debug( " on contract " ) + cc.info( joContract.address ) +
+                    cc.debug( " from block " ) + cc.info( nBlockFrom.toHexString() ) +
+                    cc.debug( " to block " ) + cc.info( nBlockTo.toHexString() ) + "\n" );
+            }
             ret =
                 await joContract.queryFilter(
                     joFilter,
@@ -433,35 +439,36 @@ export async function safeGetPastEvents(
         } catch ( err ) {
             ret = retValOnFail;
             if( log.verboseGet() >= log.verboseReversed().error ) {
-                details.write( strLogPrefix +
-                    cc.error( "Failed filtering attempt " ) + cc.info( idxAttempt ) +
-                    cc.error( " for event " ) + cc.note( strEventName ) + cc.error( " via " ) +
-                    cc.u( u ) + cc.error( ", from block " ) + cc.info( nBlockFrom.toHexString() ) +
-                    cc.error( ", to block " ) + cc.info( nBlockTo.toHexString() ) +
-                    cc.error( ", error is: " ) +
+                details.write( strLogPrefix + cc.error( "Failed filtering attempt " ) +
+                    cc.info( idxAttempt ) + cc.error( " for event " ) + cc.note( strEventName ) +
+                    cc.error( " via " ) + cc.u( u ) + cc.error( ", from block " ) +
+                    cc.info( nBlockFrom.toHexString() ) + cc.error( ", to block " ) +
+                    cc.info( nBlockTo.toHexString() ) + cc.error( ", error is: " ) +
                     cc.warning( owaspUtils.extractErrorMessage( err ) ) +
                     cc.error( ", stack is: " ) + "\n" + cc.stack( err.stack ) + "\n" );
             }
             if( owaspUtils.extractErrorMessage( err )
                 .indexOf( strErrorTextAboutNotExistingEvent ) >= 0
             ) {
-                details.write( strLogPrefix +
-                    cc.error( "Did stopped " ) + cc.note( strEventName ) +
-                    cc.error( " event filtering because no such event exist in smart contract " ) +
-                    "\n" );
+                if( log.verboseGet() >= log.verboseReversed().error ) {
+                    details.write( strLogPrefix + cc.error( "Did stopped " ) +
+                        cc.note( strEventName ) + cc.error( " event filtering because " +
+                        "no such event exist in smart contract " ) + "\n" );
+                }
                 return ret;
             }
         }
         ++ idxAttempt;
     }
     if( ( idxAttempt + 1 ) === cntAttempts && ret === "" ) {
-        details.write( strLogPrefix + cc.fatal( "ERROR:" ) +
-            cc.error( " Failed filtering attempt for " ) + cc.note( strEventName ) +
-            + cc.error( " event via " ) + cc.u( u ) +
-            cc.error( ", from block " ) + cc.info( nBlockFrom.toHexString() ) +
-            cc.error( ", to block " ) + cc.info( nBlockTo.toHexString() ) +
-            cc.error( " after " ) + cc.info( cntAttempts ) + cc.error( " attempts " ) +
-            "\n" );
+        if( log.verboseGet() >= log.verboseReversed().error ) {
+            details.write( strLogPrefix + cc.fatal( "ERROR:" ) +
+                cc.error( " Failed filtering attempt for " ) + cc.note( strEventName ) +
+                + cc.error( " event via " ) + cc.u( u ) + cc.error( ", from block " ) +
+                cc.info( nBlockFrom.toHexString() ) + cc.error( ", to block " ) +
+                cc.info( nBlockTo.toHexString() ) + cc.error( " after " ) + cc.info( cntAttempts ) +
+                cc.error( " attempts " ) + "\n" );
+        }
         throw new Error(
             "Failed filtering attempt for " + strEventName + " event, from block " +
             nBlockFrom.toHexString() + ", to block " + nBlockTo.toHexString() +
@@ -506,12 +513,13 @@ export async function safeGetPastEventsIterative(
     nBlockFrom, nBlockTo, joFilter
 ) {
     if( gCountOfBlocksInIterativeStep <= 0 || gMaxBlockScanIterationsInAllRange <= 0 ) {
-        details.write( strLogPrefix +
-            cc.fatal( "IMPORTANT NOTICE:" ) + " " +
-            cc.warning( "Will skip " ) + cc.attention( "iterative" ) +
-            cc.warning( " events scan in block range from " ) +
-            cc.j( nBlockFrom ) + cc.warning( " to " ) + cc.j( nBlockTo ) +
-            cc.warning( " because it's " ) + cc.error( "DISABLED" ) + "\n" );
+        if( log.verboseGet() >= log.verboseReversed().warning ) {
+            details.write( strLogPrefix + cc.fatal( "IMPORTANT NOTICE:" ) + " " +
+                cc.warning( "Will skip " ) + cc.attention( "iterative" ) +
+                cc.warning( " events scan in block range from " ) +
+                cc.j( nBlockFrom ) + cc.warning( " to " ) + cc.j( nBlockTo ) +
+                cc.warning( " because it's " ) + cc.error( "DISABLED" ) + "\n" );
+        }
         return await safeGetPastEvents(
             details, strLogPrefix,
             ethersProvider, attempts, joContract,
@@ -524,10 +532,11 @@ export async function safeGetPastEventsIterative(
     if( nBlockTo == "latest" ) {
         isLastLatest = true;
         nBlockTo = nLatestBlockNumber;
-        details.write( strLogPrefix +
-            cc.debug( "Iterative scan up to latest block " ) +
-            cc.info( "#" ) + cc.info( nBlockTo.toHexString() ) +
-            cc.debug( " assumed instead of " ) + cc.attention( "latest" ) + "\n" );
+        if( log.verboseGet() >= log.verboseReversed().trace ) {
+            details.write( strLogPrefix + cc.debug( "Iterative scan up to latest block " ) +
+                cc.info( "#" ) + cc.info( nBlockTo.toHexString() ) +
+                cc.debug( " assumed instead of " ) + cc.attention( "latest" ) + "\n" );
+        }
     } else {
         nBlockTo = owaspUtils.toBN( nBlockTo );
         if( nBlockTo.eq( nLatestBlockNumber ) )
@@ -541,12 +550,13 @@ export async function safeGetPastEventsIterative(
             owaspUtils.toBN( gCountOfBlocksInIterativeStep )
         ).gt( owaspUtils.toBN( gMaxBlockScanIterationsInAllRange ) )
         ) {
-            details.write( strLogPrefix +
-                cc.fatal( "IMPORTANT NOTICE:" ) + " " +
-                cc.warning( "Will skip " ) + cc.attention( "iterative" ) +
-                cc.warning( " scan and use scan in block range from " ) +
-                cc.info( nBlockFrom.toHexString() ) + cc.warning( " to " ) +
-                cc.info( nBlockTo.toHexString() ) + "\n" );
+            if( log.verboseGet() >= log.verboseReversed().warning ) {
+                details.write( strLogPrefix + cc.fatal( "IMPORTANT NOTICE:" ) + " " +
+                    cc.warning( "Will skip " ) + cc.attention( "iterative" ) +
+                    cc.warning( " scan and use scan in block range from " ) +
+                    cc.info( nBlockFrom.toHexString() ) + cc.warning( " to " ) +
+                    cc.info( nBlockTo.toHexString() ) + "\n" );
+            }
             return await safeGetPastEvents(
                 details, strLogPrefix,
                 ethersProvider, attempts, joContract, strEventName,
@@ -554,10 +564,11 @@ export async function safeGetPastEventsIterative(
             );
         }
     }
-    details.write( strLogPrefix +
-        cc.debug( "Iterative scan in " ) +
-        cc.info( nBlockFrom.toHexString() ) + cc.debug( "/" ) + cc.info( nBlockTo.toHexString() ) +
-        cc.debug( " block range..." ) + "\n" );
+    if( log.verboseGet() >= log.verboseReversed().trace ) {
+        details.write( strLogPrefix + cc.debug( "Iterative scan in " ) +
+            cc.info( nBlockFrom.toHexString() ) + cc.debug( "/" ) +
+            cc.info( nBlockTo.toHexString() ) + cc.debug( " block range..." ) + "\n" );
+    }
     let idxBlockSubRangeFrom = nBlockFrom;
     for( ; true; ) {
         let idxBlockSubRangeTo =
@@ -565,26 +576,27 @@ export async function safeGetPastEventsIterative(
         if( idxBlockSubRangeTo.gt( nBlockTo ) )
             idxBlockSubRangeTo = nBlockTo;
         try {
-            details.write( strLogPrefix +
-                cc.debug( "Iterative scan of " ) +
-                cc.info( idxBlockSubRangeFrom.toHexString() ) + cc.debug( "/" ) +
-                cc.info( idxBlockSubRangeTo.toHexString() ) +
-                cc.debug( " block sub-range in " ) +
-                cc.info( nBlockFrom.toHexString() ) + cc.debug( "/" ) +
-                cc.info( nBlockTo.toHexString() ) +
-                cc.debug( " block range..." ) + "\n" );
+            if( log.verboseGet() >= log.verboseReversed().trace ) {
+                details.write( strLogPrefix + cc.debug( "Iterative scan of " ) +
+                    cc.info( idxBlockSubRangeFrom.toHexString() ) + cc.debug( "/" ) +
+                    cc.info( idxBlockSubRangeTo.toHexString() ) +
+                    cc.debug( " block sub-range in " ) +
+                    cc.info( nBlockFrom.toHexString() ) + cc.debug( "/" ) +
+                    cc.info( nBlockTo.toHexString() ) + cc.debug( " block range..." ) + "\n" );
+            }
             const joAllEventsInBlock = await safeGetPastEvents(
                 details, strLogPrefix,
                 ethersProvider, attempts, joContract, strEventName,
                 idxBlockSubRangeFrom, idxBlockSubRangeTo, joFilter
             );
             if( joAllEventsInBlock && joAllEventsInBlock != "" && joAllEventsInBlock.length > 0 ) {
-                details.write( strLogPrefix +
-                    cc.success( "Result of " ) + cc.attention( "iterative" ) +
-                    cc.success( " scan in " ) +
-                    cc.info( nBlockFrom.toHexString() ) + cc.success( "/" ) +
-                    cc.info( nBlockTo.toHexString() ) +
-                    cc.success( " block range is " ) + cc.j( joAllEventsInBlock ) + "\n" );
+                if( log.verboseGet() >= log.verboseReversed().trace ) {
+                    details.write( strLogPrefix + cc.success( "Result of " ) +
+                        cc.attention( "iterative" ) + cc.success( " scan in " ) +
+                        cc.info( nBlockFrom.toHexString() ) + cc.success( "/" ) +
+                        cc.info( nBlockTo.toHexString() ) + cc.success( " block range is " ) +
+                        cc.j( joAllEventsInBlock ) + "\n" );
+                }
                 return joAllEventsInBlock;
             }
         } catch ( err ) {
@@ -604,10 +616,12 @@ export async function safeGetPastEventsIterative(
         if( idxBlockSubRangeFrom.eq( nBlockTo ) )
             break;
     }
-    details.write( strLogPrefix +
-        cc.debug( "Result of " ) + cc.attention( "iterative" ) + cc.debug( " scan in " ) +
-        cc.info( nBlockFrom.toHexString() ) + cc.debug( "/" ) + cc.info( nBlockTo.toHexString() ) +
-        cc.debug( " block range is " ) + cc.warning( "empty" ) + "\n" );
+    if( log.verboseGet() >= log.verboseReversed().debug ) {
+        details.write( strLogPrefix + cc.debug( "Result of " ) + cc.attention( "iterative" ) +
+            cc.debug( " scan in " ) + cc.info( nBlockFrom.toHexString() ) + cc.debug( "/" ) +
+            cc.info( nBlockTo.toHexString() ) + cc.debug( " block range is " ) +
+            cc.warning( "empty" ) + "\n" );
+    }
     return "";
 }
 
@@ -695,9 +709,10 @@ async function prepareOracleGasPriceSetup( optsGasPriseSetup ) {
         "prepareOracleGasPriceSetup.optsGasPriseSetup.latestBlockNumber()";
     optsGasPriseSetup.latestBlockNumber =
         await optsGasPriseSetup.ethersProviderMainNet.getBlockNumber();
-    optsGasPriseSetup.details.write(
-        cc.debug( "Latest block on Main Net is " ) +
+    if( log.verboseGet() >= log.verboseReversed().trace ) {
+        optsGasPriseSetup.details.write( cc.debug( "Latest block on Main Net is " ) +
             cc.info( optsGasPriseSetup.latestBlockNumber ) + "\n" );
+    }
     optsGasPriseSetup.strActionName =
         "prepareOracleGasPriceSetup.optsGasPriseSetup.bnTimestampOfBlock()";
     optsGasPriseSetup.latestBlock =
@@ -705,38 +720,48 @@ async function prepareOracleGasPriceSetup( optsGasPriseSetup ) {
             .getBlock( optsGasPriseSetup.latestBlockNumber );
     optsGasPriseSetup.bnTimestampOfBlock =
         owaspUtils.toBN( optsGasPriseSetup.latestBlock.timestamp );
-    optsGasPriseSetup.details.write( cc.debug( "Local timestamp on Main Net is " ) +
-        cc.info( optsGasPriseSetup.bnTimestampOfBlock.toString() ) + cc.debug( "=" ) +
-        cc.info( owaspUtils.ensureStartsWith0x(
-            optsGasPriseSetup.bnTimestampOfBlock.toHexString() ) ) +
-        cc.debug( " (original)" ) + "\n" );
+    if( log.verboseGet() >= log.verboseReversed().trace ) {
+        optsGasPriseSetup.details.write( cc.debug( "Local timestamp on Main Net is " ) +
+                cc.info( optsGasPriseSetup.bnTimestampOfBlock.toString() ) + cc.debug( "=" ) +
+                cc.info( owaspUtils.ensureStartsWith0x(
+                    optsGasPriseSetup.bnTimestampOfBlock.toHexString() ) ) +
+                cc.debug( " (original)" ) + "\n" );
+    }
     optsGasPriseSetup.bnTimeZoneOffset = owaspUtils.toBN( parseInt( new Date( parseInt(
         optsGasPriseSetup.bnTimestampOfBlock.toString(), 10 ) ).getTimezoneOffset(), 10 ) );
-    optsGasPriseSetup.details.write( cc.debug( "Local time zone offset is " ) +
-        cc.info( optsGasPriseSetup.bnTimeZoneOffset.toString() ) + cc.debug( "=" ) +
-        cc.info( owaspUtils.ensureStartsWith0x(
-            optsGasPriseSetup.bnTimeZoneOffset.toHexString() ) ) +
-        cc.debug( " (original)" ) + "\n" );
+    if( log.verboseGet() >= log.verboseReversed().trace ) {
+        optsGasPriseSetup.details.write( cc.debug( "Local time zone offset is " ) +
+            cc.info( optsGasPriseSetup.bnTimeZoneOffset.toString() ) + cc.debug( "=" ) +
+            cc.info( owaspUtils.ensureStartsWith0x(
+                optsGasPriseSetup.bnTimeZoneOffset.toHexString() ) ) +
+            cc.debug( " (original)" ) + "\n" );
+    }
     optsGasPriseSetup.bnTimestampOfBlock =
         optsGasPriseSetup.bnTimestampOfBlock.add( optsGasPriseSetup.bnTimeZoneOffset );
-    optsGasPriseSetup.details.write( cc.debug( "UTC timestamp on Main Net is " ) +
-        cc.info( optsGasPriseSetup.bnTimestampOfBlock.toString() ) + cc.debug( "=" ) +
-        cc.info( owaspUtils.ensureStartsWith0x(
-            optsGasPriseSetup.bnTimestampOfBlock.toHexString() ) ) +
-        cc.debug( " (original)" ) + "\n" );
+    if( log.verboseGet() >= log.verboseReversed().trace ) {
+        optsGasPriseSetup.details.write( cc.debug( "UTC timestamp on Main Net is " ) +
+            cc.info( optsGasPriseSetup.bnTimestampOfBlock.toString() ) + cc.debug( "=" ) +
+            cc.info( owaspUtils.ensureStartsWith0x(
+                optsGasPriseSetup.bnTimestampOfBlock.toHexString() ) ) +
+            cc.debug( " (original)" ) + "\n" );
+    }
     const bnValueToSubtractFromTimestamp = owaspUtils.toBN( 60 );
-    optsGasPriseSetup.details.write( cc.debug( "Value to subtract from timestamp is " ) +
-        cc.info( bnValueToSubtractFromTimestamp ) + cc.debug( "=" ) +
-        cc.info( owaspUtils.ensureStartsWith0x(
-            bnValueToSubtractFromTimestamp.toHexString() ) ) +
+    if( log.verboseGet() >= log.verboseReversed().trace ) {
+        optsGasPriseSetup.details.write( cc.debug( "Value to subtract from timestamp is " ) +
+            cc.info( bnValueToSubtractFromTimestamp ) + cc.debug( "=" ) +
+            cc.info( owaspUtils.ensureStartsWith0x(
+                bnValueToSubtractFromTimestamp.toHexString() ) ) +
         cc.debug( " (to adjust it to past a bit)" ) + "\n" );
+    }
     optsGasPriseSetup.bnTimestampOfBlock =
         optsGasPriseSetup.bnTimestampOfBlock.sub( bnValueToSubtractFromTimestamp );
-    optsGasPriseSetup.details.write( cc.debug( "Timestamp on Main Net is " ) +
-        cc.info( optsGasPriseSetup.bnTimestampOfBlock.toHexString() ) + cc.debug( "=" ) +
-        cc.info( owaspUtils.ensureStartsWith0x(
-            optsGasPriseSetup.bnTimestampOfBlock.toHexString() ) ) +
-        cc.debug( " (adjusted to past a bit)" ) + "\n" );
+    if( log.verboseGet() >= log.verboseReversed().trace ) {
+        optsGasPriseSetup.details.write( cc.debug( "Timestamp on Main Net is " ) +
+            cc.info( optsGasPriseSetup.bnTimestampOfBlock.toHexString() ) + cc.debug( "=" ) +
+            cc.info( owaspUtils.ensureStartsWith0x(
+                optsGasPriseSetup.bnTimestampOfBlock.toHexString() ) ) +
+            cc.debug( " (adjusted to past a bit)" ) + "\n" );
+    }
     optsGasPriseSetup.strActionName = "prepareOracleGasPriceSetup.getGasPrice()";
     optsGasPriseSetup.gasPriceOnMainNet = null;
     if( IMA.getEnabledOracle() ) {
@@ -750,10 +775,12 @@ async function prepareOracleGasPriceSetup( optsGasPriseSetup ) {
             isVerboseTraceDetails:
                 ( log.verboseGet() >= log.verboseReversed().debug ) ? true : false
         };
-        optsGasPriseSetup.details.write( cc.debug( "Will fetch " ) +
-            cc.info( "Main Net gas price" ) + cc.debug( " via call to " ) +
-            cc.info( "Oracle" ) + cc.debug( " with options " ) +
-            cc.j( oracleOpts ) + cc.debug( "..." ) + "\n" );
+        if( log.verboseGet() >= log.verboseReversed().debug ) {
+            optsGasPriseSetup.details.write( cc.debug( "Will fetch " ) +
+                cc.info( "Main Net gas price" ) + cc.debug( " via call to " ) +
+                cc.info( "Oracle" ) + cc.debug( " with options " ) +
+                cc.j( oracleOpts ) + cc.debug( "..." ) + "\n" );
+        }
         try {
             optsGasPriseSetup.gasPriceOnMainNet = owaspUtils.ensureStartsWith0x(
                 ( await imaOracle.oracleGetGasPrice(
@@ -770,30 +797,38 @@ async function prepareOracleGasPriceSetup( optsGasPriseSetup ) {
         }
     }
     if( optsGasPriseSetup.gasPriceOnMainNet === null ) {
-        optsGasPriseSetup.details.write( cc.debug( "Will fetch " ) +
-            cc.info( "Main Net gas price" ) + cc.debug( " directly..." ) + "\n" );
+        if( log.verboseGet() >= log.verboseReversed().debug ) {
+            optsGasPriseSetup.details.write( cc.debug( "Will fetch " ) +
+                cc.info( "Main Net gas price" ) + cc.debug( " directly..." ) + "\n" );
+        }
         optsGasPriseSetup.gasPriceOnMainNet = owaspUtils.ensureStartsWith0x(
             owaspUtils.toBN(
                 await optsGasPriseSetup.ethersProviderMainNet.getGasPrice() ).toHexString() );
     }
-    optsGasPriseSetup.details.write( cc.success( "Done, " ) + cc.info( "Oracle" ) +
-        cc.success( " did computed new " ) + cc.info( "Main Net gas price" ) +
-        cc.success( "=" ) +
-        cc.bright( owaspUtils.toBN( optsGasPriseSetup.gasPriceOnMainNet ).toString() ) +
-        cc.success( "=" ) + cc.bright( optsGasPriseSetup.gasPriceOnMainNet ) + "\n" );
+    if( log.verboseGet() >= log.verboseReversed().debug ) {
+        optsGasPriseSetup.details.write( cc.success( "Done, " ) + cc.info( "Oracle" ) +
+            cc.success( " did computed new " ) + cc.info( "Main Net gas price" ) +
+            cc.success( "=" ) +
+            cc.bright( owaspUtils.toBN( optsGasPriseSetup.gasPriceOnMainNet ).toString() ) +
+            cc.success( "=" ) + cc.bright( optsGasPriseSetup.gasPriceOnMainNet ) + "\n" );
+    }
     const joGasPriceOnMainNetOld =
         await optsGasPriseSetup.joCommunityLocker.callStatic.mainnetGasPrice(
             { from: optsGasPriseSetup.joAccountSC.address() } );
     const bnGasPriceOnMainNetOld = owaspUtils.toBN( joGasPriceOnMainNetOld );
-    optsGasPriseSetup.details.write( cc.debug( "Previous " ) + cc.info( "Main Net gas price" ) +
-        cc.debug( " saved and kept in " ) + cc.info( "CommunityLocker" ) + cc.debug( "=" ) +
-        cc.bright( bnGasPriceOnMainNetOld.toString() ) + cc.debug( "=" ) +
-        cc.bright( bnGasPriceOnMainNetOld.toHexString() ) + "\n" );
+    if( log.verboseGet() >= log.verboseReversed().trace ) {
+        optsGasPriseSetup.details.write( cc.debug( "Previous " ) + cc.info( "Main Net gas price" ) +
+            cc.debug( " saved and kept in " ) + cc.info( "CommunityLocker" ) + cc.debug( "=" ) +
+            cc.bright( bnGasPriceOnMainNetOld.toString() ) + cc.debug( "=" ) +
+            cc.bright( bnGasPriceOnMainNetOld.toHexString() ) + "\n" );
+    }
     if( bnGasPriceOnMainNetOld.eq( owaspUtils.toBN( optsGasPriseSetup.gasPriceOnMainNet ) ) ) {
-        optsGasPriseSetup.details.write( cc.debug( "Previous " ) +
-            cc.info( "Main Net gas price" ) +
-            cc.debug( " is equal to new one, will skip setting it in " ) +
-            cc.info( "CommunityLocker" ) + "\n" );
+        if( log.verboseGet() >= log.verboseReversed().trace ) {
+            optsGasPriseSetup.details.write( cc.debug( "Previous " ) +
+                cc.info( "Main Net gas price" ) +
+                cc.debug( " is equal to new one, will skip setting it in " ) +
+                cc.info( "CommunityLocker" ) + "\n" );
+        }
         if( log.exposeDetailsGet() )
             optsGasPriseSetup.details.exposeDetailsTo( log, "doOracleGasPriceSetup", true );
         optsGasPriseSetup.details.close();
@@ -835,16 +870,22 @@ export async function doOracleGasPriceSetup(
 
     if( optsGasPriseSetup.fnSignMsgOracle == null ||
         optsGasPriseSetup.fnSignMsgOracle == undefined ) {
-        optsGasPriseSetup.details.write( optsGasPriseSetup.strLogPrefix +
-            cc.debug( "Using internal u256 signing stub function" ) + "\n" );
+        if( log.verboseGet() >= log.verboseReversed().trace ) {
+            optsGasPriseSetup.details.write( optsGasPriseSetup.strLogPrefix +
+                cc.debug( "Using internal u256 signing stub function" ) + "\n" );
+        }
         optsGasPriseSetup.fnSignMsgOracle = async function( u256, details, fnAfter ) {
-            details.write( optsGasPriseSetup.strLogPrefix +
-                cc.debug( "u256 signing callback was " ) + cc.error( "not provided" ) + "\n" );
+            if( log.verboseGet() >= log.verboseReversed().trace ) {
+                details.write( optsGasPriseSetup.strLogPrefix +
+                    cc.debug( "u256 signing callback was " ) + cc.error( "not provided" ) + "\n" );
+            }
             await fnAfter( null, u256, null ); // null - no error, null - no signatures
         };
     } else {
-        optsGasPriseSetup.details.write( optsGasPriseSetup.strLogPrefix +
-            cc.debug( "Using externally provided u256 signing function" ) + "\n" );
+        if( log.verboseGet() >= log.verboseReversed().trace ) {
+            optsGasPriseSetup.details.write( optsGasPriseSetup.strLogPrefix +
+                cc.debug( "Using externally provided u256 signing function" ) + "\n" );
+        }
     }
     try {
         await prepareOracleGasPriceSetup( optsGasPriseSetup );
@@ -912,18 +953,22 @@ export async function doOracleGasPriceSetup(
                 const gasPrice =
                     await optsGasPriseSetup.transactionCustomizerSChain.computeGasPrice(
                         optsGasPriseSetup.ethersProviderSChain, 200000000000 );
-                optsGasPriseSetup.details.write( optsGasPriseSetup.strLogPrefix +
-                    cc.debug( "Using computed " ) + cc.info( "gasPrice" ) + cc.debug( "=" ) +
-                    cc.j( gasPrice ) + "\n" );
+                if( log.verboseGet() >= log.verboseReversed().trace ) {
+                    optsGasPriseSetup.details.write( optsGasPriseSetup.strLogPrefix +
+                        cc.debug( "Using computed " ) + cc.info( "gasPrice" ) + cc.debug( "=" ) +
+                        cc.j( gasPrice ) + "\n" );
+                }
                 const estimatedGasSetGasPrice =
                     await optsGasPriseSetup.transactionCustomizerSChain.computeGas(
                         optsGasPriseSetup.details, optsGasPriseSetup.ethersProviderSChain,
                         "CommunityLocker", optsGasPriseSetup.joCommunityLocker,
                         "setGasPrice", arrArgumentsSetGasPrice, optsGasPriseSetup.joAccountSC,
                         optsGasPriseSetup.strActionName, gasPrice, 10000000, weiHowMuch, null );
-                optsGasPriseSetup.details.write( optsGasPriseSetup.strLogPrefix +
-                    cc.debug( "Using estimated " ) + cc.info( "gas" ) +
-                    cc.debug( "=" ) + cc.notice( estimatedGasSetGasPrice ) + "\n" );
+                if( log.verboseGet() >= log.verboseReversed().trace ) {
+                    optsGasPriseSetup.details.write( optsGasPriseSetup.strLogPrefix +
+                        cc.debug( "Using estimated " ) + cc.info( "gas" ) +
+                        cc.debug( "=" ) + cc.notice( estimatedGasSetGasPrice ) + "\n" );
+                }
                 const isIgnoreSetGasPrice = false;
                 const strErrorOfDryRun = await dryRunCall( optsGasPriseSetup.details,
                     optsGasPriseSetup.ethersProviderSChain,
@@ -963,12 +1008,12 @@ export async function doOracleGasPriceSetup(
                     cc.error( " Error in doOracleGasPriceSetup() during " +
                     optsGasPriseSetup.strActionName + ": " ) + cc.error( strError ) +
                     cc.error( ", stack is: " ) + "\n" + cc.stack( err.stack ) + "\n" );
+                optsGasPriseSetup.details.write( optsGasPriseSetup.strLogPrefix +
+                    cc.fatal( "CRITICAL ERROR:" ) +
+                    cc.error( " Error in doOracleGasPriceSetup() during " +
+                    optsGasPriseSetup.strActionName + ": " ) + cc.error( strError ) +
+                    cc.error( ", stack is: " ) + "\n" + cc.stack( err.stack ) + "\n" );
             }
-            optsGasPriseSetup.details.write( optsGasPriseSetup.strLogPrefix +
-                cc.fatal( "CRITICAL ERROR:" ) +
-                cc.error( " Error in doOracleGasPriceSetup() during " +
-                optsGasPriseSetup.strActionName + ": " ) + cc.error( strError ) +
-                cc.error( ", stack is: " ) + "\n" + cc.stack( err.stack ) + "\n" );
         }
         optsGasPriseSetup.details.exposeDetailsTo( log, "doOracleGasPriceSetup", false );
         saveTransferError( "oracle", optsGasPriseSetup.details.toString() );
@@ -1099,10 +1144,11 @@ export async function safeGetPastEventsProgressive(
     if( nBlockTo == "latest" ) {
         isLastLatest = true;
         nBlockTo = nLatestBlockNumber;
-        details.write( strLogPrefix +
-            cc.debug( "Iterative scan up to latest block " ) +
-            cc.attention( "#" ) + cc.info( nBlockTo.toHexString() ) +
-            cc.debug( " assumed instead of " ) + cc.attention( "latest" ) + "\n" );
+        if( log.verboseGet() >= log.verboseReversed().trace ) {
+            details.write( strLogPrefix + cc.debug( "Iterative scan up to latest block " ) +
+                cc.attention( "#" ) + cc.info( nBlockTo.toHexString() ) +
+                cc.debug( " assumed instead of " ) + cc.attention( "latest" ) + "\n" );
+        }
     } else {
         nBlockTo = owaspUtils.toBN( nBlockTo );
         if( nBlockTo.eq( nLatestBlockNumber ) )
@@ -1112,44 +1158,44 @@ export async function safeGetPastEventsProgressive(
     const nBlockZero = owaspUtils.toBN( 0 );
     const isFirstZero = ( nBlockFrom.eq( nBlockZero ) ) ? true : false;
     if( ! ( isFirstZero && isLastLatest ) ) {
-        details.write( strLogPrefix +
-            cc.debug( "Will skip " ) + cc.attention( "progressive" ) +
-            cc.debug( " scan and use scan in block range from " ) +
-            cc.info( nBlockFrom.toHexString() ) + cc.debug( " to " ) +
-            cc.info( nBlockTo.toHexString() ) + "\n" );
+        if( log.verboseGet() >= log.verboseReversed().trace ) {
+            details.write( strLogPrefix + cc.debug( "Will skip " ) + cc.attention( "progressive" ) +
+                cc.debug( " scan and use scan in block range from " ) +
+                cc.info( nBlockFrom.toHexString() ) + cc.debug( " to " ) +
+                cc.info( nBlockTo.toHexString() ) + "\n" );
+        }
         return await safeGetPastEvents(
             details, strLogPrefix,
             ethersProvider, attempts, joContract, strEventName,
             nBlockFrom, nBlockTo, joFilter
         );
     }
-    details.write( strLogPrefix +
-        cc.debug( "Will run " ) +
-        cc.attention( "progressive" ) + cc.debug( " scan..." ) +
-        "\n" );
-    details.write( strLogPrefix +
-        cc.debug( "Current latest block number is " ) +
-        cc.info( nLatestBlockNumber.toHexString() ) +
-        "\n" );
+    if( log.verboseGet() >= log.verboseReversed().trace ) {
+        details.write( strLogPrefix + cc.debug( "Will run " ) +
+            cc.attention( "progressive" ) + cc.debug( " scan..." ) + "\n" );
+        details.write( strLogPrefix + cc.debug( "Current latest block number is " ) +
+            cc.info( nLatestBlockNumber.toHexString() ) + "\n" );
+    }
     const arrProgressiveEventsScanPlan =
-    createProgressiveEventsScanPlan( details, nLatestBlockNumber );
-    details.write(
-        cc.debug( "Composed " ) + cc.attention( "progressive" ) +
-        cc.debug( " scan plan is: " ) + cc.j( arrProgressiveEventsScanPlan ) +
-        "\n" );
+        createProgressiveEventsScanPlan( details, nLatestBlockNumber );
+    if( log.verboseGet() >= log.verboseReversed().trace ) {
+        details.write( cc.debug( "Composed " ) + cc.attention( "progressive" ) +
+            cc.debug( " scan plan is: " ) + cc.j( arrProgressiveEventsScanPlan ) + "\n" );
+    }
     let joLastPlan = { "nBlockFrom": 0, "nBlockTo": "latest", "type": "entire block range" };
     for( let idxPlan = 0; idxPlan < arrProgressiveEventsScanPlan.length; ++idxPlan ) {
         const joPlan = arrProgressiveEventsScanPlan[idxPlan];
         if( joPlan.nBlockFrom < 0 )
             continue;
         joLastPlan = joPlan;
-        details.write( strLogPrefix +
-            cc.debug( "Progressive scan of " ) + cc.attention( "getPastEvents" ) +
-            cc.debug( "/" ) + cc.info( strEventName ) +
-            cc.debug( ", from block " ) + cc.info( joPlan.nBlockFrom ) +
-            cc.debug( ", to block " ) + cc.info( joPlan.nBlockTo ) +
-            cc.debug( ", block range is " ) + cc.info( joPlan.type ) +
-            cc.debug( "..." ) + "\n" );
+        if( log.verboseGet() >= log.verboseReversed().trace ) {
+            details.write( strLogPrefix + cc.debug( "Progressive scan of " ) +
+                cc.attention( "getPastEvents" ) + cc.debug( "/" ) + cc.info( strEventName ) +
+                cc.debug( ", from block " ) + cc.info( joPlan.nBlockFrom ) +
+                cc.debug( ", to block " ) + cc.info( joPlan.nBlockTo ) +
+                cc.debug( ", block range is " ) + cc.info( joPlan.type ) +
+                cc.debug( "..." ) + "\n" );
+        }
         try {
             const joAllEventsInBlock =
                 await safeGetPastEventsIterative(
@@ -1158,25 +1204,27 @@ export async function safeGetPastEventsProgressive(
                     joPlan.nBlockFrom, joPlan.nBlockTo, joFilter
                 );
             if( joAllEventsInBlock && joAllEventsInBlock.length > 0 ) {
-                details.write( strLogPrefix +
-                    cc.success( "Progressive scan of " ) + cc.attention( "getPastEvents" ) +
-                    cc.debug( "/" ) + cc.info( strEventName ) +
-                    cc.success( ", from block " ) + cc.info( joPlan.nBlockFrom ) +
-                    cc.success( ", to block " ) + cc.info( joPlan.nBlockTo ) +
-                    cc.success( ", block range is " ) + cc.info( joPlan.type ) +
-                    cc.success( ", found " ) + cc.info( joAllEventsInBlock.length ) +
-                    cc.success( " event(s)" ) + "\n" );
+                if( log.verboseGet() >= log.verboseReversed().trace ) {
+                    details.write( strLogPrefix + cc.success( "Progressive scan of " ) +
+                        cc.attention( "getPastEvents" ) + cc.debug( "/" ) +
+                        cc.info( strEventName ) + cc.success( ", from block " ) +
+                        cc.info( joPlan.nBlockFrom ) + cc.success( ", to block " ) +
+                        cc.info( joPlan.nBlockTo ) + cc.success( ", block range is " ) +
+                        cc.info( joPlan.type ) + cc.success( ", found " ) +
+                        cc.info( joAllEventsInBlock.length ) + cc.success( " event(s)" ) + "\n" );
+                }
                 return joAllEventsInBlock;
             }
         } catch ( err ) {}
     }
-    details.write( strLogPrefix +
-        cc.error( "Could not not get Event \"" ) + cc.info( strEventName ) +
-        cc.error( "\", from block " ) + cc.info( joLastPlan.nBlockFrom ) +
-        cc.error( ", to block " ) + cc.info( joLastPlan.nBlockTo ) +
-        cc.debug( ", block range is " ) + cc.info( joLastPlan.type ) +
-        cc.error( ", using " ) + cc.attention( "progressive" ) + cc.error( " event scan" ) +
-        "\n" );
+    if( log.verboseGet() >= log.verboseReversed().error ) {
+        details.write( strLogPrefix + cc.error( "Could not not get Event \"" ) +
+            cc.info( strEventName ) + cc.error( "\", from block " ) +
+            cc.info( joLastPlan.nBlockFrom ) + cc.error( ", to block " ) +
+            cc.info( joLastPlan.nBlockTo ) + cc.debug( ", block range is " ) +
+            cc.info( joLastPlan.type ) + cc.error( ", using " ) + cc.attention( "progressive" ) +
+            cc.error( " event scan" ) + "\n" );
+    }
     return [];
 }
 
@@ -1198,10 +1246,8 @@ export async function getContractCallEvents(
         nBlockTo = nLatestBlockNumber;
     const joAllEventsInBlock =
         await safeGetPastEventsIterative(
-            details, strLogPrefix,
-            ethersProvider, 10, joContract, strEventName,
-            nBlockFrom, nBlockTo, joFilter
-        );
+            details, strLogPrefix, ethersProvider, 10, joContract, strEventName,
+            nBlockFrom, nBlockTo, joFilter );
     const joAllTransactionEvents = []; let i;
     for( i = 0; i < joAllEventsInBlock.length; ++i ) {
         const joEvent = joAllEventsInBlock[i];
@@ -1264,12 +1310,12 @@ export async function dryRunCall(
     const strContractCallDescription = strContractMethodDescription + strArgumentsDescription;
     const strLogPrefix = strContractMethodDescription + " ";
     try {
-        details.write(
-            cc.debug( "Dry-run of action " ) + cc.info( strActionName ) + cc.debug( "..." ) +
-            "\n" );
-        details.write(
-            cc.debug( "Will dry-run " ) + strContractCallDescription + cc.debug( "..." ) +
-            "\n" );
+        if( log.verboseGet() >= log.verboseReversed().trace ) {
+            details.write( cc.debug( "Dry-run of action " ) + cc.info( strActionName ) +
+                cc.debug( "..." ) + "\n" );
+            details.write( cc.debug( "Will dry-run " ) + strContractCallDescription +
+                cc.debug( "..." ) + "\n" );
+        }
         const strAccountWalletAddress = joAccount.address();
         const callOpts = {
             from: strAccountWalletAddress
@@ -1282,15 +1328,16 @@ export async function dryRunCall(
             callOpts.value = owaspUtils.toBN( weiHowMuch ).toHexString();
         const joDryRunResult =
             await joContract.callStatic[strMethodName]( ...arrArguments, callOpts );
-        details.write( strLogPrefix +
-            cc.success( "dry-run success: " ) + cc.j( joDryRunResult ) +
-            "\n" );
+        if( log.verboseGet() >= log.verboseReversed().trace ) {
+            details.write( strLogPrefix + cc.success( "dry-run success: " ) +
+                cc.j( joDryRunResult ) + "\n" );
+        }
         return null; // success
     } catch ( err ) {
         if( log.verboseGet() >= log.verboseReversed().error ) {
             const strError = owaspUtils.extractErrorMessage( err );
-            details.write( strLogPrefix +
-                cc.error( "dry-run error: " ) + cc.warning( strError ) + "\n" );
+            details.write( strLogPrefix + cc.error( "dry-run error: " ) +
+                cc.warning( strError ) + "\n" );
         }
         if( dryRunIsIgnored() )
             return null;
@@ -1312,18 +1359,21 @@ async function payedCallPrepare( optsPayedCall ) {
         optsPayedCall.callOpts.value =
         owaspUtils.toBN( optsPayedCall.weiHowMuch ).toHexString();
     }
-    optsPayedCall.details.write( optsPayedCall.strLogPrefix +
-        cc.debug( "Payed-call of action " ) + cc.info( optsPayedCall.strActionName ) +
-        cc.debug( " will do payed-call " ) + optsPayedCall.strContractCallDescription +
-        cc.debug( " with call options " ) + cc.j( optsPayedCall.callOpts ) +
-        cc.debug( " via " ) + cc.attention( optsPayedCall.joACI.strType ) +
-        cc.debug( "-sign-and-send..." ) + "\n" );
+    if( log.verboseGet() >= log.verboseReversed().trace ) {
+        optsPayedCall.details.write( optsPayedCall.strLogPrefix +
+            cc.debug( "Payed-call of action " ) + cc.info( optsPayedCall.strActionName ) +
+            cc.debug( " will do payed-call " ) + optsPayedCall.strContractCallDescription +
+            cc.debug( " with call options " ) + cc.j( optsPayedCall.callOpts ) +
+            cc.debug( " via " ) + cc.attention( optsPayedCall.joACI.strType ) +
+            cc.debug( "-sign-and-send..." ) + "\n" );
+    }
     optsPayedCall.unsignedTx =
         await optsPayedCall.joContract.populateTransaction[optsPayedCall.strMethodName](
             ...optsPayedCall.arrArguments, optsPayedCall.callOpts );
-    optsPayedCall.details.write( optsPayedCall.strLogPrefix +
-        cc.debug( "populated transaction: " ) + cc.j( optsPayedCall.unsignedTx ) +
-        "\n" );
+    if( log.verboseGet() >= log.verboseReversed().trace ) {
+        optsPayedCall.details.write( optsPayedCall.strLogPrefix +
+            cc.debug( "populated transaction: " ) + cc.j( optsPayedCall.unsignedTx ) + "\n" );
+    }
     optsPayedCall.unsignedTx.nonce =
         await optsPayedCall.ethersProvider.getTransactionCount( optsPayedCall.joAccount.address() );
     if( optsPayedCall.opts && optsPayedCall.opts.isCheckTransactionToSchain ) {
@@ -1333,11 +1383,15 @@ async function payedCallPrepare( optsPayedCall ) {
     }
     optsPayedCall.rawTx =
         owaspUtils.ethersMod.ethers.utils.serializeTransaction( optsPayedCall.unsignedTx );
-    optsPayedCall.details.write( optsPayedCall.strLogPrefix +
-        cc.debug( "Raw transaction: " ) + cc.j( optsPayedCall.rawTx ) + "\n" );
+    if( log.verboseGet() >= log.verboseReversed().trace ) {
+        optsPayedCall.details.write( optsPayedCall.strLogPrefix +
+            cc.debug( "Raw transaction: " ) + cc.j( optsPayedCall.rawTx ) + "\n" );
+    }
     optsPayedCall.txHash = owaspUtils.ethersMod.ethers.utils.keccak256( optsPayedCall.rawTx );
-    optsPayedCall.details.write( optsPayedCall.strLogPrefix +
-        cc.debug( "Transaction hash: " ) + cc.j( optsPayedCall.txHash ) + "\n" );
+    if( log.verboseGet() >= log.verboseReversed().trace ) {
+        optsPayedCall.details.write( optsPayedCall.strLogPrefix +
+            cc.debug( "Transaction hash: " ) + cc.j( optsPayedCall.txHash ) + "\n" );
+    }
 }
 
 async function payedCallTM( optsPayedCall ) {
@@ -1360,31 +1414,35 @@ async function payedCallTM( optsPayedCall ) {
                 delete txAdjusted.chainId;
             const { chainId } = await optsPayedCall.ethersProvider.getNetwork();
             txAdjusted.chainId = chainId;
-            optsPayedCall.details.write( optsPayedCall.strLogPrefix +
-                cc.debug( "Adjusted transaction: " ) + cc.j( txAdjusted ) +
-                "\n" );
+            if( log.verboseGet() >= log.verboseReversed().trace ) {
+                optsPayedCall.details.write( optsPayedCall.strLogPrefix +
+                    cc.debug( "Adjusted transaction: " ) + cc.j( txAdjusted ) + "\n" );
+            }
             if( redis == null )
                 redis = new Redis( optsPayedCall.joAccount.strTransactionManagerURL );
             const priority = optsPayedCall.joAccount.nTmPriority || 5;
-            optsPayedCall.details.write( optsPayedCall.strLogPrefix +
-                cc.debug( "TM priority: " ) + cc.j( priority ) + "\n" );
+            if( log.verboseGet() >= log.verboseReversed().trace ) {
+                optsPayedCall.details.write( optsPayedCall.strLogPrefix +
+                    cc.debug( "TM priority: " ) + cc.j( priority ) + "\n" );
+            }
             try {
                 const [ idTransaction, joReceiptFromTM ] =
                     await tmEnsureTransaction(
                         optsPayedCall.details, optsPayedCall.ethersProvider, priority, txAdjusted );
                 optsPayedCall.joReceipt = joReceiptFromTM;
-                optsPayedCall.details.write( optsPayedCall.strLogPrefix +
-                    cc.debug( "ID of TM-transaction : " ) + cc.j( idTransaction ) +
-                    "\n" );
+                if( log.verboseGet() >= log.verboseReversed().trace ) {
+                    optsPayedCall.details.write( optsPayedCall.strLogPrefix +
+                        cc.debug( "ID of TM-transaction : " ) + cc.j( idTransaction ) + "\n" );
+                }
                 const txHashSent = "" + optsPayedCall.joReceipt.transactionHash;
-                optsPayedCall.details.write( optsPayedCall.strLogPrefix +
-                    cc.debug( "Hash of sent TM-transaction: " ) + cc.j( txHashSent ) +
-                    "\n" );
+                if( log.verboseGet() >= log.verboseReversed().trace ) {
+                    optsPayedCall.details.write( optsPayedCall.strLogPrefix +
+                        cc.debug( "Hash of sent TM-transaction: " ) + cc.j( txHashSent ) + "\n" );
+                }
                 resolve( optsPayedCall.joReceipt );
             } catch ( err ) {
                 if( log.verboseGet() >= log.verboseReversed().critical ) {
-                    const strError =
-                        cc.fatal( "BAD ERROR:" ) + " " +
+                    const strError = cc.fatal( "BAD ERROR:" ) + " " +
                         cc.error( "TM-transaction was not sent, underlying error is: " ) +
                         cc.warning( err.toString() );
                     optsPayedCall.details.write( optsPayedCall.strLogPrefix + strError + "\n" );
@@ -1442,33 +1500,33 @@ async function payedCallSGX( optsPayedCall ) {
                         "base": 16
                     }
                 };
-                optsPayedCall.details.write( optsPayedCall.strLogPrefix +
-                cc.debug( "Calling SGX to sign using ECDSA key with " ) +
-                cc.info( joIn.method ) + cc.debug( "..." ) +
-                "\n" );
+                if( log.verboseGet() >= log.verboseReversed().trace ) {
+                    optsPayedCall.details.write( optsPayedCall.strLogPrefix +
+                        cc.debug( "Calling SGX to sign using ECDSA key with " ) +
+                        cc.info( joIn.method ) + cc.debug( "..." ) + "\n" );
+                }
                 joCall.call( joIn, async function( joIn, joOut, err ) {
                     if( err ) {
-                        const strError =
-                        cc.fatal( "CRITICAL TRANSACTION SIGNING ERROR:" ) +
-                        cc.error(
-                            " JSON RPC call sending to SGX wallet failed with error " ) +
-                        cc.warning( owaspUtils.extractErrorMessage( err ) ) +
-                        cc.error( ", stack is: " ) + "\n" + cc.stack( err.stack ) +
-                        "\n";
+                        const strError = cc.fatal( "CRITICAL TRANSACTION SIGNING ERROR:" ) +
+                            cc.error( " JSON RPC call sending to SGX wallet " +
+                            "failed with error " ) +
+                            cc.warning( owaspUtils.extractErrorMessage( err ) ) +
+                            cc.error( ", stack is: " ) + "\n" + cc.stack( err.stack ) + "\n";
                         if( log.verboseGet() >= log.verboseReversed.error ) {
                             if( log.id != optsPayedCall.details.id )
                                 log.write( optsPayedCall.strLogPrefix + strError );
+                            optsPayedCall.details.write( optsPayedCall.strLogPrefix + strError );
                         }
-                        optsPayedCall.details.write( optsPayedCall.strLogPrefix + strError );
                         reject(
-                            new Error(
-                                "CRITICAL TRANSACTION SIGNING ERROR: " +
-                            owaspUtils.extractErrorMessage( err ) ) );
+                            new Error( "CRITICAL TRANSACTION SIGNING ERROR: " +
+                                owaspUtils.extractErrorMessage( err ) ) );
                     }
                     try {
-                        optsPayedCall.details.write( optsPayedCall.strLogPrefix +
-                        cc.debug( "SGX wallet ECDSA sign result is: " ) + cc.j( joOut ) +
-                        "\n" );
+                        if( log.verboseGet() >= log.verboseReversed().trace ) {
+                            optsPayedCall.details.write( optsPayedCall.strLogPrefix +
+                                cc.debug( "SGX wallet ECDSA sign result is: " ) + cc.j( joOut ) +
+                                "\n" );
+                        }
                         const v =
                         owaspUtils.parseIntOrHex(
                             owaspUtils.toBN( joOut.result.signature_v ).toString() );
@@ -1477,40 +1535,45 @@ async function payedCallSGX( optsPayedCall ) {
                             "r": joOut.result.signature_r,
                             "s": joOut.result.signature_s
                         };
-                        optsPayedCall.details.write( optsPayedCall.strLogPrefix +
-                        cc.debug( "Preliminary expanded signature: " ) +
-                        cc.j( joExpanded ) +
-                        "\n" );
-
+                        if( log.verboseGet() >= log.verboseReversed().trace ) {
+                            optsPayedCall.details.write( optsPayedCall.strLogPrefix +
+                                cc.debug( "Preliminary expanded signature: " ) +
+                                cc.j( joExpanded ) + "\n" );
+                        }
                         let { chainId } = await optsPayedCall.ethersProvider.getNetwork();
                         if( chainId == "string" )
                             chainId = owaspUtils.parseIntOrHex( chainId );
-                        optsPayedCall.details.write( optsPayedCall.strLogPrefix +
-                        cc.debug( "Chain ID is: " ) + cc.info( chainId ) +
-                        "\n" );
+                        if( log.verboseGet() >= log.verboseReversed().trace ) {
+                            optsPayedCall.details.write( optsPayedCall.strLogPrefix +
+                                cc.debug( "Chain ID is: " ) + cc.info( chainId ) + "\n" );
+                        }
                         joExpanded.v += chainId * 2 + 8 + 27;
-
-                        optsPayedCall.details.write( optsPayedCall.strLogPrefix +
-                        cc.debug( "Final expanded signature: " ) + cc.j( joExpanded ) +
-                        "\n" );
+                        if( log.verboseGet() >= log.verboseReversed().trace ) {
+                            optsPayedCall.details.write( optsPayedCall.strLogPrefix +
+                                cc.debug( "Final expanded signature: " ) + cc.j( joExpanded ) +
+                                "\n" );
+                        }
                         const joSignature =
                         owaspUtils.ethersMod.ethers.utils.joinSignature( joExpanded );
-                        optsPayedCall.details.write( optsPayedCall.strLogPrefix +
-                        cc.debug( "Final signature: " ) + cc.j( joSignature ) +
-                        "\n" );
+                        if( log.verboseGet() >= log.verboseReversed().trace ) {
+                            optsPayedCall.details.write( optsPayedCall.strLogPrefix +
+                                cc.debug( "Final signature: " ) + cc.j( joSignature ) + "\n" );
+                        }
                         optsPayedCall.rawTx =
                         owaspUtils.ethersMod.ethers.utils.serializeTransaction(
                             optsPayedCall.unsignedTx, joSignature );
-                        optsPayedCall.details.write( optsPayedCall.strLogPrefix +
-                        cc.debug( "Raw transaction with signature: " ) +
-                        cc.j( optsPayedCall.rawTx ) + "\n" );
-
+                        if( log.verboseGet() >= log.verboseReversed().trace ) {
+                            optsPayedCall.details.write( optsPayedCall.strLogPrefix +
+                                cc.debug( "Raw transaction with signature: " ) +
+                                cc.j( optsPayedCall.rawTx ) + "\n" );
+                        }
                         const { hash } = await optsPayedCall.ethersProvider.sendTransaction(
                             owaspUtils.ensureStartsWith0x( optsPayedCall.rawTx )
                         );
-                        optsPayedCall.details.write( optsPayedCall.strLogPrefix +
-                        cc.debug( "Raw-sent transaction hash: " ) + cc.j( hash ) +
-                        "\n" );
+                        if( log.verboseGet() >= log.verboseReversed().trace ) {
+                            optsPayedCall.details.write( optsPayedCall.strLogPrefix +
+                                cc.debug( "Raw-sent transaction hash: " ) + cc.j( hash ) + "\n" );
+                        }
                         optsPayedCall.joReceipt =
                         await optsPayedCall.ethersProvider.waitForTransaction( hash );
                         resolve( optsPayedCall.joReceipt );
@@ -1518,11 +1581,9 @@ async function payedCallSGX( optsPayedCall ) {
                         const strErrorPrefix =
                             "CRITICAL TRANSACTION SIGN AND SEND ERROR(PROCESSING SGX RESULT):";
                         if( log.verboseGet() >= log.verboseReversed().critical ) {
-                            const s =
-                                optsPayedCall.strLogPrefix + cc.error( strErrorPrefix ) + " " +
-                                cc.warning( owaspUtils.extractErrorMessage( err ) ) +
-                                cc.error( ", stack is: " ) + "\n" + cc.stack( err.stack ) +
-                                "\n";
+                            const s = optsPayedCall.strLogPrefix + cc.error( strErrorPrefix ) +
+                                " " + cc.warning( owaspUtils.extractErrorMessage( err ) ) +
+                                cc.error( ", stack is: " ) + "\n" + cc.stack( err.stack ) + "\n";
                             optsPayedCall.details.write( s );
                             if( log.id != optsPayedCall.details.id )
                                 log.write( s );
@@ -1544,13 +1605,15 @@ async function payedCallDirect( optsPayedCall ) {
                 optsPayedCall.joAccount.privateKey ),
             optsPayedCall.ethersProvider );
     const joSent = await ethersWallet.sendTransaction( optsPayedCall.unsignedTx );
-    optsPayedCall.details.write( optsPayedCall.strLogPrefix +
-        cc.debug( "Sent transaction: " ) + cc.j( joSent ) +
-        "\n" );
+    if( log.verboseGet() >= log.verboseReversed().trace ) {
+        optsPayedCall.details.write( optsPayedCall.strLogPrefix +
+            cc.debug( "Sent transaction: " ) + cc.j( joSent ) + "\n" );
+    }
     optsPayedCall.joReceipt = await joSent.wait();
-    optsPayedCall.details.write( optsPayedCall.strLogPrefix +
-        cc.debug( "Transaction receipt:" ) + cc.j( optsPayedCall.joReceipt ) +
-        "\n" );
+    if( log.verboseGet() >= log.verboseReversed().trace ) {
+        optsPayedCall.details.write( optsPayedCall.strLogPrefix +
+            cc.debug( "Transaction receipt:" ) + cc.j( optsPayedCall.joReceipt ) + "\n" );
+    }
 }
 
 export async function payedCall(
@@ -1642,9 +1705,12 @@ export async function payedCall(
             " invoking the " + optsPayedCall.strContractCallDescription +
             ", error is: " + owaspUtils.extractErrorMessage( err ) );
     }
-    optsPayedCall.details.write( optsPayedCall.strLogPrefix + cc.success( "Done, TX was " ) +
-        cc.attention( optsPayedCall.joACI ? optsPayedCall.joACI.strType : "N/A" ) +
-        cc.success( "-signed-and-sent, receipt is " ) + cc.j( optsPayedCall.joReceipt ) + "\n" );
+    if( log.verboseGet() >= log.verboseReversed().information ) {
+        optsPayedCall.details.write( optsPayedCall.strLogPrefix + cc.success( "Done, TX was " ) +
+            cc.attention( optsPayedCall.joACI ? optsPayedCall.joACI.strType : "N/A" ) +
+            cc.success( "-signed-and-sent, receipt is " ) + cc.j( optsPayedCall.joReceipt ) +
+            "\n" );
+    }
     try {
         const bnGasSpent = owaspUtils.toBN( optsPayedCall.joReceipt.cumulativeGasUsed );
         const gasSpent = bnGasSpent.toString();
@@ -1657,10 +1723,12 @@ export async function payedCall(
             gasSpent: gasSpent,
             ethSpent: ethSpent
         };
-        optsPayedCall.details.write( optsPayedCall.strLogPrefix +
-            cc.debug( "gas spent: " ) + cc.info( gasSpent ) + "\n" );
-        optsPayedCall.details.write( optsPayedCall.strLogPrefix +
-            cc.debug( "ETH spent: " ) + cc.info( ethSpent ) + "\n" );
+        if( log.verboseGet() >= log.verboseReversed().trace ) {
+            optsPayedCall.details.write( optsPayedCall.strLogPrefix +
+                cc.debug( "gas spent: " ) + cc.info( gasSpent ) + "\n" );
+            optsPayedCall.details.write( optsPayedCall.strLogPrefix +
+                cc.debug( "ETH spent: " ) + cc.info( ethSpent ) + "\n" );
+        }
     } catch ( err ) {
         if( log.verboseGet() >= log.verboseReversed().critical ) {
             optsPayedCall.details.write(
@@ -1684,22 +1752,20 @@ export async function checkTransactionToSchain(
         const strFromAddress = joAccount.address(); // unsignedTx.from;
         const requiredBalance = unsignedTx.gasPrice.mul( unsignedTx.gasLimit );
         const balance = owaspUtils.toBN( await ethersProvider.getBalance( strFromAddress ) );
-        details.write(
-            strLogPrefix +
-            cc.debug( "Will check whether PoW-mining is needed for sender " ) +
-            cc.notice( strFromAddress ) +
-            cc.debug( " with balance " ) + cc.info( balance.toHexString() ) +
-            cc.debug( " using required balance " ) + cc.info( requiredBalance.toHexString() ) +
-            cc.debug( ", gas limit is " ) + cc.info( unsignedTx.gasLimit.toHexString() ) +
-            cc.debug( " gas, checked unsigned transaction is " ) + cc.j( unsignedTx ) +
-            "\n" );
+        if( log.verboseGet() >= log.verboseReversed().trace ) {
+            details.write( strLogPrefix + cc.debug( "Will check whether PoW-mining " +
+                "is needed for sender " ) + cc.notice( strFromAddress ) +
+                cc.debug( " with balance " ) + cc.info( balance.toHexString() ) +
+                cc.debug( " using required balance " ) + cc.info( requiredBalance.toHexString() ) +
+                cc.debug( ", gas limit is " ) + cc.info( unsignedTx.gasLimit.toHexString() ) +
+                cc.debug( " gas, checked unsigned transaction is " ) + cc.j( unsignedTx ) + "\n" );
+        }
         if( balance.lt( requiredBalance ) ) {
-            details.write(
-                strLogPrefix +
-                cc.warning( "Insufficient funds for " ) + cc.notice( strFromAddress ) +
-                cc.warning( ", will run PoW-mining to get " ) +
-                cc.info( unsignedTx.gasLimit.toHexString() ) + cc.warning( " of gas" ) +
-                "\n" );
+            if( log.verboseGet() >= log.verboseReversed().trace ) {
+                details.write( strLogPrefix + cc.warning( "Insufficient funds for " ) +
+                    cc.notice( strFromAddress ) + cc.warning( ", will run PoW-mining to get " ) +
+                    cc.info( unsignedTx.gasLimit.toHexString() ) + cc.warning( " of gas" ) + "\n" );
+            }
             let powNumber =
                 await calculatePowNumber(
                     strFromAddress,
@@ -1708,41 +1774,43 @@ export async function checkTransactionToSchain(
                     details,
                     strLogPrefix
                 );
-            details.write( strLogPrefix +
-                cc.debug( "Returned PoW-mining number " ) + cc.sunny( powNumber ) +
-                "\n" );
+            if( log.verboseGet() >= log.verboseReversed().debug ) {
+                details.write( strLogPrefix + cc.debug( "Returned PoW-mining number " ) +
+                    cc.sunny( powNumber ) + "\n" );
+            }
             powNumber = powNumber.toString().trim();
             powNumber = imaUtils.replaceAll( powNumber, "\r", "" );
             powNumber = imaUtils.replaceAll( powNumber, "\n", "" );
             powNumber = imaUtils.replaceAll( powNumber, "\t", "" );
             powNumber = powNumber.trim();
-            details.write( strLogPrefix +
-                cc.debug( "Trimmed PoW-mining number is " ) + cc.sunny( powNumber ) +
-                "\n" );
+            if( log.verboseGet() >= log.verboseReversed().trace ) {
+                details.write( strLogPrefix + cc.debug( "Trimmed PoW-mining number is " ) +
+                    cc.sunny( powNumber ) + "\n" );
+            }
             if( ! powNumber ) {
                 throw new Error(
                     "Failed to compute gas price with PoW-mining (1), got empty text" );
             }
             powNumber = owaspUtils.toBN( owaspUtils.ensureStartsWith0x( powNumber ) );
-            details.write( strLogPrefix +
-                cc.debug( "BN PoW-mining number is " ) + cc.j( powNumber ) +
-                "\n" );
+            if( log.verboseGet() >= log.verboseReversed().trace ) {
+                details.write( strLogPrefix + cc.debug( "BN PoW-mining number is " ) +
+                    cc.j( powNumber ) + "\n" );
+            }
             if( powNumber.eq( owaspUtils.toBN( "0" ) ) ) {
                 throw new Error(
                     "Failed to compute gas price with PoW-mining (2), got zero value" );
             }
             unsignedTx.gasPrice = powNumber;
-            details.write( strLogPrefix +
-                cc.success(
-                    "Success, finally (after PoW-mining) modified unsigned transaction is " ) +
-                cc.j( unsignedTx ) +
-                "\n" );
+            if( log.verboseGet() >= log.verboseReversed().trace ) {
+                details.write( strLogPrefix + cc.success( "Success, finally (after PoW-mining) " +
+                    "modified unsigned transaction is " ) + cc.j( unsignedTx ) + "\n" );
+            }
         } else {
-            details.write(
-                strLogPrefix +
-                cc.success( "Have sufficient funds for " ) + cc.notice( strFromAddress ) +
-                cc.success( ", PoW-mining is not needed and will be skipped" ) +
-                "\n" );
+            if( log.verboseGet() >= log.verboseReversed().trace ) {
+                details.write( strLogPrefix + cc.success( "Have sufficient funds for " ) +
+                    cc.notice( strFromAddress ) + cc.success( ", PoW-mining is not needed " +
+                    "and will be skipped" ) + "\n" );
+            }
         }
     } catch ( err ) {
         if( log.verboseGet() >= log.verboseReversed().critical ) {
@@ -1765,12 +1833,15 @@ export async function calculatePowNumber( address, nonce, gas, details, strLogPr
         const _gas = owaspUtils.parseIntOrHex( gas );
         const powScriptPath = path.join( __dirname, "pow" );
         const cmd = `${powScriptPath} ${_address} ${_nonce} ${_gas}`;
-        details.write( strLogPrefix +
-            cc.debug( "Will run PoW-mining command: " ) + cc.notice( cmd ) +
-            "\n" );
+        if( log.verboseGet() >= log.verboseReversed().trace ) {
+            details.write( strLogPrefix +
+                cc.debug( "Will run PoW-mining command: " ) + cc.notice( cmd ) + "\n" );
+        }
         const res = childProcessModule.execSync( cmd );
-        details.write( strLogPrefix +
-            cc.debug( "Got PoW-mining execution result: " ) + cc.notice( res ) + "\n" );
+        if( log.verboseGet() >= log.verboseReversed().trace ) {
+            details.write( strLogPrefix +
+                cc.debug( "Got PoW-mining execution result: " ) + cc.notice( res ) + "\n" );
+        }
         return res;
     } catch ( err ) {
         if( log.verboseGet() >= log.verboseReversed().critical ) {
@@ -1829,7 +1900,8 @@ function tmMakeId( details ) {
     const prefix = "tx-";
     const unique = tmGenerateRandomHex( 16 );
     const id = prefix + unique + "js";
-    details.write( cc.debug( "TM - Generated id: " ) + cc.debug( id ) + "\n" );
+    if( log.verboseGet() >= log.verboseReversed().trace )
+        details.write( cc.debug( "TM - Generated id: " ) + cc.debug( id ) + "\n" );
     return id;
 }
 
@@ -1848,15 +1920,17 @@ function tmMakeScore( priority ) {
 }
 
 async function tmSend( details, tx, priority = 5 ) {
-    details.write( cc.debug( "TM - sending tx " ) + cc.j( tx ) +
-        cc.debug( " ts: " ) + cc.info( currentTimestamp() ) + "\n" );
+    if( log.verboseGet() >= log.verboseReversed().trace ) {
+        details.write( cc.debug( "TM - sending tx " ) + cc.j( tx ) +
+            cc.debug( " ts: " ) + cc.info( currentTimestamp() ) + "\n" );
+    }
     const id = tmMakeId( details );
     const score = tmMakeScore( priority );
     const record = tmMakeRecord( tx, score );
-    details.write(
-        cc.debug( "TM - Sending score: " ) + cc.info( score ) +
-        cc.debug( ", record: " ) + cc.info( record ) +
-        "\n" );
+    if( log.verboseGet() >= log.verboseReversed().trace ) {
+        details.write( cc.debug( "TM - Sending score: " ) + cc.info( score ) +
+            cc.debug( ", record: " ) + cc.info( record ) + "\n" );
+    }
     const expiration = 24 * 60 * 60; // 1 day;
     await redis.multi()
         .set( id, record, "EX", expiration )
@@ -2018,14 +2092,10 @@ export async function checkIsRegisteredSChainInDepositBoxes( // step 1
     chainIdSChain
 ) {
     const details = log.createMemoryStream();
-    details.write(
-        cc.info( "Main-net " ) + cc.sunny( "Linker" ) +
-        cc.info( "  address is....." ) + cc.bright( joLinker.address ) +
-        "\n" );
-    details.write(
-        cc.info( "S-Chain  " ) + cc.sunny( "ID" ) + cc.info( " is......................." ) +
-        cc.bright( chainIdSChain ) +
-        "\n" );
+    details.write( cc.info( "Main-net " ) + cc.sunny( "Linker" ) +
+        cc.info( "  address is....." ) + cc.bright( joLinker.address ) + "\n" );
+    details.write( cc.info( "S-Chain  " ) + cc.sunny( "ID" ) +
+        cc.info( " is......................." ) + cc.bright( chainIdSChain ) + "\n" );
     const strLogPrefix = cc.note( "RegChk S in depositBox:" ) + " ";
     details.write( strLogPrefix + cc.debug( longSeparator ) + "\n" );
     details.write( strLogPrefix +
@@ -2073,8 +2143,8 @@ export async function invokeHasChain(
     const strLogPrefix = cc.sunny( "Wait for added chain status:" ) + " ";
     const strActionName = "invokeHasChain(hasSchain): joLinker.hasSchain";
     try {
-        details.write( strLogPrefix +
-            cc.debug( "Will call " ) + cc.notice( strActionName ) + cc.debug( "..." ) + "\n" );
+        details.write( strLogPrefix + cc.debug( "Will call " ) + cc.notice( strActionName ) +
+            cc.debug( "..." ) + "\n" );
         const addressFrom = joAccount.address();
         const bHasSchain =
             await joLinker.callStatic.hasSchain( chainIdSChain, { from: addressFrom } );
@@ -2115,10 +2185,10 @@ export async function waitForHasChain(
             details, ethersProvider, joLinker, joAccount, chainIdSChain
         ) )
             return true;
-        details.write(
-            cc.normal( "Sleeping " ) + cc.info( nSleepMilliseconds ) +
-            cc.normal( " milliseconds..." ) +
-            "\n" );
+        if( log.verboseGet() >= log.verboseReversed().trace ) {
+            details.write( cc.normal( "Sleeping " ) + cc.info( nSleepMilliseconds ) +
+                cc.normal( " milliseconds..." ) + "\n" );
+        }
         await sleep( nSleepMilliseconds );
     }
     return false;
@@ -2142,15 +2212,11 @@ export async function registerSChainInDepositBoxes( // step 1
     nSleepMilliseconds
 ) {
     const details = log.createMemoryStream();
-    const jarrReceipts = []; // registerSChainInDepositBoxes
-    details.write(
-        cc.info( "Main-net " ) + cc.sunny( "Linker" ) + cc.info( "  address is......." ) +
-        cc.bright( joLinker.address ) +
-        "\n" );
-    details.write(
-        cc.info( "S-Chain  " ) + cc.sunny( "ID" ) + cc.info( " is......................." ) +
-        cc.bright( chainNameSChain ) +
-        "\n" );
+    const jarrReceipts = [];
+    details.write( cc.info( "Main-net " ) + cc.sunny( "Linker" ) +
+        cc.info( "  address is......." ) + cc.bright( joLinker.address ) + "\n" );
+    details.write( cc.info( "S-Chain  " ) + cc.sunny( "ID" ) +
+        cc.info( " is......................." ) + cc.bright( chainNameSChain ) + "\n" );
     const strLogPrefix = cc.sunny( "Reg S in depositBoxes:" ) + " ";
     details.write( strLogPrefix + cc.debug( longSeparator ) + "\n" );
     details.write( strLogPrefix +
@@ -2176,10 +2242,10 @@ export async function registerSChainInDepositBoxes( // step 1
         const weiHowMuch = undefined;
         const gasPrice = await transactionCustomizerMainNet.computeGasPrice(
             ethersProviderMainNet, 200000000000 );
-        details.write( strLogPrefix +
-            cc.debug( "Using computed " ) + cc.info( "gasPrice" ) +
-            cc.debug( "=" ) + cc.j( gasPrice ) +
-            "\n" );
+        if( log.verboseGet() >= log.verboseReversed().trace ) {
+            details.write( strLogPrefix + cc.debug( "Using computed " ) + cc.info( "gasPrice" ) +
+                cc.debug( "=" ) + cc.j( gasPrice ) + "\n" );
+        }
         const estimatedGas =
             await transactionCustomizerMainNet.computeGas(
                 details,
@@ -2189,48 +2255,36 @@ export async function registerSChainInDepositBoxes( // step 1
                 gasPrice, 3000000, weiHowMuch,
                 null
             );
-        details.write( strLogPrefix +
-            cc.debug( "Using estimated " ) + cc.info( "gas" ) +
-            cc.debug( "=" ) + cc.notice( estimatedGas ) +
-            "\n" );
+        if( log.verboseGet() >= log.verboseReversed().trace ) {
+            details.write( strLogPrefix + cc.debug( "Using estimated " ) + cc.info( "gas" ) +
+                cc.debug( "=" ) + cc.notice( estimatedGas ) + "\n" );
+        }
         const isIgnore = false;
         const strErrorOfDryRun =
             await dryRunCall(
-                details,
-                ethersProviderMainNet,
+                details, ethersProviderMainNet,
                 "Linker", joLinker, "connectSchain", arrArguments,
                 joAccountMN, strActionName, isIgnore,
-                gasPrice, estimatedGas, weiHowMuch,
-                null
-            );
+                gasPrice, estimatedGas, weiHowMuch, null );
         if( strErrorOfDryRun )
             throw new Error( strErrorOfDryRun );
 
         const joReceipt =
             await payedCall(
-                details,
-                ethersProviderMainNet,
+                details, ethersProviderMainNet,
                 "Linker", joLinker, "connectSchain", arrArguments,
                 joAccountMN, strActionName,
-                gasPrice, estimatedGas, weiHowMuch,
-                null
-            );
+                gasPrice, estimatedGas, weiHowMuch, null );
         if( joReceipt && typeof joReceipt == "object" ) {
             jarrReceipts.push( {
                 "description": "registerSChainInDepositBoxes",
                 "receipt": joReceipt
             } );
         }
-
         const isSChainStatusOKay = await waitForHasChain(
-            details,
-            ethersProviderMainNet,
-            joLinker,
-            joAccountMN,
-            chainNameSChain,
-            cntWaitAttempts,
-            nSleepMilliseconds
-        );
+            details, ethersProviderMainNet,
+            joLinker, joAccountMN, chainNameSChain,
+            cntWaitAttempts, nSleepMilliseconds );
         if( ! isSChainStatusOKay )
             throw new Error( "S-Chain ownership status check timeout" );
     } catch ( err ) {
@@ -2271,14 +2325,12 @@ export async function reimbursementShowBalance(
     const strLogPrefix = cc.info( "Gas Reimbursement - Show Balance" ) + " ";
     try {
         const addressFrom = joReceiverMainNet;
-        details.write( strLogPrefix +
-            cc.debug( "Querying wallet " ) + cc.notice( strReimbursementChain ) +
-            cc.debug( "/" ) + cc.info( addressFrom ) +
+        details.write( strLogPrefix + cc.debug( "Querying wallet " ) +
+            cc.notice( strReimbursementChain ) + cc.debug( "/" ) + cc.info( addressFrom ) +
             cc.debug( " balance..." ) + "\n" );
         const xWei =
             await joCommunityPool.callStatic.getBalance(
                 addressFrom, strReimbursementChain, { from: addressFrom } );
-
         s = strLogPrefix + cc.success( "Balance(wei): " ) + cc.attention( xWei ) + "\n";
         if( isForcePrintOut || log.verboseGet() >= log.verboseReversed().information )
             log.write( s );
@@ -2324,15 +2376,12 @@ export async function reimbursementEstimateAmount(
     let s = "";
     const strLogPrefix = cc.info( "Gas Reimbursement - Estimate Amount To Recharge" ) + " ";
     try {
-        details.write( strLogPrefix +
-            cc.debug( "Querying wallet " ) + cc.notice( strReimbursementChain ) +
-            cc.debug( " balance..." ) +
-            "\n" );
+        details.write( strLogPrefix + cc.debug( "Querying wallet " ) +
+            cc.notice( strReimbursementChain ) + cc.debug( " balance..." ) + "\n" );
         const addressReceiver = joReceiverMainNet;
         const xWei =
         await joCommunityPool.callStatic.getBalance(
             addressReceiver, strReimbursementChain, { from: addressReceiver } );
-
         s = strLogPrefix + cc.success( "Balance(wei): " ) + cc.attention( xWei ) + "\n";
         if( isForcePrintOut || log.verboseGet() >= log.verboseReversed().information )
             log.write( s );
@@ -2420,14 +2469,12 @@ export async function reimbursementWalletRecharge(
     nReimbursementRecharge
 ) {
     const details = log.createMemoryStream();
-    const jarrReceipts = []; // reimbursementWalletRecharge
+    const jarrReceipts = [];
     let strActionName = "";
     const strLogPrefix = cc.info( "Gas Reimbursement - Wallet Recharge" ) + " ";
     try {
-        details.write( strLogPrefix +
-            cc.debug( "Recharging wallet " ) +
-            cc.notice( strReimbursementChain ) + cc.debug( "..." ) +
-            "\n" );
+        details.write( strLogPrefix + cc.debug( "Recharging wallet " ) +
+            cc.notice( strReimbursementChain ) + cc.debug( "..." ) + "\n" );
         strActionName = "Recharge reimbursement wallet on Main Net";
         const addressReceiver = joAccountMN.address();
         const arrArguments = [
@@ -2436,45 +2483,36 @@ export async function reimbursementWalletRecharge(
         ];
         const gasPrice = await transactionCustomizerMainNet.computeGasPrice(
             ethersProviderMainNet, 200000000000 );
-        details.write( strLogPrefix +
-            cc.debug( "Using computed " ) + cc.info( "gasPrice" ) +
-            cc.debug( "=" ) + cc.j( gasPrice ) +
-            "\n" );
+        if( log.verboseGet() >= log.verboseReversed().trace ) {
+            details.write( strLogPrefix + cc.debug( "Using computed " ) + cc.info( "gasPrice" ) +
+                cc.debug( "=" ) + cc.j( gasPrice ) + "\n" );
+        }
         const estimatedGas =
             await transactionCustomizerMainNet.computeGas(
-                details,
-                ethersProviderMainNet,
+                details, ethersProviderMainNet,
                 "CommunityPool", joCommunityPool, "rechargeUserWallet", arrArguments,
                 joAccountMN, strActionName,
-                gasPrice, 3000000, nReimbursementRecharge,
-                null
-            );
-        details.write( strLogPrefix +
-            cc.debug( "Using estimated " ) + cc.info( "gas" ) +
-            cc.debug( "=" ) + cc.notice( estimatedGas ) +
-            "\n" );
+                gasPrice, 3000000, nReimbursementRecharge, null );
+        if( log.verboseGet() >= log.verboseReversed().trace ) {
+            details.write( strLogPrefix + cc.debug( "Using estimated " ) + cc.info( "gas" ) +
+                cc.debug( "=" ) + cc.notice( estimatedGas ) + "\n" );
+        }
         const isIgnore = false;
         const strErrorOfDryRun =
             await dryRunCall(
-                details,
-                ethersProviderMainNet,
+                details, ethersProviderMainNet,
                 "CommunityPool", joCommunityPool, "rechargeUserWallet", arrArguments,
                 joAccountMN, strActionName, isIgnore,
-                gasPrice, estimatedGas, nReimbursementRecharge,
-                null
-            );
+                gasPrice, estimatedGas, nReimbursementRecharge, null );
         if( strErrorOfDryRun )
             throw new Error( strErrorOfDryRun );
 
         const joReceipt =
             await payedCall(
-                details,
-                ethersProviderMainNet,
+                details, ethersProviderMainNet,
                 "CommunityPool", joCommunityPool, "rechargeUserWallet", arrArguments,
                 joAccountMN, strActionName,
-                gasPrice, estimatedGas, nReimbursementRecharge,
-                null
-            );
+                gasPrice, estimatedGas, nReimbursementRecharge, null );
         if( joReceipt && typeof joReceipt == "object" ) {
             jarrReceipts.push( {
                 "description": "reimbursementWalletRecharge",
@@ -2514,14 +2552,12 @@ export async function reimbursementWalletWithdraw(
     nReimbursementWithdraw
 ) {
     const details = log.createMemoryStream();
-    const jarrReceipts = []; // reimbursementWalletWithdraw
+    const jarrReceipts = [];
     let strActionName = "";
     const strLogPrefix = cc.info( "Gas Reimbursement - Wallet Withdraw" ) + " ";
     try {
-        details.write( strLogPrefix +
-            cc.debug( "Withdrawing wallet " ) +
-            cc.notice( strReimbursementChain ) + cc.debug( "..." ) +
-            "\n" );
+        details.write( strLogPrefix + cc.debug( "Withdrawing wallet " ) +
+            cc.notice( strReimbursementChain ) + cc.debug( "..." ) + "\n" );
         strActionName = "Withdraw reimbursement wallet";
         const arrArguments = [
             strReimbursementChain,
@@ -2531,44 +2567,37 @@ export async function reimbursementWalletWithdraw(
         const weiHowMuch = undefined;
         const gasPrice = await transactionCustomizerMainNet.computeGasPrice(
             ethersProviderMainNet, 200000000000 );
-        details.write( strLogPrefix + cc.debug( "Using computed " ) +
-            cc.info( "gasPrice" ) + cc.debug( "=" ) + cc.j( gasPrice ) +
-            "\n" );
+        if( log.verboseGet() >= log.verboseReversed().trace ) {
+            details.write( strLogPrefix + cc.debug( "Using computed " ) +
+                cc.info( "gasPrice" ) + cc.debug( "=" ) + cc.j( gasPrice ) +
+                "\n" );
+        }
         const estimatedGas =
             await transactionCustomizerMainNet.computeGas(
-                details,
-                ethersProviderMainNet,
+                details, ethersProviderMainNet,
                 "CommunityPool", joCommunityPool, "withdrawFunds", arrArguments,
                 joAccountMN, strActionName,
-                gasPrice, 3000000, weiHowMuch,
-                null
-            );
-        details.write( strLogPrefix +
-            cc.debug( "Using estimated " ) + cc.info( "gas" ) +
-            cc.debug( "=" ) + cc.notice( estimatedGas ) +
-            "\n" );
+                gasPrice, 3000000, weiHowMuch, null );
+        if( log.verboseGet() >= log.verboseReversed().trace ) {
+            details.write( strLogPrefix + cc.debug( "Using estimated " ) + cc.info( "gas" ) +
+                cc.debug( "=" ) + cc.notice( estimatedGas ) + "\n" );
+        }
         const isIgnore = false;
         const strErrorOfDryRun =
             await dryRunCall(
-                details,
-                ethersProviderMainNet,
+                details, ethersProviderMainNet,
                 "CommunityPool", joCommunityPool, "withdrawFunds", arrArguments,
                 joAccountMN, strActionName, isIgnore,
-                gasPrice, estimatedGas, weiHowMuch,
-                null
-            );
+                gasPrice, estimatedGas, weiHowMuch, null );
         if( strErrorOfDryRun )
             throw new Error( strErrorOfDryRun );
 
         const joReceipt =
             await payedCall(
-                details,
-                ethersProviderMainNet,
+                details, ethersProviderMainNet,
                 "CommunityPool", joCommunityPool, "withdrawFunds", arrArguments,
                 joAccountMN, strActionName,
-                gasPrice, estimatedGas, weiHowMuch,
-                null
-            );
+                gasPrice, estimatedGas, weiHowMuch, null );
         if( joReceipt && typeof joReceipt == "object" ) {
             jarrReceipts.push( {
                 "description": "reimbursementWalletWithdraw",
@@ -2608,15 +2637,13 @@ export async function reimbursementSetRange(
     nReimbursementRange
 ) {
     const details = log.createMemoryStream();
-    const jarrReceipts = []; // reimbursementSetRange
+    const jarrReceipts = [];
     let strActionName = "";
     const strLogPrefix =
         cc.info( "Gas Reimbursement - Set Minimal time interval from S2M transfers" ) + " ";
     try {
-        details.write( strLogPrefix +
-            cc.debug( "Setting minimal S2M interval to " ) +
-            cc.notice( nReimbursementRange ) + cc.debug( "..." ) +
-            "\n" );
+        details.write( strLogPrefix + cc.debug( "Setting minimal S2M interval to " ) +
+            cc.notice( nReimbursementRange ) + cc.debug( "..." ) + "\n" );
         strActionName = "Set reimbursement range";
         const arrArguments = [
             strChainNameOriginChain,
@@ -2625,35 +2652,29 @@ export async function reimbursementSetRange(
         const weiHowMuch = undefined;
         const gasPrice = await transactionCustomizerSChain.computeGasPrice(
             ethersProviderSChain, 200000000000 );
-        details.write( strLogPrefix +
-            cc.debug( "Using computed " ) + cc.info( "gasPrice" ) +
-            cc.debug( "=" ) + cc.j( gasPrice ) +
-            "\n" );
+        if( log.verboseGet() >= log.verboseReversed().trace ) {
+            details.write( strLogPrefix + cc.debug( "Using computed " ) + cc.info( "gasPrice" ) +
+                cc.debug( "=" ) + cc.j( gasPrice ) + "\n" );
+        }
         const estimatedGas =
             await transactionCustomizerSChain.computeGas(
-                details,
-                ethersProviderSChain,
+                details, ethersProviderSChain,
                 "CommunityLocker", joCommunityLocker,
                 "setTimeLimitPerMessage", arrArguments,
                 joAccountSC, strActionName,
-                gasPrice, 3000000, weiHowMuch,
-                null
-            );
-        details.write( strLogPrefix +
-            cc.debug( "Using estimated " ) + cc.info( "gas" ) +
-            cc.debug( "=" ) + cc.notice( estimatedGas ) +
-            "\n" );
+                gasPrice, 3000000, weiHowMuch, null );
+        if( log.verboseGet() >= log.verboseReversed().trace ) {
+            details.write( strLogPrefix + cc.debug( "Using estimated " ) + cc.info( "gas" ) +
+                cc.debug( "=" ) + cc.notice( estimatedGas ) + "\n" );
+        }
         const isIgnore = false;
         const strErrorOfDryRun =
             await dryRunCall(
-                details,
-                ethersProviderSChain,
+                details, ethersProviderSChain,
                 "CommunityLocker", joCommunityLocker,
                 "setTimeLimitPerMessage", arrArguments,
                 joAccountSC, strActionName, isIgnore,
-                gasPrice, estimatedGas, weiHowMuch,
-                null
-            );
+                gasPrice, estimatedGas, weiHowMuch, null );
         if( strErrorOfDryRun )
             throw new Error( strErrorOfDryRun );
 
@@ -2662,14 +2683,11 @@ export async function reimbursementSetRange(
         };
         const joReceipt =
             await payedCall(
-                details,
-                ethersProviderSChain,
+                details, ethersProviderSChain,
                 "CommunityLocker", joCommunityLocker,
                 "setTimeLimitPerMessage", arrArguments,
                 joAccountSC, strActionName,
-                gasPrice, estimatedGas, weiHowMuch,
-                opts
-            );
+                gasPrice, estimatedGas, weiHowMuch, opts );
         if( joReceipt && typeof joReceipt == "object" ) {
             jarrReceipts.push( {
                 "description": "reimbursementSetRange",
@@ -2722,55 +2740,45 @@ export async function doEthPaymentFromMainNet(
     let strActionName = "";
     const strLogPrefix = cc.info( "M2S ETH Payment:" ) + " ";
     try {
-        details.write( strLogPrefix +
-            cc.debug( "Doing payment from mainnet with " ) + cc.notice( "chainIdSChain" ) +
-            cc.debug( "=" ) + cc.notice( chainIdSChain ) + cc.debug( "..." ) +
-            "\n" );
+        details.write( strLogPrefix + cc.debug( "Doing payment from mainnet with " ) +
+            cc.notice( "chainIdSChain" ) + cc.debug( "=" ) + cc.notice( chainIdSChain ) +
+            cc.debug( "..." ) + "\n" );
         strActionName = "ETH payment from Main Net, deposit";
         const arrArguments = [
             chainIdSChain
         ];
         const gasPrice = await transactionCustomizerMainNet.computeGasPrice(
             ethersProviderMainNet, 200000000000 );
-        details.write( strLogPrefix +
-            cc.debug( "Using computed " ) + cc.info( "gasPrice" ) +
-            cc.debug( "=" ) + cc.j( gasPrice ) +
-            "\n" );
+        if( log.verboseGet() >= log.verboseReversed().trace ) {
+            details.write( strLogPrefix + cc.debug( "Using computed " ) + cc.info( "gasPrice" ) +
+                cc.debug( "=" ) + cc.j( gasPrice ) + "\n" );
+        }
         const estimatedGas =
             await transactionCustomizerMainNet.computeGas(
-                details,
-                ethersProviderMainNet,
+                details, ethersProviderMainNet,
                 "DepositBox", joDepositBox, "deposit", arrArguments,
                 joAccountSrc, strActionName,
-                gasPrice, 3000000, weiHowMuch,
-                null
-            );
-        details.write( strLogPrefix +
-            cc.debug( "Using estimated " ) + cc.info( "gas" ) +
-            cc.debug( "=" ) + cc.notice( estimatedGas ) +
-            "\n" );
+                gasPrice, 3000000, weiHowMuch, null );
+        if( log.verboseGet() >= log.verboseReversed().trace ) {
+            details.write( strLogPrefix + cc.debug( "Using estimated " ) + cc.info( "gas" ) +
+                cc.debug( "=" ) + cc.notice( estimatedGas ) + "\n" );
+        }
         const isIgnore = false;
         const strErrorOfDryRun =
             await dryRunCall(
-                details,
-                ethersProviderMainNet,
+                details, ethersProviderMainNet,
                 "DepositBox", joDepositBox, "deposit", arrArguments,
                 joAccountSrc, strActionName, isIgnore,
-                gasPrice, estimatedGas, weiHowMuch,
-                null
-            );
+                gasPrice, estimatedGas, weiHowMuch, null );
         if( strErrorOfDryRun )
             throw new Error( strErrorOfDryRun );
 
         const joReceipt =
             await payedCall(
-                details,
-                ethersProviderMainNet,
+                details, ethersProviderMainNet,
                 "DepositBox", joDepositBox, "deposit", arrArguments,
                 joAccountSrc, strActionName,
-                gasPrice, estimatedGas, weiHowMuch,
-                null
-            );
+                gasPrice, estimatedGas, weiHowMuch, null );
         if( joReceipt && typeof joReceipt == "object" ) {
             jarrReceipts.push( {
                 "description": "doEthPaymentFromMainNet",
@@ -2858,32 +2866,27 @@ export async function doEthPaymentFromSChain(
         ];
         const gasPrice = await transactionCustomizerSChain.computeGasPrice(
             ethersProviderSChain, 200000000000 );
-        details.write( strLogPrefix +
-            cc.debug( "Using computed " ) + cc.info( "gasPrice" ) +
-            cc.debug( "=" ) + cc.j( gasPrice ) +
-            "\n" );
+        if( log.verboseGet() >= log.verboseReversed().trace ) {
+            details.write( strLogPrefix + cc.debug( "Using computed " ) + cc.info( "gasPrice" ) +
+                cc.debug( "=" ) + cc.j( gasPrice ) + "\n" );
+        }
         const estimatedGas =
             await transactionCustomizerSChain.computeGas(
-                details,
-                ethersProviderSChain,
+                details, ethersProviderSChain,
                 "TokenManagerETH", joTokenManagerETH, "exitToMain", arrArguments,
                 joAccountSrc, strActionName,
-                gasPrice, 6000000, 0, // weiHowMuch
-                null
-            );
-        details.write( strLogPrefix +
-            cc.debug( "Using estimated " ) + cc.info( "gas" ) +
-            cc.debug( "=" ) + cc.notice( estimatedGas ) +
-            "\n" );
+                gasPrice, 6000000, 0, null );
+        if( log.verboseGet() >= log.verboseReversed().trace ) {
+            details.write( strLogPrefix + cc.debug( "Using estimated " ) + cc.info( "gas" ) +
+                cc.debug( "=" ) + cc.notice( estimatedGas ) + "\n" );
+        }
         const isIgnore = true;
         const strErrorOfDryRun =
             await dryRunCall(
-                details,
-                ethersProviderSChain,
+                details, ethersProviderSChain,
                 "TokenManagerETH", joTokenManagerETH, "exitToMain", arrArguments,
                 joAccountSrc, strActionName, isIgnore,
-                gasPrice, estimatedGas, 0, // weiHowMuch
-                null
+                gasPrice, estimatedGas, 0, null
             );
         if( strErrorOfDryRun )
             throw new Error( strErrorOfDryRun );
@@ -2893,13 +2896,10 @@ export async function doEthPaymentFromSChain(
         };
         const joReceipt =
             await payedCall(
-                details,
-                ethersProviderSChain,
+                details, ethersProviderSChain,
                 "TokenManagerETH", joTokenManagerETH, "exitToMain", arrArguments,
                 joAccountSrc, strActionName,
-                gasPrice, estimatedGas, 0, // weiHowMuch
-                opts
-            );
+                gasPrice, estimatedGas, 0, opts );
         if( joReceipt && typeof joReceipt == "object" ) {
             jarrReceipts.push( {
                 "description": "doEthPaymentFromSChain",
@@ -2967,7 +2967,7 @@ export async function receiveEthPaymentFromSchainOnMainNet(
     transactionCustomizerMainNet
 ) {
     const details = log.createMemoryStream();
-    const jarrReceipts = []; // receiveEthPaymentFromSchainOnMainNet
+    const jarrReceipts = [];
     let strActionName = "";
     const strLogPrefix = cc.info( "M2S ETH Receive:" ) + " ";
     try {
@@ -2976,47 +2976,38 @@ export async function receiveEthPaymentFromSchainOnMainNet(
         const weiHowMuch = undefined;
         const gasPrice = await transactionCustomizerMainNet.computeGasPrice(
             ethersProviderMainNet, 200000000000 );
-        details.write( strLogPrefix +
-            cc.debug( "Using computed " ) + cc.info( "gasPrice" ) +
-            cc.debug( "=" ) + cc.j( gasPrice ) +
-            "\n" );
+        if( log.verboseGet() >= log.verboseReversed().trace ) {
+            details.write( strLogPrefix + cc.debug( "Using computed " ) + cc.info( "gasPrice" ) +
+                cc.debug( "=" ) + cc.j( gasPrice ) + "\n" );
+        }
         const estimatedGas =
             await transactionCustomizerMainNet.computeGas(
-                details,
-                ethersProviderMainNet,
+                details, ethersProviderMainNet,
                 "DepositBoxETH", joDepositBoxETH, "getMyEth", arrArguments,
                 joAccountMN, strActionName,
-                gasPrice, 3000000, weiHowMuch,
-                null
-            );
-        details.write( strLogPrefix +
-            cc.debug( "Using estimated " ) + cc.info( "gas" ) +
-            cc.debug( "=" ) + cc.notice( estimatedGas ) +
-            "\n" );
+                gasPrice, 3000000, weiHowMuch, null );
+        if( log.verboseGet() >= log.verboseReversed().trace ) {
+            details.write( strLogPrefix + cc.debug( "Using estimated " ) + cc.info( "gas" ) +
+                cc.debug( "=" ) + cc.notice( estimatedGas ) + "\n" );
+        }
         const isIgnore = false;
         const strErrorOfDryRun =
             await dryRunCall(
-                details,
-                ethersProviderMainNet,
+                details, ethersProviderMainNet,
                 "DepositBoxETH", joDepositBoxETH,
                 "getMyEth", arrArguments,
                 joAccountMN, strActionName, isIgnore,
-                gasPrice, estimatedGas, weiHowMuch,
-                null
-            );
+                gasPrice, estimatedGas, weiHowMuch, null );
         if( strErrorOfDryRun )
             throw new Error( strErrorOfDryRun );
 
         const joReceipt =
             await payedCall(
-                details,
-                ethersProviderMainNet,
+                details, ethersProviderMainNet,
                 "DepositBoxETH", joDepositBoxETH,
                 "getMyEth", arrArguments,
                 joAccountMN, strActionName,
-                gasPrice, estimatedGas, weiHowMuch,
-                null
-            );
+                gasPrice, estimatedGas, weiHowMuch, null );
         if( joReceipt && typeof joReceipt == "object" ) {
             jarrReceipts.push( {
                 "description": "receiveEthPaymentFromSchainOnMainNet",
@@ -3137,45 +3128,36 @@ export async function doErc721PaymentFromMainNet(
         const weiHowMuchApprove = undefined;
         let gasPrice = await transactionCustomizerMainNet.computeGasPrice(
             ethersProviderMainNet, 200000000000 );
-        details.write( strLogPrefix +
-            cc.debug( "Using computed " ) + cc.info( "gasPrice" ) +
-            cc.debug( "=" ) + cc.j( gasPrice ) +
-            "\n" );
+        if( log.verboseGet() >= log.verboseReversed().trace ) {
+            details.write( strLogPrefix + cc.debug( "Using computed " ) + cc.info( "gasPrice" ) +
+                cc.debug( "=" ) + cc.j( gasPrice ) + "\n" );
+        }
         const estimatedGasApprove =
             await transactionCustomizerMainNet.computeGas(
-                details,
-                ethersProviderMainNet,
+                details, ethersProviderMainNet,
                 "ERC721", contractERC721, "approve", arrArgumentsApprove,
                 joAccountSrc, strActionName,
-                gasPrice, 8000000, weiHowMuchApprove,
-                null
-            );
-        details.write( strLogPrefix +
-            cc.debug( "Using estimated(approve) " ) + cc.info( "gas" ) +
-            cc.debug( "=" ) + cc.notice( estimatedGasApprove ) +
-            "\n" );
+                gasPrice, 8000000, weiHowMuchApprove, null );
+        if( log.verboseGet() >= log.verboseReversed().trace ) {
+            details.write( strLogPrefix + cc.debug( "Using estimated(approve) " ) +
+                cc.info( "gas" ) + cc.debug( "=" ) + cc.notice( estimatedGasApprove ) + "\n" );
+        }
         const isIgnoreApprove = false;
         const strErrorOfDryRunApprove =
             await dryRunCall(
-                details,
-                ethersProviderMainNet,
+                details, ethersProviderMainNet,
                 "ERC721", contractERC721, "approve", arrArgumentsApprove,
                 joAccountSrc, strActionName, isIgnoreApprove,
-                gasPrice, estimatedGasApprove, weiHowMuchApprove,
-                null
-            );
+                gasPrice, estimatedGasApprove, weiHowMuchApprove, null );
         if( strErrorOfDryRunApprove )
             throw new Error( strErrorOfDryRunApprove );
 
         const joReceiptApprove =
             await payedCall(
-                details,
-                ethersProviderMainNet,
+                details, ethersProviderMainNet,
                 "ERC721", contractERC721, "approve", arrArgumentsApprove,
                 joAccountSrc, strActionName,
-                gasPrice, estimatedGasApprove, weiHowMuchApprove,
-                null
-            );
+                gasPrice, estimatedGasApprove, weiHowMuchApprove, null );
         if( joReceiptApprove && typeof joReceiptApprove == "object" ) {
             jarrReceipts.push( {
                 "description": "doErc721PaymentFromMainNet/approve",
@@ -3187,48 +3169,39 @@ export async function doErc721PaymentFromMainNet(
         const weiHowMuchDepositERC721 = undefined;
         gasPrice = await transactionCustomizerMainNet.computeGasPrice(
             ethersProviderMainNet, 200000000000 );
-        details.write( strLogPrefix +
-            cc.debug( "Using computed " ) + cc.info( "gasPrice" ) +
-            cc.debug( "=" ) + cc.j( gasPrice ) +
-            "\n" );
+        if( log.verboseGet() >= log.verboseReversed().trace ) {
+            details.write( strLogPrefix + cc.debug( "Using computed " ) + cc.info( "gasPrice" ) +
+                cc.debug( "=" ) + cc.j( gasPrice ) + "\n" );
+        }
         const estimatedGasDeposit =
             await transactionCustomizerMainNet.computeGas(
-                details,
-                ethersProviderMainNet,
+                details, ethersProviderMainNet,
                 "DepositBoxERC721", joDepositBoxERC721,
                 "depositERC721", arrArgumentsDepositERC721,
                 joAccountSrc, strActionName,
-                gasPrice, 8000000, weiHowMuchDepositERC721,
-                null
-            );
-        details.write( strLogPrefix +
-            cc.debug( "Using estimated(deposit) " ) + cc.info( "gas" ) +
-            cc.debug( "=" ) + cc.notice( estimatedGasDeposit ) +
-            "\n" );
+                gasPrice, 8000000, weiHowMuchDepositERC721, null );
+        if( log.verboseGet() >= log.verboseReversed().trace ) {
+            details.write( strLogPrefix + cc.debug( "Using estimated(deposit) " ) +
+                cc.info( "gas" ) + cc.debug( "=" ) + cc.notice( estimatedGasDeposit ) + "\n" );
+        }
         const isIgnoreDepositERC721 = true;
         const strErrorOfDryRunDepositERC721 =
             await dryRunCall(
-                details,
-                ethersProviderMainNet,
+                details, ethersProviderMainNet,
                 "DepositBoxERC721", joDepositBoxERC721,
                 "depositERC721", arrArgumentsDepositERC721,
                 joAccountSrc, strActionName, isIgnoreDepositERC721,
-                gasPrice, estimatedGasDeposit, weiHowMuchDepositERC721,
-                null
-            );
+                gasPrice, estimatedGasDeposit, weiHowMuchDepositERC721, null );
         if( strErrorOfDryRunDepositERC721 )
             throw new Error( strErrorOfDryRunDepositERC721 );
 
         const joReceiptDeposit =
             await payedCall(
-                details,
-                ethersProviderMainNet,
+                details, ethersProviderMainNet,
                 "DepositBoxERC721", joDepositBoxERC721,
                 "depositERC721", arrArgumentsDepositERC721,
                 joAccountSrc, strActionName,
-                gasPrice, estimatedGasDeposit, weiHowMuchDepositERC721,
-                null
-            );
+                gasPrice, estimatedGasDeposit, weiHowMuchDepositERC721, null );
         if( joReceiptDeposit && typeof joReceiptDeposit == "object" ) {
             jarrReceipts.push( {
                 "description": "doErc721PaymentFromMainNet/deposit",
@@ -3336,45 +3309,36 @@ export async function doErc20PaymentFromMainNet(
         const weiHowMuchApprove = undefined;
         let gasPrice = await transactionCustomizerMainNet.computeGasPrice(
             ethersProviderMainNet, 200000000000 );
-        details.write( strLogPrefix +
-            cc.debug( "Using computed " ) + cc.info( "gasPrice" ) +
-            cc.debug( "=" ) + cc.j( gasPrice ) +
-            "\n" );
+        if( log.verboseGet() >= log.verboseReversed().trace ) {
+            details.write( strLogPrefix + cc.debug( "Using computed " ) + cc.info( "gasPrice" ) +
+                cc.debug( "=" ) + cc.j( gasPrice ) + "\n" );
+        }
         const estimatedGasApprove =
             await transactionCustomizerMainNet.computeGas(
-                details,
-                ethersProviderMainNet,
+                details, ethersProviderMainNet,
                 "ERC20", contractERC20, "approve", arrArgumentsApprove,
                 joAccountSrc, strActionName,
-                gasPrice, 8000000, weiHowMuchApprove,
-                null
-            );
-        details.write( strLogPrefix +
-            cc.debug( "Using estimated(approve) " ) + cc.info( "gas" ) +
-            cc.debug( "=" ) + cc.notice( estimatedGasApprove ) +
-            "\n" );
+                gasPrice, 8000000, weiHowMuchApprove, null );
+        if( log.verboseGet() >= log.verboseReversed().trace ) {
+            details.write( strLogPrefix + cc.debug( "Using estimated(approve) " ) +
+                cc.info( "gas" ) + cc.debug( "=" ) + cc.notice( estimatedGasApprove ) + "\n" );
+        }
         const isIgnoreApprove = false;
         const strErrorOfDryRunApprove =
             await dryRunCall(
-                details,
-                ethersProviderMainNet,
+                details, ethersProviderMainNet,
                 "ERC20", contractERC20, "approve", arrArgumentsApprove,
                 joAccountSrc, strActionName, isIgnoreApprove,
-                gasPrice, estimatedGasApprove, weiHowMuchApprove,
-                null
-            );
+                gasPrice, estimatedGasApprove, weiHowMuchApprove, null );
         if( strErrorOfDryRunApprove )
             throw new Error( strErrorOfDryRunApprove );
 
         const joReceiptApprove =
             await payedCall(
-                details,
-                ethersProviderMainNet,
+                details, ethersProviderMainNet,
                 "ERC20", contractERC20, "approve", arrArgumentsApprove,
                 joAccountSrc, strActionName,
-                gasPrice, estimatedGasApprove, weiHowMuchApprove,
-                null
-            );
+                gasPrice, estimatedGasApprove, weiHowMuchApprove, null );
         if( joReceiptApprove && typeof joReceiptApprove == "object" ) {
             jarrReceipts.push( {
                 "description": "doErc20PaymentFromMainNet/approve",
@@ -3386,48 +3350,39 @@ export async function doErc20PaymentFromMainNet(
         const weiHowMuchDepositERC20 = undefined;
         gasPrice = await transactionCustomizerMainNet.computeGasPrice(
             ethersProviderMainNet, 200000000000 );
-        details.write( strLogPrefix +
-            cc.debug( "Using computed " ) + cc.info( "gasPrice" ) +
-            cc.debug( "=" ) + cc.j( gasPrice ) +
-            "\n" );
+        if( log.verboseGet() >= log.verboseReversed().trace ) {
+            details.write( strLogPrefix + cc.debug( "Using computed " ) + cc.info( "gasPrice" ) +
+                cc.debug( "=" ) + cc.j( gasPrice ) + "\n" );
+        }
         const estimatedGasDeposit =
             await transactionCustomizerMainNet.computeGas(
-                details,
-                ethersProviderMainNet,
+                details, ethersProviderMainNet,
                 "DepositBoxERC20", joDepositBoxERC20,
                 "depositERC20", arrArgumentsDepositERC20,
                 joAccountSrc, strActionName,
-                gasPrice, 8000000, weiHowMuchDepositERC20,
-                null
-            );
-        details.write( strLogPrefix +
-            cc.debug( "Using estimated(deposit) " ) + cc.info( "gas" ) +
-            cc.debug( "=" ) + cc.notice( estimatedGasDeposit ) +
-            "\n" );
+                gasPrice, 8000000, weiHowMuchDepositERC20, null );
+        if( log.verboseGet() >= log.verboseReversed().trace ) {
+            details.write( strLogPrefix + cc.debug( "Using estimated(deposit) " ) +
+                cc.info( "gas" ) + cc.debug( "=" ) + cc.notice( estimatedGasDeposit ) + "\n" );
+        }
         const isIgnoreDepositERC20 = true;
         const strErrorOfDryRunDepositERC20 =
             await dryRunCall(
-                details,
-                ethersProviderMainNet,
+                details, ethersProviderMainNet,
                 "DepositBoxERC20", joDepositBoxERC20,
                 "depositERC20", arrArgumentsDepositERC20,
                 joAccountSrc, strActionName, isIgnoreDepositERC20,
-                gasPrice, estimatedGasDeposit, weiHowMuchDepositERC20,
-                null
-            );
+                gasPrice, estimatedGasDeposit, weiHowMuchDepositERC20, null );
         if( strErrorOfDryRunDepositERC20 )
             throw new Error( strErrorOfDryRunDepositERC20 );
 
         const joReceiptDeposit =
             await payedCall(
-                details,
-                ethersProviderMainNet,
+                details, ethersProviderMainNet,
                 "DepositBoxERC20", joDepositBoxERC20,
                 "depositERC20", arrArgumentsDepositERC20,
                 joAccountSrc, strActionName,
-                gasPrice, estimatedGasDeposit, weiHowMuchDepositERC20,
-                null
-            );
+                gasPrice, estimatedGasDeposit, weiHowMuchDepositERC20, null );
         if( joReceiptDeposit && typeof joReceiptDeposit == "object" ) {
             jarrReceipts.push( {
                 "description": "doErc20PaymentFromMainNet/deposit",
@@ -3532,17 +3487,19 @@ export async function doErc1155PaymentFromMainNet(
         const weiHowMuchApprove = undefined;
         let gasPrice = await transactionCustomizerMainNet.computeGasPrice(
             ethersProviderMainNet, 200000000000 );
-        details.write( strLogPrefix +
-            cc.debug( "Using computed " ) + cc.info( "gasPrice" ) +
-            cc.debug( "=" ) + cc.j( gasPrice ) +
-            "\n" );
+        if( log.verboseGet() >= log.verboseReversed().trace ) {
+            details.write( strLogPrefix + cc.debug( "Using computed " ) + cc.info( "gasPrice" ) +
+                cc.debug( "=" ) + cc.j( gasPrice ) + "\n" );
+        }
         const estimatedGasApprove =
             await transactionCustomizerMainNet.computeGas(
                 details, ethersProviderMainNet,
                 "ERC1155", contractERC1155, "setApprovalForAll", arrArgumentsApprove,
                 joAccountSrc, strActionName, gasPrice, 8000000, weiHowMuchApprove, null );
-        details.write( strLogPrefix + cc.debug( "Using estimated(approve) " ) + cc.info( "gas" ) +
-            cc.debug( "=" ) + cc.notice( estimatedGasApprove ) + "\n" );
+        if( log.verboseGet() >= log.verboseReversed().trace ) {
+            details.write( strLogPrefix + cc.debug( "Using estimated(approve) " ) +
+                cc.info( "gas" ) + cc.debug( "=" ) + cc.notice( estimatedGasApprove ) + "\n" );
+        }
         const isIgnoreApprove = false;
         const strErrorOfDryRunApprove =
             await dryRunCall(
@@ -3568,10 +3525,10 @@ export async function doErc1155PaymentFromMainNet(
         const weiHowMuchDepositERC1155 = undefined;
         gasPrice = await transactionCustomizerMainNet.computeGasPrice(
             ethersProviderMainNet, 200000000000 );
-        details.write( strLogPrefix +
-            cc.debug( "Using computed " ) + cc.info( "gasPrice" ) +
-            cc.debug( "=" ) + cc.j( gasPrice ) +
-            "\n" );
+        if( log.verboseGet() >= log.verboseReversed().trace ) {
+            details.write( strLogPrefix + cc.debug( "Using computed " ) + cc.info( "gasPrice" ) +
+                cc.debug( "=" ) + cc.j( gasPrice ) + "\n" );
+        }
         const estimatedGasDeposit =
             await transactionCustomizerMainNet.computeGas(
                 details, ethersProviderMainNet,
@@ -3579,10 +3536,10 @@ export async function doErc1155PaymentFromMainNet(
                 "depositERC1155", arrArgumentsDepositERC1155,
                 joAccountSrc, strActionName,
                 gasPrice, 8000000, weiHowMuchDepositERC1155, null );
-        details.write( strLogPrefix +
-            cc.debug( "Using estimated(deposit) " ) + cc.info( "gas" ) +
-            cc.debug( "=" ) + cc.notice( estimatedGasDeposit ) +
-            "\n" );
+        if( log.verboseGet() >= log.verboseReversed().trace ) {
+            details.write( strLogPrefix + cc.debug( "Using estimated(deposit) " ) +
+                cc.info( "gas" ) + cc.debug( "=" ) + cc.notice( estimatedGasDeposit ) + "\n" );
+        }
         const isIgnoreDepositERC1155 = true;
         const strErrorOfDryRunDepositERC1155 =
             await dryRunCall(
@@ -3699,15 +3656,19 @@ export async function doErc1155BatchPaymentFromMainNet(
         const weiHowMuchApprove = undefined;
         let gasPrice = await transactionCustomizerMainNet.computeGasPrice(
             ethersProviderMainNet, 200000000000 );
-        details.write( strLogPrefix + cc.debug( "Using computed " ) + cc.info( "gasPrice" ) +
-            cc.debug( "=" ) + cc.j( gasPrice ) + "\n" );
+        if( log.verboseGet() >= log.verboseReversed().trace ) {
+            details.write( strLogPrefix + cc.debug( "Using computed " ) + cc.info( "gasPrice" ) +
+                cc.debug( "=" ) + cc.j( gasPrice ) + "\n" );
+        }
         const estimatedGasApprove =
             await transactionCustomizerMainNet.computeGas(
                 details, ethersProviderMainNet,
                 "ERC1155", contractERC1155, "setApprovalForAll", arrArgumentsApprove,
                 joAccountSrc, strActionName, gasPrice, 8000000, weiHowMuchApprove, null );
-        details.write( strLogPrefix + cc.debug( "Using estimated(approve) " ) + cc.info( "gas" ) +
-            cc.debug( "=" ) + cc.notice( estimatedGasApprove ) + "\n" );
+        if( log.verboseGet() >= log.verboseReversed().trace ) {
+            details.write( strLogPrefix + cc.debug( "Using estimated(approve) " ) +
+                cc.info( "gas" ) + cc.debug( "=" ) + cc.notice( estimatedGasApprove ) + "\n" );
+        }
         const isIgnoreApprove = false;
         const strErrorOfDryRunApprove =
             await dryRunCall(
@@ -3733,10 +3694,10 @@ export async function doErc1155BatchPaymentFromMainNet(
         const weiHowMuchDepositERC1155Batch = undefined;
         gasPrice = await transactionCustomizerMainNet.computeGasPrice(
             ethersProviderMainNet, 200000000000 );
-        details.write( strLogPrefix +
-            cc.debug( "Using computed " ) + cc.info( "gasPrice" ) +
-            cc.debug( "=" ) + cc.j( gasPrice ) +
-            "\n" );
+        if( log.verboseGet() >= log.verboseReversed().trace ) {
+            details.write( strLogPrefix + cc.debug( "Using computed " ) + cc.info( "gasPrice" ) +
+                cc.debug( "=" ) + cc.j( gasPrice ) + "\n" );
+        }
         const estimatedGasDeposit =
             await transactionCustomizerMainNet.computeGas(
                 details, ethersProviderMainNet,
@@ -3744,8 +3705,10 @@ export async function doErc1155BatchPaymentFromMainNet(
                 "depositERC1155Batch", arrArgumentsDepositERC1155Batch,
                 joAccountSrc, strActionName,
                 gasPrice, 8000000, weiHowMuchDepositERC1155Batch, null );
-        details.write( strLogPrefix + cc.debug( "Using estimated(deposit) " ) + cc.info( "gas" ) +
-            cc.debug( "=" ) + cc.notice( estimatedGasDeposit ) + "\n" );
+        if( log.verboseGet() >= log.verboseReversed().trace ) {
+            details.write( strLogPrefix + cc.debug( "Using estimated(deposit) " ) +
+                cc.info( "gas" ) + cc.debug( "=" ) + cc.notice( estimatedGasDeposit ) + "\n" );
+        }
         const isIgnoreDepositERC1155Batch = true;
         const strErrorOfDryRunDepositERC1155Batch =
             await dryRunCall(
@@ -3862,16 +3825,20 @@ export async function doErc20PaymentFromSChain(
         const weiHowMuchApprove = undefined;
         let gasPrice = await transactionCustomizerSChain.computeGasPrice(
             ethersProviderSChain, 200000000000 );
-        details.write( strLogPrefix + cc.debug( "Using computed " ) +
-            cc.info( "gasPrice" ) + cc.debug( "=" ) + cc.j( gasPrice ) + "\n" );
+        if( log.verboseGet() >= log.verboseReversed().trace ) {
+            details.write( strLogPrefix + cc.debug( "Using computed " ) +
+                cc.info( "gasPrice" ) + cc.debug( "=" ) + cc.j( gasPrice ) + "\n" );
+        }
         const estimatedGasApprove =
             await transactionCustomizerSChain.computeGas(
                 details, ethersProviderSChain,
                 "ERC20", contractERC20, "approve", arrArgumentsApprove,
                 joAccountSrc, strActionName,
                 gasPrice, 8000000, weiHowMuchApprove, null );
-        details.write( strLogPrefix + cc.debug( "Using estimated(approve) " ) +
-            cc.info( "gas" ) + cc.debug( "=" ) + cc.notice( estimatedGasApprove ) + "\n" );
+        if( log.verboseGet() >= log.verboseReversed().trace ) {
+            details.write( strLogPrefix + cc.debug( "Using estimated(approve) " ) +
+                cc.info( "gas" ) + cc.debug( "=" ) + cc.notice( estimatedGasApprove ) + "\n" );
+        }
         const isIgnoreApprove = false;
         const strErrorOfDryRunApprove =
             await dryRunCall(
@@ -3911,12 +3878,17 @@ export async function doErc20PaymentFromSChain(
                 "exitToMainERC20", arrArgumentsExitToMainERC20,
                 joAccountSrc, strActionName,
                 gasPrice, 8000000, weiHowMuchExitToMainERC20, null );
-        details.write( strLogPrefix + cc.debug( "Using estimated(approve) " ) +
-            cc.info( "gas" ) + cc.debug( "=" ) + cc.notice( estimatedGasExitToMainERC20 ) + "\n" );
+        if( log.verboseGet() >= log.verboseReversed().trace ) {
+            details.write( strLogPrefix + cc.debug( "Using estimated(approve) " ) +
+                cc.info( "gas" ) + cc.debug( "=" ) + cc.notice( estimatedGasExitToMainERC20 ) +
+                "\n" );
+        }
         gasPrice = await transactionCustomizerSChain.computeGasPrice(
             ethersProviderSChain, 200000000000 );
-        details.write( strLogPrefix + cc.debug( "Using computed " ) +
-            cc.info( "gasPrice" ) + cc.debug( "=" ) + cc.j( gasPrice ) + "\n" );
+        if( log.verboseGet() >= log.verboseReversed().trace ) {
+            details.write( strLogPrefix + cc.debug( "Using computed " ) +
+                cc.info( "gasPrice" ) + cc.debug( "=" ) + cc.j( gasPrice ) + "\n" );
+        }
         const isIgnoreExitToMainERC20 = true;
         const strErrorOfDryRunExitToMainERC20 =
             await dryRunCall(
@@ -4032,16 +4004,20 @@ export async function doErc721PaymentFromSChain(
         const weiHowMuchApprove = undefined;
         let gasPrice = await transactionCustomizerSChain.computeGasPrice(
             ethersProviderSChain, 200000000000 );
-        details.write( strLogPrefix + cc.debug( "Using computed " ) +
-            cc.info( "gasPrice" ) + cc.debug( "=" ) + cc.j( gasPrice ) + "\n" );
+        if( log.verboseGet() >= log.verboseReversed().trace ) {
+            details.write( strLogPrefix + cc.debug( "Using computed " ) +
+                cc.info( "gasPrice" ) + cc.debug( "=" ) + cc.j( gasPrice ) + "\n" );
+        }
         const estimatedGasApprove =
             await transactionCustomizerSChain.computeGas(
                 details, ethersProviderSChain,
                 "ERC721", contractERC721, "approve", arrArgumentsApprove,
                 joAccountSrc, strActionName,
                 gasPrice, 8000000, weiHowMuchApprove, null );
-        details.write( strLogPrefix + cc.debug( "Using estimated(transfer from) " ) +
-            cc.info( "gas" ) + cc.debug( "=" ) + cc.notice( estimatedGasApprove ) + "\n" );
+        if( log.verboseGet() >= log.verboseReversed().trace ) {
+            details.write( strLogPrefix + cc.debug( "Using estimated(transfer from) " ) +
+                cc.info( "gas" ) + cc.debug( "=" ) + cc.notice( estimatedGasApprove ) + "\n" );
+        }
         const isIgnoreApprove = false;
         const strErrorOfDryRunApprove =
             await dryRunCall(
@@ -4076,8 +4052,10 @@ export async function doErc721PaymentFromSChain(
         const weiHowMuchExitToMainERC721 = undefined;
         gasPrice = await transactionCustomizerSChain.computeGasPrice(
             ethersProviderSChain, 200000000000 );
-        details.write( strLogPrefix + cc.debug( "Using computed " ) + cc.info( "gasPrice" ) +
-            cc.debug( "=" ) + cc.j( gasPrice ) + "\n" );
+        if( log.verboseGet() >= log.verboseReversed().trace ) {
+            details.write( strLogPrefix + cc.debug( "Using computed " ) + cc.info( "gasPrice" ) +
+                cc.debug( "=" ) + cc.j( gasPrice ) + "\n" );
+        }
         const estimatedGasExitToMainERC721 =
             await transactionCustomizerSChain.computeGas(
                 details, ethersProviderSChain,
@@ -4085,10 +4063,11 @@ export async function doErc721PaymentFromSChain(
                 "exitToMainERC721", arrArgumentsExitToMainERC721,
                 joAccountSrc, strActionName,
                 gasPrice, 8000000, weiHowMuchExitToMainERC721, null );
-        details.write( strLogPrefix +
-            cc.debug( "Using estimated(exit to main) " ) + cc.info( "gas" ) +
-            cc.debug( "=" ) + cc.notice( estimatedGasExitToMainERC721 ) +
-            "\n" );
+        if( log.verboseGet() >= log.verboseReversed().trace ) {
+            details.write( strLogPrefix + cc.debug( "Using estimated(exit to main) " ) +
+                cc.info( "gas" ) + cc.debug( "=" ) + cc.notice( estimatedGasExitToMainERC721 ) +
+                "\n" );
+        }
         const isIgnoreExitToMainERC721 = true;
         const strErrorOfDryRunExitToMainERC721 =
             await dryRunCall(
@@ -4208,15 +4187,19 @@ export async function doErc1155PaymentFromSChain(
         const weiHowMuchApprove = undefined;
         let gasPrice = await transactionCustomizerSChain.computeGasPrice(
             ethersProviderSChain, 200000000000 );
-        details.write( strLogPrefix + cc.debug( "Using computed " ) +
-            cc.info( "gasPrice" ) + cc.debug( "=" ) + cc.j( gasPrice ) + "\n" );
+        if( log.verboseGet() >= log.verboseReversed().trace ) {
+            details.write( strLogPrefix + cc.debug( "Using computed " ) +
+                cc.info( "gasPrice" ) + cc.debug( "=" ) + cc.j( gasPrice ) + "\n" );
+        }
         const estimatedGasApprove =
             await transactionCustomizerSChain.computeGas(
                 details, ethersProviderSChain,
                 "ERC1155", contractERC1155, "setApprovalForAll", arrArgumentsApprove,
                 joAccountSrc, strActionName, gasPrice, 8000000, weiHowMuchApprove, null );
-        details.write( strLogPrefix + cc.debug( "Using estimated(transfer from) " ) +
-            cc.info( "gas" ) + cc.debug( "=" ) + cc.notice( estimatedGasApprove ) + "\n" );
+        if( log.verboseGet() >= log.verboseReversed().trace ) {
+            details.write( strLogPrefix + cc.debug( "Using estimated(transfer from) " ) +
+                cc.info( "gas" ) + cc.debug( "=" ) + cc.notice( estimatedGasApprove ) + "\n" );
+        }
         const isIgnoreApprove = false;
         const strErrorOfDryRunApprove =
             await dryRunCall(
@@ -4251,8 +4234,10 @@ export async function doErc1155PaymentFromSChain(
         const weiHowMuchExitToMainERC1155 = undefined;
         gasPrice = await transactionCustomizerSChain.computeGasPrice(
             ethersProviderSChain, 200000000000 );
-        details.write( strLogPrefix + cc.debug( "Using computed " ) +
-            cc.info( "gasPrice" ) + cc.debug( "=" ) + cc.j( gasPrice ) + "\n" );
+        if( log.verboseGet() >= log.verboseReversed().trace ) {
+            details.write( strLogPrefix + cc.debug( "Using computed " ) +
+                cc.info( "gasPrice" ) + cc.debug( "=" ) + cc.j( gasPrice ) + "\n" );
+        }
         const estimatedGasExitToMainERC1155 =
             await transactionCustomizerSChain.computeGas(
                 details, ethersProviderSChain,
@@ -4260,9 +4245,11 @@ export async function doErc1155PaymentFromSChain(
                 "exitToMainERC1155", arrArgumentsExitToMainERC1155,
                 joAccountSrc, strActionName, gasPrice, 8000000, weiHowMuchExitToMainERC1155,
                 null );
-        details.write( strLogPrefix + cc.debug( "Using estimated(exit to main) " ) +
-            cc.info( "gas" ) + cc.debug( "=" ) + cc.notice( estimatedGasExitToMainERC1155 ) +
-            "\n" );
+        if( log.verboseGet() >= log.verboseReversed().trace ) {
+            details.write( strLogPrefix + cc.debug( "Using estimated(exit to main) " ) +
+                cc.info( "gas" ) + cc.debug( "=" ) + cc.notice( estimatedGasExitToMainERC1155 ) +
+                "\n" );
+        }
         const isIgnoreExitToMainERC1155 = true;
         const strErrorOfDryRunExitToMainERC1155 =
             await dryRunCall(
@@ -4382,15 +4369,19 @@ export async function doErc1155BatchPaymentFromSChain(
         const weiHowMuchApprove = undefined;
         let gasPrice = await transactionCustomizerSChain.computeGasPrice(
             ethersProviderSChain, 200000000000 );
-        details.write( strLogPrefix + cc.debug( "Using computed " ) +
-            cc.info( "gasPrice" ) + cc.debug( "=" ) + cc.j( gasPrice ) + "\n" );
+        if( log.verboseGet() >= log.verboseReversed().trace ) {
+            details.write( strLogPrefix + cc.debug( "Using computed " ) +
+                cc.info( "gasPrice" ) + cc.debug( "=" ) + cc.j( gasPrice ) + "\n" );
+        }
         const estimatedGasApprove =
             await transactionCustomizerSChain.computeGas(
                 details, ethersProviderSChain,
                 "ERC1155", contractERC1155, "setApprovalForAll", arrArgumentsApprove,
                 joAccountSrc, strActionName, gasPrice, 8000000, weiHowMuchApprove, null );
-        details.write( strLogPrefix + cc.debug( "Using estimated(transfer from) " ) +
-            cc.info( "gas" ) + cc.debug( "=" ) + cc.notice( estimatedGasApprove ) + "\n" );
+        if( log.verboseGet() >= log.verboseReversed().trace ) {
+            details.write( strLogPrefix + cc.debug( "Using estimated(transfer from) " ) +
+                cc.info( "gas" ) + cc.debug( "=" ) + cc.notice( estimatedGasApprove ) + "\n" );
+        }
         const isIgnoreApprove = false;
         const strErrorOfDryRunApprove =
             await dryRunCall(
@@ -4426,8 +4417,10 @@ export async function doErc1155BatchPaymentFromSChain(
         const weiHowMuchExitToMainERC1155Batch = undefined;
         gasPrice = await transactionCustomizerSChain.computeGasPrice(
             ethersProviderSChain, 200000000000 );
-        details.write( strLogPrefix + cc.debug( "Using computed " ) +
-            cc.info( "gasPrice" ) + cc.debug( "=" ) + cc.j( gasPrice ) + "\n" );
+        if( log.verboseGet() >= log.verboseReversed().trace ) {
+            details.write( strLogPrefix + cc.debug( "Using computed " ) +
+                cc.info( "gasPrice" ) + cc.debug( "=" ) + cc.j( gasPrice ) + "\n" );
+        }
         const estimatedGasExitToMainERC1155Batch =
             await transactionCustomizerSChain.computeGas(
                 details, ethersProviderSChain,
@@ -4435,9 +4428,11 @@ export async function doErc1155BatchPaymentFromSChain(
                 "exitToMainERC1155Batch", arrArgumentsExitToMainERC1155Batch,
                 joAccountSrc, strActionName, gasPrice, 8000000,
                 weiHowMuchExitToMainERC1155Batch, null );
-        details.write( strLogPrefix + cc.debug( "Using estimated(exit to main) " ) +
-            cc.info( "gas" ) + cc.debug( "=" ) + cc.notice( estimatedGasExitToMainERC1155Batch ) +
-            "\n" );
+        if( log.verboseGet() >= log.verboseReversed().trace ) {
+            details.write( strLogPrefix + cc.debug( "Using estimated(exit to main) " ) +
+                cc.info( "gas" ) + cc.debug( "=" ) +
+                cc.notice( estimatedGasExitToMainERC1155Batch ) + "\n" );
+        }
         const isIgnoreExitToMainERC1155Batch = true;
         const strErrorOfDryRunExitToMainERC1155Batch =
             await dryRunCall(
@@ -4589,15 +4584,19 @@ export async function doErc20PaymentS2S(
         ];
         const weiHowMuchApprove = undefined;
         let gasPrice = await tc.computeGasPrice( ethersProviderSrc, 200000000000 );
-        details.write( strLogPrefix + cc.debug( "Using computed " ) +
-            cc.info( "gasPrice" ) + cc.debug( "=" ) + cc.j( gasPrice ) + "\n" );
+        if( log.verboseGet() >= log.verboseReversed().trace ) {
+            details.write( strLogPrefix + cc.debug( "Using computed " ) +
+                cc.info( "gasPrice" ) + cc.debug( "=" ) + cc.j( gasPrice ) + "\n" );
+        }
         const estimatedGasApprove =
             await tc.computeGas(
                 details, ethersProviderSrc,
                 "ERC20", contractERC20, "approve", arrArgumentsApprove,
                 joAccountSrc, strActionName, gasPrice, 8000000, weiHowMuchApprove, null );
-        details.write( strLogPrefix + cc.debug( "Using estimated(approve) " ) +
-            cc.info( "gas" ) + cc.debug( "=" ) + cc.notice( estimatedGasApprove ) + "\n" );
+        if( log.verboseGet() >= log.verboseReversed().trace ) {
+            details.write( strLogPrefix + cc.debug( "Using estimated(approve) " ) +
+                cc.info( "gas" ) + cc.debug( "=" ) + cc.notice( estimatedGasApprove ) + "\n" );
+        }
         const isIgnoreApprove = false;
         const strErrorOfDryRunApprove =
             await dryRunCall(
@@ -4624,8 +4623,10 @@ export async function doErc20PaymentS2S(
             "ERC20 payment S2S, transferERC20 " + ( isForward ? "forward" : "reverse" );
         const weiHowMuchTransferERC20 = undefined;
         gasPrice = await tc.computeGasPrice( ethersProviderSrc, 200000000000 );
-        details.write( strLogPrefix + cc.debug( "Using computed " ) +
-            cc.info( "gasPrice" ) + cc.debug( "=" ) + cc.j( gasPrice ) + "\n" );
+        if( log.verboseGet() >= log.verboseReversed().trace ) {
+            details.write( strLogPrefix + cc.debug( "Using computed " ) +
+                cc.info( "gasPrice" ) + cc.debug( "=" ) + cc.j( gasPrice ) + "\n" );
+        }
         const estimatedGasTransfer =
             await tc.computeGas(
                 details, ethersProviderSrc,
@@ -4633,8 +4634,10 @@ export async function doErc20PaymentS2S(
                 "transferToSchainERC20", arrArgumentsTransfer,
                 joAccountSrc, strActionName, gasPrice,
                 8000000, weiHowMuchTransferERC20, null );
-        details.write( strLogPrefix + cc.debug( "Using estimated(transfer) " ) +
+        if( log.verboseGet() >= log.verboseReversed().trace ) {
+            details.write( strLogPrefix + cc.debug( "Using estimated(transfer) " ) +
             cc.info( "gas" ) + cc.debug( "=" ) + cc.notice( estimatedGasTransfer ) + "\n" );
+        }
         const isIgnoreTransferERC20 = true;
         const strErrorOfDryRunTransferERC20 =
             await dryRunCall(
@@ -4757,15 +4760,19 @@ export async function doErc721PaymentS2S(
         ];
         const weiHowMuchApprove = undefined;
         let gasPrice = await tc.computeGasPrice( ethersProviderSrc, 200000000000 );
-        details.write( strLogPrefix + cc.debug( "Using computed " ) +
-            cc.info( "gasPrice" ) + cc.debug( "=" ) + cc.j( gasPrice ) + "\n" );
+        if( log.verboseGet() >= log.verboseReversed().trace ) {
+            details.write( strLogPrefix + cc.debug( "Using computed " ) +
+                cc.info( "gasPrice" ) + cc.debug( "=" ) + cc.j( gasPrice ) + "\n" );
+        }
         const estimatedGasApprove =
             await tc.computeGas(
                 details, ethersProviderSrc,
                 "ERC721", contractERC721, "approve", arrArgumentsApprove,
                 joAccountSrc, strActionName, gasPrice, 8000000, weiHowMuchApprove, null );
-        details.write( strLogPrefix + cc.debug( "Using estimated(approve) " ) +
-            cc.info( "gas" ) + cc.debug( "=" ) + cc.notice( estimatedGasApprove ) + "\n" );
+        if( log.verboseGet() >= log.verboseReversed().trace ) {
+            details.write( strLogPrefix + cc.debug( "Using estimated(approve) " ) +
+                cc.info( "gas" ) + cc.debug( "=" ) + cc.notice( estimatedGasApprove ) + "\n" );
+        }
         const isIgnoreApprove = false;
         const strErrorOfDryRunApprove =
             await dryRunCall(
@@ -4793,8 +4800,10 @@ export async function doErc721PaymentS2S(
             "ERC721 payment S2S, transferERC721 " + ( isForward ? "forward" : "reverse" );
         const weiHowMuchTransferERC721 = undefined;
         gasPrice = await tc.computeGasPrice( ethersProviderSrc, 200000000000 );
-        details.write( strLogPrefix + cc.debug( "Using computed " ) +
-            cc.info( "gasPrice" ) + cc.debug( "=" ) + cc.j( gasPrice ) + "\n" );
+        if( log.verboseGet() >= log.verboseReversed().trace ) {
+            details.write( strLogPrefix + cc.debug( "Using computed " ) +
+                cc.info( "gasPrice" ) + cc.debug( "=" ) + cc.j( gasPrice ) + "\n" );
+        }
         const estimatedGasTransfer =
             await tc.computeGas(
                 details, ethersProviderSrc,
@@ -4802,8 +4811,10 @@ export async function doErc721PaymentS2S(
                 "transferToSchainERC721", arrArgumentsTransfer,
                 joAccountSrc, strActionName, isIgnoreTransferERC721,
                 gasPrice, 8000000, weiHowMuchTransferERC721, null );
-        details.write( strLogPrefix + cc.debug( "Using estimated(transfer) " ) +
-            cc.info( "gas" ) + cc.debug( "=" ) + cc.notice( estimatedGasTransfer ) + "\n" );
+        if( log.verboseGet() >= log.verboseReversed().trace ) {
+            details.write( strLogPrefix + cc.debug( "Using estimated(transfer) " ) +
+                cc.info( "gas" ) + cc.debug( "=" ) + cc.notice( estimatedGasTransfer ) + "\n" );
+        }
         const strErrorOfDryRunTransferERC721 =
             await dryRunCall(
                 details, ethersProviderSrc,
@@ -4933,15 +4944,19 @@ export async function doErc1155PaymentS2S(
         ];
         const weiHowMuchApprove = undefined;
         let gasPrice = await tc.computeGasPrice( ethersProviderSrc, 200000000000 );
-        details.write( strLogPrefix + cc.debug( "Using computed " ) +
-            cc.info( "gasPrice" ) + cc.debug( "=" ) + cc.j( gasPrice ) + "\n" );
+        if( log.verboseGet() >= log.verboseReversed().trace ) {
+            details.write( strLogPrefix + cc.debug( "Using computed " ) +
+                cc.info( "gasPrice" ) + cc.debug( "=" ) + cc.j( gasPrice ) + "\n" );
+        }
         const estimatedGasApprove =
             await tc.computeGas(
                 details, ethersProviderSrc,
                 "ERC1155", contractERC1155, "setApprovalForAll", arrArgumentsApprove,
                 joAccountSrc, strActionName, gasPrice, 8000000, weiHowMuchApprove, null );
-        details.write( strLogPrefix + cc.debug( "Using estimated(approve) " ) +
-            cc.info( "gas" ) + cc.debug( "=" ) + cc.notice( estimatedGasApprove ) + "\n" );
+        if( log.verboseGet() >= log.verboseReversed().trace ) {
+            details.write( strLogPrefix + cc.debug( "Using estimated(approve) " ) +
+                cc.info( "gas" ) + cc.debug( "=" ) + cc.notice( estimatedGasApprove ) + "\n" );
+        }
         const isIgnoreApprove = false;
         const strErrorOfDryRunApprove =
             await dryRunCall(
@@ -4968,8 +4983,10 @@ export async function doErc1155PaymentS2S(
             "ERC1155 payment S2S, transferERC1155 " + ( isForward ? "forward" : "reverse" );
         const weiHowMuchTransferERC1155 = undefined;
         gasPrice = await tc.computeGasPrice( ethersProviderSrc, 200000000000 );
-        details.write( strLogPrefix + cc.debug( "Using computed " ) +
-            cc.info( "gasPrice" ) + cc.debug( "=" ) + cc.j( gasPrice ) + "\n" );
+        if( log.verboseGet() >= log.verboseReversed().trace ) {
+            details.write( strLogPrefix + cc.debug( "Using computed " ) +
+                cc.info( "gasPrice" ) + cc.debug( "=" ) + cc.j( gasPrice ) + "\n" );
+        }
         const estimatedGasTransfer =
             await tc.computeGas(
                 details, ethersProviderSrc,
@@ -4977,8 +4994,10 @@ export async function doErc1155PaymentS2S(
                 "transferToSchainERC1155", arrArgumentsTransfer,
                 joAccountSrc, strActionName, gasPrice,
                 8000000, weiHowMuchTransferERC1155, null );
-        details.write( strLogPrefix + cc.debug( "Using estimated(transfer) " ) +
-            cc.info( "gas" ) + cc.debug( "=" ) + cc.notice( estimatedGasTransfer ) + "\n" );
+        if( log.verboseGet() >= log.verboseReversed().trace ) {
+            details.write( strLogPrefix + cc.debug( "Using estimated(transfer) " ) +
+                cc.info( "gas" ) + cc.debug( "=" ) + cc.notice( estimatedGasTransfer ) + "\n" );
+        }
         const isIgnoreTransferERC1155 = true;
         const strErrorOfDryRunTransferERC1155 =
             await dryRunCall(
@@ -5109,15 +5128,19 @@ export async function doErc1155BatchPaymentS2S(
         ];
         const weiHowMuchApprove = undefined;
         let gasPrice = await tc.computeGasPrice( ethersProviderSrc, 200000000000 );
-        details.write( strLogPrefix + cc.debug( "Using computed " ) +
-            cc.info( "gasPrice" ) + cc.debug( "=" ) + cc.j( gasPrice ) + "\n" );
+        if( log.verboseGet() >= log.verboseReversed().trace ) {
+            details.write( strLogPrefix + cc.debug( "Using computed " ) +
+                cc.info( "gasPrice" ) + cc.debug( "=" ) + cc.j( gasPrice ) + "\n" );
+        }
         const estimatedGasApprove =
             await tc.computeGas(
                 details, ethersProviderSrc,
                 "ERC1155", contractERC1155, "setApprovalForAll", arrArgumentsApprove,
                 joAccountSrc, strActionName, gasPrice, 8000000, weiHowMuchApprove, null );
-        details.write( strLogPrefix + cc.debug( "Using estimated(approve) " ) +
-            cc.info( "gas" ) + cc.debug( "=" ) + cc.notice( estimatedGasApprove ) + "\n" );
+        if( log.verboseGet() >= log.verboseReversed().trace ) {
+            details.write( strLogPrefix + cc.debug( "Using estimated(approve) " ) +
+                cc.info( "gas" ) + cc.debug( "=" ) + cc.notice( estimatedGasApprove ) + "\n" );
+        }
         const isIgnoreApprove = false;
         const strErrorOfDryRunApprove =
             await dryRunCall(
@@ -5145,8 +5168,10 @@ export async function doErc1155BatchPaymentS2S(
             "ERC1155 batch-payment S2S, transferERC1155 " + ( isForward ? "forward" : "reverse" );
         const weiHowMuchTransferERC1155 = undefined;
         gasPrice = await tc.computeGasPrice( ethersProviderSrc, 200000000000 );
-        details.write( strLogPrefix + cc.debug( "Using computed " ) +
-            cc.info( "gasPrice" ) + cc.debug( "=" ) + cc.j( gasPrice ) + "\n" );
+        if( log.verboseGet() >= log.verboseReversed().trace ) {
+            details.write( strLogPrefix + cc.debug( "Using computed " ) +
+                cc.info( "gasPrice" ) + cc.debug( "=" ) + cc.j( gasPrice ) + "\n" );
+        }
         const estimatedGasTransfer =
             await tc.computeGas(
                 details, ethersProviderSrc,
@@ -5154,8 +5179,10 @@ export async function doErc1155BatchPaymentS2S(
                 "transferToSchainERC1155Batch", arrArgumentsTransfer,
                 joAccountSrc, strActionName,
                 gasPrice, 8000000, weiHowMuchTransferERC1155, null );
-        details.write( strLogPrefix + cc.debug( "Using estimated(transfer) " ) +
-            cc.info( "gas" ) + cc.debug( "=" ) + cc.notice( estimatedGasTransfer ) + "\n" );
+        if( log.verboseGet() >= log.verboseReversed().trace ) {
+            details.write( strLogPrefix + cc.debug( "Using estimated(transfer) " ) +
+                cc.info( "gas" ) + cc.debug( "=" ) + cc.notice( estimatedGasTransfer ) + "\n" );
+        }
         const isIgnoreTransferERC1155 = true;
         const strErrorOfDryRunTransferERC1155 =
             await dryRunCall(
@@ -5279,7 +5306,7 @@ async function findOutAllReferenceLogRecords(
     const cntExpected = nOutMsgCnt - nIncMsgCnt;
     if( cntExpected <= 0 ) {
         if( isVerbose ) {
-            if( log.verboseGet() >= log.verboseReversed().information ) {
+            if( log.verboseGet() >= log.verboseReversed().notice ) {
                 details.write( strLogPrefix +
                     cc.success( "Optimized IMA message search algorithm success, " +
                         "nothing to search, result is empty" ) + "\n" );
@@ -5377,7 +5404,7 @@ async function doQueryOutgoingMessageCounter( optsTransfer ) {
             );
         }
         optsTransfer.nOutMsgCnt = owaspUtils.toInteger( nPossibleIntegerValue );
-        if( log.verboseGet() >= log.verboseReversed().debug ) {
+        if( log.verboseGet() >= log.verboseReversed().information ) {
             optsTransfer.details.write( optsTransfer.strLogPrefix +
                 cc.debug( "Result of " ) + cc.notice( optsTransfer.strActionName ) +
                 cc.debug( " call: " ) + cc.info( optsTransfer.nOutMsgCnt ) +
@@ -5738,8 +5765,8 @@ async function preCheckAllMessagesSign( optsTransfer, err, jarrMessages, joGlueR
             cc.debug( "Did invoked message signing callback, " +
                 "first real message index is: " ) +
             cc.info( optsTransfer.nIdxCurrentMsgBlockStart ) +
-            cc.info( optsTransfer.jarrMessages.length ) +
-            cc.debug( " message(s) to process: " ) + cc.j( optsTransfer.jarrMessages ) + "\n";
+            cc.debug( ", have " ) + cc.info( optsTransfer.jarrMessages.length ) +
+            cc.debug( " message(s) to process " ) + cc.j( optsTransfer.jarrMessages ) + "\n";
         optsTransfer.details.write( strDidInvokedSigningCallbackMessage );
         if( log.id != optsTransfer.details.id )
             log.write( strDidInvokedSigningCallbackMessage );
@@ -5806,70 +5833,58 @@ async function callbackAllMessagesSign( optsTransfer, err, jarrMessages, joGlueR
         counter: hint
     };
     const arrArgumentsPostIncomingMessages = [
-        optsTransfer.chainNameSrc,
-        optsTransfer.nIdxCurrentMsgBlockStart,
-        optsTransfer.jarrMessages,
-        sign //, // bls signature components
-        // idxLastToPopNotIncluding
-    ];
+        optsTransfer.chainNameSrc, optsTransfer.nIdxCurrentMsgBlockStart,
+        optsTransfer.jarrMessages, sign ];
     if( log.verboseGet() >= log.verboseReversed().debug ) {
         const joDebugArgs = [
-            optsTransfer.chainNameSrc,
-            optsTransfer.chainNameDst,
+            optsTransfer.chainNameSrc, optsTransfer.chainNameDst,
             optsTransfer.nIdxCurrentMsgBlockStart,
-            optsTransfer.jarrMessages,
-            [ signature.X, signature.Y ], // BLS glue of signatures
+            optsTransfer.jarrMessages, [ signature.X, signature.Y ], // BLS glue of signatures
             hashPoint.X, // G1.X from joGlueResult.hashSrc
             hashPoint.Y, // G1.Y from joGlueResult.hashSrc
-            hint
-        ];
-        optsTransfer.details.write( optsTransfer.strLogPrefix +
-            cc.debug( "....debug args for " ) +
+            hint ];
+        optsTransfer.details.write( optsTransfer.strLogPrefix + cc.debug( "....debug args for " ) +
             cc.notice( "msgCounter" ) + cc.debug( " set to " ) +
             cc.info( optsTransfer.nIdxCurrentMsgBlockStart ) + cc.debug( ": " ) +
             cc.j( joDebugArgs ) + "\n" );
     }
-    optsTransfer.strActionName =
-        optsTransfer.strDirection + " - Post incoming messages";
+    optsTransfer.strActionName = optsTransfer.strDirection + " - Post incoming messages";
     const weiHowMuchPostIncomingMessages = undefined;
     const gasPrice =
         await optsTransfer.transactionCustomizerDst.computeGasPrice(
             optsTransfer.ethersProviderDst, 200000000000 );
-    optsTransfer.details.write( optsTransfer.strLogPrefix + cc.debug( "Using computed " ) +
-        cc.info( "gasPrice" ) + cc.debug( "=" ) + cc.j( gasPrice ) + "\n" );
+    if( log.verboseGet() >= log.verboseReversed().debug ) {
+        optsTransfer.details.write( optsTransfer.strLogPrefix + cc.debug( "Using computed " ) +
+            cc.info( "gasPrice" ) + cc.debug( "=" ) + cc.j( gasPrice ) + "\n" );
+    }
     let estimatedGasPostIncomingMessages =
         await optsTransfer.transactionCustomizerDst.computeGas(
-            optsTransfer.details,
-            optsTransfer.ethersProviderDst,
+            optsTransfer.details, optsTransfer.ethersProviderDst,
             "MessageProxy", optsTransfer.joMessageProxyDst,
             "postIncomingMessages", arrArgumentsPostIncomingMessages,
             optsTransfer.joAccountDst, optsTransfer.strActionName,
-            gasPrice, 10000000, weiHowMuchPostIncomingMessages,
-            null
-        );
-    optsTransfer.details.write( optsTransfer.strLogPrefix +
-        cc.debug( "Using estimated " ) + cc.info( "gas" ) + cc.debug( "=" ) +
-        cc.notice( estimatedGasPostIncomingMessages ) + "\n" );
+            gasPrice, 10000000, weiHowMuchPostIncomingMessages, null );
+    if( log.verboseGet() >= log.verboseReversed().debug ) {
+        optsTransfer.details.write( optsTransfer.strLogPrefix +
+            cc.debug( "Using estimated " ) + cc.info( "gas" ) + cc.debug( "=" ) +
+            cc.notice( estimatedGasPostIncomingMessages ) + "\n" );
+    }
     if( optsTransfer.strDirection == "S2M" ) {
-        const expectedGasLimit =
-            perMessageGasForTransfer * optsTransfer.jarrMessages.length +
-                additionalS2MTransferOverhead;
+        const expectedGasLimit = perMessageGasForTransfer * optsTransfer.jarrMessages.length +
+            additionalS2MTransferOverhead;
         estimatedGasPostIncomingMessages =
             Math.max( estimatedGasPostIncomingMessages, expectedGasLimit );
     }
     const isIgnorePostIncomingMessages = false;
     const strErrorOfDryRun =
         await dryRunCall(
-            optsTransfer.details,
-            optsTransfer.ethersProviderDst,
+            optsTransfer.details, optsTransfer.ethersProviderDst,
             "MessageProxy", optsTransfer.joMessageProxyDst,
             "postIncomingMessages", arrArgumentsPostIncomingMessages,
             optsTransfer.joAccountDst, optsTransfer.strActionName,
             isIgnorePostIncomingMessages,
             gasPrice, estimatedGasPostIncomingMessages,
-            weiHowMuchPostIncomingMessages,
-            null
-        );
+            weiHowMuchPostIncomingMessages, null );
     if( strErrorOfDryRun )
         throw new Error( strErrorOfDryRun );
     const opts = {
@@ -5896,40 +5911,47 @@ async function callbackAllMessagesSign( optsTransfer, err, jarrMessages, joGlueR
         optsTransfer.jarrReceipts, optsTransfer.details );
     }
     optsTransfer.cntProcessed += optsTransfer.cntAccumulatedForBlock;
-    optsTransfer.details.write( optsTransfer.strLogPrefix +
-        cc.debug( "Validating transfer from " ) +
-        cc.info( optsTransfer.chainNameSrc ) + cc.debug( " to " ) +
-        cc.info( optsTransfer.chainNameDst ) + cc.debug( "..." ) + "\n" );
+    if( log.verboseGet() >= log.verboseReversed().information ) {
+        optsTransfer.details.write( optsTransfer.strLogPrefix +
+            cc.debug( "Validating transfer from " ) +
+            cc.info( optsTransfer.chainNameSrc ) + cc.debug( " to " ) +
+            cc.info( optsTransfer.chainNameDst ) + cc.debug( "..." ) + "\n" );
+    }
     // check DepositBox -> Error on Mainnet only
     if( optsTransfer.chainNameDst == "Mainnet" ) {
-        optsTransfer.details.write( optsTransfer.strLogPrefix +
-            cc.debug( "Validating transfer to Main Net via MessageProxy " +
-                "error absence on Main Net..." ) + "\n" );
+        if( log.verboseGet() >= log.verboseReversed().debug ) {
+            optsTransfer.details.write( optsTransfer.strLogPrefix +
+                cc.debug( "Validating transfer to Main Net via MessageProxy " +
+                    "error absence on Main Net..." ) + "\n" );
+        }
         if( optsTransfer.joDepositBoxMainNet ) {
             if( joReceipt && "blockNumber" in joReceipt &&
                 "transactionHash" in joReceipt ) {
                 const strEventName = "PostMessageError";
-                optsTransfer.details.write( optsTransfer.strLogPrefix +
-                    cc.debug( "Verifying the " ) + cc.info( strEventName ) +
-                    cc.debug( " event of the " ) + cc.info( "MessageProxy" ) +
-                    cc.debug( "/" ) +
-                    cc.notice( optsTransfer.joMessageProxyDst.address ) +
-                    cc.debug( " contract..." ) + "\n" );
+                if( log.verboseGet() >= log.verboseReversed().debug ) {
+                    optsTransfer.details.write( optsTransfer.strLogPrefix +
+                        cc.debug( "Verifying the " ) + cc.info( strEventName ) +
+                        cc.debug( " event of the " ) + cc.info( "MessageProxy" ) +
+                        cc.debug( "/" ) +
+                        cc.notice( optsTransfer.joMessageProxyDst.address ) +
+                        cc.debug( " contract..." ) + "\n" );
+                }
                 const joEvents =
                     await getContractCallEvents(
                         optsTransfer.details, optsTransfer.strLogPrefixShort,
                         optsTransfer.ethersProviderDst,
                         optsTransfer.joMessageProxyDst, strEventName,
-                        joReceipt.blockNumber,
-                        joReceipt.transactionHash,
+                        joReceipt.blockNumber, joReceipt.transactionHash,
                         optsTransfer.joMessageProxyDst.filters[strEventName]() );
                 if( joEvents.length == 0 ) {
-                    optsTransfer.details.write( optsTransfer.strLogPrefix +
-                        cc.success( "Success, verified the " ) + cc.info( strEventName ) +
-                        cc.success( " event of the " ) + cc.info( "MessageProxy" ) +
-                        cc.success( "/" ) +
-                        cc.notice( optsTransfer.joMessageProxyDst.address ) +
-                        cc.success( " contract, no events found" ) + "\n" );
+                    if( log.verboseGet() >= log.verboseReversed().debug ) {
+                        optsTransfer.details.write( optsTransfer.strLogPrefix +
+                            cc.success( "Success, verified the " ) + cc.info( strEventName ) +
+                            cc.success( " event of the " ) + cc.info( "MessageProxy" ) +
+                            cc.success( "/" ) +
+                            cc.notice( optsTransfer.joMessageProxyDst.address ) +
+                            cc.success( " contract, no events found" ) + "\n" );
+                    }
                 } else {
                     if( log.verboseGet() >= log.verboseReversed().critical ) {
                         const strError = optsTransfer.strLogPrefix +
@@ -5943,31 +5965,34 @@ async function callbackAllMessagesSign( optsTransfer, err, jarrMessages, joGlueR
                         if( log.id != optsTransfer.details.id )
                             log.write( strError );
                     }
-                    saveTransferError(
-                        optsTransfer.strTransferErrorCategoryName,
+                    saveTransferError( optsTransfer.strTransferErrorCategoryName,
                         optsTransfer.details.toString() );
-                    throw new Error(
-                        "Verification failed for the \"PostMessageError\" " +
-                            "event of the \"MessageProxy\"/" +
-                        optsTransfer.joMessageProxyDst.address +
-                            " contract, error events found" );
+                    throw new Error( "Verification failed for the \"PostMessageError\" " +
+                        "event of the \"MessageProxy\"/" + optsTransfer.joMessageProxyDst.address +
+                        " contract, error events found" );
                 }
-                optsTransfer.details.write( optsTransfer.strLogPrefix +
-                    cc.success( "Done, validated transfer to Main Net " +
-                        "via MessageProxy error absence on Main Net" ) + "\n" );
+                if( log.verboseGet() >= log.verboseReversed().debug ) {
+                    optsTransfer.details.write( optsTransfer.strLogPrefix +
+                        cc.success( "Done, validated transfer to Main Net " +
+                            "via MessageProxy error absence on Main Net" ) + "\n" );
+                }
             } else {
-                optsTransfer.details.write( optsTransfer.strLogPrefix +
-                    cc.warning( "WARNING:" ) + " " +
-                    cc.warn( "Cannot validate transfer to Main Net via " +
-                        "MessageProxy error absence on Main Net, " +
-                        "no valid transaction receipt provided" ) + "\n" );
+                if( log.verboseGet() >= log.verboseReversed().warning ) {
+                    optsTransfer.details.write( optsTransfer.strLogPrefix +
+                        cc.warning( "WARNING:" ) + " " +
+                        cc.warn( "Cannot validate transfer to Main Net via " +
+                            "MessageProxy error absence on Main Net, " +
+                            "no valid transaction receipt provided" ) + "\n" );
+                }
             }
         } else {
-            optsTransfer.details.write( optsTransfer.strLogPrefix +
-                cc.warning( "WARNING:" ) + " " +
-                cc.warn( "Cannot validate transfer to Main Net " +
-                    "via MessageProxy error absence on Main Net, " +
-                    "no MessageProxy provided" ) + "\n" );
+            if( log.verboseGet() >= log.verboseReversed().warning ) {
+                optsTransfer.details.write( optsTransfer.strLogPrefix +
+                    cc.warning( "WARNING:" ) + " " +
+                    cc.warn( "Cannot validate transfer to Main Net " +
+                        "via MessageProxy error absence on Main Net, " +
+                        "no MessageProxy provided" ) + "\n" );
+            }
         }
     }
 }
@@ -6007,22 +6032,28 @@ async function checkOutgoingMessageEvent( optsTransfer, joSChain ) {
     for( let idxMessage = 0; idxMessage < cntMessages; ++ idxMessage ) {
         const idxImaMessage = optsTransfer.arrMessageCounters[idxMessage];
         const joMessage = optsTransfer.jarrMessages[idxMessage];
-        optsTransfer.details.write( optsTransfer.strLogPrefix +
-            cc.sunny( optsTransfer.strDirection ) + cc.debug( " message analysis for message " ) +
-            cc.info( idxMessage + 1 ) + cc.debug( " of " ) + cc.info( cntMessages ) +
-            cc.debug( " with IMA message index " ) + cc.j( idxImaMessage ) +
-            cc.debug( " and message envelope data:" ) + cc.j( joMessage ) + "\n" );
+        if( log.verboseGet() >= log.verboseReversed().trace ) {
+            optsTransfer.details.write( optsTransfer.strLogPrefix +
+                cc.sunny( optsTransfer.strDirection ) +
+                cc.debug( " message analysis for message " ) + cc.info( idxMessage + 1 ) +
+                cc.debug( " of " ) + cc.info( cntMessages ) +
+                cc.debug( " with IMA message index " ) + cc.j( idxImaMessage ) +
+                cc.debug( " and message envelope data:" ) + cc.j( joMessage ) + "\n" );
+        }
         let cntPassedNodes = 0, cntFailedNodes = 0, joNode = null;
         try {
             for( let idxNode = 0; idxNode < cntNodes; ++ idxNode ) {
                 joNode = joSChain.data.computed.nodes[idxNode];
                 // eslint-disable-next-line dot-notation
                 const strUrlHttp = joNode["http_endpoint_ip"];
-                optsTransfer.details.write( optsTransfer.strLogPrefix + cc.debug( "Validating " ) +
-                    cc.sunny( optsTransfer.strDirection ) + cc.debug( " message " ) +
-                    cc.info( idxMessage + 1 ) + cc.debug( " on node " ) + cc.info( joNode.name ) +
-                    cc.debug( " using URL " ) + cc.info( strUrlHttp ) +
-                    cc.debug( "..." ) + "\n" );
+                if( log.verboseGet() >= log.verboseReversed().trace ) {
+                    optsTransfer.details.write( optsTransfer.strLogPrefix +
+                        cc.debug( "Validating " ) + cc.sunny( optsTransfer.strDirection ) +
+                        cc.debug( " message " ) + cc.info( idxMessage + 1 ) +
+                        cc.debug( " on node " ) + cc.info( joNode.name ) +
+                        cc.debug( " using URL " ) + cc.info( strUrlHttp ) + cc.debug( "..." ) +
+                        "\n" );
+                }
                 let bEventIsFound = false;
                 try {
                     // eslint-disable-next-line dot-notation
@@ -6048,10 +6079,13 @@ async function checkOutgoingMessageEvent( optsTransfer, joSChain ) {
                         )
                     );
                     const cntEvents = node_r.length;
-                    optsTransfer.details.write( optsTransfer.strLogPrefix + cc.debug( "Got " ) +
-                        cc.info( cntEvents ) + cc.debug( " event(s) (" ) + cc.info( strEventName ) +
-                        cc.debug( ") on node " ) + cc.info( joNode.name ) +
-                        cc.debug( " with data: " ) + cc.j( node_r ) + "\n" );
+                    if( log.verboseGet() >= log.verboseReversed().trace ) {
+                        optsTransfer.details.write( optsTransfer.strLogPrefix + cc.debug( "Got " ) +
+                            cc.info( cntEvents ) + cc.debug( " event(s) (" ) +
+                            cc.info( strEventName ) + cc.debug( ") on node " ) +
+                            cc.info( joNode.name ) + cc.debug( " with data: " ) +
+                            cc.j( node_r ) + "\n" );
+                    }
                     for( let idxEvent = 0; idxEvent < cntEvents; ++ idxEvent ) {
                         const joEvent = node_r[idxEvent];
                         const eventValuesByName = {
@@ -6093,11 +6127,13 @@ async function checkOutgoingMessageEvent( optsTransfer, joSChain ) {
                 }
                 if( bEventIsFound ) {
                     ++ cntPassedNodes;
-                    optsTransfer.details.write( optsTransfer.strLogPrefix +
-                        cc.sunny( optsTransfer.strDirection ) + cc.success( " message " ) +
-                        cc.info( idxMessage + 1 ) + cc.success( " validation on node " ) +
-                        cc.info( joNode.name ) + cc.success( " using URL " ) +
-                        cc.info( strUrlHttp ) + cc.success( " is passed" ) + "\n" );
+                    if( log.verboseGet() >= log.verboseReversed().information ) {
+                        optsTransfer.details.write( optsTransfer.strLogPrefix +
+                            cc.sunny( optsTransfer.strDirection ) + cc.success( " message " ) +
+                            cc.info( idxMessage + 1 ) + cc.success( " validation on node " ) +
+                            cc.info( joNode.name ) + cc.success( " using URL " ) +
+                            cc.info( strUrlHttp ) + cc.success( " is passed" ) + "\n" );
+                    }
                 } else {
                     ++ cntFailedNodes;
                     if( log.verboseGet() >= log.verboseReversed().error ) {
@@ -6115,12 +6151,14 @@ async function checkOutgoingMessageEvent( optsTransfer, joSChain ) {
                 if( cntFailedNodes > optsTransfer.cntNodesMayFail )
                     break;
                 if( cntPassedNodes >= optsTransfer.cntNodesShouldPass ) {
-                    // eslint-disable-next-line dot-notation
-                    optsTransfer.details.write( optsTransfer.strLogPrefix +
-                        cc.sunny( optsTransfer.strDirection ) + cc.success( " message " ) +
-                        cc.info( idxMessage + 1 ) + cc.success( " validation on node " ) +
-                        cc.info( joNode.name ) + cc.success( " using URL " ) +
-                        cc.info( strUrlHttp ) + cc.success( " is passed" ) + "\n" );
+                    if( log.verboseGet() >= log.verboseReversed().information ) {
+                        // eslint-disable-next-line dot-notation
+                        optsTransfer.details.write( optsTransfer.strLogPrefix +
+                            cc.sunny( optsTransfer.strDirection ) + cc.success( " message " ) +
+                            cc.info( idxMessage + 1 ) + cc.success( " validation on node " ) +
+                            cc.info( joNode.name ) + cc.success( " using URL " ) +
+                            cc.info( strUrlHttp ) + cc.success( " is passed" ) + "\n" );
+                    }
                     break;
                 }
             }
@@ -6205,16 +6243,16 @@ async function doMainTransferLoopActions( optsTransfer ) {
             saveTransferSuccessAll();
             return false;
         }
-        optsTransfer.details.write(
-            optsTransfer.strLogPrefix + cc.debug( "Entering block former iteration with " ) +
-            cc.notice( "message counter" ) +
-            cc.debug( " set to " ) + cc.info( optsTransfer.nIdxCurrentMsg ) +
-            cc.debug( ", transfer step number is " ) + cc.info( optsTransfer.nStepsDone ) +
-            cc.debug( ", can transfer up to " ) + cc.info( optsTransfer.nMaxTransactionsCount ) +
-            cc.debug( " message(s) per step" ) +
-            cc.debug( ", can perform up to " ) + cc.info( optsTransfer.nTransferSteps ) +
-            cc.debug( " transfer step(s)" ) +
-            "\n" );
+        if( log.verboseGet() >= log.verboseReversed().trace ) {
+            optsTransfer.details.write(
+                optsTransfer.strLogPrefix + cc.debug( "Entering block former iteration with " ) +
+                cc.notice( "message counter" ) + cc.debug( " set to " ) +
+                cc.info( optsTransfer.nIdxCurrentMsg ) + cc.debug( ", transfer step number is " ) +
+                cc.info( optsTransfer.nStepsDone ) + cc.debug( ", can transfer up to " ) +
+                cc.info( optsTransfer.nMaxTransactionsCount ) + cc.debug( " message(s) per step" ) +
+                cc.debug( ", can perform up to " ) + cc.info( optsTransfer.nTransferSteps ) +
+                cc.debug( " transfer step(s)" ) + "\n" );
+        }
         if( ! loop.checkTimeFraming(
             null, optsTransfer.strDirection, optsTransfer.joRuntimeOpts ) ) {
             if( log.verboseGet() >= log.verboseReversed().warning ) {
@@ -6246,7 +6284,6 @@ async function doMainTransferLoopActions( optsTransfer ) {
             saveTransferSuccessAll();
             return false;
         }
-
         if( optsTransfer.strDirection == "S2S" ) {
             optsTransfer.strActionName = "S2S message analysis";
             if( ! optsTransfer.joExtraSignOpts ) {
@@ -6293,30 +6330,31 @@ async function doMainTransferLoopActions( optsTransfer ) {
                             )
                     );
             optsTransfer.cntNodesMayFail = cntNodes - optsTransfer.cntNodesShouldPass;
-            optsTransfer.details.write( optsTransfer.strLogPrefix +
-                cc.sunny( optsTransfer.strDirection ) +
-                cc.debug( " message analysis will be performed o S-Chain " ) +
-                cc.info( optsTransfer.chainNameSrc ) + cc.debug( " with " ) +
-                cc.info( cntNodes ) + cc.debug( " node(s), " ) +
-                cc.info( optsTransfer.cntNodesShouldPass ) +
-                cc.debug( " node(s) should have same message(s), " ) +
-                cc.info( optsTransfer.cntNodesMayFail ) +
-                cc.debug( " node(s) allowed to fail message(s) comparison, " ) +
-                cc.info( cntMessages ) + cc.debug( " message(s) to check..." ) +
-                "\n" );
+            if( log.verboseGet() >= log.verboseReversed().trace ) {
+                optsTransfer.details.write( optsTransfer.strLogPrefix +
+                    cc.sunny( optsTransfer.strDirection ) +
+                    cc.debug( " message analysis will be performed o S-Chain " ) +
+                    cc.info( optsTransfer.chainNameSrc ) + cc.debug( " with " ) +
+                    cc.info( cntNodes ) + cc.debug( " node(s), " ) +
+                    cc.info( optsTransfer.cntNodesShouldPass ) +
+                    cc.debug( " node(s) should have same message(s), " ) +
+                    cc.info( optsTransfer.cntNodesMayFail ) +
+                    cc.debug( " node(s) allowed to fail message(s) comparison, " ) +
+                    cc.info( cntMessages ) + cc.debug( " message(s) to check..." ) + "\n" );
+            }
             if( ! ( await checkOutgoingMessageEvent( optsTransfer, joSChain ) ) )
                 return false;
         }
 
         optsTransfer.strActionName = "sign messages";
-        if( log.verboseGet() >= log.verboseReversed().debug ) {
+        if( log.verboseGet() >= log.verboseReversed().information ) {
             const strWillInvokeSigningCallbackMessage =
                 optsTransfer.strLogPrefix +
                 cc.debug( "Will invoke message signing callback, " +
                     "first real message index is: " ) +
                 cc.info( optsTransfer.nIdxCurrentMsgBlockStart ) +
-                cc.info( optsTransfer.jarrMessages.length ) +
-                cc.debug( " message(s) to process: " ) + cc.j( optsTransfer.jarrMessages ) +
+                cc.debug( ", have " ) + cc.info( optsTransfer.jarrMessages.length ) +
+                cc.debug( " message(s) to process " ) + cc.j( optsTransfer.jarrMessages ) +
                 "\n";
             optsTransfer.details.write( strWillInvokeSigningCallbackMessage );
             if( log.id != optsTransfer.details.id )
@@ -6471,8 +6509,8 @@ export async function doTransfer(
                     cc.debug( " to IMA, first real message index is:" ) +
                     cc.info( nIdxCurrentMsgBlockStart ) + cc.debug( ", have " ) +
                     cc.info( optsTransfer.jarrMessages.length ) +
-                    cc.debug( " message(s) to process:" ) + cc.j( optsTransfer.jarrMessages ) +
-                    "\n" );
+                    cc.debug( " message(s) to process " ) +
+                    cc.j( optsTransfer.jarrMessages ) + "\n" );
             }
             await fnAfter( null, jarrMessages, null ); // null - no error, null - no signatures
         };
@@ -6572,7 +6610,7 @@ export async function doAllS2S( // s-chain --> s-chain
             nIndexS2S = idxSChain;
             if( ! await pwa.checkOnLoopStart( imaState, "s2s", nIndexS2S ) ) {
                 imaState.loopState.s2s.wasInProgress = false;
-                if( log.verboseGet() >= log.verboseReversed().warning ) {
+                if( log.verboseGet() >= log.verboseReversed().notice ) {
                     log.write( cc.warning( "Skipped(s2s) due to cancel mode reported from PWA" ) +
                         "\n" );
                 }
@@ -6638,7 +6676,7 @@ export async function doAllS2S( // s-chain --> s-chain
                     await pwa.notifyOnLoopEnd( imaState, "s2s", nIndexS2S );
                 } else {
                     bOK = true;
-                    if( log.verboseGet() >= log.verboseReversed().debug ) {
+                    if( log.verboseGet() >= log.verboseReversed().notice ) {
                         const strLogPrefix = cc.attention( "S2S Loop:" ) + " ";
                         log.write( strLogPrefix +
                             cc.warning( "Skipped(s2s) due to time framing check" ) + "\n" );
@@ -6698,7 +6736,7 @@ export function composeGasUsageReportFromArray( strName, jarrReceipts ) {
 }
 
 export function printGasUsageReportFromArray( strName, jarrReceipts, details ) {
-    if( log.verboseGet() >= log.verboseReversed().information ) {
+    if( log.verboseGet() >= log.verboseReversed().notice ) {
         details = details || log;
         const jo = composeGasUsageReportFromArray( strName, jarrReceipts );
         if( jo.strReport &&
@@ -6779,12 +6817,12 @@ export class TransactionCustomizer {
             const promiseComplete = new Promise( function( resolve, reject ) {
                 const doEstimation = async function() {
                     try {
-                        details.write(
-                            cc.debug( "Estimate-gas of action " ) + cc.info( strActionName ) +
-                            cc.debug( "..." ) + "\n" );
-                        details.write(
-                            cc.debug( "Will estimate-gas " ) + strContractCallDescription +
-                            cc.debug( "..." ) + "\n" );
+                        if( log.verboseGet() >= log.verboseReversed().trace ) {
+                            details.write( cc.debug( "Estimate-gas of action " ) +
+                                cc.info( strActionName ) + cc.debug( "..." ) + "\n" );
+                            details.write( cc.debug( "Will estimate-gas " ) +
+                                strContractCallDescription + cc.debug( "..." ) + "\n" );
+                        }
                         const strAccountWalletAddress = joAccount.address();
                         const callOpts = {
                             from: strAccountWalletAddress
@@ -6799,15 +6837,17 @@ export class TransactionCustomizer {
                         }
                         if( weiHowMuch )
                             callOpts.value = owaspUtils.toBN( weiHowMuch ).toHexString();
-                        details.write(
-                            cc.debug( "Call options for estimate-gas " ) + cc.j( callOpts ) +
-                            "\n" );
+                        if( log.verboseGet() >= log.verboseReversed().trace ) {
+                            details.write( cc.debug( "Call options for estimate-gas " ) +
+                                cc.j( callOpts ) + "\n" );
+                        }
                         estimatedGas =
                             await joContract.estimateGas[strMethodName](
                                 ...arrArguments, callOpts );
-                        details.write( strLogPrefix +
-                            cc.success( "estimate-gas success: " ) + cc.j( estimatedGas ) +
-                            "\n" );
+                        if( log.verboseGet() >= log.verboseReversed().trace ) {
+                            details.write( strLogPrefix + cc.success( "estimate-gas success: " ) +
+                                cc.j( estimatedGas ) + "\n" );
+                        }
                         resolve( estimatedGas );
                     } catch ( err ) {
                         reject( err );
@@ -6829,19 +6869,19 @@ export class TransactionCustomizer {
         estimatedGas = owaspUtils.parseIntOrHex( owaspUtils.toBN( estimatedGas ).toString() );
         if( estimatedGas == 0 ) {
             estimatedGas = gasValueRecommended;
-            details.write( strLogPrefix +
-                cc.warning( "Will use recommended gas " ) + cc.j( estimatedGas ) +
-                cc.warning( " instead of estimated" ) +
-                "\n" );
+            if( log.verboseGet() >= log.verboseReversed().warning ) {
+                details.write( strLogPrefix + cc.warning( "Will use recommended gas " ) +
+                    cc.j( estimatedGas ) + cc.warning( " instead of estimated" ) + "\n" );
+            }
         }
         if( this.gasMultiplier > 0.0 ) {
             estimatedGas =
                 owaspUtils.parseIntOrHex( ( estimatedGas * this.gasMultiplier ).toString() );
         }
-
-        details.write( strLogPrefix +
-            cc.debug( "Final amount of gas is " ) + cc.j( estimatedGas ) +
-            "\n" );
+        if( log.verboseGet() >= log.verboseReversed().trace ) {
+            details.write( strLogPrefix + cc.debug( "Final amount of gas is " ) +
+                cc.j( estimatedGas ) + "\n" );
+        }
         return estimatedGas;
     }
 };
@@ -7043,32 +7083,28 @@ export async function mintErc20(
         ];
         const weiHowMuchMint = undefined;
         const gasPrice = await tc.computeGasPrice( ethersProvider, 200000000000 );
-        details.write( strLogPrefix +
-            cc.debug( "Using computed " ) + cc.info( "gasPrice" ) + cc.debug( "=" ) +
-            cc.j( gasPrice ) + "\n" );
+        if( log.verboseGet() >= log.verboseReversed().trace ) {
+            details.write( strLogPrefix + cc.debug( "Using computed " ) + cc.info( "gasPrice" ) +
+                cc.debug( "=" ) + cc.j( gasPrice ) + "\n" );
+        }
         const estimatedGasMint =
             await tc.computeGas(
-                details,
-                ethersProvider,
+                details, ethersProvider,
                 "ERC20", contract, "mint", arrArgumentsMint,
                 joAccount, strActionName,
-                gasPrice, 10000000, weiHowMuchMint,
-                null
-            );
-        details.write( strLogPrefix +
-            cc.debug( "Using estimated " ) + cc.info( "gas" ) +
-            cc.debug( "=" ) + cc.notice( estimatedGasMint ) + "\n" );
+                gasPrice, 10000000, weiHowMuchMint, null );
+        if( log.verboseGet() >= log.verboseReversed().trace ) {
+            details.write( strLogPrefix + cc.debug( "Using estimated " ) + cc.info( "gas" ) +
+                cc.debug( "=" ) + cc.notice( estimatedGasMint ) + "\n" );
+        }
         strActionName = "Mint ERC20";
         const isIgnoreMint = false;
         const strErrorOfDryRun =
             await dryRunCall(
-                details,
-                ethersProvider,
+                details, ethersProvider,
                 "ERC20", contract, "mint", arrArgumentsMint,
                 joAccount, strActionName, isIgnoreMint,
-                gasPrice, estimatedGasMint, weiHowMuchMint,
-                null
-            );
+                gasPrice, estimatedGasMint, weiHowMuchMint, null );
         if( strErrorOfDryRun )
             throw new Error( strErrorOfDryRun );
 
@@ -7077,13 +7113,10 @@ export async function mintErc20(
         };
         const joReceipt =
             await payedCall(
-                details,
-                ethersProvider,
+                details, ethersProvider,
                 "ERC20", contract, "mint", arrArgumentsMint,
                 joAccount, strActionName,
-                gasPrice, estimatedGasMint, weiHowMuchMint,
-                opts
-            );
+                gasPrice, estimatedGasMint, weiHowMuchMint, opts );
         printGasUsageReportFromArray( "MINT ERC20 ", [ {
             "description": "mintErc20()/mint",
             "receipt": joReceipt
@@ -7127,9 +7160,8 @@ export async function mintErc721(
     const strLogPrefix = cc.info( "mintErc721() call" ) + " ";
     const details = log.createMemoryStream();
     try {
-        details.write( strLogPrefix +
-            cc.debug( "Mint " ) + cc.info( "ERC721" ) + cc.debug( " token ID " ) +
-            cc.notice( idToken ) + "\n" );
+        details.write( strLogPrefix + cc.debug( "Mint " ) + cc.info( "ERC721" ) +
+            cc.debug( " token ID " ) + cc.notice( idToken ) + "\n" );
         if( ! ( ethersProvider && joAccount && strAddressMintTo &&
             typeof strAddressMintTo == "string" && strAddressMintTo.length > 0 &&
             strTokenContractAddress && typeof strTokenContractAddress == "string" &&
@@ -7150,34 +7182,28 @@ export async function mintErc721(
         ];
         const weiHowMuchMint = undefined;
         const gasPrice = await tc.computeGasPrice( ethersProvider, 200000000000 );
-        details.write( strLogPrefix +
-            cc.debug( "Using computed " ) + cc.info( "gasPrice" ) +
-            cc.debug( "=" ) + cc.j( gasPrice ) +
-            "\n" );
+        if( log.verboseGet() >= log.verboseReversed().trace ) {
+            details.write( strLogPrefix + cc.debug( "Using computed " ) + cc.info( "gasPrice" ) +
+                cc.debug( "=" ) + cc.j( gasPrice ) + "\n" );
+        }
         const estimatedGasMint =
             await tc.computeGas(
-                details,
-                ethersProvider,
+                details, ethersProvider,
                 "ERC721", contract, "mint", arrArgumentsMint,
                 joAccount, strActionName,
-                gasPrice, 10000000, weiHowMuchMint,
-                null
-            );
-        details.write( strLogPrefix +
-            cc.debug( "Using estimated " ) + cc.info( "gas" ) +
-            cc.debug( "=" ) + cc.notice( estimatedGasMint ) +
-            "\n" );
+                gasPrice, 10000000, weiHowMuchMint, null );
+        if( log.verboseGet() >= log.verboseReversed().trace ) {
+            details.write( strLogPrefix + cc.debug( "Using estimated " ) + cc.info( "gas" ) +
+                cc.debug( "=" ) + cc.notice( estimatedGasMint ) + "\n" );
+        }
         strActionName = "Mint ERC721";
         const isIgnoreMint = false;
         const strErrorOfDryRun =
             await dryRunCall(
-                details,
-                ethersProvider,
+                details, ethersProvider,
                 "ERC721", contract, "mint", arrArgumentsMint,
                 joAccount, strActionName, isIgnoreMint,
-                gasPrice, estimatedGasMint, weiHowMuchMint,
-                null
-            );
+                gasPrice, estimatedGasMint, weiHowMuchMint, null );
         if( strErrorOfDryRun )
             throw new Error( strErrorOfDryRun );
 
@@ -7186,13 +7212,10 @@ export async function mintErc721(
         };
         const joReceipt =
             await payedCall(
-                details,
-                ethersProvider,
+                details, ethersProvider,
                 "ERC721", contract, "mint", arrArgumentsMint,
                 joAccount, strActionName,
-                gasPrice, estimatedGasMint, weiHowMuchMint,
-                opts
-            );
+                gasPrice, estimatedGasMint, weiHowMuchMint, opts );
         printGasUsageReportFromArray( "MINT ERC721 ", [ {
             "description": "mintErc721()/mint",
             "receipt": joReceipt
@@ -7262,32 +7285,28 @@ export async function mintErc1155(
         ];
         const weiHowMuchMint = undefined;
         const gasPrice = await tc.computeGasPrice( ethersProvider, 200000000000 );
-        details.write( strLogPrefix +
-            cc.debug( "Using computed " ) + cc.info( "gasPrice" ) +
-            cc.debug( "=" ) + cc.j( gasPrice ) + "\n" );
+        if( log.verboseGet() >= log.verboseReversed().trace ) {
+            details.write( strLogPrefix + cc.debug( "Using computed " ) + cc.info( "gasPrice" ) +
+                cc.debug( "=" ) + cc.j( gasPrice ) + "\n" );
+        }
         const estimatedGasMint =
             await tc.computeGas(
-                details,
-                ethersProvider,
+                details, ethersProvider,
                 "ERC1155", contract, "mint", arrArgumentsMint,
                 joAccount, strActionName,
-                gasPrice, 10000000, weiHowMuchMint,
-                null
-            );
-        details.write( strLogPrefix +
-            cc.debug( "Using estimated " ) + cc.info( "gas" ) +
-            cc.debug( "=" ) + cc.notice( estimatedGasMint ) + "\n" );
+                gasPrice, 10000000, weiHowMuchMint, null );
+        if( log.verboseGet() >= log.verboseReversed().trace ) {
+            details.write( strLogPrefix + cc.debug( "Using estimated " ) + cc.info( "gas" ) +
+                cc.debug( "=" ) + cc.notice( estimatedGasMint ) + "\n" );
+        }
         strActionName = "Mint ERC1155";
         const isIgnoreMint = false;
         const strErrorOfDryRun =
             await dryRunCall(
-                details,
-                ethersProvider,
+                details, ethersProvider,
                 "ERC1155", contract, "mint", arrArgumentsMint,
                 joAccount, strActionName, isIgnoreMint,
-                gasPrice, estimatedGasMint, weiHowMuchMint,
-                null
-            );
+                gasPrice, estimatedGasMint, weiHowMuchMint, null );
         if( strErrorOfDryRun )
             throw new Error( strErrorOfDryRun );
 
@@ -7296,13 +7315,10 @@ export async function mintErc1155(
         };
         const joReceipt =
             await payedCall(
-                details,
-                ethersProvider,
+                details, ethersProvider,
                 "ERC1155", contract, "mint", arrArgumentsMint,
                 joAccount, strActionName,
-                gasPrice, estimatedGasMint, weiHowMuchMint,
-                opts
-            );
+                gasPrice, estimatedGasMint, weiHowMuchMint, opts );
         printGasUsageReportFromArray( "MINT ERC1155 ", [ {
             "description": "mintErc1155()/mint",
             "receipt": joReceipt
@@ -7346,10 +7362,8 @@ export async function burnErc20(
     const strLogPrefix = cc.info( "burnErc20() call" ) + " ";
     const details = log.createMemoryStream();
     try {
-        details.write( strLogPrefix +
-            cc.debug( "Burn " ) + cc.info( "ERC20" ) +
-            cc.debug( " token amount " ) + cc.notice( nAmount ) +
-            "\n" );
+        details.write( strLogPrefix + cc.debug( "Burn " ) + cc.info( "ERC20" ) +
+            cc.debug( " token amount " ) + cc.notice( nAmount ) + "\n" );
         if( ! ( ethersProvider && joAccount && strAddressBurnFrom &&
             typeof strAddressBurnFrom == "string" && strAddressBurnFrom.length > 0 &&
             strTokenContractAddress && typeof strTokenContractAddress == "string" &&
@@ -7369,32 +7383,28 @@ export async function burnErc20(
         ];
         const weiHowMuchBurn = undefined;
         const gasPrice = await tc.computeGasPrice( ethersProvider, 200000000000 );
-        details.write( strLogPrefix +
-            cc.debug( "Using computed " ) + cc.info( "gasPrice" ) +
-            cc.debug( "=" ) + cc.j( gasPrice ) + "\n" );
+        if( log.verboseGet() >= log.verboseReversed().trace ) {
+            details.write( strLogPrefix + cc.debug( "Using computed " ) + cc.info( "gasPrice" ) +
+                cc.debug( "=" ) + cc.j( gasPrice ) + "\n" );
+        }
         const estimatedGasBurn =
             await tc.computeGas(
-                details,
-                ethersProvider,
+                details, ethersProvider,
                 "ERC20", contract, "burnFrom", arrArgumentsBurn,
                 joAccount, strActionName,
-                gasPrice, 10000000, weiHowMuchBurn,
-                null
-            );
-        details.write( strLogPrefix +
-            cc.debug( "Using estimated " ) + cc.info( "gas" ) +
-            cc.debug( "=" ) + cc.notice( estimatedGasBurn ) + "\n" );
+                gasPrice, 10000000, weiHowMuchBurn, null );
+        if( log.verboseGet() >= log.verboseReversed().trace ) {
+            details.write( strLogPrefix + cc.debug( "Using estimated " ) + cc.info( "gas" ) +
+                cc.debug( "=" ) + cc.notice( estimatedGasBurn ) + "\n" );
+        }
         strActionName = "Burn ERC20";
         const isIgnoreBurn = false;
         const strErrorOfDryRun =
             await dryRunCall(
-                details,
-                ethersProvider,
+                details, ethersProvider,
                 "ERC20", contract, "burnFrom", arrArgumentsBurn,
                 joAccount, strActionName, isIgnoreBurn,
-                gasPrice, estimatedGasBurn, weiHowMuchBurn,
-                null
-            );
+                gasPrice, estimatedGasBurn, weiHowMuchBurn, null );
         if( strErrorOfDryRun )
             throw new Error( strErrorOfDryRun );
 
@@ -7403,13 +7413,10 @@ export async function burnErc20(
         };
         const joReceipt =
             await payedCall(
-                details,
-                ethersProvider,
+                details, ethersProvider,
                 "ERC20", contract, "burnFrom", arrArgumentsBurn,
                 joAccount, strActionName,
-                gasPrice, estimatedGasBurn, weiHowMuchBurn,
-                opts
-            );
+                gasPrice, estimatedGasBurn, weiHowMuchBurn, opts );
         printGasUsageReportFromArray( "BURN ERC20 ", [ {
             "description": "burnErc20()/burn",
             "receipt": joReceipt
@@ -7452,8 +7459,7 @@ export async function burnErc721(
     const strLogPrefix = cc.info( "burnErc721() call" ) + " ";
     const details = log.createMemoryStream();
     try {
-        details.write( strLogPrefix +
-            cc.debug( "Burn " ) + cc.info( "ERC721" ) +
+        details.write( strLogPrefix + cc.debug( "Burn " ) + cc.info( "ERC721" ) +
             cc.debug( " token ID " ) + cc.notice( idToken ) + "\n" );
         if( ! ( ethersProvider && joAccount &&
             strTokenContractAddress && typeof strTokenContractAddress == "string" &&
@@ -7472,32 +7478,28 @@ export async function burnErc721(
         ];
         const weiHowMuchBurn = undefined;
         const gasPrice = await tc.computeGasPrice( ethersProvider, 200000000000 );
-        details.write( strLogPrefix +
-            cc.debug( "Using computed " ) + cc.info( "gasPrice" ) +
-            cc.debug( "=" ) + cc.j( gasPrice ) + "\n" );
+        if( log.verboseGet() >= log.verboseReversed().trace ) {
+            details.write( strLogPrefix + cc.debug( "Using computed " ) + cc.info( "gasPrice" ) +
+                cc.debug( "=" ) + cc.j( gasPrice ) + "\n" );
+        }
         const estimatedGasBurn =
             await tc.computeGas(
-                details,
-                ethersProvider,
+                details, ethersProvider,
                 "ERC721", contract, "burn", arrArgumentsBurn,
                 joAccount, strActionName,
-                gasPrice, 10000000, weiHowMuchBurn,
-                null
-            );
-        details.write( strLogPrefix +
-            cc.debug( "Using estimated " ) + cc.info( "gas" ) +
-            cc.debug( "=" ) + cc.notice( estimatedGasBurn ) + "\n" );
+                gasPrice, 10000000, weiHowMuchBurn, null );
+        if( log.verboseGet() >= log.verboseReversed().trace ) {
+            details.write( strLogPrefix + cc.debug( "Using estimated " ) + cc.info( "gas" ) +
+                cc.debug( "=" ) + cc.notice( estimatedGasBurn ) + "\n" );
+        }
         strActionName = "Burn ERC721";
         const isIgnoreBurn = false;
         const strErrorOfDryRun =
             await dryRunCall(
-                details,
-                ethersProvider,
+                details, ethersProvider,
                 "ERC721", contract, "burn", arrArgumentsBurn,
                 joAccount, strActionName, isIgnoreBurn,
-                gasPrice, estimatedGasBurn, weiHowMuchBurn,
-                null
-            );
+                gasPrice, estimatedGasBurn, weiHowMuchBurn, null );
         if( strErrorOfDryRun )
             throw new Error( strErrorOfDryRun );
 
@@ -7506,13 +7508,10 @@ export async function burnErc721(
         };
         const joReceipt =
             await payedCall(
-                details,
-                ethersProvider,
+                details, ethersProvider,
                 "ERC721", contract, "burn", arrArgumentsBurn,
                 joAccount, strActionName,
-                gasPrice, estimatedGasBurn, weiHowMuchBurn,
-                opts
-            );
+                gasPrice, estimatedGasBurn, weiHowMuchBurn, opts );
         printGasUsageReportFromArray( "BURN ERC721 ", [ {
             "description": "burnErc721()/burn",
             "receipt": joReceipt
@@ -7581,50 +7580,40 @@ export async function burnErc1155(
         ];
         const weiHowMuchBurn = undefined;
         const gasPrice = await tc.computeGasPrice( ethersProvider, 200000000000 );
-        details.write( strLogPrefix +
-            cc.debug( "Using computed " ) + cc.info( "gasPrice" ) +
-            cc.debug( "=" ) + cc.j( gasPrice ) +
-            "\n" );
+        if( log.verboseGet() >= log.verboseReversed().trace ) {
+            details.write( strLogPrefix + cc.debug( "Using computed " ) + cc.info( "gasPrice" ) +
+                cc.debug( "=" ) + cc.j( gasPrice ) + "\n" );
+        }
         const estimatedGasBurn =
             await tc.computeGas(
-                details,
-                ethersProvider,
+                details, ethersProvider,
                 "ERC1155", contract, "burn", arrArgumentsBurn,
                 joAccount, strActionName,
-                gasPrice, 10000000, weiHowMuchBurn,
-                null
-            );
-        details.write( strLogPrefix +
-            cc.debug( "Using estimated " ) + cc.info( "gas" ) +
-            cc.debug( "=" ) + cc.notice( estimatedGasBurn ) +
-            "\n" );
+                gasPrice, 10000000, weiHowMuchBurn, null );
+        if( log.verboseGet() >= log.verboseReversed().trace ) {
+            details.write( strLogPrefix + cc.debug( "Using estimated " ) + cc.info( "gas" ) +
+                cc.debug( "=" ) + cc.notice( estimatedGasBurn ) + "\n" );
+        }
         strActionName = "Burn ERC1155";
         const isIgnoreBurn = false;
         const strErrorOfDryRun =
             await dryRunCall(
-                details,
-                ethersProvider,
+                details, ethersProvider,
                 "ERC1155", contract, "burn", arrArgumentsBurn,
                 joAccount, strActionName, isIgnoreBurn,
-                gasPrice, estimatedGasBurn, weiHowMuchBurn,
-                null
-            );
+                gasPrice, estimatedGasBurn, weiHowMuchBurn, null );
         if( strErrorOfDryRun )
             throw new Error( strErrorOfDryRun );
 
         const opts = {
-
             ToSchain: ( chainNameDst !== "Mainnet" ) ? true : false
         };
         const joReceipt =
             await payedCall(
-                details,
-                ethersProvider,
+                details, ethersProvider,
                 "ERC1155", contract, "burn", arrArgumentsBurn,
                 joAccount, strActionName,
-                gasPrice, estimatedGasBurn, weiHowMuchBurn,
-                opts
-            );
+                gasPrice, estimatedGasBurn, weiHowMuchBurn, opts );
         printGasUsageReportFromArray( "BURN ERC1155 ", [ {
             "description": "burnErc1155()/burn",
             "receipt": joReceipt
