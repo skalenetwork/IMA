@@ -35,7 +35,7 @@ class SendERC1155BatchToMainnet(TestCase):
         super().__init__('Send ERC1155 Batch from schain to mainnet', config)
 
     def _prepare(self):
-        amountRecharge = 200 * 10 ** 18 # 2 * 10 ** 18
+        amountRecharge = 20 * 10 ** 18 # 2 * 10 ** 18
         self.blockchain.recharge_user_wallet(self.config.mainnet_key, self.config.schain_name, amountRecharge)
         sleep( 10 )
         # deploy token

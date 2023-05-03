@@ -282,7 +282,6 @@ class Agent:
         destination_address = self.blockchain.key_to_address(from_key)
         erc20 = token_contract_on_mainnet
         balance = erc20.functions.balanceOf(destination_address).call()
-        # balance = erc20.functions.balanceOf(destination_address)
 
         tx_count = self.blockchain.get_transactions_count_on_mainnet(destination_address)
 
@@ -300,7 +299,6 @@ class Agent:
                 'ignore-dry-run': None
             }
         )
-        # sleep( 30 )
 
         start = time()
         while (time() < start + timeout if timeout > 0 else True) and \

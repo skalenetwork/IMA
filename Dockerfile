@@ -45,18 +45,6 @@ RUN node-gyp --version
 WORKDIR /ima/npms/scrypt
 RUN ./get_scrypt_npm.sh
 
-WORKDIR /ima/proxy
-RUN yarn install
-WORKDIR /ima/npms/skale-cool-socket
-RUN yarn install
-WORKDIR /ima/npms/skale-owasp
-RUN yarn install
-WORKDIR /ima/npms/skale-observer
-RUN yarn install
-WORKDIR /ima/npms/skale-ima
-RUN yarn install
-WORKDIR /ima/agent
-RUN yarn install
 WORKDIR /ima
 RUN yarn install
 

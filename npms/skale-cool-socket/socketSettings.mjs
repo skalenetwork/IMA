@@ -84,22 +84,11 @@ const settings = {
                 "stun:stun.voxgratia.org"
             ] ,
             peerConfiguration: {
-                iceServers: [
-                    // { urls: "stun:192.168.88.220:3478",
-                    //   username: "webrtc", credential: "qwerty" }
-                    // { urls: "turn:192.168.88.220:3478",
-                    //   username: "webrtc", credential: "qwerty" }
-                    {
-                        urls: "stun:127.0.0.1:3478",
-                        username: "webrtc",
-                        credential: "qwerty"
-                    }
-                    // { urls: "turn:127.0.0.1:3478",
-                    //   username: "webrtc", credential: "qwerty" }
-                ]
-                // , iceTransportPolicy: "all"
-                // // default value is 0 (meaning no candidate pre-fetching will occur).
-                // , iceCandidatePoolSize: "0"
+                iceServers: [ {
+                    urls: "stun:some.ip.address.here:3478",
+                    username: "some.user.name",
+                    credential: "some.password"
+                } ]
             },
             peerAdditionalOptions: {
                 optional: [ { DtlsSrtpKeyAgreement: true } ]

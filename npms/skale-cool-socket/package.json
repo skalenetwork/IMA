@@ -8,7 +8,6 @@
     "scripts": {
         "lint-check": "eslint *.*js",
         "lint-fix": "eslint ./*.*js --fix",
-        "test": "echo \"Error: no test specified\" && exit 1",
         "check-outdated": "yarn outdated",
         "upgrade-to-latest": "yarn upgrade --latest"
     },
