@@ -16,14 +16,14 @@ In the most of use cases only **Ethereum(Main Net)** and source **S-Chain** are 
 
 - Run message loop.
 - Perform **S-Chain** registration and initialization.
-- Confiure and change gas reimbursement.
+- Configure and change gas reimbursement.
 - Do **ETH**, **ERC20**, **ERC721**, **ERC1155**, batch **ERC1155** payments between chains.
 - View amount of **ETH** can be received on Main Net.
 - Mint **ERC20**, **ERC721**, **ERC1155** tokens.
 - Show **ETH**, **ERC20**, **ERC721**, **ERC1155** balances.
 - Browse **SKALE network**.
 - Download source **S-Chain** information.
-- Discover set of **S-Chains** connected to specifed **S-Chains**.
+- Discover set of **S-Chains** connected to specified **S-Chains**.
 - Discover chain ID of specified chain with `--discover-cid`.
 - Run monitoring service and expose its JSON RPC, the `--monitoring-port=number` option turns on monitoring web socket RPC server on specified port. By default monitoring server is disabled.
 
@@ -47,7 +47,7 @@ Here is list of options running operations described above:
 --loop..........................Run M<->S and, optionally, S->S transfer loop.
 --browse-s-chain................Download own S-Chain network information.
 --browse-skale-network..........Download entire SKALE network description.
---browse-connected-schains......Download S-Chains conected to S-Chain with name specified in id-s-chain command line parameter.
+--browse-connected-schains......Download S-Chains connected to S-Chain with name specified in id-s-chain command line parameter.
 --mint-erc20....................Mint ERC20 tokens.
 --mint-erc721...................Mint ERC721 tokens.
 --mint-erc1155..................Mint ERC1155 tokens.
@@ -66,13 +66,13 @@ One or more of the following URL, chain name and chain ID parameters are needed 
 --url-t-chain=URL...............S<->S Target S-chain URL. Value is automatically loaded from the URL_W3_S_CHAIN_TARGET environment variable if 
 --id-main-net=number............Main-net Ethereum network name.. Value is automatically loaded from the CHAIN_NAME_ETHEREUM environment variable if not specified. Default value is "Mainnet".
 --id-s-chain=number.............S-chain Ethereum network name.. Value is automatically loaded from the CHAIN_NAME_SCHAIN environment variable if not specified. Default value is "id-S-chain".
---id-t-chain=number.............S<->S Target S-chain Ethereum network name.. Value is automatically loaded from the CHAIN_NAME_SCHAIN_TARET environment variable if not specified. Default value is "id-T-chain".
+--id-t-chain=number.............S<->S Target S-chain Ethereum network name.. Value is automatically loaded from the CHAIN_NAME_SCHAIN_TARGET environment variable if not specified. Default value is "id-T-chain".
 --cid-main-net=number...........Main-net Ethereum chain ID. Value is automatically loaded from the CID_ETHEREUM environment variable if not specified. Default value is -4.
 --cid-s-chain=number............S-chain Ethereum chain ID. Value is automatically loaded from the CID_SCHAIN environment variable if not specified. Default value is -4.
 --cid-t-chain=number............S<->S Target S-chain Ethereum chain ID. Value is automatically loaded from the CID_SCHAIN_TARGET environment variable if not specified. Default value is -4.
 ```
 
-For most of operatons, **IMA** needs ABIs of **Skale Manager**, **Ethereum(Main Net)**, **S-Chain(s)**:
+For most of operations, **IMA** needs ABIs of **Skale Manager**, **Ethereum(Main Net)**, **S-Chain(s)**:
 
 ```
 --abi-skale-manager=path........Path to JSON file containing Skale Manager ABI. Optional parameter. It's needed for S-Chain to S-Chain transfers.
@@ -81,7 +81,7 @@ For most of operatons, **IMA** needs ABIs of **Skale Manager**, **Ethereum(Main 
 --abi-t-chain=path..............Path to JSON file containing IMA ABI for S<->S Target S-chain.
 ```
 
-Token transfer commands require token APIs on approproate chains.
+Token transfer commands require token APIs on appropriate chains.
 
 **ERC20** options:
 
@@ -120,7 +120,7 @@ Token transfer commands require token APIs on approproate chains.
 - Using explicitly specified private key
 - Using wallet address, for read only operations only
 
-The folllowing parameters needed to use **Transaction Manager**:
+The following parameters needed to use **Transaction Manager**:
 
 ```
 --tm-url-main-net=URL...........Transaction Manager server URL for Main-net. Value is automatically loaded from the TRANSACTION_MANAGER_URL_ETHEREUM environment variable if not specified. Example: redis://@127.0.0.1:6379
@@ -131,7 +131,7 @@ The folllowing parameters needed to use **Transaction Manager**:
 --tm-priority-t-chain=URL.......Transaction Manager priority for S<->S Target S-chain. Value is automatically loaded from the TRANSACTION_MANAGER_PRIORITY_S_CHAIN_TARGET environment variable if not specified. Default is 5.
 ```
 
-The folllowing parameters needed to use **SGX wallet**:
+The following parameters needed to use **SGX wallet**:
 
 ```
 --sgx-url-main-net=URL..........SGX server URL for Main-net. Value is automatically loaded from the SGX_URL_ETHEREUM environment variable if not specified.
@@ -166,10 +166,10 @@ For read only operations, only wallet address can be specified:
 
 Please notice, **IMA** prefer to use transaction manager to sign blockchain transactions if `--tm-url-main-net`/`--tm-url-s-chain` command line values or `TRANSACTION_MANAGER_URL_ETHEREUM`/`TRANSACTION_MANAGER_URL_S_CHAIN` shell variables were specified. Next preferred option is **SGX wallet** which is used if `--sgx-url-main-net`/`--sgx-url-s-chain` command line values or `SGX_URL_ETHEREUM`/`SGX_URL_S_CHAIN` shell variables were specified. SGX signing also needs key name, key and certificate files. Finally, **IMA** attempts to use explicitly provided private key to sign blockchain transactions if `--key-main-net`/`--key-s-chain` command line values or `PRIVATE_KEY_FOR_ETHEREUM`/`PRIVATE_KEY_FOR_SCHAIN` shell variables were specified. 
 
-**ETH** transfers operations require amout of **ETH** to be specied with one of the following options:
+**ETH** transfers operations require amount of **ETH** to be specified with one of the following options:
 
 ```
---value=numberunitName..........Amount of unitName to transfer, where unitName is well known Ethereum unit name like ether or wei.
+--value=numberUnitName..........Amount of unitName to transfer, where unitName is well known Ethereum unit name like ether or wei.
 --wei=number....................Amount of wei to transfer.
 --babbage=number................Amount of babbage(wei*1000) to transfer.
 --lovelace=number...............Amount of lovelace(wei*1000*1000) to transfer.
@@ -190,7 +190,7 @@ Token transfer operations require token amounts and/or token IDs:
 --wait-next-block...............Wait for next block between transactions during complex operations.
 ```
 
-**Gas reumbursement** can be configure with the following options:
+**Gas reimbursement** can be configure with the following options:
 
 ```
 --reimbursement-chain=name......Specifies chain name.
@@ -200,7 +200,7 @@ Token transfer operations require token amounts and/or token IDs:
 --reimbursement-range=number....Sets minimal time interval between transfers from S-Chain to Main Net.
 ```
 
-**Gas reumbursement** can be **Oracle**-based if the following options are specified:
+**Gas reimbursement** can be **Oracle**-based if the following options are specified:
 
 --enable-oracle.................Enable call to Oracle to compute gas price for gas reimbursement. Default mode.
 --disable-oracle................Disable call to Oracle to compute gas price for gas reimbursement.
@@ -220,7 +220,7 @@ Token transfer operations require token amounts and/or token IDs:
 --net-rediscover=number.........SKALE NETWORK re-discovery interval(in seconds). Default is 3600 seconds or 1 hour, specify 0 to disable SKALE NETWORK re-discovery.
 ```
 
-**IMA** loop can optionally use dry run, group **IMA** messages and supports varuous customizations:
+**IMA** loop can optionally use dry run, group **IMA** messages and supports various customizations:
 
 ```
 --no-wait-s-chain...............Do not wait until S-Chain is started.
@@ -269,6 +269,14 @@ Token transfer operations require token amounts and/or token IDs:
 --bs-progressive-disable........Disables progressive block scan to search past events.
 ```
 
+**IMA** pending work analysis subsystem allows to detect busy state of previous **IMA Agent** running long work outside its time frame:
+
+```
+--pwa...........................Enable pending work analysis to avoid transaction conflicts. Default mode.
+--no-pwa........................Disable pending work analysis. Not recommended for slow and overloaded blockchains.
+--pwa-timeout=seconds...........Node state timeout during pending work analysis. Default is 60 seconds.
+```
+
 Like any command line application, **IMA** produces various command line output and supports logging. Logging can be customized with the following options:
 
 ```
@@ -283,9 +291,11 @@ Like any command line application, **IMA** produces various command line output 
 --no-gathered...................Do not print details of gathering data from command line arguments.
 --expose-security-info..........Expose security-related values in log output. This mode is needed for debugging purposes only.
 --no-expose-security-info.......Do not expose security-related values in log output. Default mode.
+--expose-pwa....................Expose IMA agent pending work analysis information
+--no-expose-pwa.................Do not expose IMA agent pending work analysis information. Default mode.
 ```
 
-Command line output and loggging can be plain or ANSI-colorized:
+Command line output and logging can be plain or ANSI-colorized:
 
 ```
 --colors........................Use ANSI-colorized logging.

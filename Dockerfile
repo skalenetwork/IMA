@@ -7,11 +7,9 @@ RUN apt-get install --no-install-recommends -y build-essential=12 zlib1g-dev=1 l
 
 RUN curl -sL https://deb.nodesource.com/setup_16.x | bash
 RUN apt-get install --no-install-recommends -y nodejs=16
-RUN node --version
-RUN npm --version
 RUN npm install npm --global
-RUN npm --version
 RUN npm install --global yarn
+RUN npm --version
 RUN yarn --version
 
 RUN curl -O https://www.python.org/ftp/python/3.7.3/Python-3.7.3.tar.xz
