@@ -349,16 +349,19 @@ export async function loadSChain( addressFrom, idxSChain, hash, cntSChains, opts
     if( ! opts.imaState )
         throw new Error( "Cannot load S-Chain description in observer, no imaState is provided" );
     if( opts && opts.details ) {
-        opts.details.write(
-            cc.debug( "Loading S-Chain " ) + cc.notice( "#" ) + cc.info( idxSChain + 1 ) +
-            cc.debug( " of " ) + cc.info( cntSChains ) + cc.debug( "..." ) +
-            "\n" );
+        if( log.verboseGet() >= log.verboseReversed().trace ) {
+            opts.details.write( cc.debug( "Loading S-Chain " ) + cc.notice( "#" ) +
+                cc.info( idxSChain + 1 ) + cc.debug( " of " ) + cc.info( cntSChains ) +
+                cc.debug( "..." ) + "\n" );
+        }
     }
     hash = hash ||
         await opts.imaState.joSChainsInternal.callStatic.schainsAtSystem(
             idxSChain, { from: addressFrom } );
-    if( opts && opts.details )
-        opts.details.write( cc.debug( "    Hash " ) + cc.attention( hash ) + "\n" );
+    if( opts && opts.details ) {
+        if( log.verboseGet() >= log.verboseReversed().trace )
+            opts.details.write( cc.debug( "    Hash " ) + cc.attention( hash ) + "\n" );
+    }
     if( opts && opts.bStopNeeded )
         return null;
     let joData =
@@ -371,8 +374,10 @@ export async function loadSChain( addressFrom, idxSChain, hash, cntSChains, opts
         return null;
     await loadSChainParts( joSChain, addressFrom, opts );
     if( opts && opts.details ) {
-        opts.details.write( cc.debug( "    Desc " ) + cc.j( joSChain.data ) + "\n" );
-        opts.details.write( cc.success( "Done" ) + "\n" );
+        if( log.verboseGet() >= log.verboseReversed().trace ) {
+            opts.details.write( cc.debug( "    Desc " ) + cc.j( joSChain.data ) + "\n" );
+            opts.details.write( cc.success( "Done" ) + "\n" );
+        }
     }
     joSChain.isConnected = false;
     return joSChain;
@@ -384,9 +389,10 @@ export async function loadSChains( addressFrom, opts ) {
         throw new Error( "Cannot load S-Chains in observer, no imaState is provided" );
     const cntSChains = await getSChainsCount( addressFrom, opts );
     if( opts && opts.details ) {
-        opts.details.write(
-            cc.debug( "Have " ) + cc.info( cntSChains ) + cc.debug( " S-Chain(s) to load..." ) +
-            "\n" );
+        if( log.verboseGet() >= log.verboseReversed().trace ) {
+            opts.details.write( cc.debug( "Have " ) + cc.info( cntSChains ) +
+                cc.debug( " S-Chain(s) to load..." ) + "\n" );
+        }
     }
     const arrSChains = [];
     for( let idxSChain = 0; idxSChain < cntSChains; ++ idxSChain ) {
@@ -398,10 +404,10 @@ export async function loadSChains( addressFrom, opts ) {
         arrSChains.push( joSChain );
     }
     if( opts && opts.details ) {
-        opts.details.write(
-            cc.success( "All " ) + cc.info( cntSChains ) +
-            cc.debug( " S-Chain(s) loaded:" ) + cc.j( arrSChains ) +
-            "\n" );
+        if( log.verboseGet() >= log.verboseReversed().trace ) {
+            opts.details.write( cc.success( "All " ) + cc.info( cntSChains ) +
+                cc.debug( " S-Chain(s) loaded:" ) + cc.j( arrSChains ) + "\n" );
+        }
     }
     return arrSChains;
 }
@@ -409,17 +415,19 @@ export async function loadSChains( addressFrom, opts ) {
 export async function loadCachedSChainsSimplified( addressFrom, opts ) {
     if( ! opts.imaState )
         throw new Error( "Cannot load S-Chains in observer, no imaState is provided" );
-    if( opts && opts.details )
-        opts.details.write( cc.debug( "Will request all S-Chain(s) hashes..." ) + "\n" );
+    if( opts && opts.details ) {
+        if( log.verboseGet() >= log.verboseReversed().trace )
+            opts.details.write( cc.debug( "Will request all S-Chain(s) hashes..." ) + "\n" );
+    }
     const arrSChainHashes =
         await opts.imaState.joSChainsInternal.callStatic.getSchains(
             { from: addressFrom } );
     const cntSChains = arrSChainHashes.length;
     if( opts && opts.details ) {
-        opts.details.write(
-            cc.debug( "Have all " ) + cc.info( cntSChains ) + cc.debug( " S-Chain(s) hashes: " ) +
-            cc.j( arrSChainHashes ) +
-            "\n" );
+        if( log.verboseGet() >= log.verboseReversed().trace ) {
+            opts.details.write( cc.debug( "Have all " ) + cc.info( cntSChains ) +
+                cc.debug( " S-Chain(s) hashes: " ) + cc.j( arrSChainHashes ) + "\n" );
+        }
     }
     const arrSChains = [];
     for( let idxSChain = 0; idxSChain < cntSChains; ++ idxSChain ) {
@@ -430,11 +438,12 @@ export async function loadCachedSChainsSimplified( addressFrom, opts ) {
             await opts.imaState.joSChainsInternal.callStatic.getSchainName(
                 strSChainHash, { from: addressFrom } );
         if( opts && opts.details ) {
-            opts.details.write(
-                cc.debug( "S-Chain " ) + cc.notice( idxSChain ) + cc.debug( " hash " ) +
-                cc.notice( strSChainHash ) + cc.debug( " corresponds to S-Chain name " ) +
-                cc.notice( strSChainName ) +
-                "\n" );
+            if( log.verboseGet() >= log.verboseReversed().trace ) {
+                opts.details.write( cc.debug( "S-Chain " ) + cc.notice( idxSChain ) +
+                    cc.debug( " hash " ) + cc.notice( strSChainHash ) +
+                    cc.debug( " corresponds to S-Chain name " ) + cc.notice( strSChainName ) +
+                    "\n" );
+            }
         }
         if( opts && opts.bStopNeeded )
             break;
@@ -456,17 +465,19 @@ export async function loadSChainsConnectedOnly(
 ) {
     if( ! opts.imaState )
         throw new Error( "Cannot load S-Chains in observer, no imaState is provided" );
-    if( opts && opts.details )
-        opts.details.write( cc.debug( "Will request all S-Chain(s) hashes..." ) + "\n" );
+    if( opts && opts.details ) {
+        if( log.verboseGet() >= log.verboseReversed().trace )
+            opts.details.write( cc.debug( "Will request all S-Chain(s) hashes..." ) + "\n" );
+    }
     const arrSChainHashes =
         await opts.imaState.joSChainsInternal.callStatic.getSchains(
             { from: addressFrom } );
     const cntSChains = arrSChainHashes.length;
     if( opts && opts.details ) {
-        opts.details.write(
-            cc.debug( "Have all " ) + cc.info( cntSChains ) + cc.debug( " S-Chain(s) hashes: " ) +
-            cc.j( arrSChainHashes ) +
-            "\n" );
+        if( log.verboseGet() >= log.verboseReversed().trace ) {
+            opts.details.write( cc.debug( "Have all " ) + cc.info( cntSChains ) +
+                cc.debug( " S-Chain(s) hashes: " ) + cc.j( arrSChainHashes ) + "\n" );
+        }
     }
     const joMessageProxySChain =
         new owaspUtils.ethersMod.ethers.Contract(
@@ -484,38 +495,41 @@ export async function loadSChainsConnectedOnly(
                 await opts.imaState.joSChainsInternal.callStatic.getSchainName(
                     strSChainHash, { from: addressFrom } );
             if( opts && opts.details ) {
-                opts.details.write(
-                    cc.debug( "S-Chain " ) + cc.notice( idxSChain ) + cc.debug( " hash " ) +
-                    cc.notice( strSChainHash ) + cc.debug( " corresponds to S-Chain name " ) +
-                    cc.notice( strSChainName ) +
-                    "\n" );
+                if( log.verboseGet() >= log.verboseReversed().trace ) {
+                    opts.details.write( cc.debug( "S-Chain " ) + cc.notice( idxSChain ) +
+                        cc.debug( " hash " ) + cc.notice( strSChainHash ) +
+                        cc.debug( " corresponds to S-Chain name " ) + cc.notice( strSChainName ) +
+                        "\n" );
+                }
             }
             if( opts && opts.bStopNeeded )
                 break;
 
             if( strChainNameConnectedTo == strSChainName ) {
                 if( opts && opts.details ) {
-                    opts.details.write(
-                        cc.debug( "Skip this S-Chain " ) + cc.info( strSChainName ) +
-                        cc.debug( " connected status check" ) +
-                        "\n" );
+                    if( log.verboseGet() >= log.verboseReversed().trace ) {
+                        opts.details.write( cc.debug( "Skip this S-Chain " ) +
+                            cc.info( strSChainName ) + cc.debug( " connected status check" ) +
+                            "\n" );
+                    }
                 }
                 continue;
             }
             if( opts && opts.details ) {
-                opts.details.write(
-                    cc.debug( "Querying connected status between S-Chain " ) +
-                    cc.info( strSChainName ) + cc.debug( " and S-Chain " ) +
-                    cc.info( strChainNameConnectedTo ) + cc.debug( "..." ) + "\n" );
+                if( log.verboseGet() >= log.verboseReversed().trace ) {
+                    opts.details.write( cc.debug( "Querying connected status between S-Chain " ) +
+                        cc.info( strSChainName ) + cc.debug( " and S-Chain " ) +
+                        cc.info( strChainNameConnectedTo ) + cc.debug( "..." ) + "\n" );
+                }
             }
             const isConnected =
                 await joMessageProxySChain.callStatic.isConnectedChain(
                     strSChainName, { from: addressFrom } );
             if( opts && opts.details ) {
-                opts.details.write(
-                    cc.debug( "Got S-Chain " ) + cc.info( strSChainName ) +
-                    cc.debug( " connected status: " ) + cc.yn( isConnected ) +
-                    "\n" );
+                if( log.verboseGet() >= log.verboseReversed().trace ) {
+                    opts.details.write( cc.debug( "Got S-Chain " ) + cc.info( strSChainName ) +
+                        cc.debug( " connected status: " ) + cc.yn( isConnected ) + "\n" );
+                }
             }
             if( ! isConnected )
                 continue;
@@ -528,11 +542,11 @@ export async function loadSChainsConnectedOnly(
             arrSChains.push( joSChain );
         } catch ( err ) {
             if( opts && opts.details ) {
-                opts.details.write(
-                    cc.error( "Got error: " ) +
-                    cc.warning( owaspUtils.extractErrorMessage( err ) ) +
-                    cc.error( ", stack is: " ) + "\n" + cc.stack( err.stack ) +
-                    "\n" );
+                if( log.verboseGet() >= log.verboseReversed().error ) {
+                    opts.details.write( cc.error( "Got error: " ) +
+                        cc.warning( owaspUtils.extractErrorMessage( err ) ) +
+                        cc.error( ", stack is: " ) + "\n" + cc.stack( err.stack ) + "\n" );
+                }
             }
         }
     }
@@ -556,12 +570,12 @@ export async function checkConnectedSChains(
         try {
             const url = pickRandomSChainUrl( joSChain );
             if( opts && opts.details ) {
-                opts.details.write(
-                    cc.debug( "Querying via URL " ) + cc.u( url ) +
-                    cc.debug( " to S-Chain " ) +
-                    cc.info( joSChain.data.name ) +
-                    cc.debug( " whether it's connected to S-Chain " ) +
-                    cc.info( strChainNameConnectedTo ) + cc.debug( "..." ) + "\n" );
+                if( log.verboseGet() >= log.verboseReversed().trace ) {
+                    opts.details.write( cc.debug( "Querying via URL " ) + cc.u( url ) +
+                        cc.debug( " to S-Chain " ) + cc.info( joSChain.data.name ) +
+                        cc.debug( " whether it's connected to S-Chain " ) +
+                        cc.info( strChainNameConnectedTo ) + cc.debug( "..." ) + "\n" );
+                }
             }
             const ethersProvider = owaspUtils.getEthersProviderFromURL( url );
             const joMessageProxySChain =
@@ -574,16 +588,16 @@ export async function checkConnectedSChains(
                 await joMessageProxySChain.callStatic.isConnectedChain(
                     strChainNameConnectedTo, { from: addressFrom } );
             if( opts && opts.details ) {
-                opts.details.write(
-                    cc.debug( "Got " ) + cc.yn( joSChain.isConnected ) + "\n" );
+                if( log.verboseGet() >= log.verboseReversed().trace )
+                    opts.details.write( cc.debug( "Got " ) + cc.yn( joSChain.isConnected ) + "\n" );
             }
         } catch ( err ) {
             if( opts && opts.details ) {
-                opts.details.write(
-                    cc.error( "Got error: " ) +
-                    cc.warning( owaspUtils.extractErrorMessage( err ) ) +
-                    cc.error( ", stack is: " ) + "\n" + cc.stack( err.stack ) +
-                    "\n" );
+                if( log.verboseGet() >= log.verboseReversed().error ) {
+                    opts.details.write( cc.error( "Got error: " ) +
+                        cc.warning( owaspUtils.extractErrorMessage( err ) ) +
+                        cc.error( ", stack is: " ) + "\n" + cc.stack( err.stack ) + "\n" );
+                }
             }
         }
     }
@@ -620,29 +634,29 @@ export function mergeSChainsArrayFromTo( arrSrc, arrDst, arrNew, arrOld, opts ) 
     let i, j, cnt;
     cnt = arrSrc.length;
     if( opts && opts.details ) {
-        opts.details.write(
-            cc.debug( "Before merging, have " ) + cc.info( cnt ) +
-            cc.debug( " S-Chain(s) to review" ) +
-            "\n" );
+        if( log.verboseGet() >= log.verboseReversed().trace ) {
+            opts.details.write( cc.debug( "Before merging, have " ) + cc.info( cnt ) +
+                cc.debug( " S-Chain(s) to review" ) + "\n" );
+        }
     }
     for( i = 0; i < cnt; ++ i ) {
         const joSChain = arrSrc[i];
         j = findSChainIndexInArrayByName( arrDst, joSChain.data.name );
         if( j < 0 ) {
             if( opts && opts.details ) {
-                opts.details.write(
-                    cc.debug( "Found new " ) + cc.notice( "#" ) + cc.info( i + 1 ) +
-                    cc.debug( " S-Chain " ) + cc.j( joSChain ) +
-                    "\n" );
+                if( log.verboseGet() >= log.verboseReversed().trace ) {
+                    opts.details.write( cc.debug( "Found new " ) + cc.notice( "#" ) +
+                        cc.info( i + 1 ) + cc.debug( " S-Chain " ) + cc.j( joSChain ) + "\n" );
+                }
             }
             arrNew.push( joSChain );
         }
     }
     if( opts && opts.details ) {
-        opts.details.write(
-            cc.debug( "Summary, found new " ) + cc.info( arrNew.length ) +
-            cc.debug( " S-Chain(s)" ) +
-            "\n" );
+        if( log.verboseGet() >= log.verboseReversed().trace ) {
+            opts.details.write( cc.debug( "Summary, found new " ) + cc.info( arrNew.length ) +
+                cc.debug( " S-Chain(s)" ) + "\n" );
+        }
     }
     cnt = arrDst.length;
     for( i = 0; i < cnt; ++ i ) {
@@ -650,54 +664,58 @@ export function mergeSChainsArrayFromTo( arrSrc, arrDst, arrNew, arrOld, opts ) 
         j = findSChainIndexInArrayByName( arrSrc, joSChain.data.name );
         if( j < 0 ) {
             if( opts && opts.details ) {
-                opts.details.write(
-                    cc.debug( "Found old S-Chain " ) + cc.notice( "#" ) +
-                    cc.info( i + 1 ) + cc.debug( " " ) + cc.j( joSChain ) +
-                    "\n" );
+                if( log.verboseGet() >= log.verboseReversed().trace ) {
+                    opts.details.write( cc.debug( "Found old S-Chain " ) + cc.notice( "#" ) +
+                        cc.info( i + 1 ) + cc.debug( " " ) + cc.j( joSChain ) + "\n" );
+                }
             }
             arrOld.push( joSChain );
         }
     }
     if( opts && opts.details ) {
-        opts.details.write(
-            cc.debug( "Summary, found old " ) + cc.info( arrOld.length ) +
-            cc.debug( " S-Chain(s)" ) +
-            "\n" );
+        if( log.verboseGet() >= log.verboseReversed().trace ) {
+            opts.details.write( cc.debug( "Summary, found old " ) + cc.info( arrOld.length ) +
+                cc.debug( " S-Chain(s)" ) + "\n" );
+        }
     }
     if( arrNew.length > 0 ) {
         if( opts && opts.details ) {
-            opts.details.write(
-                cc.debug( "Merging new " ) + cc.info( arrNew.length ) +
-                cc.debug( " S-Chain(s)" ) +
-                "\n" );
+            if( log.verboseGet() >= log.verboseReversed().trace ) {
+                opts.details.write( cc.debug( "Merging new " ) + cc.info( arrNew.length ) +
+                    cc.debug( " S-Chain(s)" ) + "\n" );
+            }
         }
         for( i = 0; i < arrNew.length; ++ i ) {
             const joSChain = arrNew[i];
             arrDst.push( joSChain );
         }
-        if( opts && opts.details )
-            opts.details.write( cc.success( "Done" ) + "\n" );
+        if( opts && opts.details ) {
+            if( log.verboseGet() >= log.verboseReversed().trace )
+                opts.details.write( cc.success( "Done" ) + "\n" );
+        }
     }
     if( arrOld.length > 0 ) {
         if( opts && opts.details ) {
-            opts.details.write(
-                cc.debug( "Removing old " ) + cc.info( arrOld.length ) +
-                cc.debug( " S-Chain(s)" ) +
-                "\n" );
+            if( log.verboseGet() >= log.verboseReversed().trace ) {
+                opts.details.write( cc.debug( "Removing old " ) + cc.info( arrOld.length ) +
+                    cc.debug( " S-Chain(s)" ) + "\n" );
+            }
         }
         for( i = 0; i < arrOld.length; ++ i ) {
             const joSChain = arrOld[i];
             j = findSChainIndexInArrayByName( arrDst, joSChain.data.name );
             arrDst.splice( j, 1 );
         }
-        if( opts && opts.details )
-            opts.details.write( cc.success( "Done" ) + "\n" );
+        if( opts && opts.details ) {
+            if( log.verboseGet() >= log.verboseReversed().trace )
+                opts.details.write( cc.success( "Done" ) + "\n" );
+        }
     }
     if( opts && opts.details ) {
-        opts.details.write(
-            cc.success( "Finally, have " ) + cc.info( arrDst.length ) +
-            cc.success( " S-Chain(s)" ) +
-            "\n" );
+        if( log.verboseGet() >= log.verboseReversed().trace ) {
+            opts.details.write( cc.success( "Finally, have " ) + cc.info( arrDst.length ) +
+                cc.success( " S-Chain(s)" ) + "\n" );
+        }
     }
 }
 
@@ -725,10 +743,11 @@ export async function cacheSChains( strChainNameConnectedTo, addressFrom, opts )
         } else
             gArrSChainsCached = arrSChains;
         if( opts && opts.details ) {
-            opts.details.write(
-                cc.debug( "Connected " ) + cc.attention( "S-Chains" ) +
-                cc.debug( " cache was updated in this thread: " ) +
-                cc.j( gArrSChainsCached ) + "\n" );
+            if( log.verboseGet() >= log.verboseReversed().trace ) {
+                opts.details.write( cc.debug( "Connected " ) + cc.attention( "S-Chains" ) +
+                    cc.debug( " cache was updated in this thread: " ) +
+                    cc.j( gArrSChainsCached ) + "\n" );
+            }
         }
         if( opts.fnCacheChanged )
             opts.fnCacheChanged( gArrSChainsCached, null ); // null - no error
@@ -739,9 +758,11 @@ export async function cacheSChains( strChainNameConnectedTo, addressFrom, opts )
         if( opts.fnCacheChanged )
             opts.fnCacheChanged( gArrSChainsCached, strError );
         if( opts && opts.details ) {
-            opts.details.write(
-                cc.fatal( "ERROR:" ) + cc.error( " Failed to cache: " ) + cc.error( err ) );
-            opts.details.write( cc.stack( err.stack ) );
+            if( log.verboseGet() >= log.verboseReversed().error ) {
+                opts.details.write( cc.fatal( "ERROR:" ) +
+                    cc.error( " Failed to cache: " ) + cc.error( err ) );
+                opts.details.write( cc.stack( err.stack ) );
+            }
         }
     }
     return strError; // null on success
@@ -790,10 +811,11 @@ export async function ensureHaveWorker( opts ) {
             setLastCachedSChains( joMessage.message );
             gFlagHaveParallelResult = true;
             if( opts && opts.details ) {
-                opts.details.write(
-                    cc.debug( "Connected " ) + cc.attention( "S-Chains" ) +
-                    cc.debug( " cache was updated using data arrived from SNB worker: " ) +
-                    cc.j( gArrSChainsCached ) + "\n" );
+                if( log.verboseGet() >= log.verboseReversed().trace ) {
+                    opts.details.write( cc.debug( "Connected " ) + cc.attention( "S-Chains" ) +
+                        cc.debug( " cache was updated using data arrived from SNB worker: " ) +
+                        cc.j( gArrSChainsCached ) + "\n" );
+                }
             }
             break;
         case "log":

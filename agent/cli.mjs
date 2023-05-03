@@ -1380,7 +1380,7 @@ function printHelpLogging( soi ) {
         cc.notice( "Expose IMA agent pending work analysis information" ) );
     console.log( soi + cc.debug( "--" ) +
         cc.bright( "no-expose-pwa" ) + cc.debug( "........................." ) +
-        cc.notice( "Do not expose IMA agent pending work analysis information." ) +
+        cc.notice( "Do not expose IMA agent pending work analysis information" ) +
         cc.notice( "." ) + " " + cc.debug( "Default mode" ) + cc.notice( "." ) );
     console.log( soi + cc.debug( "--" ) +
         cc.bright( "accumulated-log-in-transfer" ) + cc.debug( "..........." ) +

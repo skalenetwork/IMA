@@ -142,12 +142,12 @@ async function singleTransferLoopPartOracle( optsLoop, strLogPrefix ) {
     const imaState = state.get();
     let b0 = true;
     if( optsLoop.enableStepOracle && IMA.getEnabledOracle() ) {
-        if( log.verboseGet() >= log.verboseReversed().information )
+        if( log.verboseGet() >= log.verboseReversed().notice )
             log.write( strLogPrefix + cc.debug( "Will invoke Oracle gas price setup..." ) + "\n" );
         try {
             if( ! await pwa.checkOnLoopStart( imaState, "oracle" ) ) {
                 imaState.loopState.oracle.wasInProgress = false;
-                if( log.verboseGet() >= log.verboseReversed().warning ) {
+                if( log.verboseGet() >= log.verboseReversed().notice ) {
                     log.write( strLogPrefix +
                         cc.warning( "Skipped(oracle) due to cancel mode reported from PWA" ) +
                         "\n" );
@@ -169,7 +169,7 @@ async function singleTransferLoopPartOracle( optsLoop, strLogPrefix ) {
                     imaState.loopState.oracle.isInProgress = false;
                     await pwa.notifyOnLoopEnd( imaState, "oracle" );
                 } else {
-                    if( log.verboseGet() >= log.verboseReversed().warning ) {
+                    if( log.verboseGet() >= log.verboseReversed().notice ) {
                         log.write( strLogPrefix +
                             cc.warning( "Skipped(oracle) due to time framing check" ) +
                             "\n" );
@@ -198,12 +198,12 @@ async function singleTransferLoopPartM2S( optsLoop, strLogPrefix ) {
     const imaState = state.get();
     let b1 = true;
     if( optsLoop.enableStepM2S ) {
-        if( log.verboseGet() >= log.verboseReversed().information )
+        if( log.verboseGet() >= log.verboseReversed().notice )
             log.write( strLogPrefix + cc.debug( "Will invoke M2S transfer..." ) + "\n" );
         try {
             if( ! await pwa.checkOnLoopStart( imaState, "m2s" ) ) {
                 imaState.loopState.m2s.wasInProgress = false;
-                if( log.verboseGet() >= log.verboseReversed().warning ) {
+                if( log.verboseGet() >= log.verboseReversed().notice ) {
                     log.write( strLogPrefix +
                         cc.warning( "Skipped(m2s) due to cancel mode reported from PWA" ) + "\n" );
                 }
@@ -240,7 +240,7 @@ async function singleTransferLoopPartM2S( optsLoop, strLogPrefix ) {
                     imaState.loopState.m2s.isInProgress = false;
                     await pwa.notifyOnLoopEnd( imaState, "m2s" );
                 } else {
-                    if( log.verboseGet() >= log.verboseReversed().warning ) {
+                    if( log.verboseGet() >= log.verboseReversed().notice ) {
                         log.write( strLogPrefix +
                             cc.warning( "Skipped(m2s) due to time framing check" ) + "\n" );
                     }
@@ -269,12 +269,12 @@ async function singleTransferLoopPartS2M( optsLoop, strLogPrefix ) {
     const imaState = state.get();
     let b2 = true;
     if( optsLoop.enableStepS2M ) {
-        if( log.verboseGet() >= log.verboseReversed().information )
+        if( log.verboseGet() >= log.verboseReversed().notice )
             log.write( strLogPrefix + cc.debug( "Will invoke S2M transfer..." ) + "\n" );
         try {
             if( ! await pwa.checkOnLoopStart( imaState, "s2m" ) ) {
                 imaState.loopState.s2m.wasInProgress = false;
-                if( log.verboseGet() >= log.verboseReversed().warning ) {
+                if( log.verboseGet() >= log.verboseReversed().notice ) {
                     log.write( strLogPrefix +
                         cc.warning( "Skipped(s2m) due to cancel mode reported from PWA" ) + "\n" );
                 }
@@ -311,7 +311,7 @@ async function singleTransferLoopPartS2M( optsLoop, strLogPrefix ) {
                     imaState.loopState.s2m.isInProgress = false;
                     await pwa.notifyOnLoopEnd( imaState, "s2m" );
                 } else {
-                    if( log.verboseGet() >= log.verboseReversed().warning ) {
+                    if( log.verboseGet() >= log.verboseReversed().notice ) {
                         log.write( strLogPrefix +
                             cc.warning( "Skipped(s2m) due to time framing check" ) + "\n" );
                     }
@@ -340,7 +340,7 @@ async function singleTransferLoopPartS2S( optsLoop, strLogPrefix ) {
     const imaState = state.get();
     let b3 = true;
     if( optsLoop.enableStepS2S && imaState.optsS2S.isEnabled ) {
-        if( log.verboseGet() >= log.verboseReversed().information )
+        if( log.verboseGet() >= log.verboseReversed().notice )
             log.write( strLogPrefix + cc.debug( "Will invoke all S2S transfers..." ) + "\n" );
         try {
             b3 = await IMA.doAllS2S( // s-chain --> s-chain
@@ -405,7 +405,7 @@ export async function singleTransferLoop( optsLoop ) {
         const b2 = await singleTransferLoopPartS2M( optsLoop, strLogPrefix );
         const b3 = await singleTransferLoopPartS2S( optsLoop, strLogPrefix );
         const bResult = b0 && b1 && b2 && b3;
-        if( log.verboseGet() >= log.verboseReversed().information )
+        if( log.verboseGet() >= log.verboseReversed().notice )
             log.write( strLogPrefix + cc.debug( "Completed: " ) + cc.tf( bResult ) + "\n" );
         return bResult;
     } catch ( err ) {
@@ -734,10 +734,10 @@ export async function ensureHaveWorkers( opts ) {
 }
 
 export async function runParallelLoops( opts ) {
-    if( log.verboseGet() >= log.verboseReversed().information )
+    if( log.verboseGet() >= log.verboseReversed().notice )
         log.write( cc.debug( "Will start parallel IMA transfer loops..." ) + "\n" );
     await ensureHaveWorkers( opts );
-    if( log.verboseGet() >= log.verboseReversed().information )
+    if( log.verboseGet() >= log.verboseReversed().notice )
         log.write( cc.success( "Done, did parallel IMA transfer loops." ) + "\n" );
     return true;
 }
