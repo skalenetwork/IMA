@@ -1522,7 +1522,7 @@ function commandLineTaskBrowseSChain() {
                     await joCall.call( {
                         "method": "skale_nodesRpcInfo",
                         "params": {
-                            "fromImaAgentIndex": imaState.nNodeNumber
+                            // "fromImaAgentIndex": imaState.nNodeNumber
                         }
                     }, async function( joIn, joOut, err ) {
                         if( err ) {
@@ -1568,7 +1568,7 @@ function commandLineTaskBrowseSChain() {
                                     await joCall.call( {
                                         "method": "skale_imaInfo",
                                         "params": {
-                                            "fromImaAgentIndex": imaState.nNodeNumber
+                                            // "fromImaAgentIndex": imaState.nNodeNumber
                                         }
                                     }, async function( joIn, joOut, err ) {
                                         ++ nCountReceivedImaDescriptions;
@@ -2162,7 +2162,7 @@ async function discoverSChainWalkNodes( optsDiscover ) {
                     joCall.call( {
                         "method": "skale_imaInfo",
                         "params": {
-                            "fromImaAgentIndex": optsDiscover.imaState.nNodeNumber
+                            // "fromImaAgentIndex": optsDiscover.imaState.nNodeNumber
                         }
                     }, function( joIn, joOut, err ) {
                         ++ optsDiscover.nCountReceivedImaDescriptions;
@@ -2326,7 +2326,9 @@ async function discoverSChainNetwork(
                 }
                 await joCall.call( {
                     "method": "skale_nodesRpcInfo",
-                    "params": { "fromImaAgentIndex": optsDiscover.imaState.nNodeNumber }
+                    "params": {
+                        // "fromImaAgentIndex": optsDiscover.imaState.nNodeNumber
+                    }
                 }, async function( joIn, joOut, err ) {
                     if( err ) {
                         if( log.verboseGet() >= log.verboseReversed().critical ) {
