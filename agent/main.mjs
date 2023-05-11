@@ -42,6 +42,8 @@ import * as pwa from "./pwa.mjs";
 
 import * as state from "./state.mjs";
 
+const gFlagSendImaAgentIndex = false;
+
 // allow self-signed wss and https
 process.env.NODE_TLS_REJECT_UNAUTHORIZED = 0;
 
@@ -1519,12 +1521,13 @@ function commandLineTaskBrowseSChain() {
                             await joCall.disconnect();
                         process.exit( 156 );
                     }
-                    await joCall.call( {
+                    const joDataIn = {
                         "method": "skale_nodesRpcInfo",
-                        "params": {
-                            // "fromImaAgentIndex": imaState.nNodeNumber
-                        }
-                    }, async function( joIn, joOut, err ) {
+                        "params": { }
+                    };
+                    if( gFlagSendImaAgentIndex )
+                        joDataIn.params.fromImaAgentIndex = imaState.nNodeNumber;
+                    await joCall.call( joDataIn, async function( joIn, joOut, err ) {
                         if( err ) {
                             const strError = owaspUtils.extractErrorMessage( err );
                             if( log.verboseGet() >= log.verboseReversed().fatal ) {
@@ -1565,12 +1568,14 @@ function commandLineTaskBrowseSChain() {
                                         await joCall.disconnect();
                                         process.exit( 158 );
                                     }
-                                    await joCall.call( {
+                                    const joDataIn = {
                                         "method": "skale_imaInfo",
-                                        "params": {
-                                            // "fromImaAgentIndex": imaState.nNodeNumber
-                                        }
-                                    }, async function( joIn, joOut, err ) {
+                                        "params": { }
+                                    };
+                                    if( gFlagSendImaAgentIndex )
+                                        joDataIn.params.fromImaAgentIndex = imaState.nNodeNumber;
+                                    await joCall.call( joDataIn, async function(
+                                        joIn, joOut, err ) {
                                         ++ nCountReceivedImaDescriptions;
                                         if( err ) {
                                             if( log.verboseGet() >= log.verboseReversed().fatal ) {
@@ -2159,12 +2164,13 @@ async function discoverSChainWalkNodes( optsDiscover ) {
                             await joCall.disconnect();
                         return;
                     }
-                    joCall.call( {
+                    const joDataIn = {
                         "method": "skale_imaInfo",
-                        "params": {
-                            // "fromImaAgentIndex": optsDiscover.imaState.nNodeNumber
-                        }
-                    }, function( joIn, joOut, err ) {
+                        "params": { }
+                    };
+                    if( gFlagSendImaAgentIndex )
+                        joDataIn.params.fromImaAgentIndex = optsDiscover.imaState.nNodeNumber;
+                    joCall.call( joDataIn, function( joIn, joOut, err ) {
                         ++ optsDiscover.nCountReceivedImaDescriptions;
                         if( err ) {
                             const strError = owaspUtils.extractErrorMessage( err );
@@ -2324,12 +2330,13 @@ async function discoverSChainNetwork(
                         await joCall.disconnect();
                     return;
                 }
-                await joCall.call( {
+                const joDataIn = {
                     "method": "skale_nodesRpcInfo",
-                    "params": {
-                        // "fromImaAgentIndex": optsDiscover.imaState.nNodeNumber
-                    }
-                }, async function( joIn, joOut, err ) {
+                    "params": { }
+                };
+                if( gFlagSendImaAgentIndex )
+                    joDataIn.params.fromImaAgentIndex = optsDiscover.imaState.nNodeNumber;
+                await joCall.call( joDataIn, async function( joIn, joOut, err ) {
                     if( err ) {
                         if( log.verboseGet() >= log.verboseReversed().critical ) {
                             if( ! optsDiscover.isSilent ) {
