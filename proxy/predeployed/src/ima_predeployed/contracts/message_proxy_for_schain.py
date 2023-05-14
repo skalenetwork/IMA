@@ -17,8 +17,8 @@ class MessageProxyForSchainGenerator(Generator):
     ARTIFACT_FILENAME = "MessageProxyForSchain.json"
     META_FILENAME = "MessageProxyForSchain.meta.json"
     DEFAULT_ADMIN_ROLE = (0).to_bytes(32, 'big')
-    CHAIN_CONNECTOR_ROLE = Web3.solidityKeccak(['string'], ['CHAIN_CONNECTOR_ROLE'])
-    MAINNET_HASH = Web3.solidityKeccak(['string'], ['Mainnet'])
+    CHAIN_CONNECTOR_ROLE = Web3.solidity_keccak(['string'], ['CHAIN_CONNECTOR_ROLE'])
+    MAINNET_HASH = Web3.solidity_keccak(['string'], ['Mainnet'])
     GAS_LIMIT = 3000000
     ANY_SCHAIN = (0).to_bytes(32, 'big')
 
@@ -89,7 +89,7 @@ class MessageProxyForSchainGenerator(Generator):
                         [TOKEN_MANAGER_LINKER_ADDRESS])
         cls._write_address(storage, cls.KEY_STORAGE_SLOT, KEY_STORAGE_ADDRESS)
         cls._write_bytes32(storage, cls.SCHAIN_HASH_SLOT,
-                           Web3.solidityKeccak(['string'], [schain_name]))
+                           Web3.solidity_keccak(['string'], [schain_name]))
 
         connected_chain_info_slot = Generator.calculate_mapping_value_slot(
             cls.CONNECTED_CHAINS_SLOT, cls.MAINNET_HASH, 'bytes32')
