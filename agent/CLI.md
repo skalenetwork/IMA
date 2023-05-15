@@ -6,26 +6,26 @@
 
 IMA operates with 3 types of chains:
 
-- **Ethereum(Main Net)**
-- **S-Chain**, source **S-Chain**
-- **T-Chain**, target **S-Chain**
+-  **Ethereum(Main Net)**
+-  **S-Chain**, source **S-Chain**
+-  **T-Chain**, target **S-Chain**
 
 In the most of use cases only **Ethereum(Main Net)** and source **S-Chain** are needed.
 
 **IMA** supports the following groups of operations:
 
-- Run message loop.
-- Perform **S-Chain** registration and initialization.
-- Configure and change gas reimbursement.
-- Do **ETH**, **ERC20**, **ERC721**, **ERC1155**, batch **ERC1155** payments between chains.
-- View amount of **ETH** can be received on Main Net.
-- Mint **ERC20**, **ERC721**, **ERC1155** tokens.
-- Show **ETH**, **ERC20**, **ERC721**, **ERC1155** balances.
-- Browse **SKALE network**.
-- Download source **S-Chain** information.
-- Discover set of **S-Chains** connected to specified **S-Chains**.
-- Discover chain ID of specified chain with `--discover-cid`.
-- Run monitoring service and expose its JSON RPC, the `--monitoring-port=number` option turns on monitoring web socket RPC server on specified port. By default monitoring server is disabled.
+-  Run message loop.
+-  Perform **S-Chain** registration and initialization.
+-  Configure and change gas reimbursement.
+-  Do **ETH**, **ERC20**, **ERC721**, **ERC1155**, batch **ERC1155** payments between chains.
+-  View amount of **ETH** can be received on Main Net.
+-  Mint **ERC20**, **ERC721**, **ERC1155** tokens.
+-  Show **ETH**, **ERC20**, **ERC721**, **ERC1155** balances.
+-  Browse **SKALE network**.
+-  Download source **S-Chain** information.
+-  Discover set of **S-Chains** connected to specified **S-Chains**.
+-  Discover chain ID of specified chain with `--discover-cid`.
+-  Run monitoring service and expose its JSON RPC, the `--monitoring-port=number` option turns on monitoring web socket RPC server on specified port. By default monitoring server is disabled.
 
 Here is list of options running operations described above:
 
@@ -115,10 +115,10 @@ Token transfer commands require token APIs on appropriate chains.
 
 **IMA** can sign transactions using one of following ways:
 
-- Using **Transaction Manager** JSON RPC
-- Using **SGX wallet** JSON RPC
-- Using explicitly specified private key
-- Using wallet address, for read only operations only
+-  Using **Transaction Manager** JSON RPC
+-  Using **SGX wallet** JSON RPC
+-  Using explicitly specified private key
+-  Using wallet address, for read only operations only
 
 The following parameters needed to use **Transaction Manager**:
 
