@@ -29,7 +29,7 @@ In the most of use cases only **Ethereum(Main Net)** and source **S-Chain** are 
 
 Here is list of options running operations described above:
 
-```
+```text
 --show-config...................Show configuration values and exit.
 --show-balance..................Show ETH and/or token balances on Main-net and/or S-Chain and exit.
 --m2s-payment...................Do one payment from Main-net user account to S-chain user account.
@@ -60,7 +60,7 @@ Please notice, token testing commands require `--tm-url-t-chain`, `cid-t-chain`,
 
 One or more of the following URL, chain name and chain ID parameters are needed for most of **IMA** operations:
 
-```
+```text
 --url-main-net=URL..............Main-net URL. Value is automatically loaded from the URL_W3_ETHEREUM environment variable if not specified.
 --url-s-chain=URL...............S-chain URL. Value is automatically loaded from the URL_W3_S_CHAIN environment variable if not specified.
 --url-t-chain=URL...............S<->S Target S-chain URL. Value is automatically loaded from the URL_W3_S_CHAIN_TARGET environment variable if 
@@ -74,7 +74,7 @@ One or more of the following URL, chain name and chain ID parameters are needed 
 
 For most of operations, **IMA** needs ABIs of **Skale Manager**, **Ethereum(Main Net)**, **S-Chain(s)**:
 
-```
+```text
 --abi-skale-manager=path........Path to JSON file containing Skale Manager ABI. Optional parameter. It's needed for S-Chain to S-Chain transfers.
 --abi-main-net=path.............Path to JSON file containing IMA ABI for Main-net.
 --abi-s-chain=path..............Path to JSON file containing IMA ABI for S-chain.
@@ -85,7 +85,7 @@ Token transfer commands require token APIs on appropriate chains.
 
 **ERC20** options:
 
-```
+```text
 --erc20-main-net=path...........Path to JSON file containing ERC20 ABI for Main-net.
 --erc20-s-chain=path............Path to JSON file containing ERC20 ABI for S-chain.
 --addr-erc20-s-chain=address....Explicit ERC20 address in S-chain.
@@ -95,7 +95,7 @@ Token transfer commands require token APIs on appropriate chains.
 
 **ERC721** options:
 
-```
+```text
 --erc721-main-net=path..........Path to JSON file containing ERC721 ABI for Main-net.
 --erc721-s-chain=path...........Path to JSON file containing ERC721 ABI for S-chain.
 --addr-erc721-s-chain=address...Explicit ERC721 address in S-chain.
@@ -105,7 +105,7 @@ Token transfer commands require token APIs on appropriate chains.
 
 **ERC1155** options:
 
-```
+```text
 --erc1155-main-net=path.........Path to JSON file containing ERC1155 ABI for Main-net.
 --erc1155-s-chain=path..........Path to JSON file containing ERC1155 ABI for S-chain.
 --addr-erc1155-s-chain=address..Explicit ERC1155 address in S-chain.
@@ -122,7 +122,7 @@ Token transfer commands require token APIs on appropriate chains.
 
 The following parameters needed to use **Transaction Manager**:
 
-```
+```text
 --tm-url-main-net=URL...........Transaction Manager server URL for Main-net. Value is automatically loaded from the TRANSACTION_MANAGER_URL_ETHEREUM environment variable if not specified. Example: redis://@127.0.0.1:6379
 --tm-url-s-chain=URL............Transaction Manager server URL for S-chain. Value is automatically loaded from the TRANSACTION_MANAGER_URL_S_CHAIN environment variable if not specified.
 --tm-url-t-chain=URL............Transaction Manager server URL for S<->S Target S-chain. Value is automatically loaded from the TRANSACTION_MANAGER_URL_S_CHAIN_TARGET environment variable if not specified.
@@ -133,7 +133,7 @@ The following parameters needed to use **Transaction Manager**:
 
 The following parameters needed to use **SGX wallet**:
 
-```
+```text
 --sgx-url-main-net=URL..........SGX server URL for Main-net. Value is automatically loaded from the SGX_URL_ETHEREUM environment variable if not specified.
 --sgx-url-s-chain=URL...........SGX server URL for S-chain. Value is automatically loaded from the SGX_URL_S_CHAIN environment variable if not specified.
 --sgx-url-t-chain=URL...........SGX server URL for S<->S Target S-chain. Value is automatically loaded from the SGX_URL_S_CHAIN_TARGET environment variable if not specified.
@@ -150,7 +150,7 @@ The following parameters needed to use **SGX wallet**:
 
 Using explicitly specified private key:
 
-```
+```text
 --address-main-net=value........Main-net user account address. Value is automatically loaded from the ACCOUNT_FOR_ETHEREUM environment variable if not specified.
 --address-s-chain=value.........S-chain user account address. Value is automatically loaded from the ACCOUNT_FOR_SCHAIN environment variable if not specified.
 --address-t-chain=value.........S<->S Target S-chain user account address. Value is automatically loaded from the ACCOUNT_FOR_SCHAIN_TARGET environment variable if not specified.
@@ -158,7 +158,7 @@ Using explicitly specified private key:
 
 For read only operations, only wallet address can be specified:
 
-```
+```text
 --key-main-net=value............Private key for Main-net user account address. Value is automatically loaded from the PRIVATE_KEY_FOR_ETHEREUM environment variable if not specified.
 --key-s-chain=value.............Private key for S-Chain user account address. Value is automatically loaded from the PRIVATE_KEY_FOR_SCHAIN environment variable if not specified.
 --key-t-chain=value.............Private key for S<->S Target S-Chain user account address. Value is automatically loaded from the PRIVATE_KEY_FOR_SCHAIN_TARGET environment variable if not specified.
@@ -168,7 +168,7 @@ Please notice, **IMA** prefer to use transaction manager to sign blockchain tran
 
 **ETH** transfers operations require amount of **ETH** to be specified with one of the following options:
 
-```
+```text
 --value=numberUnitName..........Amount of unitName to transfer, where unitName is well known Ethereum unit name like ether or wei.
 --wei=number....................Amount of wei to transfer.
 --babbage=number................Amount of babbage(wei*1000) to transfer.
@@ -181,7 +181,7 @@ Please notice, **IMA** prefer to use transaction manager to sign blockchain tran
 
 Token transfer operations require token amounts and/or token IDs:
 
-```
+```text
 --amount=number.................Amount of tokens to transfer.
 --tid=number....................ERC721 or ERC1155 token id to transfer.
 --amounts=array of numbers......ERC1155 token id to transfer in batch.
@@ -192,7 +192,7 @@ Token transfer operations require token amounts and/or token IDs:
 
 **Gas reimbursement** can be configure with the following options:
 
-```
+```text
 --reimbursement-chain=name......Specifies chain name.
 --reimbursement-recharge=vu.....Recharge user wallet with specified value v, unit name u is well known Ethereum unit name like ether or wei.
 --reimbursement-withdraw=vu.....Withdraw user wallet with specified value v, unit name u is well known Ethereum unit name like ether or wei.
@@ -207,14 +207,14 @@ Token transfer operations require token amounts and/or token IDs:
 
 **IMA** must be initialized and its **S-Chain** must be registered once after creation with the following options:
 
-```
+```text
 --register......................Register(perform all steps).
 --check-registration............Perform registration status check(perform all steps).
 ```
 
 **S-Chain** to **S-Chain** transfers must be turned on and require periodic **SKALE network re-discovery**:
 
-```
+```text
 --s2s-enable....................Enables S-Chain to S-Chain transfers. Default mode. The abi-skale-manager path must be provided.
 --s2s-disable...................Disables S-Chain to S-Chain transfers.
 --net-rediscover=number.........SKALE NETWORK re-discovery interval(in seconds). Default is 3600 seconds or 1 hour, specify 0 to disable SKALE NETWORK re-discovery.
@@ -222,7 +222,7 @@ Token transfer operations require token amounts and/or token IDs:
 
 **IMA** loop can optionally use dry run, group **IMA** messages and supports various customizations:
 
-```
+```text
 --no-wait-s-chain...............Do not wait until S-Chain is started.
 --max-wait-attempts=value.......Max number of S-Chain call attempts to do while it became alive and sane.
 --skip-dry-run..................Skip dry run contract method calls.
@@ -253,7 +253,7 @@ Token transfer operations require token amounts and/or token IDs:
 
 **IMA** transfer loop must **BLS**-sign messages and needs paths to **BLS** command line utilities:
 
-```
+```text
 --sign-messages.................Sign transferred messages.
 --bls-glue=path.................Specifies path to bls_glue application.
 --hash-g1=path..................Specifies path to hash_g1 application.
@@ -262,7 +262,7 @@ Token transfer operations require token amounts and/or token IDs:
 
 **IMA** transfer loop needs to scan **IMA smart contract** events, scanning can be customized with the following options:
 
-```
+```text
 --bs-step-size=number...........Specifies step block range size to search iterative past events step by step. 0 to disable iterative search.
 --bs-max-all-range=number.......Specifies max number of steps to allow to search as [0...latest] range. 0 to disable iterative search.
 --bs-progressive-enable.........Enables progressive block scan to search past events.
@@ -271,7 +271,7 @@ Token transfer operations require token amounts and/or token IDs:
 
 **IMA** pending work analysis subsystem allows to detect busy state of previous **IMA Agent** running long work outside its time frame:
 
-```
+```text
 --pwa...........................Enable pending work analysis to avoid transaction conflicts. Default mode.
 --no-pwa........................Disable pending work analysis. Not recommended for slow and overloaded blockchains.
 --pwa-timeout=seconds...........Node state timeout during pending work analysis. Default is 60 seconds.
@@ -279,7 +279,7 @@ Token transfer operations require token amounts and/or token IDs:
 
 Like any command line application, **IMA** produces various command line output and supports logging. Logging can be customized with the following options:
 
-```
+```text
 --expose........................Expose low-level log details after successful operations. By default details exposed only on errors.
 --no-expose.....................Expose low-level log details only after errors. Default expose mode.
 --verbose=value.................Set level of output details.
@@ -297,7 +297,7 @@ Like any command line application, **IMA** produces various command line output 
 
 Command line output and logging can be plain or ANSI-colorized:
 
-```
+```text
 --colors........................Use ANSI-colorized logging.
 --no-colors.....................Use monochrome logging.
 ```
