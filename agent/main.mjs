@@ -42,7 +42,7 @@ import * as pwa from "./pwa.mjs";
 
 import * as state from "./state.mjs";
 
-const gFlagSendImaAgentIndex = false;
+const gFlagSendImaAgentIndex = true;
 
 // allow self-signed wss and https
 process.env.NODE_TLS_REJECT_UNAUTHORIZED = 0;
