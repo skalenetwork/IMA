@@ -65,7 +65,7 @@ class SendERC20ToMainnet(TestCase):
                                                          self.config.schain_key,
                                                          self.amount,
                                                          self.timeout)
-        sleep( 10 )
+        sleep( 5 )
 
         amount_of_eth = 90 * 10 ** 15
 
@@ -73,7 +73,7 @@ class SendERC20ToMainnet(TestCase):
                                                        self.config.schain_key,
                                                        amount_of_eth,
                                                        self.timeout)
-        sleep( 10 )
+        sleep( 5 )
 
         self.erc20_clone = self.blockchain.get_erc20_on_schain("Mainnet", self.erc20.address)
 

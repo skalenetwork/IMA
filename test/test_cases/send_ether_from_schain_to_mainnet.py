@@ -48,7 +48,7 @@ class SendEtherToMainnet(TestCase):
         destination_address = self.blockchain.key_to_address(self.config.mainnet_key)
         if self.blockchain.get_balance_on_mainnet(destination_address) < min_transaction_fee:
             self.blockchain.send_ether_on_mainnet(self.config.mainnet_key, self.config.mainnet_key, min_transaction_fee)
-            sleep( 10 )
+            sleep( 5 )
 
     def _execute(self):
         source_address = self.blockchain.key_to_address(self.config.mainnet_key)
@@ -67,7 +67,7 @@ class SendEtherToMainnet(TestCase):
                                                        self.config.schain_key,
                                                        self.amount,
                                                        self.timeout)
-        sleep( 10 )
+        sleep( 5 )
 
         transaction_fee = 6 * 10 ** 16
         approximate_gas_spends = 3 * 10 ** 15

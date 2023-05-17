@@ -45,7 +45,7 @@ class SendERC1155BatchToSchain(TestCase):
         signed_txn = self.blockchain.web3_mainnet.eth.account.signTransaction(mint_txn,
                                                                               private_key=self.config.mainnet_key)
         self.blockchain.web3_mainnet.eth.sendRawTransaction(signed_txn.rawTransaction)
-        self.blockchain.disableWhitelistERC1155(self.config.mainnet_key, self.config.schain_name)        
+        self.blockchain.disableWhitelistERC1155(self.config.mainnet_key, self.config.schain_name)
         self.blockchain.enableAutomaticDeployERC1155(self.config.schain_key, "Mainnet")
 
     def _execute(self):

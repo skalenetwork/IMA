@@ -56,7 +56,7 @@ class Senderc721ToMainnet(TestCase):
                                                           self.config.schain_key,
                                                           self.token_id,
                                                           self.timeout)
-        sleep( 10 )
+        sleep( 5 )
         #
         amount_eth = 90 * 10 ** 15
         #
@@ -66,7 +66,7 @@ class Senderc721ToMainnet(TestCase):
                                                        self.timeout)
 
         #
-        sleep( 10 )
+        sleep( 5 )
         self.erc721_clone = self.blockchain.get_erc721_on_schain("Mainnet", self.erc721.address)
 
     def _execute(self):
@@ -77,7 +77,7 @@ class Senderc721ToMainnet(TestCase):
             error("Token was not send")
             return
         #
-        sleep( 10 )
+        sleep( 5 )
         self.agent.transfer_erc721_from_schain_to_mainnet(
             self.erc721_clone,
             self.erc721,

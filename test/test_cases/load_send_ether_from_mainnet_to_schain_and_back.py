@@ -43,7 +43,7 @@ class SendEtherFromSchainToMainnetAndBack(TestCase):
                                                        self.config.schain_key,
                                                        eth_amount,
                                                        self.timeout)
-        sleep( 10 )
+        sleep( 5 )
         #
         balance = self.blockchain.get_balance_on_schain(address)
         initial_balance = balance
@@ -59,13 +59,13 @@ class SendEtherFromSchainToMainnetAndBack(TestCase):
                                                            self.config.schain_key,
                                                            amount,
                                                            self.timeout)
-            sleep( 10 )
+            sleep( 5 )
             # back to mainnet
             self.agent.transfer_eth_from_schain_to_mainnet(self.config.mainnet_key,
                                                            self.config.schain_key,
                                                            amount_from_schain,
                                                            self.timeout)
-            sleep( 10 )
+            sleep( 5 )
             self.blockchain.get_balance_on_schain(address)
             a = 0
         #
