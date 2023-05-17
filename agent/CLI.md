@@ -34,10 +34,13 @@ Here is list of options running operations described above:
     --show-balance..................Show ETH and/or token balances on Main-net and/or S-Chain and exit.
     --m2s-payment...................Do one payment from Main-net user account to S-chain user account.
     --s2m-payment...................Do one payment from S-chain user account to Main-net user account.
-    --s2m-receive...................Receive one payment from S-chain user account to Main-net user account(ETH only, receives all the ETH pending in transfer).
-    --s2m-view......................View money amount user can receive as payment from S-chain user account to Main-net user account(ETH only, receives all the ETH pending in transfer).
+    --s2m-receive...................Receive one payment from S-chain user account to Main-net user account(ETH only,
+                                    receives all the ETH pending in transfer).
+    --s2m-view......................View money amount user can receive as payment from S-chain user account
+                                    to Main-net user account(ETH only, receives all the ETH pending in transfer).
     --s2s-payment...................Do one payment from S-chain user account to other S-chain user account.
-    --s2s-forward...................Indicates S<->S transfer direction is forward. I.e. source S-chain is token minter and instantiator. This is default mode.
+    --s2s-forward...................Indicates S<->S transfer direction is forward. I.e. source S-chain is token minter and instantiator.
+                                    This is default mode.
     --s2s-reverse...................Indicates S<->S transfer direction is reverse. I.e. destination S-chain is token minter and instantiator.
     --m2s-transfer..................Do single money transfer loop from Main-net to S-chain.
     --s2m-transfer..................Do single money transfer loop from S-chain to Main-net.
