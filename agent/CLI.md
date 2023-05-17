@@ -29,35 +29,30 @@ In the most of use cases only **Ethereum(Main Net)** and source **S-Chain** are 
 
 Here is list of options running operations described above:
 
-```text
-    --show-config...................Show configuration values and exit.
-    --show-balance..................Show ETH and/or token balances on Main-net and/or S-Chain and exit.
-    --m2s-payment...................Do one payment from Main-net user account to S-chain user account.
-    --s2m-payment...................Do one payment from S-chain user account to Main-net user account.
-    --s2m-receive...................Receive one payment from S-chain user account to Main-net user account(ETH only,
-                                    receives all the ETH pending in transfer).
-    --s2m-view......................View money amount user can receive as payment from S-chain user account
-                                    to Main-net user account(ETH only, receives all the ETH pending in transfer).
-    --s2s-payment...................Do one payment from S-chain user account to other S-chain user account.
-    --s2s-forward...................Indicates S<->S transfer direction is forward. I.e. source S-chain is token minter and instantiator.
-                                    This is default mode.
-    --s2s-reverse...................Indicates S<->S transfer direction is reverse. I.e. destination S-chain is token minter and instantiator.
-    --m2s-transfer..................Do single money transfer loop from Main-net to S-chain.
-    --s2m-transfer..................Do single money transfer loop from S-chain to Main-net.
-    --s2s-transfer..................Do single money transfer loop from S-chain to S-chain.
-    --with-metadata.................Makes ERC721 transfer using special version of Token Manager to transfer token metadata.
-    --transfer......................Run single M<->S and, optionally, S->S transfer loop iteration.
-    --loop..........................Run M<->S and, optionally, S->S transfer loop.
-    --browse-s-chain................Download own S-Chain network information.
-    --browse-skale-network..........Download entire SKALE network description.
-    --browse-connected-schains......Download S-Chains connected to S-Chain with name specified in id-s-chain command line parameter.
-    --mint-erc20....................Mint ERC20 tokens.
-    --mint-erc721...................Mint ERC721 tokens.
-    --mint-erc1155..................Mint ERC1155 tokens.
-    --burn-erc20....................Burn ERC20 tokens.
-    --burn-erc721...................Burn ERC721 tokens.
-    --burn-erc1155..................Burn ERC1155 tokens.
-```
+    -  --show-config - Show configuration values and exit.
+    -  --show-balance - Show ETH and/or token balances on Main-net and/or S-Chain and exit.
+    -  --m2s-payment - Do one payment from Main-net user account to S-chain user account.
+    -  --s2m-payment - Do one payment from S-chain user account to Main-net user account.
+    -  --s2m-receive - Receive one payment from S-chain user account to Main-net user account(ETH only, receives all the ETH pending in transfer).
+    -  --s2m-view - View money amount user can receive as payment from S-chain user account to Main-net user account(ETH only, receives all the ETH pending in transfer).
+    -  --s2s-payment - Do one payment from S-chain user account to other S-chain user account.
+    -  --s2s-forward - Indicates S<->S transfer direction is forward. I.e. source S-chain is token minter and instantiator. This is default mode.
+    -  --s2s-reverse - Indicates S<->S transfer direction is reverse. I.e. destination S-chain is token minter and instantiator.
+    -  --m2s-transfer - Do single money transfer loop from Main-net to S-chain.
+    -  --s2m-transfer - Do single money transfer loop from S-chain to Main-net.
+    -  --s2s-transfer - Do single money transfer loop from S-chain to S-chain.
+    -  --with-metadata - Makes ERC721 transfer using special version of Token Manager to transfer token metadata.
+    -  --transfer - Run single M<->S and, optionally, S->S transfer loop iteration.
+    -  --loop - Run M<->S and, optionally, S->S transfer loop.
+    -  --browse-s-chain - Download own S-Chain network information.
+    -  --browse-skale-network - Download entire SKALE network description.
+    -  --browse-connected-schains - Download S-Chains connected to S-Chain with name specified in id-s-chain command line parameter.
+    -  --mint-erc20 - Mint ERC20 tokens.
+    -  --mint-erc721 - Mint ERC721 tokens.
+    -  --mint-erc1155 - Mint ERC1155 tokens.
+    -  --burn-erc20 - Burn ERC20 tokens.
+    -  --burn-erc721 - Burn ERC721 tokens.
+    -  --burn-erc1155 - Burn ERC1155 tokens.
 
 Please notice, token testing commands require `--tm-url-t-chain`, `cid-t-chain`, `erc20-t-chain` or `erc721-t-chain` or `erc1155-t-chain`, account information (like private key `key-t-chain`) command line arguments specified. Token amounts are specified via amount command line arguments specified. Token IDs are specified via tid or tids command line arguments.
 
