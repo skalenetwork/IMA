@@ -5,7 +5,8 @@ from web3 import Web3
 
 def to_even_length(hex_string: str) -> str:
     a_res = hex_string.startswith('0x')
-    assert a_res
+    if __debug__:
+        if not a_res: raise AssertionError
     if len(hex_string) % 2 != 0:
         return "0x0" + hex_string[2:]
     else:
@@ -46,9 +47,11 @@ class ContractGenerator:
 
     def generate_contract(self, balance: int = 0, nonce: int = 0) -> dict:
         a_res = isinstance(self.bytecode, str)
-        assert a_res
+        if __debug__:
+            if not a_res: raise AssertionError
         a_res = isinstance(self.storage, dict)
-        assert a_res
+        if __debug__:
+            if not a_res: raise AssertionError
         return {
             'code': self.bytecode,
             'balance': str(balance),
@@ -63,7 +66,8 @@ class ContractGenerator:
 
     def _write_bytes32(self, slot: int, data: bytes) -> None:
         data_length = len(data)
-        assert data_length <= 32
+        if __debug__:
+            if not ( data_length <= 32 ): raise AssertionError
         self.storage[to_even_length(hex(slot))] = to_even_length(add_0x(data.hex()))
 
     def _write_uint256(self, slot: int, value: int) -> None:

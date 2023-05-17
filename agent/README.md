@@ -8,9 +8,9 @@ This article refers to **SKALE Interchain Messaging Agent** as **IMA**.
 
 **IMA** consists of the following parts:
 
-  -  Contracts on Mainnet
-  -  Contracts on a SKALE Chain
-  -  NodeJS based app
+    -  Contracts on Mainnet
+    -  Contracts on a SKALE Chain
+    -  NodeJS based app
 
 ## Contracts installation
 
@@ -83,8 +83,8 @@ You should see **proxySchain_*s-chain-name-here*.json** file listed.
 **IMA** supports two ways of signing transactions:
 
 ```shell
-  -  Direct private key
-  -  SGX Wallet
+    -  Direct private key
+    -  SGX Wallet
 ```
 
 Private keys can be specified directly in **IMA** command line:
@@ -641,8 +641,8 @@ The **--hash-g1** command line parameter must be used to specify path to the **h
 
 Message signing will work only on **S-Chain** where each **skaled** node configured properly and able to:
 
-  -  provide brows information for entire **S-Chain** network
-  -  provide **IMA** signing APIs and parameters
+    -  provide brows information for entire **S-Chain** network
+    -  provide **IMA** signing APIs and parameters
 
 Here is example of correct **config.json** file for **skaled** node:
 
