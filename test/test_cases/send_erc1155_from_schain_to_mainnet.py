@@ -49,11 +49,8 @@ class Senderc1155ToMainnet(TestCase):
         signed_txn = self.blockchain.web3_mainnet.eth.account\
             .signTransaction(mint_txn, private_key=self.config.mainnet_key)
         self.blockchain.web3_mainnet.eth.sendRawTransaction(signed_txn.rawTransaction)
-        sleep( 5 )
         self.blockchain.disableWhitelistERC1155(self.config.mainnet_key, self.config.schain_name)
-        sleep( 5 )
         self.blockchain.enableAutomaticDeployERC1155(self.config.schain_key, "Mainnet")
-        sleep( 5 )
         # send to schain
         self.agent.transfer_erc1155_from_mainnet_to_schain(self.erc1155,
                                                           self.config.mainnet_key,
@@ -62,18 +59,11 @@ class Senderc1155ToMainnet(TestCase):
                                                           self.token_amount,
                                                           self.timeout)
         sleep( 5 )
-        #
         amount_eth = 90 * 10 ** 15
-        #
         self.agent.transfer_eth_from_mainnet_to_schain(self.config.mainnet_key,
                                                        self.config.schain_key,
                                                        amount_eth,
                                                        self.timeout)
-
-        #
-        sleep( 5 )
-
-        #
         sleep( 5 )
         self.erc1155_clone = self.blockchain.get_erc1155_on_schain("Mainnet", self.erc1155.address)
 
@@ -84,7 +74,6 @@ class Senderc1155ToMainnet(TestCase):
         if self.erc1155_clone.functions.balanceOf(source_address, self.token_id).call() != self.token_amount:
             error("Token was not send")
             return
-        #
         sleep( 5 )
         self.agent.transfer_erc1155_from_schain_to_mainnet(
             self.erc1155_clone,

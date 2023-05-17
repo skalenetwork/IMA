@@ -38,7 +38,7 @@ class SendERC20ToMainnet(TestCase):
     def _prepare(self):
         amountRecharge = 20 * 10 ** 18 # 2 * 10 ** 18
         self.blockchain.recharge_user_wallet(self.config.mainnet_key, self.config.schain_name, amountRecharge)
-        sleep( 10 )
+        sleep( 5 )
 
         # deploy token
 
@@ -55,12 +55,8 @@ class SendERC20ToMainnet(TestCase):
         signed_txn = self.blockchain.web3_mainnet.eth.account.signTransaction(mint_txn,
                                                                               private_key=self.config.mainnet_key)
         self.blockchain.web3_mainnet.eth.sendRawTransaction(signed_txn.rawTransaction)
-        sleep( 10 )
-
         self.blockchain.disableWhitelistERC20(self.config.mainnet_key, self.config.schain_name)
-        sleep( 10 )
         self.blockchain.enableAutomaticDeployERC20(self.config.schain_key, "Mainnet")
-        sleep( 10 )
 
         # send to schain
 
