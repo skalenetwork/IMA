@@ -34,9 +34,10 @@ class Senderc721ToMainnet(TestCase):
         super().__init__('Send ERC721 from schain to mainnet', config)
 
     def _prepare(self):
+        sleep( 5 )
         amountRecharge = 20 * 10 ** 18 # 2 * 10 ** 18
         self.blockchain.recharge_user_wallet(self.config.mainnet_key, self.config.schain_name, amountRecharge)
-        sleep( 10 )
+        sleep( 5 )
         # deploy token
         self.erc721 = self.blockchain.deploy_erc721_on_mainnet(self.config.mainnet_key, 'elv721', 'ELV')
         # mint
@@ -48,18 +49,15 @@ class Senderc721ToMainnet(TestCase):
         signed_txn = self.blockchain.web3_mainnet.eth.account\
             .signTransaction(mint_txn, private_key=self.config.mainnet_key)
         self.blockchain.web3_mainnet.eth.sendRawTransaction(signed_txn.rawTransaction)
-        sleep( 10 )
         self.blockchain.disableWhitelistERC721(self.config.mainnet_key, self.config.schain_name)
-        sleep( 10 )
         self.blockchain.enableAutomaticDeployERC721(self.config.schain_key, "Mainnet")
-        sleep( 10 )
         # send to schain
         self.agent.transfer_erc721_from_mainnet_to_schain(self.erc721,
                                                           self.config.mainnet_key,
                                                           self.config.schain_key,
                                                           self.token_id,
                                                           self.timeout)
-        sleep( 10 )
+        sleep( 5 )
         #
         amount_eth = 90 * 10 ** 15
         #
@@ -69,7 +67,7 @@ class Senderc721ToMainnet(TestCase):
                                                        self.timeout)
 
         #
-        sleep( 10 )
+        sleep( 5 )
         self.erc721_clone = self.blockchain.get_erc721_on_schain("Mainnet", self.erc721.address)
 
     def _execute(self):
@@ -80,7 +78,7 @@ class Senderc721ToMainnet(TestCase):
             error("Token was not send")
             return
         #
-        sleep( 10 )
+        sleep( 5 )
         self.agent.transfer_erc721_from_schain_to_mainnet(
             self.erc721_clone,
             self.erc721,

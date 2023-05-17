@@ -33,19 +33,17 @@ class SendEtherFromSchainToMainnetAndBack(TestCase):
     def _execute(self):
         amountRecharge = 20 * 10 ** 18 # 2 * 10 ** 18
         self.blockchain.recharge_user_wallet(self.config.mainnet_key, self.config.schain_name, amountRecharge)
-        sleep( 10 )
-        #
+        sleep( 5 )
         range_int = 5
         # ETH
         eth_amount = 12 * 10 ** 18
-        #
         address = self.blockchain.key_to_address(self.config.mainnet_key)
         #  transfer to schain
         self.agent.transfer_eth_from_mainnet_to_schain(self.config.mainnet_key,
                                                        self.config.schain_key,
                                                        eth_amount,
                                                        self.timeout)
-        sleep( 10 )
+        sleep( 5 )
         #
         balance = self.blockchain.get_balance_on_schain(address)
         initial_balance = balance
@@ -61,13 +59,13 @@ class SendEtherFromSchainToMainnetAndBack(TestCase):
                                                            self.config.schain_key,
                                                            amount,
                                                            self.timeout)
-            sleep( 10 )
+            sleep( 5 )
             # back to mainnet
             self.agent.transfer_eth_from_schain_to_mainnet(self.config.mainnet_key,
                                                            self.config.schain_key,
                                                            amount_from_schain,
                                                            self.timeout)
-            sleep( 10 )
+            sleep( 5 )
             self.blockchain.get_balance_on_schain(address)
             a = 0
         #

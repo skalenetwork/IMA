@@ -346,7 +346,7 @@ jobs:
     - name: Start background ganache
       run: |
         cd proxy
-        NODE_OPTIONS="--max_old_space_size=3072" npx ganache-cli --gasLimit 12000000 --quiet --allowUnlimitedContractSize --defaultBalanceEther 2000000 --account="0x23ABDBD3C61B5330AF61EBE8BEF582F4E5CC08E554053A718BDCE7813B9DC1FC,1000000000000000000000000000000000" --account="0x80ebc2e00b8f13c5e2622b5694ab63ee80f7c5399554d2a12feeb0212eb8c69e,1000000000000000000000000000000000" --acctKeys ../test/accounts.json &
+        NODE_OPTIONS="--max_old_space_size=3072" npx ganache-cli --gasLimit 12000000 --quiet --allowUnlimitedContractSize --defaultBalanceEther 2000000 --acctKeys ../test/accounts.json &
 
     - name: Prepare test (PY part)
       working-directory: ${{env.working-directory}}
