@@ -5,12 +5,12 @@ set -e
 
 IMA_RELEASES_URL="https://github.com/skalenetwork/IMA/releases/download/"
 cd data/
-rm -f ima-$DEPLOYED_VERSION-stable.0-predeployed-abi.json
-wget $IMA_RELEASES_URL/$DEPLOYED_VERSION-stable.0/ima-$DEPLOYED_VERSION-stable.0-predeployed-abi.json
+rm -f ima-$DEPLOYED_VERSION-predeployed-abi.json
+wget $IMA_RELEASES_URL/$DEPLOYED_VERSION/ima-$DEPLOYED_VERSION-predeployed-abi.json
 cd ../scripts/
-wget $IMA_RELEASES_URL/$DEPLOYED_VERSION-stable.0/ima-schain-$DEPLOYED_VERSION-stable.0-manifest.json
-python3 change_manifest.py ima-schain-$DEPLOYED_VERSION-stable.0-manifest.json
-mv ima-schain-$DEPLOYED_VERSION-stable.0-manifest.json ../.openzeppelin/unknown-$SCHAIN_ID.json
+wget $IMA_RELEASES_URL/$DEPLOYED_VERSION/ima-schain-$DEPLOYED_VERSION-manifest.json
+python3 change_manifest.py ima-schain-$DEPLOYED_VERSION-manifest.json
+mv ima-schain-$DEPLOYED_VERSION-manifest.json ../.openzeppelin/unknown-$SCHAIN_ID.json
 cd ..
 
 git clone https://github.com/skalenetwork/skale-network.git
@@ -31,7 +31,7 @@ fi
 #sed version inside upgrade script
 
 SCHAIN_NAME=$SCHAIN_NAME \
-ABI="data/ima-$DEPLOYED_VERSION-stable.0-predeployed-abi.json" \
+ABI="data/ima-$DEPLOYED_VERSION-predeployed-abi.json" \
 IMA_ABI="data/ima-$LATEST_STABLE_IMA_VERSION-mainnet-abi.json" \
 MAINNET_CHAIN_ID=$MAINNET_CHAIN_ID \
 SAFE_ADDRESS=$SAFE_ADDRESS \

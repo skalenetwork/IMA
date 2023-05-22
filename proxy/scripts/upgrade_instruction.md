@@ -9,7 +9,7 @@ Next you need to grant `DEPLOYER_ROLE` for account that we have created in previ
 ## Getting sFuel
 Now you need to get some sFuel on your new account. To do this, you can use a contract that distributes sFuel - Etherbase. As in the previous step, you can use multisigwallet-cli or transfer a sufficient amount of sFuel to the wallet you created earlier.
 ## Running upgrade script
-* `DEPLOYED_VERSION` - current version of your IMA contracts.
+* `DEPLOYED_VERSION` - current version of your IMA contracts. Example: `DEPLOYED_VERSION="1.3.0-stable.0"`
 * `SCHAIN_ID` - chainId of SKALE chain.
 * `SCHAIN_NAME` - name of SKALE chain.
 * `SAFE_ADDRESS` - address of gnosis safe wallet on mainnet.
