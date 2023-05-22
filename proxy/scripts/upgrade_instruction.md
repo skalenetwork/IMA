@@ -3,7 +3,7 @@
 ## Installing project
 Git clone and run yarn install in the root of the project.
 ## Preparing environment
-First of all you need to create new account. You can generate it in Metamask. Next export private key and put it in `.env` as `PRIVATE_KEY` without 0x by path `IMA/proxy/`. Also put endpoint of your chain as `ENDPOINT` to the `.env`.
+First of all you need to create new account. You can generate it in Metamask. Next export private key and put it in `.env` as `PRIVATE_KEY` without 0x by path `IMA/proxy/`. Also put endpoint of your chain as `ENDPOINT` to the `.env`. Also you need to add this account to your Gnosis Wallet as one of the Safe owners. Open Gnosis app, go to "Settings", click "Add new owner" and then sign transaction.
 ## Granting role
 Next you need to grant `DEPLOYER_ROLE` for account that we have created in previous step for being able to deploy new contracts on chain. One of the options you can use multisigwallet-cli to encode the transaction and send it via IMA to the Skale chain. Also you can ask somebody from Skale engineering team to do it for you.
 ## Getting sFuel
