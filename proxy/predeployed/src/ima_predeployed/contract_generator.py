@@ -22,11 +22,11 @@ def calculate_mapping_value_slot(slot: int, key: any, key_type: str) -> int:
     if key_type == 'address':
         return calculate_mapping_value_slot(slot, int(key, 16).to_bytes(32, 'big'), 'bytes32')
     else:
-        return int.from_bytes(Web3.solidityKeccak([key_type, 'uint256'], [key, slot]), 'big')
+        return int.from_bytes(Web3.solidity_keccak([key_type, 'uint256'], [key, slot]), 'big')
 
 
 def calculate_array_value_slot(slot: int, index: int) -> int:
-    return int.from_bytes(Web3.solidityKeccak(['uint256'], [slot]), 'big') + index
+    return int.from_bytes(Web3.solidity_keccak(['uint256'], [slot]), 'big') + index
 
 
 def next_slot(previous_slot: int) -> int:
