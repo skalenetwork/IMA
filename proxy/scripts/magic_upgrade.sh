@@ -9,7 +9,7 @@ rm -f ima-$DEPLOYED_VERSION-predeployed-abi.json
 wget $IMA_RELEASES_URL/$DEPLOYED_VERSION/ima-$DEPLOYED_VERSION-predeployed-abi.json
 cd ../scripts/
 wget $IMA_RELEASES_URL/$DEPLOYED_VERSION/ima-schain-$DEPLOYED_VERSION-manifest.json
-python3 change_manifest.py ima-schain-$DEPLOYED_VERSION-manifest.json
+python3 updateManifest.py ima-schain-$DEPLOYED_VERSION-manifest.json
 mv ima-schain-$DEPLOYED_VERSION-manifest.json ../.openzeppelin/unknown-$SCHAIN_ID.json
 cd ..
 
