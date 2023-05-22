@@ -35,6 +35,5 @@ ABI="data/ima-$DEPLOYED_VERSION-stable.0-predeployed-abi.json" \
 IMA_ABI="data/ima-$LATEST_STABLE_IMA_VERSION-mainnet-abi.json" \
 MAINNET_CHAIN_ID=$MAINNET_CHAIN_ID \
 SAFE_ADDRESS=$SAFE_ADDRESS \
-MESSAGE_PROXY_MAINNET_ADDRESS=$MESSAGE_PROXY_MAINNET_ADDRESS \
 ALLOW_NOT_ATOMIC_UPGRADE="OK" \
 npx hardhat run migrations/upgradeSchain.ts --network custom
