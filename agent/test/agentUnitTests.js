@@ -19,7 +19,7 @@
  */
 
 /**
- * @file get_main_net.spec.js
+ * @file agentUnitTests.js
  * @copyright SKALE Labs 2019-Present
  */
 
