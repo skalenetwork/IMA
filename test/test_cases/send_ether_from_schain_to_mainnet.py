@@ -72,7 +72,7 @@ class SendEtherToMainnet(TestCase):
 
         transaction_fee = 6 * 10 ** 16
         approximate_gas_spends = 3 * 10 ** 15
-        extra_subtract_value = 1 * 10 ** 17 # 0
+        extra_subtract_value = 1 * 10 ** 17
 
         real_balance = self.blockchain.get_balance_on_mainnet(destination_address)
         print( 'Real balance.......', real_balance )
