@@ -20,11 +20,11 @@ Deploy process includes:
 
 3)  Preliminary deployed **Skale Manager** software with known address of **ContractManager** smart contract saved into the `proxy/data/skaleManagerComponents.json` file like shown in the following example:
 
-    ```json
-    {
-        "contract_manager_address": "0xe89d660C1a4642C12A2846e8AF4d3F76c6BDbeF2"
-    }
-    ```
+```json
+{
+    "contract_manager_address": "0xe89d660C1a4642C12A2846e8AF4d3F76c6BDbeF2"
+}
+```
 
 4)  `libBLS` command utilities
 
