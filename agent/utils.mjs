@@ -327,7 +327,7 @@ export function hexToBytes( strHex, isInversiveOrder ) { // convert a hex string
     for( i = 0, j = 0; i < cnt; ++j, i += 2 )
         arrBytes[j] = parseInt( strHex.substr( i, 2 ), 16 );
     if( isInversiveOrder )
-        invertArrayItemsLR( arrBytes );
+        return arrBytes.reverse();
     return arrBytes;
 }
 
@@ -394,10 +394,6 @@ export function bytesConcat( a1, a2 ) {
 
 export function toBuffer( ab ) {
     return Buffer.from( new Uint8Array( ab ) );
-}
-
-export function invertArrayItemsLR( arr ) {
-    return arr.reverse();
 }
 
 // see: https://developer.chrome.com/blog/how-to-convert-arraybuffer-to-and-from-string/

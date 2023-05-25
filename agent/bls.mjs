@@ -170,10 +170,10 @@ function hexPrepare( strHex, isInvertBefore, isInvertAfter ) {
         isInvertAfter = true;
     let arrBytes = imaUtils.hexToBytes( strHex );
     if( isInvertBefore )
-        arrBytes = imaUtils.invertArrayItemsLR( arrBytes );
+        arrBytes = arrBytes.reverse();
     arrBytes = imaUtils.bytesAlignLeftWithZeroes( arrBytes, 32 );
     if( isInvertAfter )
-        arrBytes = imaUtils.invertArrayItemsLR( arrBytes );
+        arrBytes = arrBytes.reverse();
     return arrBytes;
 }
 
@@ -225,9 +225,9 @@ export function keccak256U256( u256, isHash ) {
     let arrBytes = new Uint8Array();
 
     let bytesU256 = imaUtils.hexToBytes( u256 );
-    bytesU256 = imaUtils.invertArrayItemsLR( bytesU256 );
+    bytesU256 = bytesU256.reverse();
     bytesU256 = imaUtils.bytesAlignLeftWithZeroes( bytesU256, 32 );
-    bytesU256 = imaUtils.invertArrayItemsLR( bytesU256 );
+    bytesU256 = bytesU256.reverse();
     arrBytes = imaUtils.bytesConcat( arrBytes, bytesU256 );
 
     let strMessageHash = "";
@@ -244,23 +244,23 @@ export function keccak256ForPendingWorkAnalysis( nNodeNumber, strLoopWorkType, i
     let arrBytes = new Uint8Array();
 
     let bytesU256 = imaUtils.hexToBytes( nNodeNumber );
-    bytesU256 = imaUtils.invertArrayItemsLR( bytesU256 );
+    bytesU256 = bytesU256.reverse();
     bytesU256 = imaUtils.bytesAlignLeftWithZeroes( bytesU256, 32 );
-    bytesU256 = imaUtils.invertArrayItemsLR( bytesU256 );
+    bytesU256 = bytesU256.reverse();
     arrBytes = imaUtils.bytesConcat( arrBytes, bytesU256 );
 
     arrBytes = imaUtils.bytesConcat( arrBytes, stringToKeccak256( strLoopWorkType ) );
 
     bytesU256 = imaUtils.hexToBytes( isStart ? 1 : 0 );
-    bytesU256 = imaUtils.invertArrayItemsLR( bytesU256 );
+    bytesU256 = bytesU256.reverse();
     bytesU256 = imaUtils.bytesAlignLeftWithZeroes( bytesU256, 32 );
-    bytesU256 = imaUtils.invertArrayItemsLR( bytesU256 );
+    bytesU256 = bytesU256.reverse();
     arrBytes = imaUtils.bytesConcat( arrBytes, bytesU256 );
 
     bytesU256 = imaUtils.hexToBytes( ts );
-    bytesU256 = imaUtils.invertArrayItemsLR( bytesU256 );
+    bytesU256 = bytesU256.reverse();
     bytesU256 = imaUtils.bytesAlignLeftWithZeroes( bytesU256, 32 );
-    bytesU256 = imaUtils.invertArrayItemsLR( bytesU256 );
+    bytesU256 = bytesU256.reverse();
     arrBytes = imaUtils.bytesConcat( arrBytes, bytesU256 );
 
     const hash = new Keccak( 256 );
