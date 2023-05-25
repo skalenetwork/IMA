@@ -36,7 +36,7 @@ class Senderc1155ToMainnet(TestCase):
 
     def _prepare(self):
         sleep( 5 )
-        amountRecharge = 20 * 10 ** 18 # 2 * 10 ** 18
+        amountRecharge = 2 * 10 ** 18
         self.blockchain.recharge_user_wallet(self.config.mainnet_key, self.config.schain_name, amountRecharge)
         sleep( 5 )
         # deploy token
