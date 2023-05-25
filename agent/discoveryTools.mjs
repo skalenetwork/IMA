@@ -28,6 +28,7 @@ import * as log from "../npms/skale-log/log.mjs";
 import * as cc from "../npms/skale-cc/cc.mjs";
 import * as rpcCall from "./rpcCall.mjs";
 import * as IMA from "../npms/skale-ima/index.mjs";
+import * as skaleObserver from "../npms/skale-observer/observer.mjs";
 import * as state from "./state.mjs";
 import * as imaUtils from "./utils.mjs";
 
