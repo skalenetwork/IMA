@@ -27,7 +27,7 @@ import * as ws from "ws";
 import * as urllib from "urllib";
 import * as https from "https";
 import * as net from "net";
-import * as owaspUtils from "../npms/skale-owasp/owaspUtils.mjs";
+import { validateURL, isUrlWS } from "../npms/skale-owasp/owaspUtils.mjs";
 import * as log from "../npms/skale-log/log.mjs";
 import * as cc from "../npms/skale-cc/cc.mjs";
 
@@ -73,11 +73,11 @@ export async function waitWebSocketIsOpen( socket, fnDone, fnStep ) {
 export async function doConnect( joCall, opts, fn ) {
     try {
         fn = fn || async function() {};
-        if( !owaspUtils.validateURL( joCall.url ) ) {
+        if( !validateURL( joCall.url ) ) {
             throw new Error(
                 "JSON RPC CALLER cannot connect web socket to invalid URL: " + joCall.url );
         }
-        if( owaspUtils.isUrlWS( joCall.url ) ) {
+        if( isUrlWS( joCall.url ) ) {
             let strWsError = null;
             joCall.wsConn = new ws.WebSocket( joCall.url );
             joCall.wsConn.on( "open", async function() {
@@ -166,11 +166,11 @@ export async function doConnect( joCall, opts, fn ) {
 export async function doConnectIfNeeded( joCall, opts, fn ) {
     try {
         fn = fn || async function() {};
-        if( !owaspUtils.validateURL( joCall.url ) ) {
+        if( !validateURL( joCall.url ) ) {
             throw new Error(
                 "JSON RPC CALLER cannot connect web socket to invalid URL: " + joCall.url );
         }
-        if( owaspUtils.isUrlWS( joCall.url ) && ( !joCall.wsConn ) ) {
+        if( isUrlWS( joCall.url ) && ( !joCall.wsConn ) ) {
             await joCall.reconnect( fn );
             return;
         }
@@ -231,7 +231,7 @@ export async function doCall( joCall, joIn, fn ) {
         }, 200 * 1000 );
         joCall.wsConn.send( JSON.stringify( joIn ) );
     } else {
-        if( !owaspUtils.validateURL( joCall.url ) ) {
+        if( !validateURL( joCall.url ) ) {
             await fn(
                 joIn,
                 null,
@@ -353,7 +353,7 @@ export async function doCall( joCall, joIn, fn ) {
 }
 
 export async function rpcCallCreate( strURL, opts, fn ) {
-    if( !owaspUtils.validateURL( strURL ) )
+    if( !validateURL( strURL ) )
         throw new Error( "JSON RPC CALLER cannot create a call object invalid URL: " + strURL );
     fn = fn || async function() {};
     if( !( strURL && typeof strURL == "string" && strURL.length > 0 ) ) {

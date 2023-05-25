@@ -1057,16 +1057,6 @@ describe( "Agent Utils Module-1", function() {
             assert.equal( strPathTmpFile ? true : false, true );
         } );
 
-        it( "UTF8 encode/decode", function() {
-            const strSrc =
-                "Test string 123, Тестовая строка 123, 테스트 문자열 123, " +
-                "Cadena de prueba 123, テスト文字列123, Chaîne de test 123, " +
-                "Testzeichenfolge 123, 測試字符串123";
-            const arrBytes = imaUtils.encodeUTF8( strSrc );
-            const strDst = imaUtils.decodeUTF8( arrBytes );
-            assert.equal( strSrc, strDst );
-        } );
-
         it( "Compose S-Chain URL", function() {
             assert.equal(
                 imaUtils.composeSChainNodeUrl(
@@ -1181,15 +1171,6 @@ describe( "Agent Utils Module-2", function() {
             const arrBytesLeft = imaUtils.hexToBytes( strSrcLeft, false );
             const arrBytes = imaUtils.concatByte( arrBytesLeft, nSrcRight );
             const strDst = imaUtils.bytesToHex( arrBytes, false );
-            assert.equal( strDst, "baadf00d" );
-        } );
-
-        it( "Array/buffer conversion", function() {
-            const strSrc = "baadf00d";
-            const arrBytes =
-                imaUtils.toBuffer(
-                    imaUtils.toArrayBuffer( imaUtils.hexToBytes( strSrc, true ) ) );
-            const strDst = imaUtils.bytesToHex( arrBytes, true );
             assert.equal( strDst, "baadf00d" );
         } );
 

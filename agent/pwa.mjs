@@ -25,7 +25,7 @@
 
 import * as cc from "../npms/skale-cc/cc.mjs";
 import * as log from "../npms/skale-log/log.mjs";
-import * as owaspUtils from "../npms/skale-owasp/owaspUtils.mjs";
+import { extractErrorMessage } from "../npms/skale-owasp/owaspUtils.mjs";
 import * as rpcCall from "./rpcCall.mjs";
 import * as imaBLS from "./bls.mjs";
 import * as imaUtils from "./utils.mjs";
@@ -183,7 +183,7 @@ export async function checkOnLoopStart( imaState, strLoopWorkType, nIndexS2S ) {
     } catch ( err ) {
         if( log.verboseGet() >= log.verboseReversed().critical ) {
             log.write( cc.error( "Exception in PWA check on loop start: " ) +
-                cc.error( owaspUtils.extractErrorMessage( err ) ) +
+                cc.error( extractErrorMessage( err ) ) +
                 cc.error( ", stack is: " ) + "\n" + cc.stack( err.stack ) + "\n" );
         }
     }
@@ -249,7 +249,7 @@ export async function handleLoopStateArrived(
                 cc.error( " for node " ) + cc.info( nNodeNumber ) + cc.error( ", PWA state " ) +
                 cc.j( ( joNode && "pwaState" in joNode ) ? joNode.pwaState : "N/A" ) +
                 cc.error( ", arrived signature is " ) + cc.j( signature ) +
-                cc.error( ", error is: " ) + cc.error( owaspUtils.extractErrorMessage( err ) ) +
+                cc.error( ", error is: " ) + cc.error( extractErrorMessage( err ) ) +
                 cc.error( ", stack is: " ) + "\n" + cc.stack( err.stack ) + "\n" );
         }
     }
@@ -300,7 +300,7 @@ async function notifyOnLoopImpl( imaState, strLoopWorkType, nIndexS2S, isStart )
                                 cc.error( " notification RPC call to node #" ) +
                                 cc.info( i ) + cc.error( " with URL " ) + cc.u( strNodeURL ) +
                                 cc.error( ", error is: " ) +
-                                cc.error( owaspUtils.extractErrorMessage( err ) ) + "\n" );
+                                cc.error( extractErrorMessage( err ) ) + "\n" );
                         }
                         return;
                     }
@@ -322,7 +322,7 @@ async function notifyOnLoopImpl( imaState, strLoopWorkType, nIndexS2S, isStart )
                                 cc.error( " notification RPC call to node #" ) +
                                 cc.info( i ) + cc.error( " with URL " ) + cc.u( strNodeURL ) +
                                 cc.error( ", error is: " ) +
-                                cc.error( owaspUtils.extractErrorMessage( err ) ) + "\n" );
+                                cc.error( extractErrorMessage( err ) ) + "\n" );
                             }
                             await joCall.disconnect();
                             return;
@@ -342,7 +342,7 @@ async function notifyOnLoopImpl( imaState, strLoopWorkType, nIndexS2S, isStart )
     } catch ( err ) {
         if( log.verboseGet() >= log.verboseReversed().error ) {
             log.write( cc.error( "Exception in PWA notify on loop " ) + cc.attention( se ) +
-                cc.error( ": " ) + cc.error( owaspUtils.extractErrorMessage( err ) ) +
+                cc.error( ": " ) + cc.error( extractErrorMessage( err ) ) +
                 cc.error( ", stack is: " ) + "\n" + cc.stack( err.stack ) + "\n" );
         }
     }

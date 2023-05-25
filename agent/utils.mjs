@@ -310,82 +310,6 @@ export async function waitForClonedTokenAppearErc1155(
     tokenERC1155SC.address = "" + addressOnSChain;
 }
 
-export function encodeUTF8( s ) {
-    // marshals a string to an Uint8Array,
-    // see https://gist.github.com/pascaldekloe/62546103a1576803dade9269ccf76330
-    let i = 0; const arrBytes = new Uint8Array( s.length * 4 );
-    for( let ci = 0; ci != s.length; ci++ ) {
-        let c = s.charCodeAt( ci );
-        if( c < 128 ) {
-            arrBytes[i++] = c;
-            continue;
-        }
-        if( c < 2048 )
-            arrBytes[i++] = c >> 6 | 192; else {
-            if( c > 0xd7ff && c < 0xdc00 ) {
-                if( ++ci >= s.length )
-                    throw new Error( "UTF-8 encode: incomplete surrogate pair" );
-                const c2 = s.charCodeAt( ci );
-                if( c2 < 0xdc00 || c2 > 0xdfff ) {
-                    throw new Error(
-                        "UTF-8 encode: second surrogate character 0x" +
-                        c2.toString( 16 ) + " at index " + ci + " out of range"
-                    );
-                }
-                c = 0x10000 + ( ( c & 0x03ff ) << 10 ) + ( c2 & 0x03ff );
-                arrBytes[i++] = c >> 18 | 240;
-                arrBytes[i++] = c >> 12 & 63 | 128;
-            } else
-                arrBytes[i++] = c >> 12 | 224;
-            arrBytes[i++] = c >> 6 & 63 | 128;
-        }
-        arrBytes[i++] = c & 63 | 128;
-    }
-    return arrBytes.subarray( 0, i );
-}
-
-export function decodeUTF8( arrBytes ) {
-    // un-marshals a string from an Uint8Array,
-    // see https://gist.github.com/pascaldekloe/62546103a1576803dade9269ccf76330
-    let i = 0, s = "";
-    while( i < arrBytes.length ) {
-        let c = arrBytes[i++];
-        if( c > 127 ) {
-            if( c > 191 && c < 224 ) {
-                if( i >= arrBytes.length )
-                    throw new Error( "UTF-8 decode: incomplete 2-byte sequence" );
-                c = ( c & 31 ) << 6 | arrBytes[i++] & 63;
-            } else if( c > 223 && c < 240 ) {
-                if( i + 1 >= arrBytes.length )
-                    throw new Error( "UTF-8 decode: incomplete 3-byte sequence" );
-                c = ( c & 15 ) << 12 | ( arrBytes[i++] & 63 ) << 6 | arrBytes[i++] & 63;
-            } else if( c > 239 && c < 248 ) {
-                if( i + 2 >= arrBytes.length )
-                    throw new Error( "UTF-8 decode: incomplete 4-byte sequence" );
-                c = ( c & 7 ) <<
-                    18 | ( arrBytes[i++] & 63 ) << 12 |
-                    ( arrBytes[i++] & 63 ) << 6 | arrBytes[i++] & 63;
-            } else {
-                throw new Error(
-                    "UTF-8 decode: unknown multi-byte start 0x" +
-                    c.toString( 16 ) + " at index " + ( i - 1 )
-                );
-            }
-        }
-        if( c <= 0xffff )
-            s += String.fromCharCode( c ); else if( c <= 0x10ffff ) {
-            c -= 0x10000;
-            s += String.fromCharCode( c >> 10 | 0xd800 );
-            s += String.fromCharCode( c & 0x3FF | 0xdc00 );
-        } else {
-            throw new Error(
-                "UTF-8 decode: code point 0x" +
-                c.toString( 16 ) + " exceeds UTF-16 reach" );
-        }
-    }
-    return s;
-}
-
 export function hexToBytes( strHex, isInversiveOrder ) { // convert a hex string to a byte array
     isInversiveOrder = !!(
         ( isInversiveOrder != null && isInversiveOrder != undefined && isInversiveOrder )
@@ -428,10 +352,12 @@ export function bytesToHex( arrBytes, isInversiveOrder ) { // convert a byte arr
 }
 
 export function bytesAlignLeftWithZeroes( arrBytes, cntMin ) {
-    const arrOneZeroByte = new Uint8Array( 1 );
-    arrOneZeroByte[0] = 0;
-    while( arrBytes.length < cntMin )
-        arrBytes = bytesConcat( arrOneZeroByte, arrBytes );
+    if( arrBytes.length >= cntMin )
+        return arrBytes;
+    const cntNewZeros = cntMin - arrBytes.length;
+    // By default Uint8Array, Uint16Array and Uint32Array classes keep zeros as it's values.
+    const arrNewZeros = new Uint8Array( cntNewZeros );
+    arrBytes = bytesConcat( arrNewZeros, arrBytes );
     return arrBytes;
 }
 
@@ -466,34 +392,12 @@ export function bytesConcat( a1, a2 ) {
     return concatTypedArrays( a1, a2 );
 }
 
-export function toArrayBuffer( buf ) {
-    // see
-    // https://stackoverflow.com/questions/8609289
-    //          /convert-a-binary-nodejs-buffer-to-javascript-arraybuffer
-    const ab = new ArrayBuffer( buf.length );
-    const view = new Uint8Array( ab );
-    for( let i = 0; i < buf.length; ++i )
-        view[i] = buf[i];
-    return ab;
-}
-
 export function toBuffer( ab ) {
-    const buf = Buffer.alloc( ab.byteLength );
-    const view = new Uint8Array( ab );
-    for( let i = 0; i < buf.length; ++i )
-        buf[i] = view[i];
-    return buf;
+    return Buffer.from( new Uint8Array( ab ) );
 }
 
 export function invertArrayItemsLR( arr ) {
-    let i; const cnt = arr.length / 2;
-    for( i = 0; i < cnt; ++i ) {
-        const e1 = arr[i];
-        const e2 = arr[arr.length - i - 1];
-        arr[i] = e2;
-        arr[arr.length - i - 1] = e1;
-    }
-    return arr;
+    return arr.reverse();
 }
 
 // see: https://developer.chrome.com/blog/how-to-convert-arraybuffer-to-and-from-string/
