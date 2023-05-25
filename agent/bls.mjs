@@ -177,12 +177,12 @@ function hexPrepare( strHex, isInvertBefore, isInvertAfter ) {
     return arrBytes;
 }
 
-function s2ha( s ) {
+function stringToKeccak256( s ) {
     const strU256 = owaspUtils.ethersMod.ethers.utils.id( s );
     return hexPrepare( strU256, true, true );
 }
 
-function a2ha( arrBytes ) {
+function arrayToKeccak256( arrBytes ) {
     const k = new Keccak( 256 );
     k.update( imaUtils.toBuffer( arrBytes ) );
     const h = k.digest( "hex" );
@@ -190,7 +190,7 @@ function a2ha( arrBytes ) {
 }
 
 function keccak256Message( jarrMessages, nIdxCurrentMsgBlockStart, strFromChainName ) {
-    let arrBytes = s2ha( strFromChainName );
+    let arrBytes = stringToKeccak256( strFromChainName );
     arrBytes = imaUtils.bytesConcat(
         arrBytes,
         hexPrepare(
@@ -199,7 +199,7 @@ function keccak256Message( jarrMessages, nIdxCurrentMsgBlockStart, strFromChainN
             false
         )
     );
-    arrBytes = a2ha( arrBytes );
+    arrBytes = arrayToKeccak256( arrBytes );
     const cnt = jarrMessages.length;
     for( let i = 0; i < cnt; ++i ) {
         const joMessage = jarrMessages[i];
@@ -216,7 +216,7 @@ function keccak256Message( jarrMessages, nIdxCurrentMsgBlockStart, strFromChainN
 
         const bytesData = imaUtils.hexToBytes( joMessage.data );
         arrBytes = imaUtils.bytesConcat( arrBytes, bytesData );
-        arrBytes = a2ha( arrBytes );
+        arrBytes = arrayToKeccak256( arrBytes );
     }
     return owaspUtils.ensureStartsWith0x( imaUtils.bytesToHex( arrBytes, false ) );
 }
@@ -249,7 +249,7 @@ export function keccak256ForPendingWorkAnalysis( nNodeNumber, strLoopWorkType, i
     bytesU256 = imaUtils.invertArrayItemsLR( bytesU256 );
     arrBytes = imaUtils.bytesConcat( arrBytes, bytesU256 );
 
-    arrBytes = imaUtils.bytesConcat( arrBytes, s2ha( strLoopWorkType ) );
+    arrBytes = imaUtils.bytesConcat( arrBytes, stringToKeccak256( strLoopWorkType ) );
 
     bytesU256 = imaUtils.hexToBytes( isStart ? 1 : 0 );
     bytesU256 = imaUtils.invertArrayItemsLR( bytesU256 );
