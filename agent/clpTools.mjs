@@ -26,6 +26,7 @@
 import * as owaspUtils from "../npms/skale-owasp/owaspUtils.mjs";
 import * as log from "../npms/skale-log/log.mjs";
 import * as cc from "../npms/skale-cc/cc.mjs";
+import * as imaCLI from "./cli.mjs";
 import * as rpcCall from "./rpcCall.mjs";
 import * as state from "./state.mjs";
 import * as IMA from "../npms/skale-ima/index.mjs";
