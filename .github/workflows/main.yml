@@ -265,7 +265,7 @@ jobs:
         echo ------------ py3 wheel - pip
         pip3 install wheel
         echo ------------ slither analyzer install
-        pip3 install slither-analyzer==0.6.8
+        pip3 install slither-analyzer==0.8.3
         echo ------------ slither search attempt
         sudo find / -name slither || true
         echo ------------ slither location detection - after install

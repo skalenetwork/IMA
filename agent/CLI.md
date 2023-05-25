@@ -195,7 +195,6 @@ Token transfer operations require token amounts and/or token IDs:
     --no-wait-s-chain...............Do not wait until S-Chain is started.
     --max-wait-attempts=value.......Max number of S-Chain call attempts to do while it became alive and sane.
     --skip-dry-run..................Skip dry run contract method calls.
-    --ignore-dry-run................Ignore result of dry run contract method calls and continue execute.
     --dry-run.......................Use error results of dry run contract method calls as actual errors and stop execute.
     --m2s-transfer-block-size.......Number of transactions in one block to use in money transfer loop from Main-net to S-chain.
     --s2m-transfer-block-size.......Number of transactions in one block to use in money transfer loop from S-chain to Main-net.
