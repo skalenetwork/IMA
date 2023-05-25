@@ -362,10 +362,12 @@ export function bytesAlignLeftWithZeroes( arrBytes, cntMin ) {
 }
 
 export function bytesAlignRightWithZeroes( arrBytes, cntMin ) {
-    const arrOneZeroByte = new Uint8Array( 1 );
-    arrOneZeroByte[0] = 0;
-    while( arrBytes.length < cntMin )
-        arrBytes = bytesConcat( arrBytes, arrOneZeroByte );
+    if( arrBytes.length >= cntMin )
+        return arrBytes;
+    const cntNewZeros = cntMin - arrBytes.length;
+    // By default Uint8Array, Uint16Array and Uint32Array classes keep zeros as it's values.
+    const arrNewZeros = new Uint8Array( cntNewZeros );
+    arrBytes = bytesConcat( arrBytes, arrNewZeros );
     return arrBytes;
 }
 
@@ -394,20 +396,6 @@ export function bytesConcat( a1, a2 ) {
 
 export function toBuffer( ab ) {
     return Buffer.from( new Uint8Array( ab ) );
-}
-
-// see: https://developer.chrome.com/blog/how-to-convert-arraybuffer-to-and-from-string/
-export function ab2str( buf ) {
-    return String.fromCharCode.apply( null, new Uint16Array( buf ) );
-}
-
-export function str2ab( str ) {
-    const buf = new ArrayBuffer( str.length * 2 ); // 2 bytes for each char
-    const bufView = new Uint16Array( buf );
-    for( let i = 0, strLen = str.length; i < strLen; i ++ )
-        bufView[i] = str.charCodeAt( i );
-
-    return buf;
 }
 
 export function discoverCoinNameInJSON( jo ) {

@@ -919,16 +919,6 @@ function printHelpActionAdditional( soi ) {
         cc.notice( "Skip " ) + cc.note( "dry run" ) +
         cc.notice( " invocation before payed contract method calls." ) );
     console.log( soi + cc.debug( "--" ) +
-        cc.bright( "no-skip-dry-run" ) + cc.debug( "......................." ) +
-        cc.notice( "Invoke " ) + cc.note( "dry run" ) +
-        cc.notice( " before payed contract method calls." ) +
-        cc.debug( " Default behavior" ) + cc.notice( "." ) );
-    console.log( soi + cc.debug( "--" ) +
-        cc.bright( "ignore-dry-run" ) + cc.debug( "........................" ) +
-        cc.notice( "Ignore result of " ) + cc.note( "dry run" ) +
-        cc.notice( " contract method calls and continue execute." ) +
-        cc.debug( " Default behavior" ) + cc.notice( "." ) );
-    console.log( soi + cc.debug( "--" ) +
         cc.bright( "no-ignore-dry-run" ) + cc.debug( "....................." ) +
         cc.notice( "Use error results of " ) + cc.note( "dry run" ) +
         cc.notice( " contract method calls as actual errors and stop execute." ) );

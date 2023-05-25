@@ -43,9 +43,7 @@ class Agent:
         self._execute_command(
             'register',
             {
-                'colors': None,
-                'no-skip-dry-run': None,
-                'ignore-dry-run': None
+                'colors': None
             }
         )
 
@@ -72,9 +70,7 @@ class Agent:
             {
                 **self._wei_to_bigger(amount_wei),
                 'key-main-net': from_key,
-                'colors': None,
-                'no-skip-dry-run': None,
-                'ignore-dry-run': None
+                'colors': None
             }
         )
 
@@ -101,9 +97,7 @@ class Agent:
                 **self._wei_to_bigger(amount_wei),
                 'key-s-chain': from_key,
                 'key-main-net': to_key,
-                'colors': None,
-                'no-skip-dry-run': None,
-                'ignore-dry-run': None
+                'colors': None
             }
         )
 
@@ -125,9 +119,7 @@ class Agent:
             's2m-receive',
             {
                 'key-main-net': from_key,
-                'colors': None,
-                'no-skip-dry-run': None,
-                'ignore-dry-run': None
+                'colors': None
                 }
             )
 
@@ -157,9 +149,7 @@ class Agent:
                 'key-main-net': from_key,
                 'key-s-chain': to_key,
                 'erc20-main-net': erc20_config_filename,
-                'colors': None,
-                'no-skip-dry-run': None,
-                'ignore-dry-run': None
+                'colors': None
             }
         )
 
@@ -188,9 +178,7 @@ class Agent:
                 'key-main-net': from_key,
                 'key-s-chain': to_key,
                 'erc721-main-net': erc721_config_filename,
-                'colors': None,
-                'no-skip-dry-run': None,
-                'ignore-dry-run': None
+                'colors': None
             }
         )
 
@@ -220,9 +208,7 @@ class Agent:
                 'key-main-net': from_key,
                 'key-s-chain': to_key,
                 'erc1155-main-net': erc1155_config_filename,
-                'colors': None,
-                'no-skip-dry-run': None,
-                'ignore-dry-run': None
+                'colors': None
             }
         )
 
@@ -252,9 +238,7 @@ class Agent:
                 'key-main-net': from_key,
                 'key-s-chain': to_key,
                 'erc1155-main-net': erc1155_config_filename,
-                'colors': None,
-                'no-skip-dry-run': None,
-                'ignore-dry-run': None
+                'colors': None
             }
         )
 
@@ -294,9 +278,7 @@ class Agent:
                 'key-s-chain': from_key,
                 'erc20-main-net': erc20_config_filename,
                 'erc20-s-chain': erc20_clone_config_filename,
-                'colors': None,
-                'no-skip-dry-run': None,
-                'ignore-dry-run': None
+                'colors': None
             }
         )
 
@@ -331,9 +313,7 @@ class Agent:
                 'key-s-chain': from_key,
                 'erc721-main-net': erc721_config_filename,
                 'erc721-s-chain': erc721_clone_config_filename,
-                'colors': None,
-                'no-skip-dry-run': None,
-                'ignore-dry-run': None
+                'colors': None
             }
         )
 
@@ -368,9 +348,7 @@ class Agent:
                 'key-s-chain': from_key,
                 'erc1155-main-net': erc1155_config_filename,
                 'erc1155-s-chain': erc1155_clone_config_filename,
-                'colors': None,
-                'no-skip-dry-run': None,
-                'ignore-dry-run': None
+                'colors': None
             }
         )
 
@@ -405,9 +383,7 @@ class Agent:
                 'key-s-chain': from_key,
                 'erc1155-main-net': erc1155_config_filename,
                 'erc1155-s-chain': erc1155_clone_config_filename,
-                'colors': None,
-                'no-skip-dry-run': None,
-                'ignore-dry-run': None
+                'colors': None
             }
         )
 
@@ -455,8 +431,6 @@ class Agent:
             'gas-price-multiplier': '2.0',
             'gas-multiplier': '2.0',
             'colors': None,
-            'no-skip-dry-run': None,
-            'ignore-dry-run': None,
             'no-expose': None,
             'no-expose-pwa': None,
             'no-expose-security-info': None,
