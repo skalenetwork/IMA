@@ -1,5 +1,5 @@
 name: ima
-title: Ethereum <> SKALE Bridge
+title: SKALE IMA Bridge
 version: 1.0.x
 nav:
   - modules/ROOT/nav.adoc
