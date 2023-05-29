@@ -9,12 +9,13 @@ Next you need to grant `DEPLOYER_ROLE` for account that we have created in previ
 ## Getting sFuel
 Now you need to get some sFuel on your new account. To do this, you need to use a contract that distributes sFuel - `Etherbase`. As in the previous step, you can use Blockscout or transfer a sufficient amount of sFuel to the wallet you created earlier. In order to do this in Blockscout, you need to go to `0xd2bA3e0000000000000000000000000000000000` and find the `partiallyRetrieve` function, there will be two fields. In the "receiver" field, you need to enter the sFuel recipient, that is, the wallet address that you generated earlier. In the "amount" field, enter the amount of sFuel in Wei. It is important to note that only the owner of the chain can perform this transaction.
 ## Running upgrade script
-* `DEPLOYED_VERSION` - current version of your IMA contracts. Example: `DEPLOYED_VERSION="1.3.0-stable.0"`
+* `DEPLOYED_VERSION` - current version of your IMA contracts. Example: `DEPLOYED_VERSION="1.1.3-beta.0"`
 * `SCHAIN_ID` - chainId of SKALE chain.
 * `SCHAIN_NAME` - name of SKALE chain.
 * `SAFE_ADDRESS` - address of gnosis safe wallet on mainnet.
 * `MAINNET_CHAIN_ID` - chainId, use 1 for Ethereum mainnet or 5 for Goerli.
 * `MESSAGE_PROXY_MAINNET_ADDRESS` - address of MessageProxyForMainnet contract. Optional parameter. Required only if you have deployed custom IMA on mainnet.  
+* `ALLOW_NOT_ATOMIC_UPGRADE` - means that the transaction on the chain will not be executed atomically. That is, for example, if you send two transactions, there is a non-zero probability that they will be written to different blocks. Enter "OK" if you agree. 
 
 Run the upgrade script in `IMA/proxy/` with the above parameters.
 ```bash

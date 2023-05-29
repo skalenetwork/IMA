@@ -14,13 +14,13 @@ mv ima-schain-$DEPLOYED_VERSION-manifest.json ../.openzeppelin/unknown-$SCHAIN_I
 cd ..
 
 git clone https://github.com/skalenetwork/skale-network.git
-LATEST_STABLE_IMA_VERSION=$(ls skale-network/releases/mainnet/IMA/ | sort -r | head -n 1)
-cp skale-network/releases/mainnet/IMA/$LATEST_STABLE_IMA_VERSION/mainnet/abi.json data/ima-$LATEST_STABLE_IMA_VERSION-mainnet-abi.json
+MAINNET_STABLE_IMA_VERSION=$(ls skale-network/releases/mainnet/IMA/ | sort -r | head -n 1)
+cp skale-network/releases/mainnet/IMA/$MAINNET_STABLE_IMA_VERSION/mainnet/abi.json data/ima-$MAINNET_STABLE_IMA_VERSION-mainnet-abi.json
 rm -r --interactive=never skale-network/
 
 if [[ $MAINNET_CHAIN_ID != "1" ]]; then
     if [[ $MESSAGE_PROXY_MAINNET_ADDRESS ]]; then
-        sed -i '2s/.*/    "message_proxy_mainnet_address": "'"$MESSAGE_PROXY_MAINNET_ADDRESS"'",/' data/ima-$LATEST_STABLE_IMA_VERSION-mainnet-abi.json
+        sed -i '2s/.*/    "message_proxy_mainnet_address": "'"$MESSAGE_PROXY_MAINNET_ADDRESS"'",/' data/ima-$MAINNET_STABLE_IMA_VERSION-mainnet-abi.json
     else
         echo "Define MESSAGE_PROXY_MAINNET_ADDRESS."
         exit 1
@@ -32,8 +32,8 @@ fi
 
 SCHAIN_NAME=$SCHAIN_NAME \
 ABI="data/ima-$DEPLOYED_VERSION-predeployed-abi.json" \
-IMA_ABI="data/ima-$LATEST_STABLE_IMA_VERSION-mainnet-abi.json" \
+IMA_ABI="data/ima-$MAINNET_STABLE_IMA_VERSION-mainnet-abi.json" \
 MAINNET_CHAIN_ID=$MAINNET_CHAIN_ID \
 SAFE_ADDRESS=$SAFE_ADDRESS \
-ALLOW_NOT_ATOMIC_UPGRADE="OK" \
+ALLOW_NOT_ATOMIC_UPGRADE=$ALLOW_NOT_ATOMIC_UPGRADE \
 npx hardhat run migrations/upgradeSchain.ts --network custom
