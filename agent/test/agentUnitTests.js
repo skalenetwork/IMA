@@ -25,10 +25,14 @@
 
 const assert = require( "chai" ).assert;
 const expect = require( "chai" ).expect;
-const IMA = require( "../../npms/skale-ima" );
+const IMA = require( "../../npms/skale-ima/index.mjs" );
+const imaTx = require( "../../npms/skale-ima/imaTx.mjs" );
+const imaReg = require( "../../npms/skale-ima/imaRegistrationOperations.mjs" );
+const imaEth = require( "../../npms/skale-ima/imaEthOperations.mjs" );
+const imaToken = require( "../../npms/skale-ima/imaTokenOperations.mjs" );
 const w3mod = IMA.w3mod;
-const transactionCustomizerMainNet = IMA.getTransactionCustomizerForMainNet();
-const transactionCustomizerSChain = IMA.getTransactionCustomizerForSChain();
+const transactionCustomizerMainNet = imaTx.getTransactionCustomizerForMainNet();
+const transactionCustomizerSChain = imaTx.getTransactionCustomizerForSChain();
 
 const chainNameMainNet = "Mainnet";
 const chainNameSChain = "blah_blah_blah_schain_name"; // 1;
@@ -295,26 +299,16 @@ describe( "tests for `npms/skale-ima` 2", function() {
     it( "should return `false` invoke `checkIsRegisteredSChainInDepositBoxes`", async function() {
         let joLinker; // for `false` output
         // eslint-disable-next-line no-unused-expressions
-        expect( await IMA
-            .checkIsRegisteredSChainInDepositBoxes(
-                ethersProviderMainNet,
-                joLinker,
-                joMainNetAccount,
-                chainNameSChain
-            )
-        ).to.be.false;
+        expect( await imaReg.checkIsRegisteredSChainInDepositBoxes(
+            ethersProviderMainNet, joLinker, joMainNetAccount, chainNameSChain
+        ) ).to.be.false;
     } );
 
     it( "should return `true` invoke `checkIsRegisteredSChainInDepositBoxes`", async function() {
         // eslint-disable-next-line no-unused-expressions
-        expect( await IMA
-            .checkIsRegisteredSChainInDepositBoxes(
-                ethersProviderMainNet,
-                joLinker,
-                joMainNetAccount,
-                chainNameSChain
-            )
-        ).to.be.true;
+        expect( await imaReg.checkIsRegisteredSChainInDepositBoxes(
+            ethersProviderMainNet, joLinker, joMainNetAccount, chainNameSChain
+        ) ).to.be.true;
     } );
 
     it( "should return `false` invoke `registerSChainInDepositBoxes`", async function() {
@@ -327,137 +321,119 @@ describe( "tests for `npms/skale-ima` 2", function() {
         let joCommunityLocker; // only s-chain
         let joTokenManagerLinker;
         // eslint-disable-next-line no-unused-expressions
-        expect( await IMA
-            .registerSChainInDepositBoxes(
-                ethersProviderMainNet,
-                joLinker,
-                joMainNetAccount,
-                joTokenManagerETH, // only s-chain
-                joTokenManagerERC20, // only s-chain
-                joTokenManagerERC721, // only s-chain
-                joTokenManagerERC1155, // only s-chain
-                joTokenManagerERC721WithMetadata, // only s-chain
-                joCommunityLocker, // only s-chain
-                joTokenManagerLinker,
-                chainNameSChain,
-                chainNameMainNet,
-                transactionCustomizerMainNet,
-                1,
-                1000
-            )
-        ).to.be.false;
+        expect( await imaReg.registerSChainInDepositBoxes(
+            ethersProviderMainNet,
+            joLinker,
+            joMainNetAccount,
+            joTokenManagerETH, // only s-chain
+            joTokenManagerERC20, // only s-chain
+            joTokenManagerERC721, // only s-chain
+            joTokenManagerERC1155, // only s-chain
+            joTokenManagerERC721WithMetadata, // only s-chain
+            joCommunityLocker, // only s-chain
+            joTokenManagerLinker,
+            chainNameSChain,
+            chainNameMainNet,
+            transactionCustomizerMainNet,
+            1,
+            1000
+        ) ).to.be.false;
     } );
 
     it( "should return `false` invoke `doEthPaymentFromMainNet`", async function() {
         let joAccountSrc, wei_how_much; // for `false` output
         // eslint-disable-next-line no-unused-expressions
-        expect( await IMA
-            .doEthPaymentFromMainNet(
-                ethersProviderMainNet,
-                joAccountSrc,
-                joAccountDst,
-                joDepositBox,
-                chainNameSChain,
-                wei_how_much, // how much WEI money to send
-                transactionCustomizerMainNet
-            )
-        ).to.be.false;
+        expect( await imaEth.doEthPaymentFromMainNet(
+            ethersProviderMainNet,
+            joAccountSrc,
+            joAccountDst,
+            joDepositBox,
+            chainNameSChain,
+            wei_how_much, // how much WEI money to send
+            transactionCustomizerMainNet
+        ) ).to.be.false;
     } );
 
     it( "should return `true` invoke `doEthPaymentFromMainNet`", async function() {
         let wei_how_much;
         // eslint-disable-next-line no-unused-expressions
-        expect( await IMA
-            .doEthPaymentFromMainNet(
-                ethersProviderMainNet,
-                joAccountSrc,
-                joAccountDst,
-                joDepositBox,
-                chainNameSChain,
-                wei_how_much, // how much WEI money to send
-                transactionCustomizerMainNet
-            )
-        ).to.be.true;
+        expect( await imaEth.doEthPaymentFromMainNet(
+            ethersProviderMainNet,
+            joAccountSrc,
+            joAccountDst,
+            joDepositBox,
+            chainNameSChain,
+            wei_how_much, // how much WEI money to send
+            transactionCustomizerMainNet
+        ) ).to.be.true;
     } );
 
     it( "should return `false` invoke `doEthPaymentFromSChain`", async function() {
         let joAccountSrc, wei_how_much; // for `false` output
         // eslint-disable-next-line no-unused-expressions
-        expect( await IMA
-            .doEthPaymentFromSChain(
-                ethersProviderSChain,
-                joAccountSrc,
-                joAccountDst,
-                joTokenManager,
-                joLockAndDataSChain,
-                wei_how_much, // how much WEI money to send
-                transactionCustomizerSChain
-            )
-        ).to.be.false;
+        expect( await imaEth.doEthPaymentFromSChain(
+            ethersProviderSChain,
+            joAccountSrc,
+            joAccountDst,
+            joTokenManager,
+            joLockAndDataSChain,
+            wei_how_much, // how much WEI money to send
+            transactionCustomizerSChain
+        ) ).to.be.false;
     } );
 
     it( "should return `true` invoke `doEthPaymentFromSChain`", async function() {
         let wei_how_much;
         // eslint-disable-next-line no-unused-expressions
-        expect( await IMA
-            .doEthPaymentFromSChain(
-                ethersProviderSChain,
-                joAccountSrc,
-                joAccountDst,
-                joTokenManager,
-                joLockAndDataSChain,
-                wei_how_much, // how much WEI money to send
-                transactionCustomizerSChain
-            )
-        ).to.be.true;
+        expect( await imaEth.doEthPaymentFromSChain(
+            ethersProviderSChain,
+            joAccountSrc,
+            joAccountDst,
+            joTokenManager,
+            joLockAndDataSChain,
+            wei_how_much, // how much WEI money to send
+            transactionCustomizerSChain
+        ) ).to.be.true;
     } );
 
     it( "should return `false` invoke `receiveEthPaymentFromSchainOnMainNet`", async function() {
         let joMainNetAccount; // for `false` output
         // eslint-disable-next-line no-unused-expressions
-        expect( await IMA
-            .receiveEthPaymentFromSchainOnMainNet(
-                ethersProviderMainNet,
-                joMainNetAccount,
-                joLockAndDataMainNet,
-                transactionCustomizerMainNet
-            )
-        ).to.be.false;
+        expect( await imaEth.receiveEthPaymentFromSchainOnMainNet(
+            ethersProviderMainNet,
+            joMainNetAccount,
+            joLockAndDataMainNet,
+            transactionCustomizerMainNet
+        ) ).to.be.false;
     } );
 
     it( "should return `true` invoke `receiveEthPaymentFromSchainOnMainNet`", async function() {
         // eslint-disable-next-line no-unused-expressions
-        expect( await IMA
-            .receiveEthPaymentFromSchainOnMainNet(
-                ethersProviderMainNet,
-                joMainNetAccount,
-                joLockAndDataMainNet,
-                transactionCustomizerMainNet
-            )
-        ).to.be.true;
+        expect( await imaEth.receiveEthPaymentFromSchainOnMainNet(
+            ethersProviderMainNet,
+            joMainNetAccount,
+            joLockAndDataMainNet,
+            transactionCustomizerMainNet
+        ) ).to.be.true;
     } );
 
     it( "should return `null` invoke `viewEthPaymentFromSchainOnMainNet`", async function() {
         let joMainNetAccount; // for `false` output
         // eslint-disable-next-line no-unused-expressions
-        expect( await IMA
-            .viewEthPaymentFromSchainOnMainNet(
-                ethersProviderMainNet,
-                joMainNetAccount,
-                joLockAndDataMainNet
-            )
-        ).to.be.null;
+        expect( await imaEth.viewEthPaymentFromSchainOnMainNet(
+            ethersProviderMainNet,
+            joMainNetAccount,
+            joLockAndDataMainNet
+        ) ).to.be.null;
     } );
 
     it( "should return `true` invoke `viewEthPaymentFromSchainOnMainNet`", async function() {
         // eslint-disable-next-line no-unused-expressions
-        expect( await IMA
-            .viewEthPaymentFromSchainOnMainNet(
-                ethersProviderMainNet,
-                joMainNetAccount,
-                joLockAndDataMainNet
-            )
-        ).to.be.true;
+        expect( await imaEth.viewEthPaymentFromSchainOnMainNet(
+            ethersProviderMainNet,
+            joMainNetAccount,
+            joLockAndDataMainNet
+        ) ).to.be.true;
     } );
 
 } );
@@ -471,23 +447,21 @@ describe( "tests for `npms/skale-ima` 3", function() {
         let strCoinNameErc20SChain;
         let erc20PrivateTestnetJsonSChain;
         // eslint-disable-next-line no-unused-expressions
-        expect( await IMA
-            .doErc20PaymentFromMainNet(
-                ethersProviderMainNet,
-                ethersProviderSChain,
-                joAccountSrc,
-                joAccountDst,
-                joDepositBox,
-                chainNameSChain,
-                nAmountOfToken, // how much ERC20 tokens to send
-                joTokenManager, // only s-chain
-                strCoinNameErc20MainNet,
-                erc20PrivateTestnetJsonMainNet,
-                strCoinNameErc20SChain,
-                erc20PrivateTestnetJsonSChain,
-                transactionCustomizerMainNet
-            )
-        ).to.be.false;
+        expect( await imaToken.doErc20PaymentFromMainNet(
+            ethersProviderMainNet,
+            ethersProviderSChain,
+            joAccountSrc,
+            joAccountDst,
+            joDepositBox,
+            chainNameSChain,
+            nAmountOfToken, // how much ERC20 tokens to send
+            joTokenManager, // only s-chain
+            strCoinNameErc20MainNet,
+            erc20PrivateTestnetJsonMainNet,
+            strCoinNameErc20SChain,
+            erc20PrivateTestnetJsonSChain,
+            transactionCustomizerMainNet
+        ) ).to.be.false;
     } );
 
     it( "should return `false` invoke `doErc20PaymentFromSChain`", async function() {
@@ -497,23 +471,21 @@ describe( "tests for `npms/skale-ima` 3", function() {
         let strCoinNameErc20SChain;
         let joErc20SChain;
         // eslint-disable-next-line no-unused-expressions
-        expect( await IMA
-            .doErc20PaymentFromSChain(
-                ethersProviderMainNet,
-                ethersProviderSChain,
-                joAccountSrc,
-                joAccountDst,
-                joTokenManager, // only s-chain
-                joLockAndDataSChain,
-                joDepositBox, // only main net
-                nAmountOfToken, // how much ERC20 tokens to send
-                strCoinNameErc20MainNet,
-                joErc20MainNet,
-                strCoinNameErc20SChain,
-                joErc20SChain,
-                transactionCustomizerSChain
-            )
-        ).to.be.false;
+        expect( await imaToken.doErc20PaymentFromSChain(
+            ethersProviderMainNet,
+            ethersProviderSChain,
+            joAccountSrc,
+            joAccountDst,
+            joTokenManager, // only s-chain
+            joLockAndDataSChain,
+            joDepositBox, // only main net
+            nAmountOfToken, // how much ERC20 tokens to send
+            strCoinNameErc20MainNet,
+            joErc20MainNet,
+            strCoinNameErc20SChain,
+            joErc20SChain,
+            transactionCustomizerSChain
+        ) ).to.be.false;
     } );
 
     it( "should return `false` invoke `doTransfer`", async function() {
@@ -531,32 +503,30 @@ describe( "tests for `npms/skale-ima` 3", function() {
             cntChainsKnownForS2S: 0
         };
         // eslint-disable-next-line no-unused-expressions
-        expect( await IMA
-            .doTransfer(
-                "M2S",
-                joRuntimeOpts,
-                ethersProviderSrc,
-                joMessageProxySrc,
-                joAccountSrc,
-                ethersProviderDst,
-                joMessageProxyDst,
-                joAccountDst,
-                chainNameSrc,
-                chainNameDst,
-                -4,
-                -4,
-                null, // joDepositBox - for logs validation on mainnet
-                null, // joTokenManager - for logs validation on s-chain
-                nTransactionsCountInBlock,
-                nTransferSteps,
-                nMaxTransactionsCount,
-                nBlockAwaitDepth,
-                nBlockAge,
-                null,
-                transactionCustomizerMainNet, // or transactionCustomizerSChain
-                null
-            )
-        ).to.be.false;
+        expect( await IMA.doTransfer(
+            "M2S",
+            joRuntimeOpts,
+            ethersProviderSrc,
+            joMessageProxySrc,
+            joAccountSrc,
+            ethersProviderDst,
+            joMessageProxyDst,
+            joAccountDst,
+            chainNameSrc,
+            chainNameDst,
+            -4,
+            -4,
+            null, // joDepositBox - for logs validation on mainnet
+            null, // joTokenManager - for logs validation on s-chain
+            nTransactionsCountInBlock,
+            nTransferSteps,
+            nMaxTransactionsCount,
+            nBlockAwaitDepth,
+            nBlockAge,
+            null,
+            transactionCustomizerMainNet, // or transactionCustomizerSChain
+            null
+        ) ).to.be.false;
     } );
 
     it( "should return `true` invoke `doTransfer`", async function() {
@@ -573,31 +543,29 @@ describe( "tests for `npms/skale-ima` 3", function() {
             cntChainsKnownForS2S: 0
         };
         // eslint-disable-next-line no-unused-expressions
-        expect( await IMA
-            .doTransfer(
-                "M2S",
-                joRuntimeOpts,
-                ethersProviderSrc,
-                joMessageProxySrc,
-                joAccountSrc,
-                ethersProviderDst,
-                joMessageProxyDst,
-                joAccountDst,
-                chainNameSrc,
-                chainNameDst,
-                -4,
-                -4,
-                null, // joDepositBox - for logs validation on mainnet
-                null, // joTokenManager - for logs validation on s-chain
-                nTransactionsCountInBlock,
-                nTransferSteps,
-                nMaxTransactionsCount,
-                nBlockAwaitDepth,
-                nBlockAge,
-                null,
-                transactionCustomizerMainNet, // or transactionCustomizerSChain
-                null
-            )
-        ).to.be.true;
+        expect( await IMA.doTransfer(
+            "M2S",
+            joRuntimeOpts,
+            ethersProviderSrc,
+            joMessageProxySrc,
+            joAccountSrc,
+            ethersProviderDst,
+            joMessageProxyDst,
+            joAccountDst,
+            chainNameSrc,
+            chainNameDst,
+            -4,
+            -4,
+            null, // joDepositBox - for logs validation on mainnet
+            null, // joTokenManager - for logs validation on s-chain
+            nTransactionsCountInBlock,
+            nTransferSteps,
+            nMaxTransactionsCount,
+            nBlockAwaitDepth,
+            nBlockAge,
+            null,
+            transactionCustomizerMainNet, // or transactionCustomizerSChain
+            null
+        ) ).to.be.true;
     } );
 } );

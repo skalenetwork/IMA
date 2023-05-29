@@ -30,6 +30,12 @@ import * as imaCLI from "./cli.mjs";
 import * as rpcCall from "./rpcCall.mjs";
 import * as state from "./state.mjs";
 import * as IMA from "../npms/skale-ima/index.mjs";
+import * as imaHelperAPIs from "../npms/skale-ima/imaHelperAPIs.mjs";
+import * as imaGasUsage from "../npms/skale-ima/imaGasUsageOperations.mjs";
+import * as imaReimbursement from "../npms/skale-ima/imaReimbursementOperations.mjs";
+import * as imaReg from "../npms/skale-ima/imaRegistrationOperations.mjs";
+import * as imaEth from "../npms/skale-ima/imaEthOperations.mjs";
+import * as imaToken from "../npms/skale-ima/imaTokenOperations.mjs";
 import * as skaleObserver from "../npms/skale-observer/observer.mjs";
 import * as discoveryTools from "./discoveryTools.mjs";
 import * as loop from "./loop.mjs";
@@ -60,7 +66,7 @@ export async function registerStep1( isPrintSummaryRegistrationCosts ) {
     const strLogPrefix = cc.info( "Reg 1:" ) + " ";
     if( log.verboseGet() >= log.verboseReversed().information )
         log.write( strLogPrefix + cc.debug( "Will check chain registration now..." ) + "\n" );
-    let bSuccess = await IMA.checkIsRegisteredSChainInDepositBoxes( // step 1
+    let bSuccess = await imaReg.checkIsRegisteredSChainInDepositBoxes( // step 1
         imaState.chainProperties.mn.ethersProvider,
         imaState.joLinker,
         imaState.chainProperties.mn.joAccount,
@@ -74,7 +80,7 @@ export async function registerStep1( isPrintSummaryRegistrationCosts ) {
     if( bSuccess )
         return true;
     const jarrReceipts =
-        await IMA.registerSChainInDepositBoxes( // step 1
+        await imaReg.registerSChainInDepositBoxes( // step 1
             imaState.chainProperties.mn.ethersProvider,
             imaState.joLinker,
             imaState.chainProperties.mn.joAccount,
@@ -116,7 +122,7 @@ export async function registerStep1( isPrintSummaryRegistrationCosts ) {
 export async function checkRegistrationStep1() {
     const imaState = state.get();
     imaCLI.initContracts();
-    const bRetVal = await IMA.checkIsRegisteredSChainInDepositBoxes( // step 1
+    const bRetVal = await imaReg.checkIsRegisteredSChainInDepositBoxes( // step 1
         imaState.chainProperties.mn.ethersProvider,
         imaState.joLinker,
         imaState.chainProperties.mn.joAccount,
@@ -126,16 +132,10 @@ export async function checkRegistrationStep1() {
 }
 
 export function printSummaryRegistrationCosts( details ) {
-    IMA.printGasUsageReportFromArray(
-        "Main Net REGISTRATION",
-        gInfoRegistrationCost.mn,
-        details
-    );
-    IMA.printGasUsageReportFromArray(
-        "S-Chain REGISTRATION",
-        gInfoRegistrationCost.sc,
-        details
-    );
+    imaGasUsage.printGasUsageReportFromArray(
+        "Main Net REGISTRATION", gInfoRegistrationCost.mn, details );
+    imaGasUsage.printGasUsageReportFromArray(
+        "S-Chain REGISTRATION", gInfoRegistrationCost.sc, details );
 }
 
 export function commandLineTaskRegister() {
@@ -205,7 +205,7 @@ export function commandLineTaskMintErc20() {
                     const strAddressMintTo = // same as caller/transaction signer
                         imaState.chainProperties.tc.joAccount.address();
                     bMintIsOK =
-                        await IMA.mintErc20(
+                        await imaToken.mintErc20(
                             imaState.chainProperties.tc.ethersProvider,
                             imaState.chainProperties.tc.chainId,
                             imaState.chainProperties.tc.strChainName,
@@ -244,7 +244,7 @@ export function commandLineTaskMintErc721() {
                         for( let i = 0; i < idTokens.length; ++ i ) {
                             const idToken = idTokens[i];
                             bMintIsOK =
-                                await IMA.mintErc721(
+                                await imaToken.mintErc721(
                                     imaState.chainProperties.tc.ethersProvider,
                                     imaState.chainProperties.tc.chainId,
                                     imaState.chainProperties.tc.strChainName,
@@ -285,7 +285,7 @@ export function commandLineTaskMintErc1155() {
                         for( let i = 0; i < idTokens.length; ++ i ) {
                             const idToken = idTokens[i];
                             bMintIsOK =
-                                await IMA.mintErc1155(
+                                await imaToken.mintErc1155(
                                     imaState.chainProperties.tc.ethersProvider,
                                     imaState.chainProperties.tc.chainId,
                                     imaState.chainProperties.tc.strChainName,
@@ -323,7 +323,7 @@ export function commandLineTaskBurnErc20() {
                     const strAddressBurnFrom = // same as caller/transaction signer
                         imaState.chainProperties.tc.joAccount.address();
                     bBurnIsOK =
-                        await IMA.burnErc20(
+                        await imaToken.burnErc20(
                             imaState.chainProperties.tc.ethersProvider,
                             imaState.chainProperties.tc.chainId,
                             imaState.chainProperties.tc.strChainName,
@@ -362,7 +362,7 @@ export function commandLineTaskBurnErc721() {
                         for( let i = 0; i < idTokens.length; ++ i ) {
                             const idToken = idTokens[i];
                             bBurnIsOK =
-                                await IMA.burnErc721(
+                                await imaToken.burnErc721(
                                     imaState.chainProperties.tc.ethersProvider,
                                     imaState.chainProperties.tc.chainId,
                                     imaState.chainProperties.tc.strChainName,
@@ -404,7 +404,7 @@ export function commandLineTaskBurnErc1155() {
                         for( let i = 0; i < idTokens.length; ++ i ) {
                             const idToken = idTokens[i];
                             bBurnIsOK =
-                                await IMA.burnErc1155(
+                                await imaToken.burnErc1155(
                                     imaState.chainProperties.tc.ethersProvider,
                                     imaState.chainProperties.tc.chainId,
                                     imaState.chainProperties.tc.strChainName,
@@ -439,13 +439,13 @@ export async function commandLineTaskShowBalanceEth(
     if( imaState.chainProperties.mn.ethersProvider ) {
         arrBalancesMN.push( {
             "assetName": "RealETH",
-            "balance": await IMA.getBalanceEth( true, // isMainNet
+            "balance": await imaEth.getBalanceEth( true, // isMainNet
                 imaState.chainProperties.mn.ethersProvider,
                 imaState.chainProperties.mn.chainId, imaState.chainProperties.mn.joAccount )
         } );
         arrBalancesMN.push( {
             "assetName": "CanReceiveETH",
-            "balance": await IMA.viewEthPaymentFromSchainOnMainNet(
+            "balance": await imaEth.viewEthPaymentFromSchainOnMainNet(
                 imaState.chainProperties.mn.ethersProvider,
                 imaState.chainProperties.mn.joAccount, imaState.joDepositBoxETH )
         } );
@@ -459,13 +459,13 @@ export async function commandLineTaskShowBalanceEth(
         arrBalancesSC.push( {
             "assetName": "S-Chain Real ETH as ERC20",
             "assetAddress": assetAddress,
-            "balance": await IMA.getBalanceEth( false, // isMainNet
+            "balance": await imaEth.getBalanceEth( false, // isMainNet
                 imaState.chainProperties.sc.ethersProvider, imaState.chainProperties.sc.chainId,
                 imaState.chainProperties.sc.joAccount, imaState.joEthErc20 )
         } );
         arrBalancesSC.push( {
             "assetName": "S-Chain ETH Fuel",
-            "balance": await IMA.getBalanceEth( true, // isMainNet=true here, but we call S-Chain
+            "balance": await imaEth.getBalanceEth( true, // isMainNet=true here, but we call S-Chain
                 imaState.chainProperties.sc.ethersProvider,
                 imaState.chainProperties.sc.chainId, imaState.chainProperties.sc.joAccount )
         } );
@@ -474,13 +474,13 @@ export async function commandLineTaskShowBalanceEth(
         arrBalancesSC.push( {
             "assetName": "Target S-Chain Real ETH as ERC20",
             "assetAddress": assetAddress,
-            "balance": await IMA.getBalanceEth( false, // isMainNet
+            "balance": await imaEth.getBalanceEth( false, // isMainNet
                 imaState.chainProperties.tc.ethersProvider, imaState.chainProperties.sc.chainId,
                 imaState.chainProperties.tc.joAccount, imaState.joEthErc20 )
         } );
         arrBalancesTC.push( {
             "assetName": "Target S-Chain ETH Fuel",
-            "balance": await IMA.getBalanceEth( true, // isMainNet=true here, but we call S-Chain
+            "balance": await imaEth.getBalanceEth( true, // isMainNet=true here, but we call S-Chain
                 imaState.chainProperties.tc.ethersProvider,
                 imaState.chainProperties.tc.chainId, imaState.chainProperties.tc.joAccount )
         } );
@@ -502,7 +502,7 @@ export async function commandLineTaskShowBalanceErc20(
         arrBalancesMN.push( {
             "assetName": "ERC20",
             "assetAddress": assetAddress,
-            "balance": await IMA.getBalanceErc20( true, // isMainNet
+            "balance": await imaToken.getBalanceErc20( true, // isMainNet
                 imaState.chainProperties.mn.ethersProvider, imaState.chainProperties.mn.chainId,
                 imaState.chainProperties.mn.joAccount,
                 imaState.chainProperties.mn.strCoinNameErc20,
@@ -519,7 +519,7 @@ export async function commandLineTaskShowBalanceErc20(
         arrBalancesSC.push( {
             "assetName": "ERC20",
             "assetAddress": assetAddress,
-            "balance": await IMA.getBalanceErc20( false, // isMainNet
+            "balance": await imaToken.getBalanceErc20( false, // isMainNet
                 imaState.chainProperties.sc.ethersProvider, imaState.chainProperties.sc.chainId,
                 imaState.chainProperties.sc.joAccount,
                 imaState.chainProperties.sc.strCoinNameErc20,
@@ -536,7 +536,7 @@ export async function commandLineTaskShowBalanceErc20(
         arrBalancesTC.push( {
             "assetName": "ERC20",
             "assetAddress": assetAddress,
-            "balance": await IMA.getBalanceErc20( true, // isMainNet
+            "balance": await imaToken.getBalanceErc20( true, // isMainNet
                 imaState.chainProperties.tc.ethersProvider, imaState.chainProperties.mn.chainId,
                 imaState.chainProperties.tc.joAccount,
                 imaState.chainProperties.tc.strCoinNameErc20,
@@ -563,7 +563,7 @@ export async function commandLineTaskShowBalanceErc721(
                 "assetName": "ERC721",
                 "assetAddress": assetAddress,
                 "idToken": idToken,
-                "owner": await IMA.getOwnerOfErc721( true, // isMainNet
+                "owner": await imaToken.getOwnerOfErc721( true, // isMainNet
                     imaState.chainProperties.mn.ethersProvider,
                     imaState.chainProperties.mn.chainId,
                     imaState.chainProperties.mn.joAccount,
@@ -585,7 +585,7 @@ export async function commandLineTaskShowBalanceErc721(
                 "assetName": "ERC721",
                 "assetAddress": assetAddress,
                 "idToken": idToken,
-                "owner": await IMA.getOwnerOfErc721( false, // isMainNet
+                "owner": await imaToken.getOwnerOfErc721( false, // isMainNet
                     imaState.chainProperties.sc.ethersProvider,
                     imaState.chainProperties.sc.chainId,
                     imaState.chainProperties.sc.joAccount,
@@ -607,7 +607,7 @@ export async function commandLineTaskShowBalanceErc721(
                 "assetName": "ERC721",
                 "assetAddress": assetAddress,
                 "idToken": idToken,
-                "owner": await IMA.getOwnerOfErc721( false, // isMainNet
+                "owner": await imaToken.getOwnerOfErc721( false, // isMainNet
                     imaState.chainProperties.tc.ethersProvider,
                     imaState.chainProperties.tc.chainId,
                     imaState.chainProperties.tc.joAccount,
@@ -636,7 +636,7 @@ export async function commandLineTaskShowBalanceErc1155(
                 "assetName": "ERC1155",
                 "assetAddress": assetAddress,
                 "idToken": idToken,
-                "balance": await IMA.getBalanceErc1155( true, // isMainNet
+                "balance": await imaToken.getBalanceErc1155( true, // isMainNet
                     imaState.chainProperties.mn.ethersProvider,
                     imaState.chainProperties.mn.chainId,
                     imaState.chainProperties.mn.joAccount,
@@ -658,7 +658,7 @@ export async function commandLineTaskShowBalanceErc1155(
                 "assetName": "ERC1155",
                 "assetAddress": assetAddress,
                 "idToken": idToken,
-                "balance": await IMA.getBalanceErc1155( false, // isMainNet
+                "balance": await imaToken.getBalanceErc1155( false, // isMainNet
                     imaState.chainProperties.sc.ethersProvider,
                     imaState.chainProperties.sc.chainId,
                     imaState.chainProperties.sc.joAccount,
@@ -680,7 +680,7 @@ export async function commandLineTaskShowBalanceErc1155(
                 "assetName": "ERC1155",
                 "assetAddress": assetAddress,
                 "idToken": idToken,
-                "balance": await IMA.getBalanceErc1155( false, // isMainNet
+                "balance": await imaToken.getBalanceErc1155( false, // isMainNet
                     imaState.chainProperties.tc.ethersProvider,
                     imaState.chainProperties.tc.chainId,
                     imaState.chainProperties.tc.joAccount,
@@ -762,7 +762,7 @@ export function commandLineTaskPaymentM2S() {
                     log.write( cc.info( "one M->S single ERC721 payment: " ) +
                         cc.sunny( imaState.idToken ) + "\n" );
                 }
-                return await IMA.doErc721PaymentFromMainNet(
+                return await imaToken.doErc721PaymentFromMainNet(
                     imaState.chainProperties.mn.ethersProvider,
                     imaState.chainProperties.sc.ethersProvider,
                     imaState.chainProperties.mn.chainId,
@@ -792,7 +792,7 @@ export function commandLineTaskPaymentM2S() {
                     log.write( cc.info( "one M->S single ERC20 payment: " ) +
                         cc.sunny( imaState.nAmountOfToken ) + "\n" );
                 }
-                return await IMA.doErc20PaymentFromMainNet(
+                return await imaToken.doErc20PaymentFromMainNet(
                     imaState.chainProperties.mn.ethersProvider,
                     imaState.chainProperties.sc.ethersProvider,
                     imaState.chainProperties.mn.chainId,
@@ -833,7 +833,7 @@ export function commandLineTaskPaymentM2S() {
                         cc.sunny( imaState.idToken ) + " " +
                         cc.sunny( imaState.nAmountOfToken ) + "\n" );
                 }
-                return await IMA.doErc1155PaymentFromMainNet(
+                return await imaToken.doErc1155PaymentFromMainNet(
                     imaState.chainProperties.mn.ethersProvider,
                     imaState.chainProperties.sc.ethersProvider,
                     imaState.chainProperties.mn.chainId,
@@ -875,7 +875,7 @@ export function commandLineTaskPaymentM2S() {
                         cc.sunny( imaState.idTokens ) + " " +
                         cc.sunny( imaState.arrAmountsOfTokens ) + "\n" );
                 }
-                return await IMA.doErc1155BatchPaymentFromMainNet(
+                return await imaToken.doErc1155BatchPaymentFromMainNet(
                     imaState.chainProperties.mn.ethersProvider,
                     imaState.chainProperties.sc.ethersProvider,
                     imaState.chainProperties.mn.chainId,
@@ -901,7 +901,7 @@ export function commandLineTaskPaymentM2S() {
                 log.write( cc.info( "one M->S single ETH payment: " ) +
                     cc.sunny( imaState.nAmountOfWei ) + "\n" );
             }
-            return await IMA.doEthPaymentFromMainNet(
+            return await imaEth.doEthPaymentFromMainNet(
                 imaState.chainProperties.mn.ethersProvider,
                 imaState.chainProperties.mn.chainId,
                 imaState.chainProperties.mn.joAccount,
@@ -927,7 +927,7 @@ export function commandLineTaskPaymentS2M() {
                     log.write( cc.info( "one S->M single ERC721 payment: " ) +
                         cc.sunny( imaState.idToken ) + "\n" );
                 }
-                return await IMA.doErc721PaymentFromSChain(
+                return await imaToken.doErc721PaymentFromSChain(
                     imaState.chainProperties.mn.ethersProvider,
                     imaState.chainProperties.sc.ethersProvider,
                     imaState.chainProperties.mn.chainId,
@@ -956,7 +956,7 @@ export function commandLineTaskPaymentS2M() {
                     log.write( cc.info( "one S->M single ERC20 payment: " ) +
                         cc.sunny( imaState.nAmountOfToken ) + "\n" );
                 }
-                return await IMA.doErc20PaymentFromSChain(
+                return await imaToken.doErc20PaymentFromSChain(
                     imaState.chainProperties.mn.ethersProvider,
                     imaState.chainProperties.sc.ethersProvider,
                     imaState.chainProperties.mn.chainId,
@@ -996,7 +996,7 @@ export function commandLineTaskPaymentS2M() {
                         cc.sunny( imaState.idToken ) + " " +
                         cc.sunny( imaState.nAmountOfToken ) + "\n" );
                 }
-                return await IMA.doErc1155PaymentFromSChain(
+                return await imaToken.doErc1155PaymentFromSChain(
                     imaState.chainProperties.mn.ethersProvider,
                     imaState.chainProperties.sc.ethersProvider,
                     imaState.chainProperties.mn.chainId,
@@ -1037,7 +1037,7 @@ export function commandLineTaskPaymentS2M() {
                         cc.sunny( imaState.idTokens ) + " " +
                         cc.sunny( imaState.arrAmountsOfTokens ) + "\n" );
                 }
-                return await IMA.doErc1155BatchPaymentFromSChain(
+                return await imaToken.doErc1155BatchPaymentFromSChain(
                     imaState.chainProperties.mn.ethersProvider,
                     imaState.chainProperties.sc.ethersProvider,
                     imaState.chainProperties.mn.chainId,
@@ -1062,7 +1062,7 @@ export function commandLineTaskPaymentS2M() {
                 log.write( cc.info( "one S->M single ETH payment: " ) +
                     cc.sunny( imaState.nAmountOfWei ) + "\n" );
             }
-            return await IMA.doEthPaymentFromSChain(
+            return await imaEth.doEthPaymentFromSChain(
                 imaState.chainProperties.sc.ethersProvider,
                 imaState.chainProperties.sc.chainId,
                 imaState.chainProperties.sc.joAccount,
@@ -1081,7 +1081,7 @@ export function commandLineTaskPaymentS2S() {
     imaState.arrActions.push( {
         "name": "one S->S single payment",
         "fn": async function() {
-            const isForward = IMA.isForwardS2S();
+            const isForward = imaHelperAPIs.isForwardS2S();
             const sc = imaState.chainProperties.sc, tc = imaState.chainProperties.tc;
             const ethersProviderSrc = isForward ? sc.ethersProvider : tc.ethersProvider;
             const chainIdSrc = isForward ? sc.chainId : tc.chainId;
@@ -1137,7 +1137,7 @@ export function commandLineTaskPaymentS2S() {
                     log.write( cc.info( "one S->S single ERC721 payment: " ) +
                         cc.sunny( imaState.idToken ) + "\n" );
                 }
-                return await IMA.doErc721PaymentS2S(
+                return await imaToken.doErc721PaymentS2S(
                     isForward,
                     ethersProviderSrc,
                     chainIdSrc,
@@ -1158,7 +1158,7 @@ export function commandLineTaskPaymentS2S() {
                     log.write( cc.info( "one S->S single ERC20 payment: " ) +
                         cc.sunny( imaState.nAmountOfToken ) + "\n" );
                 }
-                return await IMA.doErc20PaymentS2S(
+                return await imaToken.doErc20PaymentS2S(
                     isForward,
                     ethersProviderSrc,
                     chainIdSrc,
@@ -1194,7 +1194,7 @@ export function commandLineTaskPaymentS2S() {
                         cc.sunny( imaState.idToken ) + " " +
                         cc.sunny( imaState.nAmountOfToken ) + "\n" );
                 }
-                return await IMA.doErc1155PaymentS2S(
+                return await imaToken.doErc1155PaymentS2S(
                     isForward,
                     ethersProviderSrc,
                     chainIdSrc,
@@ -1231,7 +1231,7 @@ export function commandLineTaskPaymentS2S() {
                         cc.sunny( imaState.idTokens ) + " " +
                         cc.sunny( imaState.arrAmountsOfTokens ) + "\n" );
                 }
-                return await IMA.doErc1155BatchPaymentS2S(
+                return await imaToken.doErc1155BatchPaymentS2S(
                     isForward,
                     ethersProviderSrc,
                     chainIdSrc,
@@ -1268,7 +1268,7 @@ export function commandLineTaskReceiveS2M() {
         "fn": async function() {
             if( log.verboseGet() >= log.verboseReversed().information )
                 log.write( cc.info( "receive one S->M single ETH payment: " ) + "\n" );
-            return await IMA.receiveEthPaymentFromSchainOnMainNet(
+            return await imaEth.receiveEthPaymentFromSchainOnMainNet(
                 imaState.chainProperties.mn.ethersProvider,
                 imaState.chainProperties.mn.chainId,
                 imaState.chainProperties.mn.joAccount,
@@ -1286,7 +1286,7 @@ export function commandLineTaskViewS2M() {
         "fn": async function() {
             if( log.verboseGet() >= log.verboseReversed().information )
                 log.write( cc.info( "view one S->M single ETH payment: " ) + "\n" );
-            const xWei = await IMA.viewEthPaymentFromSchainOnMainNet(
+            const xWei = await imaEth.viewEthPaymentFromSchainOnMainNet(
                 imaState.chainProperties.mn.ethersProvider,
                 imaState.chainProperties.mn.joAccount,
                 imaState.joDepositBoxETH
@@ -1787,7 +1787,7 @@ export function commandLineTaskReimbursementShowBalance() {
     imaState.arrActions.push( {
         "name": "Gas Reimbursement - Show Balance",
         "fn": async function() {
-            await IMA.reimbursementShowBalance(
+            await imaReimbursement.reimbursementShowBalance(
                 imaState.chainProperties.mn.ethersProvider,
                 imaState.joCommunityPool,
                 imaState.chainProperties.mn.joAccount.address(),
@@ -1807,7 +1807,7 @@ export function commandLineTaskReimbursementEstimateAmount() {
     imaState.arrActions.push( {
         "name": "Gas Reimbursement - Estimate Amount",
         "fn": async function() {
-            await IMA.reimbursementEstimateAmount(
+            await imaReimbursement.reimbursementEstimateAmount(
                 imaState.chainProperties.mn.ethersProvider,
                 imaState.joCommunityPool,
                 imaState.chainProperties.mn.joAccount.address(),
@@ -1827,7 +1827,7 @@ export function commandLineTaskReimbursementRecharge() {
     imaState.arrActions.push( {
         "name": "Gas Reimbursement - Recharge User Wallet",
         "fn": async function() {
-            await IMA.reimbursementWalletRecharge(
+            await imaReimbursement.reimbursementWalletRecharge(
                 imaState.chainProperties.mn.ethersProvider,
                 imaState.joCommunityPool,
                 imaState.chainProperties.mn.joAccount,
@@ -1847,7 +1847,7 @@ export function commandLineTaskReimbursementWithdraw() {
     imaState.arrActions.push( {
         "name": "Gas Reimbursement - Withdraw User Wallet",
         "fn": async function() {
-            await IMA.reimbursementWalletWithdraw(
+            await imaReimbursement.reimbursementWalletWithdraw(
                 imaState.chainProperties.mn.ethersProvider,
                 imaState.joCommunityPool,
                 imaState.chainProperties.mn.joAccount,
@@ -1867,7 +1867,7 @@ export function commandLineTaskReimbursementSetRange() {
     imaState.arrActions.push( {
         "name": "Gas Reimbursement - Set Minimal time interval from S2M and S2S transfers",
         "fn": async function() {
-            await IMA.reimbursementSetRange(
+            await imaReimbursement.reimbursementSetRange(
                 imaState.chainProperties.sc.ethersProvider,
                 imaState.joCommunityLocker,
                 imaState.chainProperties.sc.joAccount,

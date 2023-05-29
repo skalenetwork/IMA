@@ -27,7 +27,7 @@ import * as owaspUtils from "../npms/skale-owasp/owaspUtils.mjs";
 import * as log from "../npms/skale-log/log.mjs";
 import * as cc from "../npms/skale-cc/cc.mjs";
 import * as rpcCall from "./rpcCall.mjs";
-import * as IMA from "../npms/skale-ima/index.mjs";
+import * as imaHelperAPIs from "../npms/skale-ima/imaHelperAPIs.mjs";
 import * as skaleObserver from "../npms/skale-observer/observer.mjs";
 import * as state from "./state.mjs";
 import * as imaUtils from "./utils.mjs";
@@ -190,7 +190,7 @@ export async function waitUntilSChainStarted() {
             }
             return;
         }
-        await IMA.sleep( 1000 );
+        await imaHelperAPIs.sleep( 1000 );
     }
     if( log.verboseGet() >= log.verboseReversed().information ) {
         log.write( cc.success( "Done, " ) + cc.info( "S-Chain" ) +
