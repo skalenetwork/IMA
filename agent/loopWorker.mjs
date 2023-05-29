@@ -30,7 +30,8 @@ import { SocketServer } from "../npms/skale-cool-socket/socketServer.mjs";
 import * as cc from "../npms/skale-cc/cc.mjs";
 import * as owaspUtils from "../npms/skale-owasp/owaspUtils.mjs";
 import * as loop from "./loop.mjs";
-import * as IMA from "../npms/skale-ima/index.mjs";
+import * as imaTx from "../npms/skale-ima/imaTx.mjs";
+import * as imaTransferErrorHandling from "../npms/skale-ima/imaTransferErrorHandling.mjs";
 import * as skaleObserver from "../npms/skale-observer/observer.mjs";
 import * as imaCLI from "./cli.mjs";
 import * as state from "./state.mjs";
@@ -84,7 +85,7 @@ class ObserverServer extends SocketServer {
             cc.enable( joMessage.message.cc.isEnabled );
             log.verboseSet( self.opts.imaState.verbose_ );
             log.exposeDetailsSet( self.opts.imaState.expose_details_ );
-            IMA.saveTransferEvents.on( "error", function( eventData ) {
+            imaTransferErrorHandling.saveTransferEvents.on( "error", function( eventData ) {
                 const jo = {
                     "method": "saveTransferError",
                     "message": eventData.detail
@@ -92,7 +93,7 @@ class ObserverServer extends SocketServer {
                 const isFlush = true;
                 socket.send( jo, isFlush );
             } );
-            IMA.saveTransferEvents.on( "success", function( eventData ) {
+            imaTransferErrorHandling.saveTransferEvents.on( "success", function( eventData ) {
                 const jo = {
                     "method": "saveTransferSuccess",
                     "message": eventData.detail
@@ -145,11 +146,11 @@ class ObserverServer extends SocketServer {
             imaState.chainProperties.sc.ethersProvider = null;
             imaState.chainProperties.tc.ethersProvider = null;
             imaState.chainProperties.mn.transactionCustomizer =
-                IMA.getTransactionCustomizerForMainNet();
+                imaTx.getTransactionCustomizerForMainNet();
             imaState.chainProperties.sc.transactionCustomizer =
-                IMA.getTransactionCustomizerForSChain();
+                imaTx.getTransactionCustomizerForSChain();
             imaState.chainProperties.tc.transactionCustomizer =
-                IMA.getTransactionCustomizerForSChainTarget();
+                imaTx.getTransactionCustomizerForSChainTarget();
             state.set( imaState );
             imaCLI.initContracts();
             if( log.verboseGet() >= log.verboseReversed().information ) {

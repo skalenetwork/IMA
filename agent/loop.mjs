@@ -31,6 +31,9 @@ import * as path from "path";
 import * as cc from "../npms/skale-cc/cc.mjs";
 import * as log from "../npms/skale-log/log.mjs";
 import * as IMA from "../npms/skale-ima/index.mjs";
+import * as imaHelperAPIs from "../npms/skale-ima/imaHelperAPIs.mjs";
+import * as imaTransferErrorHandling from "../npms/skale-ima/imaTransferErrorHandling.mjs";
+import * as imaOracleOperations from "../npms/skale-ima/imaOracleOperations.mjs";
 import * as owaspUtils from "../npms/skale-owasp/owaspUtils.mjs";
 import * as imaBLS from "./bls.mjs";
 import * as skaleObserver from "../npms/skale-observer/observer.mjs";
@@ -141,7 +144,7 @@ export function checkTimeFraming( d, strDirection, joRuntimeOpts ) {
 async function singleTransferLoopPartOracle( optsLoop, strLogPrefix ) {
     const imaState = state.get();
     let b0 = true;
-    if( optsLoop.enableStepOracle && IMA.getEnabledOracle() ) {
+    if( optsLoop.enableStepOracle && imaOracleOperations.getEnabledOracle() ) {
         if( log.verboseGet() >= log.verboseReversed().notice )
             log.write( strLogPrefix + cc.debug( "Will invoke Oracle gas price setup..." ) + "\n" );
         try {
@@ -156,7 +159,7 @@ async function singleTransferLoopPartOracle( optsLoop, strLogPrefix ) {
                 if( checkTimeFraming( null, "oracle", optsLoop.joRuntimeOpts ) ) {
                     imaState.loopState.oracle.isInProgress = true;
                     await pwa.notifyOnLoopStart( imaState, "oracle" );
-                    b0 = IMA.doOracleGasPriceSetup(
+                    b0 = imaOracleOperations.doOracleGasPriceSetup(
                         imaState.chainProperties.mn.ethersProvider,
                         imaState.chainProperties.sc.ethersProvider,
                         imaState.chainProperties.sc.transactionCustomizer,
@@ -384,7 +387,7 @@ export async function singleTransferLoop( optsLoop ) {
     const strLogPrefix = cc.attention( "Single Loop:" ) + " ";
     try {
         if( log.verboseGet() >= log.verboseReversed().debug )
-            log.write( strLogPrefix + cc.debug( IMA.longSeparator ) + "\n" );
+            log.write( strLogPrefix + cc.debug( imaHelperAPIs.longSeparator ) + "\n" );
         if( ( optsLoop.enableStepOracle && imaState.loopState.oracle.isInProgress ) ||
             ( optsLoop.enableStepM2S && imaState.loopState.m2s.isInProgress ) ||
             ( optsLoop.enableStepS2M && imaState.loopState.s2m.isInProgress ) ||
@@ -590,14 +593,14 @@ export async function ensureHaveWorkers( opts ) {
                 );
                 break;
             case "saveTransferError":
-                IMA.saveTransferError(
+                imaTransferErrorHandling.saveTransferError(
                     joMessage.message.category,
                     joMessage.message.textLog,
                     joMessage.message.ts
                 );
                 break;
             case "saveTransferSuccess":
-                IMA.saveTransferSuccess( joMessage.message.category );
+                imaTransferErrorHandling.saveTransferSuccess( joMessage.message.category );
                 break;
             } // switch ( joMessage.method )
         } );

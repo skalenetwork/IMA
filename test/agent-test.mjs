@@ -30,7 +30,7 @@ import * as path from "path";
 import * as url from "url";
 
 import * as owaspUtils from "../npms/skale-owasp/owaspUtils.mjs";
-import * as IMA from "../npms/skale-ima/index.mjs";
+import * as imaTx from "../npms/skale-ima/imaTx.mjs";
 import * as log from "../npms/skale-log/log.mjs";
 import * as imaUtils from "../agent/utils.mjs";
 import * as imaCLI from "../agent/cli.mjs";
@@ -152,7 +152,7 @@ const imaState = {
                     ( process.env.SGX_SSL_CERT_FILE_ETHEREUM || "" ).toString().trim(),
                 "strBlsKeyName": owaspUtils.toStringURL( process.env.BLS_KEY_ETHEREUM )
             },
-            "transactionCustomizer": IMA.getTransactionCustomizerForMainNet(),
+            "transactionCustomizer": imaTx.getTransactionCustomizerForMainNet(),
             "ethersProvider": null,
             "strURL":
                 owaspUtils.toStringURL( process.env.URL_W3_ETHEREUM || "http://127.0.0.1:8545" ),
@@ -188,7 +188,7 @@ const imaState = {
                     ( process.env.SGX_SSL_CERT_FILE_S_CHAIN || "" ).toString().trim(),
                 "strBlsKeyName": owaspUtils.toStringURL( process.env.BLS_KEY_S_CHAIN )
             },
-            "transactionCustomizer": IMA.getTransactionCustomizerForSChain(),
+            "transactionCustomizer": imaTx.getTransactionCustomizerForSChain(),
             "ethersProvider": null,
             "strURL":
                 owaspUtils.toStringURL( process.env.URL_W3_S_CHAIN || "http://127.0.0.1:15000" ),
@@ -225,7 +225,7 @@ const imaState = {
                     ( process.env.SGX_SSL_CERT_FILE_S_CHAIN_TARGET || "" ).toString().trim(),
                 "strBlsKeyName": owaspUtils.toStringURL( process.env.BLS_KEY_T_CHAIN )
             },
-            "transactionCustomizer": IMA.getTransactionCustomizerForSChainTarget(),
+            "transactionCustomizer": imaTx.getTransactionCustomizerForSChainTarget(),
             "ethersProvider": null,
             "strURL": owaspUtils.toStringURL( process.env.URL_W3_S_CHAIN_TARGET ),
             "strChainName":

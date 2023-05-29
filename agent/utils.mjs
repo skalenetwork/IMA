@@ -29,6 +29,7 @@ import * as path from "path";
 import * as os from "os";
 import * as log from "../npms/skale-log/log.mjs";
 import * as cc from "../npms/skale-cc/cc.mjs";
+import * as imaHelperAPIs from "../npms/skale-ima/imaHelperAPIs.mjs";
 
 import { v4 as uuid } from "uuid";
 export { uuid };
@@ -201,7 +202,7 @@ export async function waitForClonedTokenToAppear(
                 cc.debug( " step " ) + cc.info( idxAttempt ) + cc.debug( "..." ) + "\n" );
         }
         if( gMillisecondsToSleepStepWaitForClonedTokenToAppear > 0 )
-            await core.sleep( gMillisecondsToSleepStepWaitForClonedTokenToAppear );
+            await imaHelperAPIs.sleep( gMillisecondsToSleepStepWaitForClonedTokenToAppear );
         const addressOnSChain =
             await contractTokenManager.callStatic[
                 "clones" + cc.capitalizeFirstLetter( strTokenSuffixLCshort )](

@@ -34,7 +34,8 @@ import * as cc from "../npms/skale-cc/cc.mjs";
 import * as imaCLI from "./cli.mjs";
 import * as loop from "./loop.mjs";
 import * as imaUtils from "./utils.mjs";
-import * as IMA from "../npms/skale-ima/index.mjs";
+import * as imaHelperAPIs from "../npms/skale-ima/imaHelperAPIs.mjs";
+import * as imaTransferErrorHandling from "../npms/skale-ima/imaTransferErrorHandling.mjs";
 import * as imaBLS from "./bls.mjs";
 import * as pwa from "./pwa.mjs";
 import * as clpTools from "./clpTools.mjs";
@@ -234,10 +235,11 @@ function initMonitoringServer() {
                         }
                     } break;
                 case "get_last_transfer_errors":
-                    joAnswer.last_transfer_errors = IMA.getLastTransferErrors(
+                    joAnswer.last_transfer_errors = imaTransferErrorHandling.getLastTransferErrors(
                         ( ( "isIncludeTextLog" in joMessage ) && joMessage.isIncludeTextLog )
                             ? true : false );
-                    joAnswer.last_error_categories = IMA.getLastErrorCategories();
+                    joAnswer.last_error_categories =
+                        imaTransferErrorHandling.getLastErrorCategories();
                     break;
                 default:
                     throw new Error(
@@ -379,7 +381,7 @@ async function doTheJob() {
     let cntTrue = 0;
     for( idxAction = 0; idxAction < cntActions; ++idxAction ) {
         if( log.verboseGet() >= log.verboseReversed().information )
-            log.write( strLogPrefix + cc.debug( IMA.longSeparator ) + "\n" );
+            log.write( strLogPrefix + cc.debug( imaHelperAPIs.longSeparator ) + "\n" );
         const joAction = imaState.arrActions[idxAction];
         if( log.verboseGet() >= log.verboseReversed().debug ) {
             log.write( strLogPrefix + cc.notice( "Will execute action:" ) + " " +
@@ -411,12 +413,12 @@ async function doTheJob() {
         }
     }
     if( log.verboseGet() >= log.verboseReversed().information ) {
-        log.write( strLogPrefix + cc.debug( IMA.longSeparator ) + "\n" );
+        log.write( strLogPrefix + cc.debug( imaHelperAPIs.longSeparator ) + "\n" );
         log.write( strLogPrefix + cc.info( "FINISH:" ) + "\n" );
         log.write( strLogPrefix + cc.info( cntActions ) + cc.notice( " task(s) executed" ) + "\n" );
         log.write( strLogPrefix + cc.info( cntTrue ) + cc.success( " task(s) succeeded" ) + "\n" );
         log.write( strLogPrefix + cc.info( cntFalse ) + cc.error( " task(s) failed" ) + "\n" );
-        log.write( strLogPrefix + cc.debug( IMA.longSeparator ) + "\n" );
+        log.write( strLogPrefix + cc.debug( imaHelperAPIs.longSeparator ) + "\n" );
     }
     process.exitCode = ( cntFalse > 0 ) ? cntFalse : 0;
     if( ! state.isPreventExitAfterLastAction() )

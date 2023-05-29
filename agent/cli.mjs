@@ -31,7 +31,10 @@ import * as log from "../npms/skale-log/log.mjs";
 import * as owaspUtils from "../npms/skale-owasp/owaspUtils.mjs";
 import * as imaUtils from "./utils.mjs";
 import * as rpcCall from "./rpcCall.mjs";
-import * as IMA from "../npms/skale-ima/index.mjs";
+import * as imaHelperAPIs from "../npms/skale-ima/imaHelperAPIs.mjs";
+import * as imaTransferErrorHandling from "../npms/skale-ima/imaTransferErrorHandling.mjs";
+import * as imaOracleOperations from "../npms/skale-ima/imaOracleOperations.mjs";
+import * as imaTx from "../npms/skale-ima/imaTx.mjs";
 import * as state from "./state.mjs";
 
 const __dirname = path.dirname( url.fileURLToPath( import.meta.url ) );
@@ -1781,11 +1784,11 @@ function parseErcArgs( imaState, joArg ) {
 function parseTransactionArgs( imaState, joArg ) {
     if( joArg.name == "sleep-between-tx" ) {
         owaspUtils.verifyArgumentIsInteger( joArg );
-        IMA.setSleepBetweenTransactionsOnSChainMilliseconds( joArg.value );
+        imaHelperAPIs.setSleepBetweenTransactionsOnSChainMilliseconds( joArg.value );
         return true;
     }
     if( joArg.name == "wait-next-block" ) {
-        IMA.setWaitForNextBlockOnSChain( true );
+        imaHelperAPIs.setWaitForNextBlockOnSChain( true );
         return true;
     }
     if( joArg.name == "gas-price-multiplier-mn" ) {
@@ -1858,19 +1861,19 @@ function parseTransactionArgs( imaState, joArg ) {
         return true;
     }
     if( joArg.name == "skip-dry-run" ) {
-        IMA.dryRunEnable( false );
+        imaTx.dryRunEnable( false );
         return true;
     }
     if( joArg.name == "no-skip-dry-run" ) {
-        IMA.dryRunEnable( true );
+        imaTx.dryRunEnable( true );
         return true;
     }
     if( joArg.name == "ignore-dry-run" ) {
-        IMA.dryRunIgnore( true );
+        imaTx.dryRunIgnore( true );
         return true;
     }
     if( joArg.name == "dry-run" || joArg.name == "no-ignore-dry-run" ) {
-        IMA.dryRunIgnore( false );
+        imaTx.dryRunIgnore( false );
         return true;
     }
     return false;
@@ -1949,11 +1952,11 @@ function parsePaymentAmountArgs( imaState, joArg ) {
 
 function parseTransferArgs( imaState, joArg ) {
     if( joArg.name == "s2s-forward" ) {
-        IMA.setForwardS2S();
+        imaHelperAPIs.setForwardS2S();
         return true;
     }
     if( joArg.name == "s2s-reverse" ) {
-        IMA.setReverseS2S();
+        imaHelperAPIs.setReverseS2S();
         return true;
     }
     if( joArg.name == "s2s-enable" ) {
@@ -2271,11 +2274,11 @@ function parseReimbursementArgs( imaState, joArg ) {
 
 function parseOracleArgs( imaState, joArg ) {
     if( joArg.name == "enable-oracle" ) {
-        IMA.setEnabledOracle( true );
+        imaOracleOperations.setEnabledOracle( true );
         return true;
     }
     if( joArg.name == "disable-oracle" ) {
-        IMA.setEnabledOracle( false );
+        imaOracleOperations.setEnabledOracle( false );
         return true;
     }
     return false;
@@ -2294,20 +2297,21 @@ function parseNetworkDiscoveryArgs( imaState, joArg ) {
 function parseBlockScannerArgs( imaState, joArg ) {
     if( joArg.name == "bs-step-size" ) {
         owaspUtils.verifyArgumentIsInteger( joArg );
-        IMA.setBlocksCountInInIterativeStepOfEventsScan( owaspUtils.toInteger( joArg.value ) );
+        imaHelperAPIs.setBlocksCountInInIterativeStepOfEventsScan(
+            owaspUtils.toInteger( joArg.value ) );
         return true;
     }
     if( joArg.name == "bs-max-all-range" ) {
         owaspUtils.verifyArgumentIsInteger( joArg );
-        IMA.setMaxIterationsInAllRangeEventsScan( owaspUtils.toInteger( joArg.value ) );
+        imaHelperAPIs.setMaxIterationsInAllRangeEventsScan( owaspUtils.toInteger( joArg.value ) );
         return true;
     }
     if( joArg.name == "bs-progressive-enable" ) {
-        IMA.setEnabledProgressiveEventsScan( true );
+        imaTransferErrorHandling.setEnabledProgressiveEventsScan( true );
         return true;
     }
     if( joArg.name == "bs-progressive-disable" ) {
-        IMA.setEnabledProgressiveEventsScan( false );
+        imaTransferErrorHandling.setEnabledProgressiveEventsScan( false );
         return true;
     }
     return false;
@@ -3920,7 +3924,8 @@ function commonInitGasMultipliersAndTransactionArgs() {
         log.write(
             cc.info( "Oracle based gas reimbursement is" ) +
             cc.debug( "...................." ) +
-            ( IMA.getEnabledOracle() ? cc.success( "enabled" ) : cc.error( "disabled" ) ) +
+            ( imaOracleOperations.getEnabledOracle()
+                ? cc.success( "enabled" ) : cc.error( "disabled" ) ) +
             "\n" );
         log.write(
             cc.info( "S-Chain to S-Chain transferring is" ) +
@@ -3939,7 +3944,7 @@ function commonInitGasMultipliersAndTransactionArgs() {
         log.write(
             cc.info( "S<->S transfer mode is" ) +
             cc.debug( "..............................." ) +
-            IMA.getS2STransferModeDescriptionColorized() +
+            imaHelperAPIs.getS2STransferModeDescriptionColorized() +
             "\n" );
         log.write(
             cc.info( "IMA JSON RPC server port is" ) +
@@ -3958,12 +3963,12 @@ function commonInitGasMultipliersAndTransactionArgs() {
         log.write(
             cc.info( "Dry-run is enabled" ) +
             cc.debug( "..................................." ) +
-            cc.yn( IMA.dryRunIsEnabled() ) +
+            cc.yn( imaTx.dryRunIsEnabled() ) +
             "\n" );
         log.write(
             cc.info( "Dry-run execution result is ignored" ) +
             cc.debug( ".................." ) +
-            cc.yn( IMA.dryRunIsIgnored() ) +
+            cc.yn( imaTx.dryRunIsIgnored() ) +
             "\n" );
     }
 }
