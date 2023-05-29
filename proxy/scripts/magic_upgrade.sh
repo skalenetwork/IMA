@@ -3,6 +3,24 @@
 set -e
 
 
+if [[ -z $DEPLOYED_VERSION ]]; then
+  echo "Set DEPLOYED_VERSION"
+  exit 1
+elif [[ -z $SCHAIN_ID ]]; then
+  echo "Set SCHAIN_ID"
+  exit 1
+elif [[ -z $SCHAIN_NAME ]]; then
+  echo "Set SCHAIN_NAME"
+  exit 1
+elif [[ -z $SAFE_ADDRESS ]]; then
+  echo "Set SAFE_ADDRESS"
+  exit 1
+elif [[ -z $ALLOW_NOT_ATOMIC_UPGRADE ]]; then
+  echo "Set ALLOW_NOT_ATOMIC_UPGRADE"
+  exit 1
+fi
+
+
 IMA_RELEASES_URL="https://github.com/skalenetwork/IMA/releases/download/"
 cd data/
 rm -f ima-$DEPLOYED_VERSION-predeployed-abi.json
@@ -22,7 +40,7 @@ if [[ $MAINNET_CHAIN_ID != "1" ]]; then
     if [[ $MESSAGE_PROXY_MAINNET_ADDRESS ]]; then
         sed -i '2s/.*/    "message_proxy_mainnet_address": "'"$MESSAGE_PROXY_MAINNET_ADDRESS"'",/' data/ima-$MAINNET_STABLE_IMA_VERSION-mainnet-abi.json
     else
-        echo "Define MESSAGE_PROXY_MAINNET_ADDRESS."
+        echo "Set MESSAGE_PROXY_MAINNET_ADDRESS"
         exit 1
     fi
 fi
