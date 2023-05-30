@@ -2,8 +2,15 @@
 
 ## Installing project
 Git clone and run yarn install in the root of the project.
+```bash
+git clone https://github.com/skalenetwork/IMA.git && cd IMA/ && yarn install
+```
 ## Preparing environment
-First of all you need to create new account. You can generate it in Metamask. Next export private key and put it in `.env` as `PRIVATE_KEY` without 0x by path `IMA/proxy/`. Also put endpoint of your chain as `ENDPOINT` to the `.env`. Also you need to add this account to your Gnosis Wallet as one of the Safe owners. Open Gnosis app, go to "Settings", click "Add new owner" and then sign transaction.
+ Create `.env` file by path `IMA/proxy/`. Now you need to create new account. You can generate it in Metamask. Next export private key and put it in `.env` as `PRIVATE_KEY` without 0x. Also put endpoint of your chain as `ENDPOINT` to the `.env`. Also you need to add this account to your Gnosis Wallet as one of the Safe owners. Open Gnosis app, go to "Settings", click "Add new owner" and then sign transaction. Example of `.env` file:
+```bash
+ENDPOINT="http://127.0.0.1:8545"
+PRIVATE_KEY="0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef"
+```
 ## Granting role
 Next you need to grant `DEPLOYER_ROLE` for account that we have created in previous step for being able to deploy new contracts on chain. One of the easiest ways to do this would be to use the Blockscout interface. First you need to find the `ConfigController` contract, its address is `0xD200200000000000000000000000000000000d2`, click `Write Proxy` connect the wallet on which there is sFuel, find the `addToWhitelist` function and enter the address of the new account that you generated in the metamask, then click Write and confirm the transaction in the metamask.
 ## Getting sFuel
