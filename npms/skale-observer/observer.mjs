@@ -192,39 +192,35 @@ export async function loadSChainParts( joSChain, addressFrom, opts ) {
             { from: addressFrom } );
     const nodes = [];
     if( isEMC ) {
-        const multicall = new EMC.Multicall(
-            {
-                ethersProvider: opts.imaState.chainProperties.mn.ethersProvider,
-                tryAggregate: true
-            }
-        );
+        const multicall = new EMC.Multicall( {
+            ethersProvider: opts.imaState.chainProperties.mn.ethersProvider,
+            tryAggregate: true
+        } );
         const strRef0 = "Nodes-nodes";
         const strRef1 = "Nodes-getNodeDomainName";
         const strRef2 = "Nodes-isNodeInMaintenance";
         const strRef3 = "SchainsInternal-getSchainHashesForNode";
-        const contractCallContext = [
-            {
-                reference: strRef0,
-                contractAddress: opts.imaState.joNodes.address,
-                abi: opts.imaState.joAbiSkaleManager.nodes_abi,
-                calls: [ ]
-            }, {
-                reference: strRef1,
-                contractAddress: opts.imaState.joNodes.address,
-                abi: opts.imaState.joAbiSkaleManager.nodes_abi,
-                calls: [ ]
-            }, {
-                reference: strRef2,
-                contractAddress: opts.imaState.joNodes.address,
-                abi: opts.imaState.joAbiSkaleManager.nodes_abi,
-                calls: [ ]
-            }, {
-                reference: strRef3,
-                contractAddress: opts.imaState.joSChainsInternal.address,
-                abi: opts.imaState.joAbiSkaleManager.schains_internal_abi,
-                calls: [ ]
-            }
-        ];
+        const contractCallContext = [ {
+            reference: strRef0,
+            contractAddress: opts.imaState.joNodes.address,
+            abi: opts.imaState.joAbiSkaleManager.nodes_abi,
+            calls: [ ]
+        }, {
+            reference: strRef1,
+            contractAddress: opts.imaState.joNodes.address,
+            abi: opts.imaState.joAbiSkaleManager.nodes_abi,
+            calls: [ ]
+        }, {
+            reference: strRef2,
+            contractAddress: opts.imaState.joNodes.address,
+            abi: opts.imaState.joAbiSkaleManager.nodes_abi,
+            calls: [ ]
+        }, {
+            reference: strRef3,
+            contractAddress: opts.imaState.joSChainsInternal.address,
+            abi: opts.imaState.joAbiSkaleManager.schains_internal_abi,
+            calls: [ ]
+        } ];
         for( const nodeId of arrNodeIds ) {
             if( opts && opts.bStopNeeded )
                 return;
@@ -344,7 +340,18 @@ export function removeSChainDescDataNumKeys( joSChain ) {
     }
 }
 
-export async function loadSChain( addressFrom, idxSChain, hash, cntSChains, opts ) {
+function process_sc_data( rawData ) {
+    // convert needed fields of struct ISchainsInternal.Schain
+    const joData = {
+        // for debugging we can use here: "rawData": rawData,
+        "name": rawData[0],
+        "owner": rawData[1]
+    };
+    // for debugging we can use here: joData = owaspUtils.cloneObjectByRootKeys( joData );
+    return joData;
+}
+
+export async function loadSChain( addressFrom, idxSChain, hash, joData, cntSChains, opts ) {
     owaspUtils.ensureObserverOptionsInitialized( opts );
     if( ! opts.imaState )
         throw new Error( "Cannot load S-Chain description in observer, no imaState is provided" );
@@ -364,10 +371,13 @@ export async function loadSChain( addressFrom, idxSChain, hash, cntSChains, opts
     }
     if( opts && opts.bStopNeeded )
         return null;
-    let joData =
-        await opts.imaState.joSChainsInternal.callStatic.schains(
-            hash, { from: addressFrom } );
-    joData = owaspUtils.cloneObjectByRootKeys( joData );
+    joData = joData ||
+        process_sc_data( await opts.imaState.joSChainsInternal.callStatic.schains(
+            hash, { from: addressFrom } ) );
+    if( opts && opts.details ) {
+        if( log.verboseGet() >= log.verboseReversed().trace )
+            opts.details.write( cc.debug( "    Data of chain is " ) + cc.j( joData ) + "\n" );
+    }
     const joSChain = { "data": joData };
     removeSChainDescDataNumKeys( joSChain.data, addressFrom );
     if( opts && opts.bStopNeeded )
@@ -386,6 +396,180 @@ export async function loadSChain( addressFrom, idxSChain, hash, cntSChains, opts
 export async function loadSChains( addressFrom, opts ) {
     owaspUtils.ensureObserverOptionsInitialized( opts );
     if( ! opts.imaState )
+        throw new Error( "Cannot load S-Chains parts in observer, no imaState is provided" );
+    let isEMC = false;
+    if( opts.imaState.isEnabledMultiCall )
+        isEMC = await isMulticallAvailable( opts.imaState.chainProperties.mn );
+    if( isEMC )
+        return await loadSChainsWithEMC( addressFrom, opts );
+    return await loadSChainsOptimal( addressFrom, opts );
+}
+
+export async function loadSChainsWithEMC( addressFrom, opts ) {
+    const cntSChains = await getSChainsCount( addressFrom, opts );
+    if( opts && opts.details ) {
+        if( log.verboseGet() >= log.verboseReversed().trace ) {
+            opts.details.write( cc.debug( "Have " ) + cc.info( cntSChains ) +
+                cc.debug( " S-Chain(s) to load..." ) + "\n" );
+        }
+    }
+    const multicall = new EMC.Multicall( {
+        ethersProvider: opts.imaState.chainProperties.mn.ethersProvider,
+        tryAggregate: true
+    } );
+    const cntGroupMax = 30, cntLastExtraGroup = cntSChains % cntGroupMax;
+    const bHaveExtraGroup = ( cntLastExtraGroup > 0 ) ? true : false;
+    const cntGroups = Math.floor( cntSChains / cntGroupMax ) + ( bHaveExtraGroup ? 1 : 0 );
+    if( opts && opts.details ) {
+        if( log.verboseGet() >= log.verboseReversed().trace ) {
+            opts.details.write(
+                cc.debug( "    Have " ) + cc.info( cntGroups ) +
+                cc.debug( " multicall group(s), max possible " ) + cc.attention( cntGroupMax ) +
+                cc.debug( " call(s) in each" ) + "\n" );
+            if( bHaveExtraGroup ) {
+                opts.details.write(
+                    cc.debug( "    Have last extra multicall group with " ) +
+                    cc.attention( cntLastExtraGroup ) + cc.debug( " call(s) in it" ) + "\n" );
+            }
+        }
+    }
+    const arrSChainHashes = [];
+    for( let idxGroup = 0; idxGroup < cntGroups; ++ idxGroup ) {
+        if( opts && opts.bStopNeeded )
+            return null;
+        const idxFirstChainInGroup = idxGroup * cntGroupMax;
+        const cntInThisGroup = ( idxGroup == ( cntGroups - 1 ) && bHaveExtraGroup )
+            ? cntLastExtraGroup : cntGroupMax;
+        if( opts && opts.details ) {
+            if( log.verboseGet() >= log.verboseReversed().trace ) {
+                opts.details.write(
+                    cc.debug( "    Processing chain hashes in multicall group #" ) +
+                    cc.info( idxGroup ) + cc.debug( " with " ) + cc.attention( cntInThisGroup ) +
+                    cc.debug( " call(s) in it..." ) + "\n" );
+            }
+        }
+        const strRef3 = "SchainsInternal-schainsAtSystem";
+        const contractCallContext = [ {
+            reference: strRef3,
+            contractAddress: opts.imaState.joSChainsInternal.address,
+            abi: opts.imaState.joAbiSkaleManager.schains_internal_abi,
+            calls: [ ]
+        } ];
+        for( let idxSChain = 0; idxSChain < cntInThisGroup; ++ idxSChain ) {
+            if( opts && opts.bStopNeeded )
+                return null;
+            contractCallContext[0].calls.push(
+                {
+                    reference: strRef3,
+                    methodName: "schainsAtSystem",
+                    methodParameters: [ idxFirstChainInGroup + idxSChain ]
+                } );
+        }
+        const rawResults = await multicall.call( contractCallContext );
+        if( opts && opts.bStopNeeded )
+            return null;
+        for( let idxSChain = 0; idxSChain < cntInThisGroup; ++ idxSChain ) {
+            if( opts && opts.bStopNeeded )
+                return null;
+            const idxResult = 0 + idxSChain;
+            const values3 =
+                rawResults.results[strRef3].callsReturnContext[idxResult].returnValues;
+            const hash = values3[0];
+            if( opts && opts.details ) {
+                if( log.verboseGet() >= log.verboseReversed().trace ) {
+                    opts.details.write(
+                        cc.debug( "    Hash of chain #" ) +
+                        cc.info( idxFirstChainInGroup + idxSChain ) +
+                        cc.debug( " is " ) + cc.attention( hash ) + "\n" );
+                }
+            }
+            arrSChainHashes.push( hash );
+        }
+        if( opts && opts.bStopNeeded )
+            return null;
+    }
+    if( opts && opts.bStopNeeded )
+        return null;
+    const arrSChainDataRecords = [];
+    for( let idxGroup = 0; idxGroup < cntGroups; ++ idxGroup ) {
+        if( opts && opts.bStopNeeded )
+            return null;
+        const idxFirstChainInGroup = idxGroup * cntGroupMax;
+        const cntInThisGroup = ( idxGroup == ( cntGroups - 1 ) && bHaveExtraGroup )
+            ? cntLastExtraGroup : cntGroupMax;
+        if( opts && opts.details ) {
+            if( log.verboseGet() >= log.verboseReversed().trace ) {
+                opts.details.write(
+                    cc.debug( "    Processing chain data in multicall group #" ) +
+                    cc.info( idxGroup ) + cc.debug( " with " ) + cc.attention( cntInThisGroup ) +
+                    cc.debug( " call(s) in it..." ) + "\n" );
+            }
+        }
+        const strRef3 = "SchainsInternal-schains";
+        const contractCallContext = [ {
+            reference: strRef3,
+            contractAddress: opts.imaState.joSChainsInternal.address,
+            abi: opts.imaState.joAbiSkaleManager.schains_internal_abi,
+            calls: [ ]
+        } ];
+        for( let idxSChain = 0; idxSChain < cntInThisGroup; ++ idxSChain ) {
+            if( opts && opts.bStopNeeded )
+                return null;
+            const hash = arrSChainHashes[idxFirstChainInGroup + idxSChain];
+            contractCallContext[0].calls.push(
+                {
+                    reference: strRef3,
+                    methodName: "schains",
+                    methodParameters: [ hash ]
+                } );
+        }
+        const rawResults = await multicall.call( contractCallContext );
+        if( opts && opts.bStopNeeded )
+            return null;
+        for( let idxSChain = 0; idxSChain < cntInThisGroup; ++ idxSChain ) {
+            if( opts && opts.bStopNeeded )
+                return null;
+            const idxResult = 0 + idxSChain;
+            const values3 =
+                rawResults.results[strRef3].callsReturnContext[idxResult].returnValues;
+            const joData = process_sc_data( values3 );
+            if( opts && opts.details ) {
+                if( log.verboseGet() >= log.verboseReversed().trace ) {
+                    opts.details.write(
+                        cc.debug( "    Data of chain #" ) +
+                        cc.info( idxFirstChainInGroup + idxSChain ) +
+                        cc.debug( " is " ) + cc.j( joData ) + "\n" );
+                }
+            }
+            arrSChainDataRecords.push( joData );
+        }
+        if( opts && opts.bStopNeeded )
+            return null;
+    }
+    const arrSChains = [];
+    for( let idxSChain = 0; idxSChain < cntSChains; ++ idxSChain ) {
+        if( opts && opts.bStopNeeded )
+            break;
+        const hash = arrSChainHashes[idxSChain];
+        const joData = arrSChainDataRecords[idxSChain];
+        const joSChain = await loadSChain( // with hash + joData
+            addressFrom, idxSChain, hash, joData, cntSChains, opts );
+        if( ! joSChain )
+            break;
+        arrSChains.push( joSChain );
+    }
+    if( opts && opts.details ) {
+        if( log.verboseGet() >= log.verboseReversed().trace ) {
+            opts.details.write( cc.success( "All " ) + cc.info( cntSChains ) +
+                cc.debug( " S-Chain(s) loaded:" ) + cc.j( arrSChains ) + "\n" );
+        }
+    }
+    return arrSChains;
+}
+
+export async function loadSChainsOptimal( addressFrom, opts ) {
+    owaspUtils.ensureObserverOptionsInitialized( opts );
+    if( ! opts.imaState )
         throw new Error( "Cannot load S-Chains in observer, no imaState is provided" );
     const cntSChains = await getSChainsCount( addressFrom, opts );
     if( opts && opts.details ) {
@@ -398,7 +582,8 @@ export async function loadSChains( addressFrom, opts ) {
     for( let idxSChain = 0; idxSChain < cntSChains; ++ idxSChain ) {
         if( opts && opts.bStopNeeded )
             break;
-        const joSChain = await loadSChain( addressFrom, idxSChain, null, cntSChains, opts );
+        const joSChain = await loadSChain(
+            addressFrom, idxSChain, null, null, cntSChains, opts );
         if( ! joSChain )
             break;
         arrSChains.push( joSChain );
@@ -447,10 +632,8 @@ export async function loadCachedSChainsSimplified( addressFrom, opts ) {
         }
         if( opts && opts.bStopNeeded )
             break;
-        const joSChain =
-            await loadSChain(
-                addressFrom, idxSChain, strSChainHash, cntSChains, opts
-            );
+        const joSChain = await loadSChain(
+            addressFrom, idxSChain, strSChainHash, null, cntSChains, opts );
         if( ! joSChain )
             break;
         arrSChains.push( joSChain );
@@ -533,9 +716,8 @@ export async function loadSChainsConnectedOnly(
             }
             if( ! isConnected )
                 continue;
-            const joSChain =
-                await loadSChain(
-                    addressFrom, idxSChain, strSChainHash, cntSChains, opts );
+            const joSChain = await loadSChain(
+                addressFrom, idxSChain, strSChainHash, null, cntSChains, opts );
             if( ! joSChain )
                 break;
             joSChain.isConnected = true;
