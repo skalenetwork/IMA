@@ -6,7 +6,7 @@ from time import sleep
 w3 = Web3()
 
 wait_connection_seconds = 20
-while not w3.isConnected():
+while not w3.is_connected():
     if wait_connection_seconds > 0:
         sleep(1)
         wait_connection_seconds -= 1
