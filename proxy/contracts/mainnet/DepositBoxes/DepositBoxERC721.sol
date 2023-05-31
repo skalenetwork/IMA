@@ -80,7 +80,8 @@ contract DepositBoxERC721 is DepositBox, IDepositBoxERC721 {
         address contractReceiver = schainLinks[schainHash];
         require(contractReceiver != address(0), "Unconnected chain");
         require(
-            IERC721Upgradeable(erc721OnMainnet).getApproved(tokenId) == address(this),
+            IERC721Upgradeable(erc721OnMainnet).getApproved(tokenId) == address(this) || 
+            IERC721Upgradeable(erc721OnMainnet).isApprovedForAll(msg.sender, address(this)),
             "DepositBox was not approved for ERC721 token"
         );
         bytes memory data = _receiveERC721(
