@@ -2,12 +2,12 @@
 
 set -e
 
-if [ -z $GITHUB_WORKSPACE ]
+if [ -z "$GITHUB_WORKSPACE" ]
 then
     GITHUB_WORKSPACE="$(dirname "$(dirname "$(dirname "$(realpath "$0")")")")"
 fi
 
-if [ -z $GITHUB_REPOSITORY ]
+if [ -z "$GITHUB_REPOSITORY" ]
 then
     GITHUB_REPOSITORY="skalenetwork/IMA"
 fi
