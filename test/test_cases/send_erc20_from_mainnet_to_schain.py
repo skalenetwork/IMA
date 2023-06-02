@@ -18,8 +18,7 @@
 #   You should have received a copy of the GNU Affero General Public License
 #   along with SKALE IMA.  If not, see <https://www.gnu.org/licenses/>.
 
-from time import sleep, time
-from logging import debug
+from time import sleep
 
 from tools.test_case import TestCase
 from tools.test_pool import test_pool
@@ -32,6 +31,7 @@ class SendERC20ToSchain(TestCase):
         super().__init__('Send ERC20 to schain', config)
 
     def _prepare(self):
+        sleep( 5 )
         self.erc20 = self.blockchain.deploy_erc20_on_mainnet(self.config.mainnet_key, 'D2-Token', 'D2', 100)
 
         address = self.blockchain.key_to_address(self.config.mainnet_key)

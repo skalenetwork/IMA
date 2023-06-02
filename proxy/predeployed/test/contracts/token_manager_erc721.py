@@ -22,6 +22,6 @@ def check_token_manager_erc721(deployer_address, deposit_box_address, schain_nam
     if not token_manager_erc721.functions.messageProxy().call() == MESSAGE_PROXY_FOR_SCHAIN_ADDRESS: raise AssertionError
     if not token_manager_erc721.functions.tokenManagerLinker().call() == TOKEN_MANAGER_LINKER_ADDRESS: raise AssertionError
     if not token_manager_erc721.functions.communityLocker().call() == COMMUNITY_LOCKER_ADDRESS: raise AssertionError
-    if not token_manager_erc721.functions.schainHash().call() == w3.solidityKeccak(['string'], [schain_name]): raise AssertionError
+    if not token_manager_erc721.functions.schainHash().call() == w3.solidity_keccak(['string'], [schain_name]): raise AssertionError
     if not token_manager_erc721.functions.depositBox().call() == deposit_box_address: raise AssertionError
     if token_manager_erc721.functions.automaticDeploy().call(): raise AssertionError

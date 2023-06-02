@@ -27,5 +27,5 @@ def execute(command: str, print_command=False):
         print('Execute:', command)
     exit_code = system(command)
     if exit_code:
-        error(f'Command "{command}" failed with exit code {exit_code}')
+        error(f'CRITICAL INTEGRATION TEST ERROR: Command "{command}" failed with exit code {exit_code}')
         exit(1)

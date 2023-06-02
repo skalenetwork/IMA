@@ -20,11 +20,11 @@ Deploy process includes:
 
 3)  Preliminary deployed **Skale Manager** software with known address of **ContractManager** smart contract saved into the `proxy/data/skaleManagerComponents.json` file like shown in the following example:
 
-    ```json
-    {
-        "contract_manager_address": "0xe89d660C1a4642C12A2846e8AF4d3F76c6BDbeF2"
-    }
-    ```
+```json
+{
+    "contract_manager_address": "0xe89d660C1a4642C12A2846e8AF4d3F76c6BDbeF2"
+}
+```
 
 4)  `libBLS` command utilities
 
@@ -379,8 +379,6 @@ node ./main.js --verbose=9 \
 --nodes-count=value.............S-Chain nodes count.
 --time-framing=value............Specifies period(in seconds) for time framing. Zero means disable time framing.
 --time-gap=value................Specifies gap(in seconds) before next time frame.
---ptx...........................Enable pending transaction analysis to avoid transaction conflicts.
---no-ptx........................Disable pending transaction analysis. Not recommended for slow and overloaded blockchains.
 ```
 
 #### S-Chain specific Configuration for Multi-node S-Chains

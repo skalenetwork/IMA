@@ -15,7 +15,7 @@ class CommunityLockerGenerator(AccessControlEnumerableGenerator):
     META_FILENAME = 'CommunityLocker.meta.json'
     DEFAULT_ADMIN_ROLE = (0).to_bytes(32, 'big')
     DEFAULT_TIME_LIMIT_SEC = 5 * 60
-    MAINNET_HASH = Web3.solidityKeccak(['string'], ['Mainnet'])
+    MAINNET_HASH = Web3.solidity_keccak(['string'], ['Mainnet'])
 
     # ---------- storage ----------
     # --------Initializable--------
@@ -81,7 +81,7 @@ class CommunityLockerGenerator(AccessControlEnumerableGenerator):
         cls._write_address(storage, cls.TOKEN_MANAGER_LINKER_SLOT, TOKEN_MANAGER_LINKER_ADDRESS)
         cls._write_address(storage, cls.COMMUNITY_POOL_SLOT, community_pool_address)
 
-        cls._write_bytes32(storage, cls.SCHAIN_HASH_SLOT, Web3.solidityKeccak(['string'], [schain_name]))
+        cls._write_bytes32(storage, cls.SCHAIN_HASH_SLOT, Web3.solidity_keccak(['string'], [schain_name]))
         time_limit_per_message_slot = AccessControlEnumerableGenerator.calculate_mapping_value_slot(
             cls.TIME_LIMIT_PER_MESSAGE_SLOT, cls.MAINNET_HASH, 'bytes32')
         cls._write_uint256(storage, time_limit_per_message_slot, cls.DEFAULT_TIME_LIMIT_SEC)

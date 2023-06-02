@@ -2,12 +2,84 @@ import { task, HardhatUserConfig } from "hardhat/config";
 import "@nomiclabs/hardhat-etherscan";
 import "@nomiclabs/hardhat-web3";
 import "@nomiclabs/hardhat-ethers";
-import * as owasp from "../npms/skale-owasp/owasp-util";
 import * as dotenv from "dotenv"
 import { promises as fs } from "fs";
 
 dotenv.config();
 
+function verifyArgumentWithNonEmptyValue( joArg ) {
+  if( ( !joArg.value ) || ( typeof joArg.value === "string" && joArg.value.length === 0 ) ) {
+      console.log( "CRITICAL ERROR: value " + joArg.value + " of argument " + joArg.name + " must not be empty" );
+      process.exit( 126 );
+  }
+  return joArg;
+}
+
+function validateRadix( value, radix ) {
+  value = "" + ( value ? value.toString() : "10" );
+  value = value.trim();
+  radix = ( radix == null || radix == undefined )
+      ? ( ( value.length > 2 && value[0] == "0" && ( value[1] == "x" || value[1] == "X" ) ) ? 16 : 10 )
+      : parseInt( radix, 10 );
+  return radix;
+}
+function validateInteger( value, radix ) {
+  try {
+      value = "" + value;
+      value = value.trim();
+      if( value.length < 1 )
+          return false;
+      radix = validateRadix( value, radix );
+      if( ( !isNaN( value ) ) &&
+          ( parseInt( value, radix ) == value || radix !== 10 ) &&
+          ( !isNaN( parseInt( value, radix ) ) )
+      )
+          return true;
+  } catch ( err ) {
+  }
+  return false;
+}
+
+function toInteger( value, radix ) {
+  try {
+      radix = validateRadix( value, radix );
+      if( !validateInteger( value, radix ) )
+          return NaN;
+      return parseInt( value, radix );
+  } catch ( err ) {
+  }
+  return false;
+}
+
+function verifyArgumentIsArrayOfIntegers( joArg ) {
+  try {
+      verifyArgumentWithNonEmptyValue( joArg );
+      if( joArg.value.length < 3 ) {
+          console.log( "CRITICAL ERROR: length " + joArg.value.length + " of argument " + joArg.name + " must be bigger than 2" );
+          process.exit( 126 );
+      }
+      if( joArg.value[0] !== "[" || joArg.value[joArg.value.length - 1] !== "]" ) {
+          console.log( "CRITICAL ERROR: first and last symbol " + joArg.value + " of argument " + joArg.name + " must be brackets" );
+          process.exit( 126 );
+      }
+      const newValue = joArg.value.replace( "[", "" ).replace( "]", "" ).split( "," );
+      for( let index = 0; index < newValue.length; index++ ) {
+          if( !newValue[index] || ( typeof newValue[index] === "string" && newValue[index].length === 0 ) ) {
+              console.log( "CRITICAL ERROR: value " + newValue[index] + " of argument " + joArg.name + " must not be empty" );
+              process.exit( 126 );
+          }
+          if( !validateInteger( newValue[index], undefined ) ) {
+              console.log( "CRITICAL ERROR: value " + newValue[index] + " of argument " + joArg.name + " must be valid integer" );
+              process.exit( 126 );
+          }
+          newValue[index] = toInteger( newValue[index], undefined );
+      }
+      return newValue;
+  } catch ( err ) {
+      console.log( "(OWASP) CRITICAL ERROR: value " + joArg.value + " of argument " + joArg.name + " must be valid integer array" );
+      process.exit( 126 );
+  }
+}
 
 task("erc20", "Deploy ERC20 Token sample to chain")
     .addOptionalParam("contract", "ERC20 Token contract")
@@ -105,8 +177,8 @@ task("mint-erc1155", "Mint ERC1155 Token")
         const data = taskArgs.data ? taskArgs.data : "0x";
         let res = null;
         if (batch) {
-          const tokenIds = owasp.verifyArgumentIsArrayOfIntegers({value: taskArgs.tokenId});
-          const amounts = owasp.verifyArgumentIsArrayOfIntegers({value: taskArgs.amount});
+          const tokenIds = verifyArgumentIsArrayOfIntegers({value: taskArgs.tokenId});
+          const amounts = verifyArgumentIsArrayOfIntegers({value: taskArgs.amount});
           if (tokenIds.length !== amounts.length) {
             console.log("\n\n!!! Length of arrays should be equal !!!\n\n");
             return;
@@ -117,7 +189,7 @@ task("mint-erc1155", "Mint ERC1155 Token")
         }
         console.log("ERC1155 Token at address:", taskArgs.tokenAddress);
         console.log("Minted tokenId:", taskArgs.tokenId, "and amount:", taskArgs.amount, "with data:", data, "to address", taskArgs.receiverAddress);
-        console.log("Gas spent:", res.gasUsed.toNumber());
+        console.log("Gas spent:", res ? res.gasUsed.toNumber() : 0);
     }
 );
 
