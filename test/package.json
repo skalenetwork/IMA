@@ -4,9 +4,9 @@
     "license": "AGPL-3.0",
     "author": "SKALE Labs and contributors",
     "scripts": {
-        "lint-check": "eslint ./*.js",
-        "lint-fix": "eslint ./*.js --fix",
-        "test": "npx mocha ./agent-test.js"
+        "lint-check": "eslint ./*.*js",
+        "lint-fix": "eslint ./*.*js --fix",
+        "test": "npx mocha ./agent-test.mjs"
     },
     "dependencies": {},
     "devDependencies": {

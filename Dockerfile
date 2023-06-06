@@ -1,7 +1,17 @@
-FROM node:16
+FROM ubuntu:jammy
 
 RUN apt-get update
-RUN apt-get install -y build-essential zlib1g-dev libncurses5-dev libgdbm-dev libnss3-dev libssl-dev libreadline-dev libffi-dev wget
+RUN apt-get install --no-install-recommends -yq software-properties-common=0.99
+RUN apt-get update
+RUN apt-get install --no-install-recommends -y build-essential=12 zlib1g-dev=1 libncurses5-dev=6 libgdbm-dev=1 libnss3-dev=2 libssl-dev=3 libreadline-dev=8 libffi-dev=3 wget=1 curl=7 sudo=1 git=1
+
+RUN curl -sL https://deb.nodesource.com/setup_16.x | bash
+RUN apt-get install --no-install-recommends -y nodejs=16
+RUN npm install npm --global
+RUN npm install --global yarn
+RUN npm --version
+RUN yarn --version
+
 RUN curl -O https://www.python.org/ftp/python/3.7.3/Python-3.7.3.tar.xz
 RUN tar -xf Python-3.7.3.tar.xz
 RUN cd Python-3.7.3; ./configure --enable-optimizations; make -j 4 build_all; make altinstall; cd ..
@@ -30,11 +40,10 @@ RUN chmod +x /ima/bls_binaries/verify_bls
 RUN npm install -g node-gyp
 RUN which node-gyp
 RUN node-gyp --version
-RUN npms/scrypt/get_scrypt_npm.sh
+WORKDIR /ima/npms/scrypt
+RUN ./get_scrypt_npm.sh
 
-RUN cd proxy && yarn install && cd ..
-RUN cd npms/skale-owasp && yarn install && cd ../..
-RUN cd npms/skale-ima && yarn install && cd ../..
-RUN cd agent && yarn install && cd ..
+WORKDIR /ima
+RUN yarn install
 
 CMD ["bash", "/ima/agent/run.sh"]

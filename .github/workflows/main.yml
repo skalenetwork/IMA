@@ -231,9 +231,6 @@ jobs:
         cat /proc/version || true
         echo ------------ lscpu
         lscpu || true
-        # echo ------------ lsusb
-        # sudo apt-get install usbutils || true &> /dev/null
-        # lsusb -t || echo "No lsusb available" || true
 
     - name: ESLINT
       run: |
@@ -268,8 +265,9 @@ jobs:
         echo ------------ py3 wheel - pip
         pip3 install wheel
         echo ------------ slither analyzer install
-        # pip3 install slither-analyzer
-        pip3 install slither-analyzer==0.6.8
+        #pip3 install slither-analyzer==0.8.3
+        pip3 install -r proxy/scripts/requirements.txt
+
         echo ------------ slither search attempt
         sudo find / -name slither || true
         echo ------------ slither location detection - after install
@@ -327,7 +325,7 @@ jobs:
     - name: Set up Node
       uses: actions/setup-node@v2
       with:
-        node-version: '12'
+        node-version: '16'
 
     - name: Set up Python
       uses: actions/setup-python@v2
@@ -350,7 +348,7 @@ jobs:
     - name: Start background ganache
       run: |
         cd proxy
-        NODE_OPTIONS="--max_old_space_size=3072" npx ganache-cli --gasLimit 12000000 --quiet --allowUnlimitedContractSize --acctKeys ../test/accounts.json &
+        NODE_OPTIONS="--max_old_space_size=3072" npx ganache-cli --gasLimit 12000000 --quiet --allowUnlimitedContractSize --defaultBalanceEther 2000000 --acctKeys ../test/accounts.json &
 
     - name: Prepare test (PY part)
       working-directory: ${{env.working-directory}}

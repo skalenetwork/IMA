@@ -9,7 +9,7 @@
     "scripts": {
         "compile": "npx hardhat clean && npx hardhat compile",
         "prepare": "yarn compile",
-        "postinstall": "cd ../npms/skale-owasp && yarn install && cd ../../test-tokens"
+        "postinstall": "./postinstall.sh"
     },
     "dependencies": {
         "@nomiclabs/hardhat-ethers": "^2.0.2",

@@ -18,7 +18,7 @@
 #   You should have received a copy of the GNU Affero General Public License
 #   along with SKALE IMA.  If not, see <https://www.gnu.org/licenses/>.
 
-from time import sleep, time
+from time import sleep
 from logging import debug, error
 
 from tools.test_case import TestCase
@@ -36,8 +36,10 @@ class SendERC20ToMainnet(TestCase):
         super().__init__('Send ERC20 from schain to mainnet', config)
 
     def _prepare(self):
-        amount = 2 * 10 ** 18
-        self.blockchain.recharge_user_wallet(self.config.mainnet_key, self.config.schain_name, amount)
+        sleep( 5 )
+        amountRecharge = 2 * 10 ** 18
+        self.blockchain.recharge_user_wallet(self.config.mainnet_key, self.config.schain_name, amountRecharge)
+        sleep( 5 )
 
         # deploy token
 
@@ -54,7 +56,6 @@ class SendERC20ToMainnet(TestCase):
         signed_txn = self.blockchain.web3_mainnet.eth.account.signTransaction(mint_txn,
                                                                               private_key=self.config.mainnet_key)
         self.blockchain.web3_mainnet.eth.sendRawTransaction(signed_txn.rawTransaction)
-
         self.blockchain.disableWhitelistERC20(self.config.mainnet_key, self.config.schain_name)
         self.blockchain.enableAutomaticDeployERC20(self.config.schain_key, "Mainnet")
 
@@ -65,6 +66,7 @@ class SendERC20ToMainnet(TestCase):
                                                          self.config.schain_key,
                                                          self.amount,
                                                          self.timeout)
+        sleep( 5 )
 
         amount_of_eth = 90 * 10 ** 15
 
@@ -72,9 +74,7 @@ class SendERC20ToMainnet(TestCase):
                                                        self.config.schain_key,
                                                        amount_of_eth,
                                                        self.timeout)
-
-        # self.blockchain.add_eth_cost(self.config.schain_key,
-        #                              amount_of_eth)
+        sleep( 5 )
 
         self.erc20_clone = self.blockchain.get_erc20_on_schain("Mainnet", self.erc20.address)
 
