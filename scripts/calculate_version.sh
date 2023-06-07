@@ -12,8 +12,8 @@ fi
 
 
 if [ -z "$VERSION" ]; then
-      echo "The base version is not set."
-      exit 1
+    echo "The base version is not set."
+    exit 1
 fi
 
 if [[ $BRANCH == 'stable' ]]; then
@@ -24,7 +24,7 @@ fi
 git fetch --tags > /dev/null
 
 TAG=$BRANCH
-if [[ $BRANCH == 'v*.*.*' ]]; then TAG='develop'; fi
+if [[ $BRANCH == v*.*.* ]]; then TAG='develop'; fi
 
 for (( NUMBER=0; ; NUMBER++ ))
 do
