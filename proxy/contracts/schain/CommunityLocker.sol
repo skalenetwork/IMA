@@ -191,14 +191,14 @@ contract CommunityLocker is ICommunityLockerInitializer, AccessControlEnumerable
     }
 
     /**
-     * @dev Reverts if {receiver} is not allowed to send a message.
+     * @dev Reverts if `receiver` is not allowed to send a message.
      *
      * Requirements:
      * 
      * - Function caller has to be registered in TokenManagerLinker as a TokenManager.
-     * - {receiver} must be an active user.
-     * - Previous message sent by {receiver} must be sent earlier then {timeLimitPerMessage} seconds before current time
-     * or there are no messages sent by {receiver}.
+     * - `receiver` must be an active user.
+     * - Previous message sent by `receiver` must be sent earlier then {timeLimitPerMessage} seconds before current time
+     * or there are no messages sent by `receiver`.
      */
     function checkAllowedToSendMessage(bytes32 chainHash, address receiver)
         external

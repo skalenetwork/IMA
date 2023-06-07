@@ -51,7 +51,7 @@ contract Linker is Twin, ILinker {
     mapping(bytes32 => KillProcess) public statuses;
 
     /**
-     * @dev Modifier to make a function callable only if caller is granted with {LINKER_ROLE}.
+     * @dev Modifier to make a function callable only if caller is granted with `LINKER_ROLE`.
      */
     modifier onlyLinker() {
         require(hasRole(LINKER_ROLE, msg.sender), "Linker role is required");

@@ -97,7 +97,7 @@ contract DepositBoxERC721WithMetadata is DepositBoxERC721 {
     /**
      * @dev Allows DepositBoxERC721 to receive ERC721 tokens.
      * 
-     * Emits an {ERC721TokenReady} event.
+     * Emits an `ERC721TokenReady` event.
      * 
      * Requirements:
      * 

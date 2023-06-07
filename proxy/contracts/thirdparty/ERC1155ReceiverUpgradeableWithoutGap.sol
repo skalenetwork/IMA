@@ -12,7 +12,7 @@ abstract contract ERC1155ReceiverUpgradeableWithoutGap is
     IERC1155ReceiverUpgradeable
 {
     /**
-     * @dev See {IERC165-supportsInterface}.
+     * @dev See `IERC165-supportsinterface`.
      */
     function supportsInterface(bytes4 interfaceId)
         public
