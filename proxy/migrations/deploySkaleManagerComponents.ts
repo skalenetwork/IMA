@@ -185,7 +185,7 @@ async function main() {
     };
     await keyStorage.setBlsCommonPublicKeyForSchain( ethers.utils.solidityKeccak256(['string'], [schainName]), BLSPublicKey );
     console.log("Set common public key in KeyStorage contract", keyStorage.address, "\n");
-    await wallets.rechargeSchainWallet( web3.utils.soliditySha3( schainName ), { value: "1000000000000000000" } );
+    await wallets.rechargeSchainWallet( web3.utils.soliditySha3( schainName ), { value: "10000000000000000000" } ); // originally it was 1000000000000000000 = 1ETH
     console.log("Recharge schain wallet in Wallets contract", wallets.address, "\n");
 
     const jsonObject = {
