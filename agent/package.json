@@ -4,19 +4,23 @@
     "license": "AGPL-3.0",
     "author": "SKALE Labs and contributors",
     "scripts": {
-        "postinstall": "echo \"----- installing in OWASP\n\" && cd ../npms/skale-owasp && yarn install && cd ../../agent && echo \"----- installing in IMA CORE\n\" && cd ../npms/skale-ima && yarn install && cd ../../agent && echo \"----- installing in IMA OBSERVER\n\" && cd ../npms/skale-observer && yarn install && cd ../../agent"
+        "postinstall": "./postinstall.sh",
+        "check-outdated": "yarn outdated",
+        "upgrade-to-latest": "yarn upgrade --latest"
     },
     "dependencies": {
-        "js-sha3": "^0.8.0",
         "number-to-bn": "^1.7.0",
-        "ethereumjs-tx": "2.1.2",
-        "ethereumjs-wallet": "^1.0.2",
-        "ethereumjs-util": "^7.1.4",
-        "web3": "^1.6.1",
-        "uuid": "8.3.2",
-        "ws": "^8.6.0",
-        "urllib": "2.38.0",
+        "ethers": "^5.7.2",
+        "@ethersproject/experimental": "^5.7.0",
+        "solc": "0.8.6",        
+        "uuid": "^9.0.0",
+        "express": "^4.18.2",
+        "body-parser": "^1.20.1",
+        "jayson": "^4.0.0",
+        "ws": "^8.12.0",
+        "urllib": "^3.10.1",
         "sha3": "2.1.4",
+        "serve-static": "^1.15.0",
         "shelljs": "^0.8.5"
     },
     "devDependencies": {},
@@ -28,3 +32,5 @@
         "scrypt.js/scrypt": "file:../npms/scrypt/node-scrypt"
     }
 }
+
+
