@@ -57,6 +57,6 @@ class TestRunner:
                 if test.is_passed():
                     info(f'Test "{test_name}" passed')
                 else:
-                    error(f'Test "{test_name}" failed')
+                    error(f'CRITICAL INTEGRATION TEST ERROR: Test "{test_name}" failed')
                     exit(1)
         info('All tests passed')
