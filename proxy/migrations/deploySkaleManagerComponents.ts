@@ -23,9 +23,9 @@
  * @copyright SKALE Labs 2021-Present
  */
 import { promises as fs } from 'fs';
-import { ethers, artifacts, web3 } from "hardhat";
+import { ethers, web3 } from "hardhat";
 import { getAbi, getContractFactory } from '@skalenetwork/upgrade-tools';
-import { Manifest, hashBytecode } from "@openzeppelin/upgrades-core";
+import { Manifest } from "@openzeppelin/upgrades-core";
 import { KeyStorageMock } from '../typechain/KeyStorageMock';
 import { Wallet } from 'ethers';
 import { getPublicKey } from '../test/utils/helper';
