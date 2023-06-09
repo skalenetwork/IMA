@@ -24,12 +24,11 @@
  */
 import { promises as fs } from 'fs';
 import { Interface } from "ethers/lib/utils";
-import { ethers, upgrades, artifacts, web3 } from "hardhat";
+import { ethers, upgrades, web3 } from "hardhat";
 import { MessageProxyForMainnet, Linker } from "../typechain";
-import { deployLibraries, getLinkedContractFactory } from "./tools/factory";
-import { getAbi } from '@skalenetwork/upgrade-tools';
+import { getAbi, getContractFactory } from '@skalenetwork/upgrade-tools';
 import { verifyProxy } from './tools/verification';
-import { Manifest, hashBytecode } from "@openzeppelin/upgrades-core";
+import { Manifest } from "@openzeppelin/upgrades-core";
 import { getVersion } from './tools/version';
 
 export function getContractKeyInAbiFile(contract: string) {
@@ -42,35 +41,6 @@ export function getContractKeyInAbiFile(contract: string) {
 export async function getManifestFile(): Promise<string> {
     return (await Manifest.forNetwork(ethers.provider)).file;;
 }
-
-export async function getContractFactory(contract: string) {
-    const { linkReferences } = await artifacts.readArtifact(contract);
-    if (!Object.keys(linkReferences).length)
-        return await ethers.getContractFactory(contract);
-
-    const libraryNames = [];
-    for (const key of Object.keys(linkReferences)) {
-        const libraryName = Object.keys(linkReferences[key])[0];
-        libraryNames.push(libraryName);
-    }
-
-    const libraries = await deployLibraries(libraryNames);
-    const libraryArtifacts: {[key: string]: any} = {};
-    for (const libraryName of Object.keys(libraries)) {
-        const { bytecode } = await artifacts.readArtifact(libraryName);
-        libraryArtifacts[libraryName] = {"address": libraries[libraryName], "bytecodeHash": hashBytecode(bytecode)};
-    }
-    let manifest: any;
-    try {
-        manifest = JSON.parse(await fs.readFile(await getManifestFile(), "utf-8"));
-        Object.assign(libraryArtifacts, manifest.libraries);
-    } finally {
-        Object.assign(manifest, {libraries: libraryArtifacts});
-        await fs.writeFile(await getManifestFile(), JSON.stringify(manifest, null, 4));
-    }
-    return await getLinkedContractFactory(contract, libraries);
-}
-
 
 export function getContractManager() {
     const defaultFilePath = "../data/skaleManagerComponents.json";
