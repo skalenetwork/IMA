@@ -24,10 +24,10 @@
  */
 import { promises as fs } from 'fs';
 import { Interface } from "ethers/lib/utils";
-import { ethers, artifacts, upgrades } from "hardhat";
+import { ethers, upgrades } from "hardhat";
 import hre from "hardhat";
-import { getAbi, getContractFactory } from '@skalenetwork/upgrade-tools';
-import { Manifest, hashBytecode } from "@openzeppelin/upgrades-core";
+import { getAbi, getVersion } from '@skalenetwork/upgrade-tools';
+import { Manifest } from "@openzeppelin/upgrades-core";
 import { getManifestAdmin } from "@openzeppelin/hardhat-upgrades/dist/admin";
 import { Contract } from '@ethersproject/contracts';
 import {
@@ -43,7 +43,6 @@ import {
     MessageProxyForSchainWithoutSignature
 } from '../typechain';
 import { TokenManagerERC1155 } from '../typechain/TokenManagerERC1155';
-import { getVersion } from './tools/version';
 
 export function getContractKeyInAbiFile(contract: string): string {
     if (contract === "MessageProxyForSchain") {

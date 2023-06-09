@@ -26,9 +26,8 @@ import { promises as fs } from 'fs';
 import { Interface } from "ethers/lib/utils";
 import { ethers, upgrades, web3 } from "hardhat";
 import { MessageProxyForMainnet, Linker } from "../typechain";
-import { getAbi, getContractFactory, verifyProxy } from '@skalenetwork/upgrade-tools';
+import { getAbi, getContractFactory, verifyProxy, getVersion } from '@skalenetwork/upgrade-tools';
 import { Manifest } from "@openzeppelin/upgrades-core";
-import { getVersion } from './tools/version';
 
 export function getContractKeyInAbiFile(contract: string) {
     if (contract === "MessageProxyForMainnet") {
