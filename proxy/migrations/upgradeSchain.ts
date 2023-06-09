@@ -72,7 +72,7 @@ async function main() {
     await manifestSetup(pathToManifest);
     const upgrader = new ImaSchainUpgrader(
         "proxySchain",
-        "1.3.4",
+        "1.4.0",
         await getImaSchainAbiAndAddress(),
         contracts
     );
