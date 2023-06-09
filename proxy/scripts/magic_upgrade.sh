@@ -25,22 +25,22 @@ fi
 
 IMA_RELEASES_URL="https://github.com/skalenetwork/IMA/releases/download/"
 cd data/
-rm -f ima-$DEPLOYED_VERSION-predeployed-abi.json
-wget $IMA_RELEASES_URL/$DEPLOYED_VERSION/ima-$DEPLOYED_VERSION-predeployed-abi.json
+rm -f "ima-$DEPLOYED_VERSION-predeployed-abi.json"
+wget "$IMA_RELEASES_URL/$DEPLOYED_VERSION/ima-$DEPLOYED_VERSION-predeployed-abi.json"
 cd ../scripts/
-wget $IMA_RELEASES_URL/$DEPLOYED_VERSION/ima-schain-$DEPLOYED_VERSION-manifest.json
-python3 updateManifest.py ima-schain-$DEPLOYED_VERSION-manifest.json
-mv ima-schain-$DEPLOYED_VERSION-manifest.json ../.openzeppelin/unknown-$SCHAIN_ID.json
+wget "$IMA_RELEASES_URL/$DEPLOYED_VERSION/ima-schain-$DEPLOYED_VERSION-manifest.json"
+python3 updateManifest.py "ima-schain-$DEPLOYED_VERSION-manifest.json"
+mv "ima-schain-$DEPLOYED_VERSION-manifest.json" "../.openzeppelin/unknown-$SCHAIN_ID.json"
 cd ..
 
 git clone https://github.com/skalenetwork/skale-network.git
 MAINNET_STABLE_IMA_VERSION=$(ls skale-network/releases/mainnet/IMA/ | sort -r | head -n 1)
-cp skale-network/releases/mainnet/IMA/$MAINNET_STABLE_IMA_VERSION/mainnet/abi.json data/ima-$MAINNET_STABLE_IMA_VERSION-mainnet-abi.json
+cp "skale-network/releases/mainnet/IMA/$MAINNET_STABLE_IMA_VERSION/mainnet/abi.json" "data/ima-$MAINNET_STABLE_IMA_VERSION-mainnet-abi.json"
 rm -r --interactive=never skale-network/
 
 if [[ $MAINNET_CHAIN_ID != "1" ]]; then
     if [[ $MESSAGE_PROXY_MAINNET_ADDRESS ]]; then
-        sed -i '2s/.*/    "message_proxy_mainnet_address": "'"$MESSAGE_PROXY_MAINNET_ADDRESS"'",/' data/ima-$MAINNET_STABLE_IMA_VERSION-mainnet-abi.json
+        sed -i '2s/.*/    "message_proxy_mainnet_address": "'"$MESSAGE_PROXY_MAINNET_ADDRESS"'",/' "data/ima-$MAINNET_STABLE_IMA_VERSION-mainnet-abi.json"
     else
         echo "Set MESSAGE_PROXY_MAINNET_ADDRESS"
         exit 1
