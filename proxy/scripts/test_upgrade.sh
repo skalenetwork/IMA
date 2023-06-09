@@ -32,8 +32,6 @@ PRIVATE_KEY_FOR_SCHAIN=$(cat "$ACCOUNTS_FILENAME" | jq -r '.private_keys | to_en
 CHAIN_NAME_SCHAIN="Test" VERSION="$DEPLOYED_VERSION" PRIVATE_KEY_FOR_ETHEREUM="$PRIVATE_KEY_FOR_ETHEREUM" PRIVATE_KEY_FOR_SCHAIN="$PRIVATE_KEY_FOR_SCHAIN" npx hardhat run migrations/deploySkaleManagerComponents.ts --network localhost
 VERSION="$DEPLOYED_VERSION" npx hardhat run migrations/deployMainnet.ts --network localhost
 CHAIN_NAME_SCHAIN="Test" VERSION="$DEPLOYED_VERSION" npx hardhat run migrations/deploySchain.ts --network localhost
-cp "$GITHUB_WORKSPACE/proxy/migrations/generateManifest.ts" ./migrations/generateManifest.ts
-cp "$GITHUB_WORKSPACE/proxy/migrations/changeManifest.ts" ./migrations/changeManifest.ts
 
 ABI_FILENAME_SCHAIN="proxySchain_Test.json"
 ABI="data/$ABI_FILENAME_SCHAIN" \
