@@ -26,8 +26,7 @@ import { promises as fs } from 'fs';
 import { Interface } from "ethers/lib/utils";
 import { ethers, upgrades, web3 } from "hardhat";
 import { MessageProxyForMainnet, Linker } from "../typechain";
-import { getAbi, getContractFactory } from '@skalenetwork/upgrade-tools';
-import { verifyProxy } from './tools/verification';
+import { getAbi, getContractFactory, verifyProxy } from '@skalenetwork/upgrade-tools';
 import { Manifest } from "@openzeppelin/upgrades-core";
 import { getVersion } from './tools/version';
 
