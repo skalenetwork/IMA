@@ -27,8 +27,8 @@ import { Interface } from "ethers/lib/utils";
 import { ethers, upgrades, artifacts, web3 } from "hardhat";
 import { MessageProxyForMainnet, Linker } from "../typechain";
 import { deployLibraries, getLinkedContractFactory } from "./tools/factory";
-import { getAbi } from './tools/abi';
-import { verify, verifyProxy } from './tools/verification';
+import { getAbi } from '@skalenetwork/upgrade-tools';
+import { verifyProxy } from './tools/verification';
 import { Manifest, hashBytecode } from "@openzeppelin/upgrades-core";
 import { getVersion } from './tools/version';
 
@@ -223,12 +223,19 @@ async function main() {
     const outputObject: {[k: string]: any} = {};
     for (const contract of contracts) {
         const contractKey = getContractKeyInAbiFile(contract);
-        outputObject[contractKey + "_address"] = deployed.get(contract)?.address;
-        outputObject[contractKey + "_abi"] = getAbi(deployed.get(contract)?.interface);
+        const deployedContract = deployed.get(contract);
+        if (deployedContract === undefined) {
+            throw Error(`Contract ${contract} was not found`);
+        }
+        outputObject[contractKey + "_address"] = deployedContract.address;
+        outputObject[contractKey + "_abi"] = getAbi(deployedContract.interface);
     }
-
-    outputObject[getContractKeyInAbiFile("DepositBoxERC721WithMetadata") + "_address"] = deployed.get("DepositBoxERC721WithMetadata")?.address;
-    outputObject[getContractKeyInAbiFile("DepositBoxERC721WithMetadata") + "_abi"] = getAbi(deployed.get("DepositBoxERC721WithMetadata")?.interface);
+    const deployedDepositBoxERC721WithMetadata = deployed.get("DepositBoxERC721WithMetadata");
+    if (deployedDepositBoxERC721WithMetadata === undefined) {
+        throw new Error("DepositBoxERC721WithMetadata was not found");
+    }
+    outputObject[getContractKeyInAbiFile("DepositBoxERC721WithMetadata") + "_address"] = deployedDepositBoxERC721WithMetadata.address;
+    outputObject[getContractKeyInAbiFile("DepositBoxERC721WithMetadata") + "_abi"] = getAbi(deployedDepositBoxERC721WithMetadata.interface);
 
     await fs.writeFile("data/proxyMainnet.json", JSON.stringify(outputObject, null, 4));
 

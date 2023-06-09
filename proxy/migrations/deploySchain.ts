@@ -27,7 +27,7 @@ import { Interface } from "ethers/lib/utils";
 import { ethers, artifacts, upgrades } from "hardhat";
 import hre from "hardhat";
 import { deployLibraries, getLinkedContractFactory } from "./tools/factory";
-import { getAbi } from './tools/abi';
+import { getAbi } from '@skalenetwork/upgrade-tools';
 import { Manifest, hashBytecode } from "@openzeppelin/upgrades-core";
 import { getManifestAdmin } from "@openzeppelin/hardhat-upgrades/dist/admin";
 import { Contract } from '@ethersproject/contracts';
@@ -309,11 +309,21 @@ async function main() {
     for( const contractName of contracts ) {
         const propertyName = getContractKeyInAbiFile(contractName);
 
-        jsonObjectABI[propertyName + "_address"] = deployed.get( contractName )?.address;
-        jsonObjectABI[propertyName + "_abi"] = getAbi(deployed.get( contractName )?.interface);
+        const deployedContract = deployed.get(contractName);
+        if (deployedContract === undefined) {
+            throw Error(`Contract ${contractName} was not found`);
+        } else {
+            jsonObjectABI[propertyName + "_address"] = deployedContract.address;
+            jsonObjectABI[propertyName + "_abi"] = getAbi(deployedContract.interface);
+        }
     }
-    jsonObjectABI[getContractKeyInAbiFile("TokenManagerERC721WithMetadata") + "_address"] = deployed.get( "TokenManagerERC721WithMetadata" )?.address;
-    jsonObjectABI[getContractKeyInAbiFile("TokenManagerERC721WithMetadata") + "_abi"] = getAbi(deployed.get( "TokenManagerERC721WithMetadata" )?.interface);
+    const deployedTokenManagerERC721WithMetadata = deployed.get( "TokenManagerERC721WithMetadata" );
+    if (deployedTokenManagerERC721WithMetadata === undefined) {
+        throw new Error("TokenManagerERC721WithMetadata was not found");
+    } else {
+        jsonObjectABI[getContractKeyInAbiFile("TokenManagerERC721WithMetadata") + "_address"] = deployedTokenManagerERC721WithMetadata.address;
+        jsonObjectABI[getContractKeyInAbiFile("TokenManagerERC721WithMetadata") + "_abi"] = getAbi(deployedTokenManagerERC721WithMetadata.interface);
+    }
     const erc20OnChainFactory = await ethers.getContractFactory("ERC20OnChain");
     jsonObjectABI.ERC20OnChain_abi = getAbi(erc20OnChainFactory.interface);
     const erc721OnChainFactory = await ethers.getContractFactory("ERC721OnChain");
