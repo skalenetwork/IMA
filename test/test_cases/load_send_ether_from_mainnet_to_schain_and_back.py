@@ -22,7 +22,7 @@ from logging import debug
 
 from tools.test_case import TestCase
 from tools.test_pool import test_pool
-import time
+from time import sleep
 
 
 class SendEtherFromSchainToMainnetAndBack(TestCase):
@@ -31,19 +31,19 @@ class SendEtherFromSchainToMainnetAndBack(TestCase):
         super().__init__('load_send_ether_from_mainnet_to_schain_and_back', config)
 
     def _execute(self):
-        amount = 2 * 10 ** 18
-        self.blockchain.recharge_user_wallet(self.config.mainnet_key, self.config.schain_name, amount)
-        #
+        amountRecharge = 2 * 10 ** 18
+        self.blockchain.recharge_user_wallet(self.config.mainnet_key, self.config.schain_name, amountRecharge)
+        sleep( 5 )
         range_int = 5
         # ETH
         eth_amount = 12 * 10 ** 18
-        #
         address = self.blockchain.key_to_address(self.config.mainnet_key)
         #  transfer to schain
         self.agent.transfer_eth_from_mainnet_to_schain(self.config.mainnet_key,
                                                        self.config.schain_key,
                                                        eth_amount,
                                                        self.timeout)
+        sleep( 5 )
         #
         balance = self.blockchain.get_balance_on_schain(address)
         initial_balance = balance
@@ -59,19 +59,27 @@ class SendEtherFromSchainToMainnetAndBack(TestCase):
                                                            self.config.schain_key,
                                                            amount,
                                                            self.timeout)
-            time.sleep(2)
+            sleep( 5 )
             # back to mainnet
             self.agent.transfer_eth_from_schain_to_mainnet(self.config.mainnet_key,
                                                            self.config.schain_key,
                                                            amount_from_schain,
                                                            self.timeout)
+            sleep( 5 )
             self.blockchain.get_balance_on_schain(address)
             a = 0
         #
         balance = self.blockchain.get_balance_on_schain(address)
+        print( 'Real balance.......', balance )
+        needed_balance = initial_balance + range_int * amount - range_int * amount_from_schain
+        print( 'Needed balance.....', needed_balance )
+
         res = initial_balance - range_int * amount
-        if balance == initial_balance + range_int * amount - range_int * amount_from_schain:
+        if balance == needed_balance:
+            print( 'Passed.............', 'YES!' )
             self._mark_passed()
+        else:
+            print( 'Passed.............', 'NO(' )
 
 
 test_pool.register_test(SendEtherFromSchainToMainnetAndBack)

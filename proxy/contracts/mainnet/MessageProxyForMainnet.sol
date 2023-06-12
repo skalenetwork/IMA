@@ -117,7 +117,7 @@ contract MessageProxyForMainnet is SkaleManagerClient, MessageProxy, IMessagePro
         bytes32 indexed schainHash
     );
 
-   /**
+    /**
      * @dev Emitted when reimbursed contract was added
      */
     event ReimbursedContractAdded(
@@ -125,7 +125,7 @@ contract MessageProxyForMainnet is SkaleManagerClient, MessageProxy, IMessagePro
         address contractAddress
     );
 
-   /**
+    /**
      * @dev Emitted when reimbursed contract was removed
      */
     event ReimbursedContractRemoved(

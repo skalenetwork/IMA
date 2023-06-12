@@ -4,7 +4,7 @@ on:
   pull_request:
     types: [closed]
     branches:
-      - master
+      - 'v*.*.*'
       - develop
       - beta
       - stable
@@ -58,7 +58,7 @@ jobs:
         export VERSION=$(bash ./scripts/calculate_version.sh)
         echo "VERSION=$VERSION" >> $GITHUB_ENV
         echo "Version $VERSION"
-        ( test $BRANCH = "stable" || test $BRANCH = "master" && export PRERELEASE=false ) || export PRERELEASE=true
+        ( test $BRANCH = "stable" && export PRERELEASE=false ) || export PRERELEASE=true
         echo "PRERELEASE=$PRERELEASE" >> $GITHUB_ENV
         echo ------------ download binaries
         LIB_BLS_RELEASE_TAG=${{ secrets.LIB_BLS_RELEASE_TAG }} bash ./scripts/download_binaries.sh

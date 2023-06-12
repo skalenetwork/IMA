@@ -19,7 +19,7 @@
 #   along with SKALE IMA.  If not, see <https://www.gnu.org/licenses/>.
 
 import os
-import time
+from time import sleep
 
 from helper import get_random_endpoint, get_schain_creds_file, get_abi_filename, get_abi_project_path, \
     get_schain_dir_path
@@ -55,7 +55,7 @@ def copy_abi_on_nodes(schain_nodes, schain_name):
         cmd = f'scp -o StrictHostKeyChecking=no {abi_project_path} {node_user}@{node_ip}:{abi_path_on_node}/proxy.json'
         print(f'Uploading to {node_ip}...', '\n', cmd)
         os.system(cmd)
-        time.sleep(20)
+        sleep( 20 )
 
 
 if __name__ == '__main__':

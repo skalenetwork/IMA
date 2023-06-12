@@ -23,7 +23,7 @@ def check_message_proxy_for_schain(owner_address, schain_name):
         raise AssertionError
     if not message_proxy_for_schain.functions.keyStorage().call() == KEY_STORAGE_ADDRESS:
         raise AssertionError
-    if not message_proxy_for_schain.functions.schainHash().call() == w3.solidityKeccak(['string'], [schain_name]):
+    if not message_proxy_for_schain.functions.schainHash().call() == w3.solidity_keccak(['string'], [schain_name]):
         raise AssertionError
     if not message_proxy_for_schain.functions.getIncomingMessagesCounter('Mainnet').call() == 0:
         raise AssertionError
